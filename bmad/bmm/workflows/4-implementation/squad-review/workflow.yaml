@@ -1,0 +1,49 @@
+name: squad-review
+description: "Conducts a squad review of a story before it is marked as done."
+
+instructions:
+  - step: 1
+    goal: "Assign reviewers"
+    action: "echo 'Assigning SM and TEA as reviewers'"
+
+  - step: 2
+    goal: "SM Review"
+    invoke-task: "bmad/bmm/tasks/story-review.xml"
+    input:
+      story: "{{story}}"
+      reviewer: "Scrum Master"
+    output:
+      sm_feedback: "{{sm_feedback}}"
+
+  - step: 3
+    goal: "TEA Review"
+    invoke-task: "bmad/bmm/tasks/story-review.xml"
+    input:
+      story: "{{story}}"
+      reviewer: "Test Architect"
+    output:
+      tea_feedback: "{{tea_feedback}}"
+
+  - step: 4
+    goal: "Consolidate feedback"
+    template-output: |
+      ## Squad Review Summary
+
+      ### Scrum Master Feedback
+      {{sm_feedback}}
+
+      ### Test Architect Feedback
+      {{tea_feedback}}
+
+  - step: 5
+    goal: "Update story status"
+    ask: "Was the review successful? (y/n)"
+    output:
+      is_successful: "{{is_successful}}"
+
+  - step: 6
+    goal: "Update story status"
+    check-if: "{{is_successful}} == 'y'"
+    action: "update-story-status -s done"
+    else:
+      action: "update-story-status -s in-progress"

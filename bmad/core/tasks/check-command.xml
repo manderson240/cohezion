@@ -1,0 +1,21 @@
+<task id="bmad/core/tasks/check-command.xml" name="Check Command">
+  <objective>Check if a command is appropriate for the Cloud Shell environment.</objective>
+  <inputs>
+    <input name="command" type="string" required="true" />
+  </inputs>
+  <outputs>
+    <output name="is_appropriate" type="boolean" />
+    <output name="reason" type="string" />
+  </outputs>
+  <action>
+    <!-- Placeholder for more sophisticated logic -->
+    <if contains="apt-get|yum|docker|sudo" value="{{command}}">
+      <set-output name="is_appropriate" value="false" />
+      <set-output name="reason" value="This command is not recommended for the Cloud Shell environment, as it may lead to unexpected behavior or performance issues." />
+    </if>
+    <else>
+      <set-output name="is_appropriate" value="true" />
+      <set-output name="reason" value="This command seems appropriate for the Cloud Shell environment." />
+    </else>
+  </action>
+</task>

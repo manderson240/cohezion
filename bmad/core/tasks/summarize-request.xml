@@ -1,0 +1,13 @@
+<task id="bmad/core/tasks/summarize-request.xml" name="Summarize Request">
+  <objective>Summarize a natural language request.</objective>
+  <inputs>
+    <input name="request" type="string" required="true" />
+  </inputs>
+  <outputs>
+    <output name="summarized_intent" type="string" />
+  </outputs>
+  <action>
+    <!-- Placeholder for LLM call -->
+    <set-output name="summarized_intent" value="Summary of: {{request}}" />
+  </action>
+</task>

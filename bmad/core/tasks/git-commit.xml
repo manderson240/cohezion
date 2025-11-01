@@ -1,0 +1,10 @@
+<task id="bmad/core/tasks/git-commit.xml" name="Git Commit">
+  <objective>Commit changes to the git repository.</objective>
+  <inputs>
+    <input name="message" type="string" required="true" />
+  </inputs>
+  <action>
+    <run-shell-command>git add .</run-shell-command>
+    <run-shell-command>git commit -m "{{message}}"</run-shell-command>
+  </action>
+</task>

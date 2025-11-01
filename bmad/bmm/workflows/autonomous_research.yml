@@ -1,0 +1,11 @@
+workflow: "Autonomous Research"
+title: "Conduct Autonomous Research on a Topic"
+description: "A workflow for conducting autonomous research, synthesizing findings, and generating a structured report."
+tasks:
+  - "Define clear research questions based on the initial request."
+  - "Execute parallel web searches to gather a broad range of information."
+  - "Synthesize the research findings, identifying key insights and patterns."
+  - "Structure the findings into a clear and concise report in YAML format."
+  - "Present the report to the user for review and feedback."
+squad:
+  - "analyst"
