@@ -1,0 +1,15 @@
+name: commit
+description: "Commits changes to the git repository."
+
+instructions:
+  - step: 1
+    goal: "Get the commit message"
+    ask: "Please provide a commit message:"
+    output:
+      message: "{{user_input}}"
+
+  - step: 2
+    goal: "Commit the changes"
+    invoke-task: "bmad/core/tasks/git-commit.xml"
+    input:
+      message: "{{message}}"

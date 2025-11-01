@@ -1,0 +1,14 @@
+<task id="bmad/core/tasks/validate-intent.xml" name="Validate Intent">
+  <objective>Validate that the summarized intent preserves the core meaning of the original request.</objective>
+  <inputs>
+    <input name="original_request" type="string" required="true" />
+    <input name="summarized_intent" type="string" required="true" />
+  </inputs>
+  <outputs>
+    <output name="is_valid" type="boolean" />
+  </outputs>
+  <action>
+    <!-- Placeholder for LLM call -->
+    <set-output name="is_valid" value="true" />
+  </action>
+</task>

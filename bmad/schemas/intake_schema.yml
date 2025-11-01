@@ -1,0 +1,35 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Intake Specialist Output Schema
+description: Defines the structure of the YAML output from the Intake Specialist.
+type: object
+properties:
+  original_request:
+    description: The original natural language request from the user.
+    type: string
+  summarized_intent:
+    description: A concise summary of the user's core intent.
+    type: string
+  entities:
+    description: A list of key entities extracted from the request.
+    type: array
+    items:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        value:
+          type: string
+      required:
+        - name
+        - type
+        - value
+  keywords:
+    description: A list of important keywords.
+    type: array
+    items:
+      type: string
+required:
+  - original_request
+  - summarized_intent

@@ -1,0 +1,6 @@
+[tool.black]
+line-length = 88
+
+[tool.ruff]
+select = ["E", "F", "W"]
+ignore = []

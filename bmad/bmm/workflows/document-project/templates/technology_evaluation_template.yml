@@ -1,0 +1,20 @@
+template: "Technology Evaluation"
+title: "Technology Evaluation Template"
+description: "A template for evaluating and comparing different technologies."
+fields:
+  - name: "database"
+    type: "string"
+    description: "The name of the technology being evaluated."
+  - name: "pros"
+    type: "array"
+    items:
+      type: "string"
+    description: "A list of the pros of the technology."
+  - name: "cons"
+    type: "array"
+    items:
+      type: "string"
+    description: "A list of the cons of the technology."
+  - name: "verdict"
+    type: "string"
+    description: "The final recommendation or verdict on the technology."

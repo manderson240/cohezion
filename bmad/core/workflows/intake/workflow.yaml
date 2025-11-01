@@ -1,0 +1,51 @@
+name: intake
+description: "Processes a natural language request, summarizes it, and structures it into a YAML format."
+default_output_file: "{project-root}/output/intake/{date}-{request_slug}.yaml"
+
+instructions:
+  - step: 1
+    goal: "Summarize the user's request"
+    invoke-task: "bmad/core/tasks/summarize-request.xml"
+    input:
+      request: "{{request}}"
+    output:
+      summarized_intent: "{{summarized_intent}}"
+
+  - step: 2
+    goal: "Validate the intent"
+    invoke-task: "bmad/core/tasks/validate-intent.xml"
+    input:
+      original_request: "{{request}}"
+      summarized_intent: "{{summarized_intent}}"
+    output:
+      is_valid: "{{is_valid}}"
+
+  - step: 3
+    goal: "Check if intent is valid"
+    check-if: "{{is_valid}} == false"
+    action: "HALT: Intent validation failed: The summarized intent does not seem to preserve the original meaning."
+
+  - step: 4
+    goal: "Extract entities and keywords"
+    invoke-task: "bmad/core/tasks/extract-entities-and-keywords.xml"
+    input:
+      request: "{{request}}"
+    output:
+      entities: "{{entities}}"
+      keywords: "{{keywords}}"
+
+  - step: 5
+    goal: "Structure the output"
+    template-output: |
+      original_request: "{{request}}"
+      summarized_intent: "{{summarized_intent}}"
+      entities: {{entities}}
+      keywords: {{keywords}}
+
+  - step: 6
+    goal: "Validate the output against the schema"
+    action: "validate -s bmad/schemas/intake_schema.yml -d {output_file}"
+
+  - step: 7
+    goal: "Return the YAML output"
+    action: "cat {output_file}"
