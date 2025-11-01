@@ -1,0 +1,40 @@
+name: repository-management-workflow
+description: "A workflow to research, decide, and implement a repository management workflow."
+
+instructions:
+  - step: 1
+    goal: "Research branching strategies and commit message conventions"
+    invoke-task: "bmad/bmm/workflows/1-analysis/research/workflow.yaml"
+    input:
+      research_topic: "Git branching strategies and commit message conventions"
+      output_file: "{project-root}/docs/repository-management-research.md"
+
+  - step: 2
+    goal: "Debate and reach consensus on a standard"
+    invoke-task: "bmad/bmm/workflows/4-implementation/squad-review/workflow.yaml"
+    input:
+      review_document: "{project-root}/docs/repository-management-research.md"
+      squad:
+        - "architect"
+        - "dev"
+        - "tea"
+      facilitator: "sm"
+      output_file: "{project-root}/docs/repository-management-decision.md"
+
+  - step: 3
+    goal: "Implement the chosen standard"
+    invoke-task: "bmad/bmm/workflows/4-implementation/dev-story/workflow.yaml"
+    input:
+      story: "006_repository_management_workflow.yml"
+      tasks:
+        - "Implement the chosen branching strategy."
+        - "Implement the chosen commit message convention."
+        - "Create a pre-commit hook to enforce the commit message convention."
+
+  - step: 4
+    goal: "Update the documentation"
+    invoke-task: "bmad/bmm/workflows/4-implementation/dev-story/workflow.yaml"
+    input:
+      story: "006_repository_management_workflow.yml"
+      tasks:
+        - "Update the CONTRIBUTING.md file with the new guidelines."
