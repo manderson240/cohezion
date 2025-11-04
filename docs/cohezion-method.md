@@ -4,7 +4,7 @@ This document codifies the official development methodology of the Cohezion plat
 
 ## Core Principles
 
-The Cohezion Method is built on the following thirteen core principles:
+The Cohezion Method is built on the following fourteen core principles:
 
 1.  **A Story-Driven Core**: Every piece of work, from a simple bug fix to a major new feature, must be initiated by a story. The story is the single source of truth for the work to be done.
 
@@ -31,3 +31,5 @@ The Cohezion Method is built on the following thirteen core principles:
 12. **Challenger/Solver Co-evolution**: We will foster a co-evolutionary dynamic between our agents, inspired by the R-Zero paper. Agents can dynamically take on the role of a 'Challenger', proposing difficult problems, or a 'Solver', working to solve them. This continuous interaction will create a self-improving curriculum that enhances the reasoning and problem-solving capabilities of the entire platform.
 
 13. **Markovian Thinking**: We will embrace the Markovian Thinking paradigm to enable efficient, long-horizon reasoning. Our agentic workflows will be designed as a series of 'Delethink' chunks, where the context is reset at each boundary to a fresh prompt with the original question plus a short carryover. This will allow for much more complex and long-running processes without the computational burden of an ever-growing context.
+
+14. **Context Engineering Infrastructure**: We will build a dedicated Context Engineering Infrastructure, inspired by Context Space. This will provide a single, unified, and secure API for our agents to interact with all external tools, data, and services. This will be the bridge between our agentic minds and the real world.
