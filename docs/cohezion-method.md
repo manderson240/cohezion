@@ -4,7 +4,7 @@ This document codifies the official development methodology of the Cohezion plat
 
 ## Core Principles
 
-The Cohezion Method is built on the following eleven core principles:
+The Cohezion Method is built on the following twelve core principles:
 
 1.  **A Story-Driven Core**: Every piece of work, from a simple bug fix to a major new feature, must be initiated by a story. The story is the single source of truth for the work to be done.
 
@@ -27,3 +27,5 @@ The Cohezion Method is built on the following eleven core principles:
 10. **Self-Healing**: The platform will have the ability to not only detect problems, but to diagnose their root causes and to apply solutions automatically. This is the ultimate form of proactive problem-solving and a key component of a truly autonomous system.
 
 11. **Hierarchical Reasoning**: We will adopt a hierarchical reasoning model, inspired by the human brain. Our agentic ecosystem will be composed of a high-level module for slow, abstract planning (our 'Thinker' agents) and a low-level module for rapid, detailed computations (our 'Doer' agents). This separation of concerns will allow us to tackle more complex problems in a more efficient and robust manner.
+
+12. **Challenger/Solver Co-evolution**: We will foster a co-evolutionary dynamic between our agents, inspired by the R-Zero paper. Agents can dynamically take on the role of a 'Challenger', proposing difficult problems, or a 'Solver', working to solve them. This continuous interaction will create a self-improving curriculum that enhances the reasoning and problem-solving capabilities of the entire platform.
