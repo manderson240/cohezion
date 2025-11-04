@@ -1,0 +1,8 @@
+story_id: 009
+title: "Create a 'YML First' Enforcement Mechanism"
+description: "As a developer, I want a mechanism to enforce our 'YML First' principle, so that we can maintain a consistent and token-optimized codebase."
+acceptance_criteria:
+  - "AC1: A pre-commit hook is created."
+  - "AC2: The pre-commit hook checks all staged files."
+  - "AC3: The pre-commit hook prevents commits if any new schema or configuration files are not in YAML format (i.e., have a `.json` extension)."
+  - "AC4: The pre-commit hook allows commits if all new schema and configuration files are in YAML format."
