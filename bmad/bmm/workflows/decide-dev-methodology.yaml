@@ -1,0 +1,20 @@
+name: decide-dev-methodology
+description: "A workflow to facilitate a democratic agentic AI consensus on the best development methodology for the Cohezion platform."
+
+instructions:
+  - step: 1
+    goal: "Initiate the agentic discussion on development methodologies"
+    invoke-task: "bmad/core/workflows/party-mode/workflow.yaml"
+    input:
+      initial_prompt: "Team, we need to decide on the best development methodology for the Cohezion platform. We need to consider story-driven development, test-driven development, and other approaches. Our goal is to maintain maximum cohesion in an autonomous agentic AI development platform with a human-in-the-loop for context coordination. Let's discuss the pros and cons of each approach and try to reach a consensus."
+
+  - step: 2
+    goal: "Summarize the discussion and the consensus"
+    invoke-agent: "bmm-architect" # Or bmm-pm
+    prompt: "Summarize the previous discussion on development methodologies. What was the final consensus? What are the key takeaways?"
+    output_variable: "discussion_summary"
+
+  - step: 3
+    goal: "Codify the chosen development methodology"
+    invoke-agent: "bmm-architect"
+    prompt: "Based on the following summary of the agent discussion, create a document that codifies the chosen development methodology for the Cohezion platform. The document should be in markdown format and should be saved to 'docs/development-methodology.md'.\n\nSummary:\n{{discussion_summary}}"
