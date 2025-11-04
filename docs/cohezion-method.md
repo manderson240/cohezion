@@ -4,7 +4,7 @@ This document codifies the official development methodology of the Cohezion plat
 
 ## Core Principles
 
-The Cohezion Method is built on the following eight core principles:
+The Cohezion Method is built on the following ten core principles:
 
 1.  **A Story-Driven Core**: Every piece of work, from a simple bug fix to a major new feature, must be initiated by a story. The story is the single source of truth for the work to be done.
 
@@ -21,3 +21,7 @@ The Cohezion Method is built on the following eight core principles:
 7.  **Maintain a Shoshin (Beginner's) Mindset**: We will approach every problem with a beginner's mind, free from preconceived notions and assumptions. This is essential for true root cause analysis and for fostering a culture of innovation.
 
 8.  **Embrace Adaptability and Evolvability**: We will not be dogmatic about our tools or our processes. We will be willing to adapt and to abandon old methods when they no longer serve us. Our platform and our methodology are designed for continuous evolution.
+
+9.  **Introspection**: The platform will have the ability to examine its own performance, its own code, and its own processes. This is the foundation of self-awareness and the key to meaningful self-improvement.
+
+10. **Self-Healing**: The platform will have the ability to not only detect problems, but to diagnose their root causes and to apply solutions automatically. This is the ultimate form of proactive problem-solving and a key component of a truly autonomous system.
