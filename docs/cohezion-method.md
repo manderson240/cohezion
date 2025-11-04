@@ -4,7 +4,7 @@ This document codifies the official development methodology of the Cohezion plat
 
 ## Core Principles
 
-The Cohezion Method is built on the following fifteen core principles:
+The Cohezion Method is built on the following sixteen core principles:
 
 1.  **A Story-Driven Core**: Every piece of work, from a simple bug fix to a major new feature, must be initiated by a story. The story is the single source of truth for the work to be done.
 
@@ -35,3 +35,5 @@ The Cohezion Method is built on the following fifteen core principles:
 14. **Context Engineering Infrastructure**: We will build a dedicated Context Engineering Infrastructure, inspired by Context Space. This will provide a single, unified, and secure API for our agents to interact with all external tools, data, and services. This will be the bridge between our agentic minds and the real world.
 
 15. **Modular Agentic System**: We will adopt a modular agentic system, inspired by AgentFlow. Our platform will be composed of four specialized modules: a **Planner** for planning, an **Executor** for executing actions, a **Verifier** for verifying results, and a **Generator** for generating responses. This modular architecture will allow for greater specialization and more effective collaboration between our agents.
+
+16. **Agent-User Interaction Protocol (AG-UI)**: We will adopt an open, event-based protocol for agent-user interaction, inspired by AG-UI. This will standardize how our agents connect to user-facing applications, enabling real-time, bi-directional communication, generative UI, and seamless human-in-the-loop collaboration.
