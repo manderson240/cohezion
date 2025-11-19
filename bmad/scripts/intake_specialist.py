@@ -1,6 +1,7 @@
 import yaml
 from jsonschema import validate
 
+
 def validate_intent(original_request: str, summarized_intent: str) -> bool:
     """
     Validates that the summarized intent preserves the core meaning of the original request.
@@ -60,9 +61,9 @@ def process_natural_language(request: str) -> str:
     }
 
     # 5. Validate the output against the schema
-    with open("bmad/schemas/intake_schema.yml", "r") as schema_file:
+    with open("bmad/schemas/intake_schema.yml") as schema_file:
         schema = yaml.safe_load(schema_file)
-    
+
     validate(instance=output_data, schema=schema)
 
     # 6. Return the YAML string

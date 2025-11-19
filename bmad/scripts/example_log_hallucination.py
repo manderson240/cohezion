@@ -1,5 +1,6 @@
 from database import log_hallucination
 
+
 def run_example():
     """
     Runs an example of logging a hallucination.
