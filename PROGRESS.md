@@ -29,6 +29,15 @@
 - Python 3.11 installed
 - Dependencies: `ruff`, `toml`, `pytest`
 
+## New Infrastructure (Committed to main)
+- **Challenger/Solver Workflow**: Iterative critique system with consensus threshold
+- **HRM Agent**: Human Resource Manager agent
+- **Core Router**: Workflow orchestration system
+- **ADK Framework**: Agent Development Kit for building new agents
+- **Skills System**: Modular capabilities for agents
+- **CI/CD**: GitHub Actions workflow
+- **Pre-commit Hooks**: Code quality enforcement
+
 ## Next Actions
-1. Merge feature branches
+1. Merge feature branches (0-1, 0-2, 0-3)
 2. Continue with remaining backlog stories
