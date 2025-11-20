@@ -1,0 +1,69 @@
+name: Challenger/Solver
+description: Iterative critique and improvement workflow
+version: 1.0.0
+
+parameters:
+  max_iterations:
+    type: integer
+    default: 3
+    description: Maximum number of critique-fix cycles
+  
+  consensus_threshold:
+    type: float
+    default: 0.8
+    description: Minimum score (0-1) required to pass challenger review
+
+roles:
+  solver:
+    description: Generates initial solutions and fixes based on critique
+    responsibilities:
+      - Generate initial solution
+      - Address critique feedback
+      - Refine solution iteratively
+  
+  challenger:
+    description: Critiques solutions for bugs, edge cases, and security
+    responsibilities:
+      - Review solution for correctness
+      - Identify edge cases
+      - Check for security vulnerabilities
+      - Provide actionable feedback
+
+workflow:
+  steps:
+    - name: solve
+      role: solver
+      action: Generate initial solution
+      output: solution_v1
+    
+    - name: challenge
+      role: challenger
+      action: Critique solution
+      input: solution_v1
+      output: critique
+    
+    - name: decide
+      action: Evaluate critique score
+      input: critique
+      decision:
+        - condition: score >= consensus_threshold
+          action: accept
+          output: final_solution
+        - condition: score < consensus_threshold AND iterations < max_iterations
+          action: iterate
+          next_step: fix
+        - condition: iterations >= max_iterations
+          action: escalate
+          output: failed_solution
+    
+    - name: fix
+      role: solver
+      action: Address critique and refine solution
+      input: critique
+      output: solution_v{n+1}
+      next_step: challenge
+
+guardrails:
+  - Max iterations enforced to prevent infinite loops
+  - All critiques logged for audit
+  - Escalation path for unresolved issues
