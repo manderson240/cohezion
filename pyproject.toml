@@ -4,8 +4,11 @@ line-length = 88
 [tool.ruff]
 line-length = 88
 target-version = "py310"
+exclude = ["docs/**/*.ipynb"]
+
+[tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "PL"]
 ignore = []
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["cohezion"]

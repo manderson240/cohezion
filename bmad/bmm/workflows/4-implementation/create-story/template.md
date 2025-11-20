@@ -39,6 +39,9 @@ so that {{benefit}}.
 ### Context Reference
 
 <!-- Path(s) to story context XML will be added here by context workflow -->
+<!-- For notebook stories, reference the .ipynb file path here -->
+<!-- See: bmad/bmm/workflows/4-implementation/notebook-story/README.md -->
+
 
 ### Agent Model Used
 

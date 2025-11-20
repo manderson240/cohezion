@@ -2,11 +2,25 @@ name: squad-review
 description: "Conducts a squad review of a story before it is marked as done."
 
 instructions:
+  - step: 0
+    goal: "Validate inputs"
+    action: "[[ -n \"${story}\" ]] || fail-workflow \"Missing story variable\""
+
   - step: 1
+    goal: "Automated Checks"
+    action: "ruff check ."
+    on-error: "fail-workflow \"Linting failed\""
+
+  - step: 2
+    goal: "Run Tests"
+    action: "pytest"
+    on-error: "fail-workflow \"Tests failed\""
+
+  - step: 3
     goal: "Assign reviewers"
     action: "echo 'Assigning SM and TEA as reviewers'"
 
-  - step: 2
+  - step: 4
     goal: "SM Review"
     invoke-task: "bmad/bmm/tasks/story-review.xml"
     input:
@@ -15,7 +29,7 @@ instructions:
     output:
       sm_feedback: "{{sm_feedback}}"
 
-  - step: 3
+  - step: 5
     goal: "TEA Review"
     invoke-task: "bmad/bmm/tasks/story-review.xml"
     input:
@@ -24,7 +38,7 @@ instructions:
     output:
       tea_feedback: "{{tea_feedback}}"
 
-  - step: 4
+  - step: 6
     goal: "Consolidate feedback"
     template-output: |
       ## Squad Review Summary
@@ -35,13 +49,13 @@ instructions:
       ### Test Architect Feedback
       {{tea_feedback}}
 
-  - step: 5
+  - step: 7
     goal: "Update story status"
     ask: "Was the review successful? (y/n)"
     output:
       is_successful: "{{is_successful}}"
 
-  - step: 6
+  - step: 8
     goal: "Update story status"
     check-if: "{{is_successful}} == 'y'"
     action: "update-story-status -s done"
