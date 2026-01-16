@@ -186,5 +186,17 @@
       "retrospective"
     ],
     "path": "skills/KNOWLEDGE_MINING_PRIME.md"
+  },
+  "MCP_SERVER_PRIME": {
+    "description": "Create and manage Model Context Protocol servers for token-efficient tool access",
+    "keywords": [
+      "mcp",
+      "server",
+      "tools",
+      "protocol",
+      "registry",
+      "token"
+    ],
+    "path": "skills/MCP_SERVER_PRIME.md"
   }
 }
