@@ -174,5 +174,17 @@
       "rendering"
     ],
     "path": "skills/UNIVERSE_VISUALIZATION_PRIME.md"
+  },
+  "KNOWLEDGE_MINING_PRIME": {
+    "description": "Extract reusable patterns from session logs and build knowledge graphs",
+    "keywords": [
+      "mining",
+      "patterns",
+      "session",
+      "knowledge",
+      "graph",
+      "retrospective"
+    ],
+    "path": "skills/KNOWLEDGE_MINING_PRIME.md"
   }
 }
