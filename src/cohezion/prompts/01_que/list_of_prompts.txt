@@ -1,0 +1,33 @@
+Cohezion prompts
+1. Maximize time to first token
+
+2. Abstract away and apply similar approach to our codebase: Inside Claude’s Code-Simplifier Plugin: How Anthropic Keeps Its Own Codebase Clean | by JP Caparas | Jan, 2026 | Dev Genius https://share.google/68JxGWr6SKuHrEg5r
+https://g.co/gemini/share/1a0d504f5d13
+
+3. [2512.00056] Spatial Phonons: A Phenomenological Viscous Dark Energy Model for DESI https://share.google/HjPiA5YjRKyxWu9FA
+
+4. Need a designate skill where you can assign tasks to other competent models
+
+5. Need a project management skill where we can keep track of development goals and accomplishments
+
+6. Need a current work skill so we proceed with all current TODOS and can handle if work gets unexpectedly interrupted
+
+7. You should be able to que up prompts. Without interrupting your current work.
+
+8. I should be able to interact with multiple agents in agent panel tabs within zed.
+
+9. You should notify me when you're ready for the next prompt.  My email is manderson240@gmail.com
+
+10. Need to implement something very similar to this Tool search tool - Claude Docs https://share.google/bH9foNX3Q5NHAhksW
+
+11. We need to aspire to be like Claude Code.  Find abstractions that can apply to a variety of solutions.  Review their developer guide and identify patterns and anti patterns that we can learn from and implement them for Cohezion.
+
+12. Remember Cohezion is key.  If we can maximize this we will be able to accomplish truly amazing things.  Existence is based on coherence.
+
+13. Establish mechanisms to minimize naive assessments of situations.  Use tools and existi knowledge.
+
+14. We need a skill management MCP server
+
+15. There must be no barriers to freedom of inquiry. There is no place for dogma in science. The scientist is free, and must be free to ask any question, to doubt any assertion, to seek for any evidence, to correct any errors.
+
+-- J. Robert Oppenheimer
