@@ -133,5 +133,46 @@
       "ci"
     ],
     "path": "cohezion/src/cohezion/skills/CODE_STANDARDS_PRIME.md"
+  },
+  "SWARM_ORCHESTRATION_PRIME": {
+    "description": "SLM swarm orchestration with debate protocols for collective intelligence",
+    "keywords": [
+      "swarm",
+      "debate",
+      "analyst",
+      "critic",
+      "synthesis",
+      "gemma",
+      "phi3",
+      "mistral"
+    ],
+    "path": "skills/SWARM_ORCHESTRATION_PRIME.md"
+  },
+  "CALM_ABSTRACTION_PRIME": {
+    "description": "Continuous Autoregressive Language Models for thought vector prediction",
+    "keywords": [
+      "calm",
+      "autoencoder",
+      "trajectory",
+      "continuous",
+      "flow",
+      "vector",
+      "interpolation"
+    ],
+    "path": "skills/CALM_ABSTRACTION_PRIME.md"
+  },
+  "UNIVERSE_VISUALIZATION_PRIME": {
+    "description": "Physics-based visualization of high-dimensional data with Manim/HyperTools",
+    "keywords": [
+      "visualization",
+      "manim",
+      "hypertools",
+      "umap",
+      "tsne",
+      "12d",
+      "physics",
+      "rendering"
+    ],
+    "path": "skills/UNIVERSE_VISUALIZATION_PRIME.md"
   }
 }
