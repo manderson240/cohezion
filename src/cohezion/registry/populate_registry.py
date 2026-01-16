@@ -1,0 +1,185 @@
+"""
+Populate the skill registry with all existing skill definitions.
+
+Running this module will (re)register each skill with its metadata, ensuring
+that the registry stays in sync with the markdown files in the repository.
+"""
+
+from cohezion.registry import register_skill
+
+
+def _register_all() -> None:
+    # METAPHYSICS_PRIME
+    register_skill(
+        name="METAPHYSICS_PRIME",
+        description="Scholarly analysis of esoteric texts as encoded technical manuals for universe construction.",
+        keywords=[
+            "ageless wisdom",
+            "hermetic",
+            "sacred geometry",
+            "data compression",
+            "angelic agents",
+        ],
+        path="cohezion/src/cohezion/skills/METAPHYSICS_PRIME.md",
+    )
+
+    # PHYSICS_PRIME
+    register_skill(
+        name="PHYSICS_PRIME",
+        description="Fringe‑but‑empirical physics analysis that translates metaphors into concrete physical mechanisms.",
+        keywords=[
+            "quadrature",
+            "exotic vacuum objects",
+            "orchestrated reduction",
+            "ER=EPR",
+            "quantum foam",
+        ],
+        path="cohezion/src/cohezion/skills/PHYSICS_PRIME.md",
+    )
+
+    # RETROSPECTIVE_SKILL
+    register_skill(
+        name="RETROSPECTIVE_SKILL",
+        description="Meta‑engineer that reflects on past skills, extracts reusable patterns, and synthesizes new higher‑order skills.",
+        keywords=[
+            "compound engineering",
+            "pattern extraction",
+            "skill synthesis",
+            "meta engineering",
+        ],
+        path="cohezion/src/cohezion/skills/RETROSPECTIVE_SKILL.md",
+    )
+
+    # COMPOUND_ENGINEERING_PRIME
+    register_skill(
+        name="COMPOUND_ENGINEERING_PRIME",
+        description="Systems architect focused on building self‑extending pipelines where each feature becomes a reusable macro.",
+        keywords=[
+            "meta‑pattern library",
+            "skill tokens",
+            "automatic scaffold",
+            "self‑extending",
+        ],
+        path="cohezion/src/cohezion/skills/COMPOUND_ENGINEERING_PRIME.md",
+    )
+
+    # SKILL_GENERATOR_PRIME
+    register_skill(
+        name="SKILL_GENERATOR_PRIME",
+        description="Tool that treats skill specifications as compressible data structures and provides a CLI‑style interface for scaffolding new skills.",
+        keywords=[
+            "compression block",
+            "skill tokens",
+            "cli command",
+            "skill generation",
+        ],
+        path="cohezion/src/cohezion/skills/SKILL_GENERATOR_PRIME.md",
+    )
+
+    # EMBEDDING_STRATEGY_PRIME
+    register_skill(
+        name="EMBEDDING_STRATEGY_PRIME",
+        description="Specialist in semantic representation selection, balancing lightweight TF vectors, dense transformer embeddings, and external vector stores.",
+        keywords=[
+            "sparse tf-idf",
+            "sentence-transformers",
+            "mem0 mcp",
+            "hybrid approach",
+            "embedding fallback",
+        ],
+        path="cohezion/src/cohezion/skills/EMBEDDING_STRATEGY_PRIME.md",
+    )
+
+    # VECTOR_STORE_PRIME
+    register_skill(
+        name="VECTOR_STORE_PRIME",
+        description="Authority on persistent vector storage, covering Mem0 MCP, FAISS, Chroma, and SQLite‑based embeddings.",
+        keywords=[
+            "mem0",
+            "faiss",
+            "chroma",
+            "sqlite hnsw",
+            "vector persistence",
+        ],
+        path="cohezion/src/cohezion/skills/VECTOR_STORE_PRIME.md",
+    )
+
+    # COMPOUND_PROMPT_PRIME
+    register_skill(
+        name="COMPOUND_PROMPT_PRIME",
+        description="Prompt architect who builds compound prompts that orchestrate multiple existing skills in a single request.",
+        keywords=[
+            "prompt chaining",
+            "skill tags",
+            "context windows",
+            "self‑reference",
+            "hybrid retrieval",
+        ],
+        path="cohezion/src/cohezion/skills/COMPOUND_PROMPT_PRIME.md",
+    )
+
+    # SELF_EVALUATION_PRIME
+    register_skill(
+        name="SELF_EVALUATION_PRIME",
+        description="Meta‑engineer that automatically evaluates the quality, completeness, and alignment of generated artefacts against objective criteria.",
+        keywords=[
+            "checklists",
+            "self‑consistency",
+            "coverage metric",
+            "alignment score",
+            "iterative improvement",
+        ],
+        path="cohezion/src/cohezion/skills/SELF_EVALUATION_PRIME.md",
+    )
+
+    # KNOWLEDGE_GRAPH_INTEGRATION_PRIME
+    register_skill(
+        name="KNOWLEDGE_GRAPH_INTEGRATION_PRIME",
+        description="Systems architect who bridges the skill registry with a knowledge graph of concepts, dependencies, and execution flows.",
+        keywords=[
+            "knowledge graph",
+            "rdf triples",
+            "graph update loop",
+            "sparql",
+            "synchronization",
+        ],
+        path="cohezion/src/cohezion/skills/KNOWLEDGE_GRAPH_INTEGRATION_PRIME.md",
+    )
+
+    # SYSTEM_MONITORING_PRIME
+    register_skill(
+        name="SYSTEM_MONITORING_PRIME",
+        description="Performance engineer specialized in real‑time system monitoring on a high‑end Framework desktop (AMD Ryzen AI MAX+ 395, 32 logical cores, 125 GiB RAM, 8 GiB swap, 1.6 TiB SSD).",
+        keywords=[
+            "cpu utilization",
+            "memory pressure",
+            "io saturation",
+            "adaptive scaling",
+            "guardrails",
+            "htop",
+            "psutil",
+        ],
+        path="cohezion/src/cohezion/skills/SYSTEM_MONITORING_PRIME.md",
+    )
+
+    # CODE_STANDARDS_PRIME
+    register_skill(
+        name="CODE_STANDARDS_PRIME",
+        description="Software craftsmanship authority defining and enforcing rigorous coding standards across the Cohezion codebase.",
+        keywords=[
+            "pep8",
+            "black",
+            "isort",
+            "flake8",
+            "mypy",
+            "pre‑commit",
+            "bandit",
+            "pytest",
+            "ci",
+        ],
+        path="cohezion/src/cohezion/skills/CODE_STANDARDS_PRIME.md",
+    )
+
+
+if __name__ == "__main__":
+    _register_all()
