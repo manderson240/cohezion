@@ -201,6 +201,107 @@ async def get_simulation(sim_id: str):
     raise HTTPException(status_code=404, detail=f"Simulation {sim_id} not found")
 
 
+# Journey endpoints - Agent trajectory visualization
+@app.get("/journeys")
+async def list_journeys():
+    """List recent agent journeys."""
+    from cohezion.swarm.journey_tracker import get_journey_tracker
+    tracker = get_journey_tracker()
+    journeys = tracker.get_recent_journeys(limit=20)
+    return {"journeys": [{"id": j["journey_id"], "query": j["query"][:50], "steps": j["step_count"]} for j in journeys]}
+
+
+@app.get("/journeys/{journey_id}")
+async def get_journey(journey_id: str):
+    """Get a specific journey with full trajectory."""
+    from cohezion.swarm.journey_tracker import get_journey_tracker
+    tracker = get_journey_tracker()
+    journey_file = tracker.output_dir / f"{journey_id}.json"
+    if not journey_file.exists():
+        raise HTTPException(status_code=404, detail=f"Journey {journey_id} not found")
+    import json
+    return json.loads(journey_file.read_text())
+
+
+@app.get("/journeys/{journey_id}/trajectory")
+async def get_journey_trajectory(journey_id: str):
+    """Get physics trajectory for visualization."""
+    from cohezion.swarm.journey_tracker import get_journey_tracker
+    tracker = get_journey_tracker()
+    trajectory = tracker.get_journey_trajectory(journey_id)
+    if not trajectory:
+        raise HTTPException(status_code=404, detail=f"Journey {journey_id} not found")
+    return {"trajectory": trajectory}
+
+
+# Demo journey endpoint
+@app.post("/journeys/demo")
+async def create_demo_journey():
+    """Create a demo journey to showcase visualization."""
+    from cohezion.swarm.journey_tracker import get_journey_tracker, AgentType
+    import random
+    
+    tracker = get_journey_tracker()
+    journey_id = tracker.start_journey("What is the meaning of consciousness?")
+    
+    # Simulate analyst steps
+    for perspective in ["technical", "ethical", "historical"]:
+        tracker.record_step(
+            agent_type=AgentType.ANALYST,
+            agent_name=f"analyst_{perspective}",
+            perspective=perspective,
+            input_text="What is the meaning of consciousness?",
+            output_text=f"{perspective.title()} analysis of consciousness...",
+            physics_state={
+                "x": random.uniform(-0.5, 0.5),
+                "y": random.uniform(-0.5, 0.5),
+                "z": random.uniform(0.3, 0.7),
+                "mass": random.uniform(0.6, 0.9),
+                "coherence": random.uniform(0.7, 0.95),
+                "novelty": random.uniform(0.4, 0.8),
+            },
+            duration_ms=random.uniform(200, 500),
+            confidence=random.uniform(0.7, 0.9),
+        )
+    
+    # Critic step
+    tracker.record_step(
+        agent_type=AgentType.CRITIC,
+        agent_name="critic_phi3",
+        perspective=None,
+        input_text="Three analyst perspectives on consciousness",
+        output_text="Critique: Found 2 contradictions between perspectives...",
+        physics_state={
+            "x": 0.0, "y": 0.0, "z": 0.8,
+            "mass": 0.95, "coherence": 0.92, "novelty": 0.3,
+        },
+        duration_ms=350,
+        confidence=0.88,
+    )
+    
+    # Synthesizer step
+    tracker.record_step(
+        agent_type=AgentType.SYNTHESIZER,
+        agent_name="synthesizer_mistral",
+        perspective=None,
+        input_text="Analyst outputs + critique",
+        output_text="Synthesized understanding of consciousness integrating all perspectives...",
+        physics_state={
+            "x": 0.0, "y": 0.0, "z": 1.0,
+            "mass": 1.0, "coherence": 0.95, "novelty": 0.5,
+        },
+        duration_ms=400,
+        confidence=0.92,
+    )
+    
+    journey = tracker.end_journey(
+        final_response="Consciousness is an emergent property...",
+        final_confidence=0.92,
+    )
+    
+    return {"journey_id": journey.journey_id, "steps": len(journey.steps)}
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8080)

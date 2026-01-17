@@ -1,24 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cohezion - Open Notebooks</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Inter', -apple-system, sans-serif;
             background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
             color: #e4e4e7;
             min-height: 100vh;
         }
-        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
         header {
             text-align: center;
             padding: 3rem 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             margin-bottom: 2rem;
         }
+
         h1 {
             font-size: 2.5rem;
             background: linear-gradient(90deg, #818cf8, #a78bfa, #c084fc);
@@ -26,82 +39,112 @@
             -webkit-text-fill-color: transparent;
             margin-bottom: 0.5rem;
         }
-        .subtitle { color: #a1a1aa; font-size: 1.1rem; }
+
+        .subtitle {
+            color: #a1a1aa;
+            font-size: 1.1rem;
+        }
+
         .tabs {
             display: flex;
             gap: 1rem;
             margin-bottom: 2rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             padding-bottom: 1rem;
         }
+
         .tab {
             padding: 0.75rem 1.5rem;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s;
             color: #a1a1aa;
         }
-        .tab:hover, .tab.active {
-            background: rgba(129,140,248,0.2);
+
+        .tab:hover,
+        .tab.active {
+            background: rgba(129, 140, 248, 0.2);
             border-color: #818cf8;
             color: #fff;
         }
+
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 1.5rem;
         }
+
         .card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             padding: 1.5rem;
             cursor: pointer;
             transition: all 0.3s;
         }
+
         .card:hover {
             transform: translateY(-4px);
             border-color: #818cf8;
-            box-shadow: 0 10px 40px rgba(129,140,248,0.2);
+            box-shadow: 0 10px 40px rgba(129, 140, 248, 0.2);
         }
-        .card h3 { color: #fff; margin-bottom: 0.5rem; }
-        .card p { color: #a1a1aa; font-size: 0.9rem; }
+
+        .card h3 {
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
+        .card p {
+            color: #a1a1aa;
+            font-size: 0.9rem;
+        }
+
         .badge {
             display: inline-block;
             padding: 0.25rem 0.75rem;
-            background: rgba(129,140,248,0.2);
+            background: rgba(129, 140, 248, 0.2);
             border-radius: 20px;
             font-size: 0.8rem;
             color: #818cf8;
             margin-top: 1rem;
         }
+
         .modal {
             display: none;
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.8);
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
             z-index: 1000;
             overflow-y: auto;
         }
-        .modal.active { display: block; }
+
+        .modal.active {
+            display: block;
+        }
+
         .modal-content {
             background: #1a1a2e;
             max-width: 900px;
             margin: 2rem auto;
             border-radius: 16px;
             padding: 2rem;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
+
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1.5rem;
             padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
+
         .close-btn {
             background: none;
             border: none;
@@ -109,34 +152,72 @@
             font-size: 1.5rem;
             cursor: pointer;
         }
-        .close-btn:hover { color: #fff; }
-        .content { line-height: 1.8; white-space: pre-wrap; font-family: monospace; font-size: 0.9rem; }
+
+        .close-btn:hover {
+            color: #fff;
+        }
+
+        .content {
+            line-height: 1.8;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
         .stats {
             display: flex;
             gap: 2rem;
             margin-top: 1rem;
         }
-        .stat { text-align: center; }
-        .stat-value { font-size: 2rem; color: #818cf8; font-weight: bold; }
-        .stat-label { color: #a1a1aa; font-size: 0.85rem; }
-        #loading { text-align: center; padding: 3rem; color: #a1a1aa; }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            color: #818cf8;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            color: #a1a1aa;
+            font-size: 0.85rem;
+        }
+
+        #loading {
+            text-align: center;
+            padding: 3rem;
+            color: #a1a1aa;
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <header>
             <h1>🌌 Cohezion Open Notebooks</h1>
             <p class="subtitle">Interactive AI Research Lab</p>
             <div class="stats">
-                <div class="stat"><div class="stat-value" id="notebook-count">-</div><div class="stat-label">Notebooks</div></div>
-                <div class="stat"><div class="stat-value" id="sim-count">-</div><div class="stat-label">Simulations</div></div>
-                <div class="stat"><div class="stat-value" id="skill-count">-</div><div class="stat-label">Skills</div></div>
+                <div class="stat">
+                    <div class="stat-value" id="notebook-count">-</div>
+                    <div class="stat-label">Notebooks</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="sim-count">-</div>
+                    <div class="stat-label">Simulations</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="skill-count">-</div>
+                    <div class="stat-label">Skills</div>
+                </div>
             </div>
         </header>
 
         <div class="tabs">
             <div class="tab active" data-tab="notebooks">📓 Notebooks</div>
             <div class="tab" data-tab="simulations">🔬 Simulations</div>
+            <div class="tab" data-tab="journeys">🚀 Journeys</div>
             <div class="tab" data-tab="skills">⚡ Skills</div>
         </div>
 
@@ -199,6 +280,29 @@
             document.getElementById('content').innerHTML = `<div class="grid">${html || '<p>No simulations yet</p>'}</div>`;
         }
 
+        async function loadJourneys() {
+            const data = await fetchData('/journeys');
+            let html = '';
+            if (data.journeys && data.journeys.length > 0) {
+                html = data.journeys.map(j => `
+                    <div class="card" onclick="openJourney('${j.id}')">
+                        <h3>🚀 ${j.query}</h3>
+                        <p>Agent trajectory through 12D semantic space</p>
+                        <span class="badge">${j.steps} steps</span>
+                    </div>
+                `).join('');
+            } else {
+                html = `
+                    <div class="card" onclick="createDemoJourney()" style="border-color: #22c55e;">
+                        <h3>✨ Create Demo Journey</h3>
+                        <p>Generate a sample agent journey to visualize the debate flow</p>
+                        <span class="badge" style="background: rgba(34,197,94,0.2); color: #22c55e;">Click to Create</span>
+                    </div>
+                `;
+            }
+            document.getElementById('content').innerHTML = `<div class="grid">${html}</div>`;
+        }
+
         async function loadSkills() {
             const data = await fetchData('/knowledge/skills');
             const html = data.skills.map(s => `
@@ -225,6 +329,38 @@
             document.getElementById('modal').classList.add('active');
         }
 
+        async function openJourney(id) {
+            const data = await fetchData(`/journeys/${id}`);
+            document.getElementById('modal-title').textContent = '🚀 ' + data.query.substring(0, 50);
+
+            // Format journey as visual trajectory
+            let content = `Query: ${data.query}\n`;
+            content += `Started: ${data.started_at}\n`;
+            content += `Total Duration: ${data.total_duration_ms.toFixed(0)}ms\n`;
+            content += `Final Confidence: ${(data.final_confidence * 100).toFixed(0)}%\n\n`;
+            content += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+            data.steps.forEach((step, i) => {
+                const icon = step.agent_type === 'analyst' ? '🔍' : step.agent_type === 'critic' ? '⚖️' : '✨';
+                content += `${icon} Step ${i + 1}: ${step.agent_name}\n`;
+                if (step.perspective) content += `   Perspective: ${step.perspective}\n`;
+                content += `   Duration: ${step.duration_ms.toFixed(0)}ms | Confidence: ${(step.confidence * 100).toFixed(0)}%\n`;
+                content += `   Physics: x=${step.physics_state.x?.toFixed(2) || 0} y=${step.physics_state.y?.toFixed(2) || 0} z=${step.physics_state.z?.toFixed(2) || 0}\n`;
+                content += `   Output: ${step.output_summary}\n\n`;
+            });
+
+            content += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+            content += `\nFinal Response: ${data.final_response}`;
+
+            document.getElementById('modal-body').textContent = content;
+            document.getElementById('modal').classList.add('active');
+        }
+
+        async function createDemoJourney() {
+            await fetch('/journeys/demo', { method: 'POST' });
+            loadJourneys();
+        }
+
         async function openSkill(name) {
             const data = await fetchData(`/knowledge/skills/${name}`);
             document.getElementById('modal-title').textContent = '⚡ ' + name;
@@ -243,6 +379,7 @@
                 currentTab = tab.dataset.tab;
                 if (currentTab === 'notebooks') loadNotebooks();
                 else if (currentTab === 'simulations') loadSimulations();
+                else if (currentTab === 'journeys') loadJourneys();
                 else if (currentTab === 'skills') loadSkills();
             });
         });
@@ -255,4 +392,5 @@
         loadNotebooks();
     </script>
 </body>
+
 </html>
