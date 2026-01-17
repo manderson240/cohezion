@@ -1,53 +1,20 @@
 nohup: ignoring input
 INFO:     Will watch for changes in these directories: ['/home/mike-anderson/dev/cohezion']
 INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
-INFO:     Started reloader process [491343] using StatReload
-INFO:     Started server process [491346]
+INFO:     Started reloader process [498596] using StatReload
+INFO:     Started server process [498598]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-INFO:     127.0.0.1:40362 - "GET / HTTP/1.1" 307 Temporary Redirect
-INFO:     127.0.0.1:35442 - "GET / HTTP/1.1" 307 Temporary Redirect
-INFO:     127.0.0.1:35456 - "GET /static/index.html HTTP/1.1" 200 OK
-INFO:     127.0.0.1:41808 - "GET / HTTP/1.1" 307 Temporary Redirect
-INFO:     127.0.0.1:41808 - "GET / HTTP/1.1" 307 Temporary Redirect
-INFO:     127.0.0.1:41820 - "GET /static/index.html HTTP/1.1" 200 OK
-INFO:     127.0.0.1:41820 - "GET /notebooks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:41808 - "GET /simulations HTTP/1.1" 200 OK
-INFO:cohezion.mcp.knowledge_server:Indexed 29 skills, 1 docs
-INFO:     127.0.0.1:41824 - "GET /knowledge/skills HTTP/1.1" 200 OK
-INFO:     127.0.0.1:41836 - "GET /notebooks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:41844 - "GET /simulations HTTP/1.1" 200 OK
-INFO:     127.0.0.1:41848 - "GET /knowledge/skills HTTP/1.1" 200 OK
-INFO:     127.0.0.1:41824 - "GET /notebooks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:41836 - "GET /notebooks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54176 - "GET /notebooks/universe_physics_notebook HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46132 - "GET /simulations HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46132 - "GET /simulations/sim_semantic_mass_001 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46146 - "GET /simulations/sim_coherence_stability_002 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46146 - "GET /simulations/sim_novelty_connectivity_003 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46146 - "GET /simulations/sim_sentiment_propagation_004 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46146 - "GET /simulations/sim_dimensional_entanglement_005 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46146 - "GET /knowledge/skills HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46146 - "GET /simulations HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46146 - "GET /knowledge/skills HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46146 - "GET /simulations HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46146 - "GET /notebooks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46146 - "GET /simulations HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46146 - "GET /knowledge/skills HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46146 - "GET /notebooks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46146 - "GET /simulations HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46146 - "GET /knowledge/skills HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46146 - "GET /simulations HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46146 - "GET /knowledge/skills HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54238 - "GET / HTTP/1.1" 307 Temporary Redirect
-INFO:     127.0.0.1:54238 - "GET /static/index.html HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54238 - "GET /notebooks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54254 - "GET /simulations HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54268 - "GET /knowledge/skills HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54284 - "GET /notebooks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54284 - "GET /favicon.ico HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:36884 - "GET /notebooks/universe_physics_notebook HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35218 - "GET /simulations HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35222 - "GET /simulations/sim_semantic_mass_001 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39112 - "GET /knowledge/skills HTTP/1.1" 200 OK
-INFO:     127.0.0.1:57500 - "GET /simulations/sim_semantic_mass_001 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52698 - "GET /journeys HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52714 - "GET /journeys HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40806 - "GET / HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:40806 - "GET /static/index.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40806 - "GET /notebooks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40818 - "GET /simulations HTTP/1.1" 200 OK
+INFO:cohezion.mcp.knowledge_server:Indexed 30 skills, 1 docs
+INFO:     127.0.0.1:40828 - "GET /knowledge/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40834 - "GET /notebooks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40806 - "GET /journeys HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44196 - "POST /journeys/demo HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44196 - "GET /journeys HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50568 - "GET /journeys/journey_1768620641532 HTTP/1.1" 200 OK
