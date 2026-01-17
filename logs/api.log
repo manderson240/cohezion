@@ -66,3 +66,19 @@ INFO:     Finished server process [566184]
 INFO:     Started server process [566282]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/cohezion/mcp/skills_server.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [566282]
+INFO:     Started server process [567184]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'src/cohezion/mcp/knowledge_server.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [567184]
+INFO:     Started server process [567189]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
