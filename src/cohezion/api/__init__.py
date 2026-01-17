@@ -302,6 +302,135 @@ async def create_demo_journey():
     return {"journey_id": journey.journey_id, "steps": len(journey.steps)}
 
 
+# Journey visualization endpoint
+@app.get("/journeys/{journey_id}/visualize")
+async def visualize_journey(journey_id: str):
+    """Render an animated visualization of the journey trajectory."""
+    from fastapi.responses import FileResponse
+    from pathlib import Path
+    import json
+    import numpy as np
+    
+    from cohezion.viz.hypertools_renderer import HyperToolsViz
+    from cohezion.swarm.journey_tracker import get_journey_tracker
+    
+    tracker = get_journey_tracker()
+    journey_file = tracker.output_dir / f"{journey_id}.json"
+    
+    if not journey_file.exists():
+        raise HTTPException(status_code=404, detail=f"Journey {journey_id} not found")
+    
+    journey = json.loads(journey_file.read_text())
+    
+    # Extract physics trajectory as numpy array
+    trajectory_data = []
+    for step in journey.get("steps", []):
+        ps = step.get("physics_state", {})
+        # Create 6D vector from physics state
+        vec = [
+            ps.get("x", 0),
+            ps.get("y", 0),
+            ps.get("z", 0),
+            ps.get("mass", 0.5),
+            ps.get("coherence", 0.5),
+            ps.get("novelty", 0.5),
+        ]
+        trajectory_data.append(vec)
+    
+    if len(trajectory_data) < 2:
+        raise HTTPException(status_code=400, detail="Journey needs at least 2 steps for visualization")
+    
+    trajectory = np.array(trajectory_data)
+    
+    # Render with HyperTools
+    viz = HyperToolsViz(output_dir=Path("renders"))
+    output_path = viz.animate_trajectory(
+        trajectory,
+        output_name=f"journey_{journey_id}",
+        fps=2,  # Slow for visibility
+    )
+    
+    return FileResponse(
+        output_path,
+        media_type="image/gif",
+        filename=f"{journey_id}_trajectory.gif",
+    )
+
+
+# Static image visualization
+@app.get("/journeys/{journey_id}/plot")
+async def plot_journey(journey_id: str):
+    """Render a static 3D plot of the journey trajectory."""
+    from fastapi.responses import FileResponse
+    from pathlib import Path
+    import json
+    import numpy as np
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    
+    from cohezion.swarm.journey_tracker import get_journey_tracker
+    
+    tracker = get_journey_tracker()
+    journey_file = tracker.output_dir / f"{journey_id}.json"
+    
+    if not journey_file.exists():
+        raise HTTPException(status_code=404, detail=f"Journey {journey_id} not found")
+    
+    journey = json.loads(journey_file.read_text())
+    
+    # Extract trajectory
+    steps = journey.get("steps", [])
+    x_vals = [s["physics_state"].get("x", 0) for s in steps]
+    y_vals = [s["physics_state"].get("y", 0) for s in steps]
+    z_vals = [s["physics_state"].get("z", 0) for s in steps]
+    agent_types = [s.get("agent_type", "unknown") for s in steps]
+    
+    # Color by agent type
+    colors = {'analyst': '#818cf8', 'critic': '#f97316', 'synthesizer': '#22c55e'}
+    point_colors = [colors.get(t, '#888888') for t in agent_types]
+    
+    fig = plt.figure(figsize=(10, 8))
+    ax = fig.add_subplot(111, projection='3d')
+    
+    # Plot trajectory line
+    ax.plot(x_vals, y_vals, z_vals, 'w-', alpha=0.4, linewidth=2)
+    
+    # Plot points with agent-type colors
+    for i, (x, y, z, c) in enumerate(zip(x_vals, y_vals, z_vals, point_colors)):
+        ax.scatter([x], [y], [z], c=c, s=200, alpha=0.9, edgecolors='white', linewidths=2)
+        ax.text(x, y, z, f" {i+1}", color='white', fontsize=10)
+    
+    ax.set_facecolor('#0a0a1a')
+    fig.patch.set_facecolor('#0a0a1a')
+    ax.set_xlabel('X', color='white')
+    ax.set_ylabel('Y', color='white')
+    ax.set_zlabel('Z', color='white')
+    ax.tick_params(colors='white')
+    ax.set_title(f"Journey: {journey['query'][:40]}...", color='white', fontsize=12)
+    
+    # Legend
+    from matplotlib.patches import Patch
+    legend_elements = [
+        Patch(facecolor=colors['analyst'], label='Analyst'),
+        Patch(facecolor=colors['critic'], label='Critic'),
+        Patch(facecolor=colors['synthesizer'], label='Synthesizer'),
+    ]
+    ax.legend(handles=legend_elements, loc='upper left', facecolor='#1a1a2e', labelcolor='white')
+    
+    output_dir = Path("renders")
+    output_dir.mkdir(exist_ok=True)
+    output_path = output_dir / f"journey_{journey_id}_plot.png"
+    plt.savefig(output_path, dpi=150, facecolor='#0a0a1a', bbox_inches='tight')
+    plt.close()
+    
+    return FileResponse(
+        output_path,
+        media_type="image/png",
+        filename=f"{journey_id}_plot.png",
+    )
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8080)
