@@ -142,32 +142,35 @@ class SemanticAnalyzer:
         keywords = [w for w in words if w not in stopwords and len(w) > 3]
         return keywords
     
+    def _extract_strings_recursive(self, obj: Any, depth: int = 0) -> list[str]:
+        """Recursively extract strings from a dictionary or list."""
+        if depth > 3:
+            return []
+        
+        match obj:
+            case str():
+                return [obj]
+            case dict():
+                return [s for v in obj.values() for s in self._extract_strings_recursive(v, depth + 1)]
+            case list():
+                return [s for item in obj[:10] for s in self._extract_strings_recursive(item, depth + 1)]
+            case _:
+                return []
+
     def get_node_text(self, node: dict) -> str:
         """Extract text content from a node."""
         data = node.get("data", {})
         
         if isinstance(data, str):
             return data
+            
+        # Prioritize key fields
+        priority_keys = ["content", "synthesis", "summary", "query", "reasoning"]
+        texts = [str(data[k]) for k in priority_keys if k in data]
         
-        # Try common fields
-        texts = []
-        for key in ["content", "synthesis", "summary", "query", "reasoning"]:
-            if key in data:
-                texts.append(str(data[key]))
+        # Add all other strings found recursively
+        texts.extend(self._extract_strings_recursive(data))
         
-        # Recursively get string values
-        def extract_strings(obj, depth=0):
-            if depth > 3:
-                return []
-            if isinstance(obj, str):
-                return [obj]
-            if isinstance(obj, dict):
-                return [s for v in obj.values() for s in extract_strings(v, depth+1)]
-            if isinstance(obj, list):
-                return [s for item in obj[:10] for s in extract_strings(item, depth+1)]
-            return []
-        
-        texts.extend(extract_strings(data))
         return " ".join(texts)[:5000]
     
     def cluster_by_domain(self) -> list[SemanticCluster]:
