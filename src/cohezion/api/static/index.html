@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cohezion - Open Notebooks</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e4e4e7;
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        header {
+            text-align: center;
+            padding: 3rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 2rem;
+        }
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #818cf8, #a78bfa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle { color: #a1a1aa; font-size: 1.1rem; }
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 1rem;
+        }
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #a1a1aa;
+        }
+        .tab:hover, .tab.active {
+            background: rgba(129,140,248,0.2);
+            border-color: #818cf8;
+            color: #fff;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+        .card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: #818cf8;
+            box-shadow: 0 10px 40px rgba(129,140,248,0.2);
+        }
+        .card h3 { color: #fff; margin-bottom: 0.5rem; }
+        .card p { color: #a1a1aa; font-size: 0.9rem; }
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(129,140,248,0.2);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #818cf8;
+            margin-top: 1rem;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .modal.active { display: block; }
+        .modal-content {
+            background: #1a1a2e;
+            max-width: 900px;
+            margin: 2rem auto;
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            color: #a1a1aa;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        .close-btn:hover { color: #fff; }
+        .content { line-height: 1.8; white-space: pre-wrap; font-family: monospace; font-size: 0.9rem; }
+        .stats {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+        .stat { text-align: center; }
+        .stat-value { font-size: 2rem; color: #818cf8; font-weight: bold; }
+        .stat-label { color: #a1a1aa; font-size: 0.85rem; }
+        #loading { text-align: center; padding: 3rem; color: #a1a1aa; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌌 Cohezion Open Notebooks</h1>
+            <p class="subtitle">Interactive AI Research Lab</p>
+            <div class="stats">
+                <div class="stat"><div class="stat-value" id="notebook-count">-</div><div class="stat-label">Notebooks</div></div>
+                <div class="stat"><div class="stat-value" id="sim-count">-</div><div class="stat-label">Simulations</div></div>
+                <div class="stat"><div class="stat-value" id="skill-count">-</div><div class="stat-label">Skills</div></div>
+            </div>
+        </header>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="notebooks">📓 Notebooks</div>
+            <div class="tab" data-tab="simulations">🔬 Simulations</div>
+            <div class="tab" data-tab="skills">⚡ Skills</div>
+        </div>
+
+        <div id="content">
+            <div id="loading">Loading...</div>
+        </div>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title"></h2>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="content" id="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        const API = '';
+        let currentTab = 'notebooks';
+
+        async function fetchData(endpoint) {
+            const res = await fetch(API + endpoint);
+            return res.json();
+        }
+
+        async function loadStats() {
+            const [notebooks, sims, skills] = await Promise.all([
+                fetchData('/notebooks'),
+                fetchData('/simulations'),
+                fetchData('/knowledge/skills')
+            ]);
+            document.getElementById('notebook-count').textContent = notebooks.notebooks?.length || 0;
+            document.getElementById('sim-count').textContent = sims.simulations?.length || 0;
+            document.getElementById('skill-count').textContent = skills.skills?.length || 0;
+        }
+
+        async function loadNotebooks() {
+            const data = await fetchData('/notebooks');
+            const html = data.notebooks.map(n => `
+                <div class="card" onclick="openNotebook('${n}')">
+                    <h3>📓 ${n.replace(/_/g, ' ')}</h3>
+                    <p>Research notebook with findings and experiments</p>
+                    <span class="badge">Markdown</span>
+                </div>
+            `).join('');
+            document.getElementById('content').innerHTML = `<div class="grid">${html || '<p>No notebooks yet</p>'}</div>`;
+        }
+
+        async function loadSimulations() {
+            const data = await fetchData('/simulations');
+            const html = data.simulations.map(s => `
+                <div class="card" onclick="openSimulation('${s}')">
+                    <h3>🔬 ${s.replace(/_/g, ' ').replace('sim ', '')}</h3>
+                    <p>Physics simulation exploring semantic relationships</p>
+                    <span class="badge">12D Physics</span>
+                </div>
+            `).join('');
+            document.getElementById('content').innerHTML = `<div class="grid">${html || '<p>No simulations yet</p>'}</div>`;
+        }
+
+        async function loadSkills() {
+            const data = await fetchData('/knowledge/skills');
+            const html = data.skills.map(s => `
+                <div class="card" onclick="openSkill('${s}')">
+                    <h3>⚡ ${s.replace(/_PRIME/, '').replace(/_/g, ' ')}</h3>
+                    <p>Skill documentation and patterns</p>
+                    <span class="badge">Skill</span>
+                </div>
+            `).join('');
+            document.getElementById('content').innerHTML = `<div class="grid">${html || '<p>No skills yet</p>'}</div>`;
+        }
+
+        async function openNotebook(name) {
+            const data = await fetchData(`/notebooks/${name}`);
+            document.getElementById('modal-title').textContent = '📓 ' + name.replace(/_/g, ' ');
+            document.getElementById('modal-body').textContent = data.content;
+            document.getElementById('modal').classList.add('active');
+        }
+
+        async function openSimulation(id) {
+            const data = await fetchData(`/simulations/${id}`);
+            document.getElementById('modal-title').textContent = '🔬 ' + data.title;
+            document.getElementById('modal-body').textContent = JSON.stringify(data, null, 2);
+            document.getElementById('modal').classList.add('active');
+        }
+
+        async function openSkill(name) {
+            const data = await fetchData(`/knowledge/skills/${name}`);
+            document.getElementById('modal-title').textContent = '⚡ ' + name;
+            document.getElementById('modal-body').textContent = data.content;
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentTab = tab.dataset.tab;
+                if (currentTab === 'notebooks') loadNotebooks();
+                else if (currentTab === 'simulations') loadSimulations();
+                else if (currentTab === 'skills') loadSkills();
+            });
+        });
+
+        document.getElementById('modal').addEventListener('click', e => {
+            if (e.target.id === 'modal') closeModal();
+        });
+
+        loadStats();
+        loadNotebooks();
+    </script>
+</body>
+</html>
