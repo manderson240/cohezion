@@ -42,11 +42,29 @@ class VoiceProfile:
 
 
 # Default voice profiles from pocket-tts
+# Extended with agent personas from democratic_debate.py
 VOICE_PROFILES = {
+    # Base pocket-tts voices
     "azelma": VoiceProfile("Azelma", style="calm"),
     "marius": VoiceProfile("Marius", style="neutral"),
     "cosette": VoiceProfile("Cosette", style="expressive"),
     "valjean": VoiceProfile("Valjean", style="neutral", pitch=0.9),
+    
+    # Agent Personas - from DemocraticDebate
+    # Aurora (Architect) - Visionary, systematic, calm
+    "aurora": VoiceProfile("Aurora", style="calm", speed=0.95, pitch=1.05),
+    
+    # Marcus (Builder) - Practical, steady, grounded
+    "marcus": VoiceProfile("Marcus", style="neutral", speed=1.0, pitch=0.95),
+    
+    # Helena (Guardian) - Vigilant, passionate about security
+    "helena": VoiceProfile("Helena", style="expressive", speed=0.9, pitch=1.0),
+    
+    # Phoenix (Explorer) - Bold, creative, energetic
+    "phoenix": VoiceProfile("Phoenix", style="expressive", speed=1.1, pitch=1.1),
+    
+    # Sage (Synthesizer) - Deep, diplomatic, integrative
+    "sage": VoiceProfile("Sage", style="neutral", speed=0.85, pitch=0.85),
 }
 
 
