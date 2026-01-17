@@ -1,0 +1,82 @@
+{
+    "id": "visual_test_2026-01-16",
+    "type": "relationship",
+    "name": "Visual Test UI Integration",
+    "created": "2026-01-16T22:16:00-05:00",
+    "nodes": [
+        {
+            "id": "index_html",
+            "type": "ui",
+            "path": "api/static/index.html"
+        },
+        {
+            "id": "api_notebooks",
+            "type": "endpoint",
+            "path": "/notebooks"
+        },
+        {
+            "id": "api_simulations",
+            "type": "endpoint",
+            "path": "/simulations"
+        },
+        {
+            "id": "api_skills",
+            "type": "endpoint",
+            "path": "/knowledge/skills"
+        },
+        {
+            "id": "universe_physics_notebook",
+            "type": "notebook",
+            "path": "docs/notebooks/"
+        },
+        {
+            "id": "physics_simulations",
+            "type": "simulation",
+            "count": 5
+        },
+        {
+            "id": "skills",
+            "type": "skill",
+            "count": 29
+        }
+    ],
+    "relationships": [
+        {
+            "source": "index_html",
+            "target": "api_notebooks",
+            "type": "fetches"
+        },
+        {
+            "source": "index_html",
+            "target": "api_simulations",
+            "type": "fetches"
+        },
+        {
+            "source": "index_html",
+            "target": "api_skills",
+            "type": "fetches"
+        },
+        {
+            "source": "api_notebooks",
+            "target": "universe_physics_notebook",
+            "type": "serves"
+        },
+        {
+            "source": "api_simulations",
+            "target": "physics_simulations",
+            "type": "serves"
+        },
+        {
+            "source": "api_skills",
+            "target": "skills",
+            "type": "serves"
+        }
+    ],
+    "test_results": {
+        "status": "passed",
+        "tests_run": 12,
+        "clicks": 8,
+        "screenshots": 7,
+        "errors": 0
+    }
+}

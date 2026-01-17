@@ -5,10 +5,13 @@ Provides REST endpoints for Open-Notebook integration.
 """
 
 import logging
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
 from cohezion.mcp.registry import get_registry
@@ -32,6 +35,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Static files
+static_dir = Path(__file__).parent / "static"
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory=static_dir, html=True), name="static")
+
+
+# Root redirect to UI
+@app.get("/")
+async def root():
+    return RedirectResponse(url="/static/index.html")
 
 
 # Pydantic models
