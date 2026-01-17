@@ -244,27 +244,47 @@ async def create_demo_journey():
     tracker = get_journey_tracker()
     journey_id = tracker.start_journey("What is the meaning of consciousness?")
     
-    # Simulate analyst steps
-    for perspective in ["technical", "ethical", "historical"]:
+    # Full 12D physics state for each step
+    # Dimensions: x, y, z, time, mass, sentiment, complexity, factuality, connectivity, stability, novelty, coherence
+    
+    # Simulate analyst steps - each has different perspective affecting physics
+    analyst_states = [
+        {  # Technical analyst
+            "x": random.uniform(-0.3, 0.1), "y": random.uniform(0.2, 0.5), "z": random.uniform(0.3, 0.5),
+            "time": 0.1, "mass": random.uniform(0.7, 0.85), "sentiment": random.uniform(0.4, 0.6),
+            "complexity": random.uniform(0.7, 0.9), "factuality": random.uniform(0.8, 0.95),
+            "connectivity": random.uniform(0.3, 0.5), "stability": random.uniform(0.6, 0.8),
+            "novelty": random.uniform(0.5, 0.7), "coherence": random.uniform(0.7, 0.85),
+        },
+        {  # Ethical analyst
+            "x": random.uniform(0.1, 0.4), "y": random.uniform(-0.3, 0.1), "z": random.uniform(0.4, 0.6),
+            "time": 0.2, "mass": random.uniform(0.65, 0.8), "sentiment": random.uniform(0.5, 0.8),
+            "complexity": random.uniform(0.5, 0.7), "factuality": random.uniform(0.6, 0.8),
+            "connectivity": random.uniform(0.4, 0.6), "stability": random.uniform(0.5, 0.7),
+            "novelty": random.uniform(0.6, 0.8), "coherence": random.uniform(0.65, 0.8),
+        },
+        {  # Historical analyst  
+            "x": random.uniform(-0.4, -0.1), "y": random.uniform(-0.2, 0.2), "z": random.uniform(0.35, 0.55),
+            "time": 0.3, "mass": random.uniform(0.6, 0.75), "sentiment": random.uniform(0.3, 0.5),
+            "complexity": random.uniform(0.6, 0.8), "factuality": random.uniform(0.7, 0.9),
+            "connectivity": random.uniform(0.5, 0.7), "stability": random.uniform(0.7, 0.85),
+            "novelty": random.uniform(0.3, 0.5), "coherence": random.uniform(0.7, 0.85),
+        },
+    ]
+    
+    for i, (perspective, state) in enumerate(zip(["technical", "ethical", "historical"], analyst_states)):
         tracker.record_step(
             agent_type=AgentType.ANALYST,
             agent_name=f"analyst_{perspective}",
             perspective=perspective,
             input_text="What is the meaning of consciousness?",
             output_text=f"{perspective.title()} analysis of consciousness...",
-            physics_state={
-                "x": random.uniform(-0.5, 0.5),
-                "y": random.uniform(-0.5, 0.5),
-                "z": random.uniform(0.3, 0.7),
-                "mass": random.uniform(0.6, 0.9),
-                "coherence": random.uniform(0.7, 0.95),
-                "novelty": random.uniform(0.4, 0.8),
-            },
+            physics_state=state,
             duration_ms=random.uniform(200, 500),
             confidence=random.uniform(0.7, 0.9),
         )
     
-    # Critic step
+    # Critic step - consolidates and critiques, high factuality check
     tracker.record_step(
         agent_type=AgentType.CRITIC,
         agent_name="critic_phi3",
@@ -272,14 +292,17 @@ async def create_demo_journey():
         input_text="Three analyst perspectives on consciousness",
         output_text="Critique: Found 2 contradictions between perspectives...",
         physics_state={
-            "x": 0.0, "y": 0.0, "z": 0.8,
-            "mass": 0.95, "coherence": 0.92, "novelty": 0.3,
+            "x": 0.0, "y": 0.0, "z": 0.75,
+            "time": 0.6, "mass": 0.9, "sentiment": 0.5,
+            "complexity": 0.8, "factuality": 0.95,
+            "connectivity": 0.8, "stability": 0.85,
+            "novelty": 0.25, "coherence": 0.9,
         },
         duration_ms=350,
         confidence=0.88,
     )
     
-    # Synthesizer step
+    # Synthesizer step - final integration, high coherence and stability
     tracker.record_step(
         agent_type=AgentType.SYNTHESIZER,
         agent_name="synthesizer_mistral",
@@ -288,7 +311,10 @@ async def create_demo_journey():
         output_text="Synthesized understanding of consciousness integrating all perspectives...",
         physics_state={
             "x": 0.0, "y": 0.0, "z": 1.0,
-            "mass": 1.0, "coherence": 0.95, "novelty": 0.5,
+            "time": 1.0, "mass": 1.0, "sentiment": 0.65,
+            "complexity": 0.75, "factuality": 0.9,
+            "connectivity": 0.95, "stability": 0.95,
+            "novelty": 0.4, "coherence": 0.98,
         },
         duration_ms=400,
         confidence=0.92,
@@ -360,7 +386,7 @@ async def visualize_journey(journey_id: str):
 # Static image visualization
 @app.get("/journeys/{journey_id}/plot")
 async def plot_journey(journey_id: str):
-    """Render a static 3D plot of the journey trajectory."""
+    """Render a multi-panel 12D physics visualization of the journey."""
     from fastapi.responses import FileResponse
     from pathlib import Path
     import json
@@ -378,56 +404,126 @@ async def plot_journey(journey_id: str):
         raise HTTPException(status_code=404, detail=f"Journey {journey_id} not found")
     
     journey = json.loads(journey_file.read_text())
-    
-    # Extract trajectory
     steps = journey.get("steps", [])
-    x_vals = [s["physics_state"].get("x", 0) for s in steps]
-    y_vals = [s["physics_state"].get("y", 0) for s in steps]
-    z_vals = [s["physics_state"].get("z", 0) for s in steps]
+    
+    # All 12 dimensions
+    dims = ['x', 'y', 'z', 'time', 'mass', 'sentiment', 'complexity', 'factuality', 
+            'connectivity', 'stability', 'novelty', 'coherence']
+    
+    # Extract all physics values
+    physics_data = {d: [s["physics_state"].get(d, 0) for s in steps] for d in dims}
     agent_types = [s.get("agent_type", "unknown") for s in steps]
     
     # Color by agent type
     colors = {'analyst': '#818cf8', 'critic': '#f97316', 'synthesizer': '#22c55e'}
     point_colors = [colors.get(t, '#888888') for t in agent_types]
     
-    fig = plt.figure(figsize=(10, 8))
-    ax = fig.add_subplot(111, projection='3d')
+    # Create multi-panel figure
+    fig = plt.figure(figsize=(16, 12), facecolor='#0a0a1a')
     
-    # Plot trajectory line
-    ax.plot(x_vals, y_vals, z_vals, 'w-', alpha=0.4, linewidth=2)
+    # 3D spatial plot (main)
+    ax3d = fig.add_subplot(2, 3, 1, projection='3d')
+    ax3d.set_facecolor('#0a0a1a')
+    ax3d.plot(physics_data['x'], physics_data['y'], physics_data['z'], 'w-', alpha=0.4, linewidth=2)
+    for i, (x, y, z, c) in enumerate(zip(physics_data['x'], physics_data['y'], physics_data['z'], point_colors)):
+        ax3d.scatter([x], [y], [z], c=c, s=150, alpha=0.9, edgecolors='white', linewidths=1)
+        ax3d.text(x, y, z, f" {i+1}", color='white', fontsize=8)
+    ax3d.set_xlabel('X', color='white')
+    ax3d.set_ylabel('Y', color='white')
+    ax3d.set_zlabel('Z', color='white')
+    ax3d.set_title('Spatial Trajectory (X,Y,Z)', color='white', fontsize=10)
+    ax3d.tick_params(colors='white', labelsize=7)
     
-    # Plot points with agent-type colors
-    for i, (x, y, z, c) in enumerate(zip(x_vals, y_vals, z_vals, point_colors)):
-        ax.scatter([x], [y], [z], c=c, s=200, alpha=0.9, edgecolors='white', linewidths=2)
-        ax.text(x, y, z, f" {i+1}", color='white', fontsize=10)
+    # Mass & Time evolution
+    ax_mass = fig.add_subplot(2, 3, 2, facecolor='#0a0a1a')
+    step_nums = range(1, len(steps) + 1)
+    ax_mass.bar(step_nums, physics_data['mass'], color=point_colors, alpha=0.8, label='Mass')
+    ax_mass.plot(step_nums, physics_data['time'], 'w-o', markersize=6, label='Time')
+    ax_mass.set_xlabel('Step', color='white')
+    ax_mass.set_ylabel('Value', color='white')
+    ax_mass.set_title('Mass & Time Evolution', color='white', fontsize=10)
+    ax_mass.legend(facecolor='#1a1a2e', labelcolor='white', fontsize=8)
+    ax_mass.tick_params(colors='white')
+    ax_mass.set_ylim(0, 1.1)
     
-    ax.set_facecolor('#0a0a1a')
-    fig.patch.set_facecolor('#0a0a1a')
-    ax.set_xlabel('X', color='white')
-    ax.set_ylabel('Y', color='white')
-    ax.set_zlabel('Z', color='white')
-    ax.tick_params(colors='white')
-    ax.set_title(f"Journey: {journey['query'][:40]}...", color='white', fontsize=12)
+    # Coherence & Stability (key metrics)
+    ax_coh = fig.add_subplot(2, 3, 3, facecolor='#0a0a1a')
+    ax_coh.fill_between(step_nums, physics_data['coherence'], alpha=0.3, color='#22c55e')
+    ax_coh.plot(step_nums, physics_data['coherence'], 'g-o', markersize=8, label='Coherence', linewidth=2)
+    ax_coh.fill_between(step_nums, physics_data['stability'], alpha=0.2, color='#818cf8')
+    ax_coh.plot(step_nums, physics_data['stability'], 'b-s', markersize=6, label='Stability')
+    ax_coh.set_xlabel('Step', color='white')
+    ax_coh.set_ylabel('Value', color='white')
+    ax_coh.set_title('Coherence & Stability', color='white', fontsize=10)
+    ax_coh.legend(facecolor='#1a1a2e', labelcolor='white', fontsize=8)
+    ax_coh.tick_params(colors='white')
+    ax_coh.set_ylim(0, 1.1)
     
-    # Legend
+    # Novelty & Connectivity
+    ax_nov = fig.add_subplot(2, 3, 4, facecolor='#0a0a1a')
+    ax_nov.plot(step_nums, physics_data['novelty'], 'r-o', markersize=8, label='Novelty', linewidth=2)
+    ax_nov.plot(step_nums, physics_data['connectivity'], 'c-^', markersize=6, label='Connectivity')
+    ax_nov.set_xlabel('Step', color='white')
+    ax_nov.set_ylabel('Value', color='white')
+    ax_nov.set_title('Novelty & Connectivity', color='white', fontsize=10)
+    ax_nov.legend(facecolor='#1a1a2e', labelcolor='white', fontsize=8)
+    ax_nov.tick_params(colors='white')
+    ax_nov.set_ylim(0, 1.1)
+    
+    # Sentiment, Complexity, Factuality
+    ax_sent = fig.add_subplot(2, 3, 5, facecolor='#0a0a1a')
+    width = 0.25
+    x = np.array(list(step_nums))
+    ax_sent.bar(x - width, physics_data['sentiment'], width, label='Sentiment', color='#f97316', alpha=0.8)
+    ax_sent.bar(x, physics_data['complexity'], width, label='Complexity', color='#a78bfa', alpha=0.8)
+    ax_sent.bar(x + width, physics_data['factuality'], width, label='Factuality', color='#22d3ee', alpha=0.8)
+    ax_sent.set_xlabel('Step', color='white')
+    ax_sent.set_ylabel('Value', color='white')
+    ax_sent.set_title('Sentiment, Complexity, Factuality', color='white', fontsize=10)
+    ax_sent.legend(facecolor='#1a1a2e', labelcolor='white', fontsize=7)
+    ax_sent.tick_params(colors='white')
+    ax_sent.set_ylim(0, 1.1)
+    
+    # Full 12D heatmap
+    ax_heat = fig.add_subplot(2, 3, 6, facecolor='#0a0a1a')
+    heatmap_data = np.array([physics_data[d] for d in dims])
+    im = ax_heat.imshow(heatmap_data, aspect='auto', cmap='viridis', vmin=0, vmax=1)
+    ax_heat.set_yticks(range(len(dims)))
+    ax_heat.set_yticklabels([d.capitalize() for d in dims], fontsize=8, color='white')
+    ax_heat.set_xticks(range(len(steps)))
+    ax_heat.set_xticklabels([f"{i+1}" for i in range(len(steps))], color='white')
+    ax_heat.set_xlabel('Step', color='white')
+    ax_heat.set_title('12D Physics Heatmap', color='white', fontsize=10)
+    cbar = plt.colorbar(im, ax=ax_heat, shrink=0.8)
+    cbar.ax.yaxis.set_tick_params(color='white')
+    cbar.ax.yaxis.set_ticklabels([f'{x:.1f}' for x in cbar.get_ticks()], color='white')
+    
+    # Title
+    fig.suptitle(f"12D Physics Journey: {journey['query'][:50]}...", 
+                 color='white', fontsize=14, fontweight='bold', y=0.98)
+    
+    # Legend for agent types
     from matplotlib.patches import Patch
     legend_elements = [
         Patch(facecolor=colors['analyst'], label='Analyst'),
         Patch(facecolor=colors['critic'], label='Critic'),
         Patch(facecolor=colors['synthesizer'], label='Synthesizer'),
     ]
-    ax.legend(handles=legend_elements, loc='upper left', facecolor='#1a1a2e', labelcolor='white')
+    fig.legend(handles=legend_elements, loc='lower center', ncol=3, 
+               facecolor='#1a1a2e', labelcolor='white', fontsize=9)
+    
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     
     output_dir = Path("renders")
     output_dir.mkdir(exist_ok=True)
-    output_path = output_dir / f"journey_{journey_id}_plot.png"
+    output_path = output_dir / f"journey_{journey_id}_12d_plot.png"
     plt.savefig(output_path, dpi=150, facecolor='#0a0a1a', bbox_inches='tight')
     plt.close()
     
     return FileResponse(
         output_path,
         media_type="image/png",
-        filename=f"{journey_id}_plot.png",
+        filename=f"{journey_id}_12d_plot.png",
     )
 
 
