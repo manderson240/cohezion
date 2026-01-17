@@ -12,7 +12,7 @@ import json
 import logging
 import os
 from dataclasses import dataclass, asdict
-from datetime import datetime
+from datetime import datetime, UTC
 from pathlib import Path
 from typing import Any
 
@@ -73,7 +73,7 @@ class AuditLogger:
     ) -> None:
         """Log an API request."""
         event = AuditEvent(
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             event_type="request",
             action=f"{method} {endpoint}",
             user=user,
@@ -98,7 +98,7 @@ class AuditLogger:
     ) -> None:
         """Log an authentication event."""
         event = AuditEvent(
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             event_type="auth",
             action=action,
             user=user,
@@ -121,7 +121,7 @@ class AuditLogger:
     ) -> None:
         """Log a security event."""
         event = AuditEvent(
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             event_type="security",
             action=action,
             user=None,
@@ -144,7 +144,7 @@ class AuditLogger:
     ) -> None:
         """Log a swarm debate execution."""
         event = AuditEvent(
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             event_type="debate",
             action="run_debate",
             user=None,

@@ -136,6 +136,58 @@ async def get_metrics():
     return {"metrics": server.get_metrics()}
 
 
+# Notebook endpoints
+@app.get("/notebooks")
+async def list_notebooks():
+    """List all research notebooks."""
+    import os
+    from pathlib import Path
+    notebooks_dir = Path("docs/notebooks")
+    if not notebooks_dir.exists():
+        return {"notebooks": []}
+    notebooks = [f.stem for f in notebooks_dir.glob("*.md")]
+    return {"notebooks": notebooks}
+
+
+@app.get("/notebooks/{name}")
+async def get_notebook(name: str):
+    """Get a specific notebook."""
+    from pathlib import Path
+    notebook_path = Path(f"docs/notebooks/{name}.md")
+    if not notebook_path.exists():
+        raise HTTPException(status_code=404, detail=f"Notebook {name} not found")
+    return {"name": name, "content": notebook_path.read_text()}
+
+
+# Simulation endpoints
+@app.get("/simulations")
+async def list_simulations():
+    """List all physics simulations."""
+    import json
+    from pathlib import Path
+    sim_file = Path("src/cohezion/knowledge_graph/universe_nodes/physics_simulations.json")
+    if not sim_file.exists():
+        return {"simulations": []}
+    data = json.loads(sim_file.read_text())
+    return {"simulations": [s["id"] for s in data.get("simulations", [])]}
+
+
+@app.get("/simulations/{sim_id}")
+async def get_simulation(sim_id: str):
+    """Get a specific simulation result."""
+    import json
+    from pathlib import Path
+    sim_file = Path("src/cohezion/knowledge_graph/universe_nodes/physics_simulations.json")
+    if not sim_file.exists():
+        raise HTTPException(status_code=404, detail="No simulations found")
+    data = json.loads(sim_file.read_text())
+    for sim in data.get("simulations", []):
+        if sim["id"] == sim_id:
+            return sim
+    raise HTTPException(status_code=404, detail=f"Simulation {sim_id} not found")
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8080)
+
