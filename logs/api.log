@@ -1,44 +1,12 @@
 nohup: ignoring input
 INFO:     Will watch for changes in these directories: ['/home/mike-anderson/dev/cohezion']
 INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
-INFO:     Started reloader process [501010] using StatReload
-INFO:     Started server process [501013]
+INFO:     Started reloader process [505830] using StatReload
+INFO:     Started server process [505839]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-INFO:matplotlib.font_manager:Failed to extract font properties from /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf: Can not load face (unknown file format; error code 0x2)
-INFO:matplotlib.font_manager:generated new fontManager
-INFO:     127.0.0.1:53298 - "GET /journeys/journey_1768620641532/plot HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53310 - "GET / HTTP/1.1" 307 Temporary Redirect
-INFO:     127.0.0.1:53310 - "GET /static/index.html HTTP/1.1" 304 Not Modified
-INFO:     127.0.0.1:53310 - "GET /notebooks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44192 - "GET /simulations HTTP/1.1" 200 OK
-INFO:cohezion.mcp.knowledge_server:Indexed 30 skills, 1 docs
-INFO:     127.0.0.1:44200 - "GET /knowledge/skills HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44216 - "GET /notebooks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53310 - "GET /journeys HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58168 - "GET /journeys/journey_1768620641532 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55030 - "GET /journeys/journey_1768620641532/plot HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55030 - "GET /journeys HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55030 - "GET /journeys/journey_1768620641532/plot HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55030 - "GET / HTTP/1.1" 307 Temporary Redirect
-INFO:     127.0.0.1:55030 - "GET /notebooks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55032 - "GET /simulations HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51580 - "GET /knowledge/skills HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51584 - "GET /notebooks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33864 - "GET /journeys HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37126 - "GET /journeys/journey_1768620641532 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:40812 - "GET /journeys/journey_1768620641532/trajectory HTTP/1.1" 200 OK
-INFO:     127.0.0.1:40812 - "GET /journeys/journey_1768620641532/plot HTTP/1.1" 200 OK
-INFO:     127.0.0.1:40828 - "GET /journeys/journey_1768620641532/plot HTTP/1.1" 200 OK
-INFO:     127.0.0.1:38238 - "GET /journeys/journey_1768620641532/plot HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39016 - "GET /static/index.html HTTP/1.1" 304 Not Modified
-INFO:     127.0.0.1:39016 - "GET /notebooks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39018 - "GET /simulations HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39034 - "GET /knowledge/skills HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39040 - "GET /notebooks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48416 - "GET /journeys/journey_1768620641532/plot HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48426 - "GET /notebooks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48428 - "GET /simulations HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48432 - "GET /knowledge/skills HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48426 - "GET /notebooks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39608 - "GET /journeys/journey_1768620641532/plot HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48302 - "POST /journeys/demo HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45532 - "POST /journeys/demo HTTP/1.1" 200 OK
+/home/mike-anderson/dev/cohezion/src/cohezion/api/__init__.py:499: UserWarning: set_ticklabels() should only be used with a fixed number of ticks, i.e. after set_ticks() or using a FixedLocator.
+  cbar.ax.yaxis.set_ticklabels([f'{x:.1f}' for x in cbar.get_ticks()], color='white')
+INFO:     127.0.0.1:45542 - "GET /journeys/journey_1768621695446/plot HTTP/1.1" 200 OK
