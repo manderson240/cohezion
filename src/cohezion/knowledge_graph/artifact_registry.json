@@ -1,6 +1,7 @@
 {
-    "version": "1.0",
+    "version": "1.1",
     "created": "2026-01-16",
+    "updated": "2026-01-16T22:56",
     "entities": [
         {
             "id": "swarm_core",
@@ -18,6 +19,19 @@
             ]
         },
         {
+            "id": "journey_tracker",
+            "type": "component",
+            "name": "Agent Journey Tracker",
+            "files": [
+                "swarm/journey_tracker.py"
+            ],
+            "capabilities": [
+                "12d_physics_tracking",
+                "trajectory_recording",
+                "visualization_data"
+            ]
+        },
+        {
             "id": "mcp_infrastructure",
             "type": "component",
             "name": "MCP Server Infrastructure",
@@ -28,6 +42,21 @@
                 "token_reduction",
                 "tool_access",
                 "knowledge_retrieval"
+            ]
+        },
+        {
+            "id": "api_layer",
+            "type": "component",
+            "name": "FastAPI REST Layer",
+            "files": [
+                "api/__init__.py",
+                "api/static/"
+            ],
+            "capabilities": [
+                "rest_endpoints",
+                "static_ui",
+                "journey_visualization",
+                "notebook_serving"
             ]
         },
         {
@@ -66,8 +95,22 @@
             ],
             "capabilities": [
                 "3d_rendering",
+                "12d_multipanel",
                 "dimensionality_reduction",
                 "interactive_plots"
+            ]
+        },
+        {
+            "id": "reliability",
+            "type": "component",
+            "name": "Reliability Infrastructure",
+            "files": [
+                "reliability/"
+            ],
+            "capabilities": [
+                "circuit_breaker",
+                "connection_pooling",
+                "graceful_degradation"
             ]
         },
         {
@@ -80,7 +123,8 @@
             "capabilities": [
                 "input_validation",
                 "prompt_injection_defense",
-                "audit_logging"
+                "audit_logging",
+                "middleware"
             ]
         },
         {
@@ -120,20 +164,6 @@
                 "benchmarking",
                 "auto_swap",
                 "storage_management"
-            ]
-        },
-        {
-            "id": "legacy_bmad",
-            "type": "integration",
-            "name": "Legacy BMAD System",
-            "files": [
-                "legacy/",
-                "skills/BMAD_WORKFLOW_PRIME.md"
-            ],
-            "capabilities": [
-                "workflow_execution",
-                "agent_personas",
-                "menu_driven_interaction"
             ]
         }
     ],
@@ -196,14 +226,45 @@
             ]
         },
         {
-            "id": "BMAD_WORKFLOW_PRIME",
-            "domain": "workflow",
+            "id": "UNIVERSE_PHYSICS_PRIME",
+            "domain": "physics",
             "components": [
-                "legacy_bmad"
+                "physics_engine"
+            ]
+        },
+        {
+            "id": "RELIABILITY_PRIME",
+            "domain": "reliability",
+            "components": [
+                "reliability"
+            ]
+        },
+        {
+            "id": "VISUAL_VALIDATION_PRIME",
+            "domain": "testing",
+            "components": [
+                "visualization"
+            ]
+        },
+        {
+            "id": "JOURNEY_TRACKING_PRIME",
+            "domain": "visualization",
+            "components": [
+                "journey_tracker"
             ]
         }
     ],
     "relationships": [
+        {
+            "source": "swarm_core",
+            "target": "journey_tracker",
+            "type": "records_to"
+        },
+        {
+            "source": "journey_tracker",
+            "target": "visualization",
+            "type": "renders_via"
+        },
         {
             "source": "swarm_core",
             "target": "model_manager",
@@ -213,6 +274,16 @@
             "source": "swarm_core",
             "target": "mcp_infrastructure",
             "type": "exposes_via"
+        },
+        {
+            "source": "api_layer",
+            "target": "journey_tracker",
+            "type": "serves"
+        },
+        {
+            "source": "api_layer",
+            "target": "visualization",
+            "type": "integrates"
         },
         {
             "source": "calm_abstraction",
@@ -236,13 +307,13 @@
         },
         {
             "source": "security",
-            "target": "mcp_infrastructure",
+            "target": "api_layer",
             "type": "protects"
         },
         {
-            "source": "legacy_bmad",
-            "target": "swarm_core",
-            "type": "validates_pattern"
+            "source": "reliability",
+            "target": "api_layer",
+            "type": "stabilizes"
         }
     ]
 }
