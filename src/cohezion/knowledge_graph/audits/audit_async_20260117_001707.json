@@ -1,0 +1,74 @@
+{
+  "timestamp": "2026-01-17T05:17:07.984808+00:00",
+  "audit_type": "async",
+  "checks": [
+    {
+      "name": "package_structure",
+      "status": "warn",
+      "value": 1,
+      "details": "Missing __init__.py: ['src/cohezion/knowledge_graph/universe_nodes/workflows']"
+    },
+    {
+      "name": "test_files",
+      "status": "warn",
+      "value": 3,
+      "details": "Found 3 test files"
+    },
+    {
+      "name": "tests_passing",
+      "status": "pass",
+      "value": true,
+      "details": "35 passed in 0.12s"
+    },
+    {
+      "name": "skills_count",
+      "status": "pass",
+      "value": 41,
+      "details": "Found 41 skill files"
+    },
+    {
+      "name": "api_health",
+      "status": "pass",
+      "value": true,
+      "details": "API responding"
+    },
+    {
+      "name": "ollama_slms",
+      "status": "pass",
+      "value": 3,
+      "details": "3 SLMs available"
+    },
+    {
+      "name": "documentation",
+      "status": "pass",
+      "value": 14,
+      "details": "Found 14 documentation files"
+    },
+    {
+      "name": "universe_nodes",
+      "status": "pass",
+      "value": {
+        "journeys": 3,
+        "simulations": 8
+      },
+      "details": "3 journeys, 8 simulations"
+    },
+    {
+      "name": "components",
+      "status": "pass",
+      "value": 9,
+      "details": "Components: swarm, calm, viz, api, security, reliability, healing, learning, mcp"
+    },
+    {
+      "name": "code_size",
+      "status": "pass",
+      "value": 12161,
+      "details": "88 Python files, 12,161 lines"
+    }
+  ],
+  "summary": {
+    "pass": 8,
+    "warn": 2,
+    "fail": 0
+  }
+}

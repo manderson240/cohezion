@@ -37,6 +37,8 @@ class AsyncWorkflowOrchestrator:
         "simulation": "run_simulation",
         "debate": "run_debate",
         "analyze": "run_analysis",
+        "analysis": "run_analysis",  # Added explicit match
+        "semantic": "run_analysis",  # Added explicit match
         "audit": "run_audit",
         "deploy": "run_deploy",
         "test": "run_tests",

@@ -17,3 +17,12 @@ INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     127.0.0.1:49194 - "GET /health HTTP/1.1" 200 OK
 INFO:     127.0.0.1:42362 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40926 - "GET /health HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'src/cohezion/mcp/async_workflow.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [546339]
+INFO:     Started server process [560085]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
