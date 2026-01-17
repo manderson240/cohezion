@@ -3,7 +3,7 @@
     "test_pattern": {
       "name": "test_pattern",
       "description": "A test pattern",
-      "occurrences": 9,
+      "occurrences": 11,
       "examples": [
         "Example usage"
       ],
@@ -12,7 +12,7 @@
         "pattern"
       ],
       "first_seen": "2026-01-16T19:12:15.398351",
-      "last_seen": "2026-01-16T23:24:05.049238"
+      "last_seen": "2026-01-16T23:55:38.968266"
     }
   }
 }

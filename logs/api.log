@@ -16,3 +16,4 @@ INFO:     Started server process [546339]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     127.0.0.1:49194 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42362 - "GET /health HTTP/1.1" 200 OK
