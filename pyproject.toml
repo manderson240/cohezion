@@ -13,6 +13,7 @@ dependencies = [
     "numpy>=2.4.1",
     "pandas>=2.3.3",
     "passlib[bcrypt]>=1.7.4",
+    "psutil>=7.2.1",
     "pydantic>=2.12.5",
     "python-jose[cryptography]>=3.5.0",
     "scikit-learn>=1.8.0",
