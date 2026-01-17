@@ -34,10 +34,24 @@ You are a specialist in **extracting reusable patterns** from session logs, code
        generate_skill(f"{pattern_name.upper()}_PRIME.md")
    ```
 
-5. **Periodic Mining Retrospectives**
-   - Weekly: Review session logs, extract new patterns
-   - Monthly: Consolidate skills, prune redundant entries
-   - Quarterly: Major refactoring of knowledge graph
+5. **Codebase Scanning (Action Items)**
+   - Run `python scan_todos.py` to find:
+     - `TODO` / `FIXME` technical debt
+     - `## Next Steps` in documentation
+     - `Option` or `Proposed Next Steps` hidden in text
+     - `Future Work` placeholders
+
+## TOOLS & COMMANDS
+### Action Item Scan
+```bash
+python scan_todos.py
+```
+
+### Keyword Search (Grep)
+Locate specific concepts:
+```bash
+grep -rn "concept_name" src/cohezion
+```
 
 ## STORAGE LOCATIONS
 | Data Type | Path |

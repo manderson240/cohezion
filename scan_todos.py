@@ -16,14 +16,19 @@ from pathlib import Path
 
 def scan_codebase():
     base_path = Path(".")
-    todo_pattern = re.compile(r'(TODO|FIXME|HACK|XXX):\s*(.*)', re.IGNORECASE)
-    next_steps_pattern = re.compile(r'##\s*Next Steps', re.IGNORECASE)
-    
+    # Patterns to search for
+    patterns = {
+        'TODO': re.compile(r'(TODO|FIXME|HACK|XXX):\s*(.*)', re.IGNORECASE),
+        'Next Step': re.compile(r'(?:##|\*\*|[\-\*])\s*(?:Proposed )?Next Steps?:?\s*(.*)', re.IGNORECASE),
+        'Option': re.compile(r'(?:##|\*\*|[\-\*])\s*Option\s*(\d+|[A-Z])?:?\s*(.*)', re.IGNORECASE),
+        'Future Work': re.compile(r'(?:##|\*\*|[\-\*])\s*Future Work:?\s*(.*)', re.IGNORECASE),
+    }
+
     tasks = []
-    
+
     # Exclude these dirs
     excludes = {'.git', '.venv', 'venv', '__pycache__', '.pytest_cache', '.cohezion', 'node_modules'}
-    
+
     for root, dirs, files in os.walk(base_path):
         # Modify dirs in-place to exclude
         dirs[:] = [d for d in dirs if d not in excludes]
@@ -38,31 +43,22 @@ def scan_codebase():
                 content = path.read_text(errors='ignore')
                 lines = content.splitlines()
                 
-                # Check for TODOs
                 for i, line in enumerate(lines):
-                    match = todo_pattern.search(line)
-                    if match:
-                        tag, text = match.groups()
-                        # Clean up text
-                        text = text.strip()
-                        if len(text) > 5:
-                            tasks.append(f"- [ ] {tag} ({path.name}:{i+1}): {text}")
-                
-                # Check for Next Steps sections in Markdown
-                if file.endswith('.md'):
-                    in_next_steps = False
-                    for line in lines:
-                        if next_steps_pattern.search(line):
-                            in_next_steps = True
-                            continue
-                        
-                        if in_next_steps:
-                            if line.startswith('#'): # New section starts
-                                in_next_steps = False
-                            elif line.strip().startswith('- [ ]') or line.strip().startswith('- '):
-                                text = line.strip().lstrip('- [ ]').lstrip('- ').strip()
-                                if text and "Deploy to Cloud Run" not in text: # Filter known common ones
-                                    tasks.append(f"- [ ] Next Step ({path.name}): {text}")
+                    line_strip = line.strip()
+                    if not line_strip: continue
+                    
+                    # Check all patterns
+                    for label, pattern in patterns.items():
+                        match = pattern.search(line)
+                        if match:
+                            # If it's a header (starts with #), we might want to capture subsequent bullet points
+                            # But for now, let's just capture the line itself if it has content
+                            text = match.group(match.lastindex or 0).strip()
+                            if len(text) > 3 and not text.startswith('#'):
+                                tasks.append(f"- [ ] {label} ({path.name}:{i+1}): {text}")
+                            
+                            # Logic for "Next Steps" or "Option" headers to capture list items below could go here
+                            # This is a simple improvement for now
                                     
             except Exception as e:
                 pass
