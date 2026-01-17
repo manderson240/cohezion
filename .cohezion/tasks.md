@@ -14,6 +14,7 @@ Add tasks here in checkbox format. I'll check this at session start.
 - [ ] Roadmap: Full-stack deployment to Cloud Run (from Phase 12 retrospective)
 - [ ] Roadmap: Research paper finalization (from Phase 13 retrospective)
 - [ ] Option: Implement lightweight classifier (7b model) for capabilities (from MODEL_ROUTING_PRIME)
+- [ ] Research: Choosing the Right Multi-Agent Architecture (https://share.google/BiRvuiMLP2PQXdmfq)
 
 ## Completed Tasks
 - [x] Create Google Keep integration ✅

@@ -141,6 +141,10 @@ class KnowledgeMCP:
         
         entity_file = entities_path / f"{entity['id']}.json"
         entity_file.write_text(json.dumps(entity, indent=2))
+        
+        # Trigger hooks
+        from cohezion.registry.hooks import get_hook_manager
+        get_hook_manager().dispatch_knowledge_stored(entity.get("id", "unknown"), entity)
 
 
 # MCP tool definitions

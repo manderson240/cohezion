@@ -106,6 +106,15 @@ class SkillsMCP:
         try:
             _register_skill(name, description, keywords, path)
             self._registry = load_registry()  # Reload
+            
+            # Trigger hooks
+            from cohezion.registry.hooks import get_hook_manager
+            get_hook_manager().dispatch_skill_registered(name, {
+                "description": description,
+                "keywords": keywords,
+                "path": path
+            })
+            
             return {"success": True, "name": name}
         except Exception as e:
             return {"success": False, "error": str(e)}
