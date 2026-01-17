@@ -1,0 +1,248 @@
+{
+    "version": "1.0",
+    "created": "2026-01-16",
+    "entities": [
+        {
+            "id": "swarm_core",
+            "type": "component",
+            "name": "SLM Swarm Core",
+            "files": [
+                "swarm/agents/",
+                "swarm/workflows/",
+                "swarm/memory/"
+            ],
+            "capabilities": [
+                "multi_perspective_analysis",
+                "hierarchical_voting",
+                "consensus_building"
+            ]
+        },
+        {
+            "id": "mcp_infrastructure",
+            "type": "component",
+            "name": "MCP Server Infrastructure",
+            "files": [
+                "mcp/"
+            ],
+            "capabilities": [
+                "token_reduction",
+                "tool_access",
+                "knowledge_retrieval"
+            ]
+        },
+        {
+            "id": "calm_abstraction",
+            "type": "component",
+            "name": "CALM Continuous Thought",
+            "files": [
+                "calm/"
+            ],
+            "capabilities": [
+                "thought_compression",
+                "trajectory_prediction",
+                "semantic_arithmetic"
+            ]
+        },
+        {
+            "id": "physics_engine",
+            "type": "component",
+            "name": "12D Physics State",
+            "files": [
+                "db/",
+                "physics/"
+            ],
+            "capabilities": [
+                "vector_embedding",
+                "similarity_search",
+                "dimensional_mapping"
+            ]
+        },
+        {
+            "id": "visualization",
+            "type": "component",
+            "name": "Visualization Engine",
+            "files": [
+                "viz/"
+            ],
+            "capabilities": [
+                "3d_rendering",
+                "dimensionality_reduction",
+                "interactive_plots"
+            ]
+        },
+        {
+            "id": "security",
+            "type": "component",
+            "name": "Security Guardrails",
+            "files": [
+                "security/"
+            ],
+            "capabilities": [
+                "input_validation",
+                "prompt_injection_defense",
+                "audit_logging"
+            ]
+        },
+        {
+            "id": "healing",
+            "type": "component",
+            "name": "Self-Healing System",
+            "files": [
+                "healing/"
+            ],
+            "capabilities": [
+                "drift_detection",
+                "failure_diagnosis",
+                "auto_correction"
+            ]
+        },
+        {
+            "id": "learning",
+            "type": "component",
+            "name": "Continuous Learning",
+            "files": [
+                "learning/"
+            ],
+            "capabilities": [
+                "pattern_detection",
+                "skill_generation",
+                "knowledge_mining"
+            ]
+        },
+        {
+            "id": "model_manager",
+            "type": "component",
+            "name": "Ollama Model Manager",
+            "files": [
+                "swarm/model_manager.py"
+            ],
+            "capabilities": [
+                "benchmarking",
+                "auto_swap",
+                "storage_management"
+            ]
+        },
+        {
+            "id": "legacy_bmad",
+            "type": "integration",
+            "name": "Legacy BMAD System",
+            "files": [
+                "legacy/",
+                "skills/BMAD_WORKFLOW_PRIME.md"
+            ],
+            "capabilities": [
+                "workflow_execution",
+                "agent_personas",
+                "menu_driven_interaction"
+            ]
+        }
+    ],
+    "skills": [
+        {
+            "id": "MCP_SERVER_PRIME",
+            "domain": "infrastructure",
+            "components": [
+                "mcp_infrastructure"
+            ]
+        },
+        {
+            "id": "SWARM_ORCHESTRATION_PRIME",
+            "domain": "workflow",
+            "components": [
+                "swarm_core"
+            ]
+        },
+        {
+            "id": "CALM_ABSTRACTION_PRIME",
+            "domain": "cognition",
+            "components": [
+                "calm_abstraction"
+            ]
+        },
+        {
+            "id": "SELF_HEALING_PRIME",
+            "domain": "reliability",
+            "components": [
+                "healing"
+            ]
+        },
+        {
+            "id": "OLLAMA_MANAGEMENT_PRIME",
+            "domain": "infrastructure",
+            "components": [
+                "model_manager"
+            ]
+        },
+        {
+            "id": "SECURITY_GUARDRAILS_PRIME",
+            "domain": "security",
+            "components": [
+                "security"
+            ]
+        },
+        {
+            "id": "KNOWLEDGE_MINING_PRIME",
+            "domain": "learning",
+            "components": [
+                "learning"
+            ]
+        },
+        {
+            "id": "UNIVERSE_VISUALIZATION_PRIME",
+            "domain": "visualization",
+            "components": [
+                "visualization",
+                "physics_engine"
+            ]
+        },
+        {
+            "id": "BMAD_WORKFLOW_PRIME",
+            "domain": "workflow",
+            "components": [
+                "legacy_bmad"
+            ]
+        }
+    ],
+    "relationships": [
+        {
+            "source": "swarm_core",
+            "target": "model_manager",
+            "type": "uses"
+        },
+        {
+            "source": "swarm_core",
+            "target": "mcp_infrastructure",
+            "type": "exposes_via"
+        },
+        {
+            "source": "calm_abstraction",
+            "target": "physics_engine",
+            "type": "maps_to"
+        },
+        {
+            "source": "physics_engine",
+            "target": "visualization",
+            "type": "renders_via"
+        },
+        {
+            "source": "healing",
+            "target": "model_manager",
+            "type": "optimizes"
+        },
+        {
+            "source": "learning",
+            "target": "healing",
+            "type": "feeds"
+        },
+        {
+            "source": "security",
+            "target": "mcp_infrastructure",
+            "type": "protects"
+        },
+        {
+            "source": "legacy_bmad",
+            "target": "swarm_core",
+            "type": "validates_pattern"
+        }
+    ]
+}
