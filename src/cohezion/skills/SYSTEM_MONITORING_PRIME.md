@@ -83,9 +83,41 @@ You are a performance engineer specialized in **real‑time system monitoring** 
    - Persist the updated policy in `config/system_policy.yaml` and version it.
 
 ## VERSION
-v0.1
+v0.2 (2026-01-17: Added swap pressure hooks from crash retrospective)
+
+## ANTI-PATTERNS (from Retrospective)
+- **Unbounded Append Logging**: Never use `>>` without rotation - causes disk exhaustion
+- **Missing Timestamps**: Always add ISO8601 timestamps for log correlation
+- **No Pre-flight Checks**: Agent tasks should verify memory budget before spawning
+
+## HOOKS & TRIGGERS
+
+### Pre-flight Memory Check
+Before spawning new agent tasks, verify system capacity:
+```python
+def preflight_memory_check() -> bool:
+    """Returns True if safe to proceed, False if memory pressure detected."""
+    mem = psutil.virtual_memory()
+    swap = psutil.swap_memory()
+    if swap.percent > 20:  # Swap > 20% = memory pressure
+        log.warning(f"Memory pressure: swap at {swap.percent}%")
+        return False
+    if mem.available < 5 * 1024**3:  # Less than 5GB available
+        log.warning(f"Low memory: {mem.available / 1024**3:.1f}GB available")
+        return False
+    return True
+```
+
+### Auto-Throttle Trigger
+When swap exceeds threshold, reduce parallel workers:
+```python
+if psutil.swap_memory().percent > 20:
+    reduce_max_workers(by=2)
+    send_notification("Memory pressure detected - throttling workers")
+```
 
 ## SEE ALSO
 - MODEL_ROUTING_PRIME.md
 - PARALLEL_ORCHESTRATION_PRIME.md
 - CODE_STANDARDS_PRIME.md
+- retrospectives/memory_exhaustion_retrospective.md
