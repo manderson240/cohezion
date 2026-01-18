@@ -9,3 +9,28 @@ wheels/
 # Virtual environments
 .venv
 .env
+
+# Diagnostic logs (large binary files)
+src/diagnostics/*.log
+src/diagnostics/process_list.log
+src/diagnostics/process_usage.log
+src/diagnostics/memory_usage.log
+
+# Cache and temporary files
+cache/
+*.cache
+.cache/
+
+# IDE and editor files
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/*.log
+*.log
+!docs/**/*.log
+
+# OS files
+.DS_Store
+Thumbs.db
