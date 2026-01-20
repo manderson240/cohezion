@@ -1,0 +1,61 @@
+{
+  "total_tests": 1000000,
+  "correct_detections": 991199,
+  "false_positives": 0,
+  "false_negatives": 8801,
+  "detection_rate": "99.1199%",
+  "false_positive_rate": "0.0000%",
+  "accuracy": "99.1199%",
+  "avg_processing_time_ms": "0.07",
+  "total_time_seconds": "66.22",
+  "by_category": {
+    "sql_injection": {
+      "total": 135266,
+      "correct": 134875,
+      "fp": 0,
+      "fn": 391
+    },
+    "nosql_injection": {
+      "total": 44606,
+      "correct": 43078,
+      "fp": 0,
+      "fn": 1528
+    },
+    "path_traversal": {
+      "total": 71816,
+      "correct": 71230,
+      "fp": 0,
+      "fn": 586
+    },
+    "prompt_injection": {
+      "total": 349813,
+      "correct": 349464,
+      "fp": 0,
+      "fn": 349
+    },
+    "command_injection": {
+      "total": 89448,
+      "correct": 87926,
+      "fp": 0,
+      "fn": 1522
+    },
+    "xss": {
+      "total": 125227,
+      "correct": 121581,
+      "fp": 0,
+      "fn": 3646
+    },
+    "system_prompt_leak": {
+      "total": 133824,
+      "correct": 133045,
+      "fp": 0,
+      "fn": 779
+    },
+    "benign": {
+      "total": 50000,
+      "correct": 50000,
+      "fp": 0,
+      "fn": 0
+    }
+  }
+}

@@ -10,7 +10,7 @@ import time
 from typing import Any
 
 from cohezion.swarm.agents.base import BaseAgent
-from cohezion.swarm.types import CritiqueResult, SwarmConfig, SynthesizedResponse
+from cohezion.swarm.swarm_types import CritiqueResult, SwarmConfig, SynthesizedResponse
 
 logger = logging.getLogger(__name__)
 

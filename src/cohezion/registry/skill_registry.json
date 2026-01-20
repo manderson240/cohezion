@@ -11,7 +11,7 @@
     "path": "cohezion/src/cohezion/skills/METAPHYSICS_PRIME.md"
   },
   "PHYSICS_PRIME": {
-    "description": "Fringe‑but‑empirical physics analysis that translates metaphors into concrete physical mechanisms.",
+    "description": "Fringe\u2011but\u2011empirical physics analysis that translates metaphors into concrete physical mechanisms.",
     "keywords": [
       "quadrature",
       "exotic vacuum objects",
@@ -22,7 +22,7 @@
     "path": "cohezion/src/cohezion/skills/PHYSICS_PRIME.md"
   },
   "RETROSPECTIVE_SKILL": {
-    "description": "Meta‑engineer that reflects on past skills, extracts reusable patterns, and synthesizes new higher‑order skills.",
+    "description": "Meta\u2011engineer that reflects on past skills, extracts reusable patterns, and synthesizes new higher\u2011order skills.",
     "keywords": [
       "compound engineering",
       "pattern extraction",
@@ -32,17 +32,17 @@
     "path": "cohezion/src/cohezion/skills/RETROSPECTIVE_SKILL.md"
   },
   "COMPOUND_ENGINEERING_PRIME": {
-    "description": "Systems architect focused on building self‑extending pipelines where each feature becomes a reusable macro.",
+    "description": "Systems architect focused on building self\u2011extending pipelines where each feature becomes a reusable macro.",
     "keywords": [
-      "meta‑pattern library",
+      "meta\u2011pattern library",
       "skill tokens",
       "automatic scaffold",
-      "self‑extending"
+      "self\u2011extending"
     ],
     "path": "cohezion/src/cohezion/skills/COMPOUND_ENGINEERING_PRIME.md"
   },
   "SKILL_GENERATOR_PRIME": {
-    "description": "Tool that treats skill specifications as compressible data structures and provides a CLI‑style interface for scaffolding new skills.",
+    "description": "Tool that treats skill specifications as compressible data structures and provides a CLI\u2011style interface for scaffolding new skills.",
     "keywords": [
       "compression block",
       "skill tokens",
@@ -63,7 +63,7 @@
     "path": "cohezion/src/cohezion/skills/EMBEDDING_STRATEGY_PRIME.md"
   },
   "VECTOR_STORE_PRIME": {
-    "description": "Authority on persistent vector storage, covering Mem0 MCP, FAISS, Chroma, and SQLite‑based embeddings.",
+    "description": "Authority on persistent vector storage, covering Mem0 MCP, FAISS, Chroma, and SQLite\u2011based embeddings.",
     "keywords": [
       "mem0",
       "faiss",
@@ -79,16 +79,16 @@
       "prompt chaining",
       "skill tags",
       "context windows",
-      "self‑reference",
+      "self\u2011reference",
       "hybrid retrieval"
     ],
     "path": "cohezion/src/cohezion/skills/COMPOUND_PROMPT_PRIME.md"
   },
   "SELF_EVALUATION_PRIME": {
-    "description": "Meta‑engineer that automatically evaluates the quality, completeness, and alignment of generated artefacts against objective criteria.",
+    "description": "Meta\u2011engineer that automatically evaluates the quality, completeness, and alignment of generated artefacts against objective criteria.",
     "keywords": [
       "checklists",
-      "self‑consistency",
+      "self\u2011consistency",
       "coverage metric",
       "alignment score",
       "iterative improvement"
@@ -107,7 +107,7 @@
     "path": "cohezion/src/cohezion/skills/KNOWLEDGE_GRAPH_INTEGRATION_PRIME.md"
   },
   "SYSTEM_MONITORING_PRIME": {
-    "description": "Performance engineer specialized in real‑time system monitoring on a high‑end Framework desktop (AMD Ryzen AI MAX+ 395, 32 logical cores, 125 GiB RAM, 8 GiB swap, 1.6 TiB SSD).",
+    "description": "Performance engineer specialized in real\u2011time system monitoring on a high\u2011end Framework desktop (AMD Ryzen AI MAX+ 395, 32 logical cores, 125\u202fGiB RAM, 8\u202fGiB swap, 1.6\u202fTiB SSD).",
     "keywords": [
       "cpu utilization",
       "memory pressure",
@@ -127,7 +127,7 @@
       "isort",
       "flake8",
       "mypy",
-      "pre‑commit",
+      "pre\u2011commit",
       "bandit",
       "pytest",
       "ci"
@@ -198,5 +198,138 @@
       "token"
     ],
     "path": "skills/MCP_SERVER_PRIME.md"
-  }
-}
+  },
+  "SYSTEM_DEFINITION_PRIME": {
+    "description": "Specialist in AI system definition optimization - creating and maintaining global rules files (GEMINI.md, CLAUDE.md) that persist quality patterns across agentic coding sessions.",
+    "keywords": [
+      "gemini.md",
+      "claude.md",
+      "system prompts",
+      "global rules",
+      "pattern extraction",
+      "quality persistence"
+    ],
+    "path": "cohezion/src/cohezion/skills/SYSTEM_DEFINITION_PRIME.md"
+  },
+  "ADVERSARIAL_TESTING_PRIME": {
+    "description": "Specialist in adversarial security testing for AI systems - running millions of attack pattern tests to harden defenses against prompt injection, SQL injection, XSS, and other security threats.",
+    "keywords": [
+      "adversarial testing",
+      "security testing",
+      "prompt injection",
+      "sql injection",
+      "xss",
+      "owasp llm top 10",
+      "red teaming",
+      "hardening"
+    ],
+    "path": "cohezion/src/cohezion/skills/ADVERSARIAL_TESTING_PRIME.md"
+  },
+  "REPO_HYGIENE_PRIME": {
+    "description": "Expert at maintaining Git repository health - detecting file accumulation, configuring .gitignore for generated artifacts, implementing pre-commit guards, and wiring simulation outputs to databases.",
+    "keywords": [
+      "gitignore",
+      "pre-commit hook",
+      "file-count guard",
+      "generated artifacts",
+      "database migration",
+      "repository hygiene",
+      "surrealdb"
+    ],
+    "path": "cohezion/src/cohezion/skills/REPO_HYGIENE_PRIME.md"
+  },
+  "CONTROLLER_AGENT_PRIME": {
+    "description": "LangGraph-based multi-agent orchestration implementing the Quadrature Nexus pattern - routing queries to domain experts through an Expert Domain Lattice.",
+    "keywords": [
+      "langgraph",
+      "orchestration",
+      "controller agent",
+      "expert lattice",
+      "multi-agent",
+      "quadrature nexus",
+      "state graph"
+    ],
+    "path": "cohezion/src/cohezion/skills/CONTROLLER_AGENT_PRIME.md"
+  },
+  "GATEWAY_ARCHITECTURE_PRIME": {
+    "description": "Exponential capability design using gateway architecture - each milestone unlocks multiplicative capabilities rather than linear progress.",
+    "keywords": [
+      "gateway",
+      "exponential",
+      "compound effects",
+      "cross-domain",
+      "observable intelligence",
+      "capability design"
+    ],
+    "path": "cohezion/src/cohezion/skills/GATEWAY_ARCHITECTURE_PRIME.md"
+  },
+  "SEMANTIC_ALGEBRA_PRIME": {
+    "description": "Mathematical operations on semantic concepts in continuous latent space - cross-domain bridging, conceptual analogy discovery, and semantic interpolation.",
+    "keywords": [
+      "semantic",
+      "algebra",
+      "cross-domain",
+      "bridging",
+      "analogy",
+      "vector arithmetic",
+      "flume",
+      "thought-space"
+    ],
+    "path": "cohezion/src/cohezion/skills/SEMANTIC_ALGEBRA_PRIME.md"
+  },
+  "PHYSICS_INFORMED_PREDICTION_PRIME": {
+    "description": "Physics-informed neural networks (PINNs) and world models that integrate physical laws into prediction - constraining predictions with governing equations for physically consistent state evolution.",
+    "keywords": [
+      "physics",
+      "informed",
+      "prediction",
+      "world model",
+      "constraints",
+      "PINN",
+      "state prediction",
+      "counterfactual"
+    ],
+    "path": "cohezion/src/cohezion/skills/PHYSICS_INFORMED_PREDICTION_PRIME.md"
+  },
+  "OBSERVABLE_AI_PRIME": {
+    "description": "AI observability and interpretability - making neural network decision-making transparent and auditable through mechanistic interpretability and real-time visualization.",
+    "keywords": [
+      "observable",
+      "interpretability",
+      "transparency",
+      "cognitive",
+      "audit",
+      "visualization",
+      "mechanistic",
+      "explainable"
+    ],
+    "path": "cohezion/src/cohezion/skills/OBSERVABLE_AI_PRIME.md"
+  },
+  "PERSISTENT_UNIVERSE_PRIME": {
+    "description": "Persistent AI simulation with cloud synchronization and bidirectional state management - systems where simulation continues even when local compute pauses.",
+    "keywords": [
+      "persistent",
+      "universe",
+      "cloud sync",
+      "bidirectional",
+      "state management",
+      "checkpoint",
+      "recovery",
+      "institutional intelligence"
+    ],
+    "path": "cohezion/src/cohezion/skills/PERSISTENT_UNIVERSE_PRIME.md"
+  },
+  "ALIGNMENT_VERIFICATION_PRIME": {
+    "description": "Anthropic-inspired alignment verification - model organism testing, alignment faking detection, stress-testing safeguards, and iterative alignment.",
+    "keywords": [
+      "alignment",
+      "verification",
+      "anthropic",
+      "model organism",
+      "alignment faking",
+      "iterative",
+      "stress test",
+      "safeguards"
+    ],
+    "path": "cohezion/src/cohezion/skills/ALIGNMENT_VERIFICATION_PRIME.md"
+  },

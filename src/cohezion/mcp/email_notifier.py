@@ -15,7 +15,22 @@ from dataclasses import dataclass
 from datetime import datetime, UTC
 from pathlib import Path
 
+# Auto-load .env file for credentials
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    # Fallback: manually load .env if dotenv not installed
+    _env_path = Path(__file__).parents[3] / ".env"
+    if _env_path.exists():
+        with open(_env_path) as f:
+            for line in f:
+                if "=" in line and not line.startswith("#"):
+                    k, v = line.strip().split("=", 1)
+                    os.environ.setdefault(k, v)
+
 logger = logging.getLogger(__name__)
+
 
 
 @dataclass
@@ -104,9 +119,28 @@ Retrospective:
         if not self._available:
             return False
         
-        return await self._send_email(f"📊 Cohezion: {subject}", report)
+        return await self._send_email(f"📊 Cohezion: {subject}", report, is_html=False)
+
+    async def send_email(
+        self,
+        subject: str,
+        body: str,
+        is_html: bool = False,
+        attachments: list[Path] | None = None,
+    ) -> bool:
+        """Send a generic email."""
+        if not self._available:
+            return False
+            
+        return await self._send_email(subject, body, is_html=is_html, attachments=attachments)
     
-    async def _send_email(self, subject: str, body: str) -> bool:
+    async def _send_email(
+        self,
+        subject: str,
+        body: str,
+        is_html: bool = True,
+        attachments: list[Path] | None = None,
+    ) -> bool:
         """Send email via SMTP."""
         try:
             msg = MIMEMultipart()
@@ -114,7 +148,28 @@ Retrospective:
             msg['To'] = self.config.recipient_email
             msg['Subject'] = subject
             
-            msg.attach(MIMEText(body, 'plain'))
+            msg.attach(MIMEText(body, 'html' if is_html else 'plain'))
+            
+            # Attach files
+            from email.mime.image import MIMEImage
+            from email.mime.application import MIMEApplication
+            
+            if attachments:
+                for path in attachments:
+                    if not path.exists():
+                        logger.warning(f"Attachment not found: {path}")
+                        continue
+                        
+                    with open(path, "rb") as f:
+                        data = f.read()
+                        
+                    if path.suffix.lower() in ('.png', '.jpg', '.jpeg'):
+                        part = MIMEImage(data, name=path.name)
+                    else:
+                        part = MIMEApplication(data, Name=path.name)
+                        
+                    part['Content-Disposition'] = f'attachment; filename="{path.name}"'
+                    msg.attach(part)
             
             # Run SMTP in thread pool
             def send():
@@ -124,7 +179,7 @@ Retrospective:
                     server.send_message(msg)
             
             await asyncio.to_thread(send)
-            logger.info(f"Email sent: {subject}")
+            logger.info(f"Email sent: {subject} ({len(attachments) if attachments else 0} attachments)")
             return True
             
         except Exception as e:

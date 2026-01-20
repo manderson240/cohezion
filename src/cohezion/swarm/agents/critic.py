@@ -9,7 +9,7 @@ import logging
 from typing import Any
 
 from cohezion.swarm.agents.base import BaseAgent
-from cohezion.swarm.types import (
+from cohezion.swarm.swarm_types import (
     Contradiction,
     CritiqueResult,
     SwarmConfig,

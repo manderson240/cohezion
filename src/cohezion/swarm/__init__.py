@@ -8,6 +8,6 @@ The swarm consists of:
 - Synthesizer agent (Mistral) - Aggregation and final response
 """
 
-from cohezion.swarm.types import ThoughtVector, CritiqueResult, SynthesizedResponse
+from cohezion.swarm.swarm_types import ThoughtVector, CritiqueResult, SynthesizedResponse
 
 __all__ = ["ThoughtVector", "CritiqueResult", "SynthesizedResponse"]

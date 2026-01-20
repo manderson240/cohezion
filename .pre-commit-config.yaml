@@ -31,6 +31,13 @@ repos:
   # Local hooks - tests and health checks
   - repo: local
     hooks:
+      - id: check-file-count
+        name: Check untracked file count
+        entry: scripts/hooks/check-file-count.sh
+        language: script
+        pass_filenames: false
+        always_run: true
+
       - id: pytest-check
         name: pytest-check
         entry: uv run pytest tests/ -x -q --tb=short

@@ -82,6 +82,41 @@ z_{t+1} = Navigator(z_t) + momentum * v_t
 ### 3. High-Ratio Compression
 Compress paragraphs to fixed 256-dim vectors.
 
+### 4. Semantic Algebra (NEW!)
+Perform mathematical operations on concepts:
+
+```python
+# Compute direction between concepts
+direction = model.semantic_direction("physics", "biology")
+
+# Add concepts together
+z_novel = model.semantic_add("quantum", "biology", scale=0.5)
+
+# Cross-domain bridging
+analog = model.cross_domain_bridge(
+    concept_a="electron",
+    domain_a_example="physics",
+    domain_b_example="biology"
+)  # Returns: biological analog like "ion" or "signal"
+
+# Measure similarity
+sim = model.similarity("photosynthesis", "solar panel")  # 0.7+
+```
+
+### 5. Physics-Informed Prediction (NEW!)
+```python
+from cohezion.flume import TrajectoryPredictor
+
+predictor = TrajectoryPredictor(z_dim=256)
+z = model.encode("Initial concept")
+
+# Predict with physics constraints
+trajectory = predictor.predict_with_physics(z, steps=10, physics_weight=0.3)
+
+# Imagine counterfactual branches
+branches = predictor.imagine_branches(z, perturbations=3, steps=5)
+```
+
 ## 📊 Performance Metrics
 
 | Metric | Value | Description |

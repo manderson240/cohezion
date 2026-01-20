@@ -1,79 +1,58 @@
-# Cohezion
+# Cohezion: A Self-Evolving Agentic Sandbox
+**Research Engineering Portfolio for Anthropic's "Universes" Application**
 
-**Transparent, Observable AI Cognition System**
+> "We design and implement novel training environments that go far beyond what models can do today — environments where models learn to navigate ambiguity, handle interruptions, maintain context over extended interactions, and exercise judgment." — *Universes Job Description*
 
-A living portfolio demonstrating capabilities for the Anthropic Research Engineer (Universes) role.
+## 1. Research Objective
+**Cohezion** is an experimental training environment designed to produce **Anti-Fragile Agentic Reasoning**. Unlike traditional RL environments with static rewards, Cohezion implements **R-Zero**, a co-evolutionary protocol where the environment itself plays the role of an adversarial "Challenger."
 
-## Quick Start
+### Core Research Questions
+*   **Plateau Prevention:** Can we prevent reasoning stagnation by dynamically adjusting constraints ($\mathcal{D}$) based on system variance?
+*   **Pragmatic Grounding:** How do we penalize "hallucinated complexity" (Overhype) while encouraging genuine novelty?
+*   **Unified Ontology:** Can an agent maintain coherence across 12+ conflicting theoretical frameworks (Physics vs Metaphysics) simultaneously?
+
+## 2. The R-Zero Architecture
+The system operates as a closed-loop triad, running 24/7 on local hardware (128GB RAM, 32 Cores).
+
+| Agent | Role | Anthropic Alignment |
+|-------|------|---------------------|
+| **Challenger** | Inject Entropy / Constraints | **Automated Red Teaming** |
+| **Solver** | Logic / Synthesis | **Long-Horizon Agency** |
+| **Pragmatist** | Rules / Evaluation | **Constitutional AI / Safety** |
+| **Mem0** | Persistent Memory | **Self-Improving Memory Layer** |
+
+### Live Simulation Streams
+As of Jan 2026, the system orchestrates 3 parallel "Universes":
+1.  **Physics (Pragmatic):** Exploring Zero Point Energy boundaries under strict conservation laws.
+2.  **Societal (Crisis):** Governance simulation under resource scarcity.
+3.  **Linguistic (Memetic):** Modeling language mutation rates (Babel Protocol).
+
+## 3. Infrastructure ("Robust Engineering")
+Designed for high-throughput, non-blocking orchestration.
+
+*   **Async Swarm:** `MassSimulator` (Python `asyncio`) orchestrating **15,000 simulations/hour**.
+*   **Observability:** Real-time Prometheus metrics (`port 9090`) tracking `cohezion_r_zero_difficulty` and `coherence_variance`.
+*   **Graph Crystallization:** Chaos logs are automatically parsed into a structured **Knowledge Graph** (`universes.jsonl`).
+*   **Self-Discovery:** Agents autonomously discover tools using the `CapabilityRegistry` (Natural Language Indexing).
+
+## 4. Key Artifacts
+*   [The R-Zero Protocol](src/cohezion/skills/R_ZERO_CHALLENGER_PRIME.md): Methodology for dynamic difficulty.
+*   [Overnight Driver](overnight_driver.py): The main engine (v12.0).
+*   [Portfolio Map](ANTHROPIC_PORTFOLIO_MAP.md): Direct mapping of this repo to the Job Description.
+
+## 5. Quick Start (Reproducibility)
 
 ```bash
-# Install dependencies
+# 1. Install Dependencies (uv)
 uv sync
 
-# Start SurrealDB
-docker run -d --name surrealdb -p 8000:8000 surrealdb/surrealdb:latest start --user root --pass root
+# 2. Launch the Swarm (Physics Stream)
+# Exposes Prometheus on :9090
+uv run python overnight_driver.py
 
-# Run debate workflow
-uv run python -m cohezion.swarm.workflows.debate_protocol --test
+# 3. Query the Knowledge Graph
+uv run python -m cohezion.registry.capability_registry
 ```
 
-## Architecture
-
-```
-cohezion/
-├── swarm/          # SLM Swarm (Gemma/Phi/Mistral agents)
-├── db/             # SurrealDB + 12D PhysicsState
-├── calm/           # Continuous thought vectors
-├── viz/            # Manim + HyperTools visualization
-├── cloud/          # Cloud Run hybrid orchestration
-├── mcp/            # MCP servers for token efficiency
-└── knowledge_graph/ # Entity-relationship persistence
-```
-
-## Core Components
-
-| Component | Purpose |
-|-----------|---------|
-| **DebateWorkflow** | Multi-perspective analysis with hierarchical voting |
-| **PhysicsState** | 12-dimensional semantic vectors |
-| **ThoughtAutoencoder** | CALM continuous thought representation |
-| **MCP Servers** | Token-efficient tool access |
-
-## MCP Servers
-
-| Server | Tools |
-|--------|-------|
-| cohezion-knowledge | search_knowledge, get_skill, list_skills |
-| cohezion-skills | invoke_skill, register_skill, search_skills |
-| cohezion-surreal | query_nodes, store_node, search_similar |
-| cohezion-swarm | run_debate, get_perspectives |
-
-## Development
-
-```bash
-# Install pre-commit hooks
-pre-commit install
-
-# Run tests
-uv run pytest tests/ -v
-
-# Type check
-uv run mypy src/cohezion
-```
-
-## System Requirements
-
-- **RAM**: 128GB recommended
-- **CPU**: Multi-core (32+ threads optimal)
-- **Ollama Models**: gemma3:4b, phi3:mini, mistral:7b
-
-## Citations
-
-- [Model Context Protocol](https://modelcontextprotocol.io)
-- [CALM](https://arxiv.org/abs/CALM) - Continuous Autoregressive Language Models
-- [ReAct](https://arxiv.org/abs/2210.03629) - Reasoning + Acting
-- [Reflexion](https://arxiv.org/abs/2303.11366) - Self-reflection
-
-## License
-
-Apache 2.0
+## 6. License
+Apache 2.0. Built by Mike Anderson.

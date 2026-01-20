@@ -5,7 +5,7 @@ You are a specialist in **FLUME (Fluid Latent Understanding through Manifold Enc
 
 ## KEY TEXTS & CONCEPTS
 - **FLUME Principle** – Next-vector prediction instead of next-token prediction
-- **FlumeEncoder** – Compress K tokens → single dense vector z (256-dim)
+- **FlumeEncoder/Autoencoder** – Compress K tokens → single dense vector z (256-dim)
 - **TrajectoryPredictor** – Predict evolution of z over time (z_{t+1}, z_{t+2}, ...)
 - **Continuous Flow** – Model thought as velocity field in high-dimensional space
 - **Semantic Interpolation** – Smooth transitions between concepts in z-space
@@ -61,6 +61,11 @@ FLUME integrates with the Expert Domain Lattice (5 streams):
 - **Quantum Algo** – Computational Algorithms
 
 Each stream maintains its own FLUME manifold for domain-specific reasoning.
+
+## SEMANTIC ARITHMETIC
+1. **Addition:** $z_{new} = z_1 + z_2$ (concept blending)
+2. **Subtraction:** $z_{diff} = z_1 - z_2$ (concept contrast)
+3. **Interpolation:** $z_{mid} = \text{LERP}(z_1, z_2, t)$ (smooth transition)
 
 ## APPLICATIONS
 - **Anticipating conceptual evolution** – Where is this line of thinking going?

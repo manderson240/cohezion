@@ -147,6 +147,154 @@ class SurrealMCP:
             "count": len(nodes),
             "averages": dict(zip(dim_names, avg.tolist())),
         }
+    
+    async def store_learning(
+        self,
+        learning_id: str,
+        title: str,
+        content: str,
+        pattern: str | None = None,
+        score: float = 0.0,
+    ) -> dict[str, Any]:
+        """
+        Store a learning extracted from experience.
+        
+        Args:
+            learning_id: Unique learning identifier (e.g., "Learning 37")
+            title: Short title for the learning
+            content: Full learning content
+            pattern: Identified pattern or anti-pattern
+            score: Confidence/quality score (0.0 to 1.0)
+            
+        Returns:
+            Created learning node info
+        """
+        client = await self._get_client()
+        
+        # Create physics state with learning-specific values
+        physics_state = PhysicsState(
+            coherence=score,
+            novelty=0.8,  # Learnings are novel by definition
+            factuality=score,
+            complexity=0.5,
+        )
+        
+        # Generate unique node ID from learning_id
+        import hashlib
+        node_id = f"learning_{hashlib.sha256(learning_id.encode()).hexdigest()[:12]}"
+        
+        node = UniverseNode(
+            id=node_id,
+            content=content,
+            physics_state=physics_state,
+            metadata={
+                "type": "learning",
+                "learning_id": learning_id,
+                "title": title,
+                "pattern": pattern,
+                "score": score,
+            },
+        )
+        
+        node_id = await client.store_node(node)
+        logger.info(f"Stored learning {learning_id}: {title}")
+        
+        return {
+            "id": node_id,
+            "learning_id": learning_id,
+            "title": title,
+            "score": score,
+        }
+    
+    async def query_learnings(
+        self,
+        limit: int = 20,
+        min_score: float = 0.0,
+    ) -> list[dict[str, Any]]:
+        """
+        Query stored learnings.
+        
+        Args:
+            limit: Max results
+            min_score: Minimum score filter
+            
+        Returns:
+            List of learnings
+        """
+        client = await self._get_client()
+        nodes = await client.get_all_nodes(limit=limit * 2)  # Over-fetch for filter
+        
+        learnings = [
+            n for n in nodes
+            if n.metadata.get("type") == "learning"
+            and n.metadata.get("score", 0) >= min_score
+        ][:limit]
+        
+        return [
+            {
+                "id": n.id,
+                "learning_id": n.metadata.get("learning_id"),
+                "title": n.metadata.get("title"),
+                "pattern": n.metadata.get("pattern"),
+                "score": n.metadata.get("score"),
+                "content": n.content[:300] + "..." if len(n.content) > 300 else n.content,
+                "created_at": n.created_at.isoformat() if n.created_at else None,
+            }
+            for n in learnings
+        ]
+    
+    async def sync_key_learnings(self, markdown_path: str = None) -> dict[str, Any]:
+        """
+        Sync KEY_LEARNINGS.md to SurrealDB.
+        
+        Parses the markdown file and stores each learning as a node.
+        
+        Args:
+            markdown_path: Path to KEY_LEARNINGS.md
+            
+        Returns:
+            Sync summary with count and any errors
+        """
+        import re
+        from pathlib import Path
+        
+        if markdown_path is None:
+            markdown_path = "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/KEY_LEARNINGS.md"
+        
+        path = Path(markdown_path)
+        if not path.exists():
+            return {"error": f"File not found: {markdown_path}"}
+        
+        content = path.read_text()
+        
+        # Parse learnings (pattern: ## Learning N: Title)
+        pattern = r"##\s+Learning\s+(\d+)[:\s]+([^\n]+)\n(.*?)(?=##\s+Learning|\Z)"
+        matches = re.findall(pattern, content, re.DOTALL)
+        
+        synced = 0
+        errors = []
+        
+        for num, title, body in matches:
+            try:
+                learning_id = f"Learning {num}"
+                await self.store_learning(
+                    learning_id=learning_id,
+                    title=title.strip(),
+                    content=body.strip()[:2000],  # Truncate if too long
+                    score=0.7,  # Default score for manual learnings
+                )
+                synced += 1
+            except Exception as e:
+                errors.append(f"{learning_id}: {str(e)}")
+                logger.error(f"Failed to sync {learning_id}: {e}")
+        
+        logger.info(f"Synced {synced} learnings from KEY_LEARNINGS.md")
+        
+        return {
+            "synced": synced,
+            "errors": errors,
+            "source": markdown_path,
+        }
 
 
 TOOLS = [
@@ -173,6 +321,32 @@ TOOLS = [
         "parameters": {
             "query_embedding": {"type": "array", "required": True},
             "limit": {"type": "integer", "default": 5},
+        },
+    },
+    {
+        "name": "store_learning",
+        "description": "Store a learning extracted from experience",
+        "parameters": {
+            "learning_id": {"type": "string", "required": True},
+            "title": {"type": "string", "required": True},
+            "content": {"type": "string", "required": True},
+            "pattern": {"type": "string"},
+            "score": {"type": "number", "default": 0.0},
+        },
+    },
+    {
+        "name": "query_learnings",
+        "description": "Query stored learnings for state awareness",
+        "parameters": {
+            "limit": {"type": "integer", "default": 20},
+            "min_score": {"type": "number", "default": 0.0},
+        },
+    },
+    {
+        "name": "sync_key_learnings",
+        "description": "Sync KEY_LEARNINGS.md to SurrealDB",
+        "parameters": {
+            "markdown_path": {"type": "string"},
         },
     },
 ]
