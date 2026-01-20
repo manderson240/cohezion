@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Any
 
 from cohezion.swarm.agents.base import BaseAgent
-from cohezion.swarm.types import Perspective, SwarmConfig, ThoughtVector
+from cohezion.swarm.swarm_types import Perspective, SwarmConfig, ThoughtVector
 
 logger = logging.getLogger(__name__)
 

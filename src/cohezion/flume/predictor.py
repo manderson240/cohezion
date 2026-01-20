@@ -304,6 +304,143 @@ class TrajectoryPredictor:
         """Convert trajectory to numpy array for visualization."""
         return np.stack([z.cpu().numpy().squeeze() for z in trajectory])
     
+    def apply_physics_constraints(
+        self,
+        z: torch.Tensor,
+        prev_z: torch.Tensor | None = None,
+        dt: float = 1.0,
+    ) -> torch.Tensor:
+        """
+        Apply physics-informed constraints to predicted state.
+        
+        For Gateway 3: World Model Integration.
+        Enforces physical consistency in the 12D semantic space.
+        
+        Constraints applied:
+        - Energy conservation (norm preservation)
+        - Momentum smoothing (prevents discontinuities)
+        - Stability bounds (prevents explosion)
+        
+        Args:
+            z: Predicted state vector
+            prev_z: Previous state (for momentum constraints)
+            dt: Time step
+            
+        Returns:
+            Physics-constrained state vector
+        """
+        # 1. Energy conservation: preserve approximate norm
+        if prev_z is not None:
+            prev_norm = prev_z.norm(dim=-1, keepdim=True)
+            curr_norm = z.norm(dim=-1, keepdim=True)
+            # Allow small energy change but prevent explosion
+            max_energy_ratio = 1.2
+            min_energy_ratio = 0.8
+            scale = torch.clamp(curr_norm / (prev_norm + 1e-8), min_energy_ratio, max_energy_ratio)
+            z = z * (prev_norm * scale) / (curr_norm + 1e-8)
+        
+        # 2. Stability bounds: prevent extreme values
+        z = torch.clamp(z, -10.0, 10.0)
+        
+        # 3. Smoothness: if prev exists, limit velocity
+        if prev_z is not None:
+            velocity = (z - prev_z) / dt
+            max_velocity = 5.0  # Limit semantic velocity
+            velocity_norm = velocity.norm(dim=-1, keepdim=True)
+            if (velocity_norm > max_velocity).any():
+                velocity = velocity * max_velocity / (velocity_norm + 1e-8)
+                z = prev_z + velocity * dt
+        
+        return z
+    
+    def predict_with_physics(
+        self,
+        z_start: torch.Tensor | np.ndarray,
+        steps: int = 10,
+        physics_weight: float = 0.3,
+    ) -> list[torch.Tensor]:
+        """
+        Predict trajectory with physics-informed constraints.
+        
+        Combines neural prediction with physical consistency
+        for more realistic state evolution.
+        
+        Args:
+            z_start: Starting thought vector
+            steps: Number of prediction steps
+            physics_weight: Weight of physics constraints (0-1)
+            
+        Returns:
+            List of physics-constrained thought vectors
+        """
+        if isinstance(z_start, np.ndarray):
+            z_start = torch.from_numpy(z_start).float()
+        
+        z_start = z_start.to(self.device)
+        if z_start.dim() == 1:
+            z_start = z_start.unsqueeze(0)
+        
+        self.reset()
+        trajectory = [z_start]
+        z_current = z_start
+        
+        for i in range(steps):
+            # Neural prediction
+            z_neural = self.predict_next(z_current)
+            
+            # Apply physics constraints
+            z_physics = self.apply_physics_constraints(z_neural, z_current)
+            
+            # Blend neural and physics-constrained predictions
+            z_next = (1 - physics_weight) * z_neural + physics_weight * z_physics
+            
+            trajectory.append(z_next)
+            z_current = z_next
+        
+        return trajectory
+    
+    def imagine_branches(
+        self,
+        z_start: torch.Tensor | np.ndarray,
+        perturbations: int = 3,
+        steps: int = 5,
+    ) -> list[list[torch.Tensor]]:
+        """
+        Imagine multiple possible futures from a starting point.
+        
+        Creates counterfactual simulation branches - key for
+        world model "what-if" reasoning.
+        
+        Args:
+            z_start: Starting thought vector
+            perturbations: Number of alternative branches
+            steps: Prediction steps per branch
+            
+        Returns:
+            List of trajectory branches
+        """
+        if isinstance(z_start, np.ndarray):
+            z_start = torch.from_numpy(z_start).float()
+        
+        z_start = z_start.to(self.device)
+        if z_start.dim() == 1:
+            z_start = z_start.unsqueeze(0)
+        
+        branches = []
+        
+        # Main trajectory (no perturbation)
+        branches.append(self.predict_with_physics(z_start, steps))
+        
+        # Alternative branches with perturbations
+        for _ in range(perturbations):
+            # Add random perturbation to starting point
+            noise = torch.randn_like(z_start) * 0.5
+            z_perturbed = z_start + noise
+            
+            branches.append(self.predict_with_physics(z_perturbed, steps))
+        
+        return branches
+    
     def save(self, path: Path | str) -> None:
         """Save model weights."""
         state = {

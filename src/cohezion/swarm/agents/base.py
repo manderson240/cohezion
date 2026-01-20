@@ -11,7 +11,7 @@ from typing import Any
 
 import httpx
 
-from cohezion.swarm.types import SwarmConfig
+from cohezion.swarm.swarm_types import SwarmConfig
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +33,8 @@ class BaseAgent(ABC):
         config: SwarmConfig | None = None,
         cache_dir: Path | None = None,
     ):
+        from cohezion.registry.capability_registry import CapabilityRegistry
+        self.registry = CapabilityRegistry()  # Auto-discovery enabled
         self.model_name = model_name
         self.config = config or SwarmConfig()
         self.cache_dir = cache_dir or Path("cache/swarm")
@@ -111,10 +113,21 @@ class BaseAgent(ABC):
         
         Uses the /api/generate endpoint for simplicity.
         """
+        # TimeKeeper integration
+        from cohezion.core.time_keeper import get_time_keeper
+        tk = get_time_keeper()
+        
         # Check cache first
         cached = self._get_cached(prompt)
         if cached:
             logger.debug(f"Cache hit for {self.model_name}")
+            # Log cache hit event
+            await tk.log_event(
+                agent_name=self.__class__.__name__,
+                event_type="CACHE_HIT",
+                details={"model": self.model_name},
+                duration_ms=0
+            )
             return cached
         
         self._metrics["total_calls"] += 1
@@ -143,17 +156,41 @@ class BaseAgent(ABC):
             # Cache the result
             self._set_cached(prompt, result)
             
-            latency = (time.perf_counter() - start_time) * 1000
+            end_time = time.perf_counter()
+            latency = (end_time - start_time) * 1000
             self._metrics["total_latency_ms"] += latency
             logger.info(f"{self.model_name} responded in {latency:.1f}ms")
+            
+            # Log successful LLM call
+            await tk.log_event(
+                agent_name=self.__class__.__name__,
+                event_type="LLM_CALL",
+                details={
+                    "model": self.model_name,
+                    "tokens": len(result.split()) # Rough approx
+                },
+                duration_ms=latency
+            )
             
             return result
             
         except httpx.HTTPError as e:
             self._metrics["errors"] += 1
             logger.error(f"Ollama call failed: {e}")
+            
+            # Log error
+            await tk.log_event(
+                agent_name=self.__class__.__name__,
+                event_type="LLM_ERROR",
+                details={"error": str(e)},
+                duration_ms=(time.perf_counter() - start_time) * 1000
+            )
             raise
     
+    def find_tools(self, query: str, top_k: int = 3) -> list:
+        """Find relevant tools/skills for this agent using the registry."""
+        return self.registry.find(query, top_k=top_k)
+
     @abstractmethod
     async def process(self, *args: Any, **kwargs: Any) -> Any:
         """Process input and return output. Implemented by subclasses."""
@@ -161,6 +198,7 @@ class BaseAgent(ABC):
     
     def get_metrics(self) -> dict[str, Any]:
         """Return current metrics."""
+        from cohezion.core.time_keeper import get_time_keeper
         return {
             **self._metrics,
             "model": self.model_name,
@@ -170,4 +208,5 @@ class BaseAgent(ABC):
             "avg_latency_ms": (
                 self._metrics["total_latency_ms"] / max(1, self._metrics["total_calls"])
             ),
+            "timestamp": get_time_keeper().now_iso
         }

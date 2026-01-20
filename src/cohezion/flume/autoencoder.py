@@ -356,6 +356,32 @@ class FlumeEncoder(nn.Module):
         
         return loss
     
+    def get_semantic_vector(self, text: str) -> torch.Tensor:
+        """
+        Get high-quality semantic vector using local Ollama (nomic-embed-text).
+        Falls back to internal encoding if Ollama fails.
+        """
+        try:
+            import requests
+            response = requests.post(
+                "http://localhost:11434/api/embeddings",
+                json={
+                    "model": "nomic-embed-text",
+                    "prompt": text
+                },
+                timeout=5
+            )
+            if response.status_code == 200:
+                embedding = response.json()["embedding"]
+                return torch.tensor(embedding)
+            else:
+                logger.warning(f"Ollama error: {response.text}")
+        except Exception as e:
+            logger.warning(f"Ollama connection failed: {e}")
+            
+        # Fallback to internal encoder
+        return self.encode(text).squeeze()
+
     def interpolate(
         self,
         text_a: str,
@@ -379,6 +405,126 @@ class FlumeEncoder(nn.Module):
             results.append(decoded[0])
         
         return results
+    
+    def semantic_add(
+        self,
+        base: str | torch.Tensor,
+        direction: str | torch.Tensor,
+        scale: float = 1.0,
+    ) -> torch.Tensor:
+        """
+        Perform semantic addition: base + direction * scale.
+        
+        Enables cross-domain bridging for Gateway 2.
+        Example: "quantum" + "biology" = novel conceptual direction
+        
+        Args:
+            base: Base text or vector
+            direction: Direction text or vector to add
+            scale: Scaling factor for direction
+            
+        Returns:
+            Result vector in thought-space
+        """
+        if isinstance(base, str):
+            base = self.encode(base)
+        if isinstance(direction, str):
+            direction = self.encode(direction)
+        
+        return base + direction * scale
+    
+    def semantic_direction(
+        self,
+        from_concept: str | torch.Tensor,
+        to_concept: str | torch.Tensor,
+    ) -> torch.Tensor:
+        """
+        Compute the semantic direction from one concept to another.
+        
+        This is the "vector" in thought-space that represents
+        the transformation from one idea to another.
+        
+        Args:
+            from_concept: Source concept text or vector
+            to_concept: Target concept text or vector
+            
+        Returns:
+            Direction vector (z_to - z_from)
+        """
+        if isinstance(from_concept, str):
+            z_from = self.encode(from_concept)
+        else:
+            z_from = from_concept
+            
+        if isinstance(to_concept, str):
+            z_to = self.encode(to_concept)
+        else:
+            z_to = to_concept
+            
+        return z_to - z_from
+    
+    def cross_domain_bridge(
+        self,
+        concept_a: str,
+        domain_a_example: str,
+        domain_b_example: str,
+    ) -> str:
+        """
+        Apply a cross-domain transformation.
+        
+        Takes a concept from domain A and transforms it using
+        the relationship between domains learned from examples.
+        
+        Example:
+            concept_a = "electron"
+            domain_a_example = "physics"
+            domain_b_example = "biology"
+            → Returns: something like "neuron" (biological analog)
+        
+        Args:
+            concept_a: Concept to transform
+            domain_a_example: Example from source domain
+            domain_b_example: Example from target domain
+            
+        Returns:
+            Transformed concept text in target domain
+        """
+        # Get the domain transformation vector
+        domain_direction = self.semantic_direction(domain_a_example, domain_b_example)
+        
+        # Apply to concept
+        z_concept = self.encode(concept_a)
+        z_bridged = z_concept + domain_direction
+        
+        # Decode the bridged concept
+        decoded = self.decode(z_bridged)
+        return decoded[0]
+    
+    def similarity(
+        self,
+        text_a: str | torch.Tensor,
+        text_b: str | torch.Tensor,
+    ) -> float:
+        """
+        Compute cosine similarity between two concepts.
+        
+        Args:
+            text_a: First text or vector
+            text_b: Second text or vector
+            
+        Returns:
+            Cosine similarity [-1, 1]
+        """
+        if isinstance(text_a, str):
+            text_a = self.encode(text_a)
+        if isinstance(text_b, str):
+            text_b = self.encode(text_b)
+        
+        # Normalize
+        a_norm = F.normalize(text_a, dim=-1)
+        b_norm = F.normalize(text_b, dim=-1)
+        
+        return (a_norm * b_norm).sum(dim=-1).item()
     
     def save(self, path: Path | str) -> None:
         """Save model weights."""

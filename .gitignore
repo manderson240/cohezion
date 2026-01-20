@@ -34,3 +34,20 @@ logs/*.log
 # OS files
 .DS_Store
 Thumbs.db
+
+# Generated simulation artifacts (stored in SurrealDB)
+src/cohezion/knowledge_graph/universe_nodes/*/audio_scripts/
+src/cohezion/knowledge_graph/universe_nodes/*/logs/
+src/cohezion/knowledge_graph/universe_nodes/*/viz/
+
+# Large data files (use database instead)
+*.jsonl
+!tests/**/*.jsonl
+
+# UI Renders and Exports
+renders/
+
+# Sandbox and temporary files
+*.sandbox
+temp/
+.sandbox/

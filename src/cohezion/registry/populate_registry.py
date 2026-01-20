@@ -180,6 +180,38 @@ def _register_all() -> None:
         path="cohezion/src/cohezion/skills/CODE_STANDARDS_PRIME.md",
     )
 
+    # SYSTEM_DEFINITION_PRIME
+    register_skill(
+        name="SYSTEM_DEFINITION_PRIME",
+        description="Specialist in AI system definition optimization - creating and maintaining global rules files (GEMINI.md, CLAUDE.md) that persist quality patterns across agentic coding sessions.",
+        keywords=[
+            "gemini.md",
+            "claude.md",
+            "system prompts",
+            "global rules",
+            "pattern extraction",
+            "quality persistence",
+        ],
+        path="cohezion/src/cohezion/skills/SYSTEM_DEFINITION_PRIME.md",
+    )
+
+    # ADVERSARIAL_TESTING_PRIME
+    register_skill(
+        name="ADVERSARIAL_TESTING_PRIME",
+        description="Specialist in adversarial security testing for AI systems - running millions of attack pattern tests to harden defenses against prompt injection, SQL injection, XSS, and other security threats.",
+        keywords=[
+            "adversarial testing",
+            "security testing",
+            "prompt injection",
+            "sql injection",
+            "xss",
+            "owasp llm top 10",
+            "red teaming",
+            "hardening",
+        ],
+        path="cohezion/src/cohezion/skills/ADVERSARIAL_TESTING_PRIME.md",
+    )
+
 
 if __name__ == "__main__":
     _register_all()

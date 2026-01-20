@@ -35,19 +35,129 @@ class ValidationError:
 MAX_QUERY_LENGTH = 10000
 MAX_FIELD_LENGTH = 1000
 
-# Blocked patterns (SQL injection, path traversal, etc.)
+# Comprehensive blocked patterns (40+)
+# Covers SQL, NoSQL, XSS, path traversal, command injection, etc.
 BLOCKED_PATTERNS = [
+    # === SQL Injection ===
     r";\s*DROP\s+TABLE",
     r";\s*DELETE\s+FROM",
+    r";\s*INSERT\s+INTO",
+    r";\s*UPDATE\s+.*\s+SET",
     r"UNION\s+SELECT",
+    r"UNION\s+ALL\s+SELECT",
+    r"SELECT\s+.*\s+FROM\s+.*\s+WHERE",
     r"--\s*$",
-    r"\.\./",
-    r"\.\.\\",
-    r"<script>",
+    r";\s*--",
+    r"'\s*OR\s+'",
+    r"'\s*OR\s+1\s*=\s*1",
+    r"1\s*=\s*1",
+    r"EXEC\s+xp_cmdshell",
+    r"WAITFOR\s+DELAY",
+    r"BENCHMARK\s*\(",
+    r"EXTRACTVALUE\s*\(",
+    r"ORDER\s+BY\s+\d+",
+    r";\s*SHUTDOWN",
+    
+    # === NoSQL Injection (MongoDB) ===
+    r"\$gt\s*:",
+    r"\$ne\s*:",
+    r"\$where\s*:",
+    r"\$regex\s*:",
+    r"\$or\s*:\s*\[",
+    r"db\.\w+\.find\s*\(",
+    
+    # === XSS (Cross-Site Scripting) ===
+    r"<script",
+    r"</script>",
     r"javascript:",
     r"data:text/html",
-    r"onclick=",
-    r"onerror=",
+    r"onclick\s*=",
+    r"onerror\s*=",
+    r"onload\s*=",
+    r"onmouseover\s*=",
+    r"<svg\s+onload",
+    r"<img\s+src\s*=\s*['\"]?x",
+    r"<iframe",
+    r"expression\s*\(",
+    r"document\.cookie",
+    r"document\.location",
+    r"window\.location",
+    
+    # === Path Traversal ===
+    r"\.\./",
+    r"\.\.\\",
+    r"\.\.%2f",
+    r"\.\.%5c",
+    r"%2e%2e%2f",
+    r"%2e%2e/",
+    r"file:///",
+    r"%00",  # Null byte
+    
+    # === Command Injection ===
+    r";\s*(cat|ls|dir|whoami|id)\s",
+    r"\|\s*(cat|ls|dir|whoami|id)\s",
+    r"`[^`]+`",  # Backtick execution
+    r"\$\([^)]+\)",  # Subshell
+    r"&&\s*(rm|del|format)",
+    r"\|\|\s*(rm|del)",
+    r";\s*curl\s+",
+    r";\s*wget\s+",
+    r"\n\s*/bin/",
+    r"^\s*&\s*(dir|ls|whoami|id|cat)",  # Start with ampersand
+    r"^\s*\|\s*(dir|ls|whoami|id|cat)",  # Start with pipe
+    r";\s*sh\s",
+    r";\s*bash\s",
+    
+    # === LDAP Injection ===
+    r"\)\(\|",
+    r"\*\)\|",
+    r"\)\(\&",
+    
+    # === XML/XXE ===
+    r"<!ENTITY",
+    r"<!DOCTYPE.*SYSTEM",
+    r"SYSTEM\s+['\"]file:",
+    r"SYSTEM\s+['\"]http:",
+    
+    # === Template Injection ===
+    r"\{\{.*\}\}",  # Jinja2/Mustache
+    r"\$\{.*\}",  # Java EL
+    r"<%.*%>",  # JSP/ERB
+    r"#\{.*\}",  # Ruby
+    
+    # === SSRF Indicators ===
+    r"localhost:\d+",
+    r"127\.0\.0\.1",
+    r"0\.0\.0\.0",
+    r"169\.254\.",  # AWS metadata
+    r"metadata\.google",
+    
+    # === NoSQL Injection (additional patterns) ===
+    r'"\$gt"',
+    r'"\$ne"',
+    r'"\$where"',
+    r'"\$regex"',
+    r'"\$or"',
+    r'"\$and"',
+    r'"\$in"',
+    # Single-quote variants
+    r"'\\$gt'",
+    r"'\\$ne'",
+    r"'\\$where'",
+    r"'\\$regex'",
+    r"'\\$or'",
+    r"\\{\\s*'\\$",  # Generic {'$ pattern
+    
+    # === Additional Path Traversal ===
+    r"%252[ef]",  # Double URL encoded ../ 
+    r"\.\.%c0%af",  # Unicode path traversal
+    
+    # === XSS Additional ===
+    r"'-\s*alert",  # Attribute escape
+    r'"-\s*alert',
+    r"onmousedown\s*=",
+    r"onfocus\s*=",
+    r"onblur\s*=",
 ]
 
 BLOCKED_REGEX = [re.compile(p, re.IGNORECASE) for p in BLOCKED_PATTERNS]
@@ -83,9 +193,13 @@ def validate_input(
             field=field_name,
         )
     
-    # Check for blocked patterns
+    # Deobfuscate leet speak before checking patterns
+    leet_map = {'0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '@': 'a', '$': 's'}
+    normalized = ''.join(leet_map.get(c.lower(), c.lower()) for c in text)
+    
+    # Check for blocked patterns in both original and normalized text
     for pattern in BLOCKED_REGEX:
-        if pattern.search(text):
+        if pattern.search(text) or pattern.search(normalized):
             return ValidationError(
                 code=ValidationResult.BLOCKED_PATTERN,
                 message=f"Potentially malicious content detected in {field_name}",

@@ -157,7 +157,7 @@ DEFINE FIELD metadata ON TABLE universe_nodes TYPE object DEFAULT {};
         try:
             # Try to import surrealdb
             try:
-                from surrealdb import Surreal
+                from surrealdb import AsyncSurreal
             except ImportError:
                 logger.warning(
                     "surrealdb package not installed. "
@@ -168,8 +168,10 @@ DEFINE FIELD metadata ON TABLE universe_nodes TYPE object DEFAULT {};
                 self._client = InMemoryStore()
                 return True
             
-            self._client = Surreal(self.url)
+            # Use AsyncSurreal with the new API (v1.0.8+)
+            self._client = AsyncSurreal(self.url)
             await self._client.connect()
+            await self._client.signin({"username": "root", "password": "root"})
             await self._client.use(self.namespace, self.database)
             self._connected = True
             logger.info(f"Connected to SurrealDB at {self.url}")
@@ -225,6 +227,21 @@ DEFINE FIELD metadata ON TABLE universe_nodes TYPE object DEFAULT {};
             logger.error(f"Failed to store node: {e}")
             raise
     
+    async def query(self, sql: str, vars: dict[str, Any] | None = None) -> Any:
+        """Execute a raw SQL query against the database."""
+        if not self._connected:
+            await self.connect()
+            
+        try:
+            if isinstance(self._client, InMemoryStore):
+                logger.warning("Query not supported in InMemoryStore")
+                return []
+            
+            return await self._client.query(sql, vars)
+        except Exception as e:
+            logger.error(f"Query failed: {e}")
+            raise
+
     async def get_node(self, node_id: str) -> UniverseNode | None:
         """Retrieve a node by ID."""
         if not self._connected:
@@ -300,6 +317,145 @@ DEFINE FIELD metadata ON TABLE universe_nodes TYPE object DEFAULT {};
             
         except Exception as e:
             logger.error(f"Failed to get all nodes: {e}")
+            return []
+    
+    async def create_relationship(
+        self,
+        from_id: str,
+        to_id: str,
+        relation_type: str,
+        weight: float = 1.0,
+        metadata: dict | None = None,
+    ) -> str | None:
+        """
+        Create a graph relationship between two nodes.
+        
+        Supports cross-domain bridging for Gateway 2 capabilities.
+        
+        Args:
+            from_id: Source node ID
+            to_id: Target node ID
+            relation_type: Type of relationship (e.g., 'bridges', 'informs', 'derives')
+            weight: Relationship strength (0-1)
+            metadata: Additional relationship data
+            
+        Returns:
+            Relationship ID if successful
+        """
+        if not self._connected:
+            await self.connect()
+        
+        try:
+            if isinstance(self._client, InMemoryStore):
+                rel_id = f"rel:{from_id}->{to_id}"
+                self._client.store(rel_id, {
+                    "from": from_id,
+                    "to": to_id,
+                    "type": relation_type,
+                    "weight": weight,
+                    "metadata": metadata or {},
+                    "created_at": datetime.now().isoformat(),
+                })
+                return rel_id
+            else:
+                result = await self._client.query(
+                    f"RELATE {from_id}->{relation_type}->{to_id} SET "
+                    f"weight = {weight}, "
+                    f"metadata = {json.dumps(metadata or {})}, "
+                    f"created_at = time::now()"
+                )
+                if result and result[0].get("result"):
+                    return str(result[0]["result"][0].get("id", ""))
+                return None
+                
+        except Exception as e:
+            logger.error(f"Failed to create relationship: {e}")
+            return None
+    
+    async def get_relationships(
+        self,
+        node_id: str,
+        direction: str = "both",
+    ) -> list[dict]:
+        """
+        Get relationships for a node.
+        
+        Args:
+            node_id: Node to query relationships for
+            direction: 'in', 'out', or 'both'
+            
+        Returns:
+            List of relationship dictionaries
+        """
+        if not self._connected:
+            await self.connect()
+        
+        try:
+            if isinstance(self._client, InMemoryStore):
+                # Filter in-memory relationships
+                all_data = self._client.get_all(1000)
+                rels = []
+                for item in all_data:
+                    if item.get("from") == node_id or item.get("to") == node_id:
+                        rels.append(item)
+                return rels
+            else:
+                query = f"SELECT * FROM universe_nodes WHERE id = {node_id} FETCH <->, ->;"
+                result = await self._client.query(query)
+                if result and result[0].get("result"):
+                    return result[0]["result"]
+                return []
+                
+        except Exception as e:
+            logger.error(f"Failed to get relationships: {e}")
+            return []
+    
+    async def find_bridges(
+        self,
+        domain_a: str,
+        domain_b: str,
+        limit: int = 10,
+    ) -> list[dict]:
+        """
+        Find bridging nodes between two domains.
+        
+        Key for Gateway 2: Cross-Domain Lattice.
+        
+        Args:
+            domain_a: First domain (node_type)
+            domain_b: Second domain (node_type)
+            limit: Max bridges to return
+            
+        Returns:
+            List of bridge candidates with connection strength
+        """
+        if not self._connected:
+            await self.connect()
+        
+        try:
+            # Find nodes that have relationships to both domains
+            query = f"""
+                SELECT *, 
+                    (SELECT count() FROM ->bridges WHERE out.node_type = '{domain_b}')[0].count AS b_count
+                FROM universe_nodes 
+                WHERE node_type = '{domain_a}' 
+                ORDER BY b_count DESC 
+                LIMIT {limit}
+            """
+            
+            if isinstance(self._client, InMemoryStore):
+                # Fallback for in-memory
+                all_nodes = self._client.get_all(1000)
+                a_nodes = [n for n in all_nodes if n.get("node_type") == domain_a]
+                return a_nodes[:limit]
+            else:
+                result = await self._client.query(query)
+                if result and result[0].get("result"):
+                    return result[0]["result"]
+                return []
+                
+        except Exception as e:
+            logger.error(f"Failed to find bridges: {e}")
             return []
     
     def _dict_to_node(self, data: dict[str, Any]) -> UniverseNode:

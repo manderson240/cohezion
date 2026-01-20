@@ -46,6 +46,7 @@ class ChunkResult:
     calm_avg_coherence: float
     duration_seconds: float
     metrics_at_end: SystemMetrics
+    raw_results: list[dict] = field(default_factory=list)
 
 
 @dataclass
@@ -162,10 +163,79 @@ class MassSimulator:
             calm_avg_coherence=sum(calm) / max(len(calm), 1),
             duration_seconds=time.time() - chunk_start,
             metrics_at_end=get_system_metrics(),
+            raw_results=chunk_results,
         )
     
-    def save_checkpoint(self, chunk_id: int):
-        """Save current progress to disk."""
+    def run_custom_chunk(
+        self, 
+        chunk_id: int, 
+        inputs: list[Any], 
+        processor_func: Any
+    ) -> ChunkResult:
+        """Run a chunk with custom processing logic."""
+        chunk_start = time.time()
+        chunk_results = []
+        
+        # Run generic processor
+        # processor_func should accept (input_item, index) and return a dict
+        for i, item in enumerate(inputs):
+            try:
+                result = processor_func(item, i)
+                chunk_results.append(result)
+            except Exception as e:
+                logger.error(f"Error in simulation {i}: {e}")
+                chunk_results.append({"error": str(e), "type": "error", "final_coherence": 0.0})
+        
+        self.results.extend(chunk_results)
+        
+        # Calculate stats (assuming standard fields exist or defaulting)
+        coherence_scores = [r.get("final_coherence", 0.0) for r in chunk_results if "final_coherence" in r]
+        avg_score = sum(coherence_scores) / max(len(coherence_scores), 1)
+        
+        return ChunkResult(
+            chunk_id=chunk_id,
+            simulations=len(inputs),
+            llm_avg_coherence=avg_score,
+            calm_avg_coherence=0.0,
+            duration_seconds=time.time() - chunk_start,
+            metrics_at_end=get_system_metrics(),
+            raw_results=chunk_results,
+        )
+
+    def run(self) -> MassSimulationResult:
+        """Run the full simulation suite."""
+        self.start_time = time.time()
+        chunks = (self.total + self.chunk_size - 1) // self.chunk_size
+        
+        logger.info(f"Starting {self.total} simulations in {chunks} chunks...")
+        
+        for i in range(chunks):
+            start_idx = i * self.chunk_size
+            count = min(self.chunk_size, self.total - start_idx)
+            
+            # Run chunk
+            chunk_result = self.run_chunk(i + 1, start_idx, count)
+            self.chunk_results.append(chunk_result)
+            
+            # Monitor health
+            if not chunk_result.metrics_at_end.is_safe():
+                logger.warning(f"System stress detected at chunk {i+1}. Pausing...")
+                time.sleep(2)
+                gc.collect()
+            
+            # Checkpoint
+            if (i + 1) * self.chunk_size % self.checkpoint_interval == 0:
+                self._save_checkpoint(i + 1)
+                
+            logger.info(f"Chunk {i+1}/{chunks} done. (Avg Coherence: LLM={chunk_result.llm_avg_coherence:.2f}, CALM={chunk_result.calm_avg_coherence:.2f})")
+        
+        # Final save
+        self._save_checkpoint(chunks)
+        
+        return self._create_final_result()
+
+    def _save_checkpoint(self, chunk_id: int):
+        """Save a periodic checkpoint."""
         checkpoint_file = self.output_dir / f"checkpoint_{chunk_id}.json"
         
         # Save summary only (not all results for memory)
@@ -175,111 +245,34 @@ class MassSimulator:
         checkpoint = {
             "checkpoint_id": chunk_id,
             "timestamp": datetime.now(UTC).isoformat(),
-            "simulations_completed": len(self.results),
-            "llm_avg_coherence": sum(llm) / max(len(llm), 1),
-            "calm_avg_coherence": sum(calm) / max(len(calm), 1),
-            "chunk_summaries": [asdict(c) for c in self.chunk_results[-5:]],
+            "total_completed": len(self.results),
+            "stats": {
+                "llm_avg": sum(llm) / max(len(llm), 1),
+                "calm_avg": sum(calm) / max(len(calm), 1),
+            }
         }
         
         with open(checkpoint_file, "w") as f:
-            json.dump(checkpoint, f, indent=2, default=str)
-        
+            json.dump(checkpoint, f, indent=2)
+            
         self.checkpoints_saved += 1
-        logger.info(f"Checkpoint {chunk_id} saved: {len(self.results)} simulations")
-    
-    def run(self) -> MassSimulationResult:
-        """Run all simulations with monitoring."""
-        self.start_time = time.time()
-        self.results = []
-        self.chunk_results = []
-        
-        num_chunks = (self.total + self.chunk_size - 1) // self.chunk_size
-        completed = 0
-        
-        logger.info(f"Starting {self.total} simulations in {num_chunks} chunks")
-        
-        for chunk_id in range(num_chunks):
-            # Check system health
-            metrics = get_system_metrics()
-            if not metrics.is_safe():
-                logger.warning(f"System stressed (RAM: {metrics.memory_percent}%), pausing...")
-                gc.collect()
-                time.sleep(2)
-            
-            # Run chunk
-            start_idx = chunk_id * self.chunk_size
-            count = min(self.chunk_size, self.total - start_idx)
-            
-            chunk_result = self.run_chunk(chunk_id, start_idx, count)
-            self.chunk_results.append(chunk_result)
-            completed += count
-            
-            # Progress logging
-            if chunk_id % 5 == 0:
-                pct = completed / self.total * 100
-                logger.info(f"Progress: {completed}/{self.total} ({pct:.1f}%) - RAM: {metrics.memory_percent:.1f}%")
-            
-            # Checkpoint
-            if completed % self.checkpoint_interval == 0:
-                self.save_checkpoint(chunk_id)
-                gc.collect()  # Force garbage collection
-        
-        # Final save
-        self.save_final_results()
-        
-        # Calculate final stats
+        gc.collect()
+
+    def _create_final_result(self) -> MassSimulationResult:
+        """Create final simulation report."""
+        duration = time.time() - self.start_time
         llm = [r["final_coherence"] for r in self.results if r["type"] == "llm"]
         calm = [r["final_coherence"] for r in self.results if r["type"] == "calm"]
+        
+        llm_avg = sum(llm) / max(len(llm), 1)
+        calm_avg = sum(calm) / max(len(calm), 1)
         
         return MassSimulationResult(
             total_simulations=len(self.results),
             chunks_processed=len(self.chunk_results),
-            llm_avg_coherence=sum(llm) / max(len(llm), 1),
-            calm_avg_coherence=sum(calm) / max(len(calm), 1),
-            coherence_improvement=(sum(calm) / max(len(calm), 1)) - (sum(llm) / max(len(llm), 1)),
-            total_duration_seconds=time.time() - self.start_time,
+            llm_avg_coherence=llm_avg,
+            calm_avg_coherence=calm_avg,
+            coherence_improvement=(calm_avg - llm_avg) / llm_avg if llm_avg > 0 else 0,
+            total_duration_seconds=duration,
             checkpoints_saved=self.checkpoints_saved,
         )
-    
-    def save_final_results(self):
-        """Save final comprehensive results."""
-        llm = [r["final_coherence"] for r in self.results if r["type"] == "llm"]
-        calm = [r["final_coherence"] for r in self.results if r["type"] == "calm"]
-        
-        final_file = self.output_dir / f"mass_simulation_{int(time.time())}.json"
-        
-        with open(final_file, "w") as f:
-            json.dump({
-                "metadata": {
-                    "timestamp": datetime.now(UTC).isoformat(),
-                    "total_simulations": len(self.results),
-                    "duration_seconds": time.time() - self.start_time,
-                },
-                "summary": {
-                    "llm_count": len(llm),
-                    "calm_count": len(calm),
-                    "llm_avg_coherence": sum(llm) / max(len(llm), 1),
-                    "calm_avg_coherence": sum(calm) / max(len(calm), 1),
-                    "coherence_improvement": (sum(calm) / max(len(calm), 1)) - (sum(llm) / max(len(llm), 1)),
-                },
-                "distribution": {
-                    "llm_min": min(llm) if llm else 0,
-                    "llm_max": max(llm) if llm else 0,
-                    "calm_min": min(calm) if calm else 0,
-                    "calm_max": max(calm) if calm else 0,
-                },
-            }, f, indent=2)
-        
-        logger.info(f"Final results saved to {final_file}")
-
-
-def run_mass_simulation(n: int = 10000):
-    """Run mass simulation with default settings."""
-    simulator = MassSimulator(total_simulations=n)
-    return simulator.run()
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
-    result = run_mass_simulation(10000)
-    print(json.dumps(result.to_dict(), indent=2))
