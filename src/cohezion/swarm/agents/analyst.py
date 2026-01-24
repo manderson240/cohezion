@@ -57,11 +57,11 @@ Explore the deeper structure beneath surface phenomena.""",
 class AnalystAgent(BaseAgent):
     """
     Gemma-based analyst for feature extraction and thought generation.
-    
+
     Each analyst instance operates with a specific Perspective, allowing
     the swarm to examine problems from multiple angles in parallel.
     """
-    
+
     def __init__(
         self,
         perspective: Perspective,
@@ -74,25 +74,25 @@ class AnalystAgent(BaseAgent):
         )
         self.perspective = perspective
         self.system_prompt = PERSPECTIVE_PROMPTS.get(
-            perspective, 
+            perspective,
             PERSPECTIVE_PROMPTS[Perspective.TECHNICAL]
         )
-    
+
     async def process(self, query: str, **kwargs: Any) -> ThoughtVector:
         """
         Analyze the query from this agent's perspective.
-        
+
         Returns a ThoughtVector containing the analysis and metadata.
         """
         return await self.analyze(query)
-    
-    async def analyze(self, query: str) -> ThoughtVector:
+
+    async def analyze(self, query: str, **kwargs: Any) -> ThoughtVector:
         """
         Perform perspective-specific analysis on the query.
-        
+
         Args:
             query: The user's question or task description
-            
+
         Returns:
             ThoughtVector with the analysis results
         """
@@ -109,19 +109,25 @@ Your {self.perspective.value} analysis:"""
                 system_prompt=self.system_prompt,
                 temperature=0.7,
                 max_tokens=1024,
+                **kwargs
             )
-            
+
             return ThoughtVector(
                 perspective=self.perspective,
                 content=response.strip(),
-                confidence=0.8,  # Could be calibrated from model confidence
+                embedding=getattr(response, "embedding", None),
+                persistence_id=getattr(response, "persistence_id", None),
+                frequency_count=getattr(response, "frequency", 1),
+                phi_score=getattr(response, "phi_score", 0.8),
+                confidence=getattr(response, "confidence", 0.8),
                 timestamp=datetime.now(),
                 metadata={
                     "model": self.model_name,
                     "query_length": len(query),
+                    "narration": getattr(response, "narration", None),
                 },
             )
-            
+
         except Exception as e:
             logger.error(f"Analyst ({self.perspective.value}) failed: {e}")
             return ThoughtVector(
@@ -131,6 +137,6 @@ Your {self.perspective.value} analysis:"""
                 timestamp=datetime.now(),
                 metadata={"error": str(e)},
             )
-    
+
     def __repr__(self) -> str:
         return f"AnalystAgent(perspective={self.perspective.value}, model={self.model_name})"

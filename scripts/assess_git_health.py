@@ -1,7 +1,7 @@
 """
 Assess Git Health with FLUME Swarm.
 
-Entry point for repository health assessment. Orchestrates agents, 
+Entry point for repository health assessment. Orchestrates agents,
 performs static analysis, and generates a health report with improvement
 suggestions.
 """
@@ -18,8 +18,9 @@ from cohezion.swarm.git_health import collect_git_metadata, attribute_complexity
 from cohezion.swarm.agents.git_health_agent import GitHealthAgent
 from cohezion.swarm.agents.code_simplification_agent import CodeSimplificationAgent
 from cohezion.flume.git_encoder import GitEncoder
-from cohezion.swarm.swarm_types import SwarmConfig
+from cohezion.swarm.swarm_types import SwarmConfig, Perspective
 from cohezion.db.surreal_client import SurrealClient, UniverseNode, PhysicsState
+from cohezion.swarm.journey_tracker import get_journey_tracker, AgentType
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -27,47 +28,73 @@ logger = logging.getLogger("GitHealthAssessment")
 
 async def run_assessment():
     logger.info("🚀 Starting Git Health Assessment...")
-    
+
     # 1. Static Analysis
     logger.info("🔍 Running Deep Audit (Static Analysis)...")
     auditor = DeepAuditor()
     base_path = Path("src/cohezion")
-    
+
     for root, _, files in os.walk(base_path):
         for file in files:
             if file.endswith(".py"):
                 auditor.audit_file(Path(root) / file)
-    
+
     # 2. Git Metadata
     logger.info("📜 Collecting Git Metadata & Bloat Analysis...")
     recent_commits = collect_git_metadata()
     unpushed = get_unpushed_commits()
     bloat = get_repo_bloat()
     traces = attribute_complexity(auditor.issues)
-    
+
     # 3. FLUME Analysis
     logger.info("🌊 Encoding Git Trajectories (FLUME)...")
     git_encoder = GitEncoder()
     drift_score = git_encoder.evaluate_drift(recent_commits)
-    
+
     # 4. Swarm Analysis
-    logger.info("🐝 Deploying Swarm Agents...")
+    logger.info("🐝 Deploying Swarm Agents & Tracking Journey...")
     config = SwarmConfig()
     health_agent = GitHealthAgent(config)
     simplifier_agent = CodeSimplificationAgent(config)
-    
+
+    tracker = get_journey_tracker()
+    tracker.start_journey("Assess overall git health and suggest simplifications.")
+
     health_task = health_agent.process(
         "Assess the overall repository health based on recent history.",
         context=recent_commits
     )
-    
+
     simplification_task = simplifier_agent.process(
         "Propose refactors for the most complex files identified in recent history.",
         traces=traces
     )
-    
+
     health_thought, simplifier_thought = await asyncio.gather(health_task, simplification_task)
-    
+
+    # Record Journey Steps
+    tracker.record_step(
+        agent_type=AgentType.ANALYST,
+        agent_name="GitHealthAgent",
+        perspective="technical",
+        input_text="Assess overall git health",
+        output_text=health_thought.content,
+        physics_state={"complexity": 0.5, "coherence": health_thought.confidence},
+        duration_ms=2000 # Approximation
+    )
+
+    tracker.record_step(
+        agent_type=AgentType.ANALYST,
+        agent_name="CodeSimplificationAgent",
+        perspective="technical",
+        input_text="Propose refactors",
+        output_text=simplifier_thought.content,
+        physics_state={"complexity": 0.8, "coherence": simplifier_thought.confidence},
+        duration_ms=3000 # Approximation
+    )
+
+    tracker.end_journey(health_thought.content, final_confidence=0.9)
+
     # 5. Generate Report
     logger.info("📝 Generating Report...")
     report = f"""# 🛡️ Git Health Report - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
@@ -100,13 +127,13 @@ async def run_assessment():
     report_path = Path("src/cohezion/knowledge_graph/audits/git_health_report.md")
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(report)
-    
+
     # 6. SurrealDB Persistence
     logger.info("💾 Offloading results to SurrealDB...")
     try:
         db = SurrealClient()
         await db.connect()
-        
+
         audit_node = UniverseNode(
             id=f"audit_git_{datetime.now().strftime('%Y%H%d_%H%M%S')}",
             content=report,

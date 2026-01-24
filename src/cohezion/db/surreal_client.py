@@ -11,6 +11,10 @@ Supports:
 import asyncio
 import json
 import logging
+import re
+import time
+import zlib
+import base64
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -20,11 +24,14 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
+# Shared in-memory store for fallback/testing
+_SHARED_STORE = None
+
 @dataclass
 class PhysicsState:
     """
     The 12-dimensional physics state vector for visualization.
-    
+
     Each dimension represents a semantic/analytical attribute
     extracted from the content.
     """
@@ -32,24 +39,24 @@ class PhysicsState:
     x: float = 0.0
     y: float = 0.0
     z: float = 0.0
-    
+
     # Temporal dimension
     time: float = 0.0
-    
+
     # Semantic dimensions
     mass: float = 0.0         # Importance/weight
-    sentiment: float = 0.0     # -1 to 1 
+    sentiment: float = 0.0     # -1 to 1
     complexity: float = 0.0    # 0 to 1
     factuality: float = 0.0    # 0 to 1
-    
+
     # Relational dimensions
     connectivity: float = 0.0  # How connected to other nodes
     stability: float = 0.0     # How stable/consistent
-    
+
     # Abstract dimensions
     novelty: float = 0.0       # How novel/unique
     coherence: float = 0.0     # Internal coherence
-    
+
     def to_array(self) -> np.ndarray:
         """Convert to numpy array for calculations."""
         return np.array([
@@ -57,7 +64,7 @@ class PhysicsState:
             self.mass, self.sentiment, self.complexity, self.factuality,
             self.connectivity, self.stability, self.novelty, self.coherence,
         ], dtype=np.float32)
-    
+
     @classmethod
     def from_array(cls, arr: np.ndarray) -> "PhysicsState":
         """Create from numpy array."""
@@ -65,12 +72,12 @@ class PhysicsState:
             raise ValueError(f"Expected 12 dimensions, got {len(arr)}")
         return cls(
             x=float(arr[0]), y=float(arr[1]), z=float(arr[2]), time=float(arr[3]),
-            mass=float(arr[4]), sentiment=float(arr[5]), 
+            mass=float(arr[4]), sentiment=float(arr[5]),
             complexity=float(arr[6]), factuality=float(arr[7]),
             connectivity=float(arr[8]), stability=float(arr[9]),
             novelty=float(arr[10]), coherence=float(arr[11]),
         )
-    
+
     def to_dict(self) -> dict[str, float]:
         """Convert to dictionary for storage."""
         return {
@@ -88,6 +95,20 @@ class PhysicsState:
             "dim_12_coherence": self.coherence,
         }
 
+    def pack(self) -> str:
+        """Pack 12D state into a compact base64 string for storage."""
+        arr = self.to_array()
+        return base64.b64encode(arr.tobytes()).decode('ascii')
+
+    @classmethod
+    def unpack(cls, packed: str) -> "PhysicsState":
+        """Unpack 12D state from base64 string."""
+        data = base64.b64decode(packed)
+        # Ensure numpy is available as np
+        import numpy as np
+        arr = np.frombuffer(data, dtype=np.float32)
+        return cls.from_array(arr)
+
 
 @dataclass
 class UniverseNode:
@@ -99,27 +120,46 @@ class UniverseNode:
     node_type: str = "document"
     created_at: datetime = field(default_factory=datetime.now)
     metadata: dict[str, Any] = field(default_factory=dict)
-    
-    def to_dict(self) -> dict[str, Any]:
+    compressed: bool = False
+
+    def to_dict(self, compress: bool = False) -> dict[str, Any]:
+        content_val = self.content
+        is_compressed = False
+
+        if compress and len(self.content) > 100:
+            compressed_data = zlib.compress(self.content.encode('utf-8'))
+            content_val = base64.b64encode(compressed_data).decode('ascii')
+            is_compressed = True
+
         return {
             "id": self.id,
-            "content": self.content,
+            "content": content_val,
             "embedding": self.embedding,
             "physics_state": self.physics_state.to_dict(),
             "node_type": self.node_type,
             "created_at": self.created_at.isoformat(),
             "metadata": self.metadata,
+            "compressed": is_compressed or self.compressed,
+            "packed_physics": self.physics_state.pack()
         }
 
 
 class SurrealClient:
     """
     Async client for SurrealDB.
-    
+
     Manages the universe_nodes table and provides
     vector similarity search capabilities.
     """
-    
+
+    _FAILED_ONCE = False  # Track if connection failed to avoid repeated timeouts
+    """
+    Async client for SurrealDB.
+
+    Manages the universe_nodes table and provides
+    vector similarity search capabilities.
+    """
+
     # SurrealDB schema for setup
     SCHEMA = """
 DEFINE TABLE universe_nodes SCHEMAFULL;
@@ -128,14 +168,51 @@ DEFINE FIELD id ON TABLE universe_nodes TYPE string;
 DEFINE FIELD content ON TABLE universe_nodes TYPE string;
 DEFINE FIELD embedding ON TABLE universe_nodes TYPE array;
 DEFINE FIELD physics_state ON TABLE universe_nodes TYPE object;
+DEFINE FIELD packed_physics ON TABLE universe_nodes TYPE string;
 DEFINE FIELD node_type ON TABLE universe_nodes TYPE string DEFAULT 'document';
 DEFINE FIELD created_at ON TABLE universe_nodes TYPE datetime DEFAULT time::now();
 DEFINE FIELD metadata ON TABLE universe_nodes TYPE object DEFAULT {};
+DEFINE FIELD compressed ON TABLE universe_nodes TYPE bool DEFAULT false;
+DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
+    (physics_state.dim_10_stability + physics_state.dim_12_coherence) / 2
+) OR 0.0;
 
 -- Index for vector similarity search (SurrealDB 2.0+)
 -- DEFINE INDEX embedding_idx ON universe_nodes FIELDS embedding MTREE DIMENSION 768 DIST COSINE;
 """
-    
+
+    async def is_alive(self) -> bool:
+        """Check if the SurrealDB server is responsive."""
+        try:
+            # Try to hit the health endpoint
+            # We use the URL to derive the health port (usually same as RPC but HTTP)
+            health_url = self.url.replace("ws://", "http://").replace("/rpc", "/health")
+            async with httpx.AsyncClient(timeout=1.0) as client:
+                response = await client.get(health_url)
+                return response.status_code == 200
+        except Exception:
+            return False
+
+    async def ensure_active(self, timeout: int = 30) -> bool:
+        """
+        Ensures the database is available. Blocks until active.
+        If it's down, logs a critical error.
+        """
+        if SurrealClient._FAILED_ONCE:
+            return False
+
+        start = time.time()
+        while time.time() - start < timeout:
+            if await self.is_alive():
+                logger.info("📡 SurrealDB existence confirmed.")
+                return True
+            logger.warning("⏳ Waiting for SurrealDB substrate...")
+            await asyncio.sleep(2)
+
+        logger.error("❌ SurrealDB substrate FAILURE: Persistence guard timeout.")
+        SurrealClient._FAILED_ONCE = True # One failure is enough
+        return False
+
     def __init__(
         self,
         url: str = "ws://localhost:8000/rpc",
@@ -147,27 +224,28 @@ DEFINE FIELD metadata ON TABLE universe_nodes TYPE object DEFAULT {};
         self.database = database
         self._connected = False
         self._client: Any = None  # Will be surrealdb client when connected
-    
+
     async def connect(self) -> bool:
         """
         Connect to SurrealDB.
-        
+
         Returns True if connected successfully.
         """
+        global _SHARED_STORE
         try:
             # Try to import surrealdb
             try:
                 from surrealdb import AsyncSurreal
             except ImportError:
                 logger.warning(
-                    "surrealdb package not installed. "
-                    "Using in-memory fallback. "
-                    "Install with: uv add surrealdb"
+                    "surrealdb package not installed. Using in-memory fallback."
                 )
                 self._connected = True
-                self._client = InMemoryStore()
+                if _SHARED_STORE is None:
+                    _SHARED_STORE = InMemoryStore()
+                self._client = _SHARED_STORE
                 return True
-            
+
             # Use AsyncSurreal with the new API (v1.0.8+)
             self._client = AsyncSurreal(self.url)
             await self._client.connect()
@@ -176,23 +254,25 @@ DEFINE FIELD metadata ON TABLE universe_nodes TYPE object DEFAULT {};
             self._connected = True
             logger.info(f"Connected to SurrealDB at {self.url}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to connect to SurrealDB: {e}")
             # Fall back to in-memory store
-            self._client = InMemoryStore()
+            if _SHARED_STORE is None:
+                _SHARED_STORE = InMemoryStore()
+            self._client = _SHARED_STORE
             self._connected = True
             return True
-    
+
     async def setup_schema(self) -> bool:
         """
         Set up the database schema.
-        
+
         Should be run once on initial setup.
         """
         if not self._connected:
             await self.connect()
-        
+
         try:
             if isinstance(self._client, InMemoryStore):
                 return True
@@ -202,41 +282,105 @@ DEFINE FIELD metadata ON TABLE universe_nodes TYPE object DEFAULT {};
         except Exception as e:
             logger.error(f"Failed to create schema: {e}")
             return False
-    
-    async def store_node(self, node: UniverseNode) -> str:
+
+    async def store_node(self, node: UniverseNode, compress: bool = False) -> str:
         """
         Store a universe node.
-        
+
         Returns the node ID.
         """
         if not self._connected:
             await self.connect()
-        
+
         try:
-            data = node.to_dict()
-            
+            data = node.to_dict(compress=compress)
+
             if isinstance(self._client, InMemoryStore):
                 self._client.store(node.id, data)
+                logger.info(f"DEBUG: Stored node {node.id}. Compressed: {data.get('compressed')}")
             else:
                 await self._client.create(f"universe_nodes:{node.id}", data)
-            
+
             logger.debug(f"Stored node {node.id}")
             return node.id
-            
+
         except Exception as e:
             logger.error(f"Failed to store node: {e}")
             raise
-    
+
     async def query(self, sql: str, vars: dict[str, Any] | None = None) -> Any:
         """Execute a raw SQL query against the database."""
         if not self._connected:
             await self.connect()
-            
+
         try:
             if isinstance(self._client, InMemoryStore):
+                # Basic mock for mission/thought queries
+                if "CREATE missions" in sql or "INSERT INTO missions" in sql:
+                    data = vars.get("data") if vars else vars
+                    if data:
+                        self._client.store(data["id"], data)
+                    return [data]
+                if "CREATE agent_thought" in sql:
+                    data = vars.get("data") if vars else vars
+                    if data:
+                        self._client.store(data["id"], data)
+                    return [data]
+                if "CREATE velocity_events" in sql:
+                    data = vars.get("data") if vars else vars
+                    if data:
+                        self._client.store(f"event_{int(time.time()*1000)}", data)
+                    return [data]
+                if "FROM missions" in sql:
+                    mission_id = vars.get("id") if vars else None
+                    mission = self._client.get(mission_id) if mission_id else None
+                    return [[mission]] if mission else [[]]
+                if "FROM agent_thought" in sql:
+                    # Handle queries like: SELECT content, metadata.query_hash as qh, metadata.agent as agent FROM agent_thought ORDER BY timestamp DESC LIMIT 100
+                    all_nodes = self._client.get_all(1000)
+                    # Filter for agent_thought type
+                    matches = [n for n in all_nodes if n.get("node_type") == "agent_thought"]
+
+                    # Handle specific projections if using alias (e.g., metadata.query_hash as qh)
+                    if "qh" in sql or "metadata.query_hash" in sql:
+                        processed = []
+                        for m in matches:
+                            meta = m.get("metadata", {})
+                            processed.append({
+                                "content": m.get("content"),
+                                "qh": meta.get("query_hash"),
+                                "agent": meta.get("agent")
+                            })
+                        return [processed]
+
+                    return [matches]
+
+                # Table-based filtering mock (e.g., SELECT * FROM table WHERE field = $value)
+                if "SELECT * FROM" in sql and "WHERE" in sql and vars:
+                    # Extract table name (simple regex for "FROM table_name")
+                    match_from = re.search(r"FROM\s+(\w+)", sql)
+                    if match_from:
+                        table_name = match_from.group(1)
+                        # Extract WHERE clause (simple regex for "WHERE field = $var")
+                        match_where = re.search(r"WHERE\s+(\w+)\s*=\s*\$(\w+)", sql)
+                        if match_where:
+                            field = match_where.group(1)
+                            var_name = match_where.group(2)
+
+                            if var_name in vars:
+                                target_value = vars[var_name]
+                                all_items = self._client.get_all(1000) # Assuming all items are nodes for now
+
+                                # Filter based on the field and value
+                                filtered_items = [
+                                    item for item in all_items
+                                    if item.get(field) == target_value
+                                ]
+                                return [filtered_items] # SurrealDB returns a list of results, each a list of records
+
                 logger.warning("Query not supported in InMemoryStore")
                 return []
-            
+
             return await self._client.query(sql, vars)
         except Exception as e:
             logger.error(f"Query failed: {e}")
@@ -246,23 +390,23 @@ DEFINE FIELD metadata ON TABLE universe_nodes TYPE object DEFAULT {};
         """Retrieve a node by ID."""
         if not self._connected:
             await self.connect()
-        
+
         try:
             if isinstance(self._client, InMemoryStore):
                 data = self._client.get(node_id)
             else:
                 result = await self._client.select(f"universe_nodes:{node_id}")
                 data = result[0] if result else None
-            
+
             if not data:
                 return None
-            
+
             return self._dict_to_node(data)
-            
+
         except Exception as e:
             logger.error(f"Failed to get node: {e}")
             return None
-    
+
     async def query_similar(
         self,
         vector: np.ndarray | list[float],
@@ -270,15 +414,15 @@ DEFINE FIELD metadata ON TABLE universe_nodes TYPE object DEFAULT {};
     ) -> list[UniverseNode]:
         """
         Find nodes with similar embeddings.
-        
+
         Uses cosine similarity.
         """
         if not self._connected:
             await self.connect()
-        
+
         if isinstance(vector, np.ndarray):
             vector = vector.tolist()
-        
+
         try:
             if isinstance(self._client, InMemoryStore):
                 results = self._client.search_similar(vector, limit)
@@ -292,18 +436,18 @@ DEFINE FIELD metadata ON TABLE universe_nodes TYPE object DEFAULT {};
                 """
                 results = await self._client.query(query, {"vector": vector})
                 results = results[0].get("result", []) if results else []
-            
+
             return [self._dict_to_node(r) for r in results]
-            
+
         except Exception as e:
             logger.error(f"Failed to query similar nodes: {e}")
             return []
-    
+
     async def get_all_nodes(self, limit: int = 100) -> list[UniverseNode]:
         """Get all nodes (for visualization)."""
         if not self._connected:
             await self.connect()
-        
+
         try:
             if isinstance(self._client, InMemoryStore):
                 results = self._client.get_all(limit)
@@ -312,13 +456,13 @@ DEFINE FIELD metadata ON TABLE universe_nodes TYPE object DEFAULT {};
                     f"SELECT * FROM universe_nodes LIMIT {limit}"
                 )
                 results = results[0].get("result", []) if results else []
-            
+
             return [self._dict_to_node(r) for r in results]
-            
+
         except Exception as e:
             logger.error(f"Failed to get all nodes: {e}")
             return []
-    
+
     async def create_relationship(
         self,
         from_id: str,
@@ -329,22 +473,22 @@ DEFINE FIELD metadata ON TABLE universe_nodes TYPE object DEFAULT {};
     ) -> str | None:
         """
         Create a graph relationship between two nodes.
-        
+
         Supports cross-domain bridging for Gateway 2 capabilities.
-        
+
         Args:
             from_id: Source node ID
             to_id: Target node ID
             relation_type: Type of relationship (e.g., 'bridges', 'informs', 'derives')
             weight: Relationship strength (0-1)
             metadata: Additional relationship data
-            
+
         Returns:
             Relationship ID if successful
         """
         if not self._connected:
             await self.connect()
-        
+
         try:
             if isinstance(self._client, InMemoryStore):
                 rel_id = f"rel:{from_id}->{to_id}"
@@ -367,11 +511,11 @@ DEFINE FIELD metadata ON TABLE universe_nodes TYPE object DEFAULT {};
                 if result and result[0].get("result"):
                     return str(result[0]["result"][0].get("id", ""))
                 return None
-                
+
         except Exception as e:
             logger.error(f"Failed to create relationship: {e}")
             return None
-    
+
     async def get_relationships(
         self,
         node_id: str,
@@ -379,17 +523,17 @@ DEFINE FIELD metadata ON TABLE universe_nodes TYPE object DEFAULT {};
     ) -> list[dict]:
         """
         Get relationships for a node.
-        
+
         Args:
             node_id: Node to query relationships for
             direction: 'in', 'out', or 'both'
-            
+
         Returns:
             List of relationship dictionaries
         """
         if not self._connected:
             await self.connect()
-        
+
         try:
             if isinstance(self._client, InMemoryStore):
                 # Filter in-memory relationships
@@ -405,11 +549,11 @@ DEFINE FIELD metadata ON TABLE universe_nodes TYPE object DEFAULT {};
                 if result and result[0].get("result"):
                     return result[0]["result"]
                 return []
-                
+
         except Exception as e:
             logger.error(f"Failed to get relationships: {e}")
             return []
-    
+
     async def find_bridges(
         self,
         domain_a: str,
@@ -418,31 +562,31 @@ DEFINE FIELD metadata ON TABLE universe_nodes TYPE object DEFAULT {};
     ) -> list[dict]:
         """
         Find bridging nodes between two domains.
-        
+
         Key for Gateway 2: Cross-Domain Lattice.
-        
+
         Args:
             domain_a: First domain (node_type)
             domain_b: Second domain (node_type)
             limit: Max bridges to return
-            
+
         Returns:
             List of bridge candidates with connection strength
         """
         if not self._connected:
             await self.connect()
-        
+
         try:
             # Find nodes that have relationships to both domains
             query = f"""
-                SELECT *, 
+                SELECT *,
                     (SELECT count() FROM ->bridges WHERE out.node_type = '{domain_b}')[0].count AS b_count
-                FROM universe_nodes 
-                WHERE node_type = '{domain_a}' 
-                ORDER BY b_count DESC 
+                FROM universe_nodes
+                WHERE node_type = '{domain_a}'
+                ORDER BY b_count DESC
                 LIMIT {limit}
             """
-            
+
             if isinstance(self._client, InMemoryStore):
                 # Fallback for in-memory
                 all_nodes = self._client.get_all(1000)
@@ -453,15 +597,49 @@ DEFINE FIELD metadata ON TABLE universe_nodes TYPE object DEFAULT {};
                 if result and result[0].get("result"):
                     return result[0]["result"]
                 return []
-                
+
         except Exception as e:
             logger.error(f"Failed to find bridges: {e}")
             return []
-    
+
     def _dict_to_node(self, data: dict[str, Any]) -> UniverseNode:
         """Convert a dictionary to UniverseNode."""
         physics_data = data.get("physics_state", {})
-        physics_state = PhysicsState(
+
+        # Prefer packed physics if available
+        if "packed_physics" in data:
+            try:
+                physics_state = PhysicsState.unpack(data["packed_physics"])
+            except Exception:
+                physics_state = self._parse_physics_dict(physics_data)
+        else:
+            physics_state = self._parse_physics_dict(physics_data)
+
+        content = data.get("content", "")
+        compressed = data.get("compressed", False)
+
+        if compressed:
+            try:
+                decoded = base64.b64decode(content)
+                content = zlib.decompress(decoded).decode('utf-8')
+            except Exception as e:
+                logger.error(f"Failed to decompress node {data.get('id')}: {e}")
+
+        return UniverseNode(
+            id=data.get("id", ""),
+            content=content,
+            embedding=data.get("embedding"),
+            physics_state=physics_state,
+            node_type=data.get("node_type", "document"),
+            created_at=datetime.fromisoformat(data["created_at"])
+                       if "created_at" in data else datetime.now(),
+            metadata=data.get("metadata", {}),
+            compressed=compressed,
+        )
+
+    def _parse_physics_dict(self, physics_data: dict) -> PhysicsState:
+        """Internal helper to parse physics dict."""
+        return PhysicsState(
             x=physics_data.get("dim_1_x", 0),
             y=physics_data.get("dim_2_y", 0),
             z=physics_data.get("dim_3_z", 0),
@@ -475,18 +653,7 @@ DEFINE FIELD metadata ON TABLE universe_nodes TYPE object DEFAULT {};
             novelty=physics_data.get("dim_11_novelty", 0),
             coherence=physics_data.get("dim_12_coherence", 0),
         )
-        
-        return UniverseNode(
-            id=data.get("id", ""),
-            content=data.get("content", ""),
-            embedding=data.get("embedding"),
-            physics_state=physics_state,
-            node_type=data.get("node_type", "document"),
-            created_at=datetime.fromisoformat(data["created_at"]) 
-                       if "created_at" in data else datetime.now(),
-            metadata=data.get("metadata", {}),
-        )
-    
+
     async def close(self) -> None:
         """Close the connection."""
         if self._client and not isinstance(self._client, InMemoryStore):
@@ -497,34 +664,34 @@ DEFINE FIELD metadata ON TABLE universe_nodes TYPE object DEFAULT {};
 class InMemoryStore:
     """
     In-memory fallback when SurrealDB is not available.
-    
+
     Useful for development and testing.
     """
-    
+
     def __init__(self):
         self._data: dict[str, dict[str, Any]] = {}
-    
+
     def store(self, key: str, value: dict[str, Any]) -> None:
         self._data[key] = value
-    
+
     def get(self, key: str) -> dict[str, Any] | None:
         return self._data.get(key)
-    
+
     def get_all(self, limit: int = 100) -> list[dict[str, Any]]:
         return list(self._data.values())[:limit]
-    
+
     def search_similar(
-        self, 
-        vector: list[float], 
+        self,
+        vector: list[float],
         limit: int = 10,
     ) -> list[dict[str, Any]]:
         """Simple cosine similarity search."""
         if not self._data:
             return []
-        
+
         query_vec = np.array(vector)
         scores = []
-        
+
         for key, data in self._data.items():
             embedding = data.get("embedding")
             if embedding:
@@ -534,7 +701,7 @@ class InMemoryStore:
                     np.linalg.norm(query_vec) * np.linalg.norm(doc_vec) + 1e-8
                 )
                 scores.append((similarity, data))
-        
+
         scores.sort(reverse=True, key=lambda x: x[0])
         return [s[1] for s in scores[:limit]]
 
@@ -542,20 +709,20 @@ class InMemoryStore:
 async def main() -> None:
     """Test the SurrealDB client."""
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="Test SurrealDB Client")
     parser.add_argument("--verify-schema", action="store_true")
     args = parser.parse_args()
-    
+
     logging.basicConfig(level=logging.INFO)
-    
+
     client = SurrealClient()
     await client.connect()
-    
+
     if args.verify_schema:
         success = await client.setup_schema()
         print(f"Schema setup: {'SUCCESS' if success else 'FAILED'}")
-        
+
         # Test store and retrieve
         test_node = UniverseNode(
             id="test_001",
@@ -566,15 +733,15 @@ async def main() -> None:
                 mass=0.8, sentiment=0.2, complexity=0.6, factuality=0.9,
             ),
         )
-        
+
         await client.store_node(test_node)
         retrieved = await client.get_node("test_001")
-        
+
         if retrieved:
             print(f"Retrieved node: {retrieved.id}")
             print(f"Content: {retrieved.content[:50]}...")
             print(f"Physics: x={retrieved.physics_state.x}, mass={retrieved.physics_state.mass}")
-        
+
     await client.close()
 
 

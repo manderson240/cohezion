@@ -1,0 +1,42 @@
+# Git
+.git
+.gitignore
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Data & Logs
+data/
+logs/
+exports/
+results/
+renders/
+**/*.log
+**/*.sqlite
+**/*.db
+**/*.dill
+**/*.pdf
+**/*.jsonl
+src/diagnostics/
+
+# Large Knowledge Graph Data
+src/cohezion/knowledge_graph/universe_nodes/
+!src/cohezion/knowledge_graph/universe_nodes/physics_simulations.json
+**/logs/
+
+# Docker
+Dockerfile
+.dockerignore
+
+# IDE
+.vscode/
+.idea/
+.sandbox/
+.agent/
+
+# Temp
+tmp/
+.gemini/

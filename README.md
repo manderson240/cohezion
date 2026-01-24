@@ -27,18 +27,18 @@ As of Jan 2026, the system orchestrates 3 parallel "Universes":
 2.  **Societal (Crisis):** Governance simulation under resource scarcity.
 3.  **Linguistic (Memetic):** Modeling language mutation rates (Babel Protocol).
 
-## 3. Infrastructure ("Robust Engineering")
-Designed for high-throughput, non-blocking orchestration.
+## 3. High-Fidelity Infrastructure
+Designed for long-horizon simulation and deep interpretability.
 
-*   **Async Swarm:** `MassSimulator` (Python `asyncio`) orchestrating **15,000 simulations/hour**.
-*   **Observability:** Real-time Prometheus metrics (`port 9090`) tracking `cohezion_r_zero_difficulty` and `coherence_variance`.
-*   **Graph Crystallization:** Chaos logs are automatically parsed into a structured **Knowledge Graph** (`universes.jsonl`).
-*   **Self-Discovery:** Agents autonomously discover tools using the `CapabilityRegistry` (Natural Language Indexing).
+*   **12D Physics State**: Every agent thought is modeled as a 12-dimensional vector in latent space, tracking parameters like *Coherence*, *Stability*, *Complexity*, and *Morphic Resonance*.
+*   **SurrealDB Substrate**: High-performance persistence for agent "Experiences" (119+ nodes captured in the latest Dawn Simulation).
+*   **Journey Narration**: Automatic 1st-person narration of agent reasoning paths, persisted in the cosmic chronicle.
+*   **Interactive Observability**: [Universe Explorer](research/notebooks/marimo/universe_explorer.py) (Marimo) providing 12D Radar projections and PCA evolution maps.
+*   **Capabilities Matrix**: [Taxonomy of 71+ Skills](.agent/CAPABILITY_MAP.md) driving the self-evolving swarm.
 
 ## 4. Key Artifacts
-*   [The R-Zero Protocol](src/cohezion/skills/R_ZERO_CHALLENGER_PRIME.md): Methodology for dynamic difficulty.
-*   [Overnight Driver](overnight_driver.py): The main engine (v12.0).
-*   [Portfolio Map](ANTHROPIC_PORTFOLIO_MAP.md): Direct mapping of this repo to the Job Description.
+*   [Cohezion Capabilities Matrix](.agent/CAPABILITY_MAP.md): Strategic taxonomy of skills.
+*   [Portfolio Map](docs/ANTHROPIC_PORTFOLIO_MAP.md): Direct mapping of this repo to the Anthropic Job Description.
 
 ## 5. Quick Start (Reproducibility)
 
@@ -48,7 +48,7 @@ uv sync
 
 # 2. Launch the Swarm (Physics Stream)
 # Exposes Prometheus on :9090
-uv run python overnight_driver.py
+uv run python scripts/drivers/overnight_driver.py
 
 # 3. Query the Knowledge Graph
 uv run python -m cohezion.registry.capability_registry

@@ -1,0 +1,74 @@
+{
+  "timestamp": "2026-01-23T15:29:36.066761+00:00",
+  "audit_type": "pre",
+  "checks": [
+    {
+      "name": "package_structure",
+      "status": "pass",
+      "value": 0,
+      "details": "All packages initialized"
+    },
+    {
+      "name": "test_files",
+      "status": "pass",
+      "value": 13,
+      "details": "Found 13 test files"
+    },
+    {
+      "name": "tests_passing",
+      "status": "fail",
+      "value": false,
+      "details": "warning: `VIRTUAL_ENV=bluequbit_challenge/little_dimple_submission/venv` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead"
+    },
+    {
+      "name": "skills_count",
+      "status": "pass",
+      "value": 88,
+      "details": "Found 88 skill files"
+    },
+    {
+      "name": "api_health",
+      "status": "warn",
+      "value": false,
+      "details": "API not reachable"
+    },
+    {
+      "name": "ollama_slms",
+      "status": "warn",
+      "value": 0,
+      "details": "No module named 'httpx'"
+    },
+    {
+      "name": "documentation",
+      "status": "pass",
+      "value": 29,
+      "details": "Found 29 documentation files"
+    },
+    {
+      "name": "universe_nodes",
+      "status": "pass",
+      "value": {
+        "journeys": 846,
+        "simulations": 8
+      },
+      "details": "846 journeys, 8 simulations"
+    },
+    {
+      "name": "components",
+      "status": "pass",
+      "value": 8,
+      "details": "Components: swarm, viz, api, security, reliability, healing, learning, mcp"
+    },
+    {
+      "name": "code_size",
+      "status": "pass",
+      "value": 31018,
+      "details": "251 Python files, 31,018 lines"
+    }
+  ],
+  "summary": {
+    "pass": 7,
+    "warn": 2,
+    "fail": 1
+  }
+}

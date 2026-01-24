@@ -32,8 +32,8 @@ logger = logging.getLogger(__name__)
 PHYSICS_CATALOG = {
     "evo_vacuum": UniverseSpec(
         name="Exotic Vacuum Objects (EVOs)",
-        description="""EVOs are dense clusters of charge that exhibit anomalous 
-        behavior in the quantum vacuum. Ken Shoulders' work suggests they can 
+        description="""EVOs are dense clusters of charge that exhibit anomalous
+        behavior in the quantum vacuum. Ken Shoulders' work suggests they can
         transmute elements and produce excess energy.""",
         dimensions={
             "charge_density": (0, 1e15),      # Charges per cluster
@@ -58,7 +58,7 @@ PHYSICS_CATALOG = {
         ],
         emergence_threshold=0.65,
     ),
-    
+
     "lenr_lattice": UniverseSpec(
         name="Low Energy Nuclear Reactions (LENR)",
         description="""LENR occurs in metal hydride lattices where nuclear reactions
@@ -88,7 +88,7 @@ PHYSICS_CATALOG = {
         ],
         emergence_threshold=0.70,
     ),
-    
+
     "mdh_plasma": UniverseSpec(
         name="Magneto-Hydrodynamics (MHD)",
         description="""MHD describes electrically conducting fluids in magnetic fields.
@@ -116,7 +116,7 @@ PHYSICS_CATALOG = {
         ],
         emergence_threshold=0.60,
     ),
-    
+
     "fractal_toroid": UniverseSpec(
         name="Fractal Toroidal Moments",
         description="""Toroidal geometry with fractal self-similarity. Found in
@@ -144,7 +144,7 @@ PHYSICS_CATALOG = {
         ],
         emergence_threshold=0.55,
     ),
-    
+
     "quantum_biology": UniverseSpec(
         name="Quantum Biology",
         description="""Quantum effects in living systems: photosynthesis efficiency,
@@ -172,14 +172,14 @@ PHYSICS_CATALOG = {
         ],
         emergence_threshold=0.75,
     ),
-    
+
     "penrose_twistor": UniverseSpec(
         name="Penrose Twistor Space",
         description="""Twistor theory: spacetime events are secondary to light rays.
         Connects geometry, quantum mechanics, and consciousness (Orch-OR).""",
         dimensions={
             "twistor_coord_z": (-10, 10),      # Complex coordinates
-            "twistor_coord_w": (-10, 10),      
+            "twistor_coord_w": (-10, 10),
             "helicity": (-2, 2),               # Spin projection
             "conformal_weight": (0, 10),       # Scaling behavior
             "gravitational_self_energy": (0, 1e-43), # Planck units
@@ -200,7 +200,7 @@ PHYSICS_CATALOG = {
         ],
         emergence_threshold=0.80,
     ),
-    
+
     "chirality_universe": UniverseSpec(
         name="Chirality & Handedness",
         description="""Matter-antimatter asymmetry, biological homochirality,
@@ -228,27 +228,54 @@ PHYSICS_CATALOG = {
         ],
         emergence_threshold=0.70,
     ),
+
+    "evo_lenr_synthesis": UniverseSpec(
+        name="EVO-LENR Transmutation Catalyst",
+        description="""A hybrid domain exploring the use of Exotic Vacuum Objects
+        (EVOs) as localized high-energy triggers to catalyze LENR in metal lattices.
+        Focuses on element transmutation and non-equilibrium heat production.""",
+        dimensions={
+            "charge_cluster_stability": (0, 1), # EVO stability in lattice
+            "loading_resonance": (0, 1),        # Coupling between D-Pd and EVO
+            "catalytic_gain": (1, 100),         # Energy multiplication factor
+            "transmutation_purity": (0, 1),     # Yield of target elements
+            "lattice_integrity": (0, 1),        # Prevention of material failure
+            "vacuum_flux_density": (0, 1e12),   # Local QED energy density
+        },
+        laws=[
+            "EVOs act as mobile tunneling portals for heavy nucleons",
+            "Resonant loading enables low-voltage nuclear triggering",
+            "Lattice integrity is preserved through coherent phonon damping",
+            "Transmutation occurs via multi-body cluster fusion pathways",
+        ],
+        paradoxes=[
+            "Can EVOs prevent brittle fracture in Pd lattices?",
+            "Is the catalyst consumed or regenerated through vacuum flux?",
+            "Does this synthesis point toward a new form of alchemy?",
+        ],
+        emergence_threshold=0.85, # High threshold for synthesis
+    ),
 }
 
 
 class AdvancedPhysicsEngine:
     """
     Runs advanced physics simulations for long-horizon exploration.
-    
+
     Features:
     - Queue-based topic exploration
     - Automatic learning extraction
     - Gateway unlocking monitoring
     - GEMINI.md refinement proposals
     """
-    
+
     def __init__(self):
         self.topic_queue = list(PHYSICS_CATALOG.keys())
         self.completed_topics: list[str] = []
         self.learnings: list[dict] = []
         self.unlocked_gateways: set[int] = set(range(1, 43))  # Start with 42
         self.next_gateway = 43  # Meta-gateways
-        
+
     async def explore_topic(
         self,
         topic_key: str,
@@ -257,13 +284,13 @@ class AdvancedPhysicsEngine:
         """Run deep exploration of a physics topic."""
         if topic_key not in PHYSICS_CATALOG:
             return {"error": f"Unknown topic: {topic_key}"}
-        
+
         spec = PHYSICS_CATALOG[topic_key]
         logger.info(f"🔬 Exploring: {spec.name}")
-        
+
         sim = UniverseSimulator(spec)
         result = await sim.run_simulation(epochs=epochs)
-        
+
         # Extract learnings
         learning = {
             "topic": spec.name,
@@ -275,14 +302,14 @@ class AdvancedPhysicsEngine:
             "timestamp": datetime.now().isoformat(),
         }
         self.learnings.append(learning)
-        
+
         # Check for gateway unlock
         if result["emergent_patterns"] >= 5 and result["avg_coherence"] > 0.7:
             self._unlock_meta_gateway(spec.name)
-        
+
         self.completed_topics.append(topic_key)
         return result
-    
+
     def _generate_insight(self, spec: UniverseSpec, result: dict) -> str:
         """Generate a key insight from the simulation."""
         if result["emergent_patterns"] > 3:
@@ -291,33 +318,33 @@ class AdvancedPhysicsEngine:
             return f"Moderate coherence in {spec.name}: system shows self-organizing tendencies"
         else:
             return f"Chaotic dynamics in {spec.name}: exploration of phase space needed"
-    
+
     def _unlock_meta_gateway(self, source: str) -> None:
         """Unlock a meta-gateway (43+) from breakthrough."""
         gateway_id = self.next_gateway
         self.unlocked_gateways.add(gateway_id)
         self.next_gateway += 1
         logger.info(f"🌌 META-GATEWAY {gateway_id} UNLOCKED via {source}!")
-    
+
     def generate_new_topics(self) -> list[str]:
         """Generate new research topics by combining existing domains."""
         new_topics = []
         keys = list(PHYSICS_CATALOG.keys())
-        
+
         for i, k1 in enumerate(keys):
             for k2 in keys[i+1:]:
                 spec1 = PHYSICS_CATALOG[k1]
                 spec2 = PHYSICS_CATALOG[k2]
                 new_name = f"{spec1.name.split()[0]}-{spec2.name.split()[0]} Synthesis"
                 new_topics.append(new_name)
-        
+
         return new_topics[:5]  # Return top 5 combinations
-    
+
     async def run_queue(self, max_topics: int = None) -> dict:
         """Run through the entire topic queue."""
         results = []
         topics_to_run = self.topic_queue[:max_topics] if max_topics else self.topic_queue
-        
+
         for topic in topics_to_run:
             result = await self.explore_topic(topic)
             results.append({
@@ -325,18 +352,18 @@ class AdvancedPhysicsEngine:
                 "patterns": result.get("emergent_patterns", 0),
                 "coherence": result.get("avg_coherence", 0),
             })
-            
+
             print(f"  ✅ {PHYSICS_CATALOG[topic].name}: "
                   f"{result.get('emergent_patterns', 0)} patterns, "
                   f"coherence={result.get('avg_coherence', 0):.2f}")
-        
+
         return {
             "completed": len(results),
             "results": results,
             "learnings": len(self.learnings),
             "gateways": len(self.unlocked_gateways),
         }
-    
+
     def get_status(self) -> dict:
         """Get engine status."""
         return {
@@ -351,18 +378,18 @@ class AdvancedPhysicsEngine:
 async def main():
     """Run the advanced physics exploration engine."""
     logging.basicConfig(level=logging.INFO)
-    
+
     print("🔬 ADVANCED PHYSICS EXPLORATION ENGINE 🔬")
     print("=" * 60)
     print()
     print(f"Topics in queue: {len(PHYSICS_CATALOG)}")
     print()
-    
+
     engine = AdvancedPhysicsEngine()
-    
+
     # Run all topics
     summary = await engine.run_queue()
-    
+
     print()
     print("=" * 60)
     print("EXPLORATION COMPLETE")
@@ -370,7 +397,7 @@ async def main():
     print(f"Topics explored: {summary['completed']}")
     print(f"Learnings captured: {summary['learnings']}")
     print(f"Gateways unlocked: {summary['gateways']}")
-    
+
     # Generate new topics
     print()
     print("Generated new research directions:")

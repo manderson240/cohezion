@@ -67,6 +67,17 @@
                 "get_perspectives",
                 "synthesize"
             ]
+        },
+        {
+            "name": "cohezion-research",
+            "type": "mining",
+            "description": "SOTA research discovery tools",
+            "path": "mcp/research_server.py",
+            "tools": [
+                "search_arxiv",
+                "get_hf_trending",
+                "list_research_channels"
+            ]
         }
     ],
     "relationships": {

@@ -20,7 +20,7 @@ class InboxMiner(EmailListenerAgent):
     Miner agent that scans historical emails and classifies them.
     Inherits auth and base logic from EmailListenerAgent.
     """
-    
+
     SYSTEM_PROMPT = """You are a Cohezion Task Miner.
 Your job is to analyze an email and determine if it contains a task relevant to improving the Cohezion platform.
 
@@ -44,24 +44,24 @@ Criteria for Rank 0:
         Fetch last N emails and classify them.
         Returns list of Rank 1 tasks.
         """
-        if not self.config.sender_password:
+        if not self.email_config.sender_password:
             logger.warning("No credentials.")
             return []
-            
+
         tk = get_time_keeper()
         valid_tasks = []
-        
+
         try:
             await tk.log_event(self.__class__.__name__, "MINING_START", {"limit": limit})
-            
+
             # 1. Fetch
             emails = await asyncio.to_thread(self._fetch_history, limit)
             logger.info(f"Fetched {len(emails)} historical emails.")
-            
+
             # 2. Classify (Sequential to avoid rate limits, or parallel batches)
             for i, email in enumerate(emails):
                 rank, task_title = await self._classify_email(email.subject, email.text or "")
-                
+
                 if rank == 1:
                     task = {
                         "source": "email_history",
@@ -73,15 +73,15 @@ Criteria for Rank 0:
                     }
                     valid_tasks.append(task)
                     logger.info(f"Generated Task: {task_title}")
-                    
+
                     await tk.log_event(
-                        self.__class__.__name__, 
-                        "TASK_MINED", 
+                        self.__class__.__name__,
+                        "TASK_MINED",
                         {"title": task_title}
                     )
-            
+
             return valid_tasks
-            
+
         except Exception as e:
             logger.error(f"Mining failed: {e}")
             await tk.log_event(self.__class__.__name__, "MINING_ERROR", {"error": str(e)})
@@ -92,15 +92,15 @@ Criteria for Rank 0:
         messages = []
         try:
             with MailBox(self.imap_host).login(
-                self.config.sender_email, 
-                self.config.sender_password
+                self.email_config.sender_email,
+                self.email_config.sender_password
             ) as mailbox:
-                
+
                 # Fetch recent N messages from sender, reversed (newest first)
-                # Fallback to simple kwargs if A() fails in mock
-                for msg in mailbox.fetch(limit=limit, reverse=True, from_=self.authorized_sender):
+                criteria = f'FROM "{self.authorized_sender}"'
+                for msg in mailbox.fetch(criteria, limit=limit, reverse=True):
                     messages.append(msg)
-                    
+
         except Exception as e:
             logger.error(f"IMAP Fetch Error: {e}")
             raise
@@ -114,7 +114,7 @@ Criteria for Rank 0:
         # Truncate body to save tokens
         clean_body = body[:2000].replace("\n", " ")
         prompt = f"Subject: {subject}\nBody: {clean_body}\n\nClassify this email."
-        
+
         try:
             response = await self._call_ollama(
                 prompt=prompt,
@@ -122,12 +122,12 @@ Criteria for Rank 0:
                 temperature=0.0, # Deterministic
                 max_tokens=50
             )
-            
+
             # Parse response
             lines = response.strip().split("\n")
             rank = 0
             title = "Ignore"
-            
+
             for line in lines:
                 if line.startswith("RANK:"):
                     try:
@@ -136,9 +136,9 @@ Criteria for Rank 0:
                         pass
                 elif line.startswith("TASK:"):
                     title = line.split(":", 1)[1].strip()
-                    
+
             return rank, title
-            
+
         except Exception as e:
             logger.warning(f"Classification failed: {e}")
             return 0, "Error"

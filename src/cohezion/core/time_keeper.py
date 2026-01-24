@@ -22,25 +22,59 @@ class TimeKeeper:
     def __init__(self, db_client: Optional[SurrealClient] = None):
         self.db = db_client or SurrealClient()
         self._session_start = time.perf_counter()
-        
+        self._current_mission: Optional[str] = None
+        self._current_session: Optional[str] = None
+
     @property
     def now_iso(self) -> str:
         """Return current time in ISO-8601 format with UTC timezone."""
         return datetime.now(timezone.utc).isoformat()
-    
+
     @property
     def session_uptime(self) -> float:
         """Return seconds since session start."""
         return time.perf_counter() - self._session_start
-        
-    async def log_event(self, 
-                        agent_name: str, 
-                        event_type: str, 
+
+    async def start_mission(self, name: str, description: str) -> str:
+        """Define a long-lived objective."""
+        mission_id = f"mission_{int(time.time())}"
+        self._current_mission = mission_id
+        await self.db.query(
+            "CREATE missions CONTENT $data",
+            {"data": {
+                "id": mission_id,
+                "name": name,
+                "description": description,
+                "start_time": self.now_iso,
+                "status": "active"
+            }}
+        )
+        return mission_id
+
+    async def start_session(self, mission_id: Optional[str] = None) -> str:
+        """Start a focused coding/research session."""
+        session_id = f"session_{int(time.time())}"
+        self._current_session = session_id
+        self._current_mission = mission_id or self._current_mission
+        await self.db.query(
+            "CREATE sessions CONTENT $data",
+            {"data": {
+                "id": session_id,
+                "mission": self._current_mission,
+                "start_time": self.now_iso,
+                "uptime_base": time.perf_counter()
+            }}
+        )
+        return session_id
+
+    async def log_event(self,
+                        agent_name: str,
+                        event_type: str,
                         details: Dict[str, Any],
                         duration_ms: float = 0.0) -> None:
         """
         Log an operational event to the 'velocity_events' table in SurrealDB.
-        
+
         Args:
             agent_name: Name of the agent performed the action (e.g. 'AnalystAgent')
             event_type: Type of event (e.g. 'TASK_COMPLETE', 'TOOL_USE')
@@ -48,16 +82,17 @@ class TimeKeeper:
             duration_ms: Execution time in milliseconds
         """
         timestamp = self.now_iso
-        
+
         record = {
             "timestamp": timestamp,
             "agent": agent_name,
             "type": event_type,
             "details": details,
             "duration_ms": duration_ms,
-            "session_id": "current_session" # In future, inject real session ID
+            "mission": self._current_mission,
+            "session": self._current_session
         }
-        
+
         try:
             # Fire and forget logging to avoid blocking critical path
             # In a real async loop we might want to batch these
@@ -67,7 +102,7 @@ class TimeKeeper:
                 {"data": record}
             )
             logger.debug(f"Logged event: {event_type} by {agent_name}")
-            
+
         except Exception as e:
             # Never crash due to logging failure
             logger.warning(f"Failed to log velocity event: {e}")
@@ -77,13 +112,13 @@ class TimeKeeper:
         Calculate velocity (Tasks/Hour) over the last window_minutes.
         """
         query = """
-        SELECT count() as count 
-        FROM velocity_events 
-        WHERE type = 'TASK_COMPLETE' 
+        SELECT count() as count
+        FROM velocity_events
+        WHERE type = 'TASK_COMPLETE'
         AND <datetime>timestamp > time::now() - <duration>$window
         GROUP ALL
         """
-        
+
         try:
             result = await self.db.query(query, {"window": f"{window_minutes}m"})
             # Result is like [{'count': N}]

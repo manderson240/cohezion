@@ -18,6 +18,7 @@ src/diagnostics/memory_usage.log
 
 # Cache and temporary files
 cache/
+data/
 *.cache
 .cache/
 
@@ -51,3 +52,27 @@ renders/
 *.sandbox
 temp/
 .sandbox/
+# Cohezion Autonomous Lab Artifacts
+*.log
+*.err
+*.out
+*.sandbox
+logs/
+.sandbox/
+
+# Web App Dependencies and Builds
+webapp/node_modules/
+webapp/dist/
+webapp/.vite/
+results/
+exports/
+
+# 2026-01-23 Cleanup (Global Aggressive)
+**/venv/
+**/*.log
+**/*.jsonl
+**/*.html
+**/*.dill
+**/__pycache__/
+audio/
+bluequbit_challenge/little_dimple_submission/code_bundle.zip
