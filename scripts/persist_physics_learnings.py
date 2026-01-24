@@ -9,23 +9,23 @@ sys.path.insert(0, '/home/mike-anderson/dev/cohezion/src')
 
 import asyncio
 from datetime import datetime
-from surrealdb import Surreal
+from cohezion.db.surreal_client import SurrealClient, UniverseNode, PhysicsState
 
 async def persist_learnings():
     """Save physics notebook learnings to SurrealDB."""
-    
+
     print("🔄 Persisting physics laws notebook learnings...", flush=True)
-    
-    db = Surreal("http://localhost:8000")
+
+    db = SurrealClient()
     await db.connect()
-    await db.use("cohezion", "research")
-    
+
+    # Ensure schema is setup
+    await db.setup_schema()
+
     # Learning 60: Marimo Process Management
-    await db.create("learnings", {
-        "learning_id": 60,
-        "title": "Marimo Process Management",
-        "timestamp": datetime.now().isoformat(),
-        "content": """
+    node60 = UniverseNode(
+        id="learning_60",
+        content="""
 ## Problem
 Marimo processes get suspended (SIGTTOU) when backgrounded with &
 
@@ -36,21 +36,21 @@ nohup uv run marimo run notebook.py --host 0.0.0.0 --port 8765 > /tmp/marimo.log
 ```
 
 ## Root Cause
-Marimo's interactive output triggers terminal stop signal when process tries to write to background terminal.
-        """,
-        "discovery_method": "fail_fast_debugging",
-        "confidence": 0.95,
-        "impact_score": 0.7,
-        "tags": ["marimo", "process_management", "nohup", "terminal"]
-    })
+Marimo's interactive output triggers terminal stop signal when process tries to write to background terminal.""",
+        node_type="learning",
+        metadata={
+            "learning_id": 60,
+            "title": "Marimo Process Management",
+            "tags": ["marimo", "process_management", "nohup", "terminal"]
+        }
+    )
+    await db.store_node(node60)
     print("  ✓ Saved Learning 60: Marimo Process Management", flush=True)
-    
+
     # Learning 61: Layperson Physics Communication
-    await db.create("learnings", {
-        "learning_id": 61,
-        "title": "Layperson Physics Communication Pattern",
-        "timestamp": datetime.now().isoformat(),
-        "content": """
+    node61 = UniverseNode(
+        id="learning_61",
+        content="""
 ## Pattern: Universe Storybook Style
 
 For each physics concept:
@@ -64,37 +64,44 @@ For each physics concept:
 - Multiverse: "A library with every possible book ever written..."
 
 ## Key Insight
-Visual elements (emojis, cards, spacing) enhance retention.
-        """,
-        "discovery_method": "pattern_extraction",
-        "confidence": 0.9,
-        "impact_score": 0.85,
-        "tags": ["communication", "layperson", "physics", "analogies", "universe_storybook"]
-    })
+Visual elements (emojis, cards, spacing) enhance retention.""",
+        node_type="learning",
+        metadata={
+            "learning_id": 61,
+            "title": "Layperson Physics Communication Pattern",
+            "tags": ["communication", "layperson", "physics", "analogies", "universe_storybook"]
+        }
+    )
+    await db.store_node(node61)
     print("  ✓ Saved Learning 61: Layperson Physics Communication", flush=True)
-    
+
     # Physics notebook journey record
-    await db.create("notebook_journeys", {
-        "notebook_id": "physics_laws_explorer",
-        "created_at": datetime.now().isoformat(),
-        "topic": "Why Are Physics Laws The Way They Are?",
-        "approaches": [
-            "mathematical_necessity",
-            "anthropic_selection",
-            "multiverse_selection",
-            "hiho_flume_synthesis"
-        ],
-        "key_equations": [
-            "Noether: Symmetry → Conservation",
-            "Least Action: S = ∫L dt",
-            "HIHO: max[C(Ψ,Φ)·(1-C(Ψ,Φ))] at C=0.5",
-            "FLUME: dz/dt = f(z) + ∇C(z)"
-        ],
-        "visualization_dimensions": ["Energy", "Coherence", "Stability", "Novelty"],
-        "coherence_final": 0.498
-    })
+    journey_node = UniverseNode(
+        id="physics_laws_journey",
+        content="Journey record for physics_laws_explorer",
+        node_type="notebook_journey",
+        metadata={
+            "notebook_id": "physics_laws_explorer",
+            "topic": "Why Are Physics Laws The Way They Are?",
+            "approaches": [
+                "mathematical_necessity",
+                "anthropic_selection",
+                "multiverse_selection",
+                "hiho_flume_synthesis"
+            ],
+            "key_equations": [
+                "Noether: Symmetry → Conservation",
+                "Least Action: S = ∫L dt",
+                "HIHO: max[C(Ψ,Φ)·(1-C(Ψ,Φ))] at C=0.5",
+                "FLUME: dz/dt = f(z) + ∇C(z)"
+            ],
+            "visualization_dimensions": ["Energy", "Coherence", "Stability", "Novelty"],
+            "coherence_final": 0.498
+        }
+    )
+    await db.store_node(journey_node)
     print("  ✓ Saved notebook journey record", flush=True)
-    
+
     await db.close()
     print("\n✅ All learnings persisted to SurrealDB!", flush=True)
 

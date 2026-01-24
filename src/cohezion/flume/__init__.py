@@ -10,10 +10,12 @@ Implements:
 - TrajectoryPredictor: Predict trajectory of thought vectors over time
 """
 
-from cohezion.flume.autoencoder import FlumeEncoder
+from cohezion.flume.autoencoder import FlumeEncoder, FlumeConfig
+from cohezion.flume.tokenizer import FlumeTokenizer
+from cohezion.flume.alignment import LatentAligner
 from cohezion.flume.predictor import TrajectoryPredictor
 
 # Backwards compatibility alias
 ThoughtAutoencoder = FlumeEncoder
 
-__all__ = ["FlumeEncoder", "TrajectoryPredictor", "ThoughtAutoencoder"]
+__all__ = ["FlumeEncoder", "FlumeConfig", "FlumeTokenizer", "LatentAligner", "TrajectoryPredictor", "ThoughtAutoencoder"]

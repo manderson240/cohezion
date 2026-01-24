@@ -2,7 +2,7 @@
 Swarm MCP Server - Access to debate workflow.
 
 Provides tools:
-- run_debate: Execute full debate workflow on a query  
+- run_debate: Execute full debate workflow on a query
 - get_perspectives: Get available analyst perspectives
 - synthesize: Quick synthesis without full debate
 """
@@ -11,7 +11,7 @@ import asyncio
 import logging
 from typing import Any
 
-from cohezion.swarm.types import Perspective, SwarmConfig
+from cohezion.swarm.swarm_types import Perspective, SwarmConfig
 from cohezion.swarm.workflows import DebateWorkflow
 
 logger = logging.getLogger(__name__)
@@ -20,20 +20,20 @@ logger = logging.getLogger(__name__)
 class SwarmMCP:
     """
     MCP server for swarm debate workflow.
-    
+
     Provides structured access to the SLM swarm.
     """
-    
+
     def __init__(self, config: SwarmConfig | None = None):
         self.config = config or SwarmConfig()
         self._workflow: DebateWorkflow | None = None
-    
+
     def _get_workflow(self) -> DebateWorkflow:
         """Lazy-load debate workflow."""
         if self._workflow is None:
             self._workflow = DebateWorkflow(config=self.config)
         return self._workflow
-    
+
     def run_debate(
         self,
         query: str,
@@ -41,16 +41,16 @@ class SwarmMCP:
     ) -> dict[str, Any]:
         """
         Execute full debate workflow.
-        
+
         Args:
             query: The question to debate
             perspectives: Optional list of perspective names
-            
+
         Returns:
             Synthesized response with metadata
         """
         workflow = self._get_workflow()
-        
+
         # Parse perspectives
         if perspectives:
             persp_enums = [
@@ -61,7 +61,7 @@ class SwarmMCP:
                 config=self.config,
                 perspectives=persp_enums,
             )
-        
+
         # Run async workflow
         loop = asyncio.new_event_loop()
         try:
@@ -75,14 +75,14 @@ class SwarmMCP:
             }
         finally:
             loop.close()
-    
+
     def get_perspectives(self) -> list[dict[str, str]]:
         """Get available analyst perspectives."""
         return [
             {"name": p.name, "value": p.value}
             for p in Perspective
         ]
-    
+
     def get_metrics(self) -> dict[str, Any]:
         """Get workflow metrics."""
         workflow = self._get_workflow()

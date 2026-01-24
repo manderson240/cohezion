@@ -1,49 +1,38 @@
-# GEMINI.md - Agent Configuration & Learnings
+# GEMINI.md - Cohezion Orchestration Layer
 
-This file documents agent-discovered patterns and configuration for the Cohezion project.
+This document serves as the primary orchestration hub for AI agents in the Cohezion project. It establishes our core identity and maps out specialized context modules.
 
-## Session Learnings (2026-01-19)
+## 1. Core Project Identity
+**COHEZION** is a systemic AI orchestration ecosystem governed by the **Quadrature Nexus Orchestration**. We implement the **FLUME** methodology (Fluid Latent Understanding through Manifold Encoding) combined with the **Expert Domain Lattice** (EDL) for high-fidelity simulation and autonomous research.
 
-### Marimo Notebooks
+## 2. The Cohezion Constitutional Framework
+All agent actions are governed by two primary documents:
+- **Core Constitution**: [.agent/CONSTITUTION.md](file:///home/mike-anderson/dev/cohezion/.agent/CONSTITUTION.md) (January 2026 Claude Edition).
+- **Project Charter**: [.agent/COHEZION_CHARTER.md](file:///home/mike-anderson/dev/cohezion/.agent/COHEZION_CHARTER.md) (Simulation, SWARM, FLUME, HIHO, SPIN).
 
-**Process Management:**
-```bash
-# ✅ Correct (stays running)
-nohup uv run marimo run notebook.py --host 0.0.0.0 --port 8765 > /tmp/marimo.log 2>&1 &
-```
+If you encounter an ethical or behavioral ambiguity, consult these documents immediately.
 
-**Cell Patterns:**
-- **No `return`**: Cells are not functions; they don't support `return`.
-- **Reactivity**: Use `mo.stop(not condition)` to gate conditional UI display.
-- **Privacy**: Use `_variable` prefix for cell-private variables to avoid cross-cell conflicts.
-- **WASM Export**: `marimo export html-wasm script.py --mode run --output renders/`
+## 3. Dynamic Knowledge Hub
+To maintain a lean context, historical and specialized information is stored in the following locations:
+- **Historical Context**: [MISSION_JOURNAL.md](file:///home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/MISSION_JOURNAL.md) (Developments, discoveries).
+- **Extracted Wisdom**: [KEY_LEARNINGS.md](file:///home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/KEY_LEARNINGS.md).
+- **Technical Standards**: [.agent/CODING_STANDARDS.md](file:///home/mike-anderson/dev/cohezion/.agent/CODING_STANDARDS.md).
+- **Encoding**: Use 12D state vectors (3 Spatial + 1 Time + 8 Brane) for all trajectory predictions.
 
-### Layperson Communication Pattern
+## 4. Operational Guardrails
+- **Resource Monitor**: Enforce a strict global limit of **4 concurrent large model calls** to prevent GPU TTM lockups.
+- **Evolution Protocol**: Refer to [.agent/EVOLUTION_PROTOCOL.md](file:///home/mike-anderson/dev/cohezion/.agent/EVOLUTION_PROTOCOL.md) for experience mining and self-healing guidelines.
+- **Capabilities**: Consult [.agent/CAPABILITY_MAP.md](file:///home/mike-anderson/dev/cohezion/.agent/CAPABILITY_MAP.md) for skill coverage and model routing strategies.
 
-For physics concepts, use this structure:
-1. **🏠 Think of it like...** - Everyday analogy
-2. **🌍 Why it matters** - 3-bullet practical implications  
-3. **👉 One thing to remember** - Memorable takeaway
+## 5. Repository Layout & Key Locations
+Refer to [ARCHITECTURE.md](file:///home/mike-anderson/dev/cohezion/knowledge_graph/ARCHITECTURE.md) for the structural blueprint.
+- **Source**: `src/cohezion/` - Core package.
+- **Research**: `research/` - Challenges, Notebooks, and Experiments.
+- **Apps**: `apps/` - Web applications (React/Vite).
+- **Ops**: `ops/` - Deployment configurations (Docker/K8s).
+- **Knowledge**: `knowledge_graph/` - Persistent memory and architecture docs.
+- **Scripts**: `scripts/drivers/` - Automation and simulation drivers.
+- **Templates**: `templates/` - Standard artifacts (Skills, Retrospectives).
 
-### Visualization Guidelines
-
-- **Spacious Layout**: Prefer 2x2 grids over 3x4 (less cramped).
-- **Colors**: Use vibrant palette (#FF6B6B, #4ECDC4, #45B7D1).
-- **HIHO Threshold**: Always add `fig.add_vline(x=0.5, line_dash="dash", line_color="gold")` for coherence plots.
-- **Reactivity**: Ensure plots update immediately on slider/dropdown changes by including the UI element in the cell arguments.
-
-## Key Project Locations
-
-| Resource | Path |
-|----------|------|
-| Marimo Notebooks | `notebooks/marimo/` |
-| WASM Renders | `renders/` |
-| Retrospectives | `src/cohezion/knowledge_graph/retrospectives/` |
-| Learnings | `src/cohezion/knowledge_graph/` |
-
-## SurrealDB Schema
-
-Tables used:
-- `learnings` - Indexed discoveries with confidence scores
-- `notebook_journeys` - FLUME trajectory records
-- `overnight_mission` - Autonomous research runs
+> [!NOTE]
+> This file is the "Root of Trust" for the agent. If information is missing here, it will be found in one of the linked modules.

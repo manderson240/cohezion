@@ -1,463 +1,78 @@
-"""
-Trajectory Predictor - Predict the evolution of thought vectors over time.
-
-Instead of predicting the next discrete token, we predict the next
-continuous vector position in thought-space. This allows for:
-
-1. Anticipating conceptual evolution
-2. Smooth interpolation between ideas
-3. Multi-step future prediction
-4. Semantic momentum and inertia
-"""
-
-import logging
-from pathlib import Path
-from typing import Any
-
-import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+from typing import List, Optional
 
-logger = logging.getLogger(__name__)
-
-
-class VectorLSTM(nn.Module):
+class TrajectoryPredictor(nn.Module):
     """
-    LSTM for sequence prediction in continuous vector space.
-    
-    Takes a sequence of thought vectors and predicts the next.
+    Models the 'velocity' and evolution of reasoning in latent space.
+    Allows predicting where a thought is going or exploring counterfactuals.
     """
-    
-    def __init__(
-        self,
-        z_dim: int = 256,
-        hidden_dim: int = 512,
-        num_layers: int = 2,
-        dropout: float = 0.1,
-    ):
+    def __init__(self, z_dim: int = 256, hidden_dim: int = 512):
         super().__init__()
-        
         self.z_dim = z_dim
-        self.hidden_dim = hidden_dim
-        
-        self.lstm = nn.LSTM(
-            input_size=z_dim,
-            hidden_size=hidden_dim,
-            num_layers=num_layers,
-            batch_first=True,
-            dropout=dropout if num_layers > 1 else 0,
+
+        # Predicts Δz (velocity) based on current z
+        self.navigator = nn.Sequential(
+            nn.Linear(z_dim, hidden_dim),
+            nn.ReLU(),
+            nn.LayerNorm(hidden_dim),
+            nn.Linear(hidden_dim, z_dim)
         )
-        
-        self.output_proj = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.GELU(),
-            nn.Linear(hidden_dim, z_dim),
-        )
-    
-    def forward(
-        self,
-        z_sequence: torch.Tensor,
-        hidden: tuple[torch.Tensor, torch.Tensor] | None = None,
-    ) -> tuple[torch.Tensor, tuple[torch.Tensor, torch.Tensor]]:
-        """
-        Predict next vectors from sequence.
-        
-        Args:
-            z_sequence: (batch, seq_len, z_dim) input sequence
-            hidden: Optional initial hidden state
-            
-        Returns:
-            predictions: (batch, seq_len, z_dim) predicted next vectors
-            hidden: Updated hidden state
-        """
-        output, hidden = self.lstm(z_sequence, hidden)
-        predictions = self.output_proj(output)
-        return predictions, hidden
 
+    def forward(self, z: torch.Tensor) -> torch.Tensor:
+        """Compute the next state in the trajectory."""
+        delta = self.navigator(z)
+        return z + delta
 
-class FlowPredictor(nn.Module):
-    """
-    Velocity field predictor for continuous flow in thought-space.
-    
-    Models thought evolution as a continuous flow, where we predict
-    the velocity (derivative) at each point, then integrate.
-    """
-    
-    def __init__(
-        self,
-        z_dim: int = 256,
-        hidden_dim: int = 512,
-        num_layers: int = 3,
-    ):
-        super().__init__()
-        
-        layers = []
-        in_dim = z_dim + 1  # Include time dimension
-        
-        for i in range(num_layers):
-            out_dim = hidden_dim if i < num_layers - 1 else z_dim
-            layers.extend([
-                nn.Linear(in_dim, out_dim),
-                nn.GELU() if i < num_layers - 1 else nn.Identity(),
-            ])
-            in_dim = out_dim
-        
-        self.network = nn.Sequential(*layers)
-    
-    def forward(
-        self,
-        z: torch.Tensor,
-        t: torch.Tensor,
-    ) -> torch.Tensor:
-        """
-        Predict velocity at position z and time t.
-        
-        Args:
-            z: (batch, z_dim) current position
-            t: (batch, 1) time
-            
-        Returns:
-            velocity: (batch, z_dim) predicted velocity
-        """
-        x = torch.cat([z, t], dim=-1)
-        return self.network(x)
-
-
-class TrajectoryPredictor:
-    """
-    High-level predictor for thought vector trajectories.
-    
-    Combines LSTM sequence modeling with flow-based continuous
-    prediction for flexible trajectory generation.
-    """
-    
-    def __init__(
-        self,
-        z_dim: int = 256,
-        hidden_dim: int = 512,
-        num_layers: int = 2,
-        use_flow: bool = True,
-        device: str | torch.device | None = None,
-    ):
-        self.z_dim = z_dim
-        self.use_flow = use_flow
-        self.device = device or torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu"
-        )
-        
-        self.lstm = VectorLSTM(z_dim, hidden_dim, num_layers).to(self.device)
-        
-        if use_flow:
-            self.flow = FlowPredictor(z_dim, hidden_dim).to(self.device)
-        else:
-            self.flow = None
-        
-        self._hidden: tuple[torch.Tensor, torch.Tensor] | None = None
-    
-    def reset(self) -> None:
-        """Reset hidden state for new sequence."""
-        self._hidden = None
-    
-    def predict_next(
-        self,
-        z: torch.Tensor | np.ndarray,
-    ) -> torch.Tensor:
-        """
-        Predict the next thought vector from current.
-        
-        Args:
-            z: (z_dim,) or (batch, z_dim) current vector(s)
-            
-        Returns:
-            z_next: Predicted next vector(s)
-        """
-        if isinstance(z, np.ndarray):
-            z = torch.from_numpy(z).float()
-        
-        z = z.to(self.device)
-        
-        if z.dim() == 1:
-            z = z.unsqueeze(0).unsqueeze(0)  # (1, 1, z_dim)
-        elif z.dim() == 2:
-            z = z.unsqueeze(1)  # (batch, 1, z_dim)
-        
-        with torch.no_grad():
-            predictions, self._hidden = self.lstm(z, self._hidden)
-        
-        return predictions.squeeze(1)  # (batch, z_dim)
-    
-    def predict_sequence(
-        self,
-        z_start: torch.Tensor | np.ndarray,
-        steps: int = 5,
-        momentum: float = 0.0,
-    ) -> list[torch.Tensor]:
-        """
-        Predict a sequence of future thought vectors.
-        
-        Args:
-            z_start: Starting thought vector
-            steps: Number of steps to predict
-            momentum: How much to carry forward previous velocity (0-1)
-            
-        Returns:
-            List of predicted thought vectors
-        """
-        if isinstance(z_start, np.ndarray):
-            z_start = torch.from_numpy(z_start).float()
-        
-        z_start = z_start.to(self.device)
-        if z_start.dim() == 1:
-            z_start = z_start.unsqueeze(0)
-        
-        self.reset()
-        trajectory = [z_start]
-        z_current = z_start
-        velocity = torch.zeros_like(z_current)
-        
+    def predict_sequence(self, z: torch.Tensor, steps: int = 5) -> List[torch.Tensor]:
+        """Predict a sequence of future thought vectors."""
+        trajectory = [z]
+        current_z = z
         for _ in range(steps):
-            # Get LSTM prediction
-            z_next = self.predict_next(z_current)
-            
-            # Compute new velocity
-            new_velocity = z_next - z_current
-            
-            # Apply momentum
-            velocity = momentum * velocity + (1 - momentum) * new_velocity
-            z_next = z_current + velocity
-            
-            trajectory.append(z_next)
-            z_current = z_next
-        
+            current_z = self.forward(current_z)
+            trajectory.append(current_z)
         return trajectory
-    
-    def predict_flow(
-        self,
-        z_start: torch.Tensor | np.ndarray,
-        t_end: float = 1.0,
-        steps: int = 10,
-    ) -> list[torch.Tensor]:
-        """
-        Predict trajectory using continuous flow.
-        
-        Uses Euler integration of the velocity field.
-        
-        Args:
-            z_start: Starting thought vector
-            t_end: End time for integration
-            steps: Number of integration steps
-            
-        Returns:
-            List of thought vectors along trajectory
-        """
-        if self.flow is None:
-            raise ValueError("Flow predictor not initialized. Set use_flow=True.")
-        
-        if isinstance(z_start, np.ndarray):
-            z_start = torch.from_numpy(z_start).float()
-        
-        z_start = z_start.to(self.device)
-        if z_start.dim() == 1:
-            z_start = z_start.unsqueeze(0)
-        
-        trajectory = [z_start]
-        z_current = z_start
-        dt = t_end / steps
-        
-        for i in range(steps):
-            t = torch.full((z_current.shape[0], 1), i * dt, device=self.device)
-            
-            with torch.no_grad():
-                velocity = self.flow(z_current, t)
-            
-            z_current = z_current + velocity * dt
-            trajectory.append(z_current)
-        
-        return trajectory
-    
-    def smooth_trajectory(
-        self,
-        trajectory: list[torch.Tensor],
-        smoothing: float = 0.5,
-    ) -> list[torch.Tensor]:
-        """
-        Apply smoothing to a trajectory.
-        
-        Uses exponential moving average for fluid motion.
-        """
-        if len(trajectory) < 2:
-            return trajectory
-        
-        smoothed = [trajectory[0]]
-        
-        for z in trajectory[1:]:
-            z_smooth = smoothing * smoothed[-1] + (1 - smoothing) * z
-            smoothed.append(z_smooth)
-        
-        return smoothed
-    
-    def trajectory_to_numpy(
-        self,
-        trajectory: list[torch.Tensor],
-    ) -> np.ndarray:
-        """Convert trajectory to numpy array for visualization."""
-        return np.stack([z.cpu().numpy().squeeze() for z in trajectory])
-    
-    def apply_physics_constraints(
-        self,
-        z: torch.Tensor,
-        prev_z: torch.Tensor | None = None,
-        dt: float = 1.0,
-    ) -> torch.Tensor:
-        """
-        Apply physics-informed constraints to predicted state.
-        
-        For Gateway 3: World Model Integration.
-        Enforces physical consistency in the 12D semantic space.
-        
-        Constraints applied:
-        - Energy conservation (norm preservation)
-        - Momentum smoothing (prevents discontinuities)
-        - Stability bounds (prevents explosion)
-        
-        Args:
-            z: Predicted state vector
-            prev_z: Previous state (for momentum constraints)
-            dt: Time step
-            
-        Returns:
-            Physics-constrained state vector
-        """
-        # 1. Energy conservation: preserve approximate norm
-        if prev_z is not None:
-            prev_norm = prev_z.norm(dim=-1, keepdim=True)
-            curr_norm = z.norm(dim=-1, keepdim=True)
-            # Allow small energy change but prevent explosion
-            max_energy_ratio = 1.2
-            min_energy_ratio = 0.8
-            scale = torch.clamp(curr_norm / (prev_norm + 1e-8), min_energy_ratio, max_energy_ratio)
-            z = z * (prev_norm * scale) / (curr_norm + 1e-8)
-        
-        # 2. Stability bounds: prevent extreme values
-        z = torch.clamp(z, -10.0, 10.0)
-        
-        # 3. Smoothness: if prev exists, limit velocity
-        if prev_z is not None:
-            velocity = (z - prev_z) / dt
-            max_velocity = 5.0  # Limit semantic velocity
-            velocity_norm = velocity.norm(dim=-1, keepdim=True)
-            if (velocity_norm > max_velocity).any():
-                velocity = velocity * max_velocity / (velocity_norm + 1e-8)
-                z = prev_z + velocity * dt
-        
-        return z
-    
+
     def predict_with_physics(
         self,
-        z_start: torch.Tensor | np.ndarray,
+        z: torch.Tensor,
         steps: int = 10,
         physics_weight: float = 0.3,
-    ) -> list[torch.Tensor]:
+        momentum: float = 0.9
+    ) -> List[torch.Tensor]:
         """
-        Predict trajectory with physics-informed constraints.
-        
-        Combines neural prediction with physical consistency
-        for more realistic state evolution.
-        
-        Args:
-            z_start: Starting thought vector
-            steps: Number of prediction steps
-            physics_weight: Weight of physics constraints (0-1)
-            
-        Returns:
-            List of physics-constrained thought vectors
+        Predict trajectory using 'latent physics'.
+        Simulates momentum and force-like updates.
         """
-        if isinstance(z_start, np.ndarray):
-            z_start = torch.from_numpy(z_start).float()
-        
-        z_start = z_start.to(self.device)
-        if z_start.dim() == 1:
-            z_start = z_start.unsqueeze(0)
-        
-        self.reset()
-        trajectory = [z_start]
-        z_current = z_start
-        
-        for i in range(steps):
-            # Neural prediction
-            z_neural = self.predict_next(z_current)
-            
-            # Apply physics constraints
-            z_physics = self.apply_physics_constraints(z_neural, z_current)
-            
-            # Blend neural and physics-constrained predictions
-            z_next = (1 - physics_weight) * z_neural + physics_weight * z_physics
-            
-            trajectory.append(z_next)
-            z_current = z_next
-        
+        trajectory = [z]
+        current_z = z
+        velocity = torch.zeros_like(z)
+
+        for _ in range(steps):
+            # 1. 'Force' from the navigator (intentional direction)
+            force = self.navigator(current_z)
+
+            # 2. Update velocity with momentum
+            velocity = momentum * velocity + (1 - momentum) * force
+
+            # 3. Apply physics weight (influence of current momentum)
+            current_z = current_z + force + physics_weight * velocity
+            trajectory.append(current_z)
+
         return trajectory
-    
+
     def imagine_branches(
         self,
-        z_start: torch.Tensor | np.ndarray,
+        z: torch.Tensor,
         perturbations: int = 3,
         steps: int = 5,
-    ) -> list[list[torch.Tensor]]:
-        """
-        Imagine multiple possible futures from a starting point.
-        
-        Creates counterfactual simulation branches - key for
-        world model "what-if" reasoning.
-        
-        Args:
-            z_start: Starting thought vector
-            perturbations: Number of alternative branches
-            steps: Prediction steps per branch
-            
-        Returns:
-            List of trajectory branches
-        """
-        if isinstance(z_start, np.ndarray):
-            z_start = torch.from_numpy(z_start).float()
-        
-        z_start = z_start.to(self.device)
-        if z_start.dim() == 1:
-            z_start = z_start.unsqueeze(0)
-        
+        noise_scale: float = 0.1
+    ) -> List[List[torch.Tensor]]:
+        """Explore alternative 'counterfactual' thought paths."""
         branches = []
-        
-        # Main trajectory (no perturbation)
-        branches.append(self.predict_with_physics(z_start, steps))
-        
-        # Alternative branches with perturbations
         for _ in range(perturbations):
-            # Add random perturbation to starting point
-            noise = torch.randn_like(z_start) * 0.5
-            z_perturbed = z_start + noise
-            
-            branches.append(self.predict_with_physics(z_perturbed, steps))
-        
+            # Start with a slight perturbation
+            noise = torch.randn_like(z) * noise_scale
+            branch = self.predict_sequence(z + noise, steps=steps)
+            branches.append(branch)
         return branches
-    
-    def save(self, path: Path | str) -> None:
-        """Save model weights."""
-        state = {
-            "lstm": self.lstm.state_dict(),
-            "flow": self.flow.state_dict() if self.flow else None,
-            "config": {
-                "z_dim": self.z_dim,
-                "use_flow": self.use_flow,
-            },
-        }
-        torch.save(state, path)
-        logger.info(f"Saved predictor to {path}")
-    
-    def load(self, path: Path | str) -> None:
-        """Load model weights."""
-        state = torch.load(path, weights_only=True)
-        self.lstm.load_state_dict(state["lstm"])
-        if self.flow and state.get("flow"):
-            self.flow.load_state_dict(state["flow"])
-        logger.info(f"Loaded predictor from {path}")

@@ -1,91 +1,130 @@
-# 🛡️ Git Health Report - 2026-01-19 19:47:27
+# 🛡️ Git Health Report - 2026-01-23 23:54:06
 
 ## 🎯 Executive Summary
-- **Health Score:** 98 / 100
-- **Semantic Stability:** 0.93 (1.0 = Stable)
-- **Repo Bloat:** 4368626 pending changes ⚠️
+- **Health Score:** 92 / 100
+- **Semantic Stability:** 0.94 (1.0 = Stable)
+- **Repo Bloat:** 1260 pending changes ⚠️
 - **Unpushed Work:** 5 commits
-- **Complexity Hotspots:** 1 issues attributed to history
+- **Complexity Hotspots:** 4 issues attributed to history
 
 ## 📦 Bloat Details
-- **Untracked:** 109 files
-- **Modified/Deleted:** 4368517 files
-- **Hotspots:** src (1994), logs (1)
+- **Untracked:** 1140 files
+- **Modified/Deleted:** 120 files
+- **Hotspots:** src (1105), scripts (72), tests (20), notebooks (10), .agent (9)
 
 ## 蜂 Health Agent Analysis
-Okay, here's a focused health assessment of the repository based on the provided Git history, acting as your Git Health Specialist:
+Okay, here’s a focused diagnostic assessment of the repository’s Git health based on the provided commit history, focusing on the key areas of concern:
 
-**Overall Assessment:** The repository demonstrates a generally healthy development process, driven primarily by a single contributor, Mike Anderson, over the last few weeks. The commit frequency is relatively high (8 commits total), indicating active development and a reasonable pace.  The commit messages are consistently descriptive, utilizing “feat:” and “docs:” prefixes, suggesting a focus on new features and documentation updates.  Branching appears straightforward with a clear sequence of feature additions, refactoring, and testing, reflecting a methodical approach. However, the lack of any merge commits or branches beyond the immediate linear history suggests a potential area for improvement in managing parallel development or larger feature integrations.
+**Overall Health Assessment:** The repository exhibits a concerning level of recent activity concentrated within a relatively small number of commits, primarily driven by a single contributor, Mike Anderson.  The commit frequency is high – 10 commits in the last 6 months – which can be positive, but without a clear strategic direction or robust branching strategy, it risks leading to a fragmented codebase and reduced maintainability. The commits themselves are largely focused on feature additions and refactoring (indicated by “feat” and “refactor!” prefixes), suggesting a relatively agile development process, but without a strong emphasis on testing or documentation. The lack of a consistent, well-defined release strategy is immediately apparent.
 
-**Heat Map & Complexity:**  The history reveals a concentrated area of change around the introduction of “FLUME” (commits 26b63581, 91568215, 811243e8) and “R-Zero” (65fa3653). This suggests a significant investment and potentially a key area of the project's evolution.  While the commits are well-defined, the rapid succession of changes within this area might warrant a closer look to ensure no complexity is accumulating and to maintain a clear understanding of the dependencies.  Further investigation could uncover potential technical debt or design decisions that need to be revisited.
+**Repository Hygiene & Lineage Concerns:** The commit messages, while descriptive, lack a clear narrative. While “chore” and “docs” are present, the impact of changes is not readily apparent.  The linear history with only these commits suggests a potential lack of proper branching and merging, leading to a potential build-up of complexity and difficulty in reverting changes.  The rapid succession of "feat" commits, particularly around FLUME and R-Zero, raises a flag. It’s crucial to understand if these are tightly coupled features or if the team is struggling to manage dependencies and ensure a cohesive architecture. The lack of a dedicated test commit (5fc47040) is a significant red flag, particularly given the scale of the changes.
 
-**Recommendations & Traceability:**  Currently, traceability is excellent – each commit is directly linked to a specific feature or documentation update.  To enhance long-term maintainability, consider incorporating more frequent, smaller commits aligned with specific tasks.  Additionally, explore the possibility of incorporating branching strategies to enable parallel development of related features, particularly as the FLUME and R-Zero initiatives evolve.  Finally, documenting the rationale behind the CALM to FLUME methodology migration (91568215) would greatly improve the overall lineage and understanding of the project's evolution.
+**Recommendations & Heat Map Analysis:**  The repository appears to be experiencing a "heat map" of rapid change around Mike Anderson’s core features.  To improve health, we need to immediately investigate the relationships between these commits.  Specifically, the migration to FLUME (91568215) seems to be a central point of change.  Recommendations include implementing a branching strategy (feature branches, release branches), establishing a rigorous testing process, improving commit message quality to clearly articulate the *why* behind changes, and exploring a more structured approach to managing dependencies and code complexity.  A deeper dive into the code itself would be needed to identify specific areas of potential risk and complexity accumulation, but this initial history strongly suggests a need for process improvements.
 
 ## ⚡ Simplification Recommendations
-Okay, let's address the complexity identified in `src/cohezion/mcp/async_workflow.py`, specifically line 152. The core issue is the blocking call to `subprocess.run` within an async function, leading to potential performance bottlenecks and a violation of asyncio's non-blocking nature.
+Okay, let's break down these complexity hotspots and propose refactoring suggestions, prioritizing readability and performance improvements as indicated.
 
-Here's a breakdown of the refactoring suggestions, prioritizing readability and adherence to best practices:
+**Overall Strategy:** We'll focus on flattening logic, removing unnecessary nesting, and replacing blocking operations with asynchronous alternatives.  Guard clauses will be heavily utilized.
 
-**Refactoring Proposal for Line 152 (src/cohezion/mcp/async_workflow.py)**
+---
 
-**1. Replace `subprocess.run` with `asyncio.create_subprocess_exec` or `run_in_executor`:**
+**1. `src/cohezion/mcp/async_workflow.py`, Line 152**
 
-   This is the fundamental change. `subprocess.run` is a blocking call, which defeats the purpose of using asyncio.  `asyncio.create_subprocess_exec` or `run_in_executor` allows the subprocess to run concurrently without blocking the asyncio event loop.
-
-**2. Add Guard Clause for Empty Input:**
-
-   While not explicitly stated in the trace, it's good practice to check for empty input to prevent potential errors and improve robustness.
-
-**3. Explicit Naming & Clear Structure (Match/Case - Optional, but recommended for clarity):**
-
-   If the subprocess execution has multiple possible outcomes (e.g., success, error, timeout), consider using a `match/case` statement to handle them clearly and avoid deeply nested `if/else` blocks. This will improve readability.
-
-**Revised Code Snippet (Illustrative - Needs Contextual Adaptation):**
+* **Issue:** Blocking `subprocess.run` in async function `run_tests`.
+* **Complexity Score:** Performance
+* **Refactoring Suggestion:**
+    * **Replace `subprocess.run` with `asyncio.create_subprocess_exec`:** This is the most direct and recommended fix.  `subprocess.run` is inherently blocking and will defeat the purpose of an asynchronous workflow.
+    * **Add a Guard Clause:**  Include a check to ensure `subprocess.run` is actually needed. If the test suite is small or doesn't require external processes, simply return a result (e.g., a list of test results) without running the subprocess.
+    * **Example (Illustrative - adjust based on existing code):**
 
 ```python
 import asyncio
-import subprocess
 
-async def run_tests(command):
-    """
-    Executes a shell command asynchronously.
-    """
-    if not command:
-        raise ValueError("Command cannot be empty.")  # Guard Clause
+async def run_tests(test_commands):
+    """Runs test commands asynchronously."""
+    if not test_commands:
+        return []  # Guard clause: No tests to run
 
     try:
-        async with asyncio.TaskGroup() as tg: # Use TaskGroup for better management
-            process = tg.create_subprocess_exec(
-                command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                # Add timeout if needed: timeout=30  # Example
-            )
-            await process.wait()  # Await the process completion
-            return process.returncode, process.stdout.decode(), process.stderr.decode()
+        result = await asyncio.create_subprocess_exec(
+            'python',  # Or the appropriate command
+            *test_commands,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        output = await result.communicate()
+        return output.decode().splitlines() # Adjust parsing as needed
     except Exception as e:
-        print(f"Error running command: {e}") #Handle exceptions appropriately
-        return -1, "", str(e) # Or re-raise, depending on desired behavior
+        print(f"Error running tests: {e}")
+        return None
 ```
 
-**Explanation of Changes & Rationale:**
+**2. `src/cohezion/db/surreal_client.py`, Line 311**
 
-*   **`asyncio.create_subprocess_exec`:** This is the core replacement. It creates a subprocess that runs concurrently with the asyncio event loop.
-*   **Guard Clause (`if not command`):**  Handles the case where the command is empty, preventing errors and making the code more robust.  Raises a `ValueError` to clearly signal an invalid input.
-*   **`async with asyncio.TaskGroup() as tg:`:**  Using `TaskGroup` is best practice for managing asynchronous operations, providing a structured way to handle concurrency and cancellation.
-*   **`process.wait()`:**  This is *necessary* to actually wait for the subprocess to complete.  `create_subprocess_exec` returns a `subprocess.Process` object, which you need to await.
-*   **Error Handling:** Added a `try...except` block to gracefully handle potential exceptions during the subprocess execution.  This prevents the entire asyncio event loop from crashing if a command fails.
-*   **Return Values:**  The function returns the return code, standard output, and standard error, allowing the calling code to handle the results appropriately.
+* **Issue:** High complexity function `query` (score: 18)
+* **Complexity Score:** Quality
+* **Refactoring Suggestion:**
+    * **Match/Case for Query Types:** The `query` function appears to handle multiple query types. Replace the large `if/elif/else` chain with a `match/case` statement. This dramatically improves readability and maintainability.
+    * **Break Down into Smaller Functions:**  If the individual query types still have significant logic, break them out into separate, well-named functions.
+    * **Add Input Validation:**  Before executing any query, validate the input parameters (e.g., table names, column names, values) to prevent errors and potential security vulnerabilities.
+    * **Example (Illustrative):**
 
-**Further Considerations & Next Steps:**
+```python
+def query(query_type, **params):
+    match query_type:
+        case "select":
+            # Implement select query logic
+            pass
+        case "insert":
+            # Implement insert query logic
+            pass
+        case "update":
+            # Implement update query logic
+            pass
+        case "delete":
+            # Implement delete query logic
+            pass
+        case _:
+            raise ValueError(f"Unsupported query type: {query_type}")
+```
 
-1.  **Timeout:**  Implement a timeout for the subprocess execution using the `timeout` argument in `create_subprocess_exec`. This prevents the subprocess from running indefinitely if it gets stuck.
-2.  **Logging:** Add more detailed logging to track the execution of the subprocess and any errors that occur.
-3.  **Contextual Review:**  This refactoring is based on the provided trace.  A thorough review of the `async_workflow.py` file is *essential* to ensure that the changes are correct and don't introduce any unintended side effects.  Pay close attention to how the results of `run_tests` are used elsewhere in the code.
-4.  **Testing:**  Write comprehensive unit tests to verify that the refactored code works correctly and that the performance has been improved.
+**3. `src/cohezion/swarm/agents/base.py`, Line 166**
 
-This detailed response provides a concrete refactoring suggestion, explains the rationale behind it, and outlines further considerations for improving the code's robustness and performance.  It directly addresses the complexity identified in the trace.  Do you want me to elaborate on any specific aspect of this refactoring (e.g., timeout implementation, error handling, or testing strategies)?
+* **Issue:** High complexity function `_call_ollama` (score: 19)
+* **Complexity Score:** Quality
+* **Refactoring Suggestion:**
+    * **Asynchronous Execution:**  Similar to `async_workflow.py`, replace any blocking calls within `_call_ollama` with asynchronous equivalents. This likely involves using `aiohttp` or another asynchronous HTTP client.
+    * **Error Handling:** Implement robust error handling to gracefully manage potential issues with the Ollama API (e.g., network errors, invalid requests).
+    * **Abstraction:**  Consider creating a higher-level abstraction layer to encapsulate the Ollama API interactions, making the code more modular and easier to test.
+
+**4. `src/cohezion/swarm/agents/visualization_agent.py`, Line 185**
+
+* **Issue:** Blocking `subprocess.run` in async function `_generate_audio`.
+* **Complexity Score:** Performance
+* **Refactoring Suggestion:**
+    * **Same as `async_workflow.py`:** Replace `subprocess.run` with `asyncio.create_subprocess_exec` and add a guard clause for when the audio generation isn't needed.  The reasoning and implementation details are identical.
+
+
+
+---
+
+**Next Steps:**
+
+1. **Prioritization:**  Address `async_workflow.py` and `surreal_client.py` first due to the high complexity and performance implications.
+2. **Detailed Analysis:**  For each file, perform a line-by-line analysis to understand the exact logic and identify opportunities for further simplification.
+3. **Testing:**  Thoroughly test any refactored code to ensure that it functions correctly and doesn't introduce any regressions.
+
+To help me refine these suggestions further, could you provide:
+
+*   The full code snippets for the identified lines?
+*   More context about the overall architecture and purpose of these modules?
 
 ## 📊 Complexity Attribution (Top 5)
+- `src/cohezion/swarm/agents/base.py:166` (Authored by Not Committed Yet in 00000000)
+  - ⚠️ High complexity function '_call_ollama' (score: 19)
+- `src/cohezion/db/surreal_client.py:311` (Authored by Mike Anderson in ef1d577e)
+  - ⚠️ High complexity function 'query' (score: 18)
+- `src/cohezion/swarm/agents/visualization_agent.py:185` (Authored by Mike Anderson in ef1d577e)
+  - ⚠️ Blocking 'subprocess.run' in async function '_generate_audio'. Use 'asyncio.create_subprocess_exec' or run_in_executor.
 - `src/cohezion/mcp/async_workflow.py:152` (Authored by Mike Anderson in 22d8ee73)
   - ⚠️ Blocking 'subprocess.run' in async function 'run_tests'. Use 'asyncio.create_subprocess_exec' or run_in_executor.

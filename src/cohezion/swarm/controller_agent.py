@@ -12,6 +12,8 @@ from typing import TypedDict, Literal, Annotated
 from datetime import datetime
 
 from langgraph.graph import StateGraph, END
+from cohezion.swarm.agents.handoff_agent import HandoffAgent
+from cohezion.swarm.swarm_types import SwarmConfig
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +43,7 @@ class AgentState(TypedDict):
 def classify_query(state: AgentState) -> AgentState:
     """Route query to appropriate expert(s) based on content."""
     query = state["query"].lower()
-    
+
     # Simple keyword-based routing (replace with LLM classification)
     if any(kw in query for kw in ["design", "architecture", "structure"]):
         state["route"] = "architect"
@@ -55,7 +57,7 @@ def classify_query(state: AgentState) -> AgentState:
         state["route"] = "quantum_algo"
     else:
         state["route"] = "all"  # Fan out to all experts
-    
+
     logger.info(f"Query classified → route: {state['route']}")
     return state
 
@@ -105,7 +107,7 @@ def quantum_algo_expert(state: AgentState) -> AgentState:
 def synthesize_responses(state: AgentState) -> AgentState:
     """Combine expert responses into final synthesis."""
     responses = state["expert_responses"]
-    
+
     if not responses:
         state["synthesis"] = "No expert responses available."
         state["confidence"] = 0.0
@@ -114,7 +116,26 @@ def synthesize_responses(state: AgentState) -> AgentState:
         combined = "\n".join(f"- {r}" for r in responses.values())
         state["synthesis"] = f"Synthesized from {len(responses)} expert(s):\n{combined}"
         state["confidence"] = len(responses) / len(EXPERT_DOMAINS)
-    
+
+    return state
+
+
+async def handoff_session(state: AgentState) -> AgentState:
+    """Synthesize session for long-term memory before ending."""
+    logger.info("🔄 Initiating automated session handoff...")
+    agent = HandoffAgent()
+    # Pass necessary state info for synthesis
+    snapshot = await agent.create_snapshot({
+        "query": state["query"],
+        "expert_responses": state["expert_responses"],
+        "synthesis": state["synthesis"],
+        "confidence": state["confidence"],
+        "created_at": state["created_at"]
+    })
+    await agent.close()
+    if "context" not in state:
+        state["context"] = {}
+    state["context"]["last_snapshot"] = snapshot
     return state
 
 
@@ -128,9 +149,9 @@ def route_to_experts(state: AgentState) -> str:
 
 def build_controller_graph() -> StateGraph:
     """Build the LangGraph orchestration graph."""
-    
+
     graph = StateGraph(AgentState)
-    
+
     # Add nodes
     graph.add_node("classify", classify_query)
     graph.add_node("architect", architect_expert)
@@ -139,10 +160,11 @@ def build_controller_graph() -> StateGraph:
     graph.add_node("quantum_hw", quantum_hw_expert)
     graph.add_node("quantum_algo", quantum_algo_expert)
     graph.add_node("synthesize", synthesize_responses)
-    
+    graph.add_node("handoff", handoff_session)
+
     # Set entry point
     graph.set_entry_point("classify")
-    
+
     # Add conditional routing
     graph.add_conditional_edges(
         "classify",
@@ -156,24 +178,27 @@ def build_controller_graph() -> StateGraph:
             "fan_out": "architect",  # Start fan-out with architect
         }
     )
-    
+
     # Connect experts to synthesis
     for expert in EXPERT_DOMAINS:
         graph.add_edge(expert, "synthesize")
-    
-    # End after synthesis
-    graph.add_edge("synthesize", END)
-    
+
+    # Synthesis to Handoff
+    graph.add_edge("synthesize", "handoff")
+
+    # End after handoff
+    graph.add_edge("handoff", END)
+
     return graph.compile()
 
 
 class ControllerAgent:
     """Main controller agent implementing Quadrature Nexus pattern."""
-    
+
     def __init__(self):
         self.graph = build_controller_graph()
         self.history: list[AgentState] = []
-    
+
     async def ignite(self, pack: IgnitionPack) -> AgentState:
         """Process an ignition pack through the controller."""
         initial_state: AgentState = {
@@ -186,29 +211,26 @@ class ControllerAgent:
             "confidence": 0.0,
             "created_at": datetime.now().isoformat(),
         }
-        
+
         # Run through graph
-        result = await asyncio.to_thread(
-            self.graph.invoke,
-            initial_state
-        )
-        
+        result = await self.graph.ainvoke(initial_state)
+
         self.history.append(result)
         logger.info(f"Controller processed query with confidence: {result['confidence']}")
-        
+
         return result
 
 
 # Quick test
 async def main():
     controller = ControllerAgent()
-    
+
     result = await controller.ignite({
         "query": "Design an architecture for quantum-biological hybrid computing",
         "context": {"domain": "research"},
         "urgency": "high",
     })
-    
+
     print(f"Synthesis: {result['synthesis']}")
     print(f"Confidence: {result['confidence']}")
 

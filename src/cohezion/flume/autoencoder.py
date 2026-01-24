@@ -17,23 +17,23 @@ This enables:
 
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union, List, Tuple
 
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from transformers import PreTrainedModel, PretrainedConfig
 
 logger = logging.getLogger(__name__)
 
 
-class ThoughtEncoder(nn.Module):
+class FlumeConfig(PretrainedConfig):
     """
-    Encoder network: text tokens → thought vector z.
-    
-    Uses a simple transformer + pooling architecture.
+    Configuration for Flume Autoencoder.
     """
-    
+    model_type = "flume"
+
     def __init__(
         self,
         vocab_size: int = 32000,
@@ -44,267 +44,177 @@ class ThoughtEncoder(nn.Module):
         z_dim: int = 256,
         max_seq_len: int = 512,
         dropout: float = 0.1,
+        **kwargs,
     ):
+        super().__init__(**kwargs)
+        self.vocab_size = vocab_size
+        self.embed_dim = embed_dim
+        self.hidden_dim = hidden_dim
+        self.num_heads = num_heads
+        self.num_layers = num_layers
+        self.z_dim = z_dim
+        self.max_seq_len = max_seq_len
+        self.dropout = dropout
+
+
+class ThoughtEncoder(nn.Module):
+    """
+    Encoder network: text tokens → thought vector z.
+    """
+
+    def __init__(self, config: FlumeConfig):
         super().__init__()
-        
-        self.embedding = nn.Embedding(vocab_size, embed_dim)
-        self.pos_embedding = nn.Embedding(max_seq_len, embed_dim)
-        
+
+        self.embedding = nn.Embedding(config.vocab_size, config.embed_dim)
+        self.pos_embedding = nn.Embedding(config.max_seq_len, config.embed_dim)
+
         encoder_layer = nn.TransformerEncoderLayer(
-            d_model=embed_dim,
-            nhead=num_heads,
-            dim_feedforward=hidden_dim,
-            dropout=dropout,
+            d_model=config.embed_dim,
+            nhead=config.num_heads,
+            dim_feedforward=config.hidden_dim,
+            dropout=config.dropout,
             batch_first=True,
         )
-        self.transformer = nn.TransformerEncoder(encoder_layer, num_layers)
-        
+        self.transformer = nn.TransformerEncoder(encoder_layer, config.num_layers)
+
         # Project to latent space
-        self.to_z = nn.Linear(embed_dim, z_dim)
-    
+        self.to_z = nn.Linear(config.embed_dim, config.z_dim)
+
     def forward(
-        self, 
+        self,
         tokens: torch.Tensor,
         attention_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
-        """
-        Encode tokens to thought vector z.
-        
-        Args:
-            tokens: (batch, seq_len) token indices
-            attention_mask: Optional mask for padding
-            
-        Returns:
-            z: (batch, z_dim) thought vectors
-        """
         batch_size, seq_len = tokens.shape
-        
-        # Embed tokens
         positions = torch.arange(seq_len, device=tokens.device).unsqueeze(0)
         x = self.embedding(tokens) + self.pos_embedding(positions)
-        
-        # Create attention mask for transformer
+
         if attention_mask is not None:
-            # Convert to bool mask (True = masked out)
             src_key_padding_mask = ~attention_mask.bool()
         else:
             src_key_padding_mask = None
-        
-        # Transform
+
         x = self.transformer(x, src_key_padding_mask=src_key_padding_mask)
-        
-        # Pool (mean of non-masked positions)
+
         if attention_mask is not None:
             mask = attention_mask.unsqueeze(-1).float()
             x = (x * mask).sum(dim=1) / mask.sum(dim=1).clamp(min=1)
         else:
             x = x.mean(dim=1)
-        
-        # Project to z
+
         z = self.to_z(x)
-        
         return z
 
 
 class ThoughtDecoder(nn.Module):
     """
     Decoder network: thought vector z → text tokens.
-    
-    Autoregressive generation from latent code.
     """
-    
-    def __init__(
-        self,
-        vocab_size: int = 32000,
-        embed_dim: int = 256,
-        hidden_dim: int = 512,
-        num_heads: int = 4,
-        num_layers: int = 2,
-        z_dim: int = 256,
-        max_seq_len: int = 512,
-        dropout: float = 0.1,
-    ):
+
+    def __init__(self, config: FlumeConfig):
         super().__init__()
-        
-        self.embedding = nn.Embedding(vocab_size, embed_dim)
-        self.pos_embedding = nn.Embedding(max_seq_len, embed_dim)
-        
-        # Project z to initial hidden state
-        self.z_proj = nn.Linear(z_dim, embed_dim)
-        
+
+        self.embedding = nn.Embedding(config.vocab_size, config.embed_dim)
+        self.pos_embedding = nn.Embedding(config.max_seq_len, config.embed_dim)
+        self.z_proj = nn.Linear(config.z_dim, config.embed_dim)
+
         decoder_layer = nn.TransformerDecoderLayer(
-            d_model=embed_dim,
-            nhead=num_heads,
-            dim_feedforward=hidden_dim,
-            dropout=dropout,
+            d_model=config.embed_dim,
+            nhead=config.num_heads,
+            dim_feedforward=config.hidden_dim,
+            dropout=config.dropout,
             batch_first=True,
         )
-        self.transformer = nn.TransformerDecoder(decoder_layer, num_layers)
-        
-        # Output projection
-        self.to_logits = nn.Linear(embed_dim, vocab_size)
-    
+        self.transformer = nn.TransformerDecoder(decoder_layer, config.num_layers)
+        self.to_logits = nn.Linear(config.embed_dim, config.vocab_size)
+
     def forward(
         self,
         z: torch.Tensor,
         target_tokens: torch.Tensor,
     ) -> torch.Tensor:
-        """
-        Decode thought vector to token logits.
-        
-        Args:
-            z: (batch, z_dim) thought vectors
-            target_tokens: (batch, seq_len) target token indices
-            
-        Returns:
-            logits: (batch, seq_len, vocab_size)
-        """
         batch_size, seq_len = target_tokens.shape
-        
-        # Embed targets
         positions = torch.arange(seq_len, device=target_tokens.device).unsqueeze(0)
         tgt = self.embedding(target_tokens) + self.pos_embedding(positions)
-        
-        # Create causal mask
+
         causal_mask = torch.triu(
             torch.ones(seq_len, seq_len, device=target_tokens.device) * float('-inf'),
             diagonal=1
         )
-        
-        # Project z to memory
-        memory = self.z_proj(z).unsqueeze(1)  # (batch, 1, embed_dim)
-        
-        # Decode
+
+        # Ensure z is [batch, z_dim] for memory projection
+        if z.dim() == 3 and z.size(1) == 1:
+            z = z.squeeze(1)
+
+        memory = self.z_proj(z).unsqueeze(1)
         x = self.transformer(tgt, memory, tgt_mask=causal_mask)
-        
-        # Project to vocabulary
+
         logits = self.to_logits(x)
-        
         return logits
 
 
-class FlumeEncoder(nn.Module):
+class FlumeEncoder(PreTrainedModel):
     """
     Full autoencoder for thought vector compression.
-    
-    Implements the FLUME principle: Fluid Latent Understanding through
-    Manifold Encoding. Inspired by CALM (Kyutai Labs).
     """
-    
-    def __init__(
-        self,
-        vocab_size: int = 32000,
-        embed_dim: int = 256,
-        hidden_dim: int = 512,
-        num_heads: int = 4,
-        num_layers: int = 2,
-        z_dim: int = 256,
-        max_seq_len: int = 512,
-        dropout: float = 0.1,
-    ):
-        super().__init__()
-        
-        self.z_dim = z_dim
-        self.vocab_size = vocab_size
-        
-        self.encoder = ThoughtEncoder(
-            vocab_size, embed_dim, hidden_dim, num_heads, 
-            num_layers, z_dim, max_seq_len, dropout
-        )
-        self.decoder = ThoughtDecoder(
-            vocab_size, embed_dim, hidden_dim, num_heads,
-            num_layers, z_dim, max_seq_len, dropout
-        )
-        
-        # Simple tokenizer (character-level for demo)
-        self._char_to_idx: dict[str, int] = {}
-        self._idx_to_char: dict[int, str] = {}
-        self._init_tokenizer()
-    
-    def _init_tokenizer(self) -> None:
-        """Initialize a simple character-level tokenizer."""
-        chars = list(" abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?;:'\"()-\n")
-        for i, c in enumerate(chars):
-            self._char_to_idx[c] = i
-            self._idx_to_char[i] = c
-        
-        # Special tokens
-        self._char_to_idx["<PAD>"] = len(chars)
-        self._char_to_idx["<UNK>"] = len(chars) + 1
-        self._char_to_idx["<BOS>"] = len(chars) + 2
-        self._char_to_idx["<EOS>"] = len(chars) + 3
-    
-    def tokenize(self, text: str, max_len: int = 256) -> torch.Tensor:
-        """Convert text to token indices."""
-        tokens = [self._char_to_idx.get(c, self._char_to_idx["<UNK>"]) for c in text]
-        tokens = tokens[:max_len]
-        tokens += [self._char_to_idx["<PAD>"]] * (max_len - len(tokens))
-        return torch.tensor(tokens, dtype=torch.long)
-    
-    def detokenize(self, tokens: torch.Tensor) -> str:
-        """Convert token indices back to text."""
-        chars = []
-        for idx in tokens.tolist():
-            if idx in self._idx_to_char:
-                chars.append(self._idx_to_char[idx])
-            elif idx == self._char_to_idx.get("<PAD>", -1):
-                break
-        return "".join(chars)
-    
+    config_class = FlumeConfig
+    base_model_prefix = "flume"
+
+    def __init__(self, config: FlumeConfig):
+        super().__init__(config)
+        self.encoder = ThoughtEncoder(config)
+        self.decoder = ThoughtDecoder(config)
+
+        # Integration with FlumeTokenizer (for convenience)
+        from cohezion.flume.tokenizer import FlumeTokenizer
+        self.tokenizer = FlumeTokenizer()
+        self.post_init()
+
+    def _init_weights(self, module):
+        if isinstance(module, nn.Linear):
+            module.weight.data.normal_(mean=0.0, std=self.config.initializer_range if hasattr(self.config, 'initializer_range') else 0.02)
+            if module.bias is not None:
+                module.bias.data.zero_()
+        elif isinstance(module, nn.Embedding):
+            module.weight.data.normal_(mean=0.0, std=self.config.initializer_range if hasattr(self.config, 'initializer_range') else 0.02)
+            if module.padding_idx is not None:
+                module.weight.data[module.padding_idx].zero_()
+
     def encode(
-        self, 
+        self,
         text: str | list[str],
         max_len: int = 256,
     ) -> torch.Tensor:
-        """
-        Encode text(s) to thought vector(s).
-        
-        Args:
-            text: Single string or list of strings
-            max_len: Maximum sequence length
-            
-        Returns:
-            z: (batch, z_dim) thought vectors
-        """
+        """Encode text(s) to thought vector(s)."""
         if isinstance(text, str):
             text = [text]
-        
-        tokens = torch.stack([self.tokenize(t, max_len) for t in text])
-        attention_mask = (tokens != self._char_to_idx["<PAD>"]).float()
-        
+
+        inputs = self.tokenizer(text, padding=True, truncation=True, max_length=max_len, return_tensors="pt")
+        inputs = {k: v.to(self.device) for k, v in inputs.items()}
+
         with torch.no_grad():
-            z = self.encoder(tokens, attention_mask)
-        
+            z = self.encoder(inputs["input_ids"], inputs["attention_mask"])
+
         return z
-    
+
     def decode(
-        self, 
+        self,
         z: torch.Tensor,
         max_len: int = 256,
         temperature: float = 1.0,
     ) -> list[str]:
-        """
-        Decode thought vector(s) to text.
-        
-        Args:
-            z: (batch, z_dim) thought vectors
-            max_len: Maximum output length
-            temperature: Sampling temperature
-            
-        Returns:
-            List of decoded strings
-        """
+        """Decode thought vector(s) to text."""
         batch_size = z.shape[0]
         device = z.device
-        
+
         # Start with BOS token
         tokens = torch.full(
-            (batch_size, 1), 
-            self._char_to_idx.get("<BOS>", 0),
+            (batch_size, 1),
+            self.tokenizer.bos_token_id,
             dtype=torch.long,
             device=device,
         )
-        
+
         # Autoregressive generation
         for _ in range(max_len - 1):
             with torch.no_grad():
@@ -313,54 +223,47 @@ class FlumeEncoder(nn.Module):
                 probs = F.softmax(next_logits, dim=-1)
                 next_token = torch.multinomial(probs, 1)
                 tokens = torch.cat([tokens, next_token], dim=1)
-                
+
                 # Stop if all sequences hit EOS
-                if (next_token == self._char_to_idx.get("<EOS>", -1)).all():
+                if (next_token == self.tokenizer.eos_token_id).all():
                     break
-        
-        return [self.detokenize(t[1:]) for t in tokens]  # Skip BOS
-    
+
+        # Detokenize
+        return self.tokenizer.batch_decode(tokens, skip_special_tokens=True)
+
     def forward(
         self,
-        tokens: torch.Tensor,
+        input_ids: torch.Tensor,
         attention_mask: torch.Tensor | None = None,
+        **kwargs
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        """
-        Full forward pass for training.
-        
-        Returns:
-            z: Encoded thought vectors
-            logits: Decoded token logits
-        """
-        z = self.encoder(tokens, attention_mask)
-        logits = self.decoder(z, tokens)
+        """Full forward pass for training."""
+        z = self.encoder(input_ids, attention_mask)
+        logits = self.decoder(z, input_ids)
         return z, logits
-    
+
     def reconstruction_loss(
         self,
-        tokens: torch.Tensor,
+        input_ids: torch.Tensor,
         attention_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Compute reconstruction loss for training."""
-        z, logits = self.forward(tokens, attention_mask)
-        
+        z, logits = self.forward(input_ids, attention_mask)
+
         # Shift for next-token prediction
         shift_logits = logits[:, :-1, :].contiguous()
-        shift_labels = tokens[:, 1:].contiguous()
-        
+        shift_labels = input_ids[:, 1:].contiguous()
+
         loss = F.cross_entropy(
-            shift_logits.view(-1, self.vocab_size),
+            shift_logits.view(-1, self.config.vocab_size),
             shift_labels.view(-1),
-            ignore_index=self._char_to_idx["<PAD>"],
+            ignore_index=self.tokenizer.pad_token_id,
         )
-        
+
         return loss
-    
+
     def get_semantic_vector(self, text: str) -> torch.Tensor:
-        """
-        Get high-quality semantic vector using local Ollama (nomic-embed-text).
-        Falls back to internal encoding if Ollama fails.
-        """
+        """Get high-quality semantic vector using local Ollama (nomic-embed-text)."""
         try:
             import requests
             response = requests.post(
@@ -369,7 +272,7 @@ class FlumeEncoder(nn.Module):
                     "model": "nomic-embed-text",
                     "prompt": text
                 },
-                timeout=5
+                timeout=30
             )
             if response.status_code == 200:
                 embedding = response.json()["embedding"]
@@ -378,7 +281,7 @@ class FlumeEncoder(nn.Module):
                 logger.warning(f"Ollama error: {response.text}")
         except Exception as e:
             logger.warning(f"Ollama connection failed: {e}")
-            
+
         # Fallback to internal encoder
         return self.encode(text).squeeze()
 
@@ -388,149 +291,88 @@ class FlumeEncoder(nn.Module):
         text_b: str,
         steps: int = 5,
     ) -> list[str]:
-        """
-        Interpolate between two texts in thought-space.
-        
-        This is the "fluid motion" of CALM - continuous transitions
-        between concepts.
-        """
+        """Interpolate between two texts in thought-space."""
         z_a = self.encode(text_a)
         z_b = self.encode(text_b)
-        
+
         results = []
         for i in range(steps):
             alpha = i / (steps - 1) if steps > 1 else 0
             z_interp = (1 - alpha) * z_a + alpha * z_b
             decoded = self.decode(z_interp)
             results.append(decoded[0])
-        
+
         return results
-    
+
     def semantic_add(
         self,
         base: str | torch.Tensor,
         direction: str | torch.Tensor,
         scale: float = 1.0,
     ) -> torch.Tensor:
-        """
-        Perform semantic addition: base + direction * scale.
-        
-        Enables cross-domain bridging for Gateway 2.
-        Example: "quantum" + "biology" = novel conceptual direction
-        
-        Args:
-            base: Base text or vector
-            direction: Direction text or vector to add
-            scale: Scaling factor for direction
-            
-        Returns:
-            Result vector in thought-space
-        """
+        """Perform semantic addition: base + direction * scale."""
         if isinstance(base, str):
             base = self.encode(base)
         if isinstance(direction, str):
             direction = self.encode(direction)
-        
+
         return base + direction * scale
-    
+
     def semantic_direction(
         self,
         from_concept: str | torch.Tensor,
         to_concept: str | torch.Tensor,
     ) -> torch.Tensor:
-        """
-        Compute the semantic direction from one concept to another.
-        
-        This is the "vector" in thought-space that represents
-        the transformation from one idea to another.
-        
-        Args:
-            from_concept: Source concept text or vector
-            to_concept: Target concept text or vector
-            
-        Returns:
-            Direction vector (z_to - z_from)
-        """
+        """Compute the semantic direction from one concept to another."""
         if isinstance(from_concept, str):
             z_from = self.encode(from_concept)
         else:
             z_from = from_concept
-            
+
         if isinstance(to_concept, str):
             z_to = self.encode(to_concept)
         else:
             z_to = to_concept
-            
+
         return z_to - z_from
-    
+
     def cross_domain_bridge(
         self,
         concept_a: str,
         domain_a_example: str,
         domain_b_example: str,
     ) -> str:
-        """
-        Apply a cross-domain transformation.
-        
-        Takes a concept from domain A and transforms it using
-        the relationship between domains learned from examples.
-        
-        Example:
-            concept_a = "electron"
-            domain_a_example = "physics"
-            domain_b_example = "biology"
-            → Returns: something like "neuron" (biological analog)
-        
-        Args:
-            concept_a: Concept to transform
-            domain_a_example: Example from source domain
-            domain_b_example: Example from target domain
-            
-        Returns:
-            Transformed concept text in target domain
-        """
-        # Get the domain transformation vector
+        """Apply a cross-domain transformation."""
         domain_direction = self.semantic_direction(domain_a_example, domain_b_example)
-        
-        # Apply to concept
         z_concept = self.encode(concept_a)
         z_bridged = z_concept + domain_direction
-        
-        # Decode the bridged concept
         decoded = self.decode(z_bridged)
         return decoded[0]
-    
+
     def similarity(
         self,
         text_a: str | torch.Tensor,
         text_b: str | torch.Tensor,
     ) -> float:
-        """
-        Compute cosine similarity between two concepts.
-        
-        Args:
-            text_a: First text or vector
-            text_b: Second text or vector
-            
-        Returns:
-            Cosine similarity [-1, 1]
-        """
+        """Compute cosine similarity between two concepts."""
         if isinstance(text_a, str):
-            text_a = self.encode(text_a)
+            text_a = self.get_semantic_vector(text_a)
         if isinstance(text_b, str):
-            text_b = self.encode(text_b)
-        
-        # Normalize
-        a_norm = F.normalize(text_a, dim=-1)
-        b_norm = F.normalize(text_b, dim=-1)
-        
-        return (a_norm * b_norm).sum(dim=-1).item()
-    
+            text_b = self.get_semantic_vector(text_b)
+
+        # Ensure 1D tensors
+        if text_a.dim() > 1: text_a = text_a.flatten()
+        if text_b.dim() > 1: text_b = text_b.flatten()
+
+        a_norm = F.normalize(text_a, dim=0)
+        b_norm = F.normalize(text_b, dim=0)
+        return torch.dot(a_norm, b_norm).item()
+
     def save(self, path: Path | str) -> None:
         """Save model weights."""
         torch.save(self.state_dict(), path)
         logger.info(f"Saved model to {path}")
-    
+
     def load(self, path: Path | str) -> None:
         """Load model weights."""
         self.load_state_dict(torch.load(path, weights_only=True))

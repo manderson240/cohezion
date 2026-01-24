@@ -10,6 +10,21 @@ Agent implementations for the SLM Swarm.
 from cohezion.swarm.agents.analyst import AnalystAgent
 from cohezion.swarm.agents.critic import CriticAgent
 from cohezion.swarm.agents.synthesizer import SynthesizerAgent
+from cohezion.swarm.agents.nexus_research_agent import NexusResearchAgent
+from cohezion.swarm.agents.you_tube_transcript_agent import YouTubeTranscriptAgent
+from cohezion.swarm.agents.x_scout_agent import XScoutAgent
+from cohezion.swarm.agents.universe_sim_agent import UniverseSimAgent
+from cohezion.swarm.agents.world_model_agent import WorldModelAgent
 from cohezion.swarm.agents.base import BaseAgent
 
-__all__ = ["AnalystAgent", "CriticAgent", "SynthesizerAgent", "BaseAgent"]
+__all__ = [
+    "AnalystAgent",
+    "CriticAgent",
+    "SynthesizerAgent",
+    "NexusResearchAgent",
+    "YouTubeTranscriptAgent",
+    "XScoutAgent",
+    "UniverseSimAgent",
+    "WorldModelAgent",
+    "BaseAgent"
+]
