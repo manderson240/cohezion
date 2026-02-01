@@ -56,6 +56,34 @@ def main():
         print("Please unstage them with 'git rm --cached <file>'.")
         sys.exit(1)
 
+    # 3. Secret Scanning
+    import re
+    SECRET_PATTERNS = [
+        (re.compile(r"AIza[0-9A-Za-z-_]{35}"), "Google Cloud API Key"),
+        (re.compile(r"sk-[a-zA-Z0-9]{48}"), "OpenAI API Key"),
+        (re.compile(r"xox[baprs]-[0-9]{12}-[0-9]{12}-[a-zA-Z0-9]{24}"), "Slack Token"),
+        (re.compile(r"ghp_[a-zA-Z0-9]{36}"), "GitHub Personal Access Token"),
+        (re.compile(r"PRIVATE\s+KEY"), "Private Key"),
+    ]
+    
+    found_secrets = False
+    for f in staged_files:
+        if os.path.isfile(f):
+            try:
+                with open(f, "r", encoding="utf-8") as file_content:
+                    content = file_content.read()
+                    for pattern, name in SECRET_PATTERNS:
+                        if pattern.search(content):
+                            print(f"❌ Error: Potential {name} found in '{f}'.")
+                            found_secrets = True
+            except Exception:
+                continue
+                
+    if found_secrets:
+        print("\n🚫 Commit blocked: Secrets detected in staged files.")
+        print("Please use BitwardenVault for all sensitive credentials.")
+        sys.exit(1)
+
     sys.exit(0)
 
 if __name__ == "__main__":
