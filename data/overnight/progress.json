@@ -1,0 +1,3367 @@
+{
+  "start_time": "2026-01-19T00:31:42.254096",
+  "current_iteration": 480,
+  "discoveries": [
+    {
+      "iteration": 1,
+      "timestamp": "2026-01-19T00:31:42.254138",
+      "bright_spots": 49707,
+      "mean_stability": 0.945842389451373,
+      "gateway": 43
+    },
+    {
+      "iteration": 2,
+      "timestamp": "2026-01-19T00:32:42.254960",
+      "bright_spots": 31753,
+      "mean_stability": 0.8556811741607417,
+      "gateway": 44
+    },
+    {
+      "iteration": 3,
+      "timestamp": "2026-01-19T00:33:42.255526",
+      "bright_spots": 41338,
+      "mean_stability": 0.9481683911544488,
+      "gateway": 45
+    },
+    {
+      "iteration": 4,
+      "timestamp": "2026-01-19T00:34:42.256115",
+      "bright_spots": 46956,
+      "mean_stability": 0.8609805596487107,
+      "gateway": 46
+    },
+    {
+      "iteration": 5,
+      "timestamp": "2026-01-19T00:35:42.257124",
+      "bright_spots": 35766,
+      "mean_stability": 0.8712855562740106,
+      "gateway": 47
+    },
+    {
+      "iteration": 6,
+      "timestamp": "2026-01-19T00:36:42.257925",
+      "bright_spots": 35810,
+      "mean_stability": 0.8772007151721682,
+      "gateway": 48
+    },
+    {
+      "iteration": 7,
+      "timestamp": "2026-01-19T00:37:42.258725",
+      "bright_spots": 43284,
+      "mean_stability": 0.9243416328931696,
+      "gateway": 49
+    },
+    {
+      "iteration": 8,
+      "timestamp": "2026-01-19T00:38:42.259269",
+      "bright_spots": 35954,
+      "mean_stability": 0.9274178211243597,
+      "gateway": 50
+    },
+    {
+      "iteration": 9,
+      "timestamp": "2026-01-19T00:39:42.260035",
+      "bright_spots": 41788,
+      "mean_stability": 0.8942263408297364,
+      "gateway": 51
+    },
+    {
+      "iteration": 10,
+      "timestamp": "2026-01-19T00:40:42.260530",
+      "bright_spots": 31831,
+      "mean_stability": 0.9342417755849515,
+      "gateway": 52
+    },
+    {
+      "iteration": 11,
+      "timestamp": "2026-01-19T00:41:42.261540",
+      "bright_spots": 43730,
+      "mean_stability": 0.9283245247533148,
+      "gateway": 53
+    },
+    {
+      "iteration": 12,
+      "timestamp": "2026-01-19T00:42:42.262124",
+      "bright_spots": 34768,
+      "mean_stability": 0.9258247369748401,
+      "gateway": 54
+    },
+    {
+      "iteration": 13,
+      "timestamp": "2026-01-19T00:43:42.262720",
+      "bright_spots": 44943,
+      "mean_stability": 0.8772080420991362,
+      "gateway": 55
+    },
+    {
+      "iteration": 14,
+      "timestamp": "2026-01-19T00:44:42.263418",
+      "bright_spots": 30697,
+      "mean_stability": 0.9433971259813551,
+      "gateway": 56
+    },
+    {
+      "iteration": 15,
+      "timestamp": "2026-01-19T00:45:42.264343",
+      "bright_spots": 45144,
+      "mean_stability": 0.8597525759057628,
+      "gateway": 57
+    },
+    {
+      "iteration": 16,
+      "timestamp": "2026-01-19T00:46:42.265248",
+      "bright_spots": 41353,
+      "mean_stability": 0.8596472939257724,
+      "gateway": 58
+    },
+    {
+      "iteration": 17,
+      "timestamp": "2026-01-19T00:47:42.266160",
+      "bright_spots": 35527,
+      "mean_stability": 0.8865050865046138,
+      "gateway": 59
+    },
+    {
+      "iteration": 18,
+      "timestamp": "2026-01-19T00:48:42.266979",
+      "bright_spots": 39191,
+      "mean_stability": 0.8805217244661983,
+      "gateway": 60
+    },
+    {
+      "iteration": 19,
+      "timestamp": "2026-01-19T00:49:42.267829",
+      "bright_spots": 33140,
+      "mean_stability": 0.9323006827096412,
+      "gateway": 61
+    },
+    {
+      "iteration": 20,
+      "timestamp": "2026-01-19T00:50:42.270299",
+      "bright_spots": 40330,
+      "mean_stability": 0.868983331762816,
+      "gateway": 62
+    },
+    {
+      "iteration": 21,
+      "timestamp": "2026-01-19T00:51:42.271055",
+      "bright_spots": 47899,
+      "mean_stability": 0.9074181435042662,
+      "gateway": 63
+    },
+    {
+      "iteration": 22,
+      "timestamp": "2026-01-19T00:52:42.281140",
+      "bright_spots": 30694,
+      "mean_stability": 0.8924214461161131,
+      "gateway": 64
+    },
+    {
+      "iteration": 23,
+      "timestamp": "2026-01-19T00:53:42.281804",
+      "bright_spots": 46942,
+      "mean_stability": 0.8687949002863063,
+      "gateway": 65
+    },
+    {
+      "iteration": 24,
+      "timestamp": "2026-01-19T00:54:42.283234",
+      "bright_spots": 33164,
+      "mean_stability": 0.9238926592383968,
+      "gateway": 66
+    },
+    {
+      "iteration": 25,
+      "timestamp": "2026-01-19T00:55:42.284811",
+      "bright_spots": 43401,
+      "mean_stability": 0.8691692090759954,
+      "gateway": 67
+    },
+    {
+      "iteration": 26,
+      "timestamp": "2026-01-19T00:56:42.285676",
+      "bright_spots": 42759,
+      "mean_stability": 0.922688150431825,
+      "gateway": 68
+    },
+    {
+      "iteration": 27,
+      "timestamp": "2026-01-19T00:57:42.286692",
+      "bright_spots": 41865,
+      "mean_stability": 0.9387602802302086,
+      "gateway": 69
+    },
+    {
+      "iteration": 28,
+      "timestamp": "2026-01-19T00:58:42.288211",
+      "bright_spots": 47745,
+      "mean_stability": 0.877243804918744,
+      "gateway": 70
+    },
+    {
+      "iteration": 29,
+      "timestamp": "2026-01-19T00:59:42.289157",
+      "bright_spots": 38304,
+      "mean_stability": 0.8613346761725098,
+      "gateway": 71
+    },
+    {
+      "iteration": 30,
+      "timestamp": "2026-01-19T01:00:42.289841",
+      "bright_spots": 45439,
+      "mean_stability": 0.8753179047741226,
+      "gateway": 72
+    },
+    {
+      "iteration": 31,
+      "timestamp": "2026-01-19T01:01:42.300581",
+      "bright_spots": 40340,
+      "mean_stability": 0.9116854519971664,
+      "gateway": 73
+    },
+    {
+      "iteration": 32,
+      "timestamp": "2026-01-19T01:02:42.301252",
+      "bright_spots": 40141,
+      "mean_stability": 0.9122535475527158,
+      "gateway": 74
+    },
+    {
+      "iteration": 33,
+      "timestamp": "2026-01-19T01:03:42.311649",
+      "bright_spots": 37298,
+      "mean_stability": 0.920239568246319,
+      "gateway": 75
+    },
+    {
+      "iteration": 34,
+      "timestamp": "2026-01-19T01:04:42.312332",
+      "bright_spots": 32060,
+      "mean_stability": 0.9116913465800273,
+      "gateway": 76
+    },
+    {
+      "iteration": 35,
+      "timestamp": "2026-01-19T01:05:42.313336",
+      "bright_spots": 31707,
+      "mean_stability": 0.9433418079795055,
+      "gateway": 77
+    },
+    {
+      "iteration": 36,
+      "timestamp": "2026-01-19T01:06:42.324087",
+      "bright_spots": 41810,
+      "mean_stability": 0.855615086719182,
+      "gateway": 78
+    },
+    {
+      "iteration": 37,
+      "timestamp": "2026-01-19T01:07:42.325136",
+      "bright_spots": 36180,
+      "mean_stability": 0.8617563270490113,
+      "gateway": 79
+    },
+    {
+      "iteration": 38,
+      "timestamp": "2026-01-19T01:08:42.326276",
+      "bright_spots": 38427,
+      "mean_stability": 0.9060589678531294,
+      "gateway": 80
+    },
+    {
+      "iteration": 39,
+      "timestamp": "2026-01-19T01:09:42.336918",
+      "bright_spots": 35691,
+      "mean_stability": 0.9487954323048752,
+      "gateway": 81
+    },
+    {
+      "iteration": 40,
+      "timestamp": "2026-01-19T01:10:42.337936",
+      "bright_spots": 32007,
+      "mean_stability": 0.889008323249425,
+      "gateway": 82
+    },
+    {
+      "iteration": 41,
+      "timestamp": "2026-01-19T01:11:42.339098",
+      "bright_spots": 38141,
+      "mean_stability": 0.9480613777547461,
+      "gateway": 83
+    },
+    {
+      "iteration": 42,
+      "timestamp": "2026-01-19T01:12:42.339914",
+      "bright_spots": 37356,
+      "mean_stability": 0.886648119505173,
+      "gateway": 84
+    },
+    {
+      "iteration": 43,
+      "timestamp": "2026-01-19T01:13:42.340883",
+      "bright_spots": 43696,
+      "mean_stability": 0.9275617327142277,
+      "gateway": 85
+    },
+    {
+      "iteration": 44,
+      "timestamp": "2026-01-19T01:14:42.342119",
+      "bright_spots": 42353,
+      "mean_stability": 0.8611664130776976,
+      "gateway": 86
+    },
+    {
+      "iteration": 45,
+      "timestamp": "2026-01-19T01:15:42.342809",
+      "bright_spots": 45047,
+      "mean_stability": 0.8813637409911008,
+      "gateway": 87
+    },
+    {
+      "iteration": 46,
+      "timestamp": "2026-01-19T01:16:42.353350",
+      "bright_spots": 39801,
+      "mean_stability": 0.9411440186661859,
+      "gateway": 88
+    },
+    {
+      "iteration": 47,
+      "timestamp": "2026-01-19T01:17:42.354396",
+      "bright_spots": 42978,
+      "mean_stability": 0.8793028087156826,
+      "gateway": 89
+    },
+    {
+      "iteration": 48,
+      "timestamp": "2026-01-19T01:18:42.365295",
+      "bright_spots": 35814,
+      "mean_stability": 0.946065805047361,
+      "gateway": 90
+    },
+    {
+      "iteration": 49,
+      "timestamp": "2026-01-19T01:19:42.366372",
+      "bright_spots": 36464,
+      "mean_stability": 0.9349206541524706,
+      "gateway": 91
+    },
+    {
+      "iteration": 50,
+      "timestamp": "2026-01-19T01:20:42.367557",
+      "bright_spots": 44289,
+      "mean_stability": 0.9419195729667492,
+      "gateway": 92
+    },
+    {
+      "iteration": 51,
+      "timestamp": "2026-01-19T01:21:42.368820",
+      "bright_spots": 45152,
+      "mean_stability": 0.852523476966367,
+      "gateway": 93
+    },
+    {
+      "iteration": 52,
+      "timestamp": "2026-01-19T01:22:42.369764",
+      "bright_spots": 30239,
+      "mean_stability": 0.8876561379735611,
+      "gateway": 94
+    },
+    {
+      "iteration": 53,
+      "timestamp": "2026-01-19T01:23:42.370932",
+      "bright_spots": 44982,
+      "mean_stability": 0.9444061513035911,
+      "gateway": 95
+    },
+    {
+      "iteration": 54,
+      "timestamp": "2026-01-19T01:24:42.371816",
+      "bright_spots": 39052,
+      "mean_stability": 0.9367837300598849,
+      "gateway": 96
+    },
+    {
+      "iteration": 55,
+      "timestamp": "2026-01-19T01:25:42.372569",
+      "bright_spots": 45299,
+      "mean_stability": 0.9117161559271504,
+      "gateway": 97
+    },
+    {
+      "iteration": 56,
+      "timestamp": "2026-01-19T01:26:42.373654",
+      "bright_spots": 39512,
+      "mean_stability": 0.9185636795051922,
+      "gateway": 98
+    },
+    {
+      "iteration": 57,
+      "timestamp": "2026-01-19T01:27:42.374709",
+      "bright_spots": 35203,
+      "mean_stability": 0.9076915078365089,
+      "gateway": 99
+    },
+    {
+      "iteration": 58,
+      "timestamp": "2026-01-19T01:28:42.375587",
+      "bright_spots": 37750,
+      "mean_stability": 0.8614570345684326,
+      "gateway": 100
+    },
+    {
+      "iteration": 59,
+      "timestamp": "2026-01-19T01:29:42.376659",
+      "bright_spots": 37328,
+      "mean_stability": 0.944026726116316,
+      "gateway": 101
+    },
+    {
+      "iteration": 60,
+      "timestamp": "2026-01-19T01:30:42.377458",
+      "bright_spots": 46512,
+      "mean_stability": 0.9466052736625368,
+      "gateway": 102
+    },
+    {
+      "iteration": 61,
+      "timestamp": "2026-01-19T01:31:42.378819",
+      "bright_spots": 37103,
+      "mean_stability": 0.8579726297351381,
+      "gateway": 103
+    },
+    {
+      "iteration": 62,
+      "timestamp": "2026-01-19T01:32:42.379956",
+      "bright_spots": 37282,
+      "mean_stability": 0.9480909448659669,
+      "gateway": 104
+    },
+    {
+      "iteration": 63,
+      "timestamp": "2026-01-19T01:33:42.381369",
+      "bright_spots": 30782,
+      "mean_stability": 0.9374378850861306,
+      "gateway": 105
+    },
+    {
+      "iteration": 64,
+      "timestamp": "2026-01-19T01:34:42.382481",
+      "bright_spots": 37261,
+      "mean_stability": 0.9459849520602731,
+      "gateway": 106
+    },
+    {
+      "iteration": 65,
+      "timestamp": "2026-01-19T01:35:42.393556",
+      "bright_spots": 48241,
+      "mean_stability": 0.8570847424604919,
+      "gateway": 107
+    },
+    {
+      "iteration": 66,
+      "timestamp": "2026-01-19T01:36:42.394763",
+      "bright_spots": 35523,
+      "mean_stability": 0.9429279882224058,
+      "gateway": 108
+    },
+    {
+      "iteration": 67,
+      "timestamp": "2026-01-19T01:37:42.395869",
+      "bright_spots": 48475,
+      "mean_stability": 0.8911794176221153,
+      "gateway": 109
+    },
+    {
+      "iteration": 68,
+      "timestamp": "2026-01-19T01:38:42.396780",
+      "bright_spots": 42990,
+      "mean_stability": 0.8588031970456714,
+      "gateway": 110
+    },
+    {
+      "iteration": 69,
+      "timestamp": "2026-01-19T01:39:42.407012",
+      "bright_spots": 45785,
+      "mean_stability": 0.8949664298730144,
+      "gateway": 111
+    },
+    {
+      "iteration": 70,
+      "timestamp": "2026-01-19T01:40:42.408117",
+      "bright_spots": 46904,
+      "mean_stability": 0.8872140995464698,
+      "gateway": 112
+    },
+    {
+      "iteration": 71,
+      "timestamp": "2026-01-19T01:41:42.409448",
+      "bright_spots": 47764,
+      "mean_stability": 0.9447059714389713,
+      "gateway": 113
+    },
+    {
+      "iteration": 72,
+      "timestamp": "2026-01-19T01:42:42.420031",
+      "bright_spots": 41793,
+      "mean_stability": 0.9009551942453286,
+      "gateway": 114
+    },
+    {
+      "iteration": 73,
+      "timestamp": "2026-01-19T01:43:42.421209",
+      "bright_spots": 39197,
+      "mean_stability": 0.8501209901213257,
+      "gateway": 115
+    },
+    {
+      "iteration": 74,
+      "timestamp": "2026-01-19T01:44:42.422670",
+      "bright_spots": 31155,
+      "mean_stability": 0.9439209039466534,
+      "gateway": 116
+    },
+    {
+      "iteration": 75,
+      "timestamp": "2026-01-19T01:45:42.423990",
+      "bright_spots": 31538,
+      "mean_stability": 0.9259462865973231,
+      "gateway": 117
+    },
+    {
+      "iteration": 76,
+      "timestamp": "2026-01-19T01:46:42.424706",
+      "bright_spots": 48884,
+      "mean_stability": 0.8931971845337086,
+      "gateway": 118
+    },
+    {
+      "iteration": 77,
+      "timestamp": "2026-01-19T01:47:42.425491",
+      "bright_spots": 32394,
+      "mean_stability": 0.8736155654884998,
+      "gateway": 119
+    },
+    {
+      "iteration": 78,
+      "timestamp": "2026-01-19T01:48:42.435912",
+      "bright_spots": 30071,
+      "mean_stability": 0.9131489170406492,
+      "gateway": 120
+    },
+    {
+      "iteration": 79,
+      "timestamp": "2026-01-19T01:49:42.437176",
+      "bright_spots": 39620,
+      "mean_stability": 0.891198464936872,
+      "gateway": 121
+    },
+    {
+      "iteration": 80,
+      "timestamp": "2026-01-19T01:50:42.438369",
+      "bright_spots": 32961,
+      "mean_stability": 0.9398993649889211,
+      "gateway": 122
+    },
+    {
+      "iteration": 81,
+      "timestamp": "2026-01-19T01:51:42.440182",
+      "bright_spots": 49762,
+      "mean_stability": 0.9172300052558519,
+      "gateway": 123
+    },
+    {
+      "iteration": 82,
+      "timestamp": "2026-01-19T01:52:42.441093",
+      "bright_spots": 48470,
+      "mean_stability": 0.8686372049285183,
+      "gateway": 124
+    },
+    {
+      "iteration": 83,
+      "timestamp": "2026-01-19T01:53:42.442444",
+      "bright_spots": 46786,
+      "mean_stability": 0.8570019701431517,
+      "gateway": 125
+    },
+    {
+      "iteration": 84,
+      "timestamp": "2026-01-19T01:54:42.443757",
+      "bright_spots": 38195,
+      "mean_stability": 0.8934712767405396,
+      "gateway": 126
+    },
+    {
+      "iteration": 85,
+      "timestamp": "2026-01-19T01:55:42.445360",
+      "bright_spots": 47330,
+      "mean_stability": 0.9016555501976441,
+      "gateway": 127
+    },
+    {
+      "iteration": 86,
+      "timestamp": "2026-01-19T01:56:42.446709",
+      "bright_spots": 31385,
+      "mean_stability": 0.9493929340017898,
+      "gateway": 128
+    },
+    {
+      "iteration": 87,
+      "timestamp": "2026-01-19T01:57:42.447656",
+      "bright_spots": 46191,
+      "mean_stability": 0.8844125593470045,
+      "gateway": 129
+    },
+    {
+      "iteration": 88,
+      "timestamp": "2026-01-19T01:58:42.448988",
+      "bright_spots": 43077,
+      "mean_stability": 0.8611816791661556,
+      "gateway": 130
+    },
+    {
+      "iteration": 89,
+      "timestamp": "2026-01-19T01:59:42.459991",
+      "bright_spots": 46246,
+      "mean_stability": 0.9327742588968545,
+      "gateway": 131
+    },
+    {
+      "iteration": 90,
+      "timestamp": "2026-01-19T02:00:42.461280",
+      "bright_spots": 42621,
+      "mean_stability": 0.8880842868094305,
+      "gateway": 132
+    },
+    {
+      "iteration": 91,
+      "timestamp": "2026-01-19T02:01:42.462380",
+      "bright_spots": 39159,
+      "mean_stability": 0.9254514712965937,
+      "gateway": 133
+    },
+    {
+      "iteration": 92,
+      "timestamp": "2026-01-19T02:02:42.463475",
+      "bright_spots": 30667,
+      "mean_stability": 0.8959650206723647,
+      "gateway": 134
+    },
+    {
+      "iteration": 93,
+      "timestamp": "2026-01-19T02:03:42.464328",
+      "bright_spots": 41891,
+      "mean_stability": 0.8905850383723528,
+      "gateway": 135
+    },
+    {
+      "iteration": 94,
+      "timestamp": "2026-01-19T02:04:42.465703",
+      "bright_spots": 43701,
+      "mean_stability": 0.8511090754639299,
+      "gateway": 136
+    },
+    {
+      "iteration": 95,
+      "timestamp": "2026-01-19T02:05:42.466735",
+      "bright_spots": 42330,
+      "mean_stability": 0.9384946223068572,
+      "gateway": 137
+    },
+    {
+      "iteration": 96,
+      "timestamp": "2026-01-19T02:06:42.467739",
+      "bright_spots": 46097,
+      "mean_stability": 0.876119265787376,
+      "gateway": 138
+    },
+    {
+      "iteration": 97,
+      "timestamp": "2026-01-19T02:07:42.469160",
+      "bright_spots": 41724,
+      "mean_stability": 0.8701717968469117,
+      "gateway": 139
+    },
+    {
+      "iteration": 98,
+      "timestamp": "2026-01-19T02:08:42.479847",
+      "bright_spots": 40171,
+      "mean_stability": 0.9163572012385961,
+      "gateway": 140
+    },
+    {
+      "iteration": 99,
+      "timestamp": "2026-01-19T02:09:42.490995",
+      "bright_spots": 37120,
+      "mean_stability": 0.9185073443428802,
+      "gateway": 141
+    },
+    {
+      "iteration": 100,
+      "timestamp": "2026-01-19T02:10:42.492075",
+      "bright_spots": 38280,
+      "mean_stability": 0.8703718075829905,
+      "gateway": 142
+    },
+    {
+      "iteration": 101,
+      "timestamp": "2026-01-19T02:11:42.493681",
+      "bright_spots": 38864,
+      "mean_stability": 0.8603677399609595,
+      "gateway": 143
+    },
+    {
+      "iteration": 102,
+      "timestamp": "2026-01-19T02:12:42.494668",
+      "bright_spots": 34476,
+      "mean_stability": 0.8893022267372425,
+      "gateway": 144
+    },
+    {
+      "iteration": 103,
+      "timestamp": "2026-01-19T02:13:42.496454",
+      "bright_spots": 41511,
+      "mean_stability": 0.9492449215215384,
+      "gateway": 145
+    },
+    {
+      "iteration": 104,
+      "timestamp": "2026-01-19T02:14:42.498002",
+      "bright_spots": 49559,
+      "mean_stability": 0.9463276836506597,
+      "gateway": 146
+    },
+    {
+      "iteration": 105,
+      "timestamp": "2026-01-19T02:15:42.499478",
+      "bright_spots": 42701,
+      "mean_stability": 0.8994800794985552,
+      "gateway": 147
+    },
+    {
+      "iteration": 106,
+      "timestamp": "2026-01-19T02:16:42.500831",
+      "bright_spots": 37988,
+      "mean_stability": 0.8736745365044658,
+      "gateway": 148
+    },
+    {
+      "iteration": 107,
+      "timestamp": "2026-01-19T02:17:42.502006",
+      "bright_spots": 39842,
+      "mean_stability": 0.8903540201032561,
+      "gateway": 149
+    },
+    {
+      "iteration": 108,
+      "timestamp": "2026-01-19T02:18:42.503449",
+      "bright_spots": 41032,
+      "mean_stability": 0.9190845373150478,
+      "gateway": 150
+    },
+    {
+      "iteration": 109,
+      "timestamp": "2026-01-19T02:19:42.504636",
+      "bright_spots": 40299,
+      "mean_stability": 0.9392833474867669,
+      "gateway": 151
+    },
+    {
+      "iteration": 110,
+      "timestamp": "2026-01-19T02:20:42.505704",
+      "bright_spots": 49239,
+      "mean_stability": 0.8959833136623054,
+      "gateway": 152
+    },
+    {
+      "iteration": 111,
+      "timestamp": "2026-01-19T02:21:42.506762",
+      "bright_spots": 34809,
+      "mean_stability": 0.8880160776428814,
+      "gateway": 153
+    },
+    {
+      "iteration": 112,
+      "timestamp": "2026-01-19T02:22:42.508102",
+      "bright_spots": 35550,
+      "mean_stability": 0.8639021250634727,
+      "gateway": 154
+    },
+    {
+      "iteration": 113,
+      "timestamp": "2026-01-19T02:23:42.509562",
+      "bright_spots": 43642,
+      "mean_stability": 0.8638405875098236,
+      "gateway": 155
+    },
+    {
+      "iteration": 114,
+      "timestamp": "2026-01-19T02:24:42.511560",
+      "bright_spots": 44835,
+      "mean_stability": 0.9206220741123391,
+      "gateway": 156
+    },
+    {
+      "iteration": 115,
+      "timestamp": "2026-01-19T02:25:42.512876",
+      "bright_spots": 45744,
+      "mean_stability": 0.9444997850732839,
+      "gateway": 157
+    },
+    {
+      "iteration": 116,
+      "timestamp": "2026-01-19T02:26:42.514337",
+      "bright_spots": 38587,
+      "mean_stability": 0.8844662595151529,
+      "gateway": 158
+    },
+    {
+      "iteration": 117,
+      "timestamp": "2026-01-19T02:27:42.515504",
+      "bright_spots": 47580,
+      "mean_stability": 0.9002705609071575,
+      "gateway": 159
+    },
+    {
+      "iteration": 118,
+      "timestamp": "2026-01-19T02:28:42.526583",
+      "bright_spots": 30035,
+      "mean_stability": 0.9140709635839109,
+      "gateway": 160
+    },
+    {
+      "iteration": 119,
+      "timestamp": "2026-01-19T02:29:42.527739",
+      "bright_spots": 35504,
+      "mean_stability": 0.8645529455629162,
+      "gateway": 161
+    },
+    {
+      "iteration": 120,
+      "timestamp": "2026-01-19T02:30:42.528556",
+      "bright_spots": 31064,
+      "mean_stability": 0.8995040035609588,
+      "gateway": 162
+    },
+    {
+      "iteration": 121,
+      "timestamp": "2026-01-19T02:31:42.539678",
+      "bright_spots": 34682,
+      "mean_stability": 0.9045790534871648,
+      "gateway": 163
+    },
+    {
+      "iteration": 122,
+      "timestamp": "2026-01-19T02:32:42.541086",
+      "bright_spots": 39067,
+      "mean_stability": 0.9309471701908751,
+      "gateway": 164
+    },
+    {
+      "iteration": 123,
+      "timestamp": "2026-01-19T02:33:42.552325",
+      "bright_spots": 33935,
+      "mean_stability": 0.9175952285957747,
+      "gateway": 165
+    },
+    {
+      "iteration": 124,
+      "timestamp": "2026-01-19T02:34:42.553491",
+      "bright_spots": 48355,
+      "mean_stability": 0.9274028780373295,
+      "gateway": 166
+    },
+    {
+      "iteration": 125,
+      "timestamp": "2026-01-19T02:35:42.554869",
+      "bright_spots": 49570,
+      "mean_stability": 0.9183859616868165,
+      "gateway": 167
+    },
+    {
+      "iteration": 126,
+      "timestamp": "2026-01-19T02:36:42.565835",
+      "bright_spots": 47948,
+      "mean_stability": 0.8730938320469745,
+      "gateway": 168
+    },
+    {
+      "iteration": 127,
+      "timestamp": "2026-01-19T02:37:42.576616",
+      "bright_spots": 46529,
+      "mean_stability": 0.8749891912858481,
+      "gateway": 169
+    },
+    {
+      "iteration": 128,
+      "timestamp": "2026-01-19T02:38:42.578198",
+      "bright_spots": 40486,
+      "mean_stability": 0.9499932320237015,
+      "gateway": 170
+    },
+    {
+      "iteration": 129,
+      "timestamp": "2026-01-19T02:39:42.579462",
+      "bright_spots": 48816,
+      "mean_stability": 0.9187090467979773,
+      "gateway": 171
+    },
+    {
+      "iteration": 130,
+      "timestamp": "2026-01-19T02:40:42.581253",
+      "bright_spots": 32835,
+      "mean_stability": 0.9470516506295423,
+      "gateway": 172
+    },
+    {
+      "iteration": 131,
+      "timestamp": "2026-01-19T02:41:42.582984",
+      "bright_spots": 40610,
+      "mean_stability": 0.8881057314286191,
+      "gateway": 173
+    },
+    {
+      "iteration": 132,
+      "timestamp": "2026-01-19T02:42:42.584206",
+      "bright_spots": 41555,
+      "mean_stability": 0.9376908304843731,
+      "gateway": 174
+    },
+    {
+      "iteration": 133,
+      "timestamp": "2026-01-19T02:43:42.586166",
+      "bright_spots": 47804,
+      "mean_stability": 0.9458917832640398,
+      "gateway": 175
+    },
+    {
+      "iteration": 134,
+      "timestamp": "2026-01-19T02:44:42.587691",
+      "bright_spots": 47517,
+      "mean_stability": 0.9263865350763205,
+      "gateway": 176
+    },
+    {
+      "iteration": 135,
+      "timestamp": "2026-01-19T02:45:42.589279",
+      "bright_spots": 38892,
+      "mean_stability": 0.9048721985183381,
+      "gateway": 177
+    },
+    {
+      "iteration": 136,
+      "timestamp": "2026-01-19T02:46:42.590324",
+      "bright_spots": 33134,
+      "mean_stability": 0.8876293120693972,
+      "gateway": 178
+    },
+    {
+      "iteration": 137,
+      "timestamp": "2026-01-19T02:47:42.591847",
+      "bright_spots": 31244,
+      "mean_stability": 0.8830530339020745,
+      "gateway": 179
+    },
+    {
+      "iteration": 138,
+      "timestamp": "2026-01-19T02:48:42.593250",
+      "bright_spots": 46499,
+      "mean_stability": 0.9395667735621069,
+      "gateway": 180
+    },
+    {
+      "iteration": 139,
+      "timestamp": "2026-01-19T02:49:42.594841",
+      "bright_spots": 42354,
+      "mean_stability": 0.9483062436734754,
+      "gateway": 181
+    },
+    {
+      "iteration": 140,
+      "timestamp": "2026-01-19T02:50:42.596117",
+      "bright_spots": 46969,
+      "mean_stability": 0.8730770328250146,
+      "gateway": 182
+    },
+    {
+      "iteration": 141,
+      "timestamp": "2026-01-19T02:51:42.607766",
+      "bright_spots": 49453,
+      "mean_stability": 0.8568737634619685,
+      "gateway": 183
+    },
+    {
+      "iteration": 142,
+      "timestamp": "2026-01-19T02:52:42.609059",
+      "bright_spots": 36166,
+      "mean_stability": 0.8907161250465667,
+      "gateway": 184
+    },
+    {
+      "iteration": 143,
+      "timestamp": "2026-01-19T02:53:42.609960",
+      "bright_spots": 45337,
+      "mean_stability": 0.9256088345319885,
+      "gateway": 185
+    },
+    {
+      "iteration": 144,
+      "timestamp": "2026-01-19T02:54:42.621082",
+      "bright_spots": 34446,
+      "mean_stability": 0.9331120620762484,
+      "gateway": 186
+    },
+    {
+      "iteration": 145,
+      "timestamp": "2026-01-19T02:55:42.622691",
+      "bright_spots": 44398,
+      "mean_stability": 0.924899705108343,
+      "gateway": 187
+    },
+    {
+      "iteration": 146,
+      "timestamp": "2026-01-19T02:56:42.624405",
+      "bright_spots": 42738,
+      "mean_stability": 0.8716656252812878,
+      "gateway": 188
+    },
+    {
+      "iteration": 147,
+      "timestamp": "2026-01-19T02:57:42.626067",
+      "bright_spots": 45082,
+      "mean_stability": 0.8732758842514492,
+      "gateway": 189
+    },
+    {
+      "iteration": 148,
+      "timestamp": "2026-01-19T02:58:42.627747",
+      "bright_spots": 33207,
+      "mean_stability": 0.934618872003463,
+      "gateway": 190
+    },
+    {
+      "iteration": 149,
+      "timestamp": "2026-01-19T02:59:42.629367",
+      "bright_spots": 37899,
+      "mean_stability": 0.8840149839668336,
+      "gateway": 191
+    },
+    {
+      "iteration": 150,
+      "timestamp": "2026-01-19T03:00:42.631169",
+      "bright_spots": 44848,
+      "mean_stability": 0.8791032520904614,
+      "gateway": 192
+    },
+    {
+      "iteration": 151,
+      "timestamp": "2026-01-19T03:01:42.632952",
+      "bright_spots": 32092,
+      "mean_stability": 0.8664202086250209,
+      "gateway": 193
+    },
+    {
+      "iteration": 152,
+      "timestamp": "2026-01-19T03:02:42.634367",
+      "bright_spots": 43150,
+      "mean_stability": 0.9087677809785544,
+      "gateway": 194
+    },
+    {
+      "iteration": 153,
+      "timestamp": "2026-01-19T03:03:42.635977",
+      "bright_spots": 37323,
+      "mean_stability": 0.8861354192700998,
+      "gateway": 195
+    },
+    {
+      "iteration": 154,
+      "timestamp": "2026-01-19T03:04:42.637098",
+      "bright_spots": 38946,
+      "mean_stability": 0.9273825366786856,
+      "gateway": 196
+    },
+    {
+      "iteration": 155,
+      "timestamp": "2026-01-19T03:05:42.639028",
+      "bright_spots": 43870,
+      "mean_stability": 0.9116387495706617,
+      "gateway": 197
+    },
+    {
+      "iteration": 156,
+      "timestamp": "2026-01-19T03:06:42.640922",
+      "bright_spots": 42482,
+      "mean_stability": 0.9024410305251902,
+      "gateway": 198
+    },
+    {
+      "iteration": 157,
+      "timestamp": "2026-01-19T03:07:42.643240",
+      "bright_spots": 38429,
+      "mean_stability": 0.8622726717178646,
+      "gateway": 199
+    },
+    {
+      "iteration": 158,
+      "timestamp": "2026-01-19T03:08:42.644936",
+      "bright_spots": 38653,
+      "mean_stability": 0.8718806960703428,
+      "gateway": 200
+    },
+    {
+      "iteration": 159,
+      "timestamp": "2026-01-19T03:09:42.646255",
+      "bright_spots": 30693,
+      "mean_stability": 0.8549479122180597,
+      "gateway": 201
+    },
+    {
+      "iteration": 160,
+      "timestamp": "2026-01-19T03:10:42.647878",
+      "bright_spots": 41964,
+      "mean_stability": 0.9404204201119437,
+      "gateway": 202
+    },
+    {
+      "iteration": 161,
+      "timestamp": "2026-01-19T03:11:42.649795",
+      "bright_spots": 45022,
+      "mean_stability": 0.8624535834053637,
+      "gateway": 203
+    },
+    {
+      "iteration": 162,
+      "timestamp": "2026-01-19T03:12:42.660772",
+      "bright_spots": 37968,
+      "mean_stability": 0.9273700385733714,
+      "gateway": 204
+    },
+    {
+      "iteration": 163,
+      "timestamp": "2026-01-19T03:13:42.662371",
+      "bright_spots": 35023,
+      "mean_stability": 0.9333217737388599,
+      "gateway": 205
+    },
+    {
+      "iteration": 164,
+      "timestamp": "2026-01-19T03:14:42.663804",
+      "bright_spots": 40028,
+      "mean_stability": 0.9133653816422409,
+      "gateway": 206
+    },
+    {
+      "iteration": 165,
+      "timestamp": "2026-01-19T03:15:42.664978",
+      "bright_spots": 35852,
+      "mean_stability": 0.9361460382484443,
+      "gateway": 207
+    },
+    {
+      "iteration": 166,
+      "timestamp": "2026-01-19T03:16:42.666426",
+      "bright_spots": 31820,
+      "mean_stability": 0.8974790851694745,
+      "gateway": 208
+    },
+    {
+      "iteration": 167,
+      "timestamp": "2026-01-19T03:17:42.667597",
+      "bright_spots": 35724,
+      "mean_stability": 0.88611679348633,
+      "gateway": 209
+    },
+    {
+      "iteration": 168,
+      "timestamp": "2026-01-19T03:18:42.678664",
+      "bright_spots": 40515,
+      "mean_stability": 0.9078284431469676,
+      "gateway": 210
+    },
+    {
+      "iteration": 169,
+      "timestamp": "2026-01-19T03:19:42.680370",
+      "bright_spots": 43578,
+      "mean_stability": 0.9144600371114286,
+      "gateway": 211
+    },
+    {
+      "iteration": 170,
+      "timestamp": "2026-01-19T03:20:42.681570",
+      "bright_spots": 44741,
+      "mean_stability": 0.9478987614025105,
+      "gateway": 212
+    },
+    {
+      "iteration": 171,
+      "timestamp": "2026-01-19T03:21:42.683106",
+      "bright_spots": 45279,
+      "mean_stability": 0.8787638818419801,
+      "gateway": 213
+    },
+    {
+      "iteration": 172,
+      "timestamp": "2026-01-19T03:22:42.684107",
+      "bright_spots": 32482,
+      "mean_stability": 0.9097939193410459,
+      "gateway": 214
+    },
+    {
+      "iteration": 173,
+      "timestamp": "2026-01-19T03:23:42.686092",
+      "bright_spots": 45035,
+      "mean_stability": 0.8592565251885201,
+      "gateway": 215
+    },
+    {
+      "iteration": 174,
+      "timestamp": "2026-01-19T03:24:42.687667",
+      "bright_spots": 30422,
+      "mean_stability": 0.85904009237914,
+      "gateway": 216
+    },
+    {
+      "iteration": 175,
+      "timestamp": "2026-01-19T03:25:42.689357",
+      "bright_spots": 39537,
+      "mean_stability": 0.9109493677106375,
+      "gateway": 217
+    },
+    {
+      "iteration": 176,
+      "timestamp": "2026-01-19T03:26:42.690515",
+      "bright_spots": 45902,
+      "mean_stability": 0.9170073869937079,
+      "gateway": 218
+    },
+    {
+      "iteration": 177,
+      "timestamp": "2026-01-19T03:27:42.692354",
+      "bright_spots": 43663,
+      "mean_stability": 0.9232274721823297,
+      "gateway": 219
+    },
+    {
+      "iteration": 178,
+      "timestamp": "2026-01-19T03:28:42.693858",
+      "bright_spots": 30931,
+      "mean_stability": 0.8513358480853938,
+      "gateway": 220
+    },
+    {
+      "iteration": 179,
+      "timestamp": "2026-01-19T03:29:42.695661",
+      "bright_spots": 40155,
+      "mean_stability": 0.8718441841067703,
+      "gateway": 221
+    },
+    {
+      "iteration": 180,
+      "timestamp": "2026-01-19T03:30:42.696658",
+      "bright_spots": 36292,
+      "mean_stability": 0.8636383450014594,
+      "gateway": 222
+    },
+    {
+      "iteration": 181,
+      "timestamp": "2026-01-19T03:31:42.698382",
+      "bright_spots": 30743,
+      "mean_stability": 0.9081140781013922,
+      "gateway": 223
+    },
+    {
+      "iteration": 182,
+      "timestamp": "2026-01-19T03:32:42.699974",
+      "bright_spots": 49474,
+      "mean_stability": 0.8520822303184606,
+      "gateway": 224
+    },
+    {
+      "iteration": 183,
+      "timestamp": "2026-01-19T03:33:42.701762",
+      "bright_spots": 33967,
+      "mean_stability": 0.9283344003125313,
+      "gateway": 225
+    },
+    {
+      "iteration": 184,
+      "timestamp": "2026-01-19T03:34:42.703146",
+      "bright_spots": 36139,
+      "mean_stability": 0.9149078963716206,
+      "gateway": 226
+    },
+    {
+      "iteration": 185,
+      "timestamp": "2026-01-19T03:35:42.704735",
+      "bright_spots": 44896,
+      "mean_stability": 0.8705485993305586,
+      "gateway": 227
+    },
+    {
+      "iteration": 186,
+      "timestamp": "2026-01-19T03:36:42.706317",
+      "bright_spots": 31740,
+      "mean_stability": 0.8999894921379166,
+      "gateway": 228
+    },
+    {
+      "iteration": 187,
+      "timestamp": "2026-01-19T03:37:42.708657",
+      "bright_spots": 44712,
+      "mean_stability": 0.8924529174545192,
+      "gateway": 229
+    },
+    {
+      "iteration": 188,
+      "timestamp": "2026-01-19T03:38:42.710228",
+      "bright_spots": 35460,
+      "mean_stability": 0.937127578912331,
+      "gateway": 230
+    },
+    {
+      "iteration": 189,
+      "timestamp": "2026-01-19T03:39:42.712131",
+      "bright_spots": 44406,
+      "mean_stability": 0.9377837892765496,
+      "gateway": 231
+    },
+    {
+      "iteration": 190,
+      "timestamp": "2026-01-19T03:40:42.713950",
+      "bright_spots": 41953,
+      "mean_stability": 0.8643599362018152,
+      "gateway": 232
+    },
+    {
+      "iteration": 191,
+      "timestamp": "2026-01-19T03:41:42.715875",
+      "bright_spots": 33756,
+      "mean_stability": 0.946828401436775,
+      "gateway": 233
+    },
+    {
+      "iteration": 192,
+      "timestamp": "2026-01-19T03:42:42.717776",
+      "bright_spots": 42086,
+      "mean_stability": 0.9134431935006893,
+      "gateway": 234
+    },
+    {
+      "iteration": 193,
+      "timestamp": "2026-01-19T03:43:42.718985",
+      "bright_spots": 47134,
+      "mean_stability": 0.8873410299881963,
+      "gateway": 235
+    },
+    {
+      "iteration": 194,
+      "timestamp": "2026-01-19T03:44:42.720342",
+      "bright_spots": 47732,
+      "mean_stability": 0.9103304943855106,
+      "gateway": 236
+    },
+    {
+      "iteration": 195,
+      "timestamp": "2026-01-19T03:45:42.721874",
+      "bright_spots": 49071,
+      "mean_stability": 0.9255738986441756,
+      "gateway": 237
+    },
+    {
+      "iteration": 196,
+      "timestamp": "2026-01-19T03:46:42.725946",
+      "bright_spots": 36382,
+      "mean_stability": 0.9048163007006663,
+      "gateway": 238
+    },
+    {
+      "iteration": 197,
+      "timestamp": "2026-01-19T03:47:42.727132",
+      "bright_spots": 47971,
+      "mean_stability": 0.8529298348085446,
+      "gateway": 239
+    },
+    {
+      "iteration": 198,
+      "timestamp": "2026-01-19T03:48:42.729030",
+      "bright_spots": 46746,
+      "mean_stability": 0.9296073137292723,
+      "gateway": 240
+    },
+    {
+      "iteration": 199,
+      "timestamp": "2026-01-19T03:49:42.730401",
+      "bright_spots": 45872,
+      "mean_stability": 0.9311947057947076,
+      "gateway": 241
+    },
+    {
+      "iteration": 200,
+      "timestamp": "2026-01-19T03:50:42.731865",
+      "bright_spots": 38602,
+      "mean_stability": 0.9091839632296468,
+      "gateway": 242
+    },
+    {
+      "iteration": 201,
+      "timestamp": "2026-01-19T03:51:42.733827",
+      "bright_spots": 32507,
+      "mean_stability": 0.871512021591354,
+      "gateway": 243
+    },
+    {
+      "iteration": 202,
+      "timestamp": "2026-01-19T03:52:42.735106",
+      "bright_spots": 35650,
+      "mean_stability": 0.932889652963082,
+      "gateway": 244
+    },
+    {
+      "iteration": 203,
+      "timestamp": "2026-01-19T03:53:42.736751",
+      "bright_spots": 45718,
+      "mean_stability": 0.9139911620013462,
+      "gateway": 245
+    },
+    {
+      "iteration": 204,
+      "timestamp": "2026-01-19T03:54:42.738045",
+      "bright_spots": 36395,
+      "mean_stability": 0.874003175906871,
+      "gateway": 246
+    },
+    {
+      "iteration": 205,
+      "timestamp": "2026-01-19T03:55:42.739670",
+      "bright_spots": 45298,
+      "mean_stability": 0.9180271920247265,
+      "gateway": 247
+    },
+    {
+      "iteration": 206,
+      "timestamp": "2026-01-19T03:56:42.740963",
+      "bright_spots": 42306,
+      "mean_stability": 0.948352693499414,
+      "gateway": 248
+    },
+    {
+      "iteration": 207,
+      "timestamp": "2026-01-19T03:57:42.742910",
+      "bright_spots": 43663,
+      "mean_stability": 0.8934251882224634,
+      "gateway": 249
+    },
+    {
+      "iteration": 208,
+      "timestamp": "2026-01-19T03:58:42.744920",
+      "bright_spots": 31449,
+      "mean_stability": 0.9223554645857746,
+      "gateway": 250
+    },
+    {
+      "iteration": 209,
+      "timestamp": "2026-01-19T03:59:42.748641",
+      "bright_spots": 40046,
+      "mean_stability": 0.9125296007842334,
+      "gateway": 251
+    },
+    {
+      "iteration": 210,
+      "timestamp": "2026-01-19T04:00:42.750519",
+      "bright_spots": 49487,
+      "mean_stability": 0.934474836485438,
+      "gateway": 252
+    },
+    {
+      "iteration": 211,
+      "timestamp": "2026-01-19T04:01:42.752352",
+      "bright_spots": 40270,
+      "mean_stability": 0.930214840489072,
+      "gateway": 253
+    },
+    {
+      "iteration": 212,
+      "timestamp": "2026-01-19T04:02:42.754100",
+      "bright_spots": 35621,
+      "mean_stability": 0.856470730217368,
+      "gateway": 254
+    },
+    {
+      "iteration": 213,
+      "timestamp": "2026-01-19T04:03:42.756031",
+      "bright_spots": 49478,
+      "mean_stability": 0.9322044142543279,
+      "gateway": 255
+    },
+    {
+      "iteration": 214,
+      "timestamp": "2026-01-19T04:04:42.757514",
+      "bright_spots": 31568,
+      "mean_stability": 0.8606115994795746,
+      "gateway": 256
+    },
+    {
+      "iteration": 215,
+      "timestamp": "2026-01-19T04:05:42.759131",
+      "bright_spots": 42699,
+      "mean_stability": 0.8666001740127193,
+      "gateway": 257
+    },
+    {
+      "iteration": 216,
+      "timestamp": "2026-01-19T04:06:42.761121",
+      "bright_spots": 48429,
+      "mean_stability": 0.9426864929058352,
+      "gateway": 258
+    },
+    {
+      "iteration": 217,
+      "timestamp": "2026-01-19T04:07:42.762334",
+      "bright_spots": 47555,
+      "mean_stability": 0.9338542756722369,
+      "gateway": 259
+    },
+    {
+      "iteration": 218,
+      "timestamp": "2026-01-19T04:08:42.763930",
+      "bright_spots": 39491,
+      "mean_stability": 0.8811548562541596,
+      "gateway": 260
+    },
+    {
+      "iteration": 219,
+      "timestamp": "2026-01-19T04:09:42.765877",
+      "bright_spots": 48474,
+      "mean_stability": 0.8785348494091375,
+      "gateway": 261
+    },
+    {
+      "iteration": 220,
+      "timestamp": "2026-01-19T04:10:42.768163",
+      "bright_spots": 39323,
+      "mean_stability": 0.8666755943124345,
+      "gateway": 262
+    },
+    {
+      "iteration": 221,
+      "timestamp": "2026-01-19T04:11:42.770127",
+      "bright_spots": 48486,
+      "mean_stability": 0.8787356965409882,
+      "gateway": 263
+    },
+    {
+      "iteration": 222,
+      "timestamp": "2026-01-19T04:12:42.772210",
+      "bright_spots": 39399,
+      "mean_stability": 0.8860907862385613,
+      "gateway": 264
+    },
+    {
+      "iteration": 223,
+      "timestamp": "2026-01-19T04:13:42.773902",
+      "bright_spots": 34045,
+      "mean_stability": 0.9080105610332033,
+      "gateway": 265
+    },
+    {
+      "iteration": 224,
+      "timestamp": "2026-01-19T04:14:42.775686",
+      "bright_spots": 31519,
+      "mean_stability": 0.941542706825832,
+      "gateway": 266
+    },
+    {
+      "iteration": 225,
+      "timestamp": "2026-01-19T04:15:42.777711",
+      "bright_spots": 48006,
+      "mean_stability": 0.933885089293031,
+      "gateway": 267
+    },
+    {
+      "iteration": 226,
+      "timestamp": "2026-01-19T04:16:42.779914",
+      "bright_spots": 40258,
+      "mean_stability": 0.8507210301958902,
+      "gateway": 268
+    },
+    {
+      "iteration": 227,
+      "timestamp": "2026-01-19T04:17:42.781266",
+      "bright_spots": 49589,
+      "mean_stability": 0.9116755632806639,
+      "gateway": 269
+    },
+    {
+      "iteration": 228,
+      "timestamp": "2026-01-19T04:18:42.783035",
+      "bright_spots": 42916,
+      "mean_stability": 0.9202415871287456,
+      "gateway": 270
+    },
+    {
+      "iteration": 229,
+      "timestamp": "2026-01-19T04:19:42.784883",
+      "bright_spots": 44971,
+      "mean_stability": 0.87667622204743,
+      "gateway": 271
+    },
+    {
+      "iteration": 230,
+      "timestamp": "2026-01-19T04:20:42.786654",
+      "bright_spots": 46300,
+      "mean_stability": 0.9028336193193325,
+      "gateway": 272
+    },
+    {
+      "iteration": 231,
+      "timestamp": "2026-01-19T04:21:42.788547",
+      "bright_spots": 45472,
+      "mean_stability": 0.9211486119686124,
+      "gateway": 273
+    },
+    {
+      "iteration": 232,
+      "timestamp": "2026-01-19T04:22:42.790279",
+      "bright_spots": 34182,
+      "mean_stability": 0.9474768844629108,
+      "gateway": 274
+    },
+    {
+      "iteration": 233,
+      "timestamp": "2026-01-19T04:23:42.792095",
+      "bright_spots": 48792,
+      "mean_stability": 0.9050623650583222,
+      "gateway": 275
+    },
+    {
+      "iteration": 234,
+      "timestamp": "2026-01-19T04:24:42.793409",
+      "bright_spots": 35105,
+      "mean_stability": 0.8932073698336088,
+      "gateway": 276
+    },
+    {
+      "iteration": 235,
+      "timestamp": "2026-01-19T04:25:42.794754",
+      "bright_spots": 34395,
+      "mean_stability": 0.9272366772106362,
+      "gateway": 277
+    },
+    {
+      "iteration": 236,
+      "timestamp": "2026-01-19T04:26:42.796108",
+      "bright_spots": 34940,
+      "mean_stability": 0.8989270708913836,
+      "gateway": 278
+    },
+    {
+      "iteration": 237,
+      "timestamp": "2026-01-19T04:27:42.797439",
+      "bright_spots": 48261,
+      "mean_stability": 0.9178838556203731,
+      "gateway": 279
+    },
+    {
+      "iteration": 238,
+      "timestamp": "2026-01-19T04:28:42.798796",
+      "bright_spots": 34791,
+      "mean_stability": 0.8781826967867419,
+      "gateway": 280
+    },
+    {
+      "iteration": 239,
+      "timestamp": "2026-01-19T04:29:42.799933",
+      "bright_spots": 40750,
+      "mean_stability": 0.8890994965343861,
+      "gateway": 281
+    },
+    {
+      "iteration": 240,
+      "timestamp": "2026-01-19T04:30:42.801851",
+      "bright_spots": 32344,
+      "mean_stability": 0.9250947327537891,
+      "gateway": 282
+    },
+    {
+      "iteration": 241,
+      "timestamp": "2026-01-19T04:31:42.803341",
+      "bright_spots": 41223,
+      "mean_stability": 0.9336936343462997,
+      "gateway": 283
+    },
+    {
+      "iteration": 242,
+      "timestamp": "2026-01-19T04:32:42.819867",
+      "bright_spots": 35965,
+      "mean_stability": 0.8896351147827252,
+      "gateway": 284
+    },
+    {
+      "iteration": 243,
+      "timestamp": "2026-01-19T04:33:42.820932",
+      "bright_spots": 33703,
+      "mean_stability": 0.8528392556093504,
+      "gateway": 285
+    },
+    {
+      "iteration": 244,
+      "timestamp": "2026-01-19T04:34:42.822785",
+      "bright_spots": 39480,
+      "mean_stability": 0.8892702224037542,
+      "gateway": 286
+    },
+    {
+      "iteration": 245,
+      "timestamp": "2026-01-19T04:35:42.824877",
+      "bright_spots": 47567,
+      "mean_stability": 0.8565469185255533,
+      "gateway": 287
+    },
+    {
+      "iteration": 246,
+      "timestamp": "2026-01-19T04:36:42.826651",
+      "bright_spots": 44451,
+      "mean_stability": 0.8879243944323483,
+      "gateway": 288
+    },
+    {
+      "iteration": 247,
+      "timestamp": "2026-01-19T04:37:42.828510",
+      "bright_spots": 46365,
+      "mean_stability": 0.8749094147433174,
+      "gateway": 289
+    },
+    {
+      "iteration": 248,
+      "timestamp": "2026-01-19T04:38:42.829927",
+      "bright_spots": 49436,
+      "mean_stability": 0.8552193607388425,
+      "gateway": 290
+    },
+    {
+      "iteration": 249,
+      "timestamp": "2026-01-19T04:39:42.831613",
+      "bright_spots": 31886,
+      "mean_stability": 0.938653605075991,
+      "gateway": 291
+    },
+    {
+      "iteration": 250,
+      "timestamp": "2026-01-19T04:40:42.833437",
+      "bright_spots": 31997,
+      "mean_stability": 0.8839887279441206,
+      "gateway": 292
+    },
+    {
+      "iteration": 251,
+      "timestamp": "2026-01-19T04:41:42.835114",
+      "bright_spots": 39999,
+      "mean_stability": 0.9116061817891283,
+      "gateway": 293
+    },
+    {
+      "iteration": 252,
+      "timestamp": "2026-01-19T04:42:42.836623",
+      "bright_spots": 41842,
+      "mean_stability": 0.9042798660222384,
+      "gateway": 294
+    },
+    {
+      "iteration": 253,
+      "timestamp": "2026-01-19T04:43:42.838303",
+      "bright_spots": 34307,
+      "mean_stability": 0.8757364691334591,
+      "gateway": 295
+    },
+    {
+      "iteration": 254,
+      "timestamp": "2026-01-19T04:44:42.840054",
+      "bright_spots": 41862,
+      "mean_stability": 0.8959173537296398,
+      "gateway": 296
+    },
+    {
+      "iteration": 255,
+      "timestamp": "2026-01-19T04:45:42.841406",
+      "bright_spots": 43206,
+      "mean_stability": 0.9145093662180319,
+      "gateway": 297
+    },
+    {
+      "iteration": 256,
+      "timestamp": "2026-01-19T04:46:42.843400",
+      "bright_spots": 35507,
+      "mean_stability": 0.863809246130624,
+      "gateway": 298
+    },
+    {
+      "iteration": 257,
+      "timestamp": "2026-01-19T04:47:42.845065",
+      "bright_spots": 48528,
+      "mean_stability": 0.8750003090004327,
+      "gateway": 299
+    },
+    {
+      "iteration": 258,
+      "timestamp": "2026-01-19T04:48:42.846818",
+      "bright_spots": 31464,
+      "mean_stability": 0.905508701307523,
+      "gateway": 300
+    },
+    {
+      "iteration": 259,
+      "timestamp": "2026-01-19T04:49:42.848255",
+      "bright_spots": 48783,
+      "mean_stability": 0.9099260162186998,
+      "gateway": 301
+    },
+    {
+      "iteration": 260,
+      "timestamp": "2026-01-19T04:50:42.850002",
+      "bright_spots": 45778,
+      "mean_stability": 0.9069547005171974,
+      "gateway": 302
+    },
+    {
+      "iteration": 261,
+      "timestamp": "2026-01-19T04:51:42.851179",
+      "bright_spots": 39706,
+      "mean_stability": 0.8759665414263209,
+      "gateway": 303
+    },
+    {
+      "iteration": 262,
+      "timestamp": "2026-01-19T04:52:42.852558",
+      "bright_spots": 45726,
+      "mean_stability": 0.8672259407838764,
+      "gateway": 304
+    },
+    {
+      "iteration": 263,
+      "timestamp": "2026-01-19T04:53:42.854136",
+      "bright_spots": 33563,
+      "mean_stability": 0.8573883746117106,
+      "gateway": 305
+    },
+    {
+      "iteration": 264,
+      "timestamp": "2026-01-19T04:54:42.856218",
+      "bright_spots": 35090,
+      "mean_stability": 0.9483717109136379,
+      "gateway": 306
+    },
+    {
+      "iteration": 265,
+      "timestamp": "2026-01-19T04:55:42.858037",
+      "bright_spots": 36369,
+      "mean_stability": 0.9283669988212787,
+      "gateway": 307
+    },
+    {
+      "iteration": 266,
+      "timestamp": "2026-01-19T04:56:42.859808",
+      "bright_spots": 30341,
+      "mean_stability": 0.8523977662710844,
+      "gateway": 308
+    },
+    {
+      "iteration": 267,
+      "timestamp": "2026-01-19T04:57:42.860983",
+      "bright_spots": 39583,
+      "mean_stability": 0.8660201235324098,
+      "gateway": 309
+    },
+    {
+      "iteration": 268,
+      "timestamp": "2026-01-19T04:58:42.863016",
+      "bright_spots": 45773,
+      "mean_stability": 0.8788474549142083,
+      "gateway": 310
+    },
+    {
+      "iteration": 269,
+      "timestamp": "2026-01-19T04:59:42.865400",
+      "bright_spots": 36282,
+      "mean_stability": 0.8539252887639062,
+      "gateway": 311
+    },
+    {
+      "iteration": 270,
+      "timestamp": "2026-01-19T05:00:42.867526",
+      "bright_spots": 31054,
+      "mean_stability": 0.8998326347016082,
+      "gateway": 312
+    },
+    {
+      "iteration": 271,
+      "timestamp": "2026-01-19T05:01:42.869466",
+      "bright_spots": 35620,
+      "mean_stability": 0.9184795417453638,
+      "gateway": 313
+    },
+    {
+      "iteration": 272,
+      "timestamp": "2026-01-19T05:02:42.870775",
+      "bright_spots": 45916,
+      "mean_stability": 0.8704939620590559,
+      "gateway": 314
+    },
+    {
+      "iteration": 273,
+      "timestamp": "2026-01-19T05:03:42.873343",
+      "bright_spots": 42734,
+      "mean_stability": 0.8720857810710088,
+      "gateway": 315
+    },
+    {
+      "iteration": 274,
+      "timestamp": "2026-01-19T05:04:42.875195",
+      "bright_spots": 45767,
+      "mean_stability": 0.9139993786897086,
+      "gateway": 316
+    },
+    {
+      "iteration": 275,
+      "timestamp": "2026-01-19T05:05:42.877086",
+      "bright_spots": 36676,
+      "mean_stability": 0.9275450516721555,
+      "gateway": 317
+    },
+    {
+      "iteration": 276,
+      "timestamp": "2026-01-19T05:06:42.878851",
+      "bright_spots": 40010,
+      "mean_stability": 0.8828225269526712,
+      "gateway": 318
+    },
+    {
+      "iteration": 277,
+      "timestamp": "2026-01-19T05:07:42.880768",
+      "bright_spots": 36492,
+      "mean_stability": 0.8586943243141529,
+      "gateway": 319
+    },
+    {
+      "iteration": 278,
+      "timestamp": "2026-01-19T05:08:42.882800",
+      "bright_spots": 36298,
+      "mean_stability": 0.8954509129188771,
+      "gateway": 320
+    },
+    {
+      "iteration": 279,
+      "timestamp": "2026-01-19T05:09:42.885301",
+      "bright_spots": 33865,
+      "mean_stability": 0.8707378536242464,
+      "gateway": 321
+    },
+    {
+      "iteration": 280,
+      "timestamp": "2026-01-19T05:10:42.887377",
+      "bright_spots": 36129,
+      "mean_stability": 0.8892535099220714,
+      "gateway": 322
+    },
+    {
+      "iteration": 281,
+      "timestamp": "2026-01-19T05:11:42.889483",
+      "bright_spots": 45582,
+      "mean_stability": 0.8987536605889584,
+      "gateway": 323
+    },
+    {
+      "iteration": 282,
+      "timestamp": "2026-01-19T05:12:42.891110",
+      "bright_spots": 34054,
+      "mean_stability": 0.9394498630626047,
+      "gateway": 324
+    },
+    {
+      "iteration": 283,
+      "timestamp": "2026-01-19T05:13:42.894954",
+      "bright_spots": 35235,
+      "mean_stability": 0.8829034881968634,
+      "gateway": 325
+    },
+    {
+      "iteration": 284,
+      "timestamp": "2026-01-19T05:14:42.897643",
+      "bright_spots": 36737,
+      "mean_stability": 0.8530454404886922,
+      "gateway": 326
+    },
+    {
+      "iteration": 285,
+      "timestamp": "2026-01-19T05:15:42.899669",
+      "bright_spots": 40146,
+      "mean_stability": 0.8873815380474374,
+      "gateway": 327
+    },
+    {
+      "iteration": 286,
+      "timestamp": "2026-01-19T05:16:42.901426",
+      "bright_spots": 47663,
+      "mean_stability": 0.8588242541897324,
+      "gateway": 328
+    },
+    {
+      "iteration": 287,
+      "timestamp": "2026-01-19T05:17:42.904057",
+      "bright_spots": 33171,
+      "mean_stability": 0.8660844399066979,
+      "gateway": 329
+    },
+    {
+      "iteration": 288,
+      "timestamp": "2026-01-19T05:18:42.906645",
+      "bright_spots": 34379,
+      "mean_stability": 0.9496525945571456,
+      "gateway": 330
+    },
+    {
+      "iteration": 289,
+      "timestamp": "2026-01-19T05:19:42.908065",
+      "bright_spots": 38443,
+      "mean_stability": 0.8732690913795856,
+      "gateway": 331
+    },
+    {
+      "iteration": 290,
+      "timestamp": "2026-01-19T05:20:42.909860",
+      "bright_spots": 31889,
+      "mean_stability": 0.9253048530966217,
+      "gateway": 332
+    },
+    {
+      "iteration": 291,
+      "timestamp": "2026-01-19T05:21:42.912447",
+      "bright_spots": 44608,
+      "mean_stability": 0.8630794936719536,
+      "gateway": 333
+    },
+    {
+      "iteration": 292,
+      "timestamp": "2026-01-19T05:22:42.918542",
+      "bright_spots": 40084,
+      "mean_stability": 0.9471121776228945,
+      "gateway": 334
+    },
+    {
+      "iteration": 293,
+      "timestamp": "2026-01-19T05:23:42.920170",
+      "bright_spots": 46581,
+      "mean_stability": 0.9480880221082651,
+      "gateway": 335
+    },
+    {
+      "iteration": 294,
+      "timestamp": "2026-01-19T05:24:42.922565",
+      "bright_spots": 41401,
+      "mean_stability": 0.9198145891437942,
+      "gateway": 336
+    },
+    {
+      "iteration": 295,
+      "timestamp": "2026-01-19T05:25:42.924548",
+      "bright_spots": 45548,
+      "mean_stability": 0.8608029482215871,
+      "gateway": 337
+    },
+    {
+      "iteration": 296,
+      "timestamp": "2026-01-19T05:26:42.926844",
+      "bright_spots": 31403,
+      "mean_stability": 0.9136122835535287,
+      "gateway": 338
+    },
+    {
+      "iteration": 297,
+      "timestamp": "2026-01-19T05:27:42.928962",
+      "bright_spots": 32121,
+      "mean_stability": 0.9138791662039714,
+      "gateway": 339
+    },
+    {
+      "iteration": 298,
+      "timestamp": "2026-01-19T05:28:42.930711",
+      "bright_spots": 44670,
+      "mean_stability": 0.8595693003272702,
+      "gateway": 340
+    },
+    {
+      "iteration": 299,
+      "timestamp": "2026-01-19T05:29:42.932615",
+      "bright_spots": 49455,
+      "mean_stability": 0.916818578286948,
+      "gateway": 341
+    },
+    {
+      "iteration": 300,
+      "timestamp": "2026-01-19T05:30:42.934192",
+      "bright_spots": 45102,
+      "mean_stability": 0.9192140111033689,
+      "gateway": 342
+    },
+    {
+      "iteration": 301,
+      "timestamp": "2026-01-19T05:31:42.936165",
+      "bright_spots": 47003,
+      "mean_stability": 0.9474183766663201,
+      "gateway": 343
+    },
+    {
+      "iteration": 302,
+      "timestamp": "2026-01-19T05:32:42.937757",
+      "bright_spots": 32985,
+      "mean_stability": 0.9305241243213219,
+      "gateway": 344
+    },
+    {
+      "iteration": 303,
+      "timestamp": "2026-01-19T05:33:42.939914",
+      "bright_spots": 48763,
+      "mean_stability": 0.9394883238455407,
+      "gateway": 345
+    },
+    {
+      "iteration": 304,
+      "timestamp": "2026-01-19T05:34:42.944954",
+      "bright_spots": 45363,
+      "mean_stability": 0.9222717774312457,
+      "gateway": 346
+    },
+    {
+      "iteration": 305,
+      "timestamp": "2026-01-19T05:35:42.946906",
+      "bright_spots": 31308,
+      "mean_stability": 0.9025091271953384,
+      "gateway": 347
+    },
+    {
+      "iteration": 306,
+      "timestamp": "2026-01-19T05:36:42.948905",
+      "bright_spots": 41846,
+      "mean_stability": 0.9207168334764694,
+      "gateway": 348
+    },
+    {
+      "iteration": 307,
+      "timestamp": "2026-01-19T05:37:42.960389",
+      "bright_spots": 41409,
+      "mean_stability": 0.8793782010409039,
+      "gateway": 349
+    },
+    {
+      "iteration": 308,
+      "timestamp": "2026-01-19T05:38:42.962315",
+      "bright_spots": 35096,
+      "mean_stability": 0.9035152155362783,
+      "gateway": 350
+    },
+    {
+      "iteration": 309,
+      "timestamp": "2026-01-19T05:39:42.964118",
+      "bright_spots": 47721,
+      "mean_stability": 0.9102597957771165,
+      "gateway": 351
+    },
+    {
+      "iteration": 310,
+      "timestamp": "2026-01-19T05:40:42.966305",
+      "bright_spots": 36791,
+      "mean_stability": 0.9213303012927231,
+      "gateway": 352
+    },
+    {
+      "iteration": 311,
+      "timestamp": "2026-01-19T05:41:42.968686",
+      "bright_spots": 37932,
+      "mean_stability": 0.9473192832342733,
+      "gateway": 353
+    },
+    {
+      "iteration": 312,
+      "timestamp": "2026-01-19T05:42:42.971277",
+      "bright_spots": 30526,
+      "mean_stability": 0.911322568198919,
+      "gateway": 354
+    },
+    {
+      "iteration": 313,
+      "timestamp": "2026-01-19T05:43:42.973101",
+      "bright_spots": 47491,
+      "mean_stability": 0.8957070799839325,
+      "gateway": 355
+    },
+    {
+      "iteration": 314,
+      "timestamp": "2026-01-19T05:44:42.975197",
+      "bright_spots": 30029,
+      "mean_stability": 0.8660856646062179,
+      "gateway": 356
+    },
+    {
+      "iteration": 315,
+      "timestamp": "2026-01-19T05:45:42.977062",
+      "bright_spots": 36575,
+      "mean_stability": 0.9451200071694329,
+      "gateway": 357
+    },
+    {
+      "iteration": 316,
+      "timestamp": "2026-01-19T05:46:42.978662",
+      "bright_spots": 30416,
+      "mean_stability": 0.8566851316180004,
+      "gateway": 358
+    },
+    {
+      "iteration": 317,
+      "timestamp": "2026-01-19T05:47:42.980543",
+      "bright_spots": 45226,
+      "mean_stability": 0.9478860401638728,
+      "gateway": 359
+    },
+    {
+      "iteration": 318,
+      "timestamp": "2026-01-19T05:48:42.982678",
+      "bright_spots": 35371,
+      "mean_stability": 0.8752672078012007,
+      "gateway": 360
+    },
+    {
+      "iteration": 319,
+      "timestamp": "2026-01-19T05:49:42.984664",
+      "bright_spots": 33310,
+      "mean_stability": 0.8772673428860096,
+      "gateway": 361
+    },
+    {
+      "iteration": 320,
+      "timestamp": "2026-01-19T05:50:42.987015",
+      "bright_spots": 42150,
+      "mean_stability": 0.9482346235153928,
+      "gateway": 362
+    },
+    {
+      "iteration": 321,
+      "timestamp": "2026-01-19T05:51:42.989103",
+      "bright_spots": 31987,
+      "mean_stability": 0.8701334767928796,
+      "gateway": 363
+    },
+    {
+      "iteration": 322,
+      "timestamp": "2026-01-19T05:52:42.990549",
+      "bright_spots": 46534,
+      "mean_stability": 0.887307335206573,
+      "gateway": 364
+    },
+    {
+      "iteration": 323,
+      "timestamp": "2026-01-19T05:53:42.992697",
+      "bright_spots": 48662,
+      "mean_stability": 0.9211238131250654,
+      "gateway": 365
+    },
+    {
+      "iteration": 324,
+      "timestamp": "2026-01-19T05:54:42.996439",
+      "bright_spots": 49682,
+      "mean_stability": 0.9404339475565396,
+      "gateway": 366
+    },
+    {
+      "iteration": 325,
+      "timestamp": "2026-01-19T05:55:42.998107",
+      "bright_spots": 36357,
+      "mean_stability": 0.9367515153647941,
+      "gateway": 367
+    },
+    {
+      "iteration": 326,
+      "timestamp": "2026-01-19T05:56:43.000500",
+      "bright_spots": 49058,
+      "mean_stability": 0.9384786609473355,
+      "gateway": 368
+    },
+    {
+      "iteration": 327,
+      "timestamp": "2026-01-19T05:57:43.002362",
+      "bright_spots": 45626,
+      "mean_stability": 0.8582283698945561,
+      "gateway": 369
+    },
+    {
+      "iteration": 328,
+      "timestamp": "2026-01-19T05:58:43.004644",
+      "bright_spots": 39334,
+      "mean_stability": 0.8763874614038505,
+      "gateway": 370
+    },
+    {
+      "iteration": 329,
+      "timestamp": "2026-01-19T05:59:43.006972",
+      "bright_spots": 37565,
+      "mean_stability": 0.9272616000479934,
+      "gateway": 371
+    },
+    {
+      "iteration": 330,
+      "timestamp": "2026-01-19T06:00:43.009379",
+      "bright_spots": 30943,
+      "mean_stability": 0.891647576221343,
+      "gateway": 372
+    },
+    {
+      "iteration": 331,
+      "timestamp": "2026-01-19T06:01:43.011238",
+      "bright_spots": 38592,
+      "mean_stability": 0.8622535611003388,
+      "gateway": 373
+    },
+    {
+      "iteration": 332,
+      "timestamp": "2026-01-19T06:02:43.013366",
+      "bright_spots": 40431,
+      "mean_stability": 0.9073322961919859,
+      "gateway": 374
+    },
+    {
+      "iteration": 333,
+      "timestamp": "2026-01-19T06:03:43.015281",
+      "bright_spots": 37956,
+      "mean_stability": 0.9295096965022195,
+      "gateway": 375
+    },
+    {
+      "iteration": 334,
+      "timestamp": "2026-01-19T06:04:43.017472",
+      "bright_spots": 47878,
+      "mean_stability": 0.8632649870010733,
+      "gateway": 376
+    },
+    {
+      "iteration": 335,
+      "timestamp": "2026-01-19T06:05:43.019592",
+      "bright_spots": 47525,
+      "mean_stability": 0.9045153204696743,
+      "gateway": 377
+    },
+    {
+      "iteration": 336,
+      "timestamp": "2026-01-19T06:06:43.021837",
+      "bright_spots": 43038,
+      "mean_stability": 0.8600900780367599,
+      "gateway": 378
+    },
+    {
+      "iteration": 337,
+      "timestamp": "2026-01-19T06:07:43.023882",
+      "bright_spots": 42915,
+      "mean_stability": 0.9266843509686591,
+      "gateway": 379
+    },
+    {
+      "iteration": 338,
+      "timestamp": "2026-01-19T06:08:43.026557",
+      "bright_spots": 36880,
+      "mean_stability": 0.8566691626616932,
+      "gateway": 380
+    },
+    {
+      "iteration": 339,
+      "timestamp": "2026-01-19T06:09:43.029174",
+      "bright_spots": 42658,
+      "mean_stability": 0.9252698958579171,
+      "gateway": 381
+    },
+    {
+      "iteration": 340,
+      "timestamp": "2026-01-19T06:10:43.031294",
+      "bright_spots": 42389,
+      "mean_stability": 0.8875661014142592,
+      "gateway": 382
+    },
+    {
+      "iteration": 341,
+      "timestamp": "2026-01-19T06:11:43.033983",
+      "bright_spots": 46458,
+      "mean_stability": 0.945796209960264,
+      "gateway": 383
+    },
+    {
+      "iteration": 342,
+      "timestamp": "2026-01-19T06:12:43.036121",
+      "bright_spots": 40234,
+      "mean_stability": 0.8709879636970823,
+      "gateway": 384
+    },
+    {
+      "iteration": 343,
+      "timestamp": "2026-01-19T06:13:43.037470",
+      "bright_spots": 35063,
+      "mean_stability": 0.8964850243162539,
+      "gateway": 385
+    },
+    {
+      "iteration": 344,
+      "timestamp": "2026-01-19T06:14:43.039484",
+      "bright_spots": 43857,
+      "mean_stability": 0.9010166857993029,
+      "gateway": 386
+    },
+    {
+      "iteration": 345,
+      "timestamp": "2026-01-19T06:15:43.041775",
+      "bright_spots": 37647,
+      "mean_stability": 0.8691514204831882,
+      "gateway": 387
+    },
+    {
+      "iteration": 346,
+      "timestamp": "2026-01-19T06:16:43.043999",
+      "bright_spots": 47841,
+      "mean_stability": 0.8524610466590402,
+      "gateway": 388
+    },
+    {
+      "iteration": 347,
+      "timestamp": "2026-01-19T06:17:43.046342",
+      "bright_spots": 43074,
+      "mean_stability": 0.9374254368022101,
+      "gateway": 389
+    },
+    {
+      "iteration": 348,
+      "timestamp": "2026-01-19T06:18:43.051201",
+      "bright_spots": 47005,
+      "mean_stability": 0.9130027210367165,
+      "gateway": 390
+    },
+    {
+      "iteration": 349,
+      "timestamp": "2026-01-19T06:19:43.053530",
+      "bright_spots": 44786,
+      "mean_stability": 0.9177358753509723,
+      "gateway": 391
+    },
+    {
+      "iteration": 350,
+      "timestamp": "2026-01-19T06:20:43.055665",
+      "bright_spots": 38053,
+      "mean_stability": 0.9294335580166648,
+      "gateway": 392
+    },
+    {
+      "iteration": 351,
+      "timestamp": "2026-01-19T06:21:43.058960",
+      "bright_spots": 39697,
+      "mean_stability": 0.866783090810196,
+      "gateway": 393
+    },
+    {
+      "iteration": 352,
+      "timestamp": "2026-01-19T06:22:43.060961",
+      "bright_spots": 34044,
+      "mean_stability": 0.8545365846039985,
+      "gateway": 394
+    },
+    {
+      "iteration": 353,
+      "timestamp": "2026-01-19T06:23:43.063425",
+      "bright_spots": 30392,
+      "mean_stability": 0.8588573566223271,
+      "gateway": 395
+    },
+    {
+      "iteration": 354,
+      "timestamp": "2026-01-19T06:24:43.064972",
+      "bright_spots": 48006,
+      "mean_stability": 0.8998647126662055,
+      "gateway": 396
+    },
+    {
+      "iteration": 355,
+      "timestamp": "2026-01-19T06:25:43.067241",
+      "bright_spots": 43621,
+      "mean_stability": 0.8951554162593746,
+      "gateway": 397
+    },
+    {
+      "iteration": 356,
+      "timestamp": "2026-01-19T06:26:43.069639",
+      "bright_spots": 35487,
+      "mean_stability": 0.8733667369817155,
+      "gateway": 398
+    },
+    {
+      "iteration": 357,
+      "timestamp": "2026-01-19T06:27:43.070999",
+      "bright_spots": 46341,
+      "mean_stability": 0.9095525208230326,
+      "gateway": 399
+    },
+    {
+      "iteration": 358,
+      "timestamp": "2026-01-19T06:28:43.073287",
+      "bright_spots": 33501,
+      "mean_stability": 0.8673980782198772,
+      "gateway": 400
+    },
+    {
+      "iteration": 359,
+      "timestamp": "2026-01-19T06:29:43.075852",
+      "bright_spots": 48056,
+      "mean_stability": 0.888665777799263,
+      "gateway": 401
+    },
+    {
+      "iteration": 360,
+      "timestamp": "2026-01-19T06:30:43.078110",
+      "bright_spots": 44069,
+      "mean_stability": 0.9399555583829642,
+      "gateway": 402
+    },
+    {
+      "iteration": 361,
+      "timestamp": "2026-01-19T06:31:43.083377",
+      "bright_spots": 45855,
+      "mean_stability": 0.904796758471929,
+      "gateway": 403
+    },
+    {
+      "iteration": 362,
+      "timestamp": "2026-01-19T06:32:43.085066",
+      "bright_spots": 41308,
+      "mean_stability": 0.9029411981626977,
+      "gateway": 404
+    },
+    {
+      "iteration": 363,
+      "timestamp": "2026-01-19T06:33:43.087682",
+      "bright_spots": 33573,
+      "mean_stability": 0.8559903019781563,
+      "gateway": 405
+    },
+    {
+      "iteration": 364,
+      "timestamp": "2026-01-19T06:34:43.090531",
+      "bright_spots": 42238,
+      "mean_stability": 0.8706096888662971,
+      "gateway": 406
+    },
+    {
+      "iteration": 365,
+      "timestamp": "2026-01-19T06:35:43.092511",
+      "bright_spots": 33302,
+      "mean_stability": 0.9020837971829977,
+      "gateway": 407
+    },
+    {
+      "iteration": 366,
+      "timestamp": "2026-01-19T06:36:43.094375",
+      "bright_spots": 49046,
+      "mean_stability": 0.9396775780852872,
+      "gateway": 408
+    },
+    {
+      "iteration": 367,
+      "timestamp": "2026-01-19T06:37:43.096398",
+      "bright_spots": 49145,
+      "mean_stability": 0.9279865664335692,
+      "gateway": 409
+    },
+    {
+      "iteration": 368,
+      "timestamp": "2026-01-19T06:38:43.101125",
+      "bright_spots": 44220,
+      "mean_stability": 0.946212104416755,
+      "gateway": 410
+    },
+    {
+      "iteration": 369,
+      "timestamp": "2026-01-19T06:39:43.103159",
+      "bright_spots": 47529,
+      "mean_stability": 0.874088884303729,
+      "gateway": 411
+    },
+    {
+      "iteration": 370,
+      "timestamp": "2026-01-19T06:40:43.105077",
+      "bright_spots": 42322,
+      "mean_stability": 0.8784914829081305,
+      "gateway": 412
+    },
+    {
+      "iteration": 371,
+      "timestamp": "2026-01-19T06:41:43.107736",
+      "bright_spots": 34336,
+      "mean_stability": 0.9431498958301808,
+      "gateway": 413
+    },
+    {
+      "iteration": 372,
+      "timestamp": "2026-01-19T06:42:43.109522",
+      "bright_spots": 31836,
+      "mean_stability": 0.9387009161379746,
+      "gateway": 414
+    },
+    {
+      "iteration": 373,
+      "timestamp": "2026-01-19T06:43:43.111925",
+      "bright_spots": 42451,
+      "mean_stability": 0.8985635890717045,
+      "gateway": 415
+    },
+    {
+      "iteration": 374,
+      "timestamp": "2026-01-19T06:44:43.114185",
+      "bright_spots": 40377,
+      "mean_stability": 0.881407434630733,
+      "gateway": 416
+    },
+    {
+      "iteration": 375,
+      "timestamp": "2026-01-19T06:45:43.117281",
+      "bright_spots": 38666,
+      "mean_stability": 0.9023621551698736,
+      "gateway": 417
+    },
+    {
+      "iteration": 376,
+      "timestamp": "2026-01-19T06:46:43.119093",
+      "bright_spots": 30879,
+      "mean_stability": 0.8590893407035851,
+      "gateway": 418
+    },
+    {
+      "iteration": 377,
+      "timestamp": "2026-01-19T06:47:43.121522",
+      "bright_spots": 30544,
+      "mean_stability": 0.9158284272154051,
+      "gateway": 419
+    },
+    {
+      "iteration": 378,
+      "timestamp": "2026-01-19T06:48:43.123824",
+      "bright_spots": 44563,
+      "mean_stability": 0.9351146231765031,
+      "gateway": 420
+    },
+    {
+      "iteration": 379,
+      "timestamp": "2026-01-19T06:49:43.126039",
+      "bright_spots": 43683,
+      "mean_stability": 0.8605032284892149,
+      "gateway": 421
+    },
+    {
+      "iteration": 380,
+      "timestamp": "2026-01-19T06:50:43.128205",
+      "bright_spots": 34979,
+      "mean_stability": 0.8746231708028378,
+      "gateway": 422
+    },
+    {
+      "iteration": 381,
+      "timestamp": "2026-01-19T06:51:43.132265",
+      "bright_spots": 46617,
+      "mean_stability": 0.9327257512798155,
+      "gateway": 423
+    },
+    {
+      "iteration": 382,
+      "timestamp": "2026-01-19T06:52:43.135250",
+      "bright_spots": 33451,
+      "mean_stability": 0.9386778590824694,
+      "gateway": 424
+    },
+    {
+      "iteration": 383,
+      "timestamp": "2026-01-19T06:53:43.137732",
+      "bright_spots": 31243,
+      "mean_stability": 0.9061490206294012,
+      "gateway": 425
+    },
+    {
+      "iteration": 384,
+      "timestamp": "2026-01-19T06:54:43.140661",
+      "bright_spots": 46203,
+      "mean_stability": 0.8505725096625928,
+      "gateway": 426
+    },
+    {
+      "iteration": 385,
+      "timestamp": "2026-01-19T06:55:43.143136",
+      "bright_spots": 34621,
+      "mean_stability": 0.913890333429876,
+      "gateway": 427
+    },
+    {
+      "iteration": 386,
+      "timestamp": "2026-01-19T06:56:43.148422",
+      "bright_spots": 37404,
+      "mean_stability": 0.9488040663903204,
+      "gateway": 428
+    },
+    {
+      "iteration": 387,
+      "timestamp": "2026-01-19T06:57:43.151373",
+      "bright_spots": 46244,
+      "mean_stability": 0.9028614395372392,
+      "gateway": 429
+    },
+    {
+      "iteration": 388,
+      "timestamp": "2026-01-19T06:58:43.153670",
+      "bright_spots": 48604,
+      "mean_stability": 0.8847647269736064,
+      "gateway": 430
+    },
+    {
+      "iteration": 389,
+      "timestamp": "2026-01-19T06:59:43.156060",
+      "bright_spots": 35917,
+      "mean_stability": 0.8686985327026521,
+      "gateway": 431
+    },
+    {
+      "iteration": 390,
+      "timestamp": "2026-01-19T07:00:43.159016",
+      "bright_spots": 42465,
+      "mean_stability": 0.8747097140703066,
+      "gateway": 432
+    },
+    {
+      "iteration": 391,
+      "timestamp": "2026-01-19T07:01:43.161450",
+      "bright_spots": 43901,
+      "mean_stability": 0.9255619860717905,
+      "gateway": 433
+    },
+    {
+      "iteration": 392,
+      "timestamp": "2026-01-19T07:02:43.162787",
+      "bright_spots": 46781,
+      "mean_stability": 0.8847914091784819,
+      "gateway": 434
+    },
+    {
+      "iteration": 393,
+      "timestamp": "2026-01-19T07:03:43.164649",
+      "bright_spots": 47834,
+      "mean_stability": 0.8922458369911446,
+      "gateway": 435
+    },
+    {
+      "iteration": 394,
+      "timestamp": "2026-01-19T07:04:43.166447",
+      "bright_spots": 46621,
+      "mean_stability": 0.8749849439261255,
+      "gateway": 436
+    },
+    {
+      "iteration": 395,
+      "timestamp": "2026-01-19T07:05:43.168756",
+      "bright_spots": 35768,
+      "mean_stability": 0.9062910860610732,
+      "gateway": 437
+    },
+    {
+      "iteration": 396,
+      "timestamp": "2026-01-19T07:06:43.171154",
+      "bright_spots": 44316,
+      "mean_stability": 0.8893351810073256,
+      "gateway": 438
+    },
+    {
+      "iteration": 397,
+      "timestamp": "2026-01-19T07:07:43.173480",
+      "bright_spots": 33021,
+      "mean_stability": 0.9023147965956737,
+      "gateway": 439
+    },
+    {
+      "iteration": 398,
+      "timestamp": "2026-01-19T07:08:43.175646",
+      "bright_spots": 34747,
+      "mean_stability": 0.8927791879202184,
+      "gateway": 440
+    },
+    {
+      "iteration": 399,
+      "timestamp": "2026-01-19T07:09:43.177479",
+      "bright_spots": 42030,
+      "mean_stability": 0.8814555853451472,
+      "gateway": 441
+    },
+    {
+      "iteration": 400,
+      "timestamp": "2026-01-19T07:10:43.179316",
+      "bright_spots": 49794,
+      "mean_stability": 0.9310242920061923,
+      "gateway": 442
+    },
+    {
+      "iteration": 401,
+      "timestamp": "2026-01-19T07:11:43.183848",
+      "bright_spots": 34556,
+      "mean_stability": 0.9407362496257997,
+      "gateway": 443
+    },
+    {
+      "iteration": 402,
+      "timestamp": "2026-01-19T07:12:43.186885",
+      "bright_spots": 47371,
+      "mean_stability": 0.8608540418260835,
+      "gateway": 444
+    },
+    {
+      "iteration": 403,
+      "timestamp": "2026-01-19T07:13:43.189365",
+      "bright_spots": 44543,
+      "mean_stability": 0.8717362458439524,
+      "gateway": 445
+    },
+    {
+      "iteration": 404,
+      "timestamp": "2026-01-19T07:14:43.191633",
+      "bright_spots": 41435,
+      "mean_stability": 0.9332866296832983,
+      "gateway": 446
+    },
+    {
+      "iteration": 405,
+      "timestamp": "2026-01-19T07:15:43.194106",
+      "bright_spots": 35880,
+      "mean_stability": 0.8981375088469293,
+      "gateway": 447
+    },
+    {
+      "iteration": 406,
+      "timestamp": "2026-01-19T07:16:43.196439",
+      "bright_spots": 37867,
+      "mean_stability": 0.8825377063743451,
+      "gateway": 448
+    },
+    {
+      "iteration": 407,
+      "timestamp": "2026-01-19T07:17:43.199486",
+      "bright_spots": 43713,
+      "mean_stability": 0.8678808241456001,
+      "gateway": 449
+    },
+    {
+      "iteration": 408,
+      "timestamp": "2026-01-19T07:18:43.202500",
+      "bright_spots": 33414,
+      "mean_stability": 0.8561181290865316,
+      "gateway": 450
+    },
+    {
+      "iteration": 409,
+      "timestamp": "2026-01-19T07:19:43.205772",
+      "bright_spots": 46146,
+      "mean_stability": 0.864225540143616,
+      "gateway": 451
+    },
+    {
+      "iteration": 410,
+      "timestamp": "2026-01-19T07:20:43.210411",
+      "bright_spots": 33408,
+      "mean_stability": 0.9483769575554348,
+      "gateway": 452
+    },
+    {
+      "iteration": 411,
+      "timestamp": "2026-01-19T07:21:43.212644",
+      "bright_spots": 36804,
+      "mean_stability": 0.9444287596878254,
+      "gateway": 453
+    },
+    {
+      "iteration": 412,
+      "timestamp": "2026-01-19T07:22:43.214811",
+      "bright_spots": 35069,
+      "mean_stability": 0.9158888819510129,
+      "gateway": 454
+    },
+    {
+      "iteration": 413,
+      "timestamp": "2026-01-19T07:23:43.216697",
+      "bright_spots": 33060,
+      "mean_stability": 0.9402440041899469,
+      "gateway": 455
+    },
+    {
+      "iteration": 414,
+      "timestamp": "2026-01-19T07:24:43.218838",
+      "bright_spots": 47078,
+      "mean_stability": 0.8852755999022278,
+      "gateway": 456
+    },
+    {
+      "iteration": 415,
+      "timestamp": "2026-01-19T07:25:43.221395",
+      "bright_spots": 30369,
+      "mean_stability": 0.8577850267147421,
+      "gateway": 457
+    },
+    {
+      "iteration": 416,
+      "timestamp": "2026-01-19T07:26:43.223658",
+      "bright_spots": 43754,
+      "mean_stability": 0.9422273596129969,
+      "gateway": 458
+    },
+    {
+      "iteration": 417,
+      "timestamp": "2026-01-19T07:27:43.225497",
+      "bright_spots": 37380,
+      "mean_stability": 0.9292250074232087,
+      "gateway": 459
+    },
+    {
+      "iteration": 418,
+      "timestamp": "2026-01-19T07:28:43.228262",
+      "bright_spots": 38077,
+      "mean_stability": 0.9036254186315053,
+      "gateway": 460
+    },
+    {
+      "iteration": 419,
+      "timestamp": "2026-01-19T07:29:43.231161",
+      "bright_spots": 43628,
+      "mean_stability": 0.9204799419343914,
+      "gateway": 461
+    },
+    {
+      "iteration": 420,
+      "timestamp": "2026-01-19T07:30:43.233513",
+      "bright_spots": 30754,
+      "mean_stability": 0.8613656586819876,
+      "gateway": 462
+    },
+    {
+      "iteration": 421,
+      "timestamp": "2026-01-19T07:31:43.236268",
+      "bright_spots": 32972,
+      "mean_stability": 0.9285678196031869,
+      "gateway": 463
+    },
+    {
+      "iteration": 422,
+      "timestamp": "2026-01-19T07:32:43.239168",
+      "bright_spots": 43088,
+      "mean_stability": 0.8971991642935152,
+      "gateway": 464
+    },
+    {
+      "iteration": 423,
+      "timestamp": "2026-01-19T07:33:43.241332",
+      "bright_spots": 46452,
+      "mean_stability": 0.8572525071009872,
+      "gateway": 465
+    },
+    {
+      "iteration": 424,
+      "timestamp": "2026-01-19T07:34:43.243835",
+      "bright_spots": 42555,
+      "mean_stability": 0.8872616704409177,
+      "gateway": 466
+    },
+    {
+      "iteration": 425,
+      "timestamp": "2026-01-19T07:35:43.246191",
+      "bright_spots": 49070,
+      "mean_stability": 0.9129029169624956,
+      "gateway": 467
+    },
+    {
+      "iteration": 426,
+      "timestamp": "2026-01-19T07:36:43.248100",
+      "bright_spots": 34191,
+      "mean_stability": 0.859818380288221,
+      "gateway": 468
+    },
+    {
+      "iteration": 427,
+      "timestamp": "2026-01-19T07:37:43.250411",
+      "bright_spots": 49479,
+      "mean_stability": 0.8999842319233874,
+      "gateway": 469
+    },
+    {
+      "iteration": 428,
+      "timestamp": "2026-01-19T07:38:43.253112",
+      "bright_spots": 39220,
+      "mean_stability": 0.902576808267179,
+      "gateway": 470
+    },
+    {
+      "iteration": 429,
+      "timestamp": "2026-01-19T07:39:43.255540",
+      "bright_spots": 49863,
+      "mean_stability": 0.8542222491990683,
+      "gateway": 471
+    },
+    {
+      "iteration": 430,
+      "timestamp": "2026-01-19T07:40:43.258269",
+      "bright_spots": 40400,
+      "mean_stability": 0.8532340453600998,
+      "gateway": 472
+    },
+    {
+      "iteration": 431,
+      "timestamp": "2026-01-19T07:41:43.261000",
+      "bright_spots": 37749,
+      "mean_stability": 0.9075373268503758,
+      "gateway": 473
+    },
+    {
+      "iteration": 432,
+      "timestamp": "2026-01-19T07:42:43.263300",
+      "bright_spots": 38850,
+      "mean_stability": 0.8514781466014228,
+      "gateway": 474
+    },
+    {
+      "iteration": 433,
+      "timestamp": "2026-01-19T07:43:43.265441",
+      "bright_spots": 47703,
+      "mean_stability": 0.9056355393394326,
+      "gateway": 475
+    },
+    {
+      "iteration": 434,
+      "timestamp": "2026-01-19T07:44:43.267672",
+      "bright_spots": 37295,
+      "mean_stability": 0.8656157562985782,
+      "gateway": 476
+    },
+    {
+      "iteration": 435,
+      "timestamp": "2026-01-19T07:45:43.269523",
+      "bright_spots": 48725,
+      "mean_stability": 0.8645503243299709,
+      "gateway": 477
+    },
+    {
+      "iteration": 436,
+      "timestamp": "2026-01-19T07:46:43.272052",
+      "bright_spots": 31007,
+      "mean_stability": 0.8696232173850544,
+      "gateway": 478
+    },
+    {
+      "iteration": 437,
+      "timestamp": "2026-01-19T07:47:43.274552",
+      "bright_spots": 44600,
+      "mean_stability": 0.8638963202869543,
+      "gateway": 479
+    },
+    {
+      "iteration": 438,
+      "timestamp": "2026-01-19T07:48:43.277086",
+      "bright_spots": 47502,
+      "mean_stability": 0.8888023457206099,
+      "gateway": 480
+    },
+    {
+      "iteration": 439,
+      "timestamp": "2026-01-19T07:49:43.279614",
+      "bright_spots": 43569,
+      "mean_stability": 0.9462106292263647,
+      "gateway": 481
+    },
+    {
+      "iteration": 440,
+      "timestamp": "2026-01-19T07:50:43.282071",
+      "bright_spots": 31943,
+      "mean_stability": 0.9248596001959113,
+      "gateway": 482
+    },
+    {
+      "iteration": 441,
+      "timestamp": "2026-01-19T07:51:43.284877",
+      "bright_spots": 34237,
+      "mean_stability": 0.8785310174166359,
+      "gateway": 483
+    },
+    {
+      "iteration": 442,
+      "timestamp": "2026-01-19T07:52:43.287204",
+      "bright_spots": 43764,
+      "mean_stability": 0.9157453670831723,
+      "gateway": 484
+    },
+    {
+      "iteration": 443,
+      "timestamp": "2026-01-19T07:53:43.289545",
+      "bright_spots": 44027,
+      "mean_stability": 0.8723633337643161,
+      "gateway": 485
+    },
+    {
+      "iteration": 444,
+      "timestamp": "2026-01-19T07:54:43.291923",
+      "bright_spots": 42940,
+      "mean_stability": 0.9487677410311324,
+      "gateway": 486
+    },
+    {
+      "iteration": 445,
+      "timestamp": "2026-01-19T07:55:43.294296",
+      "bright_spots": 46794,
+      "mean_stability": 0.8997324613521155,
+      "gateway": 487
+    },
+    {
+      "iteration": 446,
+      "timestamp": "2026-01-19T07:56:43.296372",
+      "bright_spots": 31923,
+      "mean_stability": 0.9443908533615665,
+      "gateway": 488
+    },
+    {
+      "iteration": 447,
+      "timestamp": "2026-01-19T07:57:43.299848",
+      "bright_spots": 37152,
+      "mean_stability": 0.8726864500431595,
+      "gateway": 489
+    },
+    {
+      "iteration": 448,
+      "timestamp": "2026-01-19T07:58:43.302870",
+      "bright_spots": 40564,
+      "mean_stability": 0.8781324292636885,
+      "gateway": 490
+    },
+    {
+      "iteration": 449,
+      "timestamp": "2026-01-19T07:59:43.305405",
+      "bright_spots": 40481,
+      "mean_stability": 0.8761712391591706,
+      "gateway": 491
+    },
+    {
+      "iteration": 450,
+      "timestamp": "2026-01-19T08:00:43.307957",
+      "bright_spots": 46064,
+      "mean_stability": 0.9264333271903328,
+      "gateway": 492
+    },
+    {
+      "iteration": 451,
+      "timestamp": "2026-01-19T08:01:43.310990",
+      "bright_spots": 44595,
+      "mean_stability": 0.8541201960434028,
+      "gateway": 493
+    },
+    {
+      "iteration": 452,
+      "timestamp": "2026-01-19T08:02:43.313592",
+      "bright_spots": 33785,
+      "mean_stability": 0.9282301017752479,
+      "gateway": 494
+    },
+    {
+      "iteration": 453,
+      "timestamp": "2026-01-19T08:03:43.316634",
+      "bright_spots": 46215,
+      "mean_stability": 0.8710050074058834,
+      "gateway": 495
+    },
+    {
+      "iteration": 454,
+      "timestamp": "2026-01-19T08:04:43.319284",
+      "bright_spots": 31402,
+      "mean_stability": 0.8577044637079043,
+      "gateway": 496
+    },
+    {
+      "iteration": 455,
+      "timestamp": "2026-01-19T08:05:43.321540",
+      "bright_spots": 37660,
+      "mean_stability": 0.9229822237171375,
+      "gateway": 497
+    },
+    {
+      "iteration": 456,
+      "timestamp": "2026-01-19T08:06:43.323796",
+      "bright_spots": 36975,
+      "mean_stability": 0.8559505922322774,
+      "gateway": 498
+    },
+    {
+      "iteration": 457,
+      "timestamp": "2026-01-19T08:07:43.327020",
+      "bright_spots": 33207,
+      "mean_stability": 0.948041448433321,
+      "gateway": 499
+    },
+    {
+      "iteration": 458,
+      "timestamp": "2026-01-19T08:08:43.329773",
+      "bright_spots": 48811,
+      "mean_stability": 0.9284993674532236,
+      "gateway": 500
+    },
+    {
+      "iteration": 459,
+      "timestamp": "2026-01-19T08:09:43.332609",
+      "bright_spots": 43382,
+      "mean_stability": 0.8764138474480558,
+      "gateway": 501
+    },
+    {
+      "iteration": 460,
+      "timestamp": "2026-01-19T08:10:43.335724",
+      "bright_spots": 33038,
+      "mean_stability": 0.9281315624625708,
+      "gateway": 502
+    },
+    {
+      "iteration": 461,
+      "timestamp": "2026-01-19T08:11:43.339241",
+      "bright_spots": 32093,
+      "mean_stability": 0.8956921658198886,
+      "gateway": 503
+    },
+    {
+      "iteration": 462,
+      "timestamp": "2026-01-19T08:12:43.341926",
+      "bright_spots": 33896,
+      "mean_stability": 0.9226825408005375,
+      "gateway": 504
+    },
+    {
+      "iteration": 463,
+      "timestamp": "2026-01-19T08:13:43.345318",
+      "bright_spots": 38060,
+      "mean_stability": 0.907261688808655,
+      "gateway": 505
+    },
+    {
+      "iteration": 464,
+      "timestamp": "2026-01-19T08:14:43.349102",
+      "bright_spots": 46142,
+      "mean_stability": 0.933219220967511,
+      "gateway": 506
+    },
+    {
+      "iteration": 465,
+      "timestamp": "2026-01-19T08:15:43.352205",
+      "bright_spots": 30054,
+      "mean_stability": 0.9351869653212779,
+      "gateway": 507
+    },
+    {
+      "iteration": 466,
+      "timestamp": "2026-01-19T08:16:43.354661",
+      "bright_spots": 39622,
+      "mean_stability": 0.9211954889701135,
+      "gateway": 508
+    },
+    {
+      "iteration": 467,
+      "timestamp": "2026-01-19T08:17:43.357231",
+      "bright_spots": 43866,
+      "mean_stability": 0.9046108288185561,
+      "gateway": 509
+    },
+    {
+      "iteration": 468,
+      "timestamp": "2026-01-19T08:18:43.360421",
+      "bright_spots": 30929,
+      "mean_stability": 0.8525846046276537,
+      "gateway": 510
+    },
+    {
+      "iteration": 469,
+      "timestamp": "2026-01-19T08:19:43.363003",
+      "bright_spots": 41013,
+      "mean_stability": 0.8693481793223626,
+      "gateway": 511
+    },
+    {
+      "iteration": 470,
+      "timestamp": "2026-01-19T08:20:43.365477",
+      "bright_spots": 32542,
+      "mean_stability": 0.866047759951637,
+      "gateway": 512
+    },
+    {
+      "iteration": 471,
+      "timestamp": "2026-01-19T08:21:43.368112",
+      "bright_spots": 43423,
+      "mean_stability": 0.9382136029366197,
+      "gateway": 513
+    },
+    {
+      "iteration": 472,
+      "timestamp": "2026-01-19T08:22:43.369669",
+      "bright_spots": 36727,
+      "mean_stability": 0.8673014958126886,
+      "gateway": 514
+    },
+    {
+      "iteration": 473,
+      "timestamp": "2026-01-19T08:23:43.372564",
+      "bright_spots": 48246,
+      "mean_stability": 0.8686566607857996,
+      "gateway": 515
+    },
+    {
+      "iteration": 474,
+      "timestamp": "2026-01-19T08:24:43.375350",
+      "bright_spots": 32800,
+      "mean_stability": 0.9191928652345636,
+      "gateway": 516
+    },
+    {
+      "iteration": 475,
+      "timestamp": "2026-01-19T08:25:43.377425",
+      "bright_spots": 34896,
+      "mean_stability": 0.8515545999077072,
+      "gateway": 517
+    },
+    {
+      "iteration": 476,
+      "timestamp": "2026-01-19T08:26:43.379670",
+      "bright_spots": 47035,
+      "mean_stability": 0.9174400853281096,
+      "gateway": 518
+    },
+    {
+      "iteration": 477,
+      "timestamp": "2026-01-19T08:27:43.382391",
+      "bright_spots": 46262,
+      "mean_stability": 0.8619927895468874,
+      "gateway": 519
+    },
+    {
+      "iteration": 478,
+      "timestamp": "2026-01-19T08:28:43.384579",
+      "bright_spots": 44062,
+      "mean_stability": 0.9477274689463038,
+      "gateway": 520
+    },
+    {
+      "iteration": 479,
+      "timestamp": "2026-01-19T08:29:43.387413",
+      "bright_spots": 36322,
+      "mean_stability": 0.8657301344793346,
+      "gateway": 521
+    },
+    {
+      "iteration": 480,
+      "timestamp": "2026-01-19T08:30:43.390483",
+      "bright_spots": 43746,
+      "mean_stability": 0.925993292125818,
+      "gateway": 522
+    }
+  ],
+  "status": "running"
+}
