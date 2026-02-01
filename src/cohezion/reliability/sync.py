@@ -7,48 +7,63 @@ Provides:
 - AgentWorkspace: Shadow tree isolation for multi-file agent operations.
 """
 
-import os
+import asyncio
 import fcntl
 import logging
+import os
 import shutil
 import tempfile
-import asyncio
+from collections.abc import Generator
+from contextlib import contextmanager
 from pathlib import Path
-from contextlib import contextmanager, asynccontextmanager
-from typing import Generator, Union, Optional, List
 
 logger = logging.getLogger(__name__)
+
 
 class FileLock:
     """
     Advisory file locking context manager.
     Uses POSIX flock (exclusive) to coordinate access across processes.
     """
-    def __init__(self, lock_file: Union[str, Path], timeout: float = 10.0):
+
+    def __init__(self, lock_file: str | Path, timeout: float = 10.0):
         self.lock_file = Path(lock_file)
         self.timeout = timeout
         self._fd = None
 
     @contextmanager
-    def acquire(self) -> Generator[None, None, None]:
+    def acquire(self) -> Generator[None]:
         """Block until lock is acquired or timeout is reached."""
         self.lock_file.parent.mkdir(parents=True, exist_ok=True)
         # Touch the file to ensure it exists
         self.lock_file.touch()
 
-        self._fd = open(self.lock_file, "r")
+        self._fd = open(self.lock_file)
         try:
-            start_time = asyncio.get_event_loop().time() if asyncio.get_event_loop().is_running() else os.times()[4]
+            start_time = (
+                asyncio.get_event_loop().time()
+                if asyncio.get_event_loop().is_running()
+                else os.times()[4]
+            )
             while True:
                 try:
                     fcntl.flock(self._fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
                     logger.debug(f"Lock acquired on {self.lock_file}")
                     break
-                except (IOError, OSError):
-                    current_time = asyncio.get_event_loop().time() if asyncio.get_event_loop().is_running() else os.times()[4]
+                except OSError:
+                    try:
+                        loop = asyncio.get_running_loop()
+                        current_time = loop.time()
+                    except RuntimeError:
+                        current_time = time.time()
+
                     if current_time - start_time > self.timeout:
-                        raise TimeoutError(f"Timed out waiting for lock on {self.lock_file}")
-                    os.sched_yield() # Be nice to other processes
+                        raise TimeoutError(
+                            f"Timed out waiting for lock on {self.lock_file}"
+                        )
+                    time.sleep(
+                        0.1
+                    )  # Fixed sleep instead of os.sched_yield for test stability
             yield
         finally:
             if self._fd:
@@ -57,18 +72,20 @@ class FileLock:
                 self._fd = None
                 logger.debug(f"Lock released on {self.lock_file}")
 
+
 class SafeWriter:
     """
     Atomic file writer context manager.
     Writes to a temporary file and renames it to the target on success.
     """
-    def __init__(self, target_path: Union[str, Path], mode: str = "w"):
+
+    def __init__(self, target_path: str | Path, mode: str = "w"):
         self.target_path = Path(target_path)
         self.mode = mode
         self.temp_path = None
 
     @contextmanager
-    def open(self) -> Generator[tempfile.NamedTemporaryFile, None, None]:
+    def open(self) -> Generator[tempfile.NamedTemporaryFile]:
         """Provide a temporary file for writing."""
         self.target_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -77,13 +94,13 @@ class SafeWriter:
             mode=self.mode,
             dir=self.target_path.parent,
             prefix=f".tmp_{self.target_path.name}_",
-            delete=False
+            delete=False,
         ) as tmp:
             self.temp_path = Path(tmp.name)
             try:
                 yield tmp
                 tmp.flush()
-                os.fsync(tmp.fileno()) # Ensure data is on disk
+                os.fsync(tmp.fileno())  # Ensure data is on disk
                 os.replace(self.temp_path, self.target_path)
                 logger.debug(f"Atomic update completed for {self.target_path}")
             except Exception:
@@ -91,22 +108,28 @@ class SafeWriter:
                     self.temp_path.unlink()
                 raise
 
+
 class AgentWorkspace:
     """
     Shadow tree isolation for multi-file operations.
     Creates a temporary workspace, clones relevant files, and merges on success.
     """
-    def __init__(self, base_dir: Path, files: List[Path], workspace_root: Optional[Path] = None):
+
+    def __init__(
+        self, base_dir: Path, files: list[Path], workspace_root: Path | None = None
+    ):
         self.base_dir = base_dir
         self.files = files
         self.workspace_root = workspace_root or Path(".sandbox")
         self.staging_dir = None
 
     @contextmanager
-    def session(self) -> Generator[Path, None, None]:
+    def session(self) -> Generator[Path]:
         """Sets up the staging environment."""
         self.workspace_root.mkdir(parents=True, exist_ok=True)
-        self.staging_dir = Path(tempfile.mkdtemp(dir=self.workspace_root, prefix="agent_ws_"))
+        self.staging_dir = Path(
+            tempfile.mkdtemp(dir=self.workspace_root, prefix="agent_ws_")
+        )
 
         try:
             # 1. Clone relevant files into staging

@@ -7,27 +7,29 @@ Analyzes:
 3. Tool usage
 """
 
-import os
-from pathlib import Path
 import json
-from datetime import datetime, UTC
+import os
+from datetime import UTC, datetime
+from pathlib import Path
+
 
 def analyze_utilization():
     base_path = Path("src/cohezion")
     skills_path = base_path / "skills"
-    
+
     # 1. Get all skills
     skills = [f.stem.replace("_PRIME", "") for f in skills_path.glob("*.md")]
-    
+
     # 2. Search codebase for skill usage
-    skill_usage = {skill: 0 for skill in skills}
-    
-    for root, dirs, files in os.walk(base_path):
+    skill_usage = dict.fromkeys(skills, 0)
+
+    for root, _dirs, files in os.walk(base_path):
         for file in files:
             if file.endswith(".py") or file.endswith(".md"):
                 path = Path(root) / file
-                if "skills" in str(path): continue
-                
+                if "skills" in str(path):
+                    continue
+
                 try:
                     content = path.read_text()
                     for skill in skills:
@@ -35,22 +37,22 @@ def analyze_utilization():
                             skill_usage[skill] += 1
                 except:
                     pass
-    
+
     # 3. Check MCP Servers
     mcp_registry_path = base_path / "mcp" / "mcp_registry.json"
     mcp_status = {}
     if mcp_registry_path.exists():
         with open(mcp_registry_path) as f:
             registry = json.load(f)
-            
+
         for server in registry.get("internal", []):
             path = base_path / server.get("path", "")
             mcp_status[server["name"]] = "Exists" if path.exists() else "MISSING"
-            
+
     # Generate Report
     unused_skills = [s for s, c in skill_usage.items() if c == 0]
     used_skills = [s for s, c in skill_usage.items() if c > 0]
-    
+
     report = f"""# Cohezion Utilization Audit
 **Timestamp:** {datetime.now(UTC).isoformat()}
 
@@ -60,7 +62,7 @@ def analyze_utilization():
 """
     for name, status in mcp_status.items():
         report += f"| {name} | {status} |\n"
-        
+
     report += f"""
 ## Skill Utilization
 - **Total Skills:** {len(skills)}
@@ -71,15 +73,16 @@ def analyze_utilization():
 """
     for skill in unused_skills:
         report += f"- {skill}\n"
-        
+
     print(report)
-    
+
     # Save Report
     output_dir = base_path / "knowledge_graph" / "audits"
     output_dir.mkdir(parents=True, exist_ok=True)
     report_path = output_dir / f"utilization_audit_{int(datetime.now().timestamp())}.md"
     report_path.write_text(report)
     print(f"\nSaved to {report_path}")
+
 
 if __name__ == "__main__":
     analyze_utilization()

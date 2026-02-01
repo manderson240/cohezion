@@ -6,19 +6,18 @@ and Semantic Alignment with the evolving swarm.
 """
 
 import logging
-import time
 from pathlib import Path
-from typing import Any, Dict, List
 
 from cohezion.swarm.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
 
 logger = logging.getLogger(__name__)
 
+
 class LibrarianAgent(BaseAgent):
     def __init__(self, config: SwarmConfig | None = None):
         super().__init__(
-            model_name="gemma3:4b", # Good for synthesis and documentation
+            model_name="gemma3:4b",  # Good for synthesis and documentation
             config=config or SwarmConfig(),
         )
         self.target_file = Path("GEMINI.md")
@@ -27,7 +26,9 @@ class LibrarianAgent(BaseAgent):
         """
         Audit GEMINI.md for freshness and clarity.
         """
-        logger.info(f"📚 LibrarianAgent auditing {self.target_file} for task: {task}...")
+        logger.info(
+            f"📚 LibrarianAgent auditing {self.target_file} for task: {task}..."
+        )
 
         if not self.target_file.exists():
             return "GEMINI.md not found."
@@ -43,8 +44,14 @@ class LibrarianAgent(BaseAgent):
             )
             await self._db.close()
             # Result 0 is the list of records from the statement
-            learnings_list = recent_learnings[0] if recent_learnings and isinstance(recent_learnings[0], list) else []
-            learnings_context = "\n".join([str(l) for l in learnings_list])
+            learnings_list = (
+                recent_learnings[0]
+                if recent_learnings and isinstance(recent_learnings[0], list)
+                else []
+            )
+            learnings_context = "\n".join(
+                [str(learning) for learning in learnings_list]
+            )
         except Exception as e:
             logger.warning(f"Could not fetch recent learnings: {e}")
             learnings_context = "No recent learning history available."

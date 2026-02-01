@@ -6,9 +6,8 @@ Uses 12D state vectors for structured trajectory tracking.
 """
 
 import logging
-from pathlib import Path
 from datetime import datetime
-from typing import Any, Dict, List
+from pathlib import Path
 
 from cohezion.swarm.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
@@ -23,6 +22,7 @@ LEARNING_TEMPLATE = """
 - **Synthesis**:
 {synthesis}
 """
+
 
 class ChronicleAgent(BaseAgent):
     def __init__(self, config: SwarmConfig | None = None):
@@ -41,10 +41,12 @@ class ChronicleAgent(BaseAgent):
         # 1. Gather mission context
         try:
             await self._db.connect()
-            mission = await self._db.query("SELECT * FROM missions WHERE id = $id", {"id": mission_id})
+            mission = await self._db.query(
+                "SELECT * FROM missions WHERE id = $id", {"id": mission_id}
+            )
             thoughts = await self._db.query(
                 "SELECT * FROM agent_thought WHERE metadata.mission = $id ORDER BY timestamp ASC",
-                {"id": mission_id}
+                {"id": mission_id},
             )
             await self._db.close()
 
@@ -58,11 +60,15 @@ class ChronicleAgent(BaseAgent):
             else:
                 mission_data = m_res
 
-            mission_name = mission_data.get('name', 'Unknown Mission')
+            mission_name = mission_data.get("name", "Unknown Mission")
 
             # Thoughts results are also nested
-            thoughts_list = thoughts[0] if thoughts and isinstance(thoughts[0], list) else []
-            context = "\n".join([t.get('content', '') for t in thoughts_list[:10]]) # limit context
+            thoughts_list = (
+                thoughts[0] if thoughts and isinstance(thoughts[0], list) else []
+            )
+            context = "\n".join(
+                [t.get("content", "") for t in thoughts_list[:10]]
+            )  # limit context
 
         except Exception as e:
             logger.error(f"Failed to gather mission context: {e}")
@@ -86,7 +92,7 @@ Provide:
             lines = response.splitlines()
             title = lines[0].replace("TITLE:", "").strip()
             synthesis = "\n".join(lines[1:3]).replace("SYNTHESIS:", "").strip()
-            vector = "[0.5, 0.5, 0.5, 1.0, 0, 0, 0, 0, 0, 0, 0, 0]" # Default
+            vector = "[0.5, 0.5, 0.5, 1.0, 0, 0, 0, 0, 0, 0, 0, 0]"  # Default
             for line in lines:
                 if "[" in line and "]" in line:
                     vector = line.strip()
@@ -98,7 +104,7 @@ Provide:
                 mission_name=mission_name,
                 date=datetime.now().strftime("%Y-%m-%d"),
                 vector=vector,
-                synthesis=synthesis
+                synthesis=synthesis,
             )
 
             with open(self.learnings_file, "a") as f:

@@ -7,31 +7,38 @@ Reuses authentication from existing email_notifier.
 
 import asyncio
 import logging
-import os
-from typing import Any, List
+from typing import Any
 
-from imap_tools import MailBox, AND
+from imap_tools import AND, MailBox
+
+from cohezion.core.time_keeper import get_time_keeper
+from cohezion.mcp.email_notifier import NotificationConfig
 from cohezion.swarm.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
-from cohezion.mcp.email_notifier import NotificationConfig
-from cohezion.core.time_keeper import get_time_keeper
 
 logger = logging.getLogger(__name__)
+
 
 class EmailListenerAgent(BaseAgent):
     """
     Agent that monitors an IMAP inbox for commands/prompts.
     """
 
-    def __init__(self, model_name: str = "mistral-small", config: SwarmConfig | None = None):
+    def __init__(
+        self, model_name: str = "mistral-small", config: SwarmConfig | None = None
+    ):
         super().__init__(model_name=model_name, config=config)
         self.email_config = NotificationConfig.from_env()
-        self.authorized_sender = self.email_config.recipient_email or "manderson240@gmail.com"
-        self.imap_host = "imap.gmail.com" # Default for Gmail
+        self.authorized_sender = (
+            self.email_config.recipient_email or "manderson240@gmail.com"
+        )
+        self.imap_host = "imap.gmail.com"  # Default for Gmail
 
         # Verify config
         if not self.email_config.sender_email or not self.email_config.sender_password:
-            logger.warning("Email credentials missing! EmailListenerAgent will not work.")
+            logger.warning(
+                "Email credentials missing! EmailListenerAgent will not work."
+            )
 
     async def process(self, *args: Any, **kwargs: Any) -> Any:
         """
@@ -57,7 +64,7 @@ class EmailListenerAgent(BaseAgent):
                     "sender": email.from_,
                     "subject": email.subject,
                     "body": email.text or email.html,
-                    "timestamp": str(email.date)
+                    "timestamp": str(email.date),
                 }
                 tasks.append(task)
 
@@ -65,7 +72,7 @@ class EmailListenerAgent(BaseAgent):
                 await tk.log_event(
                     self.__class__.__name__,
                     "EMAIL_RECEIVED",
-                    {"subject": email.subject, "sender": email.from_}
+                    {"subject": email.subject, "sender": email.from_},
                 )
 
             return tasks
@@ -75,7 +82,7 @@ class EmailListenerAgent(BaseAgent):
             await tk.log_event(self.__class__.__name__, "IMAP_ERROR", {"error": str(e)})
             return []
 
-    def _fetch_emails(self) -> List[Any]:
+    def _fetch_emails(self) -> list[Any]:
         """
         Synchronous IMAP fetching logic.
         Fetches UNSEEN messages from authorized sender.
@@ -83,10 +90,8 @@ class EmailListenerAgent(BaseAgent):
         messages = []
         try:
             with MailBox(self.imap_host).login(
-                self.config.sender_email,
-                self.config.sender_password
+                self.config.sender_email, self.config.sender_password
             ) as mailbox:
-
                 # Criteria: Unseen AND From authorized sender
                 criteria = AND(seen=False, from_=self.authorized_sender)
 
@@ -100,6 +105,7 @@ class EmailListenerAgent(BaseAgent):
 
         return messages
 
+
 # --- Test / Simulation ---
 async def demo_listener():
     print("--- Checking for Email Commands ---")
@@ -108,6 +114,7 @@ async def demo_listener():
     print(f"Found {len(tasks)} new commands.")
     for t in tasks:
         print(f"Task: {t['subject']}")
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

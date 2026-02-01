@@ -1,8 +1,10 @@
 import os
 import smtplib
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from pathlib import Path
+
+
 def load_env_manual():
     env_path = Path("/home/mike-anderson/dev/cohezion/.env")
     if env_path.exists():
@@ -11,6 +13,7 @@ def load_env_manual():
                 if "=" in line and not line.startswith("#"):
                     k, v = line.strip().split("=", 1)
                     os.environ.setdefault(k, v)
+
 
 def send_email(subject, body, recipient=None):
     load_env_manual()
@@ -24,15 +27,15 @@ def send_email(subject, body, recipient=None):
         return False
 
     msg = MIMEMultipart()
-    msg['From'] = sender_email
-    msg['To'] = recipient_email
-    msg['Subject'] = subject
+    msg["From"] = sender_email
+    msg["To"] = recipient_email
+    msg["Subject"] = subject
 
-    msg.attach(MIMEText(body, 'plain'))
+    msg.attach(MIMEText(body, "plain"))
 
     try:
         # Using Gmail SMTP
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
         server.login(sender_email, password)
         server.sendmail(sender_email, recipient_email, msg.as_string())
         server.close()
@@ -42,8 +45,10 @@ def send_email(subject, body, recipient=None):
         print(f"Failed to send email: {e}")
         return False
 
+
 if __name__ == "__main__":
     import sys
+
     if len(sys.argv) < 3:
         print("Usage: python3 send_hourly_update.py <subject> <body_file_path>")
         sys.exit(1)
@@ -55,7 +60,7 @@ if __name__ == "__main__":
         print(f"Error: Body file {body_path} not found")
         sys.exit(1)
 
-    with open(body_path, 'r') as f:
+    with open(body_path) as f:
         body = f.read()
 
     send_email(subject, body)

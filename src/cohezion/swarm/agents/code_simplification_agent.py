@@ -7,11 +7,11 @@ Implements CODE_SIMPLIFICATION_PRIME principles.
 
 import logging
 from datetime import datetime
-from typing import Any, List
+from typing import Any
 
 from cohezion.swarm.agents.base import BaseAgent
-from cohezion.swarm.swarm_types import Perspective, SwarmConfig, ThoughtVector
 from cohezion.swarm.git_health import HealthTrace
+from cohezion.swarm.swarm_types import Perspective, SwarmConfig, ThoughtVector
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +22,12 @@ SIMPLIFIER_PROMPT = """You are a Code Simplification Specialist. Your goal is to
 - Preserving functionality while maximizing readability
 Analyze code snippets and propose specific refactors based on CODE_SIMPLIFICATION_PRIME."""
 
+
 class CodeSimplificationAgent(BaseAgent):
     """
     Agent specialized in simplifying complex code structures.
     """
-    
+
     def __init__(
         self,
         config: SwarmConfig | None = None,
@@ -38,8 +39,10 @@ class CodeSimplificationAgent(BaseAgent):
         )
         self.perspective = Perspective.TECHNICAL
         self.system_prompt = SIMPLIFIER_PROMPT
-    
-    async def process(self, query: str, traces: List[HealthTrace] | None = None, **kwargs: Any) -> ThoughtVector:
+
+    async def process(
+        self, query: str, traces: list[HealthTrace] | None = None, **kwargs: Any
+    ) -> ThoughtVector:
         """
         Analyze code traces and suggest simplifications.
         """
@@ -61,10 +64,10 @@ Provide specific refactoring suggestions based on the identified issues."""
             response = await self._call_ollama(
                 prompt=prompt,
                 system_prompt=self.system_prompt,
-                temperature=0.6, # Slightly lower for more deterministic refactors
+                temperature=0.6,  # Slightly lower for more deterministic refactors
                 max_tokens=2048,
             )
-            
+
             return ThoughtVector(
                 perspective=self.perspective,
                 content=response.strip(),
@@ -73,10 +76,10 @@ Provide specific refactoring suggestions based on the identified issues."""
                 metadata={
                     "model": self.model_name,
                     "agent": "CodeSimplificationAgent",
-                    "traces_count": len(traces) if traces else 0
+                    "traces_count": len(traces) if traces else 0,
                 },
             )
-            
+
         except Exception as e:
             logger.error(f"CodeSimplificationAgent failed: {e}")
             return ThoughtVector(

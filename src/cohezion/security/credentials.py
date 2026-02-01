@@ -1,10 +1,10 @@
-
-import os
 import logging
-from typing import Optional
+import os
+
 from cohezion.security.vault import get_vault
 
 logger = logging.getLogger(__name__)
+
 
 class CredentialManager:
     """Centralized credential retrieval with Bitwarden priority and ENV fallback."""
@@ -12,7 +12,7 @@ class CredentialManager:
     def __init__(self):
         self.vault = get_vault()
 
-    def get_secret(self, name: str, env_var: Optional[str] = None) -> Optional[str]:
+    def get_secret(self, name: str, env_var: str | None = None) -> str | None:
         """
         Get a secret.
         1. Try Bitwarden (name)
@@ -33,8 +33,10 @@ class CredentialManager:
 
         return None
 
+
 # Singleton
 _manager = None
+
 
 def get_credentials() -> CredentialManager:
     global _manager

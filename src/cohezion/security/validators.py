@@ -16,6 +16,7 @@ from enum import Enum
 
 class ValidationResult(Enum):
     """Validation result codes."""
+
     VALID = "valid"
     TOO_LONG = "too_long"
     BLOCKED_PATTERN = "blocked_pattern"
@@ -26,6 +27,7 @@ class ValidationResult(Enum):
 @dataclass
 class ValidationError:
     """Validation error details."""
+
     code: ValidationResult
     message: str
     field: str = ""
@@ -57,7 +59,6 @@ BLOCKED_PATTERNS = [
     r"EXTRACTVALUE\s*\(",
     r"ORDER\s+BY\s+\d+",
     r";\s*SHUTDOWN",
-    
     # === NoSQL Injection (MongoDB) ===
     r"\$gt\s*:",
     r"\$ne\s*:",
@@ -65,7 +66,6 @@ BLOCKED_PATTERNS = [
     r"\$regex\s*:",
     r"\$or\s*:\s*\[",
     r"db\.\w+\.find\s*\(",
-    
     # === XSS (Cross-Site Scripting) ===
     r"<script",
     r"</script>",
@@ -82,7 +82,6 @@ BLOCKED_PATTERNS = [
     r"document\.cookie",
     r"document\.location",
     r"window\.location",
-    
     # === Path Traversal ===
     r"\.\./",
     r"\.\.\\",
@@ -92,7 +91,6 @@ BLOCKED_PATTERNS = [
     r"%2e%2e/",
     r"file:///",
     r"%00",  # Null byte
-    
     # === Command Injection ===
     r";\s*(cat|ls|dir|whoami|id)\s",
     r"\|\s*(cat|ls|dir|whoami|id)\s",
@@ -107,31 +105,26 @@ BLOCKED_PATTERNS = [
     r"^\s*\|\s*(dir|ls|whoami|id|cat)",  # Start with pipe
     r";\s*sh\s",
     r";\s*bash\s",
-    
     # === LDAP Injection ===
     r"\)\(\|",
     r"\*\)\|",
     r"\)\(\&",
-    
     # === XML/XXE ===
     r"<!ENTITY",
     r"<!DOCTYPE.*SYSTEM",
     r"SYSTEM\s+['\"]file:",
     r"SYSTEM\s+['\"]http:",
-    
     # === Template Injection ===
     r"\{\{.*\}\}",  # Jinja2/Mustache
     r"\$\{.*\}",  # Java EL
     r"<%.*%>",  # JSP/ERB
     r"#\{.*\}",  # Ruby
-    
     # === SSRF Indicators ===
     r"localhost:\d+",
     r"127\.0\.0\.1",
     r"0\.0\.0\.0",
     r"169\.254\.",  # AWS metadata
     r"metadata\.google",
-    
     # === NoSQL Injection (additional patterns) ===
     r'"\$gt"',
     r'"\$ne"',
@@ -147,11 +140,9 @@ BLOCKED_PATTERNS = [
     r"'\\$regex'",
     r"'\\$or'",
     r"\\{\\s*'\\$",  # Generic {'$ pattern
-    
     # === Additional Path Traversal ===
-    r"%252[ef]",  # Double URL encoded ../ 
+    r"%252[ef]",  # Double URL encoded ../
     r"\.\.%c0%af",  # Unicode path traversal
-    
     # === XSS Additional ===
     r"'-\s*alert",  # Attribute escape
     r'"-\s*alert',
@@ -170,12 +161,12 @@ def validate_input(
 ) -> ValidationError | None:
     """
     Validate input text.
-    
+
     Args:
         text: Input to validate
         field_name: Name of field for error messages
         max_length: Maximum allowed length
-        
+
     Returns:
         ValidationError if invalid, None if valid
     """
@@ -185,18 +176,27 @@ def validate_input(
             message=f"{field_name} cannot be empty",
             field=field_name,
         )
-    
+
     if len(text) > max_length:
         return ValidationError(
             code=ValidationResult.TOO_LONG,
             message=f"{field_name} exceeds maximum length of {max_length}",
             field=field_name,
         )
-    
+
     # Deobfuscate leet speak before checking patterns
-    leet_map = {'0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '@': 'a', '$': 's'}
-    normalized = ''.join(leet_map.get(c.lower(), c.lower()) for c in text)
-    
+    leet_map = {
+        "0": "o",
+        "1": "i",
+        "3": "e",
+        "4": "a",
+        "5": "s",
+        "7": "t",
+        "@": "a",
+        "$": "s",
+    }
+    normalized = "".join(leet_map.get(c.lower(), c.lower()) for c in text)
+
     # Check for blocked patterns in both original and normalized text
     for pattern in BLOCKED_REGEX:
         if pattern.search(text) or pattern.search(normalized):
@@ -205,42 +205,39 @@ def validate_input(
                 message=f"Potentially malicious content detected in {field_name}",
                 field=field_name,
             )
-    
+
     return None
 
 
 def sanitize_text(text: str) -> str:
     """
     Sanitize text for safe processing.
-    
+
     - Normalize Unicode
     - Strip control characters
     - Collapse whitespace
-    
+
     Args:
         text: Raw input text
-        
+
     Returns:
         Sanitized text
     """
     if not text:
         return ""
-    
+
     # Normalize Unicode (NFC form)
     text = unicodedata.normalize("NFC", text)
-    
+
     # Remove control characters except newlines and tabs
-    text = "".join(
-        c for c in text
-        if unicodedata.category(c) != "Cc" or c in "\n\t"
-    )
-    
+    text = "".join(c for c in text if unicodedata.category(c) != "Cc" or c in "\n\t")
+
     # Collapse multiple spaces
     text = re.sub(r" +", " ", text)
-    
+
     # Collapse multiple newlines
     text = re.sub(r"\n{3,}", "\n\n", text)
-    
+
     return text.strip()
 
 
@@ -259,12 +256,12 @@ def validate_json_field(
                 field=field_name,
             )
         return None
-    
+
     if not isinstance(value, expected_type):
         return ValidationError(
             code=ValidationResult.INVALID_CHARS,
             message=f"{field_name} must be {expected_type.__name__}",
             field=field_name,
         )
-    
+
     return None

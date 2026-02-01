@@ -7,9 +7,7 @@ Provides:
 - Automatic cleanup
 """
 
-import asyncio
 import logging
-from typing import Any
 
 import httpx
 
@@ -19,10 +17,10 @@ logger = logging.getLogger(__name__)
 class ConnectionPool:
     """
     HTTP connection pool manager.
-    
+
     Maintains persistent connections to reduce latency.
     """
-    
+
     def __init__(
         self,
         base_url: str,
@@ -33,41 +31,41 @@ class ConnectionPool:
         self.base_url = base_url
         self.max_connections = max_connections
         self.timeout = timeout
-        
+
         limits = httpx.Limits(
             max_connections=max_connections,
             max_keepalive_connections=max_keepalive,
         )
-        
+
         self._client = httpx.AsyncClient(
             base_url=base_url,
             limits=limits,
             timeout=httpx.Timeout(timeout),
         )
         self._stats = {"requests": 0, "errors": 0}
-    
+
     async def get(self, path: str, **kwargs) -> httpx.Response:
         """Make GET request using pooled connection."""
         self._stats["requests"] += 1
         try:
             return await self._client.get(path, **kwargs)
-        except Exception as e:
+        except Exception:
             self._stats["errors"] += 1
             raise
-    
+
     async def post(self, path: str, **kwargs) -> httpx.Response:
         """Make POST request using pooled connection."""
         self._stats["requests"] += 1
         try:
             return await self._client.post(path, **kwargs)
-        except Exception as e:
+        except Exception:
             self._stats["errors"] += 1
             raise
-    
+
     async def close(self) -> None:
         """Close all connections."""
         await self._client.aclose()
-    
+
     def get_stats(self) -> dict:
         """Get pool statistics."""
         return {

@@ -7,12 +7,12 @@ Provides:
 - Role-based access control
 """
 
-import os
 import logging
-from datetime import datetime, timedelta, UTC
+import os
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from jose import jwt, JWTError
+from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 logger = logging.getLogger(__name__)
@@ -37,6 +37,7 @@ API_KEYS = {
 
 class AuthError(Exception):
     """Authentication error."""
+
     def __init__(self, message: str, code: str = "auth_error"):
         self.message = message
         self.code = code
@@ -46,26 +47,26 @@ class AuthError(Exception):
 def verify_api_key(api_key: str) -> dict[str, Any]:
     """
     Verify an API key.
-    
+
     Args:
         api_key: The API key to verify
-        
+
     Returns:
         API key metadata if valid
-        
+
     Raises:
         AuthError if invalid
     """
     if not api_key:
         raise AuthError("API key required", "missing_key")
-    
+
     key_data = API_KEYS.get(api_key)
     if not key_data:
         raise AuthError("Invalid API key", "invalid_key")
-    
+
     if not key_data.get("enabled", True):
         raise AuthError("API key disabled", "disabled_key")
-    
+
     return key_data
 
 
@@ -75,37 +76,37 @@ def create_token(
 ) -> str:
     """
     Create a JWT token.
-    
+
     Args:
         data: Payload data
         expires_delta: Token lifetime
-        
+
     Returns:
         Encoded JWT token
     """
     to_encode = data.copy()
-    
+
     if expires_delta:
         expire = datetime.now(UTC) + expires_delta
     else:
         expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    
+
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    
+
     return encoded_jwt
 
 
 def verify_token(token: str) -> dict[str, Any]:
     """
     Verify a JWT token.
-    
+
     Args:
         token: JWT token to verify
-        
+
     Returns:
         Token payload if valid
-        
+
     Raises:
         AuthError if invalid
     """
@@ -129,7 +130,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def check_role(user_role: str, required_role: str) -> bool:
     """
     Check if user has required role.
-    
+
     Role hierarchy: admin > user > readonly
     """
     roles = {"admin": 3, "user": 2, "readonly": 1}

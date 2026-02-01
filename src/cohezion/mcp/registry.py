@@ -18,6 +18,7 @@ MCP_REGISTRY_PATH = Path(__file__).parent / "mcp_registry.json"
 @dataclass
 class MCPServer:
     """Represents an MCP server."""
+
     name: str
     type: str
     description: str
@@ -25,7 +26,7 @@ class MCPServer:
     path: str | None = None
     tools: list[str] | None = None
     status: str = "unknown"
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "name": self.name,
@@ -41,48 +42,52 @@ class MCPServer:
 class MCPRegistry:
     """
     Registry for MCP servers.
-    
+
     Manages both external (Mem0, Context7, Serena) and
     internal (Knowledge, Skills, SurrealDB, Swarm) servers.
     """
-    
+
     def __init__(self, registry_path: Path | None = None):
         self.registry_path = registry_path or MCP_REGISTRY_PATH
         self._external: list[MCPServer] = []
         self._internal: list[MCPServer] = []
         self._relationships: dict[str, list[str]] = {}
         self._load()
-    
+
     def _load(self) -> None:
         """Load registry from JSON."""
         if not self.registry_path.exists():
             logger.warning(f"Registry not found: {self.registry_path}")
             return
-        
+
         with open(self.registry_path) as f:
             data = json.load(f)
-        
+
         for server in data.get("external", []):
-            self._external.append(MCPServer(
-                name=server["name"],
-                type=server["type"],
-                description=server["description"],
-                url=server.get("url"),
-                status=server.get("status", "unknown"),
-            ))
-        
+            self._external.append(
+                MCPServer(
+                    name=server["name"],
+                    type=server["type"],
+                    description=server["description"],
+                    url=server.get("url"),
+                    status=server.get("status", "unknown"),
+                )
+            )
+
         for server in data.get("internal", []):
-            self._internal.append(MCPServer(
-                name=server["name"],
-                type=server["type"],
-                description=server["description"],
-                path=server.get("path"),
-                tools=server.get("tools", []),
-                status="available",
-            ))
-        
+            self._internal.append(
+                MCPServer(
+                    name=server["name"],
+                    type=server["type"],
+                    description=server["description"],
+                    path=server.get("path"),
+                    tools=server.get("tools", []),
+                    status="available",
+                )
+            )
+
         self._relationships = data.get("relationships", {})
-    
+
     def save(self) -> None:
         """Save registry to JSON."""
         data = {
@@ -93,41 +98,43 @@ class MCPRegistry:
         }
         with open(self.registry_path, "w") as f:
             json.dump(data, f, indent=2)
-    
+
     def get_server(self, name: str) -> MCPServer | None:
         """Get a server by name."""
         for server in self._external + self._internal:
             if server.name == name:
                 return server
         return None
-    
+
     def list_servers(self, type_filter: str | None = None) -> list[MCPServer]:
         """List all servers, optionally filtered by type."""
         servers = self._external + self._internal
         if type_filter:
             servers = [s for s in servers if s.type == type_filter]
         return servers
-    
+
     def list_tools(self, server_name: str | None = None) -> list[str]:
         """List all available tools."""
         tools = []
-        servers = self._internal if server_name is None else [self.get_server(server_name)]
+        servers = (
+            self._internal if server_name is None else [self.get_server(server_name)]
+        )
         for server in servers:
             if server and server.tools:
                 tools.extend([f"{server.name}.{t}" for t in server.tools])
         return tools
-    
+
     def get_relationships(self, server_name: str) -> list[str]:
         """Get related components for a server."""
         return self._relationships.get(server_name, [])
-    
+
     def update_status(self, name: str, status: str) -> None:
         """Update server status."""
         server = self.get_server(name)
         if server:
             server.status = status
             self.save()
-    
+
     def to_entity_dict(self) -> dict[str, Any]:
         """Export as entity for knowledge graph."""
         return {

@@ -12,6 +12,7 @@ dependencies = [
     "gkeepapi>=0.17.1",
     "google-api-python-client>=2.188.0",
     "google-auth-oauthlib>=1.2.4",
+    "great-expectations>=1.11.2",
     "httpx>=0.28.1",
     "huggingface-hub>=0.36.0",
     "langgraph>=1.0.6",
@@ -54,6 +55,35 @@ package = true
 [tool.ruff]
 line-length = 88
 target-version = "py313"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.13"
+ignore_missing_imports = true
+strict = false
+warn_return_any = true
+warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --tb=short"
 
 [dependency-groups]
 dev = [

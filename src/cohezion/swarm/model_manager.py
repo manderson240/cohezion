@@ -8,11 +8,10 @@ Handles:
 - Landscape research for new models
 """
 
-import asyncio
 import json
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -28,6 +27,7 @@ METRICS_PATH = Path(__file__).parent.parent / "knowledge_graph" / "model_metrics
 @dataclass
 class ModelMetrics:
     """Metrics for a single model."""
+
     name: str
     task_type: str  # analysis, critique, synthesis, function_call, vision
     avg_latency_ms: float = 0.0
@@ -35,11 +35,13 @@ class ModelMetrics:
     quality_score: float = 0.5  # 0-1, from critique feedback
     total_calls: int = 0
     last_used: str = ""
-    
+
     def update(self, latency_ms: float, success: bool, quality: float = 0.5):
         n = self.total_calls
         self.avg_latency_ms = (self.avg_latency_ms * n + latency_ms) / (n + 1)
-        self.success_rate = (self.success_rate * n + (1.0 if success else 0.0)) / (n + 1)
+        self.success_rate = (self.success_rate * n + (1.0 if success else 0.0)) / (
+            n + 1
+        )
         self.quality_score = (self.quality_score * n + quality) / (n + 1)
         self.total_calls += 1
         self.last_used = datetime.now().isoformat()
@@ -48,6 +50,7 @@ class ModelMetrics:
 @dataclass
 class ModelConfig:
     """Configuration for model roles."""
+
     role: str
     primary: str
     fallback: str | None = None
@@ -56,39 +59,39 @@ class ModelConfig:
 
 # Default role assignments
 DEFAULT_ROLES: list[ModelConfig] = [
-    ModelConfig("analysis", "gemma3:4b", "nemotron-nano"),
-    ModelConfig("critique", "phi3:mini", "olmo-3:7b"),
-    ModelConfig("synthesis", "mistral:7b", "devstral-small"),
-    ModelConfig("function_call", "functiongemma", "gemma3:4b"),
-    ModelConfig("vision", "qwen3-vl:8b", None),
+    ModelConfig("analysis", "phi4", "gemma2:9b"),
+    ModelConfig("critique", "deepseek-r1:7b", "llama3.1:8b"),
+    ModelConfig("synthesis", "qwen2.5-coder:7b", "deepseek-coder-v2"),
+    ModelConfig("function_call", "qwen2.5-coder:7b", "hermes3"),
+    ModelConfig("vision", "minicpm-v:8b-2.6-fp16", "llava-phi3"),
 ]
 
 
 class OllamaModelManager:
     """
     Manages Ollama models with benchmarking and auto-optimization.
-    
+
     Features:
     - Track performance metrics per model per task
     - Automatically swap underperforming models
     - Clean up unused models to save storage
     - Research new models from landscape
     """
-    
+
     def __init__(self, ollama_host: str = OLLAMA_HOST):
         self.ollama_host = ollama_host
         self.http_client = httpx.AsyncClient(timeout=30.0)
         self._metrics: dict[str, ModelMetrics] = {}
         self._roles = {r.role: r for r in DEFAULT_ROLES}
         self._load_metrics()
-    
+
     def _load_metrics(self) -> None:
         """Load metrics from persistent storage."""
         if METRICS_PATH.exists():
             data = json.loads(METRICS_PATH.read_text())
             for key, m in data.get("metrics", {}).items():
                 self._metrics[key] = ModelMetrics(**m)
-    
+
     def _save_metrics(self) -> None:
         """Save metrics to persistent storage."""
         METRICS_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -97,7 +100,7 @@ class OllamaModelManager:
             "metrics": {k: vars(v) for k, v in self._metrics.items()},
         }
         METRICS_PATH.write_text(json.dumps(data, indent=2))
-    
+
     async def list_models(self) -> list[dict[str, Any]]:
         """List installed Ollama models."""
         try:
@@ -108,7 +111,7 @@ class OllamaModelManager:
         except Exception as e:
             logger.error(f"Failed to list models: {e}")
             return []
-    
+
     async def pull_model(self, model_name: str) -> bool:
         """Pull a model from Ollama registry."""
         try:
@@ -121,7 +124,7 @@ class OllamaModelManager:
         except Exception as e:
             logger.error(f"Failed to pull {model_name}: {e}")
             return False
-    
+
     async def delete_model(self, model_name: str) -> bool:
         """Delete a model to free storage."""
         try:
@@ -133,51 +136,73 @@ class OllamaModelManager:
         except Exception as e:
             logger.error(f"Failed to delete {model_name}: {e}")
             return False
-    
+
     async def benchmark_model(
         self,
         model_name: str,
         task_type: str,
         test_prompt: str = "Explain quantum computing in one sentence.",
     ) -> ModelMetrics:
-        """Benchmark a model for a specific task type."""
+        """Benchmark a model for a specific task type with Context Guard."""
         key = f"{model_name}:{task_type}"
-        
+
         if key not in self._metrics:
             self._metrics[key] = ModelMetrics(name=model_name, task_type=task_type)
-        
+
         metrics = self._metrics[key]
-        
+
+        # --- CONTEXT GUARD (Learning 77) ---
+        safe_prompt = self._sanitize_prompt(test_prompt)
+        # -----------------------------------
+
         start = time.perf_counter()
         try:
             resp = await self.http_client.post(
                 f"{self.ollama_host}/api/generate",
-                json={"model": model_name, "prompt": test_prompt, "stream": False},
+                json={"model": model_name, "prompt": safe_prompt, "stream": False},
                 timeout=60.0,
             )
             latency_ms = (time.perf_counter() - start) * 1000
-            
+
             success = resp.status_code == 200
             quality = 0.7 if success else 0.0  # Basic quality estimate
-            
+
             metrics.update(latency_ms, success, quality)
             self._save_metrics()
-            
+
             logger.info(f"Benchmarked {model_name} for {task_type}: {latency_ms:.0f}ms")
-            
+
         except Exception as e:
             latency_ms = (time.perf_counter() - start) * 1000
             metrics.update(latency_ms, False, 0.0)
             logger.error(f"Benchmark failed for {model_name}: {e}")
-        
+
         return metrics
-    
+
+    def _sanitize_prompt(self, prompt: str, max_chars: int = 20000) -> str:
+        """
+        Truncate or summarize prompt if it exceeds the safety threshold.
+        Prevents crashes like the one on 2026-01-31.
+        """
+        if len(prompt) <= max_chars:
+            return prompt
+
+        logger.warning(
+            f"⚠️ Context Guard: Truncating large prompt ({len(prompt)} chars)"
+        )
+        header = f"--- CONTEXT TRUNCATED ({len(prompt)} -> {max_chars}) ---\n"
+        footer = "\n--- END TRUNCATED CONTEXT ---"
+
+        # Take the first 10k and last 10k chars
+        half = max_chars // 2
+        return f"{header}{prompt[:half]} ... [SNIP] ... {prompt[-half:]}{footer}"
+
     def get_best_model(self, task_type: str) -> str:
         """Get the best performing model for a task type."""
         role = self._roles.get(task_type)
         if not role:
             return "mistral:7b"  # Default
-        
+
         # Check if primary meets quality threshold
         key = f"{role.primary}:{task_type}"
         if key in self._metrics:
@@ -185,9 +210,9 @@ class OllamaModelManager:
                 return role.primary
             elif role.fallback:
                 return role.fallback
-        
+
         return role.primary
-    
+
     def record_result(
         self,
         model_name: str,
@@ -200,38 +225,38 @@ class OllamaModelManager:
         key = f"{model_name}:{task_type}"
         if key not in self._metrics:
             self._metrics[key] = ModelMetrics(name=model_name, task_type=task_type)
-        
+
         self._metrics[key].update(latency_ms, success, quality)
         self._save_metrics()
-    
+
     async def cleanup_unused(self, days_threshold: int = 30) -> list[str]:
         """Remove models not used in the last N days."""
         deleted = []
         cutoff = datetime.now().timestamp() - (days_threshold * 86400)
-        
+
         models = await self.list_models()
         for model in models:
             name = model.get("name", "")
-            
+
             # Check last used across all task types
             last_used = None
-            for key, metrics in self._metrics.items():
+            for _key, metrics in self._metrics.items():
                 if metrics.name == name and metrics.last_used:
                     used_ts = datetime.fromisoformat(metrics.last_used).timestamp()
                     if last_used is None or used_ts > last_used:
                         last_used = used_ts
-            
+
             if last_used and last_used < cutoff:
                 if await self.delete_model(name):
                     deleted.append(name)
                     logger.info(f"Cleaned up unused model: {name}")
-        
+
         return deleted
-    
+
     def get_role_assignments(self) -> dict[str, str]:
         """Get current role → model assignments."""
         return {role: self.get_best_model(role) for role in self._roles}
-    
+
     def get_metrics_summary(self) -> dict[str, Any]:
         """Get summary of all model metrics."""
         return {

@@ -8,23 +8,31 @@ suggestions.
 
 import asyncio
 import logging
-import sys
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
+from cohezion.db.surreal_client import PhysicsState, SurrealClient, UniverseNode
+from cohezion.flume.git_encoder import GitEncoder
 
 # Relative imports
 from cohezion.healing.deep_audit import DeepAuditor
-from cohezion.swarm.git_health import collect_git_metadata, attribute_complexity, get_unpushed_commits, get_repo_bloat
-from cohezion.swarm.agents.git_health_agent import GitHealthAgent
 from cohezion.swarm.agents.code_simplification_agent import CodeSimplificationAgent
-from cohezion.flume.git_encoder import GitEncoder
-from cohezion.swarm.swarm_types import SwarmConfig, Perspective
-from cohezion.db.surreal_client import SurrealClient, UniverseNode, PhysicsState
-from cohezion.swarm.journey_tracker import get_journey_tracker, AgentType
+from cohezion.swarm.agents.git_health_agent import GitHealthAgent
+from cohezion.swarm.git_health import (
+    attribute_complexity,
+    collect_git_metadata,
+    get_repo_bloat,
+    get_unpushed_commits,
+)
+from cohezion.swarm.journey_tracker import AgentType, get_journey_tracker
+from cohezion.swarm.swarm_types import SwarmConfig
 
 # Setup logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("GitHealthAssessment")
+
 
 async def run_assessment():
     logger.info("🚀 Starting Git Health Assessment...")
@@ -62,15 +70,17 @@ async def run_assessment():
 
     health_task = health_agent.process(
         "Assess the overall repository health based on recent history.",
-        context=recent_commits
+        context=recent_commits,
     )
 
     simplification_task = simplifier_agent.process(
         "Propose refactors for the most complex files identified in recent history.",
-        traces=traces
+        traces=traces,
     )
 
-    health_thought, simplifier_thought = await asyncio.gather(health_task, simplification_task)
+    health_thought, simplifier_thought = await asyncio.gather(
+        health_task, simplification_task
+    )
 
     # Record Journey Steps
     tracker.record_step(
@@ -80,7 +90,7 @@ async def run_assessment():
         input_text="Assess overall git health",
         output_text=health_thought.content,
         physics_state={"complexity": 0.5, "coherence": health_thought.confidence},
-        duration_ms=2000 # Approximation
+        duration_ms=2000,  # Approximation
     )
 
     tracker.record_step(
@@ -90,13 +100,28 @@ async def run_assessment():
         input_text="Propose refactors",
         output_text=simplifier_thought.content,
         physics_state={"complexity": 0.8, "coherence": simplifier_thought.confidence},
-        duration_ms=3000 # Approximation
+        duration_ms=3000,  # Approximation
     )
 
     tracker.end_journey(health_thought.content, final_confidence=0.9)
 
     # 5. Generate Report
-    logger.info("📝 Generating Report...")
+    logger.info("📝 Generating Executive Summary & Report...")
+
+    # Generate HTML/Markdown Executive Summary for Email
+    executive_summary = f"""
+    <h2>🛡️ Git Health Executive Brief</h2>
+    <ul>
+        <li><b>Health Score:</b> {auditor._calculate_global_score()} / 100</li>
+        <li><b>Stability Drift:</b> {drift_score:.2f}</li>
+        <li><b>Critical Issues:</b> {len([i for i in auditor.issues if i.severity == 'Critical'])}</li>
+        <li><b>Bloat Status:</b> {bloat['total_pending']} pending files</li>
+    </ul>
+    <h3>Top Recommendations</h3>
+    <pre>{health_thought.content[:500]}...</pre>
+    """
+
+    # Full Markdown Report
     report = f"""# 🛡️ Git Health Report - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
 ## 🎯 Executive Summary
@@ -141,23 +166,29 @@ async def run_assessment():
             physics_state=PhysicsState(
                 complexity=auditor._calculate_global_score() / 100.0,
                 stability=drift_score,
-                mass=float(bloat['total_pending']) / 100.0 if bloat['total_pending'] < 100 else 1.0
+                mass=float(bloat["total_pending"]) / 100.0
+                if bloat["total_pending"] < 100
+                else 1.0,
             ),
             metadata={
                 "unpushed_count": len(unpushed),
-                "bloat_total": bloat['total_pending'],
-                "drift_score": drift_score
-            }
+                "bloat_total": bloat["total_pending"],
+                "drift_score": drift_score,
+            },
         )
         await db.store_node(audit_node)
         logger.info(f"✅ Audit results persisted to SurrealDB as {audit_node.id}")
         await db.close()
     except Exception as e:
-        logger.warning(f"⚠️ Failed to persist to SurrealDB (falling back to filesystem only): {e}")
+        logger.warning(
+            f"⚠️ Failed to persist to SurrealDB (falling back to filesystem only): {e}"
+        )
 
     logger.info(f"✅ Assessment complete. Report saved to {report_path}")
     print(report)
 
+
 if __name__ == "__main__":
     import os
+
     asyncio.run(run_assessment())

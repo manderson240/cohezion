@@ -1,13 +1,14 @@
 import logging
-import asyncio
 import time
 from pathlib import Path
+
+from cohezion.bio.biophotonics import Wavelength
+from cohezion.introspect.scanner import get_internal_scanner
 from cohezion.swarm.agents.sovereign_agent import SovereignAgent
 from cohezion.swarm.swarm_types import SwarmConfig
-from cohezion.introspect.scanner import get_internal_scanner
-from cohezion.bio.biophotonics import Wavelength
 
 logger = logging.getLogger(__name__)
+
 
 class IntrospectAgent(SovereignAgent):
     """
@@ -19,6 +20,7 @@ class IntrospectAgent(SovereignAgent):
     - The Monk: Meditates on repo state and history.
     - Generates 'Daily Reflection' artifact.
     """
+
     def __init__(self, config: SwarmConfig | None = None):
         super().__init__(config=config)
         self.scanner = get_internal_scanner()
@@ -33,20 +35,22 @@ class IntrospectAgent(SovereignAgent):
         history_signals = self.scanner.scan_history()
 
         # 2. Generate Reflection
-        reflection = f"\n\n### 🧘 Daily Reflection (System Introspection)\n"
+        reflection = "\n\n### 🧘 Daily Reflection (System Introspection)\n"
 
         # Codebase Insights
         todos = code_signals["todo_count"]
-        reflection += f"**Codebase Entropy**:\n"
+        reflection += "**Codebase Entropy**:\n"
         reflection += f"- Active Nodes (Files): {code_signals['file_count']}\n"
         reflection += f"- Karmic Debt (TODOs): {todos}\n"
 
         if todos > 50:
-             reflection += "⚠️ **Disturbance Detected**: High technical debt density.\n"
-             self._emit(Wavelength.BLUE, 0.7, "INT: High Debt")
+            reflection += "⚠️ **Disturbance Detected**: High technical debt density.\n"
+            self._emit(Wavelength.BLUE, 0.7, "INT: High Debt")
 
         if code_signals["high_churn_files"]:
-            hotspots = ", ".join([f"{f} ({c})" for f, c in code_signals["high_churn_files"]])
+            hotspots = ", ".join(
+                [f"{f} ({c})" for f, c in code_signals["high_churn_files"]]
+            )
             reflection += f"- **Energy Hotspots (Churn)**: {hotspots}\n"
 
         # History Insights

@@ -6,36 +6,42 @@ for the local swarm.
 """
 
 import logging
+
 import torch
-import torch.nn as nn
-from typing import List, Optional, Tuple
+
 from cohezion.flume.autoencoder import FlumeEncoder
+from cohezion.flume.mnm import ManifoldManager
 from cohezion.flume.predictor import TrajectoryPredictor
 from cohezion.swarm.hiho_vector_engine import HihoVectorEngine
-from cohezion.flume.mnm import ManifoldManager
-
 
 logger = logging.getLogger(__name__)
+
 
 class FlumeNavigator:
     """
     Handles trajectory prediction and manifold navigation for FLUME.
     """
 
-    def __init__(self, encoder: FlumeEncoder, predictor: Optional[TrajectoryPredictor] = None, manifold_mgr: Optional[ManifoldManager] = None):
+    def __init__(
+        self,
+        encoder: FlumeEncoder,
+        predictor: TrajectoryPredictor | None = None,
+        manifold_mgr: ManifoldManager | None = None,
+    ):
         self.encoder = encoder
         self.z_dim = encoder.config.z_dim
         self.predictor = predictor or TrajectoryPredictor(z_dim=self.z_dim)
         self.hiho = HihoVectorEngine()
         self.manifold_mgr = manifold_mgr or ManifoldManager(z_dim=self.z_dim)
 
-
-    def predict_trajectory(self,
-                           start_text: str,
-                           steps: int = 5,
-                           momentum: float = 0.9,
-                           physics_weight: float = 0.3,
-                           hiho_damping: float = 0.5) -> List[str]:
+    def predict_trajectory(
+        self,
+        start_text: str,
+        steps: int = 5,
+        momentum: float = 0.9,
+        physics_weight: float = 0.3,
+        hiho_damping: float = 0.5,
+    ) -> list[str]:
         """
         Predicts the future evolution of a thought vector using latent physics.
         Applies HIHO stability damping to reduce overconfidence and drift.
@@ -62,11 +68,13 @@ class FlumeNavigator:
         # Decode sequence back to text
         return [self.encoder.decode(vec.unsqueeze(0))[0] for vec in damped_vecs]
 
-    def predict_branches(self,
-                         start_text: str,
-                         num_branches: int = 3,
-                         steps: int = 5,
-                         scenario: Optional[str] = None) -> List[List[str]]:
+    def predict_branches(
+        self,
+        start_text: str,
+        num_branches: int = 3,
+        steps: int = 5,
+        scenario: str | None = None,
+    ) -> list[list[str]]:
         """
         Predicts multiple potential branching trajectories in latent space.
         If scenario is provided, the manifold warp is applied to guide the branches.
@@ -89,25 +97,28 @@ class FlumeNavigator:
             )
 
             # Decode branch
-            branch_text = [self.encoder.decode(v if v.dim() == 2 else v.unsqueeze(0))[0] for v in traj_vecs]
+            branch_text = [
+                self.encoder.decode(v if v.dim() == 2 else v.unsqueeze(0))[0]
+                for v in traj_vecs
+            ]
             branches.append(branch_text)
-
 
         return branches
 
-    async def bridge_manifolds(self,
-                               concept: str,
-                               source_domain: str,
-                               target_domain: str) -> str:
+    async def bridge_manifolds(
+        self, concept: str, source_domain: str, target_domain: str
+    ) -> str:
         """
         Navigates from source_domain manifold to target_domain manifold.
         """
         # Uses the cross_domain_bridge logic from FlumeEncoder
         return self.encoder.cross_domain_bridge(concept, source_domain, target_domain)
 
+
 async def main():
     # Simple verification script
     from cohezion.flume.autoencoder import FlumeConfig
+
     config = FlumeConfig()
     encoder = FlumeEncoder(config)
     navigator = FlumeNavigator(encoder)
@@ -118,6 +129,8 @@ async def main():
     for i, t in enumerate(traj):
         print(f"Step {i}: {t}")
 
+
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(main())

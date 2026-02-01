@@ -9,12 +9,12 @@ Supports:
 """
 
 import asyncio
+import base64
 import json
 import logging
 import re
 import time
 import zlib
-import base64
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -27,43 +27,54 @@ logger = logging.getLogger(__name__)
 # Shared in-memory store for fallback/testing
 _SHARED_STORE = None
 
+
 @dataclass
 class PhysicsState:
     """
-    The 12-dimensional physics state vector for visualization.
-
-    Each dimension represents a semantic/analytical attribute
-    extracted from the content.
+    The 12-dimensional physics state vector (3 Spatial + 1 Time + 8 Brane).
+    Aligns with the FLUME methodology for latent understanding.
     """
-    # Spatial dimensions (for 3D positioning)
+
+    # Spatial dimensions (3)
     x: float = 0.0
     y: float = 0.0
     z: float = 0.0
 
-    # Temporal dimension
+    # Temporal dimension (1)
     time: float = 0.0
 
-    # Semantic dimensions
-    mass: float = 0.0         # Importance/weight
-    sentiment: float = 0.0     # -1 to 1
-    complexity: float = 0.0    # 0 to 1
-    factuality: float = 0.0    # 0 to 1
+    # Brane dimensions (8)
+    physics: float = 0.0  # Energy/Mass signatures
+    biology: float = 0.0  # Organic/Agentic signatures
+    logic: float = 0.0  # Semantic structure
+    quantum: float = 0.0  # Uncertainty/Probabilistic state
+    field: float = 0.0  # Influence/Contextual weight
+    control: float = 0.0  # Governance/Stabilization
+    novelty: float = 0.0  # Innovation/Entropy
+    precipitation: float = 0.0  # COMMERCE/Value Manifestation (UCP)
 
-    # Relational dimensions
-    connectivity: float = 0.0  # How connected to other nodes
-    stability: float = 0.0     # How stable/consistent
-
-    # Abstract dimensions
-    novelty: float = 0.0       # How novel/unique
-    coherence: float = 0.0     # Internal coherence
-
-    def to_array(self) -> np.ndarray:
+    def to_array(self) -> Any:
         """Convert to numpy array for calculations."""
-        return np.array([
-            self.x, self.y, self.z, self.time,
-            self.mass, self.sentiment, self.complexity, self.factuality,
-            self.connectivity, self.stability, self.novelty, self.coherence,
-        ], dtype=np.float32)
+        data = [
+            self.x,
+            self.y,
+            self.z,
+            self.time,
+            self.physics,
+            self.biology,
+            self.logic,
+            self.quantum,
+            self.field,
+            self.control,
+            self.novelty,
+            self.precipitation,
+        ]
+        if hasattr(np, "array"):  # Check if it's a real numpy
+            try:
+                return np.array(data, dtype=np.float32)
+            except Exception:
+                return data
+        return data
 
     @classmethod
     def from_array(cls, arr: np.ndarray) -> "PhysicsState":
@@ -71,11 +82,18 @@ class PhysicsState:
         if len(arr) != 12:
             raise ValueError(f"Expected 12 dimensions, got {len(arr)}")
         return cls(
-            x=float(arr[0]), y=float(arr[1]), z=float(arr[2]), time=float(arr[3]),
-            mass=float(arr[4]), sentiment=float(arr[5]),
-            complexity=float(arr[6]), factuality=float(arr[7]),
-            connectivity=float(arr[8]), stability=float(arr[9]),
-            novelty=float(arr[10]), coherence=float(arr[11]),
+            x=float(arr[0]),
+            y=float(arr[1]),
+            z=float(arr[2]),
+            time=float(arr[3]),
+            physics=float(arr[4]),
+            biology=float(arr[5]),
+            logic=float(arr[6]),
+            quantum=float(arr[7]),
+            field=float(arr[8]),
+            control=float(arr[9]),
+            novelty=float(arr[10]),
+            precipitation=float(arr[11]),
         )
 
     def to_dict(self) -> dict[str, float]:
@@ -85,20 +103,26 @@ class PhysicsState:
             "dim_2_y": self.y,
             "dim_3_z": self.z,
             "dim_4_time": self.time,
-            "dim_5_mass": self.mass,
-            "dim_6_sentiment": self.sentiment,
-            "dim_7_complexity": self.complexity,
-            "dim_8_factuality": self.factuality,
-            "dim_9_connectivity": self.connectivity,
-            "dim_10_stability": self.stability,
+            "dim_5_physics": self.physics,
+            "dim_6_biology": self.biology,
+            "dim_7_logic": self.logic,
+            "dim_8_quantum": self.quantum,
+            "dim_9_field": self.field,
+            "dim_10_control": self.control,
             "dim_11_novelty": self.novelty,
-            "dim_12_coherence": self.coherence,
+            "dim_12_precipitation": self.precipitation,
         }
 
     def pack(self) -> str:
         """Pack 12D state into a compact base64 string for storage."""
         arr = self.to_array()
-        return base64.b64encode(arr.tobytes()).decode('ascii')
+        if hasattr(arr, "tobytes"):
+            try:
+                return base64.b64encode(arr.tobytes()).decode("ascii")
+            except Exception:
+                pass
+        # Fallback to JSON string as 'packed' if numpy is missing
+        return base64.b64encode(str(arr).encode()).decode("ascii")
 
     @classmethod
     def unpack(cls, packed: str) -> "PhysicsState":
@@ -106,6 +130,7 @@ class PhysicsState:
         data = base64.b64decode(packed)
         # Ensure numpy is available as np
         import numpy as np
+
         arr = np.frombuffer(data, dtype=np.float32)
         return cls.from_array(arr)
 
@@ -113,6 +138,7 @@ class PhysicsState:
 @dataclass
 class UniverseNode:
     """A node in the Universe Simulation."""
+
     id: str
     content: str
     embedding: list[float] | None = None  # 768-dim for search
@@ -127,8 +153,8 @@ class UniverseNode:
         is_compressed = False
 
         if compress and len(self.content) > 100:
-            compressed_data = zlib.compress(self.content.encode('utf-8'))
-            content_val = base64.b64encode(compressed_data).decode('ascii')
+            compressed_data = zlib.compress(self.content.encode("utf-8"))
+            content_val = base64.b64encode(compressed_data).decode("ascii")
             is_compressed = True
 
         return {
@@ -140,7 +166,7 @@ class UniverseNode:
             "created_at": self.created_at.isoformat(),
             "metadata": self.metadata,
             "compressed": is_compressed or self.compressed,
-            "packed_physics": self.physics_state.pack()
+            "packed_physics": self.physics_state.pack(),
         }
 
 
@@ -174,7 +200,7 @@ DEFINE FIELD created_at ON TABLE universe_nodes TYPE datetime DEFAULT time::now(
 DEFINE FIELD metadata ON TABLE universe_nodes TYPE object DEFAULT {};
 DEFINE FIELD compressed ON TABLE universe_nodes TYPE bool DEFAULT false;
 DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
-    (physics_state.dim_10_stability + physics_state.dim_12_coherence) / 2
+    (physics_state.dim_10_control + physics_state.dim_12_precipitation) / 2
 ) OR 0.0;
 
 -- Index for vector similarity search (SurrealDB 2.0+)
@@ -210,7 +236,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             await asyncio.sleep(2)
 
         logger.error("❌ SurrealDB substrate FAILURE: Persistence guard timeout.")
-        SurrealClient._FAILED_ONCE = True # One failure is enough
+        SurrealClient._FAILED_ONCE = True  # One failure is enough
         return False
 
     def __init__(
@@ -252,16 +278,20 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             await self._client.signin({"username": "root", "password": "root"})
             await self._client.use(self.namespace, self.database)
             self._connected = True
-            logger.info(f"Connected to SurrealDB at {self.url}")
+            logger.info(
+                f"✅ REAL CLIENT: Connected to SurrealDB at {self.url} ({self.namespace}/{self.database})"
+            )
             return True
-
         except Exception as e:
-            logger.error(f"Failed to connect to SurrealDB: {e}")
+            logger.error(
+                f"❌ Failed to connect to SurrealDB: {e}. Falling back to InMemoryStore."
+            )
             # Fall back to in-memory store
             if _SHARED_STORE is None:
                 _SHARED_STORE = InMemoryStore()
             self._client = _SHARED_STORE
             self._connected = True
+            logger.warning("🔸 FALLBACK: Using InMemoryStore for persistence.")
             return True
 
     async def setup_schema(self) -> bool:
@@ -297,7 +327,9 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
             if isinstance(self._client, InMemoryStore):
                 self._client.store(node.id, data)
-                logger.info(f"DEBUG: Stored node {node.id}. Compressed: {data.get('compressed')}")
+                logger.info(
+                    f"DEBUG: Stored node {node.id}. Compressed: {data.get('compressed')}"
+                )
             else:
                 await self._client.create(f"universe_nodes:{node.id}", data)
 
@@ -308,6 +340,25 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             logger.error(f"Failed to store node: {e}")
             raise
 
+    async def create(self, table: str, data: dict[str, Any]) -> Any:
+        """Create a record in a specific table."""
+        if not self._connected:
+            await self.connect()
+        try:
+            if isinstance(self._client, InMemoryStore):
+                # For InMemoryStore, we need to simulate creation.
+                # If 'id' is provided in data, use it. Otherwise, generate one.
+                record_id = data.get("id") or f"{table}_{int(time.time()*1000)}"
+                self._client.store(record_id, data)
+                return [
+                    {"id": f"{table}:{record_id}", "data": data}
+                ]  # Simulate SurrealDB response
+            else:
+                return await self._client.create(table, data)
+        except Exception as e:
+            logger.error(f"Create failed in {table}: {e}")
+            raise e
+
     async def query(self, sql: str, vars: dict[str, Any] | None = None) -> Any:
         """Execute a raw SQL query against the database."""
         if not self._connected:
@@ -316,10 +367,16 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
         try:
             if isinstance(self._client, InMemoryStore):
                 # Basic mock for mission/thought queries
-                if "CREATE missions" in sql or "INSERT INTO missions" in sql:
+                if "CREATE missions" in sql or "CREATE agent_journey" in sql:
                     data = vars.get("data") if vars else vars
                     if data:
-                        self._client.store(data["id"], data)
+                        # Extract the bare ID from table:id if present
+                        bare_id = (
+                            data["id"].split(":")[-1]
+                            if ":" in data["id"]
+                            else data["id"]
+                        )
+                        self._client.store(bare_id, data)
                     return [data]
                 if "CREATE agent_thought" in sql:
                     data = vars.get("data") if vars else vars
@@ -331,36 +388,83 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                     if data:
                         self._client.store(f"event_{int(time.time()*1000)}", data)
                     return [data]
-                if "FROM missions" in sql:
+                if "FROM missions" in sql or "FROM agent_journey" in sql:
                     mission_id = vars.get("id") if vars else None
+                    if not mission_id:
+                        # Try to extract from SQL table:id
+                        match = re.search(r"FROM\s+[\w`]+:([\w-]+)", sql)
+                        if match:
+                            mission_id = match.group(1)
+
                     mission = self._client.get(mission_id) if mission_id else None
-                    return [[mission]] if mission else [[]]
+                    if not mission and not mission_id:
+                        # Return all for generic SELECT * FROM table
+                        all_items = self._client.get_all(limit=100)
+                        return [{"result": all_items, "status": "OK"}]
+
+                    return [{"result": [mission] if mission else [], "status": "OK"}]
                 if "FROM agent_thought" in sql:
                     # Handle queries like: SELECT content, metadata.query_hash as qh, metadata.agent as agent FROM agent_thought ORDER BY timestamp DESC LIMIT 100
                     all_nodes = self._client.get_all(1000)
                     # Filter for agent_thought type
-                    matches = [n for n in all_nodes if n.get("node_type") == "agent_thought"]
+                    matches = [
+                        n for n in all_nodes if n.get("node_type") == "agent_thought"
+                    ]
 
                     # Handle specific projections if using alias (e.g., metadata.query_hash as qh)
                     if "qh" in sql or "metadata.query_hash" in sql:
                         processed = []
                         for m in matches:
                             meta = m.get("metadata", {})
-                            processed.append({
-                                "content": m.get("content"),
-                                "qh": meta.get("query_hash"),
-                                "agent": meta.get("agent")
-                            })
+                            processed.append(
+                                {
+                                    "content": m.get("content"),
+                                    "qh": meta.get("query_hash"),
+                                    "agent": meta.get("agent"),
+                                }
+                            )
                         return [processed]
 
                     return [matches]
 
                 # Table-based filtering mock (e.g., SELECT * FROM table WHERE field = $value)
-                if "SELECT * FROM" in sql and "WHERE" in sql and vars:
+                if "SELECT * FROM" in sql and "WHERE" in sql:
+                    # Generic mock for "WHERE x > y AND a > b" type queries based on EvolutionaryDriver
+                    # SELECT * FROM universe_nodes WHERE node_type = 'energy_snapshot' AND ...
+
+                    if "node_type = 'energy_snapshot'" in sql:
+                        # Return all energy snapshots that meet the criteria
+                        all_items = self._client.get_all(1000)
+                        results = []
+                        for item in all_items:
+                            if item.get("node_type") != "energy_snapshot":
+                                continue
+
+                            # Physics check (Mocking the SQL logic: physics_state.dim_12_coherence > 0.9)
+                            # We just return them if they are snapshots, assuming the caller filters or we mock the success
+                            # But let's try to be a bit specific if possible
+                            ps = item.get("physics_state", {})
+
+                            # Check conditions roughly
+                            if (
+                                "coherence > 0.9" in sql
+                                and ps.get("dim_12_coherence", 0) <= 0.9
+                            ):
+                                continue
+                            if (
+                                "stability > 0.9" in sql
+                                and ps.get("dim_10_stability", 0) <= 0.9
+                            ):
+                                continue
+
+                            results.append(item)
+
+                        return [{"result": results, "status": "OK"}]
+
                     # Extract table name (simple regex for "FROM table_name")
                     match_from = re.search(r"FROM\s+(\w+)", sql)
                     if match_from:
-                        table_name = match_from.group(1)
+                        match_from.group(1)
                         # Extract WHERE clause (simple regex for "WHERE field = $var")
                         match_where = re.search(r"WHERE\s+(\w+)\s*=\s*\$(\w+)", sql)
                         if match_where:
@@ -369,19 +473,26 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
                             if var_name in vars:
                                 target_value = vars[var_name]
-                                all_items = self._client.get_all(1000) # Assuming all items are nodes for now
+                                all_items = self._client.get_all(
+                                    1000
+                                )  # Assuming all items are nodes for now
 
                                 # Filter based on the field and value
                                 filtered_items = [
-                                    item for item in all_items
+                                    item
+                                    for item in all_items
                                     if item.get(field) == target_value
                                 ]
-                                return [filtered_items] # SurrealDB returns a list of results, each a list of records
+                                return [
+                                    filtered_items
+                                ]  # SurrealDB returns a list of results, each a list of records
 
                 logger.warning("Query not supported in InMemoryStore")
                 return []
 
-            return await self._client.query(sql, vars)
+            res = await self._client.query(sql, vars)
+            logger.info(f"SurrealDB Response: {res}")
+            return res
         except Exception as e:
             logger.error(f"Query failed: {e}")
             raise
@@ -492,14 +603,17 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
         try:
             if isinstance(self._client, InMemoryStore):
                 rel_id = f"rel:{from_id}->{to_id}"
-                self._client.store(rel_id, {
-                    "from": from_id,
-                    "to": to_id,
-                    "type": relation_type,
-                    "weight": weight,
-                    "metadata": metadata or {},
-                    "created_at": datetime.now().isoformat(),
-                })
+                self._client.store(
+                    rel_id,
+                    {
+                        "from": from_id,
+                        "to": to_id,
+                        "type": relation_type,
+                        "weight": weight,
+                        "metadata": metadata or {},
+                        "created_at": datetime.now().isoformat(),
+                    },
+                )
                 return rel_id
             else:
                 result = await self._client.query(
@@ -544,7 +658,9 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                         rels.append(item)
                 return rels
             else:
-                query = f"SELECT * FROM universe_nodes WHERE id = {node_id} FETCH <->, ->;"
+                query = (
+                    f"SELECT * FROM universe_nodes WHERE id = {node_id} FETCH <->, ->;"
+                )
                 result = await self._client.query(query)
                 if result and result[0].get("result"):
                     return result[0]["result"]
@@ -621,7 +737,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
         if compressed:
             try:
                 decoded = base64.b64decode(content)
-                content = zlib.decompress(decoded).decode('utf-8')
+                content = zlib.decompress(decoded).decode("utf-8")
             except Exception as e:
                 logger.error(f"Failed to decompress node {data.get('id')}: {e}")
 
@@ -632,7 +748,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             physics_state=physics_state,
             node_type=data.get("node_type", "document"),
             created_at=datetime.fromisoformat(data["created_at"])
-                       if "created_at" in data else datetime.now(),
+            if "created_at" in data
+            else datetime.now(),
             metadata=data.get("metadata", {}),
             compressed=compressed,
         )
@@ -644,14 +761,14 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             y=physics_data.get("dim_2_y", 0),
             z=physics_data.get("dim_3_z", 0),
             time=physics_data.get("dim_4_time", 0),
-            mass=physics_data.get("dim_5_mass", 0),
-            sentiment=physics_data.get("dim_6_sentiment", 0),
-            complexity=physics_data.get("dim_7_complexity", 0),
-            factuality=physics_data.get("dim_8_factuality", 0),
-            connectivity=physics_data.get("dim_9_connectivity", 0),
-            stability=physics_data.get("dim_10_stability", 0),
+            physics=physics_data.get("dim_5_physics", 0),
+            biology=physics_data.get("dim_6_biology", 0),
+            logic=physics_data.get("dim_7_logic", 0),
+            quantum=physics_data.get("dim_8_quantum", 0),
+            field=physics_data.get("dim_9_field", 0),
+            control=physics_data.get("dim_10_control", 0),
             novelty=physics_data.get("dim_11_novelty", 0),
-            coherence=physics_data.get("dim_12_coherence", 0),
+            precipitation=physics_data.get("dim_12_precipitation", 0),
         )
 
     async def close(self) -> None:
@@ -692,7 +809,7 @@ class InMemoryStore:
         query_vec = np.array(vector)
         scores = []
 
-        for key, data in self._data.items():
+        for _key, data in self._data.items():
             embedding = data.get("embedding")
             if embedding:
                 doc_vec = np.array(embedding)
@@ -729,8 +846,14 @@ async def main() -> None:
             content="This is a test node for the universe simulation.",
             embedding=[0.1] * 768,  # Fake embedding
             physics_state=PhysicsState(
-                x=0.5, y=0.5, z=0.5, time=1.0,
-                mass=0.8, sentiment=0.2, complexity=0.6, factuality=0.9,
+                x=0.5,
+                y=0.5,
+                z=0.5,
+                time=1.0,
+                mass=0.8,
+                sentiment=0.2,
+                complexity=0.6,
+                factuality=0.9,
             ),
         )
 
@@ -740,7 +863,9 @@ async def main() -> None:
         if retrieved:
             print(f"Retrieved node: {retrieved.id}")
             print(f"Content: {retrieved.content[:50]}...")
-            print(f"Physics: x={retrieved.physics_state.x}, mass={retrieved.physics_state.mass}")
+            print(
+                f"Physics: x={retrieved.physics_state.x}, mass={retrieved.physics_state.mass}"
+            )
 
     await client.close()
 

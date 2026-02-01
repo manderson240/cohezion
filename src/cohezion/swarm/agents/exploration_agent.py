@@ -6,13 +6,14 @@ and emergent behaviors that deviate from standard patterns.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+
 import numpy as np
 
 from cohezion.swarm.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
 
 logger = logging.getLogger(__name__)
+
 
 class ExplorationAgent(BaseAgent):
     def __init__(self, config: SwarmConfig | None = None):
@@ -63,12 +64,14 @@ class ExplorationAgent(BaseAgent):
 
             # If distance is high (> 2 standard deviations), it's a surprise
             if dist > 1.5:  # Threshold for "Discovery"
-                signals.append({
-                    "id": node.id,
-                    "content": node.content[:200],
-                    "novelty_score": float(dist),
-                    "agent": node.metadata.get("agent", "unknown")
-                })
+                signals.append(
+                    {
+                        "id": node.id,
+                        "content": node.content[:200],
+                        "novelty_score": float(dist),
+                        "agent": node.metadata.get("agent", "unknown"),
+                    }
+                )
 
         if not signals:
             return "No high-novelty signals detected in the current manifold."
@@ -77,8 +80,12 @@ class ExplorationAgent(BaseAgent):
         report = ["## Emergent Behavior & Novelty Report"]
         report.append(f"Centroid analyzed across {len(nodes)} conceptual points.")
 
-        for signal in sorted(signals, key=lambda x: x['novelty_score'], reverse=True)[:5]:
-            report.append(f"\n### Signal: {signal['id']} (Novelty: {signal['novelty_score']:.2f})")
+        for signal in sorted(signals, key=lambda x: x["novelty_score"], reverse=True)[
+            :5
+        ]:
+            report.append(
+                f"\n### Signal: {signal['id']} (Novelty: {signal['novelty_score']:.2f})"
+            )
             report.append(f"Agent: {signal['agent']}")
             report.append(f"Content: {signal['content']}...")
 

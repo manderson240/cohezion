@@ -1,11 +1,12 @@
 import logging
-import math
+
+from cohezion.bio.biophotonics import Wavelength
+from cohezion.seti.array import get_exogenic_array
 from cohezion.swarm.agents.gaia_agent import GaiaAgent
 from cohezion.swarm.swarm_types import SwarmConfig
-from cohezion.seti.array import get_exogenic_array, Signal
-from cohezion.bio.biophotonics import Wavelength
 
 logger = logging.getLogger(__name__)
+
 
 class SETIAgent(GaiaAgent):
     """
@@ -17,6 +18,7 @@ class SETIAgent(GaiaAgent):
     - Listener: Scans ExogenicArray for anomalies.
     - Ambassador: Decodes Arecibo-style bitmaps.
     """
+
     def __init__(self, config: SwarmConfig | None = None):
         super().__init__(config=config)
         self.array = get_exogenic_array()
@@ -26,7 +28,7 @@ class SETIAgent(GaiaAgent):
         """
         Listen for signals and decode anomalies.
         """
-        report = f"\n\n### 👽 SETI Report (Exogenic Scan)\n"
+        report = "\n\n### 👽 SETI Report (Exogenic Scan)\n"
 
         # 1. Active Scanning (Mockup: usually would scan recent vector buffer)
         # For simulation, we check if the query ITSELF contains a hidden signal
@@ -34,21 +36,22 @@ class SETIAgent(GaiaAgent):
         # Arecibo Check: Is there a binary string hidden in the query?
         # Extract potential binary sequences (length > 10)
         import re
-        binary_candidates = re.findall(r'[01]{10,}', query.replace(" ", ""))
+
+        binary_candidates = re.findall(r"[01]{10,}", query.replace(" ", ""))
 
         for candidate in binary_candidates:
-             signal = self.array.analyze_bitmap(candidate)
-             if signal:
-                 dims = signal.payload.split(": ")[1] # e.g. "23x73"
-                 decoded = self._render_bitmap(candidate, dims)
-                 self._emit(Wavelength.UV, 1.0, "FIRST CONTACT PROTOCOL INITIATED")
+            signal = self.array.analyze_bitmap(candidate)
+            if signal:
+                dims = signal.payload.split(": ")[1]  # e.g. "23x73"
+                decoded = self._render_bitmap(candidate, dims)
+                self._emit(Wavelength.UV, 1.0, "FIRST CONTACT PROTOCOL INITIATED")
 
-                 report += f"🚨 **TECHNOSIGNATURE DETECTED** 🚨\n"
-                 report += f"Type: {signal.signature_type}\n"
-                 report += f"Payload: {signal.payload}\n"
-                 report += f"**Decoded Bitmap**:\n{decoded}\n"
+                report += "🚨 **TECHNOSIGNATURE DETECTED** 🚨\n"
+                report += f"Type: {signal.signature_type}\n"
+                report += f"Payload: {signal.payload}\n"
+                report += f"**Decoded Bitmap**:\n{decoded}\n"
 
-                 return report # Return immediately for high priority interrupt
+                return report  # Return immediately for high priority interrupt
 
         # 2. General Anomaly Scan
         # In a real run we'd pass actual vectors.
@@ -69,7 +72,7 @@ class SETIAgent(GaiaAgent):
 
             grid = ""
             for i in range(r):
-                row = binary[i*c : (i+1)*c]
+                row = binary[i * c : (i + 1) * c]
                 # Replace 0 with space, 1 with block for visibility
                 line = row.replace("0", "░").replace("1", "█")
                 grid += line + "\n"

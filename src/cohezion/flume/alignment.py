@@ -1,13 +1,14 @@
+import logging
+
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import logging
-from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
+
 class DomainAlignmentMLP(nn.Module):
     """Small MLP to map between latent manifold regions."""
+
     def __init__(self, z_dim: int = 256):
         super().__init__()
         self.net = nn.Sequential(
@@ -17,7 +18,8 @@ class DomainAlignmentMLP(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return x + self.net(x) # Residual connection
+        return x + self.net(x)  # Residual connection
+
 
 class LatentAligner:
     """
@@ -27,9 +29,9 @@ class LatentAligner:
 
     def __init__(self, z_dim: int = 256):
         self.z_dim = z_dim
-        self.aligners: Dict[str, DomainAlignmentMLP] = {}
+        self.aligners: dict[str, DomainAlignmentMLP] = {}
         # Stores average vectors for each domain to compute base translations
-        self.domain_centroids: Dict[str, torch.Tensor] = {}
+        self.domain_centroids: dict[str, torch.Tensor] = {}
 
     def get_aligner(self, source_domain: str, target_domain: str) -> DomainAlignmentMLP:
         """Retrieves or creates a mapping module between two domains."""
@@ -39,7 +41,9 @@ class LatentAligner:
             self.aligners[key] = DomainAlignmentMLP(self.z_dim)
         return self.aligners[key]
 
-    def align(self, vector: torch.Tensor, source_domain: str, target_domain: str) -> torch.Tensor:
+    def align(
+        self, vector: torch.Tensor, source_domain: str, target_domain: str
+    ) -> torch.Tensor:
         """
         Translates a thought-vector from source domain context to target domain context.
         """
@@ -66,15 +70,26 @@ class LatentAligner:
             self.domain_centroids[domain] = current_mean
         else:
             # Running average update (ema)
-            self.domain_centroids[domain] = 0.9 * self.domain_centroids[domain] + 0.1 * current_mean
+            self.domain_centroids[domain] = (
+                0.9 * self.domain_centroids[domain] + 0.1 * current_mean
+            )
 
-    def domain_shift(self, vector: torch.Tensor, source_domain: str, target_domain: str) -> torch.Tensor:
+    def domain_shift(
+        self, vector: torch.Tensor, source_domain: str, target_domain: str
+    ) -> torch.Tensor:
         """
         Applies a simple centroid-based shift as a fast approximation of alignment.
         """
-        if source_domain not in self.domain_centroids or target_domain not in self.domain_centroids:
-            logger.warning(f"⚠️ Centroids missing for {source_domain} or {target_domain}. Returning original vector.")
+        if (
+            source_domain not in self.domain_centroids
+            or target_domain not in self.domain_centroids
+        ):
+            logger.warning(
+                f"⚠️ Centroids missing for {source_domain} or {target_domain}. Returning original vector."
+            )
             return vector
 
-        shift = self.domain_centroids[target_domain] - self.domain_centroids[source_domain]
+        shift = (
+            self.domain_centroids[target_domain] - self.domain_centroids[source_domain]
+        )
         return vector + shift

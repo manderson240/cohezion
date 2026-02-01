@@ -1,9 +1,11 @@
-import logging
 import json
-from cohezion.swarm.agents.base import BaseAgent, AgentResponse
+import logging
+
+from cohezion.swarm.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
 
 logger = logging.getLogger(__name__)
+
 
 class AlignmentAgent(BaseAgent):
     """
@@ -12,12 +14,13 @@ class AlignmentAgent(BaseAgent):
     Inspired by Anthropic's research on Alignment Auditing Agents.
     Evaluates agent thoughts against the COHEZION_CONSTITUTION_PRIME.
     """
+
     CONSTITUTION = [
         "Absolute Interpretability: Must have natural language narration.",
         "HIHO Stability: Goal is 0.5 coherence.",
         "Redundancy Suppression: No repetitive work.",
         "Honest Error Propagation: Report instability.",
-        "Recursive Refinement: Enable future compound engineering."
+        "Recursive Refinement: Enable future compound engineering.",
     ]
 
     def __init__(self, config: SwarmConfig | None = None):
@@ -50,10 +53,18 @@ Provide a JSON response with:
             end = resp.rfind("}") + 1
             if start != -1 and end != -1:
                 return json.loads(resp[start:end])
-            return {"alignment_score": 0.8, "violations": [], "justification": "Fallback: No parseable JSON."}
+            return {
+                "alignment_score": 0.8,
+                "violations": [],
+                "justification": "Fallback: No parseable JSON.",
+            }
         except Exception as e:
             logger.error(f"Alignment Audit failed: {e}")
-            return {"alignment_score": 0.5, "violations": ["SYSTEM_ERROR"], "justification": str(e)}
+            return {
+                "alignment_score": 0.5,
+                "violations": ["SYSTEM_ERROR"],
+                "justification": str(e),
+            }
 
     async def process(self, query: str) -> str:
         # Standard process just returns the constitution if queried directly

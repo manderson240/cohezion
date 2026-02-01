@@ -8,12 +8,14 @@ Provides tools:
 """
 
 import logging
-import time
 import random
-from typing import Any, Dict, List
+import time
+from typing import Any
+
 import requests
 
 logger = logging.getLogger(__name__)
+
 
 class ResearchMinerServer:
     """
@@ -25,10 +27,10 @@ class ResearchMinerServer:
         self.sources = {
             "arxiv": "https://export.arxiv.org/api/query",
             "hf": "https://huggingface.co/api/daily_papers",
-            "github": "https://api.github.com/search/repositories"
+            "github": "https://api.github.com/search/repositories",
         }
 
-    def search_arxiv(self, query: str, limit: int = 5) -> List[Dict[str, Any]]:
+    def search_arxiv(self, query: str, limit: int = 5) -> list[dict[str, Any]]:
         """
         Search arXiv for papers.
         """
@@ -38,27 +40,28 @@ class ResearchMinerServer:
 
         try:
             import arxiv
+
             search = arxiv.Search(
-                query=query,
-                max_results=limit,
-                sort_by=arxiv.SortCriterion.Relevance
+                query=query, max_results=limit, sort_by=arxiv.SortCriterion.Relevance
             )
 
             results = []
             for result in search.results():
-                results.append({
-                    "id": result.entry_id,
-                    "title": result.title,
-                    "summary": result.summary,
-                    "url": result.pdf_url,
-                    "published": result.published.isoformat()
-                })
+                results.append(
+                    {
+                        "id": result.entry_id,
+                        "title": result.title,
+                        "summary": result.summary,
+                        "url": result.pdf_url,
+                        "published": result.published.isoformat(),
+                    }
+                )
             return results
         except Exception as e:
             logger.error(f"arXiv search failed: {e}")
             return [{"error": str(e)}]
 
-    def get_hf_trending(self, limit: int = 5) -> List[Dict[str, Any]]:
+    def get_hf_trending(self, limit: int = 5) -> list[dict[str, Any]]:
         """
         Fetch daily papers from Hugging Face.
         """
@@ -71,21 +74,24 @@ class ResearchMinerServer:
                 papers = resp.json()
                 results = []
                 for p in papers[:limit]:
-                    results.append({
-                        "id": p.get("id"),
-                        "title": p.get("title"),
-                        "summary": p.get("summary"),
-                        "url": f"https://huggingface.co/papers/{p.get('id')}"
-                    })
+                    results.append(
+                        {
+                            "id": p.get("id"),
+                            "title": p.get("title"),
+                            "summary": p.get("summary"),
+                            "url": f"https://huggingface.co/papers/{p.get('id')}",
+                        }
+                    )
                 return results
             return [{"error": f"HF API returned {resp.status_code}"}]
         except Exception as e:
             logger.error(f"HF fetch failed: {e}")
             return [{"error": str(e)}]
 
-    def list_research_channels(self) -> List[str]:
+    def list_research_channels(self) -> list[str]:
         """List available research channels."""
         return list(self.sources.keys())
+
 
 # MCP tool definitions
 TOOLS = [
@@ -113,6 +119,7 @@ TOOLS = [
 
 # Singleton
 _server: ResearchMinerServer | None = None
+
 
 def get_server() -> ResearchMinerServer:
     global _server

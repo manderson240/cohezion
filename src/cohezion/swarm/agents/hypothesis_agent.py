@@ -5,52 +5,52 @@ Uses the TrajectoryPredictor to imagine alternative future states, then
 designs and executes empirical experiments in the sandbox to verify them.
 """
 
-import json
 import logging
-import time
 import subprocess
+import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 import torch
 
+from cohezion.flume.predictor import TrajectoryPredictor
 from cohezion.swarm.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
-from cohezion.flume.predictor import TrajectoryPredictor
 
 logger = logging.getLogger(__name__)
+
 
 class HypothesisAgent(BaseAgent):
     def __init__(self, config: SwarmConfig | None = None):
         config = config or SwarmConfig()
         super().__init__(
-            model_name="qwen3-coder:30b", # SOTA for Code Gen
+            model_name="qwen3-coder:30b",  # SOTA for Code Gen
             config=config,
         )
-        self.predictor = TrajectoryPredictor(z_dim=768) # Matches nomic-embed-text
+        self.predictor = TrajectoryPredictor(z_dim=768)  # Matches nomic-embed-text
 
     async def imagine_and_verify(self, context_query: str) -> str:
         """
         Imagine future branches of thought and verify their feasibility
         using empirical sandbox experiments.
         """
-        logger.info(f"🧪 HypothesisAgent starting imagination cycle for: {context_query[:50]}...")
+        logger.info(
+            f"🧪 HypothesisAgent starting imagination cycle for: {context_query[:50]}..."
+        )
 
-        # 1. Get initial thought vector
         if self._encoder is None:
-            from cohezion.flume.autoencoder import FlumeEncoder
-            self._encoder = FlumeEncoder()
+            from cohezion.flume.autoencoder import FlumeConfig, FlumeEncoder
+
+            self._encoder = FlumeEncoder(config=FlumeConfig())
 
         z_start = self._encoder.get_semantic_vector(context_query)
-        if hasattr(z_start, 'numpy'):
+        if hasattr(z_start, "numpy"):
             z_start = z_start.numpy()
 
         # 2. Imagine 3 branches
         branches = self.predictor.imagine_branches(
-            torch.from_numpy(z_start).float(),
-            perturbations=2,
-            steps=3
+            torch.from_numpy(z_start).float(), perturbations=2, steps=3
         )
 
         report = ["## Automated Hypothesis Testing Report"]
@@ -61,7 +61,7 @@ class HypothesisAgent(BaseAgent):
             report.append(f"### Exploring: {branch_label}")
 
             # 3. Translate branch trajectory back to text (simplified: use LLM to interpret z_end)
-            z_end = branch[-1].cpu().numpy()
+            branch[-1].detach().cpu().numpy()
             # Since we can't 'decode' perfectly back to text yet (G5 is basic),
             # we ask the model to generate a hypothesis based on starting context + "imagination direction"
 
@@ -106,17 +106,22 @@ VERIFICATION SCRIPT (CODE BLOCK):
             code_block = ""
 
             if "HYPOTHESIS DESCRIPTION:" in response:
-                hypothesis_desc = response.split("HYPOTHESIS DESCRIPTION:")[1].split("\n")[0].strip()
+                hypothesis_desc = (
+                    response.split("HYPOTHESIS DESCRIPTION:")[1].split("\n")[0].strip()
+                )
 
             import re
-            code_match = re.search(r'```python\n(.*?)```', response, re.DOTALL)
+
+            code_match = re.search(r"```python\n(.*?)```", response, re.DOTALL)
             if code_match:
                 code_block = code_match.group(1)
 
             report.append(f"- **Hypothesis**: {hypothesis_desc}")
 
             if not code_block:
-                report.append(f"- **Outcome**: ❌ Failed to generate verification script.")
+                report.append(
+                    "- **Outcome**: ❌ Failed to generate verification script."
+                )
                 continue
 
             # 4. Sandbox Verification with possible self-correction
@@ -127,12 +132,14 @@ VERIFICATION SCRIPT (CODE BLOCK):
                 logger.info(f"🛠️ Attempting self-correction for: {error_msg[:50]}...")
                 fix_prompt = f"Fix this Python script. Error: {error_msg}\n\nSCRIPT:\n```python\n{code_block}\n```"
                 fix_response = await self._call_ollama(fix_prompt, temperature=0.3)
-                fix_match = re.search(r'```python\n(.*?)```', fix_response, re.DOTALL)
+                fix_match = re.search(r"```python\n(.*?)```", fix_response, re.DOTALL)
                 if fix_match:
                     code_block = fix_match.group(1)
                     success, error_msg = await self._run_sandbox_experiment(code_block)
 
-            report.append(f"- **Outcome**: {'✅ VERIFIED' if success else '❌ REJECTED'} in Sandbox.")
+            report.append(
+                f"- **Outcome**: {'✅ VERIFIED' if success else '❌ REJECTED'} in Sandbox."
+            )
             if error_msg:
                 report.append(f"- **Error**: {error_msg}")
 
@@ -142,12 +149,15 @@ VERIFICATION SCRIPT (CODE BLOCK):
         """Execute a hypothesis verification script and return (Success, ErrorMsg)."""
         sandbox_dir = Path(".sandbox")
         sandbox_dir.mkdir(exist_ok=True)
-        sandbox_file = sandbox_dir / f"hypothesis_{int(time.time())}_{np.random.randint(1000)}.py"
+        sandbox_file = (
+            sandbox_dir / f"hypothesis_{int(time.time())}_{np.random.randint(1000)}.py"
+        )
 
         sandbox_file.write_text(code)
 
         try:
             import os
+
             env = os.environ.copy()
             src_path = str(Path.cwd() / "src")
             env["PYTHONPATH"] = f"{src_path}:{env.get('PYTHONPATH', '')}"
@@ -157,7 +167,7 @@ VERIFICATION SCRIPT (CODE BLOCK):
                 capture_output=True,
                 text=True,
                 timeout=15,
-                env=env
+                env=env,
             )
 
             logger.info(f"Sandbox stdout: {result.stdout}")

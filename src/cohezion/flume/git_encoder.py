@@ -6,15 +6,16 @@ semantic trajectories. Detects "health drift" by calculating the direction
 of semantic change over time.
 """
 
+import logging
+
 import torch
 import torch.nn.functional as F
-import logging
-from typing import List, Tuple
 
 from cohezion.flume import FlumeEncoder
 from cohezion.swarm.git_health import GitCommit
 
 logger = logging.getLogger(__name__)
+
 
 class GitEncoder:
     """
@@ -24,11 +25,12 @@ class GitEncoder:
     def __init__(self, encoder: FlumeEncoder | None = None):
         if encoder is None:
             from cohezion.flume.autoencoder import FlumeConfig
+
             self.encoder = FlumeEncoder(FlumeConfig(z_dim=256))
         else:
             self.encoder = encoder
 
-    def encode_history(self, commits: List[GitCommit]) -> torch.Tensor:
+    def encode_history(self, commits: list[GitCommit]) -> torch.Tensor:
         """
         Encode a sequence of commit messages into a trajectory of z-vectors.
 
@@ -49,7 +51,9 @@ class GitEncoder:
         z_sequence = self.encoder.encode(messages)
         return z_sequence
 
-    def get_health_direction(self, trajectory: torch.Tensor) -> Tuple[torch.Tensor, float]:
+    def get_health_direction(
+        self, trajectory: torch.Tensor
+    ) -> tuple[torch.Tensor, float]:
         """
         Calculates the semantic vector indicating the "drift" in health.
 
@@ -69,14 +73,14 @@ class GitEncoder:
 
         # Calculate momentum (cosine similarity between consecutive velocities)
         if velocities.shape[0] < 2:
-            momentum = 1.0 # Only one delta, perfect consistency
+            momentum = 1.0  # Only one delta, perfect consistency
         else:
             v_norm = F.normalize(velocities, dim=-1)
             momentum = (v_norm[1:] * v_norm[:-1]).sum(dim=-1).mean().item()
 
         return mean_velocity, momentum
 
-    def evaluate_drift(self, commits: List[GitCommit], pivot_index: int = -5) -> float:
+    def evaluate_drift(self, commits: list[GitCommit], pivot_index: int = -5) -> float:
         """
         Compares the recent history to the older history to detect semantic shift.
 
@@ -84,14 +88,17 @@ class GitEncoder:
         """
         trajectory = self.encode_history(commits)
         if trajectory.shape[0] < abs(pivot_index) * 2:
-            return 1.0 # Not enough history to judge drift
+            return 1.0  # Not enough history to judge drift
 
         old_mean = trajectory[:pivot_index].mean(dim=0)
         recent_mean = trajectory[pivot_index:].mean(dim=0)
 
         # Cosine similarity
-        sim = F.cosine_similarity(old_mean.unsqueeze(0), recent_mean.unsqueeze(0)).item()
+        sim = F.cosine_similarity(
+            old_mean.unsqueeze(0), recent_mean.unsqueeze(0)
+        ).item()
         return sim
+
 
 if __name__ == "__main__":
     # Smoke test

@@ -5,16 +5,17 @@ Synthesizes the current session into a SESSION_SNAPSHOT in SurrealDB,
 preserving key context for the next agentic session.
 """
 
-import logging
 import json
+import logging
 from datetime import UTC, datetime
-from typing import Any, Dict, List
+from typing import Any
 
-from cohezion.swarm.agents.base import BaseAgent, AgentResponse
+from cohezion.db.surreal_client import PhysicsState, UniverseNode
+from cohezion.swarm.agents.base import AgentResponse, BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
-from cohezion.db.surreal_client import SurrealClient, UniverseNode, PhysicsState
 
 logger = logging.getLogger(__name__)
+
 
 class HandoffAgent(BaseAgent):
     """
@@ -34,11 +35,11 @@ Keep the summary concise (max 500 tokens) but high-fidelity.
 
     def __init__(self, config: SwarmConfig | None = None):
         super().__init__(
-            model_name="deepseek-r1:70b", # Using high-reasoning for synthesis
+            model_name="deepseek-r1:70b",  # Using high-reasoning for synthesis
             config=config or SwarmConfig(),
         )
 
-    async def create_snapshot(self, session_data: Dict[str, Any]) -> str:
+    async def create_snapshot(self, session_data: dict[str, Any]) -> str:
         """
         Processes session data and persists it as a SESSION_SNAPSHOT.
         """
@@ -53,7 +54,9 @@ Confidence: {session_data.get('confidence', 0.0)}
 Please synthesize the above into a standard Memory Anchor.
 """
 
-        snapshot_content = await self._call_ollama(prompt, system_prompt=self.SYSTEM_PROMPT)
+        snapshot_content = await self._call_ollama(
+            prompt, system_prompt=self.SYSTEM_PROMPT
+        )
 
         # Persist to SurrealDB
         try:
@@ -65,14 +68,16 @@ Please synthesize the above into a standard Memory Anchor.
                 content=snapshot_content,
                 node_type="session_snapshot",
                 physics_state=PhysicsState(
-                    coherence=session_data.get('confidence', 0.0),
-                    time=datetime.now(UTC).timestamp()
+                    coherence=session_data.get("confidence", 0.0),
+                    time=datetime.now(UTC).timestamp(),
                 ),
                 metadata={
-                    "session_id": session_data.get('query_id', 'unknown'),
+                    "session_id": session_data.get("query_id", "unknown"),
                     "created_at": timestamp,
-                    "experts_involved": list(session_data.get('expert_responses', {}).keys())
-                }
+                    "experts_involved": list(
+                        session_data.get("expert_responses", {}).keys()
+                    ),
+                },
             )
 
             await self._db.connect()

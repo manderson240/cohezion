@@ -27,13 +27,14 @@ HEALTH_LOG_PATH = Path(__file__).parent.parent / "knowledge_graph" / "health_log
 @dataclass
 class HealthStatus:
     """System health status."""
+
     component: str
     status: str  # healthy, degraded, failing
     metric: str
     current_value: float
     threshold: float
     timestamp: str = ""
-    
+
     def __post_init__(self):
         if not self.timestamp:
             self.timestamp = datetime.now().isoformat()
@@ -42,6 +43,7 @@ class HealthStatus:
 @dataclass
 class DiagnosisResult:
     """Result of failure diagnosis."""
+
     component: str
     issue: str
     probable_cause: str
@@ -51,16 +53,16 @@ class DiagnosisResult:
 
 class DriftDetector:
     """Detect performance drift in system components."""
-    
+
     def __init__(self):
         self._baselines: dict[str, float] = {}
         self._history: list[HealthStatus] = []
-    
+
     def set_baseline(self, component: str, metric: str, value: float) -> None:
         """Set baseline for a component metric."""
         key = f"{component}:{metric}"
         self._baselines[key] = value
-    
+
     def check(
         self,
         component: str,
@@ -71,16 +73,16 @@ class DriftDetector:
         """Check if component has drifted from baseline."""
         key = f"{component}:{metric}"
         baseline = self._baselines.get(key, current)
-        
+
         drift = abs(current - baseline) / max(baseline, 0.001)
-        
+
         if drift > threshold_pct * 2:
             status = "failing"
         elif drift > threshold_pct:
             status = "degraded"
         else:
             status = "healthy"
-        
+
         result = HealthStatus(
             component=component,
             status=status,
@@ -88,10 +90,10 @@ class DriftDetector:
             current_value=current,
             threshold=baseline * (1 + threshold_pct),
         )
-        
+
         self._history.append(result)
         return result
-    
+
     def get_degraded_components(self) -> list[HealthStatus]:
         """Get all components with degraded or failing status."""
         return [h for h in self._history[-100:] if h.status != "healthy"]
@@ -99,7 +101,7 @@ class DriftDetector:
 
 class Diagnostician:
     """LLM-based failure diagnosis."""
-    
+
     def __init__(self):
         self._known_issues: dict[str, DiagnosisResult] = {
             "high_latency": DiagnosisResult(
@@ -124,19 +126,22 @@ class Diagnostician:
                 confidence=0.9,
             ),
         }
-    
+
     def diagnose(self, health_status: HealthStatus) -> DiagnosisResult:
         """Diagnose a health issue."""
         # Pattern matching on known issues
         if health_status.metric == "latency_ms" and health_status.status == "failing":
             return self._known_issues["high_latency"]
-        
-        if health_status.metric == "quality_score" and health_status.status in ("degraded", "failing"):
+
+        if health_status.metric == "quality_score" and health_status.status in (
+            "degraded",
+            "failing",
+        ):
             return self._known_issues["low_quality"]
-        
+
         if health_status.component == "ollama" and health_status.status == "failing":
             return self._known_issues["connection_failed"]
-        
+
         # Generic diagnosis
         return DiagnosisResult(
             component=health_status.component,
@@ -149,10 +154,10 @@ class Diagnostician:
 
 class Corrector:
     """Autonomous correction of detected issues."""
-    
+
     def __init__(self):
         self._corrections: list[dict[str, Any]] = []
-    
+
     async def apply_correction(self, diagnosis: DiagnosisResult) -> bool:
         """Apply automatic correction based on diagnosis."""
         correction = {
@@ -162,28 +167,34 @@ class Corrector:
             "action": diagnosis.recommended_action,
             "applied": False,
         }
-        
+
         # Auto-corrections we can apply
         if "swap model" in diagnosis.recommended_action.lower():
             # Trigger model manager to benchmark and swap
             from cohezion.swarm.model_manager import get_manager
-            manager = get_manager()
+
+            get_manager()
             # Mark as needing swap - actual swap happens on next call
             correction["applied"] = True
             logger.info(f"Scheduled model swap for {diagnosis.component}")
-        
+
         self._corrections.append(correction)
         self._save_log()
-        
+
         return correction["applied"]
-    
+
     def _save_log(self) -> None:
         """Save correction history."""
         HEALTH_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
-        HEALTH_LOG_PATH.write_text(json.dumps({
-            "corrections": self._corrections[-100:],
-        }, indent=2))
-    
+        HEALTH_LOG_PATH.write_text(
+            json.dumps(
+                {
+                    "corrections": self._corrections[-100:],
+                },
+                indent=2,
+            )
+        )
+
     def get_history(self) -> list[dict[str, Any]]:
         """Get correction history."""
         return self._corrections
@@ -192,65 +203,67 @@ class Corrector:
 class SelfHealingSystem:
     """
     Complete self-healing system.
-    
+
     Integrates:
     - Drift detection
     - LLM-based diagnosis
     - Autonomous correction
     """
-    
+
     def __init__(self):
         self.detector = DriftDetector()
         self.diagnostician = Diagnostician()
         self.corrector = Corrector()
-    
+
     async def health_check(self) -> list[HealthStatus]:
         """Run full system health check."""
         issues = []
-        
+
         # Check Ollama
         try:
             import httpx
+
             async with httpx.AsyncClient(timeout=5.0) as client:
                 resp = await client.get("http://localhost:11434/api/tags")
                 ollama_healthy = resp.status_code == 200
         except:
             ollama_healthy = False
-        
+
         status = self.detector.check(
             "ollama", "available", 1.0 if ollama_healthy else 0.0, 0.1
         )
         if status.status != "healthy":
             issues.append(status)
-        
+
         # Check SurrealDB
         try:
             import httpx
+
             async with httpx.AsyncClient(timeout=5.0) as client:
                 resp = await client.get("http://localhost:8000/health")
                 surreal_healthy = resp.status_code == 200
         except:
             surreal_healthy = False
-        
+
         status = self.detector.check(
             "surrealdb", "available", 1.0 if surreal_healthy else 0.0, 0.1
         )
         if status.status != "healthy":
             issues.append(status)
-        
+
         return issues
-    
+
     async def heal(self, issues: list[HealthStatus]) -> int:
         """Attempt to heal detected issues."""
         healed = 0
-        
+
         for issue in issues:
             diagnosis = self.diagnostician.diagnose(issue)
             if diagnosis.confidence >= 0.5:
                 if await self.corrector.apply_correction(diagnosis):
                     healed += 1
                     logger.info(f"Healed: {diagnosis.issue}")
-        
+
         return healed
 
 

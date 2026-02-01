@@ -1,14 +1,16 @@
-import httpx
 import logging
 import os
-from typing import Any
+
+import httpx
 
 logger = logging.getLogger(__name__)
+
 
 class FindingsDispatcher:
     """
     Dispatches findings to external webhooks (Discord, Slack, etc.)
     """
+
     def __init__(self, webhook_url: str | None = None):
         self.webhook_url = webhook_url or os.getenv("FINDINGS_WEBHOOK_URL")
 
@@ -19,12 +21,14 @@ class FindingsDispatcher:
             return
 
         payload = {
-            "embeds": [{
-                "title": f"🚀 Cohezion Finding: {title}",
-                "description": message,
-                "color": color,
-                "timestamp": None # Discord auto-stamps
-            }]
+            "embeds": [
+                {
+                    "title": f"🚀 Cohezion Finding: {title}",
+                    "description": message,
+                    "color": color,
+                    "timestamp": None,  # Discord auto-stamps
+                }
+            ]
         }
 
         async with httpx.AsyncClient() as client:
@@ -35,14 +39,17 @@ class FindingsDispatcher:
             except Exception as e:
                 logger.error(f"Failed to dispatch finding: {e}")
 
+
 async def main():
     # Test dispatch
     dispatcher = FindingsDispatcher()
     await dispatcher.dispatch(
         "Epoch Transition",
-        "Universe has reached the **Omega Point**. Stability 1.0 reached."
+        "Universe has reached the **Omega Point**. Stability 1.0 reached.",
     )
+
 
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(main())

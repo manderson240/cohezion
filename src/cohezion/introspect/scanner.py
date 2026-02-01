@@ -1,11 +1,11 @@
 import logging
-import subprocess
-import os
-from pathlib import Path
-from typing import Dict, List, Any
 import re
+import subprocess
+from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
+
 
 class InternalScanner:
     """
@@ -15,26 +15,23 @@ class InternalScanner:
     - Codebase Entropy (Churn, TODO density).
     - Context Coherence (Unresolved threads in KEY_LEARNINGS).
     """
+
     _instance = None
 
     def __new__(cls):
         if cls._instance is None:
-            cls._instance = super(InternalScanner, cls).__new__(cls)
+            cls._instance = super().__new__(cls)
             cls._instance._minit()
         return cls._instance
 
     def _minit(self):
         self.repo_root = Path.cwd()
 
-    def scan_codebase(self) -> Dict[str, Any]:
+    def scan_codebase(self) -> dict[str, Any]:
         """
         Analyze the physical code state.
         """
-        signals = {
-            "todo_count": 0,
-            "high_churn_files": [],
-            "file_count": 0
-        }
+        signals = {"todo_count": 0, "high_churn_files": [], "file_count": 0}
 
         # 1. TODO Density Scan
         todo_pattern = re.compile(r"TODO|FIXME|HACK")
@@ -57,9 +54,10 @@ class InternalScanner:
             cmd = ["git", "log", "--name-only", "--format=", "-n", "100"]
             result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode == 0:
-                files = result.stdout.strip().split('\n')
+                files = result.stdout.strip().split("\n")
                 # Simple frequency count
                 from collections import Counter
+
                 ctr = Counter([f for f in files if f])
                 signals["high_churn_files"] = ctr.most_common(3)
         except Exception as e:
@@ -67,7 +65,7 @@ class InternalScanner:
 
         return signals
 
-    def scan_history(self) -> Dict[str, Any]:
+    def scan_history(self) -> dict[str, Any]:
         """
         Analyze the knowledge graph for recurring themes.
         """
@@ -88,6 +86,7 @@ class InternalScanner:
                     signals["recurring_themes"].append(k)
 
         return signals
+
 
 def get_internal_scanner() -> InternalScanner:
     return InternalScanner()

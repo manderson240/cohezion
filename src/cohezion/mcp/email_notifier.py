@@ -9,15 +9,16 @@ import asyncio
 import logging
 import os
 import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from dataclasses import dataclass
-from datetime import datetime, UTC
+from datetime import UTC, datetime
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from pathlib import Path
 
 # Auto-load .env file for credentials
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     # Fallback: manually load .env if dotenv not installed
@@ -32,10 +33,10 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-
 @dataclass
 class NotificationConfig:
     """Email notification configuration."""
+
     smtp_host: str = "smtp.gmail.com"
     smtp_port: int = 587
     sender_email: str = ""
@@ -69,9 +70,9 @@ class EmailNotifier:
     def __init__(self, config: NotificationConfig | None = None):
         self.config = config or NotificationConfig.from_env()
         self._available = bool(
-            self.config.sender_email and
-            self.config.sender_password and
-            self.config.recipient_email
+            self.config.sender_email
+            and self.config.sender_password
+            and self.config.recipient_email
         )
 
     async def send_block_alert(
@@ -152,7 +153,9 @@ Retrospective:
         if not self._available:
             return False
 
-        return await self._send_email(subject, body, is_html=is_html, attachments=attachments)
+        return await self._send_email(
+            subject, body, is_html=is_html, attachments=attachments
+        )
 
     async def _send_email(
         self,
@@ -164,15 +167,15 @@ Retrospective:
         """Send email via SMTP."""
         try:
             msg = MIMEMultipart()
-            msg['From'] = self.config.sender_email
-            msg['To'] = self.config.recipient_email
-            msg['Subject'] = subject
+            msg["From"] = self.config.sender_email
+            msg["To"] = self.config.recipient_email
+            msg["Subject"] = subject
 
-            msg.attach(MIMEText(body, 'html' if is_html else 'plain'))
+            msg.attach(MIMEText(body, "html" if is_html else "plain"))
 
             # Attach files
-            from email.mime.image import MIMEImage
             from email.mime.application import MIMEApplication
+            from email.mime.image import MIMEImage
 
             if attachments:
                 for path in attachments:
@@ -183,23 +186,27 @@ Retrospective:
                     with open(path, "rb") as f:
                         data = f.read()
 
-                    if path.suffix.lower() in ('.png', '.jpg', '.jpeg'):
+                    if path.suffix.lower() in (".png", ".jpg", ".jpeg"):
                         part = MIMEImage(data, name=path.name)
                     else:
                         part = MIMEApplication(data, Name=path.name)
 
-                    part['Content-Disposition'] = f'attachment; filename="{path.name}"'
+                    part["Content-Disposition"] = f'attachment; filename="{path.name}"'
                     msg.attach(part)
 
             # Run SMTP in thread pool
             def send():
-                with smtplib.SMTP(self.config.smtp_host, self.config.smtp_port) as server:
+                with smtplib.SMTP(
+                    self.config.smtp_host, self.config.smtp_port
+                ) as server:
                     server.starttls()
                     server.login(self.config.sender_email, self.config.sender_password)
                     server.send_message(msg)
 
             await asyncio.to_thread(send)
-            logger.info(f"Email sent: {subject} ({len(attachments) if attachments else 0} attachments)")
+            logger.info(
+                f"Email sent: {subject} ({len(attachments) if attachments else 0} attachments)"
+            )
             return True
 
         except Exception as e:
@@ -232,9 +239,9 @@ class LocalNotifier:
 ---
 """
 
-        mode = 'a' if self.path.exists() else 'w'
+        mode = "a" if self.path.exists() else "w"
         with open(self.path, mode) as f:
-            if mode == 'w':
+            if mode == "w":
                 f.write("# Cohezion Notifications\n\n")
             f.write(notification)
 
@@ -262,8 +269,10 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     # Test
-    result = asyncio.run(notify_completion(
-        "Test Task",
-        "This is a test notification",
-    ))
+    result = asyncio.run(
+        notify_completion(
+            "Test Task",
+            "This is a test notification",
+        )
+    )
     print(f"Notification sent: {result}")

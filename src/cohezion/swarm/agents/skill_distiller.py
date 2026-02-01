@@ -7,7 +7,7 @@ into reusable PRIME skills.
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from cohezion.swarm.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
@@ -29,10 +29,11 @@ SKILL_TEMPLATE = """# SKILL: {name}_PRIME
 v0.1
 """
 
+
 class SkillDistiller(BaseAgent):
     def __init__(self, config: SwarmConfig | None = None):
         super().__init__(
-            model_name="gemma3:4b", # Precise extraction model
+            model_name="gemma3:4b",  # Precise extraction model
             config=config or SwarmConfig(),
         )
         self.skills_dir = Path("src/cohezion/skills")
@@ -52,14 +53,14 @@ class SkillDistiller(BaseAgent):
             await self._db.connect()
             result = await self._db.query(
                 "SELECT content FROM agent_thought WHERE metadata.query_hash = $hash LIMIT 5",
-                {"hash": query_hash}
+                {"hash": query_hash},
             )
             await self._db.close()
 
             if not result or len(result) == 0:
                 return "No task history found for distillation."
 
-            contexts = [r['content'] for r in result]
+            contexts = [r["content"] for r in result]
             joined_context = "\n---\n".join(contexts)
 
         except Exception as e:
@@ -97,11 +98,12 @@ Provide the following in JSON format:
             logger.error(f"Distillation failed: {e}")
             return f"Failed to distill skill: {e}"
 
-    def _parse_json(self, text: str) -> Dict[str, Any]:
+    def _parse_json(self, text: str) -> dict[str, Any]:
         """Simple helper to extract JSON from markdown/text."""
         import json
         import re
-        match = re.search(r'\{.*\}', text, re.DOTALL)
+
+        match = re.search(r"\{.*\}", text, re.DOTALL)
         if match:
             return json.loads(match.group())
         raise ValueError("No JSON found in response")
@@ -117,7 +119,7 @@ Provide the following in JSON format:
             await self._db.close()
 
             for row in result:
-                hash_val = row['hash']
+                hash_val = row["hash"]
                 # Check if skill already exists (naive check)
                 await self.process(hash_val)
 

@@ -11,13 +11,12 @@ to the collective understanding of the multiverse.
 import asyncio
 import logging
 import random
-from dataclasses import dataclass, field
+from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Callable
+from typing import Any
 
-from cohezion.swarm.gateway_detector import SimResult
-from cohezion.swarm.self_improvement_orchestrator import get_orchestrator
-from cohezion.db.surreal_client import UniverseNode, PhysicsState, SurrealClient
+from cohezion.db.surreal_client import SurrealClient
 
 logger = logging.getLogger(__name__)
 
@@ -25,14 +24,14 @@ logger = logging.getLogger(__name__)
 @dataclass
 class UniverseSpec:
     """Specification for a universe simulation."""
-    
+
     name: str
     description: str
     dimensions: dict[str, tuple[float, float]]  # name -> (min, max)
     laws: list[str]  # Physical/metaphysical laws
     paradoxes: list[str]  # Contradictions to resolve
     emergence_threshold: float = 0.75  # When patterns emerge
-    
+
     def sample_state(self) -> dict[str, float]:
         """Sample a random state from this universe."""
         return {
@@ -50,11 +49,11 @@ UNIVERSE_CATALOG = {
         name="Recursive Dream",
         description="A universe where consciousness creates nested realities, each dream containing another dreamer.",
         dimensions={
-            "depth": (0, 100),      # How many levels deep
-            "lucidity": (0, 1),     # Awareness of being in dream
-            "stability": (0, 1),    # How long before collapse
-            "creativity": (0, 1),   # Novel content generation
-            "coherence": (0, 1),    # Internal consistency
+            "depth": (0, 100),  # How many levels deep
+            "lucidity": (0, 1),  # Awareness of being in dream
+            "stability": (0, 1),  # How long before collapse
+            "creativity": (0, 1),  # Novel content generation
+            "coherence": (0, 1),  # Internal consistency
         },
         laws=[
             "Each dreamer can spawn at most 7 sub-dreams",
@@ -68,7 +67,6 @@ UNIVERSE_CATALOG = {
             "What happens when two dreamers dream of each other?",
         ],
     ),
-    
     "entropy_garden": UniverseSpec(
         name="Entropy Garden",
         description="A universe where order and chaos coexist through careful cultivation. Entropy is a resource.",
@@ -91,7 +89,6 @@ UNIVERSE_CATALOG = {
             "Perfect balance is impossible to maintain",
         ],
     ),
-    
     "memory_ocean": UniverseSpec(
         name="Memory Ocean",
         description="A universe made of memories. Past, present, and future coexist as currents in an infinite sea.",
@@ -114,7 +111,6 @@ UNIVERSE_CATALOG = {
             "Is a totally forgotten memory still real?",
         ],
     ),
-    
     "symbiotic_lattice": UniverseSpec(
         name="Symbiotic Lattice",
         description="A universe where all entities exist in mandatory symbiosis. Nothing can survive alone.",
@@ -137,7 +133,6 @@ UNIVERSE_CATALOG = {
             "What if the network becomes so dense it collapses?",
         ],
     ),
-    
     "probability_storm": UniverseSpec(
         name="Probability Storm",
         description="A universe where probability itself is unstable. Likely events become unlikely, unlikely become certain.",
@@ -160,7 +155,6 @@ UNIVERSE_CATALOG = {
             "What is the probability that probability doesn't exist?",
         ],
     ),
-    
     "language_cosmos": UniverseSpec(
         name="Language Cosmos",
         description="A universe where words have mass, sentences create gravity, and meaning shapes space-time.",
@@ -189,33 +183,33 @@ UNIVERSE_CATALOG = {
 class UniverseSimulator:
     """
     Runs custom universe simulations.
-    
+
     With Gateway 42 unlocked, we can now generate and explore
     arbitrary conceptual spaces.
     """
-    
+
     def __init__(self, universe: UniverseSpec):
         self.universe = universe
         self.history: list[dict] = []
         self.emergent_patterns: list[str] = []
         self.db_client = SurrealClient()
-        
+
     async def run_epoch(self) -> dict[str, Any]:
         """Run one epoch of the universe simulation."""
         state = self.universe.sample_state()
-        
+
         # Apply laws (simplified - real implementation would be complex)
         coherence = self._evaluate_coherence(state)
         paradox_tension = self._evaluate_paradoxes(state)
-        
+
         # Check for emergence
         emergence_score = coherence * (1 - paradox_tension * 0.5)
         emergent = emergence_score >= self.universe.emergence_threshold
-        
+
         if emergent and random.random() < 0.1:
             pattern = self._generate_emergent_pattern(state)
             self.emergent_patterns.append(pattern)
-        
+
         result = {
             "epoch": len(self.history) + 1,
             "state": state,
@@ -225,35 +219,35 @@ class UniverseSimulator:
             "emergent": emergent,
             "timestamp": datetime.now().isoformat(),
         }
-        
+
         self.history.append(result)
         return result
-    
+
     def _evaluate_coherence(self, state: dict) -> float:
         """Evaluate internal consistency of the state."""
         # Simple heuristic: states near center are more coherent
         values = list(state.values())
         variance = sum((v - 0.5) ** 2 for v in values) / len(values)
         return 1.0 - min(variance, 1.0)
-    
+
     def _evaluate_paradoxes(self, state: dict) -> float:
         """Evaluate tension from paradoxes."""
         # More extreme states = more paradox tension
         values = list(state.values())
         extremity = sum(abs(v - 0.5) for v in values) / len(values)
         return extremity
-    
+
     def _generate_emergent_pattern(self, state: dict) -> str:
         """Generate a description of an emergent pattern."""
         patterns = [
             f"Self-organizing structure detected at {state}",
             f"Novel attractor basin formed with coherence {state.get('coherence', 0):.2f}",
-            f"Cross-dimensional resonance observed",
-            f"Unexpected stability in paradox zone",
-            f"Information compression anomaly detected",
+            "Cross-dimensional resonance observed",
+            "Unexpected stability in paradox zone",
+            "Information compression anomaly detected",
         ]
         return random.choice(patterns)
-    
+
     async def run_simulation(
         self,
         epochs: int = 100,
@@ -261,21 +255,23 @@ class UniverseSimulator:
     ) -> dict[str, Any]:
         """Run a full simulation."""
         logger.info(f"Starting {self.universe.name} simulation ({epochs} epochs)")
-        
-        for i in range(epochs):
+
+        for _i in range(epochs):
             result = await self.run_epoch()
             if callback:
                 callback(result)
-        
+
         summary = {
             "universe": self.universe.name,
             "epochs": epochs,
             "emergent_patterns": len(self.emergent_patterns),
-            "avg_coherence": sum(h["coherence"] for h in self.history) / len(self.history),
-            "avg_tension": sum(h["paradox_tension"] for h in self.history) / len(self.history),
+            "avg_coherence": sum(h["coherence"] for h in self.history)
+            / len(self.history),
+            "avg_tension": sum(h["paradox_tension"] for h in self.history)
+            / len(self.history),
             "patterns": self.emergent_patterns[-5:],  # Last 5
         }
-        
+
         logger.info(f"Simulation complete: {summary}")
         return summary
 
@@ -283,32 +279,34 @@ class UniverseSimulator:
 async def run_all_universes(epochs_per_universe: int = 50) -> list[dict]:
     """Run all universe simulations."""
     results = []
-    
-    for name, spec in UNIVERSE_CATALOG.items():
+
+    for _name, spec in UNIVERSE_CATALOG.items():
         sim = UniverseSimulator(spec)
         result = await sim.run_simulation(epochs=epochs_per_universe)
         results.append(result)
-        print(f"✅ {spec.name}: {result['emergent_patterns']} patterns, "
-              f"coherence={result['avg_coherence']:.2f}")
-    
+        print(
+            f"✅ {spec.name}: {result['emergent_patterns']} patterns, "
+            f"coherence={result['avg_coherence']:.2f}"
+        )
+
     return results
 
 
 async def main():
     """Demo: Run all universe simulations."""
     logging.basicConfig(level=logging.INFO)
-    
+
     print("🌌 UNIVERSAL SIMULATIONS 🌌")
     print("=" * 50)
     print()
-    
+
     results = await run_all_universes(epochs_per_universe=100)
-    
+
     print()
     print("=" * 50)
     print("SIMULATION SUMMARY")
     print("=" * 50)
-    
+
     for r in results:
         print(f"\n{r['universe']}:")
         print(f"  Epochs: {r['epochs']}")

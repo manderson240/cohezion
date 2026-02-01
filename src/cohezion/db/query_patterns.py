@@ -1,5 +1,7 @@
 import asyncio
+
 from surrealdb import AsyncSurreal
+
 
 async def query_patterns():
     async with AsyncSurreal("ws://localhost:8000/rpc") as db:
@@ -15,6 +17,7 @@ async def query_patterns():
         results = await db.query("SELECT count() FROM universe_nodes GROUP ALL")
         print("\nNODE COUNT:")
         print(results)
+
 
 if __name__ == "__main__":
     asyncio.run(query_patterns())

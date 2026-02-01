@@ -6,19 +6,17 @@ Premium models cost more credits; agents earn credits from NodeVerification yiel
 """
 
 import logging
-from typing import Dict
 
 logger = logging.getLogger(__name__)
 
 # Model Cost Table (Credits per call)
-MODEL_COSTS: Dict[str, int] = {
+MODEL_COSTS: dict[str, int] = {
     # Antigravity IDE Models
     "gemini-3-pro": 10,
     "gemini-3-flash": 1,
     "claude-sonnet-4.5": 15,
     "claude-opus-4.5": 20,
     "gpt-oss": 2,
-
     # Local Ollama Models (Simulated Energy Cost)
     "phi3:mini": 1,
     "gemma3:4b": 2,
@@ -38,7 +36,7 @@ class CreditManager:
     """
 
     def __init__(self, default_credits: int = 100):
-        self._balances: Dict[str, int] = {}
+        self._balances: dict[str, int] = {}
         self._default = default_credits
 
     def get_balance(self, agent_id: str) -> int:
@@ -54,7 +52,9 @@ class CreditManager:
 
         if balance >= amount:
             self._balances[agent_id] = balance - amount
-            logger.debug(f"Agent {agent_id}: Deducted {amount} credits. New balance: {self._balances[agent_id]}")
+            logger.debug(
+                f"Agent {agent_id}: Deducted {amount} credits. New balance: {self._balances[agent_id]}"
+            )
             return True
 
         logger.warning(f"Agent {agent_id}: Insufficient credits ({balance} < {amount})")
@@ -64,7 +64,9 @@ class CreditManager:
         """Add credits to an agent's balance."""
         balance = self.get_balance(agent_id)
         self._balances[agent_id] = balance + amount
-        logger.info(f"Agent {agent_id}: Credited {amount}. New balance: {self._balances[agent_id]}")
+        logger.info(
+            f"Agent {agent_id}: Credited {amount}. New balance: {self._balances[agent_id]}"
+        )
 
     def can_afford(self, agent_id: str, model: str) -> bool:
         """Check if agent can afford the specified model."""
@@ -72,7 +74,7 @@ class CreditManager:
 
     def get_model_cost(self, model: str) -> int:
         """Get the credit cost for a specific model."""
-        return MODEL_COSTS.get(model, 5) # Default baseline
+        return MODEL_COSTS.get(model, 5)  # Default baseline
 
     def get_best_affordable_model(self, agent_id: str, preferred: str) -> str:
         """
@@ -86,12 +88,23 @@ class CreditManager:
             return preferred
 
         # Find cheapest affordable LOCAL model
-        local_models = ["phi3:mini", "gemma3:4b", "mistral:7b", "moondream:latest", "qwen3-coder:32b", "deepseek-r1:70b"]
-        affordable_locals = [m for m in local_models if m in MODEL_COSTS and balance >= MODEL_COSTS[m]]
+        local_models = [
+            "phi3:mini",
+            "gemma3:4b",
+            "mistral:7b",
+            "moondream:latest",
+            "qwen3-coder:32b",
+            "deepseek-r1:70b",
+        ]
+        affordable_locals = [
+            m for m in local_models if m in MODEL_COSTS and balance >= MODEL_COSTS[m]
+        ]
 
         if affordable_locals:
             # Sort by cost descending (best affordable local)
-            sorted_locals = sorted(affordable_locals, key=lambda x: MODEL_COSTS[x], reverse=True)
+            sorted_locals = sorted(
+                affordable_locals, key=lambda x: MODEL_COSTS[x], reverse=True
+            )
             return sorted_locals[0]
 
         return FALLBACK_MODEL
@@ -99,6 +112,7 @@ class CreditManager:
 
 # Singleton instance
 _INSTANCE = None
+
 
 def get_credit_manager() -> CreditManager:
     global _INSTANCE

@@ -22,6 +22,11 @@ This document establishes the technical baseline for all code contributions to t
 - **Recovery**: Implement `try/except` blocks with specific exceptions and logging. Avoid `except Exception:`.
 - **Healing**: When an error occurs, the agent should attempt to diagnose and "heal" the repository or code state using `EVOLUTION_PROTOCOL.md` guidelines.
 
-## 5. Testing Requirements
-- **Coverage**: Aim for >= 80% test coverage with `pytest`.
-- **Validation**: Use **Great Expectations** for validating data quality in the knowledge graph and configuration files.
+## 6. Elegant Simplicity
+- **KISS Principle**: Avoid over-engineering. If a simple one-pass logic works, do not use a multi-agent swarm.
+- **Readability**: Code is for humans (and future agents). Avoid deeply nested logic or opaque abstractions.
+
+## 7. Repository Hygiene
+- **No Large Files**: Never commit files > 1MB. Use `git-lfs` or external storage if necessary.
+- **Clean Diffs**: Ensure `.gitignore` is comprehensive. Check `git status` before committing.
+- **Package Integrity**: Every directory in `src/` MUST have an `__init__.py`.

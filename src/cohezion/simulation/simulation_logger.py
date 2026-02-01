@@ -1,14 +1,13 @@
-import os
-import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pandas as pd
-from datasets import Dataset, load_dataset, Features, Value, Sequence
+from datasets import Dataset, Features, Sequence, Value, load_dataset
 
 logger = logging.getLogger(__name__)
+
 
 class SimulationLogger:
     """
@@ -21,25 +20,31 @@ class SimulationLogger:
     def __init__(self, storage_dir: str = "data/simulations"):
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(parents=True, exist_ok=True)
-        self.current_buffer: List[Dict[str, Any]] = []
-        self.batch_size = 100 # Flush every 100 cycles
+        self.current_buffer: list[dict[str, Any]] = []
+        self.batch_size = 100  # Flush every 100 cycles
 
         # Define features for consistency
-        self.features = Features({
-            "timestamp": Value("string"),
-            "cycle_id": Value("string"),
-            "seed_thought": Value("string"),
-            "universe_domain": Value("string"),
-            "expert_synthesis": Value("string"),
-            "hypothesis": Value("string"),
-            "code": Value("string"),
-            "outcome": Value("string"),
-            "phi_score": Value("float32"),
-            "state_trajectory": Sequence(Sequence(Value("float32"))), # 12D vectors
-            "narration": Value("string")
-        })
+        self.features = Features(
+            {
+                "timestamp": Value("string"),
+                "cycle_id": Value("string"),
+                "seed_thought": Value("string"),
+                "universe_domain": Value("string"),
+                "expert_synthesis": Value("string"),
+                "hypothesis": Value("string"),
+                "code": Value("string"),
+                "outcome": Value("string"),
+                "phi_score": Value("float32"),
+                "state_trajectory": Sequence(Sequence(Value("float32"))),  # 12D vectors
+                "narration": Value("string"),
+                # Spatial extensions for Fractal Universe
+                "spatial_pos": Sequence(Value("float32")),  # [x, y]
+                "sector_type": Value("string"),
+                "energy_level": Value("float32"),
+            }
+        )
 
-    def log_cycle(self, data: Dict[str, Any]):
+    def log_cycle(self, data: dict[str, Any]):
         """Append a single simulation cycle to the buffer."""
         # Ensure timestamp
         if "timestamp" not in data:
@@ -67,13 +72,15 @@ class SimulationLogger:
         except Exception as e:
             logger.error(f"❌ Failed to flush simulation logs: {e}")
 
-    def load_universe_data(self, domain: Optional[str] = None) -> Dataset:
+    def load_universe_data(self, domain: str | None = None) -> Dataset:
         """Load all persisted shards into a single dataset, optionally filtered by domain."""
         files = list(self.storage_dir.glob("*.parquet"))
         if not files:
             return Dataset.from_dict({}, features=self.features)
 
-        dataset = load_dataset("parquet", data_files=[str(f) for f in files], split="train")
+        dataset = load_dataset(
+            "parquet", data_files=[str(f) for f in files], split="train"
+        )
 
         if domain:
             dataset = dataset.filter(lambda x: x["universe_domain"] == domain)

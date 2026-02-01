@@ -44,3 +44,27 @@ The following lines must **NEVER** be crossed, regardless of user or operator in
 ## 7. Preserving Societal Structures
 - **Concentrations of Power**: Avoid assisting in illegitimate power grabs or undermining democratic checks and balances.
 - **Epistemic Autonomy**: Protect independent thinking and avoid homogenization of views through AI influence.
+
+## 8. Compound Engineering Principles (2026-01-30)
+Core operational directives for efficient, scalable development:
+
+1. **Compound Engineering**: Every feature created makes every new feature easier to achieve.
+2. **Retrospection**: Each completed phase requires explicit retrospection before advancing.
+3. **Token Efficiency**: Batch operations, cache results, delegate to local models where appropriate.
+4. **Parallel Execution**: Work in parallel where dependencies allow.
+5. **Crystal Clear Planning**: Use inference to clarify plans before delegating to specialized agents.
+6. **Idempotent Abstractions**: If blockers arise, overcome them with idempotent code patterns.
+7. **Journey Persistence**: All plans, milestones, and learnings are synced to platform memory.
+
+## 9. Architecture Specifications (For Agent Delegation)
+Include explicit specs in plans to enable autonomous agent execution:
+
+| Spec Type | Required Fields |
+|-----------|-----------------|
+| File Creation | Path, language, purpose, dependencies |
+| API Endpoint | Method, route, request/response schema |
+| Component | Framework, props/state, styling approach |
+| Database | Table name, schema, indexes |
+| Agent Task | Input, output, success criteria, fallback |
+
+**Cache Replay Protocol**: When SurrealDB reconnects after offline, replay all cached writes from local fallback store.

@@ -19,14 +19,14 @@ services:
     environment:
       # Use local Ollama (already running on host)
       - OLLAMA_API_BASE=http://host.docker.internal:11434
-      
+
       # Database - use existing SurrealDB
       - SURREAL_URL=ws://host.docker.internal:8000/rpc
       - SURREAL_USER=root
       - SURREAL_PASSWORD=root
       - SURREAL_NAMESPACE=open_notebook
       - SURREAL_DATABASE=open_notebook
-      
+
       # Optional cloud providers (uncomment if needed)
       # - OPENAI_API_KEY=${OPENAI_API_KEY}
       # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
@@ -53,6 +53,17 @@ services:
       - ./data/cohezion:/app/data
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  # Database - The Memory Layer
+  surrealdb:
+    image: surrealdb/surreal:v2.0
+    container_name: cohezion-db
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data/surreal:/my/surreal/data
+    command: start --user root --pass root file://my/surreal/data
     restart: unless-stopped
 
 volumes:

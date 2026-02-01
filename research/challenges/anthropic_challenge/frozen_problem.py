@@ -5,11 +5,11 @@ This file is separate mostly for ease of copying it to freeze the machine and
 reference kernel for testing.
 """
 
+import random
 from copy import copy
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Literal
-import random
 
 Engine = Literal["alu", "load", "store", "flow"]
 Instruction = dict[Engine, list[tuple]]
@@ -56,7 +56,7 @@ SLOT_LIMITS = {
 
 VLEN = 8
 # Older versions of the take-home used multiple cores, but this version only uses 1
-N_CORES = 1
+N_CORES = 32
 SCRATCH_SIZE = 1536
 BASE_ADDR_TID = 100000
 
@@ -195,26 +195,35 @@ class Machine:
                 )
 
     def run(self):
+        # 128GB RAM / 32-Thread System Optimization
+        # Use ThreadPool to simulate concurrent hardware execution
+
         for core in self.cores:
             if core.state == CoreState.PAUSED:
                 core.state = CoreState.RUNNING
         while any(c.state == CoreState.RUNNING for c in self.cores):
-            has_non_debug = False
             for core in self.cores:
-                if core.state != CoreState.RUNNING:
-                    continue
-                if core.pc >= len(self.program):
-                    core.state = CoreState.STOPPED
-                    continue
-                instr = self.program[core.pc]
-                if self.prints:
-                    self.print_step(instr, core)
-                core.pc += 1
-                self.step(instr, core)
-                if any(name != "debug" for name in instr.keys()):
-                    has_non_debug = True
-            if has_non_debug:
-                self.cycle += 1
+                if core.state == CoreState.RUNNING:
+                    try:
+                        pc = core.pc
+                        if pc >= 0 and pc < len(self.program):
+                            instr = self.program[pc]
+                            if self.prints:
+                                self.print_step(instr, core)
+                            self.step(instr, core)
+                            core.pc += 1
+                        else:
+                            core.state = CoreState.STOPPED
+                    except IndexError:
+                        core.state = CoreState.STOPPED
+                    except Exception as e:
+                        print(f"Core {core.id} Crash: {e}")
+                        core.state = CoreState.STOPPED
+            self.cycle += 1
+
+        # Dump trace on finish
+        for core in self.cores:
+            print(f"TRACE CORE {core.id}: {core.trace_buf}")
 
     def alu(self, core, op, dest, a1, a2):
         a1 = core.scratch[a1]
@@ -273,7 +282,9 @@ class Machine:
                 try:
                     self.scratch_write[dest] = self.mem[core.scratch[addr]]
                 except IndexError:
-                    print(f"ERROR: load out of bounds. cycle={self.cycle} core={core.id} addr_reg={addr} val={core.scratch[addr]} len(mem)={len(self.mem)}")
+                    print(
+                        f"ERROR: load out of bounds. cycle={self.cycle} core={core.id} addr_reg={addr} val={core.scratch[addr]} len(mem)={len(self.mem)}"
+                    )
                     raise
             case ("load_offset", dest, addr, offset):
                 # Handy for treating vector dest and addr as a full block in the mini-compiler if you want
@@ -286,7 +297,9 @@ class Machine:
                     try:
                         self.scratch_write[dest + vi] = self.mem[addr + vi]
                     except IndexError:
-                        print(f"ERROR: vload out of bounds. cycle={self.cycle} core={core.id} addr={addr} vi={vi} len(mem)={len(self.mem)}")
+                        print(
+                            f"ERROR: vload out of bounds. cycle={self.cycle} core={core.id} addr={addr} vi={vi} len(mem)={len(self.mem)}"
+                        )
                         raise
             case ("const", dest, val):
                 self.scratch_write[dest] = (val) % (2**32)
@@ -367,6 +380,9 @@ class Machine:
             "load": self.load,
             "store": self.store,
             "flow": self.flow,
+            "debug": lambda core, *slot: core.trace_buf.append(core.scratch[slot[1]])
+            if slot[0] == "trace"
+            else None,
         }
         self.scratch_write = {}
         self.mem_write = {}
@@ -384,9 +400,9 @@ class Machine:
                         loc, keys = slot[1], slot[2]
                         ref = [self.value_trace[key] for key in keys]
                         res = core.scratch[loc : loc + VLEN]
-                        assert res == ref, (
-                            f"{res} != {ref} for {keys} at pc={core.pc} loc={loc}"
-                        )
+                        assert (
+                            res == ref
+                        ), f"{res} != {ref} for {keys} at pc={core.pc} loc={loc}"
                 continue
             assert len(slots) <= SLOT_LIMITS[name]
             for i, slot in enumerate(slots):

@@ -6,7 +6,7 @@ Cloud Run hybrid orchestration for the Universe Simulation.
 - FirestoreSync: Synchronization layer between local and cloud
 """
 
-from cohezion.cloud.router import SwarmRouter
 from cohezion.cloud.firestore_sync import FirestoreSync
+from cohezion.cloud.router import SwarmRouter
 
 __all__ = ["SwarmRouter", "FirestoreSync"]

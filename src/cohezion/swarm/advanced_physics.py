@@ -15,12 +15,10 @@ Each simulation explores paradoxes and emergent phenomena.
 
 import asyncio
 import logging
-import random
-from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-from cohezion.swarm.universal_simulations import UniverseSpec, UniverseSimulator
+from cohezion.swarm.universal_simulations import UniverseSimulator, UniverseSpec
 
 logger = logging.getLogger(__name__)
 
@@ -36,12 +34,12 @@ PHYSICS_CATALOG = {
         behavior in the quantum vacuum. Ken Shoulders' work suggests they can
         transmute elements and produce excess energy.""",
         dimensions={
-            "charge_density": (0, 1e15),      # Charges per cluster
-            "vacuum_polarization": (0, 1),     # QED effect strength
-            "coherence_length": (0, 1e-6),     # Spatial coherence (m)
-            "binding_energy": (0, 100),        # MeV
-            "transmutation_rate": (0, 1),      # Element change probability
-            "excess_energy_ratio": (0, 10),    # COP (coefficient of performance)
+            "charge_density": (0, 1e15),  # Charges per cluster
+            "vacuum_polarization": (0, 1),  # QED effect strength
+            "coherence_length": (0, 1e-6),  # Spatial coherence (m)
+            "binding_energy": (0, 100),  # MeV
+            "transmutation_rate": (0, 1),  # Element change probability
+            "excess_energy_ratio": (0, 10),  # COP (coefficient of performance)
         },
         laws=[
             "Charge clusters self-organize at critical densities",
@@ -58,20 +56,19 @@ PHYSICS_CATALOG = {
         ],
         emergence_threshold=0.65,
     ),
-
     "lenr_lattice": UniverseSpec(
         name="Low Energy Nuclear Reactions (LENR)",
         description="""LENR occurs in metal hydride lattices where nuclear reactions
         happen at energies far below classical Coulomb barrier expectations.
         Involves Pd/Ni + H/D systems.""",
         dimensions={
-            "loading_ratio": (0, 1),           # H/Pd or D/Pd ratio
-            "lattice_strain": (0, 1),          # Crystal stress
-            "phonon_coupling": (0, 1),         # Vibration-nuclear coupling
-            "screening_factor": (0, 1000),     # Coulomb barrier reduction
-            "heat_excess": (0, 100),           # Watts excess
-            "helium_production": (0, 1),       # He-4 output
-            "transmutation_products": (0, 50), # Atomic species
+            "loading_ratio": (0, 1),  # H/Pd or D/Pd ratio
+            "lattice_strain": (0, 1),  # Crystal stress
+            "phonon_coupling": (0, 1),  # Vibration-nuclear coupling
+            "screening_factor": (0, 1000),  # Coulomb barrier reduction
+            "heat_excess": (0, 100),  # Watts excess
+            "helium_production": (0, 1),  # He-4 output
+            "transmutation_products": (0, 50),  # Atomic species
         },
         laws=[
             "Loading ratio > 0.85 enables anomalous heat",
@@ -88,18 +85,17 @@ PHYSICS_CATALOG = {
         ],
         emergence_threshold=0.70,
     ),
-
     "mdh_plasma": UniverseSpec(
         name="Magneto-Hydrodynamics (MHD)",
         description="""MHD describes electrically conducting fluids in magnetic fields.
         Governs stellar interiors, fusion plasmas, and exotic propulsion.""",
         dimensions={
-            "magnetic_reynolds": (0, 1e6),     # Rm = μσvL
-            "alfven_velocity": (0, 1e6),       # m/s
-            "plasma_beta": (0, 100),           # Thermal/Magnetic pressure
-            "current_density": (0, 1e9),       # A/m²
-            "reconnection_rate": (0, 1),       # Magnetic field topology change
-            "instability_growth": (0, 10),     # Per second
+            "magnetic_reynolds": (0, 1e6),  # Rm = μσvL
+            "alfven_velocity": (0, 1e6),  # m/s
+            "plasma_beta": (0, 100),  # Thermal/Magnetic pressure
+            "current_density": (0, 1e9),  # A/m²
+            "reconnection_rate": (0, 1),  # Magnetic field topology change
+            "instability_growth": (0, 10),  # Per second
         },
         laws=[
             "Frozen-in flux: field lines move with plasma",
@@ -116,18 +112,17 @@ PHYSICS_CATALOG = {
         ],
         emergence_threshold=0.60,
     ),
-
     "fractal_toroid": UniverseSpec(
         name="Fractal Toroidal Moments",
         description="""Toroidal geometry with fractal self-similarity. Found in
         vortex rings, magnetic flux tubes, and biological structures.""",
         dimensions={
-            "major_radius": (0, 10),           # Outer ring radius
-            "minor_radius": (0, 1),            # Tube radius
-            "fractal_dimension": (1, 3),       # Self-similarity exponent
-            "winding_number": (1, 100),        # Poloidal/toroidal ratio
-            "circulation": (0, 1e6),           # m²/s
-            "helicity": (-1, 1),               # Handedness
+            "major_radius": (0, 10),  # Outer ring radius
+            "minor_radius": (0, 1),  # Tube radius
+            "fractal_dimension": (1, 3),  # Self-similarity exponent
+            "winding_number": (1, 100),  # Poloidal/toroidal ratio
+            "circulation": (0, 1e6),  # m²/s
+            "helicity": (-1, 1),  # Handedness
         },
         laws=[
             "Toroidal structures minimize surface energy",
@@ -144,18 +139,17 @@ PHYSICS_CATALOG = {
         ],
         emergence_threshold=0.55,
     ),
-
     "quantum_biology": UniverseSpec(
         name="Quantum Biology",
         description="""Quantum effects in living systems: photosynthesis efficiency,
         enzyme catalysis, bird navigation, olfaction, and consciousness.""",
         dimensions={
-            "coherence_time": (0, 1e-9),       # Seconds at body temp
-            "entanglement_degree": (0, 1),     # Subsystem entanglement
-            "tunneling_rate": (0, 1e12),       # Hz
-            "superposition_lifetime": (0, 1e-12), # Seconds
+            "coherence_time": (0, 1e-9),  # Seconds at body temp
+            "entanglement_degree": (0, 1),  # Subsystem entanglement
+            "tunneling_rate": (0, 1e12),  # Hz
+            "superposition_lifetime": (0, 1e-12),  # Seconds
             "decoherence_protection": (0, 1),  # Environmental shielding
-            "information_processing": (0, 1e15), # Bits/s
+            "information_processing": (0, 1e15),  # Bits/s
         },
         laws=[
             "Warm quantum coherence possible via noise-assisted transport",
@@ -172,18 +166,17 @@ PHYSICS_CATALOG = {
         ],
         emergence_threshold=0.75,
     ),
-
     "penrose_twistor": UniverseSpec(
         name="Penrose Twistor Space",
         description="""Twistor theory: spacetime events are secondary to light rays.
         Connects geometry, quantum mechanics, and consciousness (Orch-OR).""",
         dimensions={
-            "twistor_coord_z": (-10, 10),      # Complex coordinates
+            "twistor_coord_z": (-10, 10),  # Complex coordinates
             "twistor_coord_w": (-10, 10),
-            "helicity": (-2, 2),               # Spin projection
-            "conformal_weight": (0, 10),       # Scaling behavior
-            "gravitational_self_energy": (0, 1e-43), # Planck units
-            "objective_reduction_rate": (0, 1e40),   # Collapses/s
+            "helicity": (-2, 2),  # Spin projection
+            "conformal_weight": (0, 10),  # Scaling behavior
+            "gravitational_self_energy": (0, 1e-43),  # Planck units
+            "objective_reduction_rate": (0, 1e40),  # Collapses/s
         },
         laws=[
             "Null geodesics are fundamental; points are derived",
@@ -200,17 +193,16 @@ PHYSICS_CATALOG = {
         ],
         emergence_threshold=0.80,
     ),
-
     "chirality_universe": UniverseSpec(
         name="Chirality & Handedness",
         description="""Matter-antimatter asymmetry, biological homochirality,
         parity violation. Why is the universe handed?""",
         dimensions={
-            "enantiomeric_excess": (-1, 1),    # L-R asymmetry
-            "parity_violation": (0, 1e-6),     # Weak force effect
-            "polarization": (-1, 1),           # Circular polarization
-            "spin_orbit_coupling": (0, 1),     # Angular momentum mix
-            "amplification_factor": (1, 1e20), # From seed to dominance
+            "enantiomeric_excess": (-1, 1),  # L-R asymmetry
+            "parity_violation": (0, 1e-6),  # Weak force effect
+            "polarization": (-1, 1),  # Circular polarization
+            "spin_orbit_coupling": (0, 1),  # Angular momentum mix
+            "amplification_factor": (1, 1e20),  # From seed to dominance
             "chiral_symmetry_breaking": (0, 1),
         },
         laws=[
@@ -228,19 +220,18 @@ PHYSICS_CATALOG = {
         ],
         emergence_threshold=0.70,
     ),
-
     "evo_lenr_synthesis": UniverseSpec(
         name="EVO-LENR Transmutation Catalyst",
         description="""A hybrid domain exploring the use of Exotic Vacuum Objects
         (EVOs) as localized high-energy triggers to catalyze LENR in metal lattices.
         Focuses on element transmutation and non-equilibrium heat production.""",
         dimensions={
-            "charge_cluster_stability": (0, 1), # EVO stability in lattice
-            "loading_resonance": (0, 1),        # Coupling between D-Pd and EVO
-            "catalytic_gain": (1, 100),         # Energy multiplication factor
-            "transmutation_purity": (0, 1),     # Yield of target elements
-            "lattice_integrity": (0, 1),        # Prevention of material failure
-            "vacuum_flux_density": (0, 1e12),   # Local QED energy density
+            "charge_cluster_stability": (0, 1),  # EVO stability in lattice
+            "loading_resonance": (0, 1),  # Coupling between D-Pd and EVO
+            "catalytic_gain": (1, 100),  # Energy multiplication factor
+            "transmutation_purity": (0, 1),  # Yield of target elements
+            "lattice_integrity": (0, 1),  # Prevention of material failure
+            "vacuum_flux_density": (0, 1e12),  # Local QED energy density
         },
         laws=[
             "EVOs act as mobile tunneling portals for heavy nucleons",
@@ -253,7 +244,7 @@ PHYSICS_CATALOG = {
             "Is the catalyst consumed or regenerated through vacuum flux?",
             "Does this synthesis point toward a new form of alchemy?",
         ],
-        emergence_threshold=0.85, # High threshold for synthesis
+        emergence_threshold=0.85,  # High threshold for synthesis
     ),
 }
 
@@ -276,11 +267,7 @@ class AdvancedPhysicsEngine:
         self.unlocked_gateways: set[int] = set(range(1, 43))  # Start with 42
         self.next_gateway = 43  # Meta-gateways
 
-    async def explore_topic(
-        self,
-        topic_key: str,
-        epochs: int = 200
-    ) -> dict[str, Any]:
+    async def explore_topic(self, topic_key: str, epochs: int = 200) -> dict[str, Any]:
         """Run deep exploration of a physics topic."""
         if topic_key not in PHYSICS_CATALOG:
             return {"error": f"Unknown topic: {topic_key}"}
@@ -332,7 +319,7 @@ class AdvancedPhysicsEngine:
         keys = list(PHYSICS_CATALOG.keys())
 
         for i, k1 in enumerate(keys):
-            for k2 in keys[i+1:]:
+            for k2 in keys[i + 1 :]:
                 spec1 = PHYSICS_CATALOG[k1]
                 spec2 = PHYSICS_CATALOG[k2]
                 new_name = f"{spec1.name.split()[0]}-{spec2.name.split()[0]} Synthesis"
@@ -343,19 +330,25 @@ class AdvancedPhysicsEngine:
     async def run_queue(self, max_topics: int = None) -> dict:
         """Run through the entire topic queue."""
         results = []
-        topics_to_run = self.topic_queue[:max_topics] if max_topics else self.topic_queue
+        topics_to_run = (
+            self.topic_queue[:max_topics] if max_topics else self.topic_queue
+        )
 
         for topic in topics_to_run:
             result = await self.explore_topic(topic)
-            results.append({
-                "topic": topic,
-                "patterns": result.get("emergent_patterns", 0),
-                "coherence": result.get("avg_coherence", 0),
-            })
+            results.append(
+                {
+                    "topic": topic,
+                    "patterns": result.get("emergent_patterns", 0),
+                    "coherence": result.get("avg_coherence", 0),
+                }
+            )
 
-            print(f"  ✅ {PHYSICS_CATALOG[topic].name}: "
-                  f"{result.get('emergent_patterns', 0)} patterns, "
-                  f"coherence={result.get('avg_coherence', 0):.2f}")
+            print(
+                f"  ✅ {PHYSICS_CATALOG[topic].name}: "
+                f"{result.get('emergent_patterns', 0)} patterns, "
+                f"coherence={result.get('avg_coherence', 0):.2f}"
+            )
 
         return {
             "completed": len(results),
