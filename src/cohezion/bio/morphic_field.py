@@ -1,10 +1,11 @@
+import logging
+
+import numpy as np
 import torch
 import torch.nn.functional as F
-import logging
-from typing import List, Tuple, Optional
-import numpy as np
 
 logger = logging.getLogger(__name__)
+
 
 class MorphicField:
     """
@@ -14,20 +15,21 @@ class MorphicField:
     to "resonate" with past success, guiding them toward effective
     regions of the latent space.
     """
+
     _instance = None
 
     def __new__(cls):
         if cls._instance is None:
-            cls._instance = super(MorphicField, cls).__new__(cls)
+            cls._instance = super().__new__(cls)
             cls._instance._minit()
         return cls._instance
 
     def _minit(self):
         """Initialize the field."""
         # Storage for imprinted vectors [N, dim]
-        self.memory_bank: List[torch.Tensor] = []
-        self.scores: List[float] = []
-        self.dim = 768 # Default for now, can adapt
+        self.memory_bank: list[torch.Tensor] = []
+        self.scores: list[float] = []
+        self.dim = 768  # Default for now, can adapt
 
     def imprint(self, vector: torch.Tensor | np.ndarray, score: float):
         """
@@ -54,9 +56,13 @@ class MorphicField:
         if len(self.memory_bank) > 1000:
             self._prune()
 
-        logger.info(f"🧬 Morphic Field Imprinted (Score: {score:.2f}, Bank Size: {len(self.memory_bank)})")
+        logger.info(
+            f"🧬 Morphic Field Imprinted (Score: {score:.2f}, Bank Size: {len(self.memory_bank)})"
+        )
 
-    def resonate(self, vector: torch.Tensor | np.ndarray) -> Tuple[float, Optional[torch.Tensor]]:
+    def resonate(
+        self, vector: torch.Tensor | np.ndarray
+    ) -> tuple[float, torch.Tensor | None]:
         """
         Check for resonance with existing patterns.
         Returns (max_resonance_score, guiding_vector).
@@ -85,9 +91,14 @@ class MorphicField:
     def _prune(self):
         """Keep only the highest scoring memories."""
         # Simple pruning: sort by score and keep top 800
-        combined = sorted(zip(self.scores, self.memory_bank), key=lambda x: x[0], reverse=True)
+        combined = sorted(
+            zip(self.scores, self.memory_bank, strict=False),
+            key=lambda x: x[0],
+            reverse=True,
+        )
         self.scores = [x[0] for x in combined[:800]]
         self.memory_bank = [x[1] for x in combined[:800]]
+
 
 def get_morphic_field() -> MorphicField:
     return MorphicField()

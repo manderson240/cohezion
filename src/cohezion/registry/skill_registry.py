@@ -1,7 +1,7 @@
 import difflib
 import json
 import os
-from typing import Any, Dict, List
+from typing import Any
 
 # Path to the JSON registry file located alongside this module
 _REGISTRY_FILE = os.path.join(os.path.dirname(__file__), "skill_registry.json")
@@ -17,7 +17,7 @@ def _ensure_registry_file() -> None:
             json.dump({}, f, indent=2)
 
 
-def load_registry() -> Dict[str, Any]:
+def load_registry() -> dict[str, Any]:
     """
     Load the entire skill registry from disk.
 
@@ -27,7 +27,7 @@ def load_registry() -> Dict[str, Any]:
         Mapping of skill names to their metadata dictionaries.
     """
     _ensure_registry_file()
-    with open(_REGISTRY_FILE, "r", encoding="utf-8") as f:
+    with open(_REGISTRY_FILE, encoding="utf-8") as f:
         try:
             data = json.load(f)
             if not isinstance(data, dict):
@@ -38,7 +38,7 @@ def load_registry() -> Dict[str, Any]:
     return data
 
 
-def _save_registry(data: Dict[str, Any]) -> None:
+def _save_registry(data: dict[str, Any]) -> None:
     """
     Persist the given registry data to disk.
 
@@ -54,7 +54,7 @@ def _save_registry(data: Dict[str, Any]) -> None:
 def register_skill(
     name: str,
     description: str,
-    keywords: List[str],
+    keywords: list[str],
     path: str,
 ) -> None:
     """
@@ -88,7 +88,7 @@ def _match_score(query: str, text: str) -> float:
     return difflib.SequenceMatcher(None, query.lower(), text.lower()).ratio()
 
 
-def search_skills(query: str, limit: int = 10) -> List[Dict[str, Any]]:
+def search_skills(query: str, limit: int = 10) -> list[dict[str, Any]]:
     """
     Perform a fuzzy search over the skill registry using natural‑language
     queries. Returns the best matching skill entries.
@@ -107,7 +107,7 @@ def search_skills(query: str, limit: int = 10) -> List[Dict[str, Any]]:
         and ``path`` for a matching skill.
     """
     registry = load_registry()
-    results: List[Dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
 
     for name, meta in registry.items():
         # Compute a combined score from name, description, and keywords

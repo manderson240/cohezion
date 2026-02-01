@@ -1,26 +1,30 @@
-import json
 import logging
+import time
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Any
 
 logger = logging.getLogger(__name__)
+
 
 class MultimodalReporter:
     """
     Synthesizes simulation data into multimodal reports (Images, Audio Data, Marimo Carousels).
     """
+
     ARCHETYPE_IMAGES = {
         "The_Void": "/home/mike-anderson/.gemini/antigravity/brain/50ca8f0d-c9b3-4c86-915c-865a8abbd5e3/the_void_archetype_1769027705303.png",
         "Resonant_Lattice": "/home/mike-anderson/.gemini/antigravity/brain/50ca8f0d-c9b3-4c86-915c-865a8abbd5e3/resonant_lattice_archetype_1769027720759.png",
         "The_Glitch": "/home/mike-anderson/.gemini/antigravity/brain/50ca8f0d-c9b3-4c86-915c-865a8abbd5e3/the_glitch_archetype_1769027737704.png",
-        "Fractal_Nexus": "/home/mike-anderson/.gemini/antigravity/brain/50ca8f0d-c9b3-4c86-915c-865a8abbd5e3/fractal_nexus_archetype_1769027752892.png"
+        "Fractal_Nexus": "/home/mike-anderson/.gemini/antigravity/brain/50ca8f0d-c9b3-4c86-915c-865a8abbd5e3/fractal_nexus_archetype_1769027752892.png",
     }
 
-    def __init__(self, output_dir: str = "src/cohezion/knowledge_graph/universe_nodes/multimodal"):
+    def __init__(
+        self, output_dir: str = "src/cohezion/knowledge_graph/universe_nodes/multimodal"
+    ):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def generate_universe_summary(self, scenario_results: Dict[str, Any]) -> str:
+    def generate_universe_summary(self, scenario_results: dict[str, Any]) -> str:
         """
         Creates a markdown summary with embedded assets.
         """
@@ -34,8 +38,12 @@ class MultimodalReporter:
 
         sonification = {
             "base_freq": frequency,
-            "timbre": "Complex" if "Nexus" in name else "Noisy" if "Glitch" in name else "Pure",
-            "duration": 5.0
+            "timbre": "Complex"
+            if "Nexus" in name
+            else "Noisy"
+            if "Glitch" in name
+            else "Pure",
+            "duration": 5.0,
         }
 
         summary = f"""
@@ -54,7 +62,7 @@ class MultimodalReporter:
 """
         return summary
 
-    def create_multiverse_carousel(self, all_results: List[Dict[str, Any]]) -> str:
+    def create_multiverse_carousel(self, all_results: list[dict[str, Any]]) -> str:
         """
         Wraps multiple universe summaries into a carousel format.
         """
@@ -71,5 +79,3 @@ class MultimodalReporter:
         output_file = self.output_dir / f"multiverse_carousel_{int(time.time())}.md"
         output_file.write_text(carousel)
         return str(output_file)
-
-import time

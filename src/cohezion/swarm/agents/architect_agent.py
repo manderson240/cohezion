@@ -7,12 +7,13 @@ TaskGraph for parallelized swarm execution.
 
 import json
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from cohezion.swarm.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
 
 logger = logging.getLogger(__name__)
+
 
 class ArchitectAgent(BaseAgent):
     def __init__(self, config: SwarmConfig | None = None):
@@ -22,7 +23,7 @@ class ArchitectAgent(BaseAgent):
             config=config,
         )
 
-    async def decompose(self, request: str) -> List[Dict[str, Any]]:
+    async def decompose(self, request: str) -> list[dict[str, Any]]:
         """
         Decompose a high-level request into a list of atomic tasks.
         """
@@ -65,7 +66,7 @@ OUTPUT FORMAT (JSON list of objects):
             if "```json" in text:
                 text = text.split("```json")[1].split("```")[0]
             elif "[" in text:
-                text = text[text.find("["):text.rfind("]")+1]
+                text = text[text.find("[") : text.rfind("]") + 1]
 
             tasks = json.loads(text)
             if isinstance(tasks, list):
@@ -90,7 +91,9 @@ OUTPUT FORMAT (JSON list of objects):
             report.append(f"### Task: {task.get('title', 'Untitled')}")
             report.append(f"- **ID**: {task.get('id')}")
             report.append(f"- **Agent**: {task.get('suggested_agent')}")
-            report.append(f"- **Dependencies**: {', '.join(task.get('depends_on', [])) or 'None'}")
+            report.append(
+                f"- **Dependencies**: {', '.join(task.get('depends_on', [])) or 'None'}"
+            )
             report.append(f"- **Description**: {task.get('description')}\n")
 
         return "\n".join(report)

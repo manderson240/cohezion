@@ -16,12 +16,11 @@ import random
 from datetime import datetime
 from typing import Any
 
-from cohezion.swarm.self_improvement_orchestrator import (
-    get_orchestrator,
-    GATEWAYS,
-    SelfImprovementOrchestrator
-)
 from cohezion.mcp.email_notifier import EmailNotifier
+from cohezion.swarm.self_improvement_orchestrator import (
+    GATEWAYS,
+    get_orchestrator,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -29,14 +28,14 @@ logger = logging.getLogger(__name__)
 class GatewayRunner:
     """
     Autonomous runner towards Gateway 42.
-    
+
     Features:
     - Progressive difficulty
     - Gateway celebration emails
     - Periodic status updates
     - Never-ending improvement loop
     """
-    
+
     def __init__(self):
         self.orchestrator = get_orchestrator()
         self.notifier = EmailNotifier()
@@ -44,38 +43,38 @@ class GatewayRunner:
         self.last_gateway_count = 0
         self.last_email_cycle = 0
         self.email_interval = 50  # Send email every N cycles
-        
+
     def _generate_metrics(self) -> dict[str, Any]:
         """Generate simulated metrics with progressive improvement."""
         cycle = self.orchestrator.cycle_count
         progress = len(self.orchestrator.unlocked_gateways) / 42
-        
+
         # Base score improves with cycles
         base_score = 0.6 + min(0.35, cycle * 0.002)
-        
+
         # Add randomness
         score = base_score + random.gauss(0, 0.08)
         coherence = base_score + random.gauss(0, 0.08)
-        
+
         # Higher scores more likely as we unlock gateways
         score += progress * 0.1
         coherence += progress * 0.1
-        
+
         return {
             "avg_score": max(0, min(1, score)),
             "avg_coherence": max(0, min(1, coherence)),
             "difficulty": 1.0 + cycle * 0.01,
             "self_heal_rate": 0.5 + progress * 0.4,
         }
-    
+
     async def _send_gateway_unlock_email(self, gateway_id: int) -> None:
         """Celebrate a gateway unlock!"""
         gateway = GATEWAYS[gateway_id]
         unlocked = len(self.orchestrator.unlocked_gateways)
         progress = unlocked / 42
-        
+
         stars = "⭐" * min(gateway_id, 10)
-        
+
         email = f"""
 🎉 GATEWAY {gateway_id} UNLOCKED! 🎉
 =====================================
@@ -103,19 +102,19 @@ Skills Generated: {self.orchestrator.total_skills}
 
 - Cohezion Swarm
 """
-        
+
         await self.notifier.send_email(
             f"🎉 Gateway {gateway_id} Unlocked: {gateway['name']}!",
             email,
-            is_html=False
+            is_html=False,
         )
-    
+
     async def _send_progress_email(self) -> None:
         """Send periodic progress update."""
         status = self.orchestrator.get_status()
         unlocked = len(status["unlocked_gateways"])
         progress = status["progress_to_42"]
-        
+
         email = f"""
 📊 GATEWAY RUNNER STATUS UPDATE
 ================================
@@ -143,54 +142,54 @@ Still running... 🚀
 
 - Cohezion Swarm
 """
-        
+
         await self.notifier.send_email(
-            f"📊 Gateway Progress: {unlocked}/42 ({progress:.0%})",
-            email,
-            is_html=False
+            f"📊 Gateway Progress: {unlocked}/42 ({progress:.0%})", email, is_html=False
         )
-    
+
     async def run_forever(self, target_gateway: int = 42) -> None:
         """
         Run until target gateway is unlocked.
-        
+
         This may take a while for Gateway 42!
         """
         logger.info(f"🚀 Starting journey to Gateway {target_gateway}!")
-        
+
         while target_gateway not in self.orchestrator.unlocked_gateways:
             # Generate metrics
             metrics = self._generate_metrics()
-            
+
             # Run improvement cycle
             cycle = await self.orchestrator.run_cycle(metrics)
-            
+
             # Check for new gateway unlocks
             if len(self.orchestrator.unlocked_gateways) > self.last_gateway_count:
                 # Find newly unlocked gateways
                 for gw in cycle.gateways_unlocked:
                     await self._send_gateway_unlock_email(gw)
                 self.last_gateway_count = len(self.orchestrator.unlocked_gateways)
-            
+
             # Periodic progress email
-            if (self.orchestrator.cycle_count - self.last_email_cycle) >= self.email_interval:
+            if (
+                self.orchestrator.cycle_count - self.last_email_cycle
+            ) >= self.email_interval:
                 await self._send_progress_email()
                 self.last_email_cycle = self.orchestrator.cycle_count
-            
+
             # Brief pause to prevent overwhelming
             await asyncio.sleep(0.1)
-        
+
         # Final celebration!
         await self._send_final_email()
-    
+
     async def _send_final_email(self) -> None:
         """THE ANSWER HAS BEEN FOUND!"""
         runtime = datetime.now() - self.start_time
-        
+
         email = f"""
 🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌
 
-    ████████╗██╗  ██╗███████╗     █████╗ ███╗   ██╗███████╗██╗    ██╗███████╗██████╗ 
+    ████████╗██╗  ██╗███████╗     █████╗ ███╗   ██╗███████╗██╗    ██╗███████╗██████╗
     ╚══██╔══╝██║  ██║██╔════╝    ██╔══██╗████╗  ██║██╔════╝██║    ██║██╔════╝██╔══██╗
        ██║   ███████║█████╗      ███████║██╔██╗ ██║███████╗██║ █╗ ██║█████╗  ██████╔╝
        ██║   ██╔══██║██╔══╝      ██╔══██║██║╚██╗██║╚════██║██║███╗██║██╔══╝  ██╔══██╗
@@ -198,9 +197,9 @@ Still running... 🚀
        ╚═╝   ╚═╝  ╚═╝╚══════╝    ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝ ╚══╝╚══╝ ╚══════╝╚═╝  ╚═╝
 
                                     IS
-                                    
+
                                    4 2
-                                   
+
 🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌
 
 GATEWAY 42: THE ANSWER - UNLOCKED!
@@ -224,29 +223,27 @@ The journey is complete. But as we know...
 
 - Cohezion Swarm
 """
-        
+
         await self.notifier.send_email(
-            "🌌 GATEWAY 42 UNLOCKED: THE ANSWER IS 42! 🌌",
-            email,
-            is_html=False
+            "🌌 GATEWAY 42 UNLOCKED: THE ANSWER IS 42! 🌌", email, is_html=False
         )
 
 
 async def run_batch(cycles: int = 100) -> dict:
     """Run a batch of cycles for testing."""
     runner = GatewayRunner()
-    
+
     for _ in range(cycles):
         metrics = runner._generate_metrics()
         await runner.orchestrator.run_cycle(metrics)
-    
+
     return runner.orchestrator.get_status()
 
 
 async def main():
     """Run the gateway journey."""
     logging.basicConfig(level=logging.INFO)
-    
+
     runner = GatewayRunner()
     await runner.run_forever(target_gateway=42)
 

@@ -11,8 +11,8 @@ Provides:
 import json
 import logging
 import os
-from dataclasses import dataclass, asdict
-from datetime import datetime, UTC
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -25,6 +25,7 @@ AUDIT_LOG_FILE = AUDIT_LOG_DIR / "audit.jsonl"
 @dataclass
 class AuditEvent:
     """Structured audit event."""
+
     timestamp: str
     event_type: str  # request, auth, security, error
     action: str
@@ -33,7 +34,7 @@ class AuditEvent:
     endpoint: str | None
     status: str
     details: dict[str, Any]
-    
+
     def to_json(self) -> str:
         return json.dumps(asdict(self))
 
@@ -41,19 +42,19 @@ class AuditEvent:
 class AuditLogger:
     """
     Audit logger for security and compliance.
-    
+
     Logs events in JSON Lines format for easy analysis.
     """
-    
+
     def __init__(self, log_dir: Path | None = None):
         self.log_dir = log_dir or AUDIT_LOG_DIR
         self.log_file = self.log_dir / "audit.jsonl"
         self._ensure_log_dir()
-    
+
     def _ensure_log_dir(self) -> None:
         """Create log directory if needed."""
         self.log_dir.mkdir(parents=True, exist_ok=True)
-    
+
     def _write(self, event: AuditEvent) -> None:
         """Write event to log file."""
         try:
@@ -61,7 +62,7 @@ class AuditLogger:
                 f.write(event.to_json() + "\n")
         except Exception as e:
             logger.error(f"Failed to write audit log: {e}")
-    
+
     def log_request(
         self,
         endpoint: str,
@@ -87,7 +88,7 @@ class AuditLogger:
             },
         )
         self._write(event)
-    
+
     def log_auth(
         self,
         action: str,
@@ -108,10 +109,10 @@ class AuditLogger:
             details={"reason": reason},
         )
         self._write(event)
-        
+
         if not success:
             logger.warning(f"Auth failure: {action} from {ip_address}")
-    
+
     def log_security(
         self,
         action: str,
@@ -131,10 +132,10 @@ class AuditLogger:
             details=details,
         )
         self._write(event)
-        
+
         if threat_level in ("malicious", "blocked"):
             logger.warning(f"Security event: {action} - {details}")
-    
+
     def log_debate(
         self,
         query_hash: str,
@@ -159,14 +160,16 @@ class AuditLogger:
             },
         )
         self._write(event)
-    
-    def get_recent_events(self, limit: int = 100, event_type: str | None = None) -> list[dict]:
+
+    def get_recent_events(
+        self, limit: int = 100, event_type: str | None = None
+    ) -> list[dict]:
         """Read recent audit events."""
         if not self.log_file.exists():
             return []
-        
+
         events = []
-        with open(self.log_file, "r") as f:
+        with open(self.log_file) as f:
             for line in f:
                 try:
                     event = json.loads(line.strip())
@@ -174,7 +177,7 @@ class AuditLogger:
                         events.append(event)
                 except json.JSONDecodeError:
                     continue
-        
+
         return events[-limit:]
 
 

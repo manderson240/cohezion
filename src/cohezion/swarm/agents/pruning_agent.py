@@ -6,14 +6,12 @@ high information density across the swarm's memory.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
-from datetime import datetime
 
 from cohezion.swarm.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
-from cohezion.db.surreal_client import SurrealClient
 
 logger = logging.getLogger(__name__)
+
 
 class PruningAgent(BaseAgent):
     def __init__(self, config: SwarmConfig | None = None):
@@ -54,7 +52,7 @@ class PruningAgent(BaseAgent):
         # 2. Identify redundancy
         groups = {}
         for t in thoughts:
-            qh = t.get('qh', 'unknown')
+            qh = t.get("qh", "unknown")
             if qh not in groups:
                 groups[qh] = []
             groups[qh].append(t)
@@ -68,7 +66,7 @@ class PruningAgent(BaseAgent):
         report = ["## Knowledge Compression Report"]
         for qh, group in redundant_groups.items():
             report.append(f"\n### Cluster: {qh} ({len(group)} duplicates)")
-            example_content = group[0].get('content', '')[:200]
+            example_content = group[0].get("content", "")[:200]
             report.append(f"Content Preview: {example_content}...")
 
             # Simple merge logic for MVP: Propose a synthesis

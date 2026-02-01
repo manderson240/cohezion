@@ -9,6 +9,40 @@ wheels/
 # Virtual environments
 .venv
 .env
+**/venv/
+**/env/
+**/node_modules/
+**/target/
+**/build/
+**/dist/
+.archive/
+
+# Specific Bloat Suppression
+research/challenges/*.html
+research/handoffs/
+submission_drafts/
+portfolio/
+!portfolio/*.md
+models/
+mteb_results/
+audio/
+package-lock.frontend.json
+package-lock.json
+package.frontend.json
+package.json
+tsconfig.node.json
+tsconfig.json
+vite.config.ts
+index.html
+adversarial_review_journey.json
+benchmark_*.png
+flume_*.png
+*.log
+*.err
+*.out
+*.pt
+*.pdf
+*.webp
 
 # Diagnostic logs (large binary files)
 src/diagnostics/*.log
@@ -37,9 +71,11 @@ logs/*.log
 Thumbs.db
 
 # Generated simulation artifacts (stored in SurrealDB)
-src/cohezion/knowledge_graph/universe_nodes/*/audio_scripts/
-src/cohezion/knowledge_graph/universe_nodes/*/logs/
-src/cohezion/knowledge_graph/universe_nodes/*/viz/
+src/cohezion/knowledge_graph/universe_nodes/
+src/cohezion/library/*_files/
+src/cohezion/library/*.html
+src/cohezion/library/*.pdf
+src/cohezion/library/*.png
 
 # Large data files (use database instead)
 *.jsonl
@@ -61,18 +97,59 @@ logs/
 .sandbox/
 
 # Web App Dependencies and Builds
-webapp/node_modules/
+**/node_modules/
 webapp/dist/
 webapp/.vite/
+apps/dashboard/assets/
+src/cohezion/api/static/assets/index-*.js
+src/cohezion/api/static/assets/logo-*.png
+
+# Simulation assets
+**/*.safetensors
+
 results/
 exports/
 
-# 2026-01-23 Cleanup (Global Aggressive)
-**/venv/
-**/*.log
-**/*.jsonl
-**/*.html
+# 2026-01-28 Audit Hardening
 **/*.dill
-**/__pycache__/
+**/peaked_mps_final.dill
+**/enhanced_simulations/*.jsonl
+**/training_data/*.jsonl
+**/logs/archive/*.log
+**/src/diagnostics/*.log
+cohezion_dataset.json
+trace.json
+dashboard.log
+
+# Aggressive Binary Patterns (Move to DB/Object Storage)
+*.pt
+*.pdf
+*.webp
+*.mp3
 audio/
-bluequbit_challenge/little_dimple_submission/code_bundle.zip
+mteb_results/
+tokenizer.json
+benchmark_*.png
+flume_*.png
+history.txt
+nexus_state.png
+debate_trajectory.png
+
+# Ensure scripts and small configs are kept
+!scripts/**/*.py
+!apps/**/*.tsx
+!apps/**/*.ts
+!src/cohezion/**/*.py
+!**/favicon*.png
+!**/logo.png
+
+# Swarm Auto-Ignore
+data/surrealdb/
+data/overnight/
+
+# Knowledge Graph Artifacts (Deep Bloat)
+src/cohezion/knowledge_graph/universe_nodes/linguistic_evolution/logs/
+src/cohezion/knowledge_graph/universe_nodes/**/logs/
+*.sst
+*.bundle
+cohezion.db/

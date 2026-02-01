@@ -10,8 +10,8 @@ Creates a matrix showing:
 
 import json
 import logging
-from dataclasses import dataclass, asdict, field
-from datetime import datetime, UTC
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class Capability:
     """A platform capability."""
+
     name: str
     domain: str
     status: str  # implemented, partial, planned, gap
@@ -34,6 +35,7 @@ class Capability:
 @dataclass
 class CapabilityMatrix:
     """Complete capability matrix."""
+
     timestamp: str
     total_capabilities: int
     implemented: int
@@ -42,7 +44,7 @@ class CapabilityMatrix:
     capabilities: list[Capability]
     gap_analysis: dict[str, Any]
     recommendations: list[str]
-    
+
     def to_dict(self) -> dict:
         return {
             "timestamp": self.timestamp,
@@ -63,7 +65,7 @@ class CapabilityAnalyzer:
     """
     Analyzes and generates capability matrix.
     """
-    
+
     # Define expected capabilities
     EXPECTED_CAPABILITIES = {
         "core": [
@@ -114,10 +116,10 @@ class CapabilityAnalyzer:
             ("podcast_gen", "Podcast generation"),
         ],
     }
-    
+
     def __init__(self, base_path: Path | None = None):
         self.base_path = base_path or Path("src/cohezion")
-    
+
     def check_component_exists(self, name: str) -> bool:
         """Check if a component exists in the codebase."""
         patterns = {
@@ -153,55 +155,57 @@ class CapabilityAnalyzer:
             "voice_profiles": ["audio/tts_service.py"],
             "podcast_gen": ["learning/multimodal_notebook.py"],
         }
-        
+
         if name not in patterns:
             return False
-        
+
         for pattern in patterns[name]:
             path = self.base_path / pattern
             if path.exists():
                 return True
         return False
-    
+
     def get_related_skills(self, name: str) -> list[str]:
         """Get skills related to a capability."""
         skills_path = self.base_path / "skills"
         related = []
-        
+
         name_parts = name.split("_")
         for skill_file in skills_path.glob("*.md"):
             skill_name = skill_file.stem.lower()
             if any(part in skill_name for part in name_parts):
                 related.append(skill_file.stem)
-        
+
         return related[:5]
-    
+
     def get_mcp_servers(self, name: str) -> list[str]:
         """Get MCP servers related to a capability."""
         registry_path = self.base_path / "mcp" / "mcp_registry.json"
         if not registry_path.exists():
             return []
-        
+
         try:
             with open(registry_path) as f:
                 registry = json.load(f)
-            
+
             servers = []
             for server in registry.get("internal", []):
                 server_name = server.get("name", "")
                 if any(part in server_name.lower() for part in name.split("_")):
                     servers.append(server_name)
-            
+
             return servers
         except Exception:
             return []
-    
-    def analyze_capability(self, name: str, description: str, domain: str) -> Capability:
+
+    def analyze_capability(
+        self, name: str, description: str, domain: str
+    ) -> Capability:
         """Analyze a single capability."""
         exists = self.check_component_exists(name)
         skills = self.get_related_skills(name)
         mcp_servers = self.get_mcp_servers(name)
-        
+
         # Determine status
         if exists and skills:
             status = "implemented"
@@ -215,7 +219,7 @@ class CapabilityAnalyzer:
         else:
             status = "gap"
             coverage = 0.0
-        
+
         return Capability(
             name=name,
             domain=domain,
@@ -226,21 +230,21 @@ class CapabilityAnalyzer:
             tools=[],  # Could be populated from tool registry
             coverage_score=coverage,
         )
-    
+
     def generate_matrix(self) -> CapabilityMatrix:
         """Generate complete capability matrix."""
         capabilities = []
-        
+
         for domain, caps in self.EXPECTED_CAPABILITIES.items():
             for name, description in caps:
                 cap = self.analyze_capability(name, description, domain)
                 capabilities.append(cap)
-        
+
         # Count by status
         implemented = sum(1 for c in capabilities if c.status == "implemented")
         partial = sum(1 for c in capabilities if c.status == "partial")
         gaps = sum(1 for c in capabilities if c.status == "gap")
-        
+
         # Gap analysis by domain
         gap_analysis = {}
         for domain in self.EXPECTED_CAPABILITIES:
@@ -252,15 +256,17 @@ class CapabilityAnalyzer:
                 "coverage": 1 - len(domain_gaps) / max(len(domain_caps), 1),
                 "missing": [c.name for c in domain_gaps],
             }
-        
+
         # Generate recommendations
         recommendations = []
         for cap in capabilities:
             if cap.status == "gap":
-                recommendations.append(f"CRITICAL: Implement {cap.name} in {cap.domain}")
+                recommendations.append(
+                    f"CRITICAL: Implement {cap.name} in {cap.domain}"
+                )
             elif cap.status == "partial" and not cap.skills:
                 recommendations.append(f"Create {cap.name.upper()}_PRIME skill")
-        
+
         return CapabilityMatrix(
             timestamp=datetime.now(UTC).isoformat(),
             total_capabilities=len(capabilities),
@@ -271,16 +277,18 @@ class CapabilityAnalyzer:
             gap_analysis=gap_analysis,
             recommendations=recommendations[:15],
         )
-    
+
     def save_matrix(self, matrix: CapabilityMatrix) -> Path:
         """Save capability matrix."""
         output_dir = self.base_path / "knowledge_graph" / "audits"
         output_dir.mkdir(parents=True, exist_ok=True)
-        
-        output_file = output_dir / f"capability_matrix_{int(datetime.now().timestamp())}.json"
+
+        output_file = (
+            output_dir / f"capability_matrix_{int(datetime.now().timestamp())}.json"
+        )
         with open(output_file, "w") as f:
             json.dump(matrix.to_dict(), f, indent=2)
-        
+
         logger.info(f"Capability matrix saved to {output_file}")
         return output_file
 
@@ -296,15 +304,17 @@ def generate_capability_matrix() -> CapabilityMatrix:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     matrix = generate_capability_matrix()
-    
-    print(f"\n=== Capability Matrix ===")
+
+    print("\n=== Capability Matrix ===")
     print(f"Total: {matrix.total_capabilities}")
     print(f"Implemented: {matrix.implemented}")
     print(f"Partial: {matrix.partial}")
     print(f"Gaps: {matrix.gaps}")
-    print(f"\nGap Analysis by Domain:")
+    print("\nGap Analysis by Domain:")
     for domain, data in matrix.gap_analysis.items():
-        print(f"  {domain}: {data['coverage']*100:.0f}% coverage, gaps: {data['missing']}")
-    print(f"\nTop Recommendations:")
+        print(
+            f"  {domain}: {data['coverage']*100:.0f}% coverage, gaps: {data['missing']}"
+        )
+    print("\nTop Recommendations:")
     for rec in matrix.recommendations[:5]:
         print(f"  - {rec}")

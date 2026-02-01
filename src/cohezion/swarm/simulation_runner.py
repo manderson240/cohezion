@@ -10,7 +10,7 @@ import json
 import logging
 import random
 import time
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SimulationConfig:
     """Configuration for batch simulations."""
+
     num_simulations: int = 100
     agents_per_sim: int = 5
     steps_per_journey: int = 5
@@ -30,9 +31,10 @@ class SimulationConfig:
     output_dir: Path = Path("src/cohezion/knowledge_graph/universe_nodes/simulations")
 
 
-@dataclass 
+@dataclass
 class SimulationResult:
     """Result of a single simulation run."""
+
     sim_id: str
     query: str
     journey_type: str  # "standard_llm" or "calm"
@@ -42,7 +44,7 @@ class SimulationResult:
     total_duration_ms: float
     smoothness_score: float
     consensus_reached: bool
-    
+
     def to_dict(self) -> dict:
         return asdict(self)
 
@@ -50,18 +52,30 @@ class SimulationResult:
 class JourneySimulator:
     """
     Simulates agent journeys with realistic physics evolution.
-    
+
     Generates synthetic but realistic data based on patterns
     observed in actual swarm debates:
     - Analysts: scattered positions, moderate coherence
     - Critics: centered position, high factuality check
     - Synthesizers: convergent, max coherence
     """
-    
+
     # 12D physics dimensions
-    DIMS = ['x', 'y', 'z', 'time', 'mass', 'sentiment', 'complexity', 
-            'factuality', 'connectivity', 'stability', 'novelty', 'coherence']
-    
+    DIMS = [
+        "x",
+        "y",
+        "z",
+        "time",
+        "mass",
+        "sentiment",
+        "complexity",
+        "factuality",
+        "connectivity",
+        "stability",
+        "novelty",
+        "coherence",
+    ]
+
     # Query templates for variety
     QUERY_TEMPLATES = [
         "How can we improve {topic} in Cohezion?",
@@ -70,29 +84,37 @@ class JourneySimulator:
         "Should we implement {topic}?",
         "Compare alternatives for {topic}",
     ]
-    
+
     TOPICS = [
-        "real-time visualization", "agent memory", "self-healing", 
-        "security hardening", "performance optimization", "API design",
-        "user experience", "knowledge graph expansion", "MCP integration",
-        "CALM predictions", "swarm consensus", "physics simulation",
+        "real-time visualization",
+        "agent memory",
+        "self-healing",
+        "security hardening",
+        "performance optimization",
+        "API design",
+        "user experience",
+        "knowledge graph expansion",
+        "MCP integration",
+        "CALM predictions",
+        "swarm consensus",
+        "physics simulation",
     ]
-    
+
     def __init__(self, config: SimulationConfig | None = None):
         self.config = config or SimulationConfig()
         self.config.output_dir.mkdir(parents=True, exist_ok=True)
         self.results: list[SimulationResult] = []
-    
+
     def _generate_physics_state(
-        self, 
-        step: int, 
-        total_steps: int, 
+        self,
+        step: int,
+        total_steps: int,
         agent_type: str,
         is_calm: bool = False,
     ) -> dict[str, float]:
         """Generate realistic 12D physics state based on agent type and mode."""
         t = step / max(total_steps - 1, 1)
-        
+
         # Base physics by agent type
         if agent_type == "analyst":
             base = {
@@ -139,7 +161,7 @@ class JourneySimulator:
                 "novelty": random.uniform(0.35, 0.5),
                 "coherence": random.uniform(0.92, 0.99),
             }
-        
+
         # CALM mode: smoother transitions, higher coherence
         if is_calm:
             base["coherence"] = min(1.0, base["coherence"] * 1.05)
@@ -147,21 +169,21 @@ class JourneySimulator:
             # Smoother position
             base["x"] *= 0.8
             base["y"] *= 0.8
-        
+
         return {k: max(0, min(1, v)) for k, v in base.items()}
-    
+
     def _calculate_smoothness(self, steps: list[dict]) -> float:
         """Calculate trajectory smoothness (higher = smoother)."""
         if len(steps) < 2:
             return 1.0
-        
+
         z_vals = [s["physics_state"]["z"] for s in steps]
         diffs = np.diff(z_vals)
         variance = np.var(diffs)
         return 1.0 / (1.0 + variance * 10)
-    
+
     def simulate_journey(
-        self, 
+        self,
         sim_id: str,
         query: str,
         is_calm: bool = False,
@@ -169,11 +191,13 @@ class JourneySimulator:
         """Simulate a single agent journey."""
         steps = []
         agent_sequence = ["analyst", "analyst", "analyst", "critic", "synthesizer"]
-        
+
         start_time = time.time()
-        
+
         for i, agent_type in enumerate(agent_sequence):
-            physics = self._generate_physics_state(i, len(agent_sequence), agent_type, is_calm)
+            physics = self._generate_physics_state(
+                i, len(agent_sequence), agent_type, is_calm
+            )
             step = {
                 "step": i + 1,
                 "agent_type": agent_type,
@@ -183,10 +207,10 @@ class JourneySimulator:
                 "confidence": physics["coherence"] * random.uniform(0.9, 1.1),
             }
             steps.append(step)
-        
+
         final_step = steps[-1]
         smoothness = self._calculate_smoothness(steps)
-        
+
         return SimulationResult(
             sim_id=sim_id,
             query=query,
@@ -194,50 +218,59 @@ class JourneySimulator:
             steps=steps,
             final_coherence=final_step["physics_state"]["coherence"],
             final_confidence=min(1.0, final_step["confidence"]),
-            total_duration_ms=(time.time() - start_time) * 1000 + sum(s["duration_ms"] for s in steps),
+            total_duration_ms=(time.time() - start_time) * 1000
+            + sum(s["duration_ms"] for s in steps),
             smoothness_score=smoothness,
-            consensus_reached=smoothness > 0.7 and final_step["physics_state"]["coherence"] > 0.9,
+            consensus_reached=smoothness > 0.7
+            and final_step["physics_state"]["coherence"] > 0.9,
         )
-    
+
     async def run_batch(self) -> list[SimulationResult]:
         """Run batch of simulations."""
         self.results = []
-        
+
         for i in range(self.config.num_simulations):
             topic = random.choice(self.TOPICS)
             template = random.choice(self.QUERY_TEMPLATES)
             query = template.format(topic=topic)
-            
+
             # Alternate between LLM and CALM simulations
             is_calm = i % 2 == 1
-            
+
             sim_id = f"sim_{i+1:03d}_{int(time.time())}"
             result = self.simulate_journey(sim_id, query, is_calm)
             self.results.append(result)
-            
+
             if (i + 1) % 20 == 0:
-                logger.info(f"Completed {i + 1}/{self.config.num_simulations} simulations")
-        
+                logger.info(
+                    f"Completed {i + 1}/{self.config.num_simulations} simulations"
+                )
+
         # Save all results
         output_file = self.config.output_dir / f"batch_{int(time.time())}.json"
         with open(output_file, "w") as f:
-            json.dump({
-                "config": asdict(self.config),
-                "results": [r.to_dict() for r in self.results],
-                "summary": self.analyze_results(),
-            }, f, indent=2, default=str)
-        
+            json.dump(
+                {
+                    "config": asdict(self.config),
+                    "results": [r.to_dict() for r in self.results],
+                    "summary": self.analyze_results(),
+                },
+                f,
+                indent=2,
+                default=str,
+            )
+
         logger.info(f"Saved {len(self.results)} simulations to {output_file}")
         return self.results
-    
+
     def analyze_results(self) -> dict[str, Any]:
         """Analyze simulation results comparing LLM vs CALM."""
         llm_results = [r for r in self.results if r.journey_type == "standard_llm"]
         calm_results = [r for r in self.results if r.journey_type == "calm"]
-        
+
         def avg(vals: list[float]) -> float:
             return sum(vals) / max(len(vals), 1)
-        
+
         return {
             "total_simulations": len(self.results),
             "llm_count": len(llm_results),
@@ -246,16 +279,22 @@ class JourneySimulator:
             "calm_avg_coherence": avg([r.final_coherence for r in calm_results]),
             "llm_avg_smoothness": avg([r.smoothness_score for r in llm_results]),
             "calm_avg_smoothness": avg([r.smoothness_score for r in calm_results]),
-            "llm_consensus_rate": sum(1 for r in llm_results if r.consensus_reached) / max(len(llm_results), 1),
-            "calm_consensus_rate": sum(1 for r in calm_results if r.consensus_reached) / max(len(calm_results), 1),
+            "llm_consensus_rate": sum(1 for r in llm_results if r.consensus_reached)
+            / max(len(llm_results), 1),
+            "calm_consensus_rate": sum(1 for r in calm_results if r.consensus_reached)
+            / max(len(calm_results), 1),
             "coherence_improvement": (
-                avg([r.final_coherence for r in calm_results]) - 
-                avg([r.final_coherence for r in llm_results])
-            ) if llm_results and calm_results else 0,
+                avg([r.final_coherence for r in calm_results])
+                - avg([r.final_coherence for r in llm_results])
+            )
+            if llm_results and calm_results
+            else 0,
             "smoothness_improvement": (
-                avg([r.smoothness_score for r in calm_results]) - 
-                avg([r.smoothness_score for r in llm_results])
-            ) if llm_results and calm_results else 0,
+                avg([r.smoothness_score for r in calm_results])
+                - avg([r.smoothness_score for r in llm_results])
+            )
+            if llm_results and calm_results
+            else 0,
         }
 
 

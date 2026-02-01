@@ -7,13 +7,15 @@ Classifies them as 1 (Relevant) or 0 (Irrelevant).
 
 import asyncio
 import logging
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
-from imap_tools import MailBox, A, AND
-from cohezion.swarm.agents.email_listener_agent import EmailListenerAgent
+from imap_tools import MailBox
+
 from cohezion.core.time_keeper import get_time_keeper
+from cohezion.swarm.agents.email_listener_agent import EmailListenerAgent
 
 logger = logging.getLogger(__name__)
+
 
 class InboxMiner(EmailListenerAgent):
     """
@@ -39,7 +41,7 @@ Criteria for Rank 0:
 - Unrelated work
 """
 
-    async def mine_history(self, limit: int = 50) -> List[Dict[str, Any]]:
+    async def mine_history(self, limit: int = 50) -> list[dict[str, Any]]:
         """
         Fetch last N emails and classify them.
         Returns list of Rank 1 tasks.
@@ -52,15 +54,19 @@ Criteria for Rank 0:
         valid_tasks = []
 
         try:
-            await tk.log_event(self.__class__.__name__, "MINING_START", {"limit": limit})
+            await tk.log_event(
+                self.__class__.__name__, "MINING_START", {"limit": limit}
+            )
 
             # 1. Fetch
             emails = await asyncio.to_thread(self._fetch_history, limit)
             logger.info(f"Fetched {len(emails)} historical emails.")
 
             # 2. Classify (Sequential to avoid rate limits, or parallel batches)
-            for i, email in enumerate(emails):
-                rank, task_title = await self._classify_email(email.subject, email.text or "")
+            for _i, email in enumerate(emails):
+                rank, task_title = await self._classify_email(
+                    email.subject, email.text or ""
+                )
 
                 if rank == 1:
                     task = {
@@ -69,33 +75,31 @@ Criteria for Rank 0:
                         "original_subject": email.subject,
                         "task_title": task_title,
                         "timestamp": str(email.date),
-                        "rank": 1
+                        "rank": 1,
                     }
                     valid_tasks.append(task)
                     logger.info(f"Generated Task: {task_title}")
 
                     await tk.log_event(
-                        self.__class__.__name__,
-                        "TASK_MINED",
-                        {"title": task_title}
+                        self.__class__.__name__, "TASK_MINED", {"title": task_title}
                     )
 
             return valid_tasks
 
         except Exception as e:
             logger.error(f"Mining failed: {e}")
-            await tk.log_event(self.__class__.__name__, "MINING_ERROR", {"error": str(e)})
+            await tk.log_event(
+                self.__class__.__name__, "MINING_ERROR", {"error": str(e)}
+            )
             return []
 
-    def _fetch_history(self, limit: int) -> List[Any]:
+    def _fetch_history(self, limit: int) -> list[Any]:
         """Fetch last N emails from authorized sender (SEEN or UNSEEN)."""
         messages = []
         try:
             with MailBox(self.imap_host).login(
-                self.email_config.sender_email,
-                self.email_config.sender_password
+                self.email_config.sender_email, self.email_config.sender_password
             ) as mailbox:
-
                 # Fetch recent N messages from sender, reversed (newest first)
                 criteria = f'FROM "{self.authorized_sender}"'
                 for msg in mailbox.fetch(criteria, limit=limit, reverse=True):
@@ -106,7 +110,7 @@ Criteria for Rank 0:
             raise
         return messages
 
-    async def _classify_email(self, subject: str, body: str) -> Tuple[int, str]:
+    async def _classify_email(self, subject: str, body: str) -> tuple[int, str]:
         """
         Use LLM to classify email.
         Returns (rank, task_title).
@@ -119,8 +123,8 @@ Criteria for Rank 0:
             response = await self._call_ollama(
                 prompt=prompt,
                 system_prompt=self.SYSTEM_PROMPT,
-                temperature=0.0, # Deterministic
-                max_tokens=50
+                temperature=0.0,  # Deterministic
+                max_tokens=50,
             )
 
             # Parse response
@@ -142,6 +146,7 @@ Criteria for Rank 0:
         except Exception as e:
             logger.warning(f"Classification failed: {e}")
             return 0, "Error"
+
 
 # --- Test / Demo ---
 if __name__ == "__main__":

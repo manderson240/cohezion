@@ -37,6 +37,13 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: check-complexity
+        name: Check Code Complexity
+        entry: scripts/hooks/check-complexity.sh
+        language: script
+        pass_filenames: false
+        always_run: true
+
       - id: pytest-check
         name: pytest-check
         entry: uv run pytest tests/ -x -q --tb=short

@@ -1,8 +1,8 @@
 import json
-import os
 from pathlib import Path
-from datetime import datetime
+
 import numpy as np
+
 
 def analyze_journeys():
     journey_dir = Path("src/cohezion/knowledge_graph/universe_nodes/journeys")
@@ -12,7 +12,7 @@ def analyze_journeys():
 
     for f in files:
         try:
-            with open(f, 'r') as jf:
+            with open(f) as jf:
                 data = json.load(jf)
 
             journey_id = data.get("journey_id")
@@ -31,21 +31,27 @@ def analyze_journeys():
             novelties = [s.get("novelty", 0.0) for s in states]
 
             # Spatial drift (Euclidean distance from start in X,Y,Z)
-            start_xyz = np.array([states[0].get("x", 0), states[0].get("y", 0), states[0].get("z", 0)])
-            end_xyz = np.array([states[-1].get("x", 0), states[-1].get("y", 0), states[-1].get("z", 0)])
+            start_xyz = np.array(
+                [states[0].get("x", 0), states[0].get("y", 0), states[0].get("z", 0)]
+            )
+            end_xyz = np.array(
+                [states[-1].get("x", 0), states[-1].get("y", 0), states[-1].get("z", 0)]
+            )
             drift = np.linalg.norm(end_xyz - start_xyz)
 
-            stats.append({
-                "id": journey_id,
-                "time": started_at,
-                "avg_coherence": np.mean(coherences),
-                "max_coherence": np.max(coherences),
-                "min_coherence": np.min(coherences),
-                "avg_mass": np.mean(masses),
-                "avg_novelty": np.mean(novelties),
-                "total_drift": drift,
-                "step_count": len(steps)
-            })
+            stats.append(
+                {
+                    "id": journey_id,
+                    "time": started_at,
+                    "avg_coherence": np.mean(coherences),
+                    "max_coherence": np.max(coherences),
+                    "min_coherence": np.min(coherences),
+                    "avg_mass": np.mean(masses),
+                    "avg_novelty": np.mean(novelties),
+                    "total_drift": drift,
+                    "step_count": len(steps),
+                }
+            )
         except Exception as e:
             print(f"Error processing {f}: {e}")
 
@@ -69,14 +75,15 @@ def analyze_journeys():
         "collapse_zones_count": len(collapses),
         "top_wells": wells[:5],
         "top_collapses": collapses[:5],
-        "total_journeys_analyzed": len(stats)
+        "total_journeys_analyzed": len(stats),
     }
 
     output_path = Path("src/cohezion/knowledge_graph/latent_radar_report.json")
-    with open(output_path, 'w') as out:
+    with open(output_path, "w") as out:
         json.dump(report, out, indent=2)
 
     print(f"✅ Latent Radar Analysis complete. Report saved to {output_path}")
+
 
 if __name__ == "__main__":
     analyze_journeys()

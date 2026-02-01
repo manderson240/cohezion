@@ -1,13 +1,13 @@
 import asyncio
 import logging
-from typing import List, Dict
 
-from cohezion.flume.autoencoder import FlumeEncoder, FlumeConfig
-from cohezion.flume.alignment import LatentAligner
 from cohezion.db.surreal_client import SurrealClient
+from cohezion.flume.alignment import LatentAligner
+from cohezion.flume.autoencoder import FlumeConfig, FlumeEncoder
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("CrossDomainTranslator")
+
 
 class CrossDomainTranslator:
     """
@@ -19,9 +19,13 @@ class CrossDomainTranslator:
         self.aligner = LatentAligner(z_dim=z_dim)
         self.db = SurrealClient()
 
-    async def translate_batch(self, concepts: List[str], source_domain: str, target_domain: str):
+    async def translate_batch(
+        self, concepts: list[str], source_domain: str, target_domain: str
+    ):
         """Translate a batch of concepts from source to target domain."""
-        logger.info(f"🔄 Translating {len(concepts)} concepts from {source_domain} to {target_domain}...")
+        logger.info(
+            f"🔄 Translating {len(concepts)} concepts from {source_domain} to {target_domain}..."
+        )
 
         results = []
         for concept in concepts:
@@ -34,31 +38,41 @@ class CrossDomainTranslator:
             # 3. Decode from target latent space
             translated_concept = self.model.decode(z_target)[0]
 
-            results.append({
-                "source_concept": concept,
-                "target_concept": translated_concept,
-                "source_domain": source_domain,
-                "target_domain": target_domain
-            })
+            results.append(
+                {
+                    "source_concept": concept,
+                    "target_concept": translated_concept,
+                    "source_domain": source_domain,
+                    "target_domain": target_domain,
+                }
+            )
 
-            logger.info(f"✨ '{concept}' ({source_domain}) ➔ '{translated_concept}' ({target_domain})")
+            logger.info(
+                f"✨ '{concept}' ({source_domain}) ➔ '{translated_concept}' ({target_domain})"
+            )
 
         # 4. Persist mappings to SurrealDB
         await self._persist_mappings(results)
         return results
 
-    async def _persist_mappings(self, mappings: List[Dict]):
+    async def _persist_mappings(self, mappings: list[dict]):
         """Store cross-domain mappings in SurrealDB."""
         for mapping in mappings:
             try:
                 # We'll use a custom record ID for mappings: cross_domain_mapping:HASH
                 import hashlib
-                mapping_hash = hashlib.sha256(f"{mapping['source_concept']}:{mapping['source_domain']}:{mapping['target_domain']}".encode()).hexdigest()[:16]
+
+                mapping_hash = hashlib.sha256(
+                    f"{mapping['source_concept']}:{mapping['source_domain']}:{mapping['target_domain']}".encode()
+                ).hexdigest()[:16]
                 record_id = f"cross_domain_mapping:{mapping_hash}"
 
-                await self.db.query(f"CREATE {record_id} CONTENT $data", {"data": mapping})
+                await self.db.query(
+                    f"CREATE {record_id} CONTENT $data", {"data": mapping}
+                )
             except Exception as e:
                 logger.error(f"Failed to persist mapping: {e}")
+
 
 async def main():
     translator = CrossDomainTranslator()
@@ -69,7 +83,7 @@ async def main():
         "gravitational field",
         "quantum entanglement",
         "entropy",
-        "thermodynamics"
+        "thermodynamics",
     ]
 
     await translator.translate_batch(physics_concepts, "physics", "biology")
@@ -80,10 +94,11 @@ async def main():
         "synapse",
         "dna sequence",
         "mitochondria",
-        "cell membrane"
+        "cell membrane",
     ]
 
     await translator.translate_batch(bio_concepts, "biology", "quantum_hw")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

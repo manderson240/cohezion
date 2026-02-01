@@ -2,16 +2,16 @@
 YouTubeTranscriptAgent - Specialized for mining AI video content (JEPA, World Models).
 """
 
-import logging
 import asyncio
-from typing import Any, Dict, List
-from youtube_transcript_api import YouTubeTranscriptApi
-from pathlib import Path
+import logging
 
-from cohezion.swarm.agents.base import BaseAgent, AgentResponse
+from youtube_transcript_api import YouTubeTranscriptApi
+
+from cohezion.swarm.agents.base import AgentResponse, BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
 
 logger = logging.getLogger(__name__)
+
 
 class YouTubeTranscriptAgent(BaseAgent):
     """
@@ -30,7 +30,7 @@ Mark timestamps for key conceptual transitions.
 
     def __init__(self, config: SwarmConfig | None = None):
         super().__init__(
-            model_name="gemma3:4b", # Good for synthesis
+            model_name="gemma3:4b",  # Good for synthesis
             config=config or SwarmConfig(),
         )
 
@@ -44,11 +44,11 @@ Mark timestamps for key conceptual transitions.
             # Modern API pattern: instantiate the class first
             api = YouTubeTranscriptApi()
             transcript_list = await asyncio.to_thread(api.list, video_id)
-            transcript = transcript_list.find_transcript(['en'])
+            transcript = transcript_list.find_transcript(["en"])
             transcript_data = await asyncio.to_thread(transcript.fetch)
 
             # Combine transcript text
-            full_text = " ".join([t['text'] for t in transcript_data])
+            full_text = " ".join([t["text"] for t in transcript_data])
 
             # Truncate if too long (Ollama limit)
             clean_text = full_text[:8000]
@@ -62,6 +62,7 @@ Mark timestamps for key conceptual transitions.
             logger.warning(f"Failed to fetch YouTube transcript for {video_id}: {e}")
             return AgentResponse(f"Mining failed: {e}")
 
+
 if __name__ == "__main__":
     # Test with a Yann LeCun JEPA video if possible
     async def test():
@@ -70,4 +71,5 @@ if __name__ == "__main__":
         res = await agent.process("mAvvO89B2N0")
         print(res)
         await agent.close()
+
     asyncio.run(test())

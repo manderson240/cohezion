@@ -1,6 +1,7 @@
 import json
-from typing import Any, Dict, List, Optional, Union
+
 from transformers import PreTrainedTokenizer
+
 
 class FlumeTokenizer(PreTrainedTokenizer):
     """
@@ -11,16 +12,17 @@ class FlumeTokenizer(PreTrainedTokenizer):
 
     def __init__(
         self,
-        chars: Optional[str] = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?;:'\"()-\n",
+        chars: str
+        | None = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?;:'\"()-\n",
         bos_token="<BOS>",
         eos_token="<EOS>",
         unk_token="<UNK>",
         pad_token="<PAD>",
-        **kwargs
+        **kwargs,
     ):
         self.chars = chars
         self._char_to_idx = {c: i for i, c in enumerate(chars)}
-        self._idx_to_char = {i: c for i, c in enumerate(chars)}
+        self._idx_to_char = dict(enumerate(chars))
 
         offset = len(chars)
         self._char_to_idx[pad_token] = offset
@@ -38,17 +40,17 @@ class FlumeTokenizer(PreTrainedTokenizer):
             eos_token=eos_token,
             unk_token=unk_token,
             pad_token=pad_token,
-            **kwargs
+            **kwargs,
         )
 
     @property
     def vocab_size(self) -> int:
         return len(self._idx_to_char)
 
-    def get_vocab(self) -> Dict[str, int]:
+    def get_vocab(self) -> dict[str, int]:
         return self._char_to_idx.copy()
 
-    def _tokenize(self, text: str) -> List[str]:
+    def _tokenize(self, text: str) -> list[str]:
         return list(text)
 
     def _convert_token_to_id(self, token: str) -> int:
@@ -57,12 +59,17 @@ class FlumeTokenizer(PreTrainedTokenizer):
     def _convert_id_to_token(self, index: int) -> str:
         return self._idx_to_char.get(index, self.unk_token)
 
-    def convert_tokens_to_string(self, tokens: List[str]) -> str:
+    def convert_tokens_to_string(self, tokens: list[str]) -> str:
         return "".join(tokens)
 
-    def save_vocabulary(self, save_directory: str, filename_prefix: Optional[str] = None) -> tuple[str]:
+    def save_vocabulary(
+        self, save_directory: str, filename_prefix: str | None = None
+    ) -> tuple[str]:
         import os
-        vocab_file = os.path.join(save_directory, (filename_prefix or "") + "vocab.json")
+
+        vocab_file = os.path.join(
+            save_directory, (filename_prefix or "") + "vocab.json"
+        )
         with open(vocab_file, "w", encoding="utf-8") as f:
             json.dump(self._char_to_idx, f, ensure_ascii=False)
         return (vocab_file,)

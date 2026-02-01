@@ -1,8 +1,6 @@
-import os
-import subprocess
-import pathlib
 import datetime
-from typing import List, Dict
+import pathlib
+
 
 class ReportsOrchestrator:
     """
@@ -15,7 +13,7 @@ class ReportsOrchestrator:
         self.reports_dir = pathlib.Path("src/cohezion/reporting/notebooks")
         self.reports_dir.mkdir(parents=True, exist_ok=True)
 
-    def generate_universe_report(self, scenario_name: Dict):
+    def generate_universe_report(self, scenario_name: dict):
         """Generates a high-fidelity reactive Marimo notebook."""
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"fractal_convergence_{timestamp}.py"
@@ -91,7 +89,7 @@ mo.as_html(fig_radar)
 
         return target_url
 
-    def run_scenario_analysis(self) -> Dict:
+    def run_scenario_analysis(self) -> dict:
         """
         Simulates multiple scenarios using SWARM/FLUME/HIHO and picks the
         'Best Outcome' based on Constitutional alignment.
@@ -99,11 +97,12 @@ mo.as_html(fig_radar)
         scenarios = [
             {"title": "The Void Nexus", "alignment": 0.82, "coherence": 0.48},
             {"title": "Fractal Convergence", "alignment": 0.95, "coherence": 0.50},
-            {"title": "Stochastic Turbulence", "alignment": 0.45, "coherence": 0.12}
+            {"title": "Stochastic Turbulence", "alignment": 0.45, "coherence": 0.12},
         ]
         # HIHO Determinism: Pick the one closest to 0.5 coherence
-        best_scenario = min(scenarios, key=lambda x: abs(x['coherence'] - 0.5))
+        best_scenario = min(scenarios, key=lambda x: abs(x["coherence"] - 0.5))
         return best_scenario
+
 
 if __name__ == "__main__":
     orchestrator = ReportsOrchestrator()

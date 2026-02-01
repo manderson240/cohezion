@@ -1,13 +1,14 @@
 import logging
-import asyncio
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
 
 class MissionVerifier:
     """
     Automates the verification of multimodal reports and dashboards.
     """
+
     def __init__(self, mode: str = "browser_agent"):
         self.mode = mode
 
@@ -45,6 +46,7 @@ class MissionVerifier:
         # Implementation would involve launching playwright here
         # For now, we'll mark as 'ready for implementation'
         return True, "Playwright bridge established."
+
 
 # Integration hook
 # verifier = MissionVerifier()

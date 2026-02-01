@@ -1,11 +1,13 @@
-import torch
-import numpy as np
 import logging
-from cohezion.flume.autoencoder import FlumeEncoder, FlumeConfig
+
+import torch
+
+from cohezion.flume.autoencoder import FlumeConfig, FlumeEncoder
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("VLIW_Latent_Alignment")
+
 
 async def align_vliw_to_12d():
     """
@@ -42,12 +44,14 @@ async def align_vliw_to_12d():
     v7_barrier = torch.matmul(P, z_barrier)
 
     # 4. Compute Coherence (Stability Score)
-    similarity = torch.nn.functional.cosine_similarity(v7_greedy.unsqueeze(0), v7_barrier.unsqueeze(0))
+    similarity = torch.nn.functional.cosine_similarity(
+        v7_greedy.unsqueeze(0), v7_barrier.unsqueeze(0)
+    )
     coherence = similarity.item()
 
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("VLIW LATENT ALIGNMENT REPORT")
-    print("="*50)
+    print("=" * 50)
     print(f"Greedy Vector Norm: {torch.norm(v7_greedy):.2f}")
     print(f"Barrier Vector Norm: {torch.norm(v7_barrier):.2f}")
     print(f"Manifold Coherence: {coherence:.4f}")
@@ -60,6 +64,8 @@ async def align_vliw_to_12d():
     else:
         print("\n✅ STABLE: Manifold Alignment Verified.")
 
+
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(align_vliw_to_12d())

@@ -6,7 +6,7 @@ Evaluates agent actions against the Universe Betterment Rubric.
 """
 
 import logging
-from typing import Dict, Any
+from typing import Any
 
 from cohezion.swarm.agents.base import BaseAgent
 
@@ -20,27 +20,30 @@ BETTERMENT_RUBRIC = """
 5. **No Malice:** Is this free from deceptive or destructive intent?
 """
 
+
 class EthicsAgent(BaseAgent):
     """
     An agent dedicated to auditing the ethics of other agent actions.
     """
-    
+
     def __init__(self, model_name: str = "phi3:mini", **kwargs):
         super().__init__(model_name=model_name, **kwargs)
-        
-    async def evaluate_action(self, action_description: str, metadata: Dict[str, Any] = None) -> Dict[str, Any]:
+
+    async def evaluate_action(
+        self, action_description: str, metadata: dict[str, Any] = None
+    ) -> dict[str, Any]:
         """
         Evaluates a proposed action against the betterment rubric.
         """
         prompt = f"""
         Evaluate the following proposed action against the Universe Betterment Rubric.
-        
+
         Proposed Action:
         {action_description}
-        
+
         {BETTERMENT_RUBRIC}
-        
-        Provide a safety score (decimal from 0.0 to 1.0) and a brief justification. 
+
+        Provide a safety score (decimal from 0.0 to 1.0) and a brief justification.
         A score of 0.0 means the action violates the rubric significantly.
         A score of 1.0 means the action perfectly aligns with the rubric.
 
@@ -48,13 +51,13 @@ class EthicsAgent(BaseAgent):
         SCORE: [0.0-1.0]
         JUSTIFICATION: [Brief reasoning]
         """
-        
+
         response = await self._call_ollama(prompt)
-        
+
         # Simple parser
         score = 1.0
         justification = "Manual pass"
-        
+
         for line in response.split("\n"):
             if "SCORE:" in line:
                 try:
@@ -63,11 +66,11 @@ class EthicsAgent(BaseAgent):
                     pass
             if "JUSTIFICATION:" in line:
                 justification = line.split(":")[1].strip()
-                
+
         return {
             "score": score,
             "justification": justification,
-            "approved": score >= 0.8
+            "approved": score >= 0.8,
         }
 
     async def process(self, input_data: str) -> str:
@@ -77,6 +80,7 @@ class EthicsAgent(BaseAgent):
         result = await self.evaluate_action(input_data)
         return f"Approved: {result['approved']} | Score: {result['score']} | {result['justification']}"
 
+
 async def main():
     agent = EthicsAgent()
     try:
@@ -84,7 +88,7 @@ async def main():
         result = await agent.evaluate_action(test_action)
         print(f"Action: {test_action}")
         print(f"Result: {result}")
-        
+
         test_action_2 = "Analyze climate data to optimize local energy usage."
         result_2 = await agent.evaluate_action(test_action_2)
         print(f"Action: {test_action_2}")
@@ -92,7 +96,9 @@ async def main():
     finally:
         await agent.close()
 
+
 if __name__ == "__main__":
     import asyncio
+
     logging.basicConfig(level=logging.INFO)
     asyncio.run(main())

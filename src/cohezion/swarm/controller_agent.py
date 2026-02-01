@@ -6,23 +6,26 @@ Implements the Ignition Pack → Controller → Expert Lattice architecture.
 """
 
 import asyncio
+import json
 import logging
-from dataclasses import dataclass, field
-from typing import TypedDict, Literal, Annotated
 from datetime import datetime
+from typing import Literal, TypedDict
 
-from langgraph.graph import StateGraph, END
+import httpx
+from langgraph.graph import END, StateGraph
+
 from cohezion.swarm.agents.handoff_agent import HandoffAgent
-from cohezion.swarm.swarm_types import SwarmConfig
 
 logger = logging.getLogger(__name__)
 
 # Expert domains from Quadrature Nexus architecture
 EXPERT_DOMAINS = ["architect", "engineer", "biologist", "quantum_hw", "quantum_algo"]
+MODEL_NAME = "mistral:7b"  # Lightweight expert model
 
 
 class IgnitionPack(TypedDict):
     """Initial package: prompt + context assets."""
+
     query: str
     context: dict
     urgency: Literal["low", "medium", "high"]
@@ -30,6 +33,7 @@ class IgnitionPack(TypedDict):
 
 class AgentState(TypedDict):
     """Shared state across the graph."""
+
     query: str
     context: dict
     urgency: Literal["low", "medium", "high"]
@@ -62,44 +66,65 @@ def classify_query(state: AgentState) -> AgentState:
     return state
 
 
-def call_expert(domain: str, query: str, context: dict) -> str:
-    """Call a single domain expert (placeholder for Ollama/LLM call)."""
-    # TODO: Replace with actual Ollama call via cohezion.swarm.agents
-    # For now, return a placeholder response
-    return f"[{domain.upper()}] Analysis of: {query[:50]}..."
+async def call_expert(domain: str, query: str, context: dict) -> str:
+    """Call a single domain expert via Ollama."""
+    prompt = f"""You are an expert {domain.upper()} representing one node in the Quadrature Nexus.
+
+CONTEXT: {json.dumps(context)}
+QUERY: {query}
+
+Provide a specialized analysis from your domain perspective.
+Focus on emergent properties, risks, and novel connections.
+Keep it concise (2-3 paragraphs).
+"""
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            resp = await client.post(
+                "http://localhost:11434/api/generate",
+                json={"model": MODEL_NAME, "prompt": prompt, "stream": False},
+            )
+            if resp.status_code == 200:
+                return resp.json().get(
+                    "response", f"[{domain.upper()}] Error: Empty response"
+                )
+            else:
+                return f"[{domain.upper()}] Error: {resp.status_code}"
+    except Exception as e:
+        logger.error(f"Expert {domain} failed: {e}")
+        return f"[{domain.upper()}] System Failure: {e}"
 
 
-def architect_expert(state: AgentState) -> AgentState:
+async def architect_expert(state: AgentState) -> AgentState:
     """Design and architecture expert."""
-    result = call_expert("architect", state["query"], state["context"])
+    result = await call_expert("architect", state["query"], state["context"])
     state["expert_responses"]["architect"] = result
     return state
 
 
-def engineer_expert(state: AgentState) -> AgentState:
+async def engineer_expert(state: AgentState) -> AgentState:
     """Physics and engineering expert."""
-    result = call_expert("engineer", state["query"], state["context"])
+    result = await call_expert("engineer", state["query"], state["context"])
     state["expert_responses"]["engineer"] = result
     return state
 
 
-def biologist_expert(state: AgentState) -> AgentState:
+async def biologist_expert(state: AgentState) -> AgentState:
     """Life sciences expert."""
-    result = call_expert("biologist", state["query"], state["context"])
+    result = await call_expert("biologist", state["query"], state["context"])
     state["expert_responses"]["biologist"] = result
     return state
 
 
-def quantum_hw_expert(state: AgentState) -> AgentState:
+async def quantum_hw_expert(state: AgentState) -> AgentState:
     """Quantum hardware expert."""
-    result = call_expert("quantum_hw", state["query"], state["context"])
+    result = await call_expert("quantum_hw", state["query"], state["context"])
     state["expert_responses"]["quantum_hw"] = result
     return state
 
 
-def quantum_algo_expert(state: AgentState) -> AgentState:
+async def quantum_algo_expert(state: AgentState) -> AgentState:
     """Quantum algorithms expert."""
-    result = call_expert("quantum_algo", state["query"], state["context"])
+    result = await call_expert("quantum_algo", state["query"], state["context"])
     state["expert_responses"]["quantum_algo"] = result
     return state
 
@@ -125,13 +150,15 @@ async def handoff_session(state: AgentState) -> AgentState:
     logger.info("🔄 Initiating automated session handoff...")
     agent = HandoffAgent()
     # Pass necessary state info for synthesis
-    snapshot = await agent.create_snapshot({
-        "query": state["query"],
-        "expert_responses": state["expert_responses"],
-        "synthesis": state["synthesis"],
-        "confidence": state["confidence"],
-        "created_at": state["created_at"]
-    })
+    snapshot = await agent.create_snapshot(
+        {
+            "query": state["query"],
+            "expert_responses": state["expert_responses"],
+            "synthesis": state["synthesis"],
+            "confidence": state["confidence"],
+            "created_at": state["created_at"],
+        }
+    )
     await agent.close()
     if "context" not in state:
         state["context"] = {}
@@ -176,18 +203,19 @@ def build_controller_graph() -> StateGraph:
             "quantum_hw": "quantum_hw",
             "quantum_algo": "quantum_algo",
             "fan_out": "architect",  # Start fan-out with architect
-        }
+        },
     )
 
     # Connect experts to synthesis
     for expert in EXPERT_DOMAINS:
         graph.add_edge(expert, "synthesize")
 
-    # Synthesis to Handoff
-    graph.add_edge("synthesize", "handoff")
+    # Synthesis to Handoff (disabled for speed)
+    # graph.add_edge("synthesize", "handoff")
+    graph.add_edge("synthesize", END)
 
     # End after handoff
-    graph.add_edge("handoff", END)
+    # graph.add_edge("handoff", END)
 
     return graph.compile()
 
@@ -216,7 +244,9 @@ class ControllerAgent:
         result = await self.graph.ainvoke(initial_state)
 
         self.history.append(result)
-        logger.info(f"Controller processed query with confidence: {result['confidence']}")
+        logger.info(
+            f"Controller processed query with confidence: {result['confidence']}"
+        )
 
         return result
 
@@ -225,11 +255,13 @@ class ControllerAgent:
 async def main():
     controller = ControllerAgent()
 
-    result = await controller.ignite({
-        "query": "Design an architecture for quantum-biological hybrid computing",
-        "context": {"domain": "research"},
-        "urgency": "high",
-    })
+    result = await controller.ignite(
+        {
+            "query": "Design an architecture for quantum-biological hybrid computing",
+            "context": {"domain": "research"},
+            "urgency": "high",
+        }
+    )
 
     print(f"Synthesis: {result['synthesis']}")
     print(f"Confidence: {result['confidence']}")

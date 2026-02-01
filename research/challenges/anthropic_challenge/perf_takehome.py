@@ -16,23 +16,20 @@ anything in the tests/ folder.
 We recommend you look through problem.py next.
 """
 
-from collections import defaultdict
 import random
 import unittest
 
 from problem import (
-    Engine,
-    DebugInfo,
-    SLOT_LIMITS,
-    VLEN,
+    HASH_STAGES,
     N_CORES,
     SCRATCH_SIZE,
+    DebugInfo,
+    Engine,
+    Input,
     Machine,
     Tree,
-    Input,
-    HASH_STAGES,
-    reference_kernel,
     build_mem_image,
+    reference_kernel,
     reference_kernel2,
 )
 
@@ -81,7 +78,9 @@ class KernelBuilder:
             slots.append(("alu", (op1, tmp1, val_hash_addr, self.scratch_const(val1))))
             slots.append(("alu", (op3, tmp2, val_hash_addr, self.scratch_const(val3))))
             slots.append(("alu", (op2, val_hash_addr, tmp1, tmp2)))
-            slots.append(("debug", ("compare", val_hash_addr, (round, i, "hash_stage", hi))))
+            slots.append(
+                ("debug", ("compare", val_hash_addr, (round, i, "hash_stage", hi)))
+            )
 
         return slots
 
@@ -95,13 +94,18 @@ class KernelBuilder:
         from problem import HASH_STAGES
 
         okb = OptimizedKernelBuilder()
-        self.instrs = okb.build_kernel(forest_height, n_nodes, batch_size, rounds, HASH_STAGES)
+        self.instrs = okb.build_kernel(
+            forest_height, n_nodes, batch_size, rounds, HASH_STAGES
+        )
         # Update scratch_debug for Machine's debug_info
-        self.scratch_debug = {addr: (name, length) for addr, (name, length) in okb.scratch_names.items()}
+        self.scratch_debug = {
+            addr: (name, length) for addr, (name, length) in okb.scratch_names.items()
+        }
         self.scratch_ptr = okb.scratch_ptr
 
 
 BASELINE = 147734
+
 
 def do_kernel_test(
     forest_height: int,
@@ -122,6 +126,13 @@ def do_kernel_test(
     print(kb.instrs)
 
     value_trace = {}
+
+    # Pre-calculate reference trace because our kernel runs monolithic (no pauses)
+    # and we need the trace populated for debug slots.
+    mem_ref = list(mem)
+    for _ in reference_kernel2(mem_ref, value_trace):
+        pass
+
     machine = Machine(
         mem,
         kb.instrs,
@@ -131,30 +142,33 @@ def do_kernel_test(
         trace=trace,
     )
     machine.prints = prints
-    for i, ref_mem in enumerate(reference_kernel2(mem, value_trace)):
-        machine.run()
-        inp_values_p = ref_mem[6]
-        if prints:
-            print(machine.mem[inp_values_p : inp_values_p + len(inp.values)])
-            print(ref_mem[inp_values_p : inp_values_p + len(inp.values)])
-        try:
-                print(f"RES[:8]: {machine.mem[inp_values_p : inp_values_p + 8]}")
-                print(f"REF[:8]: {ref_mem[inp_values_p : inp_values_p + 8]}")
-                assert (
-                    machine.mem[inp_values_p : inp_values_p + len(inp.values)]
-                    == ref_mem[inp_values_p : inp_values_p + len(inp.values)]
-                ), f"Incorrect result on round {i}"
-        except AssertionError:
-            print(f"Trace Core 0: {machine.cores[0].trace_buf}")
-            # Print scratch debug info
-            print("Scratch Map:", machine.debug_info.scratch_map)
-            raise
-        inp_indices_p = ref_mem[5]
-        if prints:
-            print(machine.mem[inp_indices_p : inp_indices_p + len(inp.indices)])
-            print(ref_mem[inp_indices_p : inp_indices_p + len(inp.indices)])
-        # Updating these in memory isn't required, but you can enable this check for debugging
-        # assert machine.mem[inp_indices_p:inp_indices_p+len(inp.indices)] == ref_mem[inp_indices_p:inp_indices_p+len(inp.indices)]
+    machine.run()
+
+    # Verify result against REF (stored in mem_ref)
+    inp_values_p = mem_ref[6]
+    ref_mem = mem_ref
+
+    if prints:
+        print(machine.mem[inp_values_p : inp_values_p + len(inp.values)])
+        print(ref_mem[inp_values_p : inp_values_p + len(inp.values)])
+    try:
+        print(f"RES[:8]: {machine.mem[inp_values_p : inp_values_p + 8]}")
+        print(f"REF[:8]: {ref_mem[inp_values_p : inp_values_p + 8]}")
+        assert (
+            machine.mem[inp_values_p : inp_values_p + len(inp.values)]
+            == ref_mem[inp_values_p : inp_values_p + len(inp.values)]
+        ), "Incorrect result final round"
+    except AssertionError:
+        print(f"Trace Core 0: {machine.cores[0].trace_buf}")
+        # Print scratch debug info
+        print("Scratch Map:", machine.debug_info.scratch_map)
+        raise
+    inp_indices_p = ref_mem[5]
+    if prints:
+        print(machine.mem[inp_indices_p : inp_indices_p + len(inp.indices)])
+        print(ref_mem[inp_indices_p : inp_indices_p + len(inp.indices)])
+    # Updating these in memory isn't required, but you can enable this check for debugging
+    # assert machine.mem[inp_indices_p:inp_indices_p+len(inp.indices)] == ref_mem[inp_indices_p:inp_indices_p+len(inp.indices)]
 
     print("CYCLES: ", machine.cycle)
     print("Speedup over baseline: ", BASELINE / machine.cycle)

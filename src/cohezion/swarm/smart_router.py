@@ -13,11 +13,10 @@ import asyncio
 import json
 import logging
 import time
-from dataclasses import dataclass, asdict, field
-from datetime import datetime, UTC
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable
 
 import httpx
 
@@ -26,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 class TaskType(Enum):
     """Types of tasks for routing."""
+
     ANALYSIS = "analysis"
     SYNTHESIS = "synthesis"
     CREATIVE = "creative"
@@ -37,6 +37,7 @@ class TaskType(Enum):
 
 class ModelCapability(Enum):
     """Model capabilities for matching."""
+
     FAST = "fast"
     ACCURATE = "accurate"
     CREATIVE = "creative"
@@ -47,12 +48,13 @@ class ModelCapability(Enum):
 @dataclass
 class ModelProfile:
     """Profile of an available model."""
+
     name: str
     capabilities: list[ModelCapability]
     context_length: int
     speed_tier: int  # 1=fastest, 5=slowest
     quality_tier: int  # 1=basic, 5=best
-    
+
     @property
     def efficiency_score(self) -> float:
         """Score balancing speed and quality."""
@@ -100,6 +102,7 @@ TASK_REQUIREMENTS = {
 @dataclass
 class RoutingDecision:
     """Result of routing decision."""
+
     task_type: TaskType
     selected_model: str
     reasoning: str
@@ -110,6 +113,7 @@ class RoutingDecision:
 @dataclass
 class AgentAction:
     """Record of an agent action for knowledge base."""
+
     timestamp: str
     agent_type: str
     model: str
@@ -119,7 +123,7 @@ class AgentAction:
     duration_ms: float
     success: bool
     metadata: dict = field(default_factory=dict)
-    
+
     def to_dict(self) -> dict:
         return asdict(self)
 
@@ -127,13 +131,13 @@ class AgentAction:
 class SmartRouter:
     """
     Routes tasks to optimal models based on requirements and availability.
-    
+
     Strategies:
     - Efficiency: Balance speed and quality
     - Quality: Prioritize best results
     - Speed: Prioritize fastest response
     """
-    
+
     def __init__(
         self,
         ollama_host: str = "http://localhost:11434",
@@ -145,14 +149,16 @@ class SmartRouter:
         self.log_actions = log_actions
         self.action_log: list[AgentAction] = []
         self.client = httpx.AsyncClient(timeout=60.0)
-        
+
         # Track model availability
         self.available_models: dict[str, ModelProfile] = {}
-        
+
         # Action log persistence
-        self.action_log_dir = Path("src/cohezion/knowledge_graph/universe_nodes/actions")
+        self.action_log_dir = Path(
+            "src/cohezion/knowledge_graph/universe_nodes/actions"
+        )
         self.action_log_dir.mkdir(parents=True, exist_ok=True)
-    
+
     async def refresh_models(self):
         """Check which models are available."""
         try:
@@ -166,18 +172,20 @@ class SmartRouter:
                 logger.info(f"Available models: {list(self.available_models.keys())}")
         except Exception as e:
             logger.warning(f"Could not refresh models: {e}")
-    
+
     def classify_task(self, prompt: str) -> TaskType:
         """Classify the task type from the prompt."""
         prompt_lower = prompt.lower()
-        
+
         if any(kw in prompt_lower for kw in ["analyze", "examine", "evaluate"]):
             return TaskType.ANALYSIS
         elif any(kw in prompt_lower for kw in ["synthesize", "integrate", "combine"]):
             return TaskType.SYNTHESIS
         elif any(kw in prompt_lower for kw in ["create", "imagine", "story", "poem"]):
             return TaskType.CREATIVE
-        elif any(kw in prompt_lower for kw in ["code", "function", "implement", "debug"]):
+        elif any(
+            kw in prompt_lower for kw in ["code", "function", "implement", "debug"]
+        ):
             return TaskType.CODING
         elif any(kw in prompt_lower for kw in ["fact", "true", "verify"]):
             return TaskType.FACTUAL
@@ -187,17 +195,17 @@ class SmartRouter:
             return TaskType.SUMMARY
         else:
             return TaskType.ANALYSIS  # Default
-    
+
     def route(self, task_type: TaskType) -> RoutingDecision:
         """Route a task to the optimal model."""
         requirements = TASK_REQUIREMENTS.get(task_type, [])
-        
+
         # Score each available model
         scored_models = []
         for name, profile in self.available_models.items():
             # Check capability match
             match_score = sum(1 for r in requirements if r in profile.capabilities)
-            
+
             # Apply strategy
             if self.strategy == "efficiency":
                 total_score = match_score * 2 + profile.efficiency_score
@@ -207,9 +215,9 @@ class SmartRouter:
                 total_score = match_score * 2 + (6 - profile.speed_tier)
             else:
                 total_score = match_score
-            
+
             scored_models.append((name, total_score, profile))
-        
+
         if not scored_models:
             # Fallback to first available
             if self.available_models:
@@ -223,13 +231,13 @@ class SmartRouter:
                 fallback_models=[],
                 confidence=0.5,
             )
-        
+
         # Sort by score (descending)
         scored_models.sort(key=lambda x: x[1], reverse=True)
-        
+
         best = scored_models[0]
         fallbacks = [m[0] for m in scored_models[1:3]]
-        
+
         return RoutingDecision(
             task_type=task_type,
             selected_model=best[0],
@@ -237,7 +245,7 @@ class SmartRouter:
             fallback_models=fallbacks,
             confidence=min(1.0, best[1] / 5),
         )
-    
+
     async def execute(
         self,
         prompt: str,
@@ -249,14 +257,14 @@ class SmartRouter:
         # Classify and route
         task_type = self.classify_task(prompt)
         decision = self.route(task_type)
-        
+
         start_time = time.time()
         success = False
         response = ""
-        
+
         # Try selected model, then fallbacks
         models_to_try = [decision.selected_model] + decision.fallback_models
-        
+
         for model in models_to_try:
             try:
                 resp = await self.client.post(
@@ -269,17 +277,17 @@ class SmartRouter:
                         "options": {"temperature": 0.7, "num_predict": 512},
                     },
                 )
-                
+
                 if resp.status_code == 200:
                     data = resp.json()
                     response = data.get("response", "").strip()
                     success = True
                     break
-                    
+
             except Exception as e:
                 logger.warning(f"Model {model} failed: {e}")
                 continue
-        
+
         # Log action
         action = AgentAction(
             timestamp=datetime.now(UTC).isoformat(),
@@ -295,23 +303,23 @@ class SmartRouter:
                 "fallbacks_tried": len(models_to_try) - 1 if not success else 0,
             },
         )
-        
+
         if self.log_actions:
             self.action_log.append(action)
-        
+
         return response, action
-    
+
     async def save_action_log(self):
         """Save action log to knowledge base."""
         if not self.action_log:
             return
-        
+
         log_file = self.action_log_dir / f"actions_{int(time.time())}.json"
         with open(log_file, "w") as f:
             json.dump([a.to_dict() for a in self.action_log], f, indent=2)
-        
+
         logger.info(f"Saved {len(self.action_log)} actions to {log_file}")
-    
+
     async def close(self):
         """Clean up resources."""
         await self.save_action_log()
@@ -343,10 +351,11 @@ async def smart_execute(
 
 
 if __name__ == "__main__":
+
     async def test():
         router = SmartRouter()
         await router.refresh_models()
-        
+
         prompts = [
             "Analyze the performance of CALM vs LLM",
             "Synthesize findings from multiple experiments",
@@ -354,13 +363,13 @@ if __name__ == "__main__":
             "Implement a function to calculate coherence",
             "Summarize the key findings in one paragraph",
         ]
-        
+
         for prompt in prompts:
             task_type = router.classify_task(prompt)
             decision = router.route(task_type)
             print(f"{prompt[:40]}... -> {decision.selected_model} ({task_type.value})")
-        
+
         await router.close()
-    
+
     logging.basicConfig(level=logging.INFO)
     asyncio.run(test())

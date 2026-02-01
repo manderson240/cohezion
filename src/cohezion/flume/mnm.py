@@ -9,40 +9,43 @@ or conceptual domains without retraining the core autoencoder.
 """
 
 import logging
-import torch
-import torch.nn as nn
-import numpy as np
-from typing import Dict, Any, Optional
 from pathlib import Path
 
+import torch
+import torch.nn as nn
+
 logger = logging.getLogger(__name__)
+
 
 class ManifoldWarp(nn.Module):
     """
     A small, pluggable network that 'warps' a latent vector z
     into a domain-specific representation.
     """
+
     def __init__(self, z_dim: int = 256, hidden_dim: int = 128):
         super().__init__()
         self.warp = nn.Sequential(
             nn.Linear(z_dim, hidden_dim),
             nn.GELU(),
             nn.Linear(hidden_dim, z_dim),
-            nn.LayerNorm(z_dim)
+            nn.LayerNorm(z_dim),
         )
 
     def forward(self, z: torch.Tensor) -> torch.Tensor:
         # Residual warp: z_new = z + warp(z)
         return z + self.warp(z)
 
+
 class ManifoldManager:
     """
     Manages loading and applying domain-specific Modular Neural Manifolds.
     """
+
     def __init__(self, z_dim: int = 256):
         self.z_dim = z_dim
-        self.manifolds: Dict[str, ManifoldWarp] = {}
-        self.active_manifold: Optional[str] = None
+        self.manifolds: dict[str, ManifoldWarp] = {}
+        self.active_manifold: str | None = None
 
     def create_manifold(self, name: str):
         """Create a new empty manifold warp."""
@@ -57,7 +60,7 @@ class ManifoldManager:
         else:
             logger.warning(f"Manifold {name} not found.")
 
-    def warp(self, z: torch.Tensor, manifold_name: Optional[str] = None) -> torch.Tensor:
+    def warp(self, z: torch.Tensor, manifold_name: str | None = None) -> torch.Tensor:
         """Apply the specified (or active) manifold warp to z."""
         target = manifold_name or self.active_manifold
         if target and target in self.manifolds:
@@ -83,10 +86,11 @@ class ManifoldManager:
             torch.save(self.manifolds[name].state_dict(), path)
             logger.info(f"Saved manifold {name} to {path}")
 
+
 # Default Manifolds for Disparate Scenarios
 SCENARIO_MANIFOLDS = {
     "the_void": "Manifold emphasizing entropy and low energy states.",
     "resonant_lattice": "Manifold optimized for harmonic oscillations and structural stability.",
     "the_glitch": "Manifold with non-linear warping for unpredictable physics.",
-    "fractal_nexus": "Manifold focused on self-similar recursive scaling."
+    "fractal_nexus": "Manifold focused on self-similar recursive scaling.",
 }

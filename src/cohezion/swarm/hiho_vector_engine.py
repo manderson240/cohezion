@@ -1,6 +1,8 @@
-import numpy as np
 import time
 from pathlib import Path
+
+import numpy as np
+
 
 class HihoVectorEngine:
     """
@@ -9,10 +11,18 @@ class HihoVectorEngine:
     """
 
     PARAM_NAMES = [
-        "Awareness", "Space_1", "Space_2", "Space_3",
-        "Tempic", "Electric", "Magnetic",
-        "Spin_Rotation", "Spin_Precession", "Charge_Polarity",
-        "Particularization", "Precipitation"
+        "Awareness",
+        "Space_1",
+        "Space_2",
+        "Space_3",
+        "Tempic",
+        "Electric",
+        "Magnetic",
+        "Spin_Rotation",
+        "Spin_Precession",
+        "Charge_Polarity",
+        "Particularization",
+        "Precipitation",
     ]
 
     def __init__(self, num_rounds=10_000_000):
@@ -31,10 +41,12 @@ class HihoVectorEngine:
         score = 1.0 - abs(coherence - 0.5) * 2
         return float(np.clip(score, 0, 1))
 
-    def run_simulation(self,
-                       swarm_enabled: bool = True,
-                       flume_enabled: bool = True,
-                       hiho_enabled: bool = True):
+    def run_simulation(
+        self,
+        swarm_enabled: bool = True,
+        flume_enabled: bool = True,
+        hiho_enabled: bool = True,
+    ):
         """
         Runs the simulation with optional platform improvements.
         """
@@ -45,11 +57,10 @@ class HihoVectorEngine:
             # FLUME adds temporal momentum (correlated random walk)
             states = np.zeros((self.num_rounds, self.dims))
             states[0] = np.random.rand(self.dims)
-            momentum = 0.9
             for i in range(1, self.num_rounds):
                 # Proper random walk with clipping
                 drift = (np.random.rand(self.dims) - 0.5) * 0.02
-                states[i] = np.clip(states[i-1] + drift, 0, 1)
+                states[i] = np.clip(states[i - 1] + drift, 0, 1)
         else:
             states = np.random.rand(self.num_rounds, self.dims)
 
@@ -66,12 +77,14 @@ class HihoVectorEngine:
         else:
             # Baseline: Independent dimensions
             field_overlap = np.mean(states[:, 4:7], axis=1)
-            spin_coherence = 1.0 # No spin penalty in baseline
+            spin_coherence = 1.0  # No spin penalty in baseline
 
         # 3. Stability Logic (HIHO)
         if hiho_enabled:
             # Max stability at 0.5
-            stability = (1.0 - np.abs(field_overlap - 0.5) * 2) * (0.7 + 0.3 * spin_coherence)
+            stability = (1.0 - np.abs(field_overlap - 0.5) * 2) * (
+                0.7 + 0.3 * spin_coherence
+            )
         else:
             # Baseline: High coherence = High stability (Dangerous overconfidence)
             stability = field_overlap * (0.7 + 0.3 * spin_coherence)
@@ -82,7 +95,9 @@ class HihoVectorEngine:
         if hiho_enabled:
             precipitation_mask = field_overlap > 0.5
         else:
-            precipitation_mask = field_overlap > 0.8 # Higher bar for 'reality' in baseline
+            precipitation_mask = (
+                field_overlap > 0.8
+            )  # Higher bar for 'reality' in baseline
 
         precipitated_reality = states[:, 11] * stability * precipitation_mask
 
@@ -96,17 +111,24 @@ class HihoVectorEngine:
             "num_rounds": self.num_rounds,
             "duration": duration,
             "bright_spot_count": len(bright_spot_indices),
-            "bright_spot_states": states[bright_spot_indices[:1000]] if len(bright_spot_indices) > 0 else np.array([]),
+            "bright_spot_states": states[bright_spot_indices[:1000]]
+            if len(bright_spot_indices) > 0
+            else np.array([]),
             "mean_stability": np.mean(stability),
-            "max_reality": np.max(precipitated_reality) if len(precipitated_reality) > 0 else 0
+            "max_reality": np.max(precipitated_reality)
+            if len(precipitated_reality) > 0
+            else 0,
         }
+
 
 if __name__ == "__main__":
     engine = HihoVectorEngine(num_rounds=10_000_000)
     results = engine.run_simulation()
 
     # Save results summary
-    output_path = Path("/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/hiho_results.json")
+    output_path = Path(
+        "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/hiho_results.json"
+    )
     # Convert numpy arrays to lists for JSON
     serializable_results = {
         "num_rounds": results["num_rounds"],
@@ -114,9 +136,10 @@ if __name__ == "__main__":
         "bright_spot_count": results["bright_spot_count"],
         "mean_stability": float(results["mean_stability"]),
         "max_reality": float(results["max_reality"]),
-        "bright_spot_samples": results["bright_spot_states"][:10].tolist()
+        "bright_spot_samples": results["bright_spot_states"][:10].tolist(),
     }
 
     import json
+
     output_path.write_text(json.dumps(serializable_results, indent=2))
     print(f"💾 Results saved to {output_path}")

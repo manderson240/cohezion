@@ -2,13 +2,14 @@
 WorldModelAgent - Mines for JEPA and World Model architectures.
 """
 
-import logging
 import asyncio
-from typing import Any, Dict, List
-from cohezion.swarm.agents.base import BaseAgent, AgentResponse
+import logging
+
+from cohezion.swarm.agents.base import AgentResponse, BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
 
 logger = logging.getLogger(__name__)
+
 
 class WorldModelAgent(BaseAgent):
     """
@@ -27,11 +28,13 @@ Align these findings with the Cohezion FLUME methodology.
 
     def __init__(self, config: SwarmConfig | None = None):
         super().__init__(
-            model_name="phi3:mini", # Efficient for architectural mapping
+            model_name="phi3:mini",  # Efficient for architectural mapping
             config=config or SwarmConfig(),
         )
 
-    async def process(self, query: str = "World Models JEPA Latent State Prediction") -> AgentResponse:
+    async def process(
+        self, query: str = "World Models JEPA Latent State Prediction"
+    ) -> AgentResponse:
         """
         Specialized search for world model research.
         """
@@ -41,6 +44,7 @@ Align these findings with the Cohezion FLUME methodology.
 
         response = await self._call_ollama(prompt, system_prompt=self.SYSTEM_PROMPT)
         return AgentResponse(response)
+
 
 if __name__ == "__main__":
     asyncio.run(WorldModelAgent().process())

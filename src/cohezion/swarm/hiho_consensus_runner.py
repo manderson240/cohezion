@@ -8,25 +8,42 @@ recursive multi-agent consensus building loop.
 import asyncio
 import json
 import logging
-import time
-import numpy as np
-from datetime import datetime, UTC
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict
 
-from cohezion.swarm.democratic_debate import DemocraticDebate, AgentRole, VoteValue, AgentVote
+import numpy as np
+
+from cohezion.swarm.democratic_debate import (
+    AgentRole,
+    DemocraticDebate,
+)
 from cohezion.swarm.hiho_vector_engine import HihoVectorEngine
-from cohezion.swarm.journey_tracker import get_journey_tracker, JourneyMetrics, AgentType
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.swarm.journey_tracker import (
+    AgentType,
+    JourneyMetrics,
+    get_journey_tracker,
+)
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class DummySession:
+    """Mock session for final synthesis."""
+
+    rounds: list
+    topic: str
+
 
 class HihoConsensusRunner:
     def __init__(self):
         self.debate = DemocraticDebate()
         self.hiho = HihoVectorEngine()
         self.tracker = get_journey_tracker()
-        self.output_dir = Path("src/cohezion/knowledge_graph/universe_nodes/debates/hiho")
+        self.output_dir = Path(
+            "src/cohezion/knowledge_graph/universe_nodes/debates/hiho"
+        )
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     async def run_consensus_mission(self, topic: str, rounds: int = 5):
@@ -48,7 +65,7 @@ class HihoConsensusRunner:
             proposals = await self.debate._gather_proposals(
                 f"{current_topic}\n[Lattice Constraint]: {lattice_constraint}",
                 r_num,
-                []
+                [],
             )
 
             # 2. Add HIHO Scoring
@@ -60,7 +77,9 @@ class HihoConsensusRunner:
             round_coherence = self._calculate_round_coherence(votes)
             hiho_stability = self.hiho.calculate_hiho_score(round_coherence)
 
-            logger.info(f"Round {r_num} Coherence: {round_coherence:.2f} | HIHO Stability: {hiho_stability:.2f}")
+            logger.info(
+                f"Round {r_num} Coherence: {round_coherence:.2f} | HIHO Stability: {hiho_stability:.2f}"
+            )
 
             # 3. Record Step in Journey
             for role_val, prop in proposals.items():
@@ -70,12 +89,15 @@ class HihoConsensusRunner:
                     perspective=f"Round {r_num} Proposal",
                     input_text=current_topic,
                     output_text=prop,
-                    physics_state={"coherence": round_coherence, "stability": hiho_stability},
-                    duration_ms=100.0, # Placeholder
+                    physics_state={
+                        "coherence": round_coherence,
+                        "stability": hiho_stability,
+                    },
+                    duration_ms=100.0,  # Placeholder
                     metrics=JourneyMetrics(
                         latent_coherence=round_coherence,
-                        capability_delta=hiho_stability
-                    )
+                        capability_delta=hiho_stability,
+                    ),
                 )
 
             # 4. Synthesize Round
@@ -84,7 +106,7 @@ class HihoConsensusRunner:
                 "coherence": round_coherence,
                 "stability": hiho_stability,
                 "proposals": proposals,
-                "votes": [v.__dict__ for v in votes] # Simple serialization
+                "votes": [v.__dict__ for v in votes],  # Simple serialization
             }
             all_rounds.append(round_data)
 
@@ -92,11 +114,13 @@ class HihoConsensusRunner:
             synthesis_prompt = f"Synthesize round {r_num} into a single technical constraint for round {r_num+1}."
             lattice_constraint = await self.debate._call_agent(
                 self.debate.personas[AgentRole.SYNTHESIZER],
-                f"{synthesis_prompt}\nFocus on aligning with HIHO stability point (0.5)."
+                f"{synthesis_prompt}\nFocus on aligning with HIHO stability point (0.5).",
             )
 
         # Final Synthesis
-        final_synthesis = await self.debate._final_synthesis(DummySession(all_rounds, topic))
+        final_synthesis = await self.debate._final_synthesis(
+            DummySession(all_rounds, topic)
+        )
 
         # End Journey
         await self.tracker.end_journey(
@@ -104,8 +128,8 @@ class HihoConsensusRunner:
             final_confidence=final_synthesis["positive_vote_rate"],
             aggregate_metrics=JourneyMetrics(
                 latent_coherence=final_synthesis["positive_vote_rate"],
-                capability_delta=sum(r["stability"] for r in all_rounds) / rounds
-            )
+                capability_delta=sum(r["stability"] for r in all_rounds) / rounds,
+            ),
         )
 
         # Save Mission Report
@@ -114,7 +138,7 @@ class HihoConsensusRunner:
             "topic": topic,
             "rounds": all_rounds,
             "final_synthesis": final_synthesis,
-            "timestamp": datetime.now(UTC).isoformat()
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         report_file = self.output_dir / f"{journey_id}_report.json"
         report_file.write_text(json.dumps(report, indent=2, default=str))
@@ -122,12 +146,16 @@ class HihoConsensusRunner:
         logger.info(f"✅ Mission Complete. Report saved to {report_file}")
         return report
 
-    async def run_mass_simulation_mission(self, topic: str, num_rounds: int = 1_000_000):
+    async def run_mass_simulation_mission(
+        self, topic: str, num_rounds: int = 1_000_000
+    ):
         """
         Runs a mass simulation mission using vectorized physics.
         Captures statistical patterns across 1M rounds.
         """
-        journey_id = self.tracker.start_journey(f"MASS SIMULATION (N={num_rounds:,}): {topic}")
+        journey_id = self.tracker.start_journey(
+            f"MASS SIMULATION (N={num_rounds:,}): {topic}"
+        )
         logger.info(f"🚀 Starting HIHO Mass Simulation: {journey_id}")
 
         # 1. Run Vectorized Simulation
@@ -155,13 +183,12 @@ class HihoConsensusRunner:
                     "coherence": coherence,
                     "stability": stability,
                     "awareness": float(state[0]),
-                    "precipitation": float(state[11])
+                    "precipitation": float(state[11]),
                 },
                 duration_ms=0.1,
                 metrics=JourneyMetrics(
-                    latent_coherence=coherence,
-                    capability_delta=stability
-                )
+                    latent_coherence=coherence, capability_delta=stability
+                ),
             )
 
         # 3. Final Synthesis (Expert Review of Mass Data)
@@ -174,8 +201,7 @@ As Sage, synthesize what this statistical pattern tells us about Cohezion's Recu
 Focus on the HIHO 0.5 point as the target for Anthropic-tier alignment."""
 
         final_synthesis = await self.debate._call_agent(
-            self.debate.personas[AgentRole.SYNTHESIZER],
-            summary_prompt
+            self.debate.personas[AgentRole.SYNTHESIZER], summary_prompt
         )
 
         # End Journey
@@ -185,8 +211,8 @@ Focus on the HIHO 0.5 point as the target for Anthropic-tier alignment."""
             aggregate_metrics=JourneyMetrics(
                 context_utilization=1.0,
                 latent_coherence=results["mean_stability"],
-                capability_delta=results["max_reality"]
-            )
+                capability_delta=results["max_reality"],
+            ),
         )
 
         # Save Mission Report
@@ -198,16 +224,17 @@ Focus on the HIHO 0.5 point as the target for Anthropic-tier alignment."""
                 "bright_spot_count": results["bright_spot_count"],
                 "mean_stability": float(results["mean_stability"]),
                 "max_reality": float(results["max_reality"]),
-                "duration_sec": results["duration"]
+                "duration_sec": results["duration"],
             },
             "final_synthesis": final_synthesis,
-            "timestamp": datetime.now(UTC).isoformat()
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         report_file = self.output_dir / f"{journey_id}_mass_report.json"
         report_file.write_text(json.dumps(report, indent=2, default=str))
 
         logger.info(f"✅ Mass Simulation Complete. Report saved to {report_file}")
         return report
+
 
 async def main():
     logging.basicConfig(level=logging.INFO)
@@ -219,6 +246,7 @@ async def main():
 
     # 2. Run Mass Simulation (1M rounds for statistical significance)
     await runner.run_mass_simulation_mission(topic, num_rounds=1_000_000)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

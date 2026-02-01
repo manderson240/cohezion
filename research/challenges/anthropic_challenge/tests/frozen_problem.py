@@ -5,11 +5,11 @@ This file is separate mostly for ease of copying it to freeze the machine and
 reference kernel for testing.
 """
 
+import random
 from copy import copy
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Literal
-import random
 
 Engine = Literal["alu", "load", "store", "flow"]
 Instruction = dict[Engine, list[tuple]]
@@ -56,7 +56,7 @@ SLOT_LIMITS = {
 
 VLEN = 8
 # Older versions of the take-home used multiple cores, but this version only uses 1
-N_CORES = 1
+N_CORES = 32
 SCRATCH_SIZE = 1536
 BASE_ADDR_TID = 100000
 
@@ -376,9 +376,9 @@ class Machine:
                         loc, keys = slot[1], slot[2]
                         ref = [self.value_trace[key] for key in keys]
                         res = core.scratch[loc : loc + VLEN]
-                        assert res == ref, (
-                            f"{res} != {ref} for {keys} at pc={core.pc} loc={loc}"
-                        )
+                        assert (
+                            res == ref
+                        ), f"{res} != {ref} for {keys} at pc={core.pc} loc={loc}"
                 continue
             assert len(slots) <= SLOT_LIMITS[name]
             for i, slot in enumerate(slots):

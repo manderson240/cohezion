@@ -11,24 +11,25 @@ Part of Gateway 11 (Temporal Mastery) foundation.
 
 import logging
 import time
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from cohezion.db.surreal_client import SurrealClient
 
 logger = logging.getLogger(__name__)
 
+
 class TimeKeeper:
-    def __init__(self, db_client: Optional[SurrealClient] = None):
+    def __init__(self, db_client: SurrealClient | None = None):
         self.db = db_client or SurrealClient()
         self._session_start = time.perf_counter()
-        self._current_mission: Optional[str] = None
-        self._current_session: Optional[str] = None
+        self._current_mission: str | None = None
+        self._current_session: str | None = None
 
     @property
     def now_iso(self) -> str:
         """Return current time in ISO-8601 format with UTC timezone."""
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
     @property
     def session_uptime(self) -> float:
@@ -41,37 +42,43 @@ class TimeKeeper:
         self._current_mission = mission_id
         await self.db.query(
             "CREATE missions CONTENT $data",
-            {"data": {
-                "id": mission_id,
-                "name": name,
-                "description": description,
-                "start_time": self.now_iso,
-                "status": "active"
-            }}
+            {
+                "data": {
+                    "id": mission_id,
+                    "name": name,
+                    "description": description,
+                    "start_time": self.now_iso,
+                    "status": "active",
+                }
+            },
         )
         return mission_id
 
-    async def start_session(self, mission_id: Optional[str] = None) -> str:
+    async def start_session(self, mission_id: str | None = None) -> str:
         """Start a focused coding/research session."""
         session_id = f"session_{int(time.time())}"
         self._current_session = session_id
         self._current_mission = mission_id or self._current_mission
         await self.db.query(
             "CREATE sessions CONTENT $data",
-            {"data": {
-                "id": session_id,
-                "mission": self._current_mission,
-                "start_time": self.now_iso,
-                "uptime_base": time.perf_counter()
-            }}
+            {
+                "data": {
+                    "id": session_id,
+                    "mission": self._current_mission,
+                    "start_time": self.now_iso,
+                    "uptime_base": time.perf_counter(),
+                }
+            },
         )
         return session_id
 
-    async def log_event(self,
-                        agent_name: str,
-                        event_type: str,
-                        details: Dict[str, Any],
-                        duration_ms: float = 0.0) -> None:
+    async def log_event(
+        self,
+        agent_name: str,
+        event_type: str,
+        details: dict[str, Any],
+        duration_ms: float = 0.0,
+    ) -> None:
         """
         Log an operational event to the 'velocity_events' table in SurrealDB.
 
@@ -90,7 +97,7 @@ class TimeKeeper:
             "details": details,
             "duration_ms": duration_ms,
             "mission": self._current_mission,
-            "session": self._current_session
+            "session": self._current_session,
         }
 
         try:
@@ -98,8 +105,7 @@ class TimeKeeper:
             # In a real async loop we might want to batch these
             # For now, we await to ensure it's written
             await self.db.query(
-                "CREATE velocity_events CONTENT $data",
-                {"data": record}
+                "CREATE velocity_events CONTENT $data", {"data": record}
             )
             logger.debug(f"Logged event: {event_type} by {agent_name}")
 
@@ -122,15 +128,17 @@ class TimeKeeper:
         try:
             result = await self.db.query(query, {"window": f"{window_minutes}m"})
             # Result is like [{'count': N}]
-            if result and len(result) > 0 and 'count' in result[0]:
-                return float(result[0]['count'])
+            if result and len(result) > 0 and "count" in result[0]:
+                return float(result[0]["count"])
             return 0.0
         except Exception as e:
             logger.error(f"Failed to calculate velocity: {e}")
             return 0.0
 
+
 # Singleton instance
 _INSTANCE = None
+
 
 def get_time_keeper() -> TimeKeeper:
     global _INSTANCE

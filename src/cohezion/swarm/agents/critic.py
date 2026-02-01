@@ -33,29 +33,31 @@ Format your response as structured analysis with clear sections."""
 class CriticAgent(BaseAgent):
     """
     Phi-3 based critic for logic verification.
-    
+
     Reviews multiple analyst outputs, detects contradictions,
     and assesses overall coherence of the collective analysis.
     """
-    
+
     def __init__(self, config: SwarmConfig | None = None):
         config = config or SwarmConfig()
         super().__init__(
             model_name=config.critic_model,
             config=config,
         )
-    
-    async def process(self, analyst_outputs: list[ThoughtVector], **kwargs: Any) -> CritiqueResult:
+
+    async def process(
+        self, analyst_outputs: list[ThoughtVector], **kwargs: Any
+    ) -> CritiqueResult:
         """Process analyst outputs and return critique."""
         return await self.critique(analyst_outputs)
-    
+
     async def critique(self, analyst_outputs: list[ThoughtVector]) -> CritiqueResult:
         """
         Review analyst outputs for contradictions and logical issues.
-        
+
         Args:
             analyst_outputs: List of ThoughtVectors from analyst agents
-            
+
         Returns:
             CritiqueResult with detected issues and coherence score
         """
@@ -65,10 +67,10 @@ class CriticAgent(BaseAgent):
                 overall_coherence=0.0,
                 recommendation="No analyst outputs to critique.",
             )
-        
+
         # Format analyst outputs for review
         formatted_outputs = self._format_outputs(analyst_outputs)
-        
+
         prompt = f"""Review the following analyst perspectives and identify any contradictions or logical issues.
 
 {formatted_outputs}
@@ -94,9 +96,9 @@ RECOMMENDATION:
                 temperature=0.3,  # Lower temperature for analytical task
                 max_tokens=1500,
             )
-            
+
             return self._parse_critique(response, analyst_outputs)
-            
+
         except Exception as e:
             logger.error(f"Critic failed: {e}")
             return CritiqueResult(
@@ -104,7 +106,7 @@ RECOMMENDATION:
                 overall_coherence=0.5,
                 recommendation=f"Critique failed: {str(e)}",
             )
-    
+
     def _format_outputs(self, outputs: list[ThoughtVector]) -> str:
         """Format analyst outputs for the prompt."""
         sections = []
@@ -114,24 +116,22 @@ RECOMMENDATION:
                 f"{output.content}\n"
             )
         return "\n".join(sections)
-    
+
     def _parse_critique(
-        self, 
-        response: str, 
-        analyst_outputs: list[ThoughtVector]
+        self, response: str, analyst_outputs: list[ThoughtVector]
     ) -> CritiqueResult:
         """Parse the critic's response into structured CritiqueResult."""
         contradictions: list[Contradiction] = []
         logical_issues: list[str] = []
         coherence = 0.5
         recommendation = ""
-        
+
         lines = response.split("\n")
         current_section = None
-        
+
         for line in lines:
             line_lower = line.lower().strip()
-            
+
             # Detect section headers
             if "contradiction" in line_lower:
                 current_section = "contradictions"
@@ -141,6 +141,7 @@ RECOMMENDATION:
                 current_section = "coherence"
                 # Try to extract score
                 import re
+
                 score_match = re.search(r"(\d+)", line)
                 if score_match:
                     coherence = int(score_match.group(1)) / 100.0
@@ -152,26 +153,29 @@ RECOMMENDATION:
                     if current_section == "contradictions":
                         # Create a contradiction entry
                         if len(analyst_outputs) >= 2:
-                            contradictions.append(Contradiction(
-                                source_perspectives=(
-                                    analyst_outputs[0].perspective,
-                                    analyst_outputs[-1].perspective,
-                                ),
-                                description=content,
-                                severity=0.5,
-                            ))
+                            contradictions.append(
+                                Contradiction(
+                                    source_perspectives=(
+                                        analyst_outputs[0].perspective,
+                                        analyst_outputs[-1].perspective,
+                                    ),
+                                    description=content,
+                                    severity=0.5,
+                                )
+                            )
                     elif current_section == "logical":
                         logical_issues.append(content)
                     elif current_section == "recommendation":
                         recommendation += content + " "
-        
+
         return CritiqueResult(
             analyst_outputs=analyst_outputs,
             contradictions=contradictions,
             logical_issues=logical_issues,
             overall_coherence=coherence,
-            recommendation=recommendation.strip() or "Synthesize perspectives carefully.",
+            recommendation=recommendation.strip()
+            or "Synthesize perspectives carefully.",
         )
-    
+
     def __repr__(self) -> str:
         return f"CriticAgent(model={self.model_name})"

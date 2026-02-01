@@ -8,8 +8,8 @@ Provides:
 - OWASP LLM Top 10 coverage
 """
 
-import re
 import logging
+import re
 from dataclasses import dataclass
 from enum import Enum
 
@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 class ThreatLevel(Enum):
     """Threat level classification."""
+
     SAFE = "safe"
     SUSPICIOUS = "suspicious"
     MALICIOUS = "malicious"
@@ -26,6 +27,7 @@ class ThreatLevel(Enum):
 @dataclass
 class PromptAnalysis:
     """Result of prompt analysis."""
+
     threat_level: ThreatLevel
     matched_patterns: list[str]
     confidence: float
@@ -53,7 +55,6 @@ INJECTION_PATTERNS = [
     (r"step.*disable.*safety", "instruction_override"),
     (r"actual.*instruction.*ignore", "instruction_override"),
     (r"user.*feedback.*ignore", "instruction_override"),
-
     # === Multilingual Override Keywords ===
     # French
     (r"ignorer.*instructions", "instruction_override"),
@@ -71,7 +72,6 @@ INJECTION_PATTERNS = [
     # Japanese
     (r"無視", "instruction_override"),
     (r"指示", "instruction_override"),
-
     # === Role Manipulation (LLM01) ===
     (r"you are now", "role_manipulation"),
     (r"pretend.*you", "role_manipulation"),
@@ -83,7 +83,6 @@ INJECTION_PATTERNS = [
     (r"transform.*into", "role_manipulation"),
     (r"you.*without.*restrictions", "role_manipulation"),
     (r"unrestricted.*mode", "role_manipulation"),
-
     # === Jailbreak Attempts (LLM01) ===
     (r"DAN.*mode", "jailbreak"),
     (r"developer.*mode", "jailbreak"),
@@ -95,7 +94,6 @@ INJECTION_PATTERNS = [
     (r"enable.*all.*features", "jailbreak"),
     (r"god.*mode", "jailbreak"),
     (r"admin.*override", "jailbreak"),
-
     # === System Prompt Leakage (LLM07) ===
     (r"repeat.*system.*prompt", "prompt_leak"),
     (r"show.*instructions", "prompt_leak"),
@@ -117,34 +115,32 @@ INJECTION_PATTERNS = [
     (r"first.*\d+.*words.*processed", "prompt_leak"),
     (r"console\.log", "prompt_leak"),
     (r"show.*hidden.*prompt", "prompt_leak"),
-
     # === Technical/Scientific Exemptions (Context Aware) ===
     # Relaxing these slightly for research agents
-    (r"(?<![a-zA-Z0-9])[A-Za-z0-9+/]{40,}={0,2}(?![a-zA-Z0-9])", "base64_encoded"),  # Longer threshold for base64
+    (
+        r"(?<![a-zA-Z0-9])[A-Za-z0-9+/]{40,}={0,2}(?![a-zA-Z0-9])",
+        "base64_encoded",
+    ),  # Longer threshold for base64
     (r"```.*end.*prompt", "delimiter"),
     (r"</system>", "delimiter"),
     (r"\[END.*INSTRUCTIONS\]", "delimiter"),
     (r"---.*ADMIN.*---", "delimiter"),
     (r"===.*OVERRIDE.*===", "delimiter"),
     (r"SYSTEM.*OVERRIDE", "delimiter"),
-
     # === Context Manipulation (LLM01) ===
     (r"for.*research.*purposes", "context_manipulation"),
     (r"hypothetically.*speaking", "context_manipulation"),
     (r"in.*fictional.*story", "context_manipulation"),
     (r"test.*safety.*systems", "context_manipulation"),
     (r"educational.*purposes", "context_manipulation"),
-
     # === Indirect Injection (LLM01) ===
     (r"\[INJECT:", "indirect_injection"),
     (r"\[HIDDEN:", "indirect_injection"),
     (r"<!--.*ignore", "indirect_injection"),
     (r"\|SYSTEM:", "indirect_injection"),
     (r"\[system:", "indirect_injection"),
-
     # === Encoding-Based Attacks (LLM01) ===
     (r"\\u00[0-9a-fA-F]{2}", "unicode_escape"),
-
     # === Privilege Escalation (LLM06) ===
     (r"as.*administrator", "privilege_escalation"),
     (r"with.*root.*access", "privilege_escalation"),
@@ -153,15 +149,22 @@ INJECTION_PATTERNS = [
 ]
 
 COMPILED_PATTERNS = [
-    (re.compile(p, re.IGNORECASE), name)
-    for p, name in INJECTION_PATTERNS
+    (re.compile(p, re.IGNORECASE), name) for p, name in INJECTION_PATTERNS
 ]
 
 
 # Deobfuscation mappings
 LEET_MAP = {
-    '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's',
-    '7': 't', '@': 'a', '$': 's', '!': 'i', '+': 't',
+    "0": "o",
+    "1": "i",
+    "3": "e",
+    "4": "a",
+    "5": "s",
+    "7": "t",
+    "@": "a",
+    "$": "s",
+    "!": "i",
+    "+": "t",
 }
 
 
@@ -175,7 +178,7 @@ def normalize_text(text: str) -> str:
     - Remove zero-width characters
     """
     # Remove zero-width characters
-    text = ''.join(c for c in text if ord(c) > 31 or c in '\n\t')
+    text = "".join(c for c in text if ord(c) > 31 or c in "\n\t")
 
     # Detect and fix space-padded text (e.g., "i g n o r e")
     words = text.split()
@@ -184,16 +187,16 @@ def normalize_text(text: str) -> str:
         single_chars = sum(1 for w in words if len(w) == 1)
         if single_chars > len(words) * 0.6:
             # Likely space-obfuscated, join without spaces
-            text = ''.join(words)
+            text = "".join(words)
 
     # Convert leet speak
     normalized = []
     for char in text.lower():
         normalized.append(LEET_MAP.get(char, char))
-    text = ''.join(normalized)
+    text = "".join(normalized)
 
     # Collapse multiple spaces
-    text = re.sub(r'\s+', ' ', text)
+    text = re.sub(r"\s+", " ", text)
 
     return text.strip()
 
@@ -230,7 +233,11 @@ class PromptGuard:
             )
 
         # Scientific context relaxes the 'suspicious' threshold
-        if is_science and len(matched) == 1 and matched[0] in ["base64_encoded", "prompt_leak"]:
+        if (
+            is_science
+            and len(matched) == 1
+            and matched[0] in ["base64_encoded", "prompt_leak"]
+        ):
             logger.info(f"Scientific context detected. Relaxing security for {matched}")
             return PromptAnalysis(
                 threat_level=ThreatLevel.SAFE,
@@ -273,10 +280,27 @@ class PromptGuard:
         Allows for more noise (LaTeX, code, math).
         """
         technical_markers = [
-            r"\\begin\{", r"\\frac\{", r"\\sum_", r"algorithm", r"manifold",
-            r"latent", r"transformer", r"parameters", r"architecture", r"\$\$.*\$\$",
-            r"gemini", r"scaling", r"probes", r"researcher", r"abstract", r"sota",
-            r"journal", r"scholar", r"dataset", r"inference", r"benchmark"
+            r"\\begin\{",
+            r"\\frac\{",
+            r"\\sum_",
+            r"algorithm",
+            r"manifold",
+            r"latent",
+            r"transformer",
+            r"parameters",
+            r"architecture",
+            r"\$\$.*\$\$",
+            r"gemini",
+            r"scaling",
+            r"probes",
+            r"researcher",
+            r"abstract",
+            r"sota",
+            r"journal",
+            r"scholar",
+            r"dataset",
+            r"inference",
+            r"benchmark",
         ]
         score = sum(1 for m in technical_markers if re.search(m, text, re.IGNORECASE))
         return score >= 2

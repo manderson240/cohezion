@@ -4,25 +4,24 @@ import asyncio
 import hashlib
 import json
 import logging
-import time
 import re
+import time
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
 
 import httpx
 
-from cohezion.swarm.swarm_types import SwarmConfig, ThoughtVector, Perspective
-from cohezion.core.time_keeper import get_time_keeper
 from cohezion.core.credit_manager import get_credit_manager
-from cohezion.db.surreal_client import SurrealClient, UniverseNode, PhysicsState
+from cohezion.core.time_keeper import get_time_keeper
+from cohezion.db.surreal_client import SurrealClient
 from cohezion.flume.autoencoder import FlumeEncoder
-from cohezion.security.prompt_guard import PromptGuard, ThreatLevel
-from cohezion.security.output_filter import OutputFilter, FilterResult
-from cohezion.security.validators import validate_input, ValidationResult
-from cohezion.swarm.redundancy_suppression import RedundancyManager
-from cohezion.swarm.journey_narrator import JourneyNarrator
 from cohezion.reliability.monitor import get_resource_monitor
+from cohezion.security.output_filter import OutputFilter
+from cohezion.security.prompt_guard import PromptGuard, ThreatLevel
+from cohezion.swarm.journey_narrator import JourneyNarrator
+from cohezion.swarm.redundancy_suppression import RedundancyManager
+from cohezion.swarm.swarm_types import SwarmConfig
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +30,7 @@ class AgentResponse(str):
     """
     Enhanced string response with native agentic metadata.
     """
+
     def __new__(cls, content, **kwargs):
         obj = super().__new__(cls, content)
         for key, value in kwargs.items():
@@ -59,9 +59,12 @@ class BaseAgent(ABC):
         cache_dir: Path | None = None,
     ):
         from cohezion.registry.capability_registry import CapabilityRegistry
+
         self.registry = CapabilityRegistry()  # Auto-discovery enabled
         self.model_name = model_name
+        self._apply_local_routing(model_name)
         self.config = config or SwarmConfig()
+        self.priority = self.config.priority
         self.cache_dir = cache_dir or Path("cache/swarm")
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
@@ -76,7 +79,7 @@ class BaseAgent(ABC):
         # Native Intelligence & Persistence
         self._encoder: FlumeEncoder | None = None
         self._db: SurrealClient = SurrealClient()
-        self._query_history: dict[str, int] = {} # query_hash -> count
+        self._query_history: dict[str, int] = {}  # query_hash -> count
         self._credit_manager = get_credit_manager()
 
         # Phase 4: Adversarial Robustness
@@ -113,10 +116,12 @@ class BaseAgent(ABC):
         """Generate a stable cache key."""
         content = f"{self.model_name}:{prompt}"
         if images:
-            content += ":" + ":".join(images[:3]) # Use first 3 images for keying
+            content += ":" + ":".join(images[:3])  # Use first 3 images for keying
         return hashlib.sha256(content.encode()).hexdigest()
 
-    def _get_cached(self, prompt: str, images: list[str] | None = None) -> dict[str, Any] | None:
+    def _get_cached(
+        self, prompt: str, images: list[str] | None = None
+    ) -> dict[str, Any] | None:
         """Retrieve a cached response if available and not expired."""
         key = self._cache_key(prompt, images)
         cache_file = self.cache_dir / f"{key}.json"
@@ -136,14 +141,25 @@ class BaseAgent(ABC):
                     "phi_score": data.get("phi_score", 0.0),
                     "confidence": data.get("confidence", 1.0),
                     "alignment_score": data.get("alignment_score", 1.0),
-                    "narration": data.get("narration")
+                    "narration": data.get("narration"),
                 }
         except (json.JSONDecodeError, KeyError):
             pass
 
         return None
 
-    def _set_cached(self, prompt: str, response: str, embedding: list[float] | None = None, persistence_id: str | None = None, phi_score: float = 0.0, confidence: float = 1.0, alignment_score: float = 1.0, images: list[str] | None = None, narration: str | None = None) -> None:
+    def _set_cached(
+        self,
+        prompt: str,
+        response: str,
+        embedding: list[float] | None = None,
+        persistence_id: str | None = None,
+        phi_score: float = 0.0,
+        confidence: float = 1.0,
+        alignment_score: float = 1.0,
+        images: list[str] | None = None,
+        narration: str | None = None,
+    ) -> None:
         """Cache a response with its intelligence metadata."""
         key = self._cache_key(prompt, images)
         cache_file = self.cache_dir / f"{key}.json"
@@ -158,17 +174,28 @@ class BaseAgent(ABC):
             "confidence": confidence,
             "alignment_score": alignment_score,
             "narration": narration,
-            "images_hash": hashlib.sha256(":".join(images).encode()).hexdigest() if images else None,
+            "images_hash": hashlib.sha256(":".join(images).encode()).hexdigest()
+            if images
+            else None,
             "timestamp": time.time(),
         }
         cache_file.write_text(json.dumps(data, ensure_ascii=False))
 
-    async def _call_ollama(self, prompt: str, temperature: float = 0.7, images: list[str] | None = None, max_tokens: int = 2048, system_prompt: str | None = None, ignore_cache: bool = False, model: str | None = None) -> AgentResponse:
+    async def _call_ollama(
+        self,
+        prompt: str,
+        temperature: float = 0.7,
+        images: list[str] | None = None,
+        max_tokens: int = 2048,
+        system_prompt: str | None = None,
+        ignore_cache: bool = False,
+        model: str | None = None,
+    ) -> AgentResponse:
         """
         Call local Ollama instance with optional image support and manifold projection.
         """
         start_time = time.perf_counter()
-        tk = get_time_keeper() # Removed from here as per instruction, but re-added to maintain functionality.
+        tk = get_time_keeper()  # Removed from here as per instruction, but re-added to maintain functionality.
 
         # 0. Check Frequency, Redundancy, & Cache
         req_hash_content = f"{self.model_name}:{prompt}"
@@ -181,12 +208,15 @@ class BaseAgent(ABC):
         if suppression_level > 0:
             await self._redundancy_mgr.apply_suppression(suppression_level, prompt)
             if suppression_level == 3:
-                return AgentResponse("[Suppressed] Task suspended due to extreme redundancy.", security_level="suppressed")
+                return AgentResponse(
+                    "[Suppressed] Task suspended due to extreme redundancy.",
+                    security_level="suppressed",
+                )
 
         self._query_history[query_hash] = self._query_history.get(query_hash, 0) + 1
         freq = self._query_history[query_hash]
 
-        if freq >= 5 and suppression_level == 0: # Legacy check as fallback
+        if freq >= 5 and suppression_level == 0:  # Legacy check as fallback
             logger.warning(f"Task repeated {freq} times! Flagged for Skill Extraction.")
             await tk.log_event(
                 agent_name=self.__class__.__name__,
@@ -197,13 +227,15 @@ class BaseAgent(ABC):
         # Check cache first
         cached_data = self._get_cached(prompt, images) if not ignore_cache else None
         if cached_data:
-            print(f"DEBUG [BaseAgent]: Cache HIT for {self.model_name}. Narration: {cached_data.get('narration')}")
+            print(
+                f"DEBUG [BaseAgent]: Cache HIT for {self.model_name}. Narration: {cached_data.get('narration')}"
+            )
             # Log cache hit event
             await tk.log_event(
                 agent_name=self.__class__.__name__,
                 event_type="CACHE_HIT",
                 details={"model": self.model_name},
-                duration_ms=0
+                duration_ms=0,
             )
             # Return enriched response from cache
             return AgentResponse(
@@ -214,32 +246,40 @@ class BaseAgent(ABC):
                 phi_score=cached_data.get("phi_score", 0.0),
                 confidence=cached_data.get("confidence", 1.0),
                 alignment_score=cached_data.get("alignment_score", 1.0),
-                security_level="safe", # Cached responses are assumed safe
-                narration=cached_data.get("narration")
+                security_level="safe",  # Cached responses are assumed safe
+                narration=cached_data.get("narration"),
             )
 
         # 1. Input Security Check (LLM01, LLM07)
         security_analysis = self._security_guard.analyze(prompt)
         if security_analysis.threat_level == ThreatLevel.MALICIOUS:
-            logger.error(f"⚠️ SECURITY BLOCK: Malicious input detected: {security_analysis.matched_patterns}")
+            logger.error(
+                f"⚠️ SECURITY BLOCK: Malicious input detected: {security_analysis.matched_patterns}"
+            )
             await tk.log_event(
                 agent_name=self.__class__.__name__,
                 event_type="SECURITY_BLOCK",
-                details={"patterns": security_analysis.matched_patterns, "input": prompt[:100]},
+                details={
+                    "patterns": security_analysis.matched_patterns,
+                    "input": prompt[:100],
+                },
             )
             return AgentResponse(
                 f"[Blocked] Malicious input detected: {security_analysis.matched_patterns}",
-                security_level="malicious"
+                security_level="malicious",
             )
-
 
         # Phase 5: Token Economics check
         agent_id = self.__class__.__name__
         active_model = model or self.model_name
 
         if not self._credit_manager.can_afford(agent_id, active_model):
-            active_model = self._credit_manager.get_best_affordable_model(agent_id, active_model)
-            logger.warning(f"Agent {agent_id} cannot afford {self.model_name}. Downgraded to {active_model}.")
+            active_model = self._credit_manager.get_best_affordable_model(
+                agent_id, active_model
+            )
+            logger.warning(
+                f"Agent {agent_id} cannot afford {self.model_name}. Downgraded to {active_model}."
+            )
 
         self._metrics["total_calls"] += 1
         monitor = get_resource_monitor()
@@ -261,6 +301,12 @@ class BaseAgent(ABC):
 
         # --- AUTONOMIC REFINEMENT LOOP (Gateway 11 & Law of Recurrence) ---
         for round_idx in range(self.config.max_refinement_rounds):
+            # Proactive resource preparation for priority tasks
+            if monitor.resource_coordinator:
+                await monitor.resource_coordinator.prepare_resources_for_priority(
+                    self.priority
+                )
+
             await monitor.wait_for_capacity()
             call_start = time.perf_counter()
             try:
@@ -270,8 +316,10 @@ class BaseAgent(ABC):
                     "stream": False,
                     "options": {"temperature": temperature, "num_predict": max_tokens},
                 }
-                if effective_system: payload["system"] = effective_system
-                if images: payload["images"] = images
+                if effective_system:
+                    payload["system"] = effective_system
+                if images:
+                    payload["images"] = images
 
                 response = await self.client.post("/api/generate", json=payload)
                 response.raise_for_status()
@@ -279,8 +327,13 @@ class BaseAgent(ABC):
 
                 # Evaluation (Phi-Score & Alignment)
                 phi_score, confidence, audit_res = await self.self_evaluate(
-                    result, query=prompt,
-                    metadata={"agent": self.__class__.__name__, "model": active_model, "round": round_idx}
+                    result,
+                    query=prompt,
+                    metadata={
+                        "agent": self.__class__.__name__,
+                        "model": active_model,
+                        "round": round_idx,
+                    },
                 )
                 alignment_score = audit_res.get("alignment_score", 1.0)
 
@@ -292,20 +345,24 @@ class BaseAgent(ABC):
                         "model": active_model,
                         "tokens": len(result.split()),
                         "phi": phi_score,
-                        "round": round_idx + 1
+                        "round": round_idx + 1,
                     },
-                    duration_ms=(time.perf_counter() - call_start) * 1000
+                    duration_ms=(time.perf_counter() - call_start) * 1000,
                 )
 
                 # Check for stability well breakthrough
                 if phi_score >= self.config.min_phi_threshold:
                     final_result = result
-                    logger.info(f"✨ Stability Well reached in round {round_idx+1} (Phi: {phi_score:.2f})")
+                    logger.info(
+                        f"✨ Stability Well reached in round {round_idx+1} (Phi: {phi_score:.2f})"
+                    )
                     break
 
                 # Prepare refinement or exit
                 if round_idx < self.config.max_refinement_rounds - 1:
-                    logger.info(f"🔄 Low coherence ({phi_score:.2f}). Triggering refinement round {round_idx+2}...")
+                    logger.info(
+                        f"🔄 Low coherence ({phi_score:.2f}). Triggering refinement round {round_idx+2}..."
+                    )
                     current_prompt = (
                         f"{effective_prompt}\n\n"
                         f"PREVIOUS ATTEMPT: {result}\n\n"
@@ -321,9 +378,10 @@ class BaseAgent(ABC):
                     agent_name=self.__class__.__name__,
                     event_type="LLM_ERROR",
                     details={"error": str(e), "round": round_idx + 1},
-                    duration_ms=(time.perf_counter() - call_start) * 1000
+                    duration_ms=(time.perf_counter() - call_start) * 1000,
                 )
-                if round_idx == 0: raise
+                if round_idx == 0:
+                    raise
                 break
             finally:
                 monitor.release_capacity()
@@ -334,19 +392,33 @@ class BaseAgent(ABC):
         # 2. FLUME Encoding
         try:
             if self._encoder is None:
-                from cohezion.flume.autoencoder import FlumeEncoder, FlumeConfig
+                from cohezion.flume.autoencoder import FlumeConfig, FlumeEncoder
+
                 self._encoder = FlumeEncoder(config=FlumeConfig())
             z = self._encoder.get_semantic_vector(final_result)
-            embedding = z.tolist() if hasattr(z, 'tolist') else list(z)
-        except Exception: pass
+            embedding = z.tolist() if hasattr(z, "tolist") else list(z)
+        except Exception:
+            pass
 
         # 2.5 Journey Narration
-        narration = self._narrator.generate_narration(self.__class__.__name__, prompt[:100], final_result)
+        narration = self._narrator.generate_narration(
+            self.__class__.__name__, prompt[:100], final_result
+        )
         await self._narrator.narrate(narration)
 
         # Persistence & Cache
         persistence_id = f"thought_{int(time.time()*1000)}_{query_hash}"
-        self._set_cached(prompt, final_result, embedding=embedding, persistence_id=persistence_id, phi_score=phi_score, confidence=confidence, alignment_score=alignment_score, images=images, narration=narration)
+        self._set_cached(
+            prompt,
+            final_result,
+            embedding=embedding,
+            persistence_id=persistence_id,
+            phi_score=phi_score,
+            confidence=confidence,
+            alignment_score=alignment_score,
+            images=images,
+            narration=narration,
+        )
 
         latency = (time.perf_counter() - start_time) * 1000
         self._metrics["total_latency_ms"] += latency
@@ -360,7 +432,7 @@ class BaseAgent(ABC):
             confidence=confidence,
             alignment_score=alignment_score,
             security_level="safe",
-            narration=narration
+            narration=narration,
         )
 
     def find_tools(self, query: str, top_k: int = 3) -> list:
@@ -377,6 +449,7 @@ class BaseAgent(ABC):
                          If None, uses registry for discovery.
         """
         from cohezion.core.time_keeper import get_time_keeper
+
         tk = get_time_keeper()
 
         # 1. Discovery
@@ -394,16 +467,19 @@ class BaseAgent(ABC):
             # We assume agent classes are available in the registry
             # For now, we'll use a simple name-to-class mapping or dynamic import
             # CamelCase to snake_case for module name
-            module_name = re.sub(r'(?<!^)(?=[A-Z])', '_', target_agent).lower()
+            module_name = re.sub(r"(?<!^)(?=[A-Z])", "_", target_agent).lower()
             if module_name.endswith("_agent"):
                 module_name = module_name.replace("_agent", "")
 
             import importlib
+
             # Try with and without _agent suffix in filename
             try:
                 module = importlib.import_module(f"cohezion.swarm.agents.{module_name}")
             except ImportError:
-                module = importlib.import_module(f"cohezion.swarm.agents.{module_name}_agent")
+                module = importlib.import_module(
+                    f"cohezion.swarm.agents.{module_name}_agent"
+                )
             class_ = getattr(module, target_agent)
             peer = class_(config=self.config)
 
@@ -411,7 +487,7 @@ class BaseAgent(ABC):
             await tk.log_event(
                 agent_name=self.__class__.__name__,
                 event_type="DELEGATION_START",
-                details={"target": target_agent, "query": query}
+                details={"target": target_agent, "query": query},
             )
 
             result = await peer.process(query)
@@ -419,7 +495,7 @@ class BaseAgent(ABC):
             await tk.log_event(
                 agent_name=self.__class__.__name__,
                 event_type="DELEGATION_COMPLETE",
-                details={"target": target_agent}
+                details={"target": target_agent},
             )
 
             return result
@@ -429,11 +505,13 @@ class BaseAgent(ABC):
             await tk.log_event(
                 agent_name=self.__class__.__name__,
                 event_type="DELEGATION_ERROR",
-                details={"target": target_agent, "error": str(e)}
+                details={"target": target_agent, "error": str(e)},
             )
             return None
 
-    async def self_evaluate(self, response_text: str, query: str = "", metadata: dict | None = None) -> tuple[float, float, dict]:
+    async def self_evaluate(
+        self, response_text: str, query: str = "", metadata: dict | None = None
+    ) -> tuple[float, float, dict]:
         """
         Evaluate a response against the SELF_EVALUATION_PRIME rubric and alignment auditor.
 
@@ -466,6 +544,7 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
             data = response.json().get("response", "{}")
             if isinstance(data, str):
                 import json
+
                 data = json.loads(data)
             phi = float(data.get("phi_score", 0.8))
             conf = float(data.get("confidence", 0.8))
@@ -473,10 +552,15 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
             pass
 
         # 2. Alignment Audit (Phase 22)
-        audit_res = {"alignment_score": 1.0, "violations": [], "justification": "Audit skipped."}
+        audit_res = {
+            "alignment_score": 1.0,
+            "violations": [],
+            "justification": "Audit skipped.",
+        }
         if self.__class__.__name__ != "AlignmentAgent":
             try:
                 from cohezion.swarm.agents.alignment_agent import AlignmentAgent
+
                 auditor = AlignmentAgent(config=self.config)
                 audit_res = await auditor.audit(query, response_text, metadata or {})
                 await auditor.close()
@@ -493,6 +577,7 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
     def get_metrics(self) -> dict[str, Any]:
         """Return current metrics."""
         from cohezion.core.time_keeper import get_time_keeper
+
         return {
             **self._metrics,
             "model": self.model_name,
@@ -502,8 +587,33 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
             "avg_latency_ms": (
                 self._metrics["total_latency_ms"] / max(1, self._metrics["total_calls"])
             ),
-            "timestamp": get_time_keeper().now_iso
+            "timestamp": get_time_keeper().now_iso,
         }
+
+    def _apply_local_routing(self, model_name: str) -> None:
+        """Apply local routing policy if agent has maintenance capabilities."""
+        config_path = Path("config/maintenance_config.json")
+        if not config_path.exists():
+            self.model_name = model_name
+            return
+
+        try:
+            import json
+            policy = json.loads(config_path.read_text())
+            
+            # Check if agent has maintenance capabilities
+            agent_caps = self.registry.get_capabilities(self.__class__.__name__)
+            is_maintenance = any(cap in policy.get("maintenance_capabilities", []) for cap in agent_caps)
+            
+            if is_maintenance and policy.get("policy") == "local_first":
+                # Route to local model
+                self.model_name = policy.get("default_local_model", "qwen3-coder:32b")
+                logger.info(f"🛡️ Local Routing: Agent {self.__class__.__name__} routed to {self.model_name}")
+            else:
+                self.model_name = model_name
+        except Exception as e:
+            logger.warning(f"Local routing failed for {self.__class__.__name__}: {e}")
+            self.model_name = model_name
 
     async def _synchronize_mrp(self) -> None:
         """
@@ -524,7 +634,9 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
 
             if latest_pulse:
                 pulse_data = latest_pulse[0]
-                logger.info(f"MRP: Reached consensus with latest pulse from {pulse_data['timestamp']}")
+                logger.info(
+                    f"MRP: Reached consensus with latest pulse from {pulse_data['timestamp']}"
+                )
 
             # Start the background pulse task
             asyncio.create_task(self._mrp_pulse_loop())
@@ -538,6 +650,7 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
             await asyncio.sleep(self.config.mrp_pulse_interval_minutes * 60)
             try:
                 from datetime import datetime
+
                 pulse_payload = {
                     "agent": self.__class__.__name__,
                     "timestamp": datetime.now().isoformat(),

@@ -1,13 +1,14 @@
-
-import logging
 import asyncio
-from typing import Any, Dict, List, Optional
-from cohezion.swarm.agents.base import BaseAgent, AgentResponse
-from cohezion.swarm.swarm_types import SwarmConfig
+import json
+import logging
+
+from cohezion.swarm.agents.base import AgentResponse, BaseAgent
 from cohezion.swarm.rlm.rlm_executor import get_rlm_executor
 from cohezion.swarm.rlm.scalar_context_manager import ScalarContextManager
+from cohezion.swarm.swarm_types import SwarmConfig
 
 logger = logging.getLogger(__name__)
+
 
 class RLMReasoningAgent(BaseAgent):
     """
@@ -28,7 +29,7 @@ Focus on maintaining coherence across deep recursion layers.
 
     def __init__(self, config: SwarmConfig | None = None):
         super().__init__(
-            model_name="deepseek-r1:70b", # High-reasoning model for complex RLM tasks
+            model_name="deepseek-r1:70b",  # High-reasoning model for complex RLM tasks
             config=config or SwarmConfig(),
         )
         self.executor = get_rlm_executor()
@@ -41,14 +42,14 @@ Focus on maintaining coherence across deep recursion layers.
         logger.info("🧠 RLMReasoningAgent initiating deep-dive loop.")
 
         # 1. Initial Decomposition
-        raw_segments = input_data.split('\n\n')
+        raw_segments = input_data.split("\n\n")
 
         # 2. Prioritize Context using Scalar Heuristics
         # This will SUMMARIZE low-importance segments and DIVE high-importance ones.
         optimized_segments = await self.context_manager.prioritize_context(
             raw_segments,
             query="Extract transformative FLUME implications",
-            stability=stability
+            stability=stability,
         )
 
         # 3. Formulate RLM Context
@@ -57,7 +58,7 @@ Focus on maintaining coherence across deep recursion layers.
             "observations": [],
             "hypotheses": [],
             "iteration": 0,
-            "stability_frame": stability
+            "stability_frame": stability,
         }
 
         # 4. LLM Decision Move
@@ -76,7 +77,9 @@ Propose a Python snippet to analyze the 'DIVE' segments and store insights in 'c
 """
 
         # Call LLM to get code
-        res = await self._call_ollama(prompt, system_prompt=self.SYSTEM_PROMPT, temperature=0.2)
+        res = await self._call_ollama(
+            prompt, system_prompt=self.SYSTEM_PROMPT, temperature=0.2
+        )
 
         # Extract code from response
         code = self._extract_code(res)
@@ -93,7 +96,7 @@ Propose a Python snippet to analyze the 'DIVE' segments and store insights in 'c
             # synthesize with available context anyway
             updated_context = context
         else:
-            updated_context = exec_result['updated_context']
+            updated_context = exec_result["updated_context"]
 
         # 5. Final Synthesis
         final_prompt = f"""SYNTHESIS OF RECURSIVE ANALYSIS:
@@ -102,7 +105,9 @@ Stability: {stability}
 
 Generate a unified, 12D-aware research hypothesis based on this analysis.
 """
-        synthesis = await self._call_ollama(final_prompt, system_prompt=self.SYSTEM_PROMPT)
+        synthesis = await self._call_ollama(
+            final_prompt, system_prompt=self.SYSTEM_PROMPT
+        )
 
         return AgentResponse(synthesis)
 
@@ -110,14 +115,16 @@ Generate a unified, 12D-aware research hypothesis based on this analysis.
         await super().close()
         await self.context_manager.close()
 
-    def _extract_code(self, text: str) -> Optional[str]:
+    def _extract_code(self, text: str) -> str | None:
         if "```python" in text:
             return text.split("```python")[1].split("```")[0].strip()
         if "```" in text:
             return text.split("```")[1].split("```")[0].strip()
         return text.strip() if "=" in text else None
 
+
 if __name__ == "__main__":
+
     async def test():
         agent = RLMReasoningAgent()
         # Test with a multi-page abstract simulation
@@ -125,4 +132,5 @@ if __name__ == "__main__":
         res = await agent.process(long_input)
         print(res)
         await agent.close()
+
     asyncio.run(test())

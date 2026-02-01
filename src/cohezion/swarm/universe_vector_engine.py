@@ -1,7 +1,7 @@
-import numpy as np
 import time
-from pathlib import Path
-from typing import Dict, Any, Optional
+
+import numpy as np
+
 
 class UniverseVectorEngine:
     """
@@ -10,25 +10,35 @@ class UniverseVectorEngine:
     """
 
     PARAM_NAMES = [
-        "Awareness", "Space_1", "Space_2", "Space_3",
-        "Tempic", "Electric", "Magnetic",
-        "Spin_Rotation", "Spin_Precession", "Charge_Polarity",
-        "Particularization", "Precipitation"
+        "Awareness",
+        "Space_1",
+        "Space_2",
+        "Space_3",
+        "Tempic",
+        "Electric",
+        "Magnetic",
+        "Spin_Rotation",
+        "Spin_Precession",
+        "Charge_Polarity",
+        "Particularization",
+        "Precipitation",
     ]
 
     def __init__(self, num_rounds: int = 1_000_000):
         self.num_rounds = num_rounds
         self.dims = 12
 
-    def run_scenario(self,
-                     name: str,
-                     momentum: float = 0.9,
-                     coupling: float = 1.0,
-                     hiho_target: float = 0.5,
-                     entropy: float = 0.02,
-                     swarm_enabled: bool = True,
-                     flume_enabled: bool = True,
-                     hiho_enabled: bool = True):
+    def run_scenario(
+        self,
+        name: str,
+        momentum: float = 0.9,
+        coupling: float = 1.0,
+        hiho_target: float = 0.5,
+        entropy: float = 0.02,
+        swarm_enabled: bool = True,
+        flume_enabled: bool = True,
+        hiho_enabled: bool = True,
+    ):
         """
         Runs a simulation with parametric overrides.
         """
@@ -43,7 +53,7 @@ class UniverseVectorEngine:
             for i in range(1, self.num_rounds):
                 # Momentum-based random walk: higher entropy = larger drift
                 drift = (np.random.rand(self.dims) - 0.5) * entropy
-                states[i] = np.clip(states[i-1] + drift, 0, 1)
+                states[i] = np.clip(states[i - 1] + drift, 0, 1)
         else:
             states = np.random.rand(self.num_rounds, self.dims)
 
@@ -66,7 +76,9 @@ class UniverseVectorEngine:
         if hiho_enabled:
             # Shift the stability center based on hiho_target
             # A centered 0.5 target is the 'Golden Mean'
-            stability = (1.0 - np.abs(field_overlap - hiho_target) * 2) * (0.7 + 0.3 * spin_coherence)
+            stability = (1.0 - np.abs(field_overlap - hiho_target) * 2) * (
+                0.7 + 0.3 * spin_coherence
+            )
         else:
             stability = field_overlap * (0.7 + 0.3 * spin_coherence)
 
@@ -87,13 +99,17 @@ class UniverseVectorEngine:
             "num_rounds": self.num_rounds,
             "duration": duration,
             "bright_spot_count": int(len(bright_spot_indices)),
-            "bright_spot_samples": states[bright_spot_indices[:100]].tolist() if len(bright_spot_indices) > 0 else [],
+            "bright_spot_samples": states[bright_spot_indices[:100]].tolist()
+            if len(bright_spot_indices) > 0
+            else [],
             "mean_stability": float(np.mean(stability)),
-            "max_reality": float(np.max(precipitated_reality)) if len(precipitated_reality) > 0 else 0.0,
+            "max_reality": float(np.max(precipitated_reality))
+            if len(precipitated_reality) > 0
+            else 0.0,
             "params": {
                 "momentum": momentum,
                 "coupling": coupling,
                 "hiho_target": hiho_target,
-                "entropy": entropy
-            }
+                "entropy": entropy,
+            },
         }

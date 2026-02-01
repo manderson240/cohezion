@@ -4,25 +4,28 @@ USD (Underwater Spark Discharge) Simulator
 Generates itonic clusters based on Matsumoto's experimental method
 """
 
-import numpy as np
-from dataclasses import dataclass
-from typing import Optional
 import sys
-sys.path.insert(0, '/home/mike-anderson/dev/cohezion/src')
+from dataclasses import dataclass
+
+import numpy as np
+
+sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
 
 # Simplified: Use NumPy directly instead of importing HihoVectorEngine
 # (which may not exist yet)
-import numpy as np
+
 
 @dataclass
 class ItonicCluster:
     """Itonic cluster (micro Ball Lightning) properties."""
+
     coherence: float  # 0-1, where 0.5 is HIHO threshold
     charge: float  # Total charge (negative for itonic clusters)
     magnetic_moment: float  # Magnetic field strength
     radius_nm: float  # Cluster size in nanometers
     lifetime_us: float  # Lifetime in microseconds
     num_electrons: int  # Number of electrons in cluster
+
 
 class USDSimulator:
     """
@@ -41,14 +44,16 @@ class USDSimulator:
     - Negative charge clustering despite Coulomb repulsion
     """
 
-    def __init__(self, voltage_kv=10.0, pulse_duration_us=100.0, water_conductivity=0.05):
+    def __init__(
+        self, voltage_kv=10.0, pulse_duration_us=100.0, water_conductivity=0.05
+    ):
         """
-        Initialize USD simulator.
+         Initialize USD simulator.
 
-       Args:
-            voltage_kv: Spark voltage in kilovolts (5-20 typical)
-            pulse_duration_us: Pulse duration in microseconds (10-500)
-            water_conductivity: Water electrical conductivity (S/m)
+        Args:
+             voltage_kv: Spark voltage in kilovolts (5-20 typical)
+             pulse_duration_us: Pulse duration in microseconds (10-500)
+             water_conductivity: Water electrical conductivity (S/m)
         """
         self.voltage_v = voltage_kv * 1000
         self.pulse_duration_s = pulse_duration_us * 1e-6
@@ -61,7 +66,7 @@ class USDSimulator:
         # Simplified: E = V^2 * t / R (R depends on conductivity)
         # Adjusted resistance factor to match experimental energy deposits
         resistance_ohm = 1.0 / (self.conductivity * 1.0)  # Changed from 0.01 to 1.0
-        energy_j = (self.voltage_v ** 2) * self.pulse_duration_s / resistance_ohm
+        energy_j = (self.voltage_v**2) * self.pulse_duration_s / resistance_ohm
         return energy_j
 
     def create_plasma_bubble(self, energy_j: float) -> dict:
@@ -80,7 +85,7 @@ class USDSimulator:
             "radius_mm": bubble_radius_mm,
             "electron_density": electron_density,
             "temperature_k": 10000 + energy_j * 100,  # Plasma temp
-            "lifetime_us": self.pulse_duration_s * 1e6 * 2  # Bubble persists ~2x pulse
+            "lifetime_us": self.pulse_duration_s * 1e6 * 2,  # Bubble persists ~2x pulse
         }
 
     def force_charge_clustering(self, bubble: dict) -> dict:
@@ -92,11 +97,15 @@ class USDSimulator:
         - At HIHO threshold (0.5 coherence), charges cluster despite repulsion
         - Coherent field state overcomes Coulomb repulsion
         """
-        num_electrons = int(bubble["electron_density"] * (bubble["radius_mm"] / 10) ** 3)
+        num_electrons = int(
+            bubble["electron_density"] * (bubble["radius_mm"] / 10) ** 3
+        )
 
         # Run HIHO simulations directly
         # Generate random coherence values (simulating charge clustering attempts)
-        results = np.random.beta(2, 2, self.num_simulations)  # Beta distribution peaks near 0.5
+        results = np.random.beta(
+            2, 2, self.num_simulations
+        )  # Beta distribution peaks near 0.5
 
         # Find "bright spots" near HIHO threshold
         near_threshold = np.abs(results - self.hiho_threshold) < 0.05
@@ -114,10 +123,12 @@ class USDSimulator:
             "coherence": coherence,
             "charge_coulombs": -num_electrons * 1.6e-19,  # Negative
             "magnetic_moment": num_electrons * 9.27e-24 * coherence,  # Bohr magnetons
-            "radius_nm": bubble["radius_mm"] * 1e6 * coherence  # Shrinks as it coherences
+            "radius_nm": bubble["radius_mm"]
+            * 1e6
+            * coherence,  # Shrinks as it coherences
         }
 
-    def form_itonic_cluster(self, cluster_data: dict) -> Optional[ItonicCluster]:
+    def form_itonic_cluster(self, cluster_data: dict) -> ItonicCluster | None:
         """
         Form stable itonic cluster if HIHO threshold met.
 
@@ -142,17 +153,17 @@ class USDSimulator:
             magnetic_moment=cluster_data["magnetic_moment"],
             radius_nm=cluster_data["radius_nm"],
             lifetime_us=lifetime_us,
-            num_electrons=cluster_data["num_electrons"]
+            num_electrons=cluster_data["num_electrons"],
         )
 
-    def generate_spark(self, num_attempts=1) -> Optional[ItonicCluster]:
+    def generate_spark(self, num_attempts=1) -> ItonicCluster | None:
         """
         Generate spark and attempt to form itonic cluster.
 
         Returns:
             ItonicCluster if successful, None otherwise
         """
-        for attempt in range(num_attempts):
+        for _attempt in range(num_attempts):
             # 1. Calculate energy
             energy_j = self.calculate_energy()
 
@@ -170,6 +181,7 @@ class USDSimulator:
 
         return None
 
+
 # Quick test
 if __name__ == "__main__":
     print("🔬 USD Simulator Test")
@@ -182,10 +194,10 @@ if __name__ == "__main__":
         cluster = sim.generate_spark()
 
         if cluster:
-            print(f"  ✅ Itonic cluster formed!")
+            print("  ✅ Itonic cluster formed!")
             print(f"     Coherence: {cluster.coherence:.4f} (HIHO threshold: 0.5)")
             print(f"     Electrons: {cluster.num_electrons:,}")
             print(f"     Radius: {cluster.radius_nm:.1f} nm")
             print(f"     Lifetime: {cluster.lifetime_us:.2f} μs")
         else:
-            print(f"  ❌ No cluster formed (below HIHO threshold)")
+            print("  ❌ No cluster formed (below HIHO threshold)")

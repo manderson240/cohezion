@@ -1,26 +1,26 @@
-import os, sys, inspect
+import inspect
+import os
+import sys
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
-from functools import lru_cache
 import unittest
-import random
+from functools import cache
 
 from frozen_problem import (
+    N_CORES,
+    Input,
     Machine,
+    Tree,
     build_mem_image,
     reference_kernel2,
-    Tree,
-    Input,
-    N_CORES,
-    VLEN,
 )
 from perf_takehome import KernelBuilder
 
 
-@lru_cache(maxsize=None)
+@cache
 def kernel_builder(forest_height: int, n_nodes: int, batch_size: int, rounds: int):
     kb = KernelBuilder()
     kb.build_kernel(forest_height, n_nodes, batch_size, rounds)
@@ -46,7 +46,10 @@ def do_kernel_test(forest_height: int, rounds: int, batch_size: int):
         pass
 
     inp_values_p = ref_mem[6]
-    if machine.mem[inp_values_p : inp_values_p + len(inp.values)] != ref_mem[inp_values_p : inp_values_p + len(inp.values)]:
+    if (
+        machine.mem[inp_values_p : inp_values_p + len(inp.values)]
+        != ref_mem[inp_values_p : inp_values_p + len(inp.values)]
+    ):
         res = machine.mem[inp_values_p : inp_values_p + len(inp.values)]
         ref = ref_mem[inp_values_p : inp_values_p + len(inp.values)]
         for i in range(len(res)):
@@ -58,6 +61,8 @@ def do_kernel_test(forest_height: int, rounds: int, batch_size: int):
         == ref_mem[inp_values_p : inp_values_p + len(inp.values)]
     ), "Incorrect output values"
     print("CYCLES: ", machine.cycle)
+    for i, core in enumerate(machine.cores):
+        print(f"TRACE CORE {i}: {core.trace_buf}")
     return machine.cycle
 
 
@@ -76,7 +81,7 @@ def cycles():
         res = do_kernel_test(10, 16, 256)
         print("Speedup over baseline: ", BASELINE / res)
         return res
-    except AssertionError as e:
+    except AssertionError:
         return BASELINE * 2
 
 

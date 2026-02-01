@@ -17,13 +17,11 @@ This enables:
 
 import logging
 from pathlib import Path
-from typing import Any, Optional, Union, List, Tuple
 
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from transformers import PreTrainedModel, PretrainedConfig
+from transformers import PretrainedConfig, PreTrainedModel
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +30,7 @@ class FlumeConfig(PretrainedConfig):
     """
     Configuration for Flume Autoencoder.
     """
+
     model_type = "flume"
 
     def __init__(
@@ -138,8 +137,8 @@ class ThoughtDecoder(nn.Module):
         tgt = self.embedding(target_tokens) + self.pos_embedding(positions)
 
         causal_mask = torch.triu(
-            torch.ones(seq_len, seq_len, device=target_tokens.device) * float('-inf'),
-            diagonal=1
+            torch.ones(seq_len, seq_len, device=target_tokens.device) * float("-inf"),
+            diagonal=1,
         )
 
         # Ensure z is [batch, z_dim] for memory projection
@@ -157,6 +156,7 @@ class FlumeEncoder(PreTrainedModel):
     """
     Full autoencoder for thought vector compression.
     """
+
     config_class = FlumeConfig
     base_model_prefix = "flume"
 
@@ -167,16 +167,27 @@ class FlumeEncoder(PreTrainedModel):
 
         # Integration with FlumeTokenizer (for convenience)
         from cohezion.flume.tokenizer import FlumeTokenizer
+
         self.tokenizer = FlumeTokenizer()
         self.post_init()
 
     def _init_weights(self, module):
         if isinstance(module, nn.Linear):
-            module.weight.data.normal_(mean=0.0, std=self.config.initializer_range if hasattr(self.config, 'initializer_range') else 0.02)
+            module.weight.data.normal_(
+                mean=0.0,
+                std=self.config.initializer_range
+                if hasattr(self.config, "initializer_range")
+                else 0.02,
+            )
             if module.bias is not None:
                 module.bias.data.zero_()
         elif isinstance(module, nn.Embedding):
-            module.weight.data.normal_(mean=0.0, std=self.config.initializer_range if hasattr(self.config, 'initializer_range') else 0.02)
+            module.weight.data.normal_(
+                mean=0.0,
+                std=self.config.initializer_range
+                if hasattr(self.config, "initializer_range")
+                else 0.02,
+            )
             if module.padding_idx is not None:
                 module.weight.data[module.padding_idx].zero_()
 
@@ -189,7 +200,9 @@ class FlumeEncoder(PreTrainedModel):
         if isinstance(text, str):
             text = [text]
 
-        inputs = self.tokenizer(text, padding=True, truncation=True, max_length=max_len, return_tensors="pt")
+        inputs = self.tokenizer(
+            text, padding=True, truncation=True, max_length=max_len, return_tensors="pt"
+        )
         inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
         with torch.no_grad():
@@ -235,7 +248,7 @@ class FlumeEncoder(PreTrainedModel):
         self,
         input_ids: torch.Tensor,
         attention_mask: torch.Tensor | None = None,
-        **kwargs
+        **kwargs,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Full forward pass for training."""
         z = self.encoder(input_ids, attention_mask)
@@ -266,13 +279,11 @@ class FlumeEncoder(PreTrainedModel):
         """Get high-quality semantic vector using local Ollama (nomic-embed-text)."""
         try:
             import requests
+
             response = requests.post(
                 "http://localhost:11434/api/embeddings",
-                json={
-                    "model": "nomic-embed-text",
-                    "prompt": text
-                },
-                timeout=30
+                json={"model": "nomic-embed-text", "prompt": text},
+                timeout=30,
             )
             if response.status_code == 200:
                 embedding = response.json()["embedding"]
@@ -361,8 +372,10 @@ class FlumeEncoder(PreTrainedModel):
             text_b = self.get_semantic_vector(text_b)
 
         # Ensure 1D tensors
-        if text_a.dim() > 1: text_a = text_a.flatten()
-        if text_b.dim() > 1: text_b = text_b.flatten()
+        if text_a.dim() > 1:
+            text_a = text_a.flatten()
+        if text_b.dim() > 1:
+            text_b = text_b.flatten()
 
         a_norm = F.normalize(text_a, dim=0)
         b_norm = F.normalize(text_b, dim=0)

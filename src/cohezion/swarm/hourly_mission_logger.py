@@ -1,18 +1,21 @@
 import json
 import logging
 import time
+from datetime import UTC, datetime
 from pathlib import Path
-from datetime import datetime, UTC
-from typing import Dict, Any, List
+from typing import Any
+
 # Assuming cohezion has an email notifier
 # from cohezion.reliability.email_notifier import send_email
 
 logger = logging.getLogger(__name__)
 
+
 class HourlyMissionLogger:
     """
     Tracks and reports mission progress hourly.
     """
+
     def __init__(self, mission_id: str):
         self.mission_id = mission_id
         self.log_path = Path(f"logs/multiverse_{mission_id}_hourly.jsonl")
@@ -20,10 +23,9 @@ class HourlyMissionLogger:
         self.start_time = time.time()
         self.last_report_time = self.start_time
 
-    def log_snapshot(self,
-                    vitals: Dict[str, Any],
-                    results: List[Dict[str, Any]],
-                    next_steps: str):
+    def log_snapshot(
+        self, vitals: dict[str, Any], results: list[dict[str, Any]], next_steps: str
+    ):
         """Logs a snapshot and prepares email content."""
         timestamp = datetime.now(UTC).isoformat()
         entry = {
@@ -33,10 +35,11 @@ class HourlyMissionLogger:
                 {
                     "scenario": r["scenario_name"],
                     "stability": r["mean_stability"],
-                    "bright_spots": r["bright_spot_count"]
-                } for r in results
+                    "bright_spots": r["bright_spot_count"],
+                }
+                for r in results
             ],
-            "next_steps": next_steps
+            "next_steps": next_steps,
         }
 
         with open(self.log_path, "a") as f:
@@ -53,13 +56,16 @@ class HourlyMissionLogger:
 |---|---|---|
 """
         for r in entry["results_summary"]:
-            report += f"| {r['scenario']} | {r['stability']:.4f} | {r['bright_spots']} |\n"
+            report += (
+                f"| {r['scenario']} | {r['stability']:.4f} | {r['bright_spots']} |\n"
+            )
 
         report += f"\n## 🛡️ Resource Vitals\n- CPU: {vitals['cpu_percent']}%\n- RAM: {vitals['memory_percent']}%\n"
         report += f"\n## 🔮 Next Hour\n{next_steps}"
 
         logger.info(f"Hourly snapshot logged for {self.mission_id}")
         return report
+
 
 # Example usage for integration
 # logger = HourlyMissionLogger("nexus_v1")

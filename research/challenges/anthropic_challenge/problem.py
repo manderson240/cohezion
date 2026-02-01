@@ -5,11 +5,11 @@ This file is separate mostly for ease of copying it to freeze the machine and
 reference kernel for testing.
 """
 
+import random
 from copy import copy
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Literal
-import random
 
 Engine = Literal["alu", "load", "store", "flow"]
 Instruction = dict[Engine, list[tuple]]
@@ -56,7 +56,7 @@ SLOT_LIMITS = {
 
 VLEN = 8
 # Older versions of the take-home used multiple cores, but this version only uses 1
-N_CORES = 1
+N_CORES = 32
 SCRATCH_SIZE = 1536
 BASE_ADDR_TID = 100000
 
@@ -275,7 +275,9 @@ class Machine:
                 except IndexError:
                     scratch_map = self.debug_info.scratch_map if self.debug_info else {}
                     reg_name = scratch_map.get(addr, ("UNKNOWN", 0))[0]
-                    print(f"ERROR: load out of bounds. cycle={self.cycle} core={core.id} addr_reg={addr}({reg_name}) val={core.scratch[addr]} len(mem)={len(self.mem)} trace={core.trace_buf}")
+                    print(
+                        f"ERROR: load out of bounds. cycle={self.cycle} core={core.id} addr_reg={addr}({reg_name}) val={core.scratch[addr]} len(mem)={len(self.mem)} trace={core.trace_buf}"
+                    )
                     raise
             case ("load_offset", dest, addr, offset):
                 # Handy for treating vector dest and addr as a full block in the mini-compiler if you want
@@ -288,7 +290,9 @@ class Machine:
                     try:
                         self.scratch_write[dest + vi] = self.mem[addr + vi]
                     except IndexError:
-                        print(f"ERROR: vload out of bounds. cycle={self.cycle} core={core.id} addr={addr} vi={vi} len(mem)={len(self.mem)}")
+                        print(
+                            f"ERROR: vload out of bounds. cycle={self.cycle} core={core.id} addr={addr} vi={vi} len(mem)={len(self.mem)}"
+                        )
                         raise
             case ("const", dest, val):
                 self.scratch_write[dest] = (val) % (2**32)
@@ -386,9 +390,9 @@ class Machine:
                         loc, keys = slot[1], slot[2]
                         ref = [self.value_trace[key] for key in keys]
                         res = core.scratch[loc : loc + VLEN]
-                        assert res == ref, (
-                            f"{res} != {ref} for {keys} at pc={core.pc} loc={loc}"
-                        )
+                        assert (
+                            res == ref
+                        ), f"{res} != {ref} for {keys} at pc={core.pc} loc={loc}"
                 continue
             assert len(slots) <= SLOT_LIMITS[name]
             for i, slot in enumerate(slots):

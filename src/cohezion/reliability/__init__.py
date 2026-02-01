@@ -7,17 +7,19 @@ Provides:
 - Automatic recovery testing
 """
 
-import time
 import logging
+import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, Any
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
 class CircuitState(Enum):
     """Circuit breaker states."""
+
     CLOSED = "closed"  # Normal operation
     OPEN = "open"  # Failing, reject all calls
     HALF_OPEN = "half_open"  # Testing recovery
@@ -26,6 +28,7 @@ class CircuitState(Enum):
 @dataclass
 class CircuitStats:
     """Statistics for a circuit."""
+
     failures: int = 0
     successes: int = 0
     last_failure_time: float = 0.0
@@ -35,10 +38,10 @@ class CircuitStats:
 class CircuitBreaker:
     """
     Circuit breaker for preventing cascade failures.
-    
+
     Usage:
         breaker = CircuitBreaker(name="ollama", failure_threshold=5)
-        
+
         if breaker.allow_request():
             try:
                 result = make_request()
@@ -46,7 +49,7 @@ class CircuitBreaker:
             except Exception:
                 breaker.record_failure()
     """
-    
+
     def __init__(
         self,
         name: str,
@@ -58,11 +61,11 @@ class CircuitBreaker:
         self.failure_threshold = failure_threshold
         self.recovery_timeout = recovery_timeout
         self.half_open_max_calls = half_open_max_calls
-        
+
         self._state = CircuitState.CLOSED
         self._stats = CircuitStats()
         self._half_open_calls = 0
-    
+
     @property
     def state(self) -> CircuitState:
         """Get current state, checking for recovery."""
@@ -73,55 +76,57 @@ class CircuitBreaker:
                 self._half_open_calls = 0
                 logger.info(f"Circuit {self.name}: OPEN -> HALF_OPEN")
         return self._state
-    
+
     def allow_request(self) -> bool:
         """Check if request should be allowed."""
         state = self.state
-        
+
         if state == CircuitState.CLOSED:
             return True
-        
+
         if state == CircuitState.HALF_OPEN:
             if self._half_open_calls < self.half_open_max_calls:
                 self._half_open_calls += 1
                 return True
             return False
-        
+
         # OPEN
         return False
-    
+
     def record_success(self) -> None:
         """Record a successful call."""
         self._stats.successes += 1
         self._stats.last_success_time = time.time()
-        
+
         if self._state == CircuitState.HALF_OPEN:
             # Recovery successful
             self._state = CircuitState.CLOSED
             self._stats.failures = 0
             logger.info(f"Circuit {self.name}: HALF_OPEN -> CLOSED (recovered)")
-    
+
     def record_failure(self) -> None:
         """Record a failed call."""
         self._stats.failures += 1
         self._stats.last_failure_time = time.time()
-        
+
         if self._state == CircuitState.HALF_OPEN:
             # Still failing
             self._state = CircuitState.OPEN
             logger.warning(f"Circuit {self.name}: HALF_OPEN -> OPEN (still failing)")
-        
+
         elif self._state == CircuitState.CLOSED:
             if self._stats.failures >= self.failure_threshold:
                 self._state = CircuitState.OPEN
-                logger.warning(f"Circuit {self.name}: CLOSED -> OPEN (threshold reached)")
-    
+                logger.warning(
+                    f"Circuit {self.name}: CLOSED -> OPEN (threshold reached)"
+                )
+
     def reset(self) -> None:
         """Manually reset the circuit."""
         self._state = CircuitState.CLOSED
         self._stats = CircuitStats()
         self._half_open_calls = 0
-    
+
     def get_stats(self) -> dict:
         """Get circuit statistics."""
         return {

@@ -1,11 +1,14 @@
 import asyncio
+import json
 import logging
-import psutil
 import time
-from typing import Dict, Any
 from pathlib import Path
+from typing import Any
+
+import psutil
 
 logger = logging.getLogger(__name__)
+
 
 class ResourceMonitor:
     """
@@ -16,12 +19,13 @@ class ResourceMonitor:
     2. Monitoring CPU/RAM/VRAM pressure.
     3. Providing backpressure signals to agents.
     """
+
     _instance = None
     _lock = asyncio.Lock()
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
-            cls._instance = super(ResourceMonitor, cls).__new__(cls)
+            cls._instance = super().__new__(cls)
             cls._instance._initialized = False
         return cls._instance
 
@@ -34,6 +38,11 @@ class ResourceMonitor:
         self.heartbeat_log = Path("logs/system_heartbeat.log")
         self.heartbeat_log.parent.mkdir(parents=True, exist_ok=True)
         self.critical_pressure = False
+        self.throttled = False
+        self.desperation_active = False
+        self.secondary_pids: set[int] = set()
+        self.resource_coordinator = None
+        self.dilation_factor = 1.0  # 1.0 = Regular speed, 0.1 = Severe Dilation
         self._initialized = True
 
         # Start background heartbeat if loop is running
@@ -44,32 +53,88 @@ class ResourceMonitor:
         except RuntimeError:
             pass
 
-        logger.info(f"🛡️ ResourceMonitor initialized with max_concurrency={max_concurrency}")
+        logger.info(
+            f"🛡️ ResourceMonitor initialized with max_concurrency={max_concurrency}"
+        )
 
-    async def emergency_shutdown(self, vitals: Dict[str, Any]):
+    def register_coordinator(self, coordinator: Any):
+        """Register a resource coordinator (e.g. ModelWrangler) for priority handling."""
+        self.resource_coordinator = coordinator
+        logger.info(
+            f"Registered resource coordinator: {coordinator.__class__.__name__}"
+        )
+
+    async def emergency_shutdown(self, vitals: dict[str, Any]):
         """
         Forcefully shutdown high-load processes if system is at risk of lockup.
-        Targeting fractal_nexus_mission.py and large Ollama models if RAM > 95%.
+        Targeting runaway mission processes and unloading Ollama models.
         """
         logger.error(f"🚨 EMERGENCY SHUTDOWN TRIGGERED: {vitals}")
 
-        # 1. Kill the mission if running
-        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+        # 1. Kill runaway missions WITH PREJUDICE (SIGKILL)
+        for proc in psutil.process_iter(["pid", "name", "cmdline"]):
             try:
-                cmdline = proc.info.get('cmdline', [])
-                if cmdline and "fractal_nexus_mission.py" in " ".join(cmdline):
-                    logger.warning(f"Killing runaway mission process: {proc.info['pid']}")
-                    proc.kill()
+                cmdline = proc.info.get("cmdline", [])
+                cmd_str = " ".join(cmdline)
+                if (
+                    cmdline
+                    and "lab_driver.py" in cmd_str
+                    or "fractal_nexus_mission.py" in cmd_str
+                    or "recursive_improvement_driver.py" in cmd_str
+                ):
+                    logger.warning(
+                        f"KILLED runaway process: {proc.info['pid']} ({cmd_str})"
+                    )
+                    proc.send_signal(9)  # SIGKILL
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 continue
 
-        # 2. Stop Ollama if RAM is extremely critical
-        if vitals["memory_percent"] > 98:
-            logger.warning("RAM critical (>98%). Stopping ollama service...")
+        # 2. Unload Ollama models (Non-privileged)
+        if vitals.get("vram_percent", 0) > 85 or vitals["memory_percent"] > 90:
+            logger.warning("RAM/VRAM critical. Attempting to unload Ollama models...")
             try:
-                subprocess.run(["sudo", "systemctl", "stop", "ollama"], check=False)
+                # Use Ollama API to unload all models
+                # First, get running models
+                process = await asyncio.create_subprocess_exec(
+                    "curl",
+                    "-s",
+                    "http://localhost:11434/api/ps",
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                )
+                stdout, _ = await process.communicate()
+                if stdout:
+                    data = json.loads(stdout)
+                    for model in data.get("models", []):
+                        name = model.get("name")
+                        logger.info(f"Unloading Ollama model: {name}")
+                        await asyncio.create_subprocess_exec(
+                            "curl",
+                            "-s",
+                            "-X",
+                            "POST",
+                            "http://localhost:11434/api/generate",
+                            "-d",
+                            json.dumps({"model": name, "keep_alive": 0}),
+                        )
             except Exception as e:
-                logger.error(f"Failed to stop ollama: {e}")
+                logger.error(f"Failed to unload Ollama models: {e}")
+
+    async def unload_model(self, model_name: str):
+        """Unload a specific Ollama model to free VRAM."""
+        logger.info(f"Unloading model: {model_name}")
+        try:
+            await asyncio.create_subprocess_exec(
+                "curl",
+                "-s",
+                "-X",
+                "POST",
+                "http://localhost:11434/api/generate",
+                "-d",
+                json.dumps({"model": model_name, "keep_alive": 0}),
+            )
+        except Exception as e:
+            logger.error(f"Failed to unload model {model_name}: {e}")
 
     async def _ensure_heartbeat(self):
         """Ensure heartbeat loop is running."""
@@ -82,10 +147,19 @@ class ResourceMonitor:
         async with self._lock:
             # Check system vitals before proceeding
             vitals = self.get_vitals()
-            if vitals["cpu_percent"] > 90 or vitals["memory_percent"] > 90:
-                wait_time = 5.0
-                logger.warning(f"⚠️ Extreme System Pressure Detected: {vitals}. Throttling for {wait_time}s...")
+            if (
+                vitals["cpu_percent"] > 90
+                or vitals["memory_percent"] > 90
+                or vitals.get("vram_percent", 0) > 90
+            ):
+                wait_time = 10.0
+                logger.warning(
+                    f"⚠️ Extreme System Pressure Detected: {vitals}. Throttling for {wait_time}s..."
+                )
+                self.throttled = True
                 await asyncio.sleep(wait_time)
+            else:
+                self.throttled = False
 
         await self.semaphore.acquire()
         self.active_calls += 1
@@ -97,16 +171,97 @@ class ResourceMonitor:
         self.active_calls -= 1
         logger.debug(f"Slot released. Active calls: {self.active_calls}")
 
-    def get_vitals(self) -> Dict[str, Any]:
-        """Fetch current system usage stats."""
+    def get_vitals(self) -> dict[str, Any]:
+        """Fetch current system usage stats including AMD VRAM."""
         vm = psutil.virtual_memory()
-        return {
+        vitals = {
             "cpu_percent": psutil.cpu_percent(),
             "memory_percent": vm.percent,
             "memory_available_gb": vm.available / (1024**3),
             "active_llm_calls": self.active_calls,
-            "timestamp": time.time()
+            "timestamp": time.time(),
+            "vram_percent": self._get_vram_usage(),
+            "dilation_factor": self.dilation_factor,
         }
+        return vitals
+
+    def get_dilation_factor(self) -> float:
+        """Get the current simulation backpressure (dilation) factor."""
+        return self.dilation_factor
+
+    def _get_vram_usage(self) -> float:
+        """Fetch VRAM usage for AMD GPU (Framework 16 card1)."""
+        try:
+            total_path = Path("/sys/class/drm/card1/device/mem_info_vram_total")
+            used_path = Path("/sys/class/drm/card1/device/mem_info_vram_used")
+            if total_path.exists() and used_path.exists():
+                total = int(total_path.read_text().strip())
+                used = int(used_path.read_text().strip())
+                if total > 0:
+                    return (used / total) * 100.0
+        except Exception:
+            pass
+        return 0.0
+
+    async def enter_desperation_mode(self, vitals: dict[str, Any]):
+        """
+        Dampen non-essential activity using non-privileged niceness and SIGSTOP.
+        """
+        if self.desperation_active:
+            return
+
+        logger.warning(f"💥 ENTERING DESPERATION MODE (System Pressure: {vitals})")
+        self.desperation_active = True
+        self.secondary_pids = self._identify_secondary_processes()
+
+        for pid in self.secondary_pids:
+            try:
+                p = psutil.Process(pid)
+                # Tier 1: Max Niceness
+                p.nice(19)
+                # Tier 2: SIGSTOP if pressure is extreme (93%+)
+                if vitals["cpu_percent"] > 93 or vitals["memory_percent"] > 93:
+                    logger.info(f"Pausing process {pid} (SIGSTOP)")
+                    p.send_signal(19)  # SIGSTOP
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+
+    async def exit_desperation_mode(self):
+        """Restore normal operation to damped processes."""
+        if not self.desperation_active:
+            return
+
+        logger.info("🌈 System pressure stabilized. Exiting Desperation Mode.")
+        for pid in list(self.secondary_pids):
+            try:
+                p = psutil.Process(pid)
+                p.send_signal(18)  # SIGCONT
+                p.nice(0)
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
+
+        self.secondary_pids.clear()
+        self.desperation_active = False
+
+    def _identify_secondary_processes(self) -> set[int]:
+        """Find PIDs of non-essential background simulations and scouts."""
+        pids = set()
+        for proc in psutil.process_iter(["pid", "name", "cmdline"]):
+            try:
+                cmdline = " ".join(proc.info.get("cmdline", []) or [])
+                if any(
+                    x in cmdline
+                    for x in [
+                        "fractal_universe.py",
+                        "research_task.py",
+                        "scout",
+                        "recursive_improvement_driver.py",
+                    ]
+                ):
+                    pids.add(proc.info["pid"])
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+        return pids
 
     async def _heartbeat_loop(self):
         """Background loop to log system health and monitor for stalled processes."""
@@ -115,31 +270,46 @@ class ResourceMonitor:
             vitals = self.get_vitals()
             self.last_heartbeat = time.time()
 
-            # Detect emergency pressure
-            self.critical_pressure = (vitals["cpu_percent"] > 95 or vitals["memory_percent"] > 95)
+            cpu = vitals["cpu_percent"]
+            ram = vitals["memory_percent"]
+            vram = vitals["vram_percent"]
+
+            # Tiered Response Logic & Dilation Calculation (Gateway Hardening)
+            if cpu > 90 or ram > 90 or vram > 90:
+                logger.error(f"🚑 EMERGENCY SYSTEM PRESSURE (Tier 3): {vitals}")
+                await self.emergency_shutdown(vitals)
+                self.dilation_factor = 0.01  # Near halt
+            elif cpu > 85 or ram > 85 or vram > 85:
+                logger.warning(f"⚠️ DESPERATION PRESSURE (Step 3 Throttling): {vitals}")
+                await self.enter_desperation_mode(vitals)
+                self.throttled = True
+                self.dilation_factor = 0.05
+            elif cpu > 75 or ram > 75 or vram > 75:
+                logger.warning(f"🔍 HIGH PRESSURE (Tier 2): {vitals}")
+                await self.exit_desperation_mode()
+                self.throttled = True
+                self.dilation_factor = 0.3
+            elif cpu > 60 or ram > 60 or vram > 60:
+                self.dilation_factor = 0.6
+                self.throttled = False
+                await self.exit_desperation_mode()
+            else:
+                await self.exit_desperation_mode()
+                self.throttled = False
+                self.dilation_factor = 1.0
 
             log_entry = (
                 f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
-                f"CPU: {vitals['cpu_percent']}% | "
-                f"RAM: {vitals['memory_percent']}% ({vitals['memory_available_gb']:.1f}GB free) | "
-                f"LLM Calls: {vitals['active_llm_calls']}\n"
+                f"CPU: {cpu}% | RAM: {ram}% | VRAM: {vram:.1f}% | "
+                f"LLM Calls: {vitals['active_llm_calls']} | Dilation: {self.dilation_factor}\n"
             )
 
             with open(self.heartbeat_log, "a") as f:
                 f.write(log_entry)
 
-            if self.critical_pressure:
-                logger.error(f"🚑 EMERGENCY SYSTEM PRESSURE: {vitals}")
-                if vitals["memory_percent"] > 95:
-                    await self.emergency_shutdown(vitals)
+            await asyncio.sleep(2)  # Tight 2s loop for Framework 16 stability
 
-            # Heartbeat Shadowing: If we haven't updated in >30s, something is blocking the loop
-            # In a real async environment, this would be checked by a separate watchdog thread
-            # For now, we'll log it for external monitoring
-
-            await asyncio.sleep(10)
-
-    def checkpoint_active_mission(self, data: Dict[str, Any], mission_id: str):
+    def checkpoint_active_mission(self, data: dict[str, Any], mission_id: str):
         """
         Placeholder for SurrealDB checkpointing.
         Saves simulation state to prevent data loss.
@@ -147,6 +317,7 @@ class ResourceMonitor:
         logger.info(f"💾 Checkpointing mission {mission_id}...")
         # Implementation would use SurrealDB client here
         pass
+
 
 def get_resource_monitor() -> ResourceMonitor:
     """Get the global ResourceMonitor instance."""

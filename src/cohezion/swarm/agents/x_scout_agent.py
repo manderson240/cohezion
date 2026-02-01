@@ -2,16 +2,15 @@
 XScoutAgent - Monitors high-signal researcher feeds on X (Twitter).
 """
 
-import logging
 import asyncio
-from typing import Any, Dict, List
+import logging
 import os
-from pathlib import Path
 
-from cohezion.swarm.agents.base import BaseAgent, AgentResponse
+from cohezion.swarm.agents.base import AgentResponse, BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
 
 logger = logging.getLogger(__name__)
+
 
 class XScoutAgent(BaseAgent):
     """
@@ -26,7 +25,7 @@ Look for mentions of Paper IDs, Repo links, or disruptive theoretical claims (JE
 
     def __init__(self, config: SwarmConfig | None = None):
         super().__init__(
-            model_name="phi3:mini", # Fast classification/extraction
+            model_name="phi3:mini",  # Fast classification/extraction
             config=config or SwarmConfig(),
         )
         # Auth would go here, using mock for now unless env vars exist
@@ -42,7 +41,7 @@ Look for mentions of Paper IDs, Repo links, or disruptive theoretical claims (JE
         simulated_tweets = [
             "JEPA is the future of autonomous machine intelligence. No more generative hallucinations.",
             "Our new V-JEPA model shows remarkable efficiency in learning world models from raw video.",
-            "The path to AGI is through world models, not just predicting tokens."
+            "The path to AGI is through world models, not just predicting tokens.",
         ]
 
         prompt = f"USER: @{username}\nRECENT UPDATES:\n" + "\n".join(simulated_tweets)
@@ -50,6 +49,7 @@ Look for mentions of Paper IDs, Repo links, or disruptive theoretical claims (JE
 
         response = await self._call_ollama(prompt, system_prompt=self.SYSTEM_PROMPT)
         return AgentResponse(response)
+
 
 if __name__ == "__main__":
     asyncio.run(XScoutAgent().process())

@@ -1,8 +1,10 @@
 import logging
-from typing import Dict, List, Set, Any
+from typing import Any
+
 import networkx as nx
 
 logger = logging.getLogger(__name__)
+
 
 class PlasmaFilaments:
     """
@@ -11,11 +13,12 @@ class PlasmaFilaments:
     Models information flow as plasma filaments (graph edges)
     conducting currents (data) between nodes (agents/concepts).
     """
+
     _instance = None
 
     def __new__(cls):
         if cls._instance is None:
-            cls._instance = super(PlasmaFilaments, cls).__new__(cls)
+            cls._instance = super().__new__(cls)
             cls._instance._minit()
         return cls._instance
 
@@ -30,13 +33,17 @@ class PlasmaFilaments:
         """
         if self.graph.has_edge(node_a, node_b):
             # strengthen existing filament
-            self.graph[node_a][node_b]['conductance'] += conductance
+            self.graph[node_a][node_b]["conductance"] += conductance
         else:
             self.graph.add_edge(node_a, node_b, conductance=conductance)
 
-        logger.info(f"🌌 Filament Established: {node_a} <--> {node_b} (σ={conductance})")
+        logger.info(
+            f"🌌 Filament Established: {node_a} <--> {node_b} (σ={conductance})"
+        )
 
-    def conduct_impulse(self, start_node: str, payload: Any, max_depth: int = 2) -> List[str]:
+    def conduct_impulse(
+        self, start_node: str, payload: Any, max_depth: int = 2
+    ) -> list[str]:
         """
         Send a thought impulse across the network.
         Returns list of nodes reached.
@@ -56,12 +63,13 @@ class PlasmaFilaments:
 
             # Find neighbors with sufficient conductance
             for neighbor in self.graph.neighbors(current_node):
-                conductance = self.graph[current_node][neighbor]['conductance']
-                if conductance > 0.5: # Threshold
+                conductance = self.graph[current_node][neighbor]["conductance"]
+                if conductance > 0.5:  # Threshold
                     if neighbor not in reached:
                         queue.append((neighbor, depth + 1))
 
         return list(reached)
+
 
 def get_plasma_filaments() -> PlasmaFilaments:
     return PlasmaFilaments()

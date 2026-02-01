@@ -6,7 +6,7 @@ Visualization engines for the Universe Simulation.
 - HyperToolsRenderer: Interactive high-dimensional data visualization
 """
 
-from cohezion.viz.manim_renderer import ManimRenderer
 from cohezion.viz.hypertools_renderer import HyperToolsViz
+from cohezion.viz.manim_renderer import ManimRenderer
 
 __all__ = ["ManimRenderer", "HyperToolsViz"]

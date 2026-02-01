@@ -11,7 +11,6 @@ Designed for deployment on Google Cloud Run with:
 - Minimal cost when idle
 """
 
-import json
 import logging
 import os
 from dataclasses import dataclass, field
@@ -25,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 class TaskStatus(Enum):
     """Status of a task in the queue."""
+
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"
@@ -33,6 +33,7 @@ class TaskStatus(Enum):
 
 class TaskPriority(Enum):
     """Priority levels for tasks."""
+
     LOW = 1
     NORMAL = 2
     HIGH = 3
@@ -42,6 +43,7 @@ class TaskPriority(Enum):
 @dataclass
 class Task:
     """A task in the mission queue."""
+
     id: str
     payload: dict[str, Any]
     status: TaskStatus = TaskStatus.PENDING
@@ -53,7 +55,7 @@ class Task:
     source: str = "api"  # api, webhook, slack, email
     retry_count: int = 0
     max_retries: int = 3
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
@@ -68,7 +70,7 @@ class Task:
             "retry_count": self.retry_count,
             "max_retries": self.max_retries,
         }
-    
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "Task":
         return cls(
@@ -77,7 +79,9 @@ class Task:
             status=TaskStatus(data.get("status", "pending")),
             priority=TaskPriority(data.get("priority", 2)),
             created_at=datetime.fromisoformat(data["created_at"]),
-            updated_at=datetime.fromisoformat(data.get("updated_at", data["created_at"])),
+            updated_at=datetime.fromisoformat(
+                data.get("updated_at", data["created_at"])
+            ),
             result=data.get("result"),
             error=data.get("error"),
             source=data.get("source", "api"),
@@ -89,14 +93,14 @@ class Task:
 class SwarmRouter:
     """
     Cloud Run service for routing tasks to the local swarm.
-    
+
     Features:
     - Receives tasks from multiple sources (webhooks, API, Slack)
     - Queues tasks in Firestore for local processing
     - Provides status endpoints for monitoring
     - Handles task retries and failure notifications
     """
-    
+
     def __init__(
         self,
         project_id: str | None = None,
@@ -104,7 +108,7 @@ class SwarmRouter:
     ):
         """
         Initialize the Swarm Router.
-        
+
         Args:
             project_id: GCP project ID (auto-detected on Cloud Run)
             collection_name: Firestore collection for the queue
@@ -113,15 +117,16 @@ class SwarmRouter:
         self.collection_name = collection_name
         self._db: Any = None
         self._tasks: dict[str, Task] = {}  # In-memory fallback
-    
+
     async def initialize(self) -> bool:
         """
         Initialize Firestore connection.
-        
+
         Returns True if connected, False if using in-memory fallback.
         """
         try:
             from google.cloud import firestore
+
             self._db = firestore.AsyncClient(project=self.project_id)
             logger.info(f"Connected to Firestore: {self.project_id}")
             return True
@@ -135,7 +140,7 @@ class SwarmRouter:
         except Exception as e:
             logger.error(f"Firestore connection failed: {e}")
             return False
-    
+
     async def receive_task(
         self,
         payload: dict[str, Any],
@@ -144,12 +149,12 @@ class SwarmRouter:
     ) -> Task:
         """
         Receive and queue a new task.
-        
+
         Args:
             payload: Task payload from client
             source: Source of the task
             priority: Task priority
-            
+
         Returns:
             The created Task
         """
@@ -159,26 +164,26 @@ class SwarmRouter:
             source=source,
             priority=priority,
         )
-        
+
         if self._db:
             doc_ref = self._db.collection(self.collection_name).document(task.id)
             await doc_ref.set(task.to_dict())
         else:
             self._tasks[task.id] = task
-        
+
         logger.info(f"Queued task {task.id} from {source}")
         return task
-    
+
     async def get_pending_tasks(
         self,
         limit: int = 10,
     ) -> list[Task]:
         """
         Get pending tasks ordered by priority and creation time.
-        
+
         Args:
             limit: Maximum number of tasks to return
-            
+
         Returns:
             List of pending tasks
         """
@@ -194,12 +199,11 @@ class SwarmRouter:
             return [Task.from_dict(doc.to_dict()) for doc in docs]
         else:
             pending = [
-                t for t in self._tasks.values()
-                if t.status == TaskStatus.PENDING
+                t for t in self._tasks.values() if t.status == TaskStatus.PENDING
             ]
             pending.sort(key=lambda t: (-t.priority.value, t.created_at))
             return pending[:limit]
-    
+
     async def update_task_status(
         self,
         task_id: str,
@@ -209,23 +213,23 @@ class SwarmRouter:
     ) -> Task | None:
         """
         Update a task's status.
-        
+
         Args:
             task_id: Task ID
             status: New status
             result: Optional result data
             error: Optional error message
-            
+
         Returns:
             Updated task, or None if not found
         """
         if self._db:
             doc_ref = self._db.collection(self.collection_name).document(task_id)
             doc = await doc_ref.get()
-            
+
             if not doc.exists:
                 return None
-            
+
             update_data = {
                 "status": status.value,
                 "updated_at": datetime.now().isoformat(),
@@ -234,9 +238,9 @@ class SwarmRouter:
                 update_data["result"] = result
             if error is not None:
                 update_data["error"] = error
-            
+
             await doc_ref.update(update_data)
-            
+
             task_data = doc.to_dict()
             task_data.update(update_data)
             return Task.from_dict(task_data)
@@ -250,27 +254,29 @@ class SwarmRouter:
                 if error:
                     task.error = error
             return task
-    
+
     async def get_task(self, task_id: str) -> Task | None:
         """Get a task by ID."""
         if self._db:
-            doc = await self._db.collection(self.collection_name).document(task_id).get()
+            doc = (
+                await self._db.collection(self.collection_name).document(task_id).get()
+            )
             if doc.exists:
                 return Task.from_dict(doc.to_dict())
             return None
         else:
             return self._tasks.get(task_id)
-    
+
     async def get_queue_stats(self) -> dict[str, Any]:
         """Get queue statistics."""
         if self._db:
             collection = self._db.collection(self.collection_name)
-            
-            pending = len((await collection.where("status", "==", "pending").get()))
-            processing = len((await collection.where("status", "==", "processing").get()))
-            completed = len((await collection.where("status", "==", "completed").get()))
-            failed = len((await collection.where("status", "==", "failed").get()))
-            
+
+            pending = len(await collection.where("status", "==", "pending").get())
+            processing = len(await collection.where("status", "==", "processing").get())
+            completed = len(await collection.where("status", "==", "completed").get())
+            failed = len(await collection.where("status", "==", "failed").get())
+
             return {
                 "pending": pending,
                 "processing": processing,
@@ -280,6 +286,7 @@ class SwarmRouter:
             }
         else:
             from collections import Counter
+
             status_counts = Counter(t.status.value for t in self._tasks.values())
             return {
                 "pending": status_counts.get("pending", 0),
@@ -299,24 +306,24 @@ def create_app() -> Any:
     except ImportError:
         logger.error("FastAPI not installed")
         return None
-    
+
     app = FastAPI(
         title="Cohezion Swarm Router",
         description="Cloud Run service for task routing",
         version="0.1.0",
     )
-    
+
     router = SwarmRouter()
-    
+
     class TaskPayload(BaseModel):
         data: dict[str, Any]
         source: str = "api"
         priority: int = 2
-    
+
     @app.on_event("startup")
     async def startup():
         await router.initialize()
-    
+
     @app.post("/tasks")
     async def create_task(payload: TaskPayload) -> dict[str, Any]:
         """Create a new task."""
@@ -326,7 +333,7 @@ def create_app() -> Any:
             priority=TaskPriority(payload.priority),
         )
         return task.to_dict()
-    
+
     @app.get("/tasks/{task_id}")
     async def get_task(task_id: str) -> dict[str, Any]:
         """Get a task by ID."""
@@ -334,29 +341,29 @@ def create_app() -> Any:
         if not task:
             raise HTTPException(status_code=404, detail="Task not found")
         return task.to_dict()
-    
+
     @app.get("/tasks")
     async def list_tasks(limit: int = 10) -> list[dict[str, Any]]:
         """List pending tasks."""
         tasks = await router.get_pending_tasks(limit)
         return [t.to_dict() for t in tasks]
-    
+
     @app.get("/stats")
     async def get_stats() -> dict[str, Any]:
         """Get queue statistics."""
         return await router.get_queue_stats()
-    
+
     @app.get("/health")
     async def health() -> dict[str, str]:
         """Health check."""
         return {"status": "healthy"}
-    
+
     return app
 
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     app = create_app()
     if app:
         port = int(os.environ.get("PORT", 8080))

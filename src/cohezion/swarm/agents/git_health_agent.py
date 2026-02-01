@@ -7,11 +7,11 @@ perspective, identifying patterns of decay or rapid complexity growth.
 
 import logging
 from datetime import datetime
-from typing import Any, List
+from typing import Any
 
 from cohezion.swarm.agents.base import BaseAgent
-from cohezion.swarm.swarm_types import Perspective, SwarmConfig, ThoughtVector
 from cohezion.swarm.git_health import GitCommit, HealthTrace
+from cohezion.swarm.swarm_types import Perspective, SwarmConfig, ThoughtVector
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +22,12 @@ GIT_HEALTH_PROMPT = """You are a Git Health Specialist. Focus on:
 - Traceability between requirements and commits
 Provide a diagnostic assessment of the repository's git health."""
 
+
 class GitHealthAgent(BaseAgent):
     """
     Agent specialized in repository health and git history analysis.
     """
-    
+
     def __init__(
         self,
         config: SwarmConfig | None = None,
@@ -36,19 +37,26 @@ class GitHealthAgent(BaseAgent):
             model_name=config.analyst_model,
             config=config,
         )
-        self.perspective = Perspective.TECHNICAL # Or a new GIT perspective if needed
+        self.perspective = Perspective.TECHNICAL  # Or a new GIT perspective if needed
         self.system_prompt = GIT_HEALTH_PROMPT
-    
-    async def process(self, query: str, context: List[GitCommit] | List[HealthTrace] | None = None, **kwargs: Any) -> ThoughtVector:
+
+    async def process(
+        self,
+        query: str,
+        context: list[GitCommit] | list[HealthTrace] | None = None,
+        **kwargs: Any,
+    ) -> ThoughtVector:
         """
         Analyze the query and git context.
         """
         context_str = ""
         if context:
             context_str = "\n\nGit Context:\n"
-            for item in context[:10]: # Limit context
+            for item in context[:10]:  # Limit context
                 if isinstance(item, GitCommit):
-                    context_str += f"- {item.hash[:8]}: {item.message} ({item.author})\n"
+                    context_str += (
+                        f"- {item.hash[:8]}: {item.message} ({item.author})\n"
+                    )
                 elif isinstance(item, HealthTrace):
                     context_str += f"- {item.file_path}:{item.line} (Authored by {item.author} in {item.commit_hash[:8]})\n"
 
@@ -64,7 +72,7 @@ Provide a focused analysis in 2-3 paragraphs."""
                 temperature=0.7,
                 max_tokens=1024,
             )
-            
+
             return ThoughtVector(
                 perspective=self.perspective,
                 content=response.strip(),
@@ -73,10 +81,10 @@ Provide a focused analysis in 2-3 paragraphs."""
                 metadata={
                     "model": self.model_name,
                     "agent": "GitHealthAgent",
-                    "context_size": len(context) if context else 0
+                    "context_size": len(context) if context else 0,
                 },
             )
-            
+
         except Exception as e:
             logger.error(f"GitHealthAgent failed: {e}")
             return ThoughtVector(

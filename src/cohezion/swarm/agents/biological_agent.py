@@ -1,12 +1,13 @@
 import logging
 import time
-import torch
+
+from cohezion.bio.biophotonics import BioSignal, Wavelength, get_light_field
+from cohezion.bio.morphic_field import get_morphic_field
 from cohezion.swarm.agents.quantum_agent import QuantumAgent
 from cohezion.swarm.swarm_types import SwarmConfig
-from cohezion.bio.morphic_field import get_morphic_field
-from cohezion.bio.biophotonics import get_light_field, BioSignal, Wavelength
 
 logger = logging.getLogger(__name__)
+
 
 class BiologicalAgent(QuantumAgent):
     """
@@ -18,6 +19,7 @@ class BiologicalAgent(QuantumAgent):
     - Morphic Resonance: Accesses shared success memory.
     - Biophotonics: Emits light signals for non-verbal status.
     """
+
     def __init__(self, config: SwarmConfig | None = None):
         super().__init__(config=config)
         self.morphic_field = get_morphic_field()
@@ -46,31 +48,34 @@ class BiologicalAgent(QuantumAgent):
         response = await super().process(query)
 
         # 4. Analyze & Imprint
-        imprint_score = 0.85 + (resonance_score * 0.1) # Boost score if we had resonance
+        imprint_score = 0.85 + (
+            resonance_score * 0.1
+        )  # Boost score if we had resonance
         imprint_score = min(0.99, imprint_score)
 
         self.morphic_field.imprint(z_query, imprint_score)
         self._emit(Wavelength.UV, 0.9, "Trace Imprinted")
 
         # 5. Biological Report Append
-        bio_report = f"\n\n### 🦠 Biological Intelligence Report\n"
+        bio_report = "\n\n### 🦠 Biological Intelligence Report\n"
         if resonance_msg:
             bio_report += f"{resonance_msg}\n"
         bio_report += f"**Morphic Imprint**: {imprint_score:.2f}\n"
-        bio_report += f"**BioSignals Emitted**: 3 (Blue, Green, UV)"
+        bio_report += "**BioSignals Emitted**: 3 (Blue, Green, UV)"
 
         # Use AgentResponse to wrap the final string and preserve metadata
         from cohezion.swarm.agents.base import AgentResponse
+
         return AgentResponse(
             response + bio_report,
-            embedding=getattr(response, 'embedding', None),
-            persistence_id=getattr(response, 'persistence_id', None),
-            frequency=getattr(response, 'frequency', 1),
-            phi_score=getattr(response, 'phi_score', 0.0),
-            confidence=getattr(response, 'confidence', 1.0),
-            security_level=getattr(response, 'security_level', "safe"),
-            narration=getattr(response, 'narration', None),
-            alignment_score=getattr(response, 'alignment_score', 1.0)
+            embedding=getattr(response, "embedding", None),
+            persistence_id=getattr(response, "persistence_id", None),
+            frequency=getattr(response, "frequency", 1),
+            phi_score=getattr(response, "phi_score", 0.0),
+            confidence=getattr(response, "confidence", 1.0),
+            security_level=getattr(response, "security_level", "safe"),
+            narration=getattr(response, "narration", None),
+            alignment_score=getattr(response, "alignment_score", 1.0),
         )
 
     def _emit(self, wavelength: Wavelength, intensity: float, meta: str):
@@ -80,7 +85,7 @@ class BiologicalAgent(QuantumAgent):
             intensity=intensity,
             source_agent=self.id,
             timestamp=time.time(),
-            metadata={"msg": meta}
+            metadata={"msg": meta},
         )
         self.light_field.emit(signal)
 

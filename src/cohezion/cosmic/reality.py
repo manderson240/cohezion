@@ -1,10 +1,11 @@
+import logging
+
+import numpy as np
 import torch
 import torch.nn.functional as F
-import logging
-import random
-import numpy as np
 
 logger = logging.getLogger(__name__)
+
 
 class RealityStabilizer:
     """
@@ -16,11 +17,12 @@ class RealityStabilizer:
 
     The Stabilizer injects Order or Chaos to restore equilibrium.
     """
+
     _instance = None
 
     def __new__(cls):
         if cls._instance is None:
-            cls._instance = super(RealityStabilizer, cls).__new__(cls)
+            cls._instance = super().__new__(cls)
             cls._instance._minit()
         return cls._instance
 
@@ -44,7 +46,7 @@ class RealityStabilizer:
         v_min = vector.min()
         v_max = vector.max()
         if v_max - v_min == 0:
-            return 1.0 # Static
+            return 1.0  # Static
 
         v_norm = (vector - v_min) / (v_max - v_min)
 
@@ -70,9 +72,11 @@ class RealityStabilizer:
         coherence = self.calculate_stability(vector)
 
         if abs(coherence - self.target_coherence) <= self.tolerance:
-            return vector # Stable
+            return vector  # Stable
 
-        logger.info(f"⚖️ Reality Instability Detected (Coherence: {coherence:.2f}). Stabilizing...")
+        logger.info(
+            f"⚖️ Reality Instability Detected (Coherence: {coherence:.2f}). Stabilizing..."
+        )
 
         if coherence > 0.6:
             # Too Static -> Inject Chaos (Noise)
@@ -81,9 +85,12 @@ class RealityStabilizer:
 
         elif coherence < 0.4:
             # Too Chaotic -> Inject Order (Smoothing)
-            return F.avg_pool1d(vector.unsqueeze(0).unsqueeze(0), kernel_size=3, stride=1, padding=1).squeeze()
+            return F.avg_pool1d(
+                vector.unsqueeze(0).unsqueeze(0), kernel_size=3, stride=1, padding=1
+            ).squeeze()
 
         return vector
+
 
 def get_reality_stabilizer() -> RealityStabilizer:
     return RealityStabilizer()

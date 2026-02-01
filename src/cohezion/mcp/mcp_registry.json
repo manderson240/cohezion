@@ -78,6 +78,26 @@
                 "get_hf_trending",
                 "list_research_channels"
             ]
+        },
+        {
+            "name": "cohezion-usage",
+            "type": "analytics",
+            "description": "Capability usage metrics",
+            "path": "mcp/usage_server.py",
+            "tools": [
+                "get_usage_metrics",
+                "get_capability_health"
+            ]
+        },
+        {
+            "name": "cohezion-narration",
+            "type": "media",
+            "description": "Pocket-TTS voice synthesis",
+            "path": "mcp/narration_server.py",
+            "tools": [
+                "list_voices",
+                "generate_voiceover"
+            ]
         }
     ],
     "relationships": {

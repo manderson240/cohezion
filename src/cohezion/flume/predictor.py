@@ -1,12 +1,13 @@
 import torch
 import torch.nn as nn
-from typing import List, Optional
+
 
 class TrajectoryPredictor(nn.Module):
     """
     Models the 'velocity' and evolution of reasoning in latent space.
     Allows predicting where a thought is going or exploring counterfactuals.
     """
+
     def __init__(self, z_dim: int = 256, hidden_dim: int = 512):
         super().__init__()
         self.z_dim = z_dim
@@ -16,7 +17,7 @@ class TrajectoryPredictor(nn.Module):
             nn.Linear(z_dim, hidden_dim),
             nn.ReLU(),
             nn.LayerNorm(hidden_dim),
-            nn.Linear(hidden_dim, z_dim)
+            nn.Linear(hidden_dim, z_dim),
         )
 
     def forward(self, z: torch.Tensor) -> torch.Tensor:
@@ -24,7 +25,7 @@ class TrajectoryPredictor(nn.Module):
         delta = self.navigator(z)
         return z + delta
 
-    def predict_sequence(self, z: torch.Tensor, steps: int = 5) -> List[torch.Tensor]:
+    def predict_sequence(self, z: torch.Tensor, steps: int = 5) -> list[torch.Tensor]:
         """Predict a sequence of future thought vectors."""
         trajectory = [z]
         current_z = z
@@ -38,8 +39,8 @@ class TrajectoryPredictor(nn.Module):
         z: torch.Tensor,
         steps: int = 10,
         physics_weight: float = 0.3,
-        momentum: float = 0.9
-    ) -> List[torch.Tensor]:
+        momentum: float = 0.9,
+    ) -> list[torch.Tensor]:
         """
         Predict trajectory using 'latent physics'.
         Simulates momentum and force-like updates.
@@ -66,8 +67,8 @@ class TrajectoryPredictor(nn.Module):
         z: torch.Tensor,
         perturbations: int = 3,
         steps: int = 5,
-        noise_scale: float = 0.1
-    ) -> List[List[torch.Tensor]]:
+        noise_scale: float = 0.1,
+    ) -> list[list[torch.Tensor]]:
         """Explore alternative 'counterfactual' thought paths."""
         branches = []
         for _ in range(perturbations):

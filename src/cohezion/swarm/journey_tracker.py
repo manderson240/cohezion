@@ -8,27 +8,29 @@ Tracks:
 - Critique/resolution events
 """
 
-import time
 import json
-from dataclasses import dataclass, asdict, field
-from datetime import datetime, UTC
-from pathlib import Path
-from typing import Any, Dict
+import time
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
 from enum import Enum
-from cohezion.db.surreal_client import SurrealClient, UniverseNode, PhysicsState
+from pathlib import Path
+from typing import Any
+
+from cohezion.db.surreal_client import PhysicsState, SurrealClient, UniverseNode
 
 
 @dataclass
 class JourneyMetrics:
     """Anthropic-style capability and performance metrics."""
+
     context_utilization: float = 0.0  # 0.0 to 1.0
-    latent_coherence: float = 0.0    # 0.0 to 1.0
-    capability_delta: float = 0.0   # Improvement in understanding
+    latent_coherence: float = 0.0  # 0.0 to 1.0
+    capability_delta: float = 0.0  # Improvement in understanding
     latency_per_token_ms: float = 0.0
     safety_alignment_score: float = 0.0
     computational_relativity_factor: float = 1.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -41,6 +43,7 @@ class AgentType(Enum):
 @dataclass
 class JourneyStep:
     """A single step in an agent's journey."""
+
     timestamp: str
     agent_type: str
     agent_name: str
@@ -51,17 +54,18 @@ class JourneyStep:
     duration_ms: float
     confidence: float
     metrics: JourneyMetrics = field(default_factory=JourneyMetrics)
-    historical_context: str | None = None # Link to previous SNAPSHOT or JOURNEY
+    historical_context: str | None = None  # Link to previous SNAPSHOT or JOURNEY
 
     def to_dict(self) -> dict:
         d = asdict(self)
-        d['metrics'] = self.metrics.to_dict()
+        d["metrics"] = self.metrics.to_dict()
         return d
 
 
 @dataclass
 class AgentJourney:
     """Complete journey of a debate/query through the agent swarm."""
+
     journey_id: str
     query: str
     started_at: str
@@ -101,7 +105,9 @@ class JourneyTracker:
     """
 
     def __init__(self, output_dir: Path | None = None):
-        self.output_dir = output_dir or Path("src/cohezion/knowledge_graph/universe_nodes/journeys")
+        self.output_dir = output_dir or Path(
+            "src/cohezion/knowledge_graph/universe_nodes/journeys"
+        )
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self._current_journey: AgentJourney | None = None
         self._journeys: list[AgentJourney] = []
@@ -126,7 +132,7 @@ class JourneyTracker:
         physics_state: dict[str, float],
         duration_ms: float,
         confidence: float = 0.0,
-        metrics: JourneyMetrics | None = None
+        metrics: JourneyMetrics | None = None,
     ) -> None:
         """Record a step in the current journey."""
         if not self._current_journey:
@@ -137,17 +143,25 @@ class JourneyTracker:
             agent_type=agent_type.value,
             agent_name=agent_name,
             perspective=perspective,
-            input_summary=input_text[:200] + "..." if len(input_text) > 200 else input_text,
-            output_summary=output_text[:200] + "..." if len(output_text) > 200 else output_text,
+            input_summary=input_text[:200] + "..."
+            if len(input_text) > 200
+            else input_text,
+            output_summary=output_text[:200] + "..."
+            if len(output_text) > 200
+            else output_text,
             physics_state=physics_state,
             duration_ms=duration_ms,
             confidence=confidence,
-            metrics=metrics or JourneyMetrics()
+            metrics=metrics or JourneyMetrics(),
         )
         self._current_journey.add_step(step)
 
-    async def end_journey(self, final_response: str, final_confidence: float,
-                          aggregate_metrics: JourneyMetrics | None = None) -> AgentJourney:
+    async def end_journey(
+        self,
+        final_response: str,
+        final_confidence: float,
+        aggregate_metrics: JourneyMetrics | None = None,
+    ) -> AgentJourney:
         """Complete the current journey and save it."""
         if not self._current_journey:
             raise ValueError("No active journey")
@@ -184,9 +198,9 @@ class JourneyTracker:
             physics_state=PhysicsState(
                 coherence=journey.final_confidence,
                 time=journey.total_duration_ms / 1000.0,
-                connectivity=float(len(journey.steps)) / 10.0
+                connectivity=float(len(journey.steps)) / 10.0,
             ),
-            metadata=journey.to_dict()
+            metadata=journey.to_dict(),
         )
         await db.store_node(node)
         await db.close()
@@ -198,7 +212,7 @@ class JourneyTracker:
         for f in journey_files:
             try:
                 journeys.append(json.loads(f.read_text()))
-            except:
+            except Exception:
                 pass
         return journeys
 

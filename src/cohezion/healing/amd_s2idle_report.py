@@ -8,7 +8,7 @@ import sys
 
 def read_file(fn) -> str:
     """Read a file and return the contents"""
-    with open(fn, "r", encoding="utf-8") as r:
+    with open(fn, encoding="utf-8") as r:
         return r.read().strip()
 
 
@@ -16,7 +16,7 @@ def get_distro() -> str:
     """Get the distribution name"""
     distro = "unknown"
     if os.path.exists("/etc/os-release"):
-        with open("/etc/os-release", "r", encoding="utf-8") as f:
+        with open("/etc/os-release", encoding="utf-8") as f:
             for line in f:
                 if line.startswith("ID="):
                     return line.split("=")[1].strip().strip('"')

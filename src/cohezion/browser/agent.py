@@ -1,14 +1,16 @@
 import asyncio
 import os
 import tempfile
+
 from playwright.async_api import async_playwright
-from pathlib import Path
+
 
 class CohezionBrowserAgent:
     """
     Native Playwright-based browser agent for Cohezion.
     Bypasses single-instance locks by using isolated contexts and unique user data directories.
     """
+
     def __init__(self, headless=True):
         self.headless = headless
         self._playwright = None
@@ -21,7 +23,7 @@ class CohezionBrowserAgent:
         self._context = await self._playwright.chromium.launch_persistent_context(
             user_data_dir=self.user_data_dir,
             headless=self.headless,
-            args=["--no-sandbox", "--disable-setuid-sandbox"]
+            args=["--no-sandbox", "--disable-setuid-sandbox"],
         )
         return self._context
 
@@ -48,7 +50,9 @@ class CohezionBrowserAgent:
         # Cleanup temp dir
         if hasattr(self, "user_data_dir") and os.path.exists(self.user_data_dir):
             import shutil
+
             shutil.rmtree(self.user_data_dir, ignore_errors=True)
+
 
 async def main():
     # Simple self-test
@@ -67,6 +71,7 @@ async def main():
     finally:
         await agent.close()
         print("Agent closed.")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

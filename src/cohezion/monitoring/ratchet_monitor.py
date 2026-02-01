@@ -8,24 +8,25 @@ Anticipates problems before they happen.
 Never lets the team overwork themselves.
 """
 
-import psutil
 import subprocess
 import time
-from pathlib import Path
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
-import smtplib
 from email.mime.text import MIMEText
+from pathlib import Path
+
+import psutil
+
 
 @dataclass
 class SystemVitals:
     """Current system health metrics."""
+
     timestamp: datetime
     cpu_percent: float
     ram_used_gb: float
     ram_percent: float
-    gpu_util: Optional[float]
+    gpu_util: float | None
     disk_used_gb: float
     disk_percent: float
     ollama_responsive: bool
@@ -34,16 +35,17 @@ class SystemVitals:
     def is_critical(self) -> bool:
         """Check if system is in critical state."""
         return (
-            self.cpu_percent > 90 or
-            self.ram_percent > 85 or
-            not self.ollama_responsive or
-            not self.surreal_responsive
+            self.cpu_percent > 90
+            or self.ram_percent > 85
+            or not self.ollama_responsive
+            or not self.surreal_responsive
         )
 
     def needs_throttle(self) -> bool:
         """Check if processing should be throttled."""
         # Framework 16 7945HX handles 80%+ CPU and 80%+ RAM gracefully
         return self.cpu_percent > 85 or self.ram_percent > 80
+
 
 class RatchetMonitor:
     """
@@ -58,7 +60,7 @@ class RatchetMonitor:
 
     def __init__(self, email_to: str):
         self.email_to = email_to
-        self.baseline_vitals: Optional[SystemVitals] = None
+        self.baseline_vitals: SystemVitals | None = None
         self.alert_count = 0
 
     def check_vitals(self) -> SystemVitals:
@@ -75,7 +77,7 @@ class RatchetMonitor:
         gpu_util = self._check_gpu()
 
         # Disk (2TB SSD)
-        disk = psutil.disk_usage('/')
+        disk = psutil.disk_usage("/")
         disk_used_gb = disk.used / (1024**3)
         disk_percent = disk.percent
 
@@ -92,7 +94,7 @@ class RatchetMonitor:
             disk_used_gb=disk_used_gb,
             disk_percent=disk_percent,
             ollama_responsive=ollama_ok,
-            surreal_responsive=surreal_ok
+            surreal_responsive=surreal_ok,
         )
 
         if self.baseline_vitals is None:
@@ -100,30 +102,26 @@ class RatchetMonitor:
 
         return vitals
 
-    def _check_gpu(self) -> Optional[float]:
+    def _check_gpu(self) -> float | None:
         """Check GPU utilization (AMD) via sysfs."""
         try:
             # card1 is the primary AMD GPU on Framework 16
             paths = [
-                '/sys/class/drm/card1/device/gpu_busy_percent',
-                '/sys/class/drm/card0/device/gpu_busy_percent'
+                "/sys/class/drm/card1/device/gpu_busy_percent",
+                "/sys/class/drm/card0/device/gpu_busy_percent",
             ]
             for path in paths:
                 if Path(path).exists():
-                    with open(path, 'r') as f:
+                    with open(path) as f:
                         return float(f.read().strip())
-        except (ValueError, IOError):
+        except (OSError, ValueError):
             pass
         return None
 
     def _check_ollama(self) -> bool:
         """Check if Ollama is responsive."""
         try:
-            result = subprocess.run(
-                ['ollama', 'list'],
-                capture_output=True,
-                timeout=5
-            )
+            result = subprocess.run(["ollama", "list"], capture_output=True, timeout=5)
             return result.returncode == 0
         except (subprocess.TimeoutExpired, FileNotFoundError):
             return False
@@ -132,11 +130,11 @@ class RatchetMonitor:
         """Check if SurrealDB is responsive."""
         try:
             result = subprocess.run(
-                ['curl', '-s', 'http://localhost:8000/health'],
+                ["curl", "-s", "http://localhost:8000/health"],
                 capture_output=True,
-                timeout=5
+                timeout=5,
             )
-            return result.returncode == 0 and b'ok' in result.stdout.lower()
+            return result.returncode == 0 and b"ok" in result.stdout.lower()
         except (subprocess.TimeoutExpired, FileNotFoundError):
             return False
 
@@ -144,22 +142,30 @@ class RatchetMonitor:
         """Ratchet's diagnostic analysis."""
         report = []
 
-        report.append(f"[{vitals.timestamp.strftime('%H:%M:%S')}] RATCHET DIAGNOSTIC REPORT")
+        report.append(
+            f"[{vitals.timestamp.strftime('%H:%M:%S')}] RATCHET DIAGNOSTIC REPORT"
+        )
         report.append("=" * 60)
 
         # CPU Analysis
         if vitals.cpu_percent > 75:
             report.append(f"⚠️  CPU: {vitals.cpu_percent:.1f}% - APPROACHING LIMIT")
-            report.append("   Recommendation: Throttle workload or add delay between tasks")
+            report.append(
+                "   Recommendation: Throttle workload or add delay between tasks"
+            )
         else:
             report.append(f"✓ CPU: {vitals.cpu_percent:.1f}% - Nominal")
 
         # RAM Analysis (Framework Desktop 128GB)
         if vitals.ram_percent > 70:
-            report.append(f"⚠️  RAM: {vitals.ram_used_gb:.1f}GB / 128GB ({vitals.ram_percent:.1f}%) - HIGH USAGE")
+            report.append(
+                f"⚠️  RAM: {vitals.ram_used_gb:.1f}GB / 128GB ({vitals.ram_percent:.1f}%) - HIGH USAGE"
+            )
             report.append("   Recommendation: Clear caches or reduce concurrent models")
         else:
-            report.append(f"✓ RAM: {vitals.ram_used_gb:.1f}GB / 128GB ({vitals.ram_percent:.1f}%) - Nominal")
+            report.append(
+                f"✓ RAM: {vitals.ram_used_gb:.1f}GB / 128GB ({vitals.ram_percent:.1f}%) - Nominal"
+            )
 
         # GPU
         if vitals.gpu_util:
@@ -193,9 +199,9 @@ class RatchetMonitor:
         """Send email alert (like Ratchet calling for backup)."""
         try:
             msg = MIMEText(f"{self.diagnose(vitals)}\n\n{message}")
-            msg['Subject'] = f"🚨 Ratchet Alert: {vitals.timestamp.strftime('%H:%M')}"
-            msg['From'] = 'ratchet@cohezion.local'
-            msg['To'] = self.email_to
+            msg["Subject"] = f"🚨 Ratchet Alert: {vitals.timestamp.strftime('%H:%M')}"
+            msg["From"] = "ratchet@cohezion.local"
+            msg["To"] = self.email_to
 
             # Would send via SMTP here
             print(f"📧 Alert sent to {self.email_to}")
@@ -210,7 +216,7 @@ class RatchetMonitor:
             vitals = self.check_vitals()
             report = self.diagnose(vitals)
 
-            with open('/var/log/cohezion_ratchet.log', 'a') as f:
+            with open("/var/log/cohezion_ratchet.log", "a") as f:
                 f.write(report + "\n\n")
 
             if vitals.is_critical():
@@ -219,7 +225,7 @@ class RatchetMonitor:
 
                 if self.alert_count > 3:
                     print("🛑 Too many critical alerts. SHUTTING DOWN for safety.")
-                    subprocess.run(['systemctl', 'stop', 'cohezion-overnight'])
+                    subprocess.run(["systemctl", "stop", "cohezion-overnight"])
                     break
 
             elif vitals.needs_throttle():
@@ -227,6 +233,7 @@ class RatchetMonitor:
                 time.sleep(60)  # Extra delay when under stress
 
             time.sleep(check_interval)
+
 
 if __name__ == "__main__":
     ratchet = RatchetMonitor(email_to="manderson240@gmail.com")

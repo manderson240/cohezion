@@ -8,6 +8,7 @@ from typing import Any
 
 class Perspective(Enum):
     """Analyst perspective types for multi-view analysis."""
+
     TECHNICAL = "technical"
     ETHICAL = "ethical"
     HISTORICAL = "historical"
@@ -23,6 +24,7 @@ class ThoughtVector:
     In CALM terms, this is the continuous vector z that represents
     a paragraph of thought, enabling fluid cognitive motion.
     """
+
     perspective: Perspective
     content: str
     embedding: list[float] | None = None
@@ -48,6 +50,7 @@ class ThoughtVector:
 @dataclass
 class Contradiction:
     """A detected contradiction between analyst outputs."""
+
     source_perspectives: tuple[Perspective, Perspective]
     description: str
     severity: float  # 0.0 to 1.0
@@ -61,6 +64,7 @@ class CritiqueResult:
 
     Contains detected contradictions and logical issues.
     """
+
     analyst_outputs: list[ThoughtVector]
     contradictions: list[Contradiction] = field(default_factory=list)
     logical_issues: list[str] = field(default_factory=list)
@@ -79,6 +83,7 @@ class SynthesizedResponse:
 
     Resolves contradictions and produces a coherent response.
     """
+
     content: str
     source_critique: CritiqueResult
     resolution_notes: list[str] = field(default_factory=list)
@@ -102,10 +107,11 @@ class SynthesizedResponse:
 @dataclass
 class SwarmConfig:
     """Configuration for the SLM Swarm."""
-    analyst_model: str = "gemma3:4b"
-    critic_model: str = "phi3:mini"
-    synthesizer_model: str = "mistral:7b"
-    architect_model: str = "mistral:7b"
+
+    analyst_model: str = "phi4"
+    critic_model: str = "deepseek-r1:7b"
+    synthesizer_model: str = "qwen2.5-coder:7b"
+    architect_model: str = "deepseek-r1:7b"
 
     # Parallel execution settings
     max_concurrent_analysts: int = 3
@@ -133,3 +139,6 @@ class SwarmConfig:
     # Autonomic Refinement
     max_refinement_rounds: int = 3
     min_phi_threshold: float = 0.75  # The Stability Well barrier
+
+    # Resource Priority (1=Critical, 4=Low)
+    priority: int = 3

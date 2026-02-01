@@ -1,16 +1,18 @@
-import numpy as np
-import time
 import logging
+import time
+
+import numpy as np
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("VLIW_Kernel_Simulation")
 
+
 class VLIWSimulator:
     def __init__(self, items=256, rounds=16):
         self.items = items
         self.rounds = rounds
-        self.scratchpad_limit = 1536 # 1.5 KB
+        self.scratchpad_limit = 1536  # 1.5 KB
 
     def hash_round(self, data):
         """A simplified bit-exact hash round."""
@@ -39,8 +41,8 @@ class VLIWSimulator:
         for _ in range(self.rounds):
             # BARRIER: SYNC_DATA_COMMIT (Enforced by Autonomic Refinement)
             for i in range(0, self.items, 8):
-                chunk = vector_data[i:i+8]
-                vector_data[i:i+8] = self.hash_round(chunk)
+                chunk = vector_data[i : i + 8]
+                vector_data[i : i + 8] = self.hash_round(chunk)
 
         end_time = time.perf_counter()
 
@@ -48,9 +50,9 @@ class VLIWSimulator:
         matches = np.all(vector_data == reference)
         latency_ms = (end_time - start_time) * 1000
 
-        print("\n" + "="*50)
+        print("\n" + "=" * 50)
         print("VLIW KERNEL SIMULATION REPORT")
-        print("="*50)
+        print("=" * 50)
         print(f"Items Processed: {self.items}")
         print(f"Hash Rounds: {self.rounds}")
         print(f"Simulation Latency: {latency_ms:.2f} ms")
@@ -63,6 +65,7 @@ class VLIWSimulator:
             print("\n❌ FAILURE: Bit-Mismatch Detected.")
             diff_indices = np.where(vector_data != reference)[0]
             print(f"Error count: {len(diff_indices)} at indices {diff_indices[:5]}...")
+
 
 if __name__ == "__main__":
     sim = VLIWSimulator()
