@@ -81,13 +81,18 @@ src/cohezion/library/*.png
 *.jsonl
 !tests/**/*.jsonl
 
+# Large Data & Recovery
+data/overnight/
+.archive/
+.sandbox/
+temp/
+src/cohezion/knowledge_graph/universe_nodes/
+
 # UI Renders and Exports
 renders/
 
 # Sandbox and temporary files
 *.sandbox
-temp/
-.sandbox/
 # Cohezion Autonomous Lab Artifacts
 *.log
 *.err
@@ -153,3 +158,23 @@ src/cohezion/knowledge_graph/universe_nodes/**/logs/
 *.sst
 *.bundle
 cohezion.db/
+
+# LOCKDOWN PROTOCOL (Phase 31)
+# Prevent heavy media ingestion
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.wav
+*.flac
+*.zip
+*.tar.gz
+*.iso
+*.img
+
+# Enforce Source-Only
+!src/**/*.py
+!src/**/*.md
+!src/**/*.json
+!scripts/**/*.py
+
