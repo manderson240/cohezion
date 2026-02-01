@@ -31,6 +31,10 @@ def run_janitor():
             logger.warning(f"⚠️ Repository degradation detected: {status.status}. Triggering autonomous cleanup.")
             subprocess.run(["python3", str(JANITOR_SCRIPT)], cwd=REPO_ROOT, check=True)
             
+            # Database pruning (Learn Before Pruning is handled in planning, here we just keep it lean)
+            logger.info("🧹 Performing autonomous database pruning...")
+            subprocess.run(["python3", str(REPO_ROOT / "scripts" / "db_pruning.py"), "7"], cwd=REPO_ROOT, check=True)
+
             # Auto-checkpoint if on a task branch
             branch = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True).stdout.strip()
             if branch != "main" and branch != "master":
