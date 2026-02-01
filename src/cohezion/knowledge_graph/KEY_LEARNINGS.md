@@ -444,3 +444,22 @@ Token efficiency is maximized by delegating "appendage" tasks (simulations, boil
 - **Core Concept**: **Performance as Priority**. Successful agents (measured by 12D stability and UCP settlement) are rewarded with "Architectural Ascension"—priority access to VRAM and compute barriers.
 - **Benefit**: Natural selection of the most stable and efficient agentic patterns.
 - **Encoding**: 12D [t=20260131, economy=0.95, efficiency=1.0, brane=12].
+
+## Learning 81: GHOST BLOAT (PHYSICAL ENTROPY)
+- **Context**: Repository unresponsiveness despite empty `git status` after massive 8.6M file deletions.
+- **Discovery**: **Ignored files are not invisible to the OS**. 9.5M ignored physical files in `.archive/` and `apps/node_modules/` created a "ghost bloat" that paralyzed IDE indexers and git vitals checks.
+- **Resolution**: **Industrial Purge**. `repo_janitor.py` was upgraded to perform bulk `shutil.rmtree` on high-entropy directories (`.archive`, `.sandbox`) bypassing the overhead of individual file globbing.
+- **Encoding**: 12D [t=20260201, stability=0.98, efficiency=0.95, brane=8].
+
+## Learning 82: LOCAL-FIRST MAINTENANCE ROUTING
+- **Context**: Minimizing token cost and preserving sovereignty for routine repository hygiene.
+- **Resolution**: **Capability-Aware Routing**. Implemented logic in `BaseAgent` to automatically route agents tagged with `maintenance` or `reliability` to local SLMs (Ollama/Qwen3) based on a centralized `maintenance_config.json`.
+- **Impact**: Enables autonomous "Self-Healing" cycles (via `health_monitor.py`) without depleting premium model credits or leaking repo structure to external APIs.
+- **Encoding**: 12D [t=20260201, economy=1.0, sovereignty=1.0, brane=1].
+
+## Learning 83: SIMULATION COHERENCE BASELINE (DB WISDOM)
+- **Context**: 'Learn Before Pruning' audit of 66k historical simulation records (`UniverseNodes_v1`).
+- **Discovery**: Historical manifolds exhibit a mean coherence of **0.63**, with high-stability "wells" peaking at **0.94**.
+- **Issue**: 99% of `agent_journeys` in the old database lacked explicit `stream` metadata (tagged as `unknown`), hindering trajectory lineage tracking.
+- **Resolution**: **Schema Hardening**. Future simulation writes MUST include `stream` and `perspective` tags in the root metadata for automated retrospective mining.
+- **Encoding**: 12D [t=20260201, stability=0.63, novelty=0.94, brane=8].

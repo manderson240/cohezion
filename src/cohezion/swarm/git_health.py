@@ -10,6 +10,7 @@ import subprocess
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
+from pathlib import Path
 
 from cohezion.healing.deep_audit import CodeIssue
 
