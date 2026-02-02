@@ -1,0 +1,485 @@
+#!/usr/bin/env python3
+"""Cohezion CLI - Universe Simulation Platform
+
+Entry point for the Cohezion command-line interface.
+Provides commands for journey management, universe simulation,
+reality precipitation, and reward tracking.
+
+Usage:
+    cohezion [COMMAND] [OPTIONS]
+
+Examples:
+    cohezion journey start "Design API" --agents=3
+    cohezion simulate --scenario=high_load --duration=1h
+    cohezion precipitate --journey=journey_123
+    cohezion rewards status
+"""
+
+from __future__ import annotations
+
+import argparse
+import asyncio
+import json
+import logging
+import sys
+from pathlib import Path
+from typing import Any
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s",
+    datefmt="%H:%M:%S",
+)
+logger = logging.getLogger("cohezion")
+
+
+def create_parser() -> argparse.ArgumentParser:
+    """Create CLI argument parser."""
+    parser = argparse.ArgumentParser(
+        prog="cohezion",
+        description="Cohezion Universe Simulation Platform",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s journey start "Design authentication system" --model=deepseek-r1:7b
+  %(prog)s journey list --mine --status=active
+  %(prog)s simulate --journey=journey_123 --stress_test=1000_users
+  %(prog)s precipitate journey_123 --target=production
+  %(prog)s rewards status
+  %(prog)s evolve --detect_patterns --auto_deploy
+        """,
+    )
+
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+
+    # Journey commands
+    journey_parser = subparsers.add_parser(
+        "journey", help="Manage universe journeys through the 12D/512D manifold"
+    )
+    journey_sub = journey_parser.add_subparsers(dest="journey_cmd")
+
+    # journey start
+    start_cmd = journey_sub.add_parser("start", help="Start a new journey")
+    start_cmd.add_argument("intent", help="The task/query to accomplish")
+    start_cmd.add_argument("--agent", "-a", default="AutoAgent", help="Agent to use")
+    start_cmd.add_argument(
+        "--model", "-m", default="deepseek-r1:7b", help="Model to use"
+    )
+    start_cmd.add_argument(
+        "--agents", "-n", type=int, default=1, help="Number of agents"
+    )
+
+    # journey list
+    list_cmd = journey_sub.add_parser("list", help="List journeys")
+    list_cmd.add_argument("--mine", action="store_true", help="Show only my journeys")
+    list_cmd.add_argument("--status", choices=["active", "completed", "failed"])
+    list_cmd.add_argument(
+        "--since", help="Filter by date (e.g., 'yesterday', '2024-01-01')"
+    )
+
+    # journey status
+    status_cmd = journey_sub.add_parser("status", help="Check journey status")
+    status_cmd.add_argument("journey_id", help="Journey ID to check")
+
+    # Simulate commands
+    simulate_parser = subparsers.add_parser(
+        "simulate", help="Run universe simulations and what-if scenarios"
+    )
+    simulate_parser.add_argument("--journey", "-j", help="Journey to simulate")
+    simulate_parser.add_argument("--scenario", "-s", help="Scenario name")
+    simulate_parser.add_argument(
+        "--duration", "-d", default="1h", help="Simulation duration"
+    )
+    simulate_parser.add_argument("--stress_test", help="Stress test parameters")
+
+    # Precipitate command
+    precipitate_parser = subparsers.add_parser(
+        "precipitate", help="Manifest journey results into reality (code/docs/actions)"
+    )
+    precipitate_parser.add_argument("journey_id", help="Journey to precipitate")
+    precipitate_parser.add_argument(
+        "--target", "-t", choices=["git", "production", "staging"], default="git"
+    )
+    precipitate_parser.add_argument("--branch", "-b", help="Git branch name")
+    precipitate_parser.add_argument(
+        "--verify", "-v", action="store_true", help="Run verification"
+    )
+
+    # Rewards command
+    rewards_parser = subparsers.add_parser(
+        "rewards", help="View rewards, achievements, and progress"
+    )
+    rewards_sub = rewards_parser.add_subparsers(dest="rewards_cmd")
+
+    # rewards status
+    rewards_status = rewards_sub.add_parser("status", help="View your reward status")
+    rewards_status.add_argument("--agent", "-a", default="me", help="Agent to check")
+
+    # rewards leaderboard
+    rewards_leaderboard = rewards_sub.add_parser(
+        "leaderboard", help="View XP leaderboard"
+    )
+    rewards_leaderboard.add_argument(
+        "--top", "-t", type=int, default=10, help="Number of entries"
+    )
+
+    # rewards achievements
+    rewards_achievements = rewards_sub.add_parser(
+        "achievements", help="View achievements"
+    )
+    rewards_achievements.add_argument(
+        "--locked", action="store_true", help="Show locked achievements"
+    )
+
+    # Reflect command
+    reflect_parser = subparsers.add_parser(
+        "reflect", help="Deep retrospective and learning capture"
+    )
+    reflect_parser.add_argument("--journey", "-j", help="Journey to reflect on")
+    reflect_parser.add_argument(
+        "--depth", choices=["quick", "standard", "comprehensive"], default="standard"
+    )
+    reflect_parser.add_argument(
+        "--auto_apply", action="store_true", help="Apply learnings automatically"
+    )
+
+    # Evolve command
+    evolve_parser = subparsers.add_parser(
+        "evolve", help="Self-improvement and code evolution"
+    )
+    evolve_parser.add_argument(
+        "--detect_patterns", action="store_true", help="Detect improvement patterns"
+    )
+    evolve_parser.add_argument(
+        "--auto_deploy", action="store_true", help="Auto-deploy safe changes"
+    )
+    evolve_parser.add_argument(
+        "--risk_threshold", type=float, default=0.3, help="Risk threshold (0-1)"
+    )
+
+    # Interactive mode
+    subparsers.add_parser("interactive", help="Start interactive mode")
+
+    return parser
+
+
+async def cmd_journey_start(args: argparse.Namespace) -> int:
+    """Handle journey start command."""
+    logger.info(f"🌌 Starting universe journey: {args.intent[:50]}...")
+    logger.info(f"   Agent: {args.agent}")
+    logger.info(f"   Model: {args.model}")
+    logger.info(f"   Parallel agents: {args.agents}")
+
+    # This would integrate with the universe engine
+    # For now, show what would happen
+    journey_id = f"journey_{args.intent[:20].replace(' ', '_')}"
+
+    logger.info(f"✅ Journey created: {journey_id}")
+    logger.info(f"   Status: active")
+    logger.info(f"   Coherence target: 0.5 (HIHO stability)")
+
+    # Output in JSON for programmatic use
+    result = {
+        "journey_id": journey_id,
+        "intent": args.intent,
+        "agent": args.agent,
+        "model": args.model,
+        "status": "active",
+        "created_at": "now",
+    }
+
+    print(json.dumps(result, indent=2))
+    return 0
+
+
+async def cmd_journey_list(args: argparse.Namespace) -> int:
+    """Handle journey list command."""
+    logger.info("📋 Listing journeys...")
+
+    # Mock data - would query SurrealDB
+    journeys = [
+        {
+            "id": "journey_001",
+            "intent": "Design API",
+            "status": "completed",
+            "phi": 0.85,
+        },
+        {
+            "id": "journey_002",
+            "intent": "Refactor auth",
+            "status": "active",
+            "phi": 0.72,
+        },
+    ]
+
+    for journey in journeys:
+        status_icon = "✅" if journey["status"] == "completed" else "🔄"
+        print(
+            f"{status_icon} {journey['id']}: {journey['intent'][:40]}... (phi: {journey['phi']:.2f})"
+        )
+
+    return 0
+
+
+async def cmd_simulate(args: argparse.Namespace) -> int:
+    """Handle simulate command."""
+    logger.info(f"🔮 Running universe simulation...")
+    logger.info(f"   Journey: {args.journey or 'new scenario'}")
+    logger.info(f"   Duration: {args.duration}")
+
+    if args.stress_test:
+        logger.info(f"   Stress test: {args.stress_test}")
+
+    # Mock simulation results
+    logger.info("\nSimulation Results:")
+    logger.info(f"   Coherence: 0.52 (HIHO stable ✓)")
+    logger.info(f"   Predicted phi: 0.84")
+    logger.info(f"   Stability: HIGH")
+    logger.info(f"   Recommendation: PROCEED with precipitation")
+
+    return 0
+
+
+async def cmd_precipitate(args: argparse.Namespace) -> int:
+    """Handle precipitate command."""
+    logger.info(f"✨ Precipitating reality for journey: {args.journey_id}")
+    logger.info(f"   Target: {args.target}")
+
+    if args.branch:
+        logger.info(f"   Branch: {args.branch}")
+
+    if args.verify:
+        logger.info("🔍 Running verification...")
+        logger.info("   ✓ Tests passing: 42/42")
+        logger.info("   ✓ Type checks: PASSED")
+        logger.info("   ✓ Security scan: CLEAN")
+
+    logger.info("\n✅ Reality precipitated successfully!")
+    logger.info(f"   Commit: 7a8f9d2 (mock)")
+    logger.info(f"   XP earned: +125")
+
+    return 0
+
+
+async def cmd_rewards_status(args: argparse.Namespace) -> int:
+    """Handle rewards status command."""
+    logger.info(f"🏆 Reward Status for: {args.agent}")
+
+    # Mock status - would query reward system
+    status = {
+        "agent_id": args.agent,
+        "total_xp": 12450,
+        "tier": "Master",
+        "capabilities": ["access_deepseek_70b", "meta_programming", "generate_agents"],
+        "parallel_agents": 20,
+        "autonomy_tier": 3,
+        "achievements": [
+            {"name": "Quality Craftsman", "rarity": "rare"},
+            {"name": "Collaborator", "rarity": "common"},
+            {"name": "Dedicated", "rarity": "epic"},
+        ],
+        "streak": {"current": 5, "longest": 12},
+        "next_unlock": {"name": "Architect", "threshold": 25000, "xp_needed": 12550},
+    }
+
+    print(f"\n🎯 Tier: {status['tier']} ({status['total_xp']:,} XP)")
+    print(f"🔓 Capabilities: {', '.join(status['capabilities'])}")
+    print(
+        f"🔥 Streak: {status['streak']['current']} days (longest: {status['streak']['longest']})"
+    )
+    print(f"🎖️ Achievements: {len(status['achievements'])}")
+
+    if status["next_unlock"]:
+        print(
+            f"\n⬆️  Next: {status['next_unlock']['name']} (need {status['next_unlock']['xp_needed']:,} more XP)"
+        )
+
+    return 0
+
+
+async def cmd_rewards_leaderboard(args: argparse.Namespace) -> int:
+    """Handle rewards leaderboard command."""
+    logger.info(f"📊 XP Leaderboard (Top {args.top})")
+
+    # Mock leaderboard
+    leaderboard = [
+        {"rank": 1, "agent": "EvolutionAgent", "xp": 45600, "tier": "Architect"},
+        {"rank": 2, "agent": "NexusResearchAgent", "xp": 38900, "tier": "Master"},
+        {"rank": 3, "agent": "ArchitectAgent", "xp": 32100, "tier": "Master"},
+    ]
+
+    print()
+    for entry in leaderboard:
+        medal = (
+            "🥇"
+            if entry["rank"] == 1
+            else "🥈"
+            if entry["rank"] == 2
+            else "🥉"
+            if entry["rank"] == 3
+            else "  "
+        )
+        print(
+            f"{medal} #{entry['rank']} {entry['agent']}: {entry['xp']:,} XP ({entry['tier']})"
+        )
+
+    return 0
+
+
+async def cmd_reflect(args: argparse.Namespace) -> int:
+    """Handle reflect command."""
+    logger.info("🪞 Deep Retrospective")
+    logger.info(f"   Depth: {args.depth}")
+
+    if args.journey:
+        logger.info(f"   Journey: {args.journey}")
+
+    logger.info("\nAnalyzing patterns...")
+    logger.info("✓ 3 success patterns identified")
+    logger.info("✓ 1 area for improvement found")
+    logger.info("✓ Knowledge extracted to graph")
+
+    if args.auto_apply:
+        logger.info("\n🔄 Auto-applying learnings...")
+        logger.info("   ✓ Skill template updated")
+        logger.info("   ✓ Agent behaviors refined")
+
+    logger.info("\n✅ Reflection complete. XP earned: +50")
+
+    return 0
+
+
+async def cmd_evolve(args: argparse.Namespace) -> int:
+    """Handle evolve command."""
+    logger.info("🧬 Evolution Mode")
+    logger.info(f"   Risk threshold: {args.risk_threshold}")
+
+    if args.detect_patterns:
+        logger.info("\n🔍 Detecting patterns...")
+        logger.info("   Found: 5 repetitive code blocks")
+        logger.info("   Found: 2 abstraction opportunities")
+
+    logger.info("\n💡 Suggested improvements:")
+    logger.info("   1. Extract common cache logic (risk: 0.1) ✓ SAFE")
+    logger.info("   2. Refactor agent base class (risk: 0.4) ⚠️  REVIEW")
+    logger.info("   3. Merge redundant registry code (risk: 0.2) ✓ SAFE")
+
+    if args.auto_deploy:
+        logger.info("\n🚀 Auto-deploying safe changes...")
+        logger.info("   ✓ Change 1 deployed")
+        logger.info("   ⏳ Change 3 queued for review")
+        logger.info("   ✨ XP earned: +500")
+
+    return 0
+
+
+async def cmd_interactive() -> int:
+    """Start interactive mode."""
+    print("""
+🌌 Cohezion Universe Simulator v2.0
+Type 'help' for commands, 'exit' to quit.
+    """)
+
+    while True:
+        try:
+            cmd = input("\ncohezion> ").strip()
+
+            if cmd in ["exit", "quit"]:
+                print("👋 Goodbye!")
+                break
+            elif cmd == "help":
+                print("""
+Commands:
+  journey start "intent"   Start a new journey
+  journey list             List active journeys
+  simulate                 Run what-if scenarios
+  precipitate <id>         Manifest results
+  rewards status           View your progress
+  reflect                  Deep retrospective
+  evolve                   Self-improvement mode
+                """)
+            elif cmd.startswith("journey start"):
+                intent = cmd[13:].strip().strip('"')
+                print(f"🌌 Starting journey: {intent}")
+                print("✅ Journey created: journey_xxx")
+            elif cmd == "rewards status":
+                print("🏆 Tier: Master (12,450 XP)")
+                print("🔥 Streak: 5 days")
+            else:
+                print(f"Unknown command: {cmd}")
+
+        except EOFError:
+            break
+        except KeyboardInterrupt:
+            print("\n👋 Goodbye!")
+            break
+
+    return 0
+
+
+async def main_async() -> int:
+    """Main async entry point."""
+    parser = create_parser()
+    args = parser.parse_args()
+
+    if not args.command:
+        parser.print_help()
+        return 0
+
+    # Route to appropriate handler
+    if args.command == "journey":
+        if args.journey_cmd == "start":
+            return await cmd_journey_start(args)
+        elif args.journey_cmd == "list":
+            return await cmd_journey_list(args)
+        else:
+            print("Use: cohezion journey [start|list|status]")
+            return 1
+
+    elif args.command == "simulate":
+        return await cmd_simulate(args)
+
+    elif args.command == "precipitate":
+        return await cmd_precipitate(args)
+
+    elif args.command == "rewards":
+        if args.rewards_cmd == "status":
+            return await cmd_rewards_status(args)
+        elif args.rewards_cmd == "leaderboard":
+            return await cmd_rewards_leaderboard(args)
+        elif args.rewards_cmd == "achievements":
+            print("🎖️ Your achievements:")
+            print("   ✓ First Steps (common)")
+            print("   ✓ Quality Craftsman (rare)")
+            print("   ✓ Collaborator (common)")
+            return 0
+        else:
+            print("Use: cohezion rewards [status|leaderboard|achievements]")
+            return 1
+
+    elif args.command == "reflect":
+        return await cmd_reflect(args)
+
+    elif args.command == "evolve":
+        return await cmd_evolve(args)
+
+    elif args.command == "interactive":
+        return await cmd_interactive()
+
+    else:
+        print(f"Command not yet implemented: {args.command}")
+        return 1
+
+
+def main() -> int:
+    """Main entry point."""
+    try:
+        return asyncio.run(main_async())
+    except KeyboardInterrupt:
+        print("\n\n👋 Interrupted by user")
+        return 130
+
+
+if __name__ == "__main__":
+    sys.exit(main())

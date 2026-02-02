@@ -1,0 +1,35 @@
+classDiagram
+    class Nexus {
+        +void run()
+    }
+
+    class ShadowScripter {
+        +void executeScripts()
+    }
+
+    class Loop {
+        +void expand()
+    }
+
+    class Ouroboros {
+        +void monitorHealth()
+    }
+
+    class Heartbeat {
+        +void keepAlive()
+    }
+
+    class RepoMapper {
+        +void mapRepos()
+    }
+
+    class PromptArchitect {
+        +void generatePrompts()
+    }
+
+    Nexus --> ShadowScripter
+    Nexus --> Loop
+    Nexus --> Ouroboros
+    Nexus --> Heartbeat
+    Nexus --> RepoMapper
+    Nexus --> PromptArchitect
