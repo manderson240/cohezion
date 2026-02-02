@@ -178,3 +178,11 @@ cohezion.db/
 !src/**/*.json
 !scripts/**/*.py
 
+# Large binary artifacts
+*.so
+*.dll
+*.dylib
+git_status.txt
+src/cohezion_core/
+*.bundle
+
