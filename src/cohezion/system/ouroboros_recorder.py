@@ -15,7 +15,7 @@ Integrated with Universe v2 for compound engineering.
 import asyncio
 import logging
 import time
-from typing import Any, Dict, Optional
+from typing import Any
 from datetime import datetime
 from pathlib import Path
 
@@ -44,13 +44,12 @@ class OuroborosRecorder:
         self._running = False
         self._task = None
 
-        # Universe v2 integration
-        self._universe_journey: Optional[Any] = None
-        self._universe_engine = None
-        self._rewards = None
-        self._evolution = None
+        self._universe_journey: Any = None
+        self._universe_engine: Any = None
+        self._rewards: Any = None
+        self._evolution: Any = None
 
-    async def _ensure_universe(self):
+    async def _ensure_universe(self) -> None:
         """Lazy initialization of Universe v2 components."""
         if self._universe_engine is None:
             from cohezion.universe.engine import UniverseSimulationEngine
@@ -67,7 +66,7 @@ class OuroborosRecorder:
             )
             logger.info("🌌 Ouroboros joined the Universe")
 
-    async def start(self):
+    async def start(self) -> None:
         """Start the background recording loop with Universe v2 tracking."""
         if self._running:
             return
@@ -136,12 +135,13 @@ class OuroborosRecorder:
                 res = await self.dba.client.create("system_pulse", pulse_packet)
                 logger.info(f"💾 Pulse Saved (cycle {cycle_count})")
 
-                await self._universe_engine.evolve_trajectory(
-                    journey=self._universe_journey,
-                    action="pulse_recorded",
-                    result=f"hw_keys={len(hw_vitals)}, sw_keys={len(sw_vitals)}",
-                    phi_score=0.6 + (0.1 if dilation < 1.5 else 0),
-                )
+                if self._universe_engine and self._universe_journey:
+                    await self._universe_engine.evolve_trajectory(
+                        journey=self._universe_journey,  # type: ignore
+                        action="pulse_recorded",
+                        result=f"hw_keys={len(hw_vitals)}, sw_keys={len(sw_vitals)}",
+                        phi_score=0.6 + (0.1 if dilation < 1.5 else 0),
+                    )
 
                 elapsed = time.perf_counter() - start_time
                 await asyncio.sleep(max(1.0, self.interval - elapsed))
@@ -154,25 +154,26 @@ class OuroborosRecorder:
 
     async def _reflex_cycle(self, cycle_count: int):
         """Execute reflex cycle for self-improvement."""
-        if cycle_count % 30 != 0:
+        if cycle_count % 30 != 0 or not self._evolution:
             return
 
         logger.info("🧠 Triggering Reflex Cycle...")
         try:
-            self._evolution.analyze_code()
-            suggestions = self._evolution.generate_suggestions()
+            self._evolution.analyze_code()  # type: ignore
+            suggestions = self._evolution.generate_suggestions()  # type: ignore
 
             auto_deploy = [s for s in suggestions if s.action == "auto_deploy"]
             review = [s for s in suggestions if s.action == "review_required"]
 
-            await self._universe_engine.evolve_trajectory(
-                journey=self._universe_journey,
-                action="reflex_cycle",
-                result=f"patterns={len(suggestions)}, auto={len(auto_deploy)}, review={len(review)}",
-                phi_score=0.7,
-            )
+            if self._universe_engine and self._universe_journey:
+                await self._universe_engine.evolve_trajectory(
+                    journey=self._universe_journey,  # type: ignore
+                    action="reflex_cycle",
+                    result=f"patterns={len(suggestions)}, auto={len(auto_deploy)}, review={len(review)}",
+                    phi_score=0.7,
+                )
 
-            if auto_deploy:
+            if auto_deploy and self._rewards:
                 logger.info(f"   📝 {len(auto_deploy)} auto-deploy suggestions")
                 self._rewards.award_xp(
                     agent_id="OuroborosRecorder",

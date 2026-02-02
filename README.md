@@ -1,58 +1,126 @@
-# Cohezion: A Self-Evolving Agentic Sandbox
-**Research Engineering Portfolio for Anthropic's "Universes" Application**
+# Cohezion: A Self-Evolving Autonomous Agentic Platform
 
-> "We design and implement novel training environments that go far beyond what models can do today — environments where models learn to navigate ambiguity, handle interruptions, maintain context over extended interactions, and exercise judgment." — *Universes Job Description*
+**Compound Engineering System with Universe Simulation v2.0**
 
-## 1. Research Objective
-**Cohezion** is an experimental training environment designed to produce **Anti-Fragile Agentic Reasoning**. Unlike traditional RL environments with static rewards, Cohezion implements **R-Zero**, a co-evolutionary protocol where the environment itself plays the role of an adversarial "Challenger."
+> "Every feature makes every future feature easier."
 
-### Core Research Questions
-*   **Plateau Prevention:** Can we prevent reasoning stagnation by dynamically adjusting constraints ($\mathcal{D}$) based on system variance?
-*   **Pragmatic Grounding:** How do we penalize "hallucinated complexity" (Overhype) while encouraging genuine novelty?
-*   **Unified Ontology:** Can an agent maintain coherence across 12+ conflicting theoretical frameworks (Physics vs Metaphysics) simultaneously?
+## Overview
 
-## 2. The R-Zero Architecture
-The system operates as a closed-loop triad, running 24/7 on local hardware (128GB RAM, 32 Cores).
+Cohezion is an autonomous agentic platform that implements:
+- **Universe Simulation Engine** - 12D/512D manifold tracking for every task
+- **Reward System** - XP, achievements, streaks, and capability unlocks
+- **Meta-Programming** - Generate agents from YAML specifications
+- **Self-Improvement** - Evolution orchestrator that detects and fixes patterns
+- **System Monitoring** - Ouroboros flight recorder with reflex cycles
+- **Test Generation** - Mycelium autonomous test synthesis
 
-| Agent | Role | Anthropic Alignment |
-|-------|------|---------------------|
-| **Challenger** | Inject Entropy / Constraints | **Automated Red Teaming** |
-| **Solver** | Logic / Synthesis | **Long-Horizon Agency** |
-| **Pragmatist** | Rules / Evaluation | **Constitutional AI / Safety** |
-| **Mem0** | Persistent Memory | **Self-Improving Memory Layer** |
+## Architecture
 
-### Live Simulation Streams
-As of Jan 2026, the system orchestrates 3 parallel "Universes":
-1.  **Physics (Pragmatic):** Exploring Zero Point Energy boundaries under strict conservation laws.
-2.  **Societal (Crisis):** Governance simulation under resource scarcity.
-3.  **Linguistic (Memetic):** Modeling language mutation rates (Babel Protocol).
+See [COHEZION_LAYOUT.md](COHEZION_LAYOUT.md) for:
+- System architecture diagram
+- 12D/512D manifold visualization
+- Data flow diagrams
+- XP tiers and capabilities
+- CLI command map
+- Compound engineering principles
 
-## 3. High-Fidelity Infrastructure
-Designed for long-horizon simulation and deep interpretability.
-
-*   **12D Physics State**: Every agent thought is modeled as a 12-dimensional vector in latent space, tracking parameters like *Coherence*, *Stability*, *Complexity*, and *Morphic Resonance*.
-*   **SurrealDB Substrate**: High-performance persistence for agent "Experiences" (119+ nodes captured in the latest Dawn Simulation).
-*   **Journey Narration**: Automatic 1st-person narration of agent reasoning paths, persisted in the cosmic chronicle.
-*   **Interactive Observability**: [Universe Explorer](research/notebooks/marimo/universe_explorer.py) (Marimo) providing 12D Radar projections and PCA evolution maps.
-*   **Capabilities Matrix**: [Taxonomy of 71+ Skills](.agent/CAPABILITY_MAP.md) driving the self-evolving swarm.
-
-## 4. Key Artifacts
-*   [Cohezion Capabilities Matrix](.agent/CAPABILITY_MAP.md): Strategic taxonomy of skills.
-*   [Portfolio Map](docs/ANTHROPIC_PORTFOLIO_MAP.md): Direct mapping of this repo to the Anthropic Job Description.
-
-## 5. Quick Start (Reproducibility)
+## Quick Start
 
 ```bash
-# 1. Install Dependencies (uv)
-uv sync
+# Install
+uv pip install -e .
 
-# 2. Launch the Swarm (Physics Stream)
-# Exposes Prometheus on :9090
-uv run python scripts/drivers/overnight_driver.py
+# Journey management
+uv run python -m cohezion journey start "Research quantum computing"
 
-# 3. Query the Knowledge Graph
-uv run python -m cohezion.registry.capability_registry
+# Rewards and progress
+uv run python -m cohezion rewards status
+
+# Generate agents from YAML
+uv run python -m cohezion generate list
+uv run python -m cohezion generate agent --spec=specs/research_agent.yaml
+
+# Self-improvement
+uv run python -m cohezion evolve --detect_patterns --dry-run
+
+# System monitoring
+uv run python -m cohezion ouroboros status
+
+# Test generation
+uv run python -m cohezion mycelium grow src/cohezion/meta/generator.py
+
+# Workflows
+uv run python -m cohezion simulate --scenario=high_load --duration=1h
 ```
 
-## 6. License
-Apache 2.0. Built by Mike Anderson.
+## Core Concepts
+
+### 12D/512D Manifold (Universe Engine)
+
+Every task becomes a journey through the dual-state manifold:
+
+- **512D Latent** - Semantic intent, reasoning, meaning ("Soul")
+- **12D Axiomatic** - Physical state, measurable, observable ("Body")
+- **HIHO Coherence** - Target 0.5 for maximum stability
+
+### Reward System
+
+| Tier | XP Required | Capabilities |
+|------|-------------|--------------|
+| Novice | 0 | Basic access |
+| Apprentice | 1,000 | phi3:mini, gemma |
+| Journeyman | 2,500 | deepseek:7b, auto-deploy safe |
+| Expert | 5,000 | deepseek:70b, full auto-deploy |
+| Master | 10,000 | Meta-programming, generate agents |
+| Architect | 25,000 | Modify constitution |
+
+### Compound Engineering
+
+Every feature compounds:
+
+1. **Universe Engine** → Enables experience replay
+2. **Rewards** → Motivates quality work
+3. **Meta-Generator** → Creates 50 agents from 50 lines of YAML
+4. **Evolution** → System improves itself continuously
+5. **Ouroboros** → Monitors and triggers improvements
+6. **Mycelium** → Tests verify quality
+
+## Directory Structure
+
+```
+cohezion/
+├── src/cohezion/
+│   ├── __main__.py              # CLI entry point
+│   ├── universe/                # 12D/512D manifold
+│   ├── rewards/                 # XP, achievements
+│   ├── meta/                    # Generator, evolution
+│   ├── swarm/agents/            # 50+ agents
+│   ├── system/ouroboros_recorder.py
+│   ├── mycelium/shadow_scripter.py
+│   └── ...
+├── workflows/                   # YAML templates
+├── scripts/                     # Migration tools
+└── tests/shadow/                # Auto-generated tests
+```
+
+## CLI Commands
+
+| Command | Description |
+|---------|-------------|
+| `journey` | Manage universe journeys |
+| `rewards` | View XP, achievements |
+| `generate` | Create agents from YAML |
+| `evolve` | Self-improvement mode |
+| `ouroboros` | System monitoring |
+| `mycelium` | Test generation |
+| `interactive` | Interactive shell |
+
+## Documentation
+
+- [COHEZION_LAYOUT.md](COHEZION_LAYOUT.md) - Full architecture visualization
+- [HANDOFF_UNIVERSE_V2.md](HANDOFF_UNIVERSE_V2.md) - Development handoff
+- [docs/research/](docs/research/) - Research documentation
+
+## License
+
+Apache 2.0
