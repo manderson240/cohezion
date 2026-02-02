@@ -17,11 +17,13 @@ from cohezion.core.time_keeper import get_time_keeper
 from cohezion.db.surreal_client import SurrealClient
 from cohezion.flume.autoencoder import FlumeEncoder
 from cohezion.reliability.monitor import get_resource_monitor
+from cohezion.rewards.system import RewardSystem
 from cohezion.security.output_filter import OutputFilter
 from cohezion.security.prompt_guard import PromptGuard, ThreatLevel
 from cohezion.swarm.journey_narrator import JourneyNarrator
 from cohezion.swarm.redundancy_suppression import RedundancyManager
 from cohezion.swarm.swarm_types import SwarmConfig
+from cohezion.universe.engine import UniverseSimulationEngine
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +93,13 @@ class BaseAgent(ABC):
 
         # Gateway 32: Journey Narration
         self._narrator = JourneyNarrator()
+
+        # Universe Simulation Engine - 12D/512D manifold tracking
+        self._universe = UniverseSimulationEngine()
+        self._current_journey = None
+
+        # Reward System - XP, achievements, streaks
+        self._rewards = RewardSystem()
 
         # Memory Recovery Protocol (MRP) - Gateway 12
         if self.config.mrp_sync:
@@ -354,14 +363,14 @@ class BaseAgent(ABC):
                 if phi_score >= self.config.min_phi_threshold:
                     final_result = result
                     logger.info(
-                        f"✨ Stability Well reached in round {round_idx+1} (Phi: {phi_score:.2f})"
+                        f"✨ Stability Well reached in round {round_idx + 1} (Phi: {phi_score:.2f})"
                     )
                     break
 
                 # Prepare refinement or exit
                 if round_idx < self.config.max_refinement_rounds - 1:
                     logger.info(
-                        f"🔄 Low coherence ({phi_score:.2f}). Triggering refinement round {round_idx+2}..."
+                        f"🔄 Low coherence ({phi_score:.2f}). Triggering refinement round {round_idx + 2}..."
                     )
                     current_prompt = (
                         f"{effective_prompt}\n\n"
@@ -372,7 +381,7 @@ class BaseAgent(ABC):
                 else:
                     final_result = result
             except Exception as e:
-                logger.error(f"Ollama call failed in round {round_idx+1}: {e}")
+                logger.error(f"Ollama call failed in round {round_idx + 1}: {e}")
                 self._metrics["errors"] += 1
                 await tk.log_event(
                     agent_name=self.__class__.__name__,
@@ -407,7 +416,7 @@ class BaseAgent(ABC):
         await self._narrator.narrate(narration)
 
         # Persistence & Cache
-        persistence_id = f"thought_{int(time.time()*1000)}_{query_hash}"
+        persistence_id = f"thought_{int(time.time() * 1000)}_{query_hash}"
         self._set_cached(
             prompt,
             final_result,
@@ -599,16 +608,21 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
 
         try:
             import json
+
             policy = json.loads(config_path.read_text())
-            
+
             # Check if agent has maintenance capabilities
             agent_caps = self.registry.get_capabilities(self.__class__.__name__)
-            is_maintenance = any(cap in policy.get("maintenance_capabilities", []) for cap in agent_caps)
-            
+            is_maintenance = any(
+                cap in policy.get("maintenance_capabilities", []) for cap in agent_caps
+            )
+
             if is_maintenance and policy.get("policy") == "local_first":
                 # Route to local model
                 self.model_name = policy.get("default_local_model", "qwen3-coder:32b")
-                logger.info(f"🛡️ Local Routing: Agent {self.__class__.__name__} routed to {self.model_name}")
+                logger.info(
+                    f"🛡️ Local Routing: Agent {self.__class__.__name__} routed to {self.model_name}"
+                )
             else:
                 self.model_name = model_name
         except Exception as e:
@@ -660,3 +674,73 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
                 logger.debug("MRP: MISSION_PULSE emitted.")
             except Exception as e:
                 logger.error(f"MRP Pulse failed: {e}")
+
+    async def _execute_with_universe_tracking(
+        self, query: str, process_func: callable
+    ) -> Any:
+        """Execute agent process with universe journey tracking and reward system.
+
+        This method wraps the actual processing to provide:
+        - 12D/512D manifold tracking via Universe Simulation Engine
+        - XP awarding and achievement unlocking via Reward System
+        - Knowledge extraction for future learning
+        """
+        agent_name = self.__class__.__name__
+
+        try:
+            # 1. Start Universe Journey
+            self._current_journey = await self._universe.start_journey(
+                agent_name=agent_name, intent=query
+            )
+
+            # 2. Execute actual processing
+            result = await process_func(query)
+
+            # 3. Extract phi_score from result
+            phi_score = getattr(result, "phi_score", 0.5) if result else 0.5
+
+            # 4. Evolve trajectory with LLM call result
+            await self._universe.evolve_trajectory(
+                journey=self._current_journey,
+                action="llm_call_completed",
+                result=str(result)[:200] if result else "No result",
+                phi_score=phi_score,
+            )
+
+            # 5. Award XP based on quality
+            base_xp = 25
+            quality_bonus = int((phi_score - 0.5) * 100)  # 0-50 bonus
+            total_xp = max(0, base_xp + quality_bonus)
+
+            self._rewards.award_xp(
+                agent_id=agent_name,
+                amount=total_xp,
+                reason=f"Task completed with phi={phi_score:.2f}",
+                context={"query": query[:100], "phi": phi_score},
+            )
+
+            # 6. Check and unlock achievements
+            if phi_score >= 0.8:
+                self._rewards.unlock_achievement(agent_id=agent_name, badge_id="phi_80")
+            if phi_score >= 0.95:
+                self._rewards.unlock_achievement(agent_id=agent_name, badge_id="phi_95")
+
+            # 7. Precipitate reality - manifest results
+            await self._universe.precipitate_reality(
+                journey=self._current_journey,
+                outputs={"response": str(result) if result else {}},
+                phi_score=phi_score,
+            )
+
+            return result
+
+        except Exception as e:
+            # Log failure to universe
+            if self._current_journey:
+                await self._universe.evolve_trajectory(
+                    journey=self._current_journey,
+                    action="error",
+                    result=str(e)[:200],
+                    phi_score=0.0,
+                )
+            raise
