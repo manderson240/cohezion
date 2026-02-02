@@ -174,6 +174,46 @@ Examples:
         "--dry-run", action="store_true", help="Preview without generating"
     )
 
+    # Ouroboros command (System Flight Recorder)
+    ouroboros_parser = subparsers.add_parser(
+        "ouroboros", help="Ouroboros system flight recorder and self-healing"
+    )
+    ouroboros_sub = ouroboros_parser.add_subparsers(dest="ouroboros_cmd")
+
+    ouroboros_status = ouroboros_sub.add_parser("status", help="Check Ouroboros status")
+    ouroboros_status.add_argument(
+        "--detailed", action="store_true", help="Show detailed sensor data"
+    )
+
+    ouroboros_start = ouroboros_sub.add_parser("start", help="Start Ouroboros recorder")
+    ouroboros_start.add_argument(
+        "--interval", type=int, default=10, help="Recording interval in seconds"
+    )
+
+    ouroboros_stop = ouroboros_sub.add_parser("stop", help="Stop Ouroboros recorder")
+
+    # Mycelium command (Test Generation)
+    mycelium_parser = subparsers.add_parser(
+        "mycelium", help="Mycelium autonomous test generation"
+    )
+    mycelium_sub = mycelium_parser.add_subparsers(dest="mycelium_cmd")
+
+    mycelium_grow = mycelium_sub.add_parser("grow", help="Generate tests for a file")
+    mycelium_grow.add_argument("file", help="Source file to generate tests for")
+    mycelium_grow.add_argument(
+        "--model", "-m", default="qwen2.5-coder:7b", help="Model to use"
+    )
+
+    mycelium_garden = mycelium_sub.add_parser(
+        "garden", help="Generate tests for entire directory"
+    )
+    mycelium_garden.add_argument(
+        "--dir", "-d", default="src/cohezion", help="Directory to scan"
+    )
+    mycelium_garden.add_argument(
+        "--model", "-m", default="qwen2.5-coder:7b", help="Model to use"
+    )
+
     # Interactive mode
     subparsers.add_parser("interactive", help="Start interactive mode")
 
@@ -431,6 +471,176 @@ async def cmd_generate(args: argparse.Namespace) -> int:
     return 0
 
 
+async def cmd_ouroboros(args: argparse.Namespace) -> int:
+    """Handle ouroboros command (System Flight Recorder)."""
+    from cohezion.system.ouroboros_recorder import OuroborosRecorder
+    from cohezion.rewards.system import RewardSystem
+
+    rewards = RewardSystem()
+
+    if args.ouroboros_cmd == "status":
+        logger.info("🔴 Ouroboros System Status")
+        logger.info("   Recorder: Configured and ready")
+
+        if args.detailed:
+            logger.info("   Hardware Vitals: CPU, RAM, VRAM, GTT")
+            logger.info("   Software Sensors: Git entropy, bloat")
+            logger.info("   Dilation Factor: Active monitoring")
+            logger.info("   Reflex Trigger: Every 30 cycles (~5 min)")
+
+        return 0
+
+    elif args.ouroboros_cmd == "start":
+        logger.info("🚀 Starting Ouroboros Recorder")
+        logger.info(f"   Interval: {args.interval}s")
+
+        journey = None
+        try:
+            from cohezion.universe.engine import UniverseSimulationEngine
+
+            engine = UniverseSimulationEngine()
+            journey = await engine.start_journey(
+                agent_name="OuroborosRecorder",
+                intent="System monitoring and self-improvement",
+            )
+            logger.info(f"   Universe Journey: {journey.id}")
+        except Exception as e:
+            logger.warning(f"Could not start universe journey: {e}")
+
+        logger.info("   ⚠️  Background process - use Ctrl+C to stop")
+
+        recorder = OuroborosRecorder(interval_seconds=args.interval)
+        try:
+            await recorder.start()
+
+            status = rewards.get_status("OuroborosRecorder")
+            logger.info(f"\n✅ Ouroboros Active")
+            logger.info(f"   XP Status: {status['tier']} ({status['total_xp']} XP)")
+
+            await asyncio.sleep(3600)
+
+        except KeyboardInterrupt:
+            logger.info("\n🛑 Stopping Ouroboros...")
+            await recorder.stop()
+
+            if journey:
+                try:
+                    from cohezion.universe.engine import UniverseSimulationEngine
+
+                    engine = UniverseSimulationEngine()
+                    await engine.precipitate_reality(
+                        journey=journey,
+                        outputs={"status": "stopped_by_user"},
+                        phi_score=0.7,
+                    )
+                except:
+                    pass
+
+            logger.info("✅ Ouroboros stopped")
+
+        return 0
+
+    elif args.ouroboros_cmd == "stop":
+        logger.info("🛑 Use Ctrl+C to stop the running Ouroboros recorder")
+        return 0
+
+    else:
+        print("Use: cohezion ouroboros [status|start|stop]")
+        return 1
+
+
+async def cmd_mycelium(args: argparse.Namespace) -> int:
+    """Handle mycelium command (Autonomous Test Generation)."""
+    from cohezion.mycelium.shadow_scripter import ShadowScripter
+    from cohezion.universe.engine import UniverseSimulationEngine
+    from cohezion.rewards.system import RewardSystem
+
+    engine = UniverseSimulationEngine()
+    rewards = RewardSystem()
+
+    journey = await engine.start_journey(
+        agent_name="Mycelium",
+        intent=f"Test generation for {'directory' if args.mycelium_cmd == 'garden' else 'file'}",
+    )
+
+    if args.mycelium_cmd == "grow":
+        logger.info("🍄 Mycelium Test Generation")
+        logger.info(f"   File: {args.file}")
+        logger.info(f"   Model: {args.model}")
+
+        scripter = ShadowScripter(model=args.model)
+        output_path = await scripter.generate_test(Path(args.file))
+
+        if output_path:
+            logger.info(f"✨ Tests generated: {output_path}")
+
+            await engine.evolve_trajectory(
+                journey=journey,
+                action="test_generated",
+                result=str(output_path),
+                phi_score=0.85,
+            )
+
+            rewards.award_xp(
+                agent_id="Mycelium",
+                amount=30,
+                reason=f"Generated tests for {Path(args.file).name}",
+            )
+            rewards.unlock_achievement("Mycelium", "first_task")
+
+            await engine.precipitate_reality(
+                journey=journey,
+                outputs={"test_file": str(output_path)},
+                phi_score=0.85,
+            )
+
+            logger.info(f"   XP Awarded: +30")
+        else:
+            logger.error("❌ Test generation failed")
+            return 1
+
+    elif args.mycelium_cmd == "garden":
+        logger.info("🍄 Mycelium Garden - Batch Test Generation")
+        logger.info(f"   Directory: {args.dir}")
+        logger.info(f"   Model: {args.model}")
+
+        scripter = ShadowScripter(model=args.model)
+        dir_path = Path(args.dir)
+
+        files_generated = 0
+        for py_file in sorted(dir_path.rglob("*.py")):
+            if "test_" in py_file.name or py_file.parent.name == "tests":
+                continue
+
+            logger.info(f"   Processing: {py_file.name}")
+            output_path = await scripter.generate_test(py_file)
+            if output_path:
+                files_generated += 1
+
+        logger.info(f"\n✅ Generated {files_generated} test files")
+
+        await engine.evolve_trajectory(
+            journey=journey,
+            action="batch_tests_generated",
+            result=f"{files_generated} files",
+            phi_score=0.8,
+        )
+
+        rewards.award_xp(
+            agent_id="Mycelium",
+            amount=50 + (files_generated * 10),
+            reason=f"Batch generated {files_generated} test files",
+        )
+
+        await engine.precipitate_reality(
+            journey=journey,
+            outputs={"files_generated": files_generated},
+            phi_score=0.8,
+        )
+
+    return 0
+
+
 async def cmd_interactive() -> int:
     """Start interactive mode."""
     print("""
@@ -523,6 +733,12 @@ async def main_async() -> int:
 
     elif args.command == "generate":
         return await cmd_generate(args)
+
+    elif args.command == "ouroboros":
+        return await cmd_ouroboros(args)
+
+    elif args.command == "mycelium":
+        return await cmd_mycelium(args)
 
     elif args.command == "interactive":
         return await cmd_interactive()
