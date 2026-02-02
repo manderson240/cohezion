@@ -1,0 +1,17 @@
+{
+    "balance": 1874994,
+    "history": [
+        {
+            "timestamp": "2026-02-01T12:30:00",
+            "amount": 261,
+            "reason": "Pruning: scripts/bloat_test.py",
+            "agent": "PrunerAgent"
+        },
+        {
+            "timestamp": "2026-02-01T12:45:00",
+            "amount": 1874733,
+            "reason": "Ghost Harvest: 17.3M files pruned, 1423 ingested",
+            "agent": "KnowledgeHarvester"
+        }
+    ]
+}
