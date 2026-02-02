@@ -10,11 +10,13 @@ Features:
 
 Usage:
     from cohezion.meta.generator import MetaGenerator
+    from cohezion.meta.evolution import EvolutionOrchestrator
 
     generator = MetaGenerator()
     await generator.generate_agent("specs/research_agent.yaml", "src/cohezion/agents/")
 """
 
+from cohezion.meta.evolution import EvolutionOrchestrator
 from cohezion.meta.generator import MetaGenerator
 
-__all__ = ["MetaGenerator"]
+__all__ = ["MetaGenerator", "EvolutionOrchestrator"]

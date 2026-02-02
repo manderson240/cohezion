@@ -158,6 +158,22 @@ Examples:
         "--risk_threshold", type=float, default=0.3, help="Risk threshold (0-1)"
     )
 
+    # Generate command (Meta-Programming)
+    generate_parser = subparsers.add_parser(
+        "generate", help="Generate agents from YAML specifications"
+    )
+    generate_sub = generate_parser.add_subparsers(dest="generate_cmd")
+
+    generate_list = generate_sub.add_parser("list", help="List available specs")
+    generate_agent = generate_sub.add_parser(
+        "agent", help="Generate an agent from spec"
+    )
+    generate_agent.add_argument("--spec", "-s", required=True, help="Path to YAML spec")
+    generate_agent.add_argument("--output", "-o", default="src/cohezion/swarm/agents/")
+    generate_agent.add_argument(
+        "--dry-run", action="store_true", help="Preview without generating"
+    )
+
     # Interactive mode
     subparsers.add_parser("interactive", help="Start interactive mode")
 
@@ -374,6 +390,47 @@ async def cmd_evolve(args: argparse.Namespace) -> int:
     return 0
 
 
+async def cmd_generate(args: argparse.Namespace) -> int:
+    """Handle generate command (Meta-Programming)."""
+    from cohezion.meta.generator import MetaGenerator
+
+    generator = MetaGenerator()
+
+    if args.generate_cmd == "list":
+        specs_dir = Path(__file__).parent / "meta" / "specs"
+        specs = generator.list_specs(specs_dir)
+        logger.info("📋 AVAILABLE SPECIFICATIONS")
+        for spec in specs:
+            logger.info(f"  {spec['name']}: {spec['description'][:50]}...")
+        return 0
+
+    elif args.generate_cmd == "agent":
+        logger.info("🚀 Meta-Programming Generator")
+        logger.info(f"   Spec: {args.spec}")
+        logger.info(f"   Output: {args.output}")
+
+        report = await generator.generate_agent(
+            spec_path=args.spec,
+            output_dir=args.output,
+            dry_run=args.dry_run,
+        )
+
+        if report["success"]:
+            logger.info(f"\n✅ Generation complete!")
+            logger.info(f"   Files generated: {len(report['files_generated'])}")
+        else:
+            logger.error("\n❌ Generation failed!")
+            for error in report["errors"]:
+                logger.error(f"   {error}")
+            return 1
+
+    else:
+        print("Use: cohezion generate [list|agent]")
+        return 1
+
+    return 0
+
+
 async def cmd_interactive() -> int:
     """Start interactive mode."""
     print("""
@@ -463,6 +520,9 @@ async def main_async() -> int:
 
     elif args.command == "evolve":
         return await cmd_evolve(args)
+
+    elif args.command == "generate":
+        return await cmd_generate(args)
 
     elif args.command == "interactive":
         return await cmd_interactive()
