@@ -398,6 +398,45 @@ class UniverseSimulationEngine:
         distance = target - current
         return current + distance * factor * 0.5  # 0.5 for gentle convergence
 
+    async def precipitate_latent_action(self, journey: UniverseJourney, prompt: str) -> TrajectoryPoint:
+        """
+        TRANSFORMATION: Predict and precipitate the next 'Latent Action'.
+        Uses the ManifoldBridge to convert intent into reality.
+        """
+        logger.info(f"✨ [GLE] Precipitating Latent Action for {journey.id}: {prompt[:50]}...")
+        
+        # 1. Evolve Trajectory (Movement in latent space)
+        point = await self.evolve_trajectory(journey, action=f"Latent Projection: {prompt}")
+        
+        # 2. Use Manifold Bridge for Physical Precipitation
+        from cohezion.core.routing.manifold_bridge import LOCAL_MANIFOLD_BRIDGE
+        precipitation = await LOCAL_MANIFOLD_BRIDGE.precipitate_intent(journey, point.latent)
+        
+        # 3. Update trajectory with achieved result
+        point.result_achieved = precipitation["result_summary"]
+        point.axiomatic.precipitation = precipitation["phi_est"]
+        
+        return point
+
+    async def predict_evolution(self, journey: UniverseJourney) -> str:
+        """
+        Predict the next 'Transformative' step for the project based on trajectory logic.
+        """
+        # Uses reasoning model to find the 'Unknown'
+        from cohezion.core.routing.router import LOCAL_ROUTER
+        
+        prediction_prompt = f"""
+Analyze the current Mission Journey:
+Intent: {journey.intent}
+Trajectory Steps: {len(journey.trajectory)}
+Final Coherence: {journey.final_coherence}
+
+Based on the 0.5 Coherence Rule and HIHO protocol, predict the next 'TRANSFORMATIVE' action 
+that would push this project into the 'Unknown'.
+"""
+        prediction = await LOCAL_ROUTER.route_task("reasoning", prediction_prompt)
+        return prediction
+
     async def precipitate_reality(
         self, journey: UniverseJourney, outputs: dict[str, Any], phi_score: float
     ) -> dict[str, Any]:
