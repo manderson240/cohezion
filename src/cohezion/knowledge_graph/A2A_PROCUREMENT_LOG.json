@@ -1,0 +1,14 @@
+{
+    "timestamp": "2026-02-02T23:36:52.567512",
+    "transaction_id": "b8cbf783-6669-490b-b4f3-f8aa2aa0a4db",
+    "protocol": "UCP/A2A",
+    "modality": "negotiate_credit_backed_asset",
+    "offer": {
+        "asset": "Google Cloud TPU v7 Ironwood (256 node pod)",
+        "lease_term": "1 Year (CUD)",
+        "credit_guarantee": "Section 174A Immediate Recovery + S.41 Tax Credit",
+        "principal": 250000.0,
+        "interest_reserve": 73200.0
+    },
+    "status": "APPROVED_LENDER_AGENT"
+}
