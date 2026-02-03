@@ -35,6 +35,8 @@ class ModelMetrics:
     quality_score: float = 0.5  # 0-1, from critique feedback
     total_calls: int = 0
     last_used: str = ""
+    confidence_score: float = 0.0  # 0-1, dynamic confidence estimate
+    confidence_samples: int = 0  # Number of samples for confidence calculation
 
     def update(self, latency_ms: float, success: bool, quality: float = 0.5):
         n = self.total_calls
@@ -45,6 +47,43 @@ class ModelMetrics:
         self.quality_score = (self.quality_score * n + quality) / (n + 1)
         self.total_calls += 1
         self.last_used = datetime.now().isoformat()
+
+        # Update confidence score using Bayesian updating
+        if n > 0:
+            # Confidence is based on success rate and quality score
+            self.confidence_score = self.success_rate * 0.6 + self.quality_score * 0.4
+            # Apply sample size adjustment - more samples = higher confidence
+            sample_adjustment = min(1.0, n / 50.0)  # Cap at 50 samples
+            self.confidence_score *= sample_adjustment
+        else:
+            self.confidence_score = 0.0
+
+        self.confidence_samples = n + 1
+
+    confidence_score: float = 0.0  # 0-1, dynamic confidence estimate
+    confidence_samples: int = 0  # Number of samples for confidence calculation
+
+    def update(self, latency_ms: float, success: bool, quality: float = 0.5):
+        n = self.total_calls
+        self.avg_latency_ms = (self.avg_latency_ms * n + latency_ms) / (n + 1)
+        self.success_rate = (self.success_rate * n + (1.0 if success else 0.0)) / (
+            n + 1
+        )
+        self.quality_score = (self.quality_score * n + quality) / (n + 1)
+        self.total_calls += 1
+        self.last_used = datetime.now().isoformat()
+
+        # Update confidence score using Bayesian updating
+        if n > 0:
+            # Confidence is based on success rate and quality score
+            self.confidence_score = self.success_rate * 0.6 + self.quality_score * 0.4
+            # Apply sample size adjustment - more samples = higher confidence
+            sample_adjustment = min(1.0, n / 50.0)  # Cap at 50 samples
+            self.confidence_score *= sample_adjustment
+        else:
+            self.confidence_score = 0.0
+
+        self.confidence_samples = n + 1
 
 
 @dataclass
@@ -196,6 +235,83 @@ class OllamaModelManager:
         # Take the first 10k and last 10k chars
         half = max_chars // 2
         return f"{header}{prompt[:half]} ... [SNIP] ... {prompt[-half:]}{footer}"
+
+    async def get_model_confidence(self, model_name: str, task_type: str) -> float:
+        """Get confidence score for a model on a specific task."""
+        key = f"{model_name}:{task_type}"
+        metrics = self._metrics.get(key)
+        if metrics:
+            return metrics.confidence_score
+        return 0.0
+
+    async def get_recommended_model(
+        self, task_type: str, min_confidence: float = 0.3
+    ) -> str | None:
+        """Get the best model for a task based on confidence scores."""
+        candidates = []
+        for model_name in await self.list_models():
+            model_name = model_name["name"]
+            confidence = await self.get_model_confidence(model_name, task_type)
+            if confidence >= min_confidence:
+                candidates.append((model_name, confidence))
+
+        if candidates:
+            # Return model with highest confidence
+            return max(candidates, key=lambda x: x[1])[0]
+        return None
+
+    async def should_escalate(
+        self, model_name: str, task_type: str, min_confidence: float = 0.3
+    ) -> bool:
+        """Check if we should escalate to a stronger model."""
+        confidence = await self.get_model_confidence(model_name, task_type)
+        return confidence < min_confidence
+
+    async def get_recommended_model(
+        self, task_type: str, min_confidence: float = 0.3
+    ) -> str | None:
+        """Get the best model for a task based on confidence scores."""
+        candidates = []
+        for model_name in await self.list_models():
+            model_name = model_name["name"]
+            confidence = await self.get_model_confidence(model_name, task_type)
+            if confidence >= min_confidence:
+                candidates.append((model_name, confidence))
+
+        if candidates:
+            # Return model with highest confidence
+            return max(candidates, key=lambda x: x[1])[0]
+        return None
+
+    async def should_escalate(
+        self, model_name: str, task_type: str, min_confidence: float = 0.3
+    ) -> bool:
+        """Check if we should escalate to a stronger model."""
+        confidence = await self.get_model_confidence(model_name, task_type)
+        return confidence < min_confidence
+
+    async def get_recommended_model(
+        self, task_type: str, min_confidence: float = 0.3
+    ) -> str | None:
+        """Get the best model for a task based on confidence scores."""
+        candidates = []
+        for model_name in await self.list_models():
+            model_name = model_name["name"]
+            confidence = await self.get_model_confidence(model_name, task_type)
+            if confidence >= min_confidence:
+                candidates.append((model_name, confidence))
+
+        if candidates:
+            # Return model with highest confidence
+            return max(candidates, key=lambda x: x[1])[0]
+        return None
+
+    async def should_escalate(
+        self, model_name: str, task_type: str, min_confidence: float = 0.3
+    ) -> bool:
+        """Check if we should escalate to a stronger model."""
+        confidence = await self.get_model_confidence(model_name, task_type)
+        return confidence < min_confidence
 
     def get_best_model(self, task_type: str) -> str:
         """Get the best performing model for a task type."""

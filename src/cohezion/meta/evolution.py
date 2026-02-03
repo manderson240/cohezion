@@ -22,11 +22,13 @@ import json
 import logging
 import subprocess
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from cohezion.rewards.system import RewardSystem
 from cohezion.universe.engine import UniverseSimulationEngine
+from cohezion.meta.charter_guard import CharterGuard
 
 logging.basicConfig(
     level=logging.INFO,
@@ -45,7 +47,12 @@ class CodePattern:
     description: str
     suggested_fix: str
     risk: float  # 0.0 = safe, 1.0 = dangerous
-    pattern_id: str = field(default_factory=lambda: hashlib.md5().hexdigest()[:8])
+    pattern_id: str = ""
+
+    def __post_init__(self):
+        if not self.pattern_id:
+            data = f"{self.type}:{self.file}:{self.line}:{self.description}"
+            self.pattern_id = hashlib.md5(data.encode()).hexdigest()[:8]
 
 
 @dataclass
@@ -80,6 +87,7 @@ class EvolutionOrchestrator:
 
         self.engine = UniverseSimulationEngine()
         self.rewards = RewardSystem()
+        self.guard = CharterGuard()
 
         self._patterns: list[CodePattern] = []
         self._suggestions: list[EvolutionSuggestion] = []
@@ -323,6 +331,12 @@ class EvolutionOrchestrator:
 
         auto_suggestions = [s for s in self._suggestions if s.action == "auto_deploy"]
 
+        # Phase 5: Autonomous Skill Discovery
+        await self._precipitate_new_skills(dry_run=dry_run)
+        
+        # Phase 5: Autonomous Doc Offload
+        await self._autonomous_doc_offload()
+
         logger.info("\n" + "=" * 60)
         logger.info("🚀 AUTO-DEPLOYING SAFE CHANGES")
         logger.info("=" * 60)
@@ -352,6 +366,18 @@ class EvolutionOrchestrator:
                 )
                 report["changes_deployed"] += 1
             else:
+                # CharterGuard Check
+                is_aligned, justification = self.guard.validate_action(
+                    f"Auto-deploy fix: {pattern.description}",
+                    context=f"File: {pattern.file}, Fix: {pattern.suggested_fix}"
+                )
+                
+                if not is_aligned:
+                    logger.warning(f"   🛑 CharterGuard Rejected: {pattern.description}")
+                    logger.warning(f"      Reason: {justification}")
+                    report["changes_failed"] += 1
+                    continue
+
                 # Track in universe
                 journey = await self.engine.start_journey(
                     agent_name="EvolutionOrchestrator",
@@ -428,6 +454,77 @@ class EvolutionOrchestrator:
             "risk_threshold": self.risk_threshold,
             "auto_deploy_enabled": self.auto_deploy,
         }
+
+    async def _precipitate_new_skills(self, dry_run: bool = True) -> None:
+        """Analyze high-phi patterns and precipitate new skills."""
+        # Query high-phi knowledge from engine
+        # Deduplicate by description to avoid redundant skills per file
+        seen_patterns = set()
+        for pattern in self._patterns:
+            if pattern.type == "repeated_code" and pattern.risk < 0.2:
+                 if pattern.description not in seen_patterns:
+                     seen_patterns.add(pattern.description)
+                     skill_name = f"EXTRACTED_BLOCK_{pattern.pattern_id.upper()}"
+                     logger.info(f"✨ Precipitating new skill: {skill_name}")
+                     self._create_skill_file(skill_name, pattern, dry_run=dry_run)
+
+    def _create_skill_file(self, name: str, pattern: CodePattern, dry_run: bool = True) -> None:
+        """Create a new .md skill file and register it."""
+        if dry_run:
+            logger.info(f"   [DRY RUN] Would create skill: {name}")
+            return
+            
+        skill_dir = Path("src/cohezion/skills")
+        skill_dir.mkdir(parents=True, exist_ok=True)
+        filepath = skill_dir / f"{name}.md"
+        
+        content = (
+            f"# SKILL: {name}\n\n"
+            f"## DOMAIN EXPERTISE\nAutonomously extracted pattern for refactoring repeated code in {pattern.file}.\n\n"
+            f"## INSTRUCTION\n1. Identify block similar to lines {pattern.line}.\n2. Apply fix: {pattern.suggested_fix}.\n\n"
+            f"## VERSION\nv0.1 (AUTONOMOUS)"
+        )
+        
+        filepath.write_text(content)
+        
+        # Register in skill_registry
+        registry_path = Path("src/cohezion/registry/skill_registry.json")
+        if registry_path.exists():
+            registry = json.loads(registry_path.read_text())
+            registry[name] = {
+                "name": name,
+                "description": f"Extracted pattern: {pattern.description}",
+                "path": str(filepath),
+                "version": "0.1.0",
+                "last_updated": datetime.now().isoformat()
+            }
+            registry_path.write_text(json.dumps(registry, indent=4))
+
+    async def _autonomous_doc_offload(self) -> None:
+        """Collect all missing docstring patterns and offload them via batch_offload."""
+        doc_patterns = [p for p in self._patterns if p.type == "missing_docstring"]
+        if not doc_patterns:
+            return
+
+        logger.info(f"📝 Offloading {len(doc_patterns)} documentation tasks...")
+        
+        tasks = []
+        for i, p in enumerate(doc_patterns[:5]): # Batch limit for safety
+             tasks.append({
+                 "id": f"DOC_{i}_{p.pattern_id}",
+                 "query": f"Generate a concise docstring for this: {p.description}",
+                 "context": f"File: {p.file}, Line: {p.line}"
+             })
+             
+        # Call the batch_offload logic directly (since we are inside the same codebase)
+        # In a real tool call, this would go through the bridge
+        try:
+             from cohezion.skills.cohezion_mcp import CohezionMCP
+             bridge = CohezionMCP()
+             result = bridge.batch_offload(tasks, model="phi4")
+             logger.info(f"✅ Doc offload batch completed. Results: {result['content'][0]['text'][:200]}...")
+        except Exception as e:
+             logger.error(f"❌ Autonomous doc offload failed: {e}")
 
 
 async def main():

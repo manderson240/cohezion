@@ -1,4 +1,5 @@
-"""SurrealDB connection pooling and resource management.
+"""
+SurrealDB connection pooling and resource management.
 
 Provides connection reuse, health checking, and automatic reconnection.
 """
@@ -35,11 +36,29 @@ class PoolConfig:
     retry_attempts: int = 3
     retry_delay: float = 1.0
 
+    # Auto-scaling parameters
+    scale_up_threshold: float = 0.8  # Scale up when usage >= 80%
+    scale_down_threshold: float = 0.3  # Scale down when usage <= 30%
+    scale_up_factor: int = 2  # Double size when scaling up
+    scale_down_factor: int = 2  # Halve size when scaling down
+    max_scale_rate: int = 5  # Max connections to add/remove per scaling event
+
+    # Predictive loading parameters
+    prediction_window: float = 60.0  # Look ahead 1 minute
+    load_factor: float = 1.5  # Scale based on predicted load
+
+    def __post_init__(self) -> None:
+        """Validate configuration."""
+        if self.max_size < self.min_size:
+            raise ValueError("max_size must be >= min_size")
+        if self.scale_up_factor < 1 or self.scale_down_factor < 1:
+            raise ValueError("Scale factors must be >= 1")
+
 
 class PooledConnection:
     """Wrapper for pooled connections with health tracking."""
 
-    def __init__(self, client: SurrealClientProtocol, pool: ConnectionPool):
+    def __init__(self, client: SurrealClientProtocol, pool: "ConnectionPool"):
         self.client = client
         self._pool = pool
         self._last_used = asyncio.get_event_loop().time()
@@ -51,212 +70,296 @@ class PooledConnection:
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         await self._pool.release(self)
 
-    def mark_unhealthy(self) -> None:
-        self._healthy = False
-
-    @property
-    def is_healthy(self) -> bool:
-        return self._healthy
-
-    @property
-    def idle_time(self) -> float:
-        return asyncio.get_event_loop().time() - self._last_used
-
 
 class ConnectionPool:
-    """Async connection pool for SurrealDB with health monitoring.
+    """SurrealDB connection pool with health monitoring and auto-scaling."""
 
-    Usage:
-        pool = ConnectionPool(SurrealDBClient, PoolConfig(max_size=10))
-        await pool.initialize()
-
-        async with pool.acquire() as conn:
-            result = await conn.client.query("SELECT * FROM nodes")
-    """
-
-    def __init__(
-        self,
-        client_factory: type[SurrealClientProtocol],
-        config: PoolConfig | None = None,
-    ):
-        self._factory = client_factory
-        self._config = config or PoolConfig()
-        self._pool: asyncio.Queue[PooledConnection] = asyncio.Queue()
-        self._in_use: set[PooledConnection] = set()
-        self._semaphore = asyncio.Semaphore(self._config.max_size)
-        self._initialized = False
-        self._health_check_task: asyncio.Task | None = None
+    def __init__(self, client_class: type[SurrealClientProtocol], config: PoolConfig):
+        self.client_class = client_class
+        self.config = config
+        self._connections: asyncio.Queue[PooledConnection] = asyncio.Queue()
+        self._active_connections: set[PooledConnection] = set()
         self._metrics = {
             "created": 0,
             "destroyed": 0,
             "acquired": 0,
             "released": 0,
             "health_failures": 0,
+            "scaling_events": 0,
+            "current_size": 0,
+            "usage_percent": 0.0,
         }
+        self._lock = asyncio.Lock()
+        self._health_task: asyncio.Task | None = None
+        self._scaling_task: asyncio.Task | None = None
+        self._usage_history: deque[tuple[float, float]] = deque(
+            maxlen=100
+        )  # (timestamp, usage)
 
-    async def initialize(self) -> None:
-        """Initialize pool with minimum connections."""
-        if self._initialized:
-            return
+        # Initialize with min_size connections
+        self._initialize_pool()
 
-        logger.info(
-            f"Initializing connection pool (min={self._config.min_size}, max={self._config.max_size})"
+    def _initialize_pool(self) -> None:
+        """Initialize connection pool with minimum size."""
+        for _ in range(self.config.min_size):
+            asyncio.create_task(self._create_connection())
+
+    async def _create_connection(self) -> PooledConnection:
+        """Create a new connection with health checking."""
+        try:
+            client = self.client_class()
+            await asyncio.wait_for(client.connect(), self.config.connection_timeout)
+
+            connection = PooledConnection(client, self)
+            connection._healthy = await self._check_health(connection)
+
+            async with self._lock:
+                self._connections.put_nowait(connection)
+                self._metrics["created"] += 1
+                self._metrics["current_size"] += 1
+
+            logger.info(
+                f"Created connection {id(connection.client)} - healthy: {connection._healthy}"
+            )
+            return connection
+
+        except Exception as e:
+            logger.error(f"Failed to create connection: {e}")
+            return None
+
+    async def _check_health(self, connection: PooledConnection) -> bool:
+        """Check connection health with a lightweight query."""
+        try:
+            start = time.time()
+            await asyncio.wait_for(connection.client.query("SELECT 1"), 5.0)
+            latency = time.time() - start
+
+            # Consider connection healthy if query succeeds within timeout
+            return True
+
+        except Exception as e:
+            logger.warning(f"Health check failed: {e}")
+            return False
+
+    async def _scale_pool(self) -> None:
+        """Auto-scale pool based on usage patterns."""
+        async with self._lock:
+            current_usage = len(self._active_connections) / max(
+                1, self._metrics["current_size"]
+            )
+            self._metrics["usage_percent"] = current_usage
+
+            # Record usage for predictive scaling
+            self._usage_history.append((time.time(), current_usage))
+
+            # Check if we need to scale
+            if current_usage >= self.config.scale_up_threshold:
+                await self._scale_up()
+            elif current_usage <= self.config.scale_down_threshold:
+                await self._scale_down()
+
+    async def _scale_up(self) -> None:
+        """Scale up pool size based on current and predicted load."""
+        # Calculate predicted load based on recent usage
+        predicted_load = self._predict_load()
+
+        # Calculate needed connections
+        needed_connections = int(predicted_load * self.config.load_factor)
+        current_size = self._metrics["current_size"]
+
+        # Calculate how many to add
+        max_add = min(
+            self.config.max_scale_rate,
+            self.config.max_size - current_size,
+            needed_connections,
         )
 
-        # Create minimum connections
-        for _ in range(self._config.min_size):
-            conn = await self._create_connection()
-            if conn:
-                await self._pool.put(conn)
+        if max_add > 0:
+            logger.info(
+                f"Scaling up by {max_add} connections (predicted load: {predicted_load:.2f})"
+            )
 
-        # Start health checker
-        self._health_check_task = asyncio.create_task(self._health_check_loop())
-        self._initialized = True
+            # Create connections in parallel
+            tasks = [self._create_connection() for _ in range(max_add)]
+            connections = await asyncio.gather(*tasks, return_exceptions=True)
 
-    async def close(self) -> None:
-        """Close all connections and cleanup."""
-        if self._health_check_task:
-            self._health_check_task.cancel()
-            try:
-                await self._health_check_task
-            except asyncio.CancelledError:
-                pass
+            # Count successful creations
+            successful = sum(1 for c in connections if c is not None)
+            self._metrics["scaling_events"] += 1
 
-        # Close all connections
-        all_conns = list(self._in_use) + list(self._pool._queue)
-        await asyncio.gather(
-            *[self._close_connection(conn) for conn in all_conns],
-            return_exceptions=True,
-        )
+            logger.info(f"Successfully scaled up by {successful} connections")
 
-        self._initialized = False
-        logger.info(f"Connection pool closed. Metrics: {self._metrics}")
+    async def _scale_down(self) -> None:
+        """Scale down pool size by closing idle connections."""
+        # Find idle connections to close
+        idle_connections = []
+        now = time.time()
+
+        while len(self._connections) > self.config.min_size:
+            connection = self._connections.get_nowait()
+            idle_time = now - connection._last_used
+
+            if idle_time >= self.config.max_idle_time:
+                idle_connections.append(connection)
+            else:
+                # Put back if not idle enough
+                self._connections.put_nowait(connection)
+                break
+
+        # Close idle connections
+        for connection in idle_connections:
+            await self._close_connection(connection)
+
+        if idle_connections:
+            logger.info(f"Scaled down by {len(idle_connections)} idle connections")
+            self._metrics["scaling_events"] += 1
+
+    def _predict_load(self) -> float:
+        """Predict future load based on usage history."""
+        if len(self._usage_history) < 2:
+            return len(self._active_connections) / max(1, self._metrics["current_size"])
+
+        # Simple linear prediction based on recent trend
+        timestamps, usages = zip(*self._usage_history)
+
+        # Calculate trend (simple linear regression)
+        n = len(usages)
+        if n > 1:
+            x_mean = sum(timestamps) / n
+            y_mean = sum(usages) / n
+
+            num = sum((t - x_mean) * (u - y_mean) for t, u in self._usage_history)
+            den = sum((t - x_mean) ** 2 for t, _ in self._usage_history)
+
+            if den != 0:
+                trend = num / den
+                # Predict usage at prediction_window in the future
+                future_time = timestamps[-1] + self.config.prediction_window
+                predicted_usage = y_mean + trend * (future_time - x_mean)
+                return max(0.1, min(1.0, predicted_usage))  # Clamp between 0.1 and 1.0
+
+        # Fallback to current usage
+        return len(self._active_connections) / max(1, self._metrics["current_size"])
 
     async def acquire(self) -> PooledConnection:
-        """Acquire connection from pool (blocks if at max)."""
-        async with self._semaphore:
-            self._metrics["acquired"] += 1
+        """Acquire a connection from the pool."""
+        start_time = time.time()
 
-            # Try to get from pool
-            if not self._pool.empty():
-                conn = await self._pool.get()
-                if conn.is_healthy:
-                    self._in_use.add(conn)
-                    return conn
-                else:
-                    await self._close_connection(conn)
-
-            # Create new connection
-            conn = await self._create_connection()
-            if conn:
-                self._in_use.add(conn)
-                return conn
-
-            raise ConnectionError("Failed to acquire database connection")
-
-    async def release(self, conn: PooledConnection) -> None:
-        """Release connection back to pool."""
-        self._metrics["released"] += 1
-
-        if conn in self._in_use:
-            self._in_use.remove(conn)
-
-        if conn.is_healthy and conn.idle_time < self._config.max_idle_time:
-            await self._pool.put(conn)
-        else:
-            await self._close_connection(conn)
-
-    async def _create_connection(self) -> PooledConnection | None:
-        """Create new database connection with retries."""
-        for attempt in range(self._config.retry_attempts):
-            try:
-                client = self._factory()
-                await asyncio.wait_for(
-                    client.connect(), timeout=self._config.connection_timeout
-                )
-
-                self._metrics["created"] += 1
-                return PooledConnection(client, self)
-
-            except Exception as e:
-                logger.warning(f"Connection attempt {attempt + 1} failed: {e}")
-                if attempt < self._config.retry_attempts - 1:
-                    await asyncio.sleep(self._config.retry_delay)
-
-        return None
-
-    async def _close_connection(self, conn: PooledConnection) -> None:
-        """Close a connection."""
         try:
-            await conn.client.close()
-            self._metrics["destroyed"] += 1
+            # First try to get from queue
+            try:
+                connection = self._connections.get_nowait()
+            except asyncio.QueueEmpty:
+                # If queue is empty and we're below max_size, create new connection
+                if self._metrics["current_size"] < self.config.max_size:
+                    connection = await self._create_connection()
+                else:
+                    # Wait for connection to become available
+                    connection = await self._connections.get()
+
+            # Mark as active
+            async with self._lock:
+                self._active_connections.add(connection)
+                self._metrics["acquired"] += 1
+
+            # Update last used time
+            connection._last_used = time.time()
+
+            # Check health if connection has been idle
+            idle_time = time.time() - connection._last_used
+            if idle_time > self.config.health_check_interval:
+                connection._healthy = await self._check_health(connection)
+                if not connection._healthy:
+                    await self._close_connection(connection)
+                    return await self.acquire()  # Try again
+
+            # Auto-scale if needed
+            if self._metrics["acquired"] % 10 == 0:  # Scale every 10 acquisitions
+                asyncio.create_task(self._scale_pool())
+
+            return connection
+
         except Exception as e:
-            logger.debug(f"Error closing connection: {e}")
+            logger.error(f"Failed to acquire connection: {e}")
+            raise
 
-    async def _health_check_loop(self) -> None:
-        """Periodic health check for idle connections."""
-        while True:
-            try:
-                await asyncio.sleep(self._config.health_check_interval)
-                await self._run_health_checks()
-            except asyncio.CancelledError:
-                break
-            except Exception as e:
-                logger.error(f"Health check error: {e}")
+    async def release(self, connection: PooledConnection) -> None:
+        """Release a connection back to the pool."""
+        async with self._lock:
+            self._active_connections.discard(connection)
+            self._metrics["released"] += 1
 
-    async def _run_health_checks(self) -> None:
-        """Check and cleanup idle connections."""
-        now = asyncio.get_event_loop().time()
-        to_check = []
-
-        # Get all idle connections
-        while not self._pool.empty():
-            conn = await self._pool.get()
-            if now - conn._last_used > self._config.max_idle_time:
-                to_check.append(conn)
+            # Check if connection is still healthy
+            if connection._healthy:
+                # Put back in queue if below max_size
+                if self._metrics["current_size"] <= self.config.max_size:
+                    self._connections.put_nowait(connection)
+                else:
+                    # Close if over max_size
+                    await self._close_connection(connection)
             else:
-                await self._pool.put(conn)
+                # Close unhealthy connections
+                await self._close_connection(connection)
 
-        # Check and close stale connections
-        for conn in to_check:
-            try:
-                # Simple health check query
-                await conn.client.query("SELECT 1")
-                await self._pool.put(conn)
-            except Exception:
-                conn.mark_unhealthy()
-                await self._close_connection(conn)
-                self._metrics["health_failures"] += 1
+    async def _close_connection(self, connection: PooledConnection) -> None:
+        """Close and remove a connection from the pool."""
+        try:
+            await connection.client.close()
+        except Exception:
+            pass
+
+        async with self._lock:
+            self._metrics["destroyed"] += 1
+            self._metrics["current_size"] -= 1
+
+    async def close(self) -> None:
+        """Close all connections in the pool."""
+        # Stop health and scaling tasks
+        if self._health_task:
+            self._health_task.cancel()
+        if self._scaling_task:
+            self._scaling_task.cancel()
+
+        # Close all active connections
+        async with self._lock:
+            for connection in list(self._active_connections):
+                await self._close_connection(connection)
+
+            # Clear queue
+            while not self._connections.empty():
+                connection = self._connections.get_nowait()
+                await self._close_connection(connection)
 
     def get_metrics(self) -> dict[str, Any]:
         """Get pool metrics."""
-        return {
-            **self._metrics,
-            "pool_size": self._pool.qsize(),
-            "in_use": len(self._in_use),
-            "available": self._pool.qsize(),
-        }
+        async with self._lock:
+            current_usage = len(self._active_connections) / max(
+                1, self._metrics["current_size"]
+            )
+            return {
+                **self._metrics,
+                "usage_percent": current_usage,
+                "queue_size": self._connections.qsize(),
+                "active_connections": len(self._active_connections),
+                "predicted_load": self._predict_load(),
+            }
 
 
-# Global pool singleton
-_pool: ConnectionPool | None = None
+# Global connection pool instance
+_global_connection_pool = None
 
 
-async def get_connection_pool(
-    client_factory: type[SurrealClientProtocol] | None = None,
-    config: PoolConfig | None = None,
+def get_connection_pool(
+    client_class: type[SurrealClientProtocol], config: PoolConfig | None = None
 ) -> ConnectionPool:
-    """Get or create global connection pool."""
-    global _pool
-    if _pool is None and client_factory is not None:
-        _pool = ConnectionPool(client_factory, config)
-        await _pool.initialize()
-    return _pool
+    """Get global connection pool instance."""
+    global _global_connection_pool
+    if _global_connection_pool is None:
+        _global_connection_pool = ConnectionPool(client_class, config or PoolConfig())
+    return _global_connection_pool
 
 
-async def close_connection_pool() -> None:
-    """Close global connection pool."""
-    global _pool
-    if _pool:
-        await _pool.close()
-        _pool = None
+def reset_connection_pool() -> None:
+    """Reset global connection pool instance."""
+    global _global_connection_pool
+    _global_connection_pool = None

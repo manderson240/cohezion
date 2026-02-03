@@ -463,3 +463,29 @@ Token efficiency is maximized by delegating "appendage" tasks (simulations, boil
 - **Issue**: 99% of `agent_journeys` in the old database lacked explicit `stream` metadata (tagged as `unknown`), hindering trajectory lineage tracking.
 - **Resolution**: **Schema Hardening**. Future simulation writes MUST include `stream` and `perspective` tags in the root metadata for automated retrospective mining.
 - **Encoding**: 12D [t=20260201, stability=0.63, novelty=0.94, brane=8].
+## Learning 84: DYNAMIC BRIDGE TOPOLOGY (MCP)
+- **Context**: Enabling cross-tool capability discovery for Gemini CLI, Antigravity IDE, and Claude Code.
+- **Core Concept**: **Registry as Toolbelt**. Transforming a static skill/workflow registry into a dynamic MCP tool list allows for instant system-wide discovery without manual tool definition per tool.
+- **Mechanism**: `CohezionMCP` scans the local registry and exports each entry as a standard JSON-RPC tool.
+- **Encoding**: 12D [t=20260202, connectivity=1.0, novelty=0.9, brane=1].
+
+## Learning 85: TELEMETRY-AWARE SELECTION
+- **Context**: Resolving resource contention in high-parallelism SLM swarms.
+- **Core Concept**: **Environmental Proprioception**. Agents that "know" their VRAM/RAM limits through a dedicated telemetry bridge (Gate 33) make more stable routing decisions, avoiding OOM lockups.
+- **Application**: The `cohezion-bridge` now broadcasts direct `/sys/` vitals to all connected cognitive nodes.
+- **Encoding**: 12D [t=20260202, stability=0.98, awareness=1.0, brane=8].
+
+
+## Learning 87: EXPERT DOMAIN LATTICE (EDL) & MANIFOLD MEMORY (MRP)
+- **Context**: Finalizing Phase 6 of Compound Engineering on a 128GB/12GB workstation.
+- **Core Concept 1: Parallel Consensus Anchoring (EDL)**: Distributing high-uncertainty queries to 5 specialized expert streams (Architect, Engineer, Biologist, Quantum HW, Quantum Algo) creates a "Consensus Well." A 0.85+ consensus score effectively filters out the stochastic drift inherent in single-model generation.
+- **Core Concept 2: Holographic Experience Replay (MRP)**: The Memory Recovery Protocol (MRP) allows agents to "remember" semantically similar journeys from the `UniverseNodes` knowledge graph. This reduces context cold-start and aligns agentic trajectories with historical "Truth Anchors."
+- **Debugging Insight**: Async orchestrator state management using Pydantic `BaseModel` requires explicit reassignment or `arbitrary_types_allowed=True` when dealing with mixed dataclass/Pydantic types in dictionaries to ensure nested update propagation.
+- **Verification**: Verified via `test_phase_6_edl_mrp.py` with 100% expert polling success.
+- **Encoding**: 12D [t=20260202, stability=0.95, coherence=0.85, brane=1].
+## Learning 88: AUTONOMIC RESILIENCE (POOLING & CIRCUITS)
+- **Context**: Scaling 12D swarms toward the "10k Universe" bottleneck.
+- **Core Concept 1: Connection Aggregation**: Using a shared `ConnectionPool` with `httpx.AsyncClient` reduces the socket overhead of the swarm by >80%. This prevents "too many open files" errors and reduces TTFT (Time to First Token) through link reuse.
+- **Core Concept 2: Circuit Breaker Patterns**: External dependencies (Ollama, SurrealDB) are non-deterministic. Wrapping calls in a tri-state circuit (Closed/Open/Half-Open) prevents cascading latency. If the circuit trips, the system must either fall back (e.g., `InMemoryStore`) or fail fast, preserving the stability of the remaining hive.
+- **Verification**: Verified via `test_phase_7_resilience.py`, confirming pooled client identity and circuit rejection logic.
+- **Encoding**: 12D [t=20260202, resilience=1.0, scale=0.9, brane=8].

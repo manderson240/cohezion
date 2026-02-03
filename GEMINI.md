@@ -35,6 +35,11 @@ To maintain a lean context, historical and specialized information is stored in 
     - **Reward & Ratchet**: Economic ascension for successful agents/skills.
     - **JEPA World Model**: Meaning-based predictive trajectories.
     - **UCP/MCP Interoperability**: Protocol-sovereign commerce and context.
+    - **Compound Engineering Unification**: Unified model selection and telemetry via `cohezion-bridge`.
+
+## 6. Standard Operating Protocols
+- **Protocol: Hallucination Resolution**: Always invoke `resolve_claims` or `HallucinationResolver` to ground system specs in "Truth Anchors" (CPU: Ryzen AI Max, GPU: Radeon 8060S).
+- **Protocol: Local Offload**: Route all menial tasks (docs, formatting, basic summaries) to local SLMs via `ContextHarness` to preserve token credits.
 
 ## 5. Repository Layout & Key Locations
 Refer to [ARCHITECTURE.md](file:///home/mike-anderson/dev/cohezion/knowledge_graph/ARCHITECTURE.md) for the structural blueprint.

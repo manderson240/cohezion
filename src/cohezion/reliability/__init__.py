@@ -146,11 +146,13 @@ def get_circuit(
     failure_threshold: int = 5,
     recovery_timeout: float = 30.0,
 ) -> CircuitBreaker:
-    """Get or create a circuit breaker."""
     if name not in _circuits:
         _circuits[name] = CircuitBreaker(
             name=name,
             failure_threshold=failure_threshold,
             recovery_timeout=recovery_timeout,
         )
+    elif failure_threshold != 5:
+        _circuits[name].failure_threshold = failure_threshold
+    
     return _circuits[name]

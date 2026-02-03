@@ -196,9 +196,9 @@ class JourneyTracker:
             content=f"Journey for query: {journey.query}\nFinal Response: {journey.final_response}",
             node_type="journey",
             physics_state=PhysicsState(
-                coherence=journey.final_confidence,
+                control=journey.final_confidence,
                 time=journey.total_duration_ms / 1000.0,
-                connectivity=float(len(journey.steps)) / 10.0,
+                logic=float(len(journey.steps)) / 10.0,
             ),
             metadata=journey.to_dict(),
         )

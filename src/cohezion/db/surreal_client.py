@@ -9,6 +9,7 @@ Supports:
 """
 
 import asyncio
+from cohezion.reliability import get_circuit
 import base64
 import json
 import logging
@@ -257,6 +258,12 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
         Returns True if connected successfully.
         """
+        breaker = get_circuit("surrealdb", failure_threshold=5)
+        if not breaker.allow_request():
+            logger.warning("🛑 Circuit Open: SurrealDB connection rejected. Using fallback.")
+            self._use_fallback()
+            return True
+
         global _SHARED_STORE
         try:
             # Try to import surrealdb
@@ -278,21 +285,28 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             await self._client.signin({"username": "root", "password": "root"})
             await self._client.use(self.namespace, self.database)
             self._connected = True
+            breaker.record_success()
             logger.info(
                 f"✅ REAL CLIENT: Connected to SurrealDB at {self.url} ({self.namespace}/{self.database})"
             )
             return True
         except Exception as e:
+            breaker.record_failure()
             logger.error(
                 f"❌ Failed to connect to SurrealDB: {e}. Falling back to InMemoryStore."
             )
-            # Fall back to in-memory store
-            if _SHARED_STORE is None:
-                _SHARED_STORE = InMemoryStore()
-            self._client = _SHARED_STORE
-            self._connected = True
-            logger.warning("🔸 FALLBACK: Using InMemoryStore for persistence.")
+            self._use_fallback()
             return True
+
+    def _use_fallback(self):
+        """Enable in-memory fallback."""
+        global _SHARED_STORE
+        if _SHARED_STORE is None:
+            from cohezion.db.surreal_client import InMemoryStore
+            _SHARED_STORE = InMemoryStore()
+        self._client = _SHARED_STORE
+        self._connected = True
+        logger.warning("🔸 FALLBACK: Using InMemoryStore for persistence.")
 
     async def setup_schema(self) -> bool:
         """
@@ -364,6 +378,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
         if not self._connected:
             await self.connect()
 
+        breaker = get_circuit("surrealdb")
         try:
             if isinstance(self._client, InMemoryStore):
                 # Basic mock for mission/thought queries
@@ -491,9 +506,11 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return []
 
             res = await self._client.query(sql, vars)
+            breaker.record_success()
             logger.info(f"SurrealDB Response: {res}")
             return res
         except Exception as e:
+            breaker.record_failure()
             logger.error(f"Query failed: {e}")
             raise
 
