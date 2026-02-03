@@ -1,5 +1,5 @@
 import asyncio
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 
 async def check():
     client = SurrealClient()

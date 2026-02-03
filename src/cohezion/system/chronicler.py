@@ -4,7 +4,7 @@ import logging
 import time
 from datetime import datetime
 from pathlib import Path
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - [CHRONICLER] - %(message)s')
 logger = logging.getLogger("Chronicler")

@@ -10,7 +10,7 @@ import logging
 from typing import Any
 
 from cohezion.core.time_keeper import get_time_keeper
-from cohezion.swarm.agents.critic import CriticAgent
+from cohezion.agents.critic import CriticAgent
 from cohezion.swarm.swarm_types import Perspective, ThoughtVector
 
 logger = logging.getLogger(__name__)
@@ -108,7 +108,7 @@ class ActuatorSystem:
         import hashlib
         import time
 
-        from cohezion.db.surreal_client import SurrealClient
+        from cohezion.core.persistence.surreal_client import SurrealClient
 
         client = SurrealClient()
         await client.connect()

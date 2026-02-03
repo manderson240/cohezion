@@ -1,7 +1,7 @@
 import asyncio
 import json
 import logging
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("SurrealDeepDive")

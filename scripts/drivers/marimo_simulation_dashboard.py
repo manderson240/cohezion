@@ -14,7 +14,7 @@ def __():
     import json
     from datetime import datetime
     import time
-    from cohezion.db.surreal_client import SurrealClient, PhysicsState
+    from cohezion.core.persistence.surreal_client import SurrealClient, PhysicsState
     return PhysicsState, SurrealClient, asyncio, datetime, json, mo, np, pd, px, time
 
 

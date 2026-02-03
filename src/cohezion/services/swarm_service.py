@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-from cohezion.db.repositories.journey_repository import AgentJourney, JourneyMetrics
+from cohezion.core.persistence.repositories.journey_repository import AgentJourney, JourneyMetrics
 from cohezion.models.model_registry import ModelRegistry
 from cohezion.services.agent_service import AgentService
 from cohezion.services.knowledge_service import KnowledgeNode

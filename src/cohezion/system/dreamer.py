@@ -3,7 +3,7 @@ import asyncio
 import logging
 import random
 import json
-from cohezion.swarm.agents.base import BaseAgent
+from cohezion.agents.base import BaseAgent
 from cohezion.core.time_keeper import get_time_keeper
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - [DREAMER] - %(message)s')
@@ -76,7 +76,7 @@ class DreamerAgent(BaseAgent):
         insight_id = f"insight_{memory_a['id'].split(':')[-1]}_{memory_b['id'].split(':')[-1]}"
         
         # Store as an 'edge' or a new node type 'insight'
-        from cohezion.db.surreal_client import UniverseNode
+        from cohezion.core.persistence.surreal_client import UniverseNode
         
         node = UniverseNode(
             id=insight_id,

@@ -32,7 +32,7 @@ def __(mo):
 
 @app.cell
 async def __(re, np):
-    from cohezion.db.surreal_client import SurrealClient
+    from cohezion.core.persistence.surreal_client import SurrealClient
 
     async def get_high_fidelity_data():
         client = SurrealClient()

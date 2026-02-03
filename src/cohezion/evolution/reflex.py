@@ -5,7 +5,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from cohezion.db.admin import DBAdmin
+from cohezion.core.persistence.admin import DBAdmin
 from cohezion.reliability.monitor import get_resource_monitor
 # We will use BaseAgent's LLM capability via a specialized subclass or direct mixin later
 # For now, simplistic LLM call via Ollama direct to avoid circular imports if possible,

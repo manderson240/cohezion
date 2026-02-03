@@ -14,7 +14,7 @@ try:
     from cohezion.simulation.fractal_universe import FlumePhysics
     from cohezion.system.sensors.git_health import GitHealthSensor
     from cohezion.reliability.monitor import ResourceMonitor
-    from cohezion.db.admin import DBAdmin
+    from cohezion.core.persistence.admin import DBAdmin
 except ImportError as e:
     print(f"⚠️ Import Warning: {e}")
 

@@ -9,7 +9,7 @@ sys.path.insert(0, '/home/mike-anderson/dev/cohezion/src')
 
 import asyncio
 from datetime import datetime
-from cohezion.db.surreal_client import SurrealClient, UniverseNode, PhysicsState
+from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode, PhysicsState
 
 async def persist_learnings():
     """Save physics notebook learnings to SurrealDB."""

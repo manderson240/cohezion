@@ -7,7 +7,7 @@ from datetime import datetime
 
 sys.path.insert(0, "src")
 
-from cohezion.db.surreal_client import PhysicsState, SurrealClient, UniverseNode
+from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient, UniverseNode
 from cohezion.simulation.simulation_logger import SimulationLogger
 
 logging.basicConfig(level=logging.INFO)

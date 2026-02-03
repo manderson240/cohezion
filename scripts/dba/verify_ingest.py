@@ -5,7 +5,7 @@ from pathlib import Path
 
 # Add src to sys
 sys.path.append(str(Path.cwd() / "src"))
-from cohezion.db.admin import DBAdmin
+from cohezion.core.persistence.admin import DBAdmin
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 logger = logging.getLogger("Verifier")

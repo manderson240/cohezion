@@ -1,4 +1,4 @@
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 import asyncio
 
 async def test():

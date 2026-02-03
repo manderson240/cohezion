@@ -10,7 +10,7 @@ def __():
     import plotly.express as px
     import pandas as pd
     import numpy as np
-    from cohezion.db.surreal_client import SurrealClient
+    from cohezion.core.persistence.surreal_client import SurrealClient
     import asyncio
     from sklearn.decomposition import PCA
 

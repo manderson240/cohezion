@@ -2,7 +2,7 @@ import json
 import logging
 import asyncio
 from pathlib import Path
-from cohezion.db.surreal_client import SurrealClient, UniverseNode
+from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("SimulationIngestor")

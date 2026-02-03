@@ -58,6 +58,11 @@ async def main():
     logger.info(f"   Email: {args.email}")
 
     try:
+        import sys
+        import os
+
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
+
         from cohezion.swarm.autonomous_universe_mission import (
             AutonomousUniverseMission,
             TrackType,

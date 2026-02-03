@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.flume.alignment import LatentAligner
 from cohezion.flume.autoencoder import FlumeConfig, FlumeEncoder
 

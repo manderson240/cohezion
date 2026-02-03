@@ -231,27 +231,46 @@ class UniverseSimulationEngine:
     async def start_journey(
         self, agent_name: str, intent: str, context: dict[str, Any] | None = None
     ) -> UniverseJourney:
-        """Begin a new journey through the manifold.
-
-        Args:
-            agent_name: Name of the agent initiating journey
-            intent: The task/query to accomplish
-            context: Optional context (previous journeys, skills, etc.)
-
-        Returns:
-            UniverseJourney tracking object
-        """
+        """Begin a new journey through the manifold (GLE Mode)."""
         journey_id = f"journey_{int(time.time())}_{uuid4().hex[:8]}"
 
-        # Encode intent to 512D latent space
+        # 1. Encode intent
         encoder = await self._ensure_encoder()
         embedding = await encoder.encode(intent)
         latent = LatentState(
             embedding=embedding, semantic_intent=intent, confidence=0.7
         )
 
-        # Project to 12D axiomatic space
+        # 2. Project to 12D
         axiomatic = self._project_to_axiomatic(embedding, context)
+
+        # 3. Predict Initial World State (Genie Concept)
+        # Instead of just tracking, we 'Set the Scene'
+        from cohezion.core.multimodal_bridge import LOCAL_MULTIMODAL_BRIDGE
+        
+        # 1. Voice Narration
+        await LOCAL_MULTIMODAL_BRIDGE.schedule_asset(
+            "narrative", 
+            priority=1, 
+            payload={
+                "text": f"Initializing manifold journey for {agent_name}. Intent: {intent}",
+                "journey_id": journey_id
+            }
+        )
+
+        # 2. Hyper-Fidelity Storyboard
+        await LOCAL_MULTIMODAL_BRIDGE.schedule_asset(
+            "storyboard",
+            priority=2,
+            payload={
+                "journey_id": journey_id,
+                "prompts": [
+                    f"A crystalline 12D manifold representing {intent}",
+                    f"A glowing lattice nexus for {agent_name}",
+                    f"Filament evolution of {intent} in a latent void"
+                ]
+            }
+        )
 
         journey = UniverseJourney(
             id=journey_id,
@@ -261,11 +280,7 @@ class UniverseSimulationEngine:
             initial_latent=latent,
         )
 
-        logger.info(f"🌌 Universe journey started: {journey_id} by {agent_name}")
-        logger.info(f"   Intent: {intent[:60]}...")
-        logger.info(f"   Initial coherence: {axiomatic.coherence_score():.3f}")
-
-        # Persist to storage
+        logger.info(f"🌌 Genie-GLE Journey started: {journey_id} by {agent_name}")
         await self._persist_journey(journey)
 
         return journey

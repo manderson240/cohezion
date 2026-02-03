@@ -3,7 +3,7 @@ import logging
 import json
 import time
 from pathlib import Path
-from cohezion.db.surreal_client import SurrealClient, UniverseNode, PhysicsState
+from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode, PhysicsState
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("MissionCrawler")

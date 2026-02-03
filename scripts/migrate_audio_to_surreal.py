@@ -16,7 +16,7 @@ from pathlib import Path
 from datetime import datetime
 import re
 
-from cohezion.db.surreal_client import SurrealClient, UniverseNode, PhysicsState
+from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode, PhysicsState
 
 logger = logging.getLogger(__name__)
 

@@ -20,7 +20,7 @@ COMPONENTS = {
     "surrealdb": {
         "cmd_signature": "surreal",
         "port": 8000,
-        "start_cmd": ["surreal", "start", "--log", "debug", "--user", "root", "--pass", "root", "file:cohezion.db"],
+        "start_cmd": ["surreal", "start", "--log", "debug", "--user", "root", "--pass", "root", "file:cohezion.core.persistence"],
         "cwd": "."
     },
     "api": {

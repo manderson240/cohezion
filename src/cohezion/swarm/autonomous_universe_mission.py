@@ -32,7 +32,7 @@ from cohezion.swarm.mode_controller import (
     GovernanceMode,
     get_mode_controller,
 )
-from cohezion.swarm.agents.model_wrangler_agent import ModelWranglerAscended
+from cohezion.agents.model_wrangler_agent import ModelWranglerAscended
 
 # Optional imports (circular import safe)
 try:

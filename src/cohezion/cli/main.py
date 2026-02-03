@@ -13,14 +13,14 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
-from cohezion.db.repositories.surreal_journey_repository import SurrealJourneyRepository
-from cohezion.db.repositories.surreal_skill_repository import SurrealSkillRepository
-from cohezion.db.repositories.surreal_universe_repository import (
+from cohezion.core.persistence.repositories.surreal_journey_repository import SurrealJourneyRepository
+from cohezion.core.persistence.repositories.surreal_skill_repository import SurrealSkillRepository
+from cohezion.core.persistence.repositories.surreal_universe_repository import (
     SurrealUniverseRepository,
 )
 
 # Cohezion Imports
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.services.agent_service import AgentConfig, AgentService
 from cohezion.services.knowledge_service import KnowledgeService
 from cohezion.services.physics_service import PhysicsService
@@ -684,7 +684,7 @@ def universe_seed(
         service = PhysicsService(repo)
 
         # In a real impl, we'd use a dedicated UniverseService
-        from cohezion.db.repositories.universe_repository import (
+        from cohezion.core.persistence.repositories.universe_repository import (
             PhysicsState,
             UniverseNode,
         )

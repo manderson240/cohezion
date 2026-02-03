@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import List, Dict, Any
 from concurrent.futures import ThreadPoolExecutor
 
-from cohezion.db.admin import DBAdmin
+from cohezion.core.persistence.admin import DBAdmin
 
 # Logging
 logging.basicConfig(

@@ -13,7 +13,7 @@ from typing import Dict, Any, List
 # Add src to path to import cohezion modules
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../src"))
 
-from cohezion.db.surreal_client import SurrealClient, UniverseNode, PhysicsState
+from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode, PhysicsState
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(processName)s - %(message)s')

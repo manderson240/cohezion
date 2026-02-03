@@ -2,7 +2,7 @@ import asyncio
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path.cwd() / "src"))
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 
 async def main():
     db = SurrealClient()

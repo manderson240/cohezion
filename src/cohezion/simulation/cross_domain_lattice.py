@@ -16,7 +16,7 @@ from dataclasses import dataclass
 
 import torch
 
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.flume.autoencoder import FlumeEncoder
 
 # Configure logging

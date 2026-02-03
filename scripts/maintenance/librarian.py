@@ -3,7 +3,7 @@ import asyncio
 import logging
 import time
 from datetime import datetime, timedelta
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.core.time_keeper import get_time_keeper
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - [LIBRARIAN] - %(message)s')

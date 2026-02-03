@@ -14,7 +14,7 @@ import time
 from datetime import UTC, datetime
 from typing import Any
 
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 
 logger = logging.getLogger(__name__)
 

@@ -6,8 +6,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-from cohezion.db.repositories.skill_repository import Skill
-from cohezion.db.repositories.universe_repository import UniverseNode
+from cohezion.core.persistence.repositories.skill_repository import Skill
+from cohezion.core.persistence.repositories.universe_repository import UniverseNode
 
 logger = logging.getLogger(__name__)
 

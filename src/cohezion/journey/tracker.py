@@ -1,7 +1,7 @@
 
 import logging
 import datetime
-from cohezion.db.surreal_client import UniverseNode, SurrealClient
+from cohezion.core.persistence.surreal_client import UniverseNode, SurrealClient
 
 logger = logging.getLogger(__name__)
 

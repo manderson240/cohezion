@@ -1,5 +1,5 @@
 import asyncio
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 
 import logging
 # Configure Logging
@@ -23,7 +23,7 @@ async def main():
 
         # WRITE CHECK
         test_id = "test_verify"
-        from cohezion.db.surreal_client import UniverseNode
+        from cohezion.core.persistence.surreal_client import UniverseNode
         await db.store_node(UniverseNode(id=test_id, content="Verification Probe", node_type="probe"))
         print("Stored Probe.")
 

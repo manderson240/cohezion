@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from cohezion.swarm.agents.lab_agent import LabAgent
+from cohezion.agents.lab_agent import LabAgent
 
 logging.basicConfig(level=logging.INFO)
 

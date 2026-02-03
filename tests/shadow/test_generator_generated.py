@@ -1,13 +1,13 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from generator import MetaGenerator, _snake_case, _to_json
+from cohezion.meta.generator import MetaGenerator, _snake_case, _to_json
 
 @pytest.fixture
 def meta_generator():
     return MetaGenerator()
 
-@patch('generator.jinja2.Environment.get_template')
-@patch('generator.open', new_callable=MagicMock)
+@patch('cohezion.meta.generator.jinja2.Environment.get_template')
+@patch('cohezion.meta.generator.open', new_callable=MagicMock)
 def test_generate_agent(mock_open, mock_get_template, meta_generator):
     spec_path = Path('specs/research_agent.yaml')
     output_dir = Path('src/cohezion/agents/')
@@ -27,7 +27,7 @@ def test_generate_agent(mock_open, mock_get_template, meta_generator):
     mock_open.assert_called_once_with('src/cohezion/agents/research_agent.py', 'w')
     mock_open.return_value.__enter__.return_value.write.assert_called_once_with('Generated code')
 
-@patch('generator.jinja2.Environment.get_template')
+@patch('cohezion.meta.generator.jinja2.Environment.get_template')
 def test_generate_agent_exception(mock_get_template, meta_generator):
     spec_path = Path('specs/research_agent.yaml')
     output_dir = Path('src/cohezion/agents/')

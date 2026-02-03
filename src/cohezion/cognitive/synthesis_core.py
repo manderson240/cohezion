@@ -306,7 +306,7 @@ class SynthesisCore:
     async def _collect_universe_data(self) -> list[dict]:
         """Collect journey data from universe engine."""
         try:
-            from cohezion.db.surreal_client import SurrealClient
+            from cohezion.core.persistence.surreal_client import SurrealClient
 
             db = SurrealClient()
             await db.connect()

@@ -74,13 +74,15 @@ class ResourceMonitor:
         # 1. Kill runaway missions WITH PREJUDICE (SIGKILL)
         for proc in psutil.process_iter(["pid", "name", "cmdline"]):
             try:
-                cmdline = proc.info.get("cmdline", [])
+                cmdline = proc.info.get("cmdline")
+                if not cmdline:
+                    continue
                 cmd_str = " ".join(cmdline)
                 if (
-                    cmdline
-                    and "lab_driver.py" in cmd_str
+                    cmd_str
+                    and ("lab_driver.py" in cmd_str
                     or "fractal_nexus_mission.py" in cmd_str
-                    or "recursive_improvement_driver.py" in cmd_str
+                    or "recursive_improvement_driver.py" in cmd_str)
                 ):
                     logger.warning(
                         f"KILLED runaway process: {proc.info['pid']} ({cmd_str})"

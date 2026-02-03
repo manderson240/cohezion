@@ -2,7 +2,7 @@ import asyncio
 import logging
 import re
 from cohezion.system.sheet_sync import SheetSyncAgent
-from cohezion.db.surreal_client import SurrealClient, UniverseNode, PhysicsState
+from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode, PhysicsState
 from cohezion.cosmic.knowledge_mapper import KnowledgeMapper
 
 # Configure Logging

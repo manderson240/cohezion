@@ -5,12 +5,12 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-from cohezion.db.repositories.journey_repository import (
+from cohezion.core.persistence.repositories.journey_repository import (
     AgentJourney,
     JourneyMetrics,
     JourneyStep,
 )
-from cohezion.db.repositories.universe_repository import PhysicsState
+from cohezion.core.persistence.repositories.universe_repository import PhysicsState
 
 logger = logging.getLogger(__name__)
 

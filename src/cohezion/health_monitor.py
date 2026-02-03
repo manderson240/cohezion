@@ -339,7 +339,7 @@ class SelfHealingEngine:
         logger.warning("🚑 Healing memory pressure: Evicting non-critical models")
 
         try:
-            from cohezion.swarm.agents.model_wrangler_agent import ModelWranglerAscended
+            from cohezion.agents.model_wrangler_agent import ModelWranglerAscended
 
             wrangler = ModelWranglerAscended()
             await wrangler._proactive_eviction()

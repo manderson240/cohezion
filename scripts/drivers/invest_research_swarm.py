@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import random
 
-from cohezion.db.surreal_client import SurrealClient, UniverseNode, PhysicsState
+from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode, PhysicsState
 from cohezion.mcp.email_notifier import EmailNotifier
 
 logging.basicConfig(

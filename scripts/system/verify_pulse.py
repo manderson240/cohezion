@@ -5,7 +5,7 @@ import sys
 import os
 
 sys.path.append(os.path.abspath("src"))
-from cohezion.db.admin import DBAdmin
+from cohezion.core.persistence.admin import DBAdmin
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("PulseVerify")

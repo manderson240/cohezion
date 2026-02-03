@@ -3,7 +3,7 @@ import asyncio
 import logging
 import re
 from pathlib import Path
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - [DIPLOMAT] - %(message)s')
 logger = logging.getLogger("Diplomat")

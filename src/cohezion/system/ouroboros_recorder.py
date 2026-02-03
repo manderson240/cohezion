@@ -19,7 +19,7 @@ from typing import Any
 from datetime import datetime
 from pathlib import Path
 
-from cohezion.db.admin import DBAdmin
+from cohezion.core.persistence.admin import DBAdmin
 from cohezion.reliability.monitor import get_resource_monitor
 from cohezion.swarm.git_health import get_repo_bloat
 

@@ -9,7 +9,7 @@ from pathlib import Path
 
 # Add src to sys.path to find DBAdmin
 sys.path.append(str(Path.cwd() / "src"))
-from cohezion.db.admin import DBAdmin
+from cohezion.core.persistence.admin import DBAdmin
 
 # Config
 BATCH_SIZE = 2000

@@ -2,7 +2,7 @@
 import logging
 import datetime
 from typing import List, Dict
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 
 logger = logging.getLogger(__name__)
 

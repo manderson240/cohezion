@@ -2,7 +2,7 @@ import asyncio
 import os
 import shutil
 from pathlib import Path
-from cohezion.swarm.agents.lab_agent import LabAgent
+from cohezion.agents.lab_agent import LabAgent
 from cohezion.simulation.simulation_logger import SimulationLogger
 
 async def verify_integration():

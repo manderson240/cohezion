@@ -75,7 +75,7 @@ def get_git_history(
 async def get_journey_history() -> list[dict[str, Any]]:
     """Query journey history from SurrealDB."""
     try:
-        from cohezion.db.surreal_client import SurrealClient
+        from cohezion.core.persistence.surreal_client import SurrealClient
 
         db = SurrealClient()
         await db.connect()
