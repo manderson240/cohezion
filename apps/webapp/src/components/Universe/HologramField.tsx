@@ -130,10 +130,34 @@ const NodePoints = ({ nodes, workerData }: { nodes: any[], workerData: any }) =>
     );
 };
 
+import { useHomeostasisHarmonics } from '../../hooks/useHomeostasisHarmonics';
+
 export const HologramField = () => {
     const [nodes, setNodes] = React.useState<any[]>([]);
     const [lodTier, setLodTier] = React.useState(LOD_TIERS.ULTRA);
+    const [audioActive, setAudioActive] = React.useState(false);
+    const [narrative, setNarrative] = React.useState<string>("Initializing manifold...");
     const { workerRef, workerState } = useAxiomaticWorker();
+
+    // Global coherence average for sonification
+    const avgCoherence = useMemo(() => {
+        if (nodes.length === 0) return 0.5;
+        const sum = nodes.reduce((acc, node) => acc + (node.coherence || 0.5), 0);
+        return sum / nodes.length;
+    }, [nodes]);
+
+    useHomeostasisHarmonics(avgCoherence, audioActive);
+
+    // Listen for narrative precipitation (mocked for demo, would come from stream)
+    React.useEffect(() => {
+        const interval = setInterval(() => {
+            if (nodes.length > 0) {
+                const randomNode = nodes[Math.floor(Math.random() * nodes.length)];
+                setNarrative(`PRECIPITATING: ${randomNode.agent_name || 'Agent'} is navigating ${randomNode.intent || 'the manifold'}. Coherence: ${randomNode.coherence?.toFixed(3)}`);
+            }
+        }, 5000);
+        return () => clearInterval(interval);
+    }, [nodes]);
 
     React.useEffect(() => {
         const fetchUniverse = async () => {
@@ -217,6 +241,18 @@ export const HologramField = () => {
                 />
             </Canvas>
 
+            <div className="absolute inset-0 pointer-events-none z-10 flex flex-col p-8 font-mono">
+                {/* Top Narrative Overlay */}
+                <div className="w-full max-w-2xl bg-black/40 border-l-2 border-nexus-green p-4 backdrop-blur-md">
+                    <div className="text-nexus-green text-[10px] uppercase tracking-widest mb-1 opacity-60">Sovereign Narrative</div>
+                    <div className="text-white text-xs leading-relaxed animate-pulse">
+                        {narrative}
+                    </div>
+                </div>
+
+                <div className="flex-1" />
+            </div>
+
             <div className="absolute top-6 left-6 pointer-events-none font-mono">
                 <div className="text-nexus-green text-xs opacity-60 tracking-[0.2em] uppercase mb-1">
                     Axiomatic Manifold [12:512]
@@ -227,6 +263,18 @@ export const HologramField = () => {
                 <div className="text-white text-[10px] opacity-40 mt-1">
                     Nodes: {nodes.length} | Coherence Range: 0.5 \u00B1 0.2
                 </div>
+            </div>
+
+            <div className="absolute bottom-6 right-6">
+                <button
+                    onClick={() => setAudioActive(!audioActive)}
+                    className={`px-4 py-2 border font-mono text-[10px] transition-all ${audioActive
+                        ? 'bg-nexus-green/20 border-nexus-green text-nexus-green'
+                        : 'bg-white/10 border-white/30 text-white/50 hover:bg-white/20'
+                        }`}
+                >
+                    🔊 HIHO SONIFICATION: {audioActive ? 'ON' : 'OFF'}
+                </button>
             </div>
         </div>
     );

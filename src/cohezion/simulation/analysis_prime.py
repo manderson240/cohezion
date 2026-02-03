@@ -34,7 +34,7 @@ class SimulationAnalyzer:
             df = dataset.to_pandas()
 
             # Load QFTDHD Optimization Data from SurrealDB
-            from cohezion.db.surreal_client import SurrealClient
+            from cohezion.core.persistence.surreal_client import SurrealClient
 
             client = SurrealClient()
             if await client.connect():

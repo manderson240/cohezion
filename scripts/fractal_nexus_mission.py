@@ -27,7 +27,7 @@ from cohezion.monitoring.ratchet_monitor import RatchetMonitor, SystemVitals
 from cohezion.swarm.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
 from cohezion.swarm.journey_tracker import get_journey_tracker, AgentType, JourneyMetrics
-from cohezion.db.surreal_client import SurrealClient, UniverseNode, PhysicsState
+from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode, PhysicsState
 from cohezion.mcp.email_notifier import EmailNotifier
 
 # Setup Logging

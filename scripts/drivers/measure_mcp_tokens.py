@@ -30,7 +30,7 @@ print(f"Token Reduction: {((t1-t2)/t1)*100:.1f}%")
 # Scenario 2: Complex Graph Traversal in SurrealDB
 manual_sql_code = """
 import asyncio
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 async def traverse():
     c = SurrealClient()
     await c.connect()

@@ -250,7 +250,7 @@ class SelfImprovementOrchestrator:
         if cycle.score >= 0.85:
             # INTEGRATION: Interactive Reporter (formerly Zombie)
             if self._reporter is None:
-                from cohezion.swarm.agents.reporter import InteractiveReportAgent
+                from cohezion.agents.reporter import InteractiveReportAgent
 
                 self._reporter = InteractiveReportAgent()
 
@@ -261,7 +261,7 @@ class SelfImprovementOrchestrator:
             # INTEGRATION: Adversarial Critic (formerly Zombie) to verify robustness (Gateway 8)
             # INTEGRATION: Critic Agent for logic verification (Gateway 8/15)
             if self._critic is None:
-                from cohezion.swarm.agents.critic import CriticAgent
+                from cohezion.agents.critic import CriticAgent
 
                 self._critic = CriticAgent()
 

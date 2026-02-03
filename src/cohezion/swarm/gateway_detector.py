@@ -314,7 +314,7 @@ async def celebrate_gateway_unlock(gateway: GatewayCandidate) -> None:
 
     # 1. Persistence (SurrealDB)
     try:
-        from cohezion.db.surreal_client import SurrealClient
+        from cohezion.core.persistence.surreal_client import SurrealClient
 
         client = SurrealClient()
         if await client.connect():

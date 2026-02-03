@@ -2,7 +2,7 @@ import asyncio
 import logging
 from pathlib import Path
 from cohezion.simulation.enhanced_simulator import EnhancedSimulator
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("VerifyPersistence")

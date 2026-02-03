@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
-from cohezion.db.surreal_client import SurrealClient, UniverseNode
+from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode
 from cohezion.swarm.agents.base import BaseAgent  # Reuse BaseAgent for summary
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - [COMPRESSOR] - %(message)s')

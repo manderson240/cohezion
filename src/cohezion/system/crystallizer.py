@@ -3,7 +3,7 @@ import os
 import logging
 from pathlib import Path
 from typing import Optional, Tuple
-from cohezion.swarm.agents.base import BaseAgent
+from cohezion.agents.base import BaseAgent
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")

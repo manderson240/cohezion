@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Any
 
-from cohezion.db.admin import DBAdmin
+from cohezion.core.persistence.admin import DBAdmin
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")

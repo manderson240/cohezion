@@ -2,7 +2,7 @@
 import asyncio
 import sys
 import pprint
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 
 async def run_query(q_str):
     c = SurrealClient()

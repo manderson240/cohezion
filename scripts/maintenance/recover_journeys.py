@@ -5,7 +5,7 @@ import re
 import os
 from pathlib import Path
 from datetime import datetime, UTC
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 
 # Configure Logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")

@@ -285,7 +285,7 @@ class AgentFactory:
             module_name = py_file.stem
 
             try:
-                module_path = f"cohezion.swarm.agents.{module_name}"
+                module_path = f"cohezion.agents.{module_name}"
                 importlib.import_module(module_path)
             except ImportError as e:
                 logger.debug(f"Could not import {module_name}: {e}")

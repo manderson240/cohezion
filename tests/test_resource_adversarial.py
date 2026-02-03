@@ -3,7 +3,7 @@ import time
 import pytest
 from unittest.mock import MagicMock, patch
 from cohezion.reliability.monitor import get_resource_monitor
-from cohezion.swarm.agents.base import BaseAgent
+from cohezion.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
 
 class MockAgent(BaseAgent):

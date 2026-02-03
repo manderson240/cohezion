@@ -1,9 +1,9 @@
 import asyncio
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 
 import asyncio
 from datetime import datetime
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 
 async def repair():
     c = SurrealClient()

@@ -5,7 +5,7 @@ import json
 import math
 import time
 from pathlib import Path
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - [VISUAL_CORTEX] - %(message)s')
 logger = logging.getLogger("VisualCortex")

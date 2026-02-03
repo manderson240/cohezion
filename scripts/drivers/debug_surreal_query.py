@@ -1,6 +1,6 @@
 import asyncio
 import json
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 
 async def debug():
     c = SurrealClient()

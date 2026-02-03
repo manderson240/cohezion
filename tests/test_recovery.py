@@ -2,7 +2,7 @@ import asyncio
 import pytest
 from unittest.mock import AsyncMock, patch
 from pathlib import Path
-from cohezion.swarm.agents.base import BaseAgent
+from cohezion.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
 
 @pytest.mark.anyio
@@ -10,7 +10,7 @@ async def test_mrp_synchronization():
     """Test that the agent attempts to synchronize on startup."""
     config = SwarmConfig(mrp_sync=True)
 
-    with patch("cohezion.swarm.agents.base.SurrealClient") as mock_db_class:
+    with patch("cohezion.agents.base.SurrealClient") as mock_db_class:
         mock_db = mock_db_class.return_value
         mock_db.query = AsyncMock(return_value=[{
             "timestamp": "2026-01-20T23:00:00",
@@ -38,7 +38,7 @@ async def test_mrp_pulse_loop():
     # Use a very short interval for test (0.0001 minutes = 0.006 seconds)
     config = SwarmConfig(mrp_sync=True, mrp_pulse_interval_minutes=0.0001)
 
-    with patch("cohezion.swarm.agents.base.SurrealClient") as mock_db_class:
+    with patch("cohezion.agents.base.SurrealClient") as mock_db_class:
         mock_db = mock_db_class.return_value
         mock_db.query = AsyncMock(return_value=[])
         mock_db.store_node = AsyncMock()

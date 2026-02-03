@@ -11,15 +11,21 @@
     "last_updated": "2026-02-02",
     "constitution_version": "v1.0"
   },
-
   "system_modes": {
     "conservative": {
       "description": "24/7 background operation - HIHO Stable",
       "trigger": "default_idle",
       "memory_budget_gb": 30,
       "target_coherence": 0.5,
-      "models": ["phi4:mini", "gemma3:1b", "deepseek-r1-distill:8b", "qwen3-coder:30b"],
-      "multimodal": ["pocket-tts"],
+      "models": [
+        "phi4:mini",
+        "gemma3:1b",
+        "deepseek-r1-distill:8b",
+        "qwen3-coder:30b"
+      ],
+      "multimodal": [
+        "pocket-tts"
+      ],
       "context_tier": 2,
       "max_context": 32768,
       "auto_scale": false,
@@ -27,14 +33,21 @@
       "buffer_gb": 85,
       "purpose": "Background tasks, monitoring, recursive improvement, compound engineering"
     },
-    
     "performance": {
       "description": "Heavy LLM workloads - Maximum Reasoning",
       "trigger": "complex_coding_analysis",
       "memory_budget_gb": 70,
       "target_coherence": 0.5,
-      "models": ["qwen3-coder:30b", "phi4", "deepseek-r1-distill:8b", "llama4-scout", "mistral-small-3"],
-      "multimodal": ["pocket-tts"],
+      "models": [
+        "qwen3-coder:30b",
+        "phi4",
+        "deepseek-r1-distill:8b",
+        "llama4-scout",
+        "mistral-small-3"
+      ],
+      "multimodal": [
+        "pocket-tts"
+      ],
       "context_tier": 1,
       "max_context": 131072,
       "auto_scale": true,
@@ -42,14 +55,21 @@
       "buffer_gb": 45,
       "purpose": "Multi-file analysis, architecture design, system planning, heavy reasoning"
     },
-    
     "image_work": {
       "description": "Visual asset generation - Creative Mode",
       "trigger": "image_generation_batch",
       "memory_budget_gb": 45,
       "target_coherence": 0.5,
-      "models": ["qwen3-coder:30b", "gemma3:4b", "phi4:mini"],
-      "multimodal": ["pocket-tts", "flux2-klein-9b", "flux2-klein-4b"],
+      "models": [
+        "qwen3-coder:30b",
+        "gemma3:4b",
+        "phi4:mini"
+      ],
+      "multimodal": [
+        "pocket-tts",
+        "flux2-klein-9b",
+        "flux2-klein-4b"
+      ],
       "context_tier": 2,
       "max_context": 32768,
       "auto_scale": true,
@@ -57,14 +77,19 @@
       "buffer_gb": 65,
       "purpose": "UI design, asset generation, visual prototyping, image editing"
     },
-    
     "video_work": {
       "description": "Video content creation - Motion Design",
       "trigger": "video_generation_request",
       "memory_budget_gb": 55,
       "target_coherence": 0.5,
-      "models": ["qwen3-coder:30b", "gemma3:4b"],
-      "multimodal": ["pocket-tts", "wan-2.1-5b"],
+      "models": [
+        "qwen3-coder:30b",
+        "gemma3:4b"
+      ],
+      "multimodal": [
+        "pocket-tts",
+        "wan-2.1-5b"
+      ],
       "context_tier": 2,
       "max_context": 32768,
       "auto_scale": true,
@@ -72,14 +97,23 @@
       "buffer_gb": 55,
       "purpose": "Video generation, animation, motion design, temporal creativity"
     },
-    
     "full_multimodal": {
       "description": "All modalities active - Maximum Capability",
       "trigger": "complex_creative_project",
       "memory_budget_gb": 95,
       "target_coherence": 0.5,
-      "models": ["qwen3-coder:30b", "phi4", "deepseek-r1-distill:8b", "llama4-scout", "gemma3:12b"],
-      "multimodal": ["pocket-tts", "flux2-klein-9b", "wan-2.1-5b"],
+      "models": [
+        "qwen3-coder:30b",
+        "phi4",
+        "deepseek-r1-distill:8b",
+        "llama4-scout",
+        "gemma3:12b"
+      ],
+      "multimodal": [
+        "pocket-tts",
+        "flux2-klein-9b",
+        "wan-2.1-5b"
+      ],
       "context_tier": 2,
       "max_context": 65536,
       "auto_scale": false,
@@ -89,15 +123,20 @@
       "warning": "High memory usage - monitor closely"
     }
   },
-
   "mode_switching_policy": {
     "automatic": {
-      "allowed_modes": ["conservative", "performance"],
+      "allowed_modes": [
+        "conservative",
+        "performance"
+      ],
       "threshold_improvement": 0.10,
       "max_switch_frequency": "30s"
     },
     "advisory": {
-      "modes_requiring_confirmation": ["video_work", "full_multimodal"],
+      "modes_requiring_confirmation": [
+        "video_work",
+        "full_multimodal"
+      ],
       "notification_method": "system_log",
       "timeout_seconds": 30
     },
@@ -113,27 +152,39 @@
       }
     }
   },
-
   "models": {
     "language_models": {
-      "phi4:mini": {
+      "phi4-256k:latest": {
         "role": "core",
         "category": "language",
-        "parameters": "3.8B",
-        "context": 8192,
-        "memory_gb": 0.8,
-        "quantization": "Q5_K_M",
-        "specialization": "ultra_fast_routing",
+        "parameters": "14B",
+        "context": 256000,
+        "memory_gb": 9.1,
+        "quantization": "Q4_K_M",
+        "specialization": "reasoning",
         "priority": 1,
         "tier": 1,
-        "description": "Ultra-fast router - CPU-efficient instruction following",
-        "use_cases": ["routing", "classification", "quick_generation", "high_throughput"],
-        "capabilities": ["fast_inference", "low_latency", "instruction_following"],
+        "description": "256k Optimized Reasoning & Routing",
+        "use_cases": [
+          "routing",
+          "reasoning",
+          "long_context_analysis"
+        ],
+        "capabilities": [
+          "fast_inference",
+          "high_context",
+          "instruction_following"
+        ],
         "always_hot": true,
-        "available_modes": ["conservative", "performance", "image_work", "video_work", "full_multimodal"],
+        "available_modes": [
+          "conservative",
+          "performance",
+          "image_work",
+          "video_work",
+          "full_multimodal"
+        ],
         "tip_of_spear": true
       },
-
       "deepseek-r1-distill:8b": {
         "role": "core",
         "category": "language",
@@ -145,38 +196,67 @@
         "priority": 1,
         "tier": 1,
         "description": "RL-based chain-of-thought reasoning specialist",
-        "use_cases": ["complex_problem_solving", "mathematical_reasoning", "code_reasoning", "chain_of_thought"],
-        "capabilities": ["reasoning", "mathematical_computation", "logical_analysis", "verifiable_rewards"],
+        "use_cases": [
+          "complex_problem_solving",
+          "mathematical_reasoning",
+          "code_reasoning",
+          "chain_of_thought"
+        ],
+        "capabilities": [
+          "reasoning",
+          "mathematical_computation",
+          "logical_analysis",
+          "verifiable_rewards"
+        ],
         "always_hot": true,
-        "available_modes": ["conservative", "performance", "full_multimodal"],
+        "available_modes": [
+          "conservative",
+          "performance",
+          "full_multimodal"
+        ],
         "tip_of_spear": true
       },
-
-      "qwen3-coder:30b": {
+      "qwen3-coder-256k:latest": {
         "role": "core",
         "category": "language",
         "parameters": "30B",
-        "context": 65536,
-        "memory_gb": 16.0,
+        "context": 256000,
+        "memory_gb": 18.0,
         "context_tiers": {
-          "conservative": 32768,
-          "performance": 65536,
-          "image_work": 32768,
-          "video_work": 32768,
-          "full_multimodal": 65536
+          "conservative": 65536,
+          "performance": 256000,
+          "image_work": 65536,
+          "video_work": 65536,
+          "full_multimodal": 256000
         },
         "quantization": "Q4_K_M",
         "specialization": "coding",
         "priority": 1,
         "tier": 1,
-        "description": "SOTA coding specialist - 92+ HumanEval, multilingual",
-        "use_cases": ["complex_coding", "multi_file_refactoring", "architecture_design", "code_review"],
-        "capabilities": ["code_generation", "debugging", "refactoring", "optimization", "multilingual_code"],
+        "description": "256k Optimized Coding Specialist",
+        "use_cases": [
+          "complex_coding",
+          "multi_file_refactoring",
+          "architecture_design",
+          "code_review"
+        ],
+        "capabilities": [
+          "code_generation",
+          "debugging",
+          "refactoring",
+          "optimization",
+          "multilingual_code"
+        ],
         "always_hot": true,
-        "available_modes": ["conservative", "performance", "image_work", "video_work", "full_multimodal"],
+        "available_modes": [
+          "conservative",
+          "performance",
+          "image_work",
+          "video_work",
+          "full_multimodal"
+        ],
         "tip_of_spear": true
       },
-
       "phi4": {
         "role": "specialized",
         "category": "language",
@@ -192,13 +272,24 @@
         "priority": 2,
         "tier": 2,
         "description": "Microsoft's 'Tiny Giant' - 3.8B-level efficiency in 14B",
-        "use_cases": ["advanced_routing", "reasoning", "instruction_following", "analysis"],
-        "capabilities": ["logical_reasoning", "fast_inference", "high_quality_output"],
+        "use_cases": [
+          "advanced_routing",
+          "reasoning",
+          "instruction_following",
+          "analysis"
+        ],
+        "capabilities": [
+          "logical_reasoning",
+          "fast_inference",
+          "high_quality_output"
+        ],
         "always_hot": false,
-        "available_modes": ["performance", "full_multimodal"],
+        "available_modes": [
+          "performance",
+          "full_multimodal"
+        ],
         "tip_of_spear": true
       },
-
       "llama4-scout": {
         "role": "specialized",
         "category": "language",
@@ -214,13 +305,26 @@
         "priority": 2,
         "tier": 2,
         "description": "GPT-4 level generalist - Meta's SOTA small model",
-        "use_cases": ["general_purpose", "complex_analysis", "planning", "creative_writing"],
-        "capabilities": ["reasoning", "analysis", "planning", "consistency", "open_weights"],
+        "use_cases": [
+          "general_purpose",
+          "complex_analysis",
+          "planning",
+          "creative_writing"
+        ],
+        "capabilities": [
+          "reasoning",
+          "analysis",
+          "planning",
+          "consistency",
+          "open_weights"
+        ],
         "always_hot": false,
-        "available_modes": ["performance", "full_multimodal"],
+        "available_modes": [
+          "performance",
+          "full_multimodal"
+        ],
         "tip_of_spear": true
       },
-
       "mistral-small-3": {
         "role": "specialized",
         "category": "language",
@@ -236,13 +340,25 @@
         "priority": 2,
         "tier": 2,
         "description": "Enterprise RAG specialist - 128K native context",
-        "use_cases": ["document_processing", "rag_workflows", "long_context_tasks", "enterprise_analysis"],
-        "capabilities": ["long_context", "document_understanding", "synthesis", "enterprise_grade"],
+        "use_cases": [
+          "document_processing",
+          "rag_workflows",
+          "long_context_tasks",
+          "enterprise_analysis"
+        ],
+        "capabilities": [
+          "long_context",
+          "document_understanding",
+          "synthesis",
+          "enterprise_grade"
+        ],
         "always_hot": false,
-        "available_modes": ["performance", "full_multimodal"],
+        "available_modes": [
+          "performance",
+          "full_multimodal"
+        ],
         "tip_of_spear": true
       },
-
       "gemma3:1b": {
         "role": "specialized",
         "category": "language",
@@ -254,32 +370,53 @@
         "priority": 2,
         "tier": 3,
         "description": "Ultra-lightweight classification and simple tasks",
-        "use_cases": ["classification", "simple_summarization", "fast_filtering"],
-        "capabilities": ["edge_device_speed", "minimal_memory", "basic_tasks"],
+        "use_cases": [
+          "classification",
+          "simple_summarization",
+          "fast_filtering"
+        ],
+        "capabilities": [
+          "edge_device_speed",
+          "minimal_memory",
+          "basic_tasks"
+        ],
         "always_hot": true,
-        "available_modes": ["conservative"],
+        "available_modes": [
+          "conservative"
+        ],
         "tip_of_spear": true
       },
-
-      "gemma3:4b": {
+      "gemma3-4b-256k:latest": {
         "role": "specialized",
         "category": "multimodal",
         "parameters": "4B",
-        "context": 32768,
-        "memory_gb": 2.0,
+        "context": 256000,
+        "memory_gb": 3.3,
         "quantization": "Q5_K_M",
         "specialization": "vision_language",
         "priority": 2,
         "tier": 3,
-        "description": "Vision-Language model - Multimodal understanding",
-        "use_cases": ["image_understanding", "visual_qa", "multimodal_analysis", "vision_tasks"],
-        "capabilities": ["vision", "text_understanding", "multimodal", "fast_inference"],
+        "description": "256k Optimized Vision-Language",
+        "use_cases": [
+          "image_understanding",
+          "visual_qa",
+          "multimodal_analysis",
+          "vision_tasks"
+        ],
+        "capabilities": [
+          "vision",
+          "text_understanding",
+          "multimodal",
+          "fast_inference"
+        ],
         "always_hot": false,
-        "available_modes": ["image_work", "video_work"],
+        "available_modes": [
+          "image_work",
+          "video_work"
+        ],
         "tip_of_spear": true,
         "multimodal": true
       },
-
       "gemma3:12b": {
         "role": "specialized",
         "category": "multimodal",
@@ -291,15 +428,25 @@
         "priority": 2,
         "tier": 3,
         "description": "Advanced Vision-Language - Complex multimodal tasks",
-        "use_cases": ["complex_image_analysis", "document_understanding", "multimodal_reasoning"],
-        "capabilities": ["advanced_vision", "reasoning", "multimodal", "high_quality"],
+        "use_cases": [
+          "complex_image_analysis",
+          "document_understanding",
+          "multimodal_reasoning"
+        ],
+        "capabilities": [
+          "advanced_vision",
+          "reasoning",
+          "multimodal",
+          "high_quality"
+        ],
         "always_hot": false,
-        "available_modes": ["full_multimodal"],
+        "available_modes": [
+          "full_multimodal"
+        ],
         "tip_of_spear": true,
         "multimodal": true
       }
     },
-
     "multimodal_models": {
       "pocket-tts": {
         "role": "multimodal",
@@ -312,15 +459,30 @@
         "priority": 1,
         "tier": 1,
         "description": "Kyutai's 100M TTS - Real-time voice cloning on CPU",
-        "use_cases": ["voice_output", "voice_cloning", "narration", "audio_generation"],
-        "capabilities": ["real_time", "voice_cloning", "high_quality", "cpu_efficient"],
+        "use_cases": [
+          "voice_output",
+          "voice_cloning",
+          "narration",
+          "audio_generation"
+        ],
+        "capabilities": [
+          "real_time",
+          "voice_cloning",
+          "high_quality",
+          "cpu_efficient"
+        ],
         "always_hot": true,
-        "available_modes": ["conservative", "performance", "image_work", "video_work", "full_multimodal"],
+        "available_modes": [
+          "conservative",
+          "performance",
+          "image_work",
+          "video_work",
+          "full_multimodal"
+        ],
         "tip_of_spear": true,
         "install": "pip install pocket-tts",
         "license": "apache-2.0"
       },
-
       "flux2-klein-4b": {
         "role": "multimodal",
         "category": "image",
@@ -331,15 +493,25 @@
         "priority": 2,
         "tier": 2,
         "description": "FLUX.2 Klein 4B - Ultra-fast image generation",
-        "use_cases": ["fast_image_drafts", "prototyping", "quick_visualization"],
-        "capabilities": ["fast_inference", "high_quality", "text_rendering", "editing"],
+        "use_cases": [
+          "fast_image_drafts",
+          "prototyping",
+          "quick_visualization"
+        ],
+        "capabilities": [
+          "fast_inference",
+          "high_quality",
+          "text_rendering",
+          "editing"
+        ],
         "always_hot": false,
-        "available_modes": ["image_work"],
+        "available_modes": [
+          "image_work"
+        ],
         "tip_of_spear": true,
         "license": "apache-2.0",
         "inference_time": "<1s"
       },
-
       "flux2-klein-9b": {
         "role": "multimodal",
         "category": "image",
@@ -350,15 +522,27 @@
         "priority": 2,
         "tier": 2,
         "description": "FLUX.2 Klein 9B - Professional image generation + editing",
-        "use_cases": ["professional_image_gen", "asset_creation", "visual_design", "image_editing"],
-        "capabilities": ["professional_quality", "text_rendering", "composition", "editing"],
+        "use_cases": [
+          "professional_image_gen",
+          "asset_creation",
+          "visual_design",
+          "image_editing"
+        ],
+        "capabilities": [
+          "professional_quality",
+          "text_rendering",
+          "composition",
+          "editing"
+        ],
         "always_hot": false,
-        "available_modes": ["image_work", "full_multimodal"],
+        "available_modes": [
+          "image_work",
+          "full_multimodal"
+        ],
         "tip_of_spear": true,
         "license": "apache-2.0",
         "inference_time": "1-2s"
       },
-
       "wan-2.1-5b": {
         "role": "multimodal",
         "category": "video",
@@ -369,14 +553,26 @@
         "priority": 2,
         "tier": 2,
         "description": "Wan 2.1 5B - Efficient video generation",
-        "use_cases": ["video_generation", "animation", "motion_design", "video_editing"],
-        "capabilities": ["text_to_video", "image_to_video", "temporal_coherence", "efficient"],
+        "use_cases": [
+          "video_generation",
+          "animation",
+          "motion_design",
+          "video_editing"
+        ],
+        "capabilities": [
+          "text_to_video",
+          "image_to_video",
+          "temporal_coherence",
+          "efficient"
+        ],
         "always_hot": false,
-        "available_modes": ["video_work", "full_multimodal"],
+        "available_modes": [
+          "video_work",
+          "full_multimodal"
+        ],
         "tip_of_spear": true,
         "resolution": "720p-1080p"
       },
-
       "wan-2.1-14b": {
         "role": "multimodal",
         "category": "video",
@@ -387,17 +583,26 @@
         "priority": 3,
         "tier": 3,
         "description": "Wan 2.1 14B - High-quality video generation (on-demand)",
-        "use_cases": ["high_quality_video", "professional_animation", "cinematic_content"],
-        "capabilities": ["high_quality", "detailed_motion", "professional_grade"],
+        "use_cases": [
+          "high_quality_video",
+          "professional_animation",
+          "cinematic_content"
+        ],
+        "capabilities": [
+          "high_quality",
+          "detailed_motion",
+          "professional_grade"
+        ],
         "always_hot": false,
-        "available_modes": ["video_work"],
+        "available_modes": [
+          "video_work"
+        ],
         "tip_of_spear": true,
         "resolution": "1080p",
         "note": "Load on-demand due to memory requirements"
       }
     }
   },
-
   "fallback_order": [
     "phi4:mini",
     "deepseek-r1-distill:8b",
@@ -408,7 +613,6 @@
     "gemma3:4b",
     "gemma3:12b"
   ],
-
   "memory_limits": {
     "safe_usage_ratio": 0.70,
     "warning_threshold": 0.80,
@@ -419,7 +623,6 @@
     "target_free_buffer_gb": 20,
     "unified_memory_optimization": true
   },
-
   "compound_engineering": {
     "recursive_improvement": {
       "enabled": true,
@@ -445,26 +648,44 @@
       "criteria": {
         "max_parameters": 20000000000,
         "min_benchmark_percentile": 80,
-        "license": ["apache-2.0", "mit", "cc-by-4.0"],
+        "license": [
+          "apache-2.0",
+          "mit",
+          "cc-by-4.0"
+        ],
         "memory_budget_compatible": true
       },
       "levels": {
-        "scout": {"enabled": true, "frequency": "daily"},
-        "evaluator": {"enabled": true, "auto_benchmark": true},
-        "deployer": {"enabled": true, "auto_threshold": 0.20, "human_gate": "hybrid"},
-        "meta_learner": {"enabled": true, "pattern_detection": true}
+        "scout": {
+          "enabled": true,
+          "frequency": "daily"
+        },
+        "evaluator": {
+          "enabled": true,
+          "auto_benchmark": true
+        },
+        "deployer": {
+          "enabled": true,
+          "auto_threshold": 0.20,
+          "human_gate": "hybrid"
+        },
+        "meta_learner": {
+          "enabled": true,
+          "pattern_detection": true
+        }
       }
     }
   },
-
   "hi_ho_stability": {
     "target_coherence": 0.5,
-    "acceptable_range": [0.45, 0.55],
+    "acceptable_range": [
+      0.45,
+      0.55
+    ],
     "emergency_threshold": 0.3,
     "mode_switch_verification": true,
     "narration_required": true
   },
-
   "constitution_compliance": {
     "absolute_interpretability": true,
     "narration_required": true,

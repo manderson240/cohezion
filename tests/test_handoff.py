@@ -3,14 +3,14 @@ import pytest
 import asyncio
 import json
 from unittest.mock import AsyncMock, patch
-from cohezion.swarm.agents.handoff_agent import HandoffAgent
+from cohezion.agents.handoff_agent import HandoffAgent
 
 @pytest.mark.anyio
 async def test_handoff_generation():
     # Mock DB to avoid external hits
-    with patch("cohezion.db.surreal_client.SurrealClient.connect", new_callable=AsyncMock), \
-         patch("cohezion.db.surreal_client.SurrealClient.store_node", new_callable=AsyncMock), \
-         patch("cohezion.db.surreal_client.SurrealClient.close", new_callable=AsyncMock):
+    with patch("cohezion.core.persistence.surreal_client.SurrealClient.connect", new_callable=AsyncMock), \
+         patch("cohezion.core.persistence.surreal_client.SurrealClient.store_node", new_callable=AsyncMock), \
+         patch("cohezion.core.persistence.surreal_client.SurrealClient.close", new_callable=AsyncMock):
 
         agent = HandoffAgent()
 

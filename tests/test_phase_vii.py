@@ -87,7 +87,7 @@ class TestCacheReplay:
     """Test Cache Replay Protocol."""
     
     def test_cache_write(self):
-        from cohezion.db.cache_replay import CacheReplayManager
+        from cohezion.core.persistence.cache_replay import CacheReplayManager
         import tempfile
         from pathlib import Path
         

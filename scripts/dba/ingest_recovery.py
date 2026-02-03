@@ -4,7 +4,7 @@ import logging
 import json
 import os
 from pathlib import Path
-from cohezion.db.admin import DBAdmin
+from cohezion.core.persistence.admin import DBAdmin
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)

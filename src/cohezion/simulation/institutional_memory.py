@@ -13,7 +13,7 @@ import asyncio
 import logging
 from dataclasses import asdict, dataclass
 
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

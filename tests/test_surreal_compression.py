@@ -1,6 +1,6 @@
 import asyncio
 import numpy as np
-from cohezion.db.surreal_client import SurrealClient, UniverseNode, PhysicsState
+from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode, PhysicsState
 
 async def test_compression_roundtrip():
     client = SurrealClient()

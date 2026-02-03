@@ -1,7 +1,7 @@
 
 import logging
 from typing import List, Dict, Any
-from cohezion.db.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.flume.autoencoder import FlumeEncoder
 
 logger = logging.getLogger(__name__)

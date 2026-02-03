@@ -245,7 +245,7 @@ class NexusResearchDaemon(BaseAgent):
             
             # 4. DB Persistence (Active Memory)
             # Store as a node so Oracle can find it
-            from cohezion.db.surreal_client import UniverseNode
+            from cohezion.core.persistence.surreal_client import UniverseNode
             
             old_id = task.get("retry_id")
             retry_count = task.get("retry_count", 0)

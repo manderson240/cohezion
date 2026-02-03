@@ -11,10 +11,10 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-from cohezion.db.surreal_client import SurrealClient, UniverseNode
+from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode
 from cohezion.reliability.monitor import ResourceMonitor
-from cohezion.swarm.agents.model_wrangler_agent import ModelWrangler
-from cohezion.swarm.agents.surreal_dba_agent import SurrealDBDBA
+from cohezion.agents.model_wrangler_agent import ModelWrangler
+from cohezion.agents.surreal_dba_agent import SurrealDBDBA
 from cohezion.swarm.journey_narrator import JourneyNarrator
 from cohezion.swarm.journey_tracker import AgentType, JourneyTracker
 from cohezion.swarm.swarm_types import Perspective, SwarmConfig, ThoughtVector

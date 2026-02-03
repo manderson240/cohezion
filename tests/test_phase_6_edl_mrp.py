@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from cohezion.swarm.lattice_orchestrator import LatticeOrchestrator
 from cohezion.universe.engine import UniverseSimulationEngine
-from cohezion.swarm.agents.base import BaseAgent
+from cohezion.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
 
 logging.basicConfig(level=logging.INFO)

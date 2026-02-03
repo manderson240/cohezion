@@ -26,7 +26,7 @@ async def verify_relay():
         print("\n❌ Handoff Snapshot MISSING.")
 
     # Check SurrealDB directly for the snapshot node
-    from cohezion.db.surreal_client import SurrealClient
+    from cohezion.core.persistence.surreal_client import SurrealClient
     db = SurrealClient()
     await db.connect()
     snapshots = await db.query("SELECT * FROM universe_nodes WHERE node_type = 'session_snapshot' ORDER BY metadata.created_at DESC LIMIT 1")

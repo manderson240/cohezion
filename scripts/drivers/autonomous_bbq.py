@@ -25,9 +25,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 from cohezion.simulation.fractal_universe import FractalSimulator, UniverseGrid
 from cohezion.reliability.monitor import get_resource_monitor
 from cohezion.simulation.biological_diversity import get_diversity_engine
-from cohezion.db.surreal_client import SurrealClient
-from cohezion.db.repositories.surreal_journey_repository import SurrealJourneyRepository, AgentJourney
-from cohezion.db.repositories.journey_repository import JourneyMetrics
+from cohezion.core.persistence.surreal_client import SurrealClient
+from cohezion.core.persistence.repositories.surreal_journey_repository import SurrealJourneyRepository, AgentJourney
+from cohezion.core.persistence.repositories.journey_repository import JourneyMetrics
 
 # Logging Setup
 logging.basicConfig(

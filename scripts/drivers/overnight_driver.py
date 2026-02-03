@@ -44,7 +44,7 @@ from cohezion.training.training_data_capture import (
     InteractionRecord,
     JourneyRecord
 )
-from cohezion.db.surreal_client import SurrealClient, UniverseNode, PhysicsState
+from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode, PhysicsState
 from prometheus_client import start_http_server, Gauge, Counter
 
 logger = logging.getLogger(__name__)

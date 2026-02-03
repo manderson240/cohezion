@@ -11,7 +11,7 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from cohezion.db.surreal_client import PhysicsState, SurrealClient, UniverseNode
+from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient, UniverseNode
 from cohezion.flume.git_encoder import GitEncoder
 
 # Relative imports

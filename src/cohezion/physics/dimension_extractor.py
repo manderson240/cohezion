@@ -24,7 +24,7 @@ try:
 except ImportError:
     np = None
 
-from cohezion.db.surreal_client import PhysicsState
+from cohezion.core.persistence.surreal_client import PhysicsState
 
 logger = logging.getLogger(__name__)
 

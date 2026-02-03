@@ -2,7 +2,7 @@
 import asyncio
 import logging
 import json
-from cohezion.swarm.agents.base import BaseAgent
+from cohezion.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
 
 logging.basicConfig(level=logging.INFO)

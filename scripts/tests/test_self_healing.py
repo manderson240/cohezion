@@ -2,7 +2,7 @@
 import asyncio
 import logging
 from cohezion.swarm.agents.universe_sim_agent import UniverseSimulationAgent
-from cohezion.db.surreal_client import SurrealClient, UniverseNode as DBNode
+from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode as DBNode
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("HealingTest")

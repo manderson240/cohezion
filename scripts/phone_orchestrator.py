@@ -56,7 +56,7 @@ class PhoneOrchestrator:
     async def block_monitor_loop(self, interval: int = 30):
         """Monitor SurrealDB for AGENT_BLOCKED events."""
         logger.info("📡 Block monitor loop active.")
-        from cohezion.db.surreal_client import SurrealClient
+        from cohezion.core.persistence.surreal_client import SurrealClient
         db = SurrealClient()
 
         while True:

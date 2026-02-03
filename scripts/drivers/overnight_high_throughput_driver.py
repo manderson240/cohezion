@@ -13,7 +13,7 @@ from cohezion.flume.autoencoder import FlumeEncoder, FlumeConfig
 
 
 from cohezion.simulation.enhanced_simulator import EnhancedSimulator, EnhancedSimulationResult
-from cohezion.db.surreal_client import SurrealClient, UniverseNode, PhysicsState
+from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode, PhysicsState
 from cohezion.mcp.email_notifier import EmailNotifier
 
 logging.basicConfig(
