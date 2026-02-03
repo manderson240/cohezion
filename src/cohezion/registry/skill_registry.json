@@ -12,5 +12,47 @@
         "path": "src/cohezion/skills/SUBAGENT_DELEGATION_PRIME.md",
         "version": "1.0.0",
         "last_updated": "2026-01-24T21:48:01"
+    },
+    "HALLUCINATION_RESOLVER_PRIME": {
+        "name": "HALLUCINATION_RESOLVER_PRIME",
+        "description": "Expert system for grounding agent discourse in Truth Anchors and live diagnostics.",
+        "path": "src/cohezion/skills/HALLUCINATION_RESOLVER_PRIME.md",
+        "version": "1.0.0",
+        "last_updated": "2026-02-02T16:58:00"
+    },
+    "LOCAL_OFFLOAD_PRIME": {
+        "name": "LOCAL_OFFLOAD_PRIME",
+        "description": "Expert methodology for offloading menial tasks to local SLMs with a Context Harness.",
+        "path": "src/cohezion/skills/LOCAL_OFFLOAD_PRIME.md",
+        "version": "1.0.0",
+        "last_updated": "2026-02-02T17:05:00"
+    },
+    "COMPOUND_ENGINEERING_PRIME": {
+        "name": "COMPOUND_ENGINEERING_PRIME",
+        "description": "Unified technical methodology for cross-platform agentic orchestration and defensive intelligence.",
+        "path": "src/cohezion/skills/COMPOUND_ENGINEERING_PRIME.md",
+        "version": "1.0.0",
+        "last_updated": "2026-02-02T17:10:00"
+    },
+    "BATCHING_PROTOCOL_PRIME": {
+        "name": "BATCHING_PROTOCOL_PRIME",
+        "description": "Expert methodology for multi-task consolidation and high-density SLM execution.",
+        "path": "src/cohezion/skills/BATCHING_PROTOCOL_PRIME.md",
+        "version": "1.0.0",
+        "last_updated": "2026-02-02T17:25:00"
+    },
+    "RETROSPECTIVE_SKILL": {
+        "name": "RETROSPECTIVE_SKILL",
+        "description": "Systematic process for extracting reusable blocks and documenting phase outcomes.",
+        "path": "src/cohezion/skills/RETROSPECTIVE_SKILL.md",
+        "version": "1.0.0",
+        "last_updated": "2026-02-02T17:35:00"
+    },
+    "EXTRACTED_BLOCK_D41D8CD9": {
+        "name": "EXTRACTED_BLOCK_D41D8CD9",
+        "description": "Extracted pattern: Code line repeated 3 times",
+        "path": "src/cohezion/skills/EXTRACTED_BLOCK_D41D8CD9.md",
+        "version": "0.1.0",
+        "last_updated": "2026-02-02T17:21:11.215716"
     }
 }

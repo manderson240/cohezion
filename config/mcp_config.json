@@ -19,7 +19,7 @@
         "cohezion-skills": {
       "command": "./.venv/bin/python3",
       "args": [
-        "cohezion_skill_mcp.py"
+        "src/cohezion/skills/cohezion_mcp.py"
       ]
     }
   }

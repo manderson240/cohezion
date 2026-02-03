@@ -8,7 +8,7 @@ import re
 import time
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, List, Dict
 
 import httpx
 
@@ -24,6 +24,12 @@ from cohezion.swarm.journey_narrator import JourneyNarrator
 from cohezion.swarm.redundancy_suppression import RedundancyManager
 from cohezion.swarm.swarm_types import SwarmConfig
 from cohezion.universe.engine import UniverseSimulationEngine
+from cohezion.reliability.offload_manager import OffloadManager
+from cohezion.reliability.context_harness import ContextHarness
+from cohezion.reliability.semantic_cache import SemanticCache
+from cohezion.reliability.batch_manager import BatchManager
+from cohezion.reliability import get_circuit
+from cohezion.reliability.pool import get_pool
 
 logger = logging.getLogger(__name__)
 
@@ -101,19 +107,27 @@ class BaseAgent(ABC):
         # Reward System - XP, achievements, streaks
         self._rewards = RewardSystem()
 
+        # Gateway 44: Local Offload & Context Harness
+        self._offload_mgr = OffloadManager()
+        self._harness = ContextHarness()
+        self._batch_mgr = BatchManager()
+        self._semantic_cache = SemanticCache(
+            cache_dir=str(self.cache_dir / "semantic"),
+            threshold=self.config.semantic_cache_threshold
+        )
+
         # Memory Recovery Protocol (MRP) - Gateway 12
         if self.config.mrp_sync:
             asyncio.create_task(self._synchronize_mrp())
 
     @property
-    def client(self) -> httpx.AsyncClient:
-        """Lazy-initialize the HTTP client."""
-        if self._client is None:
-            self._client = httpx.AsyncClient(
-                base_url=self.config.ollama_base_url,
-                timeout=httpx.Timeout(300.0, connect=10.0),
-            )
-        return self._client
+    def client(self) -> Any:
+        """Get the shared connection pool for Ollama."""
+        return get_pool(
+            name="ollama",
+            base_url=self.config.ollama_base_url,
+            timeout=300.0,
+        )
 
     async def close(self) -> None:
         """Close the HTTP client."""
@@ -136,24 +150,25 @@ class BaseAgent(ABC):
         cache_file = self.cache_dir / f"{key}.json"
 
         if not cache_file.exists():
-            return None
+            pass
 
         try:
             data = json.loads(cache_file.read_text())
             age = time.time() - data.get("timestamp", 0)
             if age < self.config.cache_ttl_seconds:
-                self._metrics["cache_hits"] += 1
-                return {
-                    "response": data.get("response"),
-                    "embedding": data.get("embedding"),
-                    "persistence_id": data.get("persistence_id"),
-                    "phi_score": data.get("phi_score", 0.0),
-                    "confidence": data.get("confidence", 1.0),
-                    "alignment_score": data.get("alignment_score", 1.0),
-                    "narration": data.get("narration"),
-                }
-        except (json.JSONDecodeError, KeyError):
+                return data
+        except Exception:
             pass
+
+        # Phase 4: Semantic Fallback
+        if not images and self._encoder:
+            # Only semantic search for text-only prompts
+            query_vec = self._encoder.encode(prompt)
+            semantic_hit = self._semantic_cache.search(query_vec)
+            if semantic_hit:
+                logger.info(f"✨ Semantic Cache Hit (score: {semantic_hit['semantic_score']:.2f})")
+                self._metrics["cache_hits"] += 1
+                return semantic_hit
 
         return None
 
@@ -189,6 +204,53 @@ class BaseAgent(ABC):
             "timestamp": time.time(),
         }
         cache_file.write_text(json.dumps(data, ensure_ascii=False))
+
+        # Phase 4: Semantic Projection (only for text-only)
+        if not images and self._encoder:
+            query_vec = self._encoder.encode(prompt)
+            self._semantic_cache.add(
+                vector=query_vec,
+                response=response,
+                metadata={
+                    "prompt": prompt[:500],
+                    "phi_score": phi_score,
+                    "confidence": confidence,
+                    "agent": self.__class__.__name__
+                }
+            )
+
+    async def enqueue_batch_task(self, query: str, context: Optional[str] = None) -> str:
+        """Enqueue a task for later batch processing."""
+        task_id = hashlib.md5(query.encode()).hexdigest()[:8]
+        self._batch_mgr.enqueue(task_id, query, context)
+        logger.info(f"📥 Task {task_id} enqueued for batch processing.")
+        return task_id
+
+    async def process_batch(self, model: str | None = None) -> Dict[str, str]:
+        """Process all enqueued tasks in a single local SLM call."""
+        batch = self._batch_mgr.get_batch()
+        if not batch:
+            return {}
+
+        logger.info(f"🚀 Processing batch of {batch['count']} tasks...")
+        
+        # Apply Context Harness to the consolidated prompt
+        harness = ContextHarness(target_model=model or self.model_name)
+        payload = harness.harness_prompt(batch["prompt"])
+        
+        # Call Ollama (ignore cache for batches as they are dynamic)
+        response = await self._call_ollama(
+            prompt=payload["prompt"],
+            system_prompt=payload["system"],
+            model=model or self.model_name,
+            ignore_cache=True
+        )
+        
+        # Parse results
+        results = self._batch_mgr.parse_batch_response(str(response))
+        logger.info(f"✅ Batch processing complete. {len(results)}/{batch['count']} results parsed.")
+        
+        return results
 
     async def _call_ollama(
         self,
@@ -330,8 +392,18 @@ class BaseAgent(ABC):
                 if images:
                     payload["images"] = images
 
+                # Phase 7: Circuit Breaker
+                breaker = get_circuit("ollama", failure_threshold=3)
+                if not breaker.allow_request():
+                    logger.error("🛑 Circuit Open: Ollama request rejected.")
+                    return AgentResponse(
+                        "[Circuit Open] Ollama is temporarily unavailable.",
+                        security_level="reliability",
+                    )
+
                 response = await self.client.post("/api/generate", json=payload)
                 response.raise_for_status()
+                breaker.record_success()
                 result = response.json().get("response", "")
 
                 # Evaluation (Phi-Score & Alignment)
@@ -382,6 +454,7 @@ class BaseAgent(ABC):
                     final_result = result
             except Exception as e:
                 logger.error(f"Ollama call failed in round {round_idx + 1}: {e}")
+                get_circuit("ollama").record_failure()
                 self._metrics["errors"] += 1
                 await tk.log_event(
                     agent_name=self.__class__.__name__,
@@ -443,10 +516,6 @@ class BaseAgent(ABC):
             security_level="safe",
             narration=narration,
         )
-
-    def find_tools(self, query: str, top_k: int = 3) -> list:
-        """Find relevant tools/skills for this agent using the registry."""
-        return self.registry.find(query, top_k=top_k)
 
     async def delegate_task(self, query: str, target_agent: str | None = None) -> Any:
         """
@@ -517,6 +586,33 @@ class BaseAgent(ABC):
                 details={"target": target_agent, "error": str(e)},
             )
             return None
+
+    async def offload_to_local(self, query: str, system_prompt: Optional[str] = None) -> AgentResponse:
+        """
+        Offload a menial task to a local SLM with a context harness.
+        """
+        recommendation = self._offload_mgr.get_offload_recommendation(query)
+        
+        if not recommendation["offload"]:
+            logger.info(f"Task unsuitable for offload: {query[:50]}")
+            return await self.process(query)  # Fallback to main process
+
+        target_model = recommendation["target"]
+        logger.info(f"🚀 Offloading menial task to {target_model}: {query[:50]}")
+        
+        # Apply Context Harness
+        harness = ContextHarness(target_model=target_model)
+        payload = harness.harness_prompt(query, system_prompt)
+        
+        # Execute with Ollama directly
+        result = await self._call_ollama(
+            prompt=payload["prompt"],
+            system_prompt=payload["system"],
+            model=target_model,
+            ignore_cache=True  # Usually offloads are unique/maintenance
+        )
+        
+        return result
 
     async def self_evaluate(
         self, response_text: str, query: str = "", metadata: dict | None = None
@@ -649,8 +745,16 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
             if latest_pulse:
                 pulse_data = latest_pulse[0]
                 logger.info(
-                    f"MRP: Reached consensus with latest pulse from {pulse_data['timestamp']}"
+                    f"MRP: Reached consensus with latest pulse from {pulse_data.get('timestamp')}"
                 )
+
+            # Phase 6: Experience Replay (Semantic Memory Recovery)
+            experience = await self._universe.get_experience_replay(self.__class__.__name__)
+            if experience:
+                logger.info(f"✨ MRP: Experience Replay recovered for {self.__class__.__name__}")
+                # Store in internal memory for prompt injection
+                self._metrics["mrp_hydrated"] = True
+                self._mrp_experience = experience
 
             # Start the background pulse task
             asyncio.create_task(self._mrp_pulse_loop())

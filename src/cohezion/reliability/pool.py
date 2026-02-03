@@ -83,12 +83,14 @@ def get_pool(
     name: str,
     base_url: str,
     max_connections: int = 20,
+    timeout: float = 300.0,
 ) -> ConnectionPool:
     """Get or create a connection pool."""
     if name not in _pools:
         _pools[name] = ConnectionPool(
             base_url=base_url,
             max_connections=max_connections,
+            timeout=timeout,
         )
     return _pools[name]
 

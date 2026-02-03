@@ -1,39 +1,34 @@
 # SKILL: COMPOUND_ENGINEERING_PRIME
 
 ## DOMAIN EXPERTISE
-**Hermetic Systems Engineering**. Utilizing "As Above, So Below" principles to create recursive value loops. Every output of one process must be the input of another, creating a closed-loop engine of increasing velocity.
+Unified technical methodology for cross-platform agentic orchestration, local model optimization, and defensive intelligence (Hallucination Mitigation) within the Cohezion ecosystem.
 
 ## KEY TEXTS & CONCEPTS
-- **The Compound Law**: "Every feature created must make every future feature easier to build."
-- **Velocity Multipliers**: Features are not additive; they are multiplicative. A good tool (like `ReflexAgent`) enables *n* other features to exist.
-- **Microservice Autonomy**: Services must be self-healing (Ouroboros) to prevent "Maintenance Tax" from eating the compound gains.
-- **Fail Fast, Fail Smooth**: Errors are just data points for the next iteration (Resilience).
+- **Unified Configuration**: Centralizing shared parameters (compound_engineering, logging, performance) in standalone JSON blocks to avoid tool-specific schema conflicts.
+- **MCP Bridge Topology**: Using the `cohezion-bridge` (`cohezion_mcp.py`) as the single source of truth for telemetry, model selection, and dynamic tool discovery across Gemini, IDE, and Claude environments.
+- **Registry-Driven Swarm**: Dynamically configuring model rosters based on `model_registry.json` and verification of local availability.
+- **Defensive Grounding**: The mandatory use of "Truth Anchors" and `HallucinationResolver` to prevent spec-attribution errors.
+- **Offload Parity**: Ensuring menial tasks (docs, formatting) are always routed to local SLMs with a dedicated `ContextHarness`.
 
 ## INSTRUCTION
-
-### 1. The Litmus Test
-Before writing code, ask:
-> "Does this feature reduce the friction for the *next* feature?"
-
-If the answer is **NO**, it is "Linear Engineering" (Maintenance). Refactor until it becomes "Compound".
-
-### 2. Examples of Compound Engineering
-- **ReflexAgent**: fixes bugs -> frees up developer time -> accelerates FLUME -> smarter Reflex. (Loop closed).
-- **FLUME Encoder**: compresses text -> larger context -> better planning -> more efficient encoding. (Loop closed).
-- **Ascension Wallet**: gamifies pruning -> cleaner repo -> faster git ops -> faster pruning. (Loop closed).
-
-## ARCHITECTURE
-The System is composed of 6 Autonomous Microservices:
-1.  **PROPRIOCEPTION** (Ouroboros) - Health & Hygiene.
-2.  **COGNITION** (FLUME) - Logic & Manifold.
-3.  **GOVERNANCE** (Quadrature) - Intent & Orchestration.
-4.  **PHYSICS** (Simulation) - World Modeling.
-5.  **INTELLIGENCE** (AI Lab) - Model Routing.
-6.  **INFRASTRUCTURE** (VLIW) - Hardware & DB.
+1. **Plan via Implementation Plan**: For all complex tasks, create a gated `implementation_plan.md` for user approval.
+2. **Execute with Grounding**:
+    - Consult `get_truth_anchors` for hardware/path vitals.
+    - Check model availability via `ollama list` before assignment.
+3. **Offload Menials**:
+    - Identify supportive tasks (docstrings, READMEs).
+    - Use `offload_task` or `BaseAgent.offload_to_local`.
+4. **Verify & Walkthrough**:
+    - Provide a concrete `walkthrough.md` with proof-of-work (command output, screenshots).
+5. **Extract Wisdom**:
+    - Update `KEY_LEARNINGS.md` with at least one 12D-encoded learning.
+    - Update the relevant Retrospective.
 
 ## VERSION
-v1.0 (Born from the Ouroboros Sprint)
+v1.0
 
 ## SEE ALSO
-- [CAPABILITY_MAP_REDUX](file:///home/mike-anderson/dev/cohezion/.agent/CAPABILITY_MAP.md)
-- [FLUME_METHODOLOGY_PRIME](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/FLUME_METHODOLOGY_PRIME.md)
+- PERSISTENT_QUALITY_PRIME
+- HALLUCINATION_RESOLVER_PRIME
+- LOCAL_OFFLOAD_PRIME
+- COHEZION_BRIDGE_PRIME

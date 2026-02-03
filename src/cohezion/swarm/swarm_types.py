@@ -139,6 +139,7 @@ class SwarmConfig:
     # Autonomic Refinement
     max_refinement_rounds: int = 3
     min_phi_threshold: float = 0.75  # The Stability Well barrier
+    semantic_cache_threshold: float = 0.95
 
     # Resource Priority (1=Critical, 4=Low)
     priority: int = 3

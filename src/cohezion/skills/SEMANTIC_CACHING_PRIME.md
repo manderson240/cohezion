@@ -52,8 +52,7 @@ When an `ActuatorSystem` executes a corrective action (e.g., `RestartService`), 
 - **Pattern**:
     ```python
     await ActuatorSystem().execute(diagnosis)
-    semantic_cache.bust(diagnosis['scope']) # Remove vectors related to scope
-    ```
-
+    
 ## VERSION
 v1.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        

@@ -6,7 +6,7 @@ Store the conceptual journey from Nothing to Particle as a queryable knowledge g
 
 import asyncio
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 @dataclass
@@ -208,7 +208,7 @@ async def persist_to_surreal():
                         "description": concept.description,
                         "chapter": concept.chapter,
                         "math": concept.mathematical_form,
-                        "timestamp": datetime.utcnow().isoformat(),
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
                     },
                 )
 

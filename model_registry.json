@@ -1,0 +1,113 @@
+# Model Registry for Compound Engineering
+
+{
+  "models": {
+    "qwen3-coder-256k": {
+      "role": "core",
+      "context": 256000,
+      "memory": 18,
+      "specialization": "coding",
+      "priority": 1,
+      "description": "Primary coding specialist with 256K context",
+      "use_cases": ["general-coding", "web-development", "api-design", "database-schema"],
+      "capabilities": ["code-generation", "debugging", "refactoring", "optimization"],
+      "limitations": ["mathematical-complexity", "specialized-algorithms"]
+    },
+    "gpt-oss-256k": {
+      "role": "core",
+      "context": 256000,
+      "memory": 18,
+      "specialization": "analysis",
+      "priority": 1,
+      "description": "Analysis and planning specialist with 256K context",
+      "use_cases": ["system-design", "architecture-planning", "requirement-analysis", "technical-specifications"],
+      "capabilities": ["problem-solving", "planning", "analysis", "decision-making"],
+      "limitations": ["fast-coding", "implementation-details"]
+    },
+    "glm-4.7-flash-256k": {
+      "role": "specialized",
+      "context": 256000,
+      "memory": 23,
+      "specialization": "fast-coding",
+      "priority": 2,
+      "description": "Fast coding execution specialist with 256K context",
+      "use_cases": ["rapid-prototyping", "code-generation", "scripting", "automation"],
+      "capabilities": ["fast-code-generation", "scripting", "automation", "quick-iterations"],
+      "limitations": ["complex-analysis", "deep-reasoning"]
+    },
+    "phi4-256k": {
+      "role": "specialized",
+      "context": 256000,
+      "memory": 3,
+      "specialization": "mathematical",
+      "priority": 2,
+      "description": "Mathematical and logical reasoning specialist with 256K context",
+      "use_cases": ["algorithm-optimization", "mathematical-computation", "logical-reasoning", "data-structures"],
+      "capabilities": ["mathematical-computation", "algorithm-design", "logical-reasoning", "optimization"],
+      "limitations": ["general-coding", "system-design"]
+    },
+    "gemma3-4b-256k": {
+      "role": "specialized",
+      "context": 256000,
+      "memory": 2,
+      "specialization": "specialized",
+      "priority": 2,
+      "description": "Specialized task execution with 256K context",
+      "use_cases": ["specialized-algorithms", "domain-specific-tasks", "niche-requirements", "custom-solutions"],
+      "capabilities": ["domain-specific-knowledge", "custom-solutions", "specialized-tasks"],
+      "limitations": ["general-purpose", "broad-knowledge"]
+    },
+    "qwen2.5-coder-14b-256k": {
+      "role": "specialized",
+      "context": 256000,
+      "memory": 7,
+      "specialization": "mid-tier-coding",
+      "priority": 2,
+      "description": "Mid-tier coding specialist with 256K context",
+      "use_cases": ["medium-complexity-tasks", "balanced-performance", "general-coding", "maintenance"],
+      "capabilities": ["balanced-performance", "general-coding", "maintenance", "refactoring"],
+      "limitations": ["high-complexity", "specialized-tasks"]
+    }
+  },
+  "combinations": {
+    "simple-coding": {
+      "models": ["qwen3-coder-256k"],
+      "memory": 18,
+      "use_cases": ["basic-coding", "simple-scripts", "small-features"]
+    },
+    "complex-coding": {
+      "models": ["qwen3-coder-256k", "glm-4.7-flash-256k"],
+      "memory": 41,
+      "use_cases": ["feature-development", "application-coding", "complex-scripts"]
+    },
+    "system-design": {
+      "models": ["qwen3-coder-256k", "gpt-oss-256k"],
+      "memory": 36,
+      "use_cases": ["architecture-design", "system-planning", "technical-specifications"]
+    },
+    "full-engineering": {
+      "models": ["qwen3-coder-256k", "gpt-oss-256k", "glm-4.7-flash-256k", "phi4-256k"],
+      "memory": 62,
+      "use_cases": ["complete-feature-development", "complex-systems", "enterprise-solutions"]
+    },
+    "mathematical-optimization": {
+      "models": ["qwen3-coder-256k", "gpt-oss-256k", "phi4-256k"],
+      "memory": 39,
+      "use_cases": ["algorithm-optimization", "performance-tuning", "mathematical-problems"]
+    }
+  },
+  "fallback_order": [
+    "qwen3-coder-256k",
+    "gpt-oss-256k",
+    "glm-4.7-flash-256k",
+    "phi4-256k",
+    "qwen2.5-coder-14b-256k",
+    "gemma3-4b-256k"
+  ],
+  "memory_limits": {
+    "safe_usage": 0.7,
+    "warning_threshold": 0.8,
+    "critical_threshold": 0.9,
+    "available_memory": 107
+  }
+}

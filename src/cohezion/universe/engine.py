@@ -471,10 +471,62 @@ class UniverseSimulationEngine:
         self, query_embedding: list[float], threshold: float = 0.7, limit: int = 5
     ) -> list[dict[str, Any]]:
         """Find similar past journeys for experience replay."""
-        # This would query SurrealDB vector index in production
-        # For now, return empty list as placeholder
-        logger.debug(f"Searching for similar journeys (threshold={threshold})")
-        return []
+        logger.info(f"🔍 Searching for similar journeys (threshold={threshold})")
+        
+        results = []
+        try:
+            # In production, this would query SurrealDB vector index.
+            # Local fallback: Scan data/universe for .json files
+            query_vec = np.array(query_embedding)
+            
+            for path in self.local_storage.glob("*.json"):
+                with open(path) as f:
+                    data = json.load(f)
+                    
+                latent_embedding = data.get("initial_latent_embedding")
+                if not latent_embedding or len(latent_embedding) != 512:
+                    continue
+                    
+                target_vec = np.array(latent_embedding)
+                
+                # Cosine Similarity
+                dot_product = np.dot(query_vec, target_vec)
+                norm_q = np.linalg.norm(query_vec)
+                norm_t = np.linalg.norm(target_vec)
+                
+                if norm_q == 0 or norm_t == 0:
+                    similarity = 0.0
+                else:
+                    similarity = dot_product / (norm_q * norm_t)
+                
+                if similarity >= threshold:
+                    data["similarity_score"] = float(similarity)
+                    results.append(data)
+            
+            # Sort by similarity
+            results.sort(key=lambda x: x["similarity_score"], reverse=True)
+            return results[:limit]
+            
+        except Exception as e:
+            logger.error(f"Failed similarity search: {e}")
+            return []
+
+    async def get_experience_replay(self, intent: str) -> str:
+        """Retrieve experience snippet from similar journeys."""
+        encoder = await self._ensure_encoder()
+        embedding = await encoder.encode(intent)
+        similar = await self.find_similar_journeys(embedding, threshold=0.8, limit=1)
+        
+        if not similar:
+            return "No previous experience found for this intent."
+            
+        top = similar[0]
+        return (
+            f"EXPERIENCE REPLAY (Similarity: {top['similarity_score']:.2f}):\n"
+            f"Past Intent: {top['intent']}\n"
+            f"Successful Outcomes: {list(top.get('precipitation', {}).get('outputs', {}).keys())}\n"
+            f"Phi Score: {top.get('final_phi_score', 0.0):.2f}"
+        )
 
 
 class SimpleEncoder:
