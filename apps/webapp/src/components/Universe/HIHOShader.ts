@@ -84,8 +84,15 @@ export const HIHOShader = {
             pos += normalize(pos) * noise * (1.0 - stability) * 0.5;
 
             // Lattice Alignment (Project to 12-sided symmetry)
-            float lattice = abs(sin(pos.x * 10.0) * cos(pos.y * 10.0));
-            pos *= (1.0 + lattice * 0.05 * stability);
+            float lattice = abs(sin(pos.x * 12.0) * cos(pos.y * 12.0) * sin(pos.z * 12.0));
+            pos *= (1.0 + lattice * 0.1 * stability);
+
+            // Quadrature Geometry proof layer (geometric scaling)
+            float quad = 0.0;
+            if (stability > 0.8) {
+                quad = sin(pos.x * 20.0 + uTime) * sin(pos.y * 20.0) * stability;
+                pos += normalize(pos) * quad * 0.02;
+            }
 
             // Color shift based on Novelty (D11)
             // Range from Nexus Green to Royal Purple
