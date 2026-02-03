@@ -5,6 +5,7 @@ Calculates loan capacity based on R&D tax assets and hardware collateral.
 Target: TPU v7 (Ironwood) Expansion.
 """
 
+import os
 import json
 
 def calculate_qualification(annual_income, rd_spend_labor, hardware_cost):
