@@ -305,6 +305,64 @@ class CompoundEngineeringTemplates:
             ],
         )
 
+        # 5. Voice-Enabled Development Workflow
+        voice_dev_steps = [
+            WorkflowStep(
+                name="accessibility_analysis",
+                model="qwen3-coder-next:latest",
+                task_type="reasoning",
+                description="Analyze accessibility requirements and voice integration needs",
+                estimated_time=45,
+                memory_requirement=51,
+                dependencies=[],
+            ),
+            WorkflowStep(
+                name="document_voice_processing",
+                model="glm-ocr:latest",
+                task_type="ocr-vision",
+                description="Extract and process documentation for voice narration",
+                estimated_time=30,
+                memory_requirement=2.2,
+                dependencies=["accessibility_analysis"],
+            ),
+            WorkflowStep(
+                name="code_development",
+                model="qwen3-coder-next:latest",
+                task_type="agentic-coding",
+                description="Develop accessible code with voice interface integration",
+                estimated_time=180,
+                memory_requirement=51,
+                dependencies=["accessibility_analysis", "document_voice_processing"],
+            ),
+            WorkflowStep(
+                name="voice_interface_generation",
+                model="pocket-tts:latest",
+                task_type="text-to-speech",
+                description="Generate voice interfaces and accessibility narration",
+                estimated_time=60,
+                memory_requirement=0.4,
+                dependencies=["code_development"],
+            ),
+        ]
+
+        templates["voice-enabled-development"] = CompoundWorkflow(
+            name="voice-enabled-development",
+            description="Complete development workflow with vision, coding, and voice synthesis capabilities",
+            category="accessibility",
+            models=["qwen3-coder-next:latest", "glm-ocr:latest", "pocket-tts:latest"],
+            total_memory_gb=53.6,
+            estimated_time=315,  # 5.25 minutes
+            steps=voice_dev_steps,
+            token_efficiency=0.94,
+            optimization_features=[
+                "cpu-only-tts",
+                "voice-cloning",
+                "real-time-generation",
+                "accessibility-support",
+                "multimodal-workflows",
+            ],
+        )
+
         return templates
 
     def get_template(self, template_name: str) -> Optional[CompoundWorkflow]:
