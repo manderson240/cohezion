@@ -153,6 +153,26 @@ class ThoughtDecoder(nn.Module):
 
 
 class FlumeEncoder(PreTrainedModel):
+    """Main FLAME autoencoder model."""
+
+    config_class = FlumeConfig
+
+    def __init__(self, config: FlumeConfig):
+        super().__init__(config)
+        self.encoder = ThoughtEncoder(config)
+        self.decoder = ThoughtDecoder(config)
+
+    def forward(self, input_ids, attention_mask=None, **kwargs):
+        z = self.encoder(input_ids, attention_mask)
+        logits = self.decoder(z, input_ids)
+        return z, logits
+
+
+# Alias for backward compatibility
+FlumeAutoEncoder = FlumeEncoder
+
+
+class FlumeEncoder(PreTrainedModel):
     """
     Full autoencoder for thought vector compression.
     """
@@ -221,9 +241,13 @@ class FlumeEncoder(PreTrainedModel):
         device = z.device
 
         # Start with BOS token
+        bos_token_id = getattr(self.tokenizer, "bos_token_id", 1)
+        if not isinstance(bos_token_id, int):
+            bos_token_id = 1
+
         tokens = torch.full(
             (batch_size, 1),
-            self.tokenizer.bos_token_id,
+            bos_token_id,
             dtype=torch.long,
             device=device,
         )
@@ -238,7 +262,11 @@ class FlumeEncoder(PreTrainedModel):
                 tokens = torch.cat([tokens, next_token], dim=1)
 
                 # Stop if all sequences hit EOS
-                if (next_token == self.tokenizer.eos_token_id).all():
+                eos_token_id = getattr(self.tokenizer, "eos_token_id", 2)
+                if not isinstance(eos_token_id, int):
+                    eos_token_id = 2
+
+                if (next_token == eos_token_id).all():
                     break
 
         # Detokenize
@@ -267,10 +295,14 @@ class FlumeEncoder(PreTrainedModel):
         shift_logits = logits[:, :-1, :].contiguous()
         shift_labels = input_ids[:, 1:].contiguous()
 
+        pad_token_id = getattr(self.tokenizer, "pad_token_id", -100)
+        if not isinstance(pad_token_id, int):
+            pad_token_id = -100
+
         loss = F.cross_entropy(
             shift_logits.view(-1, self.config.vocab_size),
             shift_labels.view(-1),
-            ignore_index=self.tokenizer.pad_token_id,
+            ignore_index=pad_token_id,
         )
 
         return loss

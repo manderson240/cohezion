@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
+from collections import deque
 from dataclasses import dataclass
 from typing import Any, AsyncIterator, Protocol
 
@@ -92,9 +94,7 @@ class ConnectionPool:
         self._lock = asyncio.Lock()
         self._health_task: asyncio.Task | None = None
         self._scaling_task: asyncio.Task | None = None
-        self._usage_history: deque[tuple[float, float]] = deque(
-            maxlen=100
-        )  # (timestamp, usage)
+        self._usage_history = deque(maxlen=100)  # (timestamp, usage)
 
         # Initialize with min_size connections
         self._initialize_pool()
@@ -330,19 +330,18 @@ class ConnectionPool:
                 connection = self._connections.get_nowait()
                 await self._close_connection(connection)
 
-    def get_metrics(self) -> dict[str, Any]:
+    async def get_metrics(self) -> dict[str, Any]:
         """Get pool metrics."""
-        async with self._lock:
-            current_usage = len(self._active_connections) / max(
-                1, self._metrics["current_size"]
-            )
-            return {
-                **self._metrics,
-                "usage_percent": current_usage,
-                "queue_size": self._connections.qsize(),
-                "active_connections": len(self._active_connections),
-                "predicted_load": self._predict_load(),
-            }
+        current_usage = len(self._active_connections) / max(
+            1, self._metrics["current_size"]
+        )
+        return {
+            **self._metrics,
+            "usage_percent": current_usage,
+            "queue_size": self._connections.qsize(),
+            "active_connections": len(self._active_connections),
+            "predicted_load": self._predict_load(),
+        }
 
 
 # Global connection pool instance
