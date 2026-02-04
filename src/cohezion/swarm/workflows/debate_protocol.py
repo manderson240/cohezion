@@ -12,7 +12,9 @@ import logging
 import time
 from typing import Any
 
-from cohezion.agents import AnalystAgent, CriticAgent, SynthesizerAgent
+from cohezion.agents.analyst import AnalystAgent
+from cohezion.agents.critic import CriticAgent
+from cohezion.agents.synthesizer import SynthesizerAgent
 from cohezion.swarm.swarm_types import (
     Perspective,
     SwarmConfig,

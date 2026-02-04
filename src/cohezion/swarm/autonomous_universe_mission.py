@@ -40,7 +40,8 @@ try:
 except ImportError:
     UniverseSimulationEngine = None
     UniverseJourney = None
-    logger.warning("UniverseSimulationEngine not available")
+
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -244,11 +245,11 @@ class AutonomousUniverseMission:
         # Initialize universe engines (optional)
         universe_engines = []
         for universe_config in config.universes:
+            engine = None
             if UniverseSimulationEngine:
                 try:
                     engine = UniverseSimulationEngine(
-                        journey_name=f"{mission_id}_{universe_config.name}",
-                        initial_intent=f"Autonomous universe evolution: {universe_config.universe_type}",
+                        local_storage_path=f"data/{mission_id}_{universe_config.name}",
                     )
                     self.universe_engines[f"{mission_id}_{universe_config.name}"] = (
                         engine
@@ -258,8 +259,6 @@ class AutonomousUniverseMission:
                         f"Could not initialize UniverseSimulationEngine: {e}"
                     )
                     engine = None
-            else:
-                engine = None
 
             universe_engines.append(
                 {
@@ -553,7 +552,7 @@ class AutonomousUniverseMission:
             ],
         }
 
-    def get_all_missions(self) -> Dict[str, List[Dict]]:
+    def get_all_missions(self) -> Dict[str, List[Dict[str, Any]]]:
         """Get all mission statuses"""
         return {
             "active": [

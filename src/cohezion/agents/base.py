@@ -113,7 +113,7 @@ class BaseAgent(ABC):
         self._batch_mgr = BatchManager()
         self._semantic_cache = SemanticCache(
             cache_dir=str(self.cache_dir / "semantic"),
-            threshold=self.config.semantic_cache_threshold
+            threshold=self.config.semantic_cache_threshold,
         )
 
         # Memory Recovery Protocol (MRP) - Gateway 12
@@ -164,9 +164,13 @@ class BaseAgent(ABC):
         if not images and self._encoder:
             # Only semantic search for text-only prompts
             query_vec = self._encoder.encode(prompt)
+            if hasattr(query_vec, "cpu"):
+                query_vec = query_vec.cpu().numpy()
             semantic_hit = self._semantic_cache.search(query_vec)
             if semantic_hit:
-                logger.info(f"✨ Semantic Cache Hit (score: {semantic_hit['semantic_score']:.2f})")
+                logger.info(
+                    f"✨ Semantic Cache Hit (score: {semantic_hit['semantic_score']:.2f})"
+                )
                 self._metrics["cache_hits"] += 1
                 return semantic_hit
 
@@ -192,7 +196,9 @@ class BaseAgent(ABC):
             "model": self.model_name,
             "prompt": prompt[:500],
             "response": response,
-            "embedding": embedding,
+            "embedding": embedding.tolist()
+            if hasattr(embedding, "tolist")
+            else embedding,
             "persistence_id": persistence_id,
             "phi_score": phi_score,
             "confidence": confidence,
@@ -208,6 +214,8 @@ class BaseAgent(ABC):
         # Phase 4: Semantic Projection (only for text-only)
         if not images and self._encoder:
             query_vec = self._encoder.encode(prompt)
+            if hasattr(query_vec, "cpu"):
+                query_vec = query_vec.cpu().numpy()
             self._semantic_cache.add(
                 vector=query_vec,
                 response=response,
@@ -215,11 +223,13 @@ class BaseAgent(ABC):
                     "prompt": prompt[:500],
                     "phi_score": phi_score,
                     "confidence": confidence,
-                    "agent": self.__class__.__name__
-                }
+                    "agent": self.__class__.__name__,
+                },
             )
 
-    async def enqueue_batch_task(self, query: str, context: Optional[str] = None) -> str:
+    async def enqueue_batch_task(
+        self, query: str, context: Optional[str] = None
+    ) -> str:
         """Enqueue a task for later batch processing."""
         task_id = hashlib.md5(query.encode()).hexdigest()[:8]
         self._batch_mgr.enqueue(task_id, query, context)
@@ -233,23 +243,25 @@ class BaseAgent(ABC):
             return {}
 
         logger.info(f"🚀 Processing batch of {batch['count']} tasks...")
-        
+
         # Apply Context Harness to the consolidated prompt
         harness = ContextHarness(target_model=model or self.model_name)
         payload = harness.harness_prompt(batch["prompt"])
-        
+
         # Call Ollama (ignore cache for batches as they are dynamic)
         response = await self._call_ollama(
             prompt=payload["prompt"],
             system_prompt=payload["system"],
             model=model or self.model_name,
-            ignore_cache=True
+            ignore_cache=True,
         )
-        
+
         # Parse results
         results = self._batch_mgr.parse_batch_response(str(response))
-        logger.info(f"✅ Batch processing complete. {len(results)}/{batch['count']} results parsed.")
-        
+        logger.info(
+            f"✅ Batch processing complete. {len(results)}/{batch['count']} results parsed."
+        )
+
         return results
 
     async def _call_ollama(
@@ -383,18 +395,28 @@ class BaseAgent(ABC):
             try:
                 # Use Ascended Local Router if pointing to a known local model
                 from cohezion.core.routing.router import LOCAL_ROUTER
-                
+
                 # Dynamic task detection if not specified
                 task_type = "general"
-                if "def " in current_prompt or "class " in current_prompt:
-                    task_type = "coding"
-                elif "reason" in current_prompt.lower() or "why" in current_prompt.lower():
-                    task_type = "reasoning"
+                if current_prompt:
+                    if "def " in current_prompt or "class " in current_prompt:
+                        task_type = "coding"
+                    elif (
+                        "reason" in current_prompt.lower()
+                        or "why" in current_prompt.lower()
+                    ):
+                        task_type = "reasoning"
 
                 result = await LOCAL_ROUTER.route_task(
                     task_type=task_type,
-                    prompt=current_prompt,
-                    context={"options": {"temperature": temperature, "num_predict": max_tokens}, "system": effective_system}
+                    prompt=current_prompt or "",
+                    context={
+                        "options": {
+                            "temperature": temperature,
+                            "num_predict": max_tokens,
+                        },
+                        "system": effective_system,
+                    },
                 )
 
                 # Evaluation (Phi-Score & Alignment)
@@ -546,9 +568,7 @@ class BaseAgent(ABC):
             try:
                 module = importlib.import_module(f"cohezion.agents.{module_name}")
             except ImportError:
-                module = importlib.import_module(
-                    f"cohezion.agents.{module_name}_agent"
-                )
+                module = importlib.import_module(f"cohezion.agents.{module_name}_agent")
             class_ = getattr(module, target_agent)
             peer = class_(config=self.config)
 
@@ -578,31 +598,33 @@ class BaseAgent(ABC):
             )
             return None
 
-    async def offload_to_local(self, query: str, system_prompt: Optional[str] = None) -> AgentResponse:
+    async def offload_to_local(
+        self, query: str, system_prompt: Optional[str] = None
+    ) -> AgentResponse:
         """
         Offload a menial task to a local SLM with a context harness.
         """
         recommendation = self._offload_mgr.get_offload_recommendation(query)
-        
+
         if not recommendation["offload"]:
             logger.info(f"Task unsuitable for offload: {query[:50]}")
             return await self.process(query)  # Fallback to main process
 
         target_model = recommendation["target"]
         logger.info(f"🚀 Offloading menial task to {target_model}: {query[:50]}")
-        
+
         # Apply Context Harness
         harness = ContextHarness(target_model=target_model)
         payload = harness.harness_prompt(query, system_prompt)
-        
+
         # Execute with Ollama directly
         result = await self._call_ollama(
             prompt=payload["prompt"],
             system_prompt=payload["system"],
             model=target_model,
-            ignore_cache=True  # Usually offloads are unique/maintenance
+            ignore_cache=True,  # Usually offloads are unique/maintenance
         )
-        
+
         return result
 
     async def self_evaluate(
@@ -733,6 +755,10 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
                 "SELECT * FROM mission_pulse ORDER BY timestamp DESC LIMIT 1"
             )
 
+            # Check if query returned valid results
+            if not latest_pulse or len(latest_pulse) == 0:
+                latest_pulse = None
+
             if latest_pulse:
                 pulse_data = latest_pulse[0]
                 logger.info(
@@ -740,9 +766,13 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
                 )
 
             # Phase 6: Experience Replay (Semantic Memory Recovery)
-            experience = await self._universe.get_experience_replay(self.__class__.__name__)
+            experience = await self._universe.get_experience_replay(
+                self.__class__.__name__
+            )
             if experience:
-                logger.info(f"✨ MRP: Experience Replay recovered for {self.__class__.__name__}")
+                logger.info(
+                    f"✨ MRP: Experience Replay recovered for {self.__class__.__name__}"
+                )
                 # Store in internal memory for prompt injection
                 self._metrics["mrp_hydrated"] = True
                 self._mrp_experience = experience

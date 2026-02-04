@@ -6,7 +6,14 @@ Supports quantum field simulations, particle dynamics, and complex physical syst
 """
 
 import numpy as np
-import cupy as cp
+
+try:
+    import cupy as cp
+
+    CUPY_AVAILABLE = True
+except ImportError:
+    CUPY_AVAILABLE = False
+    cp = None
 from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass
 from enum import Enum
@@ -46,6 +53,8 @@ class GPUPhysicsEngine:
 
     def _init_cuda(self):
         """Initialize CUDA environment."""
+        if not CUPY_AVAILABLE:
+            raise RuntimeError("CUDA acceleration requires cupy library")
         try:
             import cupy.cuda.runtime
 

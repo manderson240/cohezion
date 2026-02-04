@@ -6,11 +6,18 @@ Provides real-time simulation capabilities and performance optimization.
 """
 
 import asyncio
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass
 from enum import Enum
 import numpy as np
-import cupy as cp
+
+try:
+    import cupy as cp
+
+    CUPY_AVAILABLE = True
+except ImportError:
+    CUPY_AVAILABLE = False
+    cp = None
 
 from .physics_simulation import (
     GPUPhysicsEngine,
@@ -18,9 +25,13 @@ from .physics_simulation import (
     PhysicsSimulationType,
     PhysicsConfig,
 )
-from .agents.base import Agent
-from .core.cache_manager import CacheManager
-from .core.connection_pool import ConnectionPool
+
+try:
+    from ..agents.base import Agent
+except ImportError:
+    Agent = object
+from .cache_manager import CacheManager
+from .connection_pool import ConnectionPool
 
 
 class SimulationState(Enum):
@@ -54,7 +65,7 @@ class GPUAccelerationManager:
         self.simulation_states: Dict[str, SimulationState] = {}
         self.metrics_cache: Dict[str, SimulationMetrics] = {}
         self.cache_manager = CacheManager()
-        self.connection_pool = ConnectionPool()
+        # Connection pool will be initialized when needed
         self._init_gpu_resources()
 
     def _init_gpu_resources(self):
@@ -100,7 +111,9 @@ class GPUAccelerationManager:
                 return temps[device_id] if device_id < len(temps) else 0.0
 
         except Exception:
-            return 0.0  # Temperature monitoring not available
+            pass  # Temperature monitoring not available
+
+        return 0.0
 
     def create_simulation(
         self,
@@ -270,7 +283,7 @@ class GPUAccelerationManager:
         metrics = self.metrics_cache.get(name, SimulationMetrics(0, 0, 0, 0, 0, 0))
         self.cache_manager.set(f"{name}_metrics", metrics.__dict__, ttl=30)
 
-    def get_simulation_state(self, name: str) -> Dict[str, any]:
+    def get_simulation_state(self, name: str) -> Dict[str, Any]:
         """Get complete simulation state."""
         if name not in self.active_simulations:
             raise ValueError(f"Simulation '{name}' not found")
@@ -290,7 +303,7 @@ class GPUAccelerationManager:
             "performance": simulation.get_performance_metrics(),
         }
 
-    def get_agent_simulations(self, agent_id: str) -> List[Dict[str, any]]:
+    def get_agent_simulations(self, agent_id: str) -> List[Dict[str, Any]]:
         """Get all simulations for an agent."""
         if agent_id not in self.agent_simulations:
             return []
@@ -324,7 +337,7 @@ class GPUAccelerationManager:
                     simulations.remove(name)
                     break
 
-    def get_system_metrics(self) -> Dict[str, any]:
+    def get_system_metrics(self) -> Dict[str, Any]:
         """Get system-wide GPU and simulation metrics."""
         total_particles = 0
         total_fields = 0
