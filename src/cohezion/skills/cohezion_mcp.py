@@ -327,6 +327,151 @@ class CohezionMCP:
                 "description": "Get semantic cache statistics and hit rates",
                 "inputSchema": {"type": "object", "properties": {}},
             },
+            {
+                "name": "elite_ocr_analysis",
+                "description": "State-of-the-art OCR with 94.62% OmniDocBench accuracy using GLM-OCR",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "image_path": {
+                            "type": "string",
+                            "description": "Path to image file for OCR analysis",
+                        },
+                        "extract_format": {
+                            "type": "string",
+                            "enum": ["text", "structured", "table", "formula"],
+                            "description": "Output format for extracted content",
+                        },
+                        "language": {
+                            "type": "string",
+                            "description": "Language for OCR (default: auto-detect)",
+                        },
+                    },
+                    "required": ["image_path"],
+                },
+            },
+            {
+                "name": "agentic_coding_workflow",
+                "description": "Elite coding workflow using Qwen3-Coder-Next with 70.6% SWE-Bench performance",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "task_description": {
+                            "type": "string",
+                            "description": "Detailed description of coding task",
+                        },
+                        "context_files": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "List of context file paths",
+                        },
+                        "output_format": {
+                            "type": "string",
+                            "enum": ["code", "plan", "analysis", "full_solution"],
+                            "description": "Desired output format",
+                        },
+                        "complexity_level": {
+                            "type": "string",
+                            "enum": ["simple", "medium", "complex", "enterprise"],
+                            "description": "Task complexity for model selection",
+                        },
+                    },
+                    "required": ["task_description"],
+                },
+            },
+            {
+                "name": "compound_engineering_orchestrator",
+                "description": "Orchestrate multiple elite models for compound engineering workflows with 96% token efficiency",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "workflow_type": {
+                            "type": "string",
+                            "enum": ["enterprise_ai_development", "autonomous_agent_creation", "document_driven_coding", "voice_enabled_development"],
+                            "description": "Type of compound workflow to execute",
+                        },
+                        "primary_task": {
+                            "type": "string",
+                            "description": "Primary task description",
+                        },
+                        "context_data": {
+                            "type": "object",
+                            "description": "Additional context data for the workflow",
+                        },
+                        "resource_constraints": {
+                            "type": "object",
+                            "properties": {
+                                "max_memory_gb": {"type": "number"},
+                                "max_execution_time_min": {"type": "number"},
+                                "preferred_models": {"type": "array", "items": {"type": "string"}},
+                            },
+                        },
+                    },
+                    "required": ["workflow_type", "primary_task"],
+                },
+            },
+            {
+                "name": "elite_model_selection",
+                "description": "Intelligent model selection based on task requirements and available system resources",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "task_type": {
+                            "type": "string",
+                            "enum": ["coding", "vision", "math", "tts", "analysis", "compound", "autonomous"],
+                            "description": "Primary task type",
+                        },
+                        "complexity": {
+                            "type": "string",
+                            "enum": ["simple", "medium", "complex", "enterprise", "frontier"],
+                            "description": "Task complexity level",
+                        },
+                        "performance_priority": {
+                            "type": "string",
+                            "enum": ["speed", "accuracy", "memory_efficiency", "cost", "balanced"],
+                            "description": "Performance optimization priority",
+                        },
+                        "available_memory_gb": {
+                            "type": "number",
+                            "description": "Available system memory in GB",
+                        },
+                        "special_requirements": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Special requirements like voice, vision, etc.",
+                        },
+                    },
+                    "required": ["task_type", "complexity"],
+                },
+            },
+            {
+                "name": "pocket_tts_generate",
+                "description": "Generate speech from text using Kyutai Pocket TTS (100M parameters, CPU-only)",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "text": {
+                            "type": "string",
+                            "description": "Text to convert to speech",
+                        },
+                        "voice": {
+                            "type": "string",
+                            "description": "Voice model (alba, marius, javert, jean, fantine, cosette, eponine, azelma, or custom path)",
+                        },
+                        "output_path": {
+                            "type": "string",
+                            "description": "Output file path for generated audio",
+                        },
+                        "speed": {
+                            "type": "number",
+                            "minimum": 0.5,
+                            "maximum": 2.0,
+                            "description": "Speech speed factor (0.5-2.0)",
+                        },
+                    },
+                    "required": ["text"],
+                },
+            },
         ]
 
         # Dynamically add skills as tools
@@ -377,6 +522,16 @@ class CohezionMCP:
             return self.batch_offload(tasks, model)
         elif name == "inspect_cache":
             return self.inspect_cache()
+        elif name == "elite_ocr_analysis":
+            return self.elite_ocr_analysis(arguments)
+        elif name == "agentic_coding_workflow":
+            return self.agentic_coding_workflow(arguments)
+        elif name == "compound_engineering_orchestrator":
+            return self.compound_engineering_orchestrator(arguments)
+        elif name == "elite_model_selection":
+            return self.elite_model_selection(arguments)
+        elif name == "pocket_tts_generate":
+            return self.pocket_tts_generate(arguments)
         elif name.startswith("skill_"):
             skill_id = name.replace("skill_", "").upper()
             # Try to find the exact case match in self.skills
@@ -887,6 +1042,47 @@ Generate production-ready, maintainable code that follows industry standards.
         cache = SemanticCache()
         stats = cache.get_stats()
         return {"content": [{"type": "text", "text": json.dumps(stats, indent=2)}]}
+
+    def pocket_tts_generate(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate speech using Kyutai Pocket TTS"""
+        try:
+            text = args.get("text")
+            voice = args.get("voice", "alba")
+            output_path = args.get("output_path", "/tmp/pocket_tts_output.wav")
+            speed = args.get("speed", 1.0)
+            
+            if not text:
+                return {"content": [{"type": "text", "text": "Error: text is required"}]}
+            
+            # Import pocket-tts
+            try:
+                from pocket_tts import TTSModel
+                import scipy.io.wavfile
+                import torch
+            except ImportError:
+                return {"content": [{"type": "text", "text": "Error: pocket-tts not installed. Install with: pip install pocket-tts"}]}
+            
+            # Load model
+            tts_model = TTSModel.load_model()
+            voice_state = tts_model.get_state_for_audio_prompt(voice)
+            
+            # Generate audio
+            audio = tts_model.generate_audio(voice_state, text)
+            
+            # Save to file
+            scipy.io.wavfile.write(output_path, tts_model.sample_rate, audio.numpy())
+            
+            return {
+                "content": [
+                    {
+                        "type": "text", 
+                        "text": f"Successfully generated speech using Pocket TTS\nVoice: {voice}\nOutput: {output_path}\nDuration: {len(audio)/tts_model.sample_rate:.2f}s\nSize: {len(audio)*2/1024/1024:.2f}MB"
+                    }
+                ]
+            }
+            
+        except Exception as e:
+            return {"content": [{"type": "text", "text": f"Pocket TTS generation failed: {e}"}]}
 
     def execute_skill(self, skill_name: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
         if skill_name not in self.skills:
