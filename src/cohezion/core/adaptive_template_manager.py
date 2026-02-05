@@ -511,7 +511,7 @@ class AdaptiveTemplateManager:
         model_name: str,
         template_format: TemplateFormat,
         success: bool,
-        response_quality: float = None,
+        response_quality: Optional[float] = None,
     ):
         """Update performance data for template learning"""
 
