@@ -49,23 +49,18 @@ class AgentState(TypedDict):
     created_at: str
 
 
-def classify_query(state: AgentState) -> AgentState:
-    """Route query to appropriate expert(s) based on content."""
-    query = state["query"].lower()
-
-    # Simple keyword-based routing (replace with LLM classification)
-    if any(kw in query for kw in ["design", "architecture", "structure"]):
-        state["route"] = "architect"
-    elif any(kw in query for kw in ["physics", "force", "energy", "equation"]):
-        state["route"] = "engineer"
-    elif any(kw in query for kw in ["biology", "life", "evolution", "organism"]):
-        state["route"] = "biologist"
-    elif any(kw in query for kw in ["quantum", "qubit", "hardware", "chip"]):
-        state["route"] = "quantum_hw"
-    elif any(kw in query for kw in ["algorithm", "compute", "circuit", "gate"]):
-        state["route"] = "quantum_algo"
     else:
         state["route"] = "all"  # Fan out to all experts
+
+    # QSP (Quarter on a String Protocol): 
+    # Reel in premium cloud reasoning if query complexity is high or route is 'all'
+    if state["route"] == "all" or state["urgency"] == "high":
+        # In a real system, this would trigger a call to a premium model (Gemini 3 Pro)
+        # to ground the local swarm's debate.
+        state["context"]["qsp_active"] = True
+        logger.info("🧵 QSP Trigger: Reeling in premium reasoning for complex/urgent query.")
+    else:
+        state["context"]["qsp_active"] = False
 
     logger.info(f"Query classified → route: {state['route']}")
     return state

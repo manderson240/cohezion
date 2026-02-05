@@ -67,8 +67,12 @@ def benchmark_swarm():
     # Call parallel evolution
     start = time.perf_counter()
     
-    results_rs = rust_physics.evolve_swarm_parallel(
-        swarm_z_np, steps, 0.3, 0.9
+    # simulate_epochs_batch expects (latent_batch, epochs)
+    # Convert list of numpy arrays to a single 2D array for the batch call
+    swarm_z_batch = np.stack(swarm_z_np).astype(np.float32)
+    
+    results_rs = rust_physics.simulate_epochs_batch(
+        swarm_z_batch, steps
     )
         
     rust_time = time.perf_counter() - start
