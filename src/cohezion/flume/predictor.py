@@ -77,3 +77,23 @@ class TrajectoryPredictor(nn.Module):
             branch = self.predict_sequence(z + noise, steps=steps)
             branches.append(branch)
         return branches
+
+    def _sync_to_rust(self):
+        """Synchronize weights to the Rust FlumePhysics engine."""
+        from cohezion_core import FlumePhysics
+        
+        # Extract weights from the navigator Sequential block
+        # navigator[0] = Linear(z_dim, hidden_dim)
+        # navigator[2] = LayerNorm(hidden_dim)
+        # navigator[3] = Linear(hidden_dim, z_dim)
+        
+        w1 = self.navigator[0].weight.detach().numpy()
+        b1 = self.navigator[0].bias.detach().numpy()
+        gamma = self.navigator[2].weight.detach().numpy()
+        beta = self.navigator[2].bias.detach().numpy()
+        w2 = self.navigator[3].weight.detach().numpy()
+        b2 = self.navigator[3].bias.detach().numpy()
+        
+        # Create the Rust object with actual weights
+        self.rust_physics = FlumePhysics(w1, b1, w2, b2, gamma, beta)
+        return self.rust_physics

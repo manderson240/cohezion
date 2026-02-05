@@ -14,7 +14,7 @@ import time
 import asyncio
 import psutil
 import threading
-from typing import Dict, List, Optional, Tuple, Callable
+from typing import Dict, List, Optional, Tuple, Callable, Any
 from dataclasses import dataclass, asdict
 from enum import Enum
 from pathlib import Path
@@ -469,37 +469,37 @@ class QuantumPerformanceMonitor:
         setattr(self, f"last_alert_{metric_key}", time.time())
 
         # Execute automatic action if enabled
-        if self.auto_swap_enabled and condition.action is not None:
+        if self.auto_swap_enabled and condition:
             asyncio.create_task(self._execute_automatic_action(condition, metric))
 
     async def _execute_automatic_action(
-        self, condition: AlertCondition, metric: PerformanceMetric
+        self, condition: Optional[AlertCondition], metric: PerformanceMetric
     ):
         """Execute automatic optimization action"""
-        logger.info(f"Executing automatic action: {condition.action.value}")
+        if condition:
+            logger.info(f"Executing automatic action: {condition.action.value}")
 
         try:
-            if condition.action == ActionType.MODEL_SWAP:
+            if condition and condition.action == ActionType.MODEL_SWAP:
                 decision = await self._evaluate_model_swap(metric)
                 if decision.should_swap:
                     await self._perform_model_swap(decision)
 
-            elif condition.action == ActionType.CONTEXT_REDUCTION:
+            elif condition and condition.action == ActionType.CONTEXT_REDUCTION:
                 await self._reduce_context_windows()
 
-            elif condition.action == ActionType.THREAD_ADJUSTMENT:
+            elif condition and condition.action == ActionType.THREAD_ADJUSTMENT:
                 await self._adjust_thread_allocation(metric)
 
-            elif condition.action == ActionType.IDE_PRIORITY_ADJUST:
+            elif condition and condition.action == ActionType.IDE_PRIORITY_ADJUST:
                 await self._adjust_ide_priorities(metric)
 
-            elif condition.action == ActionType.SYSTEM_RESTART:
+            elif condition and condition.action == ActionType.SYSTEM_RESTART:
                 await self._emergency_system_restart()
 
         except Exception as e:
-            logger.error(
-                f"Failed to execute automatic action {condition.action.value}: {e}"
-            )
+            action_name = condition.action.value if condition else "unknown"
+            logger.error(f"Failed to execute automatic action {action_name}: {e}")
 
     async def _auto_swap_monitor(self):
         """Monitor for auto-swap opportunities"""
