@@ -4,6 +4,15 @@ import logging
 from typing import Any, Dict, List, Optional
 import httpx
 
+# Import adaptive framework optimizer
+try:
+    from cohezion.core.optimization.adaptive_framework import get_adaptive_optimizer
+
+    ADAPTIVE_OPTIMIZER_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_OPTIMIZER_AVAILABLE = False
+    logger.warning("⚠️ Adaptive framework optimizer not available")
+
 logger = logging.getLogger(__name__)
 
 
@@ -23,6 +32,9 @@ class LocalExpertRouter:
             "elite-coding": "qwen3-coder-next:q8_0",
             "agentic-coding": "qwen3-coder-next:latest",
             "ocr-vision": "glm-ocr:latest",
+            "voice-synthesis": "pocket-tts:latest",
+            "speech-to-text": "kyutai-stt-1b-en",
+            "voice-native": "moshi:latest",
             # Core tier - balanced performance
             "coding": "qwen3-coder-next:latest",
             "vision": "glm-ocr:latest",
@@ -40,6 +52,9 @@ class LocalExpertRouter:
             "elite-coding": 262144,
             "agentic-coding": 262144,
             "ocr-vision": 128000,  # GLM-OCR native context
+            "voice-synthesis": 32768,  # Pocket TTS optimized
+            "speech-to-text": 8192,  # Kyutai STT optimized
+            "voice-native": 65536,  # Moshi speech-native
             "routing": 8192,
             "general": 32768,
             "vision": 128000,
@@ -65,9 +80,24 @@ class LocalExpertRouter:
         """
         context = context or {}
 
-        # 1. Memory-Aware Model Selection
+        # 1. Adaptive Framework-Aware Model Selection
         available_memory = await self._get_available_memory()
-        model = self._select_optimal_model(task_type, available_memory)
+
+        # Use adaptive optimizer if available
+        if ADAPTIVE_OPTIMIZER_AVAILABLE:
+            optimizer = get_adaptive_optimizer()
+            hardware_profile = optimizer.get_current_profile()
+            if hardware_profile:
+                logger.info(
+                    f"🧠 Using adaptive framework for {hardware_profile.tier} tier hardware"
+                )
+                model = self._select_optimal_model_adaptive(
+                    task_type, available_memory, hardware_profile
+                )
+            else:
+                model = self._select_optimal_model(task_type, available_memory)
+        else:
+            model = self._select_optimal_model(task_type, available_memory)
 
         # 2. Get Mode-Aware Context (From Ascended Registry)
         from cohezion.swarm.mode_controller import get_mode_controller
@@ -126,6 +156,9 @@ class LocalExpertRouter:
             options["repeat_penalty"] = 1.05  # Prevent repetition in high-quality model
         if "glm-ocr" in model:
             options["temperature"] = 0.3  # More deterministic OCR results
+        if "pocket-tts" in model:
+            options["temperature"] = 0.8  # Voice synthesis optimization
+            options["speed"] = 1.0  # Normal speech rate
 
         if "options" in context:
             options.update(context["options"])

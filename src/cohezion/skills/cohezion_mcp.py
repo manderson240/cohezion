@@ -292,6 +292,11 @@ class CohezionMCP:
                             "type": "string",
                             "description": "Optional system instructions",
                         },
+                        "model": {
+                            "type": "string",
+                            "description": "Target model for offload task",
+                            "enum": ["qwen3-coder-next:latest", "qwen3-coder-next:q8_0", "glm-ocr:latest", "phi4-256k:latest", "pocket-tts:latest"],
+                        },
                     },
                     "required": ["query"],
                 },
@@ -317,6 +322,7 @@ class CohezionMCP:
                         "model": {
                             "type": "string",
                             "description": "Target local model",
+                            "enum": ["qwen3-coder-next:latest", "qwen3-coder-next:q8_0", "glm-ocr:latest", "phi4-256k:latest", "pocket-tts:latest"],
                         },
                     },
                     "required": ["tasks"],
@@ -511,27 +517,12 @@ class CohezionMCP:
             text = arguments.get("text", "")
             return self.resolve_claims(text)
         elif name == "get_truth_anchors":
-            return self.get_truth_anchors()
+            return self.resolver.get_truth_anchors()
         elif name == "offload_task":
-            query = arguments.get("query", "")
-            system_prompt = arguments.get("system_prompt")
-            return self.offload_task(query, system_prompt)
-        elif name == "batch_offload":
-            tasks = arguments.get("tasks", [])
-            model = arguments.get("model")
-            return self.batch_offload(tasks, model)
-        elif name == "inspect_cache":
-            return self.inspect_cache()
-        elif name == "elite_ocr_analysis":
-            return self.elite_ocr_analysis(arguments)
-        elif name == "agentic_coding_workflow":
-            return self.agentic_coding_workflow(arguments)
-        elif name == "compound_engineering_orchestrator":
-            return self.compound_engineering_orchestrator(arguments)
-        elif name == "elite_model_selection":
-            return self.elite_model_selection(arguments)
-        elif name == "pocket_tts_generate":
-            return self.pocket_tts_generate(arguments)
+            return self.offload_task(
+                arguments.get("query", ""),
+                arguments.get("system_prompt")
+            )
         elif name.startswith("skill_"):
             skill_id = name.replace("skill_", "").upper()
             # Try to find the exact case match in self.skills
