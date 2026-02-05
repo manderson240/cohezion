@@ -1,0 +1,106 @@
+{
+  "pylsp": {
+    "configurationSources": ["pycodestyle", "pyflakes"],
+    
+    "plugins": {
+      "pycodestyle": {
+        "enabled": true,
+        "maxLineLength": 88,
+        "ignore": ["E501"]  // Line too long - handled by formatter
+      },
+      
+      "pyflakes": {
+        "enabled": true
+      },
+      
+      "mccabe": {
+        "enabled": true,
+        "threshold": 12
+      },
+      
+      "pylsp_mypy": {
+        "enabled": true,
+        "dmypy": true,
+        "report_progress": true,
+        "live_mode": true
+      },
+      
+      "jedi_completion": {
+        "enabled": true,
+        "include_params": true,
+        "fuzzy": true,
+        "resolve_at_most": 25,
+        "cache_for": 300  // 5 minutes
+      },
+      
+      "jedi_hover": {
+        "enabled": true,
+        "enabled_for": ["pygame", "pandas", "numpy", "torch"]
+      },
+      
+      "jedi_definition": {
+        "enabled": true,
+        "follow_imports": true,
+        "follow_builtin_imports": true
+      },
+      
+      "jedi_references": {
+        "enabled": true
+      },
+      
+      "jedi_signature_help": {
+        "enabled": true
+      },
+      
+      "jedi_symbols": {
+        "enabled": true,
+        "all_scopes": true,
+        "include_import_symbols": true
+      },
+      
+      // COHEZION-SPECIFIC ENHANCEMENTS
+      "pydocstyle": {
+        "enabled": true,
+        "convention": "google"
+      },
+      
+      "flake8": {
+        "enabled": false  // Using ruff instead
+      },
+      
+      "autopep8": {
+        "enabled": false  // Using ruff format instead
+      },
+      
+      "yapf": {
+        "enabled": false  // Using ruff format instead
+      }
+    },
+    
+    // =============================================
+    // COHEZION PROJECT-SPECIFIC SETTINGS
+    // =============================================
+    "workspace": {
+      "rootPath": "/home/mike-anderson/dev/cohezion",
+      "extraPaths": [
+        "src/cohezion",
+        "src/cohezion/swarm",
+        "src/cohezion/agents", 
+        "src/cohezion/core",
+        "src/cohezion/skills",
+        "src/cohezion/universe",
+        "src/cohezion/reliability",
+        "src/cohezion/registry",
+        "src/cohezion/knowledge_graph",
+        "src/cohezion/evaluation",
+        "apps/webapp/src"
+      ]
+    },
+    
+    "rope": {
+      "enabled": true,
+      "ropeFolder": ".ropeproject",
+      "ropeProjectFolder": ".ropeproject"
+    }
+  }
+}
