@@ -6,7 +6,7 @@ import os
 import shutil
 import subprocess
 import tarfile
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Dict, Any
 
@@ -120,7 +120,7 @@ class KnowledgeHarvester:
                 "content": content,
                 "path": str(file_path),
                 "source": "harvester",
-                "ingested_at": datetime.utcnow().isoformat(),
+                "ingested_at": datetime.now(timezone.utc).isoformat(),
                 "type": "learning"
             }
             
@@ -138,7 +138,7 @@ class KnowledgeHarvester:
             record = {
                 "path": str(file_path),
                 "source": "harvester",
-                "ingested_at": datetime.utcnow().isoformat(),
+                "ingested_at": datetime.now(timezone.utc).isoformat(),
                 "type": "journey"
             }
             
@@ -248,7 +248,7 @@ class KnowledgeHarvester:
                             "content": text_content,
                             "path": str(path),
                             "source": "ghost_harvester",
-                            "ingested_at": datetime.now().isoformat(),
+                            "ingested_at": datetime.now(timezone.utc).isoformat(),
                             "type": "learning"
                         }
                          await self.dba.client.create("knowledge", record)
@@ -256,7 +256,7 @@ class KnowledgeHarvester:
                         record = {
                             "path": str(path),
                             "source": "ghost_harvester",
-                            "ingested_at": datetime.now().isoformat(),
+                            "ingested_at": datetime.now(timezone.utc).isoformat(),
                             "type": "journey",
                             "raw_content": text_content[:20000]
                         }

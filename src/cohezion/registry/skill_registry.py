@@ -56,6 +56,9 @@ def register_skill(
     description: str,
     keywords: list[str],
     path: str,
+    version: str = "0.1.0",
+    template_version: str = "v0.1",
+    generated_from: str = "skill.md",
 ) -> None:
     """
     Register (or update) a skill in the registry.
@@ -70,12 +73,22 @@ def register_skill(
         A list of search‑friendly tokens that capture the core concepts.
     path: str
         Relative path to the markdown file that implements the skill.
+    version: str, optional
+        SemVer version of the skill implementation.
+    template_version: str, optional
+        Version of the template used to generate this skill.
+    generated_from: str, optional
+        Name of the template file used.
     """
     registry = load_registry()
     registry[name] = {
         "description": description,
         "keywords": [kw.lower() for kw in keywords],
         "path": path,
+        "version": version,
+        "template_version": template_version,
+        "generated_from": generated_from,
+        "last_updated": os.environ.get("COHEZION_TIMESTAMP", "") or "",
     }
     _save_registry(registry)
 

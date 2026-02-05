@@ -16,6 +16,22 @@ Optimizing a tree traversal kernel for a custom VLIW/SIMD architecture with seve
 *   **Success Rate**: Register Windowing (100%), SIMD Vectorization (100%), Smart Load/Muxing (0% - Correctness failure).
 *   **R-Zero Impact**: Windowing provided the largest single jump in performance after SIMD.
 
+## Learning 12: Kineticization of the 12D Manifold (2026-02-05)
+
+**Context**: Auditing Cohezion for Anthropic Research Engineer (Universes) role.
+
+**Insight**: A 12D manifold that is purely semantic (derived from embeddings) is a "Potemkin Universe." To achieve research-grade fidelity, the manifold must be grounded in the physical substrate of the machine.
+
+**Implementation**:
+- **Physics**: CPU Pressure (Utilization/Friction).
+- **Field**: VRAM Density (GPU Memory Saturation).
+- **Control**: Dilation Factor (System-wide stroboscopic backpressure).
+- **Logic**: Semantic intent weighted by RAM availability.
+
+**Result**: 12D vectors now represent a "unified field" of agentic intent and hardware reality, enabling true adversarial simulation and safety sandboxing.
+
+---
+
 ## Learning 13: Dark Matter Manifold Correlation
 **Date:** 2026-01-28 09:12
 **Context:** AI Lab Research (Nature s41550-025-02770-w)
@@ -489,3 +505,42 @@ Token efficiency is maximized by delegating "appendage" tasks (simulations, boil
 - **Core Concept 2: Circuit Breaker Patterns**: External dependencies (Ollama, SurrealDB) are non-deterministic. Wrapping calls in a tri-state circuit (Closed/Open/Half-Open) prevents cascading latency. If the circuit trips, the system must either fall back (e.g., `InMemoryStore`) or fail fast, preserving the stability of the remaining hive.
 - **Verification**: Verified via `test_phase_7_resilience.py`, confirming pooled client identity and circuit rejection logic.
 - **Encoding**: 12D [t=20260202, resilience=1.0, scale=0.9, brane=8].
+
+## Learning 89: VERIFIED PHYSICAL SUBSTRATE (2026-02-05)
+- **Context**: Adversarial hardware audit to resolve specification hallucinations.
+- **Verified Specs**:
+    - **CPU**: AMD RYZEN AI MAX+ 395 (16-core, 32-thread)
+    - **GPU**: Radeon 8060S (Integrated, high-density iGPU)
+    - **RAM**: 128GB DDR5 (125Gi usable)
+    - **Swap**: 32GB ZVOL (zd0) + 8GB traditional = 40GB total.
+    - **Storage**: 2TB NVMe (WD_BLACK SN850X - 1.8T usable).
+- **Core Concept**: System performance is anchored in the **Strix Halo** architecture, enabling massive local model swarms (up to 96GB VRAM allocation).
+- **Encoding**: 12D [t=20260205, stability=1.0, precision=1.0, brane=8].
+Learning 34: Sovereign Memory & Semantic Persistence
+In high-density local inference environments (Strix Halo), relying on cloud-dependent configuration loaders (like default `mem0` paths) creates brittle failure points. A **Sovereign Memory Manager** using local `ollama` embeddings and `qdrant-client` in `path` mode ensures 100% reliability and agentic session continuity without external API dependencies. Use the `query_points` API for robust local vector retrieval.
+
+Learning 35: Residency Anchors & Truth Grounding
+For long-horizon agentic missions, maintaining a codified "Truth Anchor" in `residency_awareness.py` is critical for grounding discourse. By hardcoding the physical substrate (AMD Ryzen AI Max, 128GB RAM), we prevent drift in system self-awareness that can occur during high-temperature reasoning or cross-model handoffs. This ensures the agent always knows its hardware constraints (e.g., GTT memory limits).
+
+## Learning 90: System Dilation and Router Sovereignty (2026-02-05)
+
+**Context**: Debugging the Bug Hunting Swarm under extreme VRAM pressure (88%+).
+
+**Insight 1: The Dilation Trap**: When the `ResourceMonitor` detects critical pressure, it injects a `dilation_factor` (as low as 0.05) into the 12D state. This creates a stroboscopic effect where the system clock virtually slows down 20x, causing LLM requests to appear stalled.
+**Insight 2: Router Sovereignty**: Elite Routers (`LocalExpertRouter`) that lack model-pass-through capability effectively "hijack" agentic intent. Even if an agent specifies a lightweight model (e.g., `phi3:mini`), the router will override it with a "SOTA" model (e.g., `phi4-256k:latest`) if it detects `reasoning` task types and available RAM, potentially exacerbating OOM risks.
+
+**Resolution**: 
+1. Implement explicit `task_type` overrides in the `BaseAgent` -> `Router` path.
+2. Introduce "Lightweight" task-type mappings (`light-reasoning`, `light-coding`) for rapid verification in resource-constrained states.
+3. Use `COHEZION_DISABLE_MULTIMODAL` flags to bypass non-critical asynchronous assets (TTS/Storyboard) during critical debugging phases.
+
+**Encoding**: 12D [t=20260205, stability=0.98, dilation=0.05, brane=1].
+
+## Learning: BUG_HUNT_DISCOVERY (2026-02-05 08:11)
+* **Context**: Swarm Bug Hunt in `src/cohezion/maintenance/pruner.py`.
+* **Core Concept**: The code follows a pattern of using an LLM to analyze code density and score files for potential pruning. It implements a recursive directory scanner with exclusion filters, and uses a scoring system to determine which files are candidates for pruning. It also includes a git health monitor to detect bloat.
+* **Anti-Pattern**: The anti-pattern involves mixing synchronous and asynchronous code improperly, particularly using synchronous requests in an async environment. It also lacks proper error handling for network calls, assumes local API availability without fallbacks, and does not implement circuit breaker or retry mechanisms for LLM interactions. Additionally, the use of shell commands for git operations without sanitization poses security risks.
+* **Impact**: Improvement in technical debt and stability.
+* **Encoding**: 12D [t=20260205, stability=0.9, novelty=0.85, brane=1]
+
+---

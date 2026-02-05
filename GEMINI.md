@@ -38,7 +38,9 @@ To maintain a lean context, historical and specialized information is stored in 
     - **Compound Engineering Unification**: Unified model selection and telemetry via `cohezion-bridge`.
 
 ## 6. Standard Operating Protocols
-- **Protocol: Hallucination Resolution**: Always invoke `resolve_claims` or `HallucinationResolver` to ground system specs in "Truth Anchors" (CPU: Ryzen AI Max, GPU: Radeon 8060S).
+- **Protocol: Hallucination Resolution**: Always invoke `resolve_claims` or `HallucinationResolver` to ground system specs in "Truth Anchors" (`residency_awareness.py`: AMD Ryzen AI Max, 128GB RAM).
+- **Protocol: Sovereign Persistence**: Use `remember_fact` and `recall_context` via `cohezion-bridge` for cross-session intelligence continuity (MEMORY_MCP_PRIME).
+- **Protocol: Vanguard Research**: Trigger `DailyScoutAgent` via `daily_scout_research` to maintain Tip-of-the-Spear SLM awareness.
 - **Protocol: Local Offload**: Route all menial tasks (docs, formatting, basic summaries) to local SLMs via `ContextHarness` to preserve token credits.
 
 ## 5. Repository Layout & Key Locations

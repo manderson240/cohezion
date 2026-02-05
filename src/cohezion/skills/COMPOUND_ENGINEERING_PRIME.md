@@ -10,19 +10,27 @@ Unified technical methodology for cross-platform agentic orchestration, local mo
 - **Defensive Grounding**: The mandatory use of "Truth Anchors" and `HallucinationResolver` to prevent spec-attribution errors.
 - **Offload Parity**: Ensuring menial tasks (docs, formatting) are always routed to local SLMs with a dedicated `ContextHarness`.
 
+## FUTURE HOOKS
+- **Registry Integration**: Metadata hooks for `CapabilityRegistry` to suggest this skill in new contexts.
+- **State Vector Feedback**: 12D state updates that inform system-wide "Compound Impact" scores.
+- **Recursive Refinement**: Automated extraction of sub-skills via `RETROSPECTIVE_SKILL`.
+
 ## INSTRUCTION
 1. **Plan via Implementation Plan**: For all complex tasks, create a gated `implementation_plan.md` for user approval.
 2. **Execute with Grounding**:
     - Consult `get_truth_anchors` for hardware/path vitals.
     - Check model availability via `ollama list` before assignment.
-3. **Offload Menials**:
+3. **Seed the Future (Compound Engineering)**:
+    - Every new skill/feature MUST include a `## FUTURE HOOKS` section.
+    - List at least 3 ways this feature makes future tasks easier.
+4. **Offload Menials**:
     - Identify supportive tasks (docstrings, READMEs).
     - Use `offload_task` or `BaseAgent.offload_to_local`.
-4. **Verify & Walkthrough**:
+5. **Verify & Walkthrough**:
     - Provide a concrete `walkthrough.md` with proof-of-work (command output, screenshots).
-5. **Extract Wisdom**:
+6. **Extract Wisdom**:
     - Update `KEY_LEARNINGS.md` with at least one 12D-encoded learning.
-    - Update the relevant Retrospective.
+    - Increment the `compound_impact_score` in the `CapabilityRegistry`.
 
 ## VERSION
 v1.0

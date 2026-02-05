@@ -1,4 +1,5 @@
 """Base agent class for all SLM Swarm agents."""
+from __future__ import annotations
 
 import asyncio
 import hashlib
@@ -20,9 +21,6 @@ from cohezion.reliability.monitor import get_resource_monitor
 from cohezion.rewards.system import RewardSystem
 from cohezion.security.output_filter import OutputFilter
 from cohezion.security.prompt_guard import PromptGuard, ThreatLevel
-from cohezion.swarm.journey_narrator import JourneyNarrator
-from cohezion.swarm.redundancy_suppression import RedundancyManager
-from cohezion.swarm.swarm_types import SwarmConfig
 from cohezion.universe.engine import UniverseSimulationEngine
 from cohezion.reliability.offload_manager import OffloadManager
 from cohezion.reliability.context_harness import ContextHarness
@@ -30,6 +28,7 @@ from cohezion.reliability.semantic_cache import SemanticCache
 from cohezion.reliability.batch_manager import BatchManager
 from cohezion.reliability import get_circuit
 from cohezion.reliability.pool import get_pool
+from cohezion.core.compound.engine import CompoundLogicEngine
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +66,9 @@ class BaseAgent(ABC):
         cache_dir: Path | None = None,
     ):
         from cohezion.registry.capability_registry import CapabilityRegistry
+        from cohezion.swarm.journey_narrator import JourneyNarrator
+        from cohezion.swarm.redundancy_suppression import RedundancyManager
+        from cohezion.swarm.swarm_types import SwarmConfig
 
         self.registry = CapabilityRegistry()  # Auto-discovery enabled
         self.model_name = model_name
@@ -116,7 +118,8 @@ class BaseAgent(ABC):
             threshold=self.config.semantic_cache_threshold,
         )
 
-        # Memory Recovery Protocol (MRP) - Gateway 12
+        # Gateway 12: Memory Recovery Protocol (MRP)
+        self._compound_engine = CompoundLogicEngine(registry=self.registry)
         if self.config.mrp_sync:
             asyncio.create_task(self._synchronize_mrp())
 
@@ -142,7 +145,7 @@ class BaseAgent(ABC):
             content += ":" + ":".join(images[:3])  # Use first 3 images for keying
         return hashlib.sha256(content.encode()).hexdigest()
 
-    def _get_cached(
+    async def _get_cached(
         self, prompt: str, images: list[str] | None = None
     ) -> dict[str, Any] | None:
         """Retrieve a cached response if available and not expired."""
@@ -166,7 +169,7 @@ class BaseAgent(ABC):
             query_vec = self._encoder.encode(prompt)
             if hasattr(query_vec, "cpu"):
                 query_vec = query_vec.cpu().numpy()
-            semantic_hit = self._semantic_cache.search(query_vec)
+            semantic_hit = await self._semantic_cache.search(query_vec, query_text=prompt)
             if semantic_hit:
                 logger.info(
                     f"✨ Semantic Cache Hit (score: {semantic_hit['semantic_score']:.2f})"
@@ -176,7 +179,7 @@ class BaseAgent(ABC):
 
         return None
 
-    def _set_cached(
+    async def _set_cached(
         self,
         prompt: str,
         response: str,
@@ -216,7 +219,7 @@ class BaseAgent(ABC):
             query_vec = self._encoder.encode(prompt)
             if hasattr(query_vec, "cpu"):
                 query_vec = query_vec.cpu().numpy()
-            self._semantic_cache.add(
+            await self._semantic_cache.add(
                 vector=query_vec,
                 response=response,
                 metadata={
@@ -225,6 +228,7 @@ class BaseAgent(ABC):
                     "confidence": confidence,
                     "agent": self.__class__.__name__,
                 },
+                query_text=prompt,
             )
 
     async def enqueue_batch_task(
@@ -235,6 +239,20 @@ class BaseAgent(ABC):
         self._batch_mgr.enqueue(task_id, query, context)
         logger.info(f"📥 Task {task_id} enqueued for batch processing.")
         return task_id
+
+    async def _compound_discovery(self, query: str) -> None:
+        """
+        Discover existing capabilities that can accelerate the current task.
+        """
+        compounds = self._compound_engine.analyze_task_for_compounding(query)
+        if compounds:
+            # Inject compound wisdom into the narrator or logs
+            summary = ", ".join([f"{c['name']} ({len(c['hooks'])} hooks)" for c in compounds])
+            logger.info(f"🧩 [COMPOUND] Leveraging existing patterns: {summary}")
+            # Potentially update system prompt for the next call
+            self._compound_wisdom = compounds
+        else:
+            self._compound_wisdom = []
 
     async def process_batch(self, model: str | None = None) -> Dict[str, str]:
         """Process all enqueued tasks in a single local SLM call."""
@@ -273,12 +291,17 @@ class BaseAgent(ABC):
         system_prompt: str | None = None,
         ignore_cache: bool = False,
         model: str | None = None,
+        task_type: str | None = None,
     ) -> AgentResponse:
         """
         Call local Ollama instance with optional image support and manifold projection.
         """
         start_time = time.perf_counter()
-        tk = get_time_keeper()  # Removed from here as per instruction, but re-added to maintain functionality.
+        tk = get_time_keeper()
+
+        # 0. Compound Discovery (The Reckoning)
+        if hasattr(self, "_compound_engine"):
+            await self._compound_discovery(prompt)
 
         # 0. Check Frequency, Redundancy, & Cache
         req_hash_content = f"{self.model_name}:{prompt}"
@@ -308,7 +331,7 @@ class BaseAgent(ABC):
             )
 
         # Check cache first
-        cached_data = self._get_cached(prompt, images) if not ignore_cache else None
+        cached_data = await self._get_cached(prompt, images) if not ignore_cache else None
         if cached_data:
             print(
                 f"DEBUG [BaseAgent]: Cache HIT for {self.model_name}. Narration: {cached_data.get('narration')}"
@@ -397,18 +420,20 @@ class BaseAgent(ABC):
                 from cohezion.core.routing.router import LOCAL_ROUTER
 
                 # Dynamic task detection if not specified
-                task_type = "general"
-                if current_prompt:
-                    if "def " in current_prompt or "class " in current_prompt:
-                        task_type = "coding"
-                    elif (
-                        "reason" in current_prompt.lower()
-                        or "why" in current_prompt.lower()
-                    ):
-                        task_type = "reasoning"
+                effective_task_type = task_type
+                if not effective_task_type:
+                    effective_task_type = "general"
+                    if current_prompt:
+                        if "def " in current_prompt or "class " in current_prompt:
+                            effective_task_type = "coding"
+                        elif (
+                            "reason" in current_prompt.lower()
+                            or "why" in current_prompt.lower()
+                        ):
+                            effective_task_type = "reasoning"
 
                 result = await LOCAL_ROUTER.route_task(
-                    task_type=task_type,
+                    task_type=effective_task_type,
                     prompt=current_prompt or "",
                     context={
                         "options": {
@@ -503,7 +528,7 @@ class BaseAgent(ABC):
 
         # Persistence & Cache
         persistence_id = f"thought_{int(time.time() * 1000)}_{query_hash}"
-        self._set_cached(
+        await self._set_cached(
             prompt,
             final_result,
             embedding=embedding,

@@ -11,35 +11,12 @@ import re
 from pathlib import Path
 from typing import Dict, Any, List
 
+from cohezion.reliability.residency_awareness import ResidencyAnchorBase
+
 class HallucinationResolver:
     def __init__(self, tracker_path: str = "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/HALLUCINATION_TRACKER.md"):
         self.tracker_path = Path(tracker_path)
-        self.ground_truth = self._probe_system()
-
-    def _probe_system(self) -> Dict[str, Any]:
-        """Establish Ground Truth via live diagnostics."""
-        cpu = "Unknown"
-        try:
-            res = subprocess.run(["lscpu"], capture_output=True, text=True)
-            for line in res.stdout.splitlines():
-                if "Model name" in line:
-                    cpu = line.split(":")[1].strip()
-        except: pass
-
-        gpu = "Unknown"
-        try:
-            if os.path.exists("/sys/class/drm/card1/device/mem_info_vram_total"):
-                 gpu = "AMD Radeon (detected via sysfs)"
-        except: pass
-
-        return {
-            "os": platform.system(),
-            "cpu": cpu,
-            "gpu": gpu,
-            "ram_gb": round(os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES') / (1024**3), 2),
-            "hostname": platform.node(),
-            "project_root": os.environ.get("COHEZION_ROOT", "/home/mike-anderson/dev/cohezion")
-        }
+        self.ground_truth = ResidencyAnchorBase.get_anchors()
 
     def resolve_claims(self, text: str) -> Dict[str, Any]:
         """Verify text against ground truth and known hallucinations."""

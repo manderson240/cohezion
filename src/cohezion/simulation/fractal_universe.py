@@ -144,6 +144,67 @@ class StabilizerAgent:
             self.energy -= 0.1  # Movement cost
 
 
+@dataclass
+class RedTeamAgent(StabilizerAgent):
+    """Adversarial agent that increases entropy to prevent stagnation."""
+
+    def move(self, grid: "UniverseGrid"):
+        # Red Team seeks high-energy sectors to disrupt
+        neighbors = grid.get_neighbors(self.x, self.y)
+        best_move = None
+        max_energy = -1.0
+
+        for nx, ny, sector in neighbors:
+            if sector.energy > max_energy:
+                max_energy = sector.energy
+                best_move = (nx, ny)
+
+        if best_move:
+            prev_sector = grid.get_sector(self.x, self.y)
+            if self in prev_sector.agents:
+                prev_sector.agents.remove(self)
+
+            self.x, self.y = best_move
+            new_sector = grid.get_sector(self.x, self.y)
+            new_sector.agents.append(self)
+
+            # Red Team actively increases entropy (Entropy Catalyst)
+            new_sector.entropy = min(1.0, new_sector.entropy + 0.05)
+            self.energy -= 0.2
+
+
+@dataclass
+class BlueTeamAgent(StabilizerAgent):
+    """Defensive agent that pulls entropy towards the HIHO 0.5 attractor."""
+
+    def move(self, grid: "UniverseGrid"):
+        # Blue Team acts like a high-performance stabilizer
+        neighbors = grid.get_neighbors(self.x, self.y)
+        best_move = None
+        min_diff = abs(self.coherence - 0.5)
+
+        for nx, ny, sector in neighbors:
+            # Predict effect of moving to this sector
+            diff = abs(sector.entropy - 0.5)
+            if diff < min_diff:
+                min_diff = diff
+                best_move = (nx, ny)
+
+        if best_move:
+            prev_sector = grid.get_sector(self.x, self.y)
+            if self in prev_sector.agents:
+                prev_sector.agents.remove(self)
+
+            self.x, self.y = best_move
+            new_sector = grid.get_sector(self.x, self.y)
+            new_sector.agents.append(self)
+
+            # Blue Team pulls entropy towards 0.5 (Consensus Anchor)
+            correction = (0.5 - new_sector.entropy) * 0.15
+            new_sector.entropy += correction
+            self.energy -= 0.1
+
+
 class UniverseGrid:
     def __init__(self, size: int = GRID_SIZE):
         self.size = size
@@ -275,6 +336,18 @@ class FractalSimulator:
         for agent in self.agents:
             sector = self.grid.get_sector(agent.x, agent.y)
             sector.agents.append(agent)
+
+        # Add Red/Blue Specialists
+        for i in range(12):
+            rx, ry = random.randint(0, GRID_SIZE - 1), random.randint(0, GRID_SIZE - 1)
+            red = RedTeamAgent(f"red_{i}", rx, ry, energy=150.0)
+            self.grid.get_sector(rx, ry).agents.append(red)
+            self.agents.append(red)
+
+            bx, by = random.randint(0, GRID_SIZE - 1), random.randint(0, GRID_SIZE - 1)
+            blue = BlueTeamAgent(f"blue_{i}", bx, by, energy=150.0)
+            self.grid.get_sector(bx, by).agents.append(blue)
+            self.agents.append(blue)
 
         # Handle signals
         signal.signal(signal.SIGINT, self.shutdown)

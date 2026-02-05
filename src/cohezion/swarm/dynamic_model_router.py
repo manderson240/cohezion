@@ -36,11 +36,11 @@ class IDEPriority(Enum):
 class ModelTier(Enum):
     """Memory-bandwidth-aware model tiers optimized for DDR5 constraints"""
 
-    MICRO = (0.5, 4)  # 0.5-4GB, 12 concurrent, 15-20 t/s
-    SMALL = (4, 8)  # 4-8GB, 8 concurrent, 8-15 t/s
-    MEDIUM = (8, 16)  # 8-16GB, 4 concurrent, 4-8 t/s
-    LARGE = (16, 32)  # 16-32GB, 2 concurrent, 2-4 t/s
-    ULTRA = (32, 128)  # 32-128GB, 1 concurrent, 0.5-2 t/s
+    MICRO = (0.5, 4, 12)  # 0.5-4GB, 12 concurrent, 15-20 t/s
+    SMALL = (4, 8, 8)  # 4-8GB, 8 concurrent, 8-15 t/s
+    MEDIUM = (8, 16, 4)  # 8-16GB, 4 concurrent, 4-8 t/s
+    LARGE = (16, 32, 2)  # 16-32GB, 2 concurrent, 2-4 t/s
+    ULTRA = (32, 128, 1)  # 32-128GB, 1 concurrent, 0.5-2 t/s
 
 
 @dataclass

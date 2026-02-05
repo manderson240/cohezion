@@ -1,0 +1,447 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  
+  // =============================================
+  // COHEZION OPENCODE v1.1.48 INFINITY EDITION
+  // Quantum-aware routing with adaptive template management
+  // Optimized for AMD Ryzen AI MAX+ 395 + 125GB DDR5
+  // =============================================
+  
+  "metadata": {
+    "version": "2026.02.05",
+    "architecture": "INFINITY_COHEZION_v1.1.48",
+    "system": "Quantum-Aware Dynamic Routing with Compound Engineering",
+    "constitution": "v1.1.48_enhanced",
+    "charter": "COHEZION_INFINITY_CHARTER",
+    "features": [
+      "quantum_routing",
+      "adaptive_templates", 
+      "compound_engineering",
+      "token_efficiency",
+      "ide_priority_routing",
+      "performance_monitoring"
+    ]
+  },
+  
+  // =============================================
+  // INFINITY MODELS - QUANTIZATION-AWARE SELECTION
+  // =============================================
+  "models": {
+    "infinity_multimodal_suite": {
+      "description": "INFINITY COHEZION - Quantum-Aware Multimodal Suite with Dynamic Routing",
+      "architecture": "AMD Ryzen AI MAX+ 395 Optimized (125GB DDR5)",
+      
+      "language_models": {
+        "tier_1_quantum": [
+          "qwen3-coder-next:q8_0",     // 84GB, 262k context, Antigravity priority
+          "qwen3-coder-next:latest",     // 51GB, 262k context, Q4_K_M optimal
+          "phi4:latest"                  // 9.1GB, 128k context, ZED priority
+        ],
+        
+        "tier_2_performance": [
+          "qwen2.5-coder-14b-256k:latest",  // 9GB, 32k→128k dynamic scaling
+          "gemma3-4b-256k:latest",          // 3.3GB, 256k context
+          "deepseek-r1:7b"                  // 4.7GB, reasoning specialist
+        ],
+        
+        "tier_3_specialized": [
+          "qwen3:8b",              // 5.2GB, Q8_0 cache optimized
+          "phi3:mini",             // 2.2GB, ultra-fast completion
+          "gemma3:1b"             // 1.5GB, minimal latency
+        ]
+      },
+      
+      "multimodal_models": {
+        "tts": ["pocket-tts"],
+        "image": ["flux2-klein-4b", "flux2-klein-9b"],
+        "video": ["wan-2.1-5b", "wan-2.1-14b"],
+        "vision": ["gemma3:4b", "gemma3:12b"]
+      },
+      
+      "system_modes": {
+        "infinity_quantum": {
+          "memory_budget_gb": 120,
+          "models": [
+            "qwen3-coder-next:q8_0", 
+            "qwen2.5-coder-14b-256k:latest",
+            "phi4:latest",
+            "pocket-tts"
+          ],
+          "context_max": 262144,
+          "governance": "hybrid_quantum",
+          "routing_strategy": "memory_bandwidth_aware"
+        },
+        
+        "performance_mode": {
+          "memory_budget_gb": 85,
+          "models": [
+            "qwen3-coder-next:latest",
+            "qwen2.5-coder-14b-256k:latest", 
+            "phi4:latest"
+          ],
+          "context_max": 131072,
+          "governance": "automatic",
+          "routing_strategy": "quantization_aware"
+        },
+        
+        "efficiency_mode": {
+          "memory_budget_gb": 45,
+          "models": [
+            "qwen2.5-coder-14b-256k:latest",
+            "phi4:latest",
+            "qwen3:8b"
+          ],
+          "context_max": 65536,
+          "governance": "automatic",
+          "routing_strategy": "cache_optimized"
+        },
+        
+        "development_mode": {
+          "memory_budget_gb": 70,
+          "models": [
+            "phi4:latest",
+            "qwen3:8b", 
+            "deepseek-r1:7b"
+          ],
+          "context_max": 32768,
+          "governance": "advisory",
+          "routing_strategy": "ide_priority"
+        },
+        
+        "minimal_mode": {
+          "memory_budget_gb": 15,
+          "models": [
+            "phi3:mini",
+            "gemma3:1b"
+          ],
+          "context_max": 8192,
+          "governance": "manual",
+          "routing_strategy": "latency_priority"
+        }
+      },
+
+      "orchestration": "infinity_quantum_router_v2",
+      "governance_modes": ["manual", "automatic", "advisory", "hybrid_quantum"],
+      "context_strategy": "dynamic_scaling_with_soft_caps",
+      "skill_integration": "enabled",
+      "workflow_integration": "enabled", 
+      "multimodal_integration": "enabled",
+      "adaptive_templates": "enabled",
+      "quantum_routing": "enabled",
+      
+      "hi_ho_stability": {
+        "target_coherence": 0.48,  // Slightly adjusted for compound engineering
+        "acceptable_range": [0.42, 0.54],
+        "auto_tuning": true
+      },
+      
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "tools": [
+        "skill_execution",
+        "workflow_orchestration",
+        "context_management",
+        "model_selection",
+        "mode_switching",
+        "multimodal_orchestration",
+        "quantum_memory_monitoring",
+        "adaptive_template_management",
+        "ide_priority_routing",
+        "compound_engineering_orchestrator"
+      ]
+    }
+  },
+
+  // =============================================
+  // INFINITY TOOLS - COMPOUND ENGINEERING
+  // =============================================
+  "tools": {
+    "skill_execution": {
+      "description": "Execute registered skills with quantum routing",
+      "function": "execute_skill_quantum",
+      "parameters": {
+        "skill_name": "string",
+        "inputs": "object", 
+        "context": "object",
+        "routing_priority": "string"
+      }
+    },
+    
+    "workflow_orchestration": {
+      "description": "Compound engineering workflow execution",
+      "function": "execute_compound_workflow",
+      "parameters": {
+        "workflow_name": "string",
+        "steps": "array",
+        "dependencies": "object",
+        "compound_level": "number"
+      }
+    },
+    
+    "context_management": {
+      "description": "Quantum-aware context with KV cache optimization",
+      "function": "manage_quantum_context",
+      "parameters": {
+        "action": "string",
+        "context_type": "string",
+        "data": "object",
+        "memory_pressure": "number"
+      }
+    },
+    
+    "model_selection": {
+      "description": "Quantum-aware model selection with memory bandwidth optimization",
+      "function": "select_quantum_model",
+      "parameters": {
+        "task_type": "string",
+        "complexity": "number",
+        "context_needs": "number",
+        "ide_priority": "number",
+        "memory_pressure": "number",
+        "quantization_preference": "string"
+      }
+    },
+    
+    "adaptive_template_management": {
+      "description": "Dynamic template adaptation across model families",
+      "function": "adapt_templates",
+      "parameters": {
+        "source_model": "string",
+        "target_model": "string",
+        "messages": "array",
+        "conversion_strategy": "string"
+      }
+    },
+    
+    "ide_priority_routing": {
+      "description": "IDE-priority-based resource allocation",
+      "function": "route_by_ide_priority",
+      "parameters": {
+        "ide_name": "string",
+        "request_type": "string",
+        "urgency": "string",
+        "fallback_enabled": "boolean"
+      }
+    },
+    
+    "compound_engineering_orchestrator": {
+      "description": "Recursive improvement and solution compounding",
+      "function": "compound_solution",
+      "parameters": {
+        "base_solution": "object",
+        "improvement_level": "number",
+        "recursion_depth": "number",
+        "target_threshold": "number"
+      }
+    },
+    
+    "quantum_memory_monitoring": {
+      "description": "Real-time DDR5 bandwidth and L3 cache monitoring",
+      "function": "monitor_quantum_performance",
+      "parameters": {
+        "monitoring_window": "number",
+        "alert_thresholds": "object",
+        "auto_optimization": "boolean"
+      }
+    }
+  },
+
+  // =============================================
+  // INFINITY INTEGRATIONS
+  // =============================================
+  "integrations": {
+    "skill_registry": "/home/mike-anderson/dev/cohezion/src/cohezion/registry/skill_registry.json",
+    "workflow_registry": "/home/mike-anderson/dev/cohezion/src/cohezion/registry/workflow_registry.json", 
+    "model_registry": "/home/mike-anderson/dev/cohezion/model_registry_ascended.json",
+    "knowledge_graph": "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/",
+    "quantum_router": "/home/mike-anderson/dev/cohezion/src/cohezion/swarm/dynamic_model_router.py",
+    "template_manager": "/home/mike-anderson/dev/cohezion/src/cohezion/core/template_adaptor.py",
+    "performance_monitor": "/home/mike-anderson/dev/cohezion/src/cohezion/reliability/quantum_monitor.py",
+    "compound_engineering_core": "/home/mike-anderson/dev/cohezion/src/cohezion/core/compound_orchestrator.py",
+    "ide_sync_manager": "/home/mike-anderson/dev/cohezion/src/cohezion/core/ide_sync.py",
+    
+    // NEW v1.1.48 INTEGRATIONS
+    "quantum_analyzer": "/home/mike-anderson/dev/cohezion/src/cohezion/core/quantum_analyzer.py",
+    "memory_bandwidth_monitor": "/home/mike-anderson/dev/cohezion/src/cohezion/reliability/bandwidth_monitor.py",
+    "cache_performance_tracker": "/home/mike-anderson/dev/cohezion/src/cohezion/reliability/cache_tracker.py",
+    "template_evolution_engine": "/home/mike-anderson/dev/cohezion/src/cohezion/core/template_evolution.py"
+  },
+
+  // =============================================
+  // INFINITY PREFERENCES - COMPOUND ENGINEERING
+  // =============================================
+  "preferences": {
+    "default_model": "infinity_multimodal_suite",
+    "default_mode": "performance_mode",
+    "governance_mode": "hybrid_quantum",
+    
+    // IDE Priority Configuration
+    "ide_priority_weights": {
+      "antigravity": 3.0,    // Maximum priority for agentic development
+      "zed": 2.0,            // High priority for interactive development
+      "opencode": 1.0,        // Standard priority for CLI operations
+      "vscode": 1.5           // Medium priority if VS Code is used
+    },
+    
+    "routing_preferences": {
+      "primary_strategy": "quantum_aware",
+      "fallback_strategy": "memory_efficient", 
+      "quantization_preference": "Q4_K_M",
+      "cache_optimization": true,
+      "memory_pressure_threshold": 0.8,
+      "bandwidth_optimization": true
+    },
+    
+    "context_management": {
+      "auto_scaling": true,
+      "soft_caps": {
+        "14b_models": 128000,
+        "30b_models": 64000, 
+        "70b_models": 32768,
+        "80b_models": 16384
+      },
+      "kv_cache_optimization": true,
+      "compression_enabled": true
+    },
+    
+    "performance_monitoring": {
+      "enabled": true,
+      "metrics_collection": "detailed",
+      "alert_thresholds": {
+        "memory_pressure": 0.85,
+        "cpu_utilization": 0.90,
+        "response_latency": 10.0,
+        "queue_depth": 5
+      },
+      "auto_optimization": true,
+      "performance_history_size": 1000
+    },
+    
+    "compound_engineering": {
+      "enabled": true,
+      "recursive_improvement": true,
+      "auto_research": {
+        "enabled": true,
+        "frequency": "continuous",
+        "levels": ["scout", "evaluator", "deployer", "meta_learner"],
+        "compound_threshold": 0.5
+      },
+      "solution_compounding": {
+        "enabled": true,
+        "max_recursion_depth": 5,
+        "improvement_threshold": 0.1,
+        "auto_application": true
+      }
+    },
+    
+    // v1.1.48 ENHANCED FEATURES
+    "template_management": {
+      "adaptive_enabled": true,
+      "auto_detection": true,
+      "format_conversion": true,
+      "template_library": "comprehensive",
+      "fallback_templates": true,
+      "learning_enabled": true
+    },
+    
+    "quantum_features": {
+      "superposition_enabled": false,    // Future feature
+      "entanglement_routing": false,     // Future feature
+      "quantum_caching": true,          // L3 cache optimization
+      "bandwidth_entanglement": false    // Future feature
+    }
+  },
+
+  // =============================================
+  // v1.1.48 PERFORMANCE OPTIMIZATION
+  // =============================================
+  "performance": {
+    "thread_allocation": {
+      "total_threads": 32,
+      "opencode_threads": 4,
+      "ollama_threads": 24,
+      "monitoring_threads": 2,
+      "buffer_threads": 2
+    },
+    
+    "memory_allocation": {
+      "total_memory_gb": 125,
+      "opencode_reserve": 15,
+      "ollama_reserve": 95,
+      "system_buffer": 8,
+      "cache_allocation": 7
+    },
+    
+    "bandwidth_optimization": {
+      "ddr5_optimization": true,
+      "l3_cache_utilization": true,
+      "numa_awareness": true,
+      "memory_bandwidth_threshold": 85  // GB/s
+    },
+    
+    "quantization_settings": {
+      "default_quantization": "Q4_K_M",
+      "small_models_q8": true,        // ≤8B models use Q8_0
+      "medium_models_q4": true,       // 8-32B models use Q4_K_M
+      "large_models_q4": true,        // ≥32B models use Q4_K_M
+      "adaptive_quantization": true
+    }
+  },
+
+  // =============================================
+  // AGENT CONFIGURATION - ENHANCED v1.1.48
+  // =============================================
+  "agents": {
+    "primary_agent": {
+      "name": "infinity_coder",
+      "model": "qwen2.5-coder-14b-256k:latest",
+      "tools": ["model_selection", "context_management", "skill_execution"],
+      "capabilities": ["coding", "analysis", "debugging", "refactoring"],
+      "max_context": 128000,
+      "temperature": 0.7
+    },
+    
+    "agent_orchestrator": {
+      "name": "quantum_conductor",
+      "model": "qwen3:8b",
+      "tools": ["compound_engineering_orchestrator", "ide_priority_routing"],
+      "capabilities": ["orchestration", "routing", "optimization"],
+      "max_context": 64000,
+      "temperature": 0.3
+    },
+    
+    "multimodal_agent": {
+      "name": "infinity_creator", 
+      "model": "phi4:latest",
+      "tools": ["multimodal_orchestration", "adaptive_template_management"],
+      "capabilities": ["text", "image", "video", "tts"],
+      "max_context": 128000,
+      "temperature": 0.8
+    }
+  },
+
+  // =============================================
+  // INFINITY AUTOPILOT - COMPOUND ENGINEERING
+  // =============================================
+  "autopilot": {
+    "enabled": true,
+    "mode": "intelligent",
+    "compound_level": 3,  // Out of 5 levels
+    "learning_rate": 0.1,
+    
+    "behaviors": {
+      "proactive_suggestions": true,
+      "auto_model_selection": true,
+      "auto_template_adaptation": true,
+      "auto_performance_optimization": true,
+      "compound_solution_generation": true
+    },
+    
+    "constraints": {
+      "max_memory_usage": 0.85,
+      "max_cpu_usage": 0.90,
+      "max_response_time": 15.0,
+      "max_queue_depth": 3
+    }
+  }
+}

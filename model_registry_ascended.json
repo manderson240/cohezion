@@ -257,6 +257,90 @@
         ],
         "tip_of_spear": true
       },
+      "qwen3-coder-next:latest": {
+        "role": "core",
+        "category": "language",
+        "parameters": "80B",
+        "active_parameters": "3B",
+        "context": 131072,
+        "memory_gb": 51.0,
+        "quantization": "Q4_K_M",
+        "specialization": "extreme_coding",
+        "priority": 1,
+        "tier": 1,
+        "description": "80B MoE Coding Specialist (Latest)",
+        "use_cases": [
+          "extreme_refactoring",
+          "complex_system_architecture"
+        ],
+        "capabilities": [
+          "code_generation",
+          "advanced_debugging"
+        ],
+        "always_hot": false,
+        "available_modes": [
+          "performance",
+          "full_multimodal"
+        ],
+        "tip_of_spear": true
+      },
+      "qwen3-coder-next:q8_0": {
+        "role": "core",
+        "category": "language",
+        "parameters": "80B",
+        "active_parameters": "3B",
+        "context": 131072,
+        "memory_gb": 84.0,
+        "quantization": "Q8_0",
+        "specialization": "extreme_coding",
+        "priority": 1,
+        "tier": 1,
+        "description": "80B MoE Coding Specialist (Q8_0)",
+        "use_cases": [
+          "extreme_refactoring",
+          "complex_system_architecture",
+          "high_fidelity_code_gen"
+        ],
+        "capabilities": [
+          "code_generation",
+          "advanced_debugging",
+          "system_synthesis"
+        ],
+        "always_hot": false,
+        "available_modes": [
+          "performance",
+          "full_multimodal"
+        ],
+        "tip_of_spear": true
+      },
+      "glm-ocr:latest": {
+        "role": "specialized",
+        "category": "multimodal",
+        "parameters": "Unknown",
+        "context": 8192,
+        "memory_gb": 2.2,
+        "quantization": "Unknown",
+        "specialization": "ocr",
+        "priority": 1,
+        "tier": 1,
+        "description": "Specialized OCR and Document Understanding",
+        "use_cases": [
+          "ocr",
+          "document_parsing",
+          "table_extraction"
+        ],
+        "capabilities": [
+          "high_precision_ocr",
+          "structural_parsing"
+        ],
+        "always_hot": false,
+        "available_modes": [
+          "image_work",
+          "full_multimodal"
+        ],
+        "tip_of_spear": true,
+        "multimodal": true
+      },
       "phi4": {
         "role": "specialized",
         "category": "language",
@@ -604,6 +688,7 @@
     }
   },
   "fallback_order": [
+    "qwen3-coder-next:latest",
     "phi4:mini",
     "deepseek-r1-distill:8b",
     "qwen3-coder:30b",

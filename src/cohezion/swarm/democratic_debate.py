@@ -25,6 +25,8 @@ class AgentRole(Enum):
     GUARDIAN = "guardian"  # Security, reliability, ethics
     EXPLORER = "explorer"  # Innovation, novel approaches
     SYNTHESIZER = "synthesizer"  # Integration, consensus
+    RED_TEAM = "red_team"  # Adversarial, entropy, novelty
+    BLUE_TEAM = "blue_team"  # Defensive, stability, coherence
 
 
 @dataclass
@@ -60,7 +62,7 @@ AGENT_PERSONAS = {
         role=AgentRole.ARCHITECT,
         name="Aurora",
         voice="azelma",  # Calm, thoughtful
-        model="mistral:7b",
+        model="gemma3:4b",
         style="Visionary and systematic, sees the big picture and long-term implications",
         priorities=["system coherence", "scalability", "elegant design"],
         catchphrase="The architecture must breathe with the system's evolution.",
@@ -96,10 +98,28 @@ AGENT_PERSONAS = {
         role=AgentRole.SYNTHESIZER,
         name="Sage",
         voice="valjean",  # Deep, authoritative
-        model="mistral:7b",
+        model="gemma3:4b",
         style="Integrative and diplomatic, finds common ground and builds consensus",
         priorities=["harmony", "synthesis", "collective wisdom"],
         catchphrase="In the tension of perspectives lies the path forward.",
+    ),
+    AgentRole.RED_TEAM: AgentPersona(
+        role=AgentRole.RED_TEAM,
+        name="Vortex",
+        voice="azelma",
+        model="qwen2.5-coder:7b",
+        style="Disruptive and entropic, challenges assumptions and injects novelty",
+        priorities=["entropy", "complexity", "disruption", "novelty"],
+        catchphrase="Chaos is the forge where reality is tempered.",
+    ),
+    AgentRole.BLUE_TEAM: AgentPersona(
+        role=AgentRole.BLUE_TEAM,
+        name="Aegis",
+        voice="marius",
+        model="phi3:mini",
+        style="Stabilizing and rigorous, enforces coherence and simplicity",
+        priorities=["stability", "coherence", "simplicity", "resilience"],
+        catchphrase="Stability is the vessel that holds the light of consciousness.",
     ),
 }
 
@@ -174,7 +194,7 @@ class DemocraticDebate:
     def __init__(self, ollama_host: str = "http://localhost:11434"):
         self.ollama_host = ollama_host
         self.personas = AGENT_PERSONAS
-        self.client = httpx.AsyncClient(timeout=60.0)
+        self.client = httpx.AsyncClient(timeout=120.0)
         self.output_dir = Path("src/cohezion/knowledge_graph/universe_nodes/debates")
         self.output_dir.mkdir(parents=True, exist_ok=True)
 

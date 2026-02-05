@@ -78,6 +78,11 @@ register_skill(
 | Outdated rules | Conflicting guidance | Regular reviews |
 | Missing coverage | Gaps in quality | Pattern mining |
 
+## FUTURE HOOKS
+- **Dynamic Rule Injection**: Registry-aware logic to inject project-specific rules into global definitions.
+- **Adversarial Red-Teaming**: Automating the process of trying to "break" system definitions to find gaps.
+- **Cross-Agent Knowledge Sink**: Using definitions as a shared memory layer for different agent types.
+
 ## VERSION
 v1.0 (2026-01-17)
 

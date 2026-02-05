@@ -7,6 +7,7 @@ import os
 import re
 from typing import Dict, Any, List, Optional
 from cohezion.reliability.resolver import HallucinationResolver
+from cohezion.core.resource_monitor import get_resource_monitor
 
 class ContextHarness:
     def __init__(self, target_model: str = "phi4"):
@@ -26,8 +27,8 @@ class ContextHarness:
         # 1. Start with Truth Anchors
         truth_anchors = self.resolver.get_truth_anchors()
         
-        # 2. Prune context if it exceeds model limits
-        limit = self.context_limits.get(self.target_model, self.context_limits["default"])
+        # 2. Prune context if it exceeds dynamic model limits
+        limit = self._get_dynamic_limit(self.target_model)
         pruned_prompt = self._prune_text(prompt, limit)
         
         # 3. Add instruction specialization
@@ -40,6 +41,24 @@ class ContextHarness:
             "prompt": pruned_prompt,
             "system": final_system
         }
+
+    def _get_dynamic_limit(self, model: str) -> int:
+        """Calculate dynamic context limit based on available system memory."""
+        stats = get_resource_monitor().get_stats()
+        avail = stats["available_memory_gb"]
+        
+        # Base limits (characters)
+        base_limit = self.context_limits.get(model, self.context_limits["default"])
+        
+        # Scaling logic for 128GB RAM substrate
+        # If RAM is plenty (>64GB available), allow expansion
+        if avail > 64:
+            return base_limit * 4  # Aggressive expansion for Strix Halo
+        # If RAM is low (<20GB available), throttle back
+        elif avail < 20:
+            return int(base_limit * 0.5)
+            
+        return base_limit
 
     def _prune_text(self, text: str, limit: int) -> str:
         """Intelligently prune text to fit limits."""

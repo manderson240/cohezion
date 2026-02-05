@@ -54,5 +54,19 @@
         "path": "src/cohezion/skills/EXTRACTED_BLOCK_D41D8CD9.md",
         "version": "0.1.0",
         "last_updated": "2026-02-02T17:21:11.215716"
+    },
+    "SANDBOX_ISOLATION_PRIME": {
+        "name": "SANDBOX_ISOLATION_PRIME",
+        "description": "Expert patterns for Docker-based agent isolation and resource hardening.",
+        "path": "src/cohezion/skills/SANDBOX_ISOLATION_PRIME.md",
+        "version": "1.0.0",
+        "last_updated": "2026-02-05T01:00:00"
+    },
+    "RIGOROUS_EVALUATION_PRIME": {
+        "name": "RIGOROUS_EVALUATION_PRIME",
+        "description": "Expert methodology for Manifold Drift calculation and Draconian consensus grading.",
+        "path": "src/cohezion/skills/RIGOROUS_EVALUATION_PRIME.md",
+        "version": "1.0.0",
+        "last_updated": "2026-02-05T01:05:00"
     }
 }

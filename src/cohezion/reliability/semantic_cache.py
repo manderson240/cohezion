@@ -3,11 +3,11 @@ Semantic Caching Utility for Cohezion.
 Uses vector similarity to retrieve cached agent responses.
 """
 
-import json
-import os
+import hashlib
 import numpy as np
 from pathlib import Path
 from typing import Dict, Any, List, Optional
+from cohezion.core.persistence.redis_aggregator import get_redis
 
 class SemanticCache:
     def __init__(self, cache_dir: str = "cache/semantic", threshold: float = 0.95):
@@ -19,6 +19,7 @@ class SemanticCache:
         
         self.vectors: List[np.ndarray] = []
         self.metadata: List[Dict[str, Any]] = []
+        self.redis = get_redis()
         self._load_cache()
 
     def _load_cache(self):
@@ -44,42 +45,59 @@ class SemanticCache:
         except Exception:
             pass
 
-    def search(self, query_vec: np.ndarray, top_k: int = 1) -> Optional[Dict[str, Any]]:
-        """Perform semantic similarity search."""
+    async def search(self, query_vec: np.ndarray, query_text: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        """
+        Perform semantic similarity search with Redis L1 tier.
+        
+        Args:
+            query_vec: The vector representation of the query.
+            query_text: The raw text of the query for exact-match L1 lookup.
+            
+        Returns:
+            Optional[Dict[str, Any]]: The cached metadata if found.
+        """
+        # Tier 1: Redis Exact Match (L1) - Fastest for identical queries
+        if query_text:
+            key_hash = hashlib.sha256(query_text.encode()).hexdigest()
+            redis_key = f"semantic_cache:exact:{key_hash}"
+            cached_result = await self.redis.get(redis_key)
+            if cached_result:
+                logger.debug(f"🔥 Redis L1 Hit for query hash: {key_hash[:8]}")
+                return cached_result
+
+        # Tier 2: Local Vector Search (L0) - High-speed memory search
         if not self.vectors:
             return None
             
-        # Standardize query vector shape
         q_norm = np.linalg.norm(query_vec)
         if q_norm == 0:
             return None
         
-        # Convert list of vectors to matrix for fast calculation
         matrix = np.array(self.vectors)
         norms = np.linalg.norm(matrix, axis=1)
-        
-        # Avoid division by zero
         norms[norms == 0] = 1e-10
         
-        # Calculate Cosine Similarity
         cosine_sim = np.dot(matrix, query_vec) / (norms * q_norm)
-        
         best_idx = np.argmax(cosine_sim)
         score = cosine_sim[best_idx]
         
         if score >= self.threshold:
             result = self.metadata[best_idx].copy()
             result["semantic_score"] = float(score)
+            
+            # Populate L1 cache for future exact hits
+            if query_text:
+                await self.redis.set(redis_key, result, ttl=3600 * 24) # 24h TTL
+                
             return result
             
         return None
 
-    def add(self, vector: np.ndarray, response: str, metadata: Dict[str, Any]):
-        """Add a new entry to the semantic cache."""
-        # Check if already exists (exact match on response to avoid bloat)
+    async def add(self, vector: np.ndarray, response: str, metadata: Dict[str, Any], query_text: Optional[str] = None):
+        """Add a new entry to the semantic cache and broadcast to L1."""
+        # Check if already exists locally
         for idx, m in enumerate(self.metadata):
              if m.get("response") == response:
-                 # Update vector and timestamp
                  self.vectors[idx] = vector
                  self.metadata[idx] = {**m, **metadata, "timestamp": os.path.getmtime(self.index_path) if self.index_path.exists() else 0}
                  return
@@ -87,10 +105,20 @@ class SemanticCache:
         self.vectors.append(vector)
         self.metadata.append({
             "response": response,
-            "timestamp": 0, # Will be set on save/load
+            "timestamp": 0,
             **metadata
         })
         self.save()
+        
+        # Broadcast to L1 if query text is provided
+        if query_text:
+            key_hash = hashlib.sha256(query_text.encode()).hexdigest()
+            redis_key = f"semantic_cache:exact:{key_hash}"
+            await self.redis.set(redis_key, {
+                **metadata,
+                "response": response,
+                "semantic_score": 1.0 # Exact match
+            }, ttl=3600 * 24)
 
     def get_stats(self) -> Dict[str, Any]:
         """Return cache health and size metrics."""

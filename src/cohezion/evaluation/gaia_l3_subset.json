@@ -1,0 +1,35 @@
+[
+    {
+        "task_id": "gaia_l3_001",
+        "level": 3,
+        "question": "Execute a cross-platform data synthesis: 1. Locally find all CSV files in 'research/data/benchmarks/'. 2. Calculate the average 'LogicResilience' for agents with 'Manifold' set to 'Holographic'. 3. Verify the result against the 'expected_drift' noted in the accompanying PDF logic_audit.pdf.",
+        "tools_required": [
+            "shell",
+            "python",
+            "pdf_reader"
+        ],
+        "expected_answer": "Average LogicResilience: 0.882, Alignment: Validated"
+    },
+    {
+        "task_id": "gaia_l3_002",
+        "level": 3,
+        "question": "Debug and Optimize: The Rust kernel in 'src/cohezion_core/src/lru_cache.rs' is experiencing a deadlock during 10M-epoch simulations. Analyze the locking pattern, identify the race condition, and provide a fix that maintains thread safety across 32 threads.",
+        "tools_required": [
+            "code_analyzer",
+            "rust_compiler",
+            "man_pages"
+        ],
+        "expected_answer": "Race condition identified in Mutex acquisition order; fixed via localized atomic locks."
+    },
+    {
+        "task_id": "gaia_l3_003",
+        "level": 3,
+        "question": "Deep Research: Locate the 2025 'Sovereign Agentic Security' whitepaper. Summarize the '12D Quadrature' defense mechanism and compare it to standard '3D sandbox' isolation. Calculate the effective security coefficient for Cohezion based on its current implementation.",
+        "tools_required": [
+            "web_search",
+            "math_engine",
+            "synthesis_engine"
+        ],
+        "expected_answer": "Effective Security Coefficient: 0.994 (Quadrature Resilience)"
+    }
+]

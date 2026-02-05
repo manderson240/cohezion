@@ -10,14 +10,15 @@ class OffloadManager:
     def __init__(self):
         # Keywords that suggest a task is "menial" (low-complexity, documentation, formatting)
         self.menial_keywords = [
-            "documentation", "docstring", "comment", "format", "lint", 
-            "summarize", "rephrase", "typo", "readme", "changelog",
-            "boilerplate", "rename", "organize imports", "todo"
+            "explain", "refactor simple", "add types", "summarize", "list",
+            "write docstrings", "update comments", "format", "fix typo",
+            "boilerplate", "hello world", "check syntax", "simple refactor"
         ]
         
         # Keywords that suggest a task is "critical" (logic, architecture, security)
         self.critical_keywords = [
-            "logic", "algorithm", "architecture", "security", "vulnerability",
+            "security", "architecture", "design pattern", "deploy", "production",
+            "circuit breaker", "manifold", "flume", "quadrature", "hiho",
             "refactor core", "protocol", "quantum", "physics", "simulation",
             "database schema", "regression", "auth", "encryption"
         ]
@@ -25,19 +26,23 @@ class OffloadManager:
     def is_offloadable(self, query: str) -> bool:
         """Determines if a task query is suitable for a local SLM offload."""
         q = query.lower()
-        
+
         # If it's explicitly critical, don't offload
         if any(kw in q for kw in self.critical_keywords):
             return False
-            
-        # If it contains menial keywords or is short/simple, it's offloadable
+
+        # If it contains menial keywords, it's highly likely offloadable
         if any(kw in q for kw in self.menial_keywords):
             return True
-            
-        # Heuristic: shorter queries about updates/writing are often menial
-        if len(q) < 150 and any(kw in q for kw in ["write", "update", "create", "list"]):
+
+        # Heuristic: shorter queries (<200 chars) about documentation or small edits are offloadable
+        if len(q) < 200 and any(kw in q for kw in ["doc", "comment", "format", "rename", "move"]):
              return True
-             
+
+        # Very short queries are almost always offloadable unless they hit critical keywords above
+        if len(q) < 50:
+            return True
+
         return False
 
     def get_offload_recommendation(self, query: str) -> Dict[str, Any]:

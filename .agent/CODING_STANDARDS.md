@@ -6,6 +6,11 @@ This document establishes the technical baseline for all code contributions to t
 - **Python**: Version >= 3.11 is required.
 - **Line Length**: Strict **88-character** limit (Black formatting).
 - **Formatting**: All code must be formatted with `black` and linted with `ruff`.
+- **Package Management**: **UV** is the single source of truth. All commands must be executed via `uv run`.
+
+## 1.1 Template Driven Development (TDD)
+- **Manifestation Protocol**: All new features or logic blocks must be preceded by a formal Skill or Workflow template.
+- **As Above, So Below**: Implementation follows the structure established in the `_PRIME.md` definitions.
 
 ## 2. Type Safety & Documentation
 - **Type Hints**: Mandatory for all public function signatures (Mypy --strict compatible).
