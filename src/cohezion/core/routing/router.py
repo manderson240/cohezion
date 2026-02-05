@@ -44,6 +44,9 @@ class LocalExpertRouter:
             # Fallback tier - memory constrained scenarios
             "legacy-coding": "qwen3-coder-256k:latest",
             "legacy-vision": "gemma3-4b-256k:latest",
+            # Optimization for verification/light tasks
+            "light-reasoning": "phi3:mini",
+            "light-coding": "phi3:mini",
         }
         self.default_model = "qwen3-coder-next:latest"
 
@@ -80,10 +83,13 @@ class LocalExpertRouter:
         """
         context = context or {}
 
-        # 1. Adaptive Framework-Aware Model Selection
+        # 1. Access System Guards (Dilation & Memory)
         available_memory = await self._get_available_memory()
+        from cohezion.reliability.monitor import get_resource_monitor
+        monitor = get_resource_monitor()
+        dilation = monitor.get_dilation_factor()
 
-        # Use adaptive optimizer if available
+        # 2. Adaptive Framework-Aware Model Selection
         if ADAPTIVE_OPTIMIZER_AVAILABLE:
             optimizer = get_adaptive_optimizer()
             hardware_profile = optimizer.get_current_profile()
@@ -95,16 +101,13 @@ class LocalExpertRouter:
                     task_type, available_memory, hardware_profile
                 )
             else:
-                model = self._select_optimal_model(task_type, available_memory)
+                model = self._select_optimal_model(task_type, available_memory, dilation)
         else:
-            model = self._select_optimal_model(task_type, available_memory)
+            model = self._select_optimal_model(task_type, available_memory, dilation)
 
-        # 2. Get Mode-Aware Context (From Ascended Registry)
+        # 3. Get Mode-Aware Context (From Ascended Registry)
         from cohezion.swarm.mode_controller import get_mode_controller
-        from cohezion.reliability.monitor import get_resource_monitor
-
         mode_ctrl = get_mode_controller()
-        monitor = get_resource_monitor()
 
         # Base context recommended by current system mode
         recommended_ctx = mode_ctrl.get_recommended_context(model)
@@ -202,30 +205,44 @@ class LocalExpertRouter:
         except ImportError:
             return 125.0  # Default from system analysis
 
-    def _select_optimal_model(self, task_type: str, available_memory: float) -> str:
-        """Select optimal model based on task type and available memory"""
+    def _select_optimal_model(
+        self, task_type: str, available_memory: float, dilation: float = 1.0
+    ) -> str:
+        """Select optimal model based on task type, memory, and VRAM pressure (dilation)"""
         primary_model = self.role_map.get(task_type, self.default_model)
 
-        # Elite models available
-        if available_memory >= self.memory_thresholds["elite_threshold"]:
+        # Severe VRAM Pressure: Trigger mandatory downscaling to 8B/Mini models
+        if dilation < 0.5:
+            logger.warning(f"📉 SEVERE VRAM PRESSURE ({dilation:.2f}): Downscaling {task_type} tasks.")
+            if task_type in ["reasoning", "routing"]:
+                return "deepseek-r1-distill:8b"  # Chain-of-thought but lighter than 256k models
+            elif task_type == "coding":
+                return "qwen3-coder:30b"  # Smaller than the MoE 80B version
+            else:
+                return "phi4:mini"
+
+        # Elite models available (Only if no dilation pressure)
+        if available_memory >= self.memory_thresholds["elite_threshold"] and dilation >= 0.8:
             if task_type == "coding":
                 return self.role_map["elite-coding"]
             elif task_type == "vision":
                 return self.role_map["ocr-vision"]
 
         # Agentic models available
-        elif available_memory >= self.memory_thresholds["agentic_threshold"]:
+        elif available_memory >= self.memory_thresholds["agentic_threshold"] and dilation >= 0.7:
             if task_type == "coding":
                 return self.role_map["agentic-coding"]
             elif task_type == "vision":
                 return self.role_map["ocr-vision"]
 
-        # Fallback for memory constraints
-        elif available_memory < self.memory_thresholds["fallback_threshold"]:
+        # Fallback for memory constraints OR moderate pressure
+        elif available_memory < self.memory_thresholds["fallback_threshold"] or dilation < 0.8:
             if task_type == "vision":
                 return self.role_map["legacy-vision"]
-            elif task_type == "coding":
-                return self.role_map["legacy-coding"]
+            elif task_type in ["coding", "elite-coding", "agentic-coding"]:
+                return "qwen3-coder:30b"
+            elif task_type in ["reasoning", "routing"]:
+                return "deepseek-r1-distill:8b"
 
         return primary_model
 

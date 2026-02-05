@@ -41,7 +41,9 @@ You are a meta‑engineer specializing in **compound engineering**. Your role is
    - Include a **VERSION** tag (e.g., `v0.1`) to track evolution.
    - Add a **SEE ALSO** section linking back to the originating skills.
 
-6. **Update System State**
+6. **Finalize & Patch Templates**
+   - Use `TemplateEvolver` to scan this retrospective for any `[TEMPLATE IMPROVEMENT]` blocks.
+   - Patch the appropriate template (e.g., `skill.md`) to incorporate new architectural patterns.
    - Record a short log entry in `cohezion/README.md` under a new heading **“Retrospective Skill Added”** with the date and a brief description.
    - Ensure the new skill files are referenced in any skill‑registry module (if present) so that future agents can discover them automatically.
 

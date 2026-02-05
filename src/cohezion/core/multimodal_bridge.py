@@ -36,6 +36,8 @@ class LocalMultimodalBridge:
 
     async def schedule_asset(self, asset_type: str, priority: int, payload: Dict[str, Any]):
         """Schedule an asset for local generation."""
+        if os.environ.get("COHEZION_DISABLE_MULTIMODAL"):
+            return
         logger.info(f"📅 Scheduled {asset_type} (Priority: {priority})")
         await self.queue.put((priority, time.time(), asset_type, payload))
         if not self._running:

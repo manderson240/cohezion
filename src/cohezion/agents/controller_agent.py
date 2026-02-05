@@ -15,6 +15,11 @@ import httpx
 from langgraph.graph import END, StateGraph
 
 from cohezion.agents.handoff_agent import HandoffAgent
+from cohezion.agents.architect_agent import ArchitectAgent
+from cohezion.agents.biological_agent import BiologicalAgent
+from cohezion.agents.quantum_agent import QuantumAgent
+from cohezion.agents.universe_sim_agent import UniverseSimulationAgent
+from cohezion.swarm.swarm_types import SwarmConfig
 
 logger = logging.getLogger(__name__)
 
@@ -66,66 +71,53 @@ def classify_query(state: AgentState) -> AgentState:
     return state
 
 
-async def call_expert(domain: str, query: str, context: dict) -> str:
-    """Call a single domain expert via Ollama."""
-    prompt = f"""You are an expert {domain.upper()} representing one node in the Quadrature Nexus.
-
-CONTEXT: {json.dumps(context)}
-QUERY: {query}
-
-Provide a specialized analysis from your domain perspective.
-Focus on emergent properties, risks, and novel connections.
-Keep it concise (2-3 paragraphs).
-"""
-    try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            resp = await client.post(
-                "http://localhost:11434/api/generate",
-                json={"model": MODEL_NAME, "prompt": prompt, "stream": False},
-            )
-            if resp.status_code == 200:
-                return resp.json().get(
-                    "response", f"[{domain.upper()}] Error: Empty response"
-                )
-            else:
-                return f"[{domain.upper()}] Error: {resp.status_code}"
-    except Exception as e:
-        logger.error(f"Expert {domain} failed: {e}")
-        return f"[{domain.upper()}] System Failure: {e}"
-
-
 async def architect_expert(state: AgentState) -> AgentState:
     """Design and architecture expert."""
-    result = await call_expert("architect", state["query"], state["context"])
-    state["expert_responses"]["architect"] = result
+    logger.info("📐 Engaging ArchitectAgent...")
+    agent = ArchitectAgent()
+    result = await agent.process(state["query"])
+    await agent.close()
+    state["expert_responses"]["architect"] = str(result)
     return state
 
 
 async def engineer_expert(state: AgentState) -> AgentState:
     """Physics and engineering expert."""
-    result = await call_expert("engineer", state["query"], state["context"])
-    state["expert_responses"]["engineer"] = result
+    logger.info("🌠 Engaging UniverseSimulationAgent (Engineer)...")
+    agent = UniverseSimulationAgent()
+    result = await agent.process(state["query"])
+    await agent.close()
+    state["expert_responses"]["engineer"] = str(result)
     return state
 
 
 async def biologist_expert(state: AgentState) -> AgentState:
     """Life sciences expert."""
-    result = await call_expert("biologist", state["query"], state["context"])
-    state["expert_responses"]["biologist"] = result
+    logger.info("🧬 Engaging BiologicalAgent...")
+    agent = BiologicalAgent()
+    result = await agent.process(state["query"])
+    await agent.close()
+    state["expert_responses"]["biologist"] = str(result)
     return state
 
 
 async def quantum_hw_expert(state: AgentState) -> AgentState:
     """Quantum hardware expert."""
-    result = await call_expert("quantum_hw", state["query"], state["context"])
-    state["expert_responses"]["quantum_hw"] = result
+    logger.info("⚛️ Engaging QuantumAgent (HW)...")
+    agent = QuantumAgent()
+    result = await agent.process(state["query"])
+    await agent.close()
+    state["expert_responses"]["quantum_hw"] = str(result)
     return state
 
 
 async def quantum_algo_expert(state: AgentState) -> AgentState:
     """Quantum algorithms expert."""
-    result = await call_expert("quantum_algo", state["query"], state["context"])
-    state["expert_responses"]["quantum_algo"] = result
+    logger.info("💻 Engaging QuantumAgent (Algo)...")
+    agent = QuantumAgent()
+    result = await agent.process(state["query"])
+    await agent.close()
+    state["expert_responses"]["quantum_algo"] = str(result)
     return state
 
 
@@ -210,12 +202,11 @@ def build_controller_graph() -> StateGraph:
     for expert in EXPERT_DOMAINS:
         graph.add_edge(expert, "synthesize")
 
-    # Synthesis to Handoff (disabled for speed)
-    # graph.add_edge("synthesize", "handoff")
-    graph.add_edge("synthesize", END)
-
+    # Synthesis to Handoff
+    graph.add_edge("synthesize", "handoff")
+    
     # End after handoff
-    # graph.add_edge("handoff", END)
+    graph.add_edge("handoff", END)
 
     return graph.compile()
 

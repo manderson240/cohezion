@@ -244,19 +244,28 @@ class CohezionMCP:
                         "models": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": "Models to benchmark (default: all elite models)"
+                            "description": "Models to benchmark (default: all elite models)",
                         },
                         "benchmark_types": {
                             "type": "array",
-                            "items": {"type": "string", "enum": ["inference-speed", "memory-usage", "accuracy", "token-efficiency"]},
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "inference-speed",
+                                    "memory-usage",
+                                    "accuracy",
+                                    "token-efficiency",
+                                ],
+                            },
                             "description": "Types of benchmarks to run",
-                            "default": ["inference-speed", "memory-usage"]
+                            "default": ["inference-speed", "memory-usage"],
                         },
-                        "iterations": {"type": "number", "description": "Number of test iterations", "default": 3}
-                    }
-                }
-            },
-                    "required": ["task_type"],
+                        "iterations": {
+                            "type": "number",
+                            "description": "Number of test iterations",
+                            "default": 3,
+                        },
+                    },
                 },
             },
             {
@@ -295,7 +304,13 @@ class CohezionMCP:
                         "model": {
                             "type": "string",
                             "description": "Target model for offload task",
-                            "enum": ["qwen3-coder-next:latest", "qwen3-coder-next:q8_0", "glm-ocr:latest", "phi4-256k:latest", "pocket-tts:latest"],
+                            "enum": [
+                                "qwen3-coder-next:latest",
+                                "qwen3-coder-next:q8_0",
+                                "glm-ocr:latest",
+                                "phi4-256k:latest",
+                                "pocket-tts:latest",
+                            ],
                         },
                     },
                     "required": ["query"],
@@ -322,7 +337,13 @@ class CohezionMCP:
                         "model": {
                             "type": "string",
                             "description": "Target local model",
-                            "enum": ["qwen3-coder-next:latest", "qwen3-coder-next:q8_0", "glm-ocr:latest", "phi4-256k:latest", "pocket-tts:latest"],
+                            "enum": [
+                                "qwen3-coder-next:latest",
+                                "qwen3-coder-next:q8_0",
+                                "glm-ocr:latest",
+                                "phi4-256k:latest",
+                                "pocket-tts:latest",
+                            ],
                         },
                     },
                     "required": ["tasks"],
@@ -393,7 +414,12 @@ class CohezionMCP:
                     "properties": {
                         "workflow_type": {
                             "type": "string",
-                            "enum": ["enterprise_ai_development", "autonomous_agent_creation", "document_driven_coding", "voice_enabled_development"],
+                            "enum": [
+                                "enterprise_ai_development",
+                                "autonomous_agent_creation",
+                                "document_driven_coding",
+                                "voice_enabled_development",
+                            ],
                             "description": "Type of compound workflow to execute",
                         },
                         "primary_task": {
@@ -409,7 +435,10 @@ class CohezionMCP:
                             "properties": {
                                 "max_memory_gb": {"type": "number"},
                                 "max_execution_time_min": {"type": "number"},
-                                "preferred_models": {"type": "array", "items": {"type": "string"}},
+                                "preferred_models": {
+                                    "type": "array",
+                                    "items": {"type": "string"},
+                                },
                             },
                         },
                     },
@@ -424,7 +453,15 @@ class CohezionMCP:
                     "properties": {
                         "task_type": {
                             "type": "string",
-                            "enum": ["coding", "vision", "math", "tts", "analysis", "compound", "autonomous"],
+                            "enum": [
+                                "coding",
+                                "vision",
+                                "math",
+                                "tts",
+                                "analysis",
+                                "compound",
+                                "autonomous",
+                            ],
                             "description": "Primary task type",
                         },
                         "complexity": {
@@ -434,7 +471,13 @@ class CohezionMCP:
                         },
                         "performance_priority": {
                             "type": "string",
-                            "enum": ["speed", "accuracy", "memory_efficiency", "cost", "balanced"],
+                            "enum": [
+                                "speed",
+                                "accuracy",
+                                "memory_efficiency",
+                                "cost",
+                                "balanced",
+                            ],
                             "description": "Performance optimization priority",
                         },
                         "available_memory_gb": {
@@ -478,6 +521,53 @@ class CohezionMCP:
                     "required": ["text"],
                 },
             },
+            {
+                "name": "get_truth_anchors",
+                "description": "Get concise verified system hardware facts for context grounding",
+                "inputSchema": {"type": "object", "properties": {}},
+            },
+            {
+                "name": "remember_fact",
+                "description": "Store a fact in long-term semantic memory for future reference",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "fact": {
+                            "type": "string",
+                            "description": "The fact or information to remember",
+                        },
+                        "category": {
+                            "type": "string",
+                            "description": "Optional category for the fact",
+                        },
+                    },
+                    "required": ["fact"],
+                },
+            },
+            {
+                "name": "recall_context",
+                "description": "Recall semantically relevant context from long-term memory",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "Search query for memory recall",
+                        },
+                        "limit": {
+                            "type": "number",
+                            "description": "Max number of memories to recall",
+                            "default": 5,
+                        },
+                    },
+                    "required": ["query"],
+                },
+            },
+            {
+                "name": "daily_scout_research",
+                "description": "Trigger the Daily Scout agent to research SOTA SLMs and propose registry updates",
+                "inputSchema": {"type": "object", "properties": {}},
+            },
         ]
 
         # Dynamically add skills as tools
@@ -517,7 +607,13 @@ class CohezionMCP:
             text = arguments.get("text", "")
             return self.resolve_claims(text)
         elif name == "get_truth_anchors":
-            return self.resolver.get_truth_anchors()
+            return self.get_truth_anchors(arguments)
+        elif name == "remember_fact":
+            return self.remember_fact(arguments)
+        elif name == "recall_context":
+            return self.recall_context(arguments)
+        elif name == "daily_scout_research":
+            return self.daily_scout_research(arguments)
         elif name == "offload_task":
             return self.offload_task(
                 arguments.get("query", ""),
@@ -904,18 +1000,49 @@ Generate production-ready, maintainable code that follows industry standards.
         res = self.resolver.resolve_claims(text)
         return {"content": [{"type": "text", "text": json.dumps(res, indent=2)}]}
 
-    def get_truth_anchors(self) -> Dict[str, Any]:
-        if not self.resolver:
-            return {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": "Error: HallucinationResolver not available",
-                    }
-                ]
-            }
-        anchors = self.resolver.get_truth_anchors()
-        return {"content": [{"type": "text", "text": anchors}]}
+    def get_truth_anchors(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        from cohezion.reliability.residency_awareness import ResidencyAnchorBase
+
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": ResidencyAnchorBase.get_context_block(),
+                }
+            ]
+        }
+
+    def remember_fact(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        from cohezion.reliability.memory_manager import MemoryManager
+
+        fact = arguments.get("fact")
+        category = arguments.get("category", "general")
+        mgr = MemoryManager()
+        res = mgr.add(fact, metadata={"category": category})
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"Fact remembered successfully. Result: {res}",
+                }
+            ]
+        }
+
+    def recall_context(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        from cohezion.reliability.memory_manager import MemoryManager
+
+        query = arguments.get("query")
+        limit = arguments.get("limit", 5)
+        mgr = MemoryManager()
+        results = mgr.search(query, limit=limit)
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": json.dumps(results, indent=2),
+                }
+            ]
+        }
 
     def offload_task(
         self, query: str, system_prompt: Optional[str] = None
@@ -970,8 +1097,16 @@ Generate production-ready, maintainable code that follows industry standards.
                     "content": [{"type": "text", "text": f"Curl failed: {res.stderr}"}]
                 }
 
-            res_text = res_json.get("response", "")
-            return {"content": [{"type": "text", "text": res_text}]}
+            try:
+                res_json = json.loads(res.stdout)
+                res_text = res_json.get("response", "")
+                return {"content": [{"type": "text", "text": res_text}]}
+            except json.JSONDecodeError:
+                return {
+                    "content": [
+                        {"type": "text", "text": f"Failed to parse response: {res.stdout}"}
+                    ]
+                }
         except Exception as e:
             return {
                 "content": [{"type": "text", "text": f"Offload execution failed: {e}"}]
@@ -1154,15 +1289,24 @@ Generate production-ready, maintainable code that follows industry standards.
         except Exception as e:
             sys.stderr.write(f"Failed to check installed models: {e}\n")
 
+        # Flatten models for selection
+        flat_models = {}
+        for category in models.values():
+            if isinstance(category, dict):
+                flat_models.update(category)
+
         # Filter candidates by specialization AND installation status
         candidates = []
-        for m_id, m_info in models.items():
+        for m_id, m_info in flat_models.items():
+            if not isinstance(m_info, dict):
+                continue
+            base_id = m_id.split(":")[0]
             if m_info.get("specialization") == task_type:
-                if m_id in installed_models:
-                    candidates.append((m_id, m_info))
+                if base_id in installed_models:
+                    candidates.append((base_id, m_info))
                 else:
                     sys.stderr.write(
-                        f"Warning: Specialist model {m_id} not installed in Ollama.\n"
+                        f"Warning: Specialist model {base_id} not installed in Ollama.\n"
                     )
 
         if candidates:
@@ -1171,6 +1315,7 @@ Generate production-ready, maintainable code that follows industry standards.
         else:
             # Fallback to the most capable installed model
             fallback_order = [
+                "qwen3-coder-next",
                 "qwen3-coder-256k",
                 "gpt-oss-256k",
                 "phi4-256k",
@@ -1192,6 +1337,67 @@ Generate production-ready, maintainable code that follows industry standards.
                         },
                         indent=2,
                     ),
+                }
+            ]
+        }
+
+    def get_truth_anchors(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        from cohezion.reliability.residency_awareness import ResidencyAnchorBase
+
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": ResidencyAnchorBase.get_context_block(),
+                }
+            ]
+        }
+
+    def remember_fact(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        from cohezion.reliability.memory_manager import MemoryManager
+
+        fact = arguments.get("fact")
+        category = arguments.get("category", "general")
+        mgr = MemoryManager()
+        res = mgr.add(fact, metadata={"category": category})
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"Fact remembered successfully. Result: {res}",
+                }
+            ]
+        }
+
+    def recall_context(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        from cohezion.reliability.memory_manager import MemoryManager
+
+        query = arguments.get("query")
+        limit = arguments.get("limit", 5)
+        mgr = MemoryManager()
+        results = mgr.search(query, limit=limit)
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": json.dumps(results, indent=2),
+                }
+            ]
+        }
+
+    def daily_scout_research(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        from cohezion.agents.daily_scout import DailyScoutAgent
+
+        scout = DailyScoutAgent()
+        # In a real async environment, this would await research.
+        # For now, we simulate the proposal generation.
+        proposals = scout.perform_research()
+        filtered = scout.filter_proposals(proposals)
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"Scout Research Complete:\n{json.dumps(filtered, indent=2)}",
                 }
             ]
         }

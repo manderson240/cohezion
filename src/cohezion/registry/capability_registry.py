@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class Capability:
-    """A skill, agent, or MCP server with usage tracking."""
+    """A skill, agent, or MCP server with usage tracking and compound hooks."""
 
     name: str
     type: str  # "skill", "agent", "mcp"
@@ -33,6 +33,8 @@ class Capability:
     score: float = 0.0
     usage_count: int = 0  # Track invocations for optimization
     last_used: str = ""  # ISO timestamp for recency analysis
+    future_proofing_hooks: list[str] = field(default_factory=list)  # Reusable "compound" hooks
+    compound_impact_score: float = 0.0  # Measure of how much this feature helped others
 
 
 class CapabilityRegistry:
@@ -95,6 +97,18 @@ class CapabilityRegistry:
                 if not desc:
                     desc = f"Skill defined in {md_file.name}"
 
+                # Compound Hook Extraction: Look for markdown lists of hooks
+                hooks = []
+                in_hook_section = False
+                for line in lines:
+                    if "## FUTURE HOOKS" in line.upper():
+                        in_hook_section = True
+                        continue
+                    if in_hook_section and line.startswith("#"):
+                        break
+                    if in_hook_section and line.strip().startswith("- "):
+                        hooks.append(line.strip()[2:])
+
                 self.capabilities.append(
                     Capability(
                         name=md_file.stem,
@@ -106,6 +120,7 @@ class CapabilityRegistry:
                             "instruction",
                             md_file.stem.replace("_", " ").lower(),
                         ],
+                        future_proofing_hooks=hooks
                     )
                 )
             except Exception as e:

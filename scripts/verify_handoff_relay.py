@@ -1,7 +1,7 @@
 
 import asyncio
 import logging
-from cohezion.swarm.controller_agent import ControllerAgent
+from cohezion.agents.controller_agent import ControllerAgent
 
 async def verify_relay():
     logging.basicConfig(level=logging.INFO)

@@ -43,19 +43,31 @@ class ResourceMonitor:
         self.secondary_pids: set[int] = set()
         self.resource_coordinator = None
         self.dilation_factor = 1.0  # 1.0 = Regular speed, 0.1 = Severe Dilation
+        self._running = True
         self._initialized = True
 
         # Start background heartbeat if loop is running
         try:
             loop = asyncio.get_running_loop()
             if loop.is_running():
-                loop.create_task(self._heartbeat_loop())
+                self._heartbeat_task = loop.create_task(self._heartbeat_loop())
         except RuntimeError:
             pass
 
         logger.info(
             f"🛡️ ResourceMonitor initialized with max_concurrency={max_concurrency}"
         )
+
+    async def stop(self):
+        """Stop the heartbeat loop."""
+        self._running = False
+        if hasattr(self, "_heartbeat_task"):
+            self._heartbeat_task.cancel()
+            try:
+                await self._heartbeat_task
+            except asyncio.CancelledError:
+                pass
+        logger.info("ResourceMonitor stopped.")
 
     def register_coordinator(self, coordinator: Any):
         """Register a resource coordinator (e.g. ModelWrangler) for priority handling."""
@@ -268,7 +280,7 @@ class ResourceMonitor:
     async def _heartbeat_loop(self):
         """Background loop to log system health and monitor for stalled processes."""
         self.last_heartbeat = time.time()
-        while True:
+        while self._running:
             vitals = self.get_vitals()
             self.last_heartbeat = time.time()
 
