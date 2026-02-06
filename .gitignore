@@ -31,6 +31,7 @@ portfolio/
 !portfolio/*.md
 models/
 mteb_results/
+library/
 
 # Web/frontend config (managed by apps/ subdirs)
 package-lock.frontend.json
