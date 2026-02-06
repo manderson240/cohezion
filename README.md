@@ -36,10 +36,13 @@ uv run python tests/submission_tests.py -v
 36-qubit tensor network simulation via quimb + cotengra. MPS evolution with SWAP routing and bond dimension control. Safe QASM parsing without eval.
 
 ### FLUME Manifold Encoder
-PyTorch Transformer autoencoder mapping to 256D latent space. Supports encode, decode, interpolate, and semantic similarity. Trained on real mass simulation data (11K vectors from 10 universes). MSE 0.1322 on real data (5.9x harder than synthetic), KL divergence 0.4329 (13.8x richer latent structure).
+PyTorch Transformer autoencoder mapping to 256D latent space. Supports encode, decode, interpolate, and semantic similarity. Trained on real mass simulation data (11K vectors from 10 universes). MSE 0.1322 on real data (5.9x harder than synthetic), KL divergence 0.4329 (13.8x richer latent structure). Training supports early stopping, JSONL metrics logging, and checkpoint resume.
 
 ### Reinforcement Learning
-Gymnasium environment (`cohezion/FlumeNav-v0`) with REINFORCE trainer and composable reward shaping. Trained on Hamiltonian dynamics with HIHO-well potential. 200 episodes, average coherence 0.991.
+Gymnasium environment (`cohezion/FlumeNav-v0`) with REINFORCE trainer and composable reward shaping. Trained on Hamiltonian dynamics with HIHO-well potential. 200 episodes, average coherence 0.991. Weight bridge collapses 3-layer PolicyNetwork to 2-layer Rust FlumePhysics via matrix multiplication for trained navigator deployment.
+
+### Training Pipeline
+End-to-end pipeline from mass simulation to trained model deployment: `scripts/overnight/run_full_pipeline.sh`. 9 steps: simulate, export .npy, train VAE, phi3:mini analysis, hyperparameter debate, train RL, weight bridge, retrain with trained navigator, compare. Iterative hyperparameter search via Democratic Debate (train, evaluate, debate, retrain loop).
 
 ### Multi-Agent Consensus
 Democratic debate system with 5 parallel expert streams, 0.85+ consensus threshold, and full transparency logging. Agents are routed via TF-IDF capability matching across 193 registered capabilities.
