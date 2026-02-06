@@ -8,7 +8,6 @@ through intelligent resource allocation and quantization-aware optimization.
 """
 
 import asyncio
-import json
 import logging
 import time
 from dataclasses import dataclass
@@ -401,12 +400,18 @@ class DynamicModelRouter:
     async def ollama_generate(
         self, model: ModelConfig, request: dict, max_context: int
     ) -> dict:
-        """Execute Ollama generation with optimized parameters"""
-        # Prepare Ollama API call
+        """Execute Ollama generation via HTTP API.
+
+        Uses ``httpx.AsyncClient`` to POST to ``/api/generate`` on the
+        local Ollama server instead of spawning a subprocess.
+        """
+        import httpx
+
         payload = {
             "model": model.name,
             "prompt": request.get("prompt", ""),
             "system": request.get("system", ""),
+            "stream": False,
             "options": {
                 "num_ctx": max_context,
                 "temperature": request.get("temperature", 0.7),
@@ -416,26 +421,20 @@ class DynamicModelRouter:
         }
 
         try:
-            # Use subprocess to call Ollama
-            cmd = ["ollama", "generate", "--format", "json"]
-            proc = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdin=asyncio.subprocess.PIPE,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-            )
+            async with httpx.AsyncClient(timeout=300.0) as client:
+                resp = await client.post(
+                    "http://localhost:11434/api/generate",
+                    json=payload,
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                return {"text": data.get("response", ""), **data}
 
-            payload_str = json.dumps(payload)
-            stdout, stderr = await proc.communicate(payload_str.encode())
-
-            if proc.returncode == 0:
-                return json.loads(stdout.decode())
-            else:
-                logger.error(f"Ollama error: {stderr.decode()}")
-                return {"text": "", "error": stderr.decode()}
-
+        except httpx.TimeoutException:
+            logger.error("Ollama request timed out for model %s", model.name)
+            return {"text": "", "error": "timeout"}
         except Exception as e:
-            logger.error(f"Ollama execution error: {e}")
+            logger.error("Ollama HTTP error: %s", e)
             return {"text": "", "error": str(e)}
 
     def record_performance(
@@ -465,8 +464,19 @@ class DynamicModelRouter:
         )
 
 
-# Initialize router for global use
-router = DynamicModelRouter()
+_router: DynamicModelRouter | None = None
+
+
+def get_router() -> DynamicModelRouter:
+    """Return a lazily-initialised singleton DynamicModelRouter."""
+    global _router
+    if _router is None:
+        _router = DynamicModelRouter()
+    return _router
+
+
+# Backward-compatible module-level reference
+router = get_router()
 
 
 async def main():

@@ -39,9 +39,7 @@ class AgentFactory:
         Directory containing PRIME skill ``.md`` files.
     """
 
-    def __init__(
-        self, skills_dir: str | Path = "src/cohezion/skills/"
-    ) -> None:
+    def __init__(self, skills_dir: str | Path = "src/cohezion/skills/") -> None:
         self._engine = TemplateEngine(skills_dir)
         self._class_cache: dict[str, type] = {}
 
@@ -103,13 +101,11 @@ class AgentFactory:
         self._class_cache[key] = cls
         return cls
 
-    def create_executable(
-        self, skill_name: str, token_client: Any = None
-    ) -> Any:
+    def create_executable(self, skill_name: str, token_client: Any = None) -> Any:
         """Create an agent whose ``process()`` runs via PlanExecutor.
 
-        Unlike :meth:`create`, the returned agent's ``process()`` method
-        expands the skill instructions into a plan and executes each step.
+        Checks ``agents/generated/`` first for a pre-generated executable
+        agent. Falls back to dynamic generation if not found.
 
         Parameters
         ----------
@@ -129,6 +125,12 @@ class AgentFactory:
         KeyError
             If *skill_name* cannot be found.
         """
+        # Check for pre-generated executable agent
+        generated = self._try_load_generated(skill_name)
+        if generated is not None:
+            return generated(token_client=token_client)
+
+        # Fall back to dynamic generation
         from cohezion.core.instruction_expander import InstructionExpander
         from cohezion.core.plan_executor import PlanExecutor
 
@@ -151,6 +153,36 @@ class AgentFactory:
         agent.plan = plan  # type: ignore[attr-defined]
         return agent
 
+    def generate_top_skills(self, count: int = 5) -> list[str]:
+        """Generate executable agents for the top N skills with instructions.
+
+        Parameters
+        ----------
+        count : int
+            Maximum number of skills to generate agents for.
+
+        Returns
+        -------
+        list[str]
+            List of generated skill names.
+        """
+        from cohezion.core.config_templates import ConfigTemplateManager
+
+        specs = self._engine.parse_all()
+        with_instructions = [s for s in specs if s.instructions]
+        selected = with_instructions[:count]
+
+        manager = ConfigTemplateManager(engine=self._engine)
+        generated: list[str] = []
+        for spec in selected:
+            try:
+                manager.generate_executable_and_register(spec.name)
+                generated.append(spec.name)
+            except Exception:
+                logger.exception("Failed to generate agent for %s", spec.name)
+
+        return generated
+
     def list_available_skills(self) -> list[str]:
         """Return names of all parseable PRIME skills."""
         specs = self._engine.parse_all()
@@ -159,6 +191,38 @@ class AgentFactory:
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
+
+    def _try_load_generated(self, skill_name: str) -> type | None:
+        """Try to load a pre-generated executable agent class.
+
+        Parameters
+        ----------
+        skill_name : str
+            PRIME skill identifier.
+
+        Returns
+        -------
+        type | None
+            The agent class if found, else ``None``.
+        """
+        base = re.sub(r"_PRIME$", "", skill_name.strip(), flags=re.IGNORECASE)
+        snake_name = base.lower()
+        module_path = Path("src/cohezion/agents/generated") / f"{snake_name}_agent.py"
+
+        if not module_path.exists():
+            return None
+
+        try:
+            import importlib
+
+            module = importlib.import_module(
+                f"cohezion.agents.generated.{snake_name}_agent"
+            )
+            class_name = "".join(w.capitalize() for w in base.split("_")) + "Agent"
+            return getattr(module, class_name, None)  # type: ignore[return-value]
+        except Exception:
+            logger.debug("Failed to load generated agent for %s", skill_name)
+            return None
 
     def _resolve_spec(self, skill_name: str) -> SkillSpec:
         """Look up a spec by name, trying filename match as fallback."""
@@ -213,18 +277,16 @@ class AgentFactory:
 
         # Patch the import so BaseAgent resolves even if deps are missing
         try:
-            from cohezion.agents.base import BaseAgent
-
             # Provide the module that the generated code tries to import
             import types
+
+            from cohezion.agents.base import BaseAgent
 
             fake_mod = types.ModuleType("cohezion.agents.base")
             fake_mod.BaseAgent = BaseAgent  # type: ignore[attr-defined]
             namespace["cohezion"] = types.ModuleType("cohezion")
         except Exception:
-            logger.debug(
-                "BaseAgent import failed; using _StubAgent fallback"
-            )
+            logger.debug("BaseAgent import failed; using _StubAgent fallback")
             # Rewrite the source to use _StubAgent instead
             source = source.replace(
                 "from cohezion.agents.base import BaseAgent",
