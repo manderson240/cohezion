@@ -22,7 +22,6 @@ import json
 import logging
 import sys
 import time
-from dataclasses import asdict
 from pathlib import Path
 
 logging.basicConfig(

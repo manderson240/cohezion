@@ -63,7 +63,7 @@ class IncrementalVAETrainer:
         IncrementalResult
             Result including whether loss improved.
         """
-        from cohezion.flume.training import FlumeVAETrainer, TrainConfig
+        from cohezion.flume.training import FlumeVAETrainer
 
         trainer = FlumeVAETrainer.from_checkpoint(self.checkpoint_path)
         config = trainer.config
@@ -165,9 +165,8 @@ class IncrementalRLTrainer:
         IncrementalResult
             Result including whether coherence improved.
         """
-        import torch
-
         import gymnasium as gym
+        import torch
 
         import cohezion.rl.environment  # noqa: F401
         from cohezion.rl.trainer import PolicyNetwork, TrainingConfig
