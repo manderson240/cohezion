@@ -1453,6 +1453,7 @@ async def execute_skill(skill_name: str, request: SkillExecuteRequest):
     from cohezion.agents.factory import AgentFactory
     from cohezion.core.instruction_expander import InstructionExpander
     from cohezion.core.plan_executor import PlanExecutor
+    from cohezion.swarm.compound_client import get_compound_client
 
     factory = AgentFactory()
     try:
@@ -1466,7 +1467,8 @@ async def execute_skill(skill_name: str, request: SkillExecuteRequest):
     try:
         expander = InstructionExpander()
         plan = expander.expand(spec)
-        executor = PlanExecutor(token_client=None)
+        compound = get_compound_client()
+        executor = PlanExecutor(token_client=compound)
         exec_result = await executor.execute(plan, request.input_text)
 
         step_outputs = [
@@ -1761,18 +1763,21 @@ class TokenMetricsResponse(BaseModel):
 
 @app.get("/metrics/tokens", response_model=TokenMetricsResponse)
 async def metrics_tokens():
-    """Return token efficiency metrics from the shared TokenEfficientClient."""
-    from cohezion.swarm.token_client import TokenEfficientClient
+    """Return token efficiency metrics from the shared compound client."""
+    from cohezion.swarm.compound_client import get_compound_client
 
-    # Use a module-level singleton if available, otherwise return zeros
+    # Use a module-level override if set, otherwise the compound singleton
     client = getattr(metrics_tokens, "_client", None)
     if client is None:
-        return TokenMetricsResponse()
+        client = get_compound_client()
     return TokenMetricsResponse(**client.get_metrics())
 
 
 def set_token_client(client: Any) -> None:
-    """Register a TokenEfficientClient for the /metrics/tokens endpoint."""
+    """Register a TokenEfficientClient for the /metrics/tokens endpoint.
+
+    Pass ``None`` to revert to the default compound client singleton.
+    """
     metrics_tokens._client = client  # type: ignore[attr-defined]
 
 
@@ -1806,12 +1811,15 @@ class SwarmExecuteResponse(BaseModel):
 @app.post("/swarm/execute", response_model=SwarmExecuteResponse)
 async def swarm_execute(request: SwarmExecuteRequest):
     """Plan and execute a swarm from a natural language intent."""
+    from cohezion.swarm.compound_client import get_compound_client
+    from cohezion.swarm.execution_orchestrator import ExecutionOrchestrator
     from cohezion.swarm.team_orchestrator import TeamOrchestrator
 
-    orchestrator = TeamOrchestrator()
-    report = await orchestrator.execute_team(
-        request.intent, max_agents=request.max_agents
-    )
+    compound = get_compound_client()
+    orchestrator_obj = TeamOrchestrator()
+    plan = orchestrator_obj.plan_team(request.intent, max_agents=request.max_agents)
+    executor = ExecutionOrchestrator(token_client=compound)
+    report = await executor.execute(plan)
 
     report_dict = report.to_dict()
     return SwarmExecuteResponse(
@@ -1840,6 +1848,7 @@ class CompoundMetricsResponse(BaseModel):
 @app.get("/metrics/compound", response_model=CompoundMetricsResponse)
 async def metrics_compound():
     """Return compound engineering metrics from retrospection analysis."""
+    from cohezion.compound.metrics import get_collector
     from cohezion.core.compound.retrospection import RetrospectionEngine
 
     engine = RetrospectionEngine()
@@ -1848,6 +1857,7 @@ async def metrics_compound():
     refinements = engine.suggest_skill_refinements()
 
     top_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)[:10]
+    collector = get_collector()
 
     return CompoundMetricsResponse(
         total_learnings=len(learnings),
@@ -1862,5 +1872,183 @@ async def metrics_compound():
             }
             for r in refinements
         ],
-        total_executions=0,
+        total_executions=collector.total_executions,
     )
+
+
+# ---------------------------------------------------------------------------
+# Compound Execution & Feedback endpoints
+# ---------------------------------------------------------------------------
+
+
+class CompoundExecuteRequest(BaseModel):
+    skill_name: str
+    input_text: str
+    model: str | None = None
+
+
+class CompoundStepOut(BaseModel):
+    step_index: int
+    operation: str
+    description: str
+    output: str
+    tokens_used: int
+    duration_ms: float
+    model: str = ""
+
+
+class CompoundExecuteResponse(BaseModel):
+    skill_name: str
+    final_output: str
+    steps: list[CompoundStepOut] = []
+    total_tokens: int = 0
+    total_duration_ms: float = 0.0
+    model_usage: dict[str, int] = {}
+
+
+@app.post("/compound/execute", response_model=CompoundExecuteResponse)
+async def compound_execute(request: CompoundExecuteRequest):
+    """Execute a PRIME skill with live Ollama models via CompoundExecutor."""
+    from cohezion.compound.executor import get_executor
+
+    executor = get_executor()
+    try:
+        result = await executor.execute_skill(
+            request.skill_name,
+            request.input_text,
+            model=request.model,
+        )
+    except KeyError as exc:
+        raise HTTPException(
+            status_code=404, detail=f"Skill not found: {request.skill_name}"
+        ) from exc
+    except Exception as exc:
+        logger.exception("Compound execution failed: %s", request.skill_name)
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    return CompoundExecuteResponse(
+        skill_name=result.skill_name,
+        final_output=result.final_output,
+        steps=[
+            CompoundStepOut(
+                step_index=s["step_index"],
+                operation=s["operation"],
+                description=s["description"],
+                output=s["output"],
+                tokens_used=s["tokens_used"],
+                duration_ms=s["duration_ms"],
+                model=s.get("model", ""),
+            )
+            for s in result.steps
+        ],
+        total_tokens=result.total_tokens,
+        total_duration_ms=result.total_duration_ms,
+        model_usage=result.model_usage,
+    )
+
+
+class CompoundFeedbackRequest(BaseModel):
+    skill_name: str
+    input_text: str
+    model: str | None = None
+    cycles: int = 1
+
+
+class CompoundFeedbackResponse(BaseModel):
+    skill_name: str
+    cycles_completed: int = 0
+    total_tokens: int = 0
+    total_duration_ms: float = 0.0
+    total_refinements: int = 0
+    compound_score_delta: float = 0.0
+    patterns: list[str] = []
+
+
+@app.post("/compound/feedback", response_model=CompoundFeedbackResponse)
+async def compound_feedback(request: CompoundFeedbackRequest):
+    """Run a compound feedback cycle: execute -> analyze -> refine."""
+    from cohezion.compound.feedback_loop import CompoundFeedbackLoop
+
+    loop = CompoundFeedbackLoop()
+    try:
+        if request.cycles > 1:
+            report = await loop.run_multi_cycle(
+                request.skill_name,
+                request.input_text,
+                cycles=request.cycles,
+                model=request.model,
+            )
+            return CompoundFeedbackResponse(
+                skill_name=report.skill_name,
+                cycles_completed=report.total_cycles,
+                total_tokens=report.total_tokens,
+                total_duration_ms=report.total_duration_ms,
+                total_refinements=report.total_refinements,
+                compound_score_delta=report.final_compound_score_delta,
+            )
+        else:
+            result = await loop.run_cycle(
+                request.skill_name,
+                request.input_text,
+                model=request.model,
+            )
+            return CompoundFeedbackResponse(
+                skill_name=result.skill_name,
+                cycles_completed=1,
+                total_tokens=result.execution_tokens,
+                total_duration_ms=result.execution_duration_ms,
+                total_refinements=result.refinements_applied,
+                compound_score_delta=result.compound_score_delta,
+                patterns=result.patterns,
+            )
+    except KeyError as exc:
+        raise HTTPException(
+            status_code=404, detail=f"Skill not found: {request.skill_name}"
+        ) from exc
+    except Exception as exc:
+        logger.exception("Compound feedback failed: %s", request.skill_name)
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+class CompoundHealthResponse(BaseModel):
+    total_executions: int = 0
+    total_refinements: int = 0
+    total_cycles: int = 0
+    success_rate: float = 0.0
+    total_tokens: int = 0
+    model_usage: dict[str, int] = {}
+    top_refined_skills: list[dict[str, Any]] = []
+    compound_score_trend: list[dict[str, Any]] = []
+
+
+@app.get("/compound/health", response_model=CompoundHealthResponse)
+async def compound_health():
+    """Return compound system health from the metrics collector."""
+    from cohezion.compound.metrics import get_collector
+
+    collector = get_collector()
+    return CompoundHealthResponse(**collector.to_health_dict())
+
+
+class CompoundHistoryResponse(BaseModel):
+    skill_name: str
+    executions: int = 0
+    refinements: int = 0
+    cycles: int = 0
+    total_tokens: int = 0
+    success_rate: float = 0.0
+    latest_execution: float | None = None
+    latest_refinement: float | None = None
+
+
+@app.get(
+    "/compound/history/{skill_name}",
+    response_model=CompoundHistoryResponse,
+)
+async def compound_history(skill_name: str):
+    """Return compound execution history for a specific skill."""
+    from cohezion.compound.metrics import get_collector
+
+    collector = get_collector()
+    history = collector.skill_history(skill_name)
+    return CompoundHistoryResponse(**history)

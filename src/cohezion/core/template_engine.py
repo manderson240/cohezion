@@ -278,6 +278,82 @@ class {class_name}(BaseAgent):
         raise NotImplementedError
 '''
 
+    def generate_executable_agent(self, spec: SkillSpec) -> str:
+        """Generate a Python agent class with a working ``process()`` method.
+
+        The generated agent has a pre-expanded plan constant and
+        delegates to :class:`PlanExecutor` for execution.
+
+        Parameters
+        ----------
+        spec : SkillSpec
+            Parsed skill specification.
+
+        Returns
+        -------
+        str
+            Python source code for the executable agent class.
+        """
+        class_name = _skill_name_to_class(spec.name) + "Agent"
+        domain_short = (
+            spec.domain_expertise.split("\n")[0][:200]
+            if spec.domain_expertise
+            else "No domain specified."
+        )
+        system_prompt = domain_short.replace('"', '\\"')
+
+        # Pre-expand instructions into plan steps for the constant
+        from cohezion.core.instruction_expander import InstructionExpander
+
+        expander = InstructionExpander()
+        plan = expander.expand(spec)
+
+        # Serialize plan steps as a list of dicts
+        steps_repr = "[\n"
+        for step in plan.steps:
+            steps_repr += f'        PlanStep(operation="{step.operation}", '
+            params_repr = repr(step.params)
+            steps_repr += f"params={params_repr}, "
+            desc_escaped = step.description.replace('"', '\\"')
+            steps_repr += f'description="{desc_escaped}"),\n'
+        steps_repr += "    ]"
+
+        domain_escaped = (plan.domain or "").replace('"', '\\"')
+
+        return f'''"""Auto-generated executable agent for {spec.name}."""
+
+from __future__ import annotations
+
+from typing import Any
+
+from cohezion.core.instruction_expander import ExecutablePlan, PlanStep
+from cohezion.core.plan_executor import ExecutionResult, PlanExecutor
+
+_PLAN = ExecutablePlan(
+    skill_name="{spec.name}",
+    steps={steps_repr},
+    domain="{domain_escaped}",
+)
+
+
+class {class_name}:
+    """Executable agent for {spec.name}.
+
+    Domain: {system_prompt}
+    Version: {spec.version}
+    """
+
+    SYSTEM_PROMPT = "{system_prompt}"
+
+    def __init__(self, token_client: Any | None = None) -> None:
+        self._token_client = token_client
+
+    async def process(self, input_text: str, **kwargs: Any) -> ExecutionResult:
+        """Process input by executing the pre-expanded plan."""
+        executor = PlanExecutor(token_client=self._token_client)
+        return await executor.execute(_PLAN, input_text)
+'''
+
     def generate_config_class(self, spec: SkillSpec) -> str:
         """Generate a ``@dataclass`` config class from a ``SkillSpec``.
 

@@ -90,9 +90,7 @@ class PlanExecutor:
     def __init__(self, token_client: TokenClient | None = None) -> None:
         self._token_client = token_client
 
-    async def execute(
-        self, plan: ExecutablePlan, input_text: str
-    ) -> ExecutionResult:
+    async def execute(self, plan: ExecutablePlan, input_text: str) -> ExecutionResult:
         """Execute all steps in *plan* sequentially.
 
         The output of each step is passed as context to the next.
@@ -171,17 +169,27 @@ class PlanExecutor:
             return context, 0
 
     async def _run_llm(
-        self, step: PlanStep, context: str, domain: str
+        self,
+        step: PlanStep,
+        context: str,
+        domain: str,
+        model: str | None = None,
     ) -> tuple[str, int]:
-        """Run a generate or analyze step via token_client."""
+        """Run a generate or analyze step via token_client.
+
+        Parameters
+        ----------
+        model : str | None
+            Override model name for this step. Forwarded to
+            ``token_client.generate(model=...)``.
+        """
         if self._token_client is not None:
-            prompt = (
-                f"Domain: {domain}\n"
-                f"Task: {step.description}\n"
-                f"Context: {context}"
-            )
+            prompt = f"Domain: {domain}\nTask: {step.description}\nContext: {context}"
+            kwargs: dict[str, Any] = {}
+            if model:
+                kwargs["model"] = model
             try:
-                output = await self._token_client.generate(prompt)
+                output = await self._token_client.generate(prompt, **kwargs)
                 # Rough token estimate: ~4 chars per token
                 tokens = max(1, len(output) // 4)
                 return output, tokens
@@ -233,6 +241,4 @@ class PlanExecutor:
             step.description,
             len(context),
         )
-        return (
-            f"[persisted] {step.description} | chars={len(context)}"
-        ), 0
+        return (f"[persisted] {step.description} | chars={len(context)}"), 0

@@ -116,6 +116,78 @@ class ConfigTemplateManager:
         )
         logger.info("Updated skill registry for %s", spec.name)
 
+    def generate_executable_and_register(self, skill_name: str) -> dict[str, Path]:
+        """Generate an executable agent (with working ``process()``) and register it.
+
+        Unlike :meth:`generate_and_register` which produces ``NotImplementedError``
+        stubs, this generates agents with pre-expanded plans that call
+        :class:`PlanExecutor`.
+
+        Parameters
+        ----------
+        skill_name : str
+            PRIME skill identifier (case-insensitive).
+
+        Returns
+        -------
+        dict[str, Path]
+            Mapping of ``"agent"`` to the generated file path.
+
+        Raises
+        ------
+        KeyError
+            If the skill cannot be found.
+        """
+        spec = self.engine.get_spec_by_name(skill_name)
+        if spec is None:
+            raise KeyError(f"Skill not found: {skill_name}")
+
+        base = re.sub(r"_PRIME$", "", spec.name, flags=re.IGNORECASE)
+        snake_name = base.lower()
+
+        generated_dir = Path("src/cohezion/agents/generated")
+        generated_dir.mkdir(parents=True, exist_ok=True)
+
+        # Ensure __init__.py exists
+        init_path = generated_dir / "__init__.py"
+        if not init_path.exists():
+            init_path.write_text(
+                '"""Auto-generated agents from PRIME skill definitions."""\n\n'
+                "__all__: list[str] = []\n",
+                encoding="utf-8",
+            )
+
+        # Generate executable agent
+        agent_source = self.engine.generate_executable_agent(spec)
+        agent_path = generated_dir / f"{snake_name}_agent.py"
+        agent_path.write_text(agent_source, encoding="utf-8")
+
+        # Update __init__.py with the new class
+        class_name = re.sub(r"_PRIME$", "", spec.name, flags=re.IGNORECASE)
+        class_name = (
+            "".join(word.capitalize() for word in class_name.split("_")) + "Agent"
+        )
+
+        init_content = init_path.read_text(encoding="utf-8")
+        import_line = (
+            f"from cohezion.agents.generated.{snake_name}_agent import {class_name}"
+        )
+        if import_line not in init_content:
+            # Add import and update __all__
+            if "__all__" in init_content:
+                init_content = init_content.replace(
+                    "__all__: list[str] = [",
+                    f'__all__: list[str] = [\n    "{class_name}",',
+                )
+            init_content = import_line + "\n" + init_content
+            init_path.write_text(init_content, encoding="utf-8")
+
+        # Update the skill registry
+        self.update_registry(spec)
+
+        logger.info("Generated executable agent: %s -> %s", skill_name, agent_path)
+        return {"agent": agent_path}
+
     def generate_and_register(self, skill_name: str) -> dict[str, Path]:
         """Generate agent + config files on disk and register in the skill registry.
 
