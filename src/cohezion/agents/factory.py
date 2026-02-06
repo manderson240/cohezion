@@ -67,10 +67,13 @@ class AgentFactory:
             If *skill_name* cannot be found.
         """
         cls = self.get_class(skill_name)
+        # BaseAgent requires model_name — provide a sensible default
+        if "model_name" not in agent_kwargs:
+            agent_kwargs["model_name"] = "phi3:mini"
         try:
             return cls(**agent_kwargs)
         except TypeError:
-            # BaseAgent requires model_name; fall back without args
+            # _StubAgent or other fallback that doesn't accept model_name
             return cls()
 
     def get_class(self, skill_name: str) -> type:

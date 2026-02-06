@@ -1,0 +1,16 @@
+{
+  "COMPOUND_ENGINEERING_PRIME": {
+    "version": "v0.1",
+    "concepts": [
+      "Meta‑Pattern Library",
+      "Skill Tokens",
+      "Automatic Skill Scaffold"
+    ],
+    "see_also": [
+      "METAPHYSICS_PRIME",
+      "PHYSICS_PRIME",
+      "RETROSPECTIVE_SKILL"
+    ],
+    "source": "src/cohezion/skills/compound_engineering.md"
+  }
+}

@@ -21,6 +21,10 @@ Verified capabilities organized by domain. Last updated: 2026-02-06.
 | RL REINFORCE | `rl/environment.py` + `trainer.py` + `reward_shaping.py` | Trained: 200 ep, 0.991 coherence |
 | Gymnasium Env | `cohezion/FlumeNav-v0` | Registered, Hamiltonian dynamics |
 | Data Pipeline | `mass_sim/exporter.py` + `pipeline/` | Working: 61 .npy, 11K vectors |
+| Weight Bridge | `pipeline/weight_bridge.py` | Built: PolicyNetwork → FlumePhysics (3-layer collapse) |
+| Trained Navigator | `pipeline/trained_navigator.py` | Built: deterministic batch navigation for mass sim |
+| Hyperparam Debate | `pipeline/hyperparameter_debate.py` | Built: DemocraticDebate → structured RL params |
+| Incremental Training | `pipeline/incremental_trainer.py` | Built: resume VAE/RL from checkpoint |
 
 ## 3. API (FastAPI)
 
