@@ -95,30 +95,30 @@ class ContainerizedUniverse:
                 "mem_limit": self.memory_limit,
                 "cpu_quota": self.cpu_quota,
                 "environment": env or {},
-                "detach": True,
-                "remove": False,  # We'll remove it manually after getting logs
                 "working_dir": "/app",
             }
             if self.network_mode != "bridge":
                 run_kwargs["network_mode"] = self.network_mode
-            container = self.client.containers.run(self.image_name, **run_kwargs)
+            container = self.client.containers.create(self.image_name, **run_kwargs)
 
             # 3. Create a tar archive of the code and files
             tar_stream = self._create_tar_stream(script_content, files)
 
-            # 4. Put the archive into the container
+            # 4. Put the archive into the container BEFORE starting
             container.put_archive("/app", tar_stream)
 
-            # 5. Wait for execution
+            # 5. Start the container (script is already injected)
+            container.start()
+
+            # 6. Wait for execution
             result = container.wait(timeout=self.timeout_seconds)
 
-            # 6. Capture logs
+            # 7. Capture logs
             stdout = container.logs(stdout=True, stderr=False).decode("utf-8")
             stderr = container.logs(stdout=False, stderr=True).decode("utf-8")
 
-            # 7. Extract output files (if any created in /app/output)
-            # This is a bit complex for a skeleton, so we'll skip for now
-            # but in production we'd use: container.get_archive("/app/output")
+            # 8. Extract output files from /app/output
+            output_files = self._extract_output_files(container)
 
             duration = time.time() - start_time
             exit_code = result.get("StatusCode", -1)
@@ -129,6 +129,7 @@ class ContainerizedUniverse:
                 stdout=stdout,
                 stderr=stderr,
                 duration=duration,
+                output_files=output_files,
             )
 
         except Exception as e:
@@ -174,6 +175,29 @@ class ContainerizedUniverse:
 
         file_obj.seek(0)
         return file_obj.read()
+
+    def _extract_output_files(self, container: Any) -> dict[str, bytes] | None:
+        """Extract files from /app/output in the container."""
+        import io
+
+        try:
+            archive_stream, _stat = container.get_archive("/app/output")
+            archive_bytes = b"".join(archive_stream)
+            output_files: dict[str, bytes] = {}
+            with tarfile.open(fileobj=io.BytesIO(archive_bytes), mode="r") as tar:
+                for member in tar.getmembers():
+                    if member.isfile():
+                        extracted = tar.extractfile(member)
+                        if extracted is not None:
+                            # Strip the leading "output/" prefix
+                            name = member.name
+                            if "/" in name:
+                                name = name.split("/", 1)[1]
+                            output_files[name] = extracted.read()
+            return output_files if output_files else None
+        except Exception:
+            # No output directory or extraction failed — not an error
+            return None
 
     def _prepare_container(self):
         """Ensure the required image is pulled."""

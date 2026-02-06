@@ -183,12 +183,15 @@ class SystemdRunBackend:
                     duration=time.time() - start_time,
                 )
 
+            output_files = _collect_output_files(workdir)
+
             return BackendResult(
                 success=proc.returncode == 0,
                 exit_code=proc.returncode or 0,
                 stdout=stdout_bytes.decode("utf-8", errors="replace"),
                 stderr=stderr_bytes.decode("utf-8", errors="replace"),
                 duration=time.time() - start_time,
+                output_files=output_files,
             )
         finally:
             shutil.rmtree(workdir, ignore_errors=True)
@@ -257,12 +260,15 @@ class SubprocessBackend:
                 env=run_env,
             )
 
+            output_files = _collect_output_files(workdir)
+
             return BackendResult(
                 success=result["success"],
                 exit_code=result["exit_code"],
                 stdout=result["stdout"],
                 stderr=result["stderr"],
                 duration=time.time() - start_time,
+                output_files=output_files,
             )
         finally:
             shutil.rmtree(workdir, ignore_errors=True)
@@ -307,6 +313,26 @@ class SubprocessBackend:
     def is_available(cls) -> bool:
         """Subprocess backend is always available."""
         return True
+
+
+def _collect_output_files(workdir: Path) -> dict[str, bytes] | None:
+    """Scan {workdir}/output/ for files and return them as a dict.
+
+    Returns
+    -------
+    dict[str, bytes] | None
+        Mapping of filename to file content, or None if no output files exist.
+    """
+    output_dir = workdir / "output"
+    if not output_dir.is_dir():
+        return None
+
+    output_files: dict[str, bytes] = {}
+    for fpath in output_dir.iterdir():
+        if fpath.is_file():
+            output_files[fpath.name] = fpath.read_bytes()
+
+    return output_files if output_files else None
 
 
 def select_backend() -> IsolationBackend:
