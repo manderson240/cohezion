@@ -14,13 +14,17 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient, UniverseNode
+from cohezion.agents.base import BaseAgent
+from cohezion.agents.controller_agent import ControllerAgent, IgnitionPack
+from cohezion.agents.hypothesis_agent import HypothesisAgent
+from cohezion.core.persistence.surreal_client import (
+    PhysicsState,
+    SurrealClient,
+    UniverseNode,
+)
 from cohezion.flume.alignment import LatentAligner
 from cohezion.mcp.email_notifier import EmailNotifier
 from cohezion.simulation.simulation_logger import SimulationLogger
-from cohezion.agents.base import BaseAgent
-from cohezion.agents.hypothesis_agent import HypothesisAgent
-from cohezion.swarm.controller_agent import ControllerAgent, IgnitionPack
 
 logger = logging.getLogger(__name__)
 
@@ -125,17 +129,19 @@ class LabAgent(BaseAgent):
             for attempt in range(max_retries):
                 # Energy Circuit Breaker: Exponentially increasing cost for recursive thought
                 refinement_cost = base_refinement_cost * (2**attempt)
-                logger.info(f"Refinement attempt {attempt+1} (Cost: {refinement_cost})")
+                logger.info(
+                    f"Refinement attempt {attempt + 1} (Cost: {refinement_cost})"
+                )
 
                 report = await self._experiment(nexus_result, raw_seed)
 
                 # Check for "✅ VERIFIED" or "CRITICAL FAILURE"
                 if "✅ VERIFIED" in report:
-                    logger.info(f"Refinement successful on attempt {attempt+1}")
+                    logger.info(f"Refinement successful on attempt {attempt + 1}")
                     break
                 else:
                     logger.warning(
-                        f"Verification failed on attempt {attempt+1}. Backtracking..."
+                        f"Verification failed on attempt {attempt + 1}. Backtracking..."
                     )
                     # Backtrack to checkpoint if necessary
                     await asyncio.sleep(1)  # Simulated context scrubbing
