@@ -84,6 +84,34 @@ class StabilityPenalty:
         return -self.scale * min(excess, 1.0)
 
 
+class HamiltonianReward:
+    """Reward based on negative Hamiltonian potential energy.
+
+    Lower potential energy = higher reward. Uses HIHO_WELL potential
+    which has its minimum at the HIHO 0.5 target.
+
+    Parameters
+    ----------
+    potential : str
+        Potential type: "hiho_well", "double_well", or "harmonic".
+    scale : float
+        Reward scaling factor (default 0.5).
+    """
+
+    def __init__(self, potential: str = "hiho_well", scale: float = 0.5) -> None:
+        from cohezion.physics.hamiltonian import HamiltonianDynamics, PotentialType
+
+        pot_type = PotentialType(potential)
+        self.dynamics = HamiltonianDynamics(potential=pot_type)
+        self.scale = scale
+
+    def __call__(self, state: np.ndarray) -> float:
+        """Compute reward as negative mean potential energy."""
+        energy = self.dynamics.energy(state)
+        # Negative energy = reward (lower energy is better)
+        return self.scale * float(-np.mean(energy))
+
+
 class CompositeReward:
     """Combine multiple reward components with weights.
 
@@ -95,6 +123,8 @@ class CompositeReward:
         Weight for DiversityBonus (default 0.3).
     stability_weight : float
         Weight for StabilityPenalty (default 0.2).
+    hamiltonian_weight : float
+        Weight for HamiltonianReward (default 0.0, opt-in).
     """
 
     def __init__(
@@ -102,13 +132,16 @@ class CompositeReward:
         coherence_weight: float = 1.0,
         diversity_weight: float = 0.3,
         stability_weight: float = 0.2,
+        hamiltonian_weight: float = 0.0,
     ) -> None:
         self.coherence_reward = CoherenceReward()
         self.diversity_bonus = DiversityBonus()
         self.stability_penalty = StabilityPenalty()
+        self.hamiltonian_reward = HamiltonianReward() if hamiltonian_weight > 0 else None
         self.coherence_weight = coherence_weight
         self.diversity_weight = diversity_weight
         self.stability_weight = stability_weight
+        self.hamiltonian_weight = hamiltonian_weight
 
     def __call__(
         self,
@@ -120,4 +153,6 @@ class CompositeReward:
         reward += self.diversity_weight * self.diversity_bonus(state)
         if prev_state is not None:
             reward += self.stability_weight * self.stability_penalty(prev_state, state)
+        if self.hamiltonian_reward is not None:
+            reward += self.hamiltonian_weight * self.hamiltonian_reward(state)
         return reward

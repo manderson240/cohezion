@@ -1,0 +1,116 @@
+"""Config Template Manager for PRIME skill-driven code generation.
+
+Provides a high-level interface over :class:`TemplateEngine` to look up
+skills by name and generate config classes or agent stubs.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from cohezion.core.template_engine import SkillSpec, TemplateEngine
+
+logger = logging.getLogger(__name__)
+
+
+class ConfigTemplateManager:
+    """High-level manager for skill-based code generation.
+
+    Parameters
+    ----------
+    engine : TemplateEngine | None
+        Pre-configured engine instance.  If ``None``, a default one is
+        created on first access.
+    """
+
+    def __init__(self, engine: TemplateEngine | None = None) -> None:
+        self._engine = engine
+
+    @property
+    def engine(self) -> TemplateEngine:
+        """Lazily initialise the template engine."""
+        if self._engine is None:
+            from cohezion.core.template_engine import TemplateEngine
+
+            self._engine = TemplateEngine()
+        return self._engine
+
+    def get_config_for_skill(self, skill_name: str) -> str:
+        """Return generated config-class source for *skill_name*.
+
+        Parameters
+        ----------
+        skill_name : str
+            PRIME skill identifier (case-insensitive).
+
+        Returns
+        -------
+        str
+            Python source code for the config dataclass.
+
+        Raises
+        ------
+        KeyError
+            If the skill cannot be found.
+        """
+        spec = self.engine.get_spec_by_name(skill_name)
+        if spec is None:
+            raise KeyError(f"Skill not found: {skill_name}")
+        return self.engine.generate_config_class(spec)
+
+    def get_agent_for_skill(self, skill_name: str) -> str:
+        """Return generated agent-stub source for *skill_name*.
+
+        Parameters
+        ----------
+        skill_name : str
+            PRIME skill identifier (case-insensitive).
+
+        Returns
+        -------
+        str
+            Python source code for the agent class.
+
+        Raises
+        ------
+        KeyError
+            If the skill cannot be found.
+        """
+        spec = self.engine.get_spec_by_name(skill_name)
+        if spec is None:
+            raise KeyError(f"Skill not found: {skill_name}")
+        return self.engine.generate_agent_stub(spec)
+
+    def update_registry(self, spec: SkillSpec) -> None:
+        """Update ``skill_registry.json`` with parsed skill metadata.
+
+        Parameters
+        ----------
+        spec : SkillSpec
+            The skill spec to register.
+        """
+        registry_path = Path("src/cohezion/skills/skill_registry.json")
+        registry: dict = {}
+
+        if registry_path.exists():
+            try:
+                registry = json.loads(registry_path.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError):
+                logger.warning("Could not read skill registry, creating new one")
+
+        registry[spec.name] = {
+            "version": spec.version,
+            "concepts": list(spec.concepts.keys()),
+            "see_also": spec.see_also,
+            "source": str(spec.source_path),
+        }
+
+        registry_path.write_text(
+            json.dumps(registry, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        logger.info("Updated skill registry for %s", spec.name)
