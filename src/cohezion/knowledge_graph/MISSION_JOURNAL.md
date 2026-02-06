@@ -2,6 +2,20 @@
 
 A chronological record of project milestones and session developments.
 
+### [2026-02-06] PHASE 14: LIVE COMPOUND ENGINEERING (Session 10)
+- **Compound module**: `src/cohezion/compound/` — 8 files (executor, feedback_loop, metrics, persistence, config, models, health, __init__). CompoundExecutor with per-operation model routing, CompoundFeedbackLoop (execute → retrospect → refine), CompoundMetricsCollector with trend tracking, CompoundPersistence (JSONL + SurrealDB).
+- **Live wiring**: SmartRouterAdapter bridges SmartRouter → TokenEfficientClient. `get_compound_client()` singleton factory pre-wired with ContextHarness + ResilientOllamaClient.
+- **CLI**: `compound_driver.py` (full loop with --dry-run/--model), `compound_demo.py` (3-skill quick demo), `generate_agents.py` (stub generation from PRIME skills).
+- **CI**: GitLab CI pipeline (`.gitlab-ci.yml` with lint/test/validate stages), 4 validation scripts in `scripts/ci/`, `make ci` target.
+- **New agents**: compound-executor (execute+read-only), skill-refiner (read+write skills).
+- **Tests**: 80+ new tests across 6 files. Fixed hanging tests by mocking live Ollama client. Suite: 634 passed, 2 skipped, 0 failures.
+- **3 commits**: compound module + agents (24 files), CLI + CI (11 files), tests (8 files).
+
+### [2026-02-06] PHASE 13: COMPOUND ENGINEERING LOOP (Session 9)
+- **Phase 4 system**: TokenEfficientClient, InstructionExpander, PlanExecutor, ExecutionOrchestrator, SkillRefiner — compound loop closed end-to-end.
+- **4 workstreams**: Token middleware + Instruction execution (parallel agents) → Swarm orchestration → Compound feedback (sequential by leader).
+- **45 new tests**, 556 total. Suite healthy.
+
 ### [2026-02-06] PHASE 12: HYBRID DEPLOYMENT & BRANCH ARCHAEOLOGY
 - **GitLab CE**: Self-hosted at localhost:8929, all 7 branches synced. Source of truth.
 - **Public repos extracted**: `llm-prompt-guard` (23 tests, Apache 2.0), `ollama-debate` (7 personas, Apache 2.0) at `/home/mike-anderson/dev/public-repos/`.
