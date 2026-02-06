@@ -13,11 +13,30 @@ We find the 'peak' (heavy bitstring) by:
 
 import logging
 import os
+import re
 import time
 
 import cotengra as ctg
 import numpy as np
 import quimb.tensor as qtn
+
+
+def _safe_parse_qasm_param(expr: str) -> float:
+    """Safely parse a QASM gate parameter expression.
+
+    Supports numeric literals and simple expressions involving pi,
+    e.g. "pi/2", "-pi", "3.14", "pi*0.5", "-1.3+pi".
+    """
+    expr = expr.strip()
+    # Replace 'pi' with its numeric value as a string
+    expr = re.sub(r"\bpi\b", str(np.pi), expr)
+    # Validate: only allow digits, decimal points, signs, *, /, whitespace
+    if not re.match(r"^[\d\.\+\-\*/eE\s]+$", expr):
+        raise ValueError(f"Unsafe QASM parameter expression: {expr!r}")
+    try:
+        return float(eval(compile(expr, "<qasm_param>", "eval"), {"__builtins__": {}}, {}))  # noqa: S307
+    except (SyntaxError, TypeError, ZeroDivisionError) as e:
+        raise ValueError(f"Failed to parse QASM parameter: {expr!r}") from e
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -81,15 +100,12 @@ class PeakedCircuitSolver:
                 elif line.startswith("u("):
                     # Extract params
                     params_str = line.split("(")[1].split(")")[0]
-                    # Handle pi/2 etc.
-                    safe_dict = {"pi": np.pi}
                     params = []
                     for p in params_str.split(","):
-                        # Safe eval
                         try:
-                            val = float(eval(p, {"__builtins__": None}, safe_dict))
+                            val = _safe_parse_qasm_param(p)
                             params.append(val)
-                        except Exception as parse_err:
+                        except ValueError as parse_err:
                             logger.error(f"Failed to parse param {p} in line: {line}")
                             raise parse_err
                     # Extract qubit
@@ -145,8 +161,6 @@ class PeakedCircuitSolver:
             N = 36  # Known for this problem
             ops = []
 
-            safe_dict = {"pi": np.pi}
-
             for line in lines:
                 line = line.strip().replace(";", "")
                 if not line or line.startswith(("OPENQASM", "include", "qreg", "//")):
@@ -162,7 +176,7 @@ class PeakedCircuitSolver:
                     params_str = line.split("(")[1].split(")")[0]
                     params = []
                     for p in params_str.split(","):
-                        params.append(float(eval(p, {"__builtins__": None}, safe_dict)))
+                        params.append(_safe_parse_qasm_param(p))
 
                     q_str = line.split(")")[1].strip()
                     q = int(q_str.split("[")[1].split("]")[0])
@@ -324,7 +338,7 @@ class PeakedCircuitSolver:
                     q_idx = site_to_qubit[site_idx]
                     try:
                         val = int(bit)
-                    except:
+                    except (ValueError, TypeError):
                         val = bit
                     ordered_bits[q_idx] = str(val)
 

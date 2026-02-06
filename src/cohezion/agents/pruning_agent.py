@@ -75,7 +75,7 @@ Synthesize them into a single, high-density 'Master Thought' that preserves
 all unique information while removing repetition.
 
 THOUGHTS:
-{chr(10).join([t.get('content', '')[:500] for t in group])}
+{chr(10).join([t.get("content", "")[:500] for t in group])}
 
 MASTER THOUGHT:
 """

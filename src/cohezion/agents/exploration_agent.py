@@ -95,7 +95,7 @@ Why is this conceptually novel compared to standard patterns?
 Does it represent a new emergent behavior or a creative breakthrough?
 
 EVENT CONTENT:
-{signal['content']}
+{signal["content"]}
 
 INTERPRETATION:
 """

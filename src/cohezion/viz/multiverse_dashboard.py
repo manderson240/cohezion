@@ -119,14 +119,14 @@ else:
     with stats_col:
         mo.md(f"### 🛡️ Parameters for `{selected['scenario_name']}`")
         mo.md(f"""
-        - **Momentum:** {selected['params']['momentum']}
-        - **Coupling:** {selected['params']['coupling']}
-        - **HIHO Target:** {selected['params']['hiho_target']}
-        - **Entropy (Drift):** {selected['params']['entropy']}
+        - **Momentum:** {selected["params"]["momentum"]}
+        - **Coupling:** {selected["params"]["coupling"]}
+        - **HIHO Target:** {selected["params"]["hiho_target"]}
+        - **Entropy (Drift):** {selected["params"]["entropy"]}
 
         **Results:**
-        - **Mean Stability:** {selected['mean_stability']:.4f}
-        - **Bright Spots:** {selected['bright_spot_count']}
+        - **Mean Stability:** {selected["mean_stability"]:.4f}
+        - **Bright Spots:** {selected["bright_spot_count"]}
         """)
 
     # Radar Chart

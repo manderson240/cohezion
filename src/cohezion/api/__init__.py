@@ -516,7 +516,7 @@ async def plot_journey(journey_id: str):
         ax3d.scatter(
             [x], [y], [z], c=c, s=150, alpha=0.9, edgecolors="white", linewidths=1
         )
-        ax3d.text(x, y, z, f" {i+1}", color="white", fontsize=8)
+        ax3d.text(x, y, z, f" {i + 1}", color="white", fontsize=8)
     ax3d.set_xlabel("X", color="white")
     ax3d.set_ylabel("Y", color="white")
     ax3d.set_zlabel("Z", color="white")
@@ -629,7 +629,7 @@ async def plot_journey(journey_id: str):
     ax_heat.set_yticks(range(len(dims)))
     ax_heat.set_yticklabels([d.capitalize() for d in dims], fontsize=8, color="white")
     ax_heat.set_xticks(range(len(steps)))
-    ax_heat.set_xticklabels([f"{i+1}" for i in range(len(steps))], color="white")
+    ax_heat.set_xticklabels([f"{i + 1}" for i in range(len(steps))], color="white")
     ax_heat.set_xlabel("Step", color="white")
     ax_heat.set_title("12D Physics Heatmap", color="white", fontsize=10)
     cbar = plt.colorbar(im, ax=ax_heat, shrink=0.8)

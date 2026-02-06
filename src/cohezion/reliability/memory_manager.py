@@ -4,35 +4,38 @@ Sovereign Memory Manager for Cohezion.
 Reduces dependency on brittle third-party config loaders.
 """
 
-import os
 import json
 import logging
-from typing import List, Dict, Any, Optional
-from qdrant_client import QdrantClient
-from qdrant_client.http.models import Distance, VectorParams, PointStruct
+import os
+from typing import Any
+
 from ollama import Client
+from qdrant_client import QdrantClient
+from qdrant_client.http.models import Distance, PointStruct, VectorParams
 
 logger = logging.getLogger(__name__)
 
+
 class MemoryManager:
     """Manages local persistent memory using Ollama and Qdrant."""
-    
+
     COLLECTION_NAME = "cohezion_memories"
-    
-    def __init__(self, 
-                 qdrant_path: str = "/home/mike-anderson/dev/cohezion/storage/memory/qdrant_sovereign",
-                 ollama_url: str = "http://localhost:11434",
-                 embed_model: str = "nomic-embed-text:latest"):
-        
+
+    def __init__(
+        self,
+        qdrant_path: str = "/home/mike-anderson/dev/cohezion/storage/memory/qdrant_sovereign",
+        ollama_url: str = "http://localhost:11434",
+        embed_model: str = "nomic-embed-text:latest",
+    ):
         self.ollama = Client(host=ollama_url)
         self.embed_model = embed_model
-        
+
         # Ensure path exists
         os.makedirs(qdrant_path, exist_ok=True)
-        
+
         # Initialize Qdrant
         self.qdrant = QdrantClient(path=qdrant_path)
-        
+
         # Ensure collection exists with correct dimensions (nomic-embed-text is 768)
         try:
             self.qdrant.get_collection(self.COLLECTION_NAME)
@@ -43,46 +46,47 @@ class MemoryManager:
             )
             logger.info(f"Created Qdrant collection: {self.COLLECTION_NAME}")
 
-    def _get_embedding(self, text: str) -> List[float]:
+    def _get_embedding(self, text: str) -> list[float]:
         """Get embedding from local Ollama."""
         res = self.ollama.embeddings(model=self.embed_model, prompt=text)
         return res["embedding"]
 
-    def add(self, data: str, metadata: Optional[Dict[str, Any]] = None):
+    def add(self, data: str, metadata: dict[str, Any] | None = None):
         """Add information to long-term memory."""
         import uuid
+
         vector = self._get_embedding(data)
         point_id = str(uuid.uuid4())
-        
+
         self.qdrant.upsert(
             collection_name=self.COLLECTION_NAME,
             points=[
                 PointStruct(
                     id=point_id,
                     vector=vector,
-                    payload={"text": data, **(metadata or {})}
+                    payload={"text": data, **(metadata or {})},
                 )
-            ]
+            ],
         )
         return {"id": point_id, "status": "stored"}
 
-    def search(self, query: str, limit: int = 5) -> List[Dict[str, Any]]:
+    def search(self, query: str, limit: int = 5) -> list[dict[str, Any]]:
         """Search for relevant memories."""
         vector = self._get_embedding(query)
         results = self.qdrant.query_points(
-            collection_name=self.COLLECTION_NAME,
-            query=vector,
-            limit=limit
+            collection_name=self.COLLECTION_NAME, query=vector, limit=limit
         ).points
-        
+
         memories = []
         for res in results:
-            memories.append({
-                "id": res.id,
-                # "score": res.score, # query_points might not return score the same way
-                "text": res.payload.get("text"),
-                "metadata": {k: v for k, v in res.payload.items() if k != "text"}
-            })
+            memories.append(
+                {
+                    "id": res.id,
+                    # "score": res.score, # query_points might not return score the same way
+                    "text": res.payload.get("text"),
+                    "metadata": {k: v for k, v in res.payload.items() if k != "text"},
+                }
+            )
         return memories
 
     def delete_all(self):
@@ -92,6 +96,7 @@ class MemoryManager:
             collection_name=self.COLLECTION_NAME,
             vectors_config=VectorParams(size=768, distance=Distance.COSINE),
         )
+
 
 if __name__ == "__main__":
     mgr = MemoryManager()

@@ -275,8 +275,8 @@ class GatewayDetector:
         for i in range(1, len(history)):
             if history[i] - history[i - 1] > threshold:
                 logger.info(
-                    f"Coherence jump detected: {history[i-1]:.2f} → {history[i]:.2f} "
-                    f"(Δ={history[i] - history[i-1]:.2f})"
+                    f"Coherence jump detected: {history[i - 1]:.2f} → {history[i]:.2f} "
+                    f"(Δ={history[i] - history[i - 1]:.2f})"
                 )
                 return True
 

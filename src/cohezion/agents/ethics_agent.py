@@ -62,7 +62,7 @@ class EthicsAgent(BaseAgent):
             if "SCORE:" in line:
                 try:
                     score = float(line.split(":")[1].strip())
-                except:
+                except (ValueError, IndexError):
                     pass
             if "JUSTIFICATION:" in line:
                 justification = line.split(":")[1].strip()

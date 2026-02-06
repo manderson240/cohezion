@@ -10,9 +10,9 @@ from typing import Any
 
 import requests
 
+from cohezion.agents.base import AgentResponse, BaseAgent
 from cohezion.core.persistence.surreal_client import PhysicsState, UniverseNode
 from cohezion.simulation.simulation_logger import SimulationLogger
-from cohezion.agents.base import AgentResponse, BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
 
 logger = logging.getLogger(__name__)
@@ -326,8 +326,8 @@ Be strict. Only rank papers > 0.85 if they offer a genuine breakthrough or effic
     async def _rank_item(self, item: dict[str, Any]) -> float:
         """Rank an item using the LLM with Abstract-First protocol."""
         prompt = f"""RANKING TASK:
-Title: {item['title']}
-Abstract/Description: {item['abstract']}
+Title: {item["title"]}
+Abstract/Description: {item["abstract"]}
 
 On a scale of 0.0 to 1.0, how relevant is this to Cohezion (FLUME, 12D manifolds, SLM Swarms, Physics metaphors)?
 Output ONLY the number.
@@ -344,8 +344,8 @@ Output ONLY the number.
     async def _synthesize_summary(self, item: dict[str, Any]) -> str:
         """Generate high-density summary."""
         prompt = f"""SYNTHESIZE:
-Title: {item['title']}
-Abstract: {item['abstract']}
+Title: {item["title"]}
+Abstract: {item["abstract"]}
 
 Generate a 12D-aware summary (Spatial, Time, Brane implications).
 Keep it dense and actionable for the swarm.

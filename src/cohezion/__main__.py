@@ -23,7 +23,6 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Any
 
 # Setup logging
 logging.basicConfig(
@@ -232,8 +231,8 @@ async def cmd_journey_start(args: argparse.Namespace) -> int:
     journey_id = f"journey_{args.intent[:20].replace(' ', '_')}"
 
     logger.info(f"✅ Journey created: {journey_id}")
-    logger.info(f"   Status: active")
-    logger.info(f"   Coherence target: 0.5 (HIHO stability)")
+    logger.info("   Status: active")
+    logger.info("   Coherence target: 0.5 (HIHO stability)")
 
     # Output in JSON for programmatic use
     result = {
@@ -280,7 +279,7 @@ async def cmd_journey_list(args: argparse.Namespace) -> int:
 
 async def cmd_simulate(args: argparse.Namespace) -> int:
     """Handle simulate command."""
-    logger.info(f"🔮 Running universe simulation...")
+    logger.info("🔮 Running universe simulation...")
     logger.info(f"   Journey: {args.journey or 'new scenario'}")
     logger.info(f"   Duration: {args.duration}")
 
@@ -289,10 +288,10 @@ async def cmd_simulate(args: argparse.Namespace) -> int:
 
     # Mock simulation results
     logger.info("\nSimulation Results:")
-    logger.info(f"   Coherence: 0.52 (HIHO stable ✓)")
-    logger.info(f"   Predicted phi: 0.84")
-    logger.info(f"   Stability: HIGH")
-    logger.info(f"   Recommendation: PROCEED with precipitation")
+    logger.info("   Coherence: 0.52 (HIHO stable ✓)")
+    logger.info("   Predicted phi: 0.84")
+    logger.info("   Stability: HIGH")
+    logger.info("   Recommendation: PROCEED with precipitation")
 
     return 0
 
@@ -312,8 +311,8 @@ async def cmd_precipitate(args: argparse.Namespace) -> int:
         logger.info("   ✓ Security scan: CLEAN")
 
     logger.info("\n✅ Reality precipitated successfully!")
-    logger.info(f"   Commit: 7a8f9d2 (mock)")
-    logger.info(f"   XP earned: +125")
+    logger.info("   Commit: 7a8f9d2 (mock)")
+    logger.info("   XP earned: +125")
 
     return 0
 
@@ -456,7 +455,7 @@ async def cmd_generate(args: argparse.Namespace) -> int:
         )
 
         if report["success"]:
-            logger.info(f"\n✅ Generation complete!")
+            logger.info("\n✅ Generation complete!")
             logger.info(f"   Files generated: {len(report['files_generated'])}")
         else:
             logger.error("\n❌ Generation failed!")
@@ -473,8 +472,8 @@ async def cmd_generate(args: argparse.Namespace) -> int:
 
 async def cmd_ouroboros(args: argparse.Namespace) -> int:
     """Handle ouroboros command (System Flight Recorder)."""
-    from cohezion.system.ouroboros_recorder import OuroborosRecorder
     from cohezion.rewards.system import RewardSystem
+    from cohezion.system.ouroboros_recorder import OuroborosRecorder
 
     rewards = RewardSystem()
 
@@ -514,7 +513,7 @@ async def cmd_ouroboros(args: argparse.Namespace) -> int:
             await recorder.start()
 
             status = rewards.get_status("OuroborosRecorder")
-            logger.info(f"\n✅ Ouroboros Active")
+            logger.info("\n✅ Ouroboros Active")
             logger.info(f"   XP Status: {status['tier']} ({status['total_xp']} XP)")
 
             await asyncio.sleep(3600)
@@ -533,7 +532,7 @@ async def cmd_ouroboros(args: argparse.Namespace) -> int:
                         outputs={"status": "stopped_by_user"},
                         phi_score=0.7,
                     )
-                except:
+                except Exception:
                     pass
 
             logger.info("✅ Ouroboros stopped")
@@ -552,8 +551,8 @@ async def cmd_ouroboros(args: argparse.Namespace) -> int:
 async def cmd_mycelium(args: argparse.Namespace) -> int:
     """Handle mycelium command (Autonomous Test Generation)."""
     from cohezion.mycelium.shadow_scripter import ShadowScripter
-    from cohezion.universe.engine import UniverseSimulationEngine
     from cohezion.rewards.system import RewardSystem
+    from cohezion.universe.engine import UniverseSimulationEngine
 
     engine = UniverseSimulationEngine()
     rewards = RewardSystem()
@@ -594,7 +593,7 @@ async def cmd_mycelium(args: argparse.Namespace) -> int:
                 phi_score=0.85,
             )
 
-            logger.info(f"   XP Awarded: +30")
+            logger.info("   XP Awarded: +30")
         else:
             logger.error("❌ Test generation failed")
             return 1

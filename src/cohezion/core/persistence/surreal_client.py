@@ -9,7 +9,6 @@ Supports:
 """
 
 import asyncio
-from cohezion.reliability import get_circuit
 import base64
 import json
 import logging
@@ -20,7 +19,10 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+import httpx
 import numpy as np
+
+from cohezion.reliability import get_circuit
 
 logger = logging.getLogger(__name__)
 
@@ -260,7 +262,9 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
         """
         breaker = get_circuit("surrealdb", failure_threshold=5)
         if not breaker.allow_request():
-            logger.warning("🛑 Circuit Open: SurrealDB connection rejected. Using fallback.")
+            logger.warning(
+                "🛑 Circuit Open: SurrealDB connection rejected. Using fallback."
+            )
             self._use_fallback()
             return True
 
@@ -303,6 +307,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
         global _SHARED_STORE
         if _SHARED_STORE is None:
             from cohezion.core.persistence.surreal_client import InMemoryStore
+
             _SHARED_STORE = InMemoryStore()
         self._client = _SHARED_STORE
         self._connected = True
@@ -362,7 +367,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             if isinstance(self._client, InMemoryStore):
                 # For InMemoryStore, we need to simulate creation.
                 # If 'id' is provided in data, use it. Otherwise, generate one.
-                record_id = data.get("id") or f"{table}_{int(time.time()*1000)}"
+                record_id = data.get("id") or f"{table}_{int(time.time() * 1000)}"
                 self._client.store(record_id, data)
                 return [
                     {"id": f"{table}:{record_id}", "data": data}
@@ -401,7 +406,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 if "CREATE velocity_events" in sql:
                     data = vars.get("data") if vars else vars
                     if data:
-                        self._client.store(f"event_{int(time.time()*1000)}", data)
+                        self._client.store(f"event_{int(time.time() * 1000)}", data)
                     return [data]
                 if "FROM missions" in sql or "FROM agent_journey" in sql:
                     mission_id = vars.get("id") if vars else None

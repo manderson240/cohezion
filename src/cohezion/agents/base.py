@@ -1,4 +1,5 @@
 """Base agent class for all SLM Swarm agents."""
+
 from __future__ import annotations
 
 import asyncio
@@ -9,26 +10,29 @@ import re
 import time
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Optional, List, Dict
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from cohezion.swarm.swarm_types import SwarmConfig
 
 import httpx
 
+from cohezion.core.compound.engine import CompoundLogicEngine
 from cohezion.core.credit_manager import get_credit_manager
-from cohezion.core.time_keeper import get_time_keeper
 from cohezion.core.persistence.surreal_client import SurrealClient
+from cohezion.core.time_keeper import get_time_keeper
 from cohezion.flume.autoencoder import FlumeEncoder
+from cohezion.reliability import get_circuit
+from cohezion.reliability.batch_manager import BatchManager
+from cohezion.reliability.context_harness import ContextHarness
 from cohezion.reliability.monitor import get_resource_monitor
+from cohezion.reliability.offload_manager import OffloadManager
+from cohezion.reliability.pool import get_pool
+from cohezion.reliability.semantic_cache import SemanticCache
 from cohezion.rewards.system import RewardSystem
 from cohezion.security.output_filter import OutputFilter
 from cohezion.security.prompt_guard import PromptGuard, ThreatLevel
 from cohezion.universe.engine import UniverseSimulationEngine
-from cohezion.reliability.offload_manager import OffloadManager
-from cohezion.reliability.context_harness import ContextHarness
-from cohezion.reliability.semantic_cache import SemanticCache
-from cohezion.reliability.batch_manager import BatchManager
-from cohezion.reliability import get_circuit
-from cohezion.reliability.pool import get_pool
-from cohezion.core.compound.engine import CompoundLogicEngine
 
 logger = logging.getLogger(__name__)
 
@@ -169,7 +173,9 @@ class BaseAgent(ABC):
             query_vec = self._encoder.encode(prompt)
             if hasattr(query_vec, "cpu"):
                 query_vec = query_vec.cpu().numpy()
-            semantic_hit = await self._semantic_cache.search(query_vec, query_text=prompt)
+            semantic_hit = await self._semantic_cache.search(
+                query_vec, query_text=prompt
+            )
             if semantic_hit:
                 logger.info(
                     f"✨ Semantic Cache Hit (score: {semantic_hit['semantic_score']:.2f})"
@@ -231,9 +237,7 @@ class BaseAgent(ABC):
                 query_text=prompt,
             )
 
-    async def enqueue_batch_task(
-        self, query: str, context: Optional[str] = None
-    ) -> str:
+    async def enqueue_batch_task(self, query: str, context: str | None = None) -> str:
         """Enqueue a task for later batch processing."""
         task_id = hashlib.md5(query.encode()).hexdigest()[:8]
         self._batch_mgr.enqueue(task_id, query, context)
@@ -247,14 +251,16 @@ class BaseAgent(ABC):
         compounds = self._compound_engine.analyze_task_for_compounding(query)
         if compounds:
             # Inject compound wisdom into the narrator or logs
-            summary = ", ".join([f"{c['name']} ({len(c['hooks'])} hooks)" for c in compounds])
+            summary = ", ".join(
+                [f"{c['name']} ({len(c['hooks'])} hooks)" for c in compounds]
+            )
             logger.info(f"🧩 [COMPOUND] Leveraging existing patterns: {summary}")
             # Potentially update system prompt for the next call
             self._compound_wisdom = compounds
         else:
             self._compound_wisdom = []
 
-    async def process_batch(self, model: str | None = None) -> Dict[str, str]:
+    async def process_batch(self, model: str | None = None) -> dict[str, str]:
         """Process all enqueued tasks in a single local SLM call."""
         batch = self._batch_mgr.get_batch()
         if not batch:
@@ -331,11 +337,10 @@ class BaseAgent(ABC):
             )
 
         # Check cache first
-        cached_data = await self._get_cached(prompt, images) if not ignore_cache else None
+        cached_data = (
+            await self._get_cached(prompt, images) if not ignore_cache else None
+        )
         if cached_data:
-            print(
-                f"DEBUG [BaseAgent]: Cache HIT for {self.model_name}. Narration: {cached_data.get('narration')}"
-            )
             # Log cache hit event
             await tk.log_event(
                 agent_name=self.__class__.__name__,
@@ -517,8 +522,8 @@ class BaseAgent(ABC):
                 self._encoder = FlumeEncoder(config=FlumeConfig())
             z = self._encoder.get_semantic_vector(final_result)
             embedding = z.tolist() if hasattr(z, "tolist") else list(z)
-        except Exception:
-            pass
+        except (ImportError, RuntimeError, OSError) as e:
+            logger.debug(f"FLUME encoding unavailable, skipping: {e}")
 
         # 2.5 Journey Narration
         narration = self._narrator.generate_narration(
@@ -624,7 +629,7 @@ class BaseAgent(ABC):
             return None
 
     async def offload_to_local(
-        self, query: str, system_prompt: Optional[str] = None
+        self, query: str, system_prompt: str | None = None
     ) -> AgentResponse:
         """
         Offload a menial task to a local SLM with a context harness.
@@ -691,8 +696,8 @@ Provide output in JSON format: {{"phi_score": 0.85, "confidence": 0.90}}
                 data = json.loads(data)
             phi = float(data.get("phi_score", 0.8))
             conf = float(data.get("confidence", 0.8))
-        except Exception:
-            pass
+        except (httpx.HTTPError, json.JSONDecodeError, ValueError, KeyError) as e:
+            logger.debug(f"Self-evaluation call failed, using defaults: {e}")
 
         # 2. Alignment Audit (Phase 22)
         audit_res = {

@@ -4,12 +4,11 @@ COHEZION Time & Date Utility
 Systematic date/time capture for accurate code velocity tracking and git safe handoffs.
 """
 
-import os
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -20,18 +19,18 @@ class COHEZIONTimeTracker:
     def __init__(self, project_root: str = "/home/mike-anderson/dev/cohezion"):
         self.project_root = Path(project_root)
         self.time_data_file = self.project_root / ".cohezion_time_data.json"
-        self.session_start = datetime.now(timezone.utc)
+        self.session_start = datetime.now(UTC)
 
         # Load existing time data
         self.time_data = self._load_time_data()
 
         logger.info("⏰ COHEZION Time Tracker initialized")
 
-    def _load_time_data(self) -> Dict[str, Any]:
+    def _load_time_data(self) -> dict[str, Any]:
         """Load existing time tracking data"""
         if self.time_data_file.exists():
             try:
-                with open(self.time_data_file, "r") as f:
+                with open(self.time_data_file) as f:
                     return json.load(f)
             except Exception as e:
                 logger.warning(f"⚠️ Could not load time data: {e}")
@@ -51,9 +50,9 @@ class COHEZIONTimeTracker:
         except Exception as e:
             logger.error(f"❌ Failed to save time data: {e}")
 
-    def get_current_timestamp(self) -> Dict[str, str]:
+    def get_current_timestamp(self) -> dict[str, str]:
         """Get structured timestamp for current moment"""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return {
             "iso_utc": now.isoformat(),
             "readable": now.strftime("%B %d, %Y at %I:%M %p UTC"),
@@ -71,9 +70,9 @@ class COHEZIONTimeTracker:
         unique_str = f"{self.session_start.timestamp()}_{time.time()}"
         return hashlib.md5(unique_str.encode()).hexdigest()[:8]
 
-    def update_session_metrics(self, session_data: Dict[str, Any]):
+    def update_session_metrics(self, session_data: dict[str, Any]):
         """Update current session metrics"""
-        session_end = datetime.now(timezone.utc)
+        session_end = datetime.now(UTC)
         session_duration = (session_end - self.session_start).total_seconds()
 
         session_record = {
@@ -98,7 +97,7 @@ class COHEZIONTimeTracker:
         self.time_data["last_session"] = session_record
 
         # Reset for next session
-        self.session_start = datetime.now(timezone.utc)
+        self.session_start = datetime.now(UTC)
 
         # Save updated data
         self._save_time_data()
@@ -109,14 +108,12 @@ class COHEZIONTimeTracker:
 
         return session_record
 
-    def get_development_velocity(self, days_back: int = 7) -> Dict[str, Any]:
+    def get_development_velocity(self, days_back: int = 7) -> dict[str, Any]:
         """Calculate development velocity metrics"""
         if not self.time_data.get("session_history"):
             return {"error": "No session history available"}
 
-        cutoff_date = datetime.now(timezone.utc).timestamp() - (
-            days_back * 24 * 60 * 60
-        )
+        cutoff_date = datetime.now(UTC).timestamp() - (days_back * 24 * 60 * 60)
 
         # Filter recent sessions
         recent_sessions = [
@@ -177,7 +174,7 @@ class COHEZIONTimeTracker:
 
         return consistency_score + productivity_score + impact_score
 
-    def _find_most_productive_day(self, sessions: list) -> Optional[Dict[str, Any]]:
+    def _find_most_productive_day(self, sessions: list) -> dict[str, Any] | None:
         """Find most productive day from session history"""
         if not sessions:
             return None
@@ -212,9 +209,9 @@ class COHEZIONTimeTracker:
             "session_count": most_productive[1]["session_count"],
         }
 
-    def get_git_safe_handoff_timestamp(self) -> Dict[str, str]:
+    def get_git_safe_handoff_timestamp(self) -> dict[str, str]:
         """Generate timestamp for git safe handoff"""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return {
             "commit_message_prefix": now.strftime("[%Y-%m-%d %H:%M]"),
             "branch_name": now.strftime("work/session-%Y%m%d-%H%M"),
@@ -238,7 +235,7 @@ def get_time_tracker() -> COHEZIONTimeTracker:
     return _time_tracker
 
 
-def get_current_timestamp() -> Dict[str, str]:
+def get_current_timestamp() -> dict[str, str]:
     """Get current timestamp for use in templates and configs"""
     tracker = get_time_tracker()
     return tracker.get_current_timestamp()
@@ -251,7 +248,7 @@ def format_timestamp_for_config() -> str:
     return timestamp_data["iso_utc"]
 
 
-def format_git_safe_handoff() -> Dict[str, str]:
+def format_git_safe_handoff() -> dict[str, str]:
     """Get formatted data for git safe handoff"""
     tracker = get_time_tracker()
     return tracker.get_git_safe_handoff_timestamp()

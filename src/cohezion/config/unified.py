@@ -10,7 +10,6 @@ import json
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -46,7 +45,7 @@ class CloudGraderConfig:
     """Cloud grading configuration"""
 
     primary_model: str = "kimi-k2.5"
-    fallback_models: List[str] = field(
+    fallback_models: list[str] = field(
         default_factory=lambda: ["qwen3-coder:30b", "deepseek-r1:7b", "phi4"]
     )
     consensus_threshold: float = 0.7
@@ -68,7 +67,7 @@ class SystemConfig:
     )
 
     # Universe tracks
-    tracks: Dict[str, UniverseTrackConfig] = field(
+    tracks: dict[str, UniverseTrackConfig] = field(
         default_factory=lambda: {
             "rapid": UniverseTrackConfig(
                 name="Rapid",

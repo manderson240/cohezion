@@ -2,17 +2,17 @@
 Modularization Scout Agent: Analyzes codebase for modularization boundaries and unused code.
 """
 
-import logging
 import ast
-import re
-from typing import Any, Dict, List, Set
+import json
+import logging
 from pathlib import Path
+from typing import Any
 
 from cohezion.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
-from cohezion.healing.deep_audit import CodeIssue
 
 logger = logging.getLogger(__name__)
+
 
 class ModularizationScoutAgent(BaseAgent):
     """
@@ -24,16 +24,16 @@ class ModularizationScoutAgent(BaseAgent):
         # Using phi3:mini for efficient cross-file analysis in verification mode
         super().__init__(model_name="phi3:mini", config=config)
 
-    async def analysis_dependencies(self, directory: str) -> Dict[str, Any]:
+    async def analysis_dependencies(self, directory: str) -> dict[str, Any]:
         """
         Maps dependencies across a directory to identify service boundaries.
         """
         logger.info(f"🗺️ [SCOUT] Mapping dependencies in {directory}")
-        
+
         # 1. Start Journey
         journey = await self._universe.start_journey(
             agent_name=self.__class__.__name__,
-            intent=f"Map service boundaries in {directory}"
+            intent=f"Map service boundaries in {directory}",
         )
 
         # 2. Extract Imports (Manual AST)
@@ -48,8 +48,12 @@ class ModularizationScoutAgent(BaseAgent):
                         for alias in node.names:
                             imports.append(alias.name)
                     elif isinstance(node, ast.ImportFrom):
-                        imports.append(f"{node.module}.{node.names[0].name}" if node.module else node.names[0].name)
-                
+                        imports.append(
+                            f"{node.module}.{node.names[0].name}"
+                            if node.module
+                            else node.names[0].name
+                        )
+
                 rel_path = str(py_file.relative_to(directory))
                 dep_map[rel_path] = imports
             except Exception as e:
@@ -79,32 +83,38 @@ Output your analysis in JSON format:
         response = await self._call_ollama(
             prompt=prompt,
             system_prompt="You are a senior system architect in the Cohezion swarm. Focus on decoupling and scalability.",
-            task_type="light-reasoning"
+            task_type="light-reasoning",
         )
 
         # 4. Evolve and Precipitate
-        await self._universe.evolve_trajectory(journey, "dependency_mapped", str(response))
+        await self._universe.evolve_trajectory(
+            journey, "dependency_mapped", str(response)
+        )
         precipitation = await self._universe.precipitate_reality(
             journey,
             outputs={"dependency_map": dep_map, "architect_review": str(response)},
-            phi_score=response.phi_score
+            phi_score=response.phi_score,
         )
-        
+
         return precipitation
 
-    async def find_unused_methods(self, file_path: str) -> Dict[str, Any]:
+    async def find_unused_methods(self, file_path: str) -> dict[str, Any]:
         """
         Identifies potentially unused methods in a file.
         """
         logger.info(f"🧹 [SCOUT] Hunting for dead code in {file_path}")
-        
+
         content = Path(file_path).read_text()
         tree = ast.parse(content)
-        
+
         # Find all local definitions
-        def_nodes = [node for node in ast.walk(tree) if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))]
+        def_nodes = [
+            node
+            for node in ast.walk(tree)
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        ]
         methods = {node.name: node.lineno for node in def_nodes}
-        
+
         # Heuristic: Grep repo for usages of these method names
         # (This is a rough check, meant for LLM to confirm)
         prompt = f"""
@@ -130,7 +140,7 @@ Output JSON:
         response = await self._call_ollama(
             prompt=prompt,
             system_prompt="You are a code cleanup specialist. Identify dead weight to be pruned.",
-            task_type="light-reasoning"
+            task_type="light-reasoning",
         )
 
         return {"analysis": str(response), "file": file_path}

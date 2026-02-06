@@ -3,12 +3,14 @@ Bug Scout Agent: Identifies functional bugs from static analysis hotspots.
 """
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
+
 from cohezion.agents.base import BaseAgent
-from cohezion.swarm.swarm_types import SwarmConfig
 from cohezion.healing.deep_audit import CodeIssue
+from cohezion.swarm.swarm_types import SwarmConfig
 
 logger = logging.getLogger(__name__)
+
 
 class BugScoutAgent(BaseAgent):
     """
@@ -20,7 +22,7 @@ class BugScoutAgent(BaseAgent):
         # We use phi4-mini for reasoning-heavy scout tasks in this verification
         super().__init__(model_name="phi4-mini", config=config)
 
-    async def process(self, issue: CodeIssue, file_content: str) -> Dict[str, Any]:
+    async def process(self, issue: CodeIssue, file_content: str) -> dict[str, Any]:
         """
         Inspects a specific code issue and confirms if it's a functional bug.
         """
@@ -29,7 +31,7 @@ class BugScoutAgent(BaseAgent):
         # 1. Start a Journey for this scout task
         journey = await self._universe.start_journey(
             agent_name=self.__class__.__name__,
-            intent=f"Verify bug: {issue.message} at {issue.file_path}:{issue.line}"
+            intent=f"Verify bug: {issue.message} at {issue.file_path}:{issue.line}",
         )
 
         # 2. Build the scouting prompt
@@ -62,7 +64,7 @@ Output your analysis in the following JSON format:
         response = await self._call_ollama(
             prompt=prompt,
             system_prompt="You are an expert bug hunter in the Cohezion swarm. Be precise and critical.",
-            task_type="light-reasoning"
+            task_type="light-reasoning",
         )
 
         # 4. Evolve trajectory
@@ -70,17 +72,14 @@ Output your analysis in the following JSON format:
             journey,
             action="Scouting code issue",
             result=str(response),
-            phi_score=response.phi_score
+            phi_score=response.phi_score,
         )
 
         # 5. Precipitate reality
         precipitation = await self._universe.precipitate_reality(
             journey,
-            outputs={
-                "issue": vars(issue),
-                "analysis": str(response)
-            },
-            phi_score=response.phi_score
+            outputs={"issue": vars(issue), "analysis": str(response)},
+            phi_score=response.phi_score,
         )
 
         return precipitation

@@ -24,7 +24,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +38,8 @@ class EvolutionState:
     average_grade: float = 0.0
     best_grade: str = "F"
     improvement_rate: float = 0.0
-    applied_changes: List[Dict] = field(default_factory=list)
-    pattern_library: Dict[str, Any] = field(default_factory=dict)
+    applied_changes: list[dict] = field(default_factory=list)
+    pattern_library: dict[str, Any] = field(default_factory=dict)
     hiho_convergence_avg: float = 0.0
 
 
@@ -54,7 +54,7 @@ class Improvement:
     reason: str
     confidence: float
     applied: bool = False
-    result_grade: Optional[str] = None
+    result_grade: str | None = None
 
 
 class CompoundEvolutionEngine:
@@ -71,7 +71,7 @@ class CompoundEvolutionEngine:
     - Next-run configuration generation
     """
 
-    def __init__(self, knowledge_graph_path: Optional[str] = None):
+    def __init__(self, knowledge_graph_path: str | None = None):
         """Initialize the evolution engine"""
         self.knowledge_graph_path = (
             knowledge_graph_path
@@ -83,14 +83,14 @@ class CompoundEvolutionEngine:
         self.evolution_state_dir.mkdir(parents=True, exist_ok=True)
 
         # Track evolution state per track
-        self.track_states: Dict[str, EvolutionState] = {}
+        self.track_states: dict[str, EvolutionState] = {}
         self._load_states()
 
         # Applied improvements history
-        self.improvement_history: List[Improvement] = []
+        self.improvement_history: list[Improvement] = []
 
         # Pattern library for cross-track transfer
-        self.pattern_library: Dict[str, Any] = {}
+        self.pattern_library: dict[str, Any] = {}
         self._load_patterns()
 
         logger.info("🔄 CompoundEvolutionEngine initialized")
@@ -156,9 +156,9 @@ class CompoundEvolutionEngine:
     async def apply_cloud_feedback(
         self,
         track_type: str,
-        grade_report: Dict[str, Any],
-        mission_data: Dict[str, Any],
-    ) -> List[Improvement]:
+        grade_report: dict[str, Any],
+        mission_data: dict[str, Any],
+    ) -> list[Improvement]:
         """
         Main entry point: Apply cloud grading feedback to improve system
 
@@ -236,8 +236,8 @@ class CompoundEvolutionEngine:
         return applied
 
     def _extract_improvements(
-        self, feedback: str, suggestions: List[str], criterion_scores: Dict[str, Any]
-    ) -> List[Improvement]:
+        self, feedback: str, suggestions: list[str], criterion_scores: dict[str, Any]
+    ) -> list[Improvement]:
         """Extract actionable improvements from cloud feedback"""
 
         improvements = []
@@ -319,7 +319,7 @@ class CompoundEvolutionEngine:
 
         return improvements[:5]  # Limit to top 5 improvements per run
 
-    def _parse_suggestion(self, suggestion: str) -> Optional[Improvement]:
+    def _parse_suggestion(self, suggestion: str) -> Improvement | None:
         """Parse a text suggestion into an improvement action"""
         suggestion_lower = suggestion.lower()
 
@@ -367,7 +367,7 @@ class CompoundEvolutionEngine:
         return None
 
     async def _apply_improvement(
-        self, track_type: str, improvement: Improvement, mission_data: Dict
+        self, track_type: str, improvement: Improvement, mission_data: dict
     ) -> bool:
         """Apply a single improvement to the system"""
 
@@ -429,7 +429,7 @@ class CompoundEvolutionEngine:
 
         return True
 
-    def _get_default_config(self, track_type: str) -> Dict:
+    def _get_default_config(self, track_type: str) -> dict:
         """Get default configuration for a track"""
 
         defaults = {
@@ -490,7 +490,7 @@ class CompoundEvolutionEngine:
 
         return defaults.get(track_type, {})
 
-    def _extract_patterns(self, mission_data: Dict, grade_report: Dict) -> List[Dict]:
+    def _extract_patterns(self, mission_data: dict, grade_report: dict) -> list[dict]:
         """Extract successful patterns from mission"""
 
         patterns = []
@@ -525,7 +525,7 @@ class CompoundEvolutionEngine:
 
         return patterns
 
-    async def _store_patterns(self, track_type: str, patterns: List[Dict]):
+    async def _store_patterns(self, track_type: str, patterns: list[dict]):
         """Store patterns in library and Knowledge Graph"""
 
         # Update track's pattern library
@@ -542,7 +542,7 @@ class CompoundEvolutionEngine:
 
         logger.info(f"Stored {len(patterns)} patterns for {track_type}")
 
-    async def _cross_pollinate(self, source_track: str, patterns: List[Dict]):
+    async def _cross_pollinate(self, source_track: str, patterns: list[dict]):
         """Transfer successful patterns between tracks"""
 
         # Define transfer rules
@@ -566,7 +566,7 @@ class CompoundEvolutionEngine:
                         f"Cross-pollinated pattern from {source_track} to {target_track}"
                     )
 
-    async def _apply_pattern_to_track(self, pattern: Dict, target_track: str):
+    async def _apply_pattern_to_track(self, pattern: dict, target_track: str):
         """Apply a pattern from another track"""
 
         config_file = self.evolution_state_dir / f"{target_track}_config.json"
@@ -590,7 +590,7 @@ class CompoundEvolutionEngine:
 
         config_file.write_text(json.dumps(config, indent=2))
 
-    def _calculate_improvement_rate(self, recent_grades: List[float]) -> float:
+    def _calculate_improvement_rate(self, recent_grades: list[float]) -> float:
         """Calculate rate of improvement over recent runs"""
 
         if len(recent_grades) < 2:
@@ -614,7 +614,7 @@ class CompoundEvolutionEngine:
 
         return slope
 
-    async def generate_next_run_config(self, track_type: str) -> Dict:
+    async def generate_next_run_config(self, track_type: str) -> dict:
         """Generate optimized configuration for next run"""
 
         config_file = self.evolution_state_dir / f"{track_type}_config.json"
@@ -668,7 +668,7 @@ class CompoundEvolutionEngine:
         # For now, rotate focus
         return areas[state.run_count % len(areas)]
 
-    def get_evolution_summary(self) -> Dict[str, Any]:
+    def get_evolution_summary(self) -> dict[str, Any]:
         """Get summary of evolution across all tracks"""
 
         return {

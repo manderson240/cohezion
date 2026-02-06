@@ -14,7 +14,6 @@ try:
 except ImportError:
     CUPY_AVAILABLE = False
     cp = None
-from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass
 from enum import Enum
 
@@ -34,7 +33,7 @@ class PhysicsConfig:
     """Configuration for physics simulations."""
 
     simulation_type: PhysicsSimulationType
-    grid_size: Tuple[int, int, int]
+    grid_size: tuple[int, int, int]
     timestep: float
     precision: str = "float32"
     gpu_device: int = 0
@@ -175,8 +174,8 @@ class GPUPhysicsEngine:
 
     def add_particle(
         self,
-        position: Tuple[float, float, float],
-        velocity: Tuple[float, float, float] = (0, 0, 0),
+        position: tuple[float, float, float],
+        velocity: tuple[float, float, float] = (0, 0, 0),
         mass: float = 1.0,
         charge: float = 0.0,
         particle_type: int = 0,
@@ -347,7 +346,7 @@ class GPUPhysicsEngine:
             dt * self.particle_velocities[:num_particles]
         )
 
-    def get_particle_data(self) -> Dict[str, np.ndarray]:
+    def get_particle_data(self) -> dict[str, np.ndarray]:
         """Get current particle data."""
         return {
             "positions": cp.asnumpy(
@@ -363,14 +362,14 @@ class GPUPhysicsEngine:
             "types": cp.asnumpy(self.particle_types[: int(self.active_particles[0])]),
         }
 
-    def get_field_data(self) -> Dict[str, np.ndarray]:
+    def get_field_data(self) -> dict[str, np.ndarray]:
         """Get current field data."""
         return {
             f"field_{i}": cp.asnumpy(self.field_values[i])
             for i in range(int(self.active_fields[0]))
         }
 
-    def get_memory_usage(self) -> Dict[str, int]:
+    def get_memory_usage(self) -> dict[str, int]:
         """Get GPU memory usage statistics."""
         return {
             "total_memory_mb": int(self.total_memory / (1024 * 1024)),
@@ -382,7 +381,7 @@ class GPUPhysicsEngine:
             "field_memory_mb": int(self.field_values.nbytes / (1024 * 1024)),
         }
 
-    def get_performance_metrics(self) -> Dict[str, float]:
+    def get_performance_metrics(self) -> dict[str, float]:
         """Get simulation performance metrics."""
         num_particles = int(self.active_particles[0])
         num_fields = int(self.active_fields[0])
@@ -400,7 +399,7 @@ class PhysicsSimulationManager:
     """Manager for multiple physics simulations."""
 
     def __init__(self):
-        self.simulations: Dict[str, GPUPhysicsEngine] = {}
+        self.simulations: dict[str, GPUPhysicsEngine] = {}
         self.default_config = PhysicsConfig(
             simulation_type=PhysicsSimulationType.PARTICLE_DYNAMICS,
             grid_size=(64, 64, 64),
@@ -410,7 +409,7 @@ class PhysicsSimulationManager:
         )
 
     def create_simulation(
-        self, name: str, config: Optional[PhysicsConfig] = None
+        self, name: str, config: PhysicsConfig | None = None
     ) -> GPUPhysicsEngine:
         """Create a new physics simulation."""
         if name in self.simulations:
@@ -435,7 +434,7 @@ class PhysicsSimulationManager:
         if name in self.simulations:
             del self.simulations[name]
 
-    def list_simulations(self) -> List[str]:
+    def list_simulations(self) -> list[str]:
         """List all active simulations."""
         return list(self.simulations.keys())
 

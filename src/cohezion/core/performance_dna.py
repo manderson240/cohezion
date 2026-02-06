@@ -6,12 +6,11 @@ for continuous framework evolution and competitive advantage preservation.
 """
 
 import json
-import asyncio
 import logging
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -22,10 +21,10 @@ class SuccessPattern:
 
     pattern_id: str
     innovation_type: str  # MoE, OCR, Memory-Aware, etc.
-    model_config: Dict[str, Any]
-    performance_metrics: Dict[str, float]
-    success_factors: List[str]
-    failure_points: List[str]
+    model_config: dict[str, Any]
+    performance_metrics: dict[str, float]
+    success_factors: list[str]
+    failure_points: list[str]
     timestamp: str
     repeatability_score: float  # 0-1, how easily this can be replicated
 
@@ -36,13 +35,13 @@ class ModelDNA:
 
     model_name: str
     role: str  # elite, core, specialized, legacy
-    capabilities: List[str]
-    benchmarks: Dict[str, float]
-    optimization_profile: Dict[str, Any]
-    best_use_cases: List[str]
-    limitations: List[str]
-    memory_signature: Dict[str, float]  # GB per task type
-    token_efficiency: Optional[float]
+    capabilities: list[str]
+    benchmarks: dict[str, float]
+    optimization_profile: dict[str, Any]
+    best_use_cases: list[str]
+    limitations: list[str]
+    memory_signature: dict[str, float]  # GB per task type
+    token_efficiency: float | None
     last_updated: str
 
 
@@ -51,13 +50,13 @@ class WorkflowGenome:
     """DNA of successful compound engineering workflows"""
 
     workflow_id: str
-    models_required: List[str]
-    steps: List[Dict[str, Any]]
+    models_required: list[str]
+    steps: list[dict[str, Any]]
     success_rate: float
     token_efficiency: float
-    optimization_gains: Dict[str, float]
-    resource_requirements: Dict[str, float]
-    scaling_factors: List[str]
+    optimization_gains: dict[str, float]
+    resource_requirements: dict[str, float]
+    scaling_factors: list[str]
     last_executed: str
 
 
@@ -81,9 +80,9 @@ class COHEZIONPerformanceDNA:
         # Ensure data directory exists
         self.dna_file.parent.mkdir(parents=True, exist_ok=True)
 
-        self.success_patterns: Dict[str, SuccessPattern] = {}
-        self.model_dna: Dict[str, ModelDNA] = {}
-        self.workflow_genome: Dict[str, WorkflowGenome] = {}
+        self.success_patterns: dict[str, SuccessPattern] = {}
+        self.model_dna: dict[str, ModelDNA] = {}
+        self.workflow_genome: dict[str, WorkflowGenome] = {}
 
         self.load_existing_dna()
 
@@ -91,7 +90,7 @@ class COHEZIONPerformanceDNA:
         """Load previously captured performance DNA"""
         try:
             if self.dna_file.exists():
-                with open(self.dna_file, "r") as f:
+                with open(self.dna_file) as f:
                     dna_data = json.load(f)
                     self.success_patterns = {
                         pid: SuccessPattern(**data)
@@ -114,8 +113,8 @@ class COHEZIONPerformanceDNA:
     def capture_success_pattern(
         self,
         task_type: str,
-        model_config: Dict[str, Any],
-        outcome: Dict[str, Any],
+        model_config: dict[str, Any],
+        outcome: dict[str, Any],
         innovation_type: str,
     ) -> str:
         """Capture a successful optimization pattern for future reuse"""
@@ -177,7 +176,7 @@ class COHEZIONPerformanceDNA:
         logger.info(f"🧬 Captured success pattern: {pattern_id}")
         return pattern_id
 
-    def capture_model_dna(self, model_name: str, model_info: Dict[str, Any]) -> str:
+    def capture_model_dna(self, model_name: str, model_info: dict[str, Any]) -> str:
         """Capture model performance signature and characteristics"""
 
         dna_id = f"model_{model_name.replace(':', '_').replace('-', '_')}"
@@ -202,7 +201,7 @@ class COHEZIONPerformanceDNA:
         return dna_id
 
     def capture_workflow_genome(
-        self, workflow_id: str, models_used: List[str], workflow_data: Dict[str, Any]
+        self, workflow_id: str, models_used: list[str], workflow_data: dict[str, Any]
     ) -> str:
         """Capture successful workflow pattern for future template generation"""
 
@@ -227,7 +226,7 @@ class COHEZIONPerformanceDNA:
         return genome_id
 
     def _calculate_repeatability(
-        self, model_config: Dict[str, Any], innovation_type: str
+        self, model_config: dict[str, Any], innovation_type: str
     ) -> float:
         """Calculate how easy a pattern is to replicate (0-1 scale)"""
         base_score = 0.8  # Start with decent repeatability
@@ -247,8 +246,8 @@ class COHEZIONPerformanceDNA:
         return min(base_score, 1.0)
 
     def get_best_pattern_for_task(
-        self, task_type: str, constraints: Dict[str, Any]
-    ) -> Optional[SuccessPattern]:
+        self, task_type: str, constraints: dict[str, Any]
+    ) -> SuccessPattern | None:
         """Get best historical pattern for a given task type"""
         task_patterns = [
             p
@@ -265,9 +264,7 @@ class COHEZIONPerformanceDNA:
         )
         return task_patterns[0]
 
-    def get_optimal_model_by_dna(
-        self, task_requirements: Dict[str, Any]
-    ) -> Optional[str]:
+    def get_optimal_model_by_dna(self, task_requirements: dict[str, Any]) -> str | None:
         """Get optimal model based on historical DNA matching"""
         required_capabilities = task_requirements.get("capabilities", [])
         available_memory = task_requirements.get("available_memory_gb", 125)
@@ -302,7 +299,7 @@ class COHEZIONPerformanceDNA:
 
     def get_workflow_template_by_genome(
         self, workflow_type: str
-    ) -> Optional[WorkflowGenome]:
+    ) -> WorkflowGenome | None:
         """Get best workflow template based on historical genome data"""
         workflow_genomes = [
             w
@@ -319,7 +316,7 @@ class COHEZIONPerformanceDNA:
         )
         return workflow_genomes[0]
 
-    def learn_from_failure(self, task_type: str, failure_data: Dict[str, Any]):
+    def learn_from_failure(self, task_type: str, failure_data: dict[str, Any]):
         """Learn from failures to update failure points in patterns"""
         # Find related success patterns
         related_patterns = [
@@ -337,7 +334,7 @@ class COHEZIONPerformanceDNA:
                     f"🧬 Learned from failure: Added failure point '{failure_reason}' to pattern {pattern.pattern_id}"
                 )
 
-    def get_competitive_insights(self) -> Dict[str, Any]:
+    def get_competitive_insights(self) -> dict[str, Any]:
         """Get insights about competitive positioning based on DNA"""
         total_patterns = len(self.success_patterns)
         elite_patterns = len(
@@ -361,7 +358,7 @@ class COHEZIONPerformanceDNA:
             "competitive_advantages": self._analyze_competitive_advantages(),
         }
 
-    def _analyze_competitive_advantages(self) -> List[str]:
+    def _analyze_competitive_advantages(self) -> list[str]:
         """Analyze COHEZION's competitive advantages based on DNA"""
         advantages = []
 
@@ -419,7 +416,7 @@ class COHEZIONPerformanceDNA:
         except Exception as e:
             logger.error(f"❌ Failed to save workflow genome: {e}")
 
-    def export_dna_summary(self) -> Dict[str, Any]:
+    def export_dna_summary(self) -> dict[str, Any]:
         """Export comprehensive DNA summary for analysis"""
         return {
             "export_timestamp": datetime.now().isoformat(),
@@ -434,7 +431,7 @@ class COHEZIONPerformanceDNA:
             },
         }
 
-    def _get_innovation_breakdown(self) -> Dict[str, int]:
+    def _get_innovation_breakdown(self) -> dict[str, int]:
         """Break down patterns by innovation type"""
         breakdown = {}
         for pattern in self.success_patterns.values():
@@ -442,7 +439,7 @@ class COHEZIONPerformanceDNA:
             breakdown[innovation_type] = breakdown.get(innovation_type, 0) + 1
         return breakdown
 
-    def _get_top_patterns(self) -> List[Dict[str, Any]]:
+    def _get_top_patterns(self) -> list[dict[str, Any]]:
         """Get top patterns by repeatability and performance"""
         patterns = list(self.success_patterns.values())
         patterns.sort(
@@ -454,7 +451,7 @@ class COHEZIONPerformanceDNA:
         )
         return [asdict(p) for p in patterns[:10]]
 
-    def _get_model_analysis(self) -> Dict[str, Any]:
+    def _get_model_analysis(self) -> dict[str, Any]:
         """Analyze model portfolio"""
         models = list(self.model_dna.values())
 
@@ -487,8 +484,8 @@ PERFORMANCE_DNA = COHEZIONPerformanceDNA()
 # Convenience functions
 def capture_success_pattern(
     task_type: str,
-    model_config: Dict[str, Any],
-    outcome: Dict[str, Any],
+    model_config: dict[str, Any],
+    outcome: dict[str, Any],
     innovation_type: str,
 ) -> str:
     """Capture success pattern using global DNA instance"""
@@ -497,21 +494,21 @@ def capture_success_pattern(
     )
 
 
-def capture_model_dna(model_name: str, model_info: Dict[str, Any]) -> str:
+def capture_model_dna(model_name: str, model_info: dict[str, Any]) -> str:
     """Capture model DNA using global DNA instance"""
     return PERFORMANCE_DNA.capture_model_dna(model_name, model_info)
 
 
-def get_optimal_model_by_dna(task_requirements: Dict[str, Any]) -> Optional[str]:
+def get_optimal_model_by_dna(task_requirements: dict[str, Any]) -> str | None:
     """Get optimal model based on DNA matching"""
     return PERFORMANCE_DNA.get_optimal_model_by_dna(task_requirements)
 
 
-def get_workflow_template_by_genome(workflow_type: str) -> Optional[WorkflowGenome]:
+def get_workflow_template_by_genome(workflow_type: str) -> WorkflowGenome | None:
     """Get workflow template by genome"""
     return PERFORMANCE_DNA.get_workflow_template_by_genome(workflow_type)
 
 
-def export_performance_dna() -> Dict[str, Any]:
+def export_performance_dna() -> dict[str, Any]:
     """Export performance DNA summary"""
     return PERFORMANCE_DNA.export_dna_summary()

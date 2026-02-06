@@ -24,7 +24,7 @@ z_traj = np.cumsum(np.random.normal(0, 0.1, (n_steps, 12)), axis=0)
 z_traj[:, 4] = rotation  # Mapping rotation to dimension 5
 z_traj[:, 5] = precession  # Mapping precession to dimension 6
 
-df = pd.DataFrame(z_traj, columns=[f"D{i+1}" for i in range(12)])
+df = pd.DataFrame(z_traj, columns=[f"D{i + 1}" for i in range(12)])
 df["Step"] = np.arange(n_steps)
 df["SPIN_Momentum"] = spin_momentum
 

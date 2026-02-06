@@ -7,8 +7,8 @@ Specializes in SurrealQL dialect correctness, schema evolution, and performance 
 import logging
 from typing import Any
 
-from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.agents.base import AgentResponse, BaseAgent
+from cohezion.core.persistence.surreal_client import SurrealClient
 
 logger = logging.getLogger(__name__)
 

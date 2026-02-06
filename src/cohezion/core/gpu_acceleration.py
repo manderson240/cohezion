@@ -6,9 +6,10 @@ Provides real-time simulation capabilities and performance optimization.
 """
 
 import asyncio
-from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
+
 import numpy as np
 
 try:
@@ -21,9 +22,9 @@ except ImportError:
 
 from .physics_simulation import (
     GPUPhysicsEngine,
+    PhysicsConfig,
     PhysicsSimulationManager,
     PhysicsSimulationType,
-    PhysicsConfig,
 )
 
 try:
@@ -31,7 +32,6 @@ try:
 except ImportError:
     Agent = object
 from .cache_manager import CacheManager
-from .connection_pool import ConnectionPool
 
 
 class SimulationState(Enum):
@@ -60,10 +60,10 @@ class GPUAccelerationManager:
 
     def __init__(self):
         self.simulation_manager = PhysicsSimulationManager()
-        self.active_simulations: Dict[str, GPUPhysicsEngine] = {}
-        self.agent_simulations: Dict[str, List[str]] = {}
-        self.simulation_states: Dict[str, SimulationState] = {}
-        self.metrics_cache: Dict[str, SimulationMetrics] = {}
+        self.active_simulations: dict[str, GPUPhysicsEngine] = {}
+        self.agent_simulations: dict[str, list[str]] = {}
+        self.simulation_states: dict[str, SimulationState] = {}
+        self.metrics_cache: dict[str, SimulationMetrics] = {}
         self.cache_manager = CacheManager()
         # Connection pool will be initialized when needed
         self._init_gpu_resources()
@@ -119,7 +119,7 @@ class GPUAccelerationManager:
         self,
         agent: Agent,
         simulation_type: PhysicsSimulationType = PhysicsSimulationType.PARTICLE_DYNAMICS,
-        name: Optional[str] = None,
+        name: str | None = None,
     ) -> str:
         """
         Create a physics simulation for an agent.
@@ -175,7 +175,7 @@ class GPUAccelerationManager:
             max_fields=10,
         )
 
-    def _calculate_grid_size(self, max_particles: int) -> Tuple[int, int, int]:
+    def _calculate_grid_size(self, max_particles: int) -> tuple[int, int, int]:
         """Calculate optimal grid size based on particle count."""
         # Start with cubic grid
         base_size = int(max_particles ** (1 / 3))
@@ -283,7 +283,7 @@ class GPUAccelerationManager:
         metrics = self.metrics_cache.get(name, SimulationMetrics(0, 0, 0, 0, 0, 0))
         self.cache_manager.set(f"{name}_metrics", metrics.__dict__, ttl=30)
 
-    def get_simulation_state(self, name: str) -> Dict[str, Any]:
+    def get_simulation_state(self, name: str) -> dict[str, Any]:
         """Get complete simulation state."""
         if name not in self.active_simulations:
             raise ValueError(f"Simulation '{name}' not found")
@@ -303,7 +303,7 @@ class GPUAccelerationManager:
             "performance": simulation.get_performance_metrics(),
         }
 
-    def get_agent_simulations(self, agent_id: str) -> List[Dict[str, Any]]:
+    def get_agent_simulations(self, agent_id: str) -> list[dict[str, Any]]:
         """Get all simulations for an agent."""
         if agent_id not in self.agent_simulations:
             return []
@@ -337,7 +337,7 @@ class GPUAccelerationManager:
                     simulations.remove(name)
                     break
 
-    def get_system_metrics(self) -> Dict[str, Any]:
+    def get_system_metrics(self) -> dict[str, Any]:
         """Get system-wide GPU and simulation metrics."""
         total_particles = 0
         total_fields = 0

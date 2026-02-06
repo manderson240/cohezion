@@ -4,14 +4,10 @@ Integrates TTS, Image Generation, and Video Generation
 """
 
 import asyncio
-import json
 import logging
 import subprocess
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
-import base64
-import io
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +20,7 @@ class TTSRequest:
     voice: str = "default"
     speed: float = 1.0
     language: str = "en"
-    output_path: Optional[str] = None
+    output_path: str | None = None
 
 
 @dataclass
@@ -38,7 +34,7 @@ class ImageRequest:
     steps: int = 20
     guidance_scale: float = 7.5
     model: str = "flux2-klein-9b"
-    output_path: Optional[str] = None
+    output_path: str | None = None
 
 
 @dataclass
@@ -51,7 +47,7 @@ class VideoRequest:
     num_frames: int = 81
     fps: int = 16
     model: str = "wan-2.1-5b"
-    output_path: Optional[str] = None
+    output_path: str | None = None
 
 
 class MultimodalOrchestrator:
@@ -74,9 +70,9 @@ class MultimodalOrchestrator:
         self._check_capabilities()
 
         # Queues for batch processing
-        self.tts_queue: List[TTSRequest] = []
-        self.image_queue: List[ImageRequest] = []
-        self.video_queue: List[VideoRequest] = []
+        self.tts_queue: list[TTSRequest] = []
+        self.image_queue: list[ImageRequest] = []
+        self.video_queue: list[VideoRequest] = []
 
         # Processing state
         self.processing = {"tts": False, "image": False, "video": False}
@@ -104,7 +100,7 @@ class MultimodalOrchestrator:
         # Check for Video (Wan 2.1)
         self.video_enabled = True  # Will use external API
 
-    async def generate_tts(self, request: TTSRequest) -> Dict[str, Any]:
+    async def generate_tts(self, request: TTSRequest) -> dict[str, Any]:
         """
         Generate text-to-speech using Pocket-TTS
 
@@ -156,7 +152,7 @@ class MultimodalOrchestrator:
             logger.error(f"TTS generation failed: {e}")
             return {"success": False, "error": str(e)}
 
-    async def generate_image(self, request: ImageRequest) -> Dict[str, Any]:
+    async def generate_image(self, request: ImageRequest) -> dict[str, Any]:
         """
         Generate image using FLUX.2 Klein
 
@@ -191,7 +187,7 @@ class MultimodalOrchestrator:
             logger.error(f"Image generation failed: {e}")
             return {"success": False, "error": str(e)}
 
-    async def generate_video(self, request: VideoRequest) -> Dict[str, Any]:
+    async def generate_video(self, request: VideoRequest) -> dict[str, Any]:
         """
         Generate video using Wan 2.1
 
@@ -225,8 +221,8 @@ class MultimodalOrchestrator:
             return {"success": False, "error": str(e)}
 
     async def batch_process(
-        self, requests: List[Union[TTSRequest, ImageRequest, VideoRequest]]
-    ) -> List[Dict[str, Any]]:
+        self, requests: list[TTSRequest | ImageRequest | VideoRequest]
+    ) -> list[dict[str, Any]]:
         """
         Process multiple multimodal requests efficiently
 
@@ -272,7 +268,7 @@ class MultimodalOrchestrator:
 
     async def prepare_for_multimodal_task(
         self, task_type: str, mode_controller: Any
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Prepare system for a multimodal task
 
@@ -309,7 +305,7 @@ class MultimodalOrchestrator:
 
         return preparation
 
-    def get_capabilities(self) -> Dict[str, Any]:
+    def get_capabilities(self) -> dict[str, Any]:
         """Get current multimodal capabilities"""
         return {
             "tts": {
@@ -340,7 +336,7 @@ class MultimodalOrchestrator:
             },
         }
 
-    async def process(self, context: str, **kwargs: Any) -> Dict[str, Any]:
+    async def process(self, context: str, **kwargs: Any) -> dict[str, Any]:
         """
         Process multimodal requests from agent context
         """

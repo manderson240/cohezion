@@ -4,20 +4,18 @@ Fleet Optimizer & SLM Scout with Mode Controller Integration
 Manages 13-model multimodal suite with unified memory awareness.
 """
 
-import asyncio
 import json
 import logging
 import os
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
-from cohezion.reliability.monitor import ResourceMonitor
 from cohezion.agents.base import AgentResponse, BaseAgent
+from cohezion.reliability.monitor import ResourceMonitor
 from cohezion.swarm.mode_controller import (
-    ModeController,
-    SystemMode,
     GovernanceMode,
+    SystemMode,
     get_mode_controller,
 )
 
@@ -118,7 +116,7 @@ class ModelWranglerAscended(BaseAgent):
         )
 
         self.model_data = self._load_ascended_registry()
-        self.installed_models: Set[str] = set()
+        self.installed_models: set[str] = set()
         self._refresh_installed_models()
         self.roster = self._build_ascended_roster()
 
@@ -128,7 +126,7 @@ class ModelWranglerAscended(BaseAgent):
         self.target_buffer_gb = 20
 
         # State
-        self.active_models: Set[str] = set()
+        self.active_models: set[str] = set()
         self.mode_switches = 0
         self._initialized = True
 
@@ -212,7 +210,7 @@ class ModelWranglerAscended(BaseAgent):
         except Exception as e:
             logger.error(f"Failed to refresh installed models: {e}")
 
-    def get_unified_memory_stats(self) -> Dict[str, float]:
+    def get_unified_memory_stats(self) -> dict[str, float]:
         """Get unified memory statistics for Strix Halo"""
         vitals = self.monitor.get_vitals()
 
@@ -250,7 +248,7 @@ class ModelWranglerAscended(BaseAgent):
             "can_allocate": available > self.target_buffer_gb,
         }
 
-    async def suggest_mode_switch(self, task_description: str) -> Optional[SystemMode]:
+    async def suggest_mode_switch(self, task_description: str) -> SystemMode | None:
         """Suggest optimal mode for task with unified memory check"""
         suggested_mode = await self.mode_controller.suggest_mode(task_description)
 
@@ -281,7 +279,7 @@ class ModelWranglerAscended(BaseAgent):
 
     async def execute_mode_switch(
         self, target_mode: SystemMode, force: bool = False
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Execute mode switch with unified memory optimization"""
 
         # Pre-switch unified memory check
@@ -328,7 +326,7 @@ class ModelWranglerAscended(BaseAgent):
 
     async def prepare_resources_for_task(
         self, task_type: str, priority: int = 3
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Prepare resources for a task with mode-aware optimization
         """
@@ -403,7 +401,7 @@ class ModelWranglerAscended(BaseAgent):
                 await self.mode_controller._unload_model(model)
                 self.active_models.discard(model)
 
-    async def get_fleet_status(self) -> Dict[str, Any]:
+    async def get_fleet_status(self) -> dict[str, Any]:
         """Get comprehensive fleet status with unified memory"""
         mode_info = self.mode_controller.get_mode_info()
         mem_stats = self.get_unified_memory_stats()

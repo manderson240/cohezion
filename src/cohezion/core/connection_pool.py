@@ -11,7 +11,7 @@ import logging
 import time
 from collections import deque
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, Protocol
+from typing import Any, Protocol
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ class PoolConfig:
 class PooledConnection:
     """Wrapper for pooled connections with health tracking."""
 
-    def __init__(self, client: SurrealClientProtocol, pool: "ConnectionPool"):
+    def __init__(self, client: SurrealClientProtocol, pool: ConnectionPool):
         self.client = client
         self._pool = pool
         self._last_used = asyncio.get_event_loop().time()

@@ -1,6 +1,8 @@
 import difflib
+import glob
 import json
 import os
+import re
 from typing import Any
 
 # Path to the JSON registry file located alongside this module
@@ -145,3 +147,105 @@ def search_skills(query: str, limit: int = 10) -> list[dict[str, Any]]:
     # Sort descending by score and trim to limit
     results.sort(key=lambda x: x["score"], reverse=True)
     return results[:limit]
+
+
+def _extract_description(content: str) -> str:
+    """Extract a description from skill markdown content.
+
+    Looks for a DOMAIN EXPERTISE section first, then falls back to the
+    first paragraph after the title.
+    """
+    match = re.search(
+        r"##\s+DOMAIN EXPERTISE\s*\n(.*?)(?=\n##|\Z)", content, re.DOTALL
+    )
+    if match:
+        text = match.group(1).strip()
+        text = re.sub(r"\*\*([^*]+)\*\*", r"\1", text)
+        text = re.sub(r"\*([^*]+)\*", r"\1", text)
+        text = re.sub(r"`([^`]+)`", r"\1", text)
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        if lines:
+            desc = lines[0]
+            return desc[:300] if len(desc) > 300 else desc
+
+    match = re.search(r"^#\s+.*?\n\n(.+?)(?:\n\n|\n##|\Z)", content, re.DOTALL)
+    if match:
+        text = match.group(1).strip()
+        text = re.sub(r"\*\*([^*]+)\*\*", r"\1", text)
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        if lines:
+            return lines[0][:300]
+
+    return "Skill definition"
+
+
+def _extract_keywords(content: str, skill_name: str) -> list[str]:
+    """Extract keywords from skill markdown content."""
+    keywords: set[str] = set()
+
+    for part in skill_name.split("_"):
+        part_lower = part.lower()
+        if part_lower not in ("prime", "skill", "extracted", "block"):
+            keywords.add(part_lower)
+
+    key_section = re.search(
+        r"##\s+KEY\s+(?:TEXTS\s*&\s*)?CONCEPTS\s*\n(.*?)(?=\n##|\Z)",
+        content,
+        re.DOTALL,
+    )
+    if key_section:
+        bold_terms = re.findall(r"\*\*([^*]+)\*\*", key_section.group(1))
+        for term in bold_terms:
+            clean = term.strip().rstrip(":").strip()
+            if len(clean) < 50:
+                keywords.add(clean.lower())
+
+    keywords.discard("")
+    return sorted(keywords)
+
+
+def auto_sync() -> int:
+    """Rebuild the skill registry from all markdown files on the filesystem.
+
+    Scans ``src/cohezion/skills/*.md``, extracts metadata from each file,
+    and calls :func:`register_skill` for each entry.  Existing entries are
+    preserved (not overwritten) so that manually curated metadata is kept.
+
+    Returns
+    -------
+    int
+        The number of skills synced (new + existing).
+    """
+    skills_dir = os.path.normpath(
+        os.path.join(os.path.dirname(__file__), "..", "skills")
+    )
+    md_files = sorted(glob.glob(os.path.join(skills_dir, "*.md")))
+
+    registry = load_registry()
+    count = 0
+
+    for md_path in md_files:
+        filename = os.path.basename(md_path)
+        skill_name = os.path.splitext(filename)[0]
+
+        if skill_name in registry:
+            count += 1
+            continue
+
+        with open(md_path, encoding="utf-8") as f:
+            content = f.read()
+
+        description = _extract_description(content)
+        keywords = _extract_keywords(content, skill_name)
+        relative_path = f"src/cohezion/skills/{filename}"
+
+        register_skill(
+            name=skill_name,
+            description=description,
+            keywords=keywords,
+            path=relative_path,
+            version="1.0.0",
+        )
+        count += 1
+
+    return count

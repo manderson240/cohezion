@@ -10,12 +10,10 @@ Compound engineering through template evolution and learning.
 """
 
 import json
-import re
+import logging
 import time
-from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
 from enum import Enum
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -41,9 +39,9 @@ class TemplateConfig:
     system_token: str
     user_token: str
     assistant_token: str
-    separator: Optional[str] = None
-    thinking_prefix: Optional[str] = None
-    thinking_suffix: Optional[str] = None
+    separator: str | None = None
+    thinking_prefix: str | None = None
+    thinking_suffix: str | None = None
 
 
 class AdaptiveTemplateManager:
@@ -55,7 +53,7 @@ class AdaptiveTemplateManager:
         self.template_history = []  # For learning and optimization
         self.performance_cache = {}
 
-    def _load_template_library(self) -> Dict[TemplateFormat, TemplateConfig]:
+    def _load_template_library(self) -> dict[TemplateFormat, TemplateConfig]:
         """Load comprehensive template library"""
         return {
             TemplateFormat.CHATML: TemplateConfig(
@@ -106,7 +104,7 @@ class AdaptiveTemplateManager:
 
     def _build_conversion_matrix(
         self,
-    ) -> Dict[Tuple[TemplateFormat, TemplateFormat], str]:
+    ) -> dict[tuple[TemplateFormat, TemplateFormat], str]:
         """Build conversion rule matrix"""
         return {
             # Direct conversions (lossless or minimal loss)
@@ -164,10 +162,10 @@ class AdaptiveTemplateManager:
 
     def convert_message_format(
         self,
-        messages: List[Dict],
+        messages: list[dict],
         source_format: TemplateFormat,
         target_format: TemplateFormat,
-    ) -> Tuple[List[Dict], float]:
+    ) -> tuple[list[dict], float]:
         """
         Convert message format between different template types
 
@@ -199,11 +197,11 @@ class AdaptiveTemplateManager:
 
     def _apply_conversion_method(
         self,
-        messages: List[Dict],
+        messages: list[dict],
         method: str,
         source: TemplateFormat,
         target: TemplateFormat,
-    ) -> Tuple[List[Dict], float]:
+    ) -> tuple[list[dict], float]:
         """Apply specific conversion method"""
 
         if method == "separator_injection":
@@ -228,8 +226,8 @@ class AdaptiveTemplateManager:
             return self._generic_conversion(messages, source, target)
 
     def _inject_separator(
-        self, messages: List[Dict], source: TemplateFormat, target: TemplateFormat
-    ) -> Tuple[List[Dict], float]:
+        self, messages: list[dict], source: TemplateFormat, target: TemplateFormat
+    ) -> tuple[list[dict], float]:
         """Inject Microsoft separator into ChatML messages"""
         target_template = self.templates[target]
         converted_messages = []
@@ -250,8 +248,8 @@ class AdaptiveTemplateManager:
         return converted_messages, 0.95  # High confidence conversion
 
     def _remove_separator(
-        self, messages: List[Dict], source: TemplateFormat, target: TemplateFormat
-    ) -> Tuple[List[Dict], float]:
+        self, messages: list[dict], source: TemplateFormat, target: TemplateFormat
+    ) -> tuple[list[dict], float]:
         """Remove Microsoft separator when converting to ChatML"""
         source_template = self.templates[source]
         converted_messages = []
@@ -269,8 +267,8 @@ class AdaptiveTemplateManager:
         return converted_messages, 0.95
 
     def _replace_headers(
-        self, messages: List[Dict], source: TemplateFormat, target: TemplateFormat
-    ) -> Tuple[List[Dict], float]:
+        self, messages: list[dict], source: TemplateFormat, target: TemplateFormat
+    ) -> tuple[list[dict], float]:
         """Replace Llama3 headers with ChatML tokens"""
         target_template = self.templates[target]
         converted_messages = []
@@ -300,8 +298,8 @@ class AdaptiveTemplateManager:
         return converted_messages, 0.90
 
     def _convert_headers(
-        self, messages: List[Dict], source: TemplateFormat, target: TemplateFormat
-    ) -> Tuple[List[Dict], float]:
+        self, messages: list[dict], source: TemplateFormat, target: TemplateFormat
+    ) -> tuple[list[dict], float]:
         """Convert ChatML to Llama3 headers"""
         target_template = self.templates[target]
         converted_messages = []
@@ -338,8 +336,8 @@ class AdaptiveTemplateManager:
         return converted_messages, 0.90
 
     def _wrap_in_chatml(
-        self, messages: List[Dict], source: TemplateFormat, target: TemplateFormat
-    ) -> Tuple[List[Dict], float]:
+        self, messages: list[dict], source: TemplateFormat, target: TemplateFormat
+    ) -> tuple[list[dict], float]:
         """Wrap simple format messages in ChatML structure"""
         target_template = self.templates[target]
         converted_messages = []
@@ -368,8 +366,8 @@ class AdaptiveTemplateManager:
         return converted_messages, 0.85
 
     def _unwrap_from_chatml(
-        self, messages: List[Dict], target: TemplateFormat
-    ) -> Tuple[List[Dict], float]:
+        self, messages: list[dict], target: TemplateFormat
+    ) -> tuple[list[dict], float]:
         """Convert ChatML messages to simpler formats"""
         target_template = self.templates[target]
         converted_messages = []
@@ -390,20 +388,20 @@ class AdaptiveTemplateManager:
         return converted_messages, 0.85
 
     def _convert_to_llama3(
-        self, messages: List[Dict], source: TemplateFormat, target: TemplateFormat
-    ) -> Tuple[List[Dict], float]:
+        self, messages: list[dict], source: TemplateFormat, target: TemplateFormat
+    ) -> tuple[list[dict], float]:
         """Generic conversion to Llama3 format"""
         return self._replace_headers(messages, source, target)
 
     def _convert_to_alpaca(
-        self, messages: List[Dict], source: TemplateFormat, target: TemplateFormat
-    ) -> Tuple[List[Dict], float]:
+        self, messages: list[dict], source: TemplateFormat, target: TemplateFormat
+    ) -> tuple[list[dict], float]:
         """Generic conversion to Alpaca format"""
         return self._wrap_in_chatml(messages, source, target)
 
     def _generic_conversion(
-        self, messages: List[Dict], source: TemplateFormat, target: TemplateFormat
-    ) -> Tuple[List[Dict], float]:
+        self, messages: list[dict], source: TemplateFormat, target: TemplateFormat
+    ) -> tuple[list[dict], float]:
         """Generic conversion with minimal confidence"""
         logger.warning(
             f"Using generic conversion from {source.value} to {target.value}"
@@ -452,7 +450,7 @@ class AdaptiveTemplateManager:
             self.template_history = self.template_history[-1000:]
 
     def optimize_template_selection(
-        self, model_name: str, messages: List[Dict]
+        self, model_name: str, messages: list[dict]
     ) -> TemplateFormat:
         """Optimize template selection based on historical performance"""
 
@@ -485,7 +483,7 @@ class AdaptiveTemplateManager:
 
     def _get_similar_templates(
         self, template_format: TemplateFormat
-    ) -> List[TemplateFormat]:
+    ) -> list[TemplateFormat]:
         """Get similar template formats for fallback"""
         similarity_map = {
             TemplateFormat.CHATML: [TemplateFormat.MICROSOFT, TemplateFormat.LLAMA3],
@@ -498,7 +496,7 @@ class AdaptiveTemplateManager:
         return similarity_map.get(template_format, [TemplateFormat.CHATML])
 
     def _test_template_compatibility(
-        self, model_name: str, template_format: TemplateFormat, messages: List[Dict]
+        self, model_name: str, template_format: TemplateFormat, messages: list[dict]
     ) -> bool:
         """Test if a template is compatible with a model"""
 
@@ -511,7 +509,7 @@ class AdaptiveTemplateManager:
         model_name: str,
         template_format: TemplateFormat,
         success: bool,
-        response_quality: Optional[float] = None,
+        response_quality: float | None = None,
     ):
         """Update performance data for template learning"""
 
@@ -542,7 +540,7 @@ class AdaptiveTemplateManager:
             f"Updated performance for {cache_key}: {data['success_rate']:.2f} success rate"
         )
 
-    def get_template_statistics(self) -> Dict:
+    def get_template_statistics(self) -> dict:
         """Get template usage and performance statistics"""
         stats = {
             "total_conversions": len(self.template_history),

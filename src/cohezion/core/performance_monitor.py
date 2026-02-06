@@ -5,22 +5,18 @@ Provides real-time monitoring, analytics, and optimization insights for physics 
 """
 
 import asyncio
-import time
-from typing import Dict, List, Optional, Tuple, Any
-from dataclasses import dataclass, field
-from enum import Enum
-import numpy as np
-import cupy as cp
-import json
+from dataclasses import dataclass
 from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any
 
-from .core.cache_manager import CacheManager
-from .core.gpu_acceleration import (
-    GPUAccelerationManager,
-    SimulationMetrics,
-    SimulationState,
-)
-from .agents.base import Agent
+import numpy as np
+
+# TODO: This module is a non-functional stub with broken imports.
+# The gpu_acceleration dependency has been removed (no CUDA on this system).
+# These type references are placeholders until this module is rewritten or deleted.
+GPUAccelerationManager = None  # type: ignore[assignment,misc]
+SimulationState = None  # type: ignore[assignment,misc]
 
 
 class MonitorType(Enum):
@@ -40,7 +36,7 @@ class MonitorConfig:
 
     monitor_type: MonitorType
     interval_seconds: float = 1.0
-    threshold: Optional[float] = None
+    threshold: float | None = None
     alert_enabled: bool = True
     history_size: int = 1000
     enabled: bool = True
@@ -81,9 +77,9 @@ class PerformanceMonitor:
     def __init__(self):
         self.gpu_manager = GPUAccelerationManager()
         self.cache_manager = CacheManager()
-        self.monitors: Dict[str, MonitorConfig] = {}
-        self.alerts: List[PerformanceAlert] = []
-        self.metrics_history: List[SystemMetrics] = []
+        self.monitors: dict[str, MonitorConfig] = {}
+        self.alerts: list[PerformanceAlert] = []
+        self.metrics_history: list[SystemMetrics] = []
         self.is_running = False
         self._init_default_monitors()
 
@@ -313,8 +309,8 @@ class PerformanceMonitor:
         self.cache_manager.set(f"alert_{name}", alert.__dict__, ttl=3600)
 
     def get_metrics_history(
-        self, start_time: Optional[datetime] = None, end_time: Optional[datetime] = None
-    ) -> List[SystemMetrics]:
+        self, start_time: datetime | None = None, end_time: datetime | None = None
+    ) -> list[SystemMetrics]:
         """Get metrics history within time range."""
         if start_time is None:
             start_time = datetime.min
@@ -348,7 +344,7 @@ class PerformanceMonitor:
             anomalies_count=0,
         )
 
-    def get_simulation_metrics(self, simulation_name: str) -> Dict[str, Any]:
+    def get_simulation_metrics(self, simulation_name: str) -> dict[str, Any]:
         """Get detailed metrics for a specific simulation."""
         if simulation_name not in self.gpu_manager.active_simulations:
             return {}
@@ -377,10 +373,10 @@ class PerformanceMonitor:
 
     def get_alerts(
         self,
-        severity: Optional[str] = None,
-        start_time: Optional[datetime] = None,
-        end_time: Optional[datetime] = None,
-    ) -> List[PerformanceAlert]:
+        severity: str | None = None,
+        start_time: datetime | None = None,
+        end_time: datetime | None = None,
+    ) -> list[PerformanceAlert]:
         """Get performance alerts."""
         filtered_alerts = self.alerts
 
@@ -395,7 +391,7 @@ class PerformanceMonitor:
 
         return filtered_alerts
 
-    def get_monitor_status(self) -> Dict[str, Any]:
+    def get_monitor_status(self) -> dict[str, Any]:
         """Get status of all monitors."""
         return {
             name: {
@@ -411,7 +407,7 @@ class PerformanceMonitor:
             for name, config in self.monitors.items()
         }
 
-    def optimize_simulation(self, simulation_name: str) -> Dict[str, Any]:
+    def optimize_simulation(self, simulation_name: str) -> dict[str, Any]:
         """Optimize a simulation based on performance metrics."""
         if simulation_name not in self.gpu_manager.active_simulations:
             raise ValueError(f"Simulation '{simulation_name}' not found")
@@ -439,8 +435,8 @@ class PerformanceMonitor:
         return optimizations
 
     def _optimize_fps(
-        self, simulation_name: str, metrics: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, simulation_name: str, metrics: dict[str, Any]
+    ) -> dict[str, Any]:
         """Optimize FPS for a simulation."""
         # Reduce particle count if possible
         current_particles = metrics.get("particles", 0)
@@ -462,8 +458,8 @@ class PerformanceMonitor:
         }
 
     def _optimize_memory(
-        self, simulation_name: str, metrics: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, simulation_name: str, metrics: dict[str, Any]
+    ) -> dict[str, Any]:
         """Optimize memory usage for a simulation."""
         # Reduce grid size
         current_grid = self.gpu_manager.active_simulations[
@@ -480,8 +476,8 @@ class PerformanceMonitor:
         }
 
     def _optimize_temperature(
-        self, simulation_name: str, metrics: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, simulation_name: str, metrics: dict[str, Any]
+    ) -> dict[str, Any]:
         """Optimize temperature for a simulation."""
         # Reduce computational intensity
         return {
@@ -493,7 +489,7 @@ class PerformanceMonitor:
             ],
         }
 
-    def generate_report(self, period: timedelta = timedelta(hours=1)) -> Dict[str, Any]:
+    def generate_report(self, period: timedelta = timedelta(hours=1)) -> dict[str, Any]:
         """Generate performance report for the given period."""
         end_time = datetime.now()
         start_time = end_time - period
@@ -533,8 +529,8 @@ class PerformanceMonitor:
         }
 
     def _generate_recommendations(
-        self, metrics_history: List[SystemMetrics]
-    ) -> List[str]:
+        self, metrics_history: list[SystemMetrics]
+    ) -> list[str]:
         """Generate performance recommendations."""
         recommendations = []
 

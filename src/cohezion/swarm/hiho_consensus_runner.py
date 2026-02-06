@@ -111,7 +111,7 @@ class HihoConsensusRunner:
             all_rounds.append(round_data)
 
             # Recursive Step: Synthesize becoming the constraint for next round
-            synthesis_prompt = f"Synthesize round {r_num} into a single technical constraint for round {r_num+1}."
+            synthesis_prompt = f"Synthesize round {r_num} into a single technical constraint for round {r_num + 1}."
             lattice_constraint = await self.debate._call_agent(
                 self.debate.personas[AgentRole.SYNTHESIZER],
                 f"{synthesis_prompt}\nFocus on aligning with HIHO stability point (0.5).",
@@ -175,9 +175,9 @@ class HihoConsensusRunner:
 
             self.tracker.record_step(
                 agent_type=AgentType.ANALYST,
-                agent_name=f"Probe_{i+1}",
+                agent_name=f"Probe_{i + 1}",
                 perspective="Manifold Probe",
-                input_text=f"Sample state {i+1} analysis",
+                input_text=f"Sample state {i + 1} analysis",
                 output_text=f"Detected stability: {stability:.4f} @ coherence: {coherence:.4f}",
                 physics_state={
                     "coherence": coherence,
@@ -193,9 +193,9 @@ class HihoConsensusRunner:
 
         # 3. Final Synthesis (Expert Review of Mass Data)
         summary_prompt = f"""Review these mass simulation results for N={num_rounds:,} rounds:
-- Bright Spots Found: {results['bright_spot_count']:,}
-- Mean Stability: {results['mean_stability']:.4f}
-- Max Reality Precipitation: {results['max_reality']:.4f}
+- Bright Spots Found: {results["bright_spot_count"]:,}
+- Mean Stability: {results["mean_stability"]:.4f}
+- Max Reality Precipitation: {results["max_reality"]:.4f}
 
 As Sage, synthesize what this statistical pattern tells us about Cohezion's Recursive Self-Alignment strategy.
 Focus on the HIHO 0.5 point as the target for Anthropic-tier alignment."""

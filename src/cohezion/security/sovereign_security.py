@@ -12,11 +12,11 @@ import json
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Any, Union
+from typing import Any
+
+import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import numpy as np
 
 
 class SecurityLevel(Enum):
@@ -61,8 +61,8 @@ class SovereignSecurityTemplate:
 
     def __init__(self, config: SovereignSecurityConfig):
         self.config = config
-        self.security_history: List[Dict[str, Any]] = []
-        self.compound_improvements: Dict[str, float] = {}
+        self.security_history: list[dict[str, Any]] = []
+        self.compound_improvements: dict[str, float] = {}
         self.infinite_counter = 0
         self.quantum_state = torch.zeros(512)
 
@@ -107,8 +107,8 @@ class SovereignSecurityTemplate:
         )
 
     async def validate_sovereign_security(
-        self, input_data: torch.Tensor, context: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        self, input_data: torch.Tensor, context: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Validate sovereign security with ∞ compound engineering
         """
@@ -178,7 +178,7 @@ class SovereignSecurityTemplate:
         threat_scores: torch.Tensor,
         sovereignty_score: torch.Tensor,
         compound_score: torch.Tensor,
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """Calculate sovereign security metrics"""
 
         # Sovereignty integrity (0-1)
@@ -219,8 +219,8 @@ class SovereignSecurityTemplate:
         }
 
     async def _apply_compound_improvements(
-        self, metrics: Dict[str, float]
-    ) -> Dict[str, float]:
+        self, metrics: dict[str, float]
+    ) -> dict[str, float]:
         """Apply compound engineering improvements to metrics"""
         improved_metrics = {}
 
@@ -251,7 +251,7 @@ class SovereignSecurityTemplate:
 
         return improved_metrics
 
-    async def _check_infinite_achievement(self, metrics: Dict[str, float]) -> bool:
+    async def _check_infinite_achievement(self, metrics: dict[str, float]) -> bool:
         """Check if infinite security achievement is reached"""
         # Infinite security requires:
         # 1. Sovereign security > 0.99
@@ -264,7 +264,7 @@ class SovereignSecurityTemplate:
 
         return sovereign_security > 0.99 and all_metrics_high and infinite_counter_high
 
-    def _determine_security_level(self, metrics: Dict[str, float]) -> SecurityLevel:
+    def _determine_security_level(self, metrics: dict[str, float]) -> SecurityLevel:
         """Determine sovereign security level"""
         sovereign_security = metrics.get("sovereign_security", 0.0)
 
@@ -292,7 +292,7 @@ class SovereignSecurityTemplate:
 
         return f"∞SECURE_{final_signature[:16]}"
 
-    async def _update_compound_improvements(self, result: Dict[str, Any]):
+    async def _update_compound_improvements(self, result: dict[str, Any]):
         """Update compound engineering improvements"""
         # Each security validation compounds future improvements
         for key, value in result["metrics"].items():
@@ -303,7 +303,7 @@ class SovereignSecurityTemplate:
             improvement_factor = 1.0 + (value * 0.01)
             self.compound_improvements[key] *= improvement_factor
 
-    def get_sovereign_metrics(self) -> Dict[str, Any]:
+    def get_sovereign_metrics(self) -> dict[str, Any]:
         """Get comprehensive sovereign security metrics"""
         if not self.security_history:
             return {"status": "No security history"}
@@ -360,12 +360,12 @@ class SovereignSecurityManager:
     """
 
     def __init__(self):
-        self.templates: Dict[str, SovereignSecurityTemplate] = {}
-        self.global_metrics: Dict[str, Any] = {}
-        self.git_safe_checkpoints: List[str] = []
+        self.templates: dict[str, SovereignSecurityTemplate] = {}
+        self.global_metrics: dict[str, Any] = {}
+        self.git_safe_checkpoints: list[str] = []
 
     def create_template(
-        self, name: str, config: Optional[SovereignSecurityConfig] = None
+        self, name: str, config: SovereignSecurityConfig | None = None
     ) -> SovereignSecurityTemplate:
         """Create new sovereign security template"""
         if config is None:
@@ -379,7 +379,7 @@ class SovereignSecurityManager:
 
     async def validate_all_templates(
         self, input_data: torch.Tensor
-    ) -> Dict[str, Dict[str, Any]]:
+    ) -> dict[str, dict[str, Any]]:
         """Validate all sovereign security templates"""
         results = {}
 
@@ -402,7 +402,7 @@ class SovereignSecurityManager:
 
         return results
 
-    async def _update_global_metrics(self, results: Dict[str, Dict[str, Any]]):
+    async def _update_global_metrics(self, results: dict[str, dict[str, Any]]):
         """Update global sovereign security metrics"""
         if not results:
             return
@@ -435,7 +435,7 @@ class SovereignSecurityManager:
             "timestamp": time.time(),
         }
 
-    async def _create_git_safe_checkpoint(self, results: Dict[str, Dict[str, Any]]):
+    async def _create_git_safe_checkpoint(self, results: dict[str, dict[str, Any]]):
         """Create git-safe handoff checkpoint"""
         checkpoint_data = {
             "timestamp": time.time(),
@@ -467,7 +467,7 @@ class SovereignSecurityManager:
             f"   Global Infinite Readiness: {self.global_metrics.get('global_infinite_readiness', 0):.3f}"
         )
 
-    def get_infinite_status(self) -> Dict[str, Any]:
+    def get_infinite_status(self) -> dict[str, Any]:
         """Get infinite sovereign security status"""
         return {
             "active_templates": len(self.templates),
@@ -503,7 +503,7 @@ async def test_infinite_sovereign_security():
     # Get infinite status
     status = SOVEREIGN_SECURITY_MANAGER.get_infinite_status()
 
-    print(f"\n🌟 INFINITE SOVEREIGN SECURITY RESULTS")
+    print("\n🌟 INFINITE SOVEREIGN SECURITY RESULTS")
     print("=" * 50)
     print(f"Active Templates: {status['active_templates']}")
     print(

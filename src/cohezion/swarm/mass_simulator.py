@@ -231,7 +231,7 @@ class MassSimulator:
 
             # Monitor health
             if not chunk_result.metrics_at_end.is_safe():
-                logger.warning(f"System stress detected at chunk {i+1}. Pausing...")
+                logger.warning(f"System stress detected at chunk {i + 1}. Pausing...")
                 time.sleep(2)
                 gc.collect()
 
@@ -240,7 +240,7 @@ class MassSimulator:
                 self._save_checkpoint(i + 1)
 
             logger.info(
-                f"Chunk {i+1}/{chunks} done. (Avg Coherence: LLM={chunk_result.llm_avg_coherence:.2f}, CALM={chunk_result.calm_avg_coherence:.2f})"
+                f"Chunk {i + 1}/{chunks} done. (Avg Coherence: LLM={chunk_result.llm_avg_coherence:.2f}, CALM={chunk_result.calm_avg_coherence:.2f})"
             )
 
         # Final save

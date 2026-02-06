@@ -8,10 +8,10 @@ on-the-fly protection against injections, data leaks, and malicious proposals.
 import logging
 from typing import Any
 
+from cohezion.agents.base import BaseAgent
 from cohezion.security.output_filter import FilterResult, OutputFilter
 from cohezion.security.prompt_guard import PromptGuard, ThreatLevel
 from cohezion.security.validators import ValidationResult, validate_input
-from cohezion.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
 
 logger = logging.getLogger(__name__)

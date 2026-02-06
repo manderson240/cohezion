@@ -9,8 +9,8 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from cohezion.core.time_keeper import get_time_keeper
 from cohezion.agents.base import BaseAgent
+from cohezion.core.time_keeper import get_time_keeper
 
 logger = logging.getLogger(__name__)
 

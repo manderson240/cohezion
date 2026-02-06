@@ -64,7 +64,7 @@ async def run_simulation():
         trajectory_a.append(z_a)
         trajectory_b.append(z_b)
 
-        logger.info(f"Turn {i+1}: Positions updated.")
+        logger.info(f"Turn {i + 1}: Positions updated.")
 
     # 3. Visualize
     logger.info("Generating Thought-Space Visualization...")

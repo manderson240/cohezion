@@ -12,11 +12,11 @@ import asyncio
 import json
 import logging
 import smtplib
-from datetime import datetime, timedelta
+from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -32,16 +32,16 @@ class NotificationManager:
     def __init__(self, recipient_email: str = "manderson240@gmail.com"):
         self.recipient = recipient_email
         self.config_path = Path.home() / ".config" / "cohezion" / "email_config.json"
-        self.sent_emails: List[Dict[str, Any]] = []
+        self.sent_emails: list[dict[str, Any]] = []
 
         # Default SMTP settings (user can override in config)
         self.smtp_config = self._load_config()
 
-        logger.info(f"📧 NotificationManager initialized")
+        logger.info("📧 NotificationManager initialized")
         logger.info(f"   Recipient: {recipient_email}")
         logger.info(f"   SMTP: {self.smtp_config.get('smtp_server', 'not configured')}")
 
-    def _load_config(self) -> Dict[str, Any]:
+    def _load_config(self) -> dict[str, Any]:
         """Load SMTP configuration from file"""
         default_config = {
             "smtp_server": "smtp.gmail.com",
@@ -62,7 +62,7 @@ class NotificationManager:
 
         return default_config
 
-    def save_config(self, config: Dict[str, Any]):
+    def save_config(self, config: dict[str, Any]):
         """Save SMTP configuration"""
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
         self.config_path.write_text(json.dumps(config, indent=2))
@@ -73,7 +73,7 @@ class NotificationManager:
         mission_id: str,
         milestone: str,
         message: str,
-        details: Optional[Dict] = None,
+        details: dict | None = None,
     ) -> bool:
         """Send immediate milestone notification"""
 
@@ -129,8 +129,8 @@ Next Milestone: Check dashboard for updates
     async def send_daily_digest(
         self,
         date: str,
-        all_tracks_data: List[Dict[str, Any]],
-        system_metrics: Optional[Dict] = None,
+        all_tracks_data: list[dict[str, Any]],
+        system_metrics: dict | None = None,
     ) -> bool:
         """Send comprehensive daily digest"""
 
@@ -264,7 +264,7 @@ Autonomous Universe Simulation with Cloud Grading
             logger.error(f"SMTP error: {e}")
             return False
 
-    def get_notification_history(self, limit: int = 50) -> List[Dict]:
+    def get_notification_history(self, limit: int = 50) -> list[dict]:
         """Get history of sent notifications"""
         return self.sent_emails[-limit:]
 

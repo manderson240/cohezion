@@ -7,16 +7,14 @@ This routing system compounds improvements recursively, enabling future solution
 through intelligent resource allocation and quantization-aware optimization.
 """
 
-import os
-import json
-import psutil
 import asyncio
-import subprocess
-from typing import Dict, List, Optional, Tuple
+import json
+import logging
+import time
 from dataclasses import dataclass
 from enum import Enum
-import time
-import logging
+
+import psutil
 
 # Configure logging for compound engineering insights
 logging.basicConfig(
@@ -54,7 +52,7 @@ class ModelConfig:
     expected_tps: float  # tokens per second
     cache_hit_rate: float  # L3 cache efficiency
     template_format: str
-    optimal_for_ide: List[IDEPriority]
+    optimal_for_ide: list[IDEPriority]
 
 
 class MemoryBandwidthAnalyzer:
@@ -159,8 +157,8 @@ class AdaptiveTemplateManager:
             return "chatml"  # Safe default
 
     def adapt_message_format(
-        self, messages: List[Dict], source_template: str, target_template: str
-    ) -> List[Dict]:
+        self, messages: list[dict], source_template: str, target_template: str
+    ) -> list[dict]:
         """Convert message format between different template types"""
         # For now, return as-is (templates handle formatting)
         # Future: implement sophisticated format conversion
@@ -180,7 +178,7 @@ class DynamicModelRouter:
         # Load optimized model configurations for this hardware
         self.models = self.load_model_registry()
 
-    def load_model_registry(self) -> Dict[str, ModelConfig]:
+    def load_model_registry(self) -> dict[str, ModelConfig]:
         """Load quantization-optimized model configurations"""
         return {
             # Ultra-large models for Antigravity priority
@@ -248,7 +246,7 @@ class DynamicModelRouter:
             ),
         }
 
-    async def select_optimal_model(self, request: Dict) -> ModelConfig:
+    async def select_optimal_model(self, request: dict) -> ModelConfig:
         """Intelligent model selection using compound engineering algorithm"""
         ide = IDEPriority(request.get("ide_priority", 1))
         task_type = request.get("task_type", "general")
@@ -283,7 +281,7 @@ class DynamicModelRouter:
             return self.models["qwen3:8b"]
 
     def calculate_model_score(
-        self, model: ModelConfig, request: Dict, memory_pressure: float
+        self, model: ModelConfig, request: dict, memory_pressure: float
     ) -> float:
         """Compound scoring algorithm for model selection"""
         score = 0.0
@@ -340,7 +338,7 @@ class DynamicModelRouter:
 
         return score
 
-    async def execute_request(self, request: Dict) -> Dict:
+    async def execute_request(self, request: dict) -> dict:
         """Execute a request with optimal model selection"""
         start_time = time.time()
 
@@ -401,8 +399,8 @@ class DynamicModelRouter:
         return min(soft_cap, model.context_max)
 
     async def ollama_generate(
-        self, model: ModelConfig, request: Dict, max_context: int
-    ) -> Dict:
+        self, model: ModelConfig, request: dict, max_context: int
+    ) -> dict:
         """Execute Ollama generation with optimized parameters"""
         # Prepare Ollama API call
         payload = {

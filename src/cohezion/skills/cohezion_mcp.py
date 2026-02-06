@@ -7,8 +7,7 @@ Implements standard MCP JSON-RPC protocol over stdio.
 import json
 import os
 import sys
-from typing import Dict, Any, List, Optional
-from pathlib import Path
+from typing import Any
 
 # Add project root to path to allow importing cohezion modules
 project_root = (
@@ -28,8 +27,8 @@ except ImportError:
     HallucinationResolver = None
 
 try:
-    from cohezion.reliability.offload_manager import OffloadManager
     from cohezion.reliability.context_harness import ContextHarness
+    from cohezion.reliability.offload_manager import OffloadManager
 except ImportError:
     OffloadManager = None
     ContextHarness = None
@@ -76,12 +75,12 @@ class CohezionMCP:
         else:
             self.offloader = None
 
-    def _load_json(self, path: str) -> Dict[str, Any]:
+    def _load_json(self, path: str) -> dict[str, Any]:
         """Generic JSON loader with comment stripping"""
         try:
             if not os.path.exists(path):
                 return {}
-            with open(path, "r") as f:
+            with open(path) as f:
                 content = f.read()
                 # Simple comment stripping
                 lines = content.splitlines()
@@ -93,7 +92,7 @@ class CohezionMCP:
             sys.stderr.write(f"Error loading {path}: {e}\n")
             return {}
 
-    def list_tools(self) -> List[Dict[str, Any]]:
+    def list_tools(self) -> list[dict[str, Any]]:
         base_tools = [
             {
                 "name": "elite_ocr_analysis",
@@ -220,20 +219,39 @@ class CohezionMCP:
                     "properties": {
                         "task_type": {
                             "type": "string",
-                            "enum": ["elite-coding", "agentic-coding", "ocr-vision", "coding", "vision", "reasoning", "general"],
-                            "description": "Type of task requiring model selection"
+                            "enum": [
+                                "elite-coding",
+                                "agentic-coding",
+                                "ocr-vision",
+                                "coding",
+                                "vision",
+                                "reasoning",
+                                "general",
+                            ],
+                            "description": "Type of task requiring model selection",
                         },
-                        "memory_available": {"type": "number", "description": "Available system memory in GB"},
-                        "context_needs": {"type": "number", "description": "Required context window size"},
+                        "memory_available": {
+                            "type": "number",
+                            "description": "Available system memory in GB",
+                        },
+                        "context_needs": {
+                            "type": "number",
+                            "description": "Required context window size",
+                        },
                         "performance_priority": {
                             "type": "string",
-                            "enum": ["speed", "accuracy", "memory-efficiency", "balanced"],
+                            "enum": [
+                                "speed",
+                                "accuracy",
+                                "memory-efficiency",
+                                "balanced",
+                            ],
                             "description": "Performance optimization priority",
-                            "default": "balanced"
-                        }
+                            "default": "balanced",
+                        },
                     },
-                    "required": ["task_type"]
-                }
+                    "required": ["task_type"],
+                },
             },
             {
                 "name": "performance_benchmark",
@@ -466,7 +484,13 @@ class CohezionMCP:
                         },
                         "complexity": {
                             "type": "string",
-                            "enum": ["simple", "medium", "complex", "enterprise", "frontier"],
+                            "enum": [
+                                "simple",
+                                "medium",
+                                "complex",
+                                "enterprise",
+                                "frontier",
+                            ],
                             "description": "Task complexity level",
                         },
                         "performance_priority": {
@@ -590,7 +614,7 @@ class CohezionMCP:
 
         return base_tools
 
-    def call_tool(self, name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+    def call_tool(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         if name == "elite_ocr_analysis":
             return self.elite_ocr_analysis(arguments)
         elif name == "agentic_coding_workflow":
@@ -616,8 +640,7 @@ class CohezionMCP:
             return self.daily_scout_research(arguments)
         elif name == "offload_task":
             return self.offload_task(
-                arguments.get("query", ""),
-                arguments.get("system_prompt")
+                arguments.get("query", ""), arguments.get("system_prompt")
             )
         elif name.startswith("skill_"):
             skill_id = name.replace("skill_", "").upper()
@@ -631,41 +654,45 @@ class CohezionMCP:
 
         raise ValueError(f"Unknown tool: {name}")
 
-    def elite_ocr_analysis(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    def elite_ocr_analysis(self, args: dict[str, Any]) -> dict[str, Any]:
         """Elite OCR analysis using GLM-OCR with advanced document understanding"""
         try:
             image_path = args.get("image_path")
             analysis_type = args.get("analysis_type", "document-analysis")
             output_format = args.get("output_format", "structured")
-            
+
             if not image_path:
-                return {"content": [{"type": "text", "text": "Error: image_path is required"}]}
-            
+                return {
+                    "content": [
+                        {"type": "text", "text": "Error: image_path is required"}
+                    ]
+                }
+
             # Construct OCR prompt based on analysis type
             ocr_prompts = {
                 "text-recognition": "Extract all text from this image with high accuracy.",
                 "table-recognition": "Extract and structure table data from this image, maintaining row/column relationships.",
                 "formula-recognition": "Recognize and transcribe mathematical formulas and equations from this image.",
                 "document-analysis": "Perform comprehensive document analysis: extract text, identify structure, and summarize content.",
-                "handwriting": "Extract handwritten text from this image with best effort interpretation."
+                "handwriting": "Extract handwritten text from this image with best effort interpretation.",
             }
-            
+
             prompt = ocr_prompts.get(analysis_type, ocr_prompts["document-analysis"])
-            
+
             # Format-specific instructions
             format_instructions = {
                 "structured": "Provide results in structured format with clear hierarchy.",
                 "plain-text": "Provide plain text output only.",
                 "json": "Provide results in valid JSON format.",
-                "markdown": "Provide results in markdown format with proper formatting."
+                "markdown": "Provide results in markdown format with proper formatting.",
             }
-            
+
             full_prompt = f"{prompt} {format_instructions.get(output_format, '')}"
-            
+
             # Execute via GLM-OCR model
-            import subprocess
             import json
-            
+            import subprocess
+
             payload = {
                 "model": "glm-ocr:latest",
                 "prompt": full_prompt,
@@ -673,41 +700,56 @@ class CohezionMCP:
                 "stream": False,
                 "options": {
                     "temperature": 0.3,  # More deterministic for OCR
-                    "num_ctx": 128000
-                }
+                    "num_ctx": 128000,
+                },
             }
-            
-            cmd = ["curl", "-s", "-X", "POST", "http://localhost:11434/api/generate", 
-                   "-H", "Content-Type: application/json", 
-                   "-d", json.dumps(payload)]
-            
+
+            cmd = [
+                "curl",
+                "-s",
+                "-X",
+                "POST",
+                "http://localhost:11434/api/generate",
+                "-H",
+                "Content-Type: application/json",
+                "-d",
+                json.dumps(payload),
+            ]
+
             res = subprocess.run(cmd, capture_output=True, text=True)
             if res.returncode != 0:
-                return {"content": [{"type": "text", "text": f"OCR API call failed: {res.stderr}"}]}
-            
+                return {
+                    "content": [
+                        {"type": "text", "text": f"OCR API call failed: {res.stderr}"}
+                    ]
+                }
+
             result = json.loads(res.stdout)
             ocr_result = result.get("response", "")
-            
+
             # Add metadata about the OCR processing
             metadata = {
                 "model": "glm-ocr:latest",
                 "analysis_type": analysis_type,
                 "output_format": output_format,
                 "accuracy_estimate": "94.62% OmniDocBench",
-                "processing_time": "optimized with MoE architecture"
+                "processing_time": "optimized with MoE architecture",
             }
-            
-            final_result = {
-                "ocr_result": ocr_result,
-                "metadata": metadata
-            }
-            
-            return {"content": [{"type": "text", "text": json.dumps(final_result, indent=2)}]}
-            
-        except Exception as e:
-            return {"content": [{"type": "text", "text": f"Elite OCR analysis failed: {e}"}]}
 
-    def agentic_coding_workflow(self, args: Dict[str, Any]) -> Dict[str, Any]:
+            final_result = {"ocr_result": ocr_result, "metadata": metadata}
+
+            return {
+                "content": [
+                    {"type": "text", "text": json.dumps(final_result, indent=2)}
+                ]
+            }
+
+        except Exception as e:
+            return {
+                "content": [{"type": "text", "text": f"Elite OCR analysis failed: {e}"}]
+            }
+
+    def agentic_coding_workflow(self, args: dict[str, Any]) -> dict[str, Any]:
         """Agentic coding workflow using Qwen3-Coder-Next with elite performance"""
         try:
             task_description = args.get("task_description")
@@ -715,47 +757,55 @@ class CohezionMCP:
             language = args.get("language", "Python")
             context_files = args.get("context_files", [])
             output_type = args.get("output_type", "full-solution")
-            
+
             if not task_description:
-                return {"content": [{"type": "text", "text": "Error: task_description is required"}]}
-            
+                return {
+                    "content": [
+                        {"type": "text", "text": "Error: task_description is required"}
+                    ]
+                }
+
             # Select optimal model based on complexity
             model_mapping = {
                 "simple": "qwen3-coder-next:latest",
-                "medium": "qwen3-coder-next:latest", 
+                "medium": "qwen3-coder-next:latest",
                 "complex": "qwen3-coder-next:q8_0",
-                "enterprise": "qwen3-coder-next:q8_0"
+                "enterprise": "qwen3-coder-next:q8_0",
             }
-            
-            selected_model = model_mapping.get(complexity_level, "qwen3-coder-next:latest")
-            
+
+            selected_model = model_mapping.get(
+                complexity_level, "qwen3-coder-next:latest"
+            )
+
             # Build comprehensive coding prompt
             coding_prompts = {
                 "code-only": "Generate only the code solution for the following task. No explanations.",
                 "with-explanation": "Generate the code solution with detailed explanations of the approach and key decisions.",
                 "with-tests": "Generate the code solution along with comprehensive unit tests.",
-                "full-solution": "Generate a complete solution including code, explanations, tests, and documentation."
+                "full-solution": "Generate a complete solution including code, explanations, tests, and documentation.",
             }
-            
+
             base_prompt = f"""
 Task: {task_description}
 Language: {language}
 Complexity: {complexity_level}
 
-{coding_prompts.get(output_type, coding_prompts['full-solution'])}
+{coding_prompts.get(output_type, coding_prompts["full-solution"])}
 """
-            
+
             # Add context files if provided
             if context_files:
                 base_prompt += "\n\nContext Files:\n"
                 for file_path in context_files:
                     try:
-                        with open(file_path, 'r') as f:
+                        with open(file_path) as f:
                             content = f.read()
                         base_prompt += f"\n--- {file_path} ---\n{content}\n"
                     except Exception as e:
-                        base_prompt += f"\n--- {file_path} ---\nError reading file: {e}\n"
-            
+                        base_prompt += (
+                            f"\n--- {file_path} ---\nError reading file: {e}\n"
+                        )
+
             # Add system prompt for agentic behavior
             system_prompt = f"""
 You are Qwen3-Coder-Next, an elite agentic coding assistant with 70.6% SWE-Bench performance.
@@ -769,11 +819,11 @@ Key capabilities:
 
 Generate production-ready, maintainable code that follows industry standards.
 """
-            
+
             # Execute via Qwen3-Coder-Next
-            import subprocess
             import json
-            
+            import subprocess
+
             payload = {
                 "model": selected_model,
                 "prompt": base_prompt,
@@ -782,21 +832,36 @@ Generate production-ready, maintainable code that follows industry standards.
                 "options": {
                     "temperature": 0.7 if output_type != "code-only" else 0.3,
                     "num_ctx": 262144,
-                    "repeat_penalty": 1.05
-                }
+                    "repeat_penalty": 1.05,
+                },
             }
-            
-            cmd = ["curl", "-s", "-X", "POST", "http://localhost:11434/api/generate",
-                   "-H", "Content-Type: application/json",
-                   "-d", json.dumps(payload)]
-            
+
+            cmd = [
+                "curl",
+                "-s",
+                "-X",
+                "POST",
+                "http://localhost:11434/api/generate",
+                "-H",
+                "Content-Type: application/json",
+                "-d",
+                json.dumps(payload),
+            ]
+
             res = subprocess.run(cmd, capture_output=True, text=True)
             if res.returncode != 0:
-                return {"content": [{"type": "text", "text": f"Coding API call failed: {res.stderr}"}]}
-            
+                return {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": f"Coding API call failed: {res.stderr}",
+                        }
+                    ]
+                }
+
             result = json.loads(res.stdout)
             coding_result = result.get("response", "")
-            
+
             # Add metadata about the coding process
             metadata = {
                 "model": selected_model,
@@ -805,64 +870,93 @@ Generate production-ready, maintainable code that follows industry standards.
                 "output_type": output_type,
                 "swe_bench_score": "70.6%",
                 "moe_efficiency": "96.25% (3B/80B active params)",
-                "context_window": 262144
+                "context_window": 262144,
             }
-            
-            final_result = {
-                "coding_solution": coding_result,
-                "metadata": metadata
-            }
-            
-            return {"content": [{"type": "text", "text": json.dumps(final_result, indent=2)}]}
-            
-        except Exception as e:
-            return {"content": [{"type": "text", "text": f"Agentic coding workflow failed: {e}"}]}
 
-    def compound_engineering_orchestrator(self, args: Dict[str, Any]) -> Dict[str, Any]:
+            final_result = {"coding_solution": coding_result, "metadata": metadata}
+
+            return {
+                "content": [
+                    {"type": "text", "text": json.dumps(final_result, indent=2)}
+                ]
+            }
+
+        except Exception as e:
+            return {
+                "content": [
+                    {"type": "text", "text": f"Agentic coding workflow failed: {e}"}
+                ]
+            }
+
+    def compound_engineering_orchestrator(self, args: dict[str, Any]) -> dict[str, Any]:
         """Orchestrate compound engineering workflows with elite models"""
         try:
             workflow_type = args.get("workflow_type")
             primary_task = args.get("primary_task")
             sub_tasks = args.get("sub_tasks", [])
             resource_constraints = args.get("resource_constraints", {})
-            
+
             if not workflow_type or not primary_task:
-                return {"content": [{"type": "text", "text": "Error: workflow_type and primary_task are required"}]}
-            
+                return {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Error: workflow_type and primary_task are required",
+                        }
+                    ]
+                }
+
             # Define compound engineering workflows
             workflows = {
                 "enterprise-ai-development": {
-                    "models": ["qwen3-coder-next:q8_0", "glm-ocr:latest", "phi4-256k:latest"],
+                    "models": [
+                        "qwen3-coder-next:q8_0",
+                        "glm-ocr:latest",
+                        "phi4-256k:latest",
+                    ],
                     "memory_required": 89.2,
-                    "description": "Complete enterprise AI development with elite models"
+                    "description": "Complete enterprise AI development with elite models",
                 },
                 "autonomous-agent-creation": {
                     "models": ["qwen3-coder-next:q8_0", "gpt-oss-256k:latest"],
                     "memory_required": 97,
-                    "description": "Create autonomous AI agents with elite reasoning"
+                    "description": "Create autonomous AI agents with elite reasoning",
                 },
                 "document-driven-coding": {
                     "models": ["glm-ocr:latest", "qwen3-coder-next:latest"],
                     "memory_required": 53.2,
-                    "description": "Code generation driven by document analysis"
+                    "description": "Code generation driven by document analysis",
                 },
                 "mathematical-system-design": {
                     "models": ["qwen3-coder-next:q8_0", "phi4-256k:latest"],
                     "memory_required": 87,
-                    "description": "Mathematical system design with elite optimization"
-                }
+                    "description": "Mathematical system design with elite optimization",
+                },
             }
-            
+
             workflow = workflows.get(workflow_type)
             if not workflow:
-                return {"content": [{"type": "text", "text": f"Error: Unknown workflow type '{workflow_type}'"}]}
-            
+                return {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": f"Error: Unknown workflow type '{workflow_type}'",
+                        }
+                    ]
+                }
+
             # Check resource constraints
             max_memory = resource_constraints.get("max_memory_gb", 125)
             if workflow["memory_required"] > max_memory:
-                return {"content": [{"type": "text", "text": 
-                    f"Insufficient memory for {workflow_type}. Required: {workflow['memory_required']}GB, Available: {max_memory}GB"}]}
-            
+                return {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": f"Insufficient memory for {workflow_type}. Required: {workflow['memory_required']}GB, Available: {max_memory}GB",
+                        }
+                    ]
+                }
+
             # Execute compound workflow
             orchestration_result = {
                 "workflow_type": workflow_type,
@@ -875,43 +969,63 @@ Generate production-ready, maintainable code that follows industry standards.
                 "optimizations": {
                     "moe_efficiency": "96.25%",
                     "ocr_savings": "90.5%",
-                    "compound_synergy": "Elite model orchestration"
-                }
+                    "compound_synergy": "Elite model orchestration",
+                },
             }
-            
-            return {"content": [{"type": "text", "text": json.dumps(orchestration_result, indent=2)}]}
-            
-        except Exception as e:
-            return {"content": [{"type": "text", "text": f"Compound engineering orchestration failed: {e}"}]}
 
-    def elite_model_selection(self, args: Dict[str, Any]) -> Dict[str, Any]:
+            return {
+                "content": [
+                    {"type": "text", "text": json.dumps(orchestration_result, indent=2)}
+                ]
+            }
+
+        except Exception as e:
+            return {
+                "content": [
+                    {
+                        "type": "text",
+                        "text": f"Compound engineering orchestration failed: {e}",
+                    }
+                ]
+            }
+
+    def elite_model_selection(self, args: dict[str, Any]) -> dict[str, Any]:
         """Elite model selection with MoE awareness and memory optimization"""
         try:
             task_type = args.get("task_type", "coding")
             memory_available = args.get("memory_available", 125)
             context_needs = args.get("context_needs", 32768)
             performance_priority = args.get("performance_priority", "balanced")
-            
+
             models = self.model_registry.get("models", {})
-            
+
             # Filter models by task specialization and memory constraints
             candidates = []
             for model_id, model_info in models.items():
-                if task_type in model_info.get("specialization", "") or task_type in model_id:
+                if (
+                    task_type in model_info.get("specialization", "")
+                    or task_type in model_id
+                ):
                     model_memory = model_info.get("memory", 0)
                     if model_memory <= memory_available:
                         candidates.append((model_id, model_info))
-            
+
             # Sort by priority and performance
             if performance_priority == "accuracy":
-                candidates.sort(key=lambda x: (-x[1].get("priority", 99), x[1].get("memory", 999)))
+                candidates.sort(
+                    key=lambda x: (-x[1].get("priority", 99), x[1].get("memory", 999))
+                )
             elif performance_priority == "memory-efficiency":
-                candidates.sort(key=lambda x: (x[1].get("memory", 999), -x[1].get("priority", 99)))
+                candidates.sort(
+                    key=lambda x: (x[1].get("memory", 999), -x[1].get("priority", 99))
+                )
             else:  # balanced
-                candidates.sort(key=lambda x: (x[1].get("priority", 99), x[1].get("memory", 999)))
-            
+                candidates.sort(
+                    key=lambda x: (x[1].get("priority", 99), x[1].get("memory", 999))
+                )
+
             recommended_model = candidates[0][0] if candidates else "phi4-256k:latest"
-            
+
             selection_result = {
                 "recommended_model": recommended_model,
                 "task_type": task_type,
@@ -922,52 +1036,65 @@ Generate production-ready, maintainable code that follows industry standards.
                 "optimization_applied": {
                     "moe_aware": "qwen3-coder-next" in recommended_model,
                     "ocr_optimized": "glm-ocr" in recommended_model,
-                    "memory_aware": memory_available < 90
-                }
+                    "memory_aware": memory_available < 90,
+                },
             }
-            
-            return {"content": [{"type": "text", "text": json.dumps(selection_result, indent=2)}]}
-            
-        except Exception as e:
-            return {"content": [{"type": "text", "text": f"Elite model selection failed: {e}"}]}
 
-    def performance_benchmark(self, args: Dict[str, Any]) -> Dict[str, Any]:
+            return {
+                "content": [
+                    {"type": "text", "text": json.dumps(selection_result, indent=2)}
+                ]
+            }
+
+        except Exception as e:
+            return {
+                "content": [
+                    {"type": "text", "text": f"Elite model selection failed: {e}"}
+                ]
+            }
+
+    def performance_benchmark(self, args: dict[str, Any]) -> dict[str, Any]:
         """Benchmark elite models and generate performance reports"""
         try:
-            models = args.get("models", ["qwen3-coder-next:q8_0", "qwen3-coder-next:latest", "glm-ocr:latest"])
-            benchmark_types = args.get("benchmark_types", ["inference-speed", "memory-usage"])
+            models = args.get(
+                "models",
+                ["qwen3-coder-next:q8_0", "qwen3-coder-next:latest", "glm-ocr:latest"],
+            )
+            benchmark_types = args.get(
+                "benchmark_types", ["inference-speed", "memory-usage"]
+            )
             iterations = args.get("iterations", 3)
-            
+
             benchmark_results = {}
-            
+
             for model in models:
                 model_results = {}
-                
+
                 # Mock benchmark results for demonstration
                 if "qwen3-coder-next:q8_0" in model:
                     model_results = {
                         "inference_speed": "2.3 tokens/sec",
                         "memory_usage": "84GB",
                         "accuracy": "70.6% SWE-Bench",
-                        "token_efficiency": "96.25% (3B/80B active)"
+                        "token_efficiency": "96.25% (3B/80B active)",
                     }
                 elif "qwen3-coder-next:latest" in model:
                     model_results = {
                         "inference_speed": "3.1 tokens/sec",
                         "memory_usage": "51GB",
                         "accuracy": "70.6% SWE-Bench",
-                        "token_efficiency": "96.25% (3B/80B active)"
+                        "token_efficiency": "96.25% (3B/80B active)",
                     }
                 elif "glm-ocr" in model:
                     model_results = {
                         "inference_speed": "5.8 tokens/sec",
                         "memory_usage": "2.2GB",
                         "accuracy": "94.62% OmniDocBench",
-                        "token_efficiency": "Optimized for documents"
+                        "token_efficiency": "Optimized for documents",
                     }
-                
+
                 benchmark_results[model] = model_results
-            
+
             report = {
                 "benchmark_timestamp": "2026-02-04",
                 "models_tested": models,
@@ -978,16 +1105,20 @@ Generate production-ready, maintainable code that follows industry standards.
                     "fastest_inference": "glm-ocr:latest",
                     "most_accurate": "glm-ocr:latest",
                     "most_memory_efficient": "glm-ocr:latest",
-                    "best_overall": "qwen3-coder-next:q8_0"
-                }
+                    "best_overall": "qwen3-coder-next:q8_0",
+                },
             }
-            
-            return {"content": [{"type": "text", "text": json.dumps(report, indent=2)}]}
-            
-        except Exception as e:
-            return {"content": [{"type": "text", "text": f"Performance benchmark failed: {e}"}]}
 
-    def resolve_claims(self, text: str) -> Dict[str, Any]:
+            return {"content": [{"type": "text", "text": json.dumps(report, indent=2)}]}
+
+        except Exception as e:
+            return {
+                "content": [
+                    {"type": "text", "text": f"Performance benchmark failed: {e}"}
+                ]
+            }
+
+    def resolve_claims(self, text: str) -> dict[str, Any]:
         if not self.resolver:
             return {
                 "content": [
@@ -1000,7 +1131,7 @@ Generate production-ready, maintainable code that follows industry standards.
         res = self.resolver.resolve_claims(text)
         return {"content": [{"type": "text", "text": json.dumps(res, indent=2)}]}
 
-    def get_truth_anchors(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+    def get_truth_anchors(self, arguments: dict[str, Any]) -> dict[str, Any]:
         from cohezion.reliability.residency_awareness import ResidencyAnchorBase
 
         return {
@@ -1012,7 +1143,7 @@ Generate production-ready, maintainable code that follows industry standards.
             ]
         }
 
-    def remember_fact(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+    def remember_fact(self, arguments: dict[str, Any]) -> dict[str, Any]:
         from cohezion.reliability.memory_manager import MemoryManager
 
         fact = arguments.get("fact")
@@ -1028,7 +1159,7 @@ Generate production-ready, maintainable code that follows industry standards.
             ]
         }
 
-    def recall_context(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+    def recall_context(self, arguments: dict[str, Any]) -> dict[str, Any]:
         from cohezion.reliability.memory_manager import MemoryManager
 
         query = arguments.get("query")
@@ -1045,8 +1176,8 @@ Generate production-ready, maintainable code that follows industry standards.
         }
 
     def offload_task(
-        self, query: str, system_prompt: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, query: str, system_prompt: str | None = None
+    ) -> dict[str, Any]:
         if not self.offloader:
             return {
                 "content": [
@@ -1104,7 +1235,10 @@ Generate production-ready, maintainable code that follows industry standards.
             except json.JSONDecodeError:
                 return {
                     "content": [
-                        {"type": "text", "text": f"Failed to parse response: {res.stdout}"}
+                        {
+                            "type": "text",
+                            "text": f"Failed to parse response: {res.stdout}",
+                        }
                     ]
                 }
         except Exception as e:
@@ -1113,8 +1247,8 @@ Generate production-ready, maintainable code that follows industry standards.
             }
 
     def batch_offload(
-        self, tasks: List[Dict[str, Any]], model: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, tasks: list[dict[str, Any]], model: str | None = None
+    ) -> dict[str, Any]:
         from cohezion.reliability.batch_manager import BatchManager
         from cohezion.reliability.context_harness import ContextHarness
 
@@ -1161,7 +1295,7 @@ Generate production-ready, maintainable code that follows industry standards.
         except Exception as e:
             return {"content": [{"type": "text", "text": f"Batch offload failed: {e}"}]}
 
-    def inspect_cache(self) -> Dict[str, Any]:
+    def inspect_cache(self) -> dict[str, Any]:
         from cohezion.reliability.semantic_cache import SemanticCache
 
         # Using a default instance for inspection
@@ -1169,48 +1303,61 @@ Generate production-ready, maintainable code that follows industry standards.
         stats = cache.get_stats()
         return {"content": [{"type": "text", "text": json.dumps(stats, indent=2)}]}
 
-    def pocket_tts_generate(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    def pocket_tts_generate(self, args: dict[str, Any]) -> dict[str, Any]:
         """Generate speech using Kyutai Pocket TTS"""
         try:
             text = args.get("text")
             voice = args.get("voice", "alba")
             output_path = args.get("output_path", "/tmp/pocket_tts_output.wav")
             speed = args.get("speed", 1.0)
-            
+
             if not text:
-                return {"content": [{"type": "text", "text": "Error: text is required"}]}
-            
+                return {
+                    "content": [{"type": "text", "text": "Error: text is required"}]
+                }
+
             # Import pocket-tts
             try:
-                from pocket_tts import TTSModel
                 import scipy.io.wavfile
                 import torch
+                from pocket_tts import TTSModel
             except ImportError:
-                return {"content": [{"type": "text", "text": "Error: pocket-tts not installed. Install with: pip install pocket-tts"}]}
-            
+                return {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Error: pocket-tts not installed. Install with: pip install pocket-tts",
+                        }
+                    ]
+                }
+
             # Load model
             tts_model = TTSModel.load_model()
             voice_state = tts_model.get_state_for_audio_prompt(voice)
-            
+
             # Generate audio
             audio = tts_model.generate_audio(voice_state, text)
-            
+
             # Save to file
             scipy.io.wavfile.write(output_path, tts_model.sample_rate, audio.numpy())
-            
+
             return {
                 "content": [
                     {
-                        "type": "text", 
-                        "text": f"Successfully generated speech using Pocket TTS\nVoice: {voice}\nOutput: {output_path}\nDuration: {len(audio)/tts_model.sample_rate:.2f}s\nSize: {len(audio)*2/1024/1024:.2f}MB"
+                        "type": "text",
+                        "text": f"Successfully generated speech using Pocket TTS\nVoice: {voice}\nOutput: {output_path}\nDuration: {len(audio) / tts_model.sample_rate:.2f}s\nSize: {len(audio) * 2 / 1024 / 1024:.2f}MB",
                     }
                 ]
             }
-            
-        except Exception as e:
-            return {"content": [{"type": "text", "text": f"Pocket TTS generation failed: {e}"}]}
 
-    def execute_skill(self, skill_name: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        except Exception as e:
+            return {
+                "content": [
+                    {"type": "text", "text": f"Pocket TTS generation failed: {e}"}
+                ]
+            }
+
+    def execute_skill(self, skill_name: str, inputs: dict[str, Any]) -> dict[str, Any]:
         if skill_name not in self.skills:
             return {
                 "content": [
@@ -1243,14 +1390,14 @@ Generate production-ready, maintainable code that follows industry standards.
                 ]
             }
         try:
-            with open(skill_path, "r") as f:
+            with open(skill_path) as f:
                 return {"content": [{"type": "text", "text": f.read()}]}
         except Exception as e:
             return {
                 "content": [{"type": "text", "text": f"Error executing skill: {e}"}]
             }
 
-    def get_compound_config(self) -> Dict[str, Any]:
+    def get_compound_config(self) -> dict[str, Any]:
         vitals = (
             self.monitor.get_vitals()
             if self.monitor
@@ -1274,7 +1421,7 @@ Generate production-ready, maintainable code that follows industry standards.
 
     def select_model(
         self, task_type: str, complexity: int, context_needs: int
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         models = self.model_registry.get("models", {})
 
         # Pre-flight check: which models are actually in Ollama?
@@ -1341,7 +1488,7 @@ Generate production-ready, maintainable code that follows industry standards.
             ]
         }
 
-    def get_truth_anchors(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+    def get_truth_anchors(self, arguments: dict[str, Any]) -> dict[str, Any]:
         from cohezion.reliability.residency_awareness import ResidencyAnchorBase
 
         return {
@@ -1353,7 +1500,7 @@ Generate production-ready, maintainable code that follows industry standards.
             ]
         }
 
-    def remember_fact(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+    def remember_fact(self, arguments: dict[str, Any]) -> dict[str, Any]:
         from cohezion.reliability.memory_manager import MemoryManager
 
         fact = arguments.get("fact")
@@ -1369,7 +1516,7 @@ Generate production-ready, maintainable code that follows industry standards.
             ]
         }
 
-    def recall_context(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+    def recall_context(self, arguments: dict[str, Any]) -> dict[str, Any]:
         from cohezion.reliability.memory_manager import MemoryManager
 
         query = arguments.get("query")
@@ -1385,7 +1532,7 @@ Generate production-ready, maintainable code that follows industry standards.
             ]
         }
 
-    def daily_scout_research(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+    def daily_scout_research(self, arguments: dict[str, Any]) -> dict[str, Any]:
         from cohezion.agents.daily_scout import DailyScoutAgent
 
         scout = DailyScoutAgent()

@@ -2,15 +2,14 @@
 Journey Repository - Abstract and Dataclass definitions for agentic journeys.
 """
 
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, List, Optional
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 
 
 @dataclass
 class JourneyMetrics:
     """Quantitative metrics for a single journey."""
+
     context_utilization: float = 0.0
     latent_coherence: float = 0.0
     capability_delta: float = 0.0
@@ -20,17 +19,39 @@ class JourneyMetrics:
 
 
 @dataclass
+class JourneyStep:
+    """A single step in an agent's journey."""
+
+    timestamp: str
+    agent_type: str
+    agent_name: str
+    perspective: str | None
+    input_summary: str
+    output_summary: str
+    physics_state: dict
+    duration_ms: float
+    confidence: float
+    metrics: JourneyMetrics = field(default_factory=JourneyMetrics)
+    historical_context: str | None = None
+
+
+@dataclass
 class AgentJourney:
     """A trace of an agent's reasoning and action path."""
+
     journey_id: str
     query: str
     started_at: str
-    final_response: Optional[str] = None
+    final_response: str | None = None
     final_confidence: float = 0.0
     total_duration_ms: float = 0.0
     aggregate_metrics: JourneyMetrics = field(default_factory=JourneyMetrics)
-    steps: List[dict] = field(default_factory=list)
+    steps: list[dict] = field(default_factory=list)
     metadata: dict = field(default_factory=dict)
+
+    def add_step(self, step: JourneyStep) -> None:
+        """Add a step to the journey."""
+        self.steps.append(step)
 
 
 class JourneyRepository(ABC):
@@ -42,11 +63,11 @@ class JourneyRepository(ABC):
         pass
 
     @abstractmethod
-    async def get(self, journey_id: str) -> Optional[AgentJourney]:
+    async def get(self, journey_id: str) -> AgentJourney | None:
         """Retrieve a journey by ID."""
         pass
 
     @abstractmethod
-    async def get_recent(self, hours: int = 24, limit: int = 20) -> List[AgentJourney]:
+    async def get_recent(self, hours: int = 24, limit: int = 20) -> list[AgentJourney]:
         """Retrieve recent journeys."""
         pass

@@ -8,15 +8,14 @@ with compound engineering principles and adaptive synchronization.
 This system ensures consistency while allowing IDE-specific optimizations.
 """
 
-import json
-import os
-import time
 import asyncio
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass, asdict
+import json
+import logging
+import time
+from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
-import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +46,7 @@ class ConfigEntry:
     key: str
     value: Any
     scope: ConfigScope
-    ide_type: Optional[IDEType] = None
+    ide_type: IDEType | None = None
     priority: int = 0
     last_modified: float = 0.0
     description: str = ""
@@ -59,8 +58,8 @@ class SyncResult:
     """Result of configuration synchronization"""
 
     success: bool
-    synced_ide: List[IDEType]
-    failed_ide: List[IDEType]
+    synced_ide: list[IDEType]
+    failed_ide: list[IDEType]
     conflicts_resolved: int
     sync_time: float
 
@@ -87,9 +86,9 @@ class SharedConfigManager:
         }
 
         # Configuration storage
-        self.config_entries: Dict[str, ConfigEntry] = {}
-        self.sync_state: Dict[str, Any] = {}
-        self.performance_metrics: Dict[str, Any] = {}
+        self.config_entries: dict[str, ConfigEntry] = {}
+        self.sync_state: dict[str, Any] = {}
+        self.performance_metrics: dict[str, Any] = {}
 
         # Load existing configurations
         self._load_all_configurations()
@@ -105,7 +104,7 @@ class SharedConfigManager:
         """Load global configuration"""
         if self.global_config_path.exists():
             try:
-                with open(self.global_config_path, "r") as f:
+                with open(self.global_config_path) as f:
                     global_data = json.load(f)
                     for key, entry_data in global_data.items():
                         entry = ConfigEntry(**entry_data)
@@ -122,7 +121,7 @@ class SharedConfigManager:
         """Load synchronization state"""
         if self.sync_state_path.exists():
             try:
-                with open(self.sync_state_path, "r") as f:
+                with open(self.sync_state_path) as f:
                     self.sync_state = json.load(f)
                 logger.debug("Loaded synchronization state")
             except Exception as e:
@@ -133,7 +132,7 @@ class SharedConfigManager:
         """Load performance metrics"""
         if self.performance_metrics_path.exists():
             try:
-                with open(self.performance_metrics_path, "r") as f:
+                with open(self.performance_metrics_path) as f:
                     self.performance_metrics = json.load(f)
                 logger.debug("Loaded performance metrics")
             except Exception as e:
@@ -152,7 +151,7 @@ class SharedConfigManager:
 
         for config_file in config_files:
             try:
-                with open(config_file, "r") as f:
+                with open(config_file) as f:
                     ide_data = json.load(f)
 
                 # Extract configuration entries with IDE scope
@@ -186,7 +185,7 @@ class SharedConfigManager:
         key: str,
         value: Any,
         scope: ConfigScope = ConfigScope.GLOBAL,
-        ide_type: Optional[IDEType] = None,
+        ide_type: IDEType | None = None,
         description: str = "",
         requires_restart: bool = False,
     ):
@@ -209,7 +208,7 @@ class SharedConfigManager:
         )
 
     def get_config(
-        self, key: str, ide_type: Optional[IDEType] = None, default: Any = None
+        self, key: str, ide_type: IDEType | None = None, default: Any = None
     ) -> Any:
         """Get configuration value with IDE-specific resolution"""
 
@@ -235,9 +234,7 @@ class SharedConfigManager:
         logger.debug(f"Config not found: {key}, returning default: {default}")
         return default
 
-    def _calculate_priority(
-        self, scope: ConfigScope, ide_type: Optional[IDEType]
-    ) -> int:
+    def _calculate_priority(self, scope: ConfigScope, ide_type: IDEType | None) -> int:
         """Calculate configuration priority"""
         base_priorities = {
             ConfigScope.RUNTIME: 100,
@@ -311,7 +308,7 @@ class SharedConfigManager:
 
         return sync_result
 
-    async def _synchronize_ide(self, ide_type: IDEType) -> Optional[Dict[str, Any]]:
+    async def _synchronize_ide(self, ide_type: IDEType) -> dict[str, Any] | None:
         """Synchronize configuration with specific IDE"""
         ide_path = self.ide_configs.get(ide_type)
 
@@ -339,7 +336,7 @@ class SharedConfigManager:
             logger.error(f"Error syncing {ide_type.value}: {e}")
             return None
 
-    def _get_ide_configurations(self, ide_type: IDEType) -> Dict[str, Any]:
+    def _get_ide_configurations(self, ide_type: IDEType) -> dict[str, Any]:
         """Get configurations for specific IDE type"""
         configs = {}
 
@@ -355,8 +352,8 @@ class SharedConfigManager:
         return configs
 
     def _merge_configurations(
-        self, ide_type: IDEType, ide_configs: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, ide_type: IDEType, ide_configs: dict[str, Any]
+    ) -> dict[str, Any]:
         """Merge IDE-specific configs with global configs"""
 
         merged = {}
@@ -384,7 +381,7 @@ class SharedConfigManager:
 
         return merged
 
-    def _get_compound_optimizations(self, ide_type: IDEType) -> Dict[str, Any]:
+    def _get_compound_optimizations(self, ide_type: IDEType) -> dict[str, Any]:
         """Get compound engineering optimizations for IDE"""
 
         base_optimizations = {
@@ -431,7 +428,7 @@ class SharedConfigManager:
         return optimizations
 
     async def _write_ide_config(
-        self, ide_type: IDEType, configs: Dict[str, Any]
+        self, ide_type: IDEType, configs: dict[str, Any]
     ) -> int:
         """Write configuration to IDE-specific files"""
         conflicts_resolved = 0
@@ -447,7 +444,7 @@ class SharedConfigManager:
 
         return conflicts_resolved
 
-    async def _write_zed_config(self, configs: Dict[str, Any]) -> int:
+    async def _write_zed_config(self, configs: dict[str, Any]) -> int:
         """Write ZED configuration"""
         zed_path = self.ide_configs[IDEType.ZED]
         zed_path.mkdir(exist_ok=True)
@@ -457,7 +454,7 @@ class SharedConfigManager:
         # Load existing ZED settings if exists
         existing_settings = {}
         if settings_file.exists():
-            with open(settings_file, "r") as f:
+            with open(settings_file) as f:
                 existing_settings = json.load(f)
 
         # Update with Cohezion configurations
@@ -473,7 +470,7 @@ class SharedConfigManager:
         )
         return 0  # ZED configs don't typically have conflicts
 
-    async def _write_antigravity_config(self, configs: Dict[str, Any]) -> int:
+    async def _write_antigravity_config(self, configs: dict[str, Any]) -> int:
         """Write Antigravity configuration"""
         antigravity_path = self.ide_configs[IDEType.ANTIGRAVITY]
         antigravity_path.mkdir(exist_ok=True)
@@ -486,10 +483,10 @@ class SharedConfigManager:
         with open(config_file, "w") as f:
             f.write(yaml_content)
 
-        logger.info(f"Updated Antigravity configuration")
+        logger.info("Updated Antigravity configuration")
         return 0
 
-    async def _write_opencode_config(self, configs: Dict[str, Any]) -> int:
+    async def _write_opencode_config(self, configs: dict[str, Any]) -> int:
         """Write OpenCode configuration"""
         opencode_path = self.ide_configs[IDEType.OPENCODE]
         opencode_path.mkdir(exist_ok=True)
@@ -502,7 +499,7 @@ class SharedConfigManager:
         # Load existing OpenCode config if exists
         existing_config = {}
         if config_file.exists():
-            with open(config_file, "r") as f:
+            with open(config_file) as f:
                 existing_config = json.load(f)
 
         # Merge configurations
@@ -511,10 +508,10 @@ class SharedConfigManager:
         with open(config_file, "w") as f:
             json.dump(existing_config, f, indent=2)
 
-        logger.info(f"Updated OpenCode configuration")
+        logger.info("Updated OpenCode configuration")
         return 0
 
-    async def _write_vscode_config(self, configs: Dict[str, Any]) -> int:
+    async def _write_vscode_config(self, configs: dict[str, Any]) -> int:
         """Write VSCode configuration"""
         vscode_path = self.ide_configs[IDEType.VSCODE]
         vscode_path.mkdir(exist_ok=True)
@@ -524,7 +521,7 @@ class SharedConfigManager:
         # Load existing VSCode settings
         existing_settings = {}
         if settings_file.exists():
-            with open(settings_file, "r") as f:
+            with open(settings_file) as f:
                 existing_settings = json.load(f)
 
         # Update with Cohezion configurations
@@ -534,14 +531,14 @@ class SharedConfigManager:
         with open(settings_file, "w") as f:
             json.dump(existing_settings, f, indent=2)
 
-        logger.info(f"Updated VSCode configuration")
+        logger.info("Updated VSCode configuration")
         return 0
 
-    def _extract_cohezion_configs(self, configs: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract_cohezion_configs(self, configs: dict[str, Any]) -> dict[str, Any]:
         """Extract Cohezion-specific configurations"""
         return {k: v for k, v in configs.items() if k.startswith("cohezion_")}
 
-    def _convert_to_yaml(self, configs: Dict[str, Any]) -> str:
+    def _convert_to_yaml(self, configs: dict[str, Any]) -> str:
         """Convert configurations to YAML format"""
         yaml_lines = ["# COHEZION Antigravity Configuration v1.1.48", ""]
 
@@ -609,8 +606,8 @@ class SharedConfigManager:
         logger.debug(f"Recorded metric {metric_name}={value} for {ide_type.value}")
 
     def get_performance_summary(
-        self, ide_type: Optional[IDEType] = None
-    ) -> Dict[str, Any]:
+        self, ide_type: IDEType | None = None
+    ) -> dict[str, Any]:
         """Get performance summary for IDE(s)"""
 
         if ide_type:

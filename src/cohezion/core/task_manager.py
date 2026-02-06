@@ -7,12 +7,12 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import weakref
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Awaitable, Callable, Coroutine
-from enum import Enum, auto
 import traceback
+from collections.abc import Awaitable, Callable, Coroutine
+from dataclasses import dataclass
+from datetime import datetime
+from enum import Enum, auto
+from typing import Any
 
 logger = logging.getLogger(__name__)
 

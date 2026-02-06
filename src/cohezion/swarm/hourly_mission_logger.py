@@ -49,7 +49,7 @@ class HourlyMissionLogger:
         report = f"""
 # 🌌 Multiverse Mission Report: {self.mission_id}
 **Time:** {timestamp}
-**Uptime:** {(time.time() - self.start_time)/3600:.2f} hours
+**Uptime:** {(time.time() - self.start_time) / 3600:.2f} hours
 
 ## 📊 Performance Summary
 | Scenario | Stability | Bright Spots |

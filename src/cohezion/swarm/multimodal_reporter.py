@@ -47,18 +47,18 @@ class MultimodalReporter:
         }
 
         summary = f"""
-## 🌌 Archetype: {name.replace('_', ' ')}
+## 🌌 Archetype: {name.replace("_", " ")}
 ![{name} Visualization]({image_path})
 
 ### 📊 Stability Vitals
 - **Mean HIHO Stability:** {stability:.4f}
-- **Bright Spots:** {scenario_results['bright_spot_count']}
-- **Precipitation Potential:** {scenario_results['max_reality']:.4f}
+- **Bright Spots:** {scenario_results["bright_spot_count"]}
+- **Precipitation Potential:** {scenario_results["max_reality"]:.4f}
 
 ### 🔊 Sonification Pattern
 - **Harmonic Center:** {frequency:.2f} Hz
-- **Texture:** {sonification['timbre']}
-- **Description:** A {sonification['timbre'].lower()} oscillation representing the {name.lower()} manifold.
+- **Texture:** {sonification["timbre"]}
+- **Description:** A {sonification["timbre"].lower()} oscillation representing the {name.lower()} manifold.
 """
         return summary
 

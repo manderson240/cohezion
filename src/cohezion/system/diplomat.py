@@ -1,18 +1,18 @@
-
 import logging
 import threading
-import json
+from typing import Any
+
 from flask import Flask, jsonify
-from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
+
 
 class DiplomatAgent:
     """
     The Diplomat: Bridges the Interface Simulation with the External Network.
     Uses a lightweight Flask server to expose the Universe State.
     """
-    
+
     def __init__(self, port=5000):
         self.port = port
         self.app = Flask(__name__)
@@ -20,13 +20,17 @@ class DiplomatAgent:
         self.chaos_requested = False
         self.lock = threading.Lock()
         self.server_thread = None
-        
-        # Define Routes
-        self.app.add_url_rule('/state', 'get_state', self.get_state, methods=['GET'])
-        self.app.add_url_rule('/join', 'join_universe', self.join_universe, methods=['POST'])
-        self.app.add_url_rule('/chaos', 'trigger_chaos', self.trigger_chaos, methods=['POST'])
 
-    def update_state(self, state: Dict[str, Any]):
+        # Define Routes
+        self.app.add_url_rule("/state", "get_state", self.get_state, methods=["GET"])
+        self.app.add_url_rule(
+            "/join", "join_universe", self.join_universe, methods=["POST"]
+        )
+        self.app.add_url_rule(
+            "/chaos", "trigger_chaos", self.trigger_chaos, methods=["POST"]
+        )
+
+    def update_state(self, state: dict[str, Any]):
         """Updates the internal state snapshot (Thread-safe)."""
         with self.lock:
             self.latest_state = state
@@ -51,7 +55,10 @@ class DiplomatAgent:
             # For this MVP, we set a flag that the Sim Agent checks.
             self.chaos_requested = True
             import logging
-            logging.getLogger(__name__).critical(f"DEBUG: Chaos Flag SET to True in Method. Self ID: {id(self)}")
+
+            logging.getLogger(__name__).critical(
+                f"DEBUG: Chaos Flag SET to True in Method. Self ID: {id(self)}"
+            )
         return jsonify({"status": "CHAOS INITIATED", "entropy": 0.99})
 
     def start(self):
@@ -65,6 +72,8 @@ class DiplomatAgent:
         # Disable Flask banner
         try:
             logger.info(f"Flask starting on 127.0.0.1:{self.port}...")
-            self.app.run(host='127.0.0.1', port=self.port, debug=False, use_reloader=False)
+            self.app.run(
+                host="127.0.0.1", port=self.port, debug=False, use_reloader=False
+            )
         except Exception as e:
             logger.error(f"Flask Server Failed: {e}")

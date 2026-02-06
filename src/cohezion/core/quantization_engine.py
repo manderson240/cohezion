@@ -6,11 +6,10 @@ Next-generation quantization techniques beyond standard GGUF for frontier SLM de
 
 import json
 import logging
-import numpy as np
-from typing import Dict, List, Any, Optional, Tuple
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -24,8 +23,8 @@ class QuantizationTechnique:
     efficiency_gain: float  # 0-1, expected efficiency improvement
     quality_retention: float  # 0-1, expected quality retention
     complexity: str  # low, medium, high, very_high
-    hardware_requirements: List[str]
-    best_for_models: List[str]  # Model types this works best for
+    hardware_requirements: list[str]
+    best_for_models: list[str]  # Model types this works best for
     implementation_status: str  # research, prototype, production
 
 
@@ -35,7 +34,7 @@ class DistillationStrategy:
 
     name: str
     description: str
-    teacher_models: List[str]
+    teacher_models: list[str]
     target_size_reduction: float  # 0-1, target size reduction
     knowledge_transfer_method: str
     training_data_requirement: str  # high, medium, low
@@ -60,9 +59,9 @@ class AdvancedQuantizationEngine:
         # Ensure data directory exists
         self.techniques_file.parent.mkdir(parents=True, exist_ok=True)
 
-        self.techniques: Dict[str, QuantizationTechnique] = {}
-        self.strategies: Dict[str, DistillationStrategy] = {}
-        self.results: List[Dict[str, Any]] = []
+        self.techniques: dict[str, QuantizationTechnique] = {}
+        self.strategies: dict[str, DistillationStrategy] = {}
+        self.results: list[dict[str, Any]] = []
 
         self._initialize_techniques()
         self._initialize_strategies()
@@ -202,7 +201,7 @@ class AdvancedQuantizationEngine:
         """Load existing quantization and distillation data"""
         try:
             if self.techniques_file.exists():
-                with open(self.techniques_file, "r") as f:
+                with open(self.techniques_file) as f:
                     data = json.load(f)
                     self.techniques = {
                         name: QuantizationTechnique(**tech)
@@ -210,7 +209,7 @@ class AdvancedQuantizationEngine:
                     }
 
             if self.strategies_file.exists():
-                with open(self.strategies_file, "r") as f:
+                with open(self.strategies_file) as f:
                     data = json.load(f)
                     self.strategies = {
                         name: DistillationStrategy(**strat)
@@ -218,7 +217,7 @@ class AdvancedQuantizationEngine:
                     }
 
             if self.quantization_results_file.exists():
-                with open(self.quantization_results_file, "r") as f:
+                with open(self.quantization_results_file) as f:
                     self.results = json.load(f)
 
         except Exception as e:
@@ -229,8 +228,8 @@ class AdvancedQuantizationEngine:
         model_path: str,
         technique: str,
         target_model_name: str,
-        parameters: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        parameters: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Advanced quantization using specified technique"""
         if technique not in self.techniques:
             return {"error": f"Unknown quantization technique: {technique}"}
@@ -298,8 +297,8 @@ class AdvancedQuantizationEngine:
         return result
 
     def _zero_shot_quantize(
-        self, model_path: str, target_model_name: str, parameters: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, model_path: str, target_model_name: str, parameters: dict[str, Any]
+    ) -> dict[str, Any]:
         """Zero-shot quantization without retraining"""
         # Simulated zero-shot quantization
         # In production, would use actual quantization libraries
@@ -319,8 +318,8 @@ class AdvancedQuantizationEngine:
         }
 
     def _progressive_quantize(
-        self, model_path: str, target_model_name: str, parameters: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, model_path: str, target_model_name: str, parameters: dict[str, Any]
+    ) -> dict[str, Any]:
         """Progressive stage-wise quantization"""
         layers = [
             "input_embeddings",
@@ -348,8 +347,8 @@ class AdvancedQuantizationEngine:
         }
 
     def _post_training_quantize(
-        self, model_path: str, target_model_name: str, parameters: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, model_path: str, target_model_name: str, parameters: dict[str, Any]
+    ) -> dict[str, Any]:
         """Quantization after fine-tuning for maximum quality retention"""
         config = {
             "fine_tuning_epochs": parameters.get("fine_tuning_epochs", 10),
@@ -367,8 +366,8 @@ class AdvancedQuantizationEngine:
         }
 
     def _dynamic_quantize(
-        self, model_path: str, target_model_name: str, parameters: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, model_path: str, target_model_name: str, parameters: dict[str, Any]
+    ) -> dict[str, Any]:
         """Dynamic quantization based on input complexity"""
         config = {
             "complexity_thresholds": {
@@ -389,8 +388,8 @@ class AdvancedQuantizationEngine:
         }
 
     def _moe_quantize(
-        self, model_path: str, target_model_name: str, parameters: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, model_path: str, target_model_name: str, parameters: dict[str, Any]
+    ) -> dict[str, Any]:
         """Mixture of Experts quantization for MoE models"""
         expert_configs = parameters.get("expert_configs", {})
 
@@ -415,7 +414,7 @@ class AdvancedQuantizationEngine:
         student_model: str,
         strategy: str,
         cohezon_data_path: str = "",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Advanced knowledge distillation"""
         if strategy not in self.strategies:
             return {"error": f"Unknown distillation strategy: {strategy}"}
@@ -474,7 +473,7 @@ class AdvancedQuantizationEngine:
 
     def _cohezon_distill(
         self, teacher_model: str, student_model: str, cohezon_data_path: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """COHEZION-specific distillation using captured patterns"""
         return {
             "method": "cohezon_specific_distillation",
@@ -488,7 +487,7 @@ class AdvancedQuantizationEngine:
 
     def _task_specific_distill(
         self, teacher_model: str, student_model: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Task-specific knowledge distillation"""
         return {
             "method": "task_specific_distillation",
@@ -499,7 +498,7 @@ class AdvancedQuantizationEngine:
 
     def _multi_teacher_distill(
         self, teacher_model: str, student_model: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Multi-teacher ensemble distillation"""
         teacher_ensemble = [teacher_model, "deepseek-v3", "qwen2.5-max"]
 
@@ -510,7 +509,7 @@ class AdvancedQuantizationEngine:
             "estimated_knowledge_transfer": 0.85,
         }
 
-    def _rl_distill(self, teacher_model: str, student_model: str) -> Dict[str, Any]:
+    def _rl_distill(self, teacher_model: str, student_model: str) -> dict[str, Any]:
         """Reinforcement learning-based distillation"""
         return {
             "method": "reinforcement_learning_distillation",
@@ -522,7 +521,7 @@ class AdvancedQuantizationEngine:
 
     def _standard_distill(
         self, teacher_model: str, student_model: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Standard knowledge distillation"""
         return {
             "method": "standard_kd",
@@ -531,25 +530,25 @@ class AdvancedQuantizationEngine:
             "estimated_knowledge_transfer": 0.80,
         }
 
-    def _load_cohezon_patterns(self, cohezon_data_path: str) -> List[str]:
+    def _load_cohezon_patterns(self, cohezon_data_path: str) -> list[str]:
         """Load COHEZION success patterns"""
         try:
             if cohezon_data_path and Path(cohezon_data_path).exists():
-                with open(cohezon_data_path, "r") as f:
+                with open(cohezon_data_path) as f:
                     # This would load from Performance DNA system
                     patterns = json.load(f)
                     return list(patterns.keys())
         except Exception:
             return []
 
-    def _save_quantization_result(self, result: Dict[str, Any]):
+    def _save_quantization_result(self, result: dict[str, Any]):
         """Save quantization result"""
         try:
             self.quantization_results_file.parent.mkdir(parents=True, exist_ok=True)
 
             # Load existing results
             if self.quantization_results_file.exists():
-                with open(self.quantization_results_file, "r") as f:
+                with open(self.quantization_results_file) as f:
                     existing_results = json.load(f)
             else:
                 existing_results = []
@@ -562,14 +561,14 @@ class AdvancedQuantizationEngine:
         except Exception as e:
             logger.error(f"❌ Failed to save quantization result: {e}")
 
-    def _save_distillation_result(self, result: Dict[str, Any]):
+    def _save_distillation_result(self, result: dict[str, Any]):
         """Save distillation result"""
         try:
             self.distillation_configs_file.parent.mkdir(parents=True, exist_ok=True)
 
             # Load existing results
             if self.distillation_configs_file.exists():
-                with open(self.distillation_configs_file, "r") as f:
+                with open(self.distillation_configs_file) as f:
                     existing_results = json.load(f)
             else:
                 existing_results = []
@@ -582,7 +581,7 @@ class AdvancedQuantizationEngine:
         except Exception as e:
             logger.error(f"❌ Failed to save distillation result: {e}")
 
-    def get_technique_summary(self) -> Dict[str, Any]:
+    def get_technique_summary(self) -> dict[str, Any]:
         """Get summary of available techniques"""
         return {
             "total_techniques": len(self.techniques),
@@ -601,7 +600,7 @@ class AdvancedQuantizationEngine:
             ],
         }
 
-    def optimize_for_cohezon(self, model_name: str) -> Dict[str, Any]:
+    def optimize_for_cohezon(self, model_name: str) -> dict[str, Any]:
         """Get optimization recommendations for COHEZION-specific deployment"""
         recommendations = []
 
@@ -636,8 +635,8 @@ def quantize_model(
     model_path: str,
     technique: str,
     target_model_name: str,
-    parameters: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    parameters: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Quantize model using global engine"""
     return QUANTIZATION_ENGINE.quantize_model(
         model_path, technique, target_model_name, parameters
@@ -646,13 +645,13 @@ def quantize_model(
 
 def distill_model(
     teacher_model: str, student_model: str, strategy: str, cohezon_data_path: str = ""
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Distill model using global engine"""
     return QUANTIZATION_ENGINE.distill_model(
         teacher_model, student_model, strategy, cohezon_data_path
     )
 
 
-def get_technique_summary() -> Dict[str, Any]:
+def get_technique_summary() -> dict[str, Any]:
     """Get technique summary using global engine"""
     return QUANTIZATION_ENGINE.get_technique_summary()

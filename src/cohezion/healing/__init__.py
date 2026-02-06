@@ -239,7 +239,7 @@ class SelfHealingSystem:
             async with httpx.AsyncClient(timeout=5.0) as client:
                 resp = await client.get("http://localhost:11434/api/tags")
                 ollama_healthy = resp.status_code == 200
-        except:
+        except Exception:
             ollama_healthy = False
 
         status = self.detector.check(
@@ -255,7 +255,7 @@ class SelfHealingSystem:
             async with httpx.AsyncClient(timeout=5.0) as client:
                 resp = await client.get("http://localhost:8000/health")
                 surreal_healthy = resp.status_code == 200
-        except:
+        except Exception:
             surreal_healthy = False
 
         status = self.detector.check(

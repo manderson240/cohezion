@@ -3,13 +3,12 @@ SurrealDB Journey Repository - Concrete implementation using SurrealDB.
 """
 
 import logging
-from typing import List, Optional
 from datetime import datetime, timedelta
 
 from cohezion.core.persistence.repositories.journey_repository import (
-    JourneyRepository,
     AgentJourney,
     JourneyMetrics,
+    JourneyRepository,
 )
 from cohezion.core.persistence.surreal_client import SurrealClient
 
@@ -57,7 +56,7 @@ class SurrealJourneyRepository(JourneyRepository):
             logger.error(f"Failed to add journey to SurrealDB: {e}")
             raise
 
-    async def get(self, journey_id: str) -> Optional[AgentJourney]:
+    async def get(self, journey_id: str) -> AgentJourney | None:
         """Retrieve a journey by ID."""
         try:
             # Proper SurrealDB ID selection using backticks if needed, or direct access
@@ -74,7 +73,7 @@ class SurrealJourneyRepository(JourneyRepository):
             logger.error(f"Failed to get journey from SurrealDB: {e}")
             return None
 
-    async def get_recent(self, hours: int = 24, limit: int = 20) -> List[AgentJourney]:
+    async def get_recent(self, hours: int = 24, limit: int = 20) -> list[AgentJourney]:
         """Retrieve recent journeys."""
         try:
             cutoff = (datetime.now() - timedelta(hours=hours)).isoformat()

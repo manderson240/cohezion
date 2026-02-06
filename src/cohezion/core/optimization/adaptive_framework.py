@@ -6,12 +6,12 @@ Advanced hardware detection and automatic configuration selection for optimal pe
 
 import json
 import logging
-import psutil
 import platform
-import os
-from pathlib import Path
-from typing import Dict, Any, Optional, Tuple
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+import psutil
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class HardwareProfile:
     cpu_type: str
     gpu_count: int
     gpu_memory_total: float
-    gpu_type: Optional[str]
+    gpu_type: str | None
     platform: str
     architecture: str
     capabilities: list[str]
@@ -72,25 +72,49 @@ class AdaptiveFrameworkOptimizer:
         cpu_freq = psutil.cpu_freq().current if psutil.cpu_freq() else 0
         architecture = platform.machine() or "Unknown"
 
-        # GPU detection
+        # GPU detection (AMD via sysfs, NVIDIA via GPUtil)
         gpu_count = 0
-        gpu_memory_total = 0
+        gpu_memory_total = 0.0
         gpu_type = None
-        gpu_capabilities = []
 
-        try:
-            import GPUtil
+        # Try AMD iGPU/dGPU detection via sysfs first
+        amd_detected = False
+        for card in sorted(Path("/sys/class/drm").glob("card[0-9]*")):
+            vendor_path = card / "device" / "vendor"
+            if vendor_path.exists():
+                vendor_id = vendor_path.read_text().strip()
+                if vendor_id == "0x1002":  # AMD
+                    gpu_count += 1
+                    device_id = ""
+                    device_id_path = card / "device" / "device"
+                    if device_id_path.exists():
+                        device_id = device_id_path.read_text().strip()
 
-            gpus = GPUtil.getGPUs()
-            if gpus:
-                gpu_count = len(gpus)
-                gpu_memory_total = (
-                    sum(gpu.memoryTotal for gpu in gpus) / 1024
-                )  # MB to GB
-                gpu_type = gpus[0].name if gpus else "Unknown GPU"
-                gpu_capabilities = [f"cuda_{gpu.name}" for gpu in gpus]
-        except ImportError:
-            logger.warning("⚠️ GPUtil not available - limited GPU detection")
+                    # Check GTT (unified memory) first, then dedicated VRAM
+                    gtt_path = card / "device" / "mem_info_gtt_total"
+                    vram_path = card / "device" / "mem_info_vram_total"
+                    if gtt_path.exists():
+                        gtt_bytes = int(gtt_path.read_text().strip())
+                        gpu_memory_total += gtt_bytes / (1024**3)
+                        gpu_type = f"AMD iGPU (UMA {gtt_bytes / (1024**3):.0f}GB, device {device_id})"
+                    elif vram_path.exists():
+                        vram_bytes = int(vram_path.read_text().strip())
+                        gpu_memory_total += vram_bytes / (1024**3)
+                        gpu_type = f"AMD dGPU ({vram_bytes / (1024**3):.0f}GB VRAM, device {device_id})"
+                    amd_detected = True
+
+        # Fallback to GPUtil for NVIDIA GPUs
+        if not amd_detected:
+            try:
+                import GPUtil
+
+                gpus = GPUtil.getGPUs()
+                if gpus:
+                    gpu_count = len(gpus)
+                    gpu_memory_total = sum(gpu.memoryTotal for gpu in gpus) / 1024
+                    gpu_type = gpus[0].name if gpus else "Unknown GPU"
+            except ImportError:
+                logger.warning("No AMD GPU via sysfs, no GPUtil for NVIDIA")
 
         # Platform detection
         system_platform = platform.system()
@@ -126,14 +150,27 @@ class AdaptiveFrameworkOptimizer:
         cpu_cores: int,
         gpu_count: int,
         gpu_memory_gb: float,
-    ) -> Tuple[str, list[str]]:
+    ) -> tuple[str, list[str]]:
         """Classify hardware into performance tiers"""
 
         # Calculate performance score
         memory_score = min(memory_gb / 128.0, 2.0)  # Normalized to 128GB baseline
         cpu_score = min(cpu_cores / 16.0, 2.0)  # Normalized to 16 cores
         gpu_score = min(gpu_count / 2.0, 2.0) if gpu_count > 0 else 0.0
-        vram_score = min(gpu_memory_gb / 24.0, 2.0) if gpu_memory_gb > 0 else 0.0
+
+        # For UMA (unified memory architecture), VRAM == system RAM.
+        # UMA iGPUs share the full memory pool with zero-copy semantics,
+        # which is a significant advantage for large model inference.
+        # UMA detection: GTT pool closely matches system RAM (within ~5%)
+        is_uma = gpu_memory_gb > 0 and abs(gpu_memory_gb - memory_gb) / max(memory_gb, 1) < 0.05
+        if is_uma:
+            # UMA: GPU has access to full memory pool via zero-copy.
+            # Score reflects memory capacity rather than discrete VRAM.
+            vram_score = min(memory_gb / 64.0, 2.0)
+            # Boost gpu_score for UMA: 1 iGPU with 128GB pool > 1 dGPU with 8GB
+            gpu_score = min(gpu_count * (memory_gb / 64.0), 2.0)
+        else:
+            vram_score = min(gpu_memory_gb / 24.0, 2.0) if gpu_memory_gb > 0 else 0.0
 
         total_score = (memory_score + cpu_score + gpu_score + vram_score) / 4.0
 
@@ -185,11 +222,16 @@ class AdaptiveFrameworkOptimizer:
                 "efficient_algorithms",
             ]
 
+        # Add UMA-specific capabilities
+        if is_uma:
+            capabilities.append("uma_zero_copy")
+            capabilities.append("unified_memory_pool")
+
         return tier, capabilities
 
     def select_optimal_framework_config(
-        self, hardware_profile: Optional[HardwareProfile] = None
-    ) -> Dict[str, Any]:
+        self, hardware_profile: HardwareProfile | None = None
+    ) -> dict[str, Any]:
         """Select optimal framework configuration based on detected hardware"""
         if not hardware_profile:
             hardware_profile = self.detect_hardware_profile()
@@ -215,7 +257,7 @@ class AdaptiveFrameworkOptimizer:
 
         # Load and adapt configuration
         if config_file and config_file.exists():
-            with open(config_file, "r") as f:
+            with open(config_file) as f:
                 config = json.load(f)
 
             # Adapt configuration to actual hardware
@@ -228,8 +270,8 @@ class AdaptiveFrameworkOptimizer:
             return self._create_fallback_config(hardware_profile)
 
     def _adapt_config_to_hardware(
-        self, config: Dict[str, Any], hardware: HardwareProfile
-    ) -> Dict[str, Any]:
+        self, config: dict[str, Any], hardware: HardwareProfile
+    ) -> dict[str, Any]:
         """Adapt configuration parameters to actual hardware capabilities"""
         adapted = config.copy()
 
@@ -264,7 +306,7 @@ class AdaptiveFrameworkOptimizer:
 
         return adapted
 
-    def _create_fallback_config(self, hardware: HardwareProfile) -> Dict[str, Any]:
+    def _create_fallback_config(self, hardware: HardwareProfile) -> dict[str, Any]:
         """Create fallback configuration for unsupported hardware"""
         logger.warning("⚠️ Using fallback configuration")
         return {
@@ -286,11 +328,11 @@ class AdaptiveFrameworkOptimizer:
             },
         }
 
-    def get_current_profile(self) -> Optional[HardwareProfile]:
+    def get_current_profile(self) -> HardwareProfile | None:
         """Get currently detected hardware profile"""
         return self._current_profile
 
-    def create_adaptive_config(self) -> Dict[str, Any]:
+    def create_adaptive_config(self) -> dict[str, Any]:
         """Create adaptive optimization configuration for dynamic switching"""
         return {
             "adaptive_optimization": {
@@ -325,8 +367,8 @@ class AdaptiveFrameworkOptimizer:
         }
 
     def optimize_runtime_parameters(
-        self, config: Dict[str, Any], current_workload: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, config: dict[str, Any], current_workload: dict[str, Any]
+    ) -> dict[str, Any]:
         """Optimize runtime parameters based on current workload"""
         optimized = config.copy()
 
@@ -387,7 +429,7 @@ def get_adaptive_optimizer() -> AdaptiveFrameworkOptimizer:
     return _adaptive_optimizer
 
 
-def auto_detect_and_configure() -> Dict[str, Any]:
+def auto_detect_and_configure() -> dict[str, Any]:
     """Auto-detect hardware and load optimal configuration"""
     optimizer = get_adaptive_optimizer()
     return optimizer.select_optimal_framework_config()

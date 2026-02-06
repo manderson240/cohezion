@@ -4,13 +4,12 @@ Elite Performance Monitoring for COHEZION Compound Engineering
 Tracks model switching, efficiency metrics, and token optimization strategies.
 """
 
-import time
 import json
-import asyncio
 import logging
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime
+from typing import Any
+
 import psutil
 
 logger = logging.getLogger(__name__)
@@ -27,9 +26,9 @@ class ModelPerformanceMetrics:
     context_window: int
     tokens_generated: int
     tokens_per_second: float
-    accuracy_score: Optional[float] = None
-    moe_efficiency: Optional[str] = None
-    ocr_savings: Optional[str] = None
+    accuracy_score: float | None = None
+    moe_efficiency: str | None = None
+    ocr_savings: str | None = None
     timestamp: str = ""
 
 
@@ -38,12 +37,12 @@ class CompoundEngineeringMetrics:
     """Metrics for compound engineering workflows"""
 
     workflow_type: str
-    models_used: List[str]
+    models_used: list[str]
     total_time: float
     total_memory_gb: float
     token_efficiency: float
     success_rate: float
-    optimization_gains: Dict[str, float]
+    optimization_gains: dict[str, float]
     timestamp: str = ""
 
 
@@ -51,8 +50,8 @@ class ElitePerformanceMonitor:
     """Elite performance monitoring system for COHEZION"""
 
     def __init__(self):
-        self.metrics_history: List[ModelPerformanceMetrics] = []
-        self.compound_history: List[CompoundEngineeringMetrics] = []
+        self.metrics_history: list[ModelPerformanceMetrics] = []
+        self.compound_history: list[CompoundEngineeringMetrics] = []
         self.session_start = datetime.now()
         self.baseline_memory = self._get_system_memory()
 
@@ -96,7 +95,7 @@ class ElitePerformanceMonitor:
         inference_time: float,
         context_window: int,
         tokens_generated: int,
-        accuracy_score: Optional[float] = None,
+        accuracy_score: float | None = None,
     ) -> ModelPerformanceMetrics:
         """Track individual model performance"""
 
@@ -134,7 +133,7 @@ class ElitePerformanceMonitor:
     def track_compound_workflow(
         self,
         workflow_type: str,
-        models_used: List[str],
+        models_used: list[str],
         total_time: float,
         success_rate: float = 1.0,
     ) -> CompoundEngineeringMetrics:
@@ -180,7 +179,7 @@ class ElitePerformanceMonitor:
 
         return metrics
 
-    def get_performance_summary(self) -> Dict[str, Any]:
+    def get_performance_summary(self) -> dict[str, Any]:
         """Get comprehensive performance summary"""
 
         if not self.metrics_history:
@@ -266,7 +265,7 @@ class ElitePerformanceMonitor:
             "total_workflows_executed": len(self.compound_history),
         }
 
-    def get_efficiency_recommendations(self) -> List[str]:
+    def get_efficiency_recommendations(self) -> list[str]:
         """Generate efficiency recommendations based on performance data"""
         recommendations = []
 

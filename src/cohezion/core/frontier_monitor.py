@@ -4,15 +4,13 @@ COHEZION Frontier Monitor: Daily Research & Model Discovery System
 Continuously monitors SLM landscape for competitive advantage and automated upgrades.
 """
 
-import json
 import asyncio
+import json
 import logging
-import aiohttp
-import feedparser
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -25,11 +23,11 @@ class FrontierRelease:
     model_id: str
     release_date: datetime
     source: str  # huggingface, arxiv, github, etc.
-    benchmarks: Dict[str, float]
-    specifications: Dict[str, Any]
+    benchmarks: dict[str, float]
+    specifications: dict[str, Any]
     license: str
     installation_priority: str  # critical, high, medium, low
-    memory_requirements: Dict[str, float]
+    memory_requirements: dict[str, float]
     compatibility_score: float  # 0-1, how compatible with our system
     innovation_type: str  # MoE, quantization, architecture, etc.
     upgrade_potential: float  # 0-1, upgrade value vs current
@@ -41,9 +39,9 @@ class CompetitiveIntelligence:
 
     source: str
     intelligence_type: str  # model_release, benchmark_update, technique_breakthrough
-    data: Dict[str, Any]
+    data: dict[str, Any]
     confidence_score: float  # 0-1, confidence in intelligence
-    actionable_insights: List[str]
+    actionable_insights: list[str]
     timestamp: datetime
 
 
@@ -61,9 +59,9 @@ class DailyFrontierMonitor:
         # Ensure data directory exists
         self.frontier_data_file.parent.mkdir(parents=True, exist_ok=True)
 
-        self.frontier_releases: Dict[str, FrontierRelease] = {}
-        self.competitive_intelligence: Dict[str, CompetitiveIntelligence] = {}
-        self.monitoring_history: List[Dict[str, Any]] = []
+        self.frontier_releases: dict[str, FrontierRelease] = {}
+        self.competitive_intelligence: dict[str, CompetitiveIntelligence] = {}
+        self.monitoring_history: list[dict[str, Any]] = []
 
         self.sources = {
             "huggingface": "https://huggingface.co/models",
@@ -84,7 +82,7 @@ class DailyFrontierMonitor:
 
         self.load_existing_intelligence()
 
-    async def daily_scan(self) -> Dict[str, Any]:
+    async def daily_scan(self) -> dict[str, Any]:
         """Comprehensive daily scan of frontier developments"""
         logger.info("🔍 Starting daily frontier scan")
 
@@ -134,7 +132,7 @@ class DailyFrontierMonitor:
 
         return scan_results
 
-    async def scan_huggingface_new_releases(self) -> Dict[str, Any]:
+    async def scan_huggingface_new_releases(self) -> dict[str, Any]:
         """Scan Hugging Face for new model releases"""
         try:
             # Focus on recent releases and quantized models
@@ -174,7 +172,7 @@ class DailyFrontierMonitor:
             logger.error(f"❌ HuggingFace scan failed: {e}")
             return {"type": "new_release", "data": []}
 
-    async def scan_arxiv_papers(self) -> Dict[str, Any]:
+    async def scan_arxiv_papers(self) -> dict[str, Any]:
         """Scan arXiv for new research papers and techniques"""
         try:
             # Look for quantization, distillation, and optimization papers
@@ -205,7 +203,7 @@ class DailyFrontierMonitor:
             logger.error(f"❌ arXiv scan failed: {e}")
             return {"type": "technique_breakthrough", "data": []}
 
-    async def scan_llm_stats_updates(self) -> Dict[str, Any]:
+    async def scan_llm_stats_updates(self) -> dict[str, Any]:
         """Scan LLM Stats for benchmark updates"""
         try:
             # Check for leaderboard changes and new benchmarks
@@ -231,7 +229,7 @@ class DailyFrontierMonitor:
             logger.error(f"❌ LLM Stats scan failed: {e}")
             return {"type": "benchmark_update", "data": []}
 
-    async def scan_reddit_discussions(self) -> Dict[str, Any]:
+    async def scan_reddit_discussions(self) -> dict[str, Any]:
         """Scan Reddit for community insights and emerging models"""
         try:
             # Look for discussions about new models and techniques
@@ -253,7 +251,7 @@ class DailyFrontierMonitor:
             logger.error(f"❌ Reddit scan failed: {e}")
             return {"type": "new_release", "data": []}
 
-    async def scan_github_trending(self) -> Dict[str, Any]:
+    async def scan_github_trending(self) -> dict[str, Any]:
         """Scan GitHub trending repositories for new techniques"""
         try:
             # Look for trending repositories related to quantization, SLMs, local AI
@@ -276,8 +274,8 @@ class DailyFrontierMonitor:
             return {"type": "new_release", "data": []}
 
     def analyze_for_installation(
-        self, scan_results: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, scan_results: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Analyze scan results and generate installation recommendations"""
         recommendations = []
 
@@ -325,8 +323,8 @@ class DailyFrontierMonitor:
         return recommendations
 
     def analyze_competitive_threats(
-        self, scan_results: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, scan_results: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Analyze potential competitive threats from scan results"""
         threats = []
 
@@ -360,8 +358,8 @@ class DailyFrontierMonitor:
         return threats
 
     def evaluate_upgrade_opportunity(
-        self, model_release: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, model_release: dict[str, Any]
+    ) -> dict[str, Any]:
         """Evaluate potential upgrade opportunity for a new model release"""
         model_name = model_release.get("model", "")
 
@@ -413,7 +411,7 @@ class DailyFrontierMonitor:
             else "Low",
         }
 
-    def get_current_performance_for_role(self, model_name: str) -> Dict[str, float]:
+    def get_current_performance_for_role(self, model_name: str) -> dict[str, float]:
         """Get current performance for a model role"""
         # This would integrate with our model registry
         # For now, return baseline values
@@ -428,14 +426,14 @@ class DailyFrontierMonitor:
         else:
             return {"swe_bench": 60.0, "mmlu": 75.0}
 
-    def save_monitoring_entry(self, scan_results: Dict[str, Any]):
+    def save_monitoring_entry(self, scan_results: dict[str, Any]):
         """Save monitoring entry to log"""
         try:
             self.monitoring_log_file.parent.mkdir(parents=True, exist_ok=True)
 
             # Load existing log
             if self.monitoring_log_file.exists():
-                with open(self.monitoring_log_file, "r") as f:
+                with open(self.monitoring_log_file) as f:
                     self.monitoring_history = json.load(f)
 
             # Add new entry
@@ -459,7 +457,7 @@ class DailyFrontierMonitor:
         """Load previously collected frontier intelligence"""
         try:
             if self.frontier_data_file.exists():
-                with open(self.frontier_data_file, "r") as f:
+                with open(self.frontier_data_file) as f:
                     data = json.load(f)
                     self.frontier_releases = {
                         rid: FrontierRelease(**release)
@@ -477,7 +475,7 @@ class DailyFrontierMonitor:
         except Exception as e:
             logger.warning(f"⚠️ Failed to load existing intelligence: {e}")
 
-    def get_upgrade_recommendations(self) -> List[Dict[str, Any]]:
+    def get_upgrade_recommendations(self) -> list[dict[str, Any]]:
         """Get upgrade recommendations based on latest intelligence"""
         recommendations = []
 
@@ -499,7 +497,7 @@ class DailyFrontierMonitor:
 
         return recommendations
 
-    def export_intelligence_summary(self) -> Dict[str, Any]:
+    def export_intelligence_summary(self) -> dict[str, Any]:
         """Export comprehensive intelligence summary"""
         return {
             "export_timestamp": datetime.now().isoformat(),
@@ -519,16 +517,16 @@ FRONTIER_MONITOR = DailyFrontierMonitor()
 
 
 # Convenience functions
-async def daily_frontier_scan() -> Dict[str, Any]:
+async def daily_frontier_scan() -> dict[str, Any]:
     """Perform daily frontier scan using global monitor"""
     return await FRONTIER_MONITOR.daily_scan()
 
 
-def get_upgrade_recommendations() -> List[Dict[str, Any]]:
+def get_upgrade_recommendations() -> list[dict[str, Any]]:
     """Get upgrade recommendations using global monitor"""
     return FRONTIER_MONITOR.get_upgrade_recommendations()
 
 
-def export_frontier_intelligence() -> Dict[str, Any]:
+def export_frontier_intelligence() -> dict[str, Any]:
     """Export frontier intelligence summary"""
     return FRONTIER_MONITOR.export_intelligence_summary()

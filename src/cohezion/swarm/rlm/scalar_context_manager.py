@@ -1,8 +1,8 @@
 import logging
 from typing import Any
 
-from cohezion.flume.autoencoder import FlumeConfig, FlumeEncoder
 from cohezion.agents.alignment_agent import AlignmentAgent
+from cohezion.flume.autoencoder import FlumeConfig, FlumeEncoder
 from cohezion.swarm.swarm_types import SwarmConfig
 
 logger = logging.getLogger(__name__)

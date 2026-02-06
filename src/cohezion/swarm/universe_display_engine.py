@@ -18,8 +18,7 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-import uuid
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -48,10 +47,10 @@ class UniverseDisplayEngine:
     3. Video composition for evolution timeline
     """
 
-    def __init__(self, config: Optional[DashboardConfig] = None):
+    def __init__(self, config: DashboardConfig | None = None):
         self.config = config or DashboardConfig()
-        self.active_dashboards: Dict[str, Any] = {}
-        self.synthesis_reports: List[Dict] = []
+        self.active_dashboards: dict[str, Any] = {}
+        self.synthesis_reports: list[dict] = []
 
         # Templates directory
         self.templates_dir = Path(
@@ -66,7 +65,7 @@ class UniverseDisplayEngine:
         logger.info(f"   Video: {self.config.enable_video}")
 
     async def create_live_dashboard(
-        self, mission_id: str, track_type: str, universes: List[Dict]
+        self, mission_id: str, track_type: str, universes: list[dict]
     ) -> str:
         """Create a live updating dashboard for a mission"""
 
@@ -93,7 +92,7 @@ class UniverseDisplayEngine:
         return str(dashboard_path)
 
     async def update_dashboard(
-        self, mission_id: str, epoch: int, universe_states: List[Dict[str, Any]]
+        self, mission_id: str, epoch: int, universe_states: list[dict[str, Any]]
     ):
         """Update live dashboard with new epoch data"""
 
@@ -127,8 +126,8 @@ class UniverseDisplayEngine:
         self,
         mission_id: str,
         track_type: str,
-        mission_data: Dict[str, Any],
-        grade_report: Optional[Dict] = None,
+        mission_data: dict[str, Any],
+        grade_report: dict | None = None,
     ) -> str:
         """Generate comprehensive post-run synthesis report"""
 
@@ -171,8 +170,8 @@ class UniverseDisplayEngine:
         return str(report_path)
 
     async def _generate_visualizations(
-        self, mission_data: Dict[str, Any]
-    ) -> Dict[str, str]:
+        self, mission_data: dict[str, Any]
+    ) -> dict[str, str]:
         """Generate static visualization images"""
 
         visualizations = {}
@@ -294,7 +293,7 @@ class UniverseDisplayEngine:
 
         return visualizations
 
-    def _simulate_coherence_trajectory(self, num_epochs: int) -> List[float]:
+    def _simulate_coherence_trajectory(self, num_epochs: int) -> list[float]:
         """Simulate HIHO coherence trajectory"""
         trajectory = []
         current = np.random.uniform(0.3, 0.7)
@@ -314,7 +313,7 @@ class UniverseDisplayEngine:
         return trajectory
 
     def _generate_dashboard_html(
-        self, mission_id: str, track_type: str, universes: List[Dict], live: bool = True
+        self, mission_id: str, track_type: str, universes: list[dict], live: bool = True
     ) -> str:
         """Generate HTML for dashboard"""
 
@@ -423,9 +422,9 @@ class UniverseDisplayEngine:
         self,
         mission_id: str,
         track_type: str,
-        mission_data: Dict[str, Any],
-        visualizations: Dict[str, str],
-        grade_report: Optional[Dict] = None,
+        mission_data: dict[str, Any],
+        visualizations: dict[str, str],
+        grade_report: dict | None = None,
     ) -> str:
         """Generate final synthesis report HTML"""
 
@@ -506,7 +505,7 @@ class UniverseDisplayEngine:
 """
         return html
 
-    async def _generate_evolution_video(self, mission_data: Dict) -> Optional[str]:
+    async def _generate_evolution_video(self, mission_data: dict) -> str | None:
         """Generate evolution video (placeholder for full implementation)"""
         # Full implementation would use matplotlib.animation + ffmpeg
         # For now, return placeholder

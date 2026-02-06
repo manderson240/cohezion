@@ -1,3 +1,3 @@
 """Cohezion tools and utilities."""
 
-from cohezion.tools.calculate_retroactive_xp import calculate_all_retroactive_xp
+from cohezion.tools.calculate_retroactive_xp import calculate_retroactive_xp

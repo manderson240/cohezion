@@ -259,6 +259,55 @@ class LocalExpertRouter:
 
         return primary_model
 
+    def _select_optimal_model_adaptive(
+        self,
+        task_type: str,
+        available_memory: float,
+        hardware_profile: "HardwareProfile",
+    ) -> str:
+        """Select model using adaptive hardware profile for precise tier matching.
+
+        Uses the detected hardware tier and capabilities from the adaptive
+        framework optimizer to select the best model, avoiding the heuristic
+        thresholds of ``_select_optimal_model``.
+        """
+        tier = hardware_profile.tier
+        caps = set(hardware_profile.capabilities)
+        has_uma = "uma_zero_copy" in caps
+
+        # Enterprise/Professional with UMA: elite models can leverage full memory pool
+        if tier in ("enterprise", "professional"):
+            if task_type == "coding":
+                # Elite Q8 quant if enough memory, otherwise MoE variant
+                if available_memory >= 90 or has_uma:
+                    return self.role_map["elite-coding"]
+                return self.role_map["agentic-coding"]
+            elif task_type == "vision":
+                return self.role_map["ocr-vision"]
+            elif task_type in ("reasoning", "routing"):
+                return self.role_map.get("reasoning", self.default_model)
+            elif task_type == "general":
+                return self.role_map.get("general", self.default_model)
+            return self.role_map.get(task_type, self.default_model)
+
+        # Desktop tier: balanced models
+        elif tier == "desktop":
+            if task_type == "coding":
+                return self.role_map["agentic-coding"]
+            elif task_type == "vision":
+                return self.role_map["ocr-vision"]
+            return self.role_map.get(task_type, self.default_model)
+
+        # Laptop/Mobile: conservative models
+        else:
+            if task_type == "coding":
+                return self.role_map.get("legacy-coding", "qwen3-coder:30b")
+            elif task_type == "vision":
+                return self.role_map.get("legacy-vision", "gemma3-4b-256k:latest")
+            elif task_type in ("reasoning", "routing"):
+                return self.role_map.get("light-reasoning", "phi3:mini")
+            return self.role_map.get("light-coding", "phi3:mini")
+
     async def _log_performance_metrics(
         self, task_type: str, model: str, context: int, memory: float
     ):

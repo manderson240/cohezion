@@ -71,7 +71,7 @@ Segments marked 'SUMMARIZE' have been compressed to preserve context window.
 Segments marked 'DIVE' are available in full.
 
 Current Context:
-{json.dumps([{ 'action': s['action'], 'scalar': s['importance_scalar'], 'content': f"{s['content'][:100]}..." } for s in optimized_segments], indent=2)}
+{json.dumps([{"action": s["action"], "scalar": s["importance_scalar"], "content": f"{s['content'][:100]}..."} for s in optimized_segments], indent=2)}
 
 Propose a Python snippet to analyze the 'DIVE' segments and store insights in 'ctx['observations']'.
 """
@@ -100,7 +100,7 @@ Propose a Python snippet to analyze the 'DIVE' segments and store insights in 'c
 
         # 5. Final Synthesis
         final_prompt = f"""SYNTHESIS OF RECURSIVE ANALYSIS:
-Observations: {json.dumps(updated_context.get('observations', []), indent=2)}
+Observations: {json.dumps(updated_context.get("observations", []), indent=2)}
 Stability: {stability}
 
 Generate a unified, 12D-aware research hypothesis based on this analysis.
