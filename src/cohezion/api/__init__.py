@@ -1406,3 +1406,100 @@ async def compare_calm_llm(journey_id: str):
         media_type="image/png",
         filename=f"calm_vs_llm_{journey_id}.png",
     )
+
+
+# ---------------------------------------------------------------------------
+# Skill-Agent-API Fabric endpoints
+# ---------------------------------------------------------------------------
+
+
+class SkillExecuteRequest(BaseModel):
+    input_text: str
+    config: dict[str, Any] = {}
+
+
+class SkillExecuteResponse(BaseModel):
+    skill_name: str
+    agent_class: str
+    result: str
+    status: str
+
+
+class CapabilityQueryRequest(BaseModel):
+    query: str
+    top_k: int = 5
+
+
+class CapabilityQueryResponse(BaseModel):
+    agents: list[dict[str, Any]]
+    query: str
+
+
+@app.post("/skills/{skill_name}/execute", response_model=SkillExecuteResponse)
+async def execute_skill(skill_name: str, request: SkillExecuteRequest):
+    """Parse skill, generate agent, execute with input, return result."""
+    from cohezion.agents.factory import AgentFactory
+
+    factory = AgentFactory()
+    try:
+        agent = factory.create(skill_name)
+    except KeyError:
+        raise HTTPException(status_code=404, detail=f"Skill not found: {skill_name}")
+
+    class_name = type(agent).__name__
+
+    # Generated stubs raise NotImplementedError — return a placeholder result
+    try:
+        result = await agent.process(request.input_text)
+        return SkillExecuteResponse(
+            skill_name=skill_name,
+            agent_class=class_name,
+            result=str(result),
+            status="executed",
+        )
+    except NotImplementedError:
+        return SkillExecuteResponse(
+            skill_name=skill_name,
+            agent_class=class_name,
+            result=f"Agent {class_name} created from {skill_name} (stub — execution not yet implemented)",
+            status="stub",
+        )
+    except Exception as exc:
+        return SkillExecuteResponse(
+            skill_name=skill_name,
+            agent_class=class_name,
+            result=str(exc),
+            status="error",
+        )
+
+
+@app.post("/query/find-capable-agent", response_model=CapabilityQueryResponse)
+async def find_capable_agent(request: CapabilityQueryRequest):
+    """Use CapabilityRegistry to find best agents for a query."""
+    from cohezion.registry.capability_registry import CapabilityRegistry
+
+    registry = CapabilityRegistry()
+    results = registry.find(request.query, top_k=request.top_k)
+    return CapabilityQueryResponse(
+        query=request.query,
+        agents=[
+            {
+                "name": cap.name,
+                "type": cap.type,
+                "description": cap.description,
+                "score": round(cap.score, 4),
+                "path": cap.path,
+            }
+            for cap in results
+        ],
+    )
+
+
+@app.get("/skills/list")
+async def list_skills():
+    """List all available PRIME skills."""
+    from cohezion.agents.factory import AgentFactory
+
+    factory = AgentFactory()
+    names = factory.list_available_skills()
+    return {"count": len(names), "skills": names}

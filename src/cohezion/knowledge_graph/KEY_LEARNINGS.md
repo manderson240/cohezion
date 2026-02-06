@@ -136,3 +136,22 @@ End-to-end pipeline: mass sim → SurrealDB → .npy artifacts in 8.2s. 61 files
 
 ## Learning 96: Agent File Validation as Compound Defense (2026-02-06)
 Missing YAML frontmatter in `.claude/agents/*.md` files was only caught by `claude doctor` after the fact. Fix: single Pydantic schema (`validation/agent_schema.py`) shared by pre-commit hook, PostToolUse hook, unit tests, and `/new-agent` scaffolding command. Layered defense = catch at commit time, warn in real-time, scaffold valid by default. Compound engineering: each layer reuses the same schema.
+
+---
+
+## Phase 3: Ollama-Powered Specialist Pipeline (2026-02-06)
+
+### Learning 97: Weight Bridge Layer Collapse
+PolicyNetwork has 3 linear layers but Rust FlumePhysics accepts only 2. Collapse intermediate layer via matrix multiplication: `w2 = mean_head.weight @ shared[2].weight`, `b2 = mean_head.bias + mean_head.weight @ shared[2].bias`. LayerNorm defaults: gamma=ones, beta=0.5 (HIHO target). Note: `shared[2]` is the second Linear in nn.Sequential (index 0=Linear, 1=ReLU, 2=Linear, 3=ReLU).
+
+### Learning 98: Ruff Hook Import Fights
+PostToolUse ruff hook auto-removes "unused" imports. Conditional usage is not recognized as "used." Fix: use the import in a type annotation (`self._exporter: CheckpointExporter | None`) which ruff always considers "used."
+
+### Learning 99: Deterministic Navigator for Simulation
+For stable mass sim, use deterministic mean action from PolicyNetwork (no Gaussian sampling), scaled by action_scale. Sampling introduces too much noise for batch simulation with thousands of agents.
+
+### Learning 100: Democratic Debate for Structured Output
+DemocraticDebate extracts numeric hyperparameters from free-text consensus via regex. Bounds enforcement (clamping + rounding to powers of 2 for hidden_dim) prevents debate hallucination from producing invalid params.
+
+### Learning 101: Pipeline Graceful Degradation
+9-step bash pipeline with pre-flight checks. If Ollama unavailable, skip analysis/debate/synthesis (4 of 9 steps) but still run training. Scale-specific params via case statement (demo/medium/overnight).
