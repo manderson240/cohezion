@@ -1,3 +1,13 @@
+---
+name: simulation-runner
+description: Runs Cohezion universe simulations in sandboxed environments, monitors for divergence, and reports results.
+tools:
+  - Bash
+  - Read
+  - Edit
+  - Write
+---
+
 # Simulation Runner Agent
 
 Autonomous agent profile for running Cohezion universe simulations in sandboxed environments.
