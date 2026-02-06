@@ -65,7 +65,7 @@ class LocalRegistry:
                 return model
 
         # Emergency fallbacks
-        for fallback in ["phi3:mini", "mistral:7b", "gemma:2b"]:
+        for fallback in ["phi3:mini", "deepseek-r1:7b", "gemma3:4b"]:
             if self.is_available(fallback):
                 return fallback
 

@@ -10,7 +10,7 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 import psutil
 
@@ -44,8 +44,8 @@ class ModeConfiguration:
     trigger: str
     memory_budget_gb: int
     target_coherence: float
-    models: List[str]
-    multimodal: List[str]
+    models: list[str]
+    multimodal: list[str]
     context_tier: int
     max_context: int
     auto_scale: bool
@@ -67,7 +67,7 @@ class ModelInfo:
     priority: int
     tier: int
     always_hot: bool
-    available_modes: List[str]
+    available_modes: list[str]
     multimodal: bool = False
     device: str = "gpu"
 
@@ -124,8 +124,8 @@ class ModeController:
         self.models = self._load_model_registry()
 
         # State tracking
-        self.active_models: Set[str] = set()
-        self.mode_history: List[Dict[str, Any]] = []
+        self.active_models: set[str] = set()
+        self.mode_history: list[dict[str, Any]] = []
         self.switch_in_progress = False
 
         # Monitoring
@@ -134,20 +134,27 @@ class ModeController:
         self.last_switch_time = 0
 
         self._initialized = True
-        logger.info(f"🌌 ASCENDED Mode Controller initialized")
+        logger.info("🌌 ASCENDED Mode Controller initialized")
         logger.info(f"   Governance: {governance_mode.value}")
         logger.info(f"   Initial Mode: {self.current_mode.value}")
         logger.info(f"   HIHO Target: {self.target_coherence}")
 
-    def _load_mode_configs(self) -> Dict[SystemMode, ModeConfiguration]:
+    @staticmethod
+    def _load_json_with_comments(path: Path) -> dict:
+        """Load a JSON file, stripping leading comment lines (lines starting with #)."""
+        text = path.read_text()
+        lines = text.split("\n")
+        cleaned = "\n".join(line for line in lines if not line.lstrip().startswith("#"))
+        return json.loads(cleaned)
+
+    def _load_mode_configs(self) -> dict[SystemMode, ModeConfiguration]:
         """Load mode configurations from registry"""
         registry_path = Path(
             "/home/mike-anderson/dev/cohezion/model_registry_ascended.json"
         )
 
         try:
-            with open(registry_path) as f:
-                data = json.load(f)
+            data = self._load_json_with_comments(registry_path)
 
             configs = {}
             for mode_name, mode_data in data["system_modes"].items():
@@ -173,15 +180,14 @@ class ModeController:
             logger.error(f"Failed to load mode configs: {e}")
             return {}
 
-    def _load_model_registry(self) -> Dict[str, ModelInfo]:
+    def _load_model_registry(self) -> dict[str, ModelInfo]:
         """Load model information from registry"""
         registry_path = Path(
             "/home/mike-anderson/dev/cohezion/model_registry_ascended.json"
         )
 
         try:
-            with open(registry_path) as f:
-                data = json.load(f)
+            data = self._load_json_with_comments(registry_path)
 
             models = {}
 
@@ -261,7 +267,7 @@ class ModeController:
         self.last_vitals = vitals
         return vitals
 
-    def detect_workload(self, task_queue: List[Dict[str, Any]]) -> Optional[SystemMode]:
+    def detect_workload(self, task_queue: list[dict[str, Any]]) -> SystemMode | None:
         """
         Analyze task queue and recommend optimal mode
         Returns None if current mode is optimal
@@ -484,7 +490,7 @@ class ModeController:
         except Exception as e:
             logger.error(f"Failed to load {model_name}: {e}")
 
-    def get_mode_info(self) -> Dict[str, Any]:
+    def get_mode_info(self) -> dict[str, Any]:
         """Get current mode information"""
         config = self.configs.get(self.current_mode)
         vitals = self.get_vitals()
@@ -505,7 +511,7 @@ class ModeController:
             "last_switch": self.last_switch_time,
         }
 
-    async def suggest_mode(self, task_description: str) -> Optional[SystemMode]:
+    async def suggest_mode(self, task_description: str) -> SystemMode | None:
         """
         Suggest optimal mode for a given task
         """
