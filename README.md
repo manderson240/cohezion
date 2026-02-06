@@ -76,7 +76,7 @@ src/cohezion/
 ├── mcp/              # MCP servers (SurrealDB, Knowledge, Skills, Research, Gmail)
 ├── mass_sim/         # Mass simulation engine (batch runner, exporter, OOM protection)
 ├── rl/               # Reinforcement learning (Gymnasium FlumeNav-v0, REINFORCE)
-├── pipeline/         # Data pipeline (mass sim → .npy → training)
+├── pipeline/         # Training pipeline (weight bridge, trained navigator, hyperparam debate)
 ├── skills/           # 126 PRIME skill definitions (markdown)
 └── core/             # Persistence, routing, event bus, config templates
 
