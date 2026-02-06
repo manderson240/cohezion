@@ -65,9 +65,7 @@ class PatternDetector:
 
     def get_frequent(self, min_occurrences: int = 3) -> list[Pattern]:
         """Return patterns seen at least *min_occurrences* times."""
-        return [
-            p for p in self.get_patterns() if p.occurrences >= min_occurrences
-        ]
+        return [p for p in self.get_patterns() if p.occurrences >= min_occurrences]
 
     def clear(self) -> None:
         """Reset all recorded patterns."""

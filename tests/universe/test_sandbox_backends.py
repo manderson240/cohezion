@@ -1,6 +1,5 @@
 """Tests for sandbox isolation backends."""
 
-
 import pytest
 
 from cohezion.universe.sandbox_backends import (

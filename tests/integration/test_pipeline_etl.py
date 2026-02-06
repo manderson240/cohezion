@@ -73,9 +73,7 @@ class TestCheckpointExporter:
 
     def test_export_final_states(self, tmp_artifact_dir):
         exporter = CheckpointExporter(tmp_artifact_dir)
-        states = np.random.default_rng(0).normal(0.5, 0.1, (50, 256)).astype(
-            np.float32
-        )
+        states = np.random.default_rng(0).normal(0.5, 0.1, (50, 256)).astype(np.float32)
 
         path = exporter.export_final_states("universe_42", states)
         assert path.exists()
@@ -90,9 +88,7 @@ class TestCheckpointExporter:
             n_epochs=100,
             initial_stats={},
             final_stats={},
-            checkpoints=[
-                CheckpointData(epoch=100, stats={}, sample_states=None)
-            ],
+            checkpoints=[CheckpointData(epoch=100, stats={}, sample_states=None)],
         )
         exporter = CheckpointExporter(tmp_artifact_dir)
         paths = exporter.export_universe_to_npy(result)
@@ -109,9 +105,7 @@ class TestETLRoundTrip:
         exporter.export_universe_to_npy(mock_universe_result)
 
         # Load
-        dataset = FlumeTrajectoryDataset(
-            data_dir=tmp_artifact_dir, max_samples=100
-        )
+        dataset = FlumeTrajectoryDataset(data_dir=tmp_artifact_dir, max_samples=100)
 
         # 3 checkpoints x 10 samples = 30
         assert len(dataset) == 30
@@ -147,7 +141,5 @@ class TestETLRoundTrip:
             states = rng.normal(0.5, 0.15, (20, 256)).astype(np.float32)
             np.save(tmp_artifact_dir / f"universe_{i}_final.npy", states)
 
-        dataset = FlumeTrajectoryDataset(
-            data_dir=tmp_artifact_dir, max_samples=100
-        )
+        dataset = FlumeTrajectoryDataset(data_dir=tmp_artifact_dir, max_samples=100)
         assert len(dataset) == 60  # 3 x 20

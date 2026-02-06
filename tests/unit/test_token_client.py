@@ -255,7 +255,13 @@ class TestTokenEfficientClientMetrics:
         client = TokenEfficientClient(ollama_client=MagicMock())
         m = client.get_metrics()
         assert isinstance(m, dict)
-        for key in ("cache_hits", "cache_misses", "cache_hit_rate", "tokens_saved", "total_calls"):
+        for key in (
+            "cache_hits",
+            "cache_misses",
+            "cache_hit_rate",
+            "tokens_saved",
+            "total_calls",
+        ):
             assert key in m
 
 

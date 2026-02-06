@@ -789,9 +789,7 @@ async def train_flume(request: FlumeTrainRequest):
         coherence_weight=request.coherence_weight,
     )
 
-    dataset = SyntheticFlumeDataset(
-        n_samples=request.n_samples, z_dim=request.z_dim
-    )
+    dataset = SyntheticFlumeDataset(n_samples=request.n_samples, z_dim=request.z_dim)
     trainer = FlumeVAETrainer(config)
 
     try:
@@ -836,7 +834,9 @@ async def flume_status():
         try:
             all_metrics = json.loads(metrics_file.read_text())
             if all_metrics:
-                last_metrics = all_metrics[-1] if isinstance(all_metrics, list) else all_metrics
+                last_metrics = (
+                    all_metrics[-1] if isinstance(all_metrics, list) else all_metrics
+                )
         except (json.JSONDecodeError, OSError):
             pass
 
@@ -868,7 +868,9 @@ def _get_vae():
             _vae_trainer.decoder.load_state_dict(ckpt["decoder"])
             logger.info("Loaded FLUME VAE checkpoint: %s", ckpt_path)
         else:
-            logger.warning("No FLUME VAE checkpoint found at %s; using random weights", ckpt_path)
+            logger.warning(
+                "No FLUME VAE checkpoint found at %s; using random weights", ckpt_path
+            )
     return _vae_trainer
 
 
@@ -1623,9 +1625,13 @@ async def metrics_training():
             data = _json.loads(flume_metrics.read_text())
             flume_info = {
                 "status": "trained",
-                "epochs": len(data) if isinstance(data, list) else data.get("epochs", 0),
+                "epochs": len(data)
+                if isinstance(data, list)
+                else data.get("epochs", 0),
                 "checkpoint": str(flume_ckpt) if flume_ckpt.exists() else None,
-                "metrics": data if isinstance(data, dict) else {"epoch_data": data[-3:]},
+                "metrics": data
+                if isinstance(data, dict)
+                else {"epoch_data": data[-3:]},
             }
         except Exception:
             flume_info = {"status": "checkpoint_found", "path": str(flume_metrics)}
@@ -1640,9 +1646,13 @@ async def metrics_training():
             data = _json.loads(rl_metrics.read_text())
             rl_info = {
                 "status": "trained",
-                "episodes": len(data) if isinstance(data, list) else data.get("episodes", 0),
+                "episodes": len(data)
+                if isinstance(data, list)
+                else data.get("episodes", 0),
                 "checkpoint": str(rl_ckpt) if rl_ckpt.exists() else None,
-                "metrics": data if isinstance(data, dict) else {"episode_data": data[-3:]},
+                "metrics": data
+                if isinstance(data, dict)
+                else {"episode_data": data[-3:]},
             }
         except Exception:
             rl_info = {"status": "checkpoint_found", "path": str(rl_metrics)}
@@ -1664,7 +1674,9 @@ async def metrics_pipeline():
         PipelineStageStatus(
             stage="mass_sim_export",
             status="complete" if npy_files else "pending",
-            detail=f"{len(npy_files)} .npy files" if npy_files else "No .npy exports found",
+            detail=f"{len(npy_files)} .npy files"
+            if npy_files
+            else "No .npy exports found",
         )
     )
 
@@ -1695,7 +1707,9 @@ async def metrics_pipeline():
         PipelineStageStatus(
             stage="weight_bridge",
             status="complete" if pipeline_ran.exists() else "pending",
-            detail="Weight bridge validated" if pipeline_ran.exists() else "Not yet executed",
+            detail="Weight bridge validated"
+            if pipeline_ran.exists()
+            else "Not yet executed",
         )
     )
 
@@ -1829,9 +1843,7 @@ async def swarm_execute(request: SwarmExecuteRequest):
         status=report_dict.get("status", ""),
         total_tokens=report_dict.get("total_tokens", 0),
         total_duration_ms=report_dict.get("total_duration_ms", 0.0),
-        tasks=[
-            SwarmTaskResult(**t) for t in report_dict.get("tasks", [])
-        ],
+        tasks=[SwarmTaskResult(**t) for t in report_dict.get("tasks", [])],
     )
 
 

@@ -60,17 +60,26 @@ class TestGenerateAgentSpec:
 
 class TestSelectModel:
     def test_test_tasks_route_to_phi3(self, orchestrator):
-        task = TaskSpec(id="t1", subject="Run tests", description="verify", tags=["test"])
+        task = TaskSpec(
+            id="t1", subject="Run tests", description="verify", tags=["test"]
+        )
         model = orchestrator.select_model(task)
         assert model == "phi3:mini"
 
     def test_code_tasks_route_to_qwen(self, orchestrator):
-        task = TaskSpec(id="t2", subject="Implement feature", description="implement", tags=["code"])
+        task = TaskSpec(
+            id="t2", subject="Implement feature", description="implement", tags=["code"]
+        )
         model = orchestrator.select_model(task)
         assert model == "qwen3-coder:30b"
 
     def test_reasoning_tasks_route_to_deepseek(self, orchestrator):
-        task = TaskSpec(id="t3", subject="Design architecture", description="architect", tags=["plan"])
+        task = TaskSpec(
+            id="t3",
+            subject="Design architecture",
+            description="architect",
+            tags=["plan"],
+        )
         model = orchestrator.select_model(task)
         assert model == "deepseek-r1:70b"
 

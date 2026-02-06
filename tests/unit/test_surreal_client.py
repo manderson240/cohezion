@@ -21,6 +21,7 @@ from cohezion.core.persistence.surreal_client import (
 # PhysicsState tests
 # ---------------------------------------------------------------------------
 
+
 class TestPhysicsState:
     def test_default_values(self):
         ps = PhysicsState()
@@ -36,10 +37,20 @@ class TestPhysicsState:
         assert float(arr[2]) == 3.0
 
     def test_from_array_roundtrip(self):
-        original = PhysicsState(x=1.0, y=2.0, z=3.0, time=4.0, physics=5.0,
-                                biology=6.0, logic=7.0, quantum=8.0,
-                                field=9.0, control=10.0, novelty=11.0,
-                                precipitation=12.0)
+        original = PhysicsState(
+            x=1.0,
+            y=2.0,
+            z=3.0,
+            time=4.0,
+            physics=5.0,
+            biology=6.0,
+            logic=7.0,
+            quantum=8.0,
+            field=9.0,
+            control=10.0,
+            novelty=11.0,
+            precipitation=12.0,
+        )
         arr = original.to_array()
         restored = PhysicsState.from_array(arr)
         assert abs(restored.x - 1.0) < 0.01
@@ -69,6 +80,7 @@ class TestPhysicsState:
 # ---------------------------------------------------------------------------
 # UniverseNode tests
 # ---------------------------------------------------------------------------
+
 
 class TestUniverseNode:
     def test_to_dict_basic(self):
@@ -104,6 +116,7 @@ class TestUniverseNode:
 # ---------------------------------------------------------------------------
 # InMemoryStore tests
 # ---------------------------------------------------------------------------
+
 
 class TestInMemoryStore:
     def test_store_and_get(self):
@@ -154,6 +167,7 @@ class TestInMemoryStore:
 # SurrealClient tests
 # ---------------------------------------------------------------------------
 
+
 class TestSurrealClientInit:
     def test_default_params(self):
         client = SurrealClient()
@@ -178,17 +192,21 @@ class TestSurrealClientConnect:
     async def test_fallback_to_inmemory_when_import_fails(self):
         """When surrealdb package is not importable, should use InMemoryStore."""
         import cohezion.core.persistence.surreal_client as mod
+
         old_shared = mod._SHARED_STORE
         mod._SHARED_STORE = None
 
         client = SurrealClient()
-        with patch("cohezion.core.persistence.surreal_client.get_circuit") as mock_circuit:
+        with patch(
+            "cohezion.core.persistence.surreal_client.get_circuit"
+        ) as mock_circuit:
             mock_breaker = MagicMock()
             mock_breaker.allow_request.return_value = True
             mock_circuit.return_value = mock_breaker
 
             # Patch the import inside connect to fail
             import builtins
+
             real_import = builtins.__import__
 
             def fake_import(name, *args, **kwargs):
@@ -232,7 +250,9 @@ class TestSurrealClientGetNode:
         client._client = InMemoryStore()
 
         # Store a node-like dict
-        node = UniverseNode(id="gn1", content="get me", physics_state=PhysicsState(x=1.0))
+        node = UniverseNode(
+            id="gn1", content="get me", physics_state=PhysicsState(x=1.0)
+        )
         await client.store_node(node)
 
         retrieved = await client.get_node("gn1")
@@ -279,9 +299,11 @@ class TestSurrealClientCreateRelationship:
         client._client = InMemoryStore()
 
         rel_id = await client.create_relationship(
-            from_id="node_a", to_id="node_b",
-            relation_type="bridges", weight=0.8,
-            metadata={"reason": "test"}
+            from_id="node_a",
+            to_id="node_b",
+            relation_type="bridges",
+            weight=0.8,
+            metadata={"reason": "test"},
         )
         assert rel_id is not None
         assert "node_a" in rel_id
@@ -309,8 +331,11 @@ class TestDictToNode:
     def test_compressed_content_decompression(self):
         client = SurrealClient()
         import zlib
+
         original = "A" * 200
-        compressed = base64.b64encode(zlib.compress(original.encode("utf-8"))).decode("ascii")
+        compressed = base64.b64encode(zlib.compress(original.encode("utf-8"))).decode(
+            "ascii"
+        )
         data = {
             "id": "t2",
             "content": compressed,

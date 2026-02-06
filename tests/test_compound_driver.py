@@ -125,7 +125,9 @@ class TestParseArgs:
 
     def test_custom_args(self):
         """Custom arguments are parsed correctly."""
-        args = parse_args(["--skills", "10", "--model", "qwen3:8b", "--threshold", "0.7"])
+        args = parse_args(
+            ["--skills", "10", "--model", "qwen3:8b", "--threshold", "0.7"]
+        )
         assert args.skills == 10
         assert args.model == "qwen3:8b"
         assert args.threshold == 0.7

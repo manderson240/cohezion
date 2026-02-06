@@ -59,9 +59,7 @@ class SmartRouterAdapter:
     def __init__(self, smart_router: SmartRouter) -> None:
         self._router = smart_router
 
-    async def select_optimal_model(
-        self, context: dict[str, Any]
-    ) -> ModelSelection:
+    async def select_optimal_model(self, context: dict[str, Any]) -> ModelSelection:
         """Select the best model given a task context dict.
 
         Parameters

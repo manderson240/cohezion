@@ -217,7 +217,9 @@ class DemocraticDebate:
                     num_predict=512,
                 )
             except Exception as e:
-                logger.error(f"TokenEfficientClient call for {persona.name} failed: {e}")
+                logger.error(
+                    f"TokenEfficientClient call for {persona.name} failed: {e}"
+                )
                 return f"[{persona.name} error: {e}]"
 
         # Fallback: direct httpx POST (original path)

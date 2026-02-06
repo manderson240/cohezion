@@ -236,9 +236,7 @@ class RetrospectionEngine:
         # Add compound analysis
         scores = self.calculate_compound_scores()
         if scores:
-            top_scores = sorted(
-                scores.items(), key=lambda x: x[1], reverse=True
-            )[:10]
+            top_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)[:10]
             lines.append("## Compound Impact (Top 10)")
             for name, score in top_scores:
                 lines.append(f"- {name}: {score:.3f}")
@@ -350,8 +348,7 @@ class RetrospectionEngine:
                 f"Token usage: {sum(tokens_by_task.values())} across {total} tasks",
             ],
             "suggested_refinements": [
-                {"skill": r.skill_name, "reason": r.reason}
-                for r in suggestions
+                {"skill": r.skill_name, "reason": r.reason} for r in suggestions
             ],
         }
 

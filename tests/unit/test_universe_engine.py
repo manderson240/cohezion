@@ -24,6 +24,7 @@ from cohezion.universe.engine import (
 # AxiomaticState tests
 # ---------------------------------------------------------------------------
 
+
 class TestAxiomaticState:
     def test_default_values(self):
         state = AxiomaticState()
@@ -54,16 +55,26 @@ class TestAxiomaticState:
     def test_coherence_score_perfect_at_half(self):
         """All dimensions at 0.5 should give perfect coherence (1.0)."""
         state = AxiomaticState(
-            physics=0.5, biology=0.5, logic=0.5, quantum=0.5,
-            field=0.5, control=0.5, novelty=0.5,
+            physics=0.5,
+            biology=0.5,
+            logic=0.5,
+            quantum=0.5,
+            field=0.5,
+            control=0.5,
+            novelty=0.5,
         )
         assert state.coherence_score() == 1.0
 
     def test_coherence_score_decays_away_from_half(self):
         """Dimensions far from 0.5 should give lower coherence."""
         state = AxiomaticState(
-            physics=0.0, biology=0.0, logic=0.0, quantum=0.0,
-            field=0.0, control=0.0, novelty=0.0,
+            physics=0.0,
+            biology=0.0,
+            logic=0.0,
+            quantum=0.0,
+            field=0.0,
+            control=0.0,
+            novelty=0.0,
         )
         score = state.coherence_score()
         assert score < 1.0
@@ -72,8 +83,13 @@ class TestAxiomaticState:
     def test_coherence_extremes(self):
         """All dimensions at 1.0 should be well below perfect coherence."""
         state = AxiomaticState(
-            physics=1.0, biology=1.0, logic=1.0, quantum=1.0,
-            field=1.0, control=1.0, novelty=1.0,
+            physics=1.0,
+            biology=1.0,
+            logic=1.0,
+            quantum=1.0,
+            field=1.0,
+            control=1.0,
+            novelty=1.0,
         )
         score = state.coherence_score()
         assert score < 1.0
@@ -82,6 +98,7 @@ class TestAxiomaticState:
 # ---------------------------------------------------------------------------
 # LatentState tests
 # ---------------------------------------------------------------------------
+
 
 class TestLatentState:
     def test_padding_to_2048(self):
@@ -105,13 +122,17 @@ class TestLatentState:
 # UniverseJourney tests
 # ---------------------------------------------------------------------------
 
+
 class TestUniverseJourney:
     def test_add_trajectory_point(self):
         journey = UniverseJourney(id="j1", agent_name="TestAgent", intent="test")
         point = TrajectoryPoint(
-            step_number=0, timestamp=time.time(),
-            axiomatic=AxiomaticState(), latent=LatentState([0.0] * 2048, "test"),
-            coherence=0.95, action_taken="test_action",
+            step_number=0,
+            timestamp=time.time(),
+            axiomatic=AxiomaticState(),
+            latent=LatentState([0.0] * 2048, "test"),
+            coherence=0.95,
+            action_taken="test_action",
         )
         journey.add_trajectory_point(point)
         assert len(journey.trajectory) == 1
@@ -146,6 +167,7 @@ class TestUniverseJourney:
 # SimpleEncoder tests
 # ---------------------------------------------------------------------------
 
+
 class TestSimpleEncoder:
     @pytest.mark.asyncio
     async def test_encode_returns_2048d(self):
@@ -177,6 +199,7 @@ class TestSimpleEncoder:
 # ---------------------------------------------------------------------------
 # UniverseSimulationEngine tests
 # ---------------------------------------------------------------------------
+
 
 class TestUniverseSimulationEngine:
     def test_init_creates_storage(self, tmp_path):
@@ -220,9 +243,12 @@ class TestUniverseSimulationEngine:
         journey = UniverseJourney(id="ek3", agent_name="A", intent="test")
         for i in range(5):
             point = TrajectoryPoint(
-                step_number=i, timestamp=time.time(),
-                axiomatic=AxiomaticState(), latent=LatentState([0.0]*2048, "t"),
-                coherence=0.8, action_taken="step",
+                step_number=i,
+                timestamp=time.time(),
+                axiomatic=AxiomaticState(),
+                latent=LatentState([0.0] * 2048, "t"),
+                coherence=0.8,
+                action_taken="step",
             )
             journey.add_trajectory_point(point)
         knowledge = engine._extract_knowledge(journey)

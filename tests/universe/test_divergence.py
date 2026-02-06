@@ -1,7 +1,5 @@
 """Tests for divergence detection."""
 
-
-
 from cohezion.universe.divergence import (
     HIHO_MAX_DRIFT,
     HIHO_TARGET,

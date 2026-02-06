@@ -54,7 +54,9 @@ def expander() -> InstructionExpander:
 
 
 @pytest.fixture()
-def sample_plan(sample_spec: SkillSpec, expander: InstructionExpander) -> ExecutablePlan:
+def sample_plan(
+    sample_spec: SkillSpec, expander: InstructionExpander
+) -> ExecutablePlan:
     return expander.expand(sample_spec)
 
 
@@ -67,7 +69,10 @@ class TestClassifyInstruction:
     """Test keyword classification for each operation type."""
 
     def test_search_keywords(self) -> None:
-        assert _classify_instruction("Search the codebase for relevant modules") == "search"
+        assert (
+            _classify_instruction("Search the codebase for relevant modules")
+            == "search"
+        )
         assert _classify_instruction("Find all available agents") == "search"
         assert _classify_instruction("Locate the configuration file") == "search"
         assert _classify_instruction("Identify potential issues") == "search"
@@ -85,7 +90,10 @@ class TestClassifyInstruction:
         assert _classify_instruction("Verify the output matches expected") == "analyze"
 
     def test_transform_keywords(self) -> None:
-        assert _classify_instruction("Transform the data into report format") == "transform"
+        assert (
+            _classify_instruction("Transform the data into report format")
+            == "transform"
+        )
         assert _classify_instruction("Convert JSON to CSV") == "transform"
         assert _classify_instruction("Extract keywords from the text") == "transform"
         assert _classify_instruction("Parse the configuration file") == "transform"
@@ -177,7 +185,10 @@ class TestInstructionExpander:
 
         assert plan.skill_name == spec.name
         assert len(plan.steps) == len(spec.instructions)
-        assert all(s.operation in ("search", "generate", "analyze", "transform", "persist") for s in plan.steps)
+        assert all(
+            s.operation in ("search", "generate", "analyze", "transform", "persist")
+            for s in plan.steps
+        )
 
 
 # ---------------------------------------------------------------------------

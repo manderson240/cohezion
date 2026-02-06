@@ -106,7 +106,9 @@ class LabAgent(BaseAgent):
 
         try:
             # 1. Generate seed thought
-            raw_seed = seed_override if seed_override else await self._fetch_seed_thought()
+            raw_seed = (
+                seed_override if seed_override else await self._fetch_seed_thought()
+            )
             logger.info(f"Seed Thought: {raw_seed[:100]}...")
 
             # 2. Analyze seed via LLM
@@ -243,9 +245,7 @@ class LabAgent(BaseAgent):
     async def _system_updates(self, report: str):
         """Update KEY_LEARNINGS and GEMINI.md asynchronously."""
         if "VERIFIED" in report:
-            logger.info(
-                "Discovery VERIFIED. Triggering recursive skill refinement..."
-            )
+            logger.info("Discovery VERIFIED. Triggering recursive skill refinement...")
             await self._update_knowledge_graph(report)
             await self._refine_skills(report)
         else:
@@ -304,9 +304,7 @@ class LabAgent(BaseAgent):
         if not self.session_discoveries:
             return
 
-        logger.info(
-            f"Autonomous Lab: {len(self.session_discoveries)} New Discoveries"
-        )
+        logger.info(f"Autonomous Lab: {len(self.session_discoveries)} New Discoveries")
         for d in self.session_discoveries:
             logger.info(
                 f"  {d.id}: Alignment {d.metadata['anthropic_alignment']:.2f} "

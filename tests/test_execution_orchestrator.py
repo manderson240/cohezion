@@ -6,7 +6,11 @@ import asyncio
 
 import pytest
 
-from cohezion.core.instruction_expander import ExecutablePlan, InstructionExpander, PlanStep
+from cohezion.core.instruction_expander import (
+    ExecutablePlan,
+    InstructionExpander,
+    PlanStep,
+)
 from cohezion.core.plan_executor import ExecutionResult, PlanExecutor, StepResult
 from cohezion.swarm.execution_orchestrator import (
     ExecutionOrchestrator,

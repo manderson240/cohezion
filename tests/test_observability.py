@@ -41,9 +41,7 @@ class TestKnowledgeGraphQueryEngine:
 
     def test_search_knowledge_nonexistent_dir(self, tmp_path):
         """Engine with nonexistent knowledge dir returns empty."""
-        engine = KnowledgeGraphQueryEngine(
-            knowledge_dir=tmp_path / "nonexistent"
-        )
+        engine = KnowledgeGraphQueryEngine(knowledge_dir=tmp_path / "nonexistent")
         results = engine.search_knowledge("anything", top_k=5)
         assert results == []
 

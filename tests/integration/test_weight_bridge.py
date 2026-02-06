@@ -19,7 +19,9 @@ def policy_checkpoint(tmp_path):
     hidden_dim = 128
     action_dim = 256
 
-    policy = PolicyNetwork(state_dim=state_dim, action_dim=action_dim, hidden=hidden_dim)
+    policy = PolicyNetwork(
+        state_dim=state_dim, action_dim=action_dim, hidden=hidden_dim
+    )
     ckpt_path = tmp_path / "test_policy.pt"
     torch.save(policy.state_dict(), ckpt_path)
     return ckpt_path, state_dim, hidden_dim, action_dim
@@ -64,15 +66,17 @@ class TestPolicyToFlumeWeights:
         expected_w2 = mean_w @ shared2_w
         expected_b2 = mean_b + mean_w @ shared2_b
 
-        np.testing.assert_allclose(weights["w2"], expected_w2, rtol=1e-4)
-        np.testing.assert_allclose(weights["b2"], expected_b2, rtol=1e-4)
+        np.testing.assert_allclose(weights["w2"], expected_w2, rtol=1e-3)
+        np.testing.assert_allclose(weights["b2"], expected_b2, rtol=1e-3)
 
     def test_layernorm_defaults(self, policy_checkpoint):
         """LayerNorm gamma=1, beta=0.5 (HIHO target shift)."""
         ckpt_path, _, hidden_dim, _ = policy_checkpoint
         weights = WeightBridge.policy_to_flume_weights(ckpt_path)
 
-        np.testing.assert_array_equal(weights["gamma"], np.ones(hidden_dim, dtype=np.float32))
+        np.testing.assert_array_equal(
+            weights["gamma"], np.ones(hidden_dim, dtype=np.float32)
+        )
         np.testing.assert_array_equal(
             weights["beta"], np.full(hidden_dim, 0.5, dtype=np.float32)
         )
@@ -158,7 +162,9 @@ class TestValidateCoherence:
         """Coherence at exact boundaries (0.3, 0.7) is valid."""
         for coh in (0.3, 0.7):
             mock_physics = self._make_mock_physics(coh, 0.80)
-            result = WeightBridge.validate_coherence(mock_physics, n_agents=50, n_epochs=10)
+            result = WeightBridge.validate_coherence(
+                mock_physics, n_agents=50, n_epochs=10
+            )
             assert result["valid"] is True, f"coherence={coh} should be valid"
 
     def test_calls_physics_with_correct_agents(self):

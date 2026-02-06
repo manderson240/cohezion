@@ -121,9 +121,7 @@ class TestFullPipelineDemoScale:
 
         nav = TrainedNavigator(ckpt_path, action_scale=0.01)
 
-        states = np.random.default_rng(0).normal(0.5, 0.1, (10, 256)).astype(
-            np.float32
-        )
+        states = np.random.default_rng(0).normal(0.5, 0.1, (10, 256)).astype(np.float32)
         deltas = nav.navigate_batch(states)
 
         assert deltas.shape == (10, 256)
@@ -167,9 +165,7 @@ class TestFullPipelineDemoScale:
 
         # 5. Create navigator
         nav = TrainedNavigator(rl_ckpt)
-        states = np.random.default_rng(0).normal(0.5, 0.1, (5, 256)).astype(
-            np.float32
-        )
+        states = np.random.default_rng(0).normal(0.5, 0.1, (5, 256)).astype(np.float32)
         deltas = nav.navigate_batch(states)
         assert deltas.shape == states.shape
 
