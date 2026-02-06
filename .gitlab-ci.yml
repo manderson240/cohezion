@@ -65,15 +65,7 @@ validate:imports:
   stage: validate
   <<: *uv-setup
   script:
-    - >-
-      uv run python -c "
-      from cohezion.core.template_engine import TemplateEngine;
-      from cohezion.registry.skill_registry import load_registry;
-      from cohezion.registry.capability_registry import CapabilityRegistry;
-      from cohezion.core.compound.retrospection import RetrospectionEngine;
-      from cohezion.validation.agent_schema import validate_all_agent_files;
-      print('All critical imports OK')
-      "
+    - uv run python -c "from cohezion.core.template_engine import TemplateEngine; from cohezion.registry.skill_registry import load_registry; from cohezion.registry.capability_registry import CapabilityRegistry; from cohezion.core.compound.retrospection import RetrospectionEngine; from cohezion.validation.agent_schema import validate_all_agent_files; print('All critical imports OK')"
 
 # ── Test ──────────────────────────────────────────────────────
 
@@ -85,6 +77,9 @@ test:unit:
   artifacts:
     reports:
       junit: report.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
     when: always
 
 test:integration:
