@@ -677,6 +677,574 @@ async def plot_journey(journey_id: str):
     )
 
 
+# ---------- Phase 2 Endpoints: Training & Templates ----------
+
+
+class FlumeTrainRequest(BaseModel):
+    epochs: int = 50
+    batch_size: int = 64
+    lr: float = 1e-3
+    z_dim: int = 256
+    kl_weight: float = 0.1
+    coherence_weight: float = 0.05
+    n_samples: int = 10000
+
+
+class FlumeTrainResponse(BaseModel):
+    epochs_completed: int
+    final_mse: float
+    final_kl: float
+    final_total: float
+    checkpoint_path: str
+
+
+class FlumeStatusResponse(BaseModel):
+    trained: bool
+    checkpoint_path: str | None = None
+    last_metrics: dict[str, Any] | None = None
+
+
+class TemplateParseRequest(BaseModel):
+    skill_name: str
+
+
+class TemplateParseResponse(BaseModel):
+    name: str
+    domain_expertise: str
+    concepts: dict[str, str]
+    instructions: list[str]
+    version: str
+    see_also: list[str]
+    agent_stub: str
+    config_class: str
+
+
+class FlumeEncodeRequest(BaseModel):
+    vector: list[float]  # 256D input vector
+
+
+class FlumeEncodeResponse(BaseModel):
+    mu: list[float]
+    log_var: list[float]
+    coherence: float
+
+
+class FlumeDecodeRequest(BaseModel):
+    latent: list[float]  # Latent-space vector
+
+
+class FlumeDecodeResponse(BaseModel):
+    reconstruction: list[float]
+    coherence: float
+
+
+class FlumeInterpolateRequest(BaseModel):
+    vector_a: list[float]  # 256D input vector A
+    vector_b: list[float]  # 256D input vector B
+    ratio: float = 0.5  # Interpolation ratio (0=A, 1=B)
+
+
+class FlumeInterpolateResponse(BaseModel):
+    result: list[float]
+    coherence: float
+    mu_a: list[float]
+    mu_b: list[float]
+
+
+class RLTrainRequest(BaseModel):
+    n_episodes: int = 100
+    max_steps: int = 200
+    lr: float = 3e-4
+    gamma: float = 0.99
+
+
+class RLTrainResponse(BaseModel):
+    episodes_completed: int
+    final_reward: float
+    final_coherence: float
+    mean_reward: float
+    checkpoint_path: str
+
+
+class RLPolicyResponse(BaseModel):
+    exists: bool
+    checkpoint_path: str | None = None
+    parameters: int | None = None
+    state_dim: int | None = None
+    action_dim: int | None = None
+
+
+@app.post("/flume/train", response_model=FlumeTrainResponse)
+async def train_flume(request: FlumeTrainRequest):
+    """Trigger FLUME VAE training on synthetic data."""
+    from cohezion.flume.dataset import SyntheticFlumeDataset
+    from cohezion.flume.training import FlumeVAETrainer, TrainConfig
+
+    config = TrainConfig(
+        z_dim=request.z_dim,
+        batch_size=request.batch_size,
+        epochs=request.epochs,
+        lr=request.lr,
+        kl_weight=request.kl_weight,
+        coherence_weight=request.coherence_weight,
+    )
+
+    dataset = SyntheticFlumeDataset(
+        n_samples=request.n_samples, z_dim=request.z_dim
+    )
+    trainer = FlumeVAETrainer(config)
+
+    try:
+        metrics = trainer.train(dataset=dataset)
+    except Exception as e:
+        logger.error(f"FLUME training failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+    final = metrics[-1]
+    checkpoint_dir = Path(config.checkpoint_dir)
+    ckpt_files = sorted(checkpoint_dir.glob("flume_vae_ep*.pt"))
+    checkpoint_path = str(ckpt_files[-1]) if ckpt_files else ""
+
+    return FlumeTrainResponse(
+        epochs_completed=len(metrics),
+        final_mse=final["mse"],
+        final_kl=final["kl"],
+        final_total=final["total"],
+        checkpoint_path=checkpoint_path,
+    )
+
+
+@app.get("/flume/status", response_model=FlumeStatusResponse)
+async def flume_status():
+    """Check FLUME VAE training status and latest checkpoint."""
+    checkpoint_dir = Path("data/flume/checkpoints")
+    if not checkpoint_dir.exists():
+        return FlumeStatusResponse(trained=False)
+
+    ckpt_files = sorted(checkpoint_dir.glob("flume_vae_ep*.pt"))
+    if not ckpt_files:
+        return FlumeStatusResponse(trained=False)
+
+    latest = ckpt_files[-1]
+
+    # Try to load metrics
+    metrics_file = checkpoint_dir / "training_metrics.json"
+    last_metrics = None
+    if metrics_file.exists():
+        import json
+
+        try:
+            all_metrics = json.loads(metrics_file.read_text())
+            if all_metrics:
+                last_metrics = all_metrics[-1] if isinstance(all_metrics, list) else all_metrics
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    return FlumeStatusResponse(
+        trained=True,
+        checkpoint_path=str(latest),
+        last_metrics=last_metrics,
+    )
+
+
+_vae_trainer = None
+
+
+def _get_vae():
+    """Lazy-load the trained FLUME VAE (singleton)."""
+    global _vae_trainer
+    if _vae_trainer is None:
+        import torch
+
+        from cohezion.flume.training import FlumeVAETrainer
+
+        _vae_trainer = FlumeVAETrainer()
+        ckpt_path = Path("data/flume/checkpoints/flume_vae_ep50.pt")
+        if ckpt_path.exists():
+            ckpt = torch.load(ckpt_path, weights_only=True)
+            _vae_trainer.encoder.load_state_dict(ckpt["encoder"])
+            _vae_trainer.mu_head.load_state_dict(ckpt["mu_head"])
+            _vae_trainer.logvar_head.load_state_dict(ckpt["logvar_head"])
+            _vae_trainer.decoder.load_state_dict(ckpt["decoder"])
+            logger.info("Loaded FLUME VAE checkpoint: %s", ckpt_path)
+        else:
+            logger.warning("No FLUME VAE checkpoint found at %s; using random weights", ckpt_path)
+    return _vae_trainer
+
+
+def _compute_coherence(z: list[float], z_dim: int = 256) -> float:
+    """Compute HIHO coherence: 1.0 at mean=0.5, decays with variance."""
+    import numpy as np
+
+    arr = np.array(z)
+    n_chunks = min(12, z_dim)
+    chunk_size = z_dim // n_chunks
+    variance_sum = 0.0
+
+    for c in range(n_chunks):
+        start = c * chunk_size
+        end = (c + 1) * chunk_size if c < n_chunks - 1 else z_dim
+        chunk_mean = float(np.mean(arr[start:end]))
+        variance_sum += (chunk_mean - 0.5) ** 2
+
+    variance = variance_sum / n_chunks
+    return max(0.0, 1.0 - min(variance * 4.0, 1.0))
+
+
+@app.post("/flume/encode", response_model=FlumeEncodeResponse)
+async def flume_encode(request: FlumeEncodeRequest):
+    """Encode a 256D vector through the trained VAE, returning mu and log_var."""
+    import torch
+
+    vae = _get_vae()
+    z_dim = vae.config.z_dim
+
+    if len(request.vector) != z_dim:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Expected {z_dim}D vector, got {len(request.vector)}D",
+        )
+
+    with torch.no_grad():
+        x = torch.tensor([request.vector], dtype=torch.float32, device=vae.device)
+        h = vae.encoder(x)
+        mu = vae.mu_head(h)
+        log_var = vae.logvar_head(h)
+
+    mu_list = mu.squeeze(0).tolist()
+    log_var_list = log_var.squeeze(0).tolist()
+    coherence = _compute_coherence(mu_list, z_dim)
+
+    return FlumeEncodeResponse(mu=mu_list, log_var=log_var_list, coherence=coherence)
+
+
+@app.post("/flume/decode", response_model=FlumeDecodeResponse)
+async def flume_decode(request: FlumeDecodeRequest):
+    """Decode a latent vector through the VAE, returning the reconstruction."""
+    import torch
+
+    vae = _get_vae()
+
+    with torch.no_grad():
+        z = torch.tensor([request.latent], dtype=torch.float32, device=vae.device)
+        recon = vae.decoder(z)
+
+    recon_list = recon.squeeze(0).tolist()
+    coherence = _compute_coherence(recon_list, len(recon_list))
+
+    return FlumeDecodeResponse(reconstruction=recon_list, coherence=coherence)
+
+
+@app.post("/flume/interpolate", response_model=FlumeInterpolateResponse)
+async def flume_interpolate(request: FlumeInterpolateRequest):
+    """Interpolate between two 256D vectors in latent space."""
+    import torch
+
+    vae = _get_vae()
+    z_dim = vae.config.z_dim
+
+    if len(request.vector_a) != z_dim or len(request.vector_b) != z_dim:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Both vectors must be {z_dim}D",
+        )
+
+    if not 0.0 <= request.ratio <= 1.0:
+        raise HTTPException(
+            status_code=422,
+            detail="Ratio must be between 0.0 and 1.0",
+        )
+
+    with torch.no_grad():
+        xa = torch.tensor([request.vector_a], dtype=torch.float32, device=vae.device)
+        xb = torch.tensor([request.vector_b], dtype=torch.float32, device=vae.device)
+
+        # Encode both vectors
+        ha = vae.encoder(xa)
+        mu_a = vae.mu_head(ha)
+        hb = vae.encoder(xb)
+        mu_b = vae.mu_head(hb)
+
+        # Linear interpolation in latent space
+        mu_interp = (1.0 - request.ratio) * mu_a + request.ratio * mu_b
+
+        # Decode the interpolated latent
+        result = vae.decoder(mu_interp)
+
+    result_list = result.squeeze(0).tolist()
+    coherence = _compute_coherence(result_list, z_dim)
+
+    return FlumeInterpolateResponse(
+        result=result_list,
+        coherence=coherence,
+        mu_a=mu_a.squeeze(0).tolist(),
+        mu_b=mu_b.squeeze(0).tolist(),
+    )
+
+
+@app.post("/templates/parse", response_model=TemplateParseResponse)
+async def parse_template(request: TemplateParseRequest):
+    """Parse a PRIME skill definition and return structured spec + generated code."""
+    from cohezion.core.config_templates import ConfigTemplateManager
+
+    manager = ConfigTemplateManager()
+
+    try:
+        spec = manager.engine.get_spec_by_name(request.skill_name)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+    if spec is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Skill not found: {request.skill_name}",
+        )
+
+    return TemplateParseResponse(
+        name=spec.name,
+        domain_expertise=spec.domain_expertise,
+        concepts=spec.concepts,
+        instructions=spec.instructions,
+        version=spec.version,
+        see_also=spec.see_also,
+        agent_stub=manager.engine.generate_agent_stub(spec),
+        config_class=manager.engine.generate_config_class(spec),
+    )
+
+
+@app.post("/rl/train", response_model=RLTrainResponse)
+async def train_rl(request: RLTrainRequest):
+    """Trigger RL policy training on FlumeNav-v0."""
+    from cohezion.rl.trainer import TrainingConfig, train
+
+    config = TrainingConfig(
+        n_episodes=request.n_episodes,
+        max_steps=request.max_steps,
+        lr=request.lr,
+        gamma=request.gamma,
+    )
+
+    try:
+        results = train(config)
+    except Exception as e:
+        logger.error(f"RL training failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+    final = results[-1]
+    import numpy as np
+
+    mean_reward = float(np.mean([r.total_reward for r in results]))
+    checkpoint_dir = Path(config.output_dir)
+    ckpt = checkpoint_dir / "policy_final.pt"
+
+    return RLTrainResponse(
+        episodes_completed=len(results),
+        final_reward=final.total_reward,
+        final_coherence=final.mean_coherence,
+        mean_reward=mean_reward,
+        checkpoint_path=str(ckpt) if ckpt.exists() else "",
+    )
+
+
+@app.get("/rl/policy/{agent_id}", response_model=RLPolicyResponse)
+async def get_rl_policy(agent_id: str):
+    """Inspect a trained RL policy checkpoint."""
+    checkpoint_dir = Path("data/rl/checkpoints")
+    ckpt_path = checkpoint_dir / f"policy_{agent_id}.pt"
+
+    # Also check for the default final checkpoint
+    if not ckpt_path.exists():
+        ckpt_path = checkpoint_dir / "policy_final.pt"
+
+    if not ckpt_path.exists():
+        return RLPolicyResponse(exists=False)
+
+    import torch
+
+    try:
+        state_dict = torch.load(ckpt_path, map_location="cpu", weights_only=True)
+        n_params = sum(v.numel() for v in state_dict.values())
+
+        # Infer dimensions from the first linear layer
+        state_dim = None
+        action_dim = None
+        if "shared.0.weight" in state_dict:
+            state_dim = state_dict["shared.0.weight"].shape[1]
+        if "mean_head.weight" in state_dict:
+            action_dim = state_dict["mean_head.weight"].shape[0]
+
+        return RLPolicyResponse(
+            exists=True,
+            checkpoint_path=str(ckpt_path),
+            parameters=n_params,
+            state_dim=state_dim,
+            action_dim=action_dim,
+        )
+    except Exception as e:
+        logger.warning(f"Failed to inspect policy checkpoint: {e}")
+        return RLPolicyResponse(exists=True, checkpoint_path=str(ckpt_path))
+
+
+# ---------- Phase 2 Endpoints: RL Inference ----------
+
+
+class RlStepRequest(BaseModel):
+    state: list[float]  # 256D state vector
+
+
+class RlStepResponse(BaseModel):
+    action: list[float]  # 256D action vector
+    coherence: float
+
+
+class RlEpisodeResponse(BaseModel):
+    steps: int
+    total_reward: float
+    mean_coherence: float
+    final_coherence: float
+    trajectory: list[dict[str, Any]]
+
+
+class RlPolicyInfoResponse(BaseModel):
+    loaded: bool
+    architecture: str | None = None
+    state_dim: int | None = None
+    action_dim: int | None = None
+    hidden_dim: int | None = None
+    parameters: int | None = None
+    checkpoint_path: str | None = None
+    training_metrics: list[dict[str, Any]] | dict[str, Any] | None = None
+
+
+_rl_policy = None
+
+
+def _get_rl_policy():
+    """Lazy-load the trained RL policy singleton."""
+    global _rl_policy
+    if _rl_policy is None:
+        import torch
+
+        from cohezion.rl.trainer import PolicyNetwork
+
+        _rl_policy = PolicyNetwork(state_dim=256, action_dim=256, hidden=128)
+        ckpt_path = Path("data/rl/checkpoints/policy_final.pt")
+        if ckpt_path.exists():
+            _rl_policy.load_state_dict(
+                torch.load(ckpt_path, map_location="cpu", weights_only=True)
+            )
+            _rl_policy.eval()
+            logger.info("Loaded RL policy from %s", ckpt_path)
+        else:
+            logger.warning("No RL checkpoint at %s — using random policy", ckpt_path)
+    return _rl_policy
+
+
+@app.post("/rl/step", response_model=RlStepResponse)
+async def rl_step(request: RlStepRequest):
+    """Run a single RL step: state -> policy -> action + coherence."""
+    import numpy as np
+
+    if len(request.state) != 256:
+        raise HTTPException(
+            status_code=422,
+            detail=f"State must be 256D, got {len(request.state)}D",
+        )
+
+    policy = _get_rl_policy()
+    state = np.array(request.state, dtype=np.float32)
+    action, _log_prob = policy.get_action(state)
+
+    # Compute coherence of resulting state (state + scaled action)
+    next_state = state + action * 0.01
+    coherence = _compute_coherence(next_state.tolist(), 256)
+
+    return RlStepResponse(
+        action=action.tolist(),
+        coherence=coherence,
+    )
+
+
+@app.post("/rl/episode", response_model=RlEpisodeResponse)
+async def rl_episode():
+    """Run a full RL episode (up to 200 steps) with the trained policy."""
+    import gymnasium as gym
+    import numpy as np
+
+    import cohezion.rl.environment  # noqa: F401
+
+    policy = _get_rl_policy()
+    env = gym.make("cohezion/FlumeNav-v0", max_steps=200)
+
+    try:
+        obs, info = env.reset(seed=42)
+        trajectory: list[dict[str, Any]] = []
+        total_reward = 0.0
+        coherences: list[float] = [info["coherence"]]
+
+        for _step in range(200):
+            action, _log_prob = policy.get_action(obs)
+            obs, reward, terminated, truncated, info = env.step(action)
+
+            total_reward += reward
+            coherences.append(info["coherence"])
+            trajectory.append(
+                {
+                    "state_mean": float(np.mean(obs)),
+                    "state_std": float(np.std(obs)),
+                    "action_norm": float(np.linalg.norm(action)),
+                    "reward": reward,
+                    "coherence": info["coherence"],
+                }
+            )
+
+            if terminated or truncated:
+                break
+    finally:
+        env.close()
+
+    return RlEpisodeResponse(
+        steps=len(trajectory),
+        total_reward=total_reward,
+        mean_coherence=float(np.mean(coherences)),
+        final_coherence=coherences[-1],
+        trajectory=trajectory,
+    )
+
+
+@app.get("/rl/policy-info", response_model=RlPolicyInfoResponse)
+async def rl_policy_info():
+    """Return policy metadata: architecture, parameters, training metrics."""
+    import json
+
+    ckpt_path = Path("data/rl/checkpoints/policy_final.pt")
+    if not ckpt_path.exists():
+        return RlPolicyInfoResponse(loaded=False)
+
+    policy = _get_rl_policy()
+    n_params = sum(p.numel() for p in policy.parameters())
+
+    # Load training metrics if available
+    metrics_path = Path("data/rl/checkpoints/training_metrics.json")
+    training_metrics = None
+    if metrics_path.exists():
+        try:
+            training_metrics = json.loads(metrics_path.read_text())
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    return RlPolicyInfoResponse(
+        loaded=True,
+        architecture="PolicyNetwork(shared=[Linear+ReLU x2], mean_head=Linear, log_std=Parameter)",
+        state_dim=256,
+        action_dim=256,
+        hidden_dim=128,
+        parameters=n_params,
+        checkpoint_path=str(ckpt_path),
+        training_metrics=training_metrics,
+    )
+
+
 if __name__ == "__main__":
     import uvicorn
 
