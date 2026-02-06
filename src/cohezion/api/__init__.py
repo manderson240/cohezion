@@ -1418,11 +1418,23 @@ class SkillExecuteRequest(BaseModel):
     config: dict[str, Any] = {}
 
 
+class PlanStepOut(BaseModel):
+    step_index: int
+    operation: str
+    description: str
+    output: str
+    tokens_used: int
+    duration_ms: float
+
+
 class SkillExecuteResponse(BaseModel):
     skill_name: str
     agent_class: str
     result: str
     status: str
+    plan_steps: list[PlanStepOut] | None = None
+    total_tokens: int | None = None
+    total_duration_ms: float | None = None
 
 
 class CapabilityQueryRequest(BaseModel):
@@ -1437,34 +1449,49 @@ class CapabilityQueryResponse(BaseModel):
 
 @app.post("/skills/{skill_name}/execute", response_model=SkillExecuteResponse)
 async def execute_skill(skill_name: str, request: SkillExecuteRequest):
-    """Parse skill, generate agent, execute with input, return result."""
+    """Parse skill, expand instructions into a plan, and execute via PlanExecutor."""
     from cohezion.agents.factory import AgentFactory
+    from cohezion.core.instruction_expander import InstructionExpander
+    from cohezion.core.plan_executor import PlanExecutor
 
     factory = AgentFactory()
     try:
-        agent = factory.create(skill_name)
+        spec = factory._resolve_spec(skill_name)
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Skill not found: {skill_name}")
 
-    class_name = type(agent).__name__
+    class_name = f"{spec.name}Agent"
 
-    # Generated stubs raise NotImplementedError — return a placeholder result
+    # Expand instructions into a plan and execute
     try:
-        result = await agent.process(request.input_text)
+        expander = InstructionExpander()
+        plan = expander.expand(spec)
+        executor = PlanExecutor(token_client=None)
+        exec_result = await executor.execute(plan, request.input_text)
+
+        step_outputs = [
+            PlanStepOut(
+                step_index=sr.step_index,
+                operation=sr.operation,
+                description=plan.steps[sr.step_index].description,
+                output=sr.output,
+                tokens_used=sr.tokens_used,
+                duration_ms=sr.duration_ms,
+            )
+            for sr in exec_result.steps
+        ]
+
         return SkillExecuteResponse(
             skill_name=skill_name,
             agent_class=class_name,
-            result=str(result),
+            result=exec_result.final_output,
             status="executed",
-        )
-    except NotImplementedError:
-        return SkillExecuteResponse(
-            skill_name=skill_name,
-            agent_class=class_name,
-            result=f"Agent {class_name} created from {skill_name} (stub — execution not yet implemented)",
-            status="stub",
+            plan_steps=step_outputs,
+            total_tokens=exec_result.total_tokens,
+            total_duration_ms=exec_result.total_duration_ms,
         )
     except Exception as exc:
+        logger.exception("Skill execution failed: %s", skill_name)
         return SkillExecuteResponse(
             skill_name=skill_name,
             agent_class=class_name,
@@ -1717,4 +1744,123 @@ async def knowledge_query(request: KnowledgeQueryRequest):
     results = engine.search_knowledge(request.query, top_k=request.top_k)
     return KnowledgeQueryResponse(
         query=request.query, results=results, count=len(results)
+    )
+
+
+# --- Token Efficiency Metrics ---
+
+
+class TokenMetricsResponse(BaseModel):
+    cache_hits: int = 0
+    cache_misses: int = 0
+    cache_hit_rate: float = 0.0
+    tokens_saved: int = 0
+    total_calls: int = 0
+    model_usage: dict[str, int] = {}
+
+
+@app.get("/metrics/tokens", response_model=TokenMetricsResponse)
+async def metrics_tokens():
+    """Return token efficiency metrics from the shared TokenEfficientClient."""
+    from cohezion.swarm.token_client import TokenEfficientClient
+
+    # Use a module-level singleton if available, otherwise return zeros
+    client = getattr(metrics_tokens, "_client", None)
+    if client is None:
+        return TokenMetricsResponse()
+    return TokenMetricsResponse(**client.get_metrics())
+
+
+def set_token_client(client: Any) -> None:
+    """Register a TokenEfficientClient for the /metrics/tokens endpoint."""
+    metrics_tokens._client = client  # type: ignore[attr-defined]
+
+
+# --- Swarm Execution ---
+
+
+class SwarmExecuteRequest(BaseModel):
+    intent: str
+    max_agents: int = 4
+
+
+class SwarmTaskResult(BaseModel):
+    task_id: str = ""
+    subject: str = ""
+    status: str = ""
+    error: str | None = None
+    duration_ms: float = 0.0
+    tokens: int = 0
+
+
+class SwarmExecuteResponse(BaseModel):
+    report_id: str = ""
+    plan_name: str = ""
+    intent: str = ""
+    status: str = ""
+    total_tokens: int = 0
+    total_duration_ms: float = 0.0
+    tasks: list[SwarmTaskResult] = []
+
+
+@app.post("/swarm/execute", response_model=SwarmExecuteResponse)
+async def swarm_execute(request: SwarmExecuteRequest):
+    """Plan and execute a swarm from a natural language intent."""
+    from cohezion.swarm.team_orchestrator import TeamOrchestrator
+
+    orchestrator = TeamOrchestrator()
+    report = await orchestrator.execute_team(
+        request.intent, max_agents=request.max_agents
+    )
+
+    report_dict = report.to_dict()
+    return SwarmExecuteResponse(
+        report_id=report_dict.get("report_id", ""),
+        plan_name=report_dict.get("plan_name", ""),
+        intent=report_dict.get("intent", ""),
+        status=report_dict.get("status", ""),
+        total_tokens=report_dict.get("total_tokens", 0),
+        total_duration_ms=report_dict.get("total_duration_ms", 0.0),
+        tasks=[
+            SwarmTaskResult(**t) for t in report_dict.get("tasks", [])
+        ],
+    )
+
+
+# --- Compound Engineering Metrics ---
+
+
+class CompoundMetricsResponse(BaseModel):
+    total_learnings: int = 0
+    top_compound_scores: list[dict[str, Any]] = []
+    suggested_refinements: list[dict[str, Any]] = []
+    total_executions: int = 0
+
+
+@app.get("/metrics/compound", response_model=CompoundMetricsResponse)
+async def metrics_compound():
+    """Return compound engineering metrics from retrospection analysis."""
+    from cohezion.core.compound.retrospection import RetrospectionEngine
+
+    engine = RetrospectionEngine()
+    learnings = engine.analyze_learnings()
+    scores = engine.calculate_compound_scores()
+    refinements = engine.suggest_skill_refinements()
+
+    top_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)[:10]
+
+    return CompoundMetricsResponse(
+        total_learnings=len(learnings),
+        top_compound_scores=[
+            {"name": name, "score": score} for name, score in top_scores
+        ],
+        suggested_refinements=[
+            {
+                "skill_name": r.skill_name,
+                "reason": r.reason,
+                "learning_count": len(r.suggested_additions),
+            }
+            for r in refinements
+        ],
+        total_executions=0,
     )

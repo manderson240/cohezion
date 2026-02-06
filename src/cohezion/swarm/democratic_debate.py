@@ -191,15 +191,36 @@ class DemocraticDebate:
     6. If no consensus, iterate with refined proposals
     """
 
-    def __init__(self, ollama_host: str = "http://localhost:11434"):
+    def __init__(
+        self,
+        ollama_host: str = "http://localhost:11434",
+        token_client: "TokenEfficientClient | None" = None,
+    ):
+        from cohezion.swarm.token_client import TokenEfficientClient as _TC  # noqa: F811
+
         self.ollama_host = ollama_host
         self.personas = AGENT_PERSONAS
         self.client = httpx.AsyncClient(timeout=120.0)
+        self._token_client: _TC | None = token_client  # type: ignore[assignment]
         self.output_dir = Path("src/cohezion/knowledge_graph/universe_nodes/debates")
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     async def _call_agent(self, persona: AgentPersona, prompt: str) -> str:
-        """Call an agent via Ollama."""
+        """Call an agent via Ollama, using TokenEfficientClient if available."""
+        if self._token_client is not None:
+            try:
+                return await self._token_client.generate(
+                    prompt=prompt,
+                    system=persona.system_prompt(),
+                    model=persona.model,
+                    temperature=0.8,
+                    num_predict=512,
+                )
+            except Exception as e:
+                logger.error(f"TokenEfficientClient call for {persona.name} failed: {e}")
+                return f"[{persona.name} error: {e}]"
+
+        # Fallback: direct httpx POST (original path)
         try:
             response = await self.client.post(
                 f"{self.ollama_host}/api/generate",

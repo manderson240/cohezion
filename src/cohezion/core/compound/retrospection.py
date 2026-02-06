@@ -283,3 +283,84 @@ class RetrospectionEngine:
                 )
 
         return refinements
+
+    def analyze_execution(self, report: object) -> dict:
+        """Analyze an execution report and extract compound insights.
+
+        Parameters
+        ----------
+        report : ExecutionReport
+            An execution report (duck-typed to avoid circular imports).
+            Expected attributes: ``task_results`` (list), ``total_tokens``,
+            ``total_duration_ms``, ``plan_name``.
+
+        Returns
+        -------
+        dict
+            Analysis with keys ``"patterns"``, ``"compound_score_delta"``,
+            ``"insights"``, ``"suggested_refinements"``.
+        """
+        task_results = getattr(report, "task_results", [])
+        plan_name = getattr(report, "plan_name", "unknown")
+
+        # Analyze task outcomes
+        statuses = [getattr(tr, "status", "unknown") for tr in task_results]
+        completed = statuses.count("completed")
+        failed = statuses.count("failed")
+        total = len(statuses)
+
+        # Collect tokens per task
+        tokens_by_task: dict[str, int] = {}
+        for tr in task_results:
+            exec_res = getattr(tr, "execution", None)
+            if exec_res is not None:
+                tokens_by_task[getattr(tr, "task_id", "?")] = getattr(
+                    exec_res, "total_tokens", 0
+                )
+
+        # Calculate compound score delta
+        success_rate = completed / max(total, 1)
+        token_efficiency = 1.0 - min(
+            sum(tokens_by_task.values()) / max(total * 500, 1), 1.0
+        )
+        compound_delta = round(success_rate * 0.7 + token_efficiency * 0.3, 4)
+
+        # Extract patterns
+        patterns: list[str] = []
+        if failed > 0:
+            patterns.append(f"{failed}/{total} tasks failed — review error handling")
+        if success_rate == 1.0:
+            patterns.append("All tasks succeeded — good skill coverage")
+        if sum(tokens_by_task.values()) == 0:
+            patterns.append("Zero tokens used — no LLM calls (offline execution)")
+
+        # Suggest refinements based on execution
+        suggestions = self.suggest_skill_refinements()
+
+        insights = {
+            "plan_name": plan_name,
+            "tasks_total": total,
+            "tasks_completed": completed,
+            "tasks_failed": failed,
+            "total_tokens": sum(tokens_by_task.values()),
+            "patterns": patterns,
+            "compound_score_delta": compound_delta,
+            "insights": [
+                f"Execution of '{plan_name}' completed {completed}/{total} tasks",
+                f"Token usage: {sum(tokens_by_task.values())} across {total} tasks",
+            ],
+            "suggested_refinements": [
+                {"skill": r.skill_name, "reason": r.reason}
+                for r in suggestions
+            ],
+        }
+
+        logger.info(
+            "Execution analysis for %s: %d/%d tasks, delta=%.4f",
+            plan_name,
+            completed,
+            total,
+            compound_delta,
+        )
+
+        return insights
