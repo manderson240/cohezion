@@ -83,14 +83,31 @@ Examples:
 
     # Simulate commands
     simulate_parser = subparsers.add_parser(
-        "simulate", help="Run universe simulations and what-if scenarios"
+        "simulate", help="Run sandboxed simulations with isolation backends"
     )
-    simulate_parser.add_argument("--journey", "-j", help="Journey to simulate")
-    simulate_parser.add_argument("--scenario", "-s", help="Scenario name")
     simulate_parser.add_argument(
-        "--duration", "-d", default="1h", help="Simulation duration"
+        "--tier",
+        "-t",
+        choices=["light", "medium", "heavy"],
+        default="light",
+        help="Resource tier (default: light)",
     )
-    simulate_parser.add_argument("--stress_test", help="Stress test parameters")
+    simulate_parser.add_argument(
+        "--backend",
+        "-b",
+        choices=["docker", "systemd", "subprocess"],
+        default=None,
+        help="Isolation backend (auto-selected if omitted)",
+    )
+    simulate_parser.add_argument(
+        "--script", help="Path to a Python script to execute in the sandbox"
+    )
+    simulate_parser.add_argument(
+        "--example",
+        "-e",
+        choices=["hello", "coherence_walk"],
+        help="Run a built-in example simulation",
+    )
 
     # Precipitate command
     precipitate_parser = subparsers.add_parser(
@@ -213,6 +230,32 @@ Examples:
         "--model", "-m", default="qwen2.5-coder:7b", help="Model to use"
     )
 
+    # Mass Simulation command
+    mass_sim_parser = subparsers.add_parser(
+        "mass-sim", help="Run mass FLUME simulation across universes"
+    )
+    mass_sim_parser.add_argument(
+        "--scale",
+        "-s",
+        choices=["demo", "medium", "overnight"],
+        default="demo",
+        help="Scale tier (default: demo)",
+    )
+    mass_sim_parser.add_argument("--agents", type=int, default=None)
+    mass_sim_parser.add_argument("--epochs", type=int, default=None)
+    mass_sim_parser.add_argument("--universes", type=int, default=None)
+    mass_sim_parser.add_argument("--seed", type=int, default=42)
+    mass_sim_parser.add_argument(
+        "--no-navigator",
+        action="store_true",
+        help="Use jitter instead of neural navigator",
+    )
+    mass_sim_parser.add_argument(
+        "--no-persist",
+        action="store_true",
+        help="Skip SurrealDB persistence",
+    )
+
     # Interactive mode
     subparsers.add_parser("interactive", help="Start interactive mode")
 
@@ -278,22 +321,92 @@ async def cmd_journey_list(args: argparse.Namespace) -> int:
 
 
 async def cmd_simulate(args: argparse.Namespace) -> int:
-    """Handle simulate command."""
-    logger.info("🔮 Running universe simulation...")
-    logger.info(f"   Journey: {args.journey or 'new scenario'}")
-    logger.info(f"   Duration: {args.duration}")
+    """Handle simulate command — run scripts in sandboxed isolation."""
+    from uuid import uuid4
 
-    if args.stress_test:
-        logger.info(f"   Stress test: {args.stress_test}")
+    from cohezion.universe.example_simulations import EXAMPLES
+    from cohezion.universe.sandbox_backends import (
+        DockerBackend,
+        SubprocessBackend,
+        SystemdRunBackend,
+        select_backend,
+    )
+    from cohezion.universe.sandbox_profiles import SandboxTier, get_profile
+    from cohezion.universe.sandbox_results import persist_result
 
-    # Mock simulation results
-    logger.info("\nSimulation Results:")
-    logger.info("   Coherence: 0.52 (HIHO stable ✓)")
-    logger.info("   Predicted phi: 0.84")
-    logger.info("   Stability: HIGH")
-    logger.info("   Recommendation: PROCEED with precipitation")
+    # Resolve script content
+    if args.example:
+        script = EXAMPLES[args.example]
+        script_label = f"example:{args.example}"
+    elif args.script:
+        script_path = Path(args.script)
+        if not script_path.is_file():
+            logger.error(f"Script not found: {args.script}")
+            return 1
+        script = script_path.read_text()
+        script_label = str(script_path)
+    else:
+        logger.error("Provide --script PATH or --example NAME")
+        return 1
 
-    return 0
+    # Resolve tier
+    tier_map = {
+        "light": SandboxTier.LIGHT,
+        "medium": SandboxTier.MEDIUM,
+        "heavy": SandboxTier.HEAVY,
+    }
+    tier = tier_map[args.tier]
+    profile = get_profile(tier)
+
+    # Resolve backend
+    backend_map = {
+        "docker": DockerBackend,
+        "systemd": SystemdRunBackend,
+        "subprocess": SubprocessBackend,
+    }
+    if args.backend:
+        backend = backend_map[args.backend]()
+    else:
+        backend = select_backend()
+
+    backend_name = type(backend).__name__
+    run_id = f"sim_{uuid4().hex[:8]}"
+
+    logger.info(f"Sandbox run {run_id}")
+    logger.info(f"  Script: {script_label}")
+    logger.info(
+        f"  Tier: {args.tier} (mem={profile.memory_limit_mb}MB, cpu={profile.cpu_quota_percent}%)"
+    )
+    logger.info(f"  Backend: {backend_name}")
+
+    result = await backend.execute(script, profile)
+
+    # Persist results
+    run_dir = persist_result(
+        result,
+        run_id,
+        tier=args.tier,
+        backend=backend_name,
+    )
+
+    # Print summary
+    status = "SUCCESS" if result.success else "FAILED"
+    logger.info(
+        f"\n  Result: {status} (exit_code={result.exit_code}, duration={result.duration:.2f}s)"
+    )
+
+    if result.stdout:
+        print(result.stdout)
+
+    if result.stderr:
+        logger.warning(f"  stderr: {result.stderr[:500]}")
+
+    if result.output_files:
+        logger.info(f"  Output files: {', '.join(result.output_files.keys())}")
+
+    logger.info(f"  Saved to: {run_dir}")
+
+    return 0 if result.success else 1
 
 
 async def cmd_precipitate(args: argparse.Namespace) -> int:
@@ -640,6 +753,29 @@ async def cmd_mycelium(args: argparse.Namespace) -> int:
     return 0
 
 
+async def cmd_mass_sim(args: argparse.Namespace) -> int:
+    """Handle mass-sim command."""
+    from cohezion.mass_sim.config import SCALE_TIERS, SimulationConfig
+    from cohezion.mass_sim.orchestrator import MassSimOrchestrator
+
+    config = SimulationConfig(
+        scale=SCALE_TIERS[args.scale],
+        use_navigator=not args.no_navigator,
+        persist_to_db=not args.no_persist,
+        agent_seed_base=args.seed,
+    )
+    config = config.with_overrides(
+        agents=args.agents,
+        epochs=args.epochs,
+        universes=args.universes,
+    )
+
+    orchestrator = MassSimOrchestrator(config)
+    report = await orchestrator.run()
+    print(json.dumps(report.summary_dict(), indent=2, default=str))
+    return 0
+
+
 async def cmd_interactive() -> int:
     """Start interactive mode."""
     print("""
@@ -738,6 +874,9 @@ async def main_async() -> int:
 
     elif args.command == "mycelium":
         return await cmd_mycelium(args)
+
+    elif args.command == "mass-sim":
+        return await cmd_mass_sim(args)
 
     elif args.command == "interactive":
         return await cmd_interactive()

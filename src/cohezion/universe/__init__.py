@@ -6,6 +6,7 @@ multi-backend sandbox isolation, and divergence detection.
 
 from cohezion.universe.divergence import DivergenceDetector, DivergenceStatus
 from cohezion.universe.engine import UniverseSimulationEngine
+from cohezion.universe.example_simulations import EXAMPLES
 from cohezion.universe.sandbox import ContainerizedUniverse, SandboxResult
 from cohezion.universe.sandbox_backends import (
     BackendResult,
@@ -22,6 +23,7 @@ from cohezion.universe.sandbox_profiles import (
     SandboxTier,
     get_profile,
 )
+from cohezion.universe.sandbox_results import persist_result
 
 __all__ = [
     "BackendResult",
@@ -29,6 +31,7 @@ __all__ = [
     "DivergenceDetector",
     "DivergenceStatus",
     "DockerBackend",
+    "EXAMPLES",
     "IsolationBackend",
     "PROFILES",
     "SandboxManager",
@@ -40,5 +43,6 @@ __all__ = [
     "UniverseSimulationEngine",
     "get_profile",
     "get_sandbox_manager",
+    "persist_result",
     "select_backend",
 ]
