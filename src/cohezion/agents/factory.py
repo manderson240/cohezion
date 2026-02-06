@@ -75,6 +75,12 @@ class AgentFactory:
         except TypeError:
             # _StubAgent or other fallback that doesn't accept model_name
             return cls()
+        except RuntimeError:
+            # BaseAgent.__init__ creates an asyncio task — fails outside event loop.
+            # Fall back to a lightweight stub that preserves the class identity.
+            stub = _StubAgent(**{k: v for k, v in agent_kwargs.items() if k != "model_name"})
+            stub.__class__ = cls  # type: ignore[assignment]
+            return stub
 
     def get_class(self, skill_name: str) -> type:
         """Return the agent class (cached) for *skill_name*.
