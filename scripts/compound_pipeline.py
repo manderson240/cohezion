@@ -81,10 +81,10 @@ def compound_pipeline(intent: str, max_agents: int = 4) -> None:
     3. Output plan for Claude Code to execute
     4. Run retrospection
     """
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("  COMPOUND ENGINEERING PIPELINE")
     print(f"  Intent: {intent}")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     # Step 1: Search capabilities
     print("Step 1: Searching capability registry...")
@@ -131,9 +131,74 @@ def compound_pipeline(intent: str, max_agents: int = 4) -> None:
         registry.increment_usage(match.name)
         print(f"  Incremented usage: {match.name}")
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("  Pipeline complete.")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
+
+
+def live_execution(intent: str, model: str | None = None) -> None:
+    """Run live compound execution via CompoundExecutor."""
+    import asyncio
+
+    from cohezion.compound.executor import CompoundExecutor
+
+    async def _run() -> None:
+        executor = CompoundExecutor()
+        # Use intent as both skill hint and input
+        skill_name = "COMPOUND_ENGINEERING_PRIME"  # default skill
+        print(f"\n  Running live execution: {skill_name}")
+        print(f"  Input: {intent[:80]}...")
+        result = await executor.execute_skill(skill_name, intent, model=model)
+        print(f"\n  Steps: {len(result.steps)}")
+        print(f"  Tokens: {result.total_tokens}")
+        print(f"  Duration: {result.total_duration_ms:.0f}ms")
+        print(f"  Models: {result.model_usage}")
+        print(f"\n  Output: {result.final_output[:200]}...")
+
+    asyncio.run(_run())
+
+
+def feedback_cycle(intent: str, cycles: int = 1, model: str | None = None) -> None:
+    """Run the compound feedback loop."""
+    import asyncio
+
+    from cohezion.compound.feedback_loop import CompoundFeedbackLoop
+
+    async def _run() -> None:
+        loop = CompoundFeedbackLoop()
+        skill_name = "COMPOUND_ENGINEERING_PRIME"
+        if cycles > 1:
+            report = await loop.run_multi_cycle(
+                skill_name, intent, cycles=cycles, model=model
+            )
+            print(f"\n  Cycles: {report.total_cycles}")
+            print(f"  Tokens: {report.total_tokens}")
+            print(f"  Refinements: {report.total_refinements}")
+            print(f"  Final delta: {report.final_compound_score_delta:.4f}")
+        else:
+            result = await loop.run_cycle(skill_name, intent, model=model)
+            print(f"\n  Delta: {result.compound_score_delta:.4f}")
+            print(f"  Tokens: {result.execution_tokens}")
+            print(f"  Refinements: {result.refinements_applied}")
+            print(f"  Patterns: {result.patterns}")
+
+    asyncio.run(_run())
+
+
+def show_metrics() -> None:
+    """Display compound metrics from the collector."""
+    from cohezion.compound.metrics import get_collector
+
+    collector = get_collector()
+    health = collector.to_health_dict()
+    print("\n  Compound Health Report:")
+    print(f"    Executions: {health['total_executions']}")
+    print(f"    Refinements: {health['total_refinements']}")
+    print(f"    Cycles: {health['total_cycles']}")
+    print(f"    Success rate: {health['success_rate']:.1%}")
+    print(f"    Total tokens: {health['total_tokens']}")
+    if health["model_usage"]:
+        print(f"    Model usage: {health['model_usage']}")
 
 
 def main() -> None:
@@ -158,6 +223,33 @@ def main() -> None:
         default=4,
         help="Maximum number of agents (default: 4)",
     )
+    parser.add_argument(
+        "--live",
+        action="store_true",
+        help="Run live compound execution via Ollama",
+    )
+    parser.add_argument(
+        "--feedback",
+        action="store_true",
+        help="Run compound feedback loop (execute -> analyze -> refine)",
+    )
+    parser.add_argument(
+        "--cycles",
+        type=int,
+        default=1,
+        help="Number of feedback cycles (default: 1)",
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default=None,
+        help="Override Ollama model for live execution",
+    )
+    parser.add_argument(
+        "--metrics",
+        action="store_true",
+        help="Display compound metrics",
+    )
 
     args = parser.parse_args()
 
@@ -165,10 +257,19 @@ def main() -> None:
         list_capabilities()
         return
 
-    if not args.intent:
-        parser.error("Please provide an intent or use --list-capabilities")
+    if args.metrics:
+        show_metrics()
+        return
 
-    compound_pipeline(args.intent, max_agents=args.max_agents)
+    if not args.intent:
+        parser.error("Please provide an intent or use --list-capabilities / --metrics")
+
+    if args.feedback:
+        feedback_cycle(args.intent, cycles=args.cycles, model=args.model)
+    elif args.live:
+        live_execution(args.intent, model=args.model)
+    else:
+        compound_pipeline(args.intent, max_agents=args.max_agents)
 
 
 if __name__ == "__main__":
