@@ -2,6 +2,14 @@
 
 A chronological record of project milestones and session developments.
 
+### [2026-02-06] PHASE 11: OLLAMA-POWERED SPECIALIST PIPELINE
+- **5-phase plan**: ETL bridge → VAE training CLI → RL + weight bridge → end-to-end integration → iterative hyperparameter search.
+- **5-agent team**: vae-trainer, watcher-builder, rl-trainer, bridge-builder, debate-builder — parallel execution in ~15 min.
+- **14 new files**: pipeline/ package (weight_bridge, trained_navigator, hyperparameter_debate, incremental_trainer), mass_sim/exporter.py, 5 scripts (train_vae, train_rl, vae_training_watcher, hyperparameter_search, run_full_pipeline.sh), 3 integration tests.
+- **8 modified files**: batch_runner (trained navigator support), config (export_npy), persistence (3 new DB tables), training.py (JSONL logging, early stopping, from_checkpoint), dataset.py (from_mass_sim_run), democratic_debate (structured_output), mass_sim_driver (--export-npy), overnight_dashboard (real data).
+- **Weight bridge**: Collapses 3-layer PolicyNetwork → 2-layer Rust FlumePhysics via matrix multiplication.
+- **Tests**: 357 passing (329 pre-existing + 28 new integration), 3 skipped.
+
 ### [2026-02-06] PHASE 10: AGENT FILE VALIDATION & SCAFFOLDING
 - **Agent schema**: Pydantic `AgentFileSchema` in `validation/agent_schema.py` — single source of truth for `.claude/agents/*.md` frontmatter validation.
 - **Pre-commit hook**: `scripts/hooks/validate-agent-files.py` blocks commits with invalid agent files.
