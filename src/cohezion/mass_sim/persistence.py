@@ -37,6 +37,17 @@ DEFINE INDEX idx_artifact_run ON sim_artifact FIELDS run_id;
 DEFINE TABLE sim_journey_narrative SCHEMALESS;
 DEFINE INDEX idx_narrative_run ON sim_journey_narrative FIELDS run_id;
 DEFINE INDEX idx_narrative_universe ON sim_journey_narrative FIELDS universe_id;
+
+DEFINE TABLE pipeline_run SCHEMALESS;
+DEFINE INDEX idx_pipeline_time ON pipeline_run FIELDS created_at;
+
+DEFINE TABLE training_checkpoint SCHEMALESS;
+DEFINE INDEX idx_training_run ON training_checkpoint FIELDS run_id;
+DEFINE INDEX idx_training_type ON training_checkpoint FIELDS training_type;
+
+DEFINE TABLE hyperparameter_search SCHEMALESS;
+DEFINE INDEX idx_search_run ON hyperparameter_search FIELDS run_id;
+DEFINE INDEX idx_search_iter ON hyperparameter_search FIELDS iteration;
 """
 
 
