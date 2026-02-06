@@ -155,3 +155,33 @@ DemocraticDebate extracts numeric hyperparameters from free-text consensus via r
 
 ### Learning 101: Pipeline Graceful Degradation
 9-step bash pipeline with pre-flight checks. If Ollama unavailable, skip analysis/debate/synthesis (4 of 9 steps) but still run training. Scale-specific params via case statement (demo/medium/overnight).
+
+---
+
+## Branch Archaeology: The Runaway Files Incident (2026-01-25 — 2026-01-30)
+
+Mined from `fix/runaway-files-pre-cleanup` and `ops/hygiene` branches before cleanup.
+
+### Learning 102: The 8.6M Runaway File Catastrophe (2026-01-25)
+Autonomous overnight simulations generated 8.6 million files under `data/overnight/`, `results/`, `renders/`, and `src/cohezion/knowledge_graph/universe_nodes/`. Root cause: agents writing simulation artifacts to tracked directories with no guardrails. IDE indexers froze, git status took minutes, and the git index bloated past 50MB. Prevention: (1) `.gitignore` must cover ALL output directories before any simulation runs, (2) `check-file-count.sh` pre-commit hook blocks commits when untracked files > 1000, (3) never track directories where agents write output.
+
+### Learning 103: Cascading Cleanup Debt (2026-01-26)
+The first cleanup (7c6d60a) removed 8.6M files but missed ~1000 build artifacts from `apps/dashboard/assets/` (fonts, JS bundles, CodeMirror language files) and a 325MB PDF. Second pass (1c07dcc) caught these by adding `apps/dashboard/assets/` and `**/*.safetensors` to .gitignore. Lesson: cleanup is never one-pass. Each removal reveals the next layer of bloat. Budget 2-3 passes minimum.
+
+### Learning 104: System Lockup Pattern — GPU Hang (2026-01-27)
+Total system freeze during concurrent web apps + LLM swarm. Root cause chain: (1) VRAM saturation from unthrottled concurrent model loads, (2) `amdgpu` ring reset failure, (3) kernel coredump stall under resource pressure. Required REISUB recovery. Fix: direct sysfs GPU/VRAM monitoring, aggressive PID kill in RED alert, `tune_system.sh` to disable panic-on-oom, prevention of giant coredumps. Key insight: **VRAM is the bottleneck, not RAM. Swarms must be sacrificial; system integrity is primary.**
+
+### Learning 105: The Untrack & Mine Protocol
+Operational procedure invented during ops/hygiene: (1) identify tracked files that shouldn't be, (2) mine them for knowledge before removal, (3) add to .gitignore, (4) `git rm --cached`, (5) verify git status clean. Critical rule: NEVER delete without reading first. This protocol prevented knowledge loss during the 8.6M file cleanup.
+
+### Learning 106: .gitignore Layered Defense Pattern
+The .gitignore evolved through 4 iterations across these branches, each adding a new defense layer: (1) output directories (`data/`, `results/`, `renders/`), (2) build artifacts (`assets/`, `*.safetensors`), (3) binary patterns (`*.pt`, `*.pdf`, `*.so`, `*.mp3`), (4) negation rules to protect source (`!src/**/*.py`, `!scripts/**/*.py`). The final pattern: block everything risky at category level, then whitelist specific safe patterns. Order matters — negations must come after the block rule.
+
+### Learning 107: OMEGA Distiller — Skill Extraction from Success Logs
+Auto-skill-generation concept: parse "MISSION SUCCESS" logs, strip noise/timestamps/paths, extract the "trick" (specific insight that turned failure into success), generalize into PRIME skill format. Template: domain expertise → key concepts → step-by-step instruction → patterns/antipatterns table. Never hardcode variable names from specific missions.
+
+### Learning 108: Temporal Dilation Under Pressure
+Resource monitor enhancement: `dilation_factor` (1.0 = normal, 0.1 = severe) dynamically slows simulations when system pressure exceeds thresholds. Coordinated with "Desperation Mode" that throttles all non-essential containers at 90% CPU. Swarm operations observe the dilation factor before scheduling new work.
+
+### Learning 109: pre-commit-hooks Stage Override (2026-02-06)
+The `pre-commit-hooks` repo internally declares `stages: [commit, push]` on all its hooks, overriding `default_stages: [pre-commit]`. Must add explicit `stages: [pre-commit]` to each hook (trailing-whitespace, end-of-file-fixer, check-yaml, check-json) to prevent them from running during push. Without this, pushes take 10+ minutes and modify files mid-push.

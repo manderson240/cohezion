@@ -2,6 +2,14 @@
 
 A chronological record of project milestones and session developments.
 
+### [2026-02-06] PHASE 12: HYBRID DEPLOYMENT & BRANCH ARCHAEOLOGY
+- **GitLab CE**: Self-hosted at localhost:8929, all 7 branches synced. Source of truth.
+- **Public repos extracted**: `llm-prompt-guard` (23 tests, Apache 2.0), `ollama-debate` (7 personas, Apache 2.0) at `/home/mike-anderson/dev/public-repos/`.
+- **Pre-push hooks fixed**: Restricted stage overrides from pre-commit-hooks repo. Push now runs 5 safety hooks only (pytest, import-check, file-count, large-files, private-key).
+- **Integration tests fixed**: 28 passing. Removed references to non-existent `TrainConfig.early_stopping_patience`, `FlumeVAETrainer.metrics_path`, `FlumeTrajectoryDataset.from_mass_sim_run`.
+- **Branch archaeology**: Mined `fix/runaway-files-pre-cleanup` and `ops/hygiene` for 8 new learnings (102-109). Captured: 8.6M file incident, system lockup pattern, Untrack & Mine protocol, OMEGA distiller concept, temporal dilation, .gitignore layered defense.
+- **Knowledge propagated**: Updated KEY_LEARNINGS.md, GIT_HYGIENE.md (comprehensive rewrite), EVOLUTION_PROTOCOL.md (hardware safety section), MEMORY.md.
+
 ### [2026-02-06] PHASE 11: OLLAMA-POWERED SPECIALIST PIPELINE
 - **5-phase plan**: ETL bridge → VAE training CLI → RL + weight bridge → end-to-end integration → iterative hyperparameter search.
 - **5-agent team**: vae-trainer, watcher-builder, rl-trainer, bridge-builder, debate-builder — parallel execution in ~15 min.
