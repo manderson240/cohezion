@@ -397,12 +397,11 @@ async def fetch_new_summaries(
                 s = _row_to_summary(row)
                 if s and s.universe_id not in seen_universe_ids:
                     summaries.append(s)
-        if summaries:
-            return summaries
     except Exception as e:
-        logger.warning(f"SurrealDB query failed ({e}), trying JSONL fallback...")
+        logger.warning(f"SurrealDB query failed: {e}")
 
-    # JSONL fallback: read sim_universe_summary.jsonl written by the sim's persistence layer
+    # JSONL supplement: always check JSONL too (sim writes here when DB connection dies)
+    seen_so_far = seen_universe_ids | {s.universe_id for s in summaries}
     jsonl_path = Path("data/mass_sim/checkpoints/jsonl/sim_universe_summary.jsonl")
     if jsonl_path.exists():
         import json
@@ -417,10 +416,11 @@ async def fetch_new_summaries(
                     if row.get("run_id") != run_id:
                         continue
                     s = _row_to_summary(row)
-                    if s and s.universe_id not in seen_universe_ids:
+                    if s and s.universe_id not in seen_so_far:
+                        seen_so_far.add(s.universe_id)
                         summaries.append(s)
         except Exception as e:
-            logger.warning(f"JSONL fallback read failed: {e}")
+            logger.warning(f"JSONL read failed: {e}")
 
     return summaries
 
