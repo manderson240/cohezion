@@ -142,4 +142,4 @@ See `.agent/COHEZION_CHARTER.md` for the full theoretical framework.
 
 ## License
 
-Apache License 2.0
+Copyright 2025-2026 Mike Anderson. All rights reserved. Source available for reference only. See [LICENSE](LICENSE) for details. For licensing inquiries, contact mike@cohezion.dev.
