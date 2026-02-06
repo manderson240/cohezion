@@ -85,7 +85,6 @@ test:unit:
   artifacts:
     reports:
       junit: report.xml
-      cobertura: coverage.xml
     when: always
 
 test:integration:
