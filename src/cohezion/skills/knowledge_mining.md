@@ -59,7 +59,7 @@ grep -rn "concept_name" src/cohezion
 | Session Logs | `knowledge_graph/session_log_*.md` |
 | Relationships | `knowledge_graph/*_relationships.md` |
 | Skills | `skills/*_PRIME.md` |
-| Artifacts | `library/ARCHITECTURE_*.md` |
+| Artifacts | `.agent/COHEZION_CHARTER.md`, `.agent/CONSTITUTION.md` |
 
 ## VERSION
 v0.1
