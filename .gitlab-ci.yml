@@ -1,10 +1,13 @@
 stages:
   - lint
+  - validate
   - test
+  - compound
   - typecheck
 
 variables:
   UV_CACHE_DIR: "$CI_PROJECT_DIR/.cache/uv"
+  COHEZION_CI: "true"
 
 default:
   tags:
@@ -22,7 +25,7 @@ cache:
   before_script:
     - uv sync --frozen --quiet
 
-# ── Lint ─────────────────────────────────────────────────────
+# ── Lint ──────────────────────────────────────────────────────
 
 lint:format:
   stage: lint
@@ -36,19 +39,78 @@ lint:check:
   script:
     - uv run ruff check src/ tests/
 
-# ── Test ─────────────────────────────────────────────────────
+# ── Validate ──────────────────────────────────────────────────
+
+validate:agent-files:
+  stage: validate
+  <<: *uv-setup
+  script:
+    - uv run python scripts/ci/validate_agents.py
+
+validate:prime-skills:
+  stage: validate
+  <<: *uv-setup
+  script:
+    - uv run python scripts/ci/validate_skills.py
+
+validate:registry:
+  stage: validate
+  <<: *uv-setup
+  script:
+    - uv run python scripts/ci/validate_registry.py
+
+validate:imports:
+  stage: validate
+  <<: *uv-setup
+  script:
+    - >-
+      uv run python -c "
+      from cohezion.core.template_engine import TemplateEngine;
+      from cohezion.registry.skill_registry import load_registry;
+      from cohezion.registry.capability_registry import CapabilityRegistry;
+      from cohezion.core.compound.retrospection import RetrospectionEngine;
+      from cohezion.validation.agent_schema import validate_all_agent_files;
+      print('All critical imports OK')
+      "
+
+# ── Test ──────────────────────────────────────────────────────
 
 test:unit:
   stage: test
   <<: *uv-setup
   script:
-    - uv run pytest tests/unit/ -v --tb=short --junitxml=report.xml
+    - uv run pytest tests/unit/ -v --tb=short --junitxml=report.xml --cov=src/cohezion --cov-report=xml:coverage.xml --cov-report=term
   artifacts:
     reports:
       junit: report.xml
+      cobertura: coverage.xml
     when: always
 
-# ── Typecheck ────────────────────────────────────────────────
+test:integration:
+  stage: test
+  <<: *uv-setup
+  script:
+    - uv run pytest tests/ --ignore=tests/unit/ -v --tb=short --junitxml=integration-report.xml
+  artifacts:
+    reports:
+      junit: integration-report.xml
+    when: always
+  allow_failure: true
+
+# ── Compound ──────────────────────────────────────────────────
+
+compound:audit:
+  stage: compound
+  <<: *uv-setup
+  script:
+    - uv run python scripts/ci/compound_audit.py
+  artifacts:
+    paths:
+      - compound-report.json
+    when: always
+  allow_failure: true
+
+# ── Typecheck ─────────────────────────────────────────────────
 
 typecheck:mypy:
   stage: typecheck

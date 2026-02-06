@@ -174,3 +174,9 @@ src/cohezion_core/
 *.py.fixed
 *.md-latest
 git_status.txt
+
+# CI artifacts
+compound-report.json
+report.xml
+coverage.xml
+integration-report.xml
