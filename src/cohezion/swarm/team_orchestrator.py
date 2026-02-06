@@ -155,9 +155,7 @@ class TeamOrchestrator:
         plan.tasks = self.generate_task_list(plan)
 
         # 5. Build dependency map
-        plan.dependencies = {
-            t.id: t.blocked_by for t in plan.tasks if t.blocked_by
-        }
+        plan.dependencies = {t.id: t.blocked_by for t in plan.tasks if t.blocked_by}
 
         return plan
 
@@ -375,8 +373,7 @@ class TeamOrchestrator:
         ):
             return "tester"
         if any(
-            kw in name_lower or kw in tags_str
-            for kw in ["review", "audit", "security"]
+            kw in name_lower or kw in tags_str for kw in ["review", "audit", "security"]
         ):
             return "reviewer"
         if any(

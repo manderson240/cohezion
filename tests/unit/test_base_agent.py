@@ -15,11 +15,13 @@ import pytest
 # AgentResponse tests (requires no heavy imports)
 # ---------------------------------------------------------------------------
 
+
 class TestAgentResponse:
     """Test AgentResponse, a str subclass with metadata."""
 
     def _make(self, content="hello", **kwargs):
         from cohezion.agents.base import AgentResponse
+
         return AgentResponse(content, **kwargs)
 
     def test_is_string(self):
@@ -91,7 +93,9 @@ def _make_agent(tmp_path: Path):
     from cohezion.swarm.swarm_types import SwarmConfig
 
     config = SwarmConfig(mrp_sync=False, cache_ttl_seconds=3600)
-    agent = TestableAgent(model_name="test-model", config=config, cache_dir=tmp_path / "cache")
+    agent = TestableAgent(
+        model_name="test-model", config=config, cache_dir=tmp_path / "cache"
+    )
 
     return agent, patchers
 

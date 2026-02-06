@@ -156,9 +156,15 @@ class TokenEfficientClient:
                 harnessed = self._harness.harness_prompt(prompt, system)
                 effective_prompt = harnessed["prompt"]
                 effective_system = harnessed["system"]
-                logger.debug("Prompt harnessed: %d -> %d chars", len(prompt), len(effective_prompt))
+                logger.debug(
+                    "Prompt harnessed: %d -> %d chars",
+                    len(prompt),
+                    len(effective_prompt),
+                )
             except Exception:
-                logger.warning("Context harness failed, using raw prompt", exc_info=True)
+                logger.warning(
+                    "Context harness failed, using raw prompt", exc_info=True
+                )
 
         # --- 4. Call underlying client ---
         result = await self.ollama.generate(
@@ -170,7 +176,9 @@ class TokenEfficientClient:
 
         # --- 5. Track model usage ---
         used_model = routed_model or getattr(self.ollama, "model", "unknown")
-        self.metrics.model_usage[used_model] = self.metrics.model_usage.get(used_model, 0) + 1
+        self.metrics.model_usage[used_model] = (
+            self.metrics.model_usage.get(used_model, 0) + 1
+        )
 
         # --- 6. Cache result ---
         if use_cache:

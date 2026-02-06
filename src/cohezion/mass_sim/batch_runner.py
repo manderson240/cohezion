@@ -172,9 +172,7 @@ class BatchSimulationRunner:
             elapsed_seconds=elapsed,
         )
 
-    def _navigate_with_policy(
-        self, batch: np.ndarray, n_epochs: int
-    ) -> np.ndarray:
+    def _navigate_with_policy(self, batch: np.ndarray, n_epochs: int) -> np.ndarray:
         """Apply trained Python RL policy for navigation."""
         current = batch.copy()
         for _ in range(n_epochs):

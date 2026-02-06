@@ -210,9 +210,7 @@ class ExecutionOrchestrator:
         elapsed = (time.monotonic() - t0) * 1000.0
         report.total_duration_ms = elapsed
         report.total_tokens = sum(
-            tr.execution.total_tokens
-            for tr in report.task_results
-            if tr.execution
+            tr.execution.total_tokens for tr in report.task_results if tr.execution
         )
 
         # Determine overall status

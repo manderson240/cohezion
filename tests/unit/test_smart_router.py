@@ -25,6 +25,7 @@ from cohezion.swarm.smart_router import (
 # Enum tests
 # ---------------------------------------------------------------------------
 
+
 class TestTaskType:
     def test_all_values_accessible(self):
         assert TaskType.ANALYSIS.value == "analysis"
@@ -49,25 +50,35 @@ class TestModelCapability:
 # ModelProfile tests
 # ---------------------------------------------------------------------------
 
+
 class TestModelProfile:
     def test_efficiency_score(self):
         profile = ModelProfile(
-            name="test", capabilities=[], context_length=4096,
-            speed_tier=2, quality_tier=4,
+            name="test",
+            capabilities=[],
+            context_length=4096,
+            speed_tier=2,
+            quality_tier=4,
         )
         assert profile.efficiency_score == 2.0  # 4/2
 
     def test_efficiency_score_fast_low_quality(self):
         profile = ModelProfile(
-            name="fast", capabilities=[], context_length=4096,
-            speed_tier=1, quality_tier=2,
+            name="fast",
+            capabilities=[],
+            context_length=4096,
+            speed_tier=1,
+            quality_tier=2,
         )
         assert profile.efficiency_score == 2.0  # 2/1
 
     def test_efficiency_score_slow_high_quality(self):
         profile = ModelProfile(
-            name="slow", capabilities=[], context_length=4096,
-            speed_tier=5, quality_tier=5,
+            name="slow",
+            capabilities=[],
+            context_length=4096,
+            speed_tier=5,
+            quality_tier=5,
         )
         assert profile.efficiency_score == 1.0  # 5/5
 
@@ -75,6 +86,7 @@ class TestModelProfile:
 # ---------------------------------------------------------------------------
 # SmartRouter.classify_task tests
 # ---------------------------------------------------------------------------
+
 
 class TestClassifyTask:
     def setup_method(self):
@@ -99,7 +111,9 @@ class TestClassifyTask:
     def test_coding(self):
         assert self.router.classify_task("implement a function") == TaskType.CODING
         assert self.router.classify_task("debug this code") == TaskType.CODING
-        assert self.router.classify_task("write a function for sorting") == TaskType.CODING
+        assert (
+            self.router.classify_task("write a function for sorting") == TaskType.CODING
+        )
 
     def test_factual(self):
         assert self.router.classify_task("verify this fact") == TaskType.FACTUAL
@@ -107,7 +121,10 @@ class TestClassifyTask:
 
     def test_debate(self):
         assert self.router.classify_task("debate the merits") == TaskType.DEBATE
-        assert self.router.classify_task("different perspective on this") == TaskType.DEBATE
+        assert (
+            self.router.classify_task("different perspective on this")
+            == TaskType.DEBATE
+        )
         assert self.router.classify_task("argue for and against") == TaskType.DEBATE
 
     def test_summary(self):
@@ -116,12 +133,15 @@ class TestClassifyTask:
         assert self.router.classify_task("tldr of this document") == TaskType.SUMMARY
 
     def test_default_is_analysis(self):
-        assert self.router.classify_task("something random entirely") == TaskType.ANALYSIS
+        assert (
+            self.router.classify_task("something random entirely") == TaskType.ANALYSIS
+        )
 
 
 # ---------------------------------------------------------------------------
 # SmartRouter.route tests
 # ---------------------------------------------------------------------------
+
 
 class TestRoute:
     def test_route_with_models(self):
@@ -161,12 +181,16 @@ class TestRoute:
             "fast_model": ModelProfile(
                 name="fast_model",
                 capabilities=[ModelCapability.FAST, ModelCapability.ACCURATE],
-                context_length=8192, speed_tier=1, quality_tier=2,
+                context_length=8192,
+                speed_tier=1,
+                quality_tier=2,
             ),
             "quality_model": ModelProfile(
                 name="quality_model",
                 capabilities=[ModelCapability.ACCURATE],
-                context_length=32768, speed_tier=5, quality_tier=5,
+                context_length=32768,
+                speed_tier=5,
+                quality_tier=5,
             ),
         }
         decision = router.route(TaskType.ANALYSIS)
@@ -178,12 +202,16 @@ class TestRoute:
             "fast_model": ModelProfile(
                 name="fast_model",
                 capabilities=[ModelCapability.FAST, ModelCapability.ACCURATE],
-                context_length=8192, speed_tier=1, quality_tier=2,
+                context_length=8192,
+                speed_tier=1,
+                quality_tier=2,
             ),
             "slow_model": ModelProfile(
                 name="slow_model",
                 capabilities=[ModelCapability.ACCURATE],
-                context_length=32768, speed_tier=5, quality_tier=5,
+                context_length=32768,
+                speed_tier=5,
+                quality_tier=5,
             ),
         }
         decision = router.route(TaskType.ANALYSIS)
@@ -203,6 +231,7 @@ class TestRoute:
 # ---------------------------------------------------------------------------
 # AgentAction tests
 # ---------------------------------------------------------------------------
+
 
 class TestAgentAction:
     def test_to_dict(self):
@@ -225,13 +254,26 @@ class TestAgentAction:
 
     def test_to_dict_keys(self):
         action = AgentAction(
-            timestamp="t", agent_type="a", model="m", task_type="t",
-            input_tokens=0, output_tokens=0, duration_ms=0, success=False,
+            timestamp="t",
+            agent_type="a",
+            model="m",
+            task_type="t",
+            input_tokens=0,
+            output_tokens=0,
+            duration_ms=0,
+            success=False,
         )
         d = action.to_dict()
         expected_keys = {
-            "timestamp", "agent_type", "model", "task_type",
-            "input_tokens", "output_tokens", "duration_ms", "success", "metadata",
+            "timestamp",
+            "agent_type",
+            "model",
+            "task_type",
+            "input_tokens",
+            "output_tokens",
+            "duration_ms",
+            "success",
+            "metadata",
         }
         assert set(d.keys()) == expected_keys
 
@@ -240,13 +282,18 @@ class TestAgentAction:
 # SmartRouter.execute tests
 # ---------------------------------------------------------------------------
 
+
 class TestExecute:
     @pytest.mark.asyncio
     async def test_execute_success(self):
         router = SmartRouter(log_actions=True)
         router.available_models = {
             "test:model": ModelProfile(
-                "test:model", [ModelCapability.FAST], 4096, 1, 3,
+                "test:model",
+                [ModelCapability.FAST],
+                4096,
+                1,
+                3,
             ),
         }
 
@@ -258,7 +305,8 @@ class TestExecute:
         router.client.post = AsyncMock(return_value=mock_response)
 
         response, action = await router.execute(
-            "summarize this", agent_type="test_agent",
+            "summarize this",
+            agent_type="test_agent",
         )
         assert response == "generated text"
         assert action.success is True
@@ -310,6 +358,7 @@ class TestExecute:
 # SmartRouter.save_action_log tests
 # ---------------------------------------------------------------------------
 
+
 class TestSaveActionLog:
     @pytest.mark.asyncio
     async def test_save_creates_file(self, tmp_path):
@@ -318,8 +367,14 @@ class TestSaveActionLog:
 
         router.action_log = [
             AgentAction(
-                timestamp="t", agent_type="a", model="m", task_type="t",
-                input_tokens=0, output_tokens=0, duration_ms=0, success=True,
+                timestamp="t",
+                agent_type="a",
+                model="m",
+                task_type="t",
+                input_tokens=0,
+                output_tokens=0,
+                duration_ms=0,
+                success=True,
             )
         ]
 
@@ -343,6 +398,7 @@ class TestSaveActionLog:
 # ---------------------------------------------------------------------------
 # TASK_REQUIREMENTS and LOCAL_MODELS sanity checks
 # ---------------------------------------------------------------------------
+
 
 class TestModuleConstants:
     def test_task_requirements_covers_all_task_types(self):

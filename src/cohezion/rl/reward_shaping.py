@@ -137,7 +137,9 @@ class CompositeReward:
         self.coherence_reward = CoherenceReward()
         self.diversity_bonus = DiversityBonus()
         self.stability_penalty = StabilityPenalty()
-        self.hamiltonian_reward = HamiltonianReward() if hamiltonian_weight > 0 else None
+        self.hamiltonian_reward = (
+            HamiltonianReward() if hamiltonian_weight > 0 else None
+        )
         self.coherence_weight = coherence_weight
         self.diversity_weight = diversity_weight
         self.stability_weight = stability_weight

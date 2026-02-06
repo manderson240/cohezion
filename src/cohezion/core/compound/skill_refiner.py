@@ -116,9 +116,7 @@ class SkillRefiner:
             if next_heading == -1:
                 next_heading = len(text)
             existing = text[insert_point:next_heading].rstrip()
-            new_entries = "\n".join(
-                f"- {learning}" for learning in learnings
-            )
+            new_entries = "\n".join(f"- {learning}" for learning in learnings)
             text = (
                 text[:next_heading].rstrip()
                 + f"\n- _{timestamp}_: {new_entries}\n"
@@ -162,9 +160,7 @@ class SkillRefiner:
 
         return result
 
-    def refine_from_suggestions(
-        self, suggestions: list
-    ) -> list[RefinementResult]:
+    def refine_from_suggestions(self, suggestions: list) -> list[RefinementResult]:
         """Apply a batch of :class:`SkillRefinement` suggestions.
 
         Parameters
@@ -213,9 +209,7 @@ class SkillRefiner:
     @staticmethod
     def _extract_version(text: str) -> str:
         """Extract version from ## VERSION section."""
-        m = re.search(
-            r"##\s+VERSION\s*\n+\s*(.+)", text, re.IGNORECASE
-        )
+        m = re.search(r"##\s+VERSION\s*\n+\s*(.+)", text, re.IGNORECASE)
         if m:
             return m.group(1).strip().split()[0]
         return "1.0"

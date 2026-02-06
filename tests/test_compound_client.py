@@ -127,17 +127,13 @@ async def test_compound_client_caches():
     client._ollama.generate = AsyncMock(return_value=mock_response)
 
     # First call: cache miss
-    result1 = await client.generate(
-        "test prompt", system="sys", model="phi3:mini"
-    )
+    result1 = await client.generate("test prompt", system="sys", model="phi3:mini")
     assert result1 == mock_response
     assert client.metrics.cache_misses == 1
     assert client.metrics.cache_hits == 0
 
     # Second call: cache hit (same prompt + system + model)
-    result2 = await client.generate(
-        "test prompt", system="sys", model="phi3:mini"
-    )
+    result2 = await client.generate("test prompt", system="sys", model="phi3:mini")
     assert result2 == mock_response
     assert client.metrics.cache_hits == 1
 
@@ -183,9 +179,7 @@ async def test_api_swarm_execute_uses_compound_client():
     from cohezion.api import app
 
     with (
-        patch(
-            "cohezion.swarm.compound_client.get_compound_client"
-        ) as mock_get_cc,
+        patch("cohezion.swarm.compound_client.get_compound_client") as mock_get_cc,
         patch("cohezion.swarm.team_orchestrator.TeamOrchestrator") as mock_orch_cls,
         patch(
             "cohezion.swarm.execution_orchestrator.ExecutionOrchestrator"
@@ -268,9 +262,7 @@ async def test_api_skill_execute_uses_compound_client():
     )
 
     with (
-        patch(
-            "cohezion.swarm.compound_client.get_compound_client"
-        ) as mock_get_cc,
+        patch("cohezion.swarm.compound_client.get_compound_client") as mock_get_cc,
         patch("cohezion.agents.factory.AgentFactory") as mock_factory_cls,
         patch(
             "cohezion.core.instruction_expander.InstructionExpander"

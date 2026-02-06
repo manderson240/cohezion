@@ -75,9 +75,9 @@ class TestCheckpoints:
             "config",
             "epoch",
         }
-        assert expected_keys.issubset(
-            ckpt.keys()
-        ), f"Missing keys: {expected_keys - set(ckpt.keys())}"
+        assert expected_keys.issubset(ckpt.keys()), (
+            f"Missing keys: {expected_keys - set(ckpt.keys())}"
+        )
 
 
 class TestLatentInterpolation:
@@ -110,12 +110,11 @@ class TestLatentInterpolation:
         # Outputs should be different (not collapsed)
         for i in range(len(decoded) - 1):
             diff = np.linalg.norm(decoded[i] - decoded[i + 1])
-            assert diff > 0, f"Decoded points {i} and {i+1} are identical (collapsed)"
+            assert diff > 0, f"Decoded points {i} and {i + 1} are identical (collapsed)"
 
         # Consecutive differences should be relatively smooth
         diffs = [
-            np.linalg.norm(decoded[i] - decoded[i + 1])
-            for i in range(len(decoded) - 1)
+            np.linalg.norm(decoded[i] - decoded[i + 1]) for i in range(len(decoded) - 1)
         ]
         max_diff = max(diffs)
         min_diff = min(diffs)
@@ -143,9 +142,7 @@ class TestSyntheticDataset:
         # Check distribution is approximately centered at 0.5
         all_data = torch.stack([ds[i] for i in range(len(ds))])
         mean = all_data.mean().item()
-        assert abs(mean - 0.5) < 0.1, (
-            f"Dataset mean should be ~0.5, got {mean:.4f}"
-        )
+        assert abs(mean - 0.5) < 0.1, f"Dataset mean should be ~0.5, got {mean:.4f}"
 
 
 class TestReconstructionQuality:
