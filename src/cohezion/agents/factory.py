@@ -76,11 +76,13 @@ class AgentFactory:
             # _StubAgent or other fallback that doesn't accept model_name
             return cls()
         except RuntimeError:
-            # BaseAgent.__init__ creates an asyncio task — fails outside event loop.
-            # Fall back to a lightweight stub that preserves the class identity.
-            stub = _StubAgent(**{k: v for k, v in agent_kwargs.items() if k != "model_name"})
-            stub.__class__ = cls  # type: ignore[assignment]
-            return stub
+            # BaseAgent.__init__ calls asyncio.create_task — fails outside an
+            # event loop. Re-compile with _StubAgent as the base so the
+            # returned object is still named after the skill.
+            spec = self._resolve_spec(skill_name)
+            source = self._engine.generate_agent_stub(spec)
+            cls_fallback = self._compile_class_with_stub(spec, source)
+            return cls_fallback()
 
     def get_class(self, skill_name: str) -> type:
         """Return the agent class (cached) for *skill_name*.
@@ -122,6 +124,30 @@ class AgentFactory:
                 return self._engine.parse_skill(md_file)
 
         raise KeyError(f"Skill not found: {skill_name}")
+
+    @staticmethod
+    def _compile_class_with_stub(spec: SkillSpec, source: str) -> type:
+        """Compile agent source using _StubAgent as the base class."""
+        match = re.search(r"class (\w+)\(", source)
+        if not match:
+            raise RuntimeError(
+                f"Could not find class definition in generated stub for {spec.name}"
+            )
+        class_name = match.group(1)
+        source = source.replace(
+            "from cohezion.agents.base import BaseAgent", ""
+        ).replace("(BaseAgent)", f"({_StubAgent.__name__})")
+        namespace: dict[str, Any] = {
+            "__builtins__": __builtins__,
+            _StubAgent.__name__: _StubAgent,
+        }
+        exec(compile(source, f"<agent:{spec.name}>", "exec"), namespace)  # noqa: S102
+        cls = namespace.get(class_name)
+        if cls is None:
+            raise RuntimeError(
+                f"Class {class_name} not found after compiling stub for {spec.name}"
+            )
+        return cls
 
     @staticmethod
     def _compile_class(spec: SkillSpec, source: str) -> type:

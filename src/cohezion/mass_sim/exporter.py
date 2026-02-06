@@ -12,7 +12,7 @@ from pathlib import Path
 
 import numpy as np
 
-from cohezion.mass_sim.config import CheckpointData, UniverseResult
+from cohezion.mass_sim.config import UniverseResult
 
 logger = logging.getLogger(__name__)
 
