@@ -17,6 +17,7 @@ from cohezion.mass_sim.config import (
     UniverseResult,
     UniverseSpec,
 )
+from cohezion.mass_sim.exporter import CheckpointExporter
 from cohezion.mass_sim.system_monitor import MemoryGuard
 from cohezion.mass_sim.universe_factory import UniverseFactory
 
@@ -26,9 +27,17 @@ logger = logging.getLogger(__name__)
 class BatchSimulationRunner:
     """Runs simulation batches through the Rust FLUME engine."""
 
-    def __init__(self, config: SimulationConfig):
+    def __init__(
+        self,
+        config: SimulationConfig,
+        trained_navigator: object | None = None,
+    ):
         self.config = config
         self.guard = MemoryGuard(max_memory_gb=config.max_memory_gb)
+        self.trained_navigator = trained_navigator
+        self._exporter: CheckpointExporter | None = None
+        if config.export_npy:
+            self._exporter = CheckpointExporter(config.artifact_dir)
 
     def simulate_universe(
         self,
@@ -102,7 +111,9 @@ class BatchSimulationRunner:
                 batch_end = min(batch_start + safe_batch, n_agents)
                 batch = current[batch_start:batch_end]
 
-                if cfg.use_navigator:
+                if self.trained_navigator is not None:
+                    evolved = self._navigate_with_policy(batch, epochs_this_chunk)
+                elif cfg.use_navigator:
                     evolved = physics.simulate_epochs_navigated(
                         batch, epochs_this_chunk
                     )
@@ -146,6 +157,10 @@ class BatchSimulationRunner:
             f"{elapsed:.1f}s, final coherence={final_stats.get('mean_coherence', 0):.3f}"
         )
 
+        # Export final states as .npy for training pipeline
+        if self._exporter is not None:
+            self._exporter.export_final_states(universe_spec.universe_id, current)
+
         return UniverseResult(
             universe_id=universe_spec.universe_id,
             seed=universe_spec.seed,
@@ -156,3 +171,13 @@ class BatchSimulationRunner:
             checkpoints=checkpoints,
             elapsed_seconds=elapsed,
         )
+
+    def _navigate_with_policy(
+        self, batch: np.ndarray, n_epochs: int
+    ) -> np.ndarray:
+        """Apply trained Python RL policy for navigation."""
+        current = batch.copy()
+        for _ in range(n_epochs):
+            deltas = self.trained_navigator.navigate_batch(current)
+            current = current + deltas * self.config.delta_scale
+        return current

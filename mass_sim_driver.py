@@ -72,6 +72,11 @@ def parse_args() -> argparse.Namespace:
         default=float(os.environ.get("MASS_SIM_MAX_MEM", "100")),
     )
     parser.add_argument("--output-dir", type=str, default="data/mass_sim/artifacts")
+    parser.add_argument(
+        "--export-npy",
+        action="store_true",
+        help="Export final agent states as .npy files for training pipeline",
+    )
     return parser.parse_args()
 
 
@@ -116,6 +121,7 @@ async def main() -> int:
         artifact_dir=Path(args.output_dir),
         agent_seed_base=args.seed,
         max_memory_gb=args.max_mem,
+        export_npy=args.export_npy,
     )
 
     # Apply CLI overrides

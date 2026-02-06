@@ -119,6 +119,8 @@ class SimulationConfig:
     # HIHO damping factor (attractor strength toward 0.5 equilibrium)
     # 0.01 is the empirically optimal value: coherence ~0.51, 96% within [0.3, 0.7]
     hiho_damping: float = 0.01
+    # Export final agent states as .npy files for training pipeline
+    export_npy: bool = False
 
     def with_overrides(
         self,
