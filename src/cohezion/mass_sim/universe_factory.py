@@ -1,0 +1,91 @@
+"""Seed-based universe generation.
+
+Each universe is defined by a unique FlumePhysics weight configuration.
+Deterministic: same seed always produces identical weights.
+"""
+
+from __future__ import annotations
+
+import logging
+
+import numpy as np
+
+from cohezion.mass_sim.config import UniverseSpec
+
+logger = logging.getLogger(__name__)
+
+
+def _import_flume_physics():
+    """Import FlumePhysics from Rust extension with graceful fallback."""
+    try:
+        from cohezion_core.cohezion_core_rs import FlumePhysics
+
+        return FlumePhysics
+    except ImportError:
+        logger.warning("cohezion_core_rs not available, using mock FlumePhysics")
+        return None
+
+
+class UniverseFactory:
+    """Generate FlumePhysics instances from seed-based weight configurations."""
+
+    @staticmethod
+    def create(
+        spec: UniverseSpec,
+        delta_scale: float = 0.01,
+        hiho_damping: float = 0.01,
+    ):
+        """Create a FlumePhysics instance with Xavier-initialized weights from seed."""
+        FlumePhysics = _import_flume_physics()
+        if FlumePhysics is None:
+            raise RuntimeError("Rust FlumePhysics extension not compiled")
+
+        rng = np.random.default_rng(spec.seed)
+
+        # Xavier initialization for stable gradient flow
+        scale_w1 = np.sqrt(2.0 / (spec.z_dim + spec.hidden_dim))
+        w1 = rng.normal(0, scale_w1, (spec.hidden_dim, spec.z_dim)).astype(np.float32)
+        b1 = np.zeros(spec.hidden_dim, dtype=np.float32)
+
+        scale_w2 = np.sqrt(2.0 / (spec.hidden_dim + spec.z_dim))
+        w2 = rng.normal(0, scale_w2, (spec.z_dim, spec.hidden_dim)).astype(np.float32)
+        b2 = np.full(spec.z_dim, 0.02, dtype=np.float32)
+
+        # LayerNorm: gamma=1 (scale), beta=0.5 (shift output to HIHO target)
+        gamma = np.ones(spec.hidden_dim, dtype=np.float32)
+        beta = np.full(spec.hidden_dim, 0.5, dtype=np.float32)
+
+        return FlumePhysics(
+            w1,
+            b1,
+            w2,
+            b2,
+            gamma,
+            beta,
+            delta_scale=delta_scale,
+            hiho_damping=hiho_damping,
+        )
+
+    @staticmethod
+    def create_batch(seeds: list[int], z_dim: int = 256, hidden_dim: int = 512) -> list:
+        """Create multiple universe physics engines."""
+        return [
+            UniverseFactory.create(UniverseSpec(f"universe_{s}", s, z_dim, hidden_dim))
+            for s in seeds
+        ]
+
+    @staticmethod
+    def weight_fingerprint(spec: UniverseSpec) -> dict:
+        """Compute weight norms for a universe spec (without creating FlumePhysics)."""
+        rng = np.random.default_rng(spec.seed)
+        scale_w1 = np.sqrt(2.0 / (spec.z_dim + spec.hidden_dim))
+        w1 = rng.normal(0, scale_w1, (spec.hidden_dim, spec.z_dim)).astype(np.float32)
+        scale_w2 = np.sqrt(2.0 / (spec.hidden_dim + spec.z_dim))
+        w2 = rng.normal(0, scale_w2, (spec.z_dim, spec.hidden_dim)).astype(np.float32)
+        return {
+            "seed": spec.seed,
+            "w1_frobenius": float(np.linalg.norm(w1)),
+            "w2_frobenius": float(np.linalg.norm(w2)),
+            "w1_spectral": float(np.linalg.norm(w1, ord=2)),
+            "w2_spectral": float(np.linalg.norm(w2, ord=2)),
+        }
