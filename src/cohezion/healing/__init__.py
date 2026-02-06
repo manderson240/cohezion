@@ -125,6 +125,13 @@ class Diagnostician:
                 recommended_action="Restart Ollama: ollama serve",
                 confidence=0.9,
             ),
+            "sandbox_divergence": DiagnosisResult(
+                component="sandbox",
+                issue="Sandbox simulation divergence detected",
+                probable_cause="Numerical instability or HIHO coherence drift in simulation",
+                recommended_action="Restart sandbox with tighter divergence thresholds",
+                confidence=0.85,
+            ),
         }
 
     def diagnose(self, health_status: HealthStatus) -> DiagnosisResult:
@@ -141,6 +148,12 @@ class Diagnostician:
 
         if health_status.component == "ollama" and health_status.status == "failing":
             return self._known_issues["connection_failed"]
+
+        if (
+            health_status.component == "sandbox"
+            and health_status.metric == "divergence"
+        ):
+            return self._known_issues["sandbox_divergence"]
 
         # Generic diagnosis
         return DiagnosisResult(
@@ -250,6 +263,22 @@ class SelfHealingSystem:
         )
         if status.status != "healthy":
             issues.append(status)
+
+        # Check sandbox health via ResourceMonitor
+        try:
+            from cohezion.reliability.monitor import get_resource_monitor
+
+            monitor = get_resource_monitor()
+            sandbox_mem = monitor.total_sandbox_memory_mb
+            # Flag if sandboxes are using >80GB (80% of 100GB budget)
+            sandbox_ratio = sandbox_mem / (100 * 1024) if sandbox_mem > 0 else 0.0
+            status = self.detector.check(
+                "sandbox", "memory_pressure", sandbox_ratio, 0.8
+            )
+            if status.status != "healthy":
+                issues.append(status)
+        except Exception:
+            pass
 
         return issues
 

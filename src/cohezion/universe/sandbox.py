@@ -8,17 +8,14 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
-import shutil
 import tarfile
-import tempfile
 import time
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 
-import docker
 from docker.errors import DockerException
+
+import docker
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +23,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SandboxResult:
     """The result of a sandboxed execution."""
+
     success: bool
     exit_code: int
     stdout: str
@@ -43,12 +41,26 @@ class ContainerizedUniverse:
         memory_limit: str = "512m",
         cpu_quota: int = 50000,  # 50% of one core
         timeout_seconds: int = 300,
+        network_mode: str = "bridge",
+        profile: Any | None = None,
     ):
+        # If a SandboxProfile is provided, use it to override defaults
+        if profile is not None:
+            from cohezion.universe.sandbox_profiles import SandboxProfile
+
+            if isinstance(profile, SandboxProfile):
+                image_name = image_name
+                memory_limit = profile.to_docker_memory_str()
+                cpu_quota = profile.cpu_quota_percent * 1000
+                timeout_seconds = profile.timeout_seconds
+                network_mode = "bridge" if profile.network_enabled else "none"
+
         self.image_name = image_name
         self.memory_limit = memory_limit
         self.cpu_quota = cpu_quota
         self.timeout_seconds = timeout_seconds
-        
+        self.network_mode = network_mode
+
         try:
             self.client = docker.from_env()
         except DockerException as e:
@@ -56,19 +68,19 @@ class ContainerizedUniverse:
             raise RuntimeError("Docker is required for ContainerizedUniverse") from e
 
     async def execute_code(
-        self, 
-        script_content: str, 
+        self,
+        script_content: str,
         files: dict[str, str | bytes] | None = None,
-        env: dict[str, str] | None = None
+        env: dict[str, str] | None = None,
     ) -> SandboxResult:
         """Execute Python code within a sandboxed container."""
         return await asyncio.to_thread(self._sync_execute, script_content, files, env)
 
     def _sync_execute(
-        self, 
-        script_content: str, 
+        self,
+        script_content: str,
         files: dict[str, str | bytes] | None = None,
-        env: dict[str, str] | None = None
+        env: dict[str, str] | None = None,
     ) -> SandboxResult:
         """Synchronous wrapper for container execution."""
         start_time = time.time()
@@ -78,30 +90,32 @@ class ContainerizedUniverse:
             self._prepare_container()
 
             # 2. Create container
-            container = self.client.containers.run(
-                self.image_name,
-                command="python main.py",
-                mem_limit=self.memory_limit,
-                cpu_quota=self.cpu_quota,
-                environment=env or {},
-                detach=True,
-                remove=False, # We'll remove it manually after getting logs
-                working_dir="/app"
-            )
+            run_kwargs: dict[str, Any] = {
+                "command": "python main.py",
+                "mem_limit": self.memory_limit,
+                "cpu_quota": self.cpu_quota,
+                "environment": env or {},
+                "detach": True,
+                "remove": False,  # We'll remove it manually after getting logs
+                "working_dir": "/app",
+            }
+            if self.network_mode != "bridge":
+                run_kwargs["network_mode"] = self.network_mode
+            container = self.client.containers.run(self.image_name, **run_kwargs)
 
             # 3. Create a tar archive of the code and files
             tar_stream = self._create_tar_stream(script_content, files)
-            
+
             # 4. Put the archive into the container
             container.put_archive("/app", tar_stream)
 
             # 5. Wait for execution
             result = container.wait(timeout=self.timeout_seconds)
-            
+
             # 6. Capture logs
             stdout = container.logs(stdout=True, stderr=False).decode("utf-8")
             stderr = container.logs(stdout=False, stderr=True).decode("utf-8")
-            
+
             # 7. Extract output files (if any created in /app/output)
             # This is a bit complex for a skeleton, so we'll skip for now
             # but in production we'd use: container.get_archive("/app/output")
@@ -114,7 +128,7 @@ class ContainerizedUniverse:
                 exit_code=exit_code,
                 stdout=stdout,
                 stderr=stderr,
-                duration=duration
+                duration=duration,
             )
 
         except Exception as e:
@@ -124,7 +138,7 @@ class ContainerizedUniverse:
                 exit_code=-1,
                 stdout="",
                 stderr=str(e),
-                duration=time.time() - start_time
+                duration=time.time() - start_time,
             )
         finally:
             if container:
@@ -133,11 +147,12 @@ class ContainerizedUniverse:
                 except Exception:
                     pass
 
-    def _create_tar_stream(self, script: str, files: dict[str, str | bytes] | None) -> bytes:
+    def _create_tar_stream(
+        self, script: str, files: dict[str, str | bytes] | None
+    ) -> bytes:
         """Create a tar archive in memory."""
         import io
-        import tarfile
-        
+
         file_obj = io.BytesIO()
         with tarfile.open(fileobj=file_obj, mode="w") as tar:
             # Add main script
@@ -145,7 +160,7 @@ class ContainerizedUniverse:
             tarinfo = tarfile.TarInfo("main.py")
             tarinfo.size = len(script_bytes)
             tar.addfile(tarinfo, io.BytesIO(script_bytes))
-            
+
             # Add other files
             if files:
                 for name, content in files.items():
@@ -156,7 +171,7 @@ class ContainerizedUniverse:
                     tarinfo = tarfile.TarInfo(name)
                     tarinfo.size = len(content_bytes)
                     tar.addfile(tarinfo, io.BytesIO(content_bytes))
-                    
+
         file_obj.seek(0)
         return file_obj.read()
 

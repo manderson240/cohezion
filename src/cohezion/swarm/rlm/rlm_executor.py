@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import resource
 import subprocess
 import uuid
 from pathlib import Path
@@ -15,10 +16,15 @@ class RLMExecutor:
     Provides a sandboxed-style Python REPL for LLMs to programmatically manage large contexts.
     """
 
-    def __init__(self, workspace_dir: str | None = None):
+    def __init__(
+        self,
+        workspace_dir: str | None = None,
+        profile: Any | None = None,
+    ):
         self.workspace_dir = Path(workspace_dir or "/tmp/cohezion_rlm")
         self.workspace_dir.mkdir(parents=True, exist_ok=True)
         self.history_file = self.workspace_dir / "execution_history.jsonl"
+        self.profile = profile
 
     def execute_recursive_step(
         self, code: str, context_vars: dict[str, Any]
@@ -58,11 +64,31 @@ if __name__ == "__main__":
             f.write(wrapped_code)
 
         try:
+            # Build preexec_fn for rlimits if a profile is provided
+            preexec_fn = None
+            timeout = 30
+            if self.profile is not None:
+                from cohezion.universe.sandbox_profiles import SandboxProfile
+
+                if isinstance(self.profile, SandboxProfile):
+                    memory_bytes = self.profile.memory_limit_mb * 1024 * 1024
+                    cpu_seconds = self.profile.timeout_seconds
+                    timeout = self.profile.timeout_seconds
+
+                    def preexec_fn() -> None:
+                        resource.setrlimit(
+                            resource.RLIMIT_AS, (memory_bytes, memory_bytes)
+                        )
+                        resource.setrlimit(
+                            resource.RLIMIT_CPU, (cpu_seconds, cpu_seconds)
+                        )
+
             result = subprocess.run(
                 ["python3", str(script_path)],
                 capture_output=True,
                 text=True,
-                timeout=30,
+                timeout=timeout,
+                preexec_fn=preexec_fn,
             )
 
             error = result.stderr if result.returncode != 0 else None
