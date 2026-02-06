@@ -44,6 +44,7 @@ class ResourceMonitor:
         self.resource_coordinator = None
         self.dilation_factor = 1.0  # 1.0 = Regular speed, 0.1 = Severe Dilation
         self._running = True
+        self._sandbox_registry: dict[str, int] = {}  # sandbox_id -> memory_mb
         self._initialized = True
 
         # Start background heartbeat if loop is running
@@ -90,11 +91,10 @@ class ResourceMonitor:
                 if not cmdline:
                     continue
                 cmd_str = " ".join(cmdline)
-                if (
-                    cmd_str
-                    and ("lab_driver.py" in cmd_str
+                if cmd_str and (
+                    "lab_driver.py" in cmd_str
                     or "fractal_nexus_mission.py" in cmd_str
-                    or "recursive_improvement_driver.py" in cmd_str)
+                    or "recursive_improvement_driver.py" in cmd_str
                 ):
                     logger.warning(
                         f"KILLED runaway process: {proc.info['pid']} ({cmd_str})"
@@ -185,8 +185,44 @@ class ResourceMonitor:
         self.active_calls -= 1
         logger.debug(f"Slot released. Active calls: {self.active_calls}")
 
+    def register_sandbox(self, sandbox_id: str, memory_mb: int) -> None:
+        """Register an active sandbox for resource tracking.
+
+        Parameters
+        ----------
+        sandbox_id : str
+            Unique identifier for the sandbox.
+        memory_mb : int
+            Memory allocated to this sandbox in megabytes.
+        """
+        self._sandbox_registry[sandbox_id] = memory_mb
+        logger.info(
+            f"Sandbox registered: {sandbox_id} ({memory_mb}MB). "
+            f"Total sandbox memory: {self.total_sandbox_memory_mb}MB"
+        )
+
+    def deregister_sandbox(self, sandbox_id: str) -> None:
+        """Deregister a sandbox that has completed or been terminated.
+
+        Parameters
+        ----------
+        sandbox_id : str
+            Unique identifier for the sandbox to remove.
+        """
+        removed = self._sandbox_registry.pop(sandbox_id, None)
+        if removed is not None:
+            logger.info(
+                f"Sandbox deregistered: {sandbox_id}. "
+                f"Total sandbox memory: {self.total_sandbox_memory_mb}MB"
+            )
+
+    @property
+    def total_sandbox_memory_mb(self) -> int:
+        """Total memory allocated across all registered sandboxes."""
+        return sum(self._sandbox_registry.values())
+
     def get_vitals(self) -> dict[str, Any]:
-        """Fetch current system usage stats including AMD VRAM."""
+        """Fetch current system usage stats including AMD VRAM and sandbox info."""
         vm = psutil.virtual_memory()
         vitals = {
             "cpu_percent": psutil.cpu_percent(),
@@ -196,6 +232,8 @@ class ResourceMonitor:
             "timestamp": time.time(),
             "vram_percent": self._get_vram_usage(),
             "dilation_factor": self.dilation_factor,
+            "active_sandboxes": len(self._sandbox_registry),
+            "sandbox_memory_mb": self.total_sandbox_memory_mb,
         }
         return vitals
 
@@ -204,15 +242,39 @@ class ResourceMonitor:
         return self.dilation_factor
 
     def _get_vram_usage(self) -> float:
-        """Fetch VRAM usage for AMD GPU (Framework 16 card1)."""
+        """Fetch GPU memory pressure for AMD GPU.
+
+        On unified memory iGPU (e.g. Radeon 8060S / Strix Halo), the sysfs
+        ``mem_info_vram_total`` reports a tiny dedicated carveout (~512 MiB)
+        that is always nearly full.  This is NOT indicative of real memory
+        pressure.  Instead we check the GTT (Graphics Translation Table)
+        which represents the actual unified memory pool shared with system
+        RAM.  If GTT sysfs is unavailable, fall back to system RAM usage
+        which is equivalent on UMA hardware.
+        """
         try:
-            total_path = Path("/sys/class/drm/card1/device/mem_info_vram_total")
-            used_path = Path("/sys/class/drm/card1/device/mem_info_vram_used")
-            if total_path.exists() and used_path.exists():
-                total = int(total_path.read_text().strip())
-                used = int(used_path.read_text().strip())
-                if total > 0:
-                    return (used / total) * 100.0
+            device = Path("/sys/class/drm/card1/device")
+
+            # Prefer GTT (unified memory pool) over dedicated VRAM carveout
+            gtt_total_path = device / "mem_info_gtt_total"
+            gtt_used_path = device / "mem_info_gtt_used"
+            if gtt_total_path.exists() and gtt_used_path.exists():
+                gtt_total = int(gtt_total_path.read_text().strip())
+                gtt_used = int(gtt_used_path.read_text().strip())
+                if gtt_total > 0:
+                    return (gtt_used / gtt_total) * 100.0
+
+            # Fallback: dedicated VRAM (only useful for discrete GPUs)
+            vram_total_path = device / "mem_info_vram_total"
+            vram_used_path = device / "mem_info_vram_used"
+            if vram_total_path.exists() and vram_used_path.exists():
+                vram_total = int(vram_total_path.read_text().strip())
+                vram_used = int(vram_used_path.read_text().strip())
+                # Skip tiny carveouts (<4 GiB) -- they are iGPU framebuffers,
+                # not real VRAM pools.  Use system RAM instead.
+                if vram_total >= 4 * (1024**3) and vram_total > 0:
+                    return (vram_used / vram_total) * 100.0
+
         except Exception:
             pass
         return 0.0
@@ -312,10 +374,19 @@ class ResourceMonitor:
                 self.throttled = False
                 self.dilation_factor = 1.0
 
+            # Sandbox pressure warning
+            sandbox_mem = self.total_sandbox_memory_mb
+            if sandbox_mem > 80 * 1024:  # >80GB sandbox memory
+                logger.warning(
+                    f"Sandbox memory pressure: {sandbox_mem}MB allocated "
+                    f"across {len(self._sandbox_registry)} sandboxes"
+                )
+
             log_entry = (
                 f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
                 f"CPU: {cpu}% | RAM: {ram}% | VRAM: {vram:.1f}% | "
-                f"LLM Calls: {vitals['active_llm_calls']} | Dilation: {self.dilation_factor}\n"
+                f"LLM Calls: {vitals['active_llm_calls']} | Dilation: {self.dilation_factor} | "
+                f"Sandboxes: {len(self._sandbox_registry)} ({sandbox_mem}MB)\n"
             )
 
             with open(self.heartbeat_log, "a") as f:
