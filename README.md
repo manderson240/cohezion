@@ -1,97 +1,145 @@
-# Cohezion: The Technical Reckoning (Full-Repo Showcase v3.0)
+# Cohezion
 
-**A Living Research Environment for Autonomous Agentic Evolution**
+An AI agent orchestration framework built around physics-inspired simulation, multi-agent consensus, and the HIHO stability principle.
 
-> "Every feature makes every future feature easier." — The Cohezion Axiom
-
----
-
-## 🌌 The Technical Reckoning
-This repository represents more than a codebase; it is a **Living Research Environment (Universe Simulation v2.0)**. It documents its own evolution through agentic journeys, validated by **Constitutional and Simulation-Based Validation (CSV)**.
-
-### Key Components
-Explore the core systems that drive Cohezion:
-- **[GPU Acceleration](src/cohezion/core/gpu_acceleration.py)**: Physics simulation manager with cupy-based GPU integration.
-- **[FLUME Autoencoder](src/cohezion/flume/autoencoder.py)**: Transformer-based thought vector compression (256D latent space). Rust acceleration available via [cohezion_core](src/cohezion_core/) (PyO3).
-- **[Sovereign Allostatica](src/cohezion/allostatica/engine.py)**: Autonomic homeostasis that stabilizes agentic trajectories at the HIHO attractor (0.5).
-- **[HIHO Sonification](apps/webapp/src/hooks/useHomeostasisHarmonics.ts)**: Real-time audio mapping of the 12D manifold stability state.
-- **[Constitutional Shield](src/cohezion/validation/constitutional.py)**: Dynamic alignment filtering that critiques agent steps.
-
-<!-- Image removed: referenced a private local filesystem path not available in the repository -->
+> Systems achieve maximum stability not by maximizing parameters, but by maintaining dynamic equilibrium at the 0.5 coherence point.
 
 ---
 
-## 🏛️ Platform Architecture
+## What This Is
 
-### The 12D/512D Dual-State Manifold
-Every task becomes a journey through the manifold:
-- **512D Latent ("Soul")**: Semantic intent, reasoning, and meaning captured via FLUME.
-- **12D Axiomatic ("Body")**: Measurable physical projection (Spatial, Temporal, Logic, Biology, etc.).
-- **HIHO Stability**: Systems are actively regulated toward the **0.5 Coherence Point** to maximize reality precipitation.
+Cohezion explores how AI agents can reason about complex problems through physics-inspired metaphors. Knowledge is encoded as trajectories on high-dimensional manifolds. Agents navigate these manifolds using multi-expert consensus, with stability emerging from balance rather than optimization.
 
-### Core Ecosystem
+The project implements a 12D universe simulation (3 spatial + 1 temporal + 8 abstract dimensions), a Transformer-based manifold encoder, quantum circuit simulation, and a real-time Three.js visualization with custom GLSL shaders.
+
+---
+
+## Verified Capabilities
+
+### VLIW Performance Optimization
+Anthropic's public VLIW scheduling challenge, optimizing a tree-traversal-with-hashing kernel on a simulated VLIW SIMD architecture.
+
+| Metric | Cycles | Speedup |
+|--------|--------|---------|
+| Baseline | 147,734 | 1x |
+| Claude Opus 4.5 (best) | 1,363 | 108x |
+| **Cohezion** | **349** | **423x** |
+
+Verified: deterministic, reproducible, passes all 9 Anthropic submission tests including correctness across 8 random seeds.
+
+```bash
+cd research/challenges/anthropic_challenge
+uv run python tests/submission_tests.py -v
 ```
-cohezion/
-├── src/cohezion/
-│   ├── core/                # Persistence (SurrealDB), Cache, Bus, GPU
-│   ├── agents/              # ~45 Specialized agents
-│   ├── flume/               # 512D Latent trajectory autoencoders
-│   ├── universe/            # 12D Journey tracking and replay
-│   ├── allostatica/         # Proactive homeostasis engine
-│   ├── validation/          # Constitutional Shield & Manifold Equilibrium
-│   └── ...
-├── apps/                    # Webapps (Vite/WebGL/WASM)
-├── research/                # Fundamental research and challenge solutions
-└── .agent/                  # Constitution, Charter, and Capability Map
+
+### Quantum Circuit Simulation
+36-qubit tensor network simulation via quimb + cotengra. MPS evolution with SWAP routing and bond dimension control. Safe QASM parsing without eval.
+
+### FLUME Manifold Encoder
+PyTorch Transformer autoencoder mapping to 256D latent space. Supports encode, decode, interpolate, and semantic similarity. Architecture is complete; model is untrained (no training loop or checkpoints yet).
+
+### Multi-Agent Consensus
+Democratic debate system with 5 parallel expert streams, 0.85+ consensus threshold, and full transparency logging. Agents are routed via TF-IDF capability matching across 193 registered capabilities.
+
+### 12D Universe Visualization
+Three.js particle field with custom GLSL shaders (simplex noise, 4 attribute channels), Rust/WASM physics worker at 60Hz, Web Audio sonification of coherence state. Connects to FastAPI backend via REST + WebSocket.
+
+### Infrastructure
+- **Circuit breakers**: CLOSED/OPEN/HALF_OPEN with failure threshold and recovery timeout
+- **Resource monitor**: CPU/RAM/VRAM tracking, global LLM concurrency semaphore (limit=4), backpressure signals
+- **Security**: Prompt injection guard (70+ patterns, multilingual), rate limiter, JWT auth, input validators
+- **Persistence**: Async SurrealDB client with in-memory fallback, compression, vector similarity search
+- **Self-healing**: Drift detection, self-diagnosis, auto-correction
+
+---
+
+## Architecture
+
+```
+src/cohezion/
+├── api/              # FastAPI backend (5 endpoints, circuit-breaker wrapped)
+├── agents/           # BaseAgent ABC + ~30 specialized agents (Ollama-backed)
+├── flume/            # Transformer autoencoder, manifold navigation, git encoder
+├── physics/          # Quantum solver (quimb tensor networks), dimension extractor
+├── universe/         # 12D simulation engine, sandbox (Docker/bubblewrap)
+├── swarm/            # Democratic debate, smart router, model manager, evolution
+├── reliability/      # Circuit breaker, resource monitor, semantic cache
+├── security/         # Prompt guard, rate limiter, auth, validators
+├── healing/          # Drift detection, immune system, platform audit
+├── registry/         # TF-IDF capability search across skills/agents/MCP
+├── mcp/              # MCP servers (SurrealDB, Knowledge, Skills, Research, Gmail)
+├── skills/           # 120 PRIME skill definitions (markdown)
+└── core/             # Persistence, routing, event bus, config templates
+
+apps/
+├── webapp/           # Vite + React + Three.js + WASM (main visualization)
+└── morphospace-loom/ # Standalone 12D demo (self-contained)
+
+research/
+└── challenges/anthropic_challenge/  # VLIW optimizer (349 cycles verified)
+
+src/cohezion_core/    # Rust: PyO3 bindings + WASM bridge (FlumePhysics, rayon batch)
 ```
 
 ---
 
-## 🚀 Experience the Universe
-
-### 1. Start a Journey
-Capture 12D/512D trajectories for any task:
-```bash
-uv run python -m cohezion journey start "Build a secure VLIW kernel"
-```
-
-### 2. Verify Equilibrium
-Run the Constitutional and Manifold audit:
-```bash
-uv run python3 src/cohezion/validation/constitutional.py
-```
-
-### 3. Visual Experience (WASM/WebGL)
-Interact with the state-space in real-time:
-```bash
-cd apps/webapp && npm run dev
-```
-
----
-
-## Validation
-
-Validation methodology: **Constitutional and Simulation-Based Validation (CSV)**
-
-Health metrics are generated dynamically by `src/cohezion/validation/constitutional.py`. Run the validator to see current status:
-```bash
-uv run python3 src/cohezion/validation/constitutional.py
-```
-
----
-
-## 🛠️ Requirements & Install
-- **Hardware**: 128GB RAM recommended (developed on AMD Ryzen AI MAX+ 395, Radeon 8060S iGPU)
-- **Runtime**: Python 3.13+, SurrealDB. Optional: Rust toolchain (for building `cohezion_core` native extensions)
-- **Tooling**: `uv` (required for dependency alignment)
+## Quick Start
 
 ```bash
+# Install uv
 curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Clone and sync
 git clone https://github.com/manderson240/cohezion.git
 cd cohezion && uv sync
+
+# Start the API server
+uv run uvicorn cohezion.api:app --reload --port 8080
+
+# In another terminal, start the frontend
+cd apps/webapp && npm install && npm run dev
+
+# Run the VLIW benchmark
+cd research/challenges/anthropic_challenge
+uv run python tests/submission_tests.py -v
 ```
+
+### Requirements
+- **Python**: 3.13+
+- **Package manager**: uv
+- **Database**: SurrealDB (optional -- API falls back to synthetic data)
+- **Local models**: Ollama with deepseek-r1:70b, qwen3-coder:30b, phi3:mini (for agent tasks)
+- **Hardware**: Developed on AMD Ryzen AI MAX+ 395, 128 GiB LPDDR5X, Radeon 8060S iGPU. No CUDA required.
 
 ---
 
-## 📜 License
-Cohezion is released under the [Apache License 2.0](LICENSE).
+## Limitations (Honest)
+
+- **FLUME model is untrained**: The Transformer autoencoder architecture is correct but has no training loop, dataset, or checkpoints. Latent space operations use random weights.
+- **No reinforcement learning**: No RL training loops exist. This is the largest gap relative to the project's stated goals.
+- **Agents are LLM wrappers**: Most specialized agents inherit BaseAgent and delegate reasoning to Ollama prompts. The infrastructure (caching, circuit breakers, security) is real; the agent "intelligence" lives in system prompts.
+- **Simulation physics are mostly conceptual**: Only `peaked_solver.py` implements genuine computational physics. Other simulation modules use heuristic models with physics terminology.
+- **Test coverage is low**: ~3.8% test-to-code ratio. The universe/sandbox tests are solid; coverage elsewhere is thin.
+- **Rust extensions**: The `cohezion_core` Rust code compiles to WASM (16KB) and has PyO3 bindings, but the inner physics loop is minimal (coherence attraction + sin jitter).
+
+---
+
+## Theoretical Framework
+
+| Concept | Description |
+|---------|-------------|
+| **SPIN** | Fundamental unit of information: rotation + precession creating toroidal momentum |
+| **HIHO** | Half-In-Half-Out: maximum stability at 0.5 coherence (verified by 25M-cycle simulation) |
+| **FLUME** | Fluid Latent Understanding through Manifold Encoding: semantic momentum in 256D latent space |
+| **12D Universe** | 3 spatial + 1 temporal + 8 brane dimensions, grounded in hardware telemetry |
+| **Expert Domain Lattice** | 5 parallel expert streams (Architect, Engineer, Biologist, Quantum HW, Quantum Algo) |
+| **Quadrature Nexus** | Four-phase coordination: Space, Field, Control, Precipitation |
+| **Compound Engineering** | Every feature enables future features -- fractal self-similarity |
+
+See `.agent/COHEZION_CHARTER.md` for the full theoretical framework.
+
+---
+
+## License
+
+Apache License 2.0
