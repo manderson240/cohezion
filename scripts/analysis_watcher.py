@@ -47,8 +47,8 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "phi3:mini")
 POLL_INTERVAL_S = int(os.environ.get("WATCHER_POLL_INTERVAL", "30"))
-IDLE_TIMEOUT_S = int(os.environ.get("WATCHER_IDLE_TIMEOUT", "300"))
-OLLAMA_TIMEOUT_S = int(os.environ.get("OLLAMA_TIMEOUT", "120"))
+IDLE_TIMEOUT_S = int(os.environ.get("WATCHER_IDLE_TIMEOUT", "600"))
+OLLAMA_TIMEOUT_S = int(os.environ.get("OLLAMA_TIMEOUT", "180"))
 MAX_CONSECUTIVE_FAILURES = 10
 MIN_AVAILABLE_RAM_GB = 15
 
@@ -357,40 +357,72 @@ async def discover_latest_run(db) -> str | None:
     return None
 
 
+def _row_to_summary(row: dict) -> UniverseSummary | None:
+    """Convert a row dict to UniverseSummary, or None if invalid."""
+    uid = row.get("universe_id", "")
+    if not uid:
+        return None
+    return UniverseSummary(
+        universe_id=uid,
+        seed=row.get("seed", 0),
+        mean_coherence=row.get("mean_coherence", 0.0),
+        pct_within_bounds=row.get("pct_within_bounds", 0.0),
+        mean_norm=row.get("mean_norm", 0.0),
+        elapsed_seconds=row.get("elapsed_seconds", 0.0),
+        n_agents=row.get("n_agents", 0),
+        n_epochs=row.get("n_epochs", 0),
+        created_at=row.get("created_at", ""),
+    )
+
+
 async def fetch_new_summaries(
     db, run_id: str, seen_universe_ids: set[str]
 ) -> list[UniverseSummary]:
-    """Fetch universe summaries we haven't processed yet."""
+    """Fetch universe summaries we haven't processed yet.
+
+    Tries SurrealDB first, falls back to JSONL files if DB query fails
+    (e.g., WebSocket keepalive timeout on long-running connections).
+    """
+    summaries: list[UniverseSummary] = []
+
+    # Try SurrealDB first
     try:
         result = await db.query(
             "SELECT * FROM sim_universe_summary WHERE run_id = $run_id ORDER BY created_at ASC",
             {"run_id": run_id},
         )
-
-        summaries = []
         if result and isinstance(result, list):
             rows = _extract_rows(result)
             for row in rows:
-                uid = row.get("universe_id", "")
-                if uid and uid not in seen_universe_ids:
-                    summaries.append(
-                        UniverseSummary(
-                            universe_id=uid,
-                            seed=row.get("seed", 0),
-                            mean_coherence=row.get("mean_coherence", 0.0),
-                            pct_within_bounds=row.get("pct_within_bounds", 0.0),
-                            mean_norm=row.get("mean_norm", 0.0),
-                            elapsed_seconds=row.get("elapsed_seconds", 0.0),
-                            n_agents=row.get("n_agents", 0),
-                            n_epochs=row.get("n_epochs", 0),
-                            created_at=row.get("created_at", ""),
-                        )
-                    )
-        return summaries
-
+                s = _row_to_summary(row)
+                if s and s.universe_id not in seen_universe_ids:
+                    summaries.append(s)
+        if summaries:
+            return summaries
     except Exception as e:
-        logger.warning(f"Failed to fetch summaries: {e}")
-        return []
+        logger.warning(f"SurrealDB query failed ({e}), trying JSONL fallback...")
+
+    # JSONL fallback: read sim_universe_summary.jsonl written by the sim's persistence layer
+    jsonl_path = Path("data/mass_sim/checkpoints/jsonl/sim_universe_summary.jsonl")
+    if jsonl_path.exists():
+        import json
+
+        try:
+            with open(jsonl_path) as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    row = json.loads(line)
+                    if row.get("run_id") != run_id:
+                        continue
+                    s = _row_to_summary(row)
+                    if s and s.universe_id not in seen_universe_ids:
+                        summaries.append(s)
+        except Exception as e:
+            logger.warning(f"JSONL fallback read failed: {e}")
+
+    return summaries
 
 
 # ---------------------------------------------------------------------------
