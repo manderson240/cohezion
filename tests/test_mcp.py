@@ -1,6 +1,6 @@
 """Tests for MCP Registry and Servers."""
-import pytest
-from cohezion.mcp.registry import get_registry, MCPRegistry
+
+from cohezion.mcp.registry import MCPRegistry, get_registry
 
 
 class TestMCPRegistry:
@@ -45,12 +45,14 @@ class TestKnowledgeMCP:
     def test_server_loads(self):
         """Knowledge server initializes."""
         from cohezion.mcp.knowledge_server import get_server
+
         server = get_server()
         assert server is not None
 
     def test_list_skills(self):
         """Can list skills."""
         from cohezion.mcp.knowledge_server import get_server
+
         server = get_server()
         skills = server.list_skills()
         assert len(skills) > 0
@@ -58,6 +60,7 @@ class TestKnowledgeMCP:
     def test_search_knowledge(self):
         """Can search knowledge."""
         from cohezion.mcp.knowledge_server import get_server
+
         server = get_server()
         results = server.search_knowledge("swarm")
         assert len(results) > 0
@@ -69,12 +72,14 @@ class TestSkillsMCP:
     def test_server_loads(self):
         """Skills server initializes."""
         from cohezion.mcp.skills_server import get_server
+
         server = get_server()
         assert server is not None
 
     def test_list_all(self):
         """Can list all skills."""
         from cohezion.mcp.skills_server import get_server
+
         server = get_server()
         skills = server.list_all()
         assert isinstance(skills, list)

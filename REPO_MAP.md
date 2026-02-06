@@ -3280,10 +3280,6 @@
 │   │   ├── cohezion/
 │   │   │   ├── __init__.py
 │   │   │   ├── branding.py
-│   │   │   ├── qftdhd/
-│   │   │   │   ├── core/
-│   │   │   │   ├── interface/
-│   │   │   │   ├── sim/
 │   │   │   ├── skills/
 │   │   │   │   ├── 3d_rendering.md
 │   │   │   │   ├── ADVERSARIAL_TESTING_PRIME.md

@@ -1,7 +1,9 @@
+import asyncio
 
 import pytest
-import asyncio
+
 from cohezion.swarm.rlm.scalar_context_manager import ScalarContextManager
+
 
 @pytest.mark.anyio
 async def test_scalar_importance():
@@ -11,7 +13,7 @@ async def test_scalar_importance():
     segments = [
         "This segment discusses FLUME manifold stability in detail.",
         "This is a random sentence about gardening.",
-        "High stability (>0.9) is critical for reality precipitation."
+        "High stability (>0.9) is critical for reality precipitation.",
     ]
 
     # 1. Test calculation
@@ -19,7 +21,9 @@ async def test_scalar_importance():
     score_low = manager.calculate_importance(segments[1], query)
     score_boost = manager.calculate_importance(segments[2], query, stability=0.95)
 
-    print(f"DEBUG: score_high={score_high}, score_low={score_low}, score_boost={score_boost}")
+    print(
+        f"DEBUG: score_high={score_high}, score_low={score_low}, score_boost={score_boost}"
+    )
 
     assert score_high >= 0.0
     assert score_low >= 0.0
@@ -33,6 +37,7 @@ async def test_scalar_importance():
     assert prioritized[1]["action"] == "SUMMARIZE"
 
     await manager.close()
+
 
 if __name__ == "__main__":
     asyncio.run(test_scalar_importance())

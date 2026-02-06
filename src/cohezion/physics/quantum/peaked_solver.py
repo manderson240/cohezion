@@ -34,9 +34,12 @@ def _safe_parse_qasm_param(expr: str) -> float:
     if not re.match(r"^[\d\.\+\-\*/eE\s]+$", expr):
         raise ValueError(f"Unsafe QASM parameter expression: {expr!r}")
     try:
-        return float(eval(compile(expr, "<qasm_param>", "eval"), {"__builtins__": {}}, {}))  # noqa: S307
+        return float(
+            eval(compile(expr, "<qasm_param>", "eval"), {"__builtins__": {}}, {})
+        )  # noqa: S307
     except (SyntaxError, TypeError, ZeroDivisionError) as e:
         raise ValueError(f"Failed to parse QASM parameter: {expr!r}") from e
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

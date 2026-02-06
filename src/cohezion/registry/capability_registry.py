@@ -182,7 +182,9 @@ class CapabilityRegistry:
                     for line in content.split("\n"):
                         stripped = line.strip()
                         if stripped.startswith("class ") and "Agent" in stripped:
-                            class_name = stripped.split("(")[0].replace("class ", "").strip()
+                            class_name = (
+                                stripped.split("(")[0].replace("class ", "").strip()
+                            )
                             break
 
                     if not class_name:
@@ -211,7 +213,11 @@ class CapabilityRegistry:
                             if stripped.startswith('"""'):
                                 # Check for single-line docstring: """text"""
                                 if stripped.count('"""') >= 2:
-                                    desc = stripped.removeprefix('"""').removesuffix('"""').strip()[:200]
+                                    desc = (
+                                        stripped.removeprefix('"""')
+                                        .removesuffix('"""')
+                                        .strip()[:200]
+                                    )
                                     break
                                 # Multi-line docstring starts
                                 in_docstring = True

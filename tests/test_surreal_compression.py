@@ -1,20 +1,30 @@
 import asyncio
+
 import numpy as np
-from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode, PhysicsState
+
+from cohezion.core.persistence.surreal_client import (
+    PhysicsState,
+    SurrealClient,
+    UniverseNode,
+)
+
 
 async def test_compression_roundtrip():
     client = SurrealClient()
     # Using InMemoryStore for testing
     await client.connect()
 
-    long_content = "This is a very long string that should be compressed by zlib for efficient storage in SurrealDB. " * 10
+    long_content = (
+        "This is a very long string that should be compressed by zlib for efficient storage in SurrealDB. "
+        * 10
+    )
     physics = PhysicsState(x=1.0, y=2.0, z=3.0, novelty=0.8)
 
     node = UniverseNode(
         id="test_compressed",
         content=long_content,
         physics_state=physics,
-        node_type="test"
+        node_type="test",
     )
 
     # Store with compression
@@ -29,6 +39,7 @@ async def test_compression_roundtrip():
     assert np.isclose(retrieved.physics_state.x, 1.0)
     assert np.isclose(retrieved.physics_state.novelty, 0.8)
     print("✅ Compression roundtrip successful!")
+
 
 if __name__ == "__main__":
     asyncio.run(test_compression_roundtrip())

@@ -543,6 +543,98 @@ For long-horizon agentic missions, maintaining a codified "Truth Anchor" in `res
 
 **Encoding**: 12D [t=20260205, stability=0.98, dilation=0.05, brane=1].
 
+---
+
+## Learning 91: THE GTT CARVEOUT ILLUSION (2026-02-05)
+
+**Context**: Integration testing the Ollama agent pipeline on Strix Halo. `ResourceMonitor._get_vram_usage()` reported 88.7% VRAM utilization, triggering DESPERATION MODE and EMERGENCY SHUTDOWN protocols despite the system running a single 4B model with 115 GiB free RAM.
+
+**Core Concept**: **Carveout Mirage**. On UMA (Unified Memory Architecture) iGPUs, the sysfs path `mem_info_vram_total` reports a tiny dedicated framebuffer carveout (~512 MiB on Radeon 8060S) that is *always* nearly full. This is a fixed allocation for display scanout, not a pressure signal. The real memory pool is exposed through `mem_info_gtt_total` (Graphics Translation Table), which on Strix Halo reflects the full 128 GiB unified RAM. Reading the carveout as "VRAM" produced a false 88.7% reading; reading GTT produced the true 0.37%.
+
+**Mechanism**:
+- `/sys/class/drm/card1/device/mem_info_vram_total` = 512 MiB (framebuffer carveout, always ~88% used)
+- `/sys/class/drm/card1/device/mem_info_gtt_total` = 128 GiB (actual unified pool shared with system RAM)
+- Discriminator: If `vram_total < 4 GiB`, it is a carveout, not real VRAM -- skip it and use GTT or system RAM instead.
+
+**Impact**: This single false reading cascaded through the entire stack: `ResourceMonitor` set `dilation_factor=0.05`, `LocalExpertRouter` downgraded model selections, `BaseAgent` throttled inference. Fixing the sysfs read path restored the full elite routing pipeline.
+
+**Encoding**: 12D [t=20260205, stability=0.3->1.0, precision=0.99, brane=5].
+
+---
+
+## Learning 92: ADAPTIVE AMD iGPU DETECTION VIA SYSFS (2026-02-05)
+
+**Context**: The `AdaptiveFramework` hardware profiler used GPUtil (NVIDIA-only) for GPU detection, classifying Strix Halo as "laptop" tier with zero GPU capability. This crippled model selection and capacity planning for the entire Ollama swarm.
+
+**Core Concept**: **Vendor-Agnostic Hardware Discovery**. AMD GPUs expose vendor IDs and memory telemetry through standard Linux sysfs (`/sys/class/drm/card*/device/`). The vendor ID `0x1002` identifies AMD. Memory pools are then read from `mem_info_gtt_total` (UMA) or `mem_info_vram_total` (discrete).
+
+**Mechanism**:
+1. Enumerate `/sys/class/drm/card[0-9]*` directory entries.
+2. Read `device/vendor` -- `0x1002` = AMD, `0x10de` = NVIDIA.
+3. For AMD: prefer GTT path over VRAM path. If GTT total is within 5% of system RAM, classify as UMA (unified memory).
+4. UMA scoring: `vram_score = min(system_ram_gb / 64.0, 2.0)` and `gpu_score = min(gpu_count * (system_ram_gb / 64.0), 2.0)`.
+5. Add `uma_zero_copy` and `unified_memory_pool` to capability set.
+
+**Impact**: Hardware tier correctly upgraded from "laptop" to "professional". UMA capability enables zero-copy data paths between CPU and GPU workloads.
+
+**Encoding**: 12D [t=20260205, efficiency=0.95, stability=0.98, brane=5].
+
+---
+
+## Learning 93: JSON COMMENT STRIPPING (CONFIG RESILIENCE) (2026-02-05)
+
+**Context**: `ModeController._load_model_registry()` failed with `json.JSONDecodeError: Expecting value: line 1 column 1` when loading `model_registry_ascended.json`. Root cause: the file begins with `# comment` lines (human-readable annotations), which `json.load()` rejects.
+
+**Core Concept**: **Graceful Config Degradation**. Configuration files in a multi-agent system accumulate human annotations over time. Loaders must tolerate non-standard extensions (comments, trailing commas) without requiring a full parser swap to JSONC or TOML.
+
+**Mechanism**: Pre-process the file text by stripping lines where `line.lstrip().startswith("#")` before passing to `json.loads()`. This is a minimal, zero-dependency solution that handles the most common annotation pattern without introducing JSONC parsing dependencies.
+
+**Anti-Pattern**: Silently catching the parse error and returning an empty dict (the previous behavior) masked the misconfiguration entirely, causing the ModeController to operate with zero models loaded.
+
+**Encoding**: 12D [t=20260205, reliability=0.95, simplicity=0.9, brane=1].
+
+---
+
+## Learning 94: LAZY IMPORT CHAINS (DEPENDENCY FIREWALL) (2026-02-05)
+
+**Context**: `lab_agent.py` imported `ControllerAgent` at module level. `ControllerAgent` in turn imported `BiologicalAgent` and `QuantumAgent` -- modules that had been deleted during the repo hygiene pass. This created a cascading `ModuleNotFoundError` that prevented the entire `agents/` package from loading.
+
+**Core Concept**: **Dependency Firewall via Lazy Imports**. In a large codebase with frequent structural changes (module deletions, renames, refactors), top-level imports create brittle dependency chains. Moving imports to the point of use (inside `__init__` or method bodies) creates a firewall: only the code path that actually needs the dependency will fail, not the entire module tree.
+
+**Mechanism**:
+1. Move `from cohezion.agents.controller_agent import ControllerAgent` into `__init__()`.
+2. Move `from cohezion.agents.controller_agent import IgnitionPack` into `_ideate_and_analyze()`.
+3. Annotate with `# noqa: E402` to prevent ruff's isort from hoisting them back to module level.
+
+**Anti-Pattern**: Ruff's import sorting will silently relocate lazy imports to the top of the file during format passes, re-introducing the exact failure you just fixed. The `# noqa: E402` annotation is mandatory for intentional lazy imports.
+
+**Encoding**: 12D [t=20260205, resilience=0.95, maintainability=0.9, brane=1].
+
+---
+
+## Learning 95: END-TO-END PIPELINE VERIFICATION (OLLAMA-OPS) (2026-02-05)
+
+**Context**: First full integration test of the Cohezion agent swarm pipeline against live Ollama inference. Five-stage test covering direct HTTP, LocalRegistry, ConnectionPool, LocalExpertRouter, and pytest suite.
+
+**Core Concept**: **Compound Verification**. Individual unit tests for each component passed, but the end-to-end pipeline had 4 interacting failures that only manifested during integrated operation:
+1. False VRAM pressure (Learning 91) caused dilation to drop to 0.05
+2. Dilation caused the router to select fallback models instead of elite models
+3. Missing AMD detection (Learning 92) classified hardware as "laptop" tier
+4. Broken import chains (Learning 94) prevented agent instantiation
+
+**Mechanism**: The 5-stage integration test protocol:
+- **Stage 1**: Direct Ollama HTTP (`POST /api/generate`) -- validates raw inference connectivity
+- **Stage 2**: `LocalRegistry.discover()` -- validates model catalog (25 models found)
+- **Stage 3**: `ConnectionPool.get()` -- validates connection reuse and cleanup
+- **Stage 4**: `LOCAL_ROUTER.route_task()` -- validates model selection under real hardware telemetry
+- **Stage 5**: `pytest` collection -- validates module import health across the full tree
+
+**Impact**: Revealed that the pipeline's health depends on a chain of 4 correct subsystems (sysfs read -> monitor -> router -> agent). Any single failure cascades. After compound fixes, the full pipeline routes `qwen3-coder-next:q8_0` (elite) instead of `phi3:mini` (fallback).
+
+**Encoding**: 12D [t=20260205, stability=0.98, coherence=0.95, compound=0.9, brane=1].
+
+---
+
 ## Learning: BUG_HUNT_DISCOVERY (2026-02-05 08:11)
 * **Context**: Swarm Bug Hunt in `src/cohezion/maintenance/pruner.py`.
 * **Core Concept**: The code follows a pattern of using an LLM to analyze code density and score files for potential pruning. It implements a recursive directory scanner with exclusion filters, and uses a scoring system to determine which files are candidates for pruning. It also includes a git health monitor to detect bloat.

@@ -1,10 +1,12 @@
 import asyncio
 import logging
-from cohezion.simulation.cross_domain_translator import CrossDomainTranslator
+
 from cohezion.core.persistence.surreal_client import SurrealClient
+from cohezion.simulation.cross_domain_translator import CrossDomainTranslator
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("VerifyTranslator")
+
 
 async def verify_translator():
     print("🚀 Verifying CrossDomainTranslator...")
@@ -28,13 +30,16 @@ async def verify_translator():
     try:
         query_res = await db.query("SELECT * FROM cross_domain_mapping LIMIT 5")
         if query_res and query_res[0]:
-            print(f"✓ Verified persistence: Found {len(query_res[0])} records in SurrealDB.")
+            print(
+                f"✓ Verified persistence: Found {len(query_res[0])} records in SurrealDB."
+            )
         else:
             print("⚠️ Persistence check: No records found (is SurrealDB running?)")
     except Exception as e:
         print(f"❌ Persistence check failed: {e}")
 
     print("\n✅ CrossDomainTranslator Verified!")
+
 
 if __name__ == "__main__":
     asyncio.run(verify_translator())

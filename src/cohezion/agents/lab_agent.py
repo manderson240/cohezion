@@ -34,6 +34,8 @@ class LabAgent(BaseAgent):
             model_name="deepseek-r1:70b",  # Primary reasoning model
             config=config or {},
         )
+        from cohezion.agents.controller_agent import ControllerAgent  # noqa: E402
+
         self.controller = ControllerAgent()
         self.hypothesis_agent = HypothesisAgent()
         self.db_client = SurrealClient()
@@ -92,7 +94,6 @@ class LabAgent(BaseAgent):
         from cohezion.agents.nexus_research_agent import NexusResearchAgent
 
         search_agent = NexusResearchAgent()
-        code_context = f"Searching for patterns in: {topic}"
 
         # Simulated Codebase Mining
         logger.info(f"🔍 Mining codebase for '{topic}' signatures...")
@@ -159,6 +160,8 @@ class LabAgent(BaseAgent):
 
         # Route through Quadrature Nexus
         logger.info("🌐 Routing through Quadrature Nexus lattice...")
+        from cohezion.agents.controller_agent import IgnitionPack  # noqa: E402
+
         nexus_pack: IgnitionPack = {
             "query": f"Analyze this seed for emergent physics and safety: {raw_seed}",
             "context": {"source": "LabDiscoveryLoop", "mode": "QuadrantNexus"},

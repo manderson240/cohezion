@@ -1,27 +1,29 @@
-import os
-import json
 import hashlib
+import json
+import os
+
 from rich.console import Console
-from rich.text import Text
+
 
 class VitrificationSuite:
     """
     Advanced testing and validation suite for Cohezion.
     Implements structural state verification and UI snapshotting.
     """
+
     def __init__(self, manifest_path="tests/vitrification/manifest.json"):
         self.manifest_path = manifest_path
         self.load_manifest()
 
     def load_manifest(self):
         if os.path.exists(self.manifest_path):
-            with open(self.manifest_path, 'r') as f:
+            with open(self.manifest_path) as f:
                 self.manifest = json.load(f)
         else:
             self.manifest = {}
 
     def save_manifest(self):
-        with open(self.manifest_path, 'w') as f:
+        with open(self.manifest_path, "w") as f:
             json.dump(self.manifest, f, indent=4)
 
     def verify_ui_snapshot(self, name, rich_renderable):
@@ -30,6 +32,7 @@ class VitrificationSuite:
         Used to ensure 'Premium' aesthetics remain consistent.
         """
         import io
+
         buffer = io.StringIO()
         console = Console(file=buffer, force_terminal=True, width=80)
         console.print(rich_renderable)
@@ -56,16 +59,20 @@ class VitrificationSuite:
         Verifies if a 12D state vector is consistently represented in a file.
         (Conceptual implementation of FLUME vitrification).
         """
-        content = open(file_path, 'r').read()
+        content = open(file_path).read()
         # Verify 3+1+8 structure presence
         if "3 Spatial + 1 Time + 8 Brane" in content:
-            print(f"✅ 12D Manifold signature verified in {os.path.basename(file_path)}")
+            print(
+                f"✅ 12D Manifold signature verified in {os.path.basename(file_path)}"
+            )
             return True
         return False
+
 
 if __name__ == "__main__":
     # Self-test
     from cohezion.ui.nexus_ui import NexusUI
+
     suite = VitrificationSuite()
     ui = NexusUI()
 

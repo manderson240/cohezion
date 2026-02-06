@@ -1,8 +1,6 @@
 """Tests for divergence detection."""
 
-import math
 
-import pytest
 
 from cohezion.universe.divergence import (
     HIHO_MAX_DRIFT,
@@ -19,9 +17,7 @@ class TestDivergenceStatus:
         assert status.reason == ""
 
     def test_diverged_with_reason(self):
-        status = DivergenceStatus(
-            diverged=True, reason="NaN detected", coherence=0.0
-        )
+        status = DivergenceStatus(diverged=True, reason="NaN detected", coherence=0.0)
         assert status.diverged
         assert "NaN" in status.reason
 

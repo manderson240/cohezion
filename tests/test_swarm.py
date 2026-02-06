@@ -1,5 +1,5 @@
 """Tests for Swarm Agents and Debate Workflow."""
-import pytest
+
 from cohezion.swarm.swarm_types import Perspective, SwarmConfig, ThoughtVector
 
 
@@ -37,12 +37,14 @@ class TestModelManager:
     def test_manager_loads(self):
         """Model manager initializes."""
         from cohezion.swarm.model_manager import get_manager
+
         manager = get_manager()
         assert manager is not None
 
     def test_role_assignments(self):
         """Role assignments are defined."""
         from cohezion.swarm.model_manager import get_manager
+
         manager = get_manager()
         roles = manager.get_role_assignments()
         assert "analysis" in roles
@@ -56,6 +58,7 @@ class TestSelfHealing:
     def test_system_loads(self):
         """Self-healing system initializes."""
         from cohezion.healing import get_healing_system
+
         system = get_healing_system()
         assert system is not None
         assert system.detector is not None
@@ -65,6 +68,7 @@ class TestSelfHealing:
     def test_drift_detection(self):
         """Drift detection works."""
         from cohezion.healing import get_healing_system
+
         system = get_healing_system()
 
         # Set baseline
@@ -85,12 +89,14 @@ class TestSkillGenerator:
     def test_generator_loads(self):
         """Skill generator initializes."""
         from cohezion.learning import get_skill_generator
+
         gen = get_skill_generator()
         assert gen is not None
 
     def test_pattern_recording(self):
         """Can record patterns."""
         from cohezion.learning import get_skill_generator
+
         gen = get_skill_generator()
 
         pattern = gen.detector.record(

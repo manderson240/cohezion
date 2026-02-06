@@ -163,7 +163,7 @@ Examples:
     )
     generate_sub = generate_parser.add_subparsers(dest="generate_cmd")
 
-    generate_list = generate_sub.add_parser("list", help="List available specs")
+    _generate_list = generate_sub.add_parser("list", help="List available specs")
     generate_agent = generate_sub.add_parser(
         "agent", help="Generate an agent from spec"
     )
@@ -189,7 +189,7 @@ Examples:
         "--interval", type=int, default=10, help="Recording interval in seconds"
     )
 
-    ouroboros_stop = ouroboros_sub.add_parser("stop", help="Stop Ouroboros recorder")
+    _ouroboros_stop = ouroboros_sub.add_parser("stop", help="Stop Ouroboros recorder")
 
     # Mycelium command (Test Generation)
     mycelium_parser = subparsers.add_parser(
