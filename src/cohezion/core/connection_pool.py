@@ -220,7 +220,7 @@ class ConnectionPool:
             return len(self._active_connections) / max(1, self._metrics["current_size"])
 
         # Simple linear prediction based on recent trend
-        timestamps, usages = zip(*self._usage_history)
+        timestamps, usages = zip(*self._usage_history, strict=True)
 
         # Calculate trend (simple linear regression)
         n = len(usages)
