@@ -17,6 +17,7 @@ wheels/
 **/target/
 **/build/
 **/dist/
+builds/
 
 # Archives, artifacts, and recovery
 .archive/
