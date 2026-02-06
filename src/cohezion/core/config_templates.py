@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -114,3 +115,58 @@ class ConfigTemplateManager:
             encoding="utf-8",
         )
         logger.info("Updated skill registry for %s", spec.name)
+
+    def generate_and_register(self, skill_name: str) -> dict[str, Path]:
+        """Generate agent + config files on disk and register in the skill registry.
+
+        Parameters
+        ----------
+        skill_name : str
+            PRIME skill identifier (case-insensitive).
+
+        Returns
+        -------
+        dict[str, Path]
+            Mapping of ``"agent"`` and ``"config"`` to the generated file paths.
+
+        Raises
+        ------
+        KeyError
+            If the skill cannot be found.
+        """
+        spec = self.engine.get_spec_by_name(skill_name)
+        if spec is None:
+            raise KeyError(f"Skill not found: {skill_name}")
+
+        # Derive a snake_case filename from the skill name
+        base = re.sub(r"_PRIME$", "", spec.name, flags=re.IGNORECASE)
+        snake_name = base.lower()
+
+        generated_dir = Path("src/cohezion/agents/generated")
+        generated_dir.mkdir(parents=True, exist_ok=True)
+
+        # Ensure __init__.py exists
+        init_path = generated_dir / "__init__.py"
+        if not init_path.exists():
+            init_path.write_text(
+                '"""Auto-generated agents from PRIME skill definitions."""\n\n'
+                "__all__: list[str] = []\n",
+                encoding="utf-8",
+            )
+
+        # Generate and write agent stub
+        agent_source = self.engine.generate_agent_stub(spec)
+        agent_path = generated_dir / f"{snake_name}_agent.py"
+        agent_path.write_text(agent_source, encoding="utf-8")
+        logger.info("Generated agent stub: %s", agent_path)
+
+        # Generate and write config class
+        config_source = self.engine.generate_config_class(spec)
+        config_path = generated_dir / f"{snake_name}_config.py"
+        config_path.write_text(config_source, encoding="utf-8")
+        logger.info("Generated config class: %s", config_path)
+
+        # Update the skill registry
+        self.update_registry(spec)
+
+        return {"agent": agent_path, "config": config_path}
