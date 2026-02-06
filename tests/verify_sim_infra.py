@@ -1,9 +1,8 @@
 import asyncio
-import os
-import shutil
 from pathlib import Path
+
 from cohezion.agents.lab_agent import LabAgent
-from cohezion.simulation.simulation_logger import SimulationLogger
+
 
 async def verify_integration():
     print("🚀 Verifying Simulation Infrastructure Integration...")
@@ -21,7 +20,7 @@ async def verify_integration():
 
     # 3. Verify SimulationLogger output
     storage_dir = Path("data/simulations")
-    agent.sim_logger.flush() # Force flush
+    agent.sim_logger.flush()  # Force flush
 
     shards = list(storage_dir.glob("*.parquet"))
     print(f"📁 Found {len(shards)} shards in {storage_dir}")
@@ -33,7 +32,9 @@ async def verify_integration():
     assert len(dataset) > 0, "Dataset is empty!"
 
     entry = dataset[0]
-    print(f"🔍 Inspecting first entry: Domain={entry['universe_domain']}, Phiscore={entry['phi_score']:.2f}")
+    print(
+        f"🔍 Inspecting first entry: Domain={entry['universe_domain']}, Phiscore={entry['phi_score']:.2f}"
+    )
     assert entry["universe_domain"] == "physics"
     assert "EVO" in entry["seed_thought"]
 
@@ -41,6 +42,7 @@ async def verify_integration():
     # shutil.rmtree("data/simulations")
 
     print("\n✅ Simulation Infrastructure Integration Verified!")
+
 
 if __name__ == "__main__":
     asyncio.run(verify_integration())

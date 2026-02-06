@@ -1,7 +1,8 @@
 """Tests for sandbox manager."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from cohezion.universe.sandbox_backends import BackendResult
 from cohezion.universe.sandbox_manager import (
@@ -9,7 +10,7 @@ from cohezion.universe.sandbox_manager import (
     SandboxManager,
     get_sandbox_manager,
 )
-from cohezion.universe.sandbox_profiles import SandboxProfile, SandboxTier, get_profile
+from cohezion.universe.sandbox_profiles import SandboxProfile, SandboxTier
 
 
 @pytest.fixture(autouse=True)
@@ -113,9 +114,7 @@ class TestSandboxManagerExecution:
             "cohezion.universe.sandbox_manager.SandboxManager._wait_for_backpressure",
             new_callable=AsyncMock,
         ):
-            result = await manager.run_simulation(
-                "print('custom')", profile=profile
-            )
+            result = await manager.run_simulation("print('custom')", profile=profile)
         assert result.success
 
     @pytest.mark.anyio
@@ -158,15 +157,11 @@ class TestSandboxManagerExecution:
         ):
             # Exhaust circuit breaker (threshold=3)
             for _ in range(3):
-                await manager.run_simulation(
-                    "fail", tier=SandboxTier.LIGHT
-                )
+                await manager.run_simulation("fail", tier=SandboxTier.LIGHT)
 
             # Next call should be rejected by circuit breaker
             with pytest.raises(RuntimeError, match="circuit breaker is OPEN"):
-                await manager.run_simulation(
-                    "blocked", tier=SandboxTier.LIGHT
-                )
+                await manager.run_simulation("blocked", tier=SandboxTier.LIGHT)
 
 
 class TestSandboxManagerIntegration:

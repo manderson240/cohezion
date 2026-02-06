@@ -1,8 +1,11 @@
-import torch
 import os
 import shutil
-from cohezion.flume.autoencoder import FlumeEncoder, FlumeConfig
+
+import torch
+
+from cohezion.flume.autoencoder import FlumeConfig, FlumeEncoder
 from cohezion.flume.tokenizer import FlumeTokenizer
+
 
 def test_hf_refactor():
     print("Testing HF Refactor...")
@@ -10,7 +13,7 @@ def test_hf_refactor():
     # 1. Config Test
     config = FlumeConfig(vocab_size=100, embed_dim=128, z_dim=128)
     model = FlumeEncoder(config)
-    model.eval() # Ensure deterministic for test
+    model.eval()  # Ensure deterministic for test
     print("✓ Model initialized with FlumeConfig")
 
     # 2. Tokenizer Test
@@ -50,8 +53,8 @@ def test_hf_refactor():
     print(f"DEBUG: model2 weight sum: {sum2}")
 
     z2 = model2.encode(text)
-    print(f"DEBUG: z1[0,:5]: {z[0,:5]}")
-    print(f"DEBUG: z2[0,:5]: {z2[0,:5]}")
+    print(f"DEBUG: z1[0,:5]: {z[0, :5]}")
+    print(f"DEBUG: z2[0,:5]: {z2[0, :5]}")
 
     assert torch.allclose(z, z2, atol=1e-5)
     print("✓ Loaded model produces identical vectors")
@@ -59,6 +62,7 @@ def test_hf_refactor():
     # Cleanup (Disabled for debugging)
     # shutil.rmtree(save_path)
     print("\n🚀 HF Refactor Verified Successfully!")
+
 
 if __name__ == "__main__":
     test_hf_refactor()

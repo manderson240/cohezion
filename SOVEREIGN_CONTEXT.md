@@ -11,20 +11,6 @@
   - *ASCII Art and Text Motifs.*
 - `def get_theme()`
 
-## `src/cohezion/qftdhd/data/experiments/rigorous_benchmark.py`
-> Rigorous Benchmark: QFTDHD Scalability Test (Parallelized)
-- `def rosenbrock(x)`
-- `def run_trial_sync(seed)`
-
-## `src/cohezion/qftdhd/data/experiments/verify_qftdhd.py`
-> QFTDHD Verification Experiment
-- `def run_experiment()`
-
-## `src/cohezion/qftdhd/data/experiments/grand_challenge.py`
-> The Grand Challenge: QFTDHD vs Classical Optimization
-- `def rosenbrock(x)`
-- `def run_challenge()`
-
 ## `src/cohezion/viz/multiverse_dashboard.py`
 
 ## `src/cohezion/viz/metrics_dashboard.py`

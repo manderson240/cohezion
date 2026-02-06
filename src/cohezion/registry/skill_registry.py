@@ -155,9 +155,7 @@ def _extract_description(content: str) -> str:
     Looks for a DOMAIN EXPERTISE section first, then falls back to the
     first paragraph after the title.
     """
-    match = re.search(
-        r"##\s+DOMAIN EXPERTISE\s*\n(.*?)(?=\n##|\Z)", content, re.DOTALL
-    )
+    match = re.search(r"##\s+DOMAIN EXPERTISE\s*\n(.*?)(?=\n##|\Z)", content, re.DOTALL)
     if match:
         text = match.group(1).strip()
         text = re.sub(r"\*\*([^*]+)\*\*", r"\1", text)

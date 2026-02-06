@@ -114,7 +114,7 @@ def verify_token(token: str) -> dict[str, Any]:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
     except JWTError as e:
-        raise AuthError(f"Invalid token: {e}", "invalid_token")
+        raise AuthError(f"Invalid token: {e}", "invalid_token") from e
 
 
 def hash_password(password: str) -> str:

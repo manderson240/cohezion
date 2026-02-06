@@ -1,6 +1,8 @@
 import asyncio
 import time
+
 from cohezion.reliability.monitor import get_resource_monitor
+
 
 async def mock_call(id: int, duration: float):
     monitor = get_resource_monitor()
@@ -12,6 +14,7 @@ async def mock_call(id: int, duration: float):
     finally:
         print(f"Task {id}: Releasing slot.")
         monitor.release_capacity()
+
 
 async def test_concurrency():
     # max_concurrency is 4 by default
@@ -28,6 +31,7 @@ async def test_concurrency():
     end = time.perf_counter()
     print(f"\nTotal time: {end - start:.2f}s")
     print("Expected: Approx 2.0s (4 tasks in parallel, followed by 2 tasks)")
+
 
 if __name__ == "__main__":
     asyncio.run(test_concurrency())

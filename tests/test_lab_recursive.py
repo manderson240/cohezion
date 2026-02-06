@@ -1,8 +1,10 @@
 import asyncio
 import logging
+
 from cohezion.agents.lab_agent import LabAgent
 
 logging.basicConfig(level=logging.INFO)
+
 
 async def test_recursive_discovery():
     agent = LabAgent()
@@ -29,6 +31,7 @@ async def test_recursive_discovery():
     await agent.send_summary_report()
 
     print("✅ Smoke test complete!")
+
 
 if __name__ == "__main__":
     asyncio.run(test_recursive_discovery())

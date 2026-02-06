@@ -1,9 +1,8 @@
-import os
-import pytest
 import multiprocessing
 import time
-from pathlib import Path
-from cohezion.reliability.sync import FileLock, SafeWriter, AgentWorkspace
+
+from cohezion.reliability.sync import AgentWorkspace, FileLock, SafeWriter
+
 
 def test_file_lock_basic(tmp_path):
     lock_file = tmp_path / "test.lock"
@@ -16,6 +15,7 @@ def test_file_lock_basic(tmp_path):
         # But for the same FD it might be. Let's test cross-process.
         pass
 
+
 def _worker_lock_task(lock_path, shared_val):
     lock = FileLock(lock_path)
     with lock.acquire():
@@ -23,10 +23,11 @@ def _worker_lock_task(lock_path, shared_val):
         time.sleep(0.1)
         shared_val.value = curr + 1
 
+
 def test_file_lock_concurrency(tmp_path):
     lock_file = tmp_path / "test.lock"
     manager = multiprocessing.Manager()
-    shared_val = manager.Value('i', 0)
+    shared_val = manager.Value("i", 0)
 
     processes = [
         multiprocessing.Process(target=_worker_lock_task, args=(lock_file, shared_val))
@@ -40,6 +41,7 @@ def test_file_lock_concurrency(tmp_path):
 
     assert shared_val.value == 5
 
+
 def test_safe_writer_basic(tmp_path):
     target = tmp_path / "target.txt"
     target.write_text("initial")
@@ -49,6 +51,7 @@ def test_safe_writer_basic(tmp_path):
         f.write("updated")
 
     assert target.read_text() == "updated"
+
 
 def test_safe_writer_failure(tmp_path):
     target = tmp_path / "target.txt"
@@ -66,6 +69,7 @@ def test_safe_writer_failure(tmp_path):
     # Check that temp file is cleaned up
     temp_files = list(tmp_path.glob(".tmp_*"))
     assert len(temp_files) == 0
+
 
 def test_agent_workspace_basic(tmp_path):
     base_dir = tmp_path / "src"
@@ -90,4 +94,7 @@ def test_agent_workspace_basic(tmp_path):
 
     # After commit and session end
     assert f1.read_text() == "print('world')"
-    assert not (tmp_path / "sandbox").exists() or len(list((tmp_path / "sandbox").glob("*"))) == 0
+    assert (
+        not (tmp_path / "sandbox").exists()
+        or len(list((tmp_path / "sandbox").glob("*"))) == 0
+    )

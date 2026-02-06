@@ -1,9 +1,11 @@
 import asyncio
-import pytest
 from unittest.mock import AsyncMock, patch
-from pathlib import Path
+
+import pytest
+
 from cohezion.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
+
 
 @pytest.mark.anyio
 async def test_mrp_synchronization():
@@ -12,11 +14,12 @@ async def test_mrp_synchronization():
 
     with patch("cohezion.agents.base.SurrealClient") as mock_db_class:
         mock_db = mock_db_class.return_value
-        mock_db.query = AsyncMock(return_value=[{
-            "timestamp": "2026-01-20T23:00:00",
-            "state_vector": [0.1] * 12
-        }])
-        mock_db.store_node = AsyncMock() # Pre-mock this too
+        mock_db.query = AsyncMock(
+            return_value=[
+                {"timestamp": "2026-01-20T23:00:00", "state_vector": [0.1] * 12}
+            ]
+        )
+        mock_db.store_node = AsyncMock()  # Pre-mock this too
 
         # We need a concrete subclass to test BaseAgent
         class TestAgent(BaseAgent):
@@ -31,6 +34,7 @@ async def test_mrp_synchronization():
         mock_db.query.assert_called_with(
             "SELECT * FROM mission_pulse ORDER BY timestamp DESC LIMIT 1"
         )
+
 
 @pytest.mark.anyio
 async def test_mrp_pulse_loop():

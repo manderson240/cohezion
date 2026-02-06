@@ -1,6 +1,5 @@
 """Tests for sandbox isolation backends."""
 
-import shutil
 
 import pytest
 

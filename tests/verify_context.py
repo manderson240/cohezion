@@ -1,8 +1,9 @@
+import argparse
 import os
 import pathlib
-import sys
 import re
-import argparse
+import sys
+
 
 def verify_file_exists(path: str):
     print(f"Verifying {path}...")
@@ -11,6 +12,7 @@ def verify_file_exists(path: str):
         return False
     print(f"✅ {path} exists.")
     return True
+
 
 def verify_header_exists(path: str, header: str):
     path_obj = pathlib.Path(path)
@@ -21,6 +23,7 @@ def verify_header_exists(path: str, header: str):
     else:
         print(f"❌ Error: Header '{header}' not found in {path_obj.name}.")
         return False
+
 
 def verify_no_placeholders(path: str):
     path_obj = pathlib.Path(path)
@@ -46,6 +49,7 @@ def verify_no_placeholders(path: str):
         return False
     return True
 
+
 def verify_12d_vectors(path: str):
     print(f"Auditing 12D vectors in {path}...")
     content = pathlib.Path(path).read_text()
@@ -55,8 +59,11 @@ def verify_12d_vectors(path: str):
         print(f"✅ 12D Vector signature validated in {os.path.basename(path)}.")
         return True
     else:
-        print(f"❌ Error: Malformed or missing 12D vector signature in {os.path.basename(path)}.")
+        print(
+            f"❌ Error: Malformed or missing 12D vector signature in {os.path.basename(path)}."
+        )
         return False
+
 
 def verify_links(path: str):
     print(f"Checking link integrity in {path}...")
@@ -66,7 +73,7 @@ def verify_links(path: str):
     dead_links = []
     for link in links:
         # Remote line fragments like #L123
-        clean_link = link.split('#')[0]
+        clean_link = link.split("#")[0]
         if not os.path.exists(clean_link):
             dead_links.append(link)
 
@@ -75,28 +82,36 @@ def verify_links(path: str):
         return False
     return True
 
+
 def verify_adversarial(path: str):
     print(f"Running adversarial stress test on {path}...")
     content = pathlib.Path(path).read_text()
 
     # 1. Glitch detection (Zero-width spaces/Unicode tricks)
-    glitches = [u'\u200b', u'\u200c', u'\u200d', u'\ufeff']
+    glitches = ["\u200b", "\u200c", "\u200d", "\ufeff"]
     for g in glitches:
         if g in content:
-            print(f"❌ Error: Malicious 'glitch' character detected (Unicode {hex(ord(g))}) in {os.path.basename(path)}.")
+            print(
+                f"❌ Error: Malicious 'glitch' character detected (Unicode {hex(ord(g))}) in {os.path.basename(path)}."
+            )
             return False
 
     # 2. Protocol hijacking (javascript: or data: in links)
     if re.search(r"\[.*\]\((javascript:|data:).*\)", content):
-        print(f"❌ Error: Malicious protocol (javascript:/data:) detected in {os.path.basename(path)}.")
+        print(
+            f"❌ Error: Malicious protocol (javascript:/data:) detected in {os.path.basename(path)}."
+        )
         return False
 
     print(f"✅ Adversarial audit PASSED for {os.path.basename(path)}.")
     return True
 
+
 def main():
     parser = argparse.ArgumentParser(description="Cohezion Context Validation Suite")
-    parser.add_argument("--adversarial", action="store_true", help="Run intense adversarial audits")
+    parser.add_argument(
+        "--adversarial", action="store_true", help="Run intense adversarial audits"
+    )
     args = parser.parse_args()
 
     print("--- Cohezion Context Validation Suite (Hardened) ---")
@@ -108,7 +123,7 @@ def main():
         ".agent/EVOLUTION_PROTOCOL.md",
         ".agent/CAPABILITY_MAP.md",
         "src/cohezion/knowledge_graph/MISSION_JOURNAL.md",
-        "src/cohezion/knowledge_graph/KEY_LEARNINGS.md"
+        "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
     ]
 
     all_passed = True
@@ -122,15 +137,23 @@ def main():
     if all_passed:
         # Custom header checks
         verify_header_exists("GEMINI.md", "# GEMINI.md - Cohezion Orchestration Layer")
-        verify_header_exists(".agent/CONSTITUTION.md", "## 3. The 0.5 Coherence Rule (HIHO Stability)")
-        verify_header_exists(".agent/EVOLUTION_PROTOCOL.md", "## 1. Continuous Experience Mining")
+        verify_header_exists(
+            ".agent/CONSTITUTION.md", "## 3. The 0.5 Coherence Rule (HIHO Stability)"
+        )
+        verify_header_exists(
+            ".agent/EVOLUTION_PROTOCOL.md", "## 1. Continuous Experience Mining"
+        )
 
         # 3. Vector & Link Audits
-        for f in [".agent/CAPABILITY_MAP.md", "src/cohezion/knowledge_graph/KEY_LEARNINGS.md", "GEMINI.md"]:
-             if not verify_12d_vectors(f):
-                 all_passed = False
-             if not verify_links(f):
-                 all_passed = False
+        for f in [
+            ".agent/CAPABILITY_MAP.md",
+            "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+            "GEMINI.md",
+        ]:
+            if not verify_12d_vectors(f):
+                all_passed = False
+            if not verify_links(f):
+                all_passed = False
 
         # 4. Mandatory Placeholder & Adversarial Checks
         for f in critical_files:
@@ -148,6 +171,7 @@ def main():
     else:
         print("\n❌ Context validation FAILED.")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

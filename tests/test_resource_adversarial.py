@@ -1,15 +1,18 @@
 import asyncio
 import time
-import pytest
 from unittest.mock import MagicMock, patch
-from cohezion.reliability.monitor import get_resource_monitor
+
+import pytest
+
 from cohezion.agents.base import BaseAgent
-from cohezion.swarm.swarm_types import SwarmConfig
+from cohezion.reliability.monitor import get_resource_monitor
+
 
 class MockAgent(BaseAgent):
     async def process(self, query: str) -> str:
         # Simulate an LLM call using the _call_ollama logic (via the monitor)
         return await self._call_ollama(query, ignore_cache=True)
+
 
 @pytest.mark.anyio
 async def test_adversarial_flood():
@@ -18,7 +21,7 @@ async def test_adversarial_flood():
     """
     monitor = get_resource_monitor()
     monitor.max_concurrency = 4
-    monitor.active_calls = 0 # Reset for test
+    monitor.active_calls = 0  # Reset for test
 
     agents = [MockAgent(model_name="mistral:7b") for _ in range(20)]
 
@@ -28,8 +31,7 @@ async def test_adversarial_flood():
 
     with patch("httpx.AsyncClient.post") as mock_post:
         mock_post.return_value = MagicMock(
-            status_code=200,
-            json=lambda: {"response": "Mocked stability response"}
+            status_code=200, json=lambda: {"response": "Mocked stability response"}
         )
 
         start = time.perf_counter()
@@ -42,6 +44,7 @@ async def test_adversarial_flood():
         # We need to add sleep inside the mock to see the queueing.
         pass
 
+
 @pytest.mark.anyio
 async def test_resource_backpressure():
     """
@@ -49,9 +52,10 @@ async def test_resource_backpressure():
     """
     monitor = get_resource_monitor()
 
-    with patch("psutil.cpu_percent", return_value=95.0), \
-         patch("psutil.virtual_memory") as mock_mem:
-
+    with (
+        patch("psutil.cpu_percent", return_value=95.0),
+        patch("psutil.virtual_memory") as mock_mem,
+    ):
         mock_mem.return_value.percent = 50.0
 
         start = time.perf_counter()
@@ -61,6 +65,7 @@ async def test_resource_backpressure():
 
         monitor.release_capacity()
         assert (end - start) >= 5.0
+
 
 @pytest.mark.anyio
 async def test_real_llm_load_controlled():
@@ -73,7 +78,9 @@ async def test_real_llm_load_controlled():
 
     print("\nStarting Real LLM Load Test (4 concurrent)...")
     start = time.perf_counter()
-    tasks = [agent.process("Briefly explain the 0.5 Coherence Rule.") for agent in agents]
+    tasks = [
+        agent.process("Briefly explain the 0.5 Coherence Rule.") for agent in agents
+    ]
     results = await asyncio.gather(*tasks, return_exceptions=True)
     end = time.perf_counter()
 
@@ -84,6 +91,7 @@ async def test_real_llm_load_controlled():
             print(f"Agent {i} succeeded in {end - start:.2f}s")
 
     assert all(not isinstance(r, Exception) for r in results)
+
 
 if __name__ == "__main__":
     # Manual run logic if needed

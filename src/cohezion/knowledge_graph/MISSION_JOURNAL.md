@@ -1,5 +1,17 @@
 # MISSION_JOURNAL.md - Cohezion Mission Log
 
+### [2026-02-05] PHASE 8: OLLAMA-OPS INTEGRATION & COMPOUND ENGINEERING
+
+- **Team**: `ollama-ops` multi-agent team (team-lead, code-auditor, integration-tester). First coordinated team session using Claude Code agent orchestration with task dependencies and message passing.
+- **Repo Hygiene**: Deleted 14,042 lines across 114 files. Removed dead modules (`viz/`, `meta/`, `mcp/email_notifier`, `mcp/gmail_communicator`, `core/quantization_engine`, `core/real_time_simulation`, `core/unified_registry`, `core/shared_config_manager`, `agents/controller_agent`, `agents/ethics_agent`, `agents/exploration_agent`, `agents/hypothesis_agent`, `agents/nexus_research_agent`, `agents/universe_sim_agent`, `security/sovereign_security`, and 12+ simulation modules). Fixed broken imports across 30+ test files.
+- **Critical Fix -- GTT Carveout Illusion**: `ResourceMonitor._get_vram_usage()` was reading the 512 MiB VRAM carveout on Strix Halo iGPU, reporting false 88.7% pressure. Rewrote to read GTT (128 GiB unified pool) first. True pressure: 0.37%. This single fix unblocked the entire elite routing pipeline.
+- **Critical Fix -- AMD iGPU Detection**: `AdaptiveFramework` used GPUtil (NVIDIA-only), classifying Strix Halo as "laptop" with 0 GPUs. Implemented vendor-agnostic sysfs detection (`/sys/class/drm/card*/device/vendor` = `0x1002`), UMA classification (GTT within 5% of system RAM), and UMA-aware scoring. Hardware tier upgraded from "laptop" to "professional".
+- **Critical Fix -- JSON Comment Parsing**: `ModeController` failed to load `model_registry_ascended.json` due to `#` comment lines. Implemented `_load_json_with_comments()` stripping comment lines before `json.loads()`.
+- **Critical Fix -- Import Chain Firewall**: `lab_agent.py` top-level import of deleted `ControllerAgent` cascaded `ModuleNotFoundError` through the agent tree. Moved to lazy imports with `# noqa: E402` annotations.
+- **Adaptive Pipeline**: Updated `config_templates.py` model references to elite roster. Implemented `_select_optimal_model_adaptive()` in `router.py` with tier-aware model selection. Connected hardware detection through tier classification to model selection end-to-end.
+- **Integration Verification**: 5-stage pipeline test (Direct HTTP, LocalRegistry, ConnectionPool, LocalExpertRouter, pytest). 25 models discovered, 9/9 swarm tests pass, 140 tests collected. Elite routing confirmed: `qwen3-coder-next:q8_0` selected instead of fallback `phi3:mini`.
+- **Stability**: System dilation restored from 0.05 (false emergency) to 1.0 (nominal). All ruff checks clean on modified files.
+
 ### [2026-02-02] PHASE 7 HARDENING: RESILIENCE & SCALE 🌊🛑
 - **Breakthrough**: Unified **Connection Pooling** and **Circuit Breaker** protocols across the hive.
 - **Metric**: Verified 100% connection reuse and graceful fallback to `InMemoryStore` under simulated service failure.

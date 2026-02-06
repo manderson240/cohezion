@@ -1,6 +1,8 @@
+
 import pytest
-import asyncio
+
 from cohezion.swarm.redundancy_suppression import RedundancyManager
+
 
 @pytest.mark.anyio
 async def test_redundancy_tiers():
@@ -35,12 +37,13 @@ async def test_redundancy_tiers():
     assert l50 == 3
     assert p50 is None
 
+
 @pytest.mark.anyio
 async def test_novel_tasks_clear():
     mgr = RedundancyManager(agent_name="TestAgent")
     mgr.check("task A")
     mgr.check("task A")
-    mgr.check("task A") # Level 1
+    mgr.check("task A")  # Level 1
 
     level_b, _ = mgr.check("task B")
-    assert level_b == 0 # Novel task should not be suppressed
+    assert level_b == 0  # Novel task should not be suppressed
