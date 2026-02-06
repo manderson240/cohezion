@@ -58,6 +58,13 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: validate-agent-files
+        name: Validate Claude agent files
+        entry: uv run python scripts/hooks/validate-agent-files.py
+        language: system
+        files: ^\.claude/agents/.*\.md$
+        pass_filenames: true
+
       # Push-only hooks (slower, run once before sharing)
       - id: pytest-check
         name: pytest-check
