@@ -19,7 +19,8 @@ All actions are governed by two documents (read them for ethical/behavioral ambi
 - **Formatter**: `ruff format` (88-char line length) | **Linter**: `ruff check`
 - **Type Checker**: `mypy` | **Tests**: `uv run pytest`
 - **Database**: SurrealDB (ws://localhost:8000/rpc, ns=cohezion, db=core)
-- **Source Layout**: `src/cohezion/` (56 modules, 120 skill definitions in `src/cohezion/skills/`)
+- **Source Layout**: `src/cohezion/` (~190 Python files across 30+ packages, 126 skill definitions in `src/cohezion/skills/`)
+- **Tests**: 357 passing, 3 skipped (`uv run pytest tests/ -q`)
 - **Entry Point**: `cohezion = "cohezion.__main__:main"`
 - **Local Dev Server**: `uv run uvicorn cohezion.api:app --reload --port 8080`
 
@@ -29,7 +30,7 @@ All actions are governed by two documents (read them for ethical/behavioral ambi
 src/cohezion/          # Core framework
   agents/              # Agent implementations
   swarm/               # Multi-agent orchestration (Quadrature Nexus)
-  skills/              # 118+ PRIME skill definitions (markdown + python)
+  skills/              # 126 PRIME skill definitions (markdown + python)
   universe/            # 12D simulation engine (3 Spatial + 1 Time + 8 Brane)
   flume/               # FLUME manifold encoding (256D latent space)
   physics/             # QGP, magnetohydrodynamics simulation
@@ -39,10 +40,11 @@ src/cohezion/          # Core framework
   validation/          # Great Expectations + schema validation
   knowledge_graph/     # Persistent memory: MISSION_JOURNAL.md, KEY_LEARNINGS.md
   reliability/         # Circuit breakers (get_circuit())
-apps/                  # Web/MCP applications
-  mcp-portal/          # Mission Control Dashboard (TypeScript/Express/React/Three.js)
-  mcp-universe/        # 12D Physics & Simulation Data Observer
-  mcp-swarm/           # Agent Debates & Consensus Narrator
+  mass_sim/            # Mass simulation engine (batch runner, exporter, persistence)
+  rl/                  # Reinforcement learning (Gymnasium FlumeNav-v0, REINFORCE trainer)
+  pipeline/            # Data pipeline (mass sim → .npy → training)
+  api/                 # FastAPI backend (15+ endpoints: simulate, FLUME, RL, wallet)
+apps/                  # Web applications
   webapp/              # Main frontend (Vite/React/WebGL/WASM)
 .agent/                # Agent charter, constitution, capability map, workflows
 config/                # MCP and deployment configuration

@@ -18,8 +18,9 @@ wheels/
 **/build/
 **/dist/
 
-# Archives and recovery
+# Archives, artifacts, and recovery
 .archive/
+.artifacts/
 .sandbox/
 temp/
 
