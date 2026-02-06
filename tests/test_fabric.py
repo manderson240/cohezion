@@ -38,9 +38,21 @@ def config_manager():
 
 @pytest.fixture()
 def api_client():
+    from unittest.mock import AsyncMock, MagicMock, patch
+
     from cohezion.api import app
 
-    return TestClient(app)
+    mock_client = MagicMock()
+    mock_client.generate = AsyncMock(return_value="mock output")
+    mock_client.metrics = MagicMock(
+        total_requests=0, cache_hits=0, total_tokens_saved=0, cache_hit_rate=0.0
+    )
+
+    with patch(
+        "cohezion.swarm.compound_client.get_compound_client",
+        return_value=mock_client,
+    ):
+        yield TestClient(app)
 
 
 # Use a known skill that definitely exists in the skills directory.
