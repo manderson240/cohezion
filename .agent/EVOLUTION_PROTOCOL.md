@@ -26,5 +26,15 @@ Prioritize conceptual clarity over mechanistic detail.
 
 ## 5. Repository Healing & Hygiene
 Monitor for technical debt and IDE performance degradation.
-- **Bloat Mitigation**: Trigger `REPO_HYGIENE_PRIME` for excessive untracked files.
+- **Bloat Mitigation**: Trigger `REPO_HYGIENE_PRIME` for excessive untracked files. The 8.6M file incident (2026-01-25) proved that autonomous simulations MUST write to .gitignored directories.
 - **Build/Lint Restoration**: Treat "restoring the green state" as the primary objective if a change causes failure.
+- **Untrack & Mine Protocol**: Never delete tracked files without first reading and extracting knowledge. See `.agent/GIT_HYGIENE.md`.
+- **Cleanup is Multi-Pass**: Budget 2-3 passes for any major cleanup. Each removal reveals the next layer of bloat (the 8.6M cleanup needed 3 passes across 2 branches).
+
+## 6. Hardware Safety & Lockup Prevention
+The system lockup of 2026-01-27 (VRAM saturation → amdgpu hang → REISUB recovery) established these rules:
+- **VRAM is the Bottleneck**: Monitor GTT (128GB unified pool), not VRAM carveout (512MB display scanout).
+- **Swarms are Sacrificial**: Kill runaway agents before system integrity is threatened. Never allow swarm operations to exceed hardware safety margins.
+- **Temporal Dilation**: Slow simulations dynamically when system pressure exceeds thresholds (`dilation_factor` in ResourceMonitor).
+- **Desperation Mode**: Throttle all non-essential containers at 90% CPU.
+- **Kernel Tuning**: Disable panic-on-oom, limit coredump size to prevent I/O lockup during instability.
