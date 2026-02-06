@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import Any
 
 from cohezion.agents.base import BaseAgent
-from cohezion.agents.controller_agent import ControllerAgent, IgnitionPack
 from cohezion.agents.hypothesis_agent import HypothesisAgent
 from cohezion.core.persistence.surreal_client import (
     PhysicsState,
