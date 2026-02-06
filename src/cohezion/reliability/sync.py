@@ -7,7 +7,6 @@ Provides:
 - AgentWorkspace: Shadow tree isolation for multi-file agent operations.
 """
 
-import asyncio
 import fcntl
 import logging
 import os
@@ -41,23 +40,14 @@ class FileLock:
 
         self._fd = open(self.lock_file)
         try:
-            start_time = (
-                asyncio.get_event_loop().time()
-                if asyncio.get_event_loop().is_running()
-                else os.times()[4]
-            )
+            start_time = time.monotonic()
             while True:
                 try:
                     fcntl.flock(self._fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
                     logger.debug(f"Lock acquired on {self.lock_file}")
                     break
                 except OSError:
-                    try:
-                        loop = asyncio.get_running_loop()
-                        current_time = loop.time()
-                    except RuntimeError:
-                        current_time = time.time()
-
+                    current_time = time.monotonic()
                     if current_time - start_time > self.timeout:
                         raise TimeoutError(
                             f"Timed out waiting for lock on {self.lock_file}"

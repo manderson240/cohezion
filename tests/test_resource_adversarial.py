@@ -46,6 +46,7 @@ async def test_adversarial_flood():
 
 
 @pytest.mark.anyio
+@pytest.mark.timeout(10)
 async def test_resource_backpressure():
     """
     Vitals Pressure: Verifies backpressure sleep when psutil reports high load.
@@ -68,12 +69,12 @@ async def test_resource_backpressure():
 
 
 @pytest.mark.anyio
+@pytest.mark.timeout(30)
+@pytest.mark.skipif(True, reason="Requires live Ollama with mistral:7b")
 async def test_real_llm_load_controlled():
     """
     Real-World Load: Executes 4 concurrent real LLM calls to verify TTM stability.
     """
-    # This test assumes Ollama is running and mistral:7b is installed.
-    # We'll only run this if we are confident.
     agents = [MockAgent(model_name="mistral:7b") for _ in range(4)]
 
     print("\nStarting Real LLM Load Test (4 concurrent)...")
