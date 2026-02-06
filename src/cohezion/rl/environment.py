@@ -54,6 +54,7 @@ class FlumeNavEnv(gym.Env):
         use_hamiltonian: bool = True,
         action_scale: float = 0.01,
         render_mode: str | None = None,
+        use_composite_reward: bool = True,
     ):
         super().__init__()
         self.z_dim = z_dim
@@ -63,6 +64,7 @@ class FlumeNavEnv(gym.Env):
         self.use_hamiltonian = use_hamiltonian
         self.action_scale = action_scale
         self.render_mode = render_mode
+        self.use_composite_reward = use_composite_reward
 
         # Continuous observation and action spaces
         self.observation_space = spaces.Box(
@@ -73,8 +75,16 @@ class FlumeNavEnv(gym.Env):
         )
 
         self._state: np.ndarray | None = None
+        self._prev_state: np.ndarray | None = None
         self._step_count = 0
         self._episode_coherences: list[float] = []
+
+        if use_composite_reward:
+            from cohezion.rl.reward_shaping import CompositeReward
+
+            self._reward_fn = CompositeReward(hamiltonian_weight=0.3)
+        else:
+            self._reward_fn = None
 
     def reset(
         self,
@@ -88,6 +98,7 @@ class FlumeNavEnv(gym.Env):
         # Initialize near 0.5 with small noise
         self._state = self.np_random.normal(0.5, 0.1, (self.z_dim,)).astype(np.float32)
         self._state = np.clip(self._state, -2.0, 2.0)
+        self._prev_state = None
         self._step_count = 0
         self._episode_coherences = []
 
@@ -100,6 +111,7 @@ class FlumeNavEnv(gym.Env):
         """Apply action + physics, return (obs, reward, terminated, truncated, info)."""
         assert self._state is not None, "Call reset() before step()"
         self._step_count += 1
+        self._prev_state = self._state.copy()
 
         # 1. Apply agent action (scaled delta)
         delta = action.astype(np.float32) * self.action_scale
@@ -167,18 +179,20 @@ class FlumeNavEnv(gym.Env):
         return coherence
 
     def _compute_reward(self, coherence: float) -> float:
-        """Reward: bonus for coherence in [0.3, 0.7], penalty outside."""
-        # Base reward: coherence itself (0 to 1)
-        reward = coherence
+        """Compute reward using CompositeReward or legacy logic."""
+        if self._reward_fn is not None:
+            return self._reward_fn(
+                coherence=coherence,
+                state=self._state,
+                prev_state=self._prev_state,
+            )
 
-        # Bonus for HIHO sweet spot
+        # Legacy reward: bonus for coherence in [0.3, 0.7], penalty outside
+        reward = coherence
         if 0.3 <= coherence <= 0.7:
             reward += 0.5
-
-        # Penalty for extreme divergence
         if coherence < 0.1:
             reward -= 1.0
-
         return reward
 
     def render(self) -> str | None:
