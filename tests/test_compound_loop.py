@@ -2,17 +2,13 @@
 
 from __future__ import annotations
 
-import pytest
-
 from cohezion.core.compound.retrospection import (
-    LearningPattern,
     RetrospectionEngine,
     SkillRefinement,
 )
 from cohezion.core.compound.skill_refiner import RefinementResult, SkillRefiner
-from cohezion.core.plan_executor import ExecutionResult, StepResult
+from cohezion.core.plan_executor import ExecutionResult
 from cohezion.swarm.execution_orchestrator import ExecutionReport, TaskResult
-
 
 # ---------------------------------------------------------------------------
 # SkillRefiner
@@ -57,7 +53,7 @@ class TestSkillRefiner:
         )
 
         refiner = SkillRefiner(skills_dir=tmp_path)
-        result = refiner.refine_skill(
+        refiner.refine_skill(
             "TEST_SKILL_PRIME",
             learnings=["Second insight"],
         )

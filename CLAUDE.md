@@ -19,8 +19,8 @@ All actions are governed by two documents (read them for ethical/behavioral ambi
 - **Formatter**: `ruff format` (88-char line length) | **Linter**: `ruff check`
 - **Type Checker**: `mypy` | **Tests**: `uv run pytest`
 - **Database**: SurrealDB (ws://localhost:8000/rpc, ns=cohezion, db=core)
-- **Source Layout**: `src/cohezion/` (~190 Python files across 30+ packages, 126 skill definitions in `src/cohezion/skills/`)
-- **Tests**: 357 passing, 3 skipped (`uv run pytest tests/ -q`)
+- **Source Layout**: `src/cohezion/` (212 Python files across 30+ packages, 124 skill definitions in `src/cohezion/skills/`)
+- **Tests**: 634 passing, 2 skipped (`uv run pytest tests/ -q --ignore=tests/test_resource_adversarial.py`)
 - **Entry Point**: `cohezion = "cohezion.__main__:main"`
 - **Local Dev Server**: `uv run uvicorn cohezion.api:app --reload --port 8080`
 
@@ -30,7 +30,7 @@ All actions are governed by two documents (read them for ethical/behavioral ambi
 src/cohezion/          # Core framework
   agents/              # Agent implementations
   swarm/               # Multi-agent orchestration (Quadrature Nexus)
-  skills/              # 126 PRIME skill definitions (markdown + python)
+  skills/              # 124 PRIME skill definitions (markdown + python)
   universe/            # 12D simulation engine (3 Spatial + 1 Time + 8 Brane)
   flume/               # FLUME manifold encoding (256D latent space)
   physics/             # QGP, magnetohydrodynamics simulation
@@ -40,10 +40,11 @@ src/cohezion/          # Core framework
   validation/          # Great Expectations + schema validation
   knowledge_graph/     # Persistent memory: MISSION_JOURNAL.md, KEY_LEARNINGS.md
   reliability/         # Circuit breakers (get_circuit())
+  compound/            # Compound engineering (executor, feedback loop, metrics, persistence)
   mass_sim/            # Mass simulation engine (batch runner, exporter, persistence)
   rl/                  # Reinforcement learning (Gymnasium FlumeNav-v0, REINFORCE trainer)
   pipeline/            # Data pipeline (mass sim → .npy → training)
-  api/                 # FastAPI backend (15+ endpoints: simulate, FLUME, RL, wallet)
+  api/                 # FastAPI backend (46 endpoints: compound, FLUME, RL, metrics, skills)
 apps/                  # Web applications
   webapp/              # Main frontend (Vite/React/WebGL/WASM)
 .agent/                # Agent charter, constitution, capability map, workflows
@@ -71,6 +72,8 @@ tests/                 # Test suites (pytest)
 - **Delegate Specialized Tasks**: Use sub-agent contexts for focused work (security audits, etc.) to prevent context bloat
 - **Retrospection**: Each completed phase requires explicit retrospection before advancing
 - **Token Efficiency**: Batch operations, cache results, delegate to local models where appropriate
+- **Mock Live Services**: API endpoint tests must mock `get_compound_client()` to avoid hanging on Ollama. Patch at source: `cohezion.swarm.compound_client.get_compound_client`
+- **Compound Loop**: PRIME skill → InstructionExpander → PlanExecutor → ExecutionOrchestrator → RetrospectionEngine → SkillRefiner → updated skill. CLI: `make compound-cycle` (dry-run) or `make compound-live` (Ollama)
 
 ## Hardware Profile (Strix Halo)
 

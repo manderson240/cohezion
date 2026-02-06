@@ -185,3 +185,16 @@ Resource monitor enhancement: `dilation_factor` (1.0 = normal, 0.1 = severe) dyn
 
 ### Learning 109: pre-commit-hooks Stage Override (2026-02-06)
 The `pre-commit-hooks` repo internally declares `stages: [commit, push]` on all its hooks, overriding `default_stages: [pre-commit]`. Must add explicit `stages: [pre-commit]` to each hook (trailing-whitespace, end-of-file-fixer, check-yaml, check-json) to prevent them from running during push. Without this, pushes take 10+ minutes and modify files mid-push.
+
+---
+
+## Phase 5: Live Compound Engineering (2026-02-06)
+
+### Learning 110: Mock Live Clients at Source Module
+API tests that call `get_compound_client()` hang indefinitely if Ollama is down — the `ResilientOllamaClient` retries with exponential backoff. Fix: `patch("cohezion.swarm.compound_client.get_compound_client", return_value=mock_client)`. Critical: patch at the **source module** (`cohezion.swarm.compound_client`), not the import site (`cohezion.api`), because endpoints use local imports.
+
+### Learning 111: Compound Module Separation
+The `cohezion.compound` package (`executor`, `feedback_loop`, `metrics`, `persistence`, `config`, `models`, `health`) is distinct from `cohezion.core.compound` (`retrospection`, `skill_refiner`). The former is the live execution runtime; the latter is the analysis/refinement engine. They connect via `RetrospectionEngine.analyze_execution()` accepting duck-typed execution reports.
+
+### Learning 112: CI Validation as Compound Defense
+4 CI validation scripts (`validate_agents.py`, `validate_skills.py`, `validate_registry.py`, `compound_audit.py`) + GitLab CI pipeline + Makefile targets = layered defense. Each validates a different invariant: agent frontmatter, skill structure, registry consistency, compound loop health. `make ci` runs all in sequence. Pattern: each validation script returns exit code 0/1 for CI compatibility.
