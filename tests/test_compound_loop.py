@@ -181,15 +181,24 @@ class TestRetrospectionAnalyzeExecution:
 class TestSwarmExecuteEndpoint:
     def test_swarm_execute_returns_200(self):
         """POST /swarm/execute returns 200 with execution report."""
+        from unittest.mock import AsyncMock, MagicMock, patch
+
         from fastapi.testclient import TestClient
 
         from cohezion.api import app
 
-        client = TestClient(app)
-        response = client.post(
-            "/swarm/execute",
-            json={"intent": "test compound engineering", "max_agents": 2},
-        )
+        mock_client = MagicMock()
+        mock_client.generate = AsyncMock(return_value="mock output")
+
+        with patch(
+            "cohezion.swarm.compound_client.get_compound_client",
+            return_value=mock_client,
+        ):
+            client = TestClient(app)
+            response = client.post(
+                "/swarm/execute",
+                json={"intent": "test compound engineering", "max_agents": 2},
+            )
         assert response.status_code == 200
         data = response.json()
         assert "report_id" in data
