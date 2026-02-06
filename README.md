@@ -36,7 +36,10 @@ uv run python tests/submission_tests.py -v
 36-qubit tensor network simulation via quimb + cotengra. MPS evolution with SWAP routing and bond dimension control. Safe QASM parsing without eval.
 
 ### FLUME Manifold Encoder
-PyTorch Transformer autoencoder mapping to 256D latent space. Supports encode, decode, interpolate, and semantic similarity. Architecture is complete; model is untrained (no training loop or checkpoints yet).
+PyTorch Transformer autoencoder mapping to 256D latent space. Supports encode, decode, interpolate, and semantic similarity. Trained on real mass simulation data (11K vectors from 10 universes). MSE 0.1322 on real data (5.9x harder than synthetic), KL divergence 0.4329 (13.8x richer latent structure).
+
+### Reinforcement Learning
+Gymnasium environment (`cohezion/FlumeNav-v0`) with REINFORCE trainer and composable reward shaping. Trained on Hamiltonian dynamics with HIHO-well potential. 200 episodes, average coherence 0.991.
 
 ### Multi-Agent Consensus
 Democratic debate system with 5 parallel expert streams, 0.85+ consensus threshold, and full transparency logging. Agents are routed via TF-IDF capability matching across 193 registered capabilities.
@@ -57,7 +60,7 @@ Three.js particle field with custom GLSL shaders (simplex noise, 4 attribute cha
 
 ```
 src/cohezion/
-├── api/              # FastAPI backend (5 endpoints, circuit-breaker wrapped)
+├── api/              # FastAPI backend (15+ endpoints, circuit-breaker wrapped)
 ├── agents/           # BaseAgent ABC + ~30 specialized agents (Ollama-backed)
 ├── flume/            # Transformer autoencoder, manifold navigation, git encoder
 ├── physics/          # Quantum solver (quimb tensor networks), dimension extractor
@@ -68,7 +71,10 @@ src/cohezion/
 ├── healing/          # Drift detection, immune system, platform audit
 ├── registry/         # TF-IDF capability search across skills/agents/MCP
 ├── mcp/              # MCP servers (SurrealDB, Knowledge, Skills, Research, Gmail)
-├── skills/           # 120 PRIME skill definitions (markdown)
+├── mass_sim/         # Mass simulation engine (batch runner, exporter, OOM protection)
+├── rl/               # Reinforcement learning (Gymnasium FlumeNav-v0, REINFORCE)
+├── pipeline/         # Data pipeline (mass sim → .npy → training)
+├── skills/           # 126 PRIME skill definitions (markdown)
 └── core/             # Persistence, routing, event bus, config templates
 
 apps/
@@ -115,11 +121,11 @@ uv run python tests/submission_tests.py -v
 
 ## Limitations (Honest)
 
-- **FLUME model is untrained**: The Transformer autoencoder architecture is correct but has no training loop, dataset, or checkpoints. Latent space operations use random weights.
-- **No reinforcement learning**: No RL training loops exist. This is the largest gap relative to the project's stated goals.
+- **FLUME model is lightly trained**: Trained on 11K real mass sim vectors (MSE 0.1322), but needs more data and epochs for production quality. Latent space shows structure but is not yet fully converged.
+- **RL environment is too easy**: REINFORCE trainer achieves 0.991 coherence in 200 episodes because the Hamiltonian naturally attracts to the target. Needs adversarial perturbations and curriculum learning for meaningful policy learning.
 - **Agents are LLM wrappers**: Most specialized agents inherit BaseAgent and delegate reasoning to Ollama prompts. The infrastructure (caching, circuit breakers, security) is real; the agent "intelligence" lives in system prompts.
 - **Simulation physics are mostly conceptual**: Only `peaked_solver.py` implements genuine computational physics. Other simulation modules use heuristic models with physics terminology.
-- **Test coverage is low**: ~3.8% test-to-code ratio. The universe/sandbox tests are solid; coverage elsewhere is thin.
+- **Test coverage is growing**: 357 tests across 50 test files (covering 192 source files). Solid coverage for reliability, ML pipeline, agents, and validation; thinner elsewhere.
 - **Rust extensions**: The `cohezion_core` Rust code compiles to WASM (16KB) and has PyO3 bindings, but the inner physics loop is minimal (coherence attraction + sin jitter).
 
 ---
