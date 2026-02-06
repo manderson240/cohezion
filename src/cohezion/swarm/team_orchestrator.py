@@ -397,6 +397,28 @@ class TeamOrchestrator:
             return "phi3:mini"
         return None
 
+    async def execute_team(self, intent: str, max_agents: int = 4) -> object:
+        """Plan and execute a team in one call.
+
+        Parameters
+        ----------
+        intent : str
+            Natural language description of the goal.
+        max_agents : int
+            Maximum agents in the plan.
+
+        Returns
+        -------
+        ExecutionReport
+            Aggregated execution report.
+        """
+        plan = self.plan_team(intent, max_agents=max_agents)
+
+        from cohezion.swarm.execution_orchestrator import ExecutionOrchestrator
+
+        orchestrator = ExecutionOrchestrator()
+        return await orchestrator.execute(plan)
+
     @staticmethod
     def _slugify(text: str) -> str:
         """Convert text to a slug suitable for agent/team names."""

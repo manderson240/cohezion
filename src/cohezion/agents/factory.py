@@ -103,6 +103,54 @@ class AgentFactory:
         self._class_cache[key] = cls
         return cls
 
+    def create_executable(
+        self, skill_name: str, token_client: Any = None
+    ) -> Any:
+        """Create an agent whose ``process()`` runs via PlanExecutor.
+
+        Unlike :meth:`create`, the returned agent's ``process()`` method
+        expands the skill instructions into a plan and executes each step.
+
+        Parameters
+        ----------
+        skill_name : str
+            PRIME skill identifier (case-insensitive).
+        token_client : Any, optional
+            An LLM token client supporting ``async generate(prompt)``.
+            If ``None``, LLM-dependent steps return placeholders.
+
+        Returns
+        -------
+        Any
+            An agent instance with a working ``process()`` method.
+
+        Raises
+        ------
+        KeyError
+            If *skill_name* cannot be found.
+        """
+        from cohezion.core.instruction_expander import InstructionExpander
+        from cohezion.core.plan_executor import PlanExecutor
+
+        spec = self._resolve_spec(skill_name)
+        expander = InstructionExpander()
+        plan = expander.expand(spec)
+        executor = PlanExecutor(token_client=token_client)
+
+        class _ExecutableAgent(_StubAgent):
+            """Agent with plan-based process() method."""
+
+            SYSTEM_PROMPT = spec.domain_expertise[:200] if spec.domain_expertise else ""
+
+            async def process(self, *args: Any, **kwargs: Any) -> Any:
+                input_text = args[0] if args else kwargs.get("input_text", "")
+                return await executor.execute(plan, str(input_text))
+
+        agent = _ExecutableAgent()
+        agent.skill_name = skill_name  # type: ignore[attr-defined]
+        agent.plan = plan  # type: ignore[attr-defined]
+        return agent
+
     def list_available_skills(self) -> list[str]:
         """Return names of all parseable PRIME skills."""
         specs = self._engine.parse_all()
