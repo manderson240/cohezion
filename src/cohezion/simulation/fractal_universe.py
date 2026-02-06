@@ -30,7 +30,6 @@ from cohezion.reliability.monitor import get_resource_monitor
 # Add src to path if running directly
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from cohezion.cosmic.reality import get_reality_stabilizer
 from cohezion.flume.mnm import SCENARIO_MANIFOLDS
 from cohezion.simulation.simulation_logger import SimulationLogger
 
@@ -79,9 +78,13 @@ class StabilizerAgent:
 
     @property
     def coherence(self) -> float:
-        # Use RealityStabilizer
-        stabilizer = get_reality_stabilizer()
-        return stabilizer.calculate_stability(self.z_vector)
+        """Variance-based coherence: 1.0 = static, 0.0 = chaotic, 0.5 = HIHO ideal."""
+        v = self.z_vector
+        v_range = v.max() - v.min()
+        if v_range == 0:
+            return 1.0
+        v_norm = (v - v.min()) / v_range
+        return max(0.0, 1.0 - float(np.var(v_norm)) * 4.0)
 
     def move(self, grid: "UniverseGrid"):
         neighbors = grid.get_neighbors(self.x, self.y)

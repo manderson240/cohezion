@@ -133,7 +133,7 @@ async def run_debate(request: DebateRequest):
         )
     except Exception as e:
         logger.error(f"Debate failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.get("/swarm/perspectives")

@@ -125,7 +125,7 @@ Visualizations have been generated in the `renders/` directory.
         Automated Skill Extraction (Compound Engineering).
         Writes a new SKILL file if the system performed well.
         """
-        skill_content = f"""# SKILL: QFTDHD_OPTIMIZATION_PRIME
+        skill_content = f"""# SKILL: SIMULATION_OPTIMIZATION_PRIME
 
 ## DOMAIN EXPERTISE
 High-Dimensional Optimization using 12D Quantum-Fluid Manifolds.
@@ -140,7 +140,7 @@ High-Dimensional Optimization using 12D Quantum-Fluid Manifolds.
 - **Status**: AUTONOMOUSLY VALIDATED
 
 ## INSTRUCTION
-1. Import `OptimizerAdapter` from `cohezion.qftdhd.interface`.
+1. Import `AnalysisPrime` from `cohezion.simulation.analysis_prime`.
 2. Define objective function N-dim -> scalar.
 3. Init with `n_walkers=50` and `feedback=0.5`.
 4. Run `optimize(iterations=100)`.
@@ -148,7 +148,7 @@ High-Dimensional Optimization using 12D Quantum-Fluid Manifolds.
 ## VERSION
 v1.0 (Auto-Generated)
 """
-        skill_path = Path("src/cohezion/skills/qftdhd_optimization/SKILL.md")
+        skill_path = Path("src/cohezion/skills/simulation_optimization/SKILL.md")
         skill_path.parent.mkdir(parents=True, exist_ok=True)
         with open(skill_path, "w") as f:
             f.write(skill_content)

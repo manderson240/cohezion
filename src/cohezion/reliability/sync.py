@@ -61,7 +61,7 @@ class FileLock:
                     if current_time - start_time > self.timeout:
                         raise TimeoutError(
                             f"Timed out waiting for lock on {self.lock_file}"
-                        )
+                        ) from None
                     time.sleep(
                         0.1
                     )  # Fixed sleep instead of os.sched_yield for test stability

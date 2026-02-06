@@ -35,7 +35,7 @@ cohezion/
 ├── src/cohezion/
 │   ├── core/                # Persistence (SurrealDB), Cache, Bus, GPU
 │   ├── agents/              # ~45 Specialized agents
-│   ├── flume/               # 256D Latent trajectory autoencoders
+│   ├── flume/               # 512D Latent trajectory autoencoders
 │   ├── universe/            # 12D Journey tracking and replay
 │   ├── allostatica/         # Proactive homeostasis engine
 │   ├── validation/          # Constitutional Shield & Manifold Equilibrium

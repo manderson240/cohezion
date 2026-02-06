@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 from unittest.mock import patch, MagicMock
 from cohezion.meta.generator import MetaGenerator, _snake_case, _to_json
