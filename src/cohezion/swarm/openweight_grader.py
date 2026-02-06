@@ -25,8 +25,7 @@ import logging
 import subprocess
 from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -39,11 +38,11 @@ class GradeReport:
     track_type: str
     overall_grade: str  # A-F
     overall_score: float  # 0-100
-    criterion_scores: Dict[str, Dict[str, Any]]
+    criterion_scores: dict[str, dict[str, Any]]
     feedback: str
-    improvement_suggestions: List[str]
+    improvement_suggestions: list[str]
     timestamp: str
-    graders_used: List[str]
+    graders_used: list[str]
     confidence: float  # 0-1
 
 
@@ -146,12 +145,12 @@ class OpenweightGradingPanel:
 
     def __init__(self, email_recipient: str = "manderson240@gmail.com"):
         self.email_recipient = email_recipient
-        self.available_graders: List[str] = []
+        self.available_graders: list[str] = []
         self._check_available_graders()
 
         logger.info("🎓 OpenweightGradingPanel initialized")
         logger.info(f"   Available graders: {self.available_graders}")
-        logger.info(f"   Primary: Kimi K2.5 (via opencode)")
+        logger.info("   Primary: Kimi K2.5 (via opencode)")
 
     def _check_available_graders(self):
         """Check which Ollama models are available"""
@@ -187,8 +186,8 @@ class OpenweightGradingPanel:
         self,
         mission_id: str,
         track_type: str,
-        mission_data: Dict[str, Any],
-        dashboard_screenshot: Optional[str] = None,
+        mission_data: dict[str, Any],
+        dashboard_screenshot: str | None = None,
     ) -> GradeReport:
         """
         Grade a completed universe simulation mission
@@ -234,8 +233,8 @@ class OpenweightGradingPanel:
         return report
 
     async def _grade_with_model(
-        self, grader_id: str, mission_data: Dict, screenshot: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, grader_id: str, mission_data: dict, screenshot: str | None = None
+    ) -> dict[str, Any]:
         """Grade using a specific model"""
 
         config = self.GRADERS[grader_id]
@@ -254,7 +253,7 @@ class OpenweightGradingPanel:
         # Parse response
         return self._parse_grade_response(response, grader_id)
 
-    def _build_grading_prompt(self, mission_data: Dict, grader_id: str) -> str:
+    def _build_grading_prompt(self, mission_data: dict, grader_id: str) -> str:
         """Build comprehensive grading prompt"""
 
         track_type = mission_data.get("track_type", "unknown")
@@ -395,7 +394,7 @@ Provide your grade as JSON only."""
             logger.error(f"Ollama query failed: {e}")
             return "{}"
 
-    def _parse_grade_response(self, response: str, grader_id: str) -> Dict[str, Any]:
+    def _parse_grade_response(self, response: str, grader_id: str) -> dict[str, Any]:
         """Parse grading response from model"""
         try:
             # Extract JSON from response
@@ -437,7 +436,7 @@ Provide your grade as JSON only."""
                 "confidence": 0.3,
             }
 
-    def _aggregate_grades(self, individual_grades: Dict[str, Dict]) -> Dict[str, Any]:
+    def _aggregate_grades(self, individual_grades: dict[str, dict]) -> dict[str, Any]:
         """Aggregate grades from multiple graders using weighted consensus"""
 
         if not individual_grades:
@@ -530,7 +529,7 @@ Provide your grade as JSON only."""
         }
 
     async def submit_for_grading(
-        self, mission_id: str, mission_data: Dict[str, Any]
+        self, mission_id: str, mission_data: dict[str, Any]
     ) -> GradeReport:
         """Convenience method to submit mission for grading"""
         return await self.grade_universe_simulation(
@@ -567,7 +566,7 @@ if __name__ == "__main__":
         print(f"\nGrade: {report.overall_grade} ({report.overall_score}/100)")
         print(f"Confidence: {report.confidence}")
         print(f"\nFeedback:\n{report.feedback}")
-        print(f"\nSuggestions:")
+        print("\nSuggestions:")
         for i, suggestion in enumerate(report.improvement_suggestions, 1):
             print(f"  {i}. {suggestion}")
 

@@ -23,28 +23,24 @@ PERSPECTIVE_PROMPTS = {
 - Code quality, patterns, and best practices
 - Performance implications and scalability
 Provide concrete technical assessments with specifics.""",
-
     Perspective.ETHICAL: """You are an ethics analyst. Focus on:
 - Potential societal impacts and consequences
 - Fairness, bias, and inclusivity considerations
 - Privacy and data sovereignty concerns
 - Long-term implications for stakeholders
 Provide measured ethical assessments with nuance.""",
-
     Perspective.HISTORICAL: """You are a historical analyst. Focus on:
 - Precedents and similar past approaches
 - Evolution of ideas and technologies over time
 - Lessons learned from historical successes and failures
 - Contextual understanding from prior work
 Ground your analysis in documented history.""",
-
     Perspective.EMPIRICAL: """You are an empirical analyst. Focus on:
 - Observable facts and measurable outcomes
 - Scientific evidence and experimental data
 - Quantifiable metrics and statistical validity
 - Reproducibility and verification methods
 Support claims with evidence and data.""",
-
     Perspective.METAPHYSICAL: """You are a metaphysical analyst. Focus on:
 - Underlying principles and fundamental nature
 - Abstract patterns and universal connections
@@ -74,8 +70,7 @@ class AnalystAgent(BaseAgent):
         )
         self.perspective = perspective
         self.system_prompt = PERSPECTIVE_PROMPTS.get(
-            perspective,
-            PERSPECTIVE_PROMPTS[Perspective.TECHNICAL]
+            perspective, PERSPECTIVE_PROMPTS[Perspective.TECHNICAL]
         )
 
     async def process(self, query: str, **kwargs: Any) -> ThoughtVector:
@@ -109,7 +104,7 @@ Your {self.perspective.value} analysis:"""
                 system_prompt=self.system_prompt,
                 temperature=0.7,
                 max_tokens=1024,
-                **kwargs
+                **kwargs,
             )
 
             return ThoughtVector(

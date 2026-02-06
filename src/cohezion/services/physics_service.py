@@ -6,7 +6,10 @@ from typing import Any
 
 import numpy as np
 
-from cohezion.core.persistence.repositories.universe_repository import PhysicsState, UniverseNode
+from cohezion.core.persistence.repositories.universe_repository import (
+    PhysicsState,
+    UniverseNode,
+)
 
 logger = logging.getLogger(__name__)
 

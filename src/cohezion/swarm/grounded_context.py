@@ -17,7 +17,6 @@ Usage:
 
 from __future__ import annotations
 
-import hashlib
 import logging
 from dataclasses import dataclass, field
 from typing import Any, Protocol
@@ -231,7 +230,7 @@ Structure your response with:
         grounding_instr = ""
         if model_profile.require_grounding and grounding:
             grounding_instr = (
-                f"\n\nGround your response in these verified facts:\n"
+                "\n\nGround your response in these verified facts:\n"
                 + "\n".join(f"- {g}" for g in grounding[:3])
             )
 

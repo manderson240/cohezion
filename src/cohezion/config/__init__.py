@@ -3,10 +3,10 @@ ASCENDED COHEZION - Configuration Module
 """
 
 from cohezion.config.unified import (
+    CloudGraderConfig,
+    EmailConfig,
     SystemConfig,
     UniverseTrackConfig,
-    EmailConfig,
-    CloudGraderConfig,
     get_config,
     reload_config,
 )

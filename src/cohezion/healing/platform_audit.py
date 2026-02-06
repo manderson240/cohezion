@@ -263,10 +263,10 @@ def run_audit(audit_type: str = "pre") -> PlatformAudit:
 
 def print_audit(audit: PlatformAudit):
     """Print audit results in a readable format."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"PLATFORM AUDIT ({audit.audit_type.upper()})")
     print(f"Timestamp: {audit.timestamp}")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     for check in audit.checks:
         icon = (
@@ -276,11 +276,11 @@ def print_audit(audit: PlatformAudit):
         if check.details:
             print(f"   {check.details}")
 
-    print(f"\n{'─'*60}")
+    print(f"\n{'─' * 60}")
     print(
         f"Summary: {audit.summary['pass']} pass, {audit.summary['warn']} warn, {audit.summary['fail']} fail"
     )
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
 
 if __name__ == "__main__":

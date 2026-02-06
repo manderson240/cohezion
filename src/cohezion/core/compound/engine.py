@@ -4,44 +4,51 @@ Orchestrates the "Feature Nexus" where every feature makes future features easie
 """
 
 import logging
-from pathlib import Path
-from typing import Any, Dict, List, Optional
-from cohezion.registry.capability_registry import CapabilityRegistry, Capability
+from typing import Any
+
+from cohezion.registry.capability_registry import CapabilityRegistry
 
 logger = logging.getLogger(__name__)
+
 
 class CompoundLogicEngine:
     """
     The engine that enforces "Compound Engineering" laws.
     Identifies existing hooks that can simplify the current task.
     """
-    
-    def __init__(self, registry: Optional[CapabilityRegistry] = None):
+
+    def __init__(self, registry: CapabilityRegistry | None = None):
         self.registry = registry or CapabilityRegistry()
-        
-    def analyze_task_for_compounding(self, task_intent: str) -> List[Dict[str, Any]]:
+
+    def analyze_task_for_compounding(self, task_intent: str) -> list[dict[str, Any]]:
         """
         Analyze a task and find existing capabilities with relevant 'Future Hooks'.
         """
-        logger.info(f"🧩 [CLE] Analyzing task for compound opportunities: {task_intent[:50]}...")
-        
+        logger.info(
+            f"🧩 [CLE] Analyzing task for compound opportunities: {task_intent[:50]}..."
+        )
+
         # 1. Find relevant capabilities
         candidates = self.registry.find(task_intent, top_k=5)
-        
+
         compounds = []
         for cap in candidates:
             if cap.future_proofing_hooks:
-                compounds.append({
-                    "name": cap.name,
-                    "type": cap.type,
-                    "hooks": cap.future_proofing_hooks,
-                    "impact_score": cap.compound_impact_score,
-                    "relevance": cap.score
-                })
-        
+                compounds.append(
+                    {
+                        "name": cap.name,
+                        "type": cap.type,
+                        "hooks": cap.future_proofing_hooks,
+                        "impact_score": cap.compound_impact_score,
+                        "relevance": cap.score,
+                    }
+                )
+
         if compounds:
-            logger.info(f"✨ Found {len(compounds)} compound hooks to accelerate this task.")
-            
+            logger.info(
+                f"✨ Found {len(compounds)} compound hooks to accelerate this task."
+            )
+
         return compounds
 
     def validate_future_proofing(self, content: str) -> bool:
@@ -58,9 +65,13 @@ class CompoundLogicEngine:
                     continue
                 if in_section and line.strip().startswith("- "):
                     return True
-                if in_section and line.startswith("#") and "FUTURE HOOKS" not in line.upper():
+                if (
+                    in_section
+                    and line.startswith("#")
+                    and "FUTURE HOOKS" not in line.upper()
+                ):
                     break
-        
+
         return False
 
     def record_compound_impact(self, name: str, impact_delta: float = 0.1):
@@ -70,8 +81,11 @@ class CompoundLogicEngine:
         for cap in self.registry.capabilities:
             if cap.name == name:
                 cap.compound_impact_score += impact_delta
-                logger.info(f"🚀 Increased compound impact for {name}: {cap.compound_impact_score:.2f}")
+                logger.info(
+                    f"🚀 Increased compound impact for {name}: {cap.compound_impact_score:.2f}"
+                )
                 # Note: Registry persistence happens via increment_usage or manual trigger
                 break
+
 
 CLE = CompoundLogicEngine()

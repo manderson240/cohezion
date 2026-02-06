@@ -49,7 +49,7 @@ class MemoryAgent(BaseAgent):
         # 3. Format
         context_lines = ["### Long-Term Memory Context:"]
         for i, node in enumerate(similar_nodes):
-            context_lines.append(f"\n{i+1}. [Memory ID: {node.id}]")
+            context_lines.append(f"\n{i + 1}. [Memory ID: {node.id}]")
             context_lines.append(f"Content: {node.content[:500]}...")
             if "agent" in node.metadata:
                 context_lines.append(f"Source: {node.metadata['agent']} Agent")

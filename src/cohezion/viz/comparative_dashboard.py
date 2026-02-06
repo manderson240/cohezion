@@ -110,9 +110,9 @@ else:
 
         mo.md(f"### 💡 Insights for `{selected_config['config_name']}`")
         mo.md(f"""
-        - **Mean Stability:** {selected_config['mean_stability']:.4f}
-        - **Max Reality Precipitation:** {selected_config['max_reality']:.4f}
-        - **Total Bright Spots:** {selected_config['bright_spot_count']}
+        - **Mean Stability:** {selected_config["mean_stability"]:.4f}
+        - **Max Reality Precipitation:** {selected_config["max_reality"]:.4f}
+        - **Total Bright Spots:** {selected_config["bright_spot_count"]}
         """)
     else:
         mo.md("⚠️ No bright spots found for this configuration.")

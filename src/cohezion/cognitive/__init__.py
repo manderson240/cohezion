@@ -10,10 +10,10 @@ Enables compound intelligence through cross-domain pattern recognition
 and strategic self-evolution.
 """
 
-from cohezion.cognitive.synthesis_core import SynthesisCore
+from cohezion.cognitive.insight_engine import InsightEngine
 from cohezion.cognitive.knowledge_integrator import KnowledgeIntegrator
 from cohezion.cognitive.strategy_orchestrator import StrategyOrchestrator
-from cohezion.cognitive.insight_engine import InsightEngine
+from cohezion.cognitive.synthesis_core import SynthesisCore
 
 __all__ = [
     "SynthesisCore",

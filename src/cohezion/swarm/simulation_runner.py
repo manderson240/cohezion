@@ -237,7 +237,7 @@ class JourneySimulator:
             # Alternate between LLM and CALM simulations
             is_calm = i % 2 == 1
 
-            sim_id = f"sim_{i+1:03d}_{int(time.time())}"
+            sim_id = f"sim_{i + 1:03d}_{int(time.time())}"
             result = self.simulate_journey(sim_id, query, is_calm)
             self.results.append(result)
 

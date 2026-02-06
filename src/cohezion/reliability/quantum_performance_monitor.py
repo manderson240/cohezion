@@ -8,19 +8,20 @@ Optimized for AMD Ryzen AI MAX+ 395 with DDR5 bandwidth analysis.
 This system ensures optimal performance through continuous monitoring and automatic adjustments.
 """
 
-import os
-import json
-import time
 import asyncio
-import psutil
+import json
+import logging
+import os
+import statistics
+import subprocess
 import threading
-from typing import Dict, List, Optional, Tuple, Callable, Any
-from dataclasses import dataclass, asdict
+import time
+from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
-import logging
-import subprocess
-import statistics
+from typing import Any
+
+import psutil
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +68,7 @@ class PerformanceMetric:
     unit: str
     timestamp: float
     source: str
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
 
 @dataclass
@@ -78,7 +79,7 @@ class AlertCondition:
     threshold: float
     comparison: str  # ">", "<", ">=", "<=", "=="
     alert_level: AlertLevel
-    action: Optional[ActionType] = None
+    action: ActionType | None = None
     cooldown_seconds: int = 300  # 5 minutes default
     message_template: str = ""
 
@@ -101,10 +102,10 @@ class QuantumPerformanceMonitor:
 
     def __init__(self):
         self.monitoring_active = False
-        self.metrics_history: List[PerformanceMetric] = []
-        self.alert_conditions: List[AlertCondition] = []
+        self.metrics_history: list[PerformanceMetric] = []
+        self.alert_conditions: list[AlertCondition] = []
         self.auto_swap_enabled = True
-        self.model_performance_cache: Dict[str, Dict[str, float]] = {}
+        self.model_performance_cache: dict[str, dict[str, float]] = {}
 
         # System-specific constants for AMD Ryzen AI MAX+ 395
         self.total_memory_gb = psutil.virtual_memory().total / (1024**3)
@@ -133,7 +134,7 @@ class QuantumPerformanceMonitor:
         # Load historical data
         self._load_historical_data()
 
-    def _initialize_baselines(self) -> Dict[str, Dict[str, float]]:
+    def _initialize_baselines(self) -> dict[str, dict[str, float]]:
         """Initialize performance baselines for different model sizes"""
         return {
             "small_models": {  # 4-8GB models
@@ -239,7 +240,7 @@ class QuantumPerformanceMonitor:
         """Load historical performance data"""
         if self.metrics_file.exists():
             try:
-                with open(self.metrics_file, "r") as f:
+                with open(self.metrics_file) as f:
                     data = json.load(f)
                     self.metrics_history = [
                         PerformanceMetric(**m) for m in data.get("metrics", [])
@@ -292,7 +293,7 @@ class QuantumPerformanceMonitor:
                 logger.error(f"Monitoring loop error: {e}")
                 time.sleep(interval_seconds)
 
-    def _collect_system_metrics(self) -> List[PerformanceMetric]:
+    def _collect_system_metrics(self) -> list[PerformanceMetric]:
         """Collect comprehensive system metrics"""
         metrics = []
         current_time = time.time()
@@ -402,7 +403,7 @@ class QuantumPerformanceMonitor:
 
         return cache_efficiency
 
-    def _check_alert_conditions(self, metrics: List[PerformanceMetric]):
+    def _check_alert_conditions(self, metrics: list[PerformanceMetric]):
         """Check alert conditions and trigger actions"""
         for condition in self.alert_conditions:
             # Find matching metric
@@ -473,7 +474,7 @@ class QuantumPerformanceMonitor:
             asyncio.create_task(self._execute_automatic_action(condition, metric))
 
     async def _execute_automatic_action(
-        self, condition: Optional[AlertCondition], metric: PerformanceMetric
+        self, condition: AlertCondition | None, metric: PerformanceMetric
     ):
         """Execute automatic optimization action"""
         if condition:
@@ -523,7 +524,7 @@ class QuantumPerformanceMonitor:
             except Exception as e:
                 logger.error(f"Auto-swap monitor error: {e}")
 
-    async def _find_optimization_opportunity(self) -> Optional[Dict[str, Any]]:
+    async def _find_optimization_opportunity(self) -> dict[str, Any] | None:
         """Find opportunities for automatic optimization"""
         recent_metrics = self.metrics_history[-100:]  # Last 100 metrics
 
@@ -554,7 +555,7 @@ class QuantumPerformanceMonitor:
 
         return None
 
-    def _analyze_trend(self, metrics: List[PerformanceMetric]) -> float:
+    def _analyze_trend(self, metrics: list[PerformanceMetric]) -> float:
         """Analyze trend in metrics"""
         if len(metrics) < 10:
             return 0.0
@@ -639,7 +640,7 @@ class QuantumPerformanceMonitor:
             estimated_improvement=estimated_improvement,
         )
 
-    async def _get_loaded_models(self) -> List[str]:
+    async def _get_loaded_models(self) -> list[str]:
         """Get list of currently loaded models"""
         try:
             result = subprocess.run(
@@ -743,7 +744,7 @@ class QuantumPerformanceMonitor:
             self._save_swap_decision(swap_record)
             self.last_swap_time = time.time()
 
-            logger.info(f"Model swap completed successfully")
+            logger.info("Model swap completed successfully")
 
         except Exception as e:
             logger.error(f"Model swap failed: {e}")
@@ -792,7 +793,7 @@ class QuantumPerformanceMonitor:
         # Graceful shutdown of Ollama
         try:
             subprocess.run(["pkill", "-f", "ollama"], timeout=10)
-        except:
+        except Exception:
             pass
 
         # Restart Ollama with conservative settings
@@ -804,14 +805,14 @@ class QuantumPerformanceMonitor:
             ]
         )
 
-    def _save_alert(self, alert_record: Dict[str, Any]):
+    def _save_alert(self, alert_record: dict[str, Any]):
         """Save alert record"""
         alerts = []
         if self.alerts_file.exists():
             try:
-                with open(self.alerts_file, "r") as f:
+                with open(self.alerts_file) as f:
                     alerts = json.load(f).get("alerts", [])
-            except:
+            except (json.JSONDecodeError, OSError):
                 pass
 
         alerts.append(alert_record)
@@ -823,14 +824,14 @@ class QuantumPerformanceMonitor:
         with open(self.alerts_file, "w") as f:
             json.dump({"alerts": alerts}, f, indent=2)
 
-    def _save_swap_decision(self, swap_record: Dict[str, Any]):
+    def _save_swap_decision(self, swap_record: dict[str, Any]):
         """Save swap decision record"""
         decisions = []
         if self.decisions_file.exists():
             try:
-                with open(self.decisions_file, "r") as f:
+                with open(self.decisions_file) as f:
                     decisions = json.load(f).get("decisions", [])
-            except:
+            except (json.JSONDecodeError, OSError):
                 pass
 
         decisions.append(swap_record)
@@ -858,7 +859,7 @@ class QuantumPerformanceMonitor:
         with open(self.metrics_file, "w") as f:
             json.dump(metrics_data, f, indent=2)
 
-    def get_performance_summary(self) -> Dict[str, Any]:
+    def get_performance_summary(self) -> dict[str, Any]:
         """Get comprehensive performance summary"""
         recent_metrics = self.metrics_history[-100:]  # Last 100 metrics
 

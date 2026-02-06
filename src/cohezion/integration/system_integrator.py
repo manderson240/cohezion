@@ -7,11 +7,12 @@ Built with compound engineering - every integration enables new capabilities.
 
 import asyncio
 import json
-from dataclasses import dataclass, field, asdict
-from typing import Dict, List, Optional, Any, Callable
-from pathlib import Path
-from datetime import datetime
 import logging
+from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
+from typing import Any
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,9 +28,9 @@ except ImportError:
 
 try:
     from src.cohezion.persistence.enhanced_git_safe_handoff import (
+        ENHANCED_HANDOFF_MANAGER,
         EnhancedGitSafeHandoff,
         HandoffTrigger,
-        ENHANCED_HANDOFF_MANAGER,
     )
 except ImportError as e:
     logger.warning(f"Handoff system import error: {e}")
@@ -52,7 +53,7 @@ except ImportError as e:
     ENHANCED_HANDOFF_MANAGER = EnhancedGitSafeHandoff()
 
 try:
-    from src.cohezion.core.persistence.surreal_client import SurrealClient, PhysicsState
+    from src.cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient
 except ImportError as e:
     logger.warning(f"SurrealDB client import error: {e}")
     SurrealClient = None
@@ -100,16 +101,16 @@ class ResourceMonitor:
     out-of-memory errors during large-scale simulations.
     """
 
-    def __init__(self, thresholds: Optional[ResourceThresholds] = None):
+    def __init__(self, thresholds: ResourceThresholds | None = None):
         self.thresholds = thresholds or ResourceThresholds()
         self.monitoring = False
-        self.callbacks: Dict[str, List[Callable]] = {
+        self.callbacks: dict[str, list[Callable]] = {
             "warning": [],
             "critical": [],
             "handoff": [],
             "recovery": [],
         }
-        self.metrics_history: List[Dict[str, Any]] = []
+        self.metrics_history: list[dict[str, Any]] = []
         self.peak_memory_gb = 0.0
 
     def register_callback(self, level: str, callback: Callable):
@@ -178,7 +179,7 @@ class ResourceMonitor:
         if disk_free_gb < self.thresholds.disk_warning_gb:
             logger.warning(f"⚠️ Low disk space: {disk_free_gb:.1f} GB free")
 
-    async def _trigger_callbacks(self, level: str, metrics: Dict[str, Any]):
+    async def _trigger_callbacks(self, level: str, metrics: dict[str, Any]):
         """Trigger registered callbacks"""
         for callback in self.callbacks.get(level, []):
             try:
@@ -194,7 +195,7 @@ class ResourceMonitor:
         self.monitoring = False
         logger.info("📊 Resource monitoring stopped")
 
-    def get_metrics_summary(self) -> Dict[str, Any]:
+    def get_metrics_summary(self) -> dict[str, Any]:
         """Get summary of resource metrics"""
         if not self.metrics_history:
             return {"status": "No metrics recorded"}
@@ -236,16 +237,16 @@ class SystemIntegrator:
         # Initialize components
         self.resource_monitor = ResourceMonitor()
         self.handoff_manager = EnhancedGitSafeHandoff()
-        self.surreal_client: Optional[SurrealClient] = None
+        self.surreal_client: SurrealClient | None = None
         self.tutorial_system = TUTORIAL_SYSTEM
 
         # Simulation state
-        self.simulation_context: Dict[str, Any] = {}
+        self.simulation_context: dict[str, Any] = {}
         self.is_running = False
         self.current_phase = "initialized"
 
         # Metrics
-        self.integration_metrics: List[IntegrationMetrics] = []
+        self.integration_metrics: list[IntegrationMetrics] = []
         self.compound_factor = 4.37
 
         # Setup resource protection
@@ -264,7 +265,7 @@ class SystemIntegrator:
         # Handoff: Create checkpoint
         self.resource_monitor.register_callback("handoff", self._handle_handoff_trigger)
 
-    async def _handle_memory_warning(self, metrics: Dict[str, Any]):
+    async def _handle_memory_warning(self, metrics: dict[str, Any]):
         """Handle memory warning - reduce non-essential processing"""
         logger.warning("⚠️ Memory warning - reducing non-essential processing")
 
@@ -277,7 +278,7 @@ class SystemIntegrator:
             if hasattr(universe, "precision_mode"):
                 universe.precision_mode = "low"
 
-    async def _handle_memory_critical(self, metrics: Dict[str, Any]):
+    async def _handle_memory_critical(self, metrics: dict[str, Any]):
         """Handle critical memory - emergency handoff"""
         logger.critical("🚨 CRITICAL MEMORY - Creating emergency handoff")
 
@@ -291,7 +292,7 @@ class SystemIntegrator:
         # Signal simulation to pause
         self.simulation_context["should_pause"] = True
 
-    async def _handle_handoff_trigger(self, metrics: Dict[str, Any]):
+    async def _handle_handoff_trigger(self, metrics: dict[str, Any]):
         """Handle handoff trigger - create checkpoint"""
         logger.info("🔐 Memory threshold reached - creating checkpoint")
 
@@ -508,7 +509,7 @@ class SystemIntegrator:
             self.current_phase = "error"
             raise
 
-    async def _persist_agents_batch(self, agents: Dict[str, Any]):
+    async def _persist_agents_batch(self, agents: dict[str, Any]):
         """Persist agents to SurrealDB in batches"""
         if not self.surreal_client:
             return
@@ -534,8 +535,8 @@ class SystemIntegrator:
                     break
 
     async def recover_from_handoff(
-        self, session_id: Optional[str] = None
-    ) -> Optional[Dict[str, Any]]:
+        self, session_id: str | None = None
+    ) -> dict[str, Any] | None:
         """Recover simulation from handoff"""
         logger.info("🔄 RECOVERING SIMULATION FROM HANDOFF")
 
@@ -554,7 +555,7 @@ class SystemIntegrator:
             logger.error("❌ Recovery failed")
             return None
 
-    def get_integration_status(self) -> Dict[str, Any]:
+    def get_integration_status(self) -> dict[str, Any]:
         """Get complete integration status"""
         return {
             "system_integrator": {

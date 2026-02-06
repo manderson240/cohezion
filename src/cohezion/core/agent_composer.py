@@ -8,10 +8,9 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from abc import ABC, abstractmethod
+from collections import deque
 from dataclasses import dataclass, field
-from typing import Any, Callable, Protocol, TypeVar, Dict, List
-from typing_extensions import Self
+from typing import Any, Protocol, Self
 
 logger = logging.getLogger(__name__)
 
@@ -19,26 +18,24 @@ logger = logging.getLogger(__name__)
 class AgentBehavior(Protocol):
     """Protocol for composable agent behaviors."""
 
-    async def on_init(self, agent: "ComposableAgent") -> None: ...
-    async def on_process(
-        self, agent: "ComposableAgent", **kwargs
-    ) -> Dict[str, Any]: ...
-    async def on_cleanup(self, agent: "ComposableAgent") -> None: ...
+    async def on_init(self, agent: ComposableAgent) -> None: ...
+    async def on_process(self, agent: ComposableAgent, **kwargs) -> dict[str, Any]: ...
+    async def on_cleanup(self, agent: ComposableAgent) -> None: ...
 
 
 @dataclass
 class DynamicScalingBehavior:
     """Behavior for dynamic agent scaling and composition."""
 
-    def __init__(self, scaling_config: Dict[str, Any] | None = None):
+    def __init__(self, scaling_config: dict[str, Any] | None = None):
         self.scaling_config = scaling_config or {}
         self._agent_registry = None
         self._composition_rules = []
 
-    async def on_init(self, agent: "ComposableAgent") -> None:
+    async def on_init(self, agent: ComposableAgent) -> None:
         """Initialize dynamic scaling behavior."""
         # Get agent registry for discovering other agents
-        from cohezion.core import UnifiedRegistry, get_unified_registry
+        from cohezion.core import get_unified_registry
 
         self._agent_registry = get_unified_registry()
 
@@ -110,7 +107,7 @@ class DynamicScalingBehavior:
                 logger.error(f"Scaling monitor error: {e}")
                 await asyncio.sleep(10)
 
-    async def _get_system_load(self) -> Dict[str, float]:
+    async def _get_system_load(self) -> dict[str, float]:
         """Get current system load metrics."""
         # This would integrate with system monitoring
         # For now, return mock data
@@ -123,7 +120,7 @@ class DynamicScalingBehavior:
         }
 
     def _should_trigger_rule(
-        self, rule: Dict[str, Any], load: Dict[str, float]
+        self, rule: dict[str, Any], load: dict[str, float]
     ) -> bool:
         """Check if a scaling rule should be triggered."""
         condition = rule["condition"]
@@ -137,7 +134,7 @@ class DynamicScalingBehavior:
 
         return False
 
-    async def _apply_scaling_rule(self, rule: Dict[str, Any]) -> None:
+    async def _apply_scaling_rule(self, rule: dict[str, Any]) -> None:
         """Apply scaling rule by creating new agents."""
         current_count = self._scaling_state["metrics"]["current_count"]
         max_instances = rule["max_instances"]
@@ -159,7 +156,7 @@ class DynamicScalingBehavior:
                 self._scaling_state["metrics"]["current_count"],
             )
 
-    async def _create_composed_agent(self, rule: Dict[str, Any]) -> "ComposableAgent":
+    async def _create_composed_agent(self, rule: dict[str, Any]) -> ComposableAgent:
         """Create a new agent with specified composition."""
         # Create base agent
         agent = ComposableAgent(model_name="phi4")
@@ -203,7 +200,7 @@ class DynamicScalingBehavior:
         logger.info(f"Created composed agent with {len(rule['composition'])} behaviors")
         return agent
 
-    async def on_process(self, agent: "ComposableAgent", **kwargs) -> Dict[str, Any]:
+    async def on_process(self, agent: ComposableAgent, **kwargs) -> dict[str, Any]:
         """Process with dynamic scaling considerations."""
         # Check if we need to scale based on current request
         if "prompt" in kwargs:
@@ -254,7 +251,7 @@ class DynamicScalingBehavior:
         # Cap complexity at 1.0
         return min(1.0, complexity)
 
-    async def on_cleanup(self, agent: "ComposableAgent") -> None:
+    async def on_cleanup(self, agent: ComposableAgent) -> None:
         """Cleanup dynamic scaling resources."""
         # Stop scaling monitor
         # Clean up active agents
@@ -279,9 +276,9 @@ class ComposableAgent:
     """
 
     model_name: str
-    _behaviors: List[AgentBehavior] = field(default_factory=list)
-    _config: Dict[str, Any] = field(default_factory=dict)
-    _state: Dict[str, Any] = field(default_factory=dict)
+    _behaviors: list[AgentBehavior] = field(default_factory=list)
+    _config: dict[str, Any] = field(default_factory=dict)
+    _state: dict[str, Any] = field(default_factory=dict)
     _initialized: bool = False
 
     def add_behavior(self, behavior: AgentBehavior) -> None:
@@ -301,7 +298,7 @@ class ComposableAgent:
 
         self._initialized = True
 
-    async def process(self, **kwargs) -> Dict[str, Any]:
+    async def process(self, **kwargs) -> dict[str, Any]:
         """Process request through all behaviors."""
         if not self._initialized:
             await self.initialize()
@@ -332,15 +329,15 @@ class AgentBuilder:
 
     def __init__(self, model_name: str):
         self.model_name = model_name
-        self._behaviors: List[AgentBehavior] = []
-        self._scaling_config: Dict[str, Any] | None = None
+        self._behaviors: list[AgentBehavior] = []
+        self._scaling_config: dict[str, Any] | None = None
 
     def with_behavior(self, behavior: AgentBehavior) -> Self:
         """Add a behavior mixin."""
         self._behaviors.append(behavior)
         return self
 
-    def with_scaling(self, config: Dict[str, Any]) -> Self:
+    def with_scaling(self, config: dict[str, Any]) -> Self:
         """Add dynamic scaling behavior."""
         self._scaling_config = config
         return self

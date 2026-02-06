@@ -220,19 +220,19 @@ class MultiAudiencePresenter:
         t = self.kids[key]
         return f"""
 ╭───────────────────────────────────────────────────────╮
-│  {t['title']}
+│  {t["title"]}
 ╰───────────────────────────────────────────────────────╯
 
-🎯 {t['hook']}
+🎯 {t["hook"]}
 
 📖 THE STORY:
-{t['story'].strip()}
+{t["story"].strip()}
 
 ⭐ COOL FACT:
-{t['cool_fact']}
+{t["cool_fact"]}
 
 🎮 TRY THIS:
-{t['try_this']}
+{t["try_this"]}
 """
 
     def _format_executive(self, key: str) -> str:
@@ -240,18 +240,18 @@ class MultiAudiencePresenter:
         actions = "\n".join(f"  • {a}" for a in t["action_items"])
         return f"""
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-{t['title']}
+{t["title"]}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📊 {t['hook']}
+📊 {t["hook"]}
 
 EXECUTIVE SUMMARY:
-{t['summary'].strip()}
+{t["summary"].strip()}
 
 ACTION ITEMS:
 {actions}
 
-⚠️ RISK: {t['risk']}
+⚠️ RISK: {t["risk"]}
 """
 
     def _adapt_base(self, key: str, config: AudienceConfig) -> str:

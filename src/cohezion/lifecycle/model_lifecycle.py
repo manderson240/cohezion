@@ -5,15 +5,13 @@ Manages model discovery, evaluation, upgrade deployment, and legacy phase-out fo
 """
 
 import json
-import asyncio
 import logging
 import subprocess
-import aiohttp
-from typing import Dict, List, Any, Optional, Tuple
-from dataclasses import dataclass, asdict
-from datetime import datetime, timedelta
-from pathlib import Path
+from dataclasses import asdict, dataclass
+from datetime import datetime
 from enum import Enum
+from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -46,15 +44,15 @@ class ModelEvaluation:
     model_name: str
     evaluation_id: str
     stage: ModelLifecycleStage
-    performance_metrics: Dict[str, float]
-    benchmarks_vs_current: Dict[str, float]
+    performance_metrics: dict[str, float]
+    benchmarks_vs_current: dict[str, float]
     compatibility_score: float
     upgrade_recommendation: str  # install, test, reject, monitor
-    reasons: List[str]
+    reasons: list[str]
     estimated_impact: str
     evaluation_duration_hours: float
-    resource_requirements: Dict[str, float]
-    risks: List[str]
+    resource_requirements: dict[str, float]
+    risks: list[str]
     timestamp: str
 
 
@@ -67,11 +65,11 @@ class UpgradePlan:
     target_version: str
     upgrade_trigger: UpgradeTrigger
     plan_type: str  # immediate, gradual, phased
-    phases: List[Dict[str, Any]]
+    phases: list[dict[str, Any]]
     estimated_timeline_hours: float
-    resource_requirements: Dict[str, float]
-    rollback_plan: Dict[str, Any]
-    success_criteria: List[str]
+    resource_requirements: dict[str, float]
+    rollback_plan: dict[str, Any]
+    success_criteria: list[str]
     timestamp: str
 
 
@@ -82,9 +80,9 @@ class ModelLifecycleManager:
         self.lifecycle_data_file = Path(
             "/home/mike-anderson/dev/cohezion/src/cohezion/data/model_lifecycle.json"
         )
-        self.evaluation_history: Dict[str, ModelEvaluation] = {}
-        self.upgrade_plans: Dict[str, UpgradePlan] = {}
-        self.deployment_queue: List[Dict[str, Any]] = []
+        self.evaluation_history: dict[str, ModelEvaluation] = {}
+        self.upgrade_plans: dict[str, UpgradePlan] = {}
+        self.deployment_queue: list[dict[str, Any]] = []
 
         # Configuration
         self.config = {
@@ -114,7 +112,7 @@ class ModelLifecycleManager:
         self.load_existing_lifecycle_data()
 
     async def evaluate_candidate_model(
-        self, model_name: str, model_info: Dict[str, Any]
+        self, model_name: str, model_info: dict[str, Any]
     ) -> ModelEvaluation:
         """Comprehensive evaluation of candidate model"""
         evaluation_id = f"eval_{model_name}_{datetime.now().strftime('%Y%m%d_%H%M')}"
@@ -180,7 +178,7 @@ class ModelLifecycleManager:
         return evaluation
 
     async def _check_compatibility(
-        self, model_name: str, model_info: Dict[str, Any]
+        self, model_name: str, model_info: dict[str, Any]
     ) -> float:
         """Check model compatibility with current system"""
         compatibility_score = 0.8  # Start with good compatibility
@@ -208,8 +206,8 @@ class ModelLifecycleManager:
         return max(compatibility_score, 0.0)
 
     async def _benchmark_model(
-        self, model_name: str, model_info: Dict[str, Any]
-    ) -> Dict[str, float]:
+        self, model_name: str, model_info: dict[str, Any]
+    ) -> dict[str, float]:
         """Benchmark model performance"""
         # Simulate benchmarking - in production would use actual benchmarks
         benchmarks = {
@@ -236,8 +234,8 @@ class ModelLifecycleManager:
         return benchmarks
 
     async def _compare_with_current(
-        self, model_name: str, performance_metrics: Dict[str, float]
-    ) -> Dict[str, float]:
+        self, model_name: str, performance_metrics: dict[str, float]
+    ) -> dict[str, float]:
         """Compare with current deployed models"""
         # Get current best performance for each benchmark
         current_best = {
@@ -260,9 +258,9 @@ class ModelLifecycleManager:
     async def _assess_deployment_risks(
         self,
         model_name: str,
-        model_info: Dict[str, Any],
-        performance_metrics: Dict[str, float],
-    ) -> List[str]:
+        model_info: dict[str, Any],
+        performance_metrics: dict[str, float],
+    ) -> list[str]:
         """Assess deployment risks"""
         risks = []
 
@@ -293,8 +291,8 @@ class ModelLifecycleManager:
         return risks
 
     async def _analyze_resource_requirements(
-        self, model_name: str, model_info: Dict[str, Any]
-    ) -> Dict[str, float]:
+        self, model_name: str, model_info: dict[str, Any]
+    ) -> dict[str, float]:
         """Analyze resource requirements"""
         # Simulated resource analysis
         base_requirements = {
@@ -322,10 +320,10 @@ class ModelLifecycleManager:
 
     def _calculate_upgrade_recommendation(
         self,
-        benchmarks_vs_current: Dict[str, float],
+        benchmarks_vs_current: dict[str, float],
         compatibility_score: float,
-        risks: List[str],
-    ) -> Tuple[UpgradeTrigger, str]:
+        risks: list[str],
+    ) -> tuple[UpgradeTrigger, str]:
         """Calculate upgrade recommendation"""
 
         # Check performance gains
@@ -361,7 +359,7 @@ class ModelLifecycleManager:
             return UpgradeTrigger.PERFORMANCE_GAIN, "evaluate"
 
     def _estimate_impact(
-        self, upgrade_trigger: UpgradeTrigger, benchmarks_vs_current: Dict[str, float]
+        self, upgrade_trigger: UpgradeTrigger, benchmarks_vs_current: dict[str, float]
     ) -> str:
         """Estimate impact of upgrade"""
         if upgrade_trigger == UpgradeTrigger.FRONTIER_LEAP:
@@ -377,10 +375,10 @@ class ModelLifecycleManager:
 
     def _generate_evaluation_reasons(
         self,
-        benchmarks_vs_current: Dict[str, float],
+        benchmarks_vs_current: dict[str, float],
         compatibility_score: float,
-        risks: List[str],
-    ) -> List[str]:
+        risks: list[str],
+    ) -> list[str]:
         """Generate evaluation reason summary"""
         reasons = []
 
@@ -490,7 +488,7 @@ class ModelLifecycleManager:
         )
         return plan
 
-    async def execute_upgrade_plan(self, plan_id: str) -> Dict[str, Any]:
+    async def execute_upgrade_plan(self, plan_id: str) -> dict[str, Any]:
         """Execute automated upgrade plan"""
         if plan_id not in self.upgrade_plans:
             return {"error": f"Upgrade plan {plan_id} not found"}
@@ -538,8 +536,8 @@ class ModelLifecycleManager:
         return execution_results
 
     async def _execute_upgrade_phase(
-        self, phase: Dict[str, Any], model_name: str
-    ) -> Dict[str, Any]:
+        self, phase: dict[str, Any], model_name: str
+    ) -> dict[str, Any]:
         """Execute individual upgrade phase"""
         # Simulate phase execution
         # In production, would actually perform the actions
@@ -570,7 +568,7 @@ class ModelLifecycleManager:
         """Load existing lifecycle data"""
         try:
             if self.lifecycle_data_file.exists():
-                with open(self.lifecycle_data_file, "r") as f:
+                with open(self.lifecycle_data_file) as f:
                     data = json.load(f)
                     self.evaluation_history = {
                         eid: ModelEvaluation(**eval_data)
@@ -609,7 +607,7 @@ class ModelLifecycleManager:
         except Exception as e:
             logger.error(f"❌ Failed to save lifecycle data: {e}")
 
-    def get_lifecycle_summary(self) -> Dict[str, Any]:
+    def get_lifecycle_summary(self) -> dict[str, Any]:
         """Get comprehensive lifecycle summary"""
         return {
             "summary_timestamp": datetime.now().isoformat(),
@@ -620,7 +618,7 @@ class ModelLifecycleManager:
             "recommendations_pending": self._get_pending_recommendations(),
         }
 
-    def _get_current_model_status(self) -> Dict[str, str]:
+    def _get_current_model_status(self) -> dict[str, str]:
         """Get status of current models"""
         # This would query our model registry
         return {
@@ -630,7 +628,7 @@ class ModelLifecycleManager:
             "deepseek-v3:70b": "evaluation_needed",
         }
 
-    def _get_pending_recommendations(self) -> List[str]:
+    def _get_pending_recommendations(self) -> list[str]:
         """Get pending upgrade recommendations"""
         pending = []
 
@@ -649,7 +647,7 @@ MODEL_LIFECYCLE_MANAGER = ModelLifecycleManager()
 
 # Convenience functions
 async def evaluate_candidate_model(
-    model_name: str, model_info: Dict[str, Any]
+    model_name: str, model_info: dict[str, Any]
 ) -> ModelEvaluation:
     """Evaluate candidate model using global lifecycle manager"""
     return await MODEL_LIFECYCLE_MANAGER.evaluate_candidate_model(
@@ -662,6 +660,6 @@ async def create_upgrade_plan(evaluation: ModelEvaluation) -> UpgradePlan:
     return await MODEL_LIFECYCLE_MANAGER.create_upgrade_plan(evaluation)
 
 
-def get_lifecycle_summary() -> Dict[str, Any]:
+def get_lifecycle_summary() -> dict[str, Any]:
     """Get lifecycle summary using global lifecycle manager"""
     return MODEL_LIFECYCLE_MANAGER.get_lifecycle_summary()

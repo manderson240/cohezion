@@ -7,24 +7,20 @@ and real-time visualization for universal simulation experiences.
 
 import asyncio
 import time
-from typing import Dict, List, Optional, Tuple, Any, Callable
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
-import numpy as np
-import cupy as cp
-import json
-from datetime import datetime, timedelta
-from threading import Thread
+from typing import Any
 
-from .core.cache_manager import CacheManager
-from .core.gpu_acceleration import (
-    GPUAccelerationManager,
-    PhysicsSimulationManager,
-    PhysicsConfig,
-    PhysicsSimulationType,
-)
-from .core.unified_registry import RegistryEntry
-from .agents.base import Agent
+import numpy as np
+
+# TODO: This module is a non-functional stub with broken imports.
+# The gpu_acceleration dependency has been removed (no CUDA on this system).
+# These type references are placeholders until this module is rewritten or deleted.
+GPUAccelerationManager = None  # type: ignore[assignment,misc]
+PhysicsConfig = None  # type: ignore[assignment,misc]
+PhysicsSimulationManager = None  # type: ignore[assignment,misc]
+PhysicsSimulationType = None  # type: ignore[assignment,misc]
 
 
 class SimulationMode(Enum):
@@ -67,9 +63,9 @@ class SimulationFrame:
 
     timestamp: datetime
     frame_number: int
-    physics_data: Dict[str, Any]
-    agent_states: Dict[str, Any]
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    physics_data: dict[str, Any]
+    agent_states: dict[str, Any]
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -92,10 +88,10 @@ class ParticipantState:
 
     agent_id: str
     agent_name: str
-    capabilities: Dict[str, Any]
-    resource_profile: Dict[str, Any]
-    connection_quality: Dict[str, Any]
-    last_input: Dict[str, Any]
+    capabilities: dict[str, Any]
+    resource_profile: dict[str, Any]
+    connection_quality: dict[str, Any]
+    last_input: dict[str, Any]
     prediction_error: float
     participation_score: float
 
@@ -108,8 +104,8 @@ class RealTimeSimulation:
         self.cache_manager = CacheManager()
         self.gpu_manager = GPUAccelerationManager()
         self.physics_manager = PhysicsSimulationManager()
-        self.participants: Dict[str, ParticipantState] = {}
-        self.simulation_frames: List[SimulationFrame] = []
+        self.participants: dict[str, ParticipantState] = {}
+        self.simulation_frames: list[SimulationFrame] = []
         self.is_running = False
         self.frame_number = 0
         self._init_simulation()
@@ -346,7 +342,7 @@ class RealTimeSimulation:
             await asyncio.sleep(2.0)
 
     def add_participant(
-        self, agent: Agent, controls: Optional[Dict[str, Any]] = None
+        self, agent: Agent, controls: dict[str, Any] | None = None
     ) -> str:
         """Add a participant to the simulation."""
         participant_id = agent.id
@@ -377,7 +373,7 @@ class RealTimeSimulation:
             return True
         return False
 
-    def update_participant(self, participant_id: str, controls: Dict[str, Any]) -> bool:
+    def update_participant(self, participant_id: str, controls: dict[str, Any]) -> bool:
         """Update participant controls."""
         if participant_id in self.participants:
             participant = self.participants[participant_id]
@@ -393,7 +389,7 @@ class RealTimeSimulation:
             return True
         return False
 
-    def get_current_frame(self) -> Optional[SimulationFrame]:
+    def get_current_frame(self) -> SimulationFrame | None:
         """Get the current simulation frame."""
         if self.simulation_frames:
             return self.simulation_frames[-1]
@@ -401,14 +397,14 @@ class RealTimeSimulation:
 
     def get_frame_history(
         self, start_frame: int = 0, end_frame: int = -1
-    ) -> List[SimulationFrame]:
+    ) -> list[SimulationFrame]:
         """Get frame history."""
         if end_frame == -1:
             end_frame = len(self.simulation_frames)
 
         return self.simulation_frames[start_frame:end_frame]
 
-    def get_participant_states(self) -> Dict[str, ParticipantState]:
+    def get_participant_states(self) -> dict[str, ParticipantState]:
         """Get all participant states."""
         return self.participants
 
@@ -416,7 +412,7 @@ class RealTimeSimulation:
         """Get current simulation metrics."""
         return self.metrics
 
-    def get_system_state(self) -> Dict[str, Any]:
+    def get_system_state(self) -> dict[str, Any]:
         """Get complete system state."""
         return {
             "config": {
@@ -448,12 +444,12 @@ class RealTimeSimulationManager:
     """Manager for multiple real-time simulations."""
 
     def __init__(self):
-        self.simulations: Dict[str, RealTimeSimulation] = {}
-        self.active_simulation: Optional[RealTimeSimulation] = None
+        self.simulations: dict[str, RealTimeSimulation] = {}
+        self.active_simulation: RealTimeSimulation | None = None
         self.cache_manager = CacheManager()
 
     def create_simulation(
-        self, name: str, config: Optional[RealTimeConfig] = None
+        self, name: str, config: RealTimeConfig | None = None
     ) -> RealTimeSimulation:
         """Create a new real-time simulation."""
         if name in self.simulations:
@@ -478,7 +474,7 @@ class RealTimeSimulationManager:
             asyncio.run(simulation.stop())
             del self.simulations[name]
 
-    def list_simulations(self) -> List[str]:
+    def list_simulations(self) -> list[str]:
         """List all active simulations."""
         return list(self.simulations.keys())
 
@@ -489,7 +485,7 @@ class RealTimeSimulationManager:
         else:
             raise ValueError(f"Simulation '{name}' not found")
 
-    def get_active_simulation(self) -> Optional[RealTimeSimulation]:
+    def get_active_simulation(self) -> RealTimeSimulation | None:
         """Get the currently active simulation."""
         return self.active_simulation
 
@@ -503,7 +499,7 @@ class RealTimeSimulationManager:
         for simulation in self.simulations.values():
             await simulation.stop()
 
-    def get_system_metrics(self) -> Dict[str, Any]:
+    def get_system_metrics(self) -> dict[str, Any]:
         """Get system-wide metrics for all simulations."""
         total_participants = 0
         total_fps = 0.0

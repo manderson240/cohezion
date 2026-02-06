@@ -191,10 +191,10 @@ class VisualizationAgent:
 
         # Generate summary text
         summary = f"""
-        The FLUME simulation completed {len(df)} trajectories across {df['stream'].nunique()} expert domains.
-        The average coherence score was {df['coherence'].mean():.2f}.
-        {(df['status'] == 'survived').sum()} trajectories survived above the threshold.
-        The {df.groupby('stream')['coherence'].mean().idxmax()} stream achieved the highest average coherence.
+        The FLUME simulation completed {len(df)} trajectories across {df["stream"].nunique()} expert domains.
+        The average coherence score was {df["coherence"].mean():.2f}.
+        {(df["status"] == "survived").sum()} trajectories survived above the threshold.
+        The {df.groupby("stream")["coherence"].mean().idxmax()} stream achieved the highest average coherence.
         """
 
         output_path = request.output_dir / "narration.mp3"

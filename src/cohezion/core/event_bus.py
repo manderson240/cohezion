@@ -9,12 +9,12 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-import weakref
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import Any, Awaitable, Callable, Protocol
 from enum import Enum, auto
+from typing import Any, Protocol
 
 logger = logging.getLogger(__name__)
 

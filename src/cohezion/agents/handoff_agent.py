@@ -10,8 +10,8 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-from cohezion.core.persistence.surreal_client import PhysicsState, UniverseNode
 from cohezion.agents.base import AgentResponse, BaseAgent
+from cohezion.core.persistence.surreal_client import PhysicsState, UniverseNode
 from cohezion.swarm.swarm_types import SwarmConfig
 
 logger = logging.getLogger(__name__)
@@ -46,10 +46,10 @@ Keep the summary concise (max 500 tokens) but high-fidelity.
         logger.info("📡 HandoffAgent generating session snapshot...")
 
         prompt = f"""GENERATE SESSION SNAPSHOT:
-Session Created At: {session_data.get('created_at')}
-Expert Responses: {json.dumps(list(session_data.get('expert_responses', {}).keys()))}
-Current Synthesis: {session_data.get('synthesis', '')[:1000]}
-Confidence: {session_data.get('confidence', 0.0)}
+Session Created At: {session_data.get("created_at")}
+Expert Responses: {json.dumps(list(session_data.get("expert_responses", {}).keys()))}
+Current Synthesis: {session_data.get("synthesis", "")[:1000]}
+Confidence: {session_data.get("confidence", 0.0)}
 
 Please synthesize the above into a standard Memory Anchor.
 """

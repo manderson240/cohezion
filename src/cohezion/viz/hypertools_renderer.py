@@ -52,7 +52,7 @@ class HyperToolsViz:
             logger.info("HyperTools is available")
         except ImportError:
             logger.warning(
-                "HyperTools not installed. " "Install with: pip install hypertools"
+                "HyperTools not installed. Install with: pip install hypertools"
             )
 
     def plot_embeddings(

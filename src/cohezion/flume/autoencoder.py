@@ -153,26 +153,6 @@ class ThoughtDecoder(nn.Module):
 
 
 class FlumeEncoder(PreTrainedModel):
-    """Main FLAME autoencoder model."""
-
-    config_class = FlumeConfig
-
-    def __init__(self, config: FlumeConfig):
-        super().__init__(config)
-        self.encoder = ThoughtEncoder(config)
-        self.decoder = ThoughtDecoder(config)
-
-    def forward(self, input_ids, attention_mask=None, **kwargs):
-        z = self.encoder(input_ids, attention_mask)
-        logits = self.decoder(z, input_ids)
-        return z, logits
-
-
-# Alias for backward compatibility
-FlumeAutoEncoder = FlumeEncoder
-
-
-class FlumeEncoder(PreTrainedModel):
     """
     Full autoencoder for thought vector compression.
     """
@@ -422,3 +402,7 @@ class FlumeEncoder(PreTrainedModel):
         """Load model weights."""
         self.load_state_dict(torch.load(path, weights_only=True))
         logger.info(f"Loaded model from {path}")
+
+
+# Alias for backward compatibility
+FlumeAutoEncoder = FlumeEncoder

@@ -24,7 +24,7 @@ import plotly.express as px
 import pandas as pd
 import numpy as np
 
-mo.md("# Cohezion Mission: {scenario_name['title']}")
+mo.md("# Cohezion Mission: {scenario_name["title"]}")
 
 mo.md("""
 ## 🌀 Toroidal Momentum (SPIN)
@@ -63,7 +63,7 @@ mo.as_html(fig)
 
 mo.md("### 📊 Metric Breakdown")
 labels = ["Safety", "Determinism", "Coherence", "Novelty", "Impact"]
-values = [{scenario_name['alignment']}, 0.92, coherence.value, 0.88, 0.95]
+values = [{scenario_name["alignment"]}, 0.92, coherence.value, 0.88, 0.95]
 fig_radar = px.line_polar(r=values, theta=labels, line_close=True)
 mo.as_html(fig_radar)
 '''

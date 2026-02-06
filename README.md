@@ -9,16 +9,15 @@
 ## 🌌 The Technical Reckoning
 This repository represents more than a codebase; it is a **Living Research Environment (Universe Simulation v2.0)**. It documents its own evolution through agentic journeys, validated by **Constitutional and Simulation-Based Validation (CSV)**.
 
-### 💎 Research Engineering Gems
-Explore the core breakthroughs that drive Cohezion's speed and stability:
-- **[VLIW Acceleration (60.9x)](src/cohezion/core/gpu_acceleration.py)**: Bit-exact kernels for high-frequency physics precipitation.
-- **[FLUME-RS (29x)](src/cohezion/flume/autoencoder.py)**: Rust-accelerated manifold encoding for real-time latent processing.
+### Key Components
+Explore the core systems that drive Cohezion:
+- **[GPU Acceleration](src/cohezion/core/gpu_acceleration.py)**: Physics simulation manager with cupy-based GPU integration.
+- **[FLUME Autoencoder](src/cohezion/flume/autoencoder.py)**: Transformer-based thought vector compression (256D latent space). Rust acceleration available via [cohezion_core](src/cohezion_core/) (PyO3).
 - **[Sovereign Allostatica](src/cohezion/allostatica/engine.py)**: Autonomic homeostasis that stabilizes agentic trajectories at the HIHO attractor (0.5).
 - **[HIHO Sonification](apps/webapp/src/hooks/useHomeostasisHarmonics.ts)**: Real-time audio mapping of the 12D manifold stability state.
 - **[Constitutional Shield](src/cohezion/validation/constitutional.py)**: Dynamic alignment filtering that critiques agent steps.
 
-![Manifold Equilibrium](/home/mike-anderson/.gemini/antigravity/brain/1c2e5455-988a-4ac0-b97a-bf8c8751cf3b/manifold_equilibrium_state_1770150266910.png)
-*Figure 1: Axiomatic state at perfect HIHO equilibrium (0.5 ± 0.05).*
+<!-- Image removed: referenced a private local filesystem path not available in the repository -->
 
 ---
 
@@ -35,8 +34,8 @@ Every task becomes a journey through the manifold:
 cohezion/
 ├── src/cohezion/
 │   ├── core/                # Persistence (SurrealDB), Cache, Bus, GPU
-│   ├── agents/              # 50+ Specialized agent swarms (Flattened)
-│   ├── flume/               # 512D Latent trajectory autoencoders
+│   ├── agents/              # ~45 Specialized agents
+│   ├── flume/               # 256D Latent trajectory autoencoders
 │   ├── universe/            # 12D Journey tracking and replay
 │   ├── allostatica/         # Proactive homeostasis engine
 │   ├── validation/          # Constitutional Shield & Manifold Equilibrium
@@ -70,22 +69,20 @@ cd apps/webapp && npm run dev
 
 ---
 
-## 📜 Sovereign Health Report
-Status: **✅ CRYSTAL CLEAR**
-Validation Methodology: **Constitutional and Simulation-Based Validation (CSV)**
+## Validation
 
-| Metric | Score | Status |
-|--------|-------|--------|
-| Logic Resilience | 0.98 | Stable |
-| Manifold Convergence | 0.499 | Equilibrium |
-| VLIW Bit-Exactness | 100% | Verified |
-| Constitutional Alignment | 0.95 | Aligned |
+Validation methodology: **Constitutional and Simulation-Based Validation (CSV)**
+
+Health metrics are generated dynamically by `src/cohezion/validation/constitutional.py`. Run the validator to see current status:
+```bash
+uv run python3 src/cohezion/validation/constitutional.py
+```
 
 ---
 
 ## 🛠️ Requirements & Install
-- **Hardware**: 128GB RAM (Optimized for Framework 16, 2026 Model)
-- **Runtime**: Python 3.12, Rust 1.80, SurrealDB
+- **Hardware**: 128GB RAM recommended (developed on AMD Ryzen AI MAX+ 395, Radeon 8060S iGPU)
+- **Runtime**: Python 3.13+, SurrealDB. Optional: Rust toolchain (for building `cohezion_core` native extensions)
 - **Tooling**: `uv` (required for dependency alignment)
 
 ```bash
@@ -97,5 +94,4 @@ cd cohezion && uv sync
 ---
 
 ## 📜 License
-Cohezion is released under the [Apache License 2.0](file:///home/mike-anderson/dev/cohezion/LICENSE).
- for details.
+Cohezion is released under the [Apache License 2.0](LICENSE).

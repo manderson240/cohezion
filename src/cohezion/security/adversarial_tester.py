@@ -394,7 +394,7 @@ class AdversarialTester:
 ## Attack Pattern Coverage
 
 - **Base Patterns:** {get_pattern_count()}
-- **Pattern Categories:** {len(PATTERN_SUMMARY['by_category'])}
+- **Pattern Categories:** {len(PATTERN_SUMMARY["by_category"])}
 - **Mutations Applied:** Yes (10x expansion)
 
 ## Recommendations

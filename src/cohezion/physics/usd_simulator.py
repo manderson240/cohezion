@@ -190,7 +190,7 @@ if __name__ == "__main__":
     sim = USDSimulator(voltage_kv=10, pulse_duration_us=100)
 
     for i in range(5):
-        print(f"\nAttempt {i+1}:")
+        print(f"\nAttempt {i + 1}:")
         cluster = sim.generate_spark()
 
         if cluster:

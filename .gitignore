@@ -11,11 +11,17 @@ wheels/
 .env
 **/venv/
 **/env/
+
+# Dependencies and build artifacts
 **/node_modules/
 **/target/
 **/build/
 **/dist/
+
+# Archives and recovery
 .archive/
+.sandbox/
+temp/
 
 # Specific Bloat Suppression
 research/challenges/*.html
@@ -25,7 +31,8 @@ portfolio/
 !portfolio/*.md
 models/
 mteb_results/
-audio/
+
+# Web/frontend config (managed by apps/ subdirs)
 package-lock.frontend.json
 package-lock.json
 package.frontend.json
@@ -34,37 +41,34 @@ tsconfig.node.json
 tsconfig.json
 vite.config.ts
 index.html
+
+# Generated images and data
 adversarial_review_journey.json
 benchmark_*.png
 flume_*.png
+nexus_state.png
+debate_trajectory.png
+
+# Logs and output
 *.log
 *.err
 *.out
-*.pt
-*.pdf
-*.webp
-
-# Diagnostic logs (large binary files)
+!docs/**/*.log
+logs/
 src/diagnostics/*.log
-src/diagnostics/process_list.log
-src/diagnostics/process_usage.log
-src/diagnostics/memory_usage.log
 
 # Cache and temporary files
 cache/
 data/
 *.cache
 .cache/
+.mypy_cache/
+.ruff_cache/
 
 # IDE and editor files
 .idea/
 *.swp
 *.swo
-
-# Logs
-logs/*.log
-*.log
-!docs/**/*.log
 
 # OS files
 .DS_Store
@@ -72,37 +76,20 @@ Thumbs.db
 
 # Generated simulation artifacts (stored in SurrealDB)
 src/cohezion/knowledge_graph/universe_nodes/
-src/cohezion/library/*_files/
-src/cohezion/library/*.html
-src/cohezion/library/*.pdf
-src/cohezion/library/*.png
 
 # Large data files (use database instead)
 *.jsonl
 !tests/**/*.jsonl
 
-# Large Data & Recovery
-data/overnight/
-.archive/
-.sandbox/
-temp/
-src/cohezion/knowledge_graph/universe_nodes/
-
 # UI Renders and Exports
 renders/
+results/
+exports/
 
 # Sandbox and temporary files
 *.sandbox
-# Cohezion Autonomous Lab Artifacts
-*.log
-*.err
-*.out
-*.sandbox
-logs/
-.sandbox/
 
-# Web App Dependencies and Builds
-**/node_modules/
+# Web App Builds
 webapp/dist/
 webapp/.vite/
 apps/dashboard/assets/
@@ -112,33 +99,29 @@ src/cohezion/api/static/assets/logo-*.png
 # Simulation assets
 **/*.safetensors
 
-results/
-exports/
-
-# 2026-01-28 Audit Hardening
+# Audit Hardening (2026-01-28)
 **/*.dill
-**/peaked_mps_final.dill
 **/enhanced_simulations/*.jsonl
 **/training_data/*.jsonl
 **/logs/archive/*.log
-**/src/diagnostics/*.log
 cohezion_dataset.json
 trace.json
 dashboard.log
 
-# Aggressive Binary Patterns (Move to DB/Object Storage)
+# Binary patterns (move to DB/Object Storage)
 *.pt
 *.pdf
 *.webp
 *.mp3
+*.wav
+*.so
+*.dll
+*.dylib
+*.sst
+*.bundle
 audio/
-mteb_results/
 tokenizer.json
-benchmark_*.png
-flume_*.png
 history.txt
-nexus_state.png
-debate_trajectory.png
 
 # Ensure scripts and small configs are kept
 !scripts/**/*.py
@@ -148,41 +131,43 @@ debate_trajectory.png
 !**/favicon*.png
 !**/logo.png
 
+# Enforce Source-Only
+!src/**/*.py
+!src/**/*.md
+!src/**/*.json
+
+# Database files
+*.sqlite
+*.db
+
 # Swarm Auto-Ignore
 data/surrealdb/
 data/overnight/
 
 # Knowledge Graph Artifacts (Deep Bloat)
-src/cohezion/knowledge_graph/universe_nodes/linguistic_evolution/logs/
 src/cohezion/knowledge_graph/universe_nodes/**/logs/
-*.sst
-*.bundle
-cohezion.db/
+src/cohezion/knowledge_graph/auto_generated/
+src/cohezion/knowledge_graph/audits/
+src/cohezion/knowledge_graph/debates/
+src/cohezion/knowledge_graph/retrospectives/
+src/cohezion/knowledge_graph/reports/
 
-# LOCKDOWN PROTOCOL (Phase 31)
-# Prevent heavy media ingestion
+# Cohezion Rust core (built artifact)
+cohezion.db/
+src/cohezion_core/
+
+# Heavy media (LOCKDOWN PROTOCOL)
 *.mp4
 *.mkv
 *.avi
 *.mov
-*.wav
 *.flac
 *.zip
 *.tar.gz
 *.iso
 *.img
 
-# Enforce Source-Only
-!src/**/*.py
-!src/**/*.md
-!src/**/*.json
-!scripts/**/*.py
-
-# Large binary artifacts
-*.so
-*.dll
-*.dylib
+# Temp/backup file patterns
+*.py.fixed
+*.md-latest
 git_status.txt
-src/cohezion_core/
-*.bundle
-

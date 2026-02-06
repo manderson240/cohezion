@@ -4,12 +4,12 @@ Compound Engineering Workflow Templates for COHEZION
 Predefined workflows leveraging elite models (Qwen3-Coder-Next, GLM-OCR) for optimal performance.
 """
 
-import json
 import asyncio
 import logging
-from typing import Dict, List, Any, Optional, Callable
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class WorkflowStep:
     description: str
     estimated_time: float
     memory_requirement: float
-    dependencies: List[str] = None
+    dependencies: list[str] = None
     parallelizable: bool = False
 
 
@@ -35,12 +35,12 @@ class CompoundWorkflow:
     name: str
     description: str
     category: str
-    models: List[str]
+    models: list[str]
     total_memory_gb: float
     estimated_time: float
-    steps: List[WorkflowStep]
+    steps: list[WorkflowStep]
     token_efficiency: float
-    optimization_features: List[str]
+    optimization_features: list[str]
 
 
 class CompoundEngineeringTemplates:
@@ -49,7 +49,7 @@ class CompoundEngineeringTemplates:
     def __init__(self):
         self.templates = self._create_elite_templates()
 
-    def _create_elite_templates(self) -> Dict[str, CompoundWorkflow]:
+    def _create_elite_templates(self) -> dict[str, CompoundWorkflow]:
         """Create elite compound engineering templates"""
 
         templates = {}
@@ -365,11 +365,11 @@ class CompoundEngineeringTemplates:
 
         return templates
 
-    def get_template(self, template_name: str) -> Optional[CompoundWorkflow]:
+    def get_template(self, template_name: str) -> CompoundWorkflow | None:
         """Get a specific workflow template"""
         return self.templates.get(template_name)
 
-    def list_templates(self, category: Optional[str] = None) -> List[str]:
+    def list_templates(self, category: str | None = None) -> list[str]:
         """List available templates, optionally filtered by category"""
         if category:
             return [
@@ -379,11 +379,11 @@ class CompoundEngineeringTemplates:
             ]
         return list(self.templates.keys())
 
-    def get_categories(self) -> List[str]:
+    def get_categories(self) -> list[str]:
         """Get all available categories"""
         return list(set(template.category for template in self.templates.values()))
 
-    def estimate_resources(self, template_name: str) -> Dict[str, Any]:
+    def estimate_resources(self, template_name: str) -> dict[str, Any]:
         """Get resource estimates for a workflow template"""
         template = self.get_template(template_name)
         if not template:
@@ -407,14 +407,14 @@ class WorkflowExecutor:
 
     def __init__(self, templates: CompoundEngineeringTemplates):
         self.templates = templates
-        self.execution_history: List[Dict[str, Any]] = []
+        self.execution_history: list[dict[str, Any]] = []
 
     async def execute_workflow(
         self,
         template_name: str,
-        context: Dict[str, Any],
-        progress_callback: Optional[Callable] = None,
-    ) -> Dict[str, Any]:
+        context: dict[str, Any],
+        progress_callback: Callable | None = None,
+    ) -> dict[str, Any]:
         """Execute a compound engineering workflow"""
 
         template = self.templates.get_template(template_name)
@@ -478,7 +478,7 @@ class WorkflowExecutor:
         return results
 
     async def _check_dependencies(
-        self, step: WorkflowStep, completed_steps: List[Dict[str, Any]]
+        self, step: WorkflowStep, completed_steps: list[dict[str, Any]]
     ) -> bool:
         """Check if step dependencies are satisfied"""
         if not step.dependencies:
@@ -488,8 +488,8 @@ class WorkflowExecutor:
         return all(dep in completed_names for dep in step.dependencies)
 
     async def _execute_step(
-        self, step: WorkflowStep, context: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, step: WorkflowStep, context: dict[str, Any]
+    ) -> dict[str, Any]:
         """Execute an individual workflow step"""
         # In real implementation, this would call the appropriate model
         # For now, simulate with realistic timing
@@ -514,7 +514,7 @@ class WorkflowExecutor:
             "memory_used_gb": step.memory_requirement,
         }
 
-    def get_execution_history(self) -> List[Dict[str, Any]]:
+    def get_execution_history(self) -> list[dict[str, Any]]:
         """Get workflow execution history"""
         return self.execution_history.copy()
 
@@ -530,21 +530,21 @@ def get_workflow_template(template_name: str):
     return COMPOUND_TEMPLATES.get_template(template_name)
 
 
-def list_workflow_templates(category: Optional[str] = None) -> List[str]:
+def list_workflow_templates(category: str | None = None) -> list[str]:
     """List available workflow templates"""
     return COMPOUND_TEMPLATES.list_templates(category)
 
 
-def estimate_workflow_resources(template_name: str) -> Dict[str, Any]:
+def estimate_workflow_resources(template_name: str) -> dict[str, Any]:
     """Get workflow resource estimates"""
     return COMPOUND_TEMPLATES.estimate_resources(template_name)
 
 
 async def execute_compound_workflow(
     template_name: str,
-    context: Dict[str, Any],
-    progress_callback: Optional[Callable] = None,
-) -> Dict[str, Any]:
+    context: dict[str, Any],
+    progress_callback: Callable | None = None,
+) -> dict[str, Any]:
     """Execute compound engineering workflow"""
     return await WORKFLOW_EXECUTOR.execute_workflow(
         template_name, context, progress_callback

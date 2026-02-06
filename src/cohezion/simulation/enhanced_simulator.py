@@ -25,8 +25,13 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from cohezion.core.persistence.repositories.journey_repository import AgentJourney, JourneyMetrics
-from cohezion.core.persistence.repositories.surreal_journey_repository import SurrealJourneyRepository
+from cohezion.core.persistence.repositories.journey_repository import (
+    AgentJourney,
+    JourneyMetrics,
+)
+from cohezion.core.persistence.repositories.surreal_journey_repository import (
+    SurrealJourneyRepository,
+)
 from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.flume.mnm import SCENARIO_MANIFOLDS, ManifoldManager
 
@@ -293,7 +298,9 @@ class RZeroEnhancedTriad:
             iterations=1,
         )
 
-    def _simulate_kimi_trace(self, challenge: AllostaticaChallenge, scenario: str) -> str:
+    def _simulate_kimi_trace(
+        self, challenge: AllostaticaChallenge, scenario: str
+    ) -> str:
         """Simulates the deep reasoning traces of a 2026-edge model."""
         laws = self.PINO_LAWS.get(scenario, self.PINO_LAWS["newtonian"])
 

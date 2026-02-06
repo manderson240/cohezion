@@ -33,7 +33,9 @@ class Capability:
     score: float = 0.0
     usage_count: int = 0  # Track invocations for optimization
     last_used: str = ""  # ISO timestamp for recency analysis
-    future_proofing_hooks: list[str] = field(default_factory=list)  # Reusable "compound" hooks
+    future_proofing_hooks: list[str] = field(
+        default_factory=list
+    )  # Reusable "compound" hooks
     compound_impact_score: float = 0.0  # Measure of how much this feature helped others
 
 
@@ -60,6 +62,7 @@ class CapabilityRegistry:
         self._scan_skills()
         self._scan_mcp()
         self._scan_agents()
+        self._apply_usage_to_capabilities()
 
         if SKLEARN_AVAILABLE and self.capabilities:
             self._build_index()
@@ -69,58 +72,50 @@ class CapabilityRegistry:
             )
 
     def _scan_skills(self):
-        """Scan .md files in skills directory."""
+        """Load skills from skill_registry.json, falling back to filesystem scan."""
+        registry_json = Path(__file__).parent / "skill_registry.json"
+
+        if registry_json.exists():
+            try:
+                data = json.loads(registry_json.read_text())
+                for name, meta in data.items():
+                    tags = ["skill", "instruction"]
+                    tags.append(name.replace("_", " ").lower())
+                    keywords = meta.get("keywords", [])
+                    if keywords:
+                        tags.extend(keywords)
+
+                    self.capabilities.append(
+                        Capability(
+                            name=name,
+                            type="skill",
+                            description=meta.get("description", f"Skill: {name}"),
+                            path=meta.get("path", ""),
+                            tags=tags,
+                        )
+                    )
+                return
+            except Exception as e:
+                logger.error(f"Failed to load skill_registry.json: {e}")
+
+        # Fallback: scan markdown files directly
         skills_dir = self.root_dir / "src/cohezion/skills"
         if not skills_dir.exists():
             return
 
-        for md_file in skills_dir.glob("*_PRIME.md"):
+        for md_file in skills_dir.glob("*.md"):
             try:
-                content = md_file.read_text(errors="ignore")
-                # Improved extraction: read up to 20 lines, looking for description field or first paragraph
-                desc = ""
-                lines = content.split("\n")
-                for line in lines[:20]:
-                    if "description:" in line:
-                        desc = line.split("description:")[1].strip().strip('"')
-                        break
-
-                # Fallback: Look for the first line after title
-                if not desc or desc == "No description":
-                    for i, line in enumerate(lines):
-                        if line.startswith("# ") and i + 2 < len(lines):
-                            potential_desc = lines[i + 2].strip()
-                            if potential_desc and not potential_desc.startswith("#"):
-                                desc = potential_desc
-                                break
-
-                if not desc:
-                    desc = f"Skill defined in {md_file.name}"
-
-                # Compound Hook Extraction: Look for markdown lists of hooks
-                hooks = []
-                in_hook_section = False
-                for line in lines:
-                    if "## FUTURE HOOKS" in line.upper():
-                        in_hook_section = True
-                        continue
-                    if in_hook_section and line.startswith("#"):
-                        break
-                    if in_hook_section and line.strip().startswith("- "):
-                        hooks.append(line.strip()[2:])
-
                 self.capabilities.append(
                     Capability(
                         name=md_file.stem,
                         type="skill",
-                        description=desc,
+                        description=f"Skill defined in {md_file.name}",
                         path=str(md_file.relative_to(self.root_dir)),
                         tags=[
-                            "markdown",
+                            "skill",
                             "instruction",
                             md_file.stem.replace("_", " ").lower(),
                         ],
-                        future_proofing_hooks=hooks
                     )
                 )
             except Exception as e:
@@ -160,37 +155,102 @@ class CapabilityRegistry:
             logger.error(f"Failed to scan MCP registry: {e}")
 
     def _scan_agents(self):
-        """Scan agents directory for python classes."""
-        agents_dir = self.root_dir / "src/cohezion/swarm/agents"
-        if not agents_dir.exists():
-            return
+        """Scan all agent directories for python classes with docstring extraction."""
+        agent_dirs = [
+            self.root_dir / "src/cohezion/agents",
+            self.root_dir / "src/cohezion/swarm/agents",
+        ]
+        seen_names: set[str] = set()
 
-        for py_file in agents_dir.glob("*.py"):
-            if py_file.name == "__init__.py" or py_file.name == "base.py":
+        for agents_dir in agent_dirs:
+            if not agents_dir.exists():
                 continue
 
-            # Basic static analysis to avoid importing everything
-            try:
-                content = py_file.read_text()
-                # Heuristic: looks for class definition
-                if "class " in content and "Agent" in content:
-                    # Correct snake_case to CamelCase
-                    class_name = "".join(word.capitalize() for word in py_file.stem.split("_"))
-                    if not class_name.endswith("Agent"):
-                        class_name += "Agent"
+            for py_file in agents_dir.glob("*.py"):
+                if py_file.name.startswith("__") or py_file.name == "base.py":
+                    continue
+                if py_file.name.endswith("_test.py"):
+                    continue
+
+                try:
+                    content = py_file.read_text(errors="ignore")
+                    if "class " not in content:
+                        continue
+
+                    # Extract actual class name from source
+                    class_name = None
+                    for line in content.split("\n"):
+                        stripped = line.strip()
+                        if stripped.startswith("class ") and "Agent" in stripped:
+                            class_name = stripped.split("(")[0].replace("class ", "").strip()
+                            break
+
+                    if not class_name:
+                        class_name = "".join(
+                            word.capitalize() for word in py_file.stem.split("_")
+                        )
+                        if not class_name.endswith("Agent"):
+                            class_name += "Agent"
+
+                    if class_name in seen_names:
+                        continue
+                    seen_names.add(class_name)
+
+                    # Extract class docstring for description
                     desc = f"Agent defined in {py_file.name}"
-                    tags = ["agent", "swarm", "autonomous"]
-                    
-                    # Heuristic for specific capabilities
-                    if "GitHealth" in class_name or "git_health" in content:
-                        tags.append("git_health")
-                        tags.append("maintenance")
-                    if "Pruning" in class_name:
-                        tags.append("pruning")
-                        tags.append("maintenance")
-                    if "Simplification" in class_name:
-                        tags.append("maintenance")
-                    
+                    lines = content.split("\n")
+                    in_class = False
+                    in_docstring = False
+                    docstring_lines: list[str] = []
+                    for line in lines:
+                        if f"class {class_name}" in line:
+                            in_class = True
+                            continue
+                        if in_class and not in_docstring:
+                            stripped = line.strip()
+                            if stripped.startswith('"""'):
+                                # Check for single-line docstring: """text"""
+                                if stripped.count('"""') >= 2:
+                                    desc = stripped.removeprefix('"""').removesuffix('"""').strip()[:200]
+                                    break
+                                # Multi-line docstring starts
+                                in_docstring = True
+                                first = stripped.removeprefix('"""').strip()
+                                if first:
+                                    docstring_lines.append(first)
+                                continue
+                            if stripped and not stripped.startswith("#"):
+                                break  # No docstring found
+                        elif in_docstring:
+                            if '"""' in line:
+                                # Closing triple-quote
+                                last = line.split('"""')[0].strip()
+                                if last:
+                                    docstring_lines.append(last)
+                                break
+                            stripped = line.strip()
+                            if stripped:
+                                docstring_lines.append(stripped)
+                    if docstring_lines:
+                        desc = " ".join(docstring_lines)[:200]
+
+                    # Semantic tag extraction
+                    tags = ["agent", "autonomous"]
+                    tag_keywords = {
+                        "maintenance": ["git_health", "pruning", "cleanup", "simplif"],
+                        "analysis": ["analy", "audit", "benchmark", "metric"],
+                        "security": ["security", "guard", "alignment", "ethics"],
+                        "creative": ["narrative", "cosmic", "universe", "world_model"],
+                        "research": ["research", "scout", "explor", "hypothesis"],
+                        "coding": ["code", "architect", "engineer", "skill_distill"],
+                        "knowledge": ["memory", "librarian", "chronicle", "knowledge"],
+                        "healing": ["heal", "immune", "diagnos", "repair"],
+                    }
+                    content_lower = content.lower()
+                    for tag, keywords in tag_keywords.items():
+                        if any(kw in content_lower for kw in keywords):
+                            tags.append(tag)
+
                     self.capabilities.append(
                         Capability(
                             name=class_name,
@@ -200,8 +260,8 @@ class CapabilityRegistry:
                             tags=tags,
                         )
                     )
-            except Exception as e:
-                logger.error(f"Failed to scan agent {py_file}: {e}")
+                except Exception as e:
+                    logger.error(f"Failed to scan agent {py_file}: {e}")
 
     def _build_index(self):
         """Build TF-IDF tokens."""

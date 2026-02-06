@@ -2,9 +2,9 @@ import logging
 import time
 from pathlib import Path
 
+from cohezion.agents.sovereign_agent import SovereignAgent
 from cohezion.bio.biophotonics import Wavelength
 from cohezion.introspect.scanner import get_internal_scanner
-from cohezion.agents.sovereign_agent import SovereignAgent
 from cohezion.swarm.swarm_types import SwarmConfig
 
 logger = logging.getLogger(__name__)

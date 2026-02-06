@@ -249,7 +249,8 @@ class UniverseGrid:
                 # 2. Diffusion from neighbors
                 neighbors = self.get_neighbors(x, y)
                 avg_entropy = sum(n.entropy for _, _, n in neighbors) / len(neighbors)
-                (avg_entropy - sector.entropy) * 0.05
+                diffusion = (avg_entropy - sector.entropy) * 0.05
+                sector.entropy += diffusion
 
                 # 3. Heat Transfer (Energy -> Entropy)
                 avg_energy = sum(n.energy for _, _, n in neighbors) / len(neighbors)
@@ -391,7 +392,7 @@ class FractalSimulator:
             if agent.energy > 150.0 and 0.48 < current_coherence < 0.52:
                 # Spawn clone
                 child = StabilizerAgent(
-                    id=f"{agent.id}_g{agent.generation+1}_{random.randint(100,999)}",
+                    id=f"{agent.id}_g{agent.generation + 1}_{random.randint(100, 999)}",
                     x=agent.x,
                     y=agent.y,
                     generation=agent.generation + 1,

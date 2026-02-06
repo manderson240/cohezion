@@ -90,7 +90,7 @@ PROGRESS: {unlocked}/42 ({progress:.0%})
 {"█" * int(progress * 20)}{"░" * (20 - int(progress * 20))}
 
 Remaining Gateways:
-{', '.join(GATEWAYS[g]["name"] for g in sorted(set(GATEWAYS.keys()) - self.orchestrator.unlocked_gateways)[:5])}...
+{", ".join(GATEWAYS[g]["name"] for g in sorted(set(GATEWAYS.keys()) - self.orchestrator.unlocked_gateways)[:5])}...
 
 Cycles Completed: {self.orchestrator.cycle_count}
 Learnings Stored: {self.orchestrator.total_learnings}
@@ -125,7 +125,7 @@ Gateways Unlocked: {unlocked}/42 ({progress:.0%})
 Progress Bar:
 {"█" * int(progress * 30)}{"░" * (30 - int(progress * 30))}
 
-Unlocked: {', '.join(GATEWAYS[g]["name"][:15] for g in status["unlocked_gateways"][:10])}
+Unlocked: {", ".join(GATEWAYS[g]["name"][:15] for g in status["unlocked_gateways"][:10])}
 {"..." if unlocked > 10 else ""}
 
 Next Targets:

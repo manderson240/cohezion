@@ -170,7 +170,7 @@ class NotebookEngine:
 ### Coherence Comparison
 - LLM Average: {llm_coh:.4f}
 - CALM Average: {calm_coh:.4f}
-- **Improvement:** {improvement*100:.2f}%
+- **Improvement:** {improvement * 100:.2f}%
 
 ### Key Finding
 CALM's continuous trajectory prediction yields {"significantly" if improvement > 0.02 else "moderately"} higher coherence scores, validating the hypothesis that continuous thought flow outperforms discrete token prediction for synthesis tasks."""
@@ -186,7 +186,7 @@ CALM's continuous trajectory prediction yields {"significantly" if improvement >
             return f"""## Debate Analysis
 
 **Rounds:** {rounds}
-**Positive Vote Rate:** {vote_rate*100:.1f}%
+**Positive Vote Rate:** {vote_rate * 100:.1f}%
 
 ### Consensus Summary
 {synthesis}..."""
@@ -211,7 +211,7 @@ This notebook integrates findings from {len(notebook.inputs)} inputs across {len
 ## Integrated Findings
 """
         for i, analysis in enumerate(analyses):
-            synthesis += f"\n### Finding {i+1}\n{analysis}\n"
+            synthesis += f"\n### Finding {i + 1}\n{analysis}\n"
 
         synthesis += """
 ## Conclusions

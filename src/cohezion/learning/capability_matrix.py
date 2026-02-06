@@ -313,7 +313,7 @@ if __name__ == "__main__":
     print("\nGap Analysis by Domain:")
     for domain, data in matrix.gap_analysis.items():
         print(
-            f"  {domain}: {data['coverage']*100:.0f}% coverage, gaps: {data['missing']}"
+            f"  {domain}: {data['coverage'] * 100:.0f}% coverage, gaps: {data['missing']}"
         )
     print("\nTop Recommendations:")
     for rec in matrix.recommendations[:5]:

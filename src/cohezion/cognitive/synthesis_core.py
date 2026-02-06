@@ -8,11 +8,9 @@ import asyncio
 import hashlib
 import json
 import logging
-import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
-from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -163,7 +161,7 @@ class SynthesisCore:
                         evidence=[{"pattern_type": ptype, "count": count}],
                         recommendations=[
                             f"Create linter rule for '{ptype}'",
-                            f"Add to Evolution Orchestrator auto-fix rules",
+                            "Add to Evolution Orchestrator auto-fix rules",
                             f"Document '{ptype}' prevention in coding standards",
                         ],
                     )
@@ -184,7 +182,7 @@ class SynthesisCore:
             top_contributor = leaderboard[0]
             insights.append(
                 PatternInsight(
-                    pattern_id=hashlib.md5("top_contributor".encode()).hexdigest()[:8],
+                    pattern_id=hashlib.md5(b"top_contributor").hexdigest()[:8],
                     pattern_type="contributor_excellence",
                     description=f"'{top_contributor['agent_id']}' leads with {top_contributor['xp']} XP",
                     confidence=0.95,

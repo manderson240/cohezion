@@ -6,20 +6,17 @@ Implements the Ignition Pack → Controller → Expert Lattice architecture.
 """
 
 import asyncio
-import json
 import logging
 from datetime import datetime
 from typing import Literal, TypedDict
 
-import httpx
 from langgraph.graph import END, StateGraph
 
-from cohezion.agents.handoff_agent import HandoffAgent
 from cohezion.agents.architect_agent import ArchitectAgent
 from cohezion.agents.biological_agent import BiologicalAgent
+from cohezion.agents.handoff_agent import HandoffAgent
 from cohezion.agents.quantum_agent import QuantumAgent
 from cohezion.agents.universe_sim_agent import UniverseSimulationAgent
-from cohezion.swarm.swarm_types import SwarmConfig
 
 logger = logging.getLogger(__name__)
 
@@ -49,16 +46,32 @@ class AgentState(TypedDict):
     created_at: str
 
 
+def classify_query(state: AgentState) -> AgentState:
+    """Classify query and determine routing to expert domain."""
+    query = state["query"].lower()
+
+    if "architect" in query or "design" in query:
+        state["route"] = "architect"
+    elif "engineer" in query or "physics" in query:
+        state["route"] = "engineer"
+    elif "biolog" in query or "life" in query:
+        state["route"] = "biologist"
+    elif "quantum" in query and "hardware" in query:
+        state["route"] = "quantum_hw"
+    elif "quantum" in query and "algo" in query:
+        state["route"] = "quantum_algo"
     else:
         state["route"] = "all"  # Fan out to all experts
 
-    # QSP (Quarter on a String Protocol): 
+    # QSP (Quarter on a String Protocol):
     # Reel in premium cloud reasoning if query complexity is high or route is 'all'
     if state["route"] == "all" or state["urgency"] == "high":
         # In a real system, this would trigger a call to a premium model (Gemini 3 Pro)
         # to ground the local swarm's debate.
         state["context"]["qsp_active"] = True
-        logger.info("🧵 QSP Trigger: Reeling in premium reasoning for complex/urgent query.")
+        logger.info(
+            "🧵 QSP Trigger: Reeling in premium reasoning for complex/urgent query."
+        )
     else:
         state["context"]["qsp_active"] = False
 
@@ -199,7 +212,7 @@ def build_controller_graph() -> StateGraph:
 
     # Synthesis to Handoff
     graph.add_edge("synthesize", "handoff")
-    
+
     # End after handoff
     graph.add_edge("handoff", END)
 

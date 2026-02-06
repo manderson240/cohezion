@@ -4,18 +4,21 @@ Redis Aggregator - Shard-aware caching layer for the Cohezion ecosystem.
 Provides high-performance L1 caching to supplement SurrealDB persistence.
 """
 
-import logging
 import json
-from typing import Any, Optional
+import logging
+from typing import Any
+
 import redis.asyncio as redis
+
 from cohezion.reliability import get_circuit
 
 logger = logging.getLogger(__name__)
 
+
 class RedisAggregator:
     """
     Asynchronous Redis client wrapper for swarm-wide caching.
-    
+
     Attributes:
         host (str): Redis host.
         port (int): Redis port.
@@ -24,24 +27,24 @@ class RedisAggregator:
     """
 
     def __init__(
-        self, 
-        host: str = "localhost", 
-        port: int = 6379, 
+        self,
+        host: str = "localhost",
+        port: int = 6379,
         db: int = 0,
-        password: Optional[str] = None
+        password: str | None = None,
     ):
         """Initialize the Redis aggregator."""
         self.host = host
         self.port = port
         self.db = db
         self.password = password
-        self._client: Optional[redis.Redis] = None
+        self._client: redis.Redis | None = None
         self._circuit = get_circuit("redis", failure_threshold=5)
 
     async def connect(self) -> bool:
         """
         Connect to the Redis instance.
-        
+
         Returns:
             bool: True if connection successful, False otherwise.
         """
@@ -58,7 +61,7 @@ class RedisAggregator:
                 port=self.port,
                 db=self.db,
                 password=self.password,
-                decode_responses=True
+                decode_responses=True,
             )
             await self._client.ping()
             self._circuit.record_success()
@@ -70,13 +73,13 @@ class RedisAggregator:
             self._client = None
             return False
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """
         Retrieve a value from the cache.
-        
+
         Args:
             key (str): The cache key.
-            
+
         Returns:
             Optional[Any]: The cached value if found, else None.
         """
@@ -100,12 +103,12 @@ class RedisAggregator:
     async def set(self, key: str, value: Any, ttl: int = 3600) -> bool:
         """
         Store a value in the cache.
-        
+
         Args:
             key (str): The cache key.
             value (Any): The value to cache (must be JSON serializable).
             ttl (int): Time-to-live in seconds.
-            
+
         Returns:
             bool: True if storage successful, False otherwise.
         """
@@ -128,10 +131,10 @@ class RedisAggregator:
     async def delete(self, key: str) -> bool:
         """
         Remove a value from the cache.
-        
+
         Args:
             key (str): The cache key.
-            
+
         Returns:
             bool: True if deletion successful, False otherwise.
         """
@@ -151,8 +154,10 @@ class RedisAggregator:
             await self._client.close()
             self._client = None
 
+
 # Global instance registry
 _pools: dict[str, RedisAggregator] = {}
+
 
 def get_redis(name: str = "default", **kwargs) -> RedisAggregator:
     """Get or create a Redis aggregator instance."""

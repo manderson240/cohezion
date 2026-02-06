@@ -116,7 +116,7 @@ Based on {pattern.occurrences} observed occurrences:
 
         content += f"""
 ## KEYWORDS
-{', '.join(pattern.keywords)}
+{", ".join(pattern.keywords)}
 
 ## METADATA
 - First observed: {pattern.first_seen}

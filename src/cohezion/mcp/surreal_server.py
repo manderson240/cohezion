@@ -10,7 +10,11 @@ Provides tools:
 import logging
 from typing import Any
 
-from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient, UniverseNode
+from cohezion.core.persistence.surreal_client import (
+    PhysicsState,
+    SurrealClient,
+    UniverseNode,
+)
 
 logger = logging.getLogger(__name__)
 

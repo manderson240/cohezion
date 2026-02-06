@@ -9,8 +9,8 @@ import asyncio
 import logging
 from typing import Any
 
-from cohezion.core.time_keeper import get_time_keeper
 from cohezion.agents.critic import CriticAgent
+from cohezion.core.time_keeper import get_time_keeper
 from cohezion.swarm.swarm_types import Perspective, ThoughtVector
 
 logger = logging.getLogger(__name__)

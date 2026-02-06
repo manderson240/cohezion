@@ -14,8 +14,8 @@ from typing import Any
 import numpy as np
 import torch
 
-from cohezion.flume.predictor import TrajectoryPredictor
 from cohezion.agents.base import BaseAgent
+from cohezion.flume.predictor import TrajectoryPredictor
 from cohezion.swarm.swarm_types import SwarmConfig
 
 logger = logging.getLogger(__name__)
@@ -66,7 +66,7 @@ class HypothesisAgent(BaseAgent):
             # we ask the model to generate a hypothesis based on starting context + "imagination direction"
 
             prompt = f"""Based on the following context, imagine a technical hypothesis to test.
-Assume we are exploring a { "conservative" if i==0 else "highly creative" } direction.
+Assume we are exploring a {"conservative" if i == 0 else "highly creative"} direction.
 
 CONTEXT:
 {context_query}

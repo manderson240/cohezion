@@ -70,7 +70,7 @@ class ManimRenderer:
             self._manim_available = True
             logger.info("Manim is available")
         except ImportError:
-            logger.warning("Manim not installed. " "Install with: pip install manim")
+            logger.warning("Manim not installed. Install with: pip install manim")
 
     def physics_to_visual(
         self,

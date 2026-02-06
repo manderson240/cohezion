@@ -13,7 +13,6 @@ import asyncio
 import json
 import logging
 import re
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -151,7 +150,7 @@ class MetaGenerator:
 
         success_count = sum(1 for r in reports if r["success"])
 
-        logger.info(f"\n📋 BATCH GENERATION SUMMARY")
+        logger.info("\n📋 BATCH GENERATION SUMMARY")
         logger.info(f"   Total: {len(reports)}, Success: {success_count}")
 
         return {
@@ -211,7 +210,7 @@ async def main():
     if args.spec:
         report = await generator.generate_agent(args.spec, args.output, args.dry_run)
         logger.info(
-            f"\n✅ Generation complete!" if report["success"] else "\n❌ Failed!"
+            "\n✅ Generation complete!" if report["success"] else "\n❌ Failed!"
         )
     elif args.dir:
         report = await generator.generate_batch(

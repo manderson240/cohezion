@@ -154,5 +154,5 @@ def get_circuit(
         )
     elif failure_threshold != 5:
         _circuits[name].failure_threshold = failure_threshold
-    
+
     return _circuits[name]

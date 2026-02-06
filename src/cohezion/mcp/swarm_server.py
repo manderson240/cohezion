@@ -54,7 +54,8 @@ class SwarmMCP:
         # Parse perspectives
         if perspectives:
             persp_enums = [
-                Perspective[p.upper()] for p in perspectives
+                Perspective[p.upper()]
+                for p in perspectives
                 if p.upper() in Perspective.__members__
             ]
             workflow = DebateWorkflow(
@@ -78,10 +79,7 @@ class SwarmMCP:
 
     def get_perspectives(self) -> list[dict[str, str]]:
         """Get available analyst perspectives."""
-        return [
-            {"name": p.name, "value": p.value}
-            for p in Perspective
-        ]
+        return [{"name": p.name, "value": p.value} for p in Perspective]
 
     def get_metrics(self) -> dict[str, Any]:
         """Get workflow metrics."""

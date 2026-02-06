@@ -35,7 +35,7 @@ def analyze_utilization():
                     for skill in skills:
                         if skill in content:
                             skill_usage[skill] += 1
-                except:
+                except Exception:
                     pass
 
     # 3. Check MCP Servers

@@ -9,8 +9,8 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-from cohezion.reliability.sync import FileLock, SafeWriter
 from cohezion.agents.base import BaseAgent
+from cohezion.reliability.sync import FileLock, SafeWriter
 from cohezion.swarm.swarm_types import SwarmConfig
 
 logger = logging.getLogger(__name__)

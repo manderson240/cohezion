@@ -32,7 +32,7 @@ class JourneyNarrator:
         """
         try:
             # Persistence path
-            safe_id = persistence_id or f"thought_{int(time.time()*1000)}"
+            safe_id = persistence_id or f"thought_{int(time.time() * 1000)}"
             audio_dir = "/home/mike-anderson/dev/cohezion/audio/narrations"
             text_path = os.path.join(audio_dir, f"{safe_id}.txt")
 

@@ -5,12 +5,11 @@ Provides a centralized system for agent registration, capability management,
 and discovery across the distributed agent ecosystem with FAISS vector search.
 """
 
-import asyncio
-import json
-from typing import Dict, List, Optional, Tuple, Any, Set
 from dataclasses import dataclass, field
-from enum import Enum
 from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any
+
 import numpy as np
 import umap
 from sklearn.neighbors import NearestNeighbors
@@ -61,14 +60,14 @@ class RegistryEntry:
 
     agent_id: str
     agent_name: str
-    capabilities: Dict[str, Any]
-    resource_profile: Dict[str, Any]
+    capabilities: dict[str, Any]
+    resource_profile: dict[str, Any]
     last_seen: datetime
     node_id: str
     version: str
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    embeddings: Optional[np.ndarray] = None
-    vector: Optional[np.ndarray] = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+    embeddings: np.ndarray | None = None
+    vector: np.ndarray | None = None
 
 
 @dataclass
@@ -77,8 +76,8 @@ class RegistryStats:
 
     total_entries: int
     active_entries: int
-    capability_distribution: Dict[str, int]
-    resource_summary: Dict[str, Any]
+    capability_distribution: dict[str, int]
+    resource_summary: dict[str, Any]
     avg_agent_age_minutes: float
     vector_index_size: int
     avg_vector_similarity: float
@@ -91,8 +90,8 @@ class VectorSearchResult:
     agent_id: str
     agent_name: str
     similarity: float
-    capabilities: Dict[str, Any]
-    resource_profile: Dict[str, Any]
+    capabilities: dict[str, Any]
+    resource_profile: dict[str, Any]
 
 
 class VectorSearchIndex:
@@ -130,7 +129,7 @@ class VectorSearchIndex:
                 n_neighbors=10, algorithm="brute", metric="euclidean"
             )
 
-    def add_vectors(self, embeddings: np.ndarray, agent_ids: List[str]):
+    def add_vectors(self, embeddings: np.ndarray, agent_ids: list[str]):
         """Add vectors to the index."""
         if len(embeddings) == 0:
             return
@@ -150,7 +149,7 @@ class VectorSearchIndex:
 
     def search(
         self, query_vector: np.ndarray, k: int = 10, return_similarity: bool = True
-    ) -> List[VectorSearchResult]:
+    ) -> list[VectorSearchResult]:
         """Search for similar agents."""
         if len(self.agent_ids) == 0:
             return []
@@ -204,7 +203,7 @@ class VectorSearchIndex:
 
         return results
 
-    def get_umap_projection(self) -> Tuple[np.ndarray, List[str]]:
+    def get_umap_projection(self) -> tuple[np.ndarray, list[str]]:
         """Get UMAP 2D projection of the vector space."""
         if self.umap_model is None and len(self.embeddings) > 0:
             # Train UMAP model
@@ -224,7 +223,7 @@ class VectorSearchIndex:
 
         return np.zeros((0, 2)), []
 
-    def get_similarities_matrix(self) -> Optional[np.ndarray]:
+    def get_similarities_matrix(self) -> np.ndarray | None:
         """Get similarity matrix between all agents."""
         if len(self.embeddings) == 0:
             return None
@@ -242,13 +241,13 @@ class VectorSearchIndex:
 class UnifiedRegistry:
     """Unified registry for agent discovery and capability management with vector search."""
 
-    def __init__(self, config: Optional[RegistryConfig] = None):
+    def __init__(self, config: RegistryConfig | None = None):
         self.config = config or RegistryConfig()
         self.cache_manager = CacheManager()
         self.connection_pool = ConnectionPool()
-        self.registry: Dict[str, RegistryEntry] = {}
-        self.capability_index: Dict[str, Set[str]] = {}
-        self.node_registry: Dict[str, Set[str]] = {}
+        self.registry: dict[str, RegistryEntry] = {}
+        self.capability_index: dict[str, set[str]] = {}
+        self.node_registry: dict[str, set[str]] = {}
         self.vector_index = VectorSearchIndex(self.config)
         self._init_registry()
 
@@ -418,7 +417,7 @@ class UnifiedRegistry:
                 if not self.node_registry[entry.node_id]:
                     del self.node_registry[entry.node_id]
 
-    async def update_agent(self, agent_id: str, updates: Dict[str, Any]) -> bool:
+    async def update_agent(self, agent_id: str, updates: dict[str, Any]) -> bool:
         """Update an agent's registry information."""
         if agent_id in self.registry:
             entry = self.registry[agent_id]
@@ -456,13 +455,13 @@ class UnifiedRegistry:
 
         return False
 
-    def get_agent(self, agent_id: str) -> Optional[RegistryEntry]:
+    def get_agent(self, agent_id: str) -> RegistryEntry | None:
         """Get registry entry for an agent."""
         return self.registry.get(agent_id)
 
     def find_agents_by_capability(
         self, capability: str, min_score: float = 0.0
-    ) -> List[RegistryEntry]:
+    ) -> list[RegistryEntry]:
         """Find agents by capability with optional score filtering."""
         agent_ids = self.capability_index.get(capability, set())
 
@@ -484,7 +483,7 @@ class UnifiedRegistry:
         )
         return results
 
-    def find_agents_by_node(self, node_id: str) -> List[RegistryEntry]:
+    def find_agents_by_node(self, node_id: str) -> list[RegistryEntry]:
         """Find all agents on a specific node."""
         agent_ids = self.node_registry.get(node_id, set())
         return [
@@ -496,9 +495,9 @@ class UnifiedRegistry:
     def search_agents(
         self,
         query: str,
-        filters: Optional[Dict[str, Any]] = None,
+        filters: dict[str, Any] | None = None,
         max_results: int = 50,
-    ) -> List[RegistryEntry]:
+    ) -> list[RegistryEntry]:
         """
         Search for agents using natural language query.
 
@@ -535,8 +534,8 @@ class UnifiedRegistry:
         return results[:max_results]
 
     def _apply_filters(
-        self, entries: List[RegistryEntry], filters: Dict[str, Any]
-    ) -> List[RegistryEntry]:
+        self, entries: list[RegistryEntry], filters: dict[str, Any]
+    ) -> list[RegistryEntry]:
         """Apply filters to search results."""
         filtered = entries
 
@@ -565,7 +564,7 @@ class UnifiedRegistry:
 
     def vector_search(
         self, query_vector: np.ndarray, k: int = 10, min_similarity: float = 0.5
-    ) -> List[VectorSearchResult]:
+    ) -> list[VectorSearchResult]:
         """Perform vector similarity search."""
         if not self.config.vector_search_enabled:
             return []
@@ -682,7 +681,7 @@ class UnifiedRegistry:
 
         return len(stale_entries)
 
-    def get_embeddings_matrix(self) -> Optional[np.ndarray]:
+    def get_embeddings_matrix(self) -> np.ndarray | None:
         """Get matrix of all agent embeddings for vector search."""
         embeddings = []
         agent_ids = []
@@ -696,7 +695,7 @@ class UnifiedRegistry:
             return np.array(embeddings), agent_ids
         return None, []
 
-    def get_umap_projection(self) -> Tuple[np.ndarray, List[str]]:
+    def get_umap_projection(self) -> tuple[np.ndarray, list[str]]:
         """Get UMAP 2D projection of the agent capability space."""
         return self.vector_index.get_umap_projection()
 

@@ -3,16 +3,16 @@ Simple cache manager for COHEZION system.
 """
 
 import time
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 class CacheManager:
     """Simple in-memory cache manager with TTL support."""
 
     def __init__(self):
-        self._cache: Dict[str, Dict[str, Any]] = {}
+        self._cache: dict[str, dict[str, Any]] = {}
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
+    def set(self, key: str, value: Any, ttl: int | None = None) -> None:
         """Set a cache value with optional TTL."""
         self._cache[key] = {
             "value": value,

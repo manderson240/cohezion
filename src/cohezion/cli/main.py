@@ -13,8 +13,12 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
-from cohezion.core.persistence.repositories.surreal_journey_repository import SurrealJourneyRepository
-from cohezion.core.persistence.repositories.surreal_skill_repository import SurrealSkillRepository
+from cohezion.core.persistence.repositories.surreal_journey_repository import (
+    SurrealJourneyRepository,
+)
+from cohezion.core.persistence.repositories.surreal_skill_repository import (
+    SurrealSkillRepository,
+)
 from cohezion.core.persistence.repositories.surreal_universe_repository import (
     SurrealUniverseRepository,
 )

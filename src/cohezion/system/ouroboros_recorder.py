@@ -16,8 +16,6 @@ import asyncio
 import logging
 import time
 from typing import Any
-from datetime import datetime
-from pathlib import Path
 
 from cohezion.core.persistence.admin import DBAdmin
 from cohezion.reliability.monitor import get_resource_monitor
@@ -52,9 +50,9 @@ class OuroborosRecorder:
     async def _ensure_universe(self) -> None:
         """Lazy initialization of Universe v2 components."""
         if self._universe_engine is None:
-            from cohezion.universe.engine import UniverseSimulationEngine
-            from cohezion.rewards.system import RewardSystem
             from cohezion.meta.evolution import EvolutionOrchestrator
+            from cohezion.rewards.system import RewardSystem
+            from cohezion.universe.engine import UniverseSimulationEngine
 
             self._universe_engine = UniverseSimulationEngine()
             self._rewards = RewardSystem()
@@ -121,7 +119,7 @@ class OuroborosRecorder:
                     sw_vitals = await asyncio.wait_for(
                         loop.run_in_executor(None, get_repo_bloat), timeout=5.0
                     )
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     logger.warning("Git Health Sensor timed out")
                     sw_vitals = {"error": "timeout"}
 

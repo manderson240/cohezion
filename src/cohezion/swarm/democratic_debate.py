@@ -311,7 +311,7 @@ class DemocraticDebate:
 Topic: {topic}
 {context}
 
-As {'{role}'}, propose ONE specific improvement for Cohezion.
+As {"{role}"}, propose ONE specific improvement for Cohezion.
 Be concise (2-3 sentences) and actionable.
 
 Your proposal:"""
@@ -340,7 +340,7 @@ Your proposal:"""
 Proposals from all agents:
 {proposals_str}
 
-As {'{role}'}, evaluate these proposals and vote on the overall direction.
+As {"{role}"}, evaluate these proposals and vote on the overall direction.
 
 Vote: [STRONGLY_AGREE/AGREE/NEUTRAL/DISAGREE/STRONGLY_DISAGREE]
 Reasoning: (2-3 sentences)"""

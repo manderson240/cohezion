@@ -16,32 +16,29 @@ import json
 import logging
 import signal
 import sys
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
-import uuid
+from typing import Any
 
-import psutil
+from cohezion.agents.model_wrangler_agent import ModelWranglerAscended
 
 # Internal imports
 from cohezion.swarm.mode_controller import (
-    ModeController,
-    SystemMode,
     GovernanceMode,
+    SystemMode,
     get_mode_controller,
 )
-from cohezion.agents.model_wrangler_agent import ModelWranglerAscended
 
 # Optional imports (circular import safe)
 try:
-    from cohezion.universe.engine import UniverseSimulationEngine, UniverseJourney
+    from cohezion.universe.engine import UniverseJourney, UniverseSimulationEngine
 except ImportError:
     UniverseSimulationEngine = None
     UniverseJourney = None
 
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +58,7 @@ class UniverseConfig:
     name: str
     universe_type: str  # Recursive Dream, Entropy Garden, etc.
     particle_count: int
-    physics_laws: Dict[str, float]
+    physics_laws: dict[str, float]
     initial_coherence: float = 0.5
     hiho_target: float = 0.5
     epochs: int = 20
@@ -73,7 +70,7 @@ class TrackConfig:
 
     track_type: TrackType
     duration_hours: int
-    universes: List[UniverseConfig]
+    universes: list[UniverseConfig]
     system_mode: SystemMode
     governance: GovernanceMode
     priority: str
@@ -90,10 +87,10 @@ class MissionState:
     estimated_end: datetime
     current_epoch: int
     total_epochs: int
-    universes: List[Dict[str, Any]]
-    metrics: Dict[str, Any]
+    universes: list[dict[str, Any]]
+    metrics: dict[str, Any]
     status: str  # "running", "paused", "completed", "failed"
-    checkpoints: List[Dict[str, Any]] = field(default_factory=list)
+    checkpoints: list[dict[str, Any]] = field(default_factory=list)
 
 
 class AutonomousUniverseMission:
@@ -196,14 +193,14 @@ class AutonomousUniverseMission:
         self.simulation_manager = None  # Optional: RealTimeSimulationManager()
 
         # Track active missions
-        self.active_missions: Dict[str, MissionState] = {}
-        self.mission_history: List[Dict[str, Any]] = []
+        self.active_missions: dict[str, MissionState] = {}
+        self.mission_history: list[dict[str, Any]] = []
 
         # Universe engines per track (optional)
-        self.universe_engines: Dict[str, Any] = {}
+        self.universe_engines: dict[str, Any] = {}
 
         # Physics engines (optional)
-        self.physics_engines: Dict[str, Any] = {}
+        self.physics_engines: dict[str, Any] = {}
 
         # Setup signal handlers for graceful shutdown
         signal.signal(signal.SIGTERM, self._signal_handler)
@@ -211,7 +208,7 @@ class AutonomousUniverseMission:
 
         logger.info("🌌 AutonomousUniverseMission initialized")
         logger.info(f"   Email notifications: {email_recipient}")
-        logger.info(f"   Tracks: Rapid(4h), Balanced(12h), Deep(24h)")
+        logger.info("   Tracks: Rapid(4h), Balanced(12h), Deep(24h)")
 
     def _signal_handler(self, signum, frame):
         """Handle shutdown signals gracefully"""
@@ -376,8 +373,8 @@ class AutonomousUniverseMission:
                 state.universes[i]["last_result"] = result
 
     async def _evolve_universe(
-        self, mission_id: str, universe: Dict, epoch: int
-    ) -> Dict:
+        self, mission_id: str, universe: dict, epoch: int
+    ) -> dict:
         """Evolve a single universe for one epoch"""
         engine = universe["engine"]
         config = universe["config"]
@@ -429,7 +426,7 @@ class AutonomousUniverseMission:
 
         return max(0.0, min(1.0, coherence + noise))
 
-    async def _check_hiho_convergence(self, mission_id: str) -> Dict:
+    async def _check_hiho_convergence(self, mission_id: str) -> dict:
         """Check if all universes have converged to HIHO 0.5"""
         state = self.active_missions[mission_id]
 
@@ -529,7 +526,7 @@ class AutonomousUniverseMission:
         except ImportError:
             logger.warning("NotificationManager not available, skipping email")
 
-    def get_mission_status(self, mission_id: str) -> Optional[Dict]:
+    def get_mission_status(self, mission_id: str) -> dict | None:
         """Get status of a specific mission"""
         if mission_id not in self.active_missions:
             return None
@@ -552,7 +549,7 @@ class AutonomousUniverseMission:
             ],
         }
 
-    def get_all_missions(self) -> Dict[str, List[Dict[str, Any]]]:
+    def get_all_missions(self) -> dict[str, list[dict[str, Any]]]:
         """Get all mission statuses"""
         return {
             "active": [

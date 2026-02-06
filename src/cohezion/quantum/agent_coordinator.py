@@ -13,16 +13,15 @@ This coordinator enables:
 - Emergent capability formation through agent interaction
 """
 
-import os
-import json
-import time
 import asyncio
 import hashlib
-from typing import Dict, List, Optional, Any, Tuple, Set
-from dataclasses import dataclass, asdict
+import json
+import logging
+import time
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -84,20 +83,20 @@ class QuantumAgent:
 
     agent_id: str
     name: str
-    capabilities: Set[AgentCapability]
-    preferred_models: List[str]
+    capabilities: set[AgentCapability]
+    preferred_models: list[str]
     max_concurrent_tasks: int
     memory_requirement_gb: float
     thread_requirement: int
     compound_level: int  # 1-5, self-improvement capability
     learning_rate: float
     current_status: AgentStatus
-    current_tasks: List[str]
-    performance_metrics: Dict[str, float]
-    ide_affinity: Optional[str] = None  # Preferred IDE
+    current_tasks: list[str]
+    performance_metrics: dict[str, float]
+    ide_affinity: str | None = None  # Preferred IDE
     collaboration_score: float = 0.5  # Ability to work with others
     creativity_factor: float = 0.5  # Innovative capability
-    expertise_domains: List[str]  # Specialized knowledge areas
+    expertise_domains: list[str]  # Specialized knowledge areas
 
 
 @dataclass
@@ -107,20 +106,20 @@ class AgentTask:
     task_id: str
     task_type: str
     description: str
-    requirements: List[AgentCapability]
+    requirements: list[AgentCapability]
     priority: TaskPriority
     complexity: int  # 1-10
     estimated_duration: int  # seconds
-    required_models: List[str]
+    required_models: list[str]
     collaboration_mode: CollaborationMode
-    parent_tasks: List[str]
-    child_tasks: List[str]
-    assigned_agents: List[str]
+    parent_tasks: list[str]
+    child_tasks: list[str]
+    assigned_agents: list[str]
     created_at: float
-    started_at: Optional[float] = None
-    completed_at: Optional[float] = None
-    result: Optional[Any] = None
-    performance_score: Optional[float] = None
+    started_at: float | None = None
+    completed_at: float | None = None
+    result: Any | None = None
+    performance_score: float | None = None
 
 
 @dataclass
@@ -129,16 +128,16 @@ class CollaborationSession:
 
     session_id: str
     primary_task: str
-    participating_agents: List[str]
+    participating_agents: list[str]
     collaboration_mode: CollaborationMode
     coordination_strategy: str
     communication_protocol: str
-    shared_context: Dict[str, Any]
+    shared_context: dict[str, Any]
     created_at: float
     updated_at: float
     status: str
-    results: Dict[str, Any]
-    emergent_capabilities: List[str]
+    results: dict[str, Any]
+    emergent_capabilities: list[str]
 
 
 class QuantumAgentCoordinator:
@@ -150,11 +149,11 @@ class QuantumAgentCoordinator:
         self.coordinator_dir.mkdir(exist_ok=True)
 
         # Core data structures
-        self.agents: Dict[str, QuantumAgent] = {}
-        self.tasks: Dict[str, AgentTask] = {}
-        self.sessions: Dict[str, CollaborationSession] = {}
-        self.agent_capabilities: Dict[str, Set[AgentCapability]] = {}
-        self.performance_history: List[Dict[str, Any]] = []
+        self.agents: dict[str, QuantumAgent] = {}
+        self.tasks: dict[str, AgentTask] = {}
+        self.sessions: dict[str, CollaborationSession] = {}
+        self.agent_capabilities: dict[str, set[AgentCapability]] = {}
+        self.performance_history: list[dict[str, Any]] = []
 
         # Coordination parameters
         self.max_concurrent_sessions = 10
@@ -175,7 +174,7 @@ class QuantumAgentCoordinator:
         # Initialize agent ecosystem
         self._initialize_agent_ecosystem()
 
-        logger.info(f"🧠 Quantum Agent Coordinator v1.1.48 Initialized")
+        logger.info("🧠 Quantum Agent Coordinator v1.1.48 Initialized")
         logger.info(f"📊 Loaded {len(self.agents)} agents, {len(self.tasks)} tasks")
 
     def _initialize_agent_ecosystem(self):
@@ -402,7 +401,7 @@ class QuantumAgentCoordinator:
         self,
         task_type: str,
         description: str,
-        requirements: List[AgentCapability],
+        requirements: list[AgentCapability],
         priority: TaskPriority = TaskPriority.MEDIUM,
         complexity: int = 5,
         collaboration_mode: CollaborationMode = CollaborationMode.SEQUENTIAL,
@@ -459,8 +458,8 @@ class QuantumAgentCoordinator:
         return task_id
 
     async def _find_optimal_agents(
-        self, requirements: List[AgentCapability], collaboration_mode: CollaborationMode
-    ) -> List[str]:
+        self, requirements: list[AgentCapability], collaboration_mode: CollaborationMode
+    ) -> list[str]:
         """Find optimal agents for given requirements"""
 
         suitable_agents = []
@@ -504,7 +503,7 @@ class QuantumAgentCoordinator:
     def _calculate_agent_suitability(
         self,
         agent: QuantumAgent,
-        requirements: List[AgentCapability],
+        requirements: list[AgentCapability],
         collaboration_mode: CollaborationMode,
     ) -> float:
         """Calculate suitability score for agent-task matching"""
@@ -621,8 +620,8 @@ class QuantumAgentCoordinator:
             task.result = {"error": str(e)}
 
     async def _simulate_task_execution(
-        self, task: AgentTask, session_id: Optional[str]
-    ) -> Dict[str, Any]:
+        self, task: AgentTask, session_id: str | None
+    ) -> dict[str, Any]:
         """Simulate task execution with quantum enhancement"""
 
         # Calculate execution parameters
@@ -655,7 +654,7 @@ class QuantumAgentCoordinator:
         if task.complexity > 7:
             execution_result["emergent_insights"] = [
                 f"Discovered optimization pattern for {task.task_type}",
-                f"Identified new capability synergy between agents",
+                "Identified new capability synergy between agents",
                 "Quantum enhancement revealed hidden efficiency",
             ]
 
@@ -696,7 +695,7 @@ class QuantumAgentCoordinator:
         return session_id
 
     def _calculate_task_performance(
-        self, task: AgentTask, result: Dict[str, Any]
+        self, task: AgentTask, result: dict[str, Any]
     ) -> float:
         """Calculate performance score for completed task"""
 
@@ -723,7 +722,7 @@ class QuantumAgentCoordinator:
         return min(base_score, 1.0)
 
     async def _update_agent_learning(
-        self, agent_id: str, task: AgentTask, result: Dict[str, Any]
+        self, agent_id: str, task: AgentTask, result: dict[str, Any]
     ):
         """Update agent learning from task execution"""
 
@@ -774,7 +773,7 @@ class QuantumAgentCoordinator:
             )
 
     def _estimate_task_duration(
-        self, complexity: int, requirements: List[AgentCapability]
+        self, complexity: int, requirements: list[AgentCapability]
     ) -> int:
         """Estimate task duration based on complexity and requirements"""
 
@@ -793,8 +792,8 @@ class QuantumAgentCoordinator:
         return max(estimated_duration, 10)  # Minimum 10 seconds
 
     async def _select_models_for_task(
-        self, requirements: List[AgentCapability], complexity: int
-    ) -> List[str]:
+        self, requirements: list[AgentCapability], complexity: int
+    ) -> list[str]:
         """Select optimal models for task requirements"""
 
         # Default model selection based on requirements
@@ -828,7 +827,7 @@ class QuantumAgentCoordinator:
         # Implementation would load from files
         pass
 
-    def get_coordinator_status(self) -> Dict[str, Any]:
+    def get_coordinator_status(self) -> dict[str, Any]:
         """Get comprehensive coordinator status"""
 
         active_agents = sum(
@@ -975,7 +974,7 @@ class QuantumAgentCoordinator:
 
         logger.info(f"🔧 Applied {len(optimization_opportunities)} agent optimizations")
 
-    async def _apply_agent_optimization(self, opportunity: Dict[str, Any]):
+    async def _apply_agent_optimization(self, opportunity: dict[str, Any]):
         """Apply optimization to an agent"""
 
         agent_id = opportunity["agent_id"]

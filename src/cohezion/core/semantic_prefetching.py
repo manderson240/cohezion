@@ -7,18 +7,17 @@ and task similarity analysis.
 
 import asyncio
 import logging
-from typing import Dict, List, Tuple, Optional
-from datetime import datetime, timedelta
 from collections import defaultdict, deque
 from dataclasses import dataclass
-from pathlib import Path
+from datetime import datetime, timedelta
+from typing import Any
 
 import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
-from cohezion.core import TieredCacheManager, get_cache_manager
 from cohezion.agents.base import BaseAgent
+from cohezion.core import TieredCacheManager, get_cache_manager
 
 logger = logging.getLogger(__name__)
 
@@ -51,9 +50,9 @@ class SemanticPrefetcher:
 
     def __init__(self, cache_manager: TieredCacheManager | None = None):
         self.cache_manager = cache_manager or get_cache_manager()
-        self.behavior_patterns: Dict[str, deque[BehaviorPattern]] = defaultdict(deque)
+        self.behavior_patterns: dict[str, deque[BehaviorPattern]] = defaultdict(deque)
         self.vectorizer = TfidfVectorizer(max_features=1000, ngram_range=(1, 3))
-        self.last_training: Dict[str, datetime] = {}
+        self.last_training: dict[str, datetime] = {}
         self.training_interval = timedelta(minutes=30)
 
         # Pattern analysis parameters
@@ -202,7 +201,7 @@ class SemanticPrefetcher:
         self._store_predictions(agent_id, predictions)
 
     def _store_predictions(
-        self, agent_id: str, predictions: List[PrefetchPrediction]
+        self, agent_id: str, predictions: list[PrefetchPrediction]
     ) -> None:
         """Store predictions for cache warming."""
         # In a real implementation, this would store to a prediction database
@@ -217,7 +216,7 @@ class SemanticPrefetcher:
 
     async def get_prefetch_candidates(
         self, agent: BaseAgent, top_k: int = 5
-    ) -> List[str]:
+    ) -> list[str]:
         """Get prompts to prefetch based on behavior patterns."""
         agent_id = agent.__class__.__name__
 
@@ -237,8 +236,8 @@ class SemanticPrefetcher:
         return [p.prompt for p in relevant_predictions[:top_k]]
 
     async def prefetch_prompts(
-        self, agent: BaseAgent, prompts: List[str]
-    ) -> Dict[str, bool]:
+        self, agent: BaseAgent, prompts: list[str]
+    ) -> dict[str, bool]:
         """Prefetch prompts into cache."""
         results = {}
 
@@ -263,7 +262,7 @@ class SemanticPrefetcher:
 
         return results
 
-    async def analyze_cache_efficiency(self) -> Dict[str, Any]:
+    async def analyze_cache_efficiency(self) -> dict[str, Any]:
         """Analyze cache efficiency and prediction accuracy."""
         analysis = {
             "total_patterns": 0,
