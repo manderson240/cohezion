@@ -175,6 +175,14 @@ src/cohezion_core/
 *.md-latest
 git_status.txt
 
+# Runtime-generated JSON (written by tests, auto_sync, usage tracking)
+# Must come AFTER !src/**/*.json to override the re-include
+src/cohezion/knowledge_graph/patterns.json
+src/cohezion/knowledge_graph/token_efficiency.json
+src/cohezion/registry/capability_usage.json
+src/cohezion/registry/workflow_registry.json
+src/cohezion/skills/skill_registry.json
+
 # CI artifacts
 compound-report.json
 report.xml
