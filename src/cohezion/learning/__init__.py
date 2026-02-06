@@ -23,7 +23,10 @@ class Pattern:
 
 
 class PatternDetector:
-    """No-op pattern detector."""
+    """Pattern detector that tracks occurrences and enables compound analysis."""
+
+    def __init__(self) -> None:
+        self._patterns: dict[str, Pattern] = {}
 
     def record(
         self,
@@ -32,13 +35,43 @@ class PatternDetector:
         example: str,
         tags: list[str] | None = None,
     ) -> Pattern:
-        return Pattern(
+        """Record a pattern occurrence, incrementing count if already seen."""
+        if name in self._patterns:
+            self._patterns[name].occurrences += 1
+            logger.debug(
+                "Pattern '%s' seen %d times",
+                name,
+                self._patterns[name].occurrences,
+            )
+            return self._patterns[name]
+
+        pattern = Pattern(
             name=name,
             description=description,
             example=example,
             tags=tags or [],
             occurrences=1,
         )
+        self._patterns[name] = pattern
+        return pattern
+
+    def get_patterns(self) -> list[Pattern]:
+        """Return all recorded patterns sorted by occurrence count."""
+        return sorted(
+            self._patterns.values(),
+            key=lambda p: p.occurrences,
+            reverse=True,
+        )
+
+    def get_frequent(self, min_occurrences: int = 3) -> list[Pattern]:
+        """Return patterns seen at least *min_occurrences* times."""
+        return [
+            p for p in self.get_patterns() if p.occurrences >= min_occurrences
+        ]
+
+    def clear(self) -> None:
+        """Reset all recorded patterns."""
+        self._patterns.clear()
 
 
 class SkillGenerator:
