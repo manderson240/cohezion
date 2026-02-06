@@ -1,8 +1,8 @@
-import os
-import asyncio
 import logging
-from typing import Any, Dict, List, Optional
+
 import httpx
+
+logger = logging.getLogger(__name__)
 
 # Import adaptive framework optimizer
 try:
@@ -11,9 +11,7 @@ try:
     ADAPTIVE_OPTIMIZER_AVAILABLE = True
 except ImportError:
     ADAPTIVE_OPTIMIZER_AVAILABLE = False
-    logger.warning("⚠️ Adaptive framework optimizer not available")
-
-logger = logging.getLogger(__name__)
+    logger.warning("Adaptive framework optimizer not available")
 
 
 class LocalExpertRouter:
@@ -75,7 +73,7 @@ class LocalExpertRouter:
         }
 
     async def route_task(
-        self, task_type: str, prompt: str, context: Optional[Dict] = None
+        self, task_type: str, prompt: str, context: dict | None = None
     ) -> str:
         """
         Elite compound engineering routing with MoE optimization and memory awareness.
@@ -86,6 +84,7 @@ class LocalExpertRouter:
         # 1. Access System Guards (Dilation & Memory)
         available_memory = await self._get_available_memory()
         from cohezion.reliability.monitor import get_resource_monitor
+
         monitor = get_resource_monitor()
         dilation = monitor.get_dilation_factor()
 
@@ -101,12 +100,15 @@ class LocalExpertRouter:
                     task_type, available_memory, hardware_profile
                 )
             else:
-                model = self._select_optimal_model(task_type, available_memory, dilation)
+                model = self._select_optimal_model(
+                    task_type, available_memory, dilation
+                )
         else:
             model = self._select_optimal_model(task_type, available_memory, dilation)
 
         # 3. Get Mode-Aware Context (From Ascended Registry)
         from cohezion.swarm.mode_controller import get_mode_controller
+
         mode_ctrl = get_mode_controller()
 
         # Base context recommended by current system mode
@@ -213,36 +215,47 @@ class LocalExpertRouter:
 
         # Severe VRAM Pressure: Trigger mandatory downscaling to 8B/Mini models
         if dilation < 0.5:
-            logger.warning(f"📉 SEVERE VRAM PRESSURE ({dilation:.2f}): Downscaling {task_type} tasks.")
+            logger.warning(
+                f"📉 SEVERE VRAM PRESSURE ({dilation:.2f}): Downscaling {task_type} tasks."
+            )
             if task_type in ["reasoning", "routing"]:
-                return "deepseek-r1-distill:8b"  # Chain-of-thought but lighter than 256k models
+                return "deepseek-r1:7b"  # Chain-of-thought but lighter than 256k models
             elif task_type == "coding":
                 return "qwen3-coder:30b"  # Smaller than the MoE 80B version
             else:
-                return "phi4:mini"
+                return "phi3:mini"
 
         # Elite models available (Only if no dilation pressure)
-        if available_memory >= self.memory_thresholds["elite_threshold"] and dilation >= 0.8:
+        if (
+            available_memory >= self.memory_thresholds["elite_threshold"]
+            and dilation >= 0.8
+        ):
             if task_type == "coding":
                 return self.role_map["elite-coding"]
             elif task_type == "vision":
                 return self.role_map["ocr-vision"]
 
         # Agentic models available
-        elif available_memory >= self.memory_thresholds["agentic_threshold"] and dilation >= 0.7:
+        elif (
+            available_memory >= self.memory_thresholds["agentic_threshold"]
+            and dilation >= 0.7
+        ):
             if task_type == "coding":
                 return self.role_map["agentic-coding"]
             elif task_type == "vision":
                 return self.role_map["ocr-vision"]
 
         # Fallback for memory constraints OR moderate pressure
-        elif available_memory < self.memory_thresholds["fallback_threshold"] or dilation < 0.8:
+        elif (
+            available_memory < self.memory_thresholds["fallback_threshold"]
+            or dilation < 0.8
+        ):
             if task_type == "vision":
                 return self.role_map["legacy-vision"]
             elif task_type in ["coding", "elite-coding", "agentic-coding"]:
                 return "qwen3-coder:30b"
             elif task_type in ["reasoning", "routing"]:
-                return "deepseek-r1-distill:8b"
+                return "deepseek-r1:7b"
 
         return primary_model
 
@@ -265,7 +278,7 @@ class LocalExpertRouter:
         self,
         task_type: str,
         prompt: str,
-        context: Optional[Dict],
+        context: dict | None,
         original_error: Exception,
     ) -> str:
         """Fallback routing for error recovery"""

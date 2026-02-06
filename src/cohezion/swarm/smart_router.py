@@ -61,12 +61,119 @@ class ModelProfile:
         return self.quality_tier / self.speed_tier
 
 
-# Define available local models
+# Define available local models (aligned with installed Ollama roster)
 LOCAL_MODELS = {
+    "qwen3-coder-next:q8_0": ModelProfile(
+        name="qwen3-coder-next:q8_0",
+        capabilities=[
+            ModelCapability.ACCURATE,
+            ModelCapability.CODING,
+            ModelCapability.LARGE_CONTEXT,
+        ],
+        context_length=262144,
+        speed_tier=5,
+        quality_tier=5,
+    ),
+    "qwen3-coder-next:latest": ModelProfile(
+        name="qwen3-coder-next:latest",
+        capabilities=[
+            ModelCapability.ACCURATE,
+            ModelCapability.CODING,
+            ModelCapability.LARGE_CONTEXT,
+        ],
+        context_length=262144,
+        speed_tier=4,
+        quality_tier=5,
+    ),
+    "qwen3-coder:30b": ModelProfile(
+        name="qwen3-coder:30b",
+        capabilities=[
+            ModelCapability.ACCURATE,
+            ModelCapability.CODING,
+            ModelCapability.LARGE_CONTEXT,
+        ],
+        context_length=65536,
+        speed_tier=3,
+        quality_tier=4,
+    ),
+    "qwen3-coder-256k:latest": ModelProfile(
+        name="qwen3-coder-256k:latest",
+        capabilities=[ModelCapability.CODING, ModelCapability.LARGE_CONTEXT],
+        context_length=256000,
+        speed_tier=3,
+        quality_tier=4,
+    ),
+    "qwen2.5-coder-14b-256k:latest": ModelProfile(
+        name="qwen2.5-coder-14b-256k:latest",
+        capabilities=[ModelCapability.CODING, ModelCapability.LARGE_CONTEXT],
+        context_length=256000,
+        speed_tier=2,
+        quality_tier=4,
+    ),
+    "qwen2.5-coder:14b": ModelProfile(
+        name="qwen2.5-coder:14b",
+        capabilities=[ModelCapability.CODING, ModelCapability.ACCURATE],
+        context_length=32768,
+        speed_tier=2,
+        quality_tier=4,
+    ),
+    "qwen2.5-coder:7b": ModelProfile(
+        name="qwen2.5-coder:7b",
+        capabilities=[ModelCapability.FAST, ModelCapability.CODING],
+        context_length=32768,
+        speed_tier=1,
+        quality_tier=3,
+    ),
+    "phi4-256k:latest": ModelProfile(
+        name="phi4-256k:latest",
+        capabilities=[
+            ModelCapability.ACCURATE,
+            ModelCapability.LARGE_CONTEXT,
+            ModelCapability.CREATIVE,
+        ],
+        context_length=256000,
+        speed_tier=2,
+        quality_tier=4,
+    ),
+    "phi4:latest": ModelProfile(
+        name="phi4:latest",
+        capabilities=[ModelCapability.ACCURATE, ModelCapability.CREATIVE],
+        context_length=128000,
+        speed_tier=2,
+        quality_tier=4,
+    ),
+    "gpt-oss-256k:latest": ModelProfile(
+        name="gpt-oss-256k:latest",
+        capabilities=[ModelCapability.ACCURATE, ModelCapability.LARGE_CONTEXT],
+        context_length=256000,
+        speed_tier=3,
+        quality_tier=4,
+    ),
+    "deepseek-r1:7b": ModelProfile(
+        name="deepseek-r1:7b",
+        capabilities=[ModelCapability.ACCURATE, ModelCapability.CREATIVE],
+        context_length=32768,
+        speed_tier=1,
+        quality_tier=3,
+    ),
+    "qwen3:8b": ModelProfile(
+        name="qwen3:8b",
+        capabilities=[ModelCapability.FAST, ModelCapability.CODING],
+        context_length=64000,
+        speed_tier=1,
+        quality_tier=3,
+    ),
     "gemma3:4b": ModelProfile(
         name="gemma3:4b",
         capabilities=[ModelCapability.FAST, ModelCapability.CODING],
         context_length=8192,
+        speed_tier=1,
+        quality_tier=3,
+    ),
+    "gemma3-4b-256k:latest": ModelProfile(
+        name="gemma3-4b-256k:latest",
+        capabilities=[ModelCapability.FAST, ModelCapability.LARGE_CONTEXT],
+        context_length=256000,
         speed_tier=1,
         quality_tier=3,
     ),
@@ -77,10 +184,17 @@ LOCAL_MODELS = {
         speed_tier=1,
         quality_tier=2,
     ),
-    "mistral:7b": ModelProfile(
-        name="mistral:7b",
-        capabilities=[ModelCapability.ACCURATE, ModelCapability.LARGE_CONTEXT],
-        context_length=32768,
+    "glm-ocr:latest": ModelProfile(
+        name="glm-ocr:latest",
+        capabilities=[ModelCapability.FAST, ModelCapability.ACCURATE],
+        context_length=128000,
+        speed_tier=1,
+        quality_tier=3,
+    ),
+    "minicpm-v:8b-2.6-fp16": ModelProfile(
+        name="minicpm-v:8b-2.6-fp16",
+        capabilities=[ModelCapability.ACCURATE, ModelCapability.CREATIVE],
+        context_length=8192,
         speed_tier=2,
         quality_tier=4,
     ),
