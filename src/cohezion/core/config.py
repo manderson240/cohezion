@@ -8,8 +8,8 @@ Central configuration for the compound engineering system, including:
 - Timeout and retry policies
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Optional
 
 
 @dataclass
@@ -51,7 +51,7 @@ class CacheConfig:
 
     enabled: bool = True
     max_size: int = 512  # Number of entries
-    ttl_seconds: Optional[int] = None  # None = no expiration
+    ttl_seconds: int | None = None  # None = no expiration
     hash_method: str = "sha256"  # Cache key method
 
     @property
@@ -109,12 +109,12 @@ class CohezionConfig:
     verbose: bool = False
 
     @property
-    def model_for_operation(self) -> callable:
+    def model_for_operation(self) -> Callable[[str], str]:
         """Get model selection function."""
         return self.models.for_operation
 
     @property
-    def token_limit_for_operation(self) -> callable:
+    def token_limit_for_operation(self) -> Callable[[str], int]:
         """Get token limit function."""
         return self.token_budget.for_operation
 

@@ -10,8 +10,9 @@ This maximizes cache benefit and minimizes latency for long-running inferences.
 import asyncio
 import hashlib
 import logging
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
-from typing import Any, Callable, Coroutine, Optional
+from typing import Any
 
 from cohezion.core.config import CohezionConfig
 
@@ -36,10 +37,10 @@ class BatchItem:
     prompt: str
     system: str
     model: str
-    cache_entry: Optional[CacheEntry] = None
-    result: Optional[str] = None
+    cache_entry: CacheEntry | None = None
+    result: str | None = None
     tokens_used: int = 0
-    error: Optional[str] = None
+    error: str | None = None
     cached: bool = False
 
 
@@ -78,8 +79,8 @@ class BatchProcessor:
     def __init__(
         self,
         token_client: Any,
-        config: Optional[CohezionConfig] = None,
-        cache: Optional[dict[str, CacheEntry]] = None,
+        config: CohezionConfig | None = None,
+        cache: dict[str, CacheEntry] | None = None,
     ):
         """Initialize batch processor.
 
@@ -109,7 +110,8 @@ class BatchProcessor:
 
         Args:
             items: List of items to process
-            execute_fn: Async function that executes single item, returns (output, tokens)
+            execute_fn: Async function that executes single item,
+                returns (output, tokens)
 
         Returns:
             BatchResult with results, metrics, and cache statistics
@@ -159,8 +161,8 @@ class BatchProcessor:
 
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
-            for (item, key), result in zip(cache_misses_list, results):
-                if isinstance(result, Exception):
+            for (item, key), result in zip(cache_misses_list, results, strict=False):
+                if isinstance(result, BaseException):
                     item.error = str(result)
                     item.tokens_used = 0
                     logger.error("Execution failed for %s: %s", item.id, result)
