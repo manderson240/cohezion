@@ -6,6 +6,7 @@ from typing import Any
 
 from cohezion.cache.semantic_cache import SemanticCache
 
+
 logger = logging.getLogger(__name__)
 
 
