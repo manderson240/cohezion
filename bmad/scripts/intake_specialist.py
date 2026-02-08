@@ -24,14 +24,11 @@ def validate_intent(original_request: str, summarized_intent: str) -> bool:
     summarized_keywords = set(summarized_intent.lower().split())
 
     # Check if at least 50% of the keywords are shared
-    if (
+    return (
         len(original_keywords.intersection(summarized_keywords))
         / len(original_keywords)
         >= 0.5
-    ):
-        return True
-    else:
-        return False
+    )
 
 
 def process_natural_language(request: str) -> str:
@@ -71,7 +68,7 @@ def process_natural_language(request: str) -> str:
     }
 
     # 5. Validate the output against the schema
-    with open("bmad/schemas/intake_schema.yml", "r") as schema_file:
+    with open("bmad/schemas/intake_schema.yml") as schema_file:
         schema = yaml.safe_load(schema_file)
 
     validate(instance=output_data, schema=schema)
