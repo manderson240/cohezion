@@ -35,6 +35,7 @@ class ExecutionResult:
     duration_seconds: float
     vault_experiment_path: str = ""
     vault_decision_paths: list[str] | None = None
+    token_metrics: dict[str, Any] | None = None
 
 
 class CompoundExecutor:
@@ -42,18 +43,26 @@ class CompoundExecutor:
 
     Lifecycle:
       1. get_experience_guidance() - Query vault for similar tasks
-      2. execute_task() - Run the task with logging
+      2. execute_task() - Run the task with token-efficient client
       3. Logs are persisted to vault automatically
       4. extract_patterns() - Save reusable insights
+
+    Optionally uses TokenEfficientClient for token-efficient LLM operations:
+      - SHA-256 caching eliminates redundant API calls
+      - Batch processing (Phase 1 cache + Phase 2 parallel) saves tokens
+      - Token metrics captured in ExecutionResult for compound scoring
     """
 
-    def __init__(self, mcp_client: MCPClient):
+    def __init__(self, mcp_client: MCPClient, token_client: Any | None = None):
         """Initialize compound executor.
 
         Args:
             mcp_client: Connected MCPClient for vault operations
+            token_client: Optional TokenEfficientClient for LLM operations
+                If provided, enables token-efficient caching and batching
         """
         self.mcp_client = mcp_client
+        self.token_client = token_client
         self.logger = VaultExecutionLogger(mcp_client)
 
     def get_experience_guidance(
@@ -90,10 +99,12 @@ class CompoundExecutor:
             operation_type: Type of operation
                 (generate, analyze, search, transform, persist)
             execute_fn: Callable that executes the task, returns (output, metrics)
+                Can optionally use self.token_client if available
             project: Project name for vault logging
 
         Returns:
-            ExecutionResult with success status, output, metrics, vault paths
+            ExecutionResult with success status, output, metrics, vault paths,
+            and token_metrics if TokenEfficientClient was used
         """
         start_time = datetime.now()
         start_seconds = time.time()
@@ -126,7 +137,13 @@ class CompoundExecutor:
         success = False
         output = ""
         metrics: dict[str, Any] = {}
+        token_metrics: dict[str, Any] | None = None
         error_msg = ""
+
+        # Capture token metrics before execution (if token_client available)
+        token_metrics_before = None
+        if self.token_client:
+            token_metrics_before = self.token_client.get_metrics()
 
         try:
             output, metrics = execute_fn(guidance)
@@ -137,6 +154,14 @@ class CompoundExecutor:
             output = f"Error: {error_msg}"
             metrics = {"error": error_msg}
             logger.error("Task failed: %s", error_msg, exc_info=True)
+
+        # Capture token metrics after execution (if token_client available)
+        if self.token_client:
+            token_metrics_after = self.token_client.get_metrics()
+            token_metrics = self._compute_token_delta(
+                token_metrics_before, token_metrics_after
+            )
+            logger.debug("Token metrics: %s", token_metrics)
 
         duration_seconds = time.time() - start_seconds
         metrics["duration_seconds"] = duration_seconds
@@ -174,7 +199,50 @@ class CompoundExecutor:
             duration_seconds=duration_seconds,
             vault_experiment_path=experiment_path,
             vault_decision_paths=decision_paths,
+            token_metrics=token_metrics,
         )
+
+    def _compute_token_delta(
+        self,
+        metrics_before: dict[str, Any] | None,
+        metrics_after: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Compute token metric deltas (tokens used in this execution).
+
+        Args:
+            metrics_before: Token metrics before execution
+            metrics_after: Token metrics after execution
+
+        Returns:
+            Dict with token delta information
+        """
+        if not metrics_before:
+            # First execution, can't compute delta
+            return metrics_after
+
+        delta: dict[str, Any] = {}
+
+        # Compute differences
+        if "total_tokens" in metrics_after and "total_tokens" in metrics_before:
+            delta["tokens_used"] = (
+                metrics_after["total_tokens"] - metrics_before["total_tokens"]
+            )
+        if "api_calls" in metrics_after and "api_calls" in metrics_before:
+            delta["api_calls_made"] = (
+                metrics_after["api_calls"] - metrics_before["api_calls"]
+            )
+        if "cache_hits" in metrics_after and "cache_hits" in metrics_before:
+            delta["cache_hits"] = metrics_after["cache_hits"] - metrics_before["cache_hits"]
+        if "cache_misses" in metrics_after and "cache_misses" in metrics_before:
+            delta["cache_misses"] = (
+                metrics_after["cache_misses"] - metrics_before["cache_misses"]
+            )
+
+        # Include final hit rate
+        if "cache_hit_rate" in metrics_after:
+            delta["cache_hit_rate"] = metrics_after["cache_hit_rate"]
+
+        return delta
 
     def log_inflection_point(
         self,
@@ -213,29 +281,35 @@ class ExecutorFactory:
     _instance: CompoundExecutor | None = None
 
     @staticmethod
-    def create(mcp_client: MCPClient) -> CompoundExecutor:
+    def create(
+        mcp_client: MCPClient, token_client: Any | None = None
+    ) -> CompoundExecutor:
         """Create a new compound executor.
 
         Args:
             mcp_client: Connected MCP client
+            token_client: Optional TokenEfficientClient for token-efficient operations
 
         Returns:
             CompoundExecutor instance
         """
-        return CompoundExecutor(mcp_client)
+        return CompoundExecutor(mcp_client, token_client)
 
     @staticmethod
-    def get_singleton(mcp_client: MCPClient) -> CompoundExecutor:
+    def get_singleton(
+        mcp_client: MCPClient, token_client: Any | None = None
+    ) -> CompoundExecutor:
         """Get or create singleton executor.
 
         Args:
             mcp_client: Connected MCP client
+            token_client: Optional TokenEfficientClient for token-efficient operations
 
         Returns:
             Singleton CompoundExecutor instance
         """
         if ExecutorFactory._instance is None:
-            ExecutorFactory._instance = CompoundExecutor(mcp_client)
+            ExecutorFactory._instance = CompoundExecutor(mcp_client, token_client)
         return ExecutorFactory._instance
 
     @staticmethod
