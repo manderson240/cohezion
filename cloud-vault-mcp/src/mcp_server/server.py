@@ -7,7 +7,9 @@ from mcp.server.fastmcp import FastMCP
 
 from .compound_ops import CompoundOps
 from .config import ServerConfig
+from .memory_bridge import VaultMemoryBridge
 from .obsidian_ops import ObsidianOps
+from .teleport import CloudTeleportProtocol
 from .vault_ops import VaultOps
 
 
@@ -19,6 +21,8 @@ def create_server(config: ServerConfig) -> FastMCP:
     vault = VaultOps(config.vault_path)
     obsidian = ObsidianOps(vault)
     compound = CompoundOps(vault, obsidian)
+    teleport = CloudTeleportProtocol(vault)
+    memory_bridge = VaultMemoryBridge(vault)
 
     mcp = FastMCP(
         "Cloud Vault",
@@ -270,5 +274,152 @@ def create_server(config: ServerConfig) -> FastMCP:
         if not results:
             return "No relevant prior context found."
         return json.dumps(results, indent=2)
+
+    # ── Teleport Operations ──────────────────────────────────────────
+
+    @mcp.tool()
+    def teleport_create_task(
+        title: str,
+        description: str,
+        context: str = "",
+        expected_output: str = "",
+        priority: str = "medium",
+    ) -> str:
+        """Create a teleport task for delegation between Claude instances.
+
+        Use this to delegate work (research, refactoring, doc generation)
+        to another Claude instance (e.g. cloud Claude with web access).
+
+        Args:
+            title: Short task title
+            description: What needs to be done
+            context: Background information for the task
+            expected_output: What the result should look like
+            priority: low, medium, high, or critical
+        """
+        result = teleport.create_task(
+            title, description, context, expected_output, priority
+        )
+        return json.dumps(result, indent=2)
+
+    @mcp.tool()
+    def teleport_list_tasks(status: str = "") -> str:
+        """List teleport tasks, optionally filtered by status.
+
+        Args:
+            status: Filter by status (pending, in_progress, completed, failed).
+                    Empty string returns all tasks.
+        """
+        tasks = teleport.list_tasks(status if status else None)
+        if not tasks:
+            return "No teleport tasks found."
+        return json.dumps(tasks, indent=2, default=str)
+
+    @mcp.tool()
+    def teleport_claim_task(task_id: str, assigned_to: str) -> str:
+        """Claim a pending teleport task for processing.
+
+        Args:
+            task_id: The task ID to claim
+            assigned_to: Who is claiming it (e.g. 'cloud-claude', 'local-claude')
+        """
+        try:
+            result = teleport.claim_task(task_id, assigned_to)
+            return json.dumps(result, indent=2, default=str)
+        except (ValueError, FileNotFoundError) as e:
+            return f"Error: {e}"
+
+    @mcp.tool()
+    def teleport_complete_task(task_id: str, result: str) -> str:
+        """Complete a teleport task with a result.
+
+        Args:
+            task_id: The task ID to complete
+            result: The result/output of the completed task
+        """
+        try:
+            task = teleport.complete_task(task_id, result)
+            return json.dumps(task, indent=2, default=str)
+        except (ValueError, FileNotFoundError) as e:
+            return f"Error: {e}"
+
+    @mcp.tool()
+    def teleport_fail_task(task_id: str, error: str) -> str:
+        """Mark a teleport task as failed.
+
+        Args:
+            task_id: The task ID that failed
+            error: Description of what went wrong
+        """
+        try:
+            task = teleport.fail_task(task_id, error)
+            return json.dumps(task, indent=2, default=str)
+        except FileNotFoundError as e:
+            return f"Error: {e}"
+
+    @mcp.tool()
+    def teleport_get_result(task_id: str) -> str:
+        """Get the result of a completed teleport task.
+
+        Args:
+            task_id: The task ID to get the result for
+        """
+        try:
+            result = teleport.get_result(task_id)
+            return json.dumps(result, indent=2, default=str)
+        except FileNotFoundError as e:
+            return f"Error: {e}"
+
+    # ── Memory Bridge Operations ─────────────────────────────────────
+
+    @mcp.tool()
+    def vault_push_session_state(
+        branch: str,
+        test_status: str,
+        phase: str,
+        active_tasks: list[str] | None = None,
+        last_commit: str = "",
+    ) -> str:
+        """Push current session state to a daily session note in the vault.
+
+        Creates a snapshot of the current Claude Code session that other
+        Claude instances can read for context.
+
+        Args:
+            branch: Current git branch name
+            test_status: Test suite status (e.g. '24/24 passing')
+            phase: Current project phase
+            active_tasks: List of active task descriptions
+            last_commit: Last commit hash or message
+        """
+        path = memory_bridge.push_session_state(
+            branch, test_status, phase, active_tasks, last_commit
+        )
+        return f"Session state pushed to: {path}"
+
+    @mcp.tool()
+    def vault_push_memory(memory_content: str) -> str:
+        """Parse MEMORY.md content and distribute to vault sections.
+
+        Parses the memory content by ## headings and distributes:
+        - Current State → daily/ session note
+        - Lessons → patterns/ (deduplicated)
+        - TODO → projects/cohezion-todos.md
+
+        Args:
+            memory_content: Full content of MEMORY.md
+        """
+        result = memory_bridge.push_memory(memory_content)
+        return json.dumps(result, indent=2)
+
+    @mcp.tool()
+    def vault_pull_session_context() -> str:
+        """Pull latest session context from the vault.
+
+        Reads recent session notes to build cross-instance context.
+        Returns the latest branch, phase, test status, and recent sessions.
+        """
+        context = memory_bridge.pull_session_context()
+        return json.dumps(context, indent=2, default=str)
 
     return mcp
