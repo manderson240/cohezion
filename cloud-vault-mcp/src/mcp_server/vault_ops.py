@@ -180,9 +180,7 @@ class VaultOps:
         if tag_clean.lower() in fm.lower():
             return True
         # Check inline tags
-        if f"#{tag_clean}" in content:
-            return True
-        return False
+        return f"#{tag_clean}" in content
 
     def _extract_frontmatter(self, content: str) -> str:
         """Extract YAML frontmatter from content."""

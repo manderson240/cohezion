@@ -5,6 +5,7 @@ import logging
 from .config import ServerConfig
 from .server import create_server
 
+
 logger = logging.getLogger("cloud-vault-mcp")
 
 
