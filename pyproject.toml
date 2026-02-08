@@ -1,6 +1,68 @@
-[tool.black]
+[tool.ruff]
+target-version = "py311"
 line-length = 88
 
-[tool.ruff]
-select = ["E", "F", "W"]
-ignore = []
+# Linting configuration
+[tool.ruff.lint]
+# Enable comprehensive rule set
+select = [
+    "E",     # pycodestyle errors
+    "F",     # pyflakes
+    "W",     # pycodestyle warnings
+    "I",     # isort
+    "N",     # pep8-naming
+    "UP",    # pyupgrade
+    "S",     # flake8-bandit (security)
+    "B",     # flake8-bugbear
+    "A",     # flake8-builtins
+    "C4",    # flake8-comprehensions
+    "SIM",   # flake8-simplify
+    "TCH",   # flake8-type-checking
+    "RUF",   # Ruff-specific rules
+]
+
+ignore = [
+    # Add specific rules to ignore here if needed after initial run
+]
+
+# Per-file customization
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "S101",  # Allow assert in tests
+    "S105",  # Allow hardcoded passwords in tests
+    "S106",  # Allow hardcoded passwords in tests
+]
+"bmad/scripts/**/*.py" = [
+    "S101",  # Allow assert in scripts
+]
+
+# Import sorting configuration
+[tool.ruff.lint.isort]
+known-first-party = ["bmad"]
+force-single-line = false
+lines-after-imports = 2
+
+# Formatter configuration (replaces Black)
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+# Type checking with mypy
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false  # Start permissive, can tighten later
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+strict_equality = true
+
+# Per-module options
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
