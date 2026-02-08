@@ -2,6 +2,8 @@
 
 import logging
 
+import uvicorn
+
 from .config import ServerConfig
 from .server import create_server
 
@@ -29,8 +31,11 @@ def main():
 
     mcp = create_server(config)
 
-    # Run with streamable HTTP transport
-    mcp.run(transport="streamable-http", host=config.host, port=config.port)
+    # Get the streamable HTTP ASGI app from FastMCP
+    app = mcp.streamable_http_app
+
+    # Run with uvicorn directly to control host/port
+    uvicorn.run(app, host=config.host, port=config.port, log_level="info")
 
 
 if __name__ == "__main__":
