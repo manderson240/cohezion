@@ -9,6 +9,7 @@ Target: 70%+ cache hit rate with sub-100ms lookup latency.
 """
 
 import hashlib
+import json
 import logging
 import time
 from dataclasses import dataclass, field
@@ -48,6 +49,8 @@ class SemanticCache:
         Maximum L1 cache entries (default: 512)
     max_l2_size : int
         Maximum L2 cache entries (default: 1024)
+    mcp_client : MCPClient | None
+        Optional MCPClient for L3 vault lookups (default: None = disabled)
     """
 
     def __init__(
@@ -55,11 +58,20 @@ class SemanticCache:
         similarity_threshold: float = 0.92,
         max_l1_size: int = 512,
         max_l2_size: int = 1024,
+        mcp_client: Any = None,
     ):
-        """Initialize semantic cache."""
+        """Initialize semantic cache.
+
+        Args:
+            similarity_threshold: Cosine similarity threshold for L2
+            max_l1_size: L1 cache size
+            max_l2_size: L2 cache size
+            mcp_client: Optional MCPClient for L3 vault operations
+        """
         self.similarity_threshold = similarity_threshold
         self.max_l1_size = max_l1_size
         self.max_l2_size = max_l2_size
+        self.mcp_client = mcp_client
 
         # L1 cache: exact hash matches
         self.l1_cache: dict[str, CacheEntry] = {}
@@ -240,18 +252,89 @@ class SemanticCache:
                 self.l2_lfu_counts[hash_key] += 1
 
     async def _vault_lookup(self, prompt: str) -> str | None:
-        """Search vault for similar executions."""
-        # TODO: Wire to MCPClient
-        # For now, return None
-        return None
+        """Search vault for similar execution patterns.
+
+        Uses MCPClient to search for prompts with similar responses
+        from prior successful executions. Non-blocking on failure.
+
+        Args:
+            prompt: Prompt to search for
+
+        Returns:
+            Cached response if found, None otherwise
+        """
+        if not self.mcp_client:
+            return None
+
+        try:
+            # Search vault for execution patterns matching this prompt
+            # Look for similar prompts that succeeded
+            search_query = f"{prompt[:50]} successful execution"
+            results = self.mcp_client.vault_search(
+                query=search_query, scope="all"
+            )
+
+            if not results:
+                return None
+
+            # Extract potential response from top result
+            # Results are vault search hits with path and content
+            if results and len(results) > 0:
+                # Check if result contains execution data with response
+                first_result = results[0]
+                if isinstance(first_result, dict) and "context" in first_result:
+                    # Try to parse response from vault context
+                    context = first_result.get("context", "")
+                    if context and len(context) > 20:
+                        logger.debug(
+                            f"L3 vault hit for prompt (found {len(results)} results)"
+                        )
+                        return context[:1000]  # Return truncated context
+
+            return None
+
+        except Exception as e:
+            # Non-blocking: log and return None
+            logger.debug(f"Vault lookup failed (non-critical): {e}")
+            return None
 
     async def _vault_store(self, prompt: str, response: str) -> None:
-        """Persist to vault for L3 cache."""
-        # TODO: Wire to MCPClient asynchronously
-        # Non-blocking, so wrap in try/except
+        """Persist successful prompt-response pair to vault.
+
+        Stores to vault for future L3 cache lookups. Non-blocking
+        on failure - vault persistence is nice-to-have, never essential.
+
+        Args:
+            prompt: Prompt that was cached
+            response: Response that was cached
+        """
+        if not self.mcp_client:
+            return
+
         try:
-            pass  # TODO: implement
+            # Store as a cache entry pattern in vault
+            # This allows future sessions to find and reuse it
+            timestamp = time.time()
+            cache_entry = {
+                "prompt": prompt[:200],  # Truncate for readability
+                "response": response[:500],  # Truncate response
+                "timestamp": timestamp,
+            }
+
+            # Create a cache pattern note in vault
+            # Use timestamp + hash to avoid collisions
+            entry_hash = hashlib.md5(
+                f"{prompt}{timestamp}".encode()
+            ).hexdigest()[:8]
+            vault_path = f"cache_patterns/cache_entry_{entry_hash}.json"
+
+            self.mcp_client.vault_write(
+                path=vault_path, content=json.dumps(cache_entry, indent=2)
+            )
+            logger.debug(f"L3 vault stored: {vault_path}")
+
         except Exception as e:
+            # Non-blocking: log and continue
             logger.debug(f"Vault store failed (non-critical): {e}")
 
     def get_stats(self) -> dict[str, Any]:

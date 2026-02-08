@@ -7,6 +7,7 @@ Orchestrates execution lifecycle:
   4. Extract reusable patterns for future runs
 """
 
+import asyncio
 import json
 import logging
 import time
@@ -20,9 +21,28 @@ from cohezion.compound.vault_execution_logger import (
     VaultExecutionLogger,
 )
 from cohezion.core.mcp_client import MCPClient
+from cohezion.security.guardrail_pipeline import GuardrailAction, GuardrailPipeline
 
 
 logger = logging.getLogger(__name__)
+
+
+def _run_async_guardrail(coro: Any) -> Any:
+    """Execute async guardrail check in sync context.
+
+    Non-blocking on failure - logs and returns None.
+
+    Args:
+        coro: Async coroutine to execute
+
+    Returns:
+        Result of coroutine or None on failure
+    """
+    try:
+        return asyncio.run(coro)
+    except Exception as e:
+        logger.debug(f"Guardrail check failed (non-blocking): {e}")
+        return None
 
 
 @dataclass
@@ -53,17 +73,48 @@ class CompoundExecutor:
       - Token metrics captured in ExecutionResult for compound scoring
     """
 
-    def __init__(self, mcp_client: MCPClient, token_client: Any | None = None):
+    def __init__(
+        self,
+        mcp_client: MCPClient,
+        token_client: Any | None = None,
+        guardrail_pipeline: GuardrailPipeline | None = None,
+        enable_guardrails: bool = True,
+    ):
         """Initialize compound executor.
 
         Args:
             mcp_client: Connected MCPClient for vault operations
             token_client: Optional TokenEfficientClient for LLM operations
                 If provided, enables token-efficient caching and batching
+            guardrail_pipeline: Optional GuardrailPipeline for safety checks.
+                If None and enable_guardrails is True, creates default pipeline.
+                If None and enable_guardrails is False, no guardrails applied.
+            enable_guardrails: If True (default), enable guardrails via default
+                pipeline (unless guardrail_pipeline is provided).
         """
         self.mcp_client = mcp_client
         self.token_client = token_client
+        self._guardrail_pipeline = guardrail_pipeline
+        self._enable_guardrails = enable_guardrails
         self.logger = VaultExecutionLogger(mcp_client)
+
+    @property
+    def guardrail_pipeline(self) -> GuardrailPipeline | None:
+        """Lazy-initialize default guardrail pipeline if enabled.
+
+        Returns:
+            GuardrailPipeline if guardrails enabled, None otherwise
+        """
+        if not self._enable_guardrails:
+            return None
+
+        if self._guardrail_pipeline is None:
+            from cohezion.security.guardrail_factory import create_default_pipeline
+
+            self._guardrail_pipeline = create_default_pipeline()
+            logger.debug("Initialized default guardrail pipeline")
+
+        return self._guardrail_pipeline
 
     def get_experience_guidance(
         self, task_description: str, project: str = "cohezion"
@@ -133,12 +184,44 @@ class CompoundExecutor:
         # Step 2: Log execution start
         experiment_path = self.logger.log_execution_start(ctx)
 
-        # Step 3: Execute the task
+        # Step 3: Check input via guardrails
         success = False
         output = ""
         metrics: dict[str, Any] = {}
         token_metrics: dict[str, Any] | None = None
         error_msg = ""
+
+        # Check input against guardrails if enabled
+        if self.guardrail_pipeline:
+            guard_context = {
+                "skill_name": skill_name,
+                "operation_type": operation_type,
+                "task_description": task_description,
+            }
+            input_check = _run_async_guardrail(
+                self.guardrail_pipeline.check_input(
+                    task_description, guard_context
+                )
+            )
+            if input_check and input_check.action == GuardrailAction.BLOCK:
+                error_msg = f"Input blocked by guardrails: {input_check.reason}"
+                output = f"Error: {error_msg}"
+                metrics = {"error": error_msg, "blocked_by_guardrails": True}
+                logger.warning("Task input blocked: %s", input_check.reason)
+                # Log execution result and return
+                self.logger.log_execution_result(
+                    experiment_path=experiment_path,
+                    success=False,
+                    output=output,
+                    metrics=metrics,
+                )
+                return ExecutionResult(
+                    success=False,
+                    output=output,
+                    metrics=metrics,
+                    duration_seconds=time.time() - start_seconds,
+                    vault_experiment_path=experiment_path,
+                )
 
         # Capture token metrics before execution (if token_client available)
         token_metrics_before = None
@@ -162,6 +245,30 @@ class CompoundExecutor:
                 token_metrics_before, token_metrics_after
             )
             logger.debug("Token metrics: %s", token_metrics)
+
+        # Check output via guardrails if successful
+        if success and self.guardrail_pipeline:
+            guard_context = {
+                "skill_name": skill_name,
+                "operation_type": operation_type,
+                "task_description": task_description,
+            }
+            output_check = _run_async_guardrail(
+                self.guardrail_pipeline.check_output(
+                    output, guard_context
+                )
+            )
+            if output_check:
+                if output_check.action == GuardrailAction.BLOCK:
+                    output = "[Output blocked by content filter]"
+                    success = False
+                    metrics["output_blocked_by_guardrails"] = True
+                    logger.warning("Task output blocked: %s", output_check.reason)
+                elif output_check.action == GuardrailAction.SANITIZE:
+                    if output_check.modified_input:
+                        output = output_check.modified_input
+                        metrics["output_sanitized_by_guardrails"] = True
+                        logger.debug("Task output sanitized")
 
         duration_seconds = time.time() - start_seconds
         metrics["duration_seconds"] = duration_seconds
@@ -282,34 +389,54 @@ class ExecutorFactory:
 
     @staticmethod
     def create(
-        mcp_client: MCPClient, token_client: Any | None = None
+        mcp_client: MCPClient,
+        token_client: Any | None = None,
+        guardrail_pipeline: GuardrailPipeline | None = None,
+        enable_guardrails: bool = True,
     ) -> CompoundExecutor:
         """Create a new compound executor.
 
         Args:
             mcp_client: Connected MCP client
             token_client: Optional TokenEfficientClient for token-efficient operations
+            guardrail_pipeline: Optional GuardrailPipeline for safety checks
+            enable_guardrails: If True (default), enable guardrails
 
         Returns:
             CompoundExecutor instance
         """
-        return CompoundExecutor(mcp_client, token_client)
+        return CompoundExecutor(
+            mcp_client,
+            token_client,
+            guardrail_pipeline,
+            enable_guardrails,
+        )
 
     @staticmethod
     def get_singleton(
-        mcp_client: MCPClient, token_client: Any | None = None
+        mcp_client: MCPClient,
+        token_client: Any | None = None,
+        guardrail_pipeline: GuardrailPipeline | None = None,
+        enable_guardrails: bool = True,
     ) -> CompoundExecutor:
         """Get or create singleton executor.
 
         Args:
             mcp_client: Connected MCP client
             token_client: Optional TokenEfficientClient for token-efficient operations
+            guardrail_pipeline: Optional GuardrailPipeline for safety checks
+            enable_guardrails: If True (default), enable guardrails
 
         Returns:
             Singleton CompoundExecutor instance
         """
         if ExecutorFactory._instance is None:
-            ExecutorFactory._instance = CompoundExecutor(mcp_client, token_client)
+            ExecutorFactory._instance = CompoundExecutor(
+                mcp_client,
+                token_client,
+                guardrail_pipeline,
+                enable_guardrails,
+            )
         return ExecutorFactory._instance
 
     @staticmethod

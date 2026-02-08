@@ -1,7 +1,8 @@
 """Proactive cache warming from vault execution history."""
 
+import json
 import logging
-from typing import Optional
+from typing import Any
 
 from cohezion.cache.semantic_cache import SemanticCache
 
@@ -17,16 +18,23 @@ class CacheWarmer:
         3. Patterns from successful compound cycles
     """
 
-    def __init__(self, semantic_cache: SemanticCache):
+    def __init__(
+        self, semantic_cache: SemanticCache, mcp_client: Any = None
+    ):
         """Initialize cache warmer.
 
         Args:
             semantic_cache: SemanticCache instance to warm
+            mcp_client: Optional MCPClient for vault operations
         """
         self.cache = semantic_cache
+        self.mcp_client = mcp_client
 
     async def warm_from_vault(self, limit: int = 100) -> int:
-        """Load top N patterns from vault into cache.
+        """Load top N cache patterns from vault into cache.
+
+        Searches vault for cache_patterns directory and loads
+        successful prompt-response pairs into L1 and L2 caches.
 
         Args:
             limit: Maximum patterns to load (default: 100)
@@ -34,11 +42,46 @@ class CacheWarmer:
         Returns:
             Number of entries loaded
         """
-        # TODO: Wire to MCPClient to query vault for top patterns
-        # Expected response: list of {"prompt": str, "response": str, "frequency": int}
-        # For MVP, return 0
-        logger.debug(f"Cache warming from vault (limit={limit}) - not implemented")
-        return 0
+        if not self.mcp_client:
+            logger.debug("Cache warming disabled (no MCPClient)")
+            return 0
+
+        try:
+            # List all cache pattern files from vault
+            pattern_files = self.mcp_client.vault_list(
+                directory="cache_patterns", recursive=True
+            )
+
+            if not pattern_files:
+                logger.debug("No cache patterns found in vault")
+                return 0
+
+            # Load patterns (limit to N most recent)
+            loaded = 0
+            for file_path in pattern_files[:limit]:
+                try:
+                    # Read pattern file
+                    content = self.mcp_client.vault_read(path=file_path)
+                    pattern = json.loads(content)
+
+                    # Load into cache
+                    if "prompt" in pattern and "response" in pattern:
+                        await self.cache.put(
+                            prompt=pattern["prompt"],
+                            response=pattern["response"],
+                        )
+                        loaded += 1
+
+                except Exception as e:
+                    logger.debug(f"Failed to load pattern {file_path}: {e}")
+                    continue
+
+            logger.info(f"Warmed cache with {loaded} patterns from vault")
+            return loaded
+
+        except Exception as e:
+            logger.debug(f"Cache warming from vault failed: {e}")
+            return 0
 
     async def warm_from_history(self, skill_name: str) -> int:
         """Warm cache for specific skill from execution history.
