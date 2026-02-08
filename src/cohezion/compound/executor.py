@@ -25,9 +25,11 @@ from cohezion.security.guardrail_pipeline import GuardrailAction, GuardrailPipel
 
 if TYPE_CHECKING:
     from cohezion.compound.inflection_detector import InflectionDetector
+    from cohezion.compound.skill_refiner import SkillRefiner
 else:
     # Lazy import to avoid circular dependency at runtime
     InflectionDetector = None
+    SkillRefiner = None
 
 
 logger = logging.getLogger(__name__)
@@ -86,6 +88,8 @@ class CompoundExecutor:
         guardrail_pipeline: GuardrailPipeline | None = None,
         enable_guardrails: bool = True,
         inflection_detector: Any | None = None,
+        skill_refiner: Any | None = None,
+        enable_skill_refinement: bool = True,
     ):
         """Initialize compound executor.
 
@@ -100,11 +104,16 @@ class CompoundExecutor:
                 pipeline (unless guardrail_pipeline is provided).
             inflection_detector: Optional InflectionDetector for anomaly detection.
                 If None, creates default detector automatically.
+            skill_refiner: Optional SkillRefiner for learning from executions.
+                If None and enable_skill_refinement is True, creates default.
+            enable_skill_refinement: If True (default), enable skill refinement.
         """
         self.mcp_client = mcp_client
         self.token_client = token_client
         self._guardrail_pipeline = guardrail_pipeline
         self._enable_guardrails = enable_guardrails
+        self._skill_refiner = skill_refiner
+        self._enable_skill_refinement = enable_skill_refinement
         # Lazy import to avoid circular dependency
         if inflection_detector:
             self.inflection_detector = inflection_detector
@@ -130,6 +139,24 @@ class CompoundExecutor:
             logger.debug("Initialized default guardrail pipeline")
 
         return self._guardrail_pipeline
+
+    @property
+    def skill_refiner(self) -> Any | None:
+        """Lazy-initialize default skill refiner if enabled.
+
+        Returns:
+            SkillRefiner if skill refinement enabled, None otherwise
+        """
+        if not self._enable_skill_refinement:
+            return None
+
+        if self._skill_refiner is None:
+            from cohezion.compound.skill_refiner import SkillRefinerFactory
+
+            self._skill_refiner = SkillRefinerFactory.create(self.mcp_client)
+            logger.debug("Initialized default skill refiner")
+
+        return self._skill_refiner
 
     def get_experience_guidance(
         self, task_description: str, project: str = "cohezion"
@@ -358,6 +385,35 @@ class CompoundExecutor:
             except Exception as e:
                 logger.warning("Failed to extract pattern: %s", e, exc_info=True)
 
+        # Step 7: Refine skills based on execution results (non-blocking)
+        if success and self.skill_refiner:
+            try:
+                # Create execution result dict for refiner
+                exec_result = {
+                    "success": success,
+                    "output": output,
+                    "metrics": metrics,
+                    "duration_seconds": duration_seconds,
+                    "token_metrics": token_metrics,
+                }
+
+                # Call skill refiner
+                refined_path = self.skill_refiner.refine(
+                    skill_name=skill_name,
+                    operation_type=operation_type,
+                    execution_result=exec_result,
+                    patterns_extracted=decision_paths,
+                )
+
+                if refined_path:
+                    logger.info(f"Skill refined: {refined_path}")
+                    decision_paths.append(refined_path)
+
+            except Exception as e:
+                logger.debug(
+                    "Skill refinement failed (non-blocking): %s", e, exc_info=True
+                )
+
         return ExecutionResult(
             success=success,
             output=output,
@@ -453,6 +509,8 @@ class ExecutorFactory:
         guardrail_pipeline: GuardrailPipeline | None = None,
         enable_guardrails: bool = True,
         inflection_detector: Any | None = None,
+        skill_refiner: Any | None = None,
+        enable_skill_refinement: bool = True,
     ) -> CompoundExecutor:
         """Create a new compound executor.
 
@@ -462,6 +520,8 @@ class ExecutorFactory:
             guardrail_pipeline: Optional GuardrailPipeline for safety checks
             enable_guardrails: If True (default), enable guardrails
             inflection_detector: Optional InflectionDetector for anomaly detection
+            skill_refiner: Optional SkillRefiner for learning from executions
+            enable_skill_refinement: If True (default), enable skill refinement
 
         Returns:
             CompoundExecutor instance
@@ -472,6 +532,8 @@ class ExecutorFactory:
             guardrail_pipeline,
             enable_guardrails,
             inflection_detector,
+            skill_refiner,
+            enable_skill_refinement,
         )
 
     @staticmethod
@@ -481,6 +543,8 @@ class ExecutorFactory:
         guardrail_pipeline: GuardrailPipeline | None = None,
         enable_guardrails: bool = True,
         inflection_detector: Any | None = None,
+        skill_refiner: Any | None = None,
+        enable_skill_refinement: bool = True,
     ) -> CompoundExecutor:
         """Get or create singleton executor.
 
@@ -490,6 +554,8 @@ class ExecutorFactory:
             guardrail_pipeline: Optional GuardrailPipeline for safety checks
             enable_guardrails: If True (default), enable guardrails
             inflection_detector: Optional InflectionDetector for anomaly detection
+            skill_refiner: Optional SkillRefiner for learning from executions
+            enable_skill_refinement: If True (default), enable skill refinement
 
         Returns:
             Singleton CompoundExecutor instance
@@ -501,6 +567,8 @@ class ExecutorFactory:
                 guardrail_pipeline,
                 enable_guardrails,
                 inflection_detector,
+                skill_refiner,
+                enable_skill_refinement,
             )
         return ExecutorFactory._instance
 
