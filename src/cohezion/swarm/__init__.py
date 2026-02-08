@@ -6,6 +6,11 @@ from cohezion.swarm.batch_processor import (
     BatchResult,
     CacheEntry,
 )
+from cohezion.swarm.hardware_aware_router import (
+    Priority,
+    RoutingDecision,
+    RoutingRequest,
+)
 from cohezion.swarm.multi_layer_cache import (
     CacheEntry as MultiLayerCacheEntry,
 )
@@ -36,7 +41,10 @@ __all__ = [
     "KVCacheOptimizer",
     "MultiLayerCache",
     "MultiLayerCacheEntry",
+    "Priority",
     "ResilientOllamaClient",
+    "RoutingDecision",
+    "RoutingRequest",
     "SemanticCacheStore",
     "TokenCacheOptimizer",
     "TokenEfficientClient",

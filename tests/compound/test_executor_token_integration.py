@@ -4,7 +4,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from cohezion.compound.executor import CompoundExecutor, ExecutionResult, ExecutorFactory
+from cohezion.compound.executor import (
+    CompoundExecutor,
+    ExecutionResult,
+    ExecutorFactory,
+)
 
 
 @pytest.fixture
