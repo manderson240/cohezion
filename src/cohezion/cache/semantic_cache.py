@@ -8,6 +8,7 @@ Architecture:
 Target: 70%+ cache hit rate with sub-100ms lookup latency.
 """
 
+import asyncio
 import hashlib
 import json
 import logging
@@ -176,9 +177,19 @@ class SemanticCache:
             return best_match.response
 
         # L3: Vault lookup (async, non-blocking)
-        # TODO: Wire to cohezion.core.mcp_client.MCPClient for vault search
-        # For now, always miss
-        pass
+        vault_result = await self._vault_lookup(prompt)
+        if vault_result:
+            self.hits_l3 += 1
+            # Create entry and promote to L1
+            embedding = self._text_to_embedding(prompt)
+            entry = CacheEntry(
+                key=hash_key,
+                prompt=prompt,
+                response=vault_result,
+                embedding=embedding,
+            )
+            self._promote_to_l1(hash_key, entry)
+            return vault_result
 
         self.misses += 1
         return None
@@ -215,9 +226,13 @@ class SemanticCache:
         # Store in L2 (semantic)
         self._put_l2(hash_key, entry)
 
-        # Store in L3 (vault, async non-blocking)
-        # TODO: Wire to vault asynchronously without awaiting
-        # For MVP, skip
+        # Store in L3 (vault, async non-blocking fire-and-forget)
+        # Schedule vault storage without awaiting (non-blocking per NON_CRITICAL_TRACKING_PATTERN)
+        try:
+            asyncio.create_task(self._vault_store(prompt, response))
+        except RuntimeError:
+            # No event loop running (e.g., sync context) - skip L3 storage
+            logger.debug("No event loop for L3 vault store (non-critical)")
 
     def _put_l1(self, hash_key: str, entry: CacheEntry) -> None:
         """Add entry to L1 cache."""
@@ -266,34 +281,48 @@ class SemanticCache:
             return None
 
         try:
-            # Search vault for execution patterns matching this prompt
-            # Look for similar prompts that succeeded
-            search_query = f"{prompt[:50]} successful execution"
-            results = self.mcp_client.vault_search(
-                query=search_query, scope="all"
+            # Search vault for cache patterns matching this prompt
+            # Look for prompts that were successfully cached before
+            search_query = f"{prompt[:50]} cache pattern"
+
+            # Run synchronous vault_search in default executor to avoid blocking
+            loop = asyncio.get_event_loop()
+            results = await loop.run_in_executor(
+                None, self.mcp_client.vault_search, search_query
             )
 
             if not results:
                 return None
 
-            # Extract potential response from top result
-            # Results are vault search hits with path and content
+            # Extract response from top result
+            # Cache pattern files store prompt + response as JSON
             if results and len(results) > 0:
-                # Check if result contains execution data with response
                 first_result = results[0]
-                if isinstance(first_result, dict) and "context" in first_result:
-                    # Try to parse response from vault context
-                    context = first_result.get("context", "")
-                    if context and len(context) > 20:
-                        logger.debug(
-                            f"L3 vault hit for prompt (found {len(results)} results)"
-                        )
-                        return context[:1000]  # Return truncated context
+                if isinstance(first_result, dict):
+                    # Try to read the cache pattern file
+                    path = first_result.get("path", "")
+                    if path:
+                        try:
+                            content = await loop.run_in_executor(
+                                None, self.mcp_client.vault_read, path
+                            )
+                            # Parse as JSON cache entry
+                            cache_data = json.loads(content)
+                            response = cache_data.get("response", "")
+                            if response and len(response) > 20:
+                                logger.debug(
+                                    f"L3 vault hit for prompt from {path}"
+                                )
+                                return response
+
+                        except (json.JSONDecodeError, FileNotFoundError) as e:
+                            logger.debug(f"Cache pattern parse failed: {e}")
+                            pass  # Fall through to return None
 
             return None
 
         except Exception as e:
-            # Non-blocking: log and return None
+            # Non-blocking: log and return None (NON_CRITICAL_TRACKING_PATTERN)
             logger.debug(f"Vault lookup failed (non-critical): {e}")
             return None
 
@@ -327,13 +356,18 @@ class SemanticCache:
             ).hexdigest()[:8]
             vault_path = f"cache_patterns/cache_entry_{entry_hash}.json"
 
-            self.mcp_client.vault_write(
-                path=vault_path, content=json.dumps(cache_entry, indent=2)
+            # Run synchronous vault_write in executor (non-blocking)
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(
+                None,
+                self.mcp_client.vault_write,
+                vault_path,
+                json.dumps(cache_entry, indent=2),
             )
             logger.debug(f"L3 vault stored: {vault_path}")
 
         except Exception as e:
-            # Non-blocking: log and continue
+            # Non-blocking: log and continue (NON_CRITICAL_TRACKING_PATTERN)
             logger.debug(f"Vault store failed (non-critical): {e}")
 
     def get_stats(self) -> dict[str, Any]:
