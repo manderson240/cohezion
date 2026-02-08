@@ -1,6 +1,7 @@
 import unittest
 from bmad.core.context_engineering import ContextEngineeringInfrastructure
 
+
 class TestContextEngineeringInfrastructure(unittest.TestCase):
 
     def setUp(self):
@@ -19,5 +20,6 @@ class TestContextEngineeringInfrastructure(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.cei.execute_tool("non_existent_tool")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
