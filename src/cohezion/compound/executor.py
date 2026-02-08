@@ -10,6 +10,7 @@ Orchestrates execution lifecycle:
 import json
 import logging
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
@@ -68,16 +69,17 @@ class CompoundExecutor:
             Dict with relevant_context (decisions, experiments, patterns)
         """
         logger.info("Fetching experience guidance for: %s", task_description)
-        return self.logger.get_experience_guidance(
+        result: dict[str, Any] = self.logger.get_experience_guidance(
             task_description=task_description, project=project
         )
+        return result
 
     def execute_task(
         self,
         task_description: str,
         skill_name: str,
         operation_type: str,
-        execute_fn: callable,
+        execute_fn: Callable,
         project: str = "cohezion",
     ) -> ExecutionResult:
         """Execute a compound task with vault logging.
@@ -85,7 +87,8 @@ class CompoundExecutor:
         Args:
             task_description: What the task does
             skill_name: Name of the skill being executed
-            operation_type: Type of operation (generate, analyze, search, transform, persist)
+            operation_type: Type of operation
+                (generate, analyze, search, transform, persist)
             execute_fn: Callable that executes the task, returns (output, metrics)
             project: Project name for vault logging
 
@@ -129,7 +132,7 @@ class CompoundExecutor:
             output, metrics = execute_fn(guidance)
             success = True
             logger.info("Task completed successfully")
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             error_msg = str(e)
             output = f"Error: {error_msg}"
             metrics = {"error": error_msg}
@@ -161,7 +164,7 @@ class CompoundExecutor:
                 )
                 if pattern_path:
                     decision_paths.append(pattern_path)
-            except Exception as e:  # noqa: BLE001
+            except Exception as e:
                 logger.warning("Failed to extract pattern: %s", e, exc_info=True)
 
         return ExecutionResult(
@@ -194,13 +197,14 @@ class CompoundExecutor:
             Path to vault decision file
         """
         logger.info("Logging inflection point: %s", title)
-        return self.logger.log_decision_point(
+        result: str = self.logger.log_decision_point(
             project=project,
             title=title,
             context=context,
             decision=decision,
             rationale=rationale,
         )
+        return result
 
 
 class ExecutorFactory:

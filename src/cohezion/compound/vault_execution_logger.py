@@ -63,7 +63,7 @@ class VaultExecutionLogger:
                 query=task_description, project=project
             )
             return {"relevant_context": context}
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             logger.warning(
                 "Failed to fetch experience guidance: %s", e, exc_info=True
             )
@@ -87,9 +87,10 @@ class VaultExecutionLogger:
                 f"Using CompoundExecutor with operation type: {ctx.operation_type}. "
                 f"Task: {ctx.task_description}"
             )
-            title = f"{ctx.skill_name}_{ctx.operation_type}_{ctx.start_time.isoformat()}"
+            ts = ctx.start_time.isoformat()
+            title = f"{ctx.skill_name}_{ctx.operation_type}_{ts}"
 
-            result_path = self.mcp_client.vault_log_experiment(
+            result_path: str = self.mcp_client.vault_log_experiment(
                 project=ctx.project,
                 hypothesis=hypothesis,
                 method=method,
@@ -99,7 +100,7 @@ class VaultExecutionLogger:
             )
             logger.debug("Logged execution start: %s", result_path)
             return result_path
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             logger.error("Failed to log execution start: %s", e, exc_info=True)
             return ""
 
@@ -144,7 +145,7 @@ class VaultExecutionLogger:
 
             self.mcp_client.vault_edit(path=experiment_path, edits=edits)
             logger.debug("Updated experiment with results: %s", experiment_path)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             logger.warning("Failed to log execution result: %s", e, exc_info=True)
 
     def log_decision_point(
@@ -170,7 +171,7 @@ class VaultExecutionLogger:
             Decision file path
         """
         try:
-            result_path = self.mcp_client.vault_log_decision(
+            result_path: str = self.mcp_client.vault_log_decision(
                 project=project,
                 title=title,
                 context=context,
@@ -179,7 +180,7 @@ class VaultExecutionLogger:
             )
             logger.debug("Logged decision point: %s", result_path)
             return result_path
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             logger.error("Failed to log decision: %s", e, exc_info=True)
             return ""
 
@@ -206,7 +207,7 @@ class VaultExecutionLogger:
             Pattern file path
         """
         try:
-            result_path = self.mcp_client.vault_extract_pattern(
+            result_path: str = self.mcp_client.vault_extract_pattern(
                 source_path=source_path,
                 pattern_name=pattern_name,
                 description=description,
@@ -215,6 +216,6 @@ class VaultExecutionLogger:
             )
             logger.debug("Extracted pattern: %s", result_path)
             return result_path
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             logger.error("Failed to extract pattern: %s", e, exc_info=True)
             return ""
