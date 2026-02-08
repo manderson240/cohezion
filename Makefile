@@ -29,6 +29,22 @@ test-fast:  ## Run only fast unit tests (quick feedback)
 	uv run pytest -m fast --tb=short tests/
 	@echo "✓ Fast tests complete"
 
+test-routing:  ## Run smart routing optimization tests
+	uv run pytest tests/swarm/ tests/benchmarks/test_routing_performance.py -v --tb=short
+	@echo "✓ Routing tests complete"
+
+test-routing-unit:  ## Run routing unit tests only
+	uv run pytest tests/swarm/test_hardware_profiler.py tests/swarm/test_batch_optimizer.py tests/swarm/test_hardware_aware_router.py -v
+	@echo "✓ Routing unit tests complete"
+
+test-routing-integration:  ## Run routing integration tests
+	uv run pytest tests/swarm/test_routing_integration.py -v
+	@echo "✓ Routing integration tests complete"
+
+test-routing-benchmarks:  ## Run routing performance benchmarks
+	uv run pytest tests/benchmarks/test_routing_performance.py -v
+	@echo "✓ Routing benchmarks complete"
+
 all: format lint type-check test  ## Run all checks and tests
 
 clean:  ## Clean up cache files
