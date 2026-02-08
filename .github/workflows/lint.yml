@@ -18,10 +18,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install black ruff
+          pip install ruff mypy
 
-      - name: Run black
-        run: black --check .
+      - name: Run ruff format check
+        run: ruff format --check .
 
-      - name: Run ruff
+      - name: Run ruff linter
         run: ruff check .
+
+      - name: Run mypy
+        run: mypy --ignore-missing-imports bmad/ || true
