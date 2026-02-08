@@ -10,8 +10,12 @@ repos:
       # Run the linter
       - id: ruff
         args: [--fix]
+        exclude: ^bmad/
+        stages: [pre-commit]
       # Run the formatter
       - id: ruff-format
+        exclude: ^bmad/
+        stages: [pre-commit]
 
   # Type checking with mypy
   - repo: https://github.com/pre-commit/mirrors-mypy
@@ -19,16 +23,27 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies: []
-        args: [--ignore-missing-imports]
+        args: [--ignore-missing-imports, --exclude, "bmad/"]
+        exclude: ^bmad/
+        stages: [pre-commit]
 
   # General pre-commit hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
       - id: trailing-whitespace
+        exclude: ^bmad/
+        stages: [pre-commit]
       - id: end-of-file-fixer
+        exclude: ^bmad/
+        stages: [pre-commit]
       - id: check-yaml
+        exclude: ^bmad/
+        stages: [pre-commit]
       - id: check-added-large-files
         args: [--maxkb=1000]
+        stages: [pre-commit]
       - id: check-merge-conflict
+        stages: [pre-commit]
       - id: detect-private-key
+        stages: [pre-commit]
