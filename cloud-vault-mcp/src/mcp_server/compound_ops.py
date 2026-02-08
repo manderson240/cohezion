@@ -1,4 +1,7 @@
-"""Compound engineering operations: decisions, experiments, patterns, context retrieval."""
+"""Compound engineering operations.
+
+Decisions, experiments, patterns, context retrieval.
+"""
 
 import re
 from datetime import datetime, timezone
@@ -113,10 +116,10 @@ class CompoundOps:
     def find_relevant_context(
         self, query: str, project: str | None = None
     ) -> list[dict]:
-        """Search for prior decisions, patterns, and experiments relevant to current work.
+        """Search for prior decisions, patterns, and experiments.
 
-        Searches across decisions/, patterns/, experiments/, and concepts/ directories.
-        Optionally scoped to a specific project.
+        Searches across decisions/, patterns/, experiments/, and
+        concepts/ directories. Optionally scoped to a project.
         """
         results = {
             "decisions": [],

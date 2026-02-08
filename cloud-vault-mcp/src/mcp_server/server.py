@@ -106,7 +106,7 @@ def create_server(config: ServerConfig) -> FastMCP:
 
         Args:
             query: Search text (case-insensitive)
-            scope: 'all' (entire vault), 'folder' (specific folder), or 'tags' (tag search)
+            scope: 'all', 'folder', or 'tags'
             folder: Required when scope is 'folder'
         """
         results = vault.search(query, scope, folder)
@@ -169,7 +169,7 @@ def create_server(config: ServerConfig) -> FastMCP:
         Args:
             template_name: Name of template directory (e.g. 'decisions', 'experiments')
             target_path: Where to create the new note
-            variables: Dict of template variables to substitute (e.g. {'title': 'My Note', 'project': 'foo'})
+            variables: Template variable substitutions
         """
         try:
             return obsidian.create_from_template(template_name, target_path, variables)
@@ -255,19 +255,17 @@ def create_server(config: ServerConfig) -> FastMCP:
 
     @mcp.tool()
     def vault_find_relevant_context(query: str, project: str = "") -> str:
-        """Search for prior decisions, patterns, and experiments relevant to current work.
+        """Search for prior decisions, patterns, and experiments.
 
-        This is the primary 'compound engineering' tool — it searches across
-        decisions, patterns, experiments, concepts, and projects to find
-        prior context that's relevant to what you're working on now.
+        This is the primary 'compound engineering' tool. It searches
+        across decisions, patterns, experiments, concepts, and projects
+        to find prior context relevant to current work.
 
         Args:
-            query: What you're looking for (e.g. 'reward shaping', 'Docker deployment patterns')
+            query: What you're looking for
             project: Optional project name to scope the search
         """
-        results = compound.find_relevant_context(
-            query, project if project else None
-        )
+        results = compound.find_relevant_context(query, project if project else None)
         if not results:
             return "No relevant prior context found."
         return json.dumps(results, indent=2)

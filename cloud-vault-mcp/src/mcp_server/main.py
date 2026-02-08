@@ -1,7 +1,6 @@
 """Entry point for the Cloud Vault MCP Server."""
 
 import logging
-import sys
 
 from .config import ServerConfig
 from .server import create_server
