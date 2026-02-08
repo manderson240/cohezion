@@ -15,9 +15,10 @@ Severity levels:
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING
 
-from cohezion.compound.executor import ExecutionResult
+if TYPE_CHECKING:
+    from cohezion.compound.executor import ExecutionResult
 
 
 logger = logging.getLogger(__name__)
@@ -74,7 +75,7 @@ class InflectionDetector:
         self.token_history: list[int] = []  # Recent token consumption
         self.coherence_history: list[float] = []  # Recent coherence scores
 
-    def detect_anomaly(self, result: ExecutionResult) -> AnomalyDetection:
+    def detect_anomaly(self, result: "ExecutionResult") -> AnomalyDetection:
         """Detect anomalies in execution result.
 
         Args:
@@ -175,7 +176,7 @@ class InflectionDetector:
         )
 
     def _generate_recommendations(
-        self, result: ExecutionResult, issues: list[str], severity: Severity
+        self, result: "ExecutionResult", issues: list[str], severity: Severity
     ) -> list[str]:
         """Generate recommendations based on detected issues.
 
@@ -211,7 +212,7 @@ class InflectionDetector:
 
         return recommendations
 
-    def compute_quality_score(self, result: ExecutionResult) -> float:
+    def compute_quality_score(self, result: "ExecutionResult") -> float:
         """Compute overall quality score (0.0-1.0).
 
         Combines:
@@ -246,7 +247,7 @@ class InflectionDetector:
 
         return round(score, 4)
 
-    def detect_critical(self, result: ExecutionResult) -> bool:
+    def detect_critical(self, result: "ExecutionResult") -> bool:
         """Quick check for critical severity (convenience method).
 
         Args:

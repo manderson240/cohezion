@@ -14,7 +14,7 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from cohezion.compound.vault_execution_logger import (
     ExecutionContext,
@@ -22,6 +22,12 @@ from cohezion.compound.vault_execution_logger import (
 )
 from cohezion.core.mcp_client import MCPClient
 from cohezion.security.guardrail_pipeline import GuardrailAction, GuardrailPipeline
+
+if TYPE_CHECKING:
+    from cohezion.compound.inflection_detector import InflectionDetector
+else:
+    # Lazy import to avoid circular dependency at runtime
+    InflectionDetector = None
 
 
 logger = logging.getLogger(__name__)
@@ -79,6 +85,7 @@ class CompoundExecutor:
         token_client: Any | None = None,
         guardrail_pipeline: GuardrailPipeline | None = None,
         enable_guardrails: bool = True,
+        inflection_detector: Any | None = None,
     ):
         """Initialize compound executor.
 
@@ -91,11 +98,19 @@ class CompoundExecutor:
                 If None and enable_guardrails is False, no guardrails applied.
             enable_guardrails: If True (default), enable guardrails via default
                 pipeline (unless guardrail_pipeline is provided).
+            inflection_detector: Optional InflectionDetector for anomaly detection.
+                If None, creates default detector automatically.
         """
         self.mcp_client = mcp_client
         self.token_client = token_client
         self._guardrail_pipeline = guardrail_pipeline
         self._enable_guardrails = enable_guardrails
+        # Lazy import to avoid circular dependency
+        if inflection_detector:
+            self.inflection_detector = inflection_detector
+        else:
+            from cohezion.compound.inflection_detector import InflectionDetectorFactory
+            self.inflection_detector = InflectionDetectorFactory.create_default()
         self.logger = VaultExecutionLogger(mcp_client)
 
     @property
@@ -281,8 +296,52 @@ class CompoundExecutor:
             metrics=metrics,
         )
 
-        # Step 5: If successful, extract patterns
+        # Step 5: Detect anomalies (non-blocking)
         decision_paths = []
+        try:
+            from cohezion.compound.inflection_detector import Severity
+            temp_result = ExecutionResult(
+                success=success,
+                output=output,
+                metrics=metrics,
+                duration_seconds=duration_seconds,
+                token_metrics=token_metrics,
+            )
+            anomaly = self.inflection_detector.detect_anomaly(temp_result)
+            metrics["anomaly_severity"] = anomaly.severity.value
+            metrics["anomaly_score"] = anomaly.score
+            logger.debug(
+                "Anomaly detection: severity=%s, score=%.2f, issues=%s",
+                anomaly.severity.value,
+                anomaly.score,
+                anomaly.issues,
+            )
+            # Log critical inflection points to vault
+            if anomaly.severity == Severity.CRITICAL:
+                logger.warning(
+                    "Critical inflection point detected: %s issues",
+                    len(anomaly.issues),
+                )
+                try:
+                    decision_path = self.log_inflection_point(
+                        title=f"Critical anomaly in {skill_name}",
+                        context=f"Task: {task_description}\nIssues: {'; '.join(anomaly.issues)}",
+                        decision="Re-execution recommended",
+                        rationale=f"Quality score {anomaly.score:.2f}, {anomaly.recommendations[0] if anomaly.recommendations else 'Investigate issues'}",
+                        project=project,
+                    )
+                    if decision_path:
+                        decision_paths.append(decision_path)
+                except Exception as e:
+                    logger.debug(
+                        "Failed to log inflection point (non-blocking): %s", e
+                    )
+        except Exception as e:
+            logger.debug(
+                "Anomaly detection failed (non-blocking): %s", e, exc_info=True
+            )
+
+        # Step 6: If successful, extract patterns
         if success and experiment_path:
             try:
                 pattern_path = self.logger.extract_execution_pattern(
@@ -393,6 +452,7 @@ class ExecutorFactory:
         token_client: Any | None = None,
         guardrail_pipeline: GuardrailPipeline | None = None,
         enable_guardrails: bool = True,
+        inflection_detector: Any | None = None,
     ) -> CompoundExecutor:
         """Create a new compound executor.
 
@@ -401,6 +461,7 @@ class ExecutorFactory:
             token_client: Optional TokenEfficientClient for token-efficient operations
             guardrail_pipeline: Optional GuardrailPipeline for safety checks
             enable_guardrails: If True (default), enable guardrails
+            inflection_detector: Optional InflectionDetector for anomaly detection
 
         Returns:
             CompoundExecutor instance
@@ -410,6 +471,7 @@ class ExecutorFactory:
             token_client,
             guardrail_pipeline,
             enable_guardrails,
+            inflection_detector,
         )
 
     @staticmethod
@@ -418,6 +480,7 @@ class ExecutorFactory:
         token_client: Any | None = None,
         guardrail_pipeline: GuardrailPipeline | None = None,
         enable_guardrails: bool = True,
+        inflection_detector: Any | None = None,
     ) -> CompoundExecutor:
         """Get or create singleton executor.
 
@@ -426,6 +489,7 @@ class ExecutorFactory:
             token_client: Optional TokenEfficientClient for token-efficient operations
             guardrail_pipeline: Optional GuardrailPipeline for safety checks
             enable_guardrails: If True (default), enable guardrails
+            inflection_detector: Optional InflectionDetector for anomaly detection
 
         Returns:
             Singleton CompoundExecutor instance
@@ -436,6 +500,7 @@ class ExecutorFactory:
                 token_client,
                 guardrail_pipeline,
                 enable_guardrails,
+                inflection_detector,
             )
         return ExecutorFactory._instance
 
