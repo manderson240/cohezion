@@ -20,6 +20,7 @@ import asyncio
 import sys
 from pathlib import Path
 
+
 # Add src to path for local development
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
@@ -54,7 +55,9 @@ async def main() -> None:
     ]
 
     # Mock the generate method to simulate Ollama responses
-    async def mock_generate(prompt: str, model: str, system: str = "", num_predict: int = 256):
+    async def mock_generate(
+        prompt: str, model: str, system: str = "", num_predict: int = 256
+    ):
         """Simulate Ollama response."""
         await asyncio.sleep(0.05)  # Simulate API latency
         # Return different token counts based on prompt length
@@ -67,22 +70,42 @@ async def main() -> None:
     try:
         # Prime cache
         for prompt in popular_prompts:
-            await client.generate(prompt=prompt, model="phi3:mini", system="You are helpful")
+            await client.generate(
+                prompt=prompt, model="phi3:mini", system="You are helpful"
+            )
             print(f"  ✓ Cached: {prompt[:40]}...")
 
         print(f"\n  Cache now contains {len(client.batch_processor.cache)} entries")
 
         # Now create batch items that will mostly hit the cache
         print("\n📝 Creating batch items (8 items, reusing cached prompts):")
+        system_prompt = "You are helpful"
+        model = "phi3:mini"
         items = [
-            BatchItem(id="1", prompt="Explain quantum computing", system="You are helpful", model="phi3:mini"),
-            BatchItem(id="2", prompt="What is machine learning?", system="You are helpful", model="phi3:mini"),
-            BatchItem(id="3", prompt="Explain quantum computing", system="You are helpful", model="phi3:mini"),
-            BatchItem(id="4", prompt="Define artificial intelligence", system="You are helpful", model="phi3:mini"),
-            BatchItem(id="5", prompt="What is machine learning?", system="You are helpful", model="phi3:mini"),
-            BatchItem(id="6", prompt="Explain quantum computing", system="You are helpful", model="phi3:mini"),
-            BatchItem(id="7", prompt="Define artificial intelligence", system="You are helpful", model="phi3:mini"),
-            BatchItem(id="8", prompt="What is deep learning?", system="You are helpful", model="phi3:mini"),
+            BatchItem(
+                id="1", prompt="Explain quantum computing", system=system_prompt, model=model
+            ),
+            BatchItem(
+                id="2", prompt="What is machine learning?", system=system_prompt, model=model
+            ),
+            BatchItem(
+                id="3", prompt="Explain quantum computing", system=system_prompt, model=model
+            ),
+            BatchItem(
+                id="4", prompt="Define artificial intelligence", system=system_prompt, model=model
+            ),
+            BatchItem(
+                id="5", prompt="What is machine learning?", system=system_prompt, model=model
+            ),
+            BatchItem(
+                id="6", prompt="Explain quantum computing", system=system_prompt, model=model
+            ),
+            BatchItem(
+                id="7", prompt="Define artificial intelligence", system=system_prompt, model=model
+            ),
+            BatchItem(
+                id="8", prompt="What is deep learning?", system=system_prompt, model=model
+            ),
         ]
 
         seen = set()
@@ -99,7 +122,7 @@ async def main() -> None:
 
         # Display results
         print("\n✅ Batch Processing Complete!")
-        print(f"\n📈 Results:")
+        print("\n📈 Results:")
         print(f"  Total items: {len(result.items)}")
         print(f"  Cache hits: {result.cache_hits} ({100*result.cache_hit_rate:.1f}%)")
         print(f"  Cache misses: {result.cache_misses}")
@@ -109,14 +132,14 @@ async def main() -> None:
         print(f"  Total duration: {result.total_duration_ms:.1f}ms")
 
         # Show per-item results
-        print(f"\n📋 Per-Item Results:")
+        print("\n📋 Per-Item Results:")
         for item in result.items:
             status = "✓ CACHE HIT" if item.cached else "→ API CALL"
             print(f"  [{status}] {item.id}: {item.tokens_used} tokens")
 
         # Display client metrics
         metrics = client.get_metrics()
-        print(f"\n📊 Token Efficiency Metrics:")
+        print("\n📊 Token Efficiency Metrics:")
         print(f"  Cache hit rate: {metrics['cache_hit_rate']*100:.1f}%")
         print(f"  Total operations: {metrics['total_operations']}")
         print(f"  API calls made: {metrics['api_calls']}")
@@ -125,7 +148,7 @@ async def main() -> None:
 
         # Show cache statistics
         cache_stats = client.batch_processor.cache_stats()
-        print(f"\n💾 Cache Statistics:")
+        print("\n💾 Cache Statistics:")
         print(f"  Cache size: {cache_stats['cache_size']} entries")
         print(f"  Max size: {cache_stats['max_cache_size']}")
         print(f"  Enabled: {cache_stats['cache_enabled']}")
