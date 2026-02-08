@@ -10,6 +10,7 @@ from .config import ServerConfig
 from .obsidian_ops import ObsidianOps
 from .vault_ops import VaultOps
 
+
 logger = logging.getLogger(__name__)
 
 
