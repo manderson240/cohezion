@@ -10,21 +10,18 @@ Tests verify:
 - >80% target hit rates
 """
 
+
 import pytest
-from pathlib import Path
-from unittest.mock import patch
 
 from cohezion.swarm.multi_layer_cache import (
-    SemanticCacheStore,
     ContextPoolManager,
     KVCacheOptimizer,
     MultiLayerCache,
-    CacheEntry,
-    ContextPoolEntry,
+    SemanticCacheStore,
 )
 from cohezion.swarm.token_cache_optimizer import (
-    TokenCacheOptimizer,
     CacheOptimizationConfig,
+    TokenCacheOptimizer,
     get_token_cache_optimizer,
 )
 
