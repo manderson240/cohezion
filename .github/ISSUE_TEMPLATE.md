@@ -32,8 +32,3 @@ If this is a bug report, please describe the expected behavior.
 If this is a bug report, please describe the actual behavior.
 -->
 
-### BMad Method Context
-
-<!--
-If this issue is related to the BMad Method, please provide any relevant context. (e.g., the workflow you were using, the agent you were interacting with, etc.)
--->
