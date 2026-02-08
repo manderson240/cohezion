@@ -196,7 +196,6 @@ class TestFallback:
     """Verify fallback behavior when selector fails."""
 
     @pytest.mark.asyncio
-@pytest.mark.skip(reason="RoutingRequest imported inside function")
     async def test_fallback_on_import_error(self):
         """Verify adapter falls back to phi3:mini on import error."""
         with patch(
