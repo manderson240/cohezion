@@ -176,6 +176,53 @@ class CompoundExecutor:
         )
         return result
 
+    def suggest_skills(
+        self,
+        task_description: str,
+        operation_type: str,
+        project: str = "cohezion",
+        top_k: int = 3,
+    ) -> list[tuple[str, float]]:
+        """Suggest best skills for a task using vault experience.
+
+        Queries vault patterns to find skills that performed well on
+        similar tasks. Returns ranked list of candidates.
+
+        Args:
+            task_description: Description of the task
+            operation_type: Type of operation (generate, analyze, etc.)
+            project: Project name for scoped search
+            top_k: Number of skill suggestions to return
+
+        Returns:
+            List of (skill_name, score) tuples, sorted by score (highest first)
+        """
+        try:
+            from cohezion.compound.skill_selector import SkillSelector
+
+            selector = SkillSelector(self.mcp_client)
+            suggestions = selector.select_skills(
+                task_description,
+                operation_type,
+                project=project,
+                top_k=top_k,
+            )
+
+            logger.info(
+                "Suggested %d skills for task: %s",
+                len(suggestions),
+                ", ".join(s.skill_name for s in suggestions),
+            )
+
+            return [(s.skill_name, s.composite_score) for s in suggestions]
+        except Exception as e:
+            logger.warning(
+                "Error suggesting skills: %s. Returning empty list.",
+                e,
+                exc_info=True,
+            )
+            return []
+
     def execute_task(
         self,
         task_description: str,
