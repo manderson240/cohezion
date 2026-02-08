@@ -12,7 +12,7 @@ import hashlib
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, cast
+from typing import Any
 
 import numpy as np
 
@@ -223,9 +223,9 @@ class SemanticCache:
         if len(self.l2_cache) >= self.max_l2_size:
             # Evict least frequently used
             if self.l2_lfu_counts:
-                lfu_key = cast(str, min(
-                    self.l2_lfu_counts, key=self.l2_lfu_counts.get
-                ))
+                # Get minimum based on usage count
+                get_fn = self.l2_lfu_counts.get
+                lfu_key = min(self.l2_lfu_counts, key=get_fn)  # type: ignore
                 del self.l2_cache[lfu_key]
                 del self.l2_lfu_counts[lfu_key]
 
