@@ -20,6 +20,7 @@ from cohezion.compound.session_manager import (
     list_sessions,
 )
 
+
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/inference", tags=["streaming"])
 
@@ -95,8 +96,8 @@ async def stream_inference(request: StreamingInferenceRequest):
     except Exception as e:
         logger.exception("Stream inference failed")
         raise HTTPException(
-            status_code=500, detail=f"Streaming inference failed: {str(e)}"
-        )
+            status_code=500, detail=f"Streaming inference failed: {e!s}"
+        ) from e
 
 
 @router.post("/resume/{session_id}")

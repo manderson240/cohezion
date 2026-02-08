@@ -16,6 +16,7 @@ from typing import Any
 
 import numpy as np
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -222,7 +223,9 @@ class SemanticCache:
         if len(self.l2_cache) >= self.max_l2_size:
             # Evict least frequently used
             if self.l2_lfu_counts:
-                lfu_key = min(self.l2_lfu_counts, key=self.l2_lfu_counts.get)
+                lfu_key: str = min(
+                    self.l2_lfu_counts, key=self.l2_lfu_counts.get
+                )
                 del self.l2_cache[lfu_key]
                 del self.l2_lfu_counts[lfu_key]
 
