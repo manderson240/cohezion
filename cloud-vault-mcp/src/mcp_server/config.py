@@ -18,6 +18,9 @@ class ServerConfig:
         default_factory=lambda: os.environ.get("CORS_ORIGINS", "*").split(",")
     )
     log_level: str = field(default_factory=lambda: os.environ.get("LOG_LEVEL", "info"))
+    googlesql_url: str = field(
+        default_factory=lambda: os.environ.get("GOOGLESQL_URL", "http://localhost:8370")
+    )
 
     @classmethod
     def from_env(cls) -> "ServerConfig":
