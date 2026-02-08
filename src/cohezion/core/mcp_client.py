@@ -11,6 +11,7 @@ from typing import Any
 
 import httpx
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -137,7 +138,9 @@ class MCPClient:
                     result = _parse_sse_response(response.text)
                     if "error" in result:
                         error_msg = result["error"].get("message", "Unknown error")
-                        raise MCPConnectionError(f"Session initialization failed: {error_msg}")
+                        raise MCPConnectionError(
+                            f"Session initialization failed: {error_msg}"
+                        )
                 except ValueError as e:
                     logger.warning(f"Could not parse SSE response: {e}")
                     # Session ID in header is sufficient for success
@@ -178,7 +181,12 @@ class MCPClient:
         if self._client is None or self._session_id is None:
             raise MCPConnectionError("Client not connected. Call connect() first.")
 
-        payload = {"jsonrpc": "2.0", "method": "tools/call", "params": {"name": tool_name, "arguments": arguments}, "id": 1}
+        payload = {
+            "jsonrpc": "2.0",
+            "method": "tools/call",
+            "params": {"name": tool_name, "arguments": arguments},
+            "id": 1,
+        }
 
         # Add session ID to headers
         headers = {"mcp-session-id": self._session_id}
@@ -224,7 +232,8 @@ class MCPClient:
                 )
 
         raise MCPConnectionError(
-            f"Failed to call tool '{tool_name}' after {self.config.max_retries} attempts: {last_error}"
+            f"Failed to call tool '{tool_name}' after "
+            f"{self.config.max_retries} attempts: {last_error}"
         ) from last_error
 
     # ── Vault Operations ────────────────────────────────────────────────
@@ -415,7 +424,11 @@ class MCPClient:
         """
         return self._call_tool(
             "vault_create_from_template",
-            {"template_name": template_name, "target_path": target_path, "variables": variables},
+            {
+                "template_name": template_name,
+                "target_path": target_path,
+                "variables": variables,
+            },
         )
 
     # ── Compound Operations ─────────────────────────────────────────────

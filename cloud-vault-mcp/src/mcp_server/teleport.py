@@ -142,9 +142,7 @@ assigned_to: {task.get("assigned_to", "")}
         try:
             content = self._vault.read(result_path)
         except FileNotFoundError as err:
-            raise FileNotFoundError(
-                f"No result found for task {task_id}"
-            ) from err
+            raise FileNotFoundError(f"No result found for task {task_id}") from err
 
         # Parse frontmatter
         metadata = {}
