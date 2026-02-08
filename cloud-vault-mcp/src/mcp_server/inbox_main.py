@@ -11,6 +11,7 @@ from .obsidian_ops import ObsidianOps
 from .vault_ops import VaultOps
 from .vault_watcher import VaultFileWatcher
 
+
 logger = logging.getLogger("inbox-processor")
 
 
@@ -34,9 +35,7 @@ async def run_inbox_daemon(config: ServerConfig):
         return
 
     client = anthropic.Anthropic(api_key=config.anthropic_api_key)
-    processor = InboxProcessor(
-        vault, compound, client, model=config.inbox_model
-    )
+    processor = InboxProcessor(vault, compound, client, model=config.inbox_model)
 
     loop = asyncio.get_running_loop()
     watcher = VaultFileWatcher(
@@ -45,9 +44,7 @@ async def run_inbox_daemon(config: ServerConfig):
     queue = watcher.subscribe()
     watcher.start()
 
-    logger.info(
-        "Inbox processor daemon started, watching %s/inbox/", config.vault_path
-    )
+    logger.info("Inbox processor daemon started, watching %s/inbox/", config.vault_path)
 
     shutdown = asyncio.Event()
 
@@ -62,7 +59,7 @@ async def run_inbox_daemon(config: ServerConfig):
         while not shutdown.is_set():
             try:
                 event = await asyncio.wait_for(queue.get(), timeout=1.0)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 continue
 
             if event.event_type in (
@@ -75,9 +72,7 @@ async def run_inbox_daemon(config: ServerConfig):
                     if result.success:
                         logger.info("Filed: %s -> %s", result.source, result.target)
                     else:
-                        logger.warning(
-                            "Failed: %s -- %s", result.source, result.error
-                        )
+                        logger.warning("Failed: %s -- %s", result.source, result.error)
                 except Exception:
                     logger.exception("Unexpected error processing %s", event.path)
     finally:

@@ -62,6 +62,9 @@ select = [
 "src/mcp_server/config.py" = [
     "S104",  # Allow binding to all interfaces (0.0.0.0) for server config
 ]
+"src/mcp_server/inbox_processor.py" = [
+    "E501",  # Long lines in prompt string constants are intentional
+]
 
 # Import sorting configuration
 [tool.ruff.lint.isort]

@@ -6,9 +6,11 @@ import threading
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import ClassVar
 
 from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
+
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +36,7 @@ class VaultEvent:
 class VaultFileWatcher:
     """Watch vault directory for changes, debounce, and fan-out to async subscribers."""
 
-    EXCLUDED = {
+    EXCLUDED: ClassVar[set[str]] = {
         ".obsidian",
         ".git",
         ".locks",
@@ -106,15 +108,11 @@ class VaultFileWatcher:
                 return True
 
         # Only watch .md files
-        if path.is_file() or not path.exists():
-            if path.suffix != ".md":
-                return True
-
-        # Skip template files
-        if path.name == "_template.md":
+        if (path.is_file() or not path.exists()) and path.suffix != ".md":
             return True
 
-        return False
+        # Skip template files
+        return path.name == "_template.md"
 
     def _on_event(
         self, event_type: str, src_path: str, dest_path: str | None = None
@@ -157,9 +155,7 @@ class VaultFileWatcher:
             self._timers[key] = timer
             timer.start()
 
-    def _emit_event(
-        self, event_type: str, path: str, old_path: str | None
-    ) -> None:
+    def _emit_event(self, event_type: str, path: str, old_path: str | None) -> None:
         """Emit event to all subscribers (called after debounce)."""
         event = VaultEvent(event_type=event_type, path=path, old_path=old_path)
 

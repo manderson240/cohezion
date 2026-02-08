@@ -1,11 +1,15 @@
 """Vault Memory Bridge — sync session state between Claude instances via vault."""
 
+import contextlib
 import logging
 import re
 import uuid
 from datetime import UTC, datetime
 
+import yaml
+
 from .vault_ops import VaultOps
+
 
 logger = logging.getLogger(__name__)
 
@@ -230,12 +234,8 @@ _Last synced: {date}_
         if content.startswith("---"):
             end = content.find("---", 3)
             if end != -1:
-                import yaml
-
-                try:
+                with contextlib.suppress(Exception):
                     result = yaml.safe_load(content[3:end]) or {}
-                except Exception:
-                    pass
         return result
 
     def _slugify(self, text: str) -> str:

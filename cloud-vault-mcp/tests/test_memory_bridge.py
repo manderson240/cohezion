@@ -44,9 +44,7 @@ class TestPushSessionState:
         assert "- Update docs" in content
 
     def test_push_session_state_no_tasks(self, bridge, vault):
-        path = bridge.push_session_state(
-            branch="dev", test_status="ok", phase="test"
-        )
+        path = bridge.push_session_state(branch="dev", test_status="ok", phase="test")
         content = vault.read(path)
         assert "No active tasks recorded" in content
 

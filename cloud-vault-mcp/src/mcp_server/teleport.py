@@ -1,5 +1,6 @@
 """Cloud Teleport Protocol — file-based task delegation between Claude instances."""
 
+import contextlib
 import logging
 import uuid
 from datetime import UTC, datetime
@@ -7,6 +8,7 @@ from datetime import UTC, datetime
 import yaml
 
 from .vault_ops import VaultOps
+
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +82,9 @@ class CloudTeleportProtocol:
         task = self._read_task(task_id)
 
         if task["status"] != "pending":
-            raise ValueError(f"Task {task_id} is not pending (status: {task['status']})")
+            raise ValueError(
+                f"Task {task_id} is not pending (status: {task['status']})"
+            )
 
         task["status"] = "in_progress"
         task["assigned_to"] = assigned_to
@@ -105,11 +109,11 @@ class CloudTeleportProtocol:
         # Write result
         result_content = f"""---
 task_id: {task_id}
-title: {task.get('title', '')}
-completed_at: {task['updated_at']}
-assigned_to: {task.get('assigned_to', '')}
+title: {task.get("title", "")}
+completed_at: {task["updated_at"]}
+assigned_to: {task.get("assigned_to", "")}
 ---
-# Result: {task.get('title', '')}
+# Result: {task.get("title", "")}
 
 {result}
 """
@@ -137,8 +141,10 @@ assigned_to: {task.get('assigned_to', '')}
         result_path = f"teleport/results/{task_id}.md"
         try:
             content = self._vault.read(result_path)
-        except FileNotFoundError:
-            raise FileNotFoundError(f"No result found for task {task_id}")
+        except FileNotFoundError as err:
+            raise FileNotFoundError(
+                f"No result found for task {task_id}"
+            ) from err
 
         # Parse frontmatter
         metadata = {}
@@ -146,10 +152,8 @@ assigned_to: {task.get('assigned_to', '')}
         if content.startswith("---"):
             end = content.find("---", 3)
             if end != -1:
-                try:
+                with contextlib.suppress(yaml.YAMLError):
                     metadata = yaml.safe_load(content[3:end]) or {}
-                except yaml.YAMLError:
-                    pass
                 body = content[end + 3 :].strip()
 
         return {
@@ -168,10 +172,8 @@ assigned_to: {task.get('assigned_to', '')}
         if content.startswith("---"):
             end = content.find("---", 3)
             if end != -1:
-                try:
+                with contextlib.suppress(yaml.YAMLError):
                     metadata = yaml.safe_load(content[3:end]) or {}
-                except yaml.YAMLError:
-                    pass
                 body = content[end + 3 :].strip()
 
         metadata["_body"] = body

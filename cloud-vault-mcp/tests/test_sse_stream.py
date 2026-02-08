@@ -3,8 +3,6 @@
 import asyncio
 import json
 
-import pytest
-
 from mcp_server.sse_stream import VaultEventStream
 from mcp_server.vault_watcher import VaultEvent
 
@@ -53,7 +51,7 @@ class TestVaultEventStream:
 
         assert lines[0] == "event: created"
         assert lines[1].startswith("data: ")
-        data = json.loads(lines[1][len("data: "):])
+        data = json.loads(lines[1][len("data: ") :])
         assert data["event_type"] == "created"
         assert data["path"] == "inbox/test.md"
 
@@ -116,9 +114,7 @@ class TestVaultEventStream:
         assert watcher.subscriber_count == 1
 
         # Push one event so generator advances past the first await
-        await watcher.push_event(
-            VaultEvent(event_type="created", path="test.md")
-        )
+        await watcher.push_event(VaultEvent(event_type="created", path="test.md"))
         await asyncio.wait_for(gen.__anext__(), timeout=3.0)
 
         # Close the generator
@@ -161,7 +157,7 @@ class TestVaultEventStream:
         chunk = await asyncio.wait_for(gen.__anext__(), timeout=3.0)
         lines = chunk.strip().split("\n")
         assert lines[0] == "event: moved"
-        data = json.loads(lines[1][len("data: "):])
+        data = json.loads(lines[1][len("data: ") :])
         assert data["old_path"] == "inbox/original.md"
         assert data["path"] == "decisions/renamed.md"
 

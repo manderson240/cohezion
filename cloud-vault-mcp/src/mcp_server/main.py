@@ -43,12 +43,8 @@ def main():
     if config.watcher_enabled:
         # Create watcher and SSE stream
         loop = asyncio.new_event_loop()
-        watcher = VaultFileWatcher(
-            config.vault_path, loop, debounce_seconds=0.5
-        )
-        sse = VaultEventStream(
-            watcher, heartbeat_seconds=config.sse_heartbeat_seconds
-        )
+        watcher = VaultFileWatcher(config.vault_path, loop, debounce_seconds=0.5)
+        sse = VaultEventStream(watcher, heartbeat_seconds=config.sse_heartbeat_seconds)
 
         @asynccontextmanager
         async def lifespan(app):

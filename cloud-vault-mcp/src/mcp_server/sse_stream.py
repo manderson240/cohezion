@@ -9,6 +9,7 @@ from starlette.responses import StreamingResponse
 
 from .vault_watcher import VaultFileWatcher
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -32,7 +33,7 @@ class VaultEventStream:
                         )
                         data = json.dumps(event.to_dict())
                         yield f"event: {event.event_type}\ndata: {data}\n\n"
-                    except asyncio.TimeoutError:
+                    except TimeoutError:
                         yield ": heartbeat\n\n"
             except asyncio.CancelledError:
                 pass
