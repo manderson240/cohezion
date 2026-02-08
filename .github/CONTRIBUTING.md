@@ -23,19 +23,19 @@ To contribute to Cohezion, please follow these steps:
 ### Prerequisites
 
 - Python 3.11 or higher
-- pip or uv for package management
+- [uv](https://docs.astral.sh/uv/) for package management
 
 ### Initial Setup
 
 1. Clone the repository
 2. Install dependencies:
    ```bash
-   pip install -e .
+   uv pip install -e .
    ```
 
 3. Install development tools:
    ```bash
-   pip install ruff mypy pytest pre-commit
+   uv pip install ruff mypy pytest pre-commit
    ```
 
 4. Set up pre-commit hooks (optional but recommended):
