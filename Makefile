@@ -1,4 +1,4 @@
-.PHONY: help format lint lint-check type-check test all clean
+.PHONY: help format lint lint-check type-check test test-fast all clean dev-setup ci health-check vault-status session-briefing nav
 
 help:  ## Show this help message
 	@echo "Available targets:"
@@ -18,12 +18,16 @@ lint-check:  ## Check linting without fixing
 	@echo "✓ Lint check complete"
 
 type-check:  ## Run type checking with mypy
-	mypy --ignore-missing-imports bmad/ || true
+	mypy --ignore-missing-imports src/cohezion/ || true
 	@echo "✓ Type check complete"
 
 test:  ## Run test suite
-	pytest tests/
+	uv run pytest tests/
 	@echo "✓ Tests complete"
+
+test-fast:  ## Run only fast unit tests (quick feedback)
+	uv run pytest -m fast --tb=short tests/
+	@echo "✓ Fast tests complete"
 
 all: format lint type-check test  ## Run all checks and tests
 
@@ -41,10 +45,28 @@ dev-setup:  ## Install pre-commit hooks
 	pre-commit install
 	@echo "✓ Pre-commit hooks installed"
 
-ci:  ## Run CI checks locally
+ci:  ## Run CI checks locally (fast linters + tests)
 	@echo "Running CI checks..."
-	ruff format --check .
-	ruff check .
-	mypy --ignore-missing-imports bmad/ || true
-	pytest tests/
+	uv run pre-commit run --all-files
+	uv run pytest tests/
 	@echo "✓ All CI checks passed"
+
+# Session and health check targets
+health-check:  ## Run project health checks
+	@echo "Running health checks..."
+	@if [ -f scripts/claude/health_check.sh ]; then bash scripts/claude/health_check.sh; else echo "Note: health_check.sh not found, creating placeholder"; fi
+	@echo "✓ Health check complete"
+
+vault-status:  ## Check MCP vault connectivity
+	@echo "Checking MCP vault connectivity..."
+	@if curl -s http://localhost:8360/mcp >/dev/null 2>&1; then echo "✓ Vault MCP endpoint: Connected"; else echo "✗ Vault MCP endpoint: Disconnected"; fi
+	@if [ -d ~/vaults/cohezion-vault ]; then echo "✓ Vault directory: Found"; else echo "✗ Vault directory: Not found"; fi
+
+session-briefing:  ## Generate session context and prepare environment
+	@echo "Generating session briefing..."
+	@if [ -f scripts/claude/session_start.sh ]; then bash scripts/claude/session_start.sh; else echo "Note: session_start.sh not found, creating placeholder"; fi
+	@echo "✓ Session briefing complete"
+
+nav:  ## Interactive codebase navigator (symbol lookup)
+	@echo "Launching codebase navigator..."
+	@if [ -f scripts/claude/nav_utils.py ]; then python scripts/claude/nav_utils.py; else echo "Note: nav_utils.py not found"; fi

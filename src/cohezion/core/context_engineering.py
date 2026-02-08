@@ -5,9 +5,11 @@ Cloud Vault MCP Server integration for persistent knowledge storage.
 """
 
 import logging
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from cohezion.core.mcp_client import MCPClient, create_mcp_client
+
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +61,9 @@ class ContextEngineeringInfrastructure:
         if self._mcp_client is None:
             return
 
+        # Capture in local var for closure type narrowing
+        client = self._mcp_client
+
         # Register log_decision tool
         def log_decision(
             project: str,
@@ -81,7 +86,7 @@ class ContextEngineeringInfrastructure:
             Returns:
                 Path to created decision record
             """
-            return self._mcp_client.vault_log_decision(
+            return client.vault_log_decision(  # type: ignore[no-any-return]
                 project=project,
                 title=title,
                 context=context,
@@ -112,7 +117,7 @@ class ContextEngineeringInfrastructure:
             Returns:
                 Path to created experiment log
             """
-            return self._mcp_client.vault_log_experiment(
+            return client.vault_log_experiment(  # type: ignore[no-any-return]
                 project=project,
                 hypothesis=hypothesis,
                 method=method,
@@ -141,7 +146,7 @@ class ContextEngineeringInfrastructure:
             Returns:
                 Path to created pattern document
             """
-            return self._mcp_client.vault_extract_pattern(
+            return client.vault_extract_pattern(  # type: ignore[no-any-return]
                 source_path=source_path,
                 pattern_name=pattern_name,
                 description=description,
@@ -164,7 +169,7 @@ class ContextEngineeringInfrastructure:
             Returns:
                 List of relevant context with path, category, match_count
             """
-            return self._mcp_client.vault_find_relevant_context(
+            return client.vault_find_relevant_context(  # type: ignore[no-any-return]
                 query=query, project=project
             )
 

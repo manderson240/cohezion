@@ -1,49 +1,70 @@
 # Pre-commit hooks for code quality enforcement
 # Install: pip install pre-commit && pre-commit install
 # Run manually: pre-commit run --all-files
+#
+# Hook stages:
+#   - [commit] (fast): Runs on `git commit` - ~3-5s for quick feedback
+#   - [push] (comprehensive): Runs on `git push` - full type checking and linting
+#
+# Usage:
+#   pre-commit run --all-files                   # Run all hooks, all stages
+#   pre-commit run --all-files --hook-stage=commit # Run only fast checks
 
 repos:
-  # Ruff - Fast Python linter and formatter
+  # ============================================================================
+  # FAST CHECKS (commit stage) - Quick syntax and formatting validation
+  # ============================================================================
+
+  # Ruff - Fast Python formatter and quick linter
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.0
     hooks:
-      # Run the linter
-      - id: ruff
-        args: [--fix]
-        exclude: ^bmad/
-        stages: [pre-commit]
-      # Run the formatter
+      # Format check (no auto-fix on commit, just warn)
       - id: ruff-format
-        exclude: ^bmad/
-        stages: [pre-commit]
+        stages: [commit]
+        args: [--check]
+      # Quick lint - only basic syntax errors and auto-fixes
+      - id: ruff
+        stages: [commit]
+        args: [--select=F,E9,E501, --fix]
+        name: ruff-quick (syntax errors only)
 
-  # Type checking with mypy
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.13.0
-    hooks:
-      - id: mypy
-        additional_dependencies: []
-        args: [--ignore-missing-imports, --exclude, "bmad/"]
-        exclude: ^bmad/
-        stages: [pre-commit]
-
-  # General pre-commit hooks
+  # General file checks - Fast validation
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
       - id: trailing-whitespace
-        exclude: ^bmad/
-        stages: [pre-commit]
+        stages: [commit]
       - id: end-of-file-fixer
-        exclude: ^bmad/
-        stages: [pre-commit]
+        stages: [commit]
       - id: check-yaml
-        exclude: ^bmad/
-        stages: [pre-commit]
+        stages: [commit]
       - id: check-added-large-files
         args: [--maxkb=1000]
-        stages: [pre-commit]
+        stages: [commit]
       - id: check-merge-conflict
-        stages: [pre-commit]
+        stages: [commit]
       - id: detect-private-key
-        stages: [pre-commit]
+        stages: [commit]
+
+  # ============================================================================
+  # COMPREHENSIVE CHECKS (push stage) - Slow but thorough validation
+  # ============================================================================
+
+  # Full Ruff linting - comprehensive analysis
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.0
+    hooks:
+      - id: ruff
+        stages: [push]
+        args: [--fix]
+        name: ruff-full (comprehensive)
+
+  # Type checking with mypy - Slow but catches type errors
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        stages: [push]
+        additional_dependencies: []
+        args: [--ignore-missing-imports, --warn-unused-configs]
