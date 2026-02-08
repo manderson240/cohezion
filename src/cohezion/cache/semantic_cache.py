@@ -151,7 +151,7 @@ class SemanticCache:
         best_match = None
         best_similarity = 0.0
 
-        for key, entry in self.l2_cache.items():
+        for _key, entry in self.l2_cache.items():
             similarity = self._cosine_similarity(query_embedding, entry.embedding)
             if similarity > best_similarity:
                 best_similarity = similarity
@@ -209,11 +209,10 @@ class SemanticCache:
 
     def _put_l1(self, hash_key: str, entry: CacheEntry) -> None:
         """Add entry to L1 cache."""
-        if len(self.l1_cache) >= self.max_l1_size:
+        if len(self.l1_cache) >= self.max_l1_size and self.l1_insertion_order:
             # Evict oldest (FIFO)
-            if self.l1_insertion_order:
-                oldest_key = self.l1_insertion_order.pop(0)
-                del self.l1_cache[oldest_key]
+            oldest_key = self.l1_insertion_order.pop(0)
+            del self.l1_cache[oldest_key]
 
         self.l1_cache[hash_key] = entry
         self.l1_insertion_order.append(hash_key)
