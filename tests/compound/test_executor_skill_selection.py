@@ -5,7 +5,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from cohezion.compound.executor import CompoundExecutor
-from cohezion.compound.skill_selector import SkillScore
 
 
 @pytest.fixture

@@ -7,9 +7,8 @@ checkpoints, and audit logs.
 
 import json
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -18,10 +17,7 @@ from cohezion.sandbox.rollback import (
     AuditEventType,
     Change,
     ChangeType,
-    Checkpoint,
     JsonlSnapshotBackend,
-    RollbackResult,
-    Snapshot,
     SnapshotBackendType,
     Transaction,
     TransactionConfig,
@@ -462,7 +458,7 @@ class TestAuditLog:
 
         log = AuditLog(log_path)
         entry = AuditEntry(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             event_type=AuditEventType.TRANSACTION_BEGIN,
             transaction_id="txn-1",
             details={"operation": "test"},
@@ -471,7 +467,7 @@ class TestAuditLog:
         log.append(entry)
 
         assert log_path.exists()
-        with open(log_path, "r") as f:
+        with open(log_path) as f:
             line = f.read().strip()
             data = json.loads(line)
             assert data["txn_id"] == "txn-1"
@@ -484,7 +480,7 @@ class TestAuditLog:
 
         log = AuditLog(log_path)
         entry = AuditEntry(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             event_type=AuditEventType.TRANSACTION_BEGIN,
             transaction_id="txn-1",
             details={"operation": "test"},
@@ -562,7 +558,6 @@ class TestTransactionResult:
 
     def test_transaction_result_to_dict(self):
         """Test TransactionResult serialization."""
-        from cohezion.sandbox.rollback import AuditLog
 
         result = TransactionResult(
             success=True,

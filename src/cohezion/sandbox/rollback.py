@@ -19,12 +19,13 @@ import logging
 import subprocess
 import time
 import uuid
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timezone
+from collections import defaultdict
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
-from collections import defaultdict
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -63,17 +64,17 @@ class SnapshotBackendType(Enum):
 class Change:
     """Individual change within a transaction."""
     change_type: ChangeType
-    path: Optional[str] = None
-    old_content: Optional[bytes] = None
-    new_content: Optional[bytes] = None
-    command: Optional[str] = None
-    exit_code: Optional[int] = None
-    command_output: Optional[str] = None
-    table: Optional[str] = None
-    data: Optional[Dict[str, Any]] = None
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    path: str | None = None
+    old_content: bytes | None = None
+    new_content: bytes | None = None
+    command: str | None = None
+    exit_code: int | None = None
+    command_output: str | None = None
+    table: str | None = None
+    data: dict[str, Any] | None = None
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dict, handling datetime and bytes serialization."""
         result = {
             "change_type": self.change_type.value,
@@ -104,7 +105,7 @@ class AuditEntry:
     timestamp: datetime
     event_type: AuditEventType
     transaction_id: str
-    details: Dict[str, Any]
+    details: dict[str, Any]
 
     def to_jsonl(self) -> str:
         """Convert to JSONL format."""
@@ -122,12 +123,12 @@ class Snapshot:
     snapshot_id: str
     transaction_id: str
     timestamp: datetime
-    name: Optional[str] = None
-    git_hash: Optional[str] = None
-    btrfs_snapshot_id: Optional[str] = None
-    jsonl_metadata: Optional[Dict[str, Any]] = None
+    name: str | None = None
+    git_hash: str | None = None
+    btrfs_snapshot_id: str | None = None
+    jsonl_metadata: dict[str, Any] | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dict for persistence."""
         return {
             "snapshot_id": self.snapshot_id,
@@ -144,7 +145,7 @@ class Snapshot:
 class Checkpoint:
     """Mid-transaction checkpoint for long-running operations."""
     checkpoint_id: str
-    name: Optional[str]
+    name: str | None
     timestamp: datetime
     snapshot: Snapshot
     changes_at_checkpoint: int
@@ -156,10 +157,10 @@ class TransactionConfig:
     operation_name: str
     auto_rollback: bool = True
     audit_log: bool = True
-    checkpoint_interval: Optional[int] = None  # Seconds between auto-checkpoints
+    checkpoint_interval: int | None = None  # Seconds between auto-checkpoints
     max_snapshots: int = 10
     snapshot_backend: SnapshotBackendType = SnapshotBackendType.JSONL
-    audit_log_path: Optional[Path] = None
+    audit_log_path: Path | None = None
 
 
 @dataclass
@@ -168,13 +169,13 @@ class TransactionResult:
     success: bool
     transaction_id: str
     snapshots_taken: int
-    changes_committed: List[Change]
+    changes_committed: list[Change]
     rollback_performed: bool
-    audit_entries: List[AuditEntry]
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    audit_entries: list[AuditEntry]
+    metadata: dict[str, Any] = field(default_factory=dict)
     duration_seconds: float = 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dict for reporting."""
         return {
             "success": self.success,
@@ -205,7 +206,7 @@ class AuditLog:
         """Initialize audit log at specified path."""
         self.log_path = Path(log_path)
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
-        self.entries: List[AuditEntry] = []
+        self.entries: list[AuditEntry] = []
 
     def append(self, entry: AuditEntry) -> None:
         """Append entry to audit log (both memory and disk)."""
@@ -213,17 +214,17 @@ class AuditLog:
         try:
             with open(self.log_path, "a") as f:
                 f.write(entry.to_jsonl() + "\n")
-        except IOError as e:
+        except OSError as e:
             logger.warning(f"Failed to write audit log: {e}")
 
-    def load(self) -> List[AuditEntry]:
+    def load(self) -> list[AuditEntry]:
         """Load all entries from disk audit log."""
         if not self.log_path.exists():
             return []
 
         entries = []
         try:
-            with open(self.log_path, "r") as f:
+            with open(self.log_path) as f:
                 for line in f:
                     if line.strip():
                         try:
@@ -238,7 +239,7 @@ class AuditLog:
                             entries.append(entry)
                         except (json.JSONDecodeError, ValueError, KeyError) as e:
                             logger.warning(f"Failed to parse audit log entry: {e}")
-        except IOError as e:
+        except OSError as e:
             logger.warning(f"Failed to read audit log: {e}")
 
         return entries
@@ -370,7 +371,7 @@ class JsonlSnapshotBackend(SnapshotBackend):
         try:
             metadata = {
                 "snapshot_id": snapshot_id,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "working_dir": str(working_dir),
             }
 
@@ -468,11 +469,11 @@ class Transaction:
         self.backend = backend
 
         # Change tracking
-        self.changes: List[Change] = []
-        self.change_index: Dict[str, List[int]] = defaultdict(list)  # path → change indices
+        self.changes: list[Change] = []
+        self.change_index: dict[str, list[int]] = defaultdict(list)  # path → change indices
 
         # Checkpoints
-        self.checkpoints: Dict[str, Checkpoint] = {}
+        self.checkpoints: dict[str, Checkpoint] = {}
 
         # Audit log
         self.audit_log = AuditLog(
@@ -480,8 +481,8 @@ class Transaction:
         )
 
         # Snapshots
-        self.snapshots: Dict[str, Snapshot] = {}
-        self.base_snapshot: Optional[Snapshot] = None
+        self.snapshots: dict[str, Snapshot] = {}
+        self.base_snapshot: Snapshot | None = None
 
         # Timing
         self.start_time = time.time()
@@ -499,13 +500,13 @@ class Transaction:
                 self.base_snapshot = Snapshot(
                     snapshot_id=snapshot_id,
                     transaction_id=self.transaction_id,
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                 )
                 self.snapshots[snapshot_id] = self.base_snapshot
 
                 # Log begin event
                 self.audit_log.append(AuditEntry(
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                     event_type=AuditEventType.TRANSACTION_BEGIN,
                     transaction_id=self.transaction_id,
                     details={"operation": self.config.operation_name},
@@ -552,7 +553,7 @@ class Transaction:
         )
         self._record_change(change)
 
-    def on_database_change(self, table: str, data: Dict[str, Any]) -> None:
+    def on_database_change(self, table: str, data: dict[str, Any]) -> None:
         """Track database change."""
         change = Change(
             change_type=ChangeType.DATABASE_CHANGE,
@@ -583,7 +584,7 @@ class Transaction:
             if elapsed >= self.config.checkpoint_interval:
                 self.checkpoint()
 
-    def checkpoint(self, name: Optional[str] = None) -> Checkpoint:
+    def checkpoint(self, name: str | None = None) -> Checkpoint:
         """Create intermediate checkpoint."""
         checkpoint_id = f"checkpoint_{uuid.uuid4().hex[:8]}"
         snapshot_id = f"snapshot_{checkpoint_id}"
@@ -593,7 +594,7 @@ class Transaction:
                 snapshot = Snapshot(
                     snapshot_id=snapshot_id,
                     transaction_id=self.transaction_id,
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                     name=name,
                 )
                 self.snapshots[snapshot_id] = snapshot
@@ -601,7 +602,7 @@ class Transaction:
                 checkpoint = Checkpoint(
                     checkpoint_id=checkpoint_id,
                     name=name,
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                     snapshot=snapshot,
                     changes_at_checkpoint=len(self.changes),
                 )
@@ -609,7 +610,7 @@ class Transaction:
 
                 # Audit checkpoint
                 self.audit_log.append(AuditEntry(
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                     event_type=AuditEventType.CHECKPOINT,
                     transaction_id=self.transaction_id,
                     details={"checkpoint_id": checkpoint_id, "name": name},
@@ -644,7 +645,7 @@ class Transaction:
 
             # Audit commit
             self.audit_log.append(AuditEntry(
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 event_type=AuditEventType.TRANSACTION_COMMIT,
                 transaction_id=self.transaction_id,
                 details={"changes": len(self.changes)},
@@ -674,7 +675,7 @@ class Transaction:
                     pass  # Already rolled back
             raise
 
-    def rollback(self, reason: str = "", restore_to_checkpoint: Optional[str] = None) -> RollbackResult:
+    def rollback(self, reason: str = "", restore_to_checkpoint: str | None = None) -> RollbackResult:
         """Rollback transaction: restore to snapshot."""
         start = time.time()
 
@@ -701,7 +702,7 @@ class Transaction:
 
             # Audit rollback
             audit_entry = AuditEntry(
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 event_type=AuditEventType.TRANSACTION_ROLLBACK,
                 transaction_id=self.transaction_id,
                 details={
@@ -747,15 +748,15 @@ class Transaction:
             except Exception as e:
                 logger.warning(f"Failed to delete snapshot {snapshot.snapshot_id}: {e}")
 
-    def get_audit_entries(self) -> List[AuditEntry]:
+    def get_audit_entries(self) -> list[AuditEntry]:
         """Get all audit entries for this transaction."""
         return self.audit_log.entries[:]
 
-    def get_changes(self) -> List[Change]:
+    def get_changes(self) -> list[Change]:
         """Get all tracked changes."""
         return self.changes[:]
 
-    def get_snapshots(self) -> Dict[str, Snapshot]:
+    def get_snapshots(self) -> dict[str, Snapshot]:
         """Get all snapshots."""
         return self.snapshots.copy()
 
@@ -765,7 +766,7 @@ class TransactionManager:
 
     def __init__(self):
         """Initialize manager."""
-        self.transactions: Dict[str, Transaction] = {}
+        self.transactions: dict[str, Transaction] = {}
         self._lock_count = 0
 
     def begin(
@@ -800,7 +801,7 @@ class TransactionManager:
         logger.info(f"Transaction started: {transaction_id}")
         return txn
 
-    def get(self, transaction_id: str) -> Optional[Transaction]:
+    def get(self, transaction_id: str) -> Transaction | None:
         """Get active transaction by ID."""
         return self.transactions.get(transaction_id)
 
@@ -824,11 +825,11 @@ class TransactionManager:
         self.transactions.pop(transaction_id, None)
         return result
 
-    def list_active(self) -> List[str]:
+    def list_active(self) -> list[str]:
         """List all active transaction IDs."""
         return list(self.transactions.keys())
 
-    def get_status(self, transaction_id: str) -> Dict[str, Any]:
+    def get_status(self, transaction_id: str) -> dict[str, Any]:
         """Get transaction status."""
         txn = self.transactions.get(transaction_id)
         if not txn:
@@ -847,7 +848,7 @@ class TransactionManager:
 
 
 # Global manager instance
-_manager: Optional[TransactionManager] = None
+_manager: TransactionManager | None = None
 
 
 def get_transaction_manager() -> TransactionManager:
