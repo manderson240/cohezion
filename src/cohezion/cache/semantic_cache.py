@@ -231,14 +231,13 @@ class SemanticCache:
 
     def _put_l2(self, hash_key: str, entry: CacheEntry) -> None:
         """Add entry to L2 cache."""
-        if len(self.l2_cache) >= self.max_l2_size:
+        if len(self.l2_cache) >= self.max_l2_size and self.l2_lfu_counts:
             # Evict least frequently used
-            if self.l2_lfu_counts:
-                # Get minimum based on usage count
-                get_fn = self.l2_lfu_counts.get
-                lfu_key = min(self.l2_lfu_counts, key=get_fn)  # type: ignore
-                del self.l2_cache[lfu_key]
-                del self.l2_lfu_counts[lfu_key]
+            # Get minimum based on usage count
+            get_fn = self.l2_lfu_counts.get
+            lfu_key = min(self.l2_lfu_counts, key=get_fn)  # type: ignore
+            del self.l2_cache[lfu_key]
+            del self.l2_lfu_counts[lfu_key]
 
         self.l2_cache[hash_key] = entry
         self.l2_lfu_counts[hash_key] = 1
