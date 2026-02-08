@@ -127,7 +127,10 @@ async def main() -> None:
         print(f"  Cache hits: {result.cache_hits} ({100*result.cache_hit_rate:.1f}%)")
         print(f"  Cache misses: {result.cache_misses}")
         print(f"  Total tokens: {result.total_tokens}")
-        print(f"  Tokens saved: {result.tokens_saved} (from {result.cache_hits} cache hits)")
+        print(
+            f"  Tokens saved: {result.tokens_saved} "
+            f"(from {result.cache_hits} cache hits)"
+        )
         print(f"  Parallel executions: {result.parallel_executions}")
         print(f"  Total duration: {result.total_duration_ms:.1f}ms")
 
