@@ -12,6 +12,13 @@ from cohezion.compound.skill_selector import (
     SkillScore,
     SkillSelector,
 )
+from cohezion.compound.team_executor import (
+    AgentTask,
+    AgentTaskResult,
+    TeamExecutionResult,
+    TeamExecutor,
+    TeamExecutorFactory,
+)
 from cohezion.compound.vault_execution_logger import (
     ExecutionContext,
     VaultExecutionLogger,
@@ -19,11 +26,16 @@ from cohezion.compound.vault_execution_logger import (
 
 
 __all__ = [
+    "AgentTask",
+    "AgentTaskResult",
     "CompoundExecutor",
     "ExecutionContext",
     "ExecutionResult",
     "ExecutorFactory",
-    "SkillSelector",
     "SkillScore",
+    "SkillSelector",
+    "TeamExecutionResult",
+    "TeamExecutor",
+    "TeamExecutorFactory",
     "VaultExecutionLogger",
 ]
