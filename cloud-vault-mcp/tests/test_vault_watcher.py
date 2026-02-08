@@ -59,9 +59,7 @@ class TestVaultFileWatcher:
     def test_create_event(self, watcher, vault_dir, event_loop):
         queue = watcher.subscribe()
         (vault_dir / "test.md").write_text("hello")
-        event = _run(
-            event_loop, asyncio.wait_for(queue.get(), timeout=3.0)
-        )
+        event = _run(event_loop, asyncio.wait_for(queue.get(), timeout=3.0))
         assert event.event_type == "created"
         assert event.path == "test.md"
 
@@ -74,9 +72,7 @@ class TestVaultFileWatcher:
 
         queue = watcher.subscribe()
         test_file.write_text("updated content")
-        event = _run(
-            event_loop, asyncio.wait_for(queue.get(), timeout=3.0)
-        )
+        event = _run(event_loop, asyncio.wait_for(queue.get(), timeout=3.0))
         assert event.event_type == "modified"
         assert event.path == "modify-me.md"
 
@@ -87,9 +83,7 @@ class TestVaultFileWatcher:
 
         queue = watcher.subscribe()
         test_file.unlink()
-        event = _run(
-            event_loop, asyncio.wait_for(queue.get(), timeout=3.0)
-        )
+        event = _run(event_loop, asyncio.wait_for(queue.get(), timeout=3.0))
         assert event.event_type == "deleted"
         assert event.path == "delete-me.md"
 
@@ -109,9 +103,7 @@ class TestVaultFileWatcher:
         time.sleep(0.3)
 
         # Should get exactly one event (not five)
-        event = _run(
-            event_loop, asyncio.wait_for(queue.get(), timeout=3.0)
-        )
+        event = _run(event_loop, asyncio.wait_for(queue.get(), timeout=3.0))
         assert event.event_type == "modified"
         assert event.path == "rapid.md"
 
@@ -198,9 +190,7 @@ class TestVaultFileWatcher:
         queue = watcher.subscribe()
         (vault_dir / "decisions" / "new-decision.md").write_text("# Decision")
 
-        event = _run(
-            event_loop, asyncio.wait_for(queue.get(), timeout=3.0)
-        )
+        event = _run(event_loop, asyncio.wait_for(queue.get(), timeout=3.0))
         assert event.event_type == "created"
         assert event.path == "decisions/new-decision.md"
 

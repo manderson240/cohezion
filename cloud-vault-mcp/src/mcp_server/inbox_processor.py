@@ -1,6 +1,7 @@
 """AI-powered inbox processor for vault notes."""
 
 import asyncio
+import contextlib
 import json
 import logging
 import re
@@ -8,6 +9,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from .vault_ops import VaultOps
+
 
 logger = logging.getLogger(__name__)
 
@@ -141,12 +143,12 @@ class InboxProcessor:
             )
 
         # Remove from inbox only on success
-        try:
+        with contextlib.suppress(FileNotFoundError):
             self._vault.delete(path)
-        except FileNotFoundError:
-            pass  # Already removed
 
-        logger.info("Processed %s -> %s (%s)", path, target_path, classification.note_type)
+        logger.info(
+            "Processed %s -> %s (%s)", path, target_path, classification.note_type
+        )
         return ProcessingResult(
             source=path, target=target_path, classification=classification
         )
@@ -247,6 +249,4 @@ class InboxProcessor:
             return False
         # Skip dotfiles
         parts = path.split("/")
-        if any(p.startswith(".") for p in parts):
-            return False
-        return True
+        return not any(p.startswith(".") for p in parts)

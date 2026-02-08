@@ -30,8 +30,9 @@ class ServerConfig:
         )
     )
     watcher_enabled: bool = field(
-        default_factory=lambda: os.environ.get("WATCHER_ENABLED", "true").lower()
-        == "true"
+        default_factory=lambda: (
+            os.environ.get("WATCHER_ENABLED", "true").lower() == "true"
+        )
     )
     sse_heartbeat_seconds: int = field(
         default_factory=lambda: int(os.environ.get("SSE_HEARTBEAT", "15"))
