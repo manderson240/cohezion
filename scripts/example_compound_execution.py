@@ -74,7 +74,7 @@ def main():
         mcp_client = MCPClient(config)
         mcp_client.connect()
         logger.info("Connected to Cloud Vault MCP server")
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         logger.error("Failed to connect to vault: %s", e)
         logger.info("Tip: Ensure cloud-vault-mcp server is running on port 8360")
         return 1

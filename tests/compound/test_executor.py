@@ -1,11 +1,14 @@
 """Tests for compound executor with vault integration."""
 
-import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
-from cohezion.compound.executor import CompoundExecutor, ExecutorFactory, ExecutionResult
+from cohezion.compound.executor import (
+    CompoundExecutor,
+    ExecutionResult,
+    ExecutorFactory,
+)
 
 
 @pytest.fixture

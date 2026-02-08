@@ -13,10 +13,11 @@ from cohezion.compound.vault_execution_logger import (
     VaultExecutionLogger,
 )
 
+
 __all__ = [
-    "VaultExecutionLogger",
-    "ExecutionContext",
     "CompoundExecutor",
+    "ExecutionContext",
     "ExecutionResult",
     "ExecutorFactory",
+    "VaultExecutionLogger",
 ]
