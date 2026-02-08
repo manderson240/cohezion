@@ -82,30 +82,22 @@ async def main() -> None:
         system_prompt = "You are helpful"
         model = "phi3:mini"
         items = [
-            BatchItem(
-                id="1", prompt="Explain quantum computing", system=system_prompt, model=model
-            ),
-            BatchItem(
-                id="2", prompt="What is machine learning?", system=system_prompt, model=model
-            ),
-            BatchItem(
-                id="3", prompt="Explain quantum computing", system=system_prompt, model=model
-            ),
-            BatchItem(
-                id="4", prompt="Define artificial intelligence", system=system_prompt, model=model
-            ),
-            BatchItem(
-                id="5", prompt="What is machine learning?", system=system_prompt, model=model
-            ),
-            BatchItem(
-                id="6", prompt="Explain quantum computing", system=system_prompt, model=model
-            ),
-            BatchItem(
-                id="7", prompt="Define artificial intelligence", system=system_prompt, model=model
-            ),
-            BatchItem(
-                id="8", prompt="What is deep learning?", system=system_prompt, model=model
-            ),
+            BatchItem(id="1", prompt="Explain quantum computing",
+                     system=system_prompt, model=model),
+            BatchItem(id="2", prompt="What is machine learning?",
+                     system=system_prompt, model=model),
+            BatchItem(id="3", prompt="Explain quantum computing",
+                     system=system_prompt, model=model),
+            BatchItem(id="4", prompt="Define artificial intelligence",
+                     system=system_prompt, model=model),
+            BatchItem(id="5", prompt="What is machine learning?",
+                     system=system_prompt, model=model),
+            BatchItem(id="6", prompt="Explain quantum computing",
+                     system=system_prompt, model=model),
+            BatchItem(id="7", prompt="Define artificial intelligence",
+                     system=system_prompt, model=model),
+            BatchItem(id="8", prompt="What is deep learning?",
+                     system=system_prompt, model=model),
         ]
 
         seen = set()
