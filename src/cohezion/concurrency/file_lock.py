@@ -10,11 +10,12 @@ Uses fcntl.flock() for Unix systems, with fallback timeout for deadlock preventi
 
 import fcntl
 import logging
-import os
 import time
+from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator, Optional
+from typing import TextIO
+
 
 logger = logging.getLogger(__name__)
 
@@ -48,8 +49,8 @@ class FileLock:
         """
         self.filepath = Path(filepath)
         self.timeout = timeout
-        self._lock_file = None
-        self._acquired_at = None
+        self._lock_file: TextIO | None = None
+        self._acquired_at: float | None = None
 
     def acquire(self) -> None:
         """Acquire lock on file.
@@ -64,7 +65,7 @@ class FileLock:
 
         while time.time() - start_time < self.timeout:
             try:
-                self._lock_file = open(self.filepath, "a")
+                self._lock_file = open(self.filepath, "a")  # noqa: SIM115
                 fcntl.flock(self._lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                 self._acquired_at = time.time()
                 logger.debug(
@@ -78,7 +79,8 @@ class FileLock:
                 time.sleep(0.1)  # Back off briefly
 
         raise FileLockError(
-            f"Could not acquire lock on {self.filepath} within {self.timeout}s: {last_error}"
+            f"Could not acquire lock on {self.filepath} "
+            f"within {self.timeout}s: {last_error}"
         )
 
     def release(self) -> None:
@@ -141,7 +143,7 @@ class ConfigManager:
         lock = FileLock(str(self.filepath), timeout=self.lock_timeout)
         with lock:
             if self.filepath.exists():
-                with open(self.filepath, "r") as f:
+                with open(self.filepath) as f:
                     content = f.read().strip()
                     data = json.loads(content) if content else {}
             else:
@@ -156,7 +158,7 @@ class ConfigManager:
         lock = FileLock(str(self.filepath), timeout=self.lock_timeout)
         with lock:
             if self.filepath.exists():
-                with open(self.filepath, "r") as f:
+                with open(self.filepath) as f:
                     data = json.load(f)
             else:
                 data = {}
@@ -191,7 +193,9 @@ class ConfigManager:
             with open(self.filepath, "w") as f:
                 json.dump(data, f, indent=2)
 
-    def atomic_update(self, update_func, max_retries: int = 3) -> dict:
+    def atomic_update(
+        self, update_func: Callable[[dict], dict], max_retries: int = 3,
+    ) -> dict:
         """Atomically read, modify, and write config.
 
         Ensures multiple processes updating the same file don't lose updates.
@@ -216,7 +220,7 @@ class ConfigManager:
                 with lock:
                     # Read
                     if self.filepath.exists():
-                        with open(self.filepath, "r") as f:
+                        with open(self.filepath) as f:
                             content = f.read().strip()
                             data = json.loads(content) if content else {}
                     else:
@@ -252,7 +256,9 @@ class ConfigManager:
 
 
 @contextmanager
-def safe_file_access(filepath: str, timeout: float = 10.0) -> Generator[None, None, None]:
+def safe_file_access(
+    filepath: str, timeout: float = 10.0,
+) -> Generator[None, None, None]:
     """Simple context manager for safe file access.
 
     Args:

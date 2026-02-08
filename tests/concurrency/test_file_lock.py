@@ -207,7 +207,7 @@ def test_file_lock_serial_access(temp_file):
 
     # Verify no overlapping access (no two enters without an exit between)
     depth = 0
-    for event, lock_id in access_order:
+    for event, _lock_id in access_order:
         if event == 'enter':
             depth += 1
             assert depth == 1, "Lock not exclusive!"
@@ -249,8 +249,8 @@ def test_config_manager_retry_logic(temp_file):
 
     # This should retry and eventually succeed
     try:
-        result = manager.atomic_update(update_fn, max_retries=3)
-        assert False, "Should have failed due to held lock"
+        manager.atomic_update(update_fn, max_retries=3)
+        raise AssertionError("Should have failed due to held lock")
     except FileLockError:
         pass  # Expected
     finally:
@@ -261,8 +261,7 @@ def test_safe_file_access_context_manager(temp_file):
     """Test safe_file_access context manager."""
     from cohezion.concurrency.file_lock import safe_file_access
 
-    with safe_file_access(temp_file, timeout=5.0):
+    with safe_file_access(temp_file, timeout=5.0), open(temp_file) as f:
         # File should be locked and accessible
-        with open(temp_file) as f:
-            data = json.load(f)
-            assert isinstance(data, dict)
+        data = json.load(f)
+        assert isinstance(data, dict)
