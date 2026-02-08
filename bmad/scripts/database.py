@@ -1,7 +1,8 @@
+import json
 import os
+
 import psycopg2
 from psycopg2 import sql
-import json
 
 
 def get_db_connection():
@@ -21,9 +22,9 @@ def log_hallucination(
     agent_name: str,
     original_request: str,
     hallucinated_output: str,
-    correction: str = None,
-    notes: str = None,
-    metadata: dict = None,
+    correction: str | None = None,
+    notes: str | None = None,
+    metadata: dict | None = None,
 ):
     """
     Logs a hallucination to the database.
