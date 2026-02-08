@@ -106,6 +106,4 @@ class TestCreateFromTemplate:
 
     def test_template_not_found(self, vault_with_links):
         with pytest.raises(FileNotFoundError):
-            vault_with_links.create_from_template(
-                "nonexistent", "test.md", {}
-            )
+            vault_with_links.create_from_template("nonexistent", "test.md", {})
