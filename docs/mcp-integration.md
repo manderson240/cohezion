@@ -156,7 +156,7 @@ Replace `<YOUR_API_KEY>` with the key generated during setup.
 The cohezion core can connect to the MCP server through the `ContextEngineeringInfrastructure` class:
 
 ```python
-from bmad.core.context_engineering import ContextEngineeringInfrastructure
+from cohezion.core.context_engineering import ContextEngineeringInfrastructure
 import requests
 
 class VaultMCPClient:

@@ -15,7 +15,7 @@ import httpx
 logger = logging.getLogger(__name__)
 
 
-def _parse_sse_response(text: str) -> dict:
+def _parse_sse_response(text: str) -> dict[str, Any]:
     """Parse Server-Sent Events response to extract JSON-RPC data.
 
     Args:
@@ -32,7 +32,7 @@ def _parse_sse_response(text: str) -> dict:
     for line in lines:
         if line.startswith("data: "):
             json_str = line[6:]  # Remove "data: " prefix
-            return json.loads(json_str)
+            return json.loads(json_str)  # type: ignore[no-any-return]
     raise ValueError("No data found in SSE response")
 
 
@@ -164,7 +164,7 @@ class MCPClient:
             self._client = None
             self._session_id = None
 
-    def _call_tool(self, tool_name: str, arguments: dict[str, Any]) -> Any:
+    def _call_tool(self, tool_name: str, arguments: dict[str, Any]) -> str:
         """Call an MCP tool with retry logic.
 
         Args:
@@ -191,7 +191,7 @@ class MCPClient:
         # Add session ID to headers
         headers = {"mcp-session-id": self._session_id}
 
-        last_error = None
+        last_error: Exception | None = None
         for attempt in range(self.config.max_retries):
             try:
                 response = self._client.post("/mcp", json=payload, headers=headers)
@@ -207,7 +207,9 @@ class MCPClient:
                         f"Tool '{tool_name}' failed: {error_msg}"
                     )
 
-                return result.get("result", {}).get("content", [{}])[0].get("text", "")
+                content = result.get("result", {}).get("content", [{}])
+                text: str = content[0].get("text", "")
+                return text
 
             except httpx.HTTPStatusError as e:
                 if e.response.status_code == 403:
@@ -338,14 +340,12 @@ class MCPClient:
         Raises:
             MCPToolError: If search fails
         """
-        import json
-
         result = self._call_tool(
             "vault_search", {"query": query, "scope": scope, "folder": folder}
         )
         if result == "No results found.":
             return []
-        return json.loads(result)
+        return json.loads(result)  # type: ignore[no-any-return]
 
     # ── Obsidian Operations ─────────────────────────────────────────────
 
@@ -361,12 +361,10 @@ class MCPClient:
         Raises:
             MCPToolError: If operation fails
         """
-        import json
-
         result = self._call_tool("vault_backlinks", {"path": path})
         if result == "No backlinks found.":
             return []
-        return json.loads(result)
+        return json.loads(result)  # type: ignore[no-any-return]
 
     def vault_forward_links(self, path: str) -> list[dict]:
         """Find all notes that the given note links TO.
@@ -380,12 +378,10 @@ class MCPClient:
         Raises:
             MCPToolError: If operation fails
         """
-        import json
-
         result = self._call_tool("vault_forward_links", {"path": path})
         if result == "No outgoing links found.":
             return []
-        return json.loads(result)
+        return json.loads(result)  # type: ignore[no-any-return]
 
     def vault_tags(self, path: str = "") -> list[str]:
         """List tags in the vault, or for a specific note.
@@ -568,14 +564,12 @@ class MCPClient:
         Raises:
             MCPToolError: If search fails
         """
-        import json
-
         result = self._call_tool(
             "vault_find_relevant_context", {"query": query, "project": project}
         )
         if result == "No relevant prior context found.":
             return []
-        return json.loads(result)
+        return json.loads(result)  # type: ignore[no-any-return]
 
 
 def create_mcp_client(server_url: str, api_key: str, **kwargs) -> MCPClient:

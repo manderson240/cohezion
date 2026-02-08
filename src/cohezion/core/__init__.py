@@ -1,5 +1,6 @@
 """Cohezion core infrastructure."""
 
+from cohezion.core.config import CohezionConfig
 from cohezion.core.context_engineering import ContextEngineeringInfrastructure
 from cohezion.core.mcp_client import (
     MCPAuthenticationError,
@@ -15,6 +16,7 @@ from cohezion.core.vault_subscription import VaultSubscriptionClient
 
 
 __all__ = [
+    "CohezionConfig",
     "ContextEngineeringInfrastructure",
     "MCPAuthenticationError",
     "MCPClient",

@@ -6,6 +6,8 @@ import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 
+import httpx
+
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +41,7 @@ class VaultSubscriptionClient:
         self._running = False
         self._reconnect_delay = 1.0
         self._max_reconnect_delay = 60.0
-        self._client = None
+        self._client: httpx.AsyncClient | None = None
 
     def on_event(self, event_type: str):
         """Decorator to register a callback for a specific event type."""
@@ -63,14 +65,6 @@ class VaultSubscriptionClient:
 
     async def connect(self) -> None:
         """Start listening for SSE events with auto-reconnect."""
-        try:
-            import httpx
-        except ImportError:
-            logger.error(
-                "httpx required for SSE subscription. Install with: pip install httpx"
-            )
-            return
-
         self._running = True
         delay = self._reconnect_delay
 
