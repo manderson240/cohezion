@@ -1,8 +1,5 @@
 """Tests for core vault operations."""
 
-import os
-import tempfile
-
 import pytest
 
 from mcp_server.vault_ops import VaultOps
@@ -20,7 +17,8 @@ def vault(tmp_path):
     # Create test notes
     (tmp_path / "decisions" / "test-decision.md").write_text(
         "---\ndate: 2025-01-15\nproject: testproj\ntags: [decision, testproj]\n---\n"
-        "# Use Python for MCP\n\n## Context\nWe need a server.\n\n## Decision\nUse Python.\n"
+        "# Use Python for MCP\n\n## Context\nWe need a server.\n\n"
+        "## Decision\nUse Python.\n"
     )
     (tmp_path / "patterns" / "retry-pattern.md").write_text(
         "---\ndate: 2025-01-10\ntags: [pattern, devops]\n---\n"
@@ -66,7 +64,13 @@ class TestEdit:
     def test_find_replace(self, vault):
         result = vault.edit(
             "decisions/test-decision.md",
-            [{"operation": "find_replace", "find": "Use Python.", "replace": "Use Python with FastMCP."}],
+            [
+                {
+                    "operation": "find_replace",
+                    "find": "Use Python.",
+                    "replace": "Use Python with FastMCP.",
+                }
+            ],
         )
         content = vault.read("decisions/test-decision.md")
         assert "FastMCP" in content
@@ -91,7 +95,13 @@ class TestEdit:
     def test_insert_at_heading(self, vault):
         vault.edit(
             "decisions/test-decision.md",
-            [{"operation": "insert_at_heading", "heading": "Context", "text": "\nAdditional context here."}],
+            [
+                {
+                    "operation": "insert_at_heading",
+                    "heading": "Context",
+                    "text": "\nAdditional context here.",
+                }
+            ],
         )
         content = vault.read("decisions/test-decision.md")
         assert "Additional context here." in content

@@ -1,6 +1,5 @@
 """Core vault file operations."""
 
-import os
 import re
 from pathlib import Path
 
@@ -162,9 +161,7 @@ class VaultOps:
                             "path": rel_path,
                             "line_number": i + 1,
                             "line": line.strip(),
-                            "context": "\n".join(
-                                lines[context_start:context_end]
-                            ),
+                            "context": "\n".join(lines[context_start:context_end]),
                         }
                     )
 
