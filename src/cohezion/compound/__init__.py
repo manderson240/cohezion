@@ -8,6 +8,10 @@ from cohezion.compound.executor import (
     ExecutionResult,
     ExecutorFactory,
 )
+from cohezion.compound.skill_selector import (
+    SkillScore,
+    SkillSelector,
+)
 from cohezion.compound.vault_execution_logger import (
     ExecutionContext,
     VaultExecutionLogger,
@@ -19,5 +23,7 @@ __all__ = [
     "ExecutionContext",
     "ExecutionResult",
     "ExecutorFactory",
+    "SkillSelector",
+    "SkillScore",
     "VaultExecutionLogger",
 ]
