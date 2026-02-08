@@ -68,8 +68,8 @@ def main():
     # Step 1: Initialize MCP client
     try:
         config = MCPConfig(
-            server_url="http://localhost:8360/mcp",
-            api_key="",  # No auth for localhost
+            server_url="http://localhost:8360",
+            api_key="test-key",  # Can be any non-empty string for localhost
         )
         mcp_client = MCPClient(config)
         mcp_client.connect()
