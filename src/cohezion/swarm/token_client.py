@@ -34,7 +34,7 @@ import logging
 import time
 from typing import Any
 
-import requests
+import requests  # type: ignore[import-untyped]
 
 from cohezion.core.config import CohezionConfig
 from cohezion.swarm.batch_processor import BatchItem, BatchProcessor, BatchResult
