@@ -3,6 +3,7 @@
 Exports:
   - SandboxExecutor: Container-based execution with resource management
   - SafetyHarness: Pre-execution safety checks and monitoring
+  - HookIntegration: Wire security hooks into sandbox lifecycle
   - Additional modules (isolation, rollback) available via direct import
 """
 
@@ -14,7 +15,19 @@ from cohezion.sandbox.executor import (
     SandboxResult,
     get_executor,
 )
-
+from cohezion.sandbox.hooks import (
+    ExecutionContext,
+    Hook,
+    HookAction,
+    HookDiscovery,
+    HookExecutor,
+    HookIntegration,
+    HookMetadata,
+    HookRegistry,
+    HookResult,
+    HookStage,
+    get_hook_integration,
+)
 from cohezion.sandbox.safety import (
     POLICIES,
     ConstraintEnforcer,
@@ -28,6 +41,7 @@ from cohezion.sandbox.safety import (
     Violation,
     ViolationSeverity,
 )
+
 
 __all__ = [
     # Executor (implemented)
@@ -49,4 +63,16 @@ __all__ = [
     "RiskAssessor",
     "ConstraintEnforcer",
     "POLICIES",
+    # Hooks (implemented)
+    "HookIntegration",
+    "HookStage",
+    "HookAction",
+    "HookMetadata",
+    "Hook",
+    "HookResult",
+    "ExecutionContext",
+    "HookDiscovery",
+    "HookExecutor",
+    "HookRegistry",
+    "get_hook_integration",
 ]

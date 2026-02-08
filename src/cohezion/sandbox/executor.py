@@ -3,14 +3,15 @@
 import asyncio
 import json
 import logging
-import os
 import subprocess
 import time
-from dataclasses import dataclass, asdict, field
-from datetime import datetime, timezone
+from collections.abc import Callable
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
+
 
 try:
     import docker
@@ -58,7 +59,7 @@ class ResourceLimits:
     max_processes: int = 100  # Max process count
     timeout_seconds: int = 3600  # Default timeout
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return asdict(self)
 
@@ -71,9 +72,9 @@ class ResourceMetrics:
     memory_peak_mb: float = 0.0
     disk_used_mb: float = 0.0
     process_count: int = 0
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return asdict(self)
 
@@ -81,13 +82,13 @@ class ResourceMetrics:
 @dataclass
 class AuditEntry:
     """Audit log entry."""
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     event_type: ExecutorEventType = ExecutorEventType.OPERATION_START
     component: str = "SandboxExecutor"
     message: str = ""
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         data = asdict(self)
         data['event_type'] = self.event_type.value
@@ -98,14 +99,14 @@ class AuditEntry:
 class SandboxRequest:
     """Request to execute operation in sandbox."""
     operation: str
-    context: Dict[str, Any]
+    context: dict[str, Any]
     timeout: int = 3600
-    resource_limits: Optional[ResourceLimits] = None
+    resource_limits: ResourceLimits | None = None
     should_rollback_on_failure: bool = True
     cleanup_on_exit: bool = True
-    environment: Dict[str, str] = field(default_factory=dict)
+    environment: dict[str, str] = field(default_factory=dict)
     working_dir: str = "/tmp/sandbox"
-    file_whitelist: List[str] = field(default_factory=list)
+    file_whitelist: list[str] = field(default_factory=list)
 
     def __post_init__(self):
         """Set default resource limits if not provided."""
@@ -124,11 +125,11 @@ class SandboxResult:
     resources_used: ResourceMetrics
     changes_applied: bool
     rollback_performed: bool
-    audit_log: List[AuditEntry]
-    container_id: Optional[str] = None
-    error: Optional[str] = None
+    audit_log: list[AuditEntry]
+    container_id: str | None = None
+    error: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             'success': self.success,
@@ -152,8 +153,8 @@ class SandboxExecutor:
         self,
         runtime: str = "docker",
         image: str = "cohezion-sandbox:latest",
-        default_limits: Optional[ResourceLimits] = None,
-        audit_log_path: Optional[str] = None,
+        default_limits: ResourceLimits | None = None,
+        audit_log_path: str | None = None,
     ):
         """Initialize SandboxExecutor.
 
@@ -167,13 +168,13 @@ class SandboxExecutor:
         self.image = image
         self.default_limits = default_limits or ResourceLimits()
         self.audit_log_path = audit_log_path
-        self.containers: Dict[str, Dict[str, Any]] = {}
-        self.audit_entries: List[AuditEntry] = []
+        self.containers: dict[str, dict[str, Any]] = {}
+        self.audit_entries: list[AuditEntry] = []
 
         # Error handlers
-        self._timeout_handler: Optional[Callable[[str], None]] = None
-        self._oom_handler: Optional[Callable[[str], None]] = None
-        self._disk_full_handler: Optional[Callable[[str], None]] = None
+        self._timeout_handler: Callable[[str], None] | None = None
+        self._oom_handler: Callable[[str], None] | None = None
+        self._disk_full_handler: Callable[[str], None] | None = None
 
         # Initialize Docker client if available
         self.client = None
@@ -232,7 +233,7 @@ class SandboxExecutor:
         self,
         event_type: ExecutorEventType,
         message: str,
-        details: Optional[Dict[str, Any]] = None,
+        details: dict[str, Any] | None = None,
     ) -> None:
         """Add entry to audit log.
 
@@ -309,7 +310,7 @@ class SandboxExecutor:
 
             self.containers[container_id] = {
                 'docker_container': container,
-                'created_at': datetime.now(timezone.utc),
+                'created_at': datetime.now(UTC),
                 'pid': None,  # Would need to inspect to get PID
             }
 
@@ -448,7 +449,7 @@ class SandboxExecutor:
 
             return result
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             self._add_audit_entry(
                 ExecutorEventType.TIMEOUT,
                 f"Operation timed out after {request.timeout} seconds",
@@ -542,7 +543,7 @@ class SandboxExecutor:
             # No event loop, create one
             return asyncio.run(self.execute_async(request))
 
-    def get_audit_log(self) -> List[AuditEntry]:
+    def get_audit_log(self) -> list[AuditEntry]:
         """Get current audit log.
 
         Returns:
@@ -557,7 +558,7 @@ class SandboxExecutor:
 
 
 # Singleton factory
-_executor_instance: Optional[SandboxExecutor] = None
+_executor_instance: SandboxExecutor | None = None
 
 
 def get_executor(

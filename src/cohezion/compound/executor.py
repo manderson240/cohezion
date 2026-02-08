@@ -23,6 +23,7 @@ from cohezion.compound.vault_execution_logger import (
 from cohezion.core.mcp_client import MCPClient
 from cohezion.security.guardrail_pipeline import GuardrailAction, GuardrailPipeline
 
+
 if TYPE_CHECKING:
     from cohezion.compound.inflection_detector import InflectionDetector
     from cohezion.compound.skill_refiner import SkillRefiner

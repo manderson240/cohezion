@@ -1,6 +1,6 @@
 """Tests for experience-guided skill selection."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 

@@ -4,7 +4,6 @@ Analyzes vault patterns to find skills that performed best on similar tasks.
 Uses metrics like coherence and token efficiency to rank candidate skills.
 """
 
-import json
 import logging
 import re
 from dataclasses import dataclass
