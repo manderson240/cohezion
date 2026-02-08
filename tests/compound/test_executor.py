@@ -255,3 +255,72 @@ def test_execute_task_with_custom_project(executor, mock_mcp_client):
     # Verify project name was passed to vault logging
     call_kwargs = mock_mcp_client.vault_log_experiment.call_args[1]
     assert call_kwargs["project"] == "custom_project"
+
+
+def test_executor_guardrails_enabled_by_default(mock_mcp_client):
+    """Test that guardrails are enabled by default."""
+    executor = CompoundExecutor(mock_mcp_client)
+    assert executor.guardrail_pipeline is not None
+
+
+def test_executor_guardrails_can_be_disabled(mock_mcp_client):
+    """Test that guardrails can be disabled."""
+    executor = CompoundExecutor(mock_mcp_client, enable_guardrails=False)
+    assert executor.guardrail_pipeline is None
+
+
+def test_executor_custom_guardrail_pipeline(mock_mcp_client):
+    """Test executor with custom guardrail pipeline."""
+    from cohezion.security.guardrail_factory import create_minimal_pipeline
+
+    custom_pipeline = create_minimal_pipeline()
+    executor = CompoundExecutor(
+        mock_mcp_client, guardrail_pipeline=custom_pipeline
+    )
+    assert executor.guardrail_pipeline == custom_pipeline
+
+
+def test_execute_task_with_guardrails_enabled(mock_mcp_client):
+    """Test task execution with guardrails enabled."""
+
+    def dummy_task(guidance):
+        return "safe output", {"result": "ok"}
+
+    executor = CompoundExecutor(mock_mcp_client, enable_guardrails=True)
+    result = executor.execute_task(
+        task_description="Safe task",
+        skill_name="test",
+        operation_type="generate",
+        execute_fn=dummy_task,
+    )
+
+    assert result.success is True
+    assert result.output == "safe output"
+
+
+def test_executor_factory_with_guardrails(mock_mcp_client):
+    """Test factory creates executor with guardrails enabled."""
+    executor = ExecutorFactory.create(
+        mock_mcp_client, enable_guardrails=True
+    )
+    assert executor.guardrail_pipeline is not None
+
+
+def test_executor_factory_without_guardrails(mock_mcp_client):
+    """Test factory creates executor with guardrails disabled."""
+    executor = ExecutorFactory.create(
+        mock_mcp_client, enable_guardrails=False
+    )
+    assert executor.guardrail_pipeline is None
+
+
+def test_executor_singleton_with_guardrails(mock_mcp_client):
+    """Test singleton maintains guardrail configuration."""
+    ExecutorFactory.reset_singleton()
+    executor1 = ExecutorFactory.get_singleton(
+        mock_mcp_client, enable_guardrails=True
+    )
+    executor2 = ExecutorFactory.get_singleton(mock_mcp_client)
+
+    assert executor1 is executor2
+    assert executor1.guardrail_pipeline is not None
