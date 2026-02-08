@@ -5,6 +5,7 @@ Architecture:
     L2: Semantic similarity (cosine >0.92, LFU, 1024 entries)
     L3: Vault lookup (async, non-blocking)
 
+Embeddings: FLUME VAE encoder (256D) for real semantic similarity
 Target: 70%+ cache hit rate with sub-100ms lookup latency.
 """
 
@@ -17,6 +18,8 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import numpy as np
+
+from cohezion.flume.vae_encoder import get_encoder
 
 
 logger = logging.getLogger(__name__)
@@ -90,35 +93,36 @@ class SemanticCache:
 
     @staticmethod
     def _text_to_embedding(text: str) -> np.ndarray:
-        """Convert text to deterministic embedding.
+        """Convert text to production semantic embedding.
 
-        Uses SHA-256 hash repeated and XOR'd to create 256D vector.
-        Normalized for cosine similarity.
-
-        For production, replace with FLUME VAE encoder.
+        Uses FLUME VAE encoder for real 256D semantic embeddings.
+        Falls back to deterministic hash if VAE unavailable.
 
         Args:
             text: Text to embed
 
         Returns:
-            256D numpy array, normalized
+            256D numpy array, normalized for cosine similarity
         """
-        # Hash text
-        hash_obj = hashlib.sha256(text.encode())
-        hash_bytes = hash_obj.digest()
+        try:
+            encoder = get_encoder()
+            return encoder.encode(text)
+        except Exception as e:
+            logger.debug(f"VAE encoding failed, using hash fallback: {e}")
+            # Fallback to deterministic hash
+            hash_obj = hashlib.sha256(text.encode())
+            hash_bytes = hash_obj.digest()
 
-        # Create 256D vector from hash (repeat hash as needed)
-        embedding = np.zeros(256, dtype=np.float32)
-        for i in range(256):
-            byte_idx = i % len(hash_bytes)
-            embedding[i] = hash_bytes[byte_idx] / 255.0
+            embedding = np.zeros(256, dtype=np.float32)
+            for i in range(256):
+                byte_idx = i % len(hash_bytes)
+                embedding[i] = hash_bytes[byte_idx] / 255.0
 
-        # Normalize
-        norm = np.linalg.norm(embedding)
-        if norm > 0:
-            embedding /= norm
+            norm = np.linalg.norm(embedding)
+            if norm > 0:
+                embedding /= norm
 
-        return embedding
+            return embedding
 
     @staticmethod
     def _cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
