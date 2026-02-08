@@ -1,9 +1,11 @@
 import yaml
 from jsonschema import validate
 
+
 def validate_intent(original_request: str, summarized_intent: str) -> bool:
     """
-    Validates that the summarized intent preserves the core meaning of the original request.
+    Validates that the summarized intent preserves the core meaning
+    of the original request.
 
     Args:
         original_request: The original natural language request.
@@ -22,14 +24,20 @@ def validate_intent(original_request: str, summarized_intent: str) -> bool:
     summarized_keywords = set(summarized_intent.lower().split())
 
     # Check if at least 50% of the keywords are shared
-    if len(original_keywords.intersection(summarized_keywords)) / len(original_keywords) >= 0.5:
+    if (
+        len(original_keywords.intersection(summarized_keywords))
+        / len(original_keywords)
+        >= 0.5
+    ):
         return True
     else:
         return False
 
+
 def process_natural_language(request: str) -> str:
     """
-    Processes a natural language request, summarizes it, and structures it into a YAML format.
+    Processes a natural language request, summarizes it,
+    and structures it into a YAML format.
 
     Args:
         request: The natural language request from the user.
@@ -39,11 +47,14 @@ def process_natural_language(request: str) -> str:
     """
 
     # 1. Summarize the request (placeholder for a call to a language model)
-    summarized_intent = f"Summary of: {request}" # Placeholder
+    summarized_intent = f"Summary of: {request}"  # Placeholder
 
     # 2. Validate the intent
     if not validate_intent(request, summarized_intent):
-        raise ValueError("Intent validation failed: The summarized intent does not seem to preserve the original meaning.")
+        raise ValueError(
+            "Intent validation failed: The summarized intent"
+            " does not seem to preserve the original meaning."
+        )
 
     # 3. Extract entities and keywords (placeholder)
     entities = [
@@ -62,14 +73,19 @@ def process_natural_language(request: str) -> str:
     # 5. Validate the output against the schema
     with open("bmad/schemas/intake_schema.yml", "r") as schema_file:
         schema = yaml.safe_load(schema_file)
-    
+
     validate(instance=output_data, schema=schema)
 
     # 6. Return the YAML string
     return yaml.dump(output_data)
 
+
 if __name__ == "__main__":
-    test_request = "We need an intake specialist that converts the natural language request to the orchestratory to assemble a squad of agents to execute a workflow"
+    test_request = (
+        "We need an intake specialist that converts the natural"
+        " language request to the orchestratory to assemble a"
+        " squad of agents to execute a workflow"
+    )
     try:
         yaml_output = process_natural_language(test_request)
         print(yaml_output)
