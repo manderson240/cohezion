@@ -47,6 +47,7 @@ def tmp_workdir(tmp_path: Path):
 @pytest.fixture(autouse=True)
 def reset_singletons():
     """Auto-reset critical singletons before each test to prevent state pollution."""
+    import logging
     from cohezion.compound.executor import ExecutorFactory
     from cohezion.compound.batch_executor import BatchableExecutor
     from cohezion.swarm.cost_aware_router import CostAwareRouter
@@ -63,6 +64,9 @@ def reset_singletons():
         SessionCostTracker.reset_instance()
     if hasattr(BudgetEnforcer, "reset_instance"):
         BudgetEnforcer.reset_instance()
+
+    # Clear logger cache to ensure consistent logging formatters
+    logging.getLogger().handlers.clear()
 
     yield
 
