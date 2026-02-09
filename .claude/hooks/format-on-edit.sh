@@ -1,5 +1,9 @@
 #!/bin/bash
-# Auto-format Python files after Claude edits/writes them.
+# HOOK_NAME: format-on-edit
+# HOOK_STAGE: post_execute
+# HOOK_ACTION: allow
+# HOOK_TIMEOUT: 10
+# HOOK_DESCRIPTION: Auto-format Python files after Claude edits/writes them
 # Receives tool input JSON on stdin. Extracts file_path and runs ruff.
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
