@@ -82,11 +82,21 @@ class VaultFileWatcher:
                 self._timers.clear()
             logger.info("VaultFileWatcher stopped")
 
-    def subscribe(self) -> asyncio.Queue[VaultEvent]:
-        """Add a subscriber queue. Returns the queue."""
-        queue: asyncio.Queue[VaultEvent] = asyncio.Queue()
+    def subscribe(self, maxsize: int = 1000) -> asyncio.Queue[VaultEvent]:
+        """Add a subscriber queue with bounded size. Returns the queue.
+
+        Args:
+            maxsize: Maximum queue size (default 1000 events)
+
+        Returns:
+            asyncio.Queue with bounded size
+
+        Security: Prevents unbounded queue growth (DoS mitigation)
+        """
+        queue: asyncio.Queue[VaultEvent] = asyncio.Queue(maxsize=maxsize)
         with self._lock:
             self._subscribers.append(queue)
+        logger.debug(f"Subscriber added (queue maxsize={maxsize}, total={len(self._subscribers)})")
         return queue
 
     def unsubscribe(self, queue: asyncio.Queue) -> None:
