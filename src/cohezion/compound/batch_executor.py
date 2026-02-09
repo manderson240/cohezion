@@ -19,9 +19,14 @@ Architecture:
 
 import asyncio
 import logging
+import time
 from dataclasses import dataclass, field
 from typing import Any
 
+from cohezion.compound.batch_sizer import (
+    BatchExecutionMetrics,
+    get_batch_size_predictor,
+)
 from cohezion.compound.executor import CompoundExecutor, ExecutionResult
 from cohezion.core.mcp_client import MCPClient
 
@@ -80,19 +85,29 @@ class BatchableExecutor:
         mcp_client: MCPClient,
         batch_size: int = 8,
         enable_deduplication: bool = True,
+        enable_adaptive_batch_sizing: bool = True,
     ):
         """Initialize batch executor.
 
         Args:
             executor: Base CompoundExecutor
             mcp_client: Connected MCPClient
-            batch_size: Maximum batch size
+            batch_size: Maximum batch size (can be overridden by predictor)
             enable_deduplication: Enable deduplication
+            enable_adaptive_batch_sizing: Enable experience-guided batch sizing (default: True)
         """
         self.executor = executor
         self.mcp_client = mcp_client
+        self.initial_batch_size = batch_size
         self.batch_size = batch_size
         self.enable_deduplication = enable_deduplication
+        self.enable_adaptive_batch_sizing = enable_adaptive_batch_sizing
+
+        # Phase 3 Sprint 1: Experience-guided batch sizing
+        if enable_adaptive_batch_sizing:
+            self.batch_sizer = get_batch_size_predictor()
+        else:
+            self.batch_sizer = None
 
     async def execute_batch(
         self, tasks: list[CompoundTask]
@@ -124,6 +139,22 @@ class BatchableExecutor:
             )
 
         logger.info(f"Starting batch execution of {len(tasks)} tasks")
+
+        # Phase 3 Sprint 1: Experience-guided batch sizing
+        predicted_batch_size = self.batch_size
+        prediction_confidence = 0.0
+        if self.batch_sizer and len(tasks) > 1:
+            task_types = self._detect_task_types(tasks)
+            predicted_batch_size, prediction_confidence = (
+                self.batch_sizer.predict_optimal_size(
+                    task_types[0] if task_types else "unknown", len(tasks)
+                )
+            )
+            self.batch_size = predicted_batch_size
+            logger.info(
+                f"Batch sizing: predicted size={predicted_batch_size} "
+                f"(confidence={prediction_confidence:.2f})"
+            )
 
         try:
             # Phase 1: Get experience guidance for all tasks
@@ -167,6 +198,30 @@ class BatchableExecutor:
             if total_requests > 0
             else 0.0
         )
+
+        # Phase 3 Sprint 1: Record metrics for batch sizing learning
+        if self.batch_sizer and results:
+            try:
+                throughput = (
+                    sum(r.metrics.get("tokens_used", 0) for r in results) / duration
+                    if duration > 0
+                    else 0.0
+                )
+                task_types = self._detect_task_types(tasks)
+                metrics = BatchExecutionMetrics(
+                    batch_size=predicted_batch_size,
+                    task_count=len(tasks),
+                    task_types=task_types,
+                    execution_time=duration,
+                    tokens_used=sum(r.metrics.get("tokens_used", 0) for r in results),
+                    throughput=throughput,
+                    cache_hit_rate=cache_hit_rate / 100.0,
+                    errors=tasks_failed,
+                )
+                self.batch_sizer.record_execution(metrics)
+                logger.debug(f"Recorded batch metrics: throughput={throughput:.1f} tok/sec")
+            except Exception as e:
+                logger.debug(f"Failed to record batch metrics: {e}")
 
         return BatchCompoundResult(
             success=len(errors) == 0,
@@ -240,6 +295,66 @@ class BatchableExecutor:
         except Exception as e:
             logger.debug(f"Error getting guidance for {task.task_id}: {e}")
             return {}
+
+    def _detect_task_types(self, tasks: list[CompoundTask]) -> list[str]:
+        """Detect task types from task metadata or prompt keywords.
+
+        Phase 3 Sprint 1: Task type detection for batch sizing.
+
+        Classifies tasks as:
+        - generate: Creative content generation
+        - analyze: Analysis and understanding
+        - search: Information retrieval
+        - transform: Content transformation
+        - persist: Data persistence
+        - unknown: Unable to classify
+
+        Args:
+            tasks: List of tasks to classify
+
+        Returns:
+            List of task type strings (one per task)
+        """
+        task_types = []
+
+        for task in tasks:
+            # Check metadata first
+            if hasattr(task, "metadata") and "task_type" in task.metadata:
+                task_types.append(task.metadata["task_type"])
+                continue
+
+            # Fall back to keyword detection in prompt
+            prompt_lower = task.prompt.lower()
+
+            if any(
+                word in prompt_lower
+                for word in ["generate", "create", "write", "compose", "write a"]
+            ):
+                task_types.append("generate")
+            elif any(
+                word in prompt_lower
+                for word in ["analyze", "analyze", "examine", "review", "evaluate"]
+            ):
+                task_types.append("analyze")
+            elif any(
+                word in prompt_lower
+                for word in ["search", "find", "look for", "retrieve", "list"]
+            ):
+                task_types.append("search")
+            elif any(
+                word in prompt_lower
+                for word in ["transform", "convert", "change", "format", "rewrite"]
+            ):
+                task_types.append("transform")
+            elif any(
+                word in prompt_lower
+                for word in ["save", "store", "persist", "record", "store"]
+            ):
+                task_types.append("persist")
+            else:
+                task_types.append("unknown")
+
+        return task_types
 
     async def _execute_batch_phase2(
         self,

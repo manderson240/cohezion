@@ -3,6 +3,11 @@
 Integrates skill execution, knowledge persistence (vault), and experience-guided loops.
 """
 
+from cohezion.compound.batch_sizer import (
+    BatchExecutionMetrics,
+    BatchSizePredictor,
+    get_batch_size_predictor,
+)
 from cohezion.compound.cache_persistence import CachePersistence, WarmCacheLoader
 from cohezion.compound.executor import (
     CompoundExecutor,
@@ -56,6 +61,8 @@ from cohezion.compound.vault_execution_logger import (
 __all__ = [
     "AgentTask",
     "AgentTaskResult",
+    "BatchExecutionMetrics",
+    "BatchSizePredictor",
     "CachePersistence",
     "CompoundCycleReport",
     "CompoundCycleResult",
@@ -86,6 +93,7 @@ __all__ = [
     "TrajectoryPoint",
     "VaultExecutionLogger",
     "WarmCacheLoader",
+    "get_batch_size_predictor",
     "get_collector",
     "reset_collector",
 ]
