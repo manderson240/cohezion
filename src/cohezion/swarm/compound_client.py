@@ -62,18 +62,13 @@ def create_compound_client(
     # 3. ContextHarness targeting the cheapest model for prompt pruning
     harness = ContextHarness(target_model="phi3:mini")
 
-    # 4. ResilientOllamaClient with circuit breaker
-    ollama_client = ResilientOllamaClient(
-        model="phi3:mini",
-        base_url=ollama_host,
-    )
-
-    # 5. Assemble
+    # 4. Create TokenEfficientClient with SmartRouter adapter
     client = TokenEfficientClient(
-        ollama_client=ollama_client,
-        context_harness=harness,
-        model_router=adapter,
-        cache_max_size=cache_max_size,
+        ollama_base_url=ollama_host,
+        router=adapter,
+        config=None,  # Will use defaults from CohezionConfig
+        use_persistent_cache=True,
+        use_semantic_cache=True,
     )
 
     logger.info(
