@@ -3,6 +3,7 @@
 Integrates skill execution, knowledge persistence (vault), and experience-guided loops.
 """
 
+from cohezion.compound.cache_persistence import CachePersistence, WarmCacheLoader
 from cohezion.compound.executor import (
     CompoundExecutor,
     ExecutionResult,
@@ -15,6 +16,7 @@ from cohezion.compound.feedback_loop import (
     RetryAttempt,
     RetryStrategy,
 )
+from cohezion.compound.journey_persistence import JourneyPersistence
 from cohezion.compound.journey_tracker import (
     Journey,
     JourneyTracker,
@@ -22,6 +24,13 @@ from cohezion.compound.journey_tracker import (
     OperationType,
     TrajectoryPoint,
 )
+from cohezion.compound.metrics import (
+    CompoundMetricsCollector,
+    get_collector,
+    reset_collector,
+)
+from cohezion.compound.metrics_persistence import MetricsPersistence
+from cohezion.compound.models import CompoundCycleReport, CompoundCycleResult
 from cohezion.compound.skill_selector import (
     SkillScore,
     SkillSelector,
@@ -42,16 +51,22 @@ from cohezion.compound.vault_execution_logger import (
 __all__ = [
     "AgentTask",
     "AgentTaskResult",
+    "CachePersistence",
+    "CompoundCycleReport",
+    "CompoundCycleResult",
     "CompoundExecutor",
     "CompoundFeedbackLoop",
     "CompoundFeedbackLoopFactory",
+    "CompoundMetricsCollector",
     "ExecutionContext",
     "ExecutionResult",
     "ExecutorFactory",
     "FeedbackLoopResult",
     "Journey",
+    "JourneyPersistence",
     "JourneyTracker",
     "JourneyTrackerFactory",
+    "MetricsPersistence",
     "OperationType",
     "RetryAttempt",
     "RetryStrategy",
@@ -62,4 +77,7 @@ __all__ = [
     "TeamExecutorFactory",
     "TrajectoryPoint",
     "VaultExecutionLogger",
+    "WarmCacheLoader",
+    "get_collector",
+    "reset_collector",
 ]
