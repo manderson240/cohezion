@@ -7,8 +7,6 @@ import time
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from cohezion.compound.cache_persistence import CachePersistence, WarmCacheLoader
 from cohezion.compound.metrics_persistence import MetricsPersistence
 from cohezion.compound.session_manager import (
@@ -318,49 +316,6 @@ class TestCompoundSessionManager:
 
 
 # ---------------------------------------------------------------------------
-# TokenEfficientClient persistence methods
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.skip(reason="Tests stash-era API; HEAD modules evolved (Sessions 25-29)")
-class TestTokenClientPersistence:
-    """Tests for warm_from_disk / persist_cache on TokenEfficientClient."""
-
-    def test_warm_from_disk(self, tmp_path: Path) -> None:
-        from cohezion.swarm.token_client import TokenEfficientClient
-
-        # Pre-populate cache file
-        cp = CachePersistence(cache_dir=tmp_path)
-        cp.save_cache({"hash_a": "resp_a"})
-
-        client = TokenEfficientClient()
-
-        with patch(
-            "cohezion.compound.cache_persistence.CachePersistence",
-            return_value=cp,
-        ):
-            loaded = client.warm_from_disk()
-
-        assert loaded == 1
-        assert "hash_a" in client._cache
-
-    def test_persist_cache(self, tmp_path: Path) -> None:
-        from cohezion.swarm.token_client import TokenEfficientClient
-
-        client = TokenEfficientClient()
-        client._cache = {"h1": "r1", "h2": "r2"}
-
-        cp = CachePersistence(cache_dir=tmp_path)
-        with patch(
-            "cohezion.compound.cache_persistence.CachePersistence",
-            return_value=cp,
-        ):
-            saved = client.persist_cache()
-
-        assert saved == 2
-
-
-# ---------------------------------------------------------------------------
 # CompoundMetricsCollector snapshot methods
 # ---------------------------------------------------------------------------
 
@@ -395,67 +350,3 @@ class TestMetricsSnapshot:
         assert c2.total_executions == 1
         assert c2.total_refinements == 1
         assert c2.total_cycles == 1
-
-
-# ---------------------------------------------------------------------------
-# API endpoint tests
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.skip(reason="Tests stash-era API; HEAD modules evolved (Sessions 25-29)")
-@pytest.mark.asyncio
-class TestSessionEndpoints:
-    """Tests for /compound/session/* and /compound/scores/* endpoints."""
-
-    @patch("cohezion.swarm.compound_client.get_compound_client")
-    async def test_session_start_endpoint(self, mock_get_client: MagicMock) -> None:
-        from httpx import ASGITransport, AsyncClient
-
-        from cohezion.api import app
-
-        client_mock = MagicMock()
-        client_mock._cache = {}
-        client_mock._cache_max_size = 512
-        mock_get_client.return_value = client_mock
-
-        transport = ASGITransport(app=app)
-        async with AsyncClient(transport=transport, base_url="http://test") as ac:
-            resp = await ac.post(
-                "/compound/session/start",
-                json={"max_cache_entries": 100},
-            )
-        assert resp.status_code == 200
-        data = resp.json()
-        assert "session_id" in data
-        assert "cache_entries_loaded" in data
-
-    @patch("cohezion.swarm.compound_client.get_compound_client")
-    async def test_session_end_endpoint(self, mock_get_client: MagicMock) -> None:
-        from httpx import ASGITransport, AsyncClient
-
-        from cohezion.api import app
-
-        client_mock = MagicMock()
-        client_mock._cache = {}
-        client_mock._cache_max_size = 512
-        mock_get_client.return_value = client_mock
-
-        transport = ASGITransport(app=app)
-        async with AsyncClient(transport=transport, base_url="http://test") as ac:
-            resp = await ac.post("/compound/session/end")
-        assert resp.status_code == 200
-        data = resp.json()
-        assert "session_id" in data
-
-    async def test_score_history_endpoint(self) -> None:
-        from httpx import ASGITransport, AsyncClient
-
-        from cohezion.api import app
-
-        transport = ASGITransport(app=app)
-        async with AsyncClient(transport=transport, base_url="http://test") as ac:
-            resp = await ac.get("/compound/scores/history?limit=10")
-        assert resp.status_code == 200
-        data = resp.json()
-        assert "scores" in data
-        assert "count" in data

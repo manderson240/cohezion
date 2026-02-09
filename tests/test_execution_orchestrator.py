@@ -174,31 +174,31 @@ class TestExecutionOrchestrator:
 
 
 class TestTeamOrchestratorExecute:
-    @pytest.mark.skip(reason="Tests stash-era API; HEAD modules evolved (Sessions 25-29)")
     @pytest.mark.asyncio
     async def test_execute_team_produces_report(self):
         """execute_team() returns an ExecutionReport."""
-        from unittest.mock import AsyncMock, patch
+        from unittest.mock import AsyncMock, MagicMock, patch
 
-        mock_executor = AsyncMock()
-        mock_executor.execute_skill = AsyncMock(
-            return_value=type(
-                "Result",
-                (),
-                {
-                    "skill_name": "test",
-                    "final_output": "ok",
-                    "steps": [],
-                    "total_tokens": 10,
-                    "total_duration_ms": 100.0,
-                    "model_usage": {},
-                },
-            )()
-        )
+        mock_task_result = {
+            "skill_name": "test",
+            "output": "ok",
+            "tokens": 10,
+            "status": "completed",
+        }
+
+        # Mock registry to avoid missing cohezion.registry.capability_registry
+        mock_registry = MagicMock()
+        mock_registry.find.return_value = [
+            MagicMock(name="TEST_SKILL", description="A test skill"),
+        ]
+
         with patch(
-            "cohezion.compound.executor.get_executor", return_value=mock_executor
-        ):
+            "cohezion.swarm.team_execution.TeamCompoundExecutor.execute_task",
+            new_callable=AsyncMock,
+            return_value=mock_task_result,
+        ), patch("cohezion.swarm.compound_client.get_compound_client"):
             orch = TeamOrchestrator()
+            orch._registry = mock_registry
             report = await orch.execute_team("test compound engineering", max_agents=2)
         assert hasattr(report, "task_results")
         assert hasattr(report, "status")
