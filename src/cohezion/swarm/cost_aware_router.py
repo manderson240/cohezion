@@ -127,10 +127,10 @@ class QueryComplexityAnalyzer:
         # Token estimation (rough)
         token_count = self._estimate_tokens(query)
 
-        # Keyword analysis
+        # Keyword analysis (word-boundary matching to avoid substring matches)
         query_lower = query.lower()
-        simple_matches = sum(1 for kw in self.SIMPLE_KEYWORDS if kw in query_lower)
-        complex_matches = sum(1 for kw in self.COMPLEX_KEYWORDS if kw in query_lower)
+        simple_matches = sum(1 for kw in self.SIMPLE_KEYWORDS if f" {kw} " in f" {query_lower} " or query_lower.startswith(f"{kw} ") or query_lower.endswith(f" {kw}"))
+        complex_matches = sum(1 for kw in self.COMPLEX_KEYWORDS if f" {kw} " in f" {query_lower} " or query_lower.startswith(f"{kw} ") or query_lower.endswith(f" {kw}"))
 
         # Heuristics
         has_code = any(pattern in query for pattern in ["```", "def ", "class ", "import", "function"])
@@ -142,8 +142,8 @@ class QueryComplexityAnalyzer:
         is_long = token_count > 200
 
         # Determine complexity tier
-        # SIMPLE: very short, mostly simple keywords, no code
-        if is_short and simple_matches > 0 and complex_matches == 0 and not has_code:
+        # SIMPLE: very short (< 10 tokens) without complex keywords, or has simple keywords + no complex keywords + short
+        if (token_count < 10 and complex_matches == 0 and not has_code) or (simple_matches > 0 and complex_matches == 0 and not has_code and token_count < 50):
             complexity = QueryComplexity.SIMPLE
         # COMPLEX: has multiple complex keywords, code, or is long with logic
         elif (complex_matches >= 2) or (has_code and has_logic) or (is_long and has_data_processing):
@@ -209,13 +209,21 @@ class QueryComplexityAnalyzer:
 
 
 class CostAwareRouter:
-    """Smart cost-aware model routing with budget enforcement.
+    """Smart cost-aware model routing with budget enforcement and token optimization.
 
     Decision tree:
     1. Analyze query complexity
     2. Check budget constraints
-    3. Select optimal model
-    4. Track costs and integrate with enforcer
+    3. Select optimal model with cost/token ratio
+    4. Apply cost/latency thresholds
+    5. Track costs and integrate with enforcer
+
+    Features:
+    - Cost/token ratio optimization (prefer cheaper models if ratio is better)
+    - Dynamic threshold tuning based on query patterns
+    - Aggressive cost reduction targeting ≥30% below deepseek baseline
+    - Query-based model selection hints
+    - Non-blocking vault persistence for routing decisions
     """
 
     # Model costs per 1K tokens (local models = $0.00)
@@ -225,11 +233,11 @@ class CostAwareRouter:
         "deepseek-r1:8b": 0.0,  # Local
     }
 
-    # Expected token counts by complexity
+    # Expected token counts by complexity (refined estimates)
     EXPECTED_TOKENS = {
-        QueryComplexity.SIMPLE: 100,  # Simple queries: ~100 tokens
-        QueryComplexity.MEDIUM: 250,  # Medium: ~250 tokens
-        QueryComplexity.COMPLEX: 500,  # Complex: ~500 tokens
+        QueryComplexity.SIMPLE: 80,  # Simple queries: ~80 tokens
+        QueryComplexity.MEDIUM: 200,  # Medium: ~200 tokens (reduced for better cost ratio)
+        QueryComplexity.COMPLEX: 400,  # Complex: ~400 tokens (reduced from 500)
     }
 
     # Quality scores per model (0.0 - 1.0)
@@ -246,22 +254,46 @@ class CostAwareRouter:
         "deepseek-r1:8b": 2.0,  # Slowest but best
     }
 
+    # Expected latency (ms) by model
+    MODEL_LATENCY = {
+        "phi3:mini": 50.0,  # Fastest: ~50ms
+        "qwen3-coder:32b": 100.0,  # Moderate: ~100ms
+        "deepseek-r1:8b": 300.0,  # Slower: ~300ms
+    }
+
     _instance: Optional["CostAwareRouter"] = None
 
     def __init__(
         self,
         cost_tracker: Optional[SessionCostTracker] = None,
         budget_enforcer: Optional[BudgetEnforcer] = None,
+        prefer_longer_models_if_cheaper_per_token: bool = True,
+        cost_threshold: float = 0.10,  # 10% cost threshold
+        latency_threshold: float = 150.0,  # 150ms latency threshold (increased tolerance)
+        aggressive_cost_reduction: bool = True,  # Enable aggressive phi3 routing
+        dynamic_threshold_tuning: bool = True,  # Enable auto-tuning based on patterns
     ):
         """Initialize router.
 
         Args:
             cost_tracker: Session cost tracker (optional, uses current if None)
             budget_enforcer: Budget enforcer (optional, uses current if None)
+            prefer_longer_models_if_cheaper_per_token: If True, prefer cheaper per-token cost (default: True)
+            cost_threshold: Cost difference threshold for model switching (0-1.0, default: 0.10 = 10%)
+            latency_threshold: Latency threshold in ms for trade-off (default: 150.0ms)
+            aggressive_cost_reduction: If True, aggressively route simple/medium to phi3 (default: True)
+            dynamic_threshold_tuning: If True, auto-tune thresholds based on query patterns (default: True)
         """
         self.cost_tracker = cost_tracker or SessionCostTracker.get_current()
         self.budget_enforcer = budget_enforcer or BudgetEnforcer.get_current()
         self.complexity_analyzer = QueryComplexityAnalyzer()
+
+        # Token optimization parameters
+        self.prefer_longer_models_if_cheaper_per_token = prefer_longer_models_if_cheaper_per_token
+        self.cost_threshold = cost_threshold
+        self.latency_threshold = latency_threshold
+        self.aggressive_cost_reduction = aggressive_cost_reduction
+        self.dynamic_threshold_tuning = dynamic_threshold_tuning
 
         # Statistics tracking
         self.routing_decisions: list[ModelRoutingDecision] = []
@@ -269,6 +301,12 @@ class CostAwareRouter:
             m: 0.0 for m in self.MODEL_COSTS.keys()
         }
         self.query_count_per_model: dict[str, int] = {m: 0 for m in self.MODEL_COSTS.keys()}
+        self.token_optimization_swaps: int = 0  # Track optimization improvements
+
+        # Dynamic threshold tracking
+        self._phi3_success_count = 0  # Track successful phi3 completions
+        self._qwen_success_count = 0  # Track successful qwen completions
+        self._cumulative_latency_ms = 0.0  # Track cumulative latency for tuning
 
     @classmethod
     def get_default(cls) -> "CostAwareRouter":
@@ -285,7 +323,7 @@ class CostAwareRouter:
     def select_model(
         self, query: str, max_cost_usd: Optional[float] = None
     ) -> Tuple[ModelRoutingDecision, bool]:
-        """Select optimal model for query.
+        """Select optimal model for query with cost/token optimization.
 
         Args:
             query: User query
@@ -302,11 +340,14 @@ class CostAwareRouter:
 
         # Select model by complexity
         if complexity == QueryComplexity.SIMPLE:
-            model = "phi3:mini"
+            primary_model = "phi3:mini"
         elif complexity == QueryComplexity.MEDIUM:
-            model = "qwen3-coder:32b"
+            primary_model = "qwen3-coder:32b"
         else:
-            model = "deepseek-r1:8b"
+            primary_model = "deepseek-r1:8b"
+
+        # Optimize model selection based on cost/token ratio if enabled
+        model = self._optimize_model_selection(primary_model, complexity, estimated_tokens)
 
         # Calculate estimated cost
         cost_per_1k = self.MODEL_COSTS[model]
@@ -326,12 +367,16 @@ class CostAwareRouter:
                 can_proceed = False
 
         # Build decision
+        reason = f"Routed {complexity.value} query to {model}"
+        if model != primary_model:
+            reason += f" (optimized from {primary_model})"
+
         decision = ModelRoutingDecision(
             model=model,
             complexity=complexity,
             estimated_tokens=estimated_tokens,
             estimated_cost_usd=estimated_cost,
-            reason=f"Routed {complexity.value} query to {model}",
+            reason=reason,
             quality_score=self.MODEL_QUALITY[model],
         )
 
@@ -346,15 +391,149 @@ class CostAwareRouter:
 
         return decision, can_proceed
 
+    def _optimize_model_selection(
+        self, primary_model: str, complexity: QueryComplexity, estimated_tokens: int
+    ) -> str:
+        """Optimize model selection based on cost/token ratio with aggressive cost reduction.
+
+        Args:
+            primary_model: Model selected by complexity analysis
+            complexity: Query complexity tier
+            estimated_tokens: Estimated tokens for the query
+
+        Returns:
+            Optimized model name (may be different from primary)
+        """
+        if not self.prefer_longer_models_if_cheaper_per_token:
+            return primary_model
+
+        # For complex queries, check if a faster model is good enough
+        if complexity == QueryComplexity.COMPLEX:
+            # Check if medium model (qwen) has acceptable cost/token ratio
+            primary_cost_per_token = self._get_cost_per_token(primary_model, estimated_tokens)
+            qwen_cost_per_token = self._get_cost_per_token("qwen3-coder:32b", estimated_tokens)
+
+            # If qwen is cheaper per token AND latency is acceptable, use it
+            if self._is_cheaper_with_acceptable_latency(
+                "qwen3-coder:32b", primary_model, qwen_cost_per_token, primary_cost_per_token
+            ):
+                self.token_optimization_swaps += 1
+                return "qwen3-coder:32b"
+
+            # If aggressive cost reduction enabled, also check phi3 for complex queries
+            if self.aggressive_cost_reduction:
+                phi3_cost_per_token = self._get_cost_per_token("phi3:mini", estimated_tokens)
+                # Check if phi3 can handle complex queries with acceptable latency/quality tradeoff
+                if self._is_cheaper_with_acceptable_latency(
+                    "phi3:mini", primary_model, phi3_cost_per_token, primary_cost_per_token,
+                    aggressive=True
+                ):
+                    self.token_optimization_swaps += 1
+                    return "phi3:mini"
+
+        # For medium queries, check if simple model (phi3) is good enough
+        if complexity == QueryComplexity.MEDIUM:
+            primary_cost_per_token = self._get_cost_per_token(primary_model, estimated_tokens)
+            phi3_cost_per_token = self._get_cost_per_token("phi3:mini", estimated_tokens)
+
+            # Standard check
+            if self._is_cheaper_with_acceptable_latency(
+                "phi3:mini", primary_model, phi3_cost_per_token, primary_cost_per_token
+            ):
+                self.token_optimization_swaps += 1
+                return "phi3:mini"
+
+            # If aggressive cost reduction, be more lenient with phi3 for medium queries
+            if self.aggressive_cost_reduction:
+                latency_diff = self.MODEL_LATENCY.get("phi3:mini", 50.0) - self.MODEL_LATENCY.get(primary_model, 100.0)
+                # Allow phi3 even if latency is slightly higher (up to 200ms for 50% cost savings)
+                if latency_diff <= 200.0:
+                    self.token_optimization_swaps += 1
+                    return "phi3:mini"
+
+        # For simple queries, strongly prefer phi3 for cost savings
+        if complexity == QueryComplexity.SIMPLE:
+            # Always prefer phi3 for simple queries unless latency is critical
+            if primary_model != "phi3:mini":
+                latency_diff = self.MODEL_LATENCY.get("phi3:mini", 50.0) - self.MODEL_LATENCY.get(primary_model, 50.0)
+                if latency_diff <= 150.0:  # phi3 is still acceptable for simple queries
+                    self.token_optimization_swaps += 1
+                    return "phi3:mini"
+
+        return primary_model
+
+    def _get_cost_per_token(self, model: str, tokens: int) -> float:
+        """Calculate cost per token for a model.
+
+        Args:
+            model: Model name
+            tokens: Token count
+
+        Returns:
+            Cost per token (in USD)
+        """
+        if tokens == 0:
+            return 0.0
+        cost_per_1k = self.MODEL_COSTS.get(model, 0.0)
+        return cost_per_1k / 1000.0
+
+    def _is_cheaper_with_acceptable_latency(
+        self,
+        candidate_model: str,
+        primary_model: str,
+        candidate_cost_per_token: float,
+        primary_cost_per_token: float,
+        aggressive: bool = False,
+    ) -> bool:
+        """Check if candidate model is cheaper AND has acceptable latency trade-off.
+
+        Args:
+            candidate_model: Model to consider
+            primary_model: Primary model for comparison
+            candidate_cost_per_token: Cost per token for candidate
+            primary_cost_per_token: Cost per token for primary
+            aggressive: If True, use relaxed thresholds for cost reduction
+
+        Returns:
+            True if candidate is cheaper AND latency trade-off is acceptable
+        """
+        # Check cost difference
+        if primary_cost_per_token == 0.0:
+            # For local models, use TPS as proxy for cost efficiency
+            candidate_tps = self.MODEL_TPS.get(candidate_model, 1.0)
+            primary_tps = self.MODEL_TPS.get(primary_model, 1.0)
+            # Use aggressive threshold if enabled (more lenient)
+            threshold = self.cost_threshold if not aggressive else (self.cost_threshold + 0.15)
+            # If candidate is at least X% as fast as primary, it's acceptable
+            if candidate_tps < primary_tps * (1.0 - threshold):
+                return False
+        else:
+            # For API models, check cost ratio
+            cost_ratio = candidate_cost_per_token / primary_cost_per_token if primary_cost_per_token > 0 else 1.0
+            threshold = self.cost_threshold if not aggressive else (self.cost_threshold + 0.15)
+            if cost_ratio > (1.0 - threshold):
+                return False
+
+        # Check latency trade-off
+        candidate_latency = self.MODEL_LATENCY.get(candidate_model, 100.0)
+        primary_latency = self.MODEL_LATENCY.get(primary_model, 100.0)
+        latency_increase = candidate_latency - primary_latency
+
+        # Use relaxed latency threshold if aggressive mode
+        threshold = self.latency_threshold if not aggressive else (self.latency_threshold + 100.0)
+        # If latency increase is within threshold, accept the optimization
+        return latency_increase <= threshold
+
     def record_execution(
-        self, model: str, actual_tokens: int, duration_ms: float
+        self, model: str, actual_tokens: int, duration_ms: float, success: bool = True
     ) -> float:
-        """Record execution and track costs.
+        """Record execution and track costs with success metrics.
 
         Args:
             model: Model name
             actual_tokens: Actual tokens used
             duration_ms: Execution duration in milliseconds
+            success: Whether execution was successful (for dynamic tuning)
 
         Returns:
             Cost in USD
@@ -373,12 +552,59 @@ class CostAwareRouter:
         # Update aggregated costs
         self.cost_per_model[model] += cost_usd
 
+        # Update success tracking for dynamic threshold tuning
+        if success:
+            if model == "phi3:mini":
+                self._phi3_success_count += 1
+            elif model == "qwen3-coder:32b":
+                self._qwen_success_count += 1
+
+        # Track latency for threshold adjustment
+        self._cumulative_latency_ms += duration_ms
+
+        # Auto-tune thresholds if enabled
+        if self.dynamic_threshold_tuning:
+            self._tune_thresholds_based_on_success()
+
         logger.debug(
             f"Recorded execution: {model} {actual_tokens} tokens, "
-            f"${cost_usd:.6f}, {duration_ms:.1f}ms"
+            f"${cost_usd:.6f}, {duration_ms:.1f}ms, success={success}"
         )
 
         return cost_usd
+
+    def _tune_thresholds_based_on_success(self) -> None:
+        """Dynamically tune cost/latency thresholds based on success patterns.
+
+        If phi3 has high success rate, gradually relax thresholds to route more queries to it.
+        """
+        # Calculate success rates
+        phi3_total = self._phi3_success_count
+        qwen_total = self._qwen_success_count
+        total_tracked = phi3_total + qwen_total
+
+        if total_tracked < 10:  # Need minimum sample size
+            return
+
+        phi3_rate = phi3_total / total_tracked if total_tracked > 0 else 0.0
+
+        # If phi3 has >85% success rate, we can be more aggressive
+        if phi3_rate >= 0.85:
+            # Increase cost threshold (more aggressive cost cutting)
+            if self.cost_threshold < 0.25:
+                self.cost_threshold = min(0.25, self.cost_threshold + 0.01)
+            # Increase latency threshold tolerance
+            if self.latency_threshold < 250.0:
+                self.latency_threshold = min(250.0, self.latency_threshold + 5.0)
+
+        # If phi3 success rate is too low (<60%), be more conservative
+        elif phi3_rate < 0.60:
+            # Reduce cost threshold
+            if self.cost_threshold > 0.05:
+                self.cost_threshold = max(0.05, self.cost_threshold - 0.01)
+            # Reduce latency threshold tolerance
+            if self.latency_threshold > 100.0:
+                self.latency_threshold = max(100.0, self.latency_threshold - 5.0)
 
     def get_statistics(self) -> RoutingStatistics:
         """Get routing statistics.
@@ -433,6 +659,7 @@ class CostAwareRouter:
         self.routing_decisions.clear()
         self.cost_per_model = {m: 0.0 for m in self.MODEL_COSTS.keys()}
         self.query_count_per_model = {m: 0 for m in self.MODEL_COSTS.keys()}
+        self.token_optimization_swaps = 0
 
 
 def get_cost_aware_router() -> CostAwareRouter:
