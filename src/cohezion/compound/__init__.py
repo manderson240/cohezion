@@ -76,6 +76,13 @@ from cohezion.compound.vault_execution_logger import (
     ExecutionContext,
     VaultExecutionLogger,
 )
+from cohezion.compound.intake_specialist import (
+    IntakeGreeting,
+    IntakeSpecialist,
+)
+from cohezion.compound.intent_classifier import IntentClassifier
+from cohezion.compound.prompt_optimizer import PromptOptimizer
+from cohezion.compound.request_cache import RequestCache
 
 
 __all__ = [
@@ -98,12 +105,17 @@ __all__ = [
     "HardwareMonitor",
     "InflectionDetector",
     "InflectionDetectorFactory",
+    "IntakeGreeting",
+    "IntakeSpecialist",
+    "IntentClassifier",
     "Journey",
     "JourneyPersistence",
     "JourneyTracker",
     "JourneyTrackerFactory",
     "MetricsPersistence",
     "OperationType",
+    "PromptOptimizer",
+    "RequestCache",
     "RetryAttempt",
     "RetryStrategy",
     "Severity",
