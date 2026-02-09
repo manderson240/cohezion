@@ -4,39 +4,47 @@ This server exposes the ngrok AI Gateway as tools that Claude can use via
 the Model Context Protocol, enabling Claude.ai to route requests through
 ngrok AI Gateway with multi-provider support.
 
-Installation:
-    pip install fastmcp
+Uses stdio-based MCP protocol (standard for Claude integrations).
 
 Usage with Claude.ai Custom Connector:
-    1. Start this server: python -m cohezion.gateway.mcp_server
-    2. Get the server URL (default: http://localhost:5000/sse)
-    3. Add custom connector in Claude.ai:
+    1. Add custom connector in Claude.ai settings:
        - Name: ngrok AI Gateway
-       - Remote MCP server URL: http://localhost:5000/sse
-    4. Use the exposed tools in Claude conversations
+       - Command: uv run python -m cohezion.gateway.mcp_server
+    2. Environment variables (in Claude.ai or shell):
+       - NGROK_ENDPOINT: Your ngrok gateway URL
+       - NGROK_API_KEY: Your ngrok API key
+    3. Use the exposed tools in Claude conversations
 
 Tools exposed:
     - generate: Generate response via ngrok gateway with multi-provider routing
     - get_metrics: Get performance and cost metrics
     - configure_gateway: Configure gateway settings
     - get_providers: List available providers and models
+    - cost_estimate: Estimate request costs
 """
 
 import asyncio
 import json
 import logging
 import os
+import sys
 from typing import Any
 
-from fastmcp import Server, Tool
+from mcp.server import Server
+from mcp.server.stdio import stdio_server
+from mcp.types import Tool, TextContent
 
 from cohezion.gateway import NgrokAIGateway
-from cohezion.swarm.token_client import TokenEfficientClient
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    stream=sys.stderr,
+)
 
 # Initialize server
-app = Server("ngrok-ai-gateway")
+server = Server("ngrok-ai-gateway")
 
 
 class GatewayManager:
@@ -45,7 +53,6 @@ class GatewayManager:
     def __init__(self):
         """Initialize gateway manager."""
         self.gateways: dict[str, NgrokAIGateway] = {}
-        self.clients: dict[str, TokenEfficientClient] = {}
         self.default_gateway_id = "default"
         self._initialize_default()
 
@@ -100,257 +107,285 @@ def get_gateway_manager() -> GatewayManager:
     return _gateway_manager
 
 
-# Define tools
-@app.tool()
-async def generate(
-    prompt: str,
-    model: str = "gpt-4o",
-    system: str = "",
-    gateway_id: str = "default",
-) -> dict[str, Any]:
-    """Generate response via ngrok AI Gateway.
+# Register tools
+@server.list_tools()
+async def list_tools() -> list[Tool]:
+    """List available tools."""
+    return [
+        Tool(
+            name="generate",
+            description="Generate response via ngrok AI Gateway with multi-provider routing",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "prompt": {"type": "string", "description": "User prompt"},
+                    "model": {
+                        "type": "string",
+                        "description": "Model name (gpt-4o, claude-3.5-sonnet, etc.)",
+                        "default": "gpt-4o",
+                    },
+                    "system": {"type": "string", "description": "System prompt"},
+                    "gateway_id": {
+                        "type": "string",
+                        "description": "Gateway instance ID",
+                        "default": "default",
+                    },
+                },
+                "required": ["prompt"],
+            },
+        ),
+        Tool(
+            name="get_metrics",
+            description="Get performance and cost metrics for a gateway",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "gateway_id": {
+                        "type": "string",
+                        "description": "Gateway instance ID",
+                        "default": "default",
+                    },
+                },
+            },
+        ),
+        Tool(
+            name="get_providers",
+            description="Get available providers and models",
+            inputSchema={"type": "object", "properties": {}},
+        ),
+        Tool(
+            name="configure_gateway",
+            description="Create or update a gateway configuration",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "gateway_id": {"type": "string", "description": "Gateway ID"},
+                    "ngrok_endpoint": {"type": "string", "description": "ngrok endpoint URL"},
+                    "ngrok_api_key": {"type": "string", "description": "ngrok API key"},
+                    "fallback_ollama_url": {
+                        "type": "string",
+                        "description": "Ollama URL",
+                        "default": "http://localhost:11434",
+                    },
+                    "enable_failover": {
+                        "type": "boolean",
+                        "description": "Enable failover",
+                        "default": True,
+                    },
+                },
+                "required": ["gateway_id", "ngrok_endpoint"],
+            },
+        ),
+        Tool(
+            name="cost_estimate",
+            description="Estimate cost for a request",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "model": {"type": "string", "description": "Model name"},
+                    "input_tokens": {"type": "integer", "description": "Input tokens"},
+                    "output_tokens": {"type": "integer", "description": "Output tokens"},
+                },
+                "required": ["model", "input_tokens", "output_tokens"],
+            },
+        ),
+    ]
 
-    Args:
-        prompt: User prompt
-        model: Model name (gpt-4o, claude-3.5-sonnet, gemini-pro, etc.)
-        system: System prompt
-        gateway_id: Gateway instance ID
 
-    Returns:
-        Dict with response, tokens, and cost
-    """
-    manager = get_gateway_manager()
-    gateway = manager.get_gateway(gateway_id)
-
-    if not gateway:
-        return {
-            "error": f"Gateway '{gateway_id}' not found",
-            "available_gateways": list(manager.gateways.keys()),
-        }
-
+@server.call_tool()
+async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
+    """Handle tool calls."""
     try:
-        response, tokens = await gateway.generate(
-            prompt=prompt,
-            model=model,
-            system=system,
-        )
+        if name == "generate":
+            manager = get_gateway_manager()
+            gateway = manager.get_gateway(arguments.get("gateway_id", "default"))
 
-        metrics = gateway.get_metrics()
+            if not gateway:
+                return [
+                    TextContent(
+                        type="text",
+                        text=json.dumps(
+                            {
+                                "error": f"Gateway '{arguments.get('gateway_id')}' not found",
+                                "available_gateways": list(manager.gateways.keys()),
+                            }
+                        ),
+                    )
+                ]
 
-        return {
-            "success": True,
-            "response": response,
-            "tokens": tokens,
-            "cost": round(
-                metrics.get("total_cost", 0.0) / metrics.get("total_requests", 1), 6
-            ),
-            "provider_used": "ngrok",
-            "fallback_used": metrics.get("fallback_requests", 0) > 0,
-        }
+            response, tokens = await gateway.generate(
+                prompt=arguments["prompt"],
+                model=arguments.get("model", "gpt-4o"),
+                system=arguments.get("system", ""),
+            )
+
+            metrics = gateway.get_metrics()
+
+            return [
+                TextContent(
+                    type="text",
+                    text=json.dumps(
+                        {
+                            "success": True,
+                            "response": response,
+                            "tokens": tokens,
+                            "cost": round(
+                                metrics.get("total_cost", 0.0)
+                                / max(metrics.get("total_requests", 1), 1),
+                                6,
+                            ),
+                        }
+                    ),
+                )
+            ]
+
+        elif name == "get_metrics":
+            manager = get_gateway_manager()
+            gateway = manager.get_gateway(arguments.get("gateway_id", "default"))
+
+            if not gateway:
+                return [
+                    TextContent(
+                        type="text",
+                        text=json.dumps(
+                            {
+                                "error": f"Gateway '{arguments.get('gateway_id')}' not found"
+                            }
+                        ),
+                    )
+                ]
+
+            return [TextContent(type="text", text=json.dumps(gateway.get_metrics()))]
+
+        elif name == "get_providers":
+            return [
+                TextContent(
+                    type="text",
+                    text=json.dumps(
+                        {
+                            "providers": {
+                                "openai": {
+                                    "name": "OpenAI",
+                                    "models": [
+                                        {
+                                            "name": "gpt-4o",
+                                            "cost": {"input": 5.0, "output": 15.0},
+                                        },
+                                        {
+                                            "name": "gpt-3.5-turbo",
+                                            "cost": {"input": 0.5, "output": 1.5},
+                                        },
+                                    ],
+                                },
+                                "anthropic": {
+                                    "name": "Anthropic",
+                                    "models": [
+                                        {
+                                            "name": "claude-3.5-sonnet",
+                                            "cost": {"input": 3.0, "output": 15.0},
+                                        },
+                                        {
+                                            "name": "claude-3-haiku",
+                                            "cost": {"input": 0.25, "output": 1.25},
+                                        },
+                                    ],
+                                },
+                                "google": {
+                                    "name": "Google",
+                                    "models": [
+                                        {
+                                            "name": "gemini-pro",
+                                            "cost": {"input": 0.5, "output": 1.5},
+                                        },
+                                    ],
+                                },
+                            }
+                        }
+                    ),
+                )
+            ]
+
+        elif name == "configure_gateway":
+            manager = get_gateway_manager()
+            try:
+                gateway = manager.create_gateway(
+                    gateway_id=arguments["gateway_id"],
+                    ngrok_endpoint=arguments["ngrok_endpoint"],
+                    ngrok_api_key=arguments.get("ngrok_api_key"),
+                    fallback_ollama_url=arguments.get(
+                        "fallback_ollama_url", "http://localhost:11434"
+                    ),
+                    enable_failover=arguments.get("enable_failover", True),
+                )
+
+                return [
+                    TextContent(
+                        type="text",
+                        text=json.dumps(
+                            {
+                                "success": True,
+                                "gateway_id": arguments["gateway_id"],
+                                "message": "Gateway configured successfully",
+                            }
+                        ),
+                    )
+                ]
+
+            except Exception as e:
+                return [
+                    TextContent(
+                        type="text",
+                        text=json.dumps({"success": False, "error": str(e)}),
+                    )
+                ]
+
+        elif name == "cost_estimate":
+            manager = get_gateway_manager()
+            gateway = manager.get_gateway("default")
+
+            if not gateway:
+                return [
+                    TextContent(
+                        type="text",
+                        text=json.dumps({"error": "Default gateway not configured"}),
+                    )
+                ]
+
+            cost = gateway._calculate_cost(
+                arguments["model"],
+                arguments["input_tokens"],
+                arguments["output_tokens"],
+            )
+
+            return [
+                TextContent(
+                    type="text",
+                    text=json.dumps(
+                        {
+                            "model": arguments["model"],
+                            "input_tokens": arguments["input_tokens"],
+                            "output_tokens": arguments["output_tokens"],
+                            "cost_usd": round(cost, 6),
+                        }
+                    ),
+                )
+            ]
+
+        else:
+            return [TextContent(type="text", text=json.dumps({"error": f"Unknown tool: {name}"}))]
 
     except Exception as e:
-        logger.error(f"Generation failed: {e}")
-        return {
-            "error": str(e),
-            "success": False,
-        }
-
-
-@app.tool()
-def get_metrics(gateway_id: str = "default") -> dict[str, Any]:
-    """Get performance and cost metrics for a gateway.
-
-    Args:
-        gateway_id: Gateway instance ID
-
-    Returns:
-        Dict with comprehensive metrics
-    """
-    manager = get_gateway_manager()
-    gateway = manager.get_gateway(gateway_id)
-
-    if not gateway:
-        return {
-            "error": f"Gateway '{gateway_id}' not found",
-            "available_gateways": list(manager.gateways.keys()),
-        }
-
-    return gateway.get_metrics()
-
-
-@app.tool()
-def get_providers() -> dict[str, Any]:
-    """Get available providers and models.
-
-    Returns:
-        Dict with provider information and model mappings
-    """
-    return {
-        "providers": {
-            "openai": {
-                "name": "OpenAI",
-                "models": [
-                    {
-                        "name": "gpt-4o",
-                        "cost_per_1m_tokens": {"input": 5.0, "output": 15.0},
-                        "description": "Latest GPT-4 with vision",
-                    },
-                    {
-                        "name": "gpt-3.5-turbo",
-                        "cost_per_1m_tokens": {"input": 0.5, "output": 1.5},
-                        "description": "Fast and cost-effective",
-                    },
-                ],
-            },
-            "anthropic": {
-                "name": "Anthropic",
-                "models": [
-                    {
-                        "name": "claude-3.5-sonnet",
-                        "cost_per_1m_tokens": {"input": 3.0, "output": 15.0},
-                        "description": "Balanced performance",
-                    },
-                    {
-                        "name": "claude-3-opus",
-                        "cost_per_1m_tokens": {"input": 15.0, "output": 75.0},
-                        "description": "Most capable",
-                    },
-                    {
-                        "name": "claude-3-haiku",
-                        "cost_per_1m_tokens": {"input": 0.25, "output": 1.25},
-                        "description": "Fast and cheap",
-                    },
-                ],
-            },
-            "google": {
-                "name": "Google",
-                "models": [
-                    {
-                        "name": "gemini-pro",
-                        "cost_per_1m_tokens": {"input": 0.5, "output": 1.5},
-                        "description": "Efficient language model",
-                    },
-                ],
-            },
-            "ollama": {
-                "name": "Ollama (Self-hosted)",
-                "models": [
-                    {
-                        "name": "qwen3-coder:30b",
-                        "cost_per_1m_tokens": {"input": 0.0, "output": 0.0},
-                        "description": "Local, free",
-                    },
-                    {
-                        "name": "deepseek-r1:70b",
-                        "cost_per_1m_tokens": {"input": 0.0, "output": 0.0},
-                        "description": "Local, free",
-                    },
-                ],
-            },
-        },
-        "note": "Use any model name in the 'generate' tool. ngrok routes to the appropriate provider.",
-    }
-
-
-@app.tool()
-def configure_gateway(
-    gateway_id: str,
-    ngrok_endpoint: str,
-    ngrok_api_key: str | None = None,
-    fallback_ollama_url: str = "http://localhost:11434",
-    enable_failover: bool = True,
-) -> dict[str, Any]:
-    """Create or update a gateway configuration.
-
-    Args:
-        gateway_id: Unique identifier for this gateway
-        ngrok_endpoint: ngrok gateway endpoint URL
-        ngrok_api_key: ngrok API key
-        fallback_ollama_url: Ollama fallback URL
-        enable_failover: Enable automatic failover
-
-    Returns:
-        Confirmation with gateway details
-    """
-    manager = get_gateway_manager()
-
-    try:
-        gateway = manager.create_gateway(
-            gateway_id=gateway_id,
-            ngrok_endpoint=ngrok_endpoint,
-            ngrok_api_key=ngrok_api_key,
-            fallback_ollama_url=fallback_ollama_url,
-            enable_failover=enable_failover,
-        )
-
-        return {
-            "success": True,
-            "gateway_id": gateway_id,
-            "ngrok_endpoint": ngrok_endpoint,
-            "fallback_ollama_url": fallback_ollama_url,
-            "failover_enabled": enable_failover,
-            "message": f"Gateway '{gateway_id}' configured successfully",
-        }
-
-    except Exception as e:
-        logger.error(f"Configuration failed: {e}")
-        return {
-            "success": False,
-            "error": str(e),
-        }
-
-
-@app.tool()
-def cost_estimate(
-    model: str,
-    input_tokens: int,
-    output_tokens: int,
-) -> dict[str, Any]:
-    """Estimate cost for a request.
-
-    Args:
-        model: Model name
-        input_tokens: Number of input tokens
-        output_tokens: Number of output tokens
-
-    Returns:
-        Cost estimate in USD
-    """
-    manager = get_gateway_manager()
-    gateway = manager.get_gateway("default")
-
-    if not gateway:
-        return {
-            "error": "Default gateway not configured",
-        }
-
-    cost = gateway._calculate_cost(model, input_tokens, output_tokens)
-
-    return {
-        "model": model,
-        "input_tokens": input_tokens,
-        "output_tokens": output_tokens,
-        "total_tokens": input_tokens + output_tokens,
-        "cost_usd": round(cost, 6),
-        "cost_per_1m_tokens": {
-            "input": round(cost / input_tokens * 1e6, 6) if input_tokens > 0 else 0,
-            "output": round(cost / output_tokens * 1e6, 6) if output_tokens > 0 else 0,
-        },
-    }
+        logger.error(f"Tool error: {e}")
+        return [TextContent(type="text", text=json.dumps({"error": str(e)}))]
 
 
 async def main() -> None:
-    """Run the MCP server."""
-    import uvicorn
-
-    config = uvicorn.Config(
-        app,
-        host="0.0.0.0",
-        port=5000,
-        log_level="info",
-    )
-    server = uvicorn.Server(config)
-    await server.serve()
+    """Run the MCP server using stdio protocol."""
+    logger.info("Starting ngrok AI Gateway MCP server...")
+    logger.info("Listening on stdio for MCP protocol")
+    async with stdio_server(server) as streams:
+        logger.info("MCP server ready")
+        await streams[0].wait_closed()
 
 
 if __name__ == "__main__":
