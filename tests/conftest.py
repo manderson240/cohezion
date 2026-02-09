@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -42,6 +43,22 @@ def tmp_workdir(tmp_path: Path):
     workdir = tmp_path / "workdir"
     workdir.mkdir()
     return workdir
+
+
+@pytest.fixture(autouse=True)
+def event_loop_fixture():
+    """Ensure a fresh event loop is available for each test."""
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        # No running loop, create a new one
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        yield
+        loop.close()
+    else:
+        # Already have a running loop (pytest-asyncio)
+        yield
 
 
 @pytest.fixture(autouse=True)
