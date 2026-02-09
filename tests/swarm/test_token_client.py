@@ -300,8 +300,15 @@ class TestTokenEfficientClient:
             assert result.total_tokens == 300
 
     @pytest.mark.asyncio
-    async def test_batch_generate_large_batch(self, token_client):
+    async def test_batch_generate_large_batch(self, config):
         """Test batch with many items (concurrency control)."""
+        # Create fresh client with isolated cache to avoid disk cache hits
+        client = TokenEfficientClient(
+            config=config,
+            use_persistent_cache=False,
+            use_semantic_cache=False,
+        )
+
         items = [
             BatchItem(
                 id=str(i),
@@ -312,10 +319,10 @@ class TestTokenEfficientClient:
             for i in range(10)
         ]
 
-        with patch.object(token_client.ollama, "generate") as mock_gen:
+        with patch.object(client.ollama, "generate") as mock_gen:
             mock_gen.return_value = ("Result", 100)
 
-            result = await token_client.batch_generate(items)
+            result = await client.batch_generate(items)
 
             assert result.cache_misses == 10
             assert result.total_tokens == 1000

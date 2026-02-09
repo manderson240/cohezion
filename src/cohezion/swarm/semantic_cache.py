@@ -110,10 +110,12 @@ class DistilledEmbeddingModel(EmbeddingModel):
             for i in range(self.embedding_dim):
                 hash_val = hash_floats[i % len(hash_floats)]
                 # Apply sine/cosine transformations for variety
+                # Scale hash_val to [-1, 1] to prevent overflow
+                scaled_val = np.tanh(hash_val) * (i + 1) / self.embedding_dim
                 if i % 2 == 0:
-                    embedding.append(float(np.sin(hash_val * (i + 1))))
+                    embedding.append(float(np.sin(scaled_val)))
                 else:
-                    embedding.append(float(np.cos(hash_val * (i + 1))))
+                    embedding.append(float(np.cos(scaled_val)))
 
             # Normalize to unit vector
             embedding_array = np.array(embedding, dtype=np.float32)
