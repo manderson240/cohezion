@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 
 import uvicorn
 from starlette.applications import Starlette
-from starlette.middleware.trustedhosts import TrustedHostMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.routing import Mount, Route
 
 from .config import ServerConfig
@@ -38,8 +38,8 @@ def main():
 
     mcp = create_server(config)
 
-    # Get the streamable HTTP ASGI app from FastMCP
-    mcp_app = mcp.streamable_http_app
+    # FastMCP is an ASGI app directly - use it as mcp_app
+    mcp_app = mcp
 
     # Add TrustedHostMiddleware if not accepting all hosts
     if "*" not in config.allowed_hosts:
