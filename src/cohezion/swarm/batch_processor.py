@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from cohezion.core.config import CohezionConfig
+from cohezion.swarm.dynamic_concurrency_gate import get_concurrency_gate
 
 
 logger = logging.getLogger(__name__)
@@ -92,9 +93,11 @@ class BatchProcessor:
         self.token_client = token_client
         self.config = config or CohezionConfig()
         self.cache = cache or {}
-        self._concurrency_semaphore = asyncio.Semaphore(
-            self.config.batch.parallel_tasks
-        )
+        # Phase 1: Use dynamic concurrency gate instead of hardcoded limit
+        self.concurrency_gate = get_concurrency_gate()
+        # Initialize with default concurrency (will be updated dynamically in process_batch)
+        initial_concurrency = self.config.batch.parallel_tasks
+        self._concurrency_semaphore = asyncio.Semaphore(initial_concurrency)
 
     def _cache_key(self, prompt: str, system: str, model: str) -> str:
         """Generate cache key."""
@@ -123,6 +126,7 @@ class BatchProcessor:
         logger.info("Phase 1: Checking cache for %d items", len(items))
         cache_hits = 0
         cache_misses_list = []
+        actual_concurrency = self.config.batch.parallel_tasks  # Default
 
         for item in items:
             key = self._cache_key(item.prompt, item.system, item.model)
@@ -148,11 +152,16 @@ class BatchProcessor:
 
         # Phase 2: Parallel Execution of Cache Misses (controlled concurrency)
         if cache_misses > 0:
+            # Phase 1 Optimization: Get dynamic concurrency based on hardware state
+            actual_concurrency = self.concurrency_gate.get_safe_concurrency()
             logger.info(
-                "Phase 2: Executing %d cache misses in parallel (concurrency=%d)",
+                "Phase 2: Executing %d cache misses in parallel (dynamic concurrency=%d)",
                 cache_misses,
-                self.config.batch.parallel_tasks,
+                actual_concurrency,
             )
+
+            # Create fresh semaphore with dynamic concurrency level
+            self._concurrency_semaphore = asyncio.Semaphore(actual_concurrency)
 
             tasks = [
                 self._execute_with_concurrency(item, key, execute_fn)
@@ -186,7 +195,7 @@ class BatchProcessor:
             cache_hits=cache_hits,
             cache_misses=cache_misses,
             total_duration_ms=round(elapsed_ms, 2),
-            parallel_executions=min(cache_misses, self.config.batch.parallel_tasks),
+            parallel_executions=min(cache_misses, actual_concurrency),
         )
 
     async def _execute_with_concurrency(

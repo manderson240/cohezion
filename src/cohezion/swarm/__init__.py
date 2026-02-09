@@ -10,6 +10,9 @@ from cohezion.swarm.batch_processor import (
     BatchResult,
     CacheEntry,
 )
+from cohezion.swarm.lru_persistent_cache import (
+    LRUPersistentCache,
+)
 from cohezion.swarm.persistent_cache import (
     PersistentCache,
 )
@@ -47,6 +50,7 @@ __all__ = [
     "CacheOptimizationConfig",
     "ContextPoolManager",
     "KVCacheOptimizer",
+    "LRUPersistentCache",
     "ModelSelection",
     "MultiLayerCache",
     "MultiLayerCacheEntry",
