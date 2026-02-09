@@ -8,13 +8,16 @@ Prevents race conditions when multiple agents/sessions access shared files:
 Uses fcntl.flock() for Unix systems, with fallback timeout for deadlock prevention.
 """
 
+from __future__ import annotations
+
 import fcntl
+import json
 import logging
 import time
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import TextIO
+from typing import Any, TextIO
 
 
 logger = logging.getLogger(__name__)
@@ -253,6 +256,81 @@ class ConfigManager:
         raise FileLockError(
             f"Atomic update failed after {max_retries} retries: {last_error}"
         )
+
+
+class LockedFileOperation:
+    """Context manager providing locked file access via a sidecar lock file.
+
+    The lock file is ``{filepath}.lock`` and is created automatically.
+    Uses ``fcntl.flock()`` for advisory locking, which works across
+    processes on the same machine.
+
+    Parameters
+    ----------
+    filepath : str | Path
+        Path to the file being protected.
+    timeout : float | None
+        Not used with ``fcntl.flock()`` (blocks until lock acquired).
+        Reserved for future use.
+
+    Examples
+    --------
+    >>> with LockedFileOperation("config.json") as locked:
+    ...     data = locked.read_json()
+    ...     data["count"] += 1
+    ...     locked.write_json(data)
+    """
+
+    def __init__(
+        self,
+        filepath: str | Path,
+        timeout: float | None = None,
+    ) -> None:
+        self.filepath = Path(filepath)
+        self.lock_path = Path(f"{self.filepath}.lock")
+        self._lock_fd: Any = None
+
+    def __enter__(self) -> LockedFileOperation:
+        self.lock_path.parent.mkdir(parents=True, exist_ok=True)
+        self._lock_fd = self.lock_path.open("w")
+        fcntl.flock(self._lock_fd, fcntl.LOCK_EX)
+        logger.debug("Acquired lock: %s", self.lock_path)
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        if self._lock_fd is not None:
+            fcntl.flock(self._lock_fd, fcntl.LOCK_UN)
+            self._lock_fd.close()
+            self._lock_fd = None
+            logger.debug("Released lock: %s", self.lock_path)
+
+    def read_json(self, default: Any = None) -> Any:
+        """Read and parse the protected file as JSON."""
+        if not self.filepath.exists():
+            return default
+        text = self.filepath.read_text(encoding="utf-8").strip()
+        if not text:
+            return default
+        return json.loads(text)
+
+    def write_json(self, data: Any, indent: int = 2) -> None:
+        """Write data as JSON to the protected file."""
+        self.filepath.parent.mkdir(parents=True, exist_ok=True)
+        self.filepath.write_text(
+            json.dumps(data, indent=indent) + "\n",
+            encoding="utf-8",
+        )
+
+    def read_text(self, default: str = "") -> str:
+        """Read the protected file as text."""
+        if not self.filepath.exists():
+            return default
+        return self.filepath.read_text(encoding="utf-8")
+
+    def write_text(self, content: str) -> None:
+        """Write text to the protected file."""
+        self.filepath.parent.mkdir(parents=True, exist_ok=True)
+        self.filepath.write_text(content, encoding="utf-8")
 
 
 @contextmanager
