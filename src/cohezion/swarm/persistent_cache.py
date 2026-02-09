@@ -1,294 +1,324 @@
-"""Persistent cache with JSONL persistence and session restore.
+"""PersistentCache - Phase 1 Bottleneck #2: Session persistence and recovery.
 
-Provides a simple, session-aware cache that persists entries to disk
-and restores them on startup, improving cache hit rates across sessions.
+JSONL-backed cache that survives process restarts, enabling cross-session
+cache reuse and session recovery.
 
-Key features:
-- JSONL format for easy inspection and recovery
-- Automatic session restore on init
-- Hit rate tracking with metadata
-- Thread-safe operations
+Target: 15% throughput improvement through session restore.
 """
-
-from __future__ import annotations
 
 import json
 import logging
 import threading
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class CacheEntry:
-    """Represents a single cache entry with metadata."""
+    """Cached result."""
 
     key: str
     value: Any
+    tokens_used: int = 0
     hits: int = 0
-    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
-    last_accessed: str = field(default_factory=lambda: datetime.now().isoformat())
+    timestamp: str = ""
 
-    def to_dict(self) -> dict[str, Any]:
-        """Convert entry to dictionary for serialization."""
-        return {
-            "key": self.key,
-            "value": self.value,
-            "hits": self.hits,
-            "timestamp": self.timestamp,
-            "last_accessed": self.last_accessed,
-        }
-
-    @staticmethod
-    def from_dict(data: dict[str, Any]) -> CacheEntry:
-        """Create entry from dictionary."""
-        return CacheEntry(
-            key=data["key"],
-            value=data["value"],
-            hits=data.get("hits", 0),
-            timestamp=data.get("timestamp", datetime.now().isoformat()),
-            last_accessed=data.get("last_accessed", datetime.now().isoformat()),
-        )
+    def __post_init__(self):
+        """Set default timestamp if not provided."""
+        if not self.timestamp:
+            self.timestamp = datetime.now().isoformat()
 
 
 class PersistentCache:
-    """Session-aware cache with JSONL persistence.
+    """JSONL-backed cache with automatic session restore.
 
-    Stores cache entries to disk in JSONL format and automatically
-    restores them on startup, enabling persistent cache across sessions.
+    Stores cache entries in append-only JSONL format for persistence.
+    Loads all entries into memory on startup for fast access.
+    Tracks hit counts and timestamps for cache statistics.
 
-    Parameters
-    ----------
-    cache_dir : Path | str
-        Directory for cache storage (default: data/cache)
-    persistence_enabled : bool
-        Whether to persist cache to disk (default: True)
-    auto_restore : bool
-        Whether to automatically restore cache on init (default: True)
+    Attributes:
+        cache_file: Path to JSONL cache file
+        memory_cache: In-memory dict for O(1) lookups
+        _lock: Thread lock for safe concurrent access
+        _stats: Hit/miss statistics
     """
 
     def __init__(
         self,
-        cache_dir: Path | str = "data/cache",
-        persistence_enabled: bool = True,
-        auto_restore: bool = True,
-    ) -> None:
-        """Initialize persistent cache."""
-        self.cache_dir = Path(cache_dir)
-        self.cache_file = self.cache_dir / "cache.jsonl"
-        self._persistence_enabled = persistence_enabled
-        self._cache: dict[str, CacheEntry] = {}
-        self._lock = threading.RLock()
-        self._hit_count = 0
-        self._miss_count = 0
-        self._write_count = 0
+        cache_file: str | Path = "cache_session.jsonl",
+        max_entries: int = 10000,
+    ):
+        """Initialize PersistentCache.
 
-        # Create cache directory if it doesn't exist
-        if self._persistence_enabled:
-            self.cache_dir.mkdir(parents=True, exist_ok=True)
+        Args:
+            cache_file: Path to JSONL cache file (default: cache_session.jsonl)
+            max_entries: Maximum entries to keep in memory (soft limit)
+        """
+        self.cache_file = Path(cache_file)
+        self.max_entries = max_entries
+        self.memory_cache: dict[str, dict[str, Any]] = {}
+        self._lock = threading.RLock()  # Reentrant lock for thread safety
+        self._stats = {
+            "hits": 0,
+            "misses": 0,
+            "persisted": 0,
+            "loaded": 0,
+        }
 
-        # Restore cache from disk on startup
-        if auto_restore and self._persistence_enabled:
-            self._restore_from_disk()
+        # Load existing cache from disk
+        self.load_from_disk()
 
-    def get(self, key: str) -> Optional[Any]:
-        """Get value from cache.
+    def load_from_disk(self) -> None:
+        """Restore cache from JSONL on startup.
 
-        Parameters
-        ----------
-        key : str
-            Cache key
+        Reads all entries from JSONL file into memory_cache.
+        Non-blocking on errors - missing files are normal for new sessions.
+        """
+        if not self.cache_file.exists():
+            logger.debug(f"Cache file does not exist: {self.cache_file}")
+            return
 
-        Returns
-        -------
-        Any | None
+        try:
+            with self._lock:
+                entries_loaded = 0
+                with open(self.cache_file, "r") as f:
+                    for line_num, line in enumerate(f, 1):
+                        # Skip empty lines
+                        if not line.strip():
+                            continue
+
+                        try:
+                            entry = json.loads(line)
+                            cache_key = entry.get("key")
+                            if cache_key:
+                                self.memory_cache[cache_key] = {
+                                    "value": entry.get("value"),
+                                    "hits": entry.get("hits", 0),
+                                    "timestamp": entry.get("timestamp"),
+                                }
+                                entries_loaded += 1
+                        except json.JSONDecodeError as e:
+                            logger.warning(
+                                f"Skipping invalid JSON on line {line_num}: {e}"
+                            )
+
+                self._stats["loaded"] = entries_loaded
+                logger.info(
+                    f"Session recovery: loaded {entries_loaded} cache entries from "
+                    f"{self.cache_file}"
+                )
+
+        except Exception as e:
+            logger.warning(f"Failed to load cache from disk: {e}")
+
+    def get(self, key: str) -> str | None:
+        """Get value from cache (memory).
+
+        Updates hit count and persists hit tracking.
+
+        Args:
+            key: Cache key
+
+        Returns:
             Cached value or None if not found
         """
         with self._lock:
-            entry = self._cache.get(key)
-            if entry is not None:
-                entry.hits += 1
-                entry.last_accessed = datetime.now().isoformat()
-                self._hit_count += 1
-                logger.debug(f"Cache hit for key={key} (hits={entry.hits})")
-                return entry.value
-            else:
-                self._miss_count += 1
-                logger.debug(f"Cache miss for key={key}")
-                return None
+            if key in self.memory_cache:
+                entry = self.memory_cache[key]
+                entry["hits"] = entry.get("hits", 0) + 1
+                self._stats["hits"] += 1
 
-    def put(self, key: str, value: Any) -> None:
-        """Put value into cache and persist.
+                # Persist hit update for analytics
+                self._persist_entry(key, entry)
+                return entry.get("value")
 
-        Parameters
-        ----------
-        key : str
-            Cache key
-        value : Any
-            Value to cache
+            self._stats["misses"] += 1
+            return None
+
+    def set(self, key: str, value: str, persist: bool = True) -> None:
+        """Set value in cache (memory + optionally disk).
+
+        Args:
+            key: Cache key
+            value: Value to cache
+            persist: If True, write to JSONL file (default: True)
         """
         with self._lock:
-            entry = CacheEntry(
-                key=key,
-                value=value,
-                timestamp=datetime.now().isoformat(),
-                last_accessed=datetime.now().isoformat(),
-            )
-            self._cache[key] = entry
-            self._write_count += 1
+            entry = {
+                "key": key,
+                "value": value,
+                "hits": 0,
+                "timestamp": datetime.now().isoformat(),
+            }
+            self.memory_cache[key] = entry
 
-            # Persist to disk if enabled
-            if self._persistence_enabled:
-                self._append_to_disk(entry)
+            if persist:
+                self._persist_entry(key, entry)
 
-            logger.debug(f"Cached key={key} (total entries={len(self._cache)})")
+    def _persist_entry(self, key: str, entry: dict[str, Any]) -> None:
+        """Persist single entry to JSONL (append-only).
 
-    def delete(self, key: str) -> bool:
-        """Delete entry from cache.
+        Non-blocking on errors - persistence is nice-to-have, not essential.
 
-        Parameters
-        ----------
-        key : str
-            Cache key
-
-        Returns
-        -------
-        bool
-            True if entry existed and was deleted
+        Args:
+            key: Cache key (for logging)
+            entry: Entry dict to persist
         """
-        with self._lock:
-            if key in self._cache:
-                del self._cache[key]
-                logger.debug(f"Deleted key={key} from cache")
-                return True
-            return False
+        try:
+            with open(self.cache_file, "a") as f:
+                f.write(json.dumps(entry) + "\n")
+            self._stats["persisted"] += 1
+        except Exception as e:
+            logger.debug(f"Failed to persist cache entry {key}: {e}")
 
-    def clear(self) -> None:
-        """Clear all entries from cache."""
+    def batch_set(
+        self, entries: dict[str, str], persist: bool = True
+    ) -> int:
+        """Set multiple cache entries efficiently.
+
+        Args:
+            entries: Dict of {key: value} pairs to cache
+            persist: If True, write all to JSONL
+
+        Returns:
+            Number of entries set
+        """
+        count = 0
         with self._lock:
-            self._cache.clear()
-            if self._persistence_enabled:
-                self.cache_file.unlink(missing_ok=True)
-            logger.info("Cleared all cache entries")
+            for key, value in entries.items():
+                self.set(key, value, persist=False)  # Don't persist one-by-one
+                count += 1
+
+            # Batch persist all entries
+            if persist:
+                try:
+                    with open(self.cache_file, "a") as f:
+                        for key, value in entries.items():
+                            if key in self.memory_cache:
+                                entry = self.memory_cache[key]
+                                f.write(json.dumps(entry) + "\n")
+                    self._stats["persisted"] += len(entries)
+                except Exception as e:
+                    logger.debug(f"Failed to batch persist: {e}")
+
+        return count
 
     def get_hit_rate(self) -> float:
-        """Get cache hit rate.
+        """Calculate cache hit rate.
 
-        Returns
-        -------
-        float
-            Hit rate as decimal (0.0 to 1.0)
+        Returns:
+            Hit rate as percentage (0-100)
         """
         with self._lock:
-            total = self._hit_count + self._miss_count
+            total = self._stats["hits"] + self._stats["misses"]
             if total == 0:
                 return 0.0
-            return self._hit_count / total
+            return (self._stats["hits"] / total) * 100.0
 
     def get_stats(self) -> dict[str, Any]:
         """Get cache statistics.
 
-        Returns
-        -------
-        dict[str, Any]
-            Cache statistics including hit rate, size, etc.
+        Returns:
+            Dict with hit/miss counts, hit rate, and persistence stats
         """
         with self._lock:
-            total_requests = self._hit_count + self._miss_count
+            total = self._stats["hits"] + self._stats["misses"]
+            hit_rate = (self._stats["hits"] / total * 100) if total > 0 else 0.0
+
             return {
-                "entries": len(self._cache),
-                "hit_count": self._hit_count,
-                "miss_count": self._miss_count,
-                "total_requests": total_requests,
-                "hit_rate": self.get_hit_rate(),
-                "write_count": self._write_count,
-                "cache_size_bytes": self._estimate_size(),
+                "hits": self._stats["hits"],
+                "misses": self._stats["misses"],
+                "total_accesses": total,
+                "hit_rate": hit_rate,
+                "cache_size": len(self.memory_cache),
+                "persisted_entries": self._stats["persisted"],
+                "loaded_entries": self._stats["loaded"],
+                "cache_file": str(self.cache_file),
             }
 
-    def _estimate_size(self) -> int:
-        """Estimate cache size in bytes.
+    def clear(self) -> None:
+        """Clear in-memory cache (does NOT delete JSONL file).
 
-        Returns
-        -------
-        int
-            Estimated size in bytes
-        """
-        total = 0
-        for entry in self._cache.values():
-            # Rough estimate: key + value + metadata
-            total += len(entry.key) + len(json.dumps(entry.value)) + 100
-        return total
-
-    def _restore_from_disk(self) -> None:
-        """Restore cache from JSONL file.
-
-        Loads all entries from cache.jsonl file into memory.
-        Gracefully skips malformed entries.
-        """
-        if not self.cache_file.exists():
-            logger.debug(f"No cache file found at {self.cache_file}")
-            return
-
-        restored_count = 0
-        try:
-            with open(self.cache_file, "r") as f:
-                for line_num, line in enumerate(f, 1):
-                    if not line.strip():
-                        continue
-                    try:
-                        data = json.loads(line)
-                        entry = CacheEntry.from_dict(data)
-                        self._cache[entry.key] = entry
-                        restored_count += 1
-                    except (json.JSONDecodeError, KeyError, ValueError) as e:
-                        logger.warning(
-                            f"Skipped malformed cache entry at line {line_num}: {e}"
-                        )
-                        continue
-
-            logger.info(
-                f"Restored {restored_count} entries from {self.cache_file}"
-            )
-        except Exception as e:
-            logger.error(f"Failed to restore cache from disk: {e}")
-
-    def _append_to_disk(self, entry: CacheEntry) -> None:
-        """Append entry to JSONL file.
-
-        Parameters
-        ----------
-        entry : CacheEntry
-            Cache entry to persist
-        """
-        try:
-            with open(self.cache_file, "a") as f:
-                json.dump(entry.to_dict(), f)
-                f.write("\n")
-        except Exception as e:
-            logger.error(f"Failed to persist cache entry: {e}")
-
-    def entries(self) -> list[tuple[str, Any]]:
-        """Get all cache entries.
-
-        Returns
-        -------
-        list[tuple[str, Any]]
-            List of (key, value) tuples
+        Use when you want to reset the session but keep history.
         """
         with self._lock:
-            return [(key, entry.value) for key, entry in self._cache.items()]
+            self.memory_cache.clear()
+            logger.info("In-memory cache cleared")
+
+    def clear_all(self) -> None:
+        """Clear in-memory cache AND delete JSONL file.
+
+        Use for hard reset or cleanup.
+        """
+        with self._lock:
+            self.memory_cache.clear()
+            if self.cache_file.exists():
+                try:
+                    self.cache_file.unlink()
+                    logger.info(f"Cleared cache file: {self.cache_file}")
+                except Exception as e:
+                    logger.warning(f"Failed to delete cache file: {e}")
 
     def size(self) -> int:
-        """Get number of entries in cache.
+        """Get current cache size (in-memory entries).
 
-        Returns
-        -------
-        int
+        Returns:
             Number of cached entries
         """
         with self._lock:
-            return len(self._cache)
+            return len(self.memory_cache)
+
+    def cache_file_size_mb(self) -> float:
+        """Get JSONL file size in MB.
+
+        Returns:
+            File size in megabytes
+        """
+        if self.cache_file.exists():
+            return self.cache_file.stat().st_size / (1024 * 1024)
+        return 0.0
+
+    def entries(self) -> list[tuple[str, dict[str, Any]]]:
+        """Get all cache entries as (key, value) tuples.
+
+        Returns:
+            List of (key, entry_dict) tuples
+        """
+        with self._lock:
+            return list(self.memory_cache.items())
+
+
+# Module-level singleton
+_persistent_cache_instance: PersistentCache | None = None
+
+
+def get_persistent_cache(
+    cache_file: str | Path = "cache_session.jsonl",
+    reset: bool = False,
+) -> PersistentCache:
+    """Get or create PersistentCache singleton.
+
+    Args:
+        cache_file: Path to JSONL cache file
+        reset: If True, create new instance
+
+    Returns:
+        PersistentCache instance
+    """
+    global _persistent_cache_instance
+
+    if reset or _persistent_cache_instance is None:
+        _persistent_cache_instance = PersistentCache(cache_file=cache_file)
+
+    return _persistent_cache_instance
+
+
+__all__ = [
+    "PersistentCache",
+    "get_persistent_cache",
+]

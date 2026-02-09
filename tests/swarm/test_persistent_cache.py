@@ -1,328 +1,327 @@
-"""Test suite for PersistentCache with JSONL persistence."""
-
-from __future__ import annotations
+"""Tests for PersistentCache - Phase 1 Bottleneck #2."""
 
 import json
+import pytest
 import tempfile
 from pathlib import Path
 
-import pytest
-
-from cohezion.swarm.persistent_cache import CacheEntry, PersistentCache
+from cohezion.swarm.persistent_cache import (
+    PersistentCache,
+    get_persistent_cache,
+)
 
 
 @pytest.fixture
-def temp_cache_dir():
-    """Create temporary directory for cache testing."""
-    with tempfile.TemporaryDirectory() as tmpdir:
-        yield Path(tmpdir)
+def temp_cache_file():
+    """Create temporary cache file."""
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as f:
+        temp_path = Path(f.name)
+    yield temp_path
+    # Cleanup
+    if temp_path.exists():
+        temp_path.unlink()
 
 
-class TestCacheEntry:
-    """Test CacheEntry dataclass."""
-
-    def test_entry_creation(self):
-        """Test creating a cache entry."""
-        entry = CacheEntry(key="test-key", value="test-value")
-        assert entry.key == "test-key"
-        assert entry.value == "test-value"
-        assert entry.hits == 0
-
-    def test_entry_serialization(self):
-        """Test serializing entry to dictionary."""
-        entry = CacheEntry(key="test-key", value={"data": "test"}, hits=5)
-        data = entry.to_dict()
-
-        assert data["key"] == "test-key"
-        assert data["value"] == {"data": "test"}
-        assert data["hits"] == 5
-        assert "timestamp" in data
-
-    def test_entry_deserialization(self):
-        """Test deserializing entry from dictionary."""
-        data = {
-            "key": "test-key",
-            "value": "test-value",
-            "hits": 3,
-            "timestamp": "2026-02-08T00:00:00",
-            "last_accessed": "2026-02-08T00:00:00",
-        }
-        entry = CacheEntry.from_dict(data)
-
-        assert entry.key == "test-key"
-        assert entry.value == "test-value"
-        assert entry.hits == 3
+@pytest.fixture
+def cache(temp_cache_file):
+    """Create PersistentCache with temporary file."""
+    return PersistentCache(cache_file=temp_cache_file)
 
 
-class TestPersistentCacheBasics:
-    """Test basic cache operations."""
+class TestPersistentCacheInitialization:
+    """Test PersistentCache initialization."""
 
-    def test_cache_creation(self, temp_cache_dir):
-        """Test creating cache instance."""
-        cache = PersistentCache(cache_dir=temp_cache_dir)
+    def test_initialization_new_file(self):
+        """Test initialization with new cache file."""
+        with tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False) as f:
+            cache_file = Path(f.name)
+
+        cache = PersistentCache(cache_file=cache_file)
+        assert cache.cache_file == cache_file
         assert cache.size() == 0
         assert cache.get_hit_rate() == 0.0
 
-    def test_cache_put_get(self, temp_cache_dir):
-        """Test putting and getting values."""
-        cache = PersistentCache(cache_dir=temp_cache_dir)
+        cache_file.unlink()
 
-        cache.put("key1", "value1")
+    def test_initialization_existing_file(self, temp_cache_file):
+        """Test initialization loads existing cache."""
+        # Pre-populate cache file
+        entry1 = {"key": "k1", "value": "v1", "hits": 5, "timestamp": "2026-02-08"}
+        entry2 = {"key": "k2", "value": "v2", "hits": 3, "timestamp": "2026-02-08"}
+
+        with open(temp_cache_file, "w") as f:
+            f.write(json.dumps(entry1) + "\n")
+            f.write(json.dumps(entry2) + "\n")
+
+        # Load cache
+        cache = PersistentCache(cache_file=temp_cache_file)
+        assert cache.size() == 2
+        assert cache.get("k1") == "v1"
+        assert cache.get("k2") == "v2"
+
+    def test_initialization_handles_corrupted_lines(self, temp_cache_file):
+        """Test initialization skips corrupted JSON lines."""
+        # Mix of valid and invalid lines
+        with open(temp_cache_file, "w") as f:
+            f.write('{"key": "k1", "value": "v1"}\n')
+            f.write("invalid json\n")
+            f.write('{"key": "k2", "value": "v2"}\n')
+            f.write("\n")  # Empty line
+            f.write("}\n")  # Invalid
+
+        cache = PersistentCache(cache_file=temp_cache_file)
+        assert cache.size() == 2
+        assert cache.get("k1") == "v1"
+        assert cache.get("k2") == "v2"
+
+
+class TestCacheOperations:
+    """Test cache get/set operations."""
+
+    def test_set_and_get(self, cache):
+        """Test basic set and get."""
+        cache.set("key1", "value1")
         assert cache.get("key1") == "value1"
-        assert cache.size() == 1
 
-    def test_cache_miss(self, temp_cache_dir):
-        """Test cache miss returns None."""
-        cache = PersistentCache(cache_dir=temp_cache_dir)
-        assert cache.get("nonexistent") is None
+    def test_get_missing_key(self, cache):
+        """Test get on missing key returns None."""
+        assert cache.get("missing") is None
 
-    def test_cache_delete(self, temp_cache_dir):
-        """Test deleting cache entries."""
-        cache = PersistentCache(cache_dir=temp_cache_dir)
+    def test_hit_tracking(self, cache):
+        """Test hit count tracking."""
+        cache.set("key1", "value1")
+        assert cache.get("key1") == "value1"
+        assert cache.get("key1") == "value1"
+        assert cache.get("key1") == "value1"
 
-        cache.put("key1", "value1")
-        assert cache.delete("key1") is True
-        assert cache.delete("key1") is False
-        assert cache.size() == 0
+        stats = cache.get_stats()
+        assert stats["hits"] == 3
+        assert stats["misses"] == 0
 
-    def test_cache_clear(self, temp_cache_dir):
-        """Test clearing all cache entries."""
-        cache = PersistentCache(cache_dir=temp_cache_dir)
+    def test_miss_tracking(self, cache):
+        """Test miss count tracking."""
+        cache.get("missing1")
+        cache.get("missing2")
+        cache.get("missing3")
 
-        cache.put("key1", "value1")
-        cache.put("key2", "value2")
+        stats = cache.get_stats()
+        assert stats["hits"] == 0
+        assert stats["misses"] == 3
+
+    def test_hit_rate_calculation(self, cache):
+        """Test hit rate percentage calculation."""
+        cache.set("key1", "value1")
+        cache.set("key2", "value2")
+
+        # 2 hits, 1 miss = 66.67%
+        cache.get("key1")
+        cache.get("key1")
+        cache.get("missing")
+
+        hit_rate = cache.get_hit_rate()
+        assert 66.0 < hit_rate < 67.0  # ~66.67%
+
+
+class TestPersistence:
+    """Test persistence to JSONL."""
+
+    def test_persist_entry(self, temp_cache_file):
+        """Test entry is written to JSONL."""
+        cache = PersistentCache(cache_file=temp_cache_file)
+        cache.set("key1", "value1")
+
+        # Read file and verify
+        with open(temp_cache_file, "r") as f:
+            lines = f.readlines()
+        assert len(lines) > 0
+        entry = json.loads(lines[-1])
+        assert entry["key"] == "key1"
+        assert entry["value"] == "value1"
+
+    def test_batch_set(self, temp_cache_file):
+        """Test batch set writes all entries."""
+        cache = PersistentCache(cache_file=temp_cache_file)
+        entries = {
+            "k1": "v1",
+            "k2": "v2",
+            "k3": "v3",
+        }
+        count = cache.batch_set(entries)
+        assert count == 3
+
+        # Verify in cache
+        assert cache.get("k1") == "v1"
+        assert cache.get("k2") == "v2"
+        assert cache.get("k3") == "v3"
+
+    def test_session_recovery(self, temp_cache_file):
+        """Test cache recovery across sessions."""
+        # Session 1: Set entries
+        cache1 = PersistentCache(cache_file=temp_cache_file)
+        cache1.set("key1", "value1")
+        cache1.set("key2", "value2")
+
+        # Session 2: Load from disk
+        cache2 = PersistentCache(cache_file=temp_cache_file)
+        assert cache2.size() == 2
+        assert cache2.get("key1") == "value1"
+        assert cache2.get("key2") == "value2"
+
+        stats = cache2.get_stats()
+        assert stats["loaded_entries"] == 2
+
+
+class TestStatistics:
+    """Test statistics collection."""
+
+    def test_get_stats(self, cache):
+        """Test statistics dictionary."""
+        cache.set("k1", "v1")
+        cache.set("k2", "v2")
+        cache.get("k1")
+        cache.get("missing")
+
+        stats = cache.get_stats()
+        assert "hits" in stats
+        assert "misses" in stats
+        assert "total_accesses" in stats
+        assert "hit_rate" in stats
+        assert "cache_size" in stats
+        assert stats["cache_size"] == 2
+
+    def test_cache_file_size(self, temp_cache_file):
+        """Test file size calculation."""
+        cache = PersistentCache(cache_file=temp_cache_file)
+        cache.set("key1", "value1")
+
+        size_mb = cache.cache_file_size_mb()
+        assert size_mb > 0  # Should have some size
+        assert size_mb < 1  # But small
+
+
+class TestClear:
+    """Test cache clearing."""
+
+    def test_clear(self, cache):
+        """Test clear only removes from memory."""
+        cache.set("k1", "v1")
+        cache.set("k2", "v2")
         assert cache.size() == 2
 
         cache.clear()
         assert cache.size() == 0
+        assert cache.get("k1") is None
+
+    def test_clear_all(self, temp_cache_file):
+        """Test clear_all removes file."""
+        cache = PersistentCache(cache_file=temp_cache_file)
+        cache.set("k1", "v1")
+        assert temp_cache_file.exists()
+
+        cache.clear_all()
+        assert not temp_cache_file.exists()
+        assert cache.size() == 0
 
 
-class TestPersistentCacheMetrics:
-    """Test cache statistics and metrics."""
+class TestThreadSafety:
+    """Test thread safety with locks."""
 
-    def test_hit_rate_calculation(self, temp_cache_dir):
-        """Test cache hit rate calculation."""
-        cache = PersistentCache(cache_dir=temp_cache_dir)
-
-        cache.put("key1", "value1")
-
-        # 3 hits, 2 misses = 3/5 = 0.6
-        cache.get("key1")  # hit
-        cache.get("key1")  # hit
-        cache.get("key1")  # hit
-        cache.get("nonexistent")  # miss
-        cache.get("nonexistent2")  # miss
-
-        assert cache.get_hit_rate() == 0.6
-
-    def test_cache_stats(self, temp_cache_dir):
-        """Test cache statistics."""
-        cache = PersistentCache(cache_dir=temp_cache_dir)
-
-        cache.put("key1", "value1")
-        cache.put("key2", "value2")
-        cache.get("key1")
-        cache.get("nonexistent")
-
-        stats = cache.get_stats()
-        assert stats["entries"] == 2
-        assert stats["hit_count"] == 1
-        assert stats["miss_count"] == 1
-        assert stats["hit_rate"] == 0.5
-        assert stats["write_count"] == 2
-
-    def test_cache_size_estimation(self, temp_cache_dir):
-        """Test cache size estimation."""
-        cache = PersistentCache(cache_dir=temp_cache_dir)
-
-        cache.put("key1", "a" * 100)
-        cache.put("key2", "b" * 200)
-
-        size = cache.get_stats()["cache_size_bytes"]
-        assert size > 0
-
-
-class TestPersistentCacheJSONLPersistence:
-    """Test JSONL persistence and session restore."""
-
-    def test_persistence_disabled(self, temp_cache_dir):
-        """Test cache with persistence disabled."""
-        cache = PersistentCache(
-            cache_dir=temp_cache_dir, persistence_enabled=False
-        )
-
-        cache.put("key1", "value1")
-        assert cache.size() == 1
-
-        # Cache file should not exist
-        cache_file = temp_cache_dir / "cache.jsonl"
-        assert not cache_file.exists()
-
-    def test_persistence_enabled(self, temp_cache_dir):
-        """Test cache with persistence enabled."""
-        cache = PersistentCache(
-            cache_dir=temp_cache_dir, persistence_enabled=True
-        )
-
-        cache.put("key1", "value1")
-        cache.put("key2", {"nested": "data"})
-
-        # Cache file should exist
-        cache_file = temp_cache_dir / "cache.jsonl"
-        assert cache_file.exists()
-
-        # Verify JSONL format
-        with open(cache_file, "r") as f:
-            lines = f.readlines()
-            assert len(lines) == 2
-            data1 = json.loads(lines[0])
-            data2 = json.loads(lines[1])
-            assert data1["key"] == "key1"
-            assert data2["key"] == "key2"
-
-    def test_session_restore(self, temp_cache_dir):
-        """Test restoring cache from previous session."""
-        # Session 1: Create cache and add entries
-        cache1 = PersistentCache(cache_dir=temp_cache_dir, persistence_enabled=True)
-        cache1.put("key1", "value1")
-        cache1.put("key2", {"data": "value2"})
-        assert cache1.size() == 2
-
-        # Session 2: Create new cache instance and verify restore
-        cache2 = PersistentCache(
-            cache_dir=temp_cache_dir,
-            persistence_enabled=True,
-            auto_restore=True,
-        )
-        assert cache2.size() == 2
-        assert cache2.get("key1") == "value1"
-        assert cache2.get("key2") == {"data": "value2"}
-
-    def test_auto_restore_disabled(self, temp_cache_dir):
-        """Test cache with auto_restore disabled."""
-        cache1 = PersistentCache(cache_dir=temp_cache_dir, persistence_enabled=True)
-        cache1.put("key1", "value1")
-
-        # Create new cache without auto restore
-        cache2 = PersistentCache(
-            cache_dir=temp_cache_dir,
-            persistence_enabled=True,
-            auto_restore=False,
-        )
-        assert cache2.size() == 0
-
-
-class TestPersistentCacheThreadSafety:
-    """Test thread safety of cache operations."""
-
-    def test_concurrent_puts(self, temp_cache_dir):
-        """Test concurrent put operations."""
+    def test_concurrent_access(self, cache):
+        """Test cache handles concurrent access."""
         import threading
-
-        cache = PersistentCache(cache_dir=temp_cache_dir)
-
-        def put_entries(prefix, count):
-            for i in range(count):
-                key = f"{prefix}-{i}"
-                cache.put(key, f"value-{i}")
-
-        threads = [
-            threading.Thread(target=put_entries, args=("thread1", 10)),
-            threading.Thread(target=put_entries, args=("thread2", 10)),
-        ]
-
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
-
-        assert cache.size() == 20
-
-    def test_concurrent_gets(self, temp_cache_dir):
-        """Test concurrent get operations."""
-        import threading
-
-        cache = PersistentCache(cache_dir=temp_cache_dir)
-        cache.put("shared-key", "shared-value")
 
         results = []
 
-        def get_value():
-            results.append(cache.get("shared-key"))
+        def worker(key_id):
+            for i in range(10):
+                cache.set(f"key_{key_id}_{i}", f"value_{key_id}_{i}")
+                cache.get(f"key_{key_id}_{i}")
+            results.append(key_id)
 
-        threads = [threading.Thread(target=get_value) for _ in range(10)]
-
+        threads = [threading.Thread(target=worker, args=(i,)) for i in range(3)]
         for t in threads:
             t.start()
         for t in threads:
             t.join()
 
-        assert len(results) == 10
-        assert all(v == "shared-value" for v in results)
+        assert len(results) == 3
+        assert cache.size() > 0
 
 
-class TestPersistentCacheEdgeCases:
-    """Test edge cases and error handling."""
+class TestSingletonFactory:
+    """Test singleton pattern."""
 
-    def test_complex_value_types(self, temp_cache_dir):
-        """Test caching complex data types."""
-        cache = PersistentCache(cache_dir=temp_cache_dir)
+    def test_get_persistent_cache_singleton(self):
+        """Test singleton returns same instance."""
+        cache1 = get_persistent_cache()
+        cache2 = get_persistent_cache()
+        assert cache1 is cache2
 
-        # List
-        cache.put("list", [1, 2, 3])
-        assert cache.get("list") == [1, 2, 3]
+    def test_get_persistent_cache_reset(self):
+        """Test reset creates new instance."""
+        cache1 = get_persistent_cache()
+        cache2 = get_persistent_cache(reset=True)
+        assert cache1 is not cache2
 
-        # Dict with nested structure
-        data = {"nested": {"key": "value"}, "list": [1, 2, 3]}
-        cache.put("complex", data)
-        assert cache.get("complex") == data
+    def test_get_persistent_cache_custom_file(self):
+        """Test custom cache file."""
+        with tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False) as f:
+            custom_path = Path(f.name)
 
-        # Tuple (stored as tuple since we don't JSON serialize in-memory)
-        cache.put("tuple", (1, 2, 3))
-        result = cache.get("tuple")
-        assert result == (1, 2, 3)
+        cache = get_persistent_cache(cache_file=custom_path, reset=True)
+        assert cache.cache_file == custom_path
 
-    def test_empty_cache_statistics(self, temp_cache_dir):
-        """Test statistics on empty cache."""
-        cache = PersistentCache(cache_dir=temp_cache_dir)
+        custom_path.unlink()
 
-        stats = cache.get_stats()
-        assert stats["entries"] == 0
-        assert stats["hit_count"] == 0
-        assert stats["hit_rate"] == 0.0
 
-    def test_cache_entries_listing(self, temp_cache_dir):
-        """Test listing all cache entries."""
-        cache = PersistentCache(cache_dir=temp_cache_dir)
+class TestIntegration:
+    """Integration tests."""
 
-        cache.put("key1", "value1")
-        cache.put("key2", "value2")
+    def test_full_workflow(self, temp_cache_file):
+        """Test complete cache workflow."""
+        # Session 1
+        cache1 = PersistentCache(cache_file=temp_cache_file)
+        cache1.batch_set({"k1": "v1", "k2": "v2", "k3": "v3"})
 
-        entries = cache.entries()
-        assert len(entries) == 2
-        assert ("key1", "value1") in entries
-        assert ("key2", "value2") in entries
+        # Multiple accesses
+        for _ in range(3):
+            cache1.get("k1")
+        cache1.get("missing")
 
-    def test_malformed_cache_file_recovery(self, temp_cache_dir):
-        """Test recovery from malformed cache file."""
-        cache_file = temp_cache_dir / "cache.jsonl"
+        stats1 = cache1.get_stats()
+        assert stats1["hits"] == 3
+        assert stats1["misses"] == 1
 
-        # Write mixed valid and invalid JSONL
-        with open(cache_file, "w") as f:
-            # Valid entry
-            f.write(
-                '{"key": "key1", "value": "value1", "hits": 0, "timestamp": "2026-02-08T00:00:00", "last_accessed": "2026-02-08T00:00:00"}\n'
-            )
-            # Invalid entry
-            f.write("invalid json {\n")
-            # Another valid entry
-            f.write(
-                '{"key": "key2", "value": "value2", "hits": 0, "timestamp": "2026-02-08T00:00:00", "last_accessed": "2026-02-08T00:00:00"}\n'
-            )
+        # Session 2: Recovery
+        cache2 = PersistentCache(cache_file=temp_cache_file)
+        assert cache2.size() == 3
+        # loaded_entries counts JSONL lines (3 sets + 3 hit updates from cache1)
+        stats_before = cache2.get_stats()
+        assert stats_before["loaded_entries"] == 6
 
-        # Should restore valid entries and skip invalid ones
-        cache = PersistentCache(cache_dir=temp_cache_dir, auto_restore=True)
-        # Should have restored the two valid entries
-        assert cache.size() == 2
-        assert cache.get("key1") == "value1"
-        assert cache.get("key2") == "value2"
+        # Continue using cache
+        cache2.get("k2")
+        cache2.get("k3")
+        cache2.get("missing2")
+
+        stats2 = cache2.get_stats()
+        assert stats2["hits"] == 2
+        assert stats2["misses"] == 1
+        assert stats2["total_accesses"] == 3
+
+    def test_cache_recovery_performance(self, temp_cache_file):
+        """Test session recovery is fast."""
+        import time
+
+        # Populate cache
+        cache1 = PersistentCache(cache_file=temp_cache_file)
+        for i in range(100):
+            cache1.set(f"key_{i}", f"value_{i}")
+
+        # Time recovery
+        start = time.time()
+        cache2 = PersistentCache(cache_file=temp_cache_file)
+        recovery_time = time.time() - start
+
+        assert recovery_time < 1.0  # Should load 100 entries in <1s
+        assert cache2.size() == 100
