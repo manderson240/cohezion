@@ -205,7 +205,7 @@ class TestCredentialPatterns:
         """Test that AWS keys are detected."""
         patterns = {
             "AWS_SECRET": "AKIAIOSFODNN7EXAMPLE",
-            "PRIVATE_KEY_START": "-----BEGIN RSA PRIVATE KEY-----",
+            "PRIVATE_KEY_START": "-----BEGIN RSA PRIVATE KEY-----",  # pragma: allowlist secret
         }
 
         for pattern_name, pattern in patterns.items():

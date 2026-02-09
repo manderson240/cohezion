@@ -1,6 +1,6 @@
 #!/bin/bash
 # HOOK_NAME: format-on-edit
-# HOOK_STAGE: post_execute
+# HOOK_STAGE: post_operation
 # HOOK_ACTION: allow
 # HOOK_TIMEOUT: 10
 # HOOK_DESCRIPTION: Auto-format Python files after Claude edits/writes them

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # HOOK_NAME: validate-agent-files
-# HOOK_STAGE: post_execute
+# HOOK_STAGE: post_operation
 # HOOK_ACTION: allow
 # HOOK_TIMEOUT: 10
 # HOOK_DESCRIPTION: Validate agent file frontmatter after Write/Edit
