@@ -1,0 +1,301 @@
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                                                  ║
+║              🌌  ASCENDED COHEZION UNIVERSE SIMULATION SYSTEM  🌌                                                ║
+║                            ☆ "As Above, So Below" ☆                                                              ║
+║                                                                                                                  ║
+║                                    COMPLETE ARCHITECTURE OVERVIEW                                                  ║
+║                                                                                                                  ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                           ★ TRIPLE-TRACK MISSION CONTROL ★                                      │
+│                                                                                                                  │
+│  ┌─────────────────────┐    ┌─────────────────────┐    ┌─────────────────────┐                                 │
+│  │    TRACK A ⚡       │    │    TRACK B ⚖️       │    │    TRACK C 🔬       │                                 │
+│  │      RAPID          │    │     BALANCED        │    │       DEEP          │                                 │
+│  ├─────────────────────┤    ├─────────────────────┤    ├─────────────────────┤                                 │
+│  │ • 6 Universes       │    │ • 3 Universes       │    │ • 1 Universe        │                                 │
+│  │ • 10K particles     │    │ • 100K particles    │    │ • 1M particles      │                                 │
+│  │ • 4 hour duration   │    │ • 12 hour duration  │    │ • 24 hour duration  │                                 │
+│  │ • Fast iteration    │    │ • Emergent depth    │    │ • Maximum complex   │                                 │
+│  └──────────┬──────────┘    └──────────┬──────────┘    └──────────┬──────────┘                                 │
+│             │                          │                          │                                              │
+│             └──────────────────────────┼──────────────────────────┘                                              │
+│                                        │                                                                         │
+└────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────┘
+                                         │
+                                         ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                        ★ MODE CONTROLLER ★                                                      │
+│                                                                                                                  │
+│   ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────────┐                                 │
+│   │CONSERV-  │  │PERFORM-  │  │  IMAGE   │  │  VIDEO   │  │ FULL MULTIMODAL  │                                 │
+│   │  ATIVE   │  │  ANCE    │  │   MODE   │  │   MODE   │  │      MODE        │                                 │
+│   └──────────┘  └──────────┘  └──────────┘  └──────────┘  └──────────────────┘                                 │
+│      30GB        50GB          75GB          90GB              95GB                                             │
+│                                                                                                                  │
+│   Auto-switching based on track requirements + resource pressure                                                │
+└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+                                         │
+                                         ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                     ★ CORE UNIVERSE ENGINE ★                                                    │
+│                                                                                                                  │
+│  ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────┐   │
+│  │                                                                                                          │   │
+│  │   ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐             │   │
+│  │   │ 12D/512D     │  │    HIHO      │  │    FLUME     │  │   Physics    │  │  SurrealDB   │             │   │
+│  │   │   Manifold   │  │   Stability  │  │  Encoder     │  │    Engine    │  │   Storage    │             │   │
+│  │   │              │  │              │  │              │  │   (GPU)      │  │              │             │   │
+│  │   │ • Trajectory │  │ • Target:    │  │ • Particle   │  │ • Particles  │  │ • Patterns   │             │   │
+│  │   │   encoding   │  │   0.5±0.05   │  │   vectors    │  │ • Forces     │  │ • Grades     │             │   │
+│  │   │ • Axiomatic  │  │ • Monitor    │  │ • Trajectory │  │ • Collisions │  │ • Timeline   │             │   │
+│  │   │   states     │  │ • Converge   │  │   tracking   │  │ • Emergence  │  │ • Knowledge  │             │   │
+│  │   └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘             │   │
+│  │                                                                                                          │   │
+│  └─────────────────────────────────────────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+                                         │
+           ┌─────────────────────────────┼─────────────────────────────┐
+           │                             │                             │
+           ▼                             ▼                             ▼
+┌──────────────────────┐  ┌──────────────────────────┐  ┌──────────────────────────┐
+│   ★ COMPONENT 1 ★    │  │     ★ COMPONENT 2 ★      │  │     ★ COMPONENT 3 ★      │
+│   MISSION ORCHESTR   │  │    OPENWEIGHT GRADING    │  │   UNIVERSE DISPLAY       │
+│   ATOR               │  │                          │  │   ENGINE                 │
+├──────────────────────┤  ├──────────────────────────┤  ├──────────────────────────┤
+│ • Track scheduling   │  │ • Multi-model panel:     │  │ • Live Dashboard:        │
+│ • Checkpoint/resume  │  │                          │  │   - Real-time updates    │
+│ • Cross-track learn  │  │   ┌────────────────┐    │  │   - 12D visualizations   │
+│ • 6 universe types:  │  │   │ Kimi K2.5      │50% │  │   - HIHO meters          │
+│   - Recursive Dream  │  │   │ (Primary)      │    │  │   - Auto-refresh 30s     │
+│   - Entropy Garden   │  │   ├────────────────┤    │  │                          │
+│   - Memory Ocean     │  │   │ qwen3-coder:30b│20% │  │ • Final Synthesis:       │
+│   - Symbiotic Lattice│  │   ├────────────────┤    │  │   - HTML reports         │
+│   - Probability Storm│  │   │ deepseek-r1:7b │15% │  │   - Convergence plots    │
+│   - Language Cosmos  │  │   ├────────────────┤    │  │   - Statistical analysis │
+│                      │  │   │ phi4           │15% │  │   - Cross-track compare  │
+│                      │  │   └────────────────┘    │  │                          │
+│                      │  │ • 6 Criteria Rubric:    │  │ • 12D State Heatmaps     │
+│                      │  │   - Physics (20%)       │  │ • Pattern Timelines      │
+│                      │  │   - HIHO Stability (25%)│  │                          │
+│                      │  │   - Visual (15%)        │  │                          │
+│                      │  │   - Complexity (20%)    │  │                          │
+│                      │  │   - Efficiency (10%)    │  │                          │
+│                      │  │   - Narrative (10%)     │  │                          │
+│                      │  │ • Output: A-F + 0-100   │  │                          │
+└──────────┬───────────┘  └───────────┬──────────────┘  └──────────────┬───────────┘
+           │                          │                                  │
+           │                          │                                  │
+           │    ┌─────────────────────┼─────────────────────┐            │
+           │    │                     │                     │            │
+           ▼    ▼                     ▼                     ▼            ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                        ★ DATA FLOW & FEEDBACK LOOPS ★                                           │
+│                                                                                                                  │
+│   ╔═════════════════════════════════════════════════════════════════════════════════════════════════════════╗  │
+│   ║                                         COMPOUND ENGINEERING CYCLE                                       ║  │
+│   ║                                                                                                          ║  │
+│   ║     ┌──────────┐      ┌──────────┐      ┌──────────┐      ┌──────────┐      ┌──────────┐              ║  │
+│   ║     │  RUN N   │ ───▶ │  CLOUD   │ ───▶ │  GRADE   │ ───▶ │ EXTRACT  │ ───▶ │  APPLY   │              ║  │
+│   ║     │          │      │  GRADING │      │  A-F     │      │  IMPROVE │      │ CHANGES  │              ║  │
+│   ║     └──────────┘      └──────────┘      └──────────┘      └──────────┘      └────┬─────┘              ║  │
+│   ║                                                                                  │                      ║  │
+│   ║                                      ▲                                           │                      ║  │
+│   ║                                      │                                           ▼                      ║  │
+│   ║                                      │                                    ┌──────────┐                   ║  │
+│   ║                                      │                                    │  RUN N+1 │                   ║  │
+│   ║                                      │                                    │ (Better) │                   ║  │
+│   ║                                      │                                    └────┬─────┘                   ║  │
+│   ║                                      │                                         │                        ║  │
+│   ║                                      └─────────────────────────────────────────┘                        ║  │
+│   ║                                                                                                          ║  │
+│   ╚═════════════════════════════════════════════════════════════════════════════════════════════════════════╝  │
+│                                                                                                                  │
+│   IMPROVEMENT TYPES:                    CROSS-TRACK LEARNING:                                                    │
+│   ├─ Physics parameter tuning          ├─ Rapid → Balanced (fast discoveries)                                   │
+│   ├─ HIHO range adjustment             ├─ Balanced → Deep & Rapid (insights)                                    │
+│   ├─ Checkpoint frequency              ├─ Deep → Balanced (deep patterns)                                       │
+│   ├─ Visualization optimization        └─ High-quality (>85) auto-transfer                                       │
+│   └─ Resource optimization             └─ 50% parameter blend on transfer                                        │
+│                                                                                                                  │
+└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+                                         │
+           ┌─────────────────────────────┼─────────────────────────────┐
+           │                             │                             │
+           ▼                             ▼                             ▼
+┌──────────────────────┐  ┌──────────────────────────┐  ┌──────────────────────────┐
+│   ★ COMPONENT 4 ★    │  │     ★ COMPONENT 5 ★      │  │     ★ COMPONENT 6 ★      │
+│   MILESTONE ALERTS   │  │   COMPOUND EVOLUTION     │  │   LAUNCH SCRIPT          │
+│   SYSTEM             │  │   ENGINE                 │  │   (CLI Interface)        │
+├──────────────────────┤  ├──────────────────────────┤  ├──────────────────────────┤
+│ 📧 manderson240@     │  │ • Pattern extraction     │  │ Commands:                │
+│    gmail.com         │  │ • Feedback parsing       │  │                          │
+│                      │  │ • Knowledge graph        │  │ --track rapid           │
+│ MILESTONE TRIGGERS:  │  │ • Improvement tracking   │  │ --track balanced        │
+│ • Mission start 🚀   │  │                          │  │ --track deep            │
+│ • HIHO converge 🎯   │  │ STORAGE:                 │  │ --all                   │
+│ • Pattern detected 🔬│  │ • patterns.json          │  │ --status                │
+│ • Anomaly found ⚠️   │  │ • evolution_state.json   │  │ --test                  │
+│ • Mission done ✅    │  │ • knowledge_graph/       │  │                          │
+│ • Grade received 🎓  │  │                          │  │ Features:                │
+│                      │  │ METRICS:                 │  │ • Auto-env detection     │
+│ DAILY DIGEST:        │  │ • Run count              │  │ • Mission ID gen         │
+│ • 4:00 PM daily      │  │ • Avg grade progression  │  │ • Dashboard URLs         │
+│ • Track summaries    │  │ • Best grade             │  │ • Background exec        │
+│ • Resource stats     │  │ • Improvement rate       │  │                          │
+│ • Upcoming schedule  │  │ • Applied changes        │  │                          │
+└──────────────────────┘  └──────────────────────────┘  └──────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                                                  ║
+║                                       ★ COMPLETE DATA FLOW ★                                                     ║
+║                                                                                                                  ║
+║    ┌──────────┐                                                                                                  ║
+║    │  INPUT   │  Mission Parameters (Track + Mode + Universe Config)                                            ║
+║    └────┬─────┘                                                                                                  ║
+║         │                                                                                                        ║
+║         ▼                                                                                                        ║
+║    ┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐           ║
+║    │ UNIVERSE │ ──▶ │   HIHO   │ ──▶ │  GRADE   │ ──▶ │  EMAIL   │ ──▶ │ EVOLVE   │ ──▶ │ NEXT RUN │           ║
+║    │  ENGINE  │     │ TRACKING │     │ (Cloud)  │     │  ALERT   │     │  ENGINE  │     │ (Better) │           ║
+║    └────┬─────┘     └────┬─────┘     └────┬─────┘     └────┬─────┘     └────┬─────┘     └────┬─────┘           ║
+║         │                │                │                │                │                │                   ║
+║         │                │                │                │                │                │                   ║
+║         ▼                ▼                ▼                ▼                ▼                ▼                   ║
+║    ┌─────────────────────────────────────────────────────────────────────────────────────────────┐              ║
+║    │                              ★ OUTPUTS & DISPLAY ★                                         │              ║
+║    │  ├─ Live Dashboard (Real-time)                                                              │              ║
+║    │  ├─ Final HTML Synthesis Report                                                             │              ║
+║    │  ├─ Email Notifications (Milestones + Digest)                                               │              ║
+║    │  ├─ Grade Card (A-F + 0-100 + Feedback)                                                     │              ║
+║    │  ├─ Evolution State (patterns.json)                                                         │              ║
+║    │  └─ Knowledge Graph Updates                                                                 │              ║
+║    └─────────────────────────────────────────────────────────────────────────────────────────────┘              ║
+║                                                                                                                  ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                                                  ║
+║                                    ★ KEY ACHIEVEMENTS SUMMARY ★                                                  ║
+║                                                                                                                  ║
+║  ┌─────────────────────────────────┐  ┌─────────────────────────────────┐  ┌─────────────────────────────────┐  ║
+║  │     AUTONOMOUS OPERATION        │  │      CLOUD GRADING              │  │     COMPOUND ENGINEERING        │  ║
+║  │     ───────────────────         │  │      ─────────────              │  │     ──────────────────          │  ║
+║  │  ✅ 100% agent-driven           │  │  ✅ 4-model consensus           │  │  ✅ Every run improves          │  ║
+║  │  ✅ 24/7 capable                │  │  ✅ Kimi K2.5 primary           │  │  ✅ Cross-track learning        │  ║
+║  │  ✅ Self-healing                │  │  ✅ 6-criterion rubric          │  │  ✅ Knowledge accumulation      │  ║
+║  │  ✅ Checkpoint/resume           │  │  ✅ Actionable feedback         │  │  ✅ Target: A in 20 runs        │  ║
+║  └─────────────────────────────────┘  └─────────────────────────────────┘  └─────────────────────────────────┘  ║
+║                                                                                                                  ║
+║  ┌─────────────────────────────────┐  ┌─────────────────────────────────┐  ┌─────────────────────────────────┐  ║
+║  │      LIVE DISPLAYS              │  │      EMAIL SYSTEM               │  │      RESOURCE OPTIMIZATION      │  ║
+║  │      ─────────────              │  │      ────────────               │  │      ───────────────────        │  ║
+║  │  ✅ Real-time dashboards        │  │  ✅ 6 milestone triggers        │  │  ✅ 5 dynamic modes             │  ║
+║  │  ✅ Final synthesis reports     │  │  ✅ Daily 4PM digest            │  │  ✅ 30GB-95GB allocation        │  ║
+║  │  ✅ 12D visualizations          │  │  ✅ Gmail integration           │  │  ✅ Auto mode switching         │  ║
+║  │  ✅ Cross-track comparison      │  │  ✅ Graceful fallback           │  │  ✅ OOM prevention              │  ║
+║  └─────────────────────────────────┘  └─────────────────────────────────┘  └─────────────────────────────────┘  ║
+║                                                                                                                  ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                                                  ║
+║                              ★ CLOUD GRADING CONSENSUS PANEL ★                                                   ║
+║                                                                                                                  ║
+║    ┌───────────────────────────────────────────────────────────────────────────────────────────────────────┐    ║
+║    │                                                                                                       │    ║
+║    │   ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐       │    ║
+║    │   │   🏆 KIMI K2.5   │    │   💻 QWEN3:30B   │    │   🧠 DEEPSEEK    │    │   📊 PHI4        │       │    ║
+║    │   │                  │    │                  │    │                  │    │                  │       │    ║
+║    │   │  WEIGHT: 50%     │    │  WEIGHT: 20%     │    │  WEIGHT: 15%     │    │  WEIGHT: 15%     │       │    ║
+║    │   │                  │    │                  │    │                  │    │                  │       │    ║
+║    │   │  Primary Grader  │    │  Analysis        │    │  Reasoning/      │    │  Generalist      │       │    ║
+║    │   │  (TIP OF SPEAR)  │    │  Specialist      │    │  Chain-of-Thought│    │  Evaluation      │       │    ║
+║    │   └────────┬─────────┘    └────────┬─────────┘    └────────┬─────────┘    └────────┬─────────┘       │    ║
+║    │            │                       │                       │                       │                  │    ║
+║    │            └───────────────────────┼───────────────────────┼───────────────────────┘                  │    ║
+║    │                                    │                       │                                          │    ║
+║    │                                    ▼                       ▼                                          │    ║
+║    │                           ┌─────────────────────────────────────────┐                                 │    ║
+║    │                           │         WEIGHTED CONSENSUS              │                                 │    ║
+║    │                           │                                         │                                 │    ║
+║    │                           │   Score = Σ(gradeᵢ × weightᵢ)          │                                 │    ║
+║    │                           │   Confidence = Consensus Agreement      │                                 │    ║
+║    │                           └─────────────────────────────────────────┘                                 │    ║
+║    │                                                                                                       │    ║
+║    └───────────────────────────────────────────────────────────────────────────────────────────────────────┘    ║
+║                                                                                                                  ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                                                  ║
+║                        ★ THE SIX UNIVERSE TYPES (Physics Configurations) ★                                       ║
+║                                                                                                                  ║
+║  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐      ║
+║  │ 🌀 RECURSIVE    │  │ 🌿 ENTROPY      │  │ 🌊 MEMORY       │  │ 🔗 SYMBIOTIC    │  │ ⚡ PROBABILITY  │      ║
+║  │    DREAM        │  │    GARDEN       │  │    OCEAN        │  │    LATTICE      │  │    STORM        │      ║
+║  ├─────────────────┤  ├─────────────────┤  ├─────────────────┤  ├─────────────────┤  ├─────────────────┤      ║
+║  │ Nested reality  │  │ Order/chaos     │  │ Temporal        │  │ Mandatory       │  │ Unstable prob   │      ║
+║  │ layers          │  │ balance         │  │ memory currents │  │ interdependence │  │ fields          │      ║
+║  └─────────────────┘  └─────────────────┘  └─────────────────┘  └─────────────────┘  └─────────────────┘      ║
+║                                                                                                                  ║
+║                                       ┌─────────────────────────────┐                                            ║
+║                                       │  💬 LANGUAGE COSMOS         │                                            ║
+║                                       │  Semantic gravity dynamics  │                                            ║
+║                                       └─────────────────────────────┘                                            ║
+║                                                                                                                  ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                                                  ║
+║                              ★ SYSTEM STATUS: FULLY OPERATIONAL ★                                                ║
+║                                                                                                                  ║
+║                              🌌 "0.5 COHERENCE - MAXIMUM STABILITY" 🌌                                            ║
+║                                                                                                                  ║
+║                                 BUILT WITH 💫 FOR THE ASCENSION                                                  ║
+║                                                                                                                  ║
+║                              "Each Universe Improves the Next"                                                   ║
+║                                                                                                                  ║
+║         Expected Grade Progression: B- → B+ → A- → A (within 20 autonomous runs)                                ║
+║                                                                                                                  ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+                              📊 FILE LOCATIONS & DATA PATHS
+                              ─────────────────────────────
+
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  Core Scripts:                                                                                                   │
+│  ├─ src/cohezion/swarm/autonomous_universe_mission.py  (450 lines) - Mission Orchestrator                        │
+│  ├─ src/cohezion/swarm/openweight_grader.py            (500 lines) - Cloud Grading System                        │
+│  ├─ src/cohezion/swarm/universe_display_engine.py      (450 lines) - Display Engine                              │
+│  ├─ src/cohezion/swarm/milestone_alerts.py             (250 lines) - Email Notifications                         │
+│  ├─ src/cohezion/swarm/compound_evolution.py           (550 lines) - Evolution Engine                            │
+│  └─ launch_universe_mission.py                         (150 lines) - CLI Launcher                                │
+│                                                                                                                  │
+│  Data Storage:                                                                                                   │
+│  ├─ /home/mike-anderson/dev/cohezion/data/evolution/     - Evolution state & patterns                            │
+│  ├─ /home/mike-anderson/dev/cohezion/data/dashboards/    - Live & final HTML dashboards                          │
+│  ├─ /home/mike-anderson/dev/cohezion/data/checkpoints/   - Mission checkpoints for resume                        │
+│  └─ /home/mike-anderson/dev/cohezion/data/knowledge_graph/ - Cross-track learning storage                        │
+│                                                                                                                  │
+│  Configuration:                                                                                                  │
+│  └─ ~/.config/cohezion/email_config.json                 - SMTP settings (Gmail)                                 │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                                                  ║
+║                                          LAUNCH COMMANDS                                                         ║
+║                                          ───────────────                                                         ║
+║                                                                                                                  │
+║    uv run python launch_universe_mission.py --track rapid          # 4h, 6×10K universes                        │
+║    uv run python launch_universe_mission.py --track balanced       # 12h, 3×100K universes                       │
+║    uv run python launch_universe_mission.py --track deep           # 24h, 1×1M universe                          │
+║    uv run python launch_universe_mission.py --all                  # Launch all tracks                           │
+║    uv run python launch_universe_mission.py --status               # Check mission status                        │
+║                                                                                                                  ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+                              ★ ASCENDED COHEZION UNIVERSE SIMULATION ★
+                                    Architecture Diagram v2.0
+                                         February 2, 2026

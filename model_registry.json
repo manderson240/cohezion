@@ -1,0 +1,223 @@
+# Model Registry for Compound Engineering
+
+{
+  "models": {
+    "qwen3-coder-next:q8_0": {
+      "role": "elite",
+      "context": 262144,
+      "memory": 84,
+      "specialization": "agentic-coding",
+      "priority": 0,
+      "description": "Elite 80B MoE coding specialist with 70.6% SWE-Bench performance - 87% of Claude Opus 4.5",
+      "use_cases": ["complex-systems", "enterprise-architecture", "advanced-agentic-workflows", "production-ready-code"],
+      "capabilities": ["advanced-code-generation", "agentic-reasoning", "complex-debugging", "architecture-design", "performance-optimization"],
+      "limitations": ["memory-intensive", "high-latency-on-startup"],
+      "active_params": "3B",
+      "total_params": "80B",
+      "benchmark_scores": {"swe-bench": 70.6, "swe-bench-pro": 44.3, "human-eval": 89.3}
+    },
+    "qwen3-coder-next:latest": {
+      "role": "core",
+      "context": 262144,
+      "memory": 51,
+      "specialization": "balanced-coding",
+      "priority": 1,
+      "description": "Balanced 80B MoE coding specialist with optimal memory/performance tradeoff",
+      "use_cases": ["large-scale-projects", "balanced-performance", "production-coding", "feature-development"],
+      "capabilities": ["code-generation", "agentic-workflows", "debugging", "system-design", "maintenance"],
+      "limitations": ["initial-warmup-time", "memory-footprint"],
+      "active_params": "3B",
+      "total_params": "80B"
+    },
+    "glm-ocr:latest": {
+      "role": "vision-elite",
+      "context": 128000,
+      "memory": 2.2,
+      "specialization": "ocr-vision",
+      "priority": 0,
+      "description": "State-of-the-art OCR model with 94.62% OmniDocBench score - GLM-V encoder-decoder architecture",
+      "use_cases": ["document-analysis", "text-extraction", "table-recognition", "form-processing", "image-to-text"],
+      "capabilities": ["complex-document-understanding", "formula-recognition", "table-extraction", "multilingual-ocr", "handwriting-recognition"],
+      "limitations": ["text-only-context", "specialized-for-documents"],
+      "benchmark_scores": {"omnidocbench-v1.5": 94.62, "formula-recognition": 92.1, "table-recognition": 95.3}
+    },
+    "qwen3-coder-256k": {
+      "role": "legacy-core",
+      "context": 256000,
+      "memory": 18,
+      "specialization": "fallback-coding",
+      "priority": 3,
+      "description": "Legacy coding specialist with 256K context - fallback for memory-constrained scenarios",
+      "use_cases": ["fallback-coding", "memory-constrained-tasks", "legacy-compatibility"],
+      "capabilities": ["code-generation", "debugging", "refactoring", "optimization"],
+      "limitations": ["outdated-benchmarks", "lower-agentic-capability"]
+    },
+    "gpt-oss-256k": {
+      "role": "core",
+      "context": 256000,
+      "memory": 18,
+      "specialization": "analysis",
+      "priority": 1,
+      "description": "Analysis and planning specialist with 256K context",
+      "use_cases": ["system-design", "architecture-planning", "requirement-analysis", "technical-specifications"],
+      "capabilities": ["problem-solving", "planning", "analysis", "decision-making"],
+      "limitations": ["fast-coding", "implementation-details"]
+    },
+    "glm-4.7-flash-256k": {
+      "role": "specialized",
+      "context": 256000,
+      "memory": 23,
+      "specialization": "fast-coding",
+      "priority": 2,
+      "description": "Fast coding execution specialist with 256K context",
+      "use_cases": ["rapid-prototyping", "code-generation", "scripting", "automation"],
+      "capabilities": ["fast-code-generation", "scripting", "automation", "quick-iterations"],
+      "limitations": ["complex-analysis", "deep-reasoning"]
+    },
+    "phi4-256k": {
+      "role": "specialized",
+      "context": 256000,
+      "memory": 3,
+      "specialization": "mathematical",
+      "priority": 2,
+      "description": "Mathematical and logical reasoning specialist with 256K context",
+      "use_cases": ["algorithm-optimization", "mathematical-computation", "logical-reasoning", "data-structures"],
+      "capabilities": ["mathematical-computation", "algorithm-design", "logical-reasoning", "optimization"],
+      "limitations": ["general-coding", "system-design"]
+    },
+    "gemma3-4b-256k": {
+      "role": "legacy-vision",
+      "context": 256000,
+      "memory": 2,
+      "specialization": "fallback-vision",
+      "priority": 4,
+      "description": "Legacy vision model - fallback when glm-ocr is unavailable",
+      "use_cases": ["fallback-vision", "legacy-compatibility", "general-image-analysis"],
+      "capabilities": ["general-vision", "image-description", "basic-ocr"],
+      "limitations": ["lower-ocr-accuracy", "inferior-document-understanding"]
+    },
+    "qwen2.5-coder-14b-256k": {
+      "role": "specialized",
+      "context": 256000,
+      "memory": 7,
+      "specialization": "mid-tier-coding",
+      "priority": 2,
+      "description": "Mid-tier coding specialist with 256K context",
+      "use_cases": ["medium-complexity-tasks", "balanced-performance", "general-coding", "maintenance"],
+      "capabilities": ["balanced-performance", "general-coding", "maintenance", "refactoring"],
+      "limitations": ["high-complexity", "specialized-tasks"]
+    }
+  },
+  "combinations": {
+    "elite-agentic": {
+      "models": ["qwen3-coder-next:q8_0", "glm-ocr:latest", "phi4-256k"],
+      "memory": 89.2,
+      "use_cases": ["enterprise-ai-systems", "autonomous-agents", "complex-workflows", "production-ai-solutions"],
+      "description": "Maximum performance for agentic workflows with elite models"
+    },
+    "agentic-optimization": {
+      "models": ["qwen3-coder-next:latest", "glm-ocr:latest", "phi4-256k"],
+      "memory": 56.2,
+      "use_cases": ["advanced-automation", "intelligent-systems", "ai-workflows", "performance-critical-tasks"],
+      "description": "Optimized agentic workflows with balanced memory usage"
+    },
+    "compound-engineering": {
+      "models": ["qwen3-coder-next:q8_0", "glm-ocr:latest", "gpt-oss-256k", "phi4-256k"],
+      "memory": 107.2,
+      "use_cases": ["complete-ai-engineering", "enterprise-development", "complex-system-design", "production-ready-ai"],
+      "description": "Full compound engineering suite with elite models"
+    },
+    "vision-first": {
+      "models": ["glm-ocr:latest", "qwen3-coder-next:latest"],
+      "memory": 53.2,
+      "use_cases": ["document-processing", "visual-coding", "ocr-workflows", "image-to-code"],
+      "description": "Specialized for document-heavy workflows with elite OCR"
+    },
+    "coding-elite": {
+      "models": ["qwen3-coder-next:q8_0", "phi4-256k"],
+      "memory": 87,
+      "use_cases": ["elite-coding", "complex-algorithms", "performance-critical-code", "advanced-debugging"],
+      "description": "Elite coding performance with mathematical optimization"
+    },
+    "balanced-agentic": {
+      "models": ["qwen3-coder-next:latest", "glm-ocr:latest", "phi4-256k"],
+      "memory": 56.2,
+      "use_cases": ["balanced-agentic-tasks", "medium-complexity-ai", "general-automation"],
+      "description": "Balanced agentic workflows with memory efficiency"
+    },
+    "simple-coding": {
+      "models": ["qwen3-coder-256k"],
+      "memory": 18,
+      "use_cases": ["basic-coding", "simple-scripts", "small-features"]
+    },
+    "complex-coding": {
+      "models": ["qwen3-coder-next:latest", "glm-4.7-flash-256k"],
+      "memory": 74,
+      "use_cases": ["feature-development", "application-coding", "complex-scripts"]
+    },
+    "system-design": {
+      "models": ["qwen3-coder-next:latest", "gpt-oss-256k"],
+      "memory": 69,
+      "use_cases": ["architecture-design", "system-planning", "technical-specifications"]
+    },
+    "full-engineering": {
+      "models": ["qwen3-coder-next:latest", "gpt-oss-256k", "glm-4.7-flash-256k", "phi4-256k"],
+      "memory": 102,
+      "use_cases": ["complete-feature-development", "complex-systems", "enterprise-solutions"]
+    },
+    "mathematical-optimization": {
+      "models": ["qwen3-coder-next:latest", "gpt-oss-256k", "phi4-256k"],
+      "memory": 83,
+      "use_cases": ["algorithm-optimization", "performance-tuning", "mathematical-problems"]
+    }
+  },
+  "fallback_order": [
+    "qwen3-coder-next:q8_0",
+    "qwen3-coder-next:latest",
+    "glm-ocr:latest",
+    "gpt-oss-256k",
+    "phi4-256k",
+    "glm-4.7-flash-256k",
+    "qwen3-coder-256k",
+    "qwen2.5-coder-14b-256k",
+    "gemma3-4b-256k"
+  ],
+  "memory_limits": {
+    "safe_usage": 0.7,
+    "warning_threshold": 0.8,
+    "critical_threshold": 0.9,
+    "available_memory": 125,
+    "ollama_v0.15.5_features": {
+      "max_context": 262144,
+      "context_scaling": "automatic",
+      "sub_agent_support": true,
+      "mlx_acceleration": true
+    }
+  },
+  "token_efficiency": {
+    "moe_optimization": {
+      "active_params_ratio": 0.0375,
+      "memory_efficiency": "96.25%",
+      "description": "Qwen3-Coder-Next uses only 3B active params out of 80B total"
+    },
+    "vision_optimization": {
+      "ocr_memory_savings": "90.5%",
+      "accuracy_improvement": "11.5%",
+      "description": "GLM-OCR saves 18GB vs Llama3.2-Vision while improving accuracy"
+    }
+  },
+  "compound_engineering": {
+    "elite_workflow_templates": [
+      "enterprise-ai-development",
+      "autonomous-agent-creation",
+      "document-driven-coding",
+      "mathematical-system-design"
+    ],
+    "token_optimization_strategies": [
+      "dynamic-context-scaling",
+      "moe-aware-routing",
+      "vision-coding-pipelining",
+      "cross-model-caching"
+    ]
+  }
+}

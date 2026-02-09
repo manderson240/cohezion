@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-02-09T08:58:10.190126",
+  "vault_path": "/home/mike-anderson/dev/cohezion/cloud-vault-mcp/vault",
+  "statistics": {
+    "total_files": 0,
+    "total_documents": 12,
+    "files_by_category": {
+      "README.md": 1,
+      "daily": 1,
+      "projects": 3,
+      "papers": 1,
+      "decisions": 3,
+      "patterns": 2,
+      "experiments": 1
+    },
+    "metadata_quality": {
+      "projects": 1,
+      "decisions": 1,
+      "patterns": 1,
+      "experiments": 1
+    }
+  },
+  "status": "PASS",
+  "critical_issues": [],
+  "warnings": [
+    "patterns/_template.md: Missing metadata: {'category'}",
+    "POTENTIAL CONFLICT: Multiple documents on {{date}}: ['decisions/_template.md', 'patterns/_template.md', 'experiments/_template.md']",
+    "No recovery/backup documentation found in vault"
+  ],
+  "recommendations": [
+    "Vault appears sparse (12 docs). Verify Phase 5B files were committed.",
+    "Review and address warnings for data consistency",
+    "Document backup and recovery procedures in vault",
+    "Run vault integrity checks before each major commit",
+    "Consider automated validation in pre-commit hooks"
+  ]
+}

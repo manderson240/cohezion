@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/home/mike-anderson/dev/cohezion/tests/test_phase_6_edl_mrp.py", line 9, in <module>
+    from cohezion.swarm.lattice_orchestrator import LatticeOrchestrator
+  File "/home/mike-anderson/dev/cohezion/src/cohezion/swarm/__init__.py", line 16, in <module>
+    from cohezion.swarm.workflows.debate_protocol import DebateWorkflow
+  File "/home/mike-anderson/dev/cohezion/src/cohezion/swarm/workflows/__init__.py", line 8, in <module>
+    from cohezion.swarm.workflows.debate_protocol import DebateWorkflow
+  File "/home/mike-anderson/dev/cohezion/src/cohezion/swarm/workflows/debate_protocol.py", line 15, in <module>
+    from cohezion.swarm.agents import AnalystAgent, CriticAgent, SynthesizerAgent
+  File "/home/mike-anderson/dev/cohezion/src/cohezion/swarm/agents/__init__.py", line 10, in <module>
+    from cohezion.swarm.agents.analyst import AnalystAgent
+  File "/home/mike-anderson/dev/cohezion/src/cohezion/swarm/agents/analyst.py", line 12, in <module>
+    from cohezion.swarm.agents.base import BaseAgent
+  File "/home/mike-anderson/dev/cohezion/src/cohezion/swarm/agents/base.py", line 13, in <module>
+    import httpx
+ModuleNotFoundError: No module named 'httpx'

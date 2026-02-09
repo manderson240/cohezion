@@ -1,0 +1,26 @@
+# Systemd Service for Smart Model Loading
+
+[Unit]
+Description=Smart Ollama Model Loader
+After=ollama.service
+Wants=ollama.service
+
+[Service]
+Type=simple
+User=mike-anderson
+ExecStart=/home/mike-anderson/dev/cohezion/smart_loader.sh coding high
+Restart=on-failure
+RestartSec=30
+
+# Memory limits
+MemoryMax=110G
+MemoryHigh=100G
+
+# CPU limits
+CPUQuota=80%
+
+# I/O limits
+IOWeight=1000
+
+[Install]
+WantedBy=multi-user.target
