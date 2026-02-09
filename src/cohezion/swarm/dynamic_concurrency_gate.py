@@ -49,17 +49,37 @@ class DynamicConcurrencyGate:
         profiler: HardwareProfiler for thermal prediction
     """
 
-    def __init__(self, base_concurrency: int = 4):
+    def __init__(
+        self, base_concurrency: int = 4, enable_thermal_prediction: bool = False
+    ):
         """Initialize DynamicConcurrencyGate.
 
         Args:
             base_concurrency: Conservative fallback level (default: 4)
+            enable_thermal_prediction: Enable 30-min thermal prediction (default: False)
         """
         self.base_concurrency = base_concurrency
+        self.enable_thermal_prediction = enable_thermal_prediction
         self.metrics = HardwareMetrics()
         self.profiler = HardwareProfilerFactory.get_profiler()
+        self._thermal_predictor = None
         self._last_decision: ConcurrencyDecision | None = None
         self._adjustment_count = 0
+
+        # Lazy-load thermal predictor if enabled
+        if enable_thermal_prediction:
+            try:
+                from cohezion.compound.thermal_trend_predictor import (
+                    get_thermal_trend_predictor,
+                )
+
+                self._thermal_predictor = get_thermal_trend_predictor()
+            except Exception as e:
+                logger.debug(
+                    f"Failed to initialize thermal predictor: {e}, "
+                    "disabling prediction"
+                )
+                self.enable_thermal_prediction = False
 
     def get_safe_concurrency(self) -> int:
         """Calculate safe concurrency for current hardware state.
@@ -84,6 +104,9 @@ class DynamicConcurrencyGate:
     def _calculate_concurrency(self) -> ConcurrencyDecision:
         """Calculate safe concurrency based on hardware metrics.
 
+        Phase 3 Sprint 2: Includes 30-minute thermal prediction for pre-emptive
+        concurrency reduction BEFORE throttling occurs.
+
         Returns:
             ConcurrencyDecision with level and reasoning
         """
@@ -103,7 +126,36 @@ class DynamicConcurrencyGate:
             vram_pct = state.memory.used_percent
             thermal_pct = state.thermal.thermal_percent
 
-            # Scaling decisions based on headroom
+            # Phase 3 Sprint 2: Check 30-minute thermal prediction
+            if self.enable_thermal_prediction and self._thermal_predictor:
+                try:
+                    predicted_temp, confidence = (
+                        self._thermal_predictor.predict_temperature_ahead(30)
+                    )
+
+                    # Pre-emptive throttling based on prediction
+                    if predicted_temp > 90.0 and confidence > 0.5:
+                        return ConcurrencyDecision(
+                            safe_concurrency=4,
+                            reason=f"Pre-emptive: predicted {predicted_temp:.1f}°C in 30min "
+                            f"(confidence={confidence:.2f})",
+                            vram_percent=vram_pct,
+                            thermal_percent=thermal_pct,
+                            healthy=True,
+                        )
+                    elif predicted_temp > 87.0 and confidence > 0.6:
+                        return ConcurrencyDecision(
+                            safe_concurrency=8,
+                            reason=f"Pre-emptive reduction: {predicted_temp:.1f}°C in 30min "
+                            f"(confidence={confidence:.2f})",
+                            vram_percent=vram_pct,
+                            thermal_percent=thermal_pct,
+                            healthy=True,
+                        )
+                except Exception as e:
+                    logger.debug(f"Thermal prediction error (non-blocking): {e}")
+
+            # Scaling decisions based on headroom (existing reactive logic)
             if vram_pct < 60 and thermal_pct < 70:
                 return ConcurrencyDecision(
                     safe_concurrency=12,

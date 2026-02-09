@@ -223,6 +223,29 @@ class BatchableExecutor:
             except Exception as e:
                 logger.debug(f"Failed to record batch metrics: {e}")
 
+        # Phase 3 Sprint 2: Record thermal metrics for 30-min prediction
+        try:
+            from cohezion.compound.hardware_monitor import get_hardware_monitor
+            from cohezion.compound.thermal_history_persistence import (
+                get_thermal_time_series_collector,
+            )
+
+            monitor = get_hardware_monitor()
+            metrics = monitor.get_current_metrics()
+            thermal_collector = get_thermal_time_series_collector()
+
+            thermal_collector.record_batch_thermal(
+                batch_size=predicted_batch_size,
+                peak_gpu_temp=metrics.gpu_temp_current,
+                throttle_detected=monitor.is_thermal_throttling(),
+            )
+            logger.debug(
+                f"Recorded thermal metrics: temp={metrics.gpu_temp_current:.1f}°C, "
+                f"batch_size={predicted_batch_size}"
+            )
+        except Exception as e:
+            logger.debug(f"Failed to record thermal metrics (non-blocking): {e}")
+
         return BatchCompoundResult(
             success=len(errors) == 0,
             tasks_executed=tasks_executed,
