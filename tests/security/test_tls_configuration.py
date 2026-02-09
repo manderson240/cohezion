@@ -15,21 +15,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-# Check if certificates exist for running tests that require them
-CERT_PATH = Path("/home/mike-anderson/dev/cohezion/certs/server.crt")
-KEY_PATH = Path("/home/mike-anderson/dev/cohezion/certs/server.key")
-CERTS_EXIST = CERT_PATH.exists() and KEY_PATH.exists()
-
-skipif_certs_missing = pytest.mark.skipif(
-    not CERTS_EXIST,
-    reason="TLS certificates not generated - Task #2 TLS configuration pending"
-)
-
 
 class TestTLSCertificateGeneration:
     """Test TLS certificate generation and validation."""
 
-    @skipif_certs_missing
     def test_certificate_files_exist(self):
         """Verify self-signed certificates were generated."""
         cert_path = Path("/home/mike-anderson/dev/cohezion/certs/server.crt")
@@ -38,7 +27,6 @@ class TestTLSCertificateGeneration:
         assert cert_path.exists(), f"Certificate not found at {cert_path}"
         assert key_path.exists(), f"Private key not found at {key_path}"
 
-    @skipif_certs_missing
     def test_certificate_file_permissions(self):
         """Verify private key has secure permissions."""
         cert_path = Path("/home/mike-anderson/dev/cohezion/certs/server.crt")
@@ -54,7 +42,6 @@ class TestTLSCertificateGeneration:
         key_mode = oct(key_path.stat().st_mode)[-3:]
         assert key_mode == "600", f"Private key has insecure permissions: {key_mode}"
 
-    @skipif_certs_missing
     def test_certificate_is_valid_x509(self):
         """Verify certificate is valid X.509 format."""
         cert_path = "/home/mike-anderson/dev/cohezion/certs/server.crt"
@@ -72,7 +59,6 @@ class TestTLSCertificateGeneration:
         except ImportError:
             pytest.skip("OpenSSL library not available")
 
-    @skipif_certs_missing
     def test_certificate_common_name(self):
         """Verify certificate is issued for localhost."""
         cert_path = "/home/mike-anderson/dev/cohezion/certs/server.crt"
@@ -91,7 +77,6 @@ class TestTLSCertificateGeneration:
         except ImportError:
             pytest.skip("OpenSSL library not available")
 
-    @skipif_certs_missing
     def test_certificate_self_signed(self):
         """Verify certificate is self-signed."""
         cert_path = "/home/mike-anderson/dev/cohezion/certs/server.crt"
@@ -143,7 +128,6 @@ class TestTLSConfiguration:
         assert config.cert_path == cert_path
         assert config.key_path == key_path
 
-    @skipif_certs_missing
     def test_tls_config_validates_certificate(self):
         """Test TLSConfig certificate validation."""
         from cohezion.security.tls_config import TLSConfig
@@ -254,7 +238,6 @@ class TestCertificateGeneration:
 class TestTLSIntegration:
     """Integration tests for TLS/HTTPS configuration."""
 
-    @skipif_certs_missing
     def test_certificate_and_key_exist_together(self):
         """Verify both certificate and key exist for HTTPS."""
         cert_path = Path("/home/mike-anderson/dev/cohezion/certs/server.crt")
@@ -283,7 +266,6 @@ class TestTLSIntegration:
                 f"Environment variable {var} not documented in script"
             )
 
-    @skipif_certs_missing
     def test_certificate_validity_period(self):
         """Verify certificate is valid for at least one year."""
         try:
