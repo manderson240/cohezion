@@ -9,6 +9,16 @@ from cohezion.compound.batch_sizer import (
     get_batch_size_predictor,
 )
 from cohezion.compound.cache_persistence import CachePersistence, WarmCacheLoader
+from cohezion.compound.hardware_monitor import (
+    HardwareMetrics,
+    HardwareMonitor,
+    get_hardware_monitor,
+)
+from cohezion.compound.thermal_predictor import (
+    ThermalMetrics,
+    ThermalTrendAnalyzer,
+    get_thermal_trend_analyzer,
+)
 from cohezion.compound.executor import (
     CompoundExecutor,
     ExecutionResult,
@@ -74,6 +84,8 @@ __all__ = [
     "ExecutionResult",
     "ExecutorFactory",
     "FeedbackLoopResult",
+    "HardwareMetrics",
+    "HardwareMonitor",
     "InflectionDetector",
     "InflectionDetectorFactory",
     "Journey",
@@ -90,10 +102,14 @@ __all__ = [
     "TeamExecutionResult",
     "TeamExecutor",
     "TeamExecutorFactory",
+    "ThermalMetrics",
+    "ThermalTrendAnalyzer",
     "TrajectoryPoint",
     "VaultExecutionLogger",
     "WarmCacheLoader",
     "get_batch_size_predictor",
     "get_collector",
+    "get_hardware_monitor",
+    "get_thermal_trend_analyzer",
     "reset_collector",
 ]
