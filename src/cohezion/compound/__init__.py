@@ -8,6 +8,13 @@ from cohezion.compound.executor import (
     ExecutionResult,
     ExecutorFactory,
 )
+from cohezion.compound.feedback_loop import (
+    CompoundFeedbackLoop,
+    CompoundFeedbackLoopFactory,
+    FeedbackLoopResult,
+    RetryAttempt,
+    RetryStrategy,
+)
 from cohezion.compound.skill_selector import (
     SkillScore,
     SkillSelector,
@@ -29,9 +36,14 @@ __all__ = [
     "AgentTask",
     "AgentTaskResult",
     "CompoundExecutor",
+    "CompoundFeedbackLoop",
+    "CompoundFeedbackLoopFactory",
     "ExecutionContext",
     "ExecutionResult",
     "ExecutorFactory",
+    "FeedbackLoopResult",
+    "RetryAttempt",
+    "RetryStrategy",
     "SkillScore",
     "SkillSelector",
     "TeamExecutionResult",
