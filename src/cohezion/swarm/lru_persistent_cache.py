@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import logging
 from collections import OrderedDict
+from pathlib import Path
 from typing import Any, Optional
 
 from cohezion.swarm.persistent_cache import CacheEntry, PersistentCache
@@ -56,7 +57,7 @@ class LRUPersistentCache(PersistentCache):
     ) -> None:
         """Initialize LRU persistent cache."""
         # Initialize LRU-specific attributes BEFORE calling parent init
-        # This ensures they're available if parent calls _restore_from_disk
+        # This ensures they're available if parent calls load_from_disk
         self.max_entries = max_entries
         self.eviction_threshold = eviction_threshold
         self.target_utilization = target_utilization
@@ -64,12 +65,26 @@ class LRUPersistentCache(PersistentCache):
         self._eviction_count = 0
         self._evictions_total_entries = 0
 
-        # Now initialize parent, which may call _restore_from_disk
-        super().__init__(
-            cache_dir=cache_dir,
-            persistence_enabled=persistence_enabled,
-            auto_restore=auto_restore,
-        )
+        # Determine cache file path
+        cache_dir_path = Path(cache_dir)
+        if persistence_enabled:
+            cache_dir_path.mkdir(parents=True, exist_ok=True)
+            cache_file = cache_dir_path / "lru_cache.jsonl"
+        else:
+            # Use in-memory only - use a unique path that won't exist
+            cache_file = cache_dir_path / f".lru_cache_{id(self)}.jsonl"
+
+        # Now initialize parent with cache_file
+        # The parent will call load_from_disk() in __init__
+        super().__init__(cache_file=str(cache_file), max_entries=max_entries)
+
+        # If persistence is disabled, clear any loaded data
+        if not persistence_enabled:
+            with self._lock:
+                self.memory_cache.clear()
+
+        # After parent init, rebuild access order from loaded entries
+        self._rebuild_access_order()
 
     def get(self, key: str) -> Optional[Any]:
         """Get value from cache and update LRU order.
@@ -85,11 +100,19 @@ class LRUPersistentCache(PersistentCache):
             Cached value or None if not found
         """
         with self._lock:
-            value = super().get(key)
-            if value is not None:
+            if key in self.memory_cache:
+                entry = self.memory_cache[key]
+                entry["hits"] = entry.get("hits", 0) + 1
+                self._stats["hits"] += 1
+
                 # Move to end (most recently used)
-                self._access_order.move_to_end(key)
-            return value
+                if key in self._access_order:
+                    self._access_order.move_to_end(key)
+
+                return entry.get("value")
+
+            self._stats["misses"] += 1
+            return None
 
     def put(self, key: str, value: Any) -> None:
         """Put value into cache with LRU tracking.
@@ -106,10 +129,10 @@ class LRUPersistentCache(PersistentCache):
         """
         with self._lock:
             # Check if we're adding a new entry
-            is_new_entry = key not in self._cache
+            is_new_entry = key not in self.memory_cache
 
             # Put entry using parent class
-            super().put(key, value)
+            super().set(key, value)
 
             # Track access order
             if is_new_entry:
@@ -120,7 +143,7 @@ class LRUPersistentCache(PersistentCache):
 
             # Check if eviction is needed
             # Calculate actual utilization from cache size
-            current_size = len(self._cache)
+            current_size = len(self.memory_cache)
             utilization = current_size / self.max_entries
 
             # Only evict if we actually exceed the eviction threshold
@@ -141,10 +164,17 @@ class LRUPersistentCache(PersistentCache):
             True if entry existed and was deleted
         """
         with self._lock:
-            deleted = super().delete(key)
-            if deleted:
-                self._access_order.pop(key, None)
-            return deleted
+            # Check if key exists
+            if key not in self.memory_cache:
+                return False
+
+            # Delete from memory cache
+            del self.memory_cache[key]
+
+            # Delete from access order
+            self._access_order.pop(key, None)
+
+            return True
 
     def clear(self) -> None:
         """Clear all entries from cache and access order."""
@@ -161,7 +191,7 @@ class LRUPersistentCache(PersistentCache):
         until cache utilization reaches target_utilization.
         """
         target_size = int(self.max_entries * self.target_utilization)
-        current_size = len(self._cache)
+        current_size = len(self.memory_cache)
 
         if current_size <= target_size:
             return
@@ -183,8 +213,8 @@ class LRUPersistentCache(PersistentCache):
             lru_key = next(iter(self._access_order))
 
             # Remove from both cache and access order
-            if lru_key in self._cache:
-                del self._cache[lru_key]
+            if lru_key in self.memory_cache:
+                del self.memory_cache[lru_key]
                 evicted_keys.append(lru_key)
 
             del self._access_order[lru_key]
@@ -196,8 +226,8 @@ class LRUPersistentCache(PersistentCache):
 
             logger.debug(
                 f"Evicted {len(evicted_keys)} LRU entries. "
-                f"Cache now at {len(self._cache)}/{self.max_entries} "
-                f"({len(self._cache)/self.max_entries*100:.1f}%)"
+                f"Cache now at {len(self.memory_cache)}/{self.max_entries} "
+                f"({len(self.memory_cache)/self.max_entries*100:.1f}%)"
             )
 
     def get_stats(self) -> dict[str, Any]:
@@ -217,7 +247,7 @@ class LRUPersistentCache(PersistentCache):
                     "max_entries": self.max_entries,
                     "eviction_threshold": self.eviction_threshold,
                     "target_utilization": self.target_utilization,
-                    "utilization": len(self._cache) / self.max_entries,
+                    "utilization": len(self.memory_cache) / self.max_entries,
                     "eviction_count": self._eviction_count,
                     "total_evicted_entries": self._evictions_total_entries,
                     "avg_entries_per_eviction": (
@@ -247,27 +277,24 @@ class LRUPersistentCache(PersistentCache):
                     if self._eviction_count > 0
                     else 0
                 ),
-                "current_utilization": len(self._cache) / self.max_entries,
-                "current_size": len(self._cache),
+                "current_utilization": len(self.memory_cache) / self.max_entries,
+                "current_size": len(self.memory_cache),
                 "max_size": self.max_entries,
             }
 
-    def _restore_from_disk(self) -> None:
-        """Restore cache from JSONL and rebuild access order.
+    def _rebuild_access_order(self) -> None:
+        """Rebuild access order from current cache entries.
 
-        Override parent to also restore access order after loading entries.
+        Called after restore to rebuild the LRU ordering.
         """
-        # Call parent restore (without lock, as parent handles it)
-        super()._restore_from_disk()
+        with self._lock:
+            self._access_order.clear()
+            for key in self.memory_cache.keys():
+                self._access_order[key] = None
 
-        # Rebuild access order from restored entries
-        # Note: parent's _restore_from_disk doesn't use _lock on the whole operation
-        for key in self._cache.keys():
-            self._access_order[key] = None
-
-        logger.debug(
-            f"Rebuilt LRU access order for {len(self._access_order)} entries"
-        )
+            logger.debug(
+                f"Rebuilt LRU access order for {len(self._access_order)} entries"
+            )
 
     @property
     def eviction_threshold_percent(self) -> float:
@@ -301,4 +328,4 @@ class LRUPersistentCache(PersistentCache):
             Current utilization percentage (0-100)
         """
         with self._lock:
-            return (len(self._cache) / self.max_entries) * 100
+            return (len(self.memory_cache) / self.max_entries) * 100
