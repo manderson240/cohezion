@@ -42,3 +42,37 @@ def tmp_workdir(tmp_path: Path):
     workdir = tmp_path / "workdir"
     workdir.mkdir()
     return workdir
+
+
+@pytest.fixture(autouse=True)
+def reset_singletons():
+    """Auto-reset critical singletons before each test to prevent state pollution."""
+    from cohezion.compound.executor import ExecutorFactory
+    from cohezion.compound.batch_executor import BatchableExecutor
+    from cohezion.swarm.cost_aware_router import CostAwareRouter
+    from cohezion.cost_optimization.cost_tracker import SessionCostTracker
+    from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
+
+    # Reset before test
+    ExecutorFactory.reset_singleton()
+    if hasattr(BatchableExecutor, "reset_singleton"):
+        BatchableExecutor.reset_singleton()
+    if hasattr(CostAwareRouter, "reset_singleton"):
+        CostAwareRouter.reset_singleton()
+    if hasattr(SessionCostTracker, "reset_instance"):
+        SessionCostTracker.reset_instance()
+    if hasattr(BudgetEnforcer, "reset_instance"):
+        BudgetEnforcer.reset_instance()
+
+    yield
+
+    # Reset after test
+    ExecutorFactory.reset_singleton()
+    if hasattr(BatchableExecutor, "reset_singleton"):
+        BatchableExecutor.reset_singleton()
+    if hasattr(CostAwareRouter, "reset_singleton"):
+        CostAwareRouter.reset_singleton()
+    if hasattr(SessionCostTracker, "reset_instance"):
+        SessionCostTracker.reset_instance()
+    if hasattr(BudgetEnforcer, "reset_instance"):
+        BudgetEnforcer.reset_instance()
