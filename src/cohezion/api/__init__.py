@@ -861,12 +861,19 @@ def _get_vae():
         _vae_trainer = FlumeVAETrainer()
         ckpt_path = Path("data/flume/checkpoints/flume_vae_ep50.pt")
         if ckpt_path.exists():
-            ckpt = torch.load(ckpt_path, weights_only=True)
-            _vae_trainer.encoder.load_state_dict(ckpt["encoder"])
-            _vae_trainer.mu_head.load_state_dict(ckpt["mu_head"])
-            _vae_trainer.logvar_head.load_state_dict(ckpt["logvar_head"])
-            _vae_trainer.decoder.load_state_dict(ckpt["decoder"])
-            logger.info("Loaded FLUME VAE checkpoint: %s", ckpt_path)
+            try:
+                ckpt = torch.load(ckpt_path, weights_only=True)
+                _vae_trainer.encoder.load_state_dict(ckpt["encoder"])
+                _vae_trainer.mu_head.load_state_dict(ckpt["mu_head"])
+                _vae_trainer.logvar_head.load_state_dict(ckpt["logvar_head"])
+                _vae_trainer.decoder.load_state_dict(ckpt["decoder"])
+                logger.info("Loaded FLUME VAE checkpoint: %s", ckpt_path)
+            except (RuntimeError, KeyError) as e:
+                logger.warning(
+                    "Failed to load FLUME VAE checkpoint %s (architecture mismatch?); using random weights: %s",
+                    ckpt_path,
+                    str(e),
+                )
         else:
             logger.warning(
                 "No FLUME VAE checkpoint found at %s; using random weights", ckpt_path

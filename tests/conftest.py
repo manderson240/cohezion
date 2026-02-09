@@ -87,6 +87,10 @@ def reset_singletons():
     if hasattr(api_module, '_vae_trainer'):
         api_module._vae_trainer = None
 
+    # Reset RL policy singleton as well
+    if hasattr(api_module, '_rl_policy'):
+        api_module._rl_policy = None
+
     # Clear logger cache to ensure consistent logging formatters
     logging.getLogger().handlers.clear()
 
@@ -106,3 +110,7 @@ def reset_singletons():
     # Reset FLUME VAE singleton after test
     if hasattr(api_module, '_vae_trainer'):
         api_module._vae_trainer = None
+
+    # Reset RL policy singleton after test
+    if hasattr(api_module, '_rl_policy'):
+        api_module._rl_policy = None
