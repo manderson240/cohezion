@@ -46,8 +46,8 @@ def main():
 
     mcp = create_server(config)
 
-    # FastMCP is an ASGI app directly - use it as mcp_app
-    mcp_app = mcp
+    # FastMCP provides factory methods to build ASGI apps - call streamable_http_app()
+    mcp_app = mcp.streamable_http_app()
 
     # Add TrustedHostMiddleware if not accepting all hosts
     if "*" not in config.allowed_hosts:
