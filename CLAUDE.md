@@ -97,6 +97,71 @@ tests/                 # Test suites (pytest)
 - Run `python scripts/assess_git_health.py` weekly for bloat/drift checks
 - Ignored patterns: `**/venv/`, `*.dill`, `audio/`, `*.zip`
 
+## 🚨 MANDATORY: Multi-Session Git Worktree Pattern
+
+**EVERY Claude session MUST follow this workflow to prevent conflicts and data loss.**
+
+### Session Startup
+```bash
+SESSION_ID="47"  # Sequential numbering
+PHASE="production-deployment"
+BRANCH="session-${SESSION_ID}-${PHASE}"
+
+# Create isolated worktree (NOT in ~/dev/cohezion)
+git worktree add ~/dev/cohezion-session-${SESSION_ID} -b ${BRANCH}
+cd ~/dev/cohezion-session-${SESSION_ID}
+git log --oneline -3  # Verify isolation
+```
+
+### Session Work
+- One focused goal per session
+- Commit atomically (test, then commit)
+- Run: `uv run pytest tests/compound/ tests/cache/ tests/security/ tests/test_*.py -q`
+- Expected baseline: 98.5%+ passing (1,339/1,361)
+
+### Session Commit Message Template
+```
+Session XX: PHASE_NAME
+
+## Accomplishments
+- [Key deliverables]
+- [Test results: X/Y passing, Z% pass rate]
+
+## Verified Metrics
+- Tests: X/Y passing (Z%)
+- Regressions: Zero
+- Ready for: [production/next-phase/review]
+
+## For Session XX+1
+- [Key assumptions]
+- [Remaining work]
+- [Gotchas to watch]
+```
+
+### Session Cleanup
+```bash
+# Final commit
+git commit -m "Session XX: [message per template]"
+git push origin session-${SESSION_ID}-${PHASE}
+
+# Return to main
+cd ~/dev/cohezion
+git worktree remove ~/dev/cohezion-session-${SESSION_ID}
+git status  # Verify clean
+```
+
+### Why This Pattern Matters
+- **Prevents conflicts**: Each session is isolated
+- **Prevents data loss**: Feature branches preserved before merge
+- **Token efficient**: No redundant merge resolution
+- **Clear audit trail**: Each session = one focused branch
+- **Safe defaults**: Main is never directly edited
+
+### Reference
+- Read: `SESSION_46_RETROSPECTIVE_AND_HANDOFF.md` (latest workflow)
+- Pattern: `/vaults/cohezion-vault/patterns/multi-session-compound-engineering-workflow.md`
+- Operational: `GIT_WORKTREE_WORKFLOW.md`
+
 ## Key Principles
 
 - **HIHO Stability**: Maximum stability at exactly 50% coherence overlap (Half-In-Half-Out)

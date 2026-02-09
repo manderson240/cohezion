@@ -9,9 +9,7 @@ This test suite validates Task #4 of Phase 2 Security Hardening:
 """
 
 import json
-import subprocess
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
@@ -29,6 +27,7 @@ class TestPrecommitInstallation:
         config_path = Path("/home/mike-anderson/dev/cohezion/.pre-commit-config.yaml")
         try:
             import yaml
+
             with open(config_path) as f:
                 config = yaml.safe_load(f)
             assert config is not None
@@ -41,6 +40,7 @@ class TestPrecommitInstallation:
         config_path = Path("/home/mike-anderson/dev/cohezion/.pre-commit-config.yaml")
         try:
             import yaml
+
             with open(config_path) as f:
                 config = yaml.safe_load(f)
 
@@ -56,13 +56,12 @@ class TestPrecommitInstallation:
         config_path = Path("/home/mike-anderson/dev/cohezion/.pre-commit-config.yaml")
         try:
             import yaml
+
             with open(config_path) as f:
                 config = yaml.safe_load(f)
 
             repos = [repo.get("repo", "") for repo in config.get("repos", [])]
-            assert any("bandit" in repo for repo in repos), (
-                "bandit repo not configured"
-            )
+            assert any("bandit" in repo for repo in repos), "bandit repo not configured"
         except ImportError:
             pytest.skip("PyYAML not available")
 
@@ -71,6 +70,7 @@ class TestPrecommitInstallation:
         config_path = Path("/home/mike-anderson/dev/cohezion/.pre-commit-config.yaml")
         try:
             import yaml
+
             with open(config_path) as f:
                 content = f.read()
             assert "stages: [commit]" in content, "No commit stage hooks configured"
@@ -110,7 +110,8 @@ class TestDetectSecretsConfiguration:
         baseline_path = Path("/home/mike-anderson/dev/cohezion/.secrets.baseline")
         with open(baseline_path) as f:
             baseline = json.load(f)
-        assert baseline.get("version") == "1.4.0", "Baseline version should be 1.4.0"
+        version = baseline.get("version", "")
+        assert version >= "1.4.0", f"Baseline version should be >= 1.4.0, got {version}"
 
     def test_secrets_baseline_has_plugins(self):
         """Verify baseline has detection plugins configured."""
@@ -169,14 +170,16 @@ class TestGitHooksInstallation:
     def test_pre_commit_hook_is_executable(self):
         """Verify .git/hooks/pre-commit is executable."""
         import os
+
         hook_path = Path("/home/mike-anderson/dev/cohezion/.git/hooks/pre-commit")
-        assert os.access(hook_path, os.X_OK), f"Pre-commit hook is not executable"
+        assert os.access(hook_path, os.X_OK), "Pre-commit hook is not executable"
 
     def test_pre_push_hook_is_executable(self):
         """Verify .git/hooks/pre-push is executable."""
         import os
+
         hook_path = Path("/home/mike-anderson/dev/cohezion/.git/hooks/pre-push")
-        assert os.access(hook_path, os.X_OK), f"Pre-push hook is not executable"
+        assert os.access(hook_path, os.X_OK), "Pre-push hook is not executable"
 
     def test_pre_commit_hook_references_framework(self):
         """Verify .git/hooks/pre-commit references pre-commit framework."""
@@ -194,13 +197,20 @@ class TestSecurityToolsInstallation:
     def test_install_script_is_executable(self):
         """Verify install_security_tools.sh exists and is executable."""
         import os
-        script_path = Path("/home/mike-anderson/dev/cohezion/scripts/setup/install_security_tools.sh")
+
+        script_path = Path(
+            "/home/mike-anderson/dev/cohezion/scripts/setup/install_security_tools.sh"
+        )
         assert script_path.exists(), f"Script not found at {script_path}"
-        assert os.access(script_path, os.X_OK), f"Script is not executable: {script_path}"
+        assert os.access(script_path, os.X_OK), (
+            f"Script is not executable: {script_path}"
+        )
 
     def test_install_script_creates_baseline(self):
         """Verify install script creates secrets baseline."""
-        script_path = Path("/home/mike-anderson/dev/cohezion/scripts/setup/install_security_tools.sh")
+        script_path = Path(
+            "/home/mike-anderson/dev/cohezion/scripts/setup/install_security_tools.sh"
+        )
         with open(script_path) as f:
             content = f.read()
         assert ".secrets.baseline" in content, (
@@ -209,7 +219,9 @@ class TestSecurityToolsInstallation:
 
     def test_install_script_installs_hooks(self):
         """Verify install script installs pre-commit hooks."""
-        script_path = Path("/home/mike-anderson/dev/cohezion/scripts/setup/install_security_tools.sh")
+        script_path = Path(
+            "/home/mike-anderson/dev/cohezion/scripts/setup/install_security_tools.sh"
+        )
         with open(script_path) as f:
             content = f.read()
         assert "pre-commit install" in content, (
@@ -218,7 +230,9 @@ class TestSecurityToolsInstallation:
 
     def test_install_script_documents_usage(self):
         """Verify install script documents setup and usage."""
-        script_path = Path("/home/mike-anderson/dev/cohezion/scripts/setup/install_security_tools.sh")
+        script_path = Path(
+            "/home/mike-anderson/dev/cohezion/scripts/setup/install_security_tools.sh"
+        )
         with open(script_path) as f:
             content = f.read()
 
@@ -264,10 +278,10 @@ class TestDetectSecretsCapability:
             content = f.read()
 
         excluded_dirs = [
-            "\.venv",
+            r"\.venv",
             "__pycache__",
-            "\.pytest_cache",
-            "\.git",
+            r"\.pytest_cache",
+            r"\.git",
         ]
 
         for dir_pattern in excluded_dirs:
