@@ -39,6 +39,9 @@ class SessionState:
     last_checkpoint_time: float = field(default_factory=time.time)
     model_usage: dict[str, int] = field(default_factory=dict)
     cache_state: dict[str, str] = field(default_factory=dict)
+    # Cost tracking (new in cost optimization initiative)
+    total_cost_usd: float = 0.0
+    cost_breakdown: dict[str, float] = field(default_factory=dict)
 
 
 @dataclass
@@ -516,6 +519,15 @@ class CompoundSessionManager:
             total_executions=total_executions,
             total_tokens=total_tokens,
         )
+
+    async def __aenter__(self) -> "CompoundSessionManager":
+        """Start session on async context entry."""
+        self.start_session()
+        return self
+
+    async def __aexit__(self, *exc: object) -> None:
+        """End session on async context exit."""
+        self.end_session()
 
     def get_current_session(self) -> SessionSummary | None:
         """Return current session info, or None if no active session."""
