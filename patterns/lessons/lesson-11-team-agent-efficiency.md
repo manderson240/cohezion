@@ -1,0 +1,20 @@
+# Lesson 11: Team agent efficiency
+
+## Original Text
+**Team agent efficiency**: 5 parallel agents + leader doing sequential deps = ~15 min for ~20 files.
+
+## Category
+<!-- Add category: [Testing, Architecture, CI/CD, Debugging, Performance, etc] -->
+
+## Context
+<!-- Add relevant context or when this lesson was learned -->
+
+## Related Lessons
+<!-- Link to related lessons -->
+
+## Tags
+- #lesson
+- #learning
+
+---
+Created: 2026-02-08 14:43:24

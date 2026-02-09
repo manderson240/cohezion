@@ -1,0 +1,20 @@
+# Lesson 37: EXPERIENCE-GUIDED EXECUTION WORKS (NEW)
+
+## Original Text
+**EXPERIENCE-GUIDED EXECUTION WORKS** (NEW): Vault-to-vault knowledge transfer proven end-to-end. Run 1 logs trajectory+pattern, Run 2 queries vault, finds Run 1, uses guidance. Flywheel effect: each cycle improves next cycle.
+
+## Category
+<!-- Add category: [Testing, Architecture, CI/CD, Debugging, Performance, etc] -->
+
+## Context
+<!-- Add relevant context or when this lesson was learned -->
+
+## Related Lessons
+<!-- Link to related lessons -->
+
+## Tags
+- #lesson
+- #learning
+
+---
+Created: 2026-02-08 14:43:24

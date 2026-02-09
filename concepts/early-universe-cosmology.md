@@ -1,0 +1,44 @@
+---
+title: "Early Universe Cosmology"
+date: 2026-02-07
+tags: [concept, jwst-observations, dark-matter-detection, topological-defects]
+---
+
+## Definition
+
+Study of the universe's first billions of years, from the Big Bang through cosmic inflation to recombination at 380,000 years. Combines CMB observations (Penzias & Wilson, 1964; mapped by WMAP 2001-2010 and Planck 2009-2013) with theoretical models. The Planck 2018 mission provided the strongest constraints on a six-parameter Lambda-CDM model.
+
+## Key Properties
+
+- Studies the first few million years until recombination when matter and radiation decoupled
+- Uses CMB temperature fluctuations (~1 part in 100,000) to infer primordial conditions
+- Establishes precision cosmology through multi-parameter constraints on fundamental values
+- Reveals near-perfect homogeneity with quantum fluctuations that seeded galaxies
+- Strongly supports Lambda-CDM with early inflation and late-time acceleration
+
+## Examples
+
+- Planck mission: detected CMB polarization patterns validating inflation predictions
+- WMAP: confirmed a nearly flat universe of ~5% ordinary matter, ~27% dark matter, ~68% dark energy
+
+## Primary Sources
+
+- Arno Penzias and Robert Wilson (1964). *A Measurement of Excess Antenna Temperature at 4080 Mc/s*. [https://www.nobelprize.org/uploads/2018/06/wilson-lecture-1.pdf](https://www.nobelprize.org/uploads/2018/06/wilson-lecture-1.pdf)
+- Planck Collaboration (2018). *Planck 2018 results: Overview and the cosmological legacy of Planck*. [https://www.aanda.org/articles/aa/full_html/2020/09/aa33880-18/aa33880-18.html](https://www.aanda.org/articles/aa/full_html/2020/09/aa33880-18/aa33880-18.html)
+- WMAP Collaboration (2013). *WMAP Nine-Year Results*. [https://science.nasa.gov/mission/wmap/wmap-overview/](https://science.nasa.gov/mission/wmap/wmap-overview/)
+
+## Related Papers
+
+- [[jwst-early-universe-black-holes]]
+- [[mom-z14-farthest-galaxy]]
+- [[grb-250314a-ancient-signal]]
+
+## Related Concepts
+
+- [[jwst-observations]]
+- [[dark-matter-detection]]
+- [[topological-defects]]
+
+## Relevance to Cohezion
+
+Early universe cosmology is domain-specific knowledge that agents accessing Cohezion's vault may reference via find_relevant_context when performing research tasks. The CompoundOps layer would structure observations and discoveries about cosmological phenomena as timestamped, tagged experiment records, enabling agents to build on accumulated astronomical knowledge and connect insights across multiple research sessions.

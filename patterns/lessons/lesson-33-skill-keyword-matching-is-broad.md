@@ -1,0 +1,20 @@
+# Lesson 33: SKILL KEYWORD MATCHING IS BROAD
+
+## Original Text
+**SKILL KEYWORD MATCHING IS BROAD**: `_find_skill_for_task()` splits skill names on `_` and matches fragments against task subject. Common English words match unintended skills. Tests expecting "no match" must use nonsense words (zzz, qqq) to avoid false positives.
+
+## Category
+<!-- Add category: [Testing, Architecture, CI/CD, Debugging, Performance, etc] -->
+
+## Context
+<!-- Add relevant context or when this lesson was learned -->
+
+## Related Lessons
+<!-- Link to related lessons -->
+
+## Tags
+- #lesson
+- #learning
+
+---
+Created: 2026-02-08 14:43:24
