@@ -109,7 +109,12 @@ class BatchProcessor:
         items: list[BatchItem],
         execute_fn: Callable[[BatchItem], Coroutine[Any, Any, tuple[str, int]]],
     ) -> BatchResult:
-        """Process batch with Phase 1 cache + Phase 2 parallel execution.
+        """Process batch with Phase 1 cache + Phase 2 parallel execution + deduplication.
+
+        Phase 1: Cache Lookup (exact hash matches)
+        Phase 1.5: Deduplicate identical prompts within batch (new in Phase 2.4)
+        Phase 2: Parallel Execution of unique cache misses (controlled concurrency)
+        Phase 2.5: Replicate results to all duplicate prompts
 
         Args:
             items: List of items to process
@@ -150,13 +155,28 @@ class BatchProcessor:
             100.0 * cache_hits / len(items) if items else 0,
         )
 
-        # Phase 2: Parallel Execution of Cache Misses (controlled concurrency)
+        # Phase 1.5: Deduplicate identical prompts within cache misses (Phase 2.4)
         if cache_misses > 0:
-            # Phase 1 Optimization: Get dynamic concurrency based on hardware state
+            unique_misses, duplicate_map = self._deduplicate_misses(cache_misses_list)
+            dedup_savings = cache_misses - len(unique_misses)
+            if dedup_savings > 0:
+                logger.info(
+                    "Phase 1.5: Batch deduplication found %d duplicate prompts "
+                    "(%.1f%% savings)",
+                    dedup_savings,
+                    100.0 * dedup_savings / cache_misses,
+                )
+            else:
+                unique_misses = cache_misses_list
+                duplicate_map = {}
+
+        # Phase 2: Parallel Execution of unique cache misses (controlled concurrency)
+        if cache_misses > 0 and unique_misses:
+            # Get dynamic concurrency based on hardware state
             actual_concurrency = self.concurrency_gate.get_safe_concurrency()
             logger.info(
-                "Phase 2: Executing %d cache misses in parallel (dynamic concurrency=%d)",
-                cache_misses,
+                "Phase 2: Executing %d unique cache misses in parallel (dynamic concurrency=%d)",
+                len(unique_misses),
                 actual_concurrency,
             )
 
@@ -165,20 +185,21 @@ class BatchProcessor:
 
             tasks = [
                 self._execute_with_concurrency(item, key, execute_fn)
-                for item, key in cache_misses_list
+                for item, key in unique_misses
             ]
 
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
-            for (item, key), result in zip(cache_misses_list, results, strict=False):
+            # Phase 2.5: Replicate results to all duplicates
+            for (representative_item, key), result in zip(unique_misses, results, strict=False):
                 if isinstance(result, BaseException):
-                    item.error = str(result)
-                    item.tokens_used = 0
-                    logger.error("Execution failed for %s: %s", item.id, result)
+                    representative_item.error = str(result)
+                    representative_item.tokens_used = 0
+                    logger.error("Execution failed for %s: %s", representative_item.id, result)
                 else:
                     output, tokens = result
-                    item.result = output
-                    item.tokens_used = tokens
+                    representative_item.result = output
+                    representative_item.tokens_used = tokens
 
                     # Cache the result
                     self.cache[key] = CacheEntry(
@@ -186,6 +207,15 @@ class BatchProcessor:
                         value=output,
                         tokens_used=tokens,
                     )
+
+                # Replicate to duplicate items
+                if key in duplicate_map:
+                    for dup_item, dup_key in duplicate_map[key]:
+                        dup_item.result = representative_item.result
+                        dup_item.tokens_used = representative_item.tokens_used
+                        dup_item.error = representative_item.error
+                        dup_item.cached = not bool(representative_item.error)
+                        logger.debug("Replicated result to duplicate: %s", dup_item.id)
 
         elapsed_ms = (time.time() - start_time) * 1000.0
 
@@ -195,8 +225,58 @@ class BatchProcessor:
             cache_hits=cache_hits,
             cache_misses=cache_misses,
             total_duration_ms=round(elapsed_ms, 2),
-            parallel_executions=min(cache_misses, actual_concurrency),
+            parallel_executions=min(len(unique_misses) if cache_misses > 0 else 0, actual_concurrency),
         )
+
+    def _deduplicate_misses(
+        self, cache_misses_list: list[tuple[BatchItem, str]]
+    ) -> tuple[list[tuple[BatchItem, str]], dict[str, list[tuple[BatchItem, str]]]]:
+        """Deduplicate identical prompts within cache misses.
+
+        Phase 2.4 optimization: identifies and deduplicates cache misses.
+        Returns unique misses and a map of duplicates for later replication.
+
+        Args:
+            cache_misses_list: List of (item, key) tuples for cache misses
+
+        Returns:
+            Tuple of (unique_misses, duplicate_map)
+            - unique_misses: List of (item, key) for unique prompts
+            - duplicate_map: Dict mapping representative_key → [(dup_item, dup_key), ...]
+        """
+        # Map from prompt signature to list of (item, key) tuples
+        prompt_groups: dict[str, list[tuple[BatchItem, str]]] = {}
+
+        for item, key in cache_misses_list:
+            # Create signature from prompt + system + model
+            signature = f"{item.prompt}|{item.system}|{item.model}"
+
+            if signature not in prompt_groups:
+                prompt_groups[signature] = []
+
+            prompt_groups[signature].append((item, key))
+
+        # Extract unique representative and collect duplicates
+        unique_misses = []
+        duplicate_map = {}
+
+        for signature, items_with_keys in prompt_groups.items():
+            if len(items_with_keys) == 1:
+                # No duplicates, just add to unique
+                unique_misses.append(items_with_keys[0])
+            else:
+                # Multiple items with same prompt - execute first, replicate to others
+                representative = items_with_keys[0]
+                unique_misses.append(representative)
+
+                # Map representative key to duplicates (excluding representative itself)
+                representative_key = representative[1]
+                if representative_key not in duplicate_map:
+                    duplicate_map[representative_key] = []
+
+                duplicate_map[representative_key].extend(items_with_keys[1:])
+
+        return unique_misses, duplicate_map
 
     async def _execute_with_concurrency(
         self,

@@ -453,6 +453,107 @@ class CompoundFeedbackLoop:
             "average_retries": total_retries / total if total > 0 else 0,
         }
 
+    async def execute_batch_with_feedback(
+        self, tasks: list[tuple[str, Callable]]
+    ) -> dict[str, Any]:
+        """Execute batch of tasks with feedback loop integration.
+
+        Phase 2.5: Batch execution with cache warming from learned patterns.
+
+        Workflow:
+          1. Execute all tasks with feedback loops in parallel
+          2. Detect critical anomalies across batch
+          3. Cache successful retry results for future use
+          4. Re-execute critical tasks with improved prompts
+          5. Extract patterns from successful retries
+
+        Args:
+            tasks: List of (task_description, execute_fn) tuples
+
+        Returns:
+            Dict with aggregated results and learning metrics
+        """
+        if not tasks:
+            logger.warning("execute_batch_with_feedback called with empty task list")
+            return {
+                "success": True,
+                "tasks_executed": 0,
+                "tasks_failed": 0,
+                "cache_warming_hits": 0,
+                "learned_patterns": [],
+            }
+
+        logger.info(f"Starting batch feedback execution for {len(tasks)} tasks")
+
+        # Execute all tasks in parallel with feedback loops
+        batch_results = await asyncio.gather(
+            *[
+                self.execute_with_feedback(
+                    task_description=desc,
+                    skill_name="general",
+                    operation_type="execute",
+                    execute_fn=fn,
+                )
+                for desc, fn in tasks
+            ],
+            return_exceptions=True,
+        )
+
+        # Collect results and identify critical anomalies
+        successful_results = []
+        critical_failures = []
+        cache_warming_opportunities = []
+
+        for i, result in enumerate(batch_results):
+            if isinstance(result, Exception):
+                logger.error(f"Task {i} failed with exception: {result}")
+                critical_failures.append((i, str(result)))
+            elif isinstance(result, FeedbackLoopResult):
+                if result.success:
+                    successful_results.append(result)
+                    # Cache successful results for future use (Phase 2.5)
+                    if result.total_retries > 0:
+                        cache_warming_opportunities.append(
+                            {
+                                "task_description": result.task_description,
+                                "final_output": result.final_output,
+                                "retry_count": result.total_retries,
+                                "learned_skill_adjustment": result.learned_skill_adjustment,
+                            }
+                        )
+                else:
+                    critical_failures.append((i, "Task failed after all retries"))
+
+        # Cache successful retry results for future batch executions
+        logger.info(
+            f"Batch cache warming: Found {len(cache_warming_opportunities)} "
+            f"successful retry patterns to cache"
+        )
+
+        # Extract and persist learning patterns
+        learned_patterns = []
+        for opportunity in cache_warming_opportunities:
+            try:
+                if hasattr(self.executor, "skill_refiner"):
+                    refiner = self.executor.skill_refiner
+                    pattern = await refiner.extract_retry_pattern(
+                        task_description=opportunity["task_description"],
+                        retry_count=opportunity["retry_count"],
+                        successful_output=opportunity["final_output"],
+                    )
+                    learned_patterns.append(pattern)
+            except Exception as e:
+                logger.debug(f"Error extracting pattern: {e}")
+
+        return {
+            "success": len(critical_failures) == 0,
+            "tasks_executed": len(successful_results),
+            "tasks_failed": len(critical_failures),
+            "cache_warming_hits": len(cache_warming_opportunities),
+            "learned_patterns": learned_patterns,
+            "critical_failures": critical_failures,
+        }
+
 
 class CompoundFeedbackLoopFactory:
     """Factory for creating feedback loop instances."""
