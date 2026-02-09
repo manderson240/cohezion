@@ -335,8 +335,8 @@ class ModelFallbackStrategy:
                 self._record_fallback(primary_model, fallback_model)
                 return fallback_model, True
 
-        # No acceptable fallback, use emergency (deepseek if available)
-        if "deepseek-r1:8b" in available_models:
+        # No acceptable fallback, try emergency (deepseek if available and not primary)
+        if primary_model != "deepseek-r1:8b" and "deepseek-r1:8b" in available_models:
             logger.warning(
                 f"Using emergency fallback: {primary_model} unavailable, "
                 f"using deepseek-r1:8b (quality loss unacceptable)"
@@ -344,11 +344,21 @@ class ModelFallbackStrategy:
             self._record_fallback(primary_model, "deepseek-r1:8b")
             return "deepseek-r1:8b", True
 
-        # Last resort: use any available model
+        # Last resort: use any available model that's not the primary
+        available_non_primary = [m for m in available_models if m != primary_model]
+        if available_non_primary:
+            selected = available_non_primary[0]
+            logger.error(
+                f"All models degraded or primary unavailable, using fallback: {selected}"
+            )
+            self._record_fallback(primary_model, selected)
+            return selected, True
+
+        # Absolute last resort: return primary anyway
         logger.error(
-            f"All models degraded, using first available: {available_models[0]}"
+            f"No alternative models available, forced to use primary: {primary_model}"
         )
-        return available_models[0] if available_models else primary_model, True
+        return primary_model, True
 
     def record_execution(
         self, model: str, success: bool, latency_ms: float = 0.0
@@ -453,7 +463,7 @@ class ModelFallbackStrategy:
 def get_fallback_strategy() -> ModelFallbackStrategy:
     """Get or create singleton fallback strategy."""
     global _fallback_strategy
-    if "_fallback_strategy" not in globals():
+    if _fallback_strategy is None:
         _fallback_strategy = ModelFallbackStrategy()
     return _fallback_strategy
 
@@ -461,8 +471,7 @@ def get_fallback_strategy() -> ModelFallbackStrategy:
 def reset_fallback_strategy() -> None:
     """Reset fallback strategy singleton (testing only)."""
     global _fallback_strategy
-    if "_fallback_strategy" in globals():
-        _fallback_strategy = None
+    _fallback_strategy = None
 
 
 # Global singleton
