@@ -72,10 +72,11 @@ class TestL1Cache:
     @pytest.mark.asyncio
     async def test_l1_different_prompt_misses(self):
         """L1 should not match different prompts."""
-        cache = SemanticCache()
+        # Set extremely high similarity threshold to disable L2 matching
+        cache = SemanticCache(similarity_threshold=0.9999, mcp_client=None)
 
-        await cache.put("prompt one", "response one")
-        result = await cache.get("prompt two")
+        await cache.put("explain quantum computing in detail", "response one")
+        result = await cache.get("what is the weather today")
 
         assert result is None
         assert cache.misses == 1
@@ -172,12 +173,13 @@ class TestCacheStatistics:
     @pytest.mark.asyncio
     async def test_hit_rate_calculation(self):
         """Statistics should track hit rates correctly."""
-        cache = SemanticCache()
+        # Very high similarity threshold to test L1 behavior in isolation
+        cache = SemanticCache(similarity_threshold=0.9999, mcp_client=None)
 
         # 2 hits, 1 miss
-        await cache.put("p1", "r1")
-        await cache.get("p1")  # hit
-        await cache.get("p2")  # miss
+        await cache.put("explain quantum computing", "response about QC")
+        await cache.get("explain quantum computing")  # L1 hit
+        await cache.get("what is the recipe for pizza dough")  # miss
 
         stats = cache.get_stats()
         assert stats["l1_hits"] == 1
@@ -256,19 +258,32 @@ class TestMultiTierWorkflow:
     @pytest.mark.asyncio
     async def test_cache_performance_metrics(self):
         """Test cache performance with multiple operations."""
-        cache = SemanticCache(max_l1_size=10)
+        # High similarity threshold to test L1 behavior (no L2 semantic matches)
+        cache = SemanticCache(max_l1_size=10, similarity_threshold=0.9999, mcp_client=None)
 
         # Put multiple entries
-        for i in range(5):
-            await cache.put(f"prompt_{i}", f"response_{i}")
+        prompts = [
+            "explain quantum computing",
+            "how to cook pasta",
+            "machine learning basics",
+            "climate change impacts",
+            "ancient roman history",
+        ]
+        for i, prompt in enumerate(prompts):
+            await cache.put(prompt, f"response_{i}")
 
-        # Get some hits
+        # Get some hits (exact matches)
         for i in range(3):
-            await cache.get(f"prompt_{i}")
+            await cache.get(prompts[i])
 
-        # Get some misses
-        for i in range(5, 8):
-            await cache.get(f"prompt_{i}")
+        # Get some misses (prompts not in cache)
+        misses = [
+            "tell me a joke",
+            "what is 2+2",
+            "describe the moon",
+        ]
+        for miss_prompt in misses:
+            await cache.get(miss_prompt)
 
         stats = cache.get_stats()
         assert stats["l1_hits"] == 3

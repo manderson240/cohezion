@@ -107,15 +107,15 @@ class FlumeVAEEncoder:
                 return
 
             # Create and load encoder
-            self.encoder = SimpleEncoder(
-                input_size=256, hidden_size=self.EMBEDDING_DIM
-            )
-            self.encoder.load_state_dict(encoder_state)
+            # Encoder outputs 512D (hidden_size), not 256D
+            self.encoder = SimpleEncoder(input_size=256, hidden_size=512)
+            # The checkpoint stores the sequential module directly, not under "encoder"
+            self.encoder.encoder.load_state_dict(encoder_state)
             self.encoder.to(self.device)
             self.encoder.eval()
 
-            # Create and load mu_head
-            self.mu_head = nn.Linear(self.EMBEDDING_DIM, self.EMBEDDING_DIM)
+            # Create and load mu_head (512 -> 256)
+            self.mu_head = nn.Linear(512, self.EMBEDDING_DIM)
             self.mu_head.load_state_dict(mu_state)
             self.mu_head.to(self.device)
             self.mu_head.eval()
