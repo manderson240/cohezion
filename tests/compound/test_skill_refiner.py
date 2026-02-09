@@ -1,7 +1,5 @@
 """Tests for skill refiner learning from execution results."""
 
-from pathlib import Path
-from unittest.mock import MagicMock
 
 import pytest
 

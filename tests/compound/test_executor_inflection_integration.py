@@ -8,7 +8,6 @@ from cohezion.compound.executor import CompoundExecutor, ExecutionResult, Execut
 from cohezion.compound.inflection_detector import (
     InflectionDetector,
     InflectionDetectorFactory,
-    Severity,
 )
 
 

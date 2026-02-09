@@ -1,9 +1,8 @@
 """Tests for SandboxExecutor."""
 
-import asyncio
 import pytest
 from datetime import datetime
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, MagicMock
 
 from cohezion.sandbox import (
     SandboxExecutor,

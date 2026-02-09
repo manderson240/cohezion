@@ -6,13 +6,11 @@ lifecycle events. Hooks are shell scripts that fire at specific stages
 ALLOW operations based on their exit codes.
 """
 
-import json
 import logging
 import re
 import subprocess
 import time
-from collections.abc import Callable
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path

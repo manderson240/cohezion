@@ -1,7 +1,6 @@
 """Tests for compound feedback loop with anomaly detection."""
 
-from unittest.mock import MagicMock, AsyncMock, patch
-import asyncio
+from unittest.mock import MagicMock
 
 import pytest
 

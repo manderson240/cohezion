@@ -16,7 +16,6 @@ Target improvement: +25% throughput (40-50% hit rate → 70-80%)
 
 from __future__ import annotations
 
-import json
 import logging
 import threading
 from collections import OrderedDict

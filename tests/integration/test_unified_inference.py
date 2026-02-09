@@ -8,7 +8,6 @@ Tests:
 - End-to-end workflow
 """
 
-import asyncio
 
 import pytest
 
@@ -18,7 +17,7 @@ from cohezion.observability.unified_metrics import (
     UnifiedMetricsCollector,
 )
 from cohezion.security.guardrail_factory import create_default_pipeline
-from cohezion.compound.session_manager import SessionConfig, create_session
+from cohezion.compound.session_manager import create_session
 
 
 class TestGuardrailIntegration:
@@ -243,11 +242,11 @@ class TestEndToEndWorkflow:
                 metrics.record_execution(event["tokens"], 100.0, "phi3")
 
         # 4. Store in cache
-        await cache.put(input_text, f"step_1_result")
+        await cache.put(input_text, "step_1_result")
         metrics.record_cache_hit(2)  # L2 hit on store
 
         # 5. Check output
-        output = f"step_1_result"
+        output = "step_1_result"
         output_check = await guardrail_pipeline.check_output(output, {})
         assert output_check.action.value == "allow"
 

@@ -1,10 +1,7 @@
 """Unit tests for HookIntegration module."""
 
-import os
-import subprocess
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 

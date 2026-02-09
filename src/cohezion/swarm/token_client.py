@@ -131,11 +131,13 @@ class ResilientOllamaClient:
 
 
 class TokenEfficientClient:
-    """Token-efficient Ollama client with caching and batch processing.
+    """Token-efficient Ollama/ngrok client with caching and batch processing.
 
     Two-layer optimization:
       Layer 1: Cache (SHA-256 hash) - Eliminates redundant API calls
       Layer 2: Batch (Phase 1 cache lookup + Phase 2 parallel) - Maximizes throughput
+
+    Supports multi-provider routing via ngrok AI Gateway with fallback to local Ollama.
 
     Example usage::
 
@@ -143,6 +145,13 @@ class TokenEfficientClient:
         response, tokens = await client.generate(
             prompt="Explain quantum computing",
             model="qwen3-coder:30b"
+        )
+
+        # With ngrok gateway
+        client = TokenEfficientClient(
+            ngrok_endpoint="https://xxxxx.ngrok.app/v1",
+            ngrok_api_key="your-key",
+            enable_ngrok_failover=True,
         )
     """
 
@@ -155,6 +164,9 @@ class TokenEfficientClient:
         cache_dir: str = "data/cache",
         use_semantic_cache: bool = True,
         semantic_threshold: float = 0.95,
+        ngrok_endpoint: str | None = None,
+        ngrok_api_key: str | None = None,
+        enable_ngrok_failover: bool = True,
     ):
         """Initialize token-efficient client.
 
@@ -166,8 +178,24 @@ class TokenEfficientClient:
             cache_dir: Directory for cache storage (default: data/cache)
             use_semantic_cache: Whether to use L2 semantic fuzzy matching (default: True)
             semantic_threshold: Min cosine similarity for semantic match (default: 0.95)
+            ngrok_endpoint: ngrok gateway endpoint (enables multi-provider routing)
+            ngrok_api_key: ngrok API key for authentication
+            enable_ngrok_failover: Whether to failover to Ollama if ngrok fails (default: True)
         """
-        self.ollama = ResilientOllamaClient(base_url=ollama_base_url)
+        # Initialize with ngrok gateway if configured
+        if ngrok_endpoint:
+            from cohezion.gateway import NgrokAIGateway
+
+            self.ollama = NgrokAIGateway(
+                ngrok_endpoint=ngrok_endpoint,
+                ngrok_api_key=ngrok_api_key,
+                fallback_ollama_url=ollama_base_url,
+                enable_failover=enable_ngrok_failover,
+            )
+            logger.info(f"TokenEfficientClient using ngrok gateway: {ngrok_endpoint}")
+        else:
+            self.ollama = ResilientOllamaClient(base_url=ollama_base_url)
+
         self.router = router
         self.config = config or CohezionConfig()
         self.semantic_threshold = semantic_threshold

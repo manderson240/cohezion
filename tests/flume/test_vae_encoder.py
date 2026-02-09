@@ -1,7 +1,6 @@
 """Tests for FLUME VAE encoder."""
 
 import numpy as np
-import pytest
 
 from cohezion.flume.vae_encoder import FlumeVAEEncoder, get_encoder, reset_encoder
 
