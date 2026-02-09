@@ -32,6 +32,7 @@ import asyncio
 import hashlib
 import logging
 import time
+from pathlib import Path
 from typing import Any
 
 import requests  # type: ignore[import-untyped]
@@ -39,6 +40,7 @@ import requests  # type: ignore[import-untyped]
 from cohezion.core.config import CohezionConfig
 from cohezion.swarm.batch_processor import BatchItem, BatchProcessor, BatchResult
 from cohezion.swarm.persistent_token_cache import PersistentTokenCache
+from cohezion.swarm.semantic_cache import SemanticCache
 
 
 logger = logging.getLogger(__name__)
@@ -151,6 +153,8 @@ class TokenEfficientClient:
         config: CohezionConfig | None = None,
         use_persistent_cache: bool = True,
         cache_dir: str = "data/cache",
+        use_semantic_cache: bool = True,
+        semantic_threshold: float = 0.95,
     ):
         """Initialize token-efficient client.
 
@@ -160,10 +164,13 @@ class TokenEfficientClient:
             config: CohezionConfig with cache, batch, inference settings
             use_persistent_cache: Whether to use persistent JSONL cache (default: True)
             cache_dir: Directory for cache storage (default: data/cache)
+            use_semantic_cache: Whether to use L2 semantic fuzzy matching (default: True)
+            semantic_threshold: Min cosine similarity for semantic match (default: 0.95)
         """
         self.ollama = ResilientOllamaClient(base_url=ollama_base_url)
         self.router = router
         self.config = config or CohezionConfig()
+        self.semantic_threshold = semantic_threshold
 
         # Initialize cache - persistent by default for session restore
         if use_persistent_cache:
@@ -174,9 +181,26 @@ class TokenEfficientClient:
         else:
             self.batch_processor = BatchProcessor(self, self.config)
 
+        # Initialize L2 semantic cache (non-blocking)
+        self.semantic_cache: SemanticCache | None = None
+        if use_semantic_cache:
+            try:
+                self.semantic_cache = SemanticCache(
+                    similarity_threshold=semantic_threshold,
+                    embedding_dim=384,
+                    max_entries=1000,
+                    cache_dir=cache_dir,
+                )
+                logger.debug("SemanticCache initialized for L2 fuzzy matching")
+            except Exception as e:
+                logger.warning(f"Failed to initialize semantic cache, disabling L2: {e}")
+                self.semantic_cache = None
+
         # Metrics
         self._total_tokens = 0
-        self._cache_hits = 0
+        self._cache_hits = 0  # L1 exact hits
+        self._semantic_hits = 0  # L2 semantic hits
+        self._semantic_confidence_sum = 0.0  # For average confidence
         self._cache_misses = 0
         self._api_calls = 0
         self._start_time = time.time()
@@ -187,7 +211,13 @@ class TokenEfficientClient:
         model: str = "phi3:mini",
         system: str = "",
     ) -> tuple[str, int]:
-        """Generate response with caching.
+        """Generate response with three-tier caching (L1 exact, L2 semantic, L3 persistent).
+
+        Cache hierarchy:
+          L1: Exact SHA-256 hash (0-1ms) - in-memory
+          L2: Semantic fuzzy matching (2-5ms) - semantic embeddings
+          L3: Persistent JSONL (10-50ms) - disk
+          Fallback: Generate new via Ollama
 
         Args:
             prompt: User prompt
@@ -197,15 +227,38 @@ class TokenEfficientClient:
         Returns:
             Tuple of (response_text, tokens_used)
         """
-        # Check cache
+        # L1: Check exact cache
         cache_key = self._cache_key(prompt, system, model)
         if cache_key in self.batch_processor.cache:
             entry = self.batch_processor.cache[cache_key]
             self._cache_hits += 1
-            logger.debug("Cache hit for prompt (saved %d tokens)", entry.tokens_used)
+            logger.debug("L1 cache hit for prompt (saved %d tokens)", entry.tokens_used)
             return entry.value, entry.tokens_used
 
-        # Cache miss - call Ollama
+        # L2: Check semantic cache (fuzzy matching)
+        if self.semantic_cache:
+            try:
+                semantic_hit = await self.semantic_cache.get(prompt, system)
+                if semantic_hit:
+                    self._semantic_hits += 1
+                    self._semantic_confidence_sum += semantic_hit.confidence
+                    logger.debug(
+                        "L2 semantic cache hit with confidence %.3f (saved %d tokens)",
+                        semantic_hit.confidence,
+                        0,  # Semantic hits don't have token count in the hit object
+                    )
+                    # Store in L1 cache for future exact matches
+                    from cohezion.swarm.batch_processor import CacheEntry
+                    self.batch_processor.cache[cache_key] = CacheEntry(
+                        key=cache_key,
+                        value=semantic_hit.value,
+                        tokens_used=0,  # Semantic hits don't consume tokens
+                    )
+                    return semantic_hit.value, 0
+            except Exception as e:
+                logger.debug(f"L2 semantic cache lookup failed, continuing: {e}")
+
+        # L3/Fallback: Call Ollama (cache miss)
         self._cache_misses += 1
         self._api_calls += 1
 
@@ -219,14 +272,28 @@ class TokenEfficientClient:
 
         self._total_tokens += tokens
 
-        # Cache result
+        # Cache result in both L1 and L2
         from cohezion.swarm.batch_processor import CacheEntry
 
-        self.batch_processor.cache[cache_key] = CacheEntry(
+        cache_entry = CacheEntry(
             key=cache_key,
             value=response,
             tokens_used=tokens,
         )
+        self.batch_processor.cache[cache_key] = cache_entry
+
+        # Also store in L2 semantic cache for fuzzy matching
+        if self.semantic_cache:
+            try:
+                await self.semantic_cache.put(
+                    prompt=prompt,
+                    system=system,
+                    model=model,
+                    value=response,
+                    cache_key=cache_key,
+                )
+            except Exception as e:
+                logger.debug(f"Failed to store in L2 semantic cache: {e}")
 
         return response, tokens
 
@@ -268,23 +335,41 @@ class TokenEfficientClient:
         return hashlib.sha256(combined.encode()).hexdigest()
 
     def get_metrics(self) -> dict[str, Any]:
-        """Get token efficiency metrics.
+        """Get token efficiency metrics including L1 exact and L2 semantic cache.
 
         Returns:
-            Dict with cache_hit_rate, total_tokens, api_calls, elapsed_seconds, etc.
+            Dict with cache hit rates, semantic confidence, tokens, latency, etc.
         """
         elapsed = time.time() - self._start_time
-        total_ops = self._cache_hits + self._cache_misses
-        hit_rate = self._cache_hits / total_ops if total_ops > 0 else 0.0
+        total_cache_hits = self._cache_hits + self._semantic_hits
+        total_ops = total_cache_hits + self._cache_misses
+        l1_hit_rate = self._cache_hits / total_ops if total_ops > 0 else 0.0
+        l2_hit_rate = self._semantic_hits / total_ops if total_ops > 0 else 0.0
+        combined_hit_rate = total_cache_hits / total_ops if total_ops > 0 else 0.0
 
-        # Estimate tokens saved (assume cache hits save ~150 tokens each)
+        semantic_confidence_avg = (
+            self._semantic_confidence_sum / self._semantic_hits
+            if self._semantic_hits > 0
+            else 0.0
+        )
+
+        # Estimate tokens saved
         estimated_tokens_saved = self._cache_hits * self.config.cache.cache_hit_value
 
-        return {
-            "cache_hit_rate": hit_rate,
-            "cache_hits": self._cache_hits,
+        metrics = {
+            # L1 (exact cache)
+            "l1_hit_rate": l1_hit_rate,
+            "l1_hits": self._cache_hits,
+            # L2 (semantic cache)
+            "l2_hit_rate": l2_hit_rate,
+            "l2_hits": self._semantic_hits,
+            "l2_avg_confidence": round(semantic_confidence_avg, 4),
+            # Combined
+            "combined_hit_rate": combined_hit_rate,
+            "total_cache_hits": total_cache_hits,
             "cache_misses": self._cache_misses,
             "total_operations": total_ops,
+            # Tokens and performance
             "total_tokens": self._total_tokens,
             "api_calls": self._api_calls,
             "estimated_tokens_saved": estimated_tokens_saved,
@@ -294,15 +379,27 @@ class TokenEfficientClient:
             else 0.0,
         }
 
+        # Add semantic cache stats if available
+        if self.semantic_cache:
+            try:
+                semantic_stats = self.semantic_cache.get_stats()
+                metrics["semantic_cache_stats"] = semantic_stats
+            except Exception as e:
+                logger.debug(f"Failed to get semantic cache stats: {e}")
+
+        return metrics
+
     def clear_cache(self) -> None:
         """Clear the token cache."""
         self.batch_processor.clear_cache()
         logger.info("Token cache cleared")
 
     def reset_metrics(self) -> None:
-        """Reset all metrics."""
+        """Reset all metrics including semantic cache."""
         self._total_tokens = 0
         self._cache_hits = 0
+        self._semantic_hits = 0
+        self._semantic_confidence_sum = 0.0
         self._cache_misses = 0
         self._api_calls = 0
         self._start_time = time.time()

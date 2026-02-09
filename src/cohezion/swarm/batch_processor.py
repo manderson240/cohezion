@@ -43,6 +43,7 @@ class BatchItem:
     tokens_used: int = 0
     error: str | None = None
     cached: bool = False
+    semantic_confidence: float | None = None  # Confidence from L2 semantic cache hit
 
 
 @dataclass
@@ -55,18 +56,29 @@ class BatchResult:
     cache_misses: int
     total_duration_ms: float
     parallel_executions: int
+    semantic_hits: int = 0  # L2 semantic cache hits
 
     @property
     def cache_hit_rate(self) -> float:
-        """Percentage of cache hits."""
-        total = self.cache_hits + self.cache_misses
-        return self.cache_hits / total if total > 0 else 0.0
+        """Percentage of cache hits (L1 + L2)."""
+        total = self.cache_hits + self.semantic_hits + self.cache_misses
+        return (self.cache_hits + self.semantic_hits) / total if total > 0 else 0.0
 
     @property
     def tokens_saved(self) -> int:
         """Tokens saved from caching."""
         return sum(item.cache_entry.tokens_used for item in self.items
                    if item.cached and item.cache_entry)
+
+    @property
+    def avg_semantic_confidence(self) -> float:
+        """Average confidence of semantic cache hits."""
+        confidences = [
+            item.semantic_confidence
+            for item in self.items
+            if item.semantic_confidence is not None
+        ]
+        return sum(confidences) / len(confidences) if confidences else 0.0
 
 
 class BatchProcessor:
@@ -109,10 +121,11 @@ class BatchProcessor:
         items: list[BatchItem],
         execute_fn: Callable[[BatchItem], Coroutine[Any, Any, tuple[str, int]]],
     ) -> BatchResult:
-        """Process batch with Phase 1 cache + Phase 2 parallel execution + deduplication.
+        """Process batch with Phase 1 cache + Phase 1.5 semantic + Phase 2 parallel execution.
 
         Phase 1: Cache Lookup (exact hash matches)
-        Phase 1.5: Deduplicate identical prompts within batch (new in Phase 2.4)
+        Phase 1.5: Semantic cache lookup (fuzzy matching) for L1 misses
+        Phase 1.6: Deduplicate identical prompts within remaining cache misses
         Phase 2: Parallel Execution of unique cache misses (controlled concurrency)
         Phase 2.5: Replicate results to all duplicate prompts
 
@@ -128,8 +141,9 @@ class BatchProcessor:
         start_time = time.time()
 
         # Phase 1: Cache Lookup (O(n) but zero latency)
-        logger.info("Phase 1: Checking cache for %d items", len(items))
+        logger.info("Phase 1: Checking L1 exact cache for %d items", len(items))
         cache_hits = 0
+        semantic_hits = 0
         cache_misses_list = []
         actual_concurrency = self.config.batch.parallel_tasks  # Default
 
@@ -142,20 +156,54 @@ class BatchProcessor:
                 item.tokens_used = entry.tokens_used
                 item.cached = True
                 cache_hits += 1
-                logger.debug("Cache hit: %s", item.id)
+                logger.debug("L1 cache hit: %s", item.id)
             else:
                 cache_misses_list.append((item, key))
-                cache_hits += 1 if item not in items else 0
 
         cache_misses = len(cache_misses_list)
         logger.info(
-            "Phase 1 complete: %d hits, %d misses (%.1f%% hit rate)",
+            "Phase 1 complete: %d L1 hits, %d misses (%.1f%% hit rate)",
             cache_hits,
             cache_misses,
             100.0 * cache_hits / len(items) if items else 0,
         )
 
-        # Phase 1.5: Deduplicate identical prompts within cache misses (Phase 2.4)
+        # Phase 1.5: Semantic cache lookup (L2 fuzzy matching) for remaining misses
+        if cache_misses > 0 and hasattr(self.token_client, "semantic_cache") and self.token_client.semantic_cache:
+            logger.info("Phase 1.5: Checking L2 semantic cache for %d misses", cache_misses)
+            remaining_misses = []
+
+            for item, key in cache_misses_list:
+                try:
+                    semantic_hit = await self.token_client.semantic_cache.get(item.prompt, item.system)
+                    if semantic_hit:
+                        item.cache_entry = CacheEntry(
+                            key=key,
+                            value=semantic_hit.value,
+                            tokens_used=0,
+                        )
+                        item.result = semantic_hit.value
+                        item.tokens_used = 0
+                        item.cached = True
+                        item.semantic_confidence = semantic_hit.confidence
+                        semantic_hits += 1
+                        logger.debug("L2 semantic cache hit: %s (confidence=%.3f)", item.id, semantic_hit.confidence)
+                    else:
+                        remaining_misses.append((item, key))
+                except Exception as e:
+                    logger.debug(f"L2 semantic cache lookup failed for {item.id}, continuing: {e}")
+                    remaining_misses.append((item, key))
+
+            cache_misses_list = remaining_misses
+            cache_misses = len(cache_misses_list)
+            if semantic_hits > 0:
+                logger.info(
+                    "Phase 1.5 complete: %d L2 semantic hits, %d remaining misses",
+                    semantic_hits,
+                    cache_misses,
+                )
+
+        # Phase 1.6: Deduplicate identical prompts within cache misses (Phase 2.4)
         if cache_misses > 0:
             unique_misses, duplicate_map = self._deduplicate_misses(cache_misses_list)
             dedup_savings = cache_misses - len(unique_misses)
@@ -226,6 +274,7 @@ class BatchProcessor:
             cache_misses=cache_misses,
             total_duration_ms=round(elapsed_ms, 2),
             parallel_executions=min(len(unique_misses) if cache_misses > 0 else 0, actual_concurrency),
+            semantic_hits=semantic_hits,
         )
 
     def _deduplicate_misses(
