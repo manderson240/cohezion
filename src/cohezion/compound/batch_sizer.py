@@ -13,7 +13,10 @@ Key features:
 
 from __future__ import annotations
 
+import json
 import logging
+import re
+import time
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
@@ -276,30 +279,287 @@ class BatchSizePredictor:
             "last_prediction": self._last_prediction,
         }
 
-    async def learn_from_vault(self) -> None:
-        """Query vault for historical executions and learn patterns.
+    def learn_from_vault(self, project: str = "cohezion") -> int:
+        """Query vault for historical batch execution metrics and learn patterns.
 
-        Phase 2 integration: Query VaultExecutionLogger for past batch
-        executions and build predictive model.
+        Searches the vault for batch performance experiment records and loads
+        historical performance data for throughput optimization. Non-blocking
+        operation that gracefully handles vault connection failures.
 
-        This is a placeholder for Phase 2 vault integration.
+        Parameters
+        ----------
+        project : str
+            Project name to search for (default: "cohezion")
+
+        Returns
+        -------
+        int
+            Number of metrics loaded from vault (0 if vault unavailable)
         """
         if not self.vault_client:
             logger.debug("No vault client configured, skipping vault learning")
-            return
+            return 0
 
         try:
-            # TODO: Phase 2 - Query vault for execution records
-            # patterns = await self.vault_client.search(
-            #     "batch_execution",
-            #     filters={"recorded_at": {"$gte": "2026-02-01"}}
-            # )
-            # for pattern in patterns:
-            #     metrics = BatchExecutionMetrics(**pattern)
-            #     self.record_execution(metrics)
-            logger.debug("Vault learning not yet implemented (Phase 2)")
+            # Query vault for batch execution patterns
+            results = self.vault_client.vault_search(
+                "batch_size throughput execution metrics",
+                scope="all"
+            )
+
+            if not results:
+                logger.debug("No batch performance metrics found in vault")
+                return 0
+
+            loaded_count = 0
+            for result in results:
+                try:
+                    path = result.get("path", "")
+                    if not path.endswith(".md"):
+                        continue
+
+                    # Read full content from vault
+                    content = self.vault_client.vault_read(path)
+
+                    # Parse metrics from content
+                    metrics = self._parse_batch_metrics(content)
+                    if metrics:
+                        self.record_execution(metrics)
+                        loaded_count += 1
+
+                except Exception as e:
+                    # Non-blocking: skip problematic entries
+                    logger.debug(
+                        f"Failed to load batch metrics from {path}: {e}"
+                    )
+                    continue
+
+            logger.info(
+                f"Loaded {loaded_count} batch execution metrics from vault"
+            )
+            return loaded_count
+
         except Exception as e:
-            logger.debug(f"Vault learning error: {e}")
+            # Non-blocking: vault unavailable, continue with in-memory history
+            logger.debug(
+                f"Vault learning failed (non-blocking): {e}"
+            )
+            return 0
+
+    def _parse_batch_metrics(self, content: str) -> Optional[BatchExecutionMetrics]:
+        """Parse batch execution metrics from vault experiment markdown.
+
+        Extracts metrics from YAML front matter or structured markdown format.
+        Handles multiple content formats for robustness.
+
+        Parameters
+        ----------
+        content : str
+            Vault experiment content in markdown
+
+        Returns
+        -------
+        Optional[BatchExecutionMetrics]
+            Parsed metrics if valid, None otherwise
+        """
+        try:
+            # Try to extract YAML front matter
+            if content.startswith("---"):
+                # Split by --- to get front matter
+                parts = content.split("---", 3)
+                if len(parts) >= 3:
+                    yaml_content = parts[1]
+                    # Simple YAML parsing for our fields
+                    metrics = self._parse_yaml_metrics(yaml_content)
+                    if metrics:
+                        return metrics
+
+            # Try to extract JSON block (some experiments use JSON)
+            json_match = re.search(r"\{.*\}", content, re.DOTALL)
+            if json_match:
+                try:
+                    data = json.loads(json_match.group())
+                    return self._dict_to_metrics(data)
+                except json.JSONDecodeError:
+                    pass
+
+            # Try to extract structured fields from markdown
+            metrics = self._parse_markdown_fields(content)
+            if metrics:
+                return metrics
+
+            return None
+
+        except Exception as e:
+            logger.debug(f"Error parsing batch metrics: {e}")
+            return None
+
+    def _parse_yaml_metrics(self, yaml_content: str) -> Optional[BatchExecutionMetrics]:
+        """Parse metrics from YAML front matter.
+
+        Parameters
+        ----------
+        yaml_content : str
+            YAML content from front matter
+
+        Returns
+        -------
+        Optional[BatchExecutionMetrics]
+            Parsed metrics if valid, None otherwise
+        """
+        try:
+            data = {}
+
+            # Simple YAML parsing (key: value format)
+            for line in yaml_content.strip().split("\n"):
+                if ":" in line:
+                    key, value = line.split(":", 1)
+                    key = key.strip().lower()
+                    value = value.strip()
+
+                    # Convert types as needed
+                    if key in ["batch_size", "task_count", "tokens_used", "errors"]:
+                        data[key] = int(value)
+                    elif key in ["throughput", "cache_hit_rate", "execution_time"]:
+                        data[key] = float(value)
+                    elif key == "task_types":
+                        # Parse comma-separated task types
+                        data[key] = [t.strip() for t in value.split(",")]
+                    elif key == "timestamp":
+                        data[key] = value
+                    else:
+                        data[key] = value
+
+            return self._dict_to_metrics(data)
+
+        except Exception as e:
+            logger.debug(f"Error parsing YAML metrics: {e}")
+            return None
+
+    def _parse_markdown_fields(self, content: str) -> Optional[BatchExecutionMetrics]:
+        """Parse metrics from structured markdown fields.
+
+        Looks for patterns like:
+        - **batch_size**: 8
+        - throughput: 45.3 tokens/sec
+        - task_types: [analyze, transform]
+
+        Parameters
+        ----------
+        content : str
+            Markdown content
+
+        Returns
+        -------
+        Optional[BatchExecutionMetrics]
+            Parsed metrics if valid, None otherwise
+        """
+        try:
+            data = {}
+
+            # Extract field patterns (handles ** markers and various formats)
+            patterns = {
+                "batch_size": r"\*?\*?batch[_\s]*size\*?\*?[:\s]*(\d+)",
+                "task_count": r"\*?\*?task[_\s]*count\*?\*?[:\s]*(\d+)",
+                "execution_time": r"\*?\*?execution[_\s]*time\*?\*?[:\s]*([\d.]+)",
+                "tokens_used": r"\*?\*?tokens[_\s]*used\*?\*?[:\s]*(\d+)",
+                "throughput": r"\*?\*?throughput\*?\*?[:\s]*([\d.]+)",
+                "cache_hit_rate": r"\*?\*?cache[_\s]*hit[_\s]*rate\*?\*?[:\s]*([\d.]+)",
+                "errors": r"\*?\*?errors\*?\*?[:\s]*(\d+)",
+            }
+
+            for field, pattern in patterns.items():
+                match = re.search(pattern, content, re.IGNORECASE)
+                if match:
+                    value = match.group(1)
+                    if field in ["batch_size", "task_count", "tokens_used", "errors"]:
+                        data[field] = int(value)
+                    else:
+                        data[field] = float(value)
+
+            # Extract task_types - handle various formats
+            # Patterns: [analyze, search], "analyze, search", or just text
+            task_types_match = re.search(
+                r"task[_\s]*types?[:\s]*\[([^\]]+)\]",
+                content,
+                re.IGNORECASE
+            )
+            if task_types_match:
+                types_str = task_types_match.group(1)
+                data["task_types"] = [
+                    t.strip().strip('"\'') for t in types_str.split(",")
+                ]
+            else:
+                # Try alternative format without brackets
+                task_types_alt = re.search(
+                    r"task[_\s]*types?[:\s]*([^\n]+?)(?:\n|$)",
+                    content,
+                    re.IGNORECASE
+                )
+                if task_types_alt:
+                    types_str = task_types_alt.group(1).strip()
+                    # Handle comma-separated or space-separated
+                    if "," in types_str:
+                        data["task_types"] = [
+                            t.strip().strip('"\'') for t in types_str.split(",")
+                        ]
+                    else:
+                        data["task_types"] = [types_str.strip('"\'')]
+                else:
+                    # Default to unknown if not specified
+                    data["task_types"] = ["unknown"]
+
+            # Extract timestamp
+            timestamp_match = re.search(
+                r"timestamp[:\s]*([^\n]+)",
+                content,
+                re.IGNORECASE
+            )
+            if timestamp_match:
+                data["timestamp"] = timestamp_match.group(1).strip()
+
+            return self._dict_to_metrics(data)
+
+        except Exception as e:
+            logger.debug(f"Error parsing markdown fields: {e}")
+            return None
+
+    def _dict_to_metrics(self, data: dict[str, Any]) -> Optional[BatchExecutionMetrics]:
+        """Convert dictionary to BatchExecutionMetrics.
+
+        Parameters
+        ----------
+        data : dict[str, Any]
+            Dictionary with metrics fields
+
+        Returns
+        -------
+        Optional[BatchExecutionMetrics]
+            Parsed metrics if all required fields present, None otherwise
+        """
+        try:
+            # Check required fields
+            required = {"batch_size", "task_count", "throughput", "execution_time"}
+            if not required.issubset(data.keys()):
+                missing = required - set(data.keys())
+                logger.debug(f"Missing required fields for metrics: {missing}")
+                return None
+
+            return BatchExecutionMetrics(
+                batch_size=int(data["batch_size"]),
+                task_count=int(data["task_count"]),
+                task_types=data.get("task_types", ["unknown"]),
+                execution_time=float(data["execution_time"]),
+                tokens_used=int(data.get("tokens_used", 0)),
+                throughput=float(data["throughput"]),
+                cache_hit_rate=float(data.get("cache_hit_rate", 0.0)),
+                errors=int(data.get("errors", 0)),
+                timestamp=data.get("timestamp", ""),
+            )
+
+        except (KeyError, ValueError, TypeError) as e:
+            logger.debug(f"Error converting dict to metrics: {e}")
+            return None
 
 
 def get_batch_size_predictor(reset: bool = False) -> BatchSizePredictor:
