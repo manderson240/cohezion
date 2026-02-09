@@ -56,6 +56,27 @@ class ServerConfig:
     allowed_hosts: list[str] = field(
         default_factory=lambda: os.environ.get("ALLOWED_HOSTS", "*").split(",")
     )
+    tls_enabled: bool = field(
+        default_factory=lambda: (
+            os.environ.get("TLS_ENABLED", "false").lower() == "true"
+        )
+    )
+    tls_cert_path: str = field(
+        default_factory=lambda: os.environ.get("TLS_CERT_PATH", "")
+    )
+    tls_key_path: str = field(
+        default_factory=lambda: os.environ.get("TLS_KEY_PATH", "")
+    )
+    tls_hsts_max_age: int = field(
+        default_factory=lambda: int(
+            os.environ.get("TLS_HSTS_MAX_AGE", "31536000")
+        )
+    )
+    tls_allowed_origins: list[str] = field(
+        default_factory=lambda: os.environ.get(
+            "TLS_ALLOWED_ORIGINS", "https://localhost,https://127.0.0.1"
+        ).split(",")
+    )
 
     @classmethod
     def from_env(cls) -> "ServerConfig":
