@@ -1,0 +1,24 @@
+---
+title: "WOH G64 Confirmed Still a Red Supergiant"
+date: 2026-02-07
+tags: [astrophysics, stellar-evolution, red-supergiant, binary-stars]
+source: "https://phys.org/news/2026-01-massive-star-woh-g64-red.html"
+---
+
+# WOH G64 Red Supergiant Mystery Resolved
+
+## Summary
+
+Keele University-led team confirmed that WOH G64, the most luminous red supergiant in the Large Magellanic Cloud, is still a red supergiant despite significant dimming that had suggested a transition to yellow hypergiant.
+
+## Key Findings
+
+- WOH G64 had been dimming significantly, suggesting transition to yellow hypergiant and imminent supernova
+- New SALT spectra (Nov 2024 - Dec 2025) detected TiO molecular absorption bands confirming cool red supergiant temperature
+- System is actually a binary: red supergiant with smaller hot companion star
+- Companion star's approach is stretching but not stripping the red supergiant's atmosphere
+- Published in Monthly Notices of the Royal Astronomical Society
+
+## Relevance to Cohezion
+
+Binary system interactions producing misleading observational signatures illustrate how component interactions create emergent behaviors that may be misinterpreted without full system understanding., [[stellar-evolution]], [[astrophysics-observations]]

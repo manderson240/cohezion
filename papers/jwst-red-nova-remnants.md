@@ -1,0 +1,22 @@
+---
+title: "JWST Discovers Red Nova Merger Remnants Are Red Supergiants"
+date: 2026-02-07
+tags: [astrophysics, jwst, stellar-evolution, red-nova]
+source: "https://www.space.com/astronomy/stars/james-webb-space-telescope-discovers-what-remains-after-two-stars-collide-and-explode-as-a-red-nova"
+---
+
+# JWST Discovers Red Nova Merger Remnants
+
+## Summary
+
+JWST observations reveal that when two stars collide and merge in a luminous red nova, the resulting stellar body is a supermassive star similar to a red supergiant -- hundreds of times the size of the Sun but much cooler (3,200-3,700C vs the Sun's 5,700C).
+
+## Key Findings
+
+- Observations required waiting years after the initial merger event for the ejected material shell to thin enough for infrared observation.
+- Combined JWST infrared data (2023-2024) with Hubble visible light images.
+- The bright, dense shell of ejected matter initially obscures the merger remnant during the luminous red nova phase.
+
+## Relevance to Cohezion
+
+Relevant to [[fractal_universe.py]] stellar evolution models and simulation of binary star merger outcomes., [[jwst-observations]], [[astrophysics-observations]], [[stellar-evolution]]

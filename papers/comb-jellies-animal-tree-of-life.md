@@ -1,0 +1,42 @@
+---
+title: "Comb jellies confirmed as first branch on animal tree of life, rewriting early evolution"
+date: 2026-02-07
+tags: [biology]
+source: "Source: Popular Mechanics
+ https://search.app/wXgj4"
+domain: "Evolutionary Biology"
+---
+
+
+## Abstract
+
+Genetic research confirms that comb jellies were the first animals to branch from the common ancestor of all living animals, making them the sister group to all other animals. This finding, based on chromosomal rearrangement analysis, settles a decade-long scientific debate.
+
+## Key Findings
+
+- Chromosomal analysis shows comb jellies retain 14 gene groups in their original locations on separate chromosomes, while sponges have rearranged these into 7 groups
+- Gene location is more reliable than gene content for determining evolutionary order because chromosomal rearrangements rarely reverse
+- This discovery places comb jellies as the true basal animal group, with all other animals—including sponges—evolving later
+- The finding resolves a 13+ year scientific debate between two competing hypotheses about early animal evolution
+
+## Source
+
+https://www.science.org/content/article/comb-jelly-ancestor-may-have-been-first-animal-branch-tree-life
+
+# Comb jellies confirmed as first branch on animal tree of life, rewriting early evolution
+
+## Summary
+
+Comb jellies confirmed as first branch on animal tree of life, rewriting early evolution.
+
+## Key Findings
+
+- Comb jellies confirmed as first branch on animal tree of life, rewriting early evolution.
+
+## Integration Point
+
+general
+
+## Relevance to Cohezion
+
+Evolutionary Biology resource captured via mobile link pipeline. general
