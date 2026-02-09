@@ -11,10 +11,42 @@
             "id": "ffe7c263ee7d1332",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "type": "markdown",
+              "state": {
+                "file": "decisions/2026-02-09-12d-graph-refined-plan.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "2026-02-09-12d-graph-refined-plan"
+            }
+          },
+          {
+            "id": "10f637fa0a76c7d0",
+            "type": "leaf",
+            "state": {
+              "type": "webviewer",
+              "state": {
+                "url": "https://dl.acm.org/doi/epdf/10.1145/3308558.3314123",
+                "title": "InfraNodus: Generating Insight Using Text Network Analysis",
+                "mode": "webview"
+              },
+              "icon": "globe-2",
+              "title": "InfraNodus: Generating Insight Using Text Network Analysis"
+            }
+          },
+          {
+            "id": "f25911266f4993f7",
+            "type": "leaf",
+            "state": {
+              "type": "webviewer",
+              "state": {
+                "url": "https://github.com/noduslabs/infranodus",
+                "title": "GitHub - noduslabs/infranodus: A Node.Js / Neo4J tool that translates words and relations into network graphs and shows you how it all connects.",
+                "mode": "webview"
+              },
+              "icon": "globe-2",
+              "title": "GitHub - noduslabs/infranodus: A Node.Js / Neo4J tool that translates words and relations into network graphs and shows you how it all connects."
             }
           }
         ]
@@ -215,43 +247,43 @@
   },
   "active": "5926613326ccd206",
   "lastOpenFiles": [
+    "daily/2026-02-09-12d-graph-foundation.md",
+    "daily/2026-02-09-12d-graph-foundation.md.tmp.147604.1770674369833",
+    "decisions/2026-02-09-12d-graph-refined-plan.md.tmp.147604.1770673521013",
+    "decisions/2026-02-09-model-wrangler-strategy.md.tmp.147604.1770673510844",
+    "decisions/2026-02-09-model-wrangler-strategy.md.tmp.147604.1770673479790",
+    "decisions/2026-02-09-model-wrangler-strategy.md.tmp.147604.1770673476523",
+    "decisions/2026-02-09-model-wrangler-strategy.md.tmp.147604.1770673463567",
+    "decisions/2026-02-09-model-wrangler-strategy.md.tmp.147604.1770673461209",
+    "decisions/2026-02-09-12d-graph-refined-plan.md.tmp.147604.1770673383968",
+    "decisions/2026-02-09-12d-graph-refined-plan.md.tmp.147604.1770673375416",
+    "decisions/2026-02-09-model-wrangler-strategy.md",
+    "decisions/2026-02-09-model-wrangler-strategy.md.tmp.147604.1770673365433",
+    "decisions/2026-02-09-ai-model-strategy.md",
+    "decisions/2026-02-09-12d-graph-refined-plan.md",
+    "decisions/2026-02-09-rust-flume-python313-incompatibility.md",
+    "decisions/3d-graph-plugin-selection.md",
+    "papers/cu45-superatom-carbon-recycling.md",
+    "concepts/catalytic-materials.md",
+    "patterns/multi-session-compound-engineering-workflow.md",
+    "decisions/2026-02-09-session-46-git-unification-complete.md",
     "sessions/SESSION-46-COMPLETE.md",
-    "sessions/SESSION-46-COMPLETE.md.tmp.13729.1770668036339",
     "projects/PHASE-6-2-COMPLETION-SUMMARY.md",
-    "projects/PHASE-6-2-COMPLETION-SUMMARY.md.tmp.13729.1770667874079",
     "sessions/session-46-test-isolation-and-phase-2-security.md",
-    "sessions/session-46-test-isolation-and-phase-2-security.md.tmp.10496.1770667577235",
     "patterns/lessons/_lessons_index.md",
     "decisions/2026-02-09-12d-graph-surrealdb-integration.md",
     "sessions/SESSION-44-FINAL-SUMMARY.md",
-    "sessions/SESSION-44-FINAL-SUMMARY.md.tmp.13729.1770662500850",
     "sessions/SESSION-44-FINAL-REPORT.md",
-    "sessions/SESSION-44-FINAL-REPORT.md.tmp.13729.1770662363258",
     "projects/SESSIONS_40_45_HANDOFF_TO_PHASE_7.md",
-    "projects/SESSIONS_40_45_HANDOFF_TO_PHASE_7.md.tmp.10496.1770662212867",
     "sessions/SESSION-44-HONEST-FINAL-METRICS.md",
-    "sessions/SESSION-44-HONEST-FINAL-METRICS.md.tmp.13729.1770662203159",
-    "README.md.tmp.10496.1770662144003",
-    "README.md.tmp.10496.1770662134930",
-    "README.md.tmp.10496.1770662129359",
     "projects/SESSION_45_FINAL_STATUS.md",
     "sessions/SESSION-44-CONTINUATION-FINAL-STATUS.md",
     "Untitled 1.canvas",
     "inbox/2026-02-09.md",
-    "decisions/3d-graph-plugin-selection.md",
     "patterns/2026-02-09-vault-completion-retrospective.md",
     "daily/2026-02-09-FINAL-SUMMARY.md",
     "daily/2026-02-09-INITIATIVE-CLOSED.md",
     "daily/2026-02-09-phase1-completion.md",
-    "daily/2026-02-09-vault-audit-execution-report.md",
-    "daily/2026-02-09-phase1-results.md",
-    "daily/2026-02-09-vault-completion-status.md",
-    "patterns/sheetsbr idge-mcp-testing.md",
-    "inbox/Setup linkage with google sheets.md",
-    "Untitled.canvas",
-    "decisions/2026-02-09-session-43-mcp-setup.md",
-    "concepts/agentic-ai.md",
-    "concepts/agent-loop-architecture.md",
-    "patterns/bmad-scale-adaptive-documentation.md"
+    "Untitled.canvas"
   ]
 }
