@@ -1,7 +1,6 @@
 """Tests for token-efficient Ollama client."""
 
-import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -228,22 +227,25 @@ class TestTokenEfficientClient:
         """Test metrics calculation."""
         token_client._total_tokens = 1000
         token_client._cache_hits = 5
+        token_client._semantic_hits = 0
         token_client._cache_misses = 5
         token_client._api_calls = 5
 
         metrics = token_client.get_metrics()
 
-        assert metrics["cache_hit_rate"] == 0.5
-        assert metrics["cache_hits"] == 5
+        assert metrics["combined_hit_rate"] == 0.5
+        assert metrics["l1_hits"] == 5
         assert metrics["cache_misses"] == 5
         assert metrics["total_operations"] == 10
         assert metrics["total_tokens"] == 1000
         assert metrics["api_calls"] == 5
 
     def test_get_metrics_estimated_savings(self, token_client):
-        """Test estimated token savings calculation."""
+        """Test estimated token savings calculation (L1 only, L2 hits don't count)."""
         token_client._cache_hits = 10
+        token_client._semantic_hits = 5  # L2 hits don't contribute to token savings
         # Default cache_hit_value from CacheConfig is 150
+        # Only L1 hits count: 10 * 150 = 1500
         expected_savings = 10 * token_client.config.cache.cache_hit_value
 
         metrics = token_client.get_metrics()
