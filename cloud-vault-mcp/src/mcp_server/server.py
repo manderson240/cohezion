@@ -10,6 +10,7 @@ from .config import ServerConfig
 from .memory_bridge import VaultMemoryBridge
 from .obsidian_ops import ObsidianOps
 from .sheets_bridge import SheetsBridge
+from .surrealdb_sync import SurrealDBSync
 from .teleport import CloudTeleportProtocol
 from .vault_ops import VaultOps
 
@@ -30,6 +31,17 @@ def create_server(config: ServerConfig) -> FastMCP:
         sheets = SheetsBridge(
             spreadsheet_id=config.sheets_spreadsheet_id,
             quota_project=config.sheets_quota_project,
+        )
+
+    surrealdb: SurrealDBSync | None = None
+    if config.surrealdb_enabled:
+        surrealdb = SurrealDBSync(
+            vault_path=config.vault_path,
+            surrealdb_url=config.surrealdb_url,
+            namespace=config.surrealdb_namespace,
+            database=config.surrealdb_database,
+            username=config.surrealdb_username,
+            password=config.surrealdb_password,
         )
 
     mcp = FastMCP(
@@ -511,5 +523,95 @@ def create_server(config: ServerConfig) -> FastMCP:
                 return json.dumps(result, indent=2)
             except Exception as e:
                 return f"Error: {e}"
+
+    # ── SurrealDB Graph Database Sync ────────────────────────────────
+
+    if surrealdb:
+
+        @mcp.tool()
+        def surrealdb_import_papers() -> str:
+            """Import all papers from vault/papers/ to SurrealDB.
+
+            Performs bulk import of all paper markdown files, extracting:
+            - Frontmatter metadata (title, date, tags)
+            - Wiki-links to concepts
+            - Content for indexing
+
+            Returns count of papers imported.
+            """
+            try:
+                count = surrealdb.bulk_import_papers()
+                return f"Successfully imported {count} papers to SurrealDB"
+            except Exception as e:
+                logger.error(f"Failed to import papers: {e}")
+                return f"Error importing papers: {e}"
+
+        @mcp.tool()
+        def surrealdb_import_concepts() -> str:
+            """Import all concepts from vault/concepts/ to SurrealDB.
+
+            Performs bulk import of all concept markdown files, extracting:
+            - Frontmatter metadata (title, tags)
+            - Content for indexing
+
+            Returns count of concepts imported.
+            """
+            try:
+                count = surrealdb.bulk_import_concepts()
+                return f"Successfully imported {count} concepts to SurrealDB"
+            except Exception as e:
+                logger.error(f"Failed to import concepts: {e}")
+                return f"Error importing concepts: {e}"
+
+        @mcp.tool()
+        def surrealdb_start_watching() -> str:
+            """Start real-time file watching for vault changes.
+
+            Monitors papers/, concepts/, patterns/, and decisions/ directories
+            for file modifications and creations. Changes are automatically
+            synced to SurrealDB in real-time.
+
+            This enables live updates to the 12D graph visualization.
+            """
+            try:
+                surrealdb.start_watching()
+                return "File watcher started - vault changes will sync to SurrealDB"
+            except Exception as e:
+                logger.error(f"Failed to start file watcher: {e}")
+                return f"Error starting file watcher: {e}"
+
+        @mcp.tool()
+        def surrealdb_stop_watching() -> str:
+            """Stop real-time file watching."""
+            try:
+                surrealdb.stop_watching()
+                return "File watcher stopped"
+            except Exception as e:
+                logger.error(f"Failed to stop file watcher: {e}")
+                return f"Error stopping file watcher: {e}"
+
+        @mcp.tool()
+        def surrealdb_query(query: str) -> str:
+            """Execute a custom SurrealQL query against the vault graph database.
+
+            Args:
+                query: SurrealQL query string (automatically prefixed with USE NS/DB)
+
+            Returns:
+                Query results as JSON
+
+            Example queries:
+            - "SELECT * FROM paper WHERE tags CONTAINS 'ai' LIMIT 10;"
+            - "SELECT count() FROM links GROUP BY out;"
+            - "SELECT * FROM paper->links->concept WHERE out.title = 'agentic-ai';"
+            """
+            try:
+                # Prepend USE statements
+                full_query = f"USE NS {surrealdb.namespace}; USE DB {surrealdb.database}; {query}"
+                results = surrealdb._execute_query(full_query)
+                return json.dumps(results, indent=2, default=str)
+            except Exception as e:
+                logger.error(f"Query failed: {e}")
+                return f"Error executing query: {e}"
 
     return mcp

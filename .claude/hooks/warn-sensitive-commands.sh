@@ -1,4 +1,9 @@
 #!/bin/bash
+# HOOK_NAME: warn-sensitive-commands
+# HOOK_STAGE: pre_execute
+# HOOK_ACTION: allow
+# HOOK_TIMEOUT: 5
+# HOOK_DESCRIPTION: Warns about sensitive commands that should NOT be "Allow always"
 # PreToolUse hook for Bash: warns about sensitive commands that should NOT be "Allow always".
 # Outputs warning to stdout (shown in permission prompt), exits 0 to let it proceed.
 # Only fires for commands that aren't auto-allowed (i.e. ones that trigger a prompt).

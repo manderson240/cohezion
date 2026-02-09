@@ -116,3 +116,4 @@ dmypy.json
 .pyre/
 .certs/
 certs/
+data/certificates/
