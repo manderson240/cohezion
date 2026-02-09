@@ -34,7 +34,7 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool, TextContent
 
-from cohezion.gateway import NgrokAIGateway
+from cohezion.gateway.demo_gateway import DemoGateway
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -48,50 +48,37 @@ server = Server("ngrok-ai-gateway")
 
 
 class GatewayManager:
-    """Manages ngrok gateway instances."""
+    """Manages demo gateway instances (uses local Ollama, no API keys needed)."""
 
     def __init__(self):
         """Initialize gateway manager."""
-        self.gateways: dict[str, NgrokAIGateway] = {}
+        self.gateways: dict[str, DemoGateway] = {}
         self.default_gateway_id = "default"
         self._initialize_default()
 
     def _initialize_default(self) -> None:
-        """Initialize default gateway from environment variables."""
-        ngrok_endpoint = os.getenv("NGROK_ENDPOINT")
-        ngrok_api_key = os.getenv("NGROK_API_KEY")
+        """Initialize default demo gateway with local Ollama."""
+        ollama_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
-        if ngrok_endpoint:
-            self.gateways[self.default_gateway_id] = NgrokAIGateway(
-                ngrok_endpoint=ngrok_endpoint,
-                ngrok_api_key=ngrok_api_key,
-                enable_failover=True,
-            )
-            logger.info(f"Default gateway initialized: {ngrok_endpoint}")
-        else:
-            logger.warning("NGROK_ENDPOINT not set, gateway not initialized")
+        self.gateways[self.default_gateway_id] = DemoGateway(
+            ollama_url=ollama_url,
+        )
+        logger.info(f"Demo gateway initialized (Ollama: {ollama_url})")
+        logger.info("Note: This is a DEMO gateway using local Ollama models")
 
-    def get_gateway(self, gateway_id: str = "default") -> NgrokAIGateway | None:
+    def get_gateway(self, gateway_id: str = "default") -> DemoGateway | None:
         """Get gateway by ID."""
         return self.gateways.get(gateway_id)
 
     def create_gateway(
         self,
         gateway_id: str,
-        ngrok_endpoint: str,
-        ngrok_api_key: str | None = None,
-        fallback_ollama_url: str = "http://localhost:11434",
-        enable_failover: bool = True,
-    ) -> NgrokAIGateway:
+        ollama_url: str = "http://localhost:11434",
+    ) -> DemoGateway:
         """Create and register a new gateway."""
-        gateway = NgrokAIGateway(
-            ngrok_endpoint=ngrok_endpoint,
-            ngrok_api_key=ngrok_api_key,
-            fallback_ollama_url=fallback_ollama_url,
-            enable_failover=enable_failover,
-        )
+        gateway = DemoGateway(ollama_url=ollama_url)
         self.gateways[gateway_id] = gateway
-        logger.info(f"Created gateway: {gateway_id}")
+        logger.info(f"Created demo gateway: {gateway_id}")
         return gateway
 
 
@@ -155,25 +142,18 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="configure_gateway",
-            description="Create or update a gateway configuration",
+            description="Create a new demo gateway instance",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "gateway_id": {"type": "string", "description": "Gateway ID"},
-                    "ngrok_endpoint": {"type": "string", "description": "ngrok endpoint URL"},
-                    "ngrok_api_key": {"type": "string", "description": "ngrok API key"},
-                    "fallback_ollama_url": {
+                    "ollama_url": {
                         "type": "string",
-                        "description": "Ollama URL",
+                        "description": "Local Ollama URL",
                         "default": "http://localhost:11434",
                     },
-                    "enable_failover": {
-                        "type": "boolean",
-                        "description": "Enable failover",
-                        "default": True,
-                    },
                 },
-                "required": ["gateway_id", "ngrok_endpoint"],
+                "required": ["gateway_id"],
             },
         ),
         Tool(
@@ -310,12 +290,9 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             try:
                 gateway = manager.create_gateway(
                     gateway_id=arguments["gateway_id"],
-                    ngrok_endpoint=arguments["ngrok_endpoint"],
-                    ngrok_api_key=arguments.get("ngrok_api_key"),
-                    fallback_ollama_url=arguments.get(
-                        "fallback_ollama_url", "http://localhost:11434"
+                    ollama_url=arguments.get(
+                        "ollama_url", "http://localhost:11434"
                     ),
-                    enable_failover=arguments.get("enable_failover", True),
                 )
 
                 return [
@@ -325,7 +302,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                             {
                                 "success": True,
                                 "gateway_id": arguments["gateway_id"],
-                                "message": "Gateway configured successfully",
+                                "message": "Demo gateway created successfully (uses local Ollama)",
                             }
                         ),
                     )
@@ -351,7 +328,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                     )
                 ]
 
-            cost = gateway._calculate_cost(
+            estimate = gateway.cost_estimate(
                 arguments["model"],
                 arguments["input_tokens"],
                 arguments["output_tokens"],
@@ -360,14 +337,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             return [
                 TextContent(
                     type="text",
-                    text=json.dumps(
-                        {
-                            "model": arguments["model"],
-                            "input_tokens": arguments["input_tokens"],
-                            "output_tokens": arguments["output_tokens"],
-                            "cost_usd": round(cost, 6),
-                        }
-                    ),
+                    text=json.dumps(estimate),
                 )
             ]
 
