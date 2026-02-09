@@ -353,9 +353,9 @@ async def main() -> None:
     """Run the MCP server using stdio protocol."""
     logger.info("Starting ngrok AI Gateway MCP server...")
     logger.info("Listening on stdio for MCP protocol")
-    async with stdio_server(server) as streams:
+    async with stdio_server(server):
         logger.info("MCP server ready")
-        await streams[0].wait_closed()
+        await asyncio.sleep(float("inf"))
 
 
 if __name__ == "__main__":
