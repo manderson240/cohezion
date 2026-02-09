@@ -14,6 +14,14 @@ from .server import create_server
 from .sse_stream import VaultEventStream
 from .vault_watcher import VaultFileWatcher
 
+# Import security modules
+try:
+    from cohezion.security.tls_config import TLSConfig
+    from cohezion.security.https_middleware import create_https_app
+except ImportError:
+    TLSConfig = None
+    create_https_app = None
+
 
 logger = logging.getLogger("cloud-vault-mcp")
 
@@ -66,19 +74,70 @@ def main():
             watcher.stop()
             logger.info("VaultFileWatcher stopped")
 
-        # Compose Starlette app with SSE route + MCP mount
-        app = Starlette(
-            routes=[
-                Route("/events/vault", sse.sse_endpoint),
-                Mount("/", app=mcp_app),
-            ],
+        # Create base Starlette app with SSE route and lifespan
+        sse_app = Starlette(
+            routes=[Route("/events/vault", sse.sse_endpoint)],
             lifespan=lifespan,
         )
+
+        # Wrap with MCP fallback for all other routes
+        async def app(scope, receive, send):
+            if scope["type"] == "http":
+                if scope["path"] == "/events/vault":
+                    # Route to SSE handler
+                    await sse_app(scope, receive, send)
+                else:
+                    # Route to MCP
+                    await mcp_app(scope, receive, send)
+            elif scope["type"] == "lifespan":
+                # Handle lifespan through sse_app
+                await sse_app(scope, receive, send)
+            else:
+                # WebSocket or other protocol
+                await mcp_app(scope, receive, send)
     else:
         app = mcp_app
 
+    # Apply HTTPS middleware if TLS is enabled
+    if config.tls_enabled and TLSConfig and create_https_app:
+        logger.info("Configuring HTTPS/TLS security")
+
+        tls_config = TLSConfig(
+            cert_path=config.tls_cert_path,
+            key_path=config.tls_key_path,
+            hsts_max_age=config.tls_hsts_max_age,
+            allowed_origins=config.tls_allowed_origins,
+        )
+
+        if not tls_config.validate_certificate():
+            logger.error(
+                "TLS certificate validation failed. "
+                "Proceeding with HTTP (NOT RECOMMENDED FOR PRODUCTION)"
+            )
+        else:
+            logger.info("TLS certificate validated successfully")
+            app = create_https_app(
+                app, tls_config, allow_http_localhost=True
+            )
+
     # Run with uvicorn directly to control host/port
-    uvicorn.run(app, host=config.host, port=config.port, log_level="info")
+    # Note: For HTTPS, use ssl_certfile and ssl_keyfile parameters
+    ssl_certfile = None
+    ssl_keyfile = None
+
+    if config.tls_enabled and config.tls_cert_path and config.tls_key_path:
+        ssl_certfile = config.tls_cert_path
+        ssl_keyfile = config.tls_key_path
+        logger.info("Starting HTTPS server with SSL certificates")
+
+    uvicorn.run(
+        app,
+        host=config.host,
+        port=config.port,
+        log_level="info",
+        ssl_certfile=ssl_certfile,
+        ssl_keyfile=ssl_keyfile,
+    )
 
 
 if __name__ == "__main__":
