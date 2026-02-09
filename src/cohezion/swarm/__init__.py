@@ -10,6 +10,9 @@ from cohezion.swarm.batch_processor import (
     BatchResult,
     CacheEntry,
 )
+from cohezion.swarm.persistent_cache import (
+    PersistentCache,
+)
 from cohezion.swarm.hardware_aware_router import (
     Priority,
     RoutingDecision,
@@ -47,6 +50,7 @@ __all__ = [
     "ModelSelection",
     "MultiLayerCache",
     "MultiLayerCacheEntry",
+    "PersistentCache",
     "Priority",
     "ResilientOllamaClient",
     "RoutingDecision",
