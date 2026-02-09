@@ -136,7 +136,7 @@ class LRUPersistentCache(PersistentCache):
             is_new_entry = key not in self.memory_cache
 
             # Put entry using parent class
-            super().set(key, value)
+            super().put(key, value)
 
             # Track access order
             if is_new_entry:
