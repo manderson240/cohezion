@@ -19,6 +19,16 @@ from cohezion.compound.thermal_predictor import (
     ThermalTrendAnalyzer,
     get_thermal_trend_analyzer,
 )
+from cohezion.compound.thermal_trend_predictor import (
+    ThermalTimeSeries,
+    ThermalTrendPredictor,
+    get_thermal_trend_predictor,
+)
+from cohezion.compound.thermal_history_persistence import (
+    ThermalTimeSeriesCollector,
+    get_thermal_time_series_collector,
+    load_jsonl_history,
+)
 from cohezion.compound.executor import (
     CompoundExecutor,
     ExecutionResult,
@@ -103,7 +113,10 @@ __all__ = [
     "TeamExecutor",
     "TeamExecutorFactory",
     "ThermalMetrics",
+    "ThermalTimeSeries",
     "ThermalTrendAnalyzer",
+    "ThermalTrendPredictor",
+    "ThermalTimeSeriesCollector",
     "TrajectoryPoint",
     "VaultExecutionLogger",
     "WarmCacheLoader",
@@ -111,5 +124,8 @@ __all__ = [
     "get_collector",
     "get_hardware_monitor",
     "get_thermal_trend_analyzer",
+    "get_thermal_trend_predictor",
+    "get_thermal_time_series_collector",
+    "load_jsonl_history",
     "reset_collector",
 ]
