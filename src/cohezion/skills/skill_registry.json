@@ -1,0 +1,34 @@
+{
+  "TEST_SKILL_PRIME": {
+    "version": "2.5",
+    "concepts": [],
+    "see_also": [],
+    "source": "/tmp/pytest-of-mike-anderson/pytest-101/test_version_header_in_generat0/skills/TEST_SKILL_PRIME.md"
+  },
+  "SKILL_0_PRIME": {
+    "version": "1.0",
+    "concepts": [],
+    "see_also": [],
+    "source": "/tmp/pytest-of-mike-anderson/pytest-51/test_factory_generate_top_skil0/skills/SKILL_0_PRIME.md"
+  },
+  "SKILL_1_PRIME": {
+    "version": "1.0",
+    "concepts": [],
+    "see_also": [],
+    "source": "/tmp/pytest-of-mike-anderson/pytest-51/test_factory_generate_top_skil0/skills/SKILL_1_PRIME.md"
+  },
+  "COMPOUND_ENGINEERING_PRIME": {
+    "version": "v0.1",
+    "concepts": [
+      "Meta‑Pattern Library",
+      "Skill Tokens",
+      "Automatic Skill Scaffold"
+    ],
+    "see_also": [
+      "METAPHYSICS_PRIME",
+      "PHYSICS_PRIME",
+      "RETROSPECTIVE_SKILL"
+    ],
+    "source": "src/cohezion/skills/compound_engineering.md"
+  }
+}
