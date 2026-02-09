@@ -82,6 +82,11 @@ def reset_singletons():
     if hasattr(BudgetEnforcer, "reset_instance"):
         BudgetEnforcer.reset_instance()
 
+    # Reset FLUME VAE singleton to prevent state pollution across tests
+    import cohezion.api as api_module
+    if hasattr(api_module, '_vae_trainer'):
+        api_module._vae_trainer = None
+
     # Clear logger cache to ensure consistent logging formatters
     logging.getLogger().handlers.clear()
 
@@ -97,3 +102,7 @@ def reset_singletons():
         SessionCostTracker.reset_instance()
     if hasattr(BudgetEnforcer, "reset_instance"):
         BudgetEnforcer.reset_instance()
+
+    # Reset FLUME VAE singleton after test
+    if hasattr(api_module, '_vae_trainer'):
+        api_module._vae_trainer = None
