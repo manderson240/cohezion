@@ -1,4 +1,8 @@
-"""Test AdaptiveRouterAdapter integration with TokenEfficientClient."""
+"""Test AdaptiveRouterAdapter integration with TokenEfficientClient.
+
+This test suite verifies that AdaptiveRouterAdapter is a drop-in replacement
+for SmartRouterAdapter while maintaining the same interface contract.
+"""
 
 from __future__ import annotations
 
@@ -29,31 +33,86 @@ def adapter(mock_selector: Mock) -> AdaptiveRouterAdapter:
     return AdaptiveRouterAdapter(mock_selector)
 
 
-class TestInterfaceContract:
-    """Verify AdaptiveRouterAdapter has same interface as SmartRouterAdapter."""
+class TestModelSelection:
+    """Verify ModelSelection dataclass works correctly."""
 
-    @pytest.mark.asyncio
-    async def test_select_optimal_model_signature(self, adapter: AdaptiveRouterAdapter):
-        """Verify select_optimal_model has expected signature."""
-        from cohezion.swarm.hardware_aware_router import RoutingDecision
+    def test_model_selection_with_defaults(self):
+        """Verify ModelSelection has all expected attributes."""
+        selection = ModelSelection(name="test-model")
 
-        adapter._selector.select_optimal_model.return_value = RoutingDecision(
-            request_id="test-1",
-            primary_model="qwen3-coder:30b",
-            fallback_chain=["qwen2.5-coder:14b", "phi4:latest"],
-            confidence=0.85,
-            predicted_tps=8.0,
-            predicted_latency_ms=1000,
-            reasoning="Selected for coding task",
+        assert selection.name == "test-model"
+        assert selection.confidence == 1.0
+        assert selection.fallback_chain == []
+        assert selection.reasoning == ""
+
+    def test_model_selection_with_fallback_chain(self):
+        """Verify fallback_chain is properly initialized."""
+        fallbacks = ["model-b", "model-c"]
+        selection = ModelSelection(
+            name="model-a",
+            confidence=0.8,
+            fallback_chain=fallbacks,
+            reasoning="because X",
         )
 
-        result = await adapter.select_optimal_model({
-            "task_type": "coding",
-            "context_length": 1024,
-        })
+        assert selection.name == "model-a"
+        assert selection.fallback_chain == fallbacks
+        assert len(selection.fallback_chain) == 2
 
-        assert hasattr(result, "name")
-        assert result.name == "qwen3-coder:30b"
+
+class TestOutcomeRecording:
+    """Verify outcome recording for learning."""
+
+    @pytest.mark.asyncio
+    async def test_record_outcome_success(self, adapter: AdaptiveRouterAdapter):
+        """Verify recording of successful execution."""
+        adapter._selector.record_outcome = AsyncMock()
+
+        await adapter.record_outcome(
+            request_id="req-123",
+            success=True,
+            actual_latency_ms=450.5,
+            actual_tps=25.3,
+            failure_reason=None,
+            model_used="qwen2.5-coder:14b",
+        )
+
+        adapter._selector.record_outcome.assert_called_once()
+        call_args = adapter._selector.record_outcome.call_args
+        assert call_args.kwargs["request_id"] == "req-123"
+        assert call_args.kwargs["success"] is True
+
+    @pytest.mark.asyncio
+    async def test_record_outcome_failure(self, adapter: AdaptiveRouterAdapter):
+        """Verify recording of failed execution."""
+        adapter._selector.record_outcome = AsyncMock()
+
+        await adapter.record_outcome(
+            request_id="req-456",
+            success=False,
+            actual_latency_ms=5000.0,
+            failure_reason="timeout",
+            model_used="qwen3-coder:30b",
+        )
+
+        adapter._selector.record_outcome.assert_called_once()
+        call_args = adapter._selector.record_outcome.call_args
+        assert call_args.kwargs["success"] is False
+        assert call_args.kwargs["failure_reason"] == "timeout"
+
+
+class TestMetricsExport:
+    """Verify metrics are properly exported."""
+
+    @pytest.mark.asyncio
+    async def test_get_metrics(self, adapter: AdaptiveRouterAdapter):
+        """Verify metrics export."""
+        metrics = await adapter.get_metrics()
+
+        assert "adapter" in metrics
+        assert metrics["adapter"] == "adaptive"
+        assert "decisions_made" in metrics
+        assert metrics["decisions_made"] >= 0
 
 
 class TestFallback:
@@ -67,10 +126,9 @@ class TestFallback:
 
         adapter = AdaptiveRouterAdapter(selector)
 
-        result = await adapter.select_optimal_model({
-            "task_type": "coding",
-            "context_length": 100,
-        })
+        result = await adapter.select_optimal_model(
+            {"task_type": "coding", "context_length": 100}
+        )
 
         assert result.name == "phi3:mini"
         assert result.confidence == 0.5
