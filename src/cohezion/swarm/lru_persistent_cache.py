@@ -64,27 +64,31 @@ class LRUPersistentCache(PersistentCache):
         self._access_order: OrderedDict[str, None] = OrderedDict()
         self._eviction_count = 0
         self._evictions_total_entries = 0
+        self.persistence_enabled = persistence_enabled
+        self.auto_restore = auto_restore
 
         # Determine cache file path
         cache_dir_path = Path(cache_dir)
-        if persistence_enabled:
+        if persistence_enabled and auto_restore:
             cache_dir_path.mkdir(parents=True, exist_ok=True)
             cache_file = cache_dir_path / "lru_cache.jsonl"
         else:
-            # Use in-memory only - use a unique path that won't exist
-            cache_file = cache_dir_path / f".lru_cache_{id(self)}.jsonl"
+            # Use a non-existent path if persistence is disabled
+            # This prevents parent from loading any previous cache
+            cache_file = Path(cache_dir_path) / ".no_persist_lru_cache.jsonl"
 
         # Now initialize parent with cache_file
         # The parent will call load_from_disk() in __init__
         super().__init__(cache_file=str(cache_file), max_entries=max_entries)
 
-        # If persistence is disabled, clear any loaded data
+        # If persistence is disabled, clear the loaded cache
         if not persistence_enabled:
-            with self._lock:
-                self.memory_cache.clear()
-
-        # After parent init, rebuild access order from loaded entries
-        self._rebuild_access_order()
+            self.memory_cache.clear()
+            self._stats["loaded"] = 0
+            self._access_order.clear()
+        else:
+            # After parent init, rebuild access order from loaded entries
+            self._rebuild_access_order()
 
     def get(self, key: str) -> Optional[Any]:
         """Get value from cache and update LRU order.

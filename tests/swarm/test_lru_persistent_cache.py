@@ -58,7 +58,7 @@ class TestLRUBasics:
 
         # Verify stats show both entries
         stats = cache.get_stats()
-        assert stats["entries"] == 2
+        assert stats["cache_size"] == 2
 
 
 class TestLRUEviction:
@@ -216,7 +216,7 @@ class TestLRUWithPersistence:
             cache.put(f"key{i}", f"value{i}")
 
         # Verify cache was written
-        cache_file = temp_cache_dir / "cache.jsonl"
+        cache_file = temp_cache_dir / "lru_cache.jsonl"
         assert cache_file.exists()
 
     def test_session_restore_with_lru(self, temp_cache_dir):
@@ -248,7 +248,7 @@ class TestLRUWithPersistence:
 
         # Verify access order is correct
         stats = cache2.get_stats()
-        assert stats["entries"] == 3
+        assert stats["cache_size"] == 3
 
 
 class TestLRUProperties:
