@@ -59,3 +59,11 @@ repos:
         stages: [push]
       - id: detect-private-key
         stages: [push]
+
+  # Detect Secrets - Advanced credential detection
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        stages: [push]
+        args: ["--baseline", ".secrets.baseline"]
