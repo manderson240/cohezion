@@ -1,0 +1,257 @@
+{
+  "main": {
+    "id": "f60d1c32114ebfeb",
+    "type": "split",
+    "children": [
+      {
+        "id": "02e18562974e1c0d",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ffe7c263ee7d1332",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
+            }
+          }
+        ]
+      },
+      {
+        "id": "28ba496e85c363e9",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "5926613326ccd206",
+            "type": "leaf",
+            "state": {
+              "type": "claude-terminal-view",
+              "state": {},
+              "icon": "claude-logo",
+              "title": "Claude Terminal"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "b330e98d20fb4853",
+    "type": "split",
+    "children": [
+      {
+        "id": "af5980f93b80cbd1",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f38ccb8c86036a59",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "fbee33f50bfda5c3",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "sheets",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "01995413fe513e7e",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "70677f67d3ace9b9",
+    "type": "split",
+    "children": [
+      {
+        "id": "3d9c70d6a4217a7b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "205912c683648451",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "patterns/bmad-scale-adaptive-documentation.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for bmad-scale-adaptive-documentation"
+            }
+          },
+          {
+            "id": "8ff50ac3a88326e6",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "patterns/bmad-scale-adaptive-documentation.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from bmad-scale-adaptive-documentation"
+            }
+          },
+          {
+            "id": "ab2938540f56eb06",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "973140f52200470c",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "5b5722111f54b9cd",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "patterns/bmad-scale-adaptive-documentation.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of bmad-scale-adaptive-documentation"
+            }
+          },
+          {
+            "id": "b6fd33b4183fb4a1",
+            "type": "leaf",
+            "state": {
+              "type": "footnotes",
+              "state": {
+                "file": "patterns/bmad-scale-adaptive-documentation.md"
+              },
+              "icon": "lucide-file-signature",
+              "title": "Footnotes"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false,
+      "claude-code-mcp:Toggle Claude Terminal": false,
+      "audio-recorder:Start/stop recording": false,
+      "markdown-importer:Open format converter": false,
+      "random-note:Open random note": false,
+      "zk-prefixer:Create new unique note": false,
+      "workspaces:Manage workspace layouts": false
+    }
+  },
+  "active": "5926613326ccd206",
+  "lastOpenFiles": [
+    "decisions/2026-02-09-12d-graph-surrealdb-integration.md",
+    "decisions/2026-02-09-12d-graph-surrealdb-integration.md.tmp.147604.1770658456434",
+    "Untitled 1.canvas",
+    "inbox/2026-02-09.md",
+    "decisions/3d-graph-plugin-selection.md",
+    "patterns/2026-02-09-vault-completion-retrospective.md",
+    "patterns/2026-02-09-vault-completion-retrospective.md.tmp.147604.1770658019630",
+    "daily/2026-02-09-FINAL-SUMMARY.md",
+    "daily/2026-02-09-INITIATIVE-CLOSED.md",
+    "daily/2026-02-09-INITIATIVE-CLOSED.md.tmp.147604.1770657599386",
+    "daily/2026-02-09-FINAL-SUMMARY.md.tmp.147604.1770657500705",
+    "daily/2026-02-09-phase1-completion.md",
+    "daily/2026-02-09-phase1-completion.md.tmp.147604.1770657423829",
+    "daily/2026-02-09-vault-audit-execution-report.md",
+    "daily/2026-02-09-vault-audit-execution-report.md.tmp.147604.1770656844705",
+    "daily/2026-02-09-phase1-results.md",
+    "daily/2026-02-09-phase1-results.md.tmp.147604.1770656802852",
+    "daily/2026-02-09-vault-completion-status.md",
+    "daily/2026-02-09-vault-completion-status.md.tmp.147604.1770656610156",
+    "patterns/sheetsbr idge-mcp-testing.md",
+    "patterns/sheetsbr idge-mcp-testing.md.tmp.147604.1770656420189",
+    "decisions/3d-graph-plugin-selection.md.tmp.147604.1770656176270",
+    "inbox/Setup linkage with google sheets.md",
+    "Untitled.canvas",
+    "decisions/2026-02-09-session-43-mcp-setup.md",
+    "concepts/agentic-ai.md",
+    "concepts/agent-loop-architecture.md",
+    "patterns/bmad-scale-adaptive-documentation.md",
+    "papers/2026-02-09-unique-investment-opportunities-research.md",
+    "decisions/2026-02-08-bmad-framework-removal.md",
+    "decisions/2026-02-07-event-driven-inbox-processor.md",
+    "concepts/dark-matter-detection.md",
+    "concepts/quantum-entanglement.md",
+    "concepts/quantum-error-correction.md",
+    "concepts/quantum-sensors.md",
+    "concepts/topological-defects.md",
+    "concepts/supersolid-quantum-state.md",
+    "inbox/Investments.md"
+  ]
+}
