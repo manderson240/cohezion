@@ -19,7 +19,7 @@ from cohezion.compound.feedback_loop import (
 from cohezion.compound.inflection_detector import (
     InflectionDetector,
     InflectionDetectorFactory,
-    InflectionEvent,
+    Severity,
 )
 from cohezion.compound.journey_persistence import JourneyPersistence
 from cohezion.compound.journey_tracker import (
@@ -69,7 +69,7 @@ __all__ = [
     "FeedbackLoopResult",
     "InflectionDetector",
     "InflectionDetectorFactory",
-    "InflectionEvent",
+    "Severity",
     "Journey",
     "JourneyPersistence",
     "JourneyTracker",
