@@ -10,6 +10,8 @@ from cohezion.concurrency.file_lock import (
     FileLockError,
     safe_file_access,
 )
+from cohezion.concurrency.ollama_gate import OllamaGate, get_gate, reset_gate
+from cohezion.concurrency.safe_singleton import safe_singleton
 from cohezion.concurrency.shared_resources import (
     CapabilityUsageTracker,
     GitLabRunnerConfig,
@@ -17,11 +19,15 @@ from cohezion.concurrency.shared_resources import (
 )
 
 __all__ = [
+    "CapabilityUsageTracker",
+    "ConfigManager",
     "FileLock",
     "FileLockError",
-    "ConfigManager",
-    "safe_file_access",
-    "SkillRegistry",
-    "CapabilityUsageTracker",
     "GitLabRunnerConfig",
+    "OllamaGate",
+    "SkillRegistry",
+    "get_gate",
+    "reset_gate",
+    "safe_file_access",
+    "safe_singleton",
 ]

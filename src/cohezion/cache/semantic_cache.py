@@ -20,6 +20,7 @@ from typing import Any
 import numpy as np
 
 from cohezion.flume.vae_encoder import get_encoder
+from cohezion.cache.text_encoder import get_text_encoder
 
 
 logger = logging.getLogger(__name__)
@@ -63,6 +64,7 @@ class SemanticCache:
         max_l1_size: int = 512,
         max_l2_size: int = 1024,
         mcp_client: Any = None,
+        enable_adaptive_threshold: bool = True,
     ):
         """Initialize semantic cache.
 
@@ -71,11 +73,14 @@ class SemanticCache:
             max_l1_size: L1 cache size
             max_l2_size: L2 cache size
             mcp_client: Optional MCPClient for L3 vault operations
+            enable_adaptive_threshold: Enable adaptive threshold tuning (default: True)
         """
         self.similarity_threshold = similarity_threshold
+        self.initial_threshold = similarity_threshold
         self.max_l1_size = max_l1_size
         self.max_l2_size = max_l2_size
         self.mcp_client = mcp_client
+        self.enable_adaptive_threshold = enable_adaptive_threshold
 
         # L1 cache: exact hash matches
         self.l1_cache: dict[str, CacheEntry] = {}
@@ -91,12 +96,15 @@ class SemanticCache:
         self.hits_l3 = 0
         self.misses = 0
 
+        # Adaptive threshold tracking
+        self._threshold_adjustment_interval = 100  # Adjust every 100 ops
+
     @staticmethod
     def _text_to_embedding(text: str) -> np.ndarray:
         """Convert text to production semantic embedding.
 
-        Uses FLUME VAE encoder for real 256D semantic embeddings.
-        Falls back to deterministic hash if VAE unavailable.
+        Uses semantic text encoder (sentence-transformers) for real 256D
+        semantic embeddings with proper semantic discrimination.
 
         Args:
             text: Text to embed
@@ -105,24 +113,31 @@ class SemanticCache:
             256D numpy array, normalized for cosine similarity
         """
         try:
-            encoder = get_encoder()
+            # Use semantic encoder (all-MiniLM-L6-v2 384D → 256D)
+            encoder = get_text_encoder()
             return encoder.encode(text)
         except Exception as e:
-            logger.debug(f"VAE encoding failed, using hash fallback: {e}")
-            # Fallback to deterministic hash
-            hash_obj = hashlib.sha256(text.encode())
-            hash_bytes = hash_obj.digest()
+            logger.debug(f"Semantic encoding failed: {e}")
+            # Fallback to FLUME VAE if available
+            try:
+                vae_encoder = get_encoder()
+                return vae_encoder.encode(text)
+            except Exception as vae_e:
+                logger.debug(f"VAE encoding also failed: {vae_e}, using hash fallback")
+                # Final fallback to deterministic hash
+                hash_obj = hashlib.sha256(text.encode())
+                hash_bytes = hash_obj.digest()
 
-            embedding = np.zeros(256, dtype=np.float32)
-            for i in range(256):
-                byte_idx = i % len(hash_bytes)
-                embedding[i] = hash_bytes[byte_idx] / 255.0
+                embedding = np.zeros(256, dtype=np.float32)
+                for i in range(256):
+                    byte_idx = i % len(hash_bytes)
+                    embedding[i] = hash_bytes[byte_idx] / 255.0
 
-            norm = np.linalg.norm(embedding)
-            if norm > 0:
-                embedding /= norm
+                norm = np.linalg.norm(embedding)
+                if norm > 0:
+                    embedding /= norm
 
-            return embedding
+                return embedding
 
     @staticmethod
     def _cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
@@ -138,13 +153,54 @@ class SemanticCache:
         dot_product = np.dot(a, b)
         return float(dot_product)
 
+    def _get_adaptive_threshold(self) -> float:
+        """Adjust similarity threshold based on observed hit rates.
+
+        Adaptive tuning ensures optimal L2 cache hit rate:
+        - If hit rate <5%: Decrease threshold (more permissive, ~0.87)
+        - If hit rate >40%: Increase threshold (more precise, ~0.97)
+        - Otherwise: Keep stable at initial value
+
+        Returns:
+            Adjusted cosine similarity threshold
+        """
+        if not self.enable_adaptive_threshold:
+            return self.similarity_threshold
+
+        total_ops = self.hits_l1 + self.hits_l2 + self.hits_l3 + self.misses
+        if total_ops < self._threshold_adjustment_interval:
+            # Need minimum data before adjustment
+            return self.similarity_threshold
+
+        l2_hit_rate = self.hits_l2 / total_ops if total_ops > 0 else 0
+
+        if l2_hit_rate < 0.05:
+            # Too many misses - relax threshold
+            new_threshold = max(0.70, self.initial_threshold - 0.05)
+            logger.debug(
+                f"L2 hit rate {l2_hit_rate:.1%} too low, "
+                f"relaxing threshold: {self.similarity_threshold:.2f} → {new_threshold:.2f}"
+            )
+            return new_threshold
+        elif l2_hit_rate > 0.40:
+            # Too many hits - tighten threshold for precision
+            new_threshold = min(0.97, self.initial_threshold + 0.05)
+            logger.debug(
+                f"L2 hit rate {l2_hit_rate:.1%} too high, "
+                f"tightening threshold: {self.similarity_threshold:.2f} → {new_threshold:.2f}"
+            )
+            return new_threshold
+        else:
+            # Hit rate in target range (5-40%)
+            return self.similarity_threshold
+
     async def get(
         self, prompt: str, system: str | None = None, model: str | None = None
     ) -> str | None:
         """Lookup with 3-tier fallback.
 
         Checks L1 (exact), L2 (semantic), then L3 (vault).
-        Promotes hits to faster tiers.
+        Promotes hits to faster tiers. Uses adaptive threshold tuning.
 
         Args:
             prompt: Prompt to lookup
@@ -163,10 +219,11 @@ class SemanticCache:
             self.hits_l1 += 1
             return entry.response
 
-        # L2: Semantic similarity
+        # L2: Semantic similarity with adaptive threshold
         query_embedding = self._text_to_embedding(prompt)
         best_match = None
         best_similarity = 0.0
+        current_threshold = self._get_adaptive_threshold()
 
         for _key, entry in self.l2_cache.items():
             similarity = self._cosine_similarity(query_embedding, entry.embedding)
@@ -174,7 +231,7 @@ class SemanticCache:
                 best_similarity = similarity
                 best_match = entry
 
-        if best_match and best_similarity > self.similarity_threshold:
+        if best_match and best_similarity > current_threshold:
             self.hits_l2 += 1
             # Promote to L1
             self._promote_to_l1(hash_key, best_match)
