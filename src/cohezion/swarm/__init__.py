@@ -1,5 +1,9 @@
 """Swarm orchestration and token-efficient inference."""
 
+from cohezion.swarm.adaptive_router_adapter import (
+    AdaptiveRouterAdapter,
+    ModelSelection,
+)
 from cohezion.swarm.batch_processor import (
     BatchItem,
     BatchProcessor,
@@ -32,6 +36,7 @@ from cohezion.swarm.token_client import (
 
 
 __all__ = [
+    "AdaptiveRouterAdapter",
     "BatchItem",
     "BatchProcessor",
     "BatchResult",
@@ -39,6 +44,7 @@ __all__ = [
     "CacheOptimizationConfig",
     "ContextPoolManager",
     "KVCacheOptimizer",
+    "ModelSelection",
     "MultiLayerCache",
     "MultiLayerCacheEntry",
     "Priority",
