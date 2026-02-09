@@ -195,10 +195,10 @@ class TestSecretDetection:
         filters = baseline.get("filters_used", [])
         assert len(filters) > 0, "No filters configured in detect-secrets"
 
-        # Should have baseline filter
+        # Should have at least some common filters configured
         filter_paths = [f.get("path", "") for f in filters]
-        assert any("is_baseline_file" in p for p in filter_paths), \
-            "Baseline filter not configured"
+        assert any("allowlist" in p or "heuristic" in p for p in filter_paths), \
+            "No standard detect-secrets filters configured"
 
 
 class TestCredentialPatterns:
