@@ -6,17 +6,21 @@ Features:
 - Streaming progress via SSE events
 - Graceful cancellation with timeout enforcement
 - Vault-backed persistence (JSONL fallback)
+- Compound session lifecycle (warm-start / clean-shutdown)
 """
 
 import asyncio
 import json
 import logging
-import os
 import time
+import uuid
+from collections.abc import AsyncIterator
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
 from pathlib import Path
-from typing import Any, AsyncIterator
+from typing import Any
+
+from pydantic import BaseModel
+
 
 logger = logging.getLogger(__name__)
 
@@ -234,7 +238,7 @@ class InferenceSession:
             logger.exception("Session execution failed")
             yield {
                 "type": "error",
-                "error": f"Session failed: {str(e)}",
+                "error": f"Session failed: {e!s}",
             }
 
     def cancel(self) -> None:
@@ -282,7 +286,7 @@ class VaultCheckpointManager:
                 json.dump(asdict(state), f, indent=2)
             logger.debug(f"Checkpoint saved to {checkpoint_file}")
             return True
-        except Exception as e:
+        except Exception:
             logger.exception("Checkpoint save failed")
             return False
 
@@ -308,7 +312,7 @@ class VaultCheckpointManager:
                 state = SessionState(**data)
                 logger.debug(f"Checkpoint loaded from {checkpoint_file}")
                 return state
-        except Exception as e:
+        except Exception:
             logger.exception("Checkpoint load failed")
 
         return None
@@ -333,7 +337,7 @@ class VaultCheckpointManager:
                 checkpoint_file.unlink()
                 logger.debug(f"Checkpoint deleted: {checkpoint_file}")
                 return True
-        except Exception as e:
+        except Exception:
             logger.exception("Checkpoint delete failed")
 
         return False
@@ -399,3 +403,127 @@ def close_session(session_id: str) -> bool:
         logger.info(f"Closed session {session_id}")
         return True
     return False
+
+
+# ---------------------------------------------------------------------------
+# Compound session lifecycle (warm-start / clean-shutdown)
+# ---------------------------------------------------------------------------
+
+
+class SessionSummary(BaseModel):
+    """Summary of a compound session."""
+
+    session_id: str = ""
+    start_time: float = 0.0
+    end_time: float = 0.0
+    cache_entries_loaded: int = 0
+    cache_entries_saved: int = 0
+    metrics_restored: bool = False
+    metrics_saved: bool = False
+    total_executions: int = 0
+    total_tokens: int = 0
+
+
+class CompoundSessionManager:
+    """Manage compound session lifecycle: warm start and clean shutdown."""
+
+    def __init__(self) -> None:
+        self._session_id: str = ""
+        self._start_time: float = 0.0
+        self._cache_loaded: int = 0
+        self._metrics_restored: bool = False
+
+    def start_session(self, max_cache_entries: int = 256) -> SessionSummary:
+        """Start a new compound session: warm cache and load metrics."""
+        self._session_id = f"session_{uuid.uuid4().hex[:8]}"
+        self._start_time = time.time()
+
+        # Warm cache
+        from cohezion.compound.cache_persistence import WarmCacheLoader
+
+        try:
+            from cohezion.swarm.compound_client import get_compound_client
+
+            client = get_compound_client()
+            loader = WarmCacheLoader()
+            self._cache_loaded = loader.warm_client(client, max_cache_entries)
+        except Exception:
+            logger.debug("Cache warm failed (non-critical)")
+            self._cache_loaded = 0
+
+        # Restore metrics
+        from cohezion.compound.metrics_persistence import MetricsPersistence
+
+        try:
+            from cohezion.compound.metrics import get_collector
+
+            collector = get_collector()
+            mp = MetricsPersistence()
+            snapshot = mp.load_latest_snapshot()
+            if snapshot:
+                collector.load_from_snapshot(snapshot)
+                self._metrics_restored = True
+        except Exception:
+            logger.debug("Metrics restore failed (non-critical)")
+
+        return SessionSummary(
+            session_id=self._session_id,
+            start_time=self._start_time,
+            cache_entries_loaded=self._cache_loaded,
+            metrics_restored=self._metrics_restored,
+        )
+
+    def end_session(self) -> SessionSummary:
+        """End session: persist cache and metrics."""
+        from cohezion.compound.cache_persistence import CachePersistence
+
+        cache_saved = 0
+        try:
+            from cohezion.swarm.compound_client import get_compound_client
+
+            client = get_compound_client()
+            cp = CachePersistence()
+            cache_saved = cp.save_cache(client._cache)
+        except Exception:
+            logger.debug("Cache save failed (non-critical)")
+
+        # Save metrics
+        from cohezion.compound.metrics_persistence import MetricsPersistence
+
+        metrics_saved = False
+        total_executions = 0
+        total_tokens = 0
+        try:
+            from cohezion.compound.metrics import get_collector
+
+            collector = get_collector()
+            mp = MetricsPersistence()
+            mp.save_snapshot(collector)
+            metrics_saved = True
+            total_executions = collector.total_executions
+            total_tokens = collector.total_tokens()
+        except Exception:
+            logger.debug("Metrics save failed (non-critical)")
+
+        return SessionSummary(
+            session_id=self._session_id,
+            start_time=self._start_time,
+            end_time=time.time(),
+            cache_entries_loaded=self._cache_loaded,
+            cache_entries_saved=cache_saved,
+            metrics_restored=self._metrics_restored,
+            metrics_saved=metrics_saved,
+            total_executions=total_executions,
+            total_tokens=total_tokens,
+        )
+
+    def get_current_session(self) -> SessionSummary | None:
+        """Return current session info, or None if no active session."""
+        if not self._session_id:
+            return None
+        return SessionSummary(
+            session_id=self._session_id,
+            start_time=self._start_time,
+            cache_entries_loaded=self._cache_loaded,
+            metrics_restored=self._metrics_restored,
+        )

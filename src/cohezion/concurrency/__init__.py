@@ -18,6 +18,7 @@ from cohezion.concurrency.shared_resources import (
     SkillRegistry,
 )
 
+
 __all__ = [
     "CapabilityUsageTracker",
     "ConfigManager",
