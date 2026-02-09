@@ -38,6 +38,7 @@ import requests  # type: ignore[import-untyped]
 
 from cohezion.core.config import CohezionConfig
 from cohezion.swarm.batch_processor import BatchItem, BatchProcessor, BatchResult
+from cohezion.swarm.persistent_token_cache import PersistentTokenCache
 
 
 logger = logging.getLogger(__name__)
@@ -148,6 +149,8 @@ class TokenEfficientClient:
         ollama_base_url: str = "http://localhost:11434",
         router: Any = None,
         config: CohezionConfig | None = None,
+        use_persistent_cache: bool = True,
+        cache_dir: str = "data/cache",
     ):
         """Initialize token-efficient client.
 
@@ -155,11 +158,21 @@ class TokenEfficientClient:
             ollama_base_url: Ollama API base URL
             router: Model router (e.g., AdaptiveRouterAdapter) for routing decisions
             config: CohezionConfig with cache, batch, inference settings
+            use_persistent_cache: Whether to use persistent JSONL cache (default: True)
+            cache_dir: Directory for cache storage (default: data/cache)
         """
         self.ollama = ResilientOllamaClient(base_url=ollama_base_url)
         self.router = router
         self.config = config or CohezionConfig()
-        self.batch_processor = BatchProcessor(self, self.config)
+
+        # Initialize cache - persistent by default for session restore
+        if use_persistent_cache:
+            persistent_cache = PersistentTokenCache(
+                cache_dir=cache_dir, persistence_enabled=True, auto_restore=True
+            )
+            self.batch_processor = BatchProcessor(self, self.config, cache=persistent_cache)
+        else:
+            self.batch_processor = BatchProcessor(self, self.config)
 
         # Metrics
         self._total_tokens = 0
