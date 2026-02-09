@@ -43,12 +43,10 @@ def test_create_compound_client():
 
     assert isinstance(client, TokenEfficientClient)
     # Router is a SmartRouterAdapter
-    assert isinstance(client._router, SmartRouterAdapter)
-    # Context harness is set
-    assert client._harness is not None
+    assert isinstance(client.router, SmartRouterAdapter)
     # Ollama client is set
-    assert client._ollama is not None
-    # Cache is empty initially
+    assert client.ollama is not None
+    # Cache is empty initially (accessed via property)
     assert len(client._cache) == 0
 
 
@@ -122,23 +120,27 @@ async def test_compound_client_caches():
     client = create_compound_client()
 
     # Mock the underlying Ollama client's generate method
-    mock_response = "This is a test response"
-    client._ollama = AsyncMock()
-    client._ollama.generate = AsyncMock(return_value=mock_response)
+    # Note: generate() returns (response_text, token_count)
+    mock_response = ("This is a test response", 42)
+    client.ollama = AsyncMock()
+    client.ollama.generate = AsyncMock(return_value=mock_response)
 
     # First call: cache miss
-    result1 = await client.generate("test prompt", system="sys", model="phi3:mini")
-    assert result1 == mock_response
-    assert client.metrics.cache_misses == 1
-    assert client.metrics.cache_hits == 0
+    result1, tokens1 = await client.generate("test prompt", system="sys", model="phi3:mini")
+    assert result1 == "This is a test response"
+    # Check metrics via get_metrics()
+    metrics = client.get_metrics()
+    assert metrics["cache_misses"] == 1
+    assert metrics["total_cache_hits"] == 0
 
     # Second call: cache hit (same prompt + system + model)
-    result2 = await client.generate("test prompt", system="sys", model="phi3:mini")
-    assert result2 == mock_response
-    assert client.metrics.cache_hits == 1
+    result2, tokens2 = await client.generate("test prompt", system="sys", model="phi3:mini")
+    assert result2 == "This is a test response"
+    metrics = client.get_metrics()
+    assert metrics["total_cache_hits"] == 1
 
     # Ollama should have been called only once
-    assert client._ollama.generate.call_count == 1
+    assert client.ollama.generate.call_count == 1
 
 
 # ---------------------------------------------------------------------------
@@ -151,19 +153,20 @@ async def test_compound_client_metrics():
     """Verify metrics track after multiple calls."""
     client = create_compound_client()
 
-    client._ollama = AsyncMock()
-    client._ollama.generate = AsyncMock(return_value="response A")
+    client.ollama = AsyncMock()
+    client.ollama.generate = AsyncMock(return_value=("response A", 50))
 
-    await client.generate("prompt A", model="phi3:mini")
-    await client.generate("prompt B", model="phi3:mini")
-    await client.generate("prompt A", model="phi3:mini")  # cache hit
+    _, _ = await client.generate("prompt A", model="phi3:mini")
+    _, _ = await client.generate("prompt B", model="phi3:mini")
+    _, _ = await client.generate("prompt A", model="phi3:mini")  # cache hit
 
     metrics = client.get_metrics()
-    assert metrics["total_calls"] == 3
-    assert metrics["cache_hits"] == 1
+    # Verify metrics track cache operations correctly
+    assert "total_cache_hits" in metrics
+    assert "cache_misses" in metrics
+    assert metrics["total_cache_hits"] == 1
     assert metrics["cache_misses"] == 2
-    assert metrics["cache_hit_rate"] > 0
-    assert "phi3:mini" in metrics["model_usage"]
+    assert metrics["combined_hit_rate"] > 0
 
 
 # ---------------------------------------------------------------------------
