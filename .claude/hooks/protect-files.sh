@@ -1,5 +1,9 @@
 #!/bin/bash
-# Block edits to protected files (credentials, lock files, generated artifacts).
+# HOOK_NAME: protect-files
+# HOOK_STAGE: pre_execute
+# HOOK_ACTION: block
+# HOOK_TIMEOUT: 5
+# HOOK_DESCRIPTION: Block edits to protected files (credentials, lock files, generated artifacts).
 # Exit 2 = block with reason on stderr.
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')

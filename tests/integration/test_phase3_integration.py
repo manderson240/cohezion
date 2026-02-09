@@ -229,6 +229,13 @@ class TestPhase3CacheIntegration:
     @pytest.mark.asyncio
     async def test_semantic_cache_dissimilar_queries(self):
         """Test semantic cache doesn't hit on dissimilar queries."""
+        from cohezion.flume.vae_encoder import get_encoder
+
+        # Skip if VAE encoder is not available (uses fallback hash encoder)
+        encoder = get_encoder()
+        if not encoder.is_available():
+            pytest.skip("FLUME VAE encoder not available - skipping semantic discrimination test")
+
         cache = SemanticCache(
             similarity_threshold=0.80,
             max_entries=100

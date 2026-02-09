@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Hook metadata: name=validate-agent-files, stage=POST_EXECUTE
 # Claude Code PostToolUse hook: validate agent file frontmatter after Write/Edit.
 # Non-blocking — prints warning on failure so Claude can self-correct.
 

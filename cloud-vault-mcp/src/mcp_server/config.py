@@ -77,6 +77,26 @@ class ServerConfig:
             "TLS_ALLOWED_ORIGINS", "https://localhost,https://127.0.0.1"
         ).split(",")
     )
+    surrealdb_enabled: bool = field(
+        default_factory=lambda: (
+            os.environ.get("SURREALDB_ENABLED", "true").lower() == "true"
+        )
+    )
+    surrealdb_url: str = field(
+        default_factory=lambda: os.environ.get("SURREALDB_URL", "http://localhost:8000")
+    )
+    surrealdb_namespace: str = field(
+        default_factory=lambda: os.environ.get("SURREALDB_NAMESPACE", "cohezion")
+    )
+    surrealdb_database: str = field(
+        default_factory=lambda: os.environ.get("SURREALDB_DATABASE", "vault")
+    )
+    surrealdb_username: str = field(
+        default_factory=lambda: os.environ.get("SURREALDB_USERNAME", "root")
+    )
+    surrealdb_password: str = field(
+        default_factory=lambda: os.environ.get("SURREALDB_PASSWORD", "root")
+    )
 
     @classmethod
     def from_env(cls) -> "ServerConfig":
