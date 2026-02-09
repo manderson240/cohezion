@@ -96,6 +96,8 @@ class CompoundExecutor:
         journey_persistence: Any | None = None,
         alignment_analyzer: Any | None = None,
         enable_alignment_analysis: bool = False,
+        degradation_detector: Any | None = None,
+        model_quality_classifier: Any | None = None,
     ):
         """Initialize compound executor.
 
@@ -124,6 +126,12 @@ class CompoundExecutor:
                 creates default analyzer.
             enable_alignment_analysis: If True, enable alignment analysis
                 (requires alignment_analyzer or auto-creates one).
+            degradation_detector: Optional DegradationDetector for monitoring
+                metric drops (cache hit rate, token efficiency, coherence).
+                If None, no degradation detection.
+            model_quality_classifier: Optional ModelQualityClassifier for
+                predicting model failure likelihood. If None, no quality
+                classification.
         """
         self.mcp_client = mcp_client
         self.token_client = token_client
@@ -136,6 +144,8 @@ class CompoundExecutor:
         self._journey_persistence = journey_persistence
         self._alignment_analyzer = alignment_analyzer
         self._enable_alignment_analysis = enable_alignment_analysis
+        self._degradation_detector = degradation_detector
+        self._model_quality_classifier = model_quality_classifier
         # Lazy import to avoid circular dependency
         if inflection_detector:
             self.inflection_detector = inflection_detector
@@ -591,6 +601,83 @@ class CompoundExecutor:
                     "Skill refinement failed (non-blocking): %s", e, exc_info=True
                 )
 
+        # Step 7.5: Check for degradation (non-blocking)
+        if self._degradation_detector:
+            try:
+                degradation_metrics = {
+                    "combined_hit_rate": 0.0,
+                    "tokens_per_second": 0.0,
+                    "mean_coherence": metrics.get("coherence", 0.5),
+                    "elapsed_seconds": duration_seconds,
+                    "success_rate": 1.0 if success else 0.0,
+                }
+                if token_metrics:
+                    degradation_metrics["combined_hit_rate"] = token_metrics.get(
+                        "cache_hit_rate", token_metrics.get("combined_hit_rate", 0.0)
+                    )
+                    degradation_metrics["tokens_per_second"] = token_metrics.get(
+                        "tokens_per_second", 0.0
+                    )
+                alerts = self._degradation_detector.check_degradation(
+                    degradation_metrics
+                )
+                if alerts:
+                    metrics["degradation_alerts"] = len(alerts)
+                    for alert in alerts:
+                        logger.warning(
+                            "Degradation alert [%s]: %s",
+                            alert.severity.value,
+                            alert.message,
+                        )
+                    # Log critical alerts to vault
+                    critical_alerts = [
+                        a
+                        for a in alerts
+                        if a.severity.value == "CRITICAL"
+                    ]
+                    for alert in critical_alerts:
+                        try:
+                            dp = self.log_inflection_point(
+                                title=f"Degradation: {alert.metric}",
+                                context=f"Task: {task_description}\n{alert.message}",
+                                decision="Investigate degradation",
+                                rationale=f"Current: {alert.current_value:.3f}, "
+                                f"Baseline: {alert.baseline_value:.3f}, "
+                                f"Threshold: {alert.threshold:.3f}",
+                                project=project,
+                            )
+                            if dp:
+                                decision_paths.append(dp)
+                        except Exception as e:
+                            logger.debug(
+                                "Failed to log degradation alert (non-blocking): %s",
+                                e,
+                            )
+            except Exception as e:
+                logger.debug(
+                    "Degradation detection failed (non-blocking): %s", e
+                )
+
+        # Step 7.7: Record model quality (non-blocking)
+        if self._model_quality_classifier:
+            try:
+                model_name = "unknown"
+                tokens_used_for_quality = 0
+                if token_metrics:
+                    model_name = token_metrics.get("model", "unknown")
+                    tokens_used_for_quality = token_metrics.get("tokens_used", 0)
+                self._model_quality_classifier.add_execution(
+                    model=model_name,
+                    coherence=metrics.get("coherence", 0.5),
+                    success=success,
+                    tokens_used=tokens_used_for_quality,
+                    duration=duration_seconds,
+                )
+            except Exception as e:
+                logger.debug(
+                    "Model quality recording failed (non-blocking): %s", e
+                )
+
         # Step 8: Record metrics (non-blocking)
         if self._metrics_collector:
             try:
@@ -705,6 +792,14 @@ class CompoundExecutor:
         if "cache_hit_rate" in metrics_after:
             delta["cache_hit_rate"] = metrics_after["cache_hit_rate"]
 
+        # Pass through model name and other non-delta fields
+        if "model" in metrics_after:
+            delta["model"] = metrics_after["model"]
+        if "combined_hit_rate" in metrics_after:
+            delta["combined_hit_rate"] = metrics_after["combined_hit_rate"]
+        if "tokens_per_second" in metrics_after:
+            delta["tokens_per_second"] = metrics_after["tokens_per_second"]
+
         return delta
 
     def log_inflection_point(
@@ -757,6 +852,8 @@ class ExecutorFactory:
         journey_persistence: Any | None = None,
         alignment_analyzer: Any | None = None,
         enable_alignment_analysis: bool = False,
+        degradation_detector: Any | None = None,
+        model_quality_classifier: Any | None = None,
     ) -> CompoundExecutor:
         """Create a new compound executor.
 
@@ -773,6 +870,8 @@ class ExecutorFactory:
             journey_persistence: Optional JourneyPersistence
             alignment_analyzer: Optional RequestAlignmentAnalyzer
             enable_alignment_analysis: If True, enable alignment analysis
+            degradation_detector: Optional DegradationDetector
+            model_quality_classifier: Optional ModelQualityClassifier
 
         Returns:
             CompoundExecutor instance
@@ -790,6 +889,8 @@ class ExecutorFactory:
             journey_persistence=journey_persistence,
             alignment_analyzer=alignment_analyzer,
             enable_alignment_analysis=enable_alignment_analysis,
+            degradation_detector=degradation_detector,
+            model_quality_classifier=model_quality_classifier,
         )
 
     @staticmethod
@@ -806,6 +907,8 @@ class ExecutorFactory:
         journey_persistence: Any | None = None,
         alignment_analyzer: Any | None = None,
         enable_alignment_analysis: bool = False,
+        degradation_detector: Any | None = None,
+        model_quality_classifier: Any | None = None,
     ) -> CompoundExecutor:
         """Get or create singleton executor.
 
@@ -822,6 +925,8 @@ class ExecutorFactory:
             journey_persistence: Optional JourneyPersistence
             alignment_analyzer: Optional RequestAlignmentAnalyzer
             enable_alignment_analysis: If True, enable alignment analysis
+            degradation_detector: Optional DegradationDetector
+            model_quality_classifier: Optional ModelQualityClassifier
 
         Returns:
             Singleton CompoundExecutor instance
@@ -840,6 +945,8 @@ class ExecutorFactory:
                 journey_persistence=journey_persistence,
                 alignment_analyzer=alignment_analyzer,
                 enable_alignment_analysis=enable_alignment_analysis,
+                degradation_detector=degradation_detector,
+                model_quality_classifier=model_quality_classifier,
             )
         return ExecutorFactory._instance
 

@@ -9,30 +9,11 @@ from cohezion.compound.batch_sizer import (
     get_batch_size_predictor,
 )
 from cohezion.compound.cache_persistence import CachePersistence, WarmCacheLoader
-from cohezion.compound.hardware_monitor import (
-    HardwareMetrics,
-    HardwareMonitor,
-    get_hardware_monitor,
-)
-from cohezion.compound.thermal_predictor import (
-    ThermalMetrics,
-    ThermalTrendAnalyzer,
-    get_thermal_trend_analyzer,
-)
-from cohezion.compound.thermal_trend_predictor import (
-    ThermalTimeSeries,
-    ThermalTrendPredictor,
-    get_thermal_trend_predictor,
-)
-from cohezion.compound.thermal_history_persistence import (
-    ThermalTimeSeriesCollector,
-    get_thermal_time_series_collector,
-    load_jsonl_history,
-)
-from cohezion.compound.task_queue import (
-    QueuedTask,
-    TaskPriority,
-    TaskQueue,
+from cohezion.compound.degradation_detector import (
+    AlertSeverity,
+    DegradationAlert,
+    DegradationDetector,
+    MetricBaseline,
 )
 from cohezion.compound.executor import (
     CompoundExecutor,
@@ -46,11 +27,21 @@ from cohezion.compound.feedback_loop import (
     RetryAttempt,
     RetryStrategy,
 )
+from cohezion.compound.hardware_monitor import (
+    HardwareMetrics,
+    HardwareMonitor,
+    get_hardware_monitor,
+)
 from cohezion.compound.inflection_detector import (
     InflectionDetector,
     InflectionDetectorFactory,
     Severity,
 )
+from cohezion.compound.intake_specialist import (
+    IntakeGreeting,
+    IntakeSpecialist,
+)
+from cohezion.compound.intent_classifier import IntentClassifier
 from cohezion.compound.journey_persistence import JourneyPersistence
 from cohezion.compound.journey_tracker import (
     Journey,
@@ -65,27 +56,16 @@ from cohezion.compound.metrics import (
     reset_collector,
 )
 from cohezion.compound.metrics_persistence import MetricsPersistence
+from cohezion.compound.model_quality_classifier import (
+    ActionRecommendation,
+    ExecutionRecord,
+    FailureMode,
+    ModelQualityClassifier,
+    QualityForecast,
+    QualityPredictor,
+    RecommendedAction,
+)
 from cohezion.compound.models import CompoundCycleReport, CompoundCycleResult
-from cohezion.compound.skill_selector import (
-    SkillScore,
-    SkillSelector,
-)
-from cohezion.compound.team_executor import (
-    AgentTask,
-    AgentTaskResult,
-    TeamExecutionResult,
-    TeamExecutor,
-    TeamExecutorFactory,
-)
-from cohezion.compound.vault_execution_logger import (
-    ExecutionContext,
-    VaultExecutionLogger,
-)
-from cohezion.compound.intake_specialist import (
-    IntakeGreeting,
-    IntakeSpecialist,
-)
-from cohezion.compound.intent_classifier import IntentClassifier
 from cohezion.compound.prompt_optimizer import PromptOptimizer
 from cohezion.compound.request_alignment_analyzer import (
     ConstraintType,
@@ -101,11 +81,48 @@ from cohezion.compound.request_alignment_analyzer import (
     SuccessCriterion,
 )
 from cohezion.compound.request_cache import RequestCache
+from cohezion.compound.skill_selector import (
+    SkillScore,
+    SkillSelector,
+)
+from cohezion.compound.task_queue import (
+    QueuedTask,
+    TaskPriority,
+    TaskQueue,
+)
+from cohezion.compound.team_executor import (
+    AgentTask,
+    AgentTaskResult,
+    TeamExecutionResult,
+    TeamExecutor,
+    TeamExecutorFactory,
+)
+from cohezion.compound.thermal_history_persistence import (
+    ThermalTimeSeriesCollector,
+    get_thermal_time_series_collector,
+    load_jsonl_history,
+)
+from cohezion.compound.thermal_predictor import (
+    ThermalMetrics,
+    ThermalTrendAnalyzer,
+    get_thermal_trend_analyzer,
+)
+from cohezion.compound.thermal_trend_predictor import (
+    ThermalTimeSeries,
+    ThermalTrendPredictor,
+    get_thermal_trend_predictor,
+)
+from cohezion.compound.vault_execution_logger import (
+    ExecutionContext,
+    VaultExecutionLogger,
+)
 
 
 __all__ = [
+    "ActionRecommendation",
     "AgentTask",
     "AgentTaskResult",
+    "AlertSeverity",
     "BatchExecutionMetrics",
     "BatchSizePredictor",
     "CachePersistence",
@@ -118,12 +135,16 @@ __all__ = [
     "ConstraintType",
     "ConstraintViolation",
     "CriterionFailure",
+    "DegradationAlert",
+    "DegradationDetector",
     "DriftSignal",
     "ExecutionAlignment",
     "ExecutionConstraint",
     "ExecutionContext",
+    "ExecutionRecord",
     "ExecutionResult",
     "ExecutorFactory",
+    "FailureMode",
     "FeedbackLoopResult",
     "HardwareMetrics",
     "HardwareMonitor",
@@ -138,9 +159,15 @@ __all__ = [
     "JourneyPersistence",
     "JourneyTracker",
     "JourneyTrackerFactory",
+    "MetricBaseline",
     "MetricsPersistence",
+    "ModelQualityClassifier",
     "OperationType",
     "PromptOptimizer",
+    "QualityForecast",
+    "QualityPredictor",
+    "QueuedTask",
+    "RecommendedAction",
     "RequestAlignmentAnalyzer",
     "RequestAlignmentAnalyzerFactory",
     "RequestCache",
@@ -150,26 +177,25 @@ __all__ = [
     "SkillScore",
     "SkillSelector",
     "SuccessCriterion",
+    "TaskPriority",
+    "TaskQueue",
     "TeamExecutionResult",
     "TeamExecutor",
     "TeamExecutorFactory",
     "ThermalMetrics",
     "ThermalTimeSeries",
+    "ThermalTimeSeriesCollector",
     "ThermalTrendAnalyzer",
     "ThermalTrendPredictor",
-    "ThermalTimeSeriesCollector",
-    "TaskPriority",
-    "TaskQueue",
     "TrajectoryPoint",
-    "QueuedTask",
     "VaultExecutionLogger",
     "WarmCacheLoader",
     "get_batch_size_predictor",
     "get_collector",
     "get_hardware_monitor",
+    "get_thermal_time_series_collector",
     "get_thermal_trend_analyzer",
     "get_thermal_trend_predictor",
-    "get_thermal_time_series_collector",
     "load_jsonl_history",
     "reset_collector",
 ]
