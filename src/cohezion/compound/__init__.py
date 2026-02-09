@@ -15,6 +15,13 @@ from cohezion.compound.feedback_loop import (
     RetryAttempt,
     RetryStrategy,
 )
+from cohezion.compound.journey_tracker import (
+    Journey,
+    JourneyTracker,
+    JourneyTrackerFactory,
+    OperationType,
+    TrajectoryPoint,
+)
 from cohezion.compound.skill_selector import (
     SkillScore,
     SkillSelector,
@@ -42,6 +49,10 @@ __all__ = [
     "ExecutionResult",
     "ExecutorFactory",
     "FeedbackLoopResult",
+    "Journey",
+    "JourneyTracker",
+    "JourneyTrackerFactory",
+    "OperationType",
     "RetryAttempt",
     "RetryStrategy",
     "SkillScore",
@@ -49,5 +60,6 @@ __all__ = [
     "TeamExecutionResult",
     "TeamExecutor",
     "TeamExecutorFactory",
+    "TrajectoryPoint",
     "VaultExecutionLogger",
 ]
