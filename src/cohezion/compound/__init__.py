@@ -89,12 +89,6 @@ from cohezion.compound.request_alignment_analyzer import (
     SuccessCriterion,
 )
 from cohezion.compound.request_cache import RequestCache
-from cohezion.compound.session_manager_persistence import (
-    SessionPersistence,
-    SessionSnapshot,
-    get_session_persistence,
-    reset_session_persistence,
-)
 from cohezion.compound.skill_consensus_voter import (
     AgentVote,
     ConsensusResult,
@@ -197,8 +191,6 @@ __all__ = [
     "RequestCache",
     "RetryAttempt",
     "RetryStrategy",
-    "SessionPersistence",
-    "SessionSnapshot",
     "Severity",
     "SkillConsensusVoter",
     "SkillMetrics",
@@ -224,12 +216,10 @@ __all__ = [
     "get_collector",
     "get_global_aggregator",
     "get_hardware_monitor",
-    "get_session_persistence",
     "get_thermal_time_series_collector",
     "get_thermal_trend_analyzer",
     "get_thermal_trend_predictor",
     "load_jsonl_history",
     "reset_collector",
     "reset_global_aggregator",
-    "reset_session_persistence",
 ]
