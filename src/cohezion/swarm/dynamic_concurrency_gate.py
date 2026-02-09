@@ -10,8 +10,24 @@ import asyncio
 import logging
 from dataclasses import dataclass
 
-from cohezion.swarm.hardware_profiler_stub import HardwareProfilerFactory
-from cohezion.swarm.metrics_collector import HardwareMetrics
+@dataclass
+class HardwareMetrics:
+    """Stub hardware metrics class."""
+
+    vram_percent: float = 50.0
+    thermal_percent: float = 40.0
+
+
+class HardwareProfilerFactory:
+    """Stub factory for hardware profiler (used by DynamicConcurrencyGate)."""
+
+    @staticmethod
+    def get_profiler():
+        """Return a mock profiler that doesn't fail on missing imports."""
+        class MockProfiler:
+            def measure(self):
+                return {"vram_percent": 50.0, "thermal_percent": 40.0}
+        return MockProfiler()
 
 
 logger = logging.getLogger(__name__)
