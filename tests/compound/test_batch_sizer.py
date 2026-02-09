@@ -399,3 +399,201 @@ class TestEdgeCases:
 
         assert isinstance(size, int)
         assert size > 0
+
+
+class TestVaultPersistence:
+    """Test vault persistence for batch metrics learning."""
+
+    def test_learn_from_vault_no_client(self, predictor):
+        """Test learn_from_vault with no vault client configured."""
+        # Predictor has no vault_client
+        assert predictor.vault_client is None
+        count = predictor.learn_from_vault()
+        assert count == 0
+
+    def test_learn_from_vault_with_mock_client(self, predictor):
+        """Test learn_from_vault with mocked vault client."""
+        # Create a mock vault client
+        class MockVaultClient:
+            def vault_search(self, query, scope="all"):
+                # Return empty results
+                return []
+
+            def vault_read(self, path):
+                return ""
+
+        predictor.vault_client = MockVaultClient()
+        count = predictor.learn_from_vault()
+        assert count == 0
+
+    def test_parse_yaml_metrics(self, predictor):
+        """Test parsing metrics from YAML format."""
+        yaml_content = """
+batch_size: 32
+task_count: 10
+task_types: analyze, search, analyze
+execution_time: 5.0
+tokens_used: 1600
+throughput: 320.0
+cache_hit_rate: 0.75
+errors: 0
+timestamp: 2026-02-08T12:00:00
+"""
+        metrics = predictor._parse_yaml_metrics(yaml_content)
+        assert metrics is not None
+        assert metrics.batch_size == 32
+        assert metrics.task_count == 10
+        assert metrics.execution_time == 5.0
+        assert metrics.throughput == 320.0
+        assert "analyze" in metrics.task_types
+        assert "search" in metrics.task_types
+
+    def test_parse_json_metrics(self, predictor):
+        """Test parsing metrics from JSON format."""
+        json_content = """
+Some markdown before
+
+{
+  "batch_size": 16,
+  "task_count": 5,
+  "task_types": ["generate"],
+  "execution_time": 3.0,
+  "tokens_used": 800,
+  "throughput": 266.7,
+  "cache_hit_rate": 0.6
+}
+
+Some markdown after
+"""
+        metrics = predictor._parse_batch_metrics(json_content)
+        assert metrics is not None
+        assert metrics.batch_size == 16
+        assert metrics.task_count == 5
+        assert metrics.throughput == 266.7
+
+    def test_parse_markdown_fields(self, predictor):
+        """Test parsing metrics from markdown fields."""
+        markdown_content = """# Batch Execution Report
+
+**batch_size**: 24
+**task_count**: 8
+**execution_time**: 4.0
+**tokens_used**: 1200
+**throughput**: 300.0
+**cache_hit_rate**: 0.8
+**errors**: 0
+**task_types**: [analyze, transform]
+"""
+        metrics = predictor._parse_batch_metrics(markdown_content)
+        assert metrics is not None
+        assert metrics.batch_size == 24
+        assert metrics.task_count == 8
+        assert metrics.throughput == 300.0
+        assert metrics.cache_hit_rate == 0.8
+
+    def test_parse_invalid_metrics_returns_none(self, predictor):
+        """Test parsing invalid content returns None."""
+        content = "This is not valid metrics content"
+        metrics = predictor._parse_batch_metrics(content)
+        assert metrics is None
+
+    def test_parse_incomplete_metrics_returns_none(self, predictor):
+        """Test parsing incomplete metrics returns None."""
+        # Missing required fields
+        content = """
+batch_size: 32
+task_count: 10
+# Missing execution_time and throughput
+"""
+        metrics = predictor._parse_batch_metrics(content)
+        assert metrics is None
+
+    def test_dict_to_metrics_complete(self, predictor):
+        """Test converting complete dict to metrics."""
+        data = {
+            "batch_size": 32,
+            "task_count": 10,
+            "task_types": ["analyze"],
+            "execution_time": 5.0,
+            "tokens_used": 1600,
+            "throughput": 320.0,
+            "cache_hit_rate": 0.75,
+            "errors": 0,
+            "timestamp": "2026-02-08T12:00:00",
+        }
+        metrics = predictor._dict_to_metrics(data)
+        assert metrics is not None
+        assert metrics.batch_size == 32
+        assert metrics.throughput == 320.0
+
+    def test_dict_to_metrics_missing_required_fields(self, predictor):
+        """Test dict to metrics with missing required fields."""
+        data = {
+            "batch_size": 32,
+            "task_count": 10,
+            # Missing execution_time and throughput
+        }
+        metrics = predictor._dict_to_metrics(data)
+        assert metrics is None
+
+    def test_dict_to_metrics_with_defaults(self, predictor):
+        """Test dict to metrics uses defaults for optional fields."""
+        data = {
+            "batch_size": 32,
+            "task_count": 10,
+            "execution_time": 5.0,
+            "throughput": 320.0,
+            # Optional fields not provided
+        }
+        metrics = predictor._dict_to_metrics(data)
+        assert metrics is not None
+        assert metrics.tokens_used == 0
+        assert metrics.cache_hit_rate == 0.0
+        assert metrics.task_types == ["unknown"]
+
+    def test_learn_from_vault_integration_with_recording(self, predictor):
+        """Test that loaded metrics are recorded correctly."""
+        # Start with empty history
+        assert len(predictor.history) == 0
+
+        # Manually add a metric as if loaded from vault
+        metrics = BatchExecutionMetrics(
+            batch_size=32,
+            task_count=10,
+            task_types=["analyze"],
+            execution_time=5.0,
+            tokens_used=1600,
+            throughput=320.0,
+            cache_hit_rate=0.75,
+        )
+        predictor.record_execution(metrics)
+
+        # Verify it's in history
+        assert "analyze" in predictor.history
+        assert len(predictor.history["analyze"]) == 1
+
+        # Make a prediction from this data
+        size, conf = predictor.predict_optimal_size("analyze", 10)
+        assert size == 32
+        assert conf > 0.3  # Should have some confidence from one sample
+
+    def test_parse_metrics_with_various_formats(self, predictor):
+        """Test parsing metrics with various markdown formats."""
+        # Test with different formatting variations
+        content = """
+### Batch Performance Metrics
+
+Execution Details:
+- **batch_size**: 48
+- **task_count**: 12
+- execution_time: 6.0
+- tokens_used: 2000
+- throughput: 333.33
+- cache_hit_rate: 0.8
+
+Task Types: [generate, search]
+"""
+        metrics = predictor._parse_batch_metrics(content)
+        assert metrics is not None
+        assert metrics.batch_size == 48
+        assert metrics.throughput == 333.33
