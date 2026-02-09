@@ -231,7 +231,7 @@ class SemanticCache:
         self._put_l2(hash_key, entry)
 
         # Store in L3 (vault, async non-blocking fire-and-forget)
-        # Schedule vault storage without awaiting (non-blocking per NON_CRITICAL_TRACKING_PATTERN)
+        # Schedule vault storage without awaiting (non-blocking pattern)
         try:
             asyncio.create_task(self._vault_store(prompt, response))
         except RuntimeError:
@@ -314,9 +314,7 @@ class SemanticCache:
                             cache_data = json.loads(content)
                             response = cache_data.get("response", "")
                             if response and len(response) > 20:
-                                logger.debug(
-                                    f"L3 vault hit for prompt from {path}"
-                                )
+                                logger.debug(f"L3 vault hit for prompt from {path}")
                                 return response
 
                         except (json.JSONDecodeError, FileNotFoundError) as e:
@@ -355,9 +353,7 @@ class SemanticCache:
 
             # Create a cache pattern note in vault
             # Use timestamp + hash to avoid collisions
-            entry_hash = hashlib.md5(
-                f"{prompt}{timestamp}".encode()
-            ).hexdigest()[:8]
+            entry_hash = hashlib.md5(f"{prompt}{timestamp}".encode()).hexdigest()[:8]
             vault_path = f"cache_patterns/cache_entry_{entry_hash}.json"
 
             # Run synchronous vault_write in executor (non-blocking)
@@ -394,15 +390,9 @@ class SemanticCache:
             "misses": self.misses,
             "total_requests": total,
             "overall_hit_rate": hit_rate,
-            "l1_hit_rate": (
-                self.hits_l1 / total * 100 if total > 0 else 0.0
-            ),
-            "l2_hit_rate": (
-                self.hits_l2 / total * 100 if total > 0 else 0.0
-            ),
-            "l3_hit_rate": (
-                self.hits_l3 / total * 100 if total > 0 else 0.0
-            ),
+            "l1_hit_rate": (self.hits_l1 / total * 100 if total > 0 else 0.0),
+            "l2_hit_rate": (self.hits_l2 / total * 100 if total > 0 else 0.0),
+            "l3_hit_rate": (self.hits_l3 / total * 100 if total > 0 else 0.0),
             "l1_size": len(self.l1_cache),
             "l2_size": len(self.l2_cache),
             "similarity_threshold": self.similarity_threshold,

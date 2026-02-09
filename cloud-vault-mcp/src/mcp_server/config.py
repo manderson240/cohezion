@@ -37,6 +37,22 @@ class ServerConfig:
     sse_heartbeat_seconds: int = field(
         default_factory=lambda: int(os.environ.get("SSE_HEARTBEAT", "15"))
     )
+    sheets_spreadsheet_id: str = field(
+        default_factory=lambda: os.environ.get(
+            "SHEETS_SPREADSHEET_ID",
+            "1YcZObTni5L-VnA7O7TIl5ghoy-i3NfXuheFt_oFbmnk",
+        )
+    )
+    sheets_quota_project: str = field(
+        default_factory=lambda: os.environ.get(
+            "SHEETS_QUOTA_PROJECT", "cohezion-477604"
+        )
+    )
+    sheets_enabled: bool = field(
+        default_factory=lambda: (
+            os.environ.get("SHEETS_ENABLED", "true").lower() == "true"
+        )
+    )
 
     @classmethod
     def from_env(cls) -> "ServerConfig":

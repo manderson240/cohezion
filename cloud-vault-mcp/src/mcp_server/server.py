@@ -9,6 +9,7 @@ from .compound_ops import CompoundOps
 from .config import ServerConfig
 from .memory_bridge import VaultMemoryBridge
 from .obsidian_ops import ObsidianOps
+from .sheets_bridge import SheetsBridge
 from .teleport import CloudTeleportProtocol
 from .vault_ops import VaultOps
 
@@ -23,6 +24,13 @@ def create_server(config: ServerConfig) -> FastMCP:
     compound = CompoundOps(vault, obsidian)
     teleport = CloudTeleportProtocol(vault)
     memory_bridge = VaultMemoryBridge(vault)
+
+    sheets: SheetsBridge | None = None
+    if config.sheets_enabled:
+        sheets = SheetsBridge(
+            spreadsheet_id=config.sheets_spreadsheet_id,
+            quota_project=config.sheets_quota_project,
+        )
 
     mcp = FastMCP(
         "Cloud Vault",
@@ -421,5 +429,87 @@ def create_server(config: ServerConfig) -> FastMCP:
         """
         context = memory_bridge.pull_session_context()
         return json.dumps(context, indent=2, default=str)
+
+    # ── Sheets Bridge Operations ────────────────────────────────────
+
+    if sheets:
+
+        @mcp.tool()
+        def sheets_read_range(range_spec: str) -> str:
+            """Read a range from the Cohezion_Research Google Sheet.
+
+            Args:
+                range_spec: A1 notation range (e.g. 'A1:F100', 'A2:A50')
+            """
+            try:
+                rows = sheets.read_range(range_spec)
+                return json.dumps(rows, indent=2)
+            except Exception as e:
+                return f"Error: {e}"
+
+        @mcp.tool()
+        def sheets_get_all_rows() -> str:
+            """Read all data rows from Cohezion_Research as structured dicts.
+
+            Returns rows with: row number, link, status, abstractions, domain,
+            integration_point, vault_note.
+            """
+            try:
+                rows = sheets.get_all_rows()
+                return json.dumps(rows, indent=2)
+            except Exception as e:
+                return f"Error: {e}"
+
+        @mcp.tool()
+        def sheets_update_row(
+            row_num: int,
+            status: str,
+            abstractions: str,
+            domain: str,
+            integration_point: str,
+        ) -> str:
+            """Update columns B-E for a row in Cohezion_Research.
+
+            Args:
+                row_num: Row number (1-based, row 2 = first data row)
+                status: Research status (e.g. 'Researched', 'Inaccessible')
+                abstractions: Key abstractions (1-2 sentences)
+                domain: Domain category (e.g. 'AI Architecture', 'Astrophysics')
+                integration_point: Relevant Cohezion module
+            """
+            try:
+                result = sheets.update_row(
+                    row_num, status, abstractions, domain, integration_point
+                )
+                return json.dumps(result, indent=2)
+            except Exception as e:
+                return f"Error: {e}"
+
+        @mcp.tool()
+        def sheets_batch_update(data: list[dict]) -> str:
+            """Batch update multiple ranges in Cohezion_Research.
+
+            Args:
+                data: List of {range: 'Sheet1!B2:E2', values: [['v1', ...]]}
+            """
+            try:
+                result = sheets.batch_update(data)
+                return json.dumps(result, indent=2)
+            except Exception as e:
+                return f"Error: {e}"
+
+        @mcp.tool()
+        def sheets_update_vault_note(row_num: int, vault_note: str) -> str:
+            """Update column F (Vault Note) for a row.
+
+            Args:
+                row_num: Row number (1-based)
+                vault_note: Vault note filename (e.g. 'agentic-ai-memory-hierarchies.md')
+            """
+            try:
+                result = sheets.update_vault_note_column(row_num, vault_note)
+                return json.dumps(result, indent=2)
+            except Exception as e:
+                return f"Error: {e}"
 
     return mcp
