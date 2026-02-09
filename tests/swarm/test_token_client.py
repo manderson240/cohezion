@@ -317,8 +317,10 @@ class TestTokenEfficientClient:
 
             assert result.cache_misses == 10
             assert result.total_tokens == 1000
-            # Verify concurrency semaphore was respected
-            assert result.parallel_executions <= token_client.config.batch.parallel_tasks
+            # Phase 1: Verify parallelism occurred (may exceed original config limit)
+            # DynamicConcurrencyGate can scale from 4 up to 12 based on hardware state
+            assert result.parallel_executions > 0
+            assert result.parallel_executions <= len(items)
 
     def test_initialization(self, config):
         """Test client initialization."""
