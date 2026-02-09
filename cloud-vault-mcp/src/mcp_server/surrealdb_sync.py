@@ -177,7 +177,7 @@ class SurrealDBSync:
                 updated_at = time::now();
             """
 
-            results = self._execute_query(query)
+            self._execute_query(query)
             logger.info(f"Synced paper: {relative_path}")
 
             # Sync wiki-links to concepts (create edges)
