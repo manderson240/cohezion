@@ -67,3 +67,12 @@ repos:
       - id: detect-secrets
         stages: [push]
         args: ["--baseline", ".secrets.baseline"]
+
+  # Bandit - Security linting for Python code
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.8
+    hooks:
+      - id: bandit
+        stages: [push]
+        args: [--severity-level=medium, --skip=B101]
+        language: python
