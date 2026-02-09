@@ -269,7 +269,8 @@ class TestTLSIntegration:
     def test_certificate_validity_period(self):
         """Verify certificate is valid for at least one year."""
         try:
-            from datetime import datetime, timedelta
+            from datetime import datetime
+
             import OpenSSL
 
             cert_path = "/home/mike-anderson/dev/cohezion/certs/server.crt"
