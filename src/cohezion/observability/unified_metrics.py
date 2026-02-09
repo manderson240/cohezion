@@ -52,6 +52,11 @@ class InferenceMetrics:
     peak_memory_gb: float = 0.0
     concurrency_waits: int = 0
 
+    # Cost tracking (new in cost optimization initiative)
+    total_cost_usd: float = 0.0
+    cost_breakdown: dict[str, float] = field(default_factory=dict)
+    budget_utilization_pct: float = 0.0
+
     @property
     def total_cache_hit_rate(self) -> float:
         """Combined L1+L2+L3 hit rate."""
@@ -127,6 +132,9 @@ class InferenceMetrics:
             "peak_memory_gb": self.peak_memory_gb,
             "concurrency_waits": self.concurrency_waits,
             "guardrail_block_rate": self.guardrail_block_rate,
+            "total_cost_usd": self.total_cost_usd,
+            "cost_breakdown": self.cost_breakdown,
+            "budget_utilization_pct": self.budget_utilization_pct,
         }
 
 
