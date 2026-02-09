@@ -10,7 +10,6 @@ This test suite validates Task #2 of Phase 2 Security Hardening:
 
 import os
 import ssl
-import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -35,7 +34,9 @@ class TestTLSCertificateGeneration:
 
         # Certificate should be readable (644 or similar)
         cert_mode = oct(cert_path.stat().st_mode)[-3:]
-        assert cert_mode in ["644", "664"], f"Certificate has insecure permissions: {cert_mode}"
+        assert cert_mode in ["644", "664"], (
+            f"Certificate has insecure permissions: {cert_mode}"
+        )
 
         # Private key should only be readable by owner (600)
         key_mode = oct(key_path.stat().st_mode)[-3:]
@@ -47,6 +48,7 @@ class TestTLSCertificateGeneration:
 
         try:
             import OpenSSL
+
             with open(cert_path, "rb") as f:
                 cert_data = f.read()
             cert = OpenSSL.crypto.load_certificate(
@@ -63,12 +65,15 @@ class TestTLSCertificateGeneration:
 
         try:
             import OpenSSL
+
             with open(cert_path, "rb") as f:
                 cert = OpenSSL.crypto.load_certificate(
                     OpenSSL.crypto.FILETYPE_PEM, f.read()
                 )
             cn = cert.get_subject().CN
-            assert cn == "localhost", f"Certificate CN should be 'localhost', got '{cn}'"
+            assert cn == "localhost", (
+                f"Certificate CN should be 'localhost', got '{cn}'"
+            )
         except ImportError:
             pytest.skip("OpenSSL library not available")
 
@@ -78,6 +83,7 @@ class TestTLSCertificateGeneration:
 
         try:
             import OpenSSL
+
             with open(cert_path, "rb") as f:
                 cert = OpenSSL.crypto.load_certificate(
                     OpenSSL.crypto.FILETYPE_PEM, f.read()
@@ -97,6 +103,7 @@ class TestTLSConfiguration:
         """Verify TLSConfig module is available."""
         try:
             from cohezion.security.tls_config import TLSConfig
+
             assert TLSConfig is not None
         except ImportError as e:
             pytest.fail(f"TLSConfig module not found: {e}")
@@ -105,6 +112,7 @@ class TestTLSConfiguration:
         """Verify HTTPS middleware is available."""
         try:
             from cohezion.security.https_middleware import create_https_app
+
             assert create_https_app is not None
         except ImportError as e:
             pytest.fail(f"HTTPS middleware not found: {e}")
@@ -149,6 +157,7 @@ class TestUvicornSSLConfiguration:
         # This test ensures main.py can import the TLS modules
         try:
             from cloud_vault_mcp.src.mcp_server import main
+
             assert hasattr(main, "TLSConfig")
         except Exception:
             # If direct import fails, that's okay - the conditional import handles it
@@ -176,6 +185,7 @@ class TestMCPClientHTTPSSupport:
         """Verify MCP client can be imported."""
         try:
             from cohezion.core.mcp_client import MCPClient
+
             assert MCPClient is not None
         except ImportError as e:
             pytest.skip(f"MCPClient not available: {e}")
@@ -196,22 +206,30 @@ class TestCertificateGeneration:
 
     def test_setup_script_is_executable(self):
         """Verify certificate generation script exists and is executable."""
-        script_path = Path("/home/mike-anderson/dev/cohezion/scripts/setup/generate_tls_certificates.sh")
+        script_path = Path(
+            "/home/mike-anderson/dev/cohezion/scripts/setup/generate_tls_certificates.sh"
+        )
         assert script_path.exists(), f"Script not found at {script_path}"
-        assert os.access(script_path, os.X_OK), f"Script is not executable: {script_path}"
+        assert os.access(script_path, os.X_OK), (
+            f"Script is not executable: {script_path}"
+        )
 
     def test_certificate_generation_with_force_flag(self):
         """Test certificate can be regenerated with --force flag."""
         # This would require actually running the script, which is integration-level
         # For now, verify the script accepts the flag
-        script_path = Path("/home/mike-anderson/dev/cohezion/scripts/setup/generate_tls_certificates.sh")
+        script_path = Path(
+            "/home/mike-anderson/dev/cohezion/scripts/setup/generate_tls_certificates.sh"
+        )
         with open(script_path) as f:
             content = f.read()
         assert "--force" in content, "Script should support --force flag"
 
     def test_certificate_generation_key_size_option(self):
         """Test certificate supports custom key size."""
-        script_path = Path("/home/mike-anderson/dev/cohezion/scripts/setup/generate_tls_certificates.sh")
+        script_path = Path(
+            "/home/mike-anderson/dev/cohezion/scripts/setup/generate_tls_certificates.sh"
+        )
         with open(script_path) as f:
             content = f.read()
         assert "--key-size" in content, "Script should support --key-size option"
@@ -232,7 +250,9 @@ class TestTLSIntegration:
     def test_tls_environment_variables_documented(self):
         """Verify TLS configuration environment variables are documented."""
         # Check if setup script documents the environment variables
-        script_path = Path("/home/mike-anderson/dev/cohezion/scripts/setup/generate_tls_certificates.sh")
+        script_path = Path(
+            "/home/mike-anderson/dev/cohezion/scripts/setup/generate_tls_certificates.sh"
+        )
         with open(script_path) as f:
             content = f.read()
 
@@ -242,7 +262,9 @@ class TestTLSIntegration:
             "MCP_TLS_ENABLED",
         ]
         for var in expected_vars:
-            assert var in content, f"Environment variable {var} not documented in script"
+            assert var in content, (
+                f"Environment variable {var} not documented in script"
+            )
 
     def test_certificate_validity_period(self):
         """Verify certificate is valid for at least one year."""
@@ -261,7 +283,9 @@ class TestTLSIntegration:
             exp_date = datetime.strptime(not_after, "%Y%m%d%H%M%SZ")
             days_valid = (exp_date - datetime.utcnow()).days
 
-            assert days_valid >= 365, f"Certificate validity < 1 year: {days_valid} days"
+            assert days_valid >= 365, (
+                f"Certificate validity < 1 year: {days_valid} days"
+            )
         except ImportError:
             pytest.skip("OpenSSL library not available")
 
