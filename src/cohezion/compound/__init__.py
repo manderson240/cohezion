@@ -16,6 +16,11 @@ from cohezion.compound.feedback_loop import (
     RetryAttempt,
     RetryStrategy,
 )
+from cohezion.compound.inflection_detector import (
+    InflectionDetector,
+    InflectionDetectorFactory,
+    InflectionEvent,
+)
 from cohezion.compound.journey_persistence import JourneyPersistence
 from cohezion.compound.journey_tracker import (
     Journey,
@@ -62,6 +67,9 @@ __all__ = [
     "ExecutionResult",
     "ExecutorFactory",
     "FeedbackLoopResult",
+    "InflectionDetector",
+    "InflectionDetectorFactory",
+    "InflectionEvent",
     "Journey",
     "JourneyPersistence",
     "JourneyTracker",
