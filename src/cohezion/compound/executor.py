@@ -91,6 +91,11 @@ class CompoundExecutor:
         inflection_detector: Any | None = None,
         skill_refiner: Any | None = None,
         enable_skill_refinement: bool = True,
+        metrics_collector: Any | None = None,
+        journey_tracker: Any | None = None,
+        journey_persistence: Any | None = None,
+        alignment_analyzer: Any | None = None,
+        enable_alignment_analysis: bool = False,
     ):
         """Initialize compound executor.
 
@@ -108,6 +113,17 @@ class CompoundExecutor:
             skill_refiner: Optional SkillRefiner for learning from executions.
                 If None and enable_skill_refinement is True, creates default.
             enable_skill_refinement: If True (default), enable skill refinement.
+            metrics_collector: Optional CompoundMetricsCollector for recording
+                execution metrics. If None, no metrics recorded.
+            journey_tracker: Optional JourneyTracker for 12D FLUME trajectory
+                tracking. If None, no journey tracking.
+            journey_persistence: Optional JourneyPersistence for persisting
+                journey data. Requires journey_tracker to be set.
+            alignment_analyzer: Optional RequestAlignmentAnalyzer for request
+                alignment analysis. If None and enable_alignment_analysis is True,
+                creates default analyzer.
+            enable_alignment_analysis: If True, enable alignment analysis
+                (requires alignment_analyzer or auto-creates one).
         """
         self.mcp_client = mcp_client
         self.token_client = token_client
@@ -115,6 +131,11 @@ class CompoundExecutor:
         self._enable_guardrails = enable_guardrails
         self._skill_refiner = skill_refiner
         self._enable_skill_refinement = enable_skill_refinement
+        self._metrics_collector = metrics_collector
+        self._journey_tracker = journey_tracker
+        self._journey_persistence = journey_persistence
+        self._alignment_analyzer = alignment_analyzer
+        self._enable_alignment_analysis = enable_alignment_analysis
         # Lazy import to avoid circular dependency
         if inflection_detector:
             self.inflection_detector = inflection_detector
@@ -158,6 +179,28 @@ class CompoundExecutor:
             logger.debug("Initialized default skill refiner")
 
         return self._skill_refiner
+
+    @property
+    def alignment_analyzer(self) -> Any | None:
+        """Lazy-initialize default alignment analyzer if enabled.
+
+        Returns:
+            RequestAlignmentAnalyzer if alignment analysis enabled, None otherwise
+        """
+        if not self._enable_alignment_analysis:
+            return None
+
+        if self._alignment_analyzer is None:
+            from cohezion.compound.request_alignment_analyzer import (
+                RequestAlignmentAnalyzerFactory,
+            )
+
+            self._alignment_analyzer = RequestAlignmentAnalyzerFactory.create(
+                self.mcp_client
+            )
+            logger.debug("Initialized default alignment analyzer")
+
+        return self._alignment_analyzer
 
     def get_experience_guidance(
         self, task_description: str, project: str = "cohezion"
@@ -231,6 +274,7 @@ class CompoundExecutor:
         operation_type: str,
         execute_fn: Callable,
         project: str = "cohezion",
+        human_request: str | None = None,
     ) -> ExecutionResult:
         """Execute a compound task with vault logging.
 
@@ -242,6 +286,7 @@ class CompoundExecutor:
             execute_fn: Callable that executes the task, returns (output, metrics)
                 Can optionally use self.token_client if available
             project: Project name for vault logging
+            human_request: Optional raw request text for alignment analysis
 
         Returns:
             ExecutionResult with success status, output, metrics, vault paths,
@@ -270,6 +315,29 @@ class CompoundExecutor:
         # Step 1: Get experience guidance
         guidance = self.get_experience_guidance(task_description, project)
         logger.debug("Experience guidance: %s", guidance)
+
+        # Step 1.5: Parse request for alignment analysis (if enabled)
+        parsed_request = None
+        alignment_patterns = None
+        if self._enable_alignment_analysis and self.alignment_analyzer:
+            try:
+                request_text = human_request or task_description
+                parsed_request = self.alignment_analyzer.parse_request(request_text)
+                alignment_patterns = self.alignment_analyzer.query_alignment_patterns(
+                    task_description, project
+                )
+                logger.debug(
+                    "Parsed request: intent=%s (confidence=%.2f), "
+                    "%d constraints, %d criteria",
+                    parsed_request.intent.value,
+                    parsed_request.intent_confidence,
+                    len(parsed_request.constraints),
+                    len(parsed_request.criteria),
+                )
+            except Exception as e:
+                logger.debug(
+                    "Request alignment parsing failed (non-blocking): %s", e, exc_info=True
+                )
 
         # Step 2: Log execution start
         experiment_path = self.logger.log_execution_start(ctx)
@@ -416,6 +484,67 @@ class CompoundExecutor:
                 "Anomaly detection failed (non-blocking): %s", e, exc_info=True
             )
 
+        # Step 5.5: Analyze request-execution alignment (if enabled)
+        if self._enable_alignment_analysis and self.alignment_analyzer and parsed_request:
+            try:
+                from cohezion.compound.inflection_detector import Severity
+
+                temp_result = ExecutionResult(
+                    success=success,
+                    output=output,
+                    metrics=metrics,
+                    duration_seconds=duration_seconds,
+                    token_metrics=token_metrics,
+                )
+
+                # Get anomaly analysis if available
+                anomaly_analysis = None
+                if "anomaly_severity" in metrics:
+                    # Create a minimal anomaly object for alignment analysis
+                    from cohezion.compound.inflection_detector import AnomalyDetection
+
+                    severity_val = metrics.get("anomaly_severity", "info")
+                    severity_enum = Severity(severity_val)
+                    anomaly_analysis = AnomalyDetection(
+                        severity=severity_enum,
+                        score=metrics.get("anomaly_score", 0.0),
+                        issues=metrics.get("anomaly_issues", []),
+                        recommendations=metrics.get("anomaly_recommendations", []),
+                        should_reexecute=False,
+                    )
+
+                alignment = self.alignment_analyzer.analyze_alignment(
+                    parsed_request, temp_result, operation_type, anomaly_analysis
+                )
+
+                # Log alignment to vault if high misalignment
+                if alignment.misalignment_score > 0.3:
+                    vault_path = self.alignment_analyzer.log_alignment_to_vault(
+                        parsed_request, alignment, project
+                    )
+                    if vault_path:
+                        decision_paths.append(vault_path)
+                        logger.debug("Logged alignment analysis: %s", vault_path)
+
+                # Add alignment metrics to result
+                metrics["alignment"] = {
+                    "misalignment_score": alignment.misalignment_score,
+                    "intent_match": alignment.intent_match_score,
+                    "constraint_satisfaction": alignment.constraint_satisfaction,
+                    "criteria_satisfaction": alignment.criteria_satisfaction,
+                    "violations_count": len(alignment.violations),
+                    "failures_count": len(alignment.failures),
+                    "issues_count": len(alignment.issues),
+                    "should_retry": alignment.should_retry,
+                }
+                logger.debug("Alignment analysis: %s", metrics["alignment"])
+            except Exception as e:
+                logger.debug(
+                    "Request alignment analysis failed (non-blocking): %s",
+                    e,
+                    exc_info=True,
+                )
+
         # Step 6: If successful, extract patterns
         if success and experiment_path:
             try:
@@ -461,6 +590,70 @@ class CompoundExecutor:
                 logger.debug(
                     "Skill refinement failed (non-blocking): %s", e, exc_info=True
                 )
+
+        # Step 8: Record metrics (non-blocking)
+        if self._metrics_collector:
+            try:
+                tokens_used = 0
+                model_used = ""
+                if token_metrics:
+                    tokens_used = token_metrics.get("tokens_used", 0)
+                    model_used = token_metrics.get("model", "")
+                self._metrics_collector.record_execution(
+                    skill_name=skill_name,
+                    success=success,
+                    tokens_used=tokens_used,
+                    duration_ms=duration_seconds * 1000,
+                    model_used=model_used,
+                )
+            except Exception as e:
+                logger.debug("Metrics recording failed (non-blocking): %s", e)
+
+        # Step 9: Track journey (non-blocking)
+        if self._journey_tracker:
+            try:
+                temp_result = ExecutionResult(
+                    success=success,
+                    output=output,
+                    metrics=metrics,
+                    duration_seconds=duration_seconds,
+                    token_metrics=token_metrics,
+                )
+                point = self._journey_tracker.track_execution(
+                    temp_result, task_description, operation_type
+                )
+                if self._journey_persistence and point:
+                    try:
+                        point_data = {
+                            "coherence": point.coherence,
+                            "efficiency": point.efficiency,
+                            "operation_type": point.operation_type,
+                            "task_description": point.task_description[:200],
+                            "timestamp": point.timestamp,
+                        }
+                        if point.metadata:
+                            point_data["metadata"] = point.metadata
+                        import asyncio
+                        exec_id = f"exec_{int(time.time())}"
+                        try:
+                            asyncio.get_running_loop()
+                            _task = asyncio.ensure_future(  # noqa: RUF006
+                                self._journey_persistence
+                                .save_trajectory_point(
+                                    exec_id, point_data,
+                                )
+                            )
+                        except RuntimeError:
+                            asyncio.run(
+                                self._journey_persistence
+                                .save_trajectory_point(
+                                    exec_id, point_data,
+                                )
+                            )
+                    except Exception as e:
+                        logger.debug("Journey persistence failed (non-blocking): %s", e)
+            except Exception as e:
+                logger.debug("Journey tracking failed (non-blocking): %s", e)
 
         return ExecutionResult(
             success=success,
@@ -559,6 +752,11 @@ class ExecutorFactory:
         inflection_detector: Any | None = None,
         skill_refiner: Any | None = None,
         enable_skill_refinement: bool = True,
+        metrics_collector: Any | None = None,
+        journey_tracker: Any | None = None,
+        journey_persistence: Any | None = None,
+        alignment_analyzer: Any | None = None,
+        enable_alignment_analysis: bool = False,
     ) -> CompoundExecutor:
         """Create a new compound executor.
 
@@ -570,6 +768,11 @@ class ExecutorFactory:
             inflection_detector: Optional InflectionDetector for anomaly detection
             skill_refiner: Optional SkillRefiner for learning from executions
             enable_skill_refinement: If True (default), enable skill refinement
+            metrics_collector: Optional CompoundMetricsCollector
+            journey_tracker: Optional JourneyTracker
+            journey_persistence: Optional JourneyPersistence
+            alignment_analyzer: Optional RequestAlignmentAnalyzer
+            enable_alignment_analysis: If True, enable alignment analysis
 
         Returns:
             CompoundExecutor instance
@@ -582,6 +785,11 @@ class ExecutorFactory:
             inflection_detector,
             skill_refiner,
             enable_skill_refinement,
+            metrics_collector=metrics_collector,
+            journey_tracker=journey_tracker,
+            journey_persistence=journey_persistence,
+            alignment_analyzer=alignment_analyzer,
+            enable_alignment_analysis=enable_alignment_analysis,
         )
 
     @staticmethod
@@ -593,6 +801,11 @@ class ExecutorFactory:
         inflection_detector: Any | None = None,
         skill_refiner: Any | None = None,
         enable_skill_refinement: bool = True,
+        metrics_collector: Any | None = None,
+        journey_tracker: Any | None = None,
+        journey_persistence: Any | None = None,
+        alignment_analyzer: Any | None = None,
+        enable_alignment_analysis: bool = False,
     ) -> CompoundExecutor:
         """Get or create singleton executor.
 
@@ -604,6 +817,11 @@ class ExecutorFactory:
             inflection_detector: Optional InflectionDetector for anomaly detection
             skill_refiner: Optional SkillRefiner for learning from executions
             enable_skill_refinement: If True (default), enable skill refinement
+            metrics_collector: Optional CompoundMetricsCollector
+            journey_tracker: Optional JourneyTracker
+            journey_persistence: Optional JourneyPersistence
+            alignment_analyzer: Optional RequestAlignmentAnalyzer
+            enable_alignment_analysis: If True, enable alignment analysis
 
         Returns:
             Singleton CompoundExecutor instance
@@ -617,6 +835,11 @@ class ExecutorFactory:
                 inflection_detector,
                 skill_refiner,
                 enable_skill_refinement,
+                metrics_collector=metrics_collector,
+                journey_tracker=journey_tracker,
+                journey_persistence=journey_persistence,
+                alignment_analyzer=alignment_analyzer,
+                enable_alignment_analysis=enable_alignment_analysis,
             )
         return ExecutorFactory._instance
 

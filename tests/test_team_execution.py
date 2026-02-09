@@ -412,7 +412,6 @@ class TestExecutionOrchestratorCompound:
 
 
 class TestTeamOrchestratorExecuteTeam:
-    @pytest.mark.skip(reason="Tests stash-era API; HEAD modules evolved (Sessions 25-29)")
     @pytest.mark.asyncio
     @patch("cohezion.swarm.compound_client.get_compound_client")
     async def test_execute_team_end_to_end(self, mock_client: MagicMock) -> None:
@@ -427,11 +426,21 @@ class TestTeamOrchestratorExecuteTeam:
             "status": "completed",
         }
 
+        # Mock registry to avoid missing cohezion.registry.capability_registry
+        mock_cap = MagicMock()
+        mock_cap.name = "TEST_SKILL"
+        mock_cap.description = "A test skill"
+        mock_cap.type = "skill"
+        mock_cap.tags = ["test"]
+        mock_registry = MagicMock()
+        mock_registry.find.return_value = [mock_cap]
+
         with patch(
             "cohezion.swarm.team_execution.TeamCompoundExecutor.execute_task",
             mock_exec.execute_task,
         ):
             orch = TeamOrchestrator()
+            orch._registry = mock_registry
             report = await orch.execute_team("test intent", max_agents=2)
             assert report.status in ("completed", "partial")
             assert len(report.task_results) > 0

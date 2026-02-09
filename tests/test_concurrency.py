@@ -7,7 +7,6 @@ import json
 import logging
 import threading
 from pathlib import Path
-from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -293,55 +292,3 @@ class TestSafeSingleton:
         make_thing.reset()
 
 
-# ---------------------------------------------------------------------------
-# Integration: token_client cache lock
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.skip(reason="Tests stash-era API; HEAD modules evolved (Sessions 25-29)")
-class TestTokenClientCacheLock:
-    """Tests for thread-safe cache writes in TokenEfficientClient."""
-
-    @pytest.mark.asyncio
-    async def test_generate_uses_gate(self) -> None:
-        """generate() should acquire the OllamaGate."""
-        from cohezion.swarm.token_client import TokenEfficientClient
-
-        mock_ollama = AsyncMock()
-        mock_ollama.generate = AsyncMock(return_value="response text")
-
-        client = TokenEfficientClient(ollama_client=mock_ollama)
-
-        with patch("cohezion.swarm.token_client.get_gate") as mock_get_gate:
-            mock_gate = AsyncMock()
-            mock_gate.__aenter__ = AsyncMock(return_value=mock_gate)
-            mock_gate.__aexit__ = AsyncMock(return_value=False)
-            mock_get_gate.return_value = mock_gate
-
-            result = await client.generate("test prompt", use_cache=False)
-
-            assert result == "response text"
-            mock_gate.__aenter__.assert_called_once()
-            mock_gate.__aexit__.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_cache_write_is_locked(self) -> None:
-        """Cache writes in generate() should be under lock."""
-        from cohezion.swarm.token_client import TokenEfficientClient
-
-        mock_ollama = AsyncMock()
-        mock_ollama.generate = AsyncMock(return_value="cached response")
-
-        client = TokenEfficientClient(ollama_client=mock_ollama)
-        assert hasattr(client, "_cache_lock")
-
-        with patch("cohezion.swarm.token_client.get_gate") as mock_get_gate:
-            mock_gate = AsyncMock()
-            mock_gate.__aenter__ = AsyncMock(return_value=mock_gate)
-            mock_gate.__aexit__ = AsyncMock(return_value=False)
-            mock_get_gate.return_value = mock_gate
-
-            await client.generate("test prompt", use_cache=True)
-
-        # Verify the response was cached
-        assert len(client._cache) == 1

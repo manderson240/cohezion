@@ -362,6 +362,16 @@ class TokenEfficientClient:
         combined = f"{prompt}|{system}|{model}"
         return hashlib.sha256(combined.encode()).hexdigest()
 
+    @property
+    def _cache(self) -> dict:
+        """Cache dict for persistence compatibility (WarmCacheLoader)."""
+        return self.batch_processor.cache
+
+    @property
+    def _cache_max_size(self) -> int:
+        """Max cache size for persistence compatibility (WarmCacheLoader)."""
+        return self.config.cache.max_size
+
     def get_metrics(self) -> dict[str, Any]:
         """Get token efficiency metrics including L1 exact and L2 semantic cache.
 
