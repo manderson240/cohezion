@@ -13,10 +13,35 @@ class VaultOps:
             raise ValueError(f"Vault path does not exist: {self.vault_path}")
 
     def _resolve(self, path: str) -> Path:
-        """Resolve a vault-relative path safely, preventing directory traversal."""
-        resolved = (self.vault_path / path).resolve()
-        if not str(resolved).startswith(str(self.vault_path)):
-            raise ValueError(f"Path escapes vault: {path}")
+        """Resolve a vault-relative path safely, preventing directory traversal.
+
+        Security:
+        - Rejects paths with .. components
+        - Resolves symlinks and validates final location
+        - Ensures final path is within vault directory
+        - Prevents symlink escape attacks
+        """
+        # Reject obvious traversal attempts
+        if ".." in path or path.startswith("/"):
+            raise ValueError(f"Invalid path (traversal attempt): {path}")
+
+        # Construct candidate path
+        candidate = self.vault_path / path
+
+        # Resolve all symlinks to get real path
+        try:
+            resolved = candidate.resolve(strict=False)
+        except (OSError, RuntimeError) as e:
+            raise ValueError(f"Cannot resolve path: {path}") from e
+
+        # Verify resolved path is within vault
+        vault_str = str(self.vault_path.resolve())
+        resolved_str = str(resolved)
+
+        # Use startswith with trailing slash to prevent partial prefix matches
+        if not (resolved_str.startswith(vault_str + "/") or resolved_str == vault_str):
+            raise ValueError(f"Path escapes vault: {path} -> {resolved_str}")
+
         return resolved
 
     def read(self, path: str) -> str:
