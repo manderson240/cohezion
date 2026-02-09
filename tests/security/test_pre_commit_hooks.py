@@ -1,10 +1,7 @@
 """Tests for pre-commit hooks configuration and credential detection."""
 
 import json
-import subprocess
-import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 
