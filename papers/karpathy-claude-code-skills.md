@@ -1,0 +1,43 @@
+---
+title: "Andrej Karpathy's curated Claude Code skills for AI-assisted development workflows"
+date: 2026-02-07
+tags: [ai]
+source: "Source: GitHub
+ https://search.app/YP4f5"
+domain: "AI Development Tools"
+---
+
+
+## Abstract
+
+Andrej Karpathy documents his shift in AI-assisted coding workflow, noting a dramatic change from 80% manual coding with 20% AI assistance to 80% AI-driven coding with 20% manual edits. This represents a fundamental transformation in software engineering practices, comparable to historical shifts from assembly to high-level languages or from manual to automatic memory management.
+
+## Key Findings
+
+- Karpathy now programs primarily in English, instructing AI models to write code rather than writing manually
+- Advanced engineers gain exponential productivity through superior mental models and architectural abilities that command AI effectively
+- AI-generated mistakes are more subtle conceptual errors rather than simple syntax errors, requiring careful review
+- Full adoption of AI coding has become industry standard, with even Anthropic staff reporting 100% AI-written code
+- This workflow shift represents the most profound change to software development in two decades
+
+## Source
+
+https://x.com/karpathy/status/2015883857489522876
+
+# Andrej Karpathy's curated Claude Code skills for AI-assisted development workflows
+
+## Summary
+
+Andrej Karpathy's curated Claude Code skills for AI-assisted development workflows.
+
+## Key Findings
+
+- Andrej Karpathy's curated Claude Code skills for AI-assisted development workflows.
+
+## Integration Point
+
+lab_agent.py
+
+## Relevance to Cohezion
+
+AI Development Tools resource captured via mobile link pipeline. lab_agent.py, [[prompt-engineering]]

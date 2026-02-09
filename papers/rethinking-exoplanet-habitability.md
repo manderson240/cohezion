@@ -1,0 +1,23 @@
+---
+title: "Rethinking Where Life Could Exist Beyond Earth"
+date: 2026-02-07
+tags: [astrobiology, exoplanets, habitability, tidally-locked]
+source: "https://phys.org/news/2026-01-rethinking-life-earth.html"
+---
+
+# Rethinking Exoplanet Habitability
+
+## Summary
+
+Amri Wandel (Hebrew University) argues the traditional habitable zone definition is too restrictive. Tidally locked exoplanets orbiting M- and K-dwarf stars could sustain liquid water on their night side via heat transport, and subglacial lakes could exist beyond the classical outer edge.
+
+## Key Findings
+
+- Traditional habitable zone (surface liquid water) may exclude viable habitats
+- Tidally locked planets can have liquid water on night side via atmospheric heat transport
+- Subglacial and intraglacial lakes extend habitable possibilities beyond classical outer edge
+- M- and K-dwarf stars (most common stellar types) are primary candidates
+
+## Relevance to Cohezion
+
+Expands parameter space for habitability modeling in `fractal_universe.py`. Demonstrates that relaxing assumptions in system models can reveal previously hidden viable states - a general principle for simulation design., [[exoplanet-habitability]], [[habitable-zone]], [[stellar-evolution]]
