@@ -1,7 +1,6 @@
 """Tests for multi-agent team execution with vault coordination."""
 
-from unittest.mock import MagicMock, AsyncMock, patch
-import asyncio
+from unittest.mock import MagicMock
 
 import pytest
 

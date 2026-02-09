@@ -24,7 +24,6 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 from cohezion.sandbox.isolation import (
-    Change,
     ChangeType,
     CleanupRegistry,
     CleanupResult,
@@ -32,11 +31,8 @@ from cohezion.sandbox.isolation import (
     IsolationConfig,
     IsolationContext,
     IsolationManager,
-    IsolationMode,
     IsolationStatus,
-    MountPoint,
     NetworkIsolation,
-    NetworkNamespace,
     ProcessIsolation,
     get_isolation_manager,
 )

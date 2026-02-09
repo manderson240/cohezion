@@ -19,7 +19,7 @@ from collections import OrderedDict
 from pathlib import Path
 from typing import Any, Optional
 
-from cohezion.swarm.persistent_cache import CacheEntry, PersistentCache
+from cohezion.swarm.persistent_cache import PersistentCache
 
 logger = logging.getLogger(__name__)
 

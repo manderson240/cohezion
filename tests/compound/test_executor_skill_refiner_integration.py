@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from cohezion.compound.executor import CompoundExecutor, ExecutorFactory
-from cohezion.compound.skill_refiner import SkillRefiner, SkillRefinerFactory
+from cohezion.compound.skill_refiner import SkillRefiner
 
 
 @pytest.fixture

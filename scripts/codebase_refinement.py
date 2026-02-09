@@ -12,10 +12,8 @@ from pathlib import Path
 
 from cohezion.compound import (
     CompoundFeedbackLoopFactory,
-    CompoundExecutor,
     ExecutorFactory,
     JourneyTrackerFactory,
-    TeamExecutor,
     AgentTask,
 )
 from cohezion.core.mcp_client import MCPClient

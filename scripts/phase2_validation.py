@@ -11,11 +11,8 @@ Validates all Phase 2.1-2.5 improvements:
 Target: 3.4× cumulative improvement (85 → 294 tok/sec, 65%+ cache hit rate)
 """
 
-import asyncio
 import logging
 import sys
-import time
-from typing import Any
 
 # Configure logging
 logging.basicConfig(
@@ -335,7 +332,6 @@ class Phase2ValidationSuite:
         try:
             from cohezion.cache.text_encoder import get_text_encoder
             from cohezion.cache.semantic_cache import SemanticCache
-            from cohezion.compound.batch_executor import BatchableExecutor
             from cohezion.swarm.batch_processor import BatchProcessor
 
             # Component 1: Semantic encoder (Phase 2.1)

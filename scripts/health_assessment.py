@@ -10,7 +10,6 @@ Analyzes repository health across multiple dimensions:
 """
 
 import asyncio
-import json
 import logging
 import subprocess
 from pathlib import Path

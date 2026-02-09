@@ -12,14 +12,12 @@ Measures current state:
 import asyncio
 import logging
 import time
-from pathlib import Path
 
 import numpy as np
 
 from cohezion.cache.semantic_cache import SemanticCache
-from cohezion.compound import SkillSelector
 from cohezion.core.mcp_client import MCPClient, MCPConfig
-from cohezion.flume.vae_encoder import get_encoder, FlumeVAEEncoder
+from cohezion.flume.vae_encoder import get_encoder
 
 # Configure logging
 logging.basicConfig(
@@ -147,7 +145,7 @@ async def diagnostic_l3_cache_baseline():
     try:
         # Simple health check by doing a search
         results = mcp_client.vault_search("test")
-        logger.info(f"  Vault Status: ✅ CONNECTED")
+        logger.info("  Vault Status: ✅ CONNECTED")
         logger.info(f"  Sample Search Results: {len(results) if results else 0} patterns")
     except Exception as e:
         logger.info(f"  Vault Status: ❌ DISCONNECTED ({e})")

@@ -222,7 +222,7 @@ class GuardrailPipeline:
                     )
                     return result
 
-            except Exception as e:
+            except Exception:
                 logger.exception(f"Output guardrail {guard_name} raised exception")
                 if self.fail_closed:
                     return GuardrailResult(
@@ -238,7 +238,7 @@ class GuardrailPipeline:
         if self.audit_callback:
             try:
                 await self.audit_callback(event)
-            except Exception as e:
+            except Exception:
                 logger.exception("Audit callback failed")
 
     def get_stats(self) -> dict[str, dict[str, Any]]:

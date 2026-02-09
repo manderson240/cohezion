@@ -1,8 +1,10 @@
 """Entry point for the inbox processor daemon."""
 
 import asyncio
+import json
 import logging
 import signal
+from pathlib import Path
 
 from .compound_ops import CompoundOps
 from .config import ServerConfig
@@ -13,6 +15,16 @@ from .vault_watcher import VaultFileWatcher
 
 
 logger = logging.getLogger("inbox-processor")
+
+
+def _load_oauth_token() -> str | None:
+    """Read access token from Claude Code's credentials file."""
+    creds_path = Path.home() / ".claude" / ".credentials.json"
+    try:
+        data = json.loads(creds_path.read_text())
+        return data["claudeAiOauth"]["accessToken"]
+    except (FileNotFoundError, KeyError, json.JSONDecodeError):
+        return None
 
 
 async def run_inbox_daemon(config: ServerConfig):
@@ -30,11 +42,17 @@ async def run_inbox_daemon(config: ServerConfig):
         )
         return
 
-    if not config.anthropic_api_key:
-        logger.error("ANTHROPIC_API_KEY environment variable required")
+    # Try OAuth token first, fall back to API key
+    auth_token = _load_oauth_token()
+    if auth_token:
+        client = anthropic.Anthropic(auth_token=auth_token)
+        logger.info("Using OAuth token from ~/.claude/.credentials.json")
+    elif config.anthropic_api_key:
+        client = anthropic.Anthropic(api_key=config.anthropic_api_key)
+        logger.info("Using ANTHROPIC_API_KEY")
+    else:
+        logger.error("No auth: set ANTHROPIC_API_KEY or log in with Claude Code")
         return
-
-    client = anthropic.Anthropic(api_key=config.anthropic_api_key)
     processor = InboxProcessor(vault, compound, client, model=config.inbox_model)
 
     loop = asyncio.get_running_loop()

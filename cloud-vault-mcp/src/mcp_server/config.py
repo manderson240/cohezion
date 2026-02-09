@@ -26,7 +26,7 @@ class ServerConfig:
     )
     inbox_model: str = field(
         default_factory=lambda: os.environ.get(
-            "INBOX_MODEL", "claude-sonnet-4-5-20250929"
+            "INBOX_MODEL", "claude-haiku-4-5-20251001"
         )
     )
     watcher_enabled: bool = field(
@@ -52,6 +52,9 @@ class ServerConfig:
         default_factory=lambda: (
             os.environ.get("SHEETS_ENABLED", "true").lower() == "true"
         )
+    )
+    allowed_hosts: list[str] = field(
+        default_factory=lambda: os.environ.get("ALLOWED_HOSTS", "*").split(",")
     )
 
     @classmethod
