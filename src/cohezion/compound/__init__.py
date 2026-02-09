@@ -29,6 +29,11 @@ from cohezion.compound.thermal_history_persistence import (
     get_thermal_time_series_collector,
     load_jsonl_history,
 )
+from cohezion.compound.task_queue import (
+    QueuedTask,
+    TaskPriority,
+    TaskQueue,
+)
 from cohezion.compound.executor import (
     CompoundExecutor,
     ExecutionResult,
@@ -82,6 +87,19 @@ from cohezion.compound.intake_specialist import (
 )
 from cohezion.compound.intent_classifier import IntentClassifier
 from cohezion.compound.prompt_optimizer import PromptOptimizer
+from cohezion.compound.request_alignment_analyzer import (
+    ConstraintType,
+    ConstraintViolation,
+    CriterionFailure,
+    DriftSignal,
+    ExecutionAlignment,
+    ExecutionConstraint,
+    HumanRequest,
+    IntentType,
+    RequestAlignmentAnalyzer,
+    RequestAlignmentAnalyzerFactory,
+    SuccessCriterion,
+)
 from cohezion.compound.request_cache import RequestCache
 
 
@@ -97,17 +115,25 @@ __all__ = [
     "CompoundFeedbackLoop",
     "CompoundFeedbackLoopFactory",
     "CompoundMetricsCollector",
+    "ConstraintType",
+    "ConstraintViolation",
+    "CriterionFailure",
+    "DriftSignal",
+    "ExecutionAlignment",
+    "ExecutionConstraint",
     "ExecutionContext",
     "ExecutionResult",
     "ExecutorFactory",
     "FeedbackLoopResult",
     "HardwareMetrics",
     "HardwareMonitor",
+    "HumanRequest",
     "InflectionDetector",
     "InflectionDetectorFactory",
     "IntakeGreeting",
     "IntakeSpecialist",
     "IntentClassifier",
+    "IntentType",
     "Journey",
     "JourneyPersistence",
     "JourneyTracker",
@@ -115,12 +141,15 @@ __all__ = [
     "MetricsPersistence",
     "OperationType",
     "PromptOptimizer",
+    "RequestAlignmentAnalyzer",
+    "RequestAlignmentAnalyzerFactory",
     "RequestCache",
     "RetryAttempt",
     "RetryStrategy",
     "Severity",
     "SkillScore",
     "SkillSelector",
+    "SuccessCriterion",
     "TeamExecutionResult",
     "TeamExecutor",
     "TeamExecutorFactory",
@@ -129,7 +158,10 @@ __all__ = [
     "ThermalTrendAnalyzer",
     "ThermalTrendPredictor",
     "ThermalTimeSeriesCollector",
+    "TaskPriority",
+    "TaskQueue",
     "TrajectoryPoint",
+    "QueuedTask",
     "VaultExecutionLogger",
     "WarmCacheLoader",
     "get_batch_size_predictor",
