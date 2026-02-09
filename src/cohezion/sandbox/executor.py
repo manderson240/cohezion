@@ -15,12 +15,14 @@ from typing import Any
 
 try:
     import docker
+
     HAS_DOCKER = True
 except ImportError:
     HAS_DOCKER = False
 
 try:
     import psutil
+
     HAS_PSUTIL = True
 except ImportError:
     HAS_PSUTIL = False
@@ -31,6 +33,7 @@ logger = logging.getLogger(__name__)
 
 class ResourceLimitType(str, Enum):
     """Resource limit types."""
+
     CPU_PERCENT = "cpu_percent"
     MEMORY_GB = "memory_gb"
     DISK_GB = "disk_gb"
@@ -38,6 +41,7 @@ class ResourceLimitType(str, Enum):
 
 class ExecutorEventType(str, Enum):
     """Executor-specific audit event types (internal use)."""
+
     SANDBOX_START = "sandbox_start"
     SANDBOX_STOP = "sandbox_stop"
     OPERATION_START = "operation_start"
@@ -53,6 +57,7 @@ class ExecutorEventType(str, Enum):
 @dataclass
 class ResourceLimits:
     """Resource constraints for sandbox execution."""
+
     cpu_percent: float = 200.0  # CPU limit in percent
     memory_gb: int = 4  # Memory limit in GB
     disk_gb: int = 10  # Disk limit in GB
@@ -67,6 +72,7 @@ class ResourceLimits:
 @dataclass
 class ResourceMetrics:
     """Resource usage metrics."""
+
     cpu_percent: float = 0.0
     memory_mb: float = 0.0
     memory_peak_mb: float = 0.0
@@ -82,6 +88,7 @@ class ResourceMetrics:
 @dataclass
 class AuditEntry:
     """Audit log entry."""
+
     timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     event_type: ExecutorEventType = ExecutorEventType.OPERATION_START
     component: str = "SandboxExecutor"
@@ -91,13 +98,14 @@ class AuditEntry:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         data = asdict(self)
-        data['event_type'] = self.event_type.value
+        data["event_type"] = self.event_type.value
         return data
 
 
 @dataclass
 class SandboxRequest:
     """Request to execute operation in sandbox."""
+
     operation: str
     context: dict[str, Any]
     timeout: int = 3600
@@ -117,6 +125,7 @@ class SandboxRequest:
 @dataclass
 class SandboxResult:
     """Result of sandboxed execution."""
+
     success: bool
     exit_code: int
     stdout: str
@@ -132,17 +141,17 @@ class SandboxResult:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'success': self.success,
-            'exit_code': self.exit_code,
-            'stdout': self.stdout,
-            'stderr': self.stderr,
-            'duration': self.duration,
-            'resources_used': self.resources_used.to_dict(),
-            'changes_applied': self.changes_applied,
-            'rollback_performed': self.rollback_performed,
-            'container_id': self.container_id,
-            'error': self.error,
-            'audit_log': [entry.to_dict() for entry in self.audit_log],
+            "success": self.success,
+            "exit_code": self.exit_code,
+            "stdout": self.stdout,
+            "stderr": self.stderr,
+            "duration": self.duration,
+            "resources_used": self.resources_used.to_dict(),
+            "changes_applied": self.changes_applied,
+            "rollback_performed": self.rollback_performed,
+            "container_id": self.container_id,
+            "error": self.error,
+            "audit_log": [entry.to_dict() for entry in self.audit_log],
         }
 
 
@@ -268,9 +277,9 @@ class SandboxExecutor:
             # Try to get process info by container ID
             if container_id in self.containers:
                 container_info = self.containers[container_id]
-                if 'pid' in container_info:
+                if "pid" in container_info:
                     try:
-                        p = psutil.Process(container_info['pid'])
+                        p = psutil.Process(container_info["pid"])
                         metrics.cpu_percent = p.cpu_percent(interval=0.1)
                         memory_info = p.memory_info()
                         metrics.memory_mb = memory_info.rss / (1024 * 1024)
@@ -293,8 +302,7 @@ class SandboxExecutor:
         """
         if not self.client:
             raise RuntimeError(
-                "Docker client not available. "
-                "Ensure Docker is installed and running."
+                "Docker client not available. Ensure Docker is installed and running."
             )
 
         try:
@@ -309,15 +317,15 @@ class SandboxExecutor:
             container_id = container.id[:12]
 
             self.containers[container_id] = {
-                'docker_container': container,
-                'created_at': datetime.now(UTC),
-                'pid': None,  # Would need to inspect to get PID
+                "docker_container": container,
+                "created_at": datetime.now(UTC),
+                "pid": None,  # Would need to inspect to get PID
             }
 
             self._add_audit_entry(
                 ExecutorEventType.SANDBOX_START,
                 f"Container started: {container_id}",
-                {'container_id': container_id},
+                {"container_id": container_id},
             )
 
             logger.info(f"Sandbox container started: {container_id}")
@@ -338,8 +346,8 @@ class SandboxExecutor:
 
         try:
             container_info = self.containers[container_id]
-            if 'docker_container' in container_info:
-                container = container_info['docker_container']
+            if "docker_container" in container_info:
+                container = container_info["docker_container"]
                 container.stop(timeout=10)
                 container.remove()
 
@@ -380,9 +388,9 @@ class SandboxExecutor:
             path = Path(self.audit_log_path)
             path.parent.mkdir(parents=True, exist_ok=True)
 
-            with open(path, 'a') as f:
+            with open(path, "a") as f:
                 for entry in self.audit_entries:
-                    f.write(json.dumps(entry.to_dict()) + '\n')
+                    f.write(json.dumps(entry.to_dict()) + "\n")
 
             logger.debug(f"Audit log saved to {path}")
         except Exception as e:
@@ -407,16 +415,15 @@ class SandboxExecutor:
         try:
             # Create sandbox container
             container_id = self.start()
-            audit_log = self.audit_entries.copy()
 
-            # Apply resource limits
-            limits = request.resource_limits or self.default_limits
+            # Apply resource limits (defaults used if not specified)
+            _ = request.resource_limits or self.default_limits
 
             # Simulate execution (would run actual command in container)
             self._add_audit_entry(
                 ExecutorEventType.OPERATION_START,
                 f"Operation '{request.operation}' starting",
-                {'operation': request.operation, 'container_id': container_id},
+                {"operation": request.operation, "container_id": container_id},
             )
 
             # Simulate async operation
@@ -431,7 +438,7 @@ class SandboxExecutor:
             self._add_audit_entry(
                 ExecutorEventType.OPERATION_COMPLETE,
                 f"Operation '{request.operation}' completed successfully",
-                {'exit_code': 0, 'duration': duration},
+                {"exit_code": 0, "duration": duration},
             )
 
             result = SandboxResult(
@@ -453,7 +460,7 @@ class SandboxExecutor:
             self._add_audit_entry(
                 ExecutorEventType.TIMEOUT,
                 f"Operation timed out after {request.timeout} seconds",
-                {'container_id': container_id},
+                {"container_id": container_id},
             )
             if self._timeout_handler and container_id:
                 self._timeout_handler(container_id)
@@ -480,7 +487,7 @@ class SandboxExecutor:
                 self._add_audit_entry(
                     ExecutorEventType.OOM,
                     "Out of memory error",
-                    {'container_id': container_id, 'error': error_msg},
+                    {"container_id": container_id, "error": error_msg},
                 )
                 if self._oom_handler and container_id:
                     self._oom_handler(container_id)
@@ -488,7 +495,7 @@ class SandboxExecutor:
                 self._add_audit_entry(
                     ExecutorEventType.DISK_FULL,
                     "Disk full error",
-                    {'container_id': container_id, 'error': error_msg},
+                    {"container_id": container_id, "error": error_msg},
                 )
                 if self._disk_full_handler and container_id:
                     self._disk_full_handler(container_id)
@@ -496,7 +503,7 @@ class SandboxExecutor:
                 self._add_audit_entry(
                     ExecutorEventType.OPERATION_FAILED,
                     f"Operation failed: {error_msg}",
-                    {'container_id': container_id, 'error': error_msg},
+                    {"container_id": container_id, "error": error_msg},
                 )
 
             return SandboxResult(
@@ -532,10 +539,10 @@ class SandboxExecutor:
             if loop.is_running():
                 # If in async context, run synchronously
                 import concurrent.futures
+
                 with concurrent.futures.ThreadPoolExecutor() as pool:
                     return loop.run_in_executor(
-                        pool,
-                        lambda: asyncio.run(self.execute_async(request))
+                        pool, lambda: asyncio.run(self.execute_async(request))
                     ).result()
             else:
                 return asyncio.run(self.execute_async(request))

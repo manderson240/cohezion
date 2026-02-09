@@ -1,8 +1,9 @@
 """HookIntegration - Wire Phase 2.1 security hooks into sandbox execution pipeline.
 
-This module provides hook discovery, registration, and execution for sandbox lifecycle events.
-Hooks are shell scripts that fire at specific stages (PRE_EXECUTE, PRE_OPERATION, POST_OPERATION, CLEANUP)
-and can BLOCK, WARN, or ALLOW operations based on their exit codes.
+This module provides hook discovery, registration, and execution for sandbox
+lifecycle events. Hooks are shell scripts that fire at specific stages
+(PRE_EXECUTE, PRE_OPERATION, POST_OPERATION, CLEANUP) and can BLOCK, WARN, or
+ALLOW operations based on their exit codes.
 """
 
 import json
@@ -23,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 class HookStage(str, Enum):
     """Lifecycle stages where hooks can execute."""
+
     PRE_EXECUTE = "pre_execute"
     PRE_OPERATION = "pre_operation"
     POST_OPERATION = "post_operation"
@@ -31,14 +33,16 @@ class HookStage(str, Enum):
 
 class HookAction(str, Enum):
     """Actions that hooks can request."""
-    BLOCK = "block"      # Exit code 1: Block operation
-    WARN = "warn"        # Exit code 2: Warn but allow
-    ALLOW = "allow"      # Exit code 0: Allow operation
+
+    BLOCK = "block"  # Exit code 1: Block operation
+    WARN = "warn"  # Exit code 2: Warn but allow
+    ALLOW = "allow"  # Exit code 0: Allow operation
 
 
 @dataclass
 class HookMetadata:
     """Metadata about a hook script."""
+
     name: str
     stage: HookStage
     action: HookAction
@@ -48,31 +52,33 @@ class HookMetadata:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'name': self.name,
-            'stage': self.stage.value,
-            'action': self.action.value,
-            'timeout': self.timeout,
-            'description': self.description,
+            "name": self.name,
+            "stage": self.stage.value,
+            "action": self.action.value,
+            "timeout": self.timeout,
+            "description": self.description,
         }
 
 
 @dataclass
 class Hook:
     """Represents a single hook script."""
+
     path: Path
     metadata: HookMetadata
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'path': str(self.path),
-            'metadata': self.metadata.to_dict(),
+            "path": str(self.path),
+            "metadata": self.metadata.to_dict(),
         }
 
 
 @dataclass
 class HookResult:
     """Result of hook execution."""
+
     hook_name: str
     exit_code: int
     stdout: str
@@ -85,20 +91,21 @@ class HookResult:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'hook_name': self.hook_name,
-            'exit_code': self.exit_code,
-            'stdout': self.stdout,
-            'stderr': self.stderr,
-            'duration': self.duration,
-            'action': self.action.value,
-            'timestamp': self.timestamp,
-            'error': self.error,
+            "hook_name": self.hook_name,
+            "exit_code": self.exit_code,
+            "stdout": self.stdout,
+            "stderr": self.stderr,
+            "duration": self.duration,
+            "action": self.action.value,
+            "timestamp": self.timestamp,
+            "error": self.error,
         }
 
 
 @dataclass
 class ExecutionContext:
     """Context passed to hooks during execution."""
+
     operation: str
     sandbox_id: str
     files_to_modify: list[str] = field(default_factory=list)
@@ -110,12 +117,12 @@ class ExecutionContext:
     def to_env_dict(self) -> dict[str, str]:
         """Convert context to environment variables for hooks."""
         env = {
-            'SANDBOX_OPERATION': self.operation,
-            'SANDBOX_SANDBOX_ID': self.sandbox_id,
-            'SANDBOX_FILES_TO_MODIFY': ' '.join(self.files_to_modify),
-            'SANDBOX_COMMAND': self.command,
-            'SANDBOX_EDITED_FILE': self.edited_file,
-            'SANDBOX_AGENT_FILES': ':'.join(self.agent_files),
+            "SANDBOX_OPERATION": self.operation,
+            "SANDBOX_SANDBOX_ID": self.sandbox_id,
+            "SANDBOX_FILES_TO_MODIFY": " ".join(self.files_to_modify),
+            "SANDBOX_COMMAND": self.command,
+            "SANDBOX_EDITED_FILE": self.edited_file,
+            "SANDBOX_AGENT_FILES": ":".join(self.agent_files),
         }
         # Add extra environment variables
         env.update(self.extra_env)
@@ -173,7 +180,7 @@ class HookDiscovery:
             HookMetadata if valid, None otherwise
         """
         try:
-            with open(hook_file, 'r') as f:
+            with open(hook_file, "r") as f:
                 content = f.read(500)  # Read first 500 bytes for metadata
         except Exception as e:
             logger.error(f"Failed to read hook file {hook_file}: {e}")
@@ -181,27 +188,25 @@ class HookDiscovery:
 
         # Extract metadata from comments
         metadata_dict = {}
-        for line in content.split('\n')[:15]:
-            match = re.match(r'#\s*HOOK_(\w+):\s*(.+)', line)
+        for line in content.split("\n")[:15]:
+            match = re.match(r"#\s*HOOK_(\w+):\s*(.+)", line)
             if match:
                 key = match.group(1).lower()
                 value = match.group(2).strip()
                 metadata_dict[key] = value
 
         # Validate required fields
-        if 'name' not in metadata_dict or 'stage' not in metadata_dict:
+        if "name" not in metadata_dict or "stage" not in metadata_dict:
             logger.warning(f"Hook {hook_file} missing required metadata")
             return None
 
         # Parse and validate values
         try:
-            name = metadata_dict['name']
-            stage = HookStage(metadata_dict['stage'].lower())
-            action = HookAction(
-                metadata_dict.get('action', 'allow').lower()
-            )
-            timeout = int(metadata_dict.get('timeout', '10'))
-            description = metadata_dict.get('description', '')
+            name = metadata_dict["name"]
+            stage = HookStage(metadata_dict["stage"].lower())
+            action = HookAction(metadata_dict.get("action", "allow").lower())
+            timeout = int(metadata_dict.get("timeout", "10"))
+            description = metadata_dict.get("description", "")
 
             return HookMetadata(
                 name=name,
@@ -312,7 +317,9 @@ class HookRegistry:
             hook: Hook to register
         """
         self.hooks[hook.metadata.stage][hook.metadata.name] = hook
-        logger.debug(f"Registered hook {hook.metadata.name} for stage {hook.metadata.stage.value}")
+        logger.debug(
+            f"Registered hook {hook.metadata.name} for stage {hook.metadata.stage.value}"
+        )
 
     def get_hooks_for_stage(self, stage: HookStage) -> list[Hook]:
         """Get all hooks for a specific stage.
@@ -367,8 +374,7 @@ class HookRegistry:
         result = {}
         for stage in HookStage:
             result[stage.value] = {
-                name: hook.to_dict()
-                for name, hook in self.hooks[stage].items()
+                name: hook.to_dict() for name, hook in self.hooks[stage].items()
             }
         return result
 
@@ -433,10 +439,12 @@ class HookIntegration:
         self.audit_trail.append(result)
 
         # Log result
-        log_level = logging.WARNING if result.action == HookAction.BLOCK else logging.DEBUG
+        log_level = (
+            logging.WARNING if result.action == HookAction.BLOCK else logging.DEBUG
+        )
         logger.log(
             log_level,
-            f"Hook {result.hook_name} completed: {result.action.value} (exit_code={result.exit_code})"
+            f"Hook {result.hook_name} completed: {result.action.value} (exit_code={result.exit_code})",
         )
         if result.stdout:
             logger.debug(f"Hook stdout: {result.stdout}")
@@ -492,9 +500,9 @@ class HookIntegration:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
-            'hooks_dir': str(self.hooks_dir),
-            'registry': self.registry.to_dict(),
-            'audit_trail': [result.to_dict() for result in self.audit_trail],
+            "hooks_dir": str(self.hooks_dir),
+            "registry": self.registry.to_dict(),
+            "audit_trail": [result.to_dict() for result in self.audit_trail],
         }
 
 
@@ -513,7 +521,7 @@ def get_hook_integration(
     Returns:
         HookIntegration instance
     """
-    if not hasattr(get_hook_integration, '_instance'):
+    if not hasattr(get_hook_integration, "_instance"):
         get_hook_integration._instance = HookIntegration(hooks_dir)
     return get_hook_integration._instance
 
