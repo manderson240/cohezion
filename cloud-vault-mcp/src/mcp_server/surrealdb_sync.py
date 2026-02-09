@@ -151,6 +151,7 @@ class SurrealDBSync:
             wikilinks = self._extract_wikilinks(content)
 
             # Build UPSERT query (insert or update)
+            # Use backticks for IDs to handle special characters (hyphens, slashes, etc)
             paper_id = relative_path.replace("/", "_").replace(".md", "")
 
             # Build date clause - use NONE for null, cast string to datetime
@@ -166,21 +167,14 @@ class SurrealDBSync:
             USE NS {self.namespace};
             USE DB {self.database};
 
-            -- Upsert: UPDATE if exists, CREATE if not (only set fields once in CREATE)
-            UPDATE paper:{json.dumps(paper_id)} SET
+            -- UPSERT: Insert if new, update if exists
+            UPSERT paper:`{paper_id}` SET
                 path = {json.dumps(relative_path)},
                 title = {json.dumps(title)},
                 tags = {json.dumps(tags)},
                 content = {json.dumps(content_truncated)},
                 date = {date_clause},
-                updated_at = time::now()
-            OR CREATE (
-                path: {json.dumps(relative_path)},
-                title: {json.dumps(title)},
-                tags: {json.dumps(tags)},
-                content: {json.dumps(content_truncated)},
-                date: {date_clause}
-            );
+                updated_at = time::now();
             """
 
             results = self._execute_query(query)
@@ -211,7 +205,7 @@ class SurrealDBSync:
         delete_query = f"""
         USE NS {self.namespace};
         USE DB {self.database};
-        DELETE links WHERE in = paper:{json.dumps(paper_id)};
+        DELETE links WHERE in = paper:`{paper_id}`;
         """
         self._execute_query(delete_query)
 
@@ -222,16 +216,15 @@ class SurrealDBSync:
             USE NS {self.namespace};
             USE DB {self.database};
 
-            -- Create concept if doesn't exist
-            UPDATE concept:{json.dumps(concept_id)} SET updated_at = time::now()
-            OR CREATE (
-                path: {json.dumps(f"concepts/{concept_name}.md")},
-                title: {json.dumps(concept_name)},
-                content: ""
-            );
+            -- Create concept if doesn't exist (use backticks for ID)
+            UPSERT concept:`{concept_id}` SET
+                path = {json.dumps(f"concepts/{concept_name}.md")},
+                title = {json.dumps(concept_name)},
+                content = "",
+                updated_at = time::now();
 
-            -- Create link relationship (RELATE is idempotent)
-            RELATE paper:{json.dumps(paper_id)}->links->concept:{json.dumps(concept_id)} SET
+            -- Create link relationship (RELATE creates edge record)
+            RELATE paper:`{paper_id}`->links->concept:`{concept_id}` SET
                 strength = 1.0;
             """
             try:
@@ -281,6 +274,7 @@ class SurrealDBSync:
             title = frontmatter.get("title", concept_path.stem)
             tags = frontmatter.get("tags", [])
 
+            # Use backticks for IDs to handle special characters
             concept_id = concept_path.stem.replace("/", "_")
 
             # Truncate content to avoid huge queries
@@ -290,18 +284,13 @@ class SurrealDBSync:
             USE NS {self.namespace};
             USE DB {self.database};
 
-            UPDATE concept:{json.dumps(concept_id)} SET
+            -- UPSERT: Insert if new, update if exists
+            UPSERT concept:`{concept_id}` SET
                 path = {json.dumps(relative_path)},
                 title = {json.dumps(title)},
                 tags = {json.dumps(tags)},
                 content = {json.dumps(content_truncated)},
-                updated_at = time::now()
-            OR CREATE (
-                path: {json.dumps(relative_path)},
-                title: {json.dumps(title)},
-                tags: {json.dumps(tags)},
-                content: {json.dumps(content_truncated)}
-            );
+                updated_at = time::now();
             """
 
             self._execute_query(query)
