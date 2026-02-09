@@ -28,7 +28,7 @@ from cohezion.compound.batch_sizer import (
     get_batch_size_predictor,
 )
 from cohezion.compound.executor import CompoundExecutor, ExecutionResult
-from cohezion.core.mcp_client import MCPClient
+from cohezion.core.mcp_client import MCPClient, MCPToolError
 
 
 logger = logging.getLogger(__name__)
@@ -245,6 +245,21 @@ class BatchableExecutor:
             )
         except Exception as e:
             logger.debug(f"Failed to record thermal metrics (non-blocking): {e}")
+
+        # Phase 3 Sprint 1: Log batch performance to vault for learning feedback
+        # Calculate throughput if we have results
+        if results:
+            total_tokens = sum(r.metrics.get("tokens_used", 0) for r in results)
+            throughput = total_tokens / duration if duration > 0 else 0.0
+            self._log_batch_performance(
+                batch_size=predicted_batch_size,
+                task_count=len(tasks),
+                throughput=throughput,
+                cache_hit_rate=cache_hit_rate,
+                execution_time=duration,
+                tasks_failed=tasks_failed,
+                tasks_executed=tasks_executed,
+            )
 
         return BatchCompoundResult(
             success=len(errors) == 0,
@@ -544,6 +559,108 @@ class BatchableExecutor:
         )
 
         return result
+
+    def _log_batch_performance(
+        self,
+        batch_size: int,
+        task_count: int,
+        throughput: float,
+        cache_hit_rate: float,
+        execution_time: float,
+        tasks_failed: int,
+        tasks_executed: int,
+    ) -> int:
+        """Log batch performance metrics to vault for learning feedback.
+
+        Logs batch execution metrics to vault as an experiment for
+        historical analysis and pattern learning. Non-blocking operation
+        that doesn't impact execution on failure.
+
+        Parameters
+        ----------
+        batch_size : int
+            Batch size used for execution
+        task_count : int
+            Total number of tasks in batch
+        throughput : float
+            Tokens per second achieved
+        cache_hit_rate : float
+            Cache hit percentage (0-100)
+        execution_time : float
+            Total execution time in seconds
+        tasks_failed : int
+            Number of failed tasks
+        tasks_executed : int
+            Number of successfully executed tasks
+
+        Returns
+        -------
+        int
+            1 if logged successfully, 0 otherwise
+        """
+        if not self.mcp_client:
+            logger.debug("No MCPClient configured, skipping batch performance logging")
+            return 0
+
+        try:
+            # Format metrics for vault experiment
+            hypothesis = (
+                f"Batch execution with batch_size={batch_size}, "
+                f"task_count={task_count}"
+            )
+
+            method = (
+                f"Executed {task_count} tasks in batch with "
+                f"deduplication={self.enable_deduplication}, "
+                f"adaptive_sizing={self.enable_adaptive_batch_sizing}"
+            )
+
+            result = (
+                f"Success: {tasks_executed}/{task_count} tasks executed\n"
+                f"Failures: {tasks_failed}\n"
+                f"Throughput: {throughput:.1f} tokens/sec\n"
+                f"Cache Hit Rate: {cache_hit_rate:.1f}%\n"
+                f"Execution Time: {execution_time:.2f}s\n"
+                f"Average Time per Task: {execution_time/task_count:.3f}s"
+            )
+
+            learnings = (
+                f"Achieved {throughput:.1f} tok/sec with {cache_hit_rate:.1f}% cache hits. "
+                f"Batch size {batch_size} processed {task_count} tasks in {execution_time:.2f}s. "
+                f"Success rate: {(tasks_executed/task_count*100):.1f}%"
+            )
+
+            # Log to vault as experiment
+            path = self.mcp_client.vault_log_experiment(
+                project="cohezion",
+                hypothesis=hypothesis,
+                method=method,
+                result=result,
+                learnings=learnings,
+                title=f"batch_performance_size{batch_size}_{task_count}tasks",
+            )
+
+            logger.debug(
+                f"Logged batch performance to vault: "
+                f"throughput={throughput:.1f} tok/sec, "
+                f"cache_hit={cache_hit_rate:.1f}%, "
+                f"path={path}"
+            )
+            return 1
+
+        except MCPToolError as e:
+            # Vault unavailable - non-blocking failure
+            logger.debug(
+                f"Vault logging failed (non-blocking): {e}"
+            )
+            return 0
+
+        except Exception as e:
+            # Unexpected error - non-blocking failure
+            logger.debug(
+                f"Batch performance logging failed (non-blocking): {e}"
+            )
+            return 0
 
 
 class BatchExecutorFactory:
