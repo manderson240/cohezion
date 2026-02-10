@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Optional
 
 from cohezion.config.config_events import ConfigEvent
+from cohezion.config.config_monitoring import ConfigMonitor
 from cohezion.config.config_state import (
     ChangeSet,
     ConfigConflict,
@@ -47,7 +48,12 @@ class ConfigurationOrchestrator:
     Keeps them synchronized while enforcing size limits and validation.
     """
 
-    def __init__(self, repo_root: Path = Path.cwd()):
+    def __init__(
+        self,
+        repo_root: Path = Path.cwd(),
+        vault_url: str = "http://localhost:8360",
+        vault_api_key: str = "",
+    ):
         """Initialize orchestrator with repo root."""
         self.repo_root = Path(repo_root)
         self.git_utils = GitUtils(self.repo_root)
@@ -64,6 +70,9 @@ class ConfigurationOrchestrator:
             "GEMINI.md": {"max_lines": 200, "max_chars": 12000},
         }
 
+        # Monitoring
+        self.monitor = ConfigMonitor(repo_root, vault_url, vault_api_key)
+
         # Status tracking
         self._monitoring = False
         self._monitor_tasks: list[asyncio.Task] = []
@@ -71,7 +80,13 @@ class ConfigurationOrchestrator:
         logger.info(f"ConfigurationOrchestrator initialized at {self.repo_root}")
 
     async def start_monitoring(self) -> None:
-        """Start all monitoring tasks concurrently."""
+        """Start all monitoring tasks concurrently.
+
+        Phase 2: Real-time monitoring via ConfigMonitor (SSE + polling)
+        - Vault changes via VaultSubscriptionClient
+        - Config file changes via polling
+        - Manual edit detection via git history
+        """
         if self._monitoring:
             logger.warning("Monitoring already started")
             return
@@ -80,17 +95,15 @@ class ConfigurationOrchestrator:
         logger.info("Starting configuration orchestration monitoring")
 
         try:
-            # Note: Full implementation would hook into EventBus and VaultSubscriptionClient
-            # For Phase 1, we create the framework
+            # Phase 2: Real-time monitoring
             tasks = [
-                asyncio.create_task(self._monitor_vault_changes()),
-                asyncio.create_task(self._monitor_config_file_changes()),
-                asyncio.create_task(self._run_reconciliation_loop()),
-                asyncio.create_task(self._enforce_size_limits()),
+                asyncio.create_task(self.monitor.start()),  # Real-time vault + config
+                asyncio.create_task(self._run_reconciliation_loop()),  # Validation
+                asyncio.create_task(self._enforce_size_limits()),  # Size checks
             ]
             self._monitor_tasks = tasks
 
-            # Run all tasks
+            # Run all tasks concurrently
             await asyncio.gather(*tasks)
 
         except asyncio.CancelledError:
@@ -99,6 +112,7 @@ class ConfigurationOrchestrator:
             logger.error(f"Monitoring error: {e}", exc_info=True)
         finally:
             self._monitoring = False
+            await self.monitor.stop()
 
     async def stop_monitoring(self) -> None:
         """Stop all monitoring tasks."""
@@ -109,38 +123,6 @@ class ConfigurationOrchestrator:
         await asyncio.gather(*self._monitor_tasks, return_exceptions=True)
         logger.info("Configuration orchestration monitoring stopped")
 
-    async def _monitor_vault_changes(self) -> None:
-        """Monitor vault for decision/pattern/experiment changes.
-
-        Phase 2: Will integrate with VaultSubscriptionClient (SSE).
-        Phase 1: Placeholder for event-driven monitoring.
-        """
-        while self._monitoring:
-            try:
-                # Phase 2: Subscribe to vault changes via EventBus
-                # await asyncio.sleep(5)  # Reduced for testing
-                await asyncio.sleep(300)  # 5 minutes
-            except asyncio.CancelledError:
-                break
-            except Exception as e:
-                logger.warning(f"Vault monitoring error: {e}")
-                await asyncio.sleep(30)
-
-    async def _monitor_config_file_changes(self) -> None:
-        """Monitor CLAUDE.md and GEMINI.md for manual edits.
-
-        Phase 2: Will integrate with VaultFileWatcher.
-        Phase 1: Placeholder for file monitoring.
-        """
-        while self._monitoring:
-            try:
-                # Phase 2: Integrate with VaultFileWatcher
-                await asyncio.sleep(300)  # 5 minutes
-            except asyncio.CancelledError:
-                break
-            except Exception as e:
-                logger.warning(f"File monitoring error: {e}")
-                await asyncio.sleep(30)
 
     async def _run_reconciliation_loop(self) -> None:
         """Run periodic reconciliation and validation.

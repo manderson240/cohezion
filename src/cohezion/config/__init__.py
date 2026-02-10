@@ -12,6 +12,7 @@ from cohezion.config.configuration_orchestrator import (
     reset_config_orchestrator,
 )
 from cohezion.config.config_events import ConfigEvent
+from cohezion.config.config_monitoring import ConfigMonitor, VaultSubscriptionClientProxy
 from cohezion.config.config_state import (
     ChangeSet,
     ConfigConflict,
@@ -38,10 +39,12 @@ __all__ = [
     "CloudGraderConfig",
     "get_config",
     "reload_config",
-    # Configuration orchestration (new)
+    # Configuration orchestration (Phase 1-2)
     "ConfigurationOrchestrator",
     "get_config_orchestrator",
     "reset_config_orchestrator",
+    "ConfigMonitor",
+    "VaultSubscriptionClientProxy",
     "ConfigEvent",
     "ConfigState",
     "FileMetadata",
