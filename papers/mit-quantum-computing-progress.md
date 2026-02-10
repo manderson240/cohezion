@@ -9,6 +9,9 @@ temporal: 1.00
 recency: 1.00
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
+conceptual_depth: 1.00
+conceptual_label: Pure Theory
+similar_papers: [[karpathy-claude-code-skills]], [[mom-z14-farthest-galaxy]], [[cosmic-strings-time-travel]], [[beyond-the-quantum-pilot-wave-theory]], [[usaf-stealthy-electromagnetic-attack]]
 domain: "Quantum Computing"
 https: //search.app/cvbGD"
 source: "Source: Nature

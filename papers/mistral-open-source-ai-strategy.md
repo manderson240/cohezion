@@ -9,6 +9,9 @@ temporal: 1.00
 recency: 1.00
 connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 2/3 sections (66%)
+conceptual_depth: 0.00
+conceptual_label: Pure Applied
+similar_papers: [[2026-02-09-unique-investment-opportunities-research]], [[quantum-entangled-atomic-sensors]], [[circleci-ai-cicd-validation]], [[anthropic-principle-fine-tuning]], [[llamaagents-builder]]
 domain: "AI Strategy and Business"
 https: //search.app/ze5Wu"
 source: "Source: Nature

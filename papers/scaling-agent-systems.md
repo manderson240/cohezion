@@ -1,11 +1,7 @@
 ---
 title: Towards a Science of Scaling Agent Systems
 date: 2026-02-07
-tags:
-- ai-architecture
-- multi-agent
-- scaling
-- evaluation
+tags: 
 connectivity: 0.27
 cross_domain: 0.5
 completion: 0.67
@@ -13,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (4/5 links)
 completion_summary: 2/3 sections (66%)
-source: https://arxiv.org/abs/2512.08296
-dim_conceptual_depth: 0.0
+conceptual_depth: 0.00
 conceptual_label: Pure Applied
-similar_papers:
-- helimagnetism-ferromagnetism-mode-locking.md
-- jwst-red-nova-remnants.md
-- llm-training-methodology-changes.md
-- mom-z14-farthest-galaxy.md
-- dna-origami-2d-semiconductor-patterning.md
+similar_papers: [[helimagnetism-ferromagnetism-mode-locking]], [[jwst-red-nova-remnants]], [[llm-training-methodology-changes]], [[mom-z14-farthest-galaxy]], [[dna-origami-2d-semiconductor-patterning]]
+dim_conceptual_depth: 0.0
+source: https://arxiv.org/abs/2512.08296
 ---
 
 

@@ -1,12 +1,7 @@
 ---
 title: Super-Earth Exoplanets Have Built-In Magnetic Protection from Magma Oceans
 date: 2026-02-07
-tags:
-- astrophysics
-- exoplanets
-- magnetic-fields
-- habitability
-- super-earth
+tags: 
 connectivity: 0.2
 cross_domain: 0.62
 completion: 0.67
@@ -14,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (3/5 links)
 completion_summary: 2/3 sections (66%)
-source: https://www.space.com/astronomy/exoplanets/super-earth-exoplanets-may-have-built-in-magnetic-protection-from-churning-magma-and-thats-good-news-for-life
-dim_conceptual_depth: 0.5
+conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers:
-- testing-agent-skills-with-evals.md
-- tonggeometry-ai-math.md
-- mars-time-dilation-relativity.md
-- quantum-entangled-atomic-sensors.md
-- ai-anomaly-detection-hubble-archive.md
+similar_papers: [[testing-agent-skills-with-evals]], [[tonggeometry-ai-math]], [[mars-time-dilation-relativity]], [[quantum-entangled-atomic-sensors]], [[ai-anomaly-detection-hubble-archive]]
+dim_conceptual_depth: 0.5
+source: https://www.space.com/astronomy/exoplanets/super-earth-exoplanets-may-have-built-in-magnetic-protection-from-churning-magma-and-thats-good-news-for-life
 ---
 
 

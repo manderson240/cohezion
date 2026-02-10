@@ -1,10 +1,7 @@
 ---
 title: 'LlamaAgents Builder: Idea to Deployed Agent in Minutes'
 date: 2026-02-07
-tags:
-- ai-architecture
-- agent-deployment
-- llamaindex
+tags: 
 connectivity: 0.27
 cross_domain: 0.38
 completion: 1.0
@@ -12,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (4/5 links)
 completion_summary: 3/3 sections (100%)
-source: https://www.llamaindex.ai/blog/llamaagents-builder-idea-to-deployed-agent-in-minutes
-dim_conceptual_depth: 0.5
+conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers:
-- quantum-teleportation-logic-gates.md
-- anthropic-principle-fine-tuning.md
-- operational-data-ai-agents.md
-- axion-dark-matter-quantum-sensors.md
-- webb-cosmic-question-mark-gravitational-lens.md
+similar_papers: [[quantum-teleportation-logic-gates]], [[anthropic-principle-fine-tuning]], [[operational-data-ai-agents]], [[axion-dark-matter-quantum-sensors]], [[webb-cosmic-question-mark-gravitational-lens]]
+dim_conceptual_depth: 0.5
+source: https://www.llamaindex.ai/blog/llamaagents-builder-idea-to-deployed-agent-in-minutes
 ---
 
 

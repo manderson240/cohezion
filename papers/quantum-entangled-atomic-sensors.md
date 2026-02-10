@@ -1,11 +1,7 @@
 ---
 title: Multiparameter Estimation with Entangled Atomic Sensor Arrays
 date: 2026-02-07
-tags:
-- quantum-physics
-- entanglement
-- sensing
-- precision-measurement
+tags: 
 connectivity: 0.2
 cross_domain: 0.5
 completion: 0.67
@@ -13,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (3/5 links)
 completion_summary: 2/3 sections (66%)
-source: https://www.sciencedaily.com/releases/2026/01/260126075846.htm
-dim_conceptual_depth: 1.0
+conceptual_depth: 1.00
 conceptual_label: Pure Theory
-similar_papers:
-- mistral-open-source-ai-strategy.md
-- artificial-photosynthesis-living-energy.md
-- super-earth-magnetic-protection-magma.md
-- dna-origami-2d-semiconductor-patterning.md
-- brain-protein-neurodegeneration.md
+similar_papers: [[mistral-open-source-ai-strategy]], [[artificial-photosynthesis-living-energy]], [[super-earth-magnetic-protection-magma]], [[dna-origami-2d-semiconductor-patterning]], [[brain-protein-neurodegeneration]]
+dim_conceptual_depth: 1.0
+source: https://www.sciencedaily.com/releases/2026/01/260126075846.htm
 ---
 
 

@@ -1,10 +1,7 @@
 ---
 title: Humanoid Robots Connect to Satellites, Prep for Space Launch
 date: 2026-02-07
-tags:
-- robotics
-- space-exploration
-- humanoid-robots
+tags: 
 connectivity: 0.07
 cross_domain: 0.38
 completion: 1.0
@@ -12,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 3/3 sections (100%)
-source: https://electrek.co/2026/01/28/bot-space-race-humanoid-robots-connect-to-satellite-prep-for-space-launch/
-dim_conceptual_depth: 0.5
+conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers:
-- llm-in-sandbox-agentic-intelligence.md
-- grb-250314a-ancient-signal.md
-- tidally-locked-exoplanet-habitability.md
-- protein-tape-recorder-cytotape.md
-- quantum-teleportation-logic-gates.md
+similar_papers: [[llm-in-sandbox-agentic-intelligence]], [[grb-250314a-ancient-signal]], [[tidally-locked-exoplanet-habitability]], [[protein-tape-recorder-cytotape]], [[quantum-teleportation-logic-gates]]
+dim_conceptual_depth: 0.5
+source: https://electrek.co/2026/01/28/bot-space-race-humanoid-robots-connect-to-satellite-prep-for-space-launch/
 ---
 
 

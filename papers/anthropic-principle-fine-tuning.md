@@ -1,9 +1,7 @@
 ---
 title: 'Anthropic principle and cosmological fine-tuning: why physical constants appear
-  tuned for life'
 date: 2026-02-07
-tags:
-- cosmology
+tags: 
 connectivity: 0.07
 cross_domain: 0.12
 completion: 1.0
@@ -11,16 +9,12 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 3/3 sections (100%)
+conceptual_depth: 0.50
+conceptual_label: Balanced
+similar_papers: [[few-shot-prompting-agentic-coding]], [[beyond-the-quantum-pilot-wave-theory]], [[llamaagents-builder]], [[runaway-stars-milky-way]], [[llm-in-sandbox-agentic-intelligence]]
+dim_conceptual_depth: 0.5
 domain: Cosmology
 source: The Anthropic View of the Universe - NYAS https://share.google/ppXMCxgmouBuSKHC9
-dim_conceptual_depth: 0.5
-conceptual_label: Balanced
-similar_papers:
-- few-shot-prompting-agentic-coding.md
-- beyond-the-quantum-pilot-wave-theory.md
-- llamaagents-builder.md
-- runaway-stars-milky-way.md
-- llm-in-sandbox-agentic-intelligence.md
 ---
 
 

@@ -9,6 +9,9 @@ temporal: 1.00
 recency: 1.00
 connectivity_summary: ★☆☆☆☆ (3/5 links)
 completion_summary: 2/3 sections (66%)
+conceptual_depth: 0.50
+conceptual_label: Balanced
+similar_papers: [[axion-dark-matter-quantum-sensors]], [[anthropic-mcp-apps-claude-integrations]], [[quantum-teleportation-logic-gates]], [[jwst-early-universe-black-holes]], [[nasa-maven-anomaly]]
 domain: "Astrobiology"
 https: //search.app/LoDnM"
 source: "Source: Phys.org

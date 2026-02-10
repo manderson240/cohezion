@@ -1,11 +1,7 @@
 ---
 title: Yann LeCun on AGI and the Digital Commons
 date: 2026-02-07
-tags:
-- ai-architecture
-- agi
-- world-models
-- open-source
+tags: 
 connectivity: 0.13
 cross_domain: 0.5
 completion: 1.0
@@ -13,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 3/3 sections (100%)
-source: https://www.forbes.com/sites/johnwerner/2026/01/27/yann-lecun-on-artificial-general-intelligence-and-the-digital-commons/
-dim_conceptual_depth: 0.5
+conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers:
-- mcl1-myc-cancer-metabolism.md
-- rethinking-exoplanet-habitability.md
-- claude-code-community-skills.md
-- ocean-calcium-climate-mystery-66my.md
-- langchain-deep-agents-context-management.md
+similar_papers: [[mcl1-myc-cancer-metabolism]], [[rethinking-exoplanet-habitability]], [[claude-code-community-skills]], [[ocean-calcium-climate-mystery-66my]], [[langchain-deep-agents-context-management]]
+dim_conceptual_depth: 0.5
+source: https://www.forbes.com/sites/johnwerner/2026/01/27/yann-lecun-on-artificial-general-intelligence-and-the-digital-commons/
 ---
 
 

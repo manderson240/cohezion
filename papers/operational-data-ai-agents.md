@@ -1,11 +1,7 @@
 ---
 title: 'Operational Data: Giving AI Agents the Senses to Succeed'
 date: 2026-02-07
-tags:
-- ai-architecture
-- agentic-ai
-- data-quality
-- enterprise-ai
+tags: 
 connectivity: 0.13
 cross_domain: 0.5
 completion: 0.67
@@ -13,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
-source: https://venturebeat.com/data/operational-data-giving-ai-agents-the-senses-to-succeed
-dim_conceptual_depth: 0.0
+conceptual_depth: 0.00
 conceptual_label: Pure Applied
-similar_papers:
-- fast-radio-bursts-binary-star-origin.md
-- grb-250314a-ancient-signal.md
-- llamaagents-builder.md
-- ai-anomaly-detection-hubble-archive.md
-- woh-g64-red-supergiant-mystery.md
+similar_papers: [[fast-radio-bursts-binary-star-origin]], [[grb-250314a-ancient-signal]], [[llamaagents-builder]], [[ai-anomaly-detection-hubble-archive]], [[woh-g64-red-supergiant-mystery]]
+dim_conceptual_depth: 0.0
+source: https://venturebeat.com/data/operational-data-giving-ai-agents-the-senses-to-succeed
 ---
 
 

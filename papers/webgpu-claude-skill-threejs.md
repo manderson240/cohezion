@@ -1,12 +1,7 @@
 ---
 title: WebGPU Claude Skill for Three.js Development
 date: 2026-02-07
-tags:
-- ai-development-tools
-- webgpu
-- threejs
-- claude-code
-- skills
+tags: 
 connectivity: 0.07
 cross_domain: 0.62
 completion: 1.0
@@ -14,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 3/3 sections (100%)
-source: https://github.com/dgreenheck/webgpu-claude-skill
-dim_conceptual_depth: 0.0
+conceptual_depth: 0.00
 conceptual_label: Pure Applied
-similar_papers:
-- openai-applied-compute-startup.md
-- beyond-the-quantum-pilot-wave-theory.md
-- mcl1-myc-cancer-metabolism.md
-- amorphous-materials-3d-atomic-structure.md
-- llamaagents-builder.md
+similar_papers: [[openai-applied-compute-startup]], [[beyond-the-quantum-pilot-wave-theory]], [[mcl1-myc-cancer-metabolism]], [[amorphous-materials-3d-atomic-structure]], [[llamaagents-builder]]
+dim_conceptual_depth: 0.0
+source: https://github.com/dgreenheck/webgpu-claude-skill
 ---
 
 

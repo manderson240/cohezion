@@ -1,11 +1,7 @@
 ---
 title: Unprecedented Measurement Reveals Quantum Entanglement Speed
 date: 2026-02-07
-tags:
-- quantum-physics
-- entanglement
-- attosecond
-- measurement
+tags: 
 connectivity: 0.13
 cross_domain: 0.5
 completion: 0.67
@@ -13,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
-source: https://cursus.edu/en/35347/unprecedented-measurement-reveals-quantum-speed-beyond-human-understanding
-dim_conceptual_depth: 1.0
+conceptual_depth: 1.00
 conceptual_label: Pure Theory
-similar_papers:
-- nebuchadnezzar-babylonian-texts.md
-- rethinking-exoplanet-habitability.md
-- 2026-02-09-unique-investment-opportunities-research.md
-- artemis-ii-laser-comms.md
-- international-year-quantum-2025.md
+similar_papers: [[nebuchadnezzar-babylonian-texts]], [[rethinking-exoplanet-habitability]], [[2026-02-09-unique-investment-opportunities-research]], [[artemis-ii-laser-comms]], [[international-year-quantum-2025]]
+dim_conceptual_depth: 1.0
+source: https://cursus.edu/en/35347/unprecedented-measurement-reveals-quantum-speed-beyond-human-understanding
 ---
 
 

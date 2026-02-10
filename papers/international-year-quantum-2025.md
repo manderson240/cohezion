@@ -9,6 +9,9 @@ temporal: 1.00
 recency: 1.00
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
+conceptual_depth: 0.50
+conceptual_label: Balanced
+similar_papers: [[beyond-the-quantum-pilot-wave-theory]], [[cisa-chatgpt-data-leak]], [[optofluidic-3d-nanofabrication]], [[brain-protein-neurodegeneration]], [[tonggeometry-olympiad-tree-search]]
 domain: "Quantum Chemistry"
 https: //search.app/WA1ZZ"
 source: "Source: MIT Technology Review

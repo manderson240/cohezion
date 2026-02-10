@@ -1,10 +1,7 @@
 ---
 title: 'Theorem: Formal Verification for AI-Generated Code'
 date: 2026-02-07
-tags:
-- ai-security
-- formal-verification
-- code-safety
+tags: 
 connectivity: 0.13
 cross_domain: 0.38
 completion: 1.0
@@ -12,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 3/3 sections (100%)
-source: https://venturebeat.com/security/theorem-wants-to-stop-ai-written-bugs-before-they-ship-and-just-raised-usd6m
-dim_conceptual_depth: 1.0
+conceptual_depth: 1.00
 conceptual_label: Pure Theory
-similar_papers:
-- protein-tape-recorder-cytotape.md
-- few-shot-prompting-agentic-coding.md
-- humanoid-robots-space-launch.md
-- dna-origami-2d-semiconductor-patterning.md
-- anthropic-disempowerment-patterns.md
+similar_papers: [[protein-tape-recorder-cytotape]], [[few-shot-prompting-agentic-coding]], [[humanoid-robots-space-launch]], [[dna-origami-2d-semiconductor-patterning]], [[anthropic-disempowerment-patterns]]
+dim_conceptual_depth: 1.0
+source: https://venturebeat.com/security/theorem-wants-to-stop-ai-written-bugs-before-they-ship-and-just-raised-usd6m
 ---
 
 
