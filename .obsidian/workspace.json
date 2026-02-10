@@ -330,8 +330,10 @@
       "workspaces:Manage workspace layouts": false
     }
   },
-  "active": "0d443c8c6ba10387",
+  "active": "c4674fad75239c8c",
   "lastOpenFiles": [
+    "daily/2026-02-10-kyutai-phase3-complete.md",
+    "daily/2026-02-10-kyutai-phase3-complete.md.tmp.626668.1770699888444",
     "daily/2026-02-10-kyutai-phase3-progress.md",
     "daily/2026-02-10-kyutai-phase3-progress.md.tmp.626668.1770699635982",
     "inbox/Untitled 1.base",
@@ -347,7 +349,6 @@
     "mcp-server/QUICKSTART.md.tmp.626668.1770698928491",
     "mcp-server/src/kyutai_mcp/utils/__pycache__/__init__.cpython-312.pyc",
     "mcp-server/src/kyutai_mcp/utils/__pycache__/errors.cpython-312.pyc",
-    "mcp-server/src/kyutai_mcp/utils/__pycache__/audio.cpython-312.pyc",
     "research/kyutai-mcp-server-implementation.md",
     "obsidian-plugin/DELIVERABLES.md",
     "mcp-server/README.md",
@@ -367,7 +368,6 @@
     "patterns/runbook-sheets-research-pipeline.md",
     "daily/2026-02-09-3d-graph-plugin-installation-complete.md",
     "daily/2026-02-10-canvas-execution-log.md",
-    "daily/2026-02-10-kyutai-phase1-complete.md",
     "Cohezion_KnowledgeGraph.canvas",
     "Untitled 3.canvas",
     "Untitled 2.canvas",
