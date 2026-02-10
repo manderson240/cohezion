@@ -1,0 +1,33 @@
+{
+  "status": "complete",
+  "timestamp": "2026-02-10",
+  "nodes_loaded": 157,
+  "links_loaded": 1179,
+  "visualization_ready": true,
+  "view_presets": [
+    "Domain Clusters (research areas)",
+    "Temporal View (knowledge evolution)",
+    "Completion Status (enrichment tracking)",
+    "Bridging Papers (integration points)"
+  ],
+  "node_types": {
+    "papers": 84,
+    "concepts": 22,
+    "decisions": 24,
+    "patterns": 24,
+    "experiments": 3
+  },
+  "connectivity": {
+    "connected_nodes": 149,
+    "disconnected_nodes": 8,
+    "connectivity_ratio": 0.949
+  },
+  "files": {
+    "plugin": "/home/mike-anderson/vaults/cohezion-vault/.obsidian/plugins/new-3d-graph/",
+    "presets": "/home/mike-anderson/vaults/cohezion-vault/.obsidian/plugins/new-3d-graph/presets.json",
+    "snapshot": "/home/mike-anderson/vaults/cohezion-vault/.obsidian/plugins/new-3d-graph/graph-snapshot.json",
+    "data": "/home/mike-anderson/vaults/cohezion-vault/.claude/3d-graph-data.json",
+    "documentation": "/home/mike-anderson/vaults/cohezion-vault/.claude/3d-graph-visualization-setup.md",
+    "extraction_script": "/home/mike-anderson/vaults/cohezion-vault/.claude/extract_3d_graph.py"
+  }
+}
