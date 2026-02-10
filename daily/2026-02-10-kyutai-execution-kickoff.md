@@ -43,14 +43,21 @@ tags: [daily, kyutai, execution, wave-1]
 
 ### 🟡 Phase 2: Design (120 min, In Progress)
 
-**Status**: Wave 2 architects actively designing
+**Status**: 1/2 Complete, waiting on obsidian-architect
 
-| Agent | Task | Status | ETA |
-|-------|------|--------|-----|
-| 🏗️ agent-mcp-architect | MCP server architecture | ⏳ Running | ~07:00 |
-| 🏗️ agent-obsidian-architect | Plugin UI/UX architecture | ⏳ Running | ~07:00 |
+| Agent | Task | Status | Output |
+|-------|------|--------|--------|
+| 🏗️ agent-mcp-architect | MCP server architecture | ✅ Complete | kyutai-mcp-server-architecture.md (5,200+ lines) |
+| 🏗️ agent-obsidian-architect | Plugin UI/UX architecture | ⏳ Running | — |
 
-**Next**: Once Phase 2 complete, copy outputs to vault and assign Phase 3 implementers
+**MCP Architecture Complete**:
+- ✅ 7 MCP tools specified (speak_text, transcribe_audio, translate_speech, etc.)
+- ✅ 3-phase roadmap (MVP → Production → Advanced)
+- ✅ Service-oriented design with Python + FastMCP
+- ✅ Docker Compose deployment ready
+- ✅ Risk analysis + mitigations
+
+**Next**: Waiting for obsidian-architect to complete plugin design, then Phase 3 builders deploy
 
 ---
 

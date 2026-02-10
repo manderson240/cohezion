@@ -1,0 +1,11 @@
+{
+  "id": "kyutai-obsidian-plugin",
+  "name": "Kyutai Voice AI",
+  "version": "0.1.0",
+  "minAppVersion": "0.15.0",
+  "description": "Integrate Kyutai voice AI models directly into Obsidian. Read notes aloud (TTS), transcribe audio (STT), clone voices, and translate speech - all running locally on your machine.",
+  "author": "Kyutai Team",
+  "authorUrl": "https://kyutai.org",
+  "fundingUrl": "https://github.com/sponsors/kyutai",
+  "isDesktopOnly": false
+}
