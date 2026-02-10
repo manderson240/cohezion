@@ -52,3 +52,6 @@ enhanced_simulator.py
 ## Relevance to Cohezion
 
 Chemistry resource captured via mobile link pipeline. enhanced_simulator.py
+
+
+[[catalytic-materials]], [[nanofabrication]]

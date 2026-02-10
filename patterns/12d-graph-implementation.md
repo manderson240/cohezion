@@ -179,3 +179,6 @@ tags: [pattern, 12d-graph, compound-engineering, phase-1]
 - Ollama MCP tools: `ollama_query()`, `ollama_embed()`, `ollama_batch()`
 - Plugin recommendation: New 3D Graph (Apoo711) - actively maintained
 - Pattern: Lessons Graph Integration - similar methodology proven
+
+
+[[graph-databases]], [[knowledge-graph-systems]], [[mcp-infrastructure-architecture]]

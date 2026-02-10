@@ -34,3 +34,6 @@ Tsinghua University scientists created a stable 45-copper-atom superatom (Cu45) 
 ## Relevance to Cohezion
 
 Demonstrates how specific geometric/electronic arrangements produce emergent stability and catalytic properties. Relevant to `enhanced_simulator.py` for modeling how atomic-scale structure determines macroscopic function.
+
+
+[[catalytic-materials]], [[nanofabrication]]

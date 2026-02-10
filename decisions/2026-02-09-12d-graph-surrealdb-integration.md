@@ -632,3 +632,6 @@ If full 12D seems too ambitious initially:
 ## Related
 **Domains**: ai-ml, architecture, data, infrastructure, integration, performance
 **Categories**: strategic, technical
+
+
+[[graph-databases]], [[knowledge-graph-systems]], [[mcp-infrastructure-architecture]]
