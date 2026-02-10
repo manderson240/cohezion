@@ -130,7 +130,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "Cohezion_Re",
+                "query": "",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -281,6 +281,12 @@
   },
   "active": "ffe7c263ee7d1332",
   "lastOpenFiles": [
+    "daily/2026-02-10-phase1-complete.md",
+    "daily/2026-02-10-phase1-complete.md.tmp.597611.1770696166264",
+    "decisions/2026-02-10-compound-node-linking-plan.md",
+    "decisions/2026-02-10-compound-node-linking-plan.md.tmp.618831.1770696124462",
+    "daily/2026-02-10-phase-a-documentation-complete.md",
+    "daily/2026-02-10-phase-a-documentation-complete.md.tmp.596441.1770695938867",
     "daily/2026-02-09-sheetsbridge-test-plan.md",
     "concepts/mcp-infrastructure-architecture.md",
     "concepts/mcp-infrastructure-architecture.md.tmp.596441.1770695578185",
@@ -300,11 +306,8 @@
     "patterns/runbook-ollama-mcp-operations.md.tmp.596441.1770695133098",
     "decisions/2026-02-10-phase-a-implementation-complete.md",
     "sessions/SESSION-50-QUICKSTART.md",
-    "sessions/SESSION-50-QUICKSTART.md.tmp.386780.1770692370515",
     "sessions/session-49-retrospective.md",
-    "sessions/session-49-retrospective.md.tmp.386780.1770692134852",
     "sessions/session-50-handoff.md",
-    "sessions/session-50-handoff.md.tmp.386780.1770692134640",
     "daily/2026-02-09-decisions-experiments-integration.md",
     "daily/2026-02-09-token-efficiency-retrospective.md",
     "daily/2026-02-09-FINAL-SESSION-SUMMARY.md",
@@ -314,9 +317,6 @@
     "daily/2026-02-09-verification-report.md",
     "daily/2026-02-09-session-retrospective.md",
     "daily/2026-02-09-lessons-graph-integration-plan.md",
-    "patterns/lessons/_lessons_index.md",
-    "concepts/agentic-ai.md",
-    "patterns/lessons/2026-02-09-ollama-mcp-infrastructure.md",
     "Untitled 1.canvas",
     "Untitled.canvas"
   ]
