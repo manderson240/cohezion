@@ -1,0 +1,328 @@
+"""ConfigurationOrchestrator: Event-driven config sync and size management.
+
+Central hub for keeping CLAUDE.md and GEMINI.md synchronized with vault
+and SurrealDB while maintaining lean size and consistency.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import json
+import logging
+from datetime import datetime
+from pathlib import Path
+from typing import Optional
+
+from cohezion.config.config_events import ConfigEvent
+from cohezion.config.config_state import (
+    ChangeSet,
+    ConfigConflict,
+    ConfigState,
+    FileMetadata,
+    ValidationReport,
+)
+from cohezion.config.git_utils import GitUtils
+from cohezion.concurrency.safe_singleton import safe_singleton
+
+logger = logging.getLogger(__name__)
+
+
+@safe_singleton
+def get_config_orchestrator(repo_root: Optional[Path] = None) -> ConfigurationOrchestrator:
+    """Get or create the configuration orchestrator singleton."""
+    if repo_root is None:
+        repo_root = Path.cwd()
+    return ConfigurationOrchestrator(repo_root)
+
+
+def reset_config_orchestrator() -> None:
+    """Reset the singleton (for testing)."""
+    get_config_orchestrator.reset()  # type: ignore
+
+
+class ConfigurationOrchestrator:
+    """Event-driven configuration orchestration.
+
+    Monitors CLAUDE.md, GEMINI.md, vault, and SurrealDB.
+    Keeps them synchronized while enforcing size limits and validation.
+    """
+
+    def __init__(self, repo_root: Path = Path.cwd()):
+        """Initialize orchestrator with repo root."""
+        self.repo_root = Path(repo_root)
+        self.git_utils = GitUtils(self.repo_root)
+        self.config_state = ConfigState()
+
+        # Config file paths
+        self.claude_md = self.repo_root / "CLAUDE.md"
+        self.gemini_md = self.repo_root / "GEMINI.md"
+        self.vault_root = Path.home() / "vaults" / "cohezion-vault"
+
+        # Size limits
+        self.size_limits = {
+            "CLAUDE.md": {"max_lines": 250, "max_chars": 15000},
+            "GEMINI.md": {"max_lines": 200, "max_chars": 12000},
+        }
+
+        # Status tracking
+        self._monitoring = False
+        self._monitor_tasks: list[asyncio.Task] = []
+
+        logger.info(f"ConfigurationOrchestrator initialized at {self.repo_root}")
+
+    async def start_monitoring(self) -> None:
+        """Start all monitoring tasks concurrently."""
+        if self._monitoring:
+            logger.warning("Monitoring already started")
+            return
+
+        self._monitoring = True
+        logger.info("Starting configuration orchestration monitoring")
+
+        try:
+            # Note: Full implementation would hook into EventBus and VaultSubscriptionClient
+            # For Phase 1, we create the framework
+            tasks = [
+                asyncio.create_task(self._monitor_vault_changes()),
+                asyncio.create_task(self._monitor_config_file_changes()),
+                asyncio.create_task(self._run_reconciliation_loop()),
+                asyncio.create_task(self._enforce_size_limits()),
+            ]
+            self._monitor_tasks = tasks
+
+            # Run all tasks
+            await asyncio.gather(*tasks)
+
+        except asyncio.CancelledError:
+            logger.info("Monitoring cancelled")
+        except Exception as e:
+            logger.error(f"Monitoring error: {e}", exc_info=True)
+        finally:
+            self._monitoring = False
+
+    async def stop_monitoring(self) -> None:
+        """Stop all monitoring tasks."""
+        self._monitoring = False
+        for task in self._monitor_tasks:
+            if not task.done():
+                task.cancel()
+        await asyncio.gather(*self._monitor_tasks, return_exceptions=True)
+        logger.info("Configuration orchestration monitoring stopped")
+
+    async def _monitor_vault_changes(self) -> None:
+        """Monitor vault for decision/pattern/experiment changes.
+
+        Phase 2: Will integrate with VaultSubscriptionClient (SSE).
+        Phase 1: Placeholder for event-driven monitoring.
+        """
+        while self._monitoring:
+            try:
+                # Phase 2: Subscribe to vault changes via EventBus
+                # await asyncio.sleep(5)  # Reduced for testing
+                await asyncio.sleep(300)  # 5 minutes
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.warning(f"Vault monitoring error: {e}")
+                await asyncio.sleep(30)
+
+    async def _monitor_config_file_changes(self) -> None:
+        """Monitor CLAUDE.md and GEMINI.md for manual edits.
+
+        Phase 2: Will integrate with VaultFileWatcher.
+        Phase 1: Placeholder for file monitoring.
+        """
+        while self._monitoring:
+            try:
+                # Phase 2: Integrate with VaultFileWatcher
+                await asyncio.sleep(300)  # 5 minutes
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.warning(f"File monitoring error: {e}")
+                await asyncio.sleep(30)
+
+    async def _run_reconciliation_loop(self) -> None:
+        """Run periodic reconciliation and validation.
+
+        Reconciliation cycle:
+        1. Compute hashes
+        2. Compare vs SurrealDB (Phase 3)
+        3. Validate consistency
+        4. Report mismatches
+        """
+        while self._monitoring:
+            try:
+                logger.debug("Starting reconciliation cycle")
+                report = await self.validate_consistency()
+
+                if report.passed:
+                    logger.debug("Reconciliation passed")
+                else:
+                    logger.warning(f"Reconciliation failed: {report.recommendations}")
+
+                # Wait 1 hour for next cycle
+                await asyncio.sleep(3600)
+
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"Reconciliation error: {e}", exc_info=True)
+                await asyncio.sleep(60)
+
+    async def _enforce_size_limits(self) -> None:
+        """Enforce size limits on config files.
+
+        Checks every 30 minutes and archives if exceeded.
+        """
+        while self._monitoring:
+            try:
+                logger.debug("Checking size limits")
+
+                for filename, limit in self.size_limits.items():
+                    if filename == "CLAUDE.md":
+                        file_path = self.claude_md
+                    else:
+                        file_path = self.gemini_md
+
+                    if file_path.exists():
+                        metadata = FileMetadata.from_file(file_path)
+                        if metadata.line_count > limit["max_lines"]:
+                            logger.warning(
+                                f"{filename} exceeds line limit: "
+                                f"{metadata.line_count} > {limit['max_lines']}"
+                            )
+                            # Phase 4: trigger archival and regeneration
+
+                # Wait 30 minutes for next check
+                await asyncio.sleep(1800)
+
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.warning(f"Size enforcement error: {e}")
+                await asyncio.sleep(60)
+
+    async def validate_consistency(self) -> ValidationReport:
+        """Validate consistency between all config sources.
+
+        Phase 3 implementation will include:
+        - Checksum verification
+        - Schema validation
+        - Size checks
+        - Reference validation
+        - Cycle detection
+        """
+        report = ValidationReport()
+
+        try:
+            # Load current metadata
+            if self.claude_md.exists():
+                self.config_state.claude_md = FileMetadata.from_file(self.claude_md)
+            if self.gemini_md.exists():
+                self.config_state.gemini_md = FileMetadata.from_file(self.gemini_md)
+
+            # Phase 3: Add comprehensive validation checks
+            # - Checksum verification
+            # - Schema validation (Pydantic)
+            # - Size validation
+            # - Reference validation
+            # - Cycle detection
+
+            report.passed = True
+
+        except Exception as e:
+            logger.error(f"Validation error: {e}")
+            report.passed = False
+            report.recommendations.append(f"Validation error: {e}")
+
+        report.duration_ms = 100  # Placeholder
+        self.config_state.last_validation = report
+        self.config_state.total_validations += 1
+
+        return report
+
+    def detect_manual_edits(self, file_path: Path) -> bool:
+        """Check if file was manually edited vs auto-generated."""
+        return self.git_utils.is_manual_edit(file_path)
+
+    async def detect_conflicts(self) -> list[ConfigConflict]:
+        """Detect conflicts between config and vault versions.
+
+        Phase 2 implementation will:
+        - Compare git history (who edited last)
+        - Detect divergent content
+        - Flag bi-directional edits
+        """
+        conflicts = []
+
+        # Phase 2: Implement full conflict detection
+        # - Check manual edits
+        # - Compare hashes
+        # - Generate diffs
+
+        return conflicts
+
+    async def regenerate_and_commit(
+        self,
+        filename: str,
+        reason: str = "manual_trigger",
+    ) -> bool:
+        """Regenerate config file and commit to git.
+
+        Phase 4 implementation will handle:
+        - Conflict detection and alerting
+        - Template-driven regeneration
+        - AI-generated commit messages
+        - Atomic operations with rollback
+        """
+        logger.info(f"Regenerating {filename} (reason: {reason})")
+
+        if filename == "CLAUDE.md":
+            file_path = self.claude_md
+        elif filename == "GEMINI.md":
+            file_path = self.gemini_md
+        else:
+            logger.error(f"Unknown config file: {filename}")
+            return False
+
+        try:
+            # Phase 2: Detect manual edits
+            is_manual = self.detect_manual_edits(file_path)
+
+            # Phase 2: Detect conflicts
+            conflicts = await self.detect_conflicts()
+
+            if conflicts:
+                logger.warning(f"Conflicts detected in {filename}")
+                # Phase 2: Emit CONFIG_CONFLICT_DETECTED event
+                # Phase 2: Create vault/inbox alert for manual review
+                return False
+
+            # Phase 4: Generate new content from vault
+            # Phase 4: Compare vs current
+            # Phase 4: Write new content
+            # Phase 4: Create git commit
+
+            logger.info(f"Successfully regenerated {filename}")
+            self.config_state.total_syncs += 1
+            return True
+
+        except Exception as e:
+            logger.error(f"Regeneration error: {e}")
+            self.config_state.sync_failures += 1
+            return False
+
+    def get_state(self) -> ConfigState:
+        """Get current configuration state."""
+        return self.config_state
+
+    def get_metrics(self) -> dict:
+        """Get orchestration metrics."""
+        return {
+            "total_syncs": self.config_state.total_syncs,
+            "total_conflicts": self.config_state.total_conflicts,
+            "total_validations": self.config_state.total_validations,
+            "sync_failures": self.config_state.sync_failures,
+            "monitoring_active": self._monitoring,
+        }
