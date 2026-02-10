@@ -13,6 +13,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+from cohezion.config.config_archival import ConfigArchiver, SizeEnforcer
 from cohezion.config.config_events import ConfigEvent
 from cohezion.config.config_monitoring import ConfigMonitor
 from cohezion.config.config_state import (
@@ -22,8 +23,11 @@ from cohezion.config.config_state import (
     FileMetadata,
     ValidationReport,
 )
+from cohezion.config.config_sync_logger import ConfigSyncLogger
+from cohezion.config.config_validation import ConfigValidator, ReconciliationValidator
 from cohezion.config.git_utils import GitUtils
 from cohezion.concurrency.safe_singleton import safe_singleton
+from cohezion.core.event_bus import Event, EventType
 
 logger = logging.getLogger(__name__)
 
@@ -70,8 +74,15 @@ class ConfigurationOrchestrator:
             "GEMINI.md": {"max_lines": 200, "max_chars": 12000},
         }
 
-        # Monitoring
+        # Monitoring (Phase 2)
         self.monitor = ConfigMonitor(repo_root, vault_url, vault_api_key)
+
+        # Validation & Reconciliation (Phase 3)
+        self.validator = ConfigValidator(self.size_limits)
+        self.reconciliation_validator = ReconciliationValidator()
+        self.archiver = ConfigArchiver(Path.home() / "vaults" / "cohezion-vault")
+        self.size_enforcer = SizeEnforcer(self.size_limits)
+        self.sync_logger = ConfigSyncLogger()
 
         # Status tracking
         self._monitoring = False
@@ -155,7 +166,7 @@ class ConfigurationOrchestrator:
     async def _enforce_size_limits(self) -> None:
         """Enforce size limits on config files.
 
-        Checks every 30 minutes and archives if exceeded.
+        Phase 3: Checks every 30 minutes, archives and logs if exceeded.
         """
         while self._monitoring:
             try:
@@ -168,13 +179,36 @@ class ConfigurationOrchestrator:
                         file_path = self.gemini_md
 
                     if file_path.exists():
-                        metadata = FileMetadata.from_file(file_path)
-                        if metadata.line_count > limit["max_lines"]:
+                        # Check for violations
+                        violation_check = self.size_enforcer.check_violations(file_path)
+
+                        if violation_check["violates"]:
                             logger.warning(
-                                f"{filename} exceeds line limit: "
-                                f"{metadata.line_count} > {limit['max_lines']}"
+                                f"{filename} size violation: {violation_check['violations']}"
                             )
-                            # Phase 4: trigger archival and regeneration
+
+                            # Archive old sections
+                            archive_result = await self.archiver.archive_old_sections(file_path)
+
+                            # Log archival
+                            if archive_result.get("archived"):
+                                await self.sync_logger.log_archival(
+                                    file=filename,
+                                    status="success",
+                                    details=archive_result,
+                                )
+
+                                # Emit event
+                                config_event = Event(
+                                    type=EventType.CUSTOM,
+                                    source="config-size-enforcer",
+                                    payload={
+                                        "config_event": ConfigEvent.ARCHIVE_TRIGGERED.name,
+                                        "file": filename,
+                                        "sections_archived": archive_result["sections_archived"],
+                                    },
+                                )
+                                self.monitor.event_bus.publish(config_event)
 
                 # Wait 30 minutes for next check
                 await asyncio.sleep(1800)
@@ -188,37 +222,83 @@ class ConfigurationOrchestrator:
     async def validate_consistency(self) -> ValidationReport:
         """Validate consistency between all config sources.
 
-        Phase 3 implementation will include:
-        - Checksum verification
-        - Schema validation
-        - Size checks
+        Phase 3: Comprehensive validation with logging.
+        - File schema validation
+        - Size limit checks
         - Reference validation
         - Cycle detection
+        - Cross-source reconciliation
         """
         report = ValidationReport()
+        start_time = asyncio.get_event_loop().time()
 
         try:
-            # Load current metadata
-            if self.claude_md.exists():
-                self.config_state.claude_md = FileMetadata.from_file(self.claude_md)
-            if self.gemini_md.exists():
-                self.config_state.gemini_md = FileMetadata.from_file(self.gemini_md)
+            # Validate individual files
+            for file_path, filename in [
+                (self.claude_md, "CLAUDE.md"),
+                (self.gemini_md, "GEMINI.md"),
+            ]:
+                if file_path.exists():
+                    # File-level validation
+                    file_report = self.validator.validate_file(file_path)
+                    report.passed = report.passed and file_report.passed
+                    report.recommendations.extend(file_report.recommendations)
 
-            # Phase 3: Add comprehensive validation checks
-            # - Checksum verification
-            # - Schema validation (Pydantic)
-            # - Size validation
-            # - Reference validation
-            # - Cycle detection
+                    # Size check
+                    size_check = self.size_enforcer.check_violations(file_path)
+                    if size_check["violates"]:
+                        report.recommendations.extend(size_check["violations"])
+                        report.passed = False
 
-            report.passed = True
+                        # Log size violation
+                        await self.sync_logger.log_validation(
+                            file=filename,
+                            status="warning",
+                            details={
+                                "violations": size_check["violations"],
+                                "metadata": size_check["metadata"],
+                            },
+                        )
+
+                    # Load metadata for state tracking
+                    if filename == "CLAUDE.md":
+                        self.config_state.claude_md = FileMetadata.from_file(file_path)
+                    else:
+                        self.config_state.gemini_md = FileMetadata.from_file(file_path)
+
+            # Cross-source reconciliation
+            reconciliation_report = self.reconciliation_validator.validate_consistency(
+                self.claude_md,
+                self.gemini_md,
+                self.vault_root,
+            )
+            report.passed = report.passed and reconciliation_report.passed
+            report.recommendations.extend(reconciliation_report.recommendations)
+
+            # Log validation
+            duration_ms = (asyncio.get_event_loop().time() - start_time) * 1000
+            await self.sync_logger.log_validation(
+                file="system",
+                status="success" if report.passed else "warning",
+                details={
+                    "passed": report.passed,
+                    "recommendations": len(report.recommendations),
+                },
+                duration_ms=duration_ms,
+            )
 
         except Exception as e:
             logger.error(f"Validation error: {e}")
             report.passed = False
             report.recommendations.append(f"Validation error: {e}")
+            await self.sync_logger.log_validation(
+                file="system",
+                status="failed",
+                error_message=str(e),
+                details={"error": str(e)},
+            )
 
-        report.duration_ms = 100  # Placeholder
+        report.duration_ms = (asyncio.get_event_loop().time() - start_time) * 1000
         self.config_state.last_validation = report
         self.config_state.total_validations += 1
 

@@ -11,6 +11,7 @@ from cohezion.config.configuration_orchestrator import (
     get_config_orchestrator,
     reset_config_orchestrator,
 )
+from cohezion.config.config_archival import ConfigArchiver, SizeEnforcer
 from cohezion.config.config_events import ConfigEvent
 from cohezion.config.config_monitoring import ConfigMonitor, VaultSubscriptionClientProxy
 from cohezion.config.config_state import (
@@ -21,6 +22,8 @@ from cohezion.config.config_state import (
     FileMetadata,
     ValidationReport,
 )
+from cohezion.config.config_sync_logger import ConfigSyncLogger, SyncLogEntry
+from cohezion.config.config_validation import ConfigValidator, ReconciliationValidator
 from cohezion.config.git_utils import GitUtils
 from cohezion.config.unified import (
     CloudGraderConfig,
@@ -39,12 +42,21 @@ __all__ = [
     "CloudGraderConfig",
     "get_config",
     "reload_config",
-    # Configuration orchestration (Phase 1-2)
+    # Configuration orchestration (Phase 1-3)
     "ConfigurationOrchestrator",
     "get_config_orchestrator",
     "reset_config_orchestrator",
+    # Monitoring (Phase 2)
     "ConfigMonitor",
     "VaultSubscriptionClientProxy",
+    # Validation & Reconciliation (Phase 3)
+    "ConfigValidator",
+    "ReconciliationValidator",
+    "ConfigArchiver",
+    "SizeEnforcer",
+    "ConfigSyncLogger",
+    "SyncLogEntry",
+    # State & Events
     "ConfigEvent",
     "ConfigState",
     "FileMetadata",
@@ -52,5 +64,6 @@ __all__ = [
     "ConfigConflict",
     "ValidationReport",
     "ConfigSchema",
+    # Utilities
     "GitUtils",
 ]
