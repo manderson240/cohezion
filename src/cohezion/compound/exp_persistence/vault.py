@@ -111,6 +111,31 @@ class VaultLogger:
             logger.error(f"Failed to extract pattern to Vault: {e}")
             return ""
 
+    def log_decision_point(self, project: str, title: str, context: str, decision: str, rationale: str) -> str:
+        """Log a critical decision point to the vault."""
+        try:
+            timestamp = int(datetime.now().timestamp())
+            path = f"decisions/{project}/inflection_{timestamp}.md"
+            content = f"""# Decision: {title}
+
+- **Project**: {project}
+- **Timestamp**: {datetime.now().isoformat()}
+
+## Context
+{context}
+
+## Decision
+{decision}
+
+## Rationale
+{rationale}
+"""
+            self.mcp.vault_write(path, content)
+            return path
+        except Exception as e:
+            logger.error(f"Failed to log decision point to Vault: {e}")
+            return ""
+
     # ── Obsidian Mission Retrospectives ────────────────────────────────
 
     async def log_batch(self, batch: List[Dict[str, Any]]):

@@ -93,8 +93,8 @@ def test_execute_task_failure(executor, mock_mcp_client):
     assert result.success is False
     assert "Error: Task failed" in result.output
     assert "error" in result.metrics
-    # Execution is still logged even on failure
-    mock_mcp_client.vault_edit.assert_called()
+    # Execution is still logged even on failure (via vault_write)
+    assert mock_mcp_client.vault_write.call_count >= 2  # start + result
 
 
 def test_execute_task_includes_guidance(executor):
@@ -130,9 +130,10 @@ def test_execute_task_logs_start_and_result(executor, mock_mcp_client):
         execute_fn=dummy_task,
     )
 
-    # Should log start (1) and edit for result (1)
-    assert mock_mcp_client.vault_log_experiment.called
-    assert mock_mcp_client.vault_edit.called
+    # Should log start (vault_write) and result (vault_read + vault_write)
+    # Plus pattern extraction (vault_write) = at least 3 vault_write calls
+    assert mock_mcp_client.vault_write.call_count >= 2  # start + result
+    assert mock_mcp_client.vault_read.called  # result reads first
 
 
 def test_execute_task_extracts_pattern_on_success(executor, mock_mcp_client):
@@ -149,13 +150,16 @@ def test_execute_task_extracts_pattern_on_success(executor, mock_mcp_client):
     )
 
     assert result.success is True
-    mock_mcp_client.vault_extract_pattern.assert_called_once()
+    # Pattern extraction happens via vault_write
+    # Calls: start + result + pattern = at least 3
+    assert mock_mcp_client.vault_write.call_count >= 3
 
-    # Verify pattern call arguments
-    call_kwargs = mock_mcp_client.vault_extract_pattern.call_args[1]
-    assert "pattern_skill" in call_kwargs["pattern_name"]
-    assert "generate" in call_kwargs["pattern_name"]
-    assert call_kwargs["domain"] == "compound-engineering"
+    # Verify pattern was written (check call args for pattern path)
+    pattern_calls = [
+        call for call in mock_mcp_client.vault_write.call_args_list
+        if "patterns/domains/compound-engineering" in str(call)
+    ]
+    assert len(pattern_calls) >= 1
 
 
 def test_execute_task_no_pattern_on_failure(executor, mock_mcp_client):
@@ -172,8 +176,14 @@ def test_execute_task_no_pattern_on_failure(executor, mock_mcp_client):
     )
 
     assert result.success is False
-    # Pattern extraction should not be called on failure
-    mock_mcp_client.vault_extract_pattern.assert_not_called()
+    # Pattern extraction should not happen on failure
+    # Calls: start + result + inflection point (3 total)
+    # Verify no pattern paths in calls (pattern extraction writes to patterns/domains/)
+    pattern_calls = [
+        call for call in mock_mcp_client.vault_write.call_args_list
+        if "patterns/domains" in str(call)
+    ]
+    assert len(pattern_calls) == 0  # no pattern extraction on failure
 
 
 def test_log_inflection_point(executor, mock_mcp_client):
@@ -185,8 +195,11 @@ def test_log_inflection_point(executor, mock_mcp_client):
         rationale="Maintain quality",
     )
 
-    assert path == "decisions/inflection_456.md"
-    mock_mcp_client.vault_log_decision.assert_called_once()
+    # Path should be decisions/{project}/inflection_{timestamp}.md
+    assert path.startswith("decisions/cohezion/inflection_")
+    assert path.endswith(".md")
+    # Decision logging uses vault_write
+    mock_mcp_client.vault_write.assert_called()
 
 
 def test_execution_result_dataclass(executor):
@@ -251,7 +264,7 @@ def test_execute_task_with_custom_project(executor, mock_mcp_client):
     def dummy_task(guidance):
         return "output", {}
 
-    executor.execute_task(
+    result = executor.execute_task(
         task_description="Test",
         skill_name="test",
         operation_type="generate",
@@ -259,9 +272,10 @@ def test_execute_task_with_custom_project(executor, mock_mcp_client):
         project="custom_project",
     )
 
-    # Verify project name was passed to vault logging
-    call_kwargs = mock_mcp_client.vault_log_experiment.call_args[1]
-    assert call_kwargs["project"] == "custom_project"
+    # Verify project name appears in experiment path
+    assert result.vault_experiment_path.startswith("experiments/custom_project/test/")
+    # Vault logging uses vault_write, verify it was called
+    assert mock_mcp_client.vault_write.call_count >= 1
 
 
 def test_executor_guardrails_enabled_by_default(mock_mcp_client):
