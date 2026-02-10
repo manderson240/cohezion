@@ -1151,11 +1151,21 @@
       "color": "#999999"
     },
     {
+      "id": "decisions/2026-02-10-token-efficient-compound-engineering-roadmap",
+      "type": "file",
+      "file": "decisions/2026-02-10-token-efficient-compound-engineering-roadmap.md",
+      "x": 700,
+      "y": 3460,
+      "width": 250,
+      "height": 60,
+      "color": "#999999"
+    },
+    {
       "id": "decisions/2026-02-09-session-43-mcp-setup",
       "type": "file",
       "file": "decisions/2026-02-09-session-43-mcp-setup.md",
-      "x": 700,
-      "y": 3460,
+      "x": 100,
+      "y": 3580,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1164,7 +1174,7 @@
       "id": "decisions/2026-02-10-compound-node-linking-plan",
       "type": "file",
       "file": "decisions/2026-02-10-compound-node-linking-plan.md",
-      "x": 100,
+      "x": 400,
       "y": 3580,
       "width": 250,
       "height": 60,
@@ -1194,7 +1204,7 @@
       "id": "decisions/2026-02-08-bmad-framework-removal",
       "type": "file",
       "file": "decisions/2026-02-08-bmad-framework-removal.md",
-      "x": 400,
+      "x": 700,
       "y": 3580,
       "width": 250,
       "height": 60,
@@ -1204,8 +1214,8 @@
       "id": "decisions/2026-02-09-operational-principle-no-destructive-operations-without-learning",
       "type": "file",
       "file": "decisions/2026-02-09-operational-principle-no-destructive-operations-without-learning.md",
-      "x": 700,
-      "y": 3580,
+      "x": 100,
+      "y": 3700,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1214,7 +1224,7 @@
       "id": "decisions/2026-02-09-rust-flume-python313-incompatibility",
       "type": "file",
       "file": "decisions/2026-02-09-rust-flume-python313-incompatibility.md",
-      "x": 100,
+      "x": 400,
       "y": 3700,
       "width": 250,
       "height": 60,
@@ -1224,7 +1234,7 @@
       "id": "decisions/2026-02-07-event-driven-inbox-processor",
       "type": "file",
       "file": "decisions/2026-02-07-event-driven-inbox-processor.md",
-      "x": 400,
+      "x": 700,
       "y": 3700,
       "width": 250,
       "height": 60,
@@ -1234,8 +1244,8 @@
       "id": "decisions/2026-02-09-session-46-git-unification-complete",
       "type": "file",
       "file": "decisions/2026-02-09-session-46-git-unification-complete.md",
-      "x": 700,
-      "y": 3700,
+      "x": 100,
+      "y": 3820,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1244,7 +1254,7 @@
       "id": "decisions/2026-02-09-12d-graph-next-steps",
       "type": "file",
       "file": "decisions/2026-02-09-12d-graph-next-steps.md",
-      "x": 100,
+      "x": 400,
       "y": 3820,
       "width": 250,
       "height": 60,
@@ -1254,8 +1264,18 @@
       "id": "decisions/2026-02-10-phase-a-implementation-complete",
       "type": "file",
       "file": "decisions/2026-02-10-phase-a-implementation-complete.md",
-      "x": 400,
+      "x": 700,
       "y": 3820,
+      "width": 250,
+      "height": 60,
+      "color": "#999999"
+    },
+    {
+      "id": "decisions/2026-02-10-canvas-driven-compound-engineering-refined",
+      "type": "file",
+      "file": "decisions/2026-02-10-canvas-driven-compound-engineering-refined.md",
+      "x": 100,
+      "y": 3940,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1274,8 +1294,8 @@
       "id": "patterns/multi-session-compound-engineering-workflow",
       "type": "file",
       "file": "patterns/multi-session-compound-engineering-workflow.md",
-      "x": 700,
-      "y": 3820,
+      "x": 400,
+      "y": 3940,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1284,7 +1304,7 @@
       "id": "patterns/fastmcp-asgi-builder-pattern",
       "type": "file",
       "file": "patterns/fastmcp-asgi-builder-pattern.md",
-      "x": 100,
+      "x": 700,
       "y": 3940,
       "width": 250,
       "height": 60,
@@ -1294,8 +1314,8 @@
       "id": "patterns/bmad-agent-persona-definition",
       "type": "file",
       "file": "patterns/bmad-agent-persona-definition.md",
-      "x": 400,
-      "y": 3940,
+      "x": 100,
+      "y": 4060,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1304,8 +1324,8 @@
       "id": "patterns/3d-graph-plugin-installation",
       "type": "file",
       "file": "patterns/3d-graph-plugin-installation.md",
-      "x": 700,
-      "y": 3940,
+      "x": 400,
+      "y": 4060,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1314,7 +1334,7 @@
       "id": "patterns/python-optimized-flume-pattern",
       "type": "file",
       "file": "patterns/python-optimized-flume-pattern.md",
-      "x": 100,
+      "x": 700,
       "y": 4060,
       "width": 250,
       "height": 60,
@@ -1324,8 +1344,8 @@
       "id": "patterns/automated-concept-extraction",
       "type": "file",
       "file": "patterns/automated-concept-extraction.md",
-      "x": 400,
-      "y": 4060,
+      "x": 100,
+      "y": 4180,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1334,8 +1354,8 @@
       "id": "patterns/runbook-benchmarking-validation",
       "type": "file",
       "file": "patterns/runbook-benchmarking-validation.md",
-      "x": 700,
-      "y": 4060,
+      "x": 400,
+      "y": 4180,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1354,7 +1374,7 @@
       "id": "patterns/bmad-workflow-orchestration",
       "type": "file",
       "file": "patterns/bmad-workflow-orchestration.md",
-      "x": 100,
+      "x": 700,
       "y": 4180,
       "width": 250,
       "height": 60,
@@ -1364,8 +1384,8 @@
       "id": "patterns/session-retrospective-notes",
       "type": "file",
       "file": "patterns/session-retrospective-notes.md",
-      "x": 400,
-      "y": 4180,
+      "x": 100,
+      "y": 4300,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1374,8 +1394,18 @@
       "id": "patterns/lessons-graph-integration",
       "type": "file",
       "file": "patterns/lessons-graph-integration.md",
+      "x": 400,
+      "y": 4300,
+      "width": 250,
+      "height": 60,
+      "color": "#999999"
+    },
+    {
+      "id": "patterns/canvas-driven-manual-linking",
+      "type": "file",
+      "file": "patterns/canvas-driven-manual-linking.md",
       "x": 700,
-      "y": 4180,
+      "y": 4300,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1385,7 +1415,27 @@
       "type": "file",
       "file": "patterns/google-sheets-vault-bridge.md",
       "x": 100,
-      "y": 4300,
+      "y": 4420,
+      "width": 250,
+      "height": 60,
+      "color": "#999999"
+    },
+    {
+      "id": "patterns/runbook-sheets-research-pipeline",
+      "type": "file",
+      "file": "patterns/runbook-sheets-research-pipeline.md",
+      "x": 400,
+      "y": 4420,
+      "width": 250,
+      "height": 60,
+      "color": "#999999"
+    },
+    {
+      "id": "patterns/12d-graph-view-presets",
+      "type": "file",
+      "file": "patterns/12d-graph-view-presets.md",
+      "x": 700,
+      "y": 4420,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1394,8 +1444,8 @@
       "id": "patterns/sheetsbr idge-mcp-testing",
       "type": "file",
       "file": "patterns/sheetsbr idge-mcp-testing.md",
-      "x": 400,
-      "y": 4300,
+      "x": 100,
+      "y": 4540,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1404,8 +1454,8 @@
       "id": "patterns/12d-graph-implementation",
       "type": "file",
       "file": "patterns/12d-graph-implementation.md",
-      "x": 700,
-      "y": 4300,
+      "x": 400,
+      "y": 4540,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1414,8 +1464,8 @@
       "id": "patterns/phase-5b-completion-pattern",
       "type": "file",
       "file": "patterns/phase-5b-completion-pattern.md",
-      "x": 100,
-      "y": 4420,
+      "x": 700,
+      "y": 4540,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1424,8 +1474,8 @@
       "id": "patterns/runbook-health-checks",
       "type": "file",
       "file": "patterns/runbook-health-checks.md",
-      "x": 400,
-      "y": 4420,
+      "x": 100,
+      "y": 4660,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1434,8 +1484,8 @@
       "id": "patterns/2026-02-09-vault-completion-retrospective",
       "type": "file",
       "file": "patterns/2026-02-09-vault-completion-retrospective.md",
-      "x": 700,
-      "y": 4420,
+      "x": 400,
+      "y": 4660,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1444,8 +1494,8 @@
       "id": "patterns/runbook-ci-cd-pipeline",
       "type": "file",
       "file": "patterns/runbook-ci-cd-pipeline.md",
-      "x": 100,
-      "y": 4540,
+      "x": 700,
+      "y": 4660,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1454,8 +1504,8 @@
       "id": "patterns/bmad-scale-adaptive-documentation",
       "type": "file",
       "file": "patterns/bmad-scale-adaptive-documentation.md",
-      "x": 400,
-      "y": 4540,
+      "x": 100,
+      "y": 4780,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1464,8 +1514,8 @@
       "id": "patterns/runbook-ollama-mcp-operations",
       "type": "file",
       "file": "patterns/runbook-ollama-mcp-operations.md",
-      "x": 700,
-      "y": 4540,
+      "x": 400,
+      "y": 4780,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1484,8 +1534,8 @@
       "id": "experiments/2026-02-09-phase-5b-production-readiness-validation",
       "type": "file",
       "file": "experiments/2026-02-09-phase-5b-production-readiness-validation.md",
-      "x": 100,
-      "y": 4660,
+      "x": 700,
+      "y": 4780,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1494,8 +1544,8 @@
       "id": "inbox/Setup linkage with google sheets",
       "type": "file",
       "file": "inbox/Setup linkage with google sheets.md",
-      "x": 400,
-      "y": 4660,
+      "x": 100,
+      "y": 4900,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1504,8 +1554,8 @@
       "id": "inbox/The Awareness of Nothing at All and Quadrature Physics",
       "type": "file",
       "file": "inbox/The Awareness of Nothing at All and Quadrature Physics.md",
-      "x": 700,
-      "y": 4660,
+      "x": 400,
+      "y": 4900,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1514,8 +1564,8 @@
       "id": "inbox/research-gaps",
       "type": "file",
       "file": "inbox/research-gaps.md",
-      "x": 100,
-      "y": 4780,
+      "x": 700,
+      "y": 4900,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1524,8 +1574,18 @@
       "id": "inbox/2026-02-09",
       "type": "file",
       "file": "inbox/2026-02-09.md",
+      "x": 100,
+      "y": 5020,
+      "width": 250,
+      "height": 60,
+      "color": "#999999"
+    },
+    {
+      "id": "inbox/concept-testing",
+      "type": "file",
+      "file": "inbox/concept-testing.md",
       "x": 400,
-      "y": 4780,
+      "y": 5020,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1535,7 +1595,7 @@
       "type": "file",
       "file": "projects/SESSION_42_43_FINAL_STATUS.md",
       "x": 700,
-      "y": 4780,
+      "y": 5020,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1545,7 +1605,7 @@
       "type": "file",
       "file": "projects/PHASE-6-TASK-1-COMPLETION-REPORT.md",
       "x": 100,
-      "y": 4900,
+      "y": 5140,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1555,7 +1615,7 @@
       "type": "file",
       "file": "projects/SESSION-43-COMPREHENSIVE-INDEX.md",
       "x": 400,
-      "y": 4900,
+      "y": 5140,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1565,7 +1625,7 @@
       "type": "file",
       "file": "projects/SESSIONS_40_45_HANDOFF_TO_PHASE_7.md",
       "x": 700,
-      "y": 4900,
+      "y": 5140,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1575,7 +1635,7 @@
       "type": "file",
       "file": "projects/SESSION_45_FINAL_STATUS.md",
       "x": 100,
-      "y": 5020,
+      "y": 5260,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1585,7 +1645,7 @@
       "type": "file",
       "file": "projects/PHASE-6-2-COMPLETION-SUMMARY.md",
       "x": 400,
-      "y": 5020,
+      "y": 5260,
       "width": 250,
       "height": 60,
       "color": "#999999"
@@ -1610,122 +1670,122 @@
     {
       "id": "edge-3",
       "fromNode": "papers/rethinking-exoplanet-habitability",
-      "toNode": "papers/jwst-dark-matter-map"
+      "toNode": "papers/yann-lecun-agi-world-models"
     },
     {
       "id": "edge-4",
       "fromNode": "papers/rethinking-exoplanet-habitability",
-      "toNode": "papers/llm-training-methodology-changes"
+      "toNode": "papers/jwst-dark-matter-map"
     },
     {
       "id": "edge-5",
       "fromNode": "papers/rethinking-exoplanet-habitability",
-      "toNode": "papers/yann-lecun-agi-world-models"
+      "toNode": "papers/llm-training-methodology-changes"
     },
     {
       "id": "edge-6",
       "fromNode": "papers/llm-in-sandbox-agentic-intelligence",
-      "toNode": "papers/anthropic-principle-fine-tuning"
+      "toNode": "papers/axion-dark-matter-quantum-sensors"
     },
     {
       "id": "edge-7",
       "fromNode": "papers/llm-in-sandbox-agentic-intelligence",
-      "toNode": "papers/axion-dark-matter-quantum-sensors"
+      "toNode": "papers/sunspot-ar4366-x-class-flares"
     },
     {
       "id": "edge-8",
       "fromNode": "papers/llm-in-sandbox-agentic-intelligence",
-      "toNode": "papers/sentinel-1-ice-sheets"
+      "toNode": "papers/ai-anomaly-detection-hubble-archive"
     },
     {
       "id": "edge-9",
       "fromNode": "papers/llm-in-sandbox-agentic-intelligence",
-      "toNode": "concepts/agentic-ai"
+      "toNode": "papers/sentinel-1-ice-sheets"
     },
     {
       "id": "edge-10",
       "fromNode": "papers/llm-in-sandbox-agentic-intelligence",
-      "toNode": "papers/sunspot-ar4366-x-class-flares"
+      "toNode": "papers/anthropic-principle-fine-tuning"
     },
     {
       "id": "edge-11",
       "fromNode": "papers/llm-in-sandbox-agentic-intelligence",
-      "toNode": "papers/ai-anomaly-detection-hubble-archive"
+      "toNode": "concepts/agentic-ai"
     },
     {
       "id": "edge-12",
       "fromNode": "papers/woh-g64-red-supergiant-mystery",
-      "toNode": "papers/tonggeometry-ai-math"
+      "toNode": "papers/claude-code-community-skills"
     },
     {
       "id": "edge-13",
       "fromNode": "papers/woh-g64-red-supergiant-mystery",
-      "toNode": "papers/few-shot-prompting-agentic-coding"
+      "toNode": "papers/anthropic-disempowerment-patterns"
     },
     {
       "id": "edge-14",
       "fromNode": "papers/woh-g64-red-supergiant-mystery",
-      "toNode": "papers/claude-code-community-skills"
+      "toNode": "papers/tonggeometry-ai-math"
     },
     {
       "id": "edge-15",
       "fromNode": "papers/woh-g64-red-supergiant-mystery",
-      "toNode": "papers/anthropic-disempowerment-patterns"
+      "toNode": "papers/operational-data-ai-agents"
     },
     {
       "id": "edge-16",
       "fromNode": "papers/woh-g64-red-supergiant-mystery",
-      "toNode": "papers/operational-data-ai-agents"
+      "toNode": "papers/few-shot-prompting-agentic-coding"
     },
     {
       "id": "edge-17",
       "fromNode": "papers/tidally-locked-exoplanet-habitability",
-      "toNode": "papers/anthropic-mcp-apps-claude-integrations"
+      "toNode": "papers/nasa-maven-anomaly"
     },
     {
       "id": "edge-18",
       "fromNode": "papers/tidally-locked-exoplanet-habitability",
-      "toNode": "concepts/exoplanet-habitability"
+      "toNode": "papers/anthropic-mcp-apps-claude-integrations"
     },
     {
       "id": "edge-19",
       "fromNode": "papers/tidally-locked-exoplanet-habitability",
-      "toNode": "papers/quantum-teleportation-logic-gates"
+      "toNode": "papers/axion-dark-matter-quantum-sensors"
     },
     {
       "id": "edge-20",
       "fromNode": "papers/tidally-locked-exoplanet-habitability",
-      "toNode": "papers/axion-dark-matter-quantum-sensors"
+      "toNode": "papers/jwst-early-universe-black-holes"
     },
     {
       "id": "edge-21",
       "fromNode": "papers/tidally-locked-exoplanet-habitability",
-      "toNode": "papers/jwst-early-universe-black-holes"
+      "toNode": "concepts/exoplanet-habitability"
     },
     {
       "id": "edge-22",
       "fromNode": "papers/tidally-locked-exoplanet-habitability",
-      "toNode": "papers/nasa-maven-anomaly"
+      "toNode": "papers/quantum-teleportation-logic-gates"
     },
     {
       "id": "edge-23",
       "fromNode": "papers/jwst-dark-matter-map",
-      "toNode": "papers/artemis-ii-laser-comms"
+      "toNode": "papers/international-year-quantum-2025"
     },
     {
       "id": "edge-24",
       "fromNode": "papers/jwst-dark-matter-map",
-      "toNode": "papers/international-year-quantum-2025"
+      "toNode": "concepts/jwst-observations"
     },
     {
       "id": "edge-25",
       "fromNode": "papers/jwst-dark-matter-map",
-      "toNode": "papers/claude-code-swiftui-skill-patterns"
+      "toNode": "concepts/early-universe-cosmology"
     },
     {
       "id": "edge-26",
       "fromNode": "papers/jwst-dark-matter-map",
-      "toNode": "concepts/early-universe-cosmology"
+      "toNode": "papers/claude-code-swiftui-skill-patterns"
     },
     {
       "id": "edge-27",
@@ -1735,22 +1795,22 @@
     {
       "id": "edge-28",
       "fromNode": "papers/jwst-dark-matter-map",
-      "toNode": "concepts/jwst-observations"
+      "toNode": "papers/artemis-ii-laser-comms"
     },
     {
       "id": "edge-29",
       "fromNode": "papers/quantum-entangled-atomic-sensors",
-      "toNode": "papers/super-earth-magnetic-protection-magma"
+      "toNode": "papers/artificial-photosynthesis-living-energy"
     },
     {
       "id": "edge-30",
       "fromNode": "papers/quantum-entangled-atomic-sensors",
-      "toNode": "papers/artificial-photosynthesis-living-energy"
+      "toNode": "papers/mistral-open-source-ai-strategy"
     },
     {
       "id": "edge-31",
       "fromNode": "papers/quantum-entangled-atomic-sensors",
-      "toNode": "papers/dna-origami-2d-semiconductor-patterning"
+      "toNode": "papers/super-earth-magnetic-protection-magma"
     },
     {
       "id": "edge-32",
@@ -1760,27 +1820,27 @@
     {
       "id": "edge-33",
       "fromNode": "papers/quantum-entangled-atomic-sensors",
-      "toNode": "papers/mistral-open-source-ai-strategy"
+      "toNode": "papers/dna-origami-2d-semiconductor-patterning"
     },
     {
       "id": "edge-34",
       "fromNode": "papers/cisa-chatgpt-data-leak",
-      "toNode": "papers/diffraction-gratings-fourier-transforms"
+      "toNode": "papers/comb-jellies-animal-tree-of-life"
     },
     {
       "id": "edge-35",
       "fromNode": "papers/cisa-chatgpt-data-leak",
-      "toNode": "papers/few-shot-prompting-agentic-coding"
+      "toNode": "papers/diffraction-gratings-fourier-transforms"
     },
     {
       "id": "edge-36",
       "fromNode": "papers/cisa-chatgpt-data-leak",
-      "toNode": "papers/ocean-calcium-climate-mystery-66my"
+      "toNode": "concepts/ai-safety-alignment"
     },
     {
       "id": "edge-37",
       "fromNode": "papers/cisa-chatgpt-data-leak",
-      "toNode": "concepts/ai-safety-alignment"
+      "toNode": "papers/ocean-calcium-climate-mystery-66my"
     },
     {
       "id": "edge-38",
@@ -1790,7 +1850,7 @@
     {
       "id": "edge-39",
       "fromNode": "papers/cisa-chatgpt-data-leak",
-      "toNode": "papers/comb-jellies-animal-tree-of-life"
+      "toNode": "papers/few-shot-prompting-agentic-coding"
     },
     {
       "id": "edge-40",
@@ -1800,117 +1860,117 @@
     {
       "id": "edge-41",
       "fromNode": "papers/langchain-deep-agents-context-management",
-      "toNode": "concepts/prompt-engineering"
+      "toNode": "papers/nasa-maven-anomaly"
     },
     {
       "id": "edge-42",
       "fromNode": "papers/langchain-deep-agents-context-management",
-      "toNode": "papers/claude-code-swiftui-skill-patterns"
+      "toNode": "papers/mom-z14-farthest-galaxy"
     },
     {
       "id": "edge-43",
       "fromNode": "papers/langchain-deep-agents-context-management",
-      "toNode": "concepts/agentic-ai"
+      "toNode": "papers/emu3-multimodal-next-token-prediction"
     },
     {
       "id": "edge-44",
       "fromNode": "papers/langchain-deep-agents-context-management",
-      "toNode": "papers/mom-z14-farthest-galaxy"
+      "toNode": "papers/claude-code-swiftui-skill-patterns"
     },
     {
       "id": "edge-45",
       "fromNode": "papers/langchain-deep-agents-context-management",
-      "toNode": "papers/emu3-multimodal-next-token-prediction"
+      "toNode": "concepts/prompt-engineering"
     },
     {
       "id": "edge-46",
       "fromNode": "papers/langchain-deep-agents-context-management",
-      "toNode": "papers/nasa-maven-anomaly"
+      "toNode": "concepts/agentic-ai"
     },
     {
       "id": "edge-47",
       "fromNode": "papers/2026-02-09-unique-investment-opportunities-research",
-      "toNode": "papers/agentic-ai-memory-hierarchies"
+      "toNode": "papers/mistral-open-source-ai-strategy"
     },
     {
       "id": "edge-48",
       "fromNode": "papers/2026-02-09-unique-investment-opportunities-research",
-      "toNode": "papers/openai-codex-agent-loop"
+      "toNode": "papers/jwst-red-nova-remnants"
     },
     {
       "id": "edge-49",
       "fromNode": "papers/2026-02-09-unique-investment-opportunities-research",
-      "toNode": "papers/jwst-red-nova-remnants"
+      "toNode": "papers/openai-codex-agent-loop"
     },
     {
       "id": "edge-50",
       "fromNode": "papers/2026-02-09-unique-investment-opportunities-research",
-      "toNode": "papers/mistral-open-source-ai-strategy"
+      "toNode": "papers/grok4-ai-benchmarks"
     },
     {
       "id": "edge-51",
       "fromNode": "papers/2026-02-09-unique-investment-opportunities-research",
-      "toNode": "papers/grok4-ai-benchmarks"
+      "toNode": "papers/agentic-ai-memory-hierarchies"
     },
     {
       "id": "edge-52",
       "fromNode": "papers/testing-agent-skills-with-evals",
-      "toNode": "concepts/prompt-engineering"
+      "toNode": "papers/super-earth-magnetic-protection-magma"
     },
     {
       "id": "edge-53",
       "fromNode": "papers/testing-agent-skills-with-evals",
-      "toNode": "papers/super-earth-magnetic-protection-magma"
+      "toNode": "papers/cosmic-strings-time-travel"
     },
     {
       "id": "edge-54",
       "fromNode": "papers/testing-agent-skills-with-evals",
-      "toNode": "papers/cosmic-strings-time-travel"
+      "toNode": "papers/tonggeometry-olympiad-tree-search"
     },
     {
       "id": "edge-55",
       "fromNode": "papers/testing-agent-skills-with-evals",
-      "toNode": "concepts/agentic-ai"
+      "toNode": "papers/grok4-ai-benchmarks"
     },
     {
       "id": "edge-56",
       "fromNode": "papers/testing-agent-skills-with-evals",
-      "toNode": "papers/tonggeometry-olympiad-tree-search"
+      "toNode": "papers/pairwise-comparison-fiber-bundles"
     },
     {
       "id": "edge-57",
       "fromNode": "papers/testing-agent-skills-with-evals",
-      "toNode": "papers/pairwise-comparison-fiber-bundles"
+      "toNode": "concepts/prompt-engineering"
     },
     {
       "id": "edge-58",
       "fromNode": "papers/testing-agent-skills-with-evals",
-      "toNode": "papers/grok4-ai-benchmarks"
+      "toNode": "concepts/agentic-ai"
     },
     {
       "id": "edge-59",
       "fromNode": "papers/woh-g64-dust-obscured-companion",
-      "toNode": "papers/quantum-atomic-light-synchronization"
+      "toNode": "papers/artificial-photosynthesis-living-energy"
     },
     {
       "id": "edge-60",
       "fromNode": "papers/woh-g64-dust-obscured-companion",
-      "toNode": "papers/alphafold-cryo-em-structure-prediction"
+      "toNode": "papers/emu3-multimodal-next-token-prediction"
     },
     {
       "id": "edge-61",
       "fromNode": "papers/woh-g64-dust-obscured-companion",
-      "toNode": "papers/tonggeometry-ai-math"
+      "toNode": "papers/quantum-atomic-light-synchronization"
     },
     {
       "id": "edge-62",
       "fromNode": "papers/woh-g64-dust-obscured-companion",
-      "toNode": "papers/artificial-photosynthesis-living-energy"
+      "toNode": "papers/tonggeometry-ai-math"
     },
     {
       "id": "edge-63",
       "fromNode": "papers/woh-g64-dust-obscured-companion",
-      "toNode": "papers/emu3-multimodal-next-token-prediction"
+      "toNode": "papers/alphafold-cryo-em-structure-prediction"
     },
     {
       "id": "edge-64",
@@ -1920,22 +1980,22 @@
     {
       "id": "edge-65",
       "fromNode": "papers/llm-training-methodology-changes",
-      "toNode": "papers/dna-origami-2d-semiconductor-patterning"
+      "toNode": "papers/cu45-superatom-carbon-recycling"
     },
     {
       "id": "edge-66",
       "fromNode": "papers/llm-training-methodology-changes",
-      "toNode": "papers/scaling-agent-systems"
+      "toNode": "papers/comb-jellies-animal-tree-of-life"
     },
     {
       "id": "edge-67",
       "fromNode": "papers/llm-training-methodology-changes",
-      "toNode": "papers/comb-jellies-animal-tree-of-life"
+      "toNode": "papers/scaling-agent-systems"
     },
     {
       "id": "edge-68",
       "fromNode": "papers/llm-training-methodology-changes",
-      "toNode": "papers/cu45-superatom-carbon-recycling"
+      "toNode": "papers/dna-origami-2d-semiconductor-patterning"
     },
     {
       "id": "edge-69",
@@ -1945,42 +2005,42 @@
     {
       "id": "edge-70",
       "fromNode": "papers/anthropic-principle-fine-tuning",
-      "toNode": "papers/few-shot-prompting-agentic-coding"
+      "toNode": "papers/llamaagents-builder"
     },
     {
       "id": "edge-71",
       "fromNode": "papers/anthropic-principle-fine-tuning",
-      "toNode": "papers/runaway-stars-milky-way"
+      "toNode": "papers/few-shot-prompting-agentic-coding"
     },
     {
       "id": "edge-72",
       "fromNode": "papers/anthropic-principle-fine-tuning",
-      "toNode": "papers/llamaagents-builder"
+      "toNode": "papers/runaway-stars-milky-way"
     },
     {
       "id": "edge-73",
       "fromNode": "papers/cu45-superatom-carbon-recycling",
-      "toNode": "concepts/nanofabrication"
+      "toNode": "papers/artificial-photosynthesis-living-energy"
     },
     {
       "id": "edge-74",
       "fromNode": "papers/cu45-superatom-carbon-recycling",
-      "toNode": "papers/tonggeometry-ai-math"
+      "toNode": "papers/mom-z14-farthest-galaxy"
     },
     {
       "id": "edge-75",
       "fromNode": "papers/cu45-superatom-carbon-recycling",
-      "toNode": "papers/artificial-photosynthesis-living-energy"
+      "toNode": "concepts/catalytic-materials"
     },
     {
       "id": "edge-76",
       "fromNode": "papers/cu45-superatom-carbon-recycling",
-      "toNode": "concepts/catalytic-materials"
+      "toNode": "concepts/nanofabrication"
     },
     {
       "id": "edge-77",
       "fromNode": "papers/cu45-superatom-carbon-recycling",
-      "toNode": "papers/mom-z14-farthest-galaxy"
+      "toNode": "papers/tonggeometry-ai-math"
     },
     {
       "id": "edge-78",
@@ -1990,27 +2050,27 @@
     {
       "id": "edge-79",
       "fromNode": "papers/pairwise-comparison-fiber-bundles",
-      "toNode": "papers/agentic-ai-memory-hierarchies"
+      "toNode": "papers/emoticons-llm-silent-failures"
     },
     {
       "id": "edge-80",
       "fromNode": "papers/pairwise-comparison-fiber-bundles",
-      "toNode": "papers/alphafold-cryo-em-structure-prediction"
+      "toNode": "papers/jwst-red-nova-remnants"
     },
     {
       "id": "edge-81",
       "fromNode": "papers/pairwise-comparison-fiber-bundles",
-      "toNode": "papers/superfluid-to-supersolid-transition"
+      "toNode": "papers/alphafold-cryo-em-structure-prediction"
     },
     {
       "id": "edge-82",
       "fromNode": "papers/pairwise-comparison-fiber-bundles",
-      "toNode": "papers/emoticons-llm-silent-failures"
+      "toNode": "papers/superfluid-to-supersolid-transition"
     },
     {
       "id": "edge-83",
       "fromNode": "papers/pairwise-comparison-fiber-bundles",
-      "toNode": "papers/jwst-red-nova-remnants"
+      "toNode": "papers/agentic-ai-memory-hierarchies"
     },
     {
       "id": "edge-84",
@@ -2020,37 +2080,37 @@
     {
       "id": "edge-85",
       "fromNode": "papers/jwst-red-nova-remnants",
-      "toNode": "papers/cisa-chatgpt-data-leak"
+      "toNode": "concepts/jwst-observations"
     },
     {
       "id": "edge-86",
       "fromNode": "papers/jwst-red-nova-remnants",
-      "toNode": "papers/superfluid-to-supersolid-transition"
+      "toNode": "papers/scaling-agent-systems"
     },
     {
       "id": "edge-87",
       "fromNode": "papers/jwst-red-nova-remnants",
-      "toNode": "papers/scaling-agent-systems"
+      "toNode": "papers/cisa-chatgpt-data-leak"
     },
     {
       "id": "edge-88",
       "fromNode": "papers/jwst-red-nova-remnants",
-      "toNode": "concepts/jwst-observations"
+      "toNode": "papers/superfluid-to-supersolid-transition"
     },
     {
       "id": "edge-89",
       "fromNode": "papers/quantum-atomic-light-synchronization",
-      "toNode": "papers/humanitys-last-exam-benchmark"
+      "toNode": "papers/claude-code-community-skills"
     },
     {
       "id": "edge-90",
       "fromNode": "papers/quantum-atomic-light-synchronization",
-      "toNode": "papers/karpathy-claude-code-skills"
+      "toNode": "papers/humanitys-last-exam-benchmark"
     },
     {
       "id": "edge-91",
       "fromNode": "papers/quantum-atomic-light-synchronization",
-      "toNode": "papers/claude-code-community-skills"
+      "toNode": "papers/karpathy-claude-code-skills"
     },
     {
       "id": "edge-92",
@@ -2065,22 +2125,22 @@
     {
       "id": "edge-94",
       "fromNode": "papers/super-earth-magnetic-protection-magma",
-      "toNode": "papers/tonggeometry-ai-math"
+      "toNode": "papers/mars-time-dilation-relativity"
     },
     {
       "id": "edge-95",
       "fromNode": "papers/super-earth-magnetic-protection-magma",
-      "toNode": "papers/mars-time-dilation-relativity"
+      "toNode": "papers/ai-anomaly-detection-hubble-archive"
     },
     {
       "id": "edge-96",
       "fromNode": "papers/super-earth-magnetic-protection-magma",
-      "toNode": "papers/ai-anomaly-detection-hubble-archive"
+      "toNode": "papers/tonggeometry-ai-math"
     },
     {
       "id": "edge-97",
       "fromNode": "papers/jwst-early-universe-black-holes",
-      "toNode": "papers/silicon-quantum-computing-platform"
+      "toNode": "concepts/jwst-observations"
     },
     {
       "id": "edge-98",
@@ -2090,42 +2150,42 @@
     {
       "id": "edge-99",
       "fromNode": "papers/jwst-early-universe-black-holes",
-      "toNode": "papers/few-shot-prompting-agentic-coding"
+      "toNode": "papers/tonggeometry-olympiad-tree-search"
     },
     {
       "id": "edge-100",
       "fromNode": "papers/jwst-early-universe-black-holes",
-      "toNode": "papers/tonggeometry-olympiad-tree-search"
+      "toNode": "papers/silicon-quantum-computing-platform"
     },
     {
       "id": "edge-101",
       "fromNode": "papers/jwst-early-universe-black-holes",
-      "toNode": "concepts/jwst-observations"
+      "toNode": "papers/llm-training-methodology-changes"
     },
     {
       "id": "edge-102",
       "fromNode": "papers/jwst-early-universe-black-holes",
-      "toNode": "papers/llm-training-methodology-changes"
+      "toNode": "papers/few-shot-prompting-agentic-coding"
     },
     {
       "id": "edge-103",
       "fromNode": "papers/mit-quantum-computing-progress",
-      "toNode": "papers/beyond-the-quantum-pilot-wave-theory"
+      "toNode": "papers/mom-z14-farthest-galaxy"
     },
     {
       "id": "edge-104",
       "fromNode": "papers/mit-quantum-computing-progress",
-      "toNode": "papers/cosmic-strings-time-travel"
+      "toNode": "papers/beyond-the-quantum-pilot-wave-theory"
     },
     {
       "id": "edge-105",
       "fromNode": "papers/mit-quantum-computing-progress",
-      "toNode": "papers/karpathy-claude-code-skills"
+      "toNode": "papers/cosmic-strings-time-travel"
     },
     {
       "id": "edge-106",
       "fromNode": "papers/mit-quantum-computing-progress",
-      "toNode": "papers/mom-z14-farthest-galaxy"
+      "toNode": "papers/karpathy-claude-code-skills"
     },
     {
       "id": "edge-107",
@@ -2140,42 +2200,42 @@
     {
       "id": "edge-109",
       "fromNode": "papers/scaling-agent-systems",
-      "toNode": "concepts/multi-agent-systems"
+      "toNode": "papers/mom-z14-farthest-galaxy"
     },
     {
       "id": "edge-110",
       "fromNode": "papers/scaling-agent-systems",
-      "toNode": "papers/dna-origami-2d-semiconductor-patterning"
+      "toNode": "concepts/multi-agent-systems"
     },
     {
       "id": "edge-111",
       "fromNode": "papers/scaling-agent-systems",
-      "toNode": "concepts/agentic-ai"
+      "toNode": "papers/dna-origami-2d-semiconductor-patterning"
     },
     {
       "id": "edge-112",
       "fromNode": "papers/scaling-agent-systems",
-      "toNode": "papers/mom-z14-farthest-galaxy"
+      "toNode": "concepts/agentic-ai"
     },
     {
       "id": "edge-113",
       "fromNode": "papers/claude-code-community-skills",
-      "toNode": "papers/artemis-ii-laser-comms"
+      "toNode": "papers/openai-applied-compute-startup"
     },
     {
       "id": "edge-114",
       "fromNode": "papers/claude-code-community-skills",
-      "toNode": "papers/openai-applied-compute-startup"
+      "toNode": "papers/circleci-ai-cicd-validation"
     },
     {
       "id": "edge-115",
       "fromNode": "papers/claude-code-community-skills",
-      "toNode": "papers/circleci-ai-cicd-validation"
+      "toNode": "papers/yann-lecun-agi-world-models"
     },
     {
       "id": "edge-116",
       "fromNode": "papers/claude-code-community-skills",
-      "toNode": "papers/yann-lecun-agi-world-models"
+      "toNode": "papers/artemis-ii-laser-comms"
     },
     {
       "id": "edge-117",
@@ -2185,12 +2245,12 @@
     {
       "id": "edge-118",
       "fromNode": "papers/beyond-the-quantum-pilot-wave-theory",
-      "toNode": "papers/webgpu-claude-skill-threejs"
+      "toNode": "papers/oman-artemis-accords"
     },
     {
       "id": "edge-119",
       "fromNode": "papers/beyond-the-quantum-pilot-wave-theory",
-      "toNode": "papers/oman-artemis-accords"
+      "toNode": "papers/webgpu-claude-skill-threejs"
     },
     {
       "id": "edge-120",
@@ -2200,7 +2260,7 @@
     {
       "id": "edge-121",
       "fromNode": "papers/runaway-stars-milky-way",
-      "toNode": "papers/openai-codex-agent-loop"
+      "toNode": "papers/circleci-ai-cicd-validation"
     },
     {
       "id": "edge-122",
@@ -2210,7 +2270,7 @@
     {
       "id": "edge-123",
       "fromNode": "papers/runaway-stars-milky-way",
-      "toNode": "papers/circleci-ai-cicd-validation"
+      "toNode": "papers/openai-codex-agent-loop"
     },
     {
       "id": "edge-124",
@@ -2250,17 +2310,17 @@
     {
       "id": "edge-131",
       "fromNode": "papers/superfluid-to-supersolid-transition",
-      "toNode": "papers/artemis-ii-laser-comms"
+      "toNode": "papers/optofluidic-3d-nanofabrication"
     },
     {
       "id": "edge-132",
       "fromNode": "papers/superfluid-to-supersolid-transition",
-      "toNode": "papers/optofluidic-3d-nanofabrication"
+      "toNode": "papers/few-shot-prompting-agentic-coding"
     },
     {
       "id": "edge-133",
       "fromNode": "papers/superfluid-to-supersolid-transition",
-      "toNode": "papers/few-shot-prompting-agentic-coding"
+      "toNode": "papers/artemis-ii-laser-comms"
     },
     {
       "id": "edge-134",
@@ -2270,17 +2330,17 @@
     {
       "id": "edge-135",
       "fromNode": "papers/ocean-calcium-climate-mystery-66my",
-      "toNode": "papers/anthropic-view-universe-nyas"
+      "toNode": "papers/mcl1-myc-cancer-metabolism"
     },
     {
       "id": "edge-136",
       "fromNode": "papers/ocean-calcium-climate-mystery-66my",
-      "toNode": "papers/tonggeometry-ai-math"
+      "toNode": "papers/anthropic-view-universe-nyas"
     },
     {
       "id": "edge-137",
       "fromNode": "papers/ocean-calcium-climate-mystery-66my",
-      "toNode": "papers/mcl1-myc-cancer-metabolism"
+      "toNode": "papers/tonggeometry-ai-math"
     },
     {
       "id": "edge-138",
@@ -2290,27 +2350,27 @@
     {
       "id": "edge-139",
       "fromNode": "papers/artemis-ii-laser-comms",
-      "toNode": "papers/alphafold-cryo-em-structure-prediction"
+      "toNode": "papers/diffraction-gratings-fourier-transforms"
     },
     {
       "id": "edge-140",
       "fromNode": "papers/artemis-ii-laser-comms",
-      "toNode": "papers/diffraction-gratings-fourier-transforms"
+      "toNode": "papers/magnetic-superhighways-starburst-galaxy"
     },
     {
       "id": "edge-141",
       "fromNode": "papers/artemis-ii-laser-comms",
-      "toNode": "papers/magnetic-superhighways-starburst-galaxy"
+      "toNode": "papers/alphafold-cryo-em-structure-prediction"
     },
     {
       "id": "edge-142",
       "fromNode": "papers/brain-protein-neurodegeneration",
-      "toNode": "papers/super-earth-magnetic-protection-magma"
+      "toNode": "papers/nasa-maven-anomaly"
     },
     {
       "id": "edge-143",
       "fromNode": "papers/brain-protein-neurodegeneration",
-      "toNode": "papers/tonggeometry-ai-math"
+      "toNode": "papers/super-earth-magnetic-protection-magma"
     },
     {
       "id": "edge-144",
@@ -2325,7 +2385,7 @@
     {
       "id": "edge-146",
       "fromNode": "papers/brain-protein-neurodegeneration",
-      "toNode": "papers/nasa-maven-anomaly"
+      "toNode": "papers/tonggeometry-ai-math"
     },
     {
       "id": "edge-147",
@@ -2335,72 +2395,72 @@
     {
       "id": "edge-148",
       "fromNode": "papers/anthropic-mcp-apps-claude-integrations",
-      "toNode": "papers/magnetic-superhighways-starburst-galaxy"
+      "toNode": "concepts/mcp-model-context-protocol"
     },
     {
       "id": "edge-149",
       "fromNode": "papers/anthropic-mcp-apps-claude-integrations",
-      "toNode": "concepts/mcp-model-context-protocol"
+      "toNode": "papers/magnetic-superhighways-starburst-galaxy"
     },
     {
       "id": "edge-150",
       "fromNode": "papers/cosmic-strings-time-travel",
-      "toNode": "papers/helimagnetism-ferromagnetism-mode-locking"
+      "toNode": "papers/artificial-photosynthesis-living-energy"
     },
     {
       "id": "edge-151",
       "fromNode": "papers/cosmic-strings-time-travel",
-      "toNode": "papers/artificial-photosynthesis-living-energy"
+      "toNode": "papers/helimagnetism-ferromagnetism-mode-locking"
     },
     {
       "id": "edge-152",
       "fromNode": "papers/cosmic-strings-time-travel",
-      "toNode": "papers/tonggeometry-olympiad-tree-search"
+      "toNode": "papers/anthropic-disempowerment-patterns"
     },
     {
       "id": "edge-153",
       "fromNode": "papers/cosmic-strings-time-travel",
-      "toNode": "papers/anthropic-disempowerment-patterns"
+      "toNode": "papers/tonggeometry-olympiad-tree-search"
     },
     {
       "id": "edge-154",
       "fromNode": "papers/grok4-ai-benchmarks",
-      "toNode": "papers/openai-applied-compute-startup"
+      "toNode": "papers/nasa-maven-anomaly"
     },
     {
       "id": "edge-155",
       "fromNode": "papers/grok4-ai-benchmarks",
-      "toNode": "papers/comb-jellies-animal-tree-of-life"
+      "toNode": "papers/openai-applied-compute-startup"
     },
     {
       "id": "edge-156",
       "fromNode": "papers/grok4-ai-benchmarks",
-      "toNode": "papers/nasa-maven-anomaly"
+      "toNode": "papers/comb-jellies-animal-tree-of-life"
     },
     {
       "id": "edge-157",
       "fromNode": "papers/usaf-stealthy-electromagnetic-attack",
-      "toNode": "papers/mars-time-dilation-relativity"
+      "toNode": "papers/emu3-multimodal-next-token-prediction"
     },
     {
       "id": "edge-158",
       "fromNode": "papers/usaf-stealthy-electromagnetic-attack",
-      "toNode": "papers/graphitic-polytype-switching-nanocavities"
+      "toNode": "papers/mars-time-dilation-relativity"
     },
     {
       "id": "edge-159",
       "fromNode": "papers/usaf-stealthy-electromagnetic-attack",
-      "toNode": "papers/emu3-multimodal-next-token-prediction"
+      "toNode": "papers/graphitic-polytype-switching-nanocavities"
     },
     {
       "id": "edge-160",
       "fromNode": "papers/humanoid-robots-space-launch",
-      "toNode": "papers/llm-in-sandbox-agentic-intelligence"
+      "toNode": "papers/quantum-teleportation-logic-gates"
     },
     {
       "id": "edge-161",
       "fromNode": "papers/humanoid-robots-space-launch",
-      "toNode": "papers/quantum-teleportation-logic-gates"
+      "toNode": "papers/tidally-locked-exoplanet-habitability"
     },
     {
       "id": "edge-162",
@@ -2415,17 +2475,17 @@
     {
       "id": "edge-164",
       "fromNode": "papers/humanoid-robots-space-launch",
-      "toNode": "papers/tidally-locked-exoplanet-habitability"
+      "toNode": "papers/llm-in-sandbox-agentic-intelligence"
     },
     {
       "id": "edge-165",
       "fromNode": "papers/tonggeometry-olympiad-tree-search",
-      "toNode": "papers/magnetic-superhighways-starburst-galaxy"
+      "toNode": "papers/axion-dark-matter-quantum-sensors"
     },
     {
       "id": "edge-166",
       "fromNode": "papers/tonggeometry-olympiad-tree-search",
-      "toNode": "papers/axion-dark-matter-quantum-sensors"
+      "toNode": "papers/magnetic-superhighways-starburst-galaxy"
     },
     {
       "id": "edge-167",
@@ -2435,27 +2495,27 @@
     {
       "id": "edge-168",
       "fromNode": "papers/mom-z14-farthest-galaxy",
-      "toNode": "papers/tonggeometry-ai-math"
+      "toNode": "papers/artificial-photosynthesis-living-energy"
     },
     {
       "id": "edge-169",
       "fromNode": "papers/mom-z14-farthest-galaxy",
-      "toNode": "papers/artificial-photosynthesis-living-energy"
+      "toNode": "papers/anthropic-disempowerment-patterns"
     },
     {
       "id": "edge-170",
       "fromNode": "papers/mom-z14-farthest-galaxy",
-      "toNode": "papers/anthropic-principle-fine-tuning"
+      "toNode": "concepts/early-universe-cosmology"
     },
     {
       "id": "edge-171",
       "fromNode": "papers/mom-z14-farthest-galaxy",
-      "toNode": "concepts/early-universe-cosmology"
+      "toNode": "papers/tonggeometry-ai-math"
     },
     {
       "id": "edge-172",
       "fromNode": "papers/mom-z14-farthest-galaxy",
-      "toNode": "papers/anthropic-disempowerment-patterns"
+      "toNode": "papers/anthropic-principle-fine-tuning"
     },
     {
       "id": "edge-173",
@@ -2465,22 +2525,22 @@
     {
       "id": "edge-174",
       "fromNode": "papers/sentinel-1-ice-sheets",
-      "toNode": "papers/superfluid-to-supersolid-transition"
+      "toNode": "papers/circleci-ai-cicd-validation"
     },
     {
       "id": "edge-175",
       "fromNode": "papers/sentinel-1-ice-sheets",
-      "toNode": "papers/circleci-ai-cicd-validation"
+      "toNode": "papers/tidally-locked-exoplanet-habitability"
     },
     {
       "id": "edge-176",
       "fromNode": "papers/sentinel-1-ice-sheets",
-      "toNode": "papers/ocean-calcium-climate-mystery-66my"
+      "toNode": "papers/superfluid-to-supersolid-transition"
     },
     {
       "id": "edge-177",
       "fromNode": "papers/sentinel-1-ice-sheets",
-      "toNode": "papers/tidally-locked-exoplanet-habitability"
+      "toNode": "papers/ocean-calcium-climate-mystery-66my"
     },
     {
       "id": "edge-178",
@@ -2490,12 +2550,12 @@
     {
       "id": "edge-179",
       "fromNode": "papers/openai-applied-compute-startup",
-      "toNode": "papers/agentic-ai-memory-hierarchies"
+      "toNode": "papers/circleci-ai-cicd-validation"
     },
     {
       "id": "edge-180",
       "fromNode": "papers/openai-applied-compute-startup",
-      "toNode": "papers/circleci-ai-cicd-validation"
+      "toNode": "papers/agentic-ai-memory-hierarchies"
     },
     {
       "id": "edge-181",
@@ -2505,7 +2565,7 @@
     {
       "id": "edge-182",
       "fromNode": "papers/webb-cosmic-question-mark-gravitational-lens",
-      "toNode": "papers/agentic-ai-memory-hierarchies"
+      "toNode": "papers/llamaagents-builder"
     },
     {
       "id": "edge-183",
@@ -2520,17 +2580,17 @@
     {
       "id": "edge-185",
       "fromNode": "papers/webb-cosmic-question-mark-gravitational-lens",
-      "toNode": "papers/graphitic-polytype-switching-nanocavities"
+      "toNode": "papers/agentic-ai-memory-hierarchies"
     },
     {
       "id": "edge-186",
       "fromNode": "papers/webb-cosmic-question-mark-gravitational-lens",
-      "toNode": "papers/llamaagents-builder"
+      "toNode": "papers/graphitic-polytype-switching-nanocavities"
     },
     {
       "id": "edge-187",
       "fromNode": "papers/protein-tape-recorder-cytotape",
-      "toNode": "papers/theorem-ai-formal-verification"
+      "toNode": "papers/cu45-superatom-co2-ethylene"
     },
     {
       "id": "edge-188",
@@ -2540,7 +2600,7 @@
     {
       "id": "edge-189",
       "fromNode": "papers/protein-tape-recorder-cytotape",
-      "toNode": "papers/cu45-superatom-co2-ethylene"
+      "toNode": "papers/theorem-ai-formal-verification"
     },
     {
       "id": "edge-190",
@@ -2550,27 +2610,27 @@
     {
       "id": "edge-191",
       "fromNode": "papers/theorem-ai-formal-verification",
-      "toNode": "papers/dna-origami-2d-semiconductor-patterning"
+      "toNode": "papers/anthropic-disempowerment-patterns"
     },
     {
       "id": "edge-192",
       "fromNode": "papers/theorem-ai-formal-verification",
-      "toNode": "papers/few-shot-prompting-agentic-coding"
+      "toNode": "papers/dna-origami-2d-semiconductor-patterning"
     },
     {
       "id": "edge-193",
       "fromNode": "papers/theorem-ai-formal-verification",
-      "toNode": "papers/anthropic-disempowerment-patterns"
+      "toNode": "papers/few-shot-prompting-agentic-coding"
     },
     {
       "id": "edge-194",
       "fromNode": "papers/anthropic-view-universe-nyas",
-      "toNode": "papers/artemis-ii-laser-comms"
+      "toNode": "papers/mcl1-myc-cancer-metabolism"
     },
     {
       "id": "edge-195",
       "fromNode": "papers/anthropic-view-universe-nyas",
-      "toNode": "papers/agentic-ai-memory-hierarchies"
+      "toNode": "papers/quantum-teleportation-logic-gates"
     },
     {
       "id": "edge-196",
@@ -2580,22 +2640,22 @@
     {
       "id": "edge-197",
       "fromNode": "papers/anthropic-view-universe-nyas",
-      "toNode": "papers/quantum-teleportation-logic-gates"
+      "toNode": "papers/agentic-ai-memory-hierarchies"
     },
     {
       "id": "edge-198",
       "fromNode": "papers/anthropic-view-universe-nyas",
-      "toNode": "papers/mcl1-myc-cancer-metabolism"
+      "toNode": "papers/artemis-ii-laser-comms"
     },
     {
       "id": "edge-199",
       "fromNode": "papers/silicon-quantum-computing-platform",
-      "toNode": "papers/diffraction-gratings-fourier-transforms"
+      "toNode": "papers/emu3-multimodal-next-token-prediction"
     },
     {
       "id": "edge-200",
       "fromNode": "papers/silicon-quantum-computing-platform",
-      "toNode": "papers/superfluid-to-supersolid-transition"
+      "toNode": "papers/diffraction-gratings-fourier-transforms"
     },
     {
       "id": "edge-201",
@@ -2605,32 +2665,32 @@
     {
       "id": "edge-202",
       "fromNode": "papers/silicon-quantum-computing-platform",
-      "toNode": "papers/emu3-multimodal-next-token-prediction"
+      "toNode": "papers/alfven-waves-aurora"
     },
     {
       "id": "edge-203",
       "fromNode": "papers/silicon-quantum-computing-platform",
-      "toNode": "papers/alfven-waves-aurora"
+      "toNode": "papers/superfluid-to-supersolid-transition"
     },
     {
       "id": "edge-204",
       "fromNode": "papers/alfven-waves-aurora",
-      "toNode": "papers/cisa-chatgpt-data-leak"
+      "toNode": "papers/diffraction-gratings-fourier-transforms"
     },
     {
       "id": "edge-205",
       "fromNode": "papers/alfven-waves-aurora",
-      "toNode": "papers/diffraction-gratings-fourier-transforms"
+      "toNode": "papers/cisa-chatgpt-data-leak"
     },
     {
       "id": "edge-206",
       "fromNode": "papers/alfven-waves-aurora",
-      "toNode": "papers/cu45-superatom-co2-ethylene"
+      "toNode": "papers/grb-250314a-ancient-signal"
     },
     {
       "id": "edge-207",
       "fromNode": "papers/alfven-waves-aurora",
-      "toNode": "papers/grb-250314a-ancient-signal"
+      "toNode": "papers/cu45-superatom-co2-ethylene"
     },
     {
       "id": "edge-208",
@@ -2640,17 +2700,17 @@
     {
       "id": "edge-209",
       "fromNode": "papers/humanitys-last-exam-benchmark",
-      "toNode": "papers/magnetic-superhighways-starburst-galaxy"
+      "toNode": "papers/mars-time-dilation-relativity"
     },
     {
       "id": "edge-210",
       "fromNode": "papers/humanitys-last-exam-benchmark",
-      "toNode": "papers/mars-time-dilation-relativity"
+      "toNode": "papers/emoticons-llm-silent-failures"
     },
     {
       "id": "edge-211",
       "fromNode": "papers/humanitys-last-exam-benchmark",
-      "toNode": "papers/emoticons-llm-silent-failures"
+      "toNode": "papers/magnetic-superhighways-starburst-galaxy"
     },
     {
       "id": "edge-212",
@@ -2660,27 +2720,27 @@
     {
       "id": "edge-213",
       "fromNode": "papers/yann-lecun-agi-world-models",
-      "toNode": "papers/ocean-calcium-climate-mystery-66my"
+      "toNode": "papers/mcl1-myc-cancer-metabolism"
     },
     {
       "id": "edge-214",
       "fromNode": "papers/yann-lecun-agi-world-models",
-      "toNode": "concepts/agentic-ai"
+      "toNode": "papers/langchain-deep-agents-context-management"
     },
     {
       "id": "edge-215",
       "fromNode": "papers/yann-lecun-agi-world-models",
-      "toNode": "papers/mcl1-myc-cancer-metabolism"
+      "toNode": "papers/ocean-calcium-climate-mystery-66my"
     },
     {
       "id": "edge-216",
       "fromNode": "papers/yann-lecun-agi-world-models",
-      "toNode": "papers/langchain-deep-agents-context-management"
+      "toNode": "concepts/agentic-ai"
     },
     {
       "id": "edge-217",
       "fromNode": "papers/international-year-quantum-2025",
-      "toNode": "papers/cisa-chatgpt-data-leak"
+      "toNode": "papers/brain-protein-neurodegeneration"
     },
     {
       "id": "edge-218",
@@ -2690,27 +2750,27 @@
     {
       "id": "edge-219",
       "fromNode": "papers/international-year-quantum-2025",
-      "toNode": "papers/tonggeometry-olympiad-tree-search"
+      "toNode": "papers/cisa-chatgpt-data-leak"
     },
     {
       "id": "edge-220",
       "fromNode": "papers/international-year-quantum-2025",
-      "toNode": "papers/brain-protein-neurodegeneration"
+      "toNode": "papers/tonggeometry-olympiad-tree-search"
     },
     {
       "id": "edge-221",
       "fromNode": "papers/grb-250314a-ancient-signal",
-      "toNode": "papers/circleci-ai-cicd-validation"
+      "toNode": "papers/llamaagents-builder"
     },
     {
       "id": "edge-222",
       "fromNode": "papers/grb-250314a-ancient-signal",
-      "toNode": "papers/protein-tape-recorder-cytotape"
+      "toNode": "papers/circleci-ai-cicd-validation"
     },
     {
       "id": "edge-223",
       "fromNode": "papers/grb-250314a-ancient-signal",
-      "toNode": "papers/llamaagents-builder"
+      "toNode": "papers/protein-tape-recorder-cytotape"
     },
     {
       "id": "edge-224",
@@ -2725,17 +2785,17 @@
     {
       "id": "edge-226",
       "fromNode": "papers/emoticons-llm-silent-failures",
-      "toNode": "papers/rethinking-exoplanet-habitability"
+      "toNode": "papers/transcranial-ultrasound-consciousness"
     },
     {
       "id": "edge-227",
       "fromNode": "papers/emoticons-llm-silent-failures",
-      "toNode": "papers/transcranial-ultrasound-consciousness"
+      "toNode": "papers/jwst-red-nova-remnants"
     },
     {
       "id": "edge-228",
       "fromNode": "papers/emoticons-llm-silent-failures",
-      "toNode": "papers/jwst-red-nova-remnants"
+      "toNode": "papers/rethinking-exoplanet-habitability"
     },
     {
       "id": "edge-229",
@@ -2745,17 +2805,17 @@
     {
       "id": "edge-230",
       "fromNode": "papers/optofluidic-3d-nanofabrication",
-      "toNode": "concepts/nanofabrication"
+      "toNode": "papers/nasa-maven-anomaly"
     },
     {
       "id": "edge-231",
       "fromNode": "papers/optofluidic-3d-nanofabrication",
-      "toNode": "papers/axion-dark-matter-quantum-sensors"
+      "toNode": "papers/transcranial-ultrasound-consciousness"
     },
     {
       "id": "edge-232",
       "fromNode": "papers/optofluidic-3d-nanofabrication",
-      "toNode": "papers/transcranial-ultrasound-consciousness"
+      "toNode": "papers/axion-dark-matter-quantum-sensors"
     },
     {
       "id": "edge-233",
@@ -2765,12 +2825,12 @@
     {
       "id": "edge-234",
       "fromNode": "papers/optofluidic-3d-nanofabrication",
-      "toNode": "papers/cu45-superatom-co2-ethylene"
+      "toNode": "concepts/nanofabrication"
     },
     {
       "id": "edge-235",
       "fromNode": "papers/optofluidic-3d-nanofabrication",
-      "toNode": "papers/nasa-maven-anomaly"
+      "toNode": "papers/cu45-superatom-co2-ethylene"
     },
     {
       "id": "edge-236",
@@ -2780,12 +2840,12 @@
     {
       "id": "edge-237",
       "fromNode": "papers/oman-artemis-accords",
-      "toNode": "papers/agentic-ai-memory-hierarchies"
+      "toNode": "papers/tonggeometry-olympiad-tree-search"
     },
     {
       "id": "edge-238",
       "fromNode": "papers/oman-artemis-accords",
-      "toNode": "papers/tonggeometry-olympiad-tree-search"
+      "toNode": "papers/agentic-ai-memory-hierarchies"
     },
     {
       "id": "edge-239",
@@ -2795,12 +2855,12 @@
     {
       "id": "edge-240",
       "fromNode": "papers/nebuchadnezzar-babylonian-texts",
-      "toNode": "papers/quantum-entanglement-speed-measurement"
+      "toNode": "papers/artificial-photosynthesis-living-energy"
     },
     {
       "id": "edge-241",
       "fromNode": "papers/nebuchadnezzar-babylonian-texts",
-      "toNode": "papers/artificial-photosynthesis-living-energy"
+      "toNode": "papers/quantum-entanglement-speed-measurement"
     },
     {
       "id": "edge-242",
@@ -2815,57 +2875,57 @@
     {
       "id": "edge-244",
       "fromNode": "papers/circleci-ai-cicd-validation",
-      "toNode": "papers/axion-dark-matter-quantum-sensors"
+      "toNode": "papers/mistral-open-source-ai-strategy"
     },
     {
       "id": "edge-245",
       "fromNode": "papers/circleci-ai-cicd-validation",
-      "toNode": "concepts/agentic-ai"
+      "toNode": "papers/axion-dark-matter-quantum-sensors"
     },
     {
       "id": "edge-246",
       "fromNode": "papers/circleci-ai-cicd-validation",
-      "toNode": "papers/mistral-open-source-ai-strategy"
+      "toNode": "concepts/agentic-ai"
     },
     {
       "id": "edge-247",
       "fromNode": "papers/graphitic-polytype-switching-nanocavities",
-      "toNode": "concepts/nanofabrication"
+      "toNode": "papers/beyond-the-quantum-pilot-wave-theory"
     },
     {
       "id": "edge-248",
       "fromNode": "papers/graphitic-polytype-switching-nanocavities",
-      "toNode": "papers/beyond-the-quantum-pilot-wave-theory"
+      "toNode": "papers/mars-time-dilation-relativity"
     },
     {
       "id": "edge-249",
       "fromNode": "papers/graphitic-polytype-switching-nanocavities",
-      "toNode": "papers/amorphous-materials-3d-atomic-structure"
+      "toNode": "concepts/nanofabrication"
     },
     {
       "id": "edge-250",
       "fromNode": "papers/graphitic-polytype-switching-nanocavities",
-      "toNode": "papers/mars-time-dilation-relativity"
+      "toNode": "papers/amorphous-materials-3d-atomic-structure"
     },
     {
       "id": "edge-251",
       "fromNode": "papers/quantum-entanglement-speed-measurement",
-      "toNode": "papers/artemis-ii-laser-comms"
+      "toNode": "papers/international-year-quantum-2025"
     },
     {
       "id": "edge-252",
       "fromNode": "papers/quantum-entanglement-speed-measurement",
-      "toNode": "papers/international-year-quantum-2025"
+      "toNode": "papers/2026-02-09-unique-investment-opportunities-research"
     },
     {
       "id": "edge-253",
       "fromNode": "papers/quantum-entanglement-speed-measurement",
-      "toNode": "papers/2026-02-09-unique-investment-opportunities-research"
+      "toNode": "papers/artemis-ii-laser-comms"
     },
     {
       "id": "edge-254",
       "fromNode": "papers/diffraction-gratings-fourier-transforms",
-      "toNode": "papers/dna-origami-2d-semiconductor-patterning"
+      "toNode": "papers/emu3-multimodal-next-token-prediction"
     },
     {
       "id": "edge-255",
@@ -2875,17 +2935,17 @@
     {
       "id": "edge-256",
       "fromNode": "papers/diffraction-gratings-fourier-transforms",
-      "toNode": "papers/emu3-multimodal-next-token-prediction"
+      "toNode": "papers/dna-origami-2d-semiconductor-patterning"
     },
     {
       "id": "edge-257",
       "fromNode": "papers/axion-dark-matter-quantum-sensors",
-      "toNode": "papers/dna-origami-2d-semiconductor-patterning"
+      "toNode": "papers/llamaagents-builder"
     },
     {
       "id": "edge-258",
       "fromNode": "papers/axion-dark-matter-quantum-sensors",
-      "toNode": "papers/llamaagents-builder"
+      "toNode": "papers/dna-origami-2d-semiconductor-patterning"
     },
     {
       "id": "edge-259",
@@ -2900,12 +2960,12 @@
     {
       "id": "edge-261",
       "fromNode": "papers/llamaagents-builder",
-      "toNode": "concepts/agentic-ai"
+      "toNode": "papers/operational-data-ai-agents"
     },
     {
       "id": "edge-262",
       "fromNode": "papers/llamaagents-builder",
-      "toNode": "papers/operational-data-ai-agents"
+      "toNode": "concepts/agentic-ai"
     },
     {
       "id": "edge-263",
@@ -2920,12 +2980,12 @@
     {
       "id": "edge-265",
       "fromNode": "papers/mistral-open-source-ai-strategy",
-      "toNode": "papers/anthropic-principle-fine-tuning"
+      "toNode": "papers/llamaagents-builder"
     },
     {
       "id": "edge-266",
       "fromNode": "papers/mistral-open-source-ai-strategy",
-      "toNode": "papers/llamaagents-builder"
+      "toNode": "papers/anthropic-principle-fine-tuning"
     },
     {
       "id": "edge-267",
@@ -2935,37 +2995,37 @@
     {
       "id": "edge-268",
       "fromNode": "papers/transcranial-ultrasound-consciousness",
-      "toNode": "papers/theorem-ai-formal-verification"
+      "toNode": "papers/cosmic-strings-time-travel"
     },
     {
       "id": "edge-269",
       "fromNode": "papers/transcranial-ultrasound-consciousness",
-      "toNode": "papers/cosmic-strings-time-travel"
+      "toNode": "papers/cu45-superatom-carbon-recycling"
     },
     {
       "id": "edge-270",
       "fromNode": "papers/transcranial-ultrasound-consciousness",
-      "toNode": "papers/cu45-superatom-carbon-recycling"
+      "toNode": "papers/theorem-ai-formal-verification"
     },
     {
       "id": "edge-271",
       "fromNode": "papers/openai-codex-agent-loop",
-      "toNode": "papers/woh-g64-dust-obscured-companion"
+      "toNode": "papers/axion-dark-matter-quantum-sensors"
     },
     {
       "id": "edge-272",
       "fromNode": "papers/openai-codex-agent-loop",
-      "toNode": "papers/few-shot-prompting-agentic-coding"
+      "toNode": "concepts/mcp-model-context-protocol"
     },
     {
       "id": "edge-273",
       "fromNode": "papers/openai-codex-agent-loop",
-      "toNode": "papers/axion-dark-matter-quantum-sensors"
+      "toNode": "papers/woh-g64-dust-obscured-companion"
     },
     {
       "id": "edge-274",
       "fromNode": "papers/openai-codex-agent-loop",
-      "toNode": "concepts/mcp-model-context-protocol"
+      "toNode": "papers/few-shot-prompting-agentic-coding"
     },
     {
       "id": "edge-275",
@@ -2975,27 +3035,27 @@
     {
       "id": "edge-276",
       "fromNode": "papers/mars-time-dilation-relativity",
-      "toNode": "papers/few-shot-prompting-agentic-coding"
+      "toNode": "papers/llm-training-methodology-changes"
     },
     {
       "id": "edge-277",
       "fromNode": "papers/mars-time-dilation-relativity",
-      "toNode": "papers/llm-training-methodology-changes"
+      "toNode": "papers/few-shot-prompting-agentic-coding"
     },
     {
       "id": "edge-278",
       "fromNode": "papers/mcl1-myc-cancer-metabolism",
-      "toNode": "papers/agentic-ai-memory-hierarchies"
+      "toNode": "papers/claude-code-swiftui-skill-patterns"
     },
     {
       "id": "edge-279",
       "fromNode": "papers/mcl1-myc-cancer-metabolism",
-      "toNode": "papers/claude-code-swiftui-skill-patterns"
+      "toNode": "papers/webgpu-claude-skill-threejs"
     },
     {
       "id": "edge-280",
       "fromNode": "papers/mcl1-myc-cancer-metabolism",
-      "toNode": "papers/webgpu-claude-skill-threejs"
+      "toNode": "papers/agentic-ai-memory-hierarchies"
     },
     {
       "id": "edge-281",
@@ -3010,12 +3070,12 @@
     {
       "id": "edge-283",
       "fromNode": "papers/karpathy-claude-code-skills",
-      "toNode": "concepts/prompt-engineering"
+      "toNode": "papers/fast-radio-bursts-binary-star-origin"
     },
     {
       "id": "edge-284",
       "fromNode": "papers/karpathy-claude-code-skills",
-      "toNode": "papers/fast-radio-bursts-binary-star-origin"
+      "toNode": "concepts/prompt-engineering"
     },
     {
       "id": "edge-285",
@@ -3025,17 +3085,17 @@
     {
       "id": "edge-286",
       "fromNode": "papers/anthropic-disempowerment-patterns",
-      "toNode": "papers/llm-in-sandbox-agentic-intelligence"
+      "toNode": "papers/transcranial-ultrasound-consciousness"
     },
     {
       "id": "edge-287",
       "fromNode": "papers/anthropic-disempowerment-patterns",
-      "toNode": "papers/transcranial-ultrasound-consciousness"
+      "toNode": "concepts/agentic-ai"
     },
     {
       "id": "edge-288",
       "fromNode": "papers/anthropic-disempowerment-patterns",
-      "toNode": "concepts/agentic-ai"
+      "toNode": "papers/llm-in-sandbox-agentic-intelligence"
     },
     {
       "id": "edge-289",
@@ -3050,17 +3110,17 @@
     {
       "id": "edge-291",
       "fromNode": "papers/fast-radio-bursts-binary-star-origin",
-      "toNode": "papers/few-shot-prompting-agentic-coding"
+      "toNode": "papers/operational-data-ai-agents"
     },
     {
       "id": "edge-292",
       "fromNode": "papers/fast-radio-bursts-binary-star-origin",
-      "toNode": "papers/operational-data-ai-agents"
+      "toNode": "papers/few-shot-prompting-agentic-coding"
     },
     {
       "id": "edge-293",
       "fromNode": "papers/ai-anomaly-detection-hubble-archive",
-      "toNode": "papers/tonggeometry-ai-math"
+      "toNode": "papers/dna-origami-2d-semiconductor-patterning"
     },
     {
       "id": "edge-294",
@@ -3070,7 +3130,7 @@
     {
       "id": "edge-295",
       "fromNode": "papers/ai-anomaly-detection-hubble-archive",
-      "toNode": "papers/dna-origami-2d-semiconductor-patterning"
+      "toNode": "papers/tonggeometry-ai-math"
     },
     {
       "id": "edge-296",
@@ -3080,22 +3140,22 @@
     {
       "id": "edge-297",
       "fromNode": "papers/artificial-photosynthesis-living-energy",
-      "toNode": "papers/agentic-ai-memory-hierarchies"
+      "toNode": "concepts/catalytic-materials"
     },
     {
       "id": "edge-298",
       "fromNode": "papers/artificial-photosynthesis-living-energy",
-      "toNode": "concepts/catalytic-materials"
+      "toNode": "papers/agentic-ai-memory-hierarchies"
     },
     {
       "id": "edge-299",
       "fromNode": "papers/few-shot-prompting-agentic-coding",
-      "toNode": "concepts/prompt-engineering"
+      "toNode": "papers/quantum-entangled-atomic-sensors"
     },
     {
       "id": "edge-300",
       "fromNode": "papers/few-shot-prompting-agentic-coding",
-      "toNode": "papers/quantum-entangled-atomic-sensors"
+      "toNode": "concepts/prompt-engineering"
     },
     {
       "id": "edge-301",
@@ -3105,22 +3165,22 @@
     {
       "id": "edge-302",
       "fromNode": "papers/operational-data-ai-agents",
-      "toNode": "concepts/agentic-ai"
+      "toNode": "papers/grb-250314a-ancient-signal"
     },
     {
       "id": "edge-303",
       "fromNode": "papers/operational-data-ai-agents",
-      "toNode": "papers/grb-250314a-ancient-signal"
+      "toNode": "concepts/agentic-ai"
     },
     {
       "id": "edge-304",
       "fromNode": "papers/cu45-superatom-co2-ethylene",
-      "toNode": "concepts/nanofabrication"
+      "toNode": "concepts/catalytic-materials"
     },
     {
       "id": "edge-305",
       "fromNode": "papers/cu45-superatom-co2-ethylene",
-      "toNode": "concepts/catalytic-materials"
+      "toNode": "concepts/nanofabrication"
     },
     {
       "id": "edge-306",
@@ -3140,17 +3200,17 @@
     {
       "id": "edge-309",
       "fromNode": "papers/sunspot-ar4366-x-class-flares",
-      "toNode": "papers/protein-tape-recorder-cytotape"
+      "toNode": "papers/comb-jellies-animal-tree-of-life"
     },
     {
       "id": "edge-310",
       "fromNode": "papers/sunspot-ar4366-x-class-flares",
-      "toNode": "papers/comb-jellies-animal-tree-of-life"
+      "toNode": "papers/yann-lecun-agi-world-models"
     },
     {
       "id": "edge-311",
       "fromNode": "papers/sunspot-ar4366-x-class-flares",
-      "toNode": "papers/yann-lecun-agi-world-models"
+      "toNode": "papers/protein-tape-recorder-cytotape"
     },
     {
       "id": "edge-312",
@@ -3165,27 +3225,27 @@
     {
       "id": "edge-314",
       "fromNode": "papers/webgpu-claude-skill-threejs",
-      "toNode": "papers/amorphous-materials-3d-atomic-structure"
+      "toNode": "papers/llamaagents-builder"
     },
     {
       "id": "edge-315",
       "fromNode": "papers/webgpu-claude-skill-threejs",
-      "toNode": "papers/llamaagents-builder"
+      "toNode": "papers/amorphous-materials-3d-atomic-structure"
     },
     {
       "id": "edge-316",
       "fromNode": "papers/amorphous-materials-3d-atomic-structure",
-      "toNode": "concepts/nanofabrication"
+      "toNode": "papers/quantum-entangled-atomic-sensors"
     },
     {
       "id": "edge-317",
       "fromNode": "papers/amorphous-materials-3d-atomic-structure",
-      "toNode": "papers/quantum-entangled-atomic-sensors"
+      "toNode": "papers/brain-protein-neurodegeneration"
     },
     {
       "id": "edge-318",
       "fromNode": "papers/amorphous-materials-3d-atomic-structure",
-      "toNode": "papers/tonggeometry-ai-math"
+      "toNode": "concepts/nanofabrication"
     },
     {
       "id": "edge-319",
@@ -3195,7 +3255,7 @@
     {
       "id": "edge-320",
       "fromNode": "papers/amorphous-materials-3d-atomic-structure",
-      "toNode": "papers/brain-protein-neurodegeneration"
+      "toNode": "papers/tonggeometry-ai-math"
     },
     {
       "id": "edge-321",
@@ -3210,12 +3270,12 @@
     {
       "id": "edge-323",
       "fromNode": "concepts/nanofabrication",
-      "toNode": "concepts/exoplanet-habitability"
+      "toNode": "concepts/quantum-sensors"
     },
     {
       "id": "edge-324",
       "fromNode": "concepts/nanofabrication",
-      "toNode": "concepts/quantum-sensors"
+      "toNode": "concepts/exoplanet-habitability"
     },
     {
       "id": "edge-325",
@@ -3225,37 +3285,37 @@
     {
       "id": "edge-326",
       "fromNode": "concepts/quantum-error-correction",
-      "toNode": "papers/silicon-quantum-computing-platform"
+      "toNode": "papers/mit-quantum-computing-progress"
     },
     {
       "id": "edge-327",
       "fromNode": "concepts/quantum-error-correction",
-      "toNode": "papers/beyond-the-quantum-pilot-wave-theory"
+      "toNode": "concepts/quantum-sensors"
     },
     {
       "id": "edge-328",
       "fromNode": "concepts/quantum-error-correction",
-      "toNode": "concepts/quantum-sensors"
+      "toNode": "papers/beyond-the-quantum-pilot-wave-theory"
     },
     {
       "id": "edge-329",
       "fromNode": "concepts/quantum-error-correction",
-      "toNode": "concepts/quantum-entanglement"
+      "toNode": "concepts/topological-defects"
     },
     {
       "id": "edge-330",
       "fromNode": "concepts/quantum-error-correction",
-      "toNode": "papers/mit-quantum-computing-progress"
+      "toNode": "concepts/quantum-entanglement"
     },
     {
       "id": "edge-331",
       "fromNode": "concepts/quantum-error-correction",
-      "toNode": "concepts/topological-defects"
+      "toNode": "papers/silicon-quantum-computing-platform"
     },
     {
       "id": "edge-332",
       "fromNode": "concepts/jwst-observations",
-      "toNode": "papers/webb-cosmic-question-mark-gravitational-lens"
+      "toNode": "papers/mom-z14-farthest-galaxy"
     },
     {
       "id": "edge-333",
@@ -3265,17 +3325,17 @@
     {
       "id": "edge-334",
       "fromNode": "concepts/jwst-observations",
-      "toNode": "concepts/early-universe-cosmology"
+      "toNode": "concepts/dark-matter-detection"
     },
     {
       "id": "edge-335",
       "fromNode": "concepts/jwst-observations",
-      "toNode": "papers/mom-z14-farthest-galaxy"
+      "toNode": "concepts/early-universe-cosmology"
     },
     {
       "id": "edge-336",
       "fromNode": "concepts/jwst-observations",
-      "toNode": "concepts/dark-matter-detection"
+      "toNode": "papers/webb-cosmic-question-mark-gravitational-lens"
     },
     {
       "id": "edge-337",
@@ -3290,17 +3350,17 @@
     {
       "id": "edge-339",
       "fromNode": "concepts/early-universe-cosmology",
-      "toNode": "concepts/topological-defects"
+      "toNode": "concepts/dark-matter-detection"
     },
     {
       "id": "edge-340",
       "fromNode": "concepts/early-universe-cosmology",
-      "toNode": "papers/grb-250314a-ancient-signal"
+      "toNode": "concepts/topological-defects"
     },
     {
       "id": "edge-341",
       "fromNode": "concepts/early-universe-cosmology",
-      "toNode": "concepts/dark-matter-detection"
+      "toNode": "papers/grb-250314a-ancient-signal"
     },
     {
       "id": "edge-342",
@@ -3310,32 +3370,32 @@
     {
       "id": "edge-343",
       "fromNode": "concepts/multi-agent-systems",
-      "toNode": "concepts/agentic-ai"
+      "toNode": "concepts/mcp-model-context-protocol"
     },
     {
       "id": "edge-344",
       "fromNode": "concepts/multi-agent-systems",
-      "toNode": "papers/langchain-deep-agents-context-management"
+      "toNode": "papers/llamaagents-builder"
     },
     {
       "id": "edge-345",
       "fromNode": "concepts/multi-agent-systems",
-      "toNode": "papers/llamaagents-builder"
+      "toNode": "papers/langchain-deep-agents-context-management"
     },
     {
       "id": "edge-346",
       "fromNode": "concepts/multi-agent-systems",
-      "toNode": "concepts/mcp-model-context-protocol"
+      "toNode": "concepts/agentic-ai"
     },
     {
       "id": "edge-347",
       "fromNode": "concepts/ai-safety-alignment",
-      "toNode": "concepts/prompt-engineering"
+      "toNode": "papers/anthropic-disempowerment-patterns"
     },
     {
       "id": "edge-348",
       "fromNode": "concepts/ai-safety-alignment",
-      "toNode": "papers/anthropic-disempowerment-patterns"
+      "toNode": "papers/emoticons-llm-silent-failures"
     },
     {
       "id": "edge-349",
@@ -3345,17 +3405,17 @@
     {
       "id": "edge-350",
       "fromNode": "concepts/ai-safety-alignment",
-      "toNode": "papers/emoticons-llm-silent-failures"
+      "toNode": "concepts/prompt-engineering"
     },
     {
       "id": "edge-351",
       "fromNode": "concepts/ai-safety-alignment",
-      "toNode": "concepts/agentic-ai"
+      "toNode": "papers/llm-training-methodology-changes"
     },
     {
       "id": "edge-352",
       "fromNode": "concepts/ai-safety-alignment",
-      "toNode": "papers/llm-training-methodology-changes"
+      "toNode": "concepts/agentic-ai"
     },
     {
       "id": "edge-353",
@@ -3365,7 +3425,7 @@
     {
       "id": "edge-354",
       "fromNode": "concepts/mcp-model-context-protocol",
-      "toNode": "concepts/agentic-ai"
+      "toNode": "decisions/2026-02-09-12d-graph-refined-plan"
     },
     {
       "id": "edge-355",
@@ -3375,7 +3435,7 @@
     {
       "id": "edge-356",
       "fromNode": "concepts/mcp-model-context-protocol",
-      "toNode": "decisions/2026-02-09-12d-graph-refined-plan"
+      "toNode": "concepts/agentic-ai"
     },
     {
       "id": "edge-357",
@@ -3390,17 +3450,17 @@
     {
       "id": "edge-359",
       "fromNode": "concepts/dark-matter-detection",
-      "toNode": "concepts/quantum-sensors"
+      "toNode": "papers/axion-dark-matter-quantum-sensors"
     },
     {
       "id": "edge-360",
       "fromNode": "concepts/dark-matter-detection",
-      "toNode": "concepts/quantum-entanglement"
+      "toNode": "concepts/quantum-sensors"
     },
     {
       "id": "edge-361",
       "fromNode": "concepts/dark-matter-detection",
-      "toNode": "papers/axion-dark-matter-quantum-sensors"
+      "toNode": "concepts/quantum-entanglement"
     },
     {
       "id": "edge-362",
@@ -3410,12 +3470,12 @@
     {
       "id": "edge-363",
       "fromNode": "concepts/quantum-entanglement",
-      "toNode": "papers/quantum-entanglement-speed-measurement"
+      "toNode": "papers/quantum-entangled-atomic-sensors"
     },
     {
       "id": "edge-364",
       "fromNode": "concepts/quantum-entanglement",
-      "toNode": "papers/quantum-entangled-atomic-sensors"
+      "toNode": "papers/axion-dark-matter-quantum-sensors"
     },
     {
       "id": "edge-365",
@@ -3430,7 +3490,7 @@
     {
       "id": "edge-367",
       "fromNode": "concepts/quantum-entanglement",
-      "toNode": "papers/axion-dark-matter-quantum-sensors"
+      "toNode": "papers/quantum-entanglement-speed-measurement"
     },
     {
       "id": "edge-368",
@@ -3440,7 +3500,7 @@
     {
       "id": "edge-369",
       "fromNode": "concepts/supersolid-quantum-state",
-      "toNode": "papers/superfluid-to-supersolid-transition"
+      "toNode": "concepts/topological-defects"
     },
     {
       "id": "edge-370",
@@ -3450,7 +3510,7 @@
     {
       "id": "edge-371",
       "fromNode": "concepts/supersolid-quantum-state",
-      "toNode": "concepts/topological-defects"
+      "toNode": "papers/superfluid-to-supersolid-transition"
     },
     {
       "id": "edge-372",
@@ -3460,7 +3520,7 @@
     {
       "id": "edge-373",
       "fromNode": "concepts/agent-loop-architecture",
-      "toNode": "concepts/prompt-engineering"
+      "toNode": "concepts/context-management"
     },
     {
       "id": "edge-374",
@@ -3470,17 +3530,17 @@
     {
       "id": "edge-375",
       "fromNode": "concepts/agent-loop-architecture",
-      "toNode": "papers/scaling-agent-systems"
+      "toNode": "papers/testing-agent-skills-with-evals"
     },
     {
       "id": "edge-376",
       "fromNode": "concepts/agent-loop-architecture",
-      "toNode": "papers/few-shot-prompting-agentic-coding"
+      "toNode": "papers/scaling-agent-systems"
     },
     {
       "id": "edge-377",
       "fromNode": "concepts/agent-loop-architecture",
-      "toNode": "papers/testing-agent-skills-with-evals"
+      "toNode": "concepts/prompt-engineering"
     },
     {
       "id": "edge-378",
@@ -3490,127 +3550,127 @@
     {
       "id": "edge-379",
       "fromNode": "concepts/agent-loop-architecture",
-      "toNode": "concepts/context-management"
+      "toNode": "papers/few-shot-prompting-agentic-coding"
     },
     {
       "id": "edge-380",
       "fromNode": "concepts/topological-defects",
-      "toNode": "papers/cosmic-strings-time-travel"
+      "toNode": "papers/axion-dark-matter-quantum-sensors"
     },
     {
       "id": "edge-381",
       "fromNode": "concepts/topological-defects",
-      "toNode": "papers/axion-dark-matter-quantum-sensors"
+      "toNode": "papers/cosmic-strings-time-travel"
     },
     {
       "id": "edge-382",
       "fromNode": "concepts/anomaly-detection",
-      "toNode": "papers/emoticons-llm-silent-failures"
+      "toNode": "papers/ai-anomaly-detection-hubble-archive"
     },
     {
       "id": "edge-383",
       "fromNode": "concepts/anomaly-detection",
-      "toNode": "concepts/agentic-ai"
+      "toNode": "concepts/jwst-observations"
     },
     {
       "id": "edge-384",
       "fromNode": "concepts/anomaly-detection",
-      "toNode": "concepts/jwst-observations"
+      "toNode": "papers/emoticons-llm-silent-failures"
     },
     {
       "id": "edge-385",
       "fromNode": "concepts/anomaly-detection",
-      "toNode": "papers/ai-anomaly-detection-hubble-archive"
+      "toNode": "concepts/agentic-ai"
     },
     {
       "id": "edge-386",
       "fromNode": "concepts/quantum-sensors",
-      "toNode": "papers/quantum-entanglement-speed-measurement"
+      "toNode": "papers/quantum-entangled-atomic-sensors"
     },
     {
       "id": "edge-387",
       "fromNode": "concepts/quantum-sensors",
-      "toNode": "papers/quantum-entangled-atomic-sensors"
+      "toNode": "papers/axion-dark-matter-quantum-sensors"
     },
     {
       "id": "edge-388",
       "fromNode": "concepts/quantum-sensors",
-      "toNode": "papers/axion-dark-matter-quantum-sensors"
+      "toNode": "papers/quantum-entanglement-speed-measurement"
     },
     {
       "id": "edge-389",
       "fromNode": "concepts/compound-engineering",
-      "toNode": "experiments/2026-02-07-ai-research-agent-for-vault-notes"
+      "toNode": "decisions/2026-02-07-event-driven-inbox-processor"
     },
     {
       "id": "edge-390",
       "fromNode": "concepts/compound-engineering",
-      "toNode": "concepts/agentic-ai"
+      "toNode": "experiments/2026-02-07-ai-research-agent-for-vault-notes"
     },
     {
       "id": "edge-391",
       "fromNode": "concepts/compound-engineering",
-      "toNode": "concepts/ai-safety-alignment"
+      "toNode": "concepts/context-management"
     },
     {
       "id": "edge-392",
       "fromNode": "concepts/compound-engineering",
-      "toNode": "decisions/2026-02-08-bmad-framework-removal"
+      "toNode": "concepts/ai-safety-alignment"
     },
     {
       "id": "edge-393",
       "fromNode": "concepts/compound-engineering",
-      "toNode": "concepts/context-management"
+      "toNode": "decisions/2026-02-08-bmad-framework-removal"
     },
     {
       "id": "edge-394",
       "fromNode": "concepts/compound-engineering",
-      "toNode": "decisions/2026-02-07-event-driven-inbox-processor"
+      "toNode": "concepts/agentic-ai"
     },
     {
       "id": "edge-395",
       "fromNode": "concepts/prompt-engineering",
-      "toNode": "papers/emoticons-llm-silent-failures"
+      "toNode": "concepts/context-management"
     },
     {
       "id": "edge-396",
       "fromNode": "concepts/prompt-engineering",
-      "toNode": "concepts/agentic-ai"
+      "toNode": "papers/emoticons-llm-silent-failures"
     },
     {
       "id": "edge-397",
       "fromNode": "concepts/prompt-engineering",
-      "toNode": "concepts/context-management"
+      "toNode": "concepts/agentic-ai"
     },
     {
       "id": "edge-398",
       "fromNode": "concepts/red-supergiant-stars",
-      "toNode": "papers/woh-g64-dust-obscured-companion"
+      "toNode": "papers/woh-g64-red-supergiant-mystery"
     },
     {
       "id": "edge-399",
       "fromNode": "concepts/red-supergiant-stars",
-      "toNode": "concepts/supersolid-quantum-state"
+      "toNode": "concepts/jwst-observations"
     },
     {
       "id": "edge-400",
       "fromNode": "concepts/red-supergiant-stars",
-      "toNode": "concepts/early-universe-cosmology"
+      "toNode": "concepts/supersolid-quantum-state"
     },
     {
       "id": "edge-401",
       "fromNode": "concepts/red-supergiant-stars",
-      "toNode": "papers/jwst-red-nova-remnants"
+      "toNode": "concepts/early-universe-cosmology"
     },
     {
       "id": "edge-402",
       "fromNode": "concepts/red-supergiant-stars",
-      "toNode": "papers/woh-g64-red-supergiant-mystery"
+      "toNode": "papers/jwst-red-nova-remnants"
     },
     {
       "id": "edge-403",
       "fromNode": "concepts/red-supergiant-stars",
-      "toNode": "concepts/jwst-observations"
+      "toNode": "papers/woh-g64-dust-obscured-companion"
     },
     {
       "id": "edge-404",
@@ -3625,17 +3685,17 @@
     {
       "id": "edge-406",
       "fromNode": "concepts/context-management",
-      "toNode": "papers/llm-in-sandbox-agentic-intelligence"
+      "toNode": "papers/agentic-ai-memory-hierarchies"
     },
     {
       "id": "edge-407",
       "fromNode": "concepts/context-management",
-      "toNode": "papers/agentic-ai-memory-hierarchies"
+      "toNode": "papers/langchain-deep-agents-context-management"
     },
     {
       "id": "edge-408",
       "fromNode": "concepts/context-management",
-      "toNode": "papers/langchain-deep-agents-context-management"
+      "toNode": "papers/llm-in-sandbox-agentic-intelligence"
     },
     {
       "id": "edge-409",
@@ -3675,12 +3735,12 @@
     {
       "id": "edge-416",
       "fromNode": "decisions/3d-graph-plugin-selection",
-      "toNode": "concepts/mcp-infrastructure-architecture"
+      "toNode": "concepts/compound-engineering"
     },
     {
       "id": "edge-417",
       "fromNode": "decisions/3d-graph-plugin-selection",
-      "toNode": "concepts/compound-engineering"
+      "toNode": "concepts/mcp-infrastructure-architecture"
     },
     {
       "id": "edge-418",
@@ -3705,22 +3765,22 @@
     {
       "id": "edge-422",
       "fromNode": "decisions/2026-02-09-model-wrangler-strategy",
-      "toNode": "decisions/2026-02-09-ai-model-strategy"
+      "toNode": "decisions/2026-02-09-12d-graph-refined-plan"
     },
     {
       "id": "edge-423",
       "fromNode": "decisions/2026-02-09-model-wrangler-strategy",
-      "toNode": "decisions/2026-02-09-12d-graph-refined-plan"
+      "toNode": "decisions/2026-02-09-ai-model-strategy"
     },
     {
       "id": "edge-424",
       "fromNode": "decisions/2026-02-09-fastmcp-asgi-integration-fix",
-      "toNode": "concepts/mcp-infrastructure-architecture"
+      "toNode": "concepts/mcp-model-context-protocol"
     },
     {
       "id": "edge-425",
       "fromNode": "decisions/2026-02-09-fastmcp-asgi-integration-fix",
-      "toNode": "concepts/mcp-model-context-protocol"
+      "toNode": "concepts/mcp-infrastructure-architecture"
     },
     {
       "id": "edge-426",
@@ -3744,43 +3804,43 @@
     },
     {
       "id": "edge-430",
-      "fromNode": "decisions/2026-02-09-session-43-mcp-setup",
-      "toNode": "concepts/mcp-infrastructure-architecture"
+      "fromNode": "decisions/2026-02-10-token-efficient-compound-engineering-roadmap",
+      "toNode": "concepts/context-management"
     },
     {
       "id": "edge-431",
+      "fromNode": "decisions/2026-02-10-token-efficient-compound-engineering-roadmap",
+      "toNode": "concepts/compound-engineering"
+    },
+    {
+      "id": "edge-432",
       "fromNode": "decisions/2026-02-09-session-43-mcp-setup",
       "toNode": "concepts/mcp-model-context-protocol"
     },
     {
-      "id": "edge-432",
-      "fromNode": "decisions/2026-02-09-ai-model-strategy",
-      "toNode": "decisions/2026-02-09-12d-graph-refined-plan"
-    },
-    {
       "id": "edge-433",
-      "fromNode": "decisions/2026-02-09-ollama-mcp-server",
+      "fromNode": "decisions/2026-02-09-session-43-mcp-setup",
       "toNode": "concepts/mcp-infrastructure-architecture"
     },
     {
       "id": "edge-434",
-      "fromNode": "decisions/2026-02-09-ollama-mcp-server",
-      "toNode": "concepts/context-management"
+      "fromNode": "decisions/2026-02-09-ai-model-strategy",
+      "toNode": "decisions/2026-02-09-12d-graph-refined-plan"
     },
     {
       "id": "edge-435",
       "fromNode": "decisions/2026-02-09-ollama-mcp-server",
-      "toNode": "concepts/mcp-model-context-protocol"
+      "toNode": "concepts/mcp-infrastructure-architecture"
     },
     {
       "id": "edge-436",
-      "fromNode": "decisions/2026-02-08-bmad-framework-removal",
-      "toNode": "patterns/bmad-agent-persona-definition"
+      "fromNode": "decisions/2026-02-09-ollama-mcp-server",
+      "toNode": "concepts/mcp-model-context-protocol"
     },
     {
       "id": "edge-437",
-      "fromNode": "decisions/2026-02-08-bmad-framework-removal",
-      "toNode": "patterns/bmad-scale-adaptive-documentation"
+      "fromNode": "decisions/2026-02-09-ollama-mcp-server",
+      "toNode": "concepts/context-management"
     },
     {
       "id": "edge-438",
@@ -3789,33 +3849,33 @@
     },
     {
       "id": "edge-439",
+      "fromNode": "decisions/2026-02-08-bmad-framework-removal",
+      "toNode": "patterns/bmad-scale-adaptive-documentation"
+    },
+    {
+      "id": "edge-440",
+      "fromNode": "decisions/2026-02-08-bmad-framework-removal",
+      "toNode": "patterns/bmad-agent-persona-definition"
+    },
+    {
+      "id": "edge-441",
       "fromNode": "decisions/2026-02-09-operational-principle-no-destructive-operations-without-learning",
       "toNode": "concepts/agentic-ai"
     },
     {
-      "id": "edge-440",
+      "id": "edge-442",
       "fromNode": "decisions/2026-02-09-rust-flume-python313-incompatibility",
       "toNode": "concepts/mcp-infrastructure-architecture"
     },
     {
-      "id": "edge-441",
+      "id": "edge-443",
       "fromNode": "decisions/2026-02-09-12d-graph-next-steps",
       "toNode": "concepts/mcp-infrastructure-architecture"
     },
     {
-      "id": "edge-442",
-      "fromNode": "decisions/2026-02-10-phase-a-implementation-complete",
-      "toNode": "patterns/runbook-ollama-mcp-operations"
-    },
-    {
-      "id": "edge-443",
-      "fromNode": "decisions/2026-02-10-phase-a-implementation-complete",
-      "toNode": "patterns/runbook-ci-cd-pipeline"
-    },
-    {
       "id": "edge-444",
       "fromNode": "decisions/2026-02-10-phase-a-implementation-complete",
-      "toNode": "patterns/runbook-health-checks"
+      "toNode": "patterns/runbook-ollama-mcp-operations"
     },
     {
       "id": "edge-445",
@@ -3825,17 +3885,17 @@
     {
       "id": "edge-446",
       "fromNode": "decisions/2026-02-10-phase-a-implementation-complete",
-      "toNode": "patterns/troubleshooting-mcp-infrastructure"
+      "toNode": "patterns/runbook-ci-cd-pipeline"
     },
     {
       "id": "edge-447",
-      "fromNode": "decisions/2026-02-09-12d-graph-refined-plan",
-      "toNode": "patterns/google-sheets-vault-bridge"
+      "fromNode": "decisions/2026-02-10-phase-a-implementation-complete",
+      "toNode": "patterns/runbook-health-checks"
     },
     {
       "id": "edge-448",
-      "fromNode": "decisions/2026-02-09-12d-graph-refined-plan",
-      "toNode": "patterns/automated-concept-extraction"
+      "fromNode": "decisions/2026-02-10-phase-a-implementation-complete",
+      "toNode": "patterns/troubleshooting-mcp-infrastructure"
     },
     {
       "id": "edge-449",
@@ -3845,32 +3905,32 @@
     {
       "id": "edge-450",
       "fromNode": "decisions/2026-02-09-12d-graph-refined-plan",
-      "toNode": "decisions/3d-graph-plugin-selection"
+      "toNode": "patterns/google-sheets-vault-bridge"
     },
     {
       "id": "edge-451",
+      "fromNode": "decisions/2026-02-09-12d-graph-refined-plan",
+      "toNode": "decisions/3d-graph-plugin-selection"
+    },
+    {
+      "id": "edge-452",
+      "fromNode": "decisions/2026-02-09-12d-graph-refined-plan",
+      "toNode": "patterns/automated-concept-extraction"
+    },
+    {
+      "id": "edge-453",
       "fromNode": "patterns/multi-session-compound-engineering-workflow",
       "toNode": "concepts/agentic-ai"
     },
     {
-      "id": "edge-452",
-      "fromNode": "patterns/fastmcp-asgi-builder-pattern",
-      "toNode": "concepts/mcp-infrastructure-architecture"
-    },
-    {
-      "id": "edge-453",
+      "id": "edge-454",
       "fromNode": "patterns/fastmcp-asgi-builder-pattern",
       "toNode": "concepts/mcp-model-context-protocol"
     },
     {
-      "id": "edge-454",
-      "fromNode": "patterns/bmad-agent-persona-definition",
-      "toNode": "patterns/bmad-workflow-orchestration"
-    },
-    {
       "id": "edge-455",
-      "fromNode": "patterns/bmad-agent-persona-definition",
-      "toNode": "patterns/bmad-scale-adaptive-documentation"
+      "fromNode": "patterns/fastmcp-asgi-builder-pattern",
+      "toNode": "concepts/mcp-infrastructure-architecture"
     },
     {
       "id": "edge-456",
@@ -3879,23 +3939,23 @@
     },
     {
       "id": "edge-457",
-      "fromNode": "patterns/automated-concept-extraction",
-      "toNode": "patterns/google-sheets-vault-bridge"
+      "fromNode": "patterns/bmad-agent-persona-definition",
+      "toNode": "patterns/bmad-workflow-orchestration"
     },
     {
       "id": "edge-458",
+      "fromNode": "patterns/bmad-agent-persona-definition",
+      "toNode": "patterns/bmad-scale-adaptive-documentation"
+    },
+    {
+      "id": "edge-459",
       "fromNode": "patterns/automated-concept-extraction",
       "toNode": "concepts/compound-engineering"
     },
     {
-      "id": "edge-459",
-      "fromNode": "patterns/runbook-benchmarking-validation",
-      "toNode": "patterns/troubleshooting-mcp-infrastructure"
-    },
-    {
       "id": "edge-460",
-      "fromNode": "patterns/runbook-benchmarking-validation",
-      "toNode": "patterns/runbook-ci-cd-pipeline"
+      "fromNode": "patterns/automated-concept-extraction",
+      "toNode": "patterns/google-sheets-vault-bridge"
     },
     {
       "id": "edge-461",
@@ -3904,13 +3964,13 @@
     },
     {
       "id": "edge-462",
-      "fromNode": "patterns/troubleshooting-mcp-infrastructure",
-      "toNode": "patterns/runbook-ollama-mcp-operations"
+      "fromNode": "patterns/runbook-benchmarking-validation",
+      "toNode": "patterns/runbook-ci-cd-pipeline"
     },
     {
       "id": "edge-463",
-      "fromNode": "patterns/troubleshooting-mcp-infrastructure",
-      "toNode": "patterns/runbook-ci-cd-pipeline"
+      "fromNode": "patterns/runbook-benchmarking-validation",
+      "toNode": "patterns/troubleshooting-mcp-infrastructure"
     },
     {
       "id": "edge-464",
@@ -3919,71 +3979,91 @@
     },
     {
       "id": "edge-465",
+      "fromNode": "patterns/troubleshooting-mcp-infrastructure",
+      "toNode": "patterns/runbook-ollama-mcp-operations"
+    },
+    {
+      "id": "edge-466",
+      "fromNode": "patterns/troubleshooting-mcp-infrastructure",
+      "toNode": "patterns/runbook-ci-cd-pipeline"
+    },
+    {
+      "id": "edge-467",
       "fromNode": "patterns/bmad-workflow-orchestration",
       "toNode": "concepts/agent-loop-architecture"
     },
     {
-      "id": "edge-466",
+      "id": "edge-468",
       "fromNode": "patterns/bmad-workflow-orchestration",
       "toNode": "patterns/bmad-scale-adaptive-documentation"
     },
     {
-      "id": "edge-467",
+      "id": "edge-469",
       "fromNode": "patterns/session-retrospective-notes",
       "toNode": "concepts/compound-engineering"
     },
     {
-      "id": "edge-468",
-      "fromNode": "patterns/lessons-graph-integration",
-      "toNode": "patterns/automated-concept-extraction"
-    },
-    {
-      "id": "edge-469",
+      "id": "edge-470",
       "fromNode": "patterns/lessons-graph-integration",
       "toNode": "patterns/python-optimized-flume-pattern"
     },
     {
-      "id": "edge-470",
+      "id": "edge-471",
       "fromNode": "patterns/lessons-graph-integration",
       "toNode": "patterns/google-sheets-vault-bridge"
     },
     {
-      "id": "edge-471",
-      "fromNode": "patterns/google-sheets-vault-bridge",
-      "toNode": "concepts/compound-engineering"
-    },
-    {
       "id": "edge-472",
-      "fromNode": "patterns/google-sheets-vault-bridge",
-      "toNode": "experiments/2026-02-07-ai-research-agent-for-vault-notes"
+      "fromNode": "patterns/lessons-graph-integration",
+      "toNode": "patterns/automated-concept-extraction"
     },
     {
       "id": "edge-473",
-      "fromNode": "patterns/google-sheets-vault-bridge",
-      "toNode": "decisions/2026-02-07-event-driven-inbox-processor"
+      "fromNode": "patterns/canvas-driven-manual-linking",
+      "toNode": "concepts/context-management"
     },
     {
       "id": "edge-474",
-      "fromNode": "patterns/12d-graph-implementation",
+      "fromNode": "patterns/canvas-driven-manual-linking",
       "toNode": "concepts/mcp-infrastructure-architecture"
     },
     {
       "id": "edge-475",
+      "fromNode": "patterns/google-sheets-vault-bridge",
+      "toNode": "concepts/compound-engineering"
+    },
+    {
+      "id": "edge-476",
+      "fromNode": "patterns/google-sheets-vault-bridge",
+      "toNode": "decisions/2026-02-07-event-driven-inbox-processor"
+    },
+    {
+      "id": "edge-477",
+      "fromNode": "patterns/google-sheets-vault-bridge",
+      "toNode": "experiments/2026-02-07-ai-research-agent-for-vault-notes"
+    },
+    {
+      "id": "edge-478",
+      "fromNode": "patterns/12d-graph-implementation",
+      "toNode": "concepts/mcp-infrastructure-architecture"
+    },
+    {
+      "id": "edge-479",
       "fromNode": "patterns/runbook-health-checks",
       "toNode": "patterns/runbook-ollama-mcp-operations"
     },
     {
-      "id": "edge-476",
+      "id": "edge-480",
       "fromNode": "patterns/runbook-ci-cd-pipeline",
       "toNode": "patterns/runbook-health-checks"
     },
     {
-      "id": "edge-477",
+      "id": "edge-481",
       "fromNode": "patterns/bmad-scale-adaptive-documentation",
       "toNode": "concepts/compound-engineering"
     },
     {
-      "id": "edge-478",
+      "id": "edge-482",
       "fromNode": "inbox/Setup linkage with google sheets",
       "toNode": "patterns/google-sheets-vault-bridge"
     }
