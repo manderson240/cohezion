@@ -1,17 +1,27 @@
 ---
-title: "CircleCI CI/CD for AI developers with autonomous validation agent"
+title: CircleCI CI/CD for AI developers with autonomous validation agent
 date: 2026-02-07
-tags: [ai]
+tags:
+- ai
 connectivity: 0.07
 cross_domain: 0.12
-completion: 1.00
-temporal: 1.00
-recency: 1.00
+completion: 1.0
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 3/3 sections (100%)
-domain: "DevOps/AI"
-source: "CI/CD for AI devs https://search.app/nARoZ"
+domain: DevOps/AI
+source: CI/CD for AI devs https://search.app/nARoZ
+dim_conceptual_depth: 0.5
+conceptual_label: Balanced
+similar_papers:
+- runaway-stars-milky-way.md
+- axion-dark-matter-quantum-sensors.md
+- mistral-open-source-ai-strategy.md
+- openai-applied-compute-startup.md
+- grb-250314a-ancient-signal.md
 ---
+
 
 
 ## Abstract

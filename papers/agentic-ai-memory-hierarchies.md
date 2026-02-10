@@ -1,16 +1,29 @@
 ---
-title: "How Agentic AI Strains Modern Memory Hierarchies"
+title: How Agentic AI Strains Modern Memory Hierarchies
 date: 2026-02-07
-tags: [ai-architecture, memory, agentic-ai, inference]
-connectivity: 0.20
-cross_domain: 0.50
+tags:
+- ai-architecture
+- memory
+- agentic-ai
+- inference
+connectivity: 0.2
+cross_domain: 0.5
 completion: 0.67
-temporal: 1.00
-recency: 1.00
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ★☆☆☆☆ (3/5 links)
 completion_summary: 2/3 sections (66%)
-source: "https://www.theregister.com/2026/01/28/how_agentic_ai_strains_modern_memory_heirarchies/"
+source: https://www.theregister.com/2026/01/28/how_agentic_ai_strains_modern_memory_heirarchies/
+dim_conceptual_depth: 0.0
+conceptual_label: Pure Applied
+similar_papers:
+- oman-artemis-accords.md
+- mcl1-myc-cancer-metabolism.md
+- openai-applied-compute-startup.md
+- artificial-photosynthesis-living-energy.md
+- 2026-02-09-unique-investment-opportunities-research.md
 ---
+
 
 # How Agentic AI Strains Modern Memory Hierarchies
 

@@ -1,16 +1,29 @@
 ---
-title: "LangChain Deep Agents Context Management"
+title: LangChain Deep Agents Context Management
 date: 2026-02-07
-tags: [ai-architecture, context-management, langchain, agent-design]
+tags:
+- ai-architecture
+- context-management
+- langchain
+- agent-design
 connectivity: 0.33
-cross_domain: 0.50
-completion: 1.00
-temporal: 1.00
-recency: 1.00
+cross_domain: 0.5
+completion: 1.0
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ★★☆☆☆ (5/5 links)
 completion_summary: 3/3 sections (100%)
-source: "https://blog.langchain.com/context-management-for-deepagents/"
+source: https://blog.langchain.com/context-management-for-deepagents/
+dim_conceptual_depth: 0.5
+conceptual_label: Balanced
+similar_papers:
+- mom-z14-farthest-galaxy.md
+- emu3-multimodal-next-token-prediction.md
+- claude-code-swiftui-skill-patterns.md
+- humanoid-robots-space-launch.md
+- nasa-maven-anomaly.md
 ---
+
 
 
 ## Abstract

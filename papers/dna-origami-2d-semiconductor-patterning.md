@@ -1,16 +1,29 @@
 ---
-title: "DNA Origami for Precise Molecular Patterning on 2D Semiconductors"
+title: DNA Origami for Precise Molecular Patterning on 2D Semiconductors
 date: 2026-02-07
-tags: [nanotechnology, dna-origami, semiconductors, nanophotonics]
+tags:
+- nanotechnology
+- dna-origami
+- semiconductors
+- nanophotonics
 connectivity: 0.27
-cross_domain: 0.50
+cross_domain: 0.5
 completion: 0.67
-temporal: 1.00
-recency: 1.00
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ★☆☆☆☆ (4/5 links)
 completion_summary: 2/3 sections (66%)
-source: "https://phys.org/news/2026-01-dna-origami-enables-precise-patterning.html"
+source: https://phys.org/news/2026-01-dna-origami-enables-precise-patterning.html
+dim_conceptual_depth: 0.5
+conceptual_label: Balanced
+similar_papers:
+- axion-dark-matter-quantum-sensors.md
+- theorem-ai-formal-verification.md
+- quantum-entangled-atomic-sensors.md
+- llm-training-methodology-changes.md
+- ai-anomaly-detection-hubble-archive.md
 ---
+
 
 # DNA Origami for Precise Molecular Patterning on 2D Semiconductors
 

@@ -1,16 +1,30 @@
 ---
-title: "Distributed Intercity Quantum Sensors Constrain Axion Dark Matter"
+title: Distributed Intercity Quantum Sensors Constrain Axion Dark Matter
 date: 2026-02-07
-tags: [quantum-physics, dark-matter, axions, quantum-sensors, topological-defects]
+tags:
+- quantum-physics
+- dark-matter
+- axions
+- quantum-sensors
+- topological-defects
 connectivity: 0.13
 cross_domain: 0.62
 completion: 0.67
-temporal: 1.00
-recency: 1.00
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
-source: "https://www.nature.com/articles/s41586-025-10034-w"
+source: https://www.nature.com/articles/s41586-025-10034-w
+dim_conceptual_depth: 1.0
+conceptual_label: Pure Theory
+similar_papers:
+- optofluidic-3d-nanofabrication.md
+- llm-in-sandbox-agentic-intelligence.md
+- llamaagents-builder.md
+- circleci-ai-cicd-validation.md
+- dna-origami-2d-semiconductor-patterning.md
 ---
+
 
 # Axion Dark Matter Constraints via Distributed Quantum Sensors
 

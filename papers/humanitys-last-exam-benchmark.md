@@ -1,16 +1,29 @@
 ---
-title: "Humanity's Last Exam - Expert-Level AI Benchmark"
+title: Humanity's Last Exam - Expert-Level AI Benchmark
 date: 2026-02-07
-tags: [AI-evaluation, benchmarks, LLM, expert-knowledge]
+tags:
+- AI-evaluation
+- benchmarks
+- LLM
+- expert-knowledge
 connectivity: 0.07
-cross_domain: 0.50
+cross_domain: 0.5
 completion: 0.67
-temporal: 1.00
-recency: 1.00
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 2/3 sections (66%)
-source: "https://www.nature.com/articles/s41586-025-09962-4"
+source: https://www.nature.com/articles/s41586-025-09962-4
+dim_conceptual_depth: 0.5
+conceptual_label: Balanced
+similar_papers:
+- mars-time-dilation-relativity.md
+- emoticons-llm-silent-failures.md
+- magnetic-superhighways-starburst-galaxy.md
+- quantum-atomic-light-synchronization.md
+- helimagnetism-ferromagnetism-mode-locking.md
 ---
+
 
 # Humanity's Last Exam (HLE) Benchmark
 

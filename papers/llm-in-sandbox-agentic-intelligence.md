@@ -1,16 +1,29 @@
 ---
-title: "LLM-in-Sandbox Elicits General Agentic Intelligence"
+title: LLM-in-Sandbox Elicits General Agentic Intelligence
 date: 2026-02-07
-tags: [ai-architecture, agentic-ai, reinforcement-learning, llm]
+tags:
+- ai-architecture
+- agentic-ai
+- reinforcement-learning
+- llm
 connectivity: 0.13
-cross_domain: 0.50
+cross_domain: 0.5
 completion: 0.67
-temporal: 1.00
-recency: 1.00
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
-source: "https://arxiv.org/abs/2601.16206"
+source: https://arxiv.org/abs/2601.16206
+dim_conceptual_depth: 0.5
+conceptual_label: Balanced
+similar_papers:
+- axion-dark-matter-quantum-sensors.md
+- anthropic-principle-fine-tuning.md
+- ai-anomaly-detection-hubble-archive.md
+- sentinel-1-ice-sheets.md
+- sunspot-ar4366-x-class-flares.md
 ---
+
 
 # LLM-in-Sandbox: General Agentic Intelligence via Code Sandbox
 
