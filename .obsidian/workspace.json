@@ -326,8 +326,10 @@
       "workspaces:Manage workspace layouts": false
     }
   },
-  "active": "ae5de8485a0909b5",
+  "active": "f2314d439dffcc1b",
   "lastOpenFiles": [
+    "daily/2026-02-10-adversarial-review-synthesis.md",
+    "daily/2026-02-10-adversarial-review-synthesis.md.tmp.618831.1770696964405",
     "daily/2026-02-10-phase3-kickoff.md",
     "daily/2026-02-10-phase3-kickoff.md.tmp.597611.1770696895573",
     "daily/2026-02-10-CANVAS-PLAN-SUMMARY.md",
@@ -349,7 +351,6 @@
     "inbox/research-gaps.md",
     "inbox/research-gaps.md.tmp.597611.1770696564975",
     "daily/2026-02-10-phase2-kickoff.md",
-    "daily/2026-02-10-phase2-kickoff.md.tmp.597611.1770696331155",
     "daily/2026-02-10-linking-plan-quick-ref.md",
     "daily/2026-02-10-compound-linking-plan-summary.md",
     "daily/2026-02-10-phase1-complete.md",
@@ -365,7 +366,6 @@
     "patterns/runbook-ci-cd-pipeline.md",
     "daily/2026-02-09-12d-graph-foundation.md",
     "patterns/runbook-ollama-mcp-operations.md",
-    "decisions/2026-02-10-phase-a-implementation-complete.md",
     "Untitled 1.canvas",
     "Untitled.canvas"
   ]
