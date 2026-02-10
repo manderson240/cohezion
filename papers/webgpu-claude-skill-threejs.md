@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 3/3 sections (100%)
 conceptual_depth: 0.00
 conceptual_label: Pure Applied
-similar_papers: [[openai-applied-compute-startup]], [[beyond-the-quantum-pilot-wave-theory]], [[mcl1-myc-cancer-metabolism]], [[amorphous-materials-3d-atomic-structure]], [[llamaagents-builder]]
+similar_papers: ["openai-applied-compute-startup", "beyond-the-quantum-pilot-wave-theory", "mcl1-myc-cancer-metabolism", "amorphous-materials-3d-atomic-structure", "llamaagents-builder"]
 dim_conceptual_depth: 0.0
 source: https://github.com/dgreenheck/webgpu-claude-skill
 ---

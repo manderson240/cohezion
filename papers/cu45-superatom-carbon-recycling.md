@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[llm-training-methodology-changes]], [[mom-z14-farthest-galaxy]], [[tonggeometry-ai-math]], [[artificial-photosynthesis-living-energy]], [[webgpu-claude-skill-threejs]]
+similar_papers: ["llm-training-methodology-changes", "mom-z14-farthest-galaxy", "tonggeometry-ai-math", "artificial-photosynthesis-living-energy", "webgpu-claude-skill-threejs"]
 dim_conceptual_depth: 0.5
 source: https://phys.org/news/2026-01-highly-stable-cu-superatom-carbon.html
 ---

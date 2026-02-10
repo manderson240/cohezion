@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[testing-agent-skills-with-evals]], [[artificial-photosynthesis-living-energy]], [[helimagnetism-ferromagnetism-mode-locking]], [[tonggeometry-olympiad-tree-search]], [[anthropic-disempowerment-patterns]]
+similar_papers: ["testing-agent-skills-with-evals", "artificial-photosynthesis-living-energy", "helimagnetism-ferromagnetism-mode-locking", "tonggeometry-olympiad-tree-search", "anthropic-disempowerment-patterns"]
 dim_conceptual_depth: 0.5
 source: https://www.popularmechanics.com/space/a70113242/time-travel-cosmic-strings/
 ---

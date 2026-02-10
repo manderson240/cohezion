@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (3/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[tidally-locked-exoplanet-habitability]], [[tonggeometry-olympiad-tree-search]], [[few-shot-prompting-agentic-coding]], [[silicon-quantum-computing-platform]], [[llm-training-methodology-changes]]
+similar_papers: ["tidally-locked-exoplanet-habitability", "tonggeometry-olympiad-tree-search", "few-shot-prompting-agentic-coding", "silicon-quantum-computing-platform", "llm-training-methodology-changes"]
 dim_conceptual_depth: 0.5
 source: https://www.livescience.com/space/black-holes/a-real-revolution-the-james-webb-telescope-is-upending-our-understanding-of-the-biggest-oldest-black-holes-in-the-universe
 ---

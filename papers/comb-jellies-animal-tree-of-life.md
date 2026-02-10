@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 3/3 sections (100%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[cisa-chatgpt-data-leak]], [[grok4-ai-benchmarks]], [[operational-data-ai-agents]], [[optofluidic-3d-nanofabrication]], [[anthropic-mcp-apps-claude-integrations]]
+similar_papers: ["cisa-chatgpt-data-leak", "grok4-ai-benchmarks", "operational-data-ai-agents", "optofluidic-3d-nanofabrication", "anthropic-mcp-apps-claude-integrations"]
 domain: "Evolutionary Biology"
 https: //search.app/wXgj4"
 source: "Source: Popular Mechanics

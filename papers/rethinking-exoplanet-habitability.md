@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (3/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[jwst-dark-matter-map]], [[llm-training-methodology-changes]], [[helimagnetism-ferromagnetism-mode-locking]], [[quantum-entanglement-speed-measurement]], [[yann-lecun-agi-world-models]]
+similar_papers: ["jwst-dark-matter-map", "llm-training-methodology-changes", "helimagnetism-ferromagnetism-mode-locking", "quantum-entanglement-speed-measurement", "yann-lecun-agi-world-models"]
 dim_conceptual_depth: 0.5
 source: https://phys.org/news/2026-01-rethinking-life-earth.html
 ---

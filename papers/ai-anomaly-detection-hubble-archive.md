@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.00
 conceptual_label: Pure Applied
-similar_papers: [[tonggeometry-ai-math]], [[operational-data-ai-agents]], [[llm-in-sandbox-agentic-intelligence]], [[cosmic-strings-time-travel]], [[dna-origami-2d-semiconductor-patterning]]
+similar_papers: ["tonggeometry-ai-math", "operational-data-ai-agents", "llm-in-sandbox-agentic-intelligence", "cosmic-strings-time-travel", "dna-origami-2d-semiconductor-patterning"]
 dim_conceptual_depth: 0.0
 source: https://science.nasa.gov/missions/hubble/ai-unlocks-hundreds-of-cosmic-anomalies-in-hubble-archive/
 ---

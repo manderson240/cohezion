@@ -368,3 +368,266 @@ select:focus {
 .kyutai-fade-in {
   animation: fadeIn 0.3s ease-in-out;
 }
+/**
+ * Agent Metrics Dashboard Styles
+ */
+
+.kyutai-dashboard {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboard-subtitle {
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.dashboard-error {
+  padding: 20px;
+  background: var(--background-modifier-error);
+  border-radius: 6px;
+  color: var(--text-error);
+  text-align: center;
+}
+
+/* Time Range Selector */
+.time-range-selector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  justify-content: center;
+}
+
+.time-range-selector button {
+  padding: 8px 16px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.time-range-selector button:hover {
+  background: var(--background-modifier-hover);
+}
+
+.time-range-selector button.active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+
+/* Dashboard Grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.dashboard-panel {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.dashboard-panel h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: var(--text-normal);
+  font-size: 1.1em;
+}
+
+/* Summary Panel */
+.stats-table {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--background-primary);
+  border-radius: 6px;
+}
+
+.stat-label {
+  color: var(--text-muted);
+  font-size: 0.95em;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: var(--text-normal);
+  font-size: 1.1em;
+}
+
+/* Knowledge Panel */
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.bar-label {
+  width: 100px;
+  font-size: 0.9em;
+  color: var(--text-muted);
+}
+
+.bar-container {
+  flex: 1;
+  height: 24px;
+  background: var(--background-primary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar {
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+.bar-value {
+  width: 40px;
+  text-align: right;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.stat-highlight {
+  margin-top: 15px;
+  padding: 12px;
+  background: var(--background-primary-alt);
+  border-radius: 6px;
+  text-align: center;
+  color: var(--text-accent);
+  font-weight: 500;
+}
+
+/* Tool Usage Panel */
+.tool-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tool-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--background-primary);
+  border-radius: 4px;
+}
+
+.tool-rank {
+  width: 25px;
+  color: var(--text-muted);
+  font-size: 0.85em;
+}
+
+.tool-name {
+  width: 100px;
+  font-size: 0.9em;
+  color: var(--text-normal);
+}
+
+.tool-bar-container {
+  flex: 1;
+  height: 18px;
+  background: var(--background-secondary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.tool-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--interactive-accent), var(--interactive-accent-hover));
+  transition: width 0.3s ease;
+  border-radius: 3px;
+}
+
+.tool-count {
+  width: 50px;
+  text-align: right;
+  font-weight: 600;
+  color: var(--text-normal);
+  font-size: 0.9em;
+}
+
+.no-data {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Quality Panel */
+.quality-panel {
+  grid-column: span 2;
+}
+
+.quality-panel .dashboard-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.metric-box {
+  background: var(--background-primary);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  border: 1px solid var(--background-modifier-border);
+  transition: transform 0.2s;
+}
+
+.metric-box:hover {
+  transform: translateY(-2px);
+  border-color: var(--interactive-accent);
+}
+
+.metric-value-large {
+  font-size: 2.5em;
+  font-weight: 700;
+  color: var(--interactive-accent);
+  margin-bottom: 8px;
+}
+
+.metric-label-large {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--text-normal);
+  margin-bottom: 5px;
+}
+
+.metric-description {
+  font-size: 0.85em;
+  color: var(--text-muted);
+}
+
+/* Export Button */
+.kyutai-dashboard > button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quality-panel {
+    grid-column: span 1;
+  }
+}

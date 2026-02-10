@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (4/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[runaway-stars-milky-way]], [[few-shot-prompting-agentic-coding]], [[2026-02-09-unique-investment-opportunities-research]], [[axion-dark-matter-quantum-sensors]], [[woh-g64-dust-obscured-companion]]
+similar_papers: ["runaway-stars-milky-way", "few-shot-prompting-agentic-coding", "2026-02-09-unique-investment-opportunities-research", "axion-dark-matter-quantum-sensors", "woh-g64-dust-obscured-companion"]
 dim_conceptual_depth: 0.5
 source: https://openai.com/index/unrolling-the-codex-agent-loop/
 ---

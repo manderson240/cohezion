@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.00
 conceptual_label: Pure Applied
-similar_papers: [[humanoid-robots-space-launch]], [[ocean-calcium-climate-mystery-66my]], [[super-earth-magnetic-protection-magma]], [[woh-g64-red-supergiant-mystery]], [[brain-protein-neurodegeneration]]
+similar_papers: ["humanoid-robots-space-launch", "ocean-calcium-climate-mystery-66my", "super-earth-magnetic-protection-magma", "woh-g64-red-supergiant-mystery", "brain-protein-neurodegeneration"]
 dim_conceptual_depth: 0.0
 source: https://www.scmp.com/news/china/science/article/3341517/chinese-ai-goes-next-level-geometry-top-us-maths-olympiad
 ---

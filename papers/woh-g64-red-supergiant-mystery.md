@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[tonggeometry-ai-math]], [[anthropic-disempowerment-patterns]], [[operational-data-ai-agents]], [[claude-code-community-skills]], [[few-shot-prompting-agentic-coding]]
+similar_papers: ["tonggeometry-ai-math", "anthropic-disempowerment-patterns", "operational-data-ai-agents", "claude-code-community-skills", "few-shot-prompting-agentic-coding"]
 dim_conceptual_depth: 0.5
 source: https://phys.org/news/2026-01-massive-star-woh-g64-red.html
 ---

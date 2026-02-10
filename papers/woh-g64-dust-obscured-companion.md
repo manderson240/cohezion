@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 3/3 sections (100%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[alphafold-cryo-em-structure-prediction]], [[emu3-multimodal-next-token-prediction]], [[quantum-atomic-light-synchronization]], [[artificial-photosynthesis-living-energy]], [[tonggeometry-ai-math]]
+similar_papers: ["alphafold-cryo-em-structure-prediction", "emu3-multimodal-next-token-prediction", "quantum-atomic-light-synchronization", "artificial-photosynthesis-living-energy", "tonggeometry-ai-math"]
 domain: "Astrophysics"
 https: //search.app/vpRDv"
 source: "Source: The Daily Galaxy

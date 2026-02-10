@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 1.00
 conceptual_label: Pure Theory
-similar_papers: [[fast-radio-bursts-binary-star-origin]], [[usaf-stealthy-electromagnetic-attack]], [[woh-g64-dust-obscured-companion]], [[diffraction-gratings-fourier-transforms]], [[cu45-superatom-co2-ethylene]]
+similar_papers: ["fast-radio-bursts-binary-star-origin", "usaf-stealthy-electromagnetic-attack", "woh-g64-dust-obscured-companion", "diffraction-gratings-fourier-transforms", "cu45-superatom-co2-ethylene"]
 dim_conceptual_depth: 1.0
 source: https://www.nature.com/articles/s41586-025-10041-x
 ---

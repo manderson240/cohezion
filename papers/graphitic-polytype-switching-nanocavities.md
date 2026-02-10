@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (3/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[beyond-the-quantum-pilot-wave-theory]], [[usaf-stealthy-electromagnetic-attack]], [[webb-cosmic-question-mark-gravitational-lens]], [[amorphous-materials-3d-atomic-structure]], [[mars-time-dilation-relativity]]
+similar_papers: ["beyond-the-quantum-pilot-wave-theory", "usaf-stealthy-electromagnetic-attack", "webb-cosmic-question-mark-gravitational-lens", "amorphous-materials-3d-atomic-structure", "mars-time-dilation-relativity"]
 dim_conceptual_depth: 0.5
 source: https://www.nature.com/articles/s41565-025-02121-w
 ---

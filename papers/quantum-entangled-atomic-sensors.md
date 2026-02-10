@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (3/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 1.00
 conceptual_label: Pure Theory
-similar_papers: [[mistral-open-source-ai-strategy]], [[artificial-photosynthesis-living-energy]], [[super-earth-magnetic-protection-magma]], [[dna-origami-2d-semiconductor-patterning]], [[brain-protein-neurodegeneration]]
+similar_papers: ["mistral-open-source-ai-strategy", "artificial-photosynthesis-living-energy", "super-earth-magnetic-protection-magma", "dna-origami-2d-semiconductor-patterning", "brain-protein-neurodegeneration"]
 dim_conceptual_depth: 1.0
 source: https://www.sciencedaily.com/releases/2026/01/260126075846.htm
 ---

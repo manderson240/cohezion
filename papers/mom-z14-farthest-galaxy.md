@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[artificial-photosynthesis-living-energy]], [[anthropic-disempowerment-patterns]], [[anthropic-principle-fine-tuning]], [[tonggeometry-ai-math]], [[mit-quantum-computing-progress]]
+similar_papers: ["artificial-photosynthesis-living-energy", "anthropic-disempowerment-patterns", "anthropic-principle-fine-tuning", "tonggeometry-ai-math", "mit-quantum-computing-progress"]
 dim_conceptual_depth: 0.5
 source: https://science.nasa.gov/missions/webb/nasa-webb-pushes-boundaries-of-observable-universe-closer-to-big-bang/
 ---

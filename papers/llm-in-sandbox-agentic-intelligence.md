@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[axion-dark-matter-quantum-sensors]], [[anthropic-principle-fine-tuning]], [[ai-anomaly-detection-hubble-archive]], [[sentinel-1-ice-sheets]], [[sunspot-ar4366-x-class-flares]]
+similar_papers: ["axion-dark-matter-quantum-sensors", "anthropic-principle-fine-tuning", "ai-anomaly-detection-hubble-archive", "sentinel-1-ice-sheets", "sunspot-ar4366-x-class-flares"]
 dim_conceptual_depth: 0.5
 source: https://arxiv.org/abs/2601.16206
 ---

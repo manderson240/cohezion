@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (3/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 1.00
 conceptual_label: Pure Theory
-similar_papers: [[mom-z14-farthest-galaxy]], [[llamaagents-builder]], [[tidally-locked-exoplanet-habitability]], [[helimagnetism-ferromagnetism-mode-locking]], [[humanoid-robots-space-launch]]
+similar_papers: ["mom-z14-farthest-galaxy", "llamaagents-builder", "tidally-locked-exoplanet-habitability", "helimagnetism-ferromagnetism-mode-locking", "humanoid-robots-space-launch"]
 dim_conceptual_depth: 1.0
 source: https://3dvf.com/en/scientists-have-managed-to-teleport-calculations-between-computers-and-computing-could-change/
 ---

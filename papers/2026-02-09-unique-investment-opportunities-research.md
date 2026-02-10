@@ -10,7 +10,7 @@ connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[mistral-open-source-ai-strategy]], [[jwst-red-nova-remnants]], [[grok4-ai-benchmarks]], [[openai-codex-agent-loop]], [[agentic-ai-memory-hierarchies]]
+similar_papers: ["mistral-open-source-ai-strategy", "jwst-red-nova-remnants", "grok4-ai-benchmarks", "openai-codex-agent-loop", "agentic-ai-memory-hierarchies"]
 source: inbox
 summary: Research into three unconventional investment themes: a UFO disclosure ETF (UFOD), compute futures contracts, and memory semiconductor pricing exposure.
 type: research

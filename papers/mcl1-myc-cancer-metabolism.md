@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 3/3 sections (100%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[agentic-ai-memory-hierarchies]], [[ocean-calcium-climate-mystery-66my]], [[yann-lecun-agi-world-models]], [[webgpu-claude-skill-threejs]], [[claude-code-swiftui-skill-patterns]]
+similar_papers: ["agentic-ai-memory-hierarchies", "ocean-calcium-climate-mystery-66my", "yann-lecun-agi-world-models", "webgpu-claude-skill-threejs", "claude-code-swiftui-skill-patterns"]
 domain: "Molecular Biology"
 https: //search.app/qbJXD"
 source: "Source: SciTechDaily

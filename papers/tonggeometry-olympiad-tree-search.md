@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[axion-dark-matter-quantum-sensors]], [[testing-agent-skills-with-evals]], [[brain-protein-neurodegeneration]], [[magnetic-superhighways-starburst-galaxy]], [[cosmic-strings-time-travel]]
+similar_papers: ["axion-dark-matter-quantum-sensors", "testing-agent-skills-with-evals", "brain-protein-neurodegeneration", "magnetic-superhighways-starburst-galaxy", "cosmic-strings-time-travel"]
 dim_conceptual_depth: 0.5
 source: https://www.nature.com/articles/s42256-025-01164-x
 ---

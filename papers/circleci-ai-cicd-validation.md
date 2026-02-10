@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 3/3 sections (100%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[runaway-stars-milky-way]], [[axion-dark-matter-quantum-sensors]], [[mistral-open-source-ai-strategy]], [[openai-applied-compute-startup]], [[grb-250314a-ancient-signal]]
+similar_papers: ["runaway-stars-milky-way", "axion-dark-matter-quantum-sensors", "mistral-open-source-ai-strategy", "openai-applied-compute-startup", "grb-250314a-ancient-signal"]
 dim_conceptual_depth: 0.5
 domain: DevOps/AI
 source: CI/CD for AI devs https://search.app/nARoZ

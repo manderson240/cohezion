@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (4/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[superfluid-to-supersolid-transition]], [[2026-02-09-unique-investment-opportunities-research]], [[anthropic-mcp-apps-claude-integrations]], [[scaling-agent-systems]], [[cisa-chatgpt-data-leak]]
+similar_papers: ["superfluid-to-supersolid-transition", "2026-02-09-unique-investment-opportunities-research", "anthropic-mcp-apps-claude-integrations", "scaling-agent-systems", "cisa-chatgpt-data-leak"]
 dim_conceptual_depth: 0.5
 source: https://www.space.com/astronomy/stars/james-webb-space-telescope-discovers-what-remains-after-two-stars-collide-and-explode-as-a-red-nova
 ---

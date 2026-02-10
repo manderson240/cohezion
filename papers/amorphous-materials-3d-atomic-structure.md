@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (3/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[quantum-entangled-atomic-sensors]], [[diffraction-gratings-fourier-transforms]], [[webgpu-claude-skill-threejs]], [[brain-protein-neurodegeneration]], [[tonggeometry-ai-math]]
+similar_papers: ["quantum-entangled-atomic-sensors", "diffraction-gratings-fourier-transforms", "webgpu-claude-skill-threejs", "brain-protein-neurodegeneration", "tonggeometry-ai-math"]
 dim_conceptual_depth: 0.5
 source: https://www.nature.com/articles/s41586-025-09857-4
 ---

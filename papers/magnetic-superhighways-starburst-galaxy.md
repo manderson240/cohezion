@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[tonggeometry-olympiad-tree-search]], [[humanitys-last-exam-benchmark]], [[anthropic-mcp-apps-claude-integrations]], [[mars-time-dilation-relativity]], [[silicon-quantum-computing-platform]]
+similar_papers: ["tonggeometry-olympiad-tree-search", "humanitys-last-exam-benchmark", "anthropic-mcp-apps-claude-integrations", "mars-time-dilation-relativity", "silicon-quantum-computing-platform"]
 dim_conceptual_depth: 0.5
 source: https://public.nrao.edu/news/magnetic-superhighways-discovered-in-a-starburst-galaxys-winds/
 ---

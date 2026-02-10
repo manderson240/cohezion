@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 3/3 sections (100%)
 conceptual_depth: 1.00
 conceptual_label: Pure Theory
-similar_papers: [[protein-tape-recorder-cytotape]], [[few-shot-prompting-agentic-coding]], [[humanoid-robots-space-launch]], [[dna-origami-2d-semiconductor-patterning]], [[anthropic-disempowerment-patterns]]
+similar_papers: ["protein-tape-recorder-cytotape", "few-shot-prompting-agentic-coding", "humanoid-robots-space-launch", "dna-origami-2d-semiconductor-patterning", "anthropic-disempowerment-patterns"]
 dim_conceptual_depth: 1.0
 source: https://venturebeat.com/security/theorem-wants-to-stop-ai-written-bugs-before-they-ship-and-just-raised-usd6m
 ---

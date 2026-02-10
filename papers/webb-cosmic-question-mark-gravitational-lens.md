@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[agentic-ai-memory-hierarchies]], [[graphitic-polytype-switching-nanocavities]], [[llamaagents-builder]], [[helimagnetism-ferromagnetism-mode-locking]], [[jwst-red-nova-remnants]]
+similar_papers: ["agentic-ai-memory-hierarchies", "graphitic-polytype-switching-nanocavities", "llamaagents-builder", "helimagnetism-ferromagnetism-mode-locking", "jwst-red-nova-remnants"]
 dim_conceptual_depth: 0.5
 source: https://science.nasa.gov/missions/webb/nasas-webb-reveals-distorted-galaxy-forming-cosmic-question-mark/
 ---

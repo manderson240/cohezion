@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 3/3 sections (100%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[llm-in-sandbox-agentic-intelligence]], [[grb-250314a-ancient-signal]], [[tidally-locked-exoplanet-habitability]], [[protein-tape-recorder-cytotape]], [[quantum-teleportation-logic-gates]]
+similar_papers: ["llm-in-sandbox-agentic-intelligence", "grb-250314a-ancient-signal", "tidally-locked-exoplanet-habitability", "protein-tape-recorder-cytotape", "quantum-teleportation-logic-gates"]
 dim_conceptual_depth: 0.5
 source: https://electrek.co/2026/01/28/bot-space-race-humanoid-robots-connect-to-satellite-prep-for-space-launch/
 ---
