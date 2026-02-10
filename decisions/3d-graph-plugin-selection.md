@@ -223,3 +223,8 @@ The Cohezion vault currently contains 83 paper notes, 21 concept notes, 7 patter
 
 
 [[graph-databases]], [[knowledge-graph-systems]]
+
+## Relevance to Cohezion
+
+[[MCP Infrastructure Architecture]]
+[[Compound Engineering]]

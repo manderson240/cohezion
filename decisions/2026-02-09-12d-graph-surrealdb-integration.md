@@ -635,3 +635,9 @@ If full 12D seems too ambitious initially:
 
 
 [[graph-databases]], [[knowledge-graph-systems]], [[mcp-infrastructure-architecture]]
+
+## Relevance to Cohezion
+
+[[MCP Infrastructure Architecture]]
+[[Compound Engineering]]
+[[Context Management]]

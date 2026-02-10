@@ -468,3 +468,8 @@ result = ollama_query("analyze vault", context="auto")
 
 
 [[mcp-infrastructure-architecture]], [[mcp-model-context-protocol]], [[machine-learning-optimization]]
+
+## Relevance to Cohezion
+
+[[MCP Infrastructure Architecture]]
+[[Context Management]]

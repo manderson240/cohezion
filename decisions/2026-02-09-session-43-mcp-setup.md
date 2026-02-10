@@ -93,3 +93,7 @@ LOG_LEVEL: info
 
 
 [[mcp-infrastructure-architecture]], [[mcp-model-context-protocol]]
+
+## Relevance to Cohezion
+
+[[MCP Infrastructure Architecture]]

@@ -98,3 +98,7 @@ This fix enables the full MCP ↔ Vault integration chain:
 
 
 [[mcp-infrastructure-architecture]], [[mcp-model-context-protocol]]
+
+## Relevance to Cohezion
+
+[[MCP Infrastructure Architecture]]

@@ -420,3 +420,8 @@ All major decisions were aligned with user priorities (highest ROI work), transp
 
 
 [[workflow-orchestration]]
+
+## Relevance to Cohezion
+
+[[Compound Engineering]]
+[[Context Management]]

@@ -278,3 +278,6 @@ This analysis mirrors previous planning failures:
 **Deadline**: 2026-02-10 (before execution)
 **Escalation**: If unclear, discuss Option A vs B trade-offs with team
 
+## Relevance to Cohezion
+
+[[Compound Engineering]]
