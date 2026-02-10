@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  kyutai-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kyutai-mcp-server
+    ports:
+      - "8361:8361"
+    environment:
+      - MCP_HOST=0.0.0.0
+      - MCP_PORT=8361
+      - MCP_LOG_LEVEL=info
+      - KYUTAI_CONFIG=/root/.kyutai-mcp/config.yaml
+    volumes:
+      # Mount configuration directory
+      - ~/.kyutai-mcp:/root/.kyutai-mcp
+      # Mount audio output directory (optional)
+      - kyutai-audio:/tmp/kyutai-audio
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8361/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Phase 2: Uncomment below for TTS API
+  # tts-api:
+  #   image: kyutai/tts-openai-api:latest
+  #   ports:
+  #     - "8000:8000"
+  #   environment:
+  #     - CUDA_VISIBLE_DEVICES=0
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [gpu]
+
+  # Phase 2: Uncomment below for STT API
+  # stt-api:
+  #   image: kyutai/stt-openai-api:latest
+  #   ports:
+  #     - "8080:8080"
+  #   environment:
+  #     - CUDA_VISIBLE_DEVICES=1
+  #     - MODEL_NAME=kyutai/stt-1b-en_fr
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [gpu]
+
+volumes:
+  kyutai-audio:
+    driver: local
