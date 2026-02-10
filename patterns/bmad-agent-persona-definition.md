@@ -110,3 +110,6 @@ Extracted from BMAD `bmm/agents/*.md` (10 agents: analyst, architect, dev, pm, s
 - [[multi-agent-systems]] — agent definitions are the building blocks
 - [[bmad-workflow-orchestration]] — agents invoke workflows
 - [[bmad-scale-adaptive-documentation]] — agents operate at specific project levels
+
+## Decisions & Experiments
+- 📋 [[2026-02-08-bmad-framework-removal]] - 2026-02-08-bmad-framework-removal

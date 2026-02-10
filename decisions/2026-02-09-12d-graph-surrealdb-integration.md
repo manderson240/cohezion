@@ -628,3 +628,7 @@ If full 12D seems too ambitious initially:
 **Status**: Ready for spike/prototype phase
 **Approval Required**: Yes - Confirm 12D approach vs simpler 4D/8D incremental rollout
 **Estimated Complexity**: 7-10 person-weeks for full implementation
+
+## Related
+**Domains**: ai-ml, architecture, data, infrastructure, integration, performance
+**Categories**: strategic, technical

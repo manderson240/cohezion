@@ -229,8 +229,12 @@
       "workspaces:Manage workspace layouts": false
     }
   },
-  "active": "ffe7c263ee7d1332",
+  "active": "90be407800a1daca",
   "lastOpenFiles": [
+    "daily/2026-02-09-decisions-experiments-integration.md",
+    "daily/2026-02-09-decisions-experiments-integration.md.tmp.461838.1770689525505",
+    "daily/2026-02-09-token-efficiency-retrospective.md",
+    "daily/2026-02-09-token-efficiency-retrospective.md.tmp.147604.1770689099996",
     "daily/2026-02-09-FINAL-SESSION-SUMMARY.md",
     "daily/2026-02-09-FINAL-SESSION-SUMMARY.md.tmp.147604.1770688638417",
     "daily/2026-02-09-sheetsbridge-verified.md",
@@ -246,9 +250,7 @@
     "daily/2026-02-09-verification-report.md",
     "daily/2026-02-09-verification-report.md.tmp.147604.1770677929229",
     "daily/2026-02-09-session-retrospective.md",
-    "daily/2026-02-09-session-retrospective.md.tmp.147604.1770677792622",
     "daily/2026-02-09-lessons-graph-integration-plan.md",
-    "daily/2026-02-09-lessons-graph-integration-plan.md.tmp.461838.1770677775972",
     "patterns/lessons/_lessons_index.md",
     "concepts/agentic-ai.md",
     "patterns/lessons/2026-02-09-ollama-mcp-infrastructure.md",
@@ -265,8 +267,6 @@
     "decisions/2026-02-09-rust-flume-python313-incompatibility.md",
     "decisions/3d-graph-plugin-selection.md",
     "papers/cu45-superatom-carbon-recycling.md",
-    "concepts/catalytic-materials.md",
-    "patterns/multi-session-compound-engineering-workflow.md",
     "Untitled 1.canvas",
     "Untitled.canvas"
   ]

@@ -461,3 +461,7 @@ result = ollama_query("analyze vault", context="auto")
 **Value**: Ollama becomes **infrastructure** (MCP server) not **scripts**
 **Impact**: Claude Code + all tools benefit from smart Ollama management
 **Cost**: ~1 week implementation, $0 ongoing (all local)
+
+## Related
+**Domains**: ai-ml, architecture, data, infrastructure, integration, performance
+**Categories**: strategic, technical

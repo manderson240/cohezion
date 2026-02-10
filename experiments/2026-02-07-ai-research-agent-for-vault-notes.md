@@ -37,3 +37,7 @@ The document includes 15+ cited references with links (peer-reviewed papers, Qua
 3. **Structure emerges naturally:** The agent independently chose a 5-part structure with an overview, theoretical foundations, applications, open questions, and platform relevance — a reasonable structure for a knowledge base entry.
 4. **This validates the [[2026-02-07-event-driven-inbox-processor|inbox processor]] concept:** If an agent can do this for one note on demand, a daemon can do it for every note automatically. The quality of output justifies the [[compound-engineering]] investment in automation.
 5. **Review is still needed:** While the output quality was high, a human review step is valuable to catch any factual errors or missing nuance, especially for technical physics content.
+
+## Related
+**Domains**: infrastructure
+**Concepts**: [[compound-engineering]]

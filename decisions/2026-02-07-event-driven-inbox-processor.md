@@ -41,3 +41,8 @@ Build a standalone event-driven daemon that watches `inbox/` for new or modified
 - **Obsidian plugin:** Would keep everything inside Obsidian but limits the processing to what the plugin API supports. A standalone daemon can use the full Python ecosystem and Claude API.
 - **MCP-only approach (HTTP calls):** Going through the MCP server HTTP layer adds latency and complexity for a process running on the same machine. Direct import of the ops modules is cleaner.
 - **Manual processing only:** The status quo. Works but creates a bottleneck that discourages quick capture.
+
+## Related
+**Domains**: architecture, infrastructure
+**Categories**: operational
+**Concepts**: [[compound-engineering]], [[compound-engineering]]

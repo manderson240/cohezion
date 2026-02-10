@@ -86,3 +86,7 @@ LOG_LEVEL: info
 - Claude Code cannot use vault tools via MCP until bug is fixed
 - Direct file editing still works via Read/Edit/Write tools
 - Full MCP integration deferred to Phase 6 task #N
+
+## Related
+**Domains**: architecture, infrastructure, integration
+**Categories**: operational

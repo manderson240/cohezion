@@ -183,3 +183,7 @@ Weekly coordination meetings
 **Decision**: Pick path next session, no more planning
 **Cost**: $2 (incremental) to $2K (full build)
 **Value**: Immediate utility OR revolutionary feature
+
+## Related
+**Domains**: ai-ml, architecture, data, infrastructure, integration
+**Categories**: strategic, technical

@@ -92,3 +92,6 @@ Skip concepts that already exist. Obsidian's backlinks panel automatically surfa
 
 - [[compound-engineering]] — concept extraction is a compounding operation
 - [[google-sheets-vault-bridge]] — papers often originate from the sheet pipeline
+
+## Decisions & Experiments
+- 📋 [[2026-02-09-12d-graph-refined-plan]] - 12D Graph System - Refined Implementation Plan

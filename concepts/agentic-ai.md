@@ -44,3 +44,6 @@ AI systems that operate autonomously across extended workflows, integrating mult
 ## Relevance to Cohezion
 
 Cohezion exemplifies agentic AI principles through its multi-agent architecture, where CompoundExecutor orchestrates specialized agents accessing tools via the Cloud Vault MCP Server's VaultOps and CompoundOps layers. The framework's persistent memory across sessions is enabled by the VaultExecutionLogger's trajectory logging and SemanticCache's multi-layer persistence, allowing agents to maintain context and extract learnings from prior experiments.
+
+## Decisions & Experiments
+- 📋 [[2026-02-09-12d-graph-refined-plan]] - 12D Graph System - Refined Implementation Plan

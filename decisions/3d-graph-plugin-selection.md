@@ -217,3 +217,6 @@ The Cohezion vault currently contains 83 paper notes, 21 concept notes, 7 patter
 - [Apoo711/obsidian-3d-graph GitHub Repository](https://github.com/Apoo711/obsidian-3d-graph)
 - [InfraNodus Obsidian Plugin Documentation](https://support.noduslabs.com/hc/en-us/articles/14964937162524)
 - [Obsidian Plugin Hub - 3D Graph Resources](https://publish.obsidian.md/hub/)
+
+## Related
+**Domains**: architecture, integration
