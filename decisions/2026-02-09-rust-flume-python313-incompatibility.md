@@ -240,3 +240,7 @@ app = mcp.streamable_http_app()
 ## Related
 **Domains**: ai-ml, data, infrastructure, integration, performance
 **Categories**: operational, technical
+
+## Relevance to Cohezion
+
+[[MCP Infrastructure Architecture]]

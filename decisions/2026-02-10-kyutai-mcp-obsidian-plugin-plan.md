@@ -233,3 +233,8 @@ Adopt a **5-phase compound engineering approach** with 6 specialist agent types,
 - **Phase 5**: Day 2, 9-10 AM (60 min, release)
 
 **Estimated Delivery**: Day 2, 10 AM UTC (24-hour turnaround)
+
+## Relevance to Cohezion
+
+[[MCP Infrastructure Architecture]]
+[[Multi Agent Systems]]
