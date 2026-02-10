@@ -22,7 +22,13 @@ from cohezion.config.config_state import (
     FileMetadata,
     ValidationReport,
 )
+from cohezion.config.config_sync_engine import ConfigSyncEngine
 from cohezion.config.config_sync_logger import ConfigSyncLogger, SyncLogEntry
+from cohezion.config.config_templates import (
+    ConfigTemplateEngine,
+    TemplateContext,
+    TemplateType,
+)
 from cohezion.config.config_validation import ConfigValidator, ReconciliationValidator
 from cohezion.config.git_utils import GitUtils
 from cohezion.config.unified import (
@@ -56,6 +62,11 @@ __all__ = [
     "SizeEnforcer",
     "ConfigSyncLogger",
     "SyncLogEntry",
+    # Real-Time Sync & Git Integration (Phase 4)
+    "ConfigSyncEngine",
+    "ConfigTemplateEngine",
+    "TemplateContext",
+    "TemplateType",
     # State & Events
     "ConfigEvent",
     "ConfigState",
