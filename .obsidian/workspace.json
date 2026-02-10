@@ -6,7 +6,7 @@
       {
         "id": "02e18562974e1c0d",
         "type": "tabs",
-        "dimension": 28.469022017409113,
+        "dimension": 14.234511008704558,
         "children": [
           {
             "id": "ffe7c263ee7d1332",
@@ -21,9 +21,26 @@
         ]
       },
       {
+        "id": "ca13ba894b4aad02",
+        "type": "tabs",
+        "dimension": 14.234511008704558,
+        "children": [
+          {
+            "id": "c4674fad75239c8c",
+            "type": "leaf",
+            "state": {
+              "type": "claude-terminal-view",
+              "state": {},
+              "icon": "claude-logo",
+              "title": "Claude Terminal"
+            }
+          }
+        ]
+      },
+      {
         "id": "2ba303a1c170723d",
         "type": "split",
-        "dimension": 38.19764464925755,
+        "dimension": 38.197644649257555,
         "children": [
           {
             "id": "3e4260dd21fdae2e",
@@ -65,43 +82,20 @@
             "direction": "vertical"
           },
           {
-            "id": "62207e9fb81cd2e6",
-            "type": "split",
+            "id": "d15392b78abc8f3e",
+            "type": "tabs",
             "children": [
               {
-                "id": "d15392b78abc8f3e",
-                "type": "tabs",
-                "children": [
-                  {
-                    "id": "5923521d756d85bf",
-                    "type": "leaf",
-                    "state": {
-                      "type": "claude-terminal-view",
-                      "state": {},
-                      "icon": "claude-logo",
-                      "title": "Claude Terminal"
-                    }
-                  }
-                ]
-              },
-              {
-                "id": "abbe4bd81223d462",
-                "type": "tabs",
-                "children": [
-                  {
-                    "id": "c4674fad75239c8c",
-                    "type": "leaf",
-                    "state": {
-                      "type": "claude-terminal-view",
-                      "state": {},
-                      "icon": "claude-logo",
-                      "title": "Claude Terminal"
-                    }
-                  }
-                ]
+                "id": "5923521d756d85bf",
+                "type": "leaf",
+                "state": {
+                  "type": "claude-terminal-view",
+                  "state": {},
+                  "icon": "claude-logo",
+                  "title": "Claude Terminal"
+                }
               }
-            ],
-            "direction": "vertical"
+            ]
           }
         ],
         "direction": "horizontal"
@@ -109,7 +103,7 @@
       {
         "id": "db48885dd4b08cbe",
         "type": "split",
-        "dimension": 33.33333333333333,
+        "dimension": 33.333333333333336,
         "children": [
           {
             "id": "5eae45faae5f463e",
@@ -326,20 +320,21 @@
       "workspaces:Manage workspace layouts": false
     }
   },
-  "active": "0d443c8c6ba10387",
+  "active": "c4674fad75239c8c",
   "lastOpenFiles": [
-    "obsidian-plugin/esbuild.config.mjs",
-    "obsidian-plugin/esbuild.config.mjs.tmp.626668.1770698215510",
-    "mcp-server/src/kyutai_mcp/utils/audio.py",
-    "obsidian-plugin/tsconfig.json",
-    "mcp-server/src/kyutai_mcp/utils/errors.py",
-    "mcp-server/src/kyutai_mcp/utils/errors.py.tmp.626668.1770698203493",
+    "mcp-server/src/kyutai_mcp/services/stt_api.py",
+    "mcp-server/src/kyutai_mcp/services/stt_api.py.tmp.626668.1770698281546",
+    "daily/2026-02-10-kyutai-phase3-live.md",
+    "daily/2026-02-10-kyutai-phase3-live.md.tmp.626668.1770698276298",
+    "obsidian-plugin/src/services/mcp-client.ts",
+    "obsidian-plugin/src/services/mcp-client.ts.tmp.626668.1770698274563",
+    "mcp-server/src/kyutai_mcp/services/pocket_tts.py",
+    "mcp-server/src/kyutai_mcp/services/pocket_tts.py.tmp.626668.1770698271955",
+    "obsidian-plugin/src/types.ts",
+    "obsidian-plugin/src/types.ts.tmp.626668.1770698264225",
+    "mcp-server/src/kyutai_mcp/services/base.py",
+    "mcp-server/src/kyutai_mcp/services/base.py.tmp.626668.1770698255114",
     "daily/2026-02-10-phase3-complete.md",
-    "daily/2026-02-10-phase3-complete.md.tmp.597611.1770698175264",
-    "mcp-server/src/kyutai_mcp/config.py",
-    "mcp-server/src/kyutai_mcp/config.py.tmp.626668.1770698159386",
-    "obsidian-plugin/manifest.json",
-    "obsidian-plugin/manifest.json.tmp.626668.1770698154436",
     "patterns/12d-graph-view-presets.md",
     "patterns/canvas-driven-manual-linking.md",
     "decisions/2026-02-10-canvas-driven-compound-engineering-refined.md",
@@ -364,7 +359,6 @@
     "decisions/2026-02-10-compound-linking-plan-adversarial-review.md",
     "daily/2026-02-10-plan-vs-reality-comparison.md",
     "daily/2026-02-10-adversarial-review-synthesis.md",
-    "daily/2026-02-10-phase3-kickoff.md",
     "Untitled 3.canvas",
     "Untitled 2.canvas",
     "Untitled 1.canvas",
