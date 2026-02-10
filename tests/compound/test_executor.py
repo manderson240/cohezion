@@ -21,6 +21,8 @@ def mock_mcp_client():
     client.vault_search.return_value = [
         {"file": "experiments/similar.md", "score": 0.85}
     ]
+    client.vault_write.return_value = "success"
+    client.vault_read.return_value = '{"status": "started"}'
     client.vault_log_experiment.return_value = "experiments/execution_123.md"
     client.vault_log_decision.return_value = "decisions/inflection_456.md"
     client.vault_extract_pattern.return_value = "patterns/success_789.md"
@@ -68,7 +70,9 @@ def test_execute_task_success(executor, mock_mcp_client):
     assert result.success is True
     assert result.output == "Task output"
     assert result.metrics["tokens"] == 100
-    assert result.vault_experiment_path == "experiments/execution_123.md"
+    # VaultLogger generates path as experiments/{project}/{skill}/{timestamp}.json
+    assert result.vault_experiment_path.startswith("experiments/cohezion/test_skill/")
+    assert result.vault_experiment_path.endswith(".json")
     assert result.vault_decision_paths is not None
     assert len(result.vault_decision_paths) > 0
 
