@@ -52,18 +52,31 @@ The [[2026-02-07-ai-research-agent-for-vault-notes|research agent experiment]] d
 - Communications of the ACM (2024). *Knowledge Management with Patterns*. [https://cacm.acm.org/research/knowledge-management-with-patterns/](https://cacm.acm.org/research/knowledge-management-with-patterns/)
 - Lifecycle Insights (2024). *Engineering Knowledge Management*. [https://lifecycleinsights.com/tech-guide/engineering-knowledge-management](https://lifecycleinsights.com/tech-guide/engineering-knowledge-management)
 
+## Core Principles
+
+1. **Validate Before Scaling**: [[implementation-first-infrastructure-later]] — Prove concepts with minimal tokens before investing in infrastructure
+2. **Token Efficiency**: [[token-efficiency]] — Optimize LLM token consumption to maximize output per token spent
+3. **Template Reuse**: Copy working patterns (cloud-vault-mcp, ollama-mcp) instead of building from scratch
+4. **Structured Capture**: Use CompoundOps to enforce frontmatter schemas for decisions/experiments/patterns
+
 ## Related Concepts
 
-- [[agentic-ai]]
-- [[context-management]]
-- [[ai-safety-alignment]]
+- [[token-efficiency]] — Economic optimization of compound engineering
+- [[agentic-ai]] — AI agents as compound engineering contributors
+- [[context-management]] — Managing context windows for compound knowledge
 
 ## Relevance to Cohezion
 
 Compound engineering is the foundational philosophy of Cohezion itself, formalized through the Cloud Vault MCP Server's three operation layers: VaultOps (read/write), CompoundOps (structured logging), and ObsidianOps (cross-linking). The CompoundExecutor leverages this accumulation by reading prior decisions via log_decision, extracting patterns through extract_pattern, and using find_relevant_context to surface institutional knowledge that compounds value over time.
 
+## Key Patterns
+
+- [[implementation-first-infrastructure-later]] — Validate before scaling infrastructure
+- [[session-retrospective]] — Capture lessons from each engineering session
+
 ## Decisions & Experiments
-- 📋 [[2026-02-08-bmad-framework-removal]] - 2026-02-08-bmad-framework-removal
-- 📋 [[2026-02-07-event-driven-inbox-processor]] - 2026-02-07-event-driven-inbox-processor
-- 📋 [[2026-02-07-event-driven-inbox-processor]] - 2026-02-07-event-driven-inbox-processor
-- 🔬 [[2026-02-07-ai-research-agent-for-vault-notes]] - 2026-02-07-ai-research-agent-for-vault-notes
+
+- 📋 [[2026-02-10-kyutai-token-waste-postmortem]] — Critical lesson: 61K token waste from infrastructure-first approach
+- 📋 [[2026-02-08-bmad-framework-removal]] — Removing unused framework patterns
+- 📋 [[2026-02-07-event-driven-inbox-processor]] — Event-driven inbox processing
+- 🔬 [[2026-02-07-ai-research-agent-for-vault-notes]] — AI research agent validation
