@@ -50,3 +50,5 @@
 - Remote: `origin/main` (synced)
 
 ## Related
+- [[lesson-git-worktrees-multi-session-isolation]]
+- [[lesson-measurement-integrity-honest-reporting]]
