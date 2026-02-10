@@ -1,0 +1,663 @@
+{
+  "metadata": {
+    "timestamp": "2026-02-09T00:00:00Z",
+    "source": "Kyutai Labs GitHub & Hugging Face",
+    "total_models_documented": 9,
+    "primary_focus": "Speech synthesis, translation, and dialogue"
+  },
+  "models": [
+    {
+      "id": "pocket-tts",
+      "name": "Pocket TTS",
+      "type": "text-to-speech",
+      "release_date": "2026-01",
+      "version": "latest",
+      "parameters": 100000000,
+      "model_size_gb": 0.4,
+      "input_modality": ["text"],
+      "output_modality": ["audio"],
+      "languages_supported": ["English", "French"],
+      "license": "CC-BY-4.0",
+      "gpu_vram_min_gb": 0,
+      "cpu_ram_min_gb": 1,
+      "inference_framework": "PyTorch",
+      "inference_speed_ms": 200,
+      "throughput": "6x real-time on MacBook Air M4",
+      "inference_hardware": "CPU-optimized (no GPU required)",
+      "sources": ["huggingface", "github"],
+      "huggingface_id": "kyutai/pocket-tts",
+      "github_url": "https://github.com/kyutai-labs/pocket-tts",
+      "quantization_support": ["native"],
+      "platforms": ["linux", "macos", "windows"],
+      "features": [
+        "Voice cloning support",
+        "Sub-50ms latency",
+        "Runs on CPU with 2 cores",
+        "Infinitely long text inputs",
+        "Streaming capability"
+      ],
+      "deployment_patterns": ["local-cpu", "hybrid"],
+      "container_support": true,
+      "notes": "Best for on-device Obsidian integration. Can run on any modern laptop without GPU. Voice cloning variant available."
+    },
+    {
+      "id": "tts-1.6b-en_fr",
+      "name": "Kyutai TTS 1.6B",
+      "type": "text-to-speech",
+      "release_date": "2025-07",
+      "version": "1.6B",
+      "parameters": 1800000000,
+      "model_size_gb": 7.2,
+      "input_modality": ["text"],
+      "output_modality": ["audio"],
+      "languages_supported": ["English", "French"],
+      "license": "CC-BY-4.0",
+      "gpu_vram_min_gb": 24,
+      "cpu_ram_min_gb": 16,
+      "inference_framework": "PyTorch",
+      "inference_speed_ms": 220,
+      "throughput": "75x generated audio per compute unit, 32 concurrent users on L40 GPU",
+      "inference_hardware": "GPU-optimized (L40/L4 recommended)",
+      "sources": ["huggingface", "github"],
+      "huggingface_id": "kyutai/tts-1.6b-en_fr",
+      "github_url": "https://github.com/kyutai-labs/delayed-streams-modeling",
+      "quantization_support": ["int8"],
+      "platforms": ["linux", "macos"],
+      "features": [
+        "Streaming text-to-speech (delayed streams modeling)",
+        "Low latency (220ms)",
+        "Capitalization and punctuation in output",
+        "Optimized for real-time generation",
+        "Hierarchical Transformer architecture"
+      ],
+      "deployment_patterns": ["local-gpu", "api", "hybrid"],
+      "container_support": true,
+      "openai_compatible_api": true,
+      "notes": "Production-grade model. Trained on 2.5M hours of audio. Can serve in OpenAI-compatible API wrapper."
+    },
+    {
+      "id": "stt-1b-en_fr",
+      "name": "Kyutai STT 1B",
+      "type": "speech-to-text",
+      "release_date": "2024-11",
+      "version": "1B",
+      "parameters": 1000000000,
+      "model_size_gb": 3.8,
+      "input_modality": ["audio"],
+      "output_modality": ["text"],
+      "languages_supported": ["English", "French"],
+      "audio_format": "16kHz mono",
+      "license": "CC-BY-4.0",
+      "gpu_vram_min_gb": 8,
+      "cpu_ram_min_gb": 6,
+      "inference_framework": "PyTorch",
+      "inference_speed_ms": 500,
+      "throughput": "Real-time factor 3x on L40S GPU",
+      "inference_hardware": "GPU or CPU",
+      "sources": ["huggingface", "github"],
+      "huggingface_id": "kyutai/stt-1b-en_fr",
+      "huggingface_mlx_id": "kyutai/stt-1b-en_fr-mlx",
+      "github_url": "https://github.com/kyutai-labs/delayed-streams-modeling",
+      "quantization_support": ["int8", "mlx"],
+      "platforms": ["linux", "macos", "ios"],
+      "features": [
+        "0.5 second delay",
+        "Word-level timestamps",
+        "Batch processing support",
+        "Noise robust",
+        "Handles up to 2 hours of audio"
+      ],
+      "deployment_patterns": ["local-cpu", "local-gpu", "hybrid"],
+      "container_support": true,
+      "openai_compatible_api": true,
+      "notes": "Faster than Whisper. MLX variant available for on-device Apple inference."
+    },
+    {
+      "id": "stt-2.6b-en",
+      "name": "Kyutai STT 2.6B",
+      "type": "speech-to-text",
+      "release_date": "2024-11",
+      "version": "2.6B",
+      "parameters": 2600000000,
+      "model_size_gb": 5.2,
+      "input_modality": ["audio"],
+      "output_modality": ["text"],
+      "languages_supported": ["English"],
+      "audio_format": "16kHz mono",
+      "license": "CC-BY-4.0",
+      "gpu_vram_min_gb": 12,
+      "cpu_ram_min_gb": 8,
+      "inference_framework": "PyTorch",
+      "inference_speed_ms": 200,
+      "throughput": "64 concurrent connections at 3x real-time on L40S GPU, 400 streams on H100",
+      "inference_hardware": "GPU-recommended (L40S, H100)",
+      "sources": ["huggingface", "github"],
+      "huggingface_id": "kyutai/stt-2.6b-en",
+      "huggingface_mlx_id": "kyutai/stt-2.6b-en-mlx",
+      "github_url": "https://github.com/kyutai-labs/delayed-streams-modeling",
+      "quantization_support": ["int8", "mlx"],
+      "platforms": ["linux", "macos"],
+      "features": [
+        "2.5 second delay",
+        "Word-level timestamps",
+        "Capitalization and punctuation",
+        "Batch processing support",
+        "Robust to noise",
+        "Long-form audio support (2+ hours)"
+      ],
+      "deployment_patterns": ["local-gpu", "api"],
+      "container_support": true,
+      "openai_compatible_api": true,
+      "notes": "English-only, higher accuracy than 1B model. Production-grade for high concurrency."
+    },
+    {
+      "id": "moshi",
+      "name": "Moshi",
+      "type": "full-duplex-dialogue",
+      "release_date": "2024-10",
+      "version": "v1",
+      "parameters": 7000000000,
+      "model_size_gb": 28,
+      "input_modality": ["audio", "text"],
+      "output_modality": ["audio", "text"],
+      "languages_supported": ["English", "French"],
+      "audio_format": "24kHz",
+      "license": "CC-BY-4.0",
+      "gpu_vram_min_gb": 24,
+      "cpu_ram_min_gb": 32,
+      "inference_framework": "PyTorch, Rust, MLX",
+      "inference_speed_ms": 200,
+      "throughput": "Real-time on L4 GPU",
+      "inference_hardware": "GPU-required (L4+)",
+      "sources": ["huggingface", "github"],
+      "huggingface_id": "kyutai/moshiko-pytorch-bf16",
+      "github_url": "https://github.com/kyutai-labs/moshi",
+      "quantization_support": false,
+      "platforms": ["linux", "macos"],
+      "features": [
+        "Full-duplex conversation (interrupt support)",
+        "Streaming audio codec (Mimi)",
+        "Inner monologue for improved generation",
+        "Theoretical latency 160ms (practical 200ms on L4)",
+        "Two-stream audio processing (user + moshi)",
+        "Real-time dialogue capability"
+      ],
+      "components": {
+        "temporal_transformer": "7B parameters",
+        "depth_transformer": "small, inter-codebook dependencies",
+        "audio_codec_mimi": "24kHz to 12.5Hz, 1.1kbps bandwidth, 80ms latency"
+      },
+      "deployment_patterns": ["local-gpu", "api"],
+      "container_support": true,
+      "notes": "Most capable Kyutai model. Requires significant GPU resources. Three deployment backends: PyTorch (research), Rust (production), MLX (Apple devices)."
+    },
+    {
+      "id": "hibiki-2b",
+      "name": "Hibiki (2.7B)",
+      "type": "speech-translation",
+      "release_date": "2025-02",
+      "version": "2.7B",
+      "parameters": 2700000000,
+      "model_size_gb": 10.8,
+      "input_modality": ["audio"],
+      "output_modality": ["audio", "text"],
+      "languages_supported": ["French-to-English"],
+      "audio_format": "24kHz",
+      "license": "Apache-2.0",
+      "gpu_vram_min_gb": 16,
+      "cpu_ram_min_gb": 12,
+      "inference_framework": "PyTorch, Rust, MLX",
+      "inference_speed_ms": 300,
+      "throughput": "Real-time streaming",
+      "inference_hardware": "GPU-recommended",
+      "sources": ["huggingface", "github"],
+      "huggingface_id": "kyutai/hibiki-2b-pytorch-bf16",
+      "github_url": "https://github.com/kyutai-labs/hibiki",
+      "quantization_support": ["int8"],
+      "platforms": ["linux", "macos", "ios"],
+      "features": [
+        "Simultaneous speech-to-speech translation",
+        "Real-time streaming translation",
+        "Voice transfer capability",
+        "Hierarchical Transformer (2.7B full, 1.7B mobile variant)",
+        "120-second context window",
+        "40-second lookback",
+        "2.2kbps bitrate"
+      ],
+      "variants": {
+        "hibiki-2b": "2.7B parameters, full quality",
+        "hibiki-m": "1.7B parameters, mobile optimized, 1.1kbps bitrate"
+      },
+      "deployment_patterns": ["local-gpu", "api", "on-device"],
+      "container_support": true,
+      "notes": "First open-source simultaneous speech translation. Supports three backends: PyTorch, Rust, MLX-swift (iOS)."
+    },
+    {
+      "id": "hibiki-mobile",
+      "name": "Hibiki Mobile (1.7B)",
+      "type": "speech-translation",
+      "release_date": "2025-02",
+      "version": "1.7B",
+      "parameters": 1700000000,
+      "model_size_gb": 6.8,
+      "input_modality": ["audio"],
+      "output_modality": ["audio", "text"],
+      "languages_supported": ["French-to-English"],
+      "audio_format": "24kHz",
+      "license": "Apache-2.0",
+      "gpu_vram_min_gb": 8,
+      "cpu_ram_min_gb": 4,
+      "inference_framework": "PyTorch, MLX, MLX-Swift",
+      "inference_speed_ms": 400,
+      "throughput": "Real-time on mobile",
+      "inference_hardware": "Apple Silicon optimized",
+      "sources": ["huggingface", "github"],
+      "huggingface_id": "kyutai/hibiki-1b-mlx-bf16",
+      "github_url": "https://github.com/kyutai-labs/hibiki",
+      "quantization_support": ["mlx"],
+      "platforms": ["macos", "ios"],
+      "features": [
+        "Mobile-optimized simultaneous speech translation",
+        "Lower parameter count (1.7B vs 2.7B)",
+        "1.1kbps bitrate (vs 2.2kbps full)",
+        "On-device inference capability",
+        "MLX-Swift for iOS native support"
+      ],
+      "deployment_patterns": ["on-device", "local-gpu"],
+      "container_support": false,
+      "notes": "Best for iOS/macOS integration. Uses Apple ML framework (MLX). Runs efficiently on Apple Silicon."
+    },
+    {
+      "id": "mimi-codec",
+      "name": "Mimi Audio Codec",
+      "type": "audio-codec",
+      "release_date": "2024-09",
+      "version": "v1",
+      "architecture": "Neural audio codec with Transformer encoder/decoder",
+      "model_size_gb": 1.2,
+      "input_modality": ["audio"],
+      "output_modality": ["audio-tokens"],
+      "audio_format": "24kHz input, 12.5Hz token rate",
+      "license": "CC-BY-4.0",
+      "gpu_vram_min_gb": 2,
+      "cpu_ram_min_gb": 1,
+      "inference_framework": "PyTorch",
+      "inference_speed_ms": 80,
+      "throughput": "Streaming (80ms frame latency)",
+      "inference_hardware": "CPU or GPU",
+      "sources": ["huggingface", "github"],
+      "huggingface_id": "kyutai/mimi",
+      "github_url": "https://github.com/kyutai-labs/moshi",
+      "quantization_support": false,
+      "platforms": ["linux", "macos", "windows"],
+      "features": [
+        "State-of-the-art streaming neural audio codec",
+        "1.1 kbps bandwidth",
+        "80ms frame size latency",
+        "32 codebooks per frame",
+        "Fully streaming capable",
+        "Semantic + acoustic information modeling",
+        "Adversarial training"
+      ],
+      "specifications": {
+        "bitrate_kbps": 1.1,
+        "frame_rate_hz": 12.5,
+        "codebooks": 32,
+        "frame_size_ms": 80,
+        "quality": "High fidelity"
+      },
+      "deployment_patterns": ["local-cpu", "local-gpu"],
+      "container_support": true,
+      "notes": "Underlying codec used in Moshi and Hibiki. Can be used standalone for audio compression in real-time applications."
+    },
+    {
+      "id": "tts-0.75b",
+      "name": "Kyutai TTS 0.75B (Early Release)",
+      "type": "text-to-speech",
+      "release_date": "2025-06",
+      "version": "0.75B",
+      "parameters": 750000000,
+      "model_size_gb": 3,
+      "input_modality": ["text"],
+      "output_modality": ["audio"],
+      "languages_supported": ["English", "French"],
+      "license": "CC-BY-4.0",
+      "gpu_vram_min_gb": 4,
+      "cpu_ram_min_gb": 2,
+      "inference_framework": "PyTorch",
+      "inference_speed_ms": 300,
+      "throughput": "Real-time on CPU",
+      "inference_hardware": "CPU or light GPU",
+      "sources": ["huggingface"],
+      "huggingface_id": "kyutai/tts-0.75b-en-public",
+      "quantization_support": ["int8"],
+      "platforms": ["linux", "macos", "windows"],
+      "features": [
+        "Lightweight variant",
+        "Balances quality and efficiency",
+        "Streaming capability",
+        "Low latency"
+      ],
+      "deployment_patterns": ["local-cpu", "hybrid"],
+      "container_support": true,
+      "notes": "Experimental early release. Good balance between model size and quality for edge deployment."
+    }
+  ],
+  "deployment_patterns": [
+    {
+      "type": "local-cpu",
+      "description": "Models run entirely on CPU without GPU acceleration. Best for lightweight models and on-device use in Obsidian.",
+      "advantages": [
+        "No GPU required",
+        "Universal platform compatibility",
+        "Privacy-preserving (no cloud)",
+        "Offline capability"
+      ],
+      "disadvantages": [
+        "Slower inference for larger models",
+        "Limited throughput for concurrent requests"
+      ],
+      "recommended_models": [
+        "pocket-tts",
+        "tts-0.75b"
+      ],
+      "obsidian_suitability": "EXCELLENT - Direct integration into Obsidian without external dependencies"
+    },
+    {
+      "type": "local-gpu",
+      "description": "Models run on local GPU (NVIDIA CUDA, Apple Metal). Best for production-grade inference with higher throughput.",
+      "advantages": [
+        "High throughput (32+ concurrent users)",
+        "Low latency (<300ms)",
+        "Full model capability",
+        "Cost-effective for many requests"
+      ],
+      "disadvantages": [
+        "Requires GPU hardware (expensive)",
+        "CUDA/Metal driver dependencies",
+        "Not portable to CPU-only machines"
+      ],
+      "recommended_models": [
+        "tts-1.6b-en_fr",
+        "stt-2.6b-en",
+        "moshi",
+        "hibiki-2b"
+      ],
+      "obsidian_suitability": "GOOD - Requires local GPU setup, not portable but powerful"
+    },
+    {
+      "type": "on-device",
+      "description": "Models optimized for edge devices using platform-native ML frameworks (MLX for Apple, ONNX for cross-platform).",
+      "advantages": [
+        "Apple Silicon native optimization (MLX)",
+        "iOS/macOS integration",
+        "Battery efficient",
+        "No internet required",
+        "Privacy-first"
+      ],
+      "disadvantages": [
+        "Limited to Apple ecosystem (MLX)",
+        "Smaller model variants available",
+        "Platform-specific",
+        "Limited concurrency"
+      ],
+      "recommended_models": [
+        "stt-1b-en_fr-mlx",
+        "stt-2.6b-en-mlx",
+        "hibiki-mobile (MLX-Swift)"
+      ],
+      "obsidian_suitability": "GOOD - Native macOS support, mobile future-friendly"
+    },
+    {
+      "type": "api",
+      "description": "Cloud or local API server wrapping models in OpenAI-compatible REST/WebSocket API for client-server architecture.",
+      "advantages": [
+        "OpenAI API compatibility (drop-in replacement)",
+        "Network-accessible",
+        "Scalable (load balancing)",
+        "Client agnostic",
+        "Docker containerized"
+      ],
+      "disadvantages": [
+        "Network latency overhead",
+        "Server infrastructure required",
+        "API security concerns",
+        "Cost for server hosting"
+      ],
+      "recommended_models": [
+        "tts-1.6b-en_fr",
+        "stt-1b-en_fr",
+        "stt-2.6b-en",
+        "moshi",
+        "hibiki-2b"
+      ],
+      "obsidian_suitability": "EXCELLENT - Can be local Docker API, HTTP accessible from Obsidian plugins"
+    },
+    {
+      "type": "hybrid",
+      "description": "Models deployed across multiple tiers: lightweight on-device for basic tasks, cloud/GPU for complex requests.",
+      "advantages": [
+        "Flexibility",
+        "Cost-optimized",
+        "Best performance per cost",
+        "Offline fallback capability",
+        "Scales with demand"
+      ],
+      "disadvantages": [
+        "Complex architecture",
+        "Orchestration overhead",
+        "Latency variability"
+      ],
+      "recommended_models": [
+        "pocket-tts (device) + tts-1.6b (server)",
+        "stt-1b-en_fr-mlx (device) + stt-2.6b-en (server)"
+      ],
+      "obsidian_suitability": "EXCELLENT - Pocket TTS local with API fallback for higher quality"
+    }
+  ],
+  "integration_recommendations": {
+    "obsidian_text_to_speech": {
+      "primary_model": "pocket-tts",
+      "rationale": "100M parameters, CPU-optimized, 200ms latency, can be bundled directly in Obsidian plugin",
+      "integration_method": "Direct Python/WASM bundling or local FastAPI wrapper",
+      "fallback_model": "tts-1.6b-en_fr (local API)",
+      "setup_complexity": "LOW - Single pip install, no GPU required"
+    },
+    "obsidian_speech_to_text": {
+      "primary_model": "stt-1b-en_fr-mlx (macOS) or stt-2.6b-en (GPU servers)",
+      "rationale": "Balance of quality (1B vs 2.6B) and speed (0.5s vs 2.5s delay)",
+      "integration_method": "MLX framework for macOS native, FastAPI for servers",
+      "fallback_model": "stt-2.6b-en for higher accuracy when latency allows",
+      "setup_complexity": "MEDIUM - Framework selection based on platform"
+    },
+    "obsidian_voice_dialogue": {
+      "primary_model": "moshi (local GPU API) or pocket-tts + stt-1b (light hybrid)",
+      "rationale": "Moshi enables true conversation, Pocket+STT combo works on CPU",
+      "integration_method": "WebSocket API (Moshi native) or REST (Pocket+STT)",
+      "fallback_model": "Pocket TTS + STT 1B for CPU-only systems",
+      "setup_complexity": "HIGH - Moshi; LOW - Pocket+STT hybrid"
+    },
+    "obsidian_multilingual": {
+      "primary_model": "hibiki-2b (French↔English translation)",
+      "rationale": "Only open-source simultaneous translation model, real-time capable",
+      "integration_method": "Local GPU API or on-device MLX variant",
+      "languages_supported": ["French", "English"],
+      "setup_complexity": "MEDIUM - GPU recommended for real-time"
+    }
+  },
+  "hardware_profiles": {
+    "minimal_cpu": {
+      "name": "Minimal CPU (Laptop)",
+      "specs": "Intel Core i7/i9 or Apple M2/M3, 8GB RAM",
+      "suitable_models": [
+        "pocket-tts",
+        "stt-1b-en_fr"
+      ],
+      "estimated_latency_ms": 200,
+      "concurrent_requests": 1
+    },
+    "mid_tier_gpu": {
+      "name": "Mid-tier GPU (RTX 3080 / RTX 4070)",
+      "specs": "16GB VRAM, 32GB system RAM, CUDA 12.1+",
+      "suitable_models": [
+        "tts-1.6b-en_fr",
+        "stt-2.6b-en",
+        "hibiki-2b"
+      ],
+      "estimated_latency_ms": 250,
+      "concurrent_requests": 16
+    },
+    "enterprise_gpu": {
+      "name": "Enterprise GPU (L40/L40S/H100)",
+      "specs": "48GB+ VRAM, 128GB system RAM, CUDA 12.1+",
+      "suitable_models": [
+        "moshi",
+        "tts-1.6b-en_fr",
+        "stt-2.6b-en",
+        "hibiki-2b"
+      ],
+      "estimated_latency_ms": 150,
+      "concurrent_requests": 64
+    },
+    "apple_silicon": {
+      "name": "Apple Silicon (M2/M3/M4)",
+      "specs": "8-24GB unified memory, macOS 14+",
+      "suitable_models": [
+        "pocket-tts",
+        "stt-1b-en_fr-mlx",
+        "stt-2.6b-en-mlx",
+        "hibiki-mobile-mlx"
+      ],
+      "estimated_latency_ms": 300,
+      "concurrent_requests": 2
+    }
+  },
+  "osidian_plugin_architecture": {
+    "recommended_stack": {
+      "frontend": "Obsidian plugin API (TypeScript)",
+      "backend_options": [
+        {
+          "option": "Embedded Python + PyTorch",
+          "models": ["pocket-tts"],
+          "complexity": "Low",
+          "pros": "No external server needed",
+          "cons": "Plugin bundle size ~500MB"
+        },
+        {
+          "option": "Local FastAPI server + Docker",
+          "models": ["tts-1.6b-en_fr", "stt-2.6b-en", "moshi"],
+          "complexity": "Medium",
+          "pros": "Scalable, language agnostic, OpenAI-compatible",
+          "cons": "Requires Docker/server setup"
+        },
+        {
+          "option": "OpenAI API-compatible wrapper",
+          "models": ["Any via community wrappers"],
+          "complexity": "Low",
+          "pros": "Standard interface, drop-in replacements",
+          "cons": "API overhead"
+        }
+      ]
+    },
+    "mcp_integration": {
+      "description": "Kyutai MCP server providing standardized model access",
+      "tools": [
+        "tts(text, model, voice_id)",
+        "stt(audio_file, model)",
+        "translate(audio, source_lang, target_lang)",
+        "model_list()",
+        "model_status()"
+      ],
+      "benefits": "Unified interface across Kyutai models, Obsidian plugin consumes via MCP bridge"
+    }
+  },
+  "licensing_summary": {
+    "creative_commons": {
+      "license": "CC-BY-4.0",
+      "models": [
+        "pocket-tts",
+        "tts-1.6b-en_fr",
+        "tts-0.75b",
+        "stt-1b-en_fr",
+        "stt-2.6b-en",
+        "moshi",
+        "mimi-codec"
+      ],
+      "commercial_use": "Permitted with attribution",
+      "commercial_notes": "Attribution requirement may be burdensome at scale; see legal counsel for large deployments"
+    },
+    "apache": {
+      "license": "Apache-2.0",
+      "models": [
+        "hibiki-2b",
+        "hibiki-mobile"
+      ],
+      "commercial_use": "Permitted without restriction",
+      "commercial_notes": "Fully permissive for commercial applications"
+    },
+    "code_licenses": {
+      "python": "MIT",
+      "rust": "Apache-2.0"
+    }
+  },
+  "summary": {
+    "primary_use_cases": {
+      "text_to_speech": [
+        {
+          "use_case": "On-device Obsidian notes reading",
+          "recommended": "pocket-tts",
+          "latency_ms": 200,
+          "gpu_required": false
+        },
+        {
+          "use_case": "High-quality server TTS",
+          "recommended": "tts-1.6b-en_fr",
+          "latency_ms": 220,
+          "gpu_required": true
+        }
+      ],
+      "speech_to_text": [
+        {
+          "use_case": "macOS Obsidian plugin transcription",
+          "recommended": "stt-1b-en_fr-mlx",
+          "latency_ms": 500,
+          "gpu_required": false
+        },
+        {
+          "use_case": "High-concurrency server STT",
+          "recommended": "stt-2.6b-en",
+          "latency_ms": 200,
+          "gpu_required": true
+        }
+      ],
+      "real_time_dialogue": [
+        {
+          "use_case": "Interactive voice assistant in Obsidian",
+          "recommended": "moshi",
+          "latency_ms": 200,
+          "gpu_required": true
+        }
+      ],
+      "translation": [
+        {
+          "use_case": "Simultaneous speech translation",
+          "recommended": "hibiki-2b",
+          "languages": "French↔English",
+          "latency_ms": 300,
+          "gpu_required": true
+        }
+      ]
+    },
+    "key_findings": [
+      "Kyutai offers 9 production-ready models spanning TTS, STT, translation, and dialogue",
+      "Pocket TTS (100M) is ideal for Obsidian on-device integration—no GPU, 200ms latency",
+      "All models use Delayed Streams Modeling for low-latency real-time inference",
+      "CC-BY-4.0 licenses enable commercial use with attribution; no significant restrictions",
+      "Mimi audio codec (1.1kbps, 80ms latency) enables high-quality streaming in resource-constrained environments",
+      "MLX variants (Apple Silicon) enable on-device inference on macOS/iOS",
+      "OpenAI-compatible API wrappers available; can be deployed in Docker with single command",
+      "L40/L40S GPU can serve 32+ TTS or 64+ STT concurrent users at real-time quality",
+      "Hibiki (2.7B) is world's only open-source simultaneous speech translation model"
+    ]
+  }
+}

@@ -17,24 +17,40 @@ tags: [daily, kyutai, execution, wave-1]
 ### ✅ Infrastructure
 - [x] Team created: `kyutai-mcp-obsidian`
 - [x] Task list: 12 tasks, phase dependencies configured
-- [x] Wave 1 agents spawned (3 parallel agents)
+- [x] Phase 1 agents: 3 spawned & completed
+- [x] Phase 2 agents: 2 architects spawned (Wave 2 LIVE)
 
-### 🟡 Phase 1: Discovery (90 min, In Progress)
+### ✅ Phase 1: Discovery (90 min, COMPLETE)
 
-**Status**: Actively researching
+**Status**: COMPLETE ✓ (92 min)
+
+| Agent | Task | Status | Output |
+|-------|------|--------|--------|
+| 🔍 agent-kyutai-products | Research products & ecosystem | ✅ Done | kyutai-product-catalog.json (336 lines) |
+| 🔍 agent-kyutai-apis | Research API specs & integration | ✅ Done | kyutai-api-specification.md (1,192 lines) |
+| 🔍 agent-kyutai-models | Catalog models & deployment | ✅ Done | kyutai-models-matrix.json (663 lines) |
+
+**Outputs Delivered**:
+- ✅ `research/kyutai-product-catalog.json` — Moshi, Pocket TTS, Delayed Streams, Community APIs
+- ✅ `research/kyutai-api-specification.md` — 4 integration paths, auth, performance specs
+- ✅ `research/kyutai-models-matrix.json` — Model comparison, deployment patterns
+
+**Key Insights**:
+- No official SaaS API (all self-hosted)
+- 4 deployment options identified (Pocket TTS → Community OpenAI APIs → Moshi)
+- Community OpenAI-compatible wrappers recommended for production
+- STT/TTS latency: 160-400ms depending on model
+
+### 🟡 Phase 2: Design (120 min, In Progress)
+
+**Status**: Wave 2 architects actively designing
 
 | Agent | Task | Status | ETA |
 |-------|------|--------|-----|
-| 🔍 agent-kyutai-products | Research products & ecosystem | ⏳ Running | ~04:45 |
-| 🔍 agent-kyutai-apis | Research API specs & integration | ⏳ Running | ~04:50 |
-| 🔍 agent-kyutai-models | Catalog models & deployment | ⏳ Running | ~04:50 |
+| 🏗️ agent-mcp-architect | MCP server architecture | ⏳ Running | ~07:00 |
+| 🏗️ agent-obsidian-architect | Plugin UI/UX architecture | ⏳ Running | ~07:00 |
 
-**Outputs Expected**:
-- `/tmp/kyutai-product-catalog.json` — 8-10 products cataloged
-- `/tmp/kyutai-api-specification.md` — Complete API reference
-- `/tmp/kyutai-models-matrix.json` — Model comparison matrix
-
-**Next**: Once Phase 1 complete, copy outputs to vault and assign Phase 2 architects
+**Next**: Once Phase 2 complete, copy outputs to vault and assign Phase 3 implementers
 
 ---
 
