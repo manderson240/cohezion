@@ -6,6 +6,7 @@
       {
         "id": "02e18562974e1c0d",
         "type": "tabs",
+        "dimension": 33.333333333333336,
         "children": [
           {
             "id": "ffe7c263ee7d1332",
@@ -20,11 +21,12 @@
         ]
       },
       {
-        "id": "28ba496e85c363e9",
+        "id": "fe8a24a59cfba3ba",
         "type": "tabs",
+        "dimension": 33.333333333333336,
         "children": [
           {
-            "id": "5926613326ccd206",
+            "id": "f2314d439dffcc1b",
             "type": "leaf",
             "state": {
               "type": "claude-terminal-view",
@@ -36,20 +38,44 @@
         ]
       },
       {
-        "id": "4b76df65a9b0c42a",
-        "type": "tabs",
+        "id": "db48885dd4b08cbe",
+        "type": "split",
+        "dimension": 33.333333333333336,
         "children": [
           {
-            "id": "90be407800a1daca",
-            "type": "leaf",
-            "state": {
-              "type": "claude-terminal-view",
-              "state": {},
-              "icon": "claude-logo",
-              "title": "Claude Terminal"
-            }
+            "id": "5eae45faae5f463e",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "0d443c8c6ba10387",
+                "type": "leaf",
+                "state": {
+                  "type": "claude-terminal-view",
+                  "state": {},
+                  "icon": "claude-logo",
+                  "title": "Claude Terminal"
+                }
+              }
+            ]
+          },
+          {
+            "id": "8930874466a691c4",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "ae5de8485a0909b5",
+                "type": "leaf",
+                "state": {
+                  "type": "claude-terminal-view",
+                  "state": {},
+                  "icon": "claude-logo",
+                  "title": "Claude Terminal"
+                }
+              }
+            ]
           }
-        ]
+        ],
+        "direction": "horizontal"
       }
     ],
     "direction": "vertical"
@@ -81,7 +107,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "sheets",
+                "query": "12d",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -102,7 +128,8 @@
               "title": "Bookmarks"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "horizontal",
@@ -229,26 +256,37 @@
       "workspaces:Manage workspace layouts": false
     }
   },
-  "active": "90be407800a1daca",
+  "active": "ae5de8485a0909b5",
   "lastOpenFiles": [
+    "daily/2026-02-10-12d-graph-phase1-kickoff.md",
+    "daily/2026-02-10-12d-graph-phase1-kickoff.md.tmp.597611.1770695460974",
+    "patterns/runbook-benchmarking-validation.md",
+    "patterns/12d-graph-implementation.md",
+    "patterns/12d-graph-implementation.md.tmp.597611.1770695380105",
+    "patterns/runbook-health-checks.md",
+    "patterns/runbook-health-checks.md.tmp.596441.1770695293599",
+    "patterns/runbook-ci-cd-pipeline.md",
+    "patterns/runbook-ci-cd-pipeline.md.tmp.596441.1770695248762",
+    "daily/2026-02-09-12d-graph-foundation.md",
+    "patterns/runbook-ollama-mcp-operations.md",
+    "patterns/runbook-ollama-mcp-operations.md.tmp.596441.1770695133098",
+    "decisions/2026-02-10-phase-a-implementation-complete.md",
+    "sessions/SESSION-50-QUICKSTART.md",
+    "sessions/SESSION-50-QUICKSTART.md.tmp.386780.1770692370515",
+    "sessions/session-49-retrospective.md",
+    "sessions/session-49-retrospective.md.tmp.386780.1770692134852",
+    "sessions/session-50-handoff.md",
+    "sessions/session-50-handoff.md.tmp.386780.1770692134640",
     "daily/2026-02-09-decisions-experiments-integration.md",
     "daily/2026-02-09-decisions-experiments-integration.md.tmp.461838.1770689525505",
     "daily/2026-02-09-token-efficiency-retrospective.md",
     "daily/2026-02-09-token-efficiency-retrospective.md.tmp.147604.1770689099996",
     "daily/2026-02-09-FINAL-SESSION-SUMMARY.md",
-    "daily/2026-02-09-FINAL-SESSION-SUMMARY.md.tmp.147604.1770688638417",
     "daily/2026-02-09-sheetsbridge-verified.md",
-    "daily/2026-02-09-sheetsbridge-verified.md.tmp.147604.1770688539670",
-    "patterns/lessons-graph-integration.md.tmp.461838.1770688180843",
-    "patterns/lessons-graph-integration.md.tmp.461838.1770688084180",
     "daily/2026-02-09-lessons-retrospective.md",
-    "daily/2026-02-09-lessons-retrospective.md.tmp.461838.1770688041650",
     "daily/2026-02-09-lessons-integration-complete.md",
-    "daily/2026-02-09-lessons-integration-complete.md.tmp.461838.1770680141711",
     "daily/2026-02-09-sheetsbridge-test-plan.md",
-    "daily/2026-02-09-sheetsbridge-test-plan.md.tmp.147604.1770677984808",
     "daily/2026-02-09-verification-report.md",
-    "daily/2026-02-09-verification-report.md.tmp.147604.1770677929229",
     "daily/2026-02-09-session-retrospective.md",
     "daily/2026-02-09-lessons-graph-integration-plan.md",
     "patterns/lessons/_lessons_index.md",
@@ -256,17 +294,6 @@
     "patterns/lessons/2026-02-09-ollama-mcp-infrastructure.md",
     "patterns/lessons-graph-integration.md",
     "daily/2026-02-09-ollama-mcp-server-complete.md",
-    "decisions/2026-02-09-12d-graph-refined-plan.md",
-    "decisions/2026-02-09-ollama-mcp-server.md",
-    "decisions/2026-02-09-ollama-context-management.md",
-    "patterns/python-optimized-flume-pattern.md",
-    "decisions/2026-02-09-12d-graph-next-steps.md",
-    "daily/2026-02-09-12d-graph-foundation.md",
-    "decisions/2026-02-09-model-wrangler-strategy.md",
-    "decisions/2026-02-09-ai-model-strategy.md",
-    "decisions/2026-02-09-rust-flume-python313-incompatibility.md",
-    "decisions/3d-graph-plugin-selection.md",
-    "papers/cu45-superatom-carbon-recycling.md",
     "Untitled 1.canvas",
     "Untitled.canvas"
   ]
