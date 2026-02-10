@@ -1,0 +1,16 @@
+node_modules/
+dist/
+*.js
+!esbuild.config.mjs
+*.js.map
+.DS_Store
+.obsidian/
+test-results/
+coverage/
+.env
+.env.local
+*.swp
+*.swo
+*~
+.idea/
+.vscode/

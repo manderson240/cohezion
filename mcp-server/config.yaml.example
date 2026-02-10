@@ -1,0 +1,47 @@
+# Kyutai MCP Server Configuration Example
+# Copy to ~/.kyutai-mcp/config.yaml and customize
+
+server:
+  host: 127.0.0.1
+  port: 8361
+  log_level: info                # debug, info, warning, error
+
+# Phase 1: Pocket TTS (local, CPU-only)
+pocket_tts:
+  enabled: true
+  model_config: "b6369a24"       # Recommended Pocket TTS config
+  temperature: 0.7               # Variation in output
+  eos_threshold: -4.0            # End-of-speech detection threshold
+  voices_dir: "~/.kyutai-mcp/voices"  # Directory for voice samples
+
+# Phase 2: Community APIs (Docker, optional)
+apis:
+  tts:
+    enabled: false               # Enable after Docker setup
+    url: "http://localhost:8000/v1"
+    api_key: "dummy-key"         # Placeholder for local use
+    default_model: "tts-1"
+
+  stt:
+    enabled: false
+    url: "http://localhost:8080/v1"
+    api_key: "dummy-key"
+    default_model: "whisper-1"
+
+# Phase 3: Moshi (GPU-required, optional)
+moshi:
+  enabled: false
+  url: "ws://localhost:8998/ws"
+  backend: "pytorch"             # pytorch, mlx, rust
+
+# Health Checks
+health:
+  enabled: true
+  interval_seconds: 60           # Check every 60 seconds
+  timeout_seconds: 10            # Timeout per check
+
+# Caching
+cache:
+  enabled: true
+  ttl_seconds: 3600              # Cache audio for 1 hour
+  max_audio_mb: 500              # Max cache size
