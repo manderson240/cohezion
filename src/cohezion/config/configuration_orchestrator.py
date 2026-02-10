@@ -23,7 +23,9 @@ from cohezion.config.config_state import (
     FileMetadata,
     ValidationReport,
 )
+from cohezion.config.config_sync_engine import ConfigSyncEngine
 from cohezion.config.config_sync_logger import ConfigSyncLogger
+from cohezion.config.conflict_policy import ConflictPolicy, ConflictResolutionPolicy
 from cohezion.config.config_validation import ConfigValidator, ReconciliationValidator
 from cohezion.config.git_utils import GitUtils
 from cohezion.concurrency.safe_singleton import safe_singleton
@@ -83,6 +85,16 @@ class ConfigurationOrchestrator:
         self.archiver = ConfigArchiver(Path.home() / "vaults" / "cohezion-vault")
         self.size_enforcer = SizeEnforcer(self.size_limits)
         self.sync_logger = ConfigSyncLogger()
+
+        # Real-Time Sync & Git Integration (Phase 4)
+        self.sync_engine = ConfigSyncEngine(
+            repo_root=self.repo_root,
+            vault_root=self.vault_root,
+            sync_logger=self.sync_logger,
+        )
+
+        # Conflict Resolution (Phase 5A)
+        self.conflict_policy = ConflictResolutionPolicy.vault_canonical()
 
         # Status tracking
         self._monitoring = False

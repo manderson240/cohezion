@@ -30,6 +30,11 @@ from cohezion.config.config_templates import (
     TemplateType,
 )
 from cohezion.config.config_validation import ConfigValidator, ReconciliationValidator
+from cohezion.config.conflict_policy import (
+    ConflictPolicy,
+    ConflictResolutionPolicy,
+    ConflictResolutionStrategy,
+)
 from cohezion.config.git_utils import GitUtils
 from cohezion.config.unified import (
     CloudGraderConfig,
@@ -67,6 +72,10 @@ __all__ = [
     "ConfigTemplateEngine",
     "TemplateContext",
     "TemplateType",
+    # Conflict Resolution (Phase 5A)
+    "ConflictPolicy",
+    "ConflictResolutionPolicy",
+    "ConflictResolutionStrategy",
     # State & Events
     "ConfigEvent",
     "ConfigState",
