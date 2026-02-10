@@ -372,8 +372,10 @@
       "workspaces:Manage workspace layouts": false
     }
   },
-  "active": "c4674fad75239c8c",
+  "active": "43ff02ae552bc6ac",
   "lastOpenFiles": [
+    "daily/2026-02-10-phase4-FINAL-completion.md",
+    "daily/2026-02-10-phase4-FINAL-completion.md.tmp.626668.1770701940674",
     "daily/2026-02-10-PHASE5-READY.md",
     "daily/2026-02-10-PHASE5-READY.md.tmp.626668.1770701917353",
     "daily/2026-02-11-KYUTAI-PROJECT-CLOSURE.md",
@@ -391,7 +393,6 @@
     "LICENSE",
     "LICENSE.tmp.626668.1770701311858",
     "INSTALLATION.md",
-    "INSTALLATION.md.tmp.626668.1770701240732",
     "CHANGELOG.md",
     "daily/2026-02-10-phase5-release-execution.md",
     "benchmarks/release-metrics.md",
@@ -409,7 +410,6 @@
     "mcp-server/benchmarks/baseline-performance.md",
     "daily/2026-02-10-phase4-integration-complete.md",
     "daily/2026-02-10-FINAL-STATUS.md",
-    "daily/2026-02-10-performance-benchmarking-framework.md",
     "Cohezion_KnowledgeGraph.canvas",
     "Untitled 3.canvas",
     "Untitled 2.canvas",
