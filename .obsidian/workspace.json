@@ -112,36 +112,82 @@
         "dimension": 38.88319672131148,
         "children": [
           {
-            "id": "5eae45faae5f463e",
-            "type": "tabs",
+            "id": "2edb0d1346dfb72b",
+            "type": "split",
             "children": [
               {
-                "id": "0d443c8c6ba10387",
-                "type": "leaf",
-                "state": {
-                  "type": "claude-terminal-view",
-                  "state": {},
-                  "icon": "claude-logo",
-                  "title": "Claude Terminal"
-                }
+                "id": "5eae45faae5f463e",
+                "type": "tabs",
+                "children": [
+                  {
+                    "id": "0d443c8c6ba10387",
+                    "type": "leaf",
+                    "state": {
+                      "type": "claude-terminal-view",
+                      "state": {},
+                      "icon": "claude-logo",
+                      "title": "Claude Terminal"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "74d8f6c6ed55dd47",
+                "type": "tabs",
+                "children": [
+                  {
+                    "id": "43ff02ae552bc6ac",
+                    "type": "leaf",
+                    "state": {
+                      "type": "claude-terminal-view",
+                      "state": {},
+                      "icon": "claude-logo",
+                      "title": "Claude Terminal"
+                    }
+                  }
+                ]
               }
-            ]
+            ],
+            "direction": "vertical"
           },
           {
-            "id": "8930874466a691c4",
-            "type": "tabs",
+            "id": "82846bd8e316b902",
+            "type": "split",
             "children": [
               {
-                "id": "ae5de8485a0909b5",
-                "type": "leaf",
-                "state": {
-                  "type": "claude-terminal-view",
-                  "state": {},
-                  "icon": "claude-logo",
-                  "title": "Claude Terminal"
-                }
+                "id": "8930874466a691c4",
+                "type": "tabs",
+                "children": [
+                  {
+                    "id": "ae5de8485a0909b5",
+                    "type": "leaf",
+                    "state": {
+                      "type": "claude-terminal-view",
+                      "state": {},
+                      "icon": "claude-logo",
+                      "title": "Claude Terminal"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "435915c4a47fc3a6",
+                "type": "tabs",
+                "children": [
+                  {
+                    "id": "d1cb76c99159e614",
+                    "type": "leaf",
+                    "state": {
+                      "type": "claude-terminal-view",
+                      "state": {},
+                      "icon": "claude-logo",
+                      "title": "Claude Terminal"
+                    }
+                  }
+                ]
               }
-            ]
+            ],
+            "direction": "vertical"
           }
         ],
         "direction": "horizontal"
@@ -326,8 +372,14 @@
       "workspaces:Manage workspace layouts": false
     }
   },
-  "active": "ae5de8485a0909b5",
+  "active": "c4674fad75239c8c",
   "lastOpenFiles": [
+    "daily/2026-02-10-PHASE5-READY.md",
+    "daily/2026-02-10-PHASE5-READY.md.tmp.626668.1770701917353",
+    "daily/2026-02-11-KYUTAI-PROJECT-CLOSURE.md",
+    "daily/2026-02-11-KYUTAI-PROJECT-CLOSURE.md.tmp.626668.1770701917193",
+    "daily/2026-02-10-KYUTAI-PROJECT-FINAL-DELIVERY.md",
+    "daily/2026-02-10-KYUTAI-PROJECT-FINAL-DELIVERY.md.tmp.626668.1770701877935",
     "daily/2026-02-10-KYUTAI-PROJECT-COMPLETE.md",
     "daily/2026-02-10-KYUTAI-PROJECT-COMPLETE.md.tmp.626668.1770701752395",
     "daily/2026-02-10-PHASE5-RELEASE-DEPLOYMENT.md",
@@ -341,11 +393,8 @@
     "INSTALLATION.md",
     "INSTALLATION.md.tmp.626668.1770701240732",
     "CHANGELOG.md",
-    "CHANGELOG.md.tmp.626668.1770701211481",
     "daily/2026-02-10-phase5-release-execution.md",
-    "daily/2026-02-10-phase5-release-execution.md.tmp.626668.1770701192406",
     "benchmarks/release-metrics.md",
-    "benchmarks/release-metrics.md.tmp.626668.1770701192230",
     "daily/2026-02-10-phase-4-execution-complete.md",
     "daily/2026-02-10-PHASE4-COMPLETE.md",
     "daily/2026-02-10-agent-tests-final-report.md",
@@ -361,9 +410,6 @@
     "daily/2026-02-10-phase4-integration-complete.md",
     "daily/2026-02-10-FINAL-STATUS.md",
     "daily/2026-02-10-performance-benchmarking-framework.md",
-    "daily/2026-02-10-phase-a-execution-complete.md",
-    "benchmarks/README.md",
-    "daily/2026-02-10-kyutai-execution-summary.md",
     "Cohezion_KnowledgeGraph.canvas",
     "Untitled 3.canvas",
     "Untitled 2.canvas",
