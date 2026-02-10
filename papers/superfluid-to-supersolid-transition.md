@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 1.00
 conceptual_label: Pure Theory
-similar_papers: [[few-shot-prompting-agentic-coding]], [[artemis-ii-laser-comms]], [[runaway-stars-milky-way]], [[anthropic-mcp-apps-claude-integrations]], [[optofluidic-3d-nanofabrication]]
+similar_papers: ["few-shot-prompting-agentic-coding", "artemis-ii-laser-comms", "runaway-stars-milky-way", "anthropic-mcp-apps-claude-integrations", "optofluidic-3d-nanofabrication"]
 dim_conceptual_depth: 1.0
 source: https://phys.org/news/2026-01-superfluids-indefinitely-physicists.html
 ---

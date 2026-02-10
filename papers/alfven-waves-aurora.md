@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[silicon-quantum-computing-platform]], [[cu45-superatom-co2-ethylene]], [[grb-250314a-ancient-signal]], [[cisa-chatgpt-data-leak]], [[diffraction-gratings-fourier-transforms]]
+similar_papers: ["silicon-quantum-computing-platform", "cu45-superatom-co2-ethylene", "grb-250314a-ancient-signal", "cisa-chatgpt-data-leak", "diffraction-gratings-fourier-transforms"]
 dim_conceptual_depth: 0.5
 source: https://phys.org/news/2026-01-alfvn-power-source-earth-auroral.html
 ---

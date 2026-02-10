@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (3/5 links)
 completion_summary: 3/3 sections (100%)
 conceptual_depth: 0.00
 conceptual_label: Pure Applied
-similar_papers: [[cosmic-strings-time-travel]], [[quantum-entangled-atomic-sensors]], [[nebuchadnezzar-babylonian-texts]], [[woh-g64-dust-obscured-companion]], [[agentic-ai-memory-hierarchies]]
+similar_papers: ["cosmic-strings-time-travel", "quantum-entangled-atomic-sensors", "nebuchadnezzar-babylonian-texts", "woh-g64-dust-obscured-companion", "agentic-ai-memory-hierarchies"]
 domain: "Bioenergy"
 https: //search.app/dDyoT"
 source: "Source: ecoportal.net

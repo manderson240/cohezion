@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 3/3 sections (100%)
 conceptual_depth: 1.00
 conceptual_label: Pure Theory
-similar_papers: [[woh-g64-dust-obscured-companion]], [[artemis-ii-laser-comms]], [[pairwise-comparison-fiber-bundles]], [[tonggeometry-olympiad-tree-search]], [[diffraction-gratings-fourier-transforms]]
+similar_papers: ["woh-g64-dust-obscured-companion", "artemis-ii-laser-comms", "pairwise-comparison-fiber-bundles", "tonggeometry-olympiad-tree-search", "diffraction-gratings-fourier-transforms"]
 domain: "Structural Biology"
 https: //search.app/i4bPv"
 source: "Source: Nature

@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (3/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[jwst-red-nova-remnants]], [[tidally-locked-exoplanet-habitability]], [[superfluid-to-supersolid-transition]], [[magnetic-superhighways-starburst-galaxy]], [[helimagnetism-ferromagnetism-mode-locking]]
+similar_papers: ["jwst-red-nova-remnants", "tidally-locked-exoplanet-habitability", "superfluid-to-supersolid-transition", "magnetic-superhighways-starburst-galaxy", "helimagnetism-ferromagnetism-mode-locking"]
 dim_conceptual_depth: 0.5
 source: https://venturebeat.com/infrastructure/anthropic-embeds-slack-figma-and-asana-inside-claude-turning-ai-chat-into-a
 ---

@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 3/3 sections (100%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[brain-protein-neurodegeneration]], [[grok4-ai-benchmarks]], [[tidally-locked-exoplanet-habitability]], [[llm-in-sandbox-agentic-intelligence]], [[langchain-deep-agents-context-management]]
+similar_papers: ["brain-protein-neurodegeneration", "grok4-ai-benchmarks", "tidally-locked-exoplanet-habitability", "llm-in-sandbox-agentic-intelligence", "langchain-deep-agents-context-management"]
 dim_conceptual_depth: 0.5
 source: https://www.theregister.com/2026/01/27/nasa_anomaly_review_maven/
 ---

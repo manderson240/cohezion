@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[woh-g64-red-supergiant-mystery]], [[cosmic-strings-time-travel]], [[theorem-ai-formal-verification]], [[llm-in-sandbox-agentic-intelligence]], [[transcranial-ultrasound-consciousness]]
+similar_papers: ["woh-g64-red-supergiant-mystery", "cosmic-strings-time-travel", "theorem-ai-formal-verification", "llm-in-sandbox-agentic-intelligence", "transcranial-ultrasound-consciousness"]
 domain: "AI Safety & Ethics"
 https: //search.app/64yvj"
 source: "Source: The Quantum Insider

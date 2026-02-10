@@ -7,6 +7,7 @@ import { KyutaiPluginSettings, DEFAULT_SETTINGS } from './types';
 import { MCPClient } from './services/mcp-client';
 import { RibbonCommandManager } from './ui/commands';
 import { KyutaiSettingsTab } from './ui/settings';
+import { DashboardModal } from './ui/dashboard-modal';
 
 export default class KyutaiPlugin extends Plugin {
   settings: KyutaiPluginSettings = DEFAULT_SETTINGS;
@@ -52,6 +53,15 @@ export default class KyutaiPlugin extends Plugin {
 
     // Register keyboard shortcuts
     this.registerKeyboardShortcuts();
+
+    // Register Agent Metrics Dashboard command
+    this.addCommand({
+      id: 'open-agent-dashboard',
+      name: 'Open Agent Metrics Dashboard',
+      callback: () => {
+        new DashboardModal(this.app).open();
+      }
+    });
 
     console.log('[Kyutai Plugin] Loaded successfully');
   }

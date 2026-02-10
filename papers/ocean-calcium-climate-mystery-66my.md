@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[tonggeometry-ai-math]], [[helimagnetism-ferromagnetism-mode-locking]], [[mcl1-myc-cancer-metabolism]], [[usaf-stealthy-electromagnetic-attack]], [[anthropic-view-universe-nyas]]
+similar_papers: ["tonggeometry-ai-math", "helimagnetism-ferromagnetism-mode-locking", "mcl1-myc-cancer-metabolism", "usaf-stealthy-electromagnetic-attack", "anthropic-view-universe-nyas"]
 dim_conceptual_depth: 0.5
 source: https://scitechdaily.com/scientists-solve-a-66-million-year-old-climate-mystery-that-changed-earth-forever/
 ---

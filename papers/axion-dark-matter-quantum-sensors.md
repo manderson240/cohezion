@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 1.00
 conceptual_label: Pure Theory
-similar_papers: [[optofluidic-3d-nanofabrication]], [[llm-in-sandbox-agentic-intelligence]], [[llamaagents-builder]], [[circleci-ai-cicd-validation]], [[dna-origami-2d-semiconductor-patterning]]
+similar_papers: ["optofluidic-3d-nanofabrication", "llm-in-sandbox-agentic-intelligence", "llamaagents-builder", "circleci-ai-cicd-validation", "dna-origami-2d-semiconductor-patterning"]
 dim_conceptual_depth: 1.0
 source: https://www.nature.com/articles/s41586-025-10034-w
 ---

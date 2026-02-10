@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[agentic-ai-memory-hierarchies]], [[nebuchadnezzar-babylonian-texts]], [[pairwise-comparison-fiber-bundles]], [[beyond-the-quantum-pilot-wave-theory]], [[tonggeometry-olympiad-tree-search]]
+similar_papers: ["agentic-ai-memory-hierarchies", "nebuchadnezzar-babylonian-texts", "pairwise-comparison-fiber-bundles", "beyond-the-quantum-pilot-wave-theory", "tonggeometry-olympiad-tree-search"]
 domain: "Space Policy & Governance"
 https: //search.app/Ljd8E"
 source: "Source: X

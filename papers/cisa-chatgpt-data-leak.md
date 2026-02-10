@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 3/3 sections (100%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[ocean-calcium-climate-mystery-66my]], [[comb-jellies-animal-tree-of-life]], [[cu45-superatom-co2-ethylene]], [[diffraction-gratings-fourier-transforms]], [[few-shot-prompting-agentic-coding]]
+similar_papers: ["ocean-calcium-climate-mystery-66my", "comb-jellies-animal-tree-of-life", "cu45-superatom-co2-ethylene", "diffraction-gratings-fourier-transforms", "few-shot-prompting-agentic-coding"]
 domain: "AI Policy"
 https: //search.app/XvX1A"
 source: "Source: Politico

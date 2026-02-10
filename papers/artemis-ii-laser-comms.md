@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 3/3 sections (100%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[diffraction-gratings-fourier-transforms]], [[jwst-dark-matter-map]], [[superfluid-to-supersolid-transition]], [[alphafold-cryo-em-structure-prediction]], [[magnetic-superhighways-starburst-galaxy]]
+similar_papers: ["diffraction-gratings-fourier-transforms", "jwst-dark-matter-map", "superfluid-to-supersolid-transition", "alphafold-cryo-em-structure-prediction", "magnetic-superhighways-starburst-galaxy"]
 domain: "Space Exploration"
 https: //search.app/B7Laj"
 source: "Source: NASA (.gov)

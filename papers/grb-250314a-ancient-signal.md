@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (3/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[humanoid-robots-space-launch]], [[protein-tape-recorder-cytotape]], [[llamaagents-builder]], [[alfven-waves-aurora]], [[circleci-ai-cicd-validation]]
+similar_papers: ["humanoid-robots-space-launch", "protein-tape-recorder-cytotape", "llamaagents-builder", "alfven-waves-aurora", "circleci-ai-cicd-validation"]
 dim_conceptual_depth: 0.5
 source: https://www.ladbible.com/news/science/nasa-supernova-signal-grb-250314a-253130-20260112
 ---

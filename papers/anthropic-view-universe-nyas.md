@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 3/3 sections (100%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[artemis-ii-laser-comms]], [[ocean-calcium-climate-mystery-66my]], [[agentic-ai-memory-hierarchies]], [[quantum-teleportation-logic-gates]], [[mcl1-myc-cancer-metabolism]]
+similar_papers: ["artemis-ii-laser-comms", "ocean-calcium-climate-mystery-66my", "agentic-ai-memory-hierarchies", "quantum-teleportation-logic-gates", "mcl1-myc-cancer-metabolism"]
 dim_conceptual_depth: 0.5
 source: https://www.nyas.org/ideas-insights/blog/the-anthropic-view-of-the-universe/
 ---

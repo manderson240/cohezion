@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 3/3 sections (100%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[few-shot-prompting-agentic-coding]], [[beyond-the-quantum-pilot-wave-theory]], [[llamaagents-builder]], [[runaway-stars-milky-way]], [[llm-in-sandbox-agentic-intelligence]]
+similar_papers: ["few-shot-prompting-agentic-coding", "beyond-the-quantum-pilot-wave-theory", "llamaagents-builder", "runaway-stars-milky-way", "llm-in-sandbox-agentic-intelligence"]
 dim_conceptual_depth: 0.5
 domain: Cosmology
 source: The Anthropic View of the Universe - NYAS https://share.google/ppXMCxgmouBuSKHC9

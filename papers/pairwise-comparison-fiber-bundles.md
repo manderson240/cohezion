@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.75
 conceptual_label: Theory-Heavy
-similar_papers: [[jwst-red-nova-remnants]], [[superfluid-to-supersolid-transition]], [[alphafold-cryo-em-structure-prediction]], [[emoticons-llm-silent-failures]], [[agentic-ai-memory-hierarchies]]
+similar_papers: ["jwst-red-nova-remnants", "superfluid-to-supersolid-transition", "alphafold-cryo-em-structure-prediction", "emoticons-llm-silent-failures", "agentic-ai-memory-hierarchies"]
 Quantum Mechanics | Oxford Academic https: //share.google/61N296e5OJQLTpCSK'
 dim_conceptual_depth: 0.75
 domain: Mathematics and Statistics

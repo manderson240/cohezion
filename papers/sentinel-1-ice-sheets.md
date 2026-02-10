@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[cosmic-strings-time-travel]], [[ocean-calcium-climate-mystery-66my]], [[tidally-locked-exoplanet-habitability]], [[superfluid-to-supersolid-transition]], [[circleci-ai-cicd-validation]]
+similar_papers: ["cosmic-strings-time-travel", "ocean-calcium-climate-mystery-66my", "tidally-locked-exoplanet-habitability", "superfluid-to-supersolid-transition", "circleci-ai-cicd-validation"]
 dim_conceptual_depth: 0.5
 source: https://www.esa.int/Applications/Observing_the_Earth/Copernicus/Sentinel-1/Sentinel-1_s_decade_of_essential_data_over_shifting_ice_sheets
 ---

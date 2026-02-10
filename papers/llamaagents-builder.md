@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (4/5 links)
 completion_summary: 3/3 sections (100%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[quantum-teleportation-logic-gates]], [[anthropic-principle-fine-tuning]], [[operational-data-ai-agents]], [[axion-dark-matter-quantum-sensors]], [[webb-cosmic-question-mark-gravitational-lens]]
+similar_papers: ["quantum-teleportation-logic-gates", "anthropic-principle-fine-tuning", "operational-data-ai-agents", "axion-dark-matter-quantum-sensors", "webb-cosmic-question-mark-gravitational-lens"]
 dim_conceptual_depth: 0.5
 source: https://www.llamaindex.ai/blog/llamaagents-builder-idea-to-deployed-agent-in-minutes
 ---

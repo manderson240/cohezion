@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 1.00
 conceptual_label: Pure Theory
-similar_papers: [[nebuchadnezzar-babylonian-texts]], [[rethinking-exoplanet-habitability]], [[2026-02-09-unique-investment-opportunities-research]], [[artemis-ii-laser-comms]], [[international-year-quantum-2025]]
+similar_papers: ["nebuchadnezzar-babylonian-texts", "rethinking-exoplanet-habitability", "2026-02-09-unique-investment-opportunities-research", "artemis-ii-laser-comms", "international-year-quantum-2025"]
 dim_conceptual_depth: 1.0
 source: https://cursus.edu/en/35347/unprecedented-measurement-reveals-quantum-speed-beyond-human-understanding
 ---

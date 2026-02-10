@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 3/3 sections (100%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[tonggeometry-olympiad-tree-search]], [[super-earth-magnetic-protection-magma]], [[karpathy-claude-code-skills]], [[nasa-maven-anomaly]], [[tonggeometry-ai-math]]
+similar_papers: ["tonggeometry-olympiad-tree-search", "super-earth-magnetic-protection-magma", "karpathy-claude-code-skills", "nasa-maven-anomaly", "tonggeometry-ai-math"]
 domain: "Neuroscience"
 https: //search.app/a4Gb1"
 source: "Source: SciTechDaily

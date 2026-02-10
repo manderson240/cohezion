@@ -11,7 +11,7 @@ connectivity_summary: ★★☆☆☆ (5/5 links)
 completion_summary: 3/3 sections (100%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[mom-z14-farthest-galaxy]], [[emu3-multimodal-next-token-prediction]], [[claude-code-swiftui-skill-patterns]], [[humanoid-robots-space-launch]], [[nasa-maven-anomaly]]
+similar_papers: ["mom-z14-farthest-galaxy", "emu3-multimodal-next-token-prediction", "claude-code-swiftui-skill-patterns", "humanoid-robots-space-launch", "nasa-maven-anomaly"]
 dim_conceptual_depth: 0.5
 source: https://blog.langchain.com/context-management-for-deepagents/
 ---

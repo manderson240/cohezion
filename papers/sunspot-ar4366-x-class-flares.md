@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 3/3 sections (100%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[yann-lecun-agi-world-models]], [[llm-in-sandbox-agentic-intelligence]], [[artificial-photosynthesis-living-energy]], [[comb-jellies-animal-tree-of-life]], [[protein-tape-recorder-cytotape]]
+similar_papers: ["yann-lecun-agi-world-models", "llm-in-sandbox-agentic-intelligence", "artificial-photosynthesis-living-energy", "comb-jellies-animal-tree-of-life", "protein-tape-recorder-cytotape"]
 domain: "Astrophysics"
 https: //search.app/UbF4P"
 source: "Source: X

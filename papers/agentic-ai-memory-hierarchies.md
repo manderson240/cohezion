@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (3/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.00
 conceptual_label: Pure Applied
-similar_papers: [[oman-artemis-accords]], [[mcl1-myc-cancer-metabolism]], [[openai-applied-compute-startup]], [[artificial-photosynthesis-living-energy]], [[2026-02-09-unique-investment-opportunities-research]]
+similar_papers: ["oman-artemis-accords", "mcl1-myc-cancer-metabolism", "openai-applied-compute-startup", "artificial-photosynthesis-living-energy", "2026-02-09-unique-investment-opportunities-research"]
 dim_conceptual_depth: 0.0
 source: https://www.theregister.com/2026/01/28/how_agentic_ai_strains_modern_memory_heirarchies/
 ---

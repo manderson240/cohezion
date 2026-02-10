@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[jwst-red-nova-remnants]], [[pairwise-comparison-fiber-bundles]], [[transcranial-ultrasound-consciousness]], [[grb-250314a-ancient-signal]], [[rethinking-exoplanet-habitability]]
+similar_papers: ["jwst-red-nova-remnants", "pairwise-comparison-fiber-bundles", "transcranial-ultrasound-consciousness", "grb-250314a-ancient-signal", "rethinking-exoplanet-habitability"]
 dim_conceptual_depth: 0.5
 source: https://techxplore.com/news/2026-01-emoticons-llms-silent-failures-coding.html
 ---

@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[scaling-agent-systems]], [[ocean-calcium-climate-mystery-66my]], [[cosmic-strings-time-travel]], [[webb-cosmic-question-mark-gravitational-lens]], [[quantum-teleportation-logic-gates]]
+similar_papers: ["scaling-agent-systems", "ocean-calcium-climate-mystery-66my", "cosmic-strings-time-travel", "webb-cosmic-question-mark-gravitational-lens", "quantum-teleportation-logic-gates"]
 dim_conceptual_depth: 0.5
 source: https://www.nature.com/articles/s41567-025-03148-5
 ---

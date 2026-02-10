@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.00
 conceptual_label: Pure Applied
-similar_papers: [[fast-radio-bursts-binary-star-origin]], [[grb-250314a-ancient-signal]], [[llamaagents-builder]], [[ai-anomaly-detection-hubble-archive]], [[woh-g64-red-supergiant-mystery]]
+similar_papers: ["fast-radio-bursts-binary-star-origin", "grb-250314a-ancient-signal", "llamaagents-builder", "ai-anomaly-detection-hubble-archive", "woh-g64-red-supergiant-mystery"]
 dim_conceptual_depth: 0.0
 source: https://venturebeat.com/data/operational-data-giving-ai-agents-the-senses-to-succeed
 ---

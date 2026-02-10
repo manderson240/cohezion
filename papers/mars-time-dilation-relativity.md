@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[llm-training-methodology-changes]], [[humanitys-last-exam-benchmark]], [[few-shot-prompting-agentic-coding]], [[quantum-entanglement-speed-measurement]], [[super-earth-magnetic-protection-magma]]
+similar_papers: ["llm-training-methodology-changes", "humanitys-last-exam-benchmark", "few-shot-prompting-agentic-coding", "quantum-entanglement-speed-measurement", "super-earth-magnetic-protection-magma"]
 dim_conceptual_depth: 0.5
 source: https://www.sciencedaily.com/releases/2025/12/251228074458.htm
 ---

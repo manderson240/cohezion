@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 3/3 sections (100%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[comb-jellies-animal-tree-of-life]], [[cu45-superatom-carbon-recycling]], [[scaling-agent-systems]], [[rethinking-exoplanet-habitability]], [[dna-origami-2d-semiconductor-patterning]]
+similar_papers: ["comb-jellies-animal-tree-of-life", "cu45-superatom-carbon-recycling", "scaling-agent-systems", "rethinking-exoplanet-habitability", "dna-origami-2d-semiconductor-patterning"]
 dim_conceptual_depth: 0.5
 source: https://www.theinformation.com/newsletters/ai-agenda/researchers-openai-thinking-machines-amazon-want-change-llms-trained
 ---

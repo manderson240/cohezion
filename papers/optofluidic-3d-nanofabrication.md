@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (4/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[axion-dark-matter-quantum-sensors]], [[nasa-maven-anomaly]], [[cu45-superatom-co2-ethylene]], [[transcranial-ultrasound-consciousness]], [[comb-jellies-animal-tree-of-life]]
+similar_papers: ["axion-dark-matter-quantum-sensors", "nasa-maven-anomaly", "cu45-superatom-co2-ethylene", "transcranial-ultrasound-consciousness", "comb-jellies-animal-tree-of-life"]
 dim_conceptual_depth: 0.5
 source: https://www.nature.com/articles/s41586-025-10033-x
 ---

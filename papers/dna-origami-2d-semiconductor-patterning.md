@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (4/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[axion-dark-matter-quantum-sensors]], [[theorem-ai-formal-verification]], [[quantum-entangled-atomic-sensors]], [[llm-training-methodology-changes]], [[ai-anomaly-detection-hubble-archive]]
+similar_papers: ["axion-dark-matter-quantum-sensors", "theorem-ai-formal-verification", "quantum-entangled-atomic-sensors", "llm-training-methodology-changes", "ai-anomaly-detection-hubble-archive"]
 dim_conceptual_depth: 0.5
 source: https://phys.org/news/2026-01-dna-origami-enables-precise-patterning.html
 ---

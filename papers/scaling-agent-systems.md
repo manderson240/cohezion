@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (4/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.00
 conceptual_label: Pure Applied
-similar_papers: [[helimagnetism-ferromagnetism-mode-locking]], [[jwst-red-nova-remnants]], [[llm-training-methodology-changes]], [[mom-z14-farthest-galaxy]], [[dna-origami-2d-semiconductor-patterning]]
+similar_papers: ["helimagnetism-ferromagnetism-mode-locking", "jwst-red-nova-remnants", "llm-training-methodology-changes", "mom-z14-farthest-galaxy", "dna-origami-2d-semiconductor-patterning"]
 dim_conceptual_depth: 0.0
 source: https://arxiv.org/abs/2512.08296
 ---

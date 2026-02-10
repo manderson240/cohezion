@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (3/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[testing-agent-skills-with-evals]], [[tonggeometry-ai-math]], [[mars-time-dilation-relativity]], [[quantum-entangled-atomic-sensors]], [[ai-anomaly-detection-hubble-archive]]
+similar_papers: ["testing-agent-skills-with-evals", "tonggeometry-ai-math", "mars-time-dilation-relativity", "quantum-entangled-atomic-sensors", "ai-anomaly-detection-hubble-archive"]
 dim_conceptual_depth: 0.5
 source: https://www.space.com/astronomy/exoplanets/super-earth-exoplanets-may-have-built-in-magnetic-protection-from-churning-magma-and-thats-good-news-for-life
 ---

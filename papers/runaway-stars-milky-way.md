@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers: [[openai-codex-agent-loop]], [[anthropic-principle-fine-tuning]], [[protein-tape-recorder-cytotape]], [[circleci-ai-cicd-validation]], [[superfluid-to-supersolid-transition]]
+similar_papers: ["openai-codex-agent-loop", "anthropic-principle-fine-tuning", "protein-tape-recorder-cytotape", "circleci-ai-cicd-validation", "superfluid-to-supersolid-transition"]
 dim_conceptual_depth: 0.5
 source: https://phys.org/news/2026-01-massive-runaway-stars-milky-explores.html
 ---

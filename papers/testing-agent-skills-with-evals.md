@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (3/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.00
 conceptual_label: Pure Applied
-similar_papers: [[grok4-ai-benchmarks]], [[tonggeometry-olympiad-tree-search]], [[cosmic-strings-time-travel]], [[super-earth-magnetic-protection-magma]], [[pairwise-comparison-fiber-bundles]]
+similar_papers: ["grok4-ai-benchmarks", "tonggeometry-olympiad-tree-search", "cosmic-strings-time-travel", "super-earth-magnetic-protection-magma", "pairwise-comparison-fiber-bundles"]
 dim_conceptual_depth: 0.0
 source: https://developers.openai.com/blog/eval-skills/
 ---

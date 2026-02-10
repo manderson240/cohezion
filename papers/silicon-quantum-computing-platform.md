@@ -11,7 +11,7 @@ connectivity_summary: ★☆☆☆☆ (3/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 1.00
 conceptual_label: Pure Theory
-similar_papers: [[alfven-waves-aurora]], [[diffraction-gratings-fourier-transforms]], [[magnetic-superhighways-starburst-galaxy]], [[superfluid-to-supersolid-transition]], [[emu3-multimodal-next-token-prediction]]
+similar_papers: ["alfven-waves-aurora", "diffraction-gratings-fourier-transforms", "magnetic-superhighways-starburst-galaxy", "superfluid-to-supersolid-transition", "emu3-multimodal-next-token-prediction"]
 dim_conceptual_depth: 1.0
 source: https://physicsworld.com/a/could-silicon-become-the-bedrock-of-quantum-computers/
 ---

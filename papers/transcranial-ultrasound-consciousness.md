@@ -11,7 +11,7 @@ connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 2/3 sections (66%)
 conceptual_depth: 0.00
 conceptual_label: Pure Applied
-similar_papers: [[cu45-superatom-carbon-recycling]], [[diffraction-gratings-fourier-transforms]], [[optofluidic-3d-nanofabrication]], [[theorem-ai-formal-verification]], [[cosmic-strings-time-travel]]
+similar_papers: ["cu45-superatom-carbon-recycling", "diffraction-gratings-fourier-transforms", "optofluidic-3d-nanofabrication", "theorem-ai-formal-verification", "cosmic-strings-time-travel"]
 dim_conceptual_depth: 0.0
 source: https://news.mit.edu/2026/new-tool-could-tell-us-how-consciousness-works-0112
 ---
