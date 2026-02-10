@@ -341,3 +341,7 @@ Each preset configures multiple dimensions:
 **Enjoy exploring your 12D knowledge graph!** 🚀
 
 For questions or issues, check the console (F12) for diagnostic information or refer to the plugin documentation.
+
+## Related
+
+- [[compound-engineering]]

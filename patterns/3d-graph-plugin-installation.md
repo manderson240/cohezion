@@ -218,3 +218,7 @@ This plugin provides the **visualization layer** for Phase 3:
 **Installation Date**: 2026-02-09 23:22 UTC
 **Status**: Ready for dimensional data integration
 **Next Step**: Dimension Mapper (Task #10) provides data → Visualization becomes active
+
+## Related
+
+- [[compound-engineering]]

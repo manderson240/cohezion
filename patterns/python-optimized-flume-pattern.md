@@ -353,3 +353,9 @@ print(encoder.get_encoding_method())  # → "hash" (VAE load failed)
 Python-optimized FLUME delivers **17.4x speedup** in production scenarios with **zero breaking changes**. Provides immediate compound benefits (better cache performance, reduced cost, enabled scalability) while maintaining reliability through multi-tier fallback. Foundation for future Rust integration when source code available.
 
 **Recommendation:** Deploy to production with 10% → 50% → 100% rollout. Monitor FlumePerformanceTracker metrics for validation.
+
+## Related
+
+- [[token-efficiency]]
+- [[compound-engineering]]
+- [[context-management]]
