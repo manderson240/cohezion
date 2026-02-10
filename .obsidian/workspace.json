@@ -46,10 +46,14 @@
                     "id": "769e7eb5d7edea54",
                     "type": "leaf",
                     "state": {
-                      "type": "graph",
-                      "state": {},
-                      "icon": "lucide-git-fork",
-                      "title": "Graph view"
+                      "type": "markdown",
+                      "state": {
+                        "file": "patterns/lessons/_lessons_index.md",
+                        "mode": "source",
+                        "source": false
+                      },
+                      "icon": "lucide-file",
+                      "title": "_lessons_index"
                     }
                   }
                 ],
@@ -321,8 +325,9 @@
       "workspaces:Manage workspace layouts": false
     }
   },
-  "active": "ae5de8485a0909b5",
+  "active": "769e7eb5d7edea54",
   "lastOpenFiles": [
+    "patterns/runbook-health-checks.md.tmp.716897.1770737324473",
     "missions/session_12_hardening_1770737305_milestone_3.md",
     "missions/session_12_hardening_1770737305_milestone_2.md",
     "missions/session_12_hardening_1770737305.md",
@@ -358,7 +363,6 @@
     "daily/2026-02-10-meta-pattern-extraction.md",
     "patterns/12d-graph-implementation.md",
     "daily/2026-02-10-claude-log-mining-design.md",
-    "concepts/token-efficiency.md",
     "Cohezion_KnowledgeGraph.canvas",
     "Untitled 3.canvas",
     "Untitled 2.canvas",
