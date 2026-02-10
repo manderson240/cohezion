@@ -9,6 +9,9 @@ temporal: 1.00
 recency: 1.00
 connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 3/3 sections (100%)
+conceptual_depth: 1.00
+conceptual_label: Pure Theory
+similar_papers: [[2026-02-09-unique-investment-opportunities-research]], [[quantum-atomic-light-synchronization]], [[openai-applied-compute-startup]], [[nasa-maven-anomaly]], [[comb-jellies-animal-tree-of-life]]
 domain: "AI Evaluation"
 https: //search.app/4XdDN"
 source: "Source: X

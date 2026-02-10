@@ -1,11 +1,7 @@
 ---
 title: Transcranial Focused Ultrasound as a Tool for Consciousness Research
 date: 2026-02-07
-tags:
-- neuroscience
-- consciousness
-- ultrasound
-- brain-stimulation
+tags: 
 connectivity: 0.0
 cross_domain: 0.5
 completion: 0.67
@@ -13,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 2/3 sections (66%)
-source: https://news.mit.edu/2026/new-tool-could-tell-us-how-consciousness-works-0112
-dim_conceptual_depth: 0.0
+conceptual_depth: 0.00
 conceptual_label: Pure Applied
-similar_papers:
-- cu45-superatom-carbon-recycling.md
-- diffraction-gratings-fourier-transforms.md
-- optofluidic-3d-nanofabrication.md
-- theorem-ai-formal-verification.md
-- cosmic-strings-time-travel.md
+similar_papers: [[cu45-superatom-carbon-recycling]], [[diffraction-gratings-fourier-transforms]], [[optofluidic-3d-nanofabrication]], [[theorem-ai-formal-verification]], [[cosmic-strings-time-travel]]
+dim_conceptual_depth: 0.0
+source: https://news.mit.edu/2026/new-tool-could-tell-us-how-consciousness-works-0112
 ---
 
 

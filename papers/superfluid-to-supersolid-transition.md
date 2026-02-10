@@ -1,12 +1,7 @@
 ---
 title: 'Superfluids Observed Stopping: Superfluid-to-Supersolid Phase Transition'
 date: 2026-02-07
-tags:
-- quantum-physics
-- superfluids
-- supersolids
-- phase-transitions
-- graphene
+tags: 
 connectivity: 0.13
 cross_domain: 0.62
 completion: 0.67
@@ -14,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
-source: https://phys.org/news/2026-01-superfluids-indefinitely-physicists.html
-dim_conceptual_depth: 1.0
+conceptual_depth: 1.00
 conceptual_label: Pure Theory
-similar_papers:
-- few-shot-prompting-agentic-coding.md
-- artemis-ii-laser-comms.md
-- runaway-stars-milky-way.md
-- anthropic-mcp-apps-claude-integrations.md
-- optofluidic-3d-nanofabrication.md
+similar_papers: [[few-shot-prompting-agentic-coding]], [[artemis-ii-laser-comms]], [[runaway-stars-milky-way]], [[anthropic-mcp-apps-claude-integrations]], [[optofluidic-3d-nanofabrication]]
+dim_conceptual_depth: 1.0
+source: https://phys.org/news/2026-01-superfluids-indefinitely-physicists.html
 ---
 
 

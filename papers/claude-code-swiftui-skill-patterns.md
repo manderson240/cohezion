@@ -9,6 +9,9 @@ temporal: 1.00
 recency: 1.00
 connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 3/3 sections (100%)
+conceptual_depth: 0.00
+conceptual_label: Pure Applied
+similar_papers: [[operational-data-ai-agents]], [[fast-radio-bursts-binary-star-origin]], [[humanitys-last-exam-benchmark]], [[jwst-dark-matter-map]], [[anthropic-principle-fine-tuning]]
 domain: "Software Engineering"
 https: //search.app/9Eo6H"
 source: "Source: GitHub

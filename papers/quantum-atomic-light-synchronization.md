@@ -9,6 +9,9 @@ temporal: 1.00
 recency: 1.00
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
+conceptual_depth: 1.00
+conceptual_label: Pure Theory
+similar_papers: [[karpathy-claude-code-skills]], [[claude-code-community-skills]], [[grok4-ai-benchmarks]], [[woh-g64-dust-obscured-companion]], [[humanitys-last-exam-benchmark]]
 domain: "Quantum Physics"
 https: //search.app/x7QJa"
 source: "Source: Axios

@@ -1,11 +1,7 @@
 ---
 title: Alfven Waves as Primary Energy Source for Earth's Auroras
 date: 2026-02-07
-tags:
-- space-physics
-- aurora
-- magnetosphere
-- plasma
+tags: 
 connectivity: 0.13
 cross_domain: 0.5
 completion: 0.67
@@ -13,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
-source: https://phys.org/news/2026-01-alfvn-power-source-earth-auroral.html
-dim_conceptual_depth: 0.5
+conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers:
-- silicon-quantum-computing-platform.md
-- cu45-superatom-co2-ethylene.md
-- grb-250314a-ancient-signal.md
-- cisa-chatgpt-data-leak.md
-- diffraction-gratings-fourier-transforms.md
+similar_papers: [[silicon-quantum-computing-platform]], [[cu45-superatom-co2-ethylene]], [[grb-250314a-ancient-signal]], [[cisa-chatgpt-data-leak]], [[diffraction-gratings-fourier-transforms]]
+dim_conceptual_depth: 0.5
+source: https://phys.org/news/2026-01-alfvn-power-source-earth-auroral.html
 ---
 
 

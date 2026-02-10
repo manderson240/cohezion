@@ -1,10 +1,7 @@
 ---
 title: Mode Locking Between Helimagnetism and Ferromagnetism
 date: 2026-02-07
-tags:
-- condensed-matter
-- magnetism
-- spintronics
+tags: 
 connectivity: 0.13
 cross_domain: 0.38
 completion: 0.67
@@ -12,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
-source: https://www.nature.com/articles/s41567-025-03148-5
-dim_conceptual_depth: 0.5
+conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers:
-- scaling-agent-systems.md
-- ocean-calcium-climate-mystery-66my.md
-- cosmic-strings-time-travel.md
-- webb-cosmic-question-mark-gravitational-lens.md
-- quantum-teleportation-logic-gates.md
+similar_papers: [[scaling-agent-systems]], [[ocean-calcium-climate-mystery-66my]], [[cosmic-strings-time-travel]], [[webb-cosmic-question-mark-gravitational-lens]], [[quantum-teleportation-logic-gates]]
+dim_conceptual_depth: 0.5
+source: https://www.nature.com/articles/s41567-025-03148-5
 ---
 
 

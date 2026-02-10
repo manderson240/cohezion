@@ -9,6 +9,9 @@ temporal: 1.00
 recency: 1.00
 connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 3/3 sections (100%)
+conceptual_depth: 0.50
+conceptual_label: Balanced
+similar_papers: [[graphitic-polytype-switching-nanocavities]], [[emu3-multimodal-next-token-prediction]], [[beyond-the-quantum-pilot-wave-theory]], [[mars-time-dilation-relativity]], [[ocean-calcium-climate-mystery-66my]]
 domain: "Military Technology"
 https: //search.app/8xed3"
 source: "Source: The Strategist | ASPI's analysis and commentary site

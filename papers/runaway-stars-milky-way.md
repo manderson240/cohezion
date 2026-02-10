@@ -1,10 +1,7 @@
 ---
 title: Massive Runaway Stars in the Milky Way
 date: 2026-02-07
-tags:
-- astrophysics
-- stellar-dynamics
-- gaia-mission
+tags: 
 connectivity: 0.13
 cross_domain: 0.38
 completion: 0.67
@@ -12,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
-source: https://phys.org/news/2026-01-massive-runaway-stars-milky-explores.html
-dim_conceptual_depth: 0.5
+conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers:
-- openai-codex-agent-loop.md
-- anthropic-principle-fine-tuning.md
-- protein-tape-recorder-cytotape.md
-- circleci-ai-cicd-validation.md
-- superfluid-to-supersolid-transition.md
+similar_papers: [[openai-codex-agent-loop]], [[anthropic-principle-fine-tuning]], [[protein-tape-recorder-cytotape]], [[circleci-ai-cicd-validation]], [[superfluid-to-supersolid-transition]]
+dim_conceptual_depth: 0.5
+source: https://phys.org/news/2026-01-massive-runaway-stars-milky-explores.html
 ---
 
 

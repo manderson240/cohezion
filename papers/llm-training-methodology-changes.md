@@ -1,12 +1,7 @@
 ---
 title: Researchers at OpenAI, Thinking Machines, and Amazon Want to Change How LLMs
-  Are Trained
 date: 2026-02-07
-tags:
-- ai-architecture
-- llm-training
-- thinking-machines
-- post-training
+tags: 
 connectivity: 0.13
 cross_domain: 0.5
 completion: 1.0
@@ -14,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 3/3 sections (100%)
-source: https://www.theinformation.com/newsletters/ai-agenda/researchers-openai-thinking-machines-amazon-want-change-llms-trained
-dim_conceptual_depth: 0.5
+conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers:
-- comb-jellies-animal-tree-of-life.md
-- cu45-superatom-carbon-recycling.md
-- scaling-agent-systems.md
-- rethinking-exoplanet-habitability.md
-- dna-origami-2d-semiconductor-patterning.md
+similar_papers: [[comb-jellies-animal-tree-of-life]], [[cu45-superatom-carbon-recycling]], [[scaling-agent-systems]], [[rethinking-exoplanet-habitability]], [[dna-origami-2d-semiconductor-patterning]]
+dim_conceptual_depth: 0.5
+source: https://www.theinformation.com/newsletters/ai-agenda/researchers-openai-thinking-machines-amazon-want-change-llms-trained
 ---
 
 

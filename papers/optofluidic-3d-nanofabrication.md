@@ -1,11 +1,7 @@
 ---
 title: Optofluidic Three-Dimensional Micro/Nanofabrication
 date: 2026-02-07
-tags:
-- nanotechnology
-- fabrication
-- nature
-- materials-science
+tags: 
 connectivity: 0.27
 cross_domain: 0.5
 completion: 0.67
@@ -13,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (4/5 links)
 completion_summary: 2/3 sections (66%)
-source: https://www.nature.com/articles/s41586-025-10033-x
-dim_conceptual_depth: 0.5
+conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers:
-- axion-dark-matter-quantum-sensors.md
-- nasa-maven-anomaly.md
-- cu45-superatom-co2-ethylene.md
-- transcranial-ultrasound-consciousness.md
-- comb-jellies-animal-tree-of-life.md
+similar_papers: [[axion-dark-matter-quantum-sensors]], [[nasa-maven-anomaly]], [[cu45-superatom-co2-ethylene]], [[transcranial-ultrasound-consciousness]], [[comb-jellies-animal-tree-of-life]]
+dim_conceptual_depth: 0.5
+source: https://www.nature.com/articles/s41586-025-10033-x
 ---
 
 

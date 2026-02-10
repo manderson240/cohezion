@@ -1,12 +1,7 @@
 ---
 title: AI Discovers 1400 Anomalous Objects in Hubble Archive
 date: 2026-02-07
-tags:
-- astrophysics
-- AI
-- anomaly-detection
-- hubble
-- machine-learning
+tags: 
 connectivity: 0.07
 cross_domain: 0.62
 completion: 0.67
@@ -14,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 2/3 sections (66%)
-source: https://science.nasa.gov/missions/hubble/ai-unlocks-hundreds-of-cosmic-anomalies-in-hubble-archive/
-dim_conceptual_depth: 0.0
+conceptual_depth: 0.00
 conceptual_label: Pure Applied
-similar_papers:
-- tonggeometry-ai-math.md
-- operational-data-ai-agents.md
-- llm-in-sandbox-agentic-intelligence.md
-- cosmic-strings-time-travel.md
-- dna-origami-2d-semiconductor-patterning.md
+similar_papers: [[tonggeometry-ai-math]], [[operational-data-ai-agents]], [[llm-in-sandbox-agentic-intelligence]], [[cosmic-strings-time-travel]], [[dna-origami-2d-semiconductor-patterning]]
+dim_conceptual_depth: 0.0
+source: https://science.nasa.gov/missions/hubble/ai-unlocks-hundreds-of-cosmic-anomalies-in-hubble-archive/
 ---
 
 

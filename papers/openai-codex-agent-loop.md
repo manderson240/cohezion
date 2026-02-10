@@ -1,11 +1,7 @@
 ---
 title: Unrolling the Codex Agent Loop
 date: 2026-02-07
-tags:
-- ai-architecture
-- agent-design
-- openai
-- codex
+tags: 
 connectivity: 0.27
 cross_domain: 0.5
 completion: 0.67
@@ -13,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (4/5 links)
 completion_summary: 2/3 sections (66%)
-source: https://openai.com/index/unrolling-the-codex-agent-loop/
-dim_conceptual_depth: 0.5
+conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers:
-- runaway-stars-milky-way.md
-- few-shot-prompting-agentic-coding.md
-- 2026-02-09-unique-investment-opportunities-research.md
-- axion-dark-matter-quantum-sensors.md
-- woh-g64-dust-obscured-companion.md
+similar_papers: [[runaway-stars-milky-way]], [[few-shot-prompting-agentic-coding]], [[2026-02-09-unique-investment-opportunities-research]], [[axion-dark-matter-quantum-sensors]], [[woh-g64-dust-obscured-companion]]
+dim_conceptual_depth: 0.5
+source: https://openai.com/index/unrolling-the-codex-agent-loop/
 ---
 
 

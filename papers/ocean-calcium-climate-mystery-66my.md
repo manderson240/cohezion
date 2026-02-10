@@ -1,11 +1,7 @@
 ---
 title: '66-Million-Year Climate Mystery Solved: Ocean Calcium Decline Cooled Earth'
 date: 2026-02-07
-tags:
-- earth-science
-- climate
-- paleoclimate
-- ocean-chemistry
+tags: 
 connectivity: 0.0
 cross_domain: 0.5
 completion: 0.67
@@ -13,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 2/3 sections (66%)
-source: https://scitechdaily.com/scientists-solve-a-66-million-year-old-climate-mystery-that-changed-earth-forever/
-dim_conceptual_depth: 0.5
+conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers:
-- tonggeometry-ai-math.md
-- helimagnetism-ferromagnetism-mode-locking.md
-- mcl1-myc-cancer-metabolism.md
-- usaf-stealthy-electromagnetic-attack.md
-- anthropic-view-universe-nyas.md
+similar_papers: [[tonggeometry-ai-math]], [[helimagnetism-ferromagnetism-mode-locking]], [[mcl1-myc-cancer-metabolism]], [[usaf-stealthy-electromagnetic-attack]], [[anthropic-view-universe-nyas]]
+dim_conceptual_depth: 0.5
+source: https://scitechdaily.com/scientists-solve-a-66-million-year-old-climate-mystery-that-changed-earth-forever/
 ---
 
 

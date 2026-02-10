@@ -1,12 +1,7 @@
 ---
 title: 'MoM-z14: Farthest Galaxy Ever Observed by JWST'
 date: 2026-02-07
-tags:
-- astrophysics
-- jwst
-- cosmology
-- early-universe
-- galaxies
+tags: 
 connectivity: 0.13
 cross_domain: 0.62
 completion: 0.67
@@ -14,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
-source: https://science.nasa.gov/missions/webb/nasa-webb-pushes-boundaries-of-observable-universe-closer-to-big-bang/
-dim_conceptual_depth: 0.5
+conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers:
-- artificial-photosynthesis-living-energy.md
-- anthropic-disempowerment-patterns.md
-- anthropic-principle-fine-tuning.md
-- tonggeometry-ai-math.md
-- mit-quantum-computing-progress.md
+similar_papers: [[artificial-photosynthesis-living-energy]], [[anthropic-disempowerment-patterns]], [[anthropic-principle-fine-tuning]], [[tonggeometry-ai-math]], [[mit-quantum-computing-progress]]
+dim_conceptual_depth: 0.5
+source: https://science.nasa.gov/missions/webb/nasa-webb-pushes-boundaries-of-observable-universe-closer-to-big-bang/
 ---
 
 

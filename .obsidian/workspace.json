@@ -6,7 +6,7 @@
       {
         "id": "02e18562974e1c0d",
         "type": "tabs",
-        "dimension": 33.333333333333336,
+        "dimension": 33.33333333333333,
         "children": [
           {
             "id": "ffe7c263ee7d1332",
@@ -23,39 +23,85 @@
       {
         "id": "2ba303a1c170723d",
         "type": "split",
-        "dimension": 33.333333333333336,
+        "dimension": 33.33333333333333,
         "children": [
           {
-            "id": "fe8a24a59cfba3ba",
-            "type": "tabs",
+            "id": "3e4260dd21fdae2e",
+            "type": "split",
             "children": [
               {
-                "id": "f2314d439dffcc1b",
-                "type": "leaf",
-                "state": {
-                  "type": "claude-terminal-view",
-                  "state": {},
-                  "icon": "claude-logo",
-                  "title": "Claude Terminal"
-                }
+                "id": "fe8a24a59cfba3ba",
+                "type": "tabs",
+                "children": [
+                  {
+                    "id": "f2314d439dffcc1b",
+                    "type": "leaf",
+                    "state": {
+                      "type": "claude-terminal-view",
+                      "state": {},
+                      "icon": "claude-logo",
+                      "title": "Claude Terminal"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "628f9b0e1f9b1614",
+                "type": "tabs",
+                "children": [
+                  {
+                    "id": "824b0fe5c70423e4",
+                    "type": "leaf",
+                    "state": {
+                      "type": "claude-terminal-view",
+                      "state": {},
+                      "icon": "claude-logo",
+                      "title": "Claude Terminal"
+                    }
+                  }
+                ]
               }
-            ]
+            ],
+            "direction": "vertical"
           },
           {
-            "id": "d15392b78abc8f3e",
-            "type": "tabs",
+            "id": "62207e9fb81cd2e6",
+            "type": "split",
             "children": [
               {
-                "id": "5923521d756d85bf",
-                "type": "leaf",
-                "state": {
-                  "type": "claude-terminal-view",
-                  "state": {},
-                  "icon": "claude-logo",
-                  "title": "Claude Terminal"
-                }
+                "id": "d15392b78abc8f3e",
+                "type": "tabs",
+                "children": [
+                  {
+                    "id": "5923521d756d85bf",
+                    "type": "leaf",
+                    "state": {
+                      "type": "claude-terminal-view",
+                      "state": {},
+                      "icon": "claude-logo",
+                      "title": "Claude Terminal"
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "abbe4bd81223d462",
+                "type": "tabs",
+                "children": [
+                  {
+                    "id": "c4674fad75239c8c",
+                    "type": "leaf",
+                    "state": {
+                      "type": "claude-terminal-view",
+                      "state": {},
+                      "icon": "claude-logo",
+                      "title": "Claude Terminal"
+                    }
+                  }
+                ]
               }
-            ]
+            ],
+            "direction": "vertical"
           }
         ],
         "direction": "horizontal"
@@ -63,7 +109,7 @@
       {
         "id": "db48885dd4b08cbe",
         "type": "split",
-        "dimension": 33.333333333333336,
+        "dimension": 33.33333333333333,
         "children": [
           {
             "id": "5eae45faae5f463e",
@@ -279,44 +325,46 @@
       "workspaces:Manage workspace layouts": false
     }
   },
-  "active": "ffe7c263ee7d1332",
+  "active": "ae5de8485a0909b5",
   "lastOpenFiles": [
+    "daily/2026-02-10-phase2-complete.md",
+    "daily/2026-02-10-phase2-complete.md.tmp.597611.1770696829849",
+    "daily/2026-02-10-kyutai-plugin-plan-summary.md",
+    "daily/2026-02-10-kyutai-plugin-plan-summary.md.tmp.626668.1770696774435",
+    "daily/2026-02-10-canvas-engineering-blueprint.md",
+    "daily/2026-02-10-canvas-engineering-blueprint.md.tmp.625665.1770696768336",
+    "decisions/2026-02-10-kyutai-mcp-obsidian-plugin-plan.md",
+    "decisions/2026-02-10-kyutai-mcp-obsidian-plugin-plan.md.tmp.626668.1770696759925",
+    "daily/2026-02-10-phase2-semantic-dimensions-complete.md",
+    "daily/2026-02-10-phase2-semantic-dimensions-complete.md.tmp.597611.1770696724306",
+    "decisions/2026-02-10-canvas-driven-compound-engineering.md",
+    "decisions/2026-02-10-canvas-driven-compound-engineering.md.tmp.625665.1770696650691",
+    "Untitled 3.canvas",
+    "Untitled 2.canvas",
+    "inbox/research-gaps.md",
+    "inbox/research-gaps.md.tmp.597611.1770696564975",
+    "daily/2026-02-10-phase2-kickoff.md",
+    "daily/2026-02-10-phase2-kickoff.md.tmp.597611.1770696331155",
+    "daily/2026-02-10-linking-plan-quick-ref.md",
+    "daily/2026-02-10-linking-plan-quick-ref.md.tmp.618831.1770696286197",
+    "daily/2026-02-10-compound-linking-plan-summary.md",
+    "daily/2026-02-10-compound-linking-plan-summary.md.tmp.618831.1770696226169",
     "daily/2026-02-10-phase1-complete.md",
-    "daily/2026-02-10-phase1-complete.md.tmp.597611.1770696166264",
     "decisions/2026-02-10-compound-node-linking-plan.md",
-    "decisions/2026-02-10-compound-node-linking-plan.md.tmp.618831.1770696124462",
     "daily/2026-02-10-phase-a-documentation-complete.md",
-    "daily/2026-02-10-phase-a-documentation-complete.md.tmp.596441.1770695938867",
     "daily/2026-02-09-sheetsbridge-test-plan.md",
     "concepts/mcp-infrastructure-architecture.md",
-    "concepts/mcp-infrastructure-architecture.md.tmp.596441.1770695578185",
     "patterns/troubleshooting-mcp-infrastructure.md",
-    "patterns/troubleshooting-mcp-infrastructure.md.tmp.596441.1770695491587",
     "daily/2026-02-10-12d-graph-phase1-kickoff.md",
-    "daily/2026-02-10-12d-graph-phase1-kickoff.md.tmp.597611.1770695460974",
     "patterns/runbook-benchmarking-validation.md",
     "patterns/12d-graph-implementation.md",
-    "patterns/12d-graph-implementation.md.tmp.597611.1770695380105",
     "patterns/runbook-health-checks.md",
-    "patterns/runbook-health-checks.md.tmp.596441.1770695293599",
     "patterns/runbook-ci-cd-pipeline.md",
-    "patterns/runbook-ci-cd-pipeline.md.tmp.596441.1770695248762",
     "daily/2026-02-09-12d-graph-foundation.md",
     "patterns/runbook-ollama-mcp-operations.md",
-    "patterns/runbook-ollama-mcp-operations.md.tmp.596441.1770695133098",
     "decisions/2026-02-10-phase-a-implementation-complete.md",
     "sessions/SESSION-50-QUICKSTART.md",
     "sessions/session-49-retrospective.md",
-    "sessions/session-50-handoff.md",
-    "daily/2026-02-09-decisions-experiments-integration.md",
-    "daily/2026-02-09-token-efficiency-retrospective.md",
-    "daily/2026-02-09-FINAL-SESSION-SUMMARY.md",
-    "daily/2026-02-09-sheetsbridge-verified.md",
-    "daily/2026-02-09-lessons-retrospective.md",
-    "daily/2026-02-09-lessons-integration-complete.md",
-    "daily/2026-02-09-verification-report.md",
-    "daily/2026-02-09-session-retrospective.md",
-    "daily/2026-02-09-lessons-graph-integration-plan.md",
     "Untitled 1.canvas",
     "Untitled.canvas"
   ]

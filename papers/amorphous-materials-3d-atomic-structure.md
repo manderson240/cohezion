@@ -1,11 +1,7 @@
 ---
 title: Accurate 3D Atomic Structure Determination of Amorphous Materials
 date: 2026-02-07
-tags:
-- materials-science
-- nanotechnology
-- atomic-electron-tomography
-- nature
+tags: 
 connectivity: 0.2
 cross_domain: 0.5
 completion: 0.67
@@ -13,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (3/5 links)
 completion_summary: 2/3 sections (66%)
-source: https://www.nature.com/articles/s41586-025-09857-4
-dim_conceptual_depth: 0.5
+conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers:
-- quantum-entangled-atomic-sensors.md
-- diffraction-gratings-fourier-transforms.md
-- webgpu-claude-skill-threejs.md
-- brain-protein-neurodegeneration.md
-- tonggeometry-ai-math.md
+similar_papers: [[quantum-entangled-atomic-sensors]], [[diffraction-gratings-fourier-transforms]], [[webgpu-claude-skill-threejs]], [[brain-protein-neurodegeneration]], [[tonggeometry-ai-math]]
+dim_conceptual_depth: 0.5
+source: https://www.nature.com/articles/s41586-025-09857-4
 ---
 
 

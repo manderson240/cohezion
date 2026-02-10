@@ -9,6 +9,9 @@ temporal: 1.00
 recency: 1.00
 connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 3/3 sections (100%)
+conceptual_depth: 0.50
+conceptual_label: Balanced
+similar_papers: [[alfven-waves-aurora]], [[cisa-chatgpt-data-leak]], [[optofluidic-3d-nanofabrication]], [[protein-tape-recorder-cytotape]], [[emu3-multimodal-next-token-prediction]]
 domain: "Chemistry"
 https: //search.app/LYEki"
 source: "Source: Phys.org

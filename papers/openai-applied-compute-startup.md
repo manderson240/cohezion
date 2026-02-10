@@ -9,6 +9,9 @@ temporal: 1.00
 recency: 1.00
 connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 3/3 sections (100%)
+conceptual_depth: 0.50
+conceptual_label: Balanced
+similar_papers: [[claude-code-community-skills]], [[grok4-ai-benchmarks]], [[helimagnetism-ferromagnetism-mode-locking]], [[agentic-ai-memory-hierarchies]], [[circleci-ai-cicd-validation]]
 domain: "AI Industry"
 https: //search.app/wQEn8"
 source: "Source: The Information

@@ -9,6 +9,9 @@ temporal: 1.00
 recency: 1.00
 connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 3/3 sections (100%)
+conceptual_depth: 0.50
+conceptual_label: Balanced
+similar_papers: [[openai-applied-compute-startup]], [[woh-g64-red-supergiant-mystery]], [[yann-lecun-agi-world-models]], [[artemis-ii-laser-comms]], [[circleci-ai-cicd-validation]]
 domain: "AI Development Tools"
 https: //search.app/nrLbr"
 source: "Source: AI blew my mind

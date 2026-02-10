@@ -1,11 +1,7 @@
 ---
 title: NASA Assembles Anomaly Review Board for MAVEN Spacecraft
 date: 2026-02-07
-tags:
-- space-exploration
-- nasa
-- mars
-- maven
+tags: 
 connectivity: 0.0
 cross_domain: 0.5
 completion: 1.0
@@ -13,15 +9,11 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 3/3 sections (100%)
-source: https://www.theregister.com/2026/01/27/nasa_anomaly_review_maven/
-dim_conceptual_depth: 0.5
+conceptual_depth: 0.50
 conceptual_label: Balanced
-similar_papers:
-- brain-protein-neurodegeneration.md
-- grok4-ai-benchmarks.md
-- tidally-locked-exoplanet-habitability.md
-- llm-in-sandbox-agentic-intelligence.md
-- langchain-deep-agents-context-management.md
+similar_papers: [[brain-protein-neurodegeneration]], [[grok4-ai-benchmarks]], [[tidally-locked-exoplanet-habitability]], [[llm-in-sandbox-agentic-intelligence]], [[langchain-deep-agents-context-management]]
+dim_conceptual_depth: 0.5
+source: https://www.theregister.com/2026/01/27/nasa_anomaly_review_maven/
 ---
 
 

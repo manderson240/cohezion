@@ -9,6 +9,9 @@ temporal: 1.00
 recency: 1.00
 connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 3/3 sections (100%)
+conceptual_depth: 0.50
+conceptual_label: Balanced
+similar_papers: [[cu45-superatom-co2-ethylene]], [[oman-artemis-accords]], [[quantum-entanglement-speed-measurement]], [[artificial-photosynthesis-living-energy]], [[tonggeometry-olympiad-tree-search]]
 domain: "Archaeology"
 https: //search.app/gQYUf"
 source: "Source: Biblical Archaeology Society

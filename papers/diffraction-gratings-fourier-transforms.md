@@ -9,6 +9,9 @@ temporal: 1.00
 recency: 1.00
 connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 3/3 sections (100%)
+conceptual_depth: 0.50
+conceptual_label: Balanced
+similar_papers: [[transcranial-ultrasound-consciousness]], [[dna-origami-2d-semiconductor-patterning]], [[cisa-chatgpt-data-leak]], [[emu3-multimodal-next-token-prediction]], [[silicon-quantum-computing-platform]]
 domain: "Physics/Optics"
 https: //search.app/QGa1s"
 source: "Source: Hackaday

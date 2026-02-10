@@ -9,6 +9,9 @@ temporal: 1.00
 recency: 1.00
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
+conceptual_depth: 0.50
+conceptual_label: Balanced
+similar_papers: [[anthropic-principle-fine-tuning]], [[quantum-entangled-atomic-sensors]], [[mars-time-dilation-relativity]], [[superfluid-to-supersolid-transition]], [[openai-codex-agent-loop]]
 domain: "AI Engineering"
 https: //search.app/pmgLq"
 source: "Source: Towards Data Science
