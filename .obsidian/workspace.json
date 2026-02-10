@@ -112,82 +112,36 @@
         "dimension": 38.88319672131148,
         "children": [
           {
-            "id": "2edb0d1346dfb72b",
-            "type": "split",
+            "id": "5eae45faae5f463e",
+            "type": "tabs",
             "children": [
               {
-                "id": "5eae45faae5f463e",
-                "type": "tabs",
-                "children": [
-                  {
-                    "id": "0d443c8c6ba10387",
-                    "type": "leaf",
-                    "state": {
-                      "type": "claude-terminal-view",
-                      "state": {},
-                      "icon": "claude-logo",
-                      "title": "Claude Terminal"
-                    }
-                  }
-                ]
-              },
-              {
-                "id": "74d8f6c6ed55dd47",
-                "type": "tabs",
-                "children": [
-                  {
-                    "id": "43ff02ae552bc6ac",
-                    "type": "leaf",
-                    "state": {
-                      "type": "claude-terminal-view",
-                      "state": {},
-                      "icon": "claude-logo",
-                      "title": "Claude Terminal"
-                    }
-                  }
-                ]
+                "id": "0d443c8c6ba10387",
+                "type": "leaf",
+                "state": {
+                  "type": "claude-terminal-view",
+                  "state": {},
+                  "icon": "claude-logo",
+                  "title": "Claude Terminal"
+                }
               }
-            ],
-            "direction": "vertical"
+            ]
           },
           {
-            "id": "82846bd8e316b902",
-            "type": "split",
+            "id": "8930874466a691c4",
+            "type": "tabs",
             "children": [
               {
-                "id": "8930874466a691c4",
-                "type": "tabs",
-                "children": [
-                  {
-                    "id": "ae5de8485a0909b5",
-                    "type": "leaf",
-                    "state": {
-                      "type": "claude-terminal-view",
-                      "state": {},
-                      "icon": "claude-logo",
-                      "title": "Claude Terminal"
-                    }
-                  }
-                ]
-              },
-              {
-                "id": "435915c4a47fc3a6",
-                "type": "tabs",
-                "children": [
-                  {
-                    "id": "d1cb76c99159e614",
-                    "type": "leaf",
-                    "state": {
-                      "type": "claude-terminal-view",
-                      "state": {},
-                      "icon": "claude-logo",
-                      "title": "Claude Terminal"
-                    }
-                  }
-                ]
+                "id": "ae5de8485a0909b5",
+                "type": "leaf",
+                "state": {
+                  "type": "claude-terminal-view",
+                  "state": {},
+                  "icon": "claude-logo",
+                  "title": "Claude Terminal"
+                }
               }
-            ],
-            "direction": "vertical"
+            ]
           }
         ],
         "direction": "horizontal"
@@ -372,8 +326,14 @@
       "workspaces:Manage workspace layouts": false
     }
   },
-  "active": "43ff02ae552bc6ac",
+  "active": "ae5de8485a0909b5",
   "lastOpenFiles": [
+    "daily/2026-02-11-PROJECT-QUICK-REFERENCE.md",
+    "daily/2026-02-11-PROJECT-QUICK-REFERENCE.md.tmp.626668.1770702038460",
+    "daily/2026-02-11-PROJECT-CLOSURE-FINAL.md",
+    "daily/2026-02-11-PROJECT-CLOSURE-FINAL.md.tmp.626668.1770702015064",
+    "daily/2026-02-11-KYUTAI-PROJECT-FINAL-CLOSURE.md",
+    "daily/2026-02-11-KYUTAI-PROJECT-FINAL-CLOSURE.md.tmp.626668.1770701997330",
     "daily/2026-02-10-phase4-FINAL-completion.md",
     "daily/2026-02-10-phase4-FINAL-completion.md.tmp.626668.1770701940674",
     "daily/2026-02-10-PHASE5-READY.md",
@@ -389,9 +349,6 @@
     "daily/2026-02-10-PROJECT-FINAL-DELIVERY.md",
     "daily/2026-02-10-PROJECT-FINAL-DELIVERY.md.tmp.626668.1770701421821",
     "daily/2026-02-10-PHASE5-COMPLETE.md",
-    "daily/2026-02-10-PHASE5-COMPLETE.md.tmp.626668.1770701346134",
-    "LICENSE",
-    "LICENSE.tmp.626668.1770701311858",
     "INSTALLATION.md",
     "CHANGELOG.md",
     "daily/2026-02-10-phase5-release-execution.md",
@@ -407,9 +364,6 @@
     "daily/2026-02-10-benchmarking-framework-complete.md",
     "obsidian-plugin/HANDOFF_TO_TESTING.md",
     "mcp-server/benchmarks/recommendations.md",
-    "mcp-server/benchmarks/baseline-performance.md",
-    "daily/2026-02-10-phase4-integration-complete.md",
-    "daily/2026-02-10-FINAL-STATUS.md",
     "Cohezion_KnowledgeGraph.canvas",
     "Untitled 3.canvas",
     "Untitled 2.canvas",
