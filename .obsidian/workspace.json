@@ -11,42 +11,10 @@
             "id": "ffe7c263ee7d1332",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "decisions/2026-02-09-12d-graph-refined-plan.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "2026-02-09-12d-graph-refined-plan"
-            }
-          },
-          {
-            "id": "10f637fa0a76c7d0",
-            "type": "leaf",
-            "state": {
-              "type": "webviewer",
-              "state": {
-                "url": "https://dl.acm.org/doi/epdf/10.1145/3308558.3314123",
-                "title": "InfraNodus: Generating Insight Using Text Network Analysis",
-                "mode": "webview"
-              },
-              "icon": "globe-2",
-              "title": "InfraNodus: Generating Insight Using Text Network Analysis"
-            }
-          },
-          {
-            "id": "f25911266f4993f7",
-            "type": "leaf",
-            "state": {
-              "type": "webviewer",
-              "state": {
-                "url": "https://github.com/noduslabs/infranodus",
-                "title": "GitHub - noduslabs/infranodus: A Node.Js / Neo4J tool that translates words and relations into network graphs and shows you how it all connects.",
-                "mode": "webview"
-              },
-              "icon": "globe-2",
-              "title": "GitHub - noduslabs/infranodus: A Node.Js / Neo4J tool that translates words and relations into network graphs and shows you how it all connects."
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
             }
           }
         ]
@@ -57,6 +25,22 @@
         "children": [
           {
             "id": "5926613326ccd206",
+            "type": "leaf",
+            "state": {
+              "type": "claude-terminal-view",
+              "state": {},
+              "icon": "claude-logo",
+              "title": "Claude Terminal"
+            }
+          }
+        ]
+      },
+      {
+        "id": "4b76df65a9b0c42a",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "90be407800a1daca",
             "type": "leaf",
             "state": {
               "type": "claude-terminal-view",
@@ -245,45 +229,45 @@
       "workspaces:Manage workspace layouts": false
     }
   },
-  "active": "5926613326ccd206",
+  "active": "ffe7c263ee7d1332",
   "lastOpenFiles": [
-    "daily/2026-02-09-12d-graph-foundation.md",
-    "daily/2026-02-09-12d-graph-foundation.md.tmp.147604.1770674369833",
-    "decisions/2026-02-09-12d-graph-refined-plan.md.tmp.147604.1770673521013",
-    "decisions/2026-02-09-model-wrangler-strategy.md.tmp.147604.1770673510844",
-    "decisions/2026-02-09-model-wrangler-strategy.md.tmp.147604.1770673479790",
-    "decisions/2026-02-09-model-wrangler-strategy.md.tmp.147604.1770673476523",
-    "decisions/2026-02-09-model-wrangler-strategy.md.tmp.147604.1770673463567",
-    "decisions/2026-02-09-model-wrangler-strategy.md.tmp.147604.1770673461209",
-    "decisions/2026-02-09-12d-graph-refined-plan.md.tmp.147604.1770673383968",
-    "decisions/2026-02-09-12d-graph-refined-plan.md.tmp.147604.1770673375416",
-    "decisions/2026-02-09-model-wrangler-strategy.md",
-    "decisions/2026-02-09-model-wrangler-strategy.md.tmp.147604.1770673365433",
-    "decisions/2026-02-09-ai-model-strategy.md",
+    "daily/2026-02-09-FINAL-SESSION-SUMMARY.md",
+    "daily/2026-02-09-FINAL-SESSION-SUMMARY.md.tmp.147604.1770688638417",
+    "daily/2026-02-09-sheetsbridge-verified.md",
+    "daily/2026-02-09-sheetsbridge-verified.md.tmp.147604.1770688539670",
+    "patterns/lessons-graph-integration.md.tmp.461838.1770688180843",
+    "patterns/lessons-graph-integration.md.tmp.461838.1770688084180",
+    "daily/2026-02-09-lessons-retrospective.md",
+    "daily/2026-02-09-lessons-retrospective.md.tmp.461838.1770688041650",
+    "daily/2026-02-09-lessons-integration-complete.md",
+    "daily/2026-02-09-lessons-integration-complete.md.tmp.461838.1770680141711",
+    "daily/2026-02-09-sheetsbridge-test-plan.md",
+    "daily/2026-02-09-sheetsbridge-test-plan.md.tmp.147604.1770677984808",
+    "daily/2026-02-09-verification-report.md",
+    "daily/2026-02-09-verification-report.md.tmp.147604.1770677929229",
+    "daily/2026-02-09-session-retrospective.md",
+    "daily/2026-02-09-session-retrospective.md.tmp.147604.1770677792622",
+    "daily/2026-02-09-lessons-graph-integration-plan.md",
+    "daily/2026-02-09-lessons-graph-integration-plan.md.tmp.461838.1770677775972",
+    "patterns/lessons/_lessons_index.md",
+    "concepts/agentic-ai.md",
+    "patterns/lessons/2026-02-09-ollama-mcp-infrastructure.md",
+    "patterns/lessons-graph-integration.md",
+    "daily/2026-02-09-ollama-mcp-server-complete.md",
     "decisions/2026-02-09-12d-graph-refined-plan.md",
+    "decisions/2026-02-09-ollama-mcp-server.md",
+    "decisions/2026-02-09-ollama-context-management.md",
+    "patterns/python-optimized-flume-pattern.md",
+    "decisions/2026-02-09-12d-graph-next-steps.md",
+    "daily/2026-02-09-12d-graph-foundation.md",
+    "decisions/2026-02-09-model-wrangler-strategy.md",
+    "decisions/2026-02-09-ai-model-strategy.md",
     "decisions/2026-02-09-rust-flume-python313-incompatibility.md",
     "decisions/3d-graph-plugin-selection.md",
     "papers/cu45-superatom-carbon-recycling.md",
     "concepts/catalytic-materials.md",
     "patterns/multi-session-compound-engineering-workflow.md",
-    "decisions/2026-02-09-session-46-git-unification-complete.md",
-    "sessions/SESSION-46-COMPLETE.md",
-    "projects/PHASE-6-2-COMPLETION-SUMMARY.md",
-    "sessions/session-46-test-isolation-and-phase-2-security.md",
-    "patterns/lessons/_lessons_index.md",
-    "decisions/2026-02-09-12d-graph-surrealdb-integration.md",
-    "sessions/SESSION-44-FINAL-SUMMARY.md",
-    "sessions/SESSION-44-FINAL-REPORT.md",
-    "projects/SESSIONS_40_45_HANDOFF_TO_PHASE_7.md",
-    "sessions/SESSION-44-HONEST-FINAL-METRICS.md",
-    "projects/SESSION_45_FINAL_STATUS.md",
-    "sessions/SESSION-44-CONTINUATION-FINAL-STATUS.md",
     "Untitled 1.canvas",
-    "inbox/2026-02-09.md",
-    "patterns/2026-02-09-vault-completion-retrospective.md",
-    "daily/2026-02-09-FINAL-SUMMARY.md",
-    "daily/2026-02-09-INITIATIVE-CLOSED.md",
-    "daily/2026-02-09-phase1-completion.md",
     "Untitled.canvas"
   ]
 }
