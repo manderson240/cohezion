@@ -1,0 +1,5143 @@
+{
+  "nodes": [
+    {
+      "id": "2026-02-09-unique-investment-opportunities-research",
+      "label": "Untitled",
+      "path": "papers/2026-02-09-unique-investment-opportunities-research.md",
+      "position": {
+        "x": -10.0,
+        "y": -10.0,
+        "z": -5.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 0.3,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Untitled",
+        "date": "2026-02-09",
+        "tags": "[research, auto-processed]",
+        "connectivity": 0.0,
+        "cross_domain": 0.0,
+        "completion": 0.67,
+        "temporal": 0.33,
+        "recency": 0.73,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "mistral-open-source-ai-strategy",
+          "jwst-red-nova-remnants",
+          "grok4-ai-benchmarks",
+          "openai-codex-agent-loop",
+          "agentic-ai-memory-hierarchies"
+        ],
+        "source": "inbox"
+      }
+    },
+    {
+      "id": "agentic-ai-memory-hierarchies",
+      "label": "How Agentic AI Strains Modern Memory Hierarchies",
+      "path": "papers/agentic-ai-memory-hierarchies.md",
+      "position": {
+        "x": 10.0,
+        "y": 2.01,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#FF0000",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "How Agentic AI Strains Modern Memory Hierarchies",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.2,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.0,
+        "conceptual_label": "Pure Applied",
+        "similar_papers": [
+          "oman-artemis-accords",
+          "mcl1-myc-cancer-metabolism",
+          "openai-applied-compute-startup",
+          "artificial-photosynthesis-living-energy",
+          "2026-02-09-unique-investment-opportunities-research"
+        ],
+        "source": "https://www.theregister.com/2026/01/28/how_agentic_ai_strains_modern_memory_heirarchies/"
+      }
+    },
+    {
+      "id": "ai-anomaly-detection-hubble-archive",
+      "label": "AI Discovers 1400 Anomalous Objects in Hubble Archive",
+      "path": "papers/ai-anomaly-detection-hubble-archive.md",
+      "position": {
+        "x": 10.0,
+        "y": -5.8,
+        "z": 4.92
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#FF0000",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "AI Discovers 1400 Anomalous Objects in Hubble Archive",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.07,
+        "cross_domain": 0.62,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.0,
+        "conceptual_label": "Pure Applied",
+        "similar_papers": [
+          "tonggeometry-ai-math",
+          "operational-data-ai-agents",
+          "llm-in-sandbox-agentic-intelligence",
+          "cosmic-strings-time-travel",
+          "dna-origami-2d-semiconductor-patterning"
+        ],
+        "source": "https://science.nasa.gov/missions/hubble/ai-unlocks-hundreds-of-cosmic-anomalies-in-hubble-archive/"
+      }
+    },
+    {
+      "id": "alfven-waves-aurora",
+      "label": "Alfven Waves as Primary Energy Source for Earth's Auroras",
+      "path": "papers/alfven-waves-aurora.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Alfven Waves as Primary Energy Source for Earth's Auroras",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.13,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "silicon-quantum-computing-platform",
+          "cu45-superatom-co2-ethylene",
+          "grb-250314a-ancient-signal",
+          "cisa-chatgpt-data-leak",
+          "diffraction-gratings-fourier-transforms"
+        ],
+        "source": "https://phys.org/news/2026-01-alfvn-power-source-earth-auroral.html"
+      }
+    },
+    {
+      "id": "alphafold-cryo-em-structure-prediction",
+      "label": "\"AlphaFold + cryo-EM: protein structure prediction for automated atomic model building\"",
+      "path": "papers/alphafold-cryo-em-structure-prediction.md",
+      "position": {
+        "x": 10.0,
+        "y": -10.0,
+        "z": -3.08
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#0000FF",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"AlphaFold + cryo-EM: protein structure prediction for automated atomic model building\"",
+        "date": "2026-02-07",
+        "tags": "[biology]",
+        "connectivity": 0.0,
+        "cross_domain": 0.12,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 1.0,
+        "conceptual_label": "Pure Theory",
+        "similar_papers": [
+          "woh-g64-dust-obscured-companion",
+          "artemis-ii-laser-comms",
+          "pairwise-comparison-fiber-bundles",
+          "tonggeometry-olympiad-tree-search",
+          "diffraction-gratings-fourier-transforms"
+        ],
+        "source": "\"Source: Nature"
+      }
+    },
+    {
+      "id": "amorphous-materials-3d-atomic-structure",
+      "label": "Accurate 3D Atomic Structure Determination of Amorphous Materials",
+      "path": "papers/amorphous-materials-3d-atomic-structure.md",
+      "position": {
+        "x": 10.0,
+        "y": 2.01,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Accurate 3D Atomic Structure Determination of Amorphous Materials",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.2,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "quantum-entangled-atomic-sensors",
+          "diffraction-gratings-fourier-transforms",
+          "webgpu-claude-skill-threejs",
+          "brain-protein-neurodegeneration",
+          "tonggeometry-ai-math"
+        ],
+        "source": "https://www.nature.com/articles/s41586-025-09857-4"
+      }
+    },
+    {
+      "id": "anthropic-disempowerment-patterns",
+      "label": "\"Anthropic research shows disempowerment patterns in AI usage where AI interactions reduce user au...\"",
+      "path": "papers/anthropic-disempowerment-patterns.md",
+      "position": {
+        "x": 10.0,
+        "y": -5.8,
+        "z": -3.08
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"Anthropic research shows disempowerment patterns in AI usage where AI interactions reduce user au...\"",
+        "date": "2026-02-07",
+        "tags": "[ai]",
+        "connectivity": 0.07,
+        "cross_domain": 0.12,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "woh-g64-red-supergiant-mystery",
+          "cosmic-strings-time-travel",
+          "theorem-ai-formal-verification",
+          "llm-in-sandbox-agentic-intelligence",
+          "transcranial-ultrasound-consciousness"
+        ],
+        "source": "\"Source: The Quantum Insider"
+      }
+    },
+    {
+      "id": "anthropic-mcp-apps-claude-integrations",
+      "label": "Anthropic Embeds Slack, Figma, and Asana Inside Claude via MCP Apps",
+      "path": "papers/anthropic-mcp-apps-claude-integrations.md",
+      "position": {
+        "x": 10.0,
+        "y": 2.01,
+        "z": 4.92
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Anthropic Embeds Slack, Figma, and Asana Inside Claude via MCP Apps",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.2,
+        "cross_domain": 0.62,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "jwst-red-nova-remnants",
+          "tidally-locked-exoplanet-habitability",
+          "superfluid-to-supersolid-transition",
+          "magnetic-superhighways-starburst-galaxy",
+          "helimagnetism-ferromagnetism-mode-locking"
+        ],
+        "source": "https://venturebeat.com/infrastructure/anthropic-embeds-slack-figma-and-asana-inside-claude-turning-ai-chat-into-a"
+      }
+    },
+    {
+      "id": "anthropic-principle-fine-tuning",
+      "label": "'Anthropic principle and cosmological fine-tuning: why physical constants appear",
+      "path": "papers/anthropic-principle-fine-tuning.md",
+      "position": {
+        "x": 10.0,
+        "y": -5.8,
+        "z": -3.08
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "'Anthropic principle and cosmological fine-tuning: why physical constants appear",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.07,
+        "cross_domain": 0.12,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "few-shot-prompting-agentic-coding",
+          "beyond-the-quantum-pilot-wave-theory",
+          "llamaagents-builder",
+          "runaway-stars-milky-way",
+          "llm-in-sandbox-agentic-intelligence"
+        ],
+        "source": "The Anthropic View of the Universe - NYAS https://share.google/ppXMCxgmouBuSKHC9"
+      }
+    },
+    {
+      "id": "anthropic-view-universe-nyas",
+      "label": "The Anthropic View of the Universe",
+      "path": "papers/anthropic-view-universe-nyas.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": 3.0
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "The Anthropic View of the Universe",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.13,
+        "cross_domain": 0.5,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "artemis-ii-laser-comms",
+          "ocean-calcium-climate-mystery-66my",
+          "agentic-ai-memory-hierarchies",
+          "quantum-teleportation-logic-gates",
+          "mcl1-myc-cancer-metabolism"
+        ],
+        "source": "https://www.nyas.org/ideas-insights/blog/the-anthropic-view-of-the-universe/"
+      }
+    },
+    {
+      "id": "artemis-ii-laser-comms",
+      "label": "\"Artemis II communication networks + laser comms testing for deep-space exploration\"",
+      "path": "papers/artemis-ii-laser-comms.md",
+      "position": {
+        "x": 10.0,
+        "y": -5.8,
+        "z": -3.08
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"Artemis II communication networks + laser comms testing for deep-space exploration\"",
+        "date": "2026-02-07",
+        "tags": "[space]",
+        "connectivity": 0.07,
+        "cross_domain": 0.12,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "diffraction-gratings-fourier-transforms",
+          "jwst-dark-matter-map",
+          "superfluid-to-supersolid-transition",
+          "alphafold-cryo-em-structure-prediction",
+          "magnetic-superhighways-starburst-galaxy"
+        ],
+        "source": "\"Source: NASA (.gov)"
+      }
+    },
+    {
+      "id": "artificial-photosynthesis-living-energy",
+      "label": "\"Artificial photosynthesis breakthrough: living energy systems converting sunlight to fuel\"",
+      "path": "papers/artificial-photosynthesis-living-energy.md",
+      "position": {
+        "x": 10.0,
+        "y": 2.01,
+        "z": -3.08
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#FF0000",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"Artificial photosynthesis breakthrough: living energy systems converting sunlight to fuel\"",
+        "date": "2026-02-07",
+        "tags": "[biology]",
+        "connectivity": 0.2,
+        "cross_domain": 0.12,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.0,
+        "conceptual_label": "Pure Applied",
+        "similar_papers": [
+          "cosmic-strings-time-travel",
+          "quantum-entangled-atomic-sensors",
+          "nebuchadnezzar-babylonian-texts",
+          "woh-g64-dust-obscured-companion",
+          "agentic-ai-memory-hierarchies"
+        ],
+        "source": "\"Source: ecoportal.net"
+      }
+    },
+    {
+      "id": "axion-dark-matter-quantum-sensors",
+      "label": "Distributed Intercity Quantum Sensors Constrain Axion Dark Matter",
+      "path": "papers/axion-dark-matter-quantum-sensors.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": 4.92
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#0000FF",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Distributed Intercity Quantum Sensors Constrain Axion Dark Matter",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.13,
+        "cross_domain": 0.62,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 1.0,
+        "conceptual_label": "Pure Theory",
+        "similar_papers": [
+          "optofluidic-3d-nanofabrication",
+          "llm-in-sandbox-agentic-intelligence",
+          "llamaagents-builder",
+          "circleci-ai-cicd-validation",
+          "dna-origami-2d-semiconductor-patterning"
+        ],
+        "source": "https://www.nature.com/articles/s41586-025-10034-w"
+      }
+    },
+    {
+      "id": "beyond-the-quantum-pilot-wave-theory",
+      "label": "\"Oxford Academic book exploring pilot-wave theory as a deeper foundation for quantum mechanics, pr...\"",
+      "path": "papers/beyond-the-quantum-pilot-wave-theory.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": 1.08
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#0000FF",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"Oxford Academic book exploring pilot-wave theory as a deeper foundation for quantum mechanics, pr...\"",
+        "date": "2026-02-07",
+        "tags": "[quantum, physics, cosmology]",
+        "connectivity": 0.13,
+        "cross_domain": 0.38,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 1.0,
+        "conceptual_label": "Pure Theory",
+        "similar_papers": [
+          "anthropic-principle-fine-tuning",
+          "usaf-stealthy-electromagnetic-attack",
+          "webgpu-claude-skill-threejs",
+          "international-year-quantum-2025",
+          "oman-artemis-accords"
+        ],
+        "source": "\"Source: Chemistry World"
+      }
+    },
+    {
+      "id": "brain-protein-neurodegeneration",
+      "label": "\"Brain protein linking immune response, metabolism, and amyloid pathways in neurodegeneration\"",
+      "path": "papers/brain-protein-neurodegeneration.md",
+      "position": {
+        "x": 10.0,
+        "y": -5.8,
+        "z": -1.0
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"Brain protein linking immune response, metabolism, and amyloid pathways in neurodegeneration\"",
+        "date": "2026-02-07",
+        "tags": "[ai, neuroscience]",
+        "connectivity": 0.07,
+        "cross_domain": 0.25,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "tonggeometry-olympiad-tree-search",
+          "super-earth-magnetic-protection-magma",
+          "karpathy-claude-code-skills",
+          "nasa-maven-anomaly",
+          "tonggeometry-ai-math"
+        ],
+        "source": "\"Source: SciTechDaily"
+      }
+    },
+    {
+      "id": "circleci-ai-cicd-validation",
+      "label": "CircleCI CI/CD for AI developers with autonomous validation agent",
+      "path": "papers/circleci-ai-cicd-validation.md",
+      "position": {
+        "x": 10.0,
+        "y": -5.8,
+        "z": -3.08
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "CircleCI CI/CD for AI developers with autonomous validation agent",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.07,
+        "cross_domain": 0.12,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "runaway-stars-milky-way",
+          "axion-dark-matter-quantum-sensors",
+          "mistral-open-source-ai-strategy",
+          "openai-applied-compute-startup",
+          "grb-250314a-ancient-signal"
+        ],
+        "source": "CI/CD for AI devs https://search.app/nARoZ"
+      }
+    },
+    {
+      "id": "cisa-chatgpt-data-leak",
+      "label": "\"CISA chief uploaded sensitive files to public ChatGPT - AI security/data governance concerns\"",
+      "path": "papers/cisa-chatgpt-data-leak.md",
+      "position": {
+        "x": 10.0,
+        "y": -10.0,
+        "z": 1.08
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"CISA chief uploaded sensitive files to public ChatGPT - AI security/data governance concerns\"",
+        "date": "2026-02-07",
+        "tags": "[ai, security, policy]",
+        "connectivity": 0.0,
+        "cross_domain": 0.38,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "ocean-calcium-climate-mystery-66my",
+          "comb-jellies-animal-tree-of-life",
+          "cu45-superatom-co2-ethylene",
+          "diffraction-gratings-fourier-transforms",
+          "few-shot-prompting-agentic-coding"
+        ],
+        "source": "\"Source: Politico"
+      }
+    },
+    {
+      "id": "claude-code-community-skills",
+      "label": "\"36 Claude Code skills from 23 creators covering coding, research, automation, integration\"",
+      "path": "papers/claude-code-community-skills.md",
+      "position": {
+        "x": 10.0,
+        "y": -5.8,
+        "z": -3.08
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"36 Claude Code skills from 23 creators covering coding, research, automation, integration\"",
+        "date": "2026-02-07",
+        "tags": "[ai]",
+        "connectivity": 0.07,
+        "cross_domain": 0.12,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "openai-applied-compute-startup",
+          "woh-g64-red-supergiant-mystery",
+          "yann-lecun-agi-world-models",
+          "artemis-ii-laser-comms",
+          "circleci-ai-cicd-validation"
+        ],
+        "source": "\"Source: AI blew my mind"
+      }
+    },
+    {
+      "id": "claude-code-swiftui-skill-patterns",
+      "label": "\"SwiftUI-Agent-Skill: AI coding tool best practices and patterns for Claude Code skills\"",
+      "path": "papers/claude-code-swiftui-skill-patterns.md",
+      "position": {
+        "x": 10.0,
+        "y": -5.8,
+        "z": -1.0
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#FF0000",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"SwiftUI-Agent-Skill: AI coding tool best practices and patterns for Claude Code skills\"",
+        "date": "2026-02-07",
+        "tags": "[ai, software-engineering]",
+        "connectivity": 0.07,
+        "cross_domain": 0.25,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.0,
+        "conceptual_label": "Pure Applied",
+        "similar_papers": [
+          "operational-data-ai-agents",
+          "fast-radio-bursts-binary-star-origin",
+          "humanitys-last-exam-benchmark",
+          "jwst-dark-matter-map",
+          "anthropic-principle-fine-tuning"
+        ],
+        "source": "\"Source: GitHub"
+      }
+    },
+    {
+      "id": "comb-jellies-animal-tree-of-life",
+      "label": "\"Comb jellies confirmed as first branch on animal tree of life, rewriting early evolution\"",
+      "path": "papers/comb-jellies-animal-tree-of-life.md",
+      "position": {
+        "x": 10.0,
+        "y": -10.0,
+        "z": -3.08
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"Comb jellies confirmed as first branch on animal tree of life, rewriting early evolution\"",
+        "date": "2026-02-07",
+        "tags": "[biology]",
+        "connectivity": 0.0,
+        "cross_domain": 0.12,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "cisa-chatgpt-data-leak",
+          "grok4-ai-benchmarks",
+          "operational-data-ai-agents",
+          "optofluidic-3d-nanofabrication",
+          "anthropic-mcp-apps-claude-integrations"
+        ],
+        "source": "\"Source: Popular Mechanics"
+      }
+    },
+    {
+      "id": "cosmic-strings-time-travel",
+      "label": "Cosmic Strings as Potential Time Travel Mechanism",
+      "path": "papers/cosmic-strings-time-travel.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": 4.92
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Cosmic Strings as Potential Time Travel Mechanism",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.13,
+        "cross_domain": 0.62,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "testing-agent-skills-with-evals",
+          "artificial-photosynthesis-living-energy",
+          "helimagnetism-ferromagnetism-mode-locking",
+          "tonggeometry-olympiad-tree-search",
+          "anthropic-disempowerment-patterns"
+        ],
+        "source": "https://www.popularmechanics.com/space/a70113242/time-travel-cosmic-strings/"
+      }
+    },
+    {
+      "id": "cu45-superatom-carbon-recycling",
+      "label": "Highly Stable Cu45 Superatom Could Transform Carbon Recycling",
+      "path": "papers/cu45-superatom-carbon-recycling.md",
+      "position": {
+        "x": 10.0,
+        "y": -10.0,
+        "z": 4.92
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Highly Stable Cu45 Superatom Could Transform Carbon Recycling",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.0,
+        "cross_domain": 0.62,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "llm-training-methodology-changes",
+          "mom-z14-farthest-galaxy",
+          "tonggeometry-ai-math",
+          "artificial-photosynthesis-living-energy",
+          "webgpu-claude-skill-threejs"
+        ],
+        "source": "https://phys.org/news/2026-01-highly-stable-cu-superatom-carbon.html"
+      }
+    },
+    {
+      "id": "cu45-superatom-co2-ethylene",
+      "label": "\"Cu45 superatom converts CO2 to ethylene at 81\"",
+      "path": "papers/cu45-superatom-co2-ethylene.md",
+      "position": {
+        "x": 10.0,
+        "y": -10.0,
+        "z": -3.08
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"Cu45 superatom converts CO2 to ethylene at 81\"",
+        "date": "2026-02-07",
+        "tags": "[chemistry]",
+        "connectivity": 0.0,
+        "cross_domain": 0.12,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "alfven-waves-aurora",
+          "cisa-chatgpt-data-leak",
+          "optofluidic-3d-nanofabrication",
+          "protein-tape-recorder-cytotape",
+          "emu3-multimodal-next-token-prediction"
+        ],
+        "source": "\"Source: Phys.org"
+      }
+    },
+    {
+      "id": "diffraction-gratings-fourier-transforms",
+      "label": "\"Diffraction gratings physically perform Fourier transforms, connecting optics to signal processing\"",
+      "path": "papers/diffraction-gratings-fourier-transforms.md",
+      "position": {
+        "x": 10.0,
+        "y": -5.8,
+        "z": -1.0
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"Diffraction gratings physically perform Fourier transforms, connecting optics to signal processing\"",
+        "date": "2026-02-07",
+        "tags": "[physics, optics]",
+        "connectivity": 0.07,
+        "cross_domain": 0.25,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "transcranial-ultrasound-consciousness",
+          "dna-origami-2d-semiconductor-patterning",
+          "cisa-chatgpt-data-leak",
+          "emu3-multimodal-next-token-prediction",
+          "silicon-quantum-computing-platform"
+        ],
+        "source": "\"Source: Hackaday"
+      }
+    },
+    {
+      "id": "dna-origami-2d-semiconductor-patterning",
+      "label": "DNA Origami for Precise Molecular Patterning on 2D Semiconductors",
+      "path": "papers/dna-origami-2d-semiconductor-patterning.md",
+      "position": {
+        "x": 10.0,
+        "y": 6.22,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "DNA Origami for Precise Molecular Patterning on 2D Semiconductors",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.27,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "axion-dark-matter-quantum-sensors",
+          "theorem-ai-formal-verification",
+          "quantum-entangled-atomic-sensors",
+          "llm-training-methodology-changes",
+          "ai-anomaly-detection-hubble-archive"
+        ],
+        "source": "https://phys.org/news/2026-01-dna-origami-enables-precise-patterning.html"
+      }
+    },
+    {
+      "id": "emoticons-llm-silent-failures",
+      "label": "Emoticons Cause Silent Failures in LLM Coding Responses",
+      "path": "papers/emoticons-llm-silent-failures.md",
+      "position": {
+        "x": 10.0,
+        "y": -5.8,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Emoticons Cause Silent Failures in LLM Coding Responses",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.07,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "jwst-red-nova-remnants",
+          "pairwise-comparison-fiber-bundles",
+          "transcranial-ultrasound-consciousness",
+          "grb-250314a-ancient-signal",
+          "rethinking-exoplanet-habitability"
+        ],
+        "source": "https://techxplore.com/news/2026-01-emoticons-llms-silent-failures-coding.html"
+      }
+    },
+    {
+      "id": "emu3-multimodal-next-token-prediction",
+      "label": "'Emu3: Multimodal Learning via Next-Token Prediction'",
+      "path": "papers/emu3-multimodal-next-token-prediction.md",
+      "position": {
+        "x": 10.0,
+        "y": -5.8,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#0000FF",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "'Emu3: Multimodal Learning via Next-Token Prediction'",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.07,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 1.0,
+        "conceptual_label": "Pure Theory",
+        "similar_papers": [
+          "fast-radio-bursts-binary-star-origin",
+          "usaf-stealthy-electromagnetic-attack",
+          "woh-g64-dust-obscured-companion",
+          "diffraction-gratings-fourier-transforms",
+          "cu45-superatom-co2-ethylene"
+        ],
+        "source": "https://www.nature.com/articles/s41586-025-10041-x"
+      }
+    },
+    {
+      "id": "fast-radio-bursts-binary-star-origin",
+      "label": "FAST Telescope Traces Fast Radio Bursts to Binary Star Systems",
+      "path": "papers/fast-radio-bursts-binary-star-origin.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": 4.92
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#FF0000",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "FAST Telescope Traces Fast Radio Bursts to Binary Star Systems",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.13,
+        "cross_domain": 0.62,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.0,
+        "conceptual_label": "Pure Applied",
+        "similar_papers": [
+          "claude-code-swiftui-skill-patterns",
+          "operational-data-ai-agents",
+          "emu3-multimodal-next-token-prediction",
+          "few-shot-prompting-agentic-coding",
+          "karpathy-claude-code-skills"
+        ],
+        "source": "https://www.universetoday.com/articles/the-china-sky-eye-traces-fast-radio-bursts-to-a-binary-star-system"
+      }
+    },
+    {
+      "id": "few-shot-prompting-agentic-coding",
+      "label": "\"Few-shot prompting achieves 5x performance in agentic coding tasks by providing examples to LLMs ...\"",
+      "path": "papers/few-shot-prompting-agentic-coding.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": -3.08
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"Few-shot prompting achieves 5x performance in agentic coding tasks by providing examples to LLMs ...\"",
+        "date": "2026-02-07",
+        "tags": "[ai]",
+        "connectivity": 0.13,
+        "cross_domain": 0.12,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "anthropic-principle-fine-tuning",
+          "quantum-entangled-atomic-sensors",
+          "mars-time-dilation-relativity",
+          "superfluid-to-supersolid-transition",
+          "openai-codex-agent-loop"
+        ],
+        "source": "\"Source: Towards Data Science"
+      }
+    },
+    {
+      "id": "graphitic-polytype-switching-nanocavities",
+      "label": "Switching Graphitic Polytypes in Elastically Coupled Cavities",
+      "path": "papers/graphitic-polytype-switching-nanocavities.md",
+      "position": {
+        "x": 10.0,
+        "y": 2.01,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Switching Graphitic Polytypes in Elastically Coupled Cavities",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.2,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "beyond-the-quantum-pilot-wave-theory",
+          "usaf-stealthy-electromagnetic-attack",
+          "webb-cosmic-question-mark-gravitational-lens",
+          "amorphous-materials-3d-atomic-structure",
+          "mars-time-dilation-relativity"
+        ],
+        "source": "https://www.nature.com/articles/s41565-025-02121-w"
+      }
+    },
+    {
+      "id": "grb-250314a-ancient-signal",
+      "label": "'GRB 250314A: 10-Second Signal from 13 Billion Years Ago'",
+      "path": "papers/grb-250314a-ancient-signal.md",
+      "position": {
+        "x": 10.0,
+        "y": 2.01,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "'GRB 250314A: 10-Second Signal from 13 Billion Years Ago'",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.2,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "humanoid-robots-space-launch",
+          "protein-tape-recorder-cytotape",
+          "llamaagents-builder",
+          "alfven-waves-aurora",
+          "circleci-ai-cicd-validation"
+        ],
+        "source": "https://www.ladbible.com/news/science/nasa-supernova-signal-grb-250314a-253130-20260112"
+      }
+    },
+    {
+      "id": "grok4-ai-benchmarks",
+      "label": "\"Artificial Analysis benchmarks: Grok 4 leading at 73 across reasoning and coding tasks\"",
+      "path": "papers/grok4-ai-benchmarks.md",
+      "position": {
+        "x": 10.0,
+        "y": -5.8,
+        "z": -3.08
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#0000FF",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"Artificial Analysis benchmarks: Grok 4 leading at 73 across reasoning and coding tasks\"",
+        "date": "2026-02-07",
+        "tags": "[ai]",
+        "connectivity": 0.07,
+        "cross_domain": 0.12,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 1.0,
+        "conceptual_label": "Pure Theory",
+        "similar_papers": [
+          "2026-02-09-unique-investment-opportunities-research",
+          "quantum-atomic-light-synchronization",
+          "openai-applied-compute-startup",
+          "nasa-maven-anomaly",
+          "comb-jellies-animal-tree-of-life"
+        ],
+        "source": "\"Source: X"
+      }
+    },
+    {
+      "id": "helimagnetism-ferromagnetism-mode-locking",
+      "label": "Mode Locking Between Helimagnetism and Ferromagnetism",
+      "path": "papers/helimagnetism-ferromagnetism-mode-locking.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": 1.08
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Mode Locking Between Helimagnetism and Ferromagnetism",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.13,
+        "cross_domain": 0.38,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "scaling-agent-systems",
+          "ocean-calcium-climate-mystery-66my",
+          "cosmic-strings-time-travel",
+          "webb-cosmic-question-mark-gravitational-lens",
+          "quantum-teleportation-logic-gates"
+        ],
+        "source": "https://www.nature.com/articles/s41567-025-03148-5"
+      }
+    },
+    {
+      "id": "humanitys-last-exam-benchmark",
+      "label": "Humanity's Last Exam - Expert-Level AI Benchmark",
+      "path": "papers/humanitys-last-exam-benchmark.md",
+      "position": {
+        "x": 10.0,
+        "y": -5.8,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Humanity's Last Exam - Expert-Level AI Benchmark",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.07,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "mars-time-dilation-relativity",
+          "emoticons-llm-silent-failures",
+          "magnetic-superhighways-starburst-galaxy",
+          "quantum-atomic-light-synchronization",
+          "helimagnetism-ferromagnetism-mode-locking"
+        ],
+        "source": "https://www.nature.com/articles/s41586-025-09962-4"
+      }
+    },
+    {
+      "id": "humanoid-robots-space-launch",
+      "label": "Humanoid Robots Connect to Satellites, Prep for Space Launch",
+      "path": "papers/humanoid-robots-space-launch.md",
+      "position": {
+        "x": 10.0,
+        "y": -5.8,
+        "z": 1.08
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Humanoid Robots Connect to Satellites, Prep for Space Launch",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.07,
+        "cross_domain": 0.38,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "llm-in-sandbox-agentic-intelligence",
+          "grb-250314a-ancient-signal",
+          "tidally-locked-exoplanet-habitability",
+          "protein-tape-recorder-cytotape",
+          "quantum-teleportation-logic-gates"
+        ],
+        "source": "https://electrek.co/2026/01/28/bot-space-race-humanoid-robots-connect-to-satellite-prep-for-space-launch/"
+      }
+    },
+    {
+      "id": "international-year-quantum-2025",
+      "label": "\"Coverage of 2025 as International Year of Quantum Science and Technology, highlighting quantum ch...\"",
+      "path": "papers/international-year-quantum-2025.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": -1.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"Coverage of 2025 as International Year of Quantum Science and Technology, highlighting quantum ch...\"",
+        "date": "2026-02-07",
+        "tags": "[quantum, chemistry]",
+        "connectivity": 0.13,
+        "cross_domain": 0.25,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "beyond-the-quantum-pilot-wave-theory",
+          "cisa-chatgpt-data-leak",
+          "optofluidic-3d-nanofabrication",
+          "brain-protein-neurodegeneration",
+          "tonggeometry-olympiad-tree-search"
+        ],
+        "source": "\"Source: MIT Technology Review"
+      }
+    },
+    {
+      "id": "jwst-dark-matter-map",
+      "label": "JWST Creates Sharpest Dark Matter Map",
+      "path": "papers/jwst-dark-matter-map.md",
+      "position": {
+        "x": 10.0,
+        "y": 6.22,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "JWST Creates Sharpest Dark Matter Map",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.27,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "artemis-ii-laser-comms",
+          "international-year-quantum-2025",
+          "claude-code-swiftui-skill-patterns",
+          "rethinking-exoplanet-habitability",
+          "cu45-superatom-co2-ethylene"
+        ],
+        "source": "https://www.universetoday.com/articles/mapping-the-invisible"
+      }
+    },
+    {
+      "id": "jwst-early-universe-black-holes",
+      "label": "JWST Upending Understanding of Early Universe Black Holes",
+      "path": "papers/jwst-early-universe-black-holes.md",
+      "position": {
+        "x": 10.0,
+        "y": 2.01,
+        "z": 4.92
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "JWST Upending Understanding of Early Universe Black Holes",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.2,
+        "cross_domain": 0.62,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "tidally-locked-exoplanet-habitability",
+          "tonggeometry-olympiad-tree-search",
+          "few-shot-prompting-agentic-coding",
+          "silicon-quantum-computing-platform",
+          "llm-training-methodology-changes"
+        ],
+        "source": "https://www.livescience.com/space/black-holes/a-real-revolution-the-james-webb-telescope-is-upending-our-understanding-of-the-biggest-oldest-black-holes-in-the-universe"
+      }
+    },
+    {
+      "id": "jwst-red-nova-remnants",
+      "label": "JWST Discovers Red Nova Merger Remnants Are Red Supergiants",
+      "path": "papers/jwst-red-nova-remnants.md",
+      "position": {
+        "x": 10.0,
+        "y": 6.22,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "JWST Discovers Red Nova Merger Remnants Are Red Supergiants",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.27,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "superfluid-to-supersolid-transition",
+          "2026-02-09-unique-investment-opportunities-research",
+          "anthropic-mcp-apps-claude-integrations",
+          "scaling-agent-systems",
+          "cisa-chatgpt-data-leak"
+        ],
+        "source": "https://www.space.com/astronomy/stars/james-webb-space-telescope-discovers-what-remains-after-two-stars-collide-and-explode-as-a-red-nova"
+      }
+    },
+    {
+      "id": "karpathy-claude-code-skills",
+      "label": "\"Andrej Karpathy's curated Claude Code skills for AI-assisted development workflows\"",
+      "path": "papers/karpathy-claude-code-skills.md",
+      "position": {
+        "x": 10.0,
+        "y": -5.8,
+        "z": -3.08
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"Andrej Karpathy's curated Claude Code skills for AI-assisted development workflows\"",
+        "date": "2026-02-07",
+        "tags": "[ai]",
+        "connectivity": 0.07,
+        "cross_domain": 0.12,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "mit-quantum-computing-progress",
+          "quantum-atomic-light-synchronization",
+          "brain-protein-neurodegeneration",
+          "fast-radio-bursts-binary-star-origin",
+          "humanoid-robots-space-launch"
+        ],
+        "source": "\"Source: GitHub"
+      }
+    },
+    {
+      "id": "langchain-deep-agents-context-management",
+      "label": "LangChain Deep Agents Context Management",
+      "path": "papers/langchain-deep-agents-context-management.md",
+      "position": {
+        "x": 10.0,
+        "y": 9.82,
+        "z": 3.0
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "LangChain Deep Agents Context Management",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.33,
+        "cross_domain": 0.5,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "mom-z14-farthest-galaxy",
+          "emu3-multimodal-next-token-prediction",
+          "claude-code-swiftui-skill-patterns",
+          "humanoid-robots-space-launch",
+          "nasa-maven-anomaly"
+        ],
+        "source": "https://blog.langchain.com/context-management-for-deepagents/"
+      }
+    },
+    {
+      "id": "llamaagents-builder",
+      "label": "'LlamaAgents Builder: Idea to Deployed Agent in Minutes'",
+      "path": "papers/llamaagents-builder.md",
+      "position": {
+        "x": 10.0,
+        "y": 6.22,
+        "z": 1.08
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "'LlamaAgents Builder: Idea to Deployed Agent in Minutes'",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.27,
+        "cross_domain": 0.38,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "quantum-teleportation-logic-gates",
+          "anthropic-principle-fine-tuning",
+          "operational-data-ai-agents",
+          "axion-dark-matter-quantum-sensors",
+          "webb-cosmic-question-mark-gravitational-lens"
+        ],
+        "source": "https://www.llamaindex.ai/blog/llamaagents-builder-idea-to-deployed-agent-in-minutes"
+      }
+    },
+    {
+      "id": "llm-in-sandbox-agentic-intelligence",
+      "label": "LLM-in-Sandbox Elicits General Agentic Intelligence",
+      "path": "papers/llm-in-sandbox-agentic-intelligence.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "LLM-in-Sandbox Elicits General Agentic Intelligence",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.13,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "axion-dark-matter-quantum-sensors",
+          "anthropic-principle-fine-tuning",
+          "ai-anomaly-detection-hubble-archive",
+          "sentinel-1-ice-sheets",
+          "sunspot-ar4366-x-class-flares"
+        ],
+        "source": "https://arxiv.org/abs/2601.16206"
+      }
+    },
+    {
+      "id": "llm-training-methodology-changes",
+      "label": "Researchers at OpenAI, Thinking Machines, and Amazon Want to Change How LLMs",
+      "path": "papers/llm-training-methodology-changes.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": 3.0
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Researchers at OpenAI, Thinking Machines, and Amazon Want to Change How LLMs",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.13,
+        "cross_domain": 0.5,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "comb-jellies-animal-tree-of-life",
+          "cu45-superatom-carbon-recycling",
+          "scaling-agent-systems",
+          "rethinking-exoplanet-habitability",
+          "dna-origami-2d-semiconductor-patterning"
+        ],
+        "source": "https://www.theinformation.com/newsletters/ai-agenda/researchers-openai-thinking-machines-amazon-want-change-llms-trained"
+      }
+    },
+    {
+      "id": "magnetic-superhighways-starburst-galaxy",
+      "label": "Magnetic Superhighways in Starburst Galaxy Winds",
+      "path": "papers/magnetic-superhighways-starburst-galaxy.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": 4.92
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Magnetic Superhighways in Starburst Galaxy Winds",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.13,
+        "cross_domain": 0.62,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "tonggeometry-olympiad-tree-search",
+          "humanitys-last-exam-benchmark",
+          "anthropic-mcp-apps-claude-integrations",
+          "mars-time-dilation-relativity",
+          "silicon-quantum-computing-platform"
+        ],
+        "source": "https://public.nrao.edu/news/magnetic-superhighways-discovered-in-a-starburst-galaxys-winds/"
+      }
+    },
+    {
+      "id": "mars-time-dilation-relativity",
+      "label": "Einstein's Relativity Confirmed by Mars Time Dilation",
+      "path": "papers/mars-time-dilation-relativity.md",
+      "position": {
+        "x": 10.0,
+        "y": -5.8,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Einstein's Relativity Confirmed by Mars Time Dilation",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.07,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "llm-training-methodology-changes",
+          "humanitys-last-exam-benchmark",
+          "few-shot-prompting-agentic-coding",
+          "quantum-entanglement-speed-measurement",
+          "super-earth-magnetic-protection-magma"
+        ],
+        "source": "https://www.sciencedaily.com/releases/2025/12/251228074458.htm"
+      }
+    },
+    {
+      "id": "mcl1-myc-cancer-metabolism",
+      "label": "\"MCL1 drives cancer metabolism via mTOR; MYC suppresses immune alarms via RNA binding/condensates\"",
+      "path": "papers/mcl1-myc-cancer-metabolism.md",
+      "position": {
+        "x": 10.0,
+        "y": -10.0,
+        "z": -3.08
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"MCL1 drives cancer metabolism via mTOR; MYC suppresses immune alarms via RNA binding/condensates\"",
+        "date": "2026-02-07",
+        "tags": "[biology]",
+        "connectivity": 0.0,
+        "cross_domain": 0.12,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "agentic-ai-memory-hierarchies",
+          "ocean-calcium-climate-mystery-66my",
+          "yann-lecun-agi-world-models",
+          "webgpu-claude-skill-threejs",
+          "claude-code-swiftui-skill-patterns"
+        ],
+        "source": "\"Source: SciTechDaily"
+      }
+    },
+    {
+      "id": "mistral-open-source-ai-strategy",
+      "label": "\"Mistral CEO Arthur Mensch articulates open-source AI strategy emphasizing enterprise resilience\u2014o...\"",
+      "path": "papers/mistral-open-source-ai-strategy.md",
+      "position": {
+        "x": 10.0,
+        "y": -5.8,
+        "z": -1.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#FF0000",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"Mistral CEO Arthur Mensch articulates open-source AI strategy emphasizing enterprise resilience\u2014o...\"",
+        "date": "2026-02-07",
+        "tags": "[ai, open-source]",
+        "connectivity": 0.07,
+        "cross_domain": 0.25,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.0,
+        "conceptual_label": "Pure Applied",
+        "similar_papers": [
+          "2026-02-09-unique-investment-opportunities-research",
+          "quantum-entangled-atomic-sensors",
+          "circleci-ai-cicd-validation",
+          "anthropic-principle-fine-tuning",
+          "llamaagents-builder"
+        ],
+        "source": "\"Source: Nature"
+      }
+    },
+    {
+      "id": "mit-quantum-computing-progress",
+      "label": "\"MIT Technology Review coverage of quantum computing progress including error correction breakthro...\"",
+      "path": "papers/mit-quantum-computing-progress.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": -1.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#0000FF",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"MIT Technology Review coverage of quantum computing progress including error correction breakthro...\"",
+        "date": "2026-02-07",
+        "tags": "[quantum, ai]",
+        "connectivity": 0.13,
+        "cross_domain": 0.25,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 1.0,
+        "conceptual_label": "Pure Theory",
+        "similar_papers": [
+          "karpathy-claude-code-skills",
+          "mom-z14-farthest-galaxy",
+          "cosmic-strings-time-travel",
+          "beyond-the-quantum-pilot-wave-theory",
+          "usaf-stealthy-electromagnetic-attack"
+        ],
+        "source": "\"Source: Nature"
+      }
+    },
+    {
+      "id": "mom-z14-farthest-galaxy",
+      "label": "'MoM-z14: Farthest Galaxy Ever Observed by JWST'",
+      "path": "papers/mom-z14-farthest-galaxy.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": 4.92
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "'MoM-z14: Farthest Galaxy Ever Observed by JWST'",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.13,
+        "cross_domain": 0.62,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "artificial-photosynthesis-living-energy",
+          "anthropic-disempowerment-patterns",
+          "anthropic-principle-fine-tuning",
+          "tonggeometry-ai-math",
+          "mit-quantum-computing-progress"
+        ],
+        "source": "https://science.nasa.gov/missions/webb/nasa-webb-pushes-boundaries-of-observable-universe-closer-to-big-bang/"
+      }
+    },
+    {
+      "id": "nasa-maven-anomaly",
+      "label": "NASA Assembles Anomaly Review Board for MAVEN Spacecraft",
+      "path": "papers/nasa-maven-anomaly.md",
+      "position": {
+        "x": 10.0,
+        "y": -10.0,
+        "z": 3.0
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "NASA Assembles Anomaly Review Board for MAVEN Spacecraft",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.0,
+        "cross_domain": 0.5,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "brain-protein-neurodegeneration",
+          "grok4-ai-benchmarks",
+          "tidally-locked-exoplanet-habitability",
+          "llm-in-sandbox-agentic-intelligence",
+          "langchain-deep-agents-context-management"
+        ],
+        "source": "https://www.theregister.com/2026/01/27/nasa_anomaly_review_maven/"
+      }
+    },
+    {
+      "id": "nebuchadnezzar-babylonian-texts",
+      "label": "\"Babylonian texts reveal Nebuchadnezzar as restorer/builder, contrasting biblical destroyer narrative\"",
+      "path": "papers/nebuchadnezzar-babylonian-texts.md",
+      "position": {
+        "x": 10.0,
+        "y": -10.0,
+        "z": -3.08
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"Babylonian texts reveal Nebuchadnezzar as restorer/builder, contrasting biblical destroyer narrative\"",
+        "date": "2026-02-07",
+        "tags": "[archaeology]",
+        "connectivity": 0.0,
+        "cross_domain": 0.12,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "cu45-superatom-co2-ethylene",
+          "oman-artemis-accords",
+          "quantum-entanglement-speed-measurement",
+          "artificial-photosynthesis-living-energy",
+          "tonggeometry-olympiad-tree-search"
+        ],
+        "source": "\"Source: Biblical Archaeology Society"
+      }
+    },
+    {
+      "id": "ocean-calcium-climate-mystery-66my",
+      "label": "'66-Million-Year Climate Mystery Solved: Ocean Calcium Decline Cooled Earth'",
+      "path": "papers/ocean-calcium-climate-mystery-66my.md",
+      "position": {
+        "x": 10.0,
+        "y": -10.0,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "'66-Million-Year Climate Mystery Solved: Ocean Calcium Decline Cooled Earth'",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.0,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "tonggeometry-ai-math",
+          "helimagnetism-ferromagnetism-mode-locking",
+          "mcl1-myc-cancer-metabolism",
+          "usaf-stealthy-electromagnetic-attack",
+          "anthropic-view-universe-nyas"
+        ],
+        "source": "https://scitechdaily.com/scientists-solve-a-66-million-year-old-climate-mystery-that-changed-earth-forever/"
+      }
+    },
+    {
+      "id": "oman-artemis-accords",
+      "label": "\"Oman signed the Artemis Accords, becoming the 61st nation to commit to responsible space explorat...\"",
+      "path": "papers/oman-artemis-accords.md",
+      "position": {
+        "x": 10.0,
+        "y": -10.0,
+        "z": -1.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"Oman signed the Artemis Accords, becoming the 61st nation to commit to responsible space explorat...\"",
+        "date": "2026-02-07",
+        "tags": "[space, policy]",
+        "connectivity": 0.0,
+        "cross_domain": 0.25,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "agentic-ai-memory-hierarchies",
+          "nebuchadnezzar-babylonian-texts",
+          "pairwise-comparison-fiber-bundles",
+          "beyond-the-quantum-pilot-wave-theory",
+          "tonggeometry-olympiad-tree-search"
+        ],
+        "source": "\"Source: X"
+      }
+    },
+    {
+      "id": "openai-applied-compute-startup",
+      "label": "\"Ex-OpenAI Applied Compute raising at $1\"",
+      "path": "papers/openai-applied-compute-startup.md",
+      "position": {
+        "x": 10.0,
+        "y": -5.8,
+        "z": -1.0
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"Ex-OpenAI Applied Compute raising at $1\"",
+        "date": "2026-02-07",
+        "tags": "[ai, computing]",
+        "connectivity": 0.07,
+        "cross_domain": 0.25,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "claude-code-community-skills",
+          "grok4-ai-benchmarks",
+          "helimagnetism-ferromagnetism-mode-locking",
+          "agentic-ai-memory-hierarchies",
+          "circleci-ai-cicd-validation"
+        ],
+        "source": "\"Source: The Information"
+      }
+    },
+    {
+      "id": "openai-codex-agent-loop",
+      "label": "Unrolling the Codex Agent Loop",
+      "path": "papers/openai-codex-agent-loop.md",
+      "position": {
+        "x": 10.0,
+        "y": 6.22,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Unrolling the Codex Agent Loop",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.27,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "runaway-stars-milky-way",
+          "few-shot-prompting-agentic-coding",
+          "2026-02-09-unique-investment-opportunities-research",
+          "axion-dark-matter-quantum-sensors",
+          "woh-g64-dust-obscured-companion"
+        ],
+        "source": "https://openai.com/index/unrolling-the-codex-agent-loop/"
+      }
+    },
+    {
+      "id": "operational-data-ai-agents",
+      "label": "'Operational Data: Giving AI Agents the Senses to Succeed'",
+      "path": "papers/operational-data-ai-agents.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#FF0000",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "'Operational Data: Giving AI Agents the Senses to Succeed'",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.13,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.0,
+        "conceptual_label": "Pure Applied",
+        "similar_papers": [
+          "fast-radio-bursts-binary-star-origin",
+          "grb-250314a-ancient-signal",
+          "llamaagents-builder",
+          "ai-anomaly-detection-hubble-archive",
+          "woh-g64-red-supergiant-mystery"
+        ],
+        "source": "https://venturebeat.com/data/operational-data-giving-ai-agents-the-senses-to-succeed"
+      }
+    },
+    {
+      "id": "optofluidic-3d-nanofabrication",
+      "label": "Optofluidic Three-Dimensional Micro/Nanofabrication",
+      "path": "papers/optofluidic-3d-nanofabrication.md",
+      "position": {
+        "x": 10.0,
+        "y": 6.22,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Optofluidic Three-Dimensional Micro/Nanofabrication",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.27,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "axion-dark-matter-quantum-sensors",
+          "nasa-maven-anomaly",
+          "cu45-superatom-co2-ethylene",
+          "transcranial-ultrasound-consciousness",
+          "comb-jellies-animal-tree-of-life"
+        ],
+        "source": "https://www.nature.com/articles/s41586-025-10033-x"
+      }
+    },
+    {
+      "id": "pairwise-comparison-fiber-bundles",
+      "label": "Mathematical framework for analyzing random pairwise comparison matrices using",
+      "path": "papers/pairwise-comparison-fiber-bundles.md",
+      "position": {
+        "x": 10.0,
+        "y": -5.8,
+        "z": -1.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#3F00BF",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Mathematical framework for analyzing random pairwise comparison matrices using",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.07,
+        "cross_domain": 0.25,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.75,
+        "conceptual_label": "Theory-Heavy",
+        "similar_papers": [
+          "jwst-red-nova-remnants",
+          "superfluid-to-supersolid-transition",
+          "alphafold-cryo-em-structure-prediction",
+          "emoticons-llm-silent-failures",
+          "agentic-ai-memory-hierarchies"
+        ],
+        "source": "'Index | Beyond the Quantum: A Quest for the Origin and Hidden Meaning of"
+      }
+    },
+    {
+      "id": "protein-tape-recorder-cytotape",
+      "label": "'CytoTape: A Protein Tape Recorder for Measuring Cellular Processes'",
+      "path": "papers/protein-tape-recorder-cytotape.md",
+      "position": {
+        "x": 10.0,
+        "y": -10.0,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "'CytoTape: A Protein Tape Recorder for Measuring Cellular Processes'",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.0,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "runaway-stars-milky-way",
+          "humanoid-robots-space-launch",
+          "theorem-ai-formal-verification",
+          "cu45-superatom-co2-ethylene",
+          "magnetic-superhighways-starburst-galaxy"
+        ],
+        "source": "https://phys.org/news/2026-01-protein-tape-enables-scientists-decode.html"
+      }
+    },
+    {
+      "id": "quantum-atomic-light-synchronization",
+      "label": "\"Quantum mechanics research demonstrating that atoms cannot achieve complete synchronization of li...\"",
+      "path": "papers/quantum-atomic-light-synchronization.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#0000FF",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"Quantum mechanics research demonstrating that atoms cannot achieve complete synchronization of li...\"",
+        "date": "2026-02-07",
+        "tags": "[quantum, ai, space, physics]",
+        "connectivity": 0.13,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 1.0,
+        "conceptual_label": "Pure Theory",
+        "similar_papers": [
+          "karpathy-claude-code-skills",
+          "claude-code-community-skills",
+          "grok4-ai-benchmarks",
+          "woh-g64-dust-obscured-companion",
+          "humanitys-last-exam-benchmark"
+        ],
+        "source": "\"Source: Axios"
+      }
+    },
+    {
+      "id": "quantum-entangled-atomic-sensors",
+      "label": "Multiparameter Estimation with Entangled Atomic Sensor Arrays",
+      "path": "papers/quantum-entangled-atomic-sensors.md",
+      "position": {
+        "x": 10.0,
+        "y": 2.01,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#0000FF",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Multiparameter Estimation with Entangled Atomic Sensor Arrays",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.2,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 1.0,
+        "conceptual_label": "Pure Theory",
+        "similar_papers": [
+          "mistral-open-source-ai-strategy",
+          "artificial-photosynthesis-living-energy",
+          "super-earth-magnetic-protection-magma",
+          "dna-origami-2d-semiconductor-patterning",
+          "brain-protein-neurodegeneration"
+        ],
+        "source": "https://www.sciencedaily.com/releases/2026/01/260126075846.htm"
+      }
+    },
+    {
+      "id": "quantum-entanglement-speed-measurement",
+      "label": "Unprecedented Measurement Reveals Quantum Entanglement Speed",
+      "path": "papers/quantum-entanglement-speed-measurement.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#0000FF",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Unprecedented Measurement Reveals Quantum Entanglement Speed",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.13,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 1.0,
+        "conceptual_label": "Pure Theory",
+        "similar_papers": [
+          "nebuchadnezzar-babylonian-texts",
+          "rethinking-exoplanet-habitability",
+          "2026-02-09-unique-investment-opportunities-research",
+          "artemis-ii-laser-comms",
+          "international-year-quantum-2025"
+        ],
+        "source": "https://cursus.edu/en/35347/unprecedented-measurement-reveals-quantum-speed-beyond-human-understanding"
+      }
+    },
+    {
+      "id": "quantum-teleportation-logic-gates",
+      "label": "Quantum Teleportation of Logic Gates Between Computers",
+      "path": "papers/quantum-teleportation-logic-gates.md",
+      "position": {
+        "x": 10.0,
+        "y": 2.01,
+        "z": 1.08
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#0000FF",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Quantum Teleportation of Logic Gates Between Computers",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.2,
+        "cross_domain": 0.38,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 1.0,
+        "conceptual_label": "Pure Theory",
+        "similar_papers": [
+          "mom-z14-farthest-galaxy",
+          "llamaagents-builder",
+          "tidally-locked-exoplanet-habitability",
+          "helimagnetism-ferromagnetism-mode-locking",
+          "humanoid-robots-space-launch"
+        ],
+        "source": "https://3dvf.com/en/scientists-have-managed-to-teleport-calculations-between-computers-and-computing-could-change/"
+      }
+    },
+    {
+      "id": "rethinking-exoplanet-habitability",
+      "label": "Rethinking Where Life Could Exist Beyond Earth",
+      "path": "papers/rethinking-exoplanet-habitability.md",
+      "position": {
+        "x": 10.0,
+        "y": 2.01,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Rethinking Where Life Could Exist Beyond Earth",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.2,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "jwst-dark-matter-map",
+          "llm-training-methodology-changes",
+          "helimagnetism-ferromagnetism-mode-locking",
+          "quantum-entanglement-speed-measurement",
+          "yann-lecun-agi-world-models"
+        ],
+        "source": "https://phys.org/news/2026-01-rethinking-life-earth.html"
+      }
+    },
+    {
+      "id": "runaway-stars-milky-way",
+      "label": "Massive Runaway Stars in the Milky Way",
+      "path": "papers/runaway-stars-milky-way.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": 1.08
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Massive Runaway Stars in the Milky Way",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.13,
+        "cross_domain": 0.38,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "openai-codex-agent-loop",
+          "anthropic-principle-fine-tuning",
+          "protein-tape-recorder-cytotape",
+          "circleci-ai-cicd-validation",
+          "superfluid-to-supersolid-transition"
+        ],
+        "source": "https://phys.org/news/2026-01-massive-runaway-stars-milky-explores.html"
+      }
+    },
+    {
+      "id": "scaling-agent-systems",
+      "label": "Towards a Science of Scaling Agent Systems",
+      "path": "papers/scaling-agent-systems.md",
+      "position": {
+        "x": 10.0,
+        "y": 6.22,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#FF0000",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Towards a Science of Scaling Agent Systems",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.27,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.0,
+        "conceptual_label": "Pure Applied",
+        "similar_papers": [
+          "helimagnetism-ferromagnetism-mode-locking",
+          "jwst-red-nova-remnants",
+          "llm-training-methodology-changes",
+          "mom-z14-farthest-galaxy",
+          "dna-origami-2d-semiconductor-patterning"
+        ],
+        "source": "https://arxiv.org/abs/2512.08296"
+      }
+    },
+    {
+      "id": "sentinel-1-ice-sheets",
+      "label": "Sentinel-1's Decade of Data Over Shifting Ice Sheets",
+      "path": "papers/sentinel-1-ice-sheets.md",
+      "position": {
+        "x": 10.0,
+        "y": -10.0,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Sentinel-1's Decade of Data Over Shifting Ice Sheets",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.0,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "cosmic-strings-time-travel",
+          "ocean-calcium-climate-mystery-66my",
+          "tidally-locked-exoplanet-habitability",
+          "superfluid-to-supersolid-transition",
+          "circleci-ai-cicd-validation"
+        ],
+        "source": "https://www.esa.int/Applications/Observing_the_Earth/Copernicus/Sentinel-1/Sentinel-1_s_decade_of_essential_data_over_shifting_ice_sheets"
+      }
+    },
+    {
+      "id": "silicon-quantum-computing-platform",
+      "label": "Silicon as the Bedrock of Quantum Computers",
+      "path": "papers/silicon-quantum-computing-platform.md",
+      "position": {
+        "x": 10.0,
+        "y": 2.01,
+        "z": 1.08
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#0000FF",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Silicon as the Bedrock of Quantum Computers",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.2,
+        "cross_domain": 0.38,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 1.0,
+        "conceptual_label": "Pure Theory",
+        "similar_papers": [
+          "alfven-waves-aurora",
+          "diffraction-gratings-fourier-transforms",
+          "magnetic-superhighways-starburst-galaxy",
+          "superfluid-to-supersolid-transition",
+          "emu3-multimodal-next-token-prediction"
+        ],
+        "source": "https://physicsworld.com/a/could-silicon-become-the-bedrock-of-quantum-computers/"
+      }
+    },
+    {
+      "id": "sunspot-ar4366-x-class-flares",
+      "label": "\"Sunspot AR4366: 26 flares in 24hrs including X8\"",
+      "path": "papers/sunspot-ar4366-x-class-flares.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": -1.0
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"Sunspot AR4366: 26 flares in 24hrs including X8\"",
+        "date": "2026-02-07",
+        "tags": "[astrophysics, physics]",
+        "connectivity": 0.13,
+        "cross_domain": 0.25,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "yann-lecun-agi-world-models",
+          "llm-in-sandbox-agentic-intelligence",
+          "artificial-photosynthesis-living-energy",
+          "comb-jellies-animal-tree-of-life",
+          "protein-tape-recorder-cytotape"
+        ],
+        "source": "\"Source: X"
+      }
+    },
+    {
+      "id": "super-earth-magnetic-protection-magma",
+      "label": "Super-Earth Exoplanets Have Built-In Magnetic Protection from Magma Oceans",
+      "path": "papers/super-earth-magnetic-protection-magma.md",
+      "position": {
+        "x": 10.0,
+        "y": 2.01,
+        "z": 4.92
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Super-Earth Exoplanets Have Built-In Magnetic Protection from Magma Oceans",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.2,
+        "cross_domain": 0.62,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "testing-agent-skills-with-evals",
+          "tonggeometry-ai-math",
+          "mars-time-dilation-relativity",
+          "quantum-entangled-atomic-sensors",
+          "ai-anomaly-detection-hubble-archive"
+        ],
+        "source": "https://www.space.com/astronomy/exoplanets/super-earth-exoplanets-may-have-built-in-magnetic-protection-from-churning-magma-and-thats-good-news-for-life"
+      }
+    },
+    {
+      "id": "superfluid-to-supersolid-transition",
+      "label": "'Superfluids Observed Stopping: Superfluid-to-Supersolid Phase Transition'",
+      "path": "papers/superfluid-to-supersolid-transition.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": 4.92
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#0000FF",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "'Superfluids Observed Stopping: Superfluid-to-Supersolid Phase Transition'",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.13,
+        "cross_domain": 0.62,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 1.0,
+        "conceptual_label": "Pure Theory",
+        "similar_papers": [
+          "few-shot-prompting-agentic-coding",
+          "artemis-ii-laser-comms",
+          "runaway-stars-milky-way",
+          "anthropic-mcp-apps-claude-integrations",
+          "optofluidic-3d-nanofabrication"
+        ],
+        "source": "https://phys.org/news/2026-01-superfluids-indefinitely-physicists.html"
+      }
+    },
+    {
+      "id": "testing-agent-skills-with-evals",
+      "label": "Testing Agent Skills Systematically with Evals",
+      "path": "papers/testing-agent-skills-with-evals.md",
+      "position": {
+        "x": 10.0,
+        "y": 2.01,
+        "z": 4.92
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#FF0000",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Testing Agent Skills Systematically with Evals",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.2,
+        "cross_domain": 0.62,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.0,
+        "conceptual_label": "Pure Applied",
+        "similar_papers": [
+          "grok4-ai-benchmarks",
+          "tonggeometry-olympiad-tree-search",
+          "cosmic-strings-time-travel",
+          "super-earth-magnetic-protection-magma",
+          "pairwise-comparison-fiber-bundles"
+        ],
+        "source": "https://developers.openai.com/blog/eval-skills/"
+      }
+    },
+    {
+      "id": "theorem-ai-formal-verification",
+      "label": "'Theorem: Formal Verification for AI-Generated Code'",
+      "path": "papers/theorem-ai-formal-verification.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": 1.08
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#0000FF",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "'Theorem: Formal Verification for AI-Generated Code'",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.13,
+        "cross_domain": 0.38,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 1.0,
+        "conceptual_label": "Pure Theory",
+        "similar_papers": [
+          "protein-tape-recorder-cytotape",
+          "few-shot-prompting-agentic-coding",
+          "humanoid-robots-space-launch",
+          "dna-origami-2d-semiconductor-patterning",
+          "anthropic-disempowerment-patterns"
+        ],
+        "source": "https://venturebeat.com/security/theorem-wants-to-stop-ai-written-bugs-before-they-ship-and-just-raised-usd6m"
+      }
+    },
+    {
+      "id": "tidally-locked-exoplanet-habitability",
+      "label": "\"Tidally locked exoplanets could sustain liquid water on night side; subglacial lakes extend habit...\"",
+      "path": "papers/tidally-locked-exoplanet-habitability.md",
+      "position": {
+        "x": 10.0,
+        "y": 2.01,
+        "z": 1.08
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"Tidally locked exoplanets could sustain liquid water on night side; subglacial lakes extend habit...\"",
+        "date": "2026-02-07",
+        "tags": "[ai, astrophysics, biology]",
+        "connectivity": 0.2,
+        "cross_domain": 0.38,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "axion-dark-matter-quantum-sensors",
+          "anthropic-mcp-apps-claude-integrations",
+          "quantum-teleportation-logic-gates",
+          "jwst-early-universe-black-holes",
+          "nasa-maven-anomaly"
+        ],
+        "source": "\"Source: Phys.org"
+      }
+    },
+    {
+      "id": "tonggeometry-ai-math",
+      "label": "'TongGeometry: Chinese AI System for IMO-Level Geometry'",
+      "path": "papers/tonggeometry-ai-math.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#FF0000",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "'TongGeometry: Chinese AI System for IMO-Level Geometry'",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.13,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.0,
+        "conceptual_label": "Pure Applied",
+        "similar_papers": [
+          "humanoid-robots-space-launch",
+          "ocean-calcium-climate-mystery-66my",
+          "super-earth-magnetic-protection-magma",
+          "woh-g64-red-supergiant-mystery",
+          "brain-protein-neurodegeneration"
+        ],
+        "source": "https://www.scmp.com/news/china/science/article/3341517/chinese-ai-goes-next-level-geometry-top-us-maths-olympiad"
+      }
+    },
+    {
+      "id": "tonggeometry-olympiad-tree-search",
+      "label": "'TongGeometry: Neuro-Symbolic Olympiad Geometry via Guided Tree Search'",
+      "path": "papers/tonggeometry-olympiad-tree-search.md",
+      "position": {
+        "x": 10.0,
+        "y": -5.8,
+        "z": 4.92
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "'TongGeometry: Neuro-Symbolic Olympiad Geometry via Guided Tree Search'",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.07,
+        "cross_domain": 0.62,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "axion-dark-matter-quantum-sensors",
+          "testing-agent-skills-with-evals",
+          "brain-protein-neurodegeneration",
+          "magnetic-superhighways-starburst-galaxy",
+          "cosmic-strings-time-travel"
+        ],
+        "source": "https://www.nature.com/articles/s42256-025-01164-x"
+      }
+    },
+    {
+      "id": "transcranial-ultrasound-consciousness",
+      "label": "Transcranial Focused Ultrasound as a Tool for Consciousness Research",
+      "path": "papers/transcranial-ultrasound-consciousness.md",
+      "position": {
+        "x": 10.0,
+        "y": -10.0,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#FF0000",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Transcranial Focused Ultrasound as a Tool for Consciousness Research",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.0,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.0,
+        "conceptual_label": "Pure Applied",
+        "similar_papers": [
+          "cu45-superatom-carbon-recycling",
+          "diffraction-gratings-fourier-transforms",
+          "optofluidic-3d-nanofabrication",
+          "theorem-ai-formal-verification",
+          "cosmic-strings-time-travel"
+        ],
+        "source": "https://news.mit.edu/2026/new-tool-could-tell-us-how-consciousness-works-0112"
+      }
+    },
+    {
+      "id": "usaf-stealthy-electromagnetic-attack",
+      "label": "\"ASPI: Evidence of USAF secret stealthy uncrewed electromagnetic attack aircraft (P-AEA)\"",
+      "path": "papers/usaf-stealthy-electromagnetic-attack.md",
+      "position": {
+        "x": 10.0,
+        "y": -10.0,
+        "z": -3.08
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"ASPI: Evidence of USAF secret stealthy uncrewed electromagnetic attack aircraft (P-AEA)\"",
+        "date": "2026-02-07",
+        "tags": "[ai]",
+        "connectivity": 0.0,
+        "cross_domain": 0.12,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "graphitic-polytype-switching-nanocavities",
+          "emu3-multimodal-next-token-prediction",
+          "beyond-the-quantum-pilot-wave-theory",
+          "mars-time-dilation-relativity",
+          "ocean-calcium-climate-mystery-66my"
+        ],
+        "source": "\"Source: The Strategist | ASPI's analysis and commentary site"
+      }
+    },
+    {
+      "id": "webb-cosmic-question-mark-gravitational-lens",
+      "label": "Webb Telescope Reveals Cosmic Question Mark via Rare Gravitational Lens",
+      "path": "papers/webb-cosmic-question-mark-gravitational-lens.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Webb Telescope Reveals Cosmic Question Mark via Rare Gravitational Lens",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.13,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "agentic-ai-memory-hierarchies",
+          "graphitic-polytype-switching-nanocavities",
+          "llamaagents-builder",
+          "helimagnetism-ferromagnetism-mode-locking",
+          "jwst-red-nova-remnants"
+        ],
+        "source": "https://science.nasa.gov/missions/webb/nasas-webb-reveals-distorted-galaxy-forming-cosmic-question-mark/"
+      }
+    },
+    {
+      "id": "webgpu-claude-skill-threejs",
+      "label": "WebGPU Claude Skill for Three.js Development",
+      "path": "papers/webgpu-claude-skill-threejs.md",
+      "position": {
+        "x": 10.0,
+        "y": -5.8,
+        "z": 4.92
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#FF0000",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "WebGPU Claude Skill for Three.js Development",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.07,
+        "cross_domain": 0.62,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.0,
+        "conceptual_label": "Pure Applied",
+        "similar_papers": [
+          "openai-applied-compute-startup",
+          "beyond-the-quantum-pilot-wave-theory",
+          "mcl1-myc-cancer-metabolism",
+          "amorphous-materials-3d-atomic-structure",
+          "llamaagents-builder"
+        ],
+        "source": "https://github.com/dgreenheck/webgpu-claude-skill"
+      }
+    },
+    {
+      "id": "woh-g64-dust-obscured-companion",
+      "label": "\"WOH G64 in LMC appeared to vanish but obscured by ejected dust; SALT found hot companion\"",
+      "path": "papers/woh-g64-dust-obscured-companion.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": -1.0
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "\"WOH G64 in LMC appeared to vanish but obscured by ejected dust; SALT found hot companion\"",
+        "date": "2026-02-07",
+        "tags": "[astrophysics, physics]",
+        "connectivity": 0.13,
+        "cross_domain": 0.25,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "alphafold-cryo-em-structure-prediction",
+          "emu3-multimodal-next-token-prediction",
+          "quantum-atomic-light-synchronization",
+          "artificial-photosynthesis-living-energy",
+          "tonggeometry-ai-math"
+        ],
+        "source": "\"Source: The Daily Galaxy"
+      }
+    },
+    {
+      "id": "woh-g64-red-supergiant-mystery",
+      "label": "WOH G64 Confirmed Still a Red Supergiant",
+      "path": "papers/woh-g64-red-supergiant-mystery.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": 3.0
+      },
+      "style": {
+        "size": 0.51,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "WOH G64 Confirmed Still a Red Supergiant",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.13,
+        "cross_domain": 0.5,
+        "completion": 0.67,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "tonggeometry-ai-math",
+          "anthropic-disempowerment-patterns",
+          "operational-data-ai-agents",
+          "claude-code-community-skills",
+          "few-shot-prompting-agentic-coding"
+        ],
+        "source": "https://phys.org/news/2026-01-massive-star-woh-g64-red.html"
+      }
+    },
+    {
+      "id": "yann-lecun-agi-world-models",
+      "label": "Yann LeCun on AGI and the Digital Commons",
+      "path": "papers/yann-lecun-agi-world-models.md",
+      "position": {
+        "x": 10.0,
+        "y": -2.19,
+        "z": 3.0
+      },
+      "style": {
+        "size": 2.0,
+        "color": "#7F007F",
+        "opacity": 1.0,
+        "outline": "solid"
+      },
+      "metadata": {
+        "title": "Yann LeCun on AGI and the Digital Commons",
+        "date": "2026-02-07",
+        "tags": "",
+        "connectivity": 0.13,
+        "cross_domain": 0.5,
+        "completion": 1.0,
+        "temporal": 1.0,
+        "recency": 1.0,
+        "conceptual_depth": 0.5,
+        "conceptual_label": "Balanced",
+        "similar_papers": [
+          "mcl1-myc-cancer-metabolism",
+          "rethinking-exoplanet-habitability",
+          "claude-code-community-skills",
+          "ocean-calcium-climate-mystery-66my",
+          "langchain-deep-agents-context-management"
+        ],
+        "source": "https://www.forbes.com/sites/johnwerner/2026/01/27/yann-lecun-on-artificial-general-intelligence-and-the-digital-commons/"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "2026-02-09-unique-investment-opportunities-research",
+      "target": "mistral-open-source-ai-strategy",
+      "weight": 1
+    },
+    {
+      "source": "2026-02-09-unique-investment-opportunities-research",
+      "target": "jwst-red-nova-remnants",
+      "weight": 1
+    },
+    {
+      "source": "2026-02-09-unique-investment-opportunities-research",
+      "target": "grok4-ai-benchmarks",
+      "weight": 1
+    },
+    {
+      "source": "2026-02-09-unique-investment-opportunities-research",
+      "target": "openai-codex-agent-loop",
+      "weight": 1
+    },
+    {
+      "source": "2026-02-09-unique-investment-opportunities-research",
+      "target": "agentic-ai-memory-hierarchies",
+      "weight": 1
+    },
+    {
+      "source": "agentic-ai-memory-hierarchies",
+      "target": "oman-artemis-accords",
+      "weight": 1
+    },
+    {
+      "source": "agentic-ai-memory-hierarchies",
+      "target": "mcl1-myc-cancer-metabolism",
+      "weight": 1
+    },
+    {
+      "source": "agentic-ai-memory-hierarchies",
+      "target": "openai-applied-compute-startup",
+      "weight": 1
+    },
+    {
+      "source": "agentic-ai-memory-hierarchies",
+      "target": "artificial-photosynthesis-living-energy",
+      "weight": 1
+    },
+    {
+      "source": "agentic-ai-memory-hierarchies",
+      "target": "2026-02-09-unique-investment-opportunities-research",
+      "weight": 1
+    },
+    {
+      "source": "ai-anomaly-detection-hubble-archive",
+      "target": "tonggeometry-ai-math",
+      "weight": 1
+    },
+    {
+      "source": "ai-anomaly-detection-hubble-archive",
+      "target": "operational-data-ai-agents",
+      "weight": 1
+    },
+    {
+      "source": "ai-anomaly-detection-hubble-archive",
+      "target": "llm-in-sandbox-agentic-intelligence",
+      "weight": 1
+    },
+    {
+      "source": "ai-anomaly-detection-hubble-archive",
+      "target": "cosmic-strings-time-travel",
+      "weight": 1
+    },
+    {
+      "source": "ai-anomaly-detection-hubble-archive",
+      "target": "dna-origami-2d-semiconductor-patterning",
+      "weight": 1
+    },
+    {
+      "source": "alfven-waves-aurora",
+      "target": "silicon-quantum-computing-platform",
+      "weight": 1
+    },
+    {
+      "source": "alfven-waves-aurora",
+      "target": "cu45-superatom-co2-ethylene",
+      "weight": 1
+    },
+    {
+      "source": "alfven-waves-aurora",
+      "target": "grb-250314a-ancient-signal",
+      "weight": 1
+    },
+    {
+      "source": "alfven-waves-aurora",
+      "target": "cisa-chatgpt-data-leak",
+      "weight": 1
+    },
+    {
+      "source": "alfven-waves-aurora",
+      "target": "diffraction-gratings-fourier-transforms",
+      "weight": 1
+    },
+    {
+      "source": "alphafold-cryo-em-structure-prediction",
+      "target": "woh-g64-dust-obscured-companion",
+      "weight": 1
+    },
+    {
+      "source": "alphafold-cryo-em-structure-prediction",
+      "target": "artemis-ii-laser-comms",
+      "weight": 1
+    },
+    {
+      "source": "alphafold-cryo-em-structure-prediction",
+      "target": "pairwise-comparison-fiber-bundles",
+      "weight": 1
+    },
+    {
+      "source": "alphafold-cryo-em-structure-prediction",
+      "target": "tonggeometry-olympiad-tree-search",
+      "weight": 1
+    },
+    {
+      "source": "alphafold-cryo-em-structure-prediction",
+      "target": "diffraction-gratings-fourier-transforms",
+      "weight": 1
+    },
+    {
+      "source": "amorphous-materials-3d-atomic-structure",
+      "target": "quantum-entangled-atomic-sensors",
+      "weight": 1
+    },
+    {
+      "source": "amorphous-materials-3d-atomic-structure",
+      "target": "diffraction-gratings-fourier-transforms",
+      "weight": 1
+    },
+    {
+      "source": "amorphous-materials-3d-atomic-structure",
+      "target": "webgpu-claude-skill-threejs",
+      "weight": 1
+    },
+    {
+      "source": "amorphous-materials-3d-atomic-structure",
+      "target": "brain-protein-neurodegeneration",
+      "weight": 1
+    },
+    {
+      "source": "amorphous-materials-3d-atomic-structure",
+      "target": "tonggeometry-ai-math",
+      "weight": 1
+    },
+    {
+      "source": "anthropic-disempowerment-patterns",
+      "target": "woh-g64-red-supergiant-mystery",
+      "weight": 1
+    },
+    {
+      "source": "anthropic-disempowerment-patterns",
+      "target": "cosmic-strings-time-travel",
+      "weight": 1
+    },
+    {
+      "source": "anthropic-disempowerment-patterns",
+      "target": "theorem-ai-formal-verification",
+      "weight": 1
+    },
+    {
+      "source": "anthropic-disempowerment-patterns",
+      "target": "llm-in-sandbox-agentic-intelligence",
+      "weight": 1
+    },
+    {
+      "source": "anthropic-disempowerment-patterns",
+      "target": "transcranial-ultrasound-consciousness",
+      "weight": 1
+    },
+    {
+      "source": "anthropic-mcp-apps-claude-integrations",
+      "target": "jwst-red-nova-remnants",
+      "weight": 1
+    },
+    {
+      "source": "anthropic-mcp-apps-claude-integrations",
+      "target": "tidally-locked-exoplanet-habitability",
+      "weight": 1
+    },
+    {
+      "source": "anthropic-mcp-apps-claude-integrations",
+      "target": "superfluid-to-supersolid-transition",
+      "weight": 1
+    },
+    {
+      "source": "anthropic-mcp-apps-claude-integrations",
+      "target": "magnetic-superhighways-starburst-galaxy",
+      "weight": 1
+    },
+    {
+      "source": "anthropic-mcp-apps-claude-integrations",
+      "target": "helimagnetism-ferromagnetism-mode-locking",
+      "weight": 1
+    },
+    {
+      "source": "anthropic-principle-fine-tuning",
+      "target": "few-shot-prompting-agentic-coding",
+      "weight": 1
+    },
+    {
+      "source": "anthropic-principle-fine-tuning",
+      "target": "beyond-the-quantum-pilot-wave-theory",
+      "weight": 1
+    },
+    {
+      "source": "anthropic-principle-fine-tuning",
+      "target": "llamaagents-builder",
+      "weight": 1
+    },
+    {
+      "source": "anthropic-principle-fine-tuning",
+      "target": "runaway-stars-milky-way",
+      "weight": 1
+    },
+    {
+      "source": "anthropic-principle-fine-tuning",
+      "target": "llm-in-sandbox-agentic-intelligence",
+      "weight": 1
+    },
+    {
+      "source": "anthropic-view-universe-nyas",
+      "target": "artemis-ii-laser-comms",
+      "weight": 1
+    },
+    {
+      "source": "anthropic-view-universe-nyas",
+      "target": "ocean-calcium-climate-mystery-66my",
+      "weight": 1
+    },
+    {
+      "source": "anthropic-view-universe-nyas",
+      "target": "agentic-ai-memory-hierarchies",
+      "weight": 1
+    },
+    {
+      "source": "anthropic-view-universe-nyas",
+      "target": "quantum-teleportation-logic-gates",
+      "weight": 1
+    },
+    {
+      "source": "anthropic-view-universe-nyas",
+      "target": "mcl1-myc-cancer-metabolism",
+      "weight": 1
+    },
+    {
+      "source": "artemis-ii-laser-comms",
+      "target": "diffraction-gratings-fourier-transforms",
+      "weight": 1
+    },
+    {
+      "source": "artemis-ii-laser-comms",
+      "target": "jwst-dark-matter-map",
+      "weight": 1
+    },
+    {
+      "source": "artemis-ii-laser-comms",
+      "target": "superfluid-to-supersolid-transition",
+      "weight": 1
+    },
+    {
+      "source": "artemis-ii-laser-comms",
+      "target": "alphafold-cryo-em-structure-prediction",
+      "weight": 1
+    },
+    {
+      "source": "artemis-ii-laser-comms",
+      "target": "magnetic-superhighways-starburst-galaxy",
+      "weight": 1
+    },
+    {
+      "source": "artificial-photosynthesis-living-energy",
+      "target": "cosmic-strings-time-travel",
+      "weight": 1
+    },
+    {
+      "source": "artificial-photosynthesis-living-energy",
+      "target": "quantum-entangled-atomic-sensors",
+      "weight": 1
+    },
+    {
+      "source": "artificial-photosynthesis-living-energy",
+      "target": "nebuchadnezzar-babylonian-texts",
+      "weight": 1
+    },
+    {
+      "source": "artificial-photosynthesis-living-energy",
+      "target": "woh-g64-dust-obscured-companion",
+      "weight": 1
+    },
+    {
+      "source": "artificial-photosynthesis-living-energy",
+      "target": "agentic-ai-memory-hierarchies",
+      "weight": 1
+    },
+    {
+      "source": "axion-dark-matter-quantum-sensors",
+      "target": "optofluidic-3d-nanofabrication",
+      "weight": 1
+    },
+    {
+      "source": "axion-dark-matter-quantum-sensors",
+      "target": "llm-in-sandbox-agentic-intelligence",
+      "weight": 1
+    },
+    {
+      "source": "axion-dark-matter-quantum-sensors",
+      "target": "llamaagents-builder",
+      "weight": 1
+    },
+    {
+      "source": "axion-dark-matter-quantum-sensors",
+      "target": "circleci-ai-cicd-validation",
+      "weight": 1
+    },
+    {
+      "source": "axion-dark-matter-quantum-sensors",
+      "target": "dna-origami-2d-semiconductor-patterning",
+      "weight": 1
+    },
+    {
+      "source": "beyond-the-quantum-pilot-wave-theory",
+      "target": "anthropic-principle-fine-tuning",
+      "weight": 1
+    },
+    {
+      "source": "beyond-the-quantum-pilot-wave-theory",
+      "target": "usaf-stealthy-electromagnetic-attack",
+      "weight": 1
+    },
+    {
+      "source": "beyond-the-quantum-pilot-wave-theory",
+      "target": "webgpu-claude-skill-threejs",
+      "weight": 1
+    },
+    {
+      "source": "beyond-the-quantum-pilot-wave-theory",
+      "target": "international-year-quantum-2025",
+      "weight": 1
+    },
+    {
+      "source": "beyond-the-quantum-pilot-wave-theory",
+      "target": "oman-artemis-accords",
+      "weight": 1
+    },
+    {
+      "source": "brain-protein-neurodegeneration",
+      "target": "tonggeometry-olympiad-tree-search",
+      "weight": 1
+    },
+    {
+      "source": "brain-protein-neurodegeneration",
+      "target": "super-earth-magnetic-protection-magma",
+      "weight": 1
+    },
+    {
+      "source": "brain-protein-neurodegeneration",
+      "target": "karpathy-claude-code-skills",
+      "weight": 1
+    },
+    {
+      "source": "brain-protein-neurodegeneration",
+      "target": "nasa-maven-anomaly",
+      "weight": 1
+    },
+    {
+      "source": "brain-protein-neurodegeneration",
+      "target": "tonggeometry-ai-math",
+      "weight": 1
+    },
+    {
+      "source": "circleci-ai-cicd-validation",
+      "target": "runaway-stars-milky-way",
+      "weight": 1
+    },
+    {
+      "source": "circleci-ai-cicd-validation",
+      "target": "axion-dark-matter-quantum-sensors",
+      "weight": 1
+    },
+    {
+      "source": "circleci-ai-cicd-validation",
+      "target": "mistral-open-source-ai-strategy",
+      "weight": 1
+    },
+    {
+      "source": "circleci-ai-cicd-validation",
+      "target": "openai-applied-compute-startup",
+      "weight": 1
+    },
+    {
+      "source": "circleci-ai-cicd-validation",
+      "target": "grb-250314a-ancient-signal",
+      "weight": 1
+    },
+    {
+      "source": "cisa-chatgpt-data-leak",
+      "target": "ocean-calcium-climate-mystery-66my",
+      "weight": 1
+    },
+    {
+      "source": "cisa-chatgpt-data-leak",
+      "target": "comb-jellies-animal-tree-of-life",
+      "weight": 1
+    },
+    {
+      "source": "cisa-chatgpt-data-leak",
+      "target": "cu45-superatom-co2-ethylene",
+      "weight": 1
+    },
+    {
+      "source": "cisa-chatgpt-data-leak",
+      "target": "diffraction-gratings-fourier-transforms",
+      "weight": 1
+    },
+    {
+      "source": "cisa-chatgpt-data-leak",
+      "target": "few-shot-prompting-agentic-coding",
+      "weight": 1
+    },
+    {
+      "source": "claude-code-community-skills",
+      "target": "openai-applied-compute-startup",
+      "weight": 1
+    },
+    {
+      "source": "claude-code-community-skills",
+      "target": "woh-g64-red-supergiant-mystery",
+      "weight": 1
+    },
+    {
+      "source": "claude-code-community-skills",
+      "target": "yann-lecun-agi-world-models",
+      "weight": 1
+    },
+    {
+      "source": "claude-code-community-skills",
+      "target": "artemis-ii-laser-comms",
+      "weight": 1
+    },
+    {
+      "source": "claude-code-community-skills",
+      "target": "circleci-ai-cicd-validation",
+      "weight": 1
+    },
+    {
+      "source": "claude-code-swiftui-skill-patterns",
+      "target": "operational-data-ai-agents",
+      "weight": 1
+    },
+    {
+      "source": "claude-code-swiftui-skill-patterns",
+      "target": "fast-radio-bursts-binary-star-origin",
+      "weight": 1
+    },
+    {
+      "source": "claude-code-swiftui-skill-patterns",
+      "target": "humanitys-last-exam-benchmark",
+      "weight": 1
+    },
+    {
+      "source": "claude-code-swiftui-skill-patterns",
+      "target": "jwst-dark-matter-map",
+      "weight": 1
+    },
+    {
+      "source": "claude-code-swiftui-skill-patterns",
+      "target": "anthropic-principle-fine-tuning",
+      "weight": 1
+    },
+    {
+      "source": "comb-jellies-animal-tree-of-life",
+      "target": "cisa-chatgpt-data-leak",
+      "weight": 1
+    },
+    {
+      "source": "comb-jellies-animal-tree-of-life",
+      "target": "grok4-ai-benchmarks",
+      "weight": 1
+    },
+    {
+      "source": "comb-jellies-animal-tree-of-life",
+      "target": "operational-data-ai-agents",
+      "weight": 1
+    },
+    {
+      "source": "comb-jellies-animal-tree-of-life",
+      "target": "optofluidic-3d-nanofabrication",
+      "weight": 1
+    },
+    {
+      "source": "comb-jellies-animal-tree-of-life",
+      "target": "anthropic-mcp-apps-claude-integrations",
+      "weight": 1
+    },
+    {
+      "source": "cosmic-strings-time-travel",
+      "target": "testing-agent-skills-with-evals",
+      "weight": 1
+    },
+    {
+      "source": "cosmic-strings-time-travel",
+      "target": "artificial-photosynthesis-living-energy",
+      "weight": 1
+    },
+    {
+      "source": "cosmic-strings-time-travel",
+      "target": "helimagnetism-ferromagnetism-mode-locking",
+      "weight": 1
+    },
+    {
+      "source": "cosmic-strings-time-travel",
+      "target": "tonggeometry-olympiad-tree-search",
+      "weight": 1
+    },
+    {
+      "source": "cosmic-strings-time-travel",
+      "target": "anthropic-disempowerment-patterns",
+      "weight": 1
+    },
+    {
+      "source": "cu45-superatom-carbon-recycling",
+      "target": "llm-training-methodology-changes",
+      "weight": 1
+    },
+    {
+      "source": "cu45-superatom-carbon-recycling",
+      "target": "mom-z14-farthest-galaxy",
+      "weight": 1
+    },
+    {
+      "source": "cu45-superatom-carbon-recycling",
+      "target": "tonggeometry-ai-math",
+      "weight": 1
+    },
+    {
+      "source": "cu45-superatom-carbon-recycling",
+      "target": "artificial-photosynthesis-living-energy",
+      "weight": 1
+    },
+    {
+      "source": "cu45-superatom-carbon-recycling",
+      "target": "webgpu-claude-skill-threejs",
+      "weight": 1
+    },
+    {
+      "source": "cu45-superatom-co2-ethylene",
+      "target": "alfven-waves-aurora",
+      "weight": 1
+    },
+    {
+      "source": "cu45-superatom-co2-ethylene",
+      "target": "cisa-chatgpt-data-leak",
+      "weight": 1
+    },
+    {
+      "source": "cu45-superatom-co2-ethylene",
+      "target": "optofluidic-3d-nanofabrication",
+      "weight": 1
+    },
+    {
+      "source": "cu45-superatom-co2-ethylene",
+      "target": "protein-tape-recorder-cytotape",
+      "weight": 1
+    },
+    {
+      "source": "cu45-superatom-co2-ethylene",
+      "target": "emu3-multimodal-next-token-prediction",
+      "weight": 1
+    },
+    {
+      "source": "diffraction-gratings-fourier-transforms",
+      "target": "transcranial-ultrasound-consciousness",
+      "weight": 1
+    },
+    {
+      "source": "diffraction-gratings-fourier-transforms",
+      "target": "dna-origami-2d-semiconductor-patterning",
+      "weight": 1
+    },
+    {
+      "source": "diffraction-gratings-fourier-transforms",
+      "target": "cisa-chatgpt-data-leak",
+      "weight": 1
+    },
+    {
+      "source": "diffraction-gratings-fourier-transforms",
+      "target": "emu3-multimodal-next-token-prediction",
+      "weight": 1
+    },
+    {
+      "source": "diffraction-gratings-fourier-transforms",
+      "target": "silicon-quantum-computing-platform",
+      "weight": 1
+    },
+    {
+      "source": "dna-origami-2d-semiconductor-patterning",
+      "target": "axion-dark-matter-quantum-sensors",
+      "weight": 1
+    },
+    {
+      "source": "dna-origami-2d-semiconductor-patterning",
+      "target": "theorem-ai-formal-verification",
+      "weight": 1
+    },
+    {
+      "source": "dna-origami-2d-semiconductor-patterning",
+      "target": "quantum-entangled-atomic-sensors",
+      "weight": 1
+    },
+    {
+      "source": "dna-origami-2d-semiconductor-patterning",
+      "target": "llm-training-methodology-changes",
+      "weight": 1
+    },
+    {
+      "source": "dna-origami-2d-semiconductor-patterning",
+      "target": "ai-anomaly-detection-hubble-archive",
+      "weight": 1
+    },
+    {
+      "source": "emoticons-llm-silent-failures",
+      "target": "jwst-red-nova-remnants",
+      "weight": 1
+    },
+    {
+      "source": "emoticons-llm-silent-failures",
+      "target": "pairwise-comparison-fiber-bundles",
+      "weight": 1
+    },
+    {
+      "source": "emoticons-llm-silent-failures",
+      "target": "transcranial-ultrasound-consciousness",
+      "weight": 1
+    },
+    {
+      "source": "emoticons-llm-silent-failures",
+      "target": "grb-250314a-ancient-signal",
+      "weight": 1
+    },
+    {
+      "source": "emoticons-llm-silent-failures",
+      "target": "rethinking-exoplanet-habitability",
+      "weight": 1
+    },
+    {
+      "source": "emu3-multimodal-next-token-prediction",
+      "target": "fast-radio-bursts-binary-star-origin",
+      "weight": 1
+    },
+    {
+      "source": "emu3-multimodal-next-token-prediction",
+      "target": "usaf-stealthy-electromagnetic-attack",
+      "weight": 1
+    },
+    {
+      "source": "emu3-multimodal-next-token-prediction",
+      "target": "woh-g64-dust-obscured-companion",
+      "weight": 1
+    },
+    {
+      "source": "emu3-multimodal-next-token-prediction",
+      "target": "diffraction-gratings-fourier-transforms",
+      "weight": 1
+    },
+    {
+      "source": "emu3-multimodal-next-token-prediction",
+      "target": "cu45-superatom-co2-ethylene",
+      "weight": 1
+    },
+    {
+      "source": "fast-radio-bursts-binary-star-origin",
+      "target": "claude-code-swiftui-skill-patterns",
+      "weight": 1
+    },
+    {
+      "source": "fast-radio-bursts-binary-star-origin",
+      "target": "operational-data-ai-agents",
+      "weight": 1
+    },
+    {
+      "source": "fast-radio-bursts-binary-star-origin",
+      "target": "emu3-multimodal-next-token-prediction",
+      "weight": 1
+    },
+    {
+      "source": "fast-radio-bursts-binary-star-origin",
+      "target": "few-shot-prompting-agentic-coding",
+      "weight": 1
+    },
+    {
+      "source": "fast-radio-bursts-binary-star-origin",
+      "target": "karpathy-claude-code-skills",
+      "weight": 1
+    },
+    {
+      "source": "few-shot-prompting-agentic-coding",
+      "target": "anthropic-principle-fine-tuning",
+      "weight": 1
+    },
+    {
+      "source": "few-shot-prompting-agentic-coding",
+      "target": "quantum-entangled-atomic-sensors",
+      "weight": 1
+    },
+    {
+      "source": "few-shot-prompting-agentic-coding",
+      "target": "mars-time-dilation-relativity",
+      "weight": 1
+    },
+    {
+      "source": "few-shot-prompting-agentic-coding",
+      "target": "superfluid-to-supersolid-transition",
+      "weight": 1
+    },
+    {
+      "source": "few-shot-prompting-agentic-coding",
+      "target": "openai-codex-agent-loop",
+      "weight": 1
+    },
+    {
+      "source": "graphitic-polytype-switching-nanocavities",
+      "target": "beyond-the-quantum-pilot-wave-theory",
+      "weight": 1
+    },
+    {
+      "source": "graphitic-polytype-switching-nanocavities",
+      "target": "usaf-stealthy-electromagnetic-attack",
+      "weight": 1
+    },
+    {
+      "source": "graphitic-polytype-switching-nanocavities",
+      "target": "webb-cosmic-question-mark-gravitational-lens",
+      "weight": 1
+    },
+    {
+      "source": "graphitic-polytype-switching-nanocavities",
+      "target": "amorphous-materials-3d-atomic-structure",
+      "weight": 1
+    },
+    {
+      "source": "graphitic-polytype-switching-nanocavities",
+      "target": "mars-time-dilation-relativity",
+      "weight": 1
+    },
+    {
+      "source": "grb-250314a-ancient-signal",
+      "target": "humanoid-robots-space-launch",
+      "weight": 1
+    },
+    {
+      "source": "grb-250314a-ancient-signal",
+      "target": "protein-tape-recorder-cytotape",
+      "weight": 1
+    },
+    {
+      "source": "grb-250314a-ancient-signal",
+      "target": "llamaagents-builder",
+      "weight": 1
+    },
+    {
+      "source": "grb-250314a-ancient-signal",
+      "target": "alfven-waves-aurora",
+      "weight": 1
+    },
+    {
+      "source": "grb-250314a-ancient-signal",
+      "target": "circleci-ai-cicd-validation",
+      "weight": 1
+    },
+    {
+      "source": "grok4-ai-benchmarks",
+      "target": "2026-02-09-unique-investment-opportunities-research",
+      "weight": 1
+    },
+    {
+      "source": "grok4-ai-benchmarks",
+      "target": "quantum-atomic-light-synchronization",
+      "weight": 1
+    },
+    {
+      "source": "grok4-ai-benchmarks",
+      "target": "openai-applied-compute-startup",
+      "weight": 1
+    },
+    {
+      "source": "grok4-ai-benchmarks",
+      "target": "nasa-maven-anomaly",
+      "weight": 1
+    },
+    {
+      "source": "grok4-ai-benchmarks",
+      "target": "comb-jellies-animal-tree-of-life",
+      "weight": 1
+    },
+    {
+      "source": "helimagnetism-ferromagnetism-mode-locking",
+      "target": "scaling-agent-systems",
+      "weight": 1
+    },
+    {
+      "source": "helimagnetism-ferromagnetism-mode-locking",
+      "target": "ocean-calcium-climate-mystery-66my",
+      "weight": 1
+    },
+    {
+      "source": "helimagnetism-ferromagnetism-mode-locking",
+      "target": "cosmic-strings-time-travel",
+      "weight": 1
+    },
+    {
+      "source": "helimagnetism-ferromagnetism-mode-locking",
+      "target": "webb-cosmic-question-mark-gravitational-lens",
+      "weight": 1
+    },
+    {
+      "source": "helimagnetism-ferromagnetism-mode-locking",
+      "target": "quantum-teleportation-logic-gates",
+      "weight": 1
+    },
+    {
+      "source": "humanitys-last-exam-benchmark",
+      "target": "mars-time-dilation-relativity",
+      "weight": 1
+    },
+    {
+      "source": "humanitys-last-exam-benchmark",
+      "target": "emoticons-llm-silent-failures",
+      "weight": 1
+    },
+    {
+      "source": "humanitys-last-exam-benchmark",
+      "target": "magnetic-superhighways-starburst-galaxy",
+      "weight": 1
+    },
+    {
+      "source": "humanitys-last-exam-benchmark",
+      "target": "quantum-atomic-light-synchronization",
+      "weight": 1
+    },
+    {
+      "source": "humanitys-last-exam-benchmark",
+      "target": "helimagnetism-ferromagnetism-mode-locking",
+      "weight": 1
+    },
+    {
+      "source": "humanoid-robots-space-launch",
+      "target": "llm-in-sandbox-agentic-intelligence",
+      "weight": 1
+    },
+    {
+      "source": "humanoid-robots-space-launch",
+      "target": "grb-250314a-ancient-signal",
+      "weight": 1
+    },
+    {
+      "source": "humanoid-robots-space-launch",
+      "target": "tidally-locked-exoplanet-habitability",
+      "weight": 1
+    },
+    {
+      "source": "humanoid-robots-space-launch",
+      "target": "protein-tape-recorder-cytotape",
+      "weight": 1
+    },
+    {
+      "source": "humanoid-robots-space-launch",
+      "target": "quantum-teleportation-logic-gates",
+      "weight": 1
+    },
+    {
+      "source": "international-year-quantum-2025",
+      "target": "beyond-the-quantum-pilot-wave-theory",
+      "weight": 1
+    },
+    {
+      "source": "international-year-quantum-2025",
+      "target": "cisa-chatgpt-data-leak",
+      "weight": 1
+    },
+    {
+      "source": "international-year-quantum-2025",
+      "target": "optofluidic-3d-nanofabrication",
+      "weight": 1
+    },
+    {
+      "source": "international-year-quantum-2025",
+      "target": "brain-protein-neurodegeneration",
+      "weight": 1
+    },
+    {
+      "source": "international-year-quantum-2025",
+      "target": "tonggeometry-olympiad-tree-search",
+      "weight": 1
+    },
+    {
+      "source": "jwst-dark-matter-map",
+      "target": "artemis-ii-laser-comms",
+      "weight": 1
+    },
+    {
+      "source": "jwst-dark-matter-map",
+      "target": "international-year-quantum-2025",
+      "weight": 1
+    },
+    {
+      "source": "jwst-dark-matter-map",
+      "target": "claude-code-swiftui-skill-patterns",
+      "weight": 1
+    },
+    {
+      "source": "jwst-dark-matter-map",
+      "target": "rethinking-exoplanet-habitability",
+      "weight": 1
+    },
+    {
+      "source": "jwst-dark-matter-map",
+      "target": "cu45-superatom-co2-ethylene",
+      "weight": 1
+    },
+    {
+      "source": "jwst-early-universe-black-holes",
+      "target": "tidally-locked-exoplanet-habitability",
+      "weight": 1
+    },
+    {
+      "source": "jwst-early-universe-black-holes",
+      "target": "tonggeometry-olympiad-tree-search",
+      "weight": 1
+    },
+    {
+      "source": "jwst-early-universe-black-holes",
+      "target": "few-shot-prompting-agentic-coding",
+      "weight": 1
+    },
+    {
+      "source": "jwst-early-universe-black-holes",
+      "target": "silicon-quantum-computing-platform",
+      "weight": 1
+    },
+    {
+      "source": "jwst-early-universe-black-holes",
+      "target": "llm-training-methodology-changes",
+      "weight": 1
+    },
+    {
+      "source": "jwst-red-nova-remnants",
+      "target": "superfluid-to-supersolid-transition",
+      "weight": 1
+    },
+    {
+      "source": "jwst-red-nova-remnants",
+      "target": "2026-02-09-unique-investment-opportunities-research",
+      "weight": 1
+    },
+    {
+      "source": "jwst-red-nova-remnants",
+      "target": "anthropic-mcp-apps-claude-integrations",
+      "weight": 1
+    },
+    {
+      "source": "jwst-red-nova-remnants",
+      "target": "scaling-agent-systems",
+      "weight": 1
+    },
+    {
+      "source": "jwst-red-nova-remnants",
+      "target": "cisa-chatgpt-data-leak",
+      "weight": 1
+    },
+    {
+      "source": "karpathy-claude-code-skills",
+      "target": "mit-quantum-computing-progress",
+      "weight": 1
+    },
+    {
+      "source": "karpathy-claude-code-skills",
+      "target": "quantum-atomic-light-synchronization",
+      "weight": 1
+    },
+    {
+      "source": "karpathy-claude-code-skills",
+      "target": "brain-protein-neurodegeneration",
+      "weight": 1
+    },
+    {
+      "source": "karpathy-claude-code-skills",
+      "target": "fast-radio-bursts-binary-star-origin",
+      "weight": 1
+    },
+    {
+      "source": "karpathy-claude-code-skills",
+      "target": "humanoid-robots-space-launch",
+      "weight": 1
+    },
+    {
+      "source": "langchain-deep-agents-context-management",
+      "target": "mom-z14-farthest-galaxy",
+      "weight": 1
+    },
+    {
+      "source": "langchain-deep-agents-context-management",
+      "target": "emu3-multimodal-next-token-prediction",
+      "weight": 1
+    },
+    {
+      "source": "langchain-deep-agents-context-management",
+      "target": "claude-code-swiftui-skill-patterns",
+      "weight": 1
+    },
+    {
+      "source": "langchain-deep-agents-context-management",
+      "target": "humanoid-robots-space-launch",
+      "weight": 1
+    },
+    {
+      "source": "langchain-deep-agents-context-management",
+      "target": "nasa-maven-anomaly",
+      "weight": 1
+    },
+    {
+      "source": "llamaagents-builder",
+      "target": "quantum-teleportation-logic-gates",
+      "weight": 1
+    },
+    {
+      "source": "llamaagents-builder",
+      "target": "anthropic-principle-fine-tuning",
+      "weight": 1
+    },
+    {
+      "source": "llamaagents-builder",
+      "target": "operational-data-ai-agents",
+      "weight": 1
+    },
+    {
+      "source": "llamaagents-builder",
+      "target": "axion-dark-matter-quantum-sensors",
+      "weight": 1
+    },
+    {
+      "source": "llamaagents-builder",
+      "target": "webb-cosmic-question-mark-gravitational-lens",
+      "weight": 1
+    },
+    {
+      "source": "llm-in-sandbox-agentic-intelligence",
+      "target": "axion-dark-matter-quantum-sensors",
+      "weight": 1
+    },
+    {
+      "source": "llm-in-sandbox-agentic-intelligence",
+      "target": "anthropic-principle-fine-tuning",
+      "weight": 1
+    },
+    {
+      "source": "llm-in-sandbox-agentic-intelligence",
+      "target": "ai-anomaly-detection-hubble-archive",
+      "weight": 1
+    },
+    {
+      "source": "llm-in-sandbox-agentic-intelligence",
+      "target": "sentinel-1-ice-sheets",
+      "weight": 1
+    },
+    {
+      "source": "llm-in-sandbox-agentic-intelligence",
+      "target": "sunspot-ar4366-x-class-flares",
+      "weight": 1
+    },
+    {
+      "source": "llm-training-methodology-changes",
+      "target": "comb-jellies-animal-tree-of-life",
+      "weight": 1
+    },
+    {
+      "source": "llm-training-methodology-changes",
+      "target": "cu45-superatom-carbon-recycling",
+      "weight": 1
+    },
+    {
+      "source": "llm-training-methodology-changes",
+      "target": "scaling-agent-systems",
+      "weight": 1
+    },
+    {
+      "source": "llm-training-methodology-changes",
+      "target": "rethinking-exoplanet-habitability",
+      "weight": 1
+    },
+    {
+      "source": "llm-training-methodology-changes",
+      "target": "dna-origami-2d-semiconductor-patterning",
+      "weight": 1
+    },
+    {
+      "source": "magnetic-superhighways-starburst-galaxy",
+      "target": "tonggeometry-olympiad-tree-search",
+      "weight": 1
+    },
+    {
+      "source": "magnetic-superhighways-starburst-galaxy",
+      "target": "humanitys-last-exam-benchmark",
+      "weight": 1
+    },
+    {
+      "source": "magnetic-superhighways-starburst-galaxy",
+      "target": "anthropic-mcp-apps-claude-integrations",
+      "weight": 1
+    },
+    {
+      "source": "magnetic-superhighways-starburst-galaxy",
+      "target": "mars-time-dilation-relativity",
+      "weight": 1
+    },
+    {
+      "source": "magnetic-superhighways-starburst-galaxy",
+      "target": "silicon-quantum-computing-platform",
+      "weight": 1
+    },
+    {
+      "source": "mars-time-dilation-relativity",
+      "target": "llm-training-methodology-changes",
+      "weight": 1
+    },
+    {
+      "source": "mars-time-dilation-relativity",
+      "target": "humanitys-last-exam-benchmark",
+      "weight": 1
+    },
+    {
+      "source": "mars-time-dilation-relativity",
+      "target": "few-shot-prompting-agentic-coding",
+      "weight": 1
+    },
+    {
+      "source": "mars-time-dilation-relativity",
+      "target": "quantum-entanglement-speed-measurement",
+      "weight": 1
+    },
+    {
+      "source": "mars-time-dilation-relativity",
+      "target": "super-earth-magnetic-protection-magma",
+      "weight": 1
+    },
+    {
+      "source": "mcl1-myc-cancer-metabolism",
+      "target": "agentic-ai-memory-hierarchies",
+      "weight": 1
+    },
+    {
+      "source": "mcl1-myc-cancer-metabolism",
+      "target": "ocean-calcium-climate-mystery-66my",
+      "weight": 1
+    },
+    {
+      "source": "mcl1-myc-cancer-metabolism",
+      "target": "yann-lecun-agi-world-models",
+      "weight": 1
+    },
+    {
+      "source": "mcl1-myc-cancer-metabolism",
+      "target": "webgpu-claude-skill-threejs",
+      "weight": 1
+    },
+    {
+      "source": "mcl1-myc-cancer-metabolism",
+      "target": "claude-code-swiftui-skill-patterns",
+      "weight": 1
+    },
+    {
+      "source": "mistral-open-source-ai-strategy",
+      "target": "2026-02-09-unique-investment-opportunities-research",
+      "weight": 1
+    },
+    {
+      "source": "mistral-open-source-ai-strategy",
+      "target": "quantum-entangled-atomic-sensors",
+      "weight": 1
+    },
+    {
+      "source": "mistral-open-source-ai-strategy",
+      "target": "circleci-ai-cicd-validation",
+      "weight": 1
+    },
+    {
+      "source": "mistral-open-source-ai-strategy",
+      "target": "anthropic-principle-fine-tuning",
+      "weight": 1
+    },
+    {
+      "source": "mistral-open-source-ai-strategy",
+      "target": "llamaagents-builder",
+      "weight": 1
+    },
+    {
+      "source": "mit-quantum-computing-progress",
+      "target": "karpathy-claude-code-skills",
+      "weight": 1
+    },
+    {
+      "source": "mit-quantum-computing-progress",
+      "target": "mom-z14-farthest-galaxy",
+      "weight": 1
+    },
+    {
+      "source": "mit-quantum-computing-progress",
+      "target": "cosmic-strings-time-travel",
+      "weight": 1
+    },
+    {
+      "source": "mit-quantum-computing-progress",
+      "target": "beyond-the-quantum-pilot-wave-theory",
+      "weight": 1
+    },
+    {
+      "source": "mit-quantum-computing-progress",
+      "target": "usaf-stealthy-electromagnetic-attack",
+      "weight": 1
+    },
+    {
+      "source": "mom-z14-farthest-galaxy",
+      "target": "artificial-photosynthesis-living-energy",
+      "weight": 1
+    },
+    {
+      "source": "mom-z14-farthest-galaxy",
+      "target": "anthropic-disempowerment-patterns",
+      "weight": 1
+    },
+    {
+      "source": "mom-z14-farthest-galaxy",
+      "target": "anthropic-principle-fine-tuning",
+      "weight": 1
+    },
+    {
+      "source": "mom-z14-farthest-galaxy",
+      "target": "tonggeometry-ai-math",
+      "weight": 1
+    },
+    {
+      "source": "mom-z14-farthest-galaxy",
+      "target": "mit-quantum-computing-progress",
+      "weight": 1
+    },
+    {
+      "source": "nasa-maven-anomaly",
+      "target": "brain-protein-neurodegeneration",
+      "weight": 1
+    },
+    {
+      "source": "nasa-maven-anomaly",
+      "target": "grok4-ai-benchmarks",
+      "weight": 1
+    },
+    {
+      "source": "nasa-maven-anomaly",
+      "target": "tidally-locked-exoplanet-habitability",
+      "weight": 1
+    },
+    {
+      "source": "nasa-maven-anomaly",
+      "target": "llm-in-sandbox-agentic-intelligence",
+      "weight": 1
+    },
+    {
+      "source": "nasa-maven-anomaly",
+      "target": "langchain-deep-agents-context-management",
+      "weight": 1
+    },
+    {
+      "source": "nebuchadnezzar-babylonian-texts",
+      "target": "cu45-superatom-co2-ethylene",
+      "weight": 1
+    },
+    {
+      "source": "nebuchadnezzar-babylonian-texts",
+      "target": "oman-artemis-accords",
+      "weight": 1
+    },
+    {
+      "source": "nebuchadnezzar-babylonian-texts",
+      "target": "quantum-entanglement-speed-measurement",
+      "weight": 1
+    },
+    {
+      "source": "nebuchadnezzar-babylonian-texts",
+      "target": "artificial-photosynthesis-living-energy",
+      "weight": 1
+    },
+    {
+      "source": "nebuchadnezzar-babylonian-texts",
+      "target": "tonggeometry-olympiad-tree-search",
+      "weight": 1
+    },
+    {
+      "source": "ocean-calcium-climate-mystery-66my",
+      "target": "tonggeometry-ai-math",
+      "weight": 1
+    },
+    {
+      "source": "ocean-calcium-climate-mystery-66my",
+      "target": "helimagnetism-ferromagnetism-mode-locking",
+      "weight": 1
+    },
+    {
+      "source": "ocean-calcium-climate-mystery-66my",
+      "target": "mcl1-myc-cancer-metabolism",
+      "weight": 1
+    },
+    {
+      "source": "ocean-calcium-climate-mystery-66my",
+      "target": "usaf-stealthy-electromagnetic-attack",
+      "weight": 1
+    },
+    {
+      "source": "ocean-calcium-climate-mystery-66my",
+      "target": "anthropic-view-universe-nyas",
+      "weight": 1
+    },
+    {
+      "source": "oman-artemis-accords",
+      "target": "agentic-ai-memory-hierarchies",
+      "weight": 1
+    },
+    {
+      "source": "oman-artemis-accords",
+      "target": "nebuchadnezzar-babylonian-texts",
+      "weight": 1
+    },
+    {
+      "source": "oman-artemis-accords",
+      "target": "pairwise-comparison-fiber-bundles",
+      "weight": 1
+    },
+    {
+      "source": "oman-artemis-accords",
+      "target": "beyond-the-quantum-pilot-wave-theory",
+      "weight": 1
+    },
+    {
+      "source": "oman-artemis-accords",
+      "target": "tonggeometry-olympiad-tree-search",
+      "weight": 1
+    },
+    {
+      "source": "openai-applied-compute-startup",
+      "target": "claude-code-community-skills",
+      "weight": 1
+    },
+    {
+      "source": "openai-applied-compute-startup",
+      "target": "grok4-ai-benchmarks",
+      "weight": 1
+    },
+    {
+      "source": "openai-applied-compute-startup",
+      "target": "helimagnetism-ferromagnetism-mode-locking",
+      "weight": 1
+    },
+    {
+      "source": "openai-applied-compute-startup",
+      "target": "agentic-ai-memory-hierarchies",
+      "weight": 1
+    },
+    {
+      "source": "openai-applied-compute-startup",
+      "target": "circleci-ai-cicd-validation",
+      "weight": 1
+    },
+    {
+      "source": "openai-codex-agent-loop",
+      "target": "runaway-stars-milky-way",
+      "weight": 1
+    },
+    {
+      "source": "openai-codex-agent-loop",
+      "target": "few-shot-prompting-agentic-coding",
+      "weight": 1
+    },
+    {
+      "source": "openai-codex-agent-loop",
+      "target": "2026-02-09-unique-investment-opportunities-research",
+      "weight": 1
+    },
+    {
+      "source": "openai-codex-agent-loop",
+      "target": "axion-dark-matter-quantum-sensors",
+      "weight": 1
+    },
+    {
+      "source": "openai-codex-agent-loop",
+      "target": "woh-g64-dust-obscured-companion",
+      "weight": 1
+    },
+    {
+      "source": "operational-data-ai-agents",
+      "target": "fast-radio-bursts-binary-star-origin",
+      "weight": 1
+    },
+    {
+      "source": "operational-data-ai-agents",
+      "target": "grb-250314a-ancient-signal",
+      "weight": 1
+    },
+    {
+      "source": "operational-data-ai-agents",
+      "target": "llamaagents-builder",
+      "weight": 1
+    },
+    {
+      "source": "operational-data-ai-agents",
+      "target": "ai-anomaly-detection-hubble-archive",
+      "weight": 1
+    },
+    {
+      "source": "operational-data-ai-agents",
+      "target": "woh-g64-red-supergiant-mystery",
+      "weight": 1
+    },
+    {
+      "source": "optofluidic-3d-nanofabrication",
+      "target": "axion-dark-matter-quantum-sensors",
+      "weight": 1
+    },
+    {
+      "source": "optofluidic-3d-nanofabrication",
+      "target": "nasa-maven-anomaly",
+      "weight": 1
+    },
+    {
+      "source": "optofluidic-3d-nanofabrication",
+      "target": "cu45-superatom-co2-ethylene",
+      "weight": 1
+    },
+    {
+      "source": "optofluidic-3d-nanofabrication",
+      "target": "transcranial-ultrasound-consciousness",
+      "weight": 1
+    },
+    {
+      "source": "optofluidic-3d-nanofabrication",
+      "target": "comb-jellies-animal-tree-of-life",
+      "weight": 1
+    },
+    {
+      "source": "pairwise-comparison-fiber-bundles",
+      "target": "jwst-red-nova-remnants",
+      "weight": 1
+    },
+    {
+      "source": "pairwise-comparison-fiber-bundles",
+      "target": "superfluid-to-supersolid-transition",
+      "weight": 1
+    },
+    {
+      "source": "pairwise-comparison-fiber-bundles",
+      "target": "alphafold-cryo-em-structure-prediction",
+      "weight": 1
+    },
+    {
+      "source": "pairwise-comparison-fiber-bundles",
+      "target": "emoticons-llm-silent-failures",
+      "weight": 1
+    },
+    {
+      "source": "pairwise-comparison-fiber-bundles",
+      "target": "agentic-ai-memory-hierarchies",
+      "weight": 1
+    },
+    {
+      "source": "protein-tape-recorder-cytotape",
+      "target": "runaway-stars-milky-way",
+      "weight": 1
+    },
+    {
+      "source": "protein-tape-recorder-cytotape",
+      "target": "humanoid-robots-space-launch",
+      "weight": 1
+    },
+    {
+      "source": "protein-tape-recorder-cytotape",
+      "target": "theorem-ai-formal-verification",
+      "weight": 1
+    },
+    {
+      "source": "protein-tape-recorder-cytotape",
+      "target": "cu45-superatom-co2-ethylene",
+      "weight": 1
+    },
+    {
+      "source": "protein-tape-recorder-cytotape",
+      "target": "magnetic-superhighways-starburst-galaxy",
+      "weight": 1
+    },
+    {
+      "source": "quantum-atomic-light-synchronization",
+      "target": "karpathy-claude-code-skills",
+      "weight": 1
+    },
+    {
+      "source": "quantum-atomic-light-synchronization",
+      "target": "claude-code-community-skills",
+      "weight": 1
+    },
+    {
+      "source": "quantum-atomic-light-synchronization",
+      "target": "grok4-ai-benchmarks",
+      "weight": 1
+    },
+    {
+      "source": "quantum-atomic-light-synchronization",
+      "target": "woh-g64-dust-obscured-companion",
+      "weight": 1
+    },
+    {
+      "source": "quantum-atomic-light-synchronization",
+      "target": "humanitys-last-exam-benchmark",
+      "weight": 1
+    },
+    {
+      "source": "quantum-entangled-atomic-sensors",
+      "target": "mistral-open-source-ai-strategy",
+      "weight": 1
+    },
+    {
+      "source": "quantum-entangled-atomic-sensors",
+      "target": "artificial-photosynthesis-living-energy",
+      "weight": 1
+    },
+    {
+      "source": "quantum-entangled-atomic-sensors",
+      "target": "super-earth-magnetic-protection-magma",
+      "weight": 1
+    },
+    {
+      "source": "quantum-entangled-atomic-sensors",
+      "target": "dna-origami-2d-semiconductor-patterning",
+      "weight": 1
+    },
+    {
+      "source": "quantum-entangled-atomic-sensors",
+      "target": "brain-protein-neurodegeneration",
+      "weight": 1
+    },
+    {
+      "source": "quantum-entanglement-speed-measurement",
+      "target": "nebuchadnezzar-babylonian-texts",
+      "weight": 1
+    },
+    {
+      "source": "quantum-entanglement-speed-measurement",
+      "target": "rethinking-exoplanet-habitability",
+      "weight": 1
+    },
+    {
+      "source": "quantum-entanglement-speed-measurement",
+      "target": "2026-02-09-unique-investment-opportunities-research",
+      "weight": 1
+    },
+    {
+      "source": "quantum-entanglement-speed-measurement",
+      "target": "artemis-ii-laser-comms",
+      "weight": 1
+    },
+    {
+      "source": "quantum-entanglement-speed-measurement",
+      "target": "international-year-quantum-2025",
+      "weight": 1
+    },
+    {
+      "source": "quantum-teleportation-logic-gates",
+      "target": "mom-z14-farthest-galaxy",
+      "weight": 1
+    },
+    {
+      "source": "quantum-teleportation-logic-gates",
+      "target": "llamaagents-builder",
+      "weight": 1
+    },
+    {
+      "source": "quantum-teleportation-logic-gates",
+      "target": "tidally-locked-exoplanet-habitability",
+      "weight": 1
+    },
+    {
+      "source": "quantum-teleportation-logic-gates",
+      "target": "helimagnetism-ferromagnetism-mode-locking",
+      "weight": 1
+    },
+    {
+      "source": "quantum-teleportation-logic-gates",
+      "target": "humanoid-robots-space-launch",
+      "weight": 1
+    },
+    {
+      "source": "rethinking-exoplanet-habitability",
+      "target": "jwst-dark-matter-map",
+      "weight": 1
+    },
+    {
+      "source": "rethinking-exoplanet-habitability",
+      "target": "llm-training-methodology-changes",
+      "weight": 1
+    },
+    {
+      "source": "rethinking-exoplanet-habitability",
+      "target": "helimagnetism-ferromagnetism-mode-locking",
+      "weight": 1
+    },
+    {
+      "source": "rethinking-exoplanet-habitability",
+      "target": "quantum-entanglement-speed-measurement",
+      "weight": 1
+    },
+    {
+      "source": "rethinking-exoplanet-habitability",
+      "target": "yann-lecun-agi-world-models",
+      "weight": 1
+    },
+    {
+      "source": "runaway-stars-milky-way",
+      "target": "openai-codex-agent-loop",
+      "weight": 1
+    },
+    {
+      "source": "runaway-stars-milky-way",
+      "target": "anthropic-principle-fine-tuning",
+      "weight": 1
+    },
+    {
+      "source": "runaway-stars-milky-way",
+      "target": "protein-tape-recorder-cytotape",
+      "weight": 1
+    },
+    {
+      "source": "runaway-stars-milky-way",
+      "target": "circleci-ai-cicd-validation",
+      "weight": 1
+    },
+    {
+      "source": "runaway-stars-milky-way",
+      "target": "superfluid-to-supersolid-transition",
+      "weight": 1
+    },
+    {
+      "source": "scaling-agent-systems",
+      "target": "helimagnetism-ferromagnetism-mode-locking",
+      "weight": 1
+    },
+    {
+      "source": "scaling-agent-systems",
+      "target": "jwst-red-nova-remnants",
+      "weight": 1
+    },
+    {
+      "source": "scaling-agent-systems",
+      "target": "llm-training-methodology-changes",
+      "weight": 1
+    },
+    {
+      "source": "scaling-agent-systems",
+      "target": "mom-z14-farthest-galaxy",
+      "weight": 1
+    },
+    {
+      "source": "scaling-agent-systems",
+      "target": "dna-origami-2d-semiconductor-patterning",
+      "weight": 1
+    },
+    {
+      "source": "sentinel-1-ice-sheets",
+      "target": "cosmic-strings-time-travel",
+      "weight": 1
+    },
+    {
+      "source": "sentinel-1-ice-sheets",
+      "target": "ocean-calcium-climate-mystery-66my",
+      "weight": 1
+    },
+    {
+      "source": "sentinel-1-ice-sheets",
+      "target": "tidally-locked-exoplanet-habitability",
+      "weight": 1
+    },
+    {
+      "source": "sentinel-1-ice-sheets",
+      "target": "superfluid-to-supersolid-transition",
+      "weight": 1
+    },
+    {
+      "source": "sentinel-1-ice-sheets",
+      "target": "circleci-ai-cicd-validation",
+      "weight": 1
+    },
+    {
+      "source": "silicon-quantum-computing-platform",
+      "target": "alfven-waves-aurora",
+      "weight": 1
+    },
+    {
+      "source": "silicon-quantum-computing-platform",
+      "target": "diffraction-gratings-fourier-transforms",
+      "weight": 1
+    },
+    {
+      "source": "silicon-quantum-computing-platform",
+      "target": "magnetic-superhighways-starburst-galaxy",
+      "weight": 1
+    },
+    {
+      "source": "silicon-quantum-computing-platform",
+      "target": "superfluid-to-supersolid-transition",
+      "weight": 1
+    },
+    {
+      "source": "silicon-quantum-computing-platform",
+      "target": "emu3-multimodal-next-token-prediction",
+      "weight": 1
+    },
+    {
+      "source": "sunspot-ar4366-x-class-flares",
+      "target": "yann-lecun-agi-world-models",
+      "weight": 1
+    },
+    {
+      "source": "sunspot-ar4366-x-class-flares",
+      "target": "llm-in-sandbox-agentic-intelligence",
+      "weight": 1
+    },
+    {
+      "source": "sunspot-ar4366-x-class-flares",
+      "target": "artificial-photosynthesis-living-energy",
+      "weight": 1
+    },
+    {
+      "source": "sunspot-ar4366-x-class-flares",
+      "target": "comb-jellies-animal-tree-of-life",
+      "weight": 1
+    },
+    {
+      "source": "sunspot-ar4366-x-class-flares",
+      "target": "protein-tape-recorder-cytotape",
+      "weight": 1
+    },
+    {
+      "source": "super-earth-magnetic-protection-magma",
+      "target": "testing-agent-skills-with-evals",
+      "weight": 1
+    },
+    {
+      "source": "super-earth-magnetic-protection-magma",
+      "target": "tonggeometry-ai-math",
+      "weight": 1
+    },
+    {
+      "source": "super-earth-magnetic-protection-magma",
+      "target": "mars-time-dilation-relativity",
+      "weight": 1
+    },
+    {
+      "source": "super-earth-magnetic-protection-magma",
+      "target": "quantum-entangled-atomic-sensors",
+      "weight": 1
+    },
+    {
+      "source": "super-earth-magnetic-protection-magma",
+      "target": "ai-anomaly-detection-hubble-archive",
+      "weight": 1
+    },
+    {
+      "source": "superfluid-to-supersolid-transition",
+      "target": "few-shot-prompting-agentic-coding",
+      "weight": 1
+    },
+    {
+      "source": "superfluid-to-supersolid-transition",
+      "target": "artemis-ii-laser-comms",
+      "weight": 1
+    },
+    {
+      "source": "superfluid-to-supersolid-transition",
+      "target": "runaway-stars-milky-way",
+      "weight": 1
+    },
+    {
+      "source": "superfluid-to-supersolid-transition",
+      "target": "anthropic-mcp-apps-claude-integrations",
+      "weight": 1
+    },
+    {
+      "source": "superfluid-to-supersolid-transition",
+      "target": "optofluidic-3d-nanofabrication",
+      "weight": 1
+    },
+    {
+      "source": "testing-agent-skills-with-evals",
+      "target": "grok4-ai-benchmarks",
+      "weight": 1
+    },
+    {
+      "source": "testing-agent-skills-with-evals",
+      "target": "tonggeometry-olympiad-tree-search",
+      "weight": 1
+    },
+    {
+      "source": "testing-agent-skills-with-evals",
+      "target": "cosmic-strings-time-travel",
+      "weight": 1
+    },
+    {
+      "source": "testing-agent-skills-with-evals",
+      "target": "super-earth-magnetic-protection-magma",
+      "weight": 1
+    },
+    {
+      "source": "testing-agent-skills-with-evals",
+      "target": "pairwise-comparison-fiber-bundles",
+      "weight": 1
+    },
+    {
+      "source": "theorem-ai-formal-verification",
+      "target": "protein-tape-recorder-cytotape",
+      "weight": 1
+    },
+    {
+      "source": "theorem-ai-formal-verification",
+      "target": "few-shot-prompting-agentic-coding",
+      "weight": 1
+    },
+    {
+      "source": "theorem-ai-formal-verification",
+      "target": "humanoid-robots-space-launch",
+      "weight": 1
+    },
+    {
+      "source": "theorem-ai-formal-verification",
+      "target": "dna-origami-2d-semiconductor-patterning",
+      "weight": 1
+    },
+    {
+      "source": "theorem-ai-formal-verification",
+      "target": "anthropic-disempowerment-patterns",
+      "weight": 1
+    },
+    {
+      "source": "tidally-locked-exoplanet-habitability",
+      "target": "axion-dark-matter-quantum-sensors",
+      "weight": 1
+    },
+    {
+      "source": "tidally-locked-exoplanet-habitability",
+      "target": "anthropic-mcp-apps-claude-integrations",
+      "weight": 1
+    },
+    {
+      "source": "tidally-locked-exoplanet-habitability",
+      "target": "quantum-teleportation-logic-gates",
+      "weight": 1
+    },
+    {
+      "source": "tidally-locked-exoplanet-habitability",
+      "target": "jwst-early-universe-black-holes",
+      "weight": 1
+    },
+    {
+      "source": "tidally-locked-exoplanet-habitability",
+      "target": "nasa-maven-anomaly",
+      "weight": 1
+    },
+    {
+      "source": "tonggeometry-ai-math",
+      "target": "humanoid-robots-space-launch",
+      "weight": 1
+    },
+    {
+      "source": "tonggeometry-ai-math",
+      "target": "ocean-calcium-climate-mystery-66my",
+      "weight": 1
+    },
+    {
+      "source": "tonggeometry-ai-math",
+      "target": "super-earth-magnetic-protection-magma",
+      "weight": 1
+    },
+    {
+      "source": "tonggeometry-ai-math",
+      "target": "woh-g64-red-supergiant-mystery",
+      "weight": 1
+    },
+    {
+      "source": "tonggeometry-ai-math",
+      "target": "brain-protein-neurodegeneration",
+      "weight": 1
+    },
+    {
+      "source": "tonggeometry-olympiad-tree-search",
+      "target": "axion-dark-matter-quantum-sensors",
+      "weight": 1
+    },
+    {
+      "source": "tonggeometry-olympiad-tree-search",
+      "target": "testing-agent-skills-with-evals",
+      "weight": 1
+    },
+    {
+      "source": "tonggeometry-olympiad-tree-search",
+      "target": "brain-protein-neurodegeneration",
+      "weight": 1
+    },
+    {
+      "source": "tonggeometry-olympiad-tree-search",
+      "target": "magnetic-superhighways-starburst-galaxy",
+      "weight": 1
+    },
+    {
+      "source": "tonggeometry-olympiad-tree-search",
+      "target": "cosmic-strings-time-travel",
+      "weight": 1
+    },
+    {
+      "source": "transcranial-ultrasound-consciousness",
+      "target": "cu45-superatom-carbon-recycling",
+      "weight": 1
+    },
+    {
+      "source": "transcranial-ultrasound-consciousness",
+      "target": "diffraction-gratings-fourier-transforms",
+      "weight": 1
+    },
+    {
+      "source": "transcranial-ultrasound-consciousness",
+      "target": "optofluidic-3d-nanofabrication",
+      "weight": 1
+    },
+    {
+      "source": "transcranial-ultrasound-consciousness",
+      "target": "theorem-ai-formal-verification",
+      "weight": 1
+    },
+    {
+      "source": "transcranial-ultrasound-consciousness",
+      "target": "cosmic-strings-time-travel",
+      "weight": 1
+    },
+    {
+      "source": "usaf-stealthy-electromagnetic-attack",
+      "target": "graphitic-polytype-switching-nanocavities",
+      "weight": 1
+    },
+    {
+      "source": "usaf-stealthy-electromagnetic-attack",
+      "target": "emu3-multimodal-next-token-prediction",
+      "weight": 1
+    },
+    {
+      "source": "usaf-stealthy-electromagnetic-attack",
+      "target": "beyond-the-quantum-pilot-wave-theory",
+      "weight": 1
+    },
+    {
+      "source": "usaf-stealthy-electromagnetic-attack",
+      "target": "mars-time-dilation-relativity",
+      "weight": 1
+    },
+    {
+      "source": "usaf-stealthy-electromagnetic-attack",
+      "target": "ocean-calcium-climate-mystery-66my",
+      "weight": 1
+    },
+    {
+      "source": "webb-cosmic-question-mark-gravitational-lens",
+      "target": "agentic-ai-memory-hierarchies",
+      "weight": 1
+    },
+    {
+      "source": "webb-cosmic-question-mark-gravitational-lens",
+      "target": "graphitic-polytype-switching-nanocavities",
+      "weight": 1
+    },
+    {
+      "source": "webb-cosmic-question-mark-gravitational-lens",
+      "target": "llamaagents-builder",
+      "weight": 1
+    },
+    {
+      "source": "webb-cosmic-question-mark-gravitational-lens",
+      "target": "helimagnetism-ferromagnetism-mode-locking",
+      "weight": 1
+    },
+    {
+      "source": "webb-cosmic-question-mark-gravitational-lens",
+      "target": "jwst-red-nova-remnants",
+      "weight": 1
+    },
+    {
+      "source": "webgpu-claude-skill-threejs",
+      "target": "openai-applied-compute-startup",
+      "weight": 1
+    },
+    {
+      "source": "webgpu-claude-skill-threejs",
+      "target": "beyond-the-quantum-pilot-wave-theory",
+      "weight": 1
+    },
+    {
+      "source": "webgpu-claude-skill-threejs",
+      "target": "mcl1-myc-cancer-metabolism",
+      "weight": 1
+    },
+    {
+      "source": "webgpu-claude-skill-threejs",
+      "target": "amorphous-materials-3d-atomic-structure",
+      "weight": 1
+    },
+    {
+      "source": "webgpu-claude-skill-threejs",
+      "target": "llamaagents-builder",
+      "weight": 1
+    },
+    {
+      "source": "woh-g64-dust-obscured-companion",
+      "target": "alphafold-cryo-em-structure-prediction",
+      "weight": 1
+    },
+    {
+      "source": "woh-g64-dust-obscured-companion",
+      "target": "emu3-multimodal-next-token-prediction",
+      "weight": 1
+    },
+    {
+      "source": "woh-g64-dust-obscured-companion",
+      "target": "quantum-atomic-light-synchronization",
+      "weight": 1
+    },
+    {
+      "source": "woh-g64-dust-obscured-companion",
+      "target": "artificial-photosynthesis-living-energy",
+      "weight": 1
+    },
+    {
+      "source": "woh-g64-dust-obscured-companion",
+      "target": "tonggeometry-ai-math",
+      "weight": 1
+    },
+    {
+      "source": "woh-g64-red-supergiant-mystery",
+      "target": "tonggeometry-ai-math",
+      "weight": 1
+    },
+    {
+      "source": "woh-g64-red-supergiant-mystery",
+      "target": "anthropic-disempowerment-patterns",
+      "weight": 1
+    },
+    {
+      "source": "woh-g64-red-supergiant-mystery",
+      "target": "operational-data-ai-agents",
+      "weight": 1
+    },
+    {
+      "source": "woh-g64-red-supergiant-mystery",
+      "target": "claude-code-community-skills",
+      "weight": 1
+    },
+    {
+      "source": "woh-g64-red-supergiant-mystery",
+      "target": "few-shot-prompting-agentic-coding",
+      "weight": 1
+    },
+    {
+      "source": "yann-lecun-agi-world-models",
+      "target": "mcl1-myc-cancer-metabolism",
+      "weight": 1
+    },
+    {
+      "source": "yann-lecun-agi-world-models",
+      "target": "rethinking-exoplanet-habitability",
+      "weight": 1
+    },
+    {
+      "source": "yann-lecun-agi-world-models",
+      "target": "claude-code-community-skills",
+      "weight": 1
+    },
+    {
+      "source": "yann-lecun-agi-world-models",
+      "target": "ocean-calcium-climate-mystery-66my",
+      "weight": 1
+    },
+    {
+      "source": "yann-lecun-agi-world-models",
+      "target": "langchain-deep-agents-context-management",
+      "weight": 1
+    }
+  ],
+  "metadata": {
+    "total_nodes": 84,
+    "total_edges": 420,
+    "generated": "2026-02-10T04:16:47.886768Z",
+    "dimensions": {
+      "x": "temporal",
+      "y": "connectivity",
+      "z": "cross_domain",
+      "size": "completion",
+      "color": "conceptual_depth",
+      "opacity": "recency"
+    }
+  }
+}
