@@ -61,3 +61,9 @@ The [[2026-02-07-ai-research-agent-for-vault-notes|research agent experiment]] d
 ## Relevance to Cohezion
 
 Compound engineering is the foundational philosophy of Cohezion itself, formalized through the Cloud Vault MCP Server's three operation layers: VaultOps (read/write), CompoundOps (structured logging), and ObsidianOps (cross-linking). The CompoundExecutor leverages this accumulation by reading prior decisions via log_decision, extracting patterns through extract_pattern, and using find_relevant_context to surface institutional knowledge that compounds value over time.
+
+## Decisions & Experiments
+- 📋 [[2026-02-08-bmad-framework-removal]] - 2026-02-08-bmad-framework-removal
+- 📋 [[2026-02-07-event-driven-inbox-processor]] - 2026-02-07-event-driven-inbox-processor
+- 📋 [[2026-02-07-event-driven-inbox-processor]] - 2026-02-07-event-driven-inbox-processor
+- 🔬 [[2026-02-07-ai-research-agent-for-vault-notes]] - 2026-02-07-ai-research-agent-for-vault-notes

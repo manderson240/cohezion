@@ -91,3 +91,7 @@ This fix enables the full MCP ↔ Vault integration chain:
 - No configuration changes required
 - Existing Claude Code MCP config continues to work
 - Optional: Update TROUBLESHOOTING.md with FastMCP builder pattern explanation
+
+## Related
+**Domains**: infrastructure, integration
+**Categories**: operational, technical

@@ -123,3 +123,6 @@ domain: "Domain Category"
 - [[compound-engineering]] — this pipeline is compound engineering in action
 - [[2026-02-07-event-driven-inbox-processor]] — single-note processing via watchdog
 - [[2026-02-07-ai-research-agent-for-vault-notes]] — the original experiment that led to this pattern
+
+## Decisions & Experiments
+- 📋 [[2026-02-09-12d-graph-refined-plan]] - 12D Graph System - Refined Implementation Plan

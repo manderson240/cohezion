@@ -68,3 +68,6 @@ Extracted from BMAD `bmm/workflows/workflow-status/project-levels.yaml` and the 
 
 - [[compound-engineering]] — level classification makes compound records more useful
 - [[bmad-workflow-orchestration]] — levels determine which workflows are activated
+
+## Decisions & Experiments
+- 📋 [[2026-02-08-bmad-framework-removal]] - 2026-02-08-bmad-framework-removal

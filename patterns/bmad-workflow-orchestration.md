@@ -98,3 +98,6 @@ Extracted from BMAD `bmm/workflows/` (34 workflow directories across 4 phases + 
 - [[bmad-agent-persona-definition]] — agents are the executors of workflows
 - [[bmad-scale-adaptive-documentation]] — project level determines which workflows activate
 - [[agent-loop-architecture]] — cohezion's loop is a simpler equivalent
+
+## Decisions & Experiments
+- 📋 [[2026-02-08-bmad-framework-removal]] - 2026-02-08-bmad-framework-removal

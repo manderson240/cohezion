@@ -285,3 +285,6 @@ python /tmp/gap_analysis_poc.py
 **Status**: Ollama context management strategy defined
 **Next**: Extend Model Wrangler role OR spawn Ollama Specialist (TBD based on needs)
 **Related**: [[2026-02-09-model-wrangler-strategy]], [[2026-02-09-12d-graph-refined-plan]]
+
+## Related
+**Domains**: ai-ml, data, performance

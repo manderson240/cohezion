@@ -571,3 +571,7 @@ echo "   Rollback command: ./swap_model.sh $NEW_MODEL $OLD_MODEL"
 **Status**: Proposed role for 12D Graph project
 **Next**: Add Model Wrangler to specialist team (Specialist #6)
 **Related**: [[2026-02-09-ai-model-strategy]], [[2026-02-09-12d-graph-refined-plan]]
+
+## Related
+**Domains**: ai-ml, architecture, data, infrastructure, integration, performance
+**Categories**: operational, technical

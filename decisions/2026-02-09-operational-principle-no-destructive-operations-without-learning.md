@@ -183,3 +183,7 @@ Operations authorized by explicit prior approval:
 **Implementation**: Sessions 40-42 team
 **Status**: ACTIVE ACROSS ALL FUTURE WORK
 **Review Date**: End of Phase 6
+
+## Related
+**Domains**: data
+**Categories**: operational, strategic

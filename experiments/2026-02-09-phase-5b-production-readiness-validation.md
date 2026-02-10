@@ -298,3 +298,7 @@ All deferred items have documented mitigation strategies and Phase 6 implementat
 **Created**: 2026-02-09 (Sessions 40-43)
 **Location**: ~/vaults/cohezion-vault/experiments/2026-02-09-phase-5b-production-readiness-validation.md
 **Status**: ACTIVE VALIDATION DOCUMENT
+
+## Related
+**Domains**: ai-ml, infrastructure, integration, performance
+**Categories**: operational, strategic, technical

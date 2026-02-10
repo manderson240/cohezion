@@ -236,3 +236,7 @@ app = mcp.streamable_http_app()
 3. **Test across Python versions** - PyO3 ABI compatibility is fragile
 4. **Fallback hierarchy** - Never depend solely on native binaries
 5. **Compound engineering** - Python optimization is foundation, not detour
+
+## Related
+**Domains**: ai-ml, data, infrastructure, integration, performance
+**Categories**: operational, technical
