@@ -1,0 +1,336 @@
+[
+  {
+    "name": "Moshi",
+    "description": "Speech-text foundation model and full-duplex spoken dialogue framework with inner monologue text prediction for natural conversations",
+    "github": "https://github.com/kyutai-labs/moshi",
+    "status": "maintained",
+    "use_case": "Real-time voice conversation with LLMs, full-duplex dialogue, speech-text interaction",
+    "license": "MIT (Python/web) + Apache-2.0 (Rust) + CC-BY 4.0 (model weights)",
+    "key_features": [
+      "Full-duplex simultaneous audio input/output",
+      "Mimi neural codec (24 kHz, 1.1 kbps, 80ms latency)",
+      "~200ms practical latency on L4 GPU",
+      "Multi-architecture: PyTorch, MLX (macOS), Rust (production)",
+      "Inner monologue text prediction",
+      "Web UI with Gradio",
+      "Low-latency streaming inference"
+    ],
+    "dependencies": [
+      "PyTorch 3.10+",
+      "MLX (for Apple Silicon)",
+      "Gradio (for web UI)",
+      "Audio/networking libraries"
+    ],
+    "last_updated": "2026-02-09",
+    "github_stars": 9588,
+    "notes": "Most mature production-ready voice project; recommended for Obsidian integration as primary voice backend"
+  },
+  {
+    "name": "Pocket TTS",
+    "description": "Lightweight text-to-speech that runs on CPU without GPU or web API dependency, featuring voice cloning",
+    "github": "https://github.com/kyutai-labs/pocket-tts",
+    "status": "maintained",
+    "use_case": "Low-resource TTS, voice cloning, on-device speech synthesis",
+    "license": "MIT",
+    "key_features": [
+      "100M parameter model",
+      "CPU-optimized (no GPU required)",
+      "~200ms latency for first audio chunk",
+      "6x faster than real-time on MacBook Air M4",
+      "Voice cloning from audio samples",
+      "Streaming audio output",
+      "Handles infinitely long text inputs",
+      "Multiple interfaces: CLI, Python API, HTTP server"
+    ],
+    "dependencies": [
+      "Python 3.10-3.14",
+      "PyTorch 2.5+ (CPU acceptable)",
+      "Optional: Docker"
+    ],
+    "last_updated": "2026-02-03",
+    "github_stars": 3110,
+    "notes": "Best for resource-constrained environments; excellent for Obsidian note-to-speech features; English only"
+  },
+  {
+    "name": "Unmute",
+    "description": "Voice-enabled system allowing any LLM to listen and speak in real-time conversations with low-latency streaming",
+    "github": "https://github.com/kyutai-labs/unmute",
+    "status": "maintained",
+    "use_case": "Voice interface for LLMs, real-time conversation, multimodal AI assistants",
+    "license": "MIT",
+    "key_features": [
+      "Real-time voice interaction pipeline",
+      "Works with any OpenAI-compatible LLM server",
+      "Multi-GPU support for distributed processing",
+      "Browser-based frontend",
+      "WebSocket protocol for real-time communication",
+      "Customizable voices and system prompts",
+      "Multiple deployment options: Docker Compose, Dockerless, Docker Swarm"
+    ],
+    "dependencies": [
+      "NVIDIA GPU with CUDA support (minimum 16GB VRAM)",
+      "Docker Compose and NVIDIA Container Toolkit",
+      "Linux or Windows with WSL (Mac unsupported)",
+      "Hugging Face Hub access token"
+    ],
+    "last_updated": "2026-01-23",
+    "github_stars": 1172,
+    "notes": "Production-ready deployment framework; key for Obsidian plugin voice interface; GPU-dependent"
+  },
+  {
+    "name": "Delayed Streams Modeling",
+    "description": "Speech-To-Text and Text-To-Speech models using Delayed Streams Modeling framework with word-level timestamps and semantic VAD",
+    "github": "https://github.com/kyutai-labs/delayed-streams-modeling",
+    "status": "maintained",
+    "use_case": "Real-time STT/TTS, streaming speech processing, low-latency voice applications",
+    "license": "Apache-2.0 + MIT (code) + CC-BY 4.0 (model weights)",
+    "key_features": [
+      "STT models: 1B (~0.5s delay) and 2.6B (~2.5s delay) parameter versions",
+      "Real-time streaming inference with efficient batching",
+      "Word-level timestamp extraction",
+      "Semantic VAD (voice activity detection) in 1B model",
+      "TTS streaming audio generation",
+      "Multiple implementations: PyTorch, Rust, MLX"
+    ],
+    "dependencies": [
+      "PyTorch or MLX",
+      "Rust with CUDA (for server)",
+      "moshi/moshi-mlx Python packages (v0.2.6+)"
+    ],
+    "last_updated": "2026-01-26",
+    "github_stars": 2838,
+    "notes": "Core speech processing component; essential for both STT and TTS pipelines in MCP server"
+  },
+  {
+    "name": "Hibiki",
+    "description": "Streaming speech translation system for real-time simultaneous translation with voice transfer capability",
+    "github": "https://github.com/kyutai-labs/hibiki",
+    "status": "maintained",
+    "use_case": "Real-time speech translation, simultaneous interpretation, multilingual voice applications",
+    "license": "MIT (Python) + Apache-2.0 (Rust) + CC-BY 4.0 (model weights)",
+    "key_features": [
+      "Real-time simultaneous speech-to-speech translation",
+      "Multistream architecture for source/target speech modeling",
+      "Voice transfer with controllable fidelity",
+      "Timestamped text translation output",
+      "Constant 12.5Hz output framerate",
+      "Mobile-optimized variant (Hibiki-M for smartphones)",
+      "Multi-implementation: PyTorch, MLX (macOS), MLX-Swift (iOS), Rust"
+    ],
+    "dependencies": [
+      "PyTorch, MLX, MLX-Swift, or Rust runtime",
+      "Audio processing libraries"
+    ],
+    "last_updated": "2026-02-09",
+    "github_stars": 250,
+    "notes": "French-to-English only; excellent for international collaboration features; mobile-ready implementation"
+  },
+  {
+    "name": "MoshiVis",
+    "description": "Vision-language model extending Moshi with multimodal image understanding for visual conversation",
+    "github": "https://github.com/kyutai-labs/moshivis",
+    "status": "maintained",
+    "use_case": "Image understanding in voice conversations, visual Q&A, multimodal voice interface",
+    "license": "CC-BY 4.0 (weights, excluding vision) + Gemma License (vision) + MIT (Python) + Apache-2.0 (Rust)",
+    "key_features": [
+      "~206M adapter parameters added to 7B Moshi model",
+      "Frozen 400M PaliGemma2 vision encoder integration",
+      "Cross-attention visual token injection",
+      "Gating mechanisms for visual input modulation",
+      "Multiple backends: PyTorch (BF16), Rust/Candle (Q8), MLX (Q4/Q8 quantization)",
+      "Web UI with echo cancellation",
+      "Live demo at vis.moshi.chat"
+    ],
+    "dependencies": [
+      "PyTorch (requires ~24GB GPU memory for BF16)",
+      "Rust with Candle (optional)",
+      "MLX (for Apple Silicon optimization)"
+    ],
+    "last_updated": "2026-02-09",
+    "github_stars": 800,
+    "notes": "Adds vision to Moshi conversations; training code planned for release; excellent for note-with-image features"
+  },
+  {
+    "name": "CASA (Cross-Attention via Self-Attention)",
+    "description": "Efficient vision-language fusion model with improved cross-attention mechanism for real-time streaming inference",
+    "github": "https://github.com/kyutai-labs/casa",
+    "status": "maintained",
+    "use_case": "Vision-language understanding, document analysis, live video captioning, visual QA",
+    "license": "MIT (code) + CC-BY-NC-SA 4.0 (model weights) + Qwen Research License (Qwen components)",
+    "key_features": [
+      "Model variants: 2B-3B parameters",
+      "CASA-Helium1-VL-2B, CASA-Qwen2.5-VL-3B, CASA-Qwen2.5-VL-3B-LiveCC",
+      "Real-time video captioning at 2fps",
+      "Efficient local attention windows",
+      "Benchmark evaluation on documents, charts, visual QA",
+      "Streaming video/image support",
+      "Natural gating mechanism for vision integration"
+    ],
+    "dependencies": [
+      "PyTorch with CUDA",
+      "Transformers library (HuggingFace)",
+      "Flash Attention 2",
+      "FFmpeg (for video processing)",
+      "Python uv package manager"
+    ],
+    "last_updated": "2026-02-09",
+    "github_stars": 25,
+    "notes": "Novel architecture for efficient vision-language fusion; training code planned; good for Obsidian image features"
+  },
+  {
+    "name": "Invincible Voice",
+    "description": "Voice communication system for people with speech disabilities, enabling natural conversations with LLM-powered responses",
+    "github": "https://github.com/kyutai-labs/invincible-voice",
+    "status": "maintained",
+    "use_case": "Assistive technology, accessibility, voice for speech-disabled individuals",
+    "license": "MIT",
+    "key_features": [
+      "STT → LLM → TTS pipeline",
+      "Multiple LLM response generation with user selection",
+      "Customizable LLM behavior",
+      "UI-guided answer refinement",
+      "Cloud-based and self-hosted options",
+      "Privacy-preserving local deployment",
+      "Full user agency in conversation flow"
+    ],
+    "dependencies": [
+      "Docker for deployment",
+      "Gradium or Cerebras cloud services (optional)",
+      "Self-hosted STT/TTS/LLM stack"
+    ],
+    "last_updated": "2026-02-09",
+    "github_stars": 31,
+    "notes": "Accessibility-focused; under active development with online version planned; strong social impact focus"
+  },
+  {
+    "name": "Flashy",
+    "description": "Lightweight deep learning training framework emphasizing simplicity and hackability with built-in experiment management",
+    "github": "https://github.com/kyutai-labs/flashy",
+    "status": "maintained",
+    "use_case": "Research deep learning workflows, model training, experiment management",
+    "license": "MIT",
+    "key_features": [
+      "Metric logging (file, TensorBoard, Weights & Biases)",
+      "Stateful checkpoint management and recovery",
+      "Distributed training support",
+      "Epoch-based architecture with customizable stages",
+      "Dora experiment management integration",
+      "Hydra configuration framework support",
+      "Lightweight and fully hackable design"
+    ],
+    "dependencies": [
+      "Python 3.8+",
+      "PyTorch",
+      "Dora (experiment management)",
+      "Hydra (configuration)",
+      "Submitit (job submission)"
+    ],
+    "last_updated": "2026-02-04",
+    "github_stars": 4,
+    "notes": "Essential infrastructure for Kyutai model training; core dependency for model development work"
+  },
+  {
+    "name": "Dora",
+    "description": "Experiment management system for expressing and executing large-scale hyperparameter grid searches across clusters",
+    "github": "https://github.com/kyutai-labs/dora",
+    "status": "maintained",
+    "use_case": "ML experiment tracking, hyperparameter optimization, distributed training coordination",
+    "license": "MIT",
+    "key_features": [
+      "Grid search as pure Python files",
+      "Automatic deduplication via unique hash signatures",
+      "Terminal-based monitoring with custom metrics",
+      "Multi-backend support (Argparse, Hydra)",
+      "Distributed training (multi-node, multi-GPU)",
+      "Slurm cluster integration",
+      "Git integration for reproducible experiments",
+      "Automatic job scheduling and cancellation"
+    ],
+    "dependencies": [
+      "Python with package structure",
+      "Submitit (Slurm integration)",
+      "Optional: Hydra or Argparse",
+      "Optional: PyTorch"
+    ],
+    "last_updated": "2026-01-22",
+    "github_stars": 5,
+    "notes": "Infrastructure tool for research workflows; core for model training pipelines; excellent for Ollama MCP integration"
+  },
+  {
+    "name": "ARC-Encoder",
+    "description": "Adaptable text Representations Compressor for learning compressed text representations that reduce LLM computational requirements",
+    "github": "https://github.com/kyutai-labs/ARC-Encoder",
+    "status": "maintained",
+    "use_case": "Text compression, efficient LLM inference, context compression, token reduction",
+    "license": "Apache-2.0 (code) + Attribution-NonCommercial 4.0 (retrieval module)",
+    "key_features": [
+      "Three pretrained HuggingFace checkpoints",
+      "Llama and Mistral backbone support",
+      "Flexible modular architecture",
+      "Multi-GPU training via FSDP",
+      "Comprehensive QA evaluation (Natural Questions, TriviaQA)",
+      "Passage retrieval capabilities",
+      "Downstream task optimization"
+    ],
+    "dependencies": [
+      "Python 3.10+",
+      "PyTorch with CUDA",
+      "uv package manager",
+      "Llama 3.1 8B or Mistral 7B models",
+      "HuggingFace datasets and models"
+    ],
+    "last_updated": "2026-01-05",
+    "github_stars": 26,
+    "notes": "Advanced compression techniques; useful for optimizing context in Ollama MCP; retrieval module is non-commercial"
+  },
+  {
+    "name": "SPHN",
+    "description": "Python bindings for Symphonia and Opus audio processing libraries, enabling efficient audio file manipulation",
+    "github": "https://github.com/kyutai-labs/sphn",
+    "status": "maintained",
+    "use_case": "Audio codec operations, audio format conversion, audio data preprocessing",
+    "license": "Apache-2.0",
+    "key_features": [
+      "Load multiple audio formats into NumPy arrays",
+      "OGG/Opus audio read/write with streaming",
+      "Symphonia integration for multiple codecs",
+      "Rust-backed performance",
+      "Python NumPy integration"
+    ],
+    "dependencies": [
+      "Symphonia (Rust crate)",
+      "Opus (Rust crate)",
+      "CMake 3.x (not 4.x compatible)",
+      "Python with NumPy",
+      "PyPI installation available"
+    ],
+    "last_updated": "2026-02-09",
+    "github_stars": 77,
+    "notes": "Low-level audio infrastructure; essential for Mimi codec integration and audio pipeline"
+  },
+  {
+    "name": "nanoGPTaudio",
+    "description": "Implementation demonstrating techniques for integrating audio into language models through neural audio codecs",
+    "github": "https://github.com/kyutai-labs/nanoGPTaudio",
+    "status": "experimental",
+    "use_case": "Audio codec training, audio-LLM integration research, audio tokenization",
+    "license": "MIT",
+    "key_features": [
+      "Audio codec training framework",
+      "Libri-Light dataset preparation (up to 10,000 hours)",
+      "Codec tokenization pipelines",
+      "LLM training on codec tokens",
+      "Model sampling and generation",
+      "Jupyter notebooks for analysis",
+      "Codec comparison utilities"
+    ],
+    "dependencies": [
+      "PyTorch (H100 GPUs recommended for training)",
+      "Transformers",
+      "Additional ML dependencies"
+    ],
+    "last_updated": "2026-02-09",
+    "github_stars": 149,
+    "notes": "Research code with hardcoded paths; will not work out-of-box; useful reference for audio-LLM integration concepts"
+  }
+]
