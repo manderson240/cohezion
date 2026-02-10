@@ -4,6 +4,7 @@ Bidirectional sync between Obsidian vault files and SurrealDB graph database.
 Supports real-time file watching and dimensional metadata.
 """
 
+import asyncio
 import json
 import logging
 import re
@@ -31,6 +32,8 @@ class SurrealDBSync:
         database: str = "vault",
         username: str = "root",
         password: str = "root",
+        parallel_enabled: bool = True,
+        max_concurrent: int = 10,
     ):
         """Initialize SurrealDB sync.
 
@@ -41,6 +44,8 @@ class SurrealDBSync:
             database: SurrealDB database name
             username: Auth username
             password: Auth password
+            parallel_enabled: Enable parallel bulk imports
+            max_concurrent: Max concurrent operations during bulk import
         """
         self.vault_path = Path(vault_path).resolve()
         self.surrealdb_url = surrealdb_url.rstrip("/")
@@ -48,14 +53,18 @@ class SurrealDBSync:
         self.database = database
         self.auth = (username, password)
         self.client = httpx.Client(timeout=30.0)
+        self.async_client: httpx.AsyncClient | None = None
         self.observer: Observer | None = None
+        self.parallel_enabled = parallel_enabled
+        self.max_concurrent = max_concurrent
 
         logger.info(
-            f"Initialized SurrealDB sync: {vault_path} -> {surrealdb_url}/{namespace}/{database}"
+            f"Initialized SurrealDB sync: {vault_path} -> {surrealdb_url}/{namespace}/{database} "
+            f"(parallel={parallel_enabled}, max_concurrent={max_concurrent})"
         )
 
     def _execute_query(self, query: str) -> list[dict[str, Any]]:
-        """Execute SurrealDB SQL query.
+        """Execute SurrealDB SQL query (sync).
 
         Args:
             query: SurrealQL query string
@@ -71,6 +80,32 @@ class SurrealDBSync:
         }
 
         response = self.client.post(
+            f"{self.surrealdb_url}/sql",
+            headers=headers,
+            auth=self.auth,
+            content=query,
+        )
+        response.raise_for_status()
+        return response.json()
+
+    async def _execute_query_async(self, query: str, client: httpx.AsyncClient) -> list[dict[str, Any]]:
+        """Execute SurrealDB SQL query (async).
+
+        Args:
+            query: SurrealQL query string
+            client: AsyncClient for concurrent execution
+
+        Returns:
+            List of result objects from SurrealDB
+        """
+        headers = {
+            "Content-Type": "text/plain",
+            "Accept": "application/json",
+            "NS": self.namespace,
+            "DB": self.database,
+        }
+
+        response = await client.post(
             f"{self.surrealdb_url}/sql",
             headers=headers,
             auth=self.auth,
@@ -187,7 +222,7 @@ class SurrealDBSync:
             logger.error(f"Failed to sync paper {paper_path}: {e}")
 
     def _sync_paper_links(self, paper_id: str, wikilinks: list[str]) -> None:
-        """Create link relationships from paper to concepts.
+        """Create link relationships from paper to concepts (sync).
 
         Args:
             paper_id: Paper record ID
@@ -232,8 +267,98 @@ class SurrealDBSync:
             except Exception as e:
                 logger.warning(f"Failed to create link {paper_id} -> {concept_name}: {e}")
 
+    async def _sync_paper_async(self, paper_path: Path, client: httpx.AsyncClient) -> tuple[bool, str]:
+        """Sync a single paper file to SurrealDB (async).
+
+        Args:
+            paper_path: Path to paper markdown file
+            client: AsyncClient for concurrent execution
+
+        Returns:
+            Tuple of (success, paper_id or error_msg)
+        """
+        if not paper_path.suffix == ".md":
+            return False, f"Skipped non-markdown: {paper_path}"
+
+        try:
+            content = paper_path.read_text(encoding="utf-8")
+            frontmatter, body = self._parse_frontmatter(content)
+
+            # Extract metadata
+            relative_path = str(paper_path.relative_to(self.vault_path))
+            title = frontmatter.get("title", paper_path.stem)
+            tags = frontmatter.get("tags", [])
+            date_str = frontmatter.get("date")
+
+            # Parse date
+            date_iso = None
+            if date_str:
+                try:
+                    if isinstance(date_str, datetime):
+                        date_iso = date_str.isoformat()
+                    else:
+                        dt = datetime.fromisoformat(str(date_str).replace("Z", "+00:00"))
+                        date_iso = dt.isoformat()
+                except (ValueError, AttributeError):
+                    logger.warning(f"Could not parse date: {date_str}")
+
+            # Extract wiki-links
+            wikilinks = self._extract_wikilinks(content)
+
+            # Build UPSERT query
+            paper_id = relative_path.replace("/", "_").replace(".md", "")
+
+            # Build date clause
+            if date_iso:
+                date_clause = f"<datetime> {json.dumps(date_iso)}"
+            else:
+                date_clause = "NONE"
+
+            # Truncate content to avoid huge queries
+            content_truncated = body[:5000] if body else ""
+
+            query = f"""
+            USE NS {self.namespace};
+            USE DB {self.database};
+
+            -- UPSERT: Insert if new, update if exists
+            UPSERT paper:`{paper_id}` SET
+                path = {json.dumps(relative_path)},
+                title = {json.dumps(title)},
+                tags = {json.dumps(tags)},
+                content = {json.dumps(content_truncated)},
+                date = {date_clause},
+                updated_at = time::now();
+            """
+
+            await self._execute_query_async(query, client)
+            logger.info(f"Synced paper: {relative_path}")
+
+            # Sync wiki-links to concepts (using synchronous method for now)
+            # This happens serially but is fast since it's per-paper
+            self._sync_paper_links(paper_id, wikilinks)
+
+            return True, paper_id
+
+        except Exception as e:
+            logger.error(f"Failed to sync paper {paper_path}: {e}")
+            return False, str(e)
+
     def bulk_import_papers(self) -> int:
         """Import all papers from vault/papers/ directory.
+
+        Automatically uses parallel or sequential approach based on configuration.
+
+        Returns:
+            Count of papers imported
+        """
+        if self.parallel_enabled:
+            return asyncio.run(self._bulk_import_papers_parallel())
+        else:
+            return self._bulk_import_papers_sequential()
+
+    def _bulk_import_papers_sequential(self) -> int:
+        """Import all papers sequentially (fallback method).
 
         Returns:
             Count of papers imported
@@ -244,7 +369,7 @@ class SurrealDBSync:
             return 0
 
         paper_files = list(papers_dir.glob("*.md"))
-        logger.info(f"Starting bulk import of {len(paper_files)} papers...")
+        logger.info(f"Starting sequential bulk import of {len(paper_files)} papers...")
 
         count = 0
         for paper_path in paper_files:
@@ -254,7 +379,51 @@ class SurrealDBSync:
             except Exception as e:
                 logger.error(f"Failed to import {paper_path.name}: {e}")
 
-        logger.info(f"Bulk import complete: {count}/{len(paper_files)} papers")
+        logger.info(f"Sequential bulk import complete: {count}/{len(paper_files)} papers")
+        return count
+
+    async def _bulk_import_papers_parallel(self) -> int:
+        """Import all papers with parallel execution (async).
+
+        Uses semaphore to limit concurrent operations to max_concurrent.
+
+        Returns:
+            Count of papers imported
+        """
+        papers_dir = self.vault_path / "papers"
+        if not papers_dir.exists():
+            logger.warning(f"Papers directory not found: {papers_dir}")
+            return 0
+
+        paper_files = list(papers_dir.glob("*.md"))
+        logger.info(
+            f"Starting parallel bulk import of {len(paper_files)} papers "
+            f"(max_concurrent={self.max_concurrent})..."
+        )
+
+        # Create async client with connection pooling
+        async with httpx.AsyncClient(timeout=30.0, limits=httpx.Limits(max_connections=self.max_concurrent)) as client:
+            semaphore = asyncio.Semaphore(self.max_concurrent)
+
+            async def sync_with_limit(paper_path: Path) -> tuple[bool, str]:
+                async with semaphore:
+                    return await self._sync_paper_async(paper_path, client)
+
+            # Create tasks for all papers
+            tasks = [sync_with_limit(paper_path) for paper_path in paper_files]
+
+            # Gather results with exception handling
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+
+            # Count successful imports
+            count = 0
+            for i, result in enumerate(results):
+                if isinstance(result, Exception):
+                    logger.error(f"Failed to import {paper_files[i].name}: {result}")
+                elif isinstance(result, tuple) and result[0]:
+                    count += 1
+
+        logger.info(f"Parallel bulk import complete: {count}/{len(paper_files)} papers")
         return count
 
     def sync_concept(self, concept_path: Path) -> None:
@@ -299,8 +468,70 @@ class SurrealDBSync:
         except Exception as e:
             logger.error(f"Failed to sync concept {concept_path}: {e}")
 
+    async def _sync_concept_async(self, concept_path: Path, client: httpx.AsyncClient) -> tuple[bool, str]:
+        """Sync a single concept file to SurrealDB (async).
+
+        Args:
+            concept_path: Path to concept markdown file
+            client: AsyncClient for concurrent execution
+
+        Returns:
+            Tuple of (success, concept_id or error_msg)
+        """
+        if not concept_path.suffix == ".md":
+            return False, f"Skipped non-markdown: {concept_path}"
+
+        try:
+            content = concept_path.read_text(encoding="utf-8")
+            frontmatter, body = self._parse_frontmatter(content)
+
+            relative_path = str(concept_path.relative_to(self.vault_path))
+            title = frontmatter.get("title", concept_path.stem)
+            tags = frontmatter.get("tags", [])
+
+            # Use backticks for IDs to handle special characters
+            concept_id = concept_path.stem.replace("/", "_")
+
+            # Truncate content to avoid huge queries
+            content_truncated = body[:5000] if body else ""
+
+            query = f"""
+            USE NS {self.namespace};
+            USE DB {self.database};
+
+            -- UPSERT: Insert if new, update if exists
+            UPSERT concept:`{concept_id}` SET
+                path = {json.dumps(relative_path)},
+                title = {json.dumps(title)},
+                tags = {json.dumps(tags)},
+                content = {json.dumps(content_truncated)},
+                updated_at = time::now();
+            """
+
+            await self._execute_query_async(query, client)
+            logger.info(f"Synced concept: {relative_path}")
+
+            return True, concept_id
+
+        except Exception as e:
+            logger.error(f"Failed to sync concept {concept_path}: {e}")
+            return False, str(e)
+
     def bulk_import_concepts(self) -> int:
         """Import all concepts from vault/concepts/ directory.
+
+        Automatically uses parallel or sequential approach based on configuration.
+
+        Returns:
+            Count of concepts imported
+        """
+        if self.parallel_enabled:
+            return asyncio.run(self._bulk_import_concepts_parallel())
+        else:
+            return self._bulk_import_concepts_sequential()
+
+    def _bulk_import_concepts_sequential(self) -> int:
+        """Import all concepts sequentially (fallback method).
 
         Returns:
             Count of concepts imported
@@ -311,7 +542,7 @@ class SurrealDBSync:
             return 0
 
         concept_files = list(concepts_dir.glob("*.md"))
-        logger.info(f"Starting bulk import of {len(concept_files)} concepts...")
+        logger.info(f"Starting sequential bulk import of {len(concept_files)} concepts...")
 
         count = 0
         for concept_path in concept_files:
@@ -321,7 +552,51 @@ class SurrealDBSync:
             except Exception as e:
                 logger.error(f"Failed to import {concept_path.name}: {e}")
 
-        logger.info(f"Bulk import complete: {count}/{len(concept_files)} concepts")
+        logger.info(f"Sequential bulk import complete: {count}/{len(concept_files)} concepts")
+        return count
+
+    async def _bulk_import_concepts_parallel(self) -> int:
+        """Import all concepts with parallel execution (async).
+
+        Uses semaphore to limit concurrent operations to max_concurrent.
+
+        Returns:
+            Count of concepts imported
+        """
+        concepts_dir = self.vault_path / "concepts"
+        if not concepts_dir.exists():
+            logger.warning(f"Concepts directory not found: {concepts_dir}")
+            return 0
+
+        concept_files = list(concepts_dir.glob("*.md"))
+        logger.info(
+            f"Starting parallel bulk import of {len(concept_files)} concepts "
+            f"(max_concurrent={self.max_concurrent})..."
+        )
+
+        # Create async client with connection pooling
+        async with httpx.AsyncClient(timeout=30.0, limits=httpx.Limits(max_connections=self.max_concurrent)) as client:
+            semaphore = asyncio.Semaphore(self.max_concurrent)
+
+            async def sync_with_limit(concept_path: Path) -> tuple[bool, str]:
+                async with semaphore:
+                    return await self._sync_concept_async(concept_path, client)
+
+            # Create tasks for all concepts
+            tasks = [sync_with_limit(concept_path) for concept_path in concept_files]
+
+            # Gather results with exception handling
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+
+            # Count successful imports
+            count = 0
+            for i, result in enumerate(results):
+                if isinstance(result, Exception):
+                    logger.error(f"Failed to import {concept_files[i].name}: {result}")
+                elif isinstance(result, tuple) and result[0]:
+                    count += 1
+
+        logger.info(f"Parallel bulk import complete: {count}/{len(concept_files)} concepts")
         return count
 
     def start_watching(self) -> None:
@@ -355,6 +630,8 @@ class SurrealDBSync:
         """Clean up resources."""
         self.stop_watching()
         self.client.close()
+        if self.async_client is not None:
+            asyncio.run(self.async_client.aclose())
 
 
 class VaultFileHandler(FileSystemEventHandler):
