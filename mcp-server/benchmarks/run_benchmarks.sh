@@ -9,6 +9,7 @@ BENCHMARK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUTPUT_DIR="${BENCHMARK_DIR}"
 VENV_PATH="/home/mike-anderson/dev/cohezion/cloud-vault-mcp/.venv"
 PYTHON3="${VENV_PATH}/bin/python3"
+PIP="${VENV_PATH}/bin/pip"
 
 # Colors for output
 RED='\033[0;31m'
@@ -92,7 +93,7 @@ run_python_benchmarks() {
     local start_time=$(date +%s)
 
     # Install dependencies
-    $PYTHON3 -m pip install -q aiohttp psutil 2>/dev/null || true
+    $PIP install -q aiohttp psutil 2>/dev/null || true
 
     # Run benchmark framework
     $PYTHON3 "${BENCHMARK_DIR}/benchmark_framework.py" \

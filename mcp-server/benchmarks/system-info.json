@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-02-10T05:10:12Z",
+  "os": "Linux",
+  "kernel": "6.17.0-14-generic",
+  "hostname": "FrameworkDesktop",
+  "cpu_count": 32,
+  "memory_gb": 125,
+  "python_version": "3.12.3",
+  "mcp_server_url": "http://localhost:8000"
+}

@@ -1,0 +1,62 @@
+{
+  "environment": {
+    "os": "Linux",
+    "os_version": "6.17.0-14-generic",
+    "python_version": "3.12.3 (main, Jan 22 2026, 20:57:42) [GCC 13.3.0]",
+    "processor": "x86_64",
+    "hostname": "FrameworkDesktop",
+    "timestamp": "2026-02-10T00:10:12.698894",
+    "system_baseline": {
+      "baseline_memory_mb": 21.44921875,
+      "baseline_cpu_percent": 0.0,
+      "process_pid": 676466,
+      "system_cpu_count": 32,
+      "system_memory_mb": 128089.03515625
+    }
+  },
+  "timestamp": "2026-02-10T00:10:12.799462",
+  "benchmarks": {
+    "latency": {},
+    "throughput": {
+      "concurrent_10": {
+        "concurrent_count": 10,
+        "successful": 0,
+        "errors": 10,
+        "error_rate": 1.0,
+        "latency": {},
+        "throughput_req_per_sec": 0
+      },
+      "concurrent_50": {
+        "concurrent_count": 50,
+        "successful": 0,
+        "errors": 50,
+        "error_rate": 1.0,
+        "latency": {},
+        "throughput_req_per_sec": 0
+      },
+      "concurrent_100": {
+        "concurrent_count": 100,
+        "successful": 0,
+        "errors": 100,
+        "error_rate": 1.0,
+        "latency": {},
+        "throughput_req_per_sec": 0
+      }
+    },
+    "memory_stability": {
+      "duration_seconds": 60,
+      "request_count": 537,
+      "measurements": 53,
+      "memory": {
+        "min_mb": 36.74609375,
+        "max_mb": 36.7578125,
+        "mean_mb": 36.757370283018865,
+        "delta_mb": 0.01171875
+      },
+      "stability": {
+        "memory_drift_mb": 0.01171875,
+        "is_stable": true
+      }
+    }
+  }
+}
