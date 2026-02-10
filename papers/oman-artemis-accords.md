@@ -2,9 +2,16 @@
 title: "Oman signed the Artemis Accords, becoming the 61st nation to commit to responsible space explorat..."
 date: 2026-02-07
 tags: [space, policy]
-source: "Source: X
- https://search.app/Ljd8E"
+connectivity: 0.00
+cross_domain: 0.25
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ☆☆☆☆☆ (0/5 links)
+completion_summary: 2/3 sections (66%)
 domain: "Space Policy & Governance"
+https: //search.app/Ljd8E"
+source: "Source: X
 ---
 
 # Oman signed the Artemis Accords, becoming the 61st nation to commit to responsible space explorat...

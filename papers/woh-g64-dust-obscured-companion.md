@@ -2,9 +2,16 @@
 title: "WOH G64 in LMC appeared to vanish but obscured by ejected dust; SALT found hot companion"
 date: 2026-02-07
 tags: [astrophysics, physics]
-source: "Source: The Daily Galaxy
- https://search.app/vpRDv"
+connectivity: 0.13
+cross_domain: 0.25
+completion: 1.00
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (2/5 links)
+completion_summary: 3/3 sections (100%)
 domain: "Astrophysics"
+https: //search.app/vpRDv"
+source: "Source: The Daily Galaxy
 ---
 
 

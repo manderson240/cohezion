@@ -2,9 +2,16 @@
 title: "Diffraction gratings physically perform Fourier transforms, connecting optics to signal processing"
 date: 2026-02-07
 tags: [physics, optics]
-source: "Source: Hackaday
- https://search.app/QGa1s"
+connectivity: 0.07
+cross_domain: 0.25
+completion: 1.00
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ☆☆☆☆☆ (1/5 links)
+completion_summary: 3/3 sections (100%)
 domain: "Physics/Optics"
+https: //search.app/QGa1s"
+source: "Source: Hackaday
 ---
 
 

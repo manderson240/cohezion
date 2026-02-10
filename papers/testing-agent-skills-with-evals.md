@@ -2,6 +2,13 @@
 title: "Testing Agent Skills Systematically with Evals"
 date: 2026-02-07
 tags: [AI-evaluation, agent-skills, evals, testing, OpenAI]
+connectivity: 0.20
+cross_domain: 0.62
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (3/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://developers.openai.com/blog/eval-skills/"
 ---
 

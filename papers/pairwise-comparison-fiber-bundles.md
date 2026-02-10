@@ -2,8 +2,15 @@
 title: "Mathematical framework for analyzing random pairwise comparison matrices using fiber bundle decom..."
 date: 2026-02-07
 tags: [ai, mathematics]
-source: "Index | Beyond the Quantum: A Quest for the Origin and Hidden Meaning of Quantum Mechanics | Oxford Academic https://share.google/61N296e5OJQLTpCSK"
+connectivity: 0.07
+cross_domain: 0.25
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ☆☆☆☆☆ (1/5 links)
+completion_summary: 2/3 sections (66%)
 domain: "Mathematics and Statistics"
+source: "Index | Beyond the Quantum: A Quest for the Origin and Hidden Meaning of Quantum Mechanics | Oxford Academic https://share.google/61N296e5OJQLTpCSK"
 ---
 
 # Mathematical framework for analyzing random pairwise comparison matrices using fiber bundle decom...

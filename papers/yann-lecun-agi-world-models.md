@@ -2,6 +2,13 @@
 title: "Yann LeCun on AGI and the Digital Commons"
 date: 2026-02-07
 tags: [ai-architecture, agi, world-models, open-source]
+connectivity: 0.13
+cross_domain: 0.50
+completion: 1.00
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (2/5 links)
+completion_summary: 3/3 sections (100%)
 source: "https://www.forbes.com/sites/johnwerner/2026/01/27/yann-lecun-on-artificial-general-intelligence-and-the-digital-commons/"
 ---
 

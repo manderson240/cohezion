@@ -2,9 +2,16 @@
 title: "Oxford Academic book exploring pilot-wave theory as a deeper foundation for quantum mechanics, pr..."
 date: 2026-02-07
 tags: [quantum, physics, cosmology]
-source: "Source: Chemistry World
- https://search.app/vS8FV"
+connectivity: 0.13
+cross_domain: 0.38
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (2/5 links)
+completion_summary: 2/3 sections (66%)
 domain: "Quantum Physics and Philosophy"
+https: //search.app/vS8FV"
+source: "Source: Chemistry World
 ---
 
 # Oxford Academic book exploring pilot-wave theory as a deeper foundation for quantum mechanics, pr...

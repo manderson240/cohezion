@@ -2,9 +2,16 @@
 title: "ASPI: Evidence of USAF secret stealthy uncrewed electromagnetic attack aircraft (P-AEA)"
 date: 2026-02-07
 tags: [ai]
-source: "Source: The Strategist | ASPI's analysis and commentary site
- https://search.app/8xed3"
+connectivity: 0.00
+cross_domain: 0.12
+completion: 1.00
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ☆☆☆☆☆ (0/5 links)
+completion_summary: 3/3 sections (100%)
 domain: "Military Technology"
+https: //search.app/8xed3"
+source: "Source: The Strategist | ASPI's analysis and commentary site
 ---
 
 

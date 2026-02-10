@@ -2,6 +2,13 @@
 title: "Quantum Teleportation of Logic Gates Between Computers"
 date: 2026-02-07
 tags: [quantum-computing, teleportation, distributed-computing]
+connectivity: 0.20
+cross_domain: 0.38
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (3/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://3dvf.com/en/scientists-have-managed-to-teleport-calculations-between-computers-and-computing-could-change/"
 ---
 

@@ -2,9 +2,16 @@
 title: "Anthropic research shows disempowerment patterns in AI usage where AI interactions reduce user au..."
 date: 2026-02-07
 tags: [ai]
-source: "Source: The Quantum Insider
- https://search.app/64yvj"
+connectivity: 0.07
+cross_domain: 0.12
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ☆☆☆☆☆ (1/5 links)
+completion_summary: 2/3 sections (66%)
 domain: "AI Safety & Ethics"
+https: //search.app/64yvj"
+source: "Source: The Quantum Insider
 ---
 
 # Anthropic research shows disempowerment patterns in AI usage where AI interactions reduce user au...

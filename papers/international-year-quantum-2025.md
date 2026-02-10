@@ -2,9 +2,16 @@
 title: "Coverage of 2025 as International Year of Quantum Science and Technology, highlighting quantum ch..."
 date: 2026-02-07
 tags: [quantum, chemistry]
-source: "Source: MIT Technology Review
- https://search.app/WA1ZZ"
+connectivity: 0.13
+cross_domain: 0.25
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (2/5 links)
+completion_summary: 2/3 sections (66%)
 domain: "Quantum Chemistry"
+https: //search.app/WA1ZZ"
+source: "Source: MIT Technology Review
 ---
 
 # Coverage of 2025 as International Year of Quantum Science and Technology, highlighting quantum ch...

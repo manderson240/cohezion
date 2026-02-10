@@ -2,6 +2,13 @@
 title: "WOH G64 Confirmed Still a Red Supergiant"
 date: 2026-02-07
 tags: [astrophysics, stellar-evolution, red-supergiant, binary-stars]
+connectivity: 0.13
+cross_domain: 0.50
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (2/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://phys.org/news/2026-01-massive-star-woh-g64-red.html"
 ---
 

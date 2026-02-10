@@ -2,9 +2,16 @@
 title: "Andrej Karpathy's curated Claude Code skills for AI-assisted development workflows"
 date: 2026-02-07
 tags: [ai]
-source: "Source: GitHub
- https://search.app/YP4f5"
+connectivity: 0.07
+cross_domain: 0.12
+completion: 1.00
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ☆☆☆☆☆ (1/5 links)
+completion_summary: 3/3 sections (100%)
 domain: "AI Development Tools"
+https: //search.app/YP4f5"
+source: "Source: GitHub
 ---
 
 

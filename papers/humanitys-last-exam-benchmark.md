@@ -2,6 +2,13 @@
 title: "Humanity's Last Exam - Expert-Level AI Benchmark"
 date: 2026-02-07
 tags: [AI-evaluation, benchmarks, LLM, expert-knowledge]
+connectivity: 0.07
+cross_domain: 0.50
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ☆☆☆☆☆ (1/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://www.nature.com/articles/s41586-025-09962-4"
 ---
 

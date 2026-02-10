@@ -2,6 +2,13 @@
 title: "Emoticons Cause Silent Failures in LLM Coding Responses"
 date: 2026-02-07
 tags: [ai-evaluation, llm-robustness, code-generation, security]
+connectivity: 0.07
+cross_domain: 0.50
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ☆☆☆☆☆ (1/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://techxplore.com/news/2026-01-emoticons-llms-silent-failures-coding.html"
 ---
 

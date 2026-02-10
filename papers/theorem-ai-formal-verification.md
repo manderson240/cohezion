@@ -2,6 +2,13 @@
 title: "Theorem: Formal Verification for AI-Generated Code"
 date: 2026-02-07
 tags: [ai-security, formal-verification, code-safety]
+connectivity: 0.13
+cross_domain: 0.38
+completion: 1.00
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (2/5 links)
+completion_summary: 3/3 sections (100%)
 source: "https://venturebeat.com/security/theorem-wants-to-stop-ai-written-bugs-before-they-ship-and-just-raised-usd6m"
 ---
 

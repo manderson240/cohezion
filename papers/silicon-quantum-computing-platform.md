@@ -2,6 +2,13 @@
 title: "Silicon as the Bedrock of Quantum Computers"
 date: 2026-02-07
 tags: [quantum-computing, silicon, qubits]
+connectivity: 0.20
+cross_domain: 0.38
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (3/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://physicsworld.com/a/could-silicon-become-the-bedrock-of-quantum-computers/"
 ---
 

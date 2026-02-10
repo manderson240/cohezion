@@ -2,6 +2,13 @@
 title: "Towards a Science of Scaling Agent Systems"
 date: 2026-02-07
 tags: [ai-architecture, multi-agent, scaling, evaluation]
+connectivity: 0.27
+cross_domain: 0.50
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (4/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://arxiv.org/abs/2512.08296"
 ---
 

@@ -2,6 +2,13 @@
 title: "JWST Upending Understanding of Early Universe Black Holes"
 date: 2026-02-07
 tags: [astrophysics, jwst, black-holes, cosmology, early-universe]
+connectivity: 0.20
+cross_domain: 0.62
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (3/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://www.livescience.com/space/black-holes/a-real-revolution-the-james-webb-telescope-is-upending-our-understanding-of-the-biggest-oldest-black-holes-in-the-universe"
 ---
 

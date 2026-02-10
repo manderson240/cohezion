@@ -2,6 +2,13 @@
 title: "Emu3: Multimodal Learning via Next-Token Prediction"
 date: 2026-02-07
 tags: [AI-architecture, multimodal, next-token-prediction, vision-language]
+connectivity: 0.07
+cross_domain: 0.50
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ☆☆☆☆☆ (1/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://www.nature.com/articles/s41586-025-10041-x"
 ---
 

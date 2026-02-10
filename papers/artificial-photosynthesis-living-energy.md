@@ -2,9 +2,16 @@
 title: "Artificial photosynthesis breakthrough: living energy systems converting sunlight to fuel"
 date: 2026-02-07
 tags: [biology]
-source: "Source: ecoportal.net
- https://search.app/dDyoT"
+connectivity: 0.20
+cross_domain: 0.12
+completion: 1.00
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (3/5 links)
+completion_summary: 3/3 sections (100%)
 domain: "Bioenergy"
+https: //search.app/dDyoT"
+source: "Source: ecoportal.net
 ---
 
 
