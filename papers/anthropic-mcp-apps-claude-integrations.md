@@ -2,6 +2,13 @@
 title: "Anthropic Embeds Slack, Figma, and Asana Inside Claude via MCP Apps"
 date: 2026-02-07
 tags: [ai-architecture, mcp, anthropic, claude, integrations]
+connectivity: 0.20
+cross_domain: 0.62
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (3/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://venturebeat.com/infrastructure/anthropic-embeds-slack-figma-and-asana-inside-claude-turning-ai-chat-into-a"
 ---
 

@@ -2,6 +2,13 @@
 title: "Sentinel-1's Decade of Data Over Shifting Ice Sheets"
 date: 2026-02-07
 tags: [earth-science, remote-sensing, climate, ice-sheets]
+connectivity: 0.00
+cross_domain: 0.50
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ☆☆☆☆☆ (0/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://www.esa.int/Applications/Observing_the_Earth/Copernicus/Sentinel-1/Sentinel-1_s_decade_of_essential_data_over_shifting_ice_sheets"
 ---
 

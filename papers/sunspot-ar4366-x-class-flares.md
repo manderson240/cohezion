@@ -2,9 +2,16 @@
 title: "Sunspot AR4366: 26 flares in 24hrs including X8"
 date: 2026-02-07
 tags: [astrophysics, physics]
-source: "Source: X
- https://search.app/UbF4P"
+connectivity: 0.13
+cross_domain: 0.25
+completion: 1.00
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (2/5 links)
+completion_summary: 3/3 sections (100%)
 domain: "Astrophysics"
+https: //search.app/UbF4P"
+source: "Source: X
 ---
 
 

@@ -2,9 +2,16 @@
 title: "AlphaFold + cryo-EM: protein structure prediction for automated atomic model building"
 date: 2026-02-07
 tags: [biology]
-source: "Source: Nature
- https://search.app/i4bPv"
+connectivity: 0.00
+cross_domain: 0.12
+completion: 1.00
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ☆☆☆☆☆ (0/5 links)
+completion_summary: 3/3 sections (100%)
 domain: "Structural Biology"
+https: //search.app/i4bPv"
+source: "Source: Nature
 ---
 
 

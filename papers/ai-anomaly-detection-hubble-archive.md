@@ -2,6 +2,13 @@
 title: "AI Discovers 1400 Anomalous Objects in Hubble Archive"
 date: 2026-02-07
 tags: [astrophysics, AI, anomaly-detection, hubble, machine-learning]
+connectivity: 0.07
+cross_domain: 0.62
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ☆☆☆☆☆ (1/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://science.nasa.gov/missions/hubble/ai-unlocks-hundreds-of-cosmic-anomalies-in-hubble-archive/"
 ---
 

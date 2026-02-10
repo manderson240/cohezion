@@ -2,6 +2,13 @@
 title: "Highly Stable Cu45 Superatom Could Transform Carbon Recycling"
 date: 2026-02-07
 tags: [chemistry, nanotechnology, carbon-capture, catalysis, superatom]
+connectivity: 0.00
+cross_domain: 0.62
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ☆☆☆☆☆ (0/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://phys.org/news/2026-01-highly-stable-cu-superatom-carbon.html"
 ---
 

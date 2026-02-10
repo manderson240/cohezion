@@ -1,9 +1,16 @@
 ---
 date: 2026-02-09
-type: research
-source: inbox
 tags: [research, auto-processed]
+connectivity: 0.00
+cross_domain: 0.00
+completion: 0.67
+temporal: 0.33
+recency: 0.73
+connectivity_summary: ☆☆☆☆☆ (0/5 links)
+completion_summary: 2/3 sections (66%)
+source: inbox
 summary: Research into three unconventional investment themes: a UFO disclosure ETF (UFOD), compute futures contracts, and memory semiconductor pricing exposure.
+type: research
 ---
 It looks like I need write permission to the inbox directory. Could you approve the file write? The expanded document is ready — it takes your original three-section note and restructures it into:
 

@@ -2,9 +2,16 @@
 title: "SwiftUI-Agent-Skill: AI coding tool best practices and patterns for Claude Code skills"
 date: 2026-02-07
 tags: [ai, software-engineering]
-source: "Source: GitHub
- https://search.app/9Eo6H"
+connectivity: 0.07
+cross_domain: 0.25
+completion: 1.00
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ☆☆☆☆☆ (1/5 links)
+completion_summary: 3/3 sections (100%)
 domain: "Software Engineering"
+https: //search.app/9Eo6H"
+source: "Source: GitHub
 ---
 
 

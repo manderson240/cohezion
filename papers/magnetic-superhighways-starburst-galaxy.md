@@ -2,6 +2,13 @@
 title: "Magnetic Superhighways in Starburst Galaxy Winds"
 date: 2026-02-07
 tags: [astrophysics, magnetic-fields, galaxy-evolution, ALMA, starburst]
+connectivity: 0.13
+cross_domain: 0.62
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (2/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://public.nrao.edu/news/magnetic-superhighways-discovered-in-a-starburst-galaxys-winds/"
 ---
 

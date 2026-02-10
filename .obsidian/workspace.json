@@ -21,21 +21,44 @@
         ]
       },
       {
-        "id": "fe8a24a59cfba3ba",
-        "type": "tabs",
+        "id": "2ba303a1c170723d",
+        "type": "split",
         "dimension": 33.333333333333336,
         "children": [
           {
-            "id": "f2314d439dffcc1b",
-            "type": "leaf",
-            "state": {
-              "type": "claude-terminal-view",
-              "state": {},
-              "icon": "claude-logo",
-              "title": "Claude Terminal"
-            }
+            "id": "fe8a24a59cfba3ba",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "f2314d439dffcc1b",
+                "type": "leaf",
+                "state": {
+                  "type": "claude-terminal-view",
+                  "state": {},
+                  "icon": "claude-logo",
+                  "title": "Claude Terminal"
+                }
+              }
+            ]
+          },
+          {
+            "id": "d15392b78abc8f3e",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "5923521d756d85bf",
+                "type": "leaf",
+                "state": {
+                  "type": "claude-terminal-view",
+                  "state": {},
+                  "icon": "claude-logo",
+                  "title": "Claude Terminal"
+                }
+              }
+            ]
           }
-        ]
+        ],
+        "direction": "horizontal"
       },
       {
         "id": "db48885dd4b08cbe",
@@ -107,7 +130,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "12d",
+                "query": "Cohezion_Re",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -256,8 +279,13 @@
       "workspaces:Manage workspace layouts": false
     }
   },
-  "active": "ae5de8485a0909b5",
+  "active": "ffe7c263ee7d1332",
   "lastOpenFiles": [
+    "daily/2026-02-09-sheetsbridge-test-plan.md",
+    "concepts/mcp-infrastructure-architecture.md",
+    "concepts/mcp-infrastructure-architecture.md.tmp.596441.1770695578185",
+    "patterns/troubleshooting-mcp-infrastructure.md",
+    "patterns/troubleshooting-mcp-infrastructure.md.tmp.596441.1770695491587",
     "daily/2026-02-10-12d-graph-phase1-kickoff.md",
     "daily/2026-02-10-12d-graph-phase1-kickoff.md.tmp.597611.1770695460974",
     "patterns/runbook-benchmarking-validation.md",
@@ -278,22 +306,17 @@
     "sessions/session-50-handoff.md",
     "sessions/session-50-handoff.md.tmp.386780.1770692134640",
     "daily/2026-02-09-decisions-experiments-integration.md",
-    "daily/2026-02-09-decisions-experiments-integration.md.tmp.461838.1770689525505",
     "daily/2026-02-09-token-efficiency-retrospective.md",
-    "daily/2026-02-09-token-efficiency-retrospective.md.tmp.147604.1770689099996",
     "daily/2026-02-09-FINAL-SESSION-SUMMARY.md",
     "daily/2026-02-09-sheetsbridge-verified.md",
     "daily/2026-02-09-lessons-retrospective.md",
     "daily/2026-02-09-lessons-integration-complete.md",
-    "daily/2026-02-09-sheetsbridge-test-plan.md",
     "daily/2026-02-09-verification-report.md",
     "daily/2026-02-09-session-retrospective.md",
     "daily/2026-02-09-lessons-graph-integration-plan.md",
     "patterns/lessons/_lessons_index.md",
     "concepts/agentic-ai.md",
     "patterns/lessons/2026-02-09-ollama-mcp-infrastructure.md",
-    "patterns/lessons-graph-integration.md",
-    "daily/2026-02-09-ollama-mcp-server-complete.md",
     "Untitled 1.canvas",
     "Untitled.canvas"
   ]

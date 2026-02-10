@@ -2,6 +2,13 @@
 title: "GRB 250314A: 10-Second Signal from 13 Billion Years Ago"
 date: 2026-02-07
 tags: [astrophysics, gamma-ray-burst, early-universe, jwst]
+connectivity: 0.20
+cross_domain: 0.50
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (3/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://www.ladbible.com/news/science/nasa-supernova-signal-grb-250314a-253130-20260112"
 ---
 

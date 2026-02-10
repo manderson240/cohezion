@@ -2,6 +2,13 @@
 title: "JWST Creates Sharpest Dark Matter Map"
 date: 2026-02-07
 tags: [astrophysics, dark-matter, jwst, gravitational-lensing]
+connectivity: 0.27
+cross_domain: 0.50
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (4/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://www.universetoday.com/articles/mapping-the-invisible"
 ---
 

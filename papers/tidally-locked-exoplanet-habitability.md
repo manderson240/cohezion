@@ -2,9 +2,16 @@
 title: "Tidally locked exoplanets could sustain liquid water on night side; subglacial lakes extend habit..."
 date: 2026-02-07
 tags: [ai, astrophysics, biology]
-source: "Source: Phys.org
- https://search.app/LoDnM"
+connectivity: 0.20
+cross_domain: 0.38
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (3/5 links)
+completion_summary: 2/3 sections (66%)
 domain: "Astrobiology"
+https: //search.app/LoDnM"
+source: "Source: Phys.org
 ---
 
 # Tidally locked exoplanets could sustain liquid water on night side; subglacial lakes extend habit...

@@ -2,6 +2,13 @@
 title: "Transcranial Focused Ultrasound as a Tool for Consciousness Research"
 date: 2026-02-07
 tags: [neuroscience, consciousness, ultrasound, brain-stimulation]
+connectivity: 0.00
+cross_domain: 0.50
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ☆☆☆☆☆ (0/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://news.mit.edu/2026/new-tool-could-tell-us-how-consciousness-works-0112"
 ---
 

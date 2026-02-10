@@ -2,9 +2,16 @@
 title: "Babylonian texts reveal Nebuchadnezzar as restorer/builder, contrasting biblical destroyer narrative"
 date: 2026-02-07
 tags: [archaeology]
-source: "Source: Biblical Archaeology Society
- https://search.app/gQYUf"
+connectivity: 0.00
+cross_domain: 0.12
+completion: 1.00
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ☆☆☆☆☆ (0/5 links)
+completion_summary: 3/3 sections (100%)
 domain: "Archaeology"
+https: //search.app/gQYUf"
+source: "Source: Biblical Archaeology Society
 ---
 
 

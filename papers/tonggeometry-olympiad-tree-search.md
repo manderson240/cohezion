@@ -2,6 +2,13 @@
 title: "TongGeometry: Neuro-Symbolic Olympiad Geometry via Guided Tree Search"
 date: 2026-02-07
 tags: [AI-architecture, neuro-symbolic, geometry, theorem-proving, tree-search]
+connectivity: 0.07
+cross_domain: 0.62
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ☆☆☆☆☆ (1/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://www.nature.com/articles/s42256-025-01164-x"
 ---
 

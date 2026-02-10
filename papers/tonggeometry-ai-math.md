@@ -2,6 +2,13 @@
 title: "TongGeometry: Chinese AI System for IMO-Level Geometry"
 date: 2026-02-07
 tags: [ai-mathematics, neuro-symbolic, geometry, olympiad]
+connectivity: 0.13
+cross_domain: 0.50
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (2/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://www.scmp.com/news/china/science/article/3341517/chinese-ai-goes-next-level-geometry-top-us-maths-olympiad"
 ---
 

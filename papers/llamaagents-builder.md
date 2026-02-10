@@ -2,6 +2,13 @@
 title: "LlamaAgents Builder: Idea to Deployed Agent in Minutes"
 date: 2026-02-07
 tags: [ai-architecture, agent-deployment, llamaindex]
+connectivity: 0.27
+cross_domain: 0.38
+completion: 1.00
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (4/5 links)
+completion_summary: 3/3 sections (100%)
 source: "https://www.llamaindex.ai/blog/llamaagents-builder-idea-to-deployed-agent-in-minutes"
 ---
 

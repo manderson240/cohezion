@@ -2,6 +2,13 @@
 title: "Superfluids Observed Stopping: Superfluid-to-Supersolid Phase Transition"
 date: 2026-02-07
 tags: [quantum-physics, superfluids, supersolids, phase-transitions, graphene]
+connectivity: 0.13
+cross_domain: 0.62
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (2/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://phys.org/news/2026-01-superfluids-indefinitely-physicists.html"
 ---
 

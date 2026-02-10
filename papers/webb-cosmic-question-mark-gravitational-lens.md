@@ -2,6 +2,13 @@
 title: "Webb Telescope Reveals Cosmic Question Mark via Rare Gravitational Lens"
 date: 2026-02-07
 tags: [astrophysics, jwst, gravitational-lensing, galaxy-formation]
+connectivity: 0.13
+cross_domain: 0.50
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (2/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://science.nasa.gov/missions/webb/nasas-webb-reveals-distorted-galaxy-forming-cosmic-question-mark/"
 ---
 

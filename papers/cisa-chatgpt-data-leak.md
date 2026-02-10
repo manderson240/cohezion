@@ -2,9 +2,16 @@
 title: "CISA chief uploaded sensitive files to public ChatGPT - AI security/data governance concerns"
 date: 2026-02-07
 tags: [ai, security, policy]
-source: "Source: Politico
- https://search.app/XvX1A"
+connectivity: 0.00
+cross_domain: 0.38
+completion: 1.00
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ☆☆☆☆☆ (0/5 links)
+completion_summary: 3/3 sections (100%)
 domain: "AI Policy"
+https: //search.app/XvX1A"
+source: "Source: Politico
 ---
 
 

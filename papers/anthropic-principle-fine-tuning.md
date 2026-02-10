@@ -2,8 +2,15 @@
 title: "Anthropic principle and cosmological fine-tuning: why physical constants appear tuned for life"
 date: 2026-02-07
 tags: [cosmology]
-source: "The Anthropic View of the Universe - NYAS https://share.google/ppXMCxgmouBuSKHC9"
+connectivity: 0.07
+cross_domain: 0.12
+completion: 1.00
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ☆☆☆☆☆ (1/5 links)
+completion_summary: 3/3 sections (100%)
 domain: "Cosmology"
+source: "The Anthropic View of the Universe - NYAS https://share.google/ppXMCxgmouBuSKHC9"
 ---
 
 

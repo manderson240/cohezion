@@ -2,6 +2,13 @@
 title: "FAST Telescope Traces Fast Radio Bursts to Binary Star Systems"
 date: 2026-02-07
 tags: [astrophysics, fast-radio-bursts, FAST-telescope, magnetars, binary-stars]
+connectivity: 0.13
+cross_domain: 0.62
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (2/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://www.universetoday.com/articles/the-china-sky-eye-traces-fast-radio-bursts-to-a-binary-star-system"
 ---
 

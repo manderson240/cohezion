@@ -2,9 +2,16 @@
 title: "Few-shot prompting achieves 5x performance in agentic coding tasks by providing examples to LLMs ..."
 date: 2026-02-07
 tags: [ai]
-source: "Source: Towards Data Science
- https://search.app/pmgLq"
+connectivity: 0.13
+cross_domain: 0.12
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (2/5 links)
+completion_summary: 2/3 sections (66%)
 domain: "AI Engineering"
+https: //search.app/pmgLq"
+source: "Source: Towards Data Science
 ---
 
 # Few-shot prompting achieves 5x performance in agentic coding tasks by providing examples to LLMs ...

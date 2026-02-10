@@ -2,6 +2,13 @@
 title: "Super-Earth Exoplanets Have Built-In Magnetic Protection from Magma Oceans"
 date: 2026-02-07
 tags: [astrophysics, exoplanets, magnetic-fields, habitability, super-earth]
+connectivity: 0.20
+cross_domain: 0.62
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ★☆☆☆☆ (3/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://www.space.com/astronomy/exoplanets/super-earth-exoplanets-may-have-built-in-magnetic-protection-from-churning-magma-and-thats-good-news-for-life"
 ---
 

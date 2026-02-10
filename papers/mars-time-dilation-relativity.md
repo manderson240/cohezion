@@ -2,6 +2,13 @@
 title: "Einstein's Relativity Confirmed by Mars Time Dilation"
 date: 2026-02-07
 tags: [physics, general-relativity, mars, time-dilation]
+connectivity: 0.07
+cross_domain: 0.50
+completion: 0.67
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ☆☆☆☆☆ (1/5 links)
+completion_summary: 2/3 sections (66%)
 source: "https://www.sciencedaily.com/releases/2025/12/251228074458.htm"
 ---
 

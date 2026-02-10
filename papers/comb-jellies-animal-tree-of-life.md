@@ -2,9 +2,16 @@
 title: "Comb jellies confirmed as first branch on animal tree of life, rewriting early evolution"
 date: 2026-02-07
 tags: [biology]
-source: "Source: Popular Mechanics
- https://search.app/wXgj4"
+connectivity: 0.00
+cross_domain: 0.12
+completion: 1.00
+temporal: 1.00
+recency: 1.00
+connectivity_summary: ☆☆☆☆☆ (0/5 links)
+completion_summary: 3/3 sections (100%)
 domain: "Evolutionary Biology"
+https: //search.app/wXgj4"
+source: "Source: Popular Mechanics
 ---
 
 
