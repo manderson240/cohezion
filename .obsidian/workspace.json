@@ -6,7 +6,7 @@
       {
         "id": "02e18562974e1c0d",
         "type": "tabs",
-        "dimension": 33.33333333333333,
+        "dimension": 28.469022017409113,
         "children": [
           {
             "id": "ffe7c263ee7d1332",
@@ -23,7 +23,7 @@
       {
         "id": "2ba303a1c170723d",
         "type": "split",
-        "dimension": 33.33333333333333,
+        "dimension": 38.19764464925755,
         "children": [
           {
             "id": "3e4260dd21fdae2e",
@@ -202,7 +202,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "70677f67d3ace9b9",
@@ -327,6 +328,10 @@
   },
   "active": "ae5de8485a0909b5",
   "lastOpenFiles": [
+    "daily/2026-02-10-phase3-kickoff.md",
+    "daily/2026-02-10-phase3-kickoff.md.tmp.597611.1770696895573",
+    "daily/2026-02-10-CANVAS-PLAN-SUMMARY.md",
+    "daily/2026-02-10-CANVAS-PLAN-SUMMARY.md.tmp.625665.1770696852475",
     "daily/2026-02-10-phase2-complete.md",
     "daily/2026-02-10-phase2-complete.md.tmp.597611.1770696829849",
     "daily/2026-02-10-kyutai-plugin-plan-summary.md",
@@ -346,9 +351,7 @@
     "daily/2026-02-10-phase2-kickoff.md",
     "daily/2026-02-10-phase2-kickoff.md.tmp.597611.1770696331155",
     "daily/2026-02-10-linking-plan-quick-ref.md",
-    "daily/2026-02-10-linking-plan-quick-ref.md.tmp.618831.1770696286197",
     "daily/2026-02-10-compound-linking-plan-summary.md",
-    "daily/2026-02-10-compound-linking-plan-summary.md.tmp.618831.1770696226169",
     "daily/2026-02-10-phase1-complete.md",
     "decisions/2026-02-10-compound-node-linking-plan.md",
     "daily/2026-02-10-phase-a-documentation-complete.md",
@@ -363,8 +366,6 @@
     "daily/2026-02-09-12d-graph-foundation.md",
     "patterns/runbook-ollama-mcp-operations.md",
     "decisions/2026-02-10-phase-a-implementation-complete.md",
-    "sessions/SESSION-50-QUICKSTART.md",
-    "sessions/session-49-retrospective.md",
     "Untitled 1.canvas",
     "Untitled.canvas"
   ]
