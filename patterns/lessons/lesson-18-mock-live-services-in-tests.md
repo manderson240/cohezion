@@ -9,8 +9,6 @@
 ## Context
 <!-- Add relevant context or when this lesson was learned -->
 
-## Related Lessons
-<!-- Link to related lessons -->
 
 ## Tags
 - #lesson
@@ -18,3 +16,7 @@
 
 ---
 Created: 2026-02-08 14:43:24
+
+## Related
+**Domains**: architecture, cicd, performance, testing
+**Concepts**: [[concept-automation]], [[concept-isolation]], [[concept-modularity]], [[concept-optimization]], [[concept-testing]]
