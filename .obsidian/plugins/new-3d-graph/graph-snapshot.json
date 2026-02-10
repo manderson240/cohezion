@@ -1,0 +1,45 @@
+{
+  "version": "2.4.1",
+  "timestamp": "2026-02-10T00:00:00Z",
+  "vault": "cohezion-vault",
+  "snapshot": {
+    "total_nodes": 157,
+    "total_links": 1179,
+    "node_types": {
+      "paper": 84,
+      "concept": 22,
+      "decision": 24,
+      "pattern": 24,
+      "experiment": 3
+    },
+    "connectivity": {
+      "connected_nodes": 149,
+      "disconnected_nodes": 8,
+      "connectivity_ratio": 0.949
+    },
+    "link_density": {
+      "total_possible_links": 12272,
+      "actual_links": 1179,
+      "density": 0.096
+    }
+  },
+  "presets_active": [
+    "domain-clusters",
+    "temporal-view",
+    "completion-status",
+    "bridging-papers"
+  ],
+  "data_extraction": {
+    "method": "vault-wikilink-analysis",
+    "timestamp_generated": "2026-02-10T00:00:00Z",
+    "vault_scanned": "/home/mike-anderson/vaults/cohezion-vault",
+    "directories_included": [
+      "papers/",
+      "concepts/",
+      "decisions/",
+      "patterns/",
+      "experiments/"
+    ],
+    "bidirectional_linking": true
+  }
+}
