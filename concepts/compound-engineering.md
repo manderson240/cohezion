@@ -56,12 +56,20 @@ The [[2026-02-07-ai-research-agent-for-vault-notes|research agent experiment]] d
 
 1. **Validate Before Scaling**: [[implementation-first-infrastructure-later]] — Prove concepts with minimal tokens before investing in infrastructure
 2. **Token Efficiency**: [[token-efficiency]] — Optimize LLM token consumption to maximize output per token spent
-3. **Template Reuse**: Copy working patterns (cloud-vault-mcp, ollama-mcp) instead of building from scratch
-4. **Structured Capture**: Use CompoundOps to enforce frontmatter schemas for decisions/experiments/patterns
+3. **Template Reuse**: [[template-reuse]] — Copy working patterns (87% token savings) instead of building from scratch
+4. **Meta-Learning**: [[meta-learning]] — Extract lessons from failures (7.6x → 757x ROI over 100 projects)
+5. **ROI Analysis**: [[roi-analysis]] — Measure compound returns to prioritize high-reuse investments
+6. **Structured Capture**: Use CompoundOps to enforce frontmatter schemas for decisions/experiments/patterns
 
 ## Related Concepts
 
-- [[token-efficiency]] — Economic optimization of compound engineering
+### Methodology Layer
+- [[meta-learning]] — Learning from learning (strategic optimization)
+- [[roi-analysis]] — Measuring compound returns (investment framework)
+- [[token-efficiency]] — Token optimization (tactical execution)
+- [[template-reuse]] — Reusable implementations (87% savings)
+
+### Technical Layer
 - [[agentic-ai]] — AI agents as compound engineering contributors
 - [[context-management]] — Managing context windows for compound knowledge
 
