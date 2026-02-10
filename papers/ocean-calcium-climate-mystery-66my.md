@@ -1,16 +1,29 @@
 ---
-title: "66-Million-Year Climate Mystery Solved: Ocean Calcium Decline Cooled Earth"
+title: '66-Million-Year Climate Mystery Solved: Ocean Calcium Decline Cooled Earth'
 date: 2026-02-07
-tags: [earth-science, climate, paleoclimate, ocean-chemistry]
-connectivity: 0.00
-cross_domain: 0.50
+tags:
+- earth-science
+- climate
+- paleoclimate
+- ocean-chemistry
+connectivity: 0.0
+cross_domain: 0.5
 completion: 0.67
-temporal: 1.00
-recency: 1.00
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 2/3 sections (66%)
-source: "https://scitechdaily.com/scientists-solve-a-66-million-year-old-climate-mystery-that-changed-earth-forever/"
+source: https://scitechdaily.com/scientists-solve-a-66-million-year-old-climate-mystery-that-changed-earth-forever/
+dim_conceptual_depth: 0.5
+conceptual_label: Balanced
+similar_papers:
+- tonggeometry-ai-math.md
+- helimagnetism-ferromagnetism-mode-locking.md
+- mcl1-myc-cancer-metabolism.md
+- usaf-stealthy-electromagnetic-attack.md
+- anthropic-view-universe-nyas.md
 ---
+
 
 # Ocean Calcium Decline Solved Long-Term Cooling Mystery
 

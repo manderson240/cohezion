@@ -1,16 +1,29 @@
 ---
-title: "Emu3: Multimodal Learning via Next-Token Prediction"
+title: 'Emu3: Multimodal Learning via Next-Token Prediction'
 date: 2026-02-07
-tags: [AI-architecture, multimodal, next-token-prediction, vision-language]
+tags:
+- AI-architecture
+- multimodal
+- next-token-prediction
+- vision-language
 connectivity: 0.07
-cross_domain: 0.50
+cross_domain: 0.5
 completion: 0.67
-temporal: 1.00
-recency: 1.00
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 2/3 sections (66%)
-source: "https://www.nature.com/articles/s41586-025-10041-x"
+source: https://www.nature.com/articles/s41586-025-10041-x
+dim_conceptual_depth: 1.0
+conceptual_label: Pure Theory
+similar_papers:
+- fast-radio-bursts-binary-star-origin.md
+- usaf-stealthy-electromagnetic-attack.md
+- woh-g64-dust-obscured-companion.md
+- diffraction-gratings-fourier-transforms.md
+- cu45-superatom-co2-ethylene.md
 ---
+
 
 # Emu3: Multimodal Next-Token Prediction
 

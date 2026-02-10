@@ -1,16 +1,29 @@
 ---
-title: "The Anthropic View of the Universe"
+title: The Anthropic View of the Universe
 date: 2026-02-07
-tags: [cosmology, anthropic-principle, fine-tuning, multiverse]
+tags:
+- cosmology
+- anthropic-principle
+- fine-tuning
+- multiverse
 connectivity: 0.13
-cross_domain: 0.50
-completion: 1.00
-temporal: 1.00
-recency: 1.00
+cross_domain: 0.5
+completion: 1.0
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 3/3 sections (100%)
-source: "https://www.nyas.org/ideas-insights/blog/the-anthropic-view-of-the-universe/"
+source: https://www.nyas.org/ideas-insights/blog/the-anthropic-view-of-the-universe/
+dim_conceptual_depth: 0.5
+conceptual_label: Balanced
+similar_papers:
+- artemis-ii-laser-comms.md
+- ocean-calcium-climate-mystery-66my.md
+- agentic-ai-memory-hierarchies.md
+- quantum-teleportation-logic-gates.md
+- mcl1-myc-cancer-metabolism.md
 ---
+
 
 
 ## Abstract

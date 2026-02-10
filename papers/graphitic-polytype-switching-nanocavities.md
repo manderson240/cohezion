@@ -1,16 +1,29 @@
 ---
-title: "Switching Graphitic Polytypes in Elastically Coupled Cavities"
+title: Switching Graphitic Polytypes in Elastically Coupled Cavities
 date: 2026-02-07
-tags: [nanotechnology, graphene, materials-science, nature]
-connectivity: 0.20
-cross_domain: 0.50
+tags:
+- nanotechnology
+- graphene
+- materials-science
+- nature
+connectivity: 0.2
+cross_domain: 0.5
 completion: 0.67
-temporal: 1.00
-recency: 1.00
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ★☆☆☆☆ (3/5 links)
 completion_summary: 2/3 sections (66%)
-source: "https://www.nature.com/articles/s41565-025-02121-w"
+source: https://www.nature.com/articles/s41565-025-02121-w
+dim_conceptual_depth: 0.5
+conceptual_label: Balanced
+similar_papers:
+- beyond-the-quantum-pilot-wave-theory.md
+- usaf-stealthy-electromagnetic-attack.md
+- webb-cosmic-question-mark-gravitational-lens.md
+- amorphous-materials-3d-atomic-structure.md
+- mars-time-dilation-relativity.md
 ---
+
 
 # Switching Graphitic Polytypes in Nanocavities
 

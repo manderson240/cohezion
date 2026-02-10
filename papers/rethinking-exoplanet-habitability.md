@@ -1,16 +1,29 @@
 ---
-title: "Rethinking Where Life Could Exist Beyond Earth"
+title: Rethinking Where Life Could Exist Beyond Earth
 date: 2026-02-07
-tags: [astrobiology, exoplanets, habitability, tidally-locked]
-connectivity: 0.20
-cross_domain: 0.50
+tags:
+- astrobiology
+- exoplanets
+- habitability
+- tidally-locked
+connectivity: 0.2
+cross_domain: 0.5
 completion: 0.67
-temporal: 1.00
-recency: 1.00
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ★☆☆☆☆ (3/5 links)
 completion_summary: 2/3 sections (66%)
-source: "https://phys.org/news/2026-01-rethinking-life-earth.html"
+source: https://phys.org/news/2026-01-rethinking-life-earth.html
+dim_conceptual_depth: 0.5
+conceptual_label: Balanced
+similar_papers:
+- jwst-dark-matter-map.md
+- llm-training-methodology-changes.md
+- helimagnetism-ferromagnetism-mode-locking.md
+- quantum-entanglement-speed-measurement.md
+- yann-lecun-agi-world-models.md
 ---
+
 
 # Rethinking Exoplanet Habitability
 

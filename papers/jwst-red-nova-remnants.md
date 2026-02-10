@@ -1,16 +1,29 @@
 ---
-title: "JWST Discovers Red Nova Merger Remnants Are Red Supergiants"
+title: JWST Discovers Red Nova Merger Remnants Are Red Supergiants
 date: 2026-02-07
-tags: [astrophysics, jwst, stellar-evolution, red-nova]
+tags:
+- astrophysics
+- jwst
+- stellar-evolution
+- red-nova
 connectivity: 0.27
-cross_domain: 0.50
+cross_domain: 0.5
 completion: 0.67
-temporal: 1.00
-recency: 1.00
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ★☆☆☆☆ (4/5 links)
 completion_summary: 2/3 sections (66%)
-source: "https://www.space.com/astronomy/stars/james-webb-space-telescope-discovers-what-remains-after-two-stars-collide-and-explode-as-a-red-nova"
+source: https://www.space.com/astronomy/stars/james-webb-space-telescope-discovers-what-remains-after-two-stars-collide-and-explode-as-a-red-nova
+dim_conceptual_depth: 0.5
+conceptual_label: Balanced
+similar_papers:
+- superfluid-to-supersolid-transition.md
+- 2026-02-09-unique-investment-opportunities-research.md
+- anthropic-mcp-apps-claude-integrations.md
+- scaling-agent-systems.md
+- cisa-chatgpt-data-leak.md
 ---
+
 
 # JWST Discovers Red Nova Merger Remnants
 
