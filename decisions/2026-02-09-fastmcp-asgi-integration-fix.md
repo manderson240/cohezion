@@ -95,3 +95,6 @@ This fix enables the full MCP ↔ Vault integration chain:
 ## Related
 **Domains**: infrastructure, integration
 **Categories**: operational, technical
+
+
+[[mcp-infrastructure-architecture]], [[mcp-model-context-protocol]]

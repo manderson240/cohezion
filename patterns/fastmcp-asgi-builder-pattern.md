@@ -182,3 +182,6 @@ def main():
 - `/decisions/2026-02-09-fastmcp-asgi-integration-fix.md` - Bug fix decision log
 - FastMCP documentation: https://modelcontextprotocol.io
 - Starlette ASGI app docs: https://www.starlette.io/
+
+
+[[mcp-infrastructure-architecture]], [[mcp-model-context-protocol]]

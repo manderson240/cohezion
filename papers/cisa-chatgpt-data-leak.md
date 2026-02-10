@@ -50,3 +50,6 @@ general
 ## Relevance to Cohezion
 
 AI Policy resource captured via mobile link pipeline. general
+
+
+[[ai-safety-alignment]]

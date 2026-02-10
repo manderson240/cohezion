@@ -220,3 +220,6 @@ The Cohezion vault currently contains 83 paper notes, 21 concept notes, 7 patter
 
 ## Related
 **Domains**: architecture, integration
+
+
+[[graph-databases]], [[knowledge-graph-systems]]

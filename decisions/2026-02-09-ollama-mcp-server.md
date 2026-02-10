@@ -465,3 +465,6 @@ result = ollama_query("analyze vault", context="auto")
 ## Related
 **Domains**: ai-ml, architecture, data, infrastructure, integration, performance
 **Categories**: strategic, technical
+
+
+[[mcp-infrastructure-architecture]], [[mcp-model-context-protocol]], [[machine-learning-optimization]]
