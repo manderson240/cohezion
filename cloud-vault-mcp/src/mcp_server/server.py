@@ -7,6 +7,7 @@ from mcp.server.fastmcp import FastMCP
 
 from .compound_ops import CompoundOps
 from .config import ServerConfig
+from .health import HealthChecker
 from .memory_bridge import VaultMemoryBridge
 from .obsidian_ops import ObsidianOps
 from .sheets_bridge import SheetsBridge
@@ -42,6 +43,15 @@ def create_server(config: ServerConfig) -> FastMCP:
             database=config.surrealdb_database,
             username=config.surrealdb_username,
             password=config.surrealdb_password,
+        )
+
+    health_checker: HealthChecker | None = None
+    if config.health_check_enabled:
+        health_checker = HealthChecker(
+            vault_path=config.vault_path,
+            surrealdb_url=config.surrealdb_url,
+            sheets_bridge=sheets,
+            ollama_url=config.ollama_url,
         )
 
     mcp = FastMCP(
@@ -613,5 +623,133 @@ def create_server(config: ServerConfig) -> FastMCP:
             except Exception as e:
                 logger.error(f"Query failed: {e}")
                 return f"Error executing query: {e}"
+
+    # ── Ollama Integration ────────────────────────────────────────────
+
+    if config.ollama_enabled:
+        # Import Ollama client for direct integration
+        try:
+            from .ollama_client import OllamaClient
+
+            ollama_client = OllamaClient(
+                base_url=config.ollama_url,
+                timeout=config.ollama_timeout,
+            )
+
+            @mcp.tool()
+            async def ollama_query(
+                prompt: str,
+                model: str = "auto",
+                temperature: float = 0.7,
+            ) -> str:
+                """Execute a query against Ollama model.
+
+                Args:
+                    prompt: The prompt/question to send to the model
+                    model: Model to use (use "auto" for automatic selection)
+                    temperature: Temperature for generation (0.0-1.0)
+
+                Returns:
+                    Generated text response from the model
+                """
+                try:
+                    response = await ollama_client.query(prompt, model, temperature)
+                    return response or "Empty response from Ollama"
+                except Exception as e:
+                    logger.error(f"Ollama query failed: {e}")
+                    return f"Error: {e}"
+
+            @mcp.tool()
+            async def ollama_embed(
+                texts: list[str],
+                model: str = "nomic-embed-text:latest",
+            ) -> str:
+                """Generate embeddings for texts.
+
+                Args:
+                    texts: List of text strings to embed
+                    model: Embedding model to use
+
+                Returns:
+                    List of embedding vectors as JSON
+                """
+                try:
+                    embeddings = await ollama_client.embed(texts, model)
+                    return json.dumps(embeddings)
+                except Exception as e:
+                    logger.error(f"Ollama embed failed: {e}")
+                    return f"Error: {e}"
+
+            @mcp.tool()
+            async def ollama_status() -> str:
+                """Get Ollama service status and available models.
+
+                Returns:
+                    Status information including loaded models
+                """
+                try:
+                    status = await ollama_client.status()
+                    return json.dumps(status)
+                except Exception as e:
+                    logger.error(f"Ollama status check failed: {e}")
+                    return f"Error: {e}"
+
+        except ImportError:
+            logger.warning("Ollama client not available for direct integration")
+
+    # ── Health Check Operations ────────────────────────────────────────
+
+    if health_checker:
+
+        @mcp.tool()
+        async def vault_health_check() -> str:
+            """Check health of all MCP dependencies.
+
+            Tests the following services:
+            - Vault filesystem (read/write access)
+            - SurrealDB graph database
+            - Google Sheets API
+            - Ollama service
+            - Disk space
+            - Process memory usage
+
+            Returns a detailed status report with latencies and connection status.
+            """
+            try:
+                status = await health_checker.run_all_checks(timeout=5)
+                return json.dumps(status.to_dict(), indent=2)
+            except Exception as e:
+                logger.error(f"Health check failed: {e}")
+                return json.dumps(
+                    {
+                        "status": "unhealthy",
+                        "error": str(e),
+                        "timestamp": None,
+                    },
+                    indent=2,
+                )
+
+    # ── Pocket TTS (Text-to-Speech) ─────────────────────────────────
+    try:
+        from .pocket_tts import PocketTTSService
+
+        pocket_tts = PocketTTSService()
+
+        @mcp.tool()
+        def tts_speak(text: str) -> str:
+            """Convert text to speech using Pocket TTS.
+
+            Args:
+                text: Text to synthesize (max 4096 characters)
+
+            Returns:
+                JSON with audio_base64 (WAV format), duration_ms, sample_rate, and status.
+                On error, returns JSON with status="error" and error message.
+            """
+            result = pocket_tts.speak(text)
+            return json.dumps(result, indent=2)
+
+    except ImportError:
+        logger.warning("Pocket TTS not available (pip install pocket-tts)")
 
     return mcp
