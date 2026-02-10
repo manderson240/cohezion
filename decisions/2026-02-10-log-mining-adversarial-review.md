@@ -614,6 +614,7 @@ Implement in parallel:
 **Meta-lesson**: Always validate data availability BEFORE designing complex systems.
 
 ## Related
+- [[lesson-adversarial-review-before-execution]]
 
 - [[token-efficiency]]
 - [[prompt-engineering]]

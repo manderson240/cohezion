@@ -116,6 +116,57 @@ du -sh ~/.claude/telemetry/*.json 2>/dev/null | awk '$1 ~ /M/ && $1 > 1 {print "
 
 ---
 
+### 0.1 Debug Log Bloat
+
+**Symptom:**
+- Performance degradation
+- Slow Claude Code startup
+- Disk space warnings
+
+**Check for bloated debug logs:**
+```bash
+# Check total size
+du -sh ~/.claude/debug/
+
+# List logs over 10MB
+find ~/.claude/debug -name "*.txt" -size +10M -exec ls -lh {} \; | awk '{print $5, $9}'
+
+# Count total logs
+ls ~/.claude/debug/*.txt 2>/dev/null | wc -l
+```
+
+**Expected**: <100MB total, no logs >50MB
+**Alert if**: >500MB total or any log >100MB
+
+**Causes:**
+- **Mailbox polling storms**: 734K+ calls/session from idle agents
+- **MCP connection retry spam**: Failed servers retry indefinitely
+- **Validation errors**: ZodError accumulation (329+ per session)
+- **No log rotation**: Logs accumulate to GB sizes
+
+**Fix:**
+```bash
+# Delete logs over 10MB
+find ~/.claude/debug -name "*.txt" -size +10M -delete
+
+# Delete logs older than 30 days
+find ~/.claude/debug -name "*.txt" -mtime +30 -delete
+
+# Verify cleanup
+du -sh ~/.claude/debug/
+```
+
+**Prevention:**
+```bash
+# Add to weekly maintenance (crontab)
+0 3 * * 1 find ~/.claude/debug -name "*.txt" -size +10M -delete
+0 3 * * 1 find ~/.claude/debug -name "*.txt" -mtime +30 -delete
+```
+
+**Reference**: [[lessons/2026-02-10-debug-log-bloat-analysis]] - 1.6GB forensic analysis
+
+---
+
 ### 1. Vault Inaccessible
 
 **Symptom:**
