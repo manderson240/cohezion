@@ -1,0 +1,171 @@
+{
+  "presets": [
+    {
+      "id": "domain-clusters",
+      "name": "Domain Clusters 🌐",
+      "description": "Explore research areas visually. Papers cluster by tags with bridging papers elevated.",
+      "camera": {
+        "position": [0, 0, 30],
+        "target": [0, 0, 0],
+        "fov": 60
+      },
+      "visualization": {
+        "layout": "force-directed",
+        "colorBy": "tags",
+        "sizeBy": "none",
+        "xAxis": "none",
+        "yAxis": "none",
+        "zAxis": "cross_domain",
+        "opacity": "recency"
+      },
+      "physics": {
+        "centerForce": 0.5,
+        "repelForce": 1.2,
+        "linkTension": 0.3,
+        "friction": 0.9
+      },
+      "filtering": {
+        "showAllNodes": true,
+        "edgeFilter": "all"
+      },
+      "userIntent": "Show me how papers cluster by research domain",
+      "expectedOutcome": "Distinct clusters visible (AI/ML, Astrophysics, Quantum, Materials, etc.)"
+    },
+    {
+      "id": "temporal-view",
+      "name": "Temporal View ⏳",
+      "description": "See knowledge evolution over time. Newest papers on right, oldest on left. Hubs elevated.",
+      "camera": {
+        "position": [15, 5, 20],
+        "target": [0, 0, 0],
+        "fov": 60
+      },
+      "visualization": {
+        "layout": "positioned",
+        "colorBy": "conceptual_depth",
+        "sizeBy": "none",
+        "xAxis": "temporal",
+        "yAxis": "connectivity",
+        "zAxis": "conceptual_depth",
+        "opacity": "recency"
+      },
+      "physics": {
+        "centerForce": 0.2,
+        "repelForce": 0.8,
+        "linkTension": 0.2,
+        "friction": 0.95
+      },
+      "filtering": {
+        "showAllNodes": true,
+        "edgeFilter": "all"
+      },
+      "colorScale": {
+        "min": "#FF0000",
+        "mid": "#800080",
+        "max": "#0000FF",
+        "label": "Theory (red) ← → Applied (blue)"
+      },
+      "userIntent": "How has knowledge evolved? Where are the hubs over time?",
+      "expectedOutcome": "Timeline visible left→right, recent papers bright, hubs elevated, color gradient theory→applied"
+    },
+    {
+      "id": "completion-status",
+      "name": "Completion Status ✅",
+      "description": "Identify enrichment opportunities. Incomplete papers small/red/dashed, complete papers large/green/solid.",
+      "camera": {
+        "position": [0, 5, 20],
+        "target": [0, 0, 0],
+        "fov": 60
+      },
+      "visualization": {
+        "layout": "force-directed",
+        "colorBy": "completion",
+        "sizeBy": "completion",
+        "xAxis": "none",
+        "yAxis": "none",
+        "zAxis": "none",
+        "opacity": "completion",
+        "outlineStyle": "completion"
+      },
+      "physics": {
+        "centerForce": 0.5,
+        "repelForce": 1.0,
+        "linkTension": 0.4,
+        "friction": 0.9
+      },
+      "filtering": {
+        "showAllNodes": true,
+        "highlightIncomplete": true,
+        "edgeFilter": "all"
+      },
+      "colorScale": {
+        "min": "#FF0000",
+        "max": "#00FF00",
+        "label": "Incomplete (red) ← → Complete (green)"
+      },
+      "nodeStyles": {
+        "incomplete": {
+          "outline": "dashed",
+          "outlineWidth": 2
+        },
+        "complete": {
+          "outline": "solid",
+          "outlineWidth": 1
+        }
+      },
+      "userIntent": "Which papers need enrichment? What's my progress?",
+      "expectedOutcome": "Incomplete papers small/red/dashed/transparent, complete papers large/green/solid/opaque"
+    },
+    {
+      "id": "bridging-papers",
+      "name": "Bridging Papers 🌉",
+      "description": "Find cross-domain integration points. Multi-domain papers elevated and glowing.",
+      "camera": {
+        "position": [0, 0, 25],
+        "target": [0, 0, 0],
+        "fov": 60
+      },
+      "visualization": {
+        "layout": "force-directed",
+        "colorBy": "tags",
+        "sizeBy": "cross_domain",
+        "xAxis": "none",
+        "yAxis": "none",
+        "zAxis": "cross_domain",
+        "opacity": "recency"
+      },
+      "physics": {
+        "centerForce": 0.5,
+        "repelForce": 1.1,
+        "linkTension": 0.3,
+        "friction": 0.9
+      },
+      "filtering": {
+        "showAllNodes": true,
+        "edgeFilter": "cross_domain"
+      },
+      "nodeEmphasis": {
+        "condition": "cross_domain > 0.5",
+        "glowIntensity": 2.0,
+        "glowColor": "#FFFF00",
+        "emphasis": true
+      },
+      "edgeEmphasis": {
+        "filterBy": "cross_domain",
+        "highlightMultiDomain": true,
+        "thickness": 2.0
+      },
+      "userIntent": "Which papers span multiple domains? Where are integration points?",
+      "expectedOutcome": "Bridging papers elevated, glowing, larger; clear cross-domain links visible; orphaned papers down and small"
+    }
+  ],
+  "globalSettings": {
+    "defaultPreset": "domain-clusters",
+    "autoRotate": false,
+    "showLabels": true,
+    "labelDistance": 1.5,
+    "nodeClickAction": "focus-and-highlight",
+    "nodeDoubleClickAction": "open-note",
+    "navigationMode": "mouse-and-keyboard"
+  }
+}
