@@ -1,0 +1,7 @@
+# Benchmarking Framework Dependencies
+aiohttp>=3.9.0          # Async HTTP client for concurrent request testing
+psutil>=5.9.0           # System monitoring (CPU, memory, I/O)
+
+# Optional: Advanced profiling
+# memory-profiler>=0.60  # Detailed memory profiling
+# line-profiler>=4.0     # Line-by-line performance analysis
