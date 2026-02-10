@@ -73,6 +73,49 @@ curl http://localhost:8360/health | jq '.checks | to_entries[] | select(.value.s
 
 ## Troubleshooting Each Dependency
 
+### 0. Claude Code Telemetry Corruption
+
+**Symptom:**
+```
+Claude have some internal issues/ There are 2 invalid setting files
+```
+
+**Check for bloated telemetry files:**
+```bash
+du -sh ~/.claude/telemetry/*.json 2>/dev/null
+# Files > 1MB indicate failed telemetry accumulation
+```
+
+**Causes:**
+- Failed telemetry events accumulate in JSONL files indefinitely
+- Files grow to MB sizes and become corrupted
+- No automatic rotation/cleanup
+
+**Fix:**
+```bash
+# Remove corrupted telemetry files (safe - just failed logs)
+find ~/.claude/telemetry -name "*.json" -size +1M -delete
+
+# Or remove all telemetry
+rm ~/.claude/telemetry/1p_failed_events.*.json
+```
+
+**Verify:**
+```bash
+# Check for invalid JSON files
+find ~/.claude -name "*.json" -exec python3 -c "import json; json.load(open('{}'))" \; 2>&1 | grep -c "error"
+# Should return 0
+```
+
+**Prevention:**
+Add to monthly maintenance:
+```bash
+# Check telemetry sizes
+du -sh ~/.claude/telemetry/*.json 2>/dev/null | awk '$1 ~ /M/ && $1 > 1 {print "ALERT: "$0}'
+```
+
+---
+
 ### 1. Vault Inaccessible
 
 **Symptom:**
