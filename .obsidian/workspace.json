@@ -326,8 +326,13 @@
       "workspaces:Manage workspace layouts": false
     }
   },
-  "active": "ffe7c263ee7d1332",
+  "active": "ae5de8485a0909b5",
   "lastOpenFiles": [
+    "patterns/domains/testing/MockPattern.md",
+    "patterns/domains/testing",
+    "patterns/domains",
+    "daily/2026-02-10-FINAL-PROJECT-SUMMARY.md",
+    "daily/2026-02-10-FINAL-PROJECT-SUMMARY.md.tmp.626668.1770700642936",
     "decisions/3d-graph-plugin-selection.md",
     "daily/2026-02-10-benchmarking-framework-complete.md",
     "daily/2026-02-10-benchmarking-framework-complete.md.tmp.626668.1770700372227",
@@ -342,9 +347,6 @@
     "mcp-server/benchmarks/run_benchmarks.sh.tmp.626668.1770700177037",
     "daily/2026-02-10-FINAL-STATUS.md",
     "daily/2026-02-10-FINAL-STATUS.md.tmp.626668.1770700102882",
-    "mcp-server/benchmarks/verify_framework.py",
-    "mcp-server/benchmarks/verify_framework.py.tmp.626668.1770700100110",
-    "obsidian-plugin/STATUS.txt",
     "daily/2026-02-10-performance-benchmarking-framework.md",
     "daily/2026-02-10-phase-a-execution-complete.md",
     "benchmarks/README.md",
@@ -362,8 +364,6 @@
     "research/kyutai-mcp-server-implementation.md",
     "obsidian-plugin/DELIVERABLES.md",
     "mcp-server/README.md",
-    "obsidian-plugin/IMPLEMENTATION_SUMMARY.md",
-    "daily/2026-02-10-COHEZION-STATUS-CHECKPOINT.md",
     "Cohezion_KnowledgeGraph.canvas",
     "Untitled 3.canvas",
     "Untitled 2.canvas",
