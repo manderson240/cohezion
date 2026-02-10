@@ -18,6 +18,9 @@ def mock_mcp_client():
     client.vault_find_relevant_context.return_value = [
         {"file": "experiments/similar.md", "score": 0.85}
     ]
+    client.vault_search.return_value = [
+        {"file": "experiments/similar.md", "score": 0.85}
+    ]
     client.vault_log_experiment.return_value = "experiments/execution_123.md"
     client.vault_log_decision.return_value = "decisions/inflection_456.md"
     client.vault_extract_pattern.return_value = "patterns/success_789.md"
@@ -46,7 +49,7 @@ def test_get_experience_guidance(executor, mock_mcp_client):
     )
 
     assert "relevant_context" in guidance
-    mock_mcp_client.vault_find_relevant_context.assert_called_once()
+    mock_mcp_client.vault_search.assert_called_once()
 
 
 def test_execute_task_success(executor, mock_mcp_client):

@@ -16,9 +16,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from cohezion.compound.vault_execution_logger import (
+from cohezion.compound.exp_persistence.vault import (
     ExecutionContext,
-    VaultExecutionLogger,
+    VaultLogger,
 )
 from cohezion.core.mcp_client import MCPClient
 from cohezion.security.guardrail_pipeline import GuardrailAction, GuardrailPipeline
@@ -152,7 +152,7 @@ class CompoundExecutor:
         else:
             from cohezion.compound.inflection_detector import InflectionDetectorFactory
             self.inflection_detector = InflectionDetectorFactory.create_default()
-        self.logger = VaultExecutionLogger(mcp_client)
+        self.logger = VaultLogger(mcp_client=mcp_client)
 
     @property
     def guardrail_pipeline(self) -> GuardrailPipeline | None:

@@ -19,8 +19,8 @@ All actions are governed by two documents (read them for ethical/behavioral ambi
 - **Formatter**: `ruff format` (88-char line length) | **Linter**: `ruff check`
 - **Type Checker**: `mypy` | **Tests**: `uv run pytest`
 - **Database**: SurrealDB (ws://localhost:8000/rpc, ns=cohezion, db=core)
-- **Source Layout**: `src/cohezion/` (212 Python files across 30+ packages, 124 skill definitions in `src/cohezion/skills/`)
-- **Tests**: 634 passing, 2 skipped (`uv run pytest tests/ -q --ignore=tests/test_resource_adversarial.py`)
+- **Source Layout**: `src/cohezion/` (318 Python files across 30+ packages, 129 skill definitions in `src/cohezion/skills/`)
+- **Tests**: 2,854 tests (99.3% passing, `uv run pytest tests/ -q`)
 - **Entry Point**: `cohezion = "cohezion.__main__:main"`
 - **Local Dev Server**: `uv run uvicorn cohezion.api:app --reload --port 8080`
 
@@ -72,7 +72,12 @@ tests/                 # Test suites (pytest)
 - **Delegate Specialized Tasks**: Use sub-agent contexts for focused work (security audits, etc.) to prevent context bloat
 - **Retrospection**: Each completed phase requires explicit retrospection before advancing
 - **Token Efficiency**: Batch operations, cache results, delegate to local models where appropriate
+  - **Critical (Session 52)**: Implement ONE feature first, validate manually, then write 5 real tests. Never write infrastructure for products that don't exist
+  - Anti-pattern: Research every API before using one, write 600 tests before implementation, install dependencies "just in case"
+  - Use working templates (cloud-vault-mcp: 40+ tools, FastMCP proven) over greenfield exploration
 - **Mock Live Services**: API endpoint tests must mock `get_compound_client()` to avoid hanging on Ollama. Patch at source: `cohezion.swarm.compound_client.get_compound_client`
+- **Test Isolation (Sessions 46-50)**: Reset singletons in conftest.py (`_vae_trainer`, `_rl_policy`, logger handlers). Flaky tests = isolation bugs, not logic bugs
+- **Measurement Integrity (Session 45)**: Report honest metrics even if imperfect. 98.8% builds more confidence than inflated 100%. Independent verification catches discrepancies
 - **Compound Loop**: PRIME skill → InstructionExpander → PlanExecutor → ExecutionOrchestrator → RetrospectionEngine → SkillRefiner → updated skill. CLI: `make compound-cycle` (dry-run) or `make compound-live` (Ollama)
 
 ## Hardware Profile (Strix Halo)
