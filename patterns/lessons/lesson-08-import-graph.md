@@ -9,8 +9,6 @@ Import graph: 187/301 non-init files never imported. Only 84 reachable from entr
 ## Context
 <!-- Add relevant context or when this lesson was learned -->
 
-## Related Lessons
-<!-- Link to related lessons -->
 
 ## Tags
 - #lesson
@@ -18,3 +16,7 @@ Import graph: 187/301 non-init files never imported. Only 84 reachable from entr
 
 ---
 Created: 2026-02-08 14:43:24
+
+## Related
+**Domains**: architecture, cicd, performance, testing
+**Concepts**: [[concept-automation]], [[concept-optimization]], [[concept-testing]]

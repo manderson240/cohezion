@@ -9,8 +9,6 @@ ruff auto-formats on save — re-read files before editing (handled by PostToolU
 ## Context
 <!-- Add relevant context or when this lesson was learned -->
 
-## Related Lessons
-<!-- Link to related lessons -->
 
 ## Tags
 - #lesson
@@ -18,3 +16,7 @@ ruff auto-formats on save — re-read files before editing (handled by PostToolU
 
 ---
 Created: 2026-02-08 14:43:24
+
+## Related
+**Domains**: architecture, cicd, git, performance, testing
+**Concepts**: [[concept-automation]], [[concept-optimization]], [[concept-testing]]
