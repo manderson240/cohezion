@@ -31,7 +31,7 @@ def mock_mcp_client():
 def mock_vault_logger():
     """Patch VaultExecutionLogger to avoid real vault calls."""
     with patch(
-        "cohezion.compound.executor.VaultExecutionLogger"
+        "cohezion.compound.exp_persistence.vault.VaultLogger"
     ) as mock_logger_cls:
         mock_logger = MagicMock()
         mock_logger.get_experience_guidance.return_value = {
