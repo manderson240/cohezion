@@ -612,3 +612,8 @@ Implement in parallel:
 **Adversarial Review Quality**: A+ (identified all critical flaws, provided alternatives, honest about own mistakes)
 
 **Meta-lesson**: Always validate data availability BEFORE designing complex systems.
+
+## Related
+
+- [[token-efficiency]]
+- [[prompt-engineering]]

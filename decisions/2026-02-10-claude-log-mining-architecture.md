@@ -413,7 +413,9 @@ DEFINE FIELD out ON prompt_matches_pattern TYPE record<pattern>;
 - Infrastructure: [[mcp-infrastructure-architecture]]
 - Similar work: [[2026-02-10-kyutai-pocket-tts-token-efficient-success|Kyutai Phase 4 Performance Benchmarking]] (agent metrics)
 
-## Related Concepts
+## Related - [[prompt-engineering]]
+- [[mcp-model-context-protocol]]
+Concepts
 
 - [[token-efficiency]] — Economic optimization driving architecture choices
 - [[compound-engineering]] — Knowledge accumulation methodology this system extends
