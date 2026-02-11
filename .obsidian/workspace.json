@@ -4,143 +4,36 @@
     "type": "split",
     "children": [
       {
-        "id": "2ba303a1c170723d",
-        "type": "split",
-        "dimension": 55.38740920096852,
+        "id": "ad7d655133db047c",
+        "type": "tabs",
         "children": [
           {
-            "id": "49d9d6a87881e7ec",
-            "type": "split",
-            "dimension": 72.32142857142857,
-            "children": [
-              {
-                "id": "628f9b0e1f9b1614",
-                "type": "tabs",
-                "children": [
-                  {
-                    "id": "824b0fe5c70423e4",
-                    "type": "leaf",
-                    "state": {
-                      "type": "claude-terminal-view",
-                      "state": {},
-                      "icon": "claude-logo",
-                      "title": "Claude Terminal"
-                    }
-                  }
-                ]
-              },
-              {
-                "id": "eb0e7d55842aaf59",
-                "type": "tabs",
-                "children": [
-                  {
-                    "id": "f2314d439dffcc1b",
-                    "type": "leaf",
-                    "state": {
-                      "type": "claude-terminal-view",
-                      "state": {},
-                      "icon": "claude-logo",
-                      "title": "Claude Terminal"
-                    }
-                  },
-                  {
-                    "id": "769e7eb5d7edea54",
-                    "type": "leaf",
-                    "state": {
-                      "type": "graph",
-                      "state": {},
-                      "icon": "lucide-git-fork",
-                      "title": "Graph view"
-                    }
-                  }
-                ],
-                "currentTab": 1
-              }
-            ],
-            "direction": "vertical"
-          },
-          {
-            "id": "a297292a5bec5953",
-            "type": "split",
-            "dimension": 27.67857142857143,
-            "children": [
-              {
-                "id": "d15392b78abc8f3e",
-                "type": "tabs",
-                "children": [
-                  {
-                    "id": "5923521d756d85bf",
-                    "type": "leaf",
-                    "state": {
-                      "type": "claude-terminal-view",
-                      "state": {},
-                      "icon": "claude-logo",
-                      "title": "Claude Terminal"
-                    }
-                  }
-                ]
-              },
-              {
-                "id": "d8ed3d82d1fb0907",
-                "type": "tabs",
-                "children": [
-                  {
-                    "id": "c4674fad75239c8c",
-                    "type": "leaf",
-                    "state": {
-                      "type": "claude-terminal-view",
-                      "state": {},
-                      "icon": "claude-logo",
-                      "title": "Claude Terminal"
-                    }
-                  }
-                ]
-              }
-            ],
-            "direction": "vertical"
+            "id": "4c75d984e5e746b9",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
+            }
           }
-        ],
-        "direction": "horizontal"
+        ]
       },
       {
-        "id": "db48885dd4b08cbe",
-        "type": "split",
-        "dimension": 44.61259079903147,
+        "id": "7208da9f9c737c02",
+        "type": "tabs",
         "children": [
           {
-            "id": "5eae45faae5f463e",
-            "type": "tabs",
-            "children": [
-              {
-                "id": "0d443c8c6ba10387",
-                "type": "leaf",
-                "state": {
-                  "type": "claude-terminal-view",
-                  "state": {},
-                  "icon": "claude-logo",
-                  "title": "Claude Terminal"
-                }
-              }
-            ]
-          },
-          {
-            "id": "8930874466a691c4",
-            "type": "tabs",
-            "children": [
-              {
-                "id": "ae5de8485a0909b5",
-                "type": "leaf",
-                "state": {
-                  "type": "claude-terminal-view",
-                  "state": {},
-                  "icon": "claude-logo",
-                  "title": "Claude Terminal"
-                }
-              }
-            ]
+            "id": "dbd3bc75655d72f9",
+            "type": "leaf",
+            "state": {
+              "type": "claude-terminal-view",
+              "state": {},
+              "icon": "claude-logo",
+              "title": "Claude Terminal"
+            }
           }
-        ],
-        "direction": "horizontal"
+        ]
       }
     ],
     "direction": "vertical"
@@ -172,7 +65,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "PROJECT-COMPLETE-100",
+                "query": "",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -193,8 +86,7 @@
               "title": "Bookmarks"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "horizontal",
@@ -296,13 +188,23 @@
               "icon": "lucide-file-signature",
               "title": "Footnotes"
             }
+          },
+          {
+            "id": "48eee583365ffd87",
+            "type": "leaf",
+            "state": {
+              "type": "infranodus-graph-view",
+              "state": {},
+              "icon": "infranodus-icon",
+              "title": "inbox/HANDOFF-lessons-compound-engineering.md"
+            }
           }
-        ]
+        ],
+        "currentTab": 6
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 275.5
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -319,14 +221,30 @@
       "markdown-importer:Open format converter": false,
       "random-note:Open random note": false,
       "zk-prefixer:Create new unique note": false,
-      "workspaces:Manage workspace layouts": false
+      "workspaces:Manage workspace layouts": false,
+      "infranodus-graph-view:InfraNodus Graph View": false
     }
   },
-  "active": "769e7eb5d7edea54",
+  "active": "dbd3bc75655d72f9",
   "lastOpenFiles": [
+    "decisions/2026-02-11-phase1-step1-schema-complete.md",
+    "patterns/surrealdb-agent-context-phase1-implementation-checklist.md",
+    "patterns/surrealdb-agent-context-quick-reference.md",
+    "patterns/surrealdb-agent-context-visual-guide.md",
+    "decisions/2026-02-11-surrealdb-agent-context-schema-design.md",
+    "decisions/2026-02-11-surrealdb-agent-context-schema-design.md.tmp.2369022.1770846132619",
+    "patterns/surrealdb-agent-context-schema.md",
+    "patterns/surrealdb-agent-context-schema.md.tmp.2369022.1770846096311",
+    "inbox/HANDOFF-lessons-compound-engineering.md",
+    "inbox/concept-testing.md",
+    "patterns/lessons/_lessons_index.md",
+    "daily/2026-02-10-PROJECT-COMPLETE-100-PERCENT.md",
+    "complete.md",
+    "decisions/2026-02-10-compound-engineering-meta-learning.md",
+    "decisions/2026-02-10-compound-engineering-meta-learning.md.tmp.716841.1770747631328",
+    "inbox/HANDOFF-lessons-compound-engineering.md.tmp.716897.1770747591817",
     "decisions/2026-02-10-operational-forensics-compound-engineering.md",
     "decisions/2026-02-10-operational-forensics-compound-engineering.md.tmp.716897.1770747567145",
-    "daily/2026-02-10-PROJECT-COMPLETE-100-PERCENT.md",
     "decisions/2026-02-09-12d-graph-refined-plan.md",
     "daily/2026-02-10-PROJECT-COMPLETE-100-PERCENT.md.tmp.716861.1770739938223",
     "daily/2026-02-10-strategic-framework-deployment.md",
@@ -337,10 +255,6 @@
     "daily/2026-02-10-session-complete-final-status.md.tmp.716861.1770738751537",
     "obsidian-plugin/src/main.ts.tmp.716861.1770738451278",
     "daily/2026-02-10-phase4-simulation-delivery.md",
-    "daily/2026-02-10-phase4-simulation-delivery.md.tmp.716861.1770738449574",
-    "obsidian-plugin/src/ui/dashboard-styles.css",
-    "obsidian-plugin/src/ui/dashboard-styles.css.tmp.716861.1770738441307",
-    "obsidian-plugin/src/ui/dashboard-modal.ts",
     "daily/2026-02-10-hyperdim-project-status-update.md",
     "obsidian-plugin/src/simulation/README.md",
     "experiments/2026-02-10-phase4-universe-simulation-complete.md",
@@ -349,17 +263,6 @@
     "missions/session_12_hardening_1770737898_milestone_3.md",
     "missions/session_12_hardening_1770737898_milestone_2.md",
     "missions/session_12_hardening_1770737898.md",
-    "missions/session_12_hardening_1770737831_milestone_4.md",
-    "missions/session_12_hardening_1770737831_milestone_3.md",
-    "missions/session_12_hardening_1770737831_milestone_2.md",
-    "missions/session_12_hardening_1770737831.md",
-    "concepts/agentic-ai.md",
-    "patterns/lessons/_lessons_index.md",
-    "retrospectives/2026-02-10-log-mining-retrospective.md",
-    "missions/session_12_hardening_1770737305_milestone_3.md",
-    "missions/session_12_hardening_1770737305_milestone_2.md",
-    "missions/session_12_hardening_1770737305.md",
-    "decisions/2026-02-10-framework-driven-prioritization.md",
     "Cohezion_KnowledgeGraph.canvas",
     "Untitled 3.canvas",
     "Untitled 2.canvas",
