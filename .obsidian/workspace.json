@@ -4,23 +4,27 @@
     "type": "split",
     "children": [
       {
-        "id": "ad7d655133db047c",
+        "id": "7208da9f9c737c02",
         "type": "tabs",
         "children": [
           {
-            "id": "4c75d984e5e746b9",
+            "id": "1a6d7012d0c5fd7b",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "type": "markdown",
+              "state": {
+                "file": "concepts/prompt-engineering.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "prompt-engineering"
             }
           }
         ]
       },
       {
-        "id": "7208da9f9c737c02",
+        "id": "8120a7668cff7cd4",
         "type": "tabs",
         "children": [
           {
@@ -65,7 +69,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "",
+                "query": "TUNNEL_SETUP.md",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -196,7 +200,7 @@
               "type": "infranodus-graph-view",
               "state": {},
               "icon": "infranodus-icon",
-              "title": "inbox/HANDOFF-lessons-compound-engineering.md"
+              "title": "concepts/prompt-engineering.md"
             }
           }
         ],
@@ -227,6 +231,15 @@
   },
   "active": "dbd3bc75655d72f9",
   "lastOpenFiles": [
+    "inbox/HANDOFF-lessons-phase-2-decisions-linking.md",
+    "inbox/HANDOFF-lessons-phase-2-decisions-linking.md.tmp.2369022.1770908909031",
+    "decisions/2026-02-11-lessons-compound-engineering-phase-1-complete.md",
+    "patterns/lessons/_lessons_index.md",
+    "benchmarks/release-metrics.md",
+    "inbox/concept-testing.md",
+    "projects/mcp-tunnel/SETUP_GUIDE.md",
+    "decisions/2026-02-12-phase2-prioritization-decision.md",
+    "decisions/2026-02-12-phase2-prioritization-decision.md.tmp.2369022.1770907952935",
     "decisions/2026-02-12-phase1-complete-vault-and-surrealdb-integration.md",
     "experiments/2026-02-12-week-1-handoff-summary.md",
     "experiments/2026-02-11-week-1-completion-summary.md",
@@ -239,8 +252,6 @@
     "decisions/2026-02-09-ai-model-strategy.md.tmp.2369022.1770905402763",
     "decisions/2026-02-10-kyutai-pocket-tts-token-efficient-success.md.tmp.2369022.1770905400171",
     "decisions/2026-02-09-ollama-context-management.md.tmp.2369022.1770905350355",
-    "decisions/2026-02-10-compound-linking-plan-adversarial-review.md.tmp.2369022.1770905349584",
-    "decisions/2026-02-09-ollama-mcp-server.md.tmp.2369022.1770905288738",
     "decisions/2026-02-12-phase-2-schema-design.md",
     "experiments/2026-02-11-phase1-production-validation-results.md",
     "decisions/2026-02-11-phase1-completion-summary.md",
@@ -250,19 +261,12 @@
     "patterns/agent-logs-schema-validation.md",
     "patterns/entire-io-to-vault-mapping.md",
     "patterns/surrealdb-agent-context-phase1-step3-execution-plan.md",
-    "projects/mcp-tunnel/SETUP_GUIDE.md",
     "daily/agent-logs/2026-02-11T14-30-example-phase1-step1.md",
     "patterns/entire-io-sync-daemon-design.md",
     "patterns/agent-logs-vault-schema.md",
     "decisions/2026-02-11-phase1-execution-status.md",
     "experiments/2026-02-11-entire-io-api-investigation.md",
     "daily/agent-logs/_template.md",
-    "decisions/2026-02-12-charter-aligned-scoring-formula.md",
-    "decisions/2026-02-12-phase-0-foundation-complete.md",
-    "patterns/charter-compliant-feature-implementation.md",
-    "decisions/2026-02-12-cloudflare-tunnel-for-persistent-mcp-remote-access.md",
-    "experiments/2026-02-12-session-56-compact-retrospective.md",
-    "decisions/2026-02-11-phase-1-agent-context-schema-complete.md",
     "Cohezion_KnowledgeGraph.canvas",
     "Untitled 3.canvas",
     "Untitled 2.canvas",
