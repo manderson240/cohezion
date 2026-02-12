@@ -3,6 +3,29 @@ title: "Canvas-Driven Compound Engineering: Unlocking Obsidian as a Knowledge Gr
 date: 2026-02-10
 status: proposed
 tags: [decision, architecture, vault-enrichment, compound-engineering, canvas]
+
+decision_reasoning:
+  chosen_option: "Top-down canvas-driven linking (visual organization + human judgment)"
+  rationale: "Visual clustering enables strategic linking; human judgment catches mismatches algorithms miss"
+  confidence_score: 0.93
+  alternatives_rejected:
+    - "Bottom-up heuristic matching (blindly links, misses structure)"
+    - "Pure algorithmic (0% Jaccard when vocabularies differ)"
+  reasoning_chain:
+    - "Bottom-up approach generated many false positives"
+    - "Realized humans excel at spotting structure visually"
+    - "Canvas provides perfect UI for this workflow"
+    - "Decided to make Canvas the primary linking tool"
+
+metrics:
+  estimated_cost: 0.0
+  estimated_time_hours: 6.0
+  actual_cost: 0.0
+  actual_time_hours: 5.0
+  tokens_used: 0
+  cost_per_lesson: 0.0
+  lessons_generated:
+    - "lessons/lesson-canvas-driven-knowledge-organization"
 ---
 
 # Canvas-Driven Compound Engineering

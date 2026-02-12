@@ -1,3 +1,34 @@
+---
+title: "Operational Principle - No Destructive Operations Without Learning"
+date: 2026-02-09
+status: approved
+tags: [decision, operational-governance, learning, principles]
+
+decision_reasoning:
+  chosen_option: "Establish 6-step process: Document → Analyze → Extract Learning → Create Abstraction → Preserve Context → Execute"
+  rationale: "Ad-hoc cleanup lost institutional knowledge; mandatory learning extraction preserves patterns and prevents repeated mistakes"
+  confidence_score: 0.98
+  alternatives_rejected:
+    - "No process (lost institutional knowledge, repeated mistakes)"
+    - "Lightweight process (insufficient extraction of learnings)"
+  reasoning_chain:
+    - "Observed lost context when deleting or restructuring files"
+    - "Realized patterns were discovered but not abstracted"
+    - "Found repeated mistakes across sessions due to knowledge silos"
+    - "Decided to mandate 6-step learning extraction before any destructive operation"
+
+metrics:
+  estimated_cost: 0.0  # Operational governance
+  estimated_time_hours: 40.0  # Implementation of process across all teams
+  actual_cost: 0.0  # Established as principle
+  actual_time_hours: 6.0  # Session 41-42 codification
+  tokens_used: 0  # Internal process
+  cost_per_lesson: 0.0
+  lessons_generated:
+    - patterns/data-discipline-prevent-generated-data-in-git
+    - patterns/compound-engineering-investigation-retrospection-before-destructive-operations
+---
+
 # Decision: Operational Principle - No Destructive Operations Without Learning
 
 **Date**: 2026-02-09 (Session 41 established, Session 42 codified)

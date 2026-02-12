@@ -4,6 +4,31 @@ date: "2026-02-10"
 status: "complete"
 tags: [decision, lessons-learned, token-efficiency, anti-pattern]
 severity: "critical"
+
+decision_reasoning:
+  chosen_option: "Extract and document anti-pattern, restart with implementation-first approach"
+  rationale: "61K token waste created an opportunity to document the infrastructure-first anti-pattern and establish token-efficiency as core compound-engineering principle"
+  confidence_score: 0.98
+  alternatives_rejected:
+    - "Ignore waste and continue with same approach (perpetuates pattern)"
+    - "Deep-dive investigation without extracting pattern (loses learning opportunity)"
+  reasoning_chain:
+    - "Discovered 61,000 tokens spent with 0% output (no functional code)"
+    - "Root cause: Infrastructure-first approach (tests + docs before implementation)"
+    - "Realized this violates compound-engineering validation principle"
+    - "Extracted opposite approach: implementation-first-infrastructure-later pattern"
+    - "Decision: Document anti-pattern + create new pattern + establish token-efficiency principle"
+
+metrics:
+  estimated_cost: 0.0  # Analysis only, no external APIs
+  estimated_time_hours: 2.0  # Postmortem + pattern extraction
+  actual_cost: 0.0  # All internal analysis
+  actual_time_hours: 1.5  # Faster than estimated
+  tokens_used: 0  # Internal analysis, no model calls
+  cost_per_lesson: 0.0  # Pattern artifact, not billable
+  lessons_generated:
+    - patterns/implementation-first-infrastructure-later
+    - concepts/token-efficiency
 ---
 
 # Kyutai MCP Server: Token Waste Postmortem

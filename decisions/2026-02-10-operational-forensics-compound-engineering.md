@@ -3,6 +3,30 @@ title: Operational Forensics → Compound Engineering
 date: 2026-02-10
 status: proposed
 tags: [decision, compound-engineering, methodology]
+
+decision_reasoning:
+  chosen_option: "3-Layer Compound Engineering with lessons as operational validation"
+  rationale: "Lessons are operational proof of theoretical concepts; connecting them to papers closes theory-practice loop"
+  confidence_score: 0.92
+  alternatives_rejected:
+    - "Ignore lessons (missed compound engineering opportunity)"
+    - "Manual one-off linking (not scalable)"
+  reasoning_chain:
+    - "Discovered 39 lessons notes with 734K anti-pattern metrics"
+    - "Only 8% linked to papers vs 90% for other note types"
+    - "Realized lessons are POST-HOC validation of decision outcomes"
+    - "Decided to create 3-layer linking: papers → decisions → lessons"
+
+metrics:
+  estimated_cost: 0.0  # Ollama local
+  estimated_time_hours: 3.0  # Phase 1 execution
+  actual_cost: 0.0  # All local, no APIs
+  actual_time_hours: 2.5  # Slightly faster than estimated
+  tokens_used: 0  # Local Ollama, no tokens
+  cost_per_lesson: 0.0
+  lessons_generated:
+    - "lessons/lesson-operational-forensics-as-validation"
+    - "lessons/lesson-compound-engineering-three-layer"
 ---
 
 # Decision: Operational Forensics → Compound Engineering

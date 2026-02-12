@@ -3,6 +3,30 @@ title: "AI Model Strategy - Claude Orchestration + Local LLM Execution"
 date: 2026-02-09
 status: proposed
 tags: [decision, ai-models, claude, local-llms, cost-optimization]
+
+decision_reasoning:
+  chosen_option: "Claude for planning/orchestration, local LLMs for execution at scale"
+  rationale: "Leverage Claude reasoning for architecture decisions; use free local inference for heavy lifting (embeddings, batch processing, real-time updates)"
+  confidence_score: 0.92
+  alternatives_rejected:
+    - "All Claude models (cost-prohibitive at scale, $50+/month for 100+ papers)"
+    - "All local LLMs (poor reasoning for architecture decisions)"
+  reasoning_chain:
+    - "Analyzed 12D graph workload: planning vs execution"
+    - "Identified 84+ papers × multiple analysis passes = expensive with Claude alone"
+    - "Discovered local LLM can execute Opus-designed strategies for free"
+    - "Decided on hybrid: Opus (planning) + Haiku (real-time) + Ollama (batch execution)"
+    - "Estimated cost: $10/month vs $50+/month"
+
+metrics:
+  estimated_cost: 0.15  # Opus + Sonnet + Haiku for planning and review
+  estimated_time_hours: 6.0  # Strategy development
+  actual_cost: 0.0  # Design phase only
+  actual_time_hours: 4.0  # Strategy defined
+  tokens_used: 0  # Pending execution
+  cost_per_lesson: 0.0
+  lessons_generated:
+    - decisions/2026-02-10-token-efficient-compound-engineering-roadmap
 ---
 
 # AI Model Strategy for 12D Graph System

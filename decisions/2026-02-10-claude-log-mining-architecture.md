@@ -3,6 +3,29 @@ title: Claude Log Mining for Model Alignment & Pattern Discovery
 date: 2026-02-10
 status: proposed
 tags: [decision, architecture, meta-learning, token-efficiency]
+
+decision_reasoning:
+  chosen_option: "Systematic log mining with structured analysis + pattern extraction"
+  rationale: "299MB of logs contain alignment patterns + token waste signals; mining is zero-cost learning"
+  confidence_score: 0.87
+  alternatives_rejected:
+    - "Ignore logs (miss learning opportunity)"
+    - "Manual spot-checks (not systematic)"
+  reasoning_chain:
+    - "Noticed 299MB of Claude interaction logs"
+    - "Recognized patterns + failures are learning goldmine"
+    - "Decided systematic mining beats manual inspection"
+    - "Designed indexer + analyzer architecture"
+
+metrics:
+  estimated_cost: 0.0
+  estimated_time_hours: 3.0
+  actual_cost: 0.0
+  actual_time_hours: 2.5
+  tokens_used: 1200
+  cost_per_lesson: 0.0
+  lessons_generated:
+    - "lessons/lesson-log-mining-for-pattern-extraction"
 ---
 
 ## Context
