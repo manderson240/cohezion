@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "fed93ffc4b12",
+  "strategy": "manual-commit",
+  "branch": "master",
+  "checkpoints_count": 10,
+  "files_touched": [
+    "decisions/2026-02-11-lessons-compound-engineering-phase-1-complete.md",
+    "decisions/2026-02-12-session-56-recap-phase-1-complete-phase-2-launched.md",
+    "inbox/HANDOFF-lessons-phase-2-decisions-linking.md",
+    "inbox/PHASE-2-KICKOFF-TEAM-DIRECTION.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/fe/d93ffc4b12/0/metadata.json",
+      "transcript": "/fe/d93ffc4b12/0/full.jsonl",
+      "context": "/fe/d93ffc4b12/0/context.md",
+      "content_hash": "/fe/d93ffc4b12/0/content_hash.txt",
+      "prompt": "/fe/d93ffc4b12/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1272,
+    "cache_creation_tokens": 648266,
+    "cache_read_tokens": 12617653,
+    "output_tokens": 28290,
+    "api_call_count": 138
+  }
+}
