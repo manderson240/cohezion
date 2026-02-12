@@ -1,9 +1,11 @@
 {
   "cli_version": "0.4.2",
   "checkpoint_id": "fdb039998637",
+  "session_id": "3a79d8d2-b1d1-45f5-b8a5-15f2b9efc536",
   "strategy": "manual-commit",
+  "created_at": "2026-02-12T04:35:07.277878002Z",
   "branch": "session-55-test-fixes-main",
-  "checkpoints_count": 16,
+  "checkpoints_count": 15,
   "files_touched": [
     "SESSION_56_COMPACT_RETROSPECTIVE.md",
     "SESSION_56_TUNNEL_DEPLOYMENT_SUMMARY.md",
@@ -84,13 +86,6 @@
     "data/surrealdb/LOG.old.1770869928263492",
     "data/surrealdb/LOG.old.1770869933745613",
     "data/surrealdb/LOG.old.1770869939494671",
-    "data/surrealdb/LOG.old.1770870519486963",
-    "data/surrealdb/LOG.old.1770870525183356",
-    "data/surrealdb/LOG.old.1770870530966127",
-    "data/surrealdb/LOG.old.1770870536682401",
-    "data/surrealdb/LOG.old.1770870542498110",
-    "data/surrealdb/LOG.old.1770870548013874",
-    "data/surrealdb/LOG.old.1770870553487788",
     "data/surrealdb/LOG.old.1770870858736345",
     "data/surrealdb/LOG.old.1770870864220376",
     "data/surrealdb/LOG.old.1770870870131043",
@@ -114,7 +109,6 @@
     "data/surrealdb/MANIFEST-119481",
     "data/surrealdb/MANIFEST-119513",
     "data/surrealdb/MANIFEST-119589",
-    "data/surrealdb/MANIFEST-120025",
     "data/surrealdb/MANIFEST-120273",
     "data/surrealdb/OPTIONS-100963",
     "data/surrealdb/OPTIONS-100967",
@@ -144,8 +138,6 @@
     "data/surrealdb/OPTIONS-119515",
     "data/surrealdb/OPTIONS-119587",
     "data/surrealdb/OPTIONS-119591",
-    "data/surrealdb/OPTIONS-120023",
-    "data/surrealdb/OPTIONS-120027",
     "data/surrealdb/OPTIONS-120271",
     "data/surrealdb/OPTIONS-120275",
     "scripts/deploy_tunnel.sh",
@@ -153,27 +145,22 @@
     "src/cohezion/compound/vault_execution_logger.py",
     "src/cohezion/platform/__init__.py"
   ],
-  "sessions": [
-    {
-      "metadata": "/fd/b039998637/0/metadata.json",
-      "transcript": "/fd/b039998637/0/full.jsonl",
-      "context": "/fd/b039998637/0/context.md",
-      "content_hash": "/fd/b039998637/0/content_hash.txt",
-      "prompt": "/fd/b039998637/0/prompt.txt"
-    },
-    {
-      "metadata": "/fd/b039998637/1/metadata.json",
-      "transcript": "/fd/b039998637/1/full.jsonl",
-      "context": "/fd/b039998637/1/context.md",
-      "content_hash": "/fd/b039998637/1/content_hash.txt",
-      "prompt": "/fd/b039998637/1/prompt.txt"
-    }
-  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "a7b8be31-aece-4da9-b270-217ba619d877",
   "token_usage": {
-    "input_tokens": 920,
-    "cache_creation_tokens": 257095,
-    "cache_read_tokens": 4174328,
-    "output_tokens": 4275,
-    "api_call_count": 57
+    "input_tokens": 886,
+    "cache_creation_tokens": 255044,
+    "cache_read_tokens": 3760251,
+    "output_tokens": 4255,
+    "api_call_count": 53
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-12T04:35:07.249126114Z",
+    "agent_lines": 655,
+    "human_added": 6125041,
+    "human_modified": 7525,
+    "human_removed": 0,
+    "total_committed": 6133221,
+    "agent_percentage": 0.010679543424246412
   }
 }
