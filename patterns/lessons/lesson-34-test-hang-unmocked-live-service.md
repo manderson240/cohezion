@@ -20,3 +20,9 @@ Created: 2026-02-08 14:43:24
 ## Related
 **Domains**: architecture, cicd, performance, testing
 **Concepts**: [[concept-automation]], [[concept-isolation]], [[concept-optimization]], [[concept-testing]]
+
+## Related Papers
+
+  - [[emoticons-llm-silent-failures]] (similarity: 0.718)
+  - [[openai-codex-agent-loop]] (similarity: 0.702)
+  - [[claude-code-swiftui-skill-patterns]] (similarity: 0.693)

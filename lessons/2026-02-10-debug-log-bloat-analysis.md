@@ -172,3 +172,9 @@ MCP server "ide": Connection error: Uncaught error in notification handler: $Zod
 ---
 
 *This analysis demonstrates the importance of log forensics before cleanup. Even "boring" debug logs contain critical learnings about system behavior and anti-patterns.*
+
+## Related Papers
+
+  - [[emoticons-llm-silent-failures]] (similarity: 0.69)
+  - [[operational-data-ai-agents]] (similarity: 0.663)
+  - [[anthropic-disempowerment-patterns]] (similarity: 0.653)

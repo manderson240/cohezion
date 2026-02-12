@@ -180,3 +180,9 @@ Adversarial review revealed **7 critical flaws** that would waste 90% of effort 
 
 **Severity**: CRITICAL - Prevents 90% wasted effort on fatally flawed plans
 **Adoption**: MANDATORY for all multi-phase plans ($0.50+ investment)
+
+## Related Papers
+
+  - [[yann-lecun-agi-world-models]] (similarity: 0.713)
+  - [[theorem-ai-formal-verification]] (similarity: 0.683)
+  - [[humanitys-last-exam-benchmark]] (similarity: 0.682)

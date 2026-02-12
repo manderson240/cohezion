@@ -20,3 +20,9 @@ Created: 2026-02-08 14:43:24
 ## Related
 **Domains**: architecture, cicd, performance, testing
 **Concepts**: [[concept-automation]], [[concept-optimization]], [[concept-testing]]
+
+## Related Papers
+
+  - [[claude-code-community-skills]] (similarity: 0.668)
+  - [[emoticons-llm-silent-failures]] (similarity: 0.66)
+  - [[llm-in-sandbox-agentic-intelligence]] (similarity: 0.653)

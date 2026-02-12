@@ -20,3 +20,9 @@ Created: 2026-02-08 14:43:24
 ## Related
 **Domains**: architecture, cicd, git, performance, testing
 **Concepts**: [[concept-automation]], [[concept-optimization]], [[concept-testing]], [[concept-versioning]]
+
+## Related Papers
+
+  - [[openai-codex-agent-loop]] (similarity: 0.685)
+  - [[llm-training-methodology-changes]] (similarity: 0.674)
+  - [[karpathy-claude-code-skills]] (similarity: 0.674)

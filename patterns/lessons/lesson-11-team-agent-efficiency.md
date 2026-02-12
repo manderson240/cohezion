@@ -20,3 +20,9 @@ Created: 2026-02-08 14:43:24
 ## Related
 **Domains**: architecture, cicd, performance, testing
 **Concepts**: [[concept-automation]], [[concept-optimization]], [[concept-testing]]
+
+## Related Papers
+
+  - [[scaling-agent-systems]] (similarity: 0.776)
+  - [[testing-agent-skills-with-evals]] (similarity: 0.741)
+  - [[agentic-ai-memory-hierarchies]] (similarity: 0.738)
