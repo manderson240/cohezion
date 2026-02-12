@@ -124,3 +124,9 @@ echo "Tests passing: $PERCENT% ($PASSING/$TOTAL tests)" >> report.md
 
 **Severity**: MEDIUM - Prevents false confidence and misallocated effort
 **Adoption**: Immediate (all metric reporting)
+
+## Related Papers
+
+  - [[theorem-ai-formal-verification]] (similarity: 0.763)
+  - [[emoticons-llm-silent-failures]] (similarity: 0.713)
+  - [[circleci-ai-cicd-validation]] (similarity: 0.71)

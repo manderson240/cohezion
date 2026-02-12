@@ -20,3 +20,9 @@ Created: 2026-02-08 14:43:24
 ## Related
 **Domains**: architecture, cicd, git, performance, testing
 **Concepts**: [[concept-automation]], [[concept-caching]], [[concept-optimization]], [[concept-testing]], [[concept-versioning]]
+
+## Related Papers
+
+  - [[theorem-ai-formal-verification]] (similarity: 0.679)
+  - [[circleci-ai-cicd-validation]] (similarity: 0.669)
+  - [[llm-in-sandbox-agentic-intelligence]] (similarity: 0.658)

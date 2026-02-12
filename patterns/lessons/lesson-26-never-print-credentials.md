@@ -20,3 +20,9 @@ Created: 2026-02-08 14:43:24
 ## Related
 **Domains**: architecture, cicd, git, performance, security, testing
 **Concepts**: [[concept-automation]], [[concept-optimization]], [[concept-security]], [[concept-testing]], [[concept-versioning]]
+
+## Related Papers
+
+  - [[claude-code-swiftui-skill-patterns]] (similarity: 0.712)
+  - [[llm-in-sandbox-agentic-intelligence]] (similarity: 0.691)
+  - [[claude-code-community-skills]] (similarity: 0.691)

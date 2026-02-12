@@ -118,3 +118,9 @@ git worktree remove ../cohezion-session-47
 
 **Severity**: HIGH - Prevents data loss and wasted recovery effort
 **Adoption**: Immediate (all future multi-session work)
+
+## Related Papers
+
+  - [[langchain-deep-agents-context-management]] (similarity: 0.67)
+  - [[openai-codex-agent-loop]] (similarity: 0.653)
+  - [[scaling-agent-systems]] (similarity: 0.645)

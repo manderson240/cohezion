@@ -107,3 +107,9 @@ Built Ollama MCP Server to elevate model management from one-off scripts to reus
 - [[session-retrospective]] - General retrospective pattern
 - [[google-sheets-vault-bridge]] - Similar MCP infrastructure pattern
 - [[2026-02-09-ai-model-strategy]] - Hybrid AI cost reduction strategy
+
+## Related Papers
+
+  - [[claude-code-swiftui-skill-patterns]] (similarity: 0.729)
+  - [[llamaagents-builder]] (similarity: 0.728)
+  - [[openai-codex-agent-loop]] (similarity: 0.727)

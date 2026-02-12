@@ -20,3 +20,9 @@ Created: 2026-02-08 14:43:24
 ## Related
 **Domains**: architecture, cicd, performance, testing
 **Concepts**: [[concept-automation]], [[concept-optimization]], [[concept-testing]]
+
+## Related Papers
+
+  - [[agentic-ai-memory-hierarchies]] (similarity: 0.659)
+  - [[claude-code-swiftui-skill-patterns]] (similarity: 0.649)
+  - [[openai-codex-agent-loop]] (similarity: 0.648)

@@ -20,3 +20,9 @@ Created: 2026-02-08 14:43:24
 ## Related
 **Domains**: architecture, cicd, performance, testing
 **Concepts**: [[concept-automation]], [[concept-optimization]], [[concept-testing]]
+
+## Related Papers
+
+  - [[emu3-multimodal-next-token-prediction]] (similarity: 0.743)
+  - [[tonggeometry-ai-math]] (similarity: 0.743)
+  - [[tonggeometry-olympiad-tree-search]] (similarity: 0.733)

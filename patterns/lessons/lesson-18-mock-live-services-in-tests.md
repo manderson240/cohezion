@@ -20,3 +20,9 @@ Created: 2026-02-08 14:43:24
 ## Related
 **Domains**: architecture, cicd, performance, testing
 **Concepts**: [[concept-automation]], [[concept-isolation]], [[concept-modularity]], [[concept-optimization]], [[concept-testing]]
+
+## Related Papers
+
+  - [[circleci-ai-cicd-validation]] (similarity: 0.692)
+  - [[claude-code-community-skills]] (similarity: 0.686)
+  - [[openai-codex-agent-loop]] (similarity: 0.686)

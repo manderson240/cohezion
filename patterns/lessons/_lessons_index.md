@@ -84,3 +84,9 @@ Last updated: 2026-02-08 14:43:24
 - [[lesson-08-CLEANUP-IS-MULTI-PASS]] - Refactoring strategy
 - [[lesson-11-Team-agent-efficiency]] - Parallel work
 
+
+## Related Papers
+
+  - [[testing-agent-skills-with-evals]] (similarity: 0.702)
+  - [[openai-codex-agent-loop]] (similarity: 0.687)
+  - [[emoticons-llm-silent-failures]] (similarity: 0.673)
