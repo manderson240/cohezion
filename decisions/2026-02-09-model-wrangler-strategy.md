@@ -3,6 +3,28 @@ title: "Model Wrangler Strategy - Local LLM Management & Optimization"
 date: 2026-02-09
 status: proposed
 tags: [decision, local-llms, model-management, fine-tuning, benchmarking]
+
+decision_reasoning:
+  chosen_option: "Dedicated Model Wrangler role for continuous LLM monitoring, daily benchmarking, aggressive swapping"
+  rationale: "Local LLM ecosystem evolves rapidly (new models weekly); proactive monitoring catches performance improvements + cost reductions"
+  confidence_score: 0.90
+  alternatives_rejected:
+    - "Reactive monitoring (miss new models, stay on older slower versions)"
+    - "Quarterly reviews (miss 10+ new releases, leave performance on table)"
+  reasoning_chain:
+    - "Observed rapid LLM model releases (3-5 new quality models per week)"
+    - "Identified performance gains being left on table (current model could be 20% slower)"
+    - "Realized cost savings from new smaller efficient models not being captured"
+    - "Decided to establish daily monitoring + same-day benchmarking for major releases"
+
+metrics:
+  estimated_cost: 0.0  # Local benchmark infrastructure
+  estimated_time_hours: 8.0  # Daily monitoring + benchmarking
+  actual_cost: 0.0  # All local inference
+  actual_time_hours: 0.0  # Pending implementation
+  tokens_used: 0  # No Claude calls needed
+  cost_per_lesson: 0.0
+  lessons_generated: []
 ---
 
 # Model Wrangler Strategy - Local LLM Lifecycle Management
