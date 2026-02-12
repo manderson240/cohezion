@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "fdb039998637",
+  "strategy": "manual-commit",
+  "branch": "session-55-test-fixes-main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "data/checkpoints/test.json",
+    "data/surrealdb/LOG.old.1770870519486963",
+    "data/surrealdb/LOG.old.1770870525183356",
+    "data/surrealdb/LOG.old.1770870530966127",
+    "data/surrealdb/LOG.old.1770870536682401",
+    "data/surrealdb/LOG.old.1770870542498110",
+    "data/surrealdb/LOG.old.1770870548013874",
+    "data/surrealdb/LOG.old.1770870553487788",
+    "data/surrealdb/MANIFEST-120025",
+    "data/surrealdb/OPTIONS-120023",
+    "data/surrealdb/OPTIONS-120027",
+    "src/cohezion/compound/journey_persistence.py",
+    "src/cohezion/compound/vault_execution_logger.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/fd/b039998637/0/metadata.json",
+      "transcript": "/fd/b039998637/0/full.jsonl",
+      "context": "/fd/b039998637/0/context.md",
+      "content_hash": "/fd/b039998637/0/content_hash.txt",
+      "prompt": "/fd/b039998637/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 34,
+    "cache_creation_tokens": 2051,
+    "cache_read_tokens": 414077,
+    "output_tokens": 20,
+    "api_call_count": 4
+  }
+}
