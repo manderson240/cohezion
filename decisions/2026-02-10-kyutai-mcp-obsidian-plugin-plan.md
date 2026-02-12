@@ -262,3 +262,11 @@ Adopt a **5-phase compound engineering approach** with 6 specialist agent types,
 
 [[MCP Infrastructure Architecture]]
 [[Multi Agent Systems]]
+
+## Related Lessons
+
+- [[lesson-31-operation-specific-modulation]] (operational validation)
+
+- [[lesson-01-agent-has-great-content-but-claude-code-only-auto-reads]] (operational validation)
+
+- [[lesson-11-team-agent-efficiency]] (operational validation)

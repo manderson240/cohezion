@@ -447,6 +447,10 @@ Concepts
 
 ## Related Lessons
 
+- [[lesson-11-team-agent-efficiency]] (operational validation)
+
+- [[lesson-01-agent-has-great-content-but-claude-code-only-auto-reads]] (operational validation)
+
   - [[lesson-17-stale-branch-mining]] (validation relevance: 13)
   - [[lesson-34-test-hang-unmocked-live-service]] (validation relevance: 13)
   - [[lesson-16-pre-commit-hooks-stage-override]] (validation relevance: 13)

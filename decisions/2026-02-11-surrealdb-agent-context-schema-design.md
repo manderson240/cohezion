@@ -263,3 +263,11 @@ Week 1: Validation
 **Status**: Proposed
 
 [[SurrealDB]], [[Knowledge Graph]], [[Agent Context]], [[12D Graph]]
+
+## Related Lessons
+
+- [[lesson-31-operation-specific-modulation]] (operational validation)
+
+- [[lesson-01-agent-has-great-content-but-claude-code-only-auto-reads]] (operational validation)
+
+- [[lesson-11-team-agent-efficiency]] (operational validation)

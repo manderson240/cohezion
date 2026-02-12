@@ -216,4 +216,6 @@ Weekly coordination meetings
 
 ## Related Lessons
 
+- [[lesson-11-team-agent-efficiency]] (operational validation)
+
   - [[lesson-20-ci-scope-discipline]] (validation relevance: 14)

@@ -228,3 +228,7 @@ The Cohezion vault currently contains 83 paper notes, 21 concept notes, 7 patter
 
 [[MCP Infrastructure Architecture]]
 [[Compound Engineering]]
+
+## Related Lessons
+
+- [[lesson-11-team-agent-efficiency]] (operational validation)

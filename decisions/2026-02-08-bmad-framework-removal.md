@@ -97,3 +97,9 @@ These BMAD references still exist and should be updated:
 - [[bmad-scale-adaptive-documentation]]
 - [[bmad-agent-persona-definition]]
 - [[bmad-workflow-orchestration]]
+
+## Related Lessons
+
+- [[lesson-01-agent-has-great-content-but-claude-code-only-auto-reads]] (operational validation)
+
+- [[lesson-11-team-agent-efficiency]] (operational validation)

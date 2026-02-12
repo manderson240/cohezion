@@ -396,3 +396,9 @@ Phase 2 enables Phase 3 by providing the reasoning foundation.
 **Owner**: vault-architect (proposal)
 **Status**: PROPOSED (awaiting team approval)
 **Decision Due**: 2026-02-12 06:00 (before Phase 2 kickoff)
+
+## Related Lessons
+
+- [[lesson-01-agent-has-great-content-but-claude-code-only-auto-reads]] (operational validation)
+
+- [[lesson-11-team-agent-efficiency]] (operational validation)

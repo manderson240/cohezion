@@ -26,3 +26,17 @@ Created: 2026-02-08 14:43:24
   - [[emu3-multimodal-next-token-prediction]] (similarity: 0.743)
   - [[tonggeometry-ai-math]] (similarity: 0.743)
   - [[tonggeometry-olympiad-tree-search]] (similarity: 0.733)
+
+## Related Decisions
+
+- [[2026-02-11-phase1-step1-schema-complete]] (via [[Agent Context]])
+
+- [[2026-02-11-surrealdb-agent-context-schema-design]] (via [[Agent Context]])
+
+- [[2026-02-10-kyutai-mcp-obsidian-plugin-plan]] (via [[Multi Agent Systems]])
+
+- [[2026-02-09-ollama-mcp-server]] (via [[machine-learning-optimization]])
+
+- [[2026-02-10-framework-driven-prioritization]] (via [[meta-learning]])
+
+- [[2026-02-10-compound-engineering-meta-learning]] (via [[meta-learning]])
