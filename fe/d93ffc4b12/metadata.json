@@ -3,12 +3,17 @@
   "checkpoint_id": "fed93ffc4b12",
   "strategy": "manual-commit",
   "branch": "master",
-  "checkpoints_count": 10,
+  "checkpoints_count": 11,
   "files_touched": [
+    "CLAUDE.md",
     "decisions/2026-02-11-lessons-compound-engineering-phase-1-complete.md",
+    "decisions/2026-02-12-claude-code-context-awareness-codification.md",
+    "decisions/2026-02-12-phase-2-track-a-surrealdb-agent-reasoning-complete.md",
+    "decisions/2026-02-12-platform-codification-summary-guide.md",
     "decisions/2026-02-12-session-56-recap-phase-1-complete-phase-2-launched.md",
     "inbox/HANDOFF-lessons-phase-2-decisions-linking.md",
-    "inbox/PHASE-2-KICKOFF-TEAM-DIRECTION.md"
+    "inbox/PHASE-2-KICKOFF-TEAM-DIRECTION.md",
+    "patterns/PRIME_CLAUDE_CODE_PRACTICES.md"
   ],
   "sessions": [
     {
@@ -17,13 +22,20 @@
       "context": "/fe/d93ffc4b12/0/context.md",
       "content_hash": "/fe/d93ffc4b12/0/content_hash.txt",
       "prompt": "/fe/d93ffc4b12/0/prompt.txt"
+    },
+    {
+      "metadata": "/fe/d93ffc4b12/1/metadata.json",
+      "transcript": "/fe/d93ffc4b12/1/full.jsonl",
+      "context": "/fe/d93ffc4b12/1/context.md",
+      "content_hash": "/fe/d93ffc4b12/1/content_hash.txt",
+      "prompt": "/fe/d93ffc4b12/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 1272,
-    "cache_creation_tokens": 648266,
-    "cache_read_tokens": 12617653,
-    "output_tokens": 28290,
-    "api_call_count": 138
+    "input_tokens": 1348,
+    "cache_creation_tokens": 678966,
+    "cache_read_tokens": 13007286,
+    "output_tokens": 31877,
+    "api_call_count": 147
   }
 }
