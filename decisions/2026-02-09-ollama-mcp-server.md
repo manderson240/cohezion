@@ -3,6 +3,30 @@ title: "Ollama MCP Server - Model Management as Infrastructure"
 date: 2026-02-09
 status: implemented
 tags: [decision, mcp, ollama, infrastructure, claude-code]
+
+decision_reasoning:
+  chosen_option: "Build reusable MCP server for Ollama model management instead of scattered scripts"
+  rationale: "Scripts duplicate Ollama API logic and aren't reusable; MCP server centralizes context management, model selection, and batching as infrastructure"
+  confidence_score: 0.92
+  alternatives_rejected:
+    - "Continue with scattered scripts (duplicated logic, not reusable)"
+    - "Use Ollama API directly (no context management, manual model selection)"
+  reasoning_chain:
+    - "Identified multiple one-off scripts calling Ollama API"
+    - "Realized context window management needed by multiple tools"
+    - "Model selection logic duplicated across scripts"
+    - "Decided to build infrastructure: MCP server with auto context/model selection"
+    - "Enables reuse across Claude Code, agents, web UI, other clients"
+
+metrics:
+  estimated_cost: 0.0  # Infrastructure, all local Ollama
+  estimated_time_hours: 18.0  # Full implementation
+  actual_cost: 0.0  # All local inference
+  actual_time_hours: 16.0  # Slightly ahead of schedule
+  tokens_used: 0  # Local models only
+  cost_per_lesson: 0.0
+  lessons_generated:
+    - patterns/ollama-mcp-context-management
 ---
 
 # Ollama MCP Server - Elevate Model Wrangling to Infrastructure

@@ -3,6 +3,28 @@ title: "Ollama Context Management - Model Wrangler Extension"
 date: 2026-02-09
 status: proposed
 tags: [decision, ollama, context-management, model-wrangler]
+
+decision_reasoning:
+  chosen_option: "Extend Model Wrangler to handle Ollama-specific context management (loading, chunking, memory)"
+  rationale: "Ollama models require dynamic context window management; consolidating into Model Wrangler prevents scattered optimization scripts"
+  confidence_score: 0.88
+  alternatives_rejected:
+    - "Scattered Ollama optimization scripts (not maintainable, duplicated logic)"
+    - "Ignore context management (leads to truncation, OOM errors)"
+  reasoning_chain:
+    - "Observed Ollama model loading times (5-30s) causing timeouts"
+    - "Identified context window mismatches (2K-128K across models)"
+    - "Realized memory pressure from multiple loaded models"
+    - "Decided to consolidate into Model Wrangler: pre-loading, chunking, LRU cache"
+
+metrics:
+  estimated_cost: 0.0  # Infrastructure tuning only
+  estimated_time_hours: 12.0  # Context management implementation
+  actual_cost: 0.0  # All local
+  actual_time_hours: 0.0  # Not yet implemented
+  tokens_used: 0  # Pending implementation
+  cost_per_lesson: 0.0
+  lessons_generated: []
 ---
 
 # Ollama Context Management Strategy

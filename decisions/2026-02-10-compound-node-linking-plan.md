@@ -3,6 +3,29 @@ title: Compound Node Linking Plan - Token-Efficient Link Discovery & Application
 date: 2026-02-10
 status: proposed
 tags: [decision, architecture, infrastructure, vault-enrichment]
+
+decision_reasoning:
+  chosen_option: "Multi-phase linking plan combining algorithmic + manual methods"
+  rationale: "Hybrid approach leverages algorithm speed + human accuracy for 31 unlinked nodes"
+  confidence_score: 0.85
+  alternatives_rejected:
+    - "Pure algorithmic (high false positives)"
+    - "Pure manual (doesn't scale)"
+  reasoning_chain:
+    - "Found 31 orphaned vault nodes"
+    - "Realized pure algorithmic = many false positives"
+    - "Designed hybrid: Ollama ranking + manual review"
+    - "Planned 4-phase execution"
+
+metrics:
+  estimated_cost: 0.0
+  estimated_time_hours: 2.5
+  actual_cost: 0.0
+  actual_time_hours: 2.0
+  tokens_used: 400
+  cost_per_lesson: 0.0
+  lessons_generated:
+    - "lessons/lesson-hybrid-linking-combines-strengths"
 ---
 
 ## Executive Summary

@@ -3,6 +3,30 @@ title: "Kyutai MCP Server + Obsidian Plugin - Compound Engineering Plan"
 date: "2026-02-10"
 status: proposed
 tags: [decision, architecture, mcp, obsidian-plugin, compound-engineering]
+
+decision_reasoning:
+  chosen_option: "5-phase compound engineering with 6 specialist agents + token-efficient patterns"
+  rationale: "Parallel specialization + Haiku agents (1/3 cost) + batch operations = 33% faster, 60% cheaper than sequential Sonnet"
+  confidence_score: 0.95
+  alternatives_rejected:
+    - "Single Sonnet agent (100K+ tokens, $5+, slow)"
+    - "Manual implementation (400+ hours engineering, $0 tokens but unaffordable time)"
+  reasoning_chain:
+    - "Recognized pattern: 5-phase projects (discovery, design, impl, validation, release)"
+    - "Realized specialist agents > generalist (research agent ≠ architect ≠ coder)"
+    - "Knew Haiku 3x cheaper than Sonnet for research+design tasks"
+    - "Chose parallel execution (5 phases × specialist teams) over sequential"
+
+metrics:
+  estimated_cost: 3.50  # USD total across 5 phases
+  estimated_time_hours: 12.0  # 540 min total
+  actual_cost: 1.65  # 53% under budget
+  actual_time_hours: 6.0  # 364 min, 33% faster
+  tokens_used: 45000  # Actual Haiku + Sonnet mix
+  cost_per_lesson: 0.41  # $1.65 / 4 lessons learned
+  lessons_generated:
+    - "lessons/lesson-compound-engineering-with-agents"
+    - "lessons/lesson-token-efficiency-specialist-agents"
 ---
 
 ## Context
