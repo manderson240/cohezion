@@ -26,3 +26,7 @@ Created: 2026-02-08 14:43:24
   - [[emoticons-llm-silent-failures]] (similarity: 0.704)
   - [[karpathy-claude-code-skills]] (similarity: 0.691)
   - [[claude-code-swiftui-skill-patterns]] (similarity: 0.685)
+
+## Related Decisions
+
+  - [[10-log-mining-adversarial-review]] (relevance: 14)

@@ -26,3 +26,8 @@ Created: 2026-02-08 14:43:24
   - [[karpathy-claude-code-skills]] (similarity: 0.703)
   - [[claude-code-swiftui-skill-patterns]] (similarity: 0.7)
   - [[emoticons-llm-silent-failures]] (similarity: 0.657)
+
+## Related Decisions
+
+  - [[10-log-mining-adversarial-review]] (relevance: 14)
+  - [[10-claude-log-mining-architecture]] (relevance: 12)

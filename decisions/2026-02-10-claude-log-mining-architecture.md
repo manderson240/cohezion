@@ -444,3 +444,11 @@ Concepts
 - [[compound-engineering]] — Knowledge accumulation methodology this system extends
 - [[agentic-ai]] — Agent-based pattern mining approach
 - [[context-management]] — Relevant to log context window analysis
+
+## Related Lessons
+
+  - [[lesson-17-stale-branch-mining]] (validation relevance: 13)
+  - [[lesson-34-test-hang-unmocked-live-service]] (validation relevance: 13)
+  - [[lesson-16-pre-commit-hooks-stage-override]] (validation relevance: 13)
+  - [[lesson-37-experience-guided-execution-works-new]] (validation relevance: 13)
+  - [[lesson-38-singleton-executor-for-sessions-new]] (validation relevance: 13)

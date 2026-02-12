@@ -26,3 +26,8 @@ Created: 2026-02-08 14:43:24
   - [[emoticons-llm-silent-failures]] (similarity: 0.718)
   - [[openai-codex-agent-loop]] (similarity: 0.702)
   - [[claude-code-swiftui-skill-patterns]] (similarity: 0.693)
+
+## Related Decisions
+
+  - [[10-claude-log-mining-architecture]] (relevance: 13)
+  - [[10-log-mining-adversarial-review]] (relevance: 12)

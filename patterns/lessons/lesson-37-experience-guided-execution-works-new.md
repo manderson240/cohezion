@@ -26,3 +26,8 @@ Created: 2026-02-08 14:43:24
   - [[openai-codex-agent-loop]] (similarity: 0.722)
   - [[claude-code-community-skills]] (similarity: 0.707)
   - [[claude-code-swiftui-skill-patterns]] (similarity: 0.694)
+
+## Related Decisions
+
+  - [[10-claude-log-mining-architecture]] (relevance: 13)
+  - [[10-log-mining-adversarial-review]] (relevance: 13)
