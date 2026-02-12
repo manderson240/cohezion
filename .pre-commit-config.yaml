@@ -21,11 +21,11 @@ repos:
     hooks:
       # Format check (no auto-fix on commit, just warn)
       - id: ruff-format
-        stages: [commit]
+        stages: [pre-commit]
         args: [--check]
       # Quick lint - only basic syntax errors and auto-fixes
       - id: ruff
-        stages: [commit]
+        stages: [pre-commit]
         args: [--select=F,E9,E501, --fix]
         name: ruff-quick (syntax errors only)
 
@@ -34,18 +34,18 @@ repos:
     rev: v5.0.0
     hooks:
       - id: trailing-whitespace
-        stages: [commit]
+        stages: [pre-commit]
       - id: end-of-file-fixer
-        stages: [commit]
+        stages: [pre-commit]
       - id: check-yaml
-        stages: [commit]
+        stages: [pre-commit]
       - id: check-added-large-files
         args: [--maxkb=1000]
-        stages: [commit]
+        stages: [pre-commit]
       - id: check-merge-conflict
-        stages: [commit]
+        stages: [pre-commit]
       - id: detect-private-key
-        stages: [commit]
+        stages: [pre-commit]
 
   # ============================================================================
   # PUSH STAGE - Safety checks only (comprehensive linting deferred to CI)
@@ -56,16 +56,16 @@ repos:
     hooks:
       - id: check-added-large-files
         args: [--maxkb=1000]
-        stages: [push]
+        stages: [pre-push]
       - id: detect-private-key
-        stages: [push]
+        stages: [pre-push]
 
   # Detect Secrets - Advanced credential detection
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.4.0
     hooks:
       - id: detect-secrets
-        stages: [push]
+        stages: [pre-push]
         args: ["--baseline", ".secrets.baseline"]
 
   # Bandit - Security linting for Python code
@@ -73,6 +73,6 @@ repos:
     rev: 1.7.8
     hooks:
       - id: bandit
-        stages: [push]
+        stages: [pre-push]
         args: [--severity-level=medium, --skip=B101]
         language: python
