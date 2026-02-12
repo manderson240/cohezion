@@ -225,3 +225,9 @@ Operations authorized by explicit prior approval:
 ## Relevance to Cohezion
 
 [[Agentic Ai]]
+
+## Related Lessons
+
+- [[lesson-11-team-agent-efficiency]] (operational validation)
+
+- [[lesson-01-agent-has-great-content-but-claude-code-only-auto-reads]] (operational validation)

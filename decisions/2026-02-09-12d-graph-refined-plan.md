@@ -524,3 +524,9 @@ User edits paper: adds 3 new wiki-links → [[quantum-computing]], [[ai-agents]]
 **Status**: Ready for specialist team assembly and Phase 1 kickoff
 **Next Action**: Spawn 5 specialist agents in parallel
 **Timeline**: 6-7 weeks to production-ready 12D Graph System
+
+## Related Lessons
+
+- [[lesson-11-team-agent-efficiency]] (operational validation)
+
+- [[lesson-01-agent-has-great-content-but-claude-code-only-auto-reads]] (operational validation)

@@ -665,3 +665,7 @@ If full 12D seems too ambitious initially:
 [[MCP Infrastructure Architecture]]
 [[Compound Engineering]]
 [[Context Management]]
+
+## Related Lessons
+
+- [[lesson-11-team-agent-efficiency]] (operational validation)

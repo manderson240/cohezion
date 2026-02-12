@@ -477,3 +477,7 @@ SELECT
 *This decision applies [[meta-learning]], [[roi-analysis]], and [[template-reuse]] frameworks for the first time.*
 *Total frameworks referenced: 3*
 *Estimated decision time saved: 30 min (vs exploratory research)*
+
+## Related Lessons
+
+- [[lesson-31-operation-specific-modulation]] (operational validation)

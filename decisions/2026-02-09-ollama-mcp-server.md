@@ -497,3 +497,7 @@ result = ollama_query("analyze vault", context="auto")
 
 [[MCP Infrastructure Architecture]]
 [[Context Management]]
+
+## Related Lessons
+
+- [[lesson-31-operation-specific-modulation]] (operational validation)

@@ -26,3 +26,27 @@ Created: 2026-02-08 14:43:24
   - [[scaling-agent-systems]] (similarity: 0.776)
   - [[testing-agent-skills-with-evals]] (similarity: 0.741)
   - [[agentic-ai-memory-hierarchies]] (similarity: 0.738)
+
+## Related Decisions
+
+- [[2026-02-09-operational-principle-no-destructive-operations-without-learning]] (via [[Agentic Ai]])
+
+- [[2026-02-09-12d-graph-refined-plan]] (via [[agentic-ai]])
+
+- [[2026-02-10-claude-log-mining-architecture]] (via [[agentic-ai]])
+
+- [[2026-02-08-bmad-framework-removal]] (via [[bmad-agent-persona-definition]])
+
+- [[2026-02-12-phase-2-schema-design]] (via [[decision-phase-1-surrealdb-agent-context]])
+
+- [[2026-02-11-phase1-step1-schema-complete]] (via [[Agent Context]])
+
+- [[2026-02-11-surrealdb-agent-context-schema-design]] (via [[Agent Context]])
+
+- [[2026-02-10-kyutai-mcp-obsidian-plugin-plan]] (via [[Multi Agent Systems]])
+
+- [[2026-02-09-12d-graph-next-steps]] (via [[knowledge-graph-systems]])
+
+- [[2026-02-09-12d-graph-surrealdb-integration]] (via [[knowledge-graph-systems]])
+
+- [[3d-graph-plugin-selection]] (via [[knowledge-graph-systems]])

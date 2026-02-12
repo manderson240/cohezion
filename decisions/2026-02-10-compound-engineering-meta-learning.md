@@ -644,3 +644,7 @@ Implement `analyze_prompt_effectiveness()` MVP:
 **Status**: Proposed - awaiting user decision on Phase A start
 
 **Expected Value**: Transformative for COHESION + AI community
+
+## Related Lessons
+
+- [[lesson-31-operation-specific-modulation]] (operational validation)
