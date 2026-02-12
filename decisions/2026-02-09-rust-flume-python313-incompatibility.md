@@ -244,3 +244,9 @@ app = mcp.streamable_http_app()
 ## Relevance to Cohezion
 
 [[MCP Infrastructure Architecture]]
+
+## Related Lessons
+
+  - [[lesson-20-ci-scope-discipline]] (validation relevance: 14)
+  - [[lesson-17-stale-branch-mining]] (validation relevance: 12)
+  - [[lesson-16-pre-commit-hooks-stage-override]] (validation relevance: 12)

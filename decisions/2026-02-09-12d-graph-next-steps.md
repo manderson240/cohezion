@@ -213,3 +213,7 @@ Weekly coordination meetings
 
 
 [[graph-databases]], [[knowledge-graph-systems]], [[mcp-infrastructure-architecture]]
+
+## Related Lessons
+
+  - [[lesson-20-ci-scope-discipline]] (validation relevance: 14)

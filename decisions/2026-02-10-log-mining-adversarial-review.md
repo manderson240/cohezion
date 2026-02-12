@@ -641,3 +641,11 @@ Implement in parallel:
 
 - [[token-efficiency]]
 - [[prompt-engineering]]
+
+## Related Lessons
+
+  - [[lesson-20-ci-scope-discipline]] (validation relevance: 15)
+  - [[lesson-02-ruff-auto-formats-on-save-re-read-files-before-editing-ha]] (validation relevance: 14)
+  - [[lesson-33-skill-keyword-matching-is-broad]] (validation relevance: 14)
+  - [[lesson-24-yaml-folded-scalar-trap]] (validation relevance: 14)
+  - [[lesson-27-hook-file-revert]] (validation relevance: 14)
