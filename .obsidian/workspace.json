@@ -4,31 +4,50 @@
     "type": "split",
     "children": [
       {
-        "id": "7208da9f9c737c02",
-        "type": "tabs",
+        "id": "1cc27a48f33fe341",
+        "type": "split",
         "children": [
           {
-            "id": "1a6d7012d0c5fd7b",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "concepts/prompt-engineering.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "prompt-engineering"
-            }
+            "id": "8120a7668cff7cd4",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "dbd3bc75655d72f9",
+                "type": "leaf",
+                "state": {
+                  "type": "claude-terminal-view",
+                  "state": {},
+                  "icon": "claude-logo",
+                  "title": "Claude Terminal"
+                }
+              }
+            ]
+          },
+          {
+            "id": "f1c0e32c58ecf314",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "5ec0fb9f4aa9fbda",
+                "type": "leaf",
+                "state": {
+                  "type": "claude-terminal-view",
+                  "state": {},
+                  "icon": "claude-logo",
+                  "title": "Claude Terminal"
+                }
+              }
+            ]
           }
-        ]
+        ],
+        "direction": "horizontal"
       },
       {
-        "id": "8120a7668cff7cd4",
+        "id": "6d12de5ba5b28222",
         "type": "tabs",
         "children": [
           {
-            "id": "dbd3bc75655d72f9",
+            "id": "c1b19ba8baf36db3",
             "type": "leaf",
             "state": {
               "type": "claude-terminal-view",
@@ -200,7 +219,7 @@
               "type": "infranodus-graph-view",
               "state": {},
               "icon": "infranodus-icon",
-              "title": "concepts/prompt-engineering.md"
+              "title": "patterns/lessons/_lessons_index.md"
             }
           }
         ],
@@ -208,7 +227,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 275.5
+    "width": 535.5
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -229,44 +248,46 @@
       "infranodus-graph-view:InfraNodus Graph View": false
     }
   },
-  "active": "dbd3bc75655d72f9",
+  "active": "5ec0fb9f4aa9fbda",
   "lastOpenFiles": [
+    "inbox/TRACK-B-READY-TO-START-2026-02-13.md",
+    "inbox/TRACK-B-READY-TO-START-2026-02-13.md.tmp.2369022.1770933533356",
+    "decisions/2026-02-12-platform-codification-summary-guide.md",
+    "decisions/2026-02-12-platform-codification-summary-guide.md.tmp.1724273.1770933516957",
+    "decisions/2026-02-12-phase-2-track-a-surrealdb-agent-reasoning-complete.md",
+    "decisions/2026-02-12-phase-2-track-a-surrealdb-agent-reasoning-complete.md.tmp.2369022.1770933500284",
+    "decisions/2026-02-13-phase-2-track-a-complete.md",
+    "decisions/2026-02-13-phase-2-track-a-complete.md.tmp.2369022.1770933491425",
+    "CLAUDE.md.tmp.1724273.1770933469452",
+    "patterns/PRIME_CLAUDE_CODE_PRACTICES.md",
+    "patterns/PRIME_CLAUDE_CODE_PRACTICES.md.tmp.1724273.1770933444229",
+    "decisions/2026-02-12-claude-code-context-awareness-codification.md",
+    "decisions/2026-02-12-claude-code-context-awareness-codification.md.tmp.1724273.1770933393067",
+    "htmlcov/class_index.html",
+    "htmlcov/function_index.html",
+    "htmlcov/status.json",
+    "htmlcov/keybd_closed_cb_900cfef5.png",
+    "htmlcov/favicon_32_cb_c827f16f.png",
+    "decisions/2026-02-12-session-56-documentation-extraction-complete.md",
+    "patterns/prime-skill-quick-reference.md",
+    "decisions/2026-02-12-prime-skill-pattern-as-governance-framework.md",
+    "decisions/2026-02-12-session-56-handoff-complete.md",
+    "decisions/2026-02-12-session-57-graphrag-complete-phases-1-4-delivered.md",
+    "patterns/prime-skill-creation-governance-pattern.md",
+    "patterns/lessons/_lessons_index.md",
+    "patterns/lessons/lesson-11-team-agent-efficiency.md",
+    "daily/2026-02-09-phase1-completion.md",
+    "experiments/2026-02-12-week-1-handoff-summary.md",
+    "experiments/2026-02-07-ai-research-agent-for-vault-notes.md",
+    "inbox/SESSION-57-CONTEXT-CONTINUITY.md",
+    "concepts/prompt-engineering.md",
+    "inbox/TRACK-C-COMPLETE-READY-FOR-TRACK-B.md",
+    "decisions/2026-02-12-lessons-compound-engineering-phase-2-complete.md",
     "decisions/2026-02-12-repository-health-governance-skill-created.md",
     "decisions/2026-02-12-session-56-recap-phase-1-complete-phase-2-launched.md",
-    "decisions/2026-02-12-session-56-recap-phase-1-complete-phase-2-launched.md.tmp.2369022.1770910019169",
     "inbox/PHASE-2-KICKOFF-TEAM-DIRECTION.md",
-    "inbox/PHASE-2-KICKOFF-TEAM-DIRECTION.md.tmp.2369022.1770909940770",
     "experiments/2026-02-12-graphrag-phase-1-sql-syntax-errors-block-imports.md",
     "inbox/HANDOFF-lessons-phase-2-decisions-linking.md",
-    "inbox/HANDOFF-lessons-phase-2-decisions-linking.md.tmp.2369022.1770908909031",
-    "decisions/2026-02-11-lessons-compound-engineering-phase-1-complete.md",
-    "patterns/lessons/_lessons_index.md",
-    "benchmarks/release-metrics.md",
-    "inbox/concept-testing.md",
-    "projects/mcp-tunnel/SETUP_GUIDE.md",
-    "decisions/2026-02-12-phase2-prioritization-decision.md",
-    "decisions/2026-02-12-phase2-prioritization-decision.md.tmp.2369022.1770907952935",
-    "decisions/2026-02-12-phase1-complete-vault-and-surrealdb-integration.md",
-    "experiments/2026-02-12-week-1-handoff-summary.md",
-    "experiments/2026-02-11-week-1-completion-summary.md",
-    "experiments/2026-02-11-week-1-completion-summary.md.tmp.2369022.1770906026133",
-    "decisions/2026-02-09-12d-graph-next-steps.md.tmp.2369022.1770906024077",
-    "decisions/2026-02-09-model-wrangler-strategy.md.tmp.2369022.1770905597382",
-    "VAULT_RETROFIT_SUMMARY.md",
-    "VAULT_RETROFIT_SUMMARY.md.tmp.2369022.1770905532601",
-    "decisions/2026-02-11-session-55-phase-a-investigation-complete.md.tmp.2369022.1770905415029",
-    "decisions/2026-02-09-ai-model-strategy.md.tmp.2369022.1770905402763",
-    "decisions/2026-02-12-phase-2-schema-design.md",
-    "experiments/2026-02-11-phase1-production-validation-results.md",
-    "decisions/2026-02-11-phase1-completion-summary.md",
-    "patterns/phase1-query-templates-and-scenarios.md",
-    "patterns/phase1-production-validation-runbook.md",
-    "patterns/phase1-mcp-tool-reference.md",
-    "patterns/agent-logs-schema-validation.md",
-    "patterns/entire-io-to-vault-mapping.md",
-    "patterns/surrealdb-agent-context-phase1-step3-execution-plan.md",
-    "daily/agent-logs/2026-02-11T14-30-example-phase1-step1.md",
-    "patterns/entire-io-sync-daemon-design.md",
     "Cohezion_KnowledgeGraph.canvas",
     "Untitled 3.canvas",
     "Untitled 2.canvas",
