@@ -248,8 +248,10 @@
       "infranodus-graph-view:InfraNodus Graph View": false
     }
   },
-  "active": "dbd3bc75655d72f9",
+  "active": "5ec0fb9f4aa9fbda",
   "lastOpenFiles": [
+    "inbox/SESSION-60-FINAL-COMPLETE.md",
+    "inbox/SESSION-60-FINAL-COMPLETE.md.tmp.2369022.1770999549360",
     "inbox/SESSION-60-COMPLETION-SUMMARY.md",
     "inbox/SESSION-60-COMPLETION-SUMMARY.md.tmp.2369022.1770999457212",
     "inbox/PHASE-2-FINAL-PRE-LAUNCH-STATUS.md",
@@ -270,7 +272,6 @@
     "inbox/PHASE-2-EXECUTION-LOCK-FINAL.md",
     "inbox/PHASE-2-EXECUTION-LOCK-FINAL.md.tmp.2369022.1770951760473",
     "inbox/SESSION-61-PHASE-2-EXECUTION-READY.md",
-    "inbox/SESSION-61-PHASE-2-EXECUTION-READY.md.tmp.2369022.1770951634509",
     "inbox/SESSION-60-READY-TO-EXECUTE.md",
     "inbox/SESSION-60-GRAND-FINALE.md",
     "inbox/SESSION-60-FINAL-HANDOFF.md",
@@ -285,7 +286,6 @@
     "inbox/TRACK-B-IMPLEMENTATION-PREP-COMPLETE.md",
     "decisions/2026-02-14-phase-2-track-a-complete.md",
     "decisions/2026-02-13-use-versioning-headers-instead-of-file-suffixes.md",
-    "inbox/WAVE-2-LAUNCH-CHECKLIST.md",
     "htmlcov/keybd_closed_cb_900cfef5.png",
     "htmlcov/favicon_32_cb_c827f16f.png",
     "Cohezion_KnowledgeGraph.canvas",
