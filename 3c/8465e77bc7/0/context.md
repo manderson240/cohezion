@@ -1,0 +1,16 @@
+# Session Context
+
+## User Prompts
+
+### Prompt 1
+
+We have 2 invalid settings files that need to be fixed.  Explore, find out what the issue is, develop a plan to fix it.
+
+### Prompt 2
+
+There's a warning right here in the terminal that says: Found 2 invalid settings frile /doctor for details.  When I run "/doctor" there's a wall of text I can't make sense of.
+
+### Prompt 3
+
+1. It's either in .env or maybe we don't even need it.  I don't know.  Look at existing code and knowledgebase.  2. I don't know.  Do research and find out what kinds of hooks and triggers we should actually be using.
+
