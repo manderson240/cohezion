@@ -248,8 +248,11 @@
       "infranodus-graph-view:InfraNodus Graph View": false
     }
   },
-  "active": "5ec0fb9f4aa9fbda",
+  "active": "dbd3bc75655d72f9",
   "lastOpenFiles": [
+    "experiments/2026-02-13-git-filter-repo-can-reduce-65gb-git-repository-to-5gb-by-r.md",
+    "decisions/2026-02-14-settings-files-validation-and-fix.md",
+    "decisions/2026-02-14-settings-files-validation-and-fix.md.tmp.1710433.1770957887907",
     "inbox/PHASE-2-EXECUTION-LOCK-FINAL.md",
     "inbox/PHASE-2-EXECUTION-LOCK-FINAL.md.tmp.2369022.1770951760473",
     "inbox/SESSION-61-PHASE-2-EXECUTION-READY.md",
@@ -273,7 +276,6 @@
     "inbox/SESSION-59-COMPLETE-PHASE-2-READY.md",
     "inbox/SESSION-59-COMPLETE-PHASE-2-READY.md.tmp.2369022.1770942921938",
     "inbox/TRACK-B-IMPLEMENTATION-PREP-COMPLETE.md",
-    "inbox/TRACK-B-IMPLEMENTATION-PREP-COMPLETE.md.tmp.2369022.1770942782352",
     "decisions/2026-02-14-phase-2-track-a-complete.md",
     "decisions/2026-02-13-use-versioning-headers-instead-of-file-suffixes.md",
     "inbox/WAVE-2-LAUNCH-CHECKLIST.md",
@@ -284,8 +286,6 @@
     "inbox/SESSION-58-TRACK-A-COMPLETE-TRACK-B-READY.md",
     "inbox/SESSION-57-COMPLETION-SUMMARY.md",
     "inbox/TRACK-B-READY-TO-START-2026-02-13.md",
-    "decisions/2026-02-12-platform-codification-summary-guide.md",
-    "decisions/2026-02-12-phase-2-track-a-surrealdb-agent-reasoning-complete.md",
     "htmlcov/keybd_closed_cb_900cfef5.png",
     "htmlcov/favicon_32_cb_c827f16f.png",
     "Cohezion_KnowledgeGraph.canvas",
