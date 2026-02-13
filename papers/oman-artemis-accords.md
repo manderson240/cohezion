@@ -15,8 +15,15 @@ similar_papers: ["agentic-ai-memory-hierarchies", "nebuchadnezzar-babylonian-tex
 domain: "Space Policy & Governance"
 https: //search.app/Ljd8E"
 source: "Source: X
----
+dimensions:
+  connectivity: 0.000
+  cross_domain: 2
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
 
+---
 # Oman signed the Artemis Accords, becoming the 61st nation to commit to responsible space explorat...
 
 ## Summary

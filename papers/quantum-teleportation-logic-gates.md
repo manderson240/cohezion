@@ -14,9 +14,15 @@ conceptual_label: Pure Theory
 similar_papers: ["mom-z14-farthest-galaxy", "llamaagents-builder", "tidally-locked-exoplanet-habitability", "helimagnetism-ferromagnetism-mode-locking", "humanoid-robots-space-launch"]
 dim_conceptual_depth: 1.0
 source: https://3dvf.com/en/scientists-have-managed-to-teleport-calculations-between-computers-and-computing-could-change/
+dimensions:
+  connectivity: 0.150
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 # Quantum Teleportation of Logic Gates Between Computers
 
 ## Summary

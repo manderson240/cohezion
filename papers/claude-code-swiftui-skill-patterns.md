@@ -15,9 +15,15 @@ similar_papers: ["operational-data-ai-agents", "fast-radio-bursts-binary-star-or
 domain: "Software Engineering"
 https: //search.app/9Eo6H"
 source: "Source: GitHub
+dimensions:
+  connectivity: 0.050
+  cross_domain: 2
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.600
+
 ---
-
-
 ## Abstract
 
 The SwiftUI Agent Skill provides AI coding tools with expert guidance on modern SwiftUI patterns, state management, and best practices. The skill helps developers avoid deprecated APIs, optimize performance, and follow current iOS development standards.

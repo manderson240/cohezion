@@ -15,8 +15,15 @@ similar_papers: ["axion-dark-matter-quantum-sensors", "anthropic-mcp-apps-claude
 domain: "Astrobiology"
 https: //search.app/LoDnM"
 source: "Source: Phys.org
----
+dimensions:
+  connectivity: 0.150
+  cross_domain: 3
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.500
 
+---
 # Tidally locked exoplanets could sustain liquid water on night side; subglacial lakes extend habit...
 
 ## Summary

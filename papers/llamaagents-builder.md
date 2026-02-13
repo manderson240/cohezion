@@ -14,10 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["quantum-teleportation-logic-gates", "anthropic-principle-fine-tuning", "operational-data-ai-agents", "axion-dark-matter-quantum-sensors", "webb-cosmic-question-mark-gravitational-lens"]
 dim_conceptual_depth: 0.5
 source: https://www.llamaindex.ai/blog/llamaagents-builder-idea-to-deployed-agent-in-minutes
+dimensions:
+  connectivity: 0.200
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.250
+
 ---
-
-
-
 ## Abstract
 
 LlamaIndex's LlamaAgents Builder enables rapid creation and deployment of AI agents from natural language descriptions, combining low-code speed with full programming flexibility. The tool generates executable workflow code from plain English specifications, allowing users to customize and deploy agents in minutes rather than days.

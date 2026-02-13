@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["runaway-stars-milky-way", "humanoid-robots-space-launch", "theorem-ai-formal-verification", "cu45-superatom-co2-ethylene", "magnetic-superhighways-starburst-galaxy"]
 dim_conceptual_depth: 0.5
 source: https://phys.org/news/2026-01-protein-tape-enables-scientists-decode.html
+dimensions:
+  connectivity: 0.000
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 # CytoTape - Protein Tape Recorder for Cellular Activity
 
 ## Summary

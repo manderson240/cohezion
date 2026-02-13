@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["axion-dark-matter-quantum-sensors", "theorem-ai-formal-verification", "quantum-entangled-atomic-sensors", "llm-training-methodology-changes", "ai-anomaly-detection-hubble-archive"]
 dim_conceptual_depth: 0.5
 source: https://phys.org/news/2026-01-dna-origami-enables-precise-patterning.html
+dimensions:
+  connectivity: 0.200
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.250
+
 ---
-
-
 # DNA Origami for Precise Molecular Patterning on 2D Semiconductors
 
 ## Summary

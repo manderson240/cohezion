@@ -15,9 +15,15 @@ similar_papers: ["cisa-chatgpt-data-leak", "grok4-ai-benchmarks", "operational-d
 domain: "Evolutionary Biology"
 https: //search.app/wXgj4"
 source: "Source: Popular Mechanics
+dimensions:
+  connectivity: 0.000
+  cross_domain: 1
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.500
+
 ---
-
-
 ## Abstract
 
 Genetic research confirms that comb jellies were the first animals to branch from the common ancestor of all living animals, making them the sister group to all other animals. This finding, based on chromosomal rearrangement analysis, settles a decade-long scientific debate.

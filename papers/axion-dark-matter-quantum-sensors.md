@@ -14,9 +14,15 @@ conceptual_label: Pure Theory
 similar_papers: ["optofluidic-3d-nanofabrication", "llm-in-sandbox-agentic-intelligence", "llamaagents-builder", "circleci-ai-cicd-validation", "dna-origami-2d-semiconductor-patterning"]
 dim_conceptual_depth: 1.0
 source: https://www.nature.com/articles/s41586-025-10034-w
+dimensions:
+  connectivity: 0.100
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.500
+
 ---
-
-
 # Axion Dark Matter Constraints via Distributed Quantum Sensors
 
 ## Summary

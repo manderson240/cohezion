@@ -14,10 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["brain-protein-neurodegeneration", "grok4-ai-benchmarks", "tidally-locked-exoplanet-habitability", "llm-in-sandbox-agentic-intelligence", "langchain-deep-agents-context-management"]
 dim_conceptual_depth: 0.5
 source: https://www.theregister.com/2026/01/27/nasa_anomaly_review_maven/
+dimensions:
+  connectivity: 0.000
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.333
+
 ---
-
-
-
 ## Abstract
 
 NASA has assembled a formal anomaly review board to investigate the loss of contact with the MAVEN Mars orbiter, which ceased communications on December 6, 2025. The spacecraft had been tumbling with indications of possible trajectory changes, representing significant loss of both Mars atmospheric science capabilities and critical telecommunications relay support for surface rovers.

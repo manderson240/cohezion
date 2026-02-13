@@ -14,9 +14,15 @@ conceptual_label: Pure Theory
 similar_papers: ["nebuchadnezzar-babylonian-texts", "rethinking-exoplanet-habitability", "2026-02-09-unique-investment-opportunities-research", "artemis-ii-laser-comms", "international-year-quantum-2025"]
 dim_conceptual_depth: 1.0
 source: https://cursus.edu/en/35347/unprecedented-measurement-reveals-quantum-speed-beyond-human-understanding
+dimensions:
+  connectivity: 0.100
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.667
+
 ---
-
-
 # Quantum Entanglement Speed Measurement
 
 ## Summary

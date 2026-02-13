@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["superfluid-to-supersolid-transition", "2026-02-09-unique-investment-opportunities-research", "anthropic-mcp-apps-claude-integrations", "scaling-agent-systems", "cisa-chatgpt-data-leak"]
 dim_conceptual_depth: 0.5
 source: https://www.space.com/astronomy/stars/james-webb-space-telescope-discovers-what-remains-after-two-stars-collide-and-explode-as-a-red-nova
+dimensions:
+  connectivity: 0.200
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 # JWST Discovers Red Nova Merger Remnants
 
 ## Summary

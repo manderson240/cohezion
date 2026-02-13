@@ -15,9 +15,15 @@ similar_papers: ["claude-code-community-skills", "grok4-ai-benchmarks", "helimag
 domain: "AI Industry"
 https: //search.app/wQEn8"
 source: "Source: The Information
+dimensions:
+  connectivity: 0.050
+  cross_domain: 2
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.333
+
 ---
-
-
 ## Abstract
 
 Applied Compute, founded by three former OpenAI researchers, is in talks to raise new funding at a $1.3 billion valuation, more than doubling its previous $500 million valuation in less than three months. The enterprise-focused AI startup specializes in customizing language models with proprietary customer data and has already raised $80 million from top-tier investors.

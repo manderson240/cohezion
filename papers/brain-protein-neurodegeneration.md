@@ -15,9 +15,15 @@ similar_papers: ["tonggeometry-olympiad-tree-search", "super-earth-magnetic-prot
 domain: "Neuroscience"
 https: //search.app/a4Gb1"
 source: "Source: SciTechDaily
+dimensions:
+  connectivity: 0.050
+  cross_domain: 2
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 ## Abstract
 
 Recent research reveals that amyloid beta interacts with immune cell receptors in the brain, triggering metabolic changes in microglia that affect amyloid clearance. The complex interplay between immune response, metabolism, and amyloid pathways plays a central role in neurodegeneration.

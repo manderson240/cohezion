@@ -14,9 +14,15 @@ conceptual_label: Pure Applied
 similar_papers: ["cu45-superatom-carbon-recycling", "diffraction-gratings-fourier-transforms", "optofluidic-3d-nanofabrication", "theorem-ai-formal-verification", "cosmic-strings-time-travel"]
 dim_conceptual_depth: 0.0
 source: https://news.mit.edu/2026/new-tool-could-tell-us-how-consciousness-works-0112
+dimensions:
+  connectivity: 0.000
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 # Transcranial Focused Ultrasound for Consciousness Research
 
 ## Summary

@@ -14,10 +14,15 @@ conceptual_label: Pure Applied
 similar_papers: ["openai-applied-compute-startup", "beyond-the-quantum-pilot-wave-theory", "mcl1-myc-cancer-metabolism", "amorphous-materials-3d-atomic-structure", "llamaagents-builder"]
 dim_conceptual_depth: 0.0
 source: https://github.com/dgreenheck/webgpu-claude-skill
+dimensions:
+  connectivity: 0.050
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.667
+
 ---
-
-
-
 ## Abstract
 
 A comprehensive Claude Code skill created by dgreenheck provides documentation, templates, and best practices for developing WebGPU applications with Three.js. The skill covers core GPU concepts, materials, compute shaders, post-processing effects, WGSL integration, and device loss handling with practical code examples.

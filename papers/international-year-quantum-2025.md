@@ -15,8 +15,15 @@ similar_papers: ["beyond-the-quantum-pilot-wave-theory", "cisa-chatgpt-data-leak
 domain: "Quantum Chemistry"
 https: //search.app/WA1ZZ"
 source: "Source: MIT Technology Review
----
+dimensions:
+  connectivity: 0.100
+  cross_domain: 2
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 1.000
 
+---
 # Coverage of 2025 as International Year of Quantum Science and Technology, highlighting quantum ch...
 
 ## Summary

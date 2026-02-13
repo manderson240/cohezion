@@ -15,9 +15,15 @@ similar_papers: ["graphitic-polytype-switching-nanocavities", "emu3-multimodal-n
 domain: "Military Technology"
 https: //search.app/8xed3"
 source: "Source: The Strategist | ASPI's analysis and commentary site
+dimensions:
+  connectivity: 0.000
+  cross_domain: 1
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 ## Abstract
 
 Analysis of declassified USAF requirements documents and available evidence suggests the existence of a classified Penetrating Stand-in Airborne Electronic Attack (P-AEA) aircraft—a stealthy, uncrewed electromagnetic warfare platform designed to penetrate defended airspace undetected. Historical program traces suggest Boeing or Northrop Grumman as likely contractors with possible lineage to the Phantom Ray demonstrator.

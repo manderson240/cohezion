@@ -15,9 +15,15 @@ similar_papers: ["2026-02-09-unique-investment-opportunities-research", "quantum
 domain: "AI Evaluation"
 https: //search.app/4XdDN"
 source: "Source: X
+dimensions:
+  connectivity: 0.050
+  cross_domain: 1
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.600
+
 ---
-
-
 ## Abstract
 
 Grok 4 achieved the highest score on Artificial Analysis benchmarks with an Intelligence Index of 73, demonstrating leading performance in reasoning, coding, and math tasks. The model surpasses competitors including Claude Opus, Gemini 2.5, and OpenAI o3 on multiple challenging evaluations.

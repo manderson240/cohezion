@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["jwst-dark-matter-map", "llm-training-methodology-changes", "helimagnetism-ferromagnetism-mode-locking", "quantum-entanglement-speed-measurement", "yann-lecun-agi-world-models"]
 dim_conceptual_depth: 0.5
 source: https://phys.org/news/2026-01-rethinking-life-earth.html
+dimensions:
+  connectivity: 0.150
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 # Rethinking Exoplanet Habitability
 
 ## Summary

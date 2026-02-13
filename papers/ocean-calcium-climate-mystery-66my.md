@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["tonggeometry-ai-math", "helimagnetism-ferromagnetism-mode-locking", "mcl1-myc-cancer-metabolism", "usaf-stealthy-electromagnetic-attack", "anthropic-view-universe-nyas"]
 dim_conceptual_depth: 0.5
 source: https://scitechdaily.com/scientists-solve-a-66-million-year-old-climate-mystery-that-changed-earth-forever/
+dimensions:
+  connectivity: 0.000
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 # Ocean Calcium Decline Solved Long-Term Cooling Mystery
 
 ## Summary

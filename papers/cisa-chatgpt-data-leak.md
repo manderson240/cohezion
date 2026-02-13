@@ -15,9 +15,15 @@ similar_papers: ["ocean-calcium-climate-mystery-66my", "comb-jellies-animal-tree
 domain: "AI Policy"
 https: //search.app/XvX1A"
 source: "Source: Politico
+dimensions:
+  connectivity: 0.050
+  cross_domain: 3
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 ## Abstract
 
 CISA's interim director uploaded sensitive 'for official use only' government documents to public ChatGPT despite the tool being blocked for other DHS employees. The incident raised critical concerns about AI security governance and the risks of storing sensitive data in commercial LLM systems.

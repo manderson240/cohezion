@@ -15,9 +15,15 @@ similar_papers: ["woh-g64-dust-obscured-companion", "artemis-ii-laser-comms", "p
 domain: "Structural Biology"
 https: //search.app/i4bPv"
 source: "Source: Nature
+dimensions:
+  connectivity: 0.100
+  cross_domain: 1
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.333
+
 ---
-
-
 ## Abstract
 
 AlphaFold integrated with cryo-EM imaging enables automated atomic model building for protein structures. This approach combines deep learning map enhancement with structure prediction to accelerate the traditionally labor-intensive process of constructing atomic models from cryo-EM density maps.

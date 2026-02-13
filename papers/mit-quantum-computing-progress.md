@@ -15,8 +15,15 @@ similar_papers: ["karpathy-claude-code-skills", "mom-z14-farthest-galaxy", "cosm
 domain: "Quantum Computing"
 https: //search.app/cvbGD"
 source: "Source: Nature
----
+dimensions:
+  connectivity: 0.100
+  cross_domain: 2
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.500
 
+---
 # MIT Technology Review coverage of quantum computing progress including error correction breakthro...
 
 ## Summary

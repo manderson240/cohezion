@@ -14,10 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["comb-jellies-animal-tree-of-life", "cu45-superatom-carbon-recycling", "scaling-agent-systems", "rethinking-exoplanet-habitability", "dna-origami-2d-semiconductor-patterning"]
 dim_conceptual_depth: 0.5
 source: https://www.theinformation.com/newsletters/ai-agenda/researchers-openai-thinking-machines-amazon-want-change-llms-trained
+dimensions:
+  connectivity: 0.100
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.333
+
 ---
-
-
-
 ## Abstract
 
 Researchers from OpenAI, Thinking Machines Lab, and Amazon are driving a paradigm shift in LLM training from brute-force scaling toward efficient post-training techniques. Founded by ex-OpenAI CTO Mira Murati, Thinking Machines Lab raised $2 billion in seed funding to develop smarter models through optimized training methodologies rather than requiring exponentially larger models.

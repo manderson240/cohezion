@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["tonggeometry-olympiad-tree-search", "humanitys-last-exam-benchmark", "anthropic-mcp-apps-claude-integrations", "mars-time-dilation-relativity", "silicon-quantum-computing-platform"]
 dim_conceptual_depth: 0.5
 source: https://public.nrao.edu/news/magnetic-superhighways-discovered-in-a-starburst-galaxys-winds/
+dimensions:
+  connectivity: 0.100
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 1.000
+
 ---
-
-
 # Magnetic Superhighways in Starburst Galaxy Winds
 
 ## Summary

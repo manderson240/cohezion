@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["artemis-ii-laser-comms", "international-year-quantum-2025", "claude-code-swiftui-skill-patterns", "rethinking-exoplanet-habitability", "cu45-superatom-co2-ethylene"]
 dim_conceptual_depth: 0.5
 source: https://www.universetoday.com/articles/mapping-the-invisible
+dimensions:
+  connectivity: 0.200
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 # JWST Creates Sharpest Dark Matter Map
 
 Diana Scognamiglio et al. at NASA JPL used JWST to create the most detailed dark matter map ever produced.

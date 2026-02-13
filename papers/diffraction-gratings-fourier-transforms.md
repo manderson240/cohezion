@@ -15,9 +15,15 @@ similar_papers: ["transcranial-ultrasound-consciousness", "dna-origami-2d-semico
 domain: "Physics/Optics"
 https: //search.app/QGa1s"
 source: "Source: Hackaday
+dimensions:
+  connectivity: 0.050
+  cross_domain: 2
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.250
+
 ---
-
-
 ## Abstract
 
 Diffraction gratings physically perform Fourier transforms on light, connecting optical physics directly to signal processing mathematics. The diffraction pattern represents a frequency decomposition of sample features through the fundamental relationship between Huygens' principle and Fourier analysis.

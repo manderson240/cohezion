@@ -15,10 +15,15 @@ similar_papers: ["runaway-stars-milky-way", "axion-dark-matter-quantum-sensors",
 dim_conceptual_depth: 0.5
 domain: DevOps/AI
 source: CI/CD for AI devs https://search.app/nARoZ
+dimensions:
+  connectivity: 0.050
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.500
+
 ---
-
-
-
 ## Abstract
 
 CircleCI's Chunk is an autonomous CI/CD validation agent that optimizes pipelines for AI-generated code by detecting flaky tests, repairing failed builds, and proposing targeted fixes. The agent operates at the infrastructure layer to keep pace with accelerated AI-assisted development workflows.

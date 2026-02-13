@@ -14,10 +14,15 @@ conceptual_label: Pure Theory
 similar_papers: ["protein-tape-recorder-cytotape", "few-shot-prompting-agentic-coding", "humanoid-robots-space-launch", "dna-origami-2d-semiconductor-patterning", "anthropic-disempowerment-patterns"]
 dim_conceptual_depth: 1.0
 source: https://venturebeat.com/security/theorem-wants-to-stop-ai-written-bugs-before-they-ship-and-just-raised-usd6m
+dimensions:
+  connectivity: 0.100
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.143
+
 ---
-
-
-
 ## Abstract
 
 Theorem, a YC startup that raised $6 million in funding led by Khosla Ventures, uses AI-powered formal verification to mathematically prove AI-generated code is safe before deployment. The company employs fractional proof decomposition to allocate verification resources proportionally to code component importance, achieving broader coverage than traditional exhaustive testing.

@@ -15,8 +15,15 @@ similar_papers: ["anthropic-principle-fine-tuning", "usaf-stealthy-electromagnet
 domain: "Quantum Physics and Philosophy"
 https: //search.app/vS8FV"
 source: "Source: Chemistry World
----
+dimensions:
+  connectivity: 0.100
+  cross_domain: 3
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
 
+---
 # Oxford Academic book exploring pilot-wave theory as a deeper foundation for quantum mechanics, pr...
 
 ## Summary

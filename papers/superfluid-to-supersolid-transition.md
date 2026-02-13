@@ -14,9 +14,15 @@ conceptual_label: Pure Theory
 similar_papers: ["few-shot-prompting-agentic-coding", "artemis-ii-laser-comms", "runaway-stars-milky-way", "anthropic-mcp-apps-claude-integrations", "optofluidic-3d-nanofabrication"]
 dim_conceptual_depth: 1.0
 source: https://phys.org/news/2026-01-superfluids-indefinitely-physicists.html
+dimensions:
+  connectivity: 0.100
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 # Superfluid-to-Supersolid Phase Transition Observed
 
 ## Summary

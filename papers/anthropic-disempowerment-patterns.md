@@ -15,8 +15,15 @@ similar_papers: ["woh-g64-red-supergiant-mystery", "cosmic-strings-time-travel",
 domain: "AI Safety & Ethics"
 https: //search.app/64yvj"
 source: "Source: The Quantum Insider
----
+dimensions:
+  connectivity: 0.050
+  cross_domain: 1
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.333
 
+---
 # Anthropic research shows disempowerment patterns in AI usage where AI interactions reduce user au...
 
 ## Summary

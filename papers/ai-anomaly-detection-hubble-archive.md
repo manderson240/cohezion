@@ -14,9 +14,15 @@ conceptual_label: Pure Applied
 similar_papers: ["tonggeometry-ai-math", "operational-data-ai-agents", "llm-in-sandbox-agentic-intelligence", "cosmic-strings-time-travel", "dna-origami-2d-semiconductor-patterning"]
 dim_conceptual_depth: 0.0
 source: https://science.nasa.gov/missions/hubble/ai-unlocks-hundreds-of-cosmic-anomalies-in-hubble-archive/
+dimensions:
+  connectivity: 0.050
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.500
+
 ---
-
-
 # AI Anomaly Detection in Hubble Archive
 
 ## Summary

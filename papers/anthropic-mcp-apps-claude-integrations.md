@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["jwst-red-nova-remnants", "tidally-locked-exoplanet-habitability", "superfluid-to-supersolid-transition", "magnetic-superhighways-starburst-galaxy", "helimagnetism-ferromagnetism-mode-locking"]
 dim_conceptual_depth: 0.5
 source: https://venturebeat.com/infrastructure/anthropic-embeds-slack-figma-and-asana-inside-claude-turning-ai-chat-into-a
+dimensions:
+  connectivity: 0.150
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 # Anthropic MCP Apps - Claude as Workplace Command Center
 
 ## Summary

@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["axion-dark-matter-quantum-sensors", "nasa-maven-anomaly", "cu45-superatom-co2-ethylene", "transcranial-ultrasound-consciousness", "comb-jellies-animal-tree-of-life"]
 dim_conceptual_depth: 0.5
 source: https://www.nature.com/articles/s41586-025-10033-x
+dimensions:
+  connectivity: 0.200
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 # Optofluidic 3D Micro/Nanofabrication
 
 ## Summary

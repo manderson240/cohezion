@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["agentic-ai-memory-hierarchies", "graphitic-polytype-switching-nanocavities", "llamaagents-builder", "helimagnetism-ferromagnetism-mode-locking", "jwst-red-nova-remnants"]
 dim_conceptual_depth: 0.5
 source: https://science.nasa.gov/missions/webb/nasas-webb-reveals-distorted-galaxy-forming-cosmic-question-mark/
+dimensions:
+  connectivity: 0.100
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.500
+
 ---
-
-
 # Webb Cosmic Question Mark Gravitational Lens
 
 ## Summary

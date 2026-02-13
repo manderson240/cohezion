@@ -14,9 +14,15 @@ conceptual_label: Pure Theory
 similar_papers: ["fast-radio-bursts-binary-star-origin", "usaf-stealthy-electromagnetic-attack", "woh-g64-dust-obscured-companion", "diffraction-gratings-fourier-transforms", "cu45-superatom-co2-ethylene"]
 dim_conceptual_depth: 1.0
 source: https://www.nature.com/articles/s41586-025-10041-x
+dimensions:
+  connectivity: 0.050
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.500
+
 ---
-
-
 # Emu3: Multimodal Next-Token Prediction
 
 ## Summary

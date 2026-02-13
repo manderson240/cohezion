@@ -15,9 +15,15 @@ similar_papers: ["yann-lecun-agi-world-models", "llm-in-sandbox-agentic-intellig
 domain: "Astrophysics"
 https: //search.app/UbF4P"
 source: "Source: X
+dimensions:
+  connectivity: 0.100
+  cross_domain: 2
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 ## Abstract
 
 Sunspot region AR4366, a massive solar feature nearly 10 times Earth's diameter with a magnetically unstable delta-class configuration, unleashed an extraordinary barrage of 26 flares in 24 hours including 5 X-class events, with the strongest being an X8.1-X8.3 class flare (strongest of 2026). The sunspot's rapid growth and continued activity pose significant space weather hazards.

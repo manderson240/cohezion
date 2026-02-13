@@ -14,10 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["llm-in-sandbox-agentic-intelligence", "grb-250314a-ancient-signal", "tidally-locked-exoplanet-habitability", "protein-tape-recorder-cytotape", "quantum-teleportation-logic-gates"]
 dim_conceptual_depth: 0.5
 source: https://electrek.co/2026/01/28/bot-space-race-humanoid-robots-connect-to-satellite-prep-for-space-launch/
+dimensions:
+  connectivity: 0.050
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.333
+
 ---
-
-
-
 ## Abstract
 
 Multiple organizations are preparing humanoid robots for space deployment in 2026. Chinese firm Engine AI is partnering to launch the first robot astronaut, while SpaceX/Tesla plan to land Optimus robots on Mars, marking a breakthrough year for commercial humanoid robotics in space exploration.

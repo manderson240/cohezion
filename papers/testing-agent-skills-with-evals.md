@@ -14,9 +14,15 @@ conceptual_label: Pure Applied
 similar_papers: ["grok4-ai-benchmarks", "tonggeometry-olympiad-tree-search", "cosmic-strings-time-travel", "super-earth-magnetic-protection-magma", "pairwise-comparison-fiber-bundles"]
 dim_conceptual_depth: 0.0
 source: https://developers.openai.com/blog/eval-skills/
+dimensions:
+  connectivity: 0.150
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.800
+
 ---
-
-
 # Testing Agent Skills with Evals
 
 ## Summary

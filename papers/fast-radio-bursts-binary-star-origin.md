@@ -14,9 +14,15 @@ conceptual_label: Pure Applied
 similar_papers: ["claude-code-swiftui-skill-patterns", "operational-data-ai-agents", "emu3-multimodal-next-token-prediction", "few-shot-prompting-agentic-coding", "karpathy-claude-code-skills"]
 dim_conceptual_depth: 0.0
 source: https://www.universetoday.com/articles/the-china-sky-eye-traces-fast-radio-bursts-to-a-binary-star-system
+dimensions:
+  connectivity: 0.100
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 # Fast Radio Bursts Traced to Binary Star Systems
 
 ## Summary

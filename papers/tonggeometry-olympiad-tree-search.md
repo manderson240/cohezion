@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["axion-dark-matter-quantum-sensors", "testing-agent-skills-with-evals", "brain-protein-neurodegeneration", "magnetic-superhighways-starburst-galaxy", "cosmic-strings-time-travel"]
 dim_conceptual_depth: 0.5
 source: https://www.nature.com/articles/s42256-025-01164-x
+dimensions:
+  connectivity: 0.050
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 # TongGeometry: Olympiad Geometry with Guided Tree Search
 
 ## Summary

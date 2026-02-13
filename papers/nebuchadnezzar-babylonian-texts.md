@@ -15,9 +15,15 @@ similar_papers: ["cu45-superatom-co2-ethylene", "oman-artemis-accords", "quantum
 domain: "Archaeology"
 https: //search.app/gQYUf"
 source: "Source: Biblical Archaeology Society
+dimensions:
+  connectivity: 0.000
+  cross_domain: 1
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 ## Abstract
 
 Newly discovered Babylonian cylinder inscriptions from ancient Kish present Nebuchadnezzar II as a pious temple restorer and builder rather than the conqueror and destroyer depicted in biblical narratives. Archaeological evidence reveals his extensive building projects and restoration efforts, particularly of major temples and the famous Ishtar Gate.
