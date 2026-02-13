@@ -1,50 +1,15 @@
 {
   "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "entire hooks claude-code session-start"
-          }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "entire hooks claude-code session-end"
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "entire hooks claude-code user-prompt-submit"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "entire hooks claude-code stop"
-          }
-        ]
-      }
-    ],
     "PreToolUse": [
+      {
+        "matcher": "track_session",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "entire hooks claude-code pre-track-session"
+          }
+        ]
+      },
       {
         "matcher": "Task",
         "hooks": [
@@ -56,6 +21,33 @@
       }
     ],
     "PostToolUse": [
+      {
+        "matcher": "track_session",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "entire hooks claude-code post-track-session"
+          }
+        ]
+      },
+      {
+        "matcher": "record_decision",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "entire hooks claude-code post-record-decision"
+          }
+        ]
+      },
+      {
+        "matcher": "record_outcome",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "entire hooks claude-code post-record-outcome"
+          }
+        ]
+      },
       {
         "matcher": "Task",
         "hooks": [
