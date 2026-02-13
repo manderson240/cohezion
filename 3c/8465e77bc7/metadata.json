@@ -3,8 +3,10 @@
   "checkpoint_id": "3c8465e77bc7",
   "strategy": "manual-commit",
   "branch": "master",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
+    "daily/_claude-code-metrics-template.md",
+    "decisions/2026-02-13-phase-2-execution-strategy-wave-2.md",
     "decisions/2026-02-13-use-versioning-headers-instead-of-file-suffixes.md",
     "inbox/WAVE-2-LAUNCH-CHECKLIST.md"
   ],
@@ -15,13 +17,20 @@
       "context": "/3c/8465e77bc7/0/context.md",
       "content_hash": "/3c/8465e77bc7/0/content_hash.txt",
       "prompt": "/3c/8465e77bc7/0/prompt.txt"
+    },
+    {
+      "metadata": "/3c/8465e77bc7/1/metadata.json",
+      "transcript": "/3c/8465e77bc7/1/full.jsonl",
+      "context": "/3c/8465e77bc7/1/context.md",
+      "content_hash": "/3c/8465e77bc7/1/content_hash.txt",
+      "prompt": "/3c/8465e77bc7/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 80,
-    "cache_creation_tokens": 59194,
-    "cache_read_tokens": 321418,
-    "output_tokens": 665,
-    "api_call_count": 9
+    "input_tokens": 180,
+    "cache_creation_tokens": 125281,
+    "cache_read_tokens": 1119463,
+    "output_tokens": 7080,
+    "api_call_count": 21
   }
 }
