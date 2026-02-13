@@ -15,9 +15,15 @@ similar_papers: ["diffraction-gratings-fourier-transforms", "jwst-dark-matter-ma
 domain: "Space Exploration"
 https: //search.app/B7Laj"
 source: "Source: NASA (.gov)
+dimensions:
+  connectivity: 0.050
+  cross_domain: 1
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 ## Abstract
 
 Artemis II will test the first crewed laser communication system (O2O) on a lunar mission, transmitting data at rates over 100 times faster than traditional radio. The infrared laser system will transmit 4K video and mission data from lunar orbit, though a 41-minute blackout occurs when Orion passes behind the moon.

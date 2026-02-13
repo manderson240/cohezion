@@ -15,10 +15,15 @@ similar_papers: ["few-shot-prompting-agentic-coding", "beyond-the-quantum-pilot-
 dim_conceptual_depth: 0.5
 domain: Cosmology
 source: The Anthropic View of the Universe - NYAS https://share.google/ppXMCxgmouBuSKHC9
+dimensions:
+  connectivity: 0.050
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
-
 ## Abstract
 
 The anthropic principle explains cosmological fine-tuning by proposing that the universe's fundamental constants appear precisely calibrated for life because we can only observe universes capable of supporting intelligent observers. This invokes multiverse scenarios where apparent fine-tuning becomes expected through selection bias.

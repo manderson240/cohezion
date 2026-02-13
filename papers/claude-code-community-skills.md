@@ -15,9 +15,15 @@ similar_papers: ["openai-applied-compute-startup", "woh-g64-red-supergiant-myste
 domain: "AI Development Tools"
 https: //search.app/nrLbr"
 source: "Source: AI blew my mind
+dimensions:
+  connectivity: 0.050
+  cross_domain: 1
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.250
+
 ---
-
-
 ## Abstract
 
 A community initiative collected 36 Claude Code skills from 23 creators covering coding, research, automation, and integration tasks. These skills extend Claude's capabilities through the Agent Skills open standard, enabling specialized problem-solving across diverse domains.

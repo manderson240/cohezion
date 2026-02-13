@@ -14,10 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["mcl1-myc-cancer-metabolism", "rethinking-exoplanet-habitability", "claude-code-community-skills", "ocean-calcium-climate-mystery-66my", "langchain-deep-agents-context-management"]
 dim_conceptual_depth: 0.5
 source: https://www.forbes.com/sites/johnwerner/2026/01/27/yann-lecun-on-artificial-general-intelligence-and-the-digital-commons/
+dimensions:
+  connectivity: 0.100
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
-
 ## Abstract
 
 Yann LeCun, after leaving Meta to found AMI Labs, argues that large language models cannot achieve human-level intelligence without world models that predict outcomes and understand causal relationships. He advocates for open AI research, warns against vendor lock-in, and emphasizes that intelligence requires understanding how the world works rather than statistical pattern matching.

@@ -14,9 +14,15 @@ conceptual_label: Pure Applied
 similar_papers: ["humanoid-robots-space-launch", "ocean-calcium-climate-mystery-66my", "super-earth-magnetic-protection-magma", "woh-g64-red-supergiant-mystery", "brain-protein-neurodegeneration"]
 dim_conceptual_depth: 0.0
 source: https://www.scmp.com/news/china/science/article/3341517/chinese-ai-goes-next-level-geometry-top-us-maths-olympiad
+dimensions:
+  connectivity: 0.100
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 # TongGeometry: AI System for IMO-Level Geometry
 
 Chinese neuro-symbolic AI system that outperforms Google DeepMind's AlphaGeometry at IMO-level geometry problems.

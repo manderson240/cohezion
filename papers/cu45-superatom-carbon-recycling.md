@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["llm-training-methodology-changes", "mom-z14-farthest-galaxy", "tonggeometry-ai-math", "artificial-photosynthesis-living-energy", "webgpu-claude-skill-threejs"]
 dim_conceptual_depth: 0.5
 source: https://phys.org/news/2026-01-highly-stable-cu-superatom-carbon.html
+dimensions:
+  connectivity: 0.100
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 # Cu45 Superatom for CO2-to-Ethylene Conversion
 
 ## Summary

@@ -14,10 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["artemis-ii-laser-comms", "ocean-calcium-climate-mystery-66my", "agentic-ai-memory-hierarchies", "quantum-teleportation-logic-gates", "mcl1-myc-cancer-metabolism"]
 dim_conceptual_depth: 0.5
 source: https://www.nyas.org/ideas-insights/blog/the-anthropic-view-of-the-universe/
+dimensions:
+  connectivity: 0.100
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
-
 ## Abstract
 
 A NYAS article examining the anthropic principle and cosmological fine-tuning as alternative explanations for the universe's apparent design. The piece discusses how multiverse scenarios with varying physical constants could resolve the mystery of why our universe appears so precisely calibrated for life.

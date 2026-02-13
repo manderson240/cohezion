@@ -15,9 +15,15 @@ similar_papers: ["mit-quantum-computing-progress", "quantum-atomic-light-synchro
 domain: "AI Development Tools"
 https: //search.app/YP4f5"
 source: "Source: GitHub
+dimensions:
+  connectivity: 0.050
+  cross_domain: 1
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 ## Abstract
 
 Andrej Karpathy documents his shift in AI-assisted coding workflow, noting a dramatic change from 80% manual coding with 20% AI assistance to 80% AI-driven coding with 20% manual edits. This represents a fundamental transformation in software engineering practices, comparable to historical shifts from assembly to high-level languages or from manual to automatic memory management.

@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["humanoid-robots-space-launch", "protein-tape-recorder-cytotape", "llamaagents-builder", "alfven-waves-aurora", "circleci-ai-cicd-validation"]
 dim_conceptual_depth: 0.5
 source: https://www.ladbible.com/news/science/nasa-supernova-signal-grb-250314a-253130-20260112
+dimensions:
+  connectivity: 0.150
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 # GRB 250314A: Ancient Gamma-Ray Burst
 
 NASA detected a 10-second gamma-ray burst from 13 billion light-years away, originating from a supernova when the universe was only 730 million years old.

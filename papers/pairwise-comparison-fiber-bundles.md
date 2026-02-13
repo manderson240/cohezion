@@ -16,9 +16,15 @@ Quantum Mechanics | Oxford Academic https: //share.google/61N296e5OJQLTpCSK'
 dim_conceptual_depth: 0.75
 domain: Mathematics and Statistics
 source: 'Index | Beyond the Quantum: A Quest for the Origin and Hidden Meaning of
+dimensions:
+  connectivity: 0.050
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 # Mathematical framework for analyzing random pairwise comparison matrices using fiber bundle decom...
 
 ## Summary

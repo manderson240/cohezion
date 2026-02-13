@@ -15,9 +15,15 @@ similar_papers: ["alfven-waves-aurora", "cisa-chatgpt-data-leak", "optofluidic-3
 domain: "Chemistry"
 https: //search.app/LYEki"
 source: "Source: Phys.org
+dimensions:
+  connectivity: 0.100
+  cross_domain: 1
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 ## Abstract
 
 A copper superatom nanocluster (Cu45) achieves 81.8% selectivity in converting CO2 to ethylene and other multi-carbon products. This well-defined catalyst maintains exceptional stability across extreme chemical conditions and outperforms standard copper nanoparticles.

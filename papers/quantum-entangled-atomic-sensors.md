@@ -14,9 +14,15 @@ conceptual_label: Pure Theory
 similar_papers: ["mistral-open-source-ai-strategy", "artificial-photosynthesis-living-energy", "super-earth-magnetic-protection-magma", "dna-origami-2d-semiconductor-patterning", "brain-protein-neurodegeneration"]
 dim_conceptual_depth: 1.0
 source: https://www.sciencedaily.com/releases/2026/01/260126075846.htm
+dimensions:
+  connectivity: 0.150
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.667
+
 ---
-
-
 # Quantum Entangled Atomic Sensor Arrays
 
 ## Summary

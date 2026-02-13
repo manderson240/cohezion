@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["axion-dark-matter-quantum-sensors", "anthropic-principle-fine-tuning", "ai-anomaly-detection-hubble-archive", "sentinel-1-ice-sheets", "sunspot-ar4366-x-class-flares"]
 dim_conceptual_depth: 0.5
 source: https://arxiv.org/abs/2601.16206
+dimensions:
+  connectivity: 0.100
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 # LLM-in-Sandbox: General Agentic Intelligence via Code Sandbox
 
 ## Summary

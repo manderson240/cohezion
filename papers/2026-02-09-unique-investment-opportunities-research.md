@@ -14,6 +14,14 @@ similar_papers: ["mistral-open-source-ai-strategy", "jwst-red-nova-remnants", "g
 source: inbox
 summary: Research into three unconventional investment themes: a UFO disclosure ETF (UFOD), compute futures contracts, and memory semiconductor pricing exposure.
 type: research
+dimensions:
+  connectivity: 0.000
+  cross_domain: 2
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 1.000
+
 ---
 It looks like I need write permission to the inbox directory. Could you approve the file write? The expanded document is ready — it takes your original three-section note and restructures it into:
 

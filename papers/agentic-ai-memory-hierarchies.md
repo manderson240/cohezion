@@ -14,9 +14,15 @@ conceptual_label: Pure Applied
 similar_papers: ["oman-artemis-accords", "mcl1-myc-cancer-metabolism", "openai-applied-compute-startup", "artificial-photosynthesis-living-energy", "2026-02-09-unique-investment-opportunities-research"]
 dim_conceptual_depth: 0.0
 source: https://www.theregister.com/2026/01/28/how_agentic_ai_strains_modern_memory_heirarchies/
+dimensions:
+  connectivity: 0.150
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.500
+
 ---
-
-
 # How Agentic AI Strains Modern Memory Hierarchies
 
 ## Summary

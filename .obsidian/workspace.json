@@ -248,8 +248,13 @@
       "infranodus-graph-view:InfraNodus Graph View": false
     }
   },
-  "active": "dbd3bc75655d72f9",
+  "active": "c1b19ba8baf36db3",
   "lastOpenFiles": [
+    "daily/2026-02-13-session-cf44ece1.md",
+    "patterns/experience-feedback-loop.md",
+    "decisions/2026-02-13-local-model-roster-update-february-2026-sota-assessment.md",
+    "experiments/2026-02-13-first-real-data-vae-training-run.md",
+    "decisions/2026-02-13-experience-vae-training-pipeline-session-58.md",
     "decisions/2026-02-13-phase-2-completion-approved-ready-for-production-deployment.md",
     "decisions/2026-02-13-phase-2-completion-approved-ready-for-production-deployment.md.tmp.2369022.1771000174559",
     "inbox/PHASE-2-PRODUCTION-DEPLOYMENT-READY.md",
@@ -281,11 +286,6 @@
     "inbox/PHASE-2-EXECUTION-LOCK-FINAL.md",
     "inbox/SESSION-61-PHASE-2-EXECUTION-READY.md",
     "inbox/SESSION-60-READY-TO-EXECUTE.md",
-    "inbox/SESSION-60-GRAND-FINALE.md",
-    "inbox/SESSION-60-FINAL-HANDOFF.md",
-    "inbox/SESSION-60-EXECUTION-READINESS-FINAL.md",
-    "daily/_claude-code-metrics-2026-02-14.md",
-    "decisions/2026-02-13-next-10-phases-graphrag-roadmap.md",
     "htmlcov/keybd_closed_cb_900cfef5.png",
     "htmlcov/favicon_32_cb_c827f16f.png",
     "Cohezion_KnowledgeGraph.canvas",

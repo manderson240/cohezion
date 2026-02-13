@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["artificial-photosynthesis-living-energy", "anthropic-disempowerment-patterns", "anthropic-principle-fine-tuning", "tonggeometry-ai-math", "mit-quantum-computing-progress"]
 dim_conceptual_depth: 0.5
 source: https://science.nasa.gov/missions/webb/nasa-webb-pushes-boundaries-of-observable-universe-closer-to-big-bang/
+dimensions:
+  connectivity: 0.100
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 # MoM-z14 - Record-Breaking Distant Galaxy
 
 ## Summary

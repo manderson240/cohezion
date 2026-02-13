@@ -15,8 +15,15 @@ similar_papers: ["anthropic-principle-fine-tuning", "quantum-entangled-atomic-se
 domain: "AI Engineering"
 https: //search.app/pmgLq"
 source: "Source: Towards Data Science
----
+dimensions:
+  connectivity: 0.100
+  cross_domain: 1
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.500
 
+---
 # Few-shot prompting achieves 5x performance in agentic coding tasks by providing examples to LLMs ...
 
 ## Summary

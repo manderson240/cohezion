@@ -14,10 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["mom-z14-farthest-galaxy", "emu3-multimodal-next-token-prediction", "claude-code-swiftui-skill-patterns", "humanoid-robots-space-launch", "nasa-maven-anomaly"]
 dim_conceptual_depth: 0.5
 source: https://blog.langchain.com/context-management-for-deepagents/
+dimensions:
+  connectivity: 0.250
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
-
 ## Abstract
 
 LangChain's Deep Agents SDK implements a sophisticated three-tier context management strategy for long-horizon agentic tasks, addressing the critical challenge of maintaining conversation history within model context windows. The approach combines filesystem offloading, intelligent truncation, and LLM-powered summarization.

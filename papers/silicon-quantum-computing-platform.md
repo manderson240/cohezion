@@ -14,9 +14,15 @@ conceptual_label: Pure Theory
 similar_papers: ["alfven-waves-aurora", "diffraction-gratings-fourier-transforms", "magnetic-superhighways-starburst-galaxy", "superfluid-to-supersolid-transition", "emu3-multimodal-next-token-prediction"]
 dim_conceptual_depth: 1.0
 source: https://physicsworld.com/a/could-silicon-become-the-bedrock-of-quantum-computers/
+dimensions:
+  connectivity: 0.150
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.500
+
 ---
-
-
 # Silicon as the Bedrock of Quantum Computers
 
 The 14|15 platform combines crystalline silicon substrates with phosphorus atom qubits for quantum computing.

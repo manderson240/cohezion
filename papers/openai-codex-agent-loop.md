@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["runaway-stars-milky-way", "few-shot-prompting-agentic-coding", "2026-02-09-unique-investment-opportunities-research", "axion-dark-matter-quantum-sensors", "woh-g64-dust-obscured-companion"]
 dim_conceptual_depth: 0.5
 source: https://openai.com/index/unrolling-the-codex-agent-loop/
+dimensions:
+  connectivity: 0.200
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.667
+
 ---
-
-
 # Unrolling the Codex Agent Loop
 
 ## Summary

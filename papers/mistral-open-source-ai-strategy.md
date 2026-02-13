@@ -15,8 +15,15 @@ similar_papers: ["2026-02-09-unique-investment-opportunities-research", "quantum
 domain: "AI Strategy and Business"
 https: //search.app/ze5Wu"
 source: "Source: Nature
----
+dimensions:
+  connectivity: 0.050
+  cross_domain: 2
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
 
+---
 # Mistral CEO Arthur Mensch articulates open-source AI strategy emphasizing enterprise resilience—o...
 
 ## Summary

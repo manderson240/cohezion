@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["testing-agent-skills-with-evals", "tonggeometry-ai-math", "mars-time-dilation-relativity", "quantum-entangled-atomic-sensors", "ai-anomaly-detection-hubble-archive"]
 dim_conceptual_depth: 0.5
 source: https://www.space.com/astronomy/exoplanets/super-earth-exoplanets-may-have-built-in-magnetic-protection-from-churning-magma-and-thats-good-news-for-life
+dimensions:
+  connectivity: 0.150
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.500
+
 ---
-
-
 # Super-Earth Magnetic Protection from Basal Magma Oceans
 
 ## Summary

@@ -15,9 +15,15 @@ similar_papers: ["agentic-ai-memory-hierarchies", "ocean-calcium-climate-mystery
 domain: "Molecular Biology"
 https: //search.app/qbJXD"
 source: "Source: SciTechDaily
+dimensions:
+  connectivity: 0.000
+  cross_domain: 1
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 ## Abstract
 
 Recent research reveals MCL1 as a direct controller of cancer metabolism through mTOR pathway modulation, while selective mTORC1 inhibitors can suppress MYC signaling and reprogram the tumor immune microenvironment. Scientists have also identified the molecular mechanism of MCL1 inhibitor cardiotoxicity and developed dietary interventions to mitigate this critical side effect.

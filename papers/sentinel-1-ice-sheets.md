@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["cosmic-strings-time-travel", "ocean-calcium-climate-mystery-66my", "tidally-locked-exoplanet-habitability", "superfluid-to-supersolid-transition", "circleci-ai-cicd-validation"]
 dim_conceptual_depth: 0.5
 source: https://www.esa.int/Applications/Observing_the_Earth/Copernicus/Sentinel-1/Sentinel-1_s_decade_of_essential_data_over_shifting_ice_sheets
+dimensions:
+  connectivity: 0.000
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.500
+
 ---
-
-
 # Sentinel-1's Decade of Ice Sheet Data
 
 ESA's Sentinel-1 radar satellite provides the first continuous, high-resolution record of ice-flow velocities across Greenland and Antarctica.

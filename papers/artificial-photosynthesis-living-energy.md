@@ -15,9 +15,15 @@ similar_papers: ["cosmic-strings-time-travel", "quantum-entangled-atomic-sensors
 domain: "Bioenergy"
 https: //search.app/dDyoT"
 source: "Source: ecoportal.net
+dimensions:
+  connectivity: 0.150
+  cross_domain: 1
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.500
+
 ---
-
-
 ## Abstract
 
 Artificial photosynthesis systems convert sunlight into chemical fuels by mimicking natural photosynthesis using photoelectrochemical cells or living organisms like cyanobacteria. This technology offers sustainable energy storage without bulky batteries, converting water and CO2 into usable fuels.

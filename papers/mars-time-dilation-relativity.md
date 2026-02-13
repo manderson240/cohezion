@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["llm-training-methodology-changes", "humanitys-last-exam-benchmark", "few-shot-prompting-agentic-coding", "quantum-entanglement-speed-measurement", "super-earth-magnetic-protection-magma"]
 dim_conceptual_depth: 0.5
 source: https://www.sciencedaily.com/releases/2025/12/251228074458.htm
+dimensions:
+  connectivity: 0.050
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.500
+
 ---
-
-
 # Mars Confirms Einstein's Time Dilation
 
 NIST scientists confirmed that clocks on Mars run faster than on Earth due to weaker gravity, as predicted by general relativity.

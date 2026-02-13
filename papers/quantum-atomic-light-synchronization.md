@@ -15,8 +15,15 @@ similar_papers: ["karpathy-claude-code-skills", "claude-code-community-skills", 
 domain: "Quantum Physics"
 https: //search.app/x7QJa"
 source: "Source: Axios
----
+dimensions:
+  connectivity: 0.100
+  cross_domain: 4
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 1.000
 
+---
 # Quantum mechanics research demonstrating that atoms cannot achieve complete synchronization of li...
 
 ## Summary

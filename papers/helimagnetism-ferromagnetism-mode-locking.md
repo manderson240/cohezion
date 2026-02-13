@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["scaling-agent-systems", "ocean-calcium-climate-mystery-66my", "cosmic-strings-time-travel", "webb-cosmic-question-mark-gravitational-lens", "quantum-teleportation-logic-gates"]
 dim_conceptual_depth: 0.5
 source: https://www.nature.com/articles/s41567-025-03148-5
+dimensions:
+  connectivity: 0.100
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 # Mode Locking Between Helimagnetism and Ferromagnetism
 
 Nature Physics paper demonstrating microwave emission and mode coupling in a Cu2OSeO3/Pt/NiFe heterostructure.

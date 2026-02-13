@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["mars-time-dilation-relativity", "emoticons-llm-silent-failures", "magnetic-superhighways-starburst-galaxy", "quantum-atomic-light-synchronization", "helimagnetism-ferromagnetism-mode-locking"]
 dim_conceptual_depth: 0.5
 source: https://www.nature.com/articles/s41586-025-09962-4
+dimensions:
+  connectivity: 0.050
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.667
+
 ---
-
-
 # Humanity's Last Exam (HLE) Benchmark
 
 ## Summary

@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["tonggeometry-ai-math", "anthropic-disempowerment-patterns", "operational-data-ai-agents", "claude-code-community-skills", "few-shot-prompting-agentic-coding"]
 dim_conceptual_depth: 0.5
 source: https://phys.org/news/2026-01-massive-star-woh-g64-red.html
+dimensions:
+  connectivity: 0.100
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.500
+
 ---
-
-
 # WOH G64 Red Supergiant Mystery Resolved
 
 ## Summary

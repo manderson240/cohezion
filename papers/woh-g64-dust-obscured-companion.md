@@ -15,9 +15,15 @@ similar_papers: ["alphafold-cryo-em-structure-prediction", "emu3-multimodal-next
 domain: "Astrophysics"
 https: //search.app/vpRDv"
 source: "Source: The Daily Galaxy
+dimensions:
+  connectivity: 0.100
+  cross_domain: 2
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 ## Abstract
 
 Observations using the Southern African Large Telescope (SALT) resolved the mystery of WOH G64, the most luminous red supergiant in the Large Magellanic Cloud. Despite disappearing from view in 2024 due to a newly formed dust cloud, SALT spectroscopy reveals the star remains a red supergiant with a hot companion whose gravitational interaction triggered the mass loss event.

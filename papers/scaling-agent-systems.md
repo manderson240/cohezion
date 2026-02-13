@@ -14,9 +14,15 @@ conceptual_label: Pure Applied
 similar_papers: ["helimagnetism-ferromagnetism-mode-locking", "jwst-red-nova-remnants", "llm-training-methodology-changes", "mom-z14-farthest-galaxy", "dna-origami-2d-semiconductor-patterning"]
 dim_conceptual_depth: 0.0
 source: https://arxiv.org/abs/2512.08296
+dimensions:
+  connectivity: 0.200
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.333
+
 ---
-
-
 # Towards a Science of Scaling Agent Systems
 
 Google Research paper deriving quantitative scaling principles for agent systems.

@@ -14,9 +14,15 @@ conceptual_label: Balanced
 similar_papers: ["testing-agent-skills-with-evals", "artificial-photosynthesis-living-energy", "helimagnetism-ferromagnetism-mode-locking", "tonggeometry-olympiad-tree-search", "anthropic-disempowerment-patterns"]
 dim_conceptual_depth: 0.5
 source: https://www.popularmechanics.com/space/a70113242/time-travel-cosmic-strings/
+dimensions:
+  connectivity: 0.100
+  cross_domain: 0
+  completion: 100
+  temporal: 0.500
+  recency: 0.700
+  conceptual_depth: 0.000
+
 ---
-
-
 # Cosmic Strings and Time Travel
 
 ## Summary
