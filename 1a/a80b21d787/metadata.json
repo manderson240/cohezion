@@ -1,0 +1,63 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "1aa80b21d787",
+  "strategy": "manual-commit",
+  "branch": "session-55-test-fixes-main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "REPOSITORY_HEALTH_VALIDATION_REPORT.md",
+    "cohezion-session-54",
+    "data/surrealdb/LOG.old.1770933336468669",
+    "data/surrealdb/LOG.old.1770933342068579",
+    "data/surrealdb/LOG.old.1770933347562708",
+    "data/surrealdb/LOG.old.1770933353032772",
+    "data/surrealdb/LOG.old.1770933358931935",
+    "data/surrealdb/LOG.old.1770933364809365",
+    "data/surrealdb/LOG.old.1770933370275739",
+    "data/surrealdb/LOG.old.1770933375896939",
+    "data/surrealdb/LOG.old.1770933381752744",
+    "data/surrealdb/LOG.old.1770942154540495",
+    "data/surrealdb/LOG.old.1770942160135661",
+    "data/surrealdb/LOG.old.1770942165791188",
+    "data/surrealdb/LOG.old.1770942171561037",
+    "data/surrealdb/LOG.old.1770942176993600",
+    "data/surrealdb/LOG.old.1770942182777665",
+    "data/surrealdb/LOG.old.1770942188533420",
+    "data/surrealdb/LOG.old.1770942194037991",
+    "data/surrealdb/LOG.old.1770942199935673",
+    "data/surrealdb/MANIFEST-164765",
+    "data/surrealdb/MANIFEST-171025",
+    "data/surrealdb/OPTIONS-164763",
+    "data/surrealdb/OPTIONS-164767",
+    "data/surrealdb/OPTIONS-171023",
+    "data/surrealdb/OPTIONS-171027",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original",
+    "scripts/compile_memory_from_vault.py",
+    "scripts/db_inspect.py",
+    "scripts/db_inspect_v3.py",
+    "scripts/send_ascension_email.py",
+    "scripts/send_ascension_v1_6_email.py",
+    "scripts/verify_offload.py",
+    "src/cohezion/skills/mass_simulation.md",
+    "src/cohezion/skills/mass_simulation_v3.md",
+    "tests/swarm/test_cost_aware_router_v2.py",
+    "verify_offload_v4.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/1a/a80b21d787/0/metadata.json",
+      "transcript": "/1a/a80b21d787/0/full.jsonl",
+      "context": "/1a/a80b21d787/0/context.md",
+      "content_hash": "/1a/a80b21d787/0/content_hash.txt",
+      "prompt": "/1a/a80b21d787/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 90,
+    "cache_creation_tokens": 154907,
+    "cache_read_tokens": 1358372,
+    "output_tokens": 231,
+    "api_call_count": 11
+  }
+}
