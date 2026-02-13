@@ -400,3 +400,7 @@ Please continue the conversation from where we left off without asking the user 
 ---
 
 Fix it durring our cleaning process
+
+---
+
+Retrospective, commit, compact, Plan next 10 phases for token efficiency, compound engineering, and context awareness.
