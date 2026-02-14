@@ -297,3 +297,13 @@ curl http://localhost:8000/health
 **All Success Criteria Met**: 13/13 ✅
 **Production Ready**: NOW
 **Total Time**: 5 hours (Steps 1-5), beating 9.5h estimate by 45%
+
+## See Also
+
+- [[surrealdb-agent-context-schema]]
+- [[graphrag-knowledge-graph-with-surrealdb]]
+- [[3d-graph-plugin-installation]]
+- [[12d-graph-implementation]]
+- [[compound-engineering]]
+- [[2026-02-14-phase-2-track-a-complete]]
+- [[implementation-first-infrastructure-later]]

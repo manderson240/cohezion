@@ -9,7 +9,7 @@
 ## Phase 7 Overview
 
 **Goal**: Extend COHEZION with 3-5 new features using proven executor pattern
-**Pattern**: CompoundAsyncExecutor (7-step knowledge synthesis pipeline)
+**Pattern**: [[compound-async-executor-pattern|CompoundAsyncExecutor]] (7-step knowledge synthesis pipeline)
 **Duration**: 3-4 weeks
 **Team**: Parallel implementation + pattern extraction
 
@@ -207,3 +207,11 @@ This approach maximizes COHEZION by:
 5. **Compounding ROI** - Patterns improve → faster features → better patterns
 
 **Result**: COHEZION becomes self-improving architecture, not just codebase.
+
+## See Also
+
+- [[compound-async-executor-pattern]]
+- [[token-efficient-implementation-workflow]]
+- [[token-efficiency]]
+- [[roi-analysis]]
+- [[compound-engineering]]

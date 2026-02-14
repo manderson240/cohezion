@@ -158,4 +158,14 @@ CREATE session_55_adversarial_review SET
 
 **Recommended next step**: Approve specialist team approach for Sessions 55-56
 
-This adversarial review applies **compound engineering discipline**: Measure risks before committing tokens.
+This adversarial review applies **[[compound-engineering]] discipline**: Measure risks before committing tokens.
+
+## See Also
+
+- [[compound-engineering]]
+- [[token-efficiency]]
+- [[multi-agent-systems]]
+- [[2026-02-11-session-55-phase-a-investigation-complete]]
+- [[2026-02-11-session-55-phase-c-execution-ready]]
+- [[2026-02-11-session-55-team-execution-summary]]
+- [[compound-engineering-investigation-retrospection-before-destructive-operations]]

@@ -351,5 +351,17 @@ The enhanced vault schema and SurrealDB infrastructure enable Phase 2's core cap
 
 ---
 
+## See Also
+
+- [[surrealdb-agent-context-schema]]
+- [[compound-engineering]]
+- [[token-efficiency]]
+- [[roi-analysis]]
+- [[multi-agent-systems]]
+- [[phase1-mcp-tool-reference]]
+- [[phase1-production-validation-runbook]]
+- [[phase1-query-templates-and-scenarios]]
+- [[2026-02-12-phase2-prioritization-decision]]
+
 *Last updated: 2026-02-12*
 *Committed: `75d4fa5`*

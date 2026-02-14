@@ -12,3 +12,10 @@ tags: [decision]
 ## Consequences
 
 ## Alternatives Considered
+
+## See Also
+
+- [[compound-engineering-investigation-retrospection-before-destructive-operations]]
+- [[2026-02-11-session-55-adversarial-review-blockers-identified]]
+- [[session-retrospective-notes]]
+- [[honest-metrics-over-inflated-claims]]

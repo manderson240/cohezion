@@ -124,3 +124,10 @@ Removed session-level hooks with empty matchers. Replaced with tool-specific hoo
 - What validation rules /doctor applies
 - Whether there are other settings files not yet examined
 - If entire.io expects different hook command names
+
+## See Also
+
+- [[mcp-infrastructure-architecture]]
+- [[mcp-model-context-protocol]]
+- [[troubleshooting-mcp-infrastructure]]
+- [[surrealdb-agent-context-schema]]

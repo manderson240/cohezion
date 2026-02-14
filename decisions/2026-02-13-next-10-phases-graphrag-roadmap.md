@@ -54,3 +54,10 @@ metrics:
 ### Actual (Post-Implementation)
 
 ## Related Decisions & Lessons
+
+- [[graphrag-knowledge-graph-with-surrealdb]]
+- [[surrealdb-agent-context-schema]]
+- [[compound-engineering]]
+- [[12d-graph-implementation]]
+- [[2026-02-11-adopt-graphrag-for-vault-knowledge-graph]]
+- [[roi-analysis]]

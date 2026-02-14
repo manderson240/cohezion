@@ -292,3 +292,15 @@ All 6 steps completed with 100% test pass rate, zero Phase 1 breaking changes, a
 **Status**: ✅ COMPLETE
 **Next Decision**: Track A sign-off + Track B kickoff (2026-02-13)
 **Target Outcome**: Phase 2 completion by EOD 2026-02-14
+
+## See Also
+
+- [[surrealdb-agent-context-schema]]
+- [[graphrag-knowledge-graph-with-surrealdb]]
+- [[compound-engineering]]
+- [[multi-agent-systems]]
+- [[token-efficiency]]
+- [[2026-02-12-phase1-complete-vault-and-surrealdb-integration]]
+- [[2026-02-12-phase2-prioritization-decision]]
+- [[lesson-11-team-agent-efficiency]]
+- [[12d-graph-implementation]]

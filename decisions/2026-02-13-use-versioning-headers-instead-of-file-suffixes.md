@@ -54,3 +54,6 @@ metrics:
 ### Actual (Post-Implementation)
 
 ## Related Decisions & Lessons
+
+- [[safe-persistent-storage-lifecycle]]
+- [[data-discipline-prevent-generated-data-in-git]]

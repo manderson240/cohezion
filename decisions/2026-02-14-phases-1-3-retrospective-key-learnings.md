@@ -330,3 +330,16 @@ Key to success:
 **Prepared by**: Claude Code (Team Coordination)
 **Date**: 2026-02-14
 **Next**: Phase 4 Kickoff (GraphRAG + Decision Intelligence)
+
+## See Also
+
+- [[compound-engineering]]
+- [[multi-agent-systems]]
+- [[token-efficiency]]
+- [[roi-analysis]]
+- [[implementation-first-infrastructure-later]]
+- [[surrealdb-agent-context-schema]]
+- [[3d-graph-plugin-installation]]
+- [[lesson-11-team-agent-efficiency]]
+- [[honest-metrics-over-inflated-claims]]
+- [[PRIME_CLAUDE_CODE_PRACTICES]]

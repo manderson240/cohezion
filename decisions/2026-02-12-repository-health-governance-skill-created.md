@@ -56,3 +56,9 @@ metrics:
 ### Actual (Post-Implementation)
 
 ## Related Decisions & Lessons
+
+- [[repository-health-monitoring-size-tracking-large-object-detection]]
+- [[prime-skill-creation-governance-pattern]]
+- [[data-discipline-prevent-generated-data-in-git]]
+- [[data-governance-prevention-through-pre-commit-enforcement]]
+- [[2026-02-12-prime-skill-pattern-as-governance-framework]]

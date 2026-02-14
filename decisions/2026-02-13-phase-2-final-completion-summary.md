@@ -598,3 +598,16 @@ All components are ready for immediate deployment to production. Phase 3 plannin
 **Next Decision**: Phase 2 → Phase 3 Transition (GraphRAG Integration)
 **Timeline**: Ready for Phase 3 kick-off 2026-02-14
 **Next Review**: Phase 3 sprint planning meeting
+
+## See Also
+
+- [[surrealdb-agent-context-schema]]
+- [[entire-io-sync-daemon-design]]
+- [[entire-io-sync-daemon-operations]]
+- [[compound-engineering]]
+- [[multi-agent-systems]]
+- [[token-efficiency]]
+- [[2026-02-13-phase-2-track-a-complete]]
+- [[2026-02-13-phase-2-track-b-entire-io-sync-daemon-complete]]
+- [[2026-02-13-phase-2-completion-approved-ready-for-production-deployment]]
+- [[2026-02-12-phase-2-track-a-surrealdb-agent-reasoning-complete]]

@@ -82,3 +82,11 @@ metrics:
 ### Actual (Post-Implementation)
 
 ## Related Decisions & Lessons
+
+- [[surrealdb-agent-context-schema]]
+- [[entire-io-sync-daemon-design]]
+- [[compound-engineering]]
+- [[multi-agent-systems]]
+- [[2026-02-13-phase-2-final-completion-summary]]
+- [[2026-02-13-phase-2-completion-approved-ready-for-production-deployment]]
+- [[2026-02-14-phase-2-track-a-complete]]

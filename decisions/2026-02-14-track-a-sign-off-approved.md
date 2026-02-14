@@ -134,3 +134,12 @@ All 6 implementation steps complete, tested, and validated. Ready for main branc
 - **Completion Report**: phase-2-track-a-completion.md
 - **Test Results**: 73/73 agent_reasoning_queries tests + 19 agent_context_ops tests
 - **Phase 2 Plan**: Phase 2 architecture and execution roadmap
+
+## See Also
+
+- [[surrealdb-agent-context-schema]]
+- [[graphrag-knowledge-graph-with-surrealdb]]
+- [[compound-engineering]]
+- [[2026-02-14-phase-2-track-a-complete]]
+- [[2026-02-12-phase-2-track-a-surrealdb-agent-reasoning-complete]]
+- [[2026-02-13-phase-2-track-b-entire-io-sync-daemon-complete]]

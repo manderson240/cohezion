@@ -49,3 +49,10 @@ metrics:
 ### Actual (Post-Implementation)
 
 ## Related Decisions & Lessons
+
+- [[3-tier-hotwarmcold-model-rotation-for-local-llm-orchestration]]
+- [[runbook-ollama-mcp-operations]]
+- [[2026-02-09-ai-model-strategy]]
+- [[2026-02-09-ollama-mcp-server]]
+- [[2026-02-13-local-model-roster-update-february-2026-sota-assessment]]
+- [[lesson-06-ollama-latency]]

@@ -12,3 +12,9 @@ tags: [decision]
 ## Consequences
 
 ## Alternatives Considered
+
+## See Also
+
+- [[2026-02-12-phase1-complete-vault-and-surrealdb-integration]]
+- [[surrealdb-agent-context-schema]]
+- [[compound-engineering]]

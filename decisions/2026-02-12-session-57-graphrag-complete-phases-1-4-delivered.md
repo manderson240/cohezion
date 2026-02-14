@@ -52,3 +52,10 @@ metrics:
 ### Actual (Post-Implementation)
 
 ## Related Decisions & Lessons
+
+- [[graphrag-knowledge-graph-with-surrealdb]]
+- [[surrealdb-agent-context-schema]]
+- [[compound-engineering]]
+- [[token-efficiency]]
+- [[2026-02-12-phase1-complete-vault-and-surrealdb-integration]]
+- [[2026-02-12-phase-2-track-a-surrealdb-agent-reasoning-complete]]

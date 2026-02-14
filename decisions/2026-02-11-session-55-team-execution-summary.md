@@ -387,4 +387,14 @@ All 8 specialists reported:
 
 ---
 
-*This session exemplifies "Entire + Compound Engineering": Entire.io capturing the agentic journey while compound engineering saves tokens and reduces risk.*
+*This session exemplifies "Entire + [[compound-engineering|Compound Engineering]]": Entire.io capturing the agentic journey while compound engineering saves tokens and reduces risk.*
+
+## See Also
+
+- [[compound-engineering]]
+- [[multi-agent-systems]]
+- [[token-efficiency]]
+- [[2026-02-11-session-55-adversarial-review-blockers-identified]]
+- [[2026-02-11-session-55-phase-a-investigation-complete]]
+- [[2026-02-11-session-55-phase-c-execution-ready]]
+- [[multi-platform-repository-deployment-with-external-integration]]

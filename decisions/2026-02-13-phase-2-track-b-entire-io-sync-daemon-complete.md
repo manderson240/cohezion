@@ -328,3 +328,13 @@ All 5 implementation steps completed with 100% test pass rate, zero blockers, an
 **Status**: ✅ COMPLETE
 **Next Decision**: Phase 2 final sign-off (all tracks complete)
 **Overall Phase 2 Progress**: 100% COMPLETE (all tracks done, production ready)
+
+## See Also
+
+- [[entire-io-sync-daemon-design]]
+- [[entire-io-sync-daemon-operations]]
+- [[runbook-entire-sync-daemon]]
+- [[surrealdb-agent-context-schema]]
+- [[compound-engineering]]
+- [[2026-02-13-phase-2-track-a-complete]]
+- [[2026-02-13-phase-2-final-completion-summary]]
