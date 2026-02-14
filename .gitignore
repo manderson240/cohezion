@@ -177,4 +177,4 @@ dist/
 
 # Other session-related patterns
 /*_BACKUP_*/
-/*-session-[0-9]*/
+/cohezion-session-[0-9]*/
