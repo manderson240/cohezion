@@ -1,24 +1,17 @@
 {
   "cli_version": "0.4.2",
   "checkpoint_id": "ce2f273567d0",
+  "session_id": "b17e92c7-c6fb-4fb0-b810-16f2430de34f",
   "strategy": "manual-commit",
+  "created_at": "2026-02-14T05:15:31.471490169Z",
   "branch": "main",
-  "checkpoints_count": 6,
+  "checkpoints_count": 3,
   "files_touched": [
     ".gitlab-ci.yml",
     "SESSION_57_FINAL_SUMMARY.md",
     "SESSION_57_REFINED_PLAN.md",
     "cloud-vault-mcp/src/mcp_server/graphrag_pattern_detector.py",
     "data/checkpoints/test.json",
-    "data/surrealdb/LOG.old.1771044662287143",
-    "data/surrealdb/LOG.old.1771044667824471",
-    "data/surrealdb/LOG.old.1771044673313323",
-    "data/surrealdb/LOG.old.1771044678759665",
-    "data/surrealdb/LOG.old.1771044808743058",
-    "data/surrealdb/LOG.old.1771044814592227",
-    "data/surrealdb/LOG.old.1771044820032753",
-    "data/surrealdb/LOG.old.1771044876653292",
-    "data/surrealdb/LOG.old.1771044882603270",
     "data/surrealdb/LOG.old.1771045741279763",
     "data/surrealdb/LOG.old.1771045747057042",
     "data/surrealdb/LOG.old.1771045752954558",
@@ -93,27 +86,24 @@
     "tests/swarm/test_cost_aware_router_v2.py",
     "verify_offload_v4.py"
   ],
-  "sessions": [
-    {
-      "metadata": "/ce/2f273567d0/0/metadata.json",
-      "transcript": "/ce/2f273567d0/0/full.jsonl",
-      "context": "/ce/2f273567d0/0/context.md",
-      "content_hash": "/ce/2f273567d0/0/content_hash.txt",
-      "prompt": "/ce/2f273567d0/0/prompt.txt"
-    },
-    {
-      "metadata": "/ce/2f273567d0/1/metadata.json",
-      "transcript": "/ce/2f273567d0/1/full.jsonl",
-      "context": "/ce/2f273567d0/1/context.md",
-      "content_hash": "/ce/2f273567d0/1/content_hash.txt",
-      "prompt": "/ce/2f273567d0/1/prompt.txt"
-    }
-  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "0015fc84-908d-41c6-8b35-b504e37e728f",
+  "checkpoint_transcript_start": 1313,
+  "transcript_lines_at_start": 1313,
   "token_usage": {
-    "input_tokens": 1090,
-    "cache_creation_tokens": 649277,
-    "cache_read_tokens": 9190588,
-    "output_tokens": 7952,
-    "api_call_count": 96
+    "input_tokens": 60,
+    "cache_creation_tokens": 165103,
+    "cache_read_tokens": 4068185,
+    "output_tokens": 3652,
+    "api_call_count": 27
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-14T05:15:30.468097295Z",
+    "agent_lines": 412,
+    "human_added": 18398,
+    "human_modified": 423,
+    "human_removed": 0,
+    "total_committed": 19206,
+    "agent_percentage": 2.145162969905238
   }
 }
