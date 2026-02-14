@@ -1,8 +1,0 @@
-[
-  {
-    "from": "team-lead",
-    "text": "{\"type\":\"task_assignment\",\"taskId\":\"21\",\"subject\":\"Phase 6.1 Task #3: Intelligent Fallback Strategy\",\"description\":\"Implement graceful degradation when models become unavailable or degrade.\\n\\nObjectives:\\n- Implement fallback chain: preferred → secondary → emergency\\n- Detect model unavailability (latency timeout, error rate > threshold)\\n- Implement circuit breaker pattern (mark unavailable, auto-reset after N min)\\n- Preserve cost savings during fallback (use next-cheapest available)\\n\\nDeliverables:\\n- New/enhanced fallback strategy in CostAwareRouter\\n- 20+ unit/integration tests\\n- Circuit breaker implementation\\n- Recovery behavior validated\\n\\nTests to write:\\n- test_fallback_chain.py (12 tests)\\n- test_circuit_breaker.py (8 tests)\\n\\nDuration: 1 day\\nOwner: resilience-engineer\",\"assignedBy\":\"team-lead\",\"timestamp\":\"2026-02-09T16:31:48.341Z\"}",
-    "timestamp": "2026-02-09T16:31:48.341Z",
-    "read": false
-  }
-]

@@ -1,9 +1,0 @@
-{
-  "id": "40",
-  "subject": "Resolve 13 remaining test failures and prepare for final deployment",
-  "description": "Address the remaining test failures to achieve 100% pass rate:\n\n## Failing Tests (13 total):\n- tests/compound/test_feedback_loop.py (2 failures) - state/ordering issue\n- tests/compound/test_skill_consensus_voter.py (4 failures) - state/ordering issue  \n- tests/concurrency/test_file_lock.py (1 failure) - retry logic issue\n- tests/integration/test_phase3_integration.py (1 failure) - semantic cache dissimilar query\n- tests/sandbox/test_hooks.py (1 failure) - hook discovery\n- tests/swarm/test_token_client.py (2 failures) - retry/resilience\n- tests/test_concurrency.py (1 failure) - logging assertion\n- tests/test_execution_orchestrator.py (1 failure) - cycle detection\n\n## Acceptance Criteria:\n- All 2050+ tests passing (100% pass rate)\n- No test isolation issues\n- Clean git status ready for deployment\n- Final sign-off documentation complete\n\n## Current Status:\n- 2,827/2,840 tests passing (99.5%)\n- 13 failures to resolve\n- All are non-blocking/environmental (except cycle detection)\n- Root causes identified in vault documentation\n\n## Session 42 Context:\nRunning parallel with Phase 2 infrastructure hardening (4-6h)\nPart of coordinated deployment (Phase 2 + Phase 6 canary)\nHigh priority for deployment readiness",
-  "activeForm": "Resolving 13 remaining test failures for 100% pass rate",
-  "status": "pending",
-  "blocks": [],
-  "blockedBy": []
-}
