@@ -5,6 +5,10 @@ import { VaultBridge } from '../services/VaultBridge';
 import { ReasoningFlowchart } from '../visualizations/ReasoningFlowchart';
 import { CascadeGraph } from '../visualizations/CascadeGraph';
 import { ContradictionMatrix } from '../visualizations/ContradictionMatrix';
+import { DecisionQualityScorer, QualityScoreBreakdown } from '../services/DecisionQualityScorer';
+import { ReasoningInferenceEngine } from '../services/ReasoningInference';
+import { CascadeInferenceEngine, DecisionImpact } from '../services/CascadeInference';
+import { SemanticContradictionDetector } from '../services/SemanticContradictionDetector';
 
 /**
  * Decision Explorer Panel for Phase 4
@@ -469,6 +473,298 @@ export class DecisionExplorer {
     vaultBtn.onmouseleave = () => {
       vaultBtn.style.backgroundColor = '#8b5cf6';
     };
+
+    // Phase 6 Action Buttons Section
+    const phase6Header = containerEl.createDiv('phase6-header');
+    phase6Header.style.padding = '15px 0 5px 0';
+    phase6Header.style.borderTop = '1px solid #ddd';
+    const phase6Label = phase6Header.createEl('small');
+    phase6Label.textContent = 'Phase 6: Advanced Analysis';
+    phase6Label.style.color = '#666';
+    phase6Label.style.fontWeight = 'bold';
+    phase6Label.style.display = 'block';
+    phase6Label.style.marginBottom = '8px';
+
+    const phase6Div = containerEl.createDiv('decision-phase6-buttons');
+    phase6Div.style.display = 'grid';
+    phase6Div.style.gridTemplateColumns = '1fr 1fr 1fr';
+    phase6Div.style.gap = '10px';
+
+    // Quality Score button
+    const qualityBtn = phase6Div.createEl('button');
+    qualityBtn.textContent = 'Quality Score';
+    qualityBtn.style.padding = '10px 15px';
+    qualityBtn.style.border = '1px solid #06b6d4';
+    qualityBtn.style.borderRadius = '4px';
+    qualityBtn.style.backgroundColor = '#06b6d4';
+    qualityBtn.style.color = '#fff';
+    qualityBtn.style.cursor = 'pointer';
+    qualityBtn.style.fontWeight = 'bold';
+    qualityBtn.style.fontSize = '0.85em';
+
+    qualityBtn.onclick = async () => {
+      await this.runQualityScore();
+    };
+
+    qualityBtn.onmouseenter = () => {
+      qualityBtn.style.backgroundColor = '#0891b2';
+    };
+    qualityBtn.onmouseleave = () => {
+      qualityBtn.style.backgroundColor = '#06b6d4';
+    };
+
+    // Cascade Analysis button
+    const cascadeAnalysisBtn = phase6Div.createEl('button');
+    cascadeAnalysisBtn.textContent = 'Cascade Analysis';
+    cascadeAnalysisBtn.style.padding = '10px 15px';
+    cascadeAnalysisBtn.style.border = '1px solid #14b8a6';
+    cascadeAnalysisBtn.style.borderRadius = '4px';
+    cascadeAnalysisBtn.style.backgroundColor = '#14b8a6';
+    cascadeAnalysisBtn.style.color = '#fff';
+    cascadeAnalysisBtn.style.cursor = 'pointer';
+    cascadeAnalysisBtn.style.fontWeight = 'bold';
+    cascadeAnalysisBtn.style.fontSize = '0.85em';
+
+    cascadeAnalysisBtn.onclick = async () => {
+      await this.runCascadeAnalysis();
+    };
+
+    cascadeAnalysisBtn.onmouseenter = () => {
+      cascadeAnalysisBtn.style.backgroundColor = '#0d9488';
+    };
+    cascadeAnalysisBtn.onmouseleave = () => {
+      cascadeAnalysisBtn.style.backgroundColor = '#14b8a6';
+    };
+
+    // Contradiction Detection button
+    const contradictionDetectBtn = phase6Div.createEl('button');
+    contradictionDetectBtn.textContent = 'Detect Contradictions';
+    contradictionDetectBtn.style.padding = '10px 15px';
+    contradictionDetectBtn.style.border = '1px solid #e11d48';
+    contradictionDetectBtn.style.borderRadius = '4px';
+    contradictionDetectBtn.style.backgroundColor = '#e11d48';
+    contradictionDetectBtn.style.color = '#fff';
+    contradictionDetectBtn.style.cursor = 'pointer';
+    contradictionDetectBtn.style.fontWeight = 'bold';
+    contradictionDetectBtn.style.fontSize = '0.85em';
+
+    contradictionDetectBtn.onclick = async () => {
+      await this.runContradictionDetection();
+    };
+
+    contradictionDetectBtn.onmouseenter = () => {
+      contradictionDetectBtn.style.backgroundColor = '#be123c';
+    };
+    contradictionDetectBtn.onmouseleave = () => {
+      contradictionDetectBtn.style.backgroundColor = '#e11d48';
+    };
+
+    // Phase 6 Results area
+    const resultsDiv = containerEl.createDiv('phase6-results');
+    resultsDiv.id = 'phase6-results';
+    resultsDiv.style.padding = '10px 0';
+  }
+
+  /**
+   * Run quality scoring for the selected decision using DecisionQualityScorer (Phase 6D)
+   * Displays breakdown of confidence, alternatives, assumptions, contradictions, diversity
+   */
+  private async runQualityScore(): Promise<void> {
+    if (!this.selectedDecision) {
+      new Notice('Select a decision first');
+      return;
+    }
+
+    try {
+      const scorer = new DecisionQualityScorer();
+
+      // Get contradiction counts from SurrealDB
+      let contradictionMap = new Map<string, number>();
+      try {
+        contradictionMap = await this.surrealClient.queryAllContradictionCounts();
+      } catch (e) {
+        console.log('Contradiction counts not available, scoring without them');
+      }
+
+      const breakdown = scorer.calculateScore(this.selectedDecision, contradictionMap);
+
+      // Display results in the Phase 6 results area
+      const resultsDiv = this.containerEl?.querySelector('#phase6-results') as HTMLElement;
+      if (resultsDiv) {
+        resultsDiv.empty();
+
+        const header = resultsDiv.createEl('h4');
+        header.textContent = `Quality Score: ${(breakdown.total * 100).toFixed(1)}%`;
+        header.style.marginBottom = '10px';
+        header.style.color = breakdown.total >= 0.7 ? '#10b981' : breakdown.total >= 0.4 ? '#f59e0b' : '#ef4444';
+
+        // Score breakdown grid
+        const grid = resultsDiv.createDiv();
+        grid.style.display = 'grid';
+        grid.style.gridTemplateColumns = '1fr 1fr';
+        grid.style.gap = '8px';
+        grid.style.fontSize = '0.85em';
+
+        const components = [
+          { label: 'Confidence (40%)', value: breakdown.confidence, max: 0.4 },
+          { label: 'Alternatives (20%)', value: breakdown.alternatives, max: 0.2 },
+          { label: 'Assumptions (10%)', value: breakdown.assumptions, max: 0.1 },
+          { label: 'No Contradictions (20%)', value: breakdown.contradictions, max: 0.2 },
+          { label: 'Reasoning Diversity (10%)', value: breakdown.diversity, max: 0.1 },
+        ];
+
+        for (const comp of components) {
+          const item = grid.createDiv();
+          item.style.padding = '6px 8px';
+          item.style.backgroundColor = '#f9f9f9';
+          item.style.borderRadius = '3px';
+          const pct = comp.max > 0 ? (comp.value / comp.max * 100).toFixed(0) : '0';
+          item.innerHTML = `<small style="color:#666">${comp.label}</small><br><strong>${pct}%</strong> <small>(${comp.value.toFixed(3)}/${comp.max})</small>`;
+        }
+      }
+
+      new Notice(`Quality Score: ${(breakdown.total * 100).toFixed(1)}%`);
+    } catch (error) {
+      console.error('Quality scoring failed:', error);
+      new Notice('Quality scoring failed. Check console for details.');
+    }
+  }
+
+  /**
+   * Run cascade impact analysis for the selected decision using CascadeInferenceEngine (Phase 6B)
+   * Computes 2nd/3rd order effects via BFS traversal
+   */
+  private async runCascadeAnalysis(): Promise<void> {
+    if (!this.selectedDecision) {
+      new Notice('Select a decision first');
+      return;
+    }
+
+    try {
+      new Notice('Running cascade analysis...');
+
+      // Use SurrealDB client to analyze cascades for this decision
+      const result = await this.surrealClient.analyzeDecisionCascades(
+        this.selectedDecision.id,
+        5
+      );
+
+      // Display results
+      const resultsDiv = this.containerEl?.querySelector('#phase6-results') as HTMLElement;
+      if (resultsDiv) {
+        resultsDiv.empty();
+
+        const header = resultsDiv.createEl('h4');
+        header.textContent = 'Cascade Impact Analysis';
+        header.style.marginBottom = '10px';
+
+        if (result && result.cascades.length > 0) {
+          const stats = resultsDiv.createDiv();
+          stats.style.marginBottom = '10px';
+          stats.style.padding = '8px';
+          stats.style.backgroundColor = '#f0fdf4';
+          stats.style.borderRadius = '4px';
+          stats.style.fontSize = '0.9em';
+          stats.innerHTML = `
+            <strong>Total downstream impacts:</strong> ${result.total_impacted}<br>
+            <strong>Critical impacts:</strong> ${result.critical_impact_count}
+          `;
+
+          // List cascades
+          const list = resultsDiv.createEl('ul');
+          list.style.fontSize = '0.85em';
+          list.style.paddingLeft = '20px';
+          for (const cascade of result.cascades.slice(0, 10)) {
+            const li = list.createEl('li');
+            li.style.marginBottom = '4px';
+            const typeColor = cascade.impact_level === 'critical' ? '#ef4444' : cascade.impact_level === 'significant' ? '#f59e0b' : '#9ca3af';
+            li.innerHTML = `<span style="color:${typeColor};font-weight:bold">[${cascade.impact_level}]</span> ${cascade.target_decision_id} <small>(${cascade.dependency_type})</small>`;
+          }
+          if (result.cascades.length > 10) {
+            resultsDiv.createEl('small', { text: `...and ${result.cascades.length - 10} more` });
+          }
+        } else {
+          resultsDiv.createEl('p', { text: 'No cascade data found for this decision.' }).style.color = '#999';
+        }
+      }
+
+      const count = result?.total_impacted || 0;
+      new Notice(`Cascade analysis complete: ${count} downstream impacts found`);
+    } catch (error) {
+      console.error('Cascade analysis failed:', error);
+      new Notice('Cascade analysis failed. Check console for details.');
+    }
+  }
+
+  /**
+   * Run semantic contradiction detection for the selected decision (Phase 6C)
+   * Uses existing SurrealDB contradiction queries
+   */
+  private async runContradictionDetection(): Promise<void> {
+    if (!this.selectedDecision) {
+      new Notice('Select a decision first');
+      return;
+    }
+
+    try {
+      new Notice('Detecting contradictions...');
+
+      const result = await this.surrealClient.detectContradictions(this.selectedDecision.id);
+
+      // Display results
+      const resultsDiv = this.containerEl?.querySelector('#phase6-results') as HTMLElement;
+      if (resultsDiv) {
+        resultsDiv.empty();
+
+        const header = resultsDiv.createEl('h4');
+        header.textContent = 'Contradiction Detection Results';
+        header.style.marginBottom = '10px';
+
+        if (result && result.contradictions.length > 0) {
+          // Severity summary
+          const stats = resultsDiv.createDiv();
+          stats.style.marginBottom = '10px';
+          stats.style.padding = '8px';
+          stats.style.backgroundColor = '#fef2f2';
+          stats.style.borderRadius = '4px';
+          stats.style.fontSize = '0.9em';
+
+          const severityCounts = result.severity_counts;
+          const parts = Object.entries(severityCounts)
+            .map(([severity, count]) => `${severity}: ${count}`)
+            .join(' | ');
+          stats.innerHTML = `<strong>Found ${result.contradictions.length} contradiction(s):</strong> ${parts}`;
+
+          // List contradictions
+          const list = resultsDiv.createEl('ul');
+          list.style.fontSize = '0.85em';
+          list.style.paddingLeft = '20px';
+          for (const contradiction of result.contradictions.slice(0, 10)) {
+            const li = list.createEl('li');
+            li.style.marginBottom = '6px';
+            const severityColor =
+              contradiction.severity === 'critical' ? '#ef4444' :
+              contradiction.severity === 'high' ? '#f59e0b' :
+              contradiction.severity === 'medium' ? '#eab308' : '#9ca3af';
+            li.innerHTML = `
+              <span style="color:${severityColor};font-weight:bold">[${contradiction.severity}]</span>
+              <small>${contradiction.challenge_type}</small> vs. lesson <em>${contradiction.lesson_id}</em>
+              <br><small style="color:#666">${contradiction.description.substring(0, 120)}${contradiction.description.length > 120 ? '...' : ''}</small>
+            `;
+          }
+        } else {
+          const msg = resultsDiv.createEl('p', { text: 'No contradictions detected for this decision.' });
+          msg.style.color = '#10b981';
+          msg.style.fontWeight = 'bold';
+        }
+      }
+
+      const count = result?.contradictions.length || 0;
+      new Notice(`Contradiction detection complete: ${count} found`);
+    } catch (error) {
+      console.error('Contradiction detection failed:', error);
+      new Notice('Contradiction detection failed. Check console for details.');
+    }
   }
 
   /**
