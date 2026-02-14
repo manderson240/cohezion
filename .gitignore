@@ -156,3 +156,25 @@ dist/
 *.swp
 *.swo
 *~
+
+# === SESSION ARTIFACT PREVENTION (Repository Cleanup Session) ===
+# Prevent accumulation of numbered session artifacts at repo root.
+# Use number-prefix patterns to avoid blocking legitimate docs (e.g., SESSION_GUIDELINES.md).
+#
+# To override for a specific file, add exception BEFORE this section:
+#   !SESSION_SPECIAL_DOC.md
+#
+# Note: docs/archive/ is NOT gitignored - archived files are committed for audit trail.
+
+# Numbered session artifacts at root only (not in subdirectories)
+/SESSION_[0-9]*
+/PHASE_[0-9]*
+/TASK_[0-9]*
+
+# Backup directories from old sessions
+/TASKS_BACKUP_*/
+/TEAM_BACKUP_*/
+
+# Other session-related patterns
+/*_BACKUP_*/
+/*-session-[0-9]*/
