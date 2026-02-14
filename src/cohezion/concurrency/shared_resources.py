@@ -292,6 +292,14 @@ class CapabilityUsageTracker:
 class GitLabRunnerConfig:
     """Thread-safe GitLab Runner configuration management.
 
+    .. deprecated:: 2026-02-13
+        GitLab CI has been replaced with GitHub Actions (Session 57).
+        This class is preserved for backward compatibility and will be
+        removed in version 2.0.0 (estimated: 2026-08-13, 6 months).
+
+        For new integrations, use GitHub Actions configuration via
+        `.github/workflows/` directory.
+
     Manages ~/.gitlab-runner/config.toml with exclusive locking for
     multi-session edit safety.
 
@@ -310,9 +318,20 @@ class GitLabRunnerConfig:
     def __init__(self, config_path: str | None = None):
         """Initialize runner config manager.
 
+        .. deprecated:: 2026-02-13
+            GitLab CI has been replaced with GitHub Actions.
+            This will be removed in v2.0.0 (2026-08-13).
+
         Args:
             config_path: Path to config.toml. Defaults to ~/.gitlab-runner/config.toml
         """
+        import warnings
+        warnings.warn(
+            "GitLabRunnerConfig is deprecated and will be removed in v2.0.0 (2026-08-13). "
+            "Use GitHub Actions configuration (.github/workflows/) instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         if config_path is None:
             config_path = str(Path.home() / ".gitlab-runner" / "config.toml")
         self.config_path = config_path
