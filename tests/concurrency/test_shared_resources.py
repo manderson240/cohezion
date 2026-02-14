@@ -306,8 +306,18 @@ class TestCapabilityUsageTracker:
         assert stats["count"] == 100
 
 
+@pytest.mark.skip(
+    reason="GitLab CI deprecated and replaced with GitHub Actions (Session 57). "
+    "Tests preserved for historical reference. Will be removed 2026-08-13."
+)
 class TestGitLabRunnerConfig:
-    """Tests for GitLab Runner configuration management."""
+    """Tests for GitLab Runner configuration management.
+
+    .. deprecated:: 2026-02-13
+        These tests are skipped but preserved for historical reference.
+        GitLab CI was replaced with GitHub Actions in Session 57.
+        Tests will be removed in v2.0.0 (2026-08-13).
+    """
 
     def test_add_runner(self):
         """Test adding a runner."""
