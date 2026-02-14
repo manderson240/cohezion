@@ -1,58 +1,46 @@
 {
   "cli_version": "0.4.2",
   "checkpoint_id": "10bb712dcdbf",
+  "session_id": "5b0e2e88-4c45-4963-8ae6-b02335e242c9",
   "strategy": "manual-commit",
+  "created_at": "2026-02-14T05:42:24.011307456Z",
   "branch": "master",
   "checkpoints_count": 0,
   "files_touched": [
-    "decisions/2026-02-14-phase-2-adversarial-review-corrected-status-and-path-forward.md",
     "decisions/2026-02-14-phase-4-implementation-progress.md",
     "decisions/2026-02-14-phase-4-retrospective-and-phase-5-overnight-plan.md",
-    "obsidian-plugin/3d-graph-plugin/.gitignore",
     "obsidian-plugin/3d-graph-plugin/DECISION_ANALYSIS_GUIDE.md",
     "obsidian-plugin/3d-graph-plugin/PHASE_4_CHANGELOG.md",
     "obsidian-plugin/3d-graph-plugin/REASONING_CHAINS_EXPLAINED.md",
     "obsidian-plugin/3d-graph-plugin/SURREALDB_INTEGRATION.md",
-    "obsidian-plugin/3d-graph-plugin/esbuild.config.mjs",
-    "obsidian-plugin/3d-graph-plugin/manifest.json",
-    "obsidian-plugin/3d-graph-plugin/package.json",
     "obsidian-plugin/3d-graph-plugin/src/DataLoader.ts",
     "obsidian-plugin/3d-graph-plugin/src/__tests__/DataLoader.test.ts",
     "obsidian-plugin/3d-graph-plugin/src/__tests__/ReasoningFlowchart.test.ts",
     "obsidian-plugin/3d-graph-plugin/src/__tests__/SurrealDBClient.test.ts",
-    "obsidian-plugin/3d-graph-plugin/src/main.ts",
     "obsidian-plugin/3d-graph-plugin/src/services/SurrealDBClient.ts",
     "obsidian-plugin/3d-graph-plugin/src/services/VaultBridge.ts",
     "obsidian-plugin/3d-graph-plugin/src/types/Decision.ts",
-    "obsidian-plugin/3d-graph-plugin/src/types/Paper.ts",
     "obsidian-plugin/3d-graph-plugin/src/ui/DecisionExplorer.ts",
     "obsidian-plugin/3d-graph-plugin/src/visualizations/CascadeGraph.ts",
     "obsidian-plugin/3d-graph-plugin/src/visualizations/ContradictionMatrix.ts",
     "obsidian-plugin/3d-graph-plugin/src/visualizations/DecisionNodeRenderer.ts",
-    "obsidian-plugin/3d-graph-plugin/src/visualizations/ReasoningFlowchart.ts",
-    "obsidian-plugin/3d-graph-plugin/tsconfig.json"
+    "obsidian-plugin/3d-graph-plugin/src/visualizations/ReasoningFlowchart.ts"
   ],
-  "sessions": [
-    {
-      "metadata": "/10/bb712dcdbf/0/metadata.json",
-      "transcript": "/10/bb712dcdbf/0/full.jsonl",
-      "context": "/10/bb712dcdbf/0/context.md",
-      "content_hash": "/10/bb712dcdbf/0/content_hash.txt",
-      "prompt": "/10/bb712dcdbf/0/prompt.txt"
-    },
-    {
-      "metadata": "/10/bb712dcdbf/1/metadata.json",
-      "transcript": "/10/bb712dcdbf/1/full.jsonl",
-      "context": "/10/bb712dcdbf/1/context.md",
-      "content_hash": "/10/bb712dcdbf/1/content_hash.txt",
-      "prompt": "/10/bb712dcdbf/1/prompt.txt"
-    }
-  ],
+  "agent": "Claude Code",
   "token_usage": {
-    "input_tokens": 908,
-    "cache_creation_tokens": 250428,
-    "cache_read_tokens": 9356134,
-    "output_tokens": 33654,
-    "api_call_count": 107
+    "input_tokens": 594,
+    "cache_creation_tokens": 182927,
+    "cache_read_tokens": 5795412,
+    "output_tokens": 22540,
+    "api_call_count": 73
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-14T05:42:23.943358957Z",
+    "agent_lines": 0,
+    "human_added": 177,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 177,
+    "agent_percentage": 0
   }
 }
