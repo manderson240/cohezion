@@ -49,3 +49,10 @@ metrics:
 ### Actual (Post-Implementation)
 
 ## Related Decisions & Lessons
+
+- [[prime-skill-creation-governance-pattern]]
+- [[prime-skill-quick-reference]]
+- [[PRIME_CLAUDE_CODE_PRACTICES]]
+- [[repository-health-monitoring-size-tracking-large-object-detection]]
+- [[2026-02-12-claude-code-context-awareness-codification]]
+- [[compound-engineering]]

@@ -34,3 +34,10 @@ metrics:
 ## Consequences
 
 ## Alternatives Considered
+
+## See Also
+
+- [[graphrag-knowledge-graph-with-surrealdb]]
+- [[compound-engineering]]
+- [[canvas-driven-manual-linking]]
+- [[surrealdb-agent-context-schema]]

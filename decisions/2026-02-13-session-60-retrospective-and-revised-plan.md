@@ -235,4 +235,14 @@ When starting Session 61 (2026-02-14 09:00 UTC):
 
 ---
 
+## See Also
+
+- [[multi-agent-systems]]
+- [[compound-engineering]]
+- [[PRIME_CLAUDE_CODE_PRACTICES]]
+- [[token-efficiency]]
+- [[entire-io-sync-daemon-design]]
+- [[surrealdb-agent-context-schema]]
+- [[lesson-11-team-agent-efficiency]]
+
 *Session 60 Complete. Phase 2 execution ready for team orchestration.*

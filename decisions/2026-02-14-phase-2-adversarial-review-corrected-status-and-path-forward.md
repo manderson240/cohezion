@@ -85,3 +85,10 @@ metrics:
 ### Actual (Post-Implementation)
 
 ## Related Decisions & Lessons
+
+- [[honest-metrics-over-inflated-claims]]
+- [[compound-engineering]]
+- [[ai-safety-alignment]]
+- [[2026-02-11-session-55-adversarial-review-blockers-identified]]
+- [[2026-02-14-adversarial-multi-agent-review-protocol]]
+- [[lesson-12-layered-validation]]

@@ -12,3 +12,11 @@ tags: [experiment]
 ## Results
 
 ## Learnings
+
+## Related
+
+**Decisions**: [[2026-02-11-adopt-graphrag-for-vault-knowledge-graph]], [[2026-02-12-phase1-complete-vault-and-surrealdb-integration]]
+**Patterns**: [[graphrag-knowledge-graph-with-surrealdb]], [[surrealdb-query-driven-analysis]]
+**Concepts**: [[mcp-infrastructure-architecture]]
+**Lessons**: [[lesson-05-surrealdb]], [[lesson-24-yaml-folded-scalar-trap]]
+**Experiments**: [[2026-02-11-graphrag-proof-of-concept-success]], [[2026-02-12-graphrag-implementation-session-56]]

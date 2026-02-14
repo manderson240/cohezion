@@ -49,3 +49,9 @@ metrics:
 ### Actual (Post-Implementation)
 
 ## Related Decisions & Lessons
+
+- [[surrealdb-agent-context-schema]]
+- [[experience-feedback-loop]]
+- [[meta-learning]]
+- [[agentic-ai]]
+- [[2026-02-13-first-real-data-vae-training-run]]

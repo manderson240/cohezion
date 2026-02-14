@@ -343,4 +343,14 @@ Phase 1 completed **43% ahead of schedule** (16h actual vs 28h estimated) with *
 
 *Document: decisions/2026-02-12-phase2-prioritization-decision.md*
 *Created: 2026-02-12*
+## See Also
+
+- [[2026-02-12-phase1-complete-vault-and-surrealdb-integration]]
+- [[entire-io-sync-daemon-design]]
+- [[surrealdb-agent-context-schema]]
+- [[compound-engineering]]
+- [[graphrag-knowledge-graph-with-surrealdb]]
+- [[multi-agent-systems]]
+- [[3d-graph-plugin-installation]]
+
 *Status: Pending team lead prioritization guidance*

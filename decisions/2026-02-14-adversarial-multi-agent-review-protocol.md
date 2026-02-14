@@ -49,3 +49,10 @@ metrics:
 ### Actual (Post-Implementation)
 
 ## Related Decisions & Lessons
+
+- [[multi-agent-systems]]
+- [[agentic-ai]]
+- [[2026-02-11-session-55-adversarial-review-blockers-identified]]
+- [[honest-metrics-over-inflated-claims]]
+- [[test-isolation-via-singleton-reset]]
+- [[lesson-12-layered-validation]]

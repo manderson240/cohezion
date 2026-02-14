@@ -303,5 +303,7 @@ All deferred items have documented mitigation strategies and Phase 6 implementat
 **Domains**: ai-ml, infrastructure, integration, performance
 **Categories**: operational, strategic, technical
 
-
-[[workflow-orchestration]]
+**Concepts**: [[multi-agent-systems]], [[agentic-ai]]
+**Decisions**: [[2026-02-09-session-43-phase-5b-verification-phase-6-launch]]
+**Patterns**: [[phase-5b-completion-pattern]], [[phase1-production-validation-runbook]], [[non-blocking-observability]], [[test-isolation-via-singleton-reset]]
+**Lessons**: [[lesson-12-layered-validation]], [[lesson-18-mock-live-services-in-tests]], [[lesson-34-test-hang-unmocked-live-service]]

@@ -551,8 +551,10 @@ Phase 2 implementation ready to start upon approval. Estimated timeline: 3-5 day
 
 ## Related
 
-**Patterns**: [[Phase 1 Production Validation Runbook]]
+**Patterns**: [[phase1-production-validation-runbook]], [[surrealdb-agent-context-schema]], [[surrealdb-agent-context-quick-reference]], [[test-isolation-via-singleton-reset]]
 
-**Decisions**: [[Phase 1 SurrealDB Agent Context Schema]]
+**Decisions**: [[2026-02-11-phase-1-agent-context-schema-complete]], [[2026-02-11-surrealdb-agent-context-schema-design]], [[2026-02-11-phase1-completion-summary]]
 
-**Projects**: [[Phase 1 - SurrealDB Agent Context Schema]] ✅ COMPLETE
+**Concepts**: [[mcp-infrastructure-architecture]], [[agentic-ai]]
+
+**Lessons**: [[lesson-12-layered-validation]], [[lesson-18-mock-live-services-in-tests]], [[lesson-05-surrealdb]]

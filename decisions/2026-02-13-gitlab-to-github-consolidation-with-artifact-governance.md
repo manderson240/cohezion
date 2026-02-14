@@ -54,3 +54,9 @@ metrics:
 ### Actual (Post-Implementation)
 
 ## Related Decisions & Lessons
+
+- [[data-discipline-prevent-generated-data-in-git]]
+- [[data-governance-prevention-through-pre-commit-enforcement]]
+- [[repository-health-monitoring-size-tracking-large-object-detection]]
+- [[multi-platform-repository-deployment-with-external-integration]]
+- [[2026-02-11-use-escalation-staged-deployment-for-large-repository-cleanup]]

@@ -172,4 +172,15 @@ Create daily metrics template:
 **Owner**: Platform Lead
 **Timeline**: 2026-02-12 to 2026-02-13
 **Dependencies**: None (can execute in parallel with Phase 2 tracks)
+
+## See Also
+
+- [[PRIME_CLAUDE_CODE_PRACTICES]]
+- [[prime-skill-creation-governance-pattern]]
+- [[context-management]]
+- [[prompt-engineering]]
+- [[agentic-ai]]
+- [[compound-engineering]]
+- [[token-efficiency]]
+- [[mcp-model-context-protocol]]
 **Approved**: Pending user sign-off

@@ -189,4 +189,13 @@ All critical investigations complete. No blockers remain. Repository cleanup is 
 **In Vault**: Decisions recorded, patterns extracted, experiment logged
 **In SurrealDB**: Ready for Phase D recording
 
-This exemplifies compound engineering: validate, measure, escalate strategically rather than execute rashly.
+This exemplifies [[compound-engineering]]: validate, measure, escalate strategically rather than execute rashly.
+
+## See Also
+
+- [[compound-engineering]]
+- [[multi-agent-systems]]
+- [[multi-platform-repository-deployment-with-external-integration]]
+- [[2026-02-11-session-55-adversarial-review-blockers-identified]]
+- [[2026-02-11-session-55-phase-c-execution-ready]]
+- [[token-efficiency]]

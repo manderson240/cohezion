@@ -40,4 +40,7 @@ The document includes 15+ cited references with links (peer-reviewed papers, Qua
 
 ## Related
 **Domains**: infrastructure
-**Concepts**: [[compound-engineering]]
+**Concepts**: [[compound-engineering]], [[agentic-ai]], [[prompt-engineering]]
+**Decisions**: [[2026-02-07-event-driven-inbox-processor]]
+**Patterns**: [[automated-concept-extraction]], [[token-efficient-implementation-workflow]]
+**Lessons**: [[lesson-37-experience-guided-execution-works-new]]

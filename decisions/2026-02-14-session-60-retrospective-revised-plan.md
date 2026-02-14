@@ -140,3 +140,14 @@ Step 5: Verify + commit (15 min)
 **Going forward**: Less planning, more executing. 1 doc not 8. Verify state before planning. Right-size agent teams. Clean up stale memory weekly.
 
 **Phase 4 ready**: Execute with calibrated estimates and proven orchestration patterns.
+
+## See Also
+
+- [[compound-engineering]]
+- [[multi-agent-systems]]
+- [[token-efficiency]]
+- [[implementation-first-infrastructure-later]]
+- [[lesson-11-team-agent-efficiency]]
+- [[PRIME_CLAUDE_CODE_PRACTICES]]
+- [[2026-02-14-phases-1-3-retrospective-key-learnings]]
+- [[2026-02-13-session-60-retrospective-and-revised-plan]]

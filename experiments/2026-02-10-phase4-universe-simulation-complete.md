@@ -323,6 +323,11 @@ obsidian-plugin/src/simulation/
 - **12D Graph Vision**: [[2026-02-09-12d-graph-refined-plan]]
 - **Token Efficiency**: [[2026-02-10-kyutai-token-waste-postmortem]]
 
+**Concepts**: [[agentic-ai]], [[multi-agent-systems]], [[meta-learning]], [[context-management]]
+**Patterns**: [[12d-graph-implementation]], [[graphrag-knowledge-graph-with-surrealdb]], [[implementation-first-infrastructure-later]]
+**Decisions**: [[2026-02-10-phase3-3d-graph-adversarial-review]], [[2026-02-09-12d-graph-surrealdb-integration]]
+**Lessons**: [[lesson-11-team-agent-efficiency]], [[lesson-06-ollama-latency]]
+
 ---
 
 ## Conclusion
