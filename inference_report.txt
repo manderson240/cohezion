@@ -1,0 +1,204 @@
+Reasoning Chain Inference Report
+Generated: 2026-02-14T10:17:08.659536
+Total inferred: 33/33
+Time elapsed: 16.6s
+Avg per decision: 0.5s
+
+✓ 2026-02-11-session-55-git-aggressive-gc-doesnt-consolidate-packs-manual-repack-forced
+  Title: Session 55 - Git aggressive GC doesn't consolidate packs; manual repack forced
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-11-session-55-phase-a-investigation-complete, 2026-02-09-ollama-mcp-server
+  Time: 4.81s
+
+✓ 3d-graph-plugin-selection
+  Title: 3D Graph Plugin Selection for Cohezion Vault
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-11-adopt-graphrag-for-vault-knowledge-graph, 2026-02-11-use-escalation-staged-deployment-for-large-repository-cleanup
+  Time: 0.06s
+
+✓ 2026-02-12-prime-skill-pattern-as-governance-framework
+  Title: PRIME Skill Pattern as Governance Framework
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-10-claude-log-mining-architecture, 2026-02-10-kyutai-token-waste-postmortem
+  Time: 0.49s
+
+✓ 2026-02-14-adversarial-multi-agent-review-protocol
+  Title: Adversarial Multi-Agent Review Protocol
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-10-compound-linking-plan-adversarial-review, 2026-02-10-log-mining-adversarial-review
+  Time: 0.37s
+
+✓ 2026-02-12-charter-aligned-scoring-formula
+  Title: Charter-Aligned Scoring Formula
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-10-canvas-driven-compound-engineering-refined, 2026-02-10-log-mining-adversarial-review
+  Time: 0.05s
+
+✓ 2026-02-14-phase-2-adversarial-review-corrected-status-and-path-forward
+  Title: Phase 2 Adversarial Review - Corrected Status and Path Forward
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-11-session-55-phase-a-investigation-complete, 2026-02-10-compound-linking-plan-adversarial-review
+  Time: 2.83s
+
+✓ 2026-02-14-phase-2-complete-all-3-tracks-delivered-for-production
+  Title: Phase 2 Complete - All 3 Tracks Delivered for Production
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-10-canvas-driven-compound-engineering-refined, 2026-02-13-phase-3-unblocking-semantic-dimensions-complete
+  Time: 2.20s
+
+✓ 2026-02-11-phase-1-agent-context-schema-complete
+  Title: Phase 1 Agent Context Integration - Step 1 Complete
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-10-token-efficient-compound-engineering-roadmap, 2026-02-10-canvas-driven-compound-engineering
+  Time: 0.08s
+
+✓ 2026-02-14-end-to-end-compound-cycle-validation-script
+  Title: End-to-End Compound Cycle Validation Script
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-11-session-55-phase-a-investigation-complete, 2026-02-10-phase-a-implementation-complete
+  Time: 0.35s
+
+✓ _template
+  Title: {{title}}
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-10-canvas-driven-compound-engineering, 2026-02-10-operational-forensics-compound-engineering
+  Time: 0.08s
+
+✓ 2026-02-11-session-55-http-500-failure-may-be-protocol-specific-ssh-push-alternative-availa
+  Title: Session 55 - HTTP 500 failure may be protocol-specific; SSH push alternative available
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-11-session-55-phase-a-investigation-complete, 2026-02-11-use-escalation-staged-deployment-for-large-repository-cleanup
+  Time: 0.10s
+
+✓ 2026-02-12-phase2-prioritization-decision
+  Title: Phase 2 Prioritization Decision - Track Selection for 2026-02-13
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-09-12d-graph-next-steps, 2026-02-09-ollama-mcp-server
+  Time: 0.10s
+
+✓ 2026-02-11-surrealdb-agent-context-schema-design
+  Title: SurrealDB Agent Context Schema Design Decision
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-09-12d-graph-next-steps, 2026-02-10-canvas-driven-compound-engineering
+  Time: 0.06s
+
+✓ 2026-02-12-repository-health-governance-skill-created
+  Title: Repository Health Governance Skill Created
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-10-token-efficient-compound-engineering-roadmap, 2026-02-11-use-escalation-staged-deployment-for-large-repository-cleanup
+  Time: 0.52s
+
+✓ 2026-02-13-local-model-roster-update-february-2026-sota-assessment
+  Title: Local Model Roster Update - February 2026 SOTA Assessment
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-09-ai-model-strategy, 2026-02-10-canvas-driven-compound-engineering-refined
+  Time: 0.53s
+
+✓ 2026-02-13-gitlab-to-github-consolidation-with-artifact-governance
+  Title: GitLab to GitHub Consolidation with Artifact Governance
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-11-use-escalation-staged-deployment-for-large-repository-cleanup, 2026-02-09-ollama-mcp-server
+  Time: 0.41s
+
+✓ 2026-02-12-phase-2-schema-design
+  Title: Phase 2 Schema Design: Agent Reasoning + Decision Cascades
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-09-12d-graph-next-steps, 2026-02-11-use-escalation-staged-deployment-for-large-repository-cleanup
+  Time: 0.08s
+
+✓ 2026-02-14-agent-orchestration-design-3-tier-hotwarmcold-model-rotation
+  Title: Agent Orchestration Design - 3-Tier Hot/Warm/Cold Model Rotation
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-10-token-efficient-compound-engineering-roadmap, 2026-02-13-phase-3-unblocking-semantic-dimensions-complete
+  Time: 1.04s
+
+✓ 2026-02-12-session-57-graphrag-complete-phases-1-4-delivered
+  Title: Session 57 GraphRAG Complete - Phases 1-4 Delivered
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-10-canvas-driven-compound-engineering-refined, 2026-02-10-token-efficient-compound-engineering-roadmap
+  Time: 0.26s
+
+✓ 2026-02-11-session-55-pause-push-conduct-retrospective-before-github-deployment
+  Title: Session 55 - Pause push, conduct retrospective before GitHub deployment
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-11-session-55-phase-a-investigation-complete, 2026-02-11-use-escalation-staged-deployment-for-large-repository-cleanup
+  Time: 0.08s
+
+✓ 2026-02-08-bmad-framework-removal
+  Title: Remove BMAD Framework from Cohezion Repository
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-10-token-efficient-compound-engineering-roadmap, 2026-02-10-operational-forensics-compound-engineering
+  Time: 0.06s
+
+✓ 2026-02-13-next-10-phases-graphrag-roadmap
+  Title: Next 10 Phases GraphRAG Roadmap
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-09-12d-graph-surrealdb-integration, 2026-02-10-phase-a-implementation-complete
+  Time: 0.24s
+
+✓ 2026-02-07-event-driven-inbox-processor
+  Title: Event-Driven Inbox Processor Daemon
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-10-canvas-driven-compound-engineering-refined, 2026-02-10-token-efficient-compound-engineering-roadmap
+  Time: 0.06s
+
+✓ 2026-02-13-use-versioning-headers-instead-of-file-suffixes
+  Title: Use Versioning Headers Instead of File Suffixes
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-11-vault-first-knowledge-architecture, 2026-02-13-phase-3-unblocking-semantic-dimensions-complete
+  Time: 0.27s
+
+✓ 2026-02-12-claude-code-context-awareness-codification
+  Title: Claude Code Context Awareness Codification
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-09-12d-graph-next-steps, 2026-02-10-log-mining-adversarial-review
+  Time: 0.06s
+
+✓ 2026-02-11-session-55-compound-engineering-approach-for-universe-simulation-preservation
+  Title: Session 55 - Compound Engineering Approach for Universe Simulation Preservation
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-11-session-55-phase-a-investigation-complete, 2026-02-10-log-mining-adversarial-review
+  Time: 0.08s
+
+✓ 2026-02-12-cloudflare-tunnel-for-persistent-mcp-remote-access
+  Title: Cloudflare Tunnel for Persistent MCP Remote Access
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-11-adopt-graphrag-for-vault-knowledge-graph, 2026-02-11-use-escalation-staged-deployment-for-large-repository-cleanup
+  Time: 0.06s
+
+✓ 2026-02-11-session-55-discovered-redundant-pack-files-as-root-cause-of-12gb-size-final-cons
+  Title: Session 55 - Discovered redundant pack files as root cause of 12GB size; final consolidation in progress
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-11-session-55-phase-a-investigation-complete, 2026-02-10-token-efficient-compound-engineering-roadmap
+  Time: 0.11s
+
+✓ 2026-02-14-3-tier-adversarial-review-protocol-for-code-quality
+  Title: 3-Tier Adversarial Review Protocol for Code Quality
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-10-log-mining-adversarial-review, 2026-02-10-compound-linking-plan-adversarial-review
+  Time: 0.51s
+
+✓ 2026-02-11-session-55-critical-antipattern-training-data-committed-to-git-history-blocks-gi
+  Title: Session 55 - CRITICAL ANTIPATTERN: Training data committed to git history blocks GitHub push
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-11-use-escalation-staged-deployment-for-large-repository-cleanup, 2026-02-11-session-55-phase-a-investigation-complete
+  Time: 0.10s
+
+✓ 2026-02-09-12d-graph-refined-plan
+  Title: 12D Graph System - Refined Implementation Plan (Specialist-Driven)
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-10-canvas-driven-compound-engineering-refined, 2026-02-10-token-efficient-compound-engineering-roadmap
+  Time: 0.10s
+
+✓ 2026-02-13-experience-vae-training-pipeline-session-58
+  Title: Experience → VAE Training Pipeline (Session 58)
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-10-compound-engineering-meta-learning, 2026-02-09-ai-model-strategy
+  Time: 0.32s
+
+✓ 2026-02-12-phase-0-foundation-complete
+  Title: Phase 0 Foundation Complete
+  Type: hybrid (confidence: 0.6)
+  Similar: 2026-02-10-claude-log-mining-architecture, 2026-02-11-vault-first-knowledge-architecture
+  Time: 0.05s
+
