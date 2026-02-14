@@ -1,0 +1,192 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  COHEZION_CI: "true"
+
+jobs:
+  # ── Lint ─────────────────────────────────────────────────────
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Sync dependencies
+        run: uv sync --frozen
+
+      - name: Ruff format check
+        run: uv run ruff format --check src/ tests/
+        continue-on-error: true
+
+      - name: Ruff lint check
+        run: uv run ruff check src/ tests/
+        continue-on-error: true
+
+  # ── Validate ──────────────────────────────────────────────────
+  validate:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Sync dependencies
+        run: uv sync --frozen
+
+      - name: Validate agent files
+        run: uv run python scripts/ci/validate_agents.py
+
+      - name: Validate PRIME skills
+        run: uv run python scripts/ci/validate_skills.py
+
+      - name: Validate skill registry
+        run: uv run python scripts/ci/validate_registry.py
+
+      - name: Validate critical imports
+        run: |
+          uv run python -c "
+          from cohezion.core.template_engine import TemplateEngine
+          from cohezion.registry.skill_registry import load_registry
+          from cohezion.registry.capability_registry import CapabilityRegistry
+          from cohezion.core.compound.retrospection import RetrospectionEngine
+          from cohezion.validation.agent_schema import validate_all_agent_files
+          print('✓ All critical imports OK')
+          "
+
+  # ── Test ──────────────────────────────────────────────────────
+  test:
+    runs-on: ubuntu-latest
+    needs: validate
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Sync dependencies
+        run: uv sync --frozen
+
+      - name: Run unit tests
+        run: >
+          uv run pytest tests/unit/ -v
+          --tb=short
+          --junitxml=report.xml
+          --cov=src/cohezion
+          --cov-report=xml:coverage.xml
+          --cov-report=term
+
+      - name: Run integration tests
+        run: >
+          uv run pytest tests/ --ignore=tests/unit/ -v
+          --tb=short
+          --junitxml=integration-report.xml
+        continue-on-error: true
+
+      - name: Upload coverage
+        if: matrix.python-version == '3.13'
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Publish test results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: |
+            report.xml
+            integration-report.xml
+          check_name: Test Results (Python ${{ matrix.python-version }})
+
+  # ── Compound ──────────────────────────────────────────────────
+  compound:
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Sync dependencies
+        run: uv sync --frozen
+
+      - name: Run compound audit
+        run: uv run python scripts/ci/compound_audit.py
+        continue-on-error: true
+
+      - name: Upload compound report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compound-report
+          path: compound-report.json
+          if-no-files-found: ignore
+
+  # ── Typecheck ─────────────────────────────────────────────────
+  typecheck:
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Sync dependencies
+        run: uv sync --frozen
+
+      - name: Type check with mypy
+        run: uv run mypy src/cohezion/ --ignore-missing-imports
+        continue-on-error: true
+
+  # ── Summary ───────────────────────────────────────────────────
+  ci-status:
+    runs-on: ubuntu-latest
+    needs: [lint, validate, test, compound, typecheck]
+    if: always()
+    steps:
+      - name: Check CI status
+        run: |
+          if [ "${{ needs.lint.result }}" = "failure" ] || \
+             [ "${{ needs.validate.result }}" = "failure" ] || \
+             [ "${{ needs.test.result }}" = "failure" ]; then
+            echo "❌ CI Pipeline Failed"
+            exit 1
+          fi
+          echo "✅ CI Pipeline Passed"
