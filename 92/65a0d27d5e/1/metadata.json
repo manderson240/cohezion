@@ -1,15 +1,15 @@
 {
   "cli_version": "0.4.2",
   "checkpoint_id": "9265a0d27d5e",
+  "session_id": "b17e92c7-c6fb-4fb0-b810-16f2430de34f",
   "strategy": "manual-commit",
+  "created_at": "2026-02-14T18:46:46.202570728Z",
   "branch": "main",
   "checkpoints_count": 1,
   "files_touched": [
     ".gitlab-ci.yml",
     "SESSION_57_FINAL_SUMMARY.md",
     "SESSION_57_REFINED_PLAN.md",
-    "cloud-vault-mcp/src/mcp_server/graphrag_helpers.py",
-    "cloud-vault-mcp/tests/test_graphrag_helpers.py",
     "data/checkpoints/test.json",
     "data/surrealdb/LOG.old.1771046887067578",
     "data/surrealdb/LOG.old.1771046892934682",
@@ -150,14 +150,6 @@
     "data/surrealdb/LOG.old.1771047650569917",
     "data/surrealdb/LOG.old.1771047656027991",
     "data/surrealdb/LOG.old.1771047661797061",
-    "data/surrealdb/LOG.old.1771092966545615",
-    "data/surrealdb/LOG.old.1771092972054258",
-    "data/surrealdb/LOG.old.1771092977825037",
-    "data/surrealdb/LOG.old.1771092983304025",
-    "data/surrealdb/LOG.old.1771092988843673",
-    "data/surrealdb/LOG.old.1771092994564795",
-    "data/surrealdb/LOG.old.1771093000454116",
-    "data/surrealdb/LOG.old.1771093006098935",
     "scripts/db_inspect_v3.py",
     "scripts/send_ascension_v1_6_email.py",
     "src/cohezion/compound/journey_persistence.py",
@@ -176,27 +168,24 @@
     "tests/swarm/test_model_pool_manager.py",
     "verify_offload_v4.py"
   ],
-  "sessions": [
-    {
-      "metadata": "/92/65a0d27d5e/0/metadata.json",
-      "transcript": "/92/65a0d27d5e/0/full.jsonl",
-      "context": "/92/65a0d27d5e/0/context.md",
-      "content_hash": "/92/65a0d27d5e/0/content_hash.txt",
-      "prompt": "/92/65a0d27d5e/0/prompt.txt"
-    },
-    {
-      "metadata": "/92/65a0d27d5e/1/metadata.json",
-      "transcript": "/92/65a0d27d5e/1/full.jsonl",
-      "context": "/92/65a0d27d5e/1/context.md",
-      "content_hash": "/92/65a0d27d5e/1/content_hash.txt",
-      "prompt": "/92/65a0d27d5e/1/prompt.txt"
-    }
-  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "f22111c3-9b97-4c64-8348-e58173c5ecf4",
+  "checkpoint_transcript_start": 1463,
+  "transcript_lines_at_start": 1463,
   "token_usage": {
-    "input_tokens": 914,
-    "cache_creation_tokens": 1107860,
-    "cache_read_tokens": 18672913,
-    "output_tokens": 50705,
-    "api_call_count": 191
+    "input_tokens": 372,
+    "cache_creation_tokens": 223509,
+    "cache_read_tokens": 4831041,
+    "output_tokens": 20756,
+    "api_call_count": 46
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-14T18:46:45.723951138Z",
+    "agent_lines": 989,
+    "human_added": 9252,
+    "human_modified": 148,
+    "human_removed": 0,
+    "total_committed": 10389,
+    "agent_percentage": 9.519684281451536
   }
 }
