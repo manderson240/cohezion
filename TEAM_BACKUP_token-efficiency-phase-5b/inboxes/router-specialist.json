@@ -1,0 +1,8 @@
+[
+  {
+    "from": "team-lead",
+    "text": "{\"type\":\"task_assignment\",\"taskId\":\"20\",\"subject\":\"Phase 6.1 Task #2: ModelRanker Implementation\",\"description\":\"Implement ModelRanker class to rank available models by coherence, cost, and latency.\\n\\nObjectives:\\n- Create ModelRanker class with three ranking strategies\\n- Integrate historical coherence scores from vault\\n- Weight models by: coherence×0.4 + cost/token×0.3 + latency×0.2 + freshness×0.1\\n- Implement fallback to default ranking if coherence unavailable\\n\\nDeliverables:\\n- New file: src/cohezion/swarm/model_ranker.py (300+ LOC)\\n- 25+ unit/integration tests\\n- Integration with CostAwareRouter\\n- Ranking strategy documentation\\n\\nTests to write:\\n- test_model_ranker_strategies.py (15 tests)\\n- test_coherence_weighting.py (10 tests)\\n\\nDuration: 1-1.5 days\\nOwner: router-specialist\",\"assignedBy\":\"team-lead\",\"timestamp\":\"2026-02-09T16:31:47.855Z\"}",
+    "timestamp": "2026-02-09T16:31:47.855Z",
+    "read": false
+  }
+]

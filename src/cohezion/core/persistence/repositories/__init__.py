@@ -11,9 +11,18 @@ from cohezion.core.persistence.repositories.surreal_journey_repository import (
     SurrealJourneyRepository,
 )
 
+from cohezion.core.persistence.repositories.pattern_repository import (
+    CodeAntiPattern,
+    CodePattern,
+    PatternRepository,
+)
+
 __all__ = [
     "AgentJourney",
     "JourneyMetrics",
     "JourneyRepository",
     "SurrealJourneyRepository",
+    "CodeAntiPattern",
+    "CodePattern",
+    "PatternRepository",
 ]

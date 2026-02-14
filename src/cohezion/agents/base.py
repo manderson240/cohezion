@@ -33,6 +33,7 @@ from cohezion.rewards.system import RewardSystem
 from cohezion.security.output_filter import OutputFilter
 from cohezion.security.prompt_guard import PromptGuard, ThreatLevel
 from cohezion.universe.engine import UniverseSimulationEngine
+from cohezion.compound.exp_persistence.accumulator import get_accumulator
 
 logger = logging.getLogger(__name__)
 
@@ -544,6 +545,38 @@ class BaseAgent(ABC):
             images=images,
             narration=narration,
         )
+
+        # Autonomic Experience Persistence
+        try:
+            accumulator = get_accumulator()
+            
+            # Refined Novelty Score (Threshold-based importance sampling)
+            novelty = 1.0
+            if embedding and self._db:
+                try:
+                    similar_nodes = await self._db.query_similar(embedding, limit=1)
+                    if similar_nodes:
+                        similarity = similar_nodes[0].get("score", 0.0)
+                        novelty = max(0.01, 1.0 - similarity)
+                except Exception as e:
+                    logger.debug(f"Novelty detection failed, defaulting to 1.0: {e}")
+
+            experience_data = {
+                "mission_id": persistence_id,
+                "agent": self.__class__.__name__,
+                "model": active_model,
+                "prompt": prompt,
+                "response": final_result,
+                "phi_score": phi_score,
+                "confidence": confidence,
+                "embedding": embedding,
+                "timestamp": time.time(),
+                "novelty": novelty,
+                "decisions": []
+            }
+            asyncio.create_task(accumulator.add_experience(experience_data))
+        except Exception as e:
+            logger.warning(f"Persistence hook failed: {e}")
 
         latency = (time.perf_counter() - start_time) * 1000
         self._metrics["total_latency_ms"] += latency

@@ -6,6 +6,7 @@ import json
 import logging
 from pathlib import Path
 from typing import Any
+from cohezion.core.mcp_client import get_mcp_client
 
 logger = logging.getLogger(__name__)
 
@@ -40,12 +41,20 @@ class CompoundPersistence:
         str
             Record ID (SurrealDB) or JSONL reference.
         """
+        # Tier 1: Vault (Structured & Contextual)
+        try:
+            return await self._save_to_vault(skill_name, cycle_data)
+        except Exception as e:
+            logger.debug(f"Vault save failed: {e}")
+
+        # Tier 2: SurrealDB (Fast Query & Physics Vectors)
         if await self._check_surreal():
             try:
                 return await self._save_to_surreal(skill_name, cycle_data)
             except Exception:
                 logger.warning("SurrealDB save failed, falling back to JSONL")
 
+        # Tier 3: JSONL (Local Fallback)
         return self._save_to_jsonl(skill_name, cycle_data)
 
     async def load_history(
@@ -65,12 +74,22 @@ class CompoundPersistence:
         list[dict[str, Any]]
             Most recent cycle records first.
         """
+        # Tier 1: Vault
+        try:
+            history = await self._load_from_vault(skill_name, limit)
+            if history:
+                return history
+        except Exception as e:
+            logger.debug(f"Vault load failed: {e}")
+
+        # Tier 2: SurrealDB
         if await self._check_surreal():
             try:
                 return await self._load_from_surreal(skill_name, limit)
             except Exception:
                 logger.warning("SurrealDB load failed, falling back to JSONL")
 
+        # Tier 3: JSONL
         return self._load_from_jsonl(skill_name, limit)
 
     async def _check_surreal(self) -> bool:
@@ -115,6 +134,34 @@ class CompoundPersistence:
         if isinstance(result, list):
             return result[:limit]
         return []
+
+    async def _save_to_vault(self, skill_name: str, cycle_data: dict[str, Any]) -> str:
+        """Save cycle result to Vault."""
+        mcp = get_mcp_client()
+        safe_name = skill_name.replace("/", "_").replace(" ", "_").lower()
+        import time
+        timestamp = int(time.time())
+        path = f"cycles/{safe_name}/{timestamp}.json"
+        mcp.vault_write(path, json.dumps(cycle_data, indent=2))
+        logger.debug(f"Cycle saved to Vault: {path}")
+        return f"vault:{path}"
+
+    async def _load_from_vault(self, skill_name: str, limit: int) -> list[dict[str, Any]]:
+        """Load cycle history from Vault."""
+        mcp = get_mcp_client()
+        safe_name = skill_name.replace("/", "_").replace(" ", "_").lower()
+        folder = f"cycles/{safe_name}"
+        try:
+            files = mcp.vault_list(folder)
+            # Sort files descending to get latest
+            files.sort(reverse=True)
+            records = []
+            for filepath in files[:limit]:
+                content = mcp.vault_read(filepath)
+                records.append(json.loads(content))
+            return records
+        except Exception:
+            return []
 
     def _save_to_jsonl(self, skill_name: str, cycle_data: dict[str, Any]) -> str:
         """Save to JSONL file as fallback."""

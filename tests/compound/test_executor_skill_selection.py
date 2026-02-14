@@ -16,8 +16,18 @@ def mock_mcp_client():
 @pytest.fixture
 def executor(mock_mcp_client):
     """Create compound executor with mock MCP client."""
-    with patch("cohezion.compound.executor.VaultExecutionLogger"):
-        return CompoundExecutor(mock_mcp_client)
+    # Patch VaultLogger during initialization
+    with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
+        executor = CompoundExecutor(mock_mcp_client)
+
+    # Replace logger with a fresh mock that persists after initialization
+    mock_logger = MagicMock()
+    mock_logger.get_experience_guidance.return_value = {
+        "relevant_context": [],
+        "guidance": "No prior patterns found."
+    }
+    executor.logger = mock_logger
+    return executor
 
 
 class TestExecutorSkillSuggestion:
