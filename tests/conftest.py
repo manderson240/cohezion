@@ -70,8 +70,12 @@ def reset_singletons():
     from cohezion.swarm.cost_aware_router import CostAwareRouter
     from cohezion.cost_optimization.cost_tracker import SessionCostTracker
     from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
+    from cohezion.concurrency.ollama_gate import reset_gate
+    from cohezion.swarm.model_pool_manager import reset_pool_manager
 
     # Reset before test
+    reset_gate()  # Reset OllamaGate singleton
+    reset_pool_manager()  # Reset ModelPoolManager singleton
     ExecutorFactory.reset_singleton()
     if hasattr(BatchableExecutor, "reset_singleton"):
         BatchableExecutor.reset_singleton()
@@ -91,12 +95,20 @@ def reset_singletons():
     if hasattr(api_module, '_rl_policy'):
         api_module._rl_policy = None
 
-    # Clear logger cache to ensure consistent logging formatters
+    # Clear ALL logger handlers to prevent test pollution
+    # Clear root logger
     logging.getLogger().handlers.clear()
+    # Clear all named loggers
+    for name in list(logging.Logger.manager.loggerDict.keys()):
+        logger = logging.getLogger(name)
+        logger.handlers.clear()
+        logger.propagate = True  # Reset propagation
 
     yield
 
     # Reset after test
+    reset_gate()  # Reset OllamaGate singleton
+    reset_pool_manager()  # Reset ModelPoolManager singleton
     ExecutorFactory.reset_singleton()
     if hasattr(BatchableExecutor, "reset_singleton"):
         BatchableExecutor.reset_singleton()
@@ -114,3 +126,10 @@ def reset_singletons():
     # Reset RL policy singleton after test
     if hasattr(api_module, '_rl_policy'):
         api_module._rl_policy = None
+
+    # Clear ALL logger handlers after test too
+    logging.getLogger().handlers.clear()
+    for name in list(logging.Logger.manager.loggerDict.keys()):
+        logger = logging.getLogger(name)
+        logger.handlers.clear()
+        logger.propagate = True

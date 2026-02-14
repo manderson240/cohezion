@@ -45,6 +45,17 @@ from cohezion.swarm.token_cache_optimizer import (
     TokenCacheOptimizer,
     get_token_cache_optimizer,
 )
+from cohezion.swarm.model_pool_config import (
+    ModelTierPolicy,
+    PooledModel,
+    PoolStatus,
+    TierConfig,
+)
+from cohezion.swarm.model_pool_manager import (
+    ModelPoolManager,
+    get_pool_manager,
+    reset_pool_manager,
+)
 from cohezion.swarm.token_client import (
     ResilientOllamaClient,
     TokenEfficientClient,
@@ -74,5 +85,12 @@ __all__ = [
     "TokenEfficientClient",
     # "get_concurrency_gate",  # Module unavailable
     "get_persistent_cache",
+    "get_pool_manager",
     "get_token_cache_optimizer",
+    "ModelPoolManager",
+    "ModelTierPolicy",
+    "PooledModel",
+    "PoolStatus",
+    "reset_pool_manager",
+    "TierConfig",
 ]

@@ -37,6 +37,9 @@ from typing import Optional, Tuple
 from cohezion.cost_optimization.cost_tracker import SessionCostTracker
 from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
 
+if __import__("typing").TYPE_CHECKING:
+    from cohezion.swarm.model_pool_manager import ModelPoolManager
+
 logger = logging.getLogger(__name__)
 
 
@@ -272,6 +275,7 @@ class CostAwareRouter:
         latency_threshold: float = 150.0,  # 150ms latency threshold (increased tolerance)
         aggressive_cost_reduction: bool = True,  # Enable aggressive phi3 routing
         dynamic_threshold_tuning: bool = True,  # Enable auto-tuning based on patterns
+        pool_manager: "ModelPoolManager | None" = None,
     ):
         """Initialize router.
 
@@ -283,9 +287,11 @@ class CostAwareRouter:
             latency_threshold: Latency threshold in ms for trade-off (default: 150.0ms)
             aggressive_cost_reduction: If True, aggressively route simple/medium to phi3 (default: True)
             dynamic_threshold_tuning: If True, auto-tune thresholds based on query patterns (default: True)
+            pool_manager: Optional ModelPoolManager for availability-aware routing
         """
         self.cost_tracker = cost_tracker or SessionCostTracker.get_current()
         self.budget_enforcer = budget_enforcer or BudgetEnforcer.get_current()
+        self._pool_manager = pool_manager
         self.complexity_analyzer = QueryComplexityAnalyzer()
 
         # Token optimization parameters
@@ -349,8 +355,26 @@ class CostAwareRouter:
         # Optimize model selection based on cost/token ratio if enabled
         model = self._optimize_model_selection(primary_model, complexity, estimated_tokens)
 
+        # Check pool availability (if pool_manager is configured)
+        if self._pool_manager is not None:
+            available = {m.name for m in self._pool_manager.get_available_models()}
+            if not available:
+                logger.warning(
+                    "No healthy models in pool, proceeding with best-effort routing to %s",
+                    model,
+                )
+            elif model not in available:
+                fallback = self._find_available_fallback(model, available)
+                if fallback:
+                    logger.info(
+                        "Pool manager: %s unavailable, falling back to %s",
+                        model,
+                        fallback,
+                    )
+                    model = fallback
+
         # Calculate estimated cost
-        cost_per_1k = self.MODEL_COSTS[model]
+        cost_per_1k = self.MODEL_COSTS.get(model, 0.0)
         estimated_cost = (estimated_tokens / 1000.0) * cost_per_1k
 
         # Check budget constraint
@@ -377,11 +401,12 @@ class CostAwareRouter:
             estimated_tokens=estimated_tokens,
             estimated_cost_usd=estimated_cost,
             reason=reason,
-            quality_score=self.MODEL_QUALITY[model],
+            quality_score=self.MODEL_QUALITY.get(model, 0.5),
         )
 
         # Record decision
         self.routing_decisions.append(decision)
+        self.query_count_per_model.setdefault(model, 0)
         self.query_count_per_model[model] += 1
 
         logger.info(
@@ -523,6 +548,22 @@ class CostAwareRouter:
         threshold = self.latency_threshold if not aggressive else (self.latency_threshold + 100.0)
         # If latency increase is within threshold, accept the optimization
         return latency_increase <= threshold
+
+    def _find_available_fallback(
+        self, preferred: str, available: set[str]
+    ) -> str | None:
+        """Find the best available model as a fallback.
+
+        Selects from available models in order of quality score (highest first).
+        Falls back to any available model if none are in MODEL_QUALITY.
+        """
+        # Score available models by quality
+        scored = []
+        for name in available:
+            quality = self.MODEL_QUALITY.get(name, 0.5)
+            scored.append((quality, name))
+        scored.sort(reverse=True)
+        return scored[0][1] if scored else None
 
     def record_execution(
         self, model: str, actual_tokens: int, duration_ms: float, success: bool = True
