@@ -3,22 +3,65 @@ import { GraphData, PaperNode } from '../types/Paper';
 import * as THREE from 'three';
 
 /**
- * Force-directed 3D layout using D3-force
- * Maps 8 dimensions to 3D space for initial positioning
+ * Force-directed 3D layout using D3-Force simulation
+ *
+ * This class maps papers to 3D positions using a physics-based approach:
+ * 1. Initial positioning: Use 8 dimensions to place papers in 3D space
+ *    - X-axis: connectivity (isolated → hub papers)
+ *    - Y-axis: conceptual_depth (theory → applied)
+ *    - Z-axis: temporal (historical → recent)
+ * 2. Physics simulation: Apply forces to refine positions
+ *    - Repulsion: Push papers apart (prevent overlap)
+ *    - Collision: Prevent node overlap
+ *    - Links: Attract semantically similar papers
+ *    - Center: Gentle gravity to prevent drift
+ * 3. Convergence: Stop when stable (alpha < 0.001) or max iterations reached
+ *
+ * @example
+ * const layout = new ForceLayout(graphData);
+ * const positions = await layout.positionNodes(2000);
+ * // Returns Map<paperId, THREE.Vector3>
  */
 export class ForceLayout {
+  /** D3 force simulation instance (manages physics) */
   private simulation: d3.Simulation<PaperNode, undefined>;
+
+  /** Whether simulation has converged to stable state */
   private converged = false;
+
+  /** Maximum iterations before timeout (300 ticks) */
   private maxIterations = 300;
+
+  /** Current iteration count */
   private currentIteration = 0;
 
+  /**
+   * Create a new force layout simulator
+   *
+   * @param {GraphData} graphData - Complete graph with nodes and edges
+   * @throws Will throw if graphData.nodes is empty
+   */
   constructor(private graphData: GraphData) {
     this.simulation = d3.forceSimulation(this.graphData.nodes);
     this.setupForces();
   }
 
   /**
-   * Configure forces for the simulation
+   * Configure forces for the physics simulation
+   *
+   * Forces applied:
+   * - **charge**: Repulsive force (pushes papers apart)
+   *   - Strength: -300 (negative = repulsive)
+   *   - Max distance: 500 (force drops off with distance)
+   * - **collide**: Collision detection (prevent overlap)
+   *   - Radius based on paper completion score
+   * - **link**: Attractive force (pulls similar papers together)
+   *   - Strength: 0.5 × similarity score squared
+   *   - Distance: 100 units
+   * - **center**: Gravity (keeps papers centered)
+   *   - Prevents drift away from origin
+   *
+   * @private
    */
   private setupForces(): void {
     // Repulsive forces to spread nodes out
@@ -63,10 +106,18 @@ export class ForceLayout {
   }
 
   /**
-   * Apply 8-dimensional mapping to nodes for spatial distribution
-   * X: connectivity (isolated → hubs)
-   * Y: conceptual_depth (theory → applied)
-   * Z: temporal (historical → recent)
+   * Apply 8-dimensional semantic mapping to initial node positions
+   *
+   * Maps each paper's dimensions to 3D coordinates:
+   * - **X-axis** (±200): Connectivity (isolated ↔ hub papers)
+   * - **Y-axis** (±200): Conceptual depth (theory ↔ applied)
+   * - **Z-axis** (-300 to 0): Temporal (historical ↔ recent, front is recent)
+   *
+   * The simulation then refines these positions based on forces.
+   * Blend factor (60% dimension, 40% simulation) balances initial placement
+   * with force-directed convergence.
+   *
+   * @private
    */
   private applyDimensionalMapping(): void {
     const padding = 100;
@@ -94,8 +145,25 @@ export class ForceLayout {
   }
 
   /**
-   * Run the simulation and return positioned nodes
-   * @returns Promise<Map<string, THREE.Vector3>> with paper positions
+   * Run the physics simulation and get final node positions
+   *
+   * This is the main entry point: applies dimensional mapping, runs the
+   * simulation until convergence or timeout, and returns final positions.
+   *
+   * Flow:
+   * 1. Apply 8D semantic mapping to initialize positions
+   * 2. Start force simulation
+   * 3. Wait for convergence (alpha < 0.001) or timeout
+   * 4. Extract positions from all nodes
+   * 5. Return as Map<paperId, THREE.Vector3>
+   *
+   * @param {number} [timeoutMs=2000] - Max time to run simulation (ms)
+   * @returns {Promise<Map<string, THREE.Vector3>>} Final positions keyed by paper ID
+   *
+   * @example
+   * const layout = new ForceLayout(graphData);
+   * const positions = await layout.positionNodes(2000);
+   * positions.get('paper-42'); // Returns Vector3 { x: 150, y: -50, z: 200 }
    */
   async positionNodes(timeoutMs = 2000): Promise<Map<string, THREE.Vector3>> {
     return new Promise((resolve) => {
@@ -134,7 +202,15 @@ export class ForceLayout {
   }
 
   /**
-   * Get current simulation alpha (velocity, 0-1)
+   * Get current simulation alpha (velocity/energy)
+   *
+   * Alpha decreases over time as the simulation converges.
+   * - 1.0 = High energy (papers moving fast)
+   * - 0.5 = Medium energy (stabilizing)
+   * - 0.001 = Low energy (nearly converged)
+   * - 0.0 = Stopped (converged)
+   *
+   * @returns {number} Current alpha (0.0-1.0)
    */
   getAlpha(): number {
     return this.simulation.alpha();
@@ -142,6 +218,12 @@ export class ForceLayout {
 
   /**
    * Manually advance simulation by N ticks
+   * Useful for debugging or custom timing
+   *
+   * @param {number} [iterations=1] - Number of ticks to advance
+   *
+   * @example
+   * layout.tick(10); // Advance 10 iterations without waiting
    */
   tick(iterations = 1): void {
     for (let i = 0; i < iterations; i++) {
@@ -150,7 +232,8 @@ export class ForceLayout {
   }
 
   /**
-   * Stop the simulation
+   * Stop the simulation immediately
+   * Marks simulation as converged and halts further ticks
    */
   stop(): void {
     this.simulation.stop();
