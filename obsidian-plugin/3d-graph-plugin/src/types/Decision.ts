@@ -94,6 +94,9 @@ export interface Decision {
 
   /** Vault path to the decision note */
   vault_path?: string;
+
+  /** Quality score (0-1), calculated by DecisionQualityScorer */
+  quality_score?: number;
 }
 
 /**

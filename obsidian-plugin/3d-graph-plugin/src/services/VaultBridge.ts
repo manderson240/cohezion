@@ -259,4 +259,76 @@ export class VaultBridge {
     this.decisionCache.clear();
     this.lastLoadTime = 0;
   }
+
+  /**
+   * Update decision with inferred reasoning chain
+   * @param decisionId Decision ID
+   * @param reasoningChain New reasoning chain to add
+   * @param tag Optional tag (e.g., "inferred")
+   */
+  async updateDecisionWithInference(
+    decisionId: string,
+    reasoningChain: any,
+    tag: string = 'inferred'
+  ): Promise<boolean> {
+    try {
+      const file = this.vault.getAbstractFileByPath(`decisions/${decisionId}.md`);
+      if (!(file instanceof TFile)) {
+        console.error(`Decision file not found: ${decisionId}`);
+        return false;
+      }
+
+      const content = await this.vault.read(file);
+      const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+
+      if (!match) {
+        console.error(`Invalid frontmatter in ${decisionId}`);
+        return false;
+      }
+
+      const [, frontmatterStr, body] = match;
+
+      try {
+        const frontmatter = YAML.load(frontmatterStr) as Record<string, any>;
+
+        // Update with inferred reasoning
+        if (!frontmatter.decision_reasoning) {
+          frontmatter.decision_reasoning = {};
+        }
+
+        frontmatter.decision_reasoning.reasoning_chain = reasoningChain.steps;
+        frontmatter.decision_reasoning.reasoning_type = reasoningChain.reasoning_type;
+        frontmatter.decision_reasoning.confidence_score = reasoningChain.confidence;
+
+        // Add inference tag
+        if (!frontmatter.tags) {
+          frontmatter.tags = [];
+        }
+        if (!frontmatter.tags.includes(tag)) {
+          frontmatter.tags.push(tag);
+        }
+
+        // Rebuild YAML
+        const newFrontmatter = YAML.dump(frontmatter);
+        const newContent = `---\n${newFrontmatter}---\n${body}`;
+
+        await this.vault.modify(file, newContent);
+        console.log(`Updated ${decisionId} with inferred reasoning chain`);
+
+        // Update cache
+        const decision = await this.extractDecisionFromFile(file);
+        if (decision) {
+          this.decisionCache.set(decision.id, decision);
+        }
+
+        return true;
+      } catch (yamlError) {
+        console.error(`YAML error in ${decisionId}:`, yamlError);
+        return false;
+      }
+    } catch (error) {
+      console.error(`Error updating decision ${decisionId}:`, error);
+      return false;
+    }
+  }
 }
