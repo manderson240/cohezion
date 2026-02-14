@@ -1,0 +1,51 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "ce2f273567d0",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "files_touched": [
+    ".gitlab-ci.yml",
+    "SESSION_57_FINAL_SUMMARY.md",
+    "SESSION_57_REFINED_PLAN.md",
+    "data/checkpoints/test.json",
+    "data/surrealdb/LOG.old.1771044662287143",
+    "data/surrealdb/LOG.old.1771044667824471",
+    "data/surrealdb/LOG.old.1771044673313323",
+    "data/surrealdb/LOG.old.1771044678759665",
+    "data/surrealdb/LOG.old.1771044808743058",
+    "data/surrealdb/LOG.old.1771044814592227",
+    "data/surrealdb/LOG.old.1771044820032753",
+    "data/surrealdb/LOG.old.1771044876653292",
+    "data/surrealdb/LOG.old.1771044882603270",
+    "scripts/db_inspect_v3.py",
+    "scripts/send_ascension_v1_6_email.py",
+    "src/cohezion/compound/journey_persistence.py",
+    "src/cohezion/compound/vault_execution_logger.py",
+    "src/cohezion/skills/mass_simulation_v3.md",
+    "tests/compound/test_vault_execution_logger.py",
+    "tests/deployment/test_deployment_priority4.py",
+    "tests/integration/test_phase4_production_integration.py",
+    "tests/models/test_model_info.py",
+    "tests/models/test_model_registry.py",
+    "tests/swarm/test_adaptive_router_adapter.py",
+    "tests/swarm/test_cost_aware_router_v2.py",
+    "verify_offload_v4.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ce/2f273567d0/0/metadata.json",
+      "transcript": "/ce/2f273567d0/0/full.jsonl",
+      "context": "/ce/2f273567d0/0/context.md",
+      "content_hash": "/ce/2f273567d0/0/content_hash.txt",
+      "prompt": "/ce/2f273567d0/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1030,
+    "cache_creation_tokens": 484174,
+    "cache_read_tokens": 5122403,
+    "output_tokens": 4300,
+    "api_call_count": 69
+  }
+}
