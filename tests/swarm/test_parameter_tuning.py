@@ -32,8 +32,8 @@ class TestCostThresholdTuning:
         decision_low, _ = router_low.select_model(query)
         decision_high, _ = router_high.select_model(query)
 
-        assert decision_low.model in ["phi3:mini", "qwen3-coder:32b"]
-        assert decision_high.model in ["phi3:mini", "qwen3-coder:32b"]
+        assert decision_low.model in ["phi4-mini-reasoning", "qwen3-coder:30b"]
+        assert decision_high.model in ["phi4-mini-reasoning", "qwen3-coder:30b"]
 
     def test_cost_threshold_parameter_persistence(self):
         """Test that cost_threshold parameter persists across multiple decisions."""
@@ -67,7 +67,7 @@ class TestCostThresholdTuning:
 
         for router, threshold in zip(routers, thresholds):
             decision, _ = router.select_model(query)
-            assert decision.model in ["phi3:mini", "qwen3-coder:32b"]
+            assert decision.model in ["phi4-mini-reasoning", "qwen3-coder:30b"]
 
 
 class TestLatencyThresholdTuning:
@@ -84,8 +84,8 @@ class TestLatencyThresholdTuning:
         decision_medium, _ = router.select_model("Write a Python function")
         decision_complex, _ = router.select_model("Design a distributed system")
 
-        assert decision_medium.model in ["phi3:mini", "qwen3-coder:32b"]
-        assert decision_complex.model in ["deepseek-r1:8b", "qwen3-coder:32b"]
+        assert decision_medium.model in ["phi4-mini-reasoning", "qwen3-coder:30b"]
+        assert decision_complex.model in ["glm-4.7-flash", "qwen3-coder:30b"]
 
     def test_latency_threshold_parameter_persistence(self):
         """Test that latency_threshold parameter persists."""
@@ -119,7 +119,7 @@ class TestLatencyThresholdTuning:
 
         for router, threshold in zip(routers, thresholds):
             decision, _ = router.select_model(query)
-            assert decision.model in ["deepseek-r1:8b", "qwen3-coder:32b", "phi3:mini"]
+            assert decision.model in ["glm-4.7-flash", "qwen3-coder:30b", "phi4-mini-reasoning"]
 
 
 class TestCombinedParameterTuning:
@@ -137,8 +137,8 @@ class TestCombinedParameterTuning:
         decision_medium, _ = router.select_model("Write a Python function")
         decision_complex, _ = router.select_model("Design a distributed system")
 
-        assert decision_medium.model in ["phi3:mini", "qwen3-coder:32b"]
-        assert decision_complex.model in ["deepseek-r1:8b", "qwen3-coder:32b"]
+        assert decision_medium.model in ["phi4-mini-reasoning", "qwen3-coder:30b"]
+        assert decision_complex.model in ["glm-4.7-flash", "qwen3-coder:30b"]
 
     def test_both_thresholds_high_enables_optimization(self):
         """Test that high both thresholds enables aggressive optimization."""
@@ -154,7 +154,7 @@ class TestCombinedParameterTuning:
             decision, _ = router.select_model("Write a function")
             decisions.append(decision.model)
 
-        assert all(m in ["phi3:mini", "qwen3-coder:32b"] for m in decisions)
+        assert all(m in ["phi4-mini-reasoning", "qwen3-coder:30b"] for m in decisions)
 
     def test_parameter_tuning_convergence(self):
         """Test that parameter adjustments achieve optimization levels."""
@@ -184,5 +184,5 @@ class TestCombinedParameterTuning:
             d, _ = router_conservative.select_model(medium_query)
             cons_decisions.append(d.model)
 
-        assert all(m in ["phi3:mini", "qwen3-coder:32b"] for m in agg_decisions)
-        assert all(m in ["phi3:mini", "qwen3-coder:32b"] for m in cons_decisions)
+        assert all(m in ["phi4-mini-reasoning", "qwen3-coder:30b"] for m in agg_decisions)
+        assert all(m in ["phi4-mini-reasoning", "qwen3-coder:30b"] for m in cons_decisions)

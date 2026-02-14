@@ -11,8 +11,8 @@ from pydantic import BaseModel, Field
 # Default operation → model mapping
 _DEFAULT_OPERATION_MODELS: dict[str, str] = {
     "generate": "qwen3-coder:30b",
-    "analyze": "phi3:mini",
-    "search": "phi3:mini",
+    "analyze": "glm-4.7-flash",
+    "search": "phi4-mini-reasoning",
     "transform": "",  # no LLM needed
     "persist": "",  # no LLM needed
 }
@@ -36,7 +36,7 @@ class CompoundConfig(BaseModel):
         Maximum prompt-response cache entries.
     """
 
-    default_model: str = "phi3:mini"
+    default_model: str = "phi4-mini-reasoning"
     code_model: str = "qwen3-coder:30b"
     operation_model_map: dict[str, str] = Field(
         default_factory=lambda: dict(_DEFAULT_OPERATION_MODELS)

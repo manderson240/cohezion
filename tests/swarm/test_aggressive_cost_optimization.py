@@ -1,8 +1,8 @@
 """Tests for aggressive cost reduction strategies in CostAwareRouter.
 
 Tests aggressive mode that achieves ≥30% cost reduction by:
-- Preferring phi3:mini for medium queries if TPS is acceptable
-- Allowing phi3 for complex queries with relaxed latency constraints
+- Preferring fast model for medium queries if TPS is acceptable
+- Allowing fast model for complex queries with relaxed latency constraints
 - Dynamic threshold tuning based on success patterns
 """
 
@@ -31,31 +31,31 @@ class TestAggressiveCostOptimization:
         )
         return router
 
-    def test_aggressive_medium_to_phi3_routing(self, aggressive_router):
-        """Test that medium queries route to phi3 with aggressive cost reduction."""
-        # Medium queries normally route to qwen, but aggressive mode prefers phi3
+    def test_aggressive_medium_to_fast_model_routing(self, aggressive_router):
+        """Test that medium queries route to fast model with aggressive cost reduction."""
+        # Medium queries normally route to medium model, but aggressive mode prefers fast model
         decision, _ = aggressive_router.select_model(
             "Write a Python function to process data"
         )
 
-        # With aggressive cost reduction, should prefer phi3 for medium queries
+        # With aggressive cost reduction, should prefer fast model for medium queries
         # if latency impact is acceptable
         assert decision.complexity == QueryComplexity.MEDIUM
-        assert decision.model in ["phi3:mini", "qwen3-coder:32b"]
+        assert decision.model in ["phi4-mini-reasoning", "qwen3-coder:30b"]
 
-    def test_aggressive_complex_to_phi3_possible(self, aggressive_router):
-        """Test that complex queries can be routed to phi3 with aggressive cost reduction."""
+    def test_aggressive_complex_to_fast_model_possible(self, aggressive_router):
+        """Test that complex queries can be routed to fast model with aggressive cost reduction."""
         decision, _ = aggressive_router.select_model(
             "Design and implement a distributed system"
         )
 
-        # With aggressive cost reduction, complex might route to phi3
+        # With aggressive cost reduction, complex might route to fast model
         # if quality is acceptable
         assert decision.complexity == QueryComplexity.COMPLEX
-        assert decision.model in ["deepseek-r1:8b", "qwen3-coder:32b", "phi3:mini"]
+        assert decision.model in ["glm-4.7-flash", "qwen3-coder:30b", "phi4-mini-reasoning"]
 
-    def test_aggressive_simple_always_phi3(self, aggressive_router):
-        """Test that simple queries always route to phi3."""
+    def test_aggressive_simple_always_fast_model(self, aggressive_router):
+        """Test that simple queries always route to fast model."""
         simple_queries = [
             "What is Python?",
             "Explain machine learning",
@@ -64,7 +64,7 @@ class TestAggressiveCostOptimization:
 
         for query in simple_queries:
             decision, _ = aggressive_router.select_model(query)
-            assert decision.model == "phi3:mini", f"Failed for: {query}"
+            assert decision.model == "phi4-mini-reasoning", f"Failed for: {query}"
 
     def test_cost_reduction_target_30_percent(self, aggressive_router):
         """Test that aggressive routing achieves ≥30% cost reduction."""
@@ -93,13 +93,13 @@ class TestAggressiveCostOptimization:
 
         stats = aggressive_router.get_statistics()
 
-        # At least 30% should be routed to phi3
-        phi3_percentage = (stats.phi3_routed / stats.total_queries) * 100
-        assert phi3_percentage >= 30.0, f"Phi3 routing {phi3_percentage}% < 30% target"
+        # At least 30% should be routed to fast model
+        fast_model_percentage = (stats.fast_model_routed / stats.total_queries) * 100
+        assert fast_model_percentage >= 30.0, f"Fast model routing {fast_model_percentage}% < 30% target"
 
-    def test_dynamic_threshold_tuning_enables_more_phi3(self, aggressive_router):
-        """Test that dynamic tuning relaxes thresholds when phi3 succeeds."""
-        # Record successful phi3 executions
+    def test_dynamic_threshold_tuning_enables_more_fast_model(self, aggressive_router):
+        """Test that dynamic tuning relaxes thresholds when fast model succeeds."""
+        # Record successful fast model executions
         for _ in range(10):
             aggressive_router.record_execution("phi3:mini", 100, 50.0, success=True)
             aggressive_router.record_execution("qwen3-coder:32b", 200, 100.0, success=True)
@@ -107,13 +107,13 @@ class TestAggressiveCostOptimization:
         initial_threshold = aggressive_router.cost_threshold
         initial_latency = aggressive_router.latency_threshold
 
-        # With 10 successes of phi3 vs qwen, ratio is 50%, so should increase thresholds
+        # With 10 successes of fast model vs medium model, ratio is 50%, so should increase thresholds
         # More tuning calls
         for _ in range(10):
             aggressive_router.record_execution("phi3:mini", 100, 50.0, success=True)
 
         # Thresholds should be adjusted
-        # (After high phi3 success, thresholds may increase to route more to phi3)
+        # (After high fast model success, thresholds may increase to route more to fast model)
         assert aggressive_router.cost_threshold >= initial_threshold
         assert aggressive_router.latency_threshold >= initial_latency
 
@@ -141,10 +141,10 @@ class TestAggressiveCostOptimization:
 
         decision, _ = standard_router.select_model("Write a Python function")
 
-        # Without aggressive mode, medium queries should prefer qwen
+        # Without aggressive mode, medium queries should prefer medium model
         assert decision.complexity == QueryComplexity.MEDIUM
-        # Should NOT optimize to phi3 as aggressively
-        assert decision.model in ["qwen3-coder:32b", "phi3:mini"]
+        # Should NOT optimize to fast model as aggressively
+        assert decision.model in ["qwen3-coder:30b", "phi4-mini-reasoning"]
 
 
 class TestCostPerTokenOptimization:
@@ -171,31 +171,31 @@ class TestCostPerTokenOptimization:
 
     def test_tps_based_comparison(self, optimizer_router):
         """Test TPS-based model comparison for local models."""
-        # phi3 (15 TPS) vs qwen (8 TPS)
+        # fast model (15 TPS) vs medium model (8 TPS)
         # For cost-equal models, prefer faster one
-        phi3_tps = optimizer_router.MODEL_TPS["phi3:mini"]
-        qwen_tps = optimizer_router.MODEL_TPS["qwen3-coder:32b"]
+        fast_tps = optimizer_router.MODEL_TPS["phi4-mini-reasoning"]
+        medium_tps = optimizer_router.MODEL_TPS["qwen3-coder:30b"]
 
-        # phi3 is 87.5% as fast as itself, 187.5% relative to qwen
-        assert phi3_tps > qwen_tps
+        # Fast model should have higher TPS than medium model
+        assert fast_tps > medium_tps
 
-    def test_aggressive_phi3_selection_latency_acceptable(self, optimizer_router):
-        """Test that phi3 is selected when latency impact is acceptable."""
-        # For medium query, normally routed to qwen
-        # But if aggressive mode and TPS acceptable, use phi3
+    def test_aggressive_fast_model_selection_latency_acceptable(self, optimizer_router):
+        """Test that fast model is selected when latency impact is acceptable."""
+        # For medium query, normally routed to medium model
+        # But if aggressive mode and TPS acceptable, use fast model
         decision, _ = optimizer_router.select_model(
             "Write a function to validate input"
         )
 
-        # With aggressive optimization, may prefer phi3
-        assert decision.model in ["phi3:mini", "qwen3-coder:32b"]
+        # With aggressive optimization, may prefer fast model
+        assert decision.model in ["phi4-mini-reasoning", "qwen3-coder:30b"]
 
 
 class TestDynamicThresholdTuning:
     """Test automatic threshold adjustment based on success patterns."""
 
-    def test_tuning_increases_on_high_phi3_success(self):
-        """Test that thresholds increase when phi3 has high success rate."""
+    def test_tuning_increases_on_high_fast_model_success(self):
+        """Test that thresholds increase when fast model has high success rate."""
         router = CostAwareRouter(
             cost_tracker=SessionCostTracker("test-tuning"),
             dynamic_threshold_tuning=True,
@@ -203,24 +203,24 @@ class TestDynamicThresholdTuning:
             latency_threshold=150.0,
         )
 
-        # Record high phi3 success rate (85%+) - 17 phi3 successes vs 3 qwen
-        # This gives phi3: 17/20 = 85% success rate
+        # Record high fast model success rate (85%+) - 17 fast model successes vs 3 medium model
+        # This gives fast model: 17/20 = 85% success rate
         for _ in range(17):
             router.record_execution("phi3:mini", 100, 50.0, success=True)
         for _ in range(3):
             router.record_execution("qwen3-coder:32b", 200, 100.0, success=True)
 
-        # After tuning, thresholds should relax (increase) to allow more phi3 routing
+        # After tuning, thresholds should relax (increase) to allow more fast model routing
         final_cost_threshold = router.cost_threshold
         final_latency = router.latency_threshold
 
-        # Thresholds should be adjusted (increased due to high phi3 success)
-        # With 85% phi3 success, should increase thresholds
+        # Thresholds should be adjusted (increased due to high fast model success)
+        # With 85% fast model success, should increase thresholds
         assert final_cost_threshold >= 0.10, f"Expected ≥0.10, got {final_cost_threshold}"
         assert final_latency >= 150.0, f"Expected ≥150.0, got {final_latency}"
 
-    def test_tuning_decreases_on_low_phi3_success(self):
-        """Test that thresholds decrease when phi3 has low success rate."""
+    def test_tuning_decreases_on_low_fast_model_success(self):
+        """Test that thresholds decrease when fast model has low success rate."""
         router = CostAwareRouter(
             cost_tracker=SessionCostTracker("test-tuning-low"),
             dynamic_threshold_tuning=True,
@@ -228,12 +228,12 @@ class TestDynamicThresholdTuning:
             latency_threshold=200.0,
         )
 
-        # Record low phi3 success rate (<60%)
+        # Record low fast model success rate (<60%)
         for _ in range(20):
             router.record_execution("phi3:mini", 100, 50.0, success=False)  # Low success
             router.record_execution("qwen3-coder:32b", 200, 100.0, success=True)  # High success
 
-        # After tuning, thresholds should tighten (decrease) to use phi3 less
+        # After tuning, thresholds should tighten (decrease) to use fast model less
         final_cost_threshold = router.cost_threshold
         final_latency = router.latency_threshold
 

@@ -70,16 +70,16 @@ class TeamPlan:
 
 # Task type -> model mapping for local Ollama routing
 _TASK_MODEL_MAP: dict[str, str] = {
-    "verify": "phi3:mini",
-    "test": "phi3:mini",
-    "lint": "phi3:mini",
+    "verify": "phi4-mini-reasoning",
+    "test": "phi4-mini-reasoning",
+    "lint": "phi4-mini-reasoning",
     "code": "qwen3-coder:30b",
     "implement": "qwen3-coder:30b",
     "refactor": "qwen3-coder:30b",
-    "reason": "deepseek-r1:70b",
-    "architect": "deepseek-r1:70b",
-    "plan": "deepseek-r1:70b",
-    "research": "deepseek-r1:70b",
+    "reason": "glm-4.7-flash",
+    "architect": "glm-4.7-flash",
+    "plan": "glm-4.7-flash",
+    "research": "glm-4.7-flash",
 }
 
 # Claude Code model mapping based on task complexity
@@ -285,7 +285,7 @@ class TeamOrchestrator:
         Returns
         -------
         str
-            Ollama model name (e.g. "phi3:mini", "qwen3-coder:30b").
+            Ollama model name (e.g. "phi4-mini-reasoning", "qwen3-coder:30b").
         """
         for tag in task.tags:
             tag_lower = tag.lower()
@@ -296,13 +296,13 @@ class TeamOrchestrator:
         # Default based on description keywords
         desc_lower = task.description.lower()
         if any(kw in desc_lower for kw in ["test", "verify", "check", "lint"]):
-            return "phi3:mini"
+            return "phi4-mini-reasoning"
         if any(kw in desc_lower for kw in ["implement", "code", "create", "write"]):
             return "qwen3-coder:30b"
         if any(kw in desc_lower for kw in ["design", "architect", "plan", "research"]):
-            return "deepseek-r1:70b"
+            return "glm-4.7-flash"
 
-        return "phi3:mini"  # Conservative default
+        return "phi4-mini-reasoning"  # Conservative default
 
     def _spec_to_agent(self, spec, role: str) -> AgentSpec:
         """Convert a SkillSpec to an AgentSpec."""
@@ -390,9 +390,9 @@ class TeamOrchestrator:
         if any(kw in tags_str for kw in ["code", "implement", "engineer"]):
             return "qwen3-coder:30b"
         if any(kw in tags_str for kw in ["reason", "architect", "quantum"]):
-            return "deepseek-r1:70b"
+            return "glm-4.7-flash"
         if any(kw in tags_str for kw in ["verify", "test", "lint"]):
-            return "phi3:mini"
+            return "phi4-mini-reasoning"
         return None
 
     async def execute_team(

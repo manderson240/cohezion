@@ -97,7 +97,14 @@ class SessionCostTracker:
         # Local models (ollama) = $0.00
         # API models: conservative estimates for unknown models
         self.model_costs = model_costs or {
-            # Local models
+            # Local models (Ollama, $0.00)
+            "phi4-mini-reasoning": 0.0,
+            "glm-4.7-flash": 0.0,
+            "qwen3-coder:30b": 0.0,
+            "gpt-oss:20b": 0.0,
+            "deepcoder:14b": 0.0,
+            "nemotron-3-nano": 0.0,
+            # Legacy local models
             "phi3:mini": 0.0,
             "gemma3:4b": 0.0,
             "mistral:7b": 0.0,

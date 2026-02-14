@@ -68,9 +68,9 @@ class RoutingStatistics:
     simple_count: int
     medium_count: int
     complex_count: int
-    phi3_routed: int  # Percentage: phi3_routed / total_queries
-    qwen_routed: int
-    deepseek_routed: int
+    fast_model_routed: int  # phi4-mini-reasoning (simple tasks)
+    medium_model_routed: int  # qwen3-coder:30b / glm-4.7-flash (medium/complex)
+    heavy_model_routed: int  # gpt-oss:20b / deepcoder:14b (overflow)
     total_cost_usd: float
     avg_cost_per_query: float
     cost_vs_deepseek_only: float  # Percentage: (1 - actual/deepseek) * 100
@@ -228,37 +228,65 @@ class CostAwareRouter:
 
     # Model costs per 1K tokens (local models = $0.00)
     MODEL_COSTS = {
-        "phi3:mini": 0.0,  # Local, 100x cheaper than deepseek
-        "qwen3-coder:32b": 0.0,  # Local
+        "phi4-mini-reasoning": 0.0,  # Local, Dense 3.8B, Tier 1 always-hot
+        "glm-4.7-flash": 0.0,  # Local, MoE 30B/3B active, Tier 2 warm
+        "qwen3-coder:30b": 0.0,  # Local, MoE 30B/3B active, Tier 2 warm
+        "gpt-oss:20b": 0.0,  # Local, MoE 21B/3.6B active, Tier 3 cold
+        "deepcoder:14b": 0.0,  # Local, Dense 14B, Tier 3 cold
+        "nemotron-3-nano": 0.0,  # Local, MoE 31.6B/3.2B, Tier 3 cold (1M ctx)
+        # Legacy models (still installed, lower priority)
+        "phi3:mini": 0.0,  # Local, Dense 3.8B (superseded by phi4-mini-reasoning)
+        "qwen3-coder:32b": 0.0,  # Local (alias reference)
         "deepseek-r1:8b": 0.0,  # Local
     }
 
     # Expected token counts by complexity (refined estimates)
     EXPECTED_TOKENS = {
         QueryComplexity.SIMPLE: 80,  # Simple queries: ~80 tokens
-        QueryComplexity.MEDIUM: 200,  # Medium: ~200 tokens (reduced for better cost ratio)
-        QueryComplexity.COMPLEX: 400,  # Complex: ~400 tokens (reduced from 500)
+        QueryComplexity.MEDIUM: 200,  # Medium: ~200 tokens
+        QueryComplexity.COMPLEX: 400,  # Complex: ~400 tokens
     }
 
     # Quality scores per model (0.0 - 1.0)
     MODEL_QUALITY = {
-        "phi3:mini": 0.6,  # Fast, basic tasks
-        "qwen3-coder:32b": 0.85,  # Good balance
-        "deepseek-r1:8b": 0.95,  # Best quality
+        "phi4-mini-reasoning": 0.75,  # Fast router/classifier, strong reasoning for size
+        "glm-4.7-flash": 0.90,  # SOTA reasoning, MoE efficiency
+        "qwen3-coder:30b": 0.88,  # Code specialist, MoE speed
+        "gpt-oss:20b": 0.85,  # Versatile general model
+        "deepcoder:14b": 0.82,  # Dense coding/math specialist
+        "nemotron-3-nano": 0.80,  # Long-context specialist (1M ctx)
+        # Legacy
+        "phi3:mini": 0.6,
+        "qwen3-coder:32b": 0.85,
+        "deepseek-r1:8b": 0.70,
     }
 
-    # TPS (tokens per second) for cost-time tradeoff
+    # TPS (tokens per second) for cost-time tradeoff — Strix Halo CPU benchmarks
     MODEL_TPS = {
-        "phi3:mini": 15.0,  # Fastest
-        "qwen3-coder:32b": 8.0,  # Moderate
-        "deepseek-r1:8b": 2.0,  # Slowest but best
+        "phi4-mini-reasoning": 70.0,  # Dense 3.8B, ~60-80 t/s
+        "glm-4.7-flash": 25.0,  # MoE 30B/3B active, ~20-35 t/s
+        "qwen3-coder:30b": 25.0,  # MoE 30B/3B active, ~20-35 t/s
+        "gpt-oss:20b": 35.0,  # MoE 21B/3.6B active, ~24-47 t/s
+        "deepcoder:14b": 17.0,  # Dense 14B, ~15-20 t/s
+        "nemotron-3-nano": 20.0,  # MoE 31.6B/3.2B, ~15-25 t/s
+        # Legacy
+        "phi3:mini": 15.0,
+        "qwen3-coder:32b": 8.0,
+        "deepseek-r1:8b": 2.0,
     }
 
-    # Expected latency (ms) by model
+    # Expected latency (ms) by model — first-token latency
     MODEL_LATENCY = {
-        "phi3:mini": 50.0,  # Fastest: ~50ms
-        "qwen3-coder:32b": 100.0,  # Moderate: ~100ms
-        "deepseek-r1:8b": 300.0,  # Slower: ~300ms
+        "phi4-mini-reasoning": 30.0,  # Ultra-fast, always hot
+        "glm-4.7-flash": 80.0,  # Warm tier, fast MoE routing
+        "qwen3-coder:30b": 80.0,  # Warm tier, fast MoE routing
+        "gpt-oss:20b": 60.0,  # Good throughput when loaded
+        "deepcoder:14b": 120.0,  # Dense, slower per-token
+        "nemotron-3-nano": 100.0,  # MoE but larger footprint
+        # Legacy
+        "phi3:mini": 50.0,
+        "qwen3-coder:32b": 100.0,
+        "deepseek-r1:8b": 300.0,
     }
 
     _instance: Optional["CostAwareRouter"] = None
@@ -304,8 +332,8 @@ class CostAwareRouter:
         self.token_optimization_swaps: int = 0  # Track optimization improvements
 
         # Dynamic threshold tracking
-        self._phi3_success_count = 0  # Track successful phi3 completions
-        self._qwen_success_count = 0  # Track successful qwen completions
+        self._fast_model_success_count = 0  # Track successful phi4-mini completions
+        self._medium_model_success_count = 0  # Track successful qwen/glm completions
         self._cumulative_latency_ms = 0.0  # Track cumulative latency for tuning
 
     @classmethod
@@ -340,11 +368,11 @@ class CostAwareRouter:
 
         # Select model by complexity
         if complexity == QueryComplexity.SIMPLE:
-            primary_model = "phi3:mini"
+            primary_model = "phi4-mini-reasoning"
         elif complexity == QueryComplexity.MEDIUM:
-            primary_model = "qwen3-coder:32b"
+            primary_model = "qwen3-coder:30b"
         else:
-            primary_model = "deepseek-r1:8b"
+            primary_model = "glm-4.7-flash"
 
         # Optimize model selection based on cost/token ratio if enabled
         model = self._optimize_model_selection(primary_model, complexity, estimated_tokens)
@@ -409,56 +437,53 @@ class CostAwareRouter:
 
         # For complex queries, check if a faster model is good enough
         if complexity == QueryComplexity.COMPLEX:
-            # Check if medium model (qwen) has acceptable cost/token ratio
+            # Check if medium model (qwen3-coder) has acceptable cost/token ratio
             primary_cost_per_token = self._get_cost_per_token(primary_model, estimated_tokens)
-            qwen_cost_per_token = self._get_cost_per_token("qwen3-coder:32b", estimated_tokens)
+            qwen_cost_per_token = self._get_cost_per_token("qwen3-coder:30b", estimated_tokens)
 
             # If qwen is cheaper per token AND latency is acceptable, use it
             if self._is_cheaper_with_acceptable_latency(
-                "qwen3-coder:32b", primary_model, qwen_cost_per_token, primary_cost_per_token
+                "qwen3-coder:30b", primary_model, qwen_cost_per_token, primary_cost_per_token
             ):
                 self.token_optimization_swaps += 1
-                return "qwen3-coder:32b"
+                return "qwen3-coder:30b"
 
-            # If aggressive cost reduction enabled, also check phi3 for complex queries
+            # If aggressive cost reduction enabled, also check phi4-mini for complex queries
             if self.aggressive_cost_reduction:
-                phi3_cost_per_token = self._get_cost_per_token("phi3:mini", estimated_tokens)
-                # Check if phi3 can handle complex queries with acceptable latency/quality tradeoff
+                phi4_cost_per_token = self._get_cost_per_token("phi4-mini-reasoning", estimated_tokens)
                 if self._is_cheaper_with_acceptable_latency(
-                    "phi3:mini", primary_model, phi3_cost_per_token, primary_cost_per_token,
+                    "phi4-mini-reasoning", primary_model, phi4_cost_per_token, primary_cost_per_token,
                     aggressive=True
                 ):
                     self.token_optimization_swaps += 1
-                    return "phi3:mini"
+                    return "phi4-mini-reasoning"
 
-        # For medium queries, check if simple model (phi3) is good enough
+        # For medium queries, check if fast model (phi4-mini) is good enough
         if complexity == QueryComplexity.MEDIUM:
             primary_cost_per_token = self._get_cost_per_token(primary_model, estimated_tokens)
-            phi3_cost_per_token = self._get_cost_per_token("phi3:mini", estimated_tokens)
+            phi4_cost_per_token = self._get_cost_per_token("phi4-mini-reasoning", estimated_tokens)
 
             # Standard check
             if self._is_cheaper_with_acceptable_latency(
-                "phi3:mini", primary_model, phi3_cost_per_token, primary_cost_per_token
+                "phi4-mini-reasoning", primary_model, phi4_cost_per_token, primary_cost_per_token
             ):
                 self.token_optimization_swaps += 1
-                return "phi3:mini"
+                return "phi4-mini-reasoning"
 
-            # If aggressive cost reduction, be more lenient with phi3 for medium queries
+            # If aggressive cost reduction, be more lenient with phi4-mini for medium queries
             if self.aggressive_cost_reduction:
-                latency_diff = self.MODEL_LATENCY.get("phi3:mini", 50.0) - self.MODEL_LATENCY.get(primary_model, 100.0)
-                # Allow phi3 even if latency is slightly higher (up to 200ms for 50% cost savings)
+                latency_diff = self.MODEL_LATENCY.get("phi4-mini-reasoning", 30.0) - self.MODEL_LATENCY.get(primary_model, 80.0)
                 if latency_diff <= 200.0:
                     self.token_optimization_swaps += 1
-                    return "phi3:mini"
+                    return "phi4-mini-reasoning"
 
-        # For simple queries, strongly prefer phi3 for cost savings
+        # For simple queries, strongly prefer phi4-mini for speed
         if complexity == QueryComplexity.SIMPLE:
-            # Always prefer phi3 for simple queries unless latency is critical
-            if primary_model != "phi3:mini":
-                latency_diff = self.MODEL_LATENCY.get("phi3:mini", 50.0) - self.MODEL_LATENCY.get(primary_model, 50.0)
-                if latency_diff <= 150.0:  # phi3 is still acceptable for simple queries
+            if primary_model != "phi4-mini-reasoning":
+                latency_diff = self.MODEL_LATENCY.get("phi4-mini-reasoning", 30.0) - self.MODEL_LATENCY.get(primary_model, 30.0)
+                if latency_diff <= 150.0:
                     self.token_optimization_swaps += 1
-                    return "phi3:mini"
+                    return "phi4-mini-reasoning"
 
         return primary_model
 
@@ -554,10 +579,10 @@ class CostAwareRouter:
 
         # Update success tracking for dynamic threshold tuning
         if success:
-            if model == "phi3:mini":
-                self._phi3_success_count += 1
-            elif model == "qwen3-coder:32b":
-                self._qwen_success_count += 1
+            if model in ("phi4-mini-reasoning", "phi3:mini"):
+                self._fast_model_success_count += 1
+            elif model in ("qwen3-coder:30b", "glm-4.7-flash", "qwen3-coder:32b"):
+                self._medium_model_success_count += 1
 
         # Track latency for threshold adjustment
         self._cumulative_latency_ms += duration_ms
@@ -579,17 +604,17 @@ class CostAwareRouter:
         If phi3 has high success rate, gradually relax thresholds to route more queries to it.
         """
         # Calculate success rates
-        phi3_total = self._phi3_success_count
-        qwen_total = self._qwen_success_count
-        total_tracked = phi3_total + qwen_total
+        fast_total = self._fast_model_success_count
+        medium_total = self._medium_model_success_count
+        total_tracked = fast_total + medium_total
 
         if total_tracked < 10:  # Need minimum sample size
             return
 
-        phi3_rate = phi3_total / total_tracked if total_tracked > 0 else 0.0
+        fast_rate = fast_total / total_tracked if total_tracked > 0 else 0.0
 
-        # If phi3 has >85% success rate, we can be more aggressive
-        if phi3_rate >= 0.85:
+        # If fast model has >85% success rate, we can be more aggressive
+        if fast_rate >= 0.85:
             # Increase cost threshold (more aggressive cost cutting)
             if self.cost_threshold < 0.25:
                 self.cost_threshold = min(0.25, self.cost_threshold + 0.01)
@@ -597,8 +622,8 @@ class CostAwareRouter:
             if self.latency_threshold < 250.0:
                 self.latency_threshold = min(250.0, self.latency_threshold + 5.0)
 
-        # If phi3 success rate is too low (<60%), be more conservative
-        elif phi3_rate < 0.60:
+        # If fast model success rate is too low (<60%), be more conservative
+        elif fast_rate < 0.60:
             # Reduce cost threshold
             if self.cost_threshold > 0.05:
                 self.cost_threshold = max(0.05, self.cost_threshold - 0.01)
@@ -626,29 +651,32 @@ class CostAwareRouter:
             1 for d in self.routing_decisions if d.complexity == QueryComplexity.COMPLEX
         )
 
-        phi3_routed = self.query_count_per_model.get("phi3:mini", 0)
-        qwen_routed = self.query_count_per_model.get("qwen3-coder:30b", 0)
-        deepseek_routed = self.query_count_per_model.get("deepseek-r1:70b", 0)
+        fast_routed = sum(
+            self.query_count_per_model.get(m, 0)
+            for m in ("phi4-mini-reasoning", "phi3:mini")
+        )
+        medium_routed = sum(
+            self.query_count_per_model.get(m, 0)
+            for m in ("qwen3-coder:30b", "glm-4.7-flash", "qwen3-coder:32b")
+        )
+        heavy_routed = sum(
+            self.query_count_per_model.get(m, 0)
+            for m in ("gpt-oss:20b", "deepcoder:14b", "nemotron-3-nano", "deepseek-r1:8b")
+        )
 
         total_cost = sum(self.cost_per_model.values())
 
-        # Calculate cost comparison (hypothetical: all queries with deepseek)
-        deepseek_only_cost = sum(d.estimated_tokens for d in self.routing_decisions) / 1000.0 * self.MODEL_COSTS[
-            "deepseek-r1:8b"
-        ]
-
-        cost_improvement = 0.0
-        if deepseek_only_cost > 0:
-            cost_improvement = ((deepseek_only_cost - total_cost) / deepseek_only_cost) * 100
+        # All local models are $0.00 so cost improvement is always 100%
+        cost_improvement = 100.0
 
         return RoutingStatistics(
             total_queries=total,
             simple_count=simple_count,
             medium_count=medium_count,
             complex_count=complex_count,
-            phi3_routed=phi3_routed,
-            qwen_routed=qwen_routed,
-            deepseek_routed=deepseek_routed,
+            fast_model_routed=fast_routed,
+            medium_model_routed=medium_routed,
+            heavy_model_routed=heavy_routed,
             total_cost_usd=total_cost,
             avg_cost_per_query=total_cost / total if total > 0 else 0.0,
             cost_vs_deepseek_only=cost_improvement,

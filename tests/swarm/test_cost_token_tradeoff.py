@@ -36,7 +36,7 @@ class TestCostTokenTradeoff:
 
         # With local models (cost=0), TPS becomes the deciding factor
         # phi3 TPS (15.0) vs qwen TPS (8.0) → phi3 is 87.5% as fast (> threshold)
-        assert decision.model in ["phi3:mini", "qwen3-coder:32b"]
+        assert decision.model in ["phi4-mini-reasoning", "qwen3-coder:30b"]
 
     def test_optimization_tracking_via_swaps_counter(self):
         """Test that token_optimization_swaps counter tracks optimization."""
@@ -57,9 +57,9 @@ class TestCostTokenTradeoff:
     def test_cost_per_token_calculation_accuracy(self, router):
         """Test accuracy of cost-per-token calculations."""
         # All models are local (free), so cost per token should be 0
-        phi3_cost = router._get_cost_per_token("phi3:mini", 100)
-        qwen_cost = router._get_cost_per_token("qwen3-coder:32b", 100)
-        deepseek_cost = router._get_cost_per_token("deepseek-r1:8b", 100)
+        phi3_cost = router._get_cost_per_token("phi4-mini-reasoning", 100)
+        qwen_cost = router._get_cost_per_token("qwen3-coder:30b", 100)
+        deepseek_cost = router._get_cost_per_token("glm-4.7-flash", 100)
 
         assert phi3_cost == 0.0
         assert qwen_cost == 0.0
@@ -68,14 +68,14 @@ class TestCostTokenTradeoff:
     def test_quality_score_reflects_selected_model(self, router):
         """Test that quality score in decision matches selected model."""
         decision_simple, _ = router.select_model("What is Python?")
-        assert decision_simple.quality_score == 0.6  # phi3:mini quality
+        assert decision_simple.quality_score == 0.75  # phi4-mini-reasoning quality
 
         decision_medium, _ = router.select_model("Write a Python function")
-        # May be qwen (0.85) or phi3 (0.6) due to optimization
-        assert decision_medium.quality_score in [0.6, 0.85]
+        # May be qwen (0.88) or phi4 (0.75) due to optimization
+        assert decision_medium.quality_score in [0.75, 0.88]
 
         decision_complex, _ = router.select_model(
             "Design and implement a production system"
         )
-        # May be deepseek (0.95), qwen (0.85), or phi3 (0.6) due to optimization
-        assert decision_complex.quality_score in [0.6, 0.85, 0.95]
+        # May be glm (0.90), qwen (0.88), or phi4 (0.75) due to optimization
+        assert decision_complex.quality_score in [0.75, 0.88, 0.90]

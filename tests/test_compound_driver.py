@@ -116,7 +116,7 @@ class TestParseArgs:
         assert args.skills == 5
         assert args.threshold == 0.5
         assert args.dry_run is False
-        assert args.model == "phi3:mini"
+        assert args.model == "phi4-mini-reasoning"
 
     def test_dry_run_flag(self):
         """--dry-run sets the flag."""

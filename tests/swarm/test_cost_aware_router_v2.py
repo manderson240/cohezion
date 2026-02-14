@@ -213,8 +213,8 @@ class TestModelOptimizationLogic:
             estimated_tokens=100,
         )
 
-        # Simple queries should stay on phi3
-        assert model == "phi3:mini"
+        # Simple queries should stay on fast model
+        assert model == "phi4-mini-reasoning"
 
     def test_optimize_model_selection_medium_queries(self, router_optimized):
         """Test medium complexity query optimization."""
@@ -224,10 +224,10 @@ class TestModelOptimizationLogic:
             estimated_tokens=250,
         )
 
-        # Medium query optimized from qwen to phi3 is acceptable
-        # (phi3 is faster, cost doesn't matter for local models)
+        # Medium query optimized from medium to fast model is acceptable
+        # (fast model is faster, cost doesn't matter for local models)
         # But actual optimization depends on latency threshold
-        assert model in ["phi3:mini", "qwen3-coder:32b"]
+        assert model in ["phi4-mini-reasoning", "qwen3-coder:30b"]
 
 
 class TestComplexQueryOptimization:
@@ -254,8 +254,8 @@ class TestComplexQueryOptimization:
             estimated_tokens=500,
         )
 
-        # Should potentially optimize to qwen (100ms vs 300ms = -200ms, acceptable)
-        assert model in ["qwen3-coder:32b", "deepseek-r1:8b"]
+        # Should potentially optimize to medium model (100ms vs 300ms = -200ms, acceptable)
+        assert model in ["qwen3-coder:30b", "glm-4.7-flash"]
 
 
 class TestRoutingWithOptimization:
@@ -276,7 +276,7 @@ class TestRoutingWithOptimization:
         decision, can_proceed = router.select_model("What is Python?")
 
         assert can_proceed is True
-        assert decision.model in ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"]
+        assert decision.model in ["phi4-mini-reasoning", "qwen3-coder:30b", "glm-4.7-flash"]
         assert "optimized" in decision.reason or "Routed" in decision.reason
 
     def test_optimization_swap_tracking(self, router):
@@ -463,8 +463,8 @@ class TestComplexQueryRouting:
         decision, can_proceed = router.select_model(query)
 
         assert decision.complexity == QueryComplexity.COMPLEX
-        # Model might be optimized from deepseek to qwen based on latency threshold
-        assert decision.model in ["deepseek-r1:8b", "qwen3-coder:32b"]
+        # Model might be optimized from heavy to medium model based on latency threshold
+        assert decision.model in ["glm-4.7-flash", "qwen3-coder:30b"]
         assert can_proceed is True
 
     def test_complex_query_with_code(self, router):
@@ -487,8 +487,8 @@ class TestComplexQueryRouting:
         decision, can_proceed = router.select_model(query)
 
         assert decision.complexity == QueryComplexity.COMPLEX
-        # Model might be optimized from deepseek to qwen based on latency threshold
-        assert decision.model in ["deepseek-r1:8b", "qwen3-coder:32b"]
+        # Model might be optimized from heavy to medium model based on latency threshold
+        assert decision.model in ["glm-4.7-flash", "qwen3-coder:30b"]
 
 
 class TestCostOptimization30PercentReduction:
@@ -548,7 +548,7 @@ class TestEdgeCases:
         decision, can_proceed = router.select_model("")
 
         # Should still route to some model
-        assert decision.model in ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"]
+        assert decision.model in ["phi4-mini-reasoning", "qwen3-coder:30b", "glm-4.7-flash"]
         assert can_proceed is True
 
     def test_very_long_query(self, router):
@@ -739,9 +739,9 @@ class TestBackwardCompatibilityV2:
         assert hasattr(stats, "simple_count")
         assert hasattr(stats, "medium_count")
         assert hasattr(stats, "complex_count")
-        assert hasattr(stats, "phi3_routed")
-        assert hasattr(stats, "qwen_routed")
-        assert hasattr(stats, "deepseek_routed")
+        assert hasattr(stats, "fast_model_routed")
+        assert hasattr(stats, "medium_model_routed")
+        assert hasattr(stats, "heavy_model_routed")
         assert hasattr(stats, "total_cost_usd")
         assert hasattr(stats, "avg_cost_per_query")
         assert hasattr(stats, "cost_vs_deepseek_only")
@@ -821,7 +821,7 @@ class TestCostReductionTarget30Percent:
         # Cost should be minimal (all local models)
         assert stats.total_cost_usd == 0.0
         # Routing should distribute across models
-        assert stats.phi3_routed > 0  # Some simple queries
+        assert stats.fast_model_routed > 0  # Some simple queries
 
 
 if __name__ == "__main__":

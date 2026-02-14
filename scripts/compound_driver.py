@@ -11,7 +11,7 @@ Cycle:
 
 Usage:
   uv run python scripts/compound_driver.py --skills 5 --dry-run
-  uv run python scripts/compound_driver.py --skills 10 --model phi3:mini
+  uv run python scripts/compound_driver.py --skills 10 --model phi4-mini-reasoning
 """
 
 from __future__ import annotations
@@ -74,7 +74,7 @@ async def run_compound_cycle(
     num_skills: int = 5,
     threshold: float = 0.5,
     dry_run: bool = True,
-    model: str = "phi3:mini",
+    model: str = "phi4-mini-reasoning",
 ) -> dict:
     """Run one full compound engineering cycle.
 
@@ -231,7 +231,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--model",
         type=str,
-        default="phi3:mini",
+        default="phi4-mini-reasoning",
         help="Ollama model for live execution",
     )
     parser.add_argument(

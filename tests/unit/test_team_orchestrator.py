@@ -64,7 +64,7 @@ class TestSelectModel:
             id="t1", subject="Run tests", description="verify", tags=["test"]
         )
         model = orchestrator.select_model(task)
-        assert model == "phi3:mini"
+        assert model == "phi4-mini-reasoning"
 
     def test_code_tasks_route_to_qwen(self, orchestrator):
         task = TaskSpec(
@@ -73,7 +73,7 @@ class TestSelectModel:
         model = orchestrator.select_model(task)
         assert model == "qwen3-coder:30b"
 
-    def test_reasoning_tasks_route_to_deepseek(self, orchestrator):
+    def test_reasoning_tasks_route_to_glm(self, orchestrator):
         task = TaskSpec(
             id="t3",
             subject="Design architecture",
@@ -81,12 +81,12 @@ class TestSelectModel:
             tags=["plan"],
         )
         model = orchestrator.select_model(task)
-        assert model == "deepseek-r1:70b"
+        assert model == "glm-4.7-flash"
 
-    def test_default_is_phi3(self, orchestrator):
+    def test_default_is_phi4(self, orchestrator):
         task = TaskSpec(id="t4", subject="Unknown", description="something", tags=[])
         model = orchestrator.select_model(task)
-        assert model == "phi3:mini"
+        assert model == "phi4-mini-reasoning"
 
 
 class TestTaskDependencies:
