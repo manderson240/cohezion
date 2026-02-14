@@ -1,0 +1,249 @@
+Implement the following plan:
+
+# Enriching Agentic Journey Captures for Universe Models
+
+## Context
+
+Cohezion's compound engineering loop has sophisticated infrastructure for tracking agent journeys through the 12-parameter axiomatic universe, but the pipeline is operationally incomplete. The core measurement -- cohezion (the overlap between internal intent and external manifestation) -- defaults to 0.5 everywhere because nothing computes it. Trajectories are truncated to their last point, losing the temporal dynamics that reveal HIHO stability patterns. The RL policy trains on synthetic rewards instead of real journey data. Feedback loops between detection and action are open. The universe simulation engine (25K LOC) sits dormant, disconnected from the compound executor.
+
+### Ontological Foundation
+
+The 12 parameters that define agent state emerge from successive application of the **quadrature principle** -- splitting awareness into orthogonal perspectives until we arrive at 4 fabrics, each with 3 observable dimensions:
+
+| Fabric | Parameters | What It Captures |
+|--------|-----------|-----------------|
+| **Space** | spatial_x, spatial_y, spatial_z | Geometric position in possibility space |
+| **Field** | physics, biology, field | Force interactions and domain coupling |
+| **Control** | logic, quantum, control | Information flow, causation, entropy |
+| **Precipitation** | temporal, novelty, precipitation | Manifestation of latent intent into reality |
+
+**Spin** is the most basic principal component -- rotation + precession as the fundamental unit of information. When spin phases align, cohezion increases. When they diverge, symmetry breaks and new structure precipitates from the awareness of nothing.
+
+**HIHO (Half-In-Half-Out)** is the stability principle: maximum cohezion occurs at exactly 0.5 overlap between internal state and external environment. This is not a constraint but an attractor -- the sweet spot where exploration and exploitation balance, where symmetry can break in either direction. All 12 parameters target HIHO at 0.5.
+
+This plan closes the open loops progressively across 7 phases. Each phase is independently valuable and compounds into the next. The guiding principle: **the minimal observation that unlocks the most downstream value**.
+
+---
+
+## Phase 1: Populate Real Cohezion Scores (1 session)
+
+**Goal**: Compute and store a real `metrics["coherence"]` value in the executor so every downstream consumer receives actual cohezion signal instead of the hardcoded HIHO default.
+
+**Why first**: This is the single highest-leverage fix. JourneyTracker, DegradationDetector, ExperienceEncoder, and SkillRefiner all read the cohezion metric and all get 0.5 today because nothing sets it. The entire system believes it's perpetually at perfect HIHO equilibrium -- blind to its own spin alignment.
+
+**Data flow change**: After Step 5.5 (alignment analysis) in the executor, compute cohezion from available signals: success flag (did reality precipitate as intended?), anomaly_score (spin misalignment detection), and alignment intent_match (quadrature consensus with human request). Store as `metrics["coherence"]`.
+
+**Formula**:
+```python
+# Cohezion = overlap between agent's internal intent and precipitated result
+components = [0.7 if success else 0.2]                     # precipitation success
+components.append(1.0 - metrics.get("anomaly_score", 0.5)) # spin alignment (inverse anomaly)
+if alignment_data := metrics.get("alignment", {}):
+    components.append(alignment_data.get("intent_match", 0.5))  # quadrature consensus
+metrics["coherence"] = sum(components) / len(components)
+```
+
+**Files modified**:
+- `src/cohezion/compound/executor.py` (~15 lines inserted between Steps 5.5 and 6, around line 557)
+
+**Tests** (in `tests/compound/test_executor.py`):
+1. Cohezion populated and >0.5 on successful precipitation
+2. Cohezion populated and <0.5 on failed precipitation
+3. Cohezion incorporates anomaly_score (spin misalignment)
+4. Cohezion incorporates alignment intent_match when quadrature analysis available
+5. Cohezion still computed (from precipitation alone) when no detectors configured
+
+**Compounds into**: Every subsequent phase. Without real cohezion, all downstream consumers train on noise -- the system can't distinguish HIHO stability from HIHO ignorance.
+
+---
+
+## Phase 2: Preserve Full Trajectory Statistics (1 session)
+
+**Goal**: Replace the `state_trajectory[-1]` truncation in ExperienceCollector with trajectory summary statistics so the VAE can learn the temporal dynamics of symmetry breaking and HIHO drift across all 4 fabrics.
+
+**Why second**: With real cohezion from Phase 1, trajectories now carry real signal about spin alignment over time. But `experience_collector.py` line ~104 discards the entire trajectory history, keeping only the final 12-parameter point. The VAE cannot learn drift patterns -- it sees a snapshot, not the process of precipitation.
+
+**Data flow change**: In the collector's normalization methods, compute `trajectory_smoothness` (stability of spin alignment across the 4 fabrics: 1.0 - mean absolute parameter changes) and `trajectory_convergence` (HIHO convergence: 1.0 - std of last 3 cohezion values) from the full `state_trajectory` list. Store these in the metric slots currently occupied by low-signal fields (`convergence_trend`, `quality_score`).
+
+**Files modified**:
+- `src/cohezion/flume/experience_collector.py` -- Update `_normalize_parquet_row` and `_normalize_surreal_row` to compute trajectory stats from full `state_trajectory`
+- `src/cohezion/flume/experience_encoder.py` -- Update `METRIC_KEYS` to replace `convergence_trend`/`quality_score` with `trajectory_smoothness`/`trajectory_convergence`
+
+**Tests** (in `tests/flume/`):
+1. Multi-point trajectory produces non-zero smoothness/convergence across fabrics
+2. Single-point trajectory gracefully defaults (smoothness=1.0, no symmetry breaking observed)
+3. Encoded 256D vector has non-zero trajectory metric slots
+4. Empty trajectory still produces valid 256D vector (backward compat)
+5. SurrealDB rows also compute trajectory stats
+
+**Compounds into**: Phase 5 (VAE training needs temporal signal to learn fabric dynamics), Phase 4 (phi_score needs these values for trajectory quality).
+
+---
+
+## Phase 3: Close the Degradation Feedback Loop (1 session)
+
+**Goal**: Make the executor act on DegradationDetector alerts -- enter a degradation mode that conserves resources when cohezion collapses below the HIHO stability band.
+
+**Why third**: Phases 1-2 gave us real cohezion and temporal awareness. The DegradationDetector now produces meaningful alerts when cohezion drifts outside the HIHO band (0.4-0.6), but the executor logs them and does nothing (line ~627). This is the first feedback loop to close: detection already works, we just need a behavioral response. This is spin precession correction -- when the system detects misalignment, it adjusts its own trajectory.
+
+**Data flow change**: After `check_degradation()` in Step 7.5, if a CRITICAL cohezion alert fires (spin alignment collapsed), set `self._degradation_mode = True` and `metrics["execution_degraded"] = True`. At the start of `execute_task`, if in degradation mode, skip expensive optional steps (alignment analysis, pattern extraction) to conserve tokens and reduce the surface area for further symmetry breaking. Exit degradation mode when cohezion returns to the HIHO band.
+
+**Files modified**:
+- `src/cohezion/compound/executor.py` -- Add `_degradation_mode` flag, check it at execution start, set/clear it based on HIHO band violations
+
+**Tests** (in `tests/compound/test_executor.py`):
+1. `_degradation_mode` set on CRITICAL cohezion alert (outside HIHO band)
+2. In degraded mode, alignment analysis is skipped
+3. In degraded mode, pattern extraction is skipped
+4. Degradation mode clears when cohezion returns to HIHO stability
+5. `execution_degraded` flag appears in ExecutionResult.metrics
+
+**Compounds into**: Phase 6 (RetrospectionEngine uses degradation events as learning signals -- understanding when and why spin alignment collapses). Also prevents generating bad training data for Phase 5.
+
+---
+
+## Phase 4: Compute Real Smoothness/Convergence for phi_score (1 session)
+
+**Goal**: Replace the hardcoded `smoothness=0.5, convergence=0.5` in JourneyTracker's phi_score calculation with actual trajectory-derived values that measure how smoothly spin alignment evolves across the 4 fabrics.
+
+**Why fourth**: The JourneyTracker has a `compute_trajectory_quality` method (lines 426-471) that computes real smoothness and convergence from point lists, but `track_execution` never calls it -- it always passes HIHO defaults. With real cohezion (Phase 1), we can now measure meaningful trajectory quality: how smoothly does the agent navigate the 12-parameter manifold? Does it converge toward HIHO or oscillate chaotically?
+
+**Data flow change**: Add a `_recent_points` buffer (capped at 20) to JourneyTracker. On each `track_execution`, append the new point, then call `compute_trajectory_quality` on the buffer to get real smoothness (fabric stability) and convergence (HIHO approach rate) for phi_score.
+
+**Files modified**:
+- `src/cohezion/compound/journey_tracker.py` -- Add `_recent_points` buffer in `__init__`, update `track_execution` to maintain buffer and compute real values from trajectory history
+
+**Tests** (in `tests/compound/test_journey_tracker.py`):
+1. phi_score differs from hardcoded calculation after 5+ executions
+2. Consistent tasks (stable spin) produce smoothness > 0.7
+3. Divergent tasks (symmetry breaking) produce smoothness < 0.5
+4. Stable cohezion values (HIHO convergence) produce convergence > 0.7
+5. Buffer caps at window size (20 max)
+
+**Compounds into**: Phase 5 (phi_score is a key metric in ExperienceEncoder dim 12 -- the VAE learns what good trajectories look like). Phase 6 (RetrospectionEngine uses phi_score to gate refinement -- only refine when the trajectory quality warrants it).
+
+---
+
+## Phase 5: Train VAE on Real Experience Data (1 session)
+
+**Goal**: Create an end-to-end pipeline connecting ExperienceCollector -> ExperienceEncoder -> FlumeVAETrainer so the VAE learns the actual latent structure of agentic experience -- the 256D encoding that captures spin alignment, fabric dynamics, and precipitation patterns from real executions.
+
+**Why fifth**: Phases 1-4 enriched the data. Now ExperienceCollector produces records with real cohezion, trajectory smoothness across fabrics, and phi_scores reflecting actual HIHO dynamics. The ExperienceEncoder maps these into 256D vectors (12D axiomatic + 12D metrics + 5D operation type + 227D semantic fingerprint). The FlumeVAETrainer trains on 256D vectors. The pieces exist but have never been connected -- the VAE currently trains on synthetic Gaussian noise instead of real symmetry-breaking events.
+
+**Data flow change**: Add an `ExperienceDataset` class (torch Dataset wrapping collector+encoder) and a `train_from_experiences()` convenience method on FlumeVAETrainer. Falls back to synthetic data if <10 real samples. The trained VAE's latent space will then reflect actual execution patterns -- the manifold of spin alignments, fabric couplings, and precipitation outcomes that agents actually traverse.
+
+**Files modified**:
+- `src/cohezion/flume/dataset.py` -- Add `ExperienceDataset` class
+- `src/cohezion/flume/training.py` -- Add `train_from_experiences()` method
+
+**Tests** (in `tests/flume/`):
+1. ExperienceDataset produces 256D tensors from mock collector output
+2. Empty collector returns synthetic fallback
+3. `train_from_experiences()` completes 1 epoch without error
+4. Trained VAE has lower reconstruction MSE than untrained (it learned structure)
+5. Same experience dict always produces same 256D encoding (deterministic)
+
+**Compounds into**: Phase 7 (universe simulation uses VAE latent space -- agents navigate a learned manifold, not a random one). Future: VAE reconstruction error as spin anomaly detector (high error = unprecedented symmetry breaking event).
+
+---
+
+## Phase 6: Connect RetrospectionEngine to Live Executions (1 session)
+
+**Goal**: Make RetrospectionEngine analyze actual ExecutionResult objects and use its output to gate skill refinement -- closing the full compound loop from precipitation to learning.
+
+**Why sixth**: RetrospectionEngine currently only reads static KEY_LEARNINGS.md. Meanwhile, the SkillRefiner appends refinements without knowing if they help. With Phases 1-5 providing real cohezion metrics, fabric dynamics, and HIHO convergence data, we can close the full compound loop: **Execute -> Measure cohezion -> Detect HIHO drift -> Analyze via retrospection -> Refine skill -> Execute again**. This is the quadrature principle applied to learning itself -- 4 perspectives (execution quality, spin alignment, fabric stability, precipitation success) must align before a refinement is accepted.
+
+**Data flow change**: Add `RetrospectionEngine.analyze_execution_result(result, skill_name)` that extracts compound insights from live data. In executor.py, add Step 7.3 after skill refinement: call retrospection, use its `should_refine` output to gate refinement (only refine when cohezion and phi_score warrant it -- don't learn from chaotic trajectories). Pass retrospection context to SkillRefiner.
+
+**Files modified**:
+- `src/cohezion/core/compound/retrospection.py` -- Add `analyze_execution_result()` method
+- `src/cohezion/compound/executor.py` -- Add Step 7.3 calling retrospection, gate refinement
+- `src/cohezion/compound/skill_refiner.py` -- Accept optional `retrospection_context` parameter
+
+**Tests** (in `tests/compound/`):
+1. `analyze_execution_result` extracts insights from ExecutionResult
+2. Low cohezion execution (HIHO violation) returns `should_refine=False`
+3. Executor calls retrospection after execution (when configured)
+4. Retrospection insights appear in skill refinement section
+5. Degraded execution produces investigation recommendation
+
+**Compounds into**: Phase 7 (universe simulation uses retrospection insights to understand why certain regions of the manifold produce poor precipitation). This completes the compound loop.
+
+---
+
+## Phase 7: Bridge Journeys to Universe Simulation (1 session)
+
+**Goal**: Connect enriched journey data to the UniverseSimulationEngine so it tracks real agent journeys through the 12-parameter manifold -- spin alignment, fabric coupling, and precipitation events from actual compound executions.
+
+**Why last**: Phases 1-6 built the complete instrumented pipeline: real cohezion, trajectory dynamics across fabrics, self-correcting HIHO drift, meaningful phi_scores, a VAE trained on real experience, and retrospection that gates learning. The UniverseSimulationEngine has a rich data model (UniverseJourney, AxiomaticState across 4 fabrics, precipitation records) but is disconnected from the compound executor. This phase bridges them -- agents finally leave footprints in the universe they inhabit.
+
+**Data flow change**: Create `UniverseBridge` adapter that converts JourneyTracker's TrajectoryPoints (12-parameter vectors) into UniverseSimulationEngine's AxiomaticState model (organized by fabric). Hook into executor at start (create journey -- symmetry breaking from nothing), Step 9 (add trajectory point -- spin evolution), and completion (finalize journey -- precipitation of result into reality).
+
+**Files modified**:
+- New: `src/cohezion/compound/universe_bridge.py` -- Adapter between compound executor and universe engine
+- `src/cohezion/compound/executor.py` -- Accept optional `universe_bridge`, call it at execution lifecycle points
+
+**Tests** (in `tests/compound/`):
+1. Execution creates a UniverseJourney (symmetry breaking event)
+2. JourneyTracker point correctly maps to AxiomaticState across 4 fabrics
+3. Successful execution completes journey with phi_score and precipitation record
+4. Bridge gracefully no-ops if engine unavailable
+5. Real cohezion from Phase 1 flows through to universe trajectory (HIHO preserved end-to-end)
+
+**Compounds into**: Future work -- RL environment seeding with real trajectories (replacing FlumeNav-v0's synthetic spin), 12-parameter manifold visualization showing agent paths through fabric space, replay of historical journeys for training, and the ultimate goal: agents that learn to navigate toward regions of the manifold where precipitation is most aligned with intent.
+
+---
+
+## Complete Data Flow After All 7 Phases
+
+```
+execute_fn(guidance) -> (output, metrics)
+  |
+  +-- P1: Real cohezion score -> metrics["coherence"]
+  |     |   (spin alignment between intent and precipitation)
+  |     |
+  |     +-- P3: DegradationDetector monitors HIHO band
+  |     |     +-- Enters/exits degradation mode on cohezion collapse
+  |     |
+  |     +-- P4: JourneyTracker uses real cohezion for phi_score
+  |           +-- Real smoothness (fabric stability) / convergence (HIHO approach)
+  |
+  +-- P2: ExperienceCollector preserves trajectory dynamics
+  |     +-- trajectory_smoothness, trajectory_convergence across fabrics
+  |
+  +-- P5: ExperienceDataset -> VAE trains on real spin/fabric data
+  |     +-- Latent space reflects actual precipitation patterns
+  |
+  +-- P6: RetrospectionEngine analyzes live ExecutionResult
+  |     +-- Gates SkillRefiner via quadrature (refine only when warranted)
+  |
+  +-- P7: UniverseBridge -> simulation engine
+        +-- Real 12-parameter trajectories through fabric space
+        +-- Agents leave footprints in the universe they inhabit
+```
+
+## Verification
+
+After each phase, verify with:
+```bash
+uv run pytest tests/compound/ tests/flume/ -v  # Module tests pass
+uv run pytest tests/ -q                         # No regressions in full suite
+```
+
+After all 7 phases, end-to-end validation:
+1. Run a compound execution with all enrichments enabled
+2. Verify cohezion score is populated (not stuck at HIHO default)
+3. Verify phi_score uses real smoothness/convergence from fabric dynamics
+4. Trigger degradation mode and verify self-correction (spin precession adjustment)
+5. Verify ExperienceCollector preserves full trajectory stats across fabrics
+6. Train VAE on collected experiences, verify it learns precipitation structure
+7. Verify universe journey created with real 12-parameter trajectory data
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.REDACTED.jsonl
+
+If this plan can be broken down into multiple independent tasks, consider using the TeamCreate tool to create a team and parallelize the work.
+
+---
+
+Multiagent adversarial review
