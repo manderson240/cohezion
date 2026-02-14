@@ -53,13 +53,13 @@ Worktree: Yes
 
 **MANDATORY: Update this checklist as tasks complete. Change `[ ]` to `[x]`.**
 
-- [ ] Task 1: Archive non-essential markdown files to docs/archive/
+- [x] Task 1: Archive non-essential markdown files to docs/archive/
 - [ ] Task 2: Delete non-markdown root clutter
 - [ ] Task 3: Remove stale root directories
 - [ ] Task 4: Update .gitignore with prevention patterns
 - [ ] Task 5: Verify essential files preserved and repo health
 
-**Total Tasks:** 5 | **Completed:** 0 | **Remaining:** 5
+**Total Tasks:** 5 | **Completed:** 1 | **Remaining:** 4
 
 ## Implementation Tasks
 

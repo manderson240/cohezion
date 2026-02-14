@@ -1,2 +1,0 @@
-FROM glm-4.7-flash
-PARAMETER num_ctx 256000
