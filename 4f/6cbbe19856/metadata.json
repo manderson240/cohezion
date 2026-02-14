@@ -1,0 +1,57 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "4f6cbbe19856",
+  "strategy": "manual-commit",
+  "branch": "session-55-test-fixes-main",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "SETUP_GITHUB_GITLAB_MCP_SERVERS.md",
+    "data/checkpoints/test.json",
+    "data/surrealdb/LOG.old.1770784342971080",
+    "data/surrealdb/LOG.old.1770784348696634",
+    "data/surrealdb/LOG.old.1770784354187522",
+    "data/surrealdb/LOG.old.1770784426966740",
+    "data/surrealdb/LOG.old.1770784432418268",
+    "data/surrealdb/LOG.old.1770784437958211",
+    "data/surrealdb/LOG.old.1770784443667990",
+    "data/surrealdb/LOG.old.1770784449156083",
+    "data/surrealdb/LOG.old.1770784454691330",
+    "data/surrealdb/LOG.old.1770784460427145",
+    "data/surrealdb/LOG.old.1770784588948493",
+    "data/surrealdb/LOG.old.1770784594456763",
+    "data/surrealdb/LOG.old.1770784599935318",
+    "data/surrealdb/LOG.old.1770784605579721",
+    "data/surrealdb/LOG.old.1770784610929977",
+    "data/surrealdb/LOG.old.1770784616854106",
+    "data/surrealdb/LOG.old.1770784622532977",
+    "data/surrealdb/LOG.old.1770784627927221",
+    "data/surrealdb/LOG.old.1770784633534910",
+    "data/surrealdb/MANIFEST-058521",
+    "data/surrealdb/MANIFEST-058597",
+    "data/surrealdb/MANIFEST-058721",
+    "data/surrealdb/OPTIONS-058519",
+    "data/surrealdb/OPTIONS-058523",
+    "data/surrealdb/OPTIONS-058595",
+    "data/surrealdb/OPTIONS-058599",
+    "data/surrealdb/OPTIONS-058719",
+    "data/surrealdb/OPTIONS-058723",
+    "src/cohezion/compound/journey_persistence.py",
+    "src/cohezion/compound/vault_execution_logger.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/4f/6cbbe19856/0/metadata.json",
+      "transcript": "/4f/6cbbe19856/0/full.jsonl",
+      "context": "/4f/6cbbe19856/0/context.md",
+      "content_hash": "/4f/6cbbe19856/0/content_hash.txt",
+      "prompt": "/4f/6cbbe19856/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 110,
+    "cache_creation_tokens": 9161,
+    "cache_read_tokens": 1677285,
+    "output_tokens": 252,
+    "api_call_count": 13
+  }
+}

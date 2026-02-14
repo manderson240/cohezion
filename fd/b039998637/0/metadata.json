@@ -1,0 +1,44 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "fdb039998637",
+  "session_id": "1da2f5a8-169a-4579-80eb-38a7b3778f27",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-12T04:34:53.140679615Z",
+  "branch": "session-55-test-fixes-main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "data/checkpoints/test.json",
+    "data/surrealdb/LOG.old.1770870519486963",
+    "data/surrealdb/LOG.old.1770870525183356",
+    "data/surrealdb/LOG.old.1770870530966127",
+    "data/surrealdb/LOG.old.1770870536682401",
+    "data/surrealdb/LOG.old.1770870542498110",
+    "data/surrealdb/LOG.old.1770870548013874",
+    "data/surrealdb/LOG.old.1770870553487788",
+    "data/surrealdb/MANIFEST-120025",
+    "data/surrealdb/OPTIONS-120023",
+    "data/surrealdb/OPTIONS-120027",
+    "src/cohezion/compound/journey_persistence.py",
+    "src/cohezion/compound/vault_execution_logger.py"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "fe2d309a-d5c5-4bb9-8631-43cd38228559",
+  "checkpoint_transcript_start": 6609,
+  "transcript_lines_at_start": 6609,
+  "token_usage": {
+    "input_tokens": 34,
+    "cache_creation_tokens": 2051,
+    "cache_read_tokens": 414077,
+    "output_tokens": 20,
+    "api_call_count": 4
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-12T04:34:52.383822067Z",
+    "agent_lines": 0,
+    "human_added": 409639,
+    "human_modified": 222,
+    "human_removed": 0,
+    "total_committed": 409860,
+    "agent_percentage": 0
+  }
+}
