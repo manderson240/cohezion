@@ -223,21 +223,68 @@ class CompoundExecutor:
         return self._alignment_analyzer
 
     def get_experience_guidance(
-        self, task_description: str, project: str = "cohezion"
+        self, task_description: str, project: str = "cohezion", operation_type: str = "generate"
     ) -> dict[str, Any]:
         """Fetch experience guidance from vault before execution.
+
+        Enhanced with trajectory search: finds similar past executions and
+        provides recommendations based on their outcomes.
 
         Args:
             task_description: Description of the task to execute
             project: Project name for scoped search
+            operation_type: Type of operation (for trajectory search)
 
         Returns:
             Dict with relevant_context (decisions, experiments, patterns)
+            plus trajectory-based recommendations, warnings, and confidence
         """
         logger.info("Fetching experience guidance for: %s", task_description)
-        result: dict[str, Any] = self.logger.get_experience_guidance(
+
+        # Step 1: Get base guidance from vault
+        base_guidance: dict[str, Any] = self.logger.get_experience_guidance(
             task_description=task_description, project=project
         )
+
+        # Step 2: Enhance with trajectory search (if available)
+        try:
+            from cohezion.compound.trajectory_search import TrajectorySearchEngine
+            from cohezion.compound.guidance_enhancer import GuidanceEnhancer
+            from cohezion.flume.experience_collector import ExperienceCollector
+            from cohezion.flume.experience_encoder import ExperienceEncoder
+
+            # Initialize search components (lazy)
+            collector = ExperienceCollector()
+            encoder = ExperienceEncoder()
+            search = TrajectorySearchEngine(collector, encoder)
+            enhancer = GuidanceEnhancer()
+
+            # Find similar trajectories
+            trajectory_results = search.find_similar_trajectories(
+                task_description=task_description,
+                operation_type=operation_type,
+                top_k=5,
+                min_coherence=0.4,  # HIHO threshold
+            )
+
+            # Enhance guidance
+            enhanced = enhancer.enhance_guidance(base_guidance, trajectory_results)
+            result = enhancer.to_dict(enhanced)
+
+            logger.info(
+                "Guidance enhanced with %d similar trajectories (confidence=%.2f)",
+                enhanced.similar_task_count,
+                enhanced.confidence,
+            )
+
+        except Exception as e:
+            logger.debug(
+                "Trajectory search failed (non-blocking): %s. Using base guidance only.",
+                e,
+                exc_info=True,
+            )
+            result = base_guidance
+
         return result
 
     def suggest_skills(
@@ -343,8 +390,8 @@ class CompoundExecutor:
             except Exception as e:
                 logger.debug("Universe bridge start failed (non-blocking): %s", e)
 
-        # Step 1: Get experience guidance
-        guidance = self.get_experience_guidance(task_description, project)
+        # Step 1: Get experience guidance (enhanced with trajectory search)
+        guidance = self.get_experience_guidance(task_description, project, operation_type)
         logger.debug("Experience guidance: %s", guidance)
 
         # Step 1.5: Parse request for alignment analysis (if enabled)
