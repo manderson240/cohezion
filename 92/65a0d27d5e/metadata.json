@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "9265a0d27d5e",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "cloud-vault-mcp/src/mcp_server/graphrag_helpers.py",
+    "cloud-vault-mcp/tests/test_graphrag_helpers.py",
+    "data/surrealdb/LOG.old.1771092966545615",
+    "data/surrealdb/LOG.old.1771092972054258",
+    "data/surrealdb/LOG.old.1771092977825037",
+    "data/surrealdb/LOG.old.1771092983304025",
+    "data/surrealdb/LOG.old.1771092988843673",
+    "data/surrealdb/LOG.old.1771092994564795",
+    "data/surrealdb/LOG.old.1771093000454116",
+    "data/surrealdb/LOG.old.1771093006098935"
+  ],
+  "sessions": [
+    {
+      "metadata": "/92/65a0d27d5e/0/metadata.json",
+      "transcript": "/92/65a0d27d5e/0/full.jsonl",
+      "context": "/92/65a0d27d5e/0/context.md",
+      "content_hash": "/92/65a0d27d5e/0/content_hash.txt",
+      "prompt": "/92/65a0d27d5e/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 542,
+    "cache_creation_tokens": 884351,
+    "cache_read_tokens": 13841872,
+    "output_tokens": 29949,
+    "api_call_count": 145
+  }
+}
