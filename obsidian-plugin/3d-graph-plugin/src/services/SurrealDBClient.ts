@@ -513,4 +513,113 @@ export class SurrealDBClient {
 
     return map;
   }
+
+  /**
+   * Store semantic contradictions detected by SemanticContradictionDetector
+   * @param contradictions Array of detected contradictions
+   * @returns Count of stored contradictions
+   */
+  async storeSemanticContradictions(contradictions: DecisionContradiction[]): Promise<number> {
+    try {
+      let insertCount = 0;
+
+      for (const contradiction of contradictions) {
+        const query = `
+          INSERT INTO decision_contradictions (
+            decision_id,
+            lesson_id,
+            challenge_type,
+            severity,
+            description,
+            detection_method
+          ) VALUES (
+            '${contradiction.decision_id}',
+            '${contradiction.lesson_id}',
+            '${contradiction.challenge_type}',
+            '${contradiction.severity}',
+            '${contradiction.description.replace(/'/g, "\\'").replace(/"/g, '\\"')}',
+            'semantic'
+          )
+        `;
+
+        try {
+          const result = await this.executeQuery(query);
+          if (result && Array.isArray(result) && result.length > 0) {
+            insertCount++;
+          }
+        } catch (insertError) {
+          // Skip duplicates or other insertion errors
+          console.debug(
+            `[SurrealDBClient] Skipped duplicate or invalid contradiction: ${contradiction.decision_id} vs ${contradiction.lesson_id}`
+          );
+        }
+      }
+
+      console.log(`[SurrealDBClient] Stored ${insertCount} semantic contradictions`);
+      this.clearCache(); // Invalidate cache after updates
+
+      return insertCount;
+    } catch (error) {
+      console.error('[SurrealDBClient] Failed to store semantic contradictions:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Query all decisions for semantic contradiction detection
+   * @returns Array of decisions with required fields for embedding
+   */
+  async queryAllDecisionsForEmbedding(): Promise<any[]> {
+    const cacheKey = 'decisions:all-embedding';
+
+    return this.getCachedOrQuery(cacheKey, async () => {
+      try {
+        const query = `
+          SELECT id, rationale, chosen_option, confidence_score, alternatives_rejected
+          FROM decisions
+          ORDER BY timestamp DESC
+        `;
+
+        const result = await this.executeQuery(query);
+
+        if (!result || !Array.isArray(result)) {
+          return [];
+        }
+
+        return result;
+      } catch (error) {
+        console.error('Failed to query decisions for embedding:', error);
+        return [];
+      }
+    });
+  }
+
+  /**
+   * Query all lessons for semantic contradiction detection
+   * @returns Array of lessons with required fields for embedding
+   */
+  async queryAllLessonsForEmbedding(): Promise<any[]> {
+    const cacheKey = 'lessons:all-embedding';
+
+    return this.getCachedOrQuery(cacheKey, async () => {
+      try {
+        const query = `
+          SELECT id, key_insight, implications, incoming_links
+          FROM lessons
+          ORDER BY timestamp DESC
+        `;
+
+        const result = await this.executeQuery(query);
+
+        if (!result || !Array.isArray(result)) {
+          return [];
+        }
+
+        return result;
+      } catch (error) {
+        console.error('Failed to query lessons for embedding:', error);
+        return [];
+      }
+    });
+  }
 }
