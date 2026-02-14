@@ -21,6 +21,12 @@ interface GraphPluginSettings {
 
   /** Performance mode: 'high' (>30 FPS, full quality), 'low' (<30 FPS, battery friendly) */
   performanceMode: 'high' | 'low';
+
+  /** Phase 5 Settings: Decision visualization */
+  showDecisionNodes: boolean;
+  showCascadeOverlay: boolean;
+  cascadeDepth: number; // 1-5
+  confidenceThreshold: number; // 0.0-1.0
 }
 
 /** Default plugin settings - used on first install */
@@ -30,6 +36,10 @@ const DEFAULT_SETTINGS: GraphPluginSettings = {
   physicsSpeed: 'normal',
   colorPalette: 'default',
   performanceMode: 'high',
+  showDecisionNodes: true,
+  showCascadeOverlay: false,
+  cascadeDepth: 3,
+  confidenceThreshold: 0.6,
 };
 
 /**
@@ -53,12 +63,17 @@ export default class GraphPlugin extends Plugin {
   async onload(): Promise<void> {
     await this.loadSettings();
 
-    // Register ribbon icon in left sidebar
+    // Register ribbon icon in left sidebar - 3D Graph
     this.addRibbonIcon('network', '3D Graph', () => {
       this.openGraph3D();
     });
 
-    // Register command for command palette
+    // Register ribbon icon - Decision Explorer (NEW in Phase 5)
+    this.addRibbonIcon('lightbulb', 'Decision Explorer', () => {
+      this.openDecisionExplorer();
+    });
+
+    // Register command for command palette - 3D Graph
     this.addCommand({
       id: 'open-3d-graph',
       name: 'Open 3D Graph',
@@ -67,10 +82,25 @@ export default class GraphPlugin extends Plugin {
       },
     });
 
+    // Register command - Decision Explorer (NEW in Phase 5)
+    this.addCommand({
+      id: 'open-decision-explorer',
+      name: 'Open Decision Explorer',
+      hotkeys: [
+        {
+          modifiers: ['Ctrl', 'Shift'],
+          key: 'd',
+        },
+      ],
+      callback: () => {
+        this.openDecisionExplorer();
+      },
+    });
+
     // Register settings tab in plugin settings
     this.addSettingTab(new GraphSettingTab(this.app, this));
 
-    console.log('3D Graph Plugin loaded');
+    console.log('3D Graph Plugin loaded (Phase 5: Decision Explorer integrated)');
   }
 
   /**
@@ -92,6 +122,33 @@ export default class GraphPlugin extends Plugin {
     } catch (error) {
       console.error('Failed to open 3D graph:', error);
       new Notice('Error opening 3D graph. Check console for details.');
+    }
+  }
+
+  /**
+   * Open the Decision Explorer modal
+   * Displays decision search, reasoning chains, cascades, and contradictions
+   *
+   * NEW in Phase 5: Integrated with 3D Graph for unified decision intelligence
+   *
+   * @param {string} paperFilter Optional paper title to filter decisions by
+   * @private
+   * @returns {Promise<void>}
+   */
+  private async openDecisionExplorer(paperFilter?: string): Promise<void> {
+    try {
+      // Import DecisionExplorerModal dynamically to avoid circular dependencies
+      const { DecisionExplorerModal } = await import('./ui/DecisionExplorerModal');
+
+      const modal = new DecisionExplorerModal(this.app, paperFilter);
+      modal.open();
+      const msg = paperFilter
+        ? `Decision Explorer opened (filtered for "${paperFilter}")`
+        : 'Decision Explorer opened. Search for decisions or view reasoning chains.';
+      new Notice(msg);
+    } catch (error) {
+      console.error('Failed to open Decision Explorer:', error);
+      new Notice('Error opening Decision Explorer. Check console for details.');
     }
   }
 
@@ -286,6 +343,60 @@ class GraphSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.performanceMode)
           .onChange(async (value: any) => {
             this.plugin.settings.performanceMode = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    // Phase 5: Decision Visualization Settings
+    containerEl.createEl('h3', { text: 'Decision Intelligence (Phase 5)' });
+
+    new Setting(containerEl)
+      .setName('Show Decision Nodes')
+      .setDesc('Display decision nodes in 3D graph alongside papers')
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.showDecisionNodes)
+          .onChange(async (value) => {
+            this.plugin.settings.showDecisionNodes = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('Show Cascade Overlay')
+      .setDesc('Display decision cascade relationships on 3D graph')
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.showCascadeOverlay)
+          .onChange(async (value) => {
+            this.plugin.settings.showCascadeOverlay = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('Cascade Depth')
+      .setDesc('How many levels of cascading effects to show (1-5)')
+      .addSlider((slider) =>
+        slider
+          .setLimits(1, 5, 1)
+          .setValue(this.plugin.settings.cascadeDepth)
+          .onChange(async (value) => {
+            this.plugin.settings.cascadeDepth = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('Confidence Threshold')
+      .setDesc('Only show decisions above this confidence level (0-1)')
+      .addSlider((slider) =>
+        slider
+          .setLimits(0, 1, 0.1)
+          .setValue(this.plugin.settings.confidenceThreshold)
+          .setDynamicTooltip()
+          .onChange(async (value) => {
+            this.plugin.settings.confidenceThreshold = value;
             await this.plugin.saveSettings();
           })
       );
