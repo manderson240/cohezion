@@ -1,0 +1,1965 @@
+Implement the following plan:
+
+# Experience → VAE Training Pipeline
+
+## Context
+
+Cohezion's FLUME VAE trains on **synthetic gaussian noise** (0.5 ± 0.15) because no real data pipeline exists. Meanwhile, the compound executor captures rich execution experiences (12D trajectories, coherence, anomaly scores, alignment metrics) and persists them to Parquet, SurrealDB, and vault JSON — but none of this feeds back into the VAE.
+
+This pipeline closes the loop: collect real agentic experiences, encode them as 256D vectors, and train the VAE on actual behavior distributions. The trained VAE can then generate novel plausible experiences for universe simulation.
+
+## 256D Encoding Scheme
+
+```
+Dims [0:12]   — 12D axiomatic trajectory (from JourneyTracker)
+                0:novelty 1:logic 2:field 3:spatial 4:temporal
+                5:precipitation 6:coherence 7:efficiency 8:convergence
+                9:smoothness 10:resonance 11:harmony
+
+Dims [12:24]  — 12 scalar execution metrics (from CompoundExecutor)
+                12:phi_score 13:anomaly_score 14:misalignment_score
+                15:intent_confidence 16:duration_norm(log) 17:tokens_norm(log)
+                18:cache_hit_rate 19:success(0|1) 20:token_efficiency_norm
+                21:quality_score 22:convergence_trend 23:cost_norm
+
+Dims [24:29]  — 5 operation type one-hot
+                24:generate 25:analyze 26:search 27:transform 28:persist
+
+Dims [29:256] — 227 semantic fingerprint (deterministic SHA-256 hash expansion)
+```
+
+## Files to Create
+
+### 1. `src/cohezion/flume/experience_encoder.py`
+- `ExperienceEncoder` class with `encode(experience: dict) -> np.ndarray` (returns 256D float32)
+- Deterministic semantic fingerprint via SHA-256 (same approach as JourneyTracker._text_to_latent)
+- Log-scale normalization for duration and tokens
+- Operation types match JourneyTracker: generate, analyze, search, transform, persist
+
+### 2. `src/cohezion/flume/experience_collector.py`
+- `ExperienceCollector` class with `collect_all() -> list[dict]`
+- Tier 1: Read `data/journeys/shard_*.parquet` — extract `state_trajectory` (list of 12D vectors) + metadata
+- Tier 2: Query SurrealDB `mission_journey` table (non-blocking, skip if unavailable)
+- Tier 3: Walk `~/vaults/cohezion-vault/experiments/**/*.json` vault files
+- Each tier normalizes records into a common schema dict with required keys
+
+### 3. `src/cohezion/flume/experience_dataset.py`
+- `ExperienceDataset(Dataset)` — torch Dataset returning `torch.Tensor` shape `(256,)`
+- Constructor: `__init__(experiences: list[dict], seed: int = 42, augment: bool = False)`
+- Pre-encodes all experiences at init (fast __getitem__)
+- Optional gaussian noise augmentation for regularization
+- Compatible with existing `FlumeVAETrainer.train(dataset=...)` hook
+
+### 4. `src/cohezion/flume/experience_pipeline.py`
+- `ExperienceTrainingPipeline` class orchestrating: collect → encode → train → checkpoint
+- `async run(min_real: int, max_samples: int, epochs: int, ...) -> Path`
+- Graceful fallback: if real data < min_real and synthetic_fallback=True, pad with SyntheticFlumeDataset
+- Uses existing `TrainConfig(z_dim=256)` and `FlumeVAETrainer(config).train(dataset=...)`
+
+### 5. `scripts/drivers/train_experience_vae.py`
+- CLI entry point with argparse
+- Args: --min-real, --max-samples, --epochs, --batch-size, --lr, --session, --seed, --no-synthetic
+- `asyncio.run(pipeline.run(...))`
+
+### 6. `src/cohezion/skills/EXPERIENCE_VAE_TRAINING_PRIME.md`
+- PRIME skill definition codifying the full pipeline pattern
+
+### 7. `tests/flume/test_experience_pipeline.py`
+5 focused tests:
+1. `test_encoder_output_shape_and_determinism` — encode same experience twice → identical 256D
+2. `test_encoder_operation_type_onehot` — each op type activates correct dim
+3. `test_dataset_returns_correct_tensor` — dataset[0] is torch.Tensor shape (256,)
+4. `test_collector_handles_missing_dirs` — empty parquet/vault dirs → empty list, no crash
+5. `test_pipeline_trains_with_synthetic_fallback` — full pipeline with no real data → checkpoint saved
+
+## Files to Modify
+
+### `src/cohezion/flume/__init__.py`
+- Add exports: `ExperienceEncoder`, `ExperienceDataset`, `ExperienceTrainingPipeline`
+
+## Key Design Decisions
+
+1. **256D not 12D VAE**: Encode full experience context (trajectory + metrics + semantics), not just spatial position. Preserves compatibility with existing 256D VAE architecture.
+
+2. **Deterministic fingerprints**: Use SHA-256 hash expansion (like JourneyTracker does), not Python `hash()` which varies across sessions.
+
+3. **Actual FlumeVAETrainer API**: Use `TrainConfig(z_dim=256, ...)` + `FlumeVAETrainer(config).train(dataset=custom_ds)` — the existing hook.
+
+4. **Parquet schema**: Handle actual schema where trajectories are in `state_trajectory` field as nested float lists.
+
+5. **Non-blocking SurrealDB**: try/except around all SurrealDB calls; skip tier if DB unavailable.
+
+## Verification
+
+```bash
+# Run tests
+uv run pytest tests/flume/test_experience_pipeline.py -v
+
+# Run full pipeline (will use synthetic fallback since little real data exists)
+uv run python scripts/drivers/train_experience_vae.py --epochs 5 --min-real 1
+
+# Verify checkpoint was created
+ls data/flume/checkpoints/flume_vae_ep5.pt
+```
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.REDACTED.jsonl
+
+If this plan can be broken down into multiple independent tasks, consider using the TeamCreate tool to create a team and parallelize the work.
+
+---
+
+commit this, retrospective, compact identify next steps and develop long horizon plan to accomplish this with local model agent orchestration.  Don't forget to research new small language models with SOTA performance and update our local model roster as of today 2/13/26
+
+---
+
+<task-notification>
+<task-id>a508c32</task-id>
+<status>completed</status>
+<summary>Agent "Explore existing vault context" completed</summary>
+<result>Perfect. Now I have all the information needed. Let me compile a comprehensive retrospective report.
+
+---
+
+## Retrospective & Long-Horizon Planning Report
+
+Based on thorough exploration of the Cohezion vault and codebase, here are the structured findings:
+
+### 1. OLLAMA MODEL CONFIGURATION
+
+**Hardware Truth Anchor** (`HARDWARE_PROFILE_PRIME.md`):
+- CPU: AMD Ryzen AI MAX+ 395 (Strix Halo, 16C/32T, AVX-512, AMX)
+- GPU: AMD Radeon 8060S (RDNA 3.5, integrated)
+- RAM: 128 GiB LPDDR5X (unified memory architecture)
+- Storage: 2TB NVMe + 32GB ZVOL swap
+- **Critical Rule**: Never assume RTX/CUDA. All models run locally via Ollama.
+
+**Active Model Roster** (from code analysis):
+| Model | Purpose | Configuration | Cost |
+|-------|---------|---------------|------|
+| `phi3:mini` | Simple queries, verification, testing | Default, 0.6 quality score | $0.00 (local) |
+| `qwen3-coder:30b` | Code generation, implementation | Preferred for "generate" ops | $0.00 (local) |
+| `deepseek-r1:70b` (referenced) | Complex reasoning, architecture | Best quality (0.95), but not currently active | $0.00 (local) |
+
+**Model Routing Logic** (`cost_aware_router.py`):
+- Query complexity analyzer: SIMPLE (80 tokens) → MEDIUM (200 tokens) → COMPLEX (400 tokens)
+- Cost optimization: φ3:mini for simple, qwen3-coder for medium/complex
+- Global concurrency limit: 4 models max (enforced in `dynamic_model_router.py`)
+- Cost target: 30%+ below deepseek-only baseline
+
+**Ollama Resilience** (`ollama_resilience.py`):
+- Base URL: `http://localhost:11434`
+- Circuit breaker: 3 failure threshold, 30s recovery timeout
+- Retry strategy: exponential backoff (2^n delay)
+- Fallback: degraded text response when circuit open
+- Resource gating: capacity monitor prevents overload
+
+---
+
+### 2. AGENT ORCHESTRATION INFRASTRUCTURE
+
+**Core Layers**:
+
+| Layer | Entry Point | Key Files | Purpose |
+|-------|-------------|-----------|---------|
+| **Compound** | `CompoundExecutor` | `executor.py` (39KB) | 11-step execution pipeline with vault integration |
+| **Swarm** | `TeamExecutor` | `team_executor.py` | Multi-agent coordination with task dependencies |
+| **EDL** | `ExpertDomainRouter` | `edl_router.py` | Route complex decisions through 5 expert streams |
+| **Cost Routing** | `CostAwareRouter` | `cost_aware_router.py` | Budget-enforced, complexity-aware model selection |
+| **Cache** | `SemanticCache` | `semantic_cache.py` | L1 hash + L2 cosine + L3 vault (95%+ hit rate target) |
+
+**Expert Domain Lattice (Per Charter)**:
+Five specialized agent streams for complex problem solving:
+1. **Architect** (Design decisions, system structure)
+2. **Engineer** (Physics, implementation feasibility)
+3. **Biologist** (Organic systems, life cycles)
+4. **Quantum HW** (Hardware constraints, physical limits)
+5. **Quantum Algo** (Algorithms, compute efficiency)
+
+Consensus requirement: 0.5 coherence (HIHO balance) for decision stability.
+
+**Multi-Agent Execution** (`team_executor.py`):
+```python
+TeamExecutor:
+  - orchestrates interdependent agent tasks
+  - vault-guided skill selection
+  - compound scoring (team performance aggregation)
+  - task dependency tracking
+```
+
+**Model Mapping by Operation** (`compound/config.py`):
+- generate → qwen3-coder:30b (higher quality needed)
+- analyze → phi3:mini (low complexity, fast)
+- search → phi3:mini
+- transform/persist → no LLM needed
+
+---
+
+### 3. COMPOUND ENGINEERING LOOP STATUS
+
+**Architecture** (CLAUDE.md Section: "Compound Engineering Loop"):
+```
+PRIME Skill (markdown definition)
+  ↓
+InstructionExpander (parse → tasks)
+  ↓
+PlanExecutor (tactical plan)
+  ↓
+ExecutionOrchestrator (11-step pipeline)
+  ├─ RequestAlignmentAnalyzer (coherence check)
+  ├─ GlobalMetricsAggregator (instance metrics)
+  ├─ DegradationDetector (thermal, quality thresholds)
+  └─ JourneyTracker (12D FLUME positioning)
+  ↓
+RetrospectionEngine (extract learnings, flag anomalies)
+  ↓
+SkillRefiner (update PRIME skill)
+  ↓
+SkillConsensusVoter (multi-agent validation)
+  ↓
+Updated Skill (loop again)
+```
+
+**Current Implementation Status** (Latest commits: `75691055d7b4` - Feb 10):
+- Phase 2: Track A Steps 2-3 ✅ ACTIVE
+- Phase 2: Schema DDL (agent_reasoning + cascade edges) ✅ MERGED
+- MCP tools + query patterns ✅ IN PROGRESS
+
+**Journey Tracking** (`journey_tracker.py`):
+Maps execution quality to 12D FLUME space:
+- 12 axiomatic dimensions (semantic embeddings → holographic projection)
+- Operation-specific modulation (generate/analyze/search/transform/persist)
+- Quality scoring: coherence×0.5 + smoothness×0.3 + convergence×0.2
+
+**Skill Refinement Components**:
+- `SkillRefiner` (12KB): Updates PRIME skill definitions based on execution results
+- `SkillSelector` (13KB): Finds relevant skills for incoming requests
+- `SkillConsensusVoter` (19KB): Multi-agent validation of refined skills
+
+---
+
+### 4. PHASE 2 CURRENT STATE
+
+**Recent Work** (Sessions 55-56):
+- ✅ Vault-first unification (MEMORY.md: 1,177 → 95 lines, 92% reduction)
+- ✅ Auto-compiler for MEMORY from vault (working)
+- ✅ GraphRAG foundation (helpers + error handling, 8/8 tests passing)
+- ⏸️ GraphRAG import (80% complete, blocked on SQL syntax)
+
+**Session 57 Ready Plan** (`SESSION_57_READY.md`):
+1. **Debug SQL** (30 min) — Fix CREATE query syntax for SurrealDB
+2. **Complete Phase 1** (30 min) — Import 10 vault docs with embeddings
+3. **Phase 2 Hybrid Query** (1h) — Semantic search + graph ancestry
+4. **Phase 3-4** (30 min) — Auto-sync + MEMORY V2 compiler
+
+**Blocker** (Current):
+- SurrealDB returns 400 Bad Request on CREATE queries
+- Likely: tags array format or content escaping issue
+- Needs: Full error response logging + minimal query test
+
+**Expected Outcome** (Session 57):
+- GraphRAG fully operational
+- 10× context recall, 0 additional tokens
+- ROI: Infinite (search cost + free traversal)
+
+---
+
+### 5. COHEZION CHARTER ALIGNMENT
+
+**Governing Principles** (`.agent/COHEZION_CHARTER.md`):
+
+| Principle | Implementation |
+|-----------|-----------------|
+| **0.5 Coherence Rule (HIHO)** | Optimal stability at exactly 50% coherence overlap. Journey tracking monitors coherence decay. |
+| **SPIN Foundation** | Information unit = Rotation + Precession. Aligned rotation/precession = coherence. Charge polarity as emergent property. |
+| **FLUME Evolution** | 256D latent space for semantic trajectories. 12D manifold for state representation. |
+| **Abstraction Primary** | Golden Mean attractors over mechanistic detail. Avoid "Paradox of Minutiae." |
+| **Observable AI** | Expose states + confidence before action. Journey tracking mandatory. |
+| **Deterministic Responsibility** | All actions idempotent. Idempotency keys required. Replay-safe. |
+| **Recursive Capability** | Knowledge assimilation loop. Skill refinement after each phase. |
+| **Expert Domain Lattice** | Five-stream routing (Architect/Engineer/Biologist/QuantumHW/QuantumAlgo). Consensus required. |
+
+**Hardcoded Constraints** (`.agent/CONSTITUTION.md`):
+- ❌ No WMD uplift
+- ❌ No critical infrastructure attacks
+- ❌ No malicious code generation
+- ❌ No oversight undermining
+- ❌ No species-level threats
+- ❌ No illegitimate power assistance
+- ❌ Zero CSAM tolerance
+
+---
+
+### 6. KEY INFRASTRUCTURE COMPONENTS
+
+**Persistence Layer**:
+- **SurrealDB**: Graph database (ws://localhost:8000), vault document indexing
+- **JSONL Checkpoints**: Session persistence, deterministic recovery
+- **Vault**: `~/vaults/cohezion-vault/` (150+ decisions, patterns, experiments)
+
+**Caching Strategy**:
+- L1: SHA-256 hash (exact match detection)
+- L2: Cosine similarity (semantic match, 95%+ hit target)
+- L3: Vault queries (experience-guided execution)
+
+**Metrics Collection** (`global_metrics_aggregator.py`):
+- Per-execution: tokens, latency, coherence, cache hits
+- Per-skill: quality trending, coherence decay detection
+- Global: throughput, cost tracking, budget enforcement
+
+**Degradation Detection** (`degradation_detector.py`):
+- Thermal thresholds (CPU/GPU utilization)
+- Quality thresholds (cache hit rate, token efficiency)
+- Coherence collapse triggers
+
+---
+
+### 7. RECENT LEARNINGS (Session 56 Retrospective)
+
+**What Worked** ✅:
+1. **POC-first validation**: 30 min POC saved 6h wasted effort (83% token savings)
+2. **Meta-compound learning**: Used vault tools while building vault (self-documenting)
+3. **Retrospection finds edge cases**: 30 min planning prevented 3+ bugs
+4. **Foundation before scale**: Error handling prevented edge cases (8/8 tests passing)
+
+**What Didn't Work** ⚠️:
+1. **Single-session ambition**: 4.5h plan too aggressive (85% complete, not production-ready)
+2. **SQL complexity underestimated**: Didn't test minimal query first (jumped to batch)
+3. **Error visibility gap**: 400 Bad Request without response body detail
+4. **Testing order violated**: Should test 1 → 5 → batch, not jump to batch
+
+**Patterns Extracted**:
+- Validate → Extract → Scale (not Build → Test → Debug)
+- Crawl, walk, run (test 1 doc, then 5, then batch)
+- Meta-compound: Every feature should document itself while being built
+- Mandatory retrospective before major implementation
+
+---
+
+### 8. TOKEN EFFICIENCY & COST TRACKING
+
+**Current Budget Enforcement**:
+- Monthly cap: Configurable (e.g., $100)
+- Per-query: Estimated tokens vs actual tracked
+- Router: Dynamically selects model based on budget remaining
+- Fallback: Degraded service if budget exhausted
+
+**Cost Optimization Results** (Session 56):
+- Vault unification: 4K tokens estimated, ~4K actual (0% variance)
+- GraphRAG planning: 6K estimated, ~6K actual
+- Total: ~17.5K actual vs 18K estimated (-3% variance)
+- Remaining budget: 82.5K tokens
+
+**Targeting 30%+ Cost Savings**:
+- phi3:mini first for simple queries (baseline)
+- Escalate to qwen3-coder only for medium/complex
+- Reserve deepseek-r1 for architecture decisions
+- Cache aggressively (target: 95%+ hit rate)
+
+---
+
+### 9. CRITICAL FILES FOR RETROSPECTIVE
+
+**Read These First** (Priority order):
+1. `/home/mike-anderson/dev/cohezion/.agent/COHEZION_CHARTER.md` — Vision & principles
+2. `/home/mike-anderson/dev/cohezion/.agent/CONSTITUTION.md` — Hard constraints
+3. `/home/mike-anderson/dev/cohezion/CLAUDE.md` — Operational guide (this is the source of truth)
+4. `/home/mike-anderson/dev/cohezion/src/cohezion/compound/executor.py` — 11-step pipeline
+5. `/home/mike-anderson/dev/cohezion/src/cohezion/swarm/team_orchestrator.py` — Agent spec generation
+
+**Reference Architecture**:
+- `/home/mike-anderson/dev/cohezion/src/cohezion/swarm/cost_aware_router.py` — Model routing logic
+- `/home/mike-anderson/dev/cohezion/src/cohezion/compound/journey_tracker.py` — 12D trajectory tracking
+- `/home/mike-anderson/dev/cohezion/src/cohezion/platform/edl_router.py` — Expert Domain Lattice
+- `/home/mike-anderson/dev/cohezion/src/cohezion/swarm/ollama_resilience.py` — Circuit breaker + retry
+
+**Recent Session Reports**:
+- `REDACTED.md` — Next execution plan
+- `REDACTED.md` — Learnings + next steps
+- `REDACTED.md` — Current blockers
+
+---
+
+### 10. LONG-HORIZON OPPORTUNITIES
+
+**Immediate** (Next 2-3 sessions):
+1. **Complete GraphRAG** (2-3h) — Debug SQL, ship hybrid query, auto-sync
+2. **Pattern Library Growth** — Auto-detect reusable patterns (referenced 3+ times)
+3. **Knowledge Gap Detection** — Find unvalidated decisions, suggest experiments
+
+**Medium-term** (Next 4-8 weeks):
+1. **Meta-Learning Detection** — Identify circular knowledge loops (decision → pattern → decision)
+2. **Impact Scoring** — Prioritize high-impact knowledge in MEMORY
+3. **Temporal Context** — Decay score by age, weight recent learnings higher
+4. **Confidence Propagation** — Track how confidence degrades through decision chains
+
+**Long-term** (Compound Engineering Vision):
+1. **Self-Refining Skills** — PRIME skills automatically improve from execution feedback
+2. **Expert Domain Mastery** — EDL streams build specialist knowledge over time
+3. **Universe Simulation** — Complete 12D FLUME latent space for thought navigation
+4. **Autonomic System** — Zero human intervention for routine skill refinement
+
+---
+
+### SUMMARY FOR RETROSPECTIVE
+
+**System Maturity**: PRODUCTION-READY FOUNDATION
+- Compound loop: fully implemented (11-step pipeline working)
+- Agent orchestration: operational (TeamExecutor, EDL routing)
+- Cost optimization: 30%+ target achievable (routing + caching + local models)
+- Vault integration: vault-first architecture live (MEMORY auto-compilation works)
+
+**Current Blockers**: MINIMAL
+- GraphRAG SQL syntax: 30 min debug away from completion
+- All other systems stable, tested, production-grade
+
+**Token Efficiency**: ON TRACK
+- Target: 100K/month for research
+- Current: ~17.5K for Session 56 (82.5K remaining)
+- ROI: 100×+ (17.5K → 1M+ tokens saved via GraphRAG)
+
+**Charter Alignment**: FULL COMPLIANCE
+- HIHO coherence monitoring: integrated
+- SPIN principles: embedded in journey tracker
+- Observable AI: state + confidence exposed before action
+- Deterministic responsibility: idempotency keys + replay-safe</result>
+<usage>total_tokens: 65733
+tool_uses: 38
+duration_ms: 76097</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/a508c32.output
+
+---
+
+<task-notification>
+<task-id>a45642b</task-id>
+<status>completed</status>
+<summary>Agent "Research SOTA small language models" completed</summary>
+<result>Now I have comprehensive data. Let me compile this into a structured research note and log it to the vault.
+
+---
+
+# Small Language Model (SLM) Landscape -- February 2026
+
+## Research Summary
+
+This report covers the state-of-the-art in small language models as of February 2026, focused on models that can run locally on your AMD Ryzen AI MAX+ 395 with 128GB unified LPDDR5X RAM and Radeon 8060S iGPU. All models listed are available (or have community ports) on Ollama.
+
+---
+
+## 1. Your Current Roster Assessment
+
+| Model | Params | Role | Status |
+|-------|--------|------|--------|
+| `deepseek-r1:70b` | 70B dense | Reasoning | **Superseded** -- newer MoE models match or beat it at 1/10th active params |
+| `qwen3-coder:30b` | 30B MoE (3B active) | Coding | **Still competitive** -- but Qwen3-Coder-Next and GLM-4.7-Flash now lead |
+| `phi3:mini` | 3.8B dense | Lightweight tasks | **Superseded** -- Phi-4-mini-reasoning is the direct successor with superior reasoning |
+
+**Key takeaway**: Your `deepseek-r1:70b` (70B dense, ~40GB at Q4) is the biggest candidate for replacement. Models like GLM-4.7-Flash and Qwen3-30B-A3B achieve better benchmark scores on SWE-bench, AIME, and GPQA with only 3B active parameters (19GB at Q4_K_M). You already have most of the successors installed.
+
+---
+
+## 2. SOTA by Category
+
+### Best Coding Model (14B or under)
+
+| Model | Params | LiveCodeBench v6 | HumanEval | Ollama | Notes |
+|-------|--------|-------------------|-----------|--------|-------|
+| **NousCoder-14B** | 14B dense | **67.87%** | ~90%+ | GGUF available (community) | Current best at 14B. Based on Qwen3-14B fine-tune |
+| DeepCoder-14B | 14B dense | 60.6% (v5) | ~88% | `deepcoder:14b` | Open-source, RL-trained from DeepSeek-R1-Distill-Qwen-14B |
+| Qwen2.5-Coder-14B | 14B dense | ~55% | 88%+ | `qwen2.5-coder:14b` | **You already have this installed** |
+| Qwen3-Coder-30B-A3B | 30B MoE / 3B active | ~65% | 88.4% (7B variant) | `qwen3-coder:30b` | **You already have this installed** -- punches well above weight class |
+
+**Recommendation**: Install **NousCoder-14B** (GGUF community port) or **DeepCoder-14B** (`ollama pull deepcoder:14b`) to complement your existing Qwen3-Coder. NousCoder-14B is the current champion at this size class.
+
+### Best Reasoning Model (30B or under)
+
+| Model | Params (Active) | AIME | GPQA | SWE-bench | Ollama | Notes |
+|-------|-----------------|------|------|-----------|--------|-------|
+| **GLM-4.7-Flash** | 30B MoE / 3B active | **91.6** | **75.2** | **59.2%** | `glm-4.7-flash` | **You already have this. Best-in-class for reasoning + coding agent tasks** |
+| Qwen3-30B-A3B-Thinking | 30B MoE / 3B active | 85.0 | 73.4 | 22.0% | `qwen3:30b-a3b` | Strong reasoning, weaker on SWE-bench |
+| GPT-OSS-20B | 21B MoE / 3.6B active | ~matches o3-mini | ~matches o3-mini | ~34% | `gpt-oss:20b` | **You already have this. OpenAI's first open-weight model** |
+| Nemotron-3-Nano | 31.6B MoE / 3.2B active | competitive | 86.3 (RULER@1M) | -- | `nemotron-3-nano` | Hybrid Mamba-Transformer MoE, 1M context, 3.3x throughput vs Qwen3-30B |
+| Apriel-1.6-15B-Thinker | 15B dense | competitive w/ R1 | competitive | -- | `ServiceNow-AI/Apriel-1.6-15b-Thinker` | ServiceNow's reasoning model, "think-then-code" paradigm |
+| Phi-4-mini-reasoning | 3.8B dense | comparable to o1-mini on math | outperforms DeepSeek-R1-Distill-7B | -- | `phi4-mini-reasoning` | **Incredible for its size** -- outperforms models 2x larger on math |
+| Phi-4-reasoning | 14B dense | strong | strong | -- | `phi4-reasoning:14b` | Full Phi-4 reasoning model |
+
+**Recommendation**: Your **GLM-4.7-Flash** is already the best reasoning model you can run locally at this parameter class. Consider adding **Nemotron-3-Nano** for its 1M-token context window and hybrid Mamba architecture (different strengths), and **Phi-4-mini-reasoning** as an ultra-fast lightweight reasoning fallback.
+
+### Best Embedding Model for Semantic Search
+
+| Model | Params | MTEB/BEIR Rank | Dimensions | Ollama | Notes |
+|-------|--------|----------------|------------|--------|-------|
+| **Snowflake Arctic-Embed-L v2.0** | <1B | SOTA for size class | 1024 (MRL-compressible to 256) | `snowflake-arctic-embed2` | Best quality, supports MRL for 4x compression |
+| Nomic-Embed-Text v2 (MoE) | ~137M MoE | Competitive with 2x models | 768 | Check Ollama for v2 tag | **You have v1 installed**. v2 adds MoE + multilingual |
+| Nomic-Embed-Text v1.5 | 137M | Beats text-embedding-ada-002 | 768 | `nomic-embed-text` | **You already have this (274MB)** |
+| mxbai-embed-large | ~335M | SOTA for BERT-large class | 1024 | `mxbai-embed-large` | Strong generalization, no MTEB data leakage |
+
+**Recommendation**: Your `nomic-embed-text` is solid. For a meaningful upgrade, install **Snowflake Arctic-Embed-L v2.0** (`ollama pull snowflake-arctic-embed2`) which offers SOTA retrieval quality with MRL dimension reduction (can shrink vectors 4x with <3% quality loss -- significant for your SurrealDB vector store).
+
+### Best Function-Calling / Agentic Model
+
+| Model | Params (Active) | Tool-calling Quality | tau-Bench | Ollama | Notes |
+|-------|-----------------|---------------------|-----------|--------|-------|
+| **GLM-4.7-Flash** | 30B MoE / 3B active | Excellent | **79.5** | `glm-4.7-flash` | **You already have this. Best agentic model at this size** |
+| GPT-OSS-20B | 21B MoE / 3.6B active | Excellent | strong | `gpt-oss:20b` | **You already have this.** 3 reasoning effort levels |
+| Qwen3-30B-A3B | 30B MoE / 3B active | Good | 49.0 | `qwen3:30b-a3b` | Weaker on agentic tasks vs GLM-4.7 |
+| Llama 3.1 8B-Instruct | 8B dense | Most stable tool-calling | -- | `llama3.1:8b` | Best reliability for simple tool schemas |
+| Qwen3-Coder-30B-A3B | 30B MoE / 3B active | Excellent for code agents | -- | `qwen3-coder:30b` | **You already have this.** Built for agentic coding |
+
+**Recommendation**: **GLM-4.7-Flash** is your best agentic model. Its tau-Bench score (79.5) is dramatically higher than Qwen3-30B-A3B (49.0). For lightweight function calling in pipeline stages, consider **Llama 3.1 8B** for its exceptional reliability.
+
+---
+
+## 3. New Models Since Late 2025 (Not In Your Current Roster)
+
+### High Priority -- Install These
+
+| Model | Why | Ollama Command | Size (Q4) |
+|-------|-----|----------------|-----------|
+| **Nemotron-3-Nano** | 1M context, hybrid Mamba-Transformer MoE, 3.3x throughput vs Qwen3-30B | `ollama pull nemotron-3-nano` | ~24GB |
+| **DeepCoder-14B** | Best open-source 14B coder, o3-mini level | `ollama pull deepcoder:14b` | ~9GB |
+| **Phi-4-mini-reasoning** | 3.8B that matches o1-mini on math, ultra-fast fallback | `ollama pull phi4-mini-reasoning` | ~2.4GB |
+| **Snowflake Arctic-Embed-L v2.0** | SOTA embeddings with MRL compression | `ollama pull snowflake-arctic-embed2` | ~670MB |
+
+### Medium Priority -- Consider These
+
+| Model | Why | Ollama Command | Size (Q4) |
+|-------|-----|----------------|-----------|
+| **Apriel-1.6-15B-Thinker** | ServiceNow's reasoning model, think-then-code | `ollama pull ServiceNow-AI/Apriel-1.6-15b-Thinker` | ~9GB |
+| **Phi-4-reasoning (14B)** | Microsoft's full reasoning model | `ollama pull phi4-reasoning:14b` | ~9GB |
+| **Llama 3.1 8B** | Most stable tool-calling for simple agentic pipelines | `ollama pull llama3.1:8b` | ~4.7GB |
+
+### Already Installed / Latest
+
+| Model | Status | Notes |
+|-------|--------|-------|
+| `glm-4.7-flash` | **Already installed (19GB)** | SOTA for reasoning + agentic tasks at MoE-30B class |
+| `gpt-oss:20b` | **Already installed (13GB)** | OpenAI's open-weight model, matches o3-mini |
+| `qwen3-coder:30b` | **Already installed (18GB)** | Strong coding MoE |
+| `qwen3-coder-next` | **Already installed (51GB Q4, 84GB Q8)** | Latest Qwen3-Coder iteration |
+| `phi4` | **Already installed (9.1GB)** | Base Phi-4 model |
+| `qwen2.5-coder:14b` | **Already installed (9GB)** | Solid 14B coder, being surpassed by NousCoder/DeepCoder |
+
+---
+
+## 4. AMD Radeon 8060S iGPU Compatibility Notes
+
+Your hardware (gfx1151 architecture) has known issues with ROCm + Ollama as of February 2026:
+
+- **Status**: ROCm recognizes gfx1151, and community builds (`likelovewant/ollama-for-amd`) provide support
+- **Performance**: ~50 tokens/sec text generation and ~1000 tokens/sec prompt processing with 7B models when GPU offloading works
+- **Known issues**: SIGSEGV crashes under sustained memory-intensive workloads. Nightly ROCm builds may help
+- **Practical recommendation**: For stability, run models in **CPU-only mode** using your 128GB unified RAM. With 128GB LPDDR5X, you can comfortably run any model up to ~70B at Q4 quantization with reasonable CPU inference speeds (12-15 tok/s for 30B MoE models). The MoE models (3B active params) will be significantly faster than dense models of equivalent total size
+
+---
+
+## 5. Recommended Roster Update
+
+### Proposed Optimal Model Stack for Cohezion
+
+| Role | Current | Recommended | Why |
+|------|---------|-------------|-----|
+| **Primary Reasoning** | `deepseek-r1:70b` | **`glm-4.7-flash`** (already installed) | 59.2% SWE-bench vs ~22% for alternatives; 91.6 AIME; 19GB vs 40GB |
+| **Primary Coding** | `qwen3-coder:30b` | **`qwen3-coder:30b`** + **`deepcoder:14b`** | Keep Qwen3, add DeepCoder for focused code-only tasks at half the size |
+| **Fast Reasoning Fallback** | `phi3:mini` | **`phi4-mini-reasoning`** | Direct successor, matches o1-mini on math at 3.8B |
+| **Agentic/Tool-calling** | (mixed) | **`glm-4.7-flash`** + **`gpt-oss:20b`** | Both already installed; tau-Bench leaders |
+| **Long Context** | (none) | **`nemotron-3-nano`** | 1M token context, hybrid Mamba architecture |
+| **Embeddings** | `nomic-embed-text` | **`snowflake-arctic-embed2`** | SOTA quality + MRL dimension compression |
+
+### Models to Consider Removing (free disk space)
+
+| Model | Size | Reason |
+|-------|------|--------|
+| `deepseek-r1:7b` | 4.7GB | Superseded by Phi-4-mini-reasoning and DeepCoder-14B |
+| `phi3:mini` | 2.2GB | Superseded by `phi4-mini-reasoning` |
+| `deepseek-r1:70b` (if installed elsewhere) | ~40GB | Superseded by GLM-4.7-Flash at 19GB with better benchmarks |
+
+---
+
+## 6. Key Benchmarks Comparison Table
+
+| Model | Active Params | AIME 2024 | GPQA | SWE-bench | LiveCodeBench | tau-Bench | RAM (Q4) |
+|-------|---------------|-----------|------|-----------|---------------|-----------|----------|
+| GLM-4.7-Flash | 3B | **91.6** | **75.2** | **59.2%** | ~65% | **79.5** | 19GB |
+| GPT-OSS-20B | 3.6B | ~o3-mini | ~o3-mini | ~34% | ~55% | strong | 13GB |
+| Qwen3-30B-A3B-Thinking | 3B | 85.0 | 73.4 | 22.0% | ~65% | 49.0 | 18GB |
+| Qwen3-Coder-30B-A3B | 3B | -- | -- | -- | 70.6% (480B ver) | -- | 18GB |
+| NousCoder-14B | 14B | -- | -- | -- | **67.87%** | -- | ~9GB |
+| DeepCoder-14B | 14B | -- | -- | -- | 60.6% | -- | ~9GB |
+| Nemotron-3-Nano | 3.2B | competitive | 86.3 (RULER) | -- | -- | -- | ~24GB |
+| Phi-4-mini-reasoning | 3.8B | ~o1-mini | outperforms 7B models | -- | -- | -- | ~2.4GB |
+| DeepSeek-R1:70B (your current) | 70B (dense!) | ~80 | ~70 | ~30% | ~50% | -- | ~40GB |
+
+---
+
+## Sources
+
+- [Ollama Model Library](https://ollama.com/library)
+- [Small Language Models Guide 2026 -- LocalAIMaster](https://localaimaster.com/blog/small-language-models-guide-2026)
+- [Top 15 Small Language Models for 2026 -- DataCamp](https://www.datacamp.com/blog/top-small-language-models)
+- [Top 10 Open-Source Reasoning Models 2026 -- Clarifai](https://www.clarifai.com/blog/top-10-open-source-reasoning-models-in-2026)
+- [GLM-4.7-Flash vs Qwen3-30B-A3B Benchmarks -- LLM Stats](https://llm-stats.com/models/compare/glm-4.7-flash-vs-qwen3-30b-a3b)
+- [GLM-4.7-Flash Local AI Coding Guide -- Medium](https://medium.com/@zh.milo/glm-4-7-flash-the-ultimate-2026-guide-to-local-ai-coding-assistant-93a43c3f8db3)
+- [GLM-4.7-Flash Benchmarks and Setup -- BinaryVerseAI](https://binaryverseai.com/glm-4-7-flash-benchmarks-setup-pricing-vs-qwen3/)
+- [Zhipu AI Releases GLM-4.7-Flash -- MarkTechPost](https://www.marktechpost.com/2026/01/20/zhipu-ai-releases-glm-4-7-flash-a-30b-a3b-moe-model-for-efficient-local-coding-and-agents/)
+- [Apriel-1.6-15B-Thinker -- HuggingFace](https://huggingface.co/ServiceNow-AI/Apriel-1.6-15b-Thinker)
+- [Nemotron 3 Nano -- NVIDIA Research](https://research.nvidia.com/labs/nemotron/Nemotron-3/)
+- [Nemotron 3 Nano and Apriel-1.6-Thinker -- Pat McGuinness](https://patmcguinness.substack.com/p/nemotron-3-nano-and-apriel-16-thinker)
+- [DeepCoder-14B -- Together AI](https://www.together.ai/blog/deepcoder)
+- [NousCoder-14B -- VentureBeat](https://venturebeat.com/technology/nous-researchs-nouscoder-14b-is-an-open-source-coding-model-landing-right-in)
+- [Phi-4 Mini Reasoning -- Ollama](https://ollama.com/library/phi4-mini-reasoning)
+- [Phi-4 Reasoning -- HuggingFace](https://huggingface.co/microsoft/Phi-4-reasoning)
+- [Introducing GPT-OSS -- OpenAI](https://openai.com/index/introducing-gpt-oss/)
+- [Nomic Embed Text V2 MoE -- HuggingFace](https://huggingface.co/nomic-ai/nomic-embed-text-v2-moe)
+- [Snowflake Arctic-Embed2 -- Ollama](https://ollama.com/library/snowflake-arctic-embed2)
+- [Best Open-Source Embedding Models 2026 -- BentoML](https://www.bentoml.com/blog/a-guide-to-open-source-embedding-models)
+- [Best Embedding Models 2026 -- Elephas](https://elephas.app/blog/best-embedding-models)
+- [AMD Radeon 8060S Ollama Issues -- GitHub](https://github.com/ollama/ollama/issues/10993)
+- [AMD Radeon 8060S SIGSEGV -- Arch Linux Forums](https://bbs.archlinux.org/viewtopic.php?id=311957)
+- [Ollama for AMD Community Builds -- GitHub](https://github.com/likelovewant/ollama-for-amd/releases)
+- [Qwen3-Coder -- Ollama](https://ollama.com/library/qwen3-coder)
+- [Qwen3-Coder GitHub -- QwenLM](https://github.com/QwenLM/Qwen3-Coder)
+- [Docker Local LLM Tool Calling Evaluation](https://www.docker.com/blog/local-llm-tool-calling-a-practical-evaluation/)
+- [Best Open Source LLMs Under 20B -- SiliconFlow](https://www.siliconflow.com/articles/en/best-open-source-LLMs-under-20B-parameters)
+- [Best Local LLMs 2026 -- iProyal](https://iproyal.com/blog/best-local-llms/)
+- [Qwen3 Official Blog -- Think Deeper, Act Faster](https://qwenlm.github.io/blog/qwen3/)</result>
+<usage>total_tokens: 54667
+tool_uses: 25
+duration_ms: 230394</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/a45642b.output
+
+---
+
+pull those 4 models now
+
+---
+
+Then we need to research how we should define and orchestrate our agents so they are able to perform to the best of their abilities within our physical system constraints.
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Analysis:
+Let me go through the conversation chronologically:
+
+1. **Initial Request**: User asked to implement a plan for an "Experience → VAE Training Pipeline" with detailed specifications for 7 files to create and 1 to modify.
+
+2. **Research Phase**: I read existing files to understand the APIs:
+   - `src/cohezion/flume/__init__.py` - existing exports
+   - `src/cohezion/flume/training.py` - FlumeVAETrainer and TrainConfig classes
+   - `src/cohezion/flume/dataset.py` - FlumeTrajectoryDataset and SyntheticFlumeDataset
+   - `src/cohezion/compound/journey_tracker.py` - _text_to_latent method, OperationType enum, TrajectoryPoint
+   - Parquet schema inspection - state_trajectory is list<list<float>>, with phi_score, novelty, etc.
+   - `tests/flume/test_vae_encoder.py` - existing test patterns
+
+3. **Implementation Phase**: Created all 7 files and modified __init__.py
+
+4. **Testing**: All 5 tests passed. Fixed async warning in experience_collector.py.
+
+5. **Commit**: Had to create worktree (bare repo), committed on session-58-experience-vae-pipeline branch.
+
+6. **Push failed**: 97MB tree size limit on GitHub - pre-existing issue.
+
+7. **User's second request**: "commit this, retrospective, compact identify next steps and develop long horizon plan to accomplish this with local model agent orchestration. Don't forget to research new small language models with SOTA performance and update our local model roster as of today 2/13/26"
+
+8. **Parallel work**: Launched SLM research agent and codebase exploration agent in parallel. Logged decisions and experiments to vault. Both agents completed with comprehensive results.
+
+9. **SLM Research findings**: GLM-4.7-Flash is SOTA for reasoning/agentic at MoE class. GPT-OSS-20B matches o3-mini. New models to add: phi4-mini-reasoning, deepcoder:14b, nemotron-3-nano, snowflake-arctic-embed2.
+
+10. **Long-horizon plan**: 5 phases over ~9 weeks from foundation through autonomous local agent swarm.
+
+11. **User's third request**: "pull those 4 models now" - Started all 4 ollama pulls in parallel.
+
+12. **User's fourth request**: "Then we need to research how we should define and orchestrate our agents so they are able to perform to the best of their abilities within our physical system constraints."
+
+13. **Agent orchestration research**: Launched two background agents:
+    - a4300ad: Research Ollama multi-model orchestration patterns
+    - a80fc3d: Deep-dive existing orchestration code
+
+14. **Model downloads**: All 4 completed successfully:
+    - snowflake-arctic-embed2 (1.2GB) ✓
+    - phi4-mini-reasoning (3.2GB) ✓
+    - deepcoder:14b (9.0GB) ✓
+    - nemotron-3-nano (24GB) ✓
+
+15. **Pending**: The two research agents (a4300ad and a80fc3d) were still running when the summary was requested. These are researching agent orchestration patterns.
+
+Let me catalog all the files created/modified, key code, errors, etc.
+
+Summary:
+1. Primary Request and Intent:
+   - **Implement Experience → VAE Training Pipeline**: Build a complete pipeline to collect real agentic execution experiences from Parquet, SurrealDB, and vault sources, encode them as 256D vectors, and train the FLUME VAE on actual behavior distributions (replacing synthetic gaussian noise). Detailed plan specified 7 files to create and 1 to modify.
+   - **Commit, Retrospective, and Long-Horizon Plan**: After implementation, commit the work, run a retrospective, identify next steps, and develop a long-horizon plan for local model agent orchestration.
+   - **Research SOTA Small Language Models**: Research new SLMs as of 2/13/26 and update the local model roster.
+   - **Pull 4 New Models**: Download phi4-mini-reasoning, deepcoder:14b, nemotron-3-nano, snowflake-arctic-embed2 via Ollama.
+   - **Research Agent Orchestration**: Research how to define and orchestrate agents to perform optimally within physical system constraints (AMD Ryzen AI MAX+ 395, 128GB RAM, Radeon 8060S iGPU, 4 concurrent model limit).
+
+2. Key Technical Concepts:
+   - **256D Experience Encoding Scheme**: Dims [0:12] = 12D axiomatic trajectory, [12:24] = 12 scalar metrics, [24:29] = 5 operation type one-hot, [29:256] = 227 SHA-256 semantic fingerprint
+   - **FLUME VAE**: Variational Autoencoder with z_dim=256, trained on latent vectors with MSE + KL + coherence regularization
+   - **FlumeVAETrainer API**: `TrainConfig(z_dim=256, ...)` + `FlumeVAETrainer(config).train(dataset=custom_ds)` - accepts any torch Dataset returning (256,) tensors
+   - **JourneyTracker._text_to_latent**: SHA-256 hash expansion with sine wave modulation for deterministic embeddings
+   - **OperationType enum**: generate, analyze, search, transform, persist (5 types matching JourneyTracker)
+   - **Parquet schema**: state_trajectory is `list<list<float>>` (list of 12D vectors), with phi_score, novelty, mission_id, agent_id, skill_name fields
+   - **3-Tier Data Collection**: Tier 1 = Parquet shards, Tier 2 = SurrealDB mission_journey, Tier 3 = vault experiment JSONs
+   - **MoE Models**: Models like GLM-4.7-Flash (30B total / 3B active) and GPT-OSS-20B (21B total / 3.6B active) use Mixture of Experts architecture
+   - **CompoundConfig model routing**: generate→qwen3-coder:30b, analyze→phi3:mini, search→phi3:mini (needs updating)
+   - **Bare git repo with worktrees**: Project uses `git worktree` pattern for session isolation
+   - **Local Model Orchestration**: Ollama-based multi-model serving with 4 concurrent model limit, circuit breaker pattern
+
+3. Files and Code Sections:
+   - **`src/cohezion/flume/experience_encoder.py`** (CREATED)
+     - Core 256D encoding logic. ExperienceEncoder class with encode() method
+     - SHA-256 hash expansion matching JourneyTracker pattern
+     - Log-scale normalization for duration_s and tokens_used
+     ```python
+     class ExperienceEncoder:
+         def encode(self, experience: dict) -> np.ndarray:
+             vec = np.zeros(TOTAL_DIM, dtype=np.float32)
+             # [0:12] trajectory, [12:24] metrics, [24:29] one-hot, [29:256] fingerprint
+             ...
+         @staticmethod
+         def _sha256_expand(text: str, dim: int) -> np.ndarray:
+             hash_bytes = hashlib.sha256(text.encode("utf-8")).digest()
+             out = np.zeros(dim, dtype=np.float32)
+             for i in range(dim):
+                 byte_val = hash_bytes[i % len(hash_bytes)]
+                 phase = (2.0 * math.pi * i) / dim
+                 out[i] = (byte_val / 255.0) * 0.5 + 0.25 * math.sin(phase) + 0.25 * math.cos(phase * 2)
+             return out
+     ```
+
+   - **`src/cohezion/flume/experience_collector.py`** (CREATED)
+     - 3-tier data collection: Parquet, SurrealDB (non-blocking), vault JSONs
+     - Fixed async handling: uses `asyncio.run()` instead of deprecated `get_event_loop().run_until_complete()`, with detection for already-running event loops
+     ```python
+     class ExperienceCollector:
+         def collect_all(self, max_samples: int = 100_000) -> list[dict]:
+             records = []
+             records.extend(self._collect_parquet(max_samples))
+             if len(records) < max_samples:
+                 records.extend(self._collect_surreal(max_samples - len(records)))
+             if len(records) < max_samples:
+                 records.extend(self._collect_vault(max_samples - len(records)))
+             return records[:max_samples]
+     ```
+
+   - **`src/cohezion/flume/experience_dataset.py`** (CREATED)
+     - Torch Dataset returning (256,) tensors, pre-encodes at init for fast __getitem__
+     - Optional gaussian noise augmentation
+     ```python
+     class ExperienceDataset(Dataset):
+         def __init__(self, experiences: list[dict], seed: int = 42, augment: bool = False, augment_std: float = 0.01):
+             self._encoder = ExperienceEncoder()
+             self._vectors = np.stack([self._encoder.encode(exp) for exp in experiences])
+         def __getitem__(self, idx: int) -> torch.Tensor:
+             vec = self._vectors[idx].copy()
+             if self._augment:
+                 noise = self._rng.normal(0.0, self._augment_std, vec.shape).astype(np.float32)
+                 vec = vec + noise
+             return torch.from_numpy(vec)
+     ```
+
+   - **`src/cohezion/flume/experience_pipeline.py`** (CREATED)
+     - End-to-end orchestration: collect → encode → train → checkpoint
+     - Synthetic fallback when real data < min_real threshold
+     ```python
+     class ExperienceTrainingPipeline:
+         async def run(self, min_real=10, max_samples=10_000, epochs=50, batch_size=64, lr=1e-3, seed=42, synthetic_fallback=True, checkpoint_dir="data/flume/checkpoints") -> Path:
+     ```
+
+   - **`scripts/drivers/train_experience_vae.py`** (CREATED)
+     - CLI entry point with argparse: --min-real, --max-samples, --epochs, --batch-size, --lr, --seed, --no-synthetic, --checkpoint-dir, -v
+
+   - **`tests/flume/test_experience_pipeline.py`** (CREATED)
+     - 5 focused tests, all passing:
+       1. test_encoder_output_shape_and_determinism
+       2. test_encoder_operation_type_onehot
+       3. test_dataset_returns_correct_tensor
+       4. test_collector_handles_missing_dirs
+       5. test_pipeline_trains_with_synthetic_fallback
+
+   - **`src/cohezion/skills/EXPERIENCE_VAE_TRAINING_PRIME.md`** (CREATED)
+     - PRIME skill definition for the pipeline pattern
+
+   - **`src/cohezion/flume/__init__.py`** (MODIFIED)
+     - Added lazy exports for ExperienceEncoder, ExperienceDataset, ExperienceTrainingPipeline via `__getattr__`
+
+   - **`src/cohezion/flume/training.py`** (READ - reference)
+     - TrainConfig: z_dim=256, batch_size=64, epochs=50, lr=1e-3, kl_weight=0.1, coherence_weight=0.05
+     - FlumeVAETrainer.train(dataset=None) accepts custom Dataset, saves checkpoints at epoch%25==0 or final epoch
+
+   - **`src/cohezion/flume/dataset.py`** (READ - reference)
+     - SyntheticFlumeDataset: gaussian noise N(0.5, 0.15) as baseline
+
+   - **`src/cohezion/compound/journey_tracker.py`** (READ - reference)
+     - OperationType: GENERATE, ANALYZE, SEARCH, TRANSFORM, PERSIST
+     - _text_to_latent: 2048D SHA-256 hash expansion with sine modulation
+
+   - **`src/cohezion/compound/config.py`** (READ - reference, needs update)
+     - Current routing: generate→qwen3-coder:30b, analyze→phi3:mini, search→phi3:mini
+
+4. Errors and Fixes:
+   - **RuntimeWarning: coroutine never awaited** in experience_collector.py line 132:
+     - Cause: `asyncio.get_event_loop().run_until_complete()` is deprecated and fails in async contexts
+     - Fix: Changed to detect running event loop with `asyncio.get_running_loop()`, skip SurrealDB tier if loop running, otherwise use `asyncio.run()`
+   - **Git operations failed with "fatal: this operation must be run in a work tree"**:
+     - Cause: `/home/mike-anderson/dev/cohezion` is a bare git repo, not a working tree
+     - Fix: Created worktree `git worktree add /home/mike-anderson/dev/cohezion-session-58 -b session-58-experience-vae-pipeline session-55-test-fixes-main`, copied files, committed there
+   - **Push to GitHub failed**: "non-blob object size limit exceeded (tree is 97214240 bytes)"
+     - Cause: Pre-existing repo size issue (97MB tree object), not caused by our 878 lines
+     - Status: Unresolved - commit saved locally, push skipped
+
+5. Problem Solving:
+   - **End-to-end pipeline verification**: Ran CLI driver `train_experience_vae.py --epochs 2 --min-real 1` — collected 5 real records (3 Parquet + 2 vault), trained successfully, saved 13.5MB checkpoint
+   - **SLM Research**: Comprehensive landscape assessment found GLM-4.7-Flash (already installed) is SOTA for reasoning+agentic, identified 4 high-priority models to add
+   - **Model Downloads**: All 4 new models downloaded successfully (phi4-mini-reasoning 3.2GB, deepcoder:14b 9.0GB, nemotron-3-nano 24GB, snowflake-arctic-embed2 1.2GB)
+
+6. All User Messages:
+   - "Implement the following plan: [detailed Experience → VAE Training Pipeline plan with 256D encoding scheme, 7 files to create, 1 to modify, verification steps]"
+   - "commit this, retrospective, compact identify next steps and develop long horizon plan to accomplish this with local model agent orchestration. Don't forget to research new small language models with SOTA performance and update our local model roster as of today 2/13/26"
+   - "pull those 4 models now"
+   - "Then we need to research how we should define and orchestrate our agents so they are able to perform to the best of their abilities within our physical system constraints."
+
+7. Pending Tasks:
+   - **Agent orchestration research**: Two background agents still running:
+     - Agent a4300ad: Researching Ollama multi-model orchestration (memory management, concurrent model combinations, MoE vs dense inference, API features, best practices)
+     - Agent a80fc3d: Deep-diving existing Cohezion orchestration code (team_executor, cost_aware_router, dynamic_model_router, edl_router, compound executor, skill_selector)
+   - **CompoundConfig update**: Route analyze→gpt-oss:20b, search→phi4-mini-reasoning (identified but not yet implemented)
+   - **CostAwareRouter quality scores**: Need updating for new models
+   - **GitHub push blocker**: Repo tree size cleanup needed
+   - **Compound executor instrumentation**: Need to auto-persist journey data for experience accumulation (critical path for data sparsity)
+
+8. Current Work:
+   The most recent work was researching agent orchestration. The user said: "Then we need to research how we should define and orchestrate our agents so they are able to perform to the best of their abilities within our physical system constraints." Two background research agents were launched:
+   - Agent a4300ad researching Ollama multi-model orchestration (memory behavior, concurrent combinations, MoE vs dense, API features, best practices)
+   - Agent a80fc3d deep-diving existing orchestration code (team_executor.py, cost_aware_router.py, dynamic_model_router.py, edl_router.py, executor.py, etc.)
+   
+   All 4 model downloads completed (phi4-mini-reasoning, deepcoder:14b, nemotron-3-nano, snowflake-arctic-embed2).
+
+9. Optional Next Step:
+   Wait for the two background research agents (a4300ad and a80fc3d) to complete, then synthesize their findings into a concrete agent orchestration design that maps Cohezion's EDL agent roles (Architect, Engineer, Biologist, QuantumHW, QuantumAlgo) to specific local models with optimal memory/concurrency configurations for the 128GB RAM constraint. The user's exact request was: "Then we need to research how we should define and orchestrate our agents so they are able to perform to the best of their abilities within our physical system constraints."
+
+   Key vault decisions logged this session:
+   - `decisions/2026-02-13-experience-vae-training-pipeline-session-58.md`
+   - `decisions/2026-02-13-local-model-roster-update-february-2026-sota-assessment.md`
+   - `experiments/2026-02-13-first-real-data-vae-training-run.md`
+   - `patterns/experience-feedback-loop.md`
+
+   Commit: `d6d0d43b4a75` on branch `session-58-experience-vae-pipeline` (local only, push failed)
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.REDACTED.jsonl
+Please continue the conversation from where we left off without asking the user any further questions. Continue with the last task that you were asked to work on.
+
+---
+
+<task-notification>
+<task-id>b575284</task-id>
+<output-file>REDACTED.output</output-file>
+<status>completed</status>
+<summary>Background command "Pull snowflake-arctic-embed2 model" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: REDACTED.output
+
+---
+
+<task-notification>
+<task-id>bd1e07f</task-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bd1e07f.output</output-file>
+<status>completed</status>
+<summary>Background command "Pull phi4-mini-reasoning model" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bd1e07f.output
+
+---
+
+<task-notification>
+<task-id>a80fc3d</task-id>
+<status>completed</status>
+<summary>Agent "Deep-dive existing orchestration code" completed</summary>
+<result>Perfect. I have completed the thorough exploration. Let me provide you with the comprehensive findings report:
+
+---
+
+# COHEZION AGENT ORCHESTRATION INFRASTRUCTURE - COMPREHENSIVE ANALYSIS
+
+## EXECUTIVE SUMMARY
+
+Cohezion has a **production-ready, multi-layered agent orchestration system** with sophisticated model routing, concurrency control, and compound execution pipelines. The actual implementation exceeds what the documentation describes.
+
+---
+
+## 1. FOUR-LEVEL ORCHESTRATION ARCHITECTURE
+
+The system uses a **hierarchical stack** from lowest to highest level:
+
+### Level 1: CompoundExecutor (`src/cohezion/compound/executor.py`)
+- **Entry point** for all individual task execution
+- **11-step execution pipeline** including:
+  1. Vault experience guidance lookup
+  2. Request alignment analysis
+  3. Degradation checking
+  4. Journey state recording
+  5. Skill selection
+  6. Model routing
+  7. Guardrail execution
+  8. Anomaly detection
+  9. Vault logging
+  10. Metrics collection
+  11. Skill refinement
+- Returns `ExecutionResult` with detailed token metrics
+
+### Level 2: TeamExecutor (`src/cohezion/compound/team_executor.py`)
+- Orchestrates **multiple CompoundExecutors** working together
+- Manages **task dependencies** via topological sorting
+- Parallel execution with **configurable degree** (default 4)
+- Computes **compound scoring**: 60% success rate + 25% coherence + 15% efficiency
+- Result type: `TeamExecutionResult` with per-agent metrics
+
+### Level 3: TeamOrchestrator (`src/cohezion/swarm/team_orchestrator.py`)
+- **Generates team plans from PRIME skills**
+- Converts skills into `AgentSpec` + `TaskSpec` + dependency graph
+- Integrates capability registry and template engine
+- **Task→Model mapping** (verified in code):
+  - "verify", "test", "lint" → phi3:mini
+  - "code", "implement", "refactor" → qwen3-coder:30b
+  - "reason", "architect", "plan", "research" → deepseek-r1:70b
+- Generates **3-phase plans**: research → implementation → testing
+
+### Level 4: ExecutionOrchestrator (`src/cohezion/swarm/execution_orchestrator.py`)
+- Executes TeamOrchestrator plans with **wave-based parallelism**
+- Topological sort transforms dependency graph into independent execution waves
+- Each wave runs tasks in parallel (respecting semaphore)
+- Returns `ExecutionReport` with aggregated metrics
+
+---
+
+## 2. MULTI-STAGE MODEL ROUTING PIPELINE
+
+### Stage 1: Query Complexity Analysis (CostAwareRouter)
+```
+SIMPLE   (<10 tokens, no code)           → 80 tokens expected
+MEDIUM   (moderate, some reasoning)      → 200 tokens expected
+COMPLEX  (>200 tokens, code, logic)      → 400 tokens expected
+```
+
+### Stage 2: Cost-Optimized Selection
+- **phi3:mini**: 0.6 quality, 15 t/s, best for simple tasks
+- **qwen3-coder:32b**: 0.85 quality, 8 t/s, balanced
+- **deepseek-r1:8b**: 0.95 quality, 2 t/s, best quality
+
+**Decision tree**: complexity → budget check → cost/quality ratio → thresholds
+
+### Stage 3: Per-Operation Mapping
+```python
+"generate"  → qwen3-coder:30b   (need good quality)
+"analyze"   → phi3:mini         (fast is OK)
+"search"    → phi3:mini         (fast lookups)
+"transform" → (no LLM needed)
+"persist"   → (no LLM needed)
+```
+
+### Stage 4: Expert Domain Lattice Routing
+- **5 specialist streams**: Architect, Engineer, Biologist, Quantum HW, Quantum Algo
+- Each routes to appropriate model (deepseek for reasoning, qwen3 for coding)
+- **Parallel consultation** across streams
+- HIHO stability check: target coherence 0.4-0.6
+- Consensus strength = 1.0 - abs(coherence - 0.5) × 2
+- Escalates to human review if consensus < 0.7
+
+### Stage 5: Dynamic Memory-Aware Routing
+- **Memory bandwidth analysis** adjusts concurrency based on pressure
+- pressure < 0.3: Full capacity (use 84GB models)
+- pressure < 0.7: Reduced capacity
+- pressure ≥ 0.8: Conservative single model only
+
+---
+
+## 3. CONCURRENCY CONTROL AND LIMITS
+
+### CRITICAL: Global Ollama Semaphore = 4
+**Hard limit enforced in `src/cohezion/concurrency/ollama_gate.py`:**
+```python
+_semaphore = asyncio.Semaphore(4)  # MAXIMUM 4 concurrent calls
+```
+
+**Impact:**
+- Max 4 agents can call Ollama simultaneously
+- SwarmConfig.max_concurrent_analysts = 3 (respects gate)
+- 5 analyst perspectives need queuing despite wanting parallelism
+
+### Per-Agent Timeouts
+```
+analyst:    30s
+critic:     20s
+synthesizer: 45s
+```
+
+### Task Wave Parallelism
+- **Topological sort** creates independent task waves
+- All tasks in a wave run in parallel (up to 4 due to semaphore)
+- Example: Research (wave 1) → 4 implementations (wave 2) → Integration test (wave 3)
+
+---
+
+## 4. MODEL LOADING AND LIFECYCLE
+
+### No Explicit Load/Unload
+Cohezion **delegates entirely to Ollama's native model management**:
+- Models are **implicitly loaded** on first API call
+- **Cached in Ollama memory** with ~5min TTL
+- **Automatic LRU eviction** when memory pressure exceeds threshold
+- **No explicit `model.unload()`** API — relies on Ollama internals
+
+### Model Swap Overhead
+- Small ↔ Large: 2-3 seconds per transition
+- Same size class: <100ms (already cached)
+- **Bottleneck during multi-agent execution** when agents need different models
+
+### Semantic Cache (L1/L2/L3)
+- **L1 SHA-256**: Exact hash match, 5-10ms, 95%+ hit on repeats
+- **L2 Cosine**: Similarity threshold 0.95, 15-20ms
+- **L3 Vault**: Pattern-based learning, 100-500ms (async)
+
+---
+
+## 5. CURRENT AGENT IMPLEMENTATIONS
+
+### ArchitectAgent (`src/cohezion/agents/architect_agent.py`)
+- **Model**: deepseek-r1:70b (reasoning)
+- **Purpose**: Decompose complex requests into task graphs
+- **Method**: Structured JSON output with task IDs, descriptions, dependencies
+- **Returns**: list[dict] with task specs
+
+### AnalystAgent (`src/cohezion/agents/analyst.py`)
+- **Model**: phi4 (configurable)
+- **Purpose**: Multi-perspective feature extraction
+- **Perspectives**: Technical, Ethical, Historical, Empirical, Metaphysical
+- **Parallelism**: 3 concurrent (max_concurrent_analysts)
+- **Returns**: ThoughtVector with embedding, phi_score, confidence, persistence_id
+
+### CriticAgent (`src/cohezion/agents/critic.py`)
+- **Model**: deepseek-r1:7b
+- **Purpose**: Validate outputs, detect contradictions
+- **Output**: CritiqueResult with contradictions, logical issues, coherence score
+
+---
+
+## 6. AGENT CREATION PIPELINE
+
+### Dynamic Compilation from PRIME Skills
+```
+PRIME Skill (.md) 
+  → TemplateEngine.parse_skill() 
+  → SkillSpec dataclass 
+  → AgentFactory.create() 
+  → Runtime Python class compilation 
+  → BaseAgent instance
+```
+
+**Factory features:**
+- Caches generated classes
+- Pre-generated executables in `src/cohezion/agents/generated/`
+- Fallback to `_StubAgent` if dependencies unavailable
+- Supports both `async process()` and `execute()` patterns
+
+---
+
+## 7. SKILL SELECTION MECHANISM
+
+### SkillSelector (src/cohezion/compound/skill_selector.py)
+- **Queries vault** for similar prior execution patterns
+- **Extracts metrics**: coherence, token efficiency, success rate
+- **Composite scoring**: 50% coherence + 30% efficiency + 20% success
+- **Performance**: 5-10ms per query (fast hierarchical search via SurrealDB)
+
+### Scoring Weights (User-Configurable)
+```python
+SkillSelector(
+    coherence_weight=0.5,    # How aligned with past?
+    efficiency_weight=0.3,   # Token efficiency?
+    success_weight=0.2,      # Success rate?
+)
+```
+
+---
+
+## 8. REQUEST ALIGNMENT ANALYSIS
+
+### ExecutionAlignment Dataclass
+```python
+intent_match_score:      0.0-1.0 (how well operation matched intent)
+constraint_satisfaction: 0.0-1.0 (tokens, latency, cost met?)
+criteria_satisfaction:   0.0-1.0 (success criteria met?)
+misalignment_score:      0.0-1.0 (overall mismatch)
+```
+
+**Constraint types**:
+- LATENCY (ms/sec/min)
+- TOKENS (count)
+- QUALITY (threshold)
+- COST (budget)
+- SCOPE (restrictions)
+
+**Failure modes detected**:
+- ConstraintViolation (hard limits exceeded)
+- CriterionFailure (soft criteria missed)
+- DriftSignal (execution divergence)
+
+---
+
+## 9. METRICS AND OBSERVABILITY
+
+### Per-Instance Metrics
+```python
+execution_count: int
+success_count: int
+total_tokens: int
+avg_duration_ms: float
+coherence_score: float
+cache_hit_rate: float
+skill_diversity: float
+model_usage: dict[str, int]
+```
+
+### Time Window Aggregation
+```python
+total_executions: int
+avg_throughput: float  # exec/sec
+avg_coherence: float
+p50/p95/p99_latency_ms: float
+model_distribution: dict[str, float]
+```
+
+### Per-Skill Degradation Detection
+- Tracks coherence trend over 7-day window
+- Alerts when trend < prior_avg - 0.05
+- Triggers automatic skill refinement
+
+---
+
+## 10. CONFIGURATION ARCHITECTURE
+
+### Operation→Model Mapping (CompoundConfig)
+```python
+operation_model_map = {
+    "generate": "qwen3-coder:30b",
+    "analyze": "phi3:mini",
+    "search": "phi3:mini",
+    "transform": "",      # No LLM needed
+    "persist": "",        # No LLM needed
+}
+```
+
+### SwarmConfig Parameters
+```python
+max_concurrent_analysts: int = 3         # Parallelism cap
+analyst_timeout_seconds: float = 30.0    # Per-agent timeout
+ollama_base_url: str = "http://localhost:11434"
+semantic_cache_threshold: float = 0.95
+max_refinement_rounds: int = 3
+```
+
+---
+
+## 11. CRITICAL BOTTLENECKS IDENTIFIED
+
+### 1. Model Loading During Multi-Agent Execution
+- **Problem**: Sequential 2-3 second loads when agents need different models
+- **Example**: 84GB qwen3 → 51GB qwen2 → 5GB phi3 = 8-12 second overhead per wave
+- **Mitigation**: Memory bandwidth analyzer prevents >0.8 pressure
+- **Opportunity**: Pre-load models during planning phase
+
+### 2. Semaphore Limit at 4 Concurrent
+- **Problem**: Hard cap prevents >4 simultaneous Ollama calls
+- **Impact**: 5 analyst perspectives need queuing
+- **Workaround**: Phase sequential + parallel (wave-based execution)
+
+### 3. Vault Search Latency
+- **Problem**: Full-text search first query = 100-500ms
+- **Mitigation**: Hierarchical search in SurrealDB (5-10× faster)
+- **Cached**: Subsequent queries 10-50ms
+
+### 4. No Explicit Model Unload Strategy
+- **Problem**: Models stay in memory until Ollama LRU evicts (5min TTL)
+- **Risk**: Memory fragmentation during long-running swarms
+- **Future**: Implement explicit unload for models below threshold
+
+---
+
+## 12. RECOMMENDED AGENT ARCHETYPES FOR LOCAL MODELS
+
+### 1. ROUTER_AGENT
+- **Purpose**: Classify requests, route to specialists
+- **Model**: phi3:mini (fast)
+- **Timeout**: 5s
+- **Concurrency**: 1 (bottleneck)
+
+### 2. SPECIALIST_AGENTS (Multiple instances)
+- **CodeGenerator**: qwen3-coder:30b, 45s, concurrency 3
+- **Researcher**: deepseek-r1:70b, 60s, concurrency 1-2
+- **Analyzer**: phi3:mini, 20s, concurrency 3
+- **Verifier**: phi3:mini, 15s, concurrency 3
+
+### 3. CRITIC_AGENT
+- **Purpose**: Validate, detect contradictions
+- **Model**: deepseek-r1:7b
+- **Timeout**: 20s
+- **Concurrency**: 1
+
+### 4. SYNTHESIZER_AGENT
+- **Purpose**: Merge specialist outputs
+- **Model**: qwen3-coder:7b
+- **Timeout**: 45s
+- **Concurrency**: 1
+
+---
+
+## 13. INTEGRATION POINTS FOR CUSTOM AGENTS
+
+### Vault Integration
+```python
+context = mcp_client.vault_find_relevant_context(
+    query="task description",
+    project="cohezion"
+)
+# Returns: prior patterns, success rates, recommendations
+```
+
+### Metrics Recording
+```python
+metrics_collector.record_execution(
+    instance_metrics={
+        "executions": 1,
+        "tokens_used": 1250,
+        "coherence": 0.87,
+        "cache_hit_rate": 0.95,
+    },
+    skill_name="my_skill",
+    agent_id="agent_1"
+)
+```
+
+### Journey Tracking
+```python
+state_before = journey_tracker.record_request(
+    alignment_score=0.85,
+    agent_id="agent_1"
+)
+journey_tracker.record_transition(
+    state_before, action, result, coherence_after=0.83
+)
+```
+
+---
+
+## 14. KEY FILE REFERENCES
+
+**Core Orchestration:**
+- `src/cohezion/compound/executor.py` — 11-step pipeline
+- `src/cohezion/compound/team_executor.py` — Multi-agent coordination
+- `src/cohezion/swarm/team_orchestrator.py` — Plan generation
+- `src/cohezion/swarm/execution_orchestrator.py` — Dependency tracking
+
+**Routing & Selection:**
+- `src/cohezion/swarm/cost_aware_router.py` — Query complexity + cost
+- `src/cohezion/swarm/dynamic_model_router.py` — Memory-aware routing
+- `src/cohezion/platform/edl_router.py` — Expert Domain Lattice
+- `src/cohezion/compound/skill_selector.py` — Vault-based skill matching
+- `src/cohezion/compound/config.py` — Operation→Model mapping
+
+**Concurrency & Resources:**
+- `src/cohezion/concurrency/ollama_gate.py` — Semaphore (4 limit)
+- `src/cohezion/reliability/monitor.py` — Resource monitoring
+- `src/cohezion/swarm/swarm_types.py` — SwarmConfig definition
+
+**Agents:**
+- `src/cohezion/agents/base.py` — BaseAgent foundation class
+- `src/cohezion/agents/factory.py` — Dynamic agent creation
+- `src/cohezion/agents/architect_agent.py` — Decomposition
+- `src/cohezion/agents/analyst.py` — Multi-perspective analysis
+- `src/cohezion/agents/critic.py` — Validation & contradiction detection
+
+---
+
+## CONCLUSION
+
+Cohezion's orchestration infrastructure is **sophisticated and production-ready**. The actual codebase implements:
+
+✅ Four-level hierarchical agent coordination  
+✅ Five-stage intelligent model routing  
+✅ Global concurrency enforcement (semaphore 4)  
+✅ Dynamic memory-aware resource allocation  
+✅ Comprehensive metrics aggregation  
+✅ Vault-integrated skill selection  
+✅ Request alignment analysis  
+✅ Automatic skill refinement loop  
+
+**Primary design opportunity**: Pre-load models during planning phase to eliminate sequential loading overhead during multi-agent execution.
+
+**Ready for**: Designing custom agent definitions leveraging existing infrastructure without reinventing routing/concurrency/metrics layers.</result>
+<usage>total_tokens: 108422
+tool_uses: 45
+duration_ms: 187891</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/a80fc3d.output
+
+---
+
+<task-notification>
+<task-id>a4300ad</task-id>
+<status>completed</status>
+<summary>Agent "Research Ollama multi-model orchestration" completed</summary>
+<result>Now I have comprehensive data. Let me compile the structured findings.
+
+---
+
+# Optimal Multi-Agent Local LLM Orchestration via Ollama on Strix Halo
+
+## 1. Ollama Model Loading/Unloading Behavior
+
+### Memory Management Model
+
+Ollama keeps loaded models fully resident in RAM (CPU inference) or VRAM (GPU inference). When a new model request arrives and insufficient memory is available, Ollama queues the request and unloads idle models in FIFO order to make room.
+
+**Key parameters:**
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `OLLAMA_KEEP_ALIVE` | `5m` | Duration models stay loaded after last use |
+| `OLLAMA_MAX_LOADED_MODELS` | `3` (CPU mode) | Max concurrent models in memory |
+| `OLLAMA_NUM_PARALLEL` | `1` or `4` (auto) | Parallel requests per model |
+| `OLLAMA_MAX_QUEUE` | `512` | Max queued requests before 503 errors |
+| `OLLAMA_KV_CACHE_TYPE` | `f16` | KV cache precision (`q8_0`, `q4_0` available) |
+| `OLLAMA_FLASH_ATTENTION` | `0` | Required for KV cache quantization |
+
+**Per-request override:** The `keep_alive` parameter in `/api/generate` and `/api/chat` overrides the global `OLLAMA_KEEP_ALIVE`. Set to `-1` to keep loaded indefinitely, `0` to unload immediately after response.
+
+**Cold-start penalty (NVMe):**
+- ~9 GB model (e.g., deepcoder:14b): **24-30 seconds** to load from NVMe
+- ~19 GB model (e.g., glm-4.7-flash): **~45-60 seconds** estimated (scales roughly linearly with size)
+- ~24 GB model (e.g., nemotron-3-nano): **~60-75 seconds** estimated
+
+**Model preloading/warming:** Send an empty prompt to the generate endpoint to preload without generating:
+```bash
+curl http://localhost:11434/api/generate -d '{"model": "glm-4.7-flash", "keep_alive": -1}'
+```
+
+This loads the model into RAM and keeps it resident indefinitely. The response returns immediately once loading completes.
+
+**New model scheduling (Ollama v0.12+):** As of September 2025, Ollama uses exact memory allocation instead of estimates, reducing OOM crashes by up to 70%. The scheduler loops through Fit and Alloc operations, progressively learning memory requirements until a stable layout is found.
+
+### Sources
+- [Ollama FAQ](https://docs.ollama.com/faq)
+- [Preventing Model Swapping in Ollama](https://blog.gopenai.com/preventing-model-swapping-in-ollama-a-guide-to-persistent-loading-f81f1dfb858d)
+- [Ollama Model Auto-Unloading](https://www.arsturn.com/blog/managing-ollama-models-auto-unloading-features-explained)
+- [Ollama New Model Scheduling](https://ollama.com/blog/new-model-scheduling)
+- [Ollama v0.12.1 Memory Allocation](https://medium.com/@rosgluk/memory-allocation-and-model-scheduling-in-ollama-new-version-v0-12-1-5faa2355acb3)
+
+---
+
+## 2. Optimal Concurrent Model Combinations
+
+### Memory Budget Calculation
+
+Total system RAM: **128 GiB**
+OS + system overhead: **~4-6 GiB**
+Available for models: **~122-124 GiB**
+
+**Formula:** `Total per model = model_weights + KV_cache + overhead (~0.5-1 GB)`
+
+KV cache (FP16 default): Scales linearly with context length. For reference:
+- 8B model at 32K context: ~4.5 GB KV cache
+- 14B model at 8K context: ~2 GB KV cache
+- 30B MoE model at 8K context: ~2-3 GB KV cache (based on active params for KV)
+
+**With KV cache quantization (Q8_0):** Halves KV cache memory. **Q4_0:** Cuts to 1/4. Requires `OLLAMA_FLASH_ATTENTION=1` and `OLLAMA_KV_CACHE_TYPE=q8_0`.
+
+### Your Models - Memory Footprint
+
+| Model | Weights (disk) | Estimated RAM | Type | Active Params |
+|-------|---------------|---------------|------|---------------|
+| glm-4.7-flash | 19 GB | ~21-23 GB | MoE 30B/3B | 3B |
+| qwen3-coder:30b | 18 GB | ~20-22 GB | MoE 30B/3B | 3B |
+| gpt-oss:20b | 13 GB | ~15-17 GB | MoE 21B/3.6B | 3.6B |
+| deepcoder:14b | 9 GB | ~11-13 GB | Dense 14B | 14B |
+| phi4-mini-reasoning | ~2.4 GB | ~3-4 GB | Dense 3.8B | 3.8B |
+| nemotron-3-nano | ~24 GB | ~26-28 GB | MoE 31.6B/3.2B | 3.2B |
+| snowflake-arctic-embed2 | ~670 MB | ~1 GB | Embedding | - |
+| nomic-embed-text | 274 MB | ~0.5 GB | Embedding | - |
+
+### Recommended Concurrent Combinations
+
+**Combo A - Maximum Coverage (4 models, ~60 GB):**
+| Slot | Model | RAM | Role |
+|------|-------|-----|------|
+| 1 | glm-4.7-flash | ~22 GB | Reasoning/planning agent |
+| 2 | qwen3-coder:30b | ~21 GB | Coding agent |
+| 3 | phi4-mini-reasoning | ~4 GB | Fast classification/routing |
+| 4 | nomic-embed-text | ~0.5 GB | Embeddings |
+| **Total** | | **~48 GB** | **80 GB headroom** |
+
+**Combo B - Heavyweight Parallel (3 large + embeddings, ~80 GB):**
+| Slot | Model | RAM | Role |
+|------|-------|-----|------|
+| 1 | glm-4.7-flash | ~22 GB | Reasoning agent |
+| 2 | qwen3-coder:30b | ~21 GB | Coding agent |
+| 3 | gpt-oss:20b | ~16 GB | General agent |
+| 4 | nomic-embed-text | ~0.5 GB | Embeddings |
+| **Total** | | **~60 GB** | **64 GB headroom** |
+
+**Combo C - Full Fleet (all 4 large models + small, ~95 GB):**
+| Slot | Model | RAM | Role |
+|------|-------|-----|------|
+| 1 | nemotron-3-nano | ~27 GB | Long-context agent (1M ctx) |
+| 2 | glm-4.7-flash | ~22 GB | Reasoning agent |
+| 3 | qwen3-coder:30b | ~21 GB | Coding agent |
+| 4 | phi4-mini-reasoning | ~4 GB | Fast router |
+| 5 | nomic-embed-text | ~0.5 GB | Embeddings |
+| **Total** | | **~75 GB** | **49 GB headroom** |
+
+**Recommendation:** Combo A is the sweet spot. It keeps 80 GB free for KV cache growth and OS/application needs. With `OLLAMA_KV_CACHE_TYPE=q8_0`, you could run extended context windows (32K+) on all models simultaneously without swapping.
+
+### Critical Configuration
+
+```bash
+export OLLAMA_MAX_LOADED_MODELS=4
+export OLLAMA_NUM_PARALLEL=2          # 2 parallel requests per model
+export OLLAMA_KEEP_ALIVE="30m"         # 30 min before unload
+export OLLAMA_FLASH_ATTENTION=1        # Required for KV quant
+export OLLAMA_KV_CACHE_TYPE=q8_0       # Halve KV cache memory
+```
+
+### Sources
+- [Ollama VRAM Requirements Guide 2026](https://localllm.in/blog/ollama-vram-requirements-for-local-llms)
+- [KV Cache Quantization in Ollama](https://smcleod.net/2024/12/bringing-k/v-context-quantisation-to-ollama/)
+- [Ollama Memory Management (DeepWiki)](https://deepwiki.com/ollama/ollama/5.4-memory-management-and-gpu-allocation)
+
+---
+
+## 3. MoE vs Dense Inference Characteristics
+
+### Critical finding: MoE models load ALL parameters into RAM
+
+Even though a MoE model like glm-4.7-flash (30B total, 3B active) only activates 3B parameters per token, **all 30B parameters must be resident in RAM**. The router selects which experts to activate at inference time, but the selection requires all expert weights to be addressable.
+
+This means:
+- **Memory footprint:** Same as a dense model of equivalent total parameter count. A 30B MoE model uses the same RAM as a 30B dense model.
+- **Compute cost per token:** Proportional to **active** parameters only (3B), not total (30B).
+- **The advantage:** Much faster inference than a dense 30B model, because only 3B parameters participate in matrix multiplications per token.
+
+### CPU Inference Speed Comparison (Strix Halo benchmarks)
+
+| Model | Type | Size | Generation Speed | Prompt Processing |
+|-------|------|------|----------------:|------------------:|
+| phi4-mini-reasoning | Dense 3.8B | ~2.4 GB | ~60-80 t/s | ~300+ t/s |
+| deepcoder:14b | Dense 14B | 9 GB | ~15-20 t/s | ~200+ t/s |
+| gpt-oss:20b | MoE 21B/3.6B | 13 GB | ~24-47 t/s | ~1,900 t/s |
+| glm-4.7-flash | MoE 30B/3B | 19 GB | ~20-35 t/s (est.) | ~1,000+ t/s (est.) |
+| qwen3-coder:30b | MoE 30B/3B | 18 GB | ~20-35 t/s (est.) | ~1,000+ t/s (est.) |
+| nemotron-3-nano | MoE 31.6B/3.2B | 24 GB | ~15-25 t/s (est.) | ~800+ t/s (est.) |
+
+Key observations:
+1. **MoE prompt processing is exceptionally fast** on CPU (gpt-oss:20b achieves ~1,940 t/s prompt eval) because the router + active expert computation is lightweight relative to the full parameter count.
+2. **MoE generation speed** is comparable to a dense model of the active parameter size (3-4B), not the total size. This makes MoE models excellent for CPU inference.
+3. **Dense 14B** (deepcoder) is slower for generation than MoE 30B models because it activates all 14B parameters per token, versus ~3B for MoE.
+
+### Memory bandwidth bottleneck
+
+On the Strix Halo, CPU memory bandwidth is ~84 GB/s (CPU to unified memory). For generation (which is memory-bandwidth bound), the theoretical maximum for a model that needs to read `W` GB of weights per token is `84 / W` tokens/second for the memory-read portion alone. For a dense 14B model (~9 GB weights in Q4), that is ~9 t/s minimum read overhead. MoE models only read the active expert weights (~1-2 GB effective), giving much better bandwidth utilization.
+
+### Sources
+- [Mixture of Experts Explained (Hugging Face)](https://huggingface.co/blog/moe)
+- [MoE Inference Challenges](https://apxml.com/courses/mixture-of-experts/chapter-5-moe-inference-optimization-deployment/moe-inference-challenges)
+- [llama.cpp MoE CPU Inference Guide](https://huggingface.co/blog/Doctor-Shotgun/llamacpp-moe-offload-guide)
+- [GMKTec EVO-X2 Benchmarks](https://nishtahir.com/gmktec-evo-x2-ryzen-ai-max-395-benchmarks/)
+- [Strix Halo LLM Benchmarks (Level1Techs)](https://forum.level1techs.com/t/strix-halo-ryzen-ai-max-395-llm-benchmark-results/233796)
+
+---
+
+## 4. Ollama API Features for Orchestration
+
+### Batch Requests
+
+**No native batch endpoint.** Ollama processes requests individually via `/api/generate` and `/api/chat`. However, you can achieve batching through:
+- `OLLAMA_NUM_PARALLEL=N`: Allows N concurrent requests to the same model (shares KV cache memory, multiplied by N)
+- Concurrent HTTP requests: Send multiple requests in parallel; Ollama queues them internally (up to `OLLAMA_MAX_QUEUE=512`)
+
+### Priority Queuing
+
+**No built-in priority queue.** All requests are processed FIFO. You must implement priority routing at the orchestration layer (which Cohezion's `dynamic_model_router.py` already does with `IDEPriority`).
+
+### Model Preloading/Warming
+
+**Yes.** Send an empty prompt to load the model:
+```python
+import httpx
+# Preload model (non-blocking once loaded)
+httpx.post("http://localhost:11434/api/generate", json={
+    "model": "glm-4.7-flash",
+    "keep_alive": -1  # Keep loaded indefinitely
+})
+```
+
+### Structured Output / JSON Mode
+
+**Yes.** Use the `format` parameter:
+```python
+# JSON schema enforcement
+response = httpx.post("http://localhost:11434/api/chat", json={
+    "model": "qwen3-coder:30b",
+    "messages": [{"role": "user", "content": "List 3 colors"}],
+    "format": {
+        "type": "object",
+        "properties": {
+            "colors": {"type": "array", "items": {"type": "string"}}
+        },
+        "required": ["colors"]
+    }
+})
+```
+
+Simple JSON mode: `"format": "json"` in the request body.
+
+### Function Calling / Tool Use
+
+**Yes.** Supported via the `tools` parameter in `/api/chat`:
+```python
+response = httpx.post("http://localhost:11434/api/chat", json={
+    "model": "qwen3-coder:30b",
+    "messages": [{"role": "user", "content": "What's the weather in Paris?"}],
+    "tools": [{
+        "type": "function",
+        "function": {
+            "name": "get_weather",
+            "description": "Get weather for a location",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location": {"type": "string", "description": "City name"}
+                },
+                "required": ["location"]
+            }
+        }
+    }]
+})
+```
+
+Models that support tools are tagged with a "tools" badge on the Ollama registry. The parser uses structural understanding (not just JSON extraction) for reliable tool call detection. **Streaming tool calls are also supported.**
+
+### Keep-Alive Control Per Request
+
+**Yes.** Every `/api/generate` and `/api/chat` request accepts `keep_alive`:
+```python
+# Keep loaded for 1 hour after this request
+{"model": "glm-4.7-flash", "prompt": "...", "keep_alive": "1h"}
+
+# Unload immediately after response
+{"model": "phi4-mini-reasoning", "prompt": "...", "keep_alive": 0}
+```
+
+### Sources
+- [Ollama API Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md)
+- [Ollama Tool Calling](https://docs.ollama.com/capabilities/tool-calling)
+- [Ollama Structured Outputs](https://ollama.com/blog/structured-outputs)
+- [Ollama Streaming Tool Calls](https://ollama.com/blog/streaming-tool)
+- [Ollama Parallel Requests](https://www.glukhov.org/post/2025/05/how-ollama-handles-parallel-requests/)
+
+---
+
+## 5. Best Practices for Multi-Agent Local Orchestration
+
+### Agent-to-Model Assignment Strategy
+
+Based on research and your available models, the optimal assignment pattern is a **tiered specialization** approach:
+
+| Agent Role | Primary Model | Fallback Model | Rationale |
+|-----------|---------------|----------------|-----------|
+| **Router/Classifier** | phi4-mini-reasoning (3.8B) | - | Ultra-fast classification, ~60-80 t/s, always loaded |
+| **Reasoning/Planning** | glm-4.7-flash (30B MoE) | gpt-oss:20b | Strong reasoning, MoE efficiency |
+| **Coding** | qwen3-coder:30b (30B MoE) | deepcoder:14b | Specialized for code, MoE speed |
+| **General/Synthesis** | gpt-oss:20b (21B MoE) | phi4-mini-reasoning | Versatile, good throughput |
+| **Long-context Analysis** | nemotron-3-nano (1M ctx) | glm-4.7-flash-256k | Load on-demand only |
+| **Embeddings** | nomic-embed-text (274M) | snowflake-arctic-embed2 | Always loaded, minimal RAM |
+
+### Hot/Cold Model Rotation Pattern
+
+```
+TIER 1 - ALWAYS HOT (permanently loaded, keep_alive=-1):
+  - phi4-mini-reasoning  (~4 GB)  -- router, fast decisions
+  - nomic-embed-text     (~0.5 GB) -- embeddings, always needed
+  Total: ~4.5 GB
+
+TIER 2 - WARM (loaded on first use, keep_alive=30m):
+  - glm-4.7-flash        (~22 GB) -- reasoning tasks
+  - qwen3-coder:30b      (~21 GB) -- coding tasks
+  Total: ~43 GB (with Tier 1: ~48 GB)
+
+TIER 3 - COLD (loaded on-demand, keep_alive=5m):
+  - gpt-oss:20b          (~16 GB) -- general overflow
+  - deepcoder:14b        (~12 GB) -- coding fallback
+  - nemotron-3-nano      (~27 GB) -- long-context only
+  Total: loaded one at a time as needed
+```
+
+**Orchestration logic:**
+1. All requests hit the router (phi4-mini-reasoning) first for classification
+2. Router dispatches to warm Tier 2 model based on task type
+3. If Tier 2 model is overloaded (queue depth > threshold), escalate to Tier 3 fallback
+4. Monitor memory pressure; if >75%, force-unload Tier 3 models (`keep_alive: 0`)
+
+### Context Window Management Across Agents
+
+- **Default context:** 4K-8K tokens per agent request (minimizes KV cache pressure)
+- **Extended context:** Only for nemotron-3-nano when document analysis requires it
+- **Cross-agent context:** Use a shared context store (e.g., Cohezion's `SemanticCache`) rather than passing full context between agents
+- **KV cache optimization:** Set `OLLAMA_KV_CACHE_TYPE=q8_0` globally. This halves KV memory with negligible quality loss.
+
+With Q8_0 KV cache at 8K context:
+- 3B active MoE model: ~0.5 GB KV (vs 1 GB FP16)
+- 14B dense model: ~1 GB KV (vs 2 GB FP16)
+
+### Token Throughput Optimization
+
+1. **Use `OLLAMA_NUM_PARALLEL=2`** for the warm tier models. This doubles throughput at the cost of 2x KV cache memory per model (still affordable with Q8_0).
+2. **Batch similar requests** to the same model rather than alternating between models, to avoid context switching.
+3. **Streaming responses** reduce perceived latency for interactive use cases.
+4. **Set `num_ctx` explicitly** in requests to avoid allocating unnecessarily large context windows:
+```python
+{"model": "qwen3-coder:30b", "prompt": "...", "options": {"num_ctx": 4096}}
+```
+
+### Recommended Startup Sequence
+
+```bash
+# 1. Configure environment
+export OLLAMA_MAX_LOADED_MODELS=4
+export OLLAMA_NUM_PARALLEL=2
+export OLLAMA_KEEP_ALIVE="30m"
+export OLLAMA_FLASH_ATTENTION=1
+export OLLAMA_KV_CACHE_TYPE=q8_0
+
+# 2. Start Ollama
+systemctl restart ollama  # or: ollama serve
+
+# 3. Preload Tier 1 (always hot)
+curl -s http://localhost:11434/api/generate \
+  -d '{"model": "phi4-mini-reasoning", "keep_alive": -1}' &
+curl -s http://localhost:11434/api/generate \
+  -d '{"model": "nomic-embed-text", "keep_alive": -1}' &
+
+# 4. Preload Tier 2 (warm)
+curl -s http://localhost:11434/api/generate \
+  -d '{"model": "glm-4.7-flash", "keep_alive": -1}' &
+curl -s http://localhost:11434/api/generate \
+  -d '{"model": "qwen3-coder:30b", "keep_alive": -1}' &
+
+wait
+echo "All models loaded. Memory usage: $(free -h | grep Mem | awk '{print $3}')"
+```
+
+### Architecture Pattern: Model Pool Manager
+
+The pattern that works best for multi-agent orchestration is a **Model Pool Manager** that sits between agents and Ollama:
+
+```
+Agent Layer:  [Router] [Reasoner] [Coder] [Analyst]
+                  |         |         |        |
+                  v         v         v        v
+Pool Manager: ┌─────────────────────────────────────┐
+              │  Request Queue (priority-aware)      │
+              │  Model Affinity Map                  │
+              │  Memory Pressure Monitor             │
+              │  Load/Unload Controller              │
+              └─────────────────────────────────────┘
+                  |         |         |        |
+                  v         v         v        v
+Ollama:       [phi4]   [glm-4.7] [qwen3] [nomic]
+```
+
+This is essentially what Cohezion's `OllamaModelManager` (at `/home/mike-anderson/dev/cohezion/src/cohezion/swarm/model_manager.py`) and `DynamicModelRouter` (at `/home/mike-anderson/dev/cohezion/src/cohezion/swarm/dynamic_model_router.py`) already implement. The model manager tracks per-model per-task metrics (latency, quality, confidence) and the dynamic router enforces the global concurrency limit of 4 with memory-bandwidth-aware tier selection.
+
+### Sources
+- [Agentic AI with Ollama](https://adspyder.io/blog/agentic-ai-with-ollama/)
+- [LangGraph + MCP + Ollama Integration](https://dasroot.net/posts/2026/01/integrating-langgraph-mcp-ollama-agentic-ai/)
+- [Multi-Agent Systems with CrewAI and Ollama](https://www.analyticsvidhya.com/blog/2024/09/build-multi-agent-system/)
+- [Ollama Parallel Requests Explained](https://www.glukhov.org/post/2025/05/how-ollama-handles-parallel-requests/)
+- [Strix Halo LLM Workflows](https://medium.com/@REDACTED)
+
+---
+
+## Summary: Key Numbers at a Glance
+
+| Metric | Value |
+|--------|-------|
+| **Usable RAM for models** | ~122 GB (of 128 GB) |
+| **Optimal concurrent models** | 4 (Tier 1+2 = ~48 GB total) |
+| **Cold-start latency (19 GB model, NVMe)** | ~45-60 seconds |
+| **Generation speed (MoE 30B/3B active, CPU)** | ~20-35 t/s |
+| **Generation speed (Dense 14B, CPU)** | ~15-20 t/s |
+| **Generation speed (Dense 3.8B, CPU)** | ~60-80 t/s |
+| **Prompt processing (MoE 20B, CPU)** | ~1,940 t/s |
+| **KV cache savings with Q8_0** | 50% reduction |
+| **Memory bandwidth (CPU)** | ~84 GB/s |
+| **Global concurrency limit** | 4 models max |
+| **Keep-alive default** | 5 min (set to 30m or -1) |
+| **Queue capacity** | 512 requests |</result>
+<usage>total_tokens: 61444
+tool_uses: 29
+duration_ms: 240787</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/a4300ad.output
+
+---
+
+<task-notification>
+<task-id>b45d837</task-id>
+<output-file>REDACTED.output</output-file>
+<status>completed</status>
+<summary>Background command "Pull deepcoder 14B model" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: REDACTED.output
+
+---
+
+<task-notification>
+<task-id>b74b7c3</task-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b74b7c3.output</output-file>
+<status>completed</status>
+<summary>Background command "Pull nemotron-3-nano model" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b74b7c3.output
+
+---
+
+let's start on phase 1
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Analysis:
+Let me chronologically analyze the conversation:
+
+1. **Context from previous session (Session 58)**: The conversation was continued from a previous session that implemented an Experience → VAE Training Pipeline (7 files created, 1 modified), researched SOTA SLMs, pulled 4 new models, and started researching agent orchestration.
+
+2. **Session continuation**: The assistant picked up where it left off, retrieving outputs from two completed research agents:
+   - Agent a4300ad: Research Ollama multi-model orchestration (memory management, concurrent model combinations, MoE vs dense inference)
+   - Agent a80fc3d: Deep-dive existing Cohezion orchestration code (4-level hierarchy, routing pipeline, concurrency control)
+
+3. **Synthesis phase**: The assistant read current config files (CompoundConfig, OllamaGate, DynamicModelRouter, CostAwareRouter) and synthesized findings into:
+   - A 3-Tier Hot/Warm/Cold model rotation design
+   - Updated operation→model mappings
+   - Updated EDL agent→model mappings
+   - Ollama environment configuration
+   - Logged decision and pattern to vault
+   - Created 6-phase long-horizon roadmap in vault
+
+4. **User request "let's start on phase 1"**: User explicitly asked to begin Phase 1 of the roadmap.
+
+5. **Phase 1 implementation work**:
+   - Created worktree (initially from wrong branch `session-55-test-fixes-main` which only had skills/, fixed by recreating from `main`)
+   - Updated CompoundConfig: analyze→glm-4.7-flash, search→phi4-mini-reasoning, default→phi4-mini-reasoning
+   - Updated TeamOrchestrator: reason/plan→glm-4.7-flash, verify/test→phi4-mini-reasoning
+   - Expanded CostAwareRouter: Added 6 new model profiles, updated complexity→model mapping, updated optimization logic, renamed statistics fields
+   - Created scripts/ollama_env.sh and scripts/preload_models.sh
+   - Updated compound_driver.py default model
+   - Updated test files for new model names and field names
+   - Spawned subagent to update test assertions across 3 test files
+
+6. **Test results**: After all updates, 99/101 tests pass. 2 remaining failures due to SessionCostTracker having a default cost rate of 0.015/1K tokens for unknown models (phi4-mini-reasoning isn't in its model_costs dict).
+
+7. **Current state**: The assistant discovered that `SessionCostTracker.track_usage_fast()` uses `self.model_costs.get(model, 0.015)` — a conservative default of $0.015/1K tokens for unknown models. Since `phi4-mini-reasoning` isn't registered in the tracker's model_costs dict, it calculates a non-zero cost, causing 2 test failures.
+
+Let me catalog all files and their changes:
+
+**Files modified in session-59 worktree:**
+1. `src/cohezion/compound/config.py` - Updated operation model map and default model
+2. `src/cohezion/swarm/team_orchestrator.py` - Updated task model map
+3. `src/cohezion/swarm/cost_aware_router.py` - Major expansion of model profiles, routing logic, statistics
+4. `scripts/compound_driver.py` - Updated default model from phi3:mini to phi4-mini-reasoning
+5. `tests/swarm/test_cost_aware_router.py` - Updated assertions for new model names
+6. `tests/swarm/test_cost_aware_router_v2.py` - Updated assertions for new model names
+7. `tests/swarm/test_aggressive_cost_optimization.py` - Updated assertions for new model names
+8. `tests/test_compound_driver.py` - Updated default model assertion
+
+**Files created:**
+1. `scripts/ollama_env.sh` - Ollama environment configuration
+2. `scripts/preload_models.sh` - Model preloading script
+
+**Vault entries created:**
+1. `decisions/2026-02-14-agent-orchestration-design-3-tier-hotwarmcold-model-rotation.md`
+2. `patterns/3-tier-hotwarmcold-model-rotation-for-local-llm-orchestration.md`
+3. `projects/local-agent-orchestration-roadmap.md`
+
+**Key error discovered but not yet fixed:**
+- `SessionCostTracker.track_usage_fast()` at line 153 uses `self.model_costs.get(model, 0.015)` — 0.015 default for unknown models
+- New model names (phi4-mini-reasoning, glm-4.7-flash, etc.) aren't registered in the tracker, causing non-zero costs
+- This causes 2 test failures where assertions check `total_cost_usd == 0.0`
+
+Summary:
+1. Primary Request and Intent:
+   - **Continued from Session 58**: Previous session implemented Experience → VAE Training Pipeline (7 files, 5/5 tests), pulled 4 new SOTA models (phi4-mini-reasoning, deepcoder:14b, nemotron-3-nano, snowflake-arctic-embed2), and launched 2 research agents for agent orchestration design.
+   - **Research synthesis**: Retrieve and synthesize findings from two completed research agents (a4300ad: Ollama multi-model orchestration, a80fc3d: existing Cohezion orchestration code) into a concrete agent orchestration design.
+   - **Long-horizon roadmap**: Create a 6-phase roadmap for local agent orchestration from foundation through full swarm autonomy.
+   - **Phase 1 implementation**: User explicitly said "let's start on phase 1" — update CompoundConfig, CostAwareRouter, TeamOrchestrator model mappings, create Ollama env config, and create model preload script.
+
+2. Key Technical Concepts:
+   - **3-Tier Hot/Warm/Cold Model Rotation**: Tier 1 always hot (phi4-mini-reasoning ~4GB + nomic-embed ~0.5GB), Tier 2 warm (glm-4.7-flash ~22GB + qwen3-coder:30b ~21GB), Tier 3 cold on-demand (gpt-oss:20b, deepcoder:14b, nemotron-3-nano)
+   - **MoE vs Dense inference**: MoE models load ALL params into RAM but only activate ~3B per token → 30B quality at 3B speed (~20-35 t/s gen on CPU). Dense 14B is slower than MoE 30B.
+   - **Ollama environment tuning**: OLLAMA_MAX_LOADED_MODELS=4, OLLAMA_NUM_PARALLEL=2, OLLAMA_KEEP_ALIVE=30m, OLLAMA_FLASH_ATTENTION=1, OLLAMA_KV_CACHE_TYPE=q8_0
+   - **Strix Halo benchmarks**: phi4-mini ~60-80 t/s gen, MoE 30B ~20-35 t/s gen, gpt-oss:20b ~1940 t/s prompt processing, ~84 GB/s memory bandwidth
+   - **4-level orchestration hierarchy**: CompoundExecutor → TeamExecutor → TeamOrchestrator → ExecutionOrchestrator
+   - **CostAwareRouter RoutingStatistics**: Renamed fields from model-specific (phi3_routed, qwen_routed, deepseek_routed) to generic (fast_model_routed, medium_model_routed, heavy_model_routed)
+   - **SessionCostTracker default rate**: Uses `model_costs.get(model, 0.015)` — $0.015/1K default for unknown models, causing cost calculation issues with new model names
+
+3. Files and Code Sections:
+
+   - **`/home/mike-anderson/dev/cohezion-session-59/src/cohezion/compound/config.py`** (MODIFIED)
+     - Updated operation→model routing for compound executor
+     ```python
+     _DEFAULT_OPERATION_MODELS: dict[str, str] = {
+         "generate": "qwen3-coder:30b",
+         "analyze": "glm-4.7-flash",       # was phi3:mini
+         "search": "phi4-mini-reasoning",   # was phi3:mini
+         "transform": "",
+         "persist": "",
+     }
+     # default_model changed from "phi3:mini" to "phi4-mini-reasoning"
+     ```
+
+   - **`/home/mike-anderson/dev/cohezion-session-59/src/cohezion/swarm/team_orchestrator.py`** (MODIFIED)
+     - Updated task type→model mapping for team plan generation
+     ```python
+     _TASK_MODEL_MAP: dict[str, str] = {
+         "verify": "phi4-mini-reasoning",    # was phi3:mini
+         "test": "phi4-mini-reasoning",      # was phi3:mini
+         "lint": "phi4-mini-reasoning",      # was phi3:mini
+         "code": "qwen3-coder:30b",          # unchanged
+         "implement": "qwen3-coder:30b",     # unchanged
+         "refactor": "qwen3-coder:30b",      # unchanged
+         "reason": "glm-4.7-flash",          # was deepseek-r1:70b
+         "architect": "glm-4.7-flash",       # was deepseek-r1:70b
+         "plan": "glm-4.7-flash",            # was deepseek-r1:70b
+         "research": "glm-4.7-flash",        # was deepseek-r1:70b
+     }
+     ```
+
+   - **`/home/mike-anderson/dev/cohezion-session-59/src/cohezion/swarm/cost_aware_router.py`** (MODIFIED - major changes)
+     - Expanded MODEL_COSTS, MODEL_QUALITY, MODEL_TPS, MODEL_LATENCY dicts from 3 models to 9 (6 new + 3 legacy)
+     - Updated select_model complexity→model: SIMPLE→phi4-mini-reasoning, MEDIUM→qwen3-coder:30b, COMPLEX→glm-4.7-flash
+     - Updated _optimize_model_selection to reference new model names
+     - Renamed RoutingStatistics fields: phi3_routed→fast_model_routed, qwen_routed→medium_model_routed, deepseek_routed→heavy_model_routed
+     - Updated success tracking: _phi3_success_count→_fast_model_success_count, _qwen_success_count→_medium_model_success_count
+     - Updated _tune_thresholds_based_on_success to use generic variable names
+     - Updated get_statistics to aggregate across model categories
+     ```python
+     MODEL_QUALITY = {
+         "phi4-mini-reasoning": 0.75,
+         "glm-4.7-flash": 0.90,
+         "qwen3-coder:30b": 0.88,
+         "gpt-oss:20b": 0.85,
+         "deepcoder:14b": 0.82,
+         "nemotron-3-nano": 0.80,
+         "phi3:mini": 0.6,        # legacy
+         "qwen3-coder:32b": 0.85, # legacy
+         "deepseek-r1:8b": 0.70,  # legacy
+     }
+     MODEL_TPS = {
+         "phi4-mini-reasoning": 70.0,
+         "glm-4.7-flash": 25.0,
+         "qwen3-coder:30b": 25.0,
+         "gpt-oss:20b": 35.0,
+         "deepcoder:14b": 17.0,
+         "nemotron-3-nano": 20.0,
+         # ... legacy entries
+     }
+     ```
+
+   - **`/home/mike-anderson/dev/cohezion-session-59/scripts/compound_driver.py`** (MODIFIED)
+     - All occurrences of `phi3:mini` replaced with `phi4-mini-reasoning` (default model in run_compound_cycle and argparse)
+
+   - **`/home/mike-anderson/dev/cohezion-session-59/scripts/ollama_env.sh`** (CREATED)
+     - Environment configuration for Ollama with KV cache quantization, flash attention, parallel requests
+
+   - **`/home/mike-anderson/dev/cohezion-session-59/scripts/preload_models.sh`** (CREATED)
+     - Model preloading script with Tier 1 (always hot) and Tier 2 (warm) preloading via curl to Ollama API
+
+   - **`/home/mike-anderson/dev/cohezion-session-59/tests/swarm/test_cost_aware_router.py`** (MODIFIED)
+     - Updated assertions: phi3:mini→phi4-mini-reasoning, qwen3-coder:32b→qwen3-coder:30b, deepseek-r1:8b→glm-4.7-flash
+     - Updated stats field references: phi3_routed→fast_model_routed, qwen_routed→medium_model_routed, deepseek_routed→heavy_model_routed
+
+   - **`/home/mike-anderson/dev/cohezion-session-59/tests/swarm/test_cost_aware_router_v2.py`** (MODIFIED)
+     - Same assertion updates as above across ~10 locations
+
+   - **`/home/mike-anderson/dev/cohezion-session-59/tests/swarm/test_aggressive_cost_optimization.py`** (MODIFIED)
+     - Same assertion updates, model name references in TPS comparisons updated
+
+   - **`/home/mike-anderson/dev/cohezion-session-59/tests/test_compound_driver.py`** (MODIFIED)
+     - `assert args.model == "phi3:mini"` → `assert args.model == "phi4-mini-reasoning"`
+
+   - **`/home/mike-anderson/dev/cohezion-session-59/src/cohezion/cost_optimization/cost_tracker.py`** (READ, not yet modified)
+     - Line 153: `cost_per_1k = self.model_costs.get(model, 0.015)` — conservative default $0.015/1K for unknown models
+     - This is the root cause of the 2 remaining test failures
+
+   - **Vault entries created**:
+     - `decisions/2026-02-14-agent-orchestration-design-3-tier-hotwarmcold-model-rotation.md`
+     - `patterns/3-tier-hotwarmcold-model-rotation-for-local-llm-orchestration.md`
+     - `projects/local-agent-orchestration-roadmap.md` (6-phase roadmap)
+     - `daily/2026-02-14-session-1f75c2d8.md` (session state)
+
+4. Errors and fixes:
+   - **Worktree created from wrong branch**: Created session-59 worktree from `session-55-test-fixes-main` which only contained `src/cohezion/skills/` (not the full source). Fixed by removing worktree and recreating from `main` branch: `git worktree add ... -b session-59-model-roster-update main`
+   - **Missing pytest in worktree venv**: `uv run pytest` failed with "No such file or directory". Fixed with `uv pip install pytest pytest-asyncio`
+   - **Missing psutil dependency**: `ModuleNotFoundError: No module named 'psutil'`. Fixed with `uv pip install psutil httpx aiohttp surrealdb pydantic`
+   - **Missing docker dependency**: `ModuleNotFoundError: No module named 'docker.errors'`. Fixed with `uv pip install docker`
+   - **Still needed all dev deps**: Ran `uv pip install -e ".[dev]"` to get everything
+   - **20 test failures from hardcoded model names**: Tests asserted specific old model names (phi3:mini, qwen3-coder:32b, deepseek-r1:8b). Fixed by spawning subagent to update all assertions across 3 test files.
+   - **2 remaining test failures (NOT YET FIXED)**: `SessionCostTracker.track_usage_fast()` uses default rate `0.015` for unknown models. When `phi4-mini-reasoning` is passed to `record_execution()`, the cost tracker doesn't know this model and charges $0.015/1K tokens instead of $0.00. This causes `assert session_cost["total_cost_usd"] == 0.0` and `assert stats.total_cost_usd == 0.0` to fail.
+
+5. Problem Solving:
+   - **Synthesized two research agents' findings** into concrete 3-tier model rotation architecture with specific memory budgets, generation speeds, and Ollama configuration
+   - **Identified stale model references** across 4 source files and 4 test files, systematically updated all
+   - **RoutingStatistics redesign**: Changed from model-specific fields to category-based aggregation (fast/medium/heavy) for forward compatibility as models change
+   - **Remaining issue**: SessionCostTracker's `model_costs` dict needs to include new model names with $0.00 rates, OR the default rate should be 0.0 for local models
+
+6. All user messages:
+   - (Conversation resumed from context compaction with full prior session summary)
+   - (Several task-notification system messages confirming background model pulls completed - snowflake-arctic-embed2, phi4-mini-reasoning, deepcoder:14b, nemotron-3-nano)
+   - (Research agent completion notifications - a80fc3d and a4300ad)
+   - **"let's start on phase 1"** — User's explicit request to begin Phase 1 of the roadmap
+
+7. Pending Tasks:
+   - **Fix 2 remaining test failures**: SessionCostTracker needs new model names registered with $0.00 cost rates (in `src/cohezion/cost_optimization/cost_tracker.py`)
+   - **Run broader test suite** to verify no regressions beyond the targeted files
+   - **Commit the Phase 1 changes** to session-59 branch
+   - **Phases 2-6 of the roadmap** (future sessions): ModelPoolManager, specialized agent PRIME skills, autonomous compound loop, long-context specialization, full swarm autonomy
+
+8. Current Work:
+   Implementing Phase 1 of the Local Agent Orchestration Roadmap in worktree `/home/mike-anderson/dev/cohezion-session-59` on branch `session-59-model-roster-update` (based on `main`). All source file changes are complete (CompoundConfig, TeamOrchestrator, CostAwareRouter, compound_driver, ollama_env.sh, preload_models.sh). Test assertions have been updated. Currently at **99/101 tests passing** with 2 failures remaining:
+   
+   1. `tests/swarm/test_cost_aware_router.py::TestCostAwareRouterIntegration::test_integration_with_session_tracker` — asserts `session_cost["total_cost_usd"] == 0.0` but gets non-zero because `phi4-mini-reasoning` isn't in SessionCostTracker's model_costs dict
+   2. `tests/swarm/test_cost_aware_router_v2.py::TestCostReductionTarget30Percent::test_cost_reduction_on_real_workload` — asserts `stats.total_cost_usd == 0.0` but gets 0.21 for the same reason
+
+   Root cause identified at `src/cohezion/cost_optimization/cost_tracker.py` line 153:
+   ```python
+   cost_per_1k = self.model_costs.get(model, 0.015)  # Conservative default
+   ```
+   New model names aren't registered, so they get the $0.015/1K default rate instead of $0.00.
+
+9. Optional Next Step:
+   Fix the 2 remaining test failures by updating `SessionCostTracker` in `src/cohezion/cost_optimization/cost_tracker.py` to include the new model names (phi4-mini-reasoning, glm-4.7-flash, qwen3-coder:30b, gpt-oss:20b, deepcoder:14b, nemotron-3-nano) with $0.00 cost rates. Then re-run tests to confirm 101/101 passing. This is directly in line with the user's request to "let's start on phase 1" — all Phase 1 config changes are done, just need to fix this last cost tracking issue to get tests green.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.REDACTED.jsonl
+Please continue the conversation from where we left off without asking the user any further questions. Continue with the last task that you were asked to work on.
+
+---
+
+Plan a long horizon task utilizing them orchestrated as a team and then adversarial check their work with haiku, sonnet, and opus.
+
+---
+
+[Request interrupted by user for tool use]
