@@ -52,7 +52,7 @@ export class SurrealDBClient {
    * @param query SurrealQL query string
    * @returns Query result
    */
-  private async executeQuery(query: string): Promise<any> {
+  async executeQuery(query: string): Promise<any> {
     try {
       const response = await fetch(`${this.baseUrl}/sql`, {
         method: 'POST',
@@ -391,5 +391,126 @@ export class SurrealDBClient {
       size: this.queryCache.size,
       ttl: this.cacheTTL,
     };
+  }
+
+  /**
+   * Store quality scores for decisions
+   * @param scoredDecisions Array of decisions with quality_score
+   * @returns Success count
+   */
+  async storeQualityScores(scoredDecisions: any[]): Promise<number> {
+    try {
+      let updateCount = 0;
+
+      for (const scored of scoredDecisions) {
+        const query = `
+          UPDATE decisions
+          SET quality_score = ${scored.overall_score}
+          WHERE id = '${scored.id}'
+        `;
+
+        const result = await this.executeQuery(query);
+        if (result && Array.isArray(result) && result.length > 0) {
+          updateCount++;
+        }
+      }
+
+      console.log(`Quality scores stored for ${updateCount} decisions`);
+      this.clearCache(); // Invalidate cache after updates
+
+      return updateCount;
+    } catch (error) {
+      console.error('Failed to store quality scores:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Query decisions for quality scoring
+   * Retrieves all decisions with their reasoning chains, alternatives, and assumptions
+   * @returns Array of decisions ready for scoring
+   */
+  async queryAllDecisionsForScoring(): Promise<Decision[]> {
+    const cacheKey = 'all-decisions:scoring';
+
+    return this.getCachedOrQuery(cacheKey, async () => {
+      try {
+        const query = `
+          SELECT * FROM decisions
+          ORDER BY timestamp DESC
+        `;
+
+        const result = await this.executeQuery(query);
+
+        if (!result || !Array.isArray(result)) {
+          return [];
+        }
+
+        return result.map((row: any) => ({
+          id: row.id,
+          title: row.title || '',
+          chosen_option: row.chosen_option || '',
+          rationale: row.rationale || '',
+          reasoning_type: row.reasoning_type || 'hybrid',
+          confidence_score: row.confidence_score || 0.5,
+          reasoning_chain: row.reasoning_chain || {
+            id: `chain-${row.id}`,
+            decision_id: row.id,
+            steps: [],
+            reasoning_type: row.reasoning_type || 'hybrid',
+            confidence: row.confidence_score || 0.5,
+            assumptions: row.assumptions || [],
+            timestamp: new Date().toISOString(),
+          },
+          alternatives_rejected: row.alternatives_rejected || [],
+          related_papers: row.related_papers || [],
+          status: row.status || 'active',
+          timestamp: row.timestamp || new Date().toISOString(),
+          vault_path: row.vault_path,
+        } as Decision));
+      } catch (error) {
+        console.error('Failed to query all decisions for scoring:', error);
+        return [];
+      }
+    });
+  }
+
+  /**
+   * Query contradictions count for all decisions
+   * @returns Map of decision_id -> contradiction count
+   */
+  async queryAllContradictionCounts(): Promise<Map<string, number>> {
+    const cacheKey = 'contradictions:all-counts';
+
+    const result = await this.getCachedOrQuery(cacheKey, async () => {
+      try {
+        const query = `
+          SELECT decision_id, count() as count
+          FROM decision_contradictions
+          GROUP BY decision_id
+        `;
+
+        const result = await this.executeQuery(query);
+
+        if (!result || !Array.isArray(result)) {
+          return [];
+        }
+
+        return result;
+      } catch (error) {
+        console.error('Failed to query contradiction counts:', error);
+        return [];
+      }
+    });
+
+    // Convert result array to Map
+    const map = new Map<string, number>();
+    (result as any[]).forEach((row: any) => {
+      if (row.decision_id && row.count) {
+        map.set(row.decision_id, row.count);
+      }
+    });
+
+    return map;
   }
 }
