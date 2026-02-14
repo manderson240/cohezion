@@ -150,6 +150,10 @@ cache/swarm/
 build_cache/
 dist/
 
+# Runtime Data (Database and Metrics)
+data/surrealdb/
+data/compound/metrics/
+
 # IDE/System Files
 .DS_Store
 .vscode/settings.json
