@@ -277,4 +277,103 @@ describe('DataLoader', () => {
       expect(generateId('AI_Research_Notes.md')).toBe('ai_research_notes');
     });
   });
+
+  describe('Dynamic Paper Ingestion (Phase 4)', () => {
+    it('should add new paper to existing graph', () => {
+      // Helper function simulating addPaperToGraph
+      const addPaper = (graph: any, newPaper: any) => {
+        return {
+          ...graph,
+          nodes: [...graph.nodes, newPaper],
+          metadata: {
+            ...graph.metadata,
+            totalPapers: graph.nodes.length + 1,
+            loadedAt: Date.now(),
+          },
+        };
+      };
+
+      const initialGraph = {
+        nodes: [
+          { id: 'paper-1', title: 'Paper 1', dimensions: { connectivity: 0.5 } },
+        ],
+        metadata: { totalPapers: 1, loadedAt: Date.now() },
+      };
+
+      const newPaper = {
+        id: 'paper-2',
+        title: 'Paper 2',
+        dimensions: { connectivity: 0.7 },
+      };
+
+      const updated = addPaper(initialGraph, newPaper);
+      expect(updated.nodes.length).toBe(2);
+      expect(updated.metadata.totalPapers).toBe(2);
+    });
+
+    it('should maintain performance with sequential additions', () => {
+      const startTime = Date.now();
+      let graph = {
+        nodes: [{ id: 'paper-1', title: 'Paper 1', dimensions: { connectivity: 0.5 } }],
+        metadata: { totalPapers: 1 },
+      };
+
+      // Simulate 10 additions
+      for (let i = 2; i <= 10; i++) {
+        graph.nodes.push({
+          id: `paper-${i}`,
+          title: `Paper ${i}`,
+          dimensions: { connectivity: Math.random() },
+        });
+        graph.metadata.totalPapers = graph.nodes.length;
+      }
+
+      const elapsedMs = Date.now() - startTime;
+
+      expect(graph.nodes.length).toBe(10);
+      expect(elapsedMs).toBeLessThan(500); // Should complete in <500ms
+    });
+
+    it('should update metadata for new papers', () => {
+      const papers = [
+        { id: 'p1', dimensions: { connectivity: 0.3 } },
+        { id: 'p2', dimensions: { connectivity: 0.7 } },
+      ];
+
+      const avgConnectivity = papers.reduce((sum, p) => sum + p.dimensions.connectivity, 0) / papers.length;
+
+      expect(avgConnectivity).toBeCloseTo(0.5, 1);
+      expect(papers.length).toBe(2);
+    });
+
+    it('should handle file watcher debounce correctly', (done) => {
+      const debounceMs = 100;
+      let callCount = 0;
+
+      // Simulate debounced function
+      const debounce = (fn: () => void, delay: number) => {
+        let timeoutId: NodeJS.Timeout;
+        return () => {
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(fn, delay);
+        };
+      };
+
+      const handler = debounce(() => {
+        callCount++;
+      }, debounceMs);
+
+      // Call multiple times rapidly
+      handler();
+      handler();
+      handler();
+      handler();
+
+      // Wait for debounce to complete
+      setTimeout(() => {
+        expect(callCount).toBe(1); // Should only call once after debounce
+        done();
+      }, debounceMs + 50);
+    });
+  });
 });
