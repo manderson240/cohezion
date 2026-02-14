@@ -104,6 +104,12 @@ class JourneyTracker:
     HASH_DIMS = 2048  # Intermediate hash dimension
     CHUNK_SIZE = 128  # Segment size for chunk-mean projection
 
+    # Maximum points in the recent trajectory buffer
+    TRAJECTORY_WINDOW = 20
+
+    # Maximum entries in the projection cache
+    MAX_CACHE_SIZE = 1000
+
     def __init__(self, seed: int = 42):
         """Initialize journey tracker.
 
@@ -111,11 +117,13 @@ class JourneyTracker:
             seed: Random seed for deterministic projections
         """
         self.seed = seed
-        np.random.seed(seed)
         self.rng = np.random.RandomState(seed)
 
         # Cache for projections
         self._projection_cache: dict[str, np.ndarray] = {}
+
+        # Recent trajectory points for real smoothness/convergence
+        self._recent_points: list[TrajectoryPoint] = []
 
         # Operation modulation profiles (12D vectors)
         self._modulation_profiles = self._create_modulation_profiles()
@@ -287,7 +295,10 @@ class JourneyTracker:
             np.max(result_12d) - np.min(result_12d) + 1e-8
         )
 
-        # Cache result
+        # Cache result (evict oldest if at capacity)
+        if len(self._projection_cache) >= self.MAX_CACHE_SIZE:
+            oldest_key = next(iter(self._projection_cache))
+            del self._projection_cache[oldest_key]
         self._projection_cache[latent_hash] = result_12d
 
         return result_12d
@@ -393,11 +404,18 @@ class JourneyTracker:
             projection_12d, operation_type, coherence, efficiency
         )
 
-        # Compute quality score
+        # Compute quality score using real trajectory history
+        smoothness = 0.5
+        convergence = 0.5
+        if len(self._recent_points) >= 2:
+            quality = self.compute_trajectory_quality(self._recent_points)
+            smoothness = quality["smoothness"]
+            convergence = quality["convergence"]
+
         phi_score = self._compute_phi_score(
             coherence=coherence,
-            smoothness=0.5,  # TODO: compute from trajectory history
-            convergence=0.5,  # TODO: compute from trajectory history
+            smoothness=smoothness,
+            convergence=convergence,
         )
 
         point = TrajectoryPoint(
@@ -414,14 +432,31 @@ class JourneyTracker:
             },
         )
 
+        # Maintain recent points buffer (capped at window size)
+        self._recent_points.append(point)
+        if len(self._recent_points) > self.TRAJECTORY_WINDOW:
+            self._recent_points = self._recent_points[-self.TRAJECTORY_WINDOW:]
+
         logger.debug(
-            "Tracked execution: %s (phi=%.2f, coherence=%.2f)",
+            "Tracked execution: %s (phi=%.2f, coherence=%.2f, "
+            "smoothness=%.2f, convergence=%.2f, buffer=%d)",
             task_description[:50],
             phi_score,
             coherence,
+            smoothness,
+            convergence,
+            len(self._recent_points),
         )
 
         return point
+
+    def get_last_point(self) -> TrajectoryPoint | None:
+        """Return the most recent trajectory point, or None if no points tracked."""
+        return self._recent_points[-1] if self._recent_points else None
+
+    def get_recent_point_count(self) -> int:
+        """Return the number of points in the recent trajectory buffer."""
+        return len(self._recent_points)
 
     def compute_trajectory_quality(
         self,
@@ -446,7 +481,9 @@ class JourneyTracker:
 
         coherences = np.array([p.coherence for p in points])
         efficiencies = np.array([p.efficiency for p in points])
-        phi_scores = np.array([p.metadata["phi_score"] for p in points])
+        phi_scores = np.array([
+            (p.metadata or {}).get("phi_score", 0.0) for p in points
+        ])
 
         # Compute smoothness (variance of dimension changes)
         dimensions = np.array([p.dimensions for p in points])

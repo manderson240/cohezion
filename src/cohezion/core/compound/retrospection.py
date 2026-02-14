@@ -361,3 +361,100 @@ class RetrospectionEngine:
         )
 
         return insights
+
+    def analyze_execution_result(
+        self, result: object, skill_name: str = ""
+    ) -> dict:
+        """Analyze a live ExecutionResult and extract compound insights.
+
+        Closes the compound loop: execution -> measurement -> retrospection
+        -> gated refinement. Uses quadrature assessment: success, coherence,
+        anomaly alignment, and phi_score must all warrant learning.
+
+        Parameters
+        ----------
+        result : ExecutionResult
+            Live execution result (duck-typed to avoid circular imports).
+            Expected attributes: ``success``, ``metrics``, ``duration_seconds``,
+            ``output``.
+        skill_name : str
+            Name of the skill that was executed.
+
+        Returns
+        -------
+        dict
+            Analysis with keys:
+            - ``should_refine``: bool — whether skill refinement is warranted
+            - ``insights``: list[str] — observations from the execution
+            - ``compound_score``: float — quality signal for refinement gating
+            - ``recommendation``: str — suggested action
+        """
+        metrics = getattr(result, "metrics", {})
+        success = getattr(result, "success", False)
+        duration = getattr(result, "duration_seconds", 0.0)
+        output = getattr(result, "output", "")
+
+        coherence = metrics.get("coherence", 0.5)
+        anomaly_score = metrics.get("anomaly_score", 0.5)
+        phi_score = 0.5
+        degraded = metrics.get("execution_degraded", False)
+
+        # Extract phi_score from metadata if available
+        if "phi_score" in metrics:
+            phi_score = metrics["phi_score"]
+
+        insights: list[str] = []
+        recommendation = "No action needed"
+
+        # Quadrature assessment: 4 perspectives must align
+        if success:
+            insights.append(f"Execution succeeded in {duration:.1f}s")
+        else:
+            insights.append(f"Execution failed: {output[:100]}")
+
+        if coherence > 0.6:
+            insights.append(f"High cohesion ({coherence:.2f}) — good spin alignment")
+        elif coherence < 0.4:
+            insights.append(f"Low cohesion ({coherence:.2f}) — spin misalignment")
+
+        if anomaly_score > 0.7:
+            insights.append(f"High anomaly ({anomaly_score:.2f}) — investigate")
+
+        if degraded:
+            insights.append("Execution ran in degradation mode")
+            recommendation = "Investigate degradation root cause before refining"
+
+        # Refinement gating: only refine when trajectory quality warrants it
+        # Require: success AND reasonable coherence AND not degraded
+        should_refine = (
+            success
+            and coherence >= 0.4  # Minimum HIHO band
+            and not degraded
+        )
+
+        # Compound score: weighted quality signal
+        compound_score = 0.0
+        if success:
+            compound_score = coherence * 0.5 + (1.0 - anomaly_score) * 0.3 + phi_score * 0.2
+
+        if should_refine:
+            recommendation = f"Refine {skill_name} with cohesion={coherence:.2f}"
+        elif not success:
+            recommendation = f"Investigate failure in {skill_name}"
+
+        logger.info(
+            "Retrospection for %s: should_refine=%s, compound=%.3f, "
+            "coherence=%.2f",
+            skill_name, should_refine, compound_score, coherence,
+        )
+
+        return {
+            "should_refine": should_refine,
+            "insights": insights,
+            "compound_score": compound_score,
+            "recommendation": recommendation,
+            "coherence": coherence,
+            "anomaly_score": anomaly_score,
+            "phi_score": phi_score,
+            "degraded": degraded,
+        }

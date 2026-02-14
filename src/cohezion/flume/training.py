@@ -11,6 +11,7 @@ import logging
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import torch
@@ -159,7 +160,7 @@ class FlumeVAETrainer:
             dataset,
             batch_size=self.config.batch_size,
             shuffle=True,
-            drop_last=True,
+            drop_last=len(dataset) > self.config.batch_size,
         )
 
         optimizer = optim.Adam(self._all_params, lr=self.config.lr)
@@ -233,3 +234,55 @@ class FlumeVAETrainer:
                 logger.info(f"Checkpoint saved: {path}")
 
         return epoch_metrics
+
+    def train_from_experiences(
+        self,
+        collector: Any | None = None,
+        max_samples: int = 100_000,
+        min_real_samples: int = 10,
+    ) -> list[dict]:
+        """Train VAE on real experience data from ExperienceCollector.
+
+        Connects ExperienceCollector -> ExperienceEncoder -> ExperienceDataset
+        -> VAE training. Falls back to synthetic data if insufficient real samples.
+
+        Parameters
+        ----------
+        collector : ExperienceCollector, optional
+            If None, creates a default collector.
+        max_samples : int
+            Maximum samples to collect.
+        min_real_samples : int
+            Minimum real samples required before falling back to synthetic.
+
+        Returns
+        -------
+        list[dict]
+            Per-epoch training metrics.
+        """
+        from cohezion.flume.experience_collector import ExperienceCollector
+        from cohezion.flume.experience_dataset import ExperienceDataset
+        from cohezion.flume.dataset import SyntheticFlumeDataset
+
+        if collector is None:
+            collector = ExperienceCollector()
+
+        # Collect real experiences
+        experiences = collector.collect_all(max_samples=max_samples)
+
+        if len(experiences) >= min_real_samples:
+            logger.info(
+                "Training VAE on %d real experience samples", len(experiences)
+            )
+            dataset = ExperienceDataset(experiences, seed=42)
+        else:
+            logger.warning(
+                "Only %d real samples (need %d). Falling back to synthetic data.",
+                len(experiences), min_real_samples,
+            )
+            dataset = SyntheticFlumeDataset(
+                n_samples=max(1000, self.config.batch_size * 20),
+                z_dim=self.config.z_dim,
+            )
+
+        return self.train(dataset=dataset)
