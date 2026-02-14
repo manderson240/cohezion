@@ -1,0 +1,53 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "ae25fcf1d19f",
+  "strategy": "manual-commit",
+  "branch": "session-55-test-fixes-main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "SESSION_55_PHASE_3_CHECKPOINT.md",
+    "data/checkpoints/test.json",
+    "data/surrealdb/LOG.old.1770785772426647",
+    "data/surrealdb/LOG.old.1770785777931629",
+    "data/surrealdb/LOG.old.1770785783653954",
+    "data/surrealdb/LOG.old.1770785789455845",
+    "data/surrealdb/LOG.old.1770785794930280",
+    "data/surrealdb/LOG.old.1770785800642578",
+    "data/surrealdb/LOG.old.1770785806166839",
+    "data/surrealdb/LOG.old.1770785811927039",
+    "data/surrealdb/LOG.old.1770785817439874",
+    "data/surrealdb/LOG.old.1770786359595332",
+    "data/surrealdb/LOG.old.1770786365438231",
+    "data/surrealdb/LOG.old.1770786370978316",
+    "data/surrealdb/LOG.old.1770786376651020",
+    "data/surrealdb/LOG.old.1770786382442949",
+    "data/surrealdb/LOG.old.1770786387973784",
+    "data/surrealdb/LOG.old.1770786393439683",
+    "data/surrealdb/LOG.old.1770786398977514",
+    "data/surrealdb/LOG.old.1770786404547270",
+    "data/surrealdb/MANIFEST-059569",
+    "data/surrealdb/MANIFEST-059989",
+    "data/surrealdb/OPTIONS-059567",
+    "data/surrealdb/OPTIONS-059571",
+    "data/surrealdb/OPTIONS-059987",
+    "data/surrealdb/OPTIONS-059991",
+    "src/cohezion/compound/journey_persistence.py",
+    "src/cohezion/compound/vault_execution_logger.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ae/25fcf1d19f/0/metadata.json",
+      "transcript": "/ae/25fcf1d19f/0/full.jsonl",
+      "context": "/ae/25fcf1d19f/0/context.md",
+      "content_hash": "/ae/25fcf1d19f/0/content_hash.txt",
+      "prompt": "/ae/25fcf1d19f/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 91,
+    "cache_creation_tokens": 165463,
+    "cache_read_tokens": 1495892,
+    "output_tokens": 15,
+    "api_call_count": 11
+  }
+}
