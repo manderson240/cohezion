@@ -1,0 +1,207 @@
+Implement the following plan:
+
+# ModelPoolManager + 3-Tier Adversarial Review
+
+## Context
+
+Phase 1 (just completed) updated the model roster to SOTA 2026 models (phi4-mini-reasoning, qwen3-coder:30b, glm-4.7-flash) with static routing in CostAwareRouter. But the router has no idea whether a model is actually loaded — it blindly routes to models that may not be in memory. Meanwhile, `DynamicModelRouter` has memory analysis and `OllamaModelManager` has benchmarking, but neither manages the hot/warm/cold lifecycle.
+
+**This session builds ModelPoolManager** — the runtime authority for model availability — then **adversarially reviews** all output using Claude haiku, sonnet, and opus as a 3-tier quality gate.
+
+## Task Dependency Graph
+
+```
+Wave 1 (parallel):
+  T1 [phi4-mini-reasoning]  Data models, enums, config schema
+  T2 [glm-4.7-flash]        Architecture design + PRIME skill
+
+Wave 2 (depends on T1, T2):
+  T3 [qwen3-coder:30b]      Core ModelPoolManager implementation
+  T4 [qwen3-coder:30b]      Health check + auto-promotion/demotion logic
+
+Wave 3 (depends on T3, T4):
+  T5 [qwen3-coder:30b]      CostAwareRouter integration (backward-compatible)
+  T6 [phi4-mini-reasoning]   Tests (12+ unit + integration)
+
+Wave 4 — Adversarial Review (depends on T5, T6, all in parallel):
+  T7 [Claude haiku]   Tier 1: Quick lint (imports, types, docstrings, test gaps)
+  T8 [Claude sonnet]  Tier 2: Deep review (concurrency, errors, edge cases, security)
+  T9 [Claude opus]    Tier 3: Architectural review (charter, compound loop, integration)
+
+Wave 5 (depends on T7-T9):
+  T10 Address findings, re-run tests, commit
+```
+
+## Files to Create
+
+### 1. `src/cohezion/swarm/model_pool_manager.py` (~200 lines)
+
+Core class. Reuses `MemoryBandwidthAnalyzer` from `dynamic_model_router.py` (line 60).
+
+```python
+class ModelTierPolicy(Enum):
+    HOT = "hot"    # Always loaded, keep_alive=-1
+    WARM = "warm"  # Loaded at startup, evictable under pressure
+    COLD = "cold"  # On-demand only, evicted after timeout
+
+@dataclass
+class PooledModel:
+    name: str
+    tier: ModelTierPolicy
+    size_gb: float
+    loaded: bool = False
+    healthy: bool = False
+    last_used: float = 0.0
+    error_count: int = 0
+    avg_latency_ms: float = 0.0
+
+class ModelPoolManager:
+    """Lifecycle manager for 3-tier hot/warm/cold model rotation."""
+
+    async def initialize(self) -> None           # Query /api/tags, reconcile with tier config
+    async def ensure_loaded(self, model) -> bool  # Load if needed, evict cold if pressured
+    async def health_check(self, model) -> bool   # Ping with trivial prompt, update status
+    async def health_check_all(self) -> dict      # Check all loaded models
+    def get_available_models(self) -> list         # Loaded + healthy models
+    async def evict_model(self, model) -> bool     # Unload via keep_alive=0
+    async def promote(self, model, tier) -> None   # cold→warm, warm→hot
+    async def demote_under_pressure(self) -> list  # Evict lowest-priority when memory > 80%
+    def get_pool_status(self) -> PoolStatus        # Summary snapshot
+```
+
+Default tier config matches `scripts/preload_models.sh`:
+- HOT: phi4-mini-reasoning, nomic-embed-text
+- WARM: glm-4.7-flash, qwen3-coder:30b
+- COLD: gpt-oss:20b, deepcoder:14b, nemotron-3-nano
+
+Uses httpx (already in deps) for Ollama API. Reuses `MemoryBandwidthAnalyzer.analyze_memory_pressure()`.
+
+### 2. `src/cohezion/swarm/model_pool_config.py` (~40 lines)
+
+Pydantic config + PoolStatus dataclass:
+```python
+class TierConfig(BaseModel):
+    hot_models: list[str]
+    warm_models: list[str]
+    cold_models: list[str]
+    max_concurrent_loaded: int = 4
+    health_check_interval_s: float = 300.0
+    memory_pressure_threshold: float = 0.80
+    promotion_threshold_calls: int = 10
+
+class PoolStatus(BaseModel):
+    loaded_models: list[str]
+    healthy_models: list[str]
+    total_memory_gb: float
+    memory_pressure: float
+    models: dict[str, dict]  # name → PooledModel as dict
+```
+
+### 3. `tests/swarm/test_model_pool_manager.py` (~200 lines, 12+ tests)
+
+Mock all httpx calls. Test classes:
+- `TestPooledModel` — creation, health transitions
+- `TestModelPoolManager` — initialize, ensure_loaded, health_check, evict, promote, demote
+- `TestPoolManagerIntegration` — integration with CostAwareRouter
+- `TestPoolManagerEdgeCases` — all unhealthy, 100% memory, Ollama unreachable
+
+### 4. `src/cohezion/skills/MODEL_POOL_MANAGEMENT_PRIME.md`
+
+PRIME skill definition codifying the pool management pattern.
+
+## Files to Modify
+
+### 5. `src/cohezion/swarm/cost_aware_router.py`
+
+Add optional `pool_manager` parameter (backward-compatible):
+```python
+def __init__(self, ..., pool_manager: ModelPoolManager | None = None):
+    self._pool_manager = pool_manager
+
+def select_model(self, query, ...):
+    # ... existing complexity analysis ...
+    # NEW: if pool_manager, check availability before returning
+    if self._pool_manager:
+        available = {m.name for m in self._pool_manager.get_available_models()}
+        if primary_model not in available:
+            primary_model = self._find_available_fallback(primary_model, available)
+```
+
+### 6. `src/cohezion/swarm/__init__.py` — add exports
+### 7. `tests/conftest.py` — add ModelPoolManager singleton reset
+
+## Model Assignment Rationale
+
+| Task | Model | Why |
+|------|-------|-----|
+| T1 Data models | phi4-mini-reasoning | Simple dataclasses/enums, 70 t/s fast |
+| T2 Architecture | glm-4.7-flash | Design reasoning, 0.90 quality |
+| T3 Core impl | qwen3-coder:30b | 200+ lines async Python, code gen strength |
+| T4 Health/promotion | qwen3-coder:30b | Complex state machine logic |
+| T5 Router integration | qwen3-coder:30b | Modifying existing async code |
+| T6 Tests | phi4-mini-reasoning | Follow established test patterns |
+
+## Adversarial Review Protocol
+
+### Tier 1 — Quick Lint (Claude haiku)
+
+Checks: import hygiene, type hints, docstrings, test count >= 12, obvious errors (missing await, bare except). Fast — under 60s.
+
+**Pass:** Zero blockers.
+
+### Tier 2 — Deep Code Review (Claude sonnet)
+
+Checks:
+1. Concurrency safety (race conditions in ensure_loaded?)
+2. Error handling (Ollama unreachable? model load fails?)
+3. Resource leaks (httpx clients closed?)
+4. Edge cases (all unhealthy, 100% memory, model stuck, unknown model)
+5. Backward compatibility (CostAwareRouter change breaks nothing?)
+6. Security (model name injection? timeouts enforced?)
+
+**Pass:** Zero critical issues.
+
+### Tier 3 — Architectural Review (Claude opus)
+
+Checks:
+1. Compound engineering (does this make future features easier?)
+2. HIHO coherence (are tier transitions reversible?)
+3. Charter compliance (observable, deterministic, honest metrics)
+4. Integration coherence with DynamicModelRouter, OllamaModelManager, DynamicConcurrencyGate
+5. Journey tracking (should pool emit 12D events?)
+6. Token efficiency (health check overhead justified?)
+
+**Pass:** No blocking concerns. Charter = ALIGNED. Compound score >= 0.7.
+
+### Combined Verdict
+
+```
+ALL PASS → PASS (merge ready)
+ANY CONDITIONAL_PASS → CONDITIONAL_PASS (fix conditions, then merge)
+ANY FAIL → FAIL (rework required)
+```
+
+## Verification
+
+```bash
+uv run pytest tests/swarm/test_model_pool_manager.py -v        # New tests pass
+uv run pytest tests/swarm/ -q                                   # No swarm regressions
+uv run python -c "from cohezion.swarm.model_pool_manager import ModelPoolManager"  # Import OK
+```
+
+## Key Integration Points
+
+- `src/cohezion/swarm/dynamic_model_router.py:60` — `MemoryBandwidthAnalyzer` (reuse for memory pressure)
+- `src/cohezion/swarm/model_manager.py:26` — `OLLAMA_HOST = "http://localhost:11434"` (reuse constant)
+- `src/cohezion/swarm/cost_aware_router.py:230` — `select_model()` complexity→model mapping (add pool check)
+- `scripts/preload_models.sh` — canonical tier assignments (pool config must match)
+- `tests/conftest.py` — singleton reset pattern (add ModelPoolManager)
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.REDACTED.jsonl
+
+If this plan can be broken down into multiple independent tasks, consider using the TeamCreate tool to create a team and parallelize the work.
+
+---
+
+retrospective, compact, commit revise plan with key learnings for next phases
