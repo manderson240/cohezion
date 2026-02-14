@@ -492,3 +492,121 @@ class TestIntegration:
         assert quality["mean_coherence"] > 0.75
         assert quality["smoothness"] > 0.0
         assert quality["convergence"] > 0.0
+
+
+# ---- Phase 4: Real smoothness/convergence for phi_score ----
+
+
+class TestRealPhiScore:
+    """Tests for real smoothness/convergence in phi_score (Phase 4)."""
+
+    def test_phi_score_differs_after_5_executions(self):
+        """phi_score differs from hardcoded calculation after 5+ executions."""
+        tracker = JourneyTracker(seed=42)
+        hardcoded_phi = tracker._compute_phi_score(0.85, 0.5, 0.5)
+
+        # Track 5 similar executions
+        for i in range(5):
+            result = ExecutionResult(
+                success=True,
+                output="output",
+                metrics={"coherence": 0.85},
+                duration_seconds=1.0,
+                token_metrics={"cache_hit_rate": 0.7},
+            )
+            point = tracker.track_execution(result, f"Task {i}", "generate")
+
+        # After 5 points, smoothness/convergence should differ from 0.5
+        last_phi = point.metadata["phi_score"]
+        # The phi_score should be different from hardcoded (using real values)
+        assert last_phi != pytest.approx(hardcoded_phi, abs=0.01)
+
+    def test_consistent_tasks_produce_high_smoothness(self):
+        """Consistent tasks (stable spin) produce smoothness > 0.7."""
+        tracker = JourneyTracker(seed=42)
+
+        for i in range(6):
+            result = ExecutionResult(
+                success=True,
+                output="output",
+                metrics={"coherence": 0.85},
+                duration_seconds=1.0,
+                token_metrics={"cache_hit_rate": 0.7},
+            )
+            tracker.track_execution(result, "Same task", "generate")
+
+        quality = tracker.compute_trajectory_quality(tracker._recent_points)
+        assert quality["smoothness"] > 0.7
+
+    def test_divergent_tasks_produce_lower_smoothness_than_consistent(self):
+        """Divergent tasks produce lower smoothness than consistent tasks."""
+        # Run consistent tasks
+        consistent_tracker = JourneyTracker(seed=42)
+        for i in range(5):
+            result = ExecutionResult(
+                success=True,
+                output="output",
+                metrics={"coherence": 0.5},
+                duration_seconds=1.0,
+                token_metrics={"cache_hit_rate": 0.7},
+            )
+            consistent_tracker.track_execution(result, "Same task", "generate")
+
+        consistent_quality = consistent_tracker.compute_trajectory_quality(
+            consistent_tracker._recent_points
+        )
+
+        # Run divergent tasks
+        divergent_tracker = JourneyTracker(seed=42)
+        ops = ["generate", "analyze", "search", "transform", "persist"]
+        for i in range(5):
+            result = ExecutionResult(
+                success=i % 2 == 0,
+                output="output",
+                metrics={"coherence": 0.2 + 0.15 * i},
+                duration_seconds=1.0 + i,
+                token_metrics={"cache_hit_rate": 0.1 * i},
+            )
+            divergent_tracker.track_execution(
+                result, f"Very different task {i * 100}", ops[i]
+            )
+
+        divergent_quality = divergent_tracker.compute_trajectory_quality(
+            divergent_tracker._recent_points
+        )
+
+        # Divergent tasks should have strictly lower smoothness
+        assert divergent_quality["smoothness"] < consistent_quality["smoothness"]
+
+    def test_stable_coherence_produces_high_convergence(self):
+        """Stable cohesion values produce convergence > 0.7."""
+        tracker = JourneyTracker(seed=42)
+
+        for i in range(5):
+            result = ExecutionResult(
+                success=True,
+                output="output",
+                metrics={"coherence": 0.5},  # Perfect HIHO
+                duration_seconds=1.0,
+                token_metrics={"cache_hit_rate": 0.7},
+            )
+            tracker.track_execution(result, "Stable task", "generate")
+
+        quality = tracker.compute_trajectory_quality(tracker._recent_points)
+        assert quality["convergence"] > 0.7
+
+    def test_buffer_caps_at_window_size(self):
+        """Buffer caps at TRAJECTORY_WINDOW (20 max)."""
+        tracker = JourneyTracker(seed=42)
+
+        for i in range(25):
+            result = ExecutionResult(
+                success=True,
+                output="output",
+                metrics={"coherence": 0.85},
+                duration_seconds=1.0,
+                token_metrics={"cache_hit_rate": 0.7},
+            )
+            tracker.track_execution(result, f"Task {i}", "generate")
+
+        assert len(tracker._recent_points) == tracker.TRAJECTORY_WINDOW

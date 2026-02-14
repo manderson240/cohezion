@@ -16,9 +16,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from cohezion.compound.vault_execution_logger import (
+from cohezion.compound.exp_persistence.vault import (
     ExecutionContext,
-    VaultExecutionLogger,
+    VaultLogger,
 )
 from cohezion.core.mcp_client import MCPClient
 from cohezion.security.guardrail_pipeline import GuardrailAction, GuardrailPipeline
@@ -98,6 +98,8 @@ class CompoundExecutor:
         enable_alignment_analysis: bool = False,
         degradation_detector: Any | None = None,
         model_quality_classifier: Any | None = None,
+        retrospection_engine: Any | None = None,
+        universe_bridge: Any | None = None,
     ):
         """Initialize compound executor.
 
@@ -132,6 +134,11 @@ class CompoundExecutor:
             model_quality_classifier: Optional ModelQualityClassifier for
                 predicting model failure likelihood. If None, no quality
                 classification.
+            retrospection_engine: Optional RetrospectionEngine for analyzing
+                live execution results and gating skill refinement.
+                If None, skill refinement is not gated by retrospection.
+            universe_bridge: Optional UniverseBridge for connecting journeys
+                to the universe simulation engine. If None, no universe tracking.
         """
         self.mcp_client = mcp_client
         self.token_client = token_client
@@ -146,13 +153,16 @@ class CompoundExecutor:
         self._enable_alignment_analysis = enable_alignment_analysis
         self._degradation_detector = degradation_detector
         self._model_quality_classifier = model_quality_classifier
+        self._retrospection_engine = retrospection_engine
+        self._universe_bridge = universe_bridge
+        self._degradation_mode = False  # HIHO band violation flag
         # Lazy import to avoid circular dependency
         if inflection_detector:
             self.inflection_detector = inflection_detector
         else:
             from cohezion.compound.inflection_detector import InflectionDetectorFactory
             self.inflection_detector = InflectionDetectorFactory.create_default()
-        self.logger = VaultExecutionLogger(mcp_client)
+        self.logger = VaultLogger(mcp_client=mcp_client)
 
     @property
     def guardrail_pipeline(self) -> GuardrailPipeline | None:
@@ -322,14 +332,26 @@ class CompoundExecutor:
             skill_name,
         )
 
+        # Start universe journey if bridge configured
+        universe_journey_id: str | None = None
+        if self._universe_bridge:
+            try:
+                universe_journey_id = self._universe_bridge.start_journey(
+                    task_description,
+                    execution_id=f"exec_{int(time.time())}_{skill_name}",
+                )
+            except Exception as e:
+                logger.debug("Universe bridge start failed (non-blocking): %s", e)
+
         # Step 1: Get experience guidance
         guidance = self.get_experience_guidance(task_description, project)
         logger.debug("Experience guidance: %s", guidance)
 
         # Step 1.5: Parse request for alignment analysis (if enabled)
+        # Skip in degradation mode to conserve resources
         parsed_request = None
         alignment_patterns = None
-        if self._enable_alignment_analysis and self.alignment_analyzer:
+        if self._enable_alignment_analysis and self.alignment_analyzer and not self._degradation_mode:
             try:
                 request_text = human_request or task_description
                 parsed_request = self.alignment_analyzer.parse_request(request_text)
@@ -555,8 +577,21 @@ class CompoundExecutor:
                     exc_info=True,
                 )
 
-        # Step 6: If successful, extract patterns
-        if success and experiment_path:
+        # Step 5.8: Compute real cohesion score from available signals
+        # Cohesion = overlap between agent's internal intent and precipitated result
+        cohesion_components: list[float] = []
+        # Precipitation success: did reality match intent?
+        cohesion_components.append(0.7 if success else 0.2)
+        # Spin alignment: inverse of anomaly score (low anomaly = high alignment)
+        # Default 0.0 = no anomaly detected (assume clean if detection unavailable)
+        cohesion_components.append(1.0 - metrics.get("anomaly_score", 0.0))
+        # Quadrature consensus: alignment with human request
+        if alignment_data := metrics.get("alignment", {}):
+            cohesion_components.append(alignment_data.get("intent_match", 0.5))
+        metrics["coherence"] = sum(cohesion_components) / len(cohesion_components)
+
+        # Step 6: If successful, extract patterns (skip in degradation mode)
+        if success and experiment_path and not self._degradation_mode:
             try:
                 pattern_path = self.logger.extract_execution_pattern(
                     source_path=experiment_path,
@@ -572,8 +607,37 @@ class CompoundExecutor:
             except Exception as e:
                 logger.warning("Failed to extract pattern: %s", e, exc_info=True)
 
+        # Step 7.3: Retrospection analysis (gates skill refinement)
+        retrospection_context: dict[str, Any] | None = None
+        should_refine = True  # default: refine if no retrospection engine
+        if self._retrospection_engine:
+            try:
+                temp_result = ExecutionResult(
+                    success=success,
+                    output=output,
+                    metrics=metrics,
+                    duration_seconds=duration_seconds,
+                    token_metrics=token_metrics,
+                )
+                retrospection_context = self._retrospection_engine.analyze_execution_result(
+                    temp_result, skill_name
+                )
+                should_refine = retrospection_context.get("should_refine", True)
+                if retrospection_context.get("insights"):
+                    metrics["retrospection_insights"] = retrospection_context["insights"]
+                logger.debug(
+                    "Retrospection: should_refine=%s, compound=%.3f",
+                    should_refine,
+                    retrospection_context.get("compound_score", 0.0),
+                )
+            except Exception as e:
+                logger.debug(
+                    "Retrospection failed (non-blocking): %s", e, exc_info=True
+                )
+
         # Step 7: Refine skills based on execution results (non-blocking)
-        if success and self.skill_refiner:
+        # Gated by retrospection: only refine when quadrature assessment warrants it
+        if success and self.skill_refiner and should_refine:
             try:
                 # Create execution result dict for refiner
                 exec_result = {
@@ -601,13 +665,21 @@ class CompoundExecutor:
                     "Skill refinement failed (non-blocking): %s", e, exc_info=True
                 )
 
-        # Step 7.5: Check for degradation (non-blocking)
+        # Step 7.5: Check for degradation and manage HIHO band (non-blocking)
+        # Coherence within HIHO band [0.4, 0.6] -> exit degradation mode
+        # Coherence outside band with CRITICAL alert -> enter degradation mode
+        coherence_val = metrics.get("coherence", 0.5)
+        if 0.4 <= coherence_val <= 0.6:
+            if self._degradation_mode:
+                logger.info("Cohesion returned to HIHO band (%.2f), exiting degradation mode", coherence_val)
+                self._degradation_mode = False
+
         if self._degradation_detector:
             try:
                 degradation_metrics = {
                     "combined_hit_rate": 0.0,
                     "tokens_per_second": 0.0,
-                    "mean_coherence": metrics.get("coherence", 0.5),
+                    "mean_coherence": coherence_val,
                     "elapsed_seconds": duration_seconds,
                     "success_rate": 1.0 if success else 0.0,
                 }
@@ -629,12 +701,20 @@ class CompoundExecutor:
                             alert.severity.value,
                             alert.message,
                         )
-                    # Log critical alerts to vault
+                    # Log critical alerts to vault and enter degradation mode
                     critical_alerts = [
                         a
                         for a in alerts
                         if a.severity.value == "CRITICAL"
                     ]
+                    if critical_alerts:
+                        self._degradation_mode = True
+                        metrics["execution_degraded"] = True
+                        logger.warning(
+                            "Entering degradation mode: %d CRITICAL alerts, "
+                            "cohesion=%.2f outside HIHO band",
+                            len(critical_alerts), coherence_val,
+                        )
                     for alert in critical_alerts:
                         try:
                             dp = self.log_inflection_point(
@@ -697,6 +777,7 @@ class CompoundExecutor:
                 logger.debug("Metrics recording failed (non-blocking): %s", e)
 
         # Step 9: Track journey (non-blocking)
+        journey_point_tracked = False
         if self._journey_tracker:
             try:
                 temp_result = ExecutionResult(
@@ -709,6 +790,10 @@ class CompoundExecutor:
                 point = self._journey_tracker.track_execution(
                     temp_result, task_description, operation_type
                 )
+                journey_point_tracked = True
+                # Propagate phi_score to metrics for retrospection
+                if point and point.metadata:
+                    metrics["phi_score"] = point.metadata.get("phi_score", 0.0)
                 if self._journey_persistence and point:
                     try:
                         point_data = {
@@ -741,6 +826,34 @@ class CompoundExecutor:
                         logger.debug("Journey persistence failed (non-blocking): %s", e)
             except Exception as e:
                 logger.debug("Journey tracking failed (non-blocking): %s", e)
+
+        # Step 9.5: Add trajectory point to universe bridge (non-blocking)
+        # Only proceed if Step 9 succeeded to avoid stale data
+        if self._universe_bridge and universe_journey_id and journey_point_tracked:
+            try:
+                if self._journey_tracker:
+                    last_point = self._journey_tracker.get_last_point()
+                    if last_point:
+                        self._universe_bridge.add_point(
+                            universe_journey_id, last_point,
+                            step_number=self._journey_tracker.get_recent_point_count(),
+                            action=operation_type,
+                        )
+            except Exception as e:
+                logger.debug("Universe bridge point failed (non-blocking): %s", e)
+
+        # Step 10: Complete universe journey (non-blocking)
+        if self._universe_bridge and universe_journey_id:
+            try:
+                phi = metrics.get("phi_score", 0.0)
+                self._universe_bridge.complete_journey(
+                    universe_journey_id,
+                    success=success,
+                    phi_score=phi,
+                    output=output[:500],
+                )
+            except Exception as e:
+                logger.debug("Universe bridge completion failed (non-blocking): %s", e)
 
         return ExecutionResult(
             success=success,
@@ -854,6 +967,8 @@ class ExecutorFactory:
         enable_alignment_analysis: bool = False,
         degradation_detector: Any | None = None,
         model_quality_classifier: Any | None = None,
+        retrospection_engine: Any | None = None,
+        universe_bridge: Any | None = None,
     ) -> CompoundExecutor:
         """Create a new compound executor.
 
@@ -872,6 +987,8 @@ class ExecutorFactory:
             enable_alignment_analysis: If True, enable alignment analysis
             degradation_detector: Optional DegradationDetector
             model_quality_classifier: Optional ModelQualityClassifier
+            retrospection_engine: Optional RetrospectionEngine
+            universe_bridge: Optional UniverseBridge
 
         Returns:
             CompoundExecutor instance
@@ -891,6 +1008,8 @@ class ExecutorFactory:
             enable_alignment_analysis=enable_alignment_analysis,
             degradation_detector=degradation_detector,
             model_quality_classifier=model_quality_classifier,
+            retrospection_engine=retrospection_engine,
+            universe_bridge=universe_bridge,
         )
 
     @staticmethod
@@ -909,6 +1028,8 @@ class ExecutorFactory:
         enable_alignment_analysis: bool = False,
         degradation_detector: Any | None = None,
         model_quality_classifier: Any | None = None,
+        retrospection_engine: Any | None = None,
+        universe_bridge: Any | None = None,
     ) -> CompoundExecutor:
         """Get or create singleton executor.
 
@@ -927,6 +1048,8 @@ class ExecutorFactory:
             enable_alignment_analysis: If True, enable alignment analysis
             degradation_detector: Optional DegradationDetector
             model_quality_classifier: Optional ModelQualityClassifier
+            retrospection_engine: Optional RetrospectionEngine
+            universe_bridge: Optional UniverseBridge
 
         Returns:
             Singleton CompoundExecutor instance
@@ -947,6 +1070,8 @@ class ExecutorFactory:
                 enable_alignment_analysis=enable_alignment_analysis,
                 degradation_detector=degradation_detector,
                 model_quality_classifier=model_quality_classifier,
+                retrospection_engine=retrospection_engine,
+                universe_bridge=universe_bridge,
             )
         return ExecutorFactory._instance
 
