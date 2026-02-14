@@ -117,3 +117,42 @@ dmypy.json
 .certs/
 certs/
 data/certificates/
+
+# === ARTIFACT GOVERNANCE (Session 57 Migration) ===
+# Large artifacts that should be stored in Tier 2/Tier 3 (SurrealDB/External)
+# See: CLAUDE.md "Data Storage Architecture for Simulations"
+
+# Simulation Artifacts (>50MB)
+data/flume/checkpoints/*.pt
+data/rl/checkpoints/*.pt
+data/compound/checkpoints/*.pt
+*.checkpoint
+*.model
+*.weights
+
+# Diagnostic/Log Files (can grow unbounded)
+src/diagnostics/*.log
+src/diagnostics/process_list.log
+logs/
+*.log.*
+
+# Large Data Files (document/analysis exports)
+src/cohezion/knowledge_graph/universe_nodes/*.jsonl
+src/cohezion/knowledge_graph/universe_nodes/*.parquet
+data/exports/
+data/universe_artifacts/
+
+# Cache/Temporary Build Artifacts
+.entire/
+cache/swarm/
+*.npy
+*.npz
+build_cache/
+dist/
+
+# IDE/System Files
+.DS_Store
+.vscode/settings.json
+*.swp
+*.swo
+*~
