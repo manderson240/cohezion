@@ -1,0 +1,10 @@
+{
+  "id": "3d-graph-plugin",
+  "name": "3D Graph Visualization",
+  "version": "0.1.0",
+  "minAppVersion": "0.15.0",
+  "description": "Interactive 3D visualization of paper relationships and semantic dimensions in the Cohezion vault",
+  "author": "Cohezion Team",
+  "authorUrl": "https://github.com/cohezion",
+  "isDesktopOnly": false
+}
