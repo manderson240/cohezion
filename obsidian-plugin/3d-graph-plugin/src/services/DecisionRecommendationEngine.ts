@@ -5,7 +5,16 @@
  */
 
 import { Decision, DecisionContradiction } from '../types/Decision';
-import { Paper } from '../types/Paper';
+
+/**
+ * Simple paper interface for recommendations (compatible with PaperNode)
+ */
+export interface PaperRef {
+  id: string;
+  title: string;
+  authors?: string[];
+  year?: number;
+}
 
 /**
  * Recommendation generated when a new paper impacts existing decisions
@@ -62,8 +71,8 @@ export class DecisionRecommendationEngine {
    * @returns Array of recommendations
    */
   static findRecommendations(
-    newPaper: Paper,
-    existingPapers: Paper[],
+    newPaper: PaperRef,
+    existingPapers: PaperRef[],
     decisions: Decision[],
     contradictions: DecisionContradiction[],
     paperEmbeddings: Map<string, number[]>
@@ -117,11 +126,11 @@ export class DecisionRecommendationEngine {
   private static findSimilarPapers(
     excludePaperId: string,
     targetEmbedding: number[],
-    papers: Paper[],
+    papers: PaperRef[],
     embeddings: Map<string, number[]>,
     topN: number = 3
-  ): Paper[] {
-    const similarities: Array<{ paper: Paper; score: number }> = [];
+  ): PaperRef[] {
+    const similarities: Array<{ paper: PaperRef; score: number }> = [];
 
     papers.forEach((paper) => {
       if (paper.id === excludePaperId) return;
@@ -143,7 +152,7 @@ export class DecisionRecommendationEngine {
   /**
    * Find decisions that reference the given papers
    */
-  private static findRelatedDecisions(papers: Paper[], decisions: Decision[]): Decision[] {
+  private static findRelatedDecisions(papers: PaperRef[], decisions: Decision[]): Decision[] {
     const paperIds = new Set(papers.map((p) => p.id));
     return decisions.filter(
       (decision) =>
@@ -155,10 +164,10 @@ export class DecisionRecommendationEngine {
    * Evaluate if a decision should be recommended for review
    */
   private static evaluateRecommendation(
-    newPaper: Paper,
+    newPaper: PaperRef,
     decision: Decision,
     contradictions: DecisionContradiction[],
-    similarPapers: Paper[]
+    similarPapers: PaperRef[]
   ): DecisionRecommendation | null {
     // Check if there are existing contradictions for this decision
     const decisionContradictions = contradictions.filter((c) => c.decision_id === decision.id);
@@ -218,9 +227,9 @@ export class DecisionRecommendationEngine {
    * Generate human-readable reason for recommendation
    */
   private static generateReason(
-    newPaper: Paper,
+    newPaper: PaperRef,
     decision: Decision,
-    similarPapers: Paper[],
+    similarPapers: PaperRef[],
     hasContradiction: boolean,
     type: string
   ): string {
@@ -263,7 +272,7 @@ export class DecisionRecommendationEngine {
    * Check if a new paper contradicts a specific decision
    */
   static evaluateContradiction(
-    newPaper: Paper,
+    newPaper: PaperRef,
     decision: Decision,
     newPaperText: string,
     decisionText: string

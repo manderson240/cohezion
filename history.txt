@@ -1,0 +1,4 @@
+#V2
+INFO FOR DB;
+-- Phase 2: Create agent_reasoning table
+INFO FOR DB;
