@@ -1,6 +1,12 @@
 import { App, TFile, Notice } from 'obsidian';
 import { GraphData, PaperNode, GraphEdge, Dimension, SimilarPaper } from './types/Paper';
 
+/** Configuration for dynamic paper ingestion */
+interface DynamicIngestionConfig {
+  debounceMs: number;
+  notifyChanges: (paper: PaperNode) => void;
+}
+
 /**
  * YAML frontmatter parser for extracting paper metadata
  */
@@ -289,4 +295,180 @@ export function getGraphStatistics(data: GraphData) {
 
   console.log('Graph Statistics:', stats);
   return stats;
+}
+
+/**
+ * Load a single paper from file (used for dynamic ingestion)
+ * @param app Obsidian app
+ * @param file Paper markdown file
+ * @returns PaperNode or null
+ */
+export async function loadSinglePaper(app: App, file: TFile): Promise<PaperNode | null> {
+  try {
+    const content = await app.vault.read(file);
+    const frontmatter = parseFrontmatter(content);
+
+    // Extract basic info
+    const id = generatePaperId(file.basename);
+    const title = frontmatter.title || file.basename.replace(/\.md$/, '').replace(/-/g, ' ');
+    const dimensions = extractDimensions(frontmatter);
+
+    // Build node
+    const node: PaperNode = {
+      id,
+      title,
+      path: file.path,
+      year: frontmatter.date ? new Date(frontmatter.date).getFullYear() : undefined,
+      authors: frontmatter.authors ? (Array.isArray(frontmatter.authors) ? frontmatter.authors : [frontmatter.authors]) : [],
+      dimensions,
+    };
+
+    return node;
+  } catch (error) {
+    console.error(`Error loading single paper ${file.path}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Add a paper to existing graph data (dynamic ingestion)
+ * Recomputes edges for the new paper and updates metadata
+ *
+ * @param graphData Existing graph data
+ * @param newPaper New paper to add
+ * @param existingPaperMap Map of paper IDs for quick lookup
+ * @returns Updated GraphData
+ */
+export function addPaperToGraph(
+  graphData: GraphData,
+  newPaper: PaperNode,
+  existingPaperMap: Map<string, PaperNode>
+): GraphData {
+  // Check if paper already exists
+  if (existingPaperMap.has(newPaper.id)) {
+    console.warn(`Paper ${newPaper.id} already exists in graph`);
+    return graphData;
+  }
+
+  // Add paper to nodes
+  const updatedNodes = [...graphData.nodes, newPaper];
+  existingPaperMap.set(newPaper.id, newPaper);
+
+  // Build edges from new paper's similar_papers
+  const newEdges = [...graphData.edges];
+  const edgeSet = new Set(
+    graphData.edges.map(e => [e.source, e.target].sort().join('|'))
+  );
+
+  for (const similarPaper of newPaper.dimensions.similar_papers) {
+    const targetId = similarPaper.paperId || generatePaperId(similarPaper.title);
+    const score = Math.max(0, Math.min(1, similarPaper.score ?? 0.7));
+
+    const edgeKey = [newPaper.id, targetId].sort().join('|');
+    if (!edgeSet.has(edgeKey) && existingPaperMap.has(targetId)) {
+      newEdges.push({
+        source: newPaper.id,
+        target: targetId,
+        similarity: score,
+      });
+      edgeSet.add(edgeKey);
+    }
+  }
+
+  // Update metadata
+  const totalConnectivity = updatedNodes.reduce((sum, node) => sum + node.dimensions.connectivity, 0);
+  const avgConnectivity = updatedNodes.length > 0 ? totalConnectivity / updatedNodes.length : 0;
+
+  const domainDistribution: Record<string, number> = {};
+  for (const node of updatedNodes) {
+    const domain = Math.floor(node.dimensions.cross_domain);
+    domainDistribution[`domain_${domain}`] = (domainDistribution[`domain_${domain}`] ?? 0) + 1;
+  }
+
+  return {
+    nodes: updatedNodes,
+    edges: newEdges,
+    metadata: {
+      totalPapers: updatedNodes.length,
+      totalEdges: newEdges.length,
+      avgConnectivity,
+      domainDistribution,
+      loadedAt: Date.now(),
+    },
+  };
+}
+
+/**
+ * Watch papers directory for new files and update graph dynamically
+ * Returns an unsubscribe function to stop watching
+ *
+ * @param app Obsidian app
+ * @param graphData Current graph data (will be updated)
+ * @param onGraphUpdate Callback when graph is updated with new paper
+ * @returns Unsubscribe function
+ */
+export function watchPapersDirectory(
+  app: App,
+  graphData: GraphData,
+  onGraphUpdate: (updatedGraph: GraphData, newPaper: PaperNode) => void
+): () => void {
+  const existingPaperMap = new Map(graphData.nodes.map(n => [n.id, n]));
+  const papersPath = 'papers';
+  let debounceTimer: NodeJS.Timeout | null = null;
+  const debounceMs = 100;
+
+  const onModify = async (file: TFile) => {
+    // Only watch papers directory
+    if (!file.path.startsWith(papersPath) || file.extension !== 'md') {
+      return;
+    }
+
+    // Debounce file changes
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
+    debounceTimer = setTimeout(async () => {
+      try {
+        const paper = await loadSinglePaper(app, file);
+        if (!paper) return;
+
+        const paperId = generatePaperId(file.basename);
+
+        // Check if this is a new paper or update to existing
+        if (existingPaperMap.has(paperId)) {
+          console.log(`Updated existing paper: ${paperId}`);
+          // In a full implementation, we'd update the paper in the graph
+          // For now, just log it
+          return;
+        }
+
+        console.log(`New paper detected: ${paperId}`);
+
+        // Add paper to graph
+        const updatedGraph = addPaperToGraph(graphData, paper, existingPaperMap);
+
+        // Notify callback
+        onGraphUpdate(updatedGraph, paper);
+
+        // Show user notification
+        new Notice(`📄 New paper loaded: ${paper.title}`);
+      } catch (error) {
+        console.error(`Error processing paper file ${file.path}:`, error);
+      }
+    }, debounceMs);
+  };
+
+  // Register vault event handler
+  app.vault.on('create', onModify);
+  app.vault.on('modify', onModify);
+
+  // Return unsubscribe function
+  return () => {
+    app.vault.off('create', onModify);
+    app.vault.off('modify', onModify);
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+  };
 }
