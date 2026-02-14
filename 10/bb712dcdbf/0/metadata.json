@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "10bb712dcdbf",
+  "session_id": "e2a5cf8e-f5e5-453c-adfb-bd701c7a4590",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-14T04:43:01.930676974Z",
+  "branch": "master",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "decisions/2026-02-14-phase-2-adversarial-review-corrected-status-and-path-forward.md",
+    "obsidian-plugin/3d-graph-plugin/.gitignore",
+    "obsidian-plugin/3d-graph-plugin/esbuild.config.mjs",
+    "obsidian-plugin/3d-graph-plugin/manifest.json",
+    "obsidian-plugin/3d-graph-plugin/package.json",
+    "obsidian-plugin/3d-graph-plugin/src/main.ts",
+    "obsidian-plugin/3d-graph-plugin/src/types/Paper.ts",
+    "obsidian-plugin/3d-graph-plugin/tsconfig.json"
+  ],
+  "agent": "Claude Code",
+  "checkpoint_transcript_start": 168,
+  "transcript_lines_at_start": 168,
+  "token_usage": {
+    "input_tokens": 314,
+    "cache_creation_tokens": 67501,
+    "cache_read_tokens": 3560722,
+    "output_tokens": 11114,
+    "api_call_count": 34
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-14T04:43:01.874585297Z",
+    "agent_lines": 365,
+    "human_added": 13933,
+    "human_modified": 87,
+    "human_removed": 0,
+    "total_committed": 14385,
+    "agent_percentage": 2.537365311087939
+  }
+}
