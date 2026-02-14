@@ -1,6 +1,9 @@
 import { Plugin, PluginSettingTab, App, Setting, Modal, Notice } from 'obsidian';
 import { GraphData, PaperNode, Dimension } from './types/Paper';
 import { Graph3D } from './visualizations/3DGraph';
+import { Decision, DecisionCascade } from './types/Decision';
+import { SurrealDBClient } from './services/SurrealDBClient';
+import { VaultBridge } from './services/VaultBridge';
 
 /**
  * Settings interface for the 3D Graph plugin
@@ -97,10 +100,44 @@ export default class GraphPlugin extends Plugin {
       },
     });
 
+    // Register ribbon icon - Decision Health Dashboard (NEW in Phase 7)
+    this.addRibbonIcon('heart-pulse', 'Decision Health Dashboard', () => {
+      this.openDecisionHealthDashboard();
+    });
+
+    // Register ribbon icon - Cascade Timeline (NEW in Phase 7)
+    this.addRibbonIcon('git-branch', 'Cascade Timeline', () => {
+      this.openCascadeTimeline();
+    });
+
+    // Register command - Decision Health Dashboard (NEW in Phase 7)
+    this.addCommand({
+      id: 'open-decision-health-dashboard',
+      name: 'Open Decision Health Dashboard',
+      hotkeys: [
+        {
+          modifiers: ['Ctrl', 'Shift'],
+          key: 'h',
+        },
+      ],
+      callback: () => {
+        this.openDecisionHealthDashboard();
+      },
+    });
+
+    // Register command - Cascade Timeline (NEW in Phase 7)
+    this.addCommand({
+      id: 'open-cascade-timeline',
+      name: 'Open Cascade Timeline',
+      callback: () => {
+        this.openCascadeTimeline();
+      },
+    });
+
     // Register settings tab in plugin settings
     this.addSettingTab(new GraphSettingTab(this.app, this));
 
-    console.log('3D Graph Plugin loaded (Phase 5: Decision Explorer integrated)');
+    console.log('3D Graph Plugin loaded (Phase 7: Health Dashboard + Cascade Timeline integrated)');
   }
 
   /**
@@ -149,6 +186,83 @@ export default class GraphPlugin extends Plugin {
     } catch (error) {
       console.error('Failed to open Decision Explorer:', error);
       new Notice('Error opening Decision Explorer. Check console for details.');
+    }
+  }
+
+  /**
+   * Open the Decision Health Dashboard modal
+   * Displays 6 interactive metrics for decision health and velocity
+   *
+   * NEW in Phase 7: Real-time dashboard with confidence distribution,
+   * reasoning breakdown, contradiction trends, quality ranking,
+   * impact distribution, and decision velocity
+   *
+   * @private
+   * @returns {Promise<void>}
+   */
+  private async openDecisionHealthDashboard(): Promise<void> {
+    try {
+      const { DecisionHealthDashboard } = await import('./ui/DecisionHealthDashboard');
+      const surrealClient = new SurrealDBClient();
+      const vaultBridge = new VaultBridge(this.app.vault);
+
+      // Load decisions from vault
+      const decisionsMap = await vaultBridge.loadAllDecisions();
+      const decisions: Decision[] = Array.from(decisionsMap.values());
+
+      const modal = new DecisionHealthDashboard(this.app, decisions, surrealClient);
+      modal.open();
+      new Notice(`Decision Health Dashboard opened (${decisions.length} decisions loaded)`);
+    } catch (error) {
+      console.error('Failed to open Decision Health Dashboard:', error);
+      new Notice('Error opening Decision Health Dashboard. Check console for details.');
+    }
+  }
+
+  /**
+   * Open the Cascade Timeline modal
+   * Displays temporal impacts of decisions with cascading effects
+   *
+   * NEW in Phase 7: Chronological timeline with color-coded cascade impacts
+   *
+   * @private
+   * @returns {Promise<void>}
+   */
+  private async openCascadeTimeline(): Promise<void> {
+    try {
+      const { CascadeTimeline } = await import('./ui/CascadeTimeline');
+      const surrealClient = new SurrealDBClient();
+      const vaultBridge = new VaultBridge(this.app.vault);
+
+      // Load decisions from vault
+      const decisionsMap = await vaultBridge.loadAllDecisions();
+      const decisions: Decision[] = Array.from(decisionsMap.values());
+
+      // Load cascades from SurrealDB
+      let cascades: DecisionCascade[] = [];
+      try {
+        const cascadesResult = await surrealClient.executeQuery(
+          'SELECT * FROM decision_cascades LIMIT 500;'
+        );
+        if (Array.isArray(cascadesResult)) {
+          cascades = cascadesResult.map((row: any) => ({
+            source_decision_id: row.source_decision_id,
+            target_decision_id: row.target_decision_id,
+            dependency_type: row.dependency_type || 'influences',
+            impact_level: row.impact_level || 'minor',
+            description: row.description || '',
+          }));
+        }
+      } catch (e) {
+        console.log('Cascade data not yet available in SurrealDB, showing decisions only');
+      }
+
+      const modal = new CascadeTimeline(this.app, decisions, cascades);
+      modal.open();
+      new Notice(`Cascade Timeline opened (${decisions.length} decisions, ${cascades.length} cascades)`);
+    } catch (error) {
+      console.error('Failed to open Cascade Timeline:', error);
+      new Notice('Error opening Cascade Timeline. Check console for details.');
     }
   }
 
