@@ -1,0 +1,49 @@
+[Unit]
+Description=Entire.io Sync Daemon - Bidirectional Git<>Entire.io Checkpoint Sync
+Documentation=https://github.com/manderson240/cohezion
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mike-anderson
+Group=mike-anderson
+WorkingDirectory=/home/mike-anderson/dev/cohezion
+
+# Environment
+Environment="ENTIRE_API_KEY=your_api_key_here"
+Environment="ENTIRE_API_URL=https://api.entire.io/v1"
+EnvironmentFile=-/etc/cohezion/entire-sync.env
+
+# Start command
+ExecStart=/usr/bin/uv run python -m cloud-vault-mcp.src.mcp_server.sync_cli start \
+    /home/mike-anderson/dev/cohezion \
+    --branch main \
+    --poll-interval 60 \
+    --sync-direction bidirectional
+
+# Restart policy
+Restart=on-failure
+RestartSec=10s
+StartLimitBurst=5
+StartLimitIntervalSec=300
+
+# Resource limits
+LimitNOFILE=65536
+MemoryMax=512M
+CPUQuota=50%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=entire-sync-daemon
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/mike-anderson/.cohezion
+
+[Install]
+WantedBy=multi-user.target
