@@ -1,0 +1,36 @@
+{
+  "name": "3d-graph-plugin",
+  "version": "0.1.0",
+  "description": "3D graph visualization plugin for Obsidian - Visualize paper relationships and semantic dimensions",
+  "main": "esbuild.config.mjs",
+  "scripts": {
+    "dev": "esbuild src/main.ts --bundle --external:obsidian --external:@codemirror/autocomplete --outfile=main.js --sourcemap --watch",
+    "build": "esbuild src/main.ts --bundle --external:obsidian --external:@codemirror/autocomplete --outfile=main.js",
+    "test": "jest",
+    "lint": "eslint src --ext ts"
+  },
+  "keywords": [
+    "obsidian",
+    "plugin",
+    "3d",
+    "visualization",
+    "graph",
+    "three.js"
+  ],
+  "author": "Cohezion Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "16.11.6",
+    "@typescript-eslint/eslint-plugin": "5.2.0",
+    "@typescript-eslint/parser": "5.2.0",
+    "esbuild": "0.13.12",
+    "obsidian": "latest",
+    "tslib": "2.4.0",
+    "typescript": "4.7.4"
+  },
+  "dependencies": {
+    "three": "^0.150.0",
+    "d3-force": "^3.0.0",
+    "js-yaml": "^4.1.0"
+  }
+}

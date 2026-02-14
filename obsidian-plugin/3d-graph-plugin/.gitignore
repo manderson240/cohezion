@@ -1,0 +1,28 @@
+# Obsidian files
+.obsidian/plugins/3d-graph-plugin/data.json
+
+# Node
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build
+main.js
+main.js.map
+*.js.map
+dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test
+coverage/
+.nyc_output/
