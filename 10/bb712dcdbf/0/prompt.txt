@@ -1,0 +1,347 @@
+[Request interrupted by user for tool use]
+
+---
+
+Implement the following plan:
+
+# Phase 3 Implementation Plan: 3D Graph Visualization Plugin
+
+## Context
+
+Phase 2 successfully delivered:
+- **Track A**: SurrealDB agent reasoning schema (73/73 tests, 4 query patterns)
+- **Track B**: Entire.io sync daemon (44/44 tests, real-time agent tracking)
+- **Track C**: Lessons ↔ Decisions cross-validation (25 links, semantic proof)
+- **Session 62**: Unblocking work — generated 8 semantic dimensions for all 84 papers via Ollama embeddings, enriched vault YAML with dimensional metadata
+
+Phase 3 transforms this foundation into an interactive 3D visualization that makes the compound engineering knowledge base tangible and explorable.
+
+**Problem**: 84 papers exist with rich semantic relationships, but no visual way to explore dimensional patterns (connectivity, depth, temporal positioning, domain clustering, etc.).
+
+**Solution**: Custom Obsidian plugin that renders 84 papers as an interactive 3D graph, mapping 8 semantic dimensions to visual properties (position, color, size, opacity), with interactive search/filter controls.
+
+**Outcome**: Users can visually explore paper relationships, understand dimensional clustering, discover papers by semantic proximity, and prepare for Phase 4 (decision analysis) + Phase 5 (operational dashboard).
+
+---
+
+## 8 Dimensions to Visualize
+
+Each paper has been enriched with these 8 dimensions (stored in vault YAML frontmatter):
+
+| Dimension | Scale | Visual Encoding | Purpose |
+|-----------|-------|-----------------|---------|
+| **Connectivity** | 0-1 | X-axis position | Network centrality (isolated ↔ hub papers) |
+| **Conceptual_Depth** | 0-1 (theory↔applied) | Y-axis position | Theory vs practical (foundational ↔ applied) |
+| **Temporal** | 0-1 (historical↔recent) | Z-axis position | Age (classic ↔ cutting-edge) |
+| **Cross_Domain** | 1-15 (count) | Color hue (10 palettes) | Domain clustering (color = domain family) |
+| **Completion** | 0-100% | Node size | Research maturity (0.5x-2.0x scale) |
+| **Recency** | 0-1 | Opacity | Freshness (30%-100% opacity) |
+| **Semantic_Similarity** | 0.0-0.5 | Edge weight | Neighbor similarity (computed, top-5 per paper) |
+| **Similar_Papers** | [title, score] list | Link label | Interactive hover/click details |
+
+---
+
+## Implementation: 5 Steps (4-6 hours)
+
+### Step 1: Template Setup & Adaptation (1 hour)
+
+**Goal**: Establish plugin foundation by adapting proven Kyutai template.
+
+**Resources**:
+- Source template: `/home/mike-anderson/dev/cohezion/kyutai-mcp-server/obsidian-plugin/`
+- Target location: `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/`
+- Kyutai LOC: 2,151 (TypeScript)
+- Expected reuse: 70-80% (manifest, package.json, Obsidian SDK patterns, build config)
+
+**Sub-tasks**:
+1. Copy Kyutai plugin directory structure
+2. Update `manifest.json`: name=3d-graph-plugin, description=3D visualization, version=0.1.0
+3. Update `package.json`: dependencies (Three.js, js-yaml, D3-force)
+4. Copy `tsconfig.json`, `esbuild.config.js` from Kyutai
+5. Update imports/paths for new plugin scope
+6. Verify build: `npm install && npm run dev`
+
+**Success**: Plugin builds cleanly, TypeScript compiles, no errors in Obsidian CLI.
+
+**File**: `manifest.json`, `package.json`, `main.ts` (entry point)
+
+---
+
+### Step 2: Data Loading & Parsing (1 hour)
+
+**Goal**: Load 84 papers from vault, parse dimensional metadata, build in-memory graph.
+
+**Resources**:
+- Vault papers: `/home/mike-anderson/vaults/cohezion-vault/papers/*.md` (all 84 files, YAML enriched)
+- Dimensional fields in frontmatter: `connectivity`, `conceptual_depth`, `temporal`, `cross_domain`, `completion`, `recency`, `semantic_similarity`, `similar_papers`
+- YAML parser: `js-yaml` npm package
+- Obsidian SDK: `app.vault.getFiles()`, `app.vault.read()`
+
+**Sub-tasks**:
+1. Define TypeScript interfaces:
+   - `Dimension` (8 fields with type hints)
+   - `PaperNode` (title, path, all 8 dimensions, computed properties)
+   - `GraphData` (nodes: PaperNode[], edges: [paperId, paperId, similarity])
+2. Implement `loadPapersFromVault()` function:
+   - Iterate `app.vault.getFiles()` filtering `.md` files
+   - Read YAML frontmatter (js-yaml.load)
+   - Extract 8 dimensional fields
+   - Validate all 8 dimensions present (skip/warn if missing)
+   - Build adjacency for similar_papers
+3. Log: "Loaded X papers, Y dimensions, Z edges"
+
+**Success**: All 84 papers loaded, 8 dimensions extracted per paper, 0 data loss, console shows completion.
+
+**Files**: `src/DataLoader.ts`, `src/types/Paper.ts`, `src/types/GraphData.ts`
+
+---
+
+### Step 3: 3D Visualization Engine (2 hours)
+
+**Goal**: Render interactive 3D graph in Obsidian modal using Three.js.
+
+**Resources**:
+- 3D library: Three.js (already in Kyutai template)
+- Physics simulation: D3-force (CPU-based force-directed layout in 3D)
+- Canvas target: Obsidian Modal (from Kyutai)
+- Camera controls: OrbitControls or custom pan/zoom/rotate
+
+**Sub-tasks**:
+1. Create `3DVisualization.ts`:
+   - Initialize Three.js scene (camera, renderer, lights)
+   - Create WebGL canvas in Obsidian Modal
+2. Implement force-directed layout:
+   - Use D3-force to compute positions based on:
+     - **X-axis**: connectivity dimension
+     - **Y-axis**: conceptual_depth dimension
+     - **Z-axis**: temporal dimension
+   - Physics: repulsive forces (papers spread out), attractive forces (semantic neighbors)
+   - Run simulation 300 iterations or until converged (<2 seconds)
+3. Create nodes for all 84 papers:
+   - Geometry: Sphere (radius = sqrt(completion) for size variation)
+   - Material: Color by cross_domain hue, opacity = recency
+   - Label: Paper title on hover
+4. Create edges for semantic neighbors:
+   - Lines between papers, width = similarity score
+   - Color = average hue of endpoints
+5. Implement camera controls:
+   - Orbit: Right-click drag
+   - Zoom: Scroll wheel
+   - Pan: Left-click drag or arrow keys
+6. Add picking/raycasting:
+   - Click paper → select (highlight + metadata panel)
+   - Hover → show neighbors with glow effect
+
+**Performance targets**:
+- Graph settles in <2 seconds
+- Maintain >30 FPS during interaction
+- WebWorker for physics simulation (off-main-thread)
+- Frustum culling for non-visible papers
+
+**Success**: 3D graph renders, >30 FPS, camera responsive, node selection works, neighbors highlight on hover.
+
+**Files**: `src/visualizations/3DGraph.ts`, `src/physics/ForceLayout.ts`, `src/rendering/ThreeRenderer.ts`
+
+---
+
+### Step 4: Interactive Features (1 hour)
+
+**Goal**: Add controls, search, filtering, metadata display.
+
+**Sub-tasks**:
+1. **Metadata Panel** (click paper):
+   - Display: title, all 8 dimension values
+   - Show similar_papers list (top-5)
+   - Link to paper in vault
+2. **Search Bar**:
+   - Type paper title/keywords
+   - Highlight matching papers in graph
+   - Pan camera to match
+   - Response time: <100ms
+3. **Filter Controls** (sidebar):
+   - Sliders for each dimension threshold
+   - Checkboxes for domain filters
+   - Apply filters real-time (hide non-matching papers)
+4. **Graph Statistics**:
+   - Show in sidebar: # papers, # edges, avg connectivity, domain distribution
+   - Update on filter change
+5. **Keyboard Controls**:
+   - Arrow keys: rotate
+   - +/-: zoom in/out
+   - Space: reset camera
+   - ?/Help: show keybinds
+
+**Files**: `src/ui/MetadataPanel.ts`, `src/ui/SearchBar.ts`, `src/ui/FilterControls.ts`, `src/ui/Statistics.ts`
+
+---
+
+### Step 5: Polish & Documentation (1 hour)
+
+**Goal**: Finalize for production use.
+
+**Sub-tasks**:
+1. **Settings Panel**:
+   - Node size scaling (small/medium/large)
+   - Label visibility (on/hover/off)
+   - Physics speed (slow/normal/fast)
+   - Color palette selection
+   - Performance mode (high quality / low power)
+2. **Error Handling**:
+   - Graceful fallback if papers missing dimensions
+   - Vault change listeners (update graph if papers modified)
+   - Network error handling (if connecting to SurrealDB later)
+3. **TypeScript Strict Mode**:
+   - Enable `strict: true` in tsconfig.json
+   - Fix all type errors
+   - No `any` types (except justified cases)
+4. **Documentation**:
+   - README.md: Installation, usage, keybinds, settings
+   - Inline code comments for complex logic
+   - Type definitions documented (JSDoc)
+5. **Testing** (if time):
+   - Load 84 papers without error (unit test)
+   - Render graph without crashes (integration test)
+   - All interactive features functional (manual testing)
+   - Target: 80%+ code coverage
+
+**Files**: `README.md`, settings.ts, inline JSDoc comments, tests/
+
+---
+
+## Critical Files & Paths
+
+### Inputs (Read-Only)
+- **Papers directory**: `/home/mike-anderson/vaults/cohezion-vault/papers/*.md` (84 files)
+- **Paper format**: YAML frontmatter with 8 dimensions
+- **Template**: `/home/mike-anderson/dev/cohezion/kyutai-mcp-server/obsidian-plugin/`
+- **Existing 3D data**: `/home/mike-anderson/vaults/cohezion-vault/.claude/3d-graph-data.json` (can reference)
+
+### Outputs (To Create)
+- **Plugin root**: `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/`
+- **Source**: `src/main.ts`, `src/DataLoader.ts`, `src/visualizations/3DGraph.ts`, `src/ui/*.ts`
+- **Build**: `dist/main.js` (compiled plugin)
+- **Config**: `manifest.json`, `package.json`, `tsconfig.json`, `esbuild.config.js`
+- **Docs**: `README.md`, `DEVELOPMENT.md`
+
+---
+
+## Reusable Patterns from Kyutai
+
+The Kyutai plugin (~2,151 LOC) provides proven patterns we can reuse:
+
+1. **Manifest & build setup**: Copy directly (80% identical)
+2. **Obsidian Settings API**: `PluginSettingTab`, `Setting` components (proven)
+3. **Modal/view architecture**: `Modal`, `ItemView` patterns (reuse exactly)
+4. **TypeScript config**: `tsconfig.json` + `esbuild.config.js` (copy as-is)
+5. **npm dependencies**: Three.js, D3 already proven in other plugins
+6. **Obsidian SDK**: `app.vault`, `app.workspace`, `Notice` (standard Obsidian patterns)
+
+**What NOT to reuse**: Kyutai's specific MCP client code (we don't need client → server communication).
+
+---
+
+## Dependencies & Tech Stack
+
+| Dependency | Version | Purpose | Status |
+|-----------|---------|---------|--------|
+| **Obsidian** | ≥0.15 | Plugin host framework | ✅ Proven (Kyutai) |
+| **Three.js** | ≥r150 | 3D rendering | ✅ Available |
+| **D3-Force** | ≥3.0 | Force-directed layout | ✅ Available |
+| **js-yaml** | ≥4.1 | YAML parsing | ✅ Available |
+| **TypeScript** | ≥4.7 | Type safety | ✅ Proven (Kyutai) |
+| **esbuild** | ≥0.14 | Build tool | ✅ Proven (Kyutai) |
+
+---
+
+## Success Criteria
+
+### Functional
+- ✅ All 84 papers render in 3D graph
+- ✅ 8 dimensions mapped to visual properties (position, color, size, opacity)
+- ✅ Click paper → metadata panel shows all dimensions + similar papers
+- ✅ Hover paper → neighbors highlight with glow
+- ✅ Search by title works (<100ms)
+- ✅ Dimension filters functional (real-time)
+- ✅ Camera controls responsive (pan, zoom, rotate)
+
+### Technical
+- ✅ TypeScript compiles with no errors (strict mode)
+- ✅ Plugin builds cleanly (`npm run build`)
+- ✅ Loads in Obsidian without crashes
+- ✅ Performance: >30 FPS during normal interaction
+- ✅ Physics simulation settles in <2 seconds
+- ✅ Code coverage: >80% (if testing)
+
+### Quality
+- ✅ JSDoc comments on all public functions
+- ✅ README with usage instructions
+- ✅ Settings panel functional
+- ✅ No console errors/warnings
+- ✅ Graceful error handling (missing dimensions, vault changes)
+
+### Deliverables
+- ✅ Plugin builds to `dist/main.js`
+- ✅ README.md with keybinds and settings
+- ✅ Manifest.json properly configured
+- ✅ Ready for Obsidian marketplace submission (optional)
+
+---
+
+## Integration with Phase 1+2 Architecture
+
+**Phase 1 Foundation**: SurrealDB 5-node schema + 11 MCP tools
+- *Phase 3 use*: Can query dimensional data via MCP (future enhancement)
+
+**Phase 2 Track A**: Agent reasoning schema + 4 query patterns
+- *Phase 3 use*: Can overlay reasoning chains on visualization (Phase 4)
+
+**Phase 2 Track B**: Entire.io sync daemon
+- *Phase 3 use*: Plugin can observe vault changes, refresh graph (Phase 4 enhancement)
+
+**Phase 2 Track C**: Lessons ↔ Decisions cross-validation
+- *Phase 3 use*: Semantic similarity computation uses same embeddings (nomic-embed-text)
+
+**Compound Engineering Principle**: Vault as source of truth
+- Dimensional metadata stored in paper YAML frontmatter (permanent)
+- No external databases needed for Phase 3
+- Dataview queries now possible on dimensional data
+- Future: SurrealDB sync for distributed/real-time use
+
+---
+
+## Risks & Mitigations
+
+| Risk | Mitigation | Impact |
+|------|-----------|--------|
+| Performance (84 nodes) | Physics in WebWorker, frustum culling, LOD nodes | Medium |
+| GPU unavailable | Three.js CPU fallback, lower FPS acceptable | Low |
+| Kyutai template mismatch | Extensive code reuse testing, Settings pattern proven | Low |
+| Dimension data incomplete | ✅ Already completed (Session 62), validated | None |
+| User confusion on controls | Step 4: comprehensive keybind help + sidebar hints | Low |
+
+---
+
+## Execution Checklist
+
+- [ ] **Step 1**: Plugin builds, TypeScript compiles
+- [ ] **Step 2**: All 84 papers loaded, 8 dimensions extracted, 0 data loss
+- [ ] **Step 3**: Graph renders in Obsidian modal, >30 FPS, camera works
+- [ ] **Step 4**: Metadata panel, search, filters, statistics operational
+- [ ] **Step 5**: Settings apply, docs complete, TypeScript strict mode clean
+- [ ] **Verification**: Open plugin in Obsidian, rotate 3D graph, click paper, test search
+
+---
+
+## Timeline & Handoff
+
+- **Lead**: data-graph-specialist (primary implementation, Steps 1-5)
+- **Support**: vault-architect (Obsidian integration validation, Step 5 polish)
+- **Duration**: 4-6 hours (1-2 days)
+- **Start**: Ready immediately (all blockers cleared)
+- **Target Completion**: EOD 2026-02-14
+- **Continuation**: Phase 4 (decision analysis UI) builds on this plugin
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.REDACTED.jsonl
+
+If this plan can be broken down into multiple independent tasks, consider using the TeamCreate tool to create a team and parallelize the work.

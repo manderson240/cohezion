@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "10bb712dcdbf",
+  "strategy": "manual-commit",
+  "branch": "master",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "obsidian-plugin/3d-graph-plugin/.gitignore",
+    "obsidian-plugin/3d-graph-plugin/esbuild.config.mjs",
+    "obsidian-plugin/3d-graph-plugin/manifest.json",
+    "obsidian-plugin/3d-graph-plugin/package.json",
+    "obsidian-plugin/3d-graph-plugin/src/main.ts",
+    "obsidian-plugin/3d-graph-plugin/src/types/Paper.ts",
+    "obsidian-plugin/3d-graph-plugin/tsconfig.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/10/bb712dcdbf/0/metadata.json",
+      "transcript": "/10/bb712dcdbf/0/full.jsonl",
+      "context": "/10/bb712dcdbf/0/context.md",
+      "content_hash": "/10/bb712dcdbf/0/content_hash.txt",
+      "prompt": "/10/bb712dcdbf/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 646,
+    "cache_creation_tokens": 48626,
+    "cache_read_tokens": 1138113,
+    "output_tokens": 6071,
+    "api_call_count": 21
+  }
+}
