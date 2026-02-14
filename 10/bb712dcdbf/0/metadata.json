@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "10bb712dcdbf",
+  "session_id": "e2a5cf8e-f5e5-453c-adfb-bd701c7a4590",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-14T04:25:35.644113389Z",
+  "branch": "master",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "obsidian-plugin/3d-graph-plugin/.gitignore",
+    "obsidian-plugin/3d-graph-plugin/esbuild.config.mjs",
+    "obsidian-plugin/3d-graph-plugin/manifest.json",
+    "obsidian-plugin/3d-graph-plugin/package.json",
+    "obsidian-plugin/3d-graph-plugin/src/main.ts",
+    "obsidian-plugin/3d-graph-plugin/src/types/Paper.ts",
+    "obsidian-plugin/3d-graph-plugin/tsconfig.json"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 646,
+    "cache_creation_tokens": 48626,
+    "cache_read_tokens": 1138113,
+    "output_tokens": 6071,
+    "api_call_count": 21
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-14T04:25:35.623983042Z",
+    "agent_lines": 0,
+    "human_added": 349,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 349,
+    "agent_percentage": 0
+  }
+}
