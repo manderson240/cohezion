@@ -5,6 +5,7 @@
   "branch": "master",
   "checkpoints_count": 0,
   "files_touched": [
+    "decisions/2026-02-14-phase-2-adversarial-review-corrected-status-and-path-forward.md",
     "obsidian-plugin/3d-graph-plugin/.gitignore",
     "obsidian-plugin/3d-graph-plugin/esbuild.config.mjs",
     "obsidian-plugin/3d-graph-plugin/manifest.json",
@@ -23,10 +24,10 @@
     }
   ],
   "token_usage": {
-    "input_tokens": 646,
-    "cache_creation_tokens": 48626,
-    "cache_read_tokens": 1138113,
-    "output_tokens": 6071,
-    "api_call_count": 21
+    "input_tokens": 314,
+    "cache_creation_tokens": 67501,
+    "cache_read_tokens": 3560722,
+    "output_tokens": 11114,
+    "api_call_count": 34
   }
 }
