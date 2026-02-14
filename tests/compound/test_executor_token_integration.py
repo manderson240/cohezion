@@ -35,14 +35,14 @@ def mock_token_client():
 @pytest.fixture
 def executor(mock_mcp_client):
     """Create compound executor without token client."""
-    with patch("cohezion.compound.executor.VaultExecutionLogger"):
+    with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
         return CompoundExecutor(mock_mcp_client)
 
 
 @pytest.fixture
 def executor_with_token_client(mock_mcp_client, mock_token_client):
     """Create compound executor with token client."""
-    with patch("cohezion.compound.executor.VaultExecutionLogger"):
+    with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
         return CompoundExecutor(mock_mcp_client, mock_token_client)
 
 
@@ -51,7 +51,7 @@ class TestCompoundExecutorTokenIntegration:
 
     def test_executor_initialization_without_token_client(self, mock_mcp_client):
         """Test executor initialization without token client."""
-        with patch("cohezion.compound.executor.VaultExecutionLogger"):
+        with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
             executor = CompoundExecutor(mock_mcp_client)
             assert executor.token_client is None
             assert executor.mcp_client == mock_mcp_client
@@ -60,7 +60,7 @@ class TestCompoundExecutorTokenIntegration:
         self, mock_mcp_client, mock_token_client
     ):
         """Test executor initialization with token client."""
-        with patch("cohezion.compound.executor.VaultExecutionLogger"):
+        with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
             executor = CompoundExecutor(mock_mcp_client, mock_token_client)
             assert executor.token_client == mock_token_client
             assert executor.mcp_client == mock_mcp_client
@@ -269,21 +269,21 @@ class TestExecutorFactory:
 
     def test_factory_create_without_token_client(self, mock_mcp_client):
         """Test factory create without token client."""
-        with patch("cohezion.compound.executor.VaultExecutionLogger"):
+        with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
             executor = ExecutorFactory.create(mock_mcp_client)
             assert executor is not None
             assert executor.token_client is None
 
     def test_factory_create_with_token_client(self, mock_mcp_client, mock_token_client):
         """Test factory create with token client."""
-        with patch("cohezion.compound.executor.VaultExecutionLogger"):
+        with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
             executor = ExecutorFactory.create(mock_mcp_client, mock_token_client)
             assert executor is not None
             assert executor.token_client == mock_token_client
 
     def test_factory_singleton_without_token_client(self, mock_mcp_client):
         """Test factory singleton without token client."""
-        with patch("cohezion.compound.executor.VaultExecutionLogger"):
+        with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
             ExecutorFactory.reset_singleton()
             executor1 = ExecutorFactory.get_singleton(mock_mcp_client)
             executor2 = ExecutorFactory.get_singleton(mock_mcp_client)
@@ -292,7 +292,7 @@ class TestExecutorFactory:
 
     def test_factory_singleton_with_token_client(self, mock_mcp_client, mock_token_client):
         """Test factory singleton with token client."""
-        with patch("cohezion.compound.executor.VaultExecutionLogger"):
+        with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
             ExecutorFactory.reset_singleton()
             executor1 = ExecutorFactory.get_singleton(mock_mcp_client, mock_token_client)
             executor2 = ExecutorFactory.get_singleton(mock_mcp_client)
@@ -302,7 +302,7 @@ class TestExecutorFactory:
 
     def test_factory_reset_singleton(self, mock_mcp_client):
         """Test factory reset singleton."""
-        with patch("cohezion.compound.executor.VaultExecutionLogger"):
+        with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
             ExecutorFactory.reset_singleton()
             executor1 = ExecutorFactory.get_singleton(mock_mcp_client)
             assert ExecutorFactory._instance is not None

@@ -1,6 +1,23 @@
-# MISSION_JOURNAL.md - Cohezion Mission Log
+### [2026-02-10] PHASE 17: AUTONOMIC HEALING (Session 13)
+- **Protocol**: Autonomic Self-Healing (/heal) executed via `uv run` orchestration.
+- **Diagnostics**: `immune_system.py` triggered self-diagnosis due to demo velocity threshold (0.0 < 100).
+- **Persistence**: Identified SurrealDB authentication drift; system correctly fell back to `InMemoryStore` to preserve stability.
+- **Status**: System healthy. No mechanical drift detected in core components (Ollama, SurrealDB connectivity verified).
+- **Actions**: Verified `SelfHealingSystem` actuator path and logic coherence.
 
-A chronological record of project milestones and session developments.
+
+### [2026-02-10] PHASE 15: SAFE MODE SWARM (Session 11)
+- **Protocol**: Safe Mode v3 implemented. Sequential LLM locking, 2s cooldowns, and `ResourceGuard` throttling (load avg < 12.0).
+- **Infrastructure**: `BaseScout` (throttled), `QualityScout` (static), `Architecture/Pattern/AntiPattern` scouts (7b models).
+- **Persistence**: `PatternRepository` with local write-buffer (`cache/cohezion_burst_buffer.json`) + SurrealDB dual-write.
+- **Verification**: Extracted Repository Pattern from `persistence` module while under 16.0 CPU load, proving stability guards.
+- **Learnings**: 116-118 codified regarding VRAM limits, lock sequentialism, and scoped caching.
+
+### [2026-02-10] PHASE 16: INFRASTRUCTURE HARDENING & DECOUPLING (Session 12)
+- **Service Decoupling**: Refactored monolithic `api/__init__.py` into dedicated services: `flume.py` (VAE), `rl.py` (Policy), and `skills.py` (PRIME templates).
+- **Hardening**: Fixed `PatternScout` KeyError via soft schema enforcement (Learning 120).
+- **Skill Promotion**: Registered `THROTTLED_SCOUT_PRIME` and `RELIABILITY_FALLBACK_PRIME` to formalize hardware-safe orchestration and HA persistence.
+- **Synthesis**: Produced `pillar_deep_dives.md` covering the core Cohezion architectural anchors.
 
 ### [2026-02-06] PHASE 14: LIVE COMPOUND ENGINEERING (Session 10)
 - **Compound module**: `src/cohezion/compound/` — 8 files (executor, feedback_loop, metrics, persistence, config, models, health, __init__). CompoundExecutor with per-operation model routing, CompoundFeedbackLoop (execute → retrospect → refine), CompoundMetricsCollector with trend tracking, CompoundPersistence (JSONL + SurrealDB).

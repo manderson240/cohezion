@@ -45,6 +45,7 @@ class ResourceMonitor:
         self.dilation_factor = 1.0  # 1.0 = Regular speed, 0.1 = Severe Dilation
         self._running = True
         self._sandbox_registry: dict[str, int] = {}  # sandbox_id -> memory_mb
+        self.service_health: dict[str, str] = {}  # service -> status
         self._initialized = True
 
         # Start background heartbeat if loop is running
@@ -234,6 +235,7 @@ class ResourceMonitor:
             "dilation_factor": self.dilation_factor,
             "active_sandboxes": len(self._sandbox_registry),
             "sandbox_memory_mb": self.total_sandbox_memory_mb,
+            "service_health": self.service_health,
         }
         return vitals
 
@@ -339,10 +341,38 @@ class ResourceMonitor:
                 continue
         return pids
 
+    async def _check_service_health(self):
+        """Autonomic health check for core services (Connectivity Squad)."""
+        services = {
+            "SurrealDB": "http://localhost:8000/health",
+            "Cloud Vault": "http://localhost:8360/health",
+            "Ollama": "http://localhost:11434/api/tags",
+            "Obsidian": "http://localhost:22360/",
+        }
+        for name, url in services.items():
+            try:
+                proc = await asyncio.create_subprocess_exec(
+                    "curl",
+                    "-s",
+                    "-o",
+                    "/dev/null",
+                    "-w",
+                    "%{http_code}",
+                    url,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                )
+                stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=1.0)
+                status = stdout.decode().strip()
+                self.service_health[name] = "UP" if status in ("200", "404") else "DOWN"
+            except Exception:
+                self.service_health[name] = "LOST"
+
     async def _heartbeat_loop(self):
         """Background loop to log system health and monitor for stalled processes."""
         self.last_heartbeat = time.time()
         while self._running:
+            await self._check_service_health()
             vitals = self.get_vitals()
             self.last_heartbeat = time.time()
 
@@ -386,6 +416,7 @@ class ResourceMonitor:
                 f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
                 f"CPU: {cpu}% | RAM: {ram}% | VRAM: {vram:.1f}% | "
                 f"LLM Calls: {vitals['active_llm_calls']} | Dilation: {self.dilation_factor} | "
+                f"Services: {self.service_health} | "
                 f"Sandboxes: {len(self._sandbox_registry)} ({sandbox_mem}MB)\n"
             )
 

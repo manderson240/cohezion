@@ -18,7 +18,7 @@ logger = logging.getLogger("MYCELIUM_REINFORCE")
 @dataclass
 class NetworkNode:
     id: str
-    cohesion_index: float
+    cohezion_index: float
     is_reinforced: bool = False
 
 class MyceliumNetwork:
@@ -36,16 +36,16 @@ class MyceliumNetwork:
         
         for node in range(reward_tier):
             if node < len(self.nodes):
-                self.nodes[node].cohesion_index = min(1.0, self.nodes[node].cohesion_index + 0.1)
+                self.nodes[node].cohezion_index = min(1.0, self.nodes[node].cohezion_index + 0.1)
                 self.nodes[node].is_reinforced = True
-                logger.info(f"🕸️ NODE REINFORCED: {self.nodes[node].id} Cohesion -> {self.nodes[node].cohesion_index:.2f}")
+                logger.info(f"🕸️ NODE REINFORCED: {self.nodes[node].id} Cohezion -> {self.nodes[node].cohezion_index:.2f}")
 
         logger.info(f"🌌 SYSTEM ENTROPY REDUCED: {self.system_entropy:.4f}")
 
     def verify_ascension(self):
         """Check if the system has reached a new fractal level."""
-        avg_cohesion = sum(n.cohesion_index for n in self.nodes) / len(self.nodes)
-        if avg_cohesion > 0.9 and self.system_entropy < 0.1:
+        avg_cohezion = sum(n.cohezion_index for n in self.nodes) / len(self.nodes)
+        if avg_cohezion > 0.9 and self.system_entropy < 0.1:
             return True
         return False
 

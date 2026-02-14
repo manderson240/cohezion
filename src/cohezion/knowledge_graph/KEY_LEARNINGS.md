@@ -198,3 +198,22 @@ The `cohezion.compound` package (`executor`, `feedback_loop`, `metrics`, `persis
 
 ### Learning 112: CI Validation as Compound Defense
 4 CI validation scripts (`validate_agents.py`, `validate_skills.py`, `validate_registry.py`, `compound_audit.py`) + GitLab CI pipeline + Makefile targets = layered defense. Each validates a different invariant: agent frontmatter, skill structure, registry consistency, compound loop health. `make ci` runs all in sequence. Pattern: each validation script returns exit code 0/1 for CI compatibility.
+
+---
+
+## Phase 6: Autonomic Connectivity Swarm (2026-02-09)
+
+### Learning 113: Connectivity Scout & Truth Anchors
+Relying on static documentation for service ports (SurrealDB, Vault, Ollama) is a "Fragile Anchor" failure. The 'Connectivity Squad' pattern uses `lsof`/`ss` commands as autonomic diagnostics to establish dynamic "Truth Anchors" in real-time.
+
+### Learning 114: Heartbeat Service Probing
+Autonomic reliability hinges on the loop: Discover -> Verify -> Monitor. Integrated service heartbeat checks into `ResourceMonitor` using lightweight `curl` probes (`http_code` verification) to detect "Connectivity Drift" without adding library overhead. Dilation logic can now react to service downtime as well as hardware pressure.
+
+### Learning 115: Decentralized Memory Sovereignty (2026-02-09)
+Unifying Structured Persistence (SurrealDB) with Contextual Retrospectives (Obsidian Vault) creates a decentralized memory layer that transcends the IDE. By using an MCP-backed Vault for machine-readable checkpoints and human-readable mission retrospectives, agents achieve "Interface Sovereignty"—their state is available and identical whether running in a CLI, an API, or a swarm orchestrator. Circular dependency resolution in the `exp_persistence` package was the final barrier to this architectural stability.
+
+## Learning 119: The God Object Collapse (API Decoupling) (2026-02-10)
+Extracting machine learning and training logic (VAE/RL) from the main `api/__init__.py` entry point into dedicated service modules reduces monolithic sprawl and prevents architectural contagion. Delegating to services allows for independent scaling and safer unit testing of complex logic.
+
+## Learning 120: Soft Schema Enforcement for Scout Resilience (2026-02-10)
+When dealing with non-deterministic LLM JSON outputs, implementing "Soft Schema" enforcement (using `.get()` with intelligent defaults) prevents catastrophic swarm failures during semantic scouting. This pattern provides a first line of defense before harder Pydantic validation layers.

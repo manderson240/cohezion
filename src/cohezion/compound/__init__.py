@@ -50,7 +50,7 @@ from cohezion.compound.intake_specialist import (
     IntakeSpecialist,
 )
 from cohezion.compound.intent_classifier import IntentClassifier
-from cohezion.compound.journey_persistence import JourneyPersistence
+from cohezion.compound.exp_persistence.journey import JourneyPersistence
 from cohezion.compound.journey_tracker import (
     Journey,
     JourneyTracker,
@@ -126,9 +126,15 @@ from cohezion.compound.thermal_trend_predictor import (
     ThermalTrendPredictor,
     get_thermal_trend_predictor,
 )
-from cohezion.compound.vault_execution_logger import (
+from cohezion.compound.exp_persistence.vault import (
     ExecutionContext,
-    VaultExecutionLogger,
+    VaultLogger,
+)
+from cohezion.compound.vault_search_executor import (
+    SearchQuery,
+    SearchResult,
+    VaultSearchExecutor,
+    create_vault_search_executor,
 )
 
 
@@ -210,8 +216,12 @@ __all__ = [
     "ThermalTrendPredictor",
     "TimeWindowMetrics",
     "TrajectoryPoint",
-    "VaultExecutionLogger",
+    "VaultLogger",
+    "VaultSearchExecutor",
+    "SearchQuery",
+    "SearchResult",
     "WarmCacheLoader",
+    "create_vault_search_executor",
     "get_batch_size_predictor",
     "get_collector",
     "get_global_aggregator",

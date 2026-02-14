@@ -1,15 +1,19 @@
 """Entry point for the Cloud Vault MCP Server."""
 
 import asyncio
+import json
 import logging
 from contextlib import asynccontextmanager
 
 import uvicorn
 from starlette.applications import Starlette
 from starlette.middleware.trustedhost import TrustedHostMiddleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 from starlette.routing import Mount, Route
 
 from .config import ServerConfig
+from .health import HealthChecker
 from .server import create_server
 from .sse_stream import VaultEventStream
 from .vault_watcher import VaultFileWatcher
@@ -46,12 +50,51 @@ def main():
 
     mcp = create_server(config)
 
+    # Initialize health checker
+    health_checker = None
+    if config.health_check_enabled:
+        health_checker = HealthChecker(
+            vault_path=config.vault_path,
+            surrealdb_url=config.surrealdb_url,
+            ollama_url=config.ollama_url,
+        )
+        logger.info("Health check enabled")
+
     # FastMCP provides factory methods to build ASGI apps - call streamable_http_app()
     mcp_app = mcp.streamable_http_app()
 
     # Add TrustedHostMiddleware if not accepting all hosts
     if "*" not in config.allowed_hosts:
         mcp_app = TrustedHostMiddleware(mcp_app, allowed_hosts=config.allowed_hosts)
+
+    # Create health endpoint handler
+    async def health_endpoint(request: Request):
+        """Health check endpoint."""
+        if health_checker is None:
+            return JSONResponse(
+                {"error": "Health check not enabled"},
+                status_code=503,
+            )
+
+        try:
+            status = await health_checker.run_all_checks(
+                timeout=int(config.health_check_timeout)
+            )
+            status_code = 200 if status.status == "healthy" else 503
+            return JSONResponse(
+                content=status.to_dict(),
+                status_code=status_code,
+            )
+        except Exception as e:
+            logger.error(f"Health check failed: {e}")
+            return JSONResponse(
+                {
+                    "status": "unhealthy",
+                    "error": str(e),
+                    "timestamp": None,
+                },
+                status_code=503,
+            )
 
     if config.watcher_enabled:
         # Create watcher and SSE stream
@@ -74,9 +117,12 @@ def main():
             watcher.stop()
             logger.info("VaultFileWatcher stopped")
 
-        # Create base Starlette app with SSE route and lifespan
+        # Create base Starlette app with SSE and health routes with lifespan
         sse_app = Starlette(
-            routes=[Route("/events/vault", sse.sse_endpoint)],
+            routes=[
+                Route("/events/vault", sse.sse_endpoint),
+                Route("/health", health_endpoint),
+            ],
             lifespan=lifespan,
         )
 
@@ -85,6 +131,9 @@ def main():
             if scope["type"] == "http":
                 if scope["path"] == "/events/vault":
                     # Route to SSE handler
+                    await sse_app(scope, receive, send)
+                elif scope["path"] == "/health":
+                    # Route to health check
                     await sse_app(scope, receive, send)
                 else:
                     # Route to MCP
@@ -96,7 +145,22 @@ def main():
                 # WebSocket or other protocol
                 await mcp_app(scope, receive, send)
     else:
-        app = mcp_app
+        # Create Starlette app with just health endpoint (no watcher)
+        health_app = Starlette(
+            routes=[Route("/health", health_endpoint)],
+        )
+
+        async def app(scope, receive, send):
+            if scope["type"] == "http":
+                if scope["path"] == "/health":
+                    # Route to health check
+                    await health_app(scope, receive, send)
+                else:
+                    # Route to MCP
+                    await mcp_app(scope, receive, send)
+            else:
+                # WebSocket or other protocol
+                await mcp_app(scope, receive, send)
 
     # Apply HTTPS middleware if TLS is enabled
     if config.tls_enabled and TLSConfig and create_https_app:

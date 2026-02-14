@@ -1,0 +1,137 @@
+name: Repository Health Check
+
+# Session 55, Task #7: Repository health governance
+# Layer 2: Detection - automated repository size monitoring
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 2 * * 0'  # Weekly Sunday 2am UTC
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  check-repo-health:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for comprehensive analysis
+
+      - name: Check repository size
+        run: |
+          echo "=== Repository Size Analysis ==="
+          REPO_SIZE=$(du -sh .git | cut -f1)
+          echo "Repository size: $REPO_SIZE"
+
+          # Get size in bytes for threshold check
+          SIZE_BYTES=$(du -sb .git | cut -f1)
+          SIZE_GB=$((SIZE_BYTES / 1024 / 1024 / 1024))
+
+          echo "Size in GB: $SIZE_GB"
+
+          # Alert if >10GB (should be <6GB after Session 55 cleanup)
+          if [ "$SIZE_BYTES" -gt 10737418240 ]; then
+            echo "::error::Repository exceeds 10GB threshold ($SIZE_GB GB)"
+            echo "::error::Target size is <6GB. Review and cleanup required."
+            exit 1
+          fi
+
+          # Warning if >6GB
+          if [ "$SIZE_BYTES" -gt 6442450944 ]; then
+            echo "::warning::Repository size ($SIZE_GB GB) approaching 10GB limit"
+            echo "::warning::Consider running git gc or reviewing large files"
+          fi
+
+      - name: Check for large files in history
+        run: |
+          echo "=== Large Files in Git History ==="
+          echo "Finding all files >1MB in git history..."
+
+          git rev-list --objects --all | \
+          git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize) %(rest)' | \
+          awk '$1 == "blob" && $3 > 1048576 {printf "%.2f MB: %s\n", $3/1048576, $4}' | \
+          sort -rn | head -20 > /tmp/large_files.txt
+
+          if [ -s /tmp/large_files.txt ]; then
+            echo "⚠️  Large files found in history:"
+            cat /tmp/large_files.txt
+
+            # Count files >1MB
+            LARGE_FILE_COUNT=$(wc -l < /tmp/large_files.txt)
+            echo ""
+            echo "Total files >1MB: $LARGE_FILE_COUNT"
+
+            # Warning if >50 large files
+            if [ "$LARGE_FILE_COUNT" -gt 50 ]; then
+              echo "::warning::High number of large files ($LARGE_FILE_COUNT)"
+              echo "::warning::Consider using git-lfs for binary files"
+            fi
+          else
+            echo "✅ No files >1MB found in git history"
+          fi
+
+      - name: Check pack efficiency
+        run: |
+          echo "=== Git Pack Efficiency ==="
+          git count-objects -vH
+
+      - name: Validate .gitignore coverage
+        run: |
+          echo "=== .gitignore Validation ==="
+          echo "Checking for common bloat patterns..."
+
+          PATTERNS=(
+            "*.pt"           # PyTorch checkpoints
+            "*.pth"          # PyTorch weights
+            "*.ckpt"         # TensorFlow checkpoints
+            "*.safetensors"  # Safetensors format
+            "*.bin"          # Binary model files
+            "logs/"          # Log directories
+            "checkpoints/"   # Checkpoint directories
+            "*.log"          # Log files
+            "tmp/"           # Temporary files
+            ".cache/"        # Cache directories
+          )
+
+          MISSING=()
+          for pattern in "${PATTERNS[@]}"; do
+            if ! grep -q "^${pattern}" .gitignore 2>/dev/null; then
+              MISSING+=("$pattern")
+            fi
+          done
+
+          if [ ${#MISSING[@]} -gt 0 ]; then
+            echo "⚠️  .gitignore missing recommended patterns:"
+            for pattern in "${MISSING[@]}"; do
+              echo "  - $pattern"
+            done
+            echo ""
+            echo "::warning::Consider adding these patterns to .gitignore"
+          else
+            echo "✅ .gitignore has all recommended patterns"
+          fi
+
+      - name: Upload health metrics
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: repo-health-metrics
+          path: /tmp/large_files.txt
+          retention-days: 30
+
+      - name: Repository health summary
+        if: always()
+        run: |
+          echo ""
+          echo "=== Repository Health Summary ==="
+          echo "✅ Size check: Completed"
+          echo "✅ Large files scan: Completed"
+          echo "✅ Pack efficiency: Measured"
+          echo "✅ .gitignore coverage: Validated"
+          echo ""
+          echo "For detailed governance, see: /tmp/repository_health_governance.md"

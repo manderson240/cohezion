@@ -1,0 +1,35 @@
+[Unit]
+Description=Google Sheets Research Pipeline Daemon
+After=network.target cloud-vault-mcp.service
+Requires=cloud-vault-mcp.service
+Documentation=file:///home/mike-anderson/vaults/cohezion-vault/patterns/runbook-sheets-research-pipeline.md
+
+[Service]
+Type=simple
+User=mike-anderson
+WorkingDirectory=/home/mike-anderson/dev/cohezion/cloud-vault-mcp
+EnvironmentFile=/home/mike-anderson/dev/cohezion/cloud-vault-mcp/.env.sheets-research
+ExecStart=/home/mike-anderson/dev/cohezion/cloud-vault-mcp/.venv/bin/python3 -m mcp_server.sheets_research_main start
+
+# Restart policy
+Restart=on-failure
+RestartSec=60
+StartLimitInterval=3600
+StartLimitBurst=5
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=sheets-research-daemon
+
+# Resource limits
+LimitNOFILE=4096
+MemoryMax=2G
+CPUQuota=50%
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

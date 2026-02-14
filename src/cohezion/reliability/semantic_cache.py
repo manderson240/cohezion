@@ -13,6 +13,7 @@ from typing import Any
 import numpy as np
 
 from cohezion.core.persistence.redis_aggregator import get_redis
+from cohezion.compound.exp_persistence.vault import get_vault_logger
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,14 @@ class SemanticCache:
         self.vectors: list[np.ndarray] = []
         self.metadata: list[dict[str, Any]] = []
         self.redis = get_redis()
+        self._vault = None
         self._load_cache()
+
+    @property
+    def vault(self):
+        if self._vault is None:
+            self._vault = get_vault_logger()
+        return self._vault
 
     def _load_cache(self):
         """Load existing cache from disk if available."""
@@ -100,6 +108,20 @@ class SemanticCache:
                 await self.redis.set(redis_key, result, ttl=3600 * 24)  # 24h TTL
 
             return result
+
+        # Tier 3: Vault Search (L3) - Fallback for architectural patterns
+        if query_text:
+            try:
+                guidance = self.vault.get_experience_guidance(query_text)
+                if guidance and guidance.get("relevant_context"):
+                    logger.debug(f"📜 Vault L3 Hit for query: {query_text[:20]}...")
+                    return {
+                        "response": f"VAULT GUIDANCE:\n{guidance.get('guidance', '')}\n\nCONTEXT:\n{json.dumps(guidance.get('relevant_context', []), indent=2)}",
+                        "semantic_score": 0.5, # Qualitative hit
+                        "source": "vault"
+                    }
+            except Exception as e:
+                logger.debug(f"Vault L3 search failed: {e}")
 
         return None
 

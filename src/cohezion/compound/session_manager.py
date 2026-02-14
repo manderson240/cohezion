@@ -18,8 +18,8 @@ from collections.abc import AsyncIterator
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
-
 from pydantic import BaseModel
+from cohezion.core.mcp_client import get_mcp_client
 
 
 logger = logging.getLogger(__name__)
@@ -277,8 +277,11 @@ class VaultCheckpointManager:
         """
         try:
             # Try vault first
-            # TODO: Wire to cohezion.core.mcp_client.MCPClient for vault persistence
-            pass
+            mcp = get_mcp_client()
+            path = f"checkpoints/{state.session_id}.json"
+            mcp.vault_write(path, json.dumps(asdict(state), indent=2))
+            logger.debug(f"Checkpoint saved to Vault: {path}")
+            return True
         except Exception as e:
             logger.debug(f"Vault save failed, using JSONL fallback: {e}")
 
@@ -303,8 +306,16 @@ class VaultCheckpointManager:
             SessionState if found, None otherwise
         """
         # Try vault first
-        # TODO: Wire to MCPClient for vault lookup
-        pass
+        try:
+            mcp = get_mcp_client()
+            path = f"checkpoints/{session_id}.json"
+            content = mcp.vault_read(path)
+            data = json.loads(content)
+            state = SessionState(**data)
+            logger.debug(f"Checkpoint loaded from Vault: {path}")
+            return state
+        except Exception as e:
+            logger.debug(f"Vault load failed: {e}")
 
         # Fallback to local JSONL
         try:
@@ -327,11 +338,20 @@ class VaultCheckpointManager:
             session_id: Session ID to delete
 
         Returns:
-            True if deleted successfully
+            True if deleted successfully (from either vault or local)
         """
+        vault_deleted = False
+        local_deleted = False
+
         # Try vault first
-        # TODO: Wire to MCPClient
-        pass
+        try:
+            mcp = get_mcp_client()
+            path = f"checkpoints/{session_id}.json"
+            mcp.vault_delete(path)
+            logger.debug(f"Checkpoint deleted from Vault: {path}")
+            vault_deleted = True
+        except Exception as e:
+            logger.debug(f"Vault delete failed: {e}")
 
         # Clean local file
         try:
@@ -339,11 +359,12 @@ class VaultCheckpointManager:
             if checkpoint_file.exists():
                 checkpoint_file.unlink()
                 logger.debug(f"Checkpoint deleted: {checkpoint_file}")
-                return True
+                local_deleted = True
         except Exception:
             logger.exception("Checkpoint delete failed")
 
-        return False
+        # Return True if deleted from either location
+        return vault_deleted or local_deleted
 
 
 # Global checkpoint manager

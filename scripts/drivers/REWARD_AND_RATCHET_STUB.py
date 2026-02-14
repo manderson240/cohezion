@@ -29,7 +29,7 @@ class AgentProfile:
 class RewardManager:
     def __init__(self):
         self.profiles: Dict[str, AgentProfile] = {}
-        self.global_cohesion = 0.85
+        self.global_cohezion = 0.85
 
     def register_agent(self, agent_id: str):
         self.profiles[agent_id] = AgentProfile(agent_id, 0.9, 0.0)

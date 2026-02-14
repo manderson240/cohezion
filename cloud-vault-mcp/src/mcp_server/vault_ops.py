@@ -3,14 +3,19 @@
 import re
 from pathlib import Path
 
+from mcp_server.search_cache import SearchCache
+
 
 class VaultOps:
     """Low-level vault file operations with path safety."""
 
-    def __init__(self, vault_path: str):
+    def __init__(self, vault_path: str, cache_enabled: bool = True, cache_ttl_seconds: float = 60):
         self.vault_path = Path(vault_path).resolve()
         if not self.vault_path.is_dir():
             raise ValueError(f"Vault path does not exist: {self.vault_path}")
+
+        self._cache_enabled = cache_enabled
+        self._search_cache = SearchCache(ttl_seconds=cache_ttl_seconds) if cache_enabled else None
 
     def _resolve(self, path: str) -> Path:
         """Resolve a vault-relative path safely, preventing directory traversal.
@@ -142,7 +147,15 @@ class VaultOps:
         """Full-text search across vault.
 
         Returns list of {path, line_number, line, context} dicts.
+        Caches results when enabled.
         """
+        # Check cache first
+        if self._cache_enabled:
+            cache_key = SearchCache.generate_key(query, scope, folder)
+            cached_results = self._search_cache.get(cache_key)
+            if cached_results is not None:
+                return cached_results
+
         results = []
         query_lower = query.lower()
 
@@ -190,6 +203,11 @@ class VaultOps:
                         }
                     )
 
+        # Cache the results before returning
+        if self._cache_enabled:
+            cache_key = SearchCache.generate_key(query, scope, folder)
+            self._search_cache.set(cache_key, results)
+
         return results
 
     def _is_hidden(self, path: Path) -> bool:
@@ -214,3 +232,48 @@ class VaultOps:
             if end != -1:
                 return content[3:end].strip()
         return ""
+
+    def invalidate_search_cache(self, key: str | None = None) -> int:
+        """Invalidate search cache.
+
+        Args:
+            key: Specific cache key to invalidate. If None, clears all cache.
+
+        Returns:
+            Number of entries removed
+        """
+        if not self._cache_enabled or self._search_cache is None:
+            return 0
+
+        if key is None:
+            return self._search_cache.clear()
+        return 1 if self._search_cache.invalidate(key) else 0
+
+    def invalidate_search_cache_for_file(self, file_path: str) -> int:
+        """Invalidate cache entries related to a file.
+
+        Clears all search cache since any file change could affect any search.
+
+        Args:
+            file_path: Path of the changed file (for logging)
+
+        Returns:
+            Number of entries removed
+        """
+        if not self._cache_enabled:
+            return 0
+
+        return self._search_cache.clear() if self._search_cache else 0
+
+    def get_search_cache_stats(self) -> dict:
+        """Get search cache statistics.
+
+        Returns:
+            Dictionary with cache stats or empty dict if cache disabled
+        """
+        if not self._cache_enabled or self._search_cache is None:
+            return {"enabled": False}
+
+        stats = self._search_cache.get_stats()
+        stats["enabled"] = True
+        return stats

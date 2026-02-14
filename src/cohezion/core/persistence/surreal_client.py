@@ -306,8 +306,6 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
         """Enable in-memory fallback."""
         global _SHARED_STORE
         if _SHARED_STORE is None:
-            from cohezion.core.persistence.surreal_client import InMemoryStore
-
             _SHARED_STORE = InMemoryStore()
         self._client = _SHARED_STORE
         self._connected = True
@@ -872,10 +870,10 @@ async def main() -> None:
                 y=0.5,
                 z=0.5,
                 time=1.0,
-                mass=0.8,
-                sentiment=0.2,
-                complexity=0.6,
-                factuality=0.9,
+                physics=0.8,
+                field=0.2,
+                novelty=0.6,
+                logic=0.9,
             ),
         )
 
@@ -886,11 +884,20 @@ async def main() -> None:
             print(f"Retrieved node: {retrieved.id}")
             print(f"Content: {retrieved.content[:50]}...")
             print(
-                f"Physics: x={retrieved.physics_state.x}, mass={retrieved.physics_state.mass}"
+                f"Physics: x={retrieved.physics_state.x}, physics={retrieved.physics_state.physics}"
             )
 
     await client.close()
 
+
+_surreal_client_instance: SurrealClient | None = None
+
+def get_surreal_client() -> SurrealClient:
+    """Get the singleton SurrealClient instance."""
+    global _surreal_client_instance
+    if _surreal_client_instance is None:
+        _surreal_client_instance = SurrealClient()
+    return _surreal_client_instance
 
 if __name__ == "__main__":
     asyncio.run(main())

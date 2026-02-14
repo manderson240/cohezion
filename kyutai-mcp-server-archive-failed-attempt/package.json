@@ -1,0 +1,49 @@
+{
+  "name": "kyutai-mcp-server",
+  "version": "0.1.0",
+  "description": "Kyutai MCP Server with Obsidian Plugin Integration",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:unit": "jest tests/unit --coverage",
+    "test:integration": "jest tests/integration --coverage",
+    "test:docker": "jest tests/integration/test_docker_compose.py --testTimeout=30000",
+    "test:all": "pytest tests/ && jest tests/",
+    "lint": "eslint src tests --ext .ts,.tsx",
+    "format": "prettier --write 'src/**/*.ts' 'tests/**/*.ts'",
+    "type-check": "tsc --noEmit",
+    "ci": "npm run lint && npm run type-check && npm run test:coverage"
+  },
+  "keywords": [
+    "kyutai",
+    "mcp",
+    "obsidian",
+    "plugin",
+    "voice",
+    "ai"
+  ],
+  "author": "Cohezion Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@jest/globals": "^29.0.0",
+    "@types/jest": "^29.0.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.0.0",
+    "prettier": "^3.0.0",
+    "ts-jest": "^29.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.5.0",
+    "obsidian": "latest",
+    "events": "^3.3.0"
+  }
+}

@@ -10,9 +10,11 @@ from dataclasses import dataclass
 from typing import Any
 
 import httpx
-
+import os
 
 logger = logging.getLogger(__name__)
+
+_mcp_client_instance: httpx.Client | None = None
 
 
 def _parse_sse_response(text: str) -> dict[str, Any]:
@@ -775,3 +777,13 @@ def create_mcp_client(server_url: str, api_key: str, **kwargs) -> MCPClient:
     """
     config = MCPConfig(server_url=server_url, api_key=api_key, **kwargs)
     return MCPClient(config)
+
+def get_mcp_client() -> MCPClient:
+    """Get the singleton MCP client instance."""
+    global _mcp_client_instance
+    if _mcp_client_instance is None:
+        server_url = os.getenv("CLOUD_VAULT_URL", "http://localhost:8360")
+        api_key = os.getenv("CLOUD_VAULT_API_KEY", "cohezion-dev-key")
+        _mcp_client_instance = create_mcp_client(server_url=server_url, api_key=api_key)
+        _mcp_client_instance.connect()
+    return _mcp_client_instance
