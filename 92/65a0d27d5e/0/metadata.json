@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "9265a0d27d5e",
+  "session_id": "a8ef61bd-3cc4-4391-bfce-f382819de4f8",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-14T18:46:45.46940032Z",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "cloud-vault-mcp/src/mcp_server/graphrag_helpers.py",
+    "cloud-vault-mcp/tests/test_graphrag_helpers.py",
+    "data/surrealdb/LOG.old.1771092966545615",
+    "data/surrealdb/LOG.old.1771092972054258",
+    "data/surrealdb/LOG.old.1771092977825037",
+    "data/surrealdb/LOG.old.1771092983304025",
+    "data/surrealdb/LOG.old.1771092988843673",
+    "data/surrealdb/LOG.old.1771092994564795",
+    "data/surrealdb/LOG.old.1771093000454116",
+    "data/surrealdb/LOG.old.1771093006098935"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 542,
+    "cache_creation_tokens": 884351,
+    "cache_read_tokens": 13841872,
+    "output_tokens": 29949,
+    "api_call_count": 145
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-14T18:46:44.523417358Z",
+    "agent_lines": 512,
+    "human_added": 1497,
+    "human_modified": 8,
+    "human_removed": 0,
+    "total_committed": 2017,
+    "agent_percentage": 25.384234010907285
+  }
+}
