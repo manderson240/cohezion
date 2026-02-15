@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "1b3e38c10dd1",
+  "session_id": "490e33ac-1e4a-4ba8-b4cb-f19322b4c128",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-15T03:44:47.494199384Z",
+  "branch": "spec/github-migration",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".gitignore",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 312,
+    "cache_creation_tokens": 308571,
+    "cache_read_tokens": 3156561,
+    "output_tokens": 1195,
+    "api_call_count": 38
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-15T03:44:47.47056654Z",
+    "agent_lines": 19,
+    "human_added": 1406951,
+    "human_modified": 3,
+    "human_removed": 0,
+    "total_committed": 1406973,
+    "agent_percentage": 0.0013504168168116944
+  }
+}

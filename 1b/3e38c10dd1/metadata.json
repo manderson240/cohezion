@@ -2,9 +2,10 @@
   "cli_version": "0.4.2",
   "checkpoint_id": "1b3e38c10dd1",
   "strategy": "manual-commit",
-  "branch": "main",
-  "checkpoints_count": 3,
+  "branch": "spec/github-migration",
+  "checkpoints_count": 4,
   "files_touched": [
+    ".gitignore",
     "data/surrealdb/173352.sst",
     "data/surrealdb/173376.sst",
     "data/surrealdb/190896.sst",
@@ -36,13 +37,20 @@
       "context": "/1b/3e38c10dd1/0/context.md",
       "content_hash": "/1b/3e38c10dd1/0/content_hash.txt",
       "prompt": "/1b/3e38c10dd1/0/prompt.txt"
+    },
+    {
+      "metadata": "/1b/3e38c10dd1/1/metadata.json",
+      "transcript": "/1b/3e38c10dd1/1/full.jsonl",
+      "context": "/1b/3e38c10dd1/1/context.md",
+      "content_hash": "/1b/3e38c10dd1/1/content_hash.txt",
+      "prompt": "/1b/3e38c10dd1/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 12,
-    "cache_creation_tokens": 175758,
-    "cache_read_tokens": 515749,
-    "output_tokens": 245,
-    "api_call_count": 4
+    "input_tokens": 324,
+    "cache_creation_tokens": 484329,
+    "cache_read_tokens": 3672310,
+    "output_tokens": 1440,
+    "api_call_count": 42
   }
 }
