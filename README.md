@@ -31,7 +31,7 @@ CompoundFeedbackLoop (anomaly-driven re-execution)
 ### 1. File Locking (Task 23.5)
 Thread-safe resource sharing with atomic read-modify-write operations
 - Configurable timeouts and retry logic
-- Support for SkillRegistry, CapabilityUsageTracker, GitLabRunnerConfig
+- Support for SkillRegistry, CapabilityUsageTracker
 - 14 comprehensive tests
 
 ### 2. Experience-Guided Skill Selection (Task 23.6)

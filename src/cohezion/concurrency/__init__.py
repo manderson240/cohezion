@@ -14,7 +14,6 @@ from cohezion.concurrency.ollama_gate import OllamaGate, get_gate, reset_gate
 from cohezion.concurrency.safe_singleton import safe_singleton
 from cohezion.concurrency.shared_resources import (
     CapabilityUsageTracker,
-    GitLabRunnerConfig,
     SkillRegistry,
 )
 
@@ -24,7 +23,6 @@ __all__ = [
     "ConfigManager",
     "FileLock",
     "FileLockError",
-    "GitLabRunnerConfig",
     "OllamaGate",
     "SkillRegistry",
     "get_gate",

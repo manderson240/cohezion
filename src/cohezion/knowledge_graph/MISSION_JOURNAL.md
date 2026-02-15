@@ -34,7 +34,7 @@
 - **45 new tests**, 556 total. Suite healthy.
 
 ### [2026-02-06] PHASE 12: HYBRID DEPLOYMENT & BRANCH ARCHAEOLOGY
-- **GitLab CE**: Self-hosted at localhost:8929, all 7 branches synced. Source of truth.
+- **GitHub**: Primary remote at github.com/manderson240/cohezion. Source of truth.
 - **Public repos extracted**: `llm-prompt-guard` (23 tests, Apache 2.0), `ollama-debate` (7 personas, Apache 2.0) at `/home/mike-anderson/dev/public-repos/`.
 - **Pre-push hooks fixed**: Restricted stage overrides from pre-commit-hooks repo. Push now runs 5 safety hooks only (pytest, import-check, file-count, large-files, private-key).
 - **Integration tests fixed**: 28 passing. Removed references to non-existent `TrainConfig.early_stopping_patience`, `FlumeVAETrainer.metrics_path`, `FlumeTrajectoryDataset.from_mass_sim_run`.
