@@ -182,3 +182,4 @@ data/compound/metrics/
 # Other session-related patterns
 /*_BACKUP_*/
 /cohezion-session-[0-9]*/
+.worktrees/
