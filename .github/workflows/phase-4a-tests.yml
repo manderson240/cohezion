@@ -1,0 +1,132 @@
+name: Phase 4A Tests
+
+on:
+  push:
+    branches:
+      - track-a
+      - track-b
+      - track-c
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-track-a:
+    name: Track A - GraphRAG Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          pip install -e .
+          pip install pytest pytest-cov
+      - name: Run Track A tests
+        run: |
+          pytest -q tests/graphrag/ --cov=src/graphrag --cov-report=term-missing -m graphrag
+      - name: Coverage report
+        if: always()
+        run: |
+          pytest --cov=src/graphrag tests/graphrag/ -q --cov-report=json
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.json
+          flags: track-a
+
+  test-track-b:
+    name: Track B - Scoring Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          pip install -e .
+          pip install pytest pytest-cov
+      - name: Run Track B tests
+        run: |
+          pytest -q tests/scoring/ --cov=src/scoring --cov-report=term-missing -m scoring
+      - name: Coverage report
+        if: always()
+        run: |
+          pytest --cov=src/scoring tests/scoring/ -q --cov-report=json
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.json
+          flags: track-b
+
+  test-track-c:
+    name: Track C - Impact Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          pip install -e .
+          pip install pytest pytest-cov
+      - name: Run Track C tests
+        run: |
+          pytest -q tests/impact/ --cov=src/impact --cov-report=term-missing -m impact
+      - name: Coverage report
+        if: always()
+        run: |
+          pytest --cov=src/impact tests/impact/ -q --cov-report=json
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.json
+          flags: track-c
+
+  lint:
+    name: Linting & Type Checking
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install tools
+        run: |
+          pip install ruff basedpyright
+      - name: Format check
+        run: ruff format . --check
+      - name: Lint
+        run: ruff check . --select=E,W,F
+      - name: Type check
+        run: basedpyright src/ 2>&1 | head -50
+
+  all-tests:
+    name: All Tests Summary
+    needs: [test-track-a, test-track-b, test-track-c, lint]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check results
+        run: |
+          if [ "${{ needs.test-track-a.result }}" != "success" ] || \
+             [ "${{ needs.test-track-b.result }}" != "success" ] || \
+             [ "${{ needs.test-track-c.result }}" != "success" ] || \
+             [ "${{ needs.lint.result }}" != "success" ]; then
+            echo "❌ Some tests failed"
+            exit 1
+          fi
+          echo "✅ All Phase 4A tests passed"
