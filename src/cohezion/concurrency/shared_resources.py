@@ -15,9 +15,10 @@ from cohezion.concurrency.file_lock import ConfigManager
 
 logger = logging.getLogger(__name__)
 
-# Default paths for shared resources
 SKILL_REGISTRY_PATH = Path(__file__).parent.parent / "skills" / "skill_registry.json"
-CAPABILITY_USAGE_PATH = Path(__file__).parent.parent / "skills" / "capability_usage.json"
+CAPABILITY_USAGE_PATH = (
+    Path(__file__).parent.parent / "skills" / "capability_usage.json"
+)
 
 
 class SkillRegistry:
@@ -59,6 +60,7 @@ class SkillRegistry:
         Returns:
             Updated registry
         """
+
         def update_fn(data):
             if "skills" not in data:
                 data["skills"] = {}
@@ -99,6 +101,7 @@ class SkillRegistry:
         Returns:
             Updated registry
         """
+
         def update_fn(data):
             if "skills" in data and skill_name in data["skills"]:
                 data["skills"][skill_name]["version"] = new_version
@@ -116,6 +119,7 @@ class SkillRegistry:
         Returns:
             Updated registry
         """
+
         def update_fn(data):
             if "skills" in data and skill_name in data["skills"]:
                 del data["skills"][skill_name]
@@ -133,6 +137,7 @@ class SkillRegistry:
         Returns:
             Updated registry
         """
+
         def update_fn(data):
             if "skills" not in data:
                 data["skills"] = {}
@@ -190,6 +195,7 @@ class CapabilityUsageTracker:
         Returns:
             Updated usage data
         """
+
         def update_fn(data):
             if "operations" not in data:
                 data["operations"] = {}
@@ -208,9 +214,7 @@ class CapabilityUsageTracker:
 
             if tokens_used is not None:
                 op_stats["total_tokens"] += tokens_used
-                op_stats["avg_tokens"] = (
-                    op_stats["total_tokens"] / op_stats["count"]
-                )
+                op_stats["avg_tokens"] = op_stats["total_tokens"] / op_stats["count"]
 
             logger.debug(
                 "Recorded operation: %s (success=%s, tokens=%s)",
@@ -252,6 +256,7 @@ class CapabilityUsageTracker:
         Returns:
             Updated data
         """
+
         def update_fn(data):
             if "operations" in data and operation_type in data["operations"]:
                 del data["operations"][operation_type]
@@ -287,121 +292,3 @@ class CapabilityUsageTracker:
         if not stats:
             return 0.0
         return stats.get("avg_tokens", 0.0)
-
-
-class GitLabRunnerConfig:
-    """Thread-safe GitLab Runner configuration management.
-
-    .. deprecated:: 2026-02-13
-        GitLab CI has been replaced with GitHub Actions (Session 57).
-        This class is preserved for backward compatibility and will be
-        removed in version 2.0.0 (estimated: 2026-08-13, 6 months).
-
-        For new integrations, use GitHub Actions configuration via
-        `.github/workflows/` directory.
-
-    Manages ~/.gitlab-runner/config.toml with exclusive locking for
-    multi-session edit safety.
-
-    Example:
-        ```python
-        config = GitLabRunnerConfig()
-        # This operation is fully atomic
-        config.add_runner({
-            "name": "my-runner",
-            "url": "http://localhost:8929",
-            "token": "token123",
-        })
-        ```
-    """
-
-    def __init__(self, config_path: str | None = None):
-        """Initialize runner config manager.
-
-        .. deprecated:: 2026-02-13
-            GitLab CI has been replaced with GitHub Actions.
-            This will be removed in v2.0.0 (2026-08-13).
-
-        Args:
-            config_path: Path to config.toml. Defaults to ~/.gitlab-runner/config.toml
-        """
-        import warnings
-        warnings.warn(
-            "GitLabRunnerConfig is deprecated and will be removed in v2.0.0 (2026-08-13). "
-            "Use GitHub Actions configuration (.github/workflows/) instead.",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        if config_path is None:
-            config_path = str(Path.home() / ".gitlab-runner" / "config.toml")
-        self.config_path = config_path
-        self.manager = ConfigManager(config_path, lock_timeout=15.0)
-        logger.debug("Initialized GitLabRunnerConfig at %s", config_path)
-
-    def read_config(self) -> dict:
-        """Read runner configuration.
-
-        Returns:
-            Configuration dictionary
-        """
-        # Note: For TOML files, this would use a TOML parser in real code
-        # For now, demonstrate with JSON-compatible dict operations
-        return self.manager.read()
-
-    def add_runner(self, runner_data: dict) -> dict:
-        """Add a new runner to configuration.
-
-        Args:
-            runner_data: Runner configuration
-
-        Returns:
-            Updated configuration
-        """
-        def update_fn(data):
-            if "runners" not in data:
-                data["runners"] = []
-            data["runners"].append(runner_data)
-            logger.info("Added runner: %s", runner_data.get("name"))
-            return data
-
-        return self.manager.atomic_update(update_fn)
-
-    def update_runner(self, runner_name: str, updates: dict) -> dict:
-        """Update runner configuration.
-
-        Args:
-            runner_name: Name of runner to update
-            updates: Fields to update
-
-        Returns:
-            Updated configuration
-        """
-        def update_fn(data):
-            if "runners" in data:
-                for runner in data["runners"]:
-                    if runner.get("name") == runner_name:
-                        runner.update(updates)
-                        logger.info("Updated runner: %s", runner_name)
-                        break
-            return data
-
-        return self.manager.atomic_update(update_fn)
-
-    def remove_runner(self, runner_name: str) -> dict:
-        """Remove runner from configuration.
-
-        Args:
-            runner_name: Name of runner to remove
-
-        Returns:
-            Updated configuration
-        """
-        def update_fn(data):
-            if "runners" in data:
-                data["runners"] = [
-                    r for r in data["runners"] if r.get("name") != runner_name
-                ]
-                logger.info("Removed runner: %s", runner_name)
-            return data
-
-        return self.manager.atomic_update(update_fn)

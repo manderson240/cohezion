@@ -79,15 +79,15 @@ Worktree: Yes
 
 **MANDATORY: Update this checklist as tasks complete. Change `[ ]` to `[x]`.**
 
-- [ ] Task 1: Install gh CLI and back up divergent commits
-- [ ] Task 2: Sync local main to GitHub
-- [ ] Task 3: Remove GitLab remote and CI files
-- [ ] Task 4: Remove GitLabRunnerConfig and update source references
+- [x] Task 1: Install gh CLI and back up divergent commits
+- [x] Task 2: Sync local main to GitHub
+- [x] Task 3: Remove GitLab remote and CI files
+- [x] Task 4: Remove GitLabRunnerConfig and update source references
 - [ ] Task 5: Update project rules and workflow configs
 - [ ] Task 6: Back up and clean up stale branches and worktrees
 - [ ] Task 7: Clean up stale remote branches on GitHub
 
-**Total Tasks:** 7 | **Completed:** 0 | **Remaining:** 7
+**Total Tasks:** 7 | **Completed:** 4 | **Remaining:** 3
 
 ## Implementation Tasks
 

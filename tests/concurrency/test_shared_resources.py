@@ -10,7 +10,6 @@ import pytest
 
 from cohezion.concurrency.shared_resources import (
     CapabilityUsageTracker,
-    GitLabRunnerConfig,
     SkillRegistry,
 )
 
@@ -123,7 +122,6 @@ class TestSkillRegistry:
             result = registry.register_skill(f"skill_{skill_id}", skill_data)
             results.append(len(result["skills"]))
 
-        # Register 5 skills concurrently
         threads = [
             threading.Thread(target=register_skill, args=(i,))
             for i in range(5)
@@ -135,11 +133,9 @@ class TestSkillRegistry:
         for t in threads:
             t.join()
 
-        # All skills should be registered
         all_skills = registry.get_all_skills()
         assert len(all_skills) == 5
 
-        # All registrations should have succeeded (no lost updates)
         for i in range(5):
             assert f"skill_{i}" in all_skills
 
@@ -164,7 +160,6 @@ class TestSkillRegistry:
             t.join()
 
         final = registry.get_skill("my_skill")
-        # Should be 3 threads * 10 increments = 30
         assert final["usage_count"] == 30
 
 
@@ -256,7 +251,6 @@ class TestCapabilityUsageTracker:
                     success=(i % 2 == 0),
                 )
 
-        # Record operations from 3 threads concurrently
         threads = [
             threading.Thread(target=record_operations, args=("generate", 10)),
             threading.Thread(target=record_operations, args=("analyze", 10)),
@@ -269,7 +263,6 @@ class TestCapabilityUsageTracker:
         for t in threads:
             t.join()
 
-        # All operations should be recorded
         all_stats = tracker.get_all_stats()
         assert len(all_stats) == 3
 
@@ -287,7 +280,7 @@ class TestCapabilityUsageTracker:
                     tokens_used=10,
                     success=True,
                 )
-                time.sleep(0.001)  # Small delay to increase contention
+                time.sleep(0.001)
 
         threads = [
             threading.Thread(target=record_operations)
@@ -301,116 +294,5 @@ class TestCapabilityUsageTracker:
             t.join()
 
         stats = tracker.get_operation_stats("generate")
-        # 5 threads * 20 operations * 10 tokens = 1000
         assert stats["total_tokens"] == 1000
         assert stats["count"] == 100
-
-
-@pytest.mark.skip(
-    reason="GitLab CI deprecated and replaced with GitHub Actions (Session 57). "
-    "Tests preserved for historical reference. Will be removed 2026-08-13."
-)
-class TestGitLabRunnerConfig:
-    """Tests for GitLab Runner configuration management.
-
-    .. deprecated:: 2026-02-13
-        These tests are skipped but preserved for historical reference.
-        GitLab CI was replaced with GitHub Actions in Session 57.
-        Tests will be removed in v2.0.0 (2026-08-13).
-    """
-
-    def test_add_runner(self):
-        """Test adding a runner."""
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
-            json.dump({}, f)
-            filepath = f.name
-
-        try:
-            config = GitLabRunnerConfig(filepath)
-
-            runner_data = {
-                "name": "test-runner",
-                "url": "http://localhost:8929",
-                "token": "test-token",
-            }
-            result = config.add_runner(runner_data)
-
-            assert "runners" in result
-            assert len(result["runners"]) == 1
-            assert result["runners"][0]["name"] == "test-runner"
-        finally:
-            Path(filepath).unlink(missing_ok=True)
-
-    def test_update_runner(self):
-        """Test updating runner configuration."""
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
-            json.dump({}, f)
-            filepath = f.name
-
-        try:
-            config = GitLabRunnerConfig(filepath)
-
-            config.add_runner({
-                "name": "my-runner",
-                "url": "http://localhost:8929",
-            })
-
-            result = config.update_runner("my-runner", {"token": "new-token"})
-
-            runner = result["runners"][0]
-            assert runner["token"] == "new-token"
-            assert runner["url"] == "http://localhost:8929"
-        finally:
-            Path(filepath).unlink(missing_ok=True)
-
-    def test_remove_runner(self):
-        """Test removing a runner."""
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
-            json.dump({}, f)
-            filepath = f.name
-
-        try:
-            config = GitLabRunnerConfig(filepath)
-
-            config.add_runner({"name": "runner1", "url": "http://localhost:8929"})
-            config.add_runner({"name": "runner2", "url": "http://localhost:8930"})
-
-            result = config.remove_runner("runner1")
-
-            assert len(result["runners"]) == 1
-            assert result["runners"][0]["name"] == "runner2"
-        finally:
-            Path(filepath).unlink(missing_ok=True)
-
-    def test_concurrent_runner_config_updates(self):
-        """Test concurrent runner config updates."""
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
-            json.dump({}, f)
-            filepath = f.name
-
-        try:
-            config = GitLabRunnerConfig(filepath)
-
-            def add_runners(thread_id):
-                for i in range(3):
-                    config.add_runner({
-                        "name": f"runner-{thread_id}-{i}",
-                        "url": f"http://localhost:{9000 + thread_id * 10 + i}",
-                    })
-
-            threads = [
-                threading.Thread(target=add_runners, args=(i,))
-                for i in range(3)
-            ]
-
-            for t in threads:
-                t.start()
-
-            for t in threads:
-                t.join()
-
-            result = config.read_config()
-            # 3 threads * 3 runners = 9
-            assert len(result.get("runners", [])) == 9
-        finally:
-            Path(filepath).unlink(missing_ok=True)

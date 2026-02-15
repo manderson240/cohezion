@@ -3,7 +3,6 @@
 Prevents race conditions when multiple agents/sessions access shared files:
 - skill_registry.json (auto_sync from parallel agents)
 - capability_usage.json (concurrent increment_usage)
-- ~/.gitlab-runner/config.toml (multiple sessions editing)
 
 Uses fcntl.flock() for Unix systems, with fallback timeout for deadlock prevention.
 """
@@ -79,7 +78,7 @@ class FileLock:
                 return
             except OSError as e:
                 last_error = e
-                time.sleep(0.1)  # Back off briefly
+                time.sleep(0.1)
 
         raise FileLockError(
             f"Could not acquire lock on {self.filepath} "
@@ -96,8 +95,11 @@ class FileLock:
 
                 if self._acquired_at:
                     held_time = time.time() - self._acquired_at
-                    logger.debug("Released lock on %s (held for %.3f seconds)",
-                                self.filepath, held_time)
+                    logger.debug(
+                        "Released lock on %s (held for %.3f seconds)",
+                        self.filepath,
+                        held_time,
+                    )
             except OSError as e:
                 logger.warning("Error releasing lock on %s: %s", self.filepath, e)
 
@@ -166,7 +168,6 @@ class ConfigManager:
             else:
                 data = {}
             yield data
-            # Write happens after yield, so caller can modify data
             with open(self.filepath, "w") as f:
                 json.dump(data, f, indent=2)
 
@@ -197,7 +198,9 @@ class ConfigManager:
                 json.dump(data, f, indent=2)
 
     def atomic_update(
-        self, update_func: Callable[[dict], dict], max_retries: int = 3,
+        self,
+        update_func: Callable[[dict], dict],
+        max_retries: int = 3,
     ) -> dict:
         """Atomically read, modify, and write config.
 
@@ -214,6 +217,7 @@ class ConfigManager:
             FileLockError: If lock cannot be acquired after retries
         """
         import json
+
         retries = 0
         last_error = None
 
@@ -221,7 +225,6 @@ class ConfigManager:
             try:
                 lock = FileLock(str(self.filepath), timeout=self.lock_timeout)
                 with lock:
-                    # Read
                     if self.filepath.exists():
                         with open(self.filepath) as f:
                             content = f.read().strip()
@@ -229,10 +232,8 @@ class ConfigManager:
                     else:
                         data = {}
 
-                    # Modify
                     data = update_func(data)
 
-                    # Write
                     self.filepath.parent.mkdir(parents=True, exist_ok=True)
                     with open(self.filepath, "w") as f:
                         json.dump(data, f, indent=2)
@@ -243,7 +244,7 @@ class ConfigManager:
                 last_error = e
                 retries += 1
                 if retries < max_retries:
-                    wait_time = 0.5 * (2 ** retries)  # Exponential backoff
+                    wait_time = 0.5 * (2**retries)
                     logger.warning(
                         "Lock timeout on %s, retrying in %.1f seconds (%d/%d)",
                         self.filepath,
@@ -335,7 +336,8 @@ class LockedFileOperation:
 
 @contextmanager
 def safe_file_access(
-    filepath: str, timeout: float = 10.0,
+    filepath: str,
+    timeout: float = 10.0,
 ) -> Generator[None, None, None]:
     """Simple context manager for safe file access.
 
