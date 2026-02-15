@@ -5,7 +5,7 @@ name: Repository Health Check
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
     branches: [main]
   schedule:
