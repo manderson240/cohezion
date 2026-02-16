@@ -8,9 +8,12 @@ Analyzes:
 """
 
 import json
+import logging
 import os
 from datetime import UTC, datetime
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 def analyze_utilization():
@@ -35,8 +38,8 @@ def analyze_utilization():
                     for skill in skills:
                         if skill in content:
                             skill_usage[skill] += 1
-                except Exception:
-                    pass
+                except (OSError, UnicodeDecodeError) as e:
+                    logger.debug("Failed to read %s: %s", path, e)
 
     # 3. Check MCP Servers
     mcp_registry_path = base_path / "mcp" / "mcp_registry.json"

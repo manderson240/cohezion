@@ -111,7 +111,8 @@ class DockerBackend:
             client = docker.from_env()
             client.ping()
             return True
-        except Exception:
+        except Exception as e:
+            logger.debug("Docker daemon not reachable: %s", e)
             return False
 
 

@@ -277,8 +277,8 @@ class ResourceMonitor:
                 if vram_total >= 4 * (1024**3) and vram_total > 0:
                     return (vram_used / vram_total) * 100.0
 
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("VRAM usage read failed: %s", e)
         return 0.0
 
     async def enter_desperation_mode(self, vitals: dict[str, Any]):
