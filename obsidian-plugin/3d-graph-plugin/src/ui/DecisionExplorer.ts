@@ -9,6 +9,7 @@ import { DecisionQualityScorer, QualityScoreBreakdown } from '../services/Decisi
 import { ReasoningInferenceEngine } from '../services/ReasoningInference';
 import { CascadeInferenceEngine, DecisionImpact } from '../services/CascadeInference';
 import { SemanticContradictionDetector } from '../services/SemanticContradictionDetector';
+import { PaperDecisionLinker, PaperLink } from '../services/PaperDecisionLinker';
 
 /**
  * Decision Explorer Panel for Phase 4
@@ -341,6 +342,150 @@ export class DecisionExplorer {
       for (const alt of this.selectedDecision.alternatives_rejected) {
         altList.createEl('li').textContent = alt;
       }
+    }
+
+    // Related Papers (Phase 2: Paper Integration)
+    if (this.selectedDecision.related_papers && this.selectedDecision.related_papers.length > 0) {
+      this.displayRelatedPapers(metadataDiv);
+    } else {
+      // Try to load from SurrealDB
+      this.loadAndDisplayRelatedPapers(metadataDiv);
+    }
+  }
+
+  /**
+   * Display papers related to selected decision (Phase 2)
+   */
+  private displayRelatedPapers(containerEl: HTMLElement): void {
+    if (!this.selectedDecision || !this.selectedDecision.related_papers) return;
+
+    const papersDiv = containerEl.createDiv();
+    papersDiv.style.marginTop = '15px';
+
+    const label = papersDiv.createEl('small');
+    label.textContent = 'Related Papers';
+    label.style.display = 'block';
+    label.style.color = '#666';
+    label.style.fontWeight = 'bold';
+    label.style.marginBottom = '8px';
+
+    for (const paperId of this.selectedDecision.related_papers) {
+      const paperItem = papersDiv.createDiv();
+      paperItem.style.padding = '8px';
+      paperItem.style.marginBottom = '6px';
+      paperItem.style.backgroundColor = '#f0f8ff';
+      paperItem.style.borderLeft = '3px solid #3b82f6';
+      paperItem.style.borderRadius = '2px';
+      paperItem.style.cursor = 'pointer';
+      paperItem.style.fontSize = '0.9em';
+
+      const paperLink = paperItem.createEl('a');
+      paperLink.href = '#';
+      paperLink.textContent = paperId.replace(/-/g, ' ').toUpperCase();
+      paperLink.style.color = '#3b82f6';
+      paperLink.style.textDecoration = 'none';
+      paperLink.style.fontWeight = 'bold';
+
+      paperLink.onclick = (e) => {
+        e.preventDefault();
+        // Navigate to paper in vault
+        const file = this.app.vault.getFileByPath(`papers/${paperId}.md`);
+        if (file) {
+          this.app.workspace.getLeaf().openFile(file);
+        } else {
+          new Notice(`Paper not found: ${paperId}`);
+        }
+      };
+
+      paperItem.onmouseenter = () => {
+        paperItem.style.backgroundColor = '#e0f0ff';
+      };
+      paperItem.onmouseleave = () => {
+        paperItem.style.backgroundColor = '#f0f8ff';
+      };
+    }
+  }
+
+  /**
+   * Load related papers from SurrealDB and display them (Phase 2)
+   */
+  private async loadAndDisplayRelatedPapers(containerEl: HTMLElement): Promise<void> {
+    if (!this.selectedDecision) return;
+
+    try {
+      // Query paper_decision_links from SurrealDB
+      const query = `SELECT paper_id, link_type, confidence FROM paper_decision_links WHERE decision_id = $id ORDER BY confidence DESC`;
+      const links = await this.surrealClient.executeQuery(query, { id: this.selectedDecision.id });
+
+      if (!links || links.length === 0) {
+        // No links found, skip display
+        return;
+      }
+
+      const papersDiv = containerEl.createDiv();
+      papersDiv.style.marginTop = '15px';
+
+      const label = papersDiv.createEl('small');
+      label.textContent = 'Related Papers (from SurrealDB)';
+      label.style.display = 'block';
+      label.style.color = '#666';
+      label.style.fontWeight = 'bold';
+      label.style.marginBottom = '8px';
+
+      for (const link of links) {
+        const paperItem = papersDiv.createDiv();
+        paperItem.style.padding = '8px';
+        paperItem.style.marginBottom = '6px';
+        paperItem.style.backgroundColor = '#f0f8ff';
+        paperItem.style.borderLeft = '3px solid #3b82f6';
+        paperItem.style.borderRadius = '2px';
+        paperItem.style.cursor = 'pointer';
+        paperItem.style.fontSize = '0.9em';
+
+        const paperLink = paperItem.createEl('a');
+        paperLink.href = '#';
+        paperLink.textContent = link.paper_id.replace(/-/g, ' ').toUpperCase();
+        paperLink.style.color = '#3b82f6';
+        paperLink.style.textDecoration = 'none';
+        paperLink.style.fontWeight = 'bold';
+
+        // Add link type and confidence badge
+        const typeSpan = paperItem.createEl('span');
+        typeSpan.style.marginLeft = '8px';
+        typeSpan.style.fontSize = '0.8em';
+        typeSpan.style.color = '#fff';
+        typeSpan.style.backgroundColor = '#666';
+        typeSpan.style.padding = '2px 6px';
+        typeSpan.style.borderRadius = '2px';
+        typeSpan.textContent = link.link_type;
+
+        const confSpan = paperItem.createEl('span');
+        confSpan.style.marginLeft = '6px';
+        confSpan.style.fontSize = '0.8em';
+        confSpan.style.color = '#666';
+        confSpan.textContent = `(${(link.confidence * 100).toFixed(0)}%)`;
+
+        paperLink.onclick = (e) => {
+          e.preventDefault();
+          // Navigate to paper in vault
+          const file = this.app.vault.getFileByPath(`papers/${link.paper_id}.md`);
+          if (file) {
+            this.app.workspace.getLeaf().openFile(file);
+          } else {
+            new Notice(`Paper not found: ${link.paper_id}`);
+          }
+        };
+
+        paperItem.onmouseenter = () => {
+          paperItem.style.backgroundColor = '#e0f0ff';
+        };
+        paperItem.onmouseleave = () => {
+          paperItem.style.backgroundColor = '#f0f8ff';
+        };
+      }
+    } catch (error) {
+      // Silently fail if SurrealDB query fails
+      console.warn('Could not load related papers from SurrealDB:', error);
     }
   }
 
