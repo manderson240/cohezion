@@ -241,6 +241,12 @@ class TestEventEmission:
             capture_output=True,
             check=True,
         )
+        subprocess.run(
+            ["git", "config", "commit.gpgSign", "false"],
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
+        )
 
         # Create and commit initial file
         claude_md = tmp_path / "CLAUDE.md"

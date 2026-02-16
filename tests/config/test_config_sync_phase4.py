@@ -193,6 +193,12 @@ class TestConfigSyncEngineIntegration:
             capture_output=True,
             check=True,
         )
+        subprocess.run(
+            ["git", "config", "commit.gpgSign", "false"],
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
+        )
 
         vault_root = tmp_path / "vault"
         vault_root.mkdir()
@@ -226,6 +232,12 @@ class TestConfigSyncEngineIntegration:
         )
         subprocess.run(
             ["git", "config", "user.name", "Test User"],
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
+        )
+        subprocess.run(
+            ["git", "config", "commit.gpgSign", "false"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
@@ -275,6 +287,12 @@ class TestOrchestrationWithSync:
         )
         subprocess.run(
             ["git", "config", "user.name", "Test User"],
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
+        )
+        subprocess.run(
+            ["git", "config", "commit.gpgSign", "false"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
@@ -350,6 +368,12 @@ class TestConflictDetection:
         )
         subprocess.run(
             ["git", "config", "user.name", "Test User"],
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
+        )
+        subprocess.run(
+            ["git", "config", "commit.gpgSign", "false"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
