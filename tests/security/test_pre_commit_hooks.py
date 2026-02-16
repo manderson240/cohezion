@@ -261,6 +261,9 @@ class TestPreCommitHooksIntegration:
             config = yaml.safe_load(f)
 
         for i, repo in enumerate(config.get("repos", [])):
+            # Local hooks don't have a rev field
+            if repo.get("repo") == "local":
+                continue
             assert "rev" in repo, (
                 f"Repo #{i + 1} ({repo.get('repo')}) missing 'rev' field"
             )

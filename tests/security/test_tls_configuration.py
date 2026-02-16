@@ -16,6 +16,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+CERTS_DIR = PROJECT_ROOT / "certs"
 
 
 class TestTLSCertificateGeneration:
@@ -23,8 +24,8 @@ class TestTLSCertificateGeneration:
 
     def test_certificate_files_exist(self):
         """Verify self-signed certificates were generated."""
-        cert_path = Path("/home/mike-anderson/dev/cohezion/certs/server.crt")
-        key_path = Path("/home/mike-anderson/dev/cohezion/certs/server.key")
+        cert_path = CERTS_DIR / "server.crt"
+        key_path = CERTS_DIR / "server.key"
 
         if not cert_path.exists() or not key_path.exists():
             pytest.skip("Deployment certificates not present")
@@ -33,8 +34,8 @@ class TestTLSCertificateGeneration:
 
     def test_certificate_file_permissions(self):
         """Verify private key has secure permissions."""
-        cert_path = Path("/home/mike-anderson/dev/cohezion/certs/server.crt")
-        key_path = Path("/home/mike-anderson/dev/cohezion/certs/server.key")
+        cert_path = CERTS_DIR / "server.crt"
+        key_path = CERTS_DIR / "server.key"
 
         if not cert_path.exists() or not key_path.exists():
             pytest.skip("Deployment certificates not present")
@@ -51,13 +52,15 @@ class TestTLSCertificateGeneration:
 
     def test_certificate_is_valid_x509(self):
         """Verify certificate is valid X.509 format."""
-        cert_path = "/home/mike-anderson/dev/cohezion/certs/server.crt"
+        cert_path = CERTS_DIR / "server.crt"
+
+        if not cert_path.exists():
+            pytest.skip("Deployment certificates not present")
 
         try:
             import OpenSSL
 
-            with open(cert_path, "rb") as f:
-                cert_data = f.read()
+            cert_data = cert_path.read_bytes()
             cert = OpenSSL.crypto.load_certificate(
                 OpenSSL.crypto.FILETYPE_PEM, cert_data
             )
@@ -68,15 +71,17 @@ class TestTLSCertificateGeneration:
 
     def test_certificate_common_name(self):
         """Verify certificate is issued for localhost."""
-        cert_path = "/home/mike-anderson/dev/cohezion/certs/server.crt"
+        cert_path = CERTS_DIR / "server.crt"
+
+        if not cert_path.exists():
+            pytest.skip("Deployment certificates not present")
 
         try:
             import OpenSSL
 
-            with open(cert_path, "rb") as f:
-                cert = OpenSSL.crypto.load_certificate(
-                    OpenSSL.crypto.FILETYPE_PEM, f.read()
-                )
+            cert = OpenSSL.crypto.load_certificate(
+                OpenSSL.crypto.FILETYPE_PEM, cert_path.read_bytes()
+            )
             cn = cert.get_subject().CN
             assert cn == "localhost", (
                 f"Certificate CN should be 'localhost', got '{cn}'"
@@ -86,15 +91,17 @@ class TestTLSCertificateGeneration:
 
     def test_certificate_self_signed(self):
         """Verify certificate is self-signed."""
-        cert_path = "/home/mike-anderson/dev/cohezion/certs/server.crt"
+        cert_path = CERTS_DIR / "server.crt"
+
+        if not cert_path.exists():
+            pytest.skip("Deployment certificates not present")
 
         try:
             import OpenSSL
 
-            with open(cert_path, "rb") as f:
-                cert = OpenSSL.crypto.load_certificate(
-                    OpenSSL.crypto.FILETYPE_PEM, f.read()
-                )
+            cert = OpenSSL.crypto.load_certificate(
+                OpenSSL.crypto.FILETYPE_PEM, cert_path.read_bytes()
+            )
             # Self-signed: issuer == subject
             issuer = cert.get_issuer()
             subject = cert.get_subject()
@@ -128,8 +135,8 @@ class TestTLSConfiguration:
         """Test TLSConfig initialization with certificate paths."""
         from cohezion.security.tls_config import TLSConfig
 
-        cert_path = "/home/mike-anderson/dev/cohezion/certs/server.crt"
-        key_path = "/home/mike-anderson/dev/cohezion/certs/server.key"
+        cert_path = str(CERTS_DIR / "server.crt")
+        key_path = str(CERTS_DIR / "server.key")
 
         config = TLSConfig(cert_path=cert_path, key_path=key_path)
         assert config.cert_path == cert_path
@@ -137,8 +144,8 @@ class TestTLSConfiguration:
 
     def test_tls_config_validates_certificate(self):
         """Test TLSConfig certificate validation."""
-        cert_path = Path("/home/mike-anderson/dev/cohezion/certs/server.crt")
-        key_path = Path("/home/mike-anderson/dev/cohezion/certs/server.key")
+        cert_path = CERTS_DIR / "server.crt"
+        key_path = CERTS_DIR / "server.key"
 
         if not cert_path.exists() or not key_path.exists():
             pytest.skip("Deployment certificates not present")
@@ -177,8 +184,8 @@ class TestUvicornSSLConfiguration:
         """Test environment variables can be set for TLS."""
         # Simulating environment setup for Uvicorn
         test_env = {
-            "TLS_CERT_PATH": "/home/mike-anderson/dev/cohezion/certs/server.crt",
-            "TLS_KEY_PATH": "/home/mike-anderson/dev/cohezion/certs/server.key",
+            "TLS_CERT_PATH": str(CERTS_DIR / "server.crt"),
+            "TLS_KEY_PATH": str(CERTS_DIR / "server.key"),
             "MCP_TLS_ENABLED": "true",
         }
 
@@ -244,8 +251,8 @@ class TestTLSIntegration:
 
     def test_certificate_and_key_exist_together(self):
         """Verify both certificate and key exist for HTTPS."""
-        cert_path = Path("/home/mike-anderson/dev/cohezion/certs/server.crt")
-        key_path = Path("/home/mike-anderson/dev/cohezion/certs/server.key")
+        cert_path = CERTS_DIR / "server.crt"
+        key_path = CERTS_DIR / "server.key"
 
         if not cert_path.exists() or not key_path.exists():
             pytest.skip("Deployment certificates not present")
@@ -273,16 +280,19 @@ class TestTLSIntegration:
 
     def test_certificate_validity_period(self):
         """Verify certificate is valid for at least one year."""
+        cert_path = CERTS_DIR / "server.crt"
+
+        if not cert_path.exists():
+            pytest.skip("Deployment certificates not present")
+
         try:
             from datetime import datetime
 
             import OpenSSL
 
-            cert_path = "/home/mike-anderson/dev/cohezion/certs/server.crt"
-            with open(cert_path, "rb") as f:
-                cert = OpenSSL.crypto.load_certificate(
-                    OpenSSL.crypto.FILETYPE_PEM, f.read()
-                )
+            cert = OpenSSL.crypto.load_certificate(
+                OpenSSL.crypto.FILETYPE_PEM, cert_path.read_bytes()
+            )
 
             not_after = cert.get_notAfter().decode()
             # Parse the date (format: YYYYMMDDHHmmssZ)
@@ -294,33 +304,3 @@ class TestTLSIntegration:
             )
         except ImportError:
             pytest.skip("OpenSSL library not available")
-
-
-# Summary
-"""
-Task #2: TLS/HTTPS Configuration - Test Coverage
-
-✅ Certificate Generation:
-   - Self-signed certificates generated in ./certs/
-   - Proper file permissions (600 for private key)
-   - Valid X.509 format
-   - CN=localhost for localhost-only development
-
-✅ TLS Configuration:
-   - TLSConfig module for SSL configuration
-   - HTTPS middleware for Starlette
-   - Certificate validation
-   - HSTS header support
-
-✅ MCP Server Integration:
-   - main.py imports TLS modules
-   - Uvicorn SSL configuration ready
-   - Environment variables for TLS paths
-
-✅ MCP Client Support:
-   - HTTPS client support verified
-   - SSL context creation tested
-   - Certificate chain handling
-
-Tests Target: 4+ test cases covering all TLS aspects
-"""
