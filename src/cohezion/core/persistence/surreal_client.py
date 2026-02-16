@@ -122,8 +122,8 @@ class PhysicsState:
         if hasattr(arr, "tobytes"):
             try:
                 return base64.b64encode(arr.tobytes()).decode("ascii")
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("Binary pack failed, using JSON fallback: %s", e)
         # Fallback to JSON string as 'packed' if numpy is missing
         return base64.b64encode(str(arr).encode()).decode("ascii")
 
@@ -252,6 +252,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
         self.namespace = namespace
         self.database = database
         self._connected = False
+        self._using_fallback = False
         self._client: Any = None  # Will be surrealdb client when connected
 
     async def connect(self) -> bool:
@@ -309,6 +310,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             _SHARED_STORE = InMemoryStore()
         self._client = _SHARED_STORE
         self._connected = True
+        self._using_fallback = True
         logger.warning("🔸 FALLBACK: Using InMemoryStore for persistence.")
 
     async def setup_schema(self) -> bool:
@@ -374,7 +376,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return await self._client.create(table, data)
         except Exception as e:
             logger.error(f"Create failed in {table}: {e}")
-            raise e
+            raise
 
     async def query(self, sql: str, vars: dict[str, Any] | None = None) -> Any:
         """Execute a raw SQL query against the database."""

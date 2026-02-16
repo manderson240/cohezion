@@ -793,8 +793,8 @@ class QuantumPerformanceMonitor:
         # Graceful shutdown of Ollama
         try:
             subprocess.run(["pkill", "-f", "ollama"], timeout=10)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Ollama shutdown failed during emergency restart: %s", e)
 
         # Restart Ollama with conservative settings
         subprocess.run(

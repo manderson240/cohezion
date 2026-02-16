@@ -165,8 +165,8 @@ class BaseAgent(ABC):
             age = time.time() - data.get("timestamp", 0)
             if age < self.config.cache_ttl_seconds:
                 return data
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Cache read failed for %s: %s", cache_file, e)
 
         # Phase 4: Semantic Fallback
         if not images and self._encoder:

@@ -1745,8 +1745,8 @@ async def metrics_system():
                 ollama_available = True
                 models_data = resp.json().get("models", [])
                 ollama_models = [m["name"] for m in models_data]
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("Ollama status check unavailable: %s", e)
 
     return SystemMetricsResponse(
         cpu_percent=psutil.cpu_percent(interval=0.1),
