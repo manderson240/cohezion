@@ -3,27 +3,38 @@
   "checkpoint_id": "0bd376ae8c3f",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 3,
+  "checkpoints_count": 14,
   "files_touched": [
-    ".claude/rules/git-workflow.md",
-    ".github/workflows/ci.yml",
-    ".github/workflows/lint.yml",
-    ".github/workflows/repo-health.yml",
-    ".github/workflows/test.yml",
     ".worktrees/spec-github-migration-cf603d38/.claude/rules/git-workflow.md",
     ".worktrees/spec-github-migration-cf603d38/.github/workflows/ci.yml",
     ".worktrees/spec-github-migration-cf603d38/.github/workflows/lint.yml",
     ".worktrees/spec-github-migration-cf603d38/.github/workflows/repo-health.yml",
     ".worktrees/spec-github-migration-cf603d38/.github/workflows/test.yml",
     ".worktrees/spec-github-migration-cf603d38/docs/plans/2026-02-14-github-migration.md",
+    "CLAUDE.md",
+    "README.md",
+    "cloud-vault-mcp/CLOUD_ACCESS_QUICKSTART.md",
+    "cloud-vault-mcp/CLOUD_CLAUDE_ACCESS.md",
+    "cloud-vault-mcp/scripts/rotate-token.sh",
+    "cloud-vault-mcp/scripts/setup-cloud-access.sh",
+    "cloud-vault-mcp/scripts/verify-tunnel.sh",
     "docs/plans/2026-02-14-github-migration.md",
     "docs/plans/2026-02-15-audit-remediation.md",
+    "docs/plans/2026-02-15-codebase-quality.md",
     "ollama-mcp",
     "research/challenges/anthropic_challenge_original",
+    "src/cohezion/api/models.py",
+    "src/cohezion/api/services/__init__.py",
+    "src/cohezion/deployment/__init__.py",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "src/cohezion/knowledge_graph/MISSION_JOURNAL.md",
+    "src/cohezion/knowledge_graph/audits/__init__.py",
     "src/cohezion/knowledge_graph/audits/audit_pre_20260215_215554.json",
     "src/cohezion/knowledge_graph/audits/deep_audit_report.md",
     "src/cohezion/knowledge_graph/audits/utilization_audit_1771210555.md",
-    "src/cohezion/knowledge_graph/reports/AUDIT_20260215_2156.md"
+    "src/cohezion/knowledge_graph/reports/AUDIT_20260215_2156.md",
+    "src/cohezion/knowledge_graph/reports/__init__.py",
+    "src/cohezion/swarm/agents/__init__.py"
   ],
   "sessions": [
     {
@@ -42,10 +53,10 @@
     }
   ],
   "token_usage": {
-    "input_tokens": 4140,
-    "cache_creation_tokens": 768356,
-    "cache_read_tokens": 22709304,
-    "output_tokens": 30917,
-    "api_call_count": 173
+    "input_tokens": 11635,
+    "cache_creation_tokens": 723200,
+    "cache_read_tokens": 18576743,
+    "output_tokens": 31620,
+    "api_call_count": 130
   }
 }
