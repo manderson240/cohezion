@@ -507,6 +507,109 @@ class JourneyTracker:
             "convergence": float(np.clip(convergence, 0.0, 1.0)),
         }
 
+    def compute_thermodynamic_state(self) -> "ThermodynamicState | None":
+        """Compute thermodynamic state from recent trajectory.
+
+        Converts the trajectory history into thermodynamic quantities:
+        entropy production, free energy, susceptibility, heat capacity.
+
+        Returns
+        -------
+        ThermodynamicState | None
+            Current thermodynamic state, or None if insufficient data.
+        """
+        try:
+            from cohezion.compound.thermodynamic_metrics import ThermodynamicMetrics
+
+            if len(self._recent_points) < 5:
+                return None
+
+            thermo = ThermodynamicMetrics(
+                window_size=min(self.TRAJECTORY_WINDOW, len(self._recent_points)),
+                min_samples=5,
+            )
+
+            for point in self._recent_points:
+                thermo.record(
+                    coherence=point.coherence,
+                    trajectory_point=point.dimensions,
+                    energy=None,  # Estimated from coherence
+                )
+
+            return thermo.compute_state()
+        except Exception as e:
+            logger.warning("Thermodynamic computation failed (non-blocking): %s", e)
+            return None
+
+    def compute_topological_summary(self) -> dict[str, float]:
+        """Compute topological persistence summary of recent trajectory.
+
+        Analyzes the shape of the trajectory in 12D space to detect:
+        - Clusters (distinct behavioral modes)
+        - Loops (repetitive behavioral cycles)
+        - Topological complexity (persistence entropy)
+
+        Returns
+        -------
+        dict[str, float]
+            Topological summary. Empty dict if insufficient data.
+        """
+        try:
+            from cohezion.compound.topological_persistence import (
+                trajectory_persistence_summary,
+            )
+
+            if len(self._recent_points) < 3:
+                return {}
+
+            points = [p.dimensions for p in self._recent_points]
+            return trajectory_persistence_summary(points)
+        except Exception as e:
+            logger.warning("Topological computation failed (non-blocking): %s", e)
+            return {}
+
+    def compute_advanced_quality(
+        self,
+        points: list[TrajectoryPoint] | None = None,
+    ) -> dict[str, Any]:
+        """Compute trajectory quality with thermodynamic + topological metrics.
+
+        Extends compute_trajectory_quality with novel metrics that have
+        real mathematical foundations.
+
+        Parameters
+        ----------
+        points : list[TrajectoryPoint] | None
+            Points to analyze. If None, uses recent buffer.
+
+        Returns
+        -------
+        dict[str, Any]
+            Extended quality metrics including thermodynamic state
+            and topological features.
+        """
+        pts = points if points is not None else list(self._recent_points)
+        base = self.compute_trajectory_quality(pts)
+
+        # Add thermodynamic state
+        thermo = self.compute_thermodynamic_state()
+        if thermo is not None:
+            base["entropy_production_rate"] = thermo.entropy_production_rate
+            base["free_energy"] = thermo.free_energy
+            base["susceptibility"] = thermo.susceptibility
+            base["heat_capacity"] = thermo.heat_capacity
+            base["effective_temperature"] = thermo.temperature
+
+        # Add topological features
+        topo = self.compute_topological_summary()
+        if topo:
+            base["n_behavioral_modes"] = topo.get("n_clusters", 0)
+            base["n_behavioral_cycles"] = topo.get("n_loops", 0)
+            base["topological_complexity"] = topo.get("persistence_entropy_h0", 0.0)
+            base["cycle_complexity"] = topo.get("persistence_entropy_h1", 0.0)
+
+        return base
+
 
 class JourneyTrackerFactory:
     """Factory for creating journey trackers."""
