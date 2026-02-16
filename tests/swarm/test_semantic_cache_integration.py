@@ -7,13 +7,17 @@ Tests three-tier caching hierarchy:
 - Fallback: Generate new via Ollama
 """
 
-import pytest
 from unittest.mock import AsyncMock, patch
-import numpy as np
 
-from cohezion.swarm.token_client import TokenEfficientClient
-from cohezion.swarm.semantic_cache import SemanticCache, EmbeddingResult, SemanticCacheHit
+import numpy as np
+import pytest
+
 from cohezion.swarm.batch_processor import BatchItem, CacheEntry
+from cohezion.swarm.semantic_cache import (
+    EmbeddingResult,
+    SemanticCache,
+)
+from cohezion.swarm.token_client import TokenEfficientClient
 
 
 @pytest.fixture
@@ -153,9 +157,7 @@ class TestThreeTierCacheHierarchy:
         async def mock_encode(text):
             return EmbeddingResult(embedding=embedding_vec.tolist(), tokens_used=10)
 
-        token_client_with_semantic.semantic_cache._embedding_model.encode = (
-            mock_encode
-        )
+        token_client_with_semantic.semantic_cache._embedding_model.encode = mock_encode
 
         # Mock Ollama to fail (shouldn't be called)
         with patch.object(
@@ -268,7 +270,9 @@ class TestThreeTierCacheHierarchy:
             assert client.semantic_cache is None
 
     @pytest.mark.asyncio
-    async def test_semantic_cache_thread_safety_with_batch(self, token_client_with_semantic):
+    async def test_semantic_cache_thread_safety_with_batch(
+        self, token_client_with_semantic
+    ):
         """Test semantic cache is thread-safe during batch operations."""
         if not token_client_with_semantic.semantic_cache:
             pytest.skip("Semantic cache not available")

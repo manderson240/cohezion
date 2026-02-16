@@ -7,15 +7,10 @@ Covers:
 - A/B testing support
 """
 
-import pytest
 from datetime import datetime
 
-from cohezion.deployment.feature_flags import (
-    FeatureFlag,
-    FeatureFlagContext,
-    FeatureFlagManager,
-    RolloutStage,
-)
+import pytest
+
 from cohezion.deployment.deployment_config import (
     DeploymentConfig,
     DeploymentMetrics,
@@ -26,7 +21,12 @@ from cohezion.deployment.deployment_config import (
 )
 from cohezion.deployment.deployment_orchestrator import (
     DeploymentOrchestrator,
-    RolloutPlan,
+)
+from cohezion.deployment.feature_flags import (
+    FeatureFlag,
+    FeatureFlagContext,
+    FeatureFlagManager,
+    RolloutStage,
 )
 
 
@@ -383,7 +383,10 @@ class TestProductionDeploymentIntegration:
         assert manager.is_enabled(FeatureFlag.OBSERVABILITY_API)
 
         # Semantic features should be in canary (low risk)
-        assert manager.flags[FeatureFlag.SEMANTIC_EMBEDDINGS].rollout_stage == RolloutStage.CANARY
+        assert (
+            manager.flags[FeatureFlag.SEMANTIC_EMBEDDINGS].rollout_stage
+            == RolloutStage.CANARY
+        )
 
         # Adaptive thresholds should be disabled (higher risk)
         assert not manager.is_enabled(FeatureFlag.ADAPTIVE_CACHE_THRESHOLDS)

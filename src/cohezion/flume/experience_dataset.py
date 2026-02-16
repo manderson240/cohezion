@@ -41,9 +41,11 @@ class ExperienceDataset(Dataset):
         self._rng = np.random.default_rng(seed)
 
         # Pre-encode all experiences at init for fast __getitem__
-        self._vectors = np.stack(
-            [self._encoder.encode(exp) for exp in experiences]
-        ) if experiences else np.empty((0, TOTAL_DIM), dtype=np.float32)
+        self._vectors = (
+            np.stack([self._encoder.encode(exp) for exp in experiences])
+            if experiences
+            else np.empty((0, TOTAL_DIM), dtype=np.float32)
+        )
 
     def __len__(self) -> int:
         return len(self._vectors)

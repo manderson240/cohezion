@@ -79,9 +79,7 @@ class TestHierarchicalVaultSearch:
     def test_hierarchical_search_combined_criteria(self, mcp_client):
         """Test hierarchical search with multiple criteria."""
         mock_patterns = [
-            {
-                "path": "patterns/operations/analyze/domains/nlp/skills/core/p1.md"
-            }
+            {"path": "patterns/operations/analyze/domains/nlp/skills/core/p1.md"}
         ]
 
         with patch.object(mcp_client, "vault_search") as mock_search:
@@ -174,9 +172,7 @@ class TestHierarchicalSearchIntegration:
         client = MCPClient(config)
 
         # Mock the vault_find_relevant_context to simulate fast search
-        with patch.object(
-            client, "vault_find_relevant_context"
-        ) as mock_find_context:
+        with patch.object(client, "vault_find_relevant_context") as mock_find_context:
             mock_find_context.return_value = [
                 {
                     "path": "patterns/analyze_skill_coherence.md",

@@ -7,25 +7,26 @@ Tests three-layer evaluation:
 3. Evaluation Reporting (EDL routing for violations)
 """
 
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
 from datetime import datetime
+from unittest.mock import AsyncMock, patch
+
+import pytest
+
 from cohezion.platform.agent_evaluation import (
-    AnthropicAlignedEvaluator,
     AgentExecutionContext,
-    AgentEvaluationResult,
+    AnthropicAlignedEvaluator,
     CharterComplianceScore,
+    ConstitutionalPrinciple,
     SafetyViolation,
     ViolationSeverity,
-    ConstitutionalPrinciple,
     get_agent_evaluator,
     reset_agent_evaluator,
 )
 from cohezion.platform.coherence_tracker import CoherenceMetrics
 from cohezion.platform.edl_router import (
     EDLConsensus,
-    StreamRecommendation,
     ExpertStream,
+    StreamRecommendation,
 )
 
 

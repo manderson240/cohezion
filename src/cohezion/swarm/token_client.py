@@ -32,7 +32,6 @@ import asyncio
 import hashlib
 import logging
 import time
-from pathlib import Path
 from typing import Any
 
 import requests  # type: ignore[import-untyped]
@@ -117,7 +116,7 @@ class ResilientOllamaClient:
                         f"Ollama request failed after {self.max_retries} retries: {e}"
                     ) from e
 
-                wait_time = 0.5 * (2 ** attempt)
+                wait_time = 0.5 * (2**attempt)
                 logger.warning(
                     "Ollama request failed (attempt %d/%d), retrying in %.1f seconds: %s",
                     attempt + 1,
@@ -205,7 +204,9 @@ class TokenEfficientClient:
             persistent_cache = PersistentTokenCache(
                 cache_dir=cache_dir, persistence_enabled=True, auto_restore=True
             )
-            self.batch_processor = BatchProcessor(self, self.config, cache=persistent_cache)
+            self.batch_processor = BatchProcessor(
+                self, self.config, cache=persistent_cache
+            )
         else:
             self.batch_processor = BatchProcessor(self, self.config)
 
@@ -221,7 +222,9 @@ class TokenEfficientClient:
                 )
                 logger.debug("SemanticCache initialized for L2 fuzzy matching")
             except Exception as e:
-                logger.warning(f"Failed to initialize semantic cache, disabling L2: {e}")
+                logger.warning(
+                    f"Failed to initialize semantic cache, disabling L2: {e}"
+                )
                 self.semantic_cache = None
 
         # Metrics
@@ -277,6 +280,7 @@ class TokenEfficientClient:
                     )
                     # Store in L1 cache for future exact matches
                     from cohezion.swarm.batch_processor import CacheEntry
+
                     self.batch_processor.cache[cache_key] = CacheEntry(
                         key=cache_key,
                         value=semantic_hit.value,
@@ -340,6 +344,7 @@ class TokenEfficientClient:
         Returns:
             BatchResult with results, metrics, cache statistics
         """
+
         async def execute_item(item: BatchItem) -> tuple[str, int]:
             """Execute single item (used by Phase 2)."""
             return await self.generate(

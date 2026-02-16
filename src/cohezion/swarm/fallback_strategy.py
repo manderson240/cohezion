@@ -46,8 +46,8 @@ Usage:
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
 from enum import Enum
+
 
 logger = logging.getLogger(__name__)
 
@@ -67,8 +67,8 @@ class ModelHealthMetrics:
     model: str
     error_count: int = 0  # Consecutive errors
     success_count: int = 0  # Consecutive successes
-    last_error_time: Optional[float] = field(default=None)
-    last_success_time: Optional[float] = field(default=None)
+    last_error_time: float | None = field(default=None)
+    last_success_time: float | None = field(default=None)
     total_requests: int = 0
     total_errors: int = 0
     avg_latency_ms: float = 0.0
@@ -160,7 +160,7 @@ class CircuitBreaker:
 
         self.state = CircuitBreakerState.CLOSED
         self.metrics = ModelHealthMetrics(model=model)
-        self.opened_at: Optional[float] = None
+        self.opened_at: float | None = None
 
     def record_success(self, latency_ms: float = 0.0) -> None:
         """Record successful execution.
@@ -362,20 +362,20 @@ class FallbackStrategy:
         self.min_quality_loss = min_quality_loss
 
         # Circuit breakers per model
-        self.circuit_breakers: Dict[str, CircuitBreaker] = {}
+        self.circuit_breakers: dict[str, CircuitBreaker] = {}
 
         # Degradation tracking
         self.fallback_count: int = 0
-        self.fallback_history: List[FallbackEvent] = []
+        self.fallback_history: list[FallbackEvent] = []
         self.total_cost_saved: float = 0.0
 
     def execute_with_fallback(
         self,
         primary_model: str,
-        available_models: List[str],
-        model_costs: Optional[Dict[str, float]] = None,
-        quality_scores: Optional[Dict[str, float]] = None,
-    ) -> Tuple[str, bool, float]:
+        available_models: list[str],
+        model_costs: dict[str, float] | None = None,
+        quality_scores: dict[str, float] | None = None,
+    ) -> tuple[str, bool, float]:
         """Execute with fallback support and cost preservation.
 
         Args:
@@ -513,7 +513,7 @@ class FallbackStrategy:
         breaker.record_success(latency_ms)
         return False
 
-    def get_fallback_chain(self, primary_model: str) -> List[str]:
+    def get_fallback_chain(self, primary_model: str) -> list[str]:
         """Get fallback chain for a primary model.
 
         Args:
@@ -538,9 +538,9 @@ class FallbackStrategy:
     def preserve_cost_savings(
         self,
         primary_model: str,
-        available_models: List[str],
-        model_costs: Optional[Dict[str, float]] = None,
-    ) -> Tuple[str, float]:
+        available_models: list[str],
+        model_costs: dict[str, float] | None = None,
+    ) -> tuple[str, float]:
         """Choose cheapest working fallback to preserve cost savings.
 
         Args:
@@ -564,8 +564,7 @@ class FallbackStrategy:
             if breaker.allow_request():
                 cost_saving = max(
                     0.0,
-                    model_costs.get(primary_model, 0.0)
-                    - model_costs.get(model, 0.0),
+                    model_costs.get(primary_model, 0.0) - model_costs.get(model, 0.0),
                 )
                 return model, cost_saving
 
@@ -600,13 +599,15 @@ class FallbackStrategy:
         """
         return self._get_breaker(model).metrics
 
-    def get_all_health(self) -> Dict[str, ModelHealthMetrics]:
+    def get_all_health(self) -> dict[str, ModelHealthMetrics]:
         """Get health metrics for all tracked models.
 
         Returns:
             Dict mapping model name → metrics
         """
-        return {model: breaker.metrics for model, breaker in self.circuit_breakers.items()}
+        return {
+            model: breaker.metrics for model, breaker in self.circuit_breakers.items()
+        }
 
     def get_fallback_stats(self) -> dict:
         """Get fallback statistics.
@@ -623,7 +624,7 @@ class FallbackStrategy:
         }
 
         # Count fallback patterns
-        patterns: Dict[Tuple[str, str], int] = {}
+        patterns: dict[tuple[str, str], int] = {}
         for event in self.fallback_history:
             key = (event.primary_model, event.fallback_model)
             patterns[key] = patterns.get(key, 0) + 1
@@ -696,7 +697,7 @@ class FallbackStrategy:
 
 
 # Singleton instance
-_fallback_strategy: Optional[FallbackStrategy] = None
+_fallback_strategy: FallbackStrategy | None = None
 
 
 def get_fallback_strategy() -> FallbackStrategy:

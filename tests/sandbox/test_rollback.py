@@ -212,8 +212,7 @@ class TestTransaction:
 
         audit_entries = txn.audit_log.entries
         checkpoint_entries = [
-            e for e in audit_entries
-            if e.event_type == AuditEventType.CHECKPOINT
+            e for e in audit_entries if e.event_type == AuditEventType.CHECKPOINT
         ]
         assert len(checkpoint_entries) == 1
 
@@ -607,7 +606,9 @@ class TestIntegrationScenarios:
         txn.on_file_created("file1.txt", b"content1")
 
         # Simulate failure and rollback
-        rollback_result = manager.rollback(txn.transaction_id, reason="Simulated failure")
+        rollback_result = manager.rollback(
+            txn.transaction_id, reason="Simulated failure"
+        )
 
         assert rollback_result.success is True
         assert rollback_result.changes_undone == 1

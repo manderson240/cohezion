@@ -9,6 +9,7 @@ import os
 import sys
 from typing import Any
 
+
 # Add project root to path to allow importing cohezion modules
 project_root = (
     os.environ.get("COHEZION_ROOT", "/home/mike-anderson/dev/cohezion") + "/src"

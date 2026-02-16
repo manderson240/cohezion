@@ -14,6 +14,7 @@ from pathlib import Path
 
 import numpy as np
 
+
 logger = logging.getLogger(__name__)
 
 # Default paths
@@ -127,7 +128,7 @@ class ExperienceCollector:
             diffs = np.diff(pts_arr, axis=0)
             smoothness = float(np.clip(1.0 - np.mean(np.abs(diffs)), 0.0, 1.0))
             # Convergence: 1.0 - std of last 3 norms (HIHO approach stability)
-            tail = pts_arr[-min(3, len(pts_arr)):]
+            tail = pts_arr[-min(3, len(pts_arr)) :]
             norms = np.linalg.norm(tail, axis=1)
             convergence = float(np.clip(1.0 - np.std(norms), 0.0, 1.0))
 
@@ -136,8 +137,8 @@ class ExperienceCollector:
     @staticmethod
     def _normalize_parquet_row(row: dict) -> dict:
         """Convert a parquet row into the canonical experience schema."""
-        trajectory, smoothness, convergence = ExperienceCollector._compute_trajectory_stats(
-            row.get("state_trajectory")
+        trajectory, smoothness, convergence = (
+            ExperienceCollector._compute_trajectory_stats(row.get("state_trajectory"))
         )
 
         return {
@@ -201,8 +202,8 @@ class ExperienceCollector:
     @staticmethod
     def _normalize_surreal_row(row: dict) -> dict:
         """Normalize a SurrealDB mission_journey record."""
-        trajectory, smoothness, convergence = ExperienceCollector._compute_trajectory_stats(
-            row.get("state_trajectory")
+        trajectory, smoothness, convergence = (
+            ExperienceCollector._compute_trajectory_stats(row.get("state_trajectory"))
         )
 
         return {
@@ -238,7 +239,9 @@ class ExperienceCollector:
                 elif isinstance(data, list):
                     for item in data:
                         if isinstance(item, dict) and len(records) < max_samples:
-                            records.append(self._normalize_vault_record(item, json_path.stem))
+                            records.append(
+                                self._normalize_vault_record(item, json_path.stem)
+                            )
             except Exception as e:
                 logger.debug("Skipping vault file %s: %s", json_path, e)
 

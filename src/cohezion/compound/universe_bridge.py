@@ -13,9 +13,9 @@ Lifecycle:
 from __future__ import annotations
 
 import logging
-import time
 from typing import Any
 from uuid import uuid4
+
 
 logger = logging.getLogger(__name__)
 
@@ -40,10 +40,18 @@ class UniverseBridge:
     # Control fabric: indices 6-8
     # Precipitation fabric: indices 9-11
     _DIM_NAMES = [
-        "spatial_x", "spatial_y", "spatial_z",  # Space
-        "physics", "biology", "field",           # Field
-        "logic", "quantum", "control",           # Control
-        "temporal", "novelty", "precipitation",  # Precipitation
+        "spatial_x",
+        "spatial_y",
+        "spatial_z",  # Space
+        "physics",
+        "biology",
+        "field",  # Field
+        "logic",
+        "quantum",
+        "control",  # Control
+        "temporal",
+        "novelty",
+        "precipitation",  # Precipitation
     ]
 
     def __init__(
@@ -68,14 +76,15 @@ class UniverseBridge:
         AxiomaticState
             Universe engine state organized by fabric.
         """
+        import numpy as np
+
         from cohezion.universe.engine import AxiomaticState
 
-        import numpy as np
         arr = np.asarray(vector_12d, dtype=float).ravel()
         # Pad to 12 if needed
         if len(arr) < 12:
             padded = np.zeros(12)
-            padded[:len(arr)] = arr
+            padded[: len(arr)] = arr
             arr = padded
 
         return AxiomaticState(
@@ -114,7 +123,11 @@ class UniverseBridge:
             return None
 
         try:
-            from cohezion.universe.engine import AxiomaticState, LatentState, UniverseJourney
+            from cohezion.universe.engine import (
+                AxiomaticState,
+                LatentState,
+                UniverseJourney,
+            )
 
             journey_id = execution_id or f"journey_{uuid4().hex[:12]}"
 
@@ -170,7 +183,9 @@ class UniverseBridge:
 
         try:
             from cohezion.universe.engine import LatentState
-            from cohezion.universe.engine import TrajectoryPoint as UniverseTrajectoryPoint
+            from cohezion.universe.engine import (
+                TrajectoryPoint as UniverseTrajectoryPoint,
+            )
 
             journey = self._active_journeys[journey_id]
             axiomatic = self._vector_to_axiomatic(trajectory_point.dimensions)
@@ -191,7 +206,9 @@ class UniverseBridge:
             journey.add_trajectory_point(universe_point)
             logger.debug(
                 "Added point to journey %s (step=%d, coherence=%.2f)",
-                journey_id, step_number, trajectory_point.coherence,
+                journey_id,
+                step_number,
+                trajectory_point.coherence,
             )
             return True
 
@@ -245,7 +262,9 @@ class UniverseBridge:
 
             logger.debug(
                 "Completed journey %s (status=%s, phi=%.2f)",
-                journey_id, journey.status, phi_score,
+                journey_id,
+                journey.status,
+                phi_score,
             )
             return journey
 

@@ -2,17 +2,19 @@
 Tests for ObservableActionProposer - Observable AI transparency.
 """
 
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import numpy as np
+import pytest
+
+from cohezion.platform.coherence_tracker import CoherenceMetrics
 from cohezion.platform.observable_action import (
-    ObservableActionProposer,
     ActionProposal,
+    ObservableActionProposer,
     get_observable_proposer,
     reset_observable_proposer,
 )
-from cohezion.platform.coherence_tracker import CoherenceMetrics
-from datetime import datetime
 
 
 @pytest.fixture

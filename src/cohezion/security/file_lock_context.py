@@ -13,11 +13,11 @@ Implementation:
 
 import fcntl
 import logging
-import os
 import time
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator
+
 
 logger = logging.getLogger(__name__)
 
@@ -72,22 +72,26 @@ class FileLock:
                 start_time = time.time()
                 while True:
                     try:
-                        fcntl.flock(self._lockfile.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        fcntl.flock(
+                            self._lockfile.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB
+                        )
                         self._acquired = True
-                        logger.debug(f"Acquired lock on {self.filepath} (attempt {attempt + 1})")
+                        logger.debug(
+                            f"Acquired lock on {self.filepath} (attempt {attempt + 1})"
+                        )
                         return
                     except BlockingIOError:
                         if time.time() - start_time > self.timeout:
                             raise
                         time.sleep(0.1)
 
-            except (OSError, IOError) as e:
+            except OSError as e:
                 if self._lockfile:
                     self._lockfile.close()
                     self._lockfile = None
 
                 if attempt < self.max_retries - 1:
-                    wait_time = 0.1 * (2 ** attempt)  # Exponential backoff
+                    wait_time = 0.1 * (2**attempt)  # Exponential backoff
                     logger.warning(
                         f"Failed to acquire lock on {self.filepath}, retrying in {wait_time}s"
                     )
@@ -105,7 +109,7 @@ class FileLock:
                 self._lockfile.close()
                 self._acquired = False
                 logger.debug(f"Released lock on {self.filepath}")
-            except (OSError, IOError) as e:
+            except OSError as e:
                 logger.error(f"Error releasing lock on {self.filepath}: {e}")
             finally:
                 self._lockfile = None
@@ -162,7 +166,7 @@ def atomic_file_write(filepath: str, content: str, timeout: float = 5.0) -> None
             # Atomic rename
             temp_file.replace(filepath)
             logger.debug(f"Atomically wrote {filepath}")
-        except (OSError, IOError) as e:
+        except OSError as e:
             if temp_file.exists():
                 temp_file.unlink()
             raise FileLockError(f"Cannot atomically write {filepath}") from e
@@ -191,9 +195,7 @@ def atomic_file_read(filepath: str, timeout: float = 5.0) -> str:
         return filepath.read_text(encoding="utf-8")
 
 
-def atomic_file_modify(
-    filepath: str, modify_func, timeout: float = 5.0
-) -> None:
+def atomic_file_modify(filepath: str, modify_func, timeout: float = 5.0) -> None:
     """
     Modify file atomically with locking.
 
@@ -223,7 +225,7 @@ def atomic_file_modify(
             temp_file.write_text(new_content, encoding="utf-8")
             temp_file.replace(filepath)
             logger.debug(f"Atomically modified {filepath}")
-        except (OSError, IOError) as e:
+        except OSError as e:
             if temp_file.exists():
                 temp_file.unlink()
             raise FileLockError(f"Cannot atomically modify {filepath}") from e

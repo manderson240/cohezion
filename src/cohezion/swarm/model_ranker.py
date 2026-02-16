@@ -19,8 +19,8 @@ Usage:
 import logging
 import time
 from dataclasses import dataclass
-from typing import Optional, List, Tuple, Dict
 from enum import Enum
+
 
 logger = logging.getLogger(__name__)
 
@@ -134,16 +134,18 @@ class ModelRanker:
             )
 
         # Cache for coherence scores
-        self._coherence_cache: Dict[str, Tuple[float, float]] = {}  # model -> (score, timestamp)
+        self._coherence_cache: dict[
+            str, tuple[float, float]
+        ] = {}  # model -> (score, timestamp)
 
     def rank_models(
         self,
-        available_models: List[str],
+        available_models: list[str],
         task_description: str = "",
-        cost_per_token: Optional[Dict[str, float]] = None,
-        latency_ms: Optional[Dict[str, float]] = None,
+        cost_per_token: dict[str, float] | None = None,
+        latency_ms: dict[str, float] | None = None,
         strategy: RankingStrategy = RankingStrategy.BALANCED,
-    ) -> List[Tuple[str, ModelScore]]:
+    ) -> list[tuple[str, ModelScore]]:
         """Rank available models by composite score.
 
         Args:
@@ -191,11 +193,11 @@ class ModelRanker:
 
     def rank_models_by_strategy(
         self,
-        available_models: List[str],
+        available_models: list[str],
         task_description: str = "",
-        cost_per_token: Optional[Dict[str, float]] = None,
-        latency_ms: Optional[Dict[str, float]] = None,
-    ) -> Dict[RankingStrategy, List[Tuple[str, ModelScore]]]:
+        cost_per_token: dict[str, float] | None = None,
+        latency_ms: dict[str, float] | None = None,
+    ) -> dict[RankingStrategy, list[tuple[str, ModelScore]]]:
         """Rank models using all available strategies.
 
         Args:
@@ -250,7 +252,9 @@ class ModelRanker:
         # Normalize latency (0.0-1.0 scale: lower latency = higher score)
         # Assume max acceptable latency is 500ms
         max_latency = 500.0
-        latency_score = max(0.0, 1.0 - (latency / max_latency)) if max_latency > 0 else 1.0
+        latency_score = (
+            max(0.0, 1.0 - (latency / max_latency)) if max_latency > 0 else 1.0
+        )
         latency_score = min(1.0, latency_score)  # Cap at 1.0
 
         # Apply strategy-specific weighting
@@ -322,7 +326,7 @@ class ModelRanker:
 
     def _query_vault_coherence(
         self, model: str, task_description: str
-    ) -> Optional[float]:
+    ) -> float | None:
         """Query vault for model coherence on similar tasks.
 
         Args:
@@ -369,7 +373,7 @@ class ModelRanker:
 
         return max(0.0, min(1.0, freshness))
 
-    def _get_default_costs(self, models: List[str]) -> Dict[str, float]:
+    def _get_default_costs(self, models: list[str]) -> dict[str, float]:
         """Get default cost per token for models.
 
         Args:
@@ -379,9 +383,9 @@ class ModelRanker:
             Dict mapping model → cost/token
         """
         # All local models are free ($0.00)
-        return {model: 0.0 for model in models}
+        return dict.fromkeys(models, 0.0)
 
-    def _get_default_latencies(self, models: List[str]) -> Dict[str, float]:
+    def _get_default_latencies(self, models: list[str]) -> dict[str, float]:
         """Get default latency expectations for models.
 
         Args:
@@ -390,13 +394,10 @@ class ModelRanker:
         Returns:
             Dict mapping model → latency_ms
         """
-        return {
-            model: self.DEFAULT_LATENCY.get(model, 100.0)
-            for model in models
-        }
+        return {model: self.DEFAULT_LATENCY.get(model, 100.0) for model in models}
 
     def update_coherence_score(
-        self, model: str, coherence_score: float, timestamp: Optional[float] = None
+        self, model: str, coherence_score: float, timestamp: float | None = None
     ) -> None:
         """Update cached coherence score for a model.
 

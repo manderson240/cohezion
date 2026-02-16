@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 
+
 logger = logging.getLogger(__name__)
 
 _SKILLS_DIR = Path("src/cohezion/skills/")

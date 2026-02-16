@@ -19,8 +19,8 @@ from typing import Any
 
 import numpy as np
 
-from cohezion.flume.vae_encoder import get_encoder
 from cohezion.cache.text_encoder import get_text_encoder
+from cohezion.flume.vae_encoder import get_encoder
 
 
 logger = logging.getLogger(__name__)

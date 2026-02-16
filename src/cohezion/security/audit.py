@@ -16,6 +16,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 AUDIT_LOG_DIR = Path(os.environ.get("COHEZION_LOG_DIR", "logs"))

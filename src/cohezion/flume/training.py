@@ -19,6 +19,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -260,9 +261,9 @@ class FlumeVAETrainer:
         list[dict]
             Per-epoch training metrics.
         """
+        from cohezion.flume.dataset import SyntheticFlumeDataset
         from cohezion.flume.experience_collector import ExperienceCollector
         from cohezion.flume.experience_dataset import ExperienceDataset
-        from cohezion.flume.dataset import SyntheticFlumeDataset
 
         if collector is None:
             collector = ExperienceCollector()
@@ -271,14 +272,13 @@ class FlumeVAETrainer:
         experiences = collector.collect_all(max_samples=max_samples)
 
         if len(experiences) >= min_real_samples:
-            logger.info(
-                "Training VAE on %d real experience samples", len(experiences)
-            )
+            logger.info("Training VAE on %d real experience samples", len(experiences))
             dataset = ExperienceDataset(experiences, seed=42)
         else:
             logger.warning(
                 "Only %d real samples (need %d). Falling back to synthetic data.",
-                len(experiences), min_real_samples,
+                len(experiences),
+                min_real_samples,
             )
             dataset = SyntheticFlumeDataset(
                 n_samples=max(1000, self.config.batch_size * 20),

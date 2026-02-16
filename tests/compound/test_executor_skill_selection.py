@@ -24,7 +24,7 @@ def executor(mock_mcp_client):
     mock_logger = MagicMock()
     mock_logger.get_experience_guidance.return_value = {
         "relevant_context": [],
-        "guidance": "No prior patterns found."
+        "guidance": "No prior patterns found.",
     }
     executor.logger = mock_logger
     return executor
@@ -167,6 +167,7 @@ class TestExecutorSkillSelectionWorkflow:
 
     def test_skill_selection_with_multiple_operations(self, executor):
         """Test selecting different skills for different operations."""
+
         # Setup different patterns for different operations
         def vault_response(query, project=None):
             if "generate" in query:
@@ -219,16 +220,21 @@ class TestExecutorSkillSelectionIntegrationWithExecution:
             suggested_skill = suggestions[0][0]
 
             # Now execute with the suggested skill
-            with patch.object(
-                executor.logger,
-                "get_experience_guidance",
-                return_value={"context": "test"},
-            ), patch.object(
-                executor.logger, "log_execution_start", return_value="exp_path"
-            ), patch.object(
-                executor.logger, "log_execution_result"
-            ), patch.object(
-                executor.logger, "extract_execution_pattern", return_value="pattern_path"
+            with (
+                patch.object(
+                    executor.logger,
+                    "get_experience_guidance",
+                    return_value={"context": "test"},
+                ),
+                patch.object(
+                    executor.logger, "log_execution_start", return_value="exp_path"
+                ),
+                patch.object(executor.logger, "log_execution_result"),
+                patch.object(
+                    executor.logger,
+                    "extract_execution_pattern",
+                    return_value="pattern_path",
+                ),
             ):
 
                 def execute_fn(guidance):
@@ -255,16 +261,21 @@ class TestExecutorSkillSelectionIntegrationWithExecution:
         # Should still be able to execute with default skill
         default_skill = "fallback_skill"
 
-        with patch.object(
-            executor.logger,
-            "get_experience_guidance",
-            return_value={"context": "test"},
-        ), patch.object(
-            executor.logger, "log_execution_start", return_value="exp_path"
-        ), patch.object(
-            executor.logger, "log_execution_result"
-        ), patch.object(
-            executor.logger, "extract_execution_pattern", return_value="pattern_path"
+        with (
+            patch.object(
+                executor.logger,
+                "get_experience_guidance",
+                return_value={"context": "test"},
+            ),
+            patch.object(
+                executor.logger, "log_execution_start", return_value="exp_path"
+            ),
+            patch.object(executor.logger, "log_execution_result"),
+            patch.object(
+                executor.logger,
+                "extract_execution_pattern",
+                return_value="pattern_path",
+            ),
         ):
 
             def execute_fn(guidance):

@@ -19,6 +19,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 HEALTH_LOG_PATH = Path(__file__).parent.parent / "knowledge_graph" / "health_log.json"

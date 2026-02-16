@@ -38,7 +38,6 @@ Example:
 import logging
 import uuid
 from dataclasses import dataclass
-from typing import Optional
 
 from cohezion.compound.intent_classifier import IntentClassifier
 from cohezion.compound.prompt_optimizer import PromptOptimizer
@@ -82,7 +81,7 @@ class IntakeSpecialist:
     def __init__(
         self,
         mcp_client: MCPClient,
-        token_client: Optional[object] = None,
+        token_client: object | None = None,
         project: str = "cohezion",
     ):
         """Initialize intake specialist.
@@ -105,13 +104,11 @@ class IntakeSpecialist:
         self.skill_selector = SkillSelector(mcp_client)
 
         # Session tracking
-        self.session_id: Optional[str] = None
-        self.user_id: Optional[str] = None
-        self.greeting: Optional[IntakeGreeting] = None
+        self.session_id: str | None = None
+        self.user_id: str | None = None
+        self.greeting: IntakeGreeting | None = None
 
-    async def greet(
-        self, user_id: str, initial_request: str = ""
-    ) -> IntakeGreeting:
+    async def greet(self, user_id: str, initial_request: str = "") -> IntakeGreeting:
         """Greet user and warm cache from vault.
 
         Establishes a session and loads cached patterns from vault to prime

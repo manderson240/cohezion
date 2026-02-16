@@ -42,21 +42,15 @@ class TestSkillScore:
 
     def test_skill_score_comparison(self):
         """Test comparing SkillScore objects."""
-        score1 = SkillScore(
-            "skill1", 0.9, 0.9, 0.9, 10, 0.9
-        )
-        score2 = SkillScore(
-            "skill2", 0.7, 0.7, 0.7, 5, 0.7
-        )
+        score1 = SkillScore("skill1", 0.9, 0.9, 0.9, 10, 0.9)
+        score2 = SkillScore("skill2", 0.7, 0.7, 0.7, 5, 0.7)
 
         # Higher composite score should be "less than" (for reverse sorting)
         assert score1 < score2
 
     def test_skill_score_repr(self):
         """Test string representation."""
-        score = SkillScore(
-            "test_skill", 0.85, 0.75, 0.9, 10, 0.82
-        )
+        score = SkillScore("test_skill", 0.85, 0.75, 0.9, 10, 0.82)
 
         repr_str = repr(score)
         assert "test_skill" in repr_str
@@ -341,7 +335,9 @@ class TestSkillSelection:
 
     def test_select_skills_vault_error_graceful(self, mock_mcp_client, selector):
         """Test graceful handling of vault errors."""
-        mock_mcp_client.vault_find_relevant_context.side_effect = RuntimeError("Vault down")
+        mock_mcp_client.vault_find_relevant_context.side_effect = RuntimeError(
+            "Vault down"
+        )
 
         result = selector.select_skills(
             "Task",
@@ -376,7 +372,9 @@ class TestSkillRanking:
         assert ranked[2][0] == "skill3"
         assert ranked[2][1] < 0.4
 
-    def test_rank_skills_preserves_order_for_equal_scores(self, mock_mcp_client, selector):
+    def test_rank_skills_preserves_order_for_equal_scores(
+        self, mock_mcp_client, selector
+    ):
         """Test ranking preserves list order for unavailable skills."""
         mock_mcp_client.vault_find_relevant_context.return_value = []
 

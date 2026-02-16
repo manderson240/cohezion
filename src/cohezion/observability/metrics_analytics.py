@@ -11,10 +11,11 @@ Provides:
 import logging
 import statistics
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any
 
 from cohezion.observability.unified_metrics import InferenceMetrics
+
 
 logger = logging.getLogger(__name__)
 
@@ -92,8 +93,10 @@ class MetricsAnalytics:
 
         l1_rates = [m.l1_cache_hit_rate for m in self.history if m.cache_l1_hits > 0]
         l2_rates = [m.l2_cache_hit_rate for m in self.history if m.cache_l2_hits > 0]
-        l3_rates = [m.cache_l3_hits / (m.cache_l3_hits + m.cache_misses + 1) * 100
-                    for m in self.history]
+        l3_rates = [
+            m.cache_l3_hits / (m.cache_l3_hits + m.cache_misses + 1) * 100
+            for m in self.history
+        ]
         total_rates = [m.total_cache_hit_rate for m in self.history]
 
         avg_l1 = statistics.mean(l1_rates) if l1_rates else 0.0
@@ -184,9 +187,17 @@ class MetricsAnalytics:
         total_checks = sum(m.guardrail_checks for m in self.history)
         total_blocks = sum(m.guardrail_blocks for m in self.history)
         total_sanitizations = sum(m.guardrail_sanitizations for m in self.history)
-        avg_latency = statistics.mean(
-            [m.guardrail_latency_ms for m in self.history if m.guardrail_latency_ms > 0]
-        ) if any(m.guardrail_latency_ms > 0 for m in self.history) else 0.0
+        avg_latency = (
+            statistics.mean(
+                [
+                    m.guardrail_latency_ms
+                    for m in self.history
+                    if m.guardrail_latency_ms > 0
+                ]
+            )
+            if any(m.guardrail_latency_ms > 0 for m in self.history)
+            else 0.0
+        )
 
         block_rate = (total_blocks / total_checks * 100) if total_checks > 0 else 0.0
 
@@ -300,7 +311,9 @@ class MetricsAnalytics:
             Recommendation text
         """
         if total_rate < 0.70:
-            return "Cache hit rate is low. Consider warming cache or adjusting thresholds."
+            return (
+                "Cache hit rate is low. Consider warming cache or adjusting thresholds."
+            )
         elif l2_rate < 20:
             return "L2 semantic cache underutilized. Adjust similarity threshold or check query patterns."
         else:
@@ -370,13 +383,13 @@ class MetricsAnalytics:
 
         # Positive feedback
         if not recommendations:
-            recommendations.append("✅ All systems operating within healthy parameters.")
+            recommendations.append(
+                "✅ All systems operating within healthy parameters."
+            )
 
         return recommendations
 
-    def get_trend(
-        self, metric_name: str, window: int = 10
-    ) -> MetricsTrend | None:
+    def get_trend(self, metric_name: str, window: int = 10) -> MetricsTrend | None:
         """Get trend for a specific metric.
 
         Args:

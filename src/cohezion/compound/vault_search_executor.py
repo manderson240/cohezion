@@ -16,7 +16,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
-from cohezion.compound.executor import CompoundExecutor, ExecutionResult
+from cohezion.compound.executor import CompoundExecutor
 from cohezion.core.mcp_client import MCPClient
 
 
@@ -73,7 +73,9 @@ class VaultSearchExecutor(CompoundExecutor):
         super().__init__(mcp_client, **kwargs)
         self.project = project
 
-    def search(self, query: str, document_types: list[str] | None = None) -> SearchResult:
+    def search(
+        self, query: str, document_types: list[str] | None = None
+    ) -> SearchResult:
         """Execute vault search with skill context.
 
         Implements Phase 4 (Execute) of compound pipeline:
@@ -361,7 +363,9 @@ class VaultSearchExecutor(CompoundExecutor):
                 "execution_time_ms": execution_time_ms,
                 "skill_context_size": len(skill_context),
                 "throughput_results_per_sec": (
-                    num_results / (execution_time_ms / 1000) if execution_time_ms > 0 else 0
+                    num_results / (execution_time_ms / 1000)
+                    if execution_time_ms > 0
+                    else 0
                 ),
             }
 

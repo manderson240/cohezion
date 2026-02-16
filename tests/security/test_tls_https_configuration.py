@@ -1,7 +1,6 @@
 """Tests for TLS/HTTPS configuration and certificate management."""
 
 import os
-import ssl
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -341,9 +340,7 @@ class TestHTTPSEnforcementMiddleware:
         config = TLSConfig()
         app = MagicMock()
 
-        middleware = HTTPSEnforcementMiddleware(
-            app, config, allow_http_localhost=False
-        )
+        middleware = HTTPSEnforcementMiddleware(app, config, allow_http_localhost=False)
 
         # Create mock request with HTTP scheme
         request = MagicMock()
@@ -381,9 +378,7 @@ class TestHTTPSEnforcementMiddleware:
             return MagicMock(headers={})
 
         app = MagicMock()
-        middleware = HTTPSEnforcementMiddleware(
-            app, config, allow_http_localhost=True
-        )
+        middleware = HTTPSEnforcementMiddleware(app, config, allow_http_localhost=True)
 
         request = MagicMock()
         request.url.scheme = "http"

@@ -3,11 +3,12 @@ Journey persistence to SurrealDB with FLUME trajectories.
 Constitution requirement: "All plans, milestones, learnings synced to platform memory"
 """
 
-from typing import List, Dict, Optional
-from datetime import datetime
-from pydantic import BaseModel
 import uuid
+from datetime import datetime
+
 import numpy as np
+from pydantic import BaseModel
+
 from cohezion.core.persistence.surreal_client import get_surreal_client
 from cohezion.flume.vae_encoder import get_encoder
 from cohezion.platform.coherence_tracker import get_coherence_tracker
@@ -22,11 +23,11 @@ class Journey(BaseModel):
     coherence_at_start: float
     coherence_at_end: float
     hiho_stable: bool
-    flume_trajectory: List[float]  # 256D latent state
-    decisions_made: List[str]
-    learnings_extracted: List[str]
+    flume_trajectory: list[float]  # 256D latent state
+    decisions_made: list[str]
+    learnings_extracted: list[str]
     outcome: str
-    metadata: Dict
+    metadata: dict
 
 
 class JourneyLogger:
@@ -190,8 +191,8 @@ class JourneyLogger:
         )
 
     async def get_recent_journeys(
-        self, journey_type: Optional[str] = None, limit: int = 10
-    ) -> List[Journey]:
+        self, journey_type: str | None = None, limit: int = 10
+    ) -> list[Journey]:
         """Get recent journeys, optionally filtered by type."""
 
         if journey_type:

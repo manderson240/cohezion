@@ -3,6 +3,7 @@ import logging
 
 from cohezion.agents.base import BaseAgent
 
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("AdversarialTransparency")
 

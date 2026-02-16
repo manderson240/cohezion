@@ -86,7 +86,7 @@ class PersistentCache:
         try:
             with self._lock:
                 entries_loaded = 0
-                with open(self.cache_file, "r") as f:
+                with open(self.cache_file) as f:
                     for line_num, line in enumerate(f, 1):
                         # Skip empty lines
                         if not line.strip():
@@ -176,9 +176,7 @@ class PersistentCache:
         except Exception as e:
             logger.debug(f"Failed to persist cache entry {key}: {e}")
 
-    def batch_set(
-        self, entries: dict[str, str], persist: bool = True
-    ) -> int:
+    def batch_set(self, entries: dict[str, str], persist: bool = True) -> int:
         """Set multiple cache entries efficiently.
 
         Args:

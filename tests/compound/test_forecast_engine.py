@@ -8,15 +8,14 @@ Tests cover:
 - Historical data aggregation
 """
 
-import pytest
 import time
-import math
+
+import pytest
 
 from cohezion.cost_optimization.forecast_engine import (
-    ForecastEngine,
-    Forecast,
-    ForecastSummary,
     AnomalyScore,
+    Forecast,
+    ForecastEngine,
     get_forecast_engine,
     reset_forecast_engine,
 )
@@ -222,9 +221,7 @@ class TestAnomalyDetection:
 
     def test_normal_rate_no_anomaly(self, engine_with_history):
         """Test normal spend rate has no anomaly."""
-        score = engine_with_history.detect_anomaly(
-            current_rate_usd_per_hour=10.0
-        )
+        score = engine_with_history.detect_anomaly(current_rate_usd_per_hour=10.0)
 
         assert score.is_anomaly is False
         assert score.anomaly_type == "normal"
@@ -257,12 +254,8 @@ class TestAnomalyDetection:
 
     def test_threshold_behavior(self):
         """Test anomaly threshold control."""
-        engine_strict = ForecastEngine(
-            alpha=0.3, anomaly_threshold_pct=10.0
-        )
-        engine_lenient = ForecastEngine(
-            alpha=0.3, anomaly_threshold_pct=30.0
-        )
+        engine_strict = ForecastEngine(alpha=0.3, anomaly_threshold_pct=10.0)
+        engine_lenient = ForecastEngine(alpha=0.3, anomaly_threshold_pct=30.0)
 
         # Add history to both
         for engine in [engine_strict, engine_lenient]:

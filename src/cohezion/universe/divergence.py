@@ -12,6 +12,7 @@ import math
 from collections import deque
 from dataclasses import dataclass, field
 
+
 logger = logging.getLogger(__name__)
 
 # HIHO target coherence (Half-In-Half-Out equilibrium)

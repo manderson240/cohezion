@@ -8,21 +8,20 @@ Implements 3-layer health assessment:
 3. Action Routing: EDL for critical issues, Observable AI for recommendations
 """
 
-from typing import Dict, List, Optional
-from datetime import datetime, timedelta
-from pydantic import BaseModel
-from enum import Enum
 import subprocess
-import asyncio
+from datetime import datetime, timedelta
+from enum import Enum
 
+from pydantic import BaseModel
+
+from cohezion.core.persistence.surreal_client import get_surreal_client
 from cohezion.platform.coherence_tracker import (
-    get_coherence_tracker,
     CoherenceMetrics,
+    get_coherence_tracker,
 )
+from cohezion.platform.edl_router import get_edl_router
 from cohezion.platform.journey_logger import get_journey_logger
 from cohezion.platform.observable_action import get_observable_proposer
-from cohezion.platform.edl_router import get_edl_router
-from cohezion.core.persistence.surreal_client import get_surreal_client
 
 
 class HealthStatus(str, Enum):
@@ -92,9 +91,9 @@ class HealthDigest(BaseModel):
     repository_metrics: RepositoryMetrics
     test_metrics: TestMetrics
     dependency_metrics: DependencyMetrics
-    cicd_metrics: Optional[CICDMetrics]
-    health_checks: List[HealthCheckResult]
-    recommendations: List[str]
+    cicd_metrics: CICDMetrics | None
+    health_checks: list[HealthCheckResult]
+    recommendations: list[str]
     trend_7d: float  # -1 to 1, negative = declining
     requires_edl_review: bool
 
@@ -253,7 +252,7 @@ class DailyHealthDigest:
                 pack_count=pack_count,
             )
 
-        except Exception as e:
+        except Exception:
             # Fallback metrics on error
             return RepositoryMetrics(
                 size_gb=0.0,
@@ -334,7 +333,7 @@ class DailyHealthDigest:
             health_score=0.5,
         )
 
-    async def _collect_cicd_metrics(self) -> Optional[CICDMetrics]:
+    async def _collect_cicd_metrics(self) -> CICDMetrics | None:
         """Collect CI/CD health metrics."""
 
         result = await self.db.query(
@@ -365,8 +364,8 @@ class DailyHealthDigest:
         repo: RepositoryMetrics,
         test: TestMetrics,
         dep: DependencyMetrics,
-        cicd: Optional[CICDMetrics],
-    ) -> List[HealthCheckResult]:
+        cicd: CICDMetrics | None,
+    ) -> list[HealthCheckResult]:
         """Run all health checks and generate results."""
 
         checks = []
@@ -387,9 +386,7 @@ class DailyHealthDigest:
         checks.append(
             HealthCheckResult(
                 check_name="Large Files (>1MB)",
-                status=self._check_status(
-                    repo.large_file_count, 50, 100, invert=False
-                ),
+                status=self._check_status(repo.large_file_count, 50, 100, invert=False),
                 value=float(repo.large_file_count),
                 threshold_warning=50.0,
                 threshold_critical=100.0,
@@ -493,9 +490,7 @@ class DailyHealthDigest:
         HIHO repository range: 4-8GB (6GB ± 2GB).
         """
 
-        repo_hiho = (
-            self.hiho_repo_size_min <= repo.size_gb <= self.hiho_repo_size_max
-        )
+        repo_hiho = self.hiho_repo_size_min <= repo.size_gb <= self.hiho_repo_size_max
         coherence_hiho = coherence.hiho_stable
 
         # Both must be in HIHO range
@@ -507,7 +502,7 @@ class DailyHealthDigest:
         test: TestMetrics,
         dep: DependencyMetrics,
         coherence: CoherenceMetrics,
-        health_checks: List[HealthCheckResult],
+        health_checks: list[HealthCheckResult],
     ) -> float:
         """
         Calculate Charter-aligned health score.
@@ -540,7 +535,9 @@ class DailyHealthDigest:
             else:  # CRITICAL
                 health_scores.append(0.0)
 
-        metrics_health = sum(health_scores) / len(health_scores) if health_scores else 0.5
+        metrics_health = (
+            sum(health_scores) / len(health_scores) if health_scores else 0.5
+        )
 
         # Component 3: Trend Improvement (25% weight)
         trend_7d = await self._calculate_trend(days=7)
@@ -602,9 +599,9 @@ class DailyHealthDigest:
         repo: RepositoryMetrics,
         test: TestMetrics,
         dep: DependencyMetrics,
-        health_checks: List[HealthCheckResult],
+        health_checks: list[HealthCheckResult],
         hiho_stable: bool,
-    ) -> List[str]:
+    ) -> list[str]:
         """Generate actionable recommendations based on health checks."""
 
         recommendations = []
@@ -688,7 +685,7 @@ class DailyHealthDigest:
         return recommendations
 
     def _requires_edl_review(
-        self, overall_score: float, health_checks: List[HealthCheckResult]
+        self, overall_score: float, health_checks: list[HealthCheckResult]
     ) -> bool:
         """
         Determine if EDL review is required.
@@ -708,7 +705,7 @@ class DailyHealthDigest:
         return False
 
     def _determine_overall_status(
-        self, overall_score: float, health_checks: List[HealthCheckResult]
+        self, overall_score: float, health_checks: list[HealthCheckResult]
     ) -> HealthStatus:
         """Determine overall health status from score and checks."""
 
@@ -780,7 +777,7 @@ Critical Issues:
             if check.status == HealthStatus.CRITICAL:
                 context += f"- {check.check_name}: {check.message}\n"
 
-        context += f"\nRecommendations:\n"
+        context += "\nRecommendations:\n"
         for rec in digest.recommendations:
             if "❌ CRITICAL" in rec:
                 context += f"- {rec}\n"
@@ -807,45 +804,45 @@ Critical Issues:
         }
 
         output = f"""
-{'=' * 70}
+{"=" * 70}
 DAILY PLATFORM HEALTH DIGEST
-{'=' * 70}
+{"=" * 70}
 Timestamp: {digest.timestamp.isoformat()}
 Overall Score: {digest.overall_health_score:.3f} / 1.0
 Status: {status_emoji[digest.overall_status]} {digest.overall_status.value.upper()}
-HIHO Stable: {'✅ Yes' if digest.hiho_stable else '⚠️  No'}
-Trend (7d): {digest.trend_7d:+.3f} ({'📈 Improving' if digest.trend_7d > 0 else '📉 Declining' if digest.trend_7d < 0 else '→ Stable'})
+HIHO Stable: {"✅ Yes" if digest.hiho_stable else "⚠️  No"}
+Trend (7d): {digest.trend_7d:+.3f} ({"📈 Improving" if digest.trend_7d > 0 else "📉 Declining" if digest.trend_7d < 0 else "→ Stable"})
 
 COHERENCE METRICS
-{'─' * 70}
-Coherence: {digest.coherence_metrics.coherence:.3f} ({'HIHO ✅' if digest.coherence_metrics.hiho_stable else 'Outside HIHO ⚠️'})
+{"─" * 70}
+Coherence: {digest.coherence_metrics.coherence:.3f} ({"HIHO ✅" if digest.coherence_metrics.hiho_stable else "Outside HIHO ⚠️"})
 Internal State: {digest.coherence_metrics.internal_state:.3f}
 External Alignment: {digest.coherence_metrics.external_alignment:.3f}
 Stability Score: {digest.coherence_metrics.stability_score:.3f}
 
 REPOSITORY HEALTH
-{'─' * 70}
+{"─" * 70}
 Size: {digest.repository_metrics.size_gb:.2f} GB (HIHO range: 4-8 GB)
 Large Files (>1MB): {digest.repository_metrics.large_file_count}
 Pack Efficiency: {digest.repository_metrics.pack_efficiency:.1%}
 Loose Objects: {digest.repository_metrics.loose_objects}
 
 TEST SUITE
-{'─' * 70}
+{"─" * 70}
 Total Tests: {digest.test_metrics.total_tests}
 Passing: {digest.test_metrics.passing_tests}
 Failing: {digest.test_metrics.failing_tests}
 Pass Rate: {digest.test_metrics.pass_rate:.1%}
 
 DEPENDENCIES
-{'─' * 70}
+{"─" * 70}
 Total: {digest.dependency_metrics.total_dependencies}
 Outdated: {digest.dependency_metrics.outdated_dependencies}
 Vulnerable: {digest.dependency_metrics.vulnerable_dependencies}
 Health Score: {digest.dependency_metrics.health_score:.3f}
 
 HEALTH CHECKS
-{'─' * 70}
+{"─" * 70}
 """
 
         for check in digest.health_checks:
@@ -854,14 +851,14 @@ HEALTH CHECKS
 
         output += f"""
 RECOMMENDATIONS
-{'─' * 70}
+{"─" * 70}
 """
         for rec in digest.recommendations:
             output += f"{rec}\n"
 
         if digest.requires_edl_review:
             output += f"""
-{'─' * 70}
+{"─" * 70}
 ⚠️  REQUIRES EDL REVIEW: Critical issues detected
 Run: digest.route_critical_issues_to_edl()
 """

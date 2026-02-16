@@ -8,14 +8,14 @@ Tests:
 - Health tracking
 """
 
-import pytest
 import time
-from unittest.mock import Mock
+
+import pytest
 
 from cohezion.swarm.model_fallback_strategy import (
+    CircuitBreakerState,
     ModelCircuitBreaker,
     ModelFallbackStrategy,
-    CircuitBreakerState,
     ModelHealthMetrics,
     get_fallback_strategy,
     reset_fallback_strategy,
@@ -360,9 +360,7 @@ class TestFallbackIntegration:
 
     def test_complete_failure_and_recovery_cycle(self):
         """Test complete failure and recovery cycle."""
-        strategy = ModelFallbackStrategy(
-            error_threshold=2, recovery_timeout_sec=0.1
-        )
+        strategy = ModelFallbackStrategy(error_threshold=2, recovery_timeout_sec=0.1)
 
         model = "unreliable-model"
 

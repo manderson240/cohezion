@@ -8,7 +8,6 @@ Tests cover:
 - Error handling and edge cases
 """
 
-import json
 import tempfile
 from pathlib import Path
 
@@ -118,7 +117,9 @@ class TestLRUPersistentTokenCacheMemoryBounding:
 
         # After eviction, should be at target utilization or lower
         stats = bounded_cache.get_stats()
-        assert stats["memory_entries"] <= bounded_cache.max_entries + 1  # Allow for timing
+        assert (
+            stats["memory_entries"] <= bounded_cache.max_entries + 1
+        )  # Allow for timing
 
     def test_eviction_triggered_at_threshold(self, bounded_cache):
         """Test eviction tracking and threshold behavior."""
@@ -141,6 +142,7 @@ class TestLRUPersistentTokenCacheMemoryBounding:
     def test_lru_evicts_oldest(self):
         """Test that LRU eviction works and keeps cache bounded."""
         import tempfile
+
         with tempfile.TemporaryDirectory() as tmpdir:
             # Use persistence to trigger eviction properly
             cache = LRUPersistentTokenCache(
@@ -380,9 +382,7 @@ class TestLRUPersistentTokenCacheEdgeCases:
 
     def test_large_token_values(self, bounded_cache):
         """Test handling large token counts."""
-        entry = CacheEntry(
-            key="large", value="response", tokens_used=999999999
-        )
+        entry = CacheEntry(key="large", value="response", tokens_used=999999999)
         bounded_cache["large"] = entry
 
         assert bounded_cache["large"].tokens_used == 999999999

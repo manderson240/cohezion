@@ -290,5 +290,3 @@ class TestSafeSingleton:
         same = make_thing(value=99)
         assert same["value"] == 42
         make_thing.reset()
-
-

@@ -7,4 +7,5 @@ TODO: Implement full UniverseRepository abstract base class.
 
 from cohezion.core.persistence.surreal_client import PhysicsState, UniverseNode
 
+
 __all__ = ["PhysicsState", "UniverseNode"]

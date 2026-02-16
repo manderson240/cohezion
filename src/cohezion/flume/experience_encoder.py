@@ -14,6 +14,7 @@ import math
 
 import numpy as np
 
+
 # Dimension layout
 _TRAJECTORY_DIM = 12  # dims [0:12]
 _METRICS_DIM = 12  # dims [12:24]
@@ -97,8 +98,8 @@ class ExperienceEncoder:
 
         # --- Dims [29:256]: semantic fingerprint ---
         fingerprint_text = self._build_fingerprint_text(experience)
-        vec[_TRAJECTORY_DIM + _METRICS_DIM + _OP_TYPE_DIM :] = (
-            self._sha256_expand(fingerprint_text, _FINGERPRINT_DIM)
+        vec[_TRAJECTORY_DIM + _METRICS_DIM + _OP_TYPE_DIM :] = self._sha256_expand(
+            fingerprint_text, _FINGERPRINT_DIM
         )
 
         return vec

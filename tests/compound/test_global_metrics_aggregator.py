@@ -14,12 +14,10 @@ from __future__ import annotations
 import time
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from unittest.mock import MagicMock
 
 import pytest
 
 from cohezion.compound.global_metrics_aggregator import (
-    GlobalMetricsAggregator,
     InstanceMetrics,
     SkillMetrics,
     TimeWindowMetrics,
@@ -684,8 +682,7 @@ class TestCoherenceTrendVisualization:
         # Verify trend is increasing
         for i in range(1, len(skill_metrics.coherence_trend)):
             assert (
-                skill_metrics.coherence_trend[i]
-                >= skill_metrics.coherence_trend[i - 1]
+                skill_metrics.coherence_trend[i] >= skill_metrics.coherence_trend[i - 1]
             )
 
     def test_dashboard_coherence_trending(self, aggregator):

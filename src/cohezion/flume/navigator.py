@@ -14,6 +14,7 @@ from cohezion.flume.mnm import ManifoldManager
 from cohezion.flume.predictor import TrajectoryPredictor
 from cohezion.swarm.hiho_vector_engine import HihoVectorEngine
 
+
 logger = logging.getLogger(__name__)
 
 

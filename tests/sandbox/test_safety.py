@@ -9,9 +9,10 @@ Tests cover:
   6. Policy matching and escalation
 """
 
-import pytest
 from datetime import datetime
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from cohezion.sandbox.safety import (
     POLICIES,
@@ -110,8 +111,7 @@ class TestPreFlightChecker:
         assert result.passed is False
         assert len(result.violations) > 0
         critical_violations = [
-            v for v in result.violations
-            if v.severity == ViolationSeverity.CRITICAL
+            v for v in result.violations if v.severity == ViolationSeverity.CRITICAL
         ]
         assert len(critical_violations) > 0
 
@@ -126,7 +126,9 @@ class TestPreFlightChecker:
 
         assert result.passed is False
         # Should have at least one violation for blocked command
-        blocked_violations = [v for v in result.violations if v.check_name == "blocked_command"]
+        blocked_violations = [
+            v for v in result.violations if v.check_name == "blocked_command"
+        ]
         assert len(blocked_violations) > 0
 
     def test_preflight_blocks_network_when_not_allowed(self, low_risk_policy):
@@ -139,9 +141,7 @@ class TestPreFlightChecker:
         result = checker.check(request, low_risk_policy)
 
         assert result.passed is False
-        network_violations = [
-            v for v in result.violations if "network" in v.check_name
-        ]
+        network_violations = [v for v in result.violations if "network" in v.check_name]
         assert len(network_violations) > 0
 
     def test_preflight_allows_network_when_allowed(self, high_risk_policy):
@@ -153,9 +153,7 @@ class TestPreFlightChecker:
         checker = PreFlightChecker()
         result = checker.check(request, high_risk_policy)
 
-        network_violations = [
-            v for v in result.violations if "network" in v.check_name
-        ]
+        network_violations = [v for v in result.violations if "network" in v.check_name]
         assert len(network_violations) == 0
 
     def test_preflight_validates_path_whitelist(self, low_risk_policy):
@@ -171,9 +169,7 @@ class TestPreFlightChecker:
         result = checker.check(request, low_risk_policy)
 
         assert result.passed is False
-        path_violations = [
-            v for v in result.violations if "path" in v.check_name
-        ]
+        path_violations = [v for v in result.violations if "path" in v.check_name]
         assert len(path_violations) > 0
 
     def test_preflight_checks_count(self, low_risk_policy, safe_request):
@@ -193,7 +189,9 @@ class TestPreFlightChecker:
         assert len(result.recommendations) > 0
         assert any("Remove blocked command" in rec for rec in result.recommendations)
 
-    def test_preflight_requires_approval_for_high_risk(self, high_risk_policy, safe_request):
+    def test_preflight_requires_approval_for_high_risk(
+        self, high_risk_policy, safe_request
+    ):
         """Should require approval for high-risk policies."""
         checker = PreFlightChecker()
         result = checker.check(safe_request, high_risk_policy)
@@ -265,6 +263,7 @@ class TestRealTimeMonitor:
 
         monitor.start()
         import time
+
         time.sleep(0.05)  # Let monitor run
         monitor.stop()
 
@@ -288,6 +287,7 @@ class TestRealTimeMonitor:
 
         monitor.start()
         import time
+
         time.sleep(0.05)
         monitor.stop()
 
@@ -309,6 +309,7 @@ class TestRealTimeMonitor:
         monitor = Monitor(policy, check_interval=0.01)
         monitor.start()
         import time
+
         time.sleep(0.05)
         monitor.stop()
 
@@ -348,23 +349,29 @@ class TestRiskAssessor:
         score1 = assessor.calculate_risk("delete", {})
 
         # Multiple factors
-        score2 = assessor.calculate_risk("delete", {
-            "network_required": True,
-            "system_call": True,
-        })
+        score2 = assessor.calculate_risk(
+            "delete",
+            {
+                "network_required": True,
+                "system_call": True,
+            },
+        )
 
         assert score2 > score1
 
     def test_risk_score_caps_at_one(self):
         """Risk score should cap at 1.0."""
         assessor = RiskAssessor()
-        score = assessor.calculate_risk("operation", {
-            "network_required": True,
-            "spawn_processes": True,
-            "cpu_intensive": True,
-            "memory_intensive": True,
-            "system_call": True,
-        })
+        score = assessor.calculate_risk(
+            "operation",
+            {
+                "network_required": True,
+                "spawn_processes": True,
+                "cpu_intensive": True,
+                "memory_intensive": True,
+                "system_call": True,
+            },
+        )
 
         assert score <= 1.0
 
@@ -420,7 +427,9 @@ class TestConstraintEnforcer:
 class TestSafetyHarness:
     """Test SafetyHarness main coordinator."""
 
-    def test_harness_preflight_integration(self, safety_harness, low_risk_policy, safe_request):
+    def test_harness_preflight_integration(
+        self, safety_harness, low_risk_policy, safe_request
+    ):
         """Harness should coordinate preflight checks."""
         result = safety_harness.preflight_check(safe_request, low_risk_policy)
 
@@ -445,7 +454,9 @@ class TestSafetyHarness:
 
     def test_harness_calculates_risk(self, safety_harness):
         """Harness should calculate risk scores."""
-        score = safety_harness.calculate_risk("delete_operation", {"network_required": True})
+        score = safety_harness.calculate_risk(
+            "delete_operation", {"network_required": True}
+        )
 
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
@@ -646,6 +657,7 @@ class TestEdgeCases:
 
         monitor.start()
         import time
+
         time.sleep(0.05)
         monitor.stop()
 
