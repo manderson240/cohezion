@@ -7,17 +7,14 @@ and SurrealDB while maintaining lean size and consistency.
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
-from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
+from cohezion.concurrency.safe_singleton import safe_singleton
 from cohezion.config.config_archival import ConfigArchiver, SizeEnforcer
 from cohezion.config.config_events import ConfigEvent
 from cohezion.config.config_monitoring import ConfigMonitor
 from cohezion.config.config_state import (
-    ChangeSet,
     ConfigConflict,
     ConfigState,
     FileMetadata,
@@ -25,17 +22,19 @@ from cohezion.config.config_state import (
 )
 from cohezion.config.config_sync_engine import ConfigSyncEngine
 from cohezion.config.config_sync_logger import ConfigSyncLogger
-from cohezion.config.conflict_policy import ConflictPolicy, ConflictResolutionPolicy
 from cohezion.config.config_validation import ConfigValidator, ReconciliationValidator
+from cohezion.config.conflict_policy import ConflictResolutionPolicy
 from cohezion.config.git_utils import GitUtils
-from cohezion.concurrency.safe_singleton import safe_singleton
 from cohezion.core.event_bus import Event, EventType
+
 
 logger = logging.getLogger(__name__)
 
 
 @safe_singleton
-def get_config_orchestrator(repo_root: Optional[Path] = None) -> ConfigurationOrchestrator:
+def get_config_orchestrator(
+    repo_root: Path | None = None,
+) -> ConfigurationOrchestrator:
     """Get or create the configuration orchestrator singleton."""
     if repo_root is None:
         repo_root = Path.cwd()
@@ -146,7 +145,6 @@ class ConfigurationOrchestrator:
         await asyncio.gather(*self._monitor_tasks, return_exceptions=True)
         logger.info("Configuration orchestration monitoring stopped")
 
-
     async def _run_reconciliation_loop(self) -> None:
         """Run periodic reconciliation and validation.
 
@@ -200,7 +198,9 @@ class ConfigurationOrchestrator:
                             )
 
                             # Archive old sections
-                            archive_result = await self.archiver.archive_old_sections(file_path)
+                            archive_result = await self.archiver.archive_old_sections(
+                                file_path
+                            )
 
                             # Log archival
                             if archive_result.get("archived"):
@@ -217,7 +217,9 @@ class ConfigurationOrchestrator:
                                     payload={
                                         "config_event": ConfigEvent.ARCHIVE_TRIGGERED.name,
                                         "file": filename,
-                                        "sections_archived": archive_result["sections_archived"],
+                                        "sections_archived": archive_result[
+                                            "sections_archived"
+                                        ],
                                     },
                                 )
                                 self.monitor.event_bus.publish(config_event)

@@ -16,6 +16,7 @@ from typing import Any
 
 from cohezion.core.persistence.surreal_client import SurrealClient
 
+
 logger = logging.getLogger(__name__)
 
 

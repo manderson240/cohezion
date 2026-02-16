@@ -13,6 +13,7 @@ from cohezion.compound.feedback_loop import CompoundFeedbackLoop
 from cohezion.compound.models import CompoundCycleReport, CompoundCycleResult
 from cohezion.compound.persistence import CompoundPersistence
 
+
 # ---------------------------------------------------------------------------
 # Mock token client
 # ---------------------------------------------------------------------------

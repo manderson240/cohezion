@@ -142,84 +142,94 @@ class JourneyTracker:
         profiles = {}
 
         # GENERATE: High novelty (0) + logic (1)
-        profiles[OperationType.GENERATE.value] = np.array([
-            0.9,  # novelty
-            0.8,  # logic
-            0.4,  # field
-            0.3,  # spatial
-            0.5,  # temporal
-            0.5,  # precipitation
-            0.6,  # coherence
-            0.5,  # efficiency
-            0.4,  # convergence
-            0.3,  # smoothness
-            0.5,  # resonance
-            0.4,  # harmony
-        ])
+        profiles[OperationType.GENERATE.value] = np.array(
+            [
+                0.9,  # novelty
+                0.8,  # logic
+                0.4,  # field
+                0.3,  # spatial
+                0.5,  # temporal
+                0.5,  # precipitation
+                0.6,  # coherence
+                0.5,  # efficiency
+                0.4,  # convergence
+                0.3,  # smoothness
+                0.5,  # resonance
+                0.4,  # harmony
+            ]
+        )
 
         # ANALYZE: High logic (1) + field (2)
-        profiles[OperationType.ANALYZE.value] = np.array([
-            0.5,  # novelty
-            0.9,  # logic
-            0.8,  # field
-            0.4,  # spatial
-            0.3,  # temporal
-            0.4,  # precipitation
-            0.7,  # coherence
-            0.6,  # efficiency
-            0.5,  # convergence
-            0.4,  # smoothness
-            0.6,  # resonance
-            0.5,  # harmony
-        ])
+        profiles[OperationType.ANALYZE.value] = np.array(
+            [
+                0.5,  # novelty
+                0.9,  # logic
+                0.8,  # field
+                0.4,  # spatial
+                0.3,  # temporal
+                0.4,  # precipitation
+                0.7,  # coherence
+                0.6,  # efficiency
+                0.5,  # convergence
+                0.4,  # smoothness
+                0.6,  # resonance
+                0.5,  # harmony
+            ]
+        )
 
         # SEARCH: High spatial (3)
-        profiles[OperationType.SEARCH.value] = np.array([
-            0.6,  # novelty
-            0.5,  # logic
-            0.4,  # field
-            0.9,  # spatial
-            0.4,  # temporal
-            0.3,  # precipitation
-            0.6,  # coherence
-            0.8,  # efficiency
-            0.4,  # convergence
-            0.5,  # smoothness
-            0.5,  # resonance
-            0.4,  # harmony
-        ])
+        profiles[OperationType.SEARCH.value] = np.array(
+            [
+                0.6,  # novelty
+                0.5,  # logic
+                0.4,  # field
+                0.9,  # spatial
+                0.4,  # temporal
+                0.3,  # precipitation
+                0.6,  # coherence
+                0.8,  # efficiency
+                0.4,  # convergence
+                0.5,  # smoothness
+                0.5,  # resonance
+                0.4,  # harmony
+            ]
+        )
 
         # TRANSFORM: Moderate all
-        profiles[OperationType.TRANSFORM.value] = np.array([
-            0.6,  # novelty
-            0.6,  # logic
-            0.6,  # field
-            0.6,  # spatial
-            0.6,  # temporal
-            0.6,  # precipitation
-            0.6,  # coherence
-            0.6,  # efficiency
-            0.5,  # convergence
-            0.5,  # smoothness
-            0.6,  # resonance
-            0.6,  # harmony
-        ])
+        profiles[OperationType.TRANSFORM.value] = np.array(
+            [
+                0.6,  # novelty
+                0.6,  # logic
+                0.6,  # field
+                0.6,  # spatial
+                0.6,  # temporal
+                0.6,  # precipitation
+                0.6,  # coherence
+                0.6,  # efficiency
+                0.5,  # convergence
+                0.5,  # smoothness
+                0.6,  # resonance
+                0.6,  # harmony
+            ]
+        )
 
         # PERSIST: High temporal (4) + precipitation (5)
-        profiles[OperationType.PERSIST.value] = np.array([
-            0.3,  # novelty
-            0.4,  # logic
-            0.5,  # field
-            0.4,  # spatial
-            0.9,  # temporal
-            0.8,  # precipitation
-            0.7,  # coherence
-            0.5,  # efficiency
-            0.6,  # convergence
-            0.4,  # smoothness
-            0.5,  # resonance
-            0.5,  # harmony
-        ])
+        profiles[OperationType.PERSIST.value] = np.array(
+            [
+                0.3,  # novelty
+                0.4,  # logic
+                0.5,  # field
+                0.4,  # spatial
+                0.9,  # temporal
+                0.8,  # precipitation
+                0.7,  # coherence
+                0.5,  # efficiency
+                0.6,  # convergence
+                0.4,  # smoothness
+                0.5,  # resonance
+                0.5,  # harmony
+            ]
+        )
 
         return profiles
 
@@ -252,7 +262,10 @@ class JourneyTracker:
             )
 
         # Normalize to [-1, 1]
-        latent = 2.0 * (latent - np.min(latent)) / (np.max(latent) - np.min(latent) + 1e-8) - 1.0
+        latent = (
+            2.0 * (latent - np.min(latent)) / (np.max(latent) - np.min(latent) + 1e-8)
+            - 1.0
+        )
 
         return latent
 
@@ -275,10 +288,12 @@ class JourneyTracker:
 
         # Chunk-mean projection: 2048 → 16 dimensions (128-element chunks)
         num_chunks = self.HASH_DIMS // self.CHUNK_SIZE
-        chunk_means = np.array([
-            np.mean(latent_2048d[i * self.CHUNK_SIZE:(i + 1) * self.CHUNK_SIZE])
-            for i in range(num_chunks)
-        ])
+        chunk_means = np.array(
+            [
+                np.mean(latent_2048d[i * self.CHUNK_SIZE : (i + 1) * self.CHUNK_SIZE])
+                for i in range(num_chunks)
+            ]
+        )
 
         # Interpolate 16D → 12D
         if len(chunk_means) > self.AXIOMATIC_DIMS:
@@ -326,9 +341,7 @@ class JourneyTracker:
         """
         # Get modulation profile
         operation_str = (
-            operation_type
-            if isinstance(operation_type, str)
-            else operation_type.value
+            operation_type if isinstance(operation_type, str) else operation_type.value
         )
         modulation = self._modulation_profiles.get(
             operation_str,
@@ -366,9 +379,7 @@ class JourneyTracker:
         Returns:
             Phi score (0.0-1.0)
         """
-        phi = (
-            coherence * 0.5 + smoothness * 0.3 + convergence * 0.2
-        )
+        phi = coherence * 0.5 + smoothness * 0.3 + convergence * 0.2
         return np.clip(phi, 0.0, 1.0)
 
     def track_execution(
@@ -435,7 +446,7 @@ class JourneyTracker:
         # Maintain recent points buffer (capped at window size)
         self._recent_points.append(point)
         if len(self._recent_points) > self.TRAJECTORY_WINDOW:
-            self._recent_points = self._recent_points[-self.TRAJECTORY_WINDOW:]
+            self._recent_points = self._recent_points[-self.TRAJECTORY_WINDOW :]
 
         logger.debug(
             "Tracked execution: %s (phi=%.2f, coherence=%.2f, "
@@ -481,9 +492,9 @@ class JourneyTracker:
 
         coherences = np.array([p.coherence for p in points])
         efficiencies = np.array([p.efficiency for p in points])
-        phi_scores = np.array([
-            (p.metadata or {}).get("phi_score", 0.0) for p in points
-        ])
+        phi_scores = np.array(
+            [(p.metadata or {}).get("phi_score", 0.0) for p in points]
+        )
 
         # Compute smoothness (variance of dimension changes)
         dimensions = np.array([p.dimensions for p in points])
@@ -495,7 +506,7 @@ class JourneyTracker:
 
         # Compute convergence (trend toward stable state)
         if len(coherences) > 1:
-            convergence = 1.0 - np.std(coherences[-min(3, len(coherences)):])
+            convergence = 1.0 - np.std(coherences[-min(3, len(coherences)) :])
         else:
             convergence = 1.0
 

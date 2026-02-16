@@ -14,8 +14,8 @@ from cohezion.swarm.compound_client import (
     get_compound_client,
     reset_compound_client,
 )
-from cohezion.swarm.model_adapter import SmartRouterAdapter, _TASK_TYPE_MAP
-from cohezion.swarm.smart_router import LOCAL_MODELS, SmartRouter, TaskType
+from cohezion.swarm.model_adapter import _TASK_TYPE_MAP, SmartRouterAdapter
+from cohezion.swarm.smart_router import LOCAL_MODELS, SmartRouter
 from cohezion.swarm.token_client import TokenEfficientClient
 
 
@@ -126,7 +126,9 @@ async def test_compound_client_caches():
     client.ollama.generate = AsyncMock(return_value=mock_response)
 
     # First call: cache miss
-    result1, tokens1 = await client.generate("test prompt", system="sys", model="phi3:mini")
+    result1, tokens1 = await client.generate(
+        "test prompt", system="sys", model="phi3:mini"
+    )
     assert result1 == "This is a test response"
     # Check metrics via get_metrics()
     metrics = client.get_metrics()
@@ -134,7 +136,9 @@ async def test_compound_client_caches():
     assert metrics["total_cache_hits"] == 0
 
     # Second call: cache hit (same prompt + system + model)
-    result2, tokens2 = await client.generate("test prompt", system="sys", model="phi3:mini")
+    result2, tokens2 = await client.generate(
+        "test prompt", system="sys", model="phi3:mini"
+    )
     assert result2 == "This is a test response"
     metrics = client.get_metrics()
     assert metrics["total_cache_hits"] == 1

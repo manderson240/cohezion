@@ -2,12 +2,14 @@
 Tests for CoherenceTracker - HIHO stability measurement.
 """
 
-import pytest
 from datetime import datetime
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
 from cohezion.platform.coherence_tracker import (
-    CoherenceTracker,
     CoherenceMetrics,
+    CoherenceTracker,
     get_coherence_tracker,
     reset_coherence_tracker,
 )

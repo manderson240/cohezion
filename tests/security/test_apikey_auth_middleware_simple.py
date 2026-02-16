@@ -1,12 +1,12 @@
 """Simplified tests for APIKeyAuth middleware."""
 
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock
 from fastapi import FastAPI, Request
 from starlette.testclient import TestClient
 
-from cohezion.security.apikey_auth_middleware import APIKeyAuthMiddleware
 from cohezion.security.agent_auth import AgentAuthManager
+from cohezion.security.apikey_auth_middleware import APIKeyAuthMiddleware
 
 
 @pytest.fixture

@@ -4,6 +4,7 @@ from pathlib import Path
 
 import torch
 
+
 # Add src to sys.path
 sys.path.append(str(Path.cwd() / "src"))
 

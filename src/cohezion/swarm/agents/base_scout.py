@@ -12,15 +12,17 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from cohezion.reliability import get_circuit
 from cohezion.reliability.resource_guard import ResourceGuard
+
 
 logger = logging.getLogger(__name__)
 
 # Global lock to ensure strictly sequential LLM calls across all scouts
 _LLM_LOCK = asyncio.Lock()
+
 
 @dataclass
 class Finding:
@@ -32,9 +34,10 @@ class Finding:
     line_range: tuple[int, int]
     confidence: float
     code_snippet: str
-    severity: Optional[str] = None  # for anti-patterns
-    remediation: Optional[str] = None  # for anti-patterns
+    severity: str | None = None  # for anti-patterns
+    remediation: str | None = None  # for anti-patterns
     metadata: dict[str, Any] = field(default_factory=dict)
+
 
 @dataclass
 class ASTSummary:
@@ -44,6 +47,7 @@ class ASTSummary:
     complexity_score: int
     loc: int
     has_type_hints_ratio: float
+
 
 class BaseScout(ABC):
     """
@@ -79,12 +83,18 @@ class BaseScout(ABC):
     def _get_file_hash(self, path: Path) -> str:
         return hashlib.sha256(path.read_bytes()).hexdigest()
 
-    def _parse_python_ast(self, path: Path) -> Optional[ASTSummary]:
+    def _parse_python_ast(self, path: Path) -> ASTSummary | None:
         """Structurally analyze file without LLM costs."""
         try:
             tree = ast.parse(path.read_text())
-            classes = [node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef)]
-            functions = [node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)]
+            classes = [
+                node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef)
+            ]
+            functions = [
+                node.name
+                for node in ast.walk(tree)
+                if isinstance(node, ast.FunctionDef)
+            ]
             imports = []
             for node in ast.walk(tree):
                 if isinstance(node, ast.Import):
@@ -95,7 +105,18 @@ class BaseScout(ABC):
             # Simple complexity: count branch nodes
             complexity = 1
             for node in ast.walk(tree):
-                if isinstance(node, (ast.If, ast.While, ast.For, ast.AsyncFor, ast.ExceptHandler, ast.With, ast.AsyncWith)):
+                if isinstance(
+                    node,
+                    (
+                        ast.If,
+                        ast.While,
+                        ast.For,
+                        ast.AsyncFor,
+                        ast.ExceptHandler,
+                        ast.With,
+                        ast.AsyncWith,
+                    ),
+                ):
                     complexity += 1
 
             lines = path.read_text().splitlines()
@@ -105,7 +126,7 @@ class BaseScout(ABC):
                 imports=imports,
                 complexity_score=complexity,
                 loc=len(lines),
-                has_type_hints_ratio=0.0 # Placeholder
+                has_type_hints_ratio=0.0,  # Placeholder
             )
         except SyntaxError:
             logger.warning(f"Syntax error in {path}, skipping AST analysis.")
@@ -120,13 +141,14 @@ class BaseScout(ABC):
             logger.info(f"LLM Lock acquired. Running {self.model}...")
             # Wait for system stability before calling LLM
             await self.guard.wait_for_stability()
-            
+
             breaker = get_circuit("ollama")
             if not breaker.allow_request():
                 raise RuntimeError("Ollama circuit breaker is open")
 
             try:
                 import httpx
+
                 async with httpx.AsyncClient(timeout=180.0) as client:
                     response = await client.post(
                         f"{self.ollama_url}/api/generate",
@@ -134,8 +156,8 @@ class BaseScout(ABC):
                             "model": self.model,
                             "prompt": prompt,
                             "stream": False,
-                            "format": "json"
-                        }
+                            "format": "json",
+                        },
                     )
                     response.raise_for_status()
                     breaker.record_success()
@@ -156,7 +178,7 @@ class BaseScout(ABC):
         file_hash = self._get_file_hash(path)
         rel_path = str(path)
         cache_key = f"{self.__class__.__name__}:{rel_path}"
-        
+
         # Cache check
         if cache_key in self.cache and self.cache[cache_key]["hash"] == file_hash:
             logger.debug(f"Skipping cached file: {cache_key}")
@@ -164,17 +186,17 @@ class BaseScout(ABC):
 
         logger.info(f"Scanning file: {rel_path} ({self.__class__.__name__})...")
         findings = await self.analyze(path)
-        
+
         # Update cache
         self.cache[cache_key] = {
             "hash": file_hash,
             "last_scan": datetime.now().isoformat(),
-            "findings_count": len(findings)
+            "findings_count": len(findings),
         }
         self._save_cache()
-        
+
         # Mandatory cooldown to let system breathe
         logger.info(f"Cooldown active ({self.cooldown}s)...")
         await asyncio.sleep(self.cooldown)
-        
+
         return findings

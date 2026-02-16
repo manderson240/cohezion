@@ -1,22 +1,25 @@
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional
-from cohezion.reliability.monitor import get_resource_monitor
+from typing import Any
+
 from cohezion.compound.exp_persistence.journey import get_journey_persistence
 from cohezion.compound.exp_persistence.vault import get_vault_logger
+from cohezion.reliability.monitor import get_resource_monitor
+
 
 logger = logging.getLogger(__name__)
+
 
 class PersistenceAccumulator:
     """
     Non-blocking buffer for swarm experience persistence.
-    
+
     Implements the 'Accumulator' pattern:
     - Buffers mission data in an asyncio.Queue.
     - Flushes to SurrealDB and Vault based on system dilation.
     - Discards low-value logs during high-pressure scenarios.
     """
-    
+
     _instance = None
     _lock = asyncio.Lock()
 
@@ -37,7 +40,7 @@ class PersistenceAccumulator:
         self.vault_logger = get_vault_logger()
         self._running = True
         self._initialized = True
-        
+
         # Start worker as background task
         try:
             loop = asyncio.get_running_loop()
@@ -46,13 +49,15 @@ class PersistenceAccumulator:
         except RuntimeError:
             pass
 
-    async def add_experience(self, data: Dict[str, Any]):
+    async def add_experience(self, data: dict[str, Any]):
         """Add mission experience to the buffer."""
         dilation = self.monitor.get_dilation_factor()
-        
+
         # HW-Aware Drop: No persistence if system is severely dilated
         if dilation < 0.3:
-            logger.warning(f"Persistence skipped due to severe dilation ({dilation:.2f})")
+            logger.warning(
+                f"Persistence skipped due to severe dilation ({dilation:.2f})"
+            )
             return
 
         # Importance Sampling: Reject low-novelty logs if queue is getting full
@@ -77,16 +82,16 @@ class PersistenceAccumulator:
 
                 if batch:
                     await self._execute_flush(batch)
-                
+
                 await asyncio.sleep(self.flush_interval)
             except Exception as e:
                 logger.error(f"Persistence flush failed: {e}")
                 await asyncio.sleep(self.flush_interval)
 
-    async def _execute_flush(self, batch: List[Dict[str, Any]]):
+    async def _execute_flush(self, batch: list[dict[str, Any]]):
         """Coordinate flushes to SurrealDB and Vault."""
         logger.info(f"Flushing {len(batch)} experiences to persistence layer...")
-        
+
         # SurrealDB Flush (High-freq trajectories)
         try:
             await self.journey_db.persist_batch(batch)
@@ -108,6 +113,7 @@ class PersistenceAccumulator:
                 await self._worker_task
             except asyncio.CancelledError:
                 pass
+
 
 def get_accumulator() -> PersistenceAccumulator:
     """Get the global PersistenceAccumulator instance."""

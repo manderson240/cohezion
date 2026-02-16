@@ -37,9 +37,10 @@ import logging
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -196,7 +197,8 @@ class DegradationDetector:
                         f"({tokens_per_sec:.0f} vs baseline {baseline_tok_sec:.0f} tok/sec)",
                         current_value=tokens_per_sec,
                         baseline_value=baseline_tok_sec,
-                        threshold=baseline_tok_sec * (1 - self.token_efficiency_drop_threshold),
+                        threshold=baseline_tok_sec
+                        * (1 - self.token_efficiency_drop_threshold),
                     )
                     if self._should_emit_alert(alert):
                         alerts.append(alert)
@@ -229,7 +231,8 @@ class DegradationDetector:
                         f"({duration:.2f}s vs baseline {baseline_duration:.2f}s)",
                         current_value=duration,
                         baseline_value=baseline_duration,
-                        threshold=baseline_duration * (1 + self.duration_slowdown_threshold),
+                        threshold=baseline_duration
+                        * (1 + self.duration_slowdown_threshold),
                     )
                     if self._should_emit_alert(alert):
                         alerts.append(alert)
@@ -307,6 +310,6 @@ class DegradationDetector:
 __all__ = [
     "AlertSeverity",
     "DegradationAlert",
-    "MetricBaseline",
     "DegradationDetector",
+    "MetricBaseline",
 ]

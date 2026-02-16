@@ -161,6 +161,7 @@ class CompoundExecutor:
             self.inflection_detector = inflection_detector
         else:
             from cohezion.compound.inflection_detector import InflectionDetectorFactory
+
             self.inflection_detector = InflectionDetectorFactory.create_default()
         self.logger = VaultLogger(mcp_client=mcp_client)
 
@@ -223,7 +224,10 @@ class CompoundExecutor:
         return self._alignment_analyzer
 
     def get_experience_guidance(
-        self, task_description: str, project: str = "cohezion", operation_type: str = "generate"
+        self,
+        task_description: str,
+        project: str = "cohezion",
+        operation_type: str = "generate",
     ) -> dict[str, Any]:
         """Fetch experience guidance from vault before execution.
 
@@ -248,8 +252,8 @@ class CompoundExecutor:
 
         # Step 2: Enhance with trajectory search (if available)
         try:
-            from cohezion.compound.trajectory_search import TrajectorySearchEngine
             from cohezion.compound.guidance_enhancer import GuidanceEnhancer
+            from cohezion.compound.trajectory_search import TrajectorySearchEngine
             from cohezion.flume.experience_collector import ExperienceCollector
             from cohezion.flume.experience_encoder import ExperienceEncoder
 
@@ -391,14 +395,20 @@ class CompoundExecutor:
                 logger.debug("Universe bridge start failed (non-blocking): %s", e)
 
         # Step 1: Get experience guidance (enhanced with trajectory search)
-        guidance = self.get_experience_guidance(task_description, project, operation_type)
+        guidance = self.get_experience_guidance(
+            task_description, project, operation_type
+        )
         logger.debug("Experience guidance: %s", guidance)
 
         # Step 1.5: Parse request for alignment analysis (if enabled)
         # Skip in degradation mode to conserve resources
         parsed_request = None
         alignment_patterns = None
-        if self._enable_alignment_analysis and self.alignment_analyzer and not self._degradation_mode:
+        if (
+            self._enable_alignment_analysis
+            and self.alignment_analyzer
+            and not self._degradation_mode
+        ):
             try:
                 request_text = human_request or task_description
                 parsed_request = self.alignment_analyzer.parse_request(request_text)
@@ -415,7 +425,9 @@ class CompoundExecutor:
                 )
             except Exception as e:
                 logger.debug(
-                    "Request alignment parsing failed (non-blocking): %s", e, exc_info=True
+                    "Request alignment parsing failed (non-blocking): %s",
+                    e,
+                    exc_info=True,
                 )
 
         # Step 2: Log execution start
@@ -436,9 +448,7 @@ class CompoundExecutor:
                 "task_description": task_description,
             }
             input_check = _run_async_guardrail(
-                self.guardrail_pipeline.check_input(
-                    task_description, guard_context
-                )
+                self.guardrail_pipeline.check_input(task_description, guard_context)
             )
             if input_check and input_check.action == GuardrailAction.BLOCK:
                 error_msg = f"Input blocked by guardrails: {input_check.reason}"
@@ -491,9 +501,7 @@ class CompoundExecutor:
                 "task_description": task_description,
             }
             output_check = _run_async_guardrail(
-                self.guardrail_pipeline.check_output(
-                    output, guard_context
-                )
+                self.guardrail_pipeline.check_output(output, guard_context)
             )
             if output_check:
                 if output_check.action == GuardrailAction.BLOCK:
@@ -522,6 +530,7 @@ class CompoundExecutor:
         decision_paths = []
         try:
             from cohezion.compound.inflection_detector import Severity
+
             temp_result = ExecutionResult(
                 success=success,
                 output=output,
@@ -555,16 +564,18 @@ class CompoundExecutor:
                     if decision_path:
                         decision_paths.append(decision_path)
                 except Exception as e:
-                    logger.debug(
-                        "Failed to log inflection point (non-blocking): %s", e
-                    )
+                    logger.debug("Failed to log inflection point (non-blocking): %s", e)
         except Exception as e:
             logger.debug(
                 "Anomaly detection failed (non-blocking): %s", e, exc_info=True
             )
 
         # Step 5.5: Analyze request-execution alignment (if enabled)
-        if self._enable_alignment_analysis and self.alignment_analyzer and parsed_request:
+        if (
+            self._enable_alignment_analysis
+            and self.alignment_analyzer
+            and parsed_request
+        ):
             try:
                 from cohezion.compound.inflection_detector import Severity
 
@@ -666,12 +677,16 @@ class CompoundExecutor:
                     duration_seconds=duration_seconds,
                     token_metrics=token_metrics,
                 )
-                retrospection_context = self._retrospection_engine.analyze_execution_result(
-                    temp_result, skill_name
+                retrospection_context = (
+                    self._retrospection_engine.analyze_execution_result(
+                        temp_result, skill_name
+                    )
                 )
                 should_refine = retrospection_context.get("should_refine", True)
                 if retrospection_context.get("insights"):
-                    metrics["retrospection_insights"] = retrospection_context["insights"]
+                    metrics["retrospection_insights"] = retrospection_context[
+                        "insights"
+                    ]
                 logger.debug(
                     "Retrospection: should_refine=%s, compound=%.3f",
                     should_refine,
@@ -718,7 +733,10 @@ class CompoundExecutor:
         coherence_val = metrics.get("coherence", 0.5)
         if 0.4 <= coherence_val <= 0.6:
             if self._degradation_mode:
-                logger.info("Cohesion returned to HIHO band (%.2f), exiting degradation mode", coherence_val)
+                logger.info(
+                    "Cohesion returned to HIHO band (%.2f), exiting degradation mode",
+                    coherence_val,
+                )
                 self._degradation_mode = False
 
         if self._degradation_detector:
@@ -750,9 +768,7 @@ class CompoundExecutor:
                         )
                     # Log critical alerts to vault and enter degradation mode
                     critical_alerts = [
-                        a
-                        for a in alerts
-                        if a.severity.value == "CRITICAL"
+                        a for a in alerts if a.severity.value == "CRITICAL"
                     ]
                     if critical_alerts:
                         self._degradation_mode = True
@@ -760,7 +776,8 @@ class CompoundExecutor:
                         logger.warning(
                             "Entering degradation mode: %d CRITICAL alerts, "
                             "cohesion=%.2f outside HIHO band",
-                            len(critical_alerts), coherence_val,
+                            len(critical_alerts),
+                            coherence_val,
                         )
                     for alert in critical_alerts:
                         try:
@@ -781,9 +798,7 @@ class CompoundExecutor:
                                 e,
                             )
             except Exception as e:
-                logger.debug(
-                    "Degradation detection failed (non-blocking): %s", e
-                )
+                logger.debug("Degradation detection failed (non-blocking): %s", e)
 
         # Step 7.7: Record model quality (non-blocking)
         if self._model_quality_classifier:
@@ -801,9 +816,7 @@ class CompoundExecutor:
                     duration=duration_seconds,
                 )
             except Exception as e:
-                logger.debug(
-                    "Model quality recording failed (non-blocking): %s", e
-                )
+                logger.debug("Model quality recording failed (non-blocking): %s", e)
 
         # Step 8: Record metrics (non-blocking)
         if self._metrics_collector:
@@ -853,20 +866,21 @@ class CompoundExecutor:
                         if point.metadata:
                             point_data["metadata"] = point.metadata
                         import asyncio
+
                         exec_id = f"exec_{int(time.time())}"
                         try:
                             asyncio.get_running_loop()
                             _task = asyncio.ensure_future(  # noqa: RUF006
-                                self._journey_persistence
-                                .save_trajectory_point(
-                                    exec_id, point_data,
+                                self._journey_persistence.save_trajectory_point(
+                                    exec_id,
+                                    point_data,
                                 )
                             )
                         except RuntimeError:
                             asyncio.run(
-                                self._journey_persistence
-                                .save_trajectory_point(
-                                    exec_id, point_data,
+                                self._journey_persistence.save_trajectory_point(
+                                    exec_id,
+                                    point_data,
                                 )
                             )
                     except Exception as e:
@@ -882,7 +896,8 @@ class CompoundExecutor:
                     last_point = self._journey_tracker.get_last_point()
                     if last_point:
                         self._universe_bridge.add_point(
-                            universe_journey_id, last_point,
+                            universe_journey_id,
+                            last_point,
                             step_number=self._journey_tracker.get_recent_point_count(),
                             action=operation_type,
                         )
@@ -942,7 +957,9 @@ class CompoundExecutor:
                 metrics_after["api_calls"] - metrics_before["api_calls"]
             )
         if "cache_hits" in metrics_after and "cache_hits" in metrics_before:
-            delta["cache_hits"] = metrics_after["cache_hits"] - metrics_before["cache_hits"]
+            delta["cache_hits"] = (
+                metrics_after["cache_hits"] - metrics_before["cache_hits"]
+            )
         if "cache_misses" in metrics_after and "cache_misses" in metrics_before:
             delta["cache_misses"] = (
                 metrics_after["cache_misses"] - metrics_before["cache_misses"]

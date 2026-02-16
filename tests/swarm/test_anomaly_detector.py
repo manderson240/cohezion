@@ -9,14 +9,15 @@ Tests:
 - Confidence calculation
 """
 
-import pytest
 import time
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
+
+import pytest
 
 from cohezion.swarm.anomaly_detector import (
+    AnomalyAlert,
     AnomalyDetector,
     AnomalyType,
-    AnomalyAlert,
     ModelCostHistory,
     get_anomaly_detector,
     reset_anomaly_detector,
@@ -99,7 +100,9 @@ class TestCostSpikeDetection:
 
         # Should detect as negative spike
         assert alert is not None
-        assert abs(alert.cost_deviation_pct - (-25.0)) < 0.1  # Allow floating point error
+        assert (
+            abs(alert.cost_deviation_pct - (-25.0)) < 0.1
+        )  # Allow floating point error
 
     def test_spike_severity_calculation(self, detector):
         """Test severity increases with deviation."""

@@ -32,6 +32,7 @@ from cohezion.swarm.model_pool_config import (
     TierConfig,
 )
 
+
 logger = logging.getLogger(__name__)
 
 # Health-check prompt: minimal tokens, fast response
@@ -118,7 +119,9 @@ class ModelPoolManager:
         """
         model = self._pool.get(model_name)
         if model is None:
-            logger.warning("Model %s not in pool config, cannot ensure loaded", model_name)
+            logger.warning(
+                "Model %s not in pool config, cannot ensure loaded", model_name
+            )
             return False
 
         # Fast path: already loaded and healthy
@@ -228,7 +231,11 @@ class ModelPoolManager:
             logger.error("Failed to evict %s: %s", model_name, exc)
             return False
 
-    _TIER_ORDER = {ModelTierPolicy.COLD: 0, ModelTierPolicy.WARM: 1, ModelTierPolicy.HOT: 2}
+    _TIER_ORDER = {
+        ModelTierPolicy.COLD: 0,
+        ModelTierPolicy.WARM: 1,
+        ModelTierPolicy.HOT: 2,
+    }
 
     async def promote(self, model_name: str, new_tier: ModelTierPolicy) -> None:
         """Promote a model to a higher tier (e.g., cold -> warm, warm -> hot).
@@ -280,7 +287,10 @@ class ModelPoolManager:
         )
 
         for candidate in candidates:
-            if self._memory.analyze_memory_pressure() < self._config.memory_pressure_threshold:
+            if (
+                self._memory.analyze_memory_pressure()
+                < self._config.memory_pressure_threshold
+            ):
                 break
             if await self.evict_model(candidate.name):
                 evicted.append(candidate.name)
@@ -361,7 +371,12 @@ class ModelPoolManager:
                     },
                 )
                 resp.raise_for_status()
-                logger.info("Loaded model %s (tier=%s, keep_alive=%s)", model_name, tier.value, keep_alive)
+                logger.info(
+                    "Loaded model %s (tier=%s, keep_alive=%s)",
+                    model_name,
+                    tier.value,
+                    keep_alive,
+                )
                 return True
         except Exception as exc:
             logger.error("Failed to load model %s: %s", model_name, exc)
@@ -373,9 +388,7 @@ class ModelPoolManager:
             [
                 m
                 for m in self._pool.values()
-                if m.loaded
-                and m.tier != ModelTierPolicy.HOT
-                and m.name != exclude
+                if m.loaded and m.tier != ModelTierPolicy.HOT and m.name != exclude
             ],
             key=lambda m: (
                 0 if m.tier == ModelTierPolicy.COLD else 1,

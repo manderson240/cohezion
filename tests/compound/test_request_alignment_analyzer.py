@@ -3,8 +3,9 @@
 Tests request parsing, constraint extraction, alignment analysis, and vault integration.
 """
 
+from unittest.mock import MagicMock
+
 import pytest
-from unittest.mock import MagicMock, patch
 
 from cohezion.compound.models import (
     ConstraintType,
@@ -217,9 +218,7 @@ class TestAlignmentAnalysis:
                     type=ConstraintType.TOKENS, value=500, unit="tokens", is_hard=True
                 )
             ],
-            criteria=[
-                SuccessCriterion("Output is coherent", "coherence", 0.7, False)
-            ],
+            criteria=[SuccessCriterion("Output is coherent", "coherence", 0.7, False)],
         )
 
     def test_perfect_alignment(self):

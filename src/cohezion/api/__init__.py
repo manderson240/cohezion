@@ -18,6 +18,7 @@ from cohezion.mcp.knowledge_server import get_server as get_knowledge_server
 from cohezion.mcp.registry import get_registry
 from cohezion.mcp.swarm_server import get_server as get_swarm_server
 
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 

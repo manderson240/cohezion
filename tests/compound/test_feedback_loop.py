@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from cohezion.compound.executor import CompoundExecutor, ExecutionResult
 from cohezion.compound.feedback_loop import (
     CompoundFeedbackLoop,
     CompoundFeedbackLoopFactory,
@@ -11,10 +12,9 @@ from cohezion.compound.feedback_loop import (
     RetryAttempt,
     RetryStrategy,
 )
-from cohezion.compound.executor import CompoundExecutor, ExecutionResult
 from cohezion.compound.inflection_detector import (
-    InflectionDetector,
     AnomalyDetection,
+    InflectionDetector,
     Severity,
 )
 
@@ -287,6 +287,7 @@ class TestExecutionWithFeedback:
     @pytest.mark.asyncio
     async def test_execute_success_on_first_attempt(self, feedback_loop):
         """Test task succeeds on first attempt."""
+
         def execute_fn(guidance):
             return "output", {"coherence": 0.9}
 

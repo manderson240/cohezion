@@ -45,7 +45,6 @@ def create_compound_client(
     """
     from cohezion.reliability.context_harness import ContextHarness
     from cohezion.swarm.model_adapter import SmartRouterAdapter
-    from cohezion.swarm.ollama_resilience import ResilientOllamaClient
     from cohezion.swarm.smart_router import SmartRouter
     from cohezion.swarm.token_client import TokenEfficientClient
 

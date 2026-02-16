@@ -14,8 +14,9 @@ from datetime import datetime
 
 from fastapi import APIRouter, HTTPException
 
-from cohezion.observability.unified_metrics import get_metrics_collector
 from cohezion.observability.metrics_analytics import MetricsAnalytics
+from cohezion.observability.unified_metrics import get_metrics_collector
+
 
 logger = logging.getLogger(__name__)
 
@@ -284,11 +285,7 @@ async def get_full_dashboard():
                     else (
                         "good"
                         if report.overall_health_score >= 0.75
-                        else (
-                            "fair"
-                            if report.overall_health_score >= 0.60
-                            else "poor"
-                        )
+                        else ("fair" if report.overall_health_score >= 0.60 else "poor")
                     )
                 ),
             },

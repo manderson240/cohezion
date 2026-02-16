@@ -16,6 +16,7 @@ from typing import Any
 
 import httpx
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -196,7 +197,9 @@ class DemocraticDebate:
         ollama_host: str = "http://localhost:11434",
         token_client: "TokenEfficientClient | None" = None,
     ):
-        from cohezion.swarm.token_client import TokenEfficientClient as _TC  # noqa: F811
+        from cohezion.swarm.token_client import (
+            TokenEfficientClient as _TC,
+        )
 
         self.ollama_host = ollama_host
         self.personas = AGENT_PERSONAS

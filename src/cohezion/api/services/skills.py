@@ -3,16 +3,19 @@ PRIME Skill Service - Logic for parsing and matching PRIME skills.
 """
 
 import logging
+
 from fastapi import HTTPException
 from pydantic import BaseModel
-from typing import Any, Optional
+
 
 logger = logging.getLogger(__name__)
 
 # --- Models ---
 
+
 class TemplateParseRequest(BaseModel):
     skill_name: str
+
 
 class TemplateParseResponse(BaseModel):
     name: str
@@ -24,9 +27,13 @@ class TemplateParseResponse(BaseModel):
     agent_stub: str
     config_class: str
 
+
 # --- Service Logic ---
 
-async def parse_template_service(request: TemplateParseRequest) -> TemplateParseResponse:
+
+async def parse_template_service(
+    request: TemplateParseRequest,
+) -> TemplateParseResponse:
     """Parse a PRIME skill definition and return structured spec."""
     from cohezion.core.config_templates import ConfigTemplateManager
 

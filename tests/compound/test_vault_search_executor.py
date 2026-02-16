@@ -4,9 +4,9 @@ Tests the vault search enhancement with skill context integration following
 the CompoundAsyncExecutor pattern (7-step execution pipeline).
 """
 
+from unittest.mock import MagicMock
+
 import pytest
-from unittest.mock import MagicMock, patch
-from datetime import datetime
 
 from cohezion.compound.vault_search_executor import (
     SearchQuery,
@@ -73,7 +73,9 @@ class TestVaultSearchExecutor:
         """Test search returns SearchResult object."""
         vault_search_executor.logger = MagicMock()
         vault_search_executor.logger.get_experience_guidance = MagicMock(
-            return_value={"relevant_skills": ["vault-integration", "search-optimization"]}
+            return_value={
+                "relevant_skills": ["vault-integration", "search-optimization"]
+            }
         )
 
         result = vault_search_executor.search("test vault search")
@@ -110,7 +112,9 @@ class TestVaultSearchExecutor:
             query="test", keywords=["test"], document_types=[], min_relevance=1.5
         )
 
-        with pytest.raises(ValueError, match="Min relevance must be between 0.0 and 1.0"):
+        with pytest.raises(
+            ValueError, match="Min relevance must be between 0.0 and 1.0"
+        ):
             vault_search_executor._validate_search_query(query)
 
     def test_calculate_relevance_keyword_match(self, vault_search_executor):

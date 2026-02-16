@@ -6,7 +6,9 @@ import json
 import logging
 from pathlib import Path
 from typing import Any
+
 from cohezion.core.mcp_client import get_mcp_client
+
 
 logger = logging.getLogger(__name__)
 
@@ -140,13 +142,16 @@ class CompoundPersistence:
         mcp = get_mcp_client()
         safe_name = skill_name.replace("/", "_").replace(" ", "_").lower()
         import time
+
         timestamp = int(time.time())
         path = f"cycles/{safe_name}/{timestamp}.json"
         mcp.vault_write(path, json.dumps(cycle_data, indent=2))
         logger.debug(f"Cycle saved to Vault: {path}")
         return f"vault:{path}"
 
-    async def _load_from_vault(self, skill_name: str, limit: int) -> list[dict[str, Any]]:
+    async def _load_from_vault(
+        self, skill_name: str, limit: int
+    ) -> list[dict[str, Any]]:
         """Load cycle history from Vault."""
         mcp = get_mcp_client()
         safe_name = skill_name.replace("/", "_").replace(" ", "_").lower()

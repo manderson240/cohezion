@@ -1,7 +1,8 @@
 """Tests for per-agent authentication (Task #1: Phase 2 Security)."""
 
+from datetime import UTC, datetime, timedelta
+
 import pytest
-from datetime import datetime, timedelta, timezone
 
 from cohezion.security.agent_auth import AgentAuthManager, AgentCredential
 
@@ -39,7 +40,7 @@ class TestAgentCredentialModel:
 
     def test_credential_expiration(self):
         """Test credential expiration check."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # Not expired
         cred = AgentCredential(
@@ -143,7 +144,7 @@ class TestTokenExpiration:
     def test_expired_token_validation(self, auth_manager):
         """Test expired tokens are rejected."""
         # Create credential with past expiration
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         cred = AgentCredential(
             agent_id="agent-1",
             token="token-1",
@@ -158,7 +159,7 @@ class TestTokenExpiration:
 
     def test_not_yet_expired_token(self, auth_manager):
         """Test token expiring soon is still valid."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         cred = AgentCredential(
             agent_id="agent-1",
             token="token-1",
@@ -313,7 +314,7 @@ class TestCleanupExpiredCredentials:
 
     def test_cleanup_expired(self, auth_manager):
         """Test cleaning up expired credentials."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # Create expired credential
         expired = AgentCredential(

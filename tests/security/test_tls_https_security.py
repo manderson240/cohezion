@@ -1,10 +1,8 @@
 """Tests for TLS/HTTPS security configuration and middleware."""
 
-import ssl
 import tempfile
 from pathlib import Path
 
-import pytest
 from starlette.applications import Starlette
 from starlette.responses import PlainTextResponse
 from starlette.testclient import TestClient
@@ -63,9 +61,7 @@ class TestTLSConfig:
             cert_file.write_text("CERTIFICATE")
             key_file.write_text("KEY")
 
-            config = TLSConfig(
-                cert_path=str(cert_file), key_path=str(key_file)
-            )
+            config = TLSConfig(cert_path=str(cert_file), key_path=str(key_file))
             assert config.validate_certificate() is True
 
     def test_hsts_header_generation(self):
@@ -151,6 +147,7 @@ class TestHTTPSMiddleware:
 
     def setup_method(self):
         """Set up test app."""
+
         # Create simple Starlette app
         def homepage(request):
             return PlainTextResponse("OK")
@@ -189,7 +186,9 @@ class TestHTTPSMiddleware:
     def test_security_headers_added(self):
         """Test that security headers are added to responses."""
         config = TLSConfig()
-        app = HTTPSEnforcementMiddleware(self.base_app, config, allow_http_localhost=True)
+        app = HTTPSEnforcementMiddleware(
+            self.base_app, config, allow_http_localhost=True
+        )
         client = TestClient(app)
 
         response = client.get("/")
@@ -203,7 +202,9 @@ class TestHTTPSMiddleware:
         """Test CORS origin validation with allowed origin."""
         origins = ["https://example.com", "https://127.0.0.1"]
         config = TLSConfig(allowed_origins=origins)
-        app = HTTPSEnforcementMiddleware(self.base_app, config, allow_http_localhost=True)
+        app = HTTPSEnforcementMiddleware(
+            self.base_app, config, allow_http_localhost=True
+        )
         client = TestClient(app)
 
         response = client.get(
@@ -214,13 +215,17 @@ class TestHTTPSMiddleware:
         )
 
         assert response.status_code == 200
-        assert response.headers.get("Access-Control-Allow-Origin") == "https://example.com"
+        assert (
+            response.headers.get("Access-Control-Allow-Origin") == "https://example.com"
+        )
 
     def test_cors_origin_rejected(self):
         """Test CORS origin validation with disallowed origin."""
         origins = ["https://example.com"]
         config = TLSConfig(allowed_origins=origins)
-        app = HTTPSEnforcementMiddleware(self.base_app, config, allow_http_localhost=True)
+        app = HTTPSEnforcementMiddleware(
+            self.base_app, config, allow_http_localhost=True
+        )
         client = TestClient(app)
 
         response = client.get(
@@ -238,6 +243,7 @@ class TestSecureCookieMiddleware:
 
     def setup_method(self):
         """Set up test app with cookie."""
+
         def set_cookie(request):
             response = PlainTextResponse("OK")
             response.set_cookie("session", "abc123", path="/")
@@ -278,10 +284,13 @@ class TestSecureCookieMiddleware:
         assert "HttpOnly" in set_cookie
         assert "SameSite=Strict" in set_cookie
         # Secure flag should not be present
-        assert "Secure" not in set_cookie, "Secure flag should not be present in development mode"
+        assert "Secure" not in set_cookie, (
+            "Secure flag should not be present in development mode"
+        )
 
     def test_cookie_flag_replacement(self):
         """Test that existing cookie flags are replaced correctly."""
+
         # Create response with existing flags
         def set_cookie_with_flags(request):
             response = PlainTextResponse("OK")
@@ -313,6 +322,7 @@ class TestHTTPSAppCreation:
 
     def test_create_https_app(self):
         """Test HTTPS app creation with middleware stack."""
+
         def homepage(request):
             return PlainTextResponse("OK")
 
@@ -335,6 +345,7 @@ class TestSecurityIntegration:
 
     def test_full_security_stack(self):
         """Test complete security middleware stack."""
+
         def protected_endpoint(request):
             response = PlainTextResponse("Protected resource")
             response.set_cookie("auth_token", "secret123", path="/api")
@@ -367,7 +378,9 @@ class TestSecurityIntegration:
         # Verify all security measures applied
         assert response.status_code == 200
         assert "Strict-Transport-Security" in response.headers
-        assert response.headers.get("Access-Control-Allow-Origin") == "https://127.0.0.1"
+        assert (
+            response.headers.get("Access-Control-Allow-Origin") == "https://127.0.0.1"
+        )
 
         set_cookies = response.headers.get_list("set-cookie")
         assert len(set_cookies) > 0
@@ -378,6 +391,7 @@ class TestSecurityIntegration:
 
     def test_security_headers_complete_set(self):
         """Test that all required security headers are present."""
+
         def endpoint(request):
             return PlainTextResponse("OK")
 

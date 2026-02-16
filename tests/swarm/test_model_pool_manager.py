@@ -120,9 +120,7 @@ class TestModelPoolManager:
         tags_resp = _mock_httpx_ok(
             {"models": [{"name": "hot-model:latest", "size": 5 * 1024**3}]}
         )
-        ps_resp = _mock_httpx_ok(
-            {"models": [{"name": "hot-model:latest"}]}
-        )
+        ps_resp = _mock_httpx_ok({"models": [{"name": "hot-model:latest"}]})
 
         with patch("httpx.AsyncClient") as MockClient:
             mock_client = AsyncMock()
@@ -321,16 +319,16 @@ class TestPoolManagerIntegration:
             warm_models=[],
             cold_models=[],
         )
-        with patch(
-            "cohezion.swarm.model_pool_manager.MemoryBandwidthAnalyzer"
-        ):
+        with patch("cohezion.swarm.model_pool_manager.MemoryBandwidthAnalyzer"):
             pool_mgr = ModelPoolManager(config=config)
 
         pool_mgr.get_model("phi3:mini").loaded = True
         pool_mgr.get_model("phi3:mini").healthy = True
 
         router = CostAwareRouter(pool_manager=pool_mgr)
-        decision, can_proceed = router.select_model("Design a complex distributed system")
+        decision, can_proceed = router.select_model(
+            "Design a complex distributed system"
+        )
 
         # Should fall back to phi3:mini since it's the only available model
         assert decision.model == "phi3:mini"
@@ -402,17 +400,13 @@ class TestPoolManagerEdgeCases:
     def test_singleton_lifecycle(self):
         """get_pool_manager / reset_pool_manager should manage singleton."""
         reset_pool_manager()
-        with patch(
-            "cohezion.swarm.model_pool_manager.MemoryBandwidthAnalyzer"
-        ):
+        with patch("cohezion.swarm.model_pool_manager.MemoryBandwidthAnalyzer"):
             mgr1 = get_pool_manager()
             mgr2 = get_pool_manager()
         assert mgr1 is mgr2
 
         reset_pool_manager()
-        with patch(
-            "cohezion.swarm.model_pool_manager.MemoryBandwidthAnalyzer"
-        ):
+        with patch("cohezion.swarm.model_pool_manager.MemoryBandwidthAnalyzer"):
             mgr3 = get_pool_manager()
         assert mgr3 is not mgr1
 

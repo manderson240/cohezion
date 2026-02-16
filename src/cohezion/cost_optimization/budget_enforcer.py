@@ -34,9 +34,10 @@ Usage:
 import asyncio
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import ClassVar, Optional
+
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +101,7 @@ class CostAlertManager:
         self.alert_count = 0
         self.alert_cooldown_sec = 60  # Don't spam alerts more than once/min
 
-    def evaluate(self, utilization_pct: float) -> tuple[str, Optional[str]]:
+    def evaluate(self, utilization_pct: float) -> tuple[str, str | None]:
         """Evaluate utilization and return status + optional alert.
 
         Args:
@@ -173,7 +174,9 @@ class BudgetCircuitBreaker:
             True if circuit breaker opened, False otherwise
         """
         self.strike_count += 1
-        logger.warning(f"Budget violation recorded: {self.strike_count}/{self.strike_limit}")
+        logger.warning(
+            f"Budget violation recorded: {self.strike_count}/{self.strike_limit}"
+        )
 
         if self.strike_count >= self.strike_limit:
             self.is_open = True
@@ -261,7 +264,7 @@ class BudgetEnforcer:
         self.circuit_breaker = BudgetCircuitBreaker()
 
         # Cached state (refreshed every 60s)
-        self._cached_state: Optional[BudgetState] = None
+        self._cached_state: BudgetState | None = None
         self._cache_time = 0.0
 
     @classmethod
@@ -293,7 +296,9 @@ class BudgetEnforcer:
             return False, "Budget circuit breaker is OPEN (emergency shutoff)"
 
         # Calculate utilization
-        utilization_pct = (current_cost_usd / self.budget_usd * 100) if self.budget_usd > 0 else 0
+        utilization_pct = (
+            (current_cost_usd / self.budget_usd * 100) if self.budget_usd > 0 else 0
+        )
 
         # Evaluate alerts
         status, alert = self.alert_manager.evaluate(utilization_pct)
@@ -335,7 +340,7 @@ class BudgetEnforcer:
                 self.vault_logger.log_alert(alert, severity="warning"),
                 timeout=2.0,
             )
-        except (asyncio.TimeoutError, Exception):
+        except (TimeoutError, Exception):
             # Vault failure: log locally
             logger.warning(f"{alert} (vault log failed)")
 
@@ -348,7 +353,9 @@ class BudgetEnforcer:
         Returns:
             BudgetState snapshot
         """
-        utilization_pct = (current_cost_usd / self.budget_usd * 100) if self.budget_usd > 0 else 0
+        utilization_pct = (
+            (current_cost_usd / self.budget_usd * 100) if self.budget_usd > 0 else 0
+        )
         remaining = self.budget_usd - current_cost_usd
         status, _ = self.alert_manager.evaluate(utilization_pct)
 
@@ -372,12 +379,12 @@ class BudgetEnforcer:
         self._cache_time = 0.0
 
 
-def get_current_enforcer() -> Optional[BudgetEnforcer]:
+def get_current_enforcer() -> BudgetEnforcer | None:
     """Get current budget enforcer."""
     return BudgetEnforcer.get_current()
 
 
-def set_current_enforcer(enforcer: Optional[BudgetEnforcer]) -> None:
+def set_current_enforcer(enforcer: BudgetEnforcer | None) -> None:
     """Set current budget enforcer."""
     BudgetEnforcer.set_current(enforcer)
 

@@ -16,6 +16,7 @@ import pytest
 from cohezion.core.plan_executor import ExecutionResult
 from cohezion.core.template_engine import SkillSpec, TemplateEngine
 
+
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------

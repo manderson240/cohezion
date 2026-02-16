@@ -8,6 +8,7 @@ import pytest
 
 from cohezion.core.template_engine import SkillSpec, TemplateEngine
 
+
 SKILLS_DIR = Path(__file__).resolve().parent.parent / "src" / "cohezion" / "skills"
 
 

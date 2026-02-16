@@ -9,9 +9,9 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from cohezion.flume.dataset import FlumeTrajectoryDataset
 from cohezion.mass_sim.config import CheckpointData, UniverseResult
 from cohezion.mass_sim.exporter import CheckpointExporter
-from cohezion.flume.dataset import FlumeTrajectoryDataset
 
 
 @pytest.fixture

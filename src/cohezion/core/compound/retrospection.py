@@ -7,6 +7,7 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
+
 logger = logging.getLogger(__name__)
 
 # Path constants
@@ -362,9 +363,7 @@ class RetrospectionEngine:
 
         return insights
 
-    def analyze_execution_result(
-        self, result: object, skill_name: str = ""
-    ) -> dict:
+    def analyze_execution_result(self, result: object, skill_name: str = "") -> dict:
         """Analyze a live ExecutionResult and extract compound insights.
 
         Closes the compound loop: execution -> measurement -> retrospection
@@ -435,7 +434,9 @@ class RetrospectionEngine:
         # Compound score: weighted quality signal
         compound_score = 0.0
         if success:
-            compound_score = coherence * 0.5 + (1.0 - anomaly_score) * 0.3 + phi_score * 0.2
+            compound_score = (
+                coherence * 0.5 + (1.0 - anomaly_score) * 0.3 + phi_score * 0.2
+            )
 
         if should_refine:
             recommendation = f"Refine {skill_name} with cohesion={coherence:.2f}"
@@ -443,9 +444,11 @@ class RetrospectionEngine:
             recommendation = f"Investigate failure in {skill_name}"
 
         logger.info(
-            "Retrospection for %s: should_refine=%s, compound=%.3f, "
-            "coherence=%.2f",
-            skill_name, should_refine, compound_score, coherence,
+            "Retrospection for %s: should_refine=%s, compound=%.3f, coherence=%.2f",
+            skill_name,
+            should_refine,
+            compound_score,
+            coherence,
         )
 
         return {

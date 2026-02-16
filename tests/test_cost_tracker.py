@@ -9,9 +9,8 @@ Verifies:
 - Model cost tracking
 """
 
-import asyncio
 import time
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -138,9 +137,7 @@ class TestSessionCostTracker:
         )
 
         # Call 2: gpt-4 ($0.03 per 1K)
-        cost2 = tracker.track_usage_fast(
-            model="gpt-4", tokens=1000, duration_ms=500.0
-        )
+        cost2 = tracker.track_usage_fast(model="gpt-4", tokens=1000, duration_ms=500.0)
 
         # Call 3: claude-3-sonnet ($0.003 per 1K)
         cost3 = tracker.track_usage_fast(

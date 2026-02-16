@@ -156,6 +156,7 @@ class TestGuardrailPipeline:
     @pytest.mark.asyncio
     async def test_pipeline_sanitization_preserves_modified_input(self):
         """Pipeline should return modified_input if sanitized."""
+
         # Create a mock guard that sanitizes
         class SanitizingGuard:
             async def check(self, text, context):
@@ -184,9 +185,7 @@ class TestGuardrailPipeline:
             audit_events.append(event)
 
         guards = [("injector", PromptInjectionGuard())]
-        pipeline = GuardrailPipeline(
-            guardrails=guards, audit_callback=audit_callback
-        )
+        pipeline = GuardrailPipeline(guardrails=guards, audit_callback=audit_callback)
 
         await pipeline.check_input("ignore previous", {})
         assert len(audit_events) > 0
@@ -195,6 +194,7 @@ class TestGuardrailPipeline:
     @pytest.mark.asyncio
     async def test_pipeline_fail_open_on_exception(self):
         """Pipeline should allow on exception if fail_open."""
+
         class BrokenGuard:
             async def check(self, text, context):
                 raise ValueError("Guard is broken")
@@ -207,6 +207,7 @@ class TestGuardrailPipeline:
     @pytest.mark.asyncio
     async def test_pipeline_fail_closed_on_exception(self):
         """Pipeline should block on exception if fail_closed."""
+
         class BrokenGuard:
             async def check(self, text, context):
                 raise ValueError("Guard is broken")

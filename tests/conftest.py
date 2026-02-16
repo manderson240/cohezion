@@ -65,12 +65,13 @@ def event_loop_fixture():
 def reset_singletons():
     """Auto-reset critical singletons before each test to prevent state pollution."""
     import logging
-    from cohezion.compound.executor import ExecutorFactory
+
     from cohezion.compound.batch_executor import BatchableExecutor
-    from cohezion.swarm.cost_aware_router import CostAwareRouter
-    from cohezion.cost_optimization.cost_tracker import SessionCostTracker
-    from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
+    from cohezion.compound.executor import ExecutorFactory
     from cohezion.concurrency.ollama_gate import reset_gate
+    from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
+    from cohezion.cost_optimization.cost_tracker import SessionCostTracker
+    from cohezion.swarm.cost_aware_router import CostAwareRouter
     from cohezion.swarm.model_pool_manager import reset_pool_manager
 
     # Reset before test
@@ -88,11 +89,12 @@ def reset_singletons():
 
     # Reset FLUME VAE singleton to prevent state pollution across tests
     import cohezion.api as api_module
-    if hasattr(api_module, '_vae_trainer'):
+
+    if hasattr(api_module, "_vae_trainer"):
         api_module._vae_trainer = None
 
     # Reset RL policy singleton as well
-    if hasattr(api_module, '_rl_policy'):
+    if hasattr(api_module, "_rl_policy"):
         api_module._rl_policy = None
 
     # Clear ALL logger handlers to prevent test pollution
@@ -120,11 +122,11 @@ def reset_singletons():
         BudgetEnforcer.reset_instance()
 
     # Reset FLUME VAE singleton after test
-    if hasattr(api_module, '_vae_trainer'):
+    if hasattr(api_module, "_vae_trainer"):
         api_module._vae_trainer = None
 
     # Reset RL policy singleton after test
-    if hasattr(api_module, '_rl_policy'):
+    if hasattr(api_module, "_rl_policy"):
         api_module._rl_policy = None
 
     # Clear ALL logger handlers after test too

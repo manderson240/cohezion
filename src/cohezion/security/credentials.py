@@ -3,6 +3,7 @@ import os
 
 from cohezion.security.vault import get_vault
 
+
 logger = logging.getLogger(__name__)
 
 

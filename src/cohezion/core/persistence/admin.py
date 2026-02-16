@@ -17,6 +17,7 @@ from typing import Any
 
 from cohezion.core.persistence.surreal_client import SurrealClient
 
+
 # Setup specialized DBA logging
 logging.basicConfig(
     level=logging.INFO,

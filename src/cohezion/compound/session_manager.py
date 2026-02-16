@@ -18,7 +18,9 @@ from collections.abc import AsyncIterator
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
+
 from pydantic import BaseModel
+
 from cohezion.core.mcp_client import get_mcp_client
 
 

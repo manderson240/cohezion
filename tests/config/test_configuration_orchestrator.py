@@ -5,7 +5,6 @@ Tests that matter for Phase 1: state tracking, git integration, validation frame
 """
 
 import asyncio
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -107,8 +106,15 @@ class TestGitUtils:
         # Create and commit a file
         test_file = tmp_path / "test.txt"
         test_file.write_text("initial")
-        subprocess.run(["git", "add", "test.txt"], cwd=tmp_path, capture_output=True, check=True)
-        subprocess.run(["git", "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True)
+        subprocess.run(
+            ["git", "add", "test.txt"], cwd=tmp_path, capture_output=True, check=True
+        )
+        subprocess.run(
+            ["git", "commit", "-m", "initial"],
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
+        )
 
         # No changes yet
         git = GitUtils(tmp_path)
@@ -140,8 +146,15 @@ class TestGitUtils:
         # Create and commit a file
         test_file = tmp_path / "test.txt"
         test_file.write_text("line1\nline2")
-        subprocess.run(["git", "add", "test.txt"], cwd=tmp_path, capture_output=True, check=True)
-        subprocess.run(["git", "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True)
+        subprocess.run(
+            ["git", "add", "test.txt"], cwd=tmp_path, capture_output=True, check=True
+        )
+        subprocess.run(
+            ["git", "commit", "-m", "initial"],
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
+        )
 
         # Make changes
         test_file.write_text("line1\nmodified\nline3")
@@ -175,8 +188,15 @@ class TestGitUtils:
         # Create initial commit
         test_file = tmp_path / "test.txt"
         test_file.write_text("initial")
-        subprocess.run(["git", "add", "test.txt"], cwd=tmp_path, capture_output=True, check=True)
-        subprocess.run(["git", "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True)
+        subprocess.run(
+            ["git", "add", "test.txt"], cwd=tmp_path, capture_output=True, check=True
+        )
+        subprocess.run(
+            ["git", "commit", "-m", "initial"],
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
+        )
 
         # Make changes
         test_file.write_text("modified")
@@ -340,7 +360,7 @@ async def test_monitoring_startup_stop(tmp_path: Path) -> None:
     # Monitor should complete shortly
     try:
         await asyncio.wait_for(monitor_task, timeout=2.0)
-    except asyncio.TimeoutError:
+    except TimeoutError:
         pytest.fail("Monitoring did not stop within timeout")
 
     assert not orch._monitoring
