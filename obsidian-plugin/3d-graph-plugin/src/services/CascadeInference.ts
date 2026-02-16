@@ -98,51 +98,115 @@ export class CascadeInferenceEngine {
 
   /**
    * Load all decisions and cascades from SurrealDB
+   * @throws Error with detailed setup instructions if tables are missing or SurrealDB unavailable
    */
   private async loadDecisionsAndCascades(): Promise<void> {
     try {
+      // Check if SurrealDB is healthy
+      const isHealthy = await this.checkSurrealDBHealth();
+      if (!isHealthy) {
+        throw new Error(
+          'SurrealDB is unavailable. Cannot load decisions.\n' +
+          'Setup required:\n' +
+          '1. Ensure SurrealDB is running on http://localhost:8000\n' +
+          '2. Run: npm run setup:surrealdb\n' +
+          '3. See docs/SURREALDB_SETUP.md for details'
+        );
+      }
+
       // Load decisions
       const decisionsQuery = `SELECT * FROM decisions LIMIT 500`;
       const decisionsResult = await (this.db as any).executeQuery(decisionsQuery);
 
-      if (Array.isArray(decisionsResult)) {
-        decisionsResult.forEach((row: any) => {
-          this.decisionMap.set(row.id, {
-            id: row.id,
-            title: row.title || '',
-            chosen_option: row.chosen_option || '',
-            rationale: row.rationale || '',
-            reasoning_type: row.reasoning_type || 'hybrid',
-            confidence_score: row.confidence_score || 0.5,
-            reasoning_chain: {} as any,
-            status: row.status || 'active',
-            timestamp: row.timestamp || new Date().toISOString(),
-          });
-        });
+      if (!decisionsResult || !Array.isArray(decisionsResult)) {
+        throw new Error(
+          'decisions table not found or returned invalid data.\n' +
+          'Setup required:\n' +
+          '1. Run: npx ts-node scripts/surrealdb-migrations.sql\n' +
+          '2. Run: npx ts-node scripts/populate-test-data.ts\n' +
+          '3. See docs/SURREALDB_SETUP.md for details'
+        );
       }
+
+      if (decisionsResult.length === 0) {
+        console.warn('⚠️  Warning: No decisions found in table. Check data population.');
+      }
+
+      decisionsResult.forEach((row: any) => {
+        this.decisionMap.set(row.id, {
+          id: row.id,
+          title: row.title || '',
+          chosen_option: row.chosen_option || '',
+          rationale: row.rationale || '',
+          reasoning_type: row.reasoning_type || 'hybrid',
+          confidence_score: row.confidence_score || 0.5,
+          reasoning_chain: {} as any,
+          status: row.status || 'active',
+          timestamp: row.timestamp || new Date().toISOString(),
+        });
+      });
+
+      console.log(`✓ Loaded ${this.decisionMap.size} decisions from SurrealDB`);
 
       // Load cascades
       const cascadesQuery = `SELECT * FROM decision_cascades LIMIT 1000`;
       const cascadesResult = await (this.db as any).executeQuery(cascadesQuery);
 
-      if (Array.isArray(cascadesResult)) {
-        cascadesResult.forEach((row: any) => {
-          const sourceId = row.source_decision_id;
-          if (!this.cascadeMap.has(sourceId)) {
-            this.cascadeMap.set(sourceId, []);
-          }
-          this.cascadeMap.get(sourceId)!.push({
-            source_decision_id: sourceId,
-            target_decision_id: row.target_decision_id,
-            dependency_type: row.dependency_type,
-            impact_level: row.impact_level,
-            description: row.description || '',
-          });
-        });
+      if (!cascadesResult || !Array.isArray(cascadesResult)) {
+        throw new Error(
+          'decision_cascades table not found or returned invalid data.\n' +
+          'Setup required:\n' +
+          '1. Run: npx ts-node scripts/populate-test-data.ts\n' +
+          '2. See docs/SURREALDB_SETUP.md for details'
+        );
       }
+
+      if (cascadesResult.length === 0) {
+        console.warn('⚠️  Warning: No cascades found in table. Check cascade computation.');
+      }
+
+      cascadesResult.forEach((row: any) => {
+        const sourceId = row.source_decision_id;
+        if (!this.cascadeMap.has(sourceId)) {
+          this.cascadeMap.set(sourceId, []);
+        }
+        this.cascadeMap.get(sourceId)!.push({
+          source_decision_id: sourceId,
+          target_decision_id: row.target_decision_id,
+          dependency_type: row.dependency_type,
+          impact_level: row.impact_level,
+          description: row.description || '',
+        });
+      });
+
+      console.log(`✓ Loaded ${cascadesResult.length} cascades from SurrealDB`);
+
     } catch (error) {
-      console.error('Failed to load decisions/cascades:', error);
-      throw error;
+      throw new Error(
+        `SurrealDB setup incomplete. ${(error as Error).message}\n\n` +
+        `Steps to fix:\n` +
+        `1. Ensure SurrealDB is running: surreal start\n` +
+        `2. Run schema migration: npx ts-node scripts/surrealdb-migrations.sql\n` +
+        `3. Run data population: npx ts-node scripts/populate-test-data.ts\n` +
+        `4. Verify setup: surreal query "SELECT COUNT(*) FROM decisions;"\n` +
+        `See docs/SURREALDB_SETUP.md for complete setup instructions`
+      );
+    }
+  }
+
+  /**
+   * Check if SurrealDB is healthy and accessible
+   */
+  private async checkSurrealDBHealth(): Promise<boolean> {
+    try {
+      const response = await fetch('http://localhost:8000/health', {
+        method: 'GET',
+        timeout: 5000,
+      } as any);
+      return response.status === 200;
+    } catch (err) {
+      console.warn('SurrealDB health check failed:', (err as Error).message);
+      return false;
     }
   }
 
