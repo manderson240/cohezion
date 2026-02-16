@@ -3,7 +3,7 @@
   "checkpoint_id": "0bd376ae8c3f",
   "strategy": "manual-commit",
   "branch": "spec/routes-consolidation",
-  "checkpoints_count": 21,
+  "checkpoints_count": 20,
   "files_touched": [
     ".worktrees/spec-github-migration-cf603d38/.claude/rules/git-workflow.md",
     ".worktrees/spec-github-migration-cf603d38/.github/workflows/ci.yml",
@@ -11,9 +11,7 @@
     ".worktrees/spec-github-migration-cf603d38/.github/workflows/repo-health.yml",
     ".worktrees/spec-github-migration-cf603d38/.github/workflows/test.yml",
     ".worktrees/spec-github-migration-cf603d38/docs/plans/2026-02-14-github-migration.md",
-    ".worktrees/spec-routes-consolidation/tests/api/test_route_modularization.py",
     "CLAUDE.md",
-    "PHASE_1_PLAN.md",
     "README.md",
     "cloud-vault-mcp/CLOUD_ACCESS_QUICKSTART.md",
     "cloud-vault-mcp/CLOUD_CLAUDE_ACCESS.md",
@@ -58,8 +56,6 @@
     "src/cohezion/knowledge_graph/audits/utilization_audit_1771210555.md",
     "src/cohezion/knowledge_graph/reports/AUDIT_20260215_2156.md",
     "src/cohezion/knowledge_graph/reports/__init__.py",
-    "src/cohezion/skills/VAULT_INTEGRATION_PRIME.md",
-    "src/cohezion/skills/context_sync_skill.py",
     "src/cohezion/swarm/agents/__init__.py"
   ],
   "sessions": [
@@ -114,10 +110,10 @@
     }
   ],
   "token_usage": {
-    "input_tokens": 20568,
-    "cache_creation_tokens": 2225002,
-    "cache_read_tokens": 57633030,
-    "output_tokens": 71901,
-    "api_call_count": 459
+    "input_tokens": 20317,
+    "cache_creation_tokens": 2004994,
+    "cache_read_tokens": 54271007,
+    "output_tokens": 68344,
+    "api_call_count": 434
   }
 }
