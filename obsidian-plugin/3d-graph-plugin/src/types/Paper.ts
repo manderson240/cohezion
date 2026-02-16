@@ -144,6 +144,12 @@ export interface PaperNode {
 
   /** Opacity (0.3-1.0) based on recency */
   opacity?: number;
+
+  /** IDs of decisions that reference this paper (Phase 2: Paper Integration) */
+  decision_ids?: string[];
+
+  /** Timestamp when decisions were linked (for dynamic ingestion) */
+  decision_links_updated_at?: string;
 }
 
 /**
