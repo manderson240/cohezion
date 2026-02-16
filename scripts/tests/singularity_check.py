@@ -7,14 +7,16 @@ import os
 import sys
 
 def run_process(cmd):
+    # Accept command as a list to avoid shell injection
+    if isinstance(cmd, str):
+        cmd = cmd.split()
     return subprocess.Popen(
-        cmd, 
-        stdout=subprocess.PIPE, 
+        cmd,
+        stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        cwd="/home/mike-anderson/dev/cohezion",
-        shell=True,
+        cwd=os.environ.get("COHEZION_ROOT", "."),
         text=True,
-        preexec_fn=os.setsid # Correctly handle process groups for killing
+        preexec_fn=os.setsid,
     )
 
 def test_singularity():

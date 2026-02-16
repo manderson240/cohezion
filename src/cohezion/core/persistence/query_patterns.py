@@ -1,11 +1,15 @@
 import asyncio
+import os
 
 from surrealdb import AsyncSurreal
 
 
 async def query_patterns():
     async with AsyncSurreal("ws://localhost:8000/rpc") as db:
-        await db.signin({"username": "root", "password": "root"})
+        await db.signin({
+            "username": os.environ.get("SURREAL_USER", "root"),
+            "password": os.environ.get("SURREAL_PASSWORD", "root"),
+        })
         await db.use("cohezion", "universe")
 
         # List all tables

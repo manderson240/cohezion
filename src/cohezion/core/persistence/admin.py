@@ -11,11 +11,19 @@ Provides professional-grade database management capabilities:
 import asyncio
 import json
 import logging
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from cohezion.core.persistence.surreal_client import SurrealClient
+
+
+def _validate_table_name(table_name: str) -> str:
+    """Validate table name to prevent SurrealQL injection."""
+    if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", table_name):
+        raise ValueError(f"Invalid table name: {table_name!r}")
+    return table_name
 
 # Setup specialized DBA logging
 logging.basicConfig(
@@ -59,6 +67,7 @@ class DBAdmin:
             # For massive tables, we'd want to stream this.
             # SurrealDB EXPORT is the native way, but client support varies.
             # We'll do a robust query based export for now.
+            _validate_table_name(table_name)
             query = f"SELECT * FROM {table_name}"
             # TODO: Implement cursor/pagination for >1M records
             results = await self.client.query(query)
@@ -102,6 +111,7 @@ class DBAdmin:
         try:
             # Use raw query for batch insert to support lists
             # Note: We use query params to handle the list efficiently
+            _validate_table_name(table_name)
             query = f"INSERT INTO {table_name} $batch"
 
             # Client.query returns the result directly in some wrappers, or strict response in others.
