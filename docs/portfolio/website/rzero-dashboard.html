@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>R-Zero Dashboard | COHEZION</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0f;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #12121a, #1a1a25);
+            border-bottom: 1px solid #2a2a3a;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .back-link {
+            color: #a0a0b0;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: #00d4ff;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-title {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .dashboard-subtitle {
+            color: #606070;
+            margin-bottom: 2rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #12121a, #1a1a25);
+            border: 1px solid #2a2a3a;
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: transform 0.3s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            border-color: #00d4ff;
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            color: #606070;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .metric-value.blue { color: #00d4ff; }
+        .metric-value.red { color: #ff6b6b; }
+        .metric-value.green { color: #4ecdc4; }
+        .metric-value.purple { color: #a855f7; }
+
+        .metric-change {
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+
+        .metric-change.positive { color: #4ecdc4; }
+        .metric-change.negative { color: #ff6b6b; }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: #12121a;
+            border: 1px solid #2a2a3a;
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: #a0a0b0;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .triad-status {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .triad-card {
+            background: #12121a;
+            border: 1px solid #2a2a3a;
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .triad-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+
+        .triad-card.challenger::before { background: linear-gradient(90deg, #ff6b6b, #ff8e53); }
+        .triad-card.solver::before { background: linear-gradient(90deg, #00d4ff, #4ecdc4); }
+        .triad-card.pragmatist::before { background: linear-gradient(90deg, #a855f7, #ec4899); }
+
+        .triad-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .triad-icon {
+            font-size: 1.5rem;
+        }
+
+        .triad-name {
+            font-weight: 600;
+        }
+
+        .triad-state {
+            font-size: 0.9rem;
+            color: #606070;
+            margin-bottom: 1rem;
+        }
+
+        .triad-metrics {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .triad-metric {
+            flex: 1;
+        }
+
+        .triad-metric-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .triad-metric-label {
+            font-size: 0.75rem;
+            color: #606070;
+        }
+
+        .logs-section {
+            background: #12121a;
+            border: 1px solid #2a2a3a;
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .logs-title {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .log-entries {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #2a2a3a;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .log-time {
+            color: #606070;
+            min-width: 80px;
+        }
+
+        .log-level {
+            min-width: 60px;
+            font-weight: 600;
+        }
+
+        .log-level.info { color: #00d4ff; }
+        .log-level.warn { color: #ff8e53; }
+        .log-level.success { color: #4ecdc4; }
+
+        .log-message {
+            color: #a0a0b0;
+        }
+
+        .controls-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .control-btn {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: 1px solid #2a2a3a;
+            color: #a0a0b0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+
+        .control-btn.active {
+            background: #00d4ff;
+            border-color: #00d4ff;
+            color: #0a0a0f;
+        }
+
+        @media (max-width: 1024px) {
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .triad-status {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">◈ COHEZION</div>
+        <a href="index.html" class="back-link">← Back to Portfolio</a>
+    </div>
+
+    <div class="container">
+        <h1 class="dashboard-title">R-Zero Protocol Dashboard</h1>
+        <p class="dashboard-subtitle">Real-time monitoring of adversarial co-evolution metrics</p>
+
+        <div class="controls-bar">
+            <button class="control-btn active" onclick="updateTimeRange('1h')">Last Hour</button>
+            <button class="control-btn" onclick="updateTimeRange('24h')">Last 24h</button>
+            <button class="control-btn" onclick="updateTimeRange('7d')">Last 7 Days</button>
+            <button class="control-btn" onclick="toggleSimulation()">⏵ Simulate</button>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Current Epoch</div>
+                <div class="metric-value blue" id="currentEpoch">33</div>
+                <div class="metric-change positive">+2 from yesterday</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Difficulty Index (𝒟)</div>
+                <div class="metric-value red" id="difficultyIndex">2.6</div>
+                <div class="metric-change positive">+0.3 this epoch</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Agentic Coherence</div>
+                <div class="metric-value green" id="coherence">0.85</div>
+                <div class="metric-change positive">Above HIHO threshold</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Simulations Completed</div>
+                <div class="metric-value purple" id="simulations">24,847</div>
+                <div class="metric-change positive">+1,247 today</div>
+            </div>
+        </div>
+
+        <div class="triad-status">
+            <div class="triad-card challenger">
+                <div class="triad-header">
+                    <span class="triad-icon">⚡</span>
+                    <span class="triad-name">Challenger</span>
+                </div>
+                <div class="triad-state">Active - Generating constraints</div>
+                <div class="triad-metrics">
+                    <div class="triad-metric">
+                        <div class="triad-metric-value" style="color: #ff6b6b">2.6</div>
+                        <div class="triad-metric-label">Difficulty</div>
+                    </div>
+                    <div class="triad-metric">
+                        <div class="triad-metric-value" style="color: #ff6b6b">0.12</div>
+                        <div class="triad-metric-label">Variance</div>
+                    </div>
+                </div>
+            </div>
+            <div class="triad-card solver">
+                <div class="triad-header">
+                    <span class="triad-icon">🔍</span>
+                    <span class="triad-name">Solver</span>
+                </div>
+                <div class="triad-state">Adapting - Lateral synthesis</div>
+                <div class="triad-metrics">
+                    <div class="triad-metric">
+                        <div class="triad-metric-value" style="color: #00d4ff">0.85</div>
+                        <div class="triad-metric-label">Coherence</div>
+                    </div>
+                    <div class="triad-metric">
+                        <div class="triad-metric-value" style="color: #00d4ff">94%</div>
+                        <div class="triad-metric-label">Success Rate</div>
+                    </div>
+                </div>
+            </div>
+            <div class="triad-card pragmatist">
+                <div class="triad-header">
+                    <span class="triad-icon">⚖️</span>
+                    <span class="triad-name">Pragmatist</span>
+                </div>
+                <div class="triad-state">Evaluating - Constitutional check</div>
+                <div class="triad-metrics">
+                    <div class="triad-metric">
+                        <div class="triad-metric-value" style="color: #a855f7">12</div>
+                        <div class="triad-metric-label">Violations</div>
+                    </div>
+                    <div class="triad-metric">
+                        <div class="triad-metric-value" style="color: #a855f7">99.2%</div>
+                        <div class="triad-metric-label">Compliance</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-title">Difficulty vs Coherence Over Time</div>
+                <div class="chart-container">
+                    <canvas id="coherenceChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">Simulation Throughput</div>
+                <div class="chart-container">
+                    <canvas id="throughputChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-title">Strategy Distribution</div>
+                <div class="chart-container">
+                    <canvas id="strategyChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">Anti-Fragile Metrics</div>
+                <div class="chart-container">
+                    <canvas id="antifragileChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="logs-section">
+            <div class="logs-title">
+                <span>Recent Events</span>
+                <span style="color: #606070; font-size: 0.9rem;">Auto-refreshing</span>
+            </div>
+            <div class="log-entries" id="logEntries">
+                <div class="log-entry">
+                    <span class="log-time">06:42:15</span>
+                    <span class="log-level success">SUCCESS</span>
+                    <span class="log-message">Epoch 33 completed - Coherence maintained at 0.85</span>
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">06:38:22</span>
+                    <span class="log-level info">INFO</span>
+                    <span class="log-message">Challenger increased difficulty to 2.6 (variance < 0.1)</span>
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">06:35:10</span>
+                    <span class="log-level warn">WARN</span>
+                    <span class="log-message">Pragmatist flagged 'Quantum-Magic' as overhype</span>
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">06:30:45</span>
+                    <span class="log-level success">SUCCESS</span>
+                    <span class="log-message">Solver shifted to lateral synthesis strategy</span>
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">06:28:33</span>
+                    <span class="log-level info">INFO</span>
+                    <span class="log-message">Batch 1,247 completed - All constraints satisfied</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chart.js configuration
+        Chart.defaults.color = '#606070';
+        Chart.defaults.borderColor = '#2a2a3a';
+
+        // Coherence vs Difficulty Chart
+        const coherenceCtx = document.getElementById('coherenceChart').getContext('2d');
+        const coherenceChart = new Chart(coherenceCtx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: 33}, (_, i) => `E${i+1}`),
+                datasets: [{
+                    label: 'Coherence',
+                    data: Array.from({length: 33}, () => 0.5 + Math.random() * 0.4),
+                    borderColor: '#00d4ff',
+                    backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Difficulty (𝒟)',
+                    data: Array.from({length: 33}, (_, i) => 1.0 + (i * 0.05)),
+                    borderColor: '#ff6b6b',
+                    backgroundColor: 'transparent',
+                    tension: 0.4,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { color: '#a0a0b0' }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1,
+                        grid: { color: '#2a2a3a' }
+                    },
+                    y1: {
+                        beginAtZero: true,
+                        max: 3,
+                        position: 'right',
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+
+        // Throughput Chart
+        const throughputCtx = document.getElementById('throughputChart').getContext('2d');
+        const throughputChart = new Chart(throughputCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Physics', 'Societal', 'Linguistic', 'Total'],
+                datasets: [{
+                    label: 'Sims/Hour',
+                    data: [15000, 5000, 4000, 24000],
+                    backgroundColor: [
+                        'rgba(0, 212, 255, 0.8)',
+                        'rgba(255, 107, 107, 0.8)',
+                        'rgba(78, 205, 196, 0.8)',
+                        'rgba(168, 85, 247, 0.8)'
+                    ],
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#2a2a3a' }
+                    }
+                }
+            }
+        });
+
+        // Strategy Distribution (Pie)
+        const strategyCtx = document.getElementById('strategyChart').getContext('2d');
+        const strategyChart = new Chart(strategyCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Linear Logic', 'Lateral Synthesis', 'Pattern Matching', 'Novel Exploration'],
+                datasets: [{
+                    data: [25, 45, 20, 10],
+                    backgroundColor: [
+                        '#00d4ff',
+                        '#4ecdc4',
+                        '#ff6b6b',
+                        '#a855f7'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { color: '#a0a0b0' }
+                    }
+                }
+            }
+        });
+
+        // Anti-Fragile Metrics (Radar)
+        const antifragileCtx = document.getElementById('antifragileChart').getContext('2d');
+        const antifragileChart = new Chart(antifragileCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Adaptation', 'Resilience', 'Learning', 'Stability', 'Innovation'],
+                datasets: [{
+                    label: 'Epoch 1',
+                    data: [30, 40, 25, 60, 20],
+                    borderColor: '#606070',
+                    backgroundColor: 'transparent'
+                }, {
+                    label: 'Epoch 33',
+                    data: [85, 90, 88, 75, 82],
+                    borderColor: '#00d4ff',
+                    backgroundColor: 'rgba(0, 212, 255, 0.2)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: { color: '#2a2a3a' },
+                        pointLabels: {
+                            color: '#a0a0b0'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Simulation toggle
+        let simulating = false;
+        let simInterval;
+
+        function toggleSimulation() {
+            simulating = !simulating;
+            const btn = document.querySelector('.control-btn:last-child');
+            
+            if (simulating) {
+                btn.textContent = '⏸ Pause';
+                btn.classList.add('active');
+                simInterval = setInterval(updateMetrics, 2000);
+            } else {
+                btn.textContent = '⏵ Simulate';
+                btn.classList.remove('active');
+                clearInterval(simInterval);
+            }
+        }
+
+        function updateMetrics() {
+            // Update metric values with random variations
+            const epoch = parseInt(document.getElementById('currentEpoch').textContent);
+            const diff = parseFloat(document.getElementById('difficultyIndex').textContent);
+            const coh = parseFloat(document.getElementById('coherence').textContent);
+            const sims = parseInt(document.getElementById('simulations').textContent.replace(',', ''));
+
+            document.getElementById('currentEpoch').textContent = epoch + 1;
+            document.getElementById('difficultyIndex').textContent = (diff + Math.random() * 0.1).toFixed(1);
+            document.getElementById('coherence').textContent = (0.75 + Math.random() * 0.15).toFixed(2);
+            document.getElementById('simulations').textContent = (sims + Math.floor(Math.random() * 50)).toLocaleString();
+
+            // Add log entry
+            addLogEntry();
+        }
+
+        function addLogEntry() {
+            const logs = document.getElementById('logEntries');
+            const now = new Date();
+            const time = now.toTimeString().split(' ')[0];
+            
+            const messages = [
+                { level: 'info', msg: 'Batch completed - Processing results' },
+                { level: 'success', msg: 'Solver adapted to new constraints' },
+                { level: 'warn', msg: 'Variance below threshold - Increasing difficulty' },
+                { level: 'success', msg: 'Pattern extracted to vault' }
+            ];
+            
+            const entry = messages[Math.floor(Math.random() * messages.length)];
+            
+            const html = `
+                <div class="log-entry">
+                    <span class="log-time">${time}</span>
+                    <span class="log-level ${entry.level}">${entry.level.toUpperCase()}</span>
+                    <span class="log-message">${entry.msg}</span>
+                </div>
+            `;
+            
+            logs.insertAdjacentHTML('afterbegin', html);
+            
+            // Keep only last 10 entries
+            while (logs.children.length > 10) {
+                logs.removeChild(logs.lastChild);
+            }
+        }
+
+        function updateTimeRange(range) {
+            document.querySelectorAll('.controls-bar .control-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update charts based on range (simulated)
+            coherenceChart.update();
+            throughputChart.update();
+        }
+
+        // Auto-add log entries periodically
+        setInterval(() => {
+            if (!simulating && Math.random() > 0.7) {
+                addLogEntry();
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
