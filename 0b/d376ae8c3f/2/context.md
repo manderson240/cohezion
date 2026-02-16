@@ -30,3 +30,34 @@ Run setup-cloud-access.sh
 
 Commit these changes to git.
 
+### Prompt 8
+
+push it
+
+### Prompt 9
+
+test the tunnel
+
+### Prompt 10
+
+localhost:8360 not found and it needs to be available from any network
+
+### Prompt 11
+
+What happened?
+
+### Prompt 12
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phas...
+
