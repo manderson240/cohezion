@@ -95,13 +95,16 @@ def reset_singletons():
     if hasattr(api_module, '_rl_policy'):
         api_module._rl_policy = None
 
-    # Clear ALL logger handlers to prevent test pollution
+    # Clear ALL logger handlers and filters to prevent test pollution
     # Clear root logger
-    logging.getLogger().handlers.clear()
+    root = logging.getLogger()
+    root.handlers.clear()
+    root.filters.clear()
     # Clear all named loggers
     for name in list(logging.Logger.manager.loggerDict.keys()):
         logger = logging.getLogger(name)
         logger.handlers.clear()
+        logger.filters.clear()
         logger.propagate = True  # Reset propagation
 
     yield
@@ -127,9 +130,12 @@ def reset_singletons():
     if hasattr(api_module, '_rl_policy'):
         api_module._rl_policy = None
 
-    # Clear ALL logger handlers after test too
-    logging.getLogger().handlers.clear()
+    # Clear ALL logger handlers and filters after test too
+    root = logging.getLogger()
+    root.handlers.clear()
+    root.filters.clear()
     for name in list(logging.Logger.manager.loggerDict.keys()):
         logger = logging.getLogger(name)
         logger.handlers.clear()
+        logger.filters.clear()
         logger.propagate = True

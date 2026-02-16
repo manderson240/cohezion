@@ -15,6 +15,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
 
 class TestTLSCertificateGeneration:
     """Test TLS certificate generation and validation."""
@@ -214,9 +216,7 @@ class TestCertificateGeneration:
 
     def test_setup_script_is_executable(self):
         """Verify certificate generation script exists and is executable."""
-        script_path = Path(
-            "/home/mike-anderson/dev/cohezion/scripts/setup/generate_tls_certificates.sh"
-        )
+        script_path = PROJECT_ROOT / "scripts" / "setup" / "generate_tls_certificates.sh"
         assert script_path.exists(), f"Script not found at {script_path}"
         assert os.access(script_path, os.X_OK), (
             f"Script is not executable: {script_path}"
@@ -226,18 +226,14 @@ class TestCertificateGeneration:
         """Test certificate can be regenerated with --force flag."""
         # This would require actually running the script, which is integration-level
         # For now, verify the script accepts the flag
-        script_path = Path(
-            "/home/mike-anderson/dev/cohezion/scripts/setup/generate_tls_certificates.sh"
-        )
+        script_path = PROJECT_ROOT / "scripts" / "setup" / "generate_tls_certificates.sh"
         with open(script_path) as f:
             content = f.read()
         assert "--force" in content, "Script should support --force flag"
 
     def test_certificate_generation_key_size_option(self):
         """Test certificate supports custom key size."""
-        script_path = Path(
-            "/home/mike-anderson/dev/cohezion/scripts/setup/generate_tls_certificates.sh"
-        )
+        script_path = PROJECT_ROOT / "scripts" / "setup" / "generate_tls_certificates.sh"
         with open(script_path) as f:
             content = f.read()
         assert "--key-size" in content, "Script should support --key-size option"
@@ -261,9 +257,7 @@ class TestTLSIntegration:
     def test_tls_environment_variables_documented(self):
         """Verify TLS configuration environment variables are documented."""
         # Check if setup script documents the environment variables
-        script_path = Path(
-            "/home/mike-anderson/dev/cohezion/scripts/setup/generate_tls_certificates.sh"
-        )
+        script_path = PROJECT_ROOT / "scripts" / "setup" / "generate_tls_certificates.sh"
         with open(script_path) as f:
             content = f.read()
 
