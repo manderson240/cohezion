@@ -80,21 +80,15 @@ class TestTLSConfig:
             cert_path.write_text("CERTIFICATE")
             key_path.write_text("KEY")
 
-            # Make files unreadable
-            cert_path.chmod(0o000)
-            key_path.chmod(0o000)
-
             config = TLSConfig(
                 cert_path=str(cert_path),
                 key_path=str(key_path),
             )
 
-            try:
+            # Mock os.access to simulate unreadable files
+            # (chmod 0o000 doesn't work when running as root)
+            with patch("cohezion.security.tls_config.os.access", return_value=False):
                 assert config.validate_certificate() is False
-            finally:
-                # Restore permissions for cleanup
-                cert_path.chmod(0o644)
-                key_path.chmod(0o644)
 
     def test_load_ssl_context_invalid(self):
         """Test SSL context loading with invalid certificate."""
