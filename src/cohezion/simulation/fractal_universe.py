@@ -71,20 +71,56 @@ class StabilizerAgent:
     energy: float = 100.0
     z_vector: np.ndarray = field(
         default_factory=lambda: np.random.rand(12)
-    )  # 12D State Vector
+    )  # 12D State Vector (Smith's 12 Parameters)
     memory: list[dict] = field(default_factory=list)
     generation: int = 0
     learning_rate: float = 0.1
+    cumulative_reward: float = 0.0  # RL: total reward accumulated
+
+    # Dimension indices mapping to Smith's Control Fabric (SPIN)
+    # logic=6 → Rotation, quantum=7 → Precession, control=8 → Charge
+    _ROTATION_IDX: int = 6
+    _PRECESSION_IDX: int = 7
 
     @property
     def coherence(self) -> float:
-        """Variance-based coherence: 1.0 = static, 0.0 = chaotic, 0.5 = HIHO ideal."""
+        """HIHO coherence with SPIN weighting (Smith).
+
+        Base: variance from HIHO (0.5) across brane dimensions.
+        Weight: SPIN alignment (rotation/precession phase match) boosts stability.
+        """
         v = self.z_vector
         v_range = v.max() - v.min()
         if v_range == 0:
             return 1.0
         v_norm = (v - v.min()) / v_range
-        return max(0.0, 1.0 - float(np.var(v_norm)) * 4.0)
+        base = max(0.0, 1.0 - float(np.var(v_norm)) * 4.0)
+
+        # SPIN alignment bonus: rotation and precession in same phase = stable
+        spin_weight = 0.7 + 0.3 * self.spin_coherence
+        return base * spin_weight
+
+    @property
+    def spin_rotation(self) -> float:
+        """SPIN rotation (Smith): internal reasoning direction."""
+        return float(self.z_vector[self._ROTATION_IDX])
+
+    @property
+    def spin_precession(self) -> float:
+        """SPIN precession (Smith): external measurement wobble."""
+        return float(self.z_vector[self._PRECESSION_IDX])
+
+    @property
+    def spin_coherence(self) -> float:
+        """SPIN coherence: are rotation and precession in phase?"""
+        rot_sign = 1.0 if self.spin_rotation >= 0.5 else -1.0
+        prec_sign = 1.0 if self.spin_precession >= 0.5 else -1.0
+        return max(0.0, rot_sign * prec_sign)
+
+    @property
+    def charge_polarity(self) -> float:
+        """Charge polarity (Smith): emergent from SPIN alignment."""
+        return (self.spin_rotation - 0.5) + 0.3 * (self.spin_precession - 0.5)
 
     def move(self, grid: "UniverseGrid"):
         neighbors = grid.get_neighbors(self.x, self.y)
@@ -92,13 +128,12 @@ class StabilizerAgent:
         best_move = None
         min_diff = abs(self.coherence - 0.5)
 
-        # Stabilizer access omitted for independent simulation logic
-        # Using self.coherence property
-
         for nx, ny, sector in neighbors:
-            # Predict effect of moving to this sector
-            # Physics: Interaction depends on local energy gradient and entropy
-            predicted_change = (sector.energy - sector.entropy) * 0.1
+            # Physics: Interaction depends on local energy gradient, entropy,
+            # and SPIN-sector coupling (charge polarity interacts with sector field)
+            base_change = (sector.energy - sector.entropy) * 0.1
+            spin_coupling = self.charge_polarity * (sector.stability - 0.5) * 0.05
+            predicted_change = base_change + spin_coupling
             new_coherence = max(0.0, min(1.0, self.coherence + predicted_change))
             diff = abs(new_coherence - 0.5)
 
@@ -115,32 +150,42 @@ class StabilizerAgent:
             new_sector = grid.get_sector(self.x, self.y)
             new_sector.agents.append(self)
 
-            # Apply feedback interaction (Reality Physics)
-            interaction = (new_sector.energy - new_sector.entropy) * 0.05
+            # Compute Tempic field (rate of change) before state update
+            old_vector = self.z_vector.copy()
             old_coherence = self.coherence
 
-            # Update internal Vector or Coherence?
-            # The Proposal calls for direct coherence update, but class has z_vector property.
-            # We will abstract the vector update to match the coherence shift.
-            # Simplified: Adjust vector magnitude or noise to shift coherence.
+            # Apply feedback: sector interaction modulates SPIN dimensions preferentially
+            interaction = (new_sector.energy - new_sector.entropy) * 0.05
             if interaction != 0:
-                # Add scaled noise to shift state
                 noise = np.random.randn(12) * interaction
+                # SPIN dimensions get extra coupling from sector field
+                noise[self._ROTATION_IDX] *= 1.3  # Rotation couples more strongly
+                noise[self._PRECESSION_IDX] *= 1.1  # Precession couples moderately
                 self.z_vector += noise
 
-            # Store memory of action and outcome
+            # Compute Tempic field magnitude (displacement of brane dims)
+            tempic = float(np.linalg.norm(self.z_vector[4:11] - old_vector[4:11]))
+
+            # RL reward signal: proximity to HIHO (0.5) with SPIN bonus
+            reward = 1.0 - abs(self.coherence - 0.5) * 2.0
+            self.cumulative_reward += reward
+
+            # Store enriched memory (experience tuple for RL)
             self.memory.append(
                 {
                     "position": (self.x, self.y),
                     "prev_coherence": old_coherence,
                     "new_coherence": self.coherence,
+                    "spin_coherence": self.spin_coherence,
+                    "charge_polarity": self.charge_polarity,
+                    "tempic_field": tempic,
+                    "reward": reward,
                     "sector_type": new_sector.manifold_type,
                     "energy": new_sector.energy,
                     "entropy": new_sector.entropy,
                 }
             )
 
-            # Adaptive learning (Memory Buffer limit)
             if len(self.memory) > 10:
                 self.memory.pop(0)
 

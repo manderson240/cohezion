@@ -20,7 +20,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, ClassVar, Protocol
 from uuid import uuid4
 
 import numpy as np
@@ -32,10 +32,18 @@ logger = logging.getLogger(__name__)
 class AxiomaticState:
     """12D physical projection of agent state (The "Body").
 
-    Dimensions:
-    - Physical: spatial_x, spatial_y, spatial_z, temporal
-    - Logical: physics, biology, logic, quantum
-    - Abstract: field, control, novelty, precipitation
+    Smith's 12-Parameter Reality mapped to computational dimensions:
+
+    Space Fabric (dims 0-2): spatial_x, spatial_y, spatial_z
+    Field Fabric (dims 3-5): physics (Tempic), biology (Electric), field (Magnetic)
+    Control Fabric (dims 6-8): logic (Rotation/SPIN), quantum (Precession/SPIN), control (Charge)
+    Precipitation Fabric (dims 9-11): temporal (Awareness), novelty (Particularization), precipitation
+
+    SPIN Physics (Smith):
+    - Rotation = logic dimension (internal reasoning spin)
+    - Precession = quantum dimension (external measurement wobble)
+    - Charge polarity = resultant of rotation + precession alignment
+    - Coherence peaks when rotation and precession are in phase (HIHO = 0.5)
     """
 
     spatial_x: float = 0.0
@@ -50,6 +58,19 @@ class AxiomaticState:
     control: float = 0.5
     novelty: float = 0.5
     precipitation: float = 0.0
+
+    # Smith's 12-Parameter Mapping (class constant, not a dataclass field).
+    # Maps computational dimension names to Smith's original terminology.
+    # Space: X, Y, Z | Field: Tempic, Electric, Magnetic
+    # Control: Rotation(Spin), Precession(Spin), Charge
+    # Precipitation: Awareness, Particularization, Precipitation
+    SMITH_FABRIC_MAP: ClassVar[dict[str, str]] = {
+        "spatial_x": "Space_X", "spatial_y": "Space_Y", "spatial_z": "Space_Z",
+        "physics": "Tempic", "biology": "Electric", "field": "Magnetic",
+        "logic": "Rotation", "quantum": "Precession", "control": "Charge",
+        "temporal": "Awareness", "novelty": "Particularization",
+        "precipitation": "Precipitation",
+    }
 
     def to_vector(self) -> list[float]:
         return [
@@ -69,11 +90,123 @@ class AxiomaticState:
 
     @classmethod
     def from_vector(cls, vector: list[float]) -> AxiomaticState:
-        return cls(*vector)
+        return cls(*vector[:12])
+
+    # --- SPIN Physics (Gap 1: Smith's fundamental unit) ---
+
+    @property
+    def spin_rotation(self) -> float:
+        """SPIN rotation component (Smith: toroidal momentum rotation).
+
+        Maps to the 'logic' dimension — internal reasoning spin direction.
+        Value centered on 0.5 (HIHO). Sign relative to 0.5 determines chirality.
+        """
+        return self.logic
+
+    @property
+    def spin_precession(self) -> float:
+        """SPIN precession component (Smith: toroidal momentum precession).
+
+        Maps to the 'quantum' dimension — external measurement wobble.
+        Value centered on 0.5 (HIHO). Alignment with rotation = stability.
+        """
+        return self.quantum
+
+    @property
+    def spin_coherence(self) -> float:
+        """SPIN coherence: alignment between rotation and precession.
+
+        When rotation and precession have the same sign relative to HIHO (0.5),
+        they are 'in phase' and the agent's internal intent matches its external
+        behavior. This is the core of Smith's SPIN theory applied to alignment.
+
+        Returns 1.0 when aligned (same side of 0.5), 0.0 when opposed.
+        """
+        rot_sign = 1.0 if self.logic >= 0.5 else -1.0
+        prec_sign = 1.0 if self.quantum >= 0.5 else -1.0
+        return abs(rot_sign * prec_sign)  # 1.0 = aligned, 0.0 = impossible (always 1 or 0)
+
+    @property
+    def charge_polarity(self) -> float:
+        """Charge polarity: resultant of rotation + precession (Smith).
+
+        Charge is not an independent parameter — it emerges from the relationship
+        between rotation and precession. Positive when both are above HIHO,
+        negative when both below, mixed when opposed.
+        """
+        rot_offset = self.logic - 0.5
+        prec_offset = self.quantum - 0.5
+        return rot_offset + 0.3 * prec_offset
+
+    # --- Tempic Field (Gap 2: Smith's rate-of-change, not clock-time) ---
+
+    @staticmethod
+    def compute_tempic(state_before: "AxiomaticState", state_after: "AxiomaticState") -> float:
+        """Compute Smith's Tempic field: the rate of change between two states.
+
+        Smith: 'The Tempic field is NOT time, but change itself.'
+        Tempic = magnitude of state displacement across all brane dimensions.
+
+        Parameters
+        ----------
+        state_before : AxiomaticState
+            State at time t.
+        state_after : AxiomaticState
+            State at time t+1.
+
+        Returns
+        -------
+        float
+            Tempic field strength (0.0 = no change, higher = more change).
+        """
+        brane_dims_before = [
+            state_before.physics, state_before.biology, state_before.logic,
+            state_before.quantum, state_before.field, state_before.control,
+            state_before.novelty,
+        ]
+        brane_dims_after = [
+            state_after.physics, state_after.biology, state_after.logic,
+            state_after.quantum, state_after.field, state_after.control,
+            state_after.novelty,
+        ]
+        displacement = sum(
+            (a - b) ** 2 for a, b in zip(brane_dims_before, brane_dims_after)
+        )
+        return displacement ** 0.5
+
+    @staticmethod
+    def compute_tempic_vector(
+        state_before: "AxiomaticState", state_after: "AxiomaticState"
+    ) -> list[float]:
+        """Compute per-dimension Tempic field (directional change vector).
+
+        Returns the signed change in each brane dimension, showing not just
+        how much changed but in which direction.
+        """
+        brane_before = [
+            state_before.physics, state_before.biology, state_before.logic,
+            state_before.quantum, state_before.field, state_before.control,
+            state_before.novelty,
+        ]
+        brane_after = [
+            state_after.physics, state_after.biology, state_after.logic,
+            state_after.quantum, state_after.field, state_after.control,
+            state_after.novelty,
+        ]
+        return [a - b for a, b in zip(brane_after, brane_before)]
 
     def coherence_score(self) -> float:
-        """Calculate HIHO coherence (0.5 = optimal stability)."""
-        # Variance from 0.5 across all dimensions
+        """Calculate HIHO coherence with SPIN weighting (0.5 = optimal stability).
+
+        Coherence is the composite of:
+        1. HIHO variance (how close brane dimensions are to 0.5)
+        2. SPIN alignment (whether rotation and precession are in phase)
+
+        The SPIN component weights coherence: aligned SPIN boosts stability,
+        misaligned SPIN penalizes it. This implements Smith's principle that
+        'stability increases when rotation and precession are aligned.'
+        """
+        # Base HIHO variance across all brane dimensions
         dimensions = [
             self.physics,
             self.biology,
@@ -84,8 +217,11 @@ class AxiomaticState:
             self.novelty,
         ]
         variance = sum((d - 0.5) ** 2 for d in dimensions) / len(dimensions)
-        # Convert to coherence: 1.0 = perfect 0.5, 0.0 = extreme deviation
-        return 1.0 - min(variance * 4, 1.0)  # Scale so 0.25 variance = 0 coherence
+        base_coherence = 1.0 - min(variance * 4, 1.0)
+
+        # SPIN weighting: boost coherence when rotation/precession are aligned
+        spin_weight = 0.7 + 0.3 * self.spin_coherence
+        return base_coherence * spin_weight
 
 
 @dataclass
