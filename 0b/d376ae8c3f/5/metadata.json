@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "0bd376ae8c3f",
+  "session_id": "a91d4d2c-3499-4983-b8d5-9f817fd07db7",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-16T05:08:54.350315729Z",
+  "branch": "main",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "docs/plans/2026-02-15-codebase-quality.md",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original",
+    "src/cohezion/compound/executor_guardrails.py",
+    "src/cohezion/compound/executor_types.py",
+    "src/cohezion/concurrency/ollama_gate.py",
+    "src/cohezion/swarm/execution_orchestrator.py",
+    "src/cohezion/swarm/fallback_types.py",
+    "src/cohezion/swarm/token_client.py",
+    "tests/conftest.py",
+    "tests/security/test_precommit_hooks.py"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 5489,
+    "cache_creation_tokens": 444998,
+    "cache_read_tokens": 9287779,
+    "output_tokens": 4952,
+    "api_call_count": 79
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-16T05:08:54.268272958Z",
+    "agent_lines": 0,
+    "human_added": 18303,
+    "human_modified": 2200,
+    "human_removed": 0,
+    "total_committed": 18789,
+    "agent_percentage": 0
+  }
+}
