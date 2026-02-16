@@ -26,18 +26,47 @@ def _safe_parse_qasm_param(expr: str) -> float:
 
     Supports numeric literals and simple expressions involving pi,
     e.g. "pi/2", "-pi", "3.14", "pi*0.5", "-1.3+pi".
+
+    Uses AST-based evaluation instead of eval() to prevent code injection.
     """
+    import ast
+    import operator
+
     expr = expr.strip()
     # Replace 'pi' with its numeric value as a string
     expr = re.sub(r"\bpi\b", str(np.pi), expr)
     # Validate: only allow digits, decimal points, signs, *, /, whitespace
     if not re.match(r"^[\d\.\+\-\*/eE\s]+$", expr):
         raise ValueError(f"Unsafe QASM parameter expression: {expr!r}")
+
+    # Safe AST-based arithmetic evaluator
+    _ops = {
+        ast.Add: operator.add,
+        ast.Sub: operator.sub,
+        ast.Mult: operator.mul,
+        ast.Div: operator.truediv,
+        ast.USub: operator.neg,
+        ast.UAdd: operator.pos,
+    }
+
+    def _eval_node(node: ast.AST) -> float:
+        if isinstance(node, ast.Expression):
+            return _eval_node(node.body)
+        if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+            return float(node.value)
+        if isinstance(node, ast.BinOp) and type(node.op) in _ops:
+            left = _eval_node(node.left)
+            right = _eval_node(node.right)
+            return float(_ops[type(node.op)](left, right))
+        if isinstance(node, ast.UnaryOp) and type(node.op) in _ops:
+            operand = _eval_node(node.operand)
+            return float(_ops[type(node.op)](operand))
+        raise ValueError(f"Unsupported expression node: {ast.dump(node)}")
+
     try:
-        return float(
-            eval(compile(expr, "<qasm_param>", "eval"), {"__builtins__": {}}, {})
-        )  # noqa: S307
-    except (SyntaxError, TypeError, ZeroDivisionError) as e:
+        tree = ast.parse(expr, mode="eval")
+        return _eval_node(tree)
+    except (SyntaxError, TypeError, ZeroDivisionError, ValueError) as e:
         raise ValueError(f"Failed to parse QASM parameter: {expr!r}") from e
 
 
