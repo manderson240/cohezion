@@ -3,7 +3,7 @@
   "checkpoint_id": "0bd376ae8c3f",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 19,
+  "checkpoints_count": 20,
   "files_touched": [
     ".worktrees/spec-github-migration-cf603d38/.claude/rules/git-workflow.md",
     ".worktrees/spec-github-migration-cf603d38/.github/workflows/ci.yml",
@@ -24,8 +24,18 @@
     "docs/plans/2026-02-15-codebase-quality.md",
     "ollama-mcp",
     "research/challenges/anthropic_challenge_original",
+    "scripts/split_api.py",
+    "src/cohezion/api/__init__.py",
+    "src/cohezion/api/__init__.py.bak",
     "src/cohezion/api/helpers.py",
     "src/cohezion/api/models.py",
+    "src/cohezion/api/routes_core.py",
+    "src/cohezion/api/routes_flume.py",
+    "src/cohezion/api/routes_journeys.py",
+    "src/cohezion/api/routes_misc.py",
+    "src/cohezion/api/routes_ml.py",
+    "src/cohezion/api/routes_remaining.py",
+    "src/cohezion/api/routes_rl.py",
     "src/cohezion/api/services/__init__.py",
     "src/cohezion/deployment/__init__.py",
     "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
@@ -59,13 +69,20 @@
       "context": "/0b/d376ae8c3f/2/context.md",
       "content_hash": "/0b/d376ae8c3f/2/content_hash.txt",
       "prompt": "/0b/d376ae8c3f/2/prompt.txt"
+    },
+    {
+      "metadata": "/0b/d376ae8c3f/3/metadata.json",
+      "transcript": "/0b/d376ae8c3f/3/full.jsonl",
+      "context": "/0b/d376ae8c3f/3/context.md",
+      "content_hash": "/0b/d376ae8c3f/3/content_hash.txt",
+      "prompt": "/0b/d376ae8c3f/3/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 22345,
-    "cache_creation_tokens": 781112,
-    "cache_read_tokens": 21196091,
-    "output_tokens": 43813,
-    "api_call_count": 158
+    "input_tokens": 24501,
+    "cache_creation_tokens": 1275949,
+    "cache_read_tokens": 32986837,
+    "output_tokens": 57166,
+    "api_call_count": 264
   }
 }

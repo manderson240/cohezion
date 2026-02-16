@@ -1,0 +1,43 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "0bd376ae8c3f",
+  "session_id": "78ddb885-f7f1-4966-a83a-14bb1d99a4e5",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-16T03:47:28.056608851Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "docs/plans/2026-02-15-audit-remediation.md",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original",
+    "scripts/split_api.py",
+    "src/cohezion/api/__init__.py",
+    "src/cohezion/api/__init__.py.bak",
+    "src/cohezion/api/helpers.py",
+    "src/cohezion/api/models.py",
+    "src/cohezion/api/routes_core.py",
+    "src/cohezion/api/routes_flume.py",
+    "src/cohezion/api/routes_journeys.py",
+    "src/cohezion/api/routes_misc.py",
+    "src/cohezion/api/routes_ml.py",
+    "src/cohezion/api/routes_remaining.py",
+    "src/cohezion/api/routes_rl.py"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 2156,
+    "cache_creation_tokens": 494837,
+    "cache_read_tokens": 11790746,
+    "output_tokens": 13353,
+    "api_call_count": 106
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-16T03:47:28.003514989Z",
+    "agent_lines": 0,
+    "human_added": 0,
+    "human_modified": 4704,
+    "human_removed": 106,
+    "total_committed": 4610,
+    "agent_percentage": 0
+  }
+}
