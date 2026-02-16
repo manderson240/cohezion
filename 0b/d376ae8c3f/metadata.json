@@ -3,7 +3,7 @@
   "checkpoint_id": "0bd376ae8c3f",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 25,
+  "checkpoints_count": 26,
   "files_touched": [
     ".worktrees/spec-github-migration-cf603d38/.claude/rules/git-workflow.md",
     ".worktrees/spec-github-migration-cf603d38/.github/workflows/ci.yml",
@@ -40,7 +40,11 @@
     "src/cohezion/api/routes_rl.py",
     "src/cohezion/api/routes_skills.py",
     "src/cohezion/api/services/__init__.py",
+    "src/cohezion/compound/executor.py",
+    "src/cohezion/compound/executor_analysis.py",
     "src/cohezion/compound/executor_guardrails.py",
+    "src/cohezion/compound/executor_monitoring.py",
+    "src/cohezion/compound/executor_steps.py",
     "src/cohezion/compound/executor_types.py",
     "src/cohezion/compound/journey_tracker.py",
     "src/cohezion/concurrency/ollama_gate.py",
@@ -102,13 +106,20 @@
       "context": "/0b/d376ae8c3f/5/context.md",
       "content_hash": "/0b/d376ae8c3f/5/content_hash.txt",
       "prompt": "/0b/d376ae8c3f/5/prompt.txt"
+    },
+    {
+      "metadata": "/0b/d376ae8c3f/6/metadata.json",
+      "transcript": "/0b/d376ae8c3f/6/full.jsonl",
+      "context": "/0b/d376ae8c3f/6/context.md",
+      "content_hash": "/0b/d376ae8c3f/6/content_hash.txt",
+      "prompt": "/0b/d376ae8c3f/6/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 20708,
-    "cache_creation_tokens": 2200102,
-    "cache_read_tokens": 55260739,
-    "output_tokens": 64428,
-    "api_call_count": 447
+    "input_tokens": 25914,
+    "cache_creation_tokens": 2516260,
+    "cache_read_tokens": 64759821,
+    "output_tokens": 74980,
+    "api_call_count": 524
   }
 }
