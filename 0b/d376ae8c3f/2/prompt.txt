@@ -1,0 +1,25 @@
+Please find out the instructions I need to allow cloud claude access to our obsidian vault server
+
+---
+
+[Request interrupted by user]
+
+---
+
+MCP server that is
+
+---
+
+Examine codebase, chat history, entire checkpoints, obisidian vault itself, surrealdb and it should become self evident.
+
+---
+
+We want secure and stable
+
+---
+
+Run setup-cloud-access.sh
+
+---
+
+Commit these changes to git.
