@@ -2,8 +2,8 @@
   "cli_version": "0.4.2",
   "checkpoint_id": "0bd376ae8c3f",
   "strategy": "manual-commit",
-  "branch": "main",
-  "checkpoints_count": 26,
+  "branch": "spec/routes-consolidation",
+  "checkpoints_count": 22,
   "files_touched": [
     ".worktrees/spec-github-migration-cf603d38/.claude/rules/git-workflow.md",
     ".worktrees/spec-github-migration-cf603d38/.github/workflows/ci.yml",
@@ -116,10 +116,10 @@
     }
   ],
   "token_usage": {
-    "input_tokens": 25914,
-    "cache_creation_tokens": 2516260,
-    "cache_read_tokens": 64759821,
-    "output_tokens": 74980,
-    "api_call_count": 524
+    "input_tokens": 25796,
+    "cache_creation_tokens": 2394586,
+    "cache_read_tokens": 63523510,
+    "output_tokens": 73293,
+    "api_call_count": 511
   }
 }
