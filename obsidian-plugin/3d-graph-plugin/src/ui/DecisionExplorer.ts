@@ -559,6 +559,66 @@ export class DecisionExplorer {
       contradictionDetectBtn.style.backgroundColor = '#e11d48';
     };
 
+    // Cascade Timeline Button (Part of Phase 7)
+    const timelineBtn = containerEl.createEl('button');
+    timelineBtn.textContent = '📊 View Cascade Timeline';
+    timelineBtn.style.width = '100%';
+    timelineBtn.style.marginTop = '15px';
+    timelineBtn.style.padding = '12px 15px';
+    timelineBtn.style.border = '1px solid #6366f1';
+    timelineBtn.style.borderRadius = '4px';
+    timelineBtn.style.backgroundColor = '#6366f1';
+    timelineBtn.style.color = '#fff';
+    timelineBtn.style.cursor = 'pointer';
+    timelineBtn.style.fontWeight = 'bold';
+
+    timelineBtn.addEventListener('click', async () => {
+      if (!this.selectedDecision) {
+        new Notice('⚠️ No decision selected. Please select a decision first.');
+        return;
+      }
+
+      try {
+        new Notice('Loading cascade timeline...', 2000);
+
+        // Get cascades for this decision
+        const cascades = await this.surrealClient.analyzeDecisionCascades(
+          this.selectedDecision.id,
+          5  // depth limit
+        );
+
+        if (!cascades || cascades.length === 0) {
+          new Notice('⚠️ No cascades found for this decision.');
+          return;
+        }
+
+        // Dynamically import CascadeTimeline
+        const { CascadeTimeline } = await import('../visualizations/CascadeTimeline');
+
+        // Create and open timeline modal
+        const timeline = new CascadeTimeline(
+          this.app,
+          [this.selectedDecision],
+          cascades
+        );
+        timeline.open();
+
+        new Notice(`Opened cascade timeline with ${cascades.length} relationships.`, 3000);
+
+      } catch (error) {
+        const errorMsg = (error as Error).message;
+        console.error('Failed to load cascade timeline:', errorMsg);
+        new Notice(`❌ Error loading cascade timeline: ${errorMsg}`);
+      }
+    });
+
+    timelineBtn.addEventListener('mouseenter', () => {
+      timelineBtn.style.backgroundColor = '#4f46e5';
+    });
+    timelineBtn.addEventListener('mouseleave', () => {
+      timelineBtn.style.backgroundColor = '#6366f1';
+    });
+
     // Phase 6 Results area
     const resultsDiv = containerEl.createDiv('phase6-results');
     resultsDiv.id = 'phase6-results';
