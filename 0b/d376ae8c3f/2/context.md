@@ -69,3 +69,11 @@ What happened?
 
 So we're stuck?
 
+### Prompt 15
+
+bullshit
+
+### Prompt 16
+
+Test all the plugins
+

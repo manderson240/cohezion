@@ -273,3 +273,11 @@ Evaluate after significant work. Extract selectively. Create carefully.
 ---
 
 So we're stuck?
+
+---
+
+bullshit
+
+---
+
+Test all the plugins
