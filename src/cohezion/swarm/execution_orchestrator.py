@@ -117,16 +117,14 @@ def _topological_sort(tasks: list[TaskSpec]) -> list[list[TaskSpec]]:
     remaining = set(task_map.keys())
 
     while remaining:
-        # Find tasks whose dependencies are all satisfied
         ready = [
             tid
             for tid in remaining
             if all(dep in completed for dep in task_map[tid].blocked_by)
         ]
         if not ready:
-            # Break cycle: force remaining tasks into one wave
             logger.warning(
-                "Dependency cycle detected, forcing %d remaining tasks",
+                "Dependency cycle detected, forcing %s remaining tasks",
                 len(remaining),
             )
             ready = list(remaining)
@@ -223,7 +221,6 @@ class ExecutionOrchestrator:
             tr.execution.total_tokens for tr in report.task_results if tr.execution
         )
 
-        # Determine overall status
         statuses = {tr.status for tr in report.task_results}
         if not statuses or statuses == {"completed"}:
             report.status = "completed"
@@ -261,7 +258,6 @@ class ExecutionOrchestrator:
             result = await self._compound_executor.execute_task(task)
             elapsed_ms = (time.monotonic() - t0) * 1000.0
 
-            # Build an ExecutionResult from the compound result
             exec_result = ExecutionResult(
                 skill_name=result.get("skill_name", "direct"),
                 final_output=result.get("output", ""),

@@ -113,7 +113,6 @@ echo "test"
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpdir_path = Path(tmpdir)
 
-            # Create first hook
             hook1 = tmpdir_path / "hook1.sh"
             hook1.write_text("""#!/bin/bash
 # HOOK_NAME: hook1
@@ -123,7 +122,6 @@ echo "hook1"
 """)
             hook1.chmod(0o755)
 
-            # Create second hook
             hook2 = tmpdir_path / "hook2.sh"
             hook2.write_text("""#!/bin/bash
 # HOOK_NAME: hook2
@@ -316,7 +314,6 @@ class TestHookRegistry:
         """Test retrieving hooks for a stage."""
         registry = HookRegistry()
 
-        # Register hooks for different stages
         hook1 = Hook(
             path=Path("/tmp/hook1.sh"),
             metadata=HookMetadata(
@@ -381,7 +378,6 @@ class TestHookRegistry:
         """Test clearing all hooks for a stage."""
         registry = HookRegistry()
 
-        # Register multiple hooks
         for i in range(3):
             hook = Hook(
                 path=Path(f"/tmp/hook{i}.sh"),
@@ -404,7 +400,6 @@ class TestHookIntegration:
 
     def test_initialization_with_real_hooks(self):
         """Test initialization with real hooks directory."""
-        # This test will use the actual .claude/hooks directory if it exists
         integration = HookIntegration(".claude/hooks")
         assert integration is not None
 
@@ -413,7 +408,6 @@ class TestHookIntegration:
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpdir_path = Path(tmpdir)
 
-            # Create allow hook
             hook_file = tmpdir_path / "allow.sh"
             hook_file.write_text("""#!/bin/bash
 exit 0
@@ -433,7 +427,6 @@ exit 0
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpdir_path = Path(tmpdir)
 
-            # Create block hook
             hook_file = tmpdir_path / "block.sh"
             hook_file.write_text("""#!/bin/bash
 # HOOK_NAME: blocker
@@ -485,7 +478,6 @@ exit 0
         integration = HookIntegration(".nonexistent")
         assert len(integration.get_audit_trail()) == 0
 
-        # Clear should work on empty trail
         integration.clear_audit_trail()
         assert len(integration.get_audit_trail()) == 0
 
@@ -549,9 +541,12 @@ class TestPhase21HooksIntegration:
 
     def test_discover_phase21_hooks(self):
         """Test discovering Phase 2.1 hooks from .claude/hooks."""
+        from pathlib import Path
+
+        if not Path(".claude/hooks").is_dir():
+            pytest.skip(".claude/hooks directory not present")
         integration = HookIntegration(".claude/hooks")
 
-        # Should discover the 4 Phase 2.1 hooks
         all_hooks = integration.registry.to_dict()
         hook_names = [
             hook_name
@@ -575,7 +570,6 @@ class TestPhase21HooksIntegration:
         integration = HookIntegration(".claude/hooks")
         pre_exec_hooks = integration.registry.get_hooks_for_stage(HookStage.PRE_EXECUTE)
 
-        # Should have at least warn-sensitive-commands and validate-agent-files
         assert len(pre_exec_hooks) >= 0
 
     def test_pre_operation_hooks(self):
@@ -583,7 +577,6 @@ class TestPhase21HooksIntegration:
         integration = HookIntegration(".claude/hooks")
         pre_op_hooks = integration.registry.get_hooks_for_stage(HookStage.PRE_OPERATION)
 
-        # Should have at least protect-files
         assert len(pre_op_hooks) >= 0
 
     def test_post_operation_hooks(self):
@@ -591,7 +584,6 @@ class TestPhase21HooksIntegration:
         integration = HookIntegration(".claude/hooks")
         post_op_hooks = integration.registry.get_hooks_for_stage(HookStage.POST_OPERATION)
 
-        # Should have at least format-on-edit
         assert len(post_op_hooks) >= 0
 
 
@@ -630,7 +622,6 @@ class TestHookIntegrationFast:
 
     def test_get_hook_integration_singleton(self):
         """Test get_hook_integration singleton pattern."""
-        # Reset singleton
         if hasattr(get_hook_integration, '_instance'):
             delattr(get_hook_integration, '_instance')
 

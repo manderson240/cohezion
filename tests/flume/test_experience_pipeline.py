@@ -57,10 +57,8 @@ class TestExperienceEncoder:
             exp = _make_experience(operation_type=op)
             vec = encoder.encode(exp)
 
-            # One-hot region is dims [24:29]
             onehot = vec[24:29]
             assert onehot[i] == 1.0, f"Expected dim {i} active for {op}"
-            # All others should be 0
             for j in range(len(OPERATION_TYPES)):
                 if j != i:
                     assert onehot[j] == 0.0, f"Expected dim {j} inactive for {op}"
@@ -86,7 +84,7 @@ class TestExperienceDataset:
 class TestExperienceCollector:
     """Test ExperienceCollector handles missing directories gracefully."""
 
-    def test_collector_handles_missing_dirs(self, tmp_path: Path) -> None:
+    def test_collector_handles_missing_dirs(self, tmp_path: Path, mock_surreal) -> None:
         """Empty/missing parquet and vault dirs -> empty list, no crash."""
         from cohezion.flume.experience_collector import ExperienceCollector
 
@@ -130,9 +128,7 @@ class TestExperiencePipeline:
             )
         )
 
-        # Checkpoint should exist
         assert checkpoint_path.exists(), f"Checkpoint not found at {checkpoint_path}"
-        # Verify it's a valid torch checkpoint
         ckpt = torch.load(checkpoint_path, weights_only=False)
         assert "epoch" in ckpt
         assert ckpt["epoch"] == epochs

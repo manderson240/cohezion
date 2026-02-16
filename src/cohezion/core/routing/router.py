@@ -1,10 +1,14 @@
 import logging
+from typing import TYPE_CHECKING, Any
 
 import httpx
 
+
+if TYPE_CHECKING:
+    from cohezion.core.optimization.adaptive_framework import HardwareProfile
+
 logger = logging.getLogger(__name__)
 
-# Import adaptive framework optimizer
 try:
     from cohezion.core.optimization.adaptive_framework import get_adaptive_optimizer
 
@@ -24,38 +28,32 @@ class LocalExpertRouter:
         self.ollama_url = ollama_url
         self.client = httpx.AsyncClient(timeout=300.0)
 
-        # ELITE COHEZION ROSTER (v0.15.5-rc2 Optimized with Qwen3-Coder-Next & GLM-OCR)
         self.role_map = {
-            # Elite tier - highest performance with MoE efficiency
             "elite-coding": "qwen3-coder-next:q8_0",
             "agentic-coding": "qwen3-coder-next:latest",
             "ocr-vision": "glm-ocr:latest",
             "voice-synthesis": "pocket-tts:latest",
             "speech-to-text": "kyutai-stt-1b-en",
             "voice-native": "moshi:latest",
-            # Core tier - balanced performance
             "coding": "qwen3-coder-next:latest",
             "vision": "glm-ocr:latest",
             "routing": "phi4-256k:latest",
             "reasoning": "phi4-256k:latest",
             "general": "gpt-oss-256k:latest",
-            # Fallback tier - memory constrained scenarios
             "legacy-coding": "qwen3-coder-256k:latest",
             "legacy-vision": "gemma3-4b-256k:latest",
-            # Optimization for verification/light tasks
             "light-reasoning": "phi3:mini",
             "light-coding": "phi3:mini",
         }
         self.default_model = "qwen3-coder-next:latest"
 
-        # Elite task-specific context caps (Leveraging v0.15.5-rc2 automatic scaling)
         self.task_caps = {
             "elite-coding": 262144,
             "agentic-coding": 262144,
-            "ocr-vision": 128000,  # GLM-OCR native context
-            "voice-synthesis": 32768,  # Pocket TTS optimized
-            "speech-to-text": 8192,  # Kyutai STT optimized
-            "voice-native": 65536,  # Moshi speech-native
+            "ocr-vision": 128000,
+            "voice-synthesis": 32768,
+            "speech-to-text": 8192,
+            "voice-native": 65536,
             "routing": 8192,
             "general": 32768,
             "vision": 128000,
@@ -65,11 +63,10 @@ class LocalExpertRouter:
             "legacy-vision": 256000,
         }
 
-        # Memory-aware model selection thresholds
         self.memory_thresholds = {
-            "elite_threshold": 90,  # GB available for elite models
-            "agentic_threshold": 55,  # GB available for balanced models
-            "fallback_threshold": 20,  # GB threshold for legacy models
+            "elite_threshold": 90,
+            "agentic_threshold": 55,
+            "fallback_threshold": 20,
         }
 
     async def route_task(
@@ -81,14 +78,12 @@ class LocalExpertRouter:
         """
         context = context or {}
 
-        # 1. Access System Guards (Dilation & Memory)
         available_memory = await self._get_available_memory()
         from cohezion.reliability.monitor import get_resource_monitor
 
         monitor = get_resource_monitor()
         dilation = monitor.get_dilation_factor()
 
-        # 2. Adaptive Framework-Aware Model Selection
         if ADAPTIVE_OPTIMIZER_AVAILABLE:
             optimizer = get_adaptive_optimizer()
             hardware_profile = optimizer.get_current_profile()
@@ -106,19 +101,15 @@ class LocalExpertRouter:
         else:
             model = self._select_optimal_model(task_type, available_memory, dilation)
 
-        # 3. Get Mode-Aware Context (From Ascended Registry)
         from cohezion.swarm.mode_controller import get_mode_controller
 
         mode_ctrl = get_mode_controller()
 
-        # Base context recommended by current system mode
         recommended_ctx = mode_ctrl.get_recommended_context(model)
 
-        # 3. Apply Task-Specific Cap with v0.15.5-rc2 optimizations
         task_cap = self.task_caps.get(task_type, 32768)
         final_ctx = min(recommended_ctx, task_cap)
 
-        # 4. Apply VRAM Pressure Scaling (Dilation)
         dilation = monitor.get_dilation_factor()
         if dilation < 1.0:
             original_ctx = final_ctx
@@ -127,43 +118,38 @@ class LocalExpertRouter:
                 f"📉 Memory Dilation Active ({dilation:.2f}): Scaling context {original_ctx} -> {final_ctx}"
             )
 
-        # 5. Elite MoE Optimization for Qwen3-Coder-Next
         if "qwen3-coder-next" in model:
-            final_ctx = max(final_ctx, 65536)  # Minimum context for MoE efficiency
+            final_ctx = max(final_ctx, 65536)
             logger.info(
                 f"🧠 MoE Optimization: {model} using only 3B active params (3.75% of 80B total)"
             )
 
-        # 6. OCR Optimization for GLM-OCR
         if "glm-ocr" in model:
-            final_ctx = min(final_ctx, 128000)  # Native context limit
+            final_ctx = min(final_ctx, 128000)
             logger.info(
                 f"👁️ OCR Optimization: {model} with 94.62% OmniDocBench accuracy"
             )
 
-        # Minimum safety floor
         final_ctx = max(final_ctx, 4096)
 
         logger.info(
             f"🚀 [ELITE COHEZION] Routing {task_type} → {model} (ctx: {final_ctx}, mem: {available_memory}GB)"
         )
 
-        # 7. Build optimized options for v0.15.5-rc2
         options = {
             "num_ctx": final_ctx,
-            "num_predict": min(4096, final_ctx // 4),  # Predict up to 25% of context
+            "num_predict": min(4096, final_ctx // 4),
             "temperature": 0.7 if "coding" in task_type else 0.5,
             "top_p": 0.9,
         }
 
-        # Add model-specific optimizations
         if "q8_0" in model:
-            options["repeat_penalty"] = 1.05  # Prevent repetition in high-quality model
+            options["repeat_penalty"] = 1.05
         if "glm-ocr" in model:
-            options["temperature"] = 0.3  # More deterministic OCR results
+            options["temperature"] = 0.3
         if "pocket-tts" in model:
-            options["temperature"] = 0.8  # Voice synthesis optimization
-            options["speed"] = 1.0  # Normal speech rate
+            options["temperature"] = 0.8
+            options["speed"] = 1.0
 
         if "options" in context:
             options.update(context["options"])
@@ -186,7 +172,6 @@ class LocalExpertRouter:
             result = response.json()
             response_text = result.get("response", "")
 
-            # 8. Performance logging for compound engineering
             await self._log_performance_metrics(
                 task_type, model, final_ctx, available_memory
             )
@@ -194,7 +179,6 @@ class LocalExpertRouter:
             return response_text
         except Exception as e:
             logger.error(f"❌ Elite routing failed for {model}: {e}")
-            # Fallback to simpler model
             return await self._fallback_routing(task_type, prompt, context, e)
 
     async def _get_available_memory(self) -> float:
@@ -205,7 +189,7 @@ class LocalExpertRouter:
             memory = psutil.virtual_memory()
             return round(memory.available / (1024**3), 1)
         except ImportError:
-            return 125.0  # Default from system analysis
+            return 125.0
 
     def _select_optimal_model(
         self, task_type: str, available_memory: float, dilation: float = 1.0
@@ -213,19 +197,17 @@ class LocalExpertRouter:
         """Select optimal model based on task type, memory, and VRAM pressure (dilation)"""
         primary_model = self.role_map.get(task_type, self.default_model)
 
-        # Severe VRAM Pressure: Trigger mandatory downscaling to 8B/Mini models
         if dilation < 0.5:
             logger.warning(
                 f"📉 SEVERE VRAM PRESSURE ({dilation:.2f}): Downscaling {task_type} tasks."
             )
             if task_type in ["reasoning", "routing"]:
-                return "deepseek-r1:7b"  # Chain-of-thought but lighter than 256k models
+                return "deepseek-r1:7b"
             elif task_type == "coding":
-                return "qwen3-coder:30b"  # Smaller than the MoE 80B version
+                return "qwen3-coder:30b"
             else:
                 return "phi3:mini"
 
-        # Elite models available (Only if no dilation pressure)
         if (
             available_memory >= self.memory_thresholds["elite_threshold"]
             and dilation >= 0.8
@@ -235,7 +217,6 @@ class LocalExpertRouter:
             elif task_type == "vision":
                 return self.role_map["ocr-vision"]
 
-        # Agentic models available
         elif (
             available_memory >= self.memory_thresholds["agentic_threshold"]
             and dilation >= 0.7
@@ -245,7 +226,6 @@ class LocalExpertRouter:
             elif task_type == "vision":
                 return self.role_map["ocr-vision"]
 
-        # Fallback for memory constraints OR moderate pressure
         elif (
             available_memory < self.memory_thresholds["fallback_threshold"]
             or dilation < 0.8
@@ -275,10 +255,8 @@ class LocalExpertRouter:
         caps = set(hardware_profile.capabilities)
         has_uma = "uma_zero_copy" in caps
 
-        # Enterprise/Professional with UMA: elite models can leverage full memory pool
         if tier in ("enterprise", "professional"):
             if task_type == "coding":
-                # Elite Q8 quant if enough memory, otherwise MoE variant
                 if available_memory >= 90 or has_uma:
                     return self.role_map["elite-coding"]
                 return self.role_map["agentic-coding"]
@@ -290,7 +268,6 @@ class LocalExpertRouter:
                 return self.role_map.get("general", self.default_model)
             return self.role_map.get(task_type, self.default_model)
 
-        # Desktop tier: balanced models
         elif tier == "desktop":
             if task_type == "coding":
                 return self.role_map["agentic-coding"]
@@ -298,7 +275,6 @@ class LocalExpertRouter:
                 return self.role_map["ocr-vision"]
             return self.role_map.get(task_type, self.default_model)
 
-        # Laptop/Mobile: conservative models
         else:
             if task_type == "coding":
                 return self.role_map.get("legacy-coding", "qwen3-coder:30b")
@@ -331,7 +307,7 @@ class LocalExpertRouter:
         original_error: Exception,
     ) -> str:
         """Fallback routing for error recovery"""
-        fallback_model = "phi4-256k:latest"  # Most reliable fallback
+        fallback_model = "phi4-256k:latest"
 
         logger.warning(
             f"🔄 Fallback routing to {fallback_model} due to: {original_error}"
@@ -360,5 +336,4 @@ class LocalExpertRouter:
         await self.client.aclose()
 
 
-# Global instance
 LOCAL_ROUTER = LocalExpertRouter()

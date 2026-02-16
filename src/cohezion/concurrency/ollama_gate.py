@@ -33,13 +33,13 @@ class OllamaGate:
     async def __aenter__(self) -> OllamaGate:
         sem = self._get_semaphore()
         logger.debug(
-            "OllamaGate: acquiring (available: %d/%d)",
+            "OllamaGate: acquiring (available: %s/%s)",
             sem._value,
             self._max,
         )
         await sem.acquire()
         logger.debug(
-            "OllamaGate: acquired (available: %d/%d)",
+            "OllamaGate: acquired (available: %s/%s)",
             sem._value,
             self._max,
         )
