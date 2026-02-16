@@ -547,6 +547,10 @@ class TestExecutionContext:
 class TestPhase21HooksIntegration:
     """Test integration with Phase 2.1 hooks."""
 
+    @pytest.mark.skipif(
+        not Path(".claude/hooks").exists(),
+        reason=".claude/hooks directory not present",
+    )
     def test_discover_phase21_hooks(self):
         """Test discovering Phase 2.1 hooks from .claude/hooks."""
         integration = HookIntegration(".claude/hooks")

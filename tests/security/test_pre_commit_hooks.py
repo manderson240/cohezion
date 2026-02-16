@@ -94,6 +94,9 @@ class TestPreCommitConfiguration:
                         ["commit"],
                         ["push"],
                         ["commit", "push"],
+                        ["pre-commit"],
+                        ["pre-push"],
+                        ["pre-commit", "pre-push"],
                     ], f"Invalid stages: {hook.get('stages')}"
 
     def test_credential_detection_hook_configured(self):
@@ -139,8 +142,9 @@ class TestPreCommitConfiguration:
 
                 for hook in hooks:
                     assert hook.get("id") == "bandit"
-                    # Should be on push stage
-                    assert "push" in hook.get("stages", [])
+                    # Should be on push stage (pre-commit v3 uses "pre-push")
+                    stages = hook.get("stages", [])
+                    assert "push" in stages or "pre-push" in stages
 
         assert found_bandit, "Bandit security check hook not found"
 
@@ -328,7 +332,8 @@ class TestSecurityHooksPerformance:
         push_hooks = []
         for repo in config.get("repos", []):
             for hook in repo.get("hooks", []):
-                if "push" in hook.get("stages", []):
+                stages = hook.get("stages", [])
+                if "push" in stages or "pre-push" in stages:
                     push_hooks.append(hook.get("id", ""))
 
         # Should have at least detect-private-key and detect-secrets on push

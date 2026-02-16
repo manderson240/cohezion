@@ -102,6 +102,12 @@ class TestGitUtils:
             capture_output=True,
             check=True,
         )
+        subprocess.run(
+            ["git", "config", "commit.gpgSign", "false"],
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
+        )
 
         # Create and commit a file
         test_file = tmp_path / "test.txt"
@@ -138,6 +144,12 @@ class TestGitUtils:
         )
         subprocess.run(
             ["git", "config", "user.name", "Test User"],
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
+        )
+        subprocess.run(
+            ["git", "config", "commit.gpgSign", "false"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
@@ -180,6 +192,12 @@ class TestGitUtils:
         )
         subprocess.run(
             ["git", "config", "user.name", "Test User"],
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
+        )
+        subprocess.run(
+            ["git", "config", "commit.gpgSign", "false"],
             cwd=tmp_path,
             capture_output=True,
             check=True,
