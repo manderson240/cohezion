@@ -13,6 +13,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import math
+import os
 import random
 import time
 from contextlib import asynccontextmanager
@@ -26,6 +27,11 @@ from cohezion.reliability import get_circuit
 from cohezion.reliability.monitor import get_resource_monitor
 
 logger = logging.getLogger(__name__)
+
+# Allowed CORS origins from environment, default to localhost only
+_CORS_ORIGINS = os.environ.get(
+    "COHEZION_CORS_ORIGINS", "http://localhost:3000,http://localhost:8080"
+).split(",")
 
 # ---------------------------------------------------------------------------
 # Globals initialised during lifespan
@@ -71,10 +77,10 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=_CORS_ORIGINS,
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "Authorization", "X-Agent-Token"],
 )
 
 

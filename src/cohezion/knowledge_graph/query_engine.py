@@ -44,8 +44,10 @@ class KnowledgeGraphQueryEngine:
         # Try DB first
         if self._db is not None:
             try:
+                safe_limit = min(int(limit), 10000)
                 rows = await self._db.query(
-                    f"SELECT * FROM agent_journey ORDER BY created_at DESC LIMIT {limit}"
+                    "SELECT * FROM agent_journey ORDER BY created_at DESC LIMIT $limit",
+                    {"limit": safe_limit},
                 )
                 if rows and isinstance(rows, list):
                     # Handle flat list or wrapped formats
