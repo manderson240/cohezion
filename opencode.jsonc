@@ -1,0 +1,40 @@
+{
+  // =============================================================================
+  // OPENCODE CONFIGURATION - MCP INTEGRATION
+  // =============================================================================
+  // This file configures OpenCode's connection to the cloud-vault-mcp server,
+  // providing Obsidian vault access for context-aware compound engineering.
+  //
+  // INTENDED AUDIENCE: OpenCode AI assistant ONLY
+  // OTHER TOOLS: Do not modify - this file is managed by OpenCode
+  //
+  // PURPOSE:
+  //   - Connect OpenCode to Obsidian vault via MCP (port 8360)
+  //   - Enable semantic context queries via vault_find_relevant_context
+  //   - Support decision logging, pattern extraction, experiment tracking
+  //
+  // SESSION START WORKFLOW:
+  //   On new session, use MCP tools to query vault for:
+  //     1. Recent decisions (vault_find_relevant_context: "decisions")
+  //     2. Reusable patterns (vault_find_relevant_context: "patterns")
+  //     3. Current project state (vault_pull_session_context)
+  //
+  // MCP TOOLS AVAILABLE:
+  //   Core: vault_read, vault_write, vault_search, vault_list
+  //   Context: vault_find_relevant_context, vault_log_decision,
+  //            vault_log_experiment, vault_extract_pattern
+  //   Session: vault_push_session_state, vault_pull_session_context
+  //
+  // SEE: AGENTS.md for detailed vault query instructions
+  // =============================================================================
+
+  "$schema": "https://opencode.ai/config.json",
+
+  "mcp": {
+    "cloud-vault": {
+      "type": "remote",
+      "url": "http://localhost:8360/mcp",
+      "enabled": true
+    }
+  }
+}

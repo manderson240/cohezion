@@ -28,7 +28,6 @@ make format && make lint && make all # Check → fix → verify
 **CRITICAL**: All session learnings MUST be logged to vault, not MEMORY.md directly.
 
 **MEMORY.md = Compiled Cache** (auto-generated weekly):
-- 95 lines (vs 1177 lines old version)
 - Recent decisions (last 7 days)
 - Most-used patterns (top 10)
 - Quick reference only
@@ -38,7 +37,30 @@ make format && make lint && make all # Check → fix → verify
 - Searchable via `vault_find_relevant_context(query)`
 - Survives across sessions, compounds knowledge
 
-**How to Log Learnings**:
+### ⚡ OpenCode MCP Integration (Session 56)
+
+**CONNECTION**: OpenCode connects to vault via MCP at `http://localhost:8360/mcp`
+
+**SESSION START WORKFLOW**:
+On new OpenCode session, the AI assistant should:
+1. Query vault for recent decisions: `vault_find_relevant_context("decisions session")}
+2. Query vault for patterns: `vault_find_relevant_context("patterns")}
+3. Check session context: `vault_pull_session_context`
+
+**MCP TOOLS AVAILABLE**:
+| Category | Tools |
+|----------|-------|
+| Core | vault_read, vault_write, vault_search, vault_list |
+| Context | vault_find_relevant_context, vault_log_decision, vault_log_experiment, vault_extract_pattern |
+| Session | vault_push_session_state, vault_pull_session_context |
+
+**MCP SERVER REQUIREMENT**: The cloud-vault-mcp server must be running:
+```bash
+cd cloud-vault-mcp && source .venv/bin/activate
+VAULT_PATH=/home/mike-anderson/vaults/cohezion-vault python3 -m src.mcp_server.main
+```
+
+**HOW TO LOG LEARNINGS**:
 ```python
 # Log architectural decisions
 vault_log_decision(
