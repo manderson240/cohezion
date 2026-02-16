@@ -2,12 +2,25 @@
   "cli_version": "0.4.2",
   "checkpoint_id": "10bb712dcdbf",
   "strategy": "manual-commit",
-  "branch": "master",
+  "branch": "track-c",
   "checkpoints_count": 0,
   "files_touched": [
+    ".github/workflows/phase-4a-tests.yml",
+    "PERFORMANCE_BASELINE.md",
+    "decisions/2026-02-11-lessons-compound-engineering-phase-1-complete.md",
+    "decisions/2026-02-12-phase-2-track-a-surrealdb-agent-reasoning-complete.md",
+    "decisions/2026-02-12-session-56-recap-phase-1-complete-phase-2-launched.md",
     "decisions/2026-02-14-phase-2-adversarial-review-corrected-status-and-path-forward.md",
     "decisions/2026-02-14-phase-4-implementation-progress.md",
     "decisions/2026-02-14-phase-4-retrospective-and-phase-5-overnight-plan.md",
+    "decisions/2026-02-14-phases-1-3-retrospective-key-learnings.md",
+    "docs/TRACK_A_GRAPHRAG_API.md",
+    "docs/TRACK_B_SCORING_API.md",
+    "docs/TRACK_C_IMPACT_API.md",
+    "inbox/HANDOFF-lessons-phase-2-decisions-linking.md",
+    "inbox/PHASE-2-KICKOFF-TEAM-DIRECTION.md",
+    "inbox/SESSION-58-TRACK-A-COMPLETE-TRACK-B-READY.md",
+    "inbox/TRACK-B-READY-TO-START-2026-02-13.md",
     "obsidian-plugin/3d-graph-plugin/.gitignore",
     "obsidian-plugin/3d-graph-plugin/DECISION_ANALYSIS_GUIDE.md",
     "obsidian-plugin/3d-graph-plugin/PHASE_4_CHANGELOG.md",
@@ -30,7 +43,11 @@
     "obsidian-plugin/3d-graph-plugin/src/visualizations/ContradictionMatrix.ts",
     "obsidian-plugin/3d-graph-plugin/src/visualizations/DecisionNodeRenderer.ts",
     "obsidian-plugin/3d-graph-plugin/src/visualizations/ReasoningFlowchart.ts",
-    "obsidian-plugin/3d-graph-plugin/tsconfig.json"
+    "obsidian-plugin/3d-graph-plugin/tsconfig.json",
+    "pytest.ini",
+    "src/schema_definitions.py",
+    "tests/conftest.py",
+    "tox.ini"
   ],
   "sessions": [
     {
@@ -46,13 +63,20 @@
       "context": "/10/bb712dcdbf/1/context.md",
       "content_hash": "/10/bb712dcdbf/1/content_hash.txt",
       "prompt": "/10/bb712dcdbf/1/prompt.txt"
+    },
+    {
+      "metadata": "/10/bb712dcdbf/2/metadata.json",
+      "transcript": "/10/bb712dcdbf/2/full.jsonl",
+      "context": "/10/bb712dcdbf/2/context.md",
+      "content_hash": "/10/bb712dcdbf/2/content_hash.txt",
+      "prompt": "/10/bb712dcdbf/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 908,
-    "cache_creation_tokens": 250428,
-    "cache_read_tokens": 9356134,
-    "output_tokens": 33654,
-    "api_call_count": 107
+    "input_tokens": 3944,
+    "cache_creation_tokens": 2598494,
+    "cache_read_tokens": 41099555,
+    "output_tokens": 100514,
+    "api_call_count": 390
   }
 }
