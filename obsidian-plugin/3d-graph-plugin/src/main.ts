@@ -137,7 +137,31 @@ export default class GraphPlugin extends Plugin {
     // Register settings tab in plugin settings
     this.addSettingTab(new GraphSettingTab(this.app, this));
 
+    // Load Chart.js from CDN for dashboard visualizations (Phase 7)
+    this.loadChartJS();
+
     console.log('3D Graph Plugin loaded (Phase 7: Health Dashboard + Cascade Timeline integrated)');
+  }
+
+  /**
+   * Load Chart.js library from CDN for dashboard visualizations
+   * Provides chart rendering capabilities for metrics display
+   */
+  private loadChartJS(): void {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js';
+    script.async = true;
+
+    script.onload = () => {
+      console.log('✓ Chart.js loaded successfully');
+    };
+
+    script.onerror = () => {
+      console.error('❌ Failed to load Chart.js from CDN');
+      new Notice('⚠️ Chart visualization library failed to load. Metrics will display as tables.');
+    };
+
+    document.head.appendChild(script);
   }
 
   /**

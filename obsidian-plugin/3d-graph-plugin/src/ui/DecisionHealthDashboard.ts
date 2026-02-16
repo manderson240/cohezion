@@ -53,24 +53,42 @@ export class DecisionHealthDashboard extends Modal {
     const { contentEl } = this;
     contentEl.addClass('decision-health-dashboard');
 
-    // Check if Chart.js is available
-    if (!window.Chart) {
-      new Notice('Warning: Chart.js not loaded. Metrics will display as tables.');
+    try {
+      // SurrealDB health check before anything else
+      const isHealthy = await this.checkSurrealDBHealth();
+      if (!isHealthy) {
+        this.showError(
+          'SurrealDB Connection Lost',
+          'Cannot reach SurrealDB on http://localhost:8000.\n' +
+          'Please verify it is running: surreal start'
+        );
+        return;
+      }
+
+      // Check if Chart.js is available
+      if (!window.Chart) {
+        new Notice('⚠️ Chart.js not loaded. Metrics will display as tables.');
+      }
+
+      // Create dashboard structure
+      this.createDashboard(contentEl);
+
+      // Load data from SurrealDB
+      await this.loadData();
+
+      // Render all metrics
+      await this.render();
+
+      // Set up auto-refresh (every 30 seconds)
+      this.refreshInterval = window.setInterval(() => {
+        this.refresh();
+      }, 30000);
+    } catch (error) {
+      this.showFatalError(
+        'Dashboard Load Failed',
+        `${(error as Error).message}\n\nSetup: npm run setup:surrealdb`
+      );
     }
-
-    // Create dashboard structure
-    this.createDashboard(contentEl);
-
-    // Load data from SurrealDB
-    await this.loadData();
-
-    // Render all metrics
-    await this.render();
-
-    // Set up auto-refresh (every 30 seconds)
-    this.refreshInterval = window.setInterval(() => {
-      this.refresh();
-    }, 30000);
   }
 
   onClose(): void {
@@ -159,34 +177,53 @@ export class DecisionHealthDashboard extends Modal {
   }
 
   /**
-   * Load data from SurrealDB
+   * Load data from SurrealDB with visible error handling
    */
   private async loadData(): Promise<void> {
     try {
-      // Note: These queries assume Phase 6 has populated the SurrealDB tables
-      // Contradictions
+      // Load contradictions with error handling
       try {
         const contradictionsResult = await this.dbClient.executeQuery(
           'SELECT * FROM decision_contradictions;'
         );
-        this.contradictions = (contradictionsResult as any)?.result || [];
+        if (!contradictionsResult || !Array.isArray((contradictionsResult as any)?.result)) {
+          throw new Error('decision_contradictions returned invalid data');
+        }
+        this.contradictions = (contradictionsResult as any).result;
+        console.log(`✓ Loaded ${this.contradictions.length} contradictions`);
       } catch (e) {
-        console.log('Contradictions table not yet available');
+        this.showWarning(
+          'Contradictions Unavailable',
+          `Could not load contradiction data. Some metrics will be empty.\n\n` +
+          `Error: ${(e as Error).message}`
+        );
         this.contradictions = [];
       }
 
-      // Impacts
+      // Load impacts with error handling
       try {
         const impactsResult = await this.dbClient.executeQuery(
           'SELECT * FROM decision_impacts;'
         );
-        this.impacts = (impactsResult as any)?.result || [];
+        if (!impactsResult || !Array.isArray((impactsResult as any)?.result)) {
+          throw new Error('decision_impacts returned invalid data');
+        }
+        this.impacts = (impactsResult as any).result;
+        console.log(`✓ Loaded ${this.impacts.length} impacts`);
       } catch (e) {
-        console.log('Impacts table not yet available');
+        this.showWarning(
+          'Decision Impacts Unavailable',
+          `Could not load impact data. Impact metrics will be empty.\n\n` +
+          `Error: ${(e as Error).message}`
+        );
         this.impacts = [];
       }
+
+      console.log('Dashboard data loaded successfully');
     } catch (error) {
-      console.error('Failed to load dashboard data:', error);
+      throw new Error(
+        `Failed to load dashboard data: ${(error as Error).message}`
+      );
     }
   }
 
@@ -584,5 +621,98 @@ export class DecisionHealthDashboard extends Modal {
     } catch (error) {
       console.error('Dashboard refresh failed:', error);
     }
+  }
+
+  /**
+   * Check if SurrealDB is healthy and accessible
+   */
+  private async checkSurrealDBHealth(): Promise<boolean> {
+    try {
+      const response = await fetch('http://localhost:8000/health', {
+        method: 'GET',
+        timeout: 5000,
+      } as any);
+      return response.status === 200;
+    } catch (err) {
+      console.warn('SurrealDB health check failed:', (err as Error).message);
+      return false;
+    }
+  }
+
+  /**
+   * Display user-visible error message with red styling and retry button
+   */
+  private showError(title: string, message: string): void {
+    const contentEl = document.getElementById('dashboard-content') || this.contentEl;
+    const errorDiv = contentEl.createDiv('dashboard-error');
+
+    errorDiv.innerHTML = `
+      <div style="padding: 16px; background: #fee; border: 1px solid #fcc; border-radius: 4px; margin-bottom: 16px;">
+        <strong style="color: #c33;">🔴 ${title}</strong>
+        <p style="margin-top: 8px; color: #666; font-size: 12px; white-space: pre-wrap;">${this.escapeHtml(message)}</p>
+        <button id="error-retry-btn" style="margin-top: 8px; padding: 6px 12px; background: #c33; color: white; border: none; border-radius: 3px; cursor: pointer;">Retry</button>
+      </div>
+    `;
+
+    const retryBtn = document.getElementById('error-retry-btn');
+    if (retryBtn) {
+      retryBtn.addEventListener('click', () => {
+        errorDiv.remove();
+        this.onOpen();  // Retry opening the dashboard
+      });
+    }
+  }
+
+  /**
+   * Display user-visible warning message with yellow styling
+   */
+  private showWarning(title: string, message: string): void {
+    const contentEl = document.getElementById('dashboard-content') || this.contentEl;
+    const warningDiv = contentEl.createDiv('dashboard-warning');
+
+    warningDiv.innerHTML = `
+      <div style="padding: 12px; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 4px; margin-bottom: 12px;">
+        <strong style="color: #d97706;">⚠️ ${title}</strong>
+        <p style="margin-top: 6px; color: #666; font-size: 11px; white-space: pre-wrap;">${this.escapeHtml(message)}</p>
+      </div>
+    `;
+  }
+
+  /**
+   * Display fatal error message with red styling and setup guidance
+   */
+  private showFatalError(title: string, message: string): void {
+    const contentEl = this.contentEl;
+    contentEl.empty();
+
+    const fatalDiv = contentEl.createDiv('dashboard-fatal-error');
+    fatalDiv.innerHTML = `
+      <div style="padding: 20px; background: #fee; border: 2px solid #c33; border-radius: 4px; margin: 16px 0;">
+        <strong style="color: #c33; font-size: 16px;">🔴 FATAL: ${title}</strong>
+        <pre style="margin-top: 12px; color: #666; font-size: 11px; overflow-x: auto; background: #f5f5f5; padding: 12px; border-radius: 3px;">${this.escapeHtml(message)}</pre>
+        <button id="setup-help-btn" style="margin-top: 12px; padding: 8px 16px; background: #c33; color: white; border: none; border-radius: 3px; cursor: pointer; font-weight: bold;">Setup Instructions</button>
+      </div>
+    `;
+
+    const setupBtn = document.getElementById('setup-help-btn');
+    if (setupBtn) {
+      setupBtn.addEventListener('click', () => {
+        new Notice('See docs/SURREALDB_SETUP.md for complete setup instructions');
+      });
+    }
+  }
+
+  /**
+   * Escape HTML special characters for safe display
+   */
+  private escapeHtml(text: string): string {
+    const map: {[key: string]: string} = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, (m) => map[m]);
   }
 }
