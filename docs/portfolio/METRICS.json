@@ -1,0 +1,77 @@
+{
+  "project": "COHEZION",
+  "version": "1.0.0",
+  "generated_at": "2026-02-16T06:35:00Z",
+  "anthropic_alignment": {
+    "target_role": "Research Engineer, Universes",
+    "core_requirements": [
+      "Long-horizon agentic tasks",
+      "Navigate ambiguity",
+      "Robust infrastructure",
+      "Research taste & empirical science"
+    ]
+  },
+  "key_metrics": {
+    "simulations": {
+      "total_run": 24000,
+      "single_session_record": 24000,
+      "streams": 3,
+      "sims_per_hour_physics": 15000
+    },
+    "skills": {
+      "total": 100,
+      "evaluated": 54,
+      "approved": 41,
+      "needs_improvement": 9,
+      "rejected": 4
+    },
+    "flume": {
+      "architecture": "VAE",
+      "input_dimensions": 2048,
+      "latent_dimensions": 256,
+      "projected_dimensions": 12,
+      "compression_ratio": "8:1",
+      "checkpoints_available": ["ep2", "ep50"],
+      "latest_checkpoint": "flume_vae_ep50.pt"
+    },
+    "r_zero": {
+      "protocol": "Pragmatic R-Zero",
+      "triad": ["Challenger", "Solver", "Pragmatist"],
+      "epochs_completed": 33,
+      "difficulty_range": [1.0, 2.6],
+      "anti_fragile_hypothesis": "proven"
+    },
+    "journeys": {
+      "dimensions": 12,
+      "tracking": "enabled",
+      "quality_formula": "coherence*0.5 + smoothness*0.3 + convergence*0.2",
+      "persistence": "SurrealDB + vault"
+    },
+    "agents": {
+      "total": 10,
+      "key_agents": [
+        "architect_agent",
+        "lab_agent",
+        "synthesizer",
+        "analyst",
+        "critic",
+        "security_guard_agent"
+      ]
+    }
+  },
+  "infrastructure": {
+    "async_orchestration": "MassSimulator",
+    "parallel_streams": ["Physics", "Societal", "Linguistic"],
+    "observability": "Prometheus metrics",
+    "memory_layer": "Mem0 integration",
+    "knowledge_graph": "SurrealDB + graph_ingestor",
+    "capability_discovery": "CapabilityRegistry + MCP"
+  },
+  "portfolio_status": {
+    "flume_analysis": "in_progress",
+    "journey_visualization": "pending",
+    "research_paper": "enhancement_pending",
+    "readme": "pending",
+    "artifacts_index": "pending"
+  }
+}

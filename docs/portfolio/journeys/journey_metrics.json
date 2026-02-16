@@ -1,0 +1,40 @@
+{
+  "dimensions": 12,
+  "dimension_breakdown": {
+    "spatial": "3D (x, y, z)",
+    "temporal": "1D (t)",
+    "brane": "8D (theoretical framework)",
+    "total": "12D"
+  },
+  "projection_method": "Holographic (2048D \u2192 12D)",
+  "quality_metrics": {
+    "coherence": "Agent skill alignment (0.0-1.0)",
+    "smoothness": "Trajectory continuity (0.0-1.0)",
+    "convergence": "Goal-directedness (0.0-1.0)",
+    "formula": "coherence*0.5 + smoothness*0.3 + convergence*0.2"
+  },
+  "operation_types": [
+    "generate",
+    "analyze",
+    "search",
+    "transform",
+    "persist"
+  ],
+  "modulation_profiles": {
+    "generate": "Emphasizes creativity dimensions (high variance)",
+    "analyze": "Emphasizes precision dimensions (low variance)",
+    "search": "Emphasizes exploration dimensions (medium variance)",
+    "transform": "Emphasizes adaptation dimensions",
+    "persist": "Emphasizes stability dimensions"
+  },
+  "persistence": {
+    "primary": "SurrealDB graph database",
+    "secondary": "Obsidian vault (markdown)",
+    "tertiary": "JSONL logs"
+  },
+  "anthropic_alignment": {
+    "long_horizon": "Tracks agent progress across extended simulation campaigns",
+    "ambiguity": "Captures divergent trajectories and convergence points",
+    "robustness": "Non-blocking persistence with checkpoint recovery"
+  }
+}
