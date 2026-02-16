@@ -1,0 +1,74 @@
+{
+  "timestamp": "2026-02-16T04:18:46.469012+00:00",
+  "audit_type": "pre",
+  "checks": [
+    {
+      "name": "package_structure",
+      "status": "warn",
+      "value": 8,
+      "details": "Missing __init__.py: ['src/cohezion/deployment', 'src/cohezion/api/services', 'src/cohezion/knowledge_graph/audits', 'src/cohezion/knowledge_graph/reports', 'src/cohezion/knowledge_graph/universe_nodes']"
+    },
+    {
+      "name": "test_files",
+      "status": "pass",
+      "value": 177,
+      "details": "Found 177 test files"
+    },
+    {
+      "name": "tests_passing",
+      "status": "fail",
+      "value": false,
+      "details": ""
+    },
+    {
+      "name": "skills_count",
+      "status": "pass",
+      "value": 132,
+      "details": "Found 132 skill files"
+    },
+    {
+      "name": "api_health",
+      "status": "warn",
+      "value": false,
+      "details": "API not reachable"
+    },
+    {
+      "name": "ollama_slms",
+      "status": "warn",
+      "value": 0,
+      "details": "[Errno 111] Connection refused"
+    },
+    {
+      "name": "documentation",
+      "status": "warn",
+      "value": 0,
+      "details": "Found 0 documentation files"
+    },
+    {
+      "name": "universe_nodes",
+      "status": "warn",
+      "value": {
+        "journeys": 0,
+        "simulations": 0
+      },
+      "details": "0 journeys, 0 simulations"
+    },
+    {
+      "name": "components",
+      "status": "pass",
+      "value": 7,
+      "details": "Components: swarm, api, security, reliability, healing, learning, mcp"
+    },
+    {
+      "name": "code_size",
+      "status": "pass",
+      "value": 87307,
+      "details": "351 Python files, 87,307 lines"
+    }
+  ],
+  "summary": {
+    "pass": 4,
+    "warn": 5,
+    "fail": 1
+  }
+}
