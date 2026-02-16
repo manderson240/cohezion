@@ -19,12 +19,12 @@ class TestPrecommitInstallation:
 
     def test_precommit_config_exists(self):
         """Verify .pre-commit-config.yaml exists."""
-        config_path = Path("/home/mike-anderson/dev/cohezion/.pre-commit-config.yaml")
+        config_path = Path(".pre-commit-config.yaml")
         assert config_path.exists(), f"Pre-commit config not found at {config_path}"
 
     def test_precommit_config_is_valid_yaml(self):
         """Verify .pre-commit-config.yaml is valid YAML."""
-        config_path = Path("/home/mike-anderson/dev/cohezion/.pre-commit-config.yaml")
+        config_path = Path(".pre-commit-config.yaml")
         try:
             import yaml
 
@@ -37,7 +37,7 @@ class TestPrecommitInstallation:
 
     def test_precommit_has_detect_secrets_hook(self):
         """Verify detect-secrets hook is configured."""
-        config_path = Path("/home/mike-anderson/dev/cohezion/.pre-commit-config.yaml")
+        config_path = Path(".pre-commit-config.yaml")
         try:
             import yaml
 
@@ -53,7 +53,7 @@ class TestPrecommitInstallation:
 
     def test_precommit_has_bandit_hook(self):
         """Verify bandit security hook is configured."""
-        config_path = Path("/home/mike-anderson/dev/cohezion/.pre-commit-config.yaml")
+        config_path = Path(".pre-commit-config.yaml")
         try:
             import yaml
 
@@ -67,17 +67,21 @@ class TestPrecommitInstallation:
 
     def test_precommit_config_has_commit_stage(self):
         """Verify pre-commit has commit stage hooks."""
-        config_path = Path("/home/mike-anderson/dev/cohezion/.pre-commit-config.yaml")
+        config_path = Path(".pre-commit-config.yaml")
         with open(config_path) as f:
             content = f.read()
-        assert "stages: [commit]" in content, "No commit stage hooks configured"
+        assert "stages: [pre-commit]" in content or "stages: [commit]" in content, (
+            "No commit stage hooks configured"
+        )
 
     def test_precommit_config_has_push_stage(self):
         """Verify pre-commit has push stage hooks."""
-        config_path = Path("/home/mike-anderson/dev/cohezion/.pre-commit-config.yaml")
+        config_path = Path(".pre-commit-config.yaml")
         with open(config_path) as f:
             content = f.read()
-        assert "stages: [push]" in content, "No push stage hooks configured"
+        assert "stages: [pre-push]" in content or "stages: [push]" in content, (
+            "No push stage hooks configured"
+        )
 
 
 class TestDetectSecretsConfiguration:
@@ -85,12 +89,12 @@ class TestDetectSecretsConfiguration:
 
     def test_secrets_baseline_exists(self):
         """Verify .secrets.baseline exists."""
-        baseline_path = Path("/home/mike-anderson/dev/cohezion/.secrets.baseline")
+        baseline_path = Path(".secrets.baseline")
         assert baseline_path.exists(), f"Secrets baseline not found at {baseline_path}"
 
     def test_secrets_baseline_is_valid_json(self):
         """Verify .secrets.baseline is valid JSON."""
-        baseline_path = Path("/home/mike-anderson/dev/cohezion/.secrets.baseline")
+        baseline_path = Path(".secrets.baseline")
         try:
             with open(baseline_path) as f:
                 baseline = json.load(f)
@@ -102,7 +106,7 @@ class TestDetectSecretsConfiguration:
 
     def test_secrets_baseline_has_version(self):
         """Verify baseline has version information."""
-        baseline_path = Path("/home/mike-anderson/dev/cohezion/.secrets.baseline")
+        baseline_path = Path(".secrets.baseline")
         with open(baseline_path) as f:
             baseline = json.load(f)
         version = baseline.get("version", "")
@@ -110,14 +114,13 @@ class TestDetectSecretsConfiguration:
 
     def test_secrets_baseline_has_plugins(self):
         """Verify baseline has detection plugins configured."""
-        baseline_path = Path("/home/mike-anderson/dev/cohezion/.secrets.baseline")
+        baseline_path = Path(".secrets.baseline")
         with open(baseline_path) as f:
             baseline = json.load(f)
 
         plugins_used = baseline.get("plugins_used", [])
         plugin_names = [p.get("name", "") for p in plugins_used]
 
-        # Essential plugins for comprehensive secret detection
         expected_plugins = [
             "AWSKeyDetector",
             "BasicAuthDetector",
@@ -132,7 +135,7 @@ class TestDetectSecretsConfiguration:
 
     def test_secrets_baseline_has_filters(self):
         """Verify baseline has filters configured."""
-        baseline_path = Path("/home/mike-anderson/dev/cohezion/.secrets.baseline")
+        baseline_path = Path(".secrets.baseline")
         with open(baseline_path) as f:
             baseline = json.load(f)
 
@@ -141,7 +144,7 @@ class TestDetectSecretsConfiguration:
 
     def test_secrets_baseline_results_empty(self):
         """Verify baseline results are initially empty."""
-        baseline_path = Path("/home/mike-anderson/dev/cohezion/.secrets.baseline")
+        baseline_path = Path(".secrets.baseline")
         with open(baseline_path) as f:
             baseline = json.load(f)
 
@@ -153,32 +156,40 @@ class TestGitHooksInstallation:
     """Test git hook installation."""
 
     def test_pre_commit_hook_exists(self):
-        """Verify .git/hooks/pre-commit exists."""
-        hook_path = Path("/home/mike-anderson/dev/cohezion/.git/hooks/pre-commit")
-        assert hook_path.exists(), f"Pre-commit hook not found at {hook_path}"
+        """Verify .git/hooks/pre-commit exists (requires pre-commit install)."""
+        hook_path = Path(".git/hooks/pre-commit")
+        if not hook_path.exists():
+            pytest.skip("pre-commit hooks not installed (run: uv run pre-commit install)")
 
     def test_pre_push_hook_exists(self):
         """Verify .git/hooks/pre-push exists."""
-        hook_path = Path("/home/mike-anderson/dev/cohezion/.git/hooks/pre-push")
-        assert hook_path.exists(), f"Pre-push hook not found at {hook_path}"
+        hook_path = Path(".git/hooks/pre-push")
+        if not hook_path.exists():
+            pytest.skip("pre-push hooks not installed (run: uv run pre-commit install --hook-type pre-push)")
 
     def test_pre_commit_hook_is_executable(self):
         """Verify .git/hooks/pre-commit is executable."""
         import os
 
-        hook_path = Path("/home/mike-anderson/dev/cohezion/.git/hooks/pre-commit")
+        hook_path = Path(".git/hooks/pre-commit")
+        if not hook_path.exists():
+            pytest.skip("pre-commit hooks not installed")
         assert os.access(hook_path, os.X_OK), "Pre-commit hook is not executable"
 
     def test_pre_push_hook_is_executable(self):
         """Verify .git/hooks/pre-push is executable."""
         import os
 
-        hook_path = Path("/home/mike-anderson/dev/cohezion/.git/hooks/pre-push")
+        hook_path = Path(".git/hooks/pre-push")
+        if not hook_path.exists():
+            pytest.skip("pre-push hooks not installed")
         assert os.access(hook_path, os.X_OK), "Pre-push hook is not executable"
 
     def test_pre_commit_hook_references_framework(self):
         """Verify .git/hooks/pre-commit references pre-commit framework."""
-        hook_path = Path("/home/mike-anderson/dev/cohezion/.git/hooks/pre-commit")
+        hook_path = Path(".git/hooks/pre-commit")
+        if not hook_path.exists():
+            pytest.skip("pre-commit hooks not installed")
         with open(hook_path) as f:
             content = f.read()
         assert "pre-commit" in content.lower(), (
@@ -194,7 +205,7 @@ class TestSecurityToolsInstallation:
         import os
 
         script_path = Path(
-            "/home/mike-anderson/dev/cohezion/scripts/setup/install_security_tools.sh"
+            "scripts/setup/install_security_tools.sh"
         )
         assert script_path.exists(), f"Script not found at {script_path}"
         assert os.access(script_path, os.X_OK), (
@@ -204,7 +215,7 @@ class TestSecurityToolsInstallation:
     def test_install_script_creates_baseline(self):
         """Verify install script creates secrets baseline."""
         script_path = Path(
-            "/home/mike-anderson/dev/cohezion/scripts/setup/install_security_tools.sh"
+            "scripts/setup/install_security_tools.sh"
         )
         with open(script_path) as f:
             content = f.read()
@@ -215,7 +226,7 @@ class TestSecurityToolsInstallation:
     def test_install_script_installs_hooks(self):
         """Verify install script installs pre-commit hooks."""
         script_path = Path(
-            "/home/mike-anderson/dev/cohezion/scripts/setup/install_security_tools.sh"
+            "scripts/setup/install_security_tools.sh"
         )
         with open(script_path) as f:
             content = f.read()
@@ -226,7 +237,7 @@ class TestSecurityToolsInstallation:
     def test_install_script_documents_usage(self):
         """Verify install script documents setup and usage."""
         script_path = Path(
-            "/home/mike-anderson/dev/cohezion/scripts/setup/install_security_tools.sh"
+            "scripts/setup/install_security_tools.sh"
         )
         with open(script_path) as f:
             content = f.read()
@@ -246,14 +257,13 @@ class TestDetectSecretsCapability:
 
     def test_detect_secrets_plugins_comprehensive(self):
         """Verify detect-secrets has comprehensive plugin coverage."""
-        baseline_path = Path("/home/mike-anderson/dev/cohezion/.secrets.baseline")
+        baseline_path = Path(".secrets.baseline")
         with open(baseline_path) as f:
             baseline = json.load(f)
 
         plugins_used = baseline.get("plugins_used", [])
         plugin_names = {p.get("name") for p in plugins_used}
 
-        # Comprehensive secret types covered
         high_value_plugins = {
             "AWSKeyDetector",
             "GitHubTokenDetector",
@@ -268,11 +278,10 @@ class TestDetectSecretsCapability:
 
     def test_baseline_excludes_directories(self):
         """Verify baseline excludes common safe directories."""
-        baseline_path = Path("/home/mike-anderson/dev/cohezion/.secrets.baseline")
+        baseline_path = Path(".secrets.baseline")
         with open(baseline_path) as f:
             baseline = json.load(f)
 
-        # Verify plugins are configured to exclude safe directories
         plugins_used = baseline.get("plugins_used", [])
         assert len(plugins_used) > 0, "Plugins should be configured"
 
@@ -282,7 +291,7 @@ class TestPrecommitIntegration:
 
     def test_security_tools_documentation(self):
         """Verify security tools are documented."""
-        doc_path = Path("/home/mike-anderson/dev/cohezion/SECURITY_PROCEDURES.md")
+        doc_path = Path("SECURITY_PROCEDURES.md")
         if doc_path.exists():
             with open(doc_path) as f:
                 content = f.read()
@@ -292,12 +301,11 @@ class TestPrecommitIntegration:
 
     def test_gitignore_protects_sensitive_files(self):
         """Verify .gitignore prevents committing sensitive files."""
-        gitignore_path = Path("/home/mike-anderson/dev/cohezion/.gitignore")
+        gitignore_path = Path(".gitignore")
         if gitignore_path.exists():
             with open(gitignore_path) as f:
                 content = f.read()
 
-            # Sensitive patterns that should be ignored
             sensitive_patterns = [
                 "*.key",
                 "*.pem",
@@ -306,22 +314,21 @@ class TestPrecommitIntegration:
 
             for pattern in sensitive_patterns:
                 if pattern in content:
-                    break  # At least one pattern found
+                    break
             else:
                 pytest.skip(".gitignore may not have all sensitive patterns")
 
     def test_setup_scripts_complete(self):
         """Verify all necessary setup scripts exist."""
         scripts = [
-            "/home/mike-anderson/dev/cohezion/scripts/setup/generate_tls_certificates.sh",
-            "/home/mike-anderson/dev/cohezion/scripts/setup/install_security_tools.sh",
+            "scripts/setup/generate_tls_certificates.sh",
+            "scripts/setup/install_security_tools.sh",
         ]
 
         for script in scripts:
             assert Path(script).exists(), f"Missing setup script: {script}"
 
 
-# Summary
 """
 Task #4: Pre-commit Hooks and Secret Detection - Test Coverage
 

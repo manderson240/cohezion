@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -51,85 +52,62 @@ def event_loop_fixture():
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
-        # No running loop, create a new one
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         yield
         loop.close()
     else:
-        # Already have a running loop (pytest-asyncio)
         yield
+
+
+def _reset_all_singletons() -> None:
+    """Reset critical singletons to prevent state pollution between tests."""
+    import cohezion.api as api_module
+    import cohezion.core.persistence.surreal_client as surreal_module
+    from cohezion.compound.batch_executor import BatchableExecutor
+    from cohezion.compound.executor import ExecutorFactory
+    from cohezion.concurrency.ollama_gate import reset_gate
+    from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
+    from cohezion.cost_optimization.cost_tracker import SessionCostTracker
+    from cohezion.swarm.cost_aware_router import CostAwareRouter
+    from cohezion.swarm.model_pool_manager import reset_pool_manager
+
+    reset_gate()
+    reset_pool_manager()
+    ExecutorFactory.reset_singleton()
+    if hasattr(BatchableExecutor, "reset_singleton"):
+        BatchableExecutor.reset_singleton()
+    if hasattr(CostAwareRouter, "reset_singleton"):
+        CostAwareRouter.reset_singleton()
+    if hasattr(SessionCostTracker, "reset_instance"):
+        SessionCostTracker.reset_instance()
+    if hasattr(BudgetEnforcer, "reset_instance"):
+        BudgetEnforcer.reset_instance()
+
+    if (
+        hasattr(surreal_module, "_SHARED_STORE")
+        and surreal_module._SHARED_STORE is not None
+    ):
+        if hasattr(surreal_module._SHARED_STORE, "_data"):
+            surreal_module._SHARED_STORE._data.clear()
+    surreal_module._SHARED_STORE = None
+
+    if hasattr(api_module, "_vae_trainer"):
+        api_module._vae_trainer = None
+
+    if hasattr(api_module, "_rl_policy"):
+        api_module._rl_policy = None
+
+    logging.getLogger().handlers.clear()
+    for name in list(logging.Logger.manager.loggerDict.keys()):
+        lgr = logging.getLogger(name)
+        lgr.handlers.clear()
+        lgr.propagate = True
 
 
 @pytest.fixture(autouse=True)
 def reset_singletons():
-    """Auto-reset critical singletons before each test to prevent state pollution."""
-    import logging
-    from cohezion.compound.executor import ExecutorFactory
-    from cohezion.compound.batch_executor import BatchableExecutor
-    from cohezion.swarm.cost_aware_router import CostAwareRouter
-    from cohezion.cost_optimization.cost_tracker import SessionCostTracker
-    from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
-    from cohezion.concurrency.ollama_gate import reset_gate
-    from cohezion.swarm.model_pool_manager import reset_pool_manager
-
-    # Reset before test
-    reset_gate()  # Reset OllamaGate singleton
-    reset_pool_manager()  # Reset ModelPoolManager singleton
-    ExecutorFactory.reset_singleton()
-    if hasattr(BatchableExecutor, "reset_singleton"):
-        BatchableExecutor.reset_singleton()
-    if hasattr(CostAwareRouter, "reset_singleton"):
-        CostAwareRouter.reset_singleton()
-    if hasattr(SessionCostTracker, "reset_instance"):
-        SessionCostTracker.reset_instance()
-    if hasattr(BudgetEnforcer, "reset_instance"):
-        BudgetEnforcer.reset_instance()
-
-    # Reset FLUME VAE singleton to prevent state pollution across tests
-    import cohezion.api as api_module
-    if hasattr(api_module, '_vae_trainer'):
-        api_module._vae_trainer = None
-
-    # Reset RL policy singleton as well
-    if hasattr(api_module, '_rl_policy'):
-        api_module._rl_policy = None
-
-    # Clear ALL logger handlers to prevent test pollution
-    # Clear root logger
-    logging.getLogger().handlers.clear()
-    # Clear all named loggers
-    for name in list(logging.Logger.manager.loggerDict.keys()):
-        logger = logging.getLogger(name)
-        logger.handlers.clear()
-        logger.propagate = True  # Reset propagation
-
+    """Auto-reset critical singletons before and after each test."""
+    _reset_all_singletons()
     yield
-
-    # Reset after test
-    reset_gate()  # Reset OllamaGate singleton
-    reset_pool_manager()  # Reset ModelPoolManager singleton
-    ExecutorFactory.reset_singleton()
-    if hasattr(BatchableExecutor, "reset_singleton"):
-        BatchableExecutor.reset_singleton()
-    if hasattr(CostAwareRouter, "reset_singleton"):
-        CostAwareRouter.reset_singleton()
-    if hasattr(SessionCostTracker, "reset_instance"):
-        SessionCostTracker.reset_instance()
-    if hasattr(BudgetEnforcer, "reset_instance"):
-        BudgetEnforcer.reset_instance()
-
-    # Reset FLUME VAE singleton after test
-    if hasattr(api_module, '_vae_trainer'):
-        api_module._vae_trainer = None
-
-    # Reset RL policy singleton after test
-    if hasattr(api_module, '_rl_policy'):
-        api_module._rl_policy = None
-
-    # Clear ALL logger handlers after test too
-    logging.getLogger().handlers.clear()
-    for name in list(logging.Logger.manager.loggerDict.keys()):
-        logger = logging.getLogger(name)
-        logger.handlers.clear()
-        logger.propagate = True
+    _reset_all_singletons()

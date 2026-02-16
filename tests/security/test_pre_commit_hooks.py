@@ -36,12 +36,10 @@ class TestPreCommitConfiguration:
 
         repo_ids = [repo.get("repo", "") for repo in config.get("repos", [])]
 
-        # Should include detect-private-key hook
         assert any("pre-commit-hooks" in r for r in repo_ids), (
             "Missing detect-private-key hook"
         )
 
-        # Should include detect-secrets
         assert any("detect-secrets" in r for r in repo_ids), (
             "Missing detect-secrets hook"
         )
@@ -85,15 +83,16 @@ class TestPreCommitConfiguration:
         with open(config_file) as f:
             config = yaml.safe_load(f)
 
-        # Verify hooks have stages defined
         for repo in config.get("repos", []):
             for hook in repo.get("hooks", []):
-                # Hooks should have stages defined (commit or push)
                 if "stages" in hook:
                     assert hook["stages"] in [
                         ["commit"],
                         ["push"],
                         ["commit", "push"],
+                        ["pre-commit"],
+                        ["pre-push"],
+                        ["pre-commit", "pre-push"],
                     ], f"Invalid stages: {hook.get('stages')}"
 
     def test_credential_detection_hook_configured(self):
@@ -104,7 +103,6 @@ class TestPreCommitConfiguration:
         with open(config_file) as f:
             config = yaml.safe_load(f)
 
-        # Find detect-secrets hook
         found_detect_secrets = False
         for repo in config.get("repos", []):
             if "detect-secrets" in repo.get("repo", ""):
@@ -114,7 +112,6 @@ class TestPreCommitConfiguration:
 
                 for hook in hooks:
                     assert hook.get("id") == "detect-secrets"
-                    # Should use baseline
                     assert ".secrets.baseline" in str(hook.get("args", [])), (
                         "detect-secrets should use baseline"
                     )
@@ -129,7 +126,6 @@ class TestPreCommitConfiguration:
         with open(config_file) as f:
             config = yaml.safe_load(f)
 
-        # Find bandit hook
         found_bandit = False
         for repo in config.get("repos", []):
             if "bandit" in repo.get("repo", ""):
@@ -139,8 +135,8 @@ class TestPreCommitConfiguration:
 
                 for hook in hooks:
                     assert hook.get("id") == "bandit"
-                    # Should be on push stage
-                    assert "push" in hook.get("stages", [])
+                    stages = hook.get("stages", [])
+                    assert "push" in stages or "pre-push" in stages
 
         assert found_bandit, "Bandit security check hook not found"
 
@@ -152,7 +148,6 @@ class TestPreCommitConfiguration:
         with open(config_file) as f:
             config = yaml.safe_load(f)
 
-        # Find detect-private-key hook
         found_private_key = False
         for repo in config.get("repos", []):
             for hook in repo.get("hooks", []):
@@ -172,11 +167,9 @@ class TestSecretDetection:
         with open(baseline_file) as f:
             baseline = json.load(f)
 
-        # Verify plugins are configured
         plugins = baseline.get("plugins_used", [])
         assert len(plugins) > 0, "No plugins configured in detect-secrets"
 
-        # Common plugins should be included
         plugin_names = [p.get("name") for p in plugins]
         assert "AWSKeyDetector" in plugin_names
         assert "BasicAuthDetector" in plugin_names
@@ -190,11 +183,9 @@ class TestSecretDetection:
         with open(baseline_file) as f:
             baseline = json.load(f)
 
-        # Verify filters are configured
         filters = baseline.get("filters_used", [])
         assert len(filters) > 0, "No filters configured in detect-secrets"
 
-        # Should have at least some common filters configured
         filter_paths = [f.get("path", "") for f in filters]
         assert any("allowlist" in p or "heuristic" in p for p in filter_paths), (
             "No standard detect-secrets filters configured"
@@ -206,7 +197,6 @@ class TestCredentialPatterns:
 
     def test_aws_key_pattern_detection(self):
         """Test that AWS keys are detected."""
-        # AWS key pattern that would be detected by security tools
         aws_pattern = "AKIAIOSFODNN7EXAMPLE"
         assert len(aws_pattern) > 0
 
@@ -303,12 +293,12 @@ class TestSecurityHooksPerformance:
         with open(config_file) as f:
             config = yaml.safe_load(f)
 
-        # Commit stage hooks should not include slow security scanners
         slow_repos = ["bandit", "mypy", "full-lint"]
 
         for repo in config.get("repos", []):
             for hook in repo.get("hooks", []):
-                if "commit" in hook.get("stages", []):
+                stages = hook.get("stages", [])
+                if "commit" in stages or "pre-commit" in stages:
                     repo_url = repo.get("repo", "")
                     hook_id = hook.get("id", "")
 
@@ -328,8 +318,8 @@ class TestSecurityHooksPerformance:
         push_hooks = []
         for repo in config.get("repos", []):
             for hook in repo.get("hooks", []):
-                if "push" in hook.get("stages", []):
+                stages = hook.get("stages", [])
+                if "push" in stages or "pre-push" in stages:
                     push_hooks.append(hook.get("id", ""))
 
-        # Should have at least detect-private-key and detect-secrets on push
         assert len(push_hooks) > 0, "No hooks configured for push stage"

@@ -26,8 +26,9 @@ Architecture:
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Tuple
 from enum import Enum
+from typing import Dict, List, Optional, Tuple
+
 
 logger = logging.getLogger(__name__)
 
@@ -35,9 +36,9 @@ logger = logging.getLogger(__name__)
 class CircuitBreakerState(Enum):
     """Circuit breaker states."""
 
-    CLOSED = "closed"  # Normal operation
-    OPEN = "open"  # Model unavailable, reject requests
-    HALF_OPEN = "half_open"  # Testing if model recovered
+    CLOSED = "closed"
+    OPEN = "open"
+    HALF_OPEN = "half_open"
 
 
 @dataclass
@@ -45,10 +46,10 @@ class ModelHealthMetrics:
     """Health metrics for a model."""
 
     model: str
-    error_count: int = 0  # Consecutive errors
-    success_count: int = 0  # Consecutive successes
-    last_error_time: Optional[float] = field(default=None)
-    last_success_time: Optional[float] = field(default=None)
+    error_count: int = 0
+    success_count: int = 0
+    last_error_time: float | None = field(default=None)
+    last_success_time: float | None = field(default=None)
     total_requests: int = 0
     total_errors: int = 0
     avg_latency_ms: float = 0.0
@@ -66,17 +67,14 @@ class ModelHealthMetrics:
 
         High score = healthy model, low score = unhealthy.
         """
-        # Base on error rate (1.0 - error_rate)
         health = 1.0 - self.error_rate
 
-        # Adjust for consecutive successes (stability)
         if self.success_count >= 5:
             health = min(1.0, health + 0.1)
 
-        # Degrade for recent errors
         if self.last_error_time:
             seconds_since_error = time.time() - self.last_error_time
-            if seconds_since_error < 300:  # Recent error (<5 min)
+            if seconds_since_error < 300:
                 health *= 0.8
 
         return max(0.0, min(1.0, health))
@@ -101,8 +99,8 @@ class ModelCircuitBreaker:
         model: str,
         error_threshold: int = 3,
         success_threshold: int = 5,
-        recovery_timeout_sec: float = 300.0,  # 5 minutes
-        error_rate_threshold: float = 0.50,  # 50% error rate
+        recovery_timeout_sec: float = 300.0,
+        error_rate_threshold: float = 0.50,
     ):
         """Initialize circuit breaker.
 
@@ -121,7 +119,7 @@ class ModelCircuitBreaker:
 
         self.state = CircuitBreakerState.CLOSED
         self.metrics = ModelHealthMetrics(model=model)
-        self.opened_at: Optional[float] = None
+        self.opened_at: float | None = None
 
     def record_success(self, latency_ms: float = 0.0) -> None:
         """Record successful execution.
@@ -134,7 +132,6 @@ class ModelCircuitBreaker:
         self.metrics.last_success_time = time.time()
         self.metrics.total_requests += 1
 
-        # Update average latency (exponential moving average)
         if self.metrics.avg_latency_ms == 0.0:
             self.metrics.avg_latency_ms = latency_ms
         else:
@@ -142,7 +139,6 @@ class ModelCircuitBreaker:
                 0.7 * self.metrics.avg_latency_ms + 0.3 * latency_ms
             )
 
-        # If HALF_OPEN and succeeded, go back to CLOSED
         if self.state == CircuitBreakerState.HALF_OPEN:
             if self.metrics.success_count >= self.success_threshold:
                 self._transition_to_closed()
@@ -155,12 +151,13 @@ class ModelCircuitBreaker:
         self.metrics.total_requests += 1
         self.metrics.total_errors += 1
 
-        # If too many consecutive errors, open circuit
         if self.metrics.error_count >= self.error_threshold:
             self._transition_to_open()
 
-        # If error rate too high (only check after enough samples)
-        if self.metrics.total_requests >= 10 and self.metrics.error_rate >= self.error_rate_threshold:
+        if (
+            self.metrics.total_requests >= 10
+            and self.metrics.error_rate >= self.error_rate_threshold
+        ):
             self._transition_to_open()
 
     def allow_request(self) -> bool:
@@ -172,16 +169,13 @@ class ModelCircuitBreaker:
         if self.state == CircuitBreakerState.CLOSED:
             return True
         elif self.state == CircuitBreakerState.OPEN:
-            # Check if recovery timeout expired
             if self.opened_at:
                 elapsed = time.time() - self.opened_at
                 if elapsed >= self.recovery_timeout_sec:
-                    # Try recovery
                     self._transition_to_half_open()
                     return True
             return False
         elif self.state == CircuitBreakerState.HALF_OPEN:
-            # Allow one test request
             return True
         else:
             return False
@@ -243,7 +237,6 @@ class ModelFallbackStrategy:
     - Recovery tracking (learn from past degradations)
     """
 
-    # Model fallback chains (primary → secondary → emergency)
     DEFAULT_FALLBACK_CHAINS = {
         "phi3:mini": ["qwen3-coder:32b", "deepseek-r1:8b"],
         "qwen3-coder:32b": ["phi3:mini", "deepseek-r1:8b"],
@@ -253,7 +246,6 @@ class ModelFallbackStrategy:
         "llama4-scout": ["phi3:mini", "deepseek-r1:8b"],
     }
 
-    # Model quality scores (0.0-1.0)
     MODEL_QUALITY = {
         "phi3:mini": 0.6,
         "qwen3-coder:32b": 0.82,
@@ -267,7 +259,7 @@ class ModelFallbackStrategy:
         self,
         error_threshold: int = 3,
         recovery_timeout_sec: float = 300.0,
-        min_quality_loss: float = 0.10,  # Max 10% quality loss in fallback
+        min_quality_loss: float = 0.10,
     ):
         """Initialize fallback strategy.
 
@@ -280,19 +272,17 @@ class ModelFallbackStrategy:
         self.recovery_timeout_sec = recovery_timeout_sec
         self.min_quality_loss = min_quality_loss
 
-        # Circuit breakers per model
-        self.circuit_breakers: Dict[str, ModelCircuitBreaker] = {}
+        self.circuit_breakers: dict[str, ModelCircuitBreaker] = {}
 
-        # Degradation tracking
         self.fallback_count: int = 0
-        self.fallback_history: List[Tuple[str, str, float]] = []  # (primary, fallback, time)
+        self.fallback_history: list[tuple[str, str, float]] = []
 
     def select_model(
         self,
         primary_model: str,
-        available_models: List[str],
-        quality_scores: Optional[Dict[str, float]] = None,
-    ) -> Tuple[str, bool]:
+        available_models: list[str],
+        quality_scores: dict[str, float] | None = None,
+    ) -> tuple[str, bool]:
         """Select model with fallback support.
 
         Args:
@@ -307,12 +297,10 @@ class ModelFallbackStrategy:
         """
         quality_scores = quality_scores or self.MODEL_QUALITY
 
-        # Check if primary available
         primary_breaker = self._get_breaker(primary_model)
         if primary_breaker.allow_request():
             return primary_model, False
 
-        # Try fallback chain
         fallback_chain = self.DEFAULT_FALLBACK_CHAINS.get(
             primary_model, available_models
         )
@@ -325,17 +313,16 @@ class ModelFallbackStrategy:
             if not fallback_breaker.allow_request():
                 continue
 
-            # Check quality loss acceptable
             primary_quality = quality_scores.get(primary_model, 0.7)
             fallback_quality = quality_scores.get(fallback_model, 0.7)
-            quality_loss = (primary_quality - fallback_quality) / max(primary_quality, 0.01)
+            quality_loss = (primary_quality - fallback_quality) / max(
+                primary_quality, 0.01
+            )
 
             if quality_loss <= self.min_quality_loss:
-                # Use fallback
                 self._record_fallback(primary_model, fallback_model)
                 return fallback_model, True
 
-        # No acceptable fallback, try emergency (deepseek if available and not primary)
         if primary_model != "deepseek-r1:8b" and "deepseek-r1:8b" in available_models:
             logger.warning(
                 f"Using emergency fallback: {primary_model} unavailable, "
@@ -344,7 +331,6 @@ class ModelFallbackStrategy:
             self._record_fallback(primary_model, "deepseek-r1:8b")
             return "deepseek-r1:8b", True
 
-        # Last resort: use any available model that's not the primary
         available_non_primary = [m for m in available_models if m != primary_model]
         if available_non_primary:
             selected = available_non_primary[0]
@@ -354,7 +340,6 @@ class ModelFallbackStrategy:
             self._record_fallback(primary_model, selected)
             return selected, True
 
-        # Absolute last resort: return primary anyway
         logger.error(
             f"No alternative models available, forced to use primary: {primary_model}"
         )
@@ -388,13 +373,15 @@ class ModelFallbackStrategy:
         """
         return self._get_breaker(model).metrics
 
-    def get_all_health(self) -> Dict[str, ModelHealthMetrics]:
+    def get_all_health(self) -> dict[str, ModelHealthMetrics]:
         """Get health metrics for all tracked models.
 
         Returns:
             Dict mapping model → metrics
         """
-        return {model: self._get_breaker(model).metrics for model in self.circuit_breakers}
+        return {
+            model: self._get_breaker(model).metrics for model in self.circuit_breakers
+        }
 
     def _get_breaker(self, model: str) -> ModelCircuitBreaker:
         """Get or create circuit breaker for model.
@@ -438,12 +425,11 @@ class ModelFallbackStrategy:
         stats = {
             "total_fallbacks": self.fallback_count,
             "recent_fallbacks": len(
-                [t for _, _, ts in self.fallback_history if time.time() - ts < 3600]
+                [ts for _, _, ts in self.fallback_history if time.time() - ts < 3600]
             ),
         }
 
-        # Count fallback patterns
-        patterns: Dict[Tuple[str, str], int] = {}
+        patterns: dict[tuple[str, str], int] = {}
         for primary, fallback, _ in self.fallback_history:
             key = (primary, fallback)
             patterns[key] = patterns.get(key, 0) + 1
@@ -474,5 +460,4 @@ def reset_fallback_strategy() -> None:
     _fallback_strategy = None
 
 
-# Global singleton
-_fallback_strategy: Optional[ModelFallbackStrategy] = None
+_fallback_strategy: ModelFallbackStrategy | None = None

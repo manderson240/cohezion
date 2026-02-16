@@ -12,21 +12,26 @@ from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import httpx
+
+
+if TYPE_CHECKING:
+    from cohezion.swarm.token_client import TokenEfficientClient
+
 
 logger = logging.getLogger(__name__)
 
 
 class AgentRole(Enum):
-    ARCHITECT = "architect"  # System design, high-level vision
-    BUILDER = "builder"  # Implementation, code quality
-    GUARDIAN = "guardian"  # Security, reliability, ethics
-    EXPLORER = "explorer"  # Innovation, novel approaches
-    SYNTHESIZER = "synthesizer"  # Integration, consensus
-    RED_TEAM = "red_team"  # Adversarial, entropy, novelty
-    BLUE_TEAM = "blue_team"  # Defensive, stability, coherence
+    ARCHITECT = "architect"
+    BUILDER = "builder"
+    GUARDIAN = "guardian"
+    EXPLORER = "explorer"
+    SYNTHESIZER = "synthesizer"
+    RED_TEAM = "red_team"
+    BLUE_TEAM = "blue_team"
 
 
 @dataclass
@@ -35,9 +40,9 @@ class AgentPersona:
 
     role: AgentRole
     name: str
-    voice: str  # TTS voice profile
-    model: str  # Ollama model
-    style: str  # Communication style
+    voice: str
+    model: str
+    style: str
     priorities: list[str]
     catchphrase: str
 
@@ -56,12 +61,11 @@ Vote clearly: STRONGLY_AGREE, AGREE, NEUTRAL, DISAGREE, STRONGLY_DISAGREE.
 Always explain your reasoning in 2-3 sentences."""
 
 
-# Define the 5 agent personas
 AGENT_PERSONAS = {
     AgentRole.ARCHITECT: AgentPersona(
         role=AgentRole.ARCHITECT,
         name="Aurora",
-        voice="azelma",  # Calm, thoughtful
+        voice="azelma",
         model="gemma3:4b",
         style="Visionary and systematic, sees the big picture and long-term implications",
         priorities=["system coherence", "scalability", "elegant design"],
@@ -70,7 +74,7 @@ AGENT_PERSONAS = {
     AgentRole.BUILDER: AgentPersona(
         role=AgentRole.BUILDER,
         name="Marcus",
-        voice="marius",  # Neutral, steady
+        voice="marius",
         model="gemma3:4b",
         style="Practical and detail-oriented, focused on shipping quality code",
         priorities=["code quality", "test coverage", "performance"],
@@ -79,7 +83,7 @@ AGENT_PERSONAS = {
     AgentRole.GUARDIAN: AgentPersona(
         role=AgentRole.GUARDIAN,
         name="Helena",
-        voice="cosette",  # Expressive, passionate
+        voice="cosette",
         model="phi3:mini",
         style="Vigilant and principled, protects system integrity and user trust",
         priorities=["security", "reliability", "ethical AI"],
@@ -88,7 +92,7 @@ AGENT_PERSONAS = {
     AgentRole.EXPLORER: AgentPersona(
         role=AgentRole.EXPLORER,
         name="Phoenix",
-        voice="cosette",  # Expressive for excitement
+        voice="cosette",
         model="gemma3:4b",
         style="Creative and bold, pushes boundaries and explores novel solutions",
         priorities=["innovation", "experimentation", "paradigm shifts"],
@@ -97,7 +101,7 @@ AGENT_PERSONAS = {
     AgentRole.SYNTHESIZER: AgentPersona(
         role=AgentRole.SYNTHESIZER,
         name="Sage",
-        voice="valjean",  # Deep, authoritative
+        voice="valjean",
         model="gemma3:4b",
         style="Integrative and diplomatic, finds common ground and builds consensus",
         priorities=["harmony", "synthesis", "collective wisdom"],
@@ -144,7 +148,7 @@ class AgentVote:
 class DebateRound:
     round_number: int
     topic: str
-    proposals: dict[str, str]  # role -> proposal
+    proposals: dict[str, str]
     votes: list[AgentVote] = field(default_factory=list)
     consensus_reached: bool = False
     winning_proposal: str | None = None
@@ -155,8 +159,8 @@ class DebateRound:
             return False, 0.0
         total = sum(v.vote.value for v in self.votes)
         max_possible = len(self.votes) * 2
-        score = (total + max_possible) / (2 * max_possible)  # Normalize to 0-1
-        consensus = score >= 0.7  # 70% threshold
+        score = (total + max_possible) / (2 * max_possible)
+        consensus = score >= 0.7
         return consensus, score
 
 
@@ -196,7 +200,9 @@ class DemocraticDebate:
         ollama_host: str = "http://localhost:11434",
         token_client: "TokenEfficientClient | None" = None,
     ):
-        from cohezion.swarm.token_client import TokenEfficientClient as _TC  # noqa: F811
+        from cohezion.swarm.token_client import (
+            TokenEfficientClient as _TC,  # noqa: F811
+        )
 
         self.ollama_host = ollama_host
         self.personas = AGENT_PERSONAS
@@ -222,7 +228,6 @@ class DemocraticDebate:
                 )
                 return f"[{persona.name} error: {e}]"
 
-        # Fallback: direct httpx POST (original path)
         try:
             response = await self.client.post(
                 f"{self.ollama_host}/api/generate",
@@ -265,13 +270,10 @@ class DemocraticDebate:
         for round_num in range(1, max_rounds + 1):
             logger.info(f"=== Round {round_num} ===")
 
-            # Phase 1: Gather proposals from each agent
             proposals = await self._gather_proposals(topic, round_num, session.rounds)
 
-            # Phase 2: Voting on proposals
             votes = await self._voting_phase(topic, proposals)
 
-            # Create round record
             debate_round = DebateRound(
                 round_number=round_num,
                 topic=topic,
@@ -279,13 +281,10 @@ class DemocraticDebate:
                 votes=votes,
             )
 
-            # Check consensus
             consensus, score = debate_round.calculate_consensus()
             debate_round.consensus_reached = consensus
 
-            # Find winning proposal
             if proposals:
-                # Simple: use synthesizer's proposal as the integrated view
                 debate_round.winning_proposal = proposals.get(
                     "synthesizer", list(proposals.values())[0]
                 )
@@ -294,18 +293,14 @@ class DemocraticDebate:
 
             logger.info(f"Round {round_num} consensus score: {score:.2f}")
 
-            # Check if we can conclude
             if round_num >= min_rounds and consensus:
                 logger.info(f"Consensus reached in round {round_num}!")
                 break
 
-            # Update topic for next round based on feedback
             topic = await self._refine_topic(topic, debate_round)
 
-        # Final synthesis
         session.final_consensus = await self._final_synthesis(session)
 
-        # Save session
         session_file = self.output_dir / f"{session_id}.json"
         with open(session_file, "w") as f:
             json.dump(session.to_dict(), f, indent=2, default=str)
@@ -372,7 +367,6 @@ Reasoning: (2-3 sentences)"""
             prompt = vote_prompt.format(role=persona.name)
             response = await self._call_agent(persona, prompt)
 
-            # Parse vote
             vote = VoteValue.NEUTRAL
             for v in VoteValue:
                 if v.name in response.upper():
@@ -425,7 +419,6 @@ List the TOP 5 actionable improvements with highest consensus:"""
 
         response = await self._call_agent(synthesizer, prompt)
 
-        # Calculate overall consensus metrics
         total_votes = sum(len(r.votes) for r in session.rounds)
         positive_votes = sum(
             1 for r in session.rounds for v in r.votes if v.vote.value > 0
