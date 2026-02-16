@@ -22,6 +22,16 @@ COHEZION is a 12D agentic universe with FLUME VAE encoding, R-Zero adversarial c
 
 ---
 
+## 🎮 Interactive Demos
+
+| Demo | Description | Link |
+|------|-------------|------|
+| **🌌 Universe Explorer** | Three.js WebGL visualization of 12D agentic space | [Explore →](https://manderson240.github.io/cohezion/universe-explorer.html) |
+| **📊 R-Zero Dashboard** | Real-time metrics with Chart.js visualizations | [Dashboard →](https://manderson240.github.io/cohezion/rzero-dashboard.html) |
+| **📄 Research Paper** | Full methodology and empirical results | [Read →](RESEARCH_PAPER.md) |
+
+---
+
 ## Core Alignment with Anthropic Requirements
 
 ### ✅ Long-Horizon Agentic Tasks
