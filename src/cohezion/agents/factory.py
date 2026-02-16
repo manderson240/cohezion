@@ -7,6 +7,7 @@ cached so repeated calls for the same skill return the same type.
 
 from __future__ import annotations
 
+import ast
 import logging
 import re
 from pathlib import Path
@@ -16,6 +17,90 @@ from cohezion.core.template_engine import SkillSpec, TemplateEngine
 
 
 logger = logging.getLogger(__name__)
+
+# AST node types that are NOT allowed in dynamically compiled agent code.
+# Prevents arbitrary code execution via skill definition injection.
+_BLOCKED_AST_NODES = (
+    ast.Import,       # Blocks: import os, import subprocess, etc.
+    ast.ImportFrom,    # Blocks: from os import system, etc.
+    ast.Global,        # Blocks: global variable mutation
+    ast.Delete,        # Blocks: del statements
+)
+
+# Dangerous built-in names that must not appear in agent source code
+_BLOCKED_NAMES = frozenset({
+    "eval", "exec", "compile", "__import__", "open",
+    "subprocess", "os", "sys", "shutil", "pathlib",
+    "getattr", "setattr", "delattr", "globals", "locals",
+    "breakpoint", "exit", "quit",
+})
+
+
+# Modules that template-generated agent code is allowed to import
+_ALLOWED_IMPORT_PREFIXES = (
+    "cohezion.",        # Internal cohezion imports
+    "__future__",       # from __future__ import annotations
+    "typing",           # from typing import Any
+    "collections",      # from collections.abc import ...
+    "dataclasses",      # @dataclass
+    "enum",             # Enum types
+    "abc",              # Abstract base classes
+    "logging",          # Logging
+)
+
+
+def _validate_agent_source(source: str, spec_name: str) -> None:
+    """Validate generated agent source code via AST inspection.
+
+    Raises ValueError if the source contains dangerous constructs
+    like arbitrary imports, subprocess calls, or file I/O.
+    """
+    try:
+        tree = ast.parse(source)
+    except SyntaxError as e:
+        raise ValueError(f"Agent source for {spec_name} has syntax errors: {e}") from e
+
+    for node in ast.walk(tree):
+        # Block dangerous statement types
+        if isinstance(node, _BLOCKED_AST_NODES):
+            # Allow safe imports (cohezion.*, typing, __future__, etc.)
+            if isinstance(node, (ast.Import, ast.ImportFrom)):
+                module = getattr(node, "module", None) or ""
+                # For bare `import X`, check the names
+                if isinstance(node, ast.Import):
+                    names = [alias.name for alias in node.names]
+                    if all(
+                        any(n.startswith(p) for p in _ALLOWED_IMPORT_PREFIXES)
+                        for n in names
+                    ):
+                        continue
+                # For `from X import Y`, check the module
+                elif any(module.startswith(p) for p in _ALLOWED_IMPORT_PREFIXES):
+                    continue
+            raise ValueError(
+                f"Agent source for {spec_name} contains blocked construct: "
+                f"{type(node).__name__} at line {getattr(node, 'lineno', '?')}"
+            )
+
+        # Block calls to dangerous functions
+        if isinstance(node, ast.Call):
+            func = node.func
+            func_name = None
+            if isinstance(func, ast.Name):
+                func_name = func.id
+            elif isinstance(func, ast.Attribute):
+                func_name = func.attr
+
+            if func_name and func_name in _BLOCKED_NAMES:
+                raise ValueError(
+                    f"Agent source for {spec_name} calls blocked function: "
+                    f"{func_name} at line {getattr(node, 'lineno', '?')}"
+                )
+
+        # Block references to dangerous names in any context
+        if isinstance(node, ast.Name) and node.id in _BLOCKED_NAMES:
+            # Allow references that are class/method definitions, not calls
+            pass  # Calls are caught above; bare references are low-risk
 
 
 class _StubAgent:
@@ -279,6 +364,10 @@ class AgentFactory:
         source = source.replace(
             "from cohezion.agents.base import BaseAgent", ""
         ).replace("(BaseAgent)", f"({_StubAgent.__name__})")
+
+        # AST validation before exec — prevents code injection via skill definitions
+        _validate_agent_source(source, spec.name)
+
         # Restrict builtins to only what's needed for class definition
         namespace: dict[str, Any] = {
             "__builtins__": __builtins__,
@@ -325,6 +414,9 @@ class AgentFactory:
                 "",
             ).replace("(BaseAgent)", f"({_StubAgent.__name__})")
             namespace[_StubAgent.__name__] = _StubAgent
+
+        # AST validation before exec — prevents code injection via skill definitions
+        _validate_agent_source(source, spec.name)
 
         exec(compile(source, f"<agent:{spec.name}>", "exec"), namespace)  # noqa: S102
 

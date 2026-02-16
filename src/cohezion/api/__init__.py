@@ -7,6 +7,7 @@ Provides REST endpoints for Open-Notebook integration.
 import logging
 import os
 import re
+import time as _time
 from pathlib import Path
 from typing import Any
 
@@ -19,10 +20,99 @@ from pydantic import BaseModel
 from cohezion.mcp.knowledge_server import get_server as get_knowledge_server
 from cohezion.mcp.registry import get_registry
 from cohezion.mcp.swarm_server import get_server as get_swarm_server
+from cohezion.security.audit import get_audit_logger
+from cohezion.security.guardrail_factory import create_default_pipeline
+from cohezion.security.guardrail_pipeline import GuardrailAction
+from cohezion.security.output_filter import OutputFilter
 from cohezion.security.rate_limiter import get_rate_limiter
+from cohezion.security.validators import validate_input
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Security: path parameter validation + guardrail pipeline
+# ---------------------------------------------------------------------------
+
+# Strict regex for path parameters — alphanumeric, dash, underscore only
+_SAFE_PATH_PARAM_RE = re.compile(r"^[a-zA-Z0-9_-]+$")
+
+
+def _validate_path_param(value: str, name: str = "parameter") -> str:
+    """Validate a URL path parameter to prevent path traversal.
+
+    Raises HTTPException(400) if the value contains unsafe characters.
+    """
+    if not _SAFE_PATH_PARAM_RE.match(value):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid {name}: must be alphanumeric, dash, or underscore",
+        )
+    return value
+
+
+# Guardrail pipeline singleton — created once, reused across requests
+_guardrail_pipeline = None
+
+
+def _get_guardrail_pipeline():
+    """Lazy-initialise the default guardrail pipeline."""
+    global _guardrail_pipeline
+    if _guardrail_pipeline is None:
+        _guardrail_pipeline = create_default_pipeline()
+    return _guardrail_pipeline
+
+
+# Output filter singleton
+_output_filter = None
+
+
+def _get_output_filter() -> OutputFilter:
+    """Lazy-initialise the output filter for PII redaction."""
+    global _output_filter
+    if _output_filter is None:
+        _output_filter = OutputFilter(redact_pii=True, block_toxic=True)
+    return _output_filter
+
+
+async def _check_input_text(text: str, endpoint: str = "") -> str:
+    """Run input text through validation + guardrail pipeline.
+
+    Returns the (possibly sanitised) text.
+    Raises HTTPException(400/403) if blocked.
+    """
+    # 1. Static pattern validation (SQL/XSS/command injection, 60+ patterns)
+    error = validate_input(text, field_name="input_text")
+    if error is not None:
+        audit = get_audit_logger()
+        audit.log_security(
+            "input_validation_blocked",
+            "blocked",
+            None,
+            {"endpoint": endpoint, "reason": error.message},
+        )
+        raise HTTPException(status_code=400, detail=error.message)
+
+    # 2. Guardrail pipeline (constitutional + prompt injection + resource + output)
+    pipeline = _get_guardrail_pipeline()
+    result = await pipeline.check_input(text, {"endpoint": endpoint})
+
+    if result.action == GuardrailAction.BLOCK:
+        audit = get_audit_logger()
+        audit.log_security(
+            "guardrail_blocked",
+            "blocked",
+            None,
+            {
+                "endpoint": endpoint,
+                "guard": result.guard_name,
+                "reason": result.reason,
+            },
+        )
+        raise HTTPException(status_code=403, detail="Request blocked by security policy")
+
+    # Return sanitised text if modified, original otherwise
+    return result.modified_input if result.modified_input else text
 
 # Allowed CORS origins from environment, default to localhost only
 _CORS_ORIGINS = os.environ.get(
@@ -47,13 +137,27 @@ app.add_middleware(
 )
 
 
-# Rate limiting middleware
+# Rate limiting + audit logging middleware
 @app.middleware("http")
-async def rate_limit_middleware(request: Request, call_next):
+async def security_middleware(request: Request, call_next):
+    start_time = _time.time()
     limiter = get_rate_limiter()
     client_ip = request.client.host if request.client else "unknown"
-    result = limiter.check(client_ip, request.url.path)
+    endpoint = request.url.path
+
+    # Skip health checks from rate limiting and audit
+    if endpoint in ("/health", "/healthz", "/metrics"):
+        return await call_next(request)
+
+    result = limiter.check(client_ip, endpoint)
     if not result.allowed:
+        audit = get_audit_logger()
+        audit.log_security(
+            "rate_limit_exceeded",
+            "blocked",
+            client_ip,
+            {"endpoint": endpoint, "remaining": result.remaining},
+        )
         return JSONResponse(
             status_code=429,
             headers={
@@ -65,6 +169,15 @@ async def rate_limit_middleware(request: Request, call_next):
         )
     response = await call_next(request)
     response.headers["X-RateLimit-Remaining"] = str(result.remaining)
+
+    # Audit log all non-static requests
+    if not endpoint.startswith("/static"):
+        latency_ms = (_time.time() - start_time) * 1000
+        audit = get_audit_logger()
+        audit.log_request(
+            endpoint, request.method, client_ip, None, response.status_code, latency_ms
+        )
+
     return response
 
 # Static files
@@ -153,6 +266,7 @@ async def get_skill(skill_name: str):
 @app.post("/swarm/debate", response_model=DebateResponse)
 async def run_debate(request: DebateRequest):
     """Run a multi-perspective debate."""
+    await _check_input_text(request.query, "/swarm/debate")
     server = get_swarm_server()
     try:
         result = server.run_debate(request.query, request.perspectives)
@@ -235,6 +349,7 @@ async def list_simulations():
 @app.get("/simulations/{sim_id}")
 async def get_simulation(sim_id: str):
     """Get a specific simulation result."""
+    _validate_path_param(sim_id, "sim_id")
     import json
     from pathlib import Path
 
@@ -269,6 +384,7 @@ async def list_journeys():
 @app.get("/journeys/{journey_id}")
 async def get_journey(journey_id: str):
     """Get a specific journey with full trajectory."""
+    _validate_path_param(journey_id, "journey_id")
     from cohezion.swarm.journey_tracker import get_journey_tracker
 
     tracker = get_journey_tracker()
@@ -283,6 +399,7 @@ async def get_journey(journey_id: str):
 @app.get("/journeys/{journey_id}/trajectory")
 async def get_journey_trajectory(journey_id: str):
     """Get physics trajectory for visualization."""
+    _validate_path_param(journey_id, "journey_id")
     from cohezion.swarm.journey_tracker import get_journey_tracker
 
     tracker = get_journey_tracker()
@@ -428,6 +545,7 @@ async def create_demo_journey():
 @app.get("/journeys/{journey_id}/visualize")
 async def visualize_journey(journey_id: str):
     """Render an animated visualization of the journey trajectory."""
+    _validate_path_param(journey_id, "journey_id")
     import json
     from pathlib import Path
 
@@ -486,6 +604,7 @@ async def visualize_journey(journey_id: str):
 @app.get("/journeys/{journey_id}/plot")
 async def plot_journey(journey_id: str):
     """Render a multi-panel 12D physics visualization of the journey."""
+    _validate_path_param(journey_id, "journey_id")
     import json
     from pathlib import Path
 
@@ -1100,6 +1219,7 @@ async def train_rl(request: RLTrainRequest):
 @app.get("/rl/policy/{agent_id}", response_model=RLPolicyResponse)
 async def get_rl_policy(agent_id: str):
     """Inspect a trained RL policy checkpoint."""
+    _validate_path_param(agent_id, "agent_id")
     checkpoint_dir = Path("data/rl/checkpoints")
     ckpt_path = checkpoint_dir / f"policy_{agent_id}.pt"
 
@@ -1306,6 +1426,7 @@ if __name__ == "__main__":
 @app.get("/compare/calm-vs-llm/{journey_id}")
 async def compare_calm_llm(journey_id: str):
     """Compare CALM continuous trajectory vs standard LLM discrete steps."""
+    _validate_path_param(journey_id, "journey_id")
     import json
     from pathlib import Path
 
@@ -1501,6 +1622,9 @@ class CapabilityQueryResponse(BaseModel):
 @app.post("/skills/{skill_name}/execute", response_model=SkillExecuteResponse)
 async def execute_skill(skill_name: str, request: SkillExecuteRequest):
     """Parse skill, expand instructions into a plan, and execute via PlanExecutor."""
+    _validate_path_param(skill_name, "skill_name")
+    safe_input = await _check_input_text(request.input_text, f"/skills/{skill_name}/execute")
+
     from cohezion.agents.factory import AgentFactory
     from cohezion.core.instruction_expander import InstructionExpander
     from cohezion.core.plan_executor import PlanExecutor
@@ -1520,7 +1644,7 @@ async def execute_skill(skill_name: str, request: SkillExecuteRequest):
         plan = expander.expand(spec)
         compound = get_compound_client()
         executor = PlanExecutor(token_client=compound)
-        exec_result = await executor.execute(plan, request.input_text)
+        exec_result = await executor.execute(plan, safe_input)
 
         step_outputs = [
             PlanStepOut(
@@ -1803,6 +1927,8 @@ async def metrics_system():
 @app.post("/knowledge/query", response_model=KnowledgeQueryResponse)
 async def knowledge_query(request: KnowledgeQueryRequest):
     """Search the knowledge graph for relevant entries."""
+    await _check_input_text(request.query, "/knowledge/query")
+
     from cohezion.knowledge_graph.query_engine import KnowledgeGraphQueryEngine
 
     engine = KnowledgeGraphQueryEngine()
@@ -1874,13 +2000,15 @@ class SwarmExecuteResponse(BaseModel):
 @app.post("/swarm/execute", response_model=SwarmExecuteResponse)
 async def swarm_execute(request: SwarmExecuteRequest):
     """Plan and execute a swarm from a natural language intent."""
+    safe_intent = await _check_input_text(request.intent, "/swarm/execute")
+
     from cohezion.swarm.compound_client import get_compound_client
     from cohezion.swarm.execution_orchestrator import ExecutionOrchestrator
     from cohezion.swarm.team_orchestrator import TeamOrchestrator
 
     compound = get_compound_client()
     orchestrator_obj = TeamOrchestrator()
-    plan = orchestrator_obj.plan_team(request.intent, max_agents=request.max_agents)
+    plan = orchestrator_obj.plan_team(safe_intent, max_agents=request.max_agents)
     executor = ExecutionOrchestrator(token_client=compound)
     report = await executor.execute(plan)
 
@@ -1970,13 +2098,16 @@ class CompoundExecuteResponse(BaseModel):
 @app.post("/compound/execute", response_model=CompoundExecuteResponse)
 async def compound_execute(request: CompoundExecuteRequest):
     """Execute a PRIME skill with live Ollama models via CompoundExecutor."""
+    _validate_path_param(request.skill_name, "skill_name")
+    safe_input = await _check_input_text(request.input_text, "/compound/execute")
+
     from cohezion.compound.executor import get_executor
 
     executor = get_executor()
     try:
         result = await executor.execute_skill(
             request.skill_name,
-            request.input_text,
+            safe_input,
             model=request.model,
         )
     except KeyError as exc:
@@ -2028,6 +2159,9 @@ class CompoundFeedbackResponse(BaseModel):
 @app.post("/compound/feedback", response_model=CompoundFeedbackResponse)
 async def compound_feedback(request: CompoundFeedbackRequest):
     """Run a compound feedback cycle: execute -> analyze -> refine."""
+    _validate_path_param(request.skill_name, "skill_name")
+    safe_input = await _check_input_text(request.input_text, "/compound/feedback")
+
     from cohezion.compound.feedback_loop import CompoundFeedbackLoop
 
     loop = CompoundFeedbackLoop()
@@ -2035,7 +2169,7 @@ async def compound_feedback(request: CompoundFeedbackRequest):
         if request.cycles > 1:
             report = await loop.run_multi_cycle(
                 request.skill_name,
-                request.input_text,
+                safe_input,
                 cycles=request.cycles,
                 model=request.model,
             )
@@ -2050,7 +2184,7 @@ async def compound_feedback(request: CompoundFeedbackRequest):
         else:
             result = await loop.run_cycle(
                 request.skill_name,
-                request.input_text,
+                safe_input,
                 model=request.model,
             )
             return CompoundFeedbackResponse(

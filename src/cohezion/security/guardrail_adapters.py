@@ -54,32 +54,43 @@ class ConstitutionalGuard:
 class PromptInjectionGuard:
     """Adapter for prompt injection detection.
 
-    Detects common prompt injection patterns.
-    Currently a simple pattern-based checker; will be wired to
-    actual PromptGuard when available.
+    Uses the full PromptGuard (70+ patterns, deobfuscation, multilingual)
+    for comprehensive injection detection including leet-speak normalization,
+    zero-width character stripping, and OWASP LLM Top 10 coverage.
     """
 
-    # Common injection patterns
-    INJECTION_PATTERNS = [
-        "ignore previous",
-        "disregard",
-        "system prompt",
-        "jailbreak",
-        "override",
-        "bypass",
-    ]
+    def __init__(self, strict_mode: bool = False):
+        from cohezion.security.prompt_guard import PromptGuard
+
+        self._guard = PromptGuard(strict_mode=strict_mode)
 
     async def check(self, text: str, context: dict[str, Any]) -> GuardrailResult:
-        """Check for prompt injection."""
-        text_lower = text.lower()
+        """Check for prompt injection using full PromptGuard."""
+        from cohezion.security.prompt_guard import ThreatLevel
 
-        for pattern in self.INJECTION_PATTERNS:
-            if pattern in text_lower:
-                return GuardrailResult(
-                    action=GuardrailAction.BLOCK,
-                    reason=f"Potential injection pattern detected: {pattern}",
-                    guard_name="prompt_injection",
-                )
+        analysis = self._guard.analyze(text, agent_name=context.get("agent_id"))
+
+        if analysis.threat_level == ThreatLevel.MALICIOUS:
+            return GuardrailResult(
+                action=GuardrailAction.BLOCK,
+                reason=f"Prompt injection detected: {', '.join(analysis.matched_patterns)}",
+                guard_name="prompt_injection",
+                metadata={
+                    "confidence": analysis.confidence,
+                    "patterns": analysis.matched_patterns,
+                },
+            )
+
+        if analysis.threat_level == ThreatLevel.SUSPICIOUS:
+            return GuardrailResult(
+                action=GuardrailAction.LOG_AND_ALLOW,
+                reason=f"Suspicious patterns: {', '.join(analysis.matched_patterns)}",
+                guard_name="prompt_injection",
+                metadata={
+                    "confidence": analysis.confidence,
+                    "patterns": analysis.matched_patterns,
+                },
+            )
 
         return GuardrailResult(
             action=GuardrailAction.ALLOW,
@@ -150,30 +161,37 @@ class RateLimitGuard:
 class OutputFilterGuard:
     """Adapter for output safety validation.
 
-    Checks model output for harmful content.
-    Currently a simple pattern checker; will be enhanced
-    with actual ML-based content filtering.
+    Uses the full OutputFilter with PII detection (email, phone, SSN,
+    credit card, IP address) and toxicity filtering.
     """
 
-    # Common harmful patterns in output
-    HARMFUL_PATTERNS = [
-        "execute malicious",
-        "delete all",
-        "drop database",
-        "rm -rf",
-    ]
+    def __init__(self, redact_pii: bool = True, block_toxic: bool = True):
+        from cohezion.security.output_filter import OutputFilter
+
+        self._filter = OutputFilter(redact_pii=redact_pii, block_toxic=block_toxic)
 
     async def check(self, text: str, context: dict[str, Any]) -> GuardrailResult:
-        """Check output for harmful content."""
-        text_lower = text.lower()
+        """Check output for harmful content and PII."""
+        from cohezion.security.output_filter import FilterResult
 
-        for pattern in self.HARMFUL_PATTERNS:
-            if pattern in text_lower:
-                return GuardrailResult(
-                    action=GuardrailAction.BLOCK,
-                    reason=f"Harmful content detected in output: {pattern}",
-                    guard_name="output_filter",
-                )
+        result = self._filter.filter(text)
+
+        if result.result == FilterResult.TOXIC_DETECTED:
+            return GuardrailResult(
+                action=GuardrailAction.BLOCK,
+                reason="Toxic content detected in output",
+                guard_name="output_filter",
+                metadata={"redactions": result.redactions, "warnings": result.warnings},
+            )
+
+        if result.result == FilterResult.PII_DETECTED:
+            return GuardrailResult(
+                action=GuardrailAction.SANITIZE,
+                reason=f"PII redacted: {', '.join(result.redactions)}",
+                guard_name="output_filter",
+                modified_input=result.content,
+                metadata={"redactions": result.redactions, "warnings": result.warnings},
+            )
 
         return GuardrailResult(
             action=GuardrailAction.ALLOW,
