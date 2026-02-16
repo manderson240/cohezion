@@ -3,7 +3,7 @@
   "checkpoint_id": "0bd376ae8c3f",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 20,
+  "checkpoints_count": 21,
   "files_touched": [
     ".worktrees/spec-github-migration-cf603d38/.claude/rules/git-workflow.md",
     ".worktrees/spec-github-migration-cf603d38/.github/workflows/ci.yml",
@@ -28,14 +28,19 @@
     "src/cohezion/api/__init__.py.bak",
     "src/cohezion/api/helpers.py",
     "src/cohezion/api/models.py",
+    "src/cohezion/api/routes_admin.py",
+    "src/cohezion/api/routes_compound.py",
     "src/cohezion/api/routes_core.py",
     "src/cohezion/api/routes_flume.py",
     "src/cohezion/api/routes_journeys.py",
+    "src/cohezion/api/routes_metrics.py",
     "src/cohezion/api/routes_misc.py",
     "src/cohezion/api/routes_ml.py",
     "src/cohezion/api/routes_remaining.py",
     "src/cohezion/api/routes_rl.py",
+    "src/cohezion/api/routes_skills.py",
     "src/cohezion/api/services/__init__.py",
+    "src/cohezion/compound/journey_tracker.py",
     "src/cohezion/deployment/__init__.py",
     "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
     "src/cohezion/knowledge_graph/MISSION_JOURNAL.md",
@@ -75,13 +80,20 @@
       "context": "/0b/d376ae8c3f/3/context.md",
       "content_hash": "/0b/d376ae8c3f/3/content_hash.txt",
       "prompt": "/0b/d376ae8c3f/3/prompt.txt"
+    },
+    {
+      "metadata": "/0b/d376ae8c3f/4/metadata.json",
+      "transcript": "/0b/d376ae8c3f/4/full.jsonl",
+      "context": "/0b/d376ae8c3f/4/context.md",
+      "content_hash": "/0b/d376ae8c3f/4/content_hash.txt",
+      "prompt": "/0b/d376ae8c3f/4/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 13909,
-    "cache_creation_tokens": 1339711,
-    "cache_read_tokens": 31603800,
-    "output_tokens": 46660,
-    "api_call_count": 250
+    "input_tokens": 15219,
+    "cache_creation_tokens": 1755104,
+    "cache_read_tokens": 45972960,
+    "output_tokens": 59476,
+    "api_call_count": 368
   }
 }
