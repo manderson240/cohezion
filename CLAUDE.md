@@ -60,6 +60,50 @@ cd cloud-vault-mcp && source .venv/bin/activate
 VAULT_PATH=/home/mike-anderson/vaults/cohezion-vault python3 -m src.mcp_server.main
 ```
 
+### ⚡ Cohezion Skills & Agents (100+ Available)
+
+**SKILLS LOCATION**: `src/cohezion/skills/*.md` (100+ PRIME skills)
+
+**AGENTS LOCATION**: `src/cohezion/agents/*.py` (10+ agents)
+
+**KEY SKILLS BY CATEGORY**:
+
+| Category | Skills |
+|----------|--------|
+| **Compound Engineering** | COMPOUND_ENGINEERING_PRIME, EXPANSION_PRIME, RETROSPECTIVE_SKILL |
+| **Research** | EXTERNAL_RESEARCH_PRIME, RESEARCH_PATTERNS_PRIME, KNOWLEDGE_MINING |
+| **Model & Routing** | MODEL_ROUTING_PRIME, MODEL_POOL_MANAGEMENT_PRIME, DYNAMIC_CONCURRENCY |
+| **Reliability** | SELF_HEALING_PRIME, RELIABILITY_PRIME, RECOVERY_PRIME, FALLBACK_STRATEGY |
+| **Database** | SURREALDB_OPTIMIZER_PRIME, DATABASE_PRIME |
+| **Security** | SECURITY_GUARDRAILS_PRIME, SYSTEM_GUARDRAILS_PRIME |
+| **Visualization** | VISUALIZATION_PRIME, MULTIMODAL_VISUALIZATION, ANIMATIONS |
+| **Testing** | TESTING_PRIME, ADVERSARIAL_TESTING_PRIME, CODE_STANDARDS |
+| **Memory** | MEMORY_MCP_PRIME, JOURNEY_TRACKING_PRIME, AUTONOMOUS_RESILIENCE |
+| **Physics/FLUME** | FLUME_METHODOLOGY_PRIME, PHYSICS_PRIME, INTERPRETABILITY_PRIME |
+
+**KEY AGENTS**:
+
+| Agent | Purpose |
+|-------|---------|
+| `architect_agent` | System architecture design |
+| `lab_agent` | Experimental workflows |
+| `synthesizer` | Multi-perspective synthesis |
+| `analyst` | Data analysis |
+| `critic` | Code review, quality |
+| `security_guard_agent` | Security enforcement |
+
+**HOW TO USE SKILLS**:
+```python
+# Via MCP tool: compound_engineering_orchestrator
+workflow_type="skill-refinement",
+task="Improve the TESTING_PRIME skill based on recent failures"
+
+# Via vault: Find relevant skill
+vault_find_relevant_context("skill testing patterns")
+```
+
+**SKILL REGISTRY**: `src/cohezion/registry/skill_registry.json`
+
 **HOW TO LOG LEARNINGS**:
 ```python
 # Log architectural decisions

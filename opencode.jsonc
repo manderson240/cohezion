@@ -2,16 +2,12 @@
   // =============================================================================
   // OPENCODE CONFIGURATION - MCP INTEGRATION
   // =============================================================================
-  // This file configures OpenCode's connection to the cloud-vault-mcp server,
-  // providing Obsidian vault access for context-aware compound engineering.
+  // This file configures OpenCode's connections to:
+  //   1. cloud-vault-mcp: Obsidian vault for context awareness
+  //   2. cohezion-skills: Cohezion skills and agents for compound engineering
   //
   // INTENDED AUDIENCE: OpenCode AI assistant ONLY
   // OTHER TOOLS: Do not modify - this file is managed by OpenCode
-  //
-  // PURPOSE:
-  //   - Connect OpenCode to Obsidian vault via MCP (port 8360)
-  //   - Enable semantic context queries via vault_find_relevant_context
-  //   - Support decision logging, pattern extraction, experiment tracking
   //
   // SESSION START WORKFLOW:
   //   On new session, use MCP tools to query vault for:
@@ -19,13 +15,25 @@
   //     2. Reusable patterns (vault_find_relevant_context: "patterns")
   //     3. Current project state (vault_pull_session_context)
   //
-  // MCP TOOLS AVAILABLE:
-  //   Core: vault_read, vault_write, vault_search, vault_list
-  //   Context: vault_find_relevant_context, vault_log_decision,
-  //            vault_log_experiment, vault_extract_pattern
-  //   Session: vault_push_session_state, vault_pull_session_context
+  // MCP SERVERS:
+  //   cloud-vault:
+  //     - Provides: vault_read, vault_write, vault_search, vault_list
+  //     - Context: vault_find_relevant_context, vault_log_decision,
+  //                vault_log_experiment, vault_extract_pattern
+  //     - Session: vault_push_session_state, vault_pull_session_context
   //
-  // SEE: AGENTS.md for detailed vault query instructions
+  //   cohezion-skills:
+  //     - Provides: compound_engineering_orchestrator, agentic_coding_workflow
+  //     - Elite models: GLM-OCR (94.62%), Qwen3-Coder-Next (70.6% SWE-Bench)
+  //     - Skill execution, workflow orchestration, research synthesis
+  //
+  // CUSTOM COMMANDS:
+  //   /vault-context: Query vault for relevant context
+  //   /log-decision: Log architectural decision to vault
+  //   /log-experiment: Log experiment results to vault
+  //   /run-compound: Run compound engineering workflow
+  //
+  // SEE: CLAUDE.md for complete skills and agents documentation
   // =============================================================================
 
   "$schema": "https://opencode.ai/config.json",
@@ -35,6 +43,37 @@
       "type": "remote",
       "url": "http://localhost:8360/mcp",
       "enabled": true
+    },
+    "cohezion-skills": {
+      "type": "local",
+      "command": ["python3", "src/cohezion/skills/cohezion_mcp.py"],
+      "env": {
+        "COHEZION_ROOT": "/home/mike-anderson/dev/cohezion-session-56"
+      },
+      "enabled": true
+    }
+  },
+
+  "commands": {
+    "vault-context": {
+      "description": "Query Obsidian vault for relevant context. Usage: vault_find_relevant_context(query)",
+      "command": ["echo", "Use MCP tool: vault_find_relevant_context with your query"]
+    },
+    "log-decision": {
+      "description": "Log architectural decision to vault. Args: title, context, decision, rationale",
+      "command": ["echo", "Use MCP tool: vault_log_decision with title, context, decision, rationale"]
+    },
+    "log-experiment": {
+      "description": "Log experiment to vault. Args: hypothesis, method, result, learnings",
+      "command": ["echo", "Use MCP tool: vault_log_experiment with hypothesis, method, result, learnings"]
+    },
+    "run-compound": {
+      "description": "Run compound engineering workflow. Args: workflow_type, task",
+      "command": ["echo", "Use MCP tool: compound_engineering_orchestrator with workflow_type and task"]
+    },
+    "sync-context": {
+      "description": "Sync current session context to vault for cross-session awareness",
+      "command": ["echo", "Use MCP tool: vault_push_session_state with branch, test_status, phase"]
     }
   }
 }
