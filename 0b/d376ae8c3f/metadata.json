@@ -15,7 +15,6 @@
     "README.md",
     "cloud-vault-mcp/CLOUD_ACCESS_QUICKSTART.md",
     "cloud-vault-mcp/CLOUD_CLAUDE_ACCESS.md",
-    "cloud-vault-mcp/SETUP_COMPLETE.md",
     "cloud-vault-mcp/scripts/rotate-token.sh",
     "cloud-vault-mcp/scripts/setup-cloud-access.sh",
     "cloud-vault-mcp/scripts/verify-tunnel.sh",
@@ -79,10 +78,10 @@
     }
   ],
   "token_usage": {
-    "input_tokens": 24501,
-    "cache_creation_tokens": 1275949,
-    "cache_read_tokens": 32986837,
-    "output_tokens": 57166,
-    "api_call_count": 264
+    "input_tokens": 13909,
+    "cache_creation_tokens": 1339711,
+    "cache_read_tokens": 31603800,
+    "output_tokens": 46660,
+    "api_call_count": 250
   }
 }
