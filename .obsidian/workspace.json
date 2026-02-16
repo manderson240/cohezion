@@ -260,6 +260,8 @@
   },
   "active": "c1b19ba8baf36db3",
   "lastOpenFiles": [
+    "FIX_2_EXECUTION_REPORT.md",
+    "FIX_2_EXECUTION_REPORT.md.tmp.1710433.1771214798117",
     "checkpoints/e2e_test.json",
     "checkpoints/checkpoint_test.json",
     "checkpoints/integration_test.json",
@@ -270,8 +272,6 @@
     "PHASE_1_EXECUTION_STATUS.md",
     "PHASE_1_EXECUTION_STATUS.md.tmp.1710433.1771212470150",
     "obsidian-plugin/3d-graph-plugin/scripts/populate-test-data.ts",
-    "obsidian-plugin/3d-graph-plugin/scripts/populate-test-data.ts.tmp.1710433.1771212401963",
-    "obsidian-plugin/3d-graph-plugin/scripts/surrealdb-indexes.sql",
     "PRE_EXECUTION_VALIDATION_RESULTS.md",
     "daily/checkpoints/2026-02-15-c57c39cb.md",
     "session-55-retrospective-phases-a-c.md",
