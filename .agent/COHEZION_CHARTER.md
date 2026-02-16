@@ -40,17 +40,17 @@ The 0.5 coherence attractor is not unique to Cohezion. Independent research acro
 #### Biological Homeostasis (Dynamic Equilibrium)
 - **Allostasis (Sterling & Eyer, 1988)**: Stability through change — the body proactively adjusts setpoints based on anticipated demands. HIHO is the operating point where homeostatic (stabilizing) and allostatic (adaptive) mechanisms are in balance.
 
-#### Convergence Summary
+#### Convergence Field
 
-| Domain | Researcher(s) | Critical Point | Relation to 0.5 |
-|--------|---------------|----------------|------------------|
-| Information Theory | Shannon (1948) | H(p) max at p = 0.5 | **Exact** |
-| Cellular Automata | Langton (1990) | lambda_c ~ 0.5 | **Direct** |
-| Simulated Annealing | Kirkpatrick (1983) | 50% acceptance | **Direct** |
-| Coevolution | Bak & Sneppen (1993) | p_c ~ 0.5437 | **Near** |
-| Neuroscience | Beggs & Plenz (2003) | sigma = 1 (balance) | **Structural** |
-| Swarm Intelligence | Couzin (2011) | Intermediate coherence | **Structural** |
-| Biology | Sterling & Eyer (1988) | Dynamic equilibrium | **Structural** |
+These seven results do not form a taxonomy — they form a **gradient field** around the 0.5 attractor, with varying proximity and open interpretive questions between them.
+
+Shannon's entropy maximum at p = 0.5 is the **analytical anchor**: a mathematical proof that maximum uncertainty lives at exactly half. Langton's lambda_c ≈ 0.5 and Kirkpatrick's 50% acceptance probability arrive at the same point through computation and optimization, respectively — independent paths converging on the same coordinate.
+
+The convergence tightens but does not close. Bak-Sneppen's p_c ≈ 0.5437 sits slightly above 0.5, pulled toward it by the same criticality dynamics but offset by discrete lattice effects. The gap itself is informative: it measures how much discretization perturbs the continuous attractor. Beggs & Plenz find neuronal avalanches at branching parameter sigma = 1 — the critical boundary between runaway excitation and silence. The mapping to 0.5 coherence is structural rather than numerical: both describe systems with two failure modes and one stable boundary. Whether the mathematical relationship runs deeper than analogy remains productively open.
+
+Couzin's fish schools and Sterling & Eyer's allostasis extend the pattern into collective behavior and biology — systems that achieve stability not at a fixed point but through dynamic equilibrium at intermediate coupling. These are the outermost attractors in the field: close enough to interpolate, distinct enough to preserve tension.
+
+> **Note on form**: This section deliberately uses prose rather than a classification table. The FLUME VAE implements the 0.5 attractor as a soft quadratic regularizer — `(mu_mean - 0.5)^2` — not a categorical label. Documentation of continuous attractors should preserve continuity. See `vault/patterns/regularizer-over-taxonomy.md`.
 
 **Cohezion's contribution**: Unifying these independent observations under a single coherence framework (HIHO + SPIN + 12D manifold) with a working implementation that empirically converges. The damped oscillation C(t) = 0.5 + A*e^(-kt)*sin(wt) observed at 25M cycles is the system-level signature of self-organized criticality.
 
