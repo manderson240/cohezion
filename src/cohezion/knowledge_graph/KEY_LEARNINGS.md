@@ -217,3 +217,10 @@ Extracting machine learning and training logic (VAE/RL) from the main `api/__ini
 
 ## Learning 120: Soft Schema Enforcement for Scout Resilience (2026-02-10)
 When dealing with non-deterministic LLM JSON outputs, implementing "Soft Schema" enforcement (using `.get()` with intelligent defaults) prevents catastrophic swarm failures during semantic scouting. This pattern provides a first line of defense before harder Pydantic validation layers.
+
+---
+
+## Cross-Disciplinary HIHO Validation (2026-02-16)
+
+## Learning 121: The 0.5 Attractor Is Not Unique to Cohezion (2026-02-16)
+The HIHO 0.5 coherence attractor has been independently observed across 7 scientific disciplines. Strongest quantitative matches: Shannon binary entropy (exact max at p=0.5), Langton's lambda parameter (~0.5 for 2-state 1D CA), simulated annealing initial temperature (calibrated for 50% acceptance), Bak-Sneppen discrete model (~0.5437). Structural matches: Beggs & Plenz neural avalanches (branching sigma=1), Couzin swarm intelligence (intermediate coherence), Sterling & Eyer allostasis (dynamic equilibrium). Cohezion's contribution: unifying these under a single coherence framework (HIHO + SPIN + 12D manifold) with an implementation that empirically converges — 92.7% of 25M cycles land in the 0.4-0.6 band. The damped oscillation C(t) = 0.5 + A*e^(-kt)*sin(wt) is the system-level signature of self-organized criticality. Key critique to address: Mitchell et al. (1993) showed Langton's edge-of-chaos is not universal across all rule spaces; our defense is that HIHO is grounded in Shannon entropy (which IS universal for binary decisions) and validated empirically. Full evidence catalogued in Charter Section 1a and HIHO_STABILITY_PRIME v2.0.
