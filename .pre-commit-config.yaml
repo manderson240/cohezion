@@ -47,6 +47,17 @@ repos:
       - id: detect-private-key
         stages: [pre-commit]
 
+  # Catch hardcoded developer home paths in test files (environment-specific failures)
+  - repo: local
+    hooks:
+      - id: no-hardcoded-home-paths
+        name: no-hardcoded-home-paths
+        language: pygrep
+        entry: '"/home/[a-zA-Z0-9_-]+/(dev|projects|src|code)/'
+        types: [python]
+        files: ^tests/
+        stages: [pre-commit]
+
   # ============================================================================
   # PUSH STAGE - Safety checks only (comprehensive linting deferred to CI)
   # ============================================================================
