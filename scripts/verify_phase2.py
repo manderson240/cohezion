@@ -3,16 +3,17 @@ import logging
 import sys
 from pathlib import Path
 
+
 # Add src to path
 sys.path.append(str(Path(__name__).parent / "src"))
 
-from cohezion.swarm.agents.analyst import AnalystAgent
-from cohezion.swarm.swarm_types import Perspective, SwarmConfig
 from cohezion.core.time_keeper import get_time_keeper
+from cohezion.swarm.swarm_types import SwarmConfig
+
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("Phase2Verification")
+    logging.getLogger("Phase2Verification")
 
     tk = get_time_keeper()
 
@@ -27,6 +28,7 @@ async def main():
     config = SwarmConfig()
     # We'll use a specific agent that we know has a clear purpose
     from cohezion.swarm.agents.git_health_agent import GitHealthAgent
+
     agent = GitHealthAgent(config=config)
 
     # Delegate a request for analysis
@@ -43,10 +45,10 @@ async def main():
 
     # 3. Test Skill Detection Trigger
     print("\n--- 3. Testing Skill Detection ---")
-    from cohezion.swarm.agents.base import AgentResponse
     # Simulate a few more calls to the same hash in actual BaseAgent logic
     # But for now, we'll verify the logic is intact in base.py
     print("Frequency check is verified via verify_agent_persistence.py")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

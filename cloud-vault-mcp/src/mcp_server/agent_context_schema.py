@@ -11,6 +11,7 @@ from typing import Any
 
 import httpx
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -163,7 +164,7 @@ class AgentContextSchema:
               agent_name = 'test-agent',
               started_at = fn::now(),
               status = 'test',
-              context = {json.dumps({'model': 'test', 'test': True})};
+              context = {json.dumps({"model": "test", "test": True})};
 
             SELECT * FROM agent_session WHERE id == `{test_session_id}`;
             """
@@ -195,7 +196,7 @@ class AgentContextSchema:
         """
         try:
             query = f"USE NS {self.namespace};\nUSE DB {self.database};\nSELECT * FROM agent_session LIMIT 1;"
-            result = self._execute_query(query)
+            self._execute_query(query)
 
             return {
                 "status": "active",

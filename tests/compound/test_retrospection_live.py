@@ -131,5 +131,7 @@ class TestRetrospectionLive:
         analysis = engine.analyze_execution_result(result, "test_skill")
 
         assert analysis["should_refine"] is False
-        assert "degradation" in analysis["recommendation"].lower() or "investigate" in analysis["recommendation"].lower()
+        assert (
+            "degradation" in analysis["recommendation"].lower() or "investigate" in analysis["recommendation"].lower()
+        )
         assert analysis["degraded"] is True

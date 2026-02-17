@@ -30,10 +30,11 @@ from __future__ import annotations
 import logging
 import math
 from collections import deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -49,13 +50,13 @@ HIHO = 0.5
 class Transition:
     """Single experience transition for replay buffer."""
 
-    state: np.ndarray       # 12D state before action
-    action: int             # Action taken (0-8)
-    reward: float           # Reward received
+    state: np.ndarray  # 12D state before action
+    action: int  # Action taken (0-8)
+    reward: float  # Reward received
     next_state: np.ndarray  # 12D state after action
-    done: bool              # Episode terminated
-    log_prob: float = 0.0   # Log probability of action under policy
-    value: float = 0.0      # Value estimate at state
+    done: bool  # Episode terminated
+    log_prob: float = 0.0  # Log probability of action under policy
+    value: float = 0.0  # Value estimate at state
 
 
 class ExperienceBuffer:
@@ -106,9 +107,15 @@ class HihoEnvironment:
 
     # Action encoding: (dx, dy) offsets for 8 directions + stay
     ACTION_MAP = {
-        0: (-1, -1), 1: (0, -1), 2: (1, -1),
-        3: (-1, 0),  4: (0, 0),  5: (1, 0),
-        6: (-1, 1),  7: (0, 1),  8: (1, 1),
+        0: (-1, -1),
+        1: (0, -1),
+        2: (1, -1),
+        3: (-1, 0),
+        4: (0, 0),
+        5: (1, 0),
+        6: (-1, 1),
+        7: (0, 1),
+        8: (1, 1),
     }
 
     def __init__(self, grid_size: int = 64, max_steps: int = 1000):
@@ -241,7 +248,12 @@ class PolicyNetwork:
     Suitable for small-scale local training on CPU.
     """
 
-    def __init__(self, state_dim: int = STATE_DIM, hidden_dim: int = 64, n_actions: int = NUM_ACTIONS):
+    def __init__(
+        self,
+        state_dim: int = STATE_DIM,
+        hidden_dim: int = 64,
+        n_actions: int = NUM_ACTIONS,
+    ):
         self.state_dim = state_dim
         self.hidden_dim = hidden_dim
         self.n_actions = n_actions
@@ -342,14 +354,26 @@ class PPOAgent:
         return action, log_prob, value
 
     def store_transition(
-        self, state: np.ndarray, action: int, reward: float,
-        next_state: np.ndarray, done: bool, log_prob: float, value: float,
+        self,
+        state: np.ndarray,
+        action: int,
+        reward: float,
+        next_state: np.ndarray,
+        done: bool,
+        log_prob: float,
+        value: float,
     ) -> None:
-        self.buffer.push(Transition(
-            state=state, action=action, reward=reward,
-            next_state=next_state, done=done,
-            log_prob=log_prob, value=value,
-        ))
+        self.buffer.push(
+            Transition(
+                state=state,
+                action=action,
+                reward=reward,
+                next_state=next_state,
+                done=done,
+                log_prob=log_prob,
+                value=value,
+            )
+        )
 
     def compute_gae(self, transitions: list[Transition]) -> tuple[np.ndarray, np.ndarray]:
         """Compute Generalized Advantage Estimation.
@@ -487,7 +511,7 @@ def train_hiho_agent(
 
         while True:
             action, log_prob, value = agent.select_action(state)
-            next_state, reward, done, info = env.step(action)
+            next_state, reward, done, _info = env.step(action)
 
             agent.store_transition(state, action, reward, next_state, done, log_prob, value)
 
@@ -519,7 +543,11 @@ def train_hiho_agent(
             recent_avg = np.mean(episode_rewards[-10:])
             logger.info(
                 "Episode %d/%d: reward=%.2f, avg_10=%.2f, steps=%d",
-                episode + 1, num_episodes, episode_reward, recent_avg, step,
+                episode + 1,
+                num_episodes,
+                episode_reward,
+                recent_avg,
+                step,
             )
 
     return {

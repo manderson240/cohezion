@@ -22,10 +22,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import math
 import time
-from dataclasses import dataclass, field
-from typing import Any, Optional
+from dataclasses import dataclass
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -81,12 +81,12 @@ class ThermalTrendPredictor:
         self.history: list[ThermalTimeSeries] = []
 
         # Trained model (lazy loaded)
-        self._model_30min: Optional[dict[str, Any]] = None
+        self._model_30min: dict[str, Any] | None = None
         self._model_trained_at: float = 0.0
         self._model_training_in_progress = False
 
         # Prediction cache
-        self._last_prediction: Optional[tuple[float, float]] = None  # (temp, confidence)
+        self._last_prediction: tuple[float, float] | None = None  # (temp, confidence)
 
     def record_sample(self, sample: ThermalTimeSeries) -> None:
         """Record a thermal observation.
@@ -115,9 +115,7 @@ class ThermalTrendPredictor:
                 # No event loop running, skip async training
                 pass
 
-    def predict_temperature_ahead(
-        self, lookahead_minutes: int = 30
-    ) -> tuple[float, float]:
+    def predict_temperature_ahead(self, lookahead_minutes: int = 30) -> tuple[float, float]:
         """Predict GPU temperature N minutes ahead.
 
         Uses trained model if available, otherwise falls back to heuristic
@@ -161,8 +159,7 @@ class ThermalTrendPredictor:
         self._last_prediction = (predicted_temp, confidence)
 
         logger.debug(
-            f"30-min prediction: {predicted_temp:.1f}°C (confidence: {confidence:.2f}), "
-            f"trend: {trend:.2f}°C/30min"
+            f"30-min prediction: {predicted_temp:.1f}°C (confidence: {confidence:.2f}), trend: {trend:.2f}°C/30min"
         )
 
         return self._last_prediction
@@ -194,12 +191,7 @@ class ThermalTrendPredictor:
         window_seconds = window_minutes * 60
 
         # Find samples within window
-        current_temp = self.history[-1].gpu_temp_c
-        window_temps = [
-            s.gpu_temp_c
-            for s in self.history
-            if (current_time - s.timestamp) <= window_seconds
-        ]
+        window_temps = [s.gpu_temp_c for s in self.history if (current_time - s.timestamp) <= window_seconds]
 
         if len(window_temps) < 2:
             return 0.0
@@ -211,9 +203,7 @@ class ThermalTrendPredictor:
         trend_per_min = (avg_end - avg_start) / window_minutes if window_minutes > 0 else 0.0
         return trend_per_min
 
-    def _predict_heuristic(
-        self, current_temp: float, trend: float, lookahead_minutes: int
-    ) -> float:
+    def _predict_heuristic(self, current_temp: float, trend: float, lookahead_minutes: int) -> float:
         """Predict using simple trend extrapolation (cold start fallback).
 
         predicted = current + (trend * lookahead)
@@ -238,8 +228,7 @@ class ThermalTrendPredictor:
         predicted = current_temp + (trend * lookahead_minutes * damping)
 
         logger.debug(
-            f"Heuristic prediction: current={current_temp:.1f}°C, "
-            f"trend={trend:.2f}°C/min, predicted={predicted:.1f}°C"
+            f"Heuristic prediction: current={current_temp:.1f}°C, trend={trend:.2f}°C/min, predicted={predicted:.1f}°C"
         )
 
         return predicted
@@ -319,7 +308,9 @@ class ThermalTrendPredictor:
         # More samples in recent window = higher confidence in trend
         current_time = time.time()
         recent_samples = [
-            s for s in self.history if (current_time - s.timestamp) < 3600  # 1 hour
+            s
+            for s in self.history
+            if (current_time - s.timestamp) < 3600  # 1 hour
         ]
 
         sample_density = len(recent_samples) / 12.0  # 12 samples in 1 hour @ 5-min intervals
@@ -379,7 +370,7 @@ class ThermalTrendPredictor:
         try:
             # Extract 30-minute pairs: (temp_t, temp_t+30min)
             pairs = []
-            current_time = time.time()
+            time.time()
             window_seconds = 30 * 60  # 30 minutes
 
             for i, sample in enumerate(self.history[:-1]):
@@ -387,14 +378,15 @@ class ThermalTrendPredictor:
                 future_candidates = [
                     self.history[j]
                     for j in range(i + 1, len(self.history))
-                    if abs(
-                        (self.history[j].timestamp - sample.timestamp) - window_seconds
-                    )
+                    if abs((self.history[j].timestamp - sample.timestamp) - window_seconds)
                     < 300  # Within 5 min of 30-min mark
                 ]
 
                 if future_candidates:
-                    closest = min(future_candidates, key=lambda s: abs(s.timestamp - sample.timestamp - window_seconds))
+                    closest = min(
+                        future_candidates,
+                        key=lambda s: abs(s.timestamp - sample.timestamp - window_seconds),
+                    )
                     pairs.append((sample.gpu_temp_c, closest.gpu_temp_c))
 
             if len(pairs) < 5:
@@ -495,7 +487,7 @@ def get_thermal_trend_predictor(reset: bool = False) -> ThermalTrendPredictor:
 
 
 # Module-level singleton
-_predictor_instance: Optional[ThermalTrendPredictor] = None
+_predictor_instance: ThermalTrendPredictor | None = None
 
 
 __all__ = [

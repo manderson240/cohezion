@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 
 class ChangeType(Enum):
     """Type of change tracked in transaction."""
+
     FILE_CREATED = "file_created"
     FILE_MODIFIED = "file_modified"
     FILE_DELETED = "file_deleted"
@@ -41,6 +42,7 @@ class ChangeType(Enum):
 
 class AuditEventType(Enum):
     """Type of audit event."""
+
     TRANSACTION_BEGIN = "transaction_begin"
     FILE_CREATED = "file_created"
     FILE_MODIFIED = "file_modified"
@@ -54,6 +56,7 @@ class AuditEventType(Enum):
 
 class SnapshotBackendType(Enum):
     """Type of snapshot backend."""
+
     GIT = "git"
     BTRFS = "btrfs"
     JSONL = "jsonl"
@@ -63,6 +66,7 @@ class SnapshotBackendType(Enum):
 @dataclass
 class Change:
     """Individual change within a transaction."""
+
     change_type: ChangeType
     path: str | None = None
     old_content: bytes | None = None
@@ -102,6 +106,7 @@ class Change:
 @dataclass
 class AuditEntry:
     """Single audit log entry."""
+
     timestamp: datetime
     event_type: AuditEventType
     transaction_id: str
@@ -109,17 +114,20 @@ class AuditEntry:
 
     def to_jsonl(self) -> str:
         """Convert to JSONL format."""
-        return json.dumps({
-            "ts": self.timestamp.isoformat(),
-            "event": self.event_type.value,
-            "txn_id": self.transaction_id,
-            **self.details
-        })
+        return json.dumps(
+            {
+                "ts": self.timestamp.isoformat(),
+                "event": self.event_type.value,
+                "txn_id": self.transaction_id,
+                **self.details,
+            }
+        )
 
 
 @dataclass
 class Snapshot:
     """Point-in-time snapshot of transaction state."""
+
     snapshot_id: str
     transaction_id: str
     timestamp: datetime
@@ -144,6 +152,7 @@ class Snapshot:
 @dataclass
 class Checkpoint:
     """Mid-transaction checkpoint for long-running operations."""
+
     checkpoint_id: str
     name: str | None
     timestamp: datetime
@@ -154,6 +163,7 @@ class Checkpoint:
 @dataclass
 class TransactionConfig:
     """Configuration for transaction behavior."""
+
     operation_name: str
     auto_rollback: bool = True
     audit_log: bool = True
@@ -166,6 +176,7 @@ class TransactionConfig:
 @dataclass
 class TransactionResult:
     """Result of successful transaction commit."""
+
     success: bool
     transaction_id: str
     snapshots_taken: int
@@ -192,6 +203,7 @@ class TransactionResult:
 @dataclass
 class RollbackResult:
     """Result of transaction rollback."""
+
     success: bool
     reason: str
     changes_undone: int
@@ -233,8 +245,7 @@ class AuditLog:
                                 timestamp=datetime.fromisoformat(data["ts"]),
                                 event_type=AuditEventType(data["event"]),
                                 transaction_id=data["txn_id"],
-                                details={k: v for k, v in data.items()
-                                        if k not in ("ts", "event", "txn_id")},
+                                details={k: v for k, v in data.items() if k not in ("ts", "event", "txn_id")},
                             )
                             entries.append(entry)
                         except (json.JSONDecodeError, ValueError, KeyError) as e:
@@ -321,7 +332,13 @@ class BtrfsSnapshotBackend(SnapshotBackend):
         try:
             snapshot_path = working_dir.parent / f".snapshots_{snapshot_id}"
             result = subprocess.run(
-                ["btrfs", "subvolume", "snapshot", str(working_dir), str(snapshot_path)],
+                [
+                    "btrfs",
+                    "subvolume",
+                    "snapshot",
+                    str(working_dir),
+                    str(snapshot_path),
+                ],
                 capture_output=True,
                 timeout=30,
             )
@@ -361,7 +378,7 @@ class BtrfsSnapshotBackend(SnapshotBackend):
 class JsonlSnapshotBackend(SnapshotBackend):
     """JSONL-based metadata-only snapshots (no actual filesystem restore)."""
 
-    def __init__(self, metadata_dir: Path = None):
+    def __init__(self, metadata_dir: Path | None = None):
         """Initialize with metadata directory."""
         self.metadata_dir = metadata_dir or Path("/tmp/rollback_snapshots")
         self.metadata_dir.mkdir(parents=True, exist_ok=True)
@@ -476,9 +493,7 @@ class Transaction:
         self.checkpoints: dict[str, Checkpoint] = {}
 
         # Audit log
-        self.audit_log = AuditLog(
-            config.audit_log_path or Path(f"/tmp/rollback_audit_{transaction_id}.jsonl")
-        )
+        self.audit_log = AuditLog(config.audit_log_path or Path(f"/tmp/rollback_audit_{transaction_id}.jsonl"))
 
         # Snapshots
         self.snapshots: dict[str, Snapshot] = {}
@@ -505,12 +520,14 @@ class Transaction:
                 self.snapshots[snapshot_id] = self.base_snapshot
 
                 # Log begin event
-                self.audit_log.append(AuditEntry(
-                    timestamp=datetime.now(UTC),
-                    event_type=AuditEventType.TRANSACTION_BEGIN,
-                    transaction_id=self.transaction_id,
-                    details={"operation": self.config.operation_name},
-                ))
+                self.audit_log.append(
+                    AuditEntry(
+                        timestamp=datetime.now(UTC),
+                        event_type=AuditEventType.TRANSACTION_BEGIN,
+                        transaction_id=self.transaction_id,
+                        details={"operation": self.config.operation_name},
+                    )
+                )
         except Exception as e:
             logger.error(f"Failed to begin transaction: {e}")
             raise
@@ -571,12 +588,14 @@ class Transaction:
             self.change_index[change.path].append(change_idx)
 
         # Audit log entry
-        self.audit_log.append(AuditEntry(
-            timestamp=change.timestamp,
-            event_type=AuditEventType(change.change_type.value),
-            transaction_id=self.transaction_id,
-            details=change.to_dict(),
-        ))
+        self.audit_log.append(
+            AuditEntry(
+                timestamp=change.timestamp,
+                event_type=AuditEventType(change.change_type.value),
+                transaction_id=self.transaction_id,
+                details=change.to_dict(),
+            )
+        )
 
         # Check if auto-checkpoint needed
         if self.config.checkpoint_interval:
@@ -609,12 +628,14 @@ class Transaction:
                 self.checkpoints[checkpoint_id] = checkpoint
 
                 # Audit checkpoint
-                self.audit_log.append(AuditEntry(
-                    timestamp=datetime.now(UTC),
-                    event_type=AuditEventType.CHECKPOINT,
-                    transaction_id=self.transaction_id,
-                    details={"checkpoint_id": checkpoint_id, "name": name},
-                ))
+                self.audit_log.append(
+                    AuditEntry(
+                        timestamp=datetime.now(UTC),
+                        event_type=AuditEventType.CHECKPOINT,
+                        transaction_id=self.transaction_id,
+                        details={"checkpoint_id": checkpoint_id, "name": name},
+                    )
+                )
 
                 self.last_checkpoint_time = time.time()
                 logger.debug(f"Checkpoint created: {checkpoint_id}")
@@ -644,12 +665,14 @@ class Transaction:
             self.committed = True
 
             # Audit commit
-            self.audit_log.append(AuditEntry(
-                timestamp=datetime.now(UTC),
-                event_type=AuditEventType.TRANSACTION_COMMIT,
-                transaction_id=self.transaction_id,
-                details={"changes": len(self.changes)},
-            ))
+            self.audit_log.append(
+                AuditEntry(
+                    timestamp=datetime.now(UTC),
+                    event_type=AuditEventType.TRANSACTION_COMMIT,
+                    transaction_id=self.transaction_id,
+                    details={"changes": len(self.changes)},
+                )
+            )
 
             duration = time.time() - start
             result = TransactionResult(
@@ -772,7 +795,7 @@ class TransactionManager:
     def begin(
         self,
         operation_name: str,
-        working_dir: Path = None,
+        working_dir: Path | None = None,
         config: TransactionConfig = None,
         backend: SnapshotBackendType = SnapshotBackendType.JSONL,
     ) -> Transaction:

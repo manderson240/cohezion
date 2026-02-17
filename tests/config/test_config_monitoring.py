@@ -4,14 +4,13 @@ Tests vault monitoring, config file monitoring, and event emission.
 """
 
 import asyncio
-import tempfile
+import contextlib
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
 from cohezion.config import ConfigMonitor, ConfigurationOrchestrator
-from cohezion.config.config_events import ConfigEvent
 from cohezion.core.vault_subscription import VaultEvent
 
 
@@ -147,7 +146,7 @@ class TestConfigMonitor:
             # Wait for task to complete
             try:
                 await asyncio.wait_for(monitor_task, timeout=1.0)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 monitor_task.cancel()
 
         assert not monitor._running
@@ -195,10 +194,8 @@ class TestOrchestrationWithMonitoring:
 
                 # Cancel the task
                 orchestration_task.cancel()
-                try:
+                with contextlib.suppress(asyncio.CancelledError):
                     await orchestration_task
-                except asyncio.CancelledError:
-                    pass
 
                 # Verify stop was called within context
                 stop_mock.assert_called()
@@ -252,7 +249,12 @@ class TestEventEmission:
         claude_md = tmp_path / "CLAUDE.md"
         claude_md.write_text("# Initial")
         subprocess.run(["git", "add", "."], cwd=tmp_path, capture_output=True, check=True)
-        subprocess.run(["git", "commit", "-m", "initial"], cwd=tmp_path, capture_output=True, check=True)
+        subprocess.run(
+            ["git", "commit", "-m", "initial"],
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
+        )
 
         monitor = ConfigMonitor(tmp_path)
 

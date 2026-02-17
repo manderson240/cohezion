@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import hashlib
-import json
-import time
-from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 # ---------------------------------------------------------------------------
@@ -93,9 +95,7 @@ def _make_agent(tmp_path: Path):
     from cohezion.swarm.swarm_types import SwarmConfig
 
     config = SwarmConfig(mrp_sync=False, cache_ttl_seconds=3600)
-    agent = TestableAgent(
-        model_name="test-model", config=config, cache_dir=tmp_path / "cache"
-    )
+    agent = TestableAgent(model_name="test-model", config=config, cache_dir=tmp_path / "cache")
 
     return agent, patchers
 
@@ -163,7 +163,7 @@ class TestCacheKey:
         agent, patchers = _make_agent(tmp_path)
         try:
             key = agent._cache_key("test")
-            expected = hashlib.sha256("test-model:test".encode()).hexdigest()
+            expected = hashlib.sha256(b"test-model:test").hexdigest()
             assert key == expected
         finally:
             _cleanup(patchers)

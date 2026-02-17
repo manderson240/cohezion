@@ -7,6 +7,7 @@ demonstration scripts for the sandbox pipeline.
 
 from __future__ import annotations
 
+
 # Minimal validation script: prints system info and writes a result file
 HELLO_SANDBOX = '''\
 """Hello Sandbox — minimal validation script."""

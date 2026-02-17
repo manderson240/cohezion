@@ -4,6 +4,7 @@ import torch
 
 from cohezion.flume.autoencoder import FlumeConfig, FlumeEncoder
 
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("VLIW_Latent_Alignment")
@@ -44,9 +45,7 @@ async def align_vliw_to_12d():
     v7_barrier = torch.matmul(P, z_barrier)
 
     # 4. Compute Coherence (Stability Score)
-    similarity = torch.nn.functional.cosine_similarity(
-        v7_greedy.unsqueeze(0), v7_barrier.unsqueeze(0)
-    )
+    similarity = torch.nn.functional.cosine_similarity(v7_greedy.unsqueeze(0), v7_barrier.unsqueeze(0))
     coherence = similarity.item()
 
     print("\n" + "=" * 50)

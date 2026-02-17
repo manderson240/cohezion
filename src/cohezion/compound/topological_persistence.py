@@ -47,6 +47,7 @@ from typing import Any
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -123,10 +124,7 @@ class PersistenceDiagram:
         float
             Persistence entropy in nats.
         """
-        if dimension is not None:
-            pairs = self.get_pairs(dimension)
-        else:
-            pairs = self.pairs
+        pairs = self.get_pairs(dimension) if dimension is not None else self.pairs
 
         # Filter out infinite persistence
         finite_pairs = [p for p in pairs if not math.isinf(p.persistence)]
@@ -158,14 +156,9 @@ class PersistenceDiagram:
         float
             Total persistence (total topological "signal").
         """
-        if dimension is not None:
-            pairs = self.get_pairs(dimension)
-        else:
-            pairs = self.pairs
+        pairs = self.get_pairs(dimension) if dimension is not None else self.pairs
 
-        return sum(
-            p.persistence for p in pairs if not math.isinf(p.persistence)
-        )
+        return sum(p.persistence for p in pairs if not math.isinf(p.persistence))
 
     def max_persistence(self, dimension: int | None = None) -> float:
         """Maximum finite persistence.
@@ -180,17 +173,12 @@ class PersistenceDiagram:
         float
             Maximum persistence (most significant feature).
         """
-        if dimension is not None:
-            pairs = self.get_pairs(dimension)
-        else:
-            pairs = self.pairs
+        pairs = self.get_pairs(dimension) if dimension is not None else self.pairs
 
         finite = [p.persistence for p in pairs if not math.isinf(p.persistence)]
         return max(finite) if finite else 0.0
 
-    def n_significant_features(
-        self, dimension: int | None = None, threshold: float = 0.1
-    ) -> int:
+    def n_significant_features(self, dimension: int | None = None, threshold: float = 0.1) -> int:
         """Count features with persistence above threshold.
 
         Parameters
@@ -205,10 +193,7 @@ class PersistenceDiagram:
         int
             Number of significant topological features.
         """
-        if dimension is not None:
-            pairs = self.get_pairs(dimension)
-        else:
-            pairs = self.pairs
+        pairs = self.get_pairs(dimension) if dimension is not None else self.pairs
 
         return sum(1 for p in pairs if p.persistence > threshold)
 
@@ -284,9 +269,7 @@ class TopologicalPersistence:
         self.max_dimension = min(max_dimension, 1)  # Cap at H1
         self.max_edge_length = max_edge_length
 
-    def compute_persistence(
-        self, points: np.ndarray
-    ) -> PersistenceDiagram:
+    def compute_persistence(self, points: np.ndarray) -> PersistenceDiagram:
         """Compute persistence diagram from a point cloud.
 
         Parameters
@@ -335,9 +318,7 @@ class TopologicalPersistence:
             },
         )
 
-    def _get_sorted_edges(
-        self, dist_matrix: np.ndarray
-    ) -> list[tuple[int, int, float]]:
+    def _get_sorted_edges(self, dist_matrix: np.ndarray) -> list[tuple[int, int, float]]:
         """Extract and sort edges from distance matrix.
 
         Parameters
@@ -360,9 +341,7 @@ class TopologicalPersistence:
         edges.sort(key=lambda e: e[2])
         return edges
 
-    def _compute_h0(
-        self, n: int, edges: list[tuple[int, int, float]]
-    ) -> list[PersistencePair]:
+    def _compute_h0(self, n: int, edges: list[tuple[int, int, float]]) -> list[PersistencePair]:
         """Compute H0 persistence (connected components) via Union-Find.
 
         Parameters
@@ -427,7 +406,7 @@ class TopologicalPersistence:
 
         # Build adjacency for efficient triangle enumeration
         adj: dict[int, set[int]] = {i: set() for i in range(n)}
-        for (u, v) in edge_list:
+        for u, v in edge_list:
             adj[u].add(v)
             adj[v].add(u)
 
@@ -563,16 +542,8 @@ class TopologicalPersistence:
         float
             Bottleneck distance (>= 0). Small = similar topology.
         """
-        pairs1 = [
-            (p.birth, p.death)
-            for p in dgm1.get_pairs(dimension)
-            if not math.isinf(p.death)
-        ]
-        pairs2 = [
-            (p.birth, p.death)
-            for p in dgm2.get_pairs(dimension)
-            if not math.isinf(p.death)
-        ]
+        pairs1 = [(p.birth, p.death) for p in dgm1.get_pairs(dimension) if not math.isinf(p.death)]
+        pairs2 = [(p.birth, p.death) for p in dgm2.get_pairs(dimension) if not math.isinf(p.death)]
 
         # Add diagonal projections for unmatched points
         # A point (b, d) on the diagonal has cost (d - b) / 2
@@ -636,16 +607,8 @@ class TopologicalPersistence:
         float
             Wasserstein-p distance.
         """
-        pairs1 = [
-            (pp.birth, pp.death)
-            for pp in dgm1.get_pairs(dimension)
-            if not math.isinf(pp.death)
-        ]
-        pairs2 = [
-            (pp.birth, pp.death)
-            for pp in dgm2.get_pairs(dimension)
-            if not math.isinf(pp.death)
-        ]
+        pairs1 = [(pp.birth, pp.death) for pp in dgm1.get_pairs(dimension) if not math.isinf(pp.death)]
+        pairs2 = [(pp.birth, pp.death) for pp in dgm2.get_pairs(dimension) if not math.isinf(pp.death)]
 
         if not pairs1 and not pairs2:
             return 0.0

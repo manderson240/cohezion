@@ -2,27 +2,29 @@
 Tests for Charter-Aligned Skill Effectiveness Tracker.
 """
 
-import pytest
 from datetime import datetime
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import numpy as np
-from cohezion.platform.skill_tracker_charter import (
-    CharterAlignedSkillTracker,
-    SkillUsageEvent,
-    get_skill_tracker,
-    reset_skill_tracker,
+import pytest
+
+from cohezion.platform.coherence_tracker import CoherenceMetrics
+from cohezion.platform.skill_analytics_charter import (
+    CharterAlignedSkillAnalytics,
+    get_skill_analytics,
+    reset_skill_analytics,
 )
 from cohezion.platform.skill_scorer_charter import (
     CharterAlignedSkillScorer,
     get_skill_scorer,
     reset_skill_scorer,
 )
-from cohezion.platform.skill_analytics_charter import (
-    CharterAlignedSkillAnalytics,
-    get_skill_analytics,
-    reset_skill_analytics,
+from cohezion.platform.skill_tracker_charter import (
+    CharterAlignedSkillTracker,
+    SkillUsageEvent,
+    get_skill_tracker,
+    reset_skill_tracker,
 )
-from cohezion.platform.coherence_tracker import CoherenceMetrics
 
 
 @pytest.fixture
@@ -68,9 +70,7 @@ def mock_vae_encoder():
 
 
 @pytest.fixture
-def skill_tracker(
-    mock_surreal_client, mock_coherence_tracker, mock_journey_logger, mock_vae_encoder
-):
+def skill_tracker(mock_surreal_client, mock_coherence_tracker, mock_journey_logger, mock_vae_encoder):
     """Create CharterAlignedSkillTracker with mocked dependencies."""
     with (
         patch(
@@ -141,9 +141,7 @@ class TestCharterAlignedSkillTracker:
         assert skill_tracker.vae is not None
 
     @pytest.mark.asyncio
-    async def test_log_skill_usage_hiho_stable(
-        self, skill_tracker, mock_surreal_client
-    ):
+    async def test_log_skill_usage_hiho_stable(self, skill_tracker, mock_surreal_client):
         """Test logging skill usage that is HIHO stable."""
         event = SkillUsageEvent(
             skill_name="test_skill",
@@ -169,9 +167,7 @@ class TestCharterAlignedSkillTracker:
         assert call_args[0][1]["hiho_stable"] is True
 
     @pytest.mark.asyncio
-    async def test_log_skill_usage_hiho_unstable(
-        self, skill_tracker, mock_surreal_client, mock_journey_logger
-    ):
+    async def test_log_skill_usage_hiho_unstable(self, skill_tracker, mock_surreal_client, mock_journey_logger):
         """Test logging skill usage that is HIHO unstable."""
         event = SkillUsageEvent(
             skill_name="test_skill",
@@ -304,9 +300,7 @@ class TestCharterAlignedSkillAnalytics:
         return mock_proposer
 
     @pytest.fixture
-    def skill_analytics(
-        self, mock_surreal_client, mock_edl_router, mock_observable_proposer
-    ):
+    def skill_analytics(self, mock_surreal_client, mock_edl_router, mock_observable_proposer):
         """Create CharterAlignedSkillAnalytics with mocked dependencies."""
         with (
             patch(

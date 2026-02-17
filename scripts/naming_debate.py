@@ -1,13 +1,15 @@
 import asyncio
-import json
 import logging
+
+from cohezion.swarm.agents.analyst import AnalystAgent
 from cohezion.swarm.agents.architect_agent import ArchitectAgent
 from cohezion.swarm.agents.critic import CriticAgent
-from cohezion.swarm.agents.analyst import AnalystAgent
-from cohezion.swarm.swarm_types import Perspective, ThoughtVector, SwarmConfig
+from cohezion.swarm.swarm_types import Perspective, SwarmConfig
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("DemocraticConsensus")
+
 
 async def orchestrate_naming_debate():
     """
@@ -39,7 +41,9 @@ async def orchestrate_naming_debate():
     print(f"\n🏗️ [Architect]: {arch_resp[:300]}...")
 
     # Round 2: Analyst's Perspective
-    analyst_vector = await analyst.process(f"Analyze the following proposal and topic: \nTopic: {topic}\nProposal: {arch_resp}")
+    analyst_vector = await analyst.process(
+        f"Analyze the following proposal and topic: \nTopic: {topic}\nProposal: {arch_resp}"
+    )
     analyst_content = analyst_vector.content
     print(f"\n📊 [Analyst]: {analyst_content[:300]}...")
 
@@ -63,9 +67,10 @@ async def orchestrate_naming_debate():
     with open("naming_consensus_result.md", "w") as f:
         f.write("# 🤝 Democratic Consensus: Skill Naming Conventions\n\n")
         f.write(f"## Architect View\n{arch_resp}\n\n")
-        f.write(f"## Analyst View\n{analyst_resp}\n\n")
+        f.write(f"## Analyst View\n{analyst_content}\n\n")
         f.write(f"## Critic Recommendation\n{critique_result.recommendation}\n\n")
         f.write(f"## Final Winner\n{final_consensus}\n")
+
 
 if __name__ == "__main__":
     asyncio.run(orchestrate_naming_debate())

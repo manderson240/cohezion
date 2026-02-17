@@ -1,20 +1,16 @@
 from problem import (
-    Engine,
     DebugInfo,
-    SLOT_LIMITS,
-    VLEN,
     N_CORES,
-    SCRATCH_SIZE,
     Machine,
     Tree,
     Input,
     HASH_STAGES,
-    reference_kernel,
     build_mem_image,
     reference_kernel2,
 )
 import random
 import optimizer
+
 
 class KernelBuilder:
     def __init__(self):
@@ -28,13 +24,17 @@ class KernelBuilder:
         return DebugInfo(scratch_map=self.scratch_debug)
 
     def build_kernel(
-        self, forest_height: int, n_nodes: int, batch_size: int, rounds: int, forest=None
+        self,
+        forest_height: int,
+        n_nodes: int,
+        batch_size: int,
+        rounds: int,
+        forest=None,
     ):
         """
         Optimized implementation using SIMD and VLIW packing.
         """
         # Note: hash_stages passed explicitly to underlying builder usually
-        from problem import HASH_STAGES
 
         okb = optimizer.OptimizedKernelBuilder()
         # Modified to pass forest
@@ -43,7 +43,9 @@ class KernelBuilder:
         self.scratch_debug = {addr: (name, length) for addr, (name, length) in okb.scratch_names.items()}
         self.scratch_ptr = okb.scratch_ptr
 
+
 BASELINE = 147734
+
 
 def do_kernel_test(
     forest_height: int,
@@ -61,7 +63,13 @@ def do_kernel_test(
 
     kb = KernelBuilder()
     # Modified to pass forest.values
-    kb.build_kernel(forest.height, len(forest.values), len(inp.indices), rounds, forest=forest.values)
+    kb.build_kernel(
+        forest.height,
+        len(forest.values),
+        len(inp.indices),
+        rounds,
+        forest=forest.values,
+    )
     # print(kb.instrs)
 
     value_trace = {}

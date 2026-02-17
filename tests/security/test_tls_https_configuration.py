@@ -1,7 +1,6 @@
 """Tests for TLS/HTTPS configuration and certificate management."""
 
 import os
-import ssl
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -218,9 +217,7 @@ class TestCertificateGenerator:
             key_path = str(Path(tmpdir) / "key.pem")
 
             with patch("subprocess.run", side_effect=FileNotFoundError):
-                result = CertificateGenerator.generate_self_signed_cert(
-                    cert_path, key_path
-                )
+                result = CertificateGenerator.generate_self_signed_cert(cert_path, key_path)
 
             assert result is False
 
@@ -234,9 +231,7 @@ class TestCertificateGenerator:
             cert_path = str(Path(tmpdir) / "cert.pem")
             key_path = str(Path(tmpdir) / "key.pem")
 
-            result = CertificateGenerator.generate_self_signed_cert(
-                cert_path, key_path, cn="test.local"
-            )
+            result = CertificateGenerator.generate_self_signed_cert(cert_path, key_path, cn="test.local")
 
             assert result is True
             assert Path(cert_path).exists()
@@ -254,9 +249,7 @@ class TestCertificateGenerator:
             key_path = str(Path(tmpdir) / "key.pem")
 
             # Create initial certificate
-            result1 = CertificateGenerator.generate_self_signed_cert(
-                cert_path, key_path
-            )
+            result1 = CertificateGenerator.generate_self_signed_cert(cert_path, key_path)
             assert result1 is True
 
             # Record file modification times
@@ -267,9 +260,7 @@ class TestCertificateGenerator:
             import time
 
             time.sleep(0.1)
-            result2 = CertificateGenerator.generate_self_signed_cert(
-                cert_path, key_path, force=False
-            )
+            result2 = CertificateGenerator.generate_self_signed_cert(cert_path, key_path, force=False)
             assert result2 is True
 
             # Verify files weren't modified
@@ -289,9 +280,7 @@ class TestCertificateGenerator:
             key_path = str(Path(tmpdir) / "key.pem")
 
             # Create initial certificate
-            result1 = CertificateGenerator.generate_self_signed_cert(
-                cert_path, key_path
-            )
+            result1 = CertificateGenerator.generate_self_signed_cert(cert_path, key_path)
             assert result1 is True
 
             cert_mtime1 = Path(cert_path).stat().st_mtime
@@ -300,9 +289,7 @@ class TestCertificateGenerator:
             import time
 
             time.sleep(0.1)
-            result2 = CertificateGenerator.generate_self_signed_cert(
-                cert_path, key_path, force=True
-            )
+            result2 = CertificateGenerator.generate_self_signed_cert(cert_path, key_path, force=True)
             assert result2 is True
 
             # Verify file was modified
@@ -316,9 +303,7 @@ class TestCertificateGenerator:
     def test_ensure_dev_certificates(self):
         """Test development certificate setup."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            cert_path, key_path = CertificateGenerator.ensure_dev_certificates(
-                cert_dir=str(Path(tmpdir) / ".certs")
-            )
+            cert_path, key_path = CertificateGenerator.ensure_dev_certificates(cert_dir=str(Path(tmpdir) / ".certs"))
 
             assert cert_path is not None
             assert key_path is not None
@@ -335,9 +320,7 @@ class TestHTTPSEnforcementMiddleware:
         config = TLSConfig()
         app = MagicMock()
 
-        middleware = HTTPSEnforcementMiddleware(
-            app, config, allow_http_localhost=False
-        )
+        middleware = HTTPSEnforcementMiddleware(app, config, allow_http_localhost=False)
 
         # Create mock request with HTTP scheme
         request = MagicMock()
@@ -375,9 +358,7 @@ class TestHTTPSEnforcementMiddleware:
             return MagicMock(headers={})
 
         app = MagicMock()
-        middleware = HTTPSEnforcementMiddleware(
-            app, config, allow_http_localhost=True
-        )
+        middleware = HTTPSEnforcementMiddleware(app, config, allow_http_localhost=True)
 
         request = MagicMock()
         request.url.scheme = "http"
@@ -437,9 +418,7 @@ class TestSecureCookieMiddleware:
 
         response_obj = MagicMock()
         response_obj.headers = MagicMock()
-        response_obj.headers.getlist = MagicMock(
-            return_value=["session=abc123; Path=/"]
-        )
+        response_obj.headers.getlist = MagicMock(return_value=["session=abc123; Path=/"])
 
         async def mock_next(request):
             return response_obj
@@ -447,7 +426,7 @@ class TestSecureCookieMiddleware:
         middleware = SecureCookieMiddleware(MagicMock(), config)
         request = MagicMock()
 
-        response = await middleware.dispatch(request, mock_next)
+        await middleware.dispatch(request, mock_next)
 
         # Verify that del was called on set-cookie
         response_obj.headers.__delitem__.assert_called_with("set-cookie")

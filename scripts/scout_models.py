@@ -1,12 +1,15 @@
 import asyncio
 import logging
-import sys
 import shutil
+import sys
 from pathlib import Path
+
 from cohezion.core.local_registry import get_local_registry
+
 
 # Add src to path
 sys.path.append(str(Path.cwd() / "src"))
+
 
 async def main():
     logging.basicConfig(level=logging.INFO)
@@ -15,7 +18,7 @@ async def main():
     registry = get_local_registry()
 
     # 1. Storage Check
-    total, used, free = shutil.disk_usage("/")
+    _total, _used, free = shutil.disk_usage("/")
     free_gb = free / (1024**3)
     logger.info(f"💾 Storage Status: {free_gb:.2f} GB Free")
 
@@ -33,7 +36,7 @@ async def main():
         {"name": "mistral:7b-v0.3", "score": 72.5, "size_gb": 4.1},
         {"name": "phi3:mini-128k", "score": 70.2, "size_gb": 2.3},
         {"name": "qwen2:7b", "score": 74.1, "size_gb": 4.5},
-        {"name": "gemma:2b", "score": 58.0, "size_gb": 1.5}
+        {"name": "gemma:2b", "score": 58.0, "size_gb": 1.5},
     ]
 
     installed = registry.available_models
@@ -54,7 +57,7 @@ async def main():
         else:
             # Check for upgrade
             # Simulating that installed legacy models have lower score
-            current_score = score - 5.0 # Assume current is older
+            current_score = score - 5.0  # Assume current is older
             gain = score - current_score
             gain_pct = (gain / current_score) * 100
 
@@ -67,6 +70,7 @@ async def main():
             print(f"  - {rec}")
     else:
         print("\n✅ Roster Optimal. No upgrades needed.")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

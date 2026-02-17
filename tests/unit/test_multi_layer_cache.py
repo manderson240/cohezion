@@ -10,7 +10,6 @@ Tests verify:
 - >80% target hit rates
 """
 
-
 import pytest
 
 from cohezion.swarm.multi_layer_cache import (
@@ -49,7 +48,7 @@ class TestSemanticCacheStore:
 
         cache.put("Hello", "Hi there", 1, 2)
 
-        result, is_exact = cache.get("Goodbye")
+        result, _is_exact = cache.get("Goodbye")
         assert result is None
         assert cache.get_stats()["misses"] == 1
 
@@ -92,7 +91,7 @@ class TestSemanticCacheStore:
         for _ in range(5):
             cache.get("test")
 
-        entry = list(cache._entries.values())[0]
+        entry = next(iter(cache._entries.values()))
         assert entry.access_count == 5
 
     def test_cache_metrics(self):
@@ -327,8 +326,8 @@ class TestMultiLayerCache:
         # Simulate 100 requests with 85 hits
         for i in range(100):
             if i < 85:
-                cache.put(f"p{i%17}", f"r{i%17}", 10, 10)
-                cache.get(f"p{i%17}")
+                cache.put(f"p{i % 17}", f"r{i % 17}", 10, 10)
+                cache.get(f"p{i % 17}")
             else:
                 cache.get(f"p_miss_{i}")
 
@@ -351,9 +350,9 @@ class TestMultiLayerCache:
             persistence_enabled=True,
         )
 
-        result, layer = cache2.get("test")
+        _result, _layer = cache2.get("test")
         # May not match due to timing, but should have loaded
-        assert cache2._semantic_cache._entries or True
+        assert True
 
     def test_clear_all(self):
         """Test clearing all caches."""
@@ -517,13 +516,13 @@ class TestCacheIntegration:
         prompts = [
             "Analyze this code: def foo(): pass",
             "Analyze this code: def foo(): pass",  # Repeat
-            "Analyze this code: def bar(): pass",   # Similar
+            "Analyze this code: def bar(): pass",  # Similar
             "Generate a poem about AI",
             "Generate a poem about AI",  # Repeat
         ]
 
         for prompt in prompts:
-            cached, layer = cache.get(prompt)
+            cached, _layer = cache.get(prompt)
             if cached is None:
                 cache.put(prompt, f"Response to: {prompt}", 10, 20)
 
@@ -537,7 +536,7 @@ class TestCacheIntegration:
 
         # Pattern: 20% unique, 80% repeated
         unique_prompts = [f"unique_{i}" for i in range(20)]
-        repeated = [f"repeated_{i%5}" for i in range(80)]
+        repeated = [f"repeated_{i % 5}" for i in range(80)]
 
         all_prompts = unique_prompts + repeated
 
@@ -574,7 +573,7 @@ class TestCacheIntegration:
 
                     if i > 0:
                         # Repeated prompts should hit cache
-                        cached, layer = optimizer.get_cached_or_none(
+                        _cached, _layer = optimizer.get_cached_or_none(
                             f"{op}_{i}",
                             model=model,
                             operation_type=op,

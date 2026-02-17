@@ -4,15 +4,11 @@ Each test validates a real mathematical property — not just that a number
 is returned, but that the physics is correct.
 """
 
-import math
-
 import numpy as np
 import pytest
 
 from cohezion.compound.thermodynamic_metrics import (
-    PhaseTransition,
     ThermodynamicMetrics,
-    ThermodynamicState,
 )
 
 

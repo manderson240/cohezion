@@ -13,7 +13,6 @@ at the HIHO (0.5) stability point.
 
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import json
 import logging
@@ -26,7 +25,6 @@ from uuid import uuid4
 
 import numpy as np
 
-from cohezion.flume.autoencoder import FlumeEncoder
 
 logger = logging.getLogger(__name__)
 
@@ -172,17 +170,13 @@ class UniverseJourney:
             "intent": self.intent,
             "status": self.status,
             "initial_axiomatic": self.initial_axiomatic.to_vector(),
-            "initial_latent_embedding": self.initial_latent.embedding
-            if self.initial_latent
-            else [],
+            "initial_latent_embedding": self.initial_latent.embedding if self.initial_latent else [],
             "trajectory_count": len(self.trajectory),
             "precipitation_type": list(self.precipitation.keys()),
             "final_coherence": self.final_coherence,
             "final_phi_score": self.final_phi_score,
             "created_at": self.created_at.isoformat(),
-            "completed_at": self.completed_at.isoformat()
-            if self.completed_at
-            else None,
+            "completed_at": self.completed_at.isoformat() if self.completed_at else None,
         }
 
 
@@ -238,9 +232,7 @@ class UniverseSimulationEngine:
         # 1. Encode intent
         encoder = await self._ensure_encoder()
         embedding = await encoder.encode(intent)
-        latent = LatentState(
-            embedding=embedding, semantic_intent=intent, confidence=0.7
-        )
+        latent = LatentState(embedding=embedding, semantic_intent=intent, confidence=0.7)
 
         # 2. Project to 12D
         axiomatic = self._project_to_axiomatic(embedding, context)
@@ -248,15 +240,15 @@ class UniverseSimulationEngine:
         # 3. Predict Initial World State (Genie Concept)
         # Instead of just tracking, we 'Set the Scene'
         from cohezion.core.multimodal_bridge import LOCAL_MULTIMODAL_BRIDGE
-        
+
         # 1. Voice Narration
         await LOCAL_MULTIMODAL_BRIDGE.schedule_asset(
-            "narrative", 
-            priority=1, 
+            "narrative",
+            priority=1,
             payload={
                 "text": f"Initializing manifold journey for {agent_name}. Intent: {intent}",
-                "journey_id": journey_id
-            }
+                "journey_id": journey_id,
+            },
         )
 
         # 2. Hyper-Fidelity Storyboard
@@ -268,9 +260,9 @@ class UniverseSimulationEngine:
                 "prompts": [
                     f"A crystalline 12D manifold representing {intent}",
                     f"A glowing lattice nexus for {agent_name}",
-                    f"Filament evolution of {intent} in a latent void"
-                ]
-            }
+                    f"Filament evolution of {intent} in a latent void",
+                ],
+            },
         )
 
         journey = UniverseJourney(
@@ -295,33 +287,35 @@ class UniverseSimulationEngine:
         """
         # 1. Get Hardware Vitals
         from cohezion.reliability.monitor import get_resource_monitor
+
         monitor = get_resource_monitor()
         vitals = monitor.get_vitals()
-        
+
         # 2. Rust-Optimized Holographic Projection
         from cohezion_core.cohezion_core_rs import FlumePhysics
+
         # Note: In a real system we would cache this instance
         physics_engine = FlumePhysics(
-            np.zeros((1, 1), dtype=np.float32), 
-            np.zeros(1, dtype=np.float32), 
-            np.zeros((1, 1), dtype=np.float32), 
-            np.zeros(1, dtype=np.float32), 
-            np.zeros(1, dtype=np.float32), 
-            np.zeros(1, dtype=np.float32)
+            np.zeros((1, 1), dtype=np.float32),
+            np.zeros(1, dtype=np.float32),
+            np.zeros((1, 1), dtype=np.float32),
+            np.zeros(1, dtype=np.float32),
+            np.zeros(1, dtype=np.float32),
+            np.zeros(1, dtype=np.float32),
         )
-        
+
         # 3. Informational Entropy (Holographic Audit)
         latent_np = np.array(embedding_2048d, dtype=np.float32)
         entropy = physics_engine.calculate_entropy(latent_np)
-        
+
         # 4. Precipitation Math (Holographic)
         rep = physics_engine.project_holographic(latent_np)
-        
+
         # 5. Kinetic Mapping (Hardware + Latent Fusion)
         physics_kinetic = 1.0 - (vitals["cpu_percent"] / 100.0)
         field_kinetic = vitals["vram_percent"] / 100.0
         control_kinetic = vitals["dilation_factor"]
-        
+
         # Logic is semantic stability weighted by RAM availability and Bit-Entropy
         # Normalize entropy to [0, 1] range for weighting (max bit entropy for 256 buckets is 8)
         entropy_weight = min(entropy / 8.0, 1.0)
@@ -349,36 +343,37 @@ class UniverseSimulationEngine:
     ) -> list[AxiomaticState]:
         """Batch-optimize projection of multiple latent states to axiomatic space."""
         from cohezion_core.cohezion_core_rs import FlumePhysics
+
         physics_engine = FlumePhysics(
-            np.zeros((1, 1), dtype=np.float32), 
-            np.zeros(1, dtype=np.float32), 
-            np.zeros((1, 1), dtype=np.float32), 
-            np.zeros(1, dtype=np.float32), 
-            np.zeros(1, dtype=np.float32), 
-            np.zeros(1, dtype=np.float32)
+            np.zeros((1, 1), dtype=np.float32),
+            np.zeros(1, dtype=np.float32),
+            np.zeros((1, 1), dtype=np.float32),
+            np.zeros(1, dtype=np.float32),
+            np.zeros(1, dtype=np.float32),
+            np.zeros(1, dtype=np.float32),
         )
-        
+
         # 1. Batch Holographic Projection in Rust
         # embeddings_2048d should be [N, 2048] float32
         reps = physics_engine.project_holographic_batch(embeddings_2048d)
         entropies = physics_engine.calculate_entropy_batch(embeddings_2048d)
-        
+
         axiomatic_states = []
         for i in range(len(reps)):
             rep = reps[i]
             entropy = entropies[i]
-            
+
             # Application of Awareness Flux (Introspection)
             # logic = informational self-consistency * bit-entropy audit
             entropy_weight = min(entropy / 8.0, 1.0)
             logic_kinetic = rep[6] * entropy_weight
-            
+
             axiomatic = AxiomaticState(
                 spatial_x=rep[0],
                 spatial_y=rep[1],
                 spatial_z=rep[2],
                 temporal=time.time(),
-                physics=1.0, # Default kinetic
+                physics=1.0,  # Default kinetic
                 biology=rep[5],
                 logic=logic_kinetic,
                 quantum=rep[7],
@@ -388,7 +383,7 @@ class UniverseSimulationEngine:
                 precipitation=0.0,
             )
             axiomatic_states.append(axiomatic)
-            
+
         return axiomatic_states
 
     async def evolve_trajectory(
@@ -401,23 +396,24 @@ class UniverseSimulationEngine:
         """Evolve the journey by one step through the manifold."""
         # Get current latent embedding (simulated for now)
         latent_vec = np.random.randn(2048).tolist()
-        
+
         # 1. Project to Axiomatic
-        axiomatic = self._project_to_axiomatic(latent_vec)
-        
+        self._project_to_axiomatic(latent_vec)
+
         # 2. Rust-Optimized Quantization
         from cohezion_core.cohezion_core_rs import FlumePhysics
-        physics_engine = FlumePhysics(
-            np.zeros((1, 1), dtype=np.float32), 
-            np.zeros(1, dtype=np.float32), 
-            np.zeros((1, 1), dtype=np.float32), 
-            np.zeros(1, dtype=np.float32), 
-            np.zeros(1, dtype=np.float32), 
-            np.zeros(1, dtype=np.float32)
+
+        FlumePhysics(
+            np.zeros((1, 1), dtype=np.float32),
+            np.zeros(1, dtype=np.float32),
+            np.zeros((1, 1), dtype=np.float32),
+            np.zeros(1, dtype=np.float32),
+            np.zeros(1, dtype=np.float32),
+            np.zeros(1, dtype=np.float32),
         )
         # latent_np = np.array(latent_vec, dtype=np.float32)
         # quantized_latent = physics_engine.quantize_q4_k(latent_np)
-        
+
         # 3. Create Trajectory Point
         # ... logic to create point ...
         step_num = len(journey.trajectory)
@@ -468,9 +464,7 @@ class UniverseSimulationEngine:
 
         journey.add_trajectory_point(point)
 
-        logger.debug(
-            f"   Trajectory step {step_num}: coherence={coherence:.3f}, phi={phi_score:.3f}"
-        )
+        logger.debug(f"   Trajectory step {step_num}: coherence={coherence:.3f}, phi={phi_score:.3f}")
 
         return point
 
@@ -485,18 +479,19 @@ class UniverseSimulationEngine:
         Uses the ManifoldBridge to convert intent into reality.
         """
         logger.info(f"✨ [GLE] Precipitating Latent Action for {journey.id}: {prompt[:50]}...")
-        
+
         # 1. Evolve Trajectory (Movement in latent space)
         point = await self.evolve_trajectory(journey, action=f"Latent Projection: {prompt}")
-        
+
         # 2. Use Manifold Bridge for Physical Precipitation
         from cohezion.core.routing.manifold_bridge import LOCAL_MANIFOLD_BRIDGE
+
         precipitation = await LOCAL_MANIFOLD_BRIDGE.precipitate_intent(journey, point.latent)
-        
+
         # 3. Update trajectory with achieved result
         point.result_achieved = precipitation["result_summary"]
         point.axiomatic.precipitation = precipitation["phi_est"]
-        
+
         return point
 
     async def predict_evolution(self, journey: UniverseJourney) -> str:
@@ -505,14 +500,14 @@ class UniverseSimulationEngine:
         """
         # Uses reasoning model to find the 'Unknown'
         from cohezion.core.routing.router import LOCAL_ROUTER
-        
+
         prediction_prompt = f"""
 Analyze the current Mission Journey:
 Intent: {journey.intent}
 Trajectory Steps: {len(journey.trajectory)}
 Final Coherence: {journey.final_coherence}
 
-Based on the 0.5 Coherence Rule and HIHO protocol, predict the next 'TRANSFORMATIVE' action 
+Based on the 0.5 Coherence Rule and HIHO protocol, predict the next 'TRANSFORMATIVE' action
 that would push this project into the 'Unknown'.
 """
         prediction = await LOCAL_ROUTER.route_task("reasoning", prediction_prompt)
@@ -580,8 +575,7 @@ that would push this project into the 'Unknown'.
                     "type": "process_pattern",
                     "pattern": "Multi-step refinement successful",
                     "step_count": len(journey.trajectory),
-                    "avg_coherence": sum(t.coherence for t in journey.trajectory)
-                    / len(journey.trajectory),
+                    "avg_coherence": sum(t.coherence for t in journey.trajectory) / len(journey.trajectory),
                 }
             )
 
@@ -607,41 +601,41 @@ that would push this project into the 'Unknown'.
     ) -> list[dict[str, Any]]:
         """Find similar past journeys for experience replay."""
         logger.info(f"🔍 Searching for similar journeys (threshold={threshold})")
-        
+
         results = []
         try:
             # In production, this would query SurrealDB vector index.
             # Local fallback: Scan data/universe for .json files
             query_vec = np.array(query_embedding)
-            
+
             for path in self.local_storage.glob("*.json"):
                 with open(path) as f:
                     data = json.load(f)
-                    
+
                 latent_embedding = data.get("initial_latent_embedding")
                 if not latent_embedding or len(latent_embedding) != 512:
                     continue
-                    
+
                 target_vec = np.array(latent_embedding)
-                
+
                 # Cosine Similarity
                 dot_product = np.dot(query_vec, target_vec)
                 norm_q = np.linalg.norm(query_vec)
                 norm_t = np.linalg.norm(target_vec)
-                
+
                 if norm_q == 0 or norm_t == 0:
                     similarity = 0.0
                 else:
                     similarity = dot_product / (norm_q * norm_t)
-                
+
                 if similarity >= threshold:
                     data["similarity_score"] = float(similarity)
                     results.append(data)
-            
+
             # Sort by similarity
             results.sort(key=lambda x: x["similarity_score"], reverse=True)
             return results[:limit]
-            
+
         except Exception as e:
             logger.error(f"Failed similarity search: {e}")
             return []
@@ -651,10 +645,10 @@ that would push this project into the 'Unknown'.
         encoder = await self._ensure_encoder()
         embedding = await encoder.encode(intent)
         similar = await self.find_similar_journeys(embedding, threshold=0.8, limit=1)
-        
+
         if not similar:
             return "No previous experience found for this intent."
-            
+
         top = similar[0]
         return (
             f"EXPERIENCE REPLAY (Similarity: {top['similarity_score']:.2f}):\n"

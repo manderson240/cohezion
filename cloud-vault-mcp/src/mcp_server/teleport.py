@@ -82,9 +82,7 @@ class CloudTeleportProtocol:
         task = self._read_task(task_id)
 
         if task["status"] != "pending":
-            raise ValueError(
-                f"Task {task_id} is not pending (status: {task['status']})"
-            )
+            raise ValueError(f"Task {task_id} is not pending (status: {task['status']})")
 
         task["status"] = "in_progress"
         task["assigned_to"] = assigned_to
@@ -99,9 +97,7 @@ class CloudTeleportProtocol:
         task = self._read_task(task_id)
 
         if task["status"] != "in_progress":
-            raise ValueError(
-                f"Task {task_id} is not in_progress (status: {task['status']})"
-            )
+            raise ValueError(f"Task {task_id} is not in_progress (status: {task['status']})")
 
         task["status"] = "completed"
         task["updated_at"] = datetime.now(UTC).isoformat()

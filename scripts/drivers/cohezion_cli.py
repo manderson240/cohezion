@@ -1,12 +1,11 @@
 import argparse
 import asyncio
+import contextlib
 import os
 import re
 import sys
 from datetime import datetime
 
-from cohezion.branding import Colors
-from cohezion.ui.nexus_ui import ConsciousnessIgnition, NexusUI
 from rich.align import Align
 from rich.console import Console
 from rich.layout import Layout
@@ -15,6 +14,10 @@ from rich.panel import Panel
 from rich.progress import BarColumn, Progress, TextColumn
 from rich.table import Table
 from rich.text import Text
+
+from cohezion.branding import Colors
+from cohezion.ui.nexus_ui import ConsciousnessIgnition, NexusUI
+
 
 # Configuration
 LOG_PATH = "logs/lab_driver.log"
@@ -25,7 +28,7 @@ EXPERT_DOMAINS = {
     "quantum_hw": "Quantum HW",
     "quantum_algo": "Quantum Algo",
 }
-EXPERTS_STATUS = {e: "Idle" for e in EXPERT_DOMAINS.keys()}
+EXPERTS_STATUS = dict.fromkeys(EXPERT_DOMAINS.keys(), "Idle")
 
 
 class SimulationDriver:
@@ -34,7 +37,7 @@ class SimulationDriver:
     def __init__(self):
         self.discoveries = []
         self.coherence = 0.45
-        self.experts_status = {e: "Idle" for e in EXPERT_DOMAINS.keys()}
+        self.experts_status = dict.fromkeys(EXPERT_DOMAINS.keys(), "Idle")
 
     async def cool_down_expert(self, expert):
         await asyncio.sleep(5)
@@ -55,7 +58,7 @@ class SimulationDriver:
                     continue
 
                 # Check for expert ignition
-                for key in EXPERT_DOMAINS.keys():
+                for key in EXPERT_DOMAINS:
                     if f"route: {key}" in line.lower():
                         self.experts_status[key] = "Ignited"
                         asyncio.create_task(self.cool_down_expert(key))
@@ -142,9 +145,6 @@ class TerminalNexus:
             border_style=Colors.WARNING_GOLD,
         )
 
-    def get_pulse(self) -> Panel:
-        return self.ui.create_pulse(self.driver.coherence)
-
     def get_metrics(self) -> Panel:
         return self.ui.create_metrics()
 
@@ -157,8 +157,6 @@ class TerminalNexus:
             ),
             border_style=Colors.NEXUS_GREEN,
         )
-
-    # Removed duplicate get_concept_explorer
 
     def get_pulse(self) -> Panel:
         intensity = min(1.0, max(0.0, self.driver.coherence))
@@ -179,7 +177,7 @@ class TerminalNexus:
             TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
             expand=True,
         )
-        task_id = progress.add_task("Coherence", total=100, completed=intensity * 100)
+        progress.add_task("Coherence", total=100, completed=intensity * 100)
 
         # Add a subtle "pulse" animation character
         pulse_char = "⚡" if datetime.now().second % 2 == 0 else " "
@@ -202,7 +200,7 @@ class TerminalNexus:
     async def run(self):
         self.make_layout()
 
-        with Live(self.layout, refresh_per_second=4, screen=True) as live:
+        with Live(self.layout, refresh_per_second=4, screen=True):
             async for _ in self.driver.digest_logs():
                 self.layout["header"].update(self.get_header())
                 self.layout["lattice"].update(self.get_lattice())
@@ -237,17 +235,13 @@ async def cmd_research(args):
     agent = NexusResearchAgent()
     try:
         if args.query:
-            console.print(
-                f"[dim]Searching for:[/dim] [bold #f093fb]{args.query}[/bold #f093fb]"
-            )
+            console.print(f"[dim]Searching for:[/dim] [bold #f093fb]{args.query}[/bold #f093fb]")
             res = await agent.search_and_rank(args.query)
         else:
             console.print("[dim]Executing comprehensive daily sweep...[/dim]")
             res = await agent.mine_daily(limit_per_source=args.limit)
 
-        console.print(
-            f"\n[bold {Colors.NEXUS_GREEN}]RESEARCH SYNTHESIS COMPLETE[/bold {Colors.NEXUS_GREEN}]"
-        )
+        console.print(f"\n[bold {Colors.NEXUS_GREEN}]RESEARCH SYNTHESIS COMPLETE[/bold {Colors.NEXUS_GREEN}]")
         console.print(
             Panel(
                 res,
@@ -267,9 +261,7 @@ async def cmd_journey(args):
     console = Console()
 
     if args.list:
-        table = Table(
-            title="Available Cohezion Journeys", border_style=Colors.EARTH_BLUE
-        )
+        table = Table(title="Available Cohezion Journeys", border_style=Colors.EARTH_BLUE)
         table.add_column("Voyage", style=f"bold {Colors.NEXUS_GREEN}")
         table.add_column("Description", style="italic")
         for name, data in registry.list_voyages().items():
@@ -284,16 +276,12 @@ async def cmd_journey(args):
         console.print(f"[bold red]Error:[/bold red] Voyage '{voyage_name}' not found.")
         return
 
-    console.print(
-        f"[bold {Colors.EARTH_BLUE}]IGNITING VOYAGE:[/bold {Colors.EARTH_BLUE}] {voyage_name}"
-    )
+    console.print(f"[bold {Colors.EARTH_BLUE}]IGNITING VOYAGE:[/bold {Colors.EARTH_BLUE}] {voyage_name}")
     await voyage["entry_point"]()
 
 
 async def main():
-    parser = argparse.ArgumentParser(
-        description="Cohezion CLI - Swarm Orchestration Utility"
-    )
+    parser = argparse.ArgumentParser(description="Cohezion CLI - Swarm Orchestration Utility")
     subparsers = parser.add_subparsers(dest="command", help="Subcommand to run")
 
     # Dash command
@@ -305,30 +293,18 @@ async def main():
     res_parser.add_argument("--limit", type=int, default=5, help="Limit per source")
 
     # Browser command
-    browser_parser = subparsers.add_parser(
-        "browser", help="Launch Cohezion Browser Agent"
-    )
+    browser_parser = subparsers.add_parser("browser", help="Launch Cohezion Browser Agent")
     browser_parser.add_argument("url", type=str, help="URL to explore")
-    browser_parser.add_argument(
-        "--screenshot", type=str, help="Path to save screenshot"
-    )
-    browser_parser.add_argument(
-        "--headful", action="store_true", help="Launch in headful mode"
-    )
+    browser_parser.add_argument("--screenshot", type=str, help="Path to save screenshot")
+    browser_parser.add_argument("--headful", action="store_true", help="Launch in headful mode")
 
     # Verify command
     verify_parser = subparsers.add_parser("verify", help="Run validation suite")
-    verify_parser.add_argument(
-        "--adversarial", action="store_true", help="Run adversarial stress tests"
-    )
+    verify_parser.add_argument("--adversarial", action="store_true", help="Run adversarial stress tests")
 
     # Journey command
-    journey_parser = subparsers.add_parser(
-        "journey", help="Begin an interactive Cohezion Journey"
-    )
-    journey_parser.add_argument(
-        "--list", action="store_true", help="List all available journeys"
-    )
+    journey_parser = subparsers.add_parser("journey", help="Begin an interactive Cohezion Journey")
+    journey_parser.add_argument("--list", action="store_true", help="List all available journeys")
     journey_parser.add_argument("--start", type=str, help="Start a specific journey")
 
     args = parser.parse_args()
@@ -369,9 +345,7 @@ async def main():
         console = Console()
         from cohezion.branding import Colors
 
-        console.print(
-            f"[bold {Colors.NEXUS_GREEN}]Initializing Validation Suite...[/bold {Colors.NEXUS_GREEN}]"
-        )
+        console.print(f"[bold {Colors.NEXUS_GREEN}]Initializing Validation Suite...[/bold {Colors.NEXUS_GREEN}]")
         cmd = ["uv", "run", "tests/verify_context.py"]
         if args.adversarial:
             cmd.append("--adversarial")
@@ -388,7 +362,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    try:
+    with contextlib.suppress(KeyboardInterrupt):
         asyncio.run(main())
-    except KeyboardInterrupt:
-        pass

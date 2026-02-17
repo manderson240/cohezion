@@ -1,10 +1,12 @@
 import asyncio
+import contextlib
 import logging
 import signal
 
 from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.engineering.test_mycelium import TestMycelium
 from cohezion.reliability.monitor import ResourceMonitor
+
 
 logger = logging.getLogger("TestMyceliumDriver")
 
@@ -52,7 +54,5 @@ if __name__ == "__main__":
     for sig in (signal.SIGINT, signal.SIGTERM):
         loop.add_signal_handler(sig, main_task.cancel)
 
-    try:
+    with contextlib.suppress(asyncio.CancelledError):
         loop.run_until_complete(main_task)
-    except asyncio.CancelledError:
-        pass

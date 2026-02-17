@@ -34,9 +34,7 @@ def tmp_skills(tmp_path: Path) -> Path:
     for i in range(3):
         md = skills_dir / f"SKILL_{i}_PRIME.md"
         md.write_text(
-            f"# SKILL: SKILL_{i}_PRIME\n\n"
-            f"## VERSION\n\n1.{i}\n\n"
-            f"## INSTRUCTION\n\n1. Do step one\n2. Do step two\n",
+            f"# SKILL: SKILL_{i}_PRIME\n\n## VERSION\n\n1.{i}\n\n## INSTRUCTION\n\n1. Do step one\n2. Do step two\n",
             encoding="utf-8",
         )
     # One skill without instructions
@@ -92,9 +90,7 @@ class TestVersionTracker:
         tracker.record_generation("SKILL_A", "1.0", "/path/a.py")
         assert tracker.needs_regeneration("SKILL_A", "1.0") is False
 
-    def test_needs_regeneration_different_version(
-        self, tracker: VersionTracker
-    ) -> None:
+    def test_needs_regeneration_different_version(self, tracker: VersionTracker) -> None:
         tracker.record_generation("SKILL_A", "1.0", "/path/a.py")
         assert tracker.needs_regeneration("SKILL_A", "1.1") is True
 
@@ -133,9 +129,7 @@ class TestVersionTracker:
 class TestGenerateAll:
     def test_generate_all_calls_manager(self, pipeline: TemplatePipeline) -> None:
         mock_manager = MagicMock()
-        mock_manager.generate_executable_and_register.return_value = {
-            "agent": Path("/tmp/agent.py")
-        }
+        mock_manager.generate_executable_and_register.return_value = {"agent": Path("/tmp/agent.py")}
         pipeline._manager = mock_manager
 
         mock_tracker = MagicMock()
@@ -150,9 +144,7 @@ class TestGenerateAll:
 
     def test_generate_all_top_n_limit(self, pipeline: TemplatePipeline) -> None:
         mock_manager = MagicMock()
-        mock_manager.generate_executable_and_register.return_value = {
-            "agent": Path("/tmp/agent.py")
-        }
+        mock_manager.generate_executable_and_register.return_value = {"agent": Path("/tmp/agent.py")}
         pipeline._manager = mock_manager
         pipeline._tracker = MagicMock()
 
@@ -179,9 +171,7 @@ class TestGenerateAll:
 class TestRegenerateForSkill:
     def test_regenerate_success(self, pipeline: TemplatePipeline) -> None:
         mock_manager = MagicMock()
-        mock_manager.generate_executable_and_register.return_value = {
-            "agent": Path("/tmp/agent.py")
-        }
+        mock_manager.generate_executable_and_register.return_value = {"agent": Path("/tmp/agent.py")}
         pipeline._manager = mock_manager
         pipeline._tracker = MagicMock()
 
@@ -317,9 +307,7 @@ class TestConfigTemplateVersionHeader:
         skills_dir.mkdir()
         md = skills_dir / "TEST_SKILL_PRIME.md"
         md.write_text(
-            "# SKILL: TEST_SKILL_PRIME\n\n"
-            "## VERSION\n\n2.5\n\n"
-            "## INSTRUCTION\n\n1. Do something\n",
+            "# SKILL: TEST_SKILL_PRIME\n\n## VERSION\n\n2.5\n\n## INSTRUCTION\n\n1. Do something\n",
             encoding="utf-8",
         )
 
@@ -355,9 +343,7 @@ class TestFactoryAutoRegenerate:
         skills_dir.mkdir()
         md = skills_dir / "REGEN_TEST_PRIME.md"
         md.write_text(
-            "# SKILL: REGEN_TEST_PRIME\n\n"
-            "## VERSION\n\n1.0\n\n"
-            "## INSTRUCTION\n\n1. Step one\n",
+            "# SKILL: REGEN_TEST_PRIME\n\n## VERSION\n\n1.0\n\n## INSTRUCTION\n\n1. Step one\n",
             encoding="utf-8",
         )
 
@@ -382,9 +368,7 @@ class TestFactoryAutoRegenerate:
                 "REGEN_TEST_PRIME",
                 auto_regenerate=True,
             )
-            mock_pipeline.regenerate_for_skill.assert_called_once_with(
-                "REGEN_TEST_PRIME"
-            )
+            mock_pipeline.regenerate_for_skill.assert_called_once_with("REGEN_TEST_PRIME")
 
     def test_auto_regenerate_false_skips(self, tmp_path: Path) -> None:
         from cohezion.agents.factory import AgentFactory
@@ -393,9 +377,7 @@ class TestFactoryAutoRegenerate:
         skills_dir.mkdir()
         md = skills_dir / "SKIP_TEST_PRIME.md"
         md.write_text(
-            "# SKILL: SKIP_TEST_PRIME\n\n"
-            "## VERSION\n\n1.0\n\n"
-            "## INSTRUCTION\n\n1. Step one\n",
+            "# SKILL: SKIP_TEST_PRIME\n\n## VERSION\n\n1.0\n\n## INSTRUCTION\n\n1. Step one\n",
             encoding="utf-8",
         )
 

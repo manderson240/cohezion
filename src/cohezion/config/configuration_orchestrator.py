@@ -7,17 +7,14 @@ and SurrealDB while maintaining lean size and consistency.
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
-from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
+from cohezion.concurrency.safe_singleton import safe_singleton
 from cohezion.config.config_archival import ConfigArchiver, SizeEnforcer
 from cohezion.config.config_events import ConfigEvent
 from cohezion.config.config_monitoring import ConfigMonitor
 from cohezion.config.config_state import (
-    ChangeSet,
     ConfigConflict,
     ConfigState,
     FileMetadata,
@@ -25,17 +22,17 @@ from cohezion.config.config_state import (
 )
 from cohezion.config.config_sync_engine import ConfigSyncEngine
 from cohezion.config.config_sync_logger import ConfigSyncLogger
-from cohezion.config.conflict_policy import ConflictPolicy, ConflictResolutionPolicy
 from cohezion.config.config_validation import ConfigValidator, ReconciliationValidator
+from cohezion.config.conflict_policy import ConflictResolutionPolicy
 from cohezion.config.git_utils import GitUtils
-from cohezion.concurrency.safe_singleton import safe_singleton
 from cohezion.core.event_bus import Event, EventType
+
 
 logger = logging.getLogger(__name__)
 
 
 @safe_singleton
-def get_config_orchestrator(repo_root: Optional[Path] = None) -> ConfigurationOrchestrator:
+def get_config_orchestrator(repo_root: Path | None = None) -> ConfigurationOrchestrator:
     """Get or create the configuration orchestrator singleton."""
     if repo_root is None:
         repo_root = Path.cwd()
@@ -146,7 +143,6 @@ class ConfigurationOrchestrator:
         await asyncio.gather(*self._monitor_tasks, return_exceptions=True)
         logger.info("Configuration orchestration monitoring stopped")
 
-
     async def _run_reconciliation_loop(self) -> None:
         """Run periodic reconciliation and validation.
 
@@ -184,7 +180,7 @@ class ConfigurationOrchestrator:
             try:
                 logger.debug("Checking size limits")
 
-                for filename, limit in self.size_limits.items():
+                for filename, _limit in self.size_limits.items():
                     if filename == "CLAUDE.md":
                         file_path = self.claude_md
                     else:
@@ -195,9 +191,7 @@ class ConfigurationOrchestrator:
                         violation_check = self.size_enforcer.check_violations(file_path)
 
                         if violation_check["violates"]:
-                            logger.warning(
-                                f"{filename} size violation: {violation_check['violations']}"
-                            )
+                            logger.warning(f"{filename} size violation: {violation_check['violations']}")
 
                             # Archive old sections
                             archive_result = await self.archiver.archive_old_sections(file_path)
@@ -362,7 +356,7 @@ class ConfigurationOrchestrator:
 
         try:
             # Phase 2: Detect manual edits
-            is_manual = self.detect_manual_edits(file_path)
+            self.detect_manual_edits(file_path)
 
             # Phase 2: Detect conflicts
             conflicts = await self.detect_conflicts()

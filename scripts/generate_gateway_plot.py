@@ -4,9 +4,11 @@ Plotly Gateway Progression Plot
 Modern interactive replacement for matplotlib version
 """
 
-import plotly.graph_objects as go
 import json
 from pathlib import Path
+
+import plotly.graph_objects as go
+
 
 # Load overnight data
 data_path = Path("/home/mike-anderson/dev/cohezion/data/overnight/final_report.json")
@@ -27,65 +29,69 @@ thresholds = [0.950 + (g - 43) * 0.001 for g in gateways]
 fig = go.Figure()
 
 # Threshold line
-fig.add_trace(go.Scatter(
-    x=gateways,
-    y=thresholds,
-    mode='lines',
-    name='Required Threshold',
-    line=dict(color='#e74c3c', width=3, dash='dash'),
-    hovertemplate='Gateway %{x}<br>Threshold: %{y:.4f}<extra></extra>'
-))
+fig.add_trace(
+    go.Scatter(
+        x=gateways,
+        y=thresholds,
+        mode="lines",
+        name="Required Threshold",
+        line={"color": "#e74c3c", "width": 3, "dash": "dash"},
+        hovertemplate="Gateway %{x}<br>Threshold: %{y:.4f}<extra></extra>",
+    )
+)
 
 # Achievement scatter
-fig.add_trace(go.Scatter(
-    x=gateways,
-    y=stabilities,
-    mode='markers',
-    name='Achieved Stability',
-    marker=dict(
-        size=8,
-        color=bright_spots,
-        colorscale='Viridis',
-        showscale=True,
-        colorbar=dict(title="Bright Spots"),
-        line=dict(width=1, color='white')
-    ),
-    hovertemplate='<b>Gateway %{x}</b><br>' +
-                  'Stability: %{y:.4f}<br>' +
-                  'Bright Spots: %{marker.color:,}<br>' +
-                  '<extra></extra>'
-))
+fig.add_trace(
+    go.Scatter(
+        x=gateways,
+        y=stabilities,
+        mode="markers",
+        name="Achieved Stability",
+        marker={
+            "size": 8,
+            "color": bright_spots,
+            "colorscale": "Viridis",
+            "showscale": True,
+            "colorbar": {"title": "Bright Spots"},
+            "line": {"width": 1, "color": "white"},
+        },
+        hovertemplate="<b>Gateway %{x}</b><br>"
+        + "Stability: %{y:.4f}<br>"
+        + "Bright Spots: %{marker.color:,}<br>"
+        + "<extra></extra>",
+    )
+)
 
 # Layout
 fig.update_layout(
-    title=dict(
-        text='Gateway Progression: Infinite Advancement System',
-        font=dict(size=20, family='Arial Black')
-    ),
-    xaxis=dict(
-        title='Gateway Number',
-        gridcolor='rgba(128,128,128,0.2)',
-        showgrid=True
-    ),
-    yaxis=dict(
-        title='Mean Stability',
-        gridcolor='rgba(128,128,128,0.2)',
-        showgrid=True,
-        range=[0.84, 0.96]
-    ),
-    hovermode='closest',
-    plot_bgcolor='#f8f9fa',
-    paper_bgcolor='white',
-    font=dict(family='Arial', size=12),
-    legend=dict(
-        orientation="h",
-        yanchor="bottom",
-        y=1.02,
-        xanchor="right",
-        x=1
-    ),
+    title={
+        "text": "Gateway Progression: Infinite Advancement System",
+        "font": {"size": 20, "family": "Arial Black"},
+    },
+    xaxis={
+        "title": "Gateway Number",
+        "gridcolor": "rgba(128,128,128,0.2)",
+        "showgrid": True,
+    },
+    yaxis={
+        "title": "Mean Stability",
+        "gridcolor": "rgba(128,128,128,0.2)",
+        "showgrid": True,
+        "range": [0.84, 0.96],
+    },
+    hovermode="closest",
+    plot_bgcolor="#f8f9fa",
+    paper_bgcolor="white",
+    font={"family": "Arial", "size": 12},
+    legend={
+        "orientation": "h",
+        "yanchor": "bottom",
+        "y": 1.02,
+        "xanchor": "right",
+        "x": 1,
+    },
     height=600,
-    width=1000
+    width=1000,
 )
 
 # Save to artifacts
@@ -99,5 +105,5 @@ fig.write_html(str(output_dir / "gateway_progression_interactive.html"))
 fig.write_image(str(output_dir / "gateway_progression_plotly.png"), width=1000, height=600, scale=2)
 
 print(f"✅ Gateway progression plot saved to {output_dir}")
-print(f"   - Interactive: gateway_progression_interactive.html")
-print(f"   - Static: gateway_progression_plotly.png")
+print("   - Interactive: gateway_progression_interactive.html")
+print("   - Static: gateway_progression_plotly.png")

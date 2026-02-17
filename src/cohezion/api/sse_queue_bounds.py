@@ -11,6 +11,7 @@ import asyncio
 import logging
 from typing import Any, TypeVar
 
+
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
@@ -43,9 +44,7 @@ class BoundedAsyncQueue:
         except asyncio.QueueFull:
             self._overflow_count += 1
             if self._overflow_count % 100 == 0:  # Log every 100 overflows
-                logger.warning(
-                    f"SSE queue overflow (maxsize={self.maxsize}, total overflows={self._overflow_count})"
-                )
+                logger.warning(f"SSE queue overflow (maxsize={self.maxsize}, total overflows={self._overflow_count})")
             return False
 
     async def put_async_safe(self, item: T) -> bool:
@@ -59,11 +58,9 @@ class BoundedAsyncQueue:
             # Try to put with timeout to prevent indefinite blocking
             await asyncio.wait_for(self._queue.put(item), timeout=1.0)
             return True
-        except asyncio.TimeoutError:
+        except TimeoutError:
             self._overflow_count += 1
-            logger.warning(
-                f"SSE queue put timeout (maxsize={self.maxsize}, total overflows={self._overflow_count})"
-            )
+            logger.warning(f"SSE queue put timeout (maxsize={self.maxsize}, total overflows={self._overflow_count})")
             return False
 
     async def get(self) -> T:
@@ -101,9 +98,7 @@ def create_bounded_queue(maxsize: int = 1000) -> BoundedAsyncQueue:
     return BoundedAsyncQueue(maxsize=maxsize)
 
 
-async def safe_queue_put(
-    queue: asyncio.Queue, item: Any, max_retries: int = 3
-) -> bool:
+async def safe_queue_put(queue: asyncio.Queue, item: Any, max_retries: int = 3) -> bool:
     """
     Safely put item in queue with retries.
 
@@ -121,11 +116,9 @@ async def safe_queue_put(
             return True
         except asyncio.QueueFull:
             if attempt < max_retries - 1:
-                await asyncio.sleep(0.01 * (2 ** attempt))  # Exponential backoff
+                await asyncio.sleep(0.01 * (2**attempt))  # Exponential backoff
             else:
-                logger.warning(
-                    f"Failed to queue item after {max_retries} retries (queue full)"
-                )
+                logger.warning(f"Failed to queue item after {max_retries} retries (queue full)")
                 return False
 
     return False

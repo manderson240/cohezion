@@ -11,6 +11,7 @@ import os
 import time
 from dataclasses import dataclass
 
+
 logger = logging.getLogger(__name__)
 
 # Memory thresholds in GB
@@ -116,25 +117,19 @@ class MemoryGuard:
         if v.available_ram_gb < 10.0:
             # Critical: minimal batches
             safe = max(10, requested // 10)
-            logger.warning(
-                f"CRITICAL memory: {v.available_ram_gb:.1f}GB free, "
-                f"batch {requested}->{safe}"
-            )
+            logger.warning(f"CRITICAL memory: {v.available_ram_gb:.1f}GB free, batch {requested}->{safe}")
             return safe
 
         if v.rss_gb > THROTTLE_THRESHOLD_GB or v.available_ram_gb < 20.0:
             # Throttle: halve batch size
             safe = max(50, requested // 2)
             logger.warning(
-                f"Memory pressure: RSS={v.rss_gb:.1f}GB, "
-                f"avail={v.available_ram_gb:.1f}GB, batch {requested}->{safe}"
+                f"Memory pressure: RSS={v.rss_gb:.1f}GB, avail={v.available_ram_gb:.1f}GB, batch {requested}->{safe}"
             )
             return safe
 
         if v.rss_gb > WARN_THRESHOLD_GB:
-            logger.info(
-                f"Memory watch: RSS={v.rss_gb:.1f}GB, avail={v.available_ram_gb:.1f}GB"
-            )
+            logger.info(f"Memory watch: RSS={v.rss_gb:.1f}GB, avail={v.available_ram_gb:.1f}GB")
 
         return requested
 
@@ -142,17 +137,13 @@ class MemoryGuard:
         """Return True if memory situation is dangerous."""
         v = self.vitals()
         if v.rss_gb > ABORT_THRESHOLD_GB:
-            logger.error(
-                f"ABORT: RSS={v.rss_gb:.1f}GB exceeds {ABORT_THRESHOLD_GB}GB limit"
-            )
+            logger.error(f"ABORT: RSS={v.rss_gb:.1f}GB exceeds {ABORT_THRESHOLD_GB}GB limit")
             return True
         if v.available_ram_gb < 5.0:
             logger.error(f"ABORT: Only {v.available_ram_gb:.1f}GB available RAM")
             return True
         if v.swap_used_gb > 20.0:
-            logger.error(
-                f"ABORT: Swap usage {v.swap_used_gb:.1f}GB indicates thrashing"
-            )
+            logger.error(f"ABORT: Swap usage {v.swap_used_gb:.1f}GB indicates thrashing")
             return True
         return False
 

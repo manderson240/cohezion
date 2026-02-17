@@ -1,14 +1,15 @@
 """Tests for audit logging (Task #3: Phase 2 Security)."""
 
 import json
-import pytest
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+import pytest
+
 from cohezion.security.audit_log import (
-    AuditLogger,
-    AuditLogEntry,
     AuditAction,
+    AuditLogEntry,
+    AuditLogger,
 )
 
 
@@ -30,7 +31,7 @@ class TestAuditLogEntry:
 
     def test_entry_creation(self):
         """Test creating audit log entry."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         entry = AuditLogEntry(
             timestamp=now,
             agent_id="agent-1",
@@ -46,7 +47,7 @@ class TestAuditLogEntry:
 
     def test_entry_to_json(self):
         """Test serialization to JSON."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         entry = AuditLogEntry(
             timestamp=now,
             agent_id="agent-1",
@@ -66,7 +67,7 @@ class TestAuditLogEntry:
 
     def test_entry_from_json(self):
         """Test deserialization from JSON."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         original = AuditLogEntry(
             timestamp=now,
             agent_id="agent-2",
@@ -91,7 +92,7 @@ class TestAuditLoggerBasics:
     def test_log_entry(self, audit_logger):
         """Test logging an entry."""
         entry = AuditLogEntry(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             agent_id="agent-1",
             action=AuditAction.READ,
             resource="/projects/test.md",
@@ -104,7 +105,7 @@ class TestAuditLoggerBasics:
     def test_log_creates_file(self, audit_logger, tmp_path):
         """Test that logging creates date-partitioned file."""
         entry = AuditLogEntry(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             agent_id="agent-1",
             action=AuditAction.WRITE,
             resource="/data/test.json",
@@ -119,7 +120,7 @@ class TestAuditLoggerBasics:
     def test_log_without_persistence(self, audit_logger_no_persist):
         """Test logging with persistence disabled."""
         entry = AuditLogEntry(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             agent_id="agent-1",
             action=AuditAction.READ,
             resource="/test",
@@ -130,7 +131,7 @@ class TestAuditLoggerBasics:
 
     def test_multiple_entries_same_day(self, audit_logger):
         """Test logging multiple entries to same file."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         for i in range(3):
             entry = AuditLogEntry(
@@ -156,7 +157,7 @@ class TestAuditLoggerQuery:
 
     def test_query_by_agent_id(self, audit_logger):
         """Test querying logs by agent ID."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # Log entries from different agents
         for i in range(3):
@@ -175,7 +176,7 @@ class TestAuditLoggerQuery:
 
     def test_query_by_action(self, audit_logger):
         """Test querying logs by action type."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         actions = [
             AuditAction.READ,
@@ -203,7 +204,7 @@ class TestAuditLoggerQuery:
 
     def test_query_by_date_range(self, audit_logger):
         """Test querying logs by date range."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         yesterday = now - timedelta(days=1)
         tomorrow = now + timedelta(days=1)
 
@@ -229,7 +230,7 @@ class TestAuditLoggerQuery:
 
     def test_query_by_resource(self, audit_logger):
         """Test querying logs by resource path."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         resources = ["/projects/test.md", "/data/test.json", "/archive/old.md"]
         for resource in resources:
@@ -248,7 +249,7 @@ class TestAuditLoggerQuery:
 
     def test_query_combined_filters(self, audit_logger):
         """Test querying with multiple filters."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         entries_data = [
             ("agent-1", AuditAction.READ, "/projects/a.md"),
@@ -276,7 +277,7 @@ class TestAuditLoggerExport:
 
     def test_export_json(self, audit_logger):
         """Test exporting logs as JSON."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         entry = AuditLogEntry(
             timestamp=now,
@@ -300,7 +301,7 @@ class TestAuditLoggerExport:
 
     def test_export_csv(self, audit_logger):
         """Test exporting logs as CSV."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         entry = AuditLogEntry(
             timestamp=now,
@@ -324,7 +325,7 @@ class TestAuditLoggerExport:
 
     def test_export_invalid_format(self, audit_logger):
         """Test export with invalid format raises error."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         with pytest.raises(ValueError, match="Unsupported format"):
             audit_logger.export_for_compliance(
@@ -339,7 +340,7 @@ class TestAuditLoggerCleanup:
 
     def test_cleanup_old_logs(self, audit_logger):
         """Test removing old audit logs."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         old_date = now - timedelta(days=100)
 
         # Log old entry
@@ -375,7 +376,7 @@ class TestAuditLoggerStats:
 
     def test_get_stats(self, audit_logger):
         """Test getting audit logger stats."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # Log some entries
         for i in range(3):

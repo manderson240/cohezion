@@ -1,9 +1,8 @@
 """Client for interacting with Ollama API."""
 
-import asyncio
-import httpx
 import logging
-from typing import Optional
+
+import httpx
 
 
 logger = logging.getLogger(__name__)
@@ -21,7 +20,7 @@ class OllamaClient:
         """
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client: httpx.AsyncClient | None = None
 
     async def _get_client(self) -> httpx.AsyncClient:
         """Get or create async HTTP client."""
@@ -29,9 +28,7 @@ class OllamaClient:
             self._client = httpx.AsyncClient(timeout=self.timeout)
         return self._client
 
-    async def query(
-        self, prompt: str, model: str = "mistral", temperature: float = 0.7
-    ) -> str:
+    async def query(self, prompt: str, model: str = "mistral", temperature: float = 0.7) -> str:
         """Execute a query against an Ollama model.
 
         Args:

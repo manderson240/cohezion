@@ -8,14 +8,15 @@ This stub demonstrates:
 3. Skill Ratcheting: Permanently committing successful skills to the 'Root of Trust'.
 """
 
-import time
 import logging
 import random
-from dataclasses import dataclass, field
-from typing import Dict, List
+import time
+from dataclasses import dataclass
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("REWARD_ENGINE")
+
 
 @dataclass
 class AgentProfile:
@@ -26,9 +27,10 @@ class AgentProfile:
     vram_budget_mb: float = 1024.0
     priority: float = 1.0
 
+
 class RewardManager:
     def __init__(self):
-        self.profiles: Dict[str, AgentProfile] = {}
+        self.profiles: dict[str, AgentProfile] = {}
         self.global_cohezion = 0.85
 
     def register_agent(self, agent_id: str):
@@ -38,7 +40,7 @@ class RewardManager:
         """Evaluate agent performance and apply rewards/ratchets."""
         if agent_id not in self.profiles:
             self.register_agent(agent_id)
-            
+
         profile = self.profiles[agent_id]
         profile.stability_score = (profile.stability_score + stability) / 2
         profile.ucp_settlement_total += value
@@ -52,17 +54,18 @@ class RewardManager:
     def _ascend_agent(self, profile: AgentProfile):
         """Reward agent with higher-tier resources."""
         profile.rank += 1
-        profile.vram_budget_mb *= 1.5 # Reward with more memory
+        profile.vram_budget_mb *= 1.5  # Reward with more memory
         profile.priority += 0.5
-        
+
         logger.info(f"💎 ASCENSION DETECTED: Agent {profile.agent_id} reached Rank {profile.rank}!")
         logger.info(f"🎁 REWARD: VRAM Budget Expanded to {profile.vram_budget_mb:.1f} MB")
         logger.info(f"🔒 RATCHET: Locking in Agent {profile.agent_id}'s current logic manifold.")
 
+
 def run_reward_demo():
     manager = RewardManager()
     agent_ids = ["ADVERSARY_A", "RESEARCHER_B", "SCIENTIST_C"]
-    
+
     # Simulate multiple logical cycles
     for cycle in range(5):
         logger.info(f"--- Logical Cycle {cycle + 1} ---")
@@ -72,6 +75,7 @@ def run_reward_demo():
             value = random.uniform(2.0, 5.0)
             manager.process_cycle(aid, stability, value)
         time.sleep(0.2)
+
 
 if __name__ == "__main__":
     run_reward_demo()

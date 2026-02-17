@@ -4,10 +4,12 @@ Phase 2 Priority 3 Implementation Tests.
 """
 
 import pytest
-from unittest.mock import MagicMock, patch
 
-from cohezion.observability.unified_metrics import InferenceMetrics, UnifiedMetricsCollector
 from cohezion.observability.metrics_analytics import MetricsAnalytics, PerformanceReport
+from cohezion.observability.unified_metrics import (
+    InferenceMetrics,
+    UnifiedMetricsCollector,
+)
 
 
 class TestMetricsAnalytics:
@@ -266,9 +268,11 @@ class TestMetricsAnalytics:
         cache_stats = analytics.get_cache_analytics()
 
         # Should have a recommendation (either about low hit rate or L2 utilization)
-        assert "cache" in cache_stats["recommendation"].lower() or \
-               "low" in cache_stats["recommendation"].lower() or \
-               "threshold" in cache_stats["recommendation"].lower()
+        assert (
+            "cache" in cache_stats["recommendation"].lower()
+            or "low" in cache_stats["recommendation"].lower()
+            or "threshold" in cache_stats["recommendation"].lower()
+        )
 
     def test_guardrail_recommendation_generation(self, analytics):
         """Test that guardrail recommendations are appropriate."""
@@ -399,7 +403,7 @@ class TestObservabilityIntegration:
         analytics = MetricsAnalytics(window_size=10)
 
         # Simulate multiple operations
-        for i in range(5):
+        for _i in range(5):
             collector.record_cache_hit(1)
             collector.record_execution(tokens=100, duration_ms=500, model="gpt-4")
             metrics = collector.get_current_metrics()

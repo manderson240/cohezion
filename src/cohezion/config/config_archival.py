@@ -8,9 +8,10 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -256,8 +257,7 @@ class SizeEnforcer:
 
             if line_count > limits["max_lines"]:
                 result["violations"].append(
-                    f"Lines: {line_count} > {limits['max_lines']} "
-                    f"(excess: {line_count - limits['max_lines']} lines)"
+                    f"Lines: {line_count} > {limits['max_lines']} (excess: {line_count - limits['max_lines']} lines)"
                 )
 
             if char_count > limits["max_chars"]:

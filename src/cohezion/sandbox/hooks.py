@@ -7,12 +7,13 @@ ALLOW operations based on their exit codes.
 """
 
 import logging
+import os
 import re
 import subprocess
 import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -20,7 +21,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
-class HookStage(str, Enum):
+class HookStage(StrEnum):
     """Lifecycle stages where hooks can execute."""
 
     PRE_EXECUTE = "pre_execute"
@@ -29,7 +30,7 @@ class HookStage(str, Enum):
     CLEANUP = "cleanup"
 
 
-class HookAction(str, Enum):
+class HookAction(StrEnum):
     """Actions that hooks can request."""
 
     BLOCK = "block"  # Exit code 1: Block operation
@@ -178,7 +179,7 @@ class HookDiscovery:
             HookMetadata if valid, None otherwise
         """
         try:
-            with open(hook_file, "r") as f:
+            with open(hook_file) as f:
                 content = f.read(500)  # Read first 500 bytes for metadata
         except Exception as e:
             logger.error(f"Failed to read hook file {hook_file}: {e}")
@@ -304,9 +305,7 @@ class HookRegistry:
 
     def __init__(self):
         """Initialize hook registry."""
-        self.hooks: dict[HookStage, dict[str, Hook]] = {
-            stage: {} for stage in HookStage
-        }
+        self.hooks: dict[HookStage, dict[str, Hook]] = {stage: {} for stage in HookStage}
 
     def register_hook(self, hook: Hook) -> None:
         """Register a hook in the registry.
@@ -315,9 +314,7 @@ class HookRegistry:
             hook: Hook to register
         """
         self.hooks[hook.metadata.stage][hook.metadata.name] = hook
-        logger.debug(
-            f"Registered hook {hook.metadata.name} for stage {hook.metadata.stage.value}"
-        )
+        logger.debug(f"Registered hook {hook.metadata.name} for stage {hook.metadata.stage.value}")
 
     def get_hooks_for_stage(self, stage: HookStage) -> list[Hook]:
         """Get all hooks for a specific stage.
@@ -371,9 +368,7 @@ class HookRegistry:
         """Convert registry to dictionary."""
         result = {}
         for stage in HookStage:
-            result[stage.value] = {
-                name: hook.to_dict() for name, hook in self.hooks[stage].items()
-            }
+            result[stage.value] = {name: hook.to_dict() for name, hook in self.hooks[stage].items()}
         return result
 
 
@@ -437,9 +432,7 @@ class HookIntegration:
         self.audit_trail.append(result)
 
         # Log result
-        log_level = (
-            logging.WARNING if result.action == HookAction.BLOCK else logging.DEBUG
-        )
+        log_level = logging.WARNING if result.action == HookAction.BLOCK else logging.DEBUG
         logger.log(
             log_level,
             f"Hook {result.hook_name} completed: {result.action.value} (exit_code={result.exit_code})",
@@ -476,9 +469,7 @@ class HookIntegration:
 
             # Check for BLOCK action
             if result.action == HookAction.BLOCK:
-                logger.warning(
-                    f"Hook {hook.metadata.name} blocked operation: {result.stderr}"
-                )
+                logger.warning(f"Hook {hook.metadata.name} blocked operation: {result.stderr}")
                 return False, results
 
         return True, results
@@ -504,10 +495,6 @@ class HookIntegration:
         }
 
 
-# Import os for environment variable access
-import os
-
-
 def get_hook_integration(
     hooks_dir: str | Path = ".claude/hooks",
 ) -> HookIntegration:
@@ -525,15 +512,15 @@ def get_hook_integration(
 
 
 __all__ = [
-    "HookStage",
-    "HookAction",
-    "HookMetadata",
-    "Hook",
-    "HookResult",
     "ExecutionContext",
+    "Hook",
+    "HookAction",
     "HookDiscovery",
     "HookExecutor",
-    "HookRegistry",
     "HookIntegration",
+    "HookMetadata",
+    "HookRegistry",
+    "HookResult",
+    "HookStage",
     "get_hook_integration",
 ]

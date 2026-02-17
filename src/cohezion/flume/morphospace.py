@@ -14,6 +14,7 @@ import numpy as np
 
 from cohezion.flume.lcsp import HIHO, LCSPPredictor
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -53,20 +54,12 @@ class MorphospaceMapper:
     def _initialize_wells(self):
         """Initialize known stability wells."""
         # The origin well (pure HIHO)
-        self.known_wells.append(
-            StabilityWell(
-                center=np.full(12, HIHO), radius=0.2, depth=1.0, name="HIHO_Origin"
-            )
-        )
+        self.known_wells.append(StabilityWell(center=np.full(12, HIHO), radius=0.2, depth=1.0, name="HIHO_Origin"))
 
         # Awareness well (from Phase 0)
         awareness_state = np.zeros(12)
         awareness_state[0] = 1.0
-        self.known_wells.append(
-            StabilityWell(
-                center=awareness_state, radius=0.15, depth=0.9, name="Pure_Awareness"
-            )
-        )
+        self.known_wells.append(StabilityWell(center=awareness_state, radius=0.15, depth=0.9, name="Pure_Awareness"))
 
     def compute_stability(self, state: np.ndarray) -> float:
         """
@@ -123,9 +116,7 @@ class MorphospaceMapper:
             gradient = gradient / (np.linalg.norm(gradient) + 1e-8)
 
             # HIHO-weighted blend
-            next_state = HIHO * prediction.next_state + (1 - HIHO) * (
-                current + 0.1 * gradient
-            )
+            next_state = HIHO * prediction.next_state + (1 - HIHO) * (current + 0.1 * gradient)
 
             # Normalize to reasonable range
             next_state = np.clip(next_state, -1.0, 1.0)
@@ -135,9 +126,7 @@ class MorphospaceMapper:
             current = next_state
 
         # Compute path metrics
-        total_length = sum(
-            np.linalg.norm(states[i + 1] - states[i]) for i in range(len(states) - 1)
-        )
+        total_length = sum(np.linalg.norm(states[i + 1] - states[i]) for i in range(len(states) - 1))
         avg_stability = np.mean(stability_scores)
 
         return MorphoPath(

@@ -3,9 +3,7 @@
 Tests the complete workflow: session → decision → outcome, with query validation.
 """
 
-import json
-from datetime import UTC, datetime
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -77,9 +75,7 @@ class TestAgentContextIntegration:
         """
         # ── Step 1: Track Session ──────────────────────────────────
 
-        mock_surrealdb._execute_query.return_value = [
-            {"id": "agent_session:s001", "status": "in_progress"}
-        ]
+        mock_surrealdb._execute_query.return_value = [{"id": "agent_session:s001", "status": "in_progress"}]
 
         session_result = agent_context.track_session(
             agent_id=sample_session_data["agent_id"],
@@ -160,9 +156,7 @@ class TestAgentContextIntegration:
         Verifies graceful degradation when references don't exist.
         """
         # Track session
-        mock_surrealdb._execute_query.return_value = [
-            {"id": "agent_session:s002", "status": "in_progress"}
-        ]
+        mock_surrealdb._execute_query.return_value = [{"id": "agent_session:s002", "status": "in_progress"}]
 
         session_result = agent_context.track_session(
             agent_id=sample_session_data["agent_id"],
@@ -232,9 +226,7 @@ class TestAgentContextIntegration:
         assert result["success"] is False
         assert "not found" in result["error"].lower()
 
-    def test_workflow_decision_creation_fails(
-        self, agent_context, mock_surrealdb
-    ):
+    def test_workflow_decision_creation_fails(self, agent_context, mock_surrealdb):
         """Test when decision node creation fails."""
         session_id = "agent_session:s003"
 
@@ -253,9 +245,7 @@ class TestAgentContextIntegration:
         assert result["success"] is False
         assert "Failed to create decision" in result["error"]
 
-    def test_workflow_outcome_creation_fails(
-        self, agent_context, mock_surrealdb
-    ):
+    def test_workflow_outcome_creation_fails(self, agent_context, mock_surrealdb):
         """Test when outcome node creation fails."""
         session_id = "agent_session:s004"
 
@@ -302,7 +292,7 @@ class TestAgentContextIntegration:
 
         mock_surrealdb._execute_query.side_effect = track_calls
 
-        result = agent_context.record_decision(
+        agent_context.record_decision(
             session_id=session_id,
             decision_type="architecture",
             reasoning="test",
@@ -339,7 +329,7 @@ class TestAgentContextIntegration:
 
         mock_surrealdb._execute_query.side_effect = track_calls
 
-        result = agent_context.record_outcome(
+        agent_context.record_outcome(
             session_id=session_id,
             outcome_type="success",
             lessons_learned=["l1"],

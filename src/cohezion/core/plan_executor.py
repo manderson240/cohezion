@@ -11,9 +11,11 @@ import logging
 import re
 import time
 from dataclasses import dataclass, field
-from typing import Any, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
-from cohezion.core.instruction_expander import ExecutablePlan, PlanStep
+
+if TYPE_CHECKING:
+    from cohezion.core.instruction_expander import ExecutablePlan, PlanStep
 
 
 logger = logging.getLogger(__name__)
@@ -146,9 +148,7 @@ class PlanExecutor:
             total_duration_ms=round(total_duration, 2),
         )
 
-    async def _run_step(
-        self, step: PlanStep, context: str, domain: str
-    ) -> tuple[str, int]:
+    async def _run_step(self, step: PlanStep, context: str, domain: str) -> tuple[str, int]:
         """Dispatch a single step to the appropriate handler.
 
         Returns
@@ -201,9 +201,7 @@ class PlanExecutor:
                 )
 
         # Placeholder when no client is available
-        return (
-            f"[{step.operation}] {step.description} | input_length={len(context)}"
-        ), 0
+        return (f"[{step.operation}] {step.description} | input_length={len(context)}"), 0
 
     def _run_search(self, step: PlanStep, context: str) -> tuple[str, int]:
         """Run a search step via CapabilityRegistry if available."""
@@ -213,10 +211,7 @@ class PlanExecutor:
             registry = CapabilityRegistry()
             results = registry.find(context[:200], top_k=3)
             if results:
-                lines = [
-                    f"- {cap.name} ({cap.type}): {cap.description[:80]}"
-                    for cap in results
-                ]
+                lines = [f"- {cap.name} ({cap.type}): {cap.description[:80]}" for cap in results]
                 return "\n".join(lines), 0
         except Exception:
             logger.debug("CapabilityRegistry unavailable; returning input")
@@ -228,11 +223,7 @@ class PlanExecutor:
         # Extract keywords: words 4+ chars, deduplicated
         words = re.findall(r"\b[a-zA-Z]{4,}\b", context)
         unique = list(dict.fromkeys(words))[:20]  # preserve order
-        output = (
-            f"Transformed ({step.description[:60]}): "
-            f"keywords=[{', '.join(unique)}] | "
-            f"length={len(context)}"
-        )
+        output = f"Transformed ({step.description[:60]}): keywords=[{', '.join(unique)}] | length={len(context)}"
         return output, 0
 
     def _run_persist(self, step: PlanStep, context: str) -> tuple[str, int]:

@@ -11,10 +11,10 @@ import time
 from pathlib import Path
 
 from cohezion.compound import (
+    AgentTask,
     CompoundFeedbackLoopFactory,
     ExecutorFactory,
     JourneyTrackerFactory,
-    AgentTask,
 )
 from cohezion.core.mcp_client import MCPClient
 
@@ -95,7 +95,7 @@ class CodebaseRefinementPlan:
 class CodebaseAnalyzer:
     """Analyze codebase for refinement opportunities."""
 
-    def __init__(self, repo_root: Path = None):
+    def __init__(self, repo_root: Path | None = None):
         """Initialize analyzer.
 
         Args:
@@ -135,45 +135,17 @@ class CodebaseAnalyzer:
                 continue
 
             f_lower = f.lower()
-            if (
-                "artifact" in f_lower
-                or ".artifact" in f_lower
-                or f.startswith(".artifacts")
-            ):
+            if "artifact" in f_lower or ".artifact" in f_lower or f.startswith(".artifacts"):
                 categories["artifacts"].append(f)
-            elif (
-                "build" in f_lower
-                or "dist" in f_lower
-                or ".egg" in f_lower
-                or "__pycache__" in f_lower
-            ):
+            elif "build" in f_lower or "dist" in f_lower or ".egg" in f_lower or "__pycache__" in f_lower:
                 categories["build_output"].append(f)
-            elif (
-                "cache" in f_lower
-                or ".cache" in f_lower
-                or f.endswith(".pyc")
-                or f.endswith(".pyo")
-            ):
+            elif "cache" in f_lower or ".cache" in f_lower or f.endswith(".pyc") or f.endswith(".pyo"):
                 categories["cache"].append(f)
-            elif (
-                "log" in f_lower
-                or ".log" in f_lower
-                or f.endswith(".log")
-            ):
+            elif "log" in f_lower or ".log" in f_lower or f.endswith(".log"):
                 categories["logs"].append(f)
-            elif (
-                "temp" in f_lower
-                or "tmp" in f_lower
-                or ".tmp" in f_lower
-                or f.endswith(".tmp")
-            ):
+            elif "temp" in f_lower or "tmp" in f_lower or ".tmp" in f_lower or f.endswith(".tmp"):
                 categories["temp"].append(f)
-            elif (
-                "data" in f_lower
-                or "export" in f_lower
-                or "result" in f_lower
-                or "output" in f_lower
-            ):
+            elif "data" in f_lower or "export" in f_lower or "result" in f_lower or "output" in f_lower:
                 categories["data"].append(f)
             else:
                 categories["other"].append(f)
@@ -199,10 +171,10 @@ class CodebaseAnalyzer:
         lines = result.stdout.strip().split("\n") if result.stdout.strip() else []
 
         status = {
-            "modified": len([l for l in lines if l.startswith(" M")]),
-            "added": len([l for l in lines if l.startswith("A ")]),
-            "deleted": len([l for l in lines if l.startswith(" D")]),
-            "untracked": len([l for l in lines if l.startswith("??")]),
+            "modified": len([line for line in lines if line.startswith(" M")]),
+            "added": len([line for line in lines if line.startswith("A ")]),
+            "deleted": len([line for line in lines if line.startswith(" D")]),
+            "untracked": len([line for line in lines if line.startswith("??")]),
             "total_changes": len(lines),
         }
 
@@ -224,13 +196,11 @@ async def run_refinement_pipeline():
     # Initialize components
     mcp_client = MCPClient()
     executor = ExecutorFactory.create(mcp_client)
-    feedback_loop = CompoundFeedbackLoopFactory.create(
-        executor, max_retries=2, enable_learning=True
-    )
+    feedback_loop = CompoundFeedbackLoopFactory.create(executor, max_retries=2, enable_learning=True)
     journey_tracker = JourneyTrackerFactory.create(seed=42)
 
     # Create refinement plan
-    plan = CodebaseRefinementPlan()
+    CodebaseRefinementPlan()
     analyzer = CodebaseAnalyzer()
 
     # Scan repository
@@ -248,11 +218,13 @@ async def run_refinement_pipeline():
     logger.info("Executing: Scan untracked files")
 
     def scan_task(guidance):
-        return json.dumps({
-            "untracked_files": untracked,
-            "count": sum(len(v) for v in untracked.values()),
-            "categories": list(untracked.keys()),
-        }), {"coherence": 0.95}
+        return json.dumps(
+            {
+                "untracked_files": untracked,
+                "count": sum(len(v) for v in untracked.values()),
+                "categories": list(untracked.keys()),
+            }
+        ), {"coherence": 0.95}
 
     result = await feedback_loop.execute_with_feedback(
         task_description="Scan and categorize untracked files in repository",
@@ -279,10 +251,12 @@ async def run_refinement_pipeline():
         if git_status["modified"] > 50:
             recommendations.append("Consider staging changes in smaller batches")
 
-        return json.dumps({
-            "status": git_status,
-            "recommendations": recommendations,
-        }), {"coherence": 0.9}
+        return json.dumps(
+            {
+                "status": git_status,
+                "recommendations": recommendations,
+            }
+        ), {"coherence": 0.9}
 
     result = await feedback_loop.execute_with_feedback(
         task_description="Analyze git repository status and recommend improvements",

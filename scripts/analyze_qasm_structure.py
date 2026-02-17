@@ -1,8 +1,6 @@
-
 import qiskit
 from qiskit import QuantumCircuit
-import sys
-import os
+
 
 # Ensure qiskit is available
 print(f"Qiskit version: {qiskit.__version__}")
@@ -11,7 +9,7 @@ filename = "/home/mike-anderson/dev/cohezion/src/cohezion/physics/quantum/P1_lit
 
 try:
     qc = QuantumCircuit.from_qasm_file(filename)
-    print(f"Circuit 'Little Dimple' loaded successfully.")
+    print("Circuit 'Little Dimple' loaded successfully.")
     print(f"Num Qubits: {qc.num_qubits}")
     print(f"Num Clbits: {qc.num_clbits}")
     print(f"Depth: {qc.depth()}")

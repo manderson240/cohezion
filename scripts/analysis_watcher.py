@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import contextlib
 import logging
 import os
 import signal
@@ -25,6 +26,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import httpx
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -132,10 +134,7 @@ def ram_is_safe() -> bool:
     """Check if enough RAM is available for Ollama inference."""
     available = get_available_ram_gb()
     if available < MIN_AVAILABLE_RAM_GB:
-        logger.warning(
-            f"Low RAM: {available:.1f} GB available (need {MIN_AVAILABLE_RAM_GB} GB). "
-            f"Skipping Ollama call."
-        )
+        logger.warning(f"Low RAM: {available:.1f} GB available (need {MIN_AVAILABLE_RAM_GB} GB). Skipping Ollama call.")
         return False
     return True
 
@@ -342,9 +341,7 @@ def _extract_rows(result: list) -> list[dict]:
 async def discover_latest_run(db) -> str | None:
     """Find the most recent mass_sim_run in SurrealDB."""
     try:
-        result = await db.query(
-            "SELECT id FROM mass_sim_run ORDER BY created_at DESC LIMIT 1"
-        )
+        result = await db.query("SELECT id FROM mass_sim_run ORDER BY created_at DESC LIMIT 1")
         rows = _extract_rows(result) if result and isinstance(result, list) else []
         if rows:
             run_id = rows[0].get("id", "")
@@ -375,9 +372,7 @@ def _row_to_summary(row: dict) -> UniverseSummary | None:
     )
 
 
-async def fetch_new_summaries(
-    db, run_id: str, seen_universe_ids: set[str]
-) -> list[UniverseSummary]:
+async def fetch_new_summaries(db, run_id: str, seen_universe_ids: set[str]) -> list[UniverseSummary]:
     """Fetch universe summaries we haven't processed yet.
 
     Tries SurrealDB first, falls back to JSONL files if DB query fails
@@ -515,8 +510,7 @@ async def run_watcher(run_id: str) -> None:
             if new_summaries:
                 last_activity = time.time()
                 logger.info(
-                    f"Found {len(new_summaries)} new universe(s) "
-                    f"(total seen: {len(seen) + len(new_summaries)})"
+                    f"Found {len(new_summaries)} new universe(s) (total seen: {len(seen) + len(new_summaries)})"
                 )
 
                 for summary in new_summaries:
@@ -537,15 +531,11 @@ async def run_watcher(run_id: str) -> None:
 
                         # Persist
                         try:
-                            await store_narrative(
-                                db, run_id, summary.universe_id, narrative
-                            )
+                            await store_narrative(db, run_id, summary.universe_id, narrative)
                             total_narratives += 1
                             consecutive_failures = 0
                             logger.info(
-                                f"  [{summary.universe_id}] "
-                                f"coherence={summary.mean_coherence:.4f} "
-                                f"-> narrative stored"
+                                f"  [{summary.universe_id}] coherence={summary.mean_coherence:.4f} -> narrative stored"
                             )
                         except Exception as e:
                             logger.warning(f"  Failed to store narrative: {e}")
@@ -560,8 +550,7 @@ async def run_watcher(run_id: str) -> None:
                     # Circuit breaker
                     if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
                         logger.error(
-                            f"Circuit breaker: {MAX_CONSECUTIVE_FAILURES} consecutive "
-                            f"Ollama failures. Exiting."
+                            f"Circuit breaker: {MAX_CONSECUTIVE_FAILURES} consecutive Ollama failures. Exiting."
                         )
                         _shutdown = True
                         break
@@ -572,8 +561,7 @@ async def run_watcher(run_id: str) -> None:
                 idle_seconds = time.time() - last_activity
                 if idle_seconds > IDLE_TIMEOUT_S:
                     logger.info(
-                        f"No new data for {idle_seconds:.0f}s "
-                        f"(timeout: {IDLE_TIMEOUT_S}s). Running final synthesis."
+                        f"No new data for {idle_seconds:.0f}s (timeout: {IDLE_TIMEOUT_S}s). Running final synthesis."
                     )
                     break
 
@@ -604,10 +592,8 @@ async def run_watcher(run_id: str) -> None:
                 logger.warning("Synthesis generation failed (Ollama unavailable)")
 
     # Cleanup
-    try:
+    with contextlib.suppress(Exception):
         await db.close()
-    except Exception:
-        pass
 
     logger.info("=" * 60)
     logger.info("ANALYSIS WATCHER COMPLETE")

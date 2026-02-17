@@ -11,6 +11,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+
 # Constants — use environment variables with sensible defaults
 REPO_ROOT = Path(os.environ.get("COHEZION_ROOT", ".")).resolve()
 DEV_ROOT = REPO_ROOT.parent
@@ -97,9 +98,7 @@ def clean_session(session_id, force=False):
 
     # Safety Check: Unpushed commits
     branch = run(["git", "-C", str(worktree_dir), "rev-parse", "--abbrev-ref", "HEAD"])
-    unpushed = run(
-        ["git", "-C", str(worktree_dir), "cherry", "-v", "origin/main"], check=False
-    )
+    unpushed = run(["git", "-C", str(worktree_dir), "cherry", "-v", "origin/main"], check=False)
 
     if unpushed and not force:
         print(f"WARNING: Unpushed commits found in {branch}:")
@@ -125,6 +124,7 @@ def clean_session(session_id, force=False):
     run(["git", "worktree", "prune"])
 
     print(f"Session {session_id} cleaned up.")
+
 
 def main():
     parser = argparse.ArgumentParser(description="Cohezion Session Manager")
@@ -152,6 +152,7 @@ def main():
         clean_session(args.session, args.force)
     else:
         parser.print_help()
+
 
 if __name__ == "__main__":
     main()

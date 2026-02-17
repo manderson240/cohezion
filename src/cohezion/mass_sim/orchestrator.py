@@ -22,6 +22,7 @@ from cohezion.mass_sim.config import (
 from cohezion.mass_sim.persistence import SimulationPersistence
 from cohezion.mass_sim.system_monitor import MemoryGuard
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -52,9 +53,7 @@ class MassSimOrchestrator:
 
         logger.info(f"Mass Simulation {run_id}")
         logger.info(
-            f"  Scale: {scale.name} | "
-            f"{scale.n_agents} agents x {scale.n_epochs} epochs x "
-            f"{scale.n_universes} universes"
+            f"  Scale: {scale.name} | {scale.n_agents} agents x {scale.n_epochs} epochs x {scale.n_universes} universes"
         )
         logger.info(f"  Navigator: {'FULL' if cfg.use_navigator else 'JITTER'}")
         self.guard.log_status("  Initial ")
@@ -86,9 +85,7 @@ class MassSimOrchestrator:
             logger.info(f"Universe {i + 1}/{len(universe_seeds)}: seed={seed}")
 
             # Run simulation in thread pool (CPU-bound Rust work)
-            result = await asyncio.to_thread(
-                self.runner.simulate_universe, spec, agents
-            )
+            result = await asyncio.to_thread(self.runner.simulate_universe, spec, agents)
 
             all_results.append(result)
 
@@ -135,16 +132,10 @@ class MassSimOrchestrator:
         logger.info(f"  Artifacts: {len(report.artifacts)}")
 
         perf = insights.get("performance", {})
-        logger.info(
-            f"  Throughput: {perf.get('throughput_agent_epochs_per_sec', 0):,.0f} "
-            f"agent-epochs/sec"
-        )
+        logger.info(f"  Throughput: {perf.get('throughput_agent_epochs_per_sec', 0):,.0f} agent-epochs/sec")
 
         safety = insights.get("safety", {})
-        logger.info(
-            f"  Safety: {safety.get('mean_final_within_bounds', 0):.1%} "
-            f"agents within HIHO bounds"
-        )
+        logger.info(f"  Safety: {safety.get('mean_final_within_bounds', 0):.1%} agents within HIHO bounds")
 
         self.guard.log_status("  Final ")
         logger.info("=" * 60)

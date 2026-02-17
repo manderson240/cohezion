@@ -3,6 +3,7 @@ import logging
 
 from cohezion.system.ganglion import OuroborosGanglion
 
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -15,6 +16,7 @@ import json
 
 import websockets
 
+
 # WS Clients
 CONNECTED_CLIENTS = set()
 
@@ -26,6 +28,8 @@ async def ws_handler(websocket):
     finally:
         CONNECTED_CLIENTS.remove(websocket)
 
+
+import contextlib
 
 import psutil
 
@@ -41,7 +45,7 @@ async def broadcast_state(state):
             if "autonomous_bbq.py" in (p.info.get("cmdline") or []):
                 bbq_active = True
                 break
-        except:
+        except Exception:
             pass
 
     # Create simple dict for JSON serialization
@@ -63,10 +67,8 @@ async def broadcast_state(state):
     }
     message = json.dumps(data)
     for ws in list(CONNECTED_CLIENTS):
-        try:
+        with contextlib.suppress(Exception):
             await ws.send(message)
-        except Exception:
-            pass
 
 
 async def ouroboros_loop():
@@ -92,9 +94,7 @@ async def ouroboros_loop():
             # 2. ACT
             reaction = await ganglion.reflex(state)
 
-            logger.info(
-                f"💓 Heartbeat: Stability={state.stability:.2f} | Drifts={state.drift:.2f} | Reflex={reaction}"
-            )
+            logger.info(f"💓 Heartbeat: Stability={state.stability:.2f} | Drifts={state.drift:.2f} | Reflex={reaction}")
 
             # 3. BROADCAST
             await broadcast_state(state)

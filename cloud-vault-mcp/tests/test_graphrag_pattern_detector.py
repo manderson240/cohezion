@@ -5,14 +5,14 @@ Tests pattern usage analysis, similarity-based suggestions,
 and impact summary statistics.
 """
 
+from unittest.mock import patch
+
 import pytest
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
 
 from mcp_server.graphrag_pattern_detector import (
     PatternDetector,
-    PatternUsage,
     PatternSuggestion,
+    PatternUsage,
 )
 
 

@@ -1,6 +1,6 @@
 import json
 import collections
-import sys
+
 
 def analyze(filename):
     with open(filename) as f:
@@ -8,14 +8,14 @@ def analyze(filename):
 
     # Events have "cat": "op", "ts": cycle.
     # Args contain "slot".
-    cycles = collections.defaultdict(lambda: collections.defaultdict(int))
+    collections.defaultdict(lambda: collections.defaultdict(int))
     max_cycle = 0
 
     for event in data:
         if event.get("cat") != "op":
             continue
         ts = event.get("ts")
-        name = event.get("name")
+        event.get("name")
         # Name is like "valu-0", "load-1" or specific op name?
         # problem.py trace_slot: name=slot[0] (op name), tid=...
         # Wait, tid maps to engine?
@@ -52,7 +52,7 @@ def analyze(filename):
         ts = op["ts"]
         if tid not in tids:
             continue
-        engine_slot = tids[tid] # e.g. "valu-0"
+        engine_slot = tids[tid]  # e.g. "valu-0"
         engine = engine_slot.split("-")[0]
         cycle_stats[ts][engine] += 1
 
@@ -70,11 +70,16 @@ def analyze(filename):
     print("Utilization:")
     for eng in sorted(total_slots.keys()):
         capacity = 0
-        if eng == "alu": capacity = 12
-        elif eng == "valu": capacity = 6
-        elif eng == "load": capacity = 2
-        elif eng == "store": capacity = 2
-        elif eng == "flow": capacity = 1
+        if eng == "alu":
+            capacity = 12
+        elif eng == "valu":
+            capacity = 6
+        elif eng == "load":
+            capacity = 2
+        elif eng == "store":
+            capacity = 2
+        elif eng == "flow":
+            capacity = 1
 
         avg_util = total_slots[eng] / (max_cycle + 1)
         print(f"  {eng}: {total_slots[eng]} ops. Avg {avg_util:.2f}/cycle. (Cap {capacity})")
@@ -84,7 +89,8 @@ def analyze(filename):
         for ts in range(max_cycle + 1):
             if cycle_stats[ts][eng] == capacity:
                 saturated += 1
-        print(f"    Saturated cycles: {saturated} ({saturated/(max_cycle+1)*100:.1f}%)")
+        print(f"    Saturated cycles: {saturated} ({saturated / (max_cycle + 1) * 100:.1f}%)")
+
 
 if __name__ == "__main__":
     analyze("trace.json")

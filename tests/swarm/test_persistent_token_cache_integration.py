@@ -71,9 +71,7 @@ class TestPersistentTokenCache:
         assert len(cache1) == 2
 
         # Session 2: Create new cache instance and verify restore
-        cache2 = PersistentTokenCache(
-            cache_dir=temp_cache_dir, persistence_enabled=True, auto_restore=True
-        )
+        cache2 = PersistentTokenCache(cache_dir=temp_cache_dir, persistence_enabled=True, auto_restore=True)
 
         assert len(cache2) == 2
         assert cache2["key1"].value == "response1"
@@ -132,9 +130,7 @@ class TestPersistentTokenCache:
 
     def test_persistence_disabled_option(self, temp_cache_dir):
         """Test cache with persistence disabled."""
-        cache = PersistentTokenCache(
-            cache_dir=temp_cache_dir, persistence_enabled=False
-        )
+        cache = PersistentTokenCache(cache_dir=temp_cache_dir, persistence_enabled=False)
 
         entry = CacheEntry(key="test", value="response", tokens_used=50)
         cache["key1"] = entry

@@ -9,10 +9,13 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from cohezion.swarm.team_metrics import TeamMetricsAggregator
-from cohezion.swarm.team_orchestrator import TaskSpec
+
+
+if TYPE_CHECKING:
+    from cohezion.swarm.team_orchestrator import TaskSpec
 
 
 logger = logging.getLogger(__name__)
@@ -84,9 +87,7 @@ class TeamCompoundExecutor:
 
         if skill_name:
             try:
-                result = await self.compound_executor.execute_skill(
-                    skill_name, task.description
-                )
+                result = await self.compound_executor.execute_skill(skill_name, task.description)
                 elapsed_ms = (time.monotonic() - t0) * 1000.0
 
                 # Optional feedback loop
@@ -154,10 +155,7 @@ class TeamCompoundExecutor:
             logger.debug("Skill spec parsing failed: %s", e)
 
         for skill_spec in self.engine._cache.values():
-            if any(
-                kw.lower() in task.subject.lower()
-                for kw in skill_spec.name.split("_")[:3]
-            ):
+            if any(kw.lower() in task.subject.lower() for kw in skill_spec.name.split("_")[:3]):
                 return skill_spec.name
 
         return None

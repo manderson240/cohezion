@@ -1,6 +1,6 @@
 import problem
 import simple_builder
-import traceback
+
 
 def do_full_verify():
     print("Verifying 16 Rounds Bit-Exact...")
@@ -20,12 +20,12 @@ def do_full_verify():
     machine = problem.Machine(mem, instrs, debug)
 
     ref_gen = problem.reference_kernel2(problem.build_mem_image(forest, inp))
-    next(ref_gen) # Initial
+    next(ref_gen)  # Initial
 
     inp_values_p = mem[6]
     inp_indices_p = mem[5]
 
-    machine.run() # Setup
+    machine.run()  # Setup
 
     for r in range(16):
         machine.run()
@@ -46,9 +46,10 @@ def do_full_verify():
                 print(f"  Indices mismatch at index 0: {res_i[0]} != {ref_i[0]}")
             return False
 
-    print(f"KERNEL FULLY VERIFIED (16 rounds, 256 items)")
+    print("KERNEL FULLY VERIFIED (16 rounds, 256 items)")
     print(f"Total machine cycles: {machine.cycle}")
     return True
+
 
 if __name__ == "__main__":
     do_full_verify()

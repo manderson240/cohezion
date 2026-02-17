@@ -7,10 +7,12 @@ import os
 import sys
 from pathlib import Path
 
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from cohezion.security.cert_generator import CertificateGenerator
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -23,9 +25,7 @@ def setup_dev_certificates(cert_dir: str = ".certs") -> bool:
     """Setup development certificates."""
     logger.info("Setting up development TLS certificates...")
 
-    cert_path, key_path = CertificateGenerator.ensure_dev_certificates(
-        cert_dir=cert_dir, force=False
-    )
+    cert_path, key_path = CertificateGenerator.ensure_dev_certificates(cert_dir=cert_dir, force=False)
 
     if cert_path and key_path:
         logger.info("✓ Development certificates ready")
@@ -44,9 +44,7 @@ def setup_dev_certificates(cert_dir: str = ".certs") -> bool:
         return False
 
 
-def setup_production_certificates(
-    cert_path: str, key_path: str, validate_only: bool = False
-) -> bool:
+def setup_production_certificates(cert_path: str, key_path: str, validate_only: bool = False) -> bool:
     """Setup or validate production certificates."""
     from cohezion.security.tls_config import TLSConfig
 
@@ -80,9 +78,7 @@ def setup_production_certificates(
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(
-        description="Setup TLS/HTTPS certificates for Cohezion"
-    )
+    parser = argparse.ArgumentParser(description="Setup TLS/HTTPS certificates for Cohezion")
 
     parser.add_argument(
         "mode",

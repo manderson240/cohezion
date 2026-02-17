@@ -108,9 +108,7 @@ class VaultSubscriptionClient:
             except Exception as e:
                 if not self._running:
                     break
-                logger.warning(
-                    "SSE connection lost: %s. Reconnecting in %.1fs", e, delay
-                )
+                logger.warning("SSE connection lost: %s. Reconnecting in %.1fs", e, delay)
                 await asyncio.sleep(delay)
                 delay = min(delay * 2, self._max_reconnect_delay)
 
@@ -144,9 +142,7 @@ class VaultSubscriptionClient:
             try:
                 await callback(event)
             except Exception:
-                logger.debug(
-                    "Callback error for %s event", event.event_type, exc_info=True
-                )
+                logger.debug("Callback error for %s event", event.event_type, exc_info=True)
 
         # Global callbacks
         for callback in self._global_callbacks:

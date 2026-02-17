@@ -26,14 +26,11 @@ WARNING: This script modifies your file structure. Always run with --dry-run fir
 """
 
 import argparse
-import json
 import logging
-import os
-import re
 import shutil
-import subprocess
-import sys
 from pathlib import Path
+from typing import Any
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -80,7 +77,7 @@ class DirectoryRestructure:
         if agents_dir.exists():
             stats["agent_files"] = len(list(agents_dir.glob("*.py")))
 
-        for py_file in self.src.rglob("*.py"):
+        for _py_file in self.src.rglob("*.py"):
             stats["total_files"] += 1
 
         stats["total_dirs"] = len(list(self.src.rglob("*/")))
@@ -218,9 +215,7 @@ class DirectoryRestructure:
         ]
 
         # Log plan
-        logger.info(
-            f"   Directories to create: {len([s for s in plan['steps'] if s['action'] == 'create_directory'])}"
-        )
+        logger.info(f"   Directories to create: {len([s for s in plan['steps'] if s['action'] == 'create_directory'])}")
         logger.info(f"   Files to move: {len(plan['files_to_move'])}")
         logger.info(f"   Import patterns to update: {len(plan['imports_to_update'])}")
 
@@ -263,25 +258,19 @@ class DirectoryRestructure:
             to_path = Path(move["to"])
 
             if self.dry_run:
-                logger.info(
-                    f"   [DRY RUN] Would move: {from_path.name} -> {to_path.parent.name}/"
-                )
+                logger.info(f"   [DRY RUN] Would move: {from_path.name} -> {to_path.parent.name}/")
             else:
                 try:
                     to_path.parent.mkdir(parents=True, exist_ok=True)
                     shutil.move(str(from_path), str(to_path))
-                    logger.info(
-                        f"   ✅ Moved: {from_path.name} -> {to_path.parent.name}/"
-                    )
+                    logger.info(f"   ✅ Moved: {from_path.name} -> {to_path.parent.name}/")
                     report["files_moved"] += 1
                 except Exception as e:
                     logger.error(f"   ❌ Failed to move {from_path}: {e}")
                     report["errors"].append(str(e))
 
         # Update imports (simplified - would need more sophisticated implementation)
-        logger.info(
-            "\n   📝 Note: Import updates would require running update_imports.py"
-        )
+        logger.info("\n   📝 Note: Import updates would require running update_imports.py")
         logger.info("   Run: uv run python scripts/update_imports.py after migration")
 
         # Final report
@@ -436,12 +425,8 @@ async def main():
         logger.info("\n📝 NEXT STEPS:")
         logger.info("   1. Review the changes above")
         logger.info("   2. Run tests: uv run pytest")
-        logger.info(
-            "   3. If all tests pass, run: uv run python scripts/restructure.py --apply"
-        )
-        logger.info(
-            "   4. Update imports: uv run python scripts/update_imports.py --apply"
-        )
+        logger.info("   3. If all tests pass, run: uv run python scripts/restructure.py --apply")
+        logger.info("   4. Update imports: uv run python scripts/update_imports.py --apply")
 
     else:
         parser.print_help()

@@ -7,6 +7,7 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
+
 logger = logging.getLogger(__name__)
 
 # Path constants
@@ -174,12 +175,8 @@ class RetrospectionEngine:
             incoming = ref_counts.get(pattern.id, 0)
             outgoing = len(pattern.cross_references)
             # Score = normalized(incoming refs) + 0.3 * normalized(outgoing refs)
-            score = (incoming / max_count) + 0.3 * (
-                outgoing / max(len(self._learnings), 1)
-            )
-            scores[f"Learning {pattern.id}: {pattern.title}"] = round(
-                min(score, 1.0), 3
-            )
+            score = (incoming / max_count) + 0.3 * (outgoing / max(len(self._learnings), 1))
+            scores[f"Learning {pattern.id}: {pattern.title}"] = round(min(score, 1.0), 3)
 
         # Add skill scores
         max_skill = max(skill_refs.values()) if skill_refs else 1
@@ -220,9 +217,7 @@ class RetrospectionEngine:
             lines.append("")
 
         if "tests_passing" in session_facts:
-            lines.append(
-                f"## Test Results\n- Passing: {session_facts['tests_passing']}"
-            )
+            lines.append(f"## Test Results\n- Passing: {session_facts['tests_passing']}")
             if "tests_added" in session_facts:
                 lines.append(f"- New: {session_facts['tests_added']}")
             lines.append("")
@@ -273,8 +268,7 @@ class RetrospectionEngine:
                     SkillRefinement(
                         skill_name=skill,
                         reason=(
-                            f"Referenced by {len(learning_titles)} learnings,"
-                            " may need integration of new insights"
+                            f"Referenced by {len(learning_titles)} learnings, may need integration of new insights"
                         ),
                         suggested_additions=learning_titles[:5],
                     )
@@ -312,15 +306,11 @@ class RetrospectionEngine:
         for tr in task_results:
             exec_res = getattr(tr, "execution", None)
             if exec_res is not None:
-                tokens_by_task[getattr(tr, "task_id", "?")] = getattr(
-                    exec_res, "total_tokens", 0
-                )
+                tokens_by_task[getattr(tr, "task_id", "?")] = getattr(exec_res, "total_tokens", 0)
 
         # Calculate compound score delta
         success_rate = completed / max(total, 1)
-        token_efficiency = 1.0 - min(
-            sum(tokens_by_task.values()) / max(total * 500, 1), 1.0
-        )
+        token_efficiency = 1.0 - min(sum(tokens_by_task.values()) / max(total * 500, 1), 1.0)
         compound_delta = round(success_rate * 0.7 + token_efficiency * 0.3, 4)
 
         # Extract patterns
@@ -347,9 +337,7 @@ class RetrospectionEngine:
                 f"Execution of '{plan_name}' completed {completed}/{total} tasks",
                 f"Token usage: {sum(tokens_by_task.values())} across {total} tasks",
             ],
-            "suggested_refinements": [
-                {"skill": r.skill_name, "reason": r.reason} for r in suggestions
-            ],
+            "suggested_refinements": [{"skill": r.skill_name, "reason": r.reason} for r in suggestions],
         }
 
         logger.info(
@@ -362,9 +350,7 @@ class RetrospectionEngine:
 
         return insights
 
-    def analyze_execution_result(
-        self, result: object, skill_name: str = ""
-    ) -> dict:
+    def analyze_execution_result(self, result: object, skill_name: str = "") -> dict:
         """Analyze a live ExecutionResult and extract compound insights.
 
         Closes the compound loop: execution -> measurement -> retrospection
@@ -443,9 +429,11 @@ class RetrospectionEngine:
             recommendation = f"Investigate failure in {skill_name}"
 
         logger.info(
-            "Retrospection for %s: should_refine=%s, compound=%.3f, "
-            "coherence=%.2f",
-            skill_name, should_refine, compound_score, coherence,
+            "Retrospection for %s: should_refine=%s, compound=%.3f, coherence=%.2f",
+            skill_name,
+            should_refine,
+            compound_score,
+            coherence,
         )
 
         return {

@@ -1,8 +1,7 @@
 """Tests for the health check module."""
 
-import asyncio
 from pathlib import Path
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock
 
 import pytest
 
@@ -140,9 +139,7 @@ class TestHealthChecker:
     async def test_check_sheets_api_error(self, health_checker):
         """Test Sheets API check with bridge that raises error."""
         mock_bridge = Mock()
-        mock_bridge.get_all_rows = Mock(
-            side_effect=Exception("Auth failed")
-        )
+        mock_bridge.get_all_rows = Mock(side_effect=Exception("Auth failed"))
         health_checker.sheets_bridge = mock_bridge
         result = await health_checker.check_sheets_api()
         assert result["status"] == "error"
@@ -243,5 +240,5 @@ class TestHealthChecker:
         assert data["status"] in ("healthy", "degraded", "unhealthy")
         assert "timestamp" in data
         assert isinstance(data["checks"], dict)
-        for check_name, check_result in data["checks"].items():
+        for _check_name, check_result in data["checks"].items():
             assert isinstance(check_result, dict)

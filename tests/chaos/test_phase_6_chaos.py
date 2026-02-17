@@ -13,13 +13,18 @@ Comprehensive chaos testing for Phase 6 components focusing on:
 Tests validate system resilience and recovery behavior.
 """
 
-import pytest
 import time
-from cohezion.swarm.cost_aware_router import CostAwareRouter
-from cohezion.swarm.model_ranker import ModelRanker, RankingStrategy
-from cohezion.swarm.model_fallback_strategy import ModelFallbackStrategy
-from cohezion.swarm.anomaly_detector import AnomalyDetector, reset_anomaly_detector, get_anomaly_detector
+
+import pytest
+
 from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
+from cohezion.swarm.anomaly_detector import (
+    get_anomaly_detector,
+    reset_anomaly_detector,
+)
+from cohezion.swarm.cost_aware_router import CostAwareRouter
+from cohezion.swarm.model_fallback_strategy import ModelFallbackStrategy
+from cohezion.swarm.model_ranker import ModelRanker, RankingStrategy
 
 
 class TestCostRouterResilience:
@@ -30,7 +35,7 @@ class TestCostRouterResilience:
         router = CostAwareRouter()
         models_selected = []
         for _ in range(20):
-            decision, can_proceed = router.select_model(query="test")
+            decision, _can_proceed = router.select_model(query="test")
             models_selected.append(decision.model)
         assert all(m is not None for m in models_selected)
 
@@ -38,7 +43,7 @@ class TestCostRouterResilience:
         """Test router handles multiple sequential queries."""
         router = CostAwareRouter()
         for i in range(50):
-            decision, can_proceed = router.select_model(query=f"query-{i}: test")
+            decision, _can_proceed = router.select_model(query=f"query-{i}: test")
             assert decision.model is not None
 
     def test_router_maintains_selection_under_load(self):
@@ -46,7 +51,7 @@ class TestCostRouterResilience:
         router = CostAwareRouter()
         decisions = []
         for _ in range(100):
-            decision, can_proceed = router.select_model(query="benchmark")
+            decision, _can_proceed = router.select_model(query="benchmark")
             decisions.append(decision)
         assert len(decisions) == 100
         assert all(d.model is not None for d in decisions)
@@ -86,7 +91,7 @@ class TestModelFallbackResilience:
     def test_fallback_chain_selection(self):
         """Test selecting from fallback chain."""
         fallback = ModelFallbackStrategy()
-        selected, is_degraded = fallback.select_model(
+        selected, _is_degraded = fallback.select_model(
             primary_model="primary",
             available_models=["primary", "fallback1", "fallback2"],
         )
@@ -209,7 +214,7 @@ class TestConcurrentOperationsResilience:
         router = CostAwareRouter()
         results = []
         for _ in range(100):
-            decision, can_proceed = router.select_model(query="test")
+            decision, _can_proceed = router.select_model(query="test")
             results.append(decision.model)
         assert len(results) == 100
 
@@ -230,7 +235,7 @@ class TestConcurrentOperationsResilience:
         fallback = ModelFallbackStrategy()
         selections = []
         for _ in range(100):
-            selected, is_degraded = fallback.select_model(
+            selected, _is_degraded = fallback.select_model(
                 primary_model="primary",
                 available_models=["primary", "backup1", "backup2"],
             )
@@ -270,7 +275,7 @@ class TestErrorConditionRecovery:
         router = CostAwareRouter()
         budget = BudgetEnforcer(budget_usd=100.0)
         for i in range(200):
-            decision, can_proceed = router.select_model(query=f"stress-test-{i}")
+            decision, _can_proceed = router.select_model(query=f"stress-test-{i}")
             result = budget.check_budget(current_cost_usd=0.01 * (i + 1))
             assert result is not None
         decision, _ = router.select_model(query="after-stress")

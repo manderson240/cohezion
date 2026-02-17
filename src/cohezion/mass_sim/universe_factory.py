@@ -12,6 +12,7 @@ import numpy as np
 
 from cohezion.mass_sim.config import UniverseSpec
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -62,8 +63,7 @@ class UniverseFactory:
             gamma = weights["gamma"].astype(np.float32)
             beta = weights["beta"].astype(np.float32)
             logger.info(
-                "Creating FlumePhysics with pre-trained weights "
-                "(w1 norm=%.3f, w2 norm=%.3f)",
+                "Creating FlumePhysics with pre-trained weights (w1 norm=%.3f, w2 norm=%.3f)",
                 np.linalg.norm(w1),
                 np.linalg.norm(w2),
             )
@@ -72,15 +72,11 @@ class UniverseFactory:
 
             # Xavier initialization for stable gradient flow
             scale_w1 = np.sqrt(2.0 / (spec.z_dim + spec.hidden_dim))
-            w1 = rng.normal(0, scale_w1, (spec.hidden_dim, spec.z_dim)).astype(
-                np.float32
-            )
+            w1 = rng.normal(0, scale_w1, (spec.hidden_dim, spec.z_dim)).astype(np.float32)
             b1 = np.zeros(spec.hidden_dim, dtype=np.float32)
 
             scale_w2 = np.sqrt(2.0 / (spec.hidden_dim + spec.z_dim))
-            w2 = rng.normal(0, scale_w2, (spec.z_dim, spec.hidden_dim)).astype(
-                np.float32
-            )
+            w2 = rng.normal(0, scale_w2, (spec.z_dim, spec.hidden_dim)).astype(np.float32)
             b2 = np.full(spec.z_dim, 0.02, dtype=np.float32)
 
             # LayerNorm: gamma=1 (scale), beta=0.5 (shift output to HIHO target)
@@ -101,10 +97,7 @@ class UniverseFactory:
     @staticmethod
     def create_batch(seeds: list[int], z_dim: int = 256, hidden_dim: int = 512) -> list:
         """Create multiple universe physics engines."""
-        return [
-            UniverseFactory.create(UniverseSpec(f"universe_{s}", s, z_dim, hidden_dim))
-            for s in seeds
-        ]
+        return [UniverseFactory.create(UniverseSpec(f"universe_{s}", s, z_dim, hidden_dim)) for s in seeds]
 
     @staticmethod
     def weight_fingerprint(spec: UniverseSpec) -> dict:

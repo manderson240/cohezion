@@ -6,6 +6,7 @@ TODO: Implement full skill CRUD operations against SurrealDB.
 import logging
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 

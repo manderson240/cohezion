@@ -31,6 +31,7 @@ from cohezion.universe.sandbox_profiles import (
     get_profile,
 )
 
+
 logger = logging.getLogger(__name__)
 
 # System-wide memory budget for all sandboxes (100GB of 128GB)
@@ -137,9 +138,7 @@ class SandboxManager:
         """
         # 1. Circuit breaker check
         if not self._circuit.allow_request():
-            raise RuntimeError(
-                "Sandbox circuit breaker is OPEN — too many recent failures"
-            )
+            raise RuntimeError("Sandbox circuit breaker is OPEN — too many recent failures")
 
         # 2. Resolve profile
         effective_profile = profile if profile is not None else get_profile(tier)
@@ -180,9 +179,7 @@ class SandboxManager:
 
         try:
             # 7. Execute via backend
-            result = await self.backend.execute(
-                script, effective_profile, files=files, env=env
-            )
+            result = await self.backend.execute(script, effective_profile, files=files, env=env)
 
             if result.success:
                 self._circuit.record_success()
@@ -212,8 +209,7 @@ class SandboxManager:
             if dilation < 0.3:
                 wait_time = max(2.0, (1.0 - dilation) * 10)
                 logger.warning(
-                    f"System under pressure (dilation={dilation:.2f}), "
-                    f"delaying sandbox launch by {wait_time:.1f}s"
+                    f"System under pressure (dilation={dilation:.2f}), delaying sandbox launch by {wait_time:.1f}s"
                 )
                 await asyncio.sleep(wait_time)
         except Exception as e:
@@ -226,9 +222,7 @@ class SandboxManager:
 
             monitor = get_resource_monitor()
             if hasattr(monitor, "register_sandbox"):
-                monitor.register_sandbox(
-                    instance.sandbox_id, instance.profile.memory_limit_mb
-                )
+                monitor.register_sandbox(instance.sandbox_id, instance.profile.memory_limit_mb)
         except Exception as e:
             logger.debug(f"Monitor registration skipped: {e}")
 

@@ -30,10 +30,7 @@ def main() -> None:
     print("Training results (last 10 episodes):")
     print(f"  {'Episode':>8} {'Coherence':>10} {'Reward':>8} {'Steps':>6}")
     for r in results[-10:]:
-        print(
-            f"  {r.episode:>8} {r.mean_coherence:>10.4f}"
-            f" {r.total_reward:>8.1f} {r.steps:>6}"
-        )
+        print(f"  {r.episode:>8} {r.mean_coherence:>10.4f} {r.total_reward:>8.1f} {r.steps:>6}")
 
     final_coherences = [r.mean_coherence for r in results[-10:]]
     print(f"\n  Mean coherence (last 10): {np.mean(final_coherences):.4f}")
@@ -52,20 +49,13 @@ def main() -> None:
         coherences.append(info["coherence"])
         if step % 10 == 0:
             print(
-                f"  Step {step:>3}: coherence={info['coherence']:.4f}, "
-                f"reward={reward:.3f}, mean_obs={obs.mean():.4f}"
+                f"  Step {step:>3}: coherence={info['coherence']:.4f}, reward={reward:.3f}, mean_obs={obs.mean():.4f}"
             )
         if terminated or truncated:
             break
 
-    print(
-        f"\n  Episode coherence: mean={np.mean(coherences):.4f}, "
-        f"std={np.std(coherences):.4f}"
-    )
-    print(
-        f"  HIHO band (0.4-0.6) compliance: "
-        f"{sum(0.4 <= c <= 0.6 for c in coherences) / len(coherences):.1%}"
-    )
+    print(f"\n  Episode coherence: mean={np.mean(coherences):.4f}, std={np.std(coherences):.4f}")
+    print(f"  HIHO band (0.4-0.6) compliance: {sum(0.4 <= c <= 0.6 for c in coherences) / len(coherences):.1%}")
 
 
 if __name__ == "__main__":

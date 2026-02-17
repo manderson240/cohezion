@@ -14,12 +14,10 @@ from __future__ import annotations
 import time
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from unittest.mock import MagicMock
 
 import pytest
 
 from cohezion.compound.global_metrics_aggregator import (
-    GlobalMetricsAggregator,
     InstanceMetrics,
     SkillMetrics,
     TimeWindowMetrics,
@@ -647,10 +645,7 @@ class TestLoadScenarios:
                 errors.append(e)
 
         # Run 5 writers and 3 readers concurrently
-        writers = [
-            threading.Thread(target=write_metrics, args=(f"agent_{i}",))
-            for i in range(5)
-        ]
+        writers = [threading.Thread(target=write_metrics, args=(f"agent_{i}",)) for i in range(5)]
         readers = [threading.Thread(target=read_metrics) for _ in range(3)]
 
         for t in writers + readers:
@@ -683,10 +678,7 @@ class TestCoherenceTrendVisualization:
 
         # Verify trend is increasing
         for i in range(1, len(skill_metrics.coherence_trend)):
-            assert (
-                skill_metrics.coherence_trend[i]
-                >= skill_metrics.coherence_trend[i - 1]
-            )
+            assert skill_metrics.coherence_trend[i] >= skill_metrics.coherence_trend[i - 1]
 
     def test_dashboard_coherence_trending(self, aggregator):
         """Test coherence trending in dashboard snapshot."""
@@ -723,7 +715,7 @@ class TestDashboardRealtimeUpdates:
         aggregator.record_instance_metrics("agent1", m)
 
         snapshots = []
-        for i in range(5):
+        for _i in range(5):
             start = time.time()
             snapshot = aggregator.get_dashboard_snapshot()
             latency = (time.time() - start) * 1000

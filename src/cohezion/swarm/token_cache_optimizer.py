@@ -211,9 +211,7 @@ class TokenCacheOptimizer:
             response_tokens,
         )
 
-    def _update_model_stats(
-        self, model: str, cache_layer: str, hit: bool
-    ) -> None:
+    def _update_model_stats(self, model: str, cache_layer: str, hit: bool) -> None:
         """Update per-model cache statistics.
 
         Parameters
@@ -237,13 +235,9 @@ class TokenCacheOptimizer:
 
         if hit:
             stats["hits"] += 1
-            stats["by_layer"][cache_layer] = (
-                stats["by_layer"].get(cache_layer, 0) + 1
-            )
+            stats["by_layer"][cache_layer] = stats["by_layer"].get(cache_layer, 0) + 1
 
-    def _update_operation_stats(
-        self, operation_type: str, total_tokens: int, model: str
-    ) -> None:
+    def _update_operation_stats(self, operation_type: str, total_tokens: int, model: str) -> None:
         """Update per-operation statistics.
 
         Parameters
@@ -283,9 +277,7 @@ class TokenCacheOptimizer:
             "model_statistics": {
                 model: {
                     "hit_rate": round(
-                        stats["hits"] / stats["total_requests"]
-                        if stats["total_requests"] > 0
-                        else 0,
+                        stats["hits"] / stats["total_requests"] if stats["total_requests"] > 0 else 0,
                         4,
                     ),
                     "total_requests": stats["total_requests"],
@@ -297,18 +289,14 @@ class TokenCacheOptimizer:
             "operation_statistics": {
                 op: {
                     "executions": stats["executions"],
-                    "avg_tokens": round(
-                        stats["total_tokens"] / stats["executions"], 0
-                    ),
+                    "avg_tokens": round(stats["total_tokens"] / stats["executions"], 0),
                     "models_used": stats["models_used"],
                 }
                 for op, stats in self._operation_type_stats.items()
             },
             "cross_model_sharing": {
                 "enabled": self._config.cross_model_sharing,
-                "safe_pairs": {
-                    k: list(v) for k, v in self._cross_model_safe_pairs.items()
-                },
+                "safe_pairs": {k: list(v) for k, v in self._cross_model_safe_pairs.items()},
             },
         }
 
@@ -324,9 +312,7 @@ class TokenCacheOptimizer:
         recommendations = await cache.optimize()
 
         # Add model-specific recommendations
-        recommendations["model_recommendations"] = (
-            self._get_model_recommendations()
-        )
+        recommendations["model_recommendations"] = self._get_model_recommendations()
 
         return recommendations
 
@@ -342,11 +328,7 @@ class TokenCacheOptimizer:
 
         for model, stats in self._model_stats.items():
             model_recs: list[str] = []
-            hit_rate = (
-                stats["hits"] / stats["total_requests"]
-                if stats["total_requests"] > 0
-                else 0
-            )
+            hit_rate = stats["hits"] / stats["total_requests"] if stats["total_requests"] > 0 else 0
 
             if hit_rate < 0.3:
                 model_recs.append("Low hit rate - consider tweaking similarity_threshold")

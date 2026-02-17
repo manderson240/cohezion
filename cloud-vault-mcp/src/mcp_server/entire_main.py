@@ -10,6 +10,7 @@ import click
 
 from mcp_server.entire_sync_daemon import EntireSyncDaemon
 
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -18,9 +19,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Default paths
-VAULT_PATH = os.getenv(
-    "VAULT_PATH", str(Path.home() / "vaults" / "cohezion-vault")
-)
+VAULT_PATH = os.getenv("VAULT_PATH", str(Path.home() / "vaults" / "cohezion-vault"))
 GIT_PATH = os.getenv("GIT_PATH", VAULT_PATH)
 SURREALDB_URL = os.getenv("SURREALDB_URL", "")
 
@@ -79,7 +78,7 @@ def status(vault_path: str, git_path: str) -> None:
         click.echo(f"Poll interval: {status_info['poll_interval']}s")
     except Exception as e:
         click.echo(f"Error getting status: {e}", err=True)
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
 
 @cli.command()
@@ -97,16 +96,13 @@ def dlq(vault_path: str) -> None:
         click.echo("Dead Letter Queue")
         click.echo("=" * 80)
         for entry in entries:
-            click.echo(
-                f"Commit: {entry['commit_hash'][:8]} - "
-                f"Failures: {entry['failure_count']}"
-            )
+            click.echo(f"Commit: {entry['commit_hash'][:8]} - Failures: {entry['failure_count']}")
             click.echo(f"  Reason: {entry['failure_reason']}")
             click.echo(f"  Last attempt: {entry['last_attempt']}")
             click.echo()
     except Exception as e:
         click.echo(f"Error listing DLQ: {e}", err=True)
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
 
 @cli.command()
@@ -125,7 +121,7 @@ def retry(commit_hash: str, vault_path: str) -> None:
             raise SystemExit(1)
     except Exception as e:
         click.echo(f"Error retrying commit: {e}", err=True)
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
 
 @cli.command()
@@ -154,7 +150,7 @@ def backfill(vault_path: str, git_path: str, surrealdb_url: str, since: str) -> 
         click.echo(f"Failed (sent to DLQ): {results['failed']}")
     except Exception as e:
         click.echo(f"Backfill failed: {e}", err=True)
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
 
 @cli.command()
@@ -178,7 +174,10 @@ def health(vault_path: str, git_path: str, surrealdb_url: str, json_output: bool
         if Path(vault_path).exists():
             checks["vault_path"] = {"status": "pass", "detail": vault_path}
         else:
-            checks["vault_path"] = {"status": "fail", "detail": f"not found: {vault_path}"}
+            checks["vault_path"] = {
+                "status": "fail",
+                "detail": f"not found: {vault_path}",
+            }
             healthy = False
 
         # Check 2: Git path
@@ -212,11 +211,15 @@ def health(vault_path: str, git_path: str, surrealdb_url: str, json_output: bool
         if surrealdb_url:
             try:
                 import httpx
+
                 resp = httpx.get(f"{surrealdb_url.rstrip('/')}/health", timeout=5.0)
                 if resp.status_code == 200:
                     checks["surrealdb"] = {"status": "pass", "detail": surrealdb_url}
                 else:
-                    checks["surrealdb"] = {"status": "fail", "detail": f"HTTP {resp.status_code}"}
+                    checks["surrealdb"] = {
+                        "status": "fail",
+                        "detail": f"HTTP {resp.status_code}",
+                    }
                     healthy = False
             except Exception as e:
                 checks["surrealdb"] = {"status": "fail", "detail": str(e)}
@@ -289,7 +292,7 @@ def test(vault_path: str, git_path: str) -> None:
 
     except Exception as e:
         click.echo(f"✗ Test failed: {e}", err=True)
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
 
 if __name__ == "__main__":

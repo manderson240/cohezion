@@ -29,10 +29,7 @@ def test_file_lock_concurrency(tmp_path):
     manager = multiprocessing.Manager()
     shared_val = manager.Value("i", 0)
 
-    processes = [
-        multiprocessing.Process(target=_worker_lock_task, args=(lock_file, shared_val))
-        for _ in range(5)
-    ]
+    processes = [multiprocessing.Process(target=_worker_lock_task, args=(lock_file, shared_val)) for _ in range(5)]
 
     for p in processes:
         p.start()
@@ -94,7 +91,4 @@ def test_agent_workspace_basic(tmp_path):
 
     # After commit and session end
     assert f1.read_text() == "print('world')"
-    assert (
-        not (tmp_path / "sandbox").exists()
-        or len(list((tmp_path / "sandbox").glob("*"))) == 0
-    )
+    assert not (tmp_path / "sandbox").exists() or len(list((tmp_path / "sandbox").glob("*"))) == 0

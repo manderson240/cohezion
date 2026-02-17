@@ -30,9 +30,7 @@ SCALE_TIERS: dict[str, ScaleTier] = {
     "demo": ScaleTier("demo", 100, 1_000, 10, 100, 100),
     "medium": ScaleTier("medium", 1_000, 10_000, 100, 1_000, 500),
     "overnight": ScaleTier("overnight", 10_000, 100_000, 1_000, 5_000, 2_000),
-    "aspirational": ScaleTier(
-        "aspirational", 25_000_000, 10_000_000, 1_000_000, 100_000, 10_000
-    ),
+    "aspirational": ScaleTier("aspirational", 25_000_000, 10_000_000, 1_000_000, 100_000, 10_000),
 }
 
 

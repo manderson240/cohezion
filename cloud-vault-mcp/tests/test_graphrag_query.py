@@ -1,8 +1,6 @@
 """Tests for GraphRAG hybrid query"""
 
 import pytest
-from pathlib import Path
-from unittest.mock import AsyncMock, Mock, patch
 
 from mcp_server.graphrag_query import GraphRAGQuery, _cache_key
 
@@ -15,8 +13,8 @@ async def test_semantic_search():
         assert isinstance(results, list)
         # Should return results if vault has documents
         if results:
-            assert 'id' in results[0]
-            assert 'score' in results[0]
+            assert "id" in results[0]
+            assert "score" in results[0]
 
 
 @pytest.mark.asyncio
@@ -28,10 +26,10 @@ async def test_hybrid_search():
         # Should have graph fields even if empty
         if results:
             doc = results[0]
-            assert 'id' in doc
-            assert 'score' in doc
+            assert "id" in doc
+            assert "score" in doc
             # ancestors/descendants may be None if no edges
-            assert 'ancestors' in doc or 'descendants' in doc
+            assert "ancestors" in doc or "descendants" in doc
 
 
 @pytest.mark.asyncio
@@ -42,7 +40,7 @@ async def test_find_related():
         result = await query.find_related("vault_memory:template")
         assert isinstance(result, dict)
         # Should have relationship fields
-        assert 'id' in result or not result  # Empty if doc doesn't exist
+        assert "id" in result or not result  # Empty if doc doesn't exist
 
 
 def test_cache_key():
@@ -50,7 +48,7 @@ def test_cache_key():
     key1 = _cache_key("query1", 5, True, False)
     key2 = _cache_key("query1", 5, True, False)
     key3 = _cache_key("query2", 5, True, False)
-    
+
     assert key1 == key2  # Same params = same key
     assert key1 != key3  # Different query = different key
 
@@ -71,5 +69,5 @@ async def test_min_score_filter():
         # High min_score should return fewer results
         results_high = await query.semantic_search("test", top_k=10, min_score=0.8)
         results_low = await query.semantic_search("test", top_k=10, min_score=0.1)
-        
+
         assert len(results_high) <= len(results_low)

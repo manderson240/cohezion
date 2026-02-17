@@ -12,6 +12,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -60,29 +61,15 @@ class InferenceMetrics:
     @property
     def total_cache_hit_rate(self) -> float:
         """Combined L1+L2+L3 hit rate."""
-        total_cache_ops = (
-            self.cache_l1_hits
-            + self.cache_l2_hits
-            + self.cache_l3_hits
-            + self.cache_misses
-        )
+        total_cache_ops = self.cache_l1_hits + self.cache_l2_hits + self.cache_l3_hits + self.cache_misses
         if total_cache_ops == 0:
             return 0.0
-        return (
-            (self.cache_l1_hits + self.cache_l2_hits + self.cache_l3_hits)
-            / total_cache_ops
-            * 100
-        )
+        return (self.cache_l1_hits + self.cache_l2_hits + self.cache_l3_hits) / total_cache_ops * 100
 
     @property
     def l1_cache_hit_rate(self) -> float:
         """L1 cache hit rate percentage."""
-        total_cache_ops = (
-            self.cache_l1_hits
-            + self.cache_l2_hits
-            + self.cache_l3_hits
-            + self.cache_misses
-        )
+        total_cache_ops = self.cache_l1_hits + self.cache_l2_hits + self.cache_l3_hits + self.cache_misses
         if total_cache_ops == 0:
             return 0.0
         return self.cache_l1_hits / total_cache_ops * 100
@@ -90,12 +77,7 @@ class InferenceMetrics:
     @property
     def l2_cache_hit_rate(self) -> float:
         """L2 cache hit rate percentage."""
-        total_cache_ops = (
-            self.cache_l1_hits
-            + self.cache_l2_hits
-            + self.cache_l3_hits
-            + self.cache_misses
-        )
+        total_cache_ops = self.cache_l1_hits + self.cache_l2_hits + self.cache_l3_hits + self.cache_misses
         if total_cache_ops == 0:
             return 0.0
         return self.cache_l2_hits / total_cache_ops * 100
@@ -103,9 +85,7 @@ class InferenceMetrics:
     @property
     def guardrail_block_rate(self) -> float:
         """Percentage of requests blocked by guardrails."""
-        total_guardrail_ops = (
-            self.guardrail_checks + self.guardrail_blocks + self.guardrail_sanitizations
-        )
+        total_guardrail_ops = self.guardrail_checks + self.guardrail_blocks + self.guardrail_sanitizations
         if total_guardrail_ops == 0:
             return 0.0
         return self.guardrail_blocks / total_guardrail_ops * 100
@@ -154,9 +134,7 @@ class UnifiedMetricsCollector:
         self.history: list[InferenceMetrics] = []
         self.start_time = time.time()
 
-    def record_guardrail_action(
-        self, action: str, latency_ms: float = 0.0
-    ) -> None:
+    def record_guardrail_action(self, action: str, latency_ms: float = 0.0) -> None:
         """Record guardrail action.
 
         Args:
@@ -187,9 +165,7 @@ class UnifiedMetricsCollector:
         """Record cache miss."""
         self.current_metrics.cache_misses += 1
 
-    def record_execution(
-        self, tokens: int, duration_ms: float, model: str = "unknown"
-    ) -> None:
+    def record_execution(self, tokens: int, duration_ms: float, model: str = "unknown") -> None:
         """Record execution metrics.
 
         Args:
@@ -199,9 +175,7 @@ class UnifiedMetricsCollector:
         """
         self.current_metrics.total_tokens += tokens
         self.current_metrics.total_duration_ms += duration_ms
-        self.current_metrics.model_usage[model] = (
-            self.current_metrics.model_usage.get(model, 0) + tokens
-        )
+        self.current_metrics.model_usage[model] = self.current_metrics.model_usage.get(model, 0) + tokens
 
     def record_checkpoint(self) -> None:
         """Record checkpoint creation."""
@@ -217,9 +191,7 @@ class UnifiedMetricsCollector:
         Args:
             memory_gb: Memory in gigabytes
         """
-        self.current_metrics.peak_memory_gb = max(
-            self.current_metrics.peak_memory_gb, memory_gb
-        )
+        self.current_metrics.peak_memory_gb = max(self.current_metrics.peak_memory_gb, memory_gb)
 
     def record_concurrency_wait(self) -> None:
         """Record concurrency wait event."""
@@ -252,7 +224,7 @@ class UnifiedMetricsCollector:
 
     def get_aggregate_metrics(self) -> dict[str, Any]:
         """Get aggregate statistics across all recorded operations."""
-        all_metrics = [self.current_metrics] + self.history
+        all_metrics = [self.current_metrics, *self.history]
 
         total_tokens = sum(m.total_tokens for m in all_metrics)
         total_duration_ms = sum(m.total_duration_ms for m in all_metrics)
@@ -262,33 +234,14 @@ class UnifiedMetricsCollector:
             "total_operations": total_operations,
             "aggregate_tokens": total_tokens,
             "aggregate_duration_ms": total_duration_ms,
-            "avg_tokens_per_operation": (
-                total_tokens / total_operations if total_operations > 0 else 0
-            ),
-            "avg_duration_ms": (
-                total_duration_ms / total_operations if total_operations > 0 else 0
-            ),
+            "avg_tokens_per_operation": (total_tokens / total_operations if total_operations > 0 else 0),
+            "avg_duration_ms": (total_duration_ms / total_operations if total_operations > 0 else 0),
             "total_guardrail_blocks": sum(m.guardrail_blocks for m in all_metrics),
-            "total_cache_hits": sum(
-                m.cache_l1_hits + m.cache_l2_hits + m.cache_l3_hits
-                for m in all_metrics
-            ),
+            "total_cache_hits": sum(m.cache_l1_hits + m.cache_l2_hits + m.cache_l3_hits for m in all_metrics),
             "total_cache_misses": sum(m.cache_misses for m in all_metrics),
             "aggregate_cache_hit_rate": (
-                sum(
-                    m.cache_l1_hits + m.cache_l2_hits + m.cache_l3_hits
-                    for m in all_metrics
-                )
-                / (
-                    sum(
-                        m.cache_l1_hits
-                        + m.cache_l2_hits
-                        + m.cache_l3_hits
-                        + m.cache_misses
-                        for m in all_metrics
-                    )
-                    or 1
-                )
+                sum(m.cache_l1_hits + m.cache_l2_hits + m.cache_l3_hits for m in all_metrics)
+                / (sum(m.cache_l1_hits + m.cache_l2_hits + m.cache_l3_hits + m.cache_misses for m in all_metrics) or 1)
                 * 100
             ),
             "uptime_seconds": time.time() - self.start_time,

@@ -6,10 +6,10 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
-import unittest
-from functools import cache
+import unittest  # noqa: E402
+from functools import cache  # noqa: E402
 
-from frozen_problem import (
+from frozen_problem import (  # noqa: E402
     N_CORES,
     Input,
     Machine,
@@ -17,7 +17,7 @@ from frozen_problem import (
     build_mem_image,
     reference_kernel2,
 )
-from perf_takehome import KernelBuilder
+from perf_takehome import KernelBuilder  # noqa: E402
 
 
 @cache

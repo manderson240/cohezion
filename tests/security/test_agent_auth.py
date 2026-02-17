@@ -1,7 +1,8 @@
 """Tests for per-agent authentication (Task #1: Phase 2 Security)."""
 
+from datetime import UTC, datetime, timedelta
+
 import pytest
-from datetime import datetime, timedelta, timezone
 
 from cohezion.security.agent_auth import AgentAuthManager, AgentCredential
 
@@ -39,7 +40,7 @@ class TestAgentCredentialModel:
 
     def test_credential_expiration(self):
         """Test credential expiration check."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # Not expired
         cred = AgentCredential(
@@ -143,7 +144,7 @@ class TestTokenExpiration:
     def test_expired_token_validation(self, auth_manager):
         """Test expired tokens are rejected."""
         # Create credential with past expiration
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         cred = AgentCredential(
             agent_id="agent-1",
             token="token-1",
@@ -158,7 +159,7 @@ class TestTokenExpiration:
 
     def test_not_yet_expired_token(self, auth_manager):
         """Test token expiring soon is still valid."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         cred = AgentCredential(
             agent_id="agent-1",
             token="token-1",
@@ -230,7 +231,7 @@ class TestCredentialRotation:
 
     def test_rotate_preserves_permissions(self, auth_manager):
         """Test rotation preserves permissions by default."""
-        original = auth_manager.create_agent_credential("agent-1", ["read", "execute"])
+        auth_manager.create_agent_credential("agent-1", ["read", "execute"])
 
         rotated = auth_manager.rotate_credentials("agent-1")
 
@@ -268,7 +269,7 @@ class TestGetCredentialByAgentId:
 
     def test_get_revoked_agent(self, auth_manager):
         """Test retrieving revoked agent returns None."""
-        cred = auth_manager.create_agent_credential("agent-1")
+        auth_manager.create_agent_credential("agent-1")
         auth_manager.revoke_credential("agent-1")
 
         result = auth_manager.get_credential_by_agent_id("agent-1")
@@ -313,7 +314,7 @@ class TestCleanupExpiredCredentials:
 
     def test_cleanup_expired(self, auth_manager):
         """Test cleaning up expired credentials."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # Create expired credential
         expired = AgentCredential(

@@ -11,36 +11,39 @@ Handles edge cases:
 import asyncio
 import logging
 import re
-from typing import Optional, Dict, Any, List
 from pathlib import Path
+from typing import Any
 
 import httpx
+
 
 logger = logging.getLogger(__name__)
 
 
 class GraphRAGError(Exception):
     """Base exception for GraphRAG operations"""
+
     pass
 
 
 class CircularReferenceError(GraphRAGError):
     """Raised when circular reference detected"""
+
     pass
 
 
 def slugify(text: str) -> str:
     """Convert text to valid SurrealDB ID"""
     # Remove special chars (keep hyphens), lowercase, replace spaces/hyphens with underscores
-    slug = re.sub(r'[^\w\s-]', '', text.lower())
-    slug = re.sub(r'[\s-]+', '_', slug)
-    return slug.strip('_')
+    slug = re.sub(r"[^\w\s-]", "", text.lower())
+    slug = re.sub(r"[\s-]+", "_", slug)
+    return slug.strip("_")
 
 
 def escape_sql(text: str) -> str:
     """Escape text for safe SQL insertion"""
     # Escape single quotes and backslashes
-    text = text.replace('\\', '\\\\')
+    text = text.replace("\\", "\\\\")
     text = text.replace("'", "\\'")
     # Truncate to reasonable length
     return text[:2000]
@@ -52,8 +55,8 @@ async def execute_surreal_async(
     namespace: str = "cohezion",
     database: str = "vault",
     auth: tuple = ("root", "root"),
-    max_retries: int = 3
-) -> List[Dict[str, Any]]:
+    max_retries: int = 3,
+) -> list[dict[str, Any]]:
     """Execute SurrealQL query with retry logic"""
 
     # Prepend USE statement
@@ -69,7 +72,7 @@ async def execute_surreal_async(
                 },
                 auth=auth,
                 content=full_query,
-                timeout=10.0
+                timeout=10.0,
             )
             response.raise_for_status()
             results = response.json()
@@ -79,18 +82,18 @@ async def execute_surreal_async(
 
         except httpx.HTTPStatusError as e:
             # Log response body for debugging
-            error_detail = getattr(e.response, 'text', str(e))
+            error_detail = getattr(e.response, "text", str(e))
             logger.error(f"SurrealDB HTTP {e.response.status_code}: {error_detail}")
             if attempt == max_retries - 1:
-                raise GraphRAGError(f"Query failed after {max_retries} attempts: {error_detail}")
-            await asyncio.sleep(2 ** attempt)  # Exponential backoff
+                raise GraphRAGError(f"Query failed after {max_retries} attempts: {error_detail}") from e
+            await asyncio.sleep(2**attempt)  # Exponential backoff
         except httpx.HTTPError as e:
             if attempt == max_retries - 1:
                 logger.error(f"SurrealDB query failed after {max_retries} attempts: {e}")
-                raise GraphRAGError(f"Query failed: {e}")
+                raise GraphRAGError(f"Query failed: {e}") from e
 
             # Exponential backoff
-            await asyncio.sleep(0.1 * (2 ** attempt))
+            await asyncio.sleep(0.1 * (2**attempt))
             logger.warning(f"Retry {attempt + 1}/{max_retries} for query")
 
     raise GraphRAGError("Max retries exceeded")
@@ -100,15 +103,15 @@ async def check_document_exists(
     doc_id: str,
     client: httpx.AsyncClient,
     namespace: str = "cohezion",
-    database: str = "vault"
+    database: str = "vault",
 ) -> bool:
     """Check if document exists in vault_memory"""
     try:
         query = f"SELECT id FROM {doc_id} LIMIT 1;"
         results = await execute_surreal_async(query, client, namespace, database)
 
-        if results and results[0].get('status') == 'OK':
-            result = results[0].get('result', [])
+        if results and results[0].get("status") == "OK":
+            result = results[0].get("result", [])
             return len(result) > 0
 
         return False
@@ -121,12 +124,12 @@ async def safe_create_edge(
     source_id: str,
     edge_type: str,
     target_id: str,
-    metadata: Optional[Dict[str, Any]],
+    metadata: dict[str, Any] | None,
     client: httpx.AsyncClient,
     namespace: str = "cohezion",
     database: str = "vault",
-    skip_missing: bool = True
-) -> Optional[str]:
+    skip_missing: bool = True,
+) -> str | None:
     """
     Create graph edge with existence checks
 
@@ -178,8 +181,8 @@ async def safe_create_edge(
 
     try:
         results = await execute_surreal_async(edge_query, client, namespace, database)
-        if results and results[0].get('status') == 'OK':
-            edge_id = results[0]['result'][0]['id']
+        if results and results[0].get("status") == "OK":
+            edge_id = results[0]["result"][0]["id"]
             logger.info(f"Created edge: {source_id}->{edge_type}->{target_id}")
             return edge_id
         else:
@@ -197,7 +200,7 @@ async def detect_circular_reference(
     client: httpx.AsyncClient,
     max_depth: int = 5,
     namespace: str = "cohezion",
-    database: str = "vault"
+    database: str = "vault",
 ) -> bool:
     """
     Detect if creating edge would cause circular reference
@@ -218,8 +221,8 @@ async def detect_circular_reference(
 
     try:
         results = await execute_surreal_async(query, client, namespace, database)
-        if results and results[0].get('status') == 'OK':
-            result = results[0].get('result', [])
+        if results and results[0].get("status") == "OK":
+            result = results[0].get("result", [])
             return len(result) > 0
         return False
     except Exception as e:
@@ -228,11 +231,11 @@ async def detect_circular_reference(
 
 
 async def batch_create_edges(
-    edges: List[Dict[str, str]],
+    edges: list[dict[str, str]],
     client: httpx.AsyncClient,
     namespace: str = "cohezion",
     database: str = "vault",
-    max_concurrent: int = 10
+    max_concurrent: int = 10,
 ) -> int:
     """
     Create multiple edges in parallel with bounded concurrency
@@ -252,13 +255,13 @@ async def batch_create_edges(
     async def create_with_limit(edge_data):
         async with semaphore:
             return await safe_create_edge(
-                source_id=edge_data['source'],
-                edge_type=edge_data['type'],
-                target_id=edge_data['target'],
-                metadata=edge_data.get('metadata'),
+                source_id=edge_data["source"],
+                edge_type=edge_data["type"],
+                target_id=edge_data["target"],
+                metadata=edge_data.get("metadata"),
                 client=client,
                 namespace=namespace,
-                database=database
+                database=database,
             )
 
     # Execute all edge creations in parallel with limit
@@ -272,10 +275,10 @@ async def batch_create_edges(
     return success_count
 
 
-def parse_wiki_links(content: str) -> List[str]:
+def parse_wiki_links(content: str) -> list[str]:
     """Extract wiki-style links from markdown content"""
     # Pattern: [[link-text]] or [[link-text|display-text]]
-    pattern = r'\[\[([^\]|]+)(?:\|[^\]]+)?\]\]'
+    pattern = r"\[\[([^\]|]+)(?:\|[^\]]+)?\]\]"
     matches = re.findall(pattern, content)
     return [match.strip() for match in matches]
 
@@ -284,28 +287,29 @@ def detect_document_type(file_path: Path, vault_path: Path) -> str:
     """Detect document type from file path"""
     rel_path = file_path.relative_to(vault_path)
 
-    if rel_path.parts[0] == 'decisions':
-        return 'decision'
-    elif rel_path.parts[0] == 'patterns':
-        return 'pattern'
-    elif rel_path.parts[0] == 'experiments':
-        return 'experiment'
+    if rel_path.parts[0] == "decisions":
+        return "decision"
+    elif rel_path.parts[0] == "patterns":
+        return "pattern"
+    elif rel_path.parts[0] == "experiments":
+        return "experiment"
     else:
-        return 'document'
+        return "document"
 
 
-def parse_frontmatter(content: str) -> tuple[Dict[str, Any], str]:
+def parse_frontmatter(content: str) -> tuple[dict[str, Any], str]:
     """Parse YAML frontmatter from markdown"""
-    if not content.startswith('---'):
+    if not content.startswith("---"):
         return {}, content
 
     try:
         # Split on closing ---
-        parts = content.split('---', 2)
+        parts = content.split("---", 2)
         if len(parts) < 3:
             return {}, content
 
         import yaml
+
         frontmatter = yaml.safe_load(parts[1])
         body = parts[2].strip()
 

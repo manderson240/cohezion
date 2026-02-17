@@ -12,6 +12,7 @@ from cohezion.universe.engine import (
     UniverseJourney,
 )
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -24,16 +25,12 @@ class ManifoldBridge:
     def __init__(self):
         self.router = LOCAL_ROUTER
 
-    async def precipitate_intent(
-        self, journey: UniverseJourney, latent_intent: LatentState
-    ) -> dict[str, Any]:
+    async def precipitate_intent(self, journey: UniverseJourney, latent_intent: LatentState) -> dict[str, Any]:
         """
         Takes a latent intent and precipitates a physical reality.
         This is an autonomous 'Genie-style' action.
         """
-        logger.info(
-            f"🔗 [MANIFOLD BRIDGE] Precipitating intent: {latent_intent.semantic_intent}"
-        )
+        logger.info(f"🔗 [MANIFOLD BRIDGE] Precipitating intent: {latent_intent.semantic_intent}")
 
         # 1. Determine Action Archetype from Latent Vector
         # (In a real implementation, this would use a small classifier or vector search)
@@ -67,7 +64,7 @@ TRANSCENDENCE PROTOCOL ACTIVATED.
 ARCHETYPE: {archetype}
 INTENT: {latent.semantic_intent}
 
-Task: Push the boundaries of the current system. 
+Task: Push the boundaries of the current system.
 Generate a high-fidelity 'Precipitation' that addresses this intent.
 Format your output as a Sovereign Narration followed by a Technical Implementation.
 """

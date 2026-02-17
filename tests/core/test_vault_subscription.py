@@ -179,8 +179,6 @@ class TestDisconnect:
         assert client._global_callbacks == []
 
     def test_init_custom(self):
-        client = VaultSubscriptionClient(
-            base_url="http://example.com:9000/", api_key="secret"
-        )
+        client = VaultSubscriptionClient(base_url="http://example.com:9000/", api_key="secret")
         assert client._base_url == "http://example.com:9000"
         assert client._api_key == "secret"

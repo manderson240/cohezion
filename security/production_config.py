@@ -9,11 +9,13 @@ This configuration addresses all critical vulnerabilities identified
 in the retrospective analysis and provides a secure foundation for production deployment.
 """
 
-import os
 import json
 import logging
+import os
+import time
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -457,7 +459,7 @@ wait
 
         logger.info(f"📈 Monitoring config created: {monitor_file}")
 
-    def validate_configurations(self) -> Dict[str, Any]:
+    def validate_configurations(self) -> dict[str, Any]:
         """Validate all production configurations"""
 
         validation_results = {
@@ -470,9 +472,7 @@ wait
 
         # Check overall status
         all_valid = all(
-            result["valid"]
-            for result in validation_results.values()
-            if isinstance(result, dict) and "valid" in result
+            result["valid"] for result in validation_results.values() if isinstance(result, dict) and "valid" in result
         )
 
         if not all_valid:
@@ -485,7 +485,7 @@ wait
 
         return validation_results
 
-    def _validate_security_config(self) -> Dict[str, Any]:
+    def _validate_security_config(self) -> dict[str, Any]:
         """Validate security configuration"""
 
         security_file = self.config_dir / "security.json"
@@ -493,7 +493,7 @@ wait
             return {"valid": False, "message": "Security config file not found"}
 
         try:
-            with open(security_file, "r") as f:
+            with open(security_file) as f:
                 config = json.load(f)
 
             # Validate required fields
@@ -523,7 +523,7 @@ wait
         except Exception as e:
             return {"valid": False, "message": f"Error reading security config: {e}"}
 
-    def _validate_resource_limits(self) -> Dict[str, Any]:
+    def _validate_resource_limits(self) -> dict[str, Any]:
         """Validate resource limits configuration"""
 
         limits_file = self.config_dir / "resource_limits.json"
@@ -531,7 +531,7 @@ wait
             return {"valid": False, "message": "Resource limits config file not found"}
 
         try:
-            with open(limits_file, "r") as f:
+            with open(limits_file) as f:
                 config = json.load(f)
 
             # Validate memory limits
@@ -558,7 +558,7 @@ wait
                 "message": f"Error reading resource limits config: {e}",
             }
 
-    def _validate_ide_configs(self) -> Dict[str, Any]:
+    def _validate_ide_configs(self) -> dict[str, Any]:
         """Validate IDE configurations"""
 
         ide_dir = self.config_dir / "ide_configs"
@@ -566,7 +566,7 @@ wait
             return {"valid": False, "message": "IDE configs directory not found"}
 
         try:
-            for ide_name in self.ide_configs.keys():
+            for ide_name in self.ide_configs:
                 ide_file = ide_dir / f"{ide_name}.json"
                 if not ide_file.exists():
                     return {
@@ -574,7 +574,7 @@ wait
                         "message": f"IDE config for {ide_name} not found",
                     }
 
-                with open(ide_file, "r") as f:
+                with open(ide_file) as f:
                     config = json.load(f)
 
                 # Validate production settings
@@ -597,7 +597,7 @@ wait
         except Exception as e:
             return {"valid": False, "message": f"Error reading IDE configs: {e}"}
 
-    def _validate_operational_config(self) -> Dict[str, Any]:
+    def _validate_operational_config(self) -> dict[str, Any]:
         """Validate operational configuration"""
 
         ops_file = self.config_dir / "operational.json"
@@ -605,7 +605,7 @@ wait
             return {"valid": False, "message": "Operational config file not found"}
 
         try:
-            with open(ops_file, "r") as f:
+            with open(ops_file) as f:
                 config = json.load(f)
 
             # Validate environment
@@ -625,7 +625,7 @@ wait
         except Exception as e:
             return {"valid": False, "message": f"Error reading operational config: {e}"}
 
-    def get_production_summary(self) -> Dict[str, Any]:
+    def get_production_summary(self) -> dict[str, Any]:
         """Get comprehensive production configuration summary"""
 
         return {

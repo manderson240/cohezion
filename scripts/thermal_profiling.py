@@ -23,7 +23,6 @@ import argparse
 import asyncio
 import json
 import logging
-import sys
 import time
 from pathlib import Path
 
@@ -75,10 +74,7 @@ class ThermalProfiler:
         Returns:
             Dict with profiling results
         """
-        logger.info(
-            f"Profiling: batch_size={batch_size}, "
-            f"concurrency={concurrency_limit}, model={model}"
-        )
+        logger.info(f"Profiling: batch_size={batch_size}, concurrency={concurrency_limit}, model={model}")
 
         # Reset gate with new concurrency limit
         reset_gate()
@@ -113,7 +109,7 @@ class ThermalProfiler:
 
             # Execute batch
             try:
-                batch_result = await client.batch_generate(items)
+                await client.batch_generate(items)
             except Exception as e:
                 logger.error(f"Batch execution failed: {e}")
                 monitor.stop_measurement()
@@ -142,9 +138,11 @@ class ThermalProfiler:
                 "cache_hit_rate": round(client_metrics.get("combined_hit_rate", 0), 3),
             }
             iteration_results.append(result)
-            logger.debug(f"    {tokens_per_sec:.1f} tok/sec, "
-                        f"{gpu_stats['avg_gpu_load']:.1f}% GPU, "
-                        f"{gpu_stats['avg_temperature']:.1f}°C")
+            logger.debug(
+                f"    {tokens_per_sec:.1f} tok/sec, "
+                f"{gpu_stats['avg_gpu_load']:.1f}% GPU, "
+                f"{gpu_stats['avg_temperature']:.1f}°C"
+            )
 
         # Aggregate results
         if iteration_results:
@@ -206,10 +204,7 @@ class ThermalProfiler:
             for concurrency in concurrency_limits:
                 for batch_size in batch_sizes:
                     config_num += 1
-                    logger.info(
-                        f"[{config_num}/{total_configs}] "
-                        f"Batch {batch_size}, Concurrency {concurrency}"
-                    )
+                    logger.info(f"[{config_num}/{total_configs}] Batch {batch_size}, Concurrency {concurrency}")
 
                     result = await self.profile_configuration(
                         batch_size=batch_size,
@@ -237,14 +232,13 @@ class ThermalProfiler:
         logger.info("=" * 60)
 
         # Group by model
-        models = set(r["model"] for r in self.results if "model" in r)
+        models = {r["model"] for r in self.results if "model" in r}
 
         for model in sorted(models):
             logger.info(f"\n{model}:")
             logger.info("-" * 60)
             logger.info(
-                f"{'Batch':<8} {'Concurrency':<12} {'Tok/Sec':<12} "
-                f"{'GPU Load':<12} {'Temp°C':<10} {'Throttle':<10}"
+                f"{'Batch':<8} {'Concurrency':<12} {'Tok/Sec':<12} {'GPU Load':<12} {'Temp°C':<10} {'Throttle':<10}"
             )
             logger.info("-" * 60)
 
@@ -255,8 +249,7 @@ class ThermalProfiler:
                 key=lambda x: (x.get("batch_size", 0), x.get("concurrency_limit", 0)),
             ):
                 if "error" in result:
-                    logger.info(f"{result['batch_size']:<8} {result['concurrency_limit']:<12} "
-                               f"ERROR: {result['error']}")
+                    logger.info(f"{result['batch_size']:<8} {result['concurrency_limit']:<12} ERROR: {result['error']}")
                     continue
 
                 batch = result.get("batch_size", 0)
@@ -267,8 +260,7 @@ class ThermalProfiler:
                 throttled = "YES" if result.get("thermal_throttled") else "NO"
 
                 logger.info(
-                    f"{batch:<8} {concurrency:<12} {throughput:<12.1f} "
-                    f"{gpu_load:<12.1f}% {temp:<10.1f} {throttled:<10}"
+                    f"{batch:<8} {concurrency:<12} {throughput:<12.1f} {gpu_load:<12.1f}% {temp:<10.1f} {throttled:<10}"
                 )
 
         # Recommendations
@@ -278,8 +270,7 @@ class ThermalProfiler:
 
         # Find optimal configuration (max throughput without throttle)
         non_throttled = [
-            r for r in self.results
-            if not r.get("thermal_throttled", False) and "avg_tokens_per_second" in r
+            r for r in self.results if not r.get("thermal_throttled", False) and "avg_tokens_per_second" in r
         ]
 
         if non_throttled:

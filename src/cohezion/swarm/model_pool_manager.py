@@ -32,6 +32,7 @@ from cohezion.swarm.model_pool_config import (
     TierConfig,
 )
 
+
 logger = logging.getLogger(__name__)
 
 # Health-check prompt: minimal tokens, fast response
@@ -61,17 +62,11 @@ class ModelPoolManager:
 
         # Build pool entries from config
         for name in self._config.hot_models:
-            self._pool[name] = PooledModel(
-                name=name, tier=ModelTierPolicy.HOT, size_gb=0.0
-            )
+            self._pool[name] = PooledModel(name=name, tier=ModelTierPolicy.HOT, size_gb=0.0)
         for name in self._config.warm_models:
-            self._pool[name] = PooledModel(
-                name=name, tier=ModelTierPolicy.WARM, size_gb=0.0
-            )
+            self._pool[name] = PooledModel(name=name, tier=ModelTierPolicy.WARM, size_gb=0.0)
         for name in self._config.cold_models:
-            self._pool[name] = PooledModel(
-                name=name, tier=ModelTierPolicy.COLD, size_gb=0.0
-            )
+            self._pool[name] = PooledModel(name=name, tier=ModelTierPolicy.COLD, size_gb=0.0)
 
     async def initialize(self) -> None:
         """Query Ollama /api/tags, reconcile with tier config.
@@ -228,7 +223,11 @@ class ModelPoolManager:
             logger.error("Failed to evict %s: %s", model_name, exc)
             return False
 
-    _TIER_ORDER = {ModelTierPolicy.COLD: 0, ModelTierPolicy.WARM: 1, ModelTierPolicy.HOT: 2}
+    _TIER_ORDER = {
+        ModelTierPolicy.COLD: 0,
+        ModelTierPolicy.WARM: 1,
+        ModelTierPolicy.HOT: 2,
+    }
 
     async def promote(self, model_name: str, new_tier: ModelTierPolicy) -> None:
         """Promote a model to a higher tier (e.g., cold -> warm, warm -> hot).
@@ -268,11 +267,7 @@ class ModelPoolManager:
 
         # Build eviction candidates sorted by priority
         candidates = sorted(
-            [
-                m
-                for m in self._pool.values()
-                if m.loaded and m.tier != ModelTierPolicy.HOT
-            ],
+            [m for m in self._pool.values() if m.loaded and m.tier != ModelTierPolicy.HOT],
             key=lambda m: (
                 0 if m.tier == ModelTierPolicy.COLD else 1,  # COLD first
                 m.last_used,  # LRU within tier
@@ -361,7 +356,12 @@ class ModelPoolManager:
                     },
                 )
                 resp.raise_for_status()
-                logger.info("Loaded model %s (tier=%s, keep_alive=%s)", model_name, tier.value, keep_alive)
+                logger.info(
+                    "Loaded model %s (tier=%s, keep_alive=%s)",
+                    model_name,
+                    tier.value,
+                    keep_alive,
+                )
                 return True
         except Exception as exc:
             logger.error("Failed to load model %s: %s", model_name, exc)
@@ -370,13 +370,7 @@ class ModelPoolManager:
     async def _evict_one(self, exclude: str = "") -> bool:
         """Evict one model to free a slot. Returns True if a model was evicted."""
         candidates = sorted(
-            [
-                m
-                for m in self._pool.values()
-                if m.loaded
-                and m.tier != ModelTierPolicy.HOT
-                and m.name != exclude
-            ],
+            [m for m in self._pool.values() if m.loaded and m.tier != ModelTierPolicy.HOT and m.name != exclude],
             key=lambda m: (
                 0 if m.tier == ModelTierPolicy.COLD else 1,
                 m.last_used,

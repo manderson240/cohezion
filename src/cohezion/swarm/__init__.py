@@ -12,38 +12,13 @@ from cohezion.swarm.batch_processor import (
     BatchResult,
     CacheEntry,
 )
-from cohezion.swarm.lru_persistent_cache import (
-    LRUPersistentCache,
-)
-from cohezion.swarm.persistent_cache import (
-    PersistentCache,
-    get_persistent_cache,
-)
-# from cohezion.swarm.dynamic_concurrency_gate import (
-#     DynamicConcurrencyGate,
-#     get_concurrency_gate,
-# )
-from cohezion.swarm.persistent_token_cache import (
-    PersistentTokenCache,
-)
 from cohezion.swarm.hardware_aware_router import (
     Priority,
     RoutingDecision,
     RoutingRequest,
 )
-from cohezion.swarm.multi_layer_cache import (
-    CacheEntry as MultiLayerCacheEntry,
-)
-from cohezion.swarm.multi_layer_cache import (
-    ContextPoolManager,
-    KVCacheOptimizer,
-    MultiLayerCache,
-    SemanticCacheStore,
-)
-from cohezion.swarm.token_cache_optimizer import (
-    CacheOptimizationConfig,
-    TokenCacheOptimizer,
-    get_token_cache_optimizer,
+from cohezion.swarm.lru_persistent_cache import (
+    LRUPersistentCache,
 )
 from cohezion.swarm.model_pool_config import (
     ModelTierPolicy,
@@ -55,6 +30,32 @@ from cohezion.swarm.model_pool_manager import (
     ModelPoolManager,
     get_pool_manager,
     reset_pool_manager,
+)
+from cohezion.swarm.multi_layer_cache import (
+    CacheEntry as MultiLayerCacheEntry,
+)
+from cohezion.swarm.multi_layer_cache import (
+    ContextPoolManager,
+    KVCacheOptimizer,
+    MultiLayerCache,
+    SemanticCacheStore,
+)
+from cohezion.swarm.persistent_cache import (
+    PersistentCache,
+    get_persistent_cache,
+)
+
+# from cohezion.swarm.dynamic_concurrency_gate import (
+#     DynamicConcurrencyGate,
+#     get_concurrency_gate,
+# )
+from cohezion.swarm.persistent_token_cache import (
+    PersistentTokenCache,
+)
+from cohezion.swarm.token_cache_optimizer import (
+    CacheOptimizationConfig,
+    TokenCacheOptimizer,
+    get_token_cache_optimizer,
 )
 from cohezion.swarm.token_client import (
     ResilientOllamaClient,
@@ -72,25 +73,25 @@ __all__ = [
     # "DynamicConcurrencyGate",  # Module unavailable
     "KVCacheOptimizer",
     "LRUPersistentCache",
+    "ModelPoolManager",
+    "ModelTierPolicy",
     "MultiLayerCache",
     "MultiLayerCacheEntry",
     "PersistentCache",
     "PersistentTokenCache",
+    "PoolStatus",
+    "PooledModel",
     "Priority",
     "ResilientOllamaClient",
     "RoutingDecision",
     "RoutingRequest",
     "SemanticCacheStore",
+    "TierConfig",
     "TokenCacheOptimizer",
     "TokenEfficientClient",
     # "get_concurrency_gate",  # Module unavailable
     "get_persistent_cache",
     "get_pool_manager",
     "get_token_cache_optimizer",
-    "ModelPoolManager",
-    "ModelTierPolicy",
-    "PooledModel",
-    "PoolStatus",
     "reset_pool_manager",
-    "TierConfig",
 ]

@@ -103,10 +103,7 @@ class ExecutionConstraint:
 
     def __repr__(self) -> str:
         """String representation."""
-        return (
-            f"Constraint({self.type.value}: {self.value}{self.unit}, "
-            f"hard={self.is_hard})"
-        )
+        return f"Constraint({self.type.value}: {self.value}{self.unit}, hard={self.is_hard})"
 
 
 @dataclass
@@ -127,10 +124,7 @@ class SuccessCriterion:
 
     def __repr__(self) -> str:
         """String representation."""
-        return (
-            f"Criterion({self.description}: {self.metric_name}>={self.threshold}, "
-            f"explicit={self.is_explicit})"
-        )
+        return f"Criterion({self.description}: {self.metric_name}>={self.threshold}, explicit={self.is_explicit})"
 
 
 @dataclass
@@ -203,10 +197,7 @@ class ConstraintViolation:
 
     def __repr__(self) -> str:
         """String representation."""
-        return (
-            f"Violation({self.constraint.type.value}: "
-            f"requested={self.requested_value}, actual={self.actual_value})"
-        )
+        return f"Violation({self.constraint.type.value}: requested={self.requested_value}, actual={self.actual_value})"
 
 
 @dataclass
@@ -227,10 +218,7 @@ class CriterionFailure:
 
     def __repr__(self) -> str:
         """String representation."""
-        return (
-            f"Failure({self.criterion.metric_name}: "
-            f"expected={self.expected_value}, actual={self.actual_value})"
-        )
+        return f"Failure({self.criterion.metric_name}: expected={self.expected_value}, actual={self.actual_value})"
 
 
 @dataclass

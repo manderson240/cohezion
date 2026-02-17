@@ -3,13 +3,15 @@ Observable AI action proposer.
 Charter requirement: "Expose internal states and confidence levels *before* action"
 """
 
-from typing import Optional, Callable, List
-from pydantic import BaseModel
 import uuid
+from collections.abc import Callable
+
 import numpy as np
-from cohezion.platform.coherence_tracker import get_coherence_tracker, CoherenceMetrics
-from cohezion.platform.journey_logger import get_journey_logger
+from pydantic import BaseModel
+
 from cohezion.flume.vae_encoder import get_encoder
+from cohezion.platform.coherence_tracker import CoherenceMetrics, get_coherence_tracker
+from cohezion.platform.journey_logger import get_journey_logger
 
 
 class ActionProposal(BaseModel):
@@ -21,9 +23,9 @@ class ActionProposal(BaseModel):
     rationale: str
     confidence: float
     coherence_impact: float  # Expected change to system coherence
-    flume_state: List[float]  # Current 256D latent state
-    risks: List[str]
-    benefits: List[str]
+    flume_state: list[float]  # Current 256D latent state
+    risks: list[str]
+    benefits: list[str]
     reversible: bool
     auto_approvable: bool  # Can auto-approve if confidence > threshold
 
@@ -35,7 +37,7 @@ class ObservableActionProposer:
         self.coherence_tracker = get_coherence_tracker()
         self.journey_logger = get_journey_logger()
         self.vae = get_encoder()
-        self._current_journey_id: Optional[str] = None
+        self._current_journey_id: str | None = None
 
     async def propose_action(
         self,
@@ -44,10 +46,10 @@ class ObservableActionProposer:
         rationale: str,
         confidence: float,
         action_fn: Callable,
-        risks: Optional[List[str]] = None,
-        benefits: Optional[List[str]] = None,
+        risks: list[str] | None = None,
+        benefits: list[str] | None = None,
         reversible: bool = True,
-        approval_callback: Optional[Callable[[ActionProposal], bool]] = None,
+        approval_callback: Callable[[ActionProposal], bool] | None = None,
     ) -> bool:
         """
         Propose an action with full transparency.
@@ -85,9 +87,7 @@ class ObservableActionProposer:
             flume_state = flume_state.tolist()
 
         # Estimate coherence impact
-        coherence_impact = await self._estimate_coherence_impact(
-            action_type, description, current_coherence.coherence
-        )
+        coherence_impact = await self._estimate_coherence_impact(action_type, description, current_coherence.coherence)
 
         # Create proposal
         proposal = ActionProposal(
@@ -101,9 +101,7 @@ class ObservableActionProposer:
             risks=risks or [],
             benefits=benefits or [],
             reversible=reversible,
-            auto_approvable=(
-                confidence > 0.9 and reversible and abs(coherence_impact) < 0.1
-            ),  # Small impact
+            auto_approvable=(confidence > 0.9 and reversible and abs(coherence_impact) < 0.1),  # Small impact
         )
 
         # Display proposal (Observable AI)
@@ -141,9 +139,21 @@ class ObservableActionProposer:
             return False
 
     async def _display_proposal(
-        self, proposal: ActionProposal, current_coherence: CoherenceMetrics
+        self,
+        proposal: ActionProposal,
+        current_coherence: CoherenceMetrics,
     ):
         """Display proposal with full transparency."""
+        hiho_status = "HIHO Stable" if current_coherence.hiho_stable else "Outside HIHO"
+        reversible = "Yes" if proposal.reversible else "No"
+        new_coh = current_coherence.coherence + proposal.coherence_impact
+        risks = chr(10).join("- " + r for r in proposal.risks) if proposal.risks else "- None identified"
+        benefits = chr(10).join("- " + b for b in proposal.benefits) if proposal.benefits else "- None specified"
+        decision = (
+            "AUTO-APPROVABLE (high confidence, reversible, low impact)"
+            if proposal.auto_approvable
+            else "REQUIRES APPROVAL (low confidence or high impact)"
+        )
 
         print(
             f"""
@@ -159,22 +169,22 @@ REASONING:
 
 METRICS:
 - Confidence: {proposal.confidence:.2%}
-- Current Coherence: {current_coherence.coherence:.3f} ({"HIHO Stable ✅" if current_coherence.hiho_stable else "Outside HIHO ⚠️"})
+- Current Coherence: {current_coherence.coherence:.3f} ({hiho_status})
 - Expected Coherence Impact: {proposal.coherence_impact:+.3f}
-- New Coherence: ~{current_coherence.coherence + proposal.coherence_impact:.3f}
-- Reversible: {"Yes ✅" if proposal.reversible else "No ⚠️"}
+- New Coherence: ~{new_coh:.3f}
+- Reversible: {reversible}
 
 FLUME STATE (256D):
 {proposal.flume_state[:5]}... (showing first 5 dimensions)
 
 RISKS:
-{chr(10).join("- " + r for r in proposal.risks) if proposal.risks else "- None identified"}
+{risks}
 
 BENEFITS:
-{chr(10).join("- " + b for b in proposal.benefits) if proposal.benefits else "- None specified"}
+{benefits}
 
 DECISION:
-{"AUTO-APPROVABLE (high confidence, reversible, low impact)" if proposal.auto_approvable else "REQUIRES APPROVAL (low confidence or high impact)"}
+{decision}
 
 {"=" * 70}
 """
@@ -191,9 +201,7 @@ DECISION:
             # Non-interactive environment (e.g., tests)
             return False
 
-    async def _estimate_coherence_impact(
-        self, action_type: str, description: str, current_coherence: float
-    ) -> float:
+    async def _estimate_coherence_impact(self, action_type: str, description: str, current_coherence: float) -> float:
         """Estimate impact on system coherence."""
 
         # Simplified heuristic
@@ -214,7 +222,7 @@ DECISION:
         """Set the current journey ID for logging decisions."""
         self._current_journey_id = journey_id
 
-    def get_current_journey_id(self) -> Optional[str]:
+    def get_current_journey_id(self) -> str | None:
         """Get current journey ID."""
         return self._current_journey_id
 

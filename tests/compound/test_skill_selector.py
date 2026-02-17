@@ -42,21 +42,15 @@ class TestSkillScore:
 
     def test_skill_score_comparison(self):
         """Test comparing SkillScore objects."""
-        score1 = SkillScore(
-            "skill1", 0.9, 0.9, 0.9, 10, 0.9
-        )
-        score2 = SkillScore(
-            "skill2", 0.7, 0.7, 0.7, 5, 0.7
-        )
+        score1 = SkillScore("skill1", 0.9, 0.9, 0.9, 10, 0.9)
+        score2 = SkillScore("skill2", 0.7, 0.7, 0.7, 5, 0.7)
 
         # Higher composite score should be "less than" (for reverse sorting)
         assert score1 < score2
 
     def test_skill_score_repr(self):
         """Test string representation."""
-        score = SkillScore(
-            "test_skill", 0.85, 0.75, 0.9, 10, 0.82
-        )
+        score = SkillScore("test_skill", 0.85, 0.75, 0.9, 10, 0.82)
 
         repr_str = repr(score)
         assert "test_skill" in repr_str
@@ -71,11 +65,7 @@ class TestSkillSelectorInitialization:
         selector = SkillSelector(mock_mcp_client)
 
         # Weights should be normalized
-        total = (
-            selector.coherence_weight
-            + selector.efficiency_weight
-            + selector.success_weight
-        )
+        total = selector.coherence_weight + selector.efficiency_weight + selector.success_weight
         assert abs(total - 1.0) < 0.001
 
     def test_initialization_custom_weights(self, mock_mcp_client):
@@ -88,11 +78,7 @@ class TestSkillSelectorInitialization:
         )
 
         # Weights should be normalized
-        total = (
-            selector.coherence_weight
-            + selector.efficiency_weight
-            + selector.success_weight
-        )
+        total = selector.coherence_weight + selector.efficiency_weight + selector.success_weight
         assert abs(total - 1.0) < 0.001
 
 
@@ -251,7 +237,7 @@ class TestSkillScoreComputation:
 
     def test_composite_score_calculation(self, selector):
         """Test composite score calculation."""
-        score = SkillScore(
+        SkillScore(
             skill_name="test",
             coherence_score=0.5,
             token_efficiency=0.5,
@@ -261,11 +247,7 @@ class TestSkillScoreComputation:
         )
 
         # Manually compute with selector's weights
-        expected = (
-            selector.coherence_weight * 0.5
-            + selector.efficiency_weight * 0.5
-            + selector.success_weight * 0.5
-        )
+        expected = selector.coherence_weight * 0.5 + selector.efficiency_weight * 0.5 + selector.success_weight * 0.5
 
         # All equal means composite should be 0.5
         assert expected == 0.5

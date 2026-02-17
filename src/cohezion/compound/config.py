@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
+
 # Default operation → model mapping
 _DEFAULT_OPERATION_MODELS: dict[str, str] = {
     "generate": "qwen3-coder:30b",
@@ -38,9 +39,7 @@ class CompoundConfig(BaseModel):
 
     default_model: str = "phi3:mini"
     code_model: str = "qwen3-coder:30b"
-    operation_model_map: dict[str, str] = Field(
-        default_factory=lambda: dict(_DEFAULT_OPERATION_MODELS)
-    )
+    operation_model_map: dict[str, str] = Field(default_factory=lambda: dict(_DEFAULT_OPERATION_MODELS))
     ollama_host: str = "http://localhost:11434"
     cache_max_size: int = 512
 

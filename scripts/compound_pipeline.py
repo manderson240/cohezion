@@ -13,6 +13,7 @@ import logging
 import sys
 from pathlib import Path
 
+
 # Add src to path for direct script execution
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
@@ -168,9 +169,7 @@ def feedback_cycle(intent: str, cycles: int = 1, model: str | None = None) -> No
         loop = CompoundFeedbackLoop()
         skill_name = "COMPOUND_ENGINEERING_PRIME"
         if cycles > 1:
-            report = await loop.run_multi_cycle(
-                skill_name, intent, cycles=cycles, model=model
-            )
+            report = await loop.run_multi_cycle(skill_name, intent, cycles=cycles, model=model)
             print(f"\n  Cycles: {report.total_cycles}")
             print(f"  Tokens: {report.total_tokens}")
             print(f"  Refinements: {report.total_refinements}")

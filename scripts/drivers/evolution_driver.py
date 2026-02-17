@@ -2,6 +2,7 @@ from pathlib import Path
 
 import requests
 
+
 # Configuration
 OLLAMA_URL = "http://localhost:11434/api/generate"
 CRITIC_MODEL = "deepseek-r1:70b"  # Verified available
@@ -12,9 +13,7 @@ TARGET_FILE = "src/cohezion/simulation/fractal_universe.py"
 def call_ollama(model, prompt):
     print(f"Thinking with {model}...")
     try:
-        response = requests.post(
-            OLLAMA_URL, json={"model": model, "prompt": prompt, "stream": False}
-        )
+        response = requests.post(OLLAMA_URL, json={"model": model, "prompt": prompt, "stream": False})
         response.raise_for_status()
         return response.json()["response"]
     except Exception as e:

@@ -20,7 +20,11 @@ from enum import Enum
 from typing import Any
 
 from cohezion.compound.executor import CompoundExecutor, ExecutionResult
-from cohezion.compound.inflection_detector import AnomalyDetection, InflectionDetector, Severity
+from cohezion.compound.inflection_detector import (
+    AnomalyDetection,
+    InflectionDetector,
+    Severity,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -119,8 +123,7 @@ class CompoundFeedbackLoop:
         self.execution_history: list[RetryAttempt] = []
 
         logger.debug(
-            "Initialized CompoundFeedbackLoop with max_retries=%d, "
-            "critical_threshold=%.2f",
+            "Initialized CompoundFeedbackLoop with max_retries=%d, critical_threshold=%.2f",
             max_retries,
             critical_threshold,
         )
@@ -188,9 +191,7 @@ class CompoundFeedbackLoop:
             # Create retry attempt record
             attempt = RetryAttempt(
                 attempt_number=current_retry + 1,
-                strategy=self._select_retry_strategy(
-                    current_retry, anomaly, available_alternative_skills
-                ),
+                strategy=self._select_retry_strategy(current_retry, anomaly, available_alternative_skills),
                 skill_used=current_skill,
                 success=execution_result.success and anomaly.score > self.critical_threshold,
                 anomaly_detected=anomaly,
@@ -229,10 +230,7 @@ class CompoundFeedbackLoop:
                 )
 
             # If critical and retries available, attempt retry
-            if (
-                anomaly.severity == Severity.CRITICAL
-                and current_retry < self.max_retries
-            ):
+            if anomaly.severity == Severity.CRITICAL and current_retry < self.max_retries:
                 logger.warning(
                     "Critical anomaly detected: %s. Attempting retry %d/%d",
                     anomaly.issues,
@@ -391,8 +389,7 @@ class CompoundFeedbackLoop:
             failures = [a for a in attempts if not a.success]
 
             logger.info(
-                "Learning from retry trajectory: "
-                "task=%s, skill=%s, attempts=%d, success_rate=%.2f",
+                "Learning from retry trajectory: task=%s, skill=%s, attempts=%d, success_rate=%.2f",
                 task_description,
                 original_skill,
                 len(attempts),
@@ -442,9 +439,7 @@ class CompoundFeedbackLoop:
 
         total = len(self.execution_history)
         first_attempts = sum(1 for a in self.execution_history if a.attempt_number == 1)
-        total_retries = sum(
-            (a.attempt_number - 1) for a in self.execution_history if a.success
-        )
+        total_retries = sum((a.attempt_number - 1) for a in self.execution_history if a.success)
 
         return {
             "total_executions": total,
@@ -453,9 +448,7 @@ class CompoundFeedbackLoop:
             "average_retries": total_retries / total if total > 0 else 0,
         }
 
-    async def execute_batch_with_feedback(
-        self, tasks: list[tuple[str, Callable]]
-    ) -> dict[str, Any]:
+    async def execute_batch_with_feedback(self, tasks: list[tuple[str, Callable]]) -> dict[str, Any]:
         """Execute batch of tasks with feedback loop integration.
 
         Phase 2.5: Batch execution with cache warming from learned patterns.
@@ -525,10 +518,7 @@ class CompoundFeedbackLoop:
                     critical_failures.append((i, "Task failed after all retries"))
 
         # Cache successful retry results for future batch executions
-        logger.info(
-            f"Batch cache warming: Found {len(cache_warming_opportunities)} "
-            f"successful retry patterns to cache"
-        )
+        logger.info(f"Batch cache warming: Found {len(cache_warming_opportunities)} successful retry patterns to cache")
 
         # Extract and persist learning patterns
         learned_patterns = []

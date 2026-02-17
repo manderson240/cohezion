@@ -11,26 +11,26 @@ We find the 'peak' (heavy bitstring) by:
 3. performing likelihood-based sampling (since it's a peaked distribution) to find candidates.
 """
 
-import os
 import logging
+import os
 import time
+
+import cotengra as ctg
 import numpy as np
 import quimb.tensor as qtn
-import cotengra as ctg
-from typing import List, Tuple, Optional
-import sys
 
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("PeakedSolver")
 
+
 class PeakedCircuitSolver:
     def __init__(self, qasm_path: str, memory_limit_gb: int = 50):
         self.qasm_path = qasm_path
         self.memory_limit_gb = memory_limit_gb
-        self.circ: Optional[qtn.Circuit] = None
-        self.tn: Optional[qtn.TensorNetwork] = None
+        self.circ: qtn.Circuit | None = None
+        self.tn: qtn.TensorNetwork | None = None
         self.contraction_info = None
 
         # Verify file exists
@@ -42,7 +42,7 @@ class PeakedCircuitSolver:
         logger.info(f"Loading QASM from {self.qasm_path}...")
 
         try:
-            with open(self.qasm_path, 'r') as f:
+            with open(self.qasm_path) as f:
                 lines = f.readlines()
 
             # Simple parser for 'u' and 'cz' gates
@@ -51,7 +51,7 @@ class PeakedCircuitSolver:
             for line in lines:
                 if line.startswith("qreg"):
                     # qreg q[36];
-                    N = int(line.split('[')[1].split(']')[0])
+                    N = int(line.split("[")[1].split("]")[0])
                     break
 
             if N == 0:
@@ -60,29 +60,27 @@ class PeakedCircuitSolver:
             logger.info(f"Found {N} qubits. Constructing TN...")
             self.circ = qtn.Circuit(N)
 
-            import re
-
             for line in lines:
-                line = line.strip().replace(';', '')
-                if not line or line.startswith('OPENQASM') or line.startswith('include') or line.startswith('qreg'):
+                line = line.strip().replace(";", "")
+                if not line or line.startswith("OPENQASM") or line.startswith("include") or line.startswith("qreg"):
                     continue
 
                 # Parse CZ
-                if line.startswith('cz'):
+                if line.startswith("cz"):
                     # cz q[1],q[3]
-                    parts = line.split()[1].split(',')
-                    q1 = int(parts[0].split('[')[1].split(']')[0])
-                    q2 = int(parts[1].split('[')[1].split(']')[0])
-                    self.circ.apply_gate('CZ', q1, q2)
+                    parts = line.split()[1].split(",")
+                    q1 = int(parts[0].split("[")[1].split("]")[0])
+                    q2 = int(parts[1].split("[")[1].split("]")[0])
+                    self.circ.apply_gate("CZ", q1, q2)
 
                 # Parse U gate: u(1.2,-1.3,0.9) q[0]
-                elif line.startswith('u('):
+                elif line.startswith("u("):
                     # Extract params
-                    params_str = line.split('(')[1].split(')')[0]
+                    params_str = line.split("(")[1].split(")")[0]
                     # Handle pi/2 etc.
                     safe_dict = {"pi": np.pi}
                     params = []
-                    for p in params_str.split(','):
+                    for p in params_str.split(","):
                         # Safe eval
                         try:
                             val = float(eval(p, {"__builtins__": None}, safe_dict))
@@ -91,12 +89,12 @@ class PeakedCircuitSolver:
                             logger.error(f"Failed to parse param {p} in line: {line}")
                             raise parse_err
                     # Extract qubit
-                    q_str = line.split(')')[1].strip()
-                    q = int(q_str.split('[')[1].split(']')[0])
+                    q_str = line.split(")")[1].strip()
+                    q = int(q_str.split("[")[1].split("]")[0])
 
                     # Quimb U3 uses U3(theta, phi, lam)
                     theta, phi, lam = params
-                    self.circ.apply_gate('U3', theta, phi, lam, q)
+                    self.circ.apply_gate("U3", theta, phi, lam, q)
 
             logger.info(f"Circuit loaded manually. Qubits: {self.circ.N}, Gates: {len(self.circ.gates)}")
 
@@ -111,17 +109,17 @@ class PeakedCircuitSolver:
         # We also enable 'slicing' to ensure we stay within memory limits.
 
         opt = ctg.ReusableHyperOptimizer(
-            methods=['kahypar'],
+            methods=["kahypar"],
             max_repeats=128,
             progbar=True,
-            minimize='flops',
+            minimize="flops",
             # Slicing options: target size ~2**28 (256MB) tensors to keep memory low
             # This allows computing very massive contractions by summing over slices
-            slicing_opts={'target_size': 2**28}
+            slicing_opts={"target_size": 2**28},
         )
         return opt
 
-    def simulate_and_sample(self, samples: int = 100000) -> List[Tuple[str, float]]:
+    def simulate_and_sample(self, samples: int = 100000) -> list[tuple[str, float]]:
         """
         Performs Approximate MPS Evolution (Manifold Encoding) to find the peak.
         Strategy: Manual Gate Applications on MPS.
@@ -135,41 +133,41 @@ class PeakedCircuitSolver:
             # Let's re-parse or rely on self.circ structure if we trust it.
             # Safest: Re-parse into a clean list of ops.
 
-            with open(self.qasm_path, 'r') as f:
+            with open(self.qasm_path) as f:
                 lines = f.readlines()
 
-            N = 36 # Known for this problem
+            N = 36  # Known for this problem
             ops = []
 
             safe_dict = {"pi": np.pi}
 
             for line in lines:
-                line = line.strip().replace(';', '')
-                if not line or line.startswith(('OPENQASM', 'include', 'qreg', '//')):
+                line = line.strip().replace(";", "")
+                if not line or line.startswith(("OPENQASM", "include", "qreg", "//")):
                     continue
 
-                if line.startswith('cz'):
-                    parts = line.split()[1].split(',')
-                    q1 = int(parts[0].split('[')[1].split(']')[0])
-                    q2 = int(parts[1].split('[')[1].split(']')[0])
-                    ops.append(('CZ', [], (q1, q2)))
+                if line.startswith("cz"):
+                    parts = line.split()[1].split(",")
+                    q1 = int(parts[0].split("[")[1].split("]")[0])
+                    q2 = int(parts[1].split("[")[1].split("]")[0])
+                    ops.append(("CZ", [], (q1, q2)))
 
-                elif line.startswith('u('):
-                    params_str = line.split('(')[1].split(')')[0]
+                elif line.startswith("u("):
+                    params_str = line.split("(")[1].split(")")[0]
                     params = []
-                    for p in params_str.split(','):
+                    for p in params_str.split(","):
                         params.append(float(eval(p, {"__builtins__": None}, safe_dict)))
 
-                    q_str = line.split(')')[1].strip()
-                    q = int(q_str.split('[')[1].split(']')[0])
+                    q_str = line.split(")")[1].strip()
+                    q = int(q_str.split("[")[1].split("]")[0])
                     # Quimb U3 matches QASM U3: U3(theta, phi, lam)
-                    ops.append(('U3', params, (q,)))
+                    ops.append(("U3", params, (q,)))
 
             logger.info(f"Parsed {len(ops)} operations.")
 
             # 2. Initialize MPS |00...0>
             # FLUME: This is the 'Vacuum State'
-            psi_mps = qtn.MPS_computational_state('0' * N)
+            psi_mps = qtn.MPS_computational_state("0" * N)
 
             # 3. Evolve (Encode into Manifold)
             # We apply gates one by one, keeping bond dim in check
@@ -184,14 +182,15 @@ class PeakedCircuitSolver:
             site_to_qubit = list(range(N))
             qubit_to_site = list(range(N))
 
+            # Resource limit to prevent crashes (40GB)
+            import resource
+
             import quimb.gates as qg
             from tqdm import tqdm
 
-            # Resource limit to prevent crashes (40GB)
-            import resource
             try:
                 rsrc = resource.RLIMIT_AS
-                soft, hard = resource.getrlimit(rsrc)
+                _soft, hard = resource.getrlimit(rsrc)
                 limit_bytes = 40 * 1024**3
                 resource.setrlimit(rsrc, (limit_bytes, hard))
                 logger.info("Memory Limit set to 40GB")
@@ -201,12 +200,12 @@ class PeakedCircuitSolver:
             count_swaps = 0
 
             for i, (name, params, qubits) in enumerate(tqdm(ops[:100], desc="Manifold Encoding")):
-                if name == 'CZ':
-                   G = qg.CZ
-                elif name == 'U3':
-                   G = qg.U3(*params)
+                if name == "CZ":
+                    G = qg.CZ
+                elif name == "U3":
+                    G = qg.U3(*params)
                 else:
-                   continue
+                    continue
 
                 # Identify target sites for the gate
                 target_sites = [qubit_to_site[q] for q in qubits]
@@ -221,17 +220,23 @@ class PeakedCircuitSolver:
                         # Determine direction
                         if s1 < s2:
                             # Swap s1 with s1+1
-                            swap_a, swap_b = s1, s1+1
+                            swap_a, swap_b = s1, s1 + 1
                             # Update indices for next iteration
                             s1 += 1
                         else:
                             # Swap s1 with s1-1
-                            swap_a, swap_b = s1-1, s1
+                            swap_a, swap_b = s1 - 1, s1
                             s1 -= 1
 
                         # EXECUTE SWAP on MPS
                         # Intermediate Fidelity: max_bond=128, cutoff=1e-5
-                        psi_mps.gate_split(qg.SWAP, (swap_a, swap_b), max_bond=max_bond, cutoff=cutoff, inplace=True)
+                        psi_mps.gate_split(
+                            qg.SWAP,
+                            (swap_a, swap_b),
+                            max_bond=max_bond,
+                            cutoff=cutoff,
+                            inplace=True,
+                        )
                         count_swaps += 1
 
                         # UPDATE MAPS
@@ -249,11 +254,7 @@ class PeakedCircuitSolver:
                     # Apply Gate to (potentially new) sites
                     # Single qubit gate? U3
                     if len(target_sites) == 1:
-                         psi_mps.gate_(
-                            G,
-                            tuple(target_sites),
-                            contract=True
-                         )
+                        psi_mps.gate_(G, tuple(target_sites), contract=True)
                     else:
                         # 2-qubit gate? CZ or Others
                         psi_mps.gate_split(
@@ -261,7 +262,7 @@ class PeakedCircuitSolver:
                             tuple(target_sites),
                             max_bond=max_bond,
                             cutoff=cutoff,
-                            inplace=True
+                            inplace=True,
                         )
                 except Exception as e:
                     logger.error(f"Gate application failed at step {i} (Gate {name}). Target sites: {target_sites}")
@@ -270,19 +271,22 @@ class PeakedCircuitSolver:
 
                 # Periodically normalize and check
                 if i % 50 == 0:
-                     psi_mps.normalize()
+                    psi_mps.normalize()
 
                 # DEBUG: Check bond dimension
                 if i % 100 == 0:
-                     logger.info(f"Gate {i}: Max Bond Dim = {psi_mps.max_bond()}. Norm = {psi_mps.norm():.2e}")
+                    logger.info(f"Gate {i}: Max Bond Dim = {psi_mps.max_bond()}. Norm = {psi_mps.norm():.2e}")
 
-            logger.info(f"Manifold Encoding Complete. Final Bond Dim: {psi_mps.max_bond()}. Total Swaps: {count_swaps}. Tensor Count: {len(psi_mps.tensors)}")
+            logger.info(
+                f"Manifold Encoding Complete. Final Bond Dim: {psi_mps.max_bond()}. Total Swaps: {count_swaps}. Tensor Count: {len(psi_mps.tensors)}"
+            )
 
             # CHECKPOINT: Save MPS to disk
             try:
                 import pickle
+
                 checkpoint_path = "peaked_mps_final.dill"
-                with open(checkpoint_path, 'wb') as f:
+                with open(checkpoint_path, "wb") as f:
                     pickle.dump(psi_mps, f)
                 logger.info(f"Saved checkpoint to {checkpoint_path}")
             except Exception as e:
@@ -299,18 +303,18 @@ class PeakedCircuitSolver:
             # We need to map site i -> qubit site_to_qubit[i]
 
             candidates = []
-            for sample_tuple in raw_samples: # sample returns (bits, prob) tuple
+            for sample_tuple in raw_samples:  # sample returns (bits, prob) tuple
                 bits = sample_tuple[0]
 
                 # Construct valid bitstring
                 # bits[j] corresponds to site j. site j holds qubit site_to_qubit[j]
 
-                ordered_bits = [''] * N
+                ordered_bits = [""] * N
                 for site_idx, bit in enumerate(bits):
                     q_idx = site_to_qubit[site_idx]
                     try:
                         val = int(bit)
-                    except:
+                    except Exception:
                         val = bit
                     ordered_bits[q_idx] = str(val)
 
@@ -322,7 +326,6 @@ class PeakedCircuitSolver:
         except Exception as e:
             logger.error(f"MPS Evolution failed: {e}")
             raise
-
 
         # Force realization
         bitstrings = list(bitstrings)
@@ -348,7 +351,8 @@ class PeakedCircuitSolver:
         if not self.circ:
             self.load_circuit()
 
-        return self.circ.amplitude(bitstring, optimize='auto-hq')
+        return self.circ.amplitude(bitstring, optimize="auto-hq")
+
 
 if __name__ == "__main__":
     # Test run

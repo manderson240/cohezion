@@ -19,8 +19,8 @@ from typing import Any
 
 import numpy as np
 
-from cohezion.flume.vae_encoder import get_encoder
 from cohezion.cache.text_encoder import get_text_encoder
+from cohezion.flume.vae_encoder import get_encoder
 
 
 logger = logging.getLogger(__name__)
@@ -194,9 +194,7 @@ class SemanticCache:
             # Hit rate in target range (5-40%)
             return self.similarity_threshold
 
-    async def get(
-        self, prompt: str, system: str | None = None, model: str | None = None
-    ) -> str | None:
+    async def get(self, prompt: str, system: str | None = None, model: str | None = None) -> str | None:
         """Lookup with 3-tier fallback.
 
         Checks L1 (exact), L2 (semantic), then L3 (vault).
@@ -352,9 +350,7 @@ class SemanticCache:
 
             # Run synchronous vault_search in default executor to avoid blocking
             loop = asyncio.get_event_loop()
-            results = await loop.run_in_executor(
-                None, self.mcp_client.vault_search, search_query
-            )
+            results = await loop.run_in_executor(None, self.mcp_client.vault_search, search_query)
 
             if not results:
                 return None
@@ -368,9 +364,7 @@ class SemanticCache:
                     path = first_result.get("path", "")
                     if path:
                         try:
-                            content = await loop.run_in_executor(
-                                None, self.mcp_client.vault_read, path
-                            )
+                            content = await loop.run_in_executor(None, self.mcp_client.vault_read, path)
                             # Parse as JSON cache entry
                             cache_data = json.loads(content)
                             response = cache_data.get("response", "")
@@ -438,11 +432,7 @@ class SemanticCache:
             Dict with hit rates by tier and counts
         """
         total = self.hits_l1 + self.hits_l2 + self.hits_l3 + self.misses
-        hit_rate = (
-            (self.hits_l1 + self.hits_l2 + self.hits_l3) / total * 100
-            if total > 0
-            else 0.0
-        )
+        hit_rate = (self.hits_l1 + self.hits_l2 + self.hits_l3) / total * 100 if total > 0 else 0.0
 
         return {
             "l1_hits": self.hits_l1,

@@ -2,13 +2,15 @@
 Tests for JourneyLogger - Journey persistence with FLUME trajectories.
 """
 
-import pytest
 from datetime import datetime
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import numpy as np
+import pytest
+
 from cohezion.platform.journey_logger import (
-    JourneyLogger,
     Journey,
+    JourneyLogger,
     get_journey_logger,
     reset_journey_logger,
 )
@@ -110,13 +112,9 @@ class TestJourneyLogger:
         assert journey_logger.coherence_tracker is not None
 
     @pytest.mark.asyncio
-    async def test_start_journey(
-        self, journey_logger, mock_surreal_client, mock_vae_encoder
-    ):
+    async def test_start_journey(self, journey_logger, mock_surreal_client, mock_vae_encoder):
         """Test starting a journey."""
-        journey_id = await journey_logger.start_journey(
-            journey_type="implementation", context="Building new feature"
-        )
+        journey_id = await journey_logger.start_journey(journey_type="implementation", context="Building new feature")
 
         assert isinstance(journey_id, str)
         assert len(journey_id) > 0
@@ -163,9 +161,7 @@ class TestJourneyLogger:
         assert call_args[0][1]["journey_id"] == "test-123"
 
     @pytest.mark.asyncio
-    async def test_complete_journey(
-        self, journey_logger, mock_surreal_client, mock_vae_encoder
-    ):
+    async def test_complete_journey(self, journey_logger, mock_surreal_client, mock_vae_encoder):
         """Test completing a journey."""
         # Mock the SELECT query to return journey data
         mock_surreal_client.query.side_effect = [
@@ -179,12 +175,8 @@ class TestJourneyLogger:
                     "coherence_at_end": 0.6,
                     "hiho_stable": True,
                     "flume_state_end": [0.1] * 256,
-                    "decisions_made": [
-                        {"decision": "Decision 1", "rationale": "Rationale 1"}
-                    ],
-                    "learnings_extracted": [
-                        {"learning": "Learning 1", "pattern_type": "pattern"}
-                    ],
+                    "decisions_made": [{"decision": "Decision 1", "rationale": "Rationale 1"}],
+                    "learnings_extracted": [{"learning": "Learning 1", "pattern_type": "pattern"}],
                     "outcome": "Success",
                     "metadata": {},
                 }
@@ -241,9 +233,7 @@ class TestJourneyLogger:
         assert call_args[0][1]["limit"] == 10
 
     @pytest.mark.asyncio
-    async def test_get_recent_journeys_filtered(
-        self, journey_logger, mock_surreal_client
-    ):
+    async def test_get_recent_journeys_filtered(self, journey_logger, mock_surreal_client):
         """Test getting recent journeys (filtered by type)."""
         mock_surreal_client.query.return_value = [
             {
@@ -261,9 +251,7 @@ class TestJourneyLogger:
             }
         ]
 
-        journeys = await journey_logger.get_recent_journeys(
-            journey_type="implementation", limit=5
-        )
+        journeys = await journey_logger.get_recent_journeys(journey_type="implementation", limit=5)
 
         assert len(journeys) == 1
 
@@ -275,9 +263,7 @@ class TestJourneyLogger:
         assert call_args[0][1]["limit"] == 5
 
     @pytest.mark.asyncio
-    async def test_numpy_array_conversion(
-        self, journey_logger, mock_surreal_client, mock_vae_encoder
-    ):
+    async def test_numpy_array_conversion(self, journey_logger, mock_surreal_client, mock_vae_encoder):
         """Test that numpy arrays are converted to lists for JSON serialization."""
         # VAE returns numpy array
         mock_vae_encoder.encode.return_value = np.array([0.1] * 256)

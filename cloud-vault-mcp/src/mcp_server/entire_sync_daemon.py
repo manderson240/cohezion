@@ -6,9 +6,10 @@ import sqlite3
 import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from mcp_server.entire_ops import CommitData, EntireOps, ParsingError
+
 
 logger = logging.getLogger(__name__)
 
@@ -74,9 +75,7 @@ class WorkQueue:
         # Instead, we track processed commits and everything not processed is pending
         conn = sqlite3.connect(self.db_path)
         try:
-            cursor = conn.execute(
-                "SELECT COUNT(*) FROM processed_commits WHERE status = 'completed'"
-            )
+            cursor = conn.execute("SELECT COUNT(*) FROM processed_commits WHERE status = 'completed'")
             count = cursor.fetchone()[0]
             return count
         finally:
@@ -137,7 +136,7 @@ class DeadLetterQueue:
         finally:
             conn.close()
 
-    def get_all(self) -> List[Dict[str, Any]]:
+    def get_all(self) -> list[dict[str, Any]]:
         """Get all dead letter queue entries."""
         conn = sqlite3.connect(self.db_path)
         try:
@@ -176,9 +175,7 @@ class DeadLetterQueue:
         """Remove a commit from DLQ for retry."""
         conn = sqlite3.connect(self.db_path)
         try:
-            conn.execute(
-                "DELETE FROM dead_letter_queue WHERE commit_hash = ?", (commit_hash,)
-            )
+            conn.execute("DELETE FROM dead_letter_queue WHERE commit_hash = ?", (commit_hash,))
             conn.commit()
         finally:
             conn.close()
@@ -191,8 +188,8 @@ class EntireSyncDaemon:
         self,
         vault_path: str,
         poll_interval_seconds: int = 300,
-        git_path: Optional[str] = None,
-        surrealdb_url: Optional[str] = None,
+        git_path: str | None = None,
+        surrealdb_url: str | None = None,
     ):
         """Initialize daemon.
 
@@ -211,7 +208,7 @@ class EntireSyncDaemon:
         self.work_queue = WorkQueue(str(self.vault_path / ".entire" / "queue.db"))
         self.dlq = DeadLetterQueue(str(self.vault_path / ".entire" / "dlq.db"))
 
-        self.last_sync_time: Optional[datetime] = None
+        self.last_sync_time: datetime | None = None
         self._agent_context_ops = None
 
         if surrealdb_url:
@@ -221,6 +218,7 @@ class EntireSyncDaemon:
         """Initialize SurrealDB connection. Graceful fallback on failure."""
         try:
             from mcp_server.agent_context_ops import AgentContextOps
+
             self._agent_context_ops = AgentContextOps(
                 surrealdb_url=self.surrealdb_url,
             )
@@ -229,7 +227,7 @@ class EntireSyncDaemon:
             logger.warning(f"SurrealDB unavailable, continuing without it: {e}")
             self._agent_context_ops = None
 
-    async def start(self, since: Optional[str] = None) -> None:
+    async def start(self, since: str | None = None) -> None:
         """Start the daemon polling loop.
 
         Args:
@@ -240,9 +238,7 @@ class EntireSyncDaemon:
             self.last_sync_time = datetime.fromisoformat(since)
             logger.info(f"Starting with backfill from: {since}")
 
-        logger.info(
-            f"Starting Entire.io sync daemon (poll interval: {self.poll_interval}s)"
-        )
+        logger.info(f"Starting Entire.io sync daemon (poll interval: {self.poll_interval}s)")
         while True:
             try:
                 await self.poll_and_sync()
@@ -254,7 +250,7 @@ class EntireSyncDaemon:
                 logger.error(f"Polling error: {e}", exc_info=True)
                 await asyncio.sleep(30)  # Backoff on error
 
-    async def backfill(self, since: Optional[str] = None) -> Dict[str, Any]:
+    async def backfill(self, since: str | None = None) -> dict[str, Any]:
         """Run a one-time backfill of historical commits.
 
         Args:
@@ -273,8 +269,13 @@ class EntireSyncDaemon:
         commits = await self._get_new_commits()
         entire_commits = [c for c in commits if self._is_entire_commit(c)]
 
-        results = {"total": len(commits), "entire_commits": len(entire_commits),
-                    "processed": 0, "skipped": 0, "failed": 0}
+        results = {
+            "total": len(commits),
+            "entire_commits": len(entire_commits),
+            "processed": 0,
+            "skipped": 0,
+            "failed": 0,
+        }
 
         for commit in entire_commits:
             commit_hash = commit["hash"]
@@ -322,7 +323,7 @@ class EntireSyncDaemon:
         except Exception as e:
             logger.error(f"Error in poll_and_sync: {e}", exc_info=True)
 
-    async def _get_new_commits(self) -> List[Dict[str, str]]:
+    async def _get_new_commits(self) -> list[dict[str, str]]:
         """Get new commits from git log.
 
         Returns:
@@ -378,7 +379,7 @@ class EntireSyncDaemon:
             logger.error(f"Failed to get commits: {e}")
             return []
 
-    def _is_entire_commit(self, commit: Dict[str, str]) -> bool:
+    def _is_entire_commit(self, commit: dict[str, str]) -> bool:
         """Check if commit is from entire.io (has markers in body)."""
         body = commit.get("body", "").lower()
         # Look for entire.io markers
@@ -390,7 +391,7 @@ class EntireSyncDaemon:
         ]
         return any(marker in body for marker in markers)
 
-    async def _process_commit(self, commit: Dict[str, str]) -> None:
+    async def _process_commit(self, commit: dict[str, str]) -> None:
         """Process a single entire.io commit.
 
         Args:
@@ -466,16 +467,10 @@ class EntireSyncDaemon:
                 metrics=commit_data.metrics or {},
             )
 
-            logger.info(
-                f"Synced commit {commit_data.commit_hash[:8]} to SurrealDB "
-                f"(session={session_id})"
-            )
+            logger.info(f"Synced commit {commit_data.commit_hash[:8]} to SurrealDB (session={session_id})")
 
         except Exception as e:
-            logger.warning(
-                f"SurrealDB sync failed for {commit_data.commit_hash[:8]}, "
-                f"continuing without it: {e}"
-            )
+            logger.warning(f"SurrealDB sync failed for {commit_data.commit_hash[:8]}, continuing without it: {e}")
 
     async def _create_vault_note(self, commit_data: CommitData) -> None:
         """Create a vault note for a commit.
@@ -511,19 +506,23 @@ class EntireSyncDaemon:
         date_str = commit_data.timestamp.date().isoformat()
         time_str = commit_data.timestamp.time().isoformat()
 
-        outcomes_text = "\n".join(
-            f"- {outcome}" for outcome in commit_data.outcomes
-        ) if commit_data.outcomes else "No outcomes recorded"
+        outcomes_text = (
+            "\n".join(f"- {outcome}" for outcome in commit_data.outcomes)
+            if commit_data.outcomes
+            else "No outcomes recorded"
+        )
 
         metrics_text = ""
         if commit_data.metrics:
             for key, value in sorted(commit_data.metrics.items()):
                 if key.endswith("_coverage"):
-                    metrics_text += f"- {key.replace('_coverage', '').title()}: {value*100:.1f}%\n"
+                    metrics_text += f"- {key.replace('_coverage', '').title()}: {value * 100:.1f}%\n"
 
-        next_actions_text = "\n".join(
-            f"- {action}" for action in commit_data.next_actions
-        ) if commit_data.next_actions else "No next actions recorded"
+        next_actions_text = (
+            "\n".join(f"- {action}" for action in commit_data.next_actions)
+            if commit_data.next_actions
+            else "No next actions recorded"
+        )
 
         return f"""---
 title: "Checkpoint - {date_str}"
@@ -561,7 +560,7 @@ tags: [checkpoint, entire-io, {commit_data.agent_id}]
 *Synced from entire.io checkpoint: {commit_data.commit_hash}*
 """
 
-    async def get_status(self) -> Dict[str, Any]:
+    async def get_status(self) -> dict[str, Any]:
         """Get current daemon status."""
         return {
             "status": "running",

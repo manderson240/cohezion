@@ -8,9 +8,10 @@ Profiles are hardware-validated against the Strix Halo's 128GB unified memory po
 from __future__ import annotations
 
 import logging
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field, model_validator
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,7 @@ logger = logging.getLogger(__name__)
 MAX_SYSTEM_MEMORY_MB = 120 * 1024  # 120 GB
 
 
-class SandboxTier(str, Enum):
+class SandboxTier(StrEnum):
     """Predefined simulation resource tiers."""
 
     LIGHT = "light"

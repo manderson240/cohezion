@@ -2,6 +2,7 @@ from pathlib import Path
 
 import requests
 
+
 # Configuration
 OLLAMA_URL = "http://localhost:11434/api/generate"
 MODEL = "qwen3-coder:30b"
@@ -23,9 +24,7 @@ def scout_dashboard():
     """
 
     try:
-        response = requests.post(
-            OLLAMA_URL, json={"model": MODEL, "prompt": prompt, "stream": False}
-        )
+        response = requests.post(OLLAMA_URL, json={"model": MODEL, "prompt": prompt, "stream": False})
         print("\n=== SCOUT REPORT ===\n")
         print(response.json()["response"])
     except Exception as e:

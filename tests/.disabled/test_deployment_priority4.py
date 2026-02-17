@@ -7,15 +7,10 @@ Covers:
 - A/B testing support
 """
 
-import pytest
 from datetime import datetime
 
-from cohezion.deployment.feature_flags import (
-    FeatureFlag,
-    FeatureFlagContext,
-    FeatureFlagManager,
-    RolloutStage,
-)
+import pytest
+
 from cohezion.deployment.deployment_config import (
     DeploymentConfig,
     DeploymentMetrics,
@@ -26,7 +21,12 @@ from cohezion.deployment.deployment_config import (
 )
 from cohezion.deployment.deployment_orchestrator import (
     DeploymentOrchestrator,
-    RolloutPlan,
+)
+from cohezion.deployment.feature_flags import (
+    FeatureFlag,
+    FeatureFlagContext,
+    FeatureFlagManager,
+    RolloutStage,
 )
 
 
@@ -97,7 +97,7 @@ class TestFeatureFlagManager:
         config.rollout_percentage = 50.0  # 50% rollout
 
         context1 = FeatureFlagContext(session_id="session123")
-        context2 = FeatureFlagContext(session_id="session456")
+        FeatureFlagContext(session_id="session456")
 
         # Results should be consistent for same session
         result1a = manager.is_enabled(FeatureFlag.HIERARCHICAL_VAULT_SEARCH, context1)
@@ -288,7 +288,7 @@ class TestDeploymentOrchestrator:
 
     def test_orchestrator_initialization(self, setup):
         """Test orchestrator initializes."""
-        orchestrator, config, manager = setup
+        orchestrator, _config, _manager = setup
 
         assert orchestrator.environment == Environment.CANARY
         assert orchestrator.rollout_progress is None

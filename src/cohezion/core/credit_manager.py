@@ -7,6 +7,7 @@ Premium models cost more credits; agents earn credits from NodeVerification yiel
 
 import logging
 
+
 logger = logging.getLogger(__name__)
 
 # Model Cost Table (Credits per call)
@@ -52,9 +53,7 @@ class CreditManager:
 
         if balance >= amount:
             self._balances[agent_id] = balance - amount
-            logger.debug(
-                f"Agent {agent_id}: Deducted {amount} credits. New balance: {self._balances[agent_id]}"
-            )
+            logger.debug(f"Agent {agent_id}: Deducted {amount} credits. New balance: {self._balances[agent_id]}")
             return True
 
         logger.warning(f"Agent {agent_id}: Insufficient credits ({balance} < {amount})")
@@ -64,9 +63,7 @@ class CreditManager:
         """Add credits to an agent's balance."""
         balance = self.get_balance(agent_id)
         self._balances[agent_id] = balance + amount
-        logger.info(
-            f"Agent {agent_id}: Credited {amount}. New balance: {self._balances[agent_id]}"
-        )
+        logger.info(f"Agent {agent_id}: Credited {amount}. New balance: {self._balances[agent_id]}")
 
     def can_afford(self, agent_id: str, model: str) -> bool:
         """Check if agent can afford the specified model."""
@@ -96,15 +93,11 @@ class CreditManager:
             "qwen3-coder:32b",
             "deepseek-r1:70b",
         ]
-        affordable_locals = [
-            m for m in local_models if m in MODEL_COSTS and balance >= MODEL_COSTS[m]
-        ]
+        affordable_locals = [m for m in local_models if m in MODEL_COSTS and balance >= MODEL_COSTS[m]]
 
         if affordable_locals:
             # Sort by cost descending (best affordable local)
-            sorted_locals = sorted(
-                affordable_locals, key=lambda x: MODEL_COSTS[x], reverse=True
-            )
+            sorted_locals = sorted(affordable_locals, key=lambda x: MODEL_COSTS[x], reverse=True)
             return sorted_locals[0]
 
         return FALLBACK_MODEL

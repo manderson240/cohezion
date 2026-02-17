@@ -3,11 +3,10 @@
 Tests how cost_threshold and latency_threshold parameters affect routing behavior.
 """
 
-import pytest
+from cohezion.cost_optimization.cost_tracker import SessionCostTracker
 from cohezion.swarm.cost_aware_router import (
     CostAwareRouter,
 )
-from cohezion.cost_optimization.cost_tracker import SessionCostTracker
 
 
 class TestCostThresholdTuning:
@@ -65,7 +64,7 @@ class TestCostThresholdTuning:
 
         query = "Write a Python function to process data"
 
-        for router, threshold in zip(routers, thresholds):
+        for router, _threshold in zip(routers, thresholds, strict=False):
             decision, _ = router.select_model(query)
             assert decision.model in ["phi3:mini", "qwen3-coder:32b"]
 
@@ -117,7 +116,7 @@ class TestLatencyThresholdTuning:
 
         query = "Design a distributed system"
 
-        for router, threshold in zip(routers, thresholds):
+        for router, _threshold in zip(routers, thresholds, strict=False):
             decision, _ = router.select_model(query)
             assert decision.model in ["deepseek-r1:8b", "qwen3-coder:32b", "phi3:mini"]
 

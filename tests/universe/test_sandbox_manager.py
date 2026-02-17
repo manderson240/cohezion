@@ -79,9 +79,7 @@ class TestSandboxManagerExecution:
             "cohezion.universe.sandbox_manager.SandboxManager._wait_for_backpressure",
             new_callable=AsyncMock,
         ):
-            result = await manager.run_simulation(
-                "print('hello')", tier=SandboxTier.LIGHT
-            )
+            result = await manager.run_simulation("print('hello')", tier=SandboxTier.LIGHT)
         assert result.success
         assert result.stdout == "ok"
 
@@ -178,8 +176,6 @@ class TestSandboxManagerIntegration:
             "cohezion.universe.sandbox_manager.SandboxManager._wait_for_backpressure",
             new_callable=AsyncMock,
         ):
-            result = await manager.run_simulation(
-                "print('integration test')", tier=SandboxTier.LIGHT
-            )
+            result = await manager.run_simulation("print('integration test')", tier=SandboxTier.LIGHT)
         assert result.success
         assert "integration test" in result.stdout

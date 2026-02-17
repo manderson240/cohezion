@@ -8,7 +8,6 @@ Tests cover:
 - Error handling and edge cases
 """
 
-import json
 import tempfile
 from pathlib import Path
 
@@ -141,6 +140,7 @@ class TestLRUPersistentTokenCacheMemoryBounding:
     def test_lru_evicts_oldest(self):
         """Test that LRU eviction works and keeps cache bounded."""
         import tempfile
+
         with tempfile.TemporaryDirectory() as tmpdir:
             # Use persistence to trigger eviction properly
             cache = LRUPersistentTokenCache(
@@ -255,7 +255,7 @@ class TestLRUPersistentTokenCachePersistence:
         cache["test"] = entry
 
         # Check that no JSONL file was created
-        jsonl_files = list(temp_cache_dir.glob("*.jsonl"))
+        list(temp_cache_dir.glob("*.jsonl"))
         # With persistence_enabled=False, still creates cache but doesn't persist
         # Just verify the cache works
 
@@ -337,7 +337,7 @@ class TestLRUPersistentTokenCacheClear:
             bounded_cache[f"key{i}"] = entry
 
         # Verify some evictions occurred
-        eviction_stats_before = bounded_cache.get_eviction_stats()
+        bounded_cache.get_eviction_stats()
 
         # Clear cache
         bounded_cache.clear()
@@ -380,9 +380,7 @@ class TestLRUPersistentTokenCacheEdgeCases:
 
     def test_large_token_values(self, bounded_cache):
         """Test handling large token counts."""
-        entry = CacheEntry(
-            key="large", value="response", tokens_used=999999999
-        )
+        entry = CacheEntry(key="large", value="response", tokens_used=999999999)
         bounded_cache["large"] = entry
 
         assert bounded_cache["large"].tokens_used == 999999999
@@ -397,9 +395,7 @@ class TestLRUPersistentTokenCacheEdgeCases:
 
     def test_unicode_in_values(self, bounded_cache):
         """Test handling unicode characters."""
-        entry = CacheEntry(
-            key="unicode", value="🚀 Rocket response éàü", tokens_used=100
-        )
+        entry = CacheEntry(key="unicode", value="🚀 Rocket response éàü", tokens_used=100)
         bounded_cache["unicode"] = entry
 
         assert bounded_cache["unicode"].value == "🚀 Rocket response éàü"
@@ -467,7 +463,7 @@ class TestLRUPersistentTokenCacheIntegration:
         ] * 35
 
         tokens_saved = 0
-        for i, prompt in enumerate(prompts):
+        for _i, prompt in enumerate(prompts):
             key = f"prompt_{hash(prompt) % 3}"  # 3 unique keys with repetition
 
             if key in cache:

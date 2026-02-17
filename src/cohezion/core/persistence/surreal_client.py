@@ -10,7 +10,6 @@ Supports:
 
 import asyncio
 import base64
-import json
 import logging
 import re
 import time
@@ -23,6 +22,7 @@ import httpx
 import numpy as np
 
 from cohezion.reliability import get_circuit
+
 
 logger = logging.getLogger(__name__)
 
@@ -263,9 +263,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
         """
         breaker = get_circuit("surrealdb", failure_threshold=5)
         if not breaker.allow_request():
-            logger.warning(
-                "🛑 Circuit Open: SurrealDB connection rejected. Using fallback."
-            )
+            logger.warning("🛑 Circuit Open: SurrealDB connection rejected. Using fallback.")
             self._use_fallback()
             return True
 
@@ -275,9 +273,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             try:
                 from surrealdb import AsyncSurreal
             except ImportError:
-                logger.warning(
-                    "surrealdb package not installed. Using in-memory fallback."
-                )
+                logger.warning("surrealdb package not installed. Using in-memory fallback.")
                 self._connected = True
                 if _SHARED_STORE is None:
                     _SHARED_STORE = InMemoryStore()
@@ -289,22 +285,20 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
             self._client = AsyncSurreal(self.url)
             await self._client.connect()
-            await self._client.signin({
-                "username": _os.environ.get("SURREAL_USER", "root"),
-                "password": _os.environ.get("SURREAL_PASSWORD", "root"),
-            })
+            await self._client.signin(
+                {
+                    "username": _os.environ.get("SURREAL_USER", "root"),
+                    "password": _os.environ.get("SURREAL_PASSWORD", "root"),
+                }
+            )
             await self._client.use(self.namespace, self.database)
             self._connected = True
             breaker.record_success()
-            logger.info(
-                f"✅ REAL CLIENT: Connected to SurrealDB at {self.url} ({self.namespace}/{self.database})"
-            )
+            logger.info(f"✅ REAL CLIENT: Connected to SurrealDB at {self.url} ({self.namespace}/{self.database})")
             return True
         except Exception as e:
             breaker.record_failure()
-            logger.error(
-                f"❌ Failed to connect to SurrealDB: {e}. Falling back to InMemoryStore."
-            )
+            logger.error(f"❌ Failed to connect to SurrealDB: {e}. Falling back to InMemoryStore.")
             self._use_fallback()
             return True
 
@@ -351,9 +345,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
             if isinstance(self._client, InMemoryStore):
                 self._client.store(node.id, data)
-                logger.debug(
-                    "Stored node %s. Compressed: %s", node.id, data.get("compressed")
-                )
+                logger.debug("Stored node %s. Compressed: %s", node.id, data.get("compressed"))
             else:
                 await self._client.create(f"universe_nodes:{node.id}", data)
 
@@ -374,9 +366,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 # If 'id' is provided in data, use it. Otherwise, generate one.
                 record_id = data.get("id") or f"{table}_{int(time.time() * 1000)}"
                 self._client.store(record_id, data)
-                return [
-                    {"id": f"{table}:{record_id}", "data": data}
-                ]  # Simulate SurrealDB response
+                return [{"id": f"{table}:{record_id}", "data": data}]  # Simulate SurrealDB response
             else:
                 return await self._client.create(table, data)
         except Exception as e:
@@ -396,11 +386,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                     data = vars.get("data") if vars else vars
                     if data:
                         # Extract the bare ID from table:id if present
-                        bare_id = (
-                            data["id"].split(":")[-1]
-                            if ":" in data["id"]
-                            else data["id"]
-                        )
+                        bare_id = data["id"].split(":")[-1] if ":" in data["id"] else data["id"]
                         self._client.store(bare_id, data)
                     return [data]
                 if "CREATE agent_thought" in sql:
@@ -429,12 +415,11 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
                     return [{"result": [mission] if mission else [], "status": "OK"}]
                 if "FROM agent_thought" in sql:
-                    # Handle queries like: SELECT content, metadata.query_hash as qh, metadata.agent as agent FROM agent_thought ORDER BY timestamp DESC LIMIT 100
+                    # Handle queries like:
+                    # SELECT content, metadata.query_hash as qh, ... FROM agent_thought ...
                     all_nodes = self._client.get_all(1000)
                     # Filter for agent_thought type
-                    matches = [
-                        n for n in all_nodes if n.get("node_type") == "agent_thought"
-                    ]
+                    matches = [n for n in all_nodes if n.get("node_type") == "agent_thought"]
 
                     # Handle specific projections if using alias (e.g., metadata.query_hash as qh)
                     if "qh" in sql or "metadata.query_hash" in sql:
@@ -466,20 +451,15 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                                 continue
 
                             # Physics check (Mocking the SQL logic: physics_state.dim_12_coherence > 0.9)
-                            # We just return them if they are snapshots, assuming the caller filters or we mock the success
+                            # We just return them if they are snapshots,
+                            # assuming the caller filters or we mock success
                             # But let's try to be a bit specific if possible
                             ps = item.get("physics_state", {})
 
                             # Check conditions roughly
-                            if (
-                                "coherence > 0.9" in sql
-                                and ps.get("dim_12_coherence", 0) <= 0.9
-                            ):
+                            if "coherence > 0.9" in sql and ps.get("dim_12_coherence", 0) <= 0.9:
                                 continue
-                            if (
-                                "stability > 0.9" in sql
-                                and ps.get("dim_10_stability", 0) <= 0.9
-                            ):
+                            if "stability > 0.9" in sql and ps.get("dim_10_stability", 0) <= 0.9:
                                 continue
 
                             results.append(item)
@@ -498,19 +478,11 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
                             if var_name in vars:
                                 target_value = vars[var_name]
-                                all_items = self._client.get_all(
-                                    1000
-                                )  # Assuming all items are nodes for now
+                                all_items = self._client.get_all(1000)  # Assuming all items are nodes for now
 
                                 # Filter based on the field and value
-                                filtered_items = [
-                                    item
-                                    for item in all_items
-                                    if item.get(field) == target_value
-                                ]
-                                return [
-                                    filtered_items
-                                ]  # SurrealDB returns a list of results, each a list of records
+                                filtered_items = [item for item in all_items if item.get(field) == target_value]
+                                return [filtered_items]  # SurrealDB returns a list of results, each a list of records
 
                 logger.warning("Query not supported in InMemoryStore")
                 return []
@@ -573,9 +545,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 ORDER BY score DESC
                 LIMIT $limit
                 """
-                results = await self._client.query(
-                    query, {"vector": vector, "limit": safe_limit}
-                )
+                results = await self._client.query(query, {"vector": vector, "limit": safe_limit})
                 results = results[0].get("result", []) if results else []
 
             return [self._dict_to_node(r) for r in results]
@@ -791,9 +761,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             embedding=data.get("embedding"),
             physics_state=physics_state,
             node_type=data.get("node_type", "document"),
-            created_at=datetime.fromisoformat(data["created_at"])
-            if "created_at" in data
-            else datetime.now(),
+            created_at=datetime.fromisoformat(data["created_at"]) if "created_at" in data else datetime.now(),
             metadata=data.get("metadata", {}),
             compressed=compressed,
         )
@@ -858,9 +826,7 @@ class InMemoryStore:
             if embedding:
                 doc_vec = np.array(embedding)
                 # Cosine similarity
-                similarity = np.dot(query_vec, doc_vec) / (
-                    np.linalg.norm(query_vec) * np.linalg.norm(doc_vec) + 1e-8
-                )
+                similarity = np.dot(query_vec, doc_vec) / (np.linalg.norm(query_vec) * np.linalg.norm(doc_vec) + 1e-8)
                 scores.append((similarity, data))
 
         scores.sort(reverse=True, key=lambda x: x[0])
@@ -907,14 +873,13 @@ async def main() -> None:
         if retrieved:
             print(f"Retrieved node: {retrieved.id}")
             print(f"Content: {retrieved.content[:50]}...")
-            print(
-                f"Physics: x={retrieved.physics_state.x}, physics={retrieved.physics_state.physics}"
-            )
+            print(f"Physics: x={retrieved.physics_state.x}, physics={retrieved.physics_state.physics}")
 
     await client.close()
 
 
 _surreal_client_instance: SurrealClient | None = None
+
 
 def get_surreal_client() -> SurrealClient:
     """Get the singleton SurrealClient instance."""
@@ -922,6 +887,7 @@ def get_surreal_client() -> SurrealClient:
     if _surreal_client_instance is None:
         _surreal_client_instance = SurrealClient()
     return _surreal_client_instance
+
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -1,6 +1,20 @@
 import logging
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 import httpx
+
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+
+@runtime_checkable
+class HardwareProfile(Protocol):
+    """Protocol for hardware profile objects from the adaptive framework."""
+
+    tier: str
+    capabilities: "Sequence[str]"
+
 
 logger = logging.getLogger(__name__)
 
@@ -72,9 +86,7 @@ class LocalExpertRouter:
             "fallback_threshold": 20,  # GB threshold for legacy models
         }
 
-    async def route_task(
-        self, task_type: str, prompt: str, context: dict | None = None
-    ) -> str:
+    async def route_task(self, task_type: str, prompt: str, context: dict | None = None) -> str:
         """
         Elite compound engineering routing with MoE optimization and memory awareness.
         Implements intelligent model selection and dynamic context scaling for optimal performance.
@@ -93,16 +105,10 @@ class LocalExpertRouter:
             optimizer = get_adaptive_optimizer()
             hardware_profile = optimizer.get_current_profile()
             if hardware_profile:
-                logger.info(
-                    f"🧠 Using adaptive framework for {hardware_profile.tier} tier hardware"
-                )
-                model = self._select_optimal_model_adaptive(
-                    task_type, available_memory, hardware_profile
-                )
+                logger.info(f"🧠 Using adaptive framework for {hardware_profile.tier} tier hardware")
+                model = self._select_optimal_model_adaptive(task_type, available_memory, hardware_profile)
             else:
-                model = self._select_optimal_model(
-                    task_type, available_memory, dilation
-                )
+                model = self._select_optimal_model(task_type, available_memory, dilation)
         else:
             model = self._select_optimal_model(task_type, available_memory, dilation)
 
@@ -123,30 +129,22 @@ class LocalExpertRouter:
         if dilation < 1.0:
             original_ctx = final_ctx
             final_ctx = int(final_ctx * dilation)
-            logger.warning(
-                f"📉 Memory Dilation Active ({dilation:.2f}): Scaling context {original_ctx} -> {final_ctx}"
-            )
+            logger.warning(f"📉 Memory Dilation Active ({dilation:.2f}): Scaling context {original_ctx} -> {final_ctx}")
 
         # 5. Elite MoE Optimization for Qwen3-Coder-Next
         if "qwen3-coder-next" in model:
             final_ctx = max(final_ctx, 65536)  # Minimum context for MoE efficiency
-            logger.info(
-                f"🧠 MoE Optimization: {model} using only 3B active params (3.75% of 80B total)"
-            )
+            logger.info(f"🧠 MoE Optimization: {model} using only 3B active params (3.75% of 80B total)")
 
         # 6. OCR Optimization for GLM-OCR
         if "glm-ocr" in model:
             final_ctx = min(final_ctx, 128000)  # Native context limit
-            logger.info(
-                f"👁️ OCR Optimization: {model} with 94.62% OmniDocBench accuracy"
-            )
+            logger.info(f"👁️ OCR Optimization: {model} with 94.62% OmniDocBench accuracy")
 
         # Minimum safety floor
         final_ctx = max(final_ctx, 4096)
 
-        logger.info(
-            f"🚀 [ELITE COHEZION] Routing {task_type} → {model} (ctx: {final_ctx}, mem: {available_memory}GB)"
-        )
+        logger.info(f"🚀 [ELITE COHEZION] Routing {task_type} → {model} (ctx: {final_ctx}, mem: {available_memory}GB)")
 
         # 7. Build optimized options for v0.15.5-rc2
         options = {
@@ -175,21 +173,17 @@ class LocalExpertRouter:
                 "stream": False,
                 "options": options,
             }
-            if "system" in context and context["system"]:
+            if context.get("system"):
                 payload["system"] = context["system"]
 
-            response = await self.client.post(
-                f"{self.ollama_url}/api/generate", json=payload
-            )
+            response = await self.client.post(f"{self.ollama_url}/api/generate", json=payload)
             response.raise_for_status()
 
             result = response.json()
             response_text = result.get("response", "")
 
             # 8. Performance logging for compound engineering
-            await self._log_performance_metrics(
-                task_type, model, final_ctx, available_memory
-            )
+            await self._log_performance_metrics(task_type, model, final_ctx, available_memory)
 
             return response_text
         except Exception as e:
@@ -207,17 +201,13 @@ class LocalExpertRouter:
         except ImportError:
             return 125.0  # Default from system analysis
 
-    def _select_optimal_model(
-        self, task_type: str, available_memory: float, dilation: float = 1.0
-    ) -> str:
+    def _select_optimal_model(self, task_type: str, available_memory: float, dilation: float = 1.0) -> str:
         """Select optimal model based on task type, memory, and VRAM pressure (dilation)"""
         primary_model = self.role_map.get(task_type, self.default_model)
 
         # Severe VRAM Pressure: Trigger mandatory downscaling to 8B/Mini models
         if dilation < 0.5:
-            logger.warning(
-                f"📉 SEVERE VRAM PRESSURE ({dilation:.2f}): Downscaling {task_type} tasks."
-            )
+            logger.warning(f"📉 SEVERE VRAM PRESSURE ({dilation:.2f}): Downscaling {task_type} tasks.")
             if task_type in ["reasoning", "routing"]:
                 return "deepseek-r1:7b"  # Chain-of-thought but lighter than 256k models
             elif task_type == "coding":
@@ -226,30 +216,21 @@ class LocalExpertRouter:
                 return "phi3:mini"
 
         # Elite models available (Only if no dilation pressure)
-        if (
-            available_memory >= self.memory_thresholds["elite_threshold"]
-            and dilation >= 0.8
-        ):
+        if available_memory >= self.memory_thresholds["elite_threshold"] and dilation >= 0.8:
             if task_type == "coding":
                 return self.role_map["elite-coding"]
             elif task_type == "vision":
                 return self.role_map["ocr-vision"]
 
         # Agentic models available
-        elif (
-            available_memory >= self.memory_thresholds["agentic_threshold"]
-            and dilation >= 0.7
-        ):
+        elif available_memory >= self.memory_thresholds["agentic_threshold"] and dilation >= 0.7:
             if task_type == "coding":
                 return self.role_map["agentic-coding"]
             elif task_type == "vision":
                 return self.role_map["ocr-vision"]
 
         # Fallback for memory constraints OR moderate pressure
-        elif (
-            available_memory < self.memory_thresholds["fallback_threshold"]
-            or dilation < 0.8
-        ):
+        elif available_memory < self.memory_thresholds["fallback_threshold"] or dilation < 0.8:
             if task_type == "vision":
                 return self.role_map["legacy-vision"]
             elif task_type in ["coding", "elite-coding", "agentic-coding"]:
@@ -308,9 +289,7 @@ class LocalExpertRouter:
                 return self.role_map.get("light-reasoning", "phi3:mini")
             return self.role_map.get("light-coding", "phi3:mini")
 
-    async def _log_performance_metrics(
-        self, task_type: str, model: str, context: int, memory: float
-    ):
+    async def _log_performance_metrics(self, task_type: str, model: str, context: int, memory: float):
         """Log performance metrics for compound engineering optimization"""
         metrics = {
             "task_type": task_type,
@@ -333,9 +312,7 @@ class LocalExpertRouter:
         """Fallback routing for error recovery"""
         fallback_model = "phi4-256k:latest"  # Most reliable fallback
 
-        logger.warning(
-            f"🔄 Fallback routing to {fallback_model} due to: {original_error}"
-        )
+        logger.warning(f"🔄 Fallback routing to {fallback_model} due to: {original_error}")
 
         try:
             payload = {
@@ -345,9 +322,7 @@ class LocalExpertRouter:
                 "options": {"num_ctx": 8192},
             }
 
-            response = await self.client.post(
-                f"{self.ollama_url}/api/generate", json=payload
-            )
+            response = await self.client.post(f"{self.ollama_url}/api/generate", json=payload)
             response.raise_for_status()
 
             result = response.json()

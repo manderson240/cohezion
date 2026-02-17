@@ -7,8 +7,13 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime, timedelta
-from typing import Callable, Optional
+from datetime import datetime
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +33,7 @@ class CommitBatcher:
         """
         self.batch_window_seconds = batch_window_seconds
         self.pending_files: set[str] = set()
-        self.last_commit: Optional[datetime] = None
+        self.last_commit: datetime | None = None
         self._lock = asyncio.Lock()
 
     async def queue_file(self, filename: str) -> None:

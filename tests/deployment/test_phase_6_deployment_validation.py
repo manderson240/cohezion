@@ -12,19 +12,12 @@ Test Coverage:
 - Integration health checks
 """
 
-import pytest
-import asyncio
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, MagicMock
-from typing import Dict, List, Any
+
+import pytest
+
 
 # Phase 6 Component Imports
-from cohezion.swarm.cost_aware_router import CostAwareRouter
-from cohezion.swarm.model_ranker import ModelRanker
-from cohezion.swarm.model_fallback_strategy import ModelFallbackStrategy
-from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
-from cohezion.compound.degradation_detector import DegradationDetector
-from cohezion.compound.model_quality_classifier import ModelQualityClassifier
 
 
 class TestFeatureFlags:
@@ -90,10 +83,26 @@ class TestGradualRollout:
     def setup_method(self):
         """Set up rollout environment."""
         self.stages = {
-            "stage_1_10pct": {"target_percentage": 10, "cohort_size": 100, "affected": 10},
-            "stage_2_25pct": {"target_percentage": 25, "cohort_size": 100, "affected": 25},
-            "stage_3_50pct": {"target_percentage": 50, "cohort_size": 100, "affected": 50},
-            "stage_4_100pct": {"target_percentage": 100, "cohort_size": 100, "affected": 100},
+            "stage_1_10pct": {
+                "target_percentage": 10,
+                "cohort_size": 100,
+                "affected": 10,
+            },
+            "stage_2_25pct": {
+                "target_percentage": 25,
+                "cohort_size": 100,
+                "affected": 25,
+            },
+            "stage_3_50pct": {
+                "target_percentage": 50,
+                "cohort_size": 100,
+                "affected": 50,
+            },
+            "stage_4_100pct": {
+                "target_percentage": 100,
+                "cohort_size": 100,
+                "affected": 100,
+            },
         }
         self.metrics_per_stage = {}
 
@@ -135,7 +144,7 @@ class TestGradualRollout:
 
         # Verify metrics collected for all stages
         assert len(self.metrics_per_stage) == 4
-        for stage_name, metrics in self.metrics_per_stage.items():
+        for _stage_name, metrics in self.metrics_per_stage.items():
             assert "cost_reduction" in metrics
             assert "latency_change" in metrics
             assert "error_rate" in metrics
@@ -229,7 +238,7 @@ class TestMonitoringAndMetrics:
                     "avg_latency": 45.0,
                     "p95_latency": 120.0,
                     "p99_latency": 250.0,
-                }
+                },
             }
 
         assert len(self.time_windows) == 4
@@ -291,8 +300,9 @@ class TestProductionReadiness:
         }
 
         for component, targets in coverage_targets.items():
-            assert targets["actual"] >= targets["target"], \
+            assert targets["actual"] >= targets["target"], (
                 f"{component} coverage {targets['actual']} below target {targets['target']}"
+            )
 
     def test_performance_gates(self):
         """Test performance requirements met."""
@@ -306,12 +316,14 @@ class TestProductionReadiness:
         for metric, targets in performance_targets.items():
             if "rate" in metric or "throughput" in metric:
                 # For rates and throughput, higher is better
-                assert targets["actual"] >= targets["target"], \
+                assert targets["actual"] >= targets["target"], (
                     f"{metric} {targets['actual']} below target {targets['target']}"
+                )
             else:
                 # For latency/overhead, lower is better
-                assert targets["actual"] <= targets["target"], \
+                assert targets["actual"] <= targets["target"], (
                     f"{metric} {targets['actual']} exceeds target {targets['target']}"
+                )
 
     def test_dependency_readiness(self):
         """Test all dependencies ready for production."""
@@ -326,7 +338,7 @@ class TestProductionReadiness:
             "anomaly_detector": {"ready": True, "status": "OPERATIONAL"},
         }
 
-        for dep_name, dep_status in dependencies.items():
+        for _dep_name, dep_status in dependencies.items():
             assert dep_status["ready"] is True
             assert dep_status["status"] == "OPERATIONAL"
 
@@ -411,11 +423,13 @@ class TestRollbackProcedures:
         }
 
         # Simulate rollback
-        self.rollback_history.append({
-            "timestamp": datetime.now(),
-            "pre_state": pre_rollback_metrics.copy(),
-            "action": "full_phase6_rollback",
-        })
+        self.rollback_history.append(
+            {
+                "timestamp": datetime.now(),
+                "pre_state": pre_rollback_metrics.copy(),
+                "action": "full_phase6_rollback",
+            }
+        )
 
         # Post-rollback state
         post_rollback_metrics = {
@@ -444,7 +458,7 @@ class TestIntegrationHealthChecks:
             "model_quality_classifier": "HEALTHY",
         }
 
-        for component, status in components_health.items():
+        for _component, status in components_health.items():
             assert status == "HEALTHY"
 
     def test_inter_component_communication(self):
@@ -527,7 +541,10 @@ class TestProductionDeploymentChecklist:
             "phase_6_2_task_6_anomaly_detection": {"status": "COMPLETE", "tests": 35},
             "phase_6_3_task_7_chaos_testing": {"status": "COMPLETE", "tests": 31},
             "phase_6_3_task_8_edge_cases": {"status": "COMPLETE", "tests": 31},
-            "phase_6_3_task_9_deployment_validation": {"status": "IN_PROGRESS", "tests": 34},
+            "phase_6_3_task_9_deployment_validation": {
+                "status": "IN_PROGRESS",
+                "tests": 34,
+            },
         }
 
         total_tests = sum(task["tests"] for task in phase_6_tasks.values())
@@ -627,7 +644,7 @@ class TestDeploymentValidationReport:
             "recommendation",
         ]
 
-        report = {section: None for section in required_sections}
+        report = dict.fromkeys(required_sections)
         for section in required_sections:
             assert section in report
 

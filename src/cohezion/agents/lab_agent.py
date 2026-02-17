@@ -23,6 +23,7 @@ from cohezion.core.persistence.surreal_client import (
     UniverseNode,
 )
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -40,9 +41,7 @@ class LabAgent(BaseAgent):
         Run the lab autonomously for a specified duration.
         Generates research, verifies experiments, and publishes findings.
         """
-        logger.info(
-            f"LabAgent: Engaging Autonomous Drive for {duration_minutes} minutes."
-        )
+        logger.info(f"LabAgent: Engaging Autonomous Drive for {duration_minutes} minutes.")
         start_time = time.time()
         end_time = start_time + (duration_minutes * 60)
 
@@ -100,15 +99,13 @@ class LabAgent(BaseAgent):
 
         return self.session_discoveries[-1] if self.session_discoveries else None
 
-    async def run_cycle(self, seed_override: str = None):
+    async def run_cycle(self, seed_override: str | None = None):
         """Execute a single autonomous lab cycle."""
         logger.info("LabAgent: Starting new research cycle...")
 
         try:
             # 1. Generate seed thought
-            raw_seed = (
-                seed_override if seed_override else await self._fetch_seed_thought()
-            )
+            raw_seed = seed_override if seed_override else await self._fetch_seed_thought()
             logger.info(f"Seed Thought: {raw_seed[:100]}...")
 
             # 2. Analyze seed via LLM
@@ -121,9 +118,7 @@ class LabAgent(BaseAgent):
 
             for attempt in range(max_retries):
                 refinement_cost = base_refinement_cost * (2**attempt)
-                logger.info(
-                    f"Refinement attempt {attempt + 1} (Cost: {refinement_cost})"
-                )
+                logger.info(f"Refinement attempt {attempt + 1} (Cost: {refinement_cost})")
 
                 report = await self._experiment(nexus_result, raw_seed)
 
@@ -131,9 +126,7 @@ class LabAgent(BaseAgent):
                     logger.info(f"Refinement successful on attempt {attempt + 1}")
                     break
                 else:
-                    logger.warning(
-                        f"Verification failed on attempt {attempt + 1}. Backtracking..."
-                    )
+                    logger.warning(f"Verification failed on attempt {attempt + 1}. Backtracking...")
                     await asyncio.sleep(1)
 
             # 4. Process & Publish
@@ -210,8 +203,7 @@ class LabAgent(BaseAgent):
         self.session_discoveries.append(node)
 
         logger.info(
-            f"Discovery {discovery_id} persisted to SurrealDB. "
-            f"Alignment: {alignment_score:.2f}, Verified: {success}"
+            f"Discovery {discovery_id} persisted to SurrealDB. Alignment: {alignment_score:.2f}, Verified: {success}"
         )
 
     def _determine_domain(self, text: str) -> str:
@@ -258,16 +250,12 @@ class LabAgent(BaseAgent):
 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-        new_learning = (
-            f"\n---\n\n## Learning [AUTO]: Lab Discovery {int(time.time())}\n"
-        )
+        new_learning = f"\n---\n\n## Learning [AUTO]: Lab Discovery {int(time.time())}\n"
         new_learning += f"**Date:** {timestamp}\n"
         new_learning += "**Context:** Autonomous AI Lab Cycle\n"
         new_learning += f"**Finding:** {report[:200]}...\n"
         new_learning += "**Verification:** Success in Sandbox\n"
-        new_learning += (
-            f"**12D State:** [t={time.time()}, novelty=0.9, coherence=0.85]\n"
-        )
+        new_learning += f"**12D State:** [t={time.time()}, novelty=0.9, coherence=0.85]\n"
 
         try:
             if learning_path.exists():
@@ -307,8 +295,7 @@ class LabAgent(BaseAgent):
         logger.info(f"Autonomous Lab: {len(self.session_discoveries)} New Discoveries")
         for d in self.session_discoveries:
             logger.info(
-                f"  {d.id}: Alignment {d.metadata['anthropic_alignment']:.2f} "
-                f"| Verified: {d.metadata['verified']}"
+                f"  {d.id}: Alignment {d.metadata['anthropic_alignment']:.2f} | Verified: {d.metadata['verified']}"
             )
 
         self.session_discoveries = []

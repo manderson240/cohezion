@@ -45,9 +45,7 @@ def mock_inflection_detector():
 class TestCompoundCycleEndToEnd:
     """Tests for complete enriched compound cycle (all 7 phases)."""
 
-    def test_enriched_executor_with_all_components(
-        self, mock_mcp_client, mock_inflection_detector
-    ):
+    def test_enriched_executor_with_all_components(self, mock_mcp_client, mock_inflection_detector):
         """Enriched executor integrates all 7 phase components."""
         journey_tracker = JourneyTracker(seed=42)
         degradation_detector = DegradationDetector()
@@ -73,9 +71,7 @@ class TestCompoundCycleEndToEnd:
         assert executor._retrospection_engine is retrospection_engine
         assert executor._universe_bridge is universe_bridge
 
-    def test_full_cycle_produces_real_cohesion(
-        self, mock_mcp_client, mock_inflection_detector
-    ):
+    def test_full_cycle_produces_real_cohesion(self, mock_mcp_client, mock_inflection_detector):
         """Full cycle execution produces real cohesion scores (Phase 1)."""
         executor = CompoundExecutor(
             mock_mcp_client,
@@ -98,9 +94,7 @@ class TestCompoundCycleEndToEnd:
         # Should be high: success(0.7) + inverse_anomaly(0.9) = 0.8
         assert result.metrics["coherence"] > 0.7
 
-    def test_full_cycle_produces_phi_score(
-        self, mock_mcp_client, mock_inflection_detector
-    ):
+    def test_full_cycle_produces_phi_score(self, mock_mcp_client, mock_inflection_detector):
         """Full cycle execution produces real phi_score (Phase 4)."""
         executor = CompoundExecutor(
             mock_mcp_client,
@@ -122,9 +116,7 @@ class TestCompoundCycleEndToEnd:
         assert "phi_score" in result.metrics
         assert result.metrics["phi_score"] > 0.0
 
-    def test_full_cycle_retrospection_gates_refinement(
-        self, mock_mcp_client, mock_inflection_detector
-    ):
+    def test_full_cycle_retrospection_gates_refinement(self, mock_mcp_client, mock_inflection_detector):
         """Full cycle retrospection gates refinement (Phase 6)."""
         mock_refiner = MagicMock()
 
@@ -151,9 +143,7 @@ class TestCompoundCycleEndToEnd:
         # Refiner should have been called (retrospection allows it)
         assert mock_refiner.refine.called
 
-    def test_full_cycle_creates_universe_journey(
-        self, mock_mcp_client, mock_inflection_detector
-    ):
+    def test_full_cycle_creates_universe_journey(self, mock_mcp_client, mock_inflection_detector):
         """Full cycle creates universe journey (Phase 7)."""
         mock_engine = MagicMock()
         universe_bridge = UniverseBridge(engine=mock_engine, agent_name="test")

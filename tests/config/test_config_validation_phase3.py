@@ -3,19 +3,16 @@
 Tests comprehensive validation, archival, and sync logging.
 """
 
-import asyncio
 import json
-import tempfile
 from pathlib import Path
-from unittest.mock import AsyncMock, patch
 
 import pytest
 
 from cohezion.config import (
     ConfigArchiver,
     ConfigSyncLogger,
-    ConfigValidator,
     ConfigurationOrchestrator,
+    ConfigValidator,
     ReconciliationValidator,
     SizeEnforcer,
 )
@@ -95,7 +92,7 @@ See [[test_decision.md]] for details."""
         test_file.write_text(content)
 
         validator = ConfigValidator()
-        check_result = validator._check_references(test_file)
+        validator._check_references(test_file)
 
         # Will pass because we're not checking vault root in this simple test
         assert True  # Basic structure test

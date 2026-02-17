@@ -11,6 +11,7 @@ from cohezion.core.persistence.repositories.universe_repository import (
     UniverseNode,
 )
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -115,9 +116,7 @@ class PhysicsService:
             PhysicsAnalysis with metrics and recommendations.
         """
         try:
-            stability_score = (
-                state.stability * 0.4 + state.coherence * 0.3 + state.connectivity * 0.3
-            )
+            stability_score = state.stability * 0.4 + state.coherence * 0.3 + state.connectivity * 0.3
 
             coherence_score = state.coherence
 
@@ -126,10 +125,7 @@ class PhysicsService:
             connectivity_score = state.connectivity
 
             overall_health = (
-                stability_score * 0.3
-                + coherence_score * 0.25
-                + novelty_score * 0.2
-                + connectivity_score * 0.25
+                stability_score * 0.3 + coherence_score * 0.25 + novelty_score * 0.2 + connectivity_score * 0.25
             )
 
             recommendations = self._generate_recommendations(state)

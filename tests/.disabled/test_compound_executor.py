@@ -48,9 +48,7 @@ class TestCompoundConfig:
         assert cfg.model_for_operation("unknown") == "phi3:mini"
 
     def test_custom_operation_map(self) -> None:
-        cfg = CompoundConfig(
-            operation_model_map={"generate": "llama3:8b", "analyze": "llama3:8b"}
-        )
+        cfg = CompoundConfig(operation_model_map={"generate": "llama3:8b", "analyze": "llama3:8b"})
         assert cfg.model_for_operation("generate") == "llama3:8b"
 
 

@@ -15,19 +15,19 @@ Features:
 - Non-blocking async writes
 """
 
-import asyncio
 import json
 import logging
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
 
-class AuditAction(str, Enum):
+class AuditAction(StrEnum):
     """Audit-logged actions."""
 
     READ = "read"
@@ -60,9 +60,9 @@ class AuditLogEntry:
     action: AuditAction
     resource: str
     status: str = "success"
-    details: Optional[Dict[str, Any]] = None
-    ip_address: Optional[str] = None
-    user_agent: Optional[str] = None
+    details: dict[str, Any] | None = None
+    ip_address: str | None = None
+    user_agent: str | None = None
 
     def to_json(self) -> str:
         """Serialize to JSON string."""
@@ -170,11 +170,11 @@ class AuditLogger:
 
     def query(
         self,
-        agent_id: Optional[str] = None,
-        action: Optional[AuditAction] = None,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
-        resource: Optional[str] = None,
+        agent_id: str | None = None,
+        action: AuditAction | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+        resource: str | None = None,
     ) -> list[AuditLogEntry]:
         """Query audit logs with filters.
 
@@ -195,9 +195,9 @@ class AuditLogger:
 
         # Set default date range (last 90 days)
         if not start_date:
-            start_date = datetime.now(timezone.utc) - timedelta(days=self.retention_days)
+            start_date = datetime.now(UTC) - timedelta(days=self.retention_days)
         if not end_date:
-            end_date = datetime.now(timezone.utc)
+            end_date = datetime.now(UTC)
 
         # Iterate through date-partitioned files
         current_date = start_date.date()
@@ -206,7 +206,7 @@ class AuditLogger:
 
             if log_file.exists():
                 try:
-                    with open(log_file, "r") as f:
+                    with open(log_file) as f:
                         for line in f:
                             if not line.strip():
                                 continue
@@ -225,9 +225,7 @@ class AuditLogger:
                                 entries.append(entry)
 
                             except Exception as e:
-                                logger.warning(
-                                    "Failed to parse audit log entry: %s", e
-                                )
+                                logger.warning("Failed to parse audit log entry: %s", e)
 
                 except Exception as e:
                     logger.warning("Failed to read audit log file %s: %s", log_file, e)
@@ -292,7 +290,7 @@ class AuditLogger:
         else:
             raise ValueError(f"Unsupported format: {format}")
 
-    def cleanup_old_logs(self, retention_days: Optional[int] = None) -> int:
+    def cleanup_old_logs(self, retention_days: int | None = None) -> int:
         """Delete audit logs older than retention period.
 
         Args:
@@ -305,7 +303,7 @@ class AuditLogger:
             return 0
 
         retention_days = retention_days or self.retention_days
-        cutoff_date = datetime.now(timezone.utc) - timedelta(days=retention_days)
+        cutoff_date = datetime.now(UTC) - timedelta(days=retention_days)
 
         deleted_count = 0
 
@@ -315,9 +313,7 @@ class AuditLogger:
                 date_str = log_file.stem.replace("audit_", "")
 
                 try:
-                    file_date = datetime.fromisoformat(date_str).replace(
-                        tzinfo=timezone.utc
-                    )
+                    file_date = datetime.fromisoformat(date_str).replace(tzinfo=UTC)
 
                     if file_date < cutoff_date:
                         log_file.unlink()
@@ -331,13 +327,15 @@ class AuditLogger:
             logger.error("Failed to cleanup audit logs: %s", e)
 
         if deleted_count > 0:
-            logger.info("Cleaned up %d audit logs older than %d days",
-                       deleted_count,
-                       retention_days)
+            logger.info(
+                "Cleaned up %d audit logs older than %d days",
+                deleted_count,
+                retention_days,
+            )
 
         return deleted_count
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get audit logging statistics.
 
         Returns:

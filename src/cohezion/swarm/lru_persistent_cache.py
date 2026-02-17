@@ -17,9 +17,10 @@ from __future__ import annotations
 import logging
 from collections import OrderedDict
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from cohezion.swarm.persistent_cache import PersistentCache
+
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +91,7 @@ class LRUPersistentCache(PersistentCache):
             # After parent init, rebuild access order from loaded entries
             self._rebuild_access_order()
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get value from cache and update LRU order.
 
         Parameters
@@ -204,7 +205,7 @@ class LRUPersistentCache(PersistentCache):
 
         logger.info(
             f"LRU eviction: {current_size}/{self.max_entries} entries "
-            f"({current_size/self.max_entries*100:.1f}%). "
+            f"({current_size / self.max_entries * 100:.1f}%). "
             f"Evicting {entries_to_evict} entries to {target_size}/{self.max_entries}"
         )
 
@@ -231,7 +232,7 @@ class LRUPersistentCache(PersistentCache):
             logger.debug(
                 f"Evicted {len(evicted_keys)} LRU entries. "
                 f"Cache now at {len(self.memory_cache)}/{self.max_entries} "
-                f"({len(self.memory_cache)/self.max_entries*100:.1f}%)"
+                f"({len(self.memory_cache) / self.max_entries * 100:.1f}%)"
             )
 
     def get_stats(self) -> dict[str, Any]:
@@ -255,9 +256,7 @@ class LRUPersistentCache(PersistentCache):
                     "eviction_count": self._eviction_count,
                     "total_evicted_entries": self._evictions_total_entries,
                     "avg_entries_per_eviction": (
-                        self._evictions_total_entries / self._eviction_count
-                        if self._eviction_count > 0
-                        else 0
+                        self._evictions_total_entries / self._eviction_count if self._eviction_count > 0 else 0
                     ),
                 }
             )
@@ -277,9 +276,7 @@ class LRUPersistentCache(PersistentCache):
                 "eviction_count": self._eviction_count,
                 "total_evicted_entries": self._evictions_total_entries,
                 "avg_per_eviction": (
-                    self._evictions_total_entries / self._eviction_count
-                    if self._eviction_count > 0
-                    else 0
+                    self._evictions_total_entries / self._eviction_count if self._eviction_count > 0 else 0
                 ),
                 "current_utilization": len(self.memory_cache) / self.max_entries,
                 "current_size": len(self.memory_cache),
@@ -293,12 +290,10 @@ class LRUPersistentCache(PersistentCache):
         """
         with self._lock:
             self._access_order.clear()
-            for key in self.memory_cache.keys():
+            for key in self.memory_cache:
                 self._access_order[key] = None
 
-            logger.debug(
-                f"Rebuilt LRU access order for {len(self._access_order)} entries"
-            )
+            logger.debug(f"Rebuilt LRU access order for {len(self._access_order)} entries")
 
     @property
     def eviction_threshold_percent(self) -> float:

@@ -9,14 +9,19 @@ Usage:
     uv run python scripts/migrate_audio_to_surreal.py [--dry-run]
 """
 
-import asyncio
 import argparse
+import asyncio
 import logging
-from pathlib import Path
-from datetime import datetime
 import re
+from datetime import datetime
+from pathlib import Path
 
-from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode, PhysicsState
+from cohezion.core.persistence.surreal_client import (
+    PhysicsState,
+    SurrealClient,
+    UniverseNode,
+)
+
 
 logger = logging.getLogger(__name__)
 
@@ -41,15 +46,15 @@ def parse_audio_script(content: str) -> dict:
     """Parse audio script content to extract case and score."""
     case_match = re.search(r"Case ([^.]+)\.\.\.", content)
     score_match = re.search(r"Score ([\d.]+)", content)
-    
+
     score = 0.0
     if score_match:
-        score_str = score_match.group(1).rstrip('.')  # Remove trailing periods
+        score_str = score_match.group(1).rstrip(".")  # Remove trailing periods
         try:
             score = float(score_str)
         except ValueError:
             score = 0.0
-    
+
     return {
         "case_name": case_match.group(1) if case_match else "unknown",
         "score": score,
@@ -57,8 +62,8 @@ def parse_audio_script(content: str) -> dict:
 
 
 async def migrate_directory(
-    client: SurrealClient, 
-    audio_dir: Path, 
+    client: SurrealClient,
+    audio_dir: Path,
     dry_run: bool = False,
     batch_size: int = 1000,
 ) -> tuple[int, int]:
@@ -66,20 +71,20 @@ async def migrate_directory(
     if not audio_dir.exists():
         logger.warning(f"Directory not found: {audio_dir}")
         return 0, 0
-    
+
     files = list(audio_dir.glob("*.txt"))
     total = len(files)
     migrated = 0
     errors = 0
-    
+
     logger.info(f"Found {total} files in {audio_dir}")
-    
+
     for i, file_path in enumerate(files):
         try:
             content = file_path.read_text()
             meta = extract_metadata_from_filename(file_path.name)
             parsed = parse_audio_script(content)
-            
+
             node = UniverseNode(
                 id=f"audio_{meta['timestamp']}_{meta['index']}",
                 content=content,
@@ -96,20 +101,20 @@ async def migrate_directory(
                     "source_file": str(file_path),
                 },
             )
-            
+
             if not dry_run:
                 await client.store_node(node)
                 file_path.unlink()  # Delete after successful insert
-            
+
             migrated += 1
-            
+
             if (i + 1) % batch_size == 0:
                 logger.info(f"Progress: {i + 1}/{total} ({(i + 1) / total * 100:.1f}%)")
-                
+
         except Exception as e:
             logger.error(f"Failed to migrate {file_path}: {e}")
             errors += 1
-    
+
     return migrated, errors
 
 
@@ -118,43 +123,41 @@ async def main():
     parser.add_argument("--dry-run", action="store_true", help="Preview without changes")
     parser.add_argument("--batch-size", type=int, default=1000, help="Logging frequency")
     args = parser.parse_args()
-    
+
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
     )
-    
+
     if args.dry_run:
         logger.info("DRY RUN MODE - no changes will be made")
-    
+
     # Connect to SurrealDB
     client = SurrealClient(
         url="ws://localhost:8000/rpc",
         namespace="cohezion",
         database="universe",
     )
-    
+
     if not await client.connect():
         logger.error("Failed to connect to SurrealDB")
         return
-    
+
     # Ensure schema exists
     await client.setup_schema()
-    
+
     total_migrated = 0
     total_errors = 0
-    
+
     for audio_dir in AUDIO_DIRS:
-        migrated, errors = await migrate_directory(
-            client, audio_dir, args.dry_run, args.batch_size
-        )
+        migrated, errors = await migrate_directory(client, audio_dir, args.dry_run, args.batch_size)
         total_migrated += migrated
         total_errors += errors
-    
+
     await client.close()
-    
+
     logger.info(f"Migration complete: {total_migrated} migrated, {total_errors} errors")
-    
+
     if not args.dry_run and total_migrated > 0:
         logger.info("Run 'git status --porcelain | wc -l' to verify cleanup")
 

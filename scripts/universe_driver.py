@@ -1,33 +1,30 @@
 import asyncio
 import logging
-import time
 import random
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Dict
 
-from cohezion.swarm.agents.sovereign_agent import SovereignAgent
+from cohezion.gaia.interface import get_planetary_interface
+from cohezion.mcp.email_notifier import EmailNotifier, NotificationConfig
 from cohezion.swarm.agents.gaia_agent import GaiaAgent
 from cohezion.swarm.agents.seti_agent import SETIAgent
-from cohezion.mcp.email_notifier import EmailNotifier, NotificationConfig
-from cohezion.gaia.interface import get_planetary_interface
+
 
 # Configure Logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("universe_sim.log"),
-        logging.StreamHandler()
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("universe_sim.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger("UniverseDriver")
+
 
 class UniverseDriver:
     """
     The Engine of Time for the Overnight Simulation (Gateway 31).
     Runs until 06:00 AM Local Time.
     """
+
     def __init__(self):
         self.notifier = EmailNotifier(config=NotificationConfig.from_env())
         self.interface = get_planetary_interface()
@@ -38,7 +35,7 @@ class UniverseDriver:
         self.agents = [self.gaia, self.seti]
 
         # Simulation State
-        self.chronicle: List[str] = []
+        self.chronicle: list[str] = []
         self.start_time = datetime.now()
         # Set End Time to 6:00 AM tomorrow (or today if currently before 6am)
         now = datetime.now()
@@ -57,7 +54,7 @@ class UniverseDriver:
         # Send Start Email
         await self.notifier.send_report(
             "Universe Simulation Started",
-            f"The Infinite Game has begun.\nEnd Time: {self.end_time}\nMode: Sovereign/Gaia"
+            f"The Infinite Game has begun.\nEnd Time: {self.end_time}\nMode: Sovereign/Gaia",
         )
 
         last_hour = datetime.now().hour
@@ -75,7 +72,7 @@ class UniverseDriver:
                 last_hour = now.hour
 
             # Sleep to pace the simulation (prevent getting banned/overheating real hardware)
-            await asyncio.sleep(10) # 10 seconds per "tick"
+            await asyncio.sleep(10)  # 10 seconds per "tick"
 
         # 3. Final Dawn Report
         await self._generate_final_report()
@@ -86,10 +83,14 @@ class UniverseDriver:
         elapsed = (datetime.now() - self.start_time).total_seconds()
         progress = elapsed / total_duration
 
-        if progress < 0.10: return "Planck Era (Quantum Chaos)"
-        if progress < 0.30: return "Inflationary Era (Expansion)"
-        if progress < 0.60: return "Biogenesis (Life Emergence)"
-        if progress < 0.90: return "Noosphere (Civilization)"
+        if progress < 0.10:
+            return "Planck Era (Quantum Chaos)"
+        if progress < 0.30:
+            return "Inflationary Era (Expansion)"
+        if progress < 0.60:
+            return "Biogenesis (Life Emergence)"
+        if progress < 0.90:
+            return "Noosphere (Civilization)"
         return "Omega Point (Transcendence)"
 
     async def _run_step(self, epoch: str):
@@ -100,12 +101,12 @@ class UniverseDriver:
         gaia_thought = f"Epoch: {epoch}. Status: {vital_signs}"
 
         # Occasionally Gaia speaks/acts
-        if random.random() < 0.1: # 10% chance per tick
+        if random.random() < 0.1:  # 10% chance per tick
             res = await self.gaia.process(gaia_thought)
             self._log_event(f"Gaia Action: {res[:100]}...")
 
         # SETI Listens
-        if random.random() < 0.05: # 5% chance
+        if random.random() < 0.05:  # 5% chance
             res = await self.seti.process("Scanning the cosmic background...")
             if "TECHNOSIGNATURE" in res:
                 self._log_event("🚨 SETI ALERT: First Contact Candidate!")
@@ -120,12 +121,12 @@ class UniverseDriver:
         body = f"""
         ### 🌌 Universe Status Report
         **Epoch**: {epoch}
-        **Time**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+        **Time**: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
         ### 📊 Vital Signs
-        - **Entropy**: {stats['UniversalEntropy']:.4f}
-        - **Vacuum Energy**: {stats['VacuumEnergy']:.2f}
-        - **Temperature**: {stats['CosmicTemperature']:.1f}
+        - **Entropy**: {stats["UniversalEntropy"]:.4f}
+        - **Vacuum Energy**: {stats["VacuumEnergy"]:.2f}
+        - **Temperature**: {stats["CosmicTemperature"]:.1f}
 
         ### 📜 Recent Events
         {self._get_recent_logs(5)}
@@ -176,6 +177,7 @@ class UniverseDriver:
 
     def _get_recent_logs(self, n: int) -> str:
         return "\n".join(self.chronicle[-n:])
+
 
 if __name__ == "__main__":
     driver = UniverseDriver()

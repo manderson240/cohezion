@@ -6,8 +6,9 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from cohezion.registry.skill_registry import load_registry
 from cohezion.registry.capability_registry import CapabilityRegistry
+from cohezion.registry.skill_registry import load_registry
+
 
 SKILLS_DIR = Path("src/cohezion/skills")
 
@@ -52,8 +53,10 @@ def main() -> int:
         print(f"\nWARN: CapabilityRegistry failed to construct: {exc}")
 
     # Summary
-    print(f"\nSummary: {len(registry)} registered, {len(md_files)} on disk, "
-          f"{len(orphaned)} orphaned, {len(unregistered)} unregistered")
+    print(
+        f"\nSummary: {len(registry)} registered, {len(md_files)} on disk, "
+        f"{len(orphaned)} orphaned, {len(unregistered)} unregistered"
+    )
 
     # Orphaned entries = broken references = fail
     if orphaned:

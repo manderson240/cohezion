@@ -12,20 +12,21 @@ Tests:
 - Backoff and retry logic
 """
 
-import asyncio
+import contextlib
 import tempfile
 import threading
 import time
 from pathlib import Path
+
 import pytest
 
 from cohezion.security.file_lock_context import (
     FileLock,
     FileLockError,
-    locked_file_operation,
-    atomic_file_write,
-    atomic_file_read,
     atomic_file_modify,
+    atomic_file_read,
+    atomic_file_write,
+    locked_file_operation,
 )
 
 
@@ -39,10 +40,8 @@ def temp_file():
     yield temp_path
 
     # Cleanup
-    try:
+    with contextlib.suppress(FileNotFoundError):
         Path(temp_path).unlink()
-    except FileNotFoundError:
-        pass
 
 
 class TestFileLock:

@@ -6,6 +6,7 @@ as 12D/512D manifold data, enabling universe simulation and experience learning.
 
 from __future__ import annotations
 
+
 UNIVERSE_SCHEMA = """
 -- Universe Simulation Tables
 
@@ -75,8 +76,8 @@ DEFINE FUNCTION fn::calculate_coherence($internal INTENT, $external INTENT) {
 
 -- Function to find similar journeys (experience replay)
 DEFINE FUNCTION fn::find_similar_journeys($query_vector ARRAY, $threshold FLOAT) {
-    RETURN SELECT * FROM latent_state 
-    WHERE embedding <|8|> $query_vector 
+    RETURN SELECT * FROM latent_state
+    WHERE embedding <|8|> $query_vector
     AND vector::similarity::cosine(embedding, $query_vector) > $threshold;
 };
 """

@@ -14,6 +14,7 @@ from typing import Any
 from cohezion.swarm.swarm_types import Perspective, SwarmConfig
 from cohezion.swarm.workflows import DebateWorkflow
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -53,11 +54,7 @@ class SwarmMCP:
 
         # Parse perspectives
         if perspectives:
-            persp_enums = [
-                Perspective[p.upper()]
-                for p in perspectives
-                if p.upper() in Perspective.__members__
-            ]
+            persp_enums = [Perspective[p.upper()] for p in perspectives if p.upper() in Perspective.__members__]
             workflow = DebateWorkflow(
                 config=self.config,
                 perspectives=persp_enums,

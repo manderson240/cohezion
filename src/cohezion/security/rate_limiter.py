@@ -134,11 +134,7 @@ class RateLimiter:
     def cleanup(self, max_age_seconds: int = 3600) -> int:
         """Remove old buckets to free memory."""
         now = time.time()
-        to_remove = [
-            key
-            for key, bucket in self._buckets.items()
-            if now - bucket.last_update > max_age_seconds
-        ]
+        to_remove = [key for key, bucket in self._buckets.items() if now - bucket.last_update > max_age_seconds]
         for key in to_remove:
             del self._buckets[key]
         return len(to_remove)

@@ -29,7 +29,7 @@ import hashlib
 import json
 import logging
 from collections import OrderedDict
-from typing import Any, Optional
+from typing import Any
 
 from cohezion.compound.team_executor import AgentTask
 from cohezion.core.mcp_client import MCPClient
@@ -91,7 +91,7 @@ class RequestCache:
         self._l2_hits = 0
         self._l2_misses = 0
 
-    def get_exact(self, request_text: str) -> Optional[AgentTask]:
+    def get_exact(self, request_text: str) -> AgentTask | None:
         """Get cached task via exact hash match (L1, 0 tokens, <1ms).
 
         Args:
@@ -116,9 +116,7 @@ class RequestCache:
             self._l1_misses += 1
             return None
 
-    def get_semantic(
-        self, request_text: str, threshold: Optional[float] = None
-    ) -> Optional[AgentTask]:
+    def get_semantic(self, request_text: str, threshold: float | None = None) -> AgentTask | None:
         """Get cached task via string similarity (L2, 0 tokens, ~5ms).
 
         Uses word overlap similarity to find similar cached requests.
@@ -150,9 +148,7 @@ class RequestCache:
 
             if best_task:
                 self._l2_hits += 1
-                logger.debug(
-                    f"L2 cache hit (similarity={best_similarity:.2f}): {request_text[:50]}..."
-                )
+                logger.debug(f"L2 cache hit (similarity={best_similarity:.2f}): {request_text[:50]}...")
                 return best_task
 
             self._l2_misses += 1
@@ -188,9 +184,7 @@ class RequestCache:
                 self.l2_cache.popitem(last=False)  # Remove oldest (first inserted)
                 logger.debug(f"L2 cache evicted oldest entry (size={self.l2_size})")
 
-            logger.debug(
-                f"Cached request: {request_text[:50]}... → task_id={task.task_id}"
-            )
+            logger.debug(f"Cached request: {request_text[:50]}... → task_id={task.task_id}")
         except Exception as e:
             logger.warning(f"Failed to cache request: {e}")
 
@@ -256,8 +250,10 @@ class RequestCache:
         # Estimate average tokens per request
         # L1/L2 hits: 0 tokens, misses: ~250 tokens (LLM fallback)
         avg_tokens = (
-            (self._l1_hits + self._l2_hits) * 0 + (self._l1_misses + self._l2_misses) * 250
-        ) / total if total > 0 else 0
+            ((self._l1_hits + self._l2_hits) * 0 + (self._l1_misses + self._l2_misses) * 250) / total
+            if total > 0
+            else 0
+        )
 
         return {
             "l1_hits": self._l1_hits,
@@ -338,7 +334,7 @@ class RequestCache:
             return ""
 
     @staticmethod
-    def _deserialize_task(json_str: str) -> Optional[AgentTask]:
+    def _deserialize_task(json_str: str) -> AgentTask | None:
         """Deserialize JSON string to AgentTask.
 
         Args:
@@ -373,13 +369,11 @@ class RequestCache:
         try:
             # Check if result contains key intake-related terms
             text = str(result).lower()
-            return any(
-                term in text for term in ["request", "task", "operation", "intent"]
-            )
+            return any(term in text for term in ["request", "task", "operation", "intent"])
         except Exception:
             return False
 
-    def _parse_pattern(self, result: Any) -> tuple[Optional[str], Optional[AgentTask]]:
+    def _parse_pattern(self, result: Any) -> tuple[str | None, AgentTask | None]:
         """Parse vault pattern into request_text and AgentTask.
 
         Args:

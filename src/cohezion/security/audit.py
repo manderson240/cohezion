@@ -16,6 +16,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 AUDIT_LOG_DIR = Path(os.environ.get("COHEZION_LOG_DIR", "logs"))
@@ -161,9 +162,7 @@ class AuditLogger:
         )
         self._write(event)
 
-    def get_recent_events(
-        self, limit: int = 100, event_type: str | None = None
-    ) -> list[dict]:
+    def get_recent_events(self, limit: int = 100, event_type: str | None = None) -> list[dict]:
         """Read recent audit events."""
         if not self.log_file.exists():
             return []

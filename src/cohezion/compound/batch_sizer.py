@@ -16,9 +16,9 @@ from __future__ import annotations
 import json
 import logging
 import re
-import time
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +93,7 @@ class BatchSizePredictor:
         self,
         history_size: int = 100,
         min_confidence_threshold: float = 0.5,
-        vault_client: Optional[Any] = None,
+        vault_client: Any | None = None,
     ) -> None:
         """Initialize batch size predictor."""
         self.history_size = history_size
@@ -102,7 +102,7 @@ class BatchSizePredictor:
 
         # In-memory history: {task_type: [metrics]}
         self.history: dict[str, list[BatchExecutionMetrics]] = {}
-        self._last_prediction: Optional[tuple[int, float]] = None  # (size, confidence)
+        self._last_prediction: tuple[int, float] | None = None  # (size, confidence)
 
     def record_execution(self, metrics: BatchExecutionMetrics) -> None:
         """Record a batch execution for learning.
@@ -129,9 +129,7 @@ class BatchSizePredictor:
             f"task_type={task_type}"
         )
 
-    def predict_optimal_size(
-        self, task_type: str, task_count: int
-    ) -> tuple[int, float]:
+    def predict_optimal_size(self, task_type: str, task_count: int) -> tuple[int, float]:
         """Predict optimal batch size for a task.
 
         Uses historical patterns to recommend batch size. Falls back to
@@ -159,16 +157,12 @@ class BatchSizePredictor:
             # No history: use heuristic
             size = self.DEFAULT_BATCH_SIZES[task_type]
             confidence = 0.3  # Low confidence for heuristic
-            logger.debug(
-                f"No history for {task_type}, using heuristic batch_size={size}"
-            )
+            logger.debug(f"No history for {task_type}, using heuristic batch_size={size}")
             self._last_prediction = (size, confidence)
             return size, confidence
 
         # Analyze historical throughput by batch size
-        optimal_size, confidence = self._find_optimal_from_history(
-            type_history, task_count, task_type
-        )
+        optimal_size, confidence = self._find_optimal_from_history(type_history, task_count, task_type)
 
         self._last_prediction = (optimal_size, confidence)
         return optimal_size, confidence
@@ -213,9 +207,7 @@ class BatchSizePredictor:
             size_groups[metrics.batch_size].append(metrics.throughput)
 
         # Calculate average throughput per batch size
-        size_throughput = {
-            size: sum(values) / len(values) for size, values in size_groups.items()
-        }
+        size_throughput = {size: sum(values) / len(values) for size, values in size_groups.items()}
 
         # Find optimal size (highest throughput)
         if not size_throughput:
@@ -237,9 +229,7 @@ class BatchSizePredictor:
         # Variance penalty: if very inconsistent, lower confidence
         if num_samples > 1:
             throughputs = size_groups[optimal_size]
-            variance = sum((t - max_throughput) ** 2 for t in throughputs) / len(
-                throughputs
-            )
+            variance = sum((t - max_throughput) ** 2 for t in throughputs) / len(throughputs)
             variance_penalty = min(0.2, variance / max_throughput)
             confidence -= variance_penalty
 
@@ -302,10 +292,7 @@ class BatchSizePredictor:
 
         try:
             # Query vault for batch execution patterns
-            results = self.vault_client.vault_search(
-                "batch_size throughput execution metrics",
-                scope="all"
-            )
+            results = self.vault_client.vault_search("batch_size throughput execution metrics", scope="all")
 
             if not results:
                 logger.debug("No batch performance metrics found in vault")
@@ -329,24 +316,18 @@ class BatchSizePredictor:
 
                 except Exception as e:
                     # Non-blocking: skip problematic entries
-                    logger.debug(
-                        f"Failed to load batch metrics from {path}: {e}"
-                    )
+                    logger.debug(f"Failed to load batch metrics from {path}: {e}")
                     continue
 
-            logger.info(
-                f"Loaded {loaded_count} batch execution metrics from vault"
-            )
+            logger.info(f"Loaded {loaded_count} batch execution metrics from vault")
             return loaded_count
 
         except Exception as e:
             # Non-blocking: vault unavailable, continue with in-memory history
-            logger.debug(
-                f"Vault learning failed (non-blocking): {e}"
-            )
+            logger.debug(f"Vault learning failed (non-blocking): {e}")
             return 0
 
-    def _parse_batch_metrics(self, content: str) -> Optional[BatchExecutionMetrics]:
+    def _parse_batch_metrics(self, content: str) -> BatchExecutionMetrics | None:
         """Parse batch execution metrics from vault experiment markdown.
 
         Extracts metrics from YAML front matter or structured markdown format.
@@ -394,7 +375,7 @@ class BatchSizePredictor:
             logger.debug(f"Error parsing batch metrics: {e}")
             return None
 
-    def _parse_yaml_metrics(self, yaml_content: str) -> Optional[BatchExecutionMetrics]:
+    def _parse_yaml_metrics(self, yaml_content: str) -> BatchExecutionMetrics | None:
         """Parse metrics from YAML front matter.
 
         Parameters
@@ -436,7 +417,7 @@ class BatchSizePredictor:
             logger.debug(f"Error parsing YAML metrics: {e}")
             return None
 
-    def _parse_markdown_fields(self, content: str) -> Optional[BatchExecutionMetrics]:
+    def _parse_markdown_fields(self, content: str) -> BatchExecutionMetrics | None:
         """Parse metrics from structured markdown fields.
 
         Looks for patterns like:
@@ -479,42 +460,26 @@ class BatchSizePredictor:
 
             # Extract task_types - handle various formats
             # Patterns: [analyze, search], "analyze, search", or just text
-            task_types_match = re.search(
-                r"task[_\s]*types?[:\s]*\[([^\]]+)\]",
-                content,
-                re.IGNORECASE
-            )
+            task_types_match = re.search(r"task[_\s]*types?[:\s]*\[([^\]]+)\]", content, re.IGNORECASE)
             if task_types_match:
                 types_str = task_types_match.group(1)
-                data["task_types"] = [
-                    t.strip().strip('"\'') for t in types_str.split(",")
-                ]
+                data["task_types"] = [t.strip().strip("\"'") for t in types_str.split(",")]
             else:
                 # Try alternative format without brackets
-                task_types_alt = re.search(
-                    r"task[_\s]*types?[:\s]*([^\n]+?)(?:\n|$)",
-                    content,
-                    re.IGNORECASE
-                )
+                task_types_alt = re.search(r"task[_\s]*types?[:\s]*([^\n]+?)(?:\n|$)", content, re.IGNORECASE)
                 if task_types_alt:
                     types_str = task_types_alt.group(1).strip()
                     # Handle comma-separated or space-separated
                     if "," in types_str:
-                        data["task_types"] = [
-                            t.strip().strip('"\'') for t in types_str.split(",")
-                        ]
+                        data["task_types"] = [t.strip().strip("\"'") for t in types_str.split(",")]
                     else:
-                        data["task_types"] = [types_str.strip('"\'')]
+                        data["task_types"] = [types_str.strip("\"'")]
                 else:
                     # Default to unknown if not specified
                     data["task_types"] = ["unknown"]
 
             # Extract timestamp
-            timestamp_match = re.search(
-                r"timestamp[:\s]*([^\n]+)",
-                content,
-                re.IGNORECASE
-            )
+            timestamp_match = re.search(r"timestamp[:\s]*([^\n]+)", content, re.IGNORECASE)
             if timestamp_match:
                 data["timestamp"] = timestamp_match.group(1).strip()
 
@@ -524,7 +489,7 @@ class BatchSizePredictor:
             logger.debug(f"Error parsing markdown fields: {e}")
             return None
 
-    def _dict_to_metrics(self, data: dict[str, Any]) -> Optional[BatchExecutionMetrics]:
+    def _dict_to_metrics(self, data: dict[str, Any]) -> BatchExecutionMetrics | None:
         """Convert dictionary to BatchExecutionMetrics.
 
         Parameters
@@ -584,7 +549,7 @@ def get_batch_size_predictor(reset: bool = False) -> BatchSizePredictor:
 
 
 # Module-level singleton
-_predictor_instance: Optional[BatchSizePredictor] = None
+_predictor_instance: BatchSizePredictor | None = None
 
 
 __all__ = [
