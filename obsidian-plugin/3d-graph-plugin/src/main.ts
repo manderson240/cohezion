@@ -4,6 +4,7 @@ import { Graph3D } from './visualizations/3DGraph';
 import { Decision, DecisionCascade } from './types/Decision';
 import { SurrealDBClient } from './services/SurrealDBClient';
 import { VaultBridge } from './services/VaultBridge';
+import { DynamicPaperIngestor } from './services/DynamicPaperIngestor';
 
 /**
  * Settings interface for the 3D Graph plugin
@@ -58,6 +59,9 @@ const DEFAULT_SETTINGS: GraphPluginSettings = {
 export default class GraphPlugin extends Plugin {
   /** Current plugin settings (persisted across sessions) */
   settings: GraphPluginSettings;
+
+  /** Paper ingestion watcher - detects new papers and auto-ingests them (Phase 2) */
+  private paperIngestor: DynamicPaperIngestor | null = null;
 
   /**
    * Called when plugin is loaded by Obsidian
@@ -139,6 +143,10 @@ export default class GraphPlugin extends Plugin {
 
     // Load Chart.js from CDN for dashboard visualizations (Phase 7)
     this.loadChartJS();
+
+    // Initialize paper ingestion watcher (Phase 2: Paper Integration)
+    this.paperIngestor = new DynamicPaperIngestor(this.app, this.app.vault);
+    this.paperIngestor.startWatching();
 
     console.log('3D Graph Plugin loaded (Phase 7: Health Dashboard + Cascade Timeline integrated)');
   }
@@ -358,6 +366,11 @@ export default class GraphPlugin extends Plugin {
    * Clean up resources and listeners
    */
   onunload(): void {
+    // Stop paper ingestion watcher (Phase 2: Paper Integration)
+    if (this.paperIngestor) {
+      this.paperIngestor.stopWatching();
+    }
+
     console.log('3D Graph Plugin unloaded');
   }
 
