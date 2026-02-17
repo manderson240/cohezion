@@ -75,9 +75,9 @@ Worktree: Yes
 
 **MANDATORY: Update this checklist as tasks complete.**
 
-- [ ] Task 1: Configure GitHub repo settings via gh CLI
-- [ ] Task 2: Consolidate CI workflows
-- [ ] Task 3: Add UV caching to CI
+- [x] Task 1: Configure GitHub repo settings via gh CLI
+- [x] Task 2: Consolidate CI workflows
+- [x] Task 3: Add UV caching to CI
 - [ ] Task 4: Add conventional commit check to CI
 - [ ] Task 5: Add release-please workflow
 - [ ] Task 6: Create GitHub Ruleset on main
@@ -85,7 +85,7 @@ Worktree: Yes
 - [ ] Task 8: Add PR auto-creation to /spec-verify
 - [ ] Task 9: Create setup script for repo configuration
 
-**Total Tasks:** 9 | **Completed:** 0 | **Remaining:** 9
+**Total Tasks:** 9 | **Completed:** 3 | **Remaining:** 6
 
 ## Implementation Tasks
 
