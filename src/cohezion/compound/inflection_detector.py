@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING
 
+
 if TYPE_CHECKING:
     from cohezion.compound.executor import ExecutionResult
 
@@ -100,7 +101,9 @@ class InflectionDetector:
         if "coherence" in result.metrics:
             coherence = result.metrics["coherence"]
             if coherence < self.coherence_threshold:
-                issues.append(f"Coherence low: {coherence:.2f} < {self.coherence_threshold}")
+                issues.append(
+                    f"Coherence low: {coherence:.2f} < {self.coherence_threshold}"
+                )
                 score *= 0.6
 
             # Track coherence history
@@ -112,7 +115,9 @@ class InflectionDetector:
             if len(self.coherence_history) >= 4:
                 # Compare last value to average of previous values
                 current = self.coherence_history[-1]
-                previous_avg = sum(self.coherence_history[:-1]) / (len(self.coherence_history) - 1)
+                previous_avg = sum(self.coherence_history[:-1]) / (
+                    len(self.coherence_history) - 1
+                )
                 if previous_avg > 0 and current < previous_avg * 0.8:  # 20% drop
                     issues.append(
                         f"Coherence trend down: {current:.2f} < {previous_avg:.2f}"
@@ -230,20 +235,20 @@ class InflectionDetector:
 
         # Success component (50% weight)
         success_score = 1.0 if result.success else 0.0
-        score *= success_score ** 0.5
+        score *= success_score**0.5
 
         # Coherence component (30% weight)
         if "coherence" in result.metrics:
             coherence = result.metrics["coherence"]
             coherence_score = max(0.0, min(1.0, coherence))
-            score *= coherence_score ** 0.3
+            score *= coherence_score**0.3
 
         # Efficiency component (20% weight)
         if result.token_metrics:
             cache_hit_rate = result.token_metrics.get("cache_hit_rate", 0.0)
             # Normalize: 0 hits = 0.0, 100% hits = 1.0
             efficiency_score = max(0.0, min(1.0, cache_hit_rate))
-            score *= efficiency_score ** 0.2
+            score *= efficiency_score**0.2
 
         return round(score, 4)
 

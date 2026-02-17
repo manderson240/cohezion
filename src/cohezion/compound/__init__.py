@@ -20,6 +20,11 @@ from cohezion.compound.executor import (
     ExecutionResult,
     ExecutorFactory,
 )
+from cohezion.compound.exp_persistence.journey import JourneyPersistence
+from cohezion.compound.exp_persistence.vault import (
+    ExecutionContext,
+    VaultLogger,
+)
 from cohezion.compound.feedback_loop import (
     CompoundFeedbackLoop,
     CompoundFeedbackLoopFactory,
@@ -50,7 +55,6 @@ from cohezion.compound.intake_specialist import (
     IntakeSpecialist,
 )
 from cohezion.compound.intent_classifier import IntentClassifier
-from cohezion.compound.exp_persistence.journey import JourneyPersistence
 from cohezion.compound.journey_tracker import (
     Journey,
     JourneyTracker,
@@ -126,10 +130,6 @@ from cohezion.compound.thermal_trend_predictor import (
     ThermalTrendPredictor,
     get_thermal_trend_predictor,
 )
-from cohezion.compound.exp_persistence.vault import (
-    ExecutionContext,
-    VaultLogger,
-)
 from cohezion.compound.vault_search_executor import (
     SearchQuery,
     SearchResult,
@@ -197,13 +197,14 @@ __all__ = [
     "RequestCache",
     "RetryAttempt",
     "RetryStrategy",
+    "SearchQuery",
+    "SearchResult",
     "Severity",
     "SkillConsensusVoter",
     "SkillMetrics",
     "SkillScore",
     "SkillSelector",
     "SuccessCriterion",
-    "VotingStrategy",
     "TaskPriority",
     "TaskQueue",
     "TeamExecutionResult",
@@ -218,8 +219,7 @@ __all__ = [
     "TrajectoryPoint",
     "VaultLogger",
     "VaultSearchExecutor",
-    "SearchQuery",
-    "SearchResult",
+    "VotingStrategy",
     "WarmCacheLoader",
     "create_vault_search_executor",
     "get_batch_size_predictor",

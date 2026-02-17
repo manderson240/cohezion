@@ -22,6 +22,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -44,12 +45,12 @@ class AgentCredential:
     token: str
     api_key_hash: str = ""
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    expires_at: Optional[datetime] = None
+    expires_at: datetime | None = None
     permissions: list[str] = field(default_factory=lambda: ["read", "write"])
     is_active: bool = False
-    last_used: Optional[datetime] = None
+    last_used: datetime | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert credential to dictionary for serialization."""
         data = asdict(self)
         if self.created_at:
@@ -116,7 +117,7 @@ class AgentAuthManager:
         self.token_expiry_days = token_expiry_days
 
         # In-memory token cache for fast validation
-        self.token_cache: Dict[str, AgentCredential] = {}
+        self.token_cache: dict[str, AgentCredential] = {}
 
         # Create vault directory if needed
         if self.enable_vault_persistence:
@@ -125,8 +126,8 @@ class AgentAuthManager:
     def create_agent_credential(
         self,
         agent_id: str,
-        permissions: Optional[list[str]] = None,
-        expiry_days: Optional[int] = None,
+        permissions: list[str] | None = None,
+        expiry_days: int | None = None,
     ) -> AgentCredential:
         """Create new credential for agent.
 
@@ -169,7 +170,7 @@ class AgentAuthManager:
 
         return credential
 
-    def validate_token(self, token: str) -> Optional[AgentCredential]:
+    def validate_token(self, token: str) -> AgentCredential | None:
         """Validate agent token and return credential if valid.
 
         Args:
@@ -224,14 +225,16 @@ class AgentAuthManager:
         for token in tokens_to_revoke:
             self.token_cache[token].is_active = False
 
-        logger.info("Revoked %d credential(s) for agent %s", len(tokens_to_revoke), agent_id)
+        logger.info(
+            "Revoked %d credential(s) for agent %s", len(tokens_to_revoke), agent_id
+        )
         return True
 
     def rotate_credentials(
         self,
         agent_id: str,
-        new_permissions: Optional[list[str]] = None,
-    ) -> Optional[AgentCredential]:
+        new_permissions: list[str] | None = None,
+    ) -> AgentCredential | None:
         """Rotate agent's credential (periodic security refresh).
 
         Creates new token and invalidates old one.
@@ -275,7 +278,7 @@ class AgentAuthManager:
 
         return new_credential
 
-    def get_credential_by_agent_id(self, agent_id: str) -> Optional[AgentCredential]:
+    def get_credential_by_agent_id(self, agent_id: str) -> AgentCredential | None:
         """Get active credential for agent.
 
         Args:
@@ -310,10 +313,14 @@ class AgentAuthManager:
             with open(cred_file, "w") as f:
                 json.dump(credential.to_dict(), f, indent=2)
 
-            logger.debug("Persisted credential for %s to %s", credential.agent_id, cred_file)
+            logger.debug(
+                "Persisted credential for %s to %s", credential.agent_id, cred_file
+            )
         except Exception as e:
             # Non-blocking: log error but don't crash
-            logger.warning("Failed to persist credential for %s: %s", credential.agent_id, e)
+            logger.warning(
+                "Failed to persist credential for %s: %s", credential.agent_id, e
+            )
 
     def cleanup_expired_credentials(self) -> int:
         """Remove expired credentials from cache.
@@ -322,9 +329,7 @@ class AgentAuthManager:
             Number of credentials cleaned up
         """
         expired_tokens = [
-            token
-            for token, cred in self.token_cache.items()
-            if cred.is_expired()
+            token for token, cred in self.token_cache.items() if cred.is_expired()
         ]
 
         for token in expired_tokens:
@@ -335,13 +340,15 @@ class AgentAuthManager:
 
         return len(expired_tokens)
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get authentication statistics.
 
         Returns:
             Dictionary with credential stats
         """
-        active_creds = [c for c in self.token_cache.values() if c.is_active and not c.is_expired()]
+        active_creds = [
+            c for c in self.token_cache.values() if c.is_active and not c.is_expired()
+        ]
         expired_creds = [c for c in self.token_cache.values() if c.is_expired()]
         inactive_creds = [c for c in self.token_cache.values() if not c.is_active]
 

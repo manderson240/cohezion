@@ -14,13 +14,14 @@ from __future__ import annotations
 import logging
 import time
 from collections import defaultdict
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
 from typing import Any, Optional
 
-from cohezion.cost_optimization.cost_tracker import SessionCostTracker
-from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
 from cohezion.compound.global_metrics_aggregator import GlobalMetricsAggregator
+from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
+from cohezion.cost_optimization.cost_tracker import SessionCostTracker
+
 
 logger = logging.getLogger(__name__)
 
@@ -91,9 +92,9 @@ class CostDashboard:
 
     def __init__(
         self,
-        cost_tracker: Optional[SessionCostTracker] = None,
-        budget_enforcer: Optional[BudgetEnforcer] = None,
-        metrics_aggregator: Optional[GlobalMetricsAggregator] = None,
+        cost_tracker: SessionCostTracker | None = None,
+        budget_enforcer: BudgetEnforcer | None = None,
+        metrics_aggregator: GlobalMetricsAggregator | None = None,
         history_window_hours: int = 24,
     ):
         """Initialize cost dashboard.
@@ -115,9 +116,7 @@ class CostDashboard:
         self.trend_history: list[TrendPoint] = []
         self.last_aggregation_time = time.time()
 
-    def get_cost_breakdown(
-        self, time_window_minutes: int = 60
-    ) -> CostBreakdown:
+    def get_cost_breakdown(self, time_window_minutes: int = 60) -> CostBreakdown:
         """Get cost breakdown by model, team, time window.
 
         Args:
@@ -158,9 +157,7 @@ class CostDashboard:
             return SpendRate()
 
         session_cost = self.cost_tracker.get_session_cost()
-        elapsed_minutes = max(
-            1, (time.time() - self.history_start_time) / 60
-        )
+        elapsed_minutes = max(1, (time.time() - self.history_start_time) / 60)
 
         total_spent = session_cost.get("total_cost_usd", 0.0)
         spend_per_minute = total_spent / elapsed_minutes if elapsed_minutes > 0 else 0.0
@@ -196,9 +193,7 @@ class CostDashboard:
         budget_usd = self.budget_enforcer.budget_usd
         spent_usd = self.cost_tracker.total_cost_usd
 
-        utilization_pct = (
-            (spent_usd / budget_usd * 100) if budget_usd > 0 else 0
-        )
+        utilization_pct = (spent_usd / budget_usd * 100) if budget_usd > 0 else 0
 
         # Determine budget status
         if utilization_pct >= 100:
@@ -254,9 +249,7 @@ class CostDashboard:
             timestamp=time.time(),
             cost_usd=session_cost.get("total_cost_usd", 0.0),
             tokens=session_cost.get("total_tokens", 0),
-            execution_count=getattr(
-                self.cost_tracker, "execution_count", 0
-            ),
+            execution_count=getattr(self.cost_tracker, "execution_count", 0),
         )
 
         # Calculate average cost per execution
@@ -289,9 +282,7 @@ class CostDashboard:
 
         return pie_data
 
-    def get_cost_forecasts(
-        self, forecast_hours: int = 24
-    ) -> dict[str, float]:
+    def get_cost_forecasts(self, forecast_hours: int = 24) -> dict[str, float]:
         """Get cost forecasts for next N hours.
 
         Args:
@@ -307,10 +298,7 @@ class CostDashboard:
         current_cost = budget_status.total_spent_usd
 
         for hour in range(1, forecast_hours + 1):
-            projected_cost = (
-                current_cost
-                + (spend_rate.spend_per_hour_usd * hour)
-            )
+            projected_cost = current_cost + (spend_rate.spend_per_hour_usd * hour)
             forecasts[f"hour_{hour}"] = projected_cost
 
         return forecasts

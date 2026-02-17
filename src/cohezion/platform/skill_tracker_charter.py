@@ -3,15 +3,17 @@ Charter-aligned skill tracking with HIHO stability measurement.
 Integrates Phase 0 infrastructure for 100% Charter compliance.
 """
 
-from typing import Optional, List
-from datetime import datetime
-from pydantic import BaseModel
 import uuid
+from datetime import datetime
+from typing import List, Optional
+
+import numpy as np
+from pydantic import BaseModel
+
 from cohezion.core.persistence.surreal_client import get_surreal_client
+from cohezion.flume.vae_encoder import get_encoder
 from cohezion.platform.coherence_tracker import get_coherence_tracker
 from cohezion.platform.journey_logger import get_journey_logger
-from cohezion.flume.vae_encoder import get_encoder
-import numpy as np
 
 
 class SkillUsageEvent(BaseModel):
@@ -22,11 +24,11 @@ class SkillUsageEvent(BaseModel):
     execution_id: str
     tokens_used: int
     success: bool
-    error_message: Optional[str] = None
+    error_message: str | None = None
     latency_ms: float
     coherence_score: float  # Individual execution coherence
     hiho_stable: bool  # Was this execution HIHO stable?
-    flume_state: List[float]  # 256D FLUME state at execution
+    flume_state: list[float]  # 256D FLUME state at execution
 
 
 class CharterAlignedSkillTracker:
@@ -39,7 +41,7 @@ class CharterAlignedSkillTracker:
         self.vae = get_encoder()
 
     async def log_skill_usage(
-        self, event: SkillUsageEvent, journey_id: Optional[str] = None
+        self, event: SkillUsageEvent, journey_id: str | None = None
     ):
         """
         Log skill usage with Charter-compliant tracking.
@@ -113,7 +115,7 @@ class CharterAlignedSkillTracker:
         coherence_before: float,
         coherence_after: float,
         prompt: str,
-        error_message: Optional[str] = None,
+        error_message: str | None = None,
     ) -> SkillUsageEvent:
         """
         Create a skill usage event with Charter metrics.

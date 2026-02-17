@@ -12,6 +12,7 @@ from pathlib import Path
 
 from cohezion.mass_sim.config import SimulationReport, UniverseResult
 
+
 logger = logging.getLogger(__name__)
 
 

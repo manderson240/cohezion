@@ -7,8 +7,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Callable
 from datetime import datetime, timedelta
-from typing import Callable, Optional
+from typing import Optional
+
 
 logger = logging.getLogger(__name__)
 
@@ -28,14 +30,16 @@ class CommitBatcher:
         """
         self.batch_window_seconds = batch_window_seconds
         self.pending_files: set[str] = set()
-        self.last_commit: Optional[datetime] = None
+        self.last_commit: datetime | None = None
         self._lock = asyncio.Lock()
 
     async def queue_file(self, filename: str) -> None:
         """Queue a file for batched commit."""
         async with self._lock:
             self.pending_files.add(filename)
-            logger.debug(f"Queued {filename} for batch commit. Pending: {len(self.pending_files)}")
+            logger.debug(
+                f"Queued {filename} for batch commit. Pending: {len(self.pending_files)}"
+            )
 
     async def should_commit(self) -> bool:
         """Check if batch window exceeded and commit should happen."""

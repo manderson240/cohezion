@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 MCP_REGISTRY_PATH = Path(__file__).parent / "mcp_registry.json"

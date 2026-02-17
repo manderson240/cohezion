@@ -16,4 +16,5 @@ Internal (custom):
 
 from cohezion.mcp.registry import MCPRegistry
 
+
 __all__ = ["MCPRegistry"]

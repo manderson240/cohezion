@@ -39,6 +39,7 @@ from typing import Any
 from cohezion.swarm.batch_processor import CacheEntry
 from cohezion.swarm.lru_persistent_cache import LRUPersistentCache
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -141,11 +142,13 @@ class LRUPersistentTokenCache(dict):
         # Persist to disk with LRU tracking if persistence is enabled
         if self.persistence_enabled and isinstance(value, CacheEntry):
             # Store as JSON string - LRUPersistentCache expects string values
-            persistent_value = json.dumps({
-                "key": value.key,
-                "value": value.value,
-                "tokens_used": value.tokens_used,
-            })
+            persistent_value = json.dumps(
+                {
+                    "key": value.key,
+                    "value": value.value,
+                    "tokens_used": value.tokens_used,
+                }
+            )
             self.lru_store.put(key, persistent_value)
 
             # If LRU store evicted entries, mirror that in memory dict
@@ -153,8 +156,9 @@ class LRUPersistentTokenCache(dict):
             # and remove entries that aren't in LRU store
             if len(self) > len(self.lru_store.memory_cache):
                 # Sync memory dict with LRU store
-                keys_to_remove = [k for k in self.keys()
-                                  if k not in self.lru_store.memory_cache]
+                keys_to_remove = [
+                    k for k in self.keys() if k not in self.lru_store.memory_cache
+                ]
                 for k in keys_to_remove:
                     super().__delitem__(k)
 

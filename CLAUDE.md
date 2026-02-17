@@ -10,7 +10,7 @@ COHEZION: 12D agentic universe with FLUME VAE, compound engineering, multi-agent
 
 ### ⚡ Core Commands
 ```bash
-uv run pytest tests/ -q              # Full test suite (2,854 tests, ~5min)
+uv run pytest tests/ -q              # Full test suite (3,146 tests, ~2min)
 uv run pytest tests/compound/ -v     # Run module tests
 uv run pytest tests/test_*.py::name  # Single test
 make format && make lint && make all # Check → fix → verify
@@ -89,8 +89,8 @@ uv run python scripts/compile_memory_from_vault.py
 ### ⚡ Quick Reference
 - **Language**: Python 3.13+ | **Package Manager**: `uv` (never bare python)
 - **DB**: SurrealDB (ws://localhost:8000) | **API**: FastAPI :8080
-- **Tests**: 2,854 (99.3% passing) | **Coverage**: html report in `htmlcov/`
-- **CI**: `make lint-check && uv run pytest` before commit
+- **Tests**: 3,146 (99.1% passing) | **Coverage**: html report in `htmlcov/`
+- **CI**: GitHub Actions (`.github/workflows/`) | `make lint-check && uv run pytest` before commit
 - **Entry point**: `cohezion = "cohezion.__main__:main"`
 - **Vault**: `~/vaults/cohezion-vault/` — Query via `vault_find_relevant_context(query)`
 
@@ -126,7 +126,7 @@ Updated Skill (loop again)
 | `src/cohezion/compound/` | Executor, SkillRefiner, RetrospectionEngine, JourneyTracker | `executor.py` (11-step) |
 | `src/cohezion/swarm/` | Team orchestration, cost routing, model quality | `team_executor.py`, `cost_aware_router.py` |
 | `src/cohezion/cache/` | L1/L2/L3 semantic cache (95%+ hit rate) | `semantic_cache.py` |
-| `src/cohezion/skills/` | 124 PRIME skill definitions (*.md + *.py) | `skill_registry.json` |
+| `src/cohezion/skills/` | 132 PRIME skill definitions (*.md + *.py) | `skill_registry.json` |
 | `src/cohezion/persistence/` | SurrealDB, checkpoints, session recovery | `surreal_client.py` |
 | `src/cohezion/api/` | FastAPI backend (46 endpoints) | `__init__.py` (FastMCP patterns) |
 | `src/cohezion/flume/` | FLUME VAE (256D latent space) | `flume_vae.py` |
@@ -245,7 +245,7 @@ cd ~/dev/cohezion && git worktree remove ~/dev/cohezion-session-${SESSION_ID}
 **Why**: Isolation → no conflicts | Reversibility → safe branching | Audit trail → clear history | Safety → main never edited directly
 
 **Git Rules** (see `.claude/rules/git-workflow.md`):
-- Never force-push to main/develop
+- Never force-push to main
 - Conventional commits: `feat:`, `fix:`, `test:`, `refactor:`, `chore:`
 - AI commits include: `Co-Authored-By: Claude <noreply@anthropic.com>`
 - No files >1MB (use git-lfs)

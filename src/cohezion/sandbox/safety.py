@@ -14,12 +14,14 @@ import logging
 import re
 import threading
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Optional
+from typing import Any, Optional
 
 import psutil
+
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +94,7 @@ class Monitor:
     def __init__(
         self,
         policy: SafetyPolicy,
-        process_id: Optional[int] = None,
+        process_id: int | None = None,
         check_interval: float = 0.5,
     ):
         """Initialize monitor.
@@ -106,7 +108,7 @@ class Monitor:
         self.process_id = process_id
         self.check_interval = check_interval
         self.is_running = False
-        self._thread: Optional[threading.Thread] = None
+        self._thread: threading.Thread | None = None
         self.violations: list[Violation] = []
         self._callbacks: dict[str, list[Callable]] = {
             "cpu_violation": [],
@@ -222,9 +224,7 @@ class PreFlightChecker:
             r"\/dev\/sda",
         ]
 
-    def check(
-        self, request: dict[str, Any], policy: SafetyPolicy
-    ) -> SafetyCheckResult:
+    def check(self, request: dict[str, Any], policy: SafetyPolicy) -> SafetyCheckResult:
         """Run preflight checks.
 
         Args:
@@ -321,7 +321,14 @@ class PreFlightChecker:
         result.requires_approval = (
             policy.require_human_approval
             or result.risk_score > 0.7
-            or len([v for v in result.violations if v.severity == ViolationSeverity.CRITICAL]) > 0
+            or len(
+                [
+                    v
+                    for v in result.violations
+                    if v.severity == ViolationSeverity.CRITICAL
+                ]
+            )
+            > 0
         )
 
         return result
@@ -335,7 +342,7 @@ class PreFlightChecker:
 
     def _check_blocked_commands(
         self, request: dict[str, Any], policy: SafetyPolicy
-    ) -> Optional[str]:
+    ) -> str | None:
         """Check for blocked command patterns."""
         context = request.get("context", {})
         command = str(context.get("command", ""))
@@ -466,9 +473,7 @@ class RiskAssessor:
             "system_call": 0.25,
         }
 
-    def calculate_risk(
-        self, operation: str, context: dict[str, Any]
-    ) -> float:
+    def calculate_risk(self, operation: str, context: dict[str, Any]) -> float:
         """Calculate risk score for operation.
 
         Args:
@@ -481,7 +486,9 @@ class RiskAssessor:
         score = 0.0
 
         # Analyze operation type
-        if any(keyword in operation.lower() for keyword in ["delete", "remove", "drop"]):
+        if any(
+            keyword in operation.lower() for keyword in ["delete", "remove", "drop"]
+        ):
             score += self._risk_weights["file_modification"]
 
         if context.get("network_required", False):
@@ -612,13 +619,15 @@ class SafetyHarness:
         Returns:
             SafetyCheckResult with all checks and violations
         """
-        logger.info(f"Running preflight checks for: {request.get('operation', 'unknown')}")
+        logger.info(
+            f"Running preflight checks for: {request.get('operation', 'unknown')}"
+        )
         return self._preflight_checker.check(request, policy)
 
     def start_monitoring(
         self,
         policy: SafetyPolicy,
-        process_id: Optional[int] = None,
+        process_id: int | None = None,
         check_interval: float = 0.5,
     ) -> Monitor:
         """Start real-time constraint monitoring.
@@ -653,9 +662,7 @@ class SafetyHarness:
         enforcer.enforce()
         return enforcer
 
-    def calculate_risk(
-        self, operation: str, context: dict[str, Any]
-    ) -> float:
+    def calculate_risk(self, operation: str, context: dict[str, Any]) -> float:
         """Calculate risk score for operation.
 
         Args:

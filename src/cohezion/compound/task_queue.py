@@ -23,6 +23,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Optional
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -40,7 +41,7 @@ class QueuedTask:
 
     task_id: str
     prompt: str
-    system_prompt: Optional[str]
+    system_prompt: str | None
     model: str
     priority: TaskPriority = TaskPriority.NORMAL
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -93,7 +94,7 @@ class TaskQueue:
     def __init__(
         self,
         queue_size_limit: int = 10000,
-        persistence_dir: Optional[Path] = None,
+        persistence_dir: Path | None = None,
         enable_persistence: bool = True,
     ) -> None:
         """Initialize task queue."""
@@ -154,7 +155,7 @@ class TaskQueue:
 
         return True
 
-    def dequeue(self) -> Optional[QueuedTask]:
+    def dequeue(self) -> QueuedTask | None:
         """Dequeue next task (priority order).
 
         Returns highest priority task that hasn't expired.
@@ -265,8 +266,7 @@ class TaskQueue:
         self.metrics.current_depth = self.size()
 
         logger.warning(
-            f"Flushed {flushed} tasks "
-            f"(priority < {priority_threshold.name})"
+            f"Flushed {flushed} tasks (priority < {priority_threshold.name})"
         )
 
         return flushed
@@ -297,9 +297,7 @@ class TaskQueue:
             Number of tasks in queue
         """
         return (
-            len(self._critical_queue)
-            + len(self._normal_queue)
-            + len(self._low_queue)
+            len(self._critical_queue) + len(self._normal_queue) + len(self._low_queue)
         )
 
     def is_empty(self) -> bool:
@@ -355,7 +353,11 @@ class TaskQueue:
             filepath.parent.mkdir(parents=True, exist_ok=True)
 
             with open(filepath, "w") as f:
-                for queue in [self._critical_queue, self._normal_queue, self._low_queue]:
+                for queue in [
+                    self._critical_queue,
+                    self._normal_queue,
+                    self._low_queue,
+                ]:
                     for task in queue:
                         record = {
                             "task_id": task.task_id,
@@ -370,9 +372,7 @@ class TaskQueue:
                         }
                         f.write(json.dumps(record) + "\n")
 
-            logger.info(
-                f"Persisted {self.size()} tasks to {filepath}"
-            )
+            logger.info(f"Persisted {self.size()} tasks to {filepath}")
             return True
         except Exception as e:
             logger.error(f"Failed to persist queue: {e}")
@@ -457,8 +457,8 @@ class TaskQueue:
 
 
 __all__ = [
-    "TaskPriority",
-    "QueuedTask",
     "QueueMetrics",
+    "QueuedTask",
+    "TaskPriority",
     "TaskQueue",
 ]

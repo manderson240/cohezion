@@ -31,11 +31,12 @@ Usage:
 
 import logging
 import time
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Optional, Dict, List, Tuple
-from datetime import datetime, timedelta
 from collections import deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Dict, List, Optional, Tuple
+
 
 logger = logging.getLogger(__name__)
 
@@ -57,13 +58,13 @@ class AnomalyAlert:
     anomaly_type: AnomalyType
     detected_at: float
     cost_actual: float
-    cost_forecasted: Optional[float]
+    cost_forecasted: float | None
     cost_deviation_pct: float
     model: str
     severity: float  # 0.0 - 1.0
     description: str
     confidence: float  # 0.0 - 1.0 (1 - false positive risk)
-    metrics: Dict[str, float] = field(default_factory=dict)
+    metrics: dict[str, float] = field(default_factory=dict)
 
     def is_valid_alert(self, fp_threshold: float = 0.05) -> bool:
         """Check if alert passes false positive threshold.
@@ -94,7 +95,7 @@ class ModelCostHistory:
     def add_datapoint(
         self,
         cost: float,
-        forecast: Optional[float] = None,
+        forecast: float | None = None,
         coherence: float = 0.7,
     ) -> None:
         """Add cost datapoint to history."""
@@ -103,15 +104,11 @@ class ModelCostHistory:
         self.forecasts.append(forecast or cost)
         self.coherence_scores.append(coherence)
 
-    def get_recent_costs(self, minutes: int = 10) -> List[float]:
+    def get_recent_costs(self, minutes: int = 10) -> list[float]:
         """Get costs from last N minutes."""
         now = time.time()
         cutoff = now - (minutes * 60)
-        return [
-            cost
-            for cost, t in zip(self.costs, self.times)
-            if t >= cutoff
-        ]
+        return [cost for cost, t in zip(self.costs, self.times) if t >= cutoff]
 
     def get_average_cost(self, minutes: int = 10) -> float:
         """Get average cost over last N minutes."""
@@ -143,8 +140,7 @@ class ModelCostHistory:
         mean_y = sum(recent_costs) / n
 
         numerator = sum(
-            (t - mean_x) * (c - mean_y)
-            for t, c in zip(recent_times, recent_costs)
+            (t - mean_x) * (c - mean_y) for t, c in zip(recent_times, recent_costs)
         )
         denominator = sum((t - mean_x) ** 2 for t in recent_times)
 
@@ -181,7 +177,7 @@ class AnomalyDetector:
         self.fp_adjustment_factor = fp_adjustment_factor
 
         # Per-model cost history
-        self.model_histories: Dict[str, ModelCostHistory] = {}
+        self.model_histories: dict[str, ModelCostHistory] = {}
 
         # Alert tracking
         self.recent_alerts: deque = deque(maxlen=1000)
@@ -190,10 +186,10 @@ class AnomalyDetector:
     def detect_spike(
         self,
         actual_cost: float,
-        forecasted_cost: Optional[float] = None,
+        forecasted_cost: float | None = None,
         model: str = "unknown",
         coherence_score: float = 0.7,
-    ) -> Optional[AnomalyAlert]:
+    ) -> AnomalyAlert | None:
         """Detect sudden cost spike.
 
         Args:
@@ -239,7 +235,7 @@ class AnomalyDetector:
             severity=severity,
             confidence=confidence,
             description=f"Cost spike: {actual_cost:.4f} vs {forecasted_cost:.4f} "
-            f"({deviation*100:+.1f}%)",
+            f"({deviation * 100:+.1f}%)",
             metrics={
                 "actual": actual_cost,
                 "forecasted": forecasted_cost,
@@ -256,7 +252,7 @@ class AnomalyDetector:
         self,
         model: str,
         coherence_score: float = 0.7,
-    ) -> Optional[AnomalyAlert]:
+    ) -> AnomalyAlert | None:
         """Detect cost trending upward over time.
 
         Args:
@@ -310,7 +306,7 @@ class AnomalyDetector:
             model=model,
             severity=severity,
             confidence=confidence,
-            description=f"Cost trend: rising {trend_slope*3600:.6f} cost/hour "
+            description=f"Cost trend: rising {trend_slope * 3600:.6f} cost/hour "
             f"over {self.trend_window_hours}h",
             metrics={
                 "trend_slope": trend_slope,
@@ -329,7 +325,7 @@ class AnomalyDetector:
         cost: float,
         coherence_score: float,
         model: str = "unknown",
-    ) -> Optional[AnomalyAlert]:
+    ) -> AnomalyAlert | None:
         """Detect high cost with low quality output.
 
         Args:
@@ -393,18 +389,13 @@ class AnomalyDetector:
         now = time.time()
         cutoff = now - (minutes * 60)
 
-        recent = [
-            a for a in self.recent_alerts
-            if a.detected_at >= cutoff
-        ]
+        recent = [a for a in self.recent_alerts if a.detected_at >= cutoff]
 
         if not recent:
             return 0.0
 
         # Heuristic: assume alerts with very high confidence are true positives
-        false_positives = sum(
-            1 for a in recent if a.confidence < 0.85
-        )
+        false_positives = sum(1 for a in recent if a.confidence < 0.85)
 
         return false_positives / len(recent)
 
@@ -423,7 +414,7 @@ class AnomalyDetector:
         self,
         anomaly_type: AnomalyType,
         deviation: float,
-        recent_history: List[float],
+        recent_history: list[float],
     ) -> float:
         """Calculate confidence that anomaly is real.
 
@@ -470,7 +461,7 @@ class AnomalyDetector:
 
 
 # Singleton instance
-_anomaly_detector: Optional[AnomalyDetector] = None
+_anomaly_detector: AnomalyDetector | None = None
 
 
 def get_anomaly_detector() -> AnomalyDetector:

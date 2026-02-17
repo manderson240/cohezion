@@ -7,64 +7,22 @@ Orchestrates execution lifecycle:
   4. Extract reusable patterns for future runs
 """
 
-import asyncio
-import json
 import logging
 import time
 from collections.abc import Callable
-from dataclasses import dataclass
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
+from cohezion.compound.executor_types import ExecutionResult
 from cohezion.compound.exp_persistence.vault import (
     ExecutionContext,
     VaultLogger,
 )
 from cohezion.core.mcp_client import MCPClient
-from cohezion.security.guardrail_pipeline import GuardrailAction, GuardrailPipeline
-
-
-if TYPE_CHECKING:
-    from cohezion.compound.inflection_detector import InflectionDetector
-    from cohezion.compound.skill_refiner import SkillRefiner
-else:
-    # Lazy import to avoid circular dependency at runtime
-    InflectionDetector = None
-    SkillRefiner = None
+from cohezion.security.guardrail_pipeline import GuardrailPipeline
 
 
 logger = logging.getLogger(__name__)
-
-
-def _run_async_guardrail(coro: Any) -> Any:
-    """Execute async guardrail check in sync context.
-
-    Non-blocking on failure - logs and returns None.
-
-    Args:
-        coro: Async coroutine to execute
-
-    Returns:
-        Result of coroutine or None on failure
-    """
-    try:
-        return asyncio.run(coro)
-    except Exception as e:
-        logger.debug(f"Guardrail check failed (non-blocking): {e}")
-        return None
-
-
-@dataclass
-class ExecutionResult:
-    """Result of a compound execution."""
-
-    success: bool
-    output: str
-    metrics: dict[str, Any]
-    duration_seconds: float
-    vault_experiment_path: str = ""
-    vault_decision_paths: list[str] | None = None
-    token_metrics: dict[str, Any] | None = None
 
 
 class CompoundExecutor:
@@ -155,12 +113,12 @@ class CompoundExecutor:
         self._model_quality_classifier = model_quality_classifier
         self._retrospection_engine = retrospection_engine
         self._universe_bridge = universe_bridge
-        self._degradation_mode = False  # HIHO band violation flag
-        # Lazy import to avoid circular dependency
+        self._degradation_mode = False
         if inflection_detector:
             self.inflection_detector = inflection_detector
         else:
             from cohezion.compound.inflection_detector import InflectionDetectorFactory
+
             self.inflection_detector = InflectionDetectorFactory.create_default()
         self.logger = VaultLogger(mcp_client=mcp_client)
 
@@ -223,7 +181,10 @@ class CompoundExecutor:
         return self._alignment_analyzer
 
     def get_experience_guidance(
-        self, task_description: str, project: str = "cohezion", operation_type: str = "generate"
+        self,
+        task_description: str,
+        project: str = "cohezion",
+        operation_type: str = "generate",
     ) -> dict[str, Any]:
         """Fetch experience guidance from vault before execution.
 
@@ -241,33 +202,28 @@ class CompoundExecutor:
         """
         logger.info("Fetching experience guidance for: %s", task_description)
 
-        # Step 1: Get base guidance from vault
         base_guidance: dict[str, Any] = self.logger.get_experience_guidance(
             task_description=task_description, project=project
         )
 
-        # Step 2: Enhance with trajectory search (if available)
         try:
-            from cohezion.compound.trajectory_search import TrajectorySearchEngine
             from cohezion.compound.guidance_enhancer import GuidanceEnhancer
+            from cohezion.compound.trajectory_search import TrajectorySearchEngine
             from cohezion.flume.experience_collector import ExperienceCollector
             from cohezion.flume.experience_encoder import ExperienceEncoder
 
-            # Initialize search components (lazy)
             collector = ExperienceCollector()
             encoder = ExperienceEncoder()
             search = TrajectorySearchEngine(collector, encoder)
             enhancer = GuidanceEnhancer()
 
-            # Find similar trajectories
             trajectory_results = search.find_similar_trajectories(
                 task_description=task_description,
                 operation_type=operation_type,
                 top_k=5,
-                min_coherence=0.4,  # HIHO threshold
+                min_coherence=0.4,
             )
 
-            # Enhance guidance
             enhanced = enhancer.enhance_guidance(base_guidance, trajectory_results)
             result = enhancer.to_dict(enhanced)
 
@@ -279,7 +235,7 @@ class CompoundExecutor:
 
         except Exception as e:
             logger.debug(
-                "Trajectory search failed (non-blocking): %s. Using base guidance only.",
+                "Trajectory search failed (non-blocking): %s.",
                 e,
                 exc_info=True,
             )
@@ -339,7 +295,7 @@ class CompoundExecutor:
         task_description: str,
         skill_name: str,
         operation_type: str,
-        execute_fn: Callable,
+        execute_fn: Callable[..., Any],
         project: str = "cohezion",
         human_request: str | None = None,
     ) -> ExecutionResult:
@@ -359,10 +315,25 @@ class CompoundExecutor:
             ExecutionResult with success status, output, metrics, vault paths,
             and token_metrics if TokenEfficientClient was used
         """
+        from cohezion.compound.executor_analysis import (
+            detect_anomalies,
+            extract_patterns,
+            refine_skills,
+        )
+        from cohezion.compound.executor_guardrails import (
+            check_input_guardrails,
+            check_output_guardrails,
+        )
+        from cohezion.compound.executor_monitoring import (
+            check_degradation,
+            record_metrics,
+            record_model_quality,
+            track_journey,
+        )
+
         start_time = datetime.now()
         start_seconds = time.time()
 
-        # Create execution context
         ctx = ExecutionContext(
             project=project,
             skill_name=skill_name,
@@ -379,7 +350,6 @@ class CompoundExecutor:
             skill_name,
         )
 
-        # Start universe journey if bridge configured
         universe_journey_id: str | None = None
         if self._universe_bridge:
             try:
@@ -390,19 +360,21 @@ class CompoundExecutor:
             except Exception as e:
                 logger.debug("Universe bridge start failed (non-blocking): %s", e)
 
-        # Step 1: Get experience guidance (enhanced with trajectory search)
-        guidance = self.get_experience_guidance(task_description, project, operation_type)
+        guidance = self.get_experience_guidance(
+            task_description, project, operation_type
+        )
         logger.debug("Experience guidance: %s", guidance)
 
-        # Step 1.5: Parse request for alignment analysis (if enabled)
-        # Skip in degradation mode to conserve resources
         parsed_request = None
-        alignment_patterns = None
-        if self._enable_alignment_analysis and self.alignment_analyzer and not self._degradation_mode:
+        if (
+            self._enable_alignment_analysis
+            and self.alignment_analyzer
+            and not self._degradation_mode
+        ):
             try:
                 request_text = human_request or task_description
                 parsed_request = self.alignment_analyzer.parse_request(request_text)
-                alignment_patterns = self.alignment_analyzer.query_alignment_patterns(
+                self.alignment_analyzer.query_alignment_patterns(
                     task_description, project
                 )
                 logger.debug(
@@ -415,52 +387,38 @@ class CompoundExecutor:
                 )
             except Exception as e:
                 logger.debug(
-                    "Request alignment parsing failed (non-blocking): %s", e, exc_info=True
+                    "Request alignment parsing failed (non-blocking): %s",
+                    e,
+                    exc_info=True,
                 )
 
-        # Step 2: Log execution start
         experiment_path = self.logger.log_execution_start(ctx)
 
-        # Step 3: Check input via guardrails
         success = False
         output = ""
         metrics: dict[str, Any] = {}
         token_metrics: dict[str, Any] | None = None
         error_msg = ""
 
-        # Check input against guardrails if enabled
-        if self.guardrail_pipeline:
-            guard_context = {
-                "skill_name": skill_name,
-                "operation_type": operation_type,
-                "task_description": task_description,
-            }
-            input_check = _run_async_guardrail(
-                self.guardrail_pipeline.check_input(
-                    task_description, guard_context
-                )
+        should_continue, error_msg, guard_metrics = check_input_guardrails(
+            self, task_description, skill_name, operation_type
+        )
+        if not should_continue:
+            output = f"Error: {error_msg}"
+            self.logger.log_execution_result(
+                experiment_path=experiment_path,
+                success=False,
+                output=output,
+                metrics=guard_metrics,
             )
-            if input_check and input_check.action == GuardrailAction.BLOCK:
-                error_msg = f"Input blocked by guardrails: {input_check.reason}"
-                output = f"Error: {error_msg}"
-                metrics = {"error": error_msg, "blocked_by_guardrails": True}
-                logger.warning("Task input blocked: %s", input_check.reason)
-                # Log execution result and return
-                self.logger.log_execution_result(
-                    experiment_path=experiment_path,
-                    success=False,
-                    output=output,
-                    metrics=metrics,
-                )
-                return ExecutionResult(
-                    success=False,
-                    output=output,
-                    metrics=metrics,
-                    duration_seconds=time.time() - start_seconds,
-                    vault_experiment_path=experiment_path,
-                )
+            return ExecutionResult(
+                success=False,
+                output=output,
+                metrics=guard_metrics,
+                duration_seconds=time.time() - start_seconds,
+                vault_experiment_path=experiment_path,
+            )
 
-        # Capture token metrics before execution (if token_client available)
         token_metrics_before = None
         if self.token_client:
             token_metrics_before = self.token_client.get_metrics()
@@ -475,7 +433,6 @@ class CompoundExecutor:
             metrics = {"error": error_msg}
             logger.error("Task failed: %s", error_msg, exc_info=True)
 
-        # Capture token metrics after execution (if token_client available)
         if self.token_client:
             token_metrics_after = self.token_client.get_metrics()
             token_metrics = self._compute_token_delta(
@@ -483,34 +440,15 @@ class CompoundExecutor:
             )
             logger.debug("Token metrics: %s", token_metrics)
 
-        # Check output via guardrails if successful
-        if success and self.guardrail_pipeline:
-            guard_context = {
-                "skill_name": skill_name,
-                "operation_type": operation_type,
-                "task_description": task_description,
-            }
-            output_check = _run_async_guardrail(
-                self.guardrail_pipeline.check_output(
-                    output, guard_context
-                )
+        if success:
+            output, success, guard_metrics = check_output_guardrails(
+                self, output, skill_name, operation_type, task_description
             )
-            if output_check:
-                if output_check.action == GuardrailAction.BLOCK:
-                    output = "[Output blocked by content filter]"
-                    success = False
-                    metrics["output_blocked_by_guardrails"] = True
-                    logger.warning("Task output blocked: %s", output_check.reason)
-                elif output_check.action == GuardrailAction.SANITIZE:
-                    if output_check.modified_input:
-                        output = output_check.modified_input
-                        metrics["output_sanitized_by_guardrails"] = True
-                        logger.debug("Task output sanitized")
+            metrics.update(guard_metrics)
 
         duration_seconds = time.time() - start_seconds
         metrics["duration_seconds"] = duration_seconds
 
-        # Step 4: Log execution results
         self.logger.log_execution_result(
             experiment_path=experiment_path,
             success=success,
@@ -518,53 +456,25 @@ class CompoundExecutor:
             metrics=metrics,
         )
 
-        # Step 5: Detect anomalies (non-blocking)
         decision_paths = []
-        try:
-            from cohezion.compound.inflection_detector import Severity
-            temp_result = ExecutionResult(
-                success=success,
-                output=output,
-                metrics=metrics,
-                duration_seconds=duration_seconds,
-                token_metrics=token_metrics,
-            )
-            anomaly = self.inflection_detector.detect_anomaly(temp_result)
-            metrics["anomaly_severity"] = anomaly.severity.value
-            metrics["anomaly_score"] = anomaly.score
-            logger.debug(
-                "Anomaly detection: severity=%s, score=%.2f, issues=%s",
-                anomaly.severity.value,
-                anomaly.score,
-                anomaly.issues,
-            )
-            # Log critical inflection points to vault
-            if anomaly.severity == Severity.CRITICAL:
-                logger.warning(
-                    "Critical inflection point detected: %s issues",
-                    len(anomaly.issues),
-                )
-                try:
-                    decision_path = self.log_inflection_point(
-                        title=f"Critical anomaly in {skill_name}",
-                        context=f"Task: {task_description}\nIssues: {'; '.join(anomaly.issues)}",
-                        decision="Re-execution recommended",
-                        rationale=f"Quality score {anomaly.score:.2f}, {anomaly.recommendations[0] if anomaly.recommendations else 'Investigate issues'}",
-                        project=project,
-                    )
-                    if decision_path:
-                        decision_paths.append(decision_path)
-                except Exception as e:
-                    logger.debug(
-                        "Failed to log inflection point (non-blocking): %s", e
-                    )
-        except Exception as e:
-            logger.debug(
-                "Anomaly detection failed (non-blocking): %s", e, exc_info=True
-            )
+        temp_result = ExecutionResult(
+            success=success,
+            output=output,
+            metrics=metrics,
+            duration_seconds=duration_seconds,
+            token_metrics=token_metrics,
+        )
+        anomaly_metrics, anomaly_paths = detect_anomalies(
+            self, temp_result, skill_name, task_description, project
+        )
+        metrics.update(anomaly_metrics)
+        decision_paths.extend(anomaly_paths)
 
-        # Step 5.5: Analyze request-execution alignment (if enabled)
-        if self._enable_alignment_analysis and self.alignment_analyzer and parsed_request:
+        if (
+            self._enable_alignment_analysis
+            and self.alignment_analyzer
+            and parsed_request
+        ):
             try:
                 from cohezion.compound.inflection_detector import Severity
 
@@ -576,10 +486,8 @@ class CompoundExecutor:
                     token_metrics=token_metrics,
                 )
 
-                # Get anomaly analysis if available
                 anomaly_analysis = None
                 if "anomaly_severity" in metrics:
-                    # Create a minimal anomaly object for alignment analysis
                     from cohezion.compound.inflection_detector import AnomalyDetection
 
                     severity_val = metrics.get("anomaly_severity", "info")
@@ -596,7 +504,6 @@ class CompoundExecutor:
                     parsed_request, temp_result, operation_type, anomaly_analysis
                 )
 
-                # Log alignment to vault if high misalignment
                 if alignment.misalignment_score > 0.3:
                     vault_path = self.alignment_analyzer.log_alignment_to_vault(
                         parsed_request, alignment, project
@@ -605,7 +512,6 @@ class CompoundExecutor:
                         decision_paths.append(vault_path)
                         logger.debug("Logged alignment analysis: %s", vault_path)
 
-                # Add alignment metrics to result
                 metrics["alignment"] = {
                     "misalignment_score": alignment.misalignment_score,
                     "intent_match": alignment.intent_match_score,
@@ -624,39 +530,26 @@ class CompoundExecutor:
                     exc_info=True,
                 )
 
-        # Step 5.8: Compute real cohesion score from available signals
-        # Cohesion = overlap between agent's internal intent and precipitated result
         cohesion_components: list[float] = []
-        # Precipitation success: did reality match intent?
         cohesion_components.append(0.7 if success else 0.2)
-        # Spin alignment: inverse of anomaly score (low anomaly = high alignment)
-        # Default 0.0 = no anomaly detected (assume clean if detection unavailable)
         cohesion_components.append(1.0 - metrics.get("anomaly_score", 0.0))
-        # Quadrature consensus: alignment with human request
         if alignment_data := metrics.get("alignment", {}):
             cohesion_components.append(alignment_data.get("intent_match", 0.5))
         metrics["coherence"] = sum(cohesion_components) / len(cohesion_components)
 
-        # Step 6: If successful, extract patterns (skip in degradation mode)
-        if success and experiment_path and not self._degradation_mode:
-            try:
-                pattern_path = self.logger.extract_execution_pattern(
-                    source_path=experiment_path,
-                    pattern_name=f"{skill_name}_{operation_type}_success",
-                    description=f"Successful execution pattern for {skill_name} "
-                    f"operation: {operation_type}. "
-                    f"Task: {task_description[:100]}",
-                    code_example=f"Result metrics: {json.dumps(metrics, indent=2)}",
-                    domain="compound-engineering",
-                )
-                if pattern_path:
-                    decision_paths.append(pattern_path)
-            except Exception as e:
-                logger.warning("Failed to extract pattern: %s", e, exc_info=True)
+        pattern_paths = extract_patterns(
+            self,
+            success,
+            experiment_path,
+            skill_name,
+            operation_type,
+            task_description,
+            metrics,
+        )
+        decision_paths.extend(pattern_paths)
 
-        # Step 7.3: Retrospection analysis (gates skill refinement)
         retrospection_context: dict[str, Any] | None = None
-        should_refine = True  # default: refine if no retrospection engine
+        should_refine = True
         if self._retrospection_engine:
             try:
                 temp_result = ExecutionResult(
@@ -666,230 +559,88 @@ class CompoundExecutor:
                     duration_seconds=duration_seconds,
                     token_metrics=token_metrics,
                 )
-                retrospection_context = self._retrospection_engine.analyze_execution_result(
-                    temp_result, skill_name
+                retrospection_context = (
+                    self._retrospection_engine.analyze_execution_result(
+                        temp_result, skill_name
+                    )
                 )
-                should_refine = retrospection_context.get("should_refine", True)
-                if retrospection_context.get("insights"):
-                    metrics["retrospection_insights"] = retrospection_context["insights"]
-                logger.debug(
-                    "Retrospection: should_refine=%s, compound=%.3f",
-                    should_refine,
-                    retrospection_context.get("compound_score", 0.0),
-                )
+                if retrospection_context is not None:
+                    should_refine = retrospection_context.get("should_refine", True)
+                    if retrospection_context.get("insights"):
+                        metrics["retrospection_insights"] = retrospection_context[
+                            "insights"
+                        ]
+                    logger.debug(
+                        "Retrospection: should_refine=%s, compound=%.3f",
+                        should_refine,
+                        retrospection_context.get("compound_score", 0.0),
+                    )
             except Exception as e:
                 logger.debug(
                     "Retrospection failed (non-blocking): %s", e, exc_info=True
                 )
 
-        # Step 7: Refine skills based on execution results (non-blocking)
-        # Gated by retrospection: only refine when quadrature assessment warrants it
-        if success and self.skill_refiner and should_refine:
-            try:
-                # Create execution result dict for refiner
-                exec_result = {
-                    "success": success,
-                    "output": output,
-                    "metrics": metrics,
-                    "duration_seconds": duration_seconds,
-                    "token_metrics": token_metrics,
-                }
+        decision_paths = refine_skills(
+            self,
+            success,
+            skill_name,
+            operation_type,
+            output,
+            metrics,
+            duration_seconds,
+            token_metrics,
+            decision_paths,
+            should_refine,
+        )
 
-                # Call skill refiner
-                refined_path = self.skill_refiner.refine(
-                    skill_name=skill_name,
-                    operation_type=operation_type,
-                    execution_result=exec_result,
-                    patterns_extracted=decision_paths,
-                )
-
-                if refined_path:
-                    logger.info(f"Skill refined: {refined_path}")
-                    decision_paths.append(refined_path)
-
-            except Exception as e:
-                logger.debug(
-                    "Skill refinement failed (non-blocking): %s", e, exc_info=True
-                )
-
-        # Step 7.5: Check for degradation and manage HIHO band (non-blocking)
-        # Coherence within HIHO band [0.4, 0.6] -> exit degradation mode
-        # Coherence outside band with CRITICAL alert -> enter degradation mode
         coherence_val = metrics.get("coherence", 0.5)
-        if 0.4 <= coherence_val <= 0.6:
-            if self._degradation_mode:
-                logger.info("Cohesion returned to HIHO band (%.2f), exiting degradation mode", coherence_val)
-                self._degradation_mode = False
+        degrad_metrics, degrad_paths, self._degradation_mode = check_degradation(
+            self,
+            coherence_val,
+            duration_seconds,
+            success,
+            token_metrics,
+            task_description,
+            project,
+        )
+        metrics.update(degrad_metrics)
+        decision_paths.extend(degrad_paths)
 
-        if self._degradation_detector:
-            try:
-                degradation_metrics = {
-                    "combined_hit_rate": 0.0,
-                    "tokens_per_second": 0.0,
-                    "mean_coherence": coherence_val,
-                    "elapsed_seconds": duration_seconds,
-                    "success_rate": 1.0 if success else 0.0,
-                }
-                if token_metrics:
-                    degradation_metrics["combined_hit_rate"] = token_metrics.get(
-                        "cache_hit_rate", token_metrics.get("combined_hit_rate", 0.0)
-                    )
-                    degradation_metrics["tokens_per_second"] = token_metrics.get(
-                        "tokens_per_second", 0.0
-                    )
-                alerts = self._degradation_detector.check_degradation(
-                    degradation_metrics
-                )
-                if alerts:
-                    metrics["degradation_alerts"] = len(alerts)
-                    for alert in alerts:
-                        logger.warning(
-                            "Degradation alert [%s]: %s",
-                            alert.severity.value,
-                            alert.message,
-                        )
-                    # Log critical alerts to vault and enter degradation mode
-                    critical_alerts = [
-                        a
-                        for a in alerts
-                        if a.severity.value == "CRITICAL"
-                    ]
-                    if critical_alerts:
-                        self._degradation_mode = True
-                        metrics["execution_degraded"] = True
-                        logger.warning(
-                            "Entering degradation mode: %d CRITICAL alerts, "
-                            "cohesion=%.2f outside HIHO band",
-                            len(critical_alerts), coherence_val,
-                        )
-                    for alert in critical_alerts:
-                        try:
-                            dp = self.log_inflection_point(
-                                title=f"Degradation: {alert.metric}",
-                                context=f"Task: {task_description}\n{alert.message}",
-                                decision="Investigate degradation",
-                                rationale=f"Current: {alert.current_value:.3f}, "
-                                f"Baseline: {alert.baseline_value:.3f}, "
-                                f"Threshold: {alert.threshold:.3f}",
-                                project=project,
-                            )
-                            if dp:
-                                decision_paths.append(dp)
-                        except Exception as e:
-                            logger.debug(
-                                "Failed to log degradation alert (non-blocking): %s",
-                                e,
-                            )
-            except Exception as e:
-                logger.debug(
-                    "Degradation detection failed (non-blocking): %s", e
-                )
+        record_model_quality(
+            self,
+            token_metrics,
+            metrics.get("coherence", 0.5),
+            success,
+            duration_seconds,
+        )
+        record_metrics(self, skill_name, success, token_metrics, duration_seconds)
 
-        # Step 7.7: Record model quality (non-blocking)
-        if self._model_quality_classifier:
-            try:
-                model_name = "unknown"
-                tokens_used_for_quality = 0
-                if token_metrics:
-                    model_name = token_metrics.get("model", "unknown")
-                    tokens_used_for_quality = token_metrics.get("tokens_used", 0)
-                self._model_quality_classifier.add_execution(
-                    model=model_name,
-                    coherence=metrics.get("coherence", 0.5),
-                    success=success,
-                    tokens_used=tokens_used_for_quality,
-                    duration=duration_seconds,
-                )
-            except Exception as e:
-                logger.debug(
-                    "Model quality recording failed (non-blocking): %s", e
-                )
+        temp_result = ExecutionResult(
+            success=success,
+            output=output,
+            metrics=metrics,
+            duration_seconds=duration_seconds,
+            token_metrics=token_metrics,
+        )
+        journey_point_tracked, journey_metrics = track_journey(
+            self, temp_result, task_description, operation_type
+        )
+        metrics.update(journey_metrics)
 
-        # Step 8: Record metrics (non-blocking)
-        if self._metrics_collector:
-            try:
-                tokens_used = 0
-                model_used = ""
-                if token_metrics:
-                    tokens_used = token_metrics.get("tokens_used", 0)
-                    model_used = token_metrics.get("model", "")
-                self._metrics_collector.record_execution(
-                    skill_name=skill_name,
-                    success=success,
-                    tokens_used=tokens_used,
-                    duration_ms=duration_seconds * 1000,
-                    model_used=model_used,
-                )
-            except Exception as e:
-                logger.debug("Metrics recording failed (non-blocking): %s", e)
-
-        # Step 9: Track journey (non-blocking)
-        journey_point_tracked = False
-        if self._journey_tracker:
-            try:
-                temp_result = ExecutionResult(
-                    success=success,
-                    output=output,
-                    metrics=metrics,
-                    duration_seconds=duration_seconds,
-                    token_metrics=token_metrics,
-                )
-                point = self._journey_tracker.track_execution(
-                    temp_result, task_description, operation_type
-                )
-                journey_point_tracked = True
-                # Propagate phi_score to metrics for retrospection
-                if point and point.metadata:
-                    metrics["phi_score"] = point.metadata.get("phi_score", 0.0)
-                if self._journey_persistence and point:
-                    try:
-                        point_data = {
-                            "coherence": point.coherence,
-                            "efficiency": point.efficiency,
-                            "operation_type": point.operation_type,
-                            "task_description": point.task_description[:200],
-                            "timestamp": point.timestamp,
-                        }
-                        if point.metadata:
-                            point_data["metadata"] = point.metadata
-                        import asyncio
-                        exec_id = f"exec_{int(time.time())}"
-                        try:
-                            asyncio.get_running_loop()
-                            _task = asyncio.ensure_future(  # noqa: RUF006
-                                self._journey_persistence
-                                .save_trajectory_point(
-                                    exec_id, point_data,
-                                )
-                            )
-                        except RuntimeError:
-                            asyncio.run(
-                                self._journey_persistence
-                                .save_trajectory_point(
-                                    exec_id, point_data,
-                                )
-                            )
-                    except Exception as e:
-                        logger.debug("Journey persistence failed (non-blocking): %s", e)
-            except Exception as e:
-                logger.debug("Journey tracking failed (non-blocking): %s", e)
-
-        # Step 9.5: Add trajectory point to universe bridge (non-blocking)
-        # Only proceed if Step 9 succeeded to avoid stale data
         if self._universe_bridge and universe_journey_id and journey_point_tracked:
             try:
                 if self._journey_tracker:
                     last_point = self._journey_tracker.get_last_point()
                     if last_point:
                         self._universe_bridge.add_point(
-                            universe_journey_id, last_point,
+                            universe_journey_id,
+                            last_point,
                             step_number=self._journey_tracker.get_recent_point_count(),
                             action=operation_type,
                         )
             except Exception as e:
                 logger.debug("Universe bridge point failed (non-blocking): %s", e)
 
-        # Step 10: Complete universe journey (non-blocking)
         if self._universe_bridge and universe_journey_id:
             try:
                 phi = metrics.get("phi_score", 0.0)
@@ -927,12 +678,10 @@ class CompoundExecutor:
             Dict with token delta information
         """
         if not metrics_before:
-            # First execution, can't compute delta
             return metrics_after
 
         delta: dict[str, Any] = {}
 
-        # Compute differences
         if "total_tokens" in metrics_after and "total_tokens" in metrics_before:
             delta["tokens_used"] = (
                 metrics_after["total_tokens"] - metrics_before["total_tokens"]
@@ -942,17 +691,17 @@ class CompoundExecutor:
                 metrics_after["api_calls"] - metrics_before["api_calls"]
             )
         if "cache_hits" in metrics_after and "cache_hits" in metrics_before:
-            delta["cache_hits"] = metrics_after["cache_hits"] - metrics_before["cache_hits"]
+            delta["cache_hits"] = (
+                metrics_after["cache_hits"] - metrics_before["cache_hits"]
+            )
         if "cache_misses" in metrics_after and "cache_misses" in metrics_before:
             delta["cache_misses"] = (
                 metrics_after["cache_misses"] - metrics_before["cache_misses"]
             )
 
-        # Include final hit rate
         if "cache_hit_rate" in metrics_after:
             delta["cache_hit_rate"] = metrics_after["cache_hit_rate"]
 
-        # Pass through model name and other non-delta fields
         if "model" in metrics_after:
             delta["model"] = metrics_after["model"]
         if "combined_hit_rate" in metrics_after:
@@ -1126,3 +875,53 @@ class ExecutorFactory:
     def reset_singleton() -> None:
         """Reset singleton for testing."""
         ExecutorFactory._instance = None
+
+
+_api_executor_instance: CompoundExecutor | None = None
+
+
+def get_executor() -> CompoundExecutor:
+    """Get or create singleton executor for API access.
+
+    Lazily initializes CompoundExecutor with vault integration from environment.
+    If vault unavailable, executor degrades gracefully and still functions.
+
+    Returns:
+        Singleton CompoundExecutor instance
+
+    Raises:
+        RuntimeError: If core executor creation fails
+    """
+    import os
+
+    global _api_executor_instance
+
+    if _api_executor_instance is not None:
+        return _api_executor_instance
+
+    try:
+        from cohezion.core.mcp_client import MCPConfig
+
+        server_url = os.getenv("MCP_SERVER_URL", "ws://localhost:8000")
+        api_key = os.getenv("MCP_API_KEY", "")
+
+        config = MCPConfig(
+            server_url=server_url,
+            api_key=api_key,
+            timeout=30.0,
+            max_retries=3,
+        )
+        mcp_client = MCPClient(config)
+
+        _api_executor_instance = CompoundExecutor(
+            mcp_client=mcp_client,
+            enable_guardrails=True,
+            enable_skill_refinement=True,
+            enable_alignment_analysis=False,
+        )
+        logger.info("Initialized compound executor singleton for API access")
+        return _api_executor_instance
+
+    except Exception as exc:
+        logger.exception("Failed to initialize compound executor: %s", exc)
+        raise RuntimeError(f"Compound executor initialization failed: {exc}") from exc

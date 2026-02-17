@@ -6,14 +6,12 @@ Includes:
 - Configuration orchestration (CLAUDE.md/GEMINI.md sync)
 """
 
-from cohezion.config.configuration_orchestrator import (
-    ConfigurationOrchestrator,
-    get_config_orchestrator,
-    reset_config_orchestrator,
-)
 from cohezion.config.config_archival import ConfigArchiver, SizeEnforcer
 from cohezion.config.config_events import ConfigEvent
-from cohezion.config.config_monitoring import ConfigMonitor, VaultSubscriptionClientProxy
+from cohezion.config.config_monitoring import (
+    ConfigMonitor,
+    VaultSubscriptionClientProxy,
+)
 from cohezion.config.config_state import (
     ChangeSet,
     ConfigConflict,
@@ -30,6 +28,11 @@ from cohezion.config.config_templates import (
     TemplateType,
 )
 from cohezion.config.config_validation import ConfigValidator, ReconciliationValidator
+from cohezion.config.configuration_orchestrator import (
+    ConfigurationOrchestrator,
+    get_config_orchestrator,
+    reset_config_orchestrator,
+)
 from cohezion.config.conflict_policy import (
     ConflictPolicy,
     ConflictResolutionPolicy,
@@ -44,6 +47,7 @@ from cohezion.config.unified import (
     get_config,
     reload_config,
 )
+
 
 __all__ = [
     # System config (existing)

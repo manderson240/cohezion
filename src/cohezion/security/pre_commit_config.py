@@ -5,6 +5,7 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -68,9 +69,7 @@ class PreCommitConfiguration:
                 logger.info("✓ detect-secrets installed successfully")
                 return True
             else:
-                logger.error(
-                    "Failed to install detect-secrets: %s", result.stderr
-                )
+                logger.error("Failed to install detect-secrets: %s", result.stderr)
                 return False
         except Exception as e:
             logger.error("Error installing detect-secrets: %s", e)
@@ -95,9 +94,7 @@ class PreCommitConfiguration:
                 logger.info("✓ pre-commit installed successfully")
                 return True
             else:
-                logger.error(
-                    "Failed to install pre-commit: %s", result.stderr
-                )
+                logger.error("Failed to install pre-commit: %s", result.stderr)
                 return False
         except Exception as e:
             logger.error("Error installing pre-commit: %s", e)
@@ -243,7 +240,7 @@ repos:
 
     @staticmethod
     def install_git_hooks(
-        repo_path: Optional[str] = None,
+        repo_path: str | None = None,
     ) -> bool:
         """
         Install pre-commit git hooks.
@@ -267,9 +264,7 @@ repos:
                 logger.info("✓ Pre-commit hooks installed successfully")
                 return True
             else:
-                logger.error(
-                    "Failed to install hooks: %s", result.stderr
-                )
+                logger.error("Failed to install hooks: %s", result.stderr)
                 return False
 
         except Exception as e:
@@ -316,7 +311,7 @@ repos:
 
     @staticmethod
     def setup_security_hooks(
-        repo_path: Optional[str] = None,
+        repo_path: str | None = None,
     ) -> bool:
         """
         Complete setup of security hooks in repository.

@@ -10,17 +10,17 @@ Contains:
 
 try:
     from cohezion.knowledge_graph.universe_artifact_migration import (
-        UniverseArtifactMigration,
         ArtifactMetadata,
-        TrainingRunMetadata,
         MigrationSnapshot,
+        TrainingRunMetadata,
+        UniverseArtifactMigration,
     )
 
     __all__ = [
-        "UniverseArtifactMigration",
         "ArtifactMetadata",
-        "TrainingRunMetadata",
         "MigrationSnapshot",
+        "TrainingRunMetadata",
+        "UniverseArtifactMigration",
     ]
 except ImportError:
     # Optional: migration service may not be available in all contexts

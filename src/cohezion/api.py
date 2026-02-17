@@ -25,6 +25,7 @@ from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.reliability import get_circuit
 from cohezion.reliability.monitor import get_resource_monitor
 
+
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------

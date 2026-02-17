@@ -21,6 +21,7 @@ import math
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -105,7 +106,7 @@ class ThermalTrendAnalyzer:
         self,
         history_size: int = 200,
         target_temp_celsius: float = 85.0,
-        vault_client: Optional[Any] = None,
+        vault_client: Any | None = None,
     ) -> None:
         """Initialize thermal trend analyzer."""
         self.history_size = history_size
@@ -114,7 +115,7 @@ class ThermalTrendAnalyzer:
 
         # In-memory history: {task_type: [metrics]}
         self.history: dict[str, list[ThermalMetrics]] = {}
-        self._last_prediction: Optional[tuple[float, float]] = None  # (temp, confidence)
+        self._last_prediction: tuple[float, float] | None = None  # (temp, confidence)
 
     def record_execution(self, metrics: ThermalMetrics) -> None:
         """Record a batch execution for thermal learning.
@@ -174,7 +175,9 @@ class ThermalTrendAnalyzer:
             base_temp = self.BASE_TEMPS[task_type]
             ramp_rate = self.RAMP_RATES[task_type]
             # Simple linear: temp = base + (batch_size / 32) * 5 + duration * ramp
-            predicted = base_temp + (batch_size / 32.0 * 5.0) + (duration_sec * ramp_rate)
+            predicted = (
+                base_temp + (batch_size / 32.0 * 5.0) + (duration_sec * ramp_rate)
+            )
             return predicted
 
         # Analyze historical thermal data by batch size
@@ -226,7 +229,9 @@ class ThermalTrendAnalyzer:
         mean_temp = sum(temps) / n
 
         # Calculate slope
-        numerator = sum((batch_sizes[i] - mean_batch) * (temps[i] - mean_temp) for i in range(n))
+        numerator = sum(
+            (batch_sizes[i] - mean_batch) * (temps[i] - mean_temp) for i in range(n)
+        )
         denominator = sum((b - mean_batch) ** 2 for b in batch_sizes)
 
         if abs(denominator) < 0.01:
@@ -246,7 +251,7 @@ class ThermalTrendAnalyzer:
         return predicted
 
     def get_safe_batch_size(
-        self, task_type: str, target_temp: Optional[float] = None
+        self, task_type: str, target_temp: float | None = None
     ) -> int:
         """Find maximum safe batch size via binary search.
 
@@ -292,9 +297,7 @@ class ThermalTrendAnalyzer:
 
         return max(1, safe_batch)
 
-    def predict_throttle_probability(
-        self, task_type: str, batch_size: int
-    ) -> float:
+    def predict_throttle_probability(self, task_type: str, batch_size: int) -> float:
         """Predict probability of thermal throttling.
 
         Uses sigmoid function: P(throttle) = 1 / (1 + e^(-k*(temp - 92)))
@@ -368,7 +371,8 @@ class ThermalTrendAnalyzer:
             "total_records": sum(len(v) for v in self.history.values()),
             "history_per_type": {k: len(v) for k, v in self.history.items()},
             "throttle_events": sum(
-                1 for metrics_list in self.history.values()
+                1
+                for metrics_list in self.history.values()
                 for m in metrics_list
                 if m.throttle_detected
             ),
@@ -433,7 +437,7 @@ def get_thermal_trend_analyzer(reset: bool = False) -> ThermalTrendAnalyzer:
 
 
 # Module-level singleton
-_analyzer_instance: Optional[ThermalTrendAnalyzer] = None
+_analyzer_instance: ThermalTrendAnalyzer | None = None
 
 
 __all__ = [

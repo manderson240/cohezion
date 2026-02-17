@@ -92,9 +92,13 @@ def _reset_all_singletons() -> None:
             surreal_module._SHARED_STORE._data.clear()
     surreal_module._SHARED_STORE = None
 
+    from cohezion.api.helpers import reset_rl_policy, reset_vae
+
+    reset_vae()
+    reset_rl_policy()
+
     if hasattr(api_module, "_vae_trainer"):
         api_module._vae_trainer = None
-
     if hasattr(api_module, "_rl_policy"):
         api_module._rl_policy = None
 

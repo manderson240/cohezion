@@ -10,6 +10,7 @@ import asyncio
 import logging
 from dataclasses import dataclass
 
+
 @dataclass
 class HardwareMetrics:
     """Stub hardware metrics class."""
@@ -24,9 +25,11 @@ class HardwareProfilerFactory:
     @staticmethod
     def get_profiler():
         """Return a mock profiler that doesn't fail on missing imports."""
+
         class MockProfiler:
             def measure(self):
                 return {"vram_percent": 50.0, "thermal_percent": 40.0}
+
         return MockProfiler()
 
 
@@ -92,8 +95,7 @@ class DynamicConcurrencyGate:
                 self._thermal_predictor = get_thermal_trend_predictor()
             except Exception as e:
                 logger.debug(
-                    f"Failed to initialize thermal predictor: {e}, "
-                    "disabling prediction"
+                    f"Failed to initialize thermal predictor: {e}, disabling prediction"
                 )
                 self.enable_thermal_prediction = False
 
@@ -274,7 +276,7 @@ def get_concurrency_gate(reset: bool = False) -> DynamicConcurrencyGate:
 
 
 __all__ = [
-    "DynamicConcurrencyGate",
     "ConcurrencyDecision",
+    "DynamicConcurrencyGate",
     "get_concurrency_gate",
 ]

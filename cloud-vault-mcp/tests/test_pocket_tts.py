@@ -26,7 +26,7 @@ def mock_tts_model():
 class TestPocketTTSService:
     """Test PocketTTSService class."""
 
-    @patch("pocket_tts.TTSModel")
+    @patch("pocket_tts.TTSModel", create=True)
     def test_initialize_success(self, mock_tts_class, mock_tts_model):
         """Test model initialization succeeds."""
         from mcp_server.pocket_tts import PocketTTSService
@@ -41,7 +41,7 @@ class TestPocketTTSService:
         mock_tts_class.load_model.assert_called_once()
 
     @patch("torchaudio.save")
-    @patch("pocket_tts.TTSModel")
+    @patch("pocket_tts.TTSModel", create=True)
     def test_speak_basic(self, mock_tts_class, mock_torchaudio_save, mock_tts_model):
         """Test basic text-to-speech synthesis."""
         from mcp_server.pocket_tts import PocketTTSService
@@ -93,7 +93,7 @@ class TestPocketTTSService:
         """Test success at exactly 4096 chars."""
         from mcp_server.pocket_tts import PocketTTSService
 
-        with patch("pocket_tts.TTSModel") as mock_tts_class, \
+        with patch("pocket_tts.TTSModel", create=True) as mock_tts_class, \
              patch("torchaudio.save"):
             import torch
 
@@ -109,7 +109,7 @@ class TestPocketTTSService:
 
             assert result["status"] == "success"
 
-    @patch("pocket_tts.TTSModel")
+    @patch("pocket_tts.TTSModel", create=True)
     def test_model_load_failure(self, mock_tts_class):
         """Test graceful handling of model load failure."""
         from mcp_server.pocket_tts import PocketTTSService
@@ -122,7 +122,7 @@ class TestPocketTTSService:
         assert result["status"] == "error"
         assert "CUDA OOM" in result["error"]
 
-    @patch("pocket_tts.TTSModel")
+    @patch("pocket_tts.TTSModel", create=True)
     def test_synthesis_failure(self, mock_tts_class):
         """Test graceful handling of synthesis failure."""
         from mcp_server.pocket_tts import PocketTTSService
@@ -139,7 +139,7 @@ class TestPocketTTSService:
         assert result["status"] == "error"
         assert "Synthesis failed" in result["error"]
 
-    @patch("pocket_tts.TTSModel")
+    @patch("pocket_tts.TTSModel", create=True)
     def test_lazy_initialization(self, mock_tts_class, mock_tts_model):
         """Test model is loaded lazily on first speak() call."""
         from mcp_server.pocket_tts import PocketTTSService

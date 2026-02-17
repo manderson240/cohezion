@@ -21,6 +21,7 @@ from cohezion.mass_sim.exporter import CheckpointExporter
 from cohezion.mass_sim.system_monitor import MemoryGuard
 from cohezion.mass_sim.universe_factory import UniverseFactory
 
+
 logger = logging.getLogger(__name__)
 
 

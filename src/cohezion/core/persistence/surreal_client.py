@@ -24,6 +24,7 @@ import numpy as np
 
 from cohezion.reliability import get_circuit
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -892,12 +893,14 @@ async def main() -> None:
 
 _surreal_client_instance: SurrealClient | None = None
 
+
 def get_surreal_client() -> SurrealClient:
     """Get the singleton SurrealClient instance."""
     global _surreal_client_instance
     if _surreal_client_instance is None:
         _surreal_client_instance = SurrealClient()
     return _surreal_client_instance
+
 
 if __name__ == "__main__":
     asyncio.run(main())

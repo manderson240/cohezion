@@ -17,9 +17,11 @@ Execution model:
 
 import logging
 import time
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Awaitable, Callable, Protocol
+from typing import Any, Protocol
+
 
 logger = logging.getLogger(__name__)
 

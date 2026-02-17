@@ -5,6 +5,7 @@ import ssl
 from pathlib import Path
 from typing import Optional
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -16,7 +17,7 @@ class MCPHTTPSClient:
         host: str = "localhost",
         port: int = 8360,
         use_https: bool = True,
-        ca_cert_path: Optional[str] = None,
+        ca_cert_path: str | None = None,
         verify_ssl: bool = True,
     ):
         """
@@ -42,7 +43,7 @@ class MCPHTTPSClient:
         protocol = "https" if self.use_https else "http"
         return f"{protocol}://{self.host}:{self.port}"
 
-    def get_ssl_context(self) -> Optional[ssl.SSLContext]:
+    def get_ssl_context(self) -> ssl.SSLContext | None:
         """
         Get SSL context for HTTPS connections.
 
@@ -108,21 +109,15 @@ class MCPHTTPSClient:
             import socket
 
             # Try to establish connection
-            sock = socket.create_connection(
-                (self.host, self.port), timeout=5
-            )
+            sock = socket.create_connection((self.host, self.port), timeout=5)
 
             if self.use_https:
                 ssl_context = self.get_ssl_context()
                 if ssl_context:
-                    sock = ssl_context.wrap_socket(
-                        sock, server_hostname=self.host
-                    )
+                    sock = ssl_context.wrap_socket(sock, server_hostname=self.host)
 
             sock.close()
-            logger.info(
-                "✓ Connection to %s:%d validated", self.host, self.port
-            )
+            logger.info("✓ Connection to %s:%d validated", self.host, self.port)
             return True
 
         except (OSError, ssl.SSLError) as e:
@@ -134,7 +129,7 @@ class MCPHTTPSClient:
             )
             return False
 
-    def configure_urllib(self) -> Optional[ssl.SSLContext]:
+    def configure_urllib(self) -> ssl.SSLContext | None:
         """
         Configure urllib for HTTPS connections.
 

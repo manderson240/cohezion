@@ -12,8 +12,9 @@ from typing import Any
 
 import numpy as np
 
-from cohezion.core.persistence.redis_aggregator import get_redis
 from cohezion.compound.exp_persistence.vault import get_vault_logger
+from cohezion.core.persistence.redis_aggregator import get_redis
+
 
 logger = logging.getLogger(__name__)
 
@@ -117,8 +118,8 @@ class SemanticCache:
                     logger.debug(f"📜 Vault L3 Hit for query: {query_text[:20]}...")
                     return {
                         "response": f"VAULT GUIDANCE:\n{guidance.get('guidance', '')}\n\nCONTEXT:\n{json.dumps(guidance.get('relevant_context', []), indent=2)}",
-                        "semantic_score": 0.5, # Qualitative hit
-                        "source": "vault"
+                        "semantic_score": 0.5,  # Qualitative hit
+                        "source": "vault",
                     }
             except Exception as e:
                 logger.debug(f"Vault L3 search failed: {e}")

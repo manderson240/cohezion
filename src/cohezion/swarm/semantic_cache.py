@@ -225,10 +225,10 @@ class SemanticCache:
 
     def __init__(
         self,
-        similarity_threshold: Optional[float] = None,
+        similarity_threshold: float | None = None,
         embedding_dim: int = 256,
         max_entries: int = 1000,
-        embedding_model: Optional[EmbeddingModel] = None,
+        embedding_model: EmbeddingModel | None = None,
         cache_dir: str | Path = "data/cache",
     ):
         """Initialize semantic cache.
@@ -282,7 +282,7 @@ class SemanticCache:
             "embedding_errors": 0,
         }
 
-    async def get(self, prompt: str, system: str = "") -> Optional[SemanticCacheHit]:
+    async def get(self, prompt: str, system: str = "") -> SemanticCacheHit | None:
         """Find semantically similar cached response.
 
         Args:
@@ -315,7 +315,10 @@ class SemanticCache:
             for key, (cached_embedding, cached_value) in self._embedding_cache.items():
                 similarity = self._cosine_similarity(query_embedding, cached_embedding)
 
-                if similarity > best_similarity and similarity >= self.similarity_threshold:
+                if (
+                    similarity > best_similarity
+                    and similarity >= self.similarity_threshold
+                ):
                     best_similarity = similarity
                     best_hit = SemanticCacheHit(
                         value=cached_value,
@@ -338,7 +341,7 @@ class SemanticCache:
         system: str,
         model: str,
         value: Any,
-        cache_key: Optional[str] = None,
+        cache_key: str | None = None,
     ) -> None:
         """Store response with semantic embedding.
 
@@ -459,10 +462,10 @@ class SemanticCache:
 
 
 __all__ = [
-    "EmbeddingModel",
     "DistilledEmbeddingModel",
-    "FlumeVAEEmbeddingModel",
+    "EmbeddingModel",
     "EmbeddingResult",
+    "FlumeVAEEmbeddingModel",
     "SemanticCache",
     "SemanticCacheHit",
 ]

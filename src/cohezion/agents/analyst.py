@@ -12,6 +12,7 @@ from typing import Any
 from cohezion.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import Perspective, SwarmConfig, ThoughtVector
 
+
 logger = logging.getLogger(__name__)
 
 
