@@ -3,32 +3,36 @@
   "checkpoint_id": "0bd376ae8c3f",
   "session_id": "a91d4d2c-3499-4983-b8d5-9f817fd07db7",
   "strategy": "manual-commit",
-  "created_at": "2026-02-16T17:41:14.602339452Z",
+  "created_at": "2026-02-17T05:06:15.341589148Z",
   "branch": "spec/routes-consolidation",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
     "cloud-vault-mcp/server.pid",
+    "data/test_60mb.tmp",
+    "data/test_large_51mb.tmp",
+    "data/test_large_file.tmp",
     "ollama-mcp",
-    "research/challenges/anthropic_challenge_original"
+    "research/challenges/anthropic_challenge_original",
+    "src/cohezion/compound/executor.py"
   ],
   "agent": "Claude Code",
-  "transcript_identifier_at_start": "baa73be9-d7ff-467b-bff4-8933cdf4539a",
-  "checkpoint_transcript_start": 2162,
-  "transcript_lines_at_start": 2162,
+  "transcript_identifier_at_start": "2e51ea4d-877d-4684-b87c-411b39f1e214",
+  "checkpoint_transcript_start": 2182,
+  "transcript_lines_at_start": 2182,
   "token_usage": {
-    "input_tokens": 10,
-    "cache_creation_tokens": 55406,
-    "cache_read_tokens": 35276,
-    "output_tokens": 3,
-    "api_call_count": 1
+    "input_tokens": 4368,
+    "cache_creation_tokens": 195599,
+    "cache_read_tokens": 1875588,
+    "output_tokens": 6295,
+    "api_call_count": 21
   },
   "initial_attribution": {
-    "calculated_at": "2026-02-16T17:41:14.471763699Z",
+    "calculated_at": "2026-02-17T05:06:15.204964924Z",
     "agent_lines": 0,
-    "human_added": 4602,
-    "human_modified": 0,
+    "human_added": 12884,
+    "human_modified": 359,
     "human_removed": 0,
-    "total_committed": 4602,
+    "total_committed": 12982,
     "agent_percentage": 0
   }
 }
