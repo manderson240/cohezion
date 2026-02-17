@@ -84,3 +84,7 @@ This command is a **dispatcher** that determines which phase to run and invokes 
 {
   "pass_summary": "Re-verification confirms previous must_fix items are resolved: VAE/RL singletons are properly deduplicated in helpers.py with routes_flume.py and routes_rl.py delegating to it; conftest.py correctly resets via helpers.reset_vae()/reset_rl_policy(); undefined names (os, ContextHarness) are fixed; raise-from-err patterns ...
 
+### Prompt 8
+
+commit
+
