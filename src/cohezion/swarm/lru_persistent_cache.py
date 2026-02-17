@@ -21,6 +21,7 @@ from typing import Any, Optional
 
 from cohezion.swarm.persistent_cache import PersistentCache
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -90,7 +91,7 @@ class LRUPersistentCache(PersistentCache):
             # After parent init, rebuild access order from loaded entries
             self._rebuild_access_order()
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get value from cache and update LRU order.
 
         Parameters
@@ -204,7 +205,7 @@ class LRUPersistentCache(PersistentCache):
 
         logger.info(
             f"LRU eviction: {current_size}/{self.max_entries} entries "
-            f"({current_size/self.max_entries*100:.1f}%). "
+            f"({current_size / self.max_entries * 100:.1f}%). "
             f"Evicting {entries_to_evict} entries to {target_size}/{self.max_entries}"
         )
 
@@ -231,7 +232,7 @@ class LRUPersistentCache(PersistentCache):
             logger.debug(
                 f"Evicted {len(evicted_keys)} LRU entries. "
                 f"Cache now at {len(self.memory_cache)}/{self.max_entries} "
-                f"({len(self.memory_cache)/self.max_entries*100:.1f}%)"
+                f"({len(self.memory_cache) / self.max_entries * 100:.1f}%)"
             )
 
     def get_stats(self) -> dict[str, Any]:

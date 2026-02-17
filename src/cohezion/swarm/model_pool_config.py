@@ -16,7 +16,7 @@ from pydantic import BaseModel
 class ModelTierPolicy(Enum):
     """Lifecycle tier for a pooled model."""
 
-    HOT = "hot"    # Always loaded, keep_alive=-1
+    HOT = "hot"  # Always loaded, keep_alive=-1
     WARM = "warm"  # Loaded at startup, evictable under pressure
     COLD = "cold"  # On-demand only, evicted after timeout
 

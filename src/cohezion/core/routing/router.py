@@ -10,11 +10,19 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 try:
+    from cohezion.compound.telemetry import get_tracker
+
+    _telemetry_available = True
+except ImportError:
+    _telemetry_available = False
+    logger.warning("TokenEfficiencyTracker not available")
+
+try:
     from cohezion.core.optimization.adaptive_framework import get_adaptive_optimizer
 
-    ADAPTIVE_OPTIMIZER_AVAILABLE = True
+    _adaptive_optimizer_available = True
 except ImportError:
-    ADAPTIVE_OPTIMIZER_AVAILABLE = False
+    _adaptive_optimizer_available = False
     logger.warning("Adaptive framework optimizer not available")
 
 
@@ -84,7 +92,7 @@ class LocalExpertRouter:
         monitor = get_resource_monitor()
         dilation = monitor.get_dilation_factor()
 
-        if ADAPTIVE_OPTIMIZER_AVAILABLE:
+        if _adaptive_optimizer_available:
             optimizer = get_adaptive_optimizer()
             hardware_profile = optimizer.get_current_profile()
             if hardware_profile:
@@ -172,8 +180,17 @@ class LocalExpertRouter:
             result = response.json()
             response_text = result.get("response", "")
 
+            # Capture token usage from Ollama
+            input_tokens = result.get("prompt_eval_count", 0)
+            output_tokens = result.get("eval_count", 0)
+
             await self._log_performance_metrics(
-                task_type, model, final_ctx, available_memory
+                task_type,
+                model,
+                final_ctx,
+                available_memory,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
             )
 
             return response_text
@@ -285,7 +302,13 @@ class LocalExpertRouter:
             return self.role_map.get("light-coding", "phi3:mini")
 
     async def _log_performance_metrics(
-        self, task_type: str, model: str, context: int, memory: float
+        self,
+        task_type: str,
+        model: str,
+        context: int,
+        memory: float,
+        input_tokens: int = 0,
+        output_tokens: int = 0,
     ):
         """Log performance metrics for compound engineering optimization"""
         metrics = {
@@ -293,11 +316,21 @@ class LocalExpertRouter:
             "model": model,
             "context_window": context,
             "available_memory_gb": memory,
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
             "moe_efficiency": "96.25%" if "qwen3-coder-next" in model else "N/A",
             "ocr_savings": "90.5%" if "glm-ocr" in model else "N/A",
         }
 
         logger.info(f"📊 Performance Metrics: {metrics}")
+
+        if _telemetry_available:
+            get_tracker().record_call(
+                model=model,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                task_type=task_type,
+            )
 
     async def _fallback_routing(
         self,

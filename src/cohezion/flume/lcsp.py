@@ -11,6 +11,7 @@ from typing import Any
 
 import numpy as np
 
+
 logger = logging.getLogger(__name__)
 
 # COHEZION constant: Half-In-Half-Out stability threshold

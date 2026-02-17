@@ -29,8 +29,8 @@ class ConflictPolicy:
         self,
         strategy: ConflictResolutionStrategy = ConflictResolutionStrategy.MANUAL_REVIEW,
         auto_resolve: bool = False,
-        vault_last_modified: Optional[float] = None,
-        config_last_modified: Optional[float] = None,
+        vault_last_modified: float | None = None,
+        config_last_modified: float | None = None,
     ):
         """Initialize conflict policy.
 
@@ -88,8 +88,8 @@ class ConflictResolutionPolicy:
 
     @staticmethod
     def newer_wins(
-        vault_ts: Optional[float] = None,
-        config_ts: Optional[float] = None,
+        vault_ts: float | None = None,
+        config_ts: float | None = None,
     ) -> ConflictPolicy:
         """Most recent edit wins (if timestamps available)."""
         policy = ConflictPolicy(

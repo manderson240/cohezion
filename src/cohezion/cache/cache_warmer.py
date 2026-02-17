@@ -19,9 +19,7 @@ class CacheWarmer:
         3. Patterns from successful compound cycles
     """
 
-    def __init__(
-        self, semantic_cache: SemanticCache, mcp_client: Any = None
-    ):
+    def __init__(self, semantic_cache: SemanticCache, mcp_client: Any = None):
         """Initialize cache warmer.
 
         Args:

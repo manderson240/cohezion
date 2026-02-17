@@ -14,14 +14,14 @@ from datetime import datetime
 
 from fastapi import APIRouter, HTTPException
 
-from cohezion.observability.unified_metrics import get_metrics_collector
 from cohezion.observability.metrics_analytics import MetricsAnalytics
+from cohezion.observability.unified_metrics import get_metrics_collector
+
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/metrics", tags=["observability"])
 
-# Global analytics instance
 _analytics: MetricsAnalytics | None = None
 
 
@@ -57,7 +57,7 @@ async def get_unified_metrics():
         }
     except Exception as e:
         logger.error("Failed to get unified metrics: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/cache")
@@ -71,7 +71,6 @@ async def get_cache_analytics():
         analytics = get_analytics()
         collector = get_metrics_collector()
 
-        # Add current metrics to analytics
         metrics = collector.get_current_metrics()
         analytics.add_metrics(metrics)
 
@@ -83,7 +82,7 @@ async def get_cache_analytics():
         }
     except Exception as e:
         logger.error("Failed to get cache analytics: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/efficiency")
@@ -108,7 +107,7 @@ async def get_token_efficiency():
         }
     except Exception as e:
         logger.error("Failed to get token efficiency metrics: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/guardrails")
@@ -133,7 +132,7 @@ async def get_guardrail_analytics():
         }
     except Exception as e:
         logger.error("Failed to get guardrail analytics: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/resources")
@@ -158,7 +157,7 @@ async def get_resource_analytics():
         }
     except Exception as e:
         logger.error("Failed to get resource analytics: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/health")
@@ -177,7 +176,6 @@ async def get_health_score():
 
         health_score = analytics.compute_health_score()
 
-        # Map health score to status
         if health_score >= 0.90:
             status = "excellent"
         elif health_score >= 0.75:
@@ -191,11 +189,11 @@ async def get_health_score():
             "timestamp": datetime.now().isoformat(),
             "health_score": round(health_score, 3),
             "status": status,
-            "recommendations": [],  # Will be populated in full dashboard
+            "recommendations": [],
         }
     except Exception as e:
         logger.error("Failed to get health score: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/trends/{metric_name}")
@@ -221,7 +219,8 @@ async def get_metric_trend(metric_name: str, window: int = 10):
         if trend is None:
             raise HTTPException(
                 status_code=404,
-                detail=f"Insufficient data for metric '{metric_name}' or metric not found",
+                detail=f"Insufficient data for metric '{metric_name}'"
+                " or metric not found",
             )
 
         return {
@@ -240,7 +239,7 @@ async def get_metric_trend(metric_name: str, window: int = 10):
         raise
     except Exception as e:
         logger.error("Failed to get metric trend: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/dashboard")
@@ -264,13 +263,10 @@ async def get_full_dashboard():
         metrics = collector.get_current_metrics()
         analytics.add_metrics(metrics)
 
-        # Generate comprehensive report
         report = analytics.generate_dashboard_report()
 
-        # Get aggregate statistics
         aggregate_metrics = collector.get_aggregate_metrics()
 
-        # Get key trends
         cache_trend = analytics.get_trend("total_cache_hit_rate")
         efficiency_trend = analytics.get_trend("l2_cache_hit_rate")
 
@@ -284,11 +280,7 @@ async def get_full_dashboard():
                     else (
                         "good"
                         if report.overall_health_score >= 0.75
-                        else (
-                            "fair"
-                            if report.overall_health_score >= 0.60
-                            else "poor"
-                        )
+                        else ("fair" if report.overall_health_score >= 0.60 else "poor")
                     )
                 ),
             },
@@ -341,7 +333,7 @@ async def get_full_dashboard():
         }
     except Exception as e:
         logger.error("Failed to generate dashboard: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/reset")
@@ -366,4 +358,4 @@ async def reset_metrics():
         }
     except Exception as e:
         logger.error("Failed to reset metrics: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

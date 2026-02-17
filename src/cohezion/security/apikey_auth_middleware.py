@@ -12,13 +12,14 @@ Features:
 """
 
 import logging
-from typing import Callable
+from collections.abc import Callable
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from cohezion.security.agent_auth import AgentAuthManager
+
 
 logger = logging.getLogger(__name__)
 
@@ -165,9 +166,7 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
                     )
                     return JSONResponse(
                         status_code=403,
-                        content={
-                            "detail": f"Permission '{permission}' required"
-                        },
+                        content={"detail": f"Permission '{permission}' required"},
                     )
 
                 return await func(request, *args, **kwargs)

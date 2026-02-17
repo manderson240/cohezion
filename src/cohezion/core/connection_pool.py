@@ -13,6 +13,7 @@ from collections import deque
 from dataclasses import dataclass
 from typing import Any, Protocol
 
+
 logger = logging.getLogger(__name__)
 
 

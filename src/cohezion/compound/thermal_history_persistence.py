@@ -26,6 +26,7 @@ from typing import Optional
 
 from cohezion.compound.thermal_trend_predictor import ThermalTimeSeries
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -51,7 +52,7 @@ class ThermalTimeSeriesCollector:
 
     def __init__(
         self,
-        history_path: Optional[Path] = None,
+        history_path: Path | None = None,
         sample_interval_seconds: int = 300,
         enable_vault_logging: bool = True,
     ) -> None:
@@ -63,7 +64,7 @@ class ThermalTimeSeriesCollector:
         # Ensure directory exists
         self.history_path.parent.mkdir(parents=True, exist_ok=True)
 
-        self._collection_task: Optional[asyncio.Task] = None
+        self._collection_task: asyncio.Task | None = None
         self._samples_since_vault_log = 0
 
     def start_collection(self) -> None:
@@ -102,7 +103,7 @@ class ThermalTimeSeriesCollector:
         except asyncio.CancelledError:
             logger.debug("Thermal collection task cancelled")
 
-    async def _collect_sample(self) -> Optional[ThermalTimeSeries]:
+    async def _collect_sample(self) -> ThermalTimeSeries | None:
         """Collect single thermal sample from hardware.
 
         Returns
@@ -239,9 +240,7 @@ class ThermalTimeSeriesCollector:
         except Exception as e:
             logger.debug(f"Vault logging failed (non-blocking): {e}")
 
-    async def load_jsonl_history_async(
-        self, hours: int = 1
-    ) -> list[dict]:
+    async def load_jsonl_history_async(self, hours: int = 1) -> list[dict]:
         """Load recent thermal samples from JSONL (async).
 
         Parameters
@@ -328,9 +327,7 @@ class ThermalTimeSeriesCollector:
             logger.debug(f"Failed to record batch thermal: {e}")
 
 
-def load_jsonl_history(
-    history_path: Optional[Path] = None, days: int = 7
-) -> list[dict]:
+def load_jsonl_history(history_path: Path | None = None, days: int = 7) -> list[dict]:
     """Load thermal samples from JSONL (synchronous).
 
     Parameters
@@ -376,7 +373,9 @@ def load_jsonl_history(
         return []
 
 
-def get_thermal_time_series_collector(reset: bool = False) -> ThermalTimeSeriesCollector:
+def get_thermal_time_series_collector(
+    reset: bool = False,
+) -> ThermalTimeSeriesCollector:
     """Get or create singleton thermal time-series collector.
 
     Parameters
@@ -398,11 +397,11 @@ def get_thermal_time_series_collector(reset: bool = False) -> ThermalTimeSeriesC
 
 
 # Module-level singleton
-_collector_instance: Optional[ThermalTimeSeriesCollector] = None
+_collector_instance: ThermalTimeSeriesCollector | None = None
 
 
 __all__ = [
     "ThermalTimeSeriesCollector",
-    "load_jsonl_history",
     "get_thermal_time_series_collector",
+    "load_jsonl_history",
 ]

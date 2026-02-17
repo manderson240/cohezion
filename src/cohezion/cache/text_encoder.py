@@ -11,8 +11,10 @@ This module replaces hash-based embeddings to achieve:
 """
 
 import logging
-import numpy as np
 from typing import Optional
+
+import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -228,7 +230,7 @@ class SemanticTextEncoder:
 
 
 # Module-level singleton for efficient caching
-_encoder_instance: Optional[SemanticTextEncoder] = None
+_encoder_instance: SemanticTextEncoder | None = None
 
 
 def get_text_encoder(

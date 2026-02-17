@@ -91,7 +91,7 @@ class RequestCache:
         self._l2_hits = 0
         self._l2_misses = 0
 
-    def get_exact(self, request_text: str) -> Optional[AgentTask]:
+    def get_exact(self, request_text: str) -> AgentTask | None:
         """Get cached task via exact hash match (L1, 0 tokens, <1ms).
 
         Args:
@@ -117,8 +117,8 @@ class RequestCache:
             return None
 
     def get_semantic(
-        self, request_text: str, threshold: Optional[float] = None
-    ) -> Optional[AgentTask]:
+        self, request_text: str, threshold: float | None = None
+    ) -> AgentTask | None:
         """Get cached task via string similarity (L2, 0 tokens, ~5ms).
 
         Uses word overlap similarity to find similar cached requests.
@@ -251,13 +251,21 @@ class RequestCache:
 
         l1_hit_rate = (self._l1_hits / total_l1 * 100) if total_l1 > 0 else 0.0
         l2_hit_rate = (self._l2_hits / total_l2 * 100) if total_l2 > 0 else 0.0
-        combined_hit_rate = ((self._l1_hits + self._l2_hits) / total * 100) if total > 0 else 0.0
+        combined_hit_rate = (
+            ((self._l1_hits + self._l2_hits) / total * 100) if total > 0 else 0.0
+        )
 
         # Estimate average tokens per request
         # L1/L2 hits: 0 tokens, misses: ~250 tokens (LLM fallback)
         avg_tokens = (
-            (self._l1_hits + self._l2_hits) * 0 + (self._l1_misses + self._l2_misses) * 250
-        ) / total if total > 0 else 0
+            (
+                (self._l1_hits + self._l2_hits) * 0
+                + (self._l1_misses + self._l2_misses) * 250
+            )
+            / total
+            if total > 0
+            else 0
+        )
 
         return {
             "l1_hits": self._l1_hits,
@@ -338,7 +346,7 @@ class RequestCache:
             return ""
 
     @staticmethod
-    def _deserialize_task(json_str: str) -> Optional[AgentTask]:
+    def _deserialize_task(json_str: str) -> AgentTask | None:
         """Deserialize JSON string to AgentTask.
 
         Args:
@@ -379,7 +387,7 @@ class RequestCache:
         except:
             return False
 
-    def _parse_pattern(self, result: Any) -> tuple[Optional[str], Optional[AgentTask]]:
+    def _parse_pattern(self, result: Any) -> tuple[str | None, AgentTask | None]:
         """Parse vault pattern into request_text and AgentTask.
 
         Args:

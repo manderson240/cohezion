@@ -13,6 +13,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -25,7 +26,7 @@ class GitUtils:
         if not (repo_root / ".git").exists():
             logger.warning(f"Not a git repository: {repo_root}")
 
-    def get_last_commit_author(self, file_path: Path) -> Optional[str]:
+    def get_last_commit_author(self, file_path: Path) -> str | None:
         """Get the author of the last commit for a file."""
         try:
             result = subprocess.run(
@@ -41,7 +42,7 @@ class GitUtils:
             logger.warning(f"Failed to get commit author for {file_path}: {e}")
         return None
 
-    def get_last_commit_time(self, file_path: Path) -> Optional[datetime]:
+    def get_last_commit_time(self, file_path: Path) -> datetime | None:
         """Get the timestamp of the last commit for a file."""
         try:
             result = subprocess.run(
@@ -57,7 +58,9 @@ class GitUtils:
             logger.warning(f"Failed to get commit time for {file_path}: {e}")
         return None
 
-    def is_manual_edit(self, file_path: Path, orchestrator_name: str = "config") -> bool:
+    def is_manual_edit(
+        self, file_path: Path, orchestrator_name: str = "config"
+    ) -> bool:
         """Check if file was manually edited vs auto-generated.
 
         Args:
@@ -86,7 +89,7 @@ class GitUtils:
             logger.warning(f"Failed to check git changes for {file_path}: {e}")
             return False
 
-    def get_file_diff(self, file_path: Path) -> Optional[str]:
+    def get_file_diff(self, file_path: Path) -> str | None:
         """Get diff of uncommitted changes for a file."""
         try:
             result = subprocess.run(
@@ -211,7 +214,11 @@ class GitUtils:
                 text=True,
                 timeout=5,
             )
-            current_branch = branch_result.stdout.strip() if branch_result.returncode == 0 else "unknown"
+            current_branch = (
+                branch_result.stdout.strip()
+                if branch_result.returncode == 0
+                else "unknown"
+            )
 
             # Get dirty status
             dirty_result = subprocess.run(
@@ -226,7 +233,9 @@ class GitUtils:
             return {
                 "branch": current_branch,
                 "dirty": is_dirty,
-                "changed_files": len(dirty_result.stdout.strip().split("\n")) if is_dirty else 0,
+                "changed_files": len(dirty_result.stdout.strip().split("\n"))
+                if is_dirty
+                else 0,
             }
 
         except Exception as e:

@@ -3,13 +3,16 @@ Observable AI action proposer.
 Charter requirement: "Expose internal states and confidence levels *before* action"
 """
 
-from typing import Optional, Callable, List
-from pydantic import BaseModel
 import uuid
+from collections.abc import Callable
+from typing import List, Optional
+
 import numpy as np
-from cohezion.platform.coherence_tracker import get_coherence_tracker, CoherenceMetrics
-from cohezion.platform.journey_logger import get_journey_logger
+from pydantic import BaseModel
+
 from cohezion.flume.vae_encoder import get_encoder
+from cohezion.platform.coherence_tracker import CoherenceMetrics, get_coherence_tracker
+from cohezion.platform.journey_logger import get_journey_logger
 
 
 class ActionProposal(BaseModel):
@@ -21,9 +24,9 @@ class ActionProposal(BaseModel):
     rationale: str
     confidence: float
     coherence_impact: float  # Expected change to system coherence
-    flume_state: List[float]  # Current 256D latent state
-    risks: List[str]
-    benefits: List[str]
+    flume_state: list[float]  # Current 256D latent state
+    risks: list[str]
+    benefits: list[str]
     reversible: bool
     auto_approvable: bool  # Can auto-approve if confidence > threshold
 
@@ -35,7 +38,7 @@ class ObservableActionProposer:
         self.coherence_tracker = get_coherence_tracker()
         self.journey_logger = get_journey_logger()
         self.vae = get_encoder()
-        self._current_journey_id: Optional[str] = None
+        self._current_journey_id: str | None = None
 
     async def propose_action(
         self,
@@ -44,10 +47,10 @@ class ObservableActionProposer:
         rationale: str,
         confidence: float,
         action_fn: Callable,
-        risks: Optional[List[str]] = None,
-        benefits: Optional[List[str]] = None,
+        risks: list[str] | None = None,
+        benefits: list[str] | None = None,
         reversible: bool = True,
-        approval_callback: Optional[Callable[[ActionProposal], bool]] = None,
+        approval_callback: Callable[[ActionProposal], bool] | None = None,
     ) -> bool:
         """
         Propose an action with full transparency.
@@ -214,7 +217,7 @@ DECISION:
         """Set the current journey ID for logging decisions."""
         self._current_journey_id = journey_id
 
-    def get_current_journey_id(self) -> Optional[str]:
+    def get_current_journey_id(self) -> str | None:
         """Get current journey ID."""
         return self._current_journey_id
 

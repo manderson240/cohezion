@@ -12,8 +12,9 @@ from __future__ import annotations
 import logging
 import math
 import time
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from typing import Any, Optional
+
 
 logger = logging.getLogger(__name__)
 
@@ -117,10 +118,7 @@ class ForecastEngine:
             previous_level = self.smoothed_level
             current_rate = cost_usd / duration_hours
 
-            new_level = (
-                self.alpha * current_rate
-                + (1 - self.alpha) * previous_level
-            )
+            new_level = self.alpha * current_rate + (1 - self.alpha) * previous_level
             new_trend = self.alpha * (new_level - previous_level)
 
             self.smoothed_level = new_level
@@ -130,7 +128,7 @@ class ForecastEngine:
         self,
         horizon_hours: int,
         confidence_pct: float = 90.0,
-    ) -> Optional[Forecast]:
+    ) -> Forecast | None:
         """Generate forecast for given horizon.
 
         Args:
@@ -145,14 +143,11 @@ class ForecastEngine:
 
         # Use exponential smoothing for forecast
         forecast_value = (
-            self.smoothed_level
-            + (horizon_hours / 24.0) * self.smoothed_trend
+            self.smoothed_level + (horizon_hours / 24.0) * self.smoothed_trend
         )
 
         # Confidence interval (simplified: ±10-20% depending on horizon)
-        interval_width = (
-            forecast_value * (0.10 + 0.05 * math.log(horizon_hours + 1))
-        )
+        interval_width = forecast_value * (0.10 + 0.05 * math.log(horizon_hours + 1))
 
         lower = max(0, forecast_value - interval_width)
         upper = forecast_value + interval_width
@@ -167,7 +162,7 @@ class ForecastEngine:
             method="exponential_smoothing",
         )
 
-    def forecast_summary(self) -> Optional[ForecastSummary]:
+    def forecast_summary(self) -> ForecastSummary | None:
         """Get forecasts for standard time horizons.
 
         Returns:
@@ -193,19 +188,11 @@ class ForecastEngine:
         return ForecastSummary(
             timestamp=time.time(),
             forecast_24h_usd=forecast_24h.predicted_cost_usd,
-            forecast_7d_usd=forecast_7d.predicted_cost_usd
-            if forecast_7d
-            else 0.0,
-            forecast_30d_usd=forecast_30d.predicted_cost_usd
-            if forecast_30d
-            else 0.0,
+            forecast_7d_usd=forecast_7d.predicted_cost_usd if forecast_7d else 0.0,
+            forecast_30d_usd=forecast_30d.predicted_cost_usd if forecast_30d else 0.0,
             confidence_24h=forecast_24h.confidence_pct,
-            confidence_7d=forecast_7d.confidence_pct
-            if forecast_7d
-            else 90.0,
-            confidence_30d=forecast_30d.confidence_pct
-            if forecast_30d
-            else 90.0,
+            confidence_7d=forecast_7d.confidence_pct if forecast_7d else 90.0,
+            confidence_30d=forecast_30d.confidence_pct if forecast_30d else 90.0,
             trend_direction=trend_direction,
             forecast_method="exponential_smoothing",
         )
@@ -224,11 +211,7 @@ class ForecastEngine:
         """
         expected_rate = self.smoothed_level
         deviation = abs(current_rate_usd_per_hour - expected_rate)
-        deviation_pct = (
-            (deviation / expected_rate * 100)
-            if expected_rate > 0
-            else 0
-        )
+        deviation_pct = (deviation / expected_rate * 100) if expected_rate > 0 else 0
 
         # Anomaly scoring: 0-100
         # 0 = no deviation, 50 = 20% threshold, 100 = 50% deviation
@@ -264,17 +247,12 @@ class ForecastEngine:
             return {}
 
         costs = [cost for _, cost, duration in self.history]
-        rates = [
-            cost / duration
-            for _, cost, duration in self.history
-        ]
+        rates = [cost / duration for _, cost, duration in self.history]
 
         return {
             "min_rate_usd_per_hour": min(rates) if rates else 0,
             "max_rate_usd_per_hour": max(rates) if rates else 0,
-            "mean_rate_usd_per_hour": sum(rates) / len(rates)
-            if rates
-            else 0,
+            "mean_rate_usd_per_hour": sum(rates) / len(rates) if rates else 0,
             "total_cost_usd": sum(costs),
             "observation_count": len(self.history),
             "smoothed_level_usd_per_hour": self.smoothed_level,
@@ -288,7 +266,7 @@ class ForecastEngine:
         self.smoothed_trend = 0.0
 
 
-_instance: Optional[ForecastEngine] = None
+_instance: ForecastEngine | None = None
 
 
 def get_forecast_engine() -> ForecastEngine:

@@ -35,6 +35,7 @@ from cohezion.core.persistence.repositories.surreal_journey_repository import (
 from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.flume.mnm import SCENARIO_MANIFOLDS, ManifoldManager
 
+
 logger = logging.getLogger(__name__)
 
 

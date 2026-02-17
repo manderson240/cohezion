@@ -12,7 +12,7 @@ import logging
 import threading
 import time
 from collections import defaultdict
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -152,7 +152,9 @@ class GlobalMetricsAggregator:
         if self._data_dir:
             self._data_dir.mkdir(parents=True, exist_ok=True)
 
-    def record_instance_metrics(self, instance_id: str, metrics: InstanceMetrics) -> None:
+    def record_instance_metrics(
+        self, instance_id: str, metrics: InstanceMetrics
+    ) -> None:
         """Record metrics from a single instance.
 
         Parameters
@@ -197,9 +199,7 @@ class GlobalMetricsAggregator:
         total_successes = sum(w.successes for w in metrics.waves)
 
         avg_duration = (
-            metrics.total_duration_ms / len(metrics.waves)
-            if metrics.waves
-            else 0.0
+            metrics.total_duration_ms / len(metrics.waves) if metrics.waves else 0.0
         )
 
         instance_metrics = InstanceMetrics(
@@ -213,7 +213,10 @@ class GlobalMetricsAggregator:
             cache_hit_rate=0.0,  # Would be populated by executor
             skill_diversity=len(metrics.model_usage),
             model_usage=metrics.model_usage,
-            metadata={"team_id": team_id, "parallel_efficiency": metrics.parallel_efficiency},
+            metadata={
+                "team_id": team_id,
+                "parallel_efficiency": metrics.parallel_efficiency,
+            },
         )
 
         self.record_instance_metrics(instance_id, instance_metrics)
@@ -317,7 +320,10 @@ class GlobalMetricsAggregator:
             return agg
 
     def query_by_agent(
-        self, agent_id: str, start_time: float | None = None, end_time: float | None = None
+        self,
+        agent_id: str,
+        start_time: float | None = None,
+        end_time: float | None = None,
     ) -> list[InstanceMetrics]:
         """Query metrics for a specific agent.
 
@@ -350,7 +356,10 @@ class GlobalMetricsAggregator:
             return list(metrics_list)
 
     def query_by_skill(
-        self, skill_name: str, start_time: float | None = None, end_time: float | None = None
+        self,
+        skill_name: str,
+        start_time: float | None = None,
+        end_time: float | None = None,
     ) -> SkillMetrics | None:
         """Query aggregated metrics for a specific skill.
 
@@ -519,9 +528,7 @@ class GlobalMetricsAggregator:
                 snapshot["skill_metrics"][skill_name] = metrics.to_dict()
 
             # Write to vault
-            filename = (
-                f"global_metrics_{int(time.time())}.json"
-            )
+            filename = f"global_metrics_{int(time.time())}.json"
             filepath = vault_path / filename
 
             try:
@@ -570,17 +577,19 @@ class GlobalMetricsAggregator:
 
                     for instance_id, metrics_list in self._instance_metrics.items():
                         for m in metrics_list:
-                            writer.writerow({
-                                "timestamp": m.timestamp,
-                                "instance_id": instance_id,
-                                "execution_count": m.execution_count,
-                                "success_count": m.success_count,
-                                "success_rate": m.success_rate,
-                                "total_tokens": m.total_tokens,
-                                "avg_duration_ms": m.avg_duration_ms,
-                                "coherence_score": m.coherence_score,
-                                "cache_hit_rate": m.cache_hit_rate,
-                            })
+                            writer.writerow(
+                                {
+                                    "timestamp": m.timestamp,
+                                    "instance_id": instance_id,
+                                    "execution_count": m.execution_count,
+                                    "success_count": m.success_count,
+                                    "success_rate": m.success_rate,
+                                    "total_tokens": m.total_tokens,
+                                    "avg_duration_ms": m.avg_duration_ms,
+                                    "coherence_score": m.coherence_score,
+                                    "cache_hit_rate": m.cache_hit_rate,
+                                }
+                            )
 
                 logger.info("Exported metrics to CSV: %s", csv_path)
                 return str(csv_path)

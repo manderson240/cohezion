@@ -1001,6 +1001,21 @@
     ],
     "last_updated": "2026-02-05T00:00:00"
   },
+  "VAULT_INTEGRATION_PRIME": {
+    "name": "VAULT_INTEGRATION_PRIME",
+    "description": "Specialist in cross-ecosystem context synchronization using the Model Context Protocol (MCP) and Obsidian knowledge vaults for Sovereign Persistence.",
+    "path": "src/cohezion/skills/VAULT_INTEGRATION_PRIME.md",
+    "version": "1.0.0",
+    "keywords": [
+      "context_sync",
+      "mcp",
+      "obsidian",
+      "sovereign_persistence",
+      "vault",
+      "wikilinking"
+    ],
+    "last_updated": "2026-02-16T00:00:00"
+  },
   "VECTOR_STORE_PRIME": {
     "name": "VECTOR_STORE_PRIME",
     "description": "You are an authority on persistent vector storage for semantic retrieval. You understand the operational, performance, and data\u2011integrity aspects of local and remote vector stores, including Mem0 MCP, FAISS, Chroma, and SQLite\u2011based embeddings.",

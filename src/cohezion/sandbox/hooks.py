@@ -525,15 +525,15 @@ def get_hook_integration(
 
 
 __all__ = [
-    "HookStage",
-    "HookAction",
-    "HookMetadata",
-    "Hook",
-    "HookResult",
     "ExecutionContext",
+    "Hook",
+    "HookAction",
     "HookDiscovery",
     "HookExecutor",
-    "HookRegistry",
     "HookIntegration",
+    "HookMetadata",
+    "HookRegistry",
+    "HookResult",
+    "HookStage",
     "get_hook_integration",
 ]

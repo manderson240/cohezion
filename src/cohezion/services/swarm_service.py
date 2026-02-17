@@ -14,6 +14,7 @@ from cohezion.services.agent_service import AgentService
 from cohezion.services.knowledge_service import KnowledgeNode
 from cohezion.services.physics_service import PhysicsAnalysis, PhysicsService
 
+
 logger = logging.getLogger(__name__)
 
 

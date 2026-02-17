@@ -3,19 +3,19 @@
     "version": "2.5",
     "concepts": [],
     "see_also": [],
-    "source": "/tmp/pytest-of-mike-anderson/pytest-59/test_version_header_in_generat0/skills/TEST_SKILL_PRIME.md"
+    "source": "/tmp/pytest-of-mike-anderson/pytest-127/test_version_header_in_generat0/skills/TEST_SKILL_PRIME.md"
   },
   "SKILL_0_PRIME": {
     "version": "1.0",
     "concepts": [],
     "see_also": [],
-    "source": "/tmp/pytest-of-mike-anderson/pytest-59/test_factory_generate_top_skil0/skills/SKILL_0_PRIME.md"
+    "source": "/tmp/pytest-of-mike-anderson/pytest-127/test_factory_generate_top_skil0/skills/SKILL_0_PRIME.md"
   },
   "SKILL_1_PRIME": {
     "version": "1.0",
     "concepts": [],
     "see_also": [],
-    "source": "/tmp/pytest-of-mike-anderson/pytest-59/test_factory_generate_top_skil0/skills/SKILL_1_PRIME.md"
+    "source": "/tmp/pytest-of-mike-anderson/pytest-127/test_factory_generate_top_skil0/skills/SKILL_1_PRIME.md"
   },
   "COMPOUND_ENGINEERING_PRIME": {
     "version": "v0.1",
@@ -30,5 +30,47 @@
       "RETROSPECTIVE_SKILL"
     ],
     "source": "src/cohezion/skills/compound_engineering.md"
+  },
+  "MODEL_POOL_MANAGEMENT_PRIME": {
+    "version": "1.0",
+    "concepts": [
+      "model pooling",
+      "hot/warm/cold tiers",
+      "CostAwareRouter",
+      "Ollama lifecycle"
+    ],
+    "see_also": [
+      "COMPOUND_ENGINEERING_PRIME",
+      "EXPERIENCE_VAE_TRAINING_PRIME"
+    ],
+    "source": "src/cohezion/skills/MODEL_POOL_MANAGEMENT_PRIME.md"
+  },
+  "EXPERIENCE_VAE_TRAINING_PRIME": {
+    "version": "1.0",
+    "concepts": [
+      "FLUME VAE",
+      "experience training",
+      "agentic feedback loop",
+      "compound execution"
+    ],
+    "see_also": [
+      "COMPOUND_ENGINEERING_PRIME",
+      "UNIVERSE_SIMULATION_PERSISTENCE_PRIME"
+    ],
+    "source": "src/cohezion/skills/EXPERIENCE_VAE_TRAINING_PRIME.md"
+  },
+  "UNIVERSE_SIMULATION_PERSISTENCE_PRIME": {
+    "version": "1.0",
+    "concepts": [
+      "data governance",
+      "reproducibility",
+      "three-tier storage",
+      "artifact lifecycle"
+    ],
+    "see_also": [
+      "COMPOUND_ENGINEERING_PRIME",
+      "EXPERIENCE_VAE_TRAINING_PRIME"
+    ],
+    "source": "src/cohezion/skills/UNIVERSE_SIMULATION_PERSISTENCE_PRIME.md"
   }
 }

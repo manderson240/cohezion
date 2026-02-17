@@ -222,8 +222,7 @@ class TestAgentCoordinator:
         """Test extracting JSON from agent output."""
         coordinator = AgentCoordinator()
 
-        # Simulate JSONL output with JSON block
-        output = '''{"type": "content_block_delta", "delta": {"type": "text_delta", "text": "```json\\n[{\\"row\\": 100, \\"status\\": \\"Researched\\", \\"abstractions\\": \\"Test\\", \\"domain\\": \\"AI\\", \\"integration_point\\": \\"Test point\\"}]\\n```"}}'''
+        output = '```json\n[{"row": 100, "status": "Researched", "abstractions": "Test", "domain": "AI", "integration_point": "Test point"}]\n```'
 
         results = coordinator.extract_json_from_output(output)
 
@@ -236,7 +235,7 @@ class TestAgentCoordinator:
         coordinator = AgentCoordinator()
 
         # Missing required fields
-        output = '''{"type": "content_block_delta", "delta": {"type": "text_delta", "text": "```json\\n[{\\"row\\": 100, \\"status\\": \\"Researched\\"}]\\n```"}}'''
+        output = '```json\n[{"row": 100, "status": "Researched"}]\n```'
 
         results = coordinator.extract_json_from_output(output)
 
@@ -247,7 +246,7 @@ class TestAgentCoordinator:
         """Test extracting from output with no JSON blocks."""
         coordinator = AgentCoordinator()
 
-        output = '{"type": "content_block_delta", "delta": {"type": "text_delta", "text": "No JSON here"}}'
+        output = 'No JSON here, just plain text output.'
 
         results = coordinator.extract_json_from_output(output)
 
@@ -258,10 +257,18 @@ class TestAgentCoordinator:
         coordinator = AgentCoordinator()
 
         # Two JSON blocks, larger one has more entries
-        output = '''
-        {"type": "content_block_delta", "delta": {"type": "text_delta", "text": "```json\\n[{\\"row\\": 100, \\"status\\": \\"Researched\\", \\"abstractions\\": \\"Test\\", \\"domain\\": \\"AI\\", \\"integration_point\\": \\"Test\\"}]\\n```"}}
-        {"type": "content_block_delta", "delta": {"type": "text_delta", "text": "```json\\n[{\\"row\\": 101, \\"status\\": \\"Researched\\", \\"abstractions\\": \\"Test1\\", \\"domain\\": \\"AI\\", \\"integration_point\\": \\"Test1\\"}, {\\"row\\": 102, \\"status\\": \\"Researched\\", \\"abstractions\\": \\"Test2\\", \\"domain\\": \\"AI\\", \\"integration_point\\": \\"Test2\\"}]\\n```"}}
-        '''
+        output = '''Here are the results:
+
+```json
+[{"row": 100, "status": "Researched", "abstractions": "Test", "domain": "AI", "integration_point": "Test"}]
+```
+
+And more results:
+
+```json
+[{"row": 101, "status": "Researched", "abstractions": "Test1", "domain": "AI", "integration_point": "Test1"}, {"row": 102, "status": "Researched", "abstractions": "Test2", "domain": "AI", "integration_point": "Test2"}]
+```
+'''
 
         results = coordinator.extract_json_from_output(output)
 

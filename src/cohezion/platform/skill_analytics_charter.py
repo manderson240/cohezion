@@ -3,25 +3,27 @@ Charter-aligned skill analytics with EDL routing.
 Complex refinements go through Expert Domain Lattice.
 """
 
-from typing import List, Dict
 from datetime import datetime, timedelta
+from typing import Dict, List
+
 from pydantic import BaseModel
+
 from cohezion.core.persistence.surreal_client import get_surreal_client
+from cohezion.platform.edl_router import get_edl_router
+from cohezion.platform.observable_action import get_observable_proposer
 from cohezion.platform.skill_scorer_charter import (
     get_skill_scorer,
 )
-from cohezion.platform.edl_router import get_edl_router
-from cohezion.platform.observable_action import get_observable_proposer
 
 
 class CharterSkillInsights(BaseModel):
     """Skill insights with Charter compliance."""
 
-    top_hiho_stable: List[str]  # Skills maintaining HIHO stability
-    hiho_unstable: List[str]  # Skills outside 0.4-0.6 range
-    failing_skills: List[str]  # <50% success rate
-    refinement_candidates: List[str]  # Require EDL review
-    compound_patterns: List[Dict]
+    top_hiho_stable: list[str]  # Skills maintaining HIHO stability
+    hiho_unstable: list[str]  # Skills outside 0.4-0.6 range
+    failing_skills: list[str]  # <50% success rate
+    refinement_candidates: list[str]  # Require EDL review
+    compound_patterns: list[dict]
 
 
 class CharterAlignedSkillAnalytics:

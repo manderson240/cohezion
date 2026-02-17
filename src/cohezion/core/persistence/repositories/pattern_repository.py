@@ -12,7 +12,9 @@ from typing import Any, Optional
 
 from cohezion.core.persistence.surreal_client import SurrealClient
 
+
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class CodePattern:
@@ -21,7 +23,7 @@ class CodePattern:
     description: str
     file_paths: list[str]
     code_example: str
-    id: Optional[str] = None
+    id: str | None = None
     frequency: int = 1
     confidence: float = 0.0
     first_seen: datetime = field(default_factory=datetime.now)
@@ -29,7 +31,8 @@ class CodePattern:
     obsidian_synced: bool = False
     sync_status: str = "pending"
     metadata: dict[str, Any] = field(default_factory=dict)
-    embedding: Optional[list[float]] = None
+    embedding: list[float] | None = None
+
 
 @dataclass
 class CodeAntiPattern:
@@ -41,7 +44,7 @@ class CodeAntiPattern:
     risk_level: int
     remediation: str
     code_example: str
-    id: Optional[str] = None
+    id: str | None = None
     frequency: int = 1
     confidence: float = 0.0
     first_seen: datetime = field(default_factory=datetime.now)
@@ -49,7 +52,8 @@ class CodeAntiPattern:
     obsidian_synced: bool = False
     sync_status: str = "pending"
     metadata: dict[str, Any] = field(default_factory=dict)
-    embedding: Optional[list[float]] = None
+    embedding: list[float] | None = None
+
 
 class PatternRepository:
     """
@@ -58,9 +62,7 @@ class PatternRepository:
     """
 
     def __init__(
-        self,
-        client: SurrealClient,
-        buffer_path: str = ".pattern_buffer.json"
+        self, client: SurrealClient, buffer_path: str = ".pattern_buffer.json"
     ) -> None:
         self.client = client
         self.buffer_path = Path(buffer_path)
@@ -89,11 +91,11 @@ class PatternRepository:
     async def store_pattern(self, pattern: CodePattern) -> str:
         """Store a pattern in the buffer and attempt SurrealDB sync."""
         pattern_dict = asdict(pattern)
-        
+
         # Add to buffer
         self.buffer["patterns"].append(pattern_dict)
         self._save_buffer()
-        
+
         # Attempt SurrealDB sync
         try:
             if await self.client.is_alive():
@@ -106,17 +108,17 @@ class PatternRepository:
                 logger.warning("SurrealDB offline. Pattern stored in local buffer.")
         except Exception as e:
             logger.error(f"Failed to sync pattern to SurrealDB: {e}")
-            
+
         return "buffered"
 
     async def store_anti_pattern(self, anti_pattern: CodeAntiPattern) -> str:
         """Store an anti-pattern in the buffer and attempt SurrealDB sync."""
         anti_pattern_dict = asdict(anti_pattern)
-        
+
         # Add to buffer
         self.buffer["anti_patterns"].append(anti_pattern_dict)
         self._save_buffer()
-        
+
         # Attempt SurrealDB sync
         try:
             if await self.client.is_alive():
@@ -126,17 +128,21 @@ class PatternRepository:
                     logger.info(f"Anti-pattern synced to SurrealDB: {anti_pattern_id}")
                     return anti_pattern_id
             else:
-                logger.warning("SurrealDB offline. Anti-pattern stored in local buffer.")
+                logger.warning(
+                    "SurrealDB offline. Anti-pattern stored in local buffer."
+                )
         except Exception as e:
             logger.error(f"Failed to sync anti-pattern to SurrealDB: {e}")
-            
+
         return "buffered"
 
-    async def find_similar_patterns(self, embedding: list[float], limit: int = 5) -> list[dict]:
+    async def find_similar_patterns(
+        self, embedding: list[float], limit: int = 5
+    ) -> list[dict]:
         """Query SurrealDB for similar patterns."""
         if not await self.client.is_alive():
             return []
-            
+
         try:
             query = f"""
             SELECT *, vector::similarity::cosine(embedding, $vector) AS score
@@ -155,7 +161,7 @@ class PatternRepository:
         """Increment frequency count for a pattern/anti-pattern."""
         if not await self.client.is_alive():
             return False
-            
+
         try:
             query = f"UPDATE {record_id} SET frequency += 1, last_seen = time::now()"
             await self.client.query(query)

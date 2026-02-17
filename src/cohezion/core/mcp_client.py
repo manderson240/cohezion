@@ -6,11 +6,12 @@ to enable compound engineering workflows with persistent knowledge storage.
 
 import json
 import logging
+import os
 from dataclasses import dataclass
 from typing import Any
 
 import httpx
-import os
+
 
 logger = logging.getLogger(__name__)
 
@@ -150,9 +151,7 @@ class MCPClient:
 
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 403:
-                raise MCPAuthenticationError(
-                    "Invalid API key for MCP server"
-                ) from e
+                raise MCPAuthenticationError("Invalid API key for MCP server") from e
             raise MCPConnectionError(f"Connection check failed: {e}") from e
         except httpx.RequestError as e:
             raise MCPConnectionError(
@@ -205,9 +204,7 @@ class MCPClient:
                 # Check for JSON-RPC error
                 if "error" in result:
                     error_msg = result["error"].get("message", "Unknown error")
-                    raise MCPToolError(
-                        f"Tool '{tool_name}' failed: {error_msg}"
-                    )
+                    raise MCPToolError(f"Tool '{tool_name}' failed: {error_msg}")
 
                 content = result.get("result", {}).get("content", [{}])
                 text: str = content[0].get("text", "")
@@ -372,9 +369,7 @@ class MCPClient:
         # Search in operation-specific folder
         folder = f"patterns/operations/{operation_type}"
         try:
-            results = self.vault_search(
-                query="", scope="folder", folder=folder
-            )
+            results = self.vault_search(query="", scope="folder", folder=folder)
             if results:
                 return results[:limit]
         except Exception:
@@ -391,9 +386,7 @@ class MCPClient:
         except Exception:
             return []
 
-    def vault_search_by_domain(
-        self, domain: str, limit: int = 20
-    ) -> list[dict]:
+    def vault_search_by_domain(self, domain: str, limit: int = 20) -> list[dict]:
         """Fast hierarchical search for patterns by domain.
 
         Uses folder structure for O(log n) lookup.
@@ -409,9 +402,7 @@ class MCPClient:
         """
         folder = f"patterns/domains/{domain}"
         try:
-            results = self.vault_search(
-                query="", scope="folder", folder=folder
-            )
+            results = self.vault_search(query="", scope="folder", folder=folder)
             if results:
                 return results[:limit]
         except Exception:
@@ -444,9 +435,7 @@ class MCPClient:
         """
         folder = f"patterns/skills/{category}"
         try:
-            results = self.vault_search(
-                query="", scope="folder", folder=folder
-            )
+            results = self.vault_search(query="", scope="folder", folder=folder)
             if results:
                 return results[:limit]
         except Exception:
@@ -498,9 +487,7 @@ class MCPClient:
                 f"patterns/operations/{operation_type}"
                 f"/domains/{domain}/skills/{category}"
             )
-            results = self.vault_search(
-                query="", scope="folder", folder=folder
-            )
+            results = self.vault_search(query="", scope="folder", folder=folder)
             return results[:limit] if results else []
 
         # Collect results from available dimensions
@@ -531,10 +518,10 @@ class MCPClient:
 
         # Fall back to general patterns search if no specific match
         if not all_results:
-            results = self.vault_search(query="skill", scope="folder", folder="patterns")
-            all_results = {
-                result.get("path", ""): result for result in results
-            }
+            results = self.vault_search(
+                query="skill", scope="folder", folder="patterns"
+            )
+            all_results = {result.get("path", ""): result for result in results}
 
         # Return limited results
         return list(all_results.values())[:limit]
@@ -737,9 +724,7 @@ class MCPClient:
             },
         )
 
-    def vault_find_relevant_context(
-        self, query: str, project: str = ""
-    ) -> list[dict]:
+    def vault_find_relevant_context(self, query: str, project: str = "") -> list[dict]:
         """Search for prior decisions, patterns, and experiments.
 
         This is the primary 'compound engineering' tool. It searches
@@ -777,6 +762,7 @@ def create_mcp_client(server_url: str, api_key: str, **kwargs) -> MCPClient:
     """
     config = MCPConfig(server_url=server_url, api_key=api_key, **kwargs)
     return MCPClient(config)
+
 
 def get_mcp_client() -> MCPClient:
     """Get the singleton MCP client instance."""

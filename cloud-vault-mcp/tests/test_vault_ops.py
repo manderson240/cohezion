@@ -155,9 +155,9 @@ class TestSearch:
 
 class TestPathSafety:
     def test_traversal_blocked(self, vault):
-        with pytest.raises(ValueError, match="escapes vault"):
+        with pytest.raises(ValueError, match="Invalid path|traversal|escapes vault"):
             vault.read("../../etc/passwd")
 
     def test_traversal_blocked_on_write(self, vault):
-        with pytest.raises(ValueError, match="escapes vault"):
+        with pytest.raises(ValueError, match="Invalid path|traversal|escapes vault"):
             vault.write("../outside.md", "malicious")

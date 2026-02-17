@@ -13,6 +13,7 @@ import time
 
 from cohezion.mass_sim.config import SimulationConfig, SimulationReport, UniverseResult
 
+
 logger = logging.getLogger(__name__)
 
 # New tables for mass simulation

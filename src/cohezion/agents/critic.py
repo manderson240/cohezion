@@ -16,6 +16,7 @@ from cohezion.swarm.swarm_types import (
     ThoughtVector,
 )
 
+
 logger = logging.getLogger(__name__)
 
 

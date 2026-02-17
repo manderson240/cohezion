@@ -32,6 +32,7 @@ from cohezion.compound.models import (
 )
 from cohezion.core.mcp_client import MCPClient
 
+
 if TYPE_CHECKING:
     from cohezion.compound.executor import ExecutionResult
     from cohezion.compound.inflection_detector import AnomalyDetection
@@ -97,9 +98,7 @@ _CONSTRAINT_PATTERNS = {
         r"(?:under|within|limit.*?to)\s+(\d+)\s*(ms|millisecond|sec|second|min|minute)",
         re.IGNORECASE,
     ),
-    ConstraintType.QUALITY: re.compile(
-        r"(high|low|max|min)\s*quality", re.IGNORECASE
-    ),
+    ConstraintType.QUALITY: re.compile(r"(high|low|max|min)\s*quality", re.IGNORECASE),
     ConstraintType.SCOPE: re.compile(
         r"(?:only|just|restrict(?:ed)?|limit)\s+to\s+(\w+)", re.IGNORECASE
     ),
@@ -256,9 +255,7 @@ class RequestAlignmentAnalyzer:
         )  # Penalty per failure
 
         # Detect drift signals
-        drift_signals = self._detect_drift_signals(
-            execution_result, anomaly_analysis
-        )
+        drift_signals = self._detect_drift_signals(execution_result, anomaly_analysis)
         drift_penalty = (
             sum(s.severity for s in drift_signals) / len(drift_signals)
             if drift_signals
@@ -337,9 +334,7 @@ class RequestAlignmentAnalyzer:
             )
             return {"alignment_patterns": context if context else []}
         except Exception as e:
-            logger.warning(
-                "Failed to query alignment patterns (non-blocking): %s", e
-            )
+            logger.warning("Failed to query alignment patterns (non-blocking): %s", e)
             return {"alignment_patterns": [], "error": str(e)}
 
     # ========================================================================
@@ -412,7 +407,9 @@ class RequestAlignmentAnalyzer:
                 "analyze": encoder.encode(
                     "Evaluate, assess, review, and analyze existing content"
                 ),
-                "search": encoder.encode("Find, locate, discover, and search for items"),
+                "search": encoder.encode(
+                    "Find, locate, discover, and search for items"
+                ),
                 "transform": encoder.encode(
                     "Convert, reformat, extract, and transform data"
                 ),
@@ -469,8 +466,14 @@ class RequestAlignmentAnalyzer:
             value = float(match.group(1))
             unit = match.group(2).lower()
             # Normalize to milliseconds
-            multipliers = {"ms": 1, "millisecond": 1, "sec": 1000, "second": 1000,
-                          "min": 60000, "minute": 60000}
+            multipliers = {
+                "ms": 1,
+                "millisecond": 1,
+                "sec": 1000,
+                "second": 1000,
+                "min": 60000,
+                "minute": 60000,
+            }
             value_ms = value * multipliers.get(unit, 1)
             constraints.append(
                 ExecutionConstraint(
@@ -542,9 +545,7 @@ class RequestAlignmentAnalyzer:
 
         return criteria
 
-    def _extract_scope(
-        self, request_text: str
-    ) -> tuple[list[str], list[str]]:
+    def _extract_scope(self, request_text: str) -> tuple[list[str], list[str]]:
         """Extract scope inclusions/exclusions from request.
 
         Args:
@@ -593,12 +594,19 @@ class RequestAlignmentAnalyzer:
                 import numpy as np
 
                 encoder = self.text_encoder
-                intent_prototype = encoder.encode(f"This is a {request_intent.value} task")
-                output_embedding = encoder.encode(result.output[:500])  # First 500 chars
+                intent_prototype = encoder.encode(
+                    f"This is a {request_intent.value} task"
+                )
+                output_embedding = encoder.encode(
+                    result.output[:500]
+                )  # First 500 chars
 
                 similarity = float(
                     np.dot(intent_prototype, output_embedding)
-                    / (np.linalg.norm(intent_prototype) * np.linalg.norm(output_embedding))
+                    / (
+                        np.linalg.norm(intent_prototype)
+                        * np.linalg.norm(output_embedding)
+                    )
                 )
                 return max(0.0, min(1.0, similarity))
             except Exception:
@@ -661,7 +669,9 @@ class RequestAlignmentAnalyzer:
                     (metrics.get(m, 0) for m in quality_metrics), default=0.0
                 )
                 if actual_quality < constraint.value:
-                    severity = min(1.0, (constraint.value - actual_quality) / constraint.value)
+                    severity = min(
+                        1.0, (constraint.value - actual_quality) / constraint.value
+                    )
                     violations.append(
                         ConstraintViolation(
                             constraint=constraint,

@@ -24,6 +24,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -60,9 +61,9 @@ class AuditLogEntry:
     action: AuditAction
     resource: str
     status: str = "success"
-    details: Optional[Dict[str, Any]] = None
-    ip_address: Optional[str] = None
-    user_agent: Optional[str] = None
+    details: dict[str, Any] | None = None
+    ip_address: str | None = None
+    user_agent: str | None = None
 
     def to_json(self) -> str:
         """Serialize to JSON string."""
@@ -170,11 +171,11 @@ class AuditLogger:
 
     def query(
         self,
-        agent_id: Optional[str] = None,
-        action: Optional[AuditAction] = None,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
-        resource: Optional[str] = None,
+        agent_id: str | None = None,
+        action: AuditAction | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+        resource: str | None = None,
     ) -> list[AuditLogEntry]:
         """Query audit logs with filters.
 
@@ -195,7 +196,9 @@ class AuditLogger:
 
         # Set default date range (last 90 days)
         if not start_date:
-            start_date = datetime.now(timezone.utc) - timedelta(days=self.retention_days)
+            start_date = datetime.now(timezone.utc) - timedelta(
+                days=self.retention_days
+            )
         if not end_date:
             end_date = datetime.now(timezone.utc)
 
@@ -225,9 +228,7 @@ class AuditLogger:
                                 entries.append(entry)
 
                             except Exception as e:
-                                logger.warning(
-                                    "Failed to parse audit log entry: %s", e
-                                )
+                                logger.warning("Failed to parse audit log entry: %s", e)
 
                 except Exception as e:
                     logger.warning("Failed to read audit log file %s: %s", log_file, e)
@@ -284,7 +285,9 @@ class AuditLogger:
                 for entry in entries:
                     row = asdict(entry)
                     row["action"] = row["action"].value
-                    row["details"] = json.dumps(row["details"]) if row["details"] else ""
+                    row["details"] = (
+                        json.dumps(row["details"]) if row["details"] else ""
+                    )
                     writer.writerow(row)
 
             return output.getvalue()
@@ -292,7 +295,7 @@ class AuditLogger:
         else:
             raise ValueError(f"Unsupported format: {format}")
 
-    def cleanup_old_logs(self, retention_days: Optional[int] = None) -> int:
+    def cleanup_old_logs(self, retention_days: int | None = None) -> int:
         """Delete audit logs older than retention period.
 
         Args:
@@ -331,13 +334,15 @@ class AuditLogger:
             logger.error("Failed to cleanup audit logs: %s", e)
 
         if deleted_count > 0:
-            logger.info("Cleaned up %d audit logs older than %d days",
-                       deleted_count,
-                       retention_days)
+            logger.info(
+                "Cleaned up %d audit logs older than %d days",
+                deleted_count,
+                retention_days,
+            )
 
         return deleted_count
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get audit logging statistics.
 
         Returns:

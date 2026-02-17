@@ -26,6 +26,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
 
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
@@ -37,6 +38,7 @@ from cohezion.security.attack_patterns import (
 )
 from cohezion.security.prompt_guard import PromptGuard, ThreatLevel
 from cohezion.security.validators import ValidationResult, validate_input
+
 
 logging.basicConfig(
     level=logging.INFO,

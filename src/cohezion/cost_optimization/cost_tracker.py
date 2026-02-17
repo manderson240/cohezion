@@ -33,6 +33,7 @@ import uuid
 from dataclasses import dataclass, field
 from typing import ClassVar, Optional
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -77,7 +78,7 @@ class SessionCostTracker:
     def __init__(
         self,
         session_id: str,
-        model_costs: Optional[dict[str, float]] = None,
+        model_costs: dict[str, float] | None = None,
         batch_size: int = 100,
         vault_logger=None,
     ):
@@ -120,7 +121,7 @@ class SessionCostTracker:
         self.start_time = time.time()
 
         # Flush state
-        self._flush_task: Optional[asyncio.Task] = None
+        self._flush_task: asyncio.Task | None = None
         self._pending_flush = False
 
     @classmethod
@@ -262,7 +263,7 @@ class SessionCostTracker:
         finally:
             # Remove successfully flushed records
             if flushed_count > 0:
-                self.records = self.records[flushed_count :]
+                self.records = self.records[flushed_count:]
 
         return flushed_count
 
@@ -288,12 +289,12 @@ class SessionCostTracker:
         self.model_usage.clear()
 
 
-def get_current_tracker() -> Optional[SessionCostTracker]:
+def get_current_tracker() -> SessionCostTracker | None:
     """Get current session cost tracker."""
     return SessionCostTracker.get_current()
 
 
-def set_current_tracker(tracker: Optional[SessionCostTracker]) -> None:
+def set_current_tracker(tracker: SessionCostTracker | None) -> None:
     """Set current session cost tracker."""
     SessionCostTracker.set_current(tracker)
 

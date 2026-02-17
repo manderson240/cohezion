@@ -12,11 +12,13 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+
 if TYPE_CHECKING:
     from cohezion.swarm.swarm_types import SwarmConfig
 
 import httpx
 
+from cohezion.compound.exp_persistence.accumulator import get_accumulator
 from cohezion.core.compound.engine import CompoundLogicEngine
 from cohezion.core.credit_manager import get_credit_manager
 from cohezion.core.persistence.surreal_client import SurrealClient
@@ -33,7 +35,7 @@ from cohezion.rewards.system import RewardSystem
 from cohezion.security.output_filter import OutputFilter
 from cohezion.security.prompt_guard import PromptGuard, ThreatLevel
 from cohezion.universe.engine import UniverseSimulationEngine
-from cohezion.compound.exp_persistence.accumulator import get_accumulator
+
 
 logger = logging.getLogger(__name__)
 
@@ -549,7 +551,7 @@ class BaseAgent(ABC):
         # Autonomic Experience Persistence
         try:
             accumulator = get_accumulator()
-            
+
             # Refined Novelty Score (Threshold-based importance sampling)
             novelty = 1.0
             if embedding and self._db:
@@ -572,7 +574,7 @@ class BaseAgent(ABC):
                 "embedding": embedding,
                 "timestamp": time.time(),
                 "novelty": novelty,
-                "decisions": []
+                "decisions": [],
             }
             asyncio.create_task(accumulator.add_experience(experience_data))
         except Exception as e:

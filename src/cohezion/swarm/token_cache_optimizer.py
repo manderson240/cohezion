@@ -211,9 +211,7 @@ class TokenCacheOptimizer:
             response_tokens,
         )
 
-    def _update_model_stats(
-        self, model: str, cache_layer: str, hit: bool
-    ) -> None:
+    def _update_model_stats(self, model: str, cache_layer: str, hit: bool) -> None:
         """Update per-model cache statistics.
 
         Parameters
@@ -237,9 +235,7 @@ class TokenCacheOptimizer:
 
         if hit:
             stats["hits"] += 1
-            stats["by_layer"][cache_layer] = (
-                stats["by_layer"].get(cache_layer, 0) + 1
-            )
+            stats["by_layer"][cache_layer] = stats["by_layer"].get(cache_layer, 0) + 1
 
     def _update_operation_stats(
         self, operation_type: str, total_tokens: int, model: str
@@ -297,9 +293,7 @@ class TokenCacheOptimizer:
             "operation_statistics": {
                 op: {
                     "executions": stats["executions"],
-                    "avg_tokens": round(
-                        stats["total_tokens"] / stats["executions"], 0
-                    ),
+                    "avg_tokens": round(stats["total_tokens"] / stats["executions"], 0),
                     "models_used": stats["models_used"],
                 }
                 for op, stats in self._operation_type_stats.items()
@@ -324,9 +318,7 @@ class TokenCacheOptimizer:
         recommendations = await cache.optimize()
 
         # Add model-specific recommendations
-        recommendations["model_recommendations"] = (
-            self._get_model_recommendations()
-        )
+        recommendations["model_recommendations"] = self._get_model_recommendations()
 
         return recommendations
 
@@ -349,7 +341,9 @@ class TokenCacheOptimizer:
             )
 
             if hit_rate < 0.3:
-                model_recs.append("Low hit rate - consider tweaking similarity_threshold")
+                model_recs.append(
+                    "Low hit rate - consider tweaking similarity_threshold"
+                )
 
             if hit_rate > 0.8:
                 model_recs.append("High hit rate - consider expanding cache size")

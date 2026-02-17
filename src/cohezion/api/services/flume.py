@@ -2,16 +2,19 @@
 FLUME VAE Service - Logic for encoding, decoding, and training Flume latent vectors.
 """
 
-import logging
 import json
+import logging
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
 from fastapi import HTTPException
 from pydantic import BaseModel
+
 
 logger = logging.getLogger(__name__)
 
 # --- Models ---
+
 
 class FlumeTrainRequest(BaseModel):
     epochs: int = 50
@@ -22,6 +25,7 @@ class FlumeTrainRequest(BaseModel):
     coherence_weight: float = 0.05
     n_samples: int = 10000
 
+
 class FlumeTrainResponse(BaseModel):
     epochs_completed: int
     final_mse: float
@@ -29,30 +33,37 @@ class FlumeTrainResponse(BaseModel):
     final_total: float
     checkpoint_path: str
 
+
 class FlumeStatusResponse(BaseModel):
     trained: bool
-    checkpoint_path: Optional[str] = None
-    last_metrics: Optional[dict[str, Any]] = None
+    checkpoint_path: str | None = None
+    last_metrics: dict[str, Any] | None = None
+
 
 class FlumeEncodeRequest(BaseModel):
     vector: list[float]  # 256D input vector
+
 
 class FlumeEncodeResponse(BaseModel):
     mu: list[float]
     log_var: list[float]
     coherence: float
 
+
 class FlumeDecodeRequest(BaseModel):
     latent: list[float]  # Latent-space vector
+
 
 class FlumeDecodeResponse(BaseModel):
     reconstruction: list[float]
     coherence: float
 
+
 class FlumeInterpolateRequest(BaseModel):
     vector_a: list[float]  # 256D input vector A
     vector_b: list[float]  # 256D input vector B
     ratio: float = 0.5  # Interpolation ratio (0=A, 1=B)
+
 
 class FlumeInterpolateResponse(BaseModel):
     result: list[float]
@@ -60,17 +71,20 @@ class FlumeInterpolateResponse(BaseModel):
     mu_a: list[float]
     mu_b: list[float]
 
+
 # --- Service Logic ---
 
 _vae_trainer = None
+
 
 def get_vae():
     """Lazy-load the trained FLUME VAE (singleton)."""
     global _vae_trainer
     if _vae_trainer is None:
         import torch
+
         from cohezion.flume.training import FlumeVAETrainer
-        
+
         _vae_trainer = FlumeVAETrainer()
         ckpt_path = Path("data/flume/checkpoints/flume_vae_ep50.pt")
         if ckpt_path.exists():
@@ -93,6 +107,7 @@ def get_vae():
             )
     return _vae_trainer
 
+
 def compute_coherence(z: list[float], z_dim: int = 256) -> float:
     """Compute HIHO coherence: 1.0 at mean=0.5, decays with variance."""
     import numpy as np
@@ -110,6 +125,7 @@ def compute_coherence(z: list[float], z_dim: int = 256) -> float:
 
     variance = variance_sum / n_chunks
     return max(0.0, 1.0 - min(variance * 4.0, 1.0))
+
 
 async def train_flume_service(request: FlumeTrainRequest) -> FlumeTrainResponse:
     """Trigger FLUME VAE training on synthetic data."""
@@ -147,6 +163,7 @@ async def train_flume_service(request: FlumeTrainRequest) -> FlumeTrainResponse:
         checkpoint_path=checkpoint_path,
     )
 
+
 async def get_flume_status() -> FlumeStatusResponse:
     """Check FLUME VAE training status and latest checkpoint."""
     checkpoint_dir = Path("data/flume/checkpoints")
@@ -178,6 +195,7 @@ async def get_flume_status() -> FlumeStatusResponse:
         last_metrics=last_metrics,
     )
 
+
 async def flume_encode_service(request: FlumeEncodeRequest) -> FlumeEncodeResponse:
     """Encode a 256D vector through the trained VAE."""
     import torch
@@ -203,6 +221,7 @@ async def flume_encode_service(request: FlumeEncodeRequest) -> FlumeEncodeRespon
 
     return FlumeEncodeResponse(mu=mu_list, log_var=log_var_list, coherence=coherence)
 
+
 async def flume_decode_service(request: FlumeDecodeRequest) -> FlumeDecodeResponse:
     """Decode a latent vector through the VAE."""
     import torch
@@ -218,7 +237,10 @@ async def flume_decode_service(request: FlumeDecodeRequest) -> FlumeDecodeRespon
 
     return FlumeDecodeResponse(reconstruction=recon_list, coherence=coherence)
 
-async def flume_interpolate_service(request: FlumeInterpolateRequest) -> FlumeInterpolateResponse:
+
+async def flume_interpolate_service(
+    request: FlumeInterpolateRequest,
+) -> FlumeInterpolateResponse:
     """Interpolate between two 256D vectors in latent space."""
     import torch
 
