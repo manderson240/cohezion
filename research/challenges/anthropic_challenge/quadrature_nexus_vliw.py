@@ -35,7 +35,7 @@ class NexusKernelBuilder(OptimizedKernelBuilder):
         g_vtwo = self.get_vconst(2)
 
         # MAIN PIPELINE LOOP (No Barriers between rounds)
-        for r in range(rounds):
+        for _r in range(rounds):
             for w in range(n_windows):
                 win = windows[w]
 

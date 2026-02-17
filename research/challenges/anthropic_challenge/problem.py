@@ -153,11 +153,11 @@ class Machine:
         See the format docs in case you want to add more info to the trace:
         https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview
         """
-        self.trace = open("trace.json", "w")
+        self.trace = open("trace.json", "w")  # noqa: SIM115
         self.trace.write("[")
         tid_counter = 0
         self.tids = {}
-        for ci, core in enumerate(self.cores):
+        for ci, _core in enumerate(self.cores):
             self.trace.write(
                 f'{{"name": "process_name", "ph": "M", "pid": {ci}, "tid": 0, "args": {{"name":"Core {ci}"}}}},\n'
             )
@@ -172,7 +172,7 @@ class Machine:
                     self.tids[(ci, name, i)] = tid_counter
 
         # Add zero-length events at the start so all slots show up in Perfetto
-        for ci, core in enumerate(self.cores):
+        for ci, _core in enumerate(self.cores):
             for name, limit in SLOT_LIMITS.items():
                 if name == "debug":
                     continue
@@ -181,7 +181,7 @@ class Machine:
                     self.trace.write(
                         f'{{"name": "init", "cat": "op", "ph": "X", "pid": {ci}, "tid": {tid}, "ts": 0, "dur": 0}},\n'
                     )
-        for ci, core in enumerate(self.cores):
+        for ci, _core in enumerate(self.cores):
             self.trace.write(
                 f'{{"name": "process_name", "ph": "M", "pid": {len(self.cores) + ci}, "tid": 0, "args": {{"name":"Core {ci} Scratch"}}}},\n'
             )
@@ -340,7 +340,7 @@ class Machine:
 
     def trace_post_step(self, instr, core):
         # You can add extra stuff to the trace if you want!
-        for addr, (name, length) in self.debug_info.scratch_map.items():
+        for addr, (_name, length) in self.debug_info.scratch_map.items():
             if any((addr + vi) in self.scratch_write for vi in range(length)):
                 val = str(core.scratch[addr : addr + length])
                 val = val.replace("[", "").replace("]", "")
@@ -475,7 +475,7 @@ def reference_kernel(t: Tree, inp: Input):
     and then choose the left branch if cur_inp_val is even.
     If we reach the bottom of the tree we wrap around to the top.
     """
-    for h in range(inp.rounds):
+    for _h in range(inp.rounds):
         for i in range(len(inp.indices)):
             idx = inp.indices[i]
             val = inp.values[i]

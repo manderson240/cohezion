@@ -347,7 +347,7 @@ class Machine:
 
     def trace_post_step(self, instr, core):
         # You can add extra stuff to the trace if you want!
-        for addr, (name, length) in self.debug_info.scratch_map.items():
+        for addr, (_name, length) in self.debug_info.scratch_map.items():
             if any((addr + vi) in self.scratch_write for vi in range(length)):
                 val = str(core.scratch[addr : addr + length])
                 val = val.replace("[", "").replace("]", "")
@@ -483,7 +483,7 @@ def reference_kernel(t: Tree, inp: Input):
     and then choose the left branch if cur_inp_val is even.
     If we reach the bottom of the tree we wrap around to the top.
     """
-    for h in range(inp.rounds):
+    for _h in range(inp.rounds):
         for i in range(len(inp.indices)):
             idx = inp.indices[i]
             val = inp.values[i]
