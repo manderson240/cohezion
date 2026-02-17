@@ -32,7 +32,10 @@ jobs:
       - name: Copy website to root for deployment
         run: |
           mkdir -p _site
-          cp -r docs/portfolio/website/* _site/
+          # Copy HTML files (portfolio website)
+          cp docs/index.html docs/rzero-dashboard.html docs/universe-explorer.html _site/
+          # Copy portfolio directory
+          cp -r docs/portfolio _site/
           # Create a redirect from root to the portfolio
           cat > _site/index.html << 'EOF'
           <!DOCTYPE html>
