@@ -195,7 +195,7 @@ class SwarmController:
     def run_swarm(self, batches=10):
         logger.info(f"Igniting Swarm on {self.max_workers} cores...")
 
-        for b in range(batches):
+        for _b in range(batches):
             configs = self.generate_configs(self.max_workers * 2)  # Queue up 2x workers
 
             with multiprocessing.Pool(processes=self.max_workers) as pool:

@@ -173,7 +173,7 @@ class Tests(unittest.TestCase):
         Test the reference kernels against each other
         """
         random.seed(123)
-        for i in range(10):
+        for _i in range(10):
             f = Tree.generate(4)
             inp = Input.generate(f, 10, 6)
             mem = build_mem_image(f, inp)

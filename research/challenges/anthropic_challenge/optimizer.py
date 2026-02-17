@@ -270,7 +270,7 @@ class OptimizedKernelBuilder:
         # Calculate nodes in the crown (up to crown_depth)
         crown_nodes = set()
         current = {0}
-        for r in range(min(rounds, self.config.crown_depth)):
+        for _r in range(min(rounds, self.config.crown_depth)):
             crown_nodes.update(current)
             next_lvl = set()
             for n in current:
