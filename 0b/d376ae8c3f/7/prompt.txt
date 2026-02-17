@@ -1,0 +1,1140 @@
+[SPEC] Continue workflow from previous session. IMMEDIATELY use the Skill tool: Skill(skill="spec", args="--continue docs/plans/2026-02-15-audit-remediation.md") Do NOT do anything else first.
+
+---
+
+# /spec - Unified Spec-Driven Development
+
+**For new features, major changes, and complex work.** Creates a spec, gets your approval, implements with TDD, and verifies completion - all in one continuous flow.
+
+This command is a **dispatcher** that determines which phase to run and invokes it via `Skill()`.
+
+## ⛔ MANDATORY: /spec = Workflow. No Exceptions.
+
+**When `/spec` is invoked, you MUST follow the spec workflow exactly. The user's phrasing after `/spec` is the TASK DESCRIPTION — it is NOT an instruction to change the workflow.**
+
+- `/spec brainstorm a caching layer` → task_description = "brainstorm a caching layer" → invoke `Skill('spec-plan')` with that description
+- `/spec let's discuss auth options` → task_description = "let's discuss auth options" → invoke `Skill('spec-plan')` with that description
+- `/spec explore and plan a new feature` → task_description = "explore and plan a new feature" → invoke `Skill('spec-plan')` with that description
+
+**Words like "brainstorm", "discuss", "explore", "think about" are part of the task description, NOT instructions to skip the workflow.** The spec-plan phase handles all exploration, discussion, and brainstorming within its structured flow.
+
+**NEVER interpret `/spec` arguments as a reason to have a freeform conversation instead of invoking the phase skill.**
+
+---
+
+## 📋 WORKFLOW OVERVIEW
+
+```
+/spec → Dispatcher → Skill('spec-plan')    → Plan, verify, approve
+                   → Skill('spec-implement') → TDD loop for each task
+                   → Skill('spec-verify')    → Tests, execution, code review
+```
+
+| Phase              | Skill            | What Happens                                     |
+| ------------------ | ---------------- | ------------------------------------------------ |
+| **Planning**       | `spec-plan`      | Explore → Design → Write plan → Verify → Approve |
+| **Implementation** | `spec-implement` | TDD loop for each task                           |
+| **Verification**   | `spec-verify`    | Tests → Execution → Rules → Code Review → E2E    |
+
+### Status-Based Flow
+
+```
+PENDING (Not Approved) → spec-plan    → User approves
+PENDING (Approved)     → spec-implement → All tasks done → COMPLETE
+COMPLETE               → spec-verify   → All checks pass → VERIFIED
+VERIFIED               → Done!
+```
+
+### The Feedback Loop
+
+```
+spec-verify finds issues → Status: PENDING → spec-implement fixes → COMPLETE → spec-verify → ... → VERIFIED
+```
+
+---
+
+## 0.1 Parse Arguments
+
+```
+/spec <task-description>           # Start new workflow from task
+/spec <path/to/plan.md>            # Continue existing plan
+/spec --continue <path/to/plan.md> # Resume after session clear
+```
+
+Parse the arguments: --continue docs/plans/2026-02-15-audit-remediation.md
+
+### Determine Current State
+
+```
+IF arguments start with "--continue":
+    plan_path = extract path after "--continue"
+    1. Read ~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md if it exists
+    2. Delete the continuation file after reading
+    3. Read plan file, check Status AND Approved fields
+    → Dispatch to appropriate phase based on status
+
+ELIF arguments end with ".md" AND file exists:
+    plan_path = arguments
+    → Read plan file, check Status AND Approved fields
+    → Dispatch to appropriate phase based on status
+
+ELSE:
+    task_description = arguments  # ALWAYS treated as task description, regardless of phrasing
+    → Ask worktree question FIRST (see Section 0.1.1 below)
+    → Invoke planning phase with worktree choice: Skill(skill='spec-plan', args='<task_description> --worktree=yes|no')
+    # NEVER have a freeform conversation instead. ALWAYS invoke the Skill.
+```
+
+### 0.1.1 Worktree Question (New Plans Only)
+
+**Before invoking `spec-plan` for a NEW plan, ask the user about worktree isolation:**
+
+```
+AskUserQuestion:
+  question: "Use git worktree isolation for this spec?"
+  header: "Worktree"
+  options:
+    - "Yes" - Isolate work on a dedicated branch; safe to experiment, easy to discard or squash merge
+    - "No" - Work directly on the current branch without worktree isolation
+```
+
+**Append the choice to the spec-plan args:** `Skill(skill='spec-plan', args='<task_description> --worktree=yes')` or `--worktree=no`.
+
+**This question is ONLY asked for new plans.** When continuing an existing plan (`--continue` or `.md` path), the `Worktree:` field is already set in the plan header.
+
+**After reading the plan file, register the plan association (non-blocking):**
+
+```bash
+~/.pilot/bin/pilot register-plan "<plan_path>" "<status>" 2>/dev/null || true
+```
+
+This tells Console which session is working on which plan. Failure is silently ignored.
+
+## 0.2 Status-Based Dispatch
+
+Read the plan file and dispatch based on Status and Approved fields:
+
+| Status   | Approved | Action                                                                                    |
+| -------- | -------- | ----------------------------------------------------------------------------------------- |
+| PENDING  | No       | `Skill(skill='spec-plan', args='<plan-path>')`                                            |
+| PENDING  | Yes      | `Skill(skill='spec-implement', args='<plan-path>')` (worktree if `Worktree: Yes` in plan) |
+| COMPLETE | \*       | `Skill(skill='spec-verify', args='<plan-path>')`                                          |
+| VERIFIED | \*       | Report completion, workflow done                                                          |
+
+**⛔ Phase Transition Context Guard applies before every dispatch (see Section 0.3).**
+
+**Invoke the appropriate Skill immediately. Do not duplicate phase logic here.**
+
+### Report Completion (VERIFIED)
+
+If the plan status is already VERIFIED:
+
+```
+✅ Workflow complete! Plan status: VERIFIED
+
+The plan at <plan-path> has been fully implemented and verified.
+Is there anything else you'd like me to help with?
+```
+
+---
+
+## 0.3 Phase Transition Context Guard
+
+**⛔ MANDATORY: Before EVERY `Skill()` call that transitions to another phase, check context:**
+
+```bash
+~/.pilot/bin/pilot check-context --json
+```
+
+| Percentage | Action                                              |
+| ---------- | --------------------------------------------------- |
+| **< 80%**  | Proceed with phase transition                       |
+| **>= 80%** | **Do NOT invoke the next phase.** Hand off instead. |
+
+Each phase (plan, implement, verify) needs significant context to complete. Starting a new phase above 80% risks overshooting to 100% — the worst-case scenario where all work is lost.
+
+**When >= 80%:** Write continuation file, trigger `send-clear`. The next session dispatches to the correct phase automatically based on plan status.
+
+**This applies to ALL transitions:** plan→implement, implement→verify, verify→implement (feedback loop), and dispatcher→any phase.
+
+---
+
+## 0.4 Context Management (90% Handoff)
+
+After each major operation, check context:
+
+```bash
+~/.pilot/bin/pilot check-context --json
+```
+
+**Between iterations:**
+
+1. If context >= 90%: hand off cleanly (don't rush!)
+2. If context 80-89%: continue but wrap up current task with quality
+3. If context < 80%: continue the loop freely
+
+If response shows `"status": "CLEAR_NEEDED"` (context >= 90%):
+
+**⚠️ CRITICAL: Execute ALL steps below in a SINGLE turn. DO NOT stop or wait for user response between steps.**
+
+**Step 1: Write continuation file (GUARANTEED BACKUP)**
+
+Write to `~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md`:
+
+```markdown
+# Session Continuation (/spec)
+
+**Plan:** <plan-path>
+**Phase:** [planning|implementation|verification]
+**Current Task:** Task N - [description]
+
+**Completed This Session:**
+
+- [x] [What was finished]
+
+**Next Steps:**
+
+1. [What to do immediately when resuming]
+
+**Context:**
+
+- [Key decisions or blockers]
+```
+
+**Step 2: Trigger session clear**
+
+```bash
+~/.pilot/bin/pilot send-clear <plan-path>
+```
+
+Pilot will restart with `/spec --continue <plan-path>`
+
+### Error Handling
+
+**No Active Session:** If `send-clear` fails, tell user: "Context at X%. Please run `/clear` manually, then `/spec --continue <plan-path>`"
+
+**Plan File Not Found:** Tell user: "Plan file not found: <path>" and ask if they want to create a new plan.
+
+---
+
+## 0.5 Rules Summary (Quick Reference)
+
+| #   | Rule                                                                                                                                                                                                                                                             |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **NO sub-agents except verification** - Phases 1 and 2 use direct tools only. Verification steps (Step 1.7, Step 3.0/3.5) launch paired review agents via the **Task tool** (`subagent_type="pilot:*"`). Task tool is the ONLY allowed mechanism for sub-agents. |
+| 2   | **NEVER SKIP verification** - Plan verification (Step 1.7) and Code verification (Step 3.5) are mandatory. No exceptions.                                                                                                                                        |
+| 3   | **ONLY stopping point is plan approval** - Everything else is automatic. Never ask "Should I fix these?"                                                                                                                                                         |
+| 4   | **Batch questions together** - Don't interrupt user flow                                                                                                                                                                                                         |
+| 5   | **Run explorations sequentially** - One at a time, never in parallel                                                                                                                                                                                             |
+| 6   | **NEVER write code during planning** - Separate phases                                                                                                                                                                                                           |
+| 7   | **NEVER assume - verify by reading files**                                                                                                                                                                                                                       |
+| 8   | **Re-read plan after user edits** - Before asking for approval again                                                                                                                                                                                             |
+| 9   | **TDD is MANDATORY** - No production code without failing test first                                                                                                                                                                                             |
+| 10  | **Update plan checkboxes after EACH task** - Not at the end                                                                                                                                                                                                      |
+| 11  | **Quality over speed** - Never rush due to context pressure. But at 90%+ context, handoff overrides everything - do NOT start new fix cycles                                                                                                                     |
+| 12  | **Plan file is source of truth** - Survives session clears                                                                                                                                                                                                       |
+| 13  | **Phase Transition Context Guard** - Check context before EVERY phase transition. If >= 80%, hand off instead of starting next phase (Section 0.3)                                                                                                               |
+
+ARGUMENTS: --continue docs/plans/2026-02-15-audit-remediation.md
+
+---
+
+# /spec-verify - Verification Phase
+
+**Phase 3 of the /spec workflow.** Runs comprehensive verification: tests, process compliance, code review, program execution, E2E tests, and edge case testing.
+
+**Input:** Path to a plan file with `Status: COMPLETE`
+**Output:** Plan status set to VERIFIED (success) or looped back to implementation (failure)
+**On success:** Workflow complete
+**On failure:** → `Skill(skill='spec-implement', args='<plan-path>')` to fix issues
+
+---
+
+## ⛔ KEY CONSTRAINTS (Rules Summary)
+
+| #   | Rule                                                                                                  |
+| --- | ----------------------------------------------------------------------------------------------------- |
+| 1   | **NEVER SKIP verification** - Code review (Step 3.0/3.5) launches `spec-reviewer-compliance` + `spec-reviewer-quality` via the **Task tool** (`subagent_type="pilot:spec-reviewer-compliance"` and `"pilot:spec-reviewer-quality"`). Mandatory. No exceptions. |
+| 2   | **NO stopping** - Everything is automatic. Never ask "Should I fix these?"                            |
+| 3   | **Fix ALL findings automatically** - must_fix AND should_fix. No permission needed.                   |
+| 4   | **Quality over speed** - Never rush due to context pressure                                           |
+| 5   | **Plan file is source of truth** - Survives session clears                                            |
+| 6   | **Code changes finish BEFORE runtime testing** - Code review and fixes happen before build/deploy/E2E |
+| 7   | **Re-verification after fixes is MANDATORY** - Fixes can introduce new bugs. Always re-verify.        |
+
+---
+
+## The Process
+
+The verification process is split into two phases. All code changes (from review findings) happen in Phase A. All runtime testing happens in Phase B against the finalized code.
+
+```
+Phase A — Finalize the code:
+  Launch Reviewers (parallel) → Tests → Process Compliance → Feature Parity → Call Chain → Collect Review Results → Fix → Re-verify loop
+
+Phase B — Verify the running program:
+  Build → Deploy → Code Identity Check → Program Execution → DoD Audit → E2E → Edge Cases
+
+Final:
+  Regression check → Update plan status
+```
+
+**Why this order:** Code review findings change the code. If you run E2E before code review, you test unfixed code and must re-test after fixes. By finishing all code changes first, E2E tests the final product exactly once.
+
+**All test levels are MANDATORY:** Unit tests alone are insufficient. You must run integration tests AND E2E tests AND execute the actual program with real data.
+
+---
+
+## Phase A: Finalize the Code
+
+### Step 3.0: Launch Code Review Agents (Early Launch)
+
+**⛔ CRITICAL: Launch review agents IMMEDIATELY at the start of Phase A, before any other verification steps.**
+
+This early-launch pattern maximizes efficiency: agents begin reading the plan and reviewing code while the main session continues with automated checks (tests, lint, feature parity, call chain). By the time Step 3.5 collects results, agents are done or nearly done.
+
+#### 3.0a: Identify Changed Files
+
+Get list of files changed in this implementation:
+
+```bash
+git status --short  # Shows staged and unstaged changes
+```
+
+#### 3.0b: Gather Context for the Reviewers
+
+Collect information needed for actionable findings:
+
+1. **Test framework constraints** — What can/can't the test framework test? (e.g., "SSR-only via renderToString — no client-side effects or state testing possible")
+2. **Runtime environment** — How to start the program, what port, where artifacts are deployed
+3. **Plan risks section** — Copy the Risks and Mitigations table from the plan (if present)
+
+#### 3.0c: Resolve Session Path for Findings Persistence
+
+**⛔ CRITICAL: Agents write findings to files so they survive agent lifecycle cleanup.**
+
+Background agents' return values can be lost after completion. To guarantee findings are retrievable, each agent writes its JSON to a known file path.
+
+```bash
+echo $PILOT_SESSION_ID
+```
+
+**⚠️ Validate the session ID is set.** If `$PILOT_SESSION_ID` is empty, fall back to `"default"` to avoid writing to `~/.pilot/sessions//`.
+
+Define output paths (replace `<session-id>` with the resolved value):
+- **Compliance findings:** `~/.pilot/sessions/<session-id>/findings-compliance.json`
+- **Quality findings:** `~/.pilot/sessions/<session-id>/findings-quality.json`
+
+#### 3.0d: Launch Both Reviewers in Parallel
+
+Spawn 2 agents in parallel using TWO Task tool calls in a SINGLE message. Set `run_in_background=true` on both.
+
+**Agent 1: spec-reviewer-compliance** (plan alignment, DoD, risk mitigations)
+```
+Task(
+  subagent_type="pilot:spec-reviewer-compliance",
+  run_in_background=true,
+  prompt="""
+  **Plan file:** <plan-path>
+  **Changed files:** [file list from git status]
+  **Output path:** <absolute path to findings-compliance.json>
+
+  **Runtime environment:** [how to start, port, deploy path, etc.]
+  **Test framework constraints:** [what the test framework can/cannot test]
+  **Plan risks section:** [copy risks table if present, or "None listed"]
+
+  Verify this implementation matches the plan. Check spec compliance, DoD criteria,
+  and risk mitigations. Read the plan file first to understand requirements, then
+  verify the changed files implement them correctly.
+
+  **IMPORTANT:** Write your final findings JSON to the output_path using the Write tool.
+  """
+)
+```
+
+**Agent 2: spec-reviewer-quality** (code quality, security, testing, performance)
+```
+Task(
+  subagent_type="pilot:spec-reviewer-quality",
+  run_in_background=true,
+  prompt="""
+  **Plan file:** <plan-path>
+  **Changed files:** [file list from git status]
+  **Output path:** <absolute path to findings-quality.json>
+
+  **Runtime environment:** [how to start, port, deploy path, etc.]
+  **Test framework constraints:** [what the test framework can/cannot test]
+
+  Review code quality, security, testing adequacy, performance, and error handling.
+  Read all rule files first, then verify the changed files follow all standards.
+
+  **IMPORTANT:** Write your final findings JSON to the output_path using the Write tool.
+  """
+)
+```
+
+The reviewers work in parallel:
+
+- **spec-reviewer-compliance**: Verifies implementation matches plan, DoD criteria met, risk mitigations implemented
+- **spec-reviewer-quality**: Verifies code quality, security, testing, performance, error handling
+
+Both agents start immediately and work in the background while Steps 3.1-3.4 proceed.
+
+#### 3.0e: Continue with Automated Checks
+
+**Do NOT wait for agent results.** Proceed immediately to Step 3.1. The agents work in the background while you run tests, linters, feature parity, and call chain analysis.
+
+### Step 3.1: Run & Fix Tests
+
+Run the full test suite (unit + integration) and fix any failures immediately.
+
+**If failures:** Identify → Read test → Fix implementation → Re-run → Continue until all pass
+
+### Step 3.2: Process Compliance Check
+
+Run mechanical verification tools. These check process adherence that the code review agent cannot assess.
+
+**Run each tool and show output:**
+
+1. **Type checker** — `tsc --noEmit` / `basedpyright` / equivalent
+2. **Linter** — `eslint` / `ruff check` / equivalent
+3. **Coverage** — Run with coverage flag, verify ≥ 80%
+4. **Build** — Clean build with no errors
+
+5. **File length** — Check all changed production files (non-test). Any file >300 lines must be refactored (split into focused modules using TDD: write tests first, then extract). Files >500 lines are a hard blocker.
+
+**Fix all errors before proceeding.** Warnings are acceptable; errors are blockers.
+
+**Note:** The review agents (launched in Step 3.0) handle code quality, spec compliance, and rules enforcement. This step only covers mechanical tool checks that produce binary pass/fail results.
+
+### Step 3.3: Feature Parity Check (if applicable)
+
+**For refactoring/migration tasks only:** Verify ALL original functionality is preserved.
+
+**Process:**
+
+1. Compare old implementation with new implementation
+2. Create checklist of features from old code
+3. Verify each feature exists in new code
+4. Run new code and verify same behavior as old code
+
+**If features are MISSING:**
+
+This is a serious issue - the implementation is incomplete.
+
+1. **Add new tasks to the plan file:**
+   - Read the existing plan
+   - Add new tasks for each missing feature (follow existing task format)
+   - Mark new tasks with `[MISSING]` prefix in task title
+   - Update the Progress Tracking section with new task count
+   - Add note: `> Extended [Date]: Tasks X-Y added for missing features found during verification`
+
+2. **Set plan status to PENDING and increment Iterations:**
+
+   ```
+   Edit the plan file:
+   Status: COMPLETE  →  Status: PENDING
+   Iterations: N     →  Iterations: N+1
+   ```
+
+3. **Register status change:** `~/.pilot/bin/pilot register-plan "<plan_path>" "PENDING" 2>/dev/null || true`
+
+4. **Inform user:**
+
+   ```
+   🔄 Iteration N+1: Missing features detected, looping back to implement...
+
+   Found [N] missing features that need implementation:
+   - [Feature 1]
+   - [Feature 2]
+
+   The plan has been updated with [N] new tasks.
+   ```
+
+5. **⛔ Phase Transition Context Guard:** Run `~/.pilot/bin/pilot check-context --json`. If >= 80%, hand off instead (see spec.md Section 0.3).
+6. **Invoke implementation phase:** `Skill(skill='spec-implement', args='<plan-path>')`
+
+### Step 3.4: Call Chain Analysis
+
+**Perform deep impact analysis for all changes:**
+
+1. **Trace Upwards (Callers):**
+   - Identify all code that calls modified functions
+   - Verify they handle new return values/exceptions
+   - Check for breaking changes in interfaces
+
+2. **Trace Downwards (Callees):**
+   - Identify all dependencies of modified code
+   - Verify correct parameter passing
+   - Check error handling from callees
+
+3. **Side Effect Analysis:**
+   - Database state changes
+   - Cache invalidation needs
+   - External system impacts
+   - Global state modifications
+
+### Step 3.5: Collect Review Results
+
+**⛔ THIS STEP IS NON-NEGOTIABLE. You MUST collect and process review findings.**
+
+**⚠️ SKIPPING THIS STEP IS FORBIDDEN.** Even if:
+
+- You're confident the code is correct
+- Context is getting high (do handoff AFTER verification, not instead of it)
+- Tests pass (tests don't catch everything)
+- The implementation seems simple
+
+**None of these are valid reasons to skip. ALWAYS COLLECT AND PROCESS RESULTS.**
+
+#### 3.5a: Retrieve and Fix Findings Progressively
+
+The two review agents (launched in Step 3.0) should be done or nearly done by now. Their findings are persisted to files in the session directory.
+
+**⛔ NEVER use `TaskOutput` to retrieve agent results.** TaskOutput dumps the full verbose agent transcript (all JSON messages, hook progress, tool calls) into context, wasting thousands of tokens. Instead, poll the output files with the Read tool.
+
+**Progressive polling — fix findings as each agent completes:**
+
+1. **Attempt to read BOTH findings files** using the Read tool on the paths defined in Step 3.0c:
+   - `~/.pilot/sessions/<session-id>/findings-compliance.json`
+   - `~/.pilot/sessions/<session-id>/findings-quality.json`
+2. **If one file exists but the other doesn't** → start fixing findings from the ready agent immediately (by severity: must_fix → should_fix → suggestion). Track which findings you fixed.
+3. After fixing the first batch, **poll for the second file** (retry if not yet ready)
+4. When the second file is ready, **skip findings that overlap** with already-fixed items from the first batch (same file + same issue), then fix the remaining findings
+5. **If both files are ready simultaneously**, deduplicate first (keep higher severity for duplicates on same file + line), then fix all
+
+**If a findings file is still missing after 2-3 retries** (agent failed to write):
+1. Re-launch that specific agent synchronously (without `run_in_background`) with the same prompt
+2. If the synchronous re-launch also fails, log the failure and continue with findings from the other agent only
+
+**Expected timeline:**
+- Agents were launched before Step 3.1 (tests, lint, feature parity, call chain)
+- Steps 3.1-3.4 typically take 2-5 minutes
+- Agents typically complete in 3-7 minutes
+- Net result: Agents finish around the same time as Step 3.4, minimal or zero wait time
+
+#### 3.5b: Report Findings
+
+As you collect and fix findings, present them briefly:
+
+```
+## Code Verification Complete
+
+**Issues Found:** X
+
+### Must Fix (N) | Should Fix (N) | Suggestions (N)
+
+Implementing fixes automatically...
+```
+
+#### 3.5c: Fix Severity Order
+
+**⛔ DO NOT ask user for permission. Fix everything automatically.**
+
+This is part of the automated /spec workflow. The user approved the plan - verification fixes are part of that approval. Never stop to ask "Should I fix these?" or "Want me to address these findings?"
+
+**Implementation order (by severity):**
+
+1. **must_fix issues** - Fix immediately (security, crashes, TDD violations)
+2. **should_fix issues** - Fix immediately (spec deviations, missing tests, error handling)
+3. **suggestions** - Implement if reasonable and quick
+
+**For each fix:**
+
+1. Implement the fix
+2. Run relevant tests to verify
+3. Log: "✅ Fixed: [issue title]"
+
+### Step 3.6: Re-verification Loop (MANDATORY)
+
+**⛔ This step is NON-NEGOTIABLE. Fixes can introduce new bugs.**
+
+After implementing ALL code review findings from Step 3.5c:
+
+1. **Re-run BOTH review agents** in parallel (same parameters as Step 3.0d, with `run_in_background=true` and output paths):
+   - `spec-reviewer-compliance` → writes to `findings-compliance.json`
+   - `spec-reviewer-quality` → writes to `findings-quality.json`
+2. **Use the same progressive polling approach as Step 3.5a** — fix findings from whichever agent finishes first, then handle the second when ready
+3. If new must_fix or should_fix issues found → fix them and re-run both agents again
+4. Maximum 3 iterations of the fix → re-verify cycle
+5. **Only proceed to Phase B when BOTH reviewers return zero must_fix and zero should_fix**
+
+If iterations exhausted with remaining issues, add them to plan. **⛔ Phase Transition Context Guard** (spec.md Section 0.3) before invoking `Skill(skill='spec-implement', args='<plan-path>')`
+
+**The only stopping point in /spec is plan approval. Everything else is automatic.**
+
+---
+
+## Phase B: Verify the Running Program
+
+All code is now finalized. No more code changes should happen in this phase (except critical bugs found during execution).
+
+### Step 3.7: Build, Deploy, and Verify Code Identity
+
+**⚠️ CRITICAL: Tests passing ≠ Program works. And building ≠ running your build.**
+
+#### 3.7a: Build
+
+Build/compile the project. Verify zero errors.
+
+#### 3.7b: Deploy (if applicable)
+
+If the project builds artifacts that are deployed separately from source (e.g., bundled JS, compiled binaries, Docker images):
+
+1. Identify where built artifacts are installed (e.g., `~/.claude/pilot/scripts/`)
+2. Copy new builds to the installed location
+3. Restart any running services that use the old artifacts
+
+**If no separate deployment is needed, skip to 3.7c.**
+
+#### 3.7c: Code Identity Verification (MANDATORY)
+
+**Before testing ANY endpoint or behavior, prove the running instance uses your newly built code.**
+
+1. Identify a behavioral change unique to this implementation (new query parameter, changed response field, new endpoint, different behavior for specific input)
+2. Craft a request that ONLY the new code would handle correctly (e.g., filter by nonexistent value should return 0 results; old code returns unfiltered results)
+3. Execute the request against the running program
+4. **If the response matches OLD behavior** → you are testing stale code
+   - Redeploy artifacts
+   - Restart the service
+   - Re-verify until the response matches NEW behavior
+5. **If the response matches NEW behavior** → proceed
+
+**Example:** You added `?project=` filtering. Query `?project=nonexistent-xyz`. New code returns 0 results. Old code ignores the parameter and returns all results. If you see all results, you're testing old code.
+
+**⛔ DO NOT proceed to program execution testing until code identity is confirmed.**
+
+### Step 3.8: Program Execution Verification
+
+Run the actual program and verify real output.
+
+**Execution checklist:**
+
+- [ ] Program starts without errors
+- [ ] **Inspect logs** - Check for errors, warnings, stack traces
+- [ ] **Verify output correctness** - Fetch source data independently, compare against program output
+- [ ] Test with real/sample data, not just mocks
+
+**⛔ Output Correctness - MANDATORY:**
+If code processes external data, ALWAYS verify by fetching source data independently and comparing:
+
+```bash
+# Fetch actual source data (database query, API call, file contents)
+# Compare counts/content with what your code returned
+# If mismatch → BUG (don't trust program output alone)
+```
+
+**If bugs are found:**
+
+| Bug Type                                                       | Action                                                                                                                      |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Minor** (typo, off-by-one, missing import)                   | Fix immediately, re-run, continue verification                                                                              |
+| **Major** (logic error, missing function, architectural issue) | Add task to plan, set PENDING, **⛔ Context Guard** (spec.md 0.3), then `Skill(skill='spec-implement', args='<plan-path>')` |
+
+### Step 3.9: Goal Verification and DoD Audit
+
+**Task completion ≠ Goal achievement.** A task can be marked "done" (file created, test passes) while the plan's actual goal remains unmet. Verify both levels.
+
+#### 3.9a: Goal-Backward Verification
+
+Read the plan's **Summary/Goal** section. Work backwards from the intended outcome:
+
+1. **What must be TRUE** for the goal to be achieved? (e.g., "users can filter by project")
+2. **What must EXIST** for those truths to hold? (e.g., filter component, API parameter, query logic)
+3. **What must be WIRED** for those artifacts to function? (e.g., component imported, route registered, state connected)
+
+Verify each level against the actual codebase and running program. If any level fails, the goal is not achieved regardless of task completion status.
+
+#### 3.9b: Per-Task DoD Audit
+
+**For EACH task in the plan**, read its Definition of Done criteria and verify each criterion is met with evidence from the running program.
+
+```markdown
+### Task N: [title]
+
+- [ ] DoD criterion 1 → [evidence: command output / API response / screenshot]
+- [ ] DoD criterion 2 → [evidence]
+      ...
+```
+
+**If any criterion is unmet (at either goal or task level):**
+
+- If fixable inline → fix immediately
+- If structural → add task to plan and loop back to implementation
+
+### Step 3.10: E2E Verification (MANDATORY for apps with UI/API)
+
+**⚠️ Unit + Integration tests are NOT enough. You MUST also run E2E tests.**
+
+#### 3.10a: Happy Path Testing
+
+Test the primary user workflow end-to-end.
+
+**For APIs:** Test endpoints with curl. Verify status codes, response content, and state changes.
+
+**For Frontend/UI:** Use `playwright-cli` to verify UI renders and workflows complete. See `~/.claude/rules/playwright-cli.md`.
+
+Walk through the main user scenario described in the plan. Every view, every interaction, every state transition.
+
+#### 3.10b: Edge Case and Negative Testing
+
+After the happy path passes, test failure modes. **This is not optional.**
+
+| Category          | What to test                                    | Example                                                          |
+| ----------------- | ----------------------------------------------- | ---------------------------------------------------------------- |
+| **Empty state**   | No data, no items, no results                   | Empty database, no projects, search returns nothing              |
+| **Invalid input** | Bad parameters, wrong types                     | SQL injection in query params, empty strings, special characters |
+| **Stale state**   | Cached/stored data references something deleted | localStorage has project name that no longer exists              |
+| **Error state**   | Backend unreachable, API returns error          | What does the UI show when fetch fails?                          |
+| **Boundary**      | Maximum values, zero values, single item        | Exactly 1 project, 0 observations, 100-char project name         |
+
+For each edge case:
+
+1. Set up the condition
+2. Exercise the UI/API
+3. Verify the result is reasonable (not blank, not broken, not stuck, no unhandled errors)
+
+### Step 3.11: Final Regression Check
+
+Run the test suite and type checker one final time to catch any regressions from Phase B fixes (if any code changed during execution/E2E testing):
+
+1. Run full test suite — all pass
+2. Run type checker — zero errors
+3. Verify build still succeeds
+
+**If no code changed during Phase B** (no bugs found during execution/E2E), this confirms the same green state from Phase A. Still run it — it's cheap insurance.
+
+### Step 3.11b: Worktree Sync (if worktree is active)
+
+**After all verification passes, sync worktree changes back to the original branch with user approval.**
+
+This is the THIRD user interaction point in the `/spec` workflow (first is worktree choice, second is plan approval).
+
+1. **Extract plan slug** from the plan file path:
+   - `docs/plans/2026-02-09-add-auth.md` → plan_slug = `add-auth` (strip date prefix and `.md`)
+
+2. **Check for active worktree:**
+
+   ```bash
+   ~/.pilot/bin/pilot worktree detect --json <plan_slug>
+   # Returns: {"found": true, "path": "...", "branch": "...", "base_branch": "..."} or {"found": false}
+   ```
+
+3. **If no worktree is active** (`"found": false`): Skip to Step 3.12 (this is a non-worktree spec run or worktree was already synced).
+
+4. **Show diff summary:**
+
+   ```bash
+   ~/.pilot/bin/pilot worktree diff --json <plan_slug>
+   # Returns JSON with changed files list
+   ```
+
+5. **Ask user for sync decision:**
+
+   ```
+   AskUserQuestion:
+     question: "Sync worktree changes to <base_branch>?"
+     options:
+       - "Yes, squash merge" (Recommended) — Merge all changes as a single commit on <base_branch>
+       - "No, keep worktree" — Leave the worktree intact for manual review
+       - "Discard all changes" — Remove worktree and branch without merging
+   ```
+
+6. **Handle user choice:**
+
+   **If "Yes, squash merge":**
+
+   ```bash
+   ~/.pilot/bin/pilot worktree sync --json <plan_slug>
+   # Returns: {"success": true, "files_changed": N, "commit_hash": "..."} or {"success": false, "error": "..."}
+   ```
+
+   If sync succeeds, clean up the worktree:
+
+   ```bash
+   ~/.pilot/bin/pilot worktree cleanup --json <plan_slug>
+   ```
+
+   Report: "✅ Changes synced to `<base_branch>` — N files changed, commit `<hash>`"
+
+   **If "No, keep worktree":**
+   Report: "Worktree preserved at `<worktree_path>`. You can sync later via `pilot worktree sync <plan-slug>` or discard via `pilot worktree cleanup <plan-slug>`."
+
+   **If "Discard all changes":**
+
+   ```bash
+   ~/.pilot/bin/pilot worktree cleanup --json <plan_slug>
+   ```
+
+   Report: "Worktree and branch discarded."
+
+### Step 3.12: Update Plan Status
+
+**Status Lifecycle:** `PENDING` → `COMPLETE` → `VERIFIED`
+
+**When ALL verification passes (no missing features, no bugs, rules compliant):**
+
+1. **MANDATORY: Update plan status to VERIFIED**
+   ```
+   Edit the plan file and change the Status line:
+   Status: COMPLETE  →  Status: VERIFIED
+   ```
+2. **Register status change:** `~/.pilot/bin/pilot register-plan "<plan_path>" "VERIFIED" 2>/dev/null || true`
+3. Read the Iterations count from the plan file
+4. Report completion:
+
+   ```
+   ✅ Workflow complete! Plan status: VERIFIED
+
+   Summary:
+   - [Brief summary of what was implemented]
+   - [Key files created/modified]
+   - [Test results]
+
+   Is there anything else you'd like me to help with?
+   ```
+
+**When verification FAILS (missing features, serious bugs, or unfixed rule violations):**
+
+1. Add new tasks to the plan for missing features/bugs
+2. **Set status back to PENDING and increment Iterations:**
+   ```
+   Edit the plan file:
+   Status: COMPLETE  →  Status: PENDING
+   Iterations: N     →  Iterations: N+1
+   ```
+3. **Register status change:** `~/.pilot/bin/pilot register-plan "<plan_path>" "PENDING" 2>/dev/null || true`
+4. Inform user: "🔄 Iteration N+1: Issues found, fixing and re-verifying..."
+5. **⛔ Phase Transition Context Guard:** Run `~/.pilot/bin/pilot check-context --json`. If >= 80%, hand off instead (see spec.md Section 0.3).
+6. **Invoke implementation phase:** `Skill(skill='spec-implement', args='<plan-path>')`
+
+---
+
+## Context Management (90% Handoff)
+
+After each major operation, check context:
+
+```bash
+~/.pilot/bin/pilot check-context --json
+```
+
+**Between iterations:**
+
+1. If context >= 90%: hand off cleanly (don't rush!)
+2. If context 80-89%: continue but wrap up current task with quality
+3. If context < 80%: continue the loop freely
+
+If response shows `"status": "CLEAR_NEEDED"` (context >= 90%):
+
+**⚠️ CRITICAL: Execute ALL steps below in a SINGLE turn. DO NOT stop or wait for user response between steps.**
+
+**Step 1: Write continuation file (GUARANTEED BACKUP)**
+
+Write to `~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md`:
+
+```markdown
+# Session Continuation (/spec)
+
+**Plan:** <plan-path>
+**Phase:** verification
+**Current Task:** Step 3.N - [description]
+
+**Completed This Session:**
+
+- [x] [What was finished]
+
+**Next Steps:**
+
+1. [What to do immediately when resuming]
+
+**Context:**
+
+- [Key decisions or blockers]
+```
+
+**Step 2: Trigger session clear**
+
+```bash
+~/.pilot/bin/pilot send-clear <plan-path>
+```
+
+Pilot will restart with `/spec --continue <plan-path>`
+
+ARGUMENTS: docs/plans/2026-02-15-audit-remediation.md
+
+---
+
+<task-notification>
+<task-id>a73785d</task-id>
+<status>completed</status>
+<summary>Agent "Compliance review iteration 4" completed</summary>
+<result>Perfect! Now let me output the findings as my response as well:
+
+```json
+{
+  "pass_summary": "Implementation successfully achieves plan goals with 13/14 tasks completed. All critical objectives met: imports fixed (FlumeEncoder working, 5 __init__.py files created), tests passing (13 failures → 0), 4/5 files split below 500 LOC hard limit (api/__init__.py: 2074→89, cohezion_mcp.py: 1615→223, fallback_strategy.py: 717→469, executor.py: 1146→927), and 3 unused skills properly wired into skill_registry.json. T11 (request_alignment_analyzer.py 1014 LOC) explicitly deferred per plan. All risk mitigations verified: backward compatibility maintained, extracted modules properly integrated, tests confirm no import breakage. executor.py still exceeds 500 LOC hard limit (927 vs 500) but plan acknowledges this as 'needs further work' and marks T10 complete based on delegation pattern being implemented. Plan status correctly marked COMPLETE.",
+  "compliance_score": "high",
+  "issues": [
+    {
+      "severity": "should_fix",
+      "category": "definition_of_done",
+      "title": "T10: executor.py exceeds 500 LOC hard limit (927 lines)",
+      "description": "Phase 2 Gate requires 'No file in src/ exceeds 500 LOC'. executor.py was substantially reduced from 1,146 to 927 LOC through proper extraction and delegation to 3 focused modules (guardrails 119 LOC, analysis 184 LOC, monitoring 256 LOC). The delegation pattern is correctly implemented - execute_task() imports and calls check_input_guardrails, check_output_guardrails, detect_anomalies, extract_patterns, refine_skills, check_degradation, record_model_quality, record_metrics, and track_journey from the extracted modules. However, the file still exceeds the 500 line hard limit by 427 lines. Plan Iteration 2 notes acknowledge this as 'still over 500 hard limit, needs further work' but marked T10 as COMPLETE based on the refactor pattern being implemented.",
+      "plan_requirement": "Phase 2 GATE: No file in src/ exceeds 500 LOC AND T10 Definition of Done: 'executor.py ≤ 300 LOC' (lines 41-42, 366)",
+      "file": "src/cohezion/compound/executor.py",
+      "line": 1,
+      "suggested_fix": "Further extract: (1) Initialization logic (lines 43-165, ~120 LOC) into executor_factory.py or executor_config.py. (2) Experience guidance retrieval (lines 190-280, ~90 LOC) into executor_guidance.py. (3) Alignment analysis blocks (lines 369-393, 473-531, ~100 LOC) already in executor_analysis.py can be called as a single analyze_alignment() function. (4) Universe bridge integration (lines 353-361, 630-654, ~50 LOC) into executor_monitoring.py as bridge_to_universe() function. This would bring executor.py to ~570 LOC, closer to compliance."
+    },
+    {
+      "severity": "should_fix",
+      "category": "definition_of_done",
+      "title": "T10: execute_task complexity not measured",
+      "description": "T10 Definition of Done states 'execute_task complexity < 20' (line 367) but this was not verified. The execute_task method spans lines 293-664 (372 lines) and orchestrates 11+ steps with imports, conditionals, exception handling, and sequential delegation. While the delegation pattern reduces inline logic, the method still coordinates many operations and likely exceeds complexity 20.",
+      "plan_requirement": "T10 Definition of Done: 'execute_task complexity < 20' (line 367)",
+      "file": "src/cohezion/compound/executor.py",
+      "line": 293,
+      "suggested_fix": "Install radon (uv pip install radon) and measure: 'radon cc src/cohezion/compound/executor.py -s'. If complexity exceeds 20, apply suggested_fix from issue #1 to extract more logic into focused functions. Target: execute_task becomes a thin orchestrator (~50 LOC) that calls 10-12 single-purpose functions with minimal branching logic."
+    },
+    {
+      "severity": "suggestion",
+      "category": "feature_completeness",
+      "title": "9 other files still exceed 500 LOC hard limit",
+      "description": "Phase 2 Gate requires 'No file in src/ exceeds 500 LOC'. While the plan focused on splitting 5 specific files, verification shows 9 additional files exceed the hard limit: enhanced_simulator.py (698), engine.py (694), batch_executor.py (666), skill_consensus_voter.py (573), thermal_trend_predictor.py (523), feedback_loop.py (591), model_quality_classifier.py (540), batch_sizer.py (582), global_metrics_aggregator.py (666). The plan did not include these files in scope, but they violate the stated gate condition.",
+      "plan_requirement": "Phase 2 GATE: No file in src/ exceeds 500 LOC (line 41)",
+      "file": "src/cohezion/",
+      "line": 1,
+      "suggested_fix": "Address opportunistically in future work. These files were not in the plan's explicit scope (5 files targeted: api/__init__.py, cohezion_mcp.py, executor.py, request_alignment_analyzer.py, fallback_strategy.py) so no immediate action required. However, the gate condition is technically not met until these are also split."
+    },
+    {
+      "severity": "suggestion",
+      "category": "feature_completeness",
+      "title": "79 files remain in 300-500 LOC soft limit range",
+      "description": "Plan explicitly marks this out of scope: 'Reducing 62 files in 300-500 LOC range — soft limit, address opportunistically' (line 64). Current count is 79 files. While out of scope, this represents technical debt.",
+      "plan_requirement": "Out of scope: soft limit files marked for opportunistic improvement only (line 64)",
+      "file": "src/cohezion/",
+      "line": 1,
+      "suggested_fix": "No action required per plan scope. When touching these files in future work, consider extracting logical groups to stay under 300 LOC per file."
+    }
+  ]
+}
+```
+
+**Verification Summary:**
+
+✅ **Plan Compliance: HIGH** - 13/14 tasks completed successfully
+
+**Key Achievements:**
+- T1-T2: All imports fixed, FlumeEncoder works, 5 __init__.py files created
+- T3-T7: All 13 failing tests fixed (pre-commit assertions updated, RedactionFilter type-safety bug fixed)
+- T8: api/__init__.py split from 2074 → 89 LOC with 10 route modules properly wired
+- T9: cohezion_mcp.py split from 1615 → 223 LOC with handlers extracted to 3 focused modules
+- T10: executor.py reduced from 1146 → 927 LOC with proper delegation to guardrails/analysis/monitoring
+- T12: fallback_strategy.py split from 717 → 469 LOC with CircuitBreaker extracted (189 LOC)
+- T13: 3 skills properly wired into skill_registry.json with metadata
+- T11: request_alignment_analyzer.py (1014 LOC) explicitly deferred per plan
+
+**Risk Mitigations Verified:**
+- Backward compatibility maintained (app import still works)
+- Extracted modules properly integrated (executor calls all functions)
+- Tests confirm no import breakage (all passing)
+
+**Remaining Issues:**
+- executor.py still exceeds 500 LOC hard limit (927 vs 500 target) - plan acknowledges as "needs further work"
+- execute_task complexity not measured (likely exceeds 20)
+- 9 other files exceed 500 LOC (not in plan scope)</result>
+<usage>total_tokens: 89670
+tool_uses: 39
+duration_ms: 161823</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/a73785d.output
+
+---
+
+<task-notification>
+<task-id>a158dba</task-id>
+<status>completed</status>
+<summary>Agent "Quality review iteration 4" completed</summary>
+<result>Here is my quality review findings:
+
+```json
+{
+  "pass_summary": "The refactoring successfully decomposed 5 large files into focused modules, reducing api/__init__.py from 2074 to 89 LOC and extracting route modules, executor steps, circuit breaker, and MCP handlers. However, the refactoring introduced duplicate singleton instances (VAE/RL policy) across multiple modules, broke test isolation in conftest.py, left a dead-code reference to `app` in routes_rl.py, and several files still exceed 300/500 LOC limits. Hardcoded user-specific paths remain in cohezion_mcp.py.",
+  "quality_score": "medium",
+  "issues": [
+    {
+      "severity": "must_fix",
+      "category": "bugs",
+      "title": "Duplicate VAE singleton: routes_flume._vae_trainer vs helpers._vae_trainer",
+      "file": "/home/mike-anderson/dev/cohezion/src/cohezion/api/routes_flume.py",
+      "line": 101
+    },
+    {
+      "severity": "must_fix",
+      "category": "bugs",
+      "title": "Duplicate RL policy singleton: routes_rl._rl_policy vs helpers._rl_policy",
+      "file": "/home/mike-anderson/dev/cohezion/src/cohezion/api/routes_rl.py",
+      "line": 100
+    },
+    {
+      "severity": "must_fix",
+      "category": "bugs",
+      "title": "Test isolation broken: conftest.py resets nonexistent api module globals",
+      "file": "/home/mike-anderson/dev/cohezion/tests/conftest.py",
+      "line": 95
+    }
+  ]
+}
+```
+
+**3 must_fix issues** found, all related to the singleton duplication problem introduced during the API split:
+
+1. **`/home/mike-anderson/dev/cohezion/src/cohezion/api/routes_flume.py:101`** -- VAE trainer singleton duplicated in 3 places (helpers.py, routes_flume.py, services/flume.py). Each has its own independent `_vae_trainer = None` global, meaning two VAE instances can coexist.
+
+2. **`/home/mike-anderson/dev/cohezion/src/cohezion/api/routes_rl.py:100`** -- RL policy singleton duplicated in 3 places (helpers.py, routes_rl.py, services/rl.py). Same risk of divergent state.
+
+3. **`/home/mike-anderson/dev/cohezion/tests/conftest.py:95`** -- The test fixture resets `cohezion.api._vae_trainer` and `cohezion.api._rl_policy`, but after the refactor these globals no longer exist on the `cohezion.api` module. The `hasattr` check silently returns False, so no singleton is ever reset between tests. This will cause test pollution.
+
+Additionally, 8 should_fix issues (executor.py still 927 LOC over 500 hard limit, undefined `app` reference in routes_rl.py, hardcoded paths, f-string logging that conflicts with the RedactionFilter fix from T4-T6, silent error swallowing, missing tests for new modules) and 2 suggestions (DRY violations).
+
+The full findings JSON has been written to `/home/mike-anderson/.pilot/sessions/3695675/findings-quality.json`.</result>
+<usage>total_tokens: 146870
+tool_uses: 51
+duration_ms: 242481</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/a158dba.output
+
+---
+
+<task-notification>
+<task-id>a850bc1</task-id>
+<status>completed</status>
+<summary>Agent "Compliance re-verification iter 5" completed</summary>
+<result>Perfect! The compliance verification is complete. Here's my assessment:
+
+## Compliance Verification Summary
+
+**All must_fix findings from iteration 4 have been successfully resolved.**
+
+### Previous Must_Fix Items - All Resolved ✅
+
+1. **Singleton Deduplication** ✅
+   - `helpers.py` now contains single source of truth for `_vae_trainer` and `_rl_policy`
+   - `routes_flume.py` delegates to `helpers.get_vae()` (no duplicate singleton)
+   - `routes_rl.py` delegates to `helpers.get_rl_policy()` (no duplicate singleton)
+   - `conftest.py` correctly calls `helpers.reset_vae()` and `helpers.reset_rl_policy()`
+   - `api/__init__.py` imports and re-exports helpers functions (no duplicate definitions)
+
+2. **B904 Exception Chaining** ✅
+   - All `raise HTTPException` in `observability_endpoints.py` now use `from e` (verified 5 instances)
+
+3. **F-string Logging Removed** ✅
+   - `routes_core.py` line 88 uses `logger.error('Debate failed: %s', e)` with % formatting
+
+4. **Bare Except Replaced** ✅
+   - `routes_metrics.py` now uses `except Exception as e:` with proper logging (3 instances)
+
+5. **Missing Imports Added** ✅
+   - `mcp_handlers_config.py`: `import os` added (line 4)
+   - `mcp_handlers_util.py`: `from cohezion.reliability.context_harness import ContextHarness` added (line 6)
+
+6. **Hardcoded Paths Fixed** ✅
+   - `cohezion_mcp.py` now uses `os.environ.get("COHEZION_ROOT", "/home/mike-anderson/dev/cohezion")` pattern throughout (4 instances)
+
+### Test Results
+- **3129 passed, 2 failed**
+- The 2 failures are pre-existing template endpoint tests in `test_api_phase2` (unrelated to this iteration)
+- No new test regressions introduced
+
+### Risk Mitigations (from Plan)
+All plan-specified mitigations were implemented:
+- ✅ Re-export pattern used for backward compatibility
+- ✅ Tests run after each change to catch regressions
+- ✅ Singleton reset logic centralized in helpers.py
+- ✅ Import paths verified to prevent breakage
+
+### Compliance Score: **HIGH**
+
+The implementation correctly addresses all verification findings from iteration 4. No new compliance gaps detected. The codebase is now ready for final verification completion.</result>
+<usage>total_tokens: 81475
+tool_uses: 22
+duration_ms: 72293</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/a850bc1.output
+
+---
+
+<task-notification>
+<task-id>af7f794</task-id>
+<status>completed</status>
+<summary>Agent "Quality re-verification iter 5" completed</summary>
+<result>```json
+{
+  "pass_summary": "Re-verification confirms previous must_fix items are resolved: VAE/RL singletons are properly deduplicated in helpers.py with routes_flume.py and routes_rl.py delegating to it; conftest.py correctly resets via helpers.reset_vae()/reset_rl_policy(); undefined names (os, ContextHarness) are fixed; raise-from-err patterns corrected; bare excepts eliminated from Python files. API __init__.py is 89 LOC (well under 300 limit). One new bug found: daily_scout_research method is called but never defined anywhere. The hardcoded path issue in cohezion_mcp.py persists but uses COHEZION_ROOT env var fallback. Subprocess calls lack timeouts. 3129 tests pass, 2 pre-existing failures unrelated to this change.",
+  "quality_score": "medium",
+  "issues": [
+    {
+      "severity": "should_fix",
+      "category": "bugs",
+      "title": "daily_scout_research method called but never defined",
+      "description": "In cohezion_mcp.py line 141, call_tool() dispatches to self.daily_scout_research(arguments), but this method does not exist in CohezionMCP or any of its mixin parents (EliteHandlers, UtilHandlers, ConfigHandlers). This will raise AttributeError at runtime when the 'daily_scout_research' MCP tool is invoked.",
+      "file": "/home/mike-anderson/dev/cohezion/src/cohezion/skills/cohezion_mcp.py",
+      "line": 141,
+      "suggested_fix": "Either implement the daily_scout_research method in one of the handler mixins, or remove the dispatch entry from call_tool() if the tool is no longer supported."
+    },
+    {
+      "severity": "should_fix",
+      "category": "performance",
+      "title": "subprocess.run calls without timeout in MCP handlers",
+      "description": "Multiple subprocess.run() calls in mcp_handlers_elite.py (lines 71, 194), mcp_handlers_util.py (lines 244, 306), and mcp_handlers_config.py (line 137) lack a timeout parameter. If the target service (Ollama via curl, or ollama CLI) hangs, the MCP server thread will block indefinitely.",
+      "file": "/home/mike-anderson/dev/cohezion/src/cohezion/skills/mcp_handlers_elite.py",
+      "line": 71,
+      "suggested_fix": "Add timeout=30 (or appropriate value) to all subprocess.run() calls. Example: subprocess.run(cmd, capture_output=True, text=True, timeout=30)"
+    },
+    {
+      "severity": "should_fix",
+      "category": "security",
+      "title": "Hardcoded developer home path used as fallback in MCP files",
+      "description": "cohezion_mcp.py (lines 17, 43, 47, 50) and mcp_handlers_config.py (line 86) use '/home/mike-anderson/dev/cohezion' as the fallback when COHEZION_ROOT is not set. This will fail on any other developer's machine or in CI/production if the env var is missing. While the env var provides a proper override, the fallback is fragile.",
+      "file": "/home/mike-anderson/dev/cohezion/src/cohezion/skills/cohezion_mcp.py",
+      "line": 17,
+      "suggested_fix": "Replace the hardcoded fallback with a dynamic resolution: use Path(__file__).resolve().parents[3] (which gives the project root from src/cohezion/skills/) or os.getcwd() as the fallback."
+    },
+    {
+      "severity": "suggestion",
+      "category": "error_handling",
+      "title": "Inconsistent ContextHarness import guard between cohezion_mcp.py and mcp_handlers_util.py",
+      "description": "cohezion_mcp.py wraps the ContextHarness import in try/except (lines 33-37) and sets it to None if unavailable. However, mcp_handlers_util.py imports ContextHarness unconditionally at the top level (line 6). If the module were ever missing, importing mcp_handlers_util would crash. Currently not a runtime issue since the module exists.",
+      "file": "/home/mike-anderson/dev/cohezion/src/cohezion/skills/mcp_handlers_util.py",
+      "line": 6,
+      "suggested_fix": "Either make both imports consistent (both guarded or both unconditional). Since ContextHarness exists in the codebase, the unconditional import in mcp_handlers_util.py is technically correct — consider removing the try/except guard in cohezion_mcp.py instead to reduce dead code."
+    },
+    {
+      "severity": "suggestion",
+      "category": "error_handling",
+      "title": "f-string logging in routes_metrics.py and services/",
+      "description": "routes_metrics.py line 169 uses logger.debug(f\"Ollama unavailable: {e}\") instead of lazy % formatting. Similarly services/flume.py and services/rl.py have f-string logging. The f-string is evaluated even when the log level is disabled, wasting CPU.",
+      "file": "/home/mike-anderson/dev/cohezion/src/cohezion/api/routes_metrics.py",
+      "line": 169,
+      "suggested_fix": "Change to: logger.debug('Ollama unavailable: %s', e)"
+    },
+    {
+      "severity": "suggestion",
+      "category": "performance",
+      "title": "mcp_handlers_elite.py exceeds 300 LOC soft limit (329 lines)",
+      "description": "The file is 329 lines, slightly over the 300-line soft limit defined in coding standards. It's below the 500-line hard limit so it's not urgent.",
+      "file": "/home/mike-anderson/dev/cohezion/src/cohezion/skills/mcp_handlers_elite.py",
+      "line": 1,
+      "suggested_fix": "Consider extracting compound_engineering_orchestrator (90+ lines) into its own module to bring the file under 300 lines."
+    }
+  ]
+}
+```</result>
+<usage>total_tokens: 103693
+tool_uses: 37
+duration_ms: 165187</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/af7f794.output
+
+---
+
+commit

@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "384c17d23514",
+  "session_id": "a91d4d2c-3499-4983-b8d5-9f817fd07db7",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-17T15:12:15.695869299Z",
+  "branch": "spec/routes-consolidation",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "b1fa1bd3-01cf-4899-8709-010bcc6e4948",
+  "checkpoint_transcript_start": 2487,
+  "transcript_lines_at_start": 2487,
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-17T15:12:15.557413261Z",
+    "agent_lines": 0,
+    "human_added": 4601,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 4601,
+    "agent_percentage": 0
+  }
+}

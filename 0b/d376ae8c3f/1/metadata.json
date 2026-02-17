@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "0bd376ae8c3f",
+  "session_id": "1a7a8c89-5ae4-463c-a722-b34f641d43ec",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-16T03:37:54.069993945Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "docs/plans/2026-02-15-audit-remediation.md",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original",
+    "src/cohezion/knowledge_graph/audits/audit_pre_20260215_215554.json",
+    "src/cohezion/knowledge_graph/audits/deep_audit_report.md",
+    "src/cohezion/knowledge_graph/audits/utilization_audit_1771210555.md",
+    "src/cohezion/knowledge_graph/reports/AUDIT_20260215_2156.md"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "243c858a-f65f-4d03-aec1-c0517e46b7ff",
+  "checkpoint_transcript_start": 1181,
+  "transcript_lines_at_start": 1181,
+  "token_usage": {
+    "input_tokens": 360,
+    "cache_creation_tokens": 306711,
+    "cache_read_tokens": 9974841,
+    "output_tokens": 22656,
+    "api_call_count": 61
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-16T03:37:53.853839765Z",
+    "agent_lines": 0,
+    "human_added": 8306,
+    "human_modified": 930,
+    "human_removed": 0,
+    "total_committed": 9210,
+    "agent_percentage": 0
+  }
+}
