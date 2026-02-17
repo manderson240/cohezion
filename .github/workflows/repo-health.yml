@@ -4,10 +4,6 @@ name: Repository Health Check
 # Layer 2: Detection - automated repository size monitoring
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
   schedule:
     - cron: '0 2 * * 0'  # Weekly Sunday 2am UTC
   workflow_dispatch:  # Manual trigger
