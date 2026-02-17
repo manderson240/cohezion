@@ -652,8 +652,8 @@ class CleanupRegistry:
                 )
                 if result.returncode == 0:
                     remaining.append(f"Mount still active: {mount.target}")
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("Mount check failed for %s: %s", mount.target, e)
 
         return len(remaining) == 0, remaining
 

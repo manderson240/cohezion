@@ -315,12 +315,12 @@ class PeakedCircuitSolver:
                             cutoff=1e-5,
                             inplace=True,
                         )
-                except Exception as e:
+                except Exception:
                     logger.error(
                         f"Gate application failed at step {i} (Gate {name}). Target sites: {target_sites}"
                     )
                     logger.error(f"Tensor Count: {len(psi_mps.tensors)}")
-                    raise e
+                    raise
 
                 # Periodically normalize and check
                 if i % 50 == 0:

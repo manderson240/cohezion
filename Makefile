@@ -1,4 +1,4 @@
-.PHONY: help format lint lint-check type-check test test-fast all clean dev-setup ci health-check vault-status session-briefing nav
+.PHONY: help format lint lint-check lint-tests type-check test test-fast all clean dev-setup ci health-check vault-status session-briefing nav
 
 help:  ## Show this help message
 	@echo "Available targets:"
@@ -45,7 +45,11 @@ test-routing-benchmarks:  ## Run routing performance benchmarks
 	uv run pytest tests/benchmarks/test_routing_performance.py -v
 	@echo "✓ Routing benchmarks complete"
 
-all: format lint type-check test  ## Run all checks and tests
+lint-tests:  ## Lint test files for anti-patterns (hardcoded paths, GPG signing, etc.)
+	python scripts/ci/lint_tests.py
+	@echo "✓ Test lint complete"
+
+all: format lint lint-tests type-check test  ## Run all checks and tests
 
 clean:  ## Clean up cache files
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
@@ -63,6 +67,7 @@ dev-setup:  ## Install pre-commit hooks
 
 ci:  ## Run CI checks locally (fast linters + tests)
 	@echo "Running CI checks..."
+	python scripts/ci/lint_tests.py
 	uv run pre-commit run --all-files
 	uv run pytest tests/
 	@echo "✓ All CI checks passed"

@@ -150,8 +150,8 @@ class TeamCompoundExecutor:
         # Keyword search against cached specs
         try:
             self.engine.parse_all()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Skill spec parsing failed: %s", e)
 
         for skill_spec in self.engine._cache.values():
             if any(
