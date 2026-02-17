@@ -1,4 +1,4 @@
-.PHONY: help format lint lint-check type-check test test-fast all clean dev-setup ci health-check vault-status session-briefing nav
+.PHONY: help format lint lint-check type-check test test-fast all clean dev-setup ci health-check vault-status session-briefing nav repo-setup
 
 help:  ## Show this help message
 	@echo "Available targets:"
@@ -86,3 +86,6 @@ session-briefing:  ## Generate session context and prepare environment
 nav:  ## Interactive codebase navigator (symbol lookup)
 	@echo "Launching codebase navigator..."
 	@if [ -f scripts/claude/nav_utils.py ]; then python scripts/claude/nav_utils.py; else echo "Note: nav_utils.py not found"; fi
+
+repo-setup:  ## Configure GitHub repo settings and rulesets (requires gh admin access)
+	@bash scripts/admin/setup_repo.sh
