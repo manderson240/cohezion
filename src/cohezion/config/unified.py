@@ -7,9 +7,12 @@ Each component uses this config, making the system more maintainable.
 """
 
 import json
+import logging
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -145,7 +148,7 @@ class SystemConfig:
                                 for key, value in track_data.items():
                                     setattr(config.tracks[track_name], key, value)
             except Exception as e:
-                print(f"Warning: Could not load config from {config_path}: {e}")
+                logger.warning("Could not load config from %s: %s", config_path, e)
 
         return config
 

@@ -203,6 +203,91 @@ class TestRedactionFilter:
         assert '[REDACTED]' in str(record.args)
 
 
+class TestRedactionFilterTypePreservation:
+    """Regression tests: RedactionFilter must preserve non-string arg types.
+
+    Root cause of 4 flaky test failures (Session 56): the filter was converting
+    ALL args to str(), breaking %d/%f format specifiers in log messages.
+    """
+
+    def test_filter_preserves_int_args(self):
+        """Integer args must stay int so %d format works."""
+        f = RedactionFilter()
+        record = logging.LogRecord(
+            name="test", level=logging.WARNING, pathname="", lineno=0,
+            msg="Processed %d items in %d seconds", args=(42, 7), exc_info=None,
+        )
+        f.filter(record)
+        assert record.args == (42, 7), f"int args corrupted to {record.args}"
+        # Verify getMessage() works (this is what actually crashed)
+        assert record.getMessage() == "Processed 42 items in 7 seconds"
+
+    def test_filter_preserves_float_args(self):
+        """Float args must stay float so %.2f format works."""
+        f = RedactionFilter()
+        record = logging.LogRecord(
+            name="test", level=logging.INFO, pathname="", lineno=0,
+            msg="Coherence: %.2f, drift: %.4f", args=(0.87, 0.0012), exc_info=None,
+        )
+        f.filter(record)
+        assert record.args == (0.87, 0.0012), f"float args corrupted to {record.args}"
+        assert record.getMessage() == "Coherence: 0.87, drift: 0.0012"
+
+    def test_filter_preserves_mixed_args(self):
+        """Mixed type args: only strings get redacted, others stay unchanged."""
+        f = RedactionFilter()
+        record = logging.LogRecord(
+            name="test", level=logging.INFO, pathname="", lineno=0,
+            msg="User %s completed %d tasks (score: %.1f)",
+            args=("alice", 5, 98.6),
+            exc_info=None,
+        )
+        f.filter(record)
+        assert isinstance(record.args[0], str)  # string stays string
+        assert isinstance(record.args[1], int)   # int stays int
+        assert isinstance(record.args[2], float)  # float stays float
+        assert record.getMessage() == "User alice completed 5 tasks (score: 98.6)"
+
+    def test_filter_redacts_string_args_containing_secrets(self):
+        """String args with secrets get redacted, but type stays str."""
+        f = RedactionFilter()
+        record = logging.LogRecord(
+            name="test", level=logging.INFO, pathname="", lineno=0,
+            msg="Config: %s, count: %d",
+            args=("api_key=secret123", 10),
+            exc_info=None,
+        )
+        f.filter(record)
+        assert isinstance(record.args[0], str)
+        assert isinstance(record.args[1], int)
+        assert record.args[1] == 10
+        assert "secret123" not in record.args[0]
+
+    def test_filter_preserves_none_args(self):
+        """None args should not crash the filter."""
+        f = RedactionFilter()
+        record = logging.LogRecord(
+            name="test", level=logging.INFO, pathname="", lineno=0,
+            msg="No args message", args=None, exc_info=None,
+        )
+        f.filter(record)
+        assert record.args is None
+
+    def test_filter_preserves_dict_arg_types(self):
+        """Dict args: only string values get redacted."""
+        f = RedactionFilter()
+        record = logging.LogRecord(
+            name="test", level=logging.INFO, pathname="", lineno=0,
+            msg="%(name)s processed %(count)d items",
+            args={"name": "worker-1", "count": 42},
+            exc_info=None,
+        )
+        f.filter(record)
+        assert isinstance(record.args["name"], str)
+        assert isinstance(record.args["count"], int)
+        assert record.args["count"] == 42
+
+
 class TestSetupFunctions:
     """Test setup helper functions."""
 

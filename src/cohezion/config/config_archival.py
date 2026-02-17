@@ -149,8 +149,8 @@ class ConfigArchiver:
                 date = datetime.strptime(dates[0], "%Y-%m-%d")
                 age = (datetime.now() - date).days
                 return age
-            except Exception:
-                pass
+            except (ValueError, TypeError) as e:
+                logger.debug("Failed to parse date from section title: %s", e)
 
         return None
 
@@ -196,8 +196,8 @@ class ConfigArchiver:
                     with open(archive_file) as f:
                         data = json.load(f)
                         total_sections += len(data.get("sections", []))
-                except Exception:
-                    pass
+                except (json.JSONDecodeError, OSError) as e:
+                    logger.debug("Failed to read archive %s: %s", archive_file, e)
 
             return {
                 "archive_dir": str(self.archive_dir),

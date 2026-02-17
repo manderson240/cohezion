@@ -3,6 +3,7 @@ Charter-aligned skill tracking with HIHO stability measurement.
 Integrates Phase 0 infrastructure for 100% Charter compliance.
 """
 
+import logging
 from typing import Optional, List
 from datetime import datetime
 from pydantic import BaseModel
@@ -12,6 +13,8 @@ from cohezion.platform.coherence_tracker import get_coherence_tracker
 from cohezion.platform.journey_logger import get_journey_logger
 from cohezion.flume.vae_encoder import get_encoder
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 
 class SkillUsageEvent(BaseModel):
@@ -89,8 +92,7 @@ class CharterAlignedSkillTracker:
                 },
             )
         except Exception as e:
-            # Non-blocking: log but don't fail
-            print(f"Warning: Failed to persist skill usage to SurrealDB: {e}")
+            logger.warning("Failed to persist skill usage to SurrealDB: %s", e)
 
         # If HIHO unstable and journey exists, log as potential issue
         if not hiho_stable and journey_id:
@@ -101,8 +103,7 @@ class CharterAlignedSkillTracker:
                     pattern_type="hiho_violation",
                 )
             except Exception as e:
-                # Non-blocking: log but don't fail
-                print(f"Warning: Failed to log HIHO violation to journey: {e}")
+                logger.warning("Failed to log HIHO violation to journey: %s", e)
 
     async def create_skill_usage_event(
         self,

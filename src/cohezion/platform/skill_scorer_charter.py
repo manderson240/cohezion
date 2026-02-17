@@ -3,10 +3,13 @@ Charter-aligned skill effectiveness scoring.
 Primary weight on HIHO stability (0.5 coherence baseline).
 """
 
+import logging
 from typing import List
 from datetime import datetime, timedelta
 from pydantic import BaseModel
 from cohezion.core.persistence.surreal_client import get_surreal_client
+
+logger = logging.getLogger(__name__)
 
 
 class CharterSkillScore(BaseModel):
@@ -134,8 +137,7 @@ class CharterAlignedSkillScorer:
                 },
             )
         except Exception as e:
-            # Non-blocking: log but don't fail
-            print(f"Warning: Failed to persist skill metric to SurrealDB: {e}")
+            logger.warning("Failed to persist skill metric to SurrealDB: %s", e)
 
     async def get_trending_skills(
         self, days: int = 7, limit: int = 10

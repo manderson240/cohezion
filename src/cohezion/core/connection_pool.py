@@ -305,8 +305,8 @@ class ConnectionPool:
         """Close and remove a connection from the pool."""
         try:
             await connection.client.close()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Error closing pooled connection: %s", e)
 
         async with self._lock:
             self._metrics["destroyed"] += 1

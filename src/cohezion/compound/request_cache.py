@@ -376,7 +376,7 @@ class RequestCache:
             return any(
                 term in text for term in ["request", "task", "operation", "intent"]
             )
-        except:
+        except Exception:
             return False
 
     def _parse_pattern(self, result: Any) -> tuple[Optional[str], Optional[AgentTask]]:

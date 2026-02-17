@@ -90,10 +90,14 @@ class TestPreCommitConfiguration:
             for hook in repo.get("hooks", []):
                 # Hooks should have stages defined (commit or push)
                 if "stages" in hook:
+                    # Accept both old (commit/push) and new (pre-commit/pre-push) naming
                     assert hook["stages"] in [
                         ["commit"],
                         ["push"],
                         ["commit", "push"],
+                        ["pre-commit"],
+                        ["pre-push"],
+                        ["pre-commit", "pre-push"],
                     ], f"Invalid stages: {hook.get('stages')}"
 
     def test_credential_detection_hook_configured(self):
@@ -139,8 +143,9 @@ class TestPreCommitConfiguration:
 
                 for hook in hooks:
                     assert hook.get("id") == "bandit"
-                    # Should be on push stage
-                    assert "push" in hook.get("stages", [])
+                    # Should be on push stage (accept both old and new naming)
+                    stages = hook.get("stages", [])
+                    assert "push" in stages or "pre-push" in stages
 
         assert found_bandit, "Bandit security check hook not found"
 
@@ -256,6 +261,9 @@ class TestPreCommitHooksIntegration:
             config = yaml.safe_load(f)
 
         for i, repo in enumerate(config.get("repos", [])):
+            # Local hooks don't have a rev field
+            if repo.get("repo") == "local":
+                continue
             assert "rev" in repo, (
                 f"Repo #{i + 1} ({repo.get('repo')}) missing 'rev' field"
             )
@@ -328,7 +336,9 @@ class TestSecurityHooksPerformance:
         push_hooks = []
         for repo in config.get("repos", []):
             for hook in repo.get("hooks", []):
-                if "push" in hook.get("stages", []):
+                stages = hook.get("stages", [])
+                # Accept both old (push) and new (pre-push) naming
+                if "push" in stages or "pre-push" in stages:
                     push_hooks.append(hook.get("id", ""))
 
         # Should have at least detect-private-key and detect-secrets on push
