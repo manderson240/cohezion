@@ -11,7 +11,7 @@
  * Performance target: <500ms from file save to graph update
  */
 
-import { App, TAbstractFile, TFile, Vault } from 'obsidian';
+import { App, TAbstractFile, TFile, TFolder, Vault } from 'obsidian';
 import { PaperNode, GraphData } from '../types/Paper';
 import { PaperDecisionLinker, PaperLink } from './PaperDecisionLinker';
 
@@ -335,6 +335,3 @@ export class DynamicPaperIngestor {
 function now(): number {
   return Date.now();
 }
-
-// Type stubs for import compatibility
-type TFolder = any; // Would import from Obsidian
