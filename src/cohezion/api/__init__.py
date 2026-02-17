@@ -5,36 +5,67 @@ Provides REST endpoints for Open-Notebook integration.
 """
 
 import logging
+import os
+import re
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from cohezion.mcp.knowledge_server import get_server as get_knowledge_server
 from cohezion.mcp.registry import get_registry
 from cohezion.mcp.swarm_server import get_server as get_swarm_server
+from cohezion.security.rate_limiter import get_rate_limiter
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Allowed CORS origins from environment, default to localhost only
+_CORS_ORIGINS = os.environ.get(
+    "COHEZION_CORS_ORIGINS", "http://localhost:3000,http://localhost:8080"
+).split(",")
 
 app = FastAPI(
     title="Cohezion API",
     description="AI Research Lab API - Swarm workflows and MCP tools",
     version="0.1.0",
+    docs_url="/docs" if os.environ.get("COHEZION_ENV") != "production" else None,
+    redoc_url="/redoc" if os.environ.get("COHEZION_ENV") != "production" else None,
 )
 
-# CORS for Open-Notebook
+# CORS — restricted to configured origins with explicit methods/headers
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=_CORS_ORIGINS,
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "Authorization", "X-Agent-Token"],
 )
+
+
+# Rate limiting middleware
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    limiter = get_rate_limiter()
+    client_ip = request.client.host if request.client else "unknown"
+    result = limiter.check(client_ip, request.url.path)
+    if not result.allowed:
+        return JSONResponse(
+            status_code=429,
+            headers={
+                "Retry-After": str(int(result.reset_after) + 1),
+                "X-RateLimit-Limit": str(result.limit),
+                "X-RateLimit-Remaining": "0",
+            },
+            content={"detail": "Rate limit exceeded"},
+        )
+    response = await call_next(request)
+    response.headers["X-RateLimit-Remaining"] = str(result.remaining)
+    return response
 
 # Static files
 static_dir = Path(__file__).parent / "static"
@@ -132,8 +163,8 @@ async def run_debate(request: DebateRequest):
             processing_time_ms=result["processing_time_ms"],
         )
     except Exception as e:
-        logger.error(f"Debate failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        logger.error(f"Debate failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error") from e
 
 
 @app.get("/swarm/perspectives")
@@ -169,9 +200,19 @@ async def get_notebook(name: str):
     """Get a specific notebook."""
     from pathlib import Path
 
-    notebook_path = Path(f"docs/notebooks/{name}.md")
+    # Validate name: only allow alphanumeric, dash, underscore (prevent path traversal)
+    if not re.match(r"^[a-zA-Z0-9_-]+$", name):
+        raise HTTPException(status_code=400, detail="Invalid notebook name")
+
+    base_dir = Path("docs/notebooks").resolve()
+    notebook_path = (base_dir / f"{name}.md").resolve()
+
+    # Ensure resolved path stays within the base directory
+    if not str(notebook_path).startswith(str(base_dir)):
+        raise HTTPException(status_code=403, detail="Access denied")
+
     if not notebook_path.exists():
-        raise HTTPException(status_code=404, detail=f"Notebook {name} not found")
+        raise HTTPException(status_code=404, detail="Notebook not found")
     return {"name": name, "content": notebook_path.read_text()}
 
 
@@ -795,8 +836,8 @@ async def train_flume(request: FlumeTrainRequest):
     try:
         metrics = trainer.train(dataset=dataset)
     except Exception as e:
-        logger.error(f"FLUME training failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        logger.error(f"FLUME training failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Training failed") from e
 
     final = metrics[-1]
     checkpoint_dir = Path(config.checkpoint_dir)
@@ -1001,7 +1042,8 @@ async def parse_template(request: TemplateParseRequest):
     try:
         spec = manager.engine.get_spec_by_name(request.skill_name)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        logger.error(f"Template parse failed for {request.skill_name}: {e}")
+        raise HTTPException(status_code=500, detail="Template parsing failed") from e
 
     if spec is None:
         raise HTTPException(
@@ -1036,8 +1078,8 @@ async def train_rl(request: RLTrainRequest):
     try:
         results = train(config)
     except Exception as e:
-        logger.error(f"RL training failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        logger.error(f"RL training failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Training failed") from e
 
     final = results[-1]
     import numpy as np
@@ -1943,7 +1985,7 @@ async def compound_execute(request: CompoundExecuteRequest):
         ) from exc
     except Exception as exc:
         logger.exception("Compound execution failed: %s", request.skill_name)
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        raise HTTPException(status_code=500, detail="Execution failed") from exc
 
     return CompoundExecuteResponse(
         skill_name=result.skill_name,
@@ -2026,7 +2068,7 @@ async def compound_feedback(request: CompoundFeedbackRequest):
         ) from exc
     except Exception as exc:
         logger.exception("Compound feedback failed: %s", request.skill_name)
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        raise HTTPException(status_code=500, detail="Feedback cycle failed") from exc
 
 
 class CompoundHealthResponse(BaseModel):

@@ -261,8 +261,15 @@ class AgentFactory:
         raise KeyError(f"Skill not found: {skill_name}")
 
     @staticmethod
+    def _validate_spec_name(name: str) -> None:
+        """Validate spec name to prevent injection via exec() source filename."""
+        if not re.match(r"^[a-zA-Z0-9_\- ]+$", name):
+            raise ValueError(f"Invalid spec name: {name!r}")
+
+    @staticmethod
     def _compile_class_with_stub(spec: SkillSpec, source: str) -> type:
         """Compile agent source using _StubAgent as the base class."""
+        AgentFactory._validate_spec_name(spec.name)
         match = re.search(r"class (\w+)\(", source)
         if not match:
             raise RuntimeError(
@@ -272,6 +279,7 @@ class AgentFactory:
         source = source.replace(
             "from cohezion.agents.base import BaseAgent", ""
         ).replace("(BaseAgent)", f"({_StubAgent.__name__})")
+        # Restrict builtins to only what's needed for class definition
         namespace: dict[str, Any] = {
             "__builtins__": __builtins__,
             _StubAgent.__name__: _StubAgent,
@@ -287,6 +295,7 @@ class AgentFactory:
     @staticmethod
     def _compile_class(spec: SkillSpec, source: str) -> type:
         """Compile agent source and extract the class object."""
+        AgentFactory._validate_spec_name(spec.name)
         # Extract class name from the source
         match = re.search(r"class (\w+)\(", source)
         if not match:
