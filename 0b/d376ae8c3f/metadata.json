@@ -3,7 +3,7 @@
   "checkpoint_id": "0bd376ae8c3f",
   "strategy": "manual-commit",
   "branch": "spec/routes-consolidation",
-  "checkpoints_count": 27,
+  "checkpoints_count": 23,
   "files_touched": [
     ".worktrees/spec-github-migration-cf603d38/.claude/rules/git-workflow.md",
     ".worktrees/spec-github-migration-cf603d38/.github/workflows/ci.yml",
@@ -27,15 +27,11 @@
     "docs/plans/2026-02-15-codebase-quality.md",
     "ollama-mcp",
     "research/challenges/anthropic_challenge_original",
-    "scripts/drivers/quality_simulation_driver.py",
-    "scripts/drivers/unified_master_driver.py",
-    "scripts/monitor_quality_sim.sh",
     "scripts/split_api.py",
     "src/cohezion/api/__init__.py",
     "src/cohezion/api/__init__.py.bak",
     "src/cohezion/api/helpers.py",
     "src/cohezion/api/models.py",
-    "src/cohezion/api/observability_endpoints.py",
     "src/cohezion/api/routes_admin.py",
     "src/cohezion/api/routes_compound.py",
     "src/cohezion/api/routes_core.py",
@@ -63,13 +59,9 @@
     "src/cohezion/knowledge_graph/audits/utilization_audit_1771210555.md",
     "src/cohezion/knowledge_graph/reports/AUDIT_20260215_2156.md",
     "src/cohezion/knowledge_graph/reports/__init__.py",
-    "src/cohezion/skills/cohezion_mcp.py",
-    "src/cohezion/skills/mcp_handlers_config.py",
-    "src/cohezion/skills/mcp_handlers_util.py",
     "src/cohezion/swarm/agents/__init__.py",
     "src/cohezion/swarm/circuit_breaker.py",
-    "src/cohezion/swarm/fallback_strategy.py",
-    "tests/conftest.py"
+    "src/cohezion/swarm/fallback_strategy.py"
   ],
   "sessions": [
     {
@@ -137,10 +129,10 @@
     }
   ],
   "token_usage": {
-    "input_tokens": 35574,
-    "cache_creation_tokens": 3050741,
-    "cache_read_tokens": 82698746,
-    "output_tokens": 103048,
-    "api_call_count": 654
+    "input_tokens": 21380,
+    "cache_creation_tokens": 2919026,
+    "cache_read_tokens": 72286969,
+    "output_tokens": 99756,
+    "api_call_count": 571
   }
 }
