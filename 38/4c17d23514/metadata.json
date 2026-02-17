@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "384c17d23514",
+  "strategy": "manual-commit",
+  "branch": "spec/routes-consolidation",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original"
+  ],
+  "sessions": [
+    {
+      "metadata": "/38/4c17d23514/0/metadata.json",
+      "transcript": "/38/4c17d23514/0/full.jsonl",
+      "context": "/38/4c17d23514/0/context.md",
+      "content_hash": "/38/4c17d23514/0/content_hash.txt",
+      "prompt": "/38/4c17d23514/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 10395,
+    "cache_creation_tokens": 244627,
+    "cache_read_tokens": 5328914,
+    "output_tokens": 1571,
+    "api_call_count": 53
+  }
+}
