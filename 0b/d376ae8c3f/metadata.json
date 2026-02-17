@@ -3,7 +3,7 @@
   "checkpoint_id": "0bd376ae8c3f",
   "strategy": "manual-commit",
   "branch": "spec/routes-consolidation",
-  "checkpoints_count": 25,
+  "checkpoints_count": 26,
   "files_touched": [
     ".worktrees/spec-github-migration-cf603d38/.claude/rules/git-workflow.md",
     ".worktrees/spec-github-migration-cf603d38/.github/workflows/ci.yml",
@@ -67,6 +67,8 @@
     "src/cohezion/skills/mcp_handlers_config.py",
     "src/cohezion/skills/mcp_handlers_util.py",
     "src/cohezion/swarm/agents/__init__.py",
+    "src/cohezion/swarm/circuit_breaker.py",
+    "src/cohezion/swarm/fallback_strategy.py",
     "tests/conftest.py"
   ],
   "sessions": [
@@ -128,10 +130,10 @@
     }
   ],
   "token_usage": {
-    "input_tokens": 34518,
-    "cache_creation_tokens": 2308046,
-    "cache_read_tokens": 65022960,
-    "output_tokens": 72213,
-    "api_call_count": 520
+    "input_tokens": 30267,
+    "cache_creation_tokens": 2426212,
+    "cache_read_tokens": 68487308,
+    "output_tokens": 88150,
+    "api_call_count": 533
   }
 }
