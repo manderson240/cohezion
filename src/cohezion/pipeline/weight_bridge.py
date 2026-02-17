@@ -21,6 +21,7 @@ from typing import Any
 import numpy as np
 import torch
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -68,9 +69,7 @@ class WeightBridge:
         # mean_head.weight shape is [action_dim, hidden]
         action_dim = state_dict["mean_head.weight"].shape[0]
 
-        policy = PolicyNetwork(
-            state_dim=state_dim, action_dim=action_dim, hidden=hidden_dim
-        )
+        policy = PolicyNetwork(state_dim=state_dim, action_dim=action_dim, hidden=hidden_dim)
         policy.load_state_dict(state_dict)
         policy.eval()
 
@@ -106,9 +105,7 @@ class WeightBridge:
         dict[str, np.ndarray]
             Keys: w1, b1, w2, b2, gamma, beta — all float32 numpy arrays.
         """
-        state_dict = torch.load(
-            Path(checkpoint_path), map_location="cpu", weights_only=True
-        )
+        state_dict = torch.load(Path(checkpoint_path), map_location="cpu", weights_only=True)
 
         # Layer 1: shared[0] maps directly to w1, b1
         # PyTorch Linear stores weight as [out_features, in_features]
@@ -134,8 +131,7 @@ class WeightBridge:
         beta = np.full(hidden_dim, 0.5, dtype=np.float32)
 
         logger.info(
-            "Extracted weights — w1: %s (norm=%.3f), w2: %s (norm=%.3f), "
-            "b1 norm=%.3f, b2 norm=%.3f",
+            "Extracted weights — w1: %s (norm=%.3f), w2: %s (norm=%.3f), b1 norm=%.3f, b2 norm=%.3f",
             w1.shape,
             np.linalg.norm(w1),
             w2.shape,

@@ -112,12 +112,7 @@ class PeakedCircuitSolver:
 
             for line in lines:
                 line = line.strip().replace(";", "")
-                if (
-                    not line
-                    or line.startswith("OPENQASM")
-                    or line.startswith("include")
-                    or line.startswith("qreg")
-                ):
+                if not line or line.startswith("OPENQASM") or line.startswith("include") or line.startswith("qreg"):
                     continue
 
                 # Parse CZ
@@ -148,9 +143,7 @@ class PeakedCircuitSolver:
                     theta, phi, lam = params
                     self.circ.apply_gate("U3", theta, phi, lam, q)
 
-            logger.info(
-                f"Circuit loaded manually. Qubits: {self.circ.N}, Gates: {len(self.circ.gates)}"
-            )
+            logger.info(f"Circuit loaded manually. Qubits: {self.circ.N}, Gates: {len(self.circ.gates)}")
 
         except Exception as e:
             logger.error(f"Failed to load circuit: {e}")
@@ -239,7 +232,7 @@ class PeakedCircuitSolver:
 
             try:
                 rsrc = resource.RLIMIT_AS
-                soft, hard = resource.getrlimit(rsrc)
+                _soft, hard = resource.getrlimit(rsrc)
                 limit_bytes = 40 * 1024**3
                 resource.setrlimit(rsrc, (limit_bytes, hard))
                 logger.info("Memory Limit set to 40GB")
@@ -248,9 +241,7 @@ class PeakedCircuitSolver:
 
             count_swaps = 0
 
-            for i, (name, params, qubits) in enumerate(
-                tqdm(ops, desc="Manifold Encoding")
-            ):
+            for i, (name, params, qubits) in enumerate(tqdm(ops, desc="Manifold Encoding")):
                 if name == "CZ":
                     G = qg.CZ
                 elif name == "U3":
@@ -316,9 +307,7 @@ class PeakedCircuitSolver:
                             inplace=True,
                         )
                 except Exception:
-                    logger.error(
-                        f"Gate application failed at step {i} (Gate {name}). Target sites: {target_sites}"
-                    )
+                    logger.error(f"Gate application failed at step {i} (Gate {name}). Target sites: {target_sites}")
                     logger.error(f"Tensor Count: {len(psi_mps.tensors)}")
                     raise
 
@@ -328,12 +317,12 @@ class PeakedCircuitSolver:
 
                 # DEBUG: Check bond dimension
                 if i % 100 == 0:
-                    logger.info(
-                        f"Gate {i}: Max Bond Dim = {psi_mps.max_bond()}. Norm = {psi_mps.norm():.2e}"
-                    )
+                    logger.info(f"Gate {i}: Max Bond Dim = {psi_mps.max_bond()}. Norm = {psi_mps.norm():.2e}")
 
             logger.info(
-                f"Manifold Encoding Complete. Final Bond Dim: {psi_mps.max_bond()}. Total Swaps: {count_swaps}. Tensor Count: {len(psi_mps.tensors)}"
+                f"Manifold Encoding Complete. Final Bond Dim:"
+                f" {psi_mps.max_bond()}. Total Swaps: {count_swaps}."
+                f" Tensor Count: {len(psi_mps.tensors)}"
             )
 
             # CHECKPOINT: Save MPS to disk

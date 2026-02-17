@@ -12,6 +12,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 # Paths
@@ -53,9 +54,7 @@ class KnowledgeMCP:
                     }
                 )
 
-        logger.info(
-            f"Indexed {len(self._skills_cache)} skills, {len(self._library_index)} docs"
-        )
+        logger.info(f"Indexed {len(self._skills_cache)} skills, {len(self._library_index)} docs")
 
     def search_knowledge(self, query: str, limit: int = 5) -> list[dict[str, Any]]:
         """
@@ -126,10 +125,7 @@ class KnowledgeMCP:
 
     def list_skills(self) -> list[dict[str, str]]:
         """List all available skills."""
-        return [
-            {"name": name, "summary": content[:80]}
-            for name, content in self._skills_cache.items()
-        ]
+        return [{"name": name, "summary": content[:80]} for name, content in self._skills_cache.items()]
 
     def get_entity(self, entity_id: str) -> dict[str, Any] | None:
         """Get entity from knowledge graph."""
@@ -158,9 +154,7 @@ class KnowledgeMCP:
         Inspired by the context7 pattern for high-fidelity doc retrieval.
         """
         file_path = Path(path)
-        if not file_path.exists() or not str(file_path).startswith(
-            str(Path(__file__).parent.parent)
-        ):
+        if not file_path.exists() or not str(file_path).startswith(str(Path(__file__).parent.parent)):
             return {"error": "Invalid or inaccessible path"}
 
         content = file_path.read_text()

@@ -1,10 +1,7 @@
-
-import os
-import sys
-
 # Prototype of the Sub-500 Kernel
 # Key Idea: Speculative Multiversal Loading (Load both children)
 # Cycles = (Rounds * Vectors * BundlesPerVectorRound) + PipelineStartup
+
 
 def design_speculative_round():
     # Theoretical Bundle Sequence for 1 Vector-Round (8 items)
@@ -15,7 +12,6 @@ def design_speculative_round():
         # load(2*idx+1), load(2*idx+2)
         # Assuming v_idx is available from previous round or initial load.
         {"load": ["vload_spec1", "vload_spec2"], "valu": ["xor_node"]},
-
         # Bundle 2-7: Hash Stages (6 stages)
         # Stages can be interleaved with the Loads from Bundle 1
         {"valu": ["hash_s1"]},
@@ -24,9 +20,8 @@ def design_speculative_round():
         {"valu": ["hash_s4"]},
         {"valu": ["hash_s5"]},
         {"valu": ["hash_s6"]},
-
         # Bundle 8: Decision and Selection
-        {"valu": ["get_parity", "vselect_next_node"]}
+        {"valu": ["get_parity", "vselect_next_node"]},
     ]
 
     # If 8 bundles per vector, 320 for 40? No.
@@ -46,6 +41,7 @@ def design_speculative_round():
     # THIS is the path to sub-500.
 
     return bundles
+
 
 if __name__ == "__main__":
     print("Sub-500 Speculative Logic Analysis")

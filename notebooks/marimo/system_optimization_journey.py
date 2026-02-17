@@ -20,13 +20,14 @@ Date: 2026-01-17
 
 import marimo as mo
 
+
 # Cell 1: Header
 mo.md("""
 # 🎯 System Optimization Journey
 
 **Goal:** Optimize GEMINI.md and system definitions for persistent quality
 
-This notebook documents the journey of extracting patterns from the Cohezion 
+This notebook documents the journey of extracting patterns from the Cohezion
 codebase and synthesizing them into actionable system definitions.
 """)
 
@@ -82,7 +83,7 @@ Key patterns extracted from:
 stream_select = mo.ui.dropdown(
     options=["architect", "engineer", "biologist", "quantum_hardware", "quantum_algo"],
     value="architect",
-    label="Expert Stream"
+    label="Expert Stream",
 )
 
 mo.md(f"""

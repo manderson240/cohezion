@@ -6,8 +6,9 @@ Tests the three new MCP tools:
 - record_cascade: Insert relates_to_decision edges
 """
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from src.mcp_server.agent_reasoning import AgentReasoningOps
 
@@ -302,6 +303,7 @@ class TestRecordCascade:
 
     def test_record_cascade_source_not_found(self, mock_db, reasoning_ops):
         """Test cascade when source decision doesn't exist."""
+
         # Set up responses: source check returns empty, dependent check returns success
         def response_handler(query):
             if "agent_decision:nonexistent" in query:
@@ -321,6 +323,7 @@ class TestRecordCascade:
 
     def test_record_cascade_dependent_not_found(self, mock_db, reasoning_ops):
         """Test cascade when dependent decision doesn't exist."""
+
         # Set up responses: source check returns success, dependent check returns empty
         def response_handler(query):
             if "agent_decision:nonexistent" in query:

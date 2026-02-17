@@ -44,7 +44,7 @@ def run_sequential_http_benchmark() -> BenchmarkResult:
         for paper_file in paper_files:
             try:
                 # Simulate file I/O
-                content = paper_file.read_text(encoding="utf-8", errors="ignore")
+                paper_file.read_text(encoding="utf-8", errors="ignore")
 
                 # Simulate HTTP request to SurrealDB
                 # In real scenario: 84 papers * 10ms = 840ms sequential
@@ -96,7 +96,7 @@ def run_parallel_http_benchmark() -> BenchmarkResult:
         async def process_paper(paper_file: Path) -> None:
             try:
                 # Simulate file I/O
-                content = paper_file.read_text(encoding="utf-8", errors="ignore")
+                paper_file.read_text(encoding="utf-8", errors="ignore")
 
                 # Simulate HTTP request
                 await asyncio.sleep(http_latency_ms / 1000.0)
@@ -187,33 +187,33 @@ if __name__ == "__main__":
 
     paper_count = 84
 
-    print(f"\nSequential Sync (10ms latency per paper):")
+    print("\nSequential Sync (10ms latency per paper):")
     print(f"  Expected: {paper_count * 10}ms (no parallelization)")
     print(f"  Actual:   {seq_result['mean_ms']:.1f}ms")
     print(f"  Per paper: {seq_result['mean_ms'] / paper_count:.2f}ms")
 
-    print(f"\nParallel Sync (max_concurrent=10, 10ms latency per paper):")
+    print("\nParallel Sync (max_concurrent=10, 10ms latency per paper):")
     print(f"  Expected: {(paper_count / 10) * 10}ms (10 batches)")
     print(f"  Actual:   {par_result['mean_ms']:.1f}ms")
     print(f"  Per paper: {par_result['mean_ms'] / paper_count:.2f}ms")
 
-    print(f"\nComparison:")
+    print("\nComparison:")
     print(f"  Improvement: {comp['improvement_ms']}ms ({comp['improvement_percent']}%)")
     print(f"  Speedup: {comp['speedup_factor']}x")
     print(f"  Status: {comp['status']}")
 
     print("\nAnalysis:")
-    if comp['speedup_factor'] >= 5:
+    if comp["speedup_factor"] >= 5:
         print("  ✓ Parallelization is highly effective")
         print(f"  ✓ Achieves {comp['speedup_factor']:.1f}x speedup (well above 5x target)")
-    elif comp['speedup_factor'] >= 2:
+    elif comp["speedup_factor"] >= 2:
         print("  ✓ Parallelization is working")
         print(f"  ✓ Achieves {comp['speedup_factor']:.1f}x speedup")
     else:
         print("  ✗ Parallelization needs investigation")
 
     print("\n" + "=" * 70)
-    print(f"Results saved to: benchmark_surrealdb_http_results.json")
+    print("Results saved to: benchmark_surrealdb_http_results.json")
 
     # Save results
     with open("benchmark_surrealdb_http_results.json", "w") as f:

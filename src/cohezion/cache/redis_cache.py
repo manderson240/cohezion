@@ -9,14 +9,12 @@ Implements 4-tier cache hierarchy:
 Gracefully degrades when Redis unavailable, falling back to L1→L2→L3.
 """
 
-import asyncio
 import hashlib
 import json
 import logging
 import time
-from typing import Any, Optional
+from typing import Any
 
-import numpy as np
 
 try:
     import redis
@@ -24,6 +22,7 @@ except ImportError:
     redis = None
 
 from cohezion.cache.semantic_cache import SemanticCache
+
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +55,7 @@ class RedisSemanticCache(SemanticCache):
         redis_port: int = 6379,
         redis_ttl_seconds: int = 3600,
         redis_db: int = 0,
-        redis_password: Optional[str] = None,
+        redis_password: str | None = None,
         enable_redis: bool = True,
         connection_timeout: float = 2.0,
         max_retries: int = 3,
@@ -99,7 +98,7 @@ class RedisSemanticCache(SemanticCache):
         self.connection_timeout = connection_timeout
         self.max_retries = max_retries
 
-        self._redis_client: Optional[redis.Redis] = None
+        self._redis_client: redis.Redis | None = None
         self._redis_available = False
         self._connection_attempts = 0
         self._last_connection_attempt = 0.0
@@ -165,9 +164,7 @@ class RedisSemanticCache(SemanticCache):
         hash_val = hashlib.sha256(prompt.encode()).hexdigest()
         return f"cache:{hash_val[:16]}"
 
-    async def get(
-        self, prompt: str, system: str | None = None, model: str | None = None
-    ) -> str | None:
+    async def get(self, prompt: str, system: str | None = None, model: str | None = None) -> str | None:
         """Get entry from cache with L0→L1→L2→L3 fallback.
 
         Args:

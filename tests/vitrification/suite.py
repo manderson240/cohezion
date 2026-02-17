@@ -59,12 +59,11 @@ class VitrificationSuite:
         Verifies if a 12D state vector is consistently represented in a file.
         (Conceptual implementation of FLUME vitrification).
         """
-        content = open(file_path).read()
+        with open(file_path) as f:
+            content = f.read()
         # Verify 3+1+8 structure presence
         if "3 Spatial + 1 Time + 8 Brane" in content:
-            print(
-                f"✅ 12D Manifold signature verified in {os.path.basename(file_path)}"
-            )
+            print(f"✅ 12D Manifold signature verified in {os.path.basename(file_path)}")
             return True
         return False
 

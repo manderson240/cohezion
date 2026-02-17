@@ -7,6 +7,7 @@ Pattern: Pub/Sub with typed events and async handlers.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import time
 from abc import ABC, abstractmethod
@@ -15,6 +16,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Any, Protocol
+
 
 logger = logging.getLogger(__name__)
 
@@ -57,9 +59,7 @@ class Event:
         )
 
     @classmethod
-    def agent_complete(
-        cls, agent_name: str, result: Any, duration_ms: float, **kwargs
-    ) -> Event:
+    def agent_complete(cls, agent_name: str, result: Any, duration_ms: float, **kwargs) -> Event:
         return cls(
             type=EventType.AGENT_COMPLETE,
             source=agent_name,
@@ -67,9 +67,7 @@ class Event:
         )
 
     @classmethod
-    def llm_call(
-        cls, agent_name: str, model: str, prompt_tokens: int = 0, **kwargs
-    ) -> Event:
+    def llm_call(cls, agent_name: str, model: str, prompt_tokens: int = 0, **kwargs) -> Event:
         return cls(
             type=EventType.LLM_CALL,
             source=agent_name,
@@ -77,9 +75,7 @@ class Event:
         )
 
     @classmethod
-    def cache_access(
-        cls, agent_name: str, hit: bool, tier: str | None = None, **kwargs
-    ) -> Event:
+    def cache_access(cls, agent_name: str, hit: bool, tier: str | None = None, **kwargs) -> Event:
         return cls(
             type=EventType.CACHE_HIT if hit else EventType.CACHE_MISS,
             source=agent_name,
@@ -114,9 +110,7 @@ class EventBus:
     def __init__(self, max_queue_size: int = 10000):
         self._handlers: dict[EventType, list[EventHandler]] = defaultdict(list)
         self._wildcard_handlers: list[EventHandler] = []
-        self._queue: asyncio.PriorityQueue[tuple[int, Event]] = asyncio.PriorityQueue(
-            maxsize=max_queue_size
-        )
+        self._queue: asyncio.PriorityQueue[tuple[int, Event]] = asyncio.PriorityQueue(maxsize=max_queue_size)
         self._processor_task: asyncio.Task | None = None
         self._running = False
         self._metrics = {
@@ -140,15 +134,11 @@ class EventBus:
             # Wait for queue to drain
             await self._queue.join()
             self._processor_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._processor_task
-            except asyncio.CancelledError:
-                pass
         logger.info(f"EventBus stopped. Metrics: {self._metrics}")
 
-    def subscribe(
-        self, event_type: EventType | None = None
-    ) -> Callable[[EventHandler], EventHandler]:
+    def subscribe(self, event_type: EventType | None = None) -> Callable[[EventHandler], EventHandler]:
         """Decorator to subscribe to events.
 
         @bus.subscribe(EventType.LLM_CALL)
@@ -167,9 +157,7 @@ class EventBus:
 
         return decorator
 
-    def unsubscribe(
-        self, handler: EventHandler, event_type: EventType | None = None
-    ) -> None:
+    def unsubscribe(self, handler: EventHandler, event_type: EventType | None = None) -> None:
         """Remove a handler subscription."""
         if event_type is None:
             if handler in self._wildcard_handlers:
@@ -218,9 +206,7 @@ class EventBus:
             return
 
         # Execute all handlers concurrently
-        results = await asyncio.gather(
-            *[self._safe_handle(h, event) for h in handlers], return_exceptions=True
-        )
+        results = await asyncio.gather(*[self._safe_handle(h, event) for h in handlers], return_exceptions=True)
 
         delivered = sum(1 for r in results if r is None)
         self._metrics["delivered"] += delivered

@@ -1,19 +1,22 @@
 import asyncio
 import logging
 import sys
-import os
 from pathlib import Path
+
 from imap_tools import MailBox
+
 
 # Add src to path
 sys.path.append(str(Path.cwd() / "src"))
 
 from cohezion.mcp.email_notifier import NotificationConfig
 
+
 async def main():
     logging.basicConfig(level=logging.INFO)
 
     from dotenv import load_dotenv
+
     load_dotenv()
 
     email_config = NotificationConfig.from_env()
@@ -30,6 +33,7 @@ async def main():
             print("\nBody:")
             print(msg.text or msg.html)
             print("-" * 40)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

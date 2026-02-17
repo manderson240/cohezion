@@ -30,14 +30,12 @@ async def test_adversarial_flood():
     # For a pure adversarial logic test, we'll mock the response.
 
     with patch("httpx.AsyncClient.post") as mock_post:
-        mock_post.return_value = MagicMock(
-            status_code=200, json=lambda: {"response": "Mocked stability response"}
-        )
+        mock_post.return_value = MagicMock(status_code=200, json=lambda: {"response": "Mocked stability response"})
 
-        start = time.perf_counter()
+        time.perf_counter()
         tasks = [agent.process(f"query {i}") for i, agent in enumerate(agents)]
         await asyncio.gather(*tasks)
-        end = time.perf_counter()
+        time.perf_counter()
 
         # If concurrency works, 20 agents with 4 slots should take at least 5 'units' of time.
         # But since we mocked post, it's near instant.
@@ -79,9 +77,7 @@ async def test_real_llm_load_controlled():
 
     print("\nStarting Real LLM Load Test (4 concurrent)...")
     start = time.perf_counter()
-    tasks = [
-        agent.process("Briefly explain the 0.5 Coherence Rule.") for agent in agents
-    ]
+    tasks = [agent.process("Briefly explain the 0.5 Coherence Rule.") for agent in agents]
     results = await asyncio.gather(*tasks, return_exceptions=True)
     end = time.perf_counter()
 

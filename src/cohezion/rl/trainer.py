@@ -16,6 +16,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.distributions import Normal
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -161,9 +162,7 @@ def train(config: TrainingConfig | None = None) -> list[EpisodeResult]:
             avg_reward = np.mean([r.total_reward for r in recent])
             avg_coh = np.mean([r.mean_coherence for r in recent])
             logger.info(
-                f"Episode {ep + 1}/{config.n_episodes} | "
-                f"Avg Reward: {avg_reward:.2f} | "
-                f"Avg Coherence: {avg_coh:.3f}"
+                f"Episode {ep + 1}/{config.n_episodes} | Avg Reward: {avg_reward:.2f} | Avg Coherence: {avg_coh:.3f}"
             )
 
         if (ep + 1) % config.save_interval == 0:

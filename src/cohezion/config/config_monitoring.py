@@ -9,16 +9,17 @@ Phase 2: Real-time event-driven monitoring.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from cohezion.config.config_events import ConfigEvent
 from cohezion.config.config_state import FileMetadata
 from cohezion.config.git_utils import GitUtils
 from cohezion.core.event_bus import Event, EventBus, EventType
 from cohezion.core.vault_subscription import VaultEvent, VaultSubscriptionClient
+
 
 logger = logging.getLogger(__name__)
 
@@ -50,8 +51,8 @@ class ConfigMonitor:
         # File tracking
         self.claude_md = repo_root / "CLAUDE.md"
         self.gemini_md = repo_root / "GEMINI.md"
-        self.last_claude_hash: Optional[str] = None
-        self.last_gemini_hash: Optional[str] = None
+        self.last_claude_hash: str | None = None
+        self.last_gemini_hash: str | None = None
 
         # Vault subscription
         self.vault_client = VaultSubscriptionClient(vault_url, vault_api_key)
@@ -260,7 +261,7 @@ class VaultSubscriptionClientProxy:
         self.base_url = base_url
         self.api_key = api_key
         self.client = VaultSubscriptionClient(base_url, api_key)
-        self._task: Optional[asyncio.Task] = None
+        self._task: asyncio.Task | None = None
 
     async def start_background(self) -> None:
         """Start subscription in background task."""
@@ -276,10 +277,8 @@ class VaultSubscriptionClientProxy:
         await self.client.disconnect()
         if self._task:
             self._task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._task
-            except asyncio.CancelledError:
-                pass
         logger.info("Vault subscription stopped")
 
     def on_event(self, event_type: str):

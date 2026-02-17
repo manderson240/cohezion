@@ -11,10 +11,11 @@ Provides:
 import logging
 import statistics
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any
 
 from cohezion.observability.unified_metrics import InferenceMetrics
+
 
 logger = logging.getLogger(__name__)
 
@@ -92,8 +93,7 @@ class MetricsAnalytics:
 
         l1_rates = [m.l1_cache_hit_rate for m in self.history if m.cache_l1_hits > 0]
         l2_rates = [m.l2_cache_hit_rate for m in self.history if m.cache_l2_hits > 0]
-        l3_rates = [m.cache_l3_hits / (m.cache_l3_hits + m.cache_misses + 1) * 100
-                    for m in self.history]
+        l3_rates = [m.cache_l3_hits / (m.cache_l3_hits + m.cache_misses + 1) * 100 for m in self.history]
         total_rates = [m.total_cache_hit_rate for m in self.history]
 
         avg_l1 = statistics.mean(l1_rates) if l1_rates else 0.0
@@ -184,9 +184,11 @@ class MetricsAnalytics:
         total_checks = sum(m.guardrail_checks for m in self.history)
         total_blocks = sum(m.guardrail_blocks for m in self.history)
         total_sanitizations = sum(m.guardrail_sanitizations for m in self.history)
-        avg_latency = statistics.mean(
-            [m.guardrail_latency_ms for m in self.history if m.guardrail_latency_ms > 0]
-        ) if any(m.guardrail_latency_ms > 0 for m in self.history) else 0.0
+        avg_latency = (
+            statistics.mean([m.guardrail_latency_ms for m in self.history if m.guardrail_latency_ms > 0])
+            if any(m.guardrail_latency_ms > 0 for m in self.history)
+            else 0.0
+        )
 
         block_rate = (total_blocks / total_checks * 100) if total_checks > 0 else 0.0
 
@@ -252,12 +254,8 @@ class MetricsAnalytics:
         # Weight each component
         cache_score = (cache_stats["total_hit_rate_avg"] / 100.0) * 0.35
         token_score = min((token_stats["tokens_per_sec"] / 155.0), 1.0) * 0.35
-        guardrail_score = (
-            1.0 - min(guardrail_stats["block_rate_percent"] / 10.0, 1.0)
-        ) * 0.15
-        resource_score = (
-            1.0 - (min(resource_stats["memory_utilization_percent"] / 100.0, 1.0))
-        ) * 0.15
+        guardrail_score = (1.0 - min(guardrail_stats["block_rate_percent"] / 10.0, 1.0)) * 0.15
+        resource_score = (1.0 - (min(resource_stats["memory_utilization_percent"] / 100.0, 1.0))) * 0.15
 
         total_score = cache_score + token_score + guardrail_score + resource_score
         return min(max(total_score, 0.0), 1.0)
@@ -337,13 +335,9 @@ class MetricsAnalytics:
 
         # Cache recommendations
         if cache_analytics["total_hit_rate_avg"] < 70:
-            recommendations.append(
-                "🔴 Cache hit rate below target. Enable cache warming or adjust thresholds."
-            )
+            recommendations.append("🔴 Cache hit rate below target. Enable cache warming or adjust thresholds.")
         if cache_analytics["l2_hit_rate_avg"] < 20:
-            recommendations.append(
-                "🟡 L2 semantic cache underutilized. Consider relaxing similarity threshold."
-            )
+            recommendations.append("🟡 L2 semantic cache underutilized. Consider relaxing similarity threshold.")
 
         # Token efficiency recommendations
         efficiency_gap = token_analytics["efficiency_gap"]
@@ -354,19 +348,13 @@ class MetricsAnalytics:
 
         # Guardrail recommendations
         if guardrail_analytics["block_rate_percent"] > 5:
-            recommendations.append(
-                "🟡 High guardrail block rate. Review thresholds to reduce false positives."
-            )
+            recommendations.append("🟡 High guardrail block rate. Review thresholds to reduce false positives.")
 
         # Resource recommendations
         if resource_analytics["resource_health"] == "critical":
-            recommendations.append(
-                "🔴 CRITICAL: Memory usage critical. Consider reducing batch sizes."
-            )
+            recommendations.append("🔴 CRITICAL: Memory usage critical. Consider reducing batch sizes.")
         if resource_analytics["avg_concurrency_waits"] > 10:
-            recommendations.append(
-                "🟡 High concurrency waits detected. Consider increasing concurrency limits."
-            )
+            recommendations.append("🟡 High concurrency waits detected. Consider increasing concurrency limits.")
 
         # Positive feedback
         if not recommendations:
@@ -374,9 +362,7 @@ class MetricsAnalytics:
 
         return recommendations
 
-    def get_trend(
-        self, metric_name: str, window: int = 10
-    ) -> MetricsTrend | None:
+    def get_trend(self, metric_name: str, window: int = 10) -> MetricsTrend | None:
         """Get trend for a specific metric.
 
         Args:
@@ -407,10 +393,7 @@ class MetricsAnalytics:
         previous = values[-2]
         change = current - previous
 
-        if previous != 0:
-            change_percent = (change / previous) * 100
-        else:
-            change_percent = 0.0
+        change_percent = change / previous * 100 if previous != 0 else 0.0
 
         # Determine trend direction
         if change > 1:

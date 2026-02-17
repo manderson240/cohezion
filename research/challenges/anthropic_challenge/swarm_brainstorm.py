@@ -1,16 +1,15 @@
 import requests
-import json
 import logging
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # Configuration
 OLLAMA_API = "http://localhost:11434/api/generate"
 MODELS = {
-    "Architect": "deepseek-r1:70b", # Reasoning Expert
-    "Engineer": "qwen3-coder:30b",   # Coding Expert
-    "Critic": "mistral:7b"           # Fast Critic (if available, otherwise fallback)
+    "Architect": "deepseek-r1:70b",  # Reasoning Expert
+    "Engineer": "qwen3-coder:30b",  # Coding Expert
+    "Critic": "mistral:7b",  # Fast Critic (if available, otherwise fallback)
 }
 
 # Fallback if models not present (we'll detect from available_models.json if needed, but hardcoding intent for now)
@@ -40,26 +39,31 @@ Think about:
 Start the discussion.
 """
 
+
 def query_ollama(model, prompt, context=None):
     logging.info(f"Querying {model}...")
     try:
-        response = requests.post(OLLAMA_API, json={
-            "model": model,
-            "prompt": prompt,
-            "context": context,
-            "stream": False
-        }, timeout=120)
+        response = requests.post(
+            OLLAMA_API,
+            json={
+                "model": model,
+                "prompt": prompt,
+                "context": context,
+                "stream": False,
+            },
+            timeout=120,
+        )
         response.raise_for_status()
         return response.json()
     except Exception as e:
         logging.error(f"Failed to query {model}: {e}")
         return {"response": f"[Error: {e}]", "context": context}
 
+
 def run_roundtable():
     history = INITIAL_PROMPT
     context = None
 
-    rounds = 2
     conversation = []
 
     # Round 1: Architect (DeepSeek)
@@ -74,7 +78,9 @@ def run_roundtable():
     # Round 2: Engineer (Qwen)
     print("\n>>> ENGINEER (Qwen3-Coder) IS CRITIQUING & PROPOSING...")
     prompt = f"Critique the Architect's ideas and propose concrete VLIW implementation details. \nContext:\n{history}"
-    res = query_ollama(MODELS["Engineer"], prompt, context) # Pass context to keep memory? Actually prompt includes history.
+    res = query_ollama(
+        MODELS["Engineer"], prompt, context
+    )  # Pass context to keep memory? Actually prompt includes history.
     response_text = res.get("response", "")
     context = res.get("context")
     conversation.append(f"**ENGINEER**: {response_text}\n")
@@ -93,6 +99,7 @@ def run_roundtable():
     with open("swarm_brainstorm_result.md", "w") as f:
         f.write("# Cohezion Swarm Roundtable: VLIW Optimization\n\n")
         f.write("\n".join(conversation))
+
 
 if __name__ == "__main__":
     run_roundtable()

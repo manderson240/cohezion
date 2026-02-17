@@ -129,9 +129,7 @@ class CompoundMetricsCollector:
                     total_duration_ms=total_duration_ms,
                 )
             )
-        logger.debug(
-            "Recorded cycle: %s (delta=%.4f)", skill_name, compound_score_delta
-        )
+        logger.debug("Recorded cycle: %s (delta=%.4f)", skill_name, compound_score_delta)
 
     @property
     def total_executions(self) -> int:
@@ -196,9 +194,7 @@ class CompoundMetricsCollector:
             "refinements": len(refs),
             "cycles": len(cycles),
             "total_tokens": sum(e.tokens_used for e in execs),
-            "success_rate": (
-                sum(1 for e in execs if e.success) / len(execs) if execs else 0.0
-            ),
+            "success_rate": (sum(1 for e in execs if e.success) / len(execs) if execs else 0.0),
             "latest_execution": execs[-1].timestamp if execs else None,
             "latest_refinement": refs[-1].timestamp if refs else None,
         }
@@ -212,10 +208,7 @@ class CompoundMetricsCollector:
             "success_rate": round(self.success_rate(), 4),
             "total_tokens": self.total_tokens(),
             "model_usage": self.model_usage(),
-            "top_refined_skills": [
-                {"skill": name, "count": count}
-                for name, count in self.top_refined_skills()
-            ],
+            "top_refined_skills": [{"skill": name, "count": count} for name, count in self.top_refined_skills()],
             "compound_score_trend": self.compound_score_trend(),
         }
 

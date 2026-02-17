@@ -1,13 +1,14 @@
 """HTTPS enforcement and security headers middleware for Starlette/FastAPI."""
 
 import logging
-from typing import Callable
+from collections.abc import Callable
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
 from .tls_config import TLSConfig
+
 
 logger = logging.getLogger(__name__)
 
@@ -40,9 +41,7 @@ class HTTPSEnforcementMiddleware(BaseHTTPMiddleware):
         self.tls_config = tls_config
         self.allow_http_localhost = allow_http_localhost
 
-    async def dispatch(
-        self, request: Request, call_next: Callable
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """
         Process request through HTTPS enforcement and headers.
 
@@ -121,9 +120,7 @@ class SecureCookieMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.tls_config = tls_config
 
-    async def dispatch(
-        self, request: Request, call_next: Callable
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """
         Process request through cookie security enforcement.
 
@@ -169,10 +166,7 @@ class SecureCookieMiddleware(BaseHTTPMiddleware):
         cookie_parts = [
             p.strip()
             for p in cookie.split(";")
-            if not any(
-                p.strip().lower().startswith(prefix)
-                for prefix in ("secure", "httponly", "samesite")
-            )
+            if not any(p.strip().lower().startswith(prefix) for prefix in ("secure", "httponly", "samesite"))
         ]
 
         # Add new flags
@@ -208,8 +202,6 @@ def create_https_app(
     app = SecureCookieMiddleware(app, tls_config)
 
     # Apply HTTPS enforcement middleware (outer)
-    app = HTTPSEnforcementMiddleware(
-        app, tls_config, allow_http_localhost=allow_http_localhost
-    )
+    app = HTTPSEnforcementMiddleware(app, tls_config, allow_http_localhost=allow_http_localhost)
 
     return app

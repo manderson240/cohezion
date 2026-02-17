@@ -27,11 +27,13 @@ import numpy as np
 
 from cohezion.reliability.monitor import get_resource_monitor
 
+
 # Add src to path if running directly
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from cohezion.flume.mnm import SCENARIO_MANIFOLDS
 from cohezion.simulation.simulation_logger import SimulationLogger
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -40,7 +42,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger("FractalNexus")
 
-from cohezion.simulation.analysis_prime import SimulationAnalyzer
+from cohezion.simulation.analysis_prime import SimulationAnalyzer  # noqa: E402
+
 
 # Constants
 GRID_SIZE = 64
@@ -69,9 +72,7 @@ class StabilizerAgent:
     x: int
     y: int
     energy: float = 100.0
-    z_vector: np.ndarray = field(
-        default_factory=lambda: np.random.rand(12)
-    )  # 12D State Vector (Smith's 12 Parameters)
+    z_vector: np.ndarray = field(default_factory=lambda: np.random.rand(12))  # 12D State Vector (Smith's 12 Parameters)
     memory: list[dict] = field(default_factory=list)
     generation: int = 0
     learning_rate: float = 0.1
@@ -256,10 +257,7 @@ class BlueTeamAgent(StabilizerAgent):
 class UniverseGrid:
     def __init__(self, size: int = GRID_SIZE):
         self.size = size
-        self.grid = [
-            [Sector(x, y, random.choice(SECTOR_TYPES)) for x in range(size)]
-            for y in range(size)
-        ]
+        self.grid = [[Sector(x, y, random.choice(SECTOR_TYPES)) for x in range(size)] for y in range(size)]
         self.global_entropy = 0.5
         self.nu_dm_coupling = 0.03  # S8 Tension resolution constant
         self.stability_brake_threshold = 0.1  # Damping threshold (Biological Brake)
@@ -446,9 +444,7 @@ class FractalSimulator:
                     generation=agent.generation + 1,
                     energy=75.0,  # Parent gives energy
                 )
-                child.z_vector = agent.z_vector.copy() + np.random.normal(
-                    0, 0.01, 12
-                )  # Slight mutation
+                child.z_vector = agent.z_vector.copy() + np.random.normal(0, 0.01, 12)  # Slight mutation
                 agent.energy -= 75.0
 
                 # Place child
@@ -476,7 +472,9 @@ class FractalSimulator:
                     "spatial_pos": [float(sample_agent.x), float(sample_agent.y)],
                     "energy_level": sample_agent.energy,
                     "phi_score": sample_agent.coherence,
-                    "narration": f"Agent {sample_agent.id} moved to {sector.manifold_type} sector to stabilize entropy.",
+                    "narration": (
+                        f"Agent {sample_agent.id} moved to {sector.manifold_type} sector to stabilize entropy."
+                    ),
                 }
             )
 
@@ -486,31 +484,23 @@ class FractalSimulator:
         start_time = time.time()
         next_report = start_time + 10
 
-        logger.info(
-            f"Starting Fractal Universe Simulation for {max_seconds} seconds..."
-        )
+        logger.info(f"Starting Fractal Universe Simulation for {max_seconds} seconds...")
 
         while self.running and (time.time() - start_time < max_seconds):
             self.step()
 
             if time.time() > next_report:
-                report = (
-                    f"\nTick {self.ticks} | Stability Map:\n{self.grid.render_ascii()}"
-                )
+                report = f"\nTick {self.ticks} | Stability Map:\n{self.grid.render_ascii()}"
                 logger.info(report)
                 next_report = time.time() + 60  # Report every minute
                 self.logger.flush()
 
-            time.sleep(
-                0.05 / self.monitor.get_dilation_factor()
-            )  # Dynamic TPS Dilation
+            time.sleep(0.05 / self.monitor.get_dilation_factor())  # Dynamic TPS Dilation
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Fractal Universe Simulator")
-    parser.add_argument(
-        "--duration", type=str, default="3h", help="Duration (e.g. 3h, 30m, 120s)"
-    )
+    parser.add_argument("--duration", type=str, default="3h", help="Duration (e.g. 3h, 30m, 120s)")
     args = parser.parse_args()
 
     # Parse duration

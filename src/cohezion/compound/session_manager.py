@@ -18,7 +18,9 @@ from collections.abc import AsyncIterator
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
+
 from pydantic import BaseModel
+
 from cohezion.core.mcp_client import get_mcp_client
 
 
@@ -181,9 +183,7 @@ class InferenceSession:
 
                     # Update model usage
                     model = metrics.get("model", "unknown")
-                    self.state.model_usage[model] = (
-                        self.state.model_usage.get(model, 0) + tokens
-                    )
+                    self.state.model_usage[model] = self.state.model_usage.get(model, 0) + tokens
 
                     final_output = output
 
@@ -198,8 +198,7 @@ class InferenceSession:
                     # Checkpoint if needed
                     if (step_idx + 1) % self.config.checkpoint_interval_steps == 0:
                         should_checkpoint = (
-                            time.time() - self.state.last_checkpoint_time
-                            > self.config.checkpoint_timeout_sec
+                            time.time() - self.state.last_checkpoint_time > self.config.checkpoint_timeout_sec
                         )
                         if should_checkpoint:
                             await _vault_checkpoint_manager.save(self.state)
@@ -375,9 +374,7 @@ _vault_checkpoint_manager = VaultCheckpointManager()
 _sessions: dict[str, InferenceSession] = {}
 
 
-def create_session(
-    session_id: str | None = None, config: SessionConfig | None = None
-) -> InferenceSession:
+def create_session(session_id: str | None = None, config: SessionConfig | None = None) -> InferenceSession:
     """Create and register new session.
 
     Args:

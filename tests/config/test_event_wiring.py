@@ -1,10 +1,12 @@
 """Tests for event wiring and commit batching."""
 
-import asyncio
-
 import pytest
 
-from cohezion.config.event_wiring import CommitBatcher, EventSubscriber, SyncEventSubscriber
+from cohezion.config.event_wiring import (
+    CommitBatcher,
+    EventSubscriber,
+    SyncEventSubscriber,
+)
 
 
 class TestCommitBatcher:
@@ -97,7 +99,9 @@ class TestSyncEventSubscriber:
     async def test_on_vault_decision_added(self) -> None:
         """Test decision added queues CLAUDE.md."""
         batcher = CommitBatcher()
-        callback = lambda x: None
+
+        def callback(x):
+            return None
 
         subscriber = SyncEventSubscriber(callback, batcher)
         await subscriber.on_vault_decision_added("cost-optimization")
@@ -110,7 +114,9 @@ class TestSyncEventSubscriber:
     async def test_on_vault_pattern_updated(self) -> None:
         """Test pattern update queues CLAUDE.md."""
         batcher = CommitBatcher()
-        callback = lambda x: None
+
+        def callback(x):
+            return None
 
         subscriber = SyncEventSubscriber(callback, batcher)
         await subscriber.on_vault_pattern_updated("consensus-voting")
@@ -123,7 +129,9 @@ class TestSyncEventSubscriber:
     async def test_multiple_events_batched(self) -> None:
         """Test multiple events are batched together."""
         batcher = CommitBatcher()
-        callback = lambda x: None
+
+        def callback(x):
+            return None
 
         subscriber = SyncEventSubscriber(callback, batcher)
 
@@ -139,7 +147,9 @@ class TestSyncEventSubscriber:
     async def test_config_file_modified_logged(self) -> None:
         """Test manual config edit is logged (not auto-synced)."""
         batcher = CommitBatcher()
-        callback = lambda x: None
+
+        def callback(x):
+            return None
 
         subscriber = SyncEventSubscriber(callback, batcher)
         await subscriber.on_config_file_modified("CLAUDE.md")

@@ -12,14 +12,17 @@ import sys
 import time
 from pathlib import Path
 
+
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from mcp_server.graphrag_import import GraphRAGImporter
 from mcp_server.graphrag_helpers import detect_document_type
+from mcp_server.graphrag_import import GraphRAGImporter
+
 
 # Monkey-patch detect_document_type to handle all vault directories
 _original_detect = detect_document_type
+
 
 def extended_detect_document_type(file_path: Path, vault_path: Path) -> str:
     """Extended type detection for all vault directories."""
@@ -42,19 +45,24 @@ def extended_detect_document_type(file_path: Path, vault_path: Path) -> str:
     else:
         return "document"
 
+
 # Apply the patch
-import mcp_server.graphrag_helpers as helpers_module
+import mcp_server.graphrag_helpers as helpers_module  # noqa: E402
+
+
 helpers_module.detect_document_type = extended_detect_document_type
 
 # Also patch it in the import module since it may have imported it directly
-import mcp_server.graphrag_import as import_module
+import mcp_server.graphrag_import as import_module  # noqa: E402
+
+
 import_module.detect_document_type = extended_detect_document_type
 
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%H:%M:%S"
+    datefmt="%H:%M:%S",
 )
 logger = logging.getLogger(__name__)
 
@@ -65,12 +73,12 @@ SURREALDB_URL = "http://localhost:8000"
 
 # Directories to import (order matters: import targets before sources for edges)
 DIRECTORIES = [
-    ("concepts", False),      # non-recursive
-    ("papers", False),        # non-recursive
-    ("decisions", False),     # non-recursive
+    ("concepts", False),  # non-recursive
+    ("papers", False),  # non-recursive
+    ("decisions", False),  # non-recursive
     ("patterns/lessons", False),  # lessons subdirectory
-    ("patterns", False),      # patterns root (non-recursive to avoid re-importing lessons)
-    ("experiments", False),   # non-recursive
+    ("patterns", False),  # patterns root (non-recursive to avoid re-importing lessons)
+    ("experiments", False),  # non-recursive
 ]
 
 
@@ -118,7 +126,12 @@ async def count_records():
                 "DB": "vault",
             },
             auth=("root", "root"),
-            content="USE NS cohezion DB vault; SELECT type, count() FROM vault_memory GROUP BY type; SELECT count() FROM vault_memory GROUP ALL; SELECT count() FROM informed_by GROUP ALL;",
+            content=(
+                "USE NS cohezion DB vault;"
+                " SELECT type, count() FROM vault_memory GROUP BY type;"
+                " SELECT count() FROM vault_memory GROUP ALL;"
+                " SELECT count() FROM informed_by GROUP ALL;"
+            ),
         )
         results = resp.json()
         return results

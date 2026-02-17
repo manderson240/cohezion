@@ -24,7 +24,7 @@ import threading
 from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 
@@ -182,9 +182,7 @@ class FlumeVAEEmbeddingModel(EmbeddingModel):
 
         # Fallback: use hash-based embeddings
         if self._fallback_model is None:
-            self._fallback_model = DistilledEmbeddingModel(
-                embedding_dim=self._embedding_dim
-            )
+            self._fallback_model = DistilledEmbeddingModel(embedding_dim=self._embedding_dim)
 
         return await self._fallback_model.encode(text)
 
@@ -225,10 +223,10 @@ class SemanticCache:
 
     def __init__(
         self,
-        similarity_threshold: Optional[float] = None,
+        similarity_threshold: float | None = None,
         embedding_dim: int = 256,
         max_entries: int = 1000,
-        embedding_model: Optional[EmbeddingModel] = None,
+        embedding_model: EmbeddingModel | None = None,
         cache_dir: str | Path = "data/cache",
     ):
         """Initialize semantic cache.
@@ -282,7 +280,7 @@ class SemanticCache:
             "embedding_errors": 0,
         }
 
-    async def get(self, prompt: str, system: str = "") -> Optional[SemanticCacheHit]:
+    async def get(self, prompt: str, system: str = "") -> SemanticCacheHit | None:
         """Find semantically similar cached response.
 
         Args:
@@ -338,7 +336,7 @@ class SemanticCache:
         system: str,
         model: str,
         value: Any,
-        cache_key: Optional[str] = None,
+        cache_key: str | None = None,
     ) -> None:
         """Store response with semantic embedding.
 
@@ -459,10 +457,10 @@ class SemanticCache:
 
 
 __all__ = [
-    "EmbeddingModel",
     "DistilledEmbeddingModel",
-    "FlumeVAEEmbeddingModel",
+    "EmbeddingModel",
     "EmbeddingResult",
+    "FlumeVAEEmbeddingModel",
     "SemanticCache",
     "SemanticCacheHit",
 ]

@@ -1,9 +1,10 @@
-
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import unittest
 from problem import Tree, Input, Machine, HASH_STAGES
+
 # Check if build_mem_image is in problem, if so import it
 try:
     from problem import build_mem_image
@@ -18,7 +19,7 @@ except ImportError:
     pass
 
 from optimizer import OptimizedKernelBuilder as KernelBuilder
-import random
+
 
 class AdversarialTests(unittest.TestCase):
     def test_prime_nodes(self):
@@ -58,10 +59,10 @@ class AdversarialTests(unittest.TestCase):
         # Verify
         from problem import reference_kernel
         from copy import deepcopy
+
         inp_ref = deepcopy(inp)
         reference_kernel(forest, inp_ref)
 
-        header = 7
         forest_values_p = 7
         inp_indices_p = forest_values_p + n_nodes
         inp_values_p = inp_indices_p + len(inp.indices)
@@ -72,6 +73,7 @@ class AdversarialTests(unittest.TestCase):
 
         self.assertEqual(res_indices, inp_ref.indices)
         self.assertEqual(res_values, inp_ref.values)
+
 
 if __name__ == "__main__":
     unittest.main()

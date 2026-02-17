@@ -1,6 +1,8 @@
-import numpy as np
-import wave
 import struct
+import wave
+
+import numpy as np
+
 
 def generate_stability_tone(duration=2.0, freq=432.0, output_path="src/cohezion/api/static/stability_pulse.wav"):
     sample_rate = 44100
@@ -13,13 +15,14 @@ def generate_stability_tone(duration=2.0, freq=432.0, output_path="src/cohezion/
     # Convert to 16-bit PCM
     wave_data = (wave_data * 32767).astype(np.int16)
 
-    with wave.open(output_path, 'w') as f:
+    with wave.open(output_path, "w") as f:
         f.setnchannels(1)
         f.setsampwidth(2)
         f.setframerate(sample_rate)
         for s in wave_data:
-            f.writeframes(struct.pack('h', s))
+            f.writeframes(struct.pack("h", s))
     print(f"Generated tone at {output_path}")
+
 
 if __name__ == "__main__":
     generate_stability_tone()

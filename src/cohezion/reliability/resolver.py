@@ -25,28 +25,22 @@ class HallucinationResolver:
         corrections = {}
 
         # 1. Check for Hardware Hallucinations (e.g. Framework 16 vs Ryzen AI Max)
-        if "Framework 16" in text and "AMD RYZEN AI MAX+" not in self.ground_truth.get(
-            "cpu", ""
-        ):
+        if "Framework 16" in text and "AMD RYZEN AI MAX+" not in self.ground_truth.get("cpu", ""):
             # This is a bit of a nuance: if the user CALLS it a Framework 16, it might be fine,
             # but if the agent CLAIMS specs optimized for it without checking, it's a flag.
             pass
 
-        if "NVIDIA" in text or "H100" in text or "A100" in text:
-            if "AMD" in self.ground_truth.get("gpu", ""):
-                issues.append("Claimed NVIDIA hardware on an AMD system.")
-                corrections["gpu"] = self.ground_truth["gpu"]
+        if ("NVIDIA" in text or "H100" in text or "A100" in text) and "AMD" in self.ground_truth.get("gpu", ""):
+            issues.append("Claimed NVIDIA hardware on an AMD system.")
+            corrections["gpu"] = self.ground_truth["gpu"]
 
         # 2. Check for path hallucinations
         path_matches = re.findall(r"(/[a-zA-Z0-9_\-\./]+)", text)
         for path in path_matches:
             if (
-                "/home/" in path
-                and not path.startswith(self.ground_truth["project_root"])
-                and "mike-anderson" in path
-            ):
-                if not os.path.exists(path):
-                    issues.append(f"Referenced non-existent absolute path: {path}")
+                "/home/" in path and not path.startswith(self.ground_truth["project_root"]) and "mike-anderson" in path
+            ) and not os.path.exists(path):
+                issues.append(f"Referenced non-existent absolute path: {path}")
 
         return {
             "is_hallucinating": len(issues) > 0,

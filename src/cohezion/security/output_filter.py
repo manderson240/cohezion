@@ -12,6 +12,7 @@ import re
 from dataclasses import dataclass
 from enum import Enum
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -102,9 +103,7 @@ class OutputFilter:
                 redactions.append(f"{pii_type}:{len(matches)}")
 
                 if self.redact_pii:
-                    filtered_text = pattern.sub(
-                        f"[REDACTED_{pii_type.upper()}]", filtered_text
-                    )
+                    filtered_text = pattern.sub(f"[REDACTED_{pii_type.upper()}]", filtered_text)
 
         result = FilterResult.CLEAN
         if redactions:

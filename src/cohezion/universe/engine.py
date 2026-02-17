@@ -25,6 +25,7 @@ from uuid import uuid4
 
 import numpy as np
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -65,10 +66,17 @@ class AxiomaticState:
     # Control: Rotation(Spin), Precession(Spin), Charge
     # Precipitation: Awareness, Particularization, Precipitation
     SMITH_FABRIC_MAP: ClassVar[dict[str, str]] = {
-        "spatial_x": "Space_X", "spatial_y": "Space_Y", "spatial_z": "Space_Z",
-        "physics": "Tempic", "biology": "Electric", "field": "Magnetic",
-        "logic": "Rotation", "quantum": "Precession", "control": "Charge",
-        "temporal": "Awareness", "novelty": "Particularization",
+        "spatial_x": "Space_X",
+        "spatial_y": "Space_Y",
+        "spatial_z": "Space_Z",
+        "physics": "Tempic",
+        "biology": "Electric",
+        "field": "Magnetic",
+        "logic": "Rotation",
+        "quantum": "Precession",
+        "control": "Charge",
+        "temporal": "Awareness",
+        "novelty": "Particularization",
         "precipitation": "Precipitation",
     }
 
@@ -141,7 +149,7 @@ class AxiomaticState:
     # --- Tempic Field (Gap 2: Smith's rate-of-change, not clock-time) ---
 
     @staticmethod
-    def compute_tempic(state_before: "AxiomaticState", state_after: "AxiomaticState") -> float:
+    def compute_tempic(state_before: AxiomaticState, state_after: AxiomaticState) -> float:
         """Compute Smith's Tempic field: the rate of change between two states.
 
         Smith: 'The Tempic field is NOT time, but change itself.'
@@ -160,40 +168,52 @@ class AxiomaticState:
             Tempic field strength (0.0 = no change, higher = more change).
         """
         brane_dims_before = [
-            state_before.physics, state_before.biology, state_before.logic,
-            state_before.quantum, state_before.field, state_before.control,
+            state_before.physics,
+            state_before.biology,
+            state_before.logic,
+            state_before.quantum,
+            state_before.field,
+            state_before.control,
             state_before.novelty,
         ]
         brane_dims_after = [
-            state_after.physics, state_after.biology, state_after.logic,
-            state_after.quantum, state_after.field, state_after.control,
+            state_after.physics,
+            state_after.biology,
+            state_after.logic,
+            state_after.quantum,
+            state_after.field,
+            state_after.control,
             state_after.novelty,
         ]
-        displacement = sum(
-            (a - b) ** 2 for a, b in zip(brane_dims_before, brane_dims_after)
-        )
-        return displacement ** 0.5
+        displacement = sum((a - b) ** 2 for a, b in zip(brane_dims_before, brane_dims_after, strict=False))
+        return displacement**0.5
 
     @staticmethod
-    def compute_tempic_vector(
-        state_before: "AxiomaticState", state_after: "AxiomaticState"
-    ) -> list[float]:
+    def compute_tempic_vector(state_before: AxiomaticState, state_after: AxiomaticState) -> list[float]:
         """Compute per-dimension Tempic field (directional change vector).
 
         Returns the signed change in each brane dimension, showing not just
         how much changed but in which direction.
         """
         brane_before = [
-            state_before.physics, state_before.biology, state_before.logic,
-            state_before.quantum, state_before.field, state_before.control,
+            state_before.physics,
+            state_before.biology,
+            state_before.logic,
+            state_before.quantum,
+            state_before.field,
+            state_before.control,
             state_before.novelty,
         ]
         brane_after = [
-            state_after.physics, state_after.biology, state_after.logic,
-            state_after.quantum, state_after.field, state_after.control,
+            state_after.physics,
+            state_after.biology,
+            state_after.logic,
+            state_after.quantum,
+            state_after.field,
+            state_after.control,
             state_after.novelty,
         ]
-        return [a - b for a, b in zip(brane_after, brane_before)]
+        return [a - b for a, b in zip(brane_after, brane_before, strict=False)]
 
     def coherence_score(self) -> float:
         """Calculate HIHO coherence with SPIN weighting (0.5 = optimal stability).
@@ -305,17 +325,13 @@ class UniverseJourney:
             "intent": self.intent,
             "status": self.status,
             "initial_axiomatic": self.initial_axiomatic.to_vector(),
-            "initial_latent_embedding": self.initial_latent.embedding
-            if self.initial_latent
-            else [],
+            "initial_latent_embedding": self.initial_latent.embedding if self.initial_latent else [],
             "trajectory_count": len(self.trajectory),
             "precipitation_type": list(self.precipitation.keys()),
             "final_coherence": self.final_coherence,
             "final_phi_score": self.final_phi_score,
             "created_at": self.created_at.isoformat(),
-            "completed_at": self.completed_at.isoformat()
-            if self.completed_at
-            else None,
+            "completed_at": self.completed_at.isoformat() if self.completed_at else None,
         }
 
 
@@ -371,9 +387,7 @@ class UniverseSimulationEngine:
         # 1. Encode intent
         encoder = await self._ensure_encoder()
         embedding = await encoder.encode(intent)
-        latent = LatentState(
-            embedding=embedding, semantic_intent=intent, confidence=0.7
-        )
+        latent = LatentState(embedding=embedding, semantic_intent=intent, confidence=0.7)
 
         # 2. Project to 12D
         axiomatic = self._project_to_axiomatic(embedding, context)
@@ -539,12 +553,12 @@ class UniverseSimulationEngine:
         placeholder_latent_vec = np.random.randn(2048).tolist()
 
         # 1. Project to Axiomatic
-        axiomatic = self._project_to_axiomatic(placeholder_latent_vec)
+        self._project_to_axiomatic(placeholder_latent_vec)
 
         # 2. Rust-Optimized Quantization
         from cohezion_core.cohezion_core_rs import FlumePhysics
 
-        physics_engine = FlumePhysics(
+        FlumePhysics(
             np.zeros((1, 1), dtype=np.float32),
             np.zeros(1, dtype=np.float32),
             np.zeros((1, 1), dtype=np.float32),
@@ -605,9 +619,7 @@ class UniverseSimulationEngine:
 
         journey.add_trajectory_point(point)
 
-        logger.debug(
-            f"   Trajectory step {step_num}: coherence={coherence:.3f}, phi={phi_score:.3f}"
-        )
+        logger.debug(f"   Trajectory step {step_num}: coherence={coherence:.3f}, phi={phi_score:.3f}")
 
         return point
 
@@ -616,28 +628,20 @@ class UniverseSimulationEngine:
         distance = target - current
         return current + distance * factor * 0.5  # 0.5 for gentle convergence
 
-    async def precipitate_latent_action(
-        self, journey: UniverseJourney, prompt: str
-    ) -> TrajectoryPoint:
+    async def precipitate_latent_action(self, journey: UniverseJourney, prompt: str) -> TrajectoryPoint:
         """
         TRANSFORMATION: Predict and precipitate the next 'Latent Action'.
         Uses the ManifoldBridge to convert intent into reality.
         """
-        logger.info(
-            f"✨ [GLE] Precipitating Latent Action for {journey.id}: {prompt[:50]}..."
-        )
+        logger.info(f"✨ [GLE] Precipitating Latent Action for {journey.id}: {prompt[:50]}...")
 
         # 1. Evolve Trajectory (Movement in latent space)
-        point = await self.evolve_trajectory(
-            journey, action=f"Latent Projection: {prompt}"
-        )
+        point = await self.evolve_trajectory(journey, action=f"Latent Projection: {prompt}")
 
         # 2. Use Manifold Bridge for Physical Precipitation
         from cohezion.core.routing.manifold_bridge import LOCAL_MANIFOLD_BRIDGE
 
-        precipitation = await LOCAL_MANIFOLD_BRIDGE.precipitate_intent(
-            journey, point.latent
-        )
+        precipitation = await LOCAL_MANIFOLD_BRIDGE.precipitate_intent(journey, point.latent)
 
         # 3. Update trajectory with achieved result
         point.result_achieved = precipitation["result_summary"]
@@ -658,7 +662,7 @@ Intent: {journey.intent}
 Trajectory Steps: {len(journey.trajectory)}
 Final Coherence: {journey.final_coherence}
 
-Based on the 0.5 Coherence Rule and HIHO protocol, predict the next 'TRANSFORMATIVE' action 
+Based on the 0.5 Coherence Rule and HIHO protocol, predict the next 'TRANSFORMATIVE' action
 that would push this project into the 'Unknown'.
 """
         prediction = await LOCAL_ROUTER.route_task("reasoning", prediction_prompt)
@@ -726,8 +730,7 @@ that would push this project into the 'Unknown'.
                     "type": "process_pattern",
                     "pattern": "Multi-step refinement successful",
                     "step_count": len(journey.trajectory),
-                    "avg_coherence": sum(t.coherence for t in journey.trajectory)
-                    / len(journey.trajectory),
+                    "avg_coherence": sum(t.coherence for t in journey.trajectory) / len(journey.trajectory),
                 }
             )
 

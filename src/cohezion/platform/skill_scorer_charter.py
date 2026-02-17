@@ -4,10 +4,12 @@ Primary weight on HIHO stability (0.5 coherence baseline).
 """
 
 import logging
-from typing import List
 from datetime import datetime, timedelta
+
 from pydantic import BaseModel
+
 from cohezion.core.persistence.surreal_client import get_surreal_client
+
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +33,7 @@ class CharterAlignedSkillScorer:
         self.db = get_surreal_client()
         self.target_coherence = 0.5  # Charter mandated
 
-    async def calculate_daily_scores(self, date: datetime) -> List[CharterSkillScore]:
+    async def calculate_daily_scores(self, date: datetime) -> list[CharterSkillScore]:
         """Calculate Charter-aligned effectiveness scores."""
 
         # Query all skill usage for the day
@@ -71,14 +73,10 @@ class CharterAlignedSkillScorer:
             # CHARTER METRIC: HIHO Stability
             # How close is average coherence to 0.5?
             hiho_delta = abs(avg_coherence - self.target_coherence)
-            hiho_stability_distance = max(
-                0.0, 1.0 - (hiho_delta * 2)
-            )  # 1.0 at perfect 0.5
+            hiho_stability_distance = max(0.0, 1.0 - (hiho_delta * 2))  # 1.0 at perfect 0.5
 
             # Alternative: Percentage of executions that were HIHO stable
-            hiho_stability_rate = (
-                hiho_stable_count / usage_count if usage_count > 0 else 0
-            )
+            hiho_stability_rate = hiho_stable_count / usage_count if usage_count > 0 else 0
 
             # Use whichever is higher (most charitable scoring)
             hiho_stability = max(hiho_stability_distance, hiho_stability_rate)
@@ -139,9 +137,7 @@ class CharterAlignedSkillScorer:
         except Exception as e:
             logger.warning("Failed to persist skill metric to SurrealDB: %s", e)
 
-    async def get_trending_skills(
-        self, days: int = 7, limit: int = 10
-    ) -> List[CharterSkillScore]:
+    async def get_trending_skills(self, days: int = 7, limit: int = 10) -> list[CharterSkillScore]:
         """Get top skills by Charter-aligned effectiveness over time period."""
 
         end_date = datetime.now()

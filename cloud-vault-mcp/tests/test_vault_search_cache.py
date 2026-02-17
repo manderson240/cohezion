@@ -166,26 +166,19 @@ class TestVaultOpsWithCache:
         """Create a vault with cache enabled."""
         (tmp_path / "papers").mkdir()
         (tmp_path / "papers" / "test1.md").write_text(
-            "# Machine Learning Basics\n\n"
-            "This paper discusses machine learning concepts.\n"
+            "# Machine Learning Basics\n\nThis paper discusses machine learning concepts.\n"
         )
         (tmp_path / "papers" / "test2.md").write_text(
-            "# Deep Learning\n\n"
-            "Deep learning is a subset of machine learning.\n"
+            "# Deep Learning\n\nDeep learning is a subset of machine learning.\n"
         )
-        (tmp_path / "papers" / "test3.md").write_text(
-            "# Natural Language Processing\n\n"
-            "NLP uses neural networks.\n"
-        )
+        (tmp_path / "papers" / "test3.md").write_text("# Natural Language Processing\n\nNLP uses neural networks.\n")
         return VaultOps(str(tmp_path), cache_enabled=True, cache_ttl_seconds=60)
 
     @pytest.fixture
     def vault_without_cache(self, tmp_path):
         """Create a vault with cache disabled."""
         (tmp_path / "papers").mkdir()
-        (tmp_path / "papers" / "test1.md").write_text(
-            "# Test Paper\n\nContent here.\n"
-        )
+        (tmp_path / "papers" / "test1.md").write_text("# Test Paper\n\nContent here.\n")
         return VaultOps(str(tmp_path), cache_enabled=False)
 
     def test_vault_cache_hit_repeated_search(self, vault_with_cache):
@@ -224,8 +217,8 @@ class TestVaultOpsWithCache:
 
     def test_vault_cache_different_scopes(self, vault_with_cache):
         """Test that different scopes use different cache entries."""
-        results1 = vault_with_cache.search("test", scope="all")
-        results2 = vault_with_cache.search("test", scope="tags")
+        vault_with_cache.search("test", scope="all")
+        vault_with_cache.search("test", scope="tags")
 
         # Both should be cached separately
         stats = vault_with_cache.get_search_cache_stats()
@@ -271,10 +264,7 @@ class TestVaultOpsWithCache:
         results_cache = vault_with_cache.search("learning")
 
         # Create new vault instance without cache and search
-        vault_ops = VaultOps(
-            str(vault_with_cache.vault_path),
-            cache_enabled=False
-        )
+        vault_ops = VaultOps(str(vault_with_cache.vault_path), cache_enabled=False)
         results_no_cache = vault_ops.search("learning")
 
         # Results should be identical

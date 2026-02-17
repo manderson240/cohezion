@@ -6,35 +6,38 @@ Watches the knowledge graph and maintains a 'Golden Set' of 12 transformative si
 import asyncio
 import json
 import logging
-from pathlib import Path
 from dataclasses import dataclass
-from typing import List, Dict
+from pathlib import Path
+
 
 # Attempt to use local embedding for diversity, else fallback to coherence score
 try:
-    from sklearn.metrics.pairwise import cosine_similarity
-    import numpy as np
+    import numpy as np  # noqa: F401
+    from sklearn.metrics.pairwise import cosine_similarity  # noqa: F401
+
     SKLEARN_AVAILABLE = True
 except ImportError:
     SKLEARN_AVAILABLE = False
 
 logger = logging.getLogger("universe_selector")
 
+
 @dataclass
 class UniverseCandidate:
     id: str
     content: str
     coherence: float
-    vector: str # "chaos" or "order"
+    vector: str  # "chaos" or "order"
     timestamp: float
+
 
 class UniverseSelector:
     def __init__(self):
         self.root_dir = Path("src/cohezion/knowledge_graph/universe_nodes")
         self.input_file = self.root_dir / "universes.jsonl"
         self.output_file = self.root_dir / "top_12_universes.md"
-        self.candidates: List[UniverseCandidate] = []
-        self.top_12: List[UniverseCandidate] = []
+        self.candidates: list[UniverseCandidate] = []
+        self.top_12: list[UniverseCandidate] = []
 
     async def run_forever(self):
         logger.info("Starting Universe Selector...")
@@ -42,7 +45,7 @@ class UniverseSelector:
             await self._refresh_candidates()
             self._select_top_12()
             await self._publish_manifest()
-            await asyncio.sleep(60) # Run every minute
+            await asyncio.sleep(60)  # Run every minute
 
     async def _refresh_candidates(self):
         """Read latest data from graph ingestion."""
@@ -53,19 +56,21 @@ class UniverseSelector:
         try:
             # Snail-read the file (it grows append-only)
             # For 24k lines, this is fine. For 1M, we'd need a cursor.
-            with open(self.input_file, 'r') as f:
+            with open(self.input_file) as f:
                 for line in f:
                     try:
                         data = json.loads(line)
                         # Heuristic: Only care about "Survived" or high coherence
                         if data.get("status") == "survived" or data.get("coherence", 0) > 0.7:
-                            new_candidates.append(UniverseCandidate(
-                                id=data["id"],
-                                content=data["content"][:200], # Preview
-                                coherence=data.get("coherence", 0.0),
-                                vector=data.get("vector", "unknown"),
-                                timestamp=data["timestamp"]
-                            ))
+                            new_candidates.append(
+                                UniverseCandidate(
+                                    id=data["id"],
+                                    content=data["content"][:200],  # Preview
+                                    coherence=data.get("coherence", 0.0),
+                                    vector=data.get("vector", "unknown"),
+                                    timestamp=data["timestamp"],
+                                )
+                            )
                     except json.JSONDecodeError:
                         continue
         except Exception as e:
@@ -99,7 +104,7 @@ class UniverseSelector:
         # Fill rest if needed
         if len(self.top_12) < 12 and len(sorted_by_score) > len(self.top_12):
             remaining = [c for c in sorted_by_score if c not in self.top_12]
-            self.top_12.extend(remaining[:12 - len(self.top_12)])
+            self.top_12.extend(remaining[: 12 - len(self.top_12)])
 
     async def _publish_manifest(self):
         """Write the Top 12 to a readable Markdown file."""
@@ -107,7 +112,7 @@ class UniverseSelector:
             return
 
         content = "# The 12 Universal Archetypes\n"
-        content += f"**Updated:** {logging.Formatter().formatTime(logging.LogRecord('',0,'',0,'','',0))}\n\n"
+        content += f"**Updated:** {logging.Formatter().formatTime(logging.LogRecord('', 0, '', 0, '', '', 0))}\n\n"
 
         for i, u in enumerate(self.top_12, 1):
             content += f"## {i}. Universe {u.id}\n"
@@ -116,10 +121,11 @@ class UniverseSelector:
             content += f"- **Snippet:** {u.content}...\n"
             content += f"- **Artifact:** `universes.jsonl` (Timestamp: {u.timestamp})\n\n"
 
-        with open(self.output_file, 'w') as f:
+        with open(self.output_file, "w") as f:
             f.write(content)
 
         logger.info(f"Updated Top 12 Manifest with {len(self.top_12)} universes.")
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

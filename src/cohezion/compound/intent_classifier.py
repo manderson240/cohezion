@@ -16,7 +16,6 @@ Example:
 
 import logging
 import re
-from typing import Optional
 
 
 logger = logging.getLogger(__name__)
@@ -122,17 +121,13 @@ class IntentClassifier:
         scores = {}
         for operation, keywords in self.keywords.items():
             # Count how many keywords appear in text
-            matches = sum(
-                1 for keyword in keywords if self._keyword_in_text(text_lower, keyword)
-            )
+            matches = sum(1 for keyword in keywords if self._keyword_in_text(text_lower, keyword))
             scores[operation] = matches
 
         # Return operation with highest score
         if max(scores.values()) > 0:
             best_operation = max(scores, key=scores.get)
-            logger.debug(
-                f"Classified '{text[:50]}...' → {best_operation} (score={scores[best_operation]})"
-            )
+            logger.debug(f"Classified '{text[:50]}...' → {best_operation} (score={scores[best_operation]})")
             return best_operation
 
         # Default fallback

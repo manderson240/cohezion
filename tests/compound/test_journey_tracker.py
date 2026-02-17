@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 
+from cohezion.compound.executor import ExecutionResult
 from cohezion.compound.journey_tracker import (
     Journey,
     JourneyTracker,
@@ -10,7 +11,6 @@ from cohezion.compound.journey_tracker import (
     OperationType,
     TrajectoryPoint,
 )
-from cohezion.compound.executor import ExecutionResult
 
 
 @pytest.fixture
@@ -226,27 +226,21 @@ class TestStepToAxiomatic:
     def test_step_to_axiomatic_output_shape(self, tracker):
         """Test axiomatic output has correct shape."""
         projection = np.random.rand(12)
-        axiomatic = tracker._step_to_axiomatic(
-            projection, "generate", coherence=0.85, efficiency=0.7
-        )
+        axiomatic = tracker._step_to_axiomatic(projection, "generate", coherence=0.85, efficiency=0.7)
 
         assert len(axiomatic) == 12
 
     def test_step_to_axiomatic_normalized(self, tracker):
         """Test axiomatic output is normalized."""
         projection = np.random.rand(12)
-        axiomatic = tracker._step_to_axiomatic(
-            projection, "generate", coherence=0.85, efficiency=0.7
-        )
+        axiomatic = tracker._step_to_axiomatic(projection, "generate", coherence=0.85, efficiency=0.7)
 
         assert np.all(axiomatic >= 0.0) and np.all(axiomatic <= 1.0)
 
     def test_step_to_axiomatic_generate_profile(self, tracker):
         """Test GENERATE profile emphasizes novelty and logic."""
         projection = np.zeros(12)
-        axiomatic = tracker._step_to_axiomatic(
-            projection, "generate", coherence=1.0, efficiency=1.0
-        )
+        axiomatic = tracker._step_to_axiomatic(projection, "generate", coherence=1.0, efficiency=1.0)
 
         # With max quality weight, should be close to modulation profile
         profile = tracker._modulation_profiles["generate"]
@@ -256,9 +250,7 @@ class TestStepToAxiomatic:
     def test_step_to_axiomatic_analyze_profile(self, tracker):
         """Test ANALYZE profile emphasizes logic and field."""
         projection = np.zeros(12)
-        axiomatic = tracker._step_to_axiomatic(
-            projection, "analyze", coherence=1.0, efficiency=1.0
-        )
+        axiomatic = tracker._step_to_axiomatic(projection, "analyze", coherence=1.0, efficiency=1.0)
 
         profile = tracker._modulation_profiles["analyze"]
         assert np.allclose(axiomatic, profile, atol=0.1)
@@ -268,9 +260,7 @@ class TestStepToAxiomatic:
         projection = np.random.rand(12)
 
         for op_type in ["generate", "analyze", "search", "transform", "persist"]:
-            axiomatic = tracker._step_to_axiomatic(
-                projection, op_type, coherence=0.8, efficiency=0.8
-            )
+            axiomatic = tracker._step_to_axiomatic(projection, op_type, coherence=0.8, efficiency=0.8)
 
             assert len(axiomatic) == 12
             assert np.all(axiomatic >= 0.0) and np.all(axiomatic <= 1.0)
@@ -281,9 +271,7 @@ class TestPhiScore:
 
     def test_phi_score_computation(self, tracker):
         """Test phi score is computed correctly."""
-        phi = tracker._compute_phi_score(
-            coherence=0.8, smoothness=0.6, convergence=0.7
-        )
+        phi = tracker._compute_phi_score(coherence=0.8, smoothness=0.6, convergence=0.7)
 
         # phi = coherence * 0.5 + smoothness * 0.3 + convergence * 0.2
         expected = 0.8 * 0.5 + 0.6 * 0.3 + 0.7 * 0.2
@@ -291,17 +279,13 @@ class TestPhiScore:
 
     def test_phi_score_normalized(self, tracker):
         """Test phi score is in [0, 1]."""
-        phi = tracker._compute_phi_score(
-            coherence=0.9, smoothness=0.95, convergence=0.85
-        )
+        phi = tracker._compute_phi_score(coherence=0.9, smoothness=0.95, convergence=0.85)
 
         assert 0.0 <= phi <= 1.0
 
     def test_phi_score_clipping(self, tracker):
         """Test phi score clips to [0, 1]."""
-        phi = tracker._compute_phi_score(
-            coherence=1.5, smoothness=1.2, convergence=1.0
-        )
+        phi = tracker._compute_phi_score(coherence=1.5, smoothness=1.2, convergence=1.0)
 
         assert 0.0 <= phi <= 1.0
 
@@ -394,9 +378,7 @@ class TestTrajectoryQuality:
         assert 0.0 <= quality["smoothness"] <= 1.0
         assert 0.0 <= quality["convergence"] <= 1.0
 
-    def test_compute_trajectory_quality_multiple_points(
-        self, tracker, execution_result
-    ):
+    def test_compute_trajectory_quality_multiple_points(self, tracker, execution_result):
         """Test quality with multiple points."""
         points = [
             tracker.track_execution(
@@ -525,7 +507,7 @@ class TestRealPhiScore:
         """Consistent tasks (stable spin) produce smoothness > 0.7."""
         tracker = JourneyTracker(seed=42)
 
-        for i in range(6):
+        for _i in range(6):
             result = ExecutionResult(
                 success=True,
                 output="output",
@@ -542,7 +524,7 @@ class TestRealPhiScore:
         """Divergent tasks produce lower smoothness than consistent tasks."""
         # Run consistent tasks
         consistent_tracker = JourneyTracker(seed=42)
-        for i in range(5):
+        for _ in range(5):
             result = ExecutionResult(
                 success=True,
                 output="output",
@@ -552,9 +534,7 @@ class TestRealPhiScore:
             )
             consistent_tracker.track_execution(result, "Same task", "generate")
 
-        consistent_quality = consistent_tracker.compute_trajectory_quality(
-            consistent_tracker._recent_points
-        )
+        consistent_quality = consistent_tracker.compute_trajectory_quality(consistent_tracker._recent_points)
 
         # Run divergent tasks
         divergent_tracker = JourneyTracker(seed=42)
@@ -567,13 +547,9 @@ class TestRealPhiScore:
                 duration_seconds=1.0 + i,
                 token_metrics={"cache_hit_rate": 0.1 * i},
             )
-            divergent_tracker.track_execution(
-                result, f"Very different task {i * 100}", ops[i]
-            )
+            divergent_tracker.track_execution(result, f"Very different task {i * 100}", ops[i])
 
-        divergent_quality = divergent_tracker.compute_trajectory_quality(
-            divergent_tracker._recent_points
-        )
+        divergent_quality = divergent_tracker.compute_trajectory_quality(divergent_tracker._recent_points)
 
         # Divergent tasks should have strictly lower smoothness
         assert divergent_quality["smoothness"] < consistent_quality["smoothness"]
@@ -582,7 +558,7 @@ class TestRealPhiScore:
         """Stable cohesion values produce convergence > 0.7."""
         tracker = JourneyTracker(seed=42)
 
-        for i in range(5):
+        for _i in range(5):
             result = ExecutionResult(
                 success=True,
                 output="output",

@@ -4,9 +4,9 @@ Tests the vault search enhancement with skill context integration following
 the CompoundAsyncExecutor pattern (7-step execution pipeline).
 """
 
+from unittest.mock import MagicMock
+
 import pytest
-from unittest.mock import MagicMock, patch
-from datetime import datetime
 
 from cohezion.compound.vault_search_executor import (
     SearchQuery,
@@ -97,20 +97,16 @@ class TestVaultSearchExecutor:
 
     def test_validate_search_query_max_results(self, vault_search_executor):
         """Test validation rejects max_results > 100."""
-        query = SearchQuery(
-            query="test", keywords=["test"], document_types=[], max_results=101
-        )
+        query = SearchQuery(query="test", keywords=["test"], document_types=[], max_results=101)
 
         with pytest.raises(ValueError, match="Max results cannot exceed 100"):
             vault_search_executor._validate_search_query(query)
 
     def test_validate_search_query_relevance_bounds(self, vault_search_executor):
         """Test validation enforces relevance bounds."""
-        query = SearchQuery(
-            query="test", keywords=["test"], document_types=[], min_relevance=1.5
-        )
+        query = SearchQuery(query="test", keywords=["test"], document_types=[], min_relevance=1.5)
 
-        with pytest.raises(ValueError, match="Min relevance must be between 0.0 and 1.0"):
+        with pytest.raises(ValueError, match=r"Min relevance must be between 0\.0 and 1\.0"):
             vault_search_executor._validate_search_query(query)
 
     def test_calculate_relevance_keyword_match(self, vault_search_executor):
@@ -122,9 +118,7 @@ class TestVaultSearchExecutor:
             document_types=[],
         )
 
-        relevance = vault_search_executor._calculate_relevance(
-            document, query, skill_context=[]
-        )
+        relevance = vault_search_executor._calculate_relevance(document, query, skill_context=[])
 
         # 2 matching keywords out of 2, so score should be high
         assert relevance > 0.5
@@ -139,9 +133,7 @@ class TestVaultSearchExecutor:
         )
 
         # Without skill context
-        relevance_no_context = vault_search_executor._calculate_relevance(
-            document, query, skill_context=[]
-        )
+        relevance_no_context = vault_search_executor._calculate_relevance(document, query, skill_context=[])
 
         # With matching skill context
         relevance_with_context = vault_search_executor._calculate_relevance(
@@ -186,9 +178,7 @@ class TestVaultSearchExecutor:
             {"type": "decision", "_relevance_score": 0.4},
         ]
 
-        patterns = vault_search_executor._analyze_search_patterns(
-            documents, skill_context=["vault-integration"]
-        )
+        patterns = vault_search_executor._analyze_search_patterns(documents, skill_context=["vault-integration"])
 
         assert patterns["effective_skills"] == ["vault-integration"]
         assert patterns["result_distribution"]["by_type"]["decision"] == 2
@@ -280,9 +270,7 @@ class TestSearchQuery:
 
     def test_search_query_defaults(self):
         """Test SearchQuery uses proper defaults."""
-        query = SearchQuery(
-            query="test", keywords=["test"], document_types=["decisions"]
-        )
+        query = SearchQuery(query="test", keywords=["test"], document_types=["decisions"])
 
         assert query.max_results == 10
         assert query.min_relevance == 0.5

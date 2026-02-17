@@ -7,8 +7,9 @@ Tests the complete workflow:
 - Query chaining (reasoning → lessons → papers)
 """
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from src.mcp_server.agent_reasoning import AgentReasoningOps
 from src.mcp_server.agent_reasoning_queries import AgentReasoningQueries
@@ -189,7 +190,7 @@ class TestToolToQueryWorkflow:
         )
 
         assert create_result["success"] is True
-        reasoning_id = create_result["reasoning_id"]
+        create_result["reasoning_id"]
 
         # Step 2: Query for the reasoning
         query_result = reasoning_queries.root_cause_analysis("agent_decision:test")

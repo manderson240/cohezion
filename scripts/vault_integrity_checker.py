@@ -13,20 +13,19 @@ Validates:
 8. Backup/recovery procedures
 """
 
-import os
 import json
+import os
 import re
 import sys
-from pathlib import Path
-from datetime import datetime
-from typing import Dict, List, Set, Tuple
 from collections import defaultdict
+from datetime import datetime
+from pathlib import Path
 
 
 class VaultIntegrityChecker:
     """Comprehensive vault data integrity validator"""
 
-    def __init__(self, vault_path: str = None):
+    def __init__(self, vault_path: str | None = None):
         if vault_path is None:
             vault_path = Path.cwd() / "cloud-vault-mcp" / "vault"
         self.vault_path = Path(vault_path)
@@ -42,7 +41,7 @@ class VaultIntegrityChecker:
         self.references = defaultdict(set)  # file -> referenced_files
         self.metadata_index = {}  # path -> metadata
 
-    def run_all_checks(self) -> Dict:
+    def run_all_checks(self) -> dict:
         """Run complete integrity verification suite"""
         print("[*] Starting Vault Integrity Verification")
         print(f"[*] Vault path: {self.vault_path}")
@@ -82,7 +81,7 @@ class VaultIntegrityChecker:
         self._check_recovery_readiness()
 
         # Generate report
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         return self._generate_report()
 
     def _load_documents(self):
@@ -99,7 +98,7 @@ class VaultIntegrityChecker:
                     rel_path = file_path.relative_to(self.vault_path)
 
                     try:
-                        with open(file_path, "r", encoding="utf-8") as f:
+                        with open(file_path, encoding="utf-8") as f:
                             content = f.read()
                         self.documents[str(rel_path)] = content
                         self.stats["total_documents"] += 1
@@ -108,9 +107,7 @@ class VaultIntegrityChecker:
                         category = str(rel_path).split("/")[0]
                         self.stats["files_by_category"][category] += 1
                     except Exception as e:
-                        self.issues.append(
-                            f"ERROR: Cannot read {rel_path}: {e}"
-                        )
+                        self.issues.append(f"ERROR: Cannot read {rel_path}: {e}")
 
     def _validate_markdown_format(self):
         """Validate markdown file format"""
@@ -142,7 +139,7 @@ class VaultIntegrityChecker:
 
             # Check for orphaned links
             links = re.findall(r"\[([^\]]+)\]\(([^)]+)\)", content)
-            for link_text, link_url in links:
+            for _link_text, link_url in links:
                 if link_url.endswith(".md"):
                     # Internal reference
                     self.references[doc_path].add(link_url)
@@ -180,9 +177,7 @@ class VaultIntegrityChecker:
                 # Check required fields
                 missing = required_fields[category] - set(metadata.keys())
                 if missing:
-                    self.warnings.append(
-                        f"{doc_path}: Missing metadata: {missing}"
-                    )
+                    self.warnings.append(f"{doc_path}: Missing metadata: {missing}")
 
                 # Track metadata quality
                 if metadata:
@@ -206,9 +201,7 @@ class VaultIntegrityChecker:
                         break
 
                 if not found:
-                    self.issues.append(
-                        f"BROKEN REFERENCE: {source} -> {target} (target not found)"
-                    )
+                    self.issues.append(f"BROKEN REFERENCE: {source} -> {target} (target not found)")
 
     def _detect_duplicates(self):
         """Detect duplicate or conflicting documents"""
@@ -219,9 +212,7 @@ class VaultIntegrityChecker:
             content_sig = content[:200].lower()  # First 200 chars normalized
 
             if content_sig in content_hashes:
-                self.warnings.append(
-                    f"POTENTIAL DUPLICATE: {doc_path} vs {content_hashes[content_sig]}"
-                )
+                self.warnings.append(f"POTENTIAL DUPLICATE: {doc_path} vs {content_hashes[content_sig]}")
             else:
                 content_hashes[content_sig] = doc_path
 
@@ -241,9 +232,7 @@ class VaultIntegrityChecker:
                     topics.add(title)
 
                 if len(topics) < len(docs):
-                    self.warnings.append(
-                        f"POTENTIAL CONFLICT: Multiple documents on {date_key}: {docs}"
-                    )
+                    self.warnings.append(f"POTENTIAL CONFLICT: Multiple documents on {date_key}: {docs}")
 
     def _validate_git_integrity(self):
         """Validate git history integrity"""
@@ -273,7 +262,7 @@ class VaultIntegrityChecker:
         config_path = git_dir / "config"
         if config_path.exists():
             try:
-                with open(config_path, "r") as f:
+                with open(config_path) as f:
                     config = f.read()
                     if "repositoryformatversion" not in config:
                         self.warnings.append("WARNING: Git config missing version")
@@ -290,9 +279,7 @@ class VaultIntegrityChecker:
             if todos:
                 for todo_type, todo_text in todos:
                     # Check if date is old (>30 days)
-                    self.warnings.append(
-                        f"{doc_path}: {todo_type}: {todo_text[:60]}..."
-                    )
+                    self.warnings.append(f"{doc_path}: {todo_type}: {todo_text[:60]}...")
 
             if incomplete_pattern.search(content):
                 self.warnings.append(f"{doc_path}: Marked as incomplete/draft/WIP")
@@ -300,15 +287,10 @@ class VaultIntegrityChecker:
     def _check_recovery_readiness(self):
         """Verify backup and recovery procedures"""
         # Check for backup documentation
-        recovery_docs = [
-            doc for doc in self.documents
-            if "backup" in doc.lower() or "recovery" in doc.lower()
-        ]
+        recovery_docs = [doc for doc in self.documents if "backup" in doc.lower() or "recovery" in doc.lower()]
 
         if not recovery_docs:
-            self.warnings.append(
-                "No recovery/backup documentation found in vault"
-            )
+            self.warnings.append("No recovery/backup documentation found in vault")
 
         # Check if vault structure allows regeneration
         essential_dirs = ["decisions", "experiments", "patterns", "projects"]
@@ -317,7 +299,7 @@ class VaultIntegrityChecker:
             if not dir_path.exists():
                 self.issues.append(f"CRITICAL: Missing directory: {dir_name}")
 
-    def _generate_report(self) -> Dict:
+    def _generate_report(self) -> dict:
         """Generate comprehensive integrity report"""
         report = {
             "timestamp": datetime.now().isoformat(),
@@ -330,15 +312,15 @@ class VaultIntegrityChecker:
         }
 
         # Print summary
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"VAULT INTEGRITY REPORT - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"{'='*60}\n")
+        print(f"{'=' * 60}\n")
 
         print(f"Status: {report['status']}")
-        print(f"\nStatistics:")
+        print("\nStatistics:")
         print(f"  Total Documents: {self.stats['total_documents']}")
-        print(f"  Documents by Category:")
-        for cat, count in self.stats['files_by_category'].items():
+        print("  Documents by Category:")
+        for cat, count in self.stats["files_by_category"].items():
             print(f"    - {cat}: {count}")
 
         if self.issues:
@@ -353,20 +335,18 @@ class VaultIntegrityChecker:
             if len(self.warnings) > 10:
                 print(f"  ... and {len(self.warnings) - 10} more")
 
-        print(f"\nRecommendations:")
-        for rec in report['recommendations']:
+        print("\nRecommendations:")
+        for rec in report["recommendations"]:
             print(f"  - {rec}")
 
         return report
 
-    def _generate_recommendations(self) -> List[str]:
+    def _generate_recommendations(self) -> list[str]:
         """Generate recommendations based on findings"""
         recommendations = []
 
         if self.issues:
-            recommendations.append(
-                "Address CRITICAL issues before committing to main branch"
-            )
+            recommendations.append("Address CRITICAL issues before committing to main branch")
 
         if len(self.documents) < 100:
             recommendations.append(
@@ -377,16 +357,14 @@ class VaultIntegrityChecker:
             recommendations.append("Review and address warnings for data consistency")
 
         if not any("recovery" in d.lower() for d in self.documents):
-            recommendations.append(
-                "Document backup and recovery procedures in vault"
-            )
+            recommendations.append("Document backup and recovery procedures in vault")
 
         recommendations.append("Run vault integrity checks before each major commit")
         recommendations.append("Consider automated validation in pre-commit hooks")
 
         return recommendations
 
-    def export_report(self, output_path: str = None):
+    def export_report(self, output_path: str | None = None):
         """Export detailed report to JSON"""
         if output_path is None:
             output_path = self.vault_path.parent / "vault_integrity_report.json"

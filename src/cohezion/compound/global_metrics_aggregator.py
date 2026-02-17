@@ -12,12 +12,13 @@ import logging
 import threading
 import time
 from collections import defaultdict
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timedelta
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from cohezion.swarm.team_metrics import TeamCompoundMetrics, WaveMetrics
+
+if TYPE_CHECKING:
+    from cohezion.swarm.team_metrics import TeamCompoundMetrics
 
 
 logger = logging.getLogger(__name__)
@@ -168,9 +169,7 @@ class GlobalMetricsAggregator:
 
             # Keep memory bounded: keep only last 1000 records per instance
             if len(self._instance_metrics[instance_id]) > 1000:
-                self._instance_metrics[instance_id] = self._instance_metrics[
-                    instance_id
-                ][-1000:]
+                self._instance_metrics[instance_id] = self._instance_metrics[instance_id][-1000:]
 
             logger.debug(
                 "Recorded metrics from instance %s: %d executions",
@@ -178,9 +177,7 @@ class GlobalMetricsAggregator:
                 metrics.execution_count,
             )
 
-    def record_team_metrics(
-        self, team_id: str, instance_id: str, metrics: TeamCompoundMetrics
-    ) -> None:
+    def record_team_metrics(self, team_id: str, instance_id: str, metrics: TeamCompoundMetrics) -> None:
         """Record team-level metrics from an instance.
 
         Parameters
@@ -196,11 +193,7 @@ class GlobalMetricsAggregator:
         total_executions = metrics.total_tasks
         total_successes = sum(w.successes for w in metrics.waves)
 
-        avg_duration = (
-            metrics.total_duration_ms / len(metrics.waves)
-            if metrics.waves
-            else 0.0
-        )
+        avg_duration = metrics.total_duration_ms / len(metrics.waves) if metrics.waves else 0.0
 
         instance_metrics = InstanceMetrics(
             instance_id=instance_id,
@@ -213,14 +206,15 @@ class GlobalMetricsAggregator:
             cache_hit_rate=0.0,  # Would be populated by executor
             skill_diversity=len(metrics.model_usage),
             model_usage=metrics.model_usage,
-            metadata={"team_id": team_id, "parallel_efficiency": metrics.parallel_efficiency},
+            metadata={
+                "team_id": team_id,
+                "parallel_efficiency": metrics.parallel_efficiency,
+            },
         )
 
         self.record_instance_metrics(instance_id, instance_metrics)
 
-    def query_by_time_range(
-        self, start_time: float, end_time: float
-    ) -> TimeWindowMetrics:
+    def query_by_time_range(self, start_time: float, end_time: float) -> TimeWindowMetrics:
         """Query aggregated metrics for a time range.
 
         Optimized to run in <500ms for 1-week ranges.
@@ -270,9 +264,7 @@ class GlobalMetricsAggregator:
 
             # Calculate window duration
             window_duration = end_time - start_time
-            avg_throughput = (
-                total_executions / window_duration if window_duration > 0 else 0.0
-            )
+            avg_throughput = total_executions / window_duration if window_duration > 0 else 0.0
 
             # Calculate percentiles
             p50_latency = self._calculate_percentile(all_latencies, 0.5)
@@ -280,14 +272,8 @@ class GlobalMetricsAggregator:
             p99_latency = self._calculate_percentile(all_latencies, 0.99)
 
             # Calculate means
-            avg_coherence = (
-                sum(coherence_scores) / len(coherence_scores)
-                if coherence_scores
-                else 0.0
-            )
-            cache_hit_mean = (
-                sum(cache_hit_rates) / len(cache_hit_rates) if cache_hit_rates else 0.0
-            )
+            avg_coherence = sum(coherence_scores) / len(coherence_scores) if coherence_scores else 0.0
+            cache_hit_mean = sum(cache_hit_rates) / len(cache_hit_rates) if cache_hit_rates else 0.0
 
             # Normalize model distribution
             model_distribution: dict[str, float] = {}
@@ -317,7 +303,10 @@ class GlobalMetricsAggregator:
             return agg
 
     def query_by_agent(
-        self, agent_id: str, start_time: float | None = None, end_time: float | None = None
+        self,
+        agent_id: str,
+        start_time: float | None = None,
+        end_time: float | None = None,
     ) -> list[InstanceMetrics]:
         """Query metrics for a specific agent.
 
@@ -350,7 +339,10 @@ class GlobalMetricsAggregator:
             return list(metrics_list)
 
     def query_by_skill(
-        self, skill_name: str, start_time: float | None = None, end_time: float | None = None
+        self,
+        skill_name: str,
+        start_time: float | None = None,
+        end_time: float | None = None,
     ) -> SkillMetrics | None:
         """Query aggregated metrics for a specific skill.
 
@@ -424,11 +416,7 @@ class GlobalMetricsAggregator:
         """Get list of active instances (updated in last 5 minutes)."""
         cutoff = time.time() - 300  # 5 minutes
         with self._lock:
-            return [
-                instance_id
-                for instance_id, last_update in self._last_update.items()
-                if last_update > cutoff
-            ]
+            return [instance_id for instance_id, last_update in self._last_update.items() if last_update > cutoff]
 
     def get_dashboard_snapshot(self) -> dict[str, Any]:
         """Get real-time dashboard snapshot (updated every 5 seconds).
@@ -459,11 +447,7 @@ class GlobalMetricsAggregator:
                     "skill": name,
                     "executions": m.execution_count,
                     "success_rate": m.success_rate,
-                    "avg_coherence": (
-                        sum(m.coherence_trend) / len(m.coherence_trend)
-                        if m.coherence_trend
-                        else 0.0
-                    ),
+                    "avg_coherence": (sum(m.coherence_trend) / len(m.coherence_trend) if m.coherence_trend else 0.0),
                 }
                 for name, m in list(self._skill_metrics.items())[:20]  # Top 20 skills
             ]
@@ -510,18 +494,14 @@ class GlobalMetricsAggregator:
 
             # Export instance metrics
             for instance_id, metrics_list in self._instance_metrics.items():
-                snapshot["instance_metrics"][instance_id] = [
-                    m.to_dict() for m in metrics_list
-                ]
+                snapshot["instance_metrics"][instance_id] = [m.to_dict() for m in metrics_list]
 
             # Export skill metrics
             for skill_name, metrics in self._skill_metrics.items():
                 snapshot["skill_metrics"][skill_name] = metrics.to_dict()
 
             # Write to vault
-            filename = (
-                f"global_metrics_{int(time.time())}.json"
-            )
+            filename = f"global_metrics_{int(time.time())}.json"
             filepath = vault_path / filename
 
             try:
@@ -570,17 +550,19 @@ class GlobalMetricsAggregator:
 
                     for instance_id, metrics_list in self._instance_metrics.items():
                         for m in metrics_list:
-                            writer.writerow({
-                                "timestamp": m.timestamp,
-                                "instance_id": instance_id,
-                                "execution_count": m.execution_count,
-                                "success_count": m.success_count,
-                                "success_rate": m.success_rate,
-                                "total_tokens": m.total_tokens,
-                                "avg_duration_ms": m.avg_duration_ms,
-                                "coherence_score": m.coherence_score,
-                                "cache_hit_rate": m.cache_hit_rate,
-                            })
+                            writer.writerow(
+                                {
+                                    "timestamp": m.timestamp,
+                                    "instance_id": instance_id,
+                                    "execution_count": m.execution_count,
+                                    "success_count": m.success_count,
+                                    "success_rate": m.success_rate,
+                                    "total_tokens": m.total_tokens,
+                                    "avg_duration_ms": m.avg_duration_ms,
+                                    "coherence_score": m.coherence_score,
+                                    "cache_hit_rate": m.cache_hit_rate,
+                                }
+                            )
 
                 logger.info("Exported metrics to CSV: %s", csv_path)
                 return str(csv_path)
@@ -624,9 +606,7 @@ _global_aggregator: GlobalMetricsAggregator | None = None
 _aggregator_lock = threading.Lock()
 
 
-def get_global_aggregator(
-    data_dir: Path | None = None, window_size_sec: int = 60
-) -> GlobalMetricsAggregator:
+def get_global_aggregator(data_dir: Path | None = None, window_size_sec: int = 60) -> GlobalMetricsAggregator:
     """Get or create the global metrics aggregator singleton.
 
     Parameters

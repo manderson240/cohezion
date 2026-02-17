@@ -5,16 +5,18 @@ Validates ExperienceDataset -> FlumeVAETrainer pipeline.
 
 from __future__ import annotations
 
-from pathlib import Path
-from unittest.mock import MagicMock
+from typing import TYPE_CHECKING
 
 import numpy as np
-import pytest
 import torch
 
 from cohezion.flume.experience_dataset import ExperienceDataset
 from cohezion.flume.experience_encoder import TOTAL_DIM, ExperienceEncoder
 from cohezion.flume.training import FlumeVAETrainer, TrainConfig
+
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def _make_experience(**overrides) -> dict:
@@ -73,9 +75,7 @@ class TestVAEExperienceTraining:
         trainer = FlumeVAETrainer(config)
 
         # Train with synthetic fallback (no real data)
-        collector = ExperienceCollector(
-            parquet_dir=tmp_path / "np", vault_dir=tmp_path / "nv"
-        )
+        collector = ExperienceCollector(parquet_dir=tmp_path / "np", vault_dir=tmp_path / "nv")
         metrics = trainer.train_from_experiences(collector=collector, min_real_samples=1)
 
         assert len(metrics) == 1
@@ -83,14 +83,12 @@ class TestVAEExperienceTraining:
 
     def test_trained_vae_lower_mse_than_untrained(self):
         """Trained VAE has lower reconstruction MSE than untrained."""
-        experiences = [
-            _make_experience(mission_id=f"m{i}", phi_score=0.5 + 0.01 * i)
-            for i in range(200)
-        ]
+        experiences = [_make_experience(mission_id=f"m{i}", phi_score=0.5 + 0.01 * i) for i in range(200)]
         ds = ExperienceDataset(experiences, seed=42)
 
         # Measure MSE before training
         import tempfile
+
         with tempfile.TemporaryDirectory() as tmpdir:
             config = TrainConfig(epochs=5, batch_size=32, checkpoint_dir=tmpdir)
             trainer = FlumeVAETrainer(config)
@@ -102,7 +100,7 @@ class TestVAEExperienceTraining:
                 mse_before = torch.nn.functional.mse_loss(recon_before, sample).item()
 
             # Train
-            metrics = trainer.train(dataset=ds)
+            trainer.train(dataset=ds)
 
             # Get post-training MSE
             with torch.no_grad():

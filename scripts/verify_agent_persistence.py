@@ -3,15 +3,17 @@ import logging
 import sys
 from pathlib import Path
 
+
 # Add src to path
 sys.path.append(str(Path(__name__).parent / "src"))
 
 from cohezion.swarm.agents.analyst import AnalystAgent
 from cohezion.swarm.swarm_types import Perspective, SwarmConfig
 
+
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("Verification")
+    logging.getLogger("Verification")
 
     config = SwarmConfig()
     agent = AnalystAgent(Perspective.TECHNICAL, config=config)
@@ -31,6 +33,7 @@ async def main():
         print("-" * 20)
 
     await agent.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

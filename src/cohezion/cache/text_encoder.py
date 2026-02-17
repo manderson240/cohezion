@@ -11,8 +11,9 @@ This module replaces hash-based embeddings to achieve:
 """
 
 import logging
+
 import numpy as np
-from typing import Optional
+
 
 logger = logging.getLogger(__name__)
 
@@ -63,20 +64,13 @@ class SemanticTextEncoder:
             )
             self.model_available = True
             logger.info(
-                f"Loaded {self.model_name} on {device} "
-                f"(embedding_dim={self.model.get_sentence_embedding_dimension()})"
+                f"Loaded {self.model_name} on {device} (embedding_dim={self.model.get_sentence_embedding_dimension()})"
             )
         except ImportError:
-            logger.warning(
-                "sentence_transformers not available. "
-                "Install with: uv pip install sentence-transformers"
-            )
+            logger.warning("sentence_transformers not available. Install with: uv pip install sentence-transformers")
             self.model_available = False
         except Exception as e:
-            logger.warning(
-                f"Failed to load {self.model_name}: {e}. "
-                "Falling back to n-gram encoding."
-            )
+            logger.warning(f"Failed to load {self.model_name}: {e}. Falling back to n-gram encoding.")
             self.model_available = False
 
     def encode(self, text: str) -> np.ndarray:
@@ -126,10 +120,7 @@ class SemanticTextEncoder:
 
             # Normalize to unit vector
             norm = np.linalg.norm(embedding)
-            if norm > 0:
-                embedding = embedding / norm
-            else:
-                embedding = self._zero_embedding()
+            embedding = embedding / norm if norm > 0 else self._zero_embedding()
 
             return embedding.astype(np.float32)
         except Exception as e:
@@ -167,7 +158,7 @@ class SemanticTextEncoder:
             sorted_ngrams = sorted(ngrams.items(), key=lambda x: x[1], reverse=True)
             total_ngrams = sum(v for _, v in sorted_ngrams)
 
-            for idx, (ngram, count) in enumerate(sorted_ngrams[: self.embedding_dim]):
+            for idx, (_, count) in enumerate(sorted_ngrams[: self.embedding_dim]):
                 embedding[idx] = count / total_ngrams
 
         # Normalize
@@ -228,7 +219,7 @@ class SemanticTextEncoder:
 
 
 # Module-level singleton for efficient caching
-_encoder_instance: Optional[SemanticTextEncoder] = None
+_encoder_instance: SemanticTextEncoder | None = None
 
 
 def get_text_encoder(

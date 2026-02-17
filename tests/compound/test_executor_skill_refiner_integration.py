@@ -51,9 +51,7 @@ class TestSkillRefinerProperty:
 
     def test_skill_refiner_can_be_disabled(self, mock_mcp_client):
         """Test that skill refiner can be disabled."""
-        executor = CompoundExecutor(
-            mock_mcp_client, enable_skill_refinement=False
-        )
+        executor = CompoundExecutor(mock_mcp_client, enable_skill_refinement=False)
 
         assert executor.skill_refiner is None
 
@@ -82,9 +80,7 @@ class TestSkillRefinerProperty:
 class TestExecutorSkillRefinement:
     """Test skill refinement during execution."""
 
-    def test_execute_task_calls_skill_refiner_on_success(
-        self, executor_with_refiner, mock_mcp_client
-    ):
+    def test_execute_task_calls_skill_refiner_on_success(self, executor_with_refiner, mock_mcp_client):
         """Test that skill refiner is called on successful execution."""
 
         def dummy_task(guidance):
@@ -100,9 +96,7 @@ class TestExecutorSkillRefinement:
         assert result.success is True
         # Skill refiner is called but may not modify anything for test skills
 
-    def test_execute_task_skips_refiner_on_failure(
-        self, executor_with_refiner, mock_mcp_client
-    ):
+    def test_execute_task_skips_refiner_on_failure(self, executor_with_refiner, mock_mcp_client):
         """Test that skill refiner is skipped on failed execution."""
 
         def failing_task(guidance):
@@ -118,9 +112,7 @@ class TestExecutorSkillRefinement:
         assert result.success is False
         # Skill refiner should not be called for failed tasks
 
-    def test_execute_task_with_refiner_disabled(
-        self, executor_without_refiner, mock_mcp_client
-    ):
+    def test_execute_task_with_refiner_disabled(self, executor_without_refiner, mock_mcp_client):
         """Test execution with skill refiner disabled."""
 
         def dummy_task(guidance):
@@ -142,26 +134,20 @@ class TestExecutorFactoryWithRefiner:
 
     def test_factory_create_with_refiner_enabled(self, mock_mcp_client):
         """Test factory creates executor with refiner enabled."""
-        executor = ExecutorFactory.create(
-            mock_mcp_client, enable_skill_refinement=True
-        )
+        executor = ExecutorFactory.create(mock_mcp_client, enable_skill_refinement=True)
 
         assert executor.skill_refiner is not None
 
     def test_factory_create_with_refiner_disabled(self, mock_mcp_client):
         """Test factory creates executor with refiner disabled."""
-        executor = ExecutorFactory.create(
-            mock_mcp_client, enable_skill_refinement=False
-        )
+        executor = ExecutorFactory.create(mock_mcp_client, enable_skill_refinement=False)
 
         assert executor.skill_refiner is None
 
     def test_factory_create_with_custom_refiner(self, mock_mcp_client):
         """Test factory with custom skill refiner."""
         custom_refiner = SkillRefiner(mock_mcp_client)
-        executor = ExecutorFactory.create(
-            mock_mcp_client, skill_refiner=custom_refiner
-        )
+        executor = ExecutorFactory.create(mock_mcp_client, skill_refiner=custom_refiner)
 
         assert executor.skill_refiner is custom_refiner
 
@@ -169,9 +155,7 @@ class TestExecutorFactoryWithRefiner:
         """Test singleton factory with skill refiner."""
         ExecutorFactory.reset_singleton()
 
-        executor1 = ExecutorFactory.get_singleton(
-            mock_mcp_client, enable_skill_refinement=True
-        )
+        executor1 = ExecutorFactory.get_singleton(mock_mcp_client, enable_skill_refinement=True)
         executor2 = ExecutorFactory.get_singleton(mock_mcp_client)
 
         assert executor1 is executor2
@@ -181,9 +165,7 @@ class TestExecutorFactoryWithRefiner:
 class TestSkillRefinerNonBlocking:
     """Test that skill refiner failures don't crash execution."""
 
-    def test_refiner_exception_doesnt_crash_execution(
-        self, mock_mcp_client
-    ):
+    def test_refiner_exception_doesnt_crash_execution(self, mock_mcp_client):
         """Test that exceptions in refiner don't crash execution."""
         # Create executor with mock that raises exception
         executor = CompoundExecutor(mock_mcp_client)
@@ -212,9 +194,7 @@ class TestSkillRefinerNonBlocking:
 class TestSkillRefinementMetadata:
     """Test that skill refinement captures proper metadata."""
 
-    def test_execution_result_includes_refinement_paths(
-        self, executor_with_refiner, mock_mcp_client
-    ):
+    def test_execution_result_includes_refinement_paths(self, executor_with_refiner, mock_mcp_client):
         """Test that refined paths are included in execution result."""
 
         def dummy_task(guidance):
@@ -236,9 +216,7 @@ class TestSkillRefinementMetadata:
 class TestBackwardCompatibility:
     """Test backward compatibility of refiner integration."""
 
-    def test_executor_works_without_refiner_parameter(
-        self, mock_mcp_client
-    ):
+    def test_executor_works_without_refiner_parameter(self, mock_mcp_client):
         """Test that executor still works when refiner not specified."""
         # Old-style creation without refiner params
         executor = CompoundExecutor(mock_mcp_client)

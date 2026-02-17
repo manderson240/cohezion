@@ -18,6 +18,7 @@ import torch
 
 from cohezion.flume.autoencoder import FlumeEncoder
 
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -73,9 +74,7 @@ async def run_simulation():
     logger.info(f"Visualization saved to {output_path}")
 
 
-def visualize_debate(
-    traj_a: list[torch.Tensor], traj_b: list[torch.Tensor], filepath: str
-):
+def visualize_debate(traj_a: list[torch.Tensor], traj_b: list[torch.Tensor], filepath: str):
     """Plot trajectories projected to 2D using PCA (simulated via SVD for now)."""
 
     # Combine data for projection info
@@ -87,7 +86,7 @@ def visualize_debate(
     # Center data
     mean = np.mean(combined, axis=0)
     centered = combined - mean
-    U, S, Vt = np.linalg.svd(centered)
+    _U, _S, Vt = np.linalg.svd(centered)
 
     # Project to top 2 components
     pcs = Vt[:2, :]
@@ -100,13 +99,9 @@ def visualize_debate(
     plt.plot(proj_b[:, 0], proj_b[:, 1], "ro-", label="Agent B (Safety)", alpha=0.7)
 
     # Mark start/end
-    plt.scatter(
-        proj_a[0, 0], proj_a[0, 1], c="blue", s=200, marker="^", label="Start A"
-    )
+    plt.scatter(proj_a[0, 0], proj_a[0, 1], c="blue", s=200, marker="^", label="Start A")
     plt.scatter(proj_b[0, 0], proj_b[0, 1], c="red", s=200, marker="^", label="Start B")
-    plt.scatter(
-        proj_a[-1, 0], proj_a[-1, 1], c="blue", s=200, marker="x", label="End A"
-    )
+    plt.scatter(proj_a[-1, 0], proj_a[-1, 1], c="blue", s=200, marker="x", label="End A")
     plt.scatter(proj_b[-1, 0], proj_b[-1, 1], c="red", s=200, marker="x", label="End B")
 
     plt.title("Semantic Trajectory of AI Safety Debate (Projected)")

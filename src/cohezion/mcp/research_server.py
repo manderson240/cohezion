@@ -14,6 +14,7 @@ from typing import Any
 
 import requests
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -41,9 +42,7 @@ class ResearchMinerServer:
         try:
             import arxiv
 
-            search = arxiv.Search(
-                query=query, max_results=limit, sort_by=arxiv.SortCriterion.Relevance
-            )
+            search = arxiv.Search(query=query, max_results=limit, sort_by=arxiv.SortCriterion.Relevance)
 
             results = []
             for result in search.results():

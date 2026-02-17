@@ -1,11 +1,13 @@
-from mcp.server.fastmcp import FastMCP
 from pathlib import Path
-import os
+
+from mcp.server.fastmcp import FastMCP
+
 
 # Initialize FastMCP for Cohezion Skills
 mcp = FastMCP("CohezionSkillMCP")
 
 SKILLS_DIR = Path("src/cohezion/skills")
+
 
 @mcp.tool()
 def list_available_skills() -> list[str]:
@@ -14,6 +16,7 @@ def list_available_skills() -> list[str]:
         return []
     return [f.stem for f in SKILLS_DIR.glob("*.md")]
 
+
 @mcp.tool()
 def read_skill_content(skill_name: str) -> str:
     """Reads the full instruction content for a specific skill."""
@@ -21,6 +24,7 @@ def read_skill_content(skill_name: str) -> str:
     if not skill_path.exists():
         return f"Error: Skill '{skill_name}' not found."
     return skill_path.read_text()
+
 
 @mcp.tool()
 def search_skills_by_concept(concept: str) -> list[str]:
@@ -34,6 +38,7 @@ def search_skills_by_concept(concept: str) -> list[str]:
         if concept.lower() in content:
             matches.append(f.stem)
     return matches
+
 
 @mcp.tool()
 def register_discovered_skill(name: str, description: str, instructions: str) -> str:
@@ -55,6 +60,6 @@ v0.1
     skill_path.write_text(content)
     return f"Successfully registered skill: {name} at {skill_path}"
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     mcp.run()

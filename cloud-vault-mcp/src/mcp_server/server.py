@@ -197,9 +197,7 @@ def create_server(config: ServerConfig) -> FastMCP:
             return f"Error: {e}"
 
     @mcp.tool()
-    def vault_create_from_template(
-        template_name: str, target_path: str, variables: dict[str, str]
-    ) -> str:
+    def vault_create_from_template(template_name: str, target_path: str, variables: dict[str, str]) -> str:
         """Create a new note from a template with variable substitution.
 
         Available templates: decisions, experiments, patterns, papers, daily, projects
@@ -238,9 +236,7 @@ def create_server(config: ServerConfig) -> FastMCP:
             rationale: Why this option was chosen
             alternatives_considered: Other options that were evaluated
         """
-        return compound.log_decision(
-            project, title, context, decision, rationale, alternatives_considered
-        )
+        return compound.log_decision(project, title, context, decision, rationale, alternatives_considered)
 
     @mcp.tool()
     def vault_log_experiment(
@@ -264,9 +260,7 @@ def create_server(config: ServerConfig) -> FastMCP:
             learnings: Key takeaways (can be filled in later)
             title: Optional title (defaults to truncated hypothesis)
         """
-        return compound.log_experiment(
-            project, hypothesis, method, result, learnings, title
-        )
+        return compound.log_experiment(project, hypothesis, method, result, learnings, title)
 
     @mcp.tool()
     def vault_extract_pattern(
@@ -287,9 +281,7 @@ def create_server(config: ServerConfig) -> FastMCP:
             code_example: Optional code example
             domain: Domain tag (e.g. 'rl', 'ml', 'devops', 'general')
         """
-        return compound.extract_pattern(
-            source_path, pattern_name, description, code_example, domain
-        )
+        return compound.extract_pattern(source_path, pattern_name, description, code_example, domain)
 
     @mcp.tool()
     def vault_find_relevant_context(query: str, project: str = "") -> str:
@@ -330,9 +322,7 @@ def create_server(config: ServerConfig) -> FastMCP:
             expected_output: What the result should look like
             priority: low, medium, high, or critical
         """
-        result = teleport.create_task(
-            title, description, context, expected_output, priority
-        )
+        result = teleport.create_task(title, description, context, expected_output, priority)
         return json.dumps(result, indent=2)
 
     @mcp.tool()
@@ -425,9 +415,7 @@ def create_server(config: ServerConfig) -> FastMCP:
             active_tasks: List of active task descriptions
             last_commit: Last commit hash or message
         """
-        path = memory_bridge.push_session_state(
-            branch, test_status, phase, active_tasks, last_commit
-        )
+        path = memory_bridge.push_session_state(branch, test_status, phase, active_tasks, last_commit)
         return f"Session state pushed to: {path}"
 
     @mcp.tool()
@@ -503,9 +491,7 @@ def create_server(config: ServerConfig) -> FastMCP:
                 integration_point: Relevant Cohezion module
             """
             try:
-                result = sheets.update_row(
-                    row_num, status, abstractions, domain, integration_point
-                )
+                result = sheets.update_row(row_num, status, abstractions, domain, integration_point)
                 return json.dumps(result, indent=2)
             except Exception as e:
                 return f"Error: {e}"
@@ -791,7 +777,11 @@ def create_server(config: ServerConfig) -> FastMCP:
             """
             try:
                 result = agent_context.record_decision(
-                    session_id, decision_type, reasoning, papers_applied, confidence_score
+                    session_id,
+                    decision_type,
+                    reasoning,
+                    papers_applied,
+                    confidence_score,
                 )
                 return json.dumps(result, indent=2)
             except Exception as e:
@@ -803,7 +793,7 @@ def create_server(config: ServerConfig) -> FastMCP:
             session_id: str,
             outcome_type: str,
             lessons_learned: list[str],
-            metrics: dict = None,
+            metrics: dict | None = None,
         ) -> str:
             """Record session outcome and validate against lessons learned.
 
@@ -822,9 +812,7 @@ def create_server(config: ServerConfig) -> FastMCP:
                 validation_errors for missing lessons on partial failures
             """
             try:
-                result = agent_context.record_outcome(
-                    session_id, outcome_type, lessons_learned, metrics
-                )
+                result = agent_context.record_outcome(session_id, outcome_type, lessons_learned, metrics)
                 return json.dumps(result, indent=2)
             except Exception as e:
                 logger.error(f"Error recording outcome: {e}")

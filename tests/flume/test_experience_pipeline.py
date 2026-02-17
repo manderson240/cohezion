@@ -5,11 +5,9 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-from unittest.mock import patch
+from typing import TYPE_CHECKING
 
 import numpy as np
-import pytest
 import torch
 
 from cohezion.flume.experience_encoder import (
@@ -17,6 +15,10 @@ from cohezion.flume.experience_encoder import (
     TOTAL_DIM,
     ExperienceEncoder,
 )
+
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def _make_experience(**overrides: object) -> dict:

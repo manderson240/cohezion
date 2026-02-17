@@ -34,6 +34,7 @@ from typing import Any
 
 import numpy as np
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -150,9 +151,7 @@ class TrajectorySearchEngine:
                 continue
 
             # Generate guidance
-            guidance = self._generate_guidance(
-                exp, coherence, phi_score, smoothness, convergence, success
-            )
+            guidance = self._generate_guidance(exp, coherence, phi_score, smoothness, convergence, success)
 
             results.append(
                 TrajectorySearchResult(
@@ -255,7 +254,11 @@ class TrajectorySearchEngine:
             return f"Similar task failed (coherence={coherence:.2f}). Approach with caution."
 
         if coherence >= 0.7 and phi_score >= 0.7:
-            return f"Similar task had excellent outcomes (coherence={coherence:.2f}, phi={phi_score:.2f}). High confidence."
+            return (
+                f"Similar task had excellent outcomes"
+                f" (coherence={coherence:.2f}, phi={phi_score:.2f})."
+                f" High confidence."
+            )
         elif coherence >= 0.5:
             return f"Similar task succeeded (coherence={coherence:.2f}). Moderate confidence."
         else:

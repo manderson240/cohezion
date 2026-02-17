@@ -1,7 +1,5 @@
 """Tests for conflict resolution policies."""
 
-import pytest
-
 from cohezion.config.conflict_policy import (
     ConflictPolicy,
     ConflictResolutionPolicy,

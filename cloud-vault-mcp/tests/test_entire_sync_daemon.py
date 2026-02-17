@@ -1,13 +1,15 @@
 """Integration tests for entire.io sync daemon."""
 
 import asyncio
-import pytest
-import tempfile
-from pathlib import Path
-from datetime import datetime, timezone
-from unittest.mock import MagicMock, patch, AsyncMock
-
 import sys
+import tempfile
+from datetime import UTC, datetime
+from pathlib import Path
+from unittest.mock import MagicMock
+
+import pytest
+
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src" / "mcp_server"))
 
 from entire_sync_daemon import EntireSyncDaemon
@@ -147,7 +149,7 @@ class TestEntireSyncDaemon:
 
         commit_data = CommitData(
             commit_hash="abc123def456",
-            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=UTC),
             agent_id="test-agent",
             outcomes=["Outcome 1", "Outcome 2"],
             metrics={"coverage": 0.87},
@@ -171,7 +173,7 @@ class TestEntireSyncDaemon:
 
         commit_data = CommitData(
             commit_hash="abc123",
-            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=UTC),
             agent_id="test-agent",
             outcomes=["Outcome 1"],
             metrics={"papers_coverage": 0.87},
@@ -231,7 +233,7 @@ class TestCheckpointNoteGeneration:
 
         commit_data = CommitData(
             commit_hash="abc123",
-            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=UTC),
             agent_id="agent",
             outcomes=["outcome"],
             metrics={},
@@ -256,7 +258,7 @@ class TestCheckpointNoteGeneration:
 
         commit_data = CommitData(
             commit_hash="abc123",
-            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=UTC),
             agent_id="agent",
             outcomes=["First outcome", "Second outcome"],
             metrics={},
@@ -275,7 +277,7 @@ class TestCheckpointNoteGeneration:
 
         commit_data = CommitData(
             commit_hash="abc123",
-            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=UTC),
             agent_id="agent",
             outcomes=[],
             metrics={"papers_coverage": 0.87, "decisions_coverage": 0.88},
@@ -316,7 +318,7 @@ class TestSurrealDBIntegration:
 
         commit_data = CommitData(
             commit_hash="abc123",
-            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=UTC),
             agent_id="test-agent",
             outcomes=["outcome"],
             metrics={},
@@ -341,7 +343,7 @@ class TestSurrealDBIntegration:
 
         commit_data = CommitData(
             commit_hash="abc123def456",
-            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=UTC),
             agent_id="test-agent",
             outcomes=["Completed task", "Deployed code"],
             metrics={"papers_coverage": 0.87},
@@ -379,7 +381,7 @@ class TestSurrealDBIntegration:
 
         commit_data = CommitData(
             commit_hash="abc123",
-            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=UTC),
             agent_id="test-agent",
             outcomes=[],
             metrics={},
@@ -393,7 +395,6 @@ class TestSurrealDBIntegration:
     @pytest.mark.asyncio
     async def test_process_commit_with_surrealdb(self, temp_vault):
         """Test full _process_commit flow with SurrealDB enabled."""
-        from entire_ops import CommitData
 
         daemon = EntireSyncDaemon(vault_path=str(temp_vault))
 
@@ -468,6 +469,7 @@ class TestBackfill:
     async def test_backfill_empty_repo(self, temp_vault):
         """Test backfill with no commits."""
         import subprocess
+
         subprocess.run(["git", "init"], cwd=temp_vault, capture_output=True)
 
         daemon = EntireSyncDaemon(
@@ -484,6 +486,7 @@ class TestBackfill:
     async def test_backfill_with_since(self, temp_vault):
         """Test backfill sets last_sync_time from since parameter."""
         import subprocess
+
         subprocess.run(["git", "init"], cwd=temp_vault, capture_output=True)
 
         daemon = EntireSyncDaemon(
@@ -491,7 +494,7 @@ class TestBackfill:
             git_path=str(temp_vault),
         )
 
-        results = await daemon.backfill(since="2026-01-01")
+        await daemon.backfill(since="2026-01-01")
         # Should have set last_sync_time initially
         assert daemon.last_sync_time is not None
 
@@ -499,6 +502,7 @@ class TestBackfill:
     async def test_backfill_skips_processed(self, temp_vault):
         """Test backfill skips already-processed commits."""
         import subprocess
+
         subprocess.run(["git", "init"], cwd=temp_vault, capture_output=True)
 
         daemon = EntireSyncDaemon(
@@ -514,6 +518,7 @@ class TestBackfill:
     async def test_backfill_returns_result_dict(self, temp_vault):
         """Test backfill returns properly structured results."""
         import subprocess
+
         subprocess.run(["git", "init"], cwd=temp_vault, capture_output=True)
 
         daemon = EntireSyncDaemon(
@@ -558,11 +563,16 @@ class TestHealthCheck:
         from entire_main import cli
 
         runner = CliRunner()
-        result = runner.invoke(cli, [
-            "health",
-            "--vault-path", str(temp_vault),
-            "--git-path", str(temp_vault),
-        ])
+        result = runner.invoke(
+            cli,
+            [
+                "health",
+                "--vault-path",
+                str(temp_vault),
+                "--git-path",
+                str(temp_vault),
+            ],
+        )
         assert "HEALTHY" in result.output
         assert result.exit_code == 0
 
@@ -572,13 +582,19 @@ class TestHealthCheck:
         from entire_main import cli
 
         runner = CliRunner()
-        result = runner.invoke(cli, [
-            "health",
-            "--vault-path", str(temp_vault),
-            "--git-path", str(temp_vault),
-            "--json-output",
-        ])
+        result = runner.invoke(
+            cli,
+            [
+                "health",
+                "--vault-path",
+                str(temp_vault),
+                "--git-path",
+                str(temp_vault),
+                "--json-output",
+            ],
+        )
         import json as json_mod
+
         data = json_mod.loads(result.output)
         assert "healthy" in data
         assert "checks" in data
@@ -591,11 +607,16 @@ class TestHealthCheck:
         from entire_main import cli
 
         runner = CliRunner()
-        result = runner.invoke(cli, [
-            "health",
-            "--vault-path", "/nonexistent/path",
-            "--git-path", str(temp_vault),
-        ])
+        result = runner.invoke(
+            cli,
+            [
+                "health",
+                "--vault-path",
+                "/nonexistent/path",
+                "--git-path",
+                str(temp_vault),
+            ],
+        )
         assert "UNHEALTHY" in result.output or result.exit_code == 1
 
     def test_health_check_invalid_git_path(self, temp_vault):
@@ -604,11 +625,16 @@ class TestHealthCheck:
         from entire_main import cli
 
         runner = CliRunner()
-        result = runner.invoke(cli, [
-            "health",
-            "--vault-path", str(temp_vault),
-            "--git-path", "/nonexistent/git/path",
-        ])
+        result = runner.invoke(
+            cli,
+            [
+                "health",
+                "--vault-path",
+                str(temp_vault),
+                "--git-path",
+                "/nonexistent/git/path",
+            ],
+        )
         assert result.exit_code == 1
 
     def test_health_check_surrealdb_skip(self, temp_vault):
@@ -617,13 +643,19 @@ class TestHealthCheck:
         from entire_main import cli
 
         runner = CliRunner()
-        result = runner.invoke(cli, [
-            "health",
-            "--vault-path", str(temp_vault),
-            "--git-path", str(temp_vault),
-            "--json-output",
-        ])
+        result = runner.invoke(
+            cli,
+            [
+                "health",
+                "--vault-path",
+                str(temp_vault),
+                "--git-path",
+                str(temp_vault),
+                "--json-output",
+            ],
+        )
         import json as json_mod
+
         data = json_mod.loads(result.output)
         assert data["checks"]["surrealdb"]["status"] == "skip"
 
@@ -638,13 +670,19 @@ class TestHealthCheck:
         daemon.dlq.add("fail2", "reason2")
 
         runner = CliRunner()
-        result = runner.invoke(cli, [
-            "health",
-            "--vault-path", str(temp_vault),
-            "--git-path", str(temp_vault),
-            "--json-output",
-        ])
+        result = runner.invoke(
+            cli,
+            [
+                "health",
+                "--vault-path",
+                str(temp_vault),
+                "--git-path",
+                str(temp_vault),
+                "--json-output",
+            ],
+        )
         import json as json_mod
+
         data = json_mod.loads(result.output)
         assert data["checks"]["dlq"]["status"] == "warn"
         assert "2 failed" in data["checks"]["dlq"]["detail"]

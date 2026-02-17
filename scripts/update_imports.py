@@ -75,12 +75,8 @@ def update_imports(dry_run: bool = True) -> dict[str, int]:
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(
-        description="Update imports after directory restructure"
-    )
-    parser.add_argument(
-        "--dry-run", action="store_true", help="Preview changes without applying"
-    )
+    parser = argparse.ArgumentParser(description="Update imports after directory restructure")
+    parser.add_argument("--dry-run", action="store_true", help="Preview changes without applying")
     parser.add_argument("--apply", action="store_true", help="Apply changes")
 
     args = parser.parse_args()

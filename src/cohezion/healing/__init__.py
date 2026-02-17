@@ -19,6 +19,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 HEALTH_LOG_PATH = Path(__file__).parent.parent / "knowledge_graph" / "health_log.json"
@@ -149,10 +150,7 @@ class Diagnostician:
         if health_status.component == "ollama" and health_status.status == "failing":
             return self._known_issues["connection_failed"]
 
-        if (
-            health_status.component == "sandbox"
-            and health_status.metric == "divergence"
-        ):
+        if health_status.component == "sandbox" and health_status.metric == "divergence":
             return self._known_issues["sandbox_divergence"]
 
         # Generic diagnosis
@@ -242,9 +240,7 @@ class SelfHealingSystem:
         except Exception:
             ollama_healthy = False
 
-        status = self.detector.check(
-            "ollama", "available", 1.0 if ollama_healthy else 0.0, 0.1
-        )
+        status = self.detector.check("ollama", "available", 1.0 if ollama_healthy else 0.0, 0.1)
         if status.status != "healthy":
             issues.append(status)
 
@@ -258,9 +254,7 @@ class SelfHealingSystem:
         except Exception:
             surreal_healthy = False
 
-        status = self.detector.check(
-            "surrealdb", "available", 1.0 if surreal_healthy else 0.0, 0.1
-        )
+        status = self.detector.check("surrealdb", "available", 1.0 if surreal_healthy else 0.0, 0.1)
         if status.status != "healthy":
             issues.append(status)
 
@@ -272,9 +266,7 @@ class SelfHealingSystem:
             sandbox_mem = monitor.total_sandbox_memory_mb
             # Flag if sandboxes are using >80GB (80% of 100GB budget)
             sandbox_ratio = sandbox_mem / (100 * 1024) if sandbox_mem > 0 else 0.0
-            status = self.detector.check(
-                "sandbox", "memory_pressure", sandbox_ratio, 0.8
-            )
+            status = self.detector.check("sandbox", "memory_pressure", sandbox_ratio, 0.8)
             if status.status != "healthy":
                 issues.append(status)
         except Exception as e:
@@ -288,10 +280,9 @@ class SelfHealingSystem:
 
         for issue in issues:
             diagnosis = self.diagnostician.diagnose(issue)
-            if diagnosis.confidence >= 0.5:
-                if await self.corrector.apply_correction(diagnosis):
-                    healed += 1
-                    logger.info(f"Healed: {diagnosis.issue}")
+            if diagnosis.confidence >= 0.5 and await self.corrector.apply_correction(diagnosis):
+                healed += 1
+                logger.info(f"Healed: {diagnosis.issue}")
 
         return healed
 

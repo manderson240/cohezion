@@ -15,19 +15,18 @@ repos:
   # FAST CHECKS (commit stage) - Quick syntax and formatting validation
   # ============================================================================
 
-  # Ruff - Fast Python formatter and quick linter
+  # Ruff - Fast Python formatter and linter (full rule set from pyproject.toml)
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.0
     hooks:
-      # Format check (no auto-fix on commit, just warn)
+      # Format: auto-fix on commit
       - id: ruff-format
         stages: [pre-commit]
-        args: [--check]
-      # Quick lint - only basic syntax errors and auto-fixes
+      # Lint: full rule set with auto-fix (rules configured in pyproject.toml)
       - id: ruff
         stages: [pre-commit]
-        args: [--select=F,E9,E501, --fix]
-        name: ruff-quick (syntax errors only)
+        args: [--fix]
+        name: ruff-lint (full rules)
 
   # General file checks - Fast validation
   - repo: https://github.com/pre-commit/pre-commit-hooks

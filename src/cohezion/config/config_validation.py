@@ -11,12 +11,11 @@ import re
 from pathlib import Path
 from typing import Any
 
-from pydantic import ValidationError
-
 from cohezion.config.config_state import (
     FileMetadata,
     ValidationReport,
 )
+
 
 logger = logging.getLogger(__name__)
 
@@ -111,14 +110,10 @@ class ConfigValidator:
         violations = []
 
         if metadata.line_count > limits["max_lines"]:
-            violations.append(
-                f"{filename} exceeds line limit: {metadata.line_count} > {limits['max_lines']}"
-            )
+            violations.append(f"{filename} exceeds line limit: {metadata.line_count} > {limits['max_lines']}")
 
         if metadata.size_bytes > limits["max_chars"]:
-            violations.append(
-                f"{filename} exceeds size limit: {metadata.size_bytes} > {limits['max_chars']}"
-            )
+            violations.append(f"{filename} exceeds size limit: {metadata.size_bytes} > {limits['max_chars']}")
 
         return {
             "passed": len(violations) == 0,
@@ -188,7 +183,7 @@ class ConfigValidator:
             # Check YAML syntax (basic)
             lines = frontmatter.split("\n")
             for line in lines:
-                if line and not ":" in line and not line.startswith("-"):
+                if line and ":" not in line and not line.startswith("-"):
                     return {
                         "passed": False,
                         "recommendations": [f"Invalid YAML line: {line}"],
@@ -229,9 +224,7 @@ class ReconciliationValidator:
                 for name, content in sources.items():
                     missing_links = self._check_cross_refs(content, vault_root)
                     if missing_links:
-                        report.recommendations.append(
-                            f"{name} has broken cross-references: {missing_links}"
-                        )
+                        report.recommendations.append(f"{name} has broken cross-references: {missing_links}")
 
             report.passed = len(report.recommendations) == 0
 

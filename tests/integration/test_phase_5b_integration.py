@@ -25,21 +25,17 @@ Test Organization:
 """
 
 import asyncio
-import time
-from typing import Any, Dict, List, Optional
-from unittest.mock import AsyncMock, MagicMock, patch
-from dataclasses import dataclass
 import json
+import time
+from dataclasses import dataclass
+from unittest.mock import MagicMock
 
 import pytest
-import numpy as np
 
 # Phase 5B component imports (to be implemented)
-from cohezion.cache.semantic_cache import SemanticCache, CacheEntry
-from cohezion.compound.executor import CompoundExecutor, ExecutionResult
+from cohezion.compound.executor import CompoundExecutor
 from cohezion.compound.team_executor import TeamExecutor
-from cohezion.swarm.team_metrics import TeamMetricsAggregator
-from cohezion.cost_optimization.cost_tracker import SessionCostTracker, CostRecord
+from cohezion.cost_optimization.cost_tracker import SessionCostTracker
 
 
 # ============================================================================
@@ -54,7 +50,7 @@ class AgentProfile:
     agent_id: str
     model: str
     coherence_score: float  # 0.0-1.0, for skill selection weighting
-    skill_history: Dict[str, int] = None  # skill_name -> success_count
+    skill_history: dict[str, int] = None  # skill_name -> success_count
 
     def __post_init__(self):
         if self.skill_history is None:
@@ -65,9 +61,9 @@ class AgentProfile:
 class MockRouterConfig:
     """Configuration for cost-aware router."""
 
-    cost_per_token: Dict[str, float]  # model -> cost per token
-    latency_per_token: Dict[str, float]  # model -> latency per token (ms)
-    availability: Dict[str, float]  # model -> availability (0.0-1.0)
+    cost_per_token: dict[str, float]  # model -> cost per token
+    latency_per_token: dict[str, float]  # model -> latency per token (ms)
+    availability: dict[str, float]  # model -> availability (0.0-1.0)
     prefer_cheaper: bool = True
     enable_consensus: bool = True
 
@@ -80,18 +76,17 @@ class MockRedisClient:
         self.ttls = {}
         self.failure_mode = False
 
-    async def get(self, key: str) -> Optional[bytes]:
+    async def get(self, key: str) -> bytes | None:
         """Get value from mock store."""
         if self.failure_mode:
             raise ConnectionError("Mock Redis unavailable")
-        if key in self.ttls:
-            if time.time() > self.ttls[key]:
-                del self.store[key]
-                del self.ttls[key]
-                return None
+        if key in self.ttls and time.time() > self.ttls[key]:
+            del self.store[key]
+            del self.ttls[key]
+            return None
         return self.store.get(key)
 
-    async def set(self, key: str, value: bytes, ex: int = None) -> bool:
+    async def set(self, key: str, value: bytes, ex: int | None = None) -> bool:
         """Set value with optional TTL."""
         if self.failure_mode:
             raise ConnectionError("Mock Redis unavailable")
@@ -126,14 +121,30 @@ class MockSkillRegistry:
 
     def __init__(self):
         self.skills = {
-            "semantic_search": {"coherence": 0.95, "efficiency": 0.89, "success_rate": 0.92},
-            "code_generation": {"coherence": 0.88, "efficiency": 0.91, "success_rate": 0.85},
+            "semantic_search": {
+                "coherence": 0.95,
+                "efficiency": 0.89,
+                "success_rate": 0.92,
+            },
+            "code_generation": {
+                "coherence": 0.88,
+                "efficiency": 0.91,
+                "success_rate": 0.85,
+            },
             "reasoning": {"coherence": 0.92, "efficiency": 0.75, "success_rate": 0.88},
-            "classification": {"coherence": 0.90, "efficiency": 0.94, "success_rate": 0.93},
-            "summarization": {"coherence": 0.87, "efficiency": 0.96, "success_rate": 0.90},
+            "classification": {
+                "coherence": 0.90,
+                "efficiency": 0.94,
+                "success_rate": 0.93,
+            },
+            "summarization": {
+                "coherence": 0.87,
+                "efficiency": 0.96,
+                "success_rate": 0.90,
+            },
         }
 
-    def get_skill(self, skill_name: str) -> Dict[str, float]:
+    def get_skill(self, skill_name: str) -> dict[str, float]:
         """Get skill metrics."""
         return self.skills.get(skill_name, {})
 
@@ -141,19 +152,15 @@ class MockSkillRegistry:
         self,
         agent_id: str,
         query: str,
-        weights: Dict[str, float] = None,
-    ) -> List[tuple[str, float]]:
+        weights: dict[str, float] | None = None,
+    ) -> list[tuple[str, float]]:
         """Rank skills by score using weights."""
         if weights is None:
             weights = {"coherence": 0.5, "efficiency": 0.3, "success_rate": 0.2}
 
         ranked = []
         for skill_name, metrics in self.skills.items():
-            score = sum(
-                metrics.get(key, 0) * weights[key]
-                for key in weights.keys()
-                if key in metrics
-            )
+            score = sum(metrics.get(key, 0) * weights[key] for key in weights if key in metrics)
             ranked.append((skill_name, score))
 
         return sorted(ranked, key=lambda x: x[1], reverse=True)
@@ -177,7 +184,7 @@ def mock_skill_registry():
 
 
 @pytest.fixture
-def agent_profiles() -> List[AgentProfile]:
+def agent_profiles() -> list[AgentProfile]:
     """Create 5 test agent profiles."""
     return [
         AgentProfile(agent_id="agent-1", model="phi3:mini", coherence_score=0.92),
@@ -453,10 +460,7 @@ class TestCostAwareRouter:
         least_available = primary_models[0][0]
         most_available = primary_models[-1][0]
 
-        assert (
-            router_config.availability[most_available]
-            >= router_config.availability[least_available]
-        )
+        assert router_config.availability[most_available] >= router_config.availability[least_available]
 
 
 # ============================================================================
@@ -502,9 +506,7 @@ class TestMultiAgentCoordination:
             assert data is not None
 
     @pytest.mark.asyncio
-    async def test_5_agent_consensus_skill_selection(
-        self, agent_profiles, mock_skill_registry
-    ):
+    async def test_5_agent_consensus_skill_selection(self, agent_profiles, mock_skill_registry):
         """Test 5 agents reach consensus on skill selection."""
         # Prerequisites:
         # - SkillConsensusVoter implemented
@@ -588,7 +590,7 @@ class TestPerformanceScaling:
                 # Cache miss, populate
                 await mock_redis_client.set(key, f"result-{query_id}".encode(), ex=300)
 
-        hit_rate = hit_count / num_queries
+        hit_count / num_queries
         # First query set will have low hit rate, subsequent iterations high
         assert hit_count > 0  # At least some hits
 
@@ -623,9 +625,7 @@ class TestPerformanceScaling:
             agents = agent_profiles[:num_agents]
 
             start = time.time()
-            tasks = [
-                asyncio.create_task(asyncio.sleep(0.01)) for agent in agents
-            ]
+            tasks = [asyncio.create_task(asyncio.sleep(0.01)) for agent in agents]
             await asyncio.gather(*tasks)
             duration = time.time() - start
 
@@ -656,7 +656,7 @@ class TestPerformanceScaling:
             else:
                 tasks.append(mock_redis_client.set(key, f"result-{i}".encode()))
 
-        results = await asyncio.gather(*tasks)
+        await asyncio.gather(*tasks)
         duration = time.time() - start
 
         # Should complete in <1 second (100+ QPS)
@@ -710,6 +710,7 @@ class TestLoadAndChaos:
     @pytest.mark.asyncio
     async def test_chaos_redis_network_latency(self, mock_redis_client):
         """Test system resilience to high Redis latency."""
+
         # Simulate 100ms latency
         async def latent_set(key, value):
             await asyncio.sleep(0.1)
@@ -905,9 +906,7 @@ class TestEndToEndPhase5B:
         for agent in agents:
             await mock_redis_client.set(
                 f"agent-{agent.agent_id}-result",
-                json.dumps(
-                    {"agent_id": agent.agent_id, "cost": 0.0, "tokens": 1000}
-                ).encode(),
+                json.dumps({"agent_id": agent.agent_id, "cost": 0.0, "tokens": 1000}).encode(),
             )
 
         # Step 2: Verify cache hits for repeated queries
@@ -945,11 +944,7 @@ class TestEndToEndPhase5B:
         for agent in agents:
             for i in range(num_queries_per_agent):
                 key = f"agent-{agent.agent_id}-query-{i % 5}"
-                tasks.append(
-                    mock_redis_client.set(
-                        key, json.dumps({"agent": agent.agent_id, "q": i}).encode()
-                    )
-                )
+                tasks.append(mock_redis_client.set(key, json.dumps({"agent": agent.agent_id, "q": i}).encode()))
 
         await asyncio.gather(*tasks)
 

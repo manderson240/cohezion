@@ -29,9 +29,7 @@ def test_plasma_bubble_creation():
 
 
 def test_generate_spark_formation():
-    sim = USDSimulator(
-        voltage_kv=20, pulse_duration_us=500
-    )  # High energy for better success
+    sim = USDSimulator(voltage_kv=20, pulse_duration_us=500)  # High energy for better success
     # Try multiple times to account for randomness
     cluster = sim.generate_spark(num_attempts=50)
 
@@ -62,7 +60,7 @@ def test_itonic_cluster_dataclass():
 def test_failure_conditions():
     # Low energy should rarely form clusters
     sim = USDSimulator(voltage_kv=5, pulse_duration_us=10)
-    cluster = sim.generate_spark(num_attempts=5)
+    sim.generate_spark(num_attempts=5)
     # This might still pass by chance, but mostly should be None
     # We won't assert it's None to avoid flaky test, just run it
     pass

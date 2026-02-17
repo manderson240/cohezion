@@ -5,20 +5,24 @@ from pathlib import Path
 import numpy as np
 import torch
 
+
 # Add src to sys.path
 sys.path.insert(0, str(Path.cwd() / "src"))
 
 import cohezion_core
 
+
 print(f"DEBUG: cohezion_core loaded from: {cohezion_core.__file__}")
-from cohezion_core import FlumePhysics
+from cohezion_core import FlumePhysics  # noqa: E402
+
 
 print(f"DEBUG: FlumePhysics dir: {dir(FlumePhysics)}")
 
-import cohezion.flume.predictor
+import cohezion.flume.predictor  # noqa: E402
+
 
 print(f"DEBUG: predictor loaded from: {cohezion.flume.predictor.__file__}")
-from cohezion.flume.predictor import TrajectoryPredictor
+from cohezion.flume.predictor import TrajectoryPredictor  # noqa: E402
 
 
 def benchmark_swarm():
@@ -75,7 +79,7 @@ def benchmark_swarm():
     # Convert list of numpy arrays to a single 2D array for the batch call
     swarm_z_batch = np.stack(swarm_z_np).astype(np.float32)
 
-    results_rs = rust_physics.simulate_epochs_batch(swarm_z_batch, steps)
+    rust_physics.simulate_epochs_batch(swarm_z_batch, steps)
 
     rust_time = time.perf_counter() - start
     print(f"Rust Parallel Time: {rust_time * 1000:.4f}ms")

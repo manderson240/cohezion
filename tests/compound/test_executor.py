@@ -15,12 +15,8 @@ from cohezion.compound.executor import (
 def mock_mcp_client():
     """Create a mock MCP client."""
     client = MagicMock()
-    client.vault_find_relevant_context.return_value = [
-        {"file": "experiments/similar.md", "score": 0.85}
-    ]
-    client.vault_search.return_value = [
-        {"file": "experiments/similar.md", "score": 0.85}
-    ]
+    client.vault_find_relevant_context.return_value = [{"file": "experiments/similar.md", "score": 0.85}]
+    client.vault_search.return_value = [{"file": "experiments/similar.md", "score": 0.85}]
     client.vault_write.return_value = "success"
     client.vault_read.return_value = '{"status": "started"}'
     client.vault_log_experiment.return_value = "experiments/execution_123.md"
@@ -156,7 +152,8 @@ def test_execute_task_extracts_pattern_on_success(executor, mock_mcp_client):
 
     # Verify pattern was written (check call args for pattern path)
     pattern_calls = [
-        call for call in mock_mcp_client.vault_write.call_args_list
+        call
+        for call in mock_mcp_client.vault_write.call_args_list
         if "patterns/domains/compound-engineering" in str(call)
     ]
     assert len(pattern_calls) >= 1
@@ -179,10 +176,7 @@ def test_execute_task_no_pattern_on_failure(executor, mock_mcp_client):
     # Pattern extraction should not happen on failure
     # Calls: start + result + inflection point (3 total)
     # Verify no pattern paths in calls (pattern extraction writes to patterns/domains/)
-    pattern_calls = [
-        call for call in mock_mcp_client.vault_write.call_args_list
-        if "patterns/domains" in str(call)
-    ]
+    pattern_calls = [call for call in mock_mcp_client.vault_write.call_args_list if "patterns/domains" in str(call)]
     assert len(pattern_calls) == 0  # no pattern extraction on failure
 
 
@@ -295,9 +289,7 @@ def test_executor_custom_guardrail_pipeline(mock_mcp_client):
     from cohezion.security.guardrail_factory import create_minimal_pipeline
 
     custom_pipeline = create_minimal_pipeline()
-    executor = CompoundExecutor(
-        mock_mcp_client, guardrail_pipeline=custom_pipeline
-    )
+    executor = CompoundExecutor(mock_mcp_client, guardrail_pipeline=custom_pipeline)
     assert executor.guardrail_pipeline == custom_pipeline
 
 
@@ -321,26 +313,20 @@ def test_execute_task_with_guardrails_enabled(mock_mcp_client):
 
 def test_executor_factory_with_guardrails(mock_mcp_client):
     """Test factory creates executor with guardrails enabled."""
-    executor = ExecutorFactory.create(
-        mock_mcp_client, enable_guardrails=True
-    )
+    executor = ExecutorFactory.create(mock_mcp_client, enable_guardrails=True)
     assert executor.guardrail_pipeline is not None
 
 
 def test_executor_factory_without_guardrails(mock_mcp_client):
     """Test factory creates executor with guardrails disabled."""
-    executor = ExecutorFactory.create(
-        mock_mcp_client, enable_guardrails=False
-    )
+    executor = ExecutorFactory.create(mock_mcp_client, enable_guardrails=False)
     assert executor.guardrail_pipeline is None
 
 
 def test_executor_singleton_with_guardrails(mock_mcp_client):
     """Test singleton maintains guardrail configuration."""
     ExecutorFactory.reset_singleton()
-    executor1 = ExecutorFactory.get_singleton(
-        mock_mcp_client, enable_guardrails=True
-    )
+    executor1 = ExecutorFactory.get_singleton(mock_mcp_client, enable_guardrails=True)
     executor2 = ExecutorFactory.get_singleton(mock_mcp_client)
 
     assert executor1 is executor2
@@ -462,9 +448,9 @@ class TestDegradationMode:
 
     def _make_critical_detector(self):
         """Create a mock degradation detector that always fires CRITICAL."""
-        from unittest.mock import MagicMock
         from dataclasses import dataclass
         from enum import Enum
+        from unittest.mock import MagicMock
 
         class Sev(Enum):
             CRITICAL = "CRITICAL"
@@ -485,6 +471,7 @@ class TestDegradationMode:
     def _make_ok_detector(self):
         """Create a mock degradation detector that returns no alerts."""
         from unittest.mock import MagicMock
+
         detector = MagicMock()
         detector.check_degradation.return_value = []
         return detector
@@ -493,7 +480,8 @@ class TestDegradationMode:
         """_degradation_mode set on CRITICAL cohesion alert."""
         detector = self._make_critical_detector()
         executor = CompoundExecutor(
-            mock_mcp_client, enable_guardrails=False,
+            mock_mcp_client,
+            enable_guardrails=False,
             degradation_detector=detector,
         )
 
@@ -512,9 +500,11 @@ class TestDegradationMode:
     def test_degraded_mode_skips_alignment(self, mock_mcp_client):
         """In degraded mode, alignment analysis is skipped."""
         from unittest.mock import MagicMock
+
         analyzer = MagicMock()
         executor = CompoundExecutor(
-            mock_mcp_client, enable_guardrails=False,
+            mock_mcp_client,
+            enable_guardrails=False,
             alignment_analyzer=analyzer,
             enable_alignment_analysis=True,
         )
@@ -550,16 +540,15 @@ class TestDegradationMode:
         )
         assert result.success is True
         # No pattern extraction calls (normally writes to patterns/domains/)
-        pattern_calls = [
-            c for c in mock_mcp_client.vault_write.call_args_list
-            if "patterns/domains" in str(c)
-        ]
+        pattern_calls = [c for c in mock_mcp_client.vault_write.call_args_list if "patterns/domains" in str(c)]
         assert len(pattern_calls) == 0
 
     def test_degradation_clears_on_hiho_return(self, mock_mcp_client):
         """Degradation mode clears when cohesion returns to HIHO band."""
         from unittest.mock import MagicMock
+
         from cohezion.compound.inflection_detector import Severity
+
         detector = self._make_ok_detector()
         # Mock inflection detector to produce anomaly_score=0.7
         # coherence = (0.7 + (1.0 - 0.7)) / 2 = 0.5 → in HIHO band [0.4, 0.6]
@@ -572,7 +561,8 @@ class TestDegradationMode:
         mock_anomaly.should_reexecute = False
         mock_inflection.detect_anomaly.return_value = mock_anomaly
         executor = CompoundExecutor(
-            mock_mcp_client, enable_guardrails=False,
+            mock_mcp_client,
+            enable_guardrails=False,
             degradation_detector=detector,
             inflection_detector=mock_inflection,
         )
@@ -597,7 +587,8 @@ class TestDegradationMode:
         """execution_degraded flag appears in ExecutionResult.metrics."""
         detector = self._make_critical_detector()
         executor = CompoundExecutor(
-            mock_mcp_client, enable_guardrails=False,
+            mock_mcp_client,
+            enable_guardrails=False,
             degradation_detector=detector,
         )
 

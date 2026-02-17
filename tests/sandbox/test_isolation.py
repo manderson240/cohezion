@@ -62,9 +62,7 @@ class TestFilesystemIsolation(unittest.TestCase):
 
         # Setup overlay
         isolation_id = "test-iso-001"
-        merged_path, mounts = self.fs_isolation.setup_cow_filesystem(
-            isolation_id, source_dir, backend="overlay"
-        )
+        merged_path, _mounts = self.fs_isolation.setup_cow_filesystem(isolation_id, source_dir, backend="overlay")
 
         # Verify merged path exists
         self.assertTrue(os.path.exists(merged_path))
@@ -86,9 +84,7 @@ class TestFilesystemIsolation(unittest.TestCase):
 
         # Setup rsync
         isolation_id = "test-iso-rsync"
-        merged_path, mounts = self.fs_isolation.setup_cow_filesystem(
-            isolation_id, source_dir, backend="rsync"
-        )
+        merged_path, _mounts = self.fs_isolation.setup_cow_filesystem(isolation_id, source_dir, backend="rsync")
 
         # Verify copy exists
         self.assertTrue(os.path.exists(merged_path))
@@ -122,9 +118,7 @@ class TestFilesystemIsolation(unittest.TestCase):
 
         # Setup isolation
         isolation_id = "test-iso-changes"
-        merged_path, mounts = self.fs_isolation.setup_cow_filesystem(
-            isolation_id, source_dir, backend="rsync"
-        )
+        merged_path, mounts = self.fs_isolation.setup_cow_filesystem(isolation_id, source_dir, backend="rsync")
 
         # Create new file in merged path
         new_file = os.path.join(merged_path, "new.txt")
@@ -160,9 +154,7 @@ class TestFilesystemIsolation(unittest.TestCase):
 
         # Setup isolation
         isolation_id = "test-iso-delete"
-        merged_path, mounts = self.fs_isolation.setup_cow_filesystem(
-            isolation_id, source_dir, backend="rsync"
-        )
+        merged_path, mounts = self.fs_isolation.setup_cow_filesystem(isolation_id, source_dir, backend="rsync")
 
         # Delete file in merged
         merged_file = os.path.join(merged_path, "original.txt")
@@ -199,9 +191,7 @@ class TestFilesystemIsolation(unittest.TestCase):
         # Setup isolation
         isolation_id = "test-iso-large"
         start_time = time.time()
-        merged_path, mounts = self.fs_isolation.setup_cow_filesystem(
-            isolation_id, source_dir, backend="overlay"
-        )
+        merged_path, _mounts = self.fs_isolation.setup_cow_filesystem(isolation_id, source_dir, backend="overlay")
         duration = time.time() - start_time
 
         # Verify successful setup
@@ -224,9 +214,7 @@ class TestFilesystemIsolation(unittest.TestCase):
 
         # Setup isolation
         isolation_id = "test-iso-symlink"
-        merged_path, mounts = self.fs_isolation.setup_cow_filesystem(
-            isolation_id, source_dir, backend="rsync"
-        )
+        merged_path, _mounts = self.fs_isolation.setup_cow_filesystem(isolation_id, source_dir, backend="rsync")
 
         # Verify symlink preserved or resolved
         merged_link = os.path.join(merged_path, "link.txt")
@@ -282,9 +270,7 @@ class TestNetworkIsolation(unittest.TestCase):
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(returncode=0)
 
-            network_ns = NetworkIsolation.setup_network_isolation(
-                context, allow_external=False
-            )
+            network_ns = NetworkIsolation.setup_network_isolation(context, allow_external=False)
 
             # Verify network namespace created
             self.assertIsNotNone(network_ns)
@@ -306,9 +292,7 @@ class TestNetworkIsolation(unittest.TestCase):
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(returncode=0)
 
-            network_ns = NetworkIsolation.setup_network_isolation(
-                context, allow_external=True
-            )
+            network_ns = NetworkIsolation.setup_network_isolation(context, allow_external=True)
 
             # Verify external access allowed
             self.assertIsNotNone(network_ns)

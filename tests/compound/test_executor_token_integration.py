@@ -56,9 +56,7 @@ class TestCompoundExecutorTokenIntegration:
             assert executor.token_client is None
             assert executor.mcp_client == mock_mcp_client
 
-    def test_executor_initialization_with_token_client(
-        self, mock_mcp_client, mock_token_client
-    ):
+    def test_executor_initialization_with_token_client(self, mock_mcp_client, mock_token_client):
         """Test executor initialization with token client."""
         with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
             executor = CompoundExecutor(mock_mcp_client, mock_token_client)
@@ -67,16 +65,19 @@ class TestCompoundExecutorTokenIntegration:
 
     def test_execute_task_without_token_client(self, executor):
         """Test task execution without token client."""
-        with patch.object(
-            executor.logger,
-            "get_experience_guidance",
-            return_value={"context": "test"},
-        ), patch.object(
-            executor.logger, "log_execution_start", return_value="exp_path"
-        ), patch.object(
-            executor.logger, "log_execution_result"
-        ) as mock_log_result, patch.object(
-            executor.logger, "extract_execution_pattern", return_value="pattern_path"
+        with (
+            patch.object(
+                executor.logger,
+                "get_experience_guidance",
+                return_value={"context": "test"},
+            ),
+            patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
+            patch.object(executor.logger, "log_execution_result") as mock_log_result,
+            patch.object(
+                executor.logger,
+                "extract_execution_pattern",
+                return_value="pattern_path",
+            ),
         ):
 
             def execute_fn(guidance):
@@ -115,20 +116,23 @@ class TestCompoundExecutorTokenIntegration:
             },
         ]
 
-        with patch.object(
-            executor_with_token_client.logger,
-            "get_experience_guidance",
-            return_value={"context": "test"},
-        ), patch.object(
-            executor_with_token_client.logger,
-            "log_execution_start",
-            return_value="exp_path",
-        ), patch.object(
-            executor_with_token_client.logger, "log_execution_result"
-        ), patch.object(
-            executor_with_token_client.logger,
-            "extract_execution_pattern",
-            return_value="pattern_path",
+        with (
+            patch.object(
+                executor_with_token_client.logger,
+                "get_experience_guidance",
+                return_value={"context": "test"},
+            ),
+            patch.object(
+                executor_with_token_client.logger,
+                "log_execution_start",
+                return_value="exp_path",
+            ),
+            patch.object(executor_with_token_client.logger, "log_execution_result"),
+            patch.object(
+                executor_with_token_client.logger,
+                "extract_execution_pattern",
+                return_value="pattern_path",
+            ),
         ):
 
             def execute_fn(guidance):
@@ -210,16 +214,18 @@ class TestCompoundExecutorTokenIntegration:
             },
         ]
 
-        with patch.object(
-            executor_with_token_client.logger,
-            "get_experience_guidance",
-            return_value={"context": "test"},
-        ), patch.object(
-            executor_with_token_client.logger,
-            "log_execution_start",
-            return_value="exp_path",
-        ), patch.object(
-            executor_with_token_client.logger, "log_execution_result"
+        with (
+            patch.object(
+                executor_with_token_client.logger,
+                "get_experience_guidance",
+                return_value={"context": "test"},
+            ),
+            patch.object(
+                executor_with_token_client.logger,
+                "log_execution_start",
+                return_value="exp_path",
+            ),
+            patch.object(executor_with_token_client.logger, "log_execution_result"),
         ):
 
             def execute_fn(guidance):
@@ -304,7 +310,7 @@ class TestExecutorFactory:
         """Test factory reset singleton."""
         with patch("cohezion.compound.exp_persistence.vault.VaultLogger"):
             ExecutorFactory.reset_singleton()
-            executor1 = ExecutorFactory.get_singleton(mock_mcp_client)
+            ExecutorFactory.get_singleton(mock_mcp_client)
             assert ExecutorFactory._instance is not None
             ExecutorFactory.reset_singleton()
             assert ExecutorFactory._instance is None
@@ -335,20 +341,23 @@ class TestCompoundExecutorIntegrationScenarios:
             },
         ]
 
-        with patch.object(
-            executor_with_token_client.logger,
-            "get_experience_guidance",
-            return_value={"similar_tasks": ["task_1", "task_2"]},
-        ), patch.object(
-            executor_with_token_client.logger,
-            "log_execution_start",
-            return_value="batch_exp_path",
-        ), patch.object(
-            executor_with_token_client.logger, "log_execution_result"
-        ), patch.object(
-            executor_with_token_client.logger,
-            "extract_execution_pattern",
-            return_value="batch_pattern_path",
+        with (
+            patch.object(
+                executor_with_token_client.logger,
+                "get_experience_guidance",
+                return_value={"similar_tasks": ["task_1", "task_2"]},
+            ),
+            patch.object(
+                executor_with_token_client.logger,
+                "log_execution_start",
+                return_value="batch_exp_path",
+            ),
+            patch.object(executor_with_token_client.logger, "log_execution_result"),
+            patch.object(
+                executor_with_token_client.logger,
+                "extract_execution_pattern",
+                return_value="batch_pattern_path",
+            ),
         ):
 
             def batch_execute(guidance):

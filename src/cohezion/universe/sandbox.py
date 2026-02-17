@@ -7,6 +7,7 @@ critical for the Anthropic 'Universes' role alignment.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import tarfile
 import time
@@ -16,6 +17,7 @@ from typing import Any
 from docker.errors import DockerException
 
 import docker
+
 
 logger = logging.getLogger(__name__)
 
@@ -143,14 +145,10 @@ class ContainerizedUniverse:
             )
         finally:
             if container:
-                try:
+                with contextlib.suppress(Exception):
                     container.remove(force=True)
-                except Exception:
-                    pass
 
-    def _create_tar_stream(
-        self, script: str, files: dict[str, str | bytes] | None
-    ) -> bytes:
+    def _create_tar_stream(self, script: str, files: dict[str, str | bytes] | None) -> bytes:
         """Create a tar archive in memory."""
         import io
 

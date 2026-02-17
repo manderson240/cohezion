@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
 
 from cohezion.api import app
 from cohezion.knowledge_graph.query_engine import KnowledgeGraphQueryEngine
+
 
 client = TestClient(app)
 
@@ -90,7 +90,7 @@ class TestKnowledgeGraphQueryEngine:
 
         with patch(
             "cohezion.knowledge_graph.query_engine.Path",
-        ) as mock_path_cls:
+        ):
             # This is tricky — just test the file-based path directly
             engine = KnowledgeGraphQueryEngine(db_client=None)
             # The engine uses Path("data/universe") internally

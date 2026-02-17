@@ -16,6 +16,7 @@ from typing import Any
 
 from cohezion.core.persistence.surreal_client import SurrealClient
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -104,9 +105,7 @@ class TimeKeeper:
             # Fire and forget logging to avoid blocking critical path
             # In a real async loop we might want to batch these
             # For now, we await to ensure it's written
-            await self.db.query(
-                "CREATE velocity_events CONTENT $data", {"data": record}
-            )
+            await self.db.query("CREATE velocity_events CONTENT $data", {"data": record})
             logger.debug(f"Logged event: {event_type} by {agent_name}")
 
         except Exception as e:

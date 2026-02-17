@@ -21,9 +21,7 @@ class AgentSpec:
 
     name: str
     description: str
-    tools: list[str] = field(
-        default_factory=lambda: ["Read", "Glob", "Grep", "Bash", "Edit", "Write"]
-    )
+    tools: list[str] = field(default_factory=lambda: ["Read", "Glob", "Grep", "Bash", "Edit", "Write"])
     disallowed_tools: list[str] = field(default_factory=list)
     model: str = "sonnet"
     instructions: str = ""
@@ -61,9 +59,7 @@ class TeamPlan:
             lines.append(f"  - {a.name} ({a.model}): {a.description[:60]}")
         lines.append(f"\nTasks ({len(self.tasks)}):")
         for t in self.tasks:
-            blocked = (
-                f" [blocked by: {', '.join(t.blocked_by)}]" if t.blocked_by else ""
-            )
+            blocked = f" [blocked by: {', '.join(t.blocked_by)}]" if t.blocked_by else ""
             lines.append(f"  - [{t.id}] {t.subject}{blocked}")
         return "\n".join(lines)
 
@@ -160,9 +156,7 @@ class TeamOrchestrator:
 
         return plan
 
-    def generate_agent_spec(
-        self, skill_name: str, role: str = "implementer"
-    ) -> AgentSpec:
+    def generate_agent_spec(self, skill_name: str, role: str = "implementer") -> AgentSpec:
         """Convert a PRIME skill into a Claude Code agent specification.
 
         Parameters
@@ -192,9 +186,7 @@ class TeamOrchestrator:
 
         return self._spec_to_agent(spec, role)
 
-    def generate_agent_spec_from_capability(
-        self, cap, role: str = "implementer"
-    ) -> AgentSpec:
+    def generate_agent_spec_from_capability(self, cap, role: str = "implementer") -> AgentSpec:
         """Convert a Capability registry entry into an AgentSpec."""
         # Try to find the underlying skill spec for richer instructions
         skill_spec = self.engine.get_spec_by_name(cap.name)
@@ -318,18 +310,12 @@ class TeamOrchestrator:
 
         return AgentSpec(
             name=self._slugify(spec.name),
-            description=spec.domain_expertise[:200]
-            if spec.domain_expertise
-            else f"Agent for {spec.name}",
+            description=spec.domain_expertise[:200] if spec.domain_expertise else f"Agent for {spec.name}",
             tools=tools,
             disallowed_tools=disallowed,
             model=model,
-            instructions="\n".join(instructions_parts)
-            if instructions_parts
-            else f"Expert in {spec.name}.",
-            ollama_model=self._select_ollama_model(
-                [c.lower() for c in spec.concepts.keys()] if spec.concepts else []
-            ),
+            instructions="\n".join(instructions_parts) if instructions_parts else f"Expert in {spec.name}.",
+            ollama_model=self._select_ollama_model([c.lower() for c in spec.concepts] if spec.concepts else []),
         )
 
     def _tools_for_role(self, role: str) -> tuple[list[str], list[str]]:
@@ -369,18 +355,11 @@ class TeamOrchestrator:
         name_lower = name.lower()
         tags_str = " ".join(tags).lower()
 
-        if any(
-            kw in name_lower or kw in tags_str for kw in ["test", "verify", "quality"]
-        ):
+        if any(kw in name_lower or kw in tags_str for kw in ["test", "verify", "quality"]):
             return "tester"
-        if any(
-            kw in name_lower or kw in tags_str for kw in ["review", "audit", "security"]
-        ):
+        if any(kw in name_lower or kw in tags_str for kw in ["review", "audit", "security"]):
             return "reviewer"
-        if any(
-            kw in name_lower or kw in tags_str
-            for kw in ["research", "scout", "explore"]
-        ):
+        if any(kw in name_lower or kw in tags_str for kw in ["research", "scout", "explore"]):
             return "researcher"
         return "implementer"
 

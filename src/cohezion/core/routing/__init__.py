@@ -2,4 +2,5 @@
 
 from cohezion.core.routing.router import LocalExpertRouter
 
+
 __all__ = ["LocalExpertRouter"]

@@ -3,7 +3,7 @@
 import logging
 import subprocess
 from pathlib import Path
-from typing import Optional
+
 
 logger = logging.getLogger(__name__)
 
@@ -65,9 +65,7 @@ class CertificateGenerator:
                 f"/C=US/ST=State/L=City/O=Org/CN={cn}",
             ]
 
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, check=True
-            )
+            subprocess.run(cmd, capture_output=True, text=True, check=True)
 
             # Set proper permissions
             key_file.chmod(0o600)
@@ -99,7 +97,7 @@ class CertificateGenerator:
         cert_dir: str = ".certs",
         cert_name: str = "server",
         force: bool = False,
-    ) -> tuple[Optional[str], Optional[str]]:
+    ) -> tuple[str | None, str | None]:
         """
         Ensure development certificates exist, generating them if needed.
 
@@ -114,9 +112,7 @@ class CertificateGenerator:
         cert_path = str(Path(cert_dir) / f"{cert_name}.crt")
         key_path = str(Path(cert_dir) / f"{cert_name}.key")
 
-        success = CertificateGenerator.generate_self_signed_cert(
-            cert_path, key_path, force=force
-        )
+        success = CertificateGenerator.generate_self_signed_cert(cert_path, key_path, force=force)
 
         if success:
             return cert_path, key_path

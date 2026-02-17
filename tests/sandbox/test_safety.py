@@ -9,9 +9,10 @@ Tests cover:
   6. Policy matching and escalation
 """
 
-import pytest
 from datetime import datetime
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from cohezion.sandbox.safety import (
     POLICIES,
@@ -109,10 +110,7 @@ class TestPreFlightChecker:
 
         assert result.passed is False
         assert len(result.violations) > 0
-        critical_violations = [
-            v for v in result.violations
-            if v.severity == ViolationSeverity.CRITICAL
-        ]
+        critical_violations = [v for v in result.violations if v.severity == ViolationSeverity.CRITICAL]
         assert len(critical_violations) > 0
 
     def test_preflight_detects_git_reset_hard(self, low_risk_policy):
@@ -139,9 +137,7 @@ class TestPreFlightChecker:
         result = checker.check(request, low_risk_policy)
 
         assert result.passed is False
-        network_violations = [
-            v for v in result.violations if "network" in v.check_name
-        ]
+        network_violations = [v for v in result.violations if "network" in v.check_name]
         assert len(network_violations) > 0
 
     def test_preflight_allows_network_when_allowed(self, high_risk_policy):
@@ -153,9 +149,7 @@ class TestPreFlightChecker:
         checker = PreFlightChecker()
         result = checker.check(request, high_risk_policy)
 
-        network_violations = [
-            v for v in result.violations if "network" in v.check_name
-        ]
+        network_violations = [v for v in result.violations if "network" in v.check_name]
         assert len(network_violations) == 0
 
     def test_preflight_validates_path_whitelist(self, low_risk_policy):
@@ -171,9 +165,7 @@ class TestPreFlightChecker:
         result = checker.check(request, low_risk_policy)
 
         assert result.passed is False
-        path_violations = [
-            v for v in result.violations if "path" in v.check_name
-        ]
+        path_violations = [v for v in result.violations if "path" in v.check_name]
         assert len(path_violations) > 0
 
     def test_preflight_checks_count(self, low_risk_policy, safe_request):
@@ -265,6 +257,7 @@ class TestRealTimeMonitor:
 
         monitor.start()
         import time
+
         time.sleep(0.05)  # Let monitor run
         monitor.stop()
 
@@ -288,6 +281,7 @@ class TestRealTimeMonitor:
 
         monitor.start()
         import time
+
         time.sleep(0.05)
         monitor.stop()
 
@@ -309,6 +303,7 @@ class TestRealTimeMonitor:
         monitor = Monitor(policy, check_interval=0.01)
         monitor.start()
         import time
+
         time.sleep(0.05)
         monitor.stop()
 
@@ -348,23 +343,29 @@ class TestRiskAssessor:
         score1 = assessor.calculate_risk("delete", {})
 
         # Multiple factors
-        score2 = assessor.calculate_risk("delete", {
-            "network_required": True,
-            "system_call": True,
-        })
+        score2 = assessor.calculate_risk(
+            "delete",
+            {
+                "network_required": True,
+                "system_call": True,
+            },
+        )
 
         assert score2 > score1
 
     def test_risk_score_caps_at_one(self):
         """Risk score should cap at 1.0."""
         assessor = RiskAssessor()
-        score = assessor.calculate_risk("operation", {
-            "network_required": True,
-            "spawn_processes": True,
-            "cpu_intensive": True,
-            "memory_intensive": True,
-            "system_call": True,
-        })
+        score = assessor.calculate_risk(
+            "operation",
+            {
+                "network_required": True,
+                "spawn_processes": True,
+                "cpu_intensive": True,
+                "memory_intensive": True,
+                "system_call": True,
+            },
+        )
 
         assert score <= 1.0
 
@@ -387,9 +388,7 @@ class TestConstraintEnforcer:
         assert enforcer._enforced is True
 
     @patch("cohezion.sandbox.safety.logger")
-    def test_constraint_enforcer_nonblocking_on_cgroup_failure(
-        self, mock_logger, low_risk_policy
-    ):
+    def test_constraint_enforcer_nonblocking_on_cgroup_failure(self, mock_logger, low_risk_policy):
         """Enforcer should be non-blocking on cgroup failure."""
         enforcer = ConstraintEnforcer(low_risk_policy)
         result = enforcer.enforce()
@@ -398,9 +397,7 @@ class TestConstraintEnforcer:
         assert result is True
 
     @patch("cohezion.sandbox.safety.logger")
-    def test_constraint_enforcer_nonblocking_on_seccomp_failure(
-        self, mock_logger, low_risk_policy
-    ):
+    def test_constraint_enforcer_nonblocking_on_seccomp_failure(self, mock_logger, low_risk_policy):
         """Enforcer should be non-blocking on seccomp failure."""
         enforcer = ConstraintEnforcer(low_risk_policy)
         result = enforcer.enforce()
@@ -646,6 +643,7 @@ class TestEdgeCases:
 
         monitor.start()
         import time
+
         time.sleep(0.05)
         monitor.stop()
 

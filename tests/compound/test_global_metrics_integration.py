@@ -9,17 +9,19 @@ Tests how GlobalMetricsAggregator integrates with:
 from __future__ import annotations
 
 import time
-from unittest.mock import MagicMock, patch
 
 import pytest
 
 from cohezion.compound.global_metrics_aggregator import (
-    GlobalMetricsAggregator,
     InstanceMetrics,
     get_global_aggregator,
     reset_global_aggregator,
 )
-from cohezion.swarm.team_metrics import TeamCompoundMetrics, TeamMetricsAggregator, WaveMetrics
+from cohezion.swarm.team_metrics import (
+    TeamCompoundMetrics,
+    TeamMetricsAggregator,
+    WaveMetrics,
+)
 
 
 @pytest.fixture
@@ -92,7 +94,7 @@ class TestGlobalMetricsWithTeamAggregator:
                 for i in range(5 + wave_idx)  # Increasing task count
             ]
 
-            wave_metrics = team_agg.record_wave(
+            team_agg.record_wave(
                 wave_index=wave_idx,
                 task_results=task_results,
                 duration_ms=100.0 + wave_idx * 20,
@@ -119,10 +121,7 @@ class TestGlobalMetricsWithTeamAggregator:
 
             # Each team executes 2 waves
             for wave_idx in range(2):
-                task_results = [
-                    {"tokens": 400, "model": f"model_{team_idx}", "status": "completed"}
-                    for _ in range(4)
-                ]
+                task_results = [{"tokens": 400, "model": f"model_{team_idx}", "status": "completed"} for _ in range(4)]
                 team_agg.record_wave(wave_idx, task_results, 80.0 + wave_idx * 20)
 
             final = team_agg.finalize(160.0, 0.10 + team_idx * 0.02)
@@ -224,7 +223,7 @@ class TestGlobalMetricsPerformance:
         elapsed = time.time() - start_time
 
         # Should handle 1000 recordings in <100ms
-        assert elapsed < 0.1, f"Recording took {elapsed*1000}ms"
+        assert elapsed < 0.1, f"Recording took {elapsed * 1000}ms"
 
         metrics = global_agg.query_by_agent(executor_id)
         assert len(metrics) == 1000
@@ -255,7 +254,7 @@ class TestGlobalMetricsPerformance:
 
         # Queries should still be fast
         start = time.time()
-        window = global_agg.query_by_time_range(now - 3600, now)
+        global_agg.query_by_time_range(now - 3600, now)
         latency = (time.time() - start) * 1000
 
         assert latency < 500
@@ -331,9 +330,7 @@ class TestGlobalMetricsVaultIntegration:
         data = json.loads((vault_path / result.split("/")[-1]).read_text())
         assert "exported_at" in data
         assert "instance_metrics" in data
-        assert all(
-            isinstance(v, list) for v in data["instance_metrics"].values()
-        )
+        assert all(isinstance(v, list) for v in data["instance_metrics"].values())
 
     def test_csv_export_for_analytics(self, global_agg, tmp_path):
         """Test CSV export for downstream analytics."""

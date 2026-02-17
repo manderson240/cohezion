@@ -19,9 +19,7 @@ def policy_checkpoint(tmp_path):
     hidden_dim = 128
     action_dim = 256
 
-    policy = PolicyNetwork(
-        state_dim=state_dim, action_dim=action_dim, hidden=hidden_dim
-    )
+    policy = PolicyNetwork(state_dim=state_dim, action_dim=action_dim, hidden=hidden_dim)
     ckpt_path = tmp_path / "test_policy.pt"
     torch.save(policy.state_dict(), ckpt_path)
     return ckpt_path, state_dim, hidden_dim, action_dim
@@ -74,12 +72,8 @@ class TestPolicyToFlumeWeights:
         ckpt_path, _, hidden_dim, _ = policy_checkpoint
         weights = WeightBridge.policy_to_flume_weights(ckpt_path)
 
-        np.testing.assert_array_equal(
-            weights["gamma"], np.ones(hidden_dim, dtype=np.float32)
-        )
-        np.testing.assert_array_equal(
-            weights["beta"], np.full(hidden_dim, 0.5, dtype=np.float32)
-        )
+        np.testing.assert_array_equal(weights["gamma"], np.ones(hidden_dim, dtype=np.float32))
+        np.testing.assert_array_equal(weights["beta"], np.full(hidden_dim, 0.5, dtype=np.float32))
 
     def test_weights_are_finite(self, policy_checkpoint):
         """No NaN or Inf values in any extracted weight."""
@@ -95,14 +89,14 @@ class TestLoadPolicyNetwork:
 
     def test_roundtrip(self, policy_checkpoint):
         """Load a saved checkpoint and verify it produces a working PolicyNetwork."""
-        ckpt_path, state_dim, hidden_dim, action_dim = policy_checkpoint
+        ckpt_path, state_dim, _hidden_dim, action_dim = policy_checkpoint
         policy = WeightBridge.load_policy_network(ckpt_path)
 
         assert isinstance(policy, PolicyNetwork)
 
         # Verify forward pass works
         state = np.random.randn(state_dim).astype(np.float32)
-        action, log_prob = policy.get_action(state)
+        action, _log_prob = policy.get_action(state)
         assert action.shape == (action_dim,)
         assert np.all(np.isfinite(action))
 
@@ -125,9 +119,7 @@ class TestValidateCoherence:
         """Create a mock FlumePhysics that returns controlled stats."""
         mock = MagicMock()
         # simulate_epochs_navigated returns evolved agents
-        mock.simulate_epochs_navigated.return_value = np.random.randn(100, 256).astype(
-            np.float32
-        )
+        mock.simulate_epochs_navigated.return_value = np.random.randn(100, 256).astype(np.float32)
         mock.compute_batch_stats.return_value = {
             "mean_coherence": mean_coherence,
             "pct_within_bounds": pct_within_bounds,
@@ -162,17 +154,13 @@ class TestValidateCoherence:
         """Coherence at exact boundaries (0.3, 0.7) is valid."""
         for coh in (0.3, 0.7):
             mock_physics = self._make_mock_physics(coh, 0.80)
-            result = WeightBridge.validate_coherence(
-                mock_physics, n_agents=50, n_epochs=10
-            )
+            result = WeightBridge.validate_coherence(mock_physics, n_agents=50, n_epochs=10)
             assert result["valid"] is True, f"coherence={coh} should be valid"
 
     def test_calls_physics_with_correct_agents(self):
         """validate_coherence passes correct shaped agents to physics engine."""
         mock_physics = self._make_mock_physics(0.50, 0.90)
-        WeightBridge.validate_coherence(
-            mock_physics, n_agents=100, n_epochs=50, seed=42
-        )
+        WeightBridge.validate_coherence(mock_physics, n_agents=100, n_epochs=50, seed=42)
 
         args = mock_physics.simulate_epochs_navigated.call_args
         agents = args[0][0]  # first positional arg
@@ -189,11 +177,14 @@ class TestPolicyToFlumePhysics:
     def test_raises_when_rust_unavailable(self, policy_checkpoint):
         """Raises RuntimeError when cohezion_core_rs is not importable."""
         ckpt_path, *_ = policy_checkpoint
-        with patch(
-            "cohezion.pipeline.weight_bridge._import_flume_physics", return_value=None
+        with (
+            patch(
+                "cohezion.pipeline.weight_bridge._import_flume_physics",
+                return_value=None,
+            ),
+            pytest.raises(RuntimeError, match="cohezion_core_rs not available"),
         ):
-            with pytest.raises(RuntimeError, match="cohezion_core_rs not available"):
-                WeightBridge.policy_to_flume_physics(ckpt_path)
+            WeightBridge.policy_to_flume_physics(ckpt_path)
 
     def test_creates_physics_with_mock(self, policy_checkpoint):
         """Full pipeline constructs FlumePhysics with collapsed weights."""
@@ -206,9 +197,7 @@ class TestPolicyToFlumePhysics:
             "cohezion.pipeline.weight_bridge._import_flume_physics",
             return_value=mock_cls,
         ):
-            result = WeightBridge.policy_to_flume_physics(
-                ckpt_path, delta_scale=0.02, hiho_damping=0.03
-            )
+            result = WeightBridge.policy_to_flume_physics(ckpt_path, delta_scale=0.02, hiho_damping=0.03)
 
         assert result is mock_instance
         mock_cls.assert_called_once()

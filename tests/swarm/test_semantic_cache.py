@@ -1,14 +1,15 @@
 """Tests for SemanticCache - Phase 2 Task #2.2."""
 
-import pytest
-import numpy as np
 from unittest.mock import AsyncMock
 
+import numpy as np
+import pytest
+
 from cohezion.swarm.semantic_cache import (
-    SemanticCache,
     DistilledEmbeddingModel,
-    FlumeVAEEmbeddingModel,
     EmbeddingResult,
+    FlumeVAEEmbeddingModel,
+    SemanticCache,
     SemanticCacheHit,
 )
 
@@ -245,7 +246,7 @@ class TestLRUEviction:
         """Test eviction when max entries reached."""
         semantic_cache.max_entries = 3
 
-        embedding = [1.0] + [0.0] * 255
+        [1.0] + [0.0] * 255
 
         async def mock_encode(text):
             # Deterministic but different for each text

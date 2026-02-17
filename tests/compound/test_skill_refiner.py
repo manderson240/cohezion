@@ -1,6 +1,5 @@
 """Tests for skill refiner learning from execution results."""
 
-
 import pytest
 
 from cohezion.compound.skill_refiner import (
@@ -66,18 +65,14 @@ class TestExecutionMetricsExtraction:
         assert metrics.success is False
         assert metrics.duration_seconds == 0.5
 
-    def test_extract_metrics_calculates_token_efficiency(
-        self, skill_refiner, sample_execution_result
-    ):
+    def test_extract_metrics_calculates_token_efficiency(self, skill_refiner, sample_execution_result):
         """Test token efficiency calculation."""
         metrics = skill_refiner._extract_metrics(sample_execution_result)
 
         # tokens_used / duration = 200 / 1.5 ≈ 133.33
         assert metrics.token_efficiency == pytest.approx(133.33, rel=0.01)
 
-    def test_extract_metrics_quality_score(
-        self, skill_refiner, sample_execution_result
-    ):
+    def test_extract_metrics_quality_score(self, skill_refiner, sample_execution_result):
         """Test quality score calculation (inverse of anomaly score)."""
         metrics = skill_refiner._extract_metrics(sample_execution_result)
 
@@ -88,14 +83,10 @@ class TestExecutionMetricsExtraction:
 class TestLearningSignalGeneration:
     """Test generation of learning signals from metrics."""
 
-    def test_generate_learning_signal_high_quality(
-        self, skill_refiner, sample_execution_result
-    ):
+    def test_generate_learning_signal_high_quality(self, skill_refiner, sample_execution_result):
         """Test generating signal from high quality execution."""
         metrics = skill_refiner._extract_metrics(sample_execution_result)
-        signal = skill_refiner._generate_learning_signal(
-            "TEST_SKILL", "generate", metrics
-        )
+        signal = skill_refiner._generate_learning_signal("TEST_SKILL", "generate", metrics)
 
         assert signal is not None
         assert signal.skill_name == "TEST_SKILL"
@@ -115,9 +106,7 @@ class TestLearningSignalGeneration:
             cached_hits=5,
         )
 
-        signal = skill_refiner._generate_learning_signal(
-            "TEST_SKILL", "analyze", metrics
-        )
+        signal = skill_refiner._generate_learning_signal("TEST_SKILL", "analyze", metrics)
 
         assert signal is not None
         assert "cache hits" in signal.key_insight.lower()
@@ -134,9 +123,7 @@ class TestLearningSignalGeneration:
             cached_hits=0,
         )
 
-        signal = skill_refiner._generate_learning_signal(
-            "TEST_SKILL", "generate", metrics
-        )
+        signal = skill_refiner._generate_learning_signal("TEST_SKILL", "generate", metrics)
 
         # Even with low quality, efficient token usage generates a signal
         assert signal is not None
@@ -165,15 +152,11 @@ class TestPrimeFileLocation:
 class TestRefine:
     """Test the main refine method."""
 
-    def test_refine_skips_failed_execution(
-        self, skill_refiner, sample_execution_result
-    ):
+    def test_refine_skips_failed_execution(self, skill_refiner, sample_execution_result):
         """Test that refine skips failed executions."""
         sample_execution_result["success"] = False
 
-        result = skill_refiner.refine(
-            "TEST_SKILL", "generate", sample_execution_result
-        )
+        result = skill_refiner.refine("TEST_SKILL", "generate", sample_execution_result)
 
         assert result is None
 

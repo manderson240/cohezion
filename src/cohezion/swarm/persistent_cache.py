@@ -86,7 +86,7 @@ class PersistentCache:
         try:
             with self._lock:
                 entries_loaded = 0
-                with open(self.cache_file, "r") as f:
+                with open(self.cache_file) as f:
                     for line_num, line in enumerate(f, 1):
                         # Skip empty lines
                         if not line.strip():
@@ -103,15 +103,10 @@ class PersistentCache:
                                 }
                                 entries_loaded += 1
                         except json.JSONDecodeError as e:
-                            logger.warning(
-                                f"Skipping invalid JSON on line {line_num}: {e}"
-                            )
+                            logger.warning(f"Skipping invalid JSON on line {line_num}: {e}")
 
                 self._stats["loaded"] = entries_loaded
-                logger.info(
-                    f"Session recovery: loaded {entries_loaded} cache entries from "
-                    f"{self.cache_file}"
-                )
+                logger.info(f"Session recovery: loaded {entries_loaded} cache entries from {self.cache_file}")
 
         except Exception as e:
             logger.warning(f"Failed to load cache from disk: {e}")
@@ -176,9 +171,7 @@ class PersistentCache:
         except Exception as e:
             logger.debug(f"Failed to persist cache entry {key}: {e}")
 
-    def batch_set(
-        self, entries: dict[str, str], persist: bool = True
-    ) -> int:
+    def batch_set(self, entries: dict[str, str], persist: bool = True) -> int:
         """Set multiple cache entries efficiently.
 
         Args:
@@ -198,7 +191,7 @@ class PersistentCache:
             if persist:
                 try:
                     with open(self.cache_file, "a") as f:
-                        for key, value in entries.items():
+                        for key, _value in entries.items():
                             if key in self.memory_cache:
                                 entry = self.memory_cache[key]
                                 f.write(json.dumps(entry) + "\n")

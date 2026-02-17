@@ -5,7 +5,6 @@ improvements in throughput and latency.
 """
 
 import json
-import time
 from pathlib import Path
 from typing import Any
 
@@ -39,7 +38,7 @@ def run_sequential_benchmark() -> BenchmarkResult:
         )
 
     paper_files = sorted(papers_dir.glob("*.md"))
-    paper_count = len(paper_files)
+    len(paper_files)
 
     def sync_operation() -> None:
         """Simulate sequential SurrealDB sync of papers."""
@@ -202,23 +201,23 @@ if __name__ == "__main__":
 
     paper_count = 84
 
-    print(f"\nSequential Sync:")
+    print("\nSequential Sync:")
     print(f"  Total: {seq_result['mean_ms']:.1f}ms")
     print(f"  Per paper: {seq_result['mean_ms'] / paper_count:.3f}ms")
     print(f"  Samples: {seq_result['samples']}")
 
-    print(f"\nParallel Sync (max_concurrent=10):")
+    print("\nParallel Sync (max_concurrent=10):")
     print(f"  Total: {par_result['mean_ms']:.1f}ms")
     print(f"  Per paper: {par_result['mean_ms'] / paper_count:.3f}ms")
     print(f"  Samples: {par_result['samples']}")
 
-    print(f"\nComparison:")
+    print("\nComparison:")
     print(f"  Improvement: {comp['improvement_ms']}ms ({comp['improvement_percent']}%)")
     print(f"  Speedup: {comp['speedup_factor']}x")
     print(f"  Status: {comp['status']}")
 
     print("\n" + "=" * 70)
-    print(f"Full results saved to: benchmark_surrealdb_parallel_results.json")
+    print("Full results saved to: benchmark_surrealdb_parallel_results.json")
 
     # Save results
     with open("benchmark_surrealdb_parallel_results.json", "w") as f:

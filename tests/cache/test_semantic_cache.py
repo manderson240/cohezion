@@ -26,7 +26,7 @@ class TestTextEmbedding:
         """Embedding should be normalized."""
         text = "test"
         embedding = SemanticCache._text_to_embedding(text)
-        norm = (embedding**2).sum()**0.5
+        norm = (embedding**2).sum() ** 0.5
         assert abs(norm - 1.0) < 0.01
 
     def test_different_texts_different_embeddings(self):
@@ -160,7 +160,7 @@ class TestL2Cache:
         await cache.put("p3", "r3")
 
         # Now query p3 (should be in L2)
-        result = await cache.get("p3")
+        await cache.get("p3")
 
         # Check if promoted to L1
         stats = cache.get_stats()

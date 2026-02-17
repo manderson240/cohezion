@@ -15,9 +15,7 @@ import sys
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Train FLUME VAE on collected execution experiences."
-    )
+    parser = argparse.ArgumentParser(description="Train FLUME VAE on collected execution experiences.")
     parser.add_argument(
         "--min-real",
         type=int,
@@ -30,18 +28,10 @@ def main() -> None:
         default=10_000,
         help="Maximum total training samples (default: 10000)",
     )
-    parser.add_argument(
-        "--epochs", type=int, default=50, help="Training epochs (default: 50)"
-    )
-    parser.add_argument(
-        "--batch-size", type=int, default=64, help="Batch size (default: 64)"
-    )
-    parser.add_argument(
-        "--lr", type=float, default=1e-3, help="Learning rate (default: 0.001)"
-    )
-    parser.add_argument(
-        "--seed", type=int, default=42, help="Random seed (default: 42)"
-    )
+    parser.add_argument("--epochs", type=int, default=50, help="Training epochs (default: 50)")
+    parser.add_argument("--batch-size", type=int, default=64, help="Batch size (default: 64)")
+    parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate (default: 0.001)")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed (default: 42)")
     parser.add_argument(
         "--session",
         type=str,
@@ -59,9 +49,7 @@ def main() -> None:
         default="data/flume/checkpoints",
         help="Checkpoint output directory (default: data/flume/checkpoints)",
     )
-    parser.add_argument(
-        "-v", "--verbose", action="store_true", help="Enable debug logging"
-    )
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable debug logging")
 
     args = parser.parse_args()
 

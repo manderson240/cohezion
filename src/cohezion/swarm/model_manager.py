@@ -18,6 +18,7 @@ from typing import Any
 
 import httpx
 
+
 logger = logging.getLogger(__name__)
 
 OLLAMA_HOST = "http://localhost:11434"
@@ -41,9 +42,7 @@ class ModelMetrics:
     def update(self, latency_ms: float, success: bool, quality: float = 0.5):
         n = self.total_calls
         self.avg_latency_ms = (self.avg_latency_ms * n + latency_ms) / (n + 1)
-        self.success_rate = (self.success_rate * n + (1.0 if success else 0.0)) / (
-            n + 1
-        )
+        self.success_rate = (self.success_rate * n + (1.0 if success else 0.0)) / (n + 1)
         self.quality_score = (self.quality_score * n + quality) / (n + 1)
         self.total_calls += 1
         self.last_used = datetime.now().isoformat()
@@ -201,9 +200,7 @@ class OllamaModelManager:
         if len(prompt) <= max_chars:
             return prompt
 
-        logger.warning(
-            f"⚠️ Context Guard: Truncating large prompt ({len(prompt)} chars)"
-        )
+        logger.warning(f"⚠️ Context Guard: Truncating large prompt ({len(prompt)} chars)")
         header = f"--- CONTEXT TRUNCATED ({len(prompt)} -> {max_chars}) ---\n"
         footer = "\n--- END TRUNCATED CONTEXT ---"
 
@@ -219,9 +216,7 @@ class OllamaModelManager:
             return metrics.confidence_score
         return 0.0
 
-    async def get_recommended_model(
-        self, task_type: str, min_confidence: float = 0.3
-    ) -> str | None:
+    async def get_recommended_model(self, task_type: str, min_confidence: float = 0.3) -> str | None:
         """Get the best model for a task based on confidence scores."""
         candidates = []
         for model_name in await self.list_models():
@@ -235,9 +230,7 @@ class OllamaModelManager:
             return max(candidates, key=lambda x: x[1])[0]
         return None
 
-    async def should_escalate(
-        self, model_name: str, task_type: str, min_confidence: float = 0.3
-    ) -> bool:
+    async def should_escalate(self, model_name: str, task_type: str, min_confidence: float = 0.3) -> bool:
         """Check if we should escalate to a stronger model."""
         confidence = await self.get_model_confidence(model_name, task_type)
         return confidence < min_confidence
@@ -291,10 +284,9 @@ class OllamaModelManager:
                     if last_used is None or used_ts > last_used:
                         last_used = used_ts
 
-            if last_used and last_used < cutoff:
-                if await self.delete_model(name):
-                    deleted.append(name)
-                    logger.info(f"Cleaned up unused model: {name}")
+            if last_used and last_used < cutoff and await self.delete_model(name):
+                deleted.append(name)
+                logger.info(f"Cleaned up unused model: {name}")
 
         return deleted
 

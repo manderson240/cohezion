@@ -14,6 +14,7 @@ Target: 3.4× cumulative improvement (85 → 294 tok/sec, 65%+ cache hit rate)
 import logging
 import sys
 
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -82,15 +83,9 @@ class Phase2ValidationSuite:
 
             success = different_ok and similar_ok and identical_ok
 
-            logger.info(
-                f"✓ Different topics (0.3-0.6): {different_ok} ({similarity_different:.3f})"
-            )
-            logger.info(
-                f"✓ Similar topics (0.85-1.0): {similar_ok} ({similarity_similar:.3f})"
-            )
-            logger.info(
-                f"✓ Identical text (>0.99): {identical_ok} ({similarity_identical:.3f})"
-            )
+            logger.info(f"✓ Different topics (0.3-0.6): {different_ok} ({similarity_different:.3f})")
+            logger.info(f"✓ Similar topics (0.85-1.0): {similar_ok} ({similarity_similar:.3f})")
+            logger.info(f"✓ Identical text (>0.99): {identical_ok} ({similarity_identical:.3f})")
 
             return success
 
@@ -199,12 +194,8 @@ class Phase2ValidationSuite:
                 "enable_deduplication",
             ]
 
-            all_methods_ok = all(
-                hasattr(BatchableExecutor, m) for m in required_methods
-            )
-            all_attrs_ok = all(
-                hasattr(BatchableExecutor, a) for a in required_attrs
-            )
+            all_methods_ok = all(hasattr(BatchableExecutor, m) for m in required_methods)
+            all_attrs_ok = all(hasattr(BatchableExecutor, a) for a in required_attrs)
 
             # Check CompoundTask dataclass
             task = CompoundTask(task_id="test", prompt="test prompt")
@@ -238,8 +229,8 @@ class Phase2ValidationSuite:
 
         try:
             from cohezion.swarm.batch_processor import (
-                BatchProcessor,
                 BatchItem,
+                BatchProcessor,
             )
 
             # Create mock processor with deduplication
@@ -254,10 +245,9 @@ class Phase2ValidationSuite:
                 ("id5", "prompt C", "system", "model-1"),
             ]
 
-            cache_misses_list = [(
-                BatchItem(id=id_, prompt=p, system=s, model=m),
-                f"{p}|{s}|{m}"
-            ) for id_, p, s, m in items]
+            cache_misses_list = [
+                (BatchItem(id=id_, prompt=p, system=s, model=m), f"{p}|{s}|{m}") for id_, p, s, m in items
+            ]
 
             unique, duplicates = processor._deduplicate_misses(cache_misses_list)
 
@@ -298,9 +288,7 @@ class Phase2ValidationSuite:
             from cohezion.compound.feedback_loop import CompoundFeedbackLoop
 
             # Check required method exists
-            has_batch_method = hasattr(
-                CompoundFeedbackLoop, "execute_batch_with_feedback"
-            )
+            has_batch_method = hasattr(CompoundFeedbackLoop, "execute_batch_with_feedback")
 
             logger.info(f"✓ execute_batch_with_feedback method exists: {has_batch_method}")
 
@@ -330,8 +318,8 @@ class Phase2ValidationSuite:
         logger.info("=" * 60)
 
         try:
-            from cohezion.cache.text_encoder import get_text_encoder
             from cohezion.cache.semantic_cache import SemanticCache
+            from cohezion.cache.text_encoder import get_text_encoder
             from cohezion.swarm.batch_processor import BatchProcessor
 
             # Component 1: Semantic encoder (Phase 2.1)
@@ -375,11 +363,17 @@ class Phase2ValidationSuite:
         logger.info("=" * 60)
 
         tests = [
-            ("Semantic Encoder Discrimination", self.test_semantic_encoder_discrimination),
+            (
+                "Semantic Encoder Discrimination",
+                self.test_semantic_encoder_discrimination,
+            ),
             ("Adaptive Threshold Tuning", self.test_adaptive_threshold_tuning),
             ("Batch Executor Structure", self.test_batch_executor_structure),
             ("Batch Deduplication", self.test_batch_deduplication),
-            ("Feedback Loop Batch Integration", self.test_feedback_loop_batch_integration),
+            (
+                "Feedback Loop Batch Integration",
+                self.test_feedback_loop_batch_integration,
+            ),
             ("Combined Phase 2 Improvements", self.test_combined_phase2_improvements),
         ]
 
@@ -409,9 +403,7 @@ class Phase2ValidationSuite:
         logger.info(f"Total: {self.passed + self.failed}")
 
         if self.failed == 0:
-            logger.info(
-                "\n✅ ALL TESTS PASSED - Phase 2 Ready for Integration\n"
-            )
+            logger.info("\n✅ ALL TESTS PASSED - Phase 2 Ready for Integration\n")
             logger.info("Expected improvements:")
             logger.info("  - L2 cache hit rate: 5% → 25-30%")
             logger.info("  - Semantic discrimination: 0.98 → 0.3-0.6 (different topics)")

@@ -10,8 +10,16 @@ from __future__ import annotations
 import json
 import logging
 import time
+from typing import TYPE_CHECKING
 
-from cohezion.mass_sim.config import SimulationConfig, SimulationReport, UniverseResult
+
+if TYPE_CHECKING:
+    from cohezion.mass_sim.config import (
+        SimulationConfig,
+        SimulationReport,
+        UniverseResult,
+    )
+
 
 logger = logging.getLogger(__name__)
 
@@ -171,9 +179,7 @@ class SimulationPersistence:
         else:
             self._write_jsonl("sim_analysis_report", record)
 
-    async def store_journey_narrative(
-        self, run_id: str, universe_id: str, narrative: dict
-    ) -> None:
+    async def store_journey_narrative(self, run_id: str, universe_id: str, narrative: dict) -> None:
         """Store an Ollama-generated journey narrative for a universe."""
         record = {
             "run_id": run_id,

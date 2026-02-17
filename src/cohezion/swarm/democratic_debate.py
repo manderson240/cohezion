@@ -12,9 +12,19 @@ from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import httpx
+
+
+if TYPE_CHECKING:
+    from cohezion.swarm.token_client import (
+        TokenEfficientClient,
+    )
+    from cohezion.swarm.token_client import (
+        TokenEfficientClient as _TC,
+    )
+
 
 logger = logging.getLogger(__name__)
 
@@ -196,7 +206,6 @@ class DemocraticDebate:
         ollama_host: str = "http://localhost:11434",
         token_client: "TokenEfficientClient | None" = None,
     ):
-        from cohezion.swarm.token_client import TokenEfficientClient as _TC  # noqa: F811
 
         self.ollama_host = ollama_host
         self.personas = AGENT_PERSONAS
@@ -217,9 +226,7 @@ class DemocraticDebate:
                     num_predict=512,
                 )
             except Exception as e:
-                logger.error(
-                    f"TokenEfficientClient call for {persona.name} failed: {e}"
-                )
+                logger.error(f"TokenEfficientClient call for {persona.name} failed: {e}")
                 return f"[{persona.name} error: {e}]"
 
         # Fallback: direct httpx POST (original path)
@@ -286,9 +293,7 @@ class DemocraticDebate:
             # Find winning proposal
             if proposals:
                 # Simple: use synthesizer's proposal as the integrated view
-                debate_round.winning_proposal = proposals.get(
-                    "synthesizer", list(proposals.values())[0]
-                )
+                debate_round.winning_proposal = proposals.get("synthesizer", next(iter(proposals.values())))
 
             session.rounds.append(debate_round)
 
@@ -323,9 +328,7 @@ class DemocraticDebate:
         context = ""
         if previous_rounds:
             last_round = previous_rounds[-1]
-            context = (
-                f"\nPrevious round proposals received {len(last_round.votes)} votes.\n"
-            )
+            context = f"\nPrevious round proposals received {len(last_round.votes)} votes.\n"
             for v in last_round.votes:
                 context += f"- {v.role.value}: {v.vote.name}\n"
 
@@ -354,9 +357,7 @@ Your proposal:"""
         proposals: dict[str, str],
     ) -> list[AgentVote]:
         """Each agent votes on the combined proposals."""
-        proposals_str = "\n".join(
-            [f"- {role}: {prop}" for role, prop in proposals.items()]
-        )
+        proposals_str = "\n".join([f"- {role}: {prop}" for role, prop in proposals.items()])
 
         vote_prompt = f"""Topic: {topic}
 
@@ -392,12 +393,7 @@ Reasoning: (2-3 sentences)"""
         """Use synthesizer to refine the topic based on feedback."""
         synthesizer = self.personas[AgentRole.SYNTHESIZER]
 
-        feedback = "\n".join(
-            [
-                f"- {v.role.value} ({v.vote.name}): {v.reasoning[:100]}..."
-                for v in last_round.votes
-            ]
-        )
+        feedback = "\n".join([f"- {v.role.value} ({v.vote.name}): {v.reasoning[:100]}..." for v in last_round.votes])
 
         prompt = f"""Based on this round's feedback, refine the topic for the next round.
 
@@ -427,18 +423,14 @@ List the TOP 5 actionable improvements with highest consensus:"""
 
         # Calculate overall consensus metrics
         total_votes = sum(len(r.votes) for r in session.rounds)
-        positive_votes = sum(
-            1 for r in session.rounds for v in r.votes if v.vote.value > 0
-        )
+        positive_votes = sum(1 for r in session.rounds for v in r.votes if v.vote.value > 0)
 
         return {
             "synthesis": response,
             "total_rounds": len(session.rounds),
             "total_votes": total_votes,
             "positive_vote_rate": positive_votes / max(total_votes, 1),
-            "final_round_consensus": session.rounds[-1].consensus_reached
-            if session.rounds
-            else False,
+            "final_round_consensus": session.rounds[-1].consensus_reached if session.rounds else False,
         }
 
     async def close(self):

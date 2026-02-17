@@ -36,17 +36,20 @@ Usage::
 
 import asyncio
 import hashlib
-import json
 import logging
 import os
 import time
 from dataclasses import dataclass
 from typing import Any
 
-import aiohttp  # type: ignore[import-untyped]
 import requests  # type: ignore[import-untyped]
 
-from cohezion.deployment.feature_flags import FeatureFlag, FeatureFlagContext, is_feature_enabled
+from cohezion.deployment.feature_flags import (
+    FeatureFlag,
+    FeatureFlagContext,
+    is_feature_enabled,
+)
+
 
 logger = logging.getLogger(__name__)
 
@@ -148,13 +151,11 @@ class NgrokAIGateway:
         """Validate ngrok configuration."""
         if not self.ngrok_endpoint and not self.enable_failover:
             logger.warning(
-                "ngrok endpoint not configured and failover disabled. "
-                "Set NGROK_ENDPOINT or enable_failover."
+                "ngrok endpoint not configured and failover disabled. Set NGROK_ENDPOINT or enable_failover."
             )
         elif self.ngrok_endpoint and not self.ngrok_api_key:
             logger.warning(
-                "ngrok endpoint configured but no API key provided. "
-                "Set NGROK_API_KEY for authenticated requests."
+                "ngrok endpoint configured but no API key provided. Set NGROK_API_KEY for authenticated requests."
             )
         elif self.ngrok_endpoint:
             logger.info(f"ngrok AI Gateway configured: {self.ngrok_endpoint}")
@@ -305,7 +306,7 @@ class NgrokAIGateway:
                 if attempt == self.max_retries - 1:
                     raise RuntimeError(f"ngrok request failed after {self.max_retries} retries: {e}") from e
 
-                wait_time = 0.5 * (2 ** attempt)
+                wait_time = 0.5 * (2**attempt)
                 logger.warning(
                     f"ngrok request failed (attempt {attempt + 1}/{self.max_retries}), "
                     f"retrying in {wait_time:.1f}s: {e}"
@@ -361,11 +362,9 @@ class NgrokAIGateway:
 
             except Exception as e:
                 if attempt == self.max_retries - 1:
-                    raise RuntimeError(
-                        f"Ollama request failed after {self.max_retries} retries: {e}"
-                    ) from e
+                    raise RuntimeError(f"Ollama request failed after {self.max_retries} retries: {e}") from e
 
-                wait_time = 0.5 * (2 ** attempt)
+                wait_time = 0.5 * (2**attempt)
                 logger.warning(
                     f"Ollama request failed (attempt {attempt + 1}/{self.max_retries}), "
                     f"retrying in {wait_time:.1f}s: {e}"
@@ -398,17 +397,11 @@ class NgrokAIGateway:
             "success_rate": round(success_rate, 2),
             "total_tokens": self.metrics.total_tokens,
             "total_cost": round(self.metrics.total_cost, 4),
-            "average_cost_per_request": round(
-                self.metrics.total_cost / self.metrics.total_requests, 6
-            )
+            "average_cost_per_request": round(self.metrics.total_cost / self.metrics.total_requests, 6)
             if self.metrics.total_requests > 0
             else 0.0,
             "uptime_seconds": round(uptime, 2),
-            "requests_per_minute": round(
-                (self.metrics.total_requests / uptime * 60), 2
-            )
-            if uptime > 0
-            else 0.0,
+            "requests_per_minute": round((self.metrics.total_requests / uptime * 60), 2) if uptime > 0 else 0.0,
         }
 
     def clear_cache(self) -> None:

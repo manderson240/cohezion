@@ -19,12 +19,14 @@ import re
 from datetime import datetime
 from typing import Any
 
+
 try:
     import numpy as np
 except ImportError:
     np = None
 
 from cohezion.core.persistence.surreal_client import PhysicsState
+
 
 logger = logging.getLogger(__name__)
 
@@ -106,9 +108,8 @@ class DimensionExtractor:
             PhysicsState with all 12 dimensions populated
         """
         # Convert embedding if provided
-        if embedding is not None:
-            if isinstance(embedding, list):
-                embedding = np.array(embedding)
+        if embedding is not None and isinstance(embedding, list):
+            embedding = np.array(embedding)
 
         # Extract spatial dimensions from embedding
         x, y, z = self._extract_spatial(embedding)

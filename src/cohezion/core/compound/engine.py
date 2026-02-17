@@ -9,6 +9,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+
 if TYPE_CHECKING:
     from cohezion.registry.capability_registry import CapabilityRegistry
 
@@ -45,11 +46,7 @@ class CompoundLogicEngine:
 
         try:
             matches = self._registry.find(query, top_k=3)
-            return [
-                {"name": m.name, "hooks": getattr(m, "hooks", [])}
-                for m in matches
-                if m is not None
-            ]
+            return [{"name": m.name, "hooks": getattr(m, "hooks", [])} for m in matches if m is not None]
         except Exception as e:
             logger.debug("Compound analysis failed: %s", e)
             return []

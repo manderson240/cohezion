@@ -1,11 +1,8 @@
 """Unit tests for sheets research daemon components."""
 
-import json
 import sqlite3
 import tempfile
 from pathlib import Path
-
-import pytest
 
 from mcp_server.sheets_research_daemon import (
     AgentCoordinator,
@@ -21,16 +18,14 @@ class TestWorkQueue:
         """Test work queue creates schema correctly."""
         with tempfile.TemporaryDirectory() as tmpdir:
             db_path = str(Path(tmpdir) / "test.db")
-            queue = WorkQueue(db_path)
+            WorkQueue(db_path)
 
             # Verify database exists
             assert Path(db_path).exists()
 
             # Verify schema
             conn = sqlite3.connect(db_path)
-            cursor = conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table' AND name='work_queue'"
-            )
+            cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='work_queue'")
             assert cursor.fetchone() is not None
             conn.close()
 
@@ -65,9 +60,7 @@ class TestWorkQueue:
 
             # Verify state changed
             conn = sqlite3.connect(db_path)
-            cursor = conn.execute(
-                "SELECT state FROM work_queue WHERE row_number = 100"
-            )
+            cursor = conn.execute("SELECT state FROM work_queue WHERE row_number = 100")
             state = cursor.fetchone()[0]
             conn.close()
             assert state == "IN_PROGRESS"
@@ -135,16 +128,14 @@ class TestDeadLetterQueue:
         """Test DLQ creates schema correctly."""
         with tempfile.TemporaryDirectory() as tmpdir:
             db_path = str(Path(tmpdir) / "dlq.db")
-            dlq = DeadLetterQueue(db_path)
+            DeadLetterQueue(db_path)
 
             # Verify database exists
             assert Path(db_path).exists()
 
             # Verify schema
             conn = sqlite3.connect(db_path)
-            cursor = conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table' AND name='dead_letter_queue'"
-            )
+            cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='dead_letter_queue'")
             assert cursor.fetchone() is not None
             conn.close()
 
@@ -223,7 +214,13 @@ class TestAgentCoordinator:
         coordinator = AgentCoordinator()
 
         # Simulate JSONL output with JSON block
-        output = '''{"type": "content_block_delta", "delta": {"type": "text_delta", "text": "```json\\n[{\\"row\\": 100, \\"status\\": \\"Researched\\", \\"abstractions\\": \\"Test\\", \\"domain\\": \\"AI\\", \\"integration_point\\": \\"Test point\\"}]\\n```"}}'''
+        output = (
+            '{"type": "content_block_delta", "delta": {"type":'
+            ' "text_delta", "text": "```json\\n[{\\"row\\": 100,'
+            ' \\"status\\": \\"Researched\\", \\"abstractions\\":'
+            ' \\"Test\\", \\"domain\\": \\"AI\\",'
+            ' \\"integration_point\\": \\"Test point\\"}]\\n```"}}'
+        )
 
         results = coordinator.extract_json_from_output(output)
 
@@ -236,7 +233,11 @@ class TestAgentCoordinator:
         coordinator = AgentCoordinator()
 
         # Missing required fields
-        output = '''{"type": "content_block_delta", "delta": {"type": "text_delta", "text": "```json\\n[{\\"row\\": 100, \\"status\\": \\"Researched\\"}]\\n```"}}'''
+        output = (
+            '{"type": "content_block_delta", "delta": {"type":'
+            ' "text_delta", "text": "```json\\n[{\\"row\\": 100,'
+            ' \\"status\\": \\"Researched\\"}]\\n```"}}'
+        )
 
         results = coordinator.extract_json_from_output(output)
 
@@ -258,10 +259,25 @@ class TestAgentCoordinator:
         coordinator = AgentCoordinator()
 
         # Two JSON blocks, larger one has more entries
-        output = '''
-        {"type": "content_block_delta", "delta": {"type": "text_delta", "text": "```json\\n[{\\"row\\": 100, \\"status\\": \\"Researched\\", \\"abstractions\\": \\"Test\\", \\"domain\\": \\"AI\\", \\"integration_point\\": \\"Test\\"}]\\n```"}}
-        {"type": "content_block_delta", "delta": {"type": "text_delta", "text": "```json\\n[{\\"row\\": 101, \\"status\\": \\"Researched\\", \\"abstractions\\": \\"Test1\\", \\"domain\\": \\"AI\\", \\"integration_point\\": \\"Test1\\"}, {\\"row\\": 102, \\"status\\": \\"Researched\\", \\"abstractions\\": \\"Test2\\", \\"domain\\": \\"AI\\", \\"integration_point\\": \\"Test2\\"}]\\n```"}}
-        '''
+        line1 = (
+            '{"type": "content_block_delta", "delta": {"type":'
+            ' "text_delta", "text": "```json\\n[{\\"row\\": 100,'
+            ' \\"status\\": \\"Researched\\", \\"abstractions\\":'
+            ' \\"Test\\", \\"domain\\": \\"AI\\",'
+            ' \\"integration_point\\": \\"Test\\"}]\\n```"}}'
+        )
+        line2 = (
+            '{"type": "content_block_delta", "delta": {"type":'
+            ' "text_delta", "text": "```json\\n[{\\"row\\": 101,'
+            ' \\"status\\": \\"Researched\\", \\"abstractions\\":'
+            ' \\"Test1\\", \\"domain\\": \\"AI\\",'
+            ' \\"integration_point\\": \\"Test1\\"}, {\\"row\\":'
+            ' 102, \\"status\\": \\"Researched\\",'
+            ' \\"abstractions\\": \\"Test2\\", \\"domain\\":'
+            ' \\"AI\\", \\"integration_point\\":'
+            ' \\"Test2\\"}]\\n```"}}'
+        )
+        output = f"\n        {line1}\n        {line2}\n        "
 
         results = coordinator.extract_json_from_output(output)
 

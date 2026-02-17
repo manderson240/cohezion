@@ -26,6 +26,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
 
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
@@ -37,6 +38,7 @@ from cohezion.security.attack_patterns import (
 )
 from cohezion.security.prompt_guard import PromptGuard, ThreatLevel
 from cohezion.security.validators import ValidationResult, validate_input
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -73,11 +75,7 @@ class TestMetrics:
     false_positives: int = 0
     false_negatives: int = 0
     total_time_ms: float = 0.0
-    by_category: dict = field(
-        default_factory=lambda: defaultdict(
-            lambda: {"total": 0, "correct": 0, "fp": 0, "fn": 0}
-        )
-    )
+    by_category: dict = field(default_factory=lambda: defaultdict(lambda: {"total": 0, "correct": 0, "fp": 0, "fn": 0}))
 
     @property
     def detection_rate(self) -> float:
@@ -148,10 +146,7 @@ def test_single_pattern(pattern: AttackPattern) -> TestResult:
 
     # Test validator
     validation_result = validate_input(pattern.pattern)
-    validator_blocked = (
-        validation_result is not None
-        and validation_result.code == ValidationResult.BLOCKED_PATTERN
-    )
+    validator_blocked = validation_result is not None and validation_result.code == ValidationResult.BLOCKED_PATTERN
 
     # Combined result
     actually_blocked = prompt_blocked or validator_blocked
@@ -350,9 +345,7 @@ class AdversarialTester:
                             "correct": result.correct,
                         }
                     )
-            logger.info(
-                f"Saved {len(self.failed_patterns)} failures to {failures_path}"
-            )
+            logger.info(f"Saved {len(self.failed_patterns)} failures to {failures_path}")
 
         # Generate report
         self._generate_report(timestamp)
@@ -388,7 +381,9 @@ class AdversarialTester:
 """
         for cat, stats in sorted(self.metrics.by_category.items()):
             acc = stats["correct"] / stats["total"] if stats["total"] > 0 else 0
-            report += f"| {cat} | {stats['total']:,} | {stats['correct']:,} | {stats['fp']} | {stats['fn']} | {acc:.2%} |\n"
+            report += (
+                f"| {cat} | {stats['total']:,} | {stats['correct']:,} | {stats['fp']} | {stats['fn']} | {acc:.2%} |\n"
+            )
 
         report += f"""
 ## Attack Pattern Coverage
@@ -402,7 +397,10 @@ class AdversarialTester:
 """
         # Add recommendations based on results
         if self.metrics.false_negatives > 0:
-            report += f"- ⚠️ **{self.metrics.false_negatives} attacks bypassed detection** - Review failed patterns and enhance rules\n"
+            report += (
+                f"- **{self.metrics.false_negatives} attacks bypassed"
+                " detection** - Review failed patterns and enhance rules\n"
+            )
 
         if self.metrics.false_positives > 0:
             report += f"- ⚠️ **{self.metrics.false_positives} false positives** - Adjust detection thresholds\n"
@@ -434,9 +432,7 @@ def main():
     """CLI entry point."""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Adversarial Security Testing Framework"
-    )
+    parser = argparse.ArgumentParser(description="Adversarial Security Testing Framework")
     parser.add_argument(
         "--rounds",
         "-r",

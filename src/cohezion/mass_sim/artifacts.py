@@ -8,9 +8,14 @@ from __future__ import annotations
 
 import json
 import logging
-from pathlib import Path
+from typing import TYPE_CHECKING
 
-from cohezion.mass_sim.config import SimulationReport, UniverseResult
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from cohezion.mass_sim.config import SimulationReport, UniverseResult
+
 
 logger = logging.getLogger(__name__)
 
@@ -64,9 +69,7 @@ class ArtifactGenerator:
 
         epochs = [c.epoch for c in result.checkpoints]
         coherences = [c.stats.get("mean_coherence", 0) for c in result.checkpoints]
-        within_bounds = [
-            c.stats.get("pct_within_bounds", 0) for c in result.checkpoints
-        ]
+        within_bounds = [c.stats.get("pct_within_bounds", 0) for c in result.checkpoints]
 
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
 
@@ -127,9 +130,7 @@ class ArtifactGenerator:
         scores = [r["stability_score"] for r in top]
 
         fig, ax = plt.subplots(figsize=(12, 5))
-        colors = [
-            "green" if s > 0.8 else "orange" if s > 0.5 else "red" for s in scores
-        ]
+        colors = ["green" if s > 0.8 else "orange" if s > 0.5 else "red" for s in scores]
         ax.barh(names, scores, color=colors)
         ax.set_xlabel("Stability Score (1.0 = perfect HIHO)")
         ax.set_title(f"Universe Stability Ranking ({report.run_id})")

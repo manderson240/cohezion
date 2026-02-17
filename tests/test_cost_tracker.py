@@ -9,9 +9,8 @@ Verifies:
 - Model cost tracking
 """
 
-import asyncio
 import time
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -133,19 +132,13 @@ class TestSessionCostTracker:
         tracker = SessionCostTracker(session_id="test-session-1")
 
         # Call 1: qwen3 (free)
-        cost1 = tracker.track_usage_fast(
-            model="qwen3-coder:32b", tokens=500, duration_ms=250.0
-        )
+        cost1 = tracker.track_usage_fast(model="qwen3-coder:32b", tokens=500, duration_ms=250.0)
 
         # Call 2: gpt-4 ($0.03 per 1K)
-        cost2 = tracker.track_usage_fast(
-            model="gpt-4", tokens=1000, duration_ms=500.0
-        )
+        cost2 = tracker.track_usage_fast(model="gpt-4", tokens=1000, duration_ms=500.0)
 
         # Call 3: claude-3-sonnet ($0.003 per 1K)
-        cost3 = tracker.track_usage_fast(
-            model="claude-3-sonnet", tokens=2000, duration_ms=1000.0
-        )
+        cost3 = tracker.track_usage_fast(model="claude-3-sonnet", tokens=2000, duration_ms=1000.0)
 
         assert cost1 == 0.0
         assert cost2 == 0.03
@@ -173,7 +166,7 @@ class TestSessionCostTracker:
         tracker = SessionCostTracker(session_id="test-session-1", batch_size=5)
 
         # Add 4 records (below threshold)
-        for i in range(4):
+        for _i in range(4):
             tracker.track_usage_fast("qwen3-coder:32b", tokens=100)
 
         assert len(tracker.records) == 4
@@ -267,7 +260,7 @@ class TestSessionCostTracker:
         )
 
         # Add records
-        for i in range(12):
+        for _i in range(12):
             tracker.track_usage_fast("qwen3-coder:32b", tokens=100)
 
         # Flush all
@@ -291,7 +284,7 @@ class TestSessionCostTracker:
         )
 
         # Add records
-        for i in range(10):
+        for _i in range(10):
             tracker.track_usage_fast("qwen3-coder:32b", tokens=100)
 
         # Flush all (should fail gracefully)

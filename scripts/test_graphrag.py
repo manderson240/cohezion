@@ -9,7 +9,6 @@ Tests graph-vector hybrid search:
 """
 
 import httpx
-import json
 
 
 def execute_surreal(query: str) -> list:
@@ -25,7 +24,7 @@ def execute_surreal(query: str) -> list:
         },
         auth=("root", "root"),
         content=full_query,
-        timeout=10.0
+        timeout=10.0,
     )
     response.raise_for_status()
     results = response.json()
@@ -87,7 +86,7 @@ def test_graphrag():
     FETCH informed_patterns;
     """
     result = execute_surreal(graph_query)
-    decision = result[0]['result'][0]
+    decision = result[0]["result"][0]
     print(f"   📊 Decision: {decision['title']}")
     print(f"   🔗 Informed {len(decision.get('informed_patterns', []))} pattern(s)")
 
@@ -103,10 +102,10 @@ def test_graphrag():
     FETCH informed_by_decisions;
     """
     result = execute_surreal(reverse_query)
-    pattern = result[0]['result'][0]
+    pattern = result[0]["result"][0]
     print(f"   📊 Pattern: {pattern['title']}")
-    if pattern.get('informed_by_decisions'):
-        for decision in pattern['informed_by_decisions']:
+    if pattern.get("informed_by_decisions"):
+        for decision in pattern["informed_by_decisions"]:
             print(f"   ⬅️  Informed by: {decision['title']}")
 
     # Step 6: Count total vault memories
@@ -128,5 +127,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ Error: {e}")
         import traceback
+
         traceback.print_exc()
         exit(1)

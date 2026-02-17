@@ -1,7 +1,6 @@
 """Unit tests for agent context operations (Phase 1)."""
 
-import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -219,9 +218,7 @@ class TestAgentContextOps:
         session_id = "agent_session:workflow-test"
 
         # Track session
-        mock_surrealdb._execute_query.return_value = [
-            {"id": session_id, "status": "in_progress"}
-        ]
+        mock_surrealdb._execute_query.return_value = [{"id": session_id, "status": "in_progress"}]
 
         session_result = agent_context.track_session(
             agent_id="test-agent",

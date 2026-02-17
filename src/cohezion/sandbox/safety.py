@@ -14,17 +14,19 @@ import logging
 import re
 import threading
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
-from typing import Any, Callable, Optional
+from enum import StrEnum
+from typing import Any
 
 import psutil
+
 
 logger = logging.getLogger(__name__)
 
 
-class RiskLevel(str, Enum):
+class RiskLevel(StrEnum):
     """Safety risk levels."""
 
     LOW = "low"
@@ -33,7 +35,7 @@ class RiskLevel(str, Enum):
     CRITICAL = "critical"
 
 
-class ViolationSeverity(str, Enum):
+class ViolationSeverity(StrEnum):
     """Violation severity levels."""
 
     WARNING = "warning"
@@ -92,7 +94,7 @@ class Monitor:
     def __init__(
         self,
         policy: SafetyPolicy,
-        process_id: Optional[int] = None,
+        process_id: int | None = None,
         check_interval: float = 0.5,
     ):
         """Initialize monitor.
@@ -106,7 +108,7 @@ class Monitor:
         self.process_id = process_id
         self.check_interval = check_interval
         self.is_running = False
-        self._thread: Optional[threading.Thread] = None
+        self._thread: threading.Thread | None = None
         self.violations: list[Violation] = []
         self._callbacks: dict[str, list[Callable]] = {
             "cpu_violation": [],
@@ -222,9 +224,7 @@ class PreFlightChecker:
             r"\/dev\/sda",
         ]
 
-    def check(
-        self, request: dict[str, Any], policy: SafetyPolicy
-    ) -> SafetyCheckResult:
+    def check(self, request: dict[str, Any], policy: SafetyPolicy) -> SafetyCheckResult:
         """Run preflight checks.
 
         Args:
@@ -234,9 +234,7 @@ class PreFlightChecker:
         Returns:
             SafetyCheckResult with all checks
         """
-        result = SafetyCheckResult(
-            passed=True, checks_run=0, checks_passed=0, violations=[]
-        )
+        result = SafetyCheckResult(passed=True, checks_run=0, checks_passed=0, violations=[])
 
         # Check 1: Operation whitelist
         result.checks_run += 1
@@ -253,9 +251,7 @@ class PreFlightChecker:
                     resource="operation",
                 )
             )
-            result.recommendations.append(
-                "Add operation to policy allowed_operations list"
-            )
+            result.recommendations.append("Add operation to policy allowed_operations list")
 
         # Check 2: Blocked commands
         result.checks_run += 1
@@ -326,16 +322,12 @@ class PreFlightChecker:
 
         return result
 
-    def _is_operation_allowed(
-        self, request: dict[str, Any], policy: SafetyPolicy
-    ) -> bool:
+    def _is_operation_allowed(self, request: dict[str, Any], policy: SafetyPolicy) -> bool:
         """Check if operation is allowed."""
         # Allow all operations by default, policy can restrict
         return True
 
-    def _check_blocked_commands(
-        self, request: dict[str, Any], policy: SafetyPolicy
-    ) -> Optional[str]:
+    def _check_blocked_commands(self, request: dict[str, Any], policy: SafetyPolicy) -> str | None:
         """Check for blocked command patterns."""
         context = request.get("context", {})
         command = str(context.get("command", ""))
@@ -346,9 +338,7 @@ class PreFlightChecker:
 
         return None
 
-    def _check_path_whitelist(
-        self, request: dict[str, Any], policy: SafetyPolicy
-    ) -> list[Violation]:
+    def _check_path_whitelist(self, request: dict[str, Any], policy: SafetyPolicy) -> list[Violation]:
         """Check if modified paths are whitelisted."""
         violations = []
         context = request.get("context", {})
@@ -377,17 +367,12 @@ class PreFlightChecker:
 
         return violations
 
-    def _check_network_access(
-        self, request: dict[str, Any], policy: SafetyPolicy
-    ) -> bool:
+    def _check_network_access(self, request: dict[str, Any], policy: SafetyPolicy) -> bool:
         """Check if network access is allowed."""
         context = request.get("context", {})
         needs_network = context.get("network_required", False)
 
-        if needs_network and not policy.network_allowed:
-            return False
-
-        return True
+        return not (needs_network and not policy.network_allowed)
 
     def _check_resource_availability(self, policy: SafetyPolicy) -> list[Violation]:
         """Check if required resources are available."""
@@ -425,9 +410,7 @@ class PreFlightChecker:
 
         return violations
 
-    def _calculate_risk_score(
-        self, result: SafetyCheckResult, policy: SafetyPolicy
-    ) -> float:
+    def _calculate_risk_score(self, result: SafetyCheckResult, policy: SafetyPolicy) -> float:
         """Calculate composite risk score (0.0 to 1.0)."""
         if result.passed and len(result.violations) == 0:
             return 0.0
@@ -466,9 +449,7 @@ class RiskAssessor:
             "system_call": 0.25,
         }
 
-    def calculate_risk(
-        self, operation: str, context: dict[str, Any]
-    ) -> float:
+    def calculate_risk(self, operation: str, context: dict[str, Any]) -> float:
         """Calculate risk score for operation.
 
         Args:
@@ -490,9 +471,7 @@ class RiskAssessor:
         if context.get("spawn_processes", False):
             score += self._risk_weights["process_spawn"]
 
-        if context.get("cpu_intensive", False) or context.get(
-            "memory_intensive", False
-        ):
+        if context.get("cpu_intensive", False) or context.get("memory_intensive", False):
             score += self._risk_weights["resource_intensive"]
 
         if context.get("system_call", False):
@@ -554,8 +533,7 @@ class ConstraintEnforcer:
             # In production, would write to /sys/fs/cgroup/...
             # For now, log the intended limits
             logger.debug(
-                f"Would set cgroup limits: CPU {self.policy.max_cpu_percent}%, "
-                f"Memory {self.policy.max_memory_gb}GB"
+                f"Would set cgroup limits: CPU {self.policy.max_cpu_percent}%, Memory {self.policy.max_memory_gb}GB"
             )
         except Exception as e:
             logger.debug(f"Failed to set cgroup limits: {e}")
@@ -600,9 +578,7 @@ class SafetyHarness:
         self._risk_assessor = RiskAssessor()
         self._monitors: dict[str, Monitor] = {}
 
-    def preflight_check(
-        self, request: dict[str, Any], policy: SafetyPolicy
-    ) -> SafetyCheckResult:
+    def preflight_check(self, request: dict[str, Any], policy: SafetyPolicy) -> SafetyCheckResult:
         """Run preflight safety checks.
 
         Args:
@@ -618,7 +594,7 @@ class SafetyHarness:
     def start_monitoring(
         self,
         policy: SafetyPolicy,
-        process_id: Optional[int] = None,
+        process_id: int | None = None,
         check_interval: float = 0.5,
     ) -> Monitor:
         """Start real-time constraint monitoring.
@@ -653,9 +629,7 @@ class SafetyHarness:
         enforcer.enforce()
         return enforcer
 
-    def calculate_risk(
-        self, operation: str, context: dict[str, Any]
-    ) -> float:
+    def calculate_risk(self, operation: str, context: dict[str, Any]) -> float:
         """Calculate risk score for operation.
 
         Args:

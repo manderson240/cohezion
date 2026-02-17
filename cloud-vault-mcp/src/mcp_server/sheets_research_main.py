@@ -4,7 +4,6 @@ import argparse
 import asyncio
 import json
 import logging
-import signal
 import sys
 from pathlib import Path
 
@@ -124,7 +123,7 @@ def main():
     subparsers.add_parser("start", help="Start the daemon (default)")
 
     # DLQ commands
-    dlq_parser = subparsers.add_parser("dlq", help="Show dead letter queue")
+    subparsers.add_parser("dlq", help="Show dead letter queue")
     retry_parser = subparsers.add_parser("retry", help="Retry a failed row")
     retry_parser.add_argument("row", type=int, help="Row number to retry")
 
@@ -134,13 +133,14 @@ def main():
     )
     inaccessible_parser.add_argument("row", type=int, help="Row number to mark")
 
-    status_parser = subparsers.add_parser("status", help="Get daemon status")
+    subparsers.add_parser("status", help="Get daemon status")
 
     args = parser.parse_args()
     config = ServerConfig.from_env()
 
     # Handle non-daemon commands
     if args.command in ("dlq", "retry", "mark-inaccessible", "status"):
+
         async def run_command():
             daemon = await _init_daemon(config)
             if args.command == "dlq":

@@ -16,6 +16,7 @@ from cohezion.swarm.swarm_types import (
     ThoughtVector,
 )
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -45,9 +46,7 @@ class CriticAgent(BaseAgent):
             config=config,
         )
 
-    async def process(
-        self, analyst_outputs: list[ThoughtVector], **kwargs: Any
-    ) -> CritiqueResult:
+    async def process(self, analyst_outputs: list[ThoughtVector], **kwargs: Any) -> CritiqueResult:
         """Process analyst outputs and return critique."""
         return await self.critique(analyst_outputs)
 
@@ -104,22 +103,17 @@ RECOMMENDATION:
             return CritiqueResult(
                 analyst_outputs=analyst_outputs,
                 overall_coherence=0.5,
-                recommendation=f"Critique failed: {str(e)}",
+                recommendation=f"Critique failed: {e!s}",
             )
 
     def _format_outputs(self, outputs: list[ThoughtVector]) -> str:
         """Format analyst outputs for the prompt."""
         sections = []
         for i, output in enumerate(outputs, 1):
-            sections.append(
-                f"## Perspective {i}: {output.perspective.value.upper()}\n"
-                f"{output.content}\n"
-            )
+            sections.append(f"## Perspective {i}: {output.perspective.value.upper()}\n{output.content}\n")
         return "\n".join(sections)
 
-    def _parse_critique(
-        self, response: str, analyst_outputs: list[ThoughtVector]
-    ) -> CritiqueResult:
+    def _parse_critique(self, response: str, analyst_outputs: list[ThoughtVector]) -> CritiqueResult:
         """Parse the critic's response into structured CritiqueResult."""
         contradictions: list[Contradiction] = []
         logical_issues: list[str] = []
@@ -173,8 +167,7 @@ RECOMMENDATION:
             contradictions=contradictions,
             logical_issues=logical_issues,
             overall_coherence=coherence,
-            recommendation=recommendation.strip()
-            or "Synthesize perspectives carefully.",
+            recommendation=recommendation.strip() or "Synthesize perspectives carefully.",
         )
 
     def __repr__(self) -> str:

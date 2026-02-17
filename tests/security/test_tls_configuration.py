@@ -15,6 +15,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CERTS_DIR = PROJECT_ROOT / "certs"
 
@@ -42,9 +43,7 @@ class TestTLSCertificateGeneration:
 
         # Certificate should be readable (644 or similar)
         cert_mode = oct(cert_path.stat().st_mode)[-3:]
-        assert cert_mode in ["644", "664"], (
-            f"Certificate has insecure permissions: {cert_mode}"
-        )
+        assert cert_mode in ["644", "664"], f"Certificate has insecure permissions: {cert_mode}"
 
         # Private key should only be readable by owner (600)
         key_mode = oct(key_path.stat().st_mode)[-3:]
@@ -61,9 +60,7 @@ class TestTLSCertificateGeneration:
             import OpenSSL
 
             cert_data = cert_path.read_bytes()
-            cert = OpenSSL.crypto.load_certificate(
-                OpenSSL.crypto.FILETYPE_PEM, cert_data
-            )
+            cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, cert_data)
             assert cert is not None
             assert cert.get_subject().CN == "localhost"
         except ImportError:
@@ -79,13 +76,9 @@ class TestTLSCertificateGeneration:
         try:
             import OpenSSL
 
-            cert = OpenSSL.crypto.load_certificate(
-                OpenSSL.crypto.FILETYPE_PEM, cert_path.read_bytes()
-            )
+            cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, cert_path.read_bytes())
             cn = cert.get_subject().CN
-            assert cn == "localhost", (
-                f"Certificate CN should be 'localhost', got '{cn}'"
-            )
+            assert cn == "localhost", f"Certificate CN should be 'localhost', got '{cn}'"
         except ImportError:
             pytest.skip("OpenSSL library not available")
 
@@ -99,9 +92,7 @@ class TestTLSCertificateGeneration:
         try:
             import OpenSSL
 
-            cert = OpenSSL.crypto.load_certificate(
-                OpenSSL.crypto.FILETYPE_PEM, cert_path.read_bytes()
-            )
+            cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, cert_path.read_bytes())
             # Self-signed: issuer == subject
             issuer = cert.get_issuer()
             subject = cert.get_subject()
@@ -225,9 +216,7 @@ class TestCertificateGeneration:
         """Verify certificate generation script exists and is executable."""
         script_path = PROJECT_ROOT / "scripts" / "setup" / "generate_tls_certificates.sh"
         assert script_path.exists(), f"Script not found at {script_path}"
-        assert os.access(script_path, os.X_OK), (
-            f"Script is not executable: {script_path}"
-        )
+        assert os.access(script_path, os.X_OK), f"Script is not executable: {script_path}"
 
     def test_certificate_generation_with_force_flag(self):
         """Test certificate can be regenerated with --force flag."""
@@ -257,9 +246,7 @@ class TestTLSIntegration:
         if not cert_path.exists() or not key_path.exists():
             pytest.skip("Deployment certificates not present")
 
-        assert cert_path.exists() and key_path.exists(), (
-            "Both certificate and key must exist for HTTPS"
-        )
+        assert cert_path.exists() and key_path.exists(), "Both certificate and key must exist for HTTPS"
 
     def test_tls_environment_variables_documented(self):
         """Verify TLS configuration environment variables are documented."""
@@ -274,9 +261,7 @@ class TestTLSIntegration:
             "MCP_TLS_ENABLED",
         ]
         for var in expected_vars:
-            assert var in content, (
-                f"Environment variable {var} not documented in script"
-            )
+            assert var in content, f"Environment variable {var} not documented in script"
 
     def test_certificate_validity_period(self):
         """Verify certificate is valid for at least one year."""
@@ -290,17 +275,13 @@ class TestTLSIntegration:
 
             import OpenSSL
 
-            cert = OpenSSL.crypto.load_certificate(
-                OpenSSL.crypto.FILETYPE_PEM, cert_path.read_bytes()
-            )
+            cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, cert_path.read_bytes())
 
             not_after = cert.get_notAfter().decode()
             # Parse the date (format: YYYYMMDDHHmmssZ)
             exp_date = datetime.strptime(not_after, "%Y%m%d%H%M%SZ")
             days_valid = (exp_date - datetime.utcnow()).days
 
-            assert days_valid >= 365, (
-                f"Certificate validity < 1 year: {days_valid} days"
-            )
+            assert days_valid >= 365, f"Certificate validity < 1 year: {days_valid} days"
         except ImportError:
             pytest.skip("OpenSSL library not available")

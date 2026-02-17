@@ -24,6 +24,7 @@ import sys
 import time
 from pathlib import Path
 
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)-7s | %(message)s",
@@ -33,12 +34,8 @@ logger = logging.getLogger("hyperparam_search")
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Iterative hyperparameter search via Democratic Debate"
-    )
-    parser.add_argument(
-        "--iterations", type=int, default=5, help="Max search iterations (default: 5)"
-    )
+    parser = argparse.ArgumentParser(description="Iterative hyperparameter search via Democratic Debate")
+    parser.add_argument("--iterations", type=int, default=5, help="Max search iterations (default: 5)")
     parser.add_argument(
         "--vae-epochs",
         type=int,
@@ -139,10 +136,10 @@ def main() -> int:
 
     for iteration in range(args.iterations):
         t0 = time.time()
-        logger.info(f"\n{'='*40}")
+        logger.info(f"\n{'=' * 40}")
         logger.info(f"ITERATION {iteration + 1}/{args.iterations}")
         logger.info(f"Params: {json.dumps(params, indent=2)}")
-        logger.info(f"{'='*40}")
+        logger.info(f"{'=' * 40}")
 
         # Step 1: Train VAE
         logger.info("[VAE] Training %d epochs...", args.vae_epochs)
@@ -263,7 +260,11 @@ def main() -> int:
     best_path = output_dir / "best_params.json"
     with open(best_path, "w") as f:
         json.dump(
-            {"params": best_params, "coherence": best_coherence, "iteration": best_iteration},
+            {
+                "params": best_params,
+                "coherence": best_coherence,
+                "iteration": best_iteration,
+            },
             f,
             indent=2,
         )

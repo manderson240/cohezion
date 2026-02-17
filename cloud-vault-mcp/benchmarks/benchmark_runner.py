@@ -7,16 +7,27 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+
 try:
-    from benchmarks import benchmark_ollama_inference, benchmark_sheets_api
-    from benchmarks import benchmark_surrealdb_sync, benchmark_vault_backlinks
-    from benchmarks import benchmark_vault_search, benchmark_vault_search_cache
+    from benchmarks import (
+        benchmark_ollama_inference,
+        benchmark_sheets_api,
+        benchmark_surrealdb_sync,
+        benchmark_vault_backlinks,
+        benchmark_vault_search,
+        benchmark_vault_search_cache,
+    )
 except ImportError:
     # Allow running from project root
     sys.path.insert(0, str(Path(__file__).parent.parent))
-    from benchmarks import benchmark_ollama_inference, benchmark_sheets_api
-    from benchmarks import benchmark_surrealdb_sync, benchmark_vault_backlinks
-    from benchmarks import benchmark_vault_search, benchmark_vault_search_cache
+    from benchmarks import (
+        benchmark_ollama_inference,
+        benchmark_sheets_api,
+        benchmark_surrealdb_sync,
+        benchmark_vault_backlinks,
+        benchmark_vault_search,
+        benchmark_vault_search_cache,
+    )
 
 
 def run_all_benchmarks(output_file: str | None = None) -> dict:
@@ -48,10 +59,7 @@ def run_all_benchmarks(output_file: str | None = None) -> dict:
         try:
             result = benchmark_func()
             results["benchmarks"].append(result.to_dict())
-            print(
-                f" {result.mean_ms:.1f}ms (p95: {result.p95_ms:.1f}ms, "
-                f"error_rate: {result.error_rate:.0%})"
-            )
+            print(f" {result.mean_ms:.1f}ms (p95: {result.p95_ms:.1f}ms, error_rate: {result.error_rate:.0%})")
         except Exception as e:
             print(f" ERROR: {e}")
             results["benchmarks"].append(
@@ -95,7 +103,7 @@ def compare_benchmarks(baseline_file: str, current_file: str) -> None:
     print("\nBenchmark Comparison (baseline → current):")
     print("-" * 70)
 
-    for base, curr in zip(baseline["benchmarks"], current["benchmarks"]):
+    for base, curr in zip(baseline["benchmarks"], current["benchmarks"], strict=False):
         name = base.get("operation", "unknown")
 
         # Handle error cases
@@ -122,19 +130,14 @@ def compare_benchmarks(baseline_file: str, current_file: str) -> None:
             else:
                 status = "≈ SAME"
 
-        print(
-            f"  {name:20s}: {base_mean:7.1f}ms → {curr_mean:7.1f}ms "
-            f"({multiplier:5.2f}x) {status}"
-        )
+        print(f"  {name:20s}: {base_mean:7.1f}ms → {curr_mean:7.1f}ms ({multiplier:5.2f}x) {status}")
 
     print("-" * 70)
 
 
 def main() -> None:
     """Main entry point."""
-    parser = argparse.ArgumentParser(
-        description="Benchmark runner for cloud-vault-mcp performance validation"
-    )
+    parser = argparse.ArgumentParser(description="Benchmark runner for cloud-vault-mcp performance validation")
     parser.add_argument(
         "--output",
         type=str,

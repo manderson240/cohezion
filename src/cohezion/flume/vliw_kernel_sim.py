@@ -3,6 +3,7 @@ import time
 
 import numpy as np
 
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("VLIW_Kernel_Simulation")

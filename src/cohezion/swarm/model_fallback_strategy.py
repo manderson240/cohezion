@@ -26,8 +26,8 @@ Architecture:
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Tuple
 from enum import Enum
+
 
 logger = logging.getLogger(__name__)
 
@@ -47,8 +47,8 @@ class ModelHealthMetrics:
     model: str
     error_count: int = 0  # Consecutive errors
     success_count: int = 0  # Consecutive successes
-    last_error_time: Optional[float] = field(default=None)
-    last_success_time: Optional[float] = field(default=None)
+    last_error_time: float | None = field(default=None)
+    last_success_time: float | None = field(default=None)
     total_requests: int = 0
     total_errors: int = 0
     avg_latency_ms: float = 0.0
@@ -121,7 +121,7 @@ class ModelCircuitBreaker:
 
         self.state = CircuitBreakerState.CLOSED
         self.metrics = ModelHealthMetrics(model=model)
-        self.opened_at: Optional[float] = None
+        self.opened_at: float | None = None
 
     def record_success(self, latency_ms: float = 0.0) -> None:
         """Record successful execution.
@@ -138,14 +138,11 @@ class ModelCircuitBreaker:
         if self.metrics.avg_latency_ms == 0.0:
             self.metrics.avg_latency_ms = latency_ms
         else:
-            self.metrics.avg_latency_ms = (
-                0.7 * self.metrics.avg_latency_ms + 0.3 * latency_ms
-            )
+            self.metrics.avg_latency_ms = 0.7 * self.metrics.avg_latency_ms + 0.3 * latency_ms
 
         # If HALF_OPEN and succeeded, go back to CLOSED
-        if self.state == CircuitBreakerState.HALF_OPEN:
-            if self.metrics.success_count >= self.success_threshold:
-                self._transition_to_closed()
+        if self.state == CircuitBreakerState.HALF_OPEN and self.metrics.success_count >= self.success_threshold:
+            self._transition_to_closed()
 
     def record_error(self) -> None:
         """Record failed execution."""
@@ -180,11 +177,9 @@ class ModelCircuitBreaker:
                     self._transition_to_half_open()
                     return True
             return False
-        elif self.state == CircuitBreakerState.HALF_OPEN:
-            # Allow one test request
-            return True
         else:
-            return False
+            # Allow one test request if HALF_OPEN
+            return self.state == CircuitBreakerState.HALF_OPEN
 
     def _transition_to_open(self) -> None:
         """Transition to OPEN state."""
@@ -201,8 +196,7 @@ class ModelCircuitBreaker:
         """Transition to HALF_OPEN state (testing recovery)."""
         if self.state != CircuitBreakerState.HALF_OPEN:
             logger.info(
-                f"Circuit breaker HALF_OPEN for {self.model}: "
-                f"testing recovery after {self.recovery_timeout_sec}s"
+                f"Circuit breaker HALF_OPEN for {self.model}: testing recovery after {self.recovery_timeout_sec}s"
             )
             self.state = CircuitBreakerState.HALF_OPEN
             self.metrics.error_count = 0
@@ -281,18 +275,18 @@ class ModelFallbackStrategy:
         self.min_quality_loss = min_quality_loss
 
         # Circuit breakers per model
-        self.circuit_breakers: Dict[str, ModelCircuitBreaker] = {}
+        self.circuit_breakers: dict[str, ModelCircuitBreaker] = {}
 
         # Degradation tracking
         self.fallback_count: int = 0
-        self.fallback_history: List[Tuple[str, str, float]] = []  # (primary, fallback, time)
+        self.fallback_history: list[tuple[str, str, float]] = []  # (primary, fallback, time)
 
     def select_model(
         self,
         primary_model: str,
-        available_models: List[str],
-        quality_scores: Optional[Dict[str, float]] = None,
-    ) -> Tuple[str, bool]:
+        available_models: list[str],
+        quality_scores: dict[str, float] | None = None,
+    ) -> tuple[str, bool]:
         """Select model with fallback support.
 
         Args:
@@ -313,9 +307,7 @@ class ModelFallbackStrategy:
             return primary_model, False
 
         # Try fallback chain
-        fallback_chain = self.DEFAULT_FALLBACK_CHAINS.get(
-            primary_model, available_models
-        )
+        fallback_chain = self.DEFAULT_FALLBACK_CHAINS.get(primary_model, available_models)
 
         for fallback_model in fallback_chain:
             if fallback_model not in available_models:
@@ -348,21 +340,15 @@ class ModelFallbackStrategy:
         available_non_primary = [m for m in available_models if m != primary_model]
         if available_non_primary:
             selected = available_non_primary[0]
-            logger.error(
-                f"All models degraded or primary unavailable, using fallback: {selected}"
-            )
+            logger.error(f"All models degraded or primary unavailable, using fallback: {selected}")
             self._record_fallback(primary_model, selected)
             return selected, True
 
         # Absolute last resort: return primary anyway
-        logger.error(
-            f"No alternative models available, forced to use primary: {primary_model}"
-        )
+        logger.error(f"No alternative models available, forced to use primary: {primary_model}")
         return primary_model, True
 
-    def record_execution(
-        self, model: str, success: bool, latency_ms: float = 0.0
-    ) -> None:
+    def record_execution(self, model: str, success: bool, latency_ms: float = 0.0) -> None:
         """Record execution result for circuit breaker.
 
         Args:
@@ -388,7 +374,7 @@ class ModelFallbackStrategy:
         """
         return self._get_breaker(model).metrics
 
-    def get_all_health(self) -> Dict[str, ModelHealthMetrics]:
+    def get_all_health(self) -> dict[str, ModelHealthMetrics]:
         """Get health metrics for all tracked models.
 
         Returns:
@@ -425,8 +411,7 @@ class ModelFallbackStrategy:
         self.fallback_history.append((primary, fallback, time.time()))
 
         logger.info(
-            f"Fallback #{self.fallback_count}: {primary} → {fallback} "
-            f"(total degradations: {self.fallback_count})"
+            f"Fallback #{self.fallback_count}: {primary} → {fallback} (total degradations: {self.fallback_count})"
         )
 
     def get_fallback_stats(self) -> dict:
@@ -437,13 +422,11 @@ class ModelFallbackStrategy:
         """
         stats = {
             "total_fallbacks": self.fallback_count,
-            "recent_fallbacks": len(
-                [t for _, _, ts in self.fallback_history if time.time() - ts < 3600]
-            ),
+            "recent_fallbacks": len([ts for _, _, ts in self.fallback_history if time.time() - ts < 3600]),
         }
 
         # Count fallback patterns
-        patterns: Dict[Tuple[str, str], int] = {}
+        patterns: dict[tuple[str, str], int] = {}
         for primary, fallback, _ in self.fallback_history:
             key = (primary, fallback)
             patterns[key] = patterns.get(key, 0) + 1
@@ -475,4 +458,4 @@ def reset_fallback_strategy() -> None:
 
 
 # Global singleton
-_fallback_strategy: Optional[ModelFallbackStrategy] = None
+_fallback_strategy: ModelFallbackStrategy | None = None

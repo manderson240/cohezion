@@ -1,9 +1,11 @@
 """Utility functions for running and analyzing benchmarks."""
 
+import contextlib
 import statistics
 import time
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from typing import Any, Callable
+from typing import Any
 
 
 @dataclass
@@ -46,10 +48,8 @@ def run_benchmark(
     """
     # Warmup runs (errors ignored)
     for _ in range(warmup):
-        try:
+        with contextlib.suppress(Exception):
             func()
-        except Exception:
-            pass
 
     # Measured runs
     times: list[float] = []

@@ -2,19 +2,22 @@ import asyncio
 import logging
 import sys
 from pathlib import Path
+
 import torch
+
 
 # Add src to path
 sys.path.append(str(Path.cwd() / "src"))
 
+from cohezion.cosmic.plasma import get_plasma_filaments
+from cohezion.cosmic.reality import get_reality_stabilizer
 from cohezion.swarm.agents.cosmic_agent import CosmicAgent
 from cohezion.swarm.swarm_types import SwarmConfig
-from cohezion.cosmic.reality import get_reality_stabilizer
-from cohezion.cosmic.plasma import get_plasma_filaments
+
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("CosmicVerification")
+    logging.getLogger("CosmicVerification")
 
     config = SwarmConfig()
     agent = CosmicAgent(config=config)
@@ -47,7 +50,7 @@ async def main():
     if abs(new_coherence - 0.5) < abs(coherence - 0.5):
         print("✅ PASS: Static vector destabilized toward 0.5.")
     else:
-         print("❌ FAIL: Correction failed.")
+        print("❌ FAIL: Correction failed.")
 
     print("\n--- 🪐 Test 3: Cosmic Agent Execution ---")
     query = "Explain the connection between Plasma Cosmology and the Electric Universe."
@@ -60,6 +63,7 @@ async def main():
         print("❌ FAIL: Missing cosmic metadata.")
 
     await agent.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

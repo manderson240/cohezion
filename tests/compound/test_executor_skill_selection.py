@@ -24,7 +24,7 @@ def executor(mock_mcp_client):
     mock_logger = MagicMock()
     mock_logger.get_experience_guidance.return_value = {
         "relevant_context": [],
-        "guidance": "No prior patterns found."
+        "guidance": "No prior patterns found.",
     }
     executor.logger = mock_logger
     return executor
@@ -98,9 +98,7 @@ class TestExecutorSkillSuggestion:
 
     def test_suggest_skills_error_handling(self, executor):
         """Test suggest_skills gracefully handles errors."""
-        executor.mcp_client.vault_find_relevant_context.side_effect = RuntimeError(
-            "Vault error"
-        )
+        executor.mcp_client.vault_find_relevant_context.side_effect = RuntimeError("Vault error")
 
         suggestions = executor.suggest_skills(
             "Task",
@@ -145,9 +143,7 @@ class TestExecutorSkillSelectionWorkflow:
 
     def test_get_guidance_then_suggest_skills(self, executor):
         """Test typical workflow: get guidance then suggest skills."""
-        executor.logger.get_experience_guidance.return_value = {
-            "relevant_context": [{"pattern": "test"}]
-        }
+        executor.logger.get_experience_guidance.return_value = {"relevant_context": [{"pattern": "test"}]}
         executor.mcp_client.vault_find_relevant_context.return_value = [
             {"title": "skill1", "content": "coherence: 0.9"}
         ]
@@ -167,6 +163,7 @@ class TestExecutorSkillSelectionWorkflow:
 
     def test_skill_selection_with_multiple_operations(self, executor):
         """Test selecting different skills for different operations."""
+
         # Setup different patterns for different operations
         def vault_response(query, project=None):
             if "generate" in query:
@@ -219,16 +216,19 @@ class TestExecutorSkillSelectionIntegrationWithExecution:
             suggested_skill = suggestions[0][0]
 
             # Now execute with the suggested skill
-            with patch.object(
-                executor.logger,
-                "get_experience_guidance",
-                return_value={"context": "test"},
-            ), patch.object(
-                executor.logger, "log_execution_start", return_value="exp_path"
-            ), patch.object(
-                executor.logger, "log_execution_result"
-            ), patch.object(
-                executor.logger, "extract_execution_pattern", return_value="pattern_path"
+            with (
+                patch.object(
+                    executor.logger,
+                    "get_experience_guidance",
+                    return_value={"context": "test"},
+                ),
+                patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
+                patch.object(executor.logger, "log_execution_result"),
+                patch.object(
+                    executor.logger,
+                    "extract_execution_pattern",
+                    return_value="pattern_path",
+                ),
             ):
 
                 def execute_fn(guidance):
@@ -255,16 +255,19 @@ class TestExecutorSkillSelectionIntegrationWithExecution:
         # Should still be able to execute with default skill
         default_skill = "fallback_skill"
 
-        with patch.object(
-            executor.logger,
-            "get_experience_guidance",
-            return_value={"context": "test"},
-        ), patch.object(
-            executor.logger, "log_execution_start", return_value="exp_path"
-        ), patch.object(
-            executor.logger, "log_execution_result"
-        ), patch.object(
-            executor.logger, "extract_execution_pattern", return_value="pattern_path"
+        with (
+            patch.object(
+                executor.logger,
+                "get_experience_guidance",
+                return_value={"context": "test"},
+            ),
+            patch.object(executor.logger, "log_execution_start", return_value="exp_path"),
+            patch.object(executor.logger, "log_execution_result"),
+            patch.object(
+                executor.logger,
+                "extract_execution_pattern",
+                return_value="pattern_path",
+            ),
         ):
 
             def execute_fn(guidance):

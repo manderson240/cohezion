@@ -1,11 +1,12 @@
 """Tests for DynamicConcurrencyGate - Phase 1 Bottleneck #1."""
 
-import pytest
 from unittest.mock import MagicMock
 
+import pytest
+
 from cohezion.swarm.dynamic_concurrency_gate import (
-    DynamicConcurrencyGate,
     ConcurrencyDecision,
+    DynamicConcurrencyGate,
     get_concurrency_gate,
 )
 
@@ -159,7 +160,7 @@ class TestMonitoring:
 
         assert gate.get_last_decision() is None
 
-        concurrency = gate.get_safe_concurrency()
+        gate.get_safe_concurrency()
         decision = gate.get_last_decision()
         assert decision is not None
         assert decision.safe_concurrency == 12

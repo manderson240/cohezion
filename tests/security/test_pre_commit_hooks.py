@@ -37,14 +37,10 @@ class TestPreCommitConfiguration:
         repo_ids = [repo.get("repo", "") for repo in config.get("repos", [])]
 
         # Should include detect-private-key hook
-        assert any("pre-commit-hooks" in r for r in repo_ids), (
-            "Missing detect-private-key hook"
-        )
+        assert any("pre-commit-hooks" in r for r in repo_ids), "Missing detect-private-key hook"
 
         # Should include detect-secrets
-        assert any("detect-secrets" in r for r in repo_ids), (
-            "Missing detect-secrets hook"
-        )
+        assert any("detect-secrets" in r for r in repo_ids), "Missing detect-secrets hook"
 
     def test_secrets_baseline_exists(self):
         """Test that .secrets.baseline file exists."""
@@ -119,9 +115,7 @@ class TestPreCommitConfiguration:
                 for hook in hooks:
                     assert hook.get("id") == "detect-secrets"
                     # Should use baseline
-                    assert ".secrets.baseline" in str(hook.get("args", [])), (
-                        "detect-secrets should use baseline"
-                    )
+                    assert ".secrets.baseline" in str(hook.get("args", [])), "detect-secrets should use baseline"
 
         assert found_detect_secrets, "detect-secrets hook not found"
 
@@ -264,9 +258,7 @@ class TestPreCommitHooksIntegration:
             # Local hooks don't have a rev field
             if repo.get("repo") == "local":
                 continue
-            assert "rev" in repo, (
-                f"Repo #{i + 1} ({repo.get('repo')}) missing 'rev' field"
-            )
+            assert "rev" in repo, f"Repo #{i + 1} ({repo.get('repo')}) missing 'rev' field"
             assert repo["rev"], f"Repo #{i + 1} ({repo.get('repo')}) has empty 'rev'"
 
     def test_all_repos_have_hooks_defined(self):
@@ -278,12 +270,8 @@ class TestPreCommitHooksIntegration:
             config = yaml.safe_load(f)
 
         for i, repo in enumerate(config.get("repos", [])):
-            assert "hooks" in repo, (
-                f"Repo #{i + 1} ({repo.get('repo')}) missing 'hooks'"
-            )
-            assert isinstance(repo["hooks"], list), (
-                f"Repo #{i + 1} hooks should be a list"
-            )
+            assert "hooks" in repo, f"Repo #{i + 1} ({repo.get('repo')}) missing 'hooks'"
+            assert isinstance(repo["hooks"], list), f"Repo #{i + 1} hooks should be a list"
             assert len(repo["hooks"]) > 0, f"Repo #{i + 1} has no hooks defined"
 
     def test_hook_ids_are_valid(self):
@@ -321,9 +309,7 @@ class TestSecurityHooksPerformance:
                     hook_id = hook.get("id", "")
 
                     for slow in slow_repos:
-                        assert slow not in repo_url, (
-                            f"Slow check '{hook_id}' should not be on commit stage"
-                        )
+                        assert slow not in repo_url, f"Slow check '{hook_id}' should not be on commit stage"
 
     def test_push_stage_has_security_checks(self):
         """Test that push stage includes security checks."""

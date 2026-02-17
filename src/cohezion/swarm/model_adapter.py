@@ -14,6 +14,7 @@ from typing import Any
 
 from cohezion.swarm.smart_router import SmartRouter, TaskType
 
+
 logger = logging.getLogger(__name__)
 
 # Map free-form task_type strings to SmartRouter TaskType enums
@@ -86,9 +87,7 @@ class SmartRouterAdapter:
             try:
                 await self._router.refresh_models()
             except Exception:
-                logger.warning(
-                    "SmartRouter refresh_models failed; using static fallback"
-                )
+                logger.warning("SmartRouter refresh_models failed; using static fallback")
 
         decision = self._router.route(task_type)
         logger.debug(

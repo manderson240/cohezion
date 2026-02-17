@@ -23,7 +23,7 @@ class TestSemanticCacheWithVAE:
         cache = SemanticCache()
 
         # Store some entries
-        asyncio_run = pytest.importorskip("asyncio")
+        pytest.importorskip("asyncio")
 
         async def test():
             await cache.put("machine learning models", "response1")

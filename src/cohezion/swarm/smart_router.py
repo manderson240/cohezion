@@ -20,6 +20,7 @@ from pathlib import Path
 
 import httpx
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -268,9 +269,7 @@ class SmartRouter:
         self.available_models: dict[str, ModelProfile] = {}
 
         # Action log persistence
-        self.action_log_dir = Path(
-            "src/cohezion/knowledge_graph/universe_nodes/actions"
-        )
+        self.action_log_dir = Path("src/cohezion/knowledge_graph/universe_nodes/actions")
         self.action_log_dir.mkdir(parents=True, exist_ok=True)
 
     async def refresh_models(self):
@@ -297,9 +296,7 @@ class SmartRouter:
             return TaskType.SYNTHESIS
         elif any(kw in prompt_lower for kw in ["create", "imagine", "story", "poem"]):
             return TaskType.CREATIVE
-        elif any(
-            kw in prompt_lower for kw in ["code", "function", "implement", "debug"]
-        ):
+        elif any(kw in prompt_lower for kw in ["code", "function", "implement", "debug"]):
             return TaskType.CODING
         elif any(kw in prompt_lower for kw in ["fact", "true", "verify"]):
             return TaskType.FACTUAL
@@ -335,7 +332,7 @@ class SmartRouter:
         if not scored_models:
             # Fallback to first available
             if self.available_models:
-                best = list(self.available_models.keys())[0]
+                best = next(iter(self.available_models.keys()))
             else:
                 best = "gemma3:4b"  # Ultimate fallback
             return RoutingDecision(
@@ -377,7 +374,7 @@ class SmartRouter:
         response = ""
 
         # Try selected model, then fallbacks
-        models_to_try = [decision.selected_model] + decision.fallback_models
+        models_to_try = [decision.selected_model, *decision.fallback_models]
 
         for model in models_to_try:
             try:
@@ -460,7 +457,7 @@ async def smart_execute(
 ) -> str:
     """Execute a prompt with smart routing."""
     router = await get_router()
-    response, action = await router.execute(prompt, agent_type=agent_type, **kwargs)
+    response, _action = await router.execute(prompt, agent_type=agent_type, **kwargs)
     return response
 
 

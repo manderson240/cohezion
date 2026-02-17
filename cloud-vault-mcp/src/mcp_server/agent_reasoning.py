@@ -10,6 +10,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -30,8 +31,8 @@ class AgentReasoningOps:
         reasoning_type: str,
         reasoning_chain: list[str],
         confidence_score: float = 0.7,
-        assumptions: list[str] = None,
-        alternatives_rejected: list[dict] = None,
+        assumptions: list[str] | None = None,
+        alternatives_rejected: list[dict] | None = None,
     ) -> dict[str, Any]:
         """Create a reasoning node that explains WHY a decision was made.
 
@@ -47,7 +48,7 @@ class AgentReasoningOps:
             Dict with reasoning_id, decision_id, confidence_score, status
         """
         try:
-            reasoning_id = f"agent_reasoning:{str(uuid.uuid4())}"
+            reasoning_id = f"agent_reasoning:{uuid.uuid4()!s}"
             now = datetime.now(UTC).isoformat()
             assumptions = assumptions or []
             alternatives_rejected = alternatives_rejected or []
@@ -151,7 +152,7 @@ class AgentReasoningOps:
             Dict with edge_id, decision_id, lesson_id, challenge_type, severity
         """
         try:
-            edge_id = f"challenges_lesson:{str(uuid.uuid4())}"
+            edge_id = f"challenges_lesson:{uuid.uuid4()!s}"
             now = datetime.now(UTC).isoformat()
 
             # Validate decision exists
@@ -204,8 +205,7 @@ class AgentReasoningOps:
                 }
 
             logger.info(
-                f"Created challenge edge: {decision_id} -{challenge_type}-> lesson:{lesson_id} "
-                f"(severity: {severity})"
+                f"Created challenge edge: {decision_id} -{challenge_type}-> lesson:{lesson_id} (severity: {severity})"
             )
 
             return {
@@ -246,13 +246,11 @@ class AgentReasoningOps:
             Dict with edge_id, source_decision_id, dependent_decision_id, dependency_type, impact_level
         """
         try:
-            edge_id = f"relates_to_decision:{str(uuid.uuid4())}"
+            edge_id = f"relates_to_decision:{uuid.uuid4()!s}"
             now = datetime.now(UTC).isoformat()
 
             # Validate source decision exists
-            source_check = self.db._execute_query(
-                f"SELECT id FROM {source_decision_id} LIMIT 1"
-            )
+            source_check = self.db._execute_query(f"SELECT id FROM {source_decision_id} LIMIT 1")
             if not source_check or len(source_check) == 0:
                 return {
                     "success": False,
@@ -260,9 +258,7 @@ class AgentReasoningOps:
                 }
 
             # Validate dependent decision exists
-            dependent_check = self.db._execute_query(
-                f"SELECT id FROM {dependent_decision_id} LIMIT 1"
-            )
+            dependent_check = self.db._execute_query(f"SELECT id FROM {dependent_decision_id} LIMIT 1")
             if not dependent_check or len(dependent_check) == 0:
                 return {
                     "success": False,

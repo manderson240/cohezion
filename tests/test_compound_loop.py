@@ -10,6 +10,7 @@ from cohezion.core.compound.skill_refiner import RefinementResult, SkillRefiner
 from cohezion.core.plan_executor import ExecutionResult
 from cohezion.swarm.execution_orchestrator import ExecutionReport, TaskResult
 
+
 # ---------------------------------------------------------------------------
 # SkillRefiner
 # ---------------------------------------------------------------------------
@@ -19,11 +20,7 @@ class TestSkillRefiner:
     def test_refine_creates_section(self, tmp_path):
         """Refining a skill appends a LEARNED REFINEMENTS section."""
         md_file = tmp_path / "TEST_SKILL_PRIME.md"
-        md_file.write_text(
-            "# SKILL: TEST_SKILL_PRIME\n\n"
-            "## DOMAIN EXPERTISE\nTest domain.\n\n"
-            "## VERSION\n1.0\n"
-        )
+        md_file.write_text("# SKILL: TEST_SKILL_PRIME\n\n## DOMAIN EXPERTISE\nTest domain.\n\n## VERSION\n1.0\n")
 
         refiner = SkillRefiner(skills_dir=tmp_path)
         result = refiner.refine_skill(
@@ -47,9 +44,7 @@ class TestSkillRefiner:
         """Second refinement appends to existing LEARNED REFINEMENTS."""
         md_file = tmp_path / "TEST_SKILL_PRIME.md"
         md_file.write_text(
-            "# SKILL: TEST_SKILL_PRIME\n\n"
-            "## VERSION\n1.0\n\n"
-            "## LEARNED REFINEMENTS\n\n- First insight\n"
+            "# SKILL: TEST_SKILL_PRIME\n\n## VERSION\n1.0\n\n## LEARNED REFINEMENTS\n\n- First insight\n"
         )
 
         refiner = SkillRefiner(skills_dir=tmp_path)

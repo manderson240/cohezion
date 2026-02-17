@@ -13,6 +13,7 @@ from ollama import Client
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, PointStruct, VectorParams
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -73,9 +74,7 @@ class MemoryManager:
     def search(self, query: str, limit: int = 5) -> list[dict[str, Any]]:
         """Search for relevant memories."""
         vector = self._get_embedding(query)
-        results = self.qdrant.query_points(
-            collection_name=self.COLLECTION_NAME, query=vector, limit=limit
-        ).points
+        results = self.qdrant.query_points(collection_name=self.COLLECTION_NAME, query=vector, limit=limit).points
 
         memories = []
         for res in results:

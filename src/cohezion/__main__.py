@@ -24,6 +24,7 @@ import logging
 import sys
 from pathlib import Path
 
+
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
@@ -53,38 +54,28 @@ Examples:
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Journey commands
-    journey_parser = subparsers.add_parser(
-        "journey", help="Manage universe journeys through the 12D/512D manifold"
-    )
+    journey_parser = subparsers.add_parser("journey", help="Manage universe journeys through the 12D/512D manifold")
     journey_sub = journey_parser.add_subparsers(dest="journey_cmd")
 
     # journey start
     start_cmd = journey_sub.add_parser("start", help="Start a new journey")
     start_cmd.add_argument("intent", help="The task/query to accomplish")
     start_cmd.add_argument("--agent", "-a", default="AutoAgent", help="Agent to use")
-    start_cmd.add_argument(
-        "--model", "-m", default="deepseek-r1:7b", help="Model to use"
-    )
-    start_cmd.add_argument(
-        "--agents", "-n", type=int, default=1, help="Number of agents"
-    )
+    start_cmd.add_argument("--model", "-m", default="deepseek-r1:7b", help="Model to use")
+    start_cmd.add_argument("--agents", "-n", type=int, default=1, help="Number of agents")
 
     # journey list
     list_cmd = journey_sub.add_parser("list", help="List journeys")
     list_cmd.add_argument("--mine", action="store_true", help="Show only my journeys")
     list_cmd.add_argument("--status", choices=["active", "completed", "failed"])
-    list_cmd.add_argument(
-        "--since", help="Filter by date (e.g., 'yesterday', '2024-01-01')"
-    )
+    list_cmd.add_argument("--since", help="Filter by date (e.g., 'yesterday', '2024-01-01')")
 
     # journey status
     status_cmd = journey_sub.add_parser("status", help="Check journey status")
     status_cmd.add_argument("journey_id", help="Journey ID to check")
 
     # Simulate commands
-    simulate_parser = subparsers.add_parser(
-        "simulate", help="Run sandboxed simulations with isolation backends"
-    )
+    simulate_parser = subparsers.add_parser("simulate", help="Run sandboxed simulations with isolation backends")
     simulate_parser.add_argument(
         "--tier",
         "-t",
@@ -99,9 +90,7 @@ Examples:
         default=None,
         help="Isolation backend (auto-selected if omitted)",
     )
-    simulate_parser.add_argument(
-        "--script", help="Path to a Python script to execute in the sandbox"
-    )
+    simulate_parser.add_argument("--script", help="Path to a Python script to execute in the sandbox")
     simulate_parser.add_argument(
         "--example",
         "-e",
@@ -114,18 +103,12 @@ Examples:
         "precipitate", help="Manifest journey results into reality (code/docs/actions)"
     )
     precipitate_parser.add_argument("journey_id", help="Journey to precipitate")
-    precipitate_parser.add_argument(
-        "--target", "-t", choices=["git", "production", "staging"], default="git"
-    )
+    precipitate_parser.add_argument("--target", "-t", choices=["git", "production", "staging"], default="git")
     precipitate_parser.add_argument("--branch", "-b", help="Git branch name")
-    precipitate_parser.add_argument(
-        "--verify", "-v", action="store_true", help="Run verification"
-    )
+    precipitate_parser.add_argument("--verify", "-v", action="store_true", help="Run verification")
 
     # Rewards command
-    rewards_parser = subparsers.add_parser(
-        "rewards", help="View rewards, achievements, and progress"
-    )
+    rewards_parser = subparsers.add_parser("rewards", help="View rewards, achievements, and progress")
     rewards_sub = rewards_parser.add_subparsers(dest="rewards_cmd")
 
     # rewards status
@@ -133,107 +116,61 @@ Examples:
     rewards_status.add_argument("--agent", "-a", default="me", help="Agent to check")
 
     # rewards leaderboard
-    rewards_leaderboard = rewards_sub.add_parser(
-        "leaderboard", help="View XP leaderboard"
-    )
-    rewards_leaderboard.add_argument(
-        "--top", "-t", type=int, default=10, help="Number of entries"
-    )
+    rewards_leaderboard = rewards_sub.add_parser("leaderboard", help="View XP leaderboard")
+    rewards_leaderboard.add_argument("--top", "-t", type=int, default=10, help="Number of entries")
 
     # rewards achievements
-    rewards_achievements = rewards_sub.add_parser(
-        "achievements", help="View achievements"
-    )
-    rewards_achievements.add_argument(
-        "--locked", action="store_true", help="Show locked achievements"
-    )
+    rewards_achievements = rewards_sub.add_parser("achievements", help="View achievements")
+    rewards_achievements.add_argument("--locked", action="store_true", help="Show locked achievements")
 
     # Reflect command
-    reflect_parser = subparsers.add_parser(
-        "reflect", help="Deep retrospective and learning capture"
-    )
+    reflect_parser = subparsers.add_parser("reflect", help="Deep retrospective and learning capture")
     reflect_parser.add_argument("--journey", "-j", help="Journey to reflect on")
-    reflect_parser.add_argument(
-        "--depth", choices=["quick", "standard", "comprehensive"], default="standard"
-    )
-    reflect_parser.add_argument(
-        "--auto_apply", action="store_true", help="Apply learnings automatically"
-    )
+    reflect_parser.add_argument("--depth", choices=["quick", "standard", "comprehensive"], default="standard")
+    reflect_parser.add_argument("--auto_apply", action="store_true", help="Apply learnings automatically")
 
     # Evolve command
-    evolve_parser = subparsers.add_parser(
-        "evolve", help="Self-improvement and code evolution"
-    )
-    evolve_parser.add_argument(
-        "--detect_patterns", action="store_true", help="Detect improvement patterns"
-    )
-    evolve_parser.add_argument(
-        "--auto_deploy", action="store_true", help="Auto-deploy safe changes"
-    )
-    evolve_parser.add_argument(
-        "--risk_threshold", type=float, default=0.3, help="Risk threshold (0-1)"
-    )
+    evolve_parser = subparsers.add_parser("evolve", help="Self-improvement and code evolution")
+    evolve_parser.add_argument("--detect_patterns", action="store_true", help="Detect improvement patterns")
+    evolve_parser.add_argument("--auto_deploy", action="store_true", help="Auto-deploy safe changes")
+    evolve_parser.add_argument("--risk_threshold", type=float, default=0.3, help="Risk threshold (0-1)")
 
     # Generate command (Meta-Programming)
-    generate_parser = subparsers.add_parser(
-        "generate", help="Generate agents from YAML specifications"
-    )
+    generate_parser = subparsers.add_parser("generate", help="Generate agents from YAML specifications")
     generate_sub = generate_parser.add_subparsers(dest="generate_cmd")
 
     _generate_list = generate_sub.add_parser("list", help="List available specs")
-    generate_agent = generate_sub.add_parser(
-        "agent", help="Generate an agent from spec"
-    )
+    generate_agent = generate_sub.add_parser("agent", help="Generate an agent from spec")
     generate_agent.add_argument("--spec", "-s", required=True, help="Path to YAML spec")
     generate_agent.add_argument("--output", "-o", default="src/cohezion/swarm/agents/")
-    generate_agent.add_argument(
-        "--dry-run", action="store_true", help="Preview without generating"
-    )
+    generate_agent.add_argument("--dry-run", action="store_true", help="Preview without generating")
 
     # Ouroboros command (System Flight Recorder)
-    ouroboros_parser = subparsers.add_parser(
-        "ouroboros", help="Ouroboros system flight recorder and self-healing"
-    )
+    ouroboros_parser = subparsers.add_parser("ouroboros", help="Ouroboros system flight recorder and self-healing")
     ouroboros_sub = ouroboros_parser.add_subparsers(dest="ouroboros_cmd")
 
     ouroboros_status = ouroboros_sub.add_parser("status", help="Check Ouroboros status")
-    ouroboros_status.add_argument(
-        "--detailed", action="store_true", help="Show detailed sensor data"
-    )
+    ouroboros_status.add_argument("--detailed", action="store_true", help="Show detailed sensor data")
 
     ouroboros_start = ouroboros_sub.add_parser("start", help="Start Ouroboros recorder")
-    ouroboros_start.add_argument(
-        "--interval", type=int, default=10, help="Recording interval in seconds"
-    )
+    ouroboros_start.add_argument("--interval", type=int, default=10, help="Recording interval in seconds")
 
     _ouroboros_stop = ouroboros_sub.add_parser("stop", help="Stop Ouroboros recorder")
 
     # Mycelium command (Test Generation)
-    mycelium_parser = subparsers.add_parser(
-        "mycelium", help="Mycelium autonomous test generation"
-    )
+    mycelium_parser = subparsers.add_parser("mycelium", help="Mycelium autonomous test generation")
     mycelium_sub = mycelium_parser.add_subparsers(dest="mycelium_cmd")
 
     mycelium_grow = mycelium_sub.add_parser("grow", help="Generate tests for a file")
     mycelium_grow.add_argument("file", help="Source file to generate tests for")
-    mycelium_grow.add_argument(
-        "--model", "-m", default="qwen2.5-coder:7b", help="Model to use"
-    )
+    mycelium_grow.add_argument("--model", "-m", default="qwen2.5-coder:7b", help="Model to use")
 
-    mycelium_garden = mycelium_sub.add_parser(
-        "garden", help="Generate tests for entire directory"
-    )
-    mycelium_garden.add_argument(
-        "--dir", "-d", default="src/cohezion", help="Directory to scan"
-    )
-    mycelium_garden.add_argument(
-        "--model", "-m", default="qwen2.5-coder:7b", help="Model to use"
-    )
+    mycelium_garden = mycelium_sub.add_parser("garden", help="Generate tests for entire directory")
+    mycelium_garden.add_argument("--dir", "-d", default="src/cohezion", help="Directory to scan")
+    mycelium_garden.add_argument("--model", "-m", default="qwen2.5-coder:7b", help="Model to use")
 
     # Mass Simulation command
-    mass_sim_parser = subparsers.add_parser(
-        "mass-sim", help="Run mass FLUME simulation across universes"
-    )
+    mass_sim_parser = subparsers.add_parser("mass-sim", help="Run mass FLUME simulation across universes")
     mass_sim_parser.add_argument(
         "--scale",
         "-s",
@@ -313,9 +250,7 @@ async def cmd_journey_list(args: argparse.Namespace) -> int:
 
     for journey in journeys:
         status_icon = "✅" if journey["status"] == "completed" else "🔄"
-        print(
-            f"{status_icon} {journey['id']}: {journey['intent'][:40]}... (phi: {journey['phi']:.2f})"
-        )
+        print(f"{status_icon} {journey['id']}: {journey['intent'][:40]}... (phi: {journey['phi']:.2f})")
 
     return 0
 
@@ -364,19 +299,14 @@ async def cmd_simulate(args: argparse.Namespace) -> int:
         "systemd": SystemdRunBackend,
         "subprocess": SubprocessBackend,
     }
-    if args.backend:
-        backend = backend_map[args.backend]()
-    else:
-        backend = select_backend()
+    backend = backend_map[args.backend]() if args.backend else select_backend()
 
     backend_name = type(backend).__name__
     run_id = f"sim_{uuid4().hex[:8]}"
 
     logger.info(f"Sandbox run {run_id}")
     logger.info(f"  Script: {script_label}")
-    logger.info(
-        f"  Tier: {args.tier} (mem={profile.memory_limit_mb}MB, cpu={profile.cpu_quota_percent}%)"
-    )
+    logger.info(f"  Tier: {args.tier} (mem={profile.memory_limit_mb}MB, cpu={profile.cpu_quota_percent}%)")
     logger.info(f"  Backend: {backend_name}")
 
     result = await backend.execute(script, profile)
@@ -391,9 +321,7 @@ async def cmd_simulate(args: argparse.Namespace) -> int:
 
     # Print summary
     status = "SUCCESS" if result.success else "FAILED"
-    logger.info(
-        f"\n  Result: {status} (exit_code={result.exit_code}, duration={result.duration:.2f}s)"
-    )
+    logger.info(f"\n  Result: {status} (exit_code={result.exit_code}, duration={result.duration:.2f}s)")
 
     if result.stdout:
         print(result.stdout)
@@ -453,15 +381,11 @@ async def cmd_rewards_status(args: argparse.Namespace) -> int:
 
     print(f"\n🎯 Tier: {status['tier']} ({status['total_xp']:,} XP)")
     print(f"🔓 Capabilities: {', '.join(status['capabilities'])}")
-    print(
-        f"🔥 Streak: {status['streak']['current']} days (longest: {status['streak']['longest']})"
-    )
+    print(f"🔥 Streak: {status['streak']['current']} days (longest: {status['streak']['longest']})")
     print(f"🎖️ Achievements: {len(status['achievements'])}")
 
     if status["next_unlock"]:
-        print(
-            f"\n⬆️  Next: {status['next_unlock']['name']} (need {status['next_unlock']['xp_needed']:,} more XP)"
-        )
+        print(f"\n⬆️  Next: {status['next_unlock']['name']} (need {status['next_unlock']['xp_needed']:,} more XP)")
 
     return 0
 
@@ -479,18 +403,8 @@ async def cmd_rewards_leaderboard(args: argparse.Namespace) -> int:
 
     print()
     for entry in leaderboard:
-        medal = (
-            "🥇"
-            if entry["rank"] == 1
-            else "🥈"
-            if entry["rank"] == 2
-            else "🥉"
-            if entry["rank"] == 3
-            else "  "
-        )
-        print(
-            f"{medal} #{entry['rank']} {entry['agent']}: {entry['xp']:,} XP ({entry['tier']})"
-        )
+        medal = "🥇" if entry["rank"] == 1 else "🥈" if entry["rank"] == 2 else "🥉" if entry["rank"] == 3 else "  "
+        print(f"{medal} #{entry['rank']} {entry['agent']}: {entry['xp']:,} XP ({entry['tier']})")
 
     return 0
 

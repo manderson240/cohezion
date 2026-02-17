@@ -13,11 +13,11 @@ Implementation:
 
 import fcntl
 import logging
-import os
 import time
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator
+
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ class FileLock:
         for attempt in range(self.max_retries):
             try:
                 # Open lockfile (create if needed)
-                self._lockfile = open(self.filepath, "a+", encoding="utf-8")
+                self._lockfile = open(self.filepath, "a+", encoding="utf-8")  # noqa: SIM115
 
                 # Try to acquire exclusive lock with timeout
                 start_time = time.time()
@@ -81,16 +81,14 @@ class FileLock:
                             raise
                         time.sleep(0.1)
 
-            except (OSError, IOError) as e:
+            except OSError as e:
                 if self._lockfile:
                     self._lockfile.close()
                     self._lockfile = None
 
                 if attempt < self.max_retries - 1:
-                    wait_time = 0.1 * (2 ** attempt)  # Exponential backoff
-                    logger.warning(
-                        f"Failed to acquire lock on {self.filepath}, retrying in {wait_time}s"
-                    )
+                    wait_time = 0.1 * (2**attempt)  # Exponential backoff
+                    logger.warning(f"Failed to acquire lock on {self.filepath}, retrying in {wait_time}s")
                     time.sleep(wait_time)
                 else:
                     raise FileLockError(
@@ -105,16 +103,14 @@ class FileLock:
                 self._lockfile.close()
                 self._acquired = False
                 logger.debug(f"Released lock on {self.filepath}")
-            except (OSError, IOError) as e:
+            except OSError as e:
                 logger.error(f"Error releasing lock on {self.filepath}: {e}")
             finally:
                 self._lockfile = None
 
 
 @contextmanager
-def locked_file_operation(
-    filepath: str, timeout: float = 5.0, max_retries: int = 3
-) -> Generator:
+def locked_file_operation(filepath: str, timeout: float = 5.0, max_retries: int = 3) -> Generator:
     """
     Context manager for atomic file operations with locking.
 
@@ -162,7 +158,7 @@ def atomic_file_write(filepath: str, content: str, timeout: float = 5.0) -> None
             # Atomic rename
             temp_file.replace(filepath)
             logger.debug(f"Atomically wrote {filepath}")
-        except (OSError, IOError) as e:
+        except OSError as e:
             if temp_file.exists():
                 temp_file.unlink()
             raise FileLockError(f"Cannot atomically write {filepath}") from e
@@ -191,9 +187,7 @@ def atomic_file_read(filepath: str, timeout: float = 5.0) -> str:
         return filepath.read_text(encoding="utf-8")
 
 
-def atomic_file_modify(
-    filepath: str, modify_func, timeout: float = 5.0
-) -> None:
+def atomic_file_modify(filepath: str, modify_func, timeout: float = 5.0) -> None:
     """
     Modify file atomically with locking.
 
@@ -223,7 +217,7 @@ def atomic_file_modify(
             temp_file.write_text(new_content, encoding="utf-8")
             temp_file.replace(filepath)
             logger.debug(f"Atomically modified {filepath}")
-        except (OSError, IOError) as e:
+        except OSError as e:
             if temp_file.exists():
                 temp_file.unlink()
             raise FileLockError(f"Cannot atomically modify {filepath}") from e

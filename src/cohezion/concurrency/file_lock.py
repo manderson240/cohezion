@@ -13,10 +13,13 @@ import fcntl
 import json
 import logging
 import time
-from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, TextIO
+from typing import TYPE_CHECKING, Any, TextIO
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Generator
 
 
 logger = logging.getLogger(__name__)
@@ -80,10 +83,7 @@ class FileLock:
                 last_error = e
                 time.sleep(0.1)
 
-        raise FileLockError(
-            f"Could not acquire lock on {self.filepath} "
-            f"within {self.timeout}s: {last_error}"
-        )
+        raise FileLockError(f"Could not acquire lock on {self.filepath} within {self.timeout}s: {last_error}")
 
     def release(self) -> None:
         """Release lock on file."""
@@ -141,7 +141,7 @@ class ConfigManager:
         self.lock_timeout = lock_timeout
 
     @contextmanager
-    def _read_with_lock(self) -> Generator[dict, None, None]:
+    def _read_with_lock(self) -> Generator[dict]:
         """Read config file with exclusive lock."""
         import json
 
@@ -156,7 +156,7 @@ class ConfigManager:
             yield data
 
     @contextmanager
-    def _write_with_lock(self) -> Generator[dict, None, None]:
+    def _write_with_lock(self) -> Generator[dict]:
         """Prepare to write config file with exclusive lock."""
         import json
 
@@ -254,9 +254,7 @@ class ConfigManager:
                     )
                     time.sleep(wait_time)
 
-        raise FileLockError(
-            f"Atomic update failed after {max_retries} retries: {last_error}"
-        )
+        raise FileLockError(f"Atomic update failed after {max_retries} retries: {last_error}")
 
 
 class LockedFileOperation:
@@ -338,7 +336,7 @@ class LockedFileOperation:
 def safe_file_access(
     filepath: str,
     timeout: float = 10.0,
-) -> Generator[None, None, None]:
+) -> Generator[None]:
     """Simple context manager for safe file access.
 
     Args:

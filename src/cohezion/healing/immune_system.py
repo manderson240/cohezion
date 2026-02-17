@@ -13,6 +13,7 @@ from cohezion.agents.critic import CriticAgent
 from cohezion.core.time_keeper import get_time_keeper
 from cohezion.swarm.swarm_types import Perspective, ThoughtVector
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -21,9 +22,7 @@ class VelocityMonitor:
     Monitors task velocity and triggers alerts/diagnoses when it drops.
     """
 
-    def __init__(
-        self, threshold_tasks_per_hour: float = 5.0, check_interval_seconds: int = 300
-    ):
+    def __init__(self, threshold_tasks_per_hour: float = 5.0, check_interval_seconds: int = 300):
         self.threshold = threshold_tasks_per_hour
         self.check_interval = check_interval_seconds
         self.tk = get_time_keeper()
@@ -35,9 +34,7 @@ class VelocityMonitor:
         self._running = True
         end_time = asyncio.get_event_loop().time() + duration_seconds
 
-        logger.info(
-            f"Immune System: Monitoring started (threshold: {self.threshold} tasks/hr)"
-        )
+        logger.info(f"Immune System: Monitoring started (threshold: {self.threshold} tasks/hr)")
 
         while self._running and asyncio.get_event_loop().time() < end_time:
             await self._check_health()

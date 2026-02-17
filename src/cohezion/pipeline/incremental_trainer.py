@@ -12,6 +12,7 @@ from pathlib import Path
 
 import numpy as np
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -172,9 +173,7 @@ class IncrementalRLTrainer:
         from cohezion.rl.trainer import PolicyNetwork, TrainingConfig
 
         # Load existing policy
-        state_dict = torch.load(
-            self.checkpoint_path, map_location="cpu", weights_only=True
-        )
+        state_dict = torch.load(self.checkpoint_path, map_location="cpu", weights_only=True)
         h, s = state_dict["shared.0.weight"].shape
         a = state_dict["mean_head.weight"].shape[0]
 

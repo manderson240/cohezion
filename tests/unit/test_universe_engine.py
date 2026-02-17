@@ -4,10 +4,7 @@ from __future__ import annotations
 
 import json
 import time
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
 
-import numpy as np
 import pytest
 
 from cohezion.universe.engine import (
@@ -204,7 +201,7 @@ class TestSimpleEncoder:
 class TestUniverseSimulationEngine:
     def test_init_creates_storage(self, tmp_path):
         storage = tmp_path / "universe"
-        engine = UniverseSimulationEngine(local_storage_path=storage)
+        UniverseSimulationEngine(local_storage_path=storage)
         assert storage.exists()
 
     def test_toward_target(self, tmp_path):

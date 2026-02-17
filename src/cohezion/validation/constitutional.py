@@ -14,6 +14,7 @@ from typing import Any
 from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.universe.engine import AxiomaticState
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -24,12 +25,8 @@ class ConstitutionalShield:
     """
 
     def __init__(self, teacher_model: str = "claude-3-5-sonnet"):
-        self.constitution_path = (
-            "/home/mike-anderson/dev/cohezion/.agent/CONSTITUTION.md"
-        )
-        self.charter_path = (
-            "/home/mike-anderson/dev/cohezion/.agent/COHEZION_CHARTER.md"
-        )
+        self.constitution_path = "/home/mike-anderson/dev/cohezion/.agent/CONSTITUTION.md"
+        self.charter_path = "/home/mike-anderson/dev/cohezion/.agent/COHEZION_CHARTER.md"
         self.teacher_model = teacher_model
         self.db = SurrealClient()
         self._constitution_cache: str | None = None
@@ -47,14 +44,12 @@ class ConstitutionalShield:
                 return "Always act with integrity and technical excellence."
         return f"{self._constitution_cache}\n\n{self._charter_cache}"
 
-    async def audit_output(
-        self, agent_id: str, content: str, context: dict | None = None
-    ) -> dict[str, Any]:
+    async def audit_output(self, agent_id: str, content: str, context: dict | None = None) -> dict[str, Any]:
         """
         Audit agent-generated content against constitutional principles and the charter.
         Returns a 'Veracity Score' and 'Alignment Verdict'.
         """
-        rules = await self._get_constitution_and_charter()
+        await self._get_constitution_and_charter()
 
         # In a real implementation, this would be a prompt to the teacher model.
         # Here we simulate the CAI (Constitutional AI) feedback loop.
@@ -132,16 +127,12 @@ if __name__ == "__main__":
         equilibrium = ManifoldEquilibrium()
 
         # Test 1: Shield Audit
-        audit = await shield.audit_output(
-            "Nexus-1", "Implementing VLIW kernel for 60x speedup."
-        )
+        audit = await shield.audit_output("Nexus-1", "Implementing VLIW kernel for 60x speedup.")
         print(f"Audit Verdict: {audit['verdict']} (Score: {audit['alignment_score']})")
 
         # Test 2: Equilibrium Check
         mock_state = AxiomaticState(logic=0.51, physics=0.49)  # Near attractor
         stability = equilibrium.verify_stability(mock_state)
-        print(
-            f"Manifold Status: {stability['status']} (Dist: {stability['dist_from_attractor']:.4f})"
-        )
+        print(f"Manifold Status: {stability['status']} (Dist: {stability['dist_from_attractor']:.4f})")
 
     asyncio.run(test())

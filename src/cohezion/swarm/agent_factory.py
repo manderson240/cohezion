@@ -14,6 +14,7 @@ from typing import Any
 
 from cohezion.swarm.swarm_types import SwarmConfig
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -89,8 +90,7 @@ class AgentFactory:
 
             config = AgentConfig(
                 name=registry_name,
-                default_model=default_model
-                or getattr(agent_class, "_default_model", "gemma3:4b"),
+                default_model=default_model or getattr(agent_class, "_default_model", "gemma3:4b"),
                 capabilities=capabilities or getattr(agent_class, "_capabilities", []),
                 description=description or agent_class.__doc__ or "",
                 version=version,
@@ -214,11 +214,7 @@ class AgentFactory:
         agents = list(cls._registry.keys())
 
         if capability:
-            agents = [
-                name
-                for name in agents
-                if capability in cls._metadata[name].capabilities
-            ]
+            agents = [name for name in agents if capability in cls._metadata[name].capabilities]
 
         if tag:
             agents = [name for name in agents if tag in cls._metadata[name].tags]
@@ -235,11 +231,7 @@ class AgentFactory:
         Returns:
             List of (agent_name, config) tuples
         """
-        return [
-            (name, config)
-            for name, config in cls._metadata.items()
-            if capability in config.capabilities
-        ]
+        return [(name, config) for name, config in cls._metadata.items() if capability in config.capabilities]
 
     @classmethod
     def is_registered(cls, agent_name: str) -> bool:

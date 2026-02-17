@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
+
 # Scikit-Learn for TF-IDF (Lightweight Search)
 try:
     from sklearn.feature_extraction.text import TfidfVectorizer
@@ -33,9 +34,7 @@ class Capability:
     score: float = 0.0
     usage_count: int = 0  # Track invocations for optimization
     last_used: str = ""  # ISO timestamp for recency analysis
-    future_proofing_hooks: list[str] = field(
-        default_factory=list
-    )  # Reusable "compound" hooks
+    future_proofing_hooks: list[str] = field(default_factory=list)  # Reusable "compound" hooks
     compound_impact_score: float = 0.0  # Measure of how much this feature helped others
 
 
@@ -44,7 +43,7 @@ class CapabilityRegistry:
 
     USAGE_FILE = "capability_usage.json"
 
-    def __init__(self, root_dir: Path = None):
+    def __init__(self, root_dir: Path | None = None):
         self.root_dir = root_dir or Path(__file__).parent.parent.parent.parent
         self.capabilities: list[Capability] = []
         self.vectorizer = None
@@ -67,9 +66,7 @@ class CapabilityRegistry:
         if SKLEARN_AVAILABLE and self.capabilities:
             self._build_index()
         else:
-            logger.warning(
-                "Scikit-learn not available or no capabilities. Search will be limited."
-            )
+            logger.warning("Scikit-learn not available or no capabilities. Search will be limited.")
 
     def _scan_skills(self):
         """Load skills from skill_registry.json, falling back to filesystem scan."""
@@ -137,7 +134,7 @@ class CapabilityRegistry:
                         type="mcp",
                         description=server.get("description", ""),
                         path=server.get("path", ""),
-                        tags=["tool", "server", "int"] + server.get("tools", []),
+                        tags=["tool", "server", "int", *server.get("tools", [])],
                     )
                 )
             # External
@@ -182,15 +179,11 @@ class CapabilityRegistry:
                     for line in content.split("\n"):
                         stripped = line.strip()
                         if stripped.startswith("class ") and "Agent" in stripped:
-                            class_name = (
-                                stripped.split("(")[0].replace("class ", "").strip()
-                            )
+                            class_name = stripped.split("(")[0].replace("class ", "").strip()
                             break
 
                     if not class_name:
-                        class_name = "".join(
-                            word.capitalize() for word in py_file.stem.split("_")
-                        )
+                        class_name = "".join(word.capitalize() for word in py_file.stem.split("_"))
                         if not class_name.endswith("Agent"):
                             class_name += "Agent"
 
@@ -213,11 +206,7 @@ class CapabilityRegistry:
                             if stripped.startswith('"""'):
                                 # Check for single-line docstring: """text"""
                                 if stripped.count('"""') >= 2:
-                                    desc = (
-                                        stripped.removeprefix('"""')
-                                        .removesuffix('"""')
-                                        .strip()[:200]
-                                    )
+                                    desc = stripped.removeprefix('"""').removesuffix('"""').strip()[:200]
                                     break
                                 # Multi-line docstring starts
                                 in_docstring = True
@@ -287,10 +276,7 @@ class CapabilityRegistry:
             # Fallback: simple text match
             results = []
             for c in self.capabilities:
-                if (
-                    query.lower() in c.name.lower()
-                    or query.lower() in c.description.lower()
-                ):
+                if query.lower() in c.name.lower() or query.lower() in c.description.lower():
                     c.score = 1.0
                     results.append(c)
             return results[:top_k]
@@ -335,15 +321,11 @@ class CapabilityRegistry:
                 break
 
         self._persist_usage()
-        logger.debug(
-            f"📊 Usage tracked: {name} (count: {self._usage_cache[name]['count']})"
-        )
+        logger.debug(f"📊 Usage tracked: {name} (count: {self._usage_cache[name]['count']})")
 
     def get_top_used(self, top_k: int = 10) -> list[Capability]:
         """Get most frequently used capabilities for optimization."""
-        sorted_caps = sorted(
-            self.capabilities, key=lambda c: c.usage_count, reverse=True
-        )
+        sorted_caps = sorted(self.capabilities, key=lambda c: c.usage_count, reverse=True)
         return sorted_caps[:top_k]
 
     def _load_usage(self) -> None:
@@ -352,9 +334,7 @@ class CapabilityRegistry:
         if usage_file.exists():
             try:
                 self._usage_cache = json.loads(usage_file.read_text())
-                logger.info(
-                    f"📈 Loaded usage stats for {len(self._usage_cache)} capabilities"
-                )
+                logger.info(f"📈 Loaded usage stats for {len(self._usage_cache)} capabilities")
             except Exception as e:
                 logger.warning(f"Failed to load usage cache: {e}")
                 self._usage_cache = {}
@@ -391,6 +371,4 @@ if __name__ == "__main__":
     for q in test_queries:
         print(f"\nQUERY: '{q}'")
         for res in reg.find(q, top_k=3):
-            print(
-                f"  - [{res.type.upper()}] {res.name}: {res.description[:50]}... ({res.score:.2f})"
-            )
+            print(f"  - [{res.type.upper()}] {res.name}: {res.description[:50]}... ({res.score:.2f})")

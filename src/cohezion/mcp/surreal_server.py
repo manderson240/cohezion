@@ -16,6 +16,7 @@ from cohezion.core.persistence.surreal_client import (
     UniverseNode,
 )
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -60,9 +61,7 @@ class SurrealMCP:
         return [
             {
                 "id": n.id,
-                "content": n.content[:200] + "..."
-                if len(n.content) > 200
-                else n.content,
+                "content": n.content[:200] + "..." if len(n.content) > 200 else n.content,
                 "physics": n.physics_state.to_dict(),
                 "created_at": n.created_at.isoformat() if n.created_at else None,
             }
@@ -243,10 +242,7 @@ class SurrealMCP:
         nodes = await client.get_all_nodes(limit=limit * 2)  # Over-fetch for filter
 
         learnings = [
-            n
-            for n in nodes
-            if n.metadata.get("type") == "learning"
-            and n.metadata.get("score", 0) >= min_score
+            n for n in nodes if n.metadata.get("type") == "learning" and n.metadata.get("score", 0) >= min_score
         ][:limit]
 
         return [
@@ -256,15 +252,13 @@ class SurrealMCP:
                 "title": n.metadata.get("title"),
                 "pattern": n.metadata.get("pattern"),
                 "score": n.metadata.get("score"),
-                "content": n.content[:300] + "..."
-                if len(n.content) > 300
-                else n.content,
+                "content": n.content[:300] + "..." if len(n.content) > 300 else n.content,
                 "created_at": n.created_at.isoformat() if n.created_at else None,
             }
             for n in learnings
         ]
 
-    async def sync_key_learnings(self, markdown_path: str = None) -> dict[str, Any]:
+    async def sync_key_learnings(self, markdown_path: str | None = None) -> dict[str, Any]:
         """
         Sync KEY_LEARNINGS.md to SurrealDB.
 
@@ -306,7 +300,7 @@ class SurrealMCP:
                 )
                 synced += 1
             except Exception as e:
-                errors.append(f"{learning_id}: {str(e)}")
+                errors.append(f"{learning_id}: {e!s}")
                 logger.error(f"Failed to sync {learning_id}: {e}")
 
         logger.info(f"Synced {synced} learnings from KEY_LEARNINGS.md")

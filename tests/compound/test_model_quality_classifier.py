@@ -1,6 +1,5 @@
 """Tests for Model Quality Classifier - Phase 5A.7."""
 
-import numpy as np
 import pytest
 
 from cohezion.compound.model_quality_classifier import (
@@ -55,7 +54,7 @@ class TestQualityPredictor:
         """Test establishment detection."""
         assert predictor.is_established() is False
 
-        for i in range(4):
+        for _i in range(4):
             predictor.add_execution(0.85, True, 150, 1.5)
         assert predictor.is_established() is False
 
@@ -163,7 +162,7 @@ class TestModelQualityClassifier:
     def test_predict_quality_established(self, classifier):
         """Test prediction with established history."""
         # Add healthy execution history
-        for i in range(5):
+        for _i in range(5):
             classifier.add_execution(
                 model="qwen3-coder:30b",
                 coherence=0.85,
@@ -268,10 +267,7 @@ class TestModelQualityClassifier:
 
         forecast = classifier.predict_quality("phi3:mini")
 
-        if (
-            forecast.failure_mode == FailureMode.COHERENCE_DROP
-            and 0.3 < forecast.failure_probability <= 0.7
-        ):
+        if forecast.failure_mode == FailureMode.COHERENCE_DROP and 0.3 < forecast.failure_probability <= 0.7:
             assert forecast.recommendation is not None
             assert forecast.recommendation.action == RecommendedAction.ADJUST_PARAMETERS
 

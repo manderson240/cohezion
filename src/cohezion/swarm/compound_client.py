@@ -45,7 +45,6 @@ def create_compound_client(
     """
     from cohezion.reliability.context_harness import ContextHarness
     from cohezion.swarm.model_adapter import SmartRouterAdapter
-    from cohezion.swarm.ollama_resilience import ResilientOllamaClient
     from cohezion.swarm.smart_router import SmartRouter
     from cohezion.swarm.token_client import TokenEfficientClient
 
@@ -60,7 +59,7 @@ def create_compound_client(
     adapter = SmartRouterAdapter(smart_router)
 
     # 3. ContextHarness targeting the cheapest model for prompt pruning
-    harness = ContextHarness(target_model="phi3:mini")
+    ContextHarness(target_model="phi3:mini")
 
     # 4. Create TokenEfficientClient with SmartRouter adapter
     client = TokenEfficientClient(

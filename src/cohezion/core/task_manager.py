@@ -6,13 +6,18 @@ Prevents fire-and-forget issues and unhandled exceptions in background tasks.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import traceback
-from collections.abc import Awaitable, Callable, Coroutine
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum, auto
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+
+if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable, Coroutine
+
 
 logger = logging.getLogger(__name__)
 
@@ -192,10 +197,8 @@ class TaskManager:
             task.cancel()
 
             if wait and not task.done():
-                try:
+                with contextlib.suppress(asyncio.CancelledError):
                     await task
-                except asyncio.CancelledError:
-                    pass
 
             return True
 
@@ -204,9 +207,7 @@ class TaskManager:
         async with self._lock:
             return self._info.get(task_id)
 
-    async def list_tasks(
-        self, status: TaskStatus | None = None, limit: int = 100
-    ) -> list[TaskInfo]:
+    async def list_tasks(self, status: TaskStatus | None = None, limit: int = 100) -> list[TaskInfo]:
         """List tracked tasks with optional filtering."""
         async with self._lock:
             tasks = list(self._info.values())
@@ -230,7 +231,7 @@ class TaskManager:
         async with self._lock:
             counts = {"cancelled": 0, "completed": 0, "failed": 0}
 
-            for task_id, task in list(self._tasks.items()):
+            for _task_id, task in list(self._tasks.items()):
                 if not task.done():
                     if cancel_running:
                         task.cancel()
@@ -301,9 +302,7 @@ class TaskGroup:
                     return info
                 await asyncio.sleep(0.1)
 
-        results = await asyncio.gather(
-            *[wait_for_task(tid) for tid in self._task_ids], return_exceptions=True
-        )
+        results = await asyncio.gather(*[wait_for_task(tid) for tid in self._task_ids], return_exceptions=True)
 
         return [r for r in results if isinstance(r, TaskInfo)]
 

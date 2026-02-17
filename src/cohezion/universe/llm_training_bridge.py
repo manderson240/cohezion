@@ -34,11 +34,12 @@ from __future__ import annotations
 
 import json
 import logging
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -147,11 +148,7 @@ class TrajectoryToReward:
         # 3. Tempic stability (low change = stable)
         tempic_score = max(0.0, 1.0 - step.tempic_field * 2.0)
 
-        return (
-            self.hiho_weight * hiho_score
-            + self.spin_weight * spin_score
-            + self.tempic_weight * tempic_score
-        )
+        return self.hiho_weight * hiho_score + self.spin_weight * spin_score + self.tempic_weight * tempic_score
 
     def compute_trajectory_reward(self, trajectory: AgentTrajectory) -> float:
         """Compute aggregate reward for a complete trajectory."""
@@ -169,11 +166,7 @@ class TrajectoryToReward:
         # Precipitation bonus
         precipitation = 1.0 if trajectory.precipitation_achieved else 0.0
 
-        total = (
-            avg_step_reward
-            + self.consistency_weight * consistency
-            + self.precipitation_weight * precipitation
-        )
+        total = avg_step_reward + self.consistency_weight * consistency + self.precipitation_weight * precipitation
 
         return min(1.0, max(0.0, total))
 
@@ -186,7 +179,11 @@ class PreferencePairGenerator:
     This produces training data for Direct Preference Optimization.
     """
 
-    def __init__(self, reward_computer: TrajectoryToReward | None = None, min_margin: float = 0.05):
+    def __init__(
+        self,
+        reward_computer: TrajectoryToReward | None = None,
+        min_margin: float = 0.05,
+    ):
         self.reward_computer = reward_computer or TrajectoryToReward()
         self.min_margin = min_margin
 
@@ -257,9 +254,7 @@ class PreferencePairGenerator:
         lines = [f"Task: {trajectory.task_description}"]
         for i, step in enumerate(trajectory.steps[:20]):  # Cap at 20 steps
             lines.append(
-                f"Step {i}: action={step.action}, "
-                f"coherence={step.coherence:.3f}, "
-                f"spin={step.spin_coherence:.2f}"
+                f"Step {i}: action={step.action}, coherence={step.coherence:.3f}, spin={step.spin_coherence:.2f}"
             )
         lines.append(f"Final coherence: {trajectory.final_coherence:.3f}")
         lines.append(f"Precipitated: {trajectory.precipitation_achieved}")
@@ -317,9 +312,7 @@ class JudgmentEvaluator:
             reasoning=reasoning,
         )
 
-    def evaluate_trajectory(
-        self, trajectory: AgentTrajectory
-    ) -> list[JudgmentAssessment]:
+    def evaluate_trajectory(self, trajectory: AgentTrajectory) -> list[JudgmentAssessment]:
         """Evaluate all decisions in a trajectory."""
         assessments = []
         for i in range(len(trajectory.steps) - 1):
@@ -392,9 +385,7 @@ class ExperienceDataset:
                     "final_coherence": traj.final_coherence,
                     "num_steps": len(traj.steps),
                     "precipitation": traj.precipitation_achieved,
-                    "step_rewards": [
-                        self._reward_computer.compute_step_reward(s) for s in traj.steps
-                    ],
+                    "step_rewards": [self._reward_computer.compute_step_reward(s) for s in traj.steps],
                 }
                 f.write(json.dumps(record) + "\n")
 
@@ -430,9 +421,7 @@ class ExperienceDataset:
         logger.info("Exported %d judgment records to %s", count, output_path)
         return output_path
 
-    def export_all(
-        self, trajectories: list[AgentTrajectory], prefix: str = ""
-    ) -> dict[str, Path]:
+    def export_all(self, trajectories: list[AgentTrajectory], prefix: str = "") -> dict[str, Path]:
         """Export all training data formats."""
         p = f"{prefix}_" if prefix else ""
         return {
