@@ -42,7 +42,9 @@ def do_kernel_test(forest_height: int, rounds: int, batch_size: int):
     machine.enable_debug = False
     machine.run()
 
-    for ref_mem in reference_kernel2(mem):
+    # Consume generator to get final state
+    ref_mem = None
+    for ref_mem in reference_kernel2(mem):  # noqa: B007
         pass
 
     inp_values_p = ref_mem[6]
@@ -68,7 +70,7 @@ def do_kernel_test(forest_height: int, rounds: int, batch_size: int):
 
 class CorrectnessTests(unittest.TestCase):
     def test_kernel_correctness(self):
-        for i in range(8):
+        for _i in range(8):
             do_kernel_test(10, 16, 256)
 
 
