@@ -41,7 +41,7 @@ class SwarmWorker:
             result = await self.db.query(query)
             
             # Handle response format (It might be [result_list] or [{result: ...}])
-            logger.info(f"DEBUG: Query Result Type: {type(result)}")
+            logger.debug("Query result type: %s", type(result))
             if result and isinstance(result, list):
                 # If list of results
                 if len(result) > 0:
@@ -106,8 +106,12 @@ class SwarmWorker:
         # So Step 1 alone might solve the "Bloat Detected" alert.
         
         # Let's verify status size after ignore.
-        res = subprocess.run("git status --porcelain | wc -l", shell=True, capture_output=True)
-        count = int(res.stdout.decode().strip())
+        res = subprocess.run(
+            ["git", "status", "--porcelain"],
+            capture_output=True,
+            text=True,
+        )
+        count = len(res.stdout.strip().splitlines()) if res.stdout.strip() else 0
         logger.info(f"📉 Post-Hardening Bloat Count: {count}")
         
         if count < 100:
@@ -121,8 +125,11 @@ class SwarmWorker:
             # Update status in DB
             # task['id'] is the ID.
             # SurrealDB update
-            await self.db.query(f"UPDATE swarm_tasks SET status = 'completed', completed_at = time::now() WHERE id = '{task['id']}'")
-            logger.info(f"🏁 Task {task['id']} MARKED COMPLETE.")
+            await self.db.query(
+                "UPDATE swarm_tasks SET status = 'completed', completed_at = time::now() WHERE id = $task_id",
+                {"task_id": task["id"]},
+            )
+            logger.info(f"Task {task['id']} marked complete.")
         except Exception as e:
             logger.error(f"Failed to complete task: {e}")
 
