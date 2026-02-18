@@ -409,6 +409,14 @@ class InterruptionSimulator:
 
         1. Record pre-interruption state and coherence
         2. Apply context loss: zero out (1 - preserved) fraction of state
+           Dimension selection strategy for zeroing:
+           - Default: zero the HIGHEST-entropy dimensions first
+             (high-entropy dims represent the most "recent" or volatile state,
+              mimicking real context truncation which drops recent tokens first)
+           - Alternative: uniform random selection (use for sensitivity analysis)
+           - Alternative: zero lowest-coherence dimensions first (worst-case scenario)
+           The choice of strategy significantly affects recovery time interpretation.
+           Always record which strategy was used in InterruptionResult metadata.
         3. Record post-interruption coherence
         4. Run recovery tasks (BioelectricEngine.step() toward HIHO)
         5. Track coherence recovery over each task
@@ -482,7 +490,13 @@ class RecoveryAwareScheduler:
             Provides recovery timescale parameters.
         thresholds : dict[str, float], optional
             Per-operation-type coherence thresholds for readiness.
-            Defaults to the global threshold (0.60) or Gap 3 results.
+            Priority order:
+            1. Explicitly passed thresholds (highest priority)
+            2. `OperationStratifiedValidator.get_thresholds()` output from Gap 3
+               (available after Gap 3 completes; provides empirically derived per-op thresholds)
+            3. Global threshold 0.60 (fallback only; do NOT hardcode as primary default)
+            At Gap 4 implementation time, Gap 3 should already have produced per-op
+            thresholds. Load them explicitly rather than using 0.60 as the default.
         """
 
     def assess_readiness(
@@ -644,9 +658,19 @@ def test_exponential_fit():
     analyzer = RecoveryCurveAnalyzer()
     # Synthetic exponential decay
     observations = []
+    target_state = np.full(12, 0.5)  # HIHO origin
     for t in range(50):
         d = 0.3 * np.exp(-t / 10.0)
-        obs = RecoveryObservation(step=t, per_dim_distance=np.full(12, d), ...)
+        state = target_state + d  # Decaying offset
+        obs = RecoveryObservation(
+            step=t,
+            state_12d=state,
+            coherence=float(state[4]),
+            distance_from_target=d * np.sqrt(12),  # L2 distance
+            per_dim_distance=np.full(12, d),
+            thermodynamic_state={"entropy": 0.5, "free_energy": 0.1},
+            topological_summary=None,
+        )
         observations.append(obs)
     timescale = analyzer.fit_single_dimension(observations, 0)
     assert abs(timescale.tau - 10.0) < 2.0  # Should recover tau ≈ 10

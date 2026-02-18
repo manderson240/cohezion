@@ -270,7 +270,12 @@ Given a trajectory outcome (success or failure), attribute it to specific causal
 class CausalFactor:
     """A single causal factor contributing to an outcome."""
     factor_name: str             # e.g., "task_complexity", "model_capacity_mismatch"
-    contribution: float          # Shapley value or similar attribution score
+    linear_contribution: float   # Linear attribution score: Δmetric × sensitivity
+                                 # NOTE: This is NOT a Shapley value. Shapley values require
+                                 # combinatorial enumeration over feature subsets (see SHAP library).
+                                 # This implements the simpler Δmetric × Jacobian_sensitivity method
+                                 # (see Attribution Method section below). Rename to shap_contribution
+                                 # if proper SHAP computation is added in a future iteration.
     direction: str               # "positive" (helped) or "negative" (hurt)
     evidence: str                # Human-readable evidence for this attribution
     confidence: float            # 0.0-1.0
@@ -280,8 +285,13 @@ class CausalAttribution:
     """Full causal attribution for a single execution."""
     execution_id: str
     outcome: str                 # "success" or "failure"
-    factors: list[CausalFactor]  # Sorted by |contribution|, descending
-    counterfactual: str          # "Would have succeeded if..."
+    factors: list[CausalFactor]  # Sorted by |linear_contribution|, descending
+    counterfactual: str | None   # "Would have succeeded if..." — FUTURE WORK:
+                                 # Currently None. Counterfactual generation requires
+                                 # identifying the minimum metric change that would flip
+                                 # the predicted outcome. Implementation strategy:
+                                 # find argmin_Δm ||Δm|| s.t. predict(m + Δm) = "success".
+                                 # Track as a follow-on deliverable once attribution is validated.
     trajectory_anomalies: list[str]  # Detected anomalies in 12D path
 
 class CausalAttributionEngine:
@@ -482,29 +492,50 @@ class InterventionalTestHarness:
 def test_operation_type_dominates():
     decomposer = VarianceDecomposer()
     # Create trajectories where operation type is the main factor
+    np.random.seed(42)
     trajectories = np.zeros((100, 12))
     op_types = ["generate"] * 50 + ["analyze"] * 50
     # Generate profiles should differ from analyze profiles
+    generate_profile = np.array([0.8, 0.2, 0.5, 0.5, 0.7, 0.6, 0.4, 0.8, 0.6, 0.7, 0.5, 0.5])
+    analyze_profile  = np.array([0.2, 0.8, 0.5, 0.5, 0.6, 0.7, 0.8, 0.4, 0.7, 0.6, 0.5, 0.5])
     for i, op in enumerate(op_types):
-        if op == "generate":
-            trajectories[i] = np.array([0.8, 0.2, ...])
-        else:
-            trajectories[i] = np.array([0.2, 0.8, ...])
-    report = decomposer.decompose(trajectories, op_types, ...)
+        noise = np.random.randn(12) * 0.05  # Small noise so op type dominates
+        trajectories[i] = (generate_profile if op == "generate" else analyze_profile) + noise
+    task_embeddings = np.random.randn(100, 227)  # Random semantic embeddings
+    quality_metrics = np.random.rand(100, 2)     # Random coherence + efficiency
+    report = decomposer.decompose(trajectories, op_types, task_embeddings, quality_metrics)
     op_component = [c for c in report.components if c.factor_name == "operation_type"][0]
     assert op_component.fraction_of_total > 0.5
 
 # tests/compound/test_jacobian_analyzer.py
 def test_coherence_sensitivity():
     analyzer = JacobianAnalyzer(ExperienceEncoder())
-    experience = {"trajectory": [0.5]*12, "coherence": 0.5, "efficiency": 0.5, ...}
+    experience = {
+        "trajectory": [0.5] * 12,
+        "coherence": 0.5,
+        "efficiency": 0.5,
+        "phi_score": 0.5,
+        "anomaly_score": 0.0,
+        "misalignment_score": 0.0,
+        "task_description": "test task",
+        "operation_type": "generate",
+    }
     result = analyzer.compute_jacobian(experience, ["coherence"])
     # Coherence dimension (idx 4) should be sensitive to coherence metric
     assert abs(result.jacobian[4, 0]) > 0.01
 
 def test_hash_dimensions_insensitive():
     analyzer = JacobianAnalyzer(ExperienceEncoder())
-    experience = {"trajectory": [0.5]*12, "coherence": 0.5, ...}
+    experience = {
+        "trajectory": [0.5] * 12,
+        "coherence": 0.5,
+        "efficiency": 0.5,
+        "phi_score": 0.5,
+        "anomaly_score": 0.0,
+        "misalignment_score": 0.0,
+        "task_description": "test task",
+        "operation_type": "generate",
+    }
     result = analyzer.compute_jacobian(experience, ["coherence"])
     # Spatial dims (0-2) should NOT be sensitive to coherence
     for i in range(3):

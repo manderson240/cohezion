@@ -193,12 +193,17 @@ class CoherenceSuccessCorrelator:
 
     def test_hiho_hypothesis(
         self,
-        coherence_bins: int = 20,
+        coherence_bins: int = 10,
     ) -> dict:
         """Test HIHO prediction: is success maximized at coherence ≈ 0.5?
 
         Bins observations by coherence, computes mean success per bin,
         finds the bin with highest success rate.
+
+        Bin count guidance:
+          - Default 10 bins over [0.2, 0.9] → bin width ≈ 0.07 (~50 samples/bin at 500 obs)
+          - Use coherence_bins=20 only with ≥1000 observations to maintain ≥25 samples/bin
+          - Fewer bins reduce noise at the cost of resolution; 10 is a robust default
 
         Returns
         -------
@@ -207,6 +212,7 @@ class CoherenceSuccessCorrelator:
             peak_success: float
             hiho_supported: bool (peak within 0.4-0.6)
             quadratic_fit: tuple (a, b, c) for ax² + bx + c
+            n_bins_used: int (may be fewer than coherence_bins if data is sparse)
         """
 
     def get_observations(
@@ -386,11 +392,27 @@ class OperationStratifiedValidator:
         self,
         detector: DegradationDetector,
         result: StratificationResult,
+        require_per_threshold_improvement: bool = True,
     ) -> None:
         """Update DegradationDetector with per-operation thresholds.
 
-        Only applies if stratification_improves is True and each
-        per-operation threshold has sufficient observations.
+        Safety guards (both must pass before any threshold is updated):
+
+        1. Global guard: stratification_improves must be True
+           (aggregate F1 with per-op thresholds beats global F1)
+
+        2. Per-threshold guard (when require_per_threshold_improvement=True):
+           Each individual per-operation threshold is only applied if its
+           per-op F1 score exceeds the global threshold's F1 for that
+           specific operation type. This prevents a threshold that improves
+           aggregate F1 (by helping some op-types) from degrading a specific
+           op-type where the global threshold was already optimal.
+
+        Example:
+            Global threshold 0.60 → F1 = 0.72 (search), 0.65 (generate)
+            Stratified: search threshold 0.55 → F1 = 0.75 (better → apply)
+                        generate threshold 0.65 → F1 = 0.63 (worse → skip)
+            Result: search gets updated, generate keeps global 0.60
         """
 ```
 
@@ -419,13 +441,16 @@ class OperationStratifiedValidator:
 
 ```
 1. Collect 500+ observations with coherence values spanning 0.2 to 0.9
-2. Bin by coherence (20 bins of width 0.035)
+   (Recommended: 1000+ for statistical power with 10-bin analysis)
+2. Bin by coherence (10 bins of width 0.07 — robust default for 500 observations)
+   Use 20 bins only if observations ≥ 1000, to maintain ≥ 25 samples/bin
 3. Compute mean success rate per bin
 4. Fit quadratic: success = a·coherence² + b·coherence + c
 5. Find peak: coherence_optimal = -b/(2a)
 6. Test: is coherence_optimal within [0.4, 0.6]?
    - If yes → HIHO supported (optimal is near 0.5)
    - If no → HIHO refuted (optimal is elsewhere)
+7. Report confidence: narrow CI around peak_coherence requires dense per-bin sampling
 ```
 
 ### Experiment 3.3: Phi Score Decomposition
@@ -474,25 +499,55 @@ def test_multiple_loops():
         assert not ctrl.is_disabled(ControlLoop.DEGRADATION_ALERTS)
 
 # tests/compound/test_coherence_success.py
-def test_record_and_analyze():
-    correlator = CoherenceSuccessCorrelator(storage_path=tmp_path / "test.jsonl")
-    for _ in range(100):
+def test_record_and_analyze(tmp_path):
+    correlator = CoherenceSuccessCorrelator(storage_path=str(tmp_path / "test.jsonl"))
+    for i in range(100):
         obs = PairedObservation(
+            execution_id=f"exec-{i}",
+            timestamp=float(i),
+            operation_type="generate",
             coherence=random.random(),
+            phi_score=random.random(),
+            smoothness=random.random(),
+            convergence=random.random(),
+            trajectory_12d=np.zeros(12),
             task_completed=random.random() > 0.3,
-            ...
+            test_pass_rate=None,
+            output_quality=None,
+            error_count=0,
+            wall_time_seconds=1.0,
+            control_loops_active=["retry"],
+            model_used="claude-opus-4-6",
+            task_difficulty=None,
         )
         correlator.record(obs)
     result = correlator.analyze()
     assert result.n_observations == 100
     assert -1.0 <= result.pearson_r <= 1.0
 
-def test_hiho_hypothesis():
-    correlator = CoherenceSuccessCorrelator(...)
+def test_hiho_hypothesis(tmp_path):
+    correlator = CoherenceSuccessCorrelator(storage_path=str(tmp_path / "hiho.jsonl"))
     # Inject data with peak success at coherence ≈ 0.5
-    for coh in np.linspace(0.1, 0.9, 200):
-        success = 1.0 - 4 * (coh - 0.5) ** 2 + random.gauss(0, 0.1)
-        correlator.record(PairedObservation(coherence=coh, ...))
+    for idx, coh in enumerate(np.linspace(0.1, 0.9, 200)):
+        obs = PairedObservation(
+            execution_id=f"exec-{idx}",
+            timestamp=float(idx),
+            operation_type="generate",
+            coherence=coh,
+            phi_score=coh,
+            smoothness=coh,
+            convergence=coh,
+            trajectory_12d=np.zeros(12),
+            task_completed=(1.0 - 4 * (coh - 0.5) ** 2 + random.gauss(0, 0.1)) > 0.5,
+            test_pass_rate=None,
+            output_quality=None,
+            error_count=0,
+            wall_time_seconds=1.0,
+            control_loops_active=[],
+            model_used="claude-opus-4-6",
+            task_difficulty=None,
+        )
+        correlator.record(obs)
     result = correlator.test_hiho_hypothesis()
     assert result["hiho_supported"]
 ```
