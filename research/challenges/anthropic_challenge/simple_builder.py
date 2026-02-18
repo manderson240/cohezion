@@ -1,5 +1,16 @@
+from dataclasses import dataclass
+
 from problem import SCRATCH_SIZE, VLEN
-from optimizer import VLIWPacker, KernelConfig
+from optimizer import VLIWPacker
+
+
+@dataclass
+class KernelConfig:
+    smart_load_depth: int = 0
+    load_slots: int = 2
+    disable_hash_opt: bool = False
+    idx_math_variant: int = 0
+    modulo_mode: int = 0  # 0=Subtract (for 2047)
 
 
 class SimpleKernelBuilder:
@@ -45,24 +56,12 @@ class SimpleKernelBuilder:
         p_forest_base = self.alloc("p_forest_base")
         for i, dest in [(5, p_idx_base), (6, p_val_base), (4, p_forest_base)]:
             c_addr = self.get_const(i)
-            self.packer.add_slot(
-                "load",
-                ("load", dest, c_addr),
-                reads=(c_addr,),
-                writes=(dest,),
-                is_mem_read=True,
-            )
+            self.packer.add_slot("load", ("load", dest, c_addr), reads=(c_addr,), writes=(dest,), is_mem_read=True)
 
         v_n_nodes = self.alloc("v_n_nodes", VLEN)
         s_n_nodes = self.alloc("s_n_nodes")
         c_1 = self.get_const(1)
-        self.packer.add_slot(
-            "load",
-            ("load", s_n_nodes, c_1),
-            reads=(c_1,),
-            writes=(s_n_nodes,),
-            is_mem_read=True,
-        )
+        self.packer.add_slot("load", ("load", s_n_nodes, c_1), reads=(c_1,), writes=(s_n_nodes,), is_mem_read=True)
         self.packer.add_slot(
             "valu",
             ("vbroadcast", v_n_nodes, s_n_nodes),
@@ -76,12 +75,7 @@ class SimpleKernelBuilder:
         v_1 = self.alloc("v_1", VLEN)
         v_2 = self.alloc("v_2", VLEN)
         for c, v in [(c_0, v_0), (c_1, v_1), (c_2, v_2)]:
-            self.packer.add_slot(
-                "valu",
-                ("vbroadcast", v, c),
-                reads=(c,),
-                writes=tuple(range(v, v + VLEN)),
-            )
+            self.packer.add_slot("valu", ("vbroadcast", v, c), reads=(c,), writes=tuple(range(v, v + VLEN)))
 
         global_hash_vec_map = {}
         hash_consts = set()
@@ -91,12 +85,7 @@ class SimpleKernelBuilder:
         for val in hash_consts:
             c = self.get_const(val)
             v = self.alloc(f"vc_{val}", VLEN)
-            self.packer.add_slot(
-                "valu",
-                ("vbroadcast", v, c),
-                reads=(c,),
-                writes=tuple(range(v, v + VLEN)),
-            )
+            self.packer.add_slot("valu", ("vbroadcast", v, c), reads=(c,), writes=tuple(range(v, v + VLEN)))
             global_hash_vec_map[val] = v
 
         num_batches = batch_size // VLEN
@@ -167,11 +156,7 @@ class SimpleKernelBuilder:
                         writes=(v_t1 + k,),
                     )
                     self.packer.add_slot(
-                        "load",
-                        ("load", v_t2 + k, v_t1 + k),
-                        reads=(v_t1 + k,),
-                        writes=(v_t2 + k,),
-                        is_mem_read=True,
+                        "load", ("load", v_t2 + k, v_t1 + k), reads=(v_t1 + k,), writes=(v_t2 + k,), is_mem_read=True
                     )
 
                 self.packer.add_slot(
