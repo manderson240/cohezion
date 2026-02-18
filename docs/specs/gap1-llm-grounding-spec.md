@@ -135,7 +135,12 @@ class ClaudeTraceEncoder:
 
         COHERENCE (4): Internal consistency of reasoning
             → Measure: contradiction density in thinking + output
-            → Implementation: sentence-pair entailment score
+            → Implementation: sentence-pair entailment score (requires local NLI model)
+            → Fallback (if thinking_text is None or NLI unavailable):
+              Use output-to-task entailment (does output address the task?)
+              If NLI model also unavailable, use heuristic overlap:
+              coherence = len(set(output_tokens) & set(task_tokens)) / len(set(task_tokens))
+              This ensures COHERENCE is always populated, though with lower fidelity.
 
         EFFICIENCY (5): Token economy
             → output_tokens / (input_tokens + output_tokens)
@@ -243,7 +248,7 @@ class DimensionRating:
     rationale: str | None          # Why this score
 
 @dataclass
-class TracRating:
+class TraceRating:
     """Complete ground truth for one Claude trace across all 12 dimensions."""
     trace_id: str
     ratings: dict[AxisDimension, DimensionRating]
@@ -256,7 +261,7 @@ class GroundTruthRatingFramework:
     def __init__(self, storage_path: str = "data/validation/ground_truth_ratings.jsonl"):
         ...
 
-    def auto_rate(self, trace: ClaudeTrace) -> TracRating:
+    def auto_rate(self, trace: ClaudeTrace) -> TraceRating:
         """Automatically rate a trace using heuristic evaluators.
 
         Each dimension has a dedicated auto-rater:
@@ -269,7 +274,7 @@ class GroundTruthRatingFramework:
         Auto-ratings are labeled with rater="auto:<method>"
         """
 
-    def rate_batch(self, traces: list[ClaudeTrace]) -> list[TracRating]:
+    def rate_batch(self, traces: list[ClaudeTrace]) -> list[TraceRating]:
         """Rate a batch of traces. Uses auto_rate for each."""
 
     def add_human_rating(
@@ -550,7 +555,8 @@ def test_different_traces_different_vectors():
     trace_b = ClaudeTrace(output_text="Chocolate cake recipe", ...)
     vec_a = encoder.encode(trace_a)
     vec_b = encoder.encode(trace_b)
-    similarity = np.dot(vec_a, vec_b) / (np.linalg.norm(vec_a) * np.linalg.norm(vec_b))
+    # Cosine similarity: normalize both vectors before dot product
+    similarity = np.dot(vec_a, vec_b) / (np.linalg.norm(vec_a) * np.linalg.norm(vec_b) + 1e-8)
     assert similarity < 0.95  # Not identical
 
 # tests/validation/test_transfer_validation.py

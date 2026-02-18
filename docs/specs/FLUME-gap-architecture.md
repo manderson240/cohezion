@@ -26,6 +26,20 @@ Gap 4 (Temporal Dynamics)     ← Operational utility: predict recovery
 
 Each gap produces artifacts consumed by subsequent gaps. Skipping order risks building on unvalidated foundations.
 
+**Partial Parallelism Note (Gap 1 and Gap 3):**
+
+The strict sequential ordering above is conservative. In practice, Gap 1 has two phases:
+
+- **Phase 1A** — `ClaudeTraceEncoder` development and `GroundTruthRatingFramework` setup:
+  Depends only on Gap 5 canonical labels. Can begin immediately after Gap 5 completes,
+  *in parallel* with Gap 3 validation experiments.
+
+- **Phase 1B** — `TransferValidationSuite` (specifically `test_coherence_correlation_transfer`):
+  Depends on `CoherenceSuccessCorrelator.get_correlation()` from Gap 3. Must wait for Gap 3.
+
+Teams with sufficient capacity may start Phase 1A alongside Gap 3 to compress the timeline.
+The dependency arrow above reflects Phase 1B's requirement, not Phase 1A.
+
 ---
 
 ## System Context: What Exists Today

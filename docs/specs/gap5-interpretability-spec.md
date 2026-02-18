@@ -29,6 +29,12 @@ FLUME has two critical interpretability failures:
 | 10 | resonance | novelty | novelty |
 | 11 | harmony | precipitation | precipitation |
 
+**Source citations:**
+- JourneyTracker: `src/cohezion/compound/journey_tracker.py:144-157` — `DIMENSION_LABELS` list
+- UniverseBridge: `src/cohezion/flume/universe_bridge.py:43-44` — `AXIOMATIC_DIMS` list
+- SurrealMCP: `src/cohezion/mcp/surreal_server.py` — dimension labels in the trajectory schema
+  (verify exact line: search for `"x", "y", "z", "time"` in that file before implementing mappings)
+
 Only indices 10-11 (novelty, precipitation) are consistent across all three.
 
 ---
@@ -126,12 +132,32 @@ _JT_TO_CANONICAL = {
     "efficiency": 5,    # Was JT[7], now canonical[5]
     "convergence": 8,   # Was JT[8], now canonical[8]
     "smoothness": 9,    # Was JT[9], now canonical[9]
-    "resonance": 0,     # Was JT[10], MERGED with spatial_x (both positional)
-    "harmony": 1,       # Was JT[11], MERGED with spatial_y
+    "resonance": 0,     # Was JT[10], PROVISIONAL merge with spatial_x — see note below
+    "harmony": 1,       # Was JT[11], PROVISIONAL merge with spatial_y — see note below
 }
 ```
 
-**Note on "resonance" and "harmony":** These JourneyTracker labels have no clear semantic definition distinct from spatial positioning. They are mapped to spatial_x and spatial_y respectively. If validation (Gap 3) shows they carry independent signal, they can be re-separated.
+**Note on "resonance" and "harmony" (PROVISIONAL — requires Gap 3 re-validation):**
+
+These JourneyTracker labels have no clear semantic definition distinct from spatial positioning
+based on code inspection alone. They are *provisionally* mapped to spatial_x and spatial_y.
+
+**This mapping must be treated as a hypothesis, not a fact.** If resonance/harmony encode
+genuine signal distinct from spatial position (e.g., inter-agent coupling, field resonance
+frequencies, or harmonic phase relationships), merging them with spatial_x/y destroys that
+information irreversibly.
+
+**Required Gap 3 validation step** (before finalizing this merge):
+1. Collect 200+ trajectories with both resonance/harmony values and task outcomes
+2. Train linear probes on resonance and harmony separately
+3. Test if probe accuracy on resonance/harmony exceeds probe accuracy on spatial_x/y alone
+4. If Δaccuracy > 5% for either: **DO NOT merge** — keep as separate canonical dimensions
+   (expand canonical from 12 to 13 or 14 dimensions if needed)
+5. Only if Δaccuracy < 5%: confirm merge as the canonical mapping
+
+Flag: `_RESONANCE_HARMONY_MERGE_VALIDATED = False` — set to True only after Gap 3 confirms.
+Until validated, downstream consumers should treat SPATIAL_X and SPATIAL_Y as potentially
+contaminated with resonance/harmony signal.
 
 ### Migration Path
 
@@ -227,12 +253,42 @@ class SemanticEmbedder:
     ┌───────────────────────────────┐
     │  Min-max normalization        │  Scale to [0, 1]
     │  (per-dimension, computed     │  (matches SHA-256 output range)
-    │   from calibration set)       │
+    │   from fixed calibration set) │
     └───────────────┬───────────────┘
                     │ 227D ∈ [0,1]
                     ▼
             Output (227,) float32
 ```
+
+### Calibration Set Specification
+
+Min-max normalization statistics (per-dimension min/max) are computed **once** from a fixed
+calibration set and frozen. This ensures embeddings are comparable across training runs.
+
+**Calibration set**: `data/calibration/semantic_embedder_calibration.jsonl`
+- 1000 diverse task descriptions sampled from the existing 11K simulation trajectory corpus
+- Covers all 5 operation types (200 per type), spanning the full semantic range
+- Frozen at project initialization — **never updated** with new data
+- Commit checksum to git: `data/calibration/semantic_embedder_calibration.sha256`
+
+**Normalization procedure**:
+```python
+# Computed once and saved to data/calibration/normalizer_stats.npz
+projected = random_projection(embed_batch(calibration_texts))  # (1000, 227)
+per_dim_min = projected.min(axis=0)   # (227,) — frozen
+per_dim_max = projected.max(axis=0)   # (227,) — frozen
+np.savez("data/calibration/normalizer_stats.npz", min=per_dim_min, max=per_dim_max)
+```
+
+**At inference**:
+```python
+normalized = (projected - per_dim_min) / (per_dim_max - per_dim_min + 1e-8)
+normalized = np.clip(normalized, 0.0, 1.0)  # Values outside calibration range → clipped
+```
+
+**Why fixed calibration?** If normalization statistics were recomputed on each training run,
+embeddings from different runs would be on incompatible scales, making cross-run trajectory
+comparison impossible. The fixed calibration set acts as a universal reference frame.
 
 **Why nomic-embed-text?**
 - Already available on Ollama (no download)
@@ -454,9 +510,12 @@ def test_similar_texts_closer():
     a = emb.embed("python function for sorting")
     b = emb.embed("python method for ordering")
     c = emb.embed("recipe for chocolate cake")
-    sim_ab = np.dot(a, b)
-    sim_ac = np.dot(a, c)
-    assert sim_ab > sim_ac  # Related texts are closer
+    # Use cosine similarity (normalize before dot product) for distance comparison
+    def cosine_sim(x: np.ndarray, y: np.ndarray) -> float:
+        return float(np.dot(x, y) / (np.linalg.norm(x) * np.linalg.norm(y) + 1e-8))
+    sim_ab = cosine_sim(a, b)
+    sim_ac = cosine_sim(a, c)
+    assert sim_ab > sim_ac  # Related texts are more similar
 
 # tests/flume/test_dimension_probe.py
 def test_coherence_probe():
