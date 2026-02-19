@@ -27,7 +27,7 @@ from typing import Any
 
 import numpy as np
 
-from cohezion.compound.executor import ExecutionResult
+from cohezion.compound.executor_types import ExecutionResult
 
 
 logger = logging.getLogger(__name__)
@@ -97,14 +97,11 @@ class JourneyTracker:
         ```
     """
 
-    AXIOMATIC_DIMS = 12
-
-    HASH_DIMS = 2048
-    CHUNK_SIZE = 128
-
-    TRAJECTORY_WINDOW = 20
-
-    MAX_CACHE_SIZE = 1000
+    AXIOMATIC_DIMS: int = 12
+    HASH_DIMS: int = 2048
+    CHUNK_SIZE: int = 128
+    TRAJECTORY_WINDOW: int = 50
+    MAX_CACHE_SIZE: int = 1000
 
     def __init__(self, seed: int = 42):
         """Initialize journey tracker.
@@ -221,7 +218,7 @@ class JourneyTracker:
 
         return profiles
 
-    def _text_to_latent(self, text: str) -> np.ndarray:
+    def text_to_latent(self, text: str) -> np.ndarray:
         """Generate deterministic 2048D embedding from text.
 
         Uses SHA-256 hash expanded to 2048D with sine wave modulation.
@@ -252,7 +249,7 @@ class JourneyTracker:
 
         return latent
 
-    def _holographic_project(self, latent_2048d: np.ndarray) -> np.ndarray:
+    def holographic_project(self, latent_2048d: np.ndarray) -> np.ndarray:
         """Project 2048D embedding to 12D using holographic method.
 
         Uses chunk-mean averaging: divide 2048D into 128-element segments
@@ -377,8 +374,8 @@ class JourneyTracker:
             else 0.5
         )
 
-        latent_2048d = self._text_to_latent(task_description)
-        projection_12d = self._holographic_project(latent_2048d)
+        latent_2048d = self.text_to_latent(task_description)
+        projection_12d = self.holographic_project(latent_2048d)
 
         axiomatic_12d = self._step_to_axiomatic(
             projection_12d, operation_type, coherence, efficiency

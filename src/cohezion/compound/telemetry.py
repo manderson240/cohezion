@@ -1,5 +1,7 @@
 """Token usage telemetry tracking for Cohezion."""
 
+from __future__ import annotations
+
 import json
 import logging
 import time
@@ -36,19 +38,25 @@ class TokenEfficiencyTracker:
     _instance: "TokenEfficiencyTracker | None" = None
     _initialized: bool = False
     _session_id: str = ""
+    _budget_usd: float = 5.0  # Default $5.0 session budget
+    _total_spent: float = 0.0
 
-    def __new__(cls):
+    def __new__(cls, *args: Any, **kwargs: Any) -> TokenEfficiencyTracker:
         if cls._instance is None:
             cls._instance = super(TokenEfficiencyTracker, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self):
+    def __init__(self, budget: float = 5.0):
         if self._initialized:
             return
         self.records: list[TokenRecord] = []
         self._session_id = f"session_{int(time.time())}"
+        self._budget_usd = budget
+        self._total_spent = 0.0
         TokenEfficiencyTracker._initialized = True
-        logger.info(f"TokenEfficiencyTracker initialized for session {self._session_id}")
+        logger.info(
+            f"TokenEfficiencyTracker initialized for session {self._session_id} with budget ${self._budget_usd}"
+        )
 
     def record_call(
         self,
@@ -81,26 +89,42 @@ class TokenEfficiencyTracker:
             session_id=session_id or self._session_id,
         )
         self.records.append(record)
+        self._total_spent += cost
 
         if len(self.records) >= 10:
             self.persist_to_vault()
 
         return record
 
-    def persist_to_vault(self):
+    def get_budget_status(self) -> dict[str, float | bool]:
+        """Return the current budget usage status."""
+        epsilon = 1e-6
+        return {
+            "budget_usd": self._budget_usd,
+            "total_spent_usd": self._total_spent,
+            "remaining_usd": max(0.0, self._budget_usd - self._total_spent),
+            "usage_percent": (self._total_spent / self._budget_usd) * 100
+            if self._budget_usd > 0
+            else 0,
+            "is_exhausted": self._total_spent >= (self._budget_usd - epsilon),
+            "is_critical": self._total_spent >= (self._budget_usd * 0.9 - epsilon),
+        }
+
+    def persist_to_vault(self) -> None:
         """Persist collected records to the Vault via MCP."""
         try:
             mcp = get_mcp_client()
             path = f"telemetry/tokens/{self._session_id}.json"
 
-            data: dict[str, Any]
+            # Load existing if any
+            data: dict[str, Any] = {"session_id": self._session_id, "records": [], "summary": {}}
             try:
                 content = mcp.vault_read(path)
-                data = json.loads(content)
-                if not isinstance(data, dict):
-                    data = {"session_id": self._session_id, "records": [], "summary": {}}
+                loaded_data: Any = json.loads(content)
+                if isinstance(loaded_data, dict):
+                    data = loaded_data
             except Exception:
-                data = {"session_id": self._session_id, "records": [], "summary": {}}
+                pass
 
             records_list = data.get("records")
             if not isinstance(records_list, list):
