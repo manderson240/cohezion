@@ -94,9 +94,9 @@ Worktree: Yes
 
 **MANDATORY: Update this checklist as tasks complete. Change `[ ]` to `[x]`.**
 
-- [ ] Task 1: Clone repository and set up data access
-- [ ] Task 2: Build chapter knowledge ingestion script
-- [ ] Task 3: Ingest glossary terms into vault
+- [x] Task 1: Clone repository and set up data access
+- [x] Task 2: Build chapter knowledge ingestion script
+- [x] Task 3: Ingest glossary terms into vault
 - [ ] Task 4: Create vault concept notes for all chapters
 - [ ] Task 5: Create ML Systems Foundations PRIME skills
 - [ ] Task 6: Create Performance & Deployment PRIME skills
@@ -105,7 +105,7 @@ Worktree: Yes
 - [ ] Task 9: Integrate TinyTorch advanced modules (10-20)
 - [ ] Task 10: End-to-end validation and SurrealDB indexing
 
-**Total Tasks:** 10 | **Completed:** 0 | **Remaining:** 10
+**Total Tasks:** 10 | **Completed:** 3 | **Remaining:** 7
 
 ## Implementation Tasks
 
