@@ -109,3 +109,18 @@ Did we really lose all of todays?  There's no rollbacks?
 
 commit this
 
+### Prompt 12
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phas...
+
