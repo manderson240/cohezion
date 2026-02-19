@@ -169,6 +169,7 @@ class BioelectricNavigator:
         # If wells too close (degenerate), add small perturbation
         if min_distance < 0.1:
             logger.warning("Degenerate morphospace detected, adding perturbation")
+            target = target.copy()
             target[:2] += np.random.uniform(-0.2, 0.2, size=2)
 
         return target

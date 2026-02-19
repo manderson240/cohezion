@@ -184,7 +184,9 @@ class UniverseTrainingPipeline:
                         )
 
                     # Reset agent for next scenario
-                    agent.state = agent.state.__class__()
+                    from cohezion.universe.engine import AxiomaticState
+
+                    agent.state = AxiomaticState()
 
         # 5. Aggregate profiles
         agent_profiles: dict[str, CapabilityProfile] = {}
