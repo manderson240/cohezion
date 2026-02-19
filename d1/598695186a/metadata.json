@@ -3,12 +3,13 @@
   "checkpoint_id": "d1598695186a",
   "strategy": "manual-commit",
   "branch": "spec/routes-consolidation",
-  "checkpoints_count": 32,
+  "checkpoints_count": 36,
   "files_touched": [
     ".claude/hooks/guard-services.sh",
     ".claude/skills/adversarial-claim-validation/SKILL.md",
     ".claude/skills/appimage-desktop-integration/SKILL.md",
     ".claude/skills/systemd-crash-loop-prevention/SKILL.md",
+    ".gitignore",
     "CLAUDE.md",
     "README.md",
     "data/eval/journeys/benchmark_journeys.jsonl",
@@ -30,14 +31,20 @@
     "scripts/cs249r/ingest_glossary.py",
     "scripts/cs249r/repo_access.py",
     "scripts/handoff.py",
+    "scripts/maintenance/extract_crash_timeline.sh",
+    "scripts/maintenance/install_journald_config.sh",
+    "scripts/maintenance/install_logrotate_config.sh",
     "scripts/maintenance/storage_lifecycle.sh",
+    "scripts/service_guardian.sh",
     "src/cohezion/eval/agentbench/__init__.py",
     "src/cohezion/eval/agentbench/harness.py",
+    "src/cohezion/eval/cli.py",
     "src/cohezion/eval/humaneval/__init__.py",
     "src/cohezion/eval/humaneval/harness.py",
     "src/cohezion/eval/humaneval/ollama_runner.py",
     "src/cohezion/eval/journey_integration.py",
     "src/cohezion/eval/orchestrator.py",
+    "src/cohezion/eval/pattern_analyzer.py",
     "src/cohezion/eval/results/tracker.py",
     "src/cohezion/eval/self_correction.py",
     "src/cohezion/eval/swebench/__init__.py",
@@ -126,13 +133,20 @@
       "context": "/d1/598695186a/7/context.md",
       "content_hash": "/d1/598695186a/7/content_hash.txt",
       "prompt": "/d1/598695186a/7/prompt.txt"
+    },
+    {
+      "metadata": "/d1/598695186a/8/metadata.json",
+      "transcript": "/d1/598695186a/8/full.jsonl",
+      "context": "/d1/598695186a/8/context.md",
+      "content_hash": "/d1/598695186a/8/content_hash.txt",
+      "prompt": "/d1/598695186a/8/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 4503,
-    "cache_creation_tokens": 1534010,
-    "cache_read_tokens": 70608999,
-    "output_tokens": 47616,
-    "api_call_count": 619
+    "input_tokens": 4849,
+    "cache_creation_tokens": 1874879,
+    "cache_read_tokens": 89013985,
+    "output_tokens": 52411,
+    "api_call_count": 766
   }
 }

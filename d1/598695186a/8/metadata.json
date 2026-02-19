@@ -1,0 +1,45 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "d1598695186a",
+  "session_id": "6fb139e0-6924-4ebf-95fa-d4a313caf683",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-19T19:21:42.140705029Z",
+  "branch": "spec/routes-consolidation",
+  "checkpoints_count": 4,
+  "files_touched": [
+    ".claude/skills/appimage-desktop-integration/SKILL.md",
+    ".gitignore",
+    "data/eval/journeys/benchmark_journeys.jsonl",
+    "docs/plans/2026-02-19-log-lifecycle-management.md",
+    "docs/plans/2026-02-19-repo-health-and-hooks-audit.md",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original",
+    "scripts/maintenance/extract_crash_timeline.sh",
+    "scripts/maintenance/install_journald_config.sh",
+    "scripts/maintenance/install_logrotate_config.sh",
+    "scripts/maintenance/storage_lifecycle.sh",
+    "scripts/service_guardian.sh",
+    "src/cohezion/eval/cli.py",
+    "src/cohezion/eval/pattern_analyzer.py",
+    "src/cohezion/eval/self_correction.py",
+    "systemd/logrotate-rsyslog.conf"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "167897f8-ae4a-46e8-98a9-d14ac5c183c9",
+  "token_usage": {
+    "input_tokens": 346,
+    "cache_creation_tokens": 340869,
+    "cache_read_tokens": 18404986,
+    "output_tokens": 4795,
+    "api_call_count": 147
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-19T19:21:42.03091685Z",
+    "agent_lines": 0,
+    "human_added": 29730,
+    "human_modified": 6360,
+    "human_removed": 0,
+    "total_committed": 32878,
+    "agent_percentage": 0
+  }
+}
