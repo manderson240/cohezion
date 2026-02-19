@@ -5,6 +5,8 @@
 [Unit]
 Description=Cohezion Simulation Driver
 After=network.target surrealdb.service
+StartLimitBurst=3
+StartLimitIntervalSec=600
 
 [Service]
 Type=oneshot

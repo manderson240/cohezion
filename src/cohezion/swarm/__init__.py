@@ -12,6 +12,10 @@ from cohezion.swarm.batch_processor import (
     BatchResult,
     CacheEntry,
 )
+from cohezion.swarm.executive import QuadratureNexus
+from cohezion.swarm.perception import JourneyPerception
+from cohezion.swarm.analyzer import JourneyAnalyzer
+from cohezion.swarm.visualizer import JourneyVisualizer
 from cohezion.swarm.hardware_aware_router import (
     Priority,
     RoutingDecision,
@@ -94,4 +98,8 @@ __all__ = [
     "PoolStatus",
     "reset_pool_manager",
     "TierConfig",
+    "QuadratureNexus",
+    "JourneyPerception",
+    "JourneyAnalyzer",
+    "JourneyVisualizer",
 ]
