@@ -1,0 +1,43 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "d1598695186a",
+  "session_id": "ee0d0abd-9cf9-4886-8cc8-ee80dc350dcd",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-19T19:34:06.18471752Z",
+  "branch": "spec/routes-consolidation",
+  "checkpoints_count": 2,
+  "files_touched": [
+    ".claude/settings.json",
+    ".github/workflows/ci.yml",
+    ".github/workflows/lint.yml",
+    ".github/workflows/test.yml",
+    "data/eval/journeys/benchmark_journeys.jsonl",
+    "docs/plans/2026-02-19-repo-health-and-hooks-audit.md",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original",
+    "scripts/maintenance/extract_crash_timeline.sh",
+    "scripts/maintenance/install_journald_config.sh",
+    "scripts/maintenance/install_logrotate_config.sh",
+    "src/cohezion/eval/cli.py",
+    "src/cohezion/eval/pattern_analyzer.py",
+    "systemd/logrotate-rsyslog.conf"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "734891aa-8d6a-4de8-9c2e-7320acf1b924",
+  "token_usage": {
+    "input_tokens": 477,
+    "cache_creation_tokens": 550764,
+    "cache_read_tokens": 20168630,
+    "output_tokens": 4912,
+    "api_call_count": 159
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-19T19:34:06.114921166Z",
+    "agent_lines": 0,
+    "human_added": 22728,
+    "human_modified": 6403,
+    "human_removed": 0,
+    "total_committed": 23005,
+    "agent_percentage": 0
+  }
+}
