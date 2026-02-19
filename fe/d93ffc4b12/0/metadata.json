@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "fed93ffc4b12",
+  "session_id": "b36c2d47-0f3a-46da-bd90-a56ae5f8472d",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-12T22:01:26.491842956Z",
+  "branch": "master",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "decisions/2026-02-12-phase-2-track-a-surrealdb-agent-reasoning-complete.md",
+    "inbox/SESSION-58-TRACK-A-COMPLETE-TRACK-B-READY.md",
+    "inbox/TRACK-B-READY-TO-START-2026-02-13.md"
+  ],
+  "agent": "Claude Code",
+  "checkpoint_transcript_start": 706,
+  "transcript_lines_at_start": 706,
+  "token_usage": {
+    "input_tokens": 170,
+    "cache_creation_tokens": 70594,
+    "cache_read_tokens": 1488360,
+    "output_tokens": 8072,
+    "api_call_count": 21
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-12T22:01:26.364788344Z",
+    "agent_lines": 294,
+    "human_added": 4442,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 4736,
+    "agent_percentage": 6.20777027027027
+  }
+}

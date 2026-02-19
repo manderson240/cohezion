@@ -1,0 +1,48 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "0e70276d354c",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".gitignore",
+    "data/compound/metrics/metrics_snapshot_1771099450.json",
+    "data/compound/metrics/metrics_snapshot_1771099452.json",
+    "data/surrealdb/172960.sst",
+    "data/surrealdb/173328.sst",
+    "data/surrealdb/LOG.old.1771099605800754",
+    "data/surrealdb/LOG.old.1771099825014937",
+    "data/surrealdb/LOG.old.1771099830775908",
+    "data/surrealdb/LOG.old.1771099836518188",
+    "data/surrealdb/LOG.old.1771099842020801",
+    "data/surrealdb/LOG.old.1771099847759976",
+    "data/surrealdb/LOG.old.1771099853567680",
+    "data/surrealdb/LOG.old.1771099859273472",
+    "data/surrealdb/LOG.old.1771099864792482",
+    "data/surrealdb/LOG.old.1771099870536210",
+    "data/surrealdb/MANIFEST-172957",
+    "data/surrealdb/MANIFEST-173325",
+    "data/surrealdb/OPTIONS-172959",
+    "data/surrealdb/OPTIONS-173319",
+    "data/surrealdb/OPTIONS-173327",
+    "docs/plans/2026-02-14-repository-cleanup.md",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0e/70276d354c/0/metadata.json",
+      "transcript": "/0e/70276d354c/0/full.jsonl",
+      "context": "/0e/70276d354c/0/context.md",
+      "content_hash": "/0e/70276d354c/0/content_hash.txt",
+      "prompt": "/0e/70276d354c/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 362,
+    "cache_creation_tokens": 357222,
+    "cache_read_tokens": 10209678,
+    "output_tokens": 14416,
+    "api_call_count": 82
+  }
+}
