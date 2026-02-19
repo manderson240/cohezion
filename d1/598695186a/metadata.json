@@ -3,7 +3,7 @@
   "checkpoint_id": "d1598695186a",
   "strategy": "manual-commit",
   "branch": "spec/routes-consolidation",
-  "checkpoints_count": 36,
+  "checkpoints_count": 42,
   "files_touched": [
     ".claude/hooks/guard-services.sh",
     ".claude/skills/adversarial-claim-validation/SKILL.md",
@@ -51,6 +51,7 @@
     "src/cohezion/eval/swebench/docker_builder.py",
     "src/cohezion/eval/swebench/evaluator.py",
     "src/cohezion/eval/swebench/harness.py",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
     "src/cohezion/knowledge_graph/MISSION_JOURNAL.md",
     "src/cohezion/research/__init__.py",
     "src/cohezion/research/experiment_tracker.py",
@@ -140,13 +141,20 @@
       "context": "/d1/598695186a/8/context.md",
       "content_hash": "/d1/598695186a/8/content_hash.txt",
       "prompt": "/d1/598695186a/8/prompt.txt"
+    },
+    {
+      "metadata": "/d1/598695186a/9/metadata.json",
+      "transcript": "/d1/598695186a/9/full.jsonl",
+      "context": "/d1/598695186a/9/context.md",
+      "content_hash": "/d1/598695186a/9/content_hash.txt",
+      "prompt": "/d1/598695186a/9/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 4849,
-    "cache_creation_tokens": 1874879,
-    "cache_read_tokens": 89013985,
-    "output_tokens": 52411,
-    "api_call_count": 766
+    "input_tokens": 5557,
+    "cache_creation_tokens": 2073077,
+    "cache_read_tokens": 94615216,
+    "output_tokens": 55277,
+    "api_call_count": 827
   }
 }
