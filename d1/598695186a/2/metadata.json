@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "d1598695186a",
+  "session_id": "b928a283-59e8-4e14-baa9-0ae60e8b87f8",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-19T03:18:05.468328062Z",
+  "branch": "spec/routes-consolidation",
+  "checkpoints_count": 8,
+  "files_touched": [
+    ".claude/hooks/guard-services.sh",
+    ".claude/settings.local.json",
+    "data/guardian_events.jsonl",
+    "docs/plans/2026-02-18-system-crash-prevention.md",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original",
+    "scripts/guardian_reporter.py",
+    "scripts/service_guardian.sh",
+    "systemd/cohezion-lab.service",
+    "systemd/cohezion-simulation.service"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "4b82de41-866e-454d-b931-18318cc212db",
+  "token_usage": {
+    "input_tokens": 256,
+    "cache_creation_tokens": 331162,
+    "cache_read_tokens": 16347448,
+    "output_tokens": 10022,
+    "api_call_count": 128
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-19T03:18:05.279906313Z",
+    "agent_lines": 406,
+    "human_added": 33504,
+    "human_modified": 484,
+    "human_removed": 0,
+    "total_committed": 33910,
+    "agent_percentage": 1.1972869360070777
+  }
+}
