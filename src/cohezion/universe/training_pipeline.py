@@ -93,7 +93,7 @@ class UniverseTrainingPipeline:
             config: Training configuration (uses defaults if None)
         """
         self.config = config or TrainingConfig()
-        self.rng = random.Random(self.config.seed)
+        self.rng = random.Random(self.config.seed)  # noqa: S311
         self.generator = ScenarioGenerator(seed=self.config.seed)
         self.dispatcher = NexusScenarioDispatcher()
         self.navigator = BioelectricNavigator()

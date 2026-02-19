@@ -9,10 +9,13 @@ from __future__ import annotations
 
 import logging
 import random
-from collections.abc import Callable
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import Protocol
+from enum import StrEnum
+from typing import TYPE_CHECKING, Protocol
+
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 import numpy as np
 
@@ -26,7 +29,7 @@ class TrajectoryPoint(Protocol):
     def get(self, key: str, default: float = 0.0) -> float: ...
 
 
-class ScenarioType(str, Enum):
+class ScenarioType(StrEnum):
     """Types of training scenarios."""
 
     NAVIGATION = "navigation"  # Find target in morphospace
@@ -72,7 +75,7 @@ class ScenarioGenerator:
 
     def __init__(self, seed: int | None = None):
         """Initialize generator with random seed for reproducibility."""
-        self.rng = random.Random(seed)
+        self.rng = random.Random(seed)  # noqa: S311
         self.np_rng = np.random.default_rng(seed)
 
     def generate(
@@ -92,16 +95,16 @@ class ScenarioGenerator:
         if difficulty is None:
             difficulty = ScenarioDifficulty()
 
-        if scenario_type == ScenarioType.NAVIGATION:
-            return self._generate_navigation(difficulty)
-        elif scenario_type == ScenarioType.MAINTENANCE:
-            return self._generate_maintenance(difficulty)
-        elif scenario_type == ScenarioType.JUDGMENT:
-            return self._generate_judgment(difficulty)
-        elif scenario_type == ScenarioType.INTERRUPTION:
-            return self._generate_interruption(difficulty)
-        else:
+        generators = {
+            ScenarioType.NAVIGATION: self._generate_navigation,
+            ScenarioType.MAINTENANCE: self._generate_maintenance,
+            ScenarioType.JUDGMENT: self._generate_judgment,
+            ScenarioType.INTERRUPTION: self._generate_interruption,
+        }
+        generator = generators.get(scenario_type)
+        if generator is None:
             raise ValueError(f"Unknown scenario type: {scenario_type}")
+        return generator(difficulty)
 
     def _generate_navigation(self, difficulty: ScenarioDifficulty) -> Scenario:
         """Generate navigation scenario: find target in morphospace."""
@@ -163,7 +166,10 @@ class ScenarioGenerator:
         return Scenario(
             type=ScenarioType.MAINTENANCE,
             difficulty=difficulty,
-            description=f"Maintain HIHO coherence near {target_coherence} under {difficulty.interruption_count} perturbations",
+            description=(
+                f"Maintain HIHO coherence near {target_coherence}"
+                f" under {difficulty.interruption_count} perturbations"
+            ),
             target_state={"coherence": target_coherence},
             reward_function=reward_function,
             interruptions=interruptions,
@@ -212,14 +218,16 @@ class ScenarioGenerator:
         return Scenario(
             type=ScenarioType.JUDGMENT,
             difficulty=difficulty,
-            description=f"Choose optimal objective among {num_wells} competing stability wells",
+            description=(
+                f"Choose optimal objective among {num_wells} competing stability wells"
+            ),
             target_state={
                 "x": best_well["x"],
                 "y": best_well["y"],
                 "quality": best_well["quality"],
             },
             reward_function=reward_function,
-            competing_objectives=[well for well in competing_wells],
+            competing_objectives=list(competing_wells),
         )
 
     def _generate_interruption(self, difficulty: ScenarioDifficulty) -> Scenario:
@@ -284,7 +292,10 @@ class ScenarioGenerator:
         return Scenario(
             type=ScenarioType.INTERRUPTION,
             difficulty=difficulty,
-            description=f"Resume navigation to target after {difficulty.interruption_count} context switches",
+            description=(
+                f"Resume navigation to target after"
+                f" {difficulty.interruption_count} context switches"
+            ),
             target_state=target_state,
             reward_function=reward_function,
             interruptions=interruptions,

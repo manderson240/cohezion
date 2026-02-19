@@ -311,7 +311,4 @@ class CapabilityEvaluator:
         )
 
         # If total movement is very small, it's degenerate
-        if total_movement < 0.01 * len(journey):
-            return True
-
-        return False
+        return bool(total_movement < 0.01 * len(journey))

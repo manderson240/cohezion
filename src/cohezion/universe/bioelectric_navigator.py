@@ -7,12 +7,16 @@ using BioelectricEngine for gradient-based action guidance in morphospace.
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from cohezion.flume.bioelectric import BioelectricEngine
-from cohezion.universe.evo_agent import EVOAgent
 from cohezion.universe.scenarios import Scenario, ScenarioType
+
+
+if TYPE_CHECKING:
+    from cohezion.universe.evo_agent import EVOAgent
 
 
 logger = logging.getLogger(__name__)

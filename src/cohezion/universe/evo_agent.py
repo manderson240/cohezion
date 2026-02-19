@@ -69,7 +69,6 @@ class EVOAgent:
             Action dict with action_vector (12D)
         """
         current_state = perception["state"]
-        coherence = perception.get("coherence", current_state.coherence_score())
 
         # Compute action vector: gradient toward HIHO (0.5) in all dimensions
         action_vector = []

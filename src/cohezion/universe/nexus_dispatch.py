@@ -149,4 +149,4 @@ class NexusScenarioDispatcher:
                     OperationType.TRANSFORM.value,
                 )
         except Exception:
-            pass  # Non-blocking
+            logger.debug("Perception recording skipped", exc_info=True)

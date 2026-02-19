@@ -7,12 +7,17 @@ via FLUME VAE to produce 256D journey embeddings for similarity matching.
 from __future__ import annotations
 
 import logging
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from cohezion.flume.vae_encoder import FlumeVAEEncoder
-from cohezion.universe.engine import TrajectoryPoint
+
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from cohezion.universe.engine import TrajectoryPoint
 
 
 logger = logging.getLogger(__name__)
@@ -29,7 +34,8 @@ class VAEJourneyEncoder:
         """Initialize journey encoder.
 
         Args:
-            model_path: Path to FLUME VAE checkpoint (default: uses FlumeVAEEncoder default)
+            model_path: Path to FLUME VAE checkpoint
+                (default: uses FlumeVAEEncoder default)
             fallback_to_hash: If True, use hash encoding when VAE unavailable
         """
         self.vae_encoder = FlumeVAEEncoder(
@@ -60,7 +66,7 @@ class VAEJourneyEncoder:
     def _serialize_trajectory(self, trajectory: list[TrajectoryPoint]) -> str:
         """Serialize trajectory to structured text representation.
 
-        Format: "step:N coherence:C action:A dims:d0,d1,...|step:N+1 coherence:C action:A dims:..."
+        Format: "step:N coherence:C action:A dims:d0,d1,...|..."
 
         Args:
             trajectory: List of trajectory points
