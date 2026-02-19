@@ -26,7 +26,7 @@ class TestTextEmbedding:
         """Embedding should be normalized."""
         text = "test"
         embedding = SemanticCache._text_to_embedding(text)
-        norm = (embedding**2).sum()**0.5
+        norm = (embedding**2).sum() ** 0.5
         assert abs(norm - 1.0) < 0.01
 
     def test_different_texts_different_embeddings(self):
@@ -259,7 +259,9 @@ class TestMultiTierWorkflow:
     async def test_cache_performance_metrics(self):
         """Test cache performance with multiple operations."""
         # High similarity threshold to test L1 behavior (no L2 semantic matches)
-        cache = SemanticCache(max_l1_size=10, similarity_threshold=0.9999, mcp_client=None)
+        cache = SemanticCache(
+            max_l1_size=10, similarity_threshold=0.9999, mcp_client=None
+        )
 
         # Put multiple entries
         prompts = [

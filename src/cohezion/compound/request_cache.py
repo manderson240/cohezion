@@ -29,7 +29,7 @@ import hashlib
 import json
 import logging
 from collections import OrderedDict
-from typing import Any, Optional
+from typing import Any
 
 from cohezion.compound.team_executor import AgentTask
 from cohezion.core.mcp_client import MCPClient

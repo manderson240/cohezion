@@ -1,17 +1,13 @@
 from mem0 import Memory
 import os
 
+
 def test_local_mem0():
     print("Initializing Mem0 Memory...")
     # Attempt local config
     config = {
-        "vector_store": {
-            "provider": "qdrant",
-            "config": {
-                "path": "test_mem0_db"
-            }
-        },
-        "history_db_path": "test_mem0_history.db"
+        "vector_store": {"provider": "qdrant", "config": {"path": "test_mem0_db"}},
+        "history_db_path": "test_mem0_history.db",
     }
 
     try:
@@ -27,6 +23,7 @@ def test_local_mem0():
 
     except Exception as e:
         print(f"FAILED: {e}")
+
 
 if __name__ == "__main__":
     test_local_mem0()

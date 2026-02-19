@@ -141,6 +141,7 @@ src/cohezion/knowledge_graph/universe_nodes/*.jsonl
 src/cohezion/knowledge_graph/universe_nodes/*.parquet
 data/exports/
 data/universe_artifacts/
+data/archives/
 
 # Cache/Temporary Build Artifacts
 .entire/

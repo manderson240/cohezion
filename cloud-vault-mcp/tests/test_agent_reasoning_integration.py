@@ -177,7 +177,9 @@ class TestPhase1Phase2Compatibility:
 class TestToolToQueryWorkflow:
     """Verify complete tool execution → query results workflow."""
 
-    def test_create_reasoning_then_query(self, mock_db, reasoning_ops, reasoning_queries):
+    def test_create_reasoning_then_query(
+        self, mock_db, reasoning_ops, reasoning_queries
+    ):
         """Test: Create reasoning → Query for it."""
         # Step 1: Create reasoning node (requires decision to exist)
         mock_db.created_nodes["agent_decision:test"] = {"type": "decision"}
@@ -198,7 +200,9 @@ class TestToolToQueryWorkflow:
         assert query_result["total_chains"] == 1
         assert query_result["highest_confidence"] == 0.92
 
-    def test_create_challenge_then_detect(self, mock_db, reasoning_ops, reasoning_queries):
+    def test_create_challenge_then_detect(
+        self, mock_db, reasoning_ops, reasoning_queries
+    ):
         """Test: Create challenge → Detect it via contradiction query."""
         # Step 1: Create challenge (requires decision and lesson to exist)
         mock_db.created_nodes["agent_decision:test"] = {"type": "decision"}
@@ -214,12 +218,16 @@ class TestToolToQueryWorkflow:
         assert create_result["success"] is True
 
         # Step 2: Query for contradictions
-        query_result = reasoning_queries.contradiction_detection(severity_filter="major")
+        query_result = reasoning_queries.contradiction_detection(
+            severity_filter="major"
+        )
 
         assert query_result["success"] is True
         assert query_result["major_count"] >= 0
 
-    def test_create_cascade_then_traverse(self, mock_db, reasoning_ops, reasoning_queries):
+    def test_create_cascade_then_traverse(
+        self, mock_db, reasoning_ops, reasoning_queries
+    ):
         """Test: Create cascade → Traverse it via cascade query."""
         # Step 1: Create cascade
         mock_db.created_nodes["agent_decision:source"] = {"type": "decision"}
@@ -314,7 +322,9 @@ class TestE2ECascadeResolution:
 class TestQueryChaining:
     """Verify query chaining across multiple layers."""
 
-    def test_reasoning_to_lessons_chain(self, mock_db, reasoning_ops, reasoning_queries):
+    def test_reasoning_to_lessons_chain(
+        self, mock_db, reasoning_ops, reasoning_queries
+    ):
         """Test: reasoning → query → lessons (complete chain)."""
         # Create reasoning (requires decision to exist)
         mock_db.created_nodes["agent_decision:test"] = {"type": "decision"}
@@ -354,7 +364,9 @@ class TestQueryChaining:
         assert query_result["success"] is True
         assert query_result["source_decision"] == "decision:root"
 
-    def test_confidence_filtering_chain(self, mock_db, reasoning_ops, reasoning_queries):
+    def test_confidence_filtering_chain(
+        self, mock_db, reasoning_ops, reasoning_queries
+    ):
         """Test: create reasoning → filter by confidence (complete chain)."""
         # Create high-confidence reasoning (requires decision to exist)
         mock_db.created_nodes["agent_decision:test"] = {"type": "decision"}
@@ -368,7 +380,9 @@ class TestQueryChaining:
         assert high_conf["success"] is True
 
         # Query for high-confidence reasoning
-        query_result = reasoning_queries.high_confidence_reasoning(confidence_threshold=0.90)
+        query_result = reasoning_queries.high_confidence_reasoning(
+            confidence_threshold=0.90
+        )
 
         assert query_result["success"] is True
         assert query_result["confidence_threshold"] == 0.90

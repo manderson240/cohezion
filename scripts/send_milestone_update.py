@@ -7,6 +7,7 @@ sys.path.append(str(Path(__file__).parents[1] / "src"))
 
 from cohezion.mcp.email_notifier import EmailNotifier
 
+
 async def main():
     notifier = EmailNotifier()
     if not notifier.is_available:
@@ -52,6 +53,7 @@ Cohezion Platform Architect
         print("✅ Executive Summary Sent.")
     else:
         print("❌ Failed to send email.")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

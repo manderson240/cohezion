@@ -27,6 +27,7 @@ TARGET_SIMULATIONS = 500_000
 END_TIME_HOUR = 8
 BATCH_SIZE = 250
 
+
 @dataclass
 class LanguageState:
     epoch: int = 1
@@ -44,12 +45,15 @@ class LanguageState:
             self.mutation_rate = max(0.01, self.mutation_rate - 0.1)
             return False
 
+
 class LinguisticDriver:
     def __init__(self):
         self.simulator = MassSimulator(
             total_simulations=TARGET_SIMULATIONS,
             chunk_size=BATCH_SIZE,
-            output_dir=Path("src/cohezion/knowledge_graph/universe_nodes/linguistic_evolution")
+            output_dir=Path(
+                "src/cohezion/knowledge_graph/universe_nodes/linguistic_evolution"
+            ),
         )
         self.state = LanguageState()
         self.total_completed = 0
@@ -111,27 +115,33 @@ class LinguisticDriver:
                 "final_coherence": intelligibility,
                 "mutation": mutation,
                 "spread": spread,
-                "type": "linguistic"
+                "type": "linguistic",
             }
 
         inputs = [f"Simulate Lang {i}" for i in range(BATCH_SIZE)]
 
         chunk_result = await asyncio.to_thread(
-            self.simulator.run_custom_chunk,
-            int(time.time()), inputs, process_sim
+            self.simulator.run_custom_chunk, int(time.time()), inputs, process_sim
         )
 
         # Update State
-        scores = [r['final_coherence'] for r in chunk_result.raw_results if isinstance(r, dict)]
+        scores = [
+            r["final_coherence"]
+            for r in chunk_result.raw_results
+            if isinstance(r, dict)
+        ]
         if scores:
             avg = sum(scores) / len(scores)
             if self.state.evolve(avg):
-                logger.info(f"[LINGUISTIC] Evolved to Epoch {self.state.epoch}. Rate: {self.state.mutation_rate:.2f}")
+                logger.info(
+                    f"[LINGUISTIC] Evolved to Epoch {self.state.epoch}. Rate: {self.state.mutation_rate:.2f}"
+                )
 
         self.total_completed += len(inputs)
         # Less noisy logging, only every 1000
         if self.total_completed % 1000 == 0:
-             logger.info(f"[LINGUISTIC] Batch completed. Total: {self.total_completed}.")
+            logger.info(f"[LINGUISTIC] Batch completed. Total: {self.total_completed}.")
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

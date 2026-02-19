@@ -82,7 +82,7 @@ Key patterns extracted from:
 stream_select = mo.ui.dropdown(
     options=["architect", "engineer", "biologist", "quantum_hardware", "quantum_algo"],
     value="architect",
-    label="Expert Stream"
+    label="Expert Stream",
 )
 
 mo.md(f"""

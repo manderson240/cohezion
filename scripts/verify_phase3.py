@@ -11,6 +11,7 @@ from cohezion.swarm.agents.chronicle_agent import ChronicleAgent
 from cohezion.swarm.swarm_types import SwarmConfig
 from cohezion.core.time_keeper import get_time_keeper
 
+
 async def main():
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger("Phase3Verification")
@@ -19,7 +20,9 @@ async def main():
     config = SwarmConfig()
 
     # 1. Mission Start
-    mission_id = await tk.start_mission("Phase 3 Integration", "Testing Healing and Synthesis.")
+    mission_id = await tk.start_mission(
+        "Phase 3 Integration", "Testing Healing and Synthesis."
+    )
     await tk.start_session(mission_id)
 
     # 2. Test Quality Rubrics (phi_score)
@@ -45,6 +48,7 @@ async def main():
 
     await healer.close()
     await chronicle.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

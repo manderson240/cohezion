@@ -10,10 +10,12 @@ sys.path.append(str(Path.cwd() / "src"))
 
 from cohezion.mcp.email_notifier import NotificationConfig
 
+
 async def main():
     logging.basicConfig(level=logging.INFO)
 
     from dotenv import load_dotenv
+
     load_dotenv()
 
     email_config = NotificationConfig.from_env()
@@ -22,7 +24,9 @@ async def main():
 
     print("\n--- Reading Research Email Body ---")
 
-    with MailBox(imap_host).login(email_config.sender_email, email_config.sender_password) as mailbox:
+    with MailBox(imap_host).login(
+        email_config.sender_email, email_config.sender_password
+    ) as mailbox:
         criteria = f'FROM "{authorized_sender}" SUBJECT "Research Update"'
         for msg in mailbox.fetch(criteria, reverse=True):
             print(f"Subject: {msg.subject}")
@@ -30,6 +34,7 @@ async def main():
             print("\nBody:")
             print(msg.text or msg.html)
             print("-" * 40)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

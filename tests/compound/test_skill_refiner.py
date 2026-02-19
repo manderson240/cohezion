@@ -1,6 +1,5 @@
 """Tests for skill refiner learning from execution results."""
 
-
 import pytest
 
 from cohezion.compound.skill_refiner import (
@@ -171,9 +170,7 @@ class TestRefine:
         """Test that refine skips failed executions."""
         sample_execution_result["success"] = False
 
-        result = skill_refiner.refine(
-            "TEST_SKILL", "generate", sample_execution_result
-        )
+        result = skill_refiner.refine("TEST_SKILL", "generate", sample_execution_result)
 
         assert result is None
 
@@ -268,7 +265,10 @@ class TestRecommendationGeneration:
 
         recommendation = skill_refiner._generate_recommendation(metrics, "analyze")
 
-        assert "efficient" in recommendation.lower() or "baseline" in recommendation.lower()
+        assert (
+            "efficient" in recommendation.lower()
+            or "baseline" in recommendation.lower()
+        )
 
     def test_recommend_cache_friendly(self, skill_refiner):
         """Test recommendation for cache-friendly patterns."""

@@ -7,11 +7,10 @@ handle conflicts, and manage atomic operations.
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from cohezion.config.config_state import FileMetadata
 from cohezion.config.config_sync_logger import ConfigSyncLogger

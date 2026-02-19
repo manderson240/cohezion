@@ -13,11 +13,10 @@ import threading
 import time
 from collections import defaultdict
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from cohezion.swarm.team_metrics import TeamCompoundMetrics, WaveMetrics
+from cohezion.swarm.team_metrics import TeamCompoundMetrics
 
 
 logger = logging.getLogger(__name__)

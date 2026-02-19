@@ -1,17 +1,21 @@
-
 import collections
 import networkx as nx
 import matplotlib.pyplot as plt
 
+
 def analyze_connectivity(qasm_path):
     edges = []
     qubits = set()
-    with open(qasm_path, 'r') as f:
+    with open(qasm_path, "r") as f:
         for line in f:
-            if line.startswith('cz') or line.startswith('cx') or line.startswith('swap'):
+            if (
+                line.startswith("cz")
+                or line.startswith("cx")
+                or line.startswith("swap")
+            ):
                 # Extract qubits
-                parts = line.strip().replace(';', '').replace(',', ' ').split()
-                qs = [int(p.split('[')[1].split(']')[0]) for p in parts if '[' in p]
+                parts = line.strip().replace(";", "").replace(",", " ").split()
+                qs = [int(p.split("[")[1].split("]")[0]) for p in parts if "[" in p]
                 if len(qs) == 2:
                     edges.append(tuple(sorted(qs)))
                     qubits.add(qs[0])
@@ -28,7 +32,7 @@ def analyze_connectivity(qasm_path):
     # Check degree distribution
     degrees = [d for n, d in G.degree()]
     print(f"Max Degree: {max(degrees)}")
-    print(f"Avg Degree: {sum(degrees)/len(degrees):.2f}")
+    print(f"Avg Degree: {sum(degrees) / len(degrees):.2f}")
 
     # Heuristic for geometry
     if max(degrees) <= 2:
@@ -37,6 +41,7 @@ def analyze_connectivity(qasm_path):
         print("Topology: Likely 2D Grid (PEPS ideal)")
     else:
         print("Topology: High Connectivity / Complex (General TN / Slicing)")
+
 
 if __name__ == "__main__":
     analyze_connectivity("P1_little_dimple.qasm")

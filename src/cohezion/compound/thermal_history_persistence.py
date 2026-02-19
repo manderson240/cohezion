@@ -22,7 +22,6 @@ import logging
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from cohezion.compound.thermal_trend_predictor import ThermalTimeSeries
 
@@ -235,7 +234,7 @@ class ThermalTimeSeriesCollector:
                     ),
                     timeout=1.0,  # 1-second timeout
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.debug("Vault logging timed out (non-blocking)")
         except Exception as e:
             logger.debug(f"Vault logging failed (non-blocking): {e}")
@@ -261,7 +260,7 @@ class ThermalTimeSeriesCollector:
             cutoff_time = current_time - (hours * 3600)
 
             samples = []
-            with open(self.history_path, "r", encoding="utf-8") as f:
+            with open(self.history_path, encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
                     if not line:
@@ -353,7 +352,7 @@ def load_jsonl_history(history_path: Path | None = None, days: int = 7) -> list[
         cutoff_time = current_time - (days * 86400)
 
         samples = []
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line:

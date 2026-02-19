@@ -17,7 +17,7 @@ from __future__ import annotations
 import logging
 from collections import OrderedDict
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from cohezion.swarm.persistent_cache import PersistentCache
 

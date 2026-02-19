@@ -42,12 +42,14 @@ class WorktreeOrchestrator:
         Create a new git worktree for a session.
         """
         # Sanitize session_id to prevent path traversal
-        clean_session_id = "".join(c for c in session_id if c.isalnum() or c in ("-", "_")).strip()
+        clean_session_id = "".join(
+            c for c in session_id if c.isalnum() or c in ("-", "_")
+        ).strip()
         if not clean_session_id:
             raise ValueError(f"Invalid session_id: {session_id}")
 
         worktree_path = (self.base_path / clean_session_id).resolve()
-        
+
         # Ensure the path is within the base_path
         if not str(worktree_path).startswith(str(self.base_path.resolve())):
             raise ValueError(f"Path traversal detected in session_id: {session_id}")
@@ -57,10 +59,20 @@ class WorktreeOrchestrator:
             return str(worktree_path)
 
         try:
-            logger.info(f"Creating worktree for session {clean_session_id} at {worktree_path}")
+            logger.info(
+                f"Creating worktree for session {clean_session_id} at {worktree_path}"
+            )
             # git worktree add [-f] [--checkout] [--lock] [-b <new-branch>] <path> [<commit-ish>]
             subprocess.run(
-                ["git", "worktree", "add", "-b", f"swarm/{clean_session_id}", str(worktree_path), branch],
+                [
+                    "git",
+                    "worktree",
+                    "add",
+                    "-b",
+                    f"swarm/{clean_session_id}",
+                    str(worktree_path),
+                    branch,
+                ],
                 cwd=str(self.repo_root),
                 check=True,
                 capture_output=True,
@@ -96,26 +108,31 @@ class WorktreeOrchestrator:
     def snapshot_state(self, session_id: str) -> bool:
         """
         Record the current state of a worktree session to the Knowledge Graph.
-        
+
         Essentially 'freezes' the manifold state before cleanup or suspension.
         """
         worktree_path = self.base_path / session_id
         if not worktree_path.exists():
             return False
-            
+
         try:
             from cohezion.core.persistence.surreal_client import get_surreal_client
+
             db = get_surreal_client()
-            
+
             # Simple metadata snapshot for now
             # In a real mission, this would diff the files and store the delta.
             snapshot = {
                 "session_id": session_id,
                 "path": str(worktree_path),
-                "timestamp": "2026-02-17T18:41:00Z", # Mock timestamp
-                "files": [str(f.relative_to(worktree_path)) for f in worktree_path.rglob("*") if f.is_file()]
+                "timestamp": "2026-02-17T18:41:00Z",  # Mock timestamp
+                "files": [
+                    str(f.relative_to(worktree_path))
+                    for f in worktree_path.rglob("*")
+                    if f.is_file()
+                ],
             }
-            
+
             # db.create(f"session_snapshots:{session_id}", snapshot)
             logger.info(f"Snapshotted worktree state for session {session_id}")
             return True

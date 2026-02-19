@@ -6,7 +6,6 @@ Charter requirement: "All complex problems must route through five specialized s
 import asyncio
 import json
 from enum import Enum
-from typing import List
 
 from pydantic import BaseModel
 

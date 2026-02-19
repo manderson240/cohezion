@@ -22,7 +22,7 @@ from cohezion.security.log_redactor import (
 @pytest.fixture
 def logger():
     """Create a test logger with string handler."""
-    test_logger = logging.getLogger('test_redactor')
+    test_logger = logging.getLogger("test_redactor")
     test_logger.setLevel(logging.DEBUG)
 
     # Clear existing handlers
@@ -31,7 +31,7 @@ def logger():
     # Add string handler
     stream = StringIO()
     handler = logging.StreamHandler(stream)
-    handler.setFormatter(logging.Formatter('%(message)s'))
+    handler.setFormatter(logging.Formatter("%(message)s"))
     test_logger.addHandler(handler)
 
     return test_logger
@@ -43,71 +43,71 @@ class TestRedactionFilter:
     def test_redact_api_key(self, logger):
         """Test redaction of API keys."""
         filter_obj = RedactionFilter()
-        text = 'API_KEY=secret123'
+        text = "API_KEY=secret123"
         redacted = filter_obj._redact_string(text)
-        assert '[REDACTED]' in redacted
+        assert "[REDACTED]" in redacted
 
     def test_redact_password(self):
         """Test redaction of passwords."""
         filter_obj = RedactionFilter()
 
-        text = 'password=mysecretpassword'
+        text = "password=mysecretpassword"
         redacted = filter_obj._redact_string(text)
-        assert redacted == '[REDACTED]'
+        assert redacted == "[REDACTED]"
 
     def test_redact_token(self):
         """Test redaction of tokens."""
         filter_obj = RedactionFilter()
 
-        text = 'token=abc123def456'
+        text = "token=abc123def456"
         redacted = filter_obj._redact_string(text)
-        assert redacted == '[REDACTED]'
+        assert redacted == "[REDACTED]"
 
     def test_redact_bearer_token(self):
         """Test redaction of bearer tokens."""
         filter_obj = RedactionFilter()
 
-        text = 'Authorization: Bearer eyJhbGc...'
+        text = "Authorization: Bearer eyJhbGc..."
         redacted = filter_obj._redact_string(text)
-        assert '[REDACTED]' in redacted
+        assert "[REDACTED]" in redacted
 
     def test_redact_jwt(self):
         """Test redaction of JSON Web Tokens."""
         filter_obj = RedactionFilter()
 
-        jwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+        jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
         redacted = filter_obj._redact_string(jwt)
-        assert '[REDACTED]' in redacted
+        assert "[REDACTED]" in redacted
 
     def test_redact_private_key(self):
         """Test redaction of private keys."""
         filter_obj = RedactionFilter()
 
-        text = 'private_key=0xabcd1234'
+        text = "private_key=0xabcd1234"
         redacted = filter_obj._redact_string(text)
-        assert redacted == '[REDACTED]'
+        assert redacted == "[REDACTED]"
 
     def test_redact_wallet_key(self):
         """Test redaction of wallet keys."""
         filter_obj = RedactionFilter()
 
-        text = 'wallet_key=0x1234567890abcdef'
+        text = "wallet_key=0x1234567890abcdef"
         redacted = filter_obj._redact_string(text)
-        assert redacted == '[REDACTED]'
+        assert redacted == "[REDACTED]"
 
     def test_case_insensitive_redaction(self):
         """Test that redaction is case-insensitive."""
         filter_obj = RedactionFilter()
 
         texts = [
-            'PASSWORD=secret',
-            'password=secret',
-            'Password=secret',
+            "PASSWORD=secret",
+            "password=secret",
+            "Password=secret",
         ]
 
         for text in texts:
             redacted = filter_obj._redact_string(text)
-            assert redacted == '[REDACTED]'
+            assert redacted == "[REDACTED]"
 
     def test_quoted_values_redacted(self):
         """Test that quoted secret values are redacted."""
@@ -121,18 +121,18 @@ class TestRedactionFilter:
 
         for text in texts:
             redacted = filter_obj._redact_string(text)
-            assert '[REDACTED]' in redacted
+            assert "[REDACTED]" in redacted
 
     def test_multiple_secrets_in_one_message(self):
         """Test redaction of multiple secrets in one message."""
         filter_obj = RedactionFilter()
 
-        text = 'password=secret123 token=abc123def456 api_key=key789'
+        text = "password=secret123 token=abc123def456 api_key=key789"
         redacted = filter_obj._redact_string(text)
 
-        assert 'secret123' not in redacted
-        assert 'abc123def456' not in redacted
-        assert 'key789' not in redacted
+        assert "secret123" not in redacted
+        assert "abc123def456" not in redacted
+        assert "key789" not in redacted
         # Should have redacted text but may vary depending on patterns
         assert len(redacted) > 0
 
@@ -140,7 +140,7 @@ class TestRedactionFilter:
         """Test that normal text without secrets is preserved."""
         filter_obj = RedactionFilter()
 
-        text = 'This is a normal log message'
+        text = "This is a normal log message"
         redacted = filter_obj._redact_string(text)
         assert redacted == text
 
@@ -149,30 +149,30 @@ class TestRedactionFilter:
         filter_obj = RedactionFilter()
 
         record = logging.LogRecord(
-            name='test',
+            name="test",
             level=logging.INFO,
-            pathname='test.py',
+            pathname="test.py",
             lineno=1,
-            msg='API_KEY=secret123',
+            msg="API_KEY=secret123",
             args=(),
             exc_info=None,
         )
 
         result = filter_obj.filter(record)
         assert result is True
-        assert 'secret123' not in record.msg
+        assert "secret123" not in record.msg
 
     def test_filter_with_dict_args(self):
         """Test filter with dictionary arguments."""
         filter_obj = RedactionFilter()
 
         record = logging.LogRecord(
-            name='test',
+            name="test",
             level=logging.INFO,
-            pathname='test.py',
+            pathname="test.py",
             lineno=1,
-            msg='User logged in',
-            args={'password': 'secret123', 'user': 'john'},
+            msg="User logged in",
+            args={"password": "secret123", "user": "john"},
             exc_info=None,
         )
 
@@ -188,19 +188,19 @@ class TestRedactionFilter:
         filter_obj = RedactionFilter()
 
         record = logging.LogRecord(
-            name='test',
+            name="test",
             level=logging.INFO,
-            pathname='test.py',
+            pathname="test.py",
             lineno=1,
-            msg='Config: %s %s',
-            args=('api_key=secret123', 'password=pass456'),
+            msg="Config: %s %s",
+            args=("api_key=secret123", "password=pass456"),
             exc_info=None,
         )
 
         result = filter_obj.filter(record)
         assert result is True
         # Args are redacted
-        assert '[REDACTED]' in str(record.args)
+        assert "[REDACTED]" in str(record.args)
 
 
 class TestSetupFunctions:
@@ -226,5 +226,5 @@ class TestSetupFunctions:
         assert len(root.filters) >= initial_filter_count
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

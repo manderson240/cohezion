@@ -6,7 +6,6 @@ Handles simultaneous edits in CLAUDE.md and vault.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Optional
 
 
 class ConflictResolutionStrategy(Enum):

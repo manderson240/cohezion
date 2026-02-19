@@ -8,10 +8,12 @@ sys.path.append(str(Path.cwd() / "src"))
 
 from cohezion.mcp.email_notifier import EmailNotifier
 
+
 async def main():
     logging.basicConfig(level=logging.INFO)
 
     from dotenv import load_dotenv
+
     load_dotenv()
 
     notifier = EmailNotifier()
@@ -29,6 +31,7 @@ async def main():
     if notifier.is_available:
         await notifier.send_email(subject, body, is_html=True)
         print("Notification sent.")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

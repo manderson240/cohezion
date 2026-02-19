@@ -17,12 +17,10 @@ from datetime import datetime
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - [CONTROL] - %(message)s",
-    handlers=[
-        logging.FileHandler("mission_control.log"),
-        logging.StreamHandler()
-    ]
+    handlers=[logging.FileHandler("mission_control.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger("MissionControl")
+
 
 class MissionControl:
     def __init__(self, duration_hours=4):
@@ -31,24 +29,26 @@ class MissionControl:
         self.processes = []
         self.reports_dir = Path("reports/hourly")
         self.reports_dir.mkdir(parents=True, exist_ok=True)
-        self.retro_file = Path(".gemini/antigravity/brain/d9c1fcdb-69db-458c-b64a-f26e49625c33/RETROSPECTIVE_SESSION_PRIME.md")
-        
+        self.retro_file = Path(
+            ".gemini/antigravity/brain/d9c1fcdb-69db-458c-b64a-f26e49625c33/RETROSPECTIVE_SESSION_PRIME.md"
+        )
+
         # Sub-agents
         self.agents = [
             "scripts/drivers/issue_scout.py",
             "scripts/drivers/mission_crawler.py",
-            "scripts/drivers/autonomous_bbq.py"
+            "scripts/drivers/autonomous_bbq.py",
         ]
 
     def launch_agents(self):
-        logger.info(f"🚀 Launching Swarm Agents for {self.duration/3600}h Mission...")
+        logger.info(f"🚀 Launching Swarm Agents for {self.duration / 3600}h Mission...")
         for script in self.agents:
             try:
                 # Use uv run for environment consistency
                 p = subprocess.Popen(
                     ["uv", "run", script],
                     stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL
+                    stderr=subprocess.DEVNULL,
                 )
                 self.processes.append((script, p))
                 logger.info(f"✅ Launched {script} (PID: {p.pid})")
@@ -84,16 +84,16 @@ class MissionControl:
     def update_retrospective(self, hour):
         if not self.retro_file.exists():
             return
-        
+
         entry = f"\n- **H+{hour} Checkpoint**: System nominal. All agents reporting stable operation. (Auto-logged)"
         try:
             content = self.retro_file.read_text()
             if "## Session Log" in content:
-                 parts = content.split("## Session Log")
-                 new_content = parts[0] + "## Session Log" + entry + parts[1]
+                parts = content.split("## Session Log")
+                new_content = parts[0] + "## Session Log" + entry + parts[1]
             else:
-                 new_content = content + f"\n\n## Session Log{entry}\n"
-                 
+                new_content = content + f"\n\n## Session Log{entry}\n"
+
             self.retro_file.write_text(new_content)
             logger.info(f"📝 Retrospective updated for H+{hour}.")
         except Exception as e:
@@ -102,28 +102,29 @@ class MissionControl:
     async def monitor_loop(self):
         self.launch_agents()
         params = {"last_hour": 0}
-        
+
         while time.time() - self.start_time < self.duration:
             elapsed = time.time() - self.start_time
             current_hour = int(elapsed // 3600)
-            
+
             if current_hour > params["last_hour"]:
                 logger.info(f"⏰ H+{current_hour} Milestone Reached.")
                 self.generate_hourly_report(current_hour)
                 self.update_retrospective(current_hour)
                 params["last_hour"] = current_hour
-            
+
             # Watchdog (check if processes died)
             for script, p in self.processes:
                 if p.poll() is not None:
                     logger.warning(f"⚠️ Agent {script} died! Restarting...")
                     # logic to restart could go here, for now just log
-            
-            await asyncio.sleep(60) # check every minute
+
+            await asyncio.sleep(60)  # check every minute
 
         logger.info("🏁 Mission Complete. Landing Swarm...")
         for _, p in self.processes:
             p.terminate()
+
 
 if __name__ == "__main__":
     ctrl = MissionControl(duration_hours=4)

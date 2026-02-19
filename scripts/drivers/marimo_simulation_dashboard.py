@@ -15,6 +15,7 @@ def __():
     from datetime import datetime
     import time
     from cohezion.core.persistence.surreal_client import SurrealClient, PhysicsState
+
     return PhysicsState, SurrealClient, asyncio, datetime, json, mo, np, pd, px, time
 
 
@@ -47,18 +48,25 @@ def __(nodes_data, pd):
             meta = n.metadata
             eco = meta.get("eco_metrics", {})
 
-            rows.append({
-                "id": n.id,
-                "x": p.x, "y": p.y, "z": p.z,
-                "mass": p.mass, "stability": p.stability, "coherence": p.coherence,
-                "complexity": p.complexity, "novelty": p.novelty,
-                "stream": meta.get("stream", "unknown"),
-                "content": n.content,
-                # Eco Metrics (InVEST Abstractions)
-                "info_density": eco.get("info_density", 0),
-                "energy_flow": eco.get("energy_flow", 0),
-                "habitat_quality": eco.get("habitat_quality", 0)
-            })
+            rows.append(
+                {
+                    "id": n.id,
+                    "x": p.x,
+                    "y": p.y,
+                    "z": p.z,
+                    "mass": p.mass,
+                    "stability": p.stability,
+                    "coherence": p.coherence,
+                    "complexity": p.complexity,
+                    "novelty": p.novelty,
+                    "stream": meta.get("stream", "unknown"),
+                    "content": n.content,
+                    # Eco Metrics (InVEST Abstractions)
+                    "info_density": eco.get("info_density", 0),
+                    "energy_flow": eco.get("energy_flow", 0),
+                    "habitat_quality": eco.get("habitat_quality", 0),
+                }
+            )
         return pd.DataFrame(rows)
 
     substrate_df = to_dataframe(nodes_data)
@@ -75,17 +83,23 @@ def __(mo):
 def __(mo, px, substrate_df):
     def render_manifold_plot(df, color_metric="stability"):
         if df.empty:
-            return mo.md("### 📡 Synchronizing with Substrate...\nNo simulation data found in SurrealDB yet.")
+            return mo.md(
+                "### 📡 Synchronizing with Substrate...\nNo simulation data found in SurrealDB yet."
+            )
 
         # 3D Manifold Projection with Dynamic Metric Coloring
         fig = px.scatter_3d(
-            df, x="x", y="y", z="z",
-            color=color_metric, size="mass",
+            df,
+            x="x",
+            y="y",
+            z="z",
+            color=color_metric,
+            size="mass",
             hover_data=["id", "stream", "habitat_quality"],
             title=f"12D Physics Manifold - {color_metric.replace('_', ' ').title()}",
             color_continuous_scale="Viridis",
             template="plotly_dark",
-            height=800
+            height=800,
         )
         fig.update_layout(margin=dict(l=0, r=0, b=0, t=40))
         return mo.plotly(fig)
@@ -93,10 +107,16 @@ def __(mo, px, substrate_df):
     metric_selector = mo.ui.dropdown(
         ["stability", "info_density", "energy_flow", "habitat_quality"],
         value="habitat_quality",
-        label="Select Map Metric (InVEST Adaptation)"
+        label="Select Map Metric (InVEST Adaptation)",
     )
 
-    return mo.vstack([metric_selector, render_manifold_plot(substrate_df, metric_selector.value)]), metric_selector, render_manifold_plot
+    return (
+        mo.vstack(
+            [metric_selector, render_manifold_plot(substrate_df, metric_selector.value)]
+        ),
+        metric_selector,
+        render_manifold_plot,
+    )
 
 
 @app.cell
@@ -105,7 +125,7 @@ def __(mo, substrate_df):
     options_list = substrate_df["id"].tolist() if not substrate_df.empty else []
     selected_sim_id = mo.ui.dropdown(options_list, label="🔍 Inspect Agentic Journey")
     selected_sim_id
-    return selected_sim_id,
+    return (selected_sim_id,)
 
 
 @app.cell
@@ -113,7 +133,9 @@ def __(mo, selected_sim_id, substrate_df):
     # Display details for selected simulation
     def show_discovery_details(df, target_id):
         if df.empty or not target_id:
-            return mo.md("Select a node from the manifold to inspect the underlying logic.")
+            return mo.md(
+                "Select a node from the manifold to inspect the underlying logic."
+            )
 
         row_match = df[df["id"] == target_id]
         if row_match.empty:
@@ -121,28 +143,42 @@ def __(mo, selected_sim_id, substrate_df):
 
         data_point = row_match.iloc[0]
 
-        return mo.vstack([
-            mo.md(f"## Journey: `{target_id}`"),
-            mo.md(f"**Stream:** `{data_point['stream']}` | **Habitat Quality:** `{data_point['habitat_quality']:.4f}`"),
-            mo.md(f"**Info Density:** `{data_point['info_density']:.4f}` | **Energy Flow:** `{data_point['energy_flow']:.4f}`"),
-            mo.md("---"),
-            mo.code(data_point['content'], language="markdown")
-        ])
+        return mo.vstack(
+            [
+                mo.md(f"## Journey: `{target_id}`"),
+                mo.md(
+                    f"**Stream:** `{data_point['stream']}` | **Habitat Quality:** `{data_point['habitat_quality']:.4f}`"
+                ),
+                mo.md(
+                    f"**Info Density:** `{data_point['info_density']:.4f}` | **Energy Flow:** `{data_point['energy_flow']:.4f}`"
+                ),
+                mo.md("---"),
+                mo.code(data_point["content"], language="markdown"),
+            ]
+        )
 
     show_discovery_details(substrate_df, selected_sim_id.value)
-    return show_discovery_details,
+    return (show_discovery_details,)
 
 
 @app.cell
 def __(mo):
     # Global Controls
-    mo.vstack([
-        mo.md("### 🛠️ Substrate Tuning"),
-        mo.md("Adjust the reality precipitation parameters for the ongoing 1M+ mission."),
-        mo.ui.slider(0, 1, step=0.01, value=0.85, label="Physics weight (PINO Enforcement)"),
-        mo.ui.slider(0, 1, step=0.01, value=0.5, label="Stability Target (HIHO Goldilocks)"),
-        mo.ui.button(label="Update Swarm Configuration", kind="primary")
-    ])
+    mo.vstack(
+        [
+            mo.md("### 🛠️ Substrate Tuning"),
+            mo.md(
+                "Adjust the reality precipitation parameters for the ongoing 1M+ mission."
+            ),
+            mo.ui.slider(
+                0, 1, step=0.01, value=0.85, label="Physics weight (PINO Enforcement)"
+            ),
+            mo.ui.slider(
+                0, 1, step=0.01, value=0.5, label="Stability Target (HIHO Goldilocks)"
+            ),
+            mo.ui.button(label="Update Swarm Configuration", kind="primary"),
+        ]
+    )
     return
 
 

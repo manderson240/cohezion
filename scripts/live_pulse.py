@@ -4,6 +4,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 
+
 async def pulse_dashboard():
     """A 'tail -f' friendly dashboard for the terminal."""
     log_file = Path("universe_sim.log")
@@ -26,8 +27,10 @@ async def pulse_dashboard():
             return "File not found."
 
     while True:
-        os.system('clear')
-        print(f"{CYAN}🌍 COHEZION LIVE PULSE | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}{RESET}")
+        os.system("clear")
+        print(
+            f"{CYAN}🌍 COHEZION LIVE PULSE | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}{RESET}"
+        )
         print("-" * 60)
 
         # 1. System Status
@@ -53,6 +56,7 @@ async def pulse_dashboard():
         print("Press Ctrl+C to exit.")
 
         await asyncio.sleep(2)
+
 
 if __name__ == "__main__":
     try:

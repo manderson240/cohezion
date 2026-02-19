@@ -6,6 +6,7 @@
 # - adaptive_router_adapter
 # - hardware_profiler_stub
 
+from cohezion.swarm.analyzer import JourneyAnalyzer
 from cohezion.swarm.batch_processor import (
     BatchItem,
     BatchProcessor,
@@ -13,9 +14,6 @@ from cohezion.swarm.batch_processor import (
     CacheEntry,
 )
 from cohezion.swarm.executive import QuadratureNexus
-from cohezion.swarm.perception import JourneyPerception
-from cohezion.swarm.analyzer import JourneyAnalyzer
-from cohezion.swarm.visualizer import JourneyVisualizer
 from cohezion.swarm.hardware_aware_router import (
     Priority,
     RoutingDecision,
@@ -44,6 +42,7 @@ from cohezion.swarm.multi_layer_cache import (
     MultiLayerCache,
     SemanticCacheStore,
 )
+from cohezion.swarm.perception import JourneyPerception
 from cohezion.swarm.persistent_cache import (
     PersistentCache,
     get_persistent_cache,
@@ -65,6 +64,7 @@ from cohezion.swarm.token_client import (
     ResilientOllamaClient,
     TokenEfficientClient,
 )
+from cohezion.swarm.visualizer import JourneyVisualizer
 
 
 __all__ = [

@@ -217,9 +217,7 @@ class TestAlignmentAnalysis:
                     type=ConstraintType.TOKENS, value=500, unit="tokens", is_hard=True
                 )
             ],
-            criteria=[
-                SuccessCriterion("Output is coherent", "coherence", 0.7, False)
-            ],
+            criteria=[SuccessCriterion("Output is coherent", "coherence", 0.7, False)],
         )
 
     def test_perfect_alignment(self):

@@ -4,7 +4,6 @@ Charter requirement: "Maximum stability at exactly 50% coherence overlap"
 """
 
 from datetime import datetime, timedelta
-from typing import List
 
 from pydantic import BaseModel
 

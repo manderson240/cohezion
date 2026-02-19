@@ -86,7 +86,7 @@ class PersistentCache:
         try:
             with self._lock:
                 entries_loaded = 0
-                with open(self.cache_file, "r") as f:
+                with open(self.cache_file) as f:
                     for line_num, line in enumerate(f, 1):
                         # Skip empty lines
                         if not line.strip():

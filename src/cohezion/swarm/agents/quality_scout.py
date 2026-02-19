@@ -6,9 +6,8 @@ Acts as the primary filter for selective LLM analysis.
 import ast
 import logging
 from pathlib import Path
-from typing import Optional
 
-from cohezion.swarm.agents.base_scout import ASTSummary, BaseScout, Finding
+from cohezion.swarm.agents.base_scout import BaseScout, Finding
 
 
 logger = logging.getLogger(__name__)

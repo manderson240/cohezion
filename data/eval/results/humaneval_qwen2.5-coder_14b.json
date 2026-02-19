@@ -1,0 +1,37 @@
+{
+  "model": "qwen2.5-coder:14b",
+  "total": 5,
+  "passed": 0,
+  "pass_rate": 0.0,
+  "pass@1": 0.0,
+  "results": [
+    {
+      "task_id": "HumanEval/0",
+      "status": "ERROR",
+      "error": "timed out"
+    },
+    {
+      "task_id": "HumanEval/1",
+      "status": "ERROR",
+      "error": "timed out"
+    },
+    {
+      "task_id": "HumanEval/2",
+      "status": "FAIL",
+      "time": 32.92131686210632,
+      "completion": "```python\ndef truncate_number(number: float) -> float:\n    return number - int(number)\n```"
+    },
+    {
+      "task_id": "HumanEval/3",
+      "status": "FAIL",
+      "time": 50.154462814331055,
+      "completion": "```python\ndef below_zero(operations: List[int]) -> bool:\n    balance = 0\n    for operation in operations:\n        balance += operation\n        if balance < 0:\n            return True\n    return False\n"
+    },
+    {
+      "task_id": "HumanEval/4",
+      "status": "FAIL",
+      "time": 47.167930603027344,
+      "completion": "```python\ndef mean_absolute_deviation(numbers: List[float]) -> float:\n    mean = sum(numbers) / len(numbers)\n    return sum(abs(x - mean) for x in numbers) / len(numbers)\n```"
+    }
+  ]
+}

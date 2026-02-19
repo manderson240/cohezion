@@ -5,7 +5,6 @@ Integrates Phase 0 infrastructure for 100% Charter compliance.
 
 import uuid
 from datetime import datetime
-from typing import List, Optional
 
 import numpy as np
 from pydantic import BaseModel

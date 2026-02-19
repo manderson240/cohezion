@@ -13,11 +13,11 @@ Lifecycle:
 from __future__ import annotations
 
 import logging
-import time
 from typing import Any
 from uuid import uuid4
 
 import numpy as np
+
 
 # AxiomaticState and other engine types are imported lazily to allow for
 # running in environments without heavy dependencies like Docker.
@@ -109,12 +109,12 @@ class UniverseBridge:
     def batch_axiomatic_transform(self, vectors: list[Any]) -> list[Any]:
         """
         Batch convert 12D vectors to AxiomaticStates using SIMD optimization.
-        
+
         Parameters
         ----------
         vectors : list[np.ndarray]
             List of 12-dimensional trajectory points.
-            
+
         Returns
         -------
         list[AxiomaticState]
@@ -122,7 +122,7 @@ class UniverseBridge:
         """
         if not self._simd_enabled or not vectors:
             return [self._vector_to_axiomatic(v) for v in vectors]
-            
+
         # Executing SIMD-accelerated batch processing
         # In a real mission, this would call core.batch_transform_simd(vectors)
         logger.debug("Executing SIMD-accelerated batch transformation (AVX2)")

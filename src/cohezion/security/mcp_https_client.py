@@ -3,7 +3,6 @@
 import logging
 import ssl
 from pathlib import Path
-from typing import Optional
 
 
 logger = logging.getLogger(__name__)

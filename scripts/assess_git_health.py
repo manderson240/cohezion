@@ -11,7 +11,11 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient, UniverseNode
+from cohezion.core.persistence.surreal_client import (
+    PhysicsState,
+    SurrealClient,
+    UniverseNode,
+)
 from cohezion.flume.git_encoder import GitEncoder
 
 # Relative imports
@@ -114,27 +118,27 @@ async def run_assessment():
     <ul>
         <li><b>Health Score:</b> {auditor._calculate_global_score()} / 100</li>
         <li><b>Stability Drift:</b> {drift_score:.2f}</li>
-        <li><b>Critical Issues:</b> {len([i for i in auditor.issues if i.severity == 'Critical'])}</li>
-        <li><b>Bloat Status:</b> {bloat['total_pending']} pending files</li>
+        <li><b>Critical Issues:</b> {len([i for i in auditor.issues if i.severity == "Critical"])}</li>
+        <li><b>Bloat Status:</b> {bloat["total_pending"]} pending files</li>
     </ul>
     <h3>Top Recommendations</h3>
     <pre>{health_thought.content[:500]}...</pre>
     """
 
     # Full Markdown Report
-    report = f"""# 🛡️ Git Health Report - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+    report = f"""# 🛡️ Git Health Report - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
 ## 🎯 Executive Summary
 - **Health Score:** {auditor._calculate_global_score()} / 100
 - **Semantic Stability:** {drift_score:.2f} (1.0 = Stable)
-- **Repo Bloat:** {bloat['total_pending']} pending changes ⚠️
+- **Repo Bloat:** {bloat["total_pending"]} pending changes ⚠️
 - **Unpushed Work:** {len(unpushed)} commits
 - **Complexity Hotspots:** {len(traces)} issues attributed to history
 
 ## 📦 Bloat Details
-- **Untracked:** {bloat.get('untracked_count', 0)} files
-- **Modified/Deleted:** {bloat.get('modified_count', 0)} files
-- **Hotspots:** {", ".join([f"{k} ({v})" for k, v in bloat.get('hotspots', [])])}
+- **Untracked:** {bloat.get("untracked_count", 0)} files
+- **Modified/Deleted:** {bloat.get("modified_count", 0)} files
+- **Hotspots:** {", ".join([f"{k} ({v})" for k, v in bloat.get("hotspots", [])])}
 
 ## 蜂 Health Agent Analysis
 {health_thought.content}

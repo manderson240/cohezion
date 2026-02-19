@@ -392,9 +392,7 @@ class HealthChecker:
             results = await asyncio.wait_for(checks_task, timeout=timeout)
         except asyncio.TimeoutError:
             logger.error("Health check timed out")
-            results = [
-                {"status": "error", "message": "Check timed out"}
-            ] * 7
+            results = [{"status": "error", "message": "Check timed out"}] * 7
 
         # Extract individual results
         (
@@ -409,13 +407,27 @@ class HealthChecker:
 
         # Handle exceptions
         checks = {
-            "vault": vault_result if isinstance(vault_result, dict) else {"status": "error", "message": str(vault_result)},
-            "surrealdb": surrealdb_result if isinstance(surrealdb_result, dict) else {"status": "error", "message": str(surrealdb_result)},
-            "sheets_api": sheets_result if isinstance(sheets_result, dict) else {"status": "error", "message": str(sheets_result)},
-            "ollama": ollama_result if isinstance(ollama_result, dict) else {"status": "error", "message": str(ollama_result)},
-            "disk_space": disk_result if isinstance(disk_result, dict) else {"status": "error", "message": str(disk_result)},
-            "memory": memory_result if isinstance(memory_result, dict) else {"status": "error", "message": str(memory_result)},
-            "sheets_research_pipeline": sheets_research_result if isinstance(sheets_research_result, dict) else {"status": "error", "message": str(sheets_research_result)},
+            "vault": vault_result
+            if isinstance(vault_result, dict)
+            else {"status": "error", "message": str(vault_result)},
+            "surrealdb": surrealdb_result
+            if isinstance(surrealdb_result, dict)
+            else {"status": "error", "message": str(surrealdb_result)},
+            "sheets_api": sheets_result
+            if isinstance(sheets_result, dict)
+            else {"status": "error", "message": str(sheets_result)},
+            "ollama": ollama_result
+            if isinstance(ollama_result, dict)
+            else {"status": "error", "message": str(ollama_result)},
+            "disk_space": disk_result
+            if isinstance(disk_result, dict)
+            else {"status": "error", "message": str(disk_result)},
+            "memory": memory_result
+            if isinstance(memory_result, dict)
+            else {"status": "error", "message": str(memory_result)},
+            "sheets_research_pipeline": sheets_research_result
+            if isinstance(sheets_research_result, dict)
+            else {"status": "error", "message": str(sheets_research_result)},
         }
 
         # Determine overall status

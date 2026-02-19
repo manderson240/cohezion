@@ -48,13 +48,15 @@ def parse_frontmatter(content: str) -> tuple[dict, str]:
         fm = yaml.safe_load(fm_text) or {}
     except yaml.YAMLError:
         return {}, content
-    body = content[end + 3:].strip()
+    body = content[end + 3 :].strip()
     return fm, body
 
 
 def write_frontmatter(fm: dict, body: str) -> str:
     """Serialize frontmatter + body back to markdown."""
-    fm_text = yaml.dump(fm, default_flow_style=False, allow_unicode=True, sort_keys=False)
+    fm_text = yaml.dump(
+        fm, default_flow_style=False, allow_unicode=True, sort_keys=False
+    )
     return f"---\n{fm_text}---\n{body}\n"
 
 
@@ -98,9 +100,15 @@ Respond with ONLY valid JSON, no other text:
             return {}
         result = json.loads(match.group())
         return {
-            "algorithm_complexity": max(0, min(1, float(result.get("algorithm_complexity", 0.5)))),
-            "implementation_difficulty": max(0, min(1, float(result.get("implementation_difficulty", 0.5)))),
-            "interdisciplinary_transfer": max(0, min(1, float(result.get("interdisciplinary_transfer", 0.5)))),
+            "algorithm_complexity": max(
+                0, min(1, float(result.get("algorithm_complexity", 0.5)))
+            ),
+            "implementation_difficulty": max(
+                0, min(1, float(result.get("implementation_difficulty", 0.5)))
+            ),
+            "interdisciplinary_transfer": max(
+                0, min(1, float(result.get("interdisciplinary_transfer", 0.5)))
+            ),
         }
     except Exception as e:
         print(f"  Ollama error: {type(e).__name__}: {e}")
@@ -124,16 +132,33 @@ def heuristic_complexity(title: str, tags: list, body: str) -> dict[str, float]:
 
     # Algorithm complexity heuristics
     complexity_keywords = [
-        "algorithm", "proof", "theorem", "optimization", "neural", "transformer",
-        "matrix", "decomposition", "quantum", "topology", "differential",
+        "algorithm",
+        "proof",
+        "theorem",
+        "optimization",
+        "neural",
+        "transformer",
+        "matrix",
+        "decomposition",
+        "quantum",
+        "topology",
+        "differential",
     ]
-    complexity_count = sum(1 for k in complexity_keywords if k in body_lower or k in title_lower)
+    complexity_count = sum(
+        1 for k in complexity_keywords if k in body_lower or k in title_lower
+    )
     algorithm_complexity = min(1.0, complexity_count / 4)
 
     # Implementation difficulty heuristics
     impl_keywords = [
-        "implementation", "architecture", "framework", "pipeline", "deploy",
-        "infrastructure", "system design", "engineering",
+        "implementation",
+        "architecture",
+        "framework",
+        "pipeline",
+        "deploy",
+        "infrastructure",
+        "system design",
+        "engineering",
     ]
     impl_count = sum(1 for k in impl_keywords if k in body_lower or k in title_lower)
     implementation_difficulty = min(1.0, impl_count / 3)
@@ -205,7 +230,7 @@ async def main():
             fm, body = parse_frontmatter(content)
 
             if not fm:
-                print(f"  [{i+1}/{len(to_process)}] Skip {paper_id} (no frontmatter)")
+                print(f"  [{i + 1}/{len(to_process)}] Skip {paper_id} (no frontmatter)")
                 continue
 
             title = fm.get("title", paper_id)
@@ -247,14 +272,20 @@ async def main():
                 surreal_count += 1
 
             status = "✓" if source == "ollama" else "~"
-            print(f"  [{i+1}/{len(to_process)}] {status} {paper_id} ({source}) "
-                  f"complexity={new_dims['algorithm_complexity']:.2f} "
-                  f"difficulty={new_dims['implementation_difficulty']:.2f} "
-                  f"transfer={new_dims['interdisciplinary_transfer']:.2f} "
-                  f"impact={new_dims['impact_score']:.2f}")
+            print(
+                f"  [{i + 1}/{len(to_process)}] {status} {paper_id} ({source}) "
+                f"complexity={new_dims['algorithm_complexity']:.2f} "
+                f"difficulty={new_dims['implementation_difficulty']:.2f} "
+                f"transfer={new_dims['interdisciplinary_transfer']:.2f} "
+                f"impact={new_dims['impact_score']:.2f}"
+            )
 
-    print(f"\nDone: {updated_count} papers enriched, {surreal_count} SurrealDB records updated")
-    print(f"Dimensions added: algorithm_complexity, implementation_difficulty, interdisciplinary_transfer, impact_score")
+    print(
+        f"\nDone: {updated_count} papers enriched, {surreal_count} SurrealDB records updated"
+    )
+    print(
+        f"Dimensions added: algorithm_complexity, implementation_difficulty, interdisciplinary_transfer, impact_score"
+    )
 
 
 if __name__ == "__main__":

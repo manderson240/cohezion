@@ -20,10 +20,7 @@ class GraphRAGAutoSync:
     """Auto-sync vault changes to SurrealDB GraphRAG"""
 
     def __init__(
-        self,
-        vault_path: Path,
-        watcher: VaultFileWatcher,
-        enable_edges: bool = True
+        self, vault_path: Path, watcher: VaultFileWatcher, enable_edges: bool = True
     ):
         self.vault_path = Path(vault_path).resolve()
         self.watcher = watcher
@@ -82,10 +79,10 @@ class GraphRAGAutoSync:
                 event = await self.queue.get()
 
                 # Only process created/modified events for .md files
-                if event.event_type in ('created', 'modified'):
+                if event.event_type in ("created", "modified"):
                     file_path = self.vault_path / event.path
 
-                    if file_path.exists() and file_path.suffix == '.md':
+                    if file_path.exists() and file_path.suffix == ".md":
                         await self._sync_document(file_path)
 
                 # For deleted events, could remove from SurrealDB
@@ -101,8 +98,7 @@ class GraphRAGAutoSync:
         """Sync single document to SurrealDB"""
         try:
             doc_id = await self.importer.import_document(
-                file_path,
-                create_edges=self.enable_edges
+                file_path, create_edges=self.enable_edges
             )
 
             if doc_id:
@@ -118,7 +114,9 @@ class GraphRAGAutoSync:
 _auto_sync: Optional[GraphRAGAutoSync] = None
 
 
-async def start_autosync(vault_path: Path, watcher: VaultFileWatcher, enable_edges: bool = True):
+async def start_autosync(
+    vault_path: Path, watcher: VaultFileWatcher, enable_edges: bool = True
+):
     """Start global auto-sync instance"""
     global _auto_sync
 

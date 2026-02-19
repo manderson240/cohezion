@@ -11,7 +11,7 @@ Provides:
 import logging
 import statistics
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any
 
 from cohezion.observability.unified_metrics import InferenceMetrics

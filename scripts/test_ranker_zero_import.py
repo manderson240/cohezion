@@ -13,12 +13,19 @@ class SemanticContextRankerStandalone:
             ranked.append({"index": idx, "message": msg, "score": score})
         return sorted(ranked, key=lambda x: x["score"], reverse=True)
 
+
 def test_ranker_fidelity():
     print("Starting Zero-Import Fidelity Test")
     messages = [
         {"role": "user", "content": "I like pizza with pineapple."},
-        {"role": "assistant", "content": "Interesting choice. Pineapple is controversial."},
-        {"role": "user", "content": "Now, about the database schema for the user profiles."},
+        {
+            "role": "assistant",
+            "content": "Interesting choice. Pineapple is controversial.",
+        },
+        {
+            "role": "user",
+            "content": "Now, about the database schema for the user profiles.",
+        },
         {"role": "assistant", "content": "The users table should have an email field."},
         {"role": "user", "content": "The weather is nice today."},
         {"role": "assistant", "content": "Yes, clear skies."},
@@ -41,6 +48,7 @@ def test_ranker_fidelity():
         print("RESULT: SUCCESS")
     else:
         print("RESULT: FAILURE")
+
 
 if __name__ == "__main__":
     test_ranker_fidelity()

@@ -121,7 +121,7 @@ SYNTHESIZED RESPONSE:"""
         except Exception as e:
             logger.error(f"Synthesizer failed: {e}")
             return SynthesizedResponse(
-                content=f"Synthesis failed: {str(e)}",
+                content=f"Synthesis failed: {e!s}",
                 source_critique=critique,
                 confidence=0.0,
                 processing_time_ms=(time.perf_counter() - start_time) * 1000,

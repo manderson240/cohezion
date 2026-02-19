@@ -126,11 +126,27 @@ class MockSkillRegistry:
 
     def __init__(self):
         self.skills = {
-            "semantic_search": {"coherence": 0.95, "efficiency": 0.89, "success_rate": 0.92},
-            "code_generation": {"coherence": 0.88, "efficiency": 0.91, "success_rate": 0.85},
+            "semantic_search": {
+                "coherence": 0.95,
+                "efficiency": 0.89,
+                "success_rate": 0.92,
+            },
+            "code_generation": {
+                "coherence": 0.88,
+                "efficiency": 0.91,
+                "success_rate": 0.85,
+            },
             "reasoning": {"coherence": 0.92, "efficiency": 0.75, "success_rate": 0.88},
-            "classification": {"coherence": 0.90, "efficiency": 0.94, "success_rate": 0.93},
-            "summarization": {"coherence": 0.87, "efficiency": 0.96, "success_rate": 0.90},
+            "classification": {
+                "coherence": 0.90,
+                "efficiency": 0.94,
+                "success_rate": 0.93,
+            },
+            "summarization": {
+                "coherence": 0.87,
+                "efficiency": 0.96,
+                "success_rate": 0.90,
+            },
         }
 
     def get_skill(self, skill_name: str) -> Dict[str, float]:
@@ -486,7 +502,9 @@ class TestMultiAgentCoordination:
                 asyncio.create_task(
                     mock_redis_client.set(
                         f"agent-{agent.agent_id}-query",
-                        json.dumps({"agent_id": agent.agent_id, "model": agent.model}).encode(),
+                        json.dumps(
+                            {"agent_id": agent.agent_id, "model": agent.model}
+                        ).encode(),
                         ex=300,
                     )
                 )
@@ -623,9 +641,7 @@ class TestPerformanceScaling:
             agents = agent_profiles[:num_agents]
 
             start = time.time()
-            tasks = [
-                asyncio.create_task(asyncio.sleep(0.01)) for agent in agents
-            ]
+            tasks = [asyncio.create_task(asyncio.sleep(0.01)) for agent in agents]
             await asyncio.gather(*tasks)
             duration = time.time() - start
 
@@ -710,6 +726,7 @@ class TestLoadAndChaos:
     @pytest.mark.asyncio
     async def test_chaos_redis_network_latency(self, mock_redis_client):
         """Test system resilience to high Redis latency."""
+
         # Simulate 100ms latency
         async def latent_set(key, value):
             await asyncio.sleep(0.1)
@@ -741,7 +758,9 @@ class TestLoadAndChaos:
         assert result == b"working"
 
     @pytest.mark.asyncio
-    async def test_chaos_agent_failure_consensus(self, mock_skill_registry, agent_profiles):
+    async def test_chaos_agent_failure_consensus(
+        self, mock_skill_registry, agent_profiles
+    ):
         """Test consensus voting when one agent fails."""
         # 5 agents voting, 1 fails
         healthy_agents = agent_profiles[:4]
@@ -982,7 +1001,9 @@ class TestEndToEndPhase5B:
         phase_5b_cost = baseline_cost * (1.0 - execution_reduction)
 
         # Cost reduction percentage
-        reduction_percent = (baseline_cost - phase_5b_cost) / (baseline_cost + 0.001) * 100
+        reduction_percent = (
+            (baseline_cost - phase_5b_cost) / (baseline_cost + 0.001) * 100
+        )
 
         # Should be non-negative (can't increase cost with local models)
         assert reduction_percent >= 0

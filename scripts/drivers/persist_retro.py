@@ -12,7 +12,11 @@ from pathlib import Path
 # Add src to path
 sys.path.append(str(Path(__file__).parents[2] / "src"))
 
-from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient, UniverseNode
+from cohezion.core.persistence.surreal_client import (
+    PhysicsState,
+    SurrealClient,
+    UniverseNode,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("PersistRetro")

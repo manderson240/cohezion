@@ -7,6 +7,7 @@ sys.path.append("/home/mike-anderson/dev/cohezion/src")
 
 from cohezion.mcp.email_notifier import EmailNotifier
 
+
 async def send_final_guide():
     notifier = EmailNotifier()
     if not notifier.is_available:
@@ -65,6 +66,7 @@ async def send_final_guide():
         print("✅ Linux-native connection guide sent successfully!")
     else:
         print("❌ Failed to send final guide.")
+
 
 if __name__ == "__main__":
     asyncio.run(send_final_guide())

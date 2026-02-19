@@ -38,7 +38,6 @@ Example:
 import logging
 import uuid
 from dataclasses import dataclass
-from typing import Optional
 
 from cohezion.compound.intent_classifier import IntentClassifier
 from cohezion.compound.prompt_optimizer import PromptOptimizer

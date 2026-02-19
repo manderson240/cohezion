@@ -82,7 +82,7 @@ class VaultIntegrityChecker:
         self._check_recovery_readiness()
 
         # Generate report
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         return self._generate_report()
 
     def _load_documents(self):
@@ -108,9 +108,7 @@ class VaultIntegrityChecker:
                         category = str(rel_path).split("/")[0]
                         self.stats["files_by_category"][category] += 1
                     except Exception as e:
-                        self.issues.append(
-                            f"ERROR: Cannot read {rel_path}: {e}"
-                        )
+                        self.issues.append(f"ERROR: Cannot read {rel_path}: {e}")
 
     def _validate_markdown_format(self):
         """Validate markdown file format"""
@@ -129,7 +127,9 @@ class VaultIntegrityChecker:
 
             # Check for unclosed brackets
             if content.count("[") != content.count("]"):
-                issues.append(f"Mismatched brackets: [{content.count('[')} vs ]{content.count(']')}")
+                issues.append(
+                    f"Mismatched brackets: [{content.count('[')} vs ]{content.count(']')}"
+                )
 
             # Check for valid YAML frontmatter
             if content.startswith("---"):
@@ -137,7 +137,10 @@ class VaultIntegrityChecker:
                 if fm_match:
                     fm_content = fm_match.group(1)
                     # Basic YAML validation
-                    if not all(":" in line or not line.strip() for line in fm_content.split("\n")):
+                    if not all(
+                        ":" in line or not line.strip()
+                        for line in fm_content.split("\n")
+                    ):
                         issues.append("Invalid YAML frontmatter")
 
             # Check for orphaned links
@@ -180,9 +183,7 @@ class VaultIntegrityChecker:
                 # Check required fields
                 missing = required_fields[category] - set(metadata.keys())
                 if missing:
-                    self.warnings.append(
-                        f"{doc_path}: Missing metadata: {missing}"
-                    )
+                    self.warnings.append(f"{doc_path}: Missing metadata: {missing}")
 
                 # Track metadata quality
                 if metadata:
@@ -282,8 +283,12 @@ class VaultIntegrityChecker:
 
     def _find_stale_todos(self):
         """Scan for stale TODOs and incomplete sections"""
-        todo_pattern = re.compile(r"(TODO|FIXME|XXX|HACK|NOTE):\s*(.+?)(?=\n|$)", re.IGNORECASE)
-        incomplete_pattern = re.compile(r"\[incomplete\]|\[wip\]|\[draft\]", re.IGNORECASE)
+        todo_pattern = re.compile(
+            r"(TODO|FIXME|XXX|HACK|NOTE):\s*(.+?)(?=\n|$)", re.IGNORECASE
+        )
+        incomplete_pattern = re.compile(
+            r"\[incomplete\]|\[wip\]|\[draft\]", re.IGNORECASE
+        )
 
         for doc_path, content in self.documents.items():
             todos = todo_pattern.findall(content)
@@ -301,14 +306,13 @@ class VaultIntegrityChecker:
         """Verify backup and recovery procedures"""
         # Check for backup documentation
         recovery_docs = [
-            doc for doc in self.documents
+            doc
+            for doc in self.documents
             if "backup" in doc.lower() or "recovery" in doc.lower()
         ]
 
         if not recovery_docs:
-            self.warnings.append(
-                "No recovery/backup documentation found in vault"
-            )
+            self.warnings.append("No recovery/backup documentation found in vault")
 
         # Check if vault structure allows regeneration
         essential_dirs = ["decisions", "experiments", "patterns", "projects"]
@@ -330,15 +334,17 @@ class VaultIntegrityChecker:
         }
 
         # Print summary
-        print(f"\n{'='*60}")
-        print(f"VAULT INTEGRITY REPORT - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"{'='*60}\n")
+        print(f"\n{'=' * 60}")
+        print(
+            f"VAULT INTEGRITY REPORT - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        )
+        print(f"{'=' * 60}\n")
 
         print(f"Status: {report['status']}")
         print(f"\nStatistics:")
         print(f"  Total Documents: {self.stats['total_documents']}")
         print(f"  Documents by Category:")
-        for cat, count in self.stats['files_by_category'].items():
+        for cat, count in self.stats["files_by_category"].items():
             print(f"    - {cat}: {count}")
 
         if self.issues:
@@ -354,7 +360,7 @@ class VaultIntegrityChecker:
                 print(f"  ... and {len(self.warnings) - 10} more")
 
         print(f"\nRecommendations:")
-        for rec in report['recommendations']:
+        for rec in report["recommendations"]:
             print(f"  - {rec}")
 
         return report
@@ -377,9 +383,7 @@ class VaultIntegrityChecker:
             recommendations.append("Review and address warnings for data consistency")
 
         if not any("recovery" in d.lower() for d in self.documents):
-            recommendations.append(
-                "Document backup and recovery procedures in vault"
-            )
+            recommendations.append("Document backup and recovery procedures in vault")
 
         recommendations.append("Run vault integrity checks before each major commit")
         recommendations.append("Consider automated validation in pre-commit hooks")

@@ -17,7 +17,7 @@ const MissionHUD = ({ stability, r_zero, eco_metrics }) => (
   </div>
 );
 export default MissionHUD;
-"""
+""",
     },
     "ManifoldNode": {
         "props": ["position", "color", "intensity"],
@@ -30,9 +30,10 @@ const ManifoldNode = ({ position, color, intensity }) => (
   </Sphere>
 );
 export default ManifoldNode;
-"""
-    }
+""",
+    },
 }
+
 
 @mcp.tool()
 def get_component_vetted_code(name: str) -> str:
@@ -42,10 +43,12 @@ def get_component_vetted_code(name: str) -> str:
         return f"Error: Component '{name}' not found in vetted registry."
     return comp["jsx"]
 
+
 @mcp.tool()
 def list_vetted_components() -> list[str]:
     """Lists all pre-vetted components available for the Glass Lattice UI."""
     return list(COMPONENTS.keys())
+
 
 if __name__ == "__main__":
     mcp.run()

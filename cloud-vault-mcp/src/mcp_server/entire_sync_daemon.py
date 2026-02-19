@@ -221,6 +221,7 @@ class EntireSyncDaemon:
         """Initialize SurrealDB connection. Graceful fallback on failure."""
         try:
             from mcp_server.agent_context_ops import AgentContextOps
+
             self._agent_context_ops = AgentContextOps(
                 surrealdb_url=self.surrealdb_url,
             )
@@ -273,8 +274,13 @@ class EntireSyncDaemon:
         commits = await self._get_new_commits()
         entire_commits = [c for c in commits if self._is_entire_commit(c)]
 
-        results = {"total": len(commits), "entire_commits": len(entire_commits),
-                    "processed": 0, "skipped": 0, "failed": 0}
+        results = {
+            "total": len(commits),
+            "entire_commits": len(entire_commits),
+            "processed": 0,
+            "skipped": 0,
+            "failed": 0,
+        }
 
         for commit in entire_commits:
             commit_hash = commit["hash"]
@@ -426,7 +432,9 @@ class EntireSyncDaemon:
             logger.warning(f"Failed to parse commit {commit_hash[:8]}: {e}")
             self.dlq.add(commit_hash, str(e))
         except Exception as e:
-            logger.error(f"Error processing commit {commit_hash[:8]}: {e}", exc_info=True)
+            logger.error(
+                f"Error processing commit {commit_hash[:8]}: {e}", exc_info=True
+            )
             self.dlq.add(commit_hash, str(e))
 
     async def _sync_to_surrealdb(self, commit_data: CommitData) -> None:
@@ -511,19 +519,23 @@ class EntireSyncDaemon:
         date_str = commit_data.timestamp.date().isoformat()
         time_str = commit_data.timestamp.time().isoformat()
 
-        outcomes_text = "\n".join(
-            f"- {outcome}" for outcome in commit_data.outcomes
-        ) if commit_data.outcomes else "No outcomes recorded"
+        outcomes_text = (
+            "\n".join(f"- {outcome}" for outcome in commit_data.outcomes)
+            if commit_data.outcomes
+            else "No outcomes recorded"
+        )
 
         metrics_text = ""
         if commit_data.metrics:
             for key, value in sorted(commit_data.metrics.items()):
                 if key.endswith("_coverage"):
-                    metrics_text += f"- {key.replace('_coverage', '').title()}: {value*100:.1f}%\n"
+                    metrics_text += f"- {key.replace('_coverage', '').title()}: {value * 100:.1f}%\n"
 
-        next_actions_text = "\n".join(
-            f"- {action}" for action in commit_data.next_actions
-        ) if commit_data.next_actions else "No next actions recorded"
+        next_actions_text = (
+            "\n".join(f"- {action}" for action in commit_data.next_actions)
+            if commit_data.next_actions
+            else "No next actions recorded"
+        )
 
         return f"""---
 title: "Checkpoint - {date_str}"
@@ -565,7 +577,9 @@ tags: [checkpoint, entire-io, {commit_data.agent_id}]
         """Get current daemon status."""
         return {
             "status": "running",
-            "last_sync": self.last_sync_time.isoformat() if self.last_sync_time else None,
+            "last_sync": self.last_sync_time.isoformat()
+            if self.last_sync_time
+            else None,
             "processed_count": self.work_queue.get_pending_count(),
             "dlq_count": self.dlq.get_count(),
             "poll_interval": self.poll_interval,

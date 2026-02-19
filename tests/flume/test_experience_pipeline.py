@@ -22,7 +22,9 @@ from cohezion.flume.experience_encoder import (
 def _make_experience(**overrides: object) -> dict:
     """Create a minimal valid experience dict."""
     base: dict = {
-        "trajectory": np.random.default_rng(42).normal(0.5, 0.15, 12).astype(np.float32),
+        "trajectory": np.random.default_rng(42)
+        .normal(0.5, 0.15, 12)
+        .astype(np.float32),
         "mission_id": "test-mission-1",
         "agent_id": "test-agent",
         "skill_name": "research",

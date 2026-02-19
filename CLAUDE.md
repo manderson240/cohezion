@@ -10,7 +10,7 @@ COHEZION: 12D agentic universe with FLUME VAE, compound engineering, multi-agent
 
 ### ⚡ Core Commands
 ```bash
-uv run pytest tests/ -q              # Full test suite (3,146 tests, ~2min)
+uv run pytest tests/ -q              # Full test suite (~3,010 tests, ~2min)
 uv run pytest tests/compound/ -v     # Run module tests
 uv run pytest tests/test_*.py::name  # Single test
 make format && make lint && make all # Check → fix → verify
@@ -27,8 +27,8 @@ make format && make lint && make all # Check → fix → verify
 
 **CRITICAL**: All session learnings MUST be logged to vault, not MEMORY.md directly.
 
-**MEMORY.md = Compiled Cache** (auto-generated weekly):
-- 95 lines (vs 1177 lines old version)
+**MEMORY.md = Compiled Cache** (auto-generated, output at `~/.claude/projects/.../memory/MEMORY.md`):
+- ≤200 lines target
 - Recent decisions (last 7 days)
 - Most-used patterns (top 10)
 - Quick reference only
@@ -89,7 +89,7 @@ uv run python scripts/compile_memory_from_vault.py
 ### ⚡ Quick Reference
 - **Language**: Python 3.13+ | **Package Manager**: `uv` (never bare python)
 - **DB**: SurrealDB (ws://localhost:8000) | **API**: FastAPI :8080
-- **Tests**: 3,146 (99.1% passing) | **Coverage**: html report in `htmlcov/`
+- **Tests**: ~3,010 collected (10 collection errors in universe/) | **Coverage**: html report in `htmlcov/`
 - **CI**: GitHub Actions (`.github/workflows/`) | `make lint-check && uv run pytest` before commit
 - **Entry point**: `cohezion = "cohezion.__main__:main"`
 - **Vault**: `~/vaults/cohezion-vault/` — Query via `vault_find_relevant_context(query)`
@@ -126,9 +126,9 @@ Updated Skill (loop again)
 | `src/cohezion/compound/` | Executor, SkillRefiner, RetrospectionEngine, JourneyTracker | `executor.py` (11-step) |
 | `src/cohezion/swarm/` | Team orchestration, cost routing, model quality | `team_executor.py`, `cost_aware_router.py` |
 | `src/cohezion/cache/` | L1/L2/L3 semantic cache (95%+ hit rate) | `semantic_cache.py` |
-| `src/cohezion/skills/` | 132 PRIME skill definitions (*.md + *.py) | `skill_registry.json` |
+| `src/cohezion/skills/` | 134 PRIME skill definitions (*.md + *.py) | `skill_registry.json` |
 | `src/cohezion/persistence/` | SurrealDB, checkpoints, session recovery | `surreal_client.py` |
-| `src/cohezion/api/` | FastAPI backend (46 endpoints) | `__init__.py` (FastMCP patterns) |
+| `src/cohezion/api/` | FastAPI backend (62 endpoints across 12 files) | `__init__.py` (FastMCP patterns) |
 | `src/cohezion/flume/` | FLUME VAE (256D latent space) | `flume_vae.py` |
 | `tests/conftest.py` | **CRITICAL**: Singleton reset for FLUME VAE, RL policy, loggers | **Read this first** |
 

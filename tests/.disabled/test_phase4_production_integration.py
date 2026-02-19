@@ -66,10 +66,7 @@ class TestPhase4ProductionReadiness:
 
     def test_deployment_config_defaults(self):
         """Verify production deployment config."""
-        config = DeploymentConfig(
-            environment=Environment.PRODUCTION,
-            region=Region.US
-        )
+        config = DeploymentConfig(environment=Environment.PRODUCTION, region=Region.US)
 
         # Production should have HA setup
         assert config.replicas >= 1
@@ -84,7 +81,7 @@ class TestPhase4ProductionReadiness:
             checkpoint_timeout_sec=300.0,
             max_session_duration_sec=3600.0,  # 1 hour
             enable_streaming=True,
-            vault_persistence=True
+            vault_persistence=True,
         )
         session = InferenceSession("production-session", config)
 
@@ -155,10 +152,7 @@ class TestPhase4CacheProductionFlow:
     @pytest.mark.asyncio
     async def test_multi_tier_cache_workflow(self):
         """Test L1→L2→L3 cache hierarchy."""
-        cache = SemanticCache(
-            similarity_threshold=0.25,
-            max_entries=100
-        )
+        cache = SemanticCache(similarity_threshold=0.25, max_entries=100)
         collector = get_metrics_collector()
 
         # First request: miss, execute
@@ -186,10 +180,7 @@ class TestPhase4CacheProductionFlow:
     @pytest.mark.asyncio
     async def test_cache_tier_discrimination(self):
         """Test cache correctly discriminates between queries."""
-        cache = SemanticCache(
-            similarity_threshold=0.70,
-            max_entries=100
-        )
+        cache = SemanticCache(similarity_threshold=0.70, max_entries=100)
 
         # Store different topics
         await cache.put("machine learning", "", "model", "ML response")
@@ -221,10 +212,7 @@ class TestPhase4SessionProductionFlow:
 
         event_types = []
         async for event in session.execute_with_checkpoints(
-            "test-skill",
-            "input",
-            slow_task,
-            total_steps=2
+            "test-skill", "input", slow_task, total_steps=2
         ):
             event_types.append(event.get("type"))
 
@@ -264,7 +252,7 @@ class TestPhase4MetricsIntegration:
 
         # Simulate multiple operations
         for i in range(3):
-            collector.record_execution(tokens=100 * (i + 1), duration_ms=50.0 + i*10)
+            collector.record_execution(tokens=100 * (i + 1), duration_ms=50.0 + i * 10)
             collector.reset_current_metrics()
 
         # Get aggregate
@@ -325,10 +313,7 @@ class TestPhase4DeploymentValidation:
 
     def test_canary_deployment_config(self):
         """Verify canary environment config."""
-        config = DeploymentConfig(
-            environment=Environment.CANARY,
-            region=Region.US
-        )
+        config = DeploymentConfig(environment=Environment.CANARY, region=Region.US)
 
         # Canary should be conservative
         assert config.replicas == 1
@@ -336,10 +321,7 @@ class TestPhase4DeploymentValidation:
 
     def test_production_safety_checks(self):
         """Verify production safety checks are configured."""
-        config = DeploymentConfig(
-            environment=Environment.PRODUCTION,
-            region=Region.US
-        )
+        config = DeploymentConfig(environment=Environment.PRODUCTION, region=Region.US)
 
         assert config.safety_checks["verify_cache_hit_rate"]
         assert config.safety_checks["verify_token_efficiency"]
@@ -354,7 +336,7 @@ class TestPhase4DeploymentValidation:
         assert flag_config.rollout_stage in [
             RolloutStage.CANARY,
             RolloutStage.RAMPING,
-            RolloutStage.FULL
+            RolloutStage.FULL,
         ]
 
 

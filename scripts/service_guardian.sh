@@ -185,6 +185,16 @@ main() {
     # Check disk usage
     check_disk_usage || issues_found=1
 
+    # Check storage lifecycle budgets
+    local storage_exit=0
+    timeout 10s bash scripts/maintenance/storage_lifecycle.sh --json >/dev/null 2>&1 || storage_exit=$?
+    if [[ $storage_exit -eq 124 ]]; then
+        log_event "guardian" "storage_timeout" "warn" "10" "Storage check timed out"
+    elif [[ $storage_exit -eq 1 ]]; then
+        # Exit code 1 means warnings detected (already logged by storage_lifecycle.sh)
+        issues_found=1
+    fi
+
     # Log healthy state (for dashboarding)
     if [[ "$issues_found" -eq 0 ]]; then
         log_event "guardian" "health_check" "ok" "0" "All services healthy"

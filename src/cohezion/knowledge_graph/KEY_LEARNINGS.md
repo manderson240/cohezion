@@ -287,3 +287,15 @@ Bridging SurrealDB (high-density thought memory) and Obsidian (high-fidelity lea
 ## Learning 123: Git Worktree Session Isolation (2026-02-16)
 
 Mandating worktrees (`WorktreeOrchestrator`) in `/tmp/cohezion_swarm/` is the only way to ensure non-destructive parallel agentic development. Isolated environments prevent repository index corruption and environment drift during long-horizon missions with multiple concurrent agents.
+
+## Learning 124: Systemd Crash-Loop Prevention (2026-02-18)
+
+`StartLimitBurst` MUST be in the `[Unit]` section, not `[Service]` (systemd 255+). `EnvironmentFile=` reads files literally — `$(command)` is NOT evaluated (use `ExecStartPre=` for dynamic values). The 4-day SurrealDB crash loop (129K+ restarts) was caused by RocksDB MANIFEST corruption with no restart limits. Three-layer defense: (1) service-level `StartLimitBurst`/`StartLimitIntervalSec`, (2) resource caps (`MemoryMax`, `CPUQuota`), (3) external guardian timer as secondary safety net.
+
+## Learning 125: Log Lifecycle Management (2026-02-19)
+
+Diagnostics MUST be captured BEFORE data is purged. Three-layer approach: (1) Extract — parameterized scripts to mine crash timelines from syslogs before rotation, (2) Retain — systemd journald + logrotate configs with size-based limits (`maxsize 100M`, `SystemMaxUse=2G`), (3) Monitor — lightweight storage budget script integrated into guardian timer with JSON output and 10s timeout. The Feb 10-18 crash loop generated 6.9M syslog events (1.4GB logical) that would have been lost without extraction first.
+
+## Learning 126: Adversarial Claim Validation (2026-02-19)
+
+Every completion claim must be independently verified with fresh command execution. Scope must be explicit — "0 errors" means nothing without specifying "in new files only" vs "entire codebase." Variable naming should match the algorithm used (`SOURCE_HASH` not `SOURCE_MD5` when using sha256sum). Table format (Claim | Actual | Verdict) provides honest, scannable reporting.

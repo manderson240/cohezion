@@ -4,6 +4,7 @@ from cohezion.flume.autoencoder import FlumeEncoder, FlumeConfig
 from cohezion.flume.navigator import FlumeNavigator
 from cohezion.flume.mnm import ManifoldManager
 
+
 async def test_navigator():
     print("Initializing components...")
     config = FlumeConfig(z_dim=256)
@@ -15,12 +16,15 @@ async def test_navigator():
     print(f"\nStart Text: {start_text}")
 
     print("\nTesting Branching Prediction (Scenario: fractal_nexus)...")
-    branches = navigator.predict_branches(start_text, num_branches=2, steps=3, scenario="fractal_nexus")
+    branches = navigator.predict_branches(
+        start_text, num_branches=2, steps=3, scenario="fractal_nexus"
+    )
 
     for i, branch in enumerate(branches):
-        print(f"\nBranch {i+1}:")
+        print(f"\nBranch {i + 1}:")
         for j, step in enumerate(branch):
-            print(f"  Step {j+1}: {step}")
+            print(f"  Step {j + 1}: {step}")
+
 
 if __name__ == "__main__":
     asyncio.run(test_navigator())

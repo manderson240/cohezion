@@ -128,7 +128,7 @@ Your {self.perspective.value} analysis:"""
             logger.error(f"Analyst ({self.perspective.value}) failed: {e}")
             return ThoughtVector(
                 perspective=self.perspective,
-                content=f"Analysis failed: {str(e)}",
+                content=f"Analysis failed: {e!s}",
                 confidence=0.0,
                 timestamp=datetime.now(),
                 metadata={"error": str(e)},

@@ -83,6 +83,7 @@ class TestDistributedL0Tier:
         # Both can compute same L0 key for same input
         prompt = "test prompt"
         import hashlib
+
         full_prompt = f"\n{prompt}\n"
         hash_key = hashlib.sha256(full_prompt.encode()).hexdigest()[:16]
 
@@ -125,6 +126,7 @@ class TestWarmCacheScenario:
 
         # Time L1 hit
         import time
+
         start = time.perf_counter()
         result = await cache.get("warm prompt")
         elapsed_ms = (time.perf_counter() - start) * 1000
@@ -383,6 +385,7 @@ class TestEndToEndDistributedWorkflow:
         # Instance 2 would read from Redis in real scenario
         # Here we just verify key generation matches
         import hashlib
+
         prompt = "distributed question"
         full_prompt = f"\n{prompt}\n"
         hash_key = hashlib.sha256(full_prompt.encode()).hexdigest()[:16]

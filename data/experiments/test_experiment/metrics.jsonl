@@ -1,0 +1,3 @@
+{"timestamp": 1771481336.6932826, "params": {"lr": 0.001, "epochs": 10}}
+{"timestamp": 1771481336.6933434, "metric": "loss", "value": 0.5, "step": null}
+{"timestamp": 1771481336.6933694, "metric": "accuracy", "value": 0.9, "step": null}

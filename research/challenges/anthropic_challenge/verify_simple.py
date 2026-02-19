@@ -2,6 +2,7 @@ import problem
 import simple_builder
 import traceback
 
+
 def do_full_verify():
     print("Verifying 16 Rounds Bit-Exact...")
     forest = problem.Tree.generate(10)
@@ -10,7 +11,9 @@ def do_full_verify():
 
     cfg = simple_builder.KernelConfig()
     okb = simple_builder.SimpleKernelBuilder(cfg)
-    instrs = okb.build_kernel(forest.height, len(forest.values), len(inp.indices), 16, problem.HASH_STAGES)
+    instrs = okb.build_kernel(
+        forest.height, len(forest.values), len(inp.indices), 16, problem.HASH_STAGES
+    )
 
     print(f"DEBUG: Rounds={mem[0]}, N_Nodes={mem[1]}, Batch={mem[2]}, Height={mem[3]}")
     print(f"DEBUG: ForestPtr={mem[4]}, IdxPtr={mem[5]}, ValPtr={mem[6]}")
@@ -20,12 +23,12 @@ def do_full_verify():
     machine = problem.Machine(mem, instrs, debug)
 
     ref_gen = problem.reference_kernel2(problem.build_mem_image(forest, inp))
-    next(ref_gen) # Initial
+    next(ref_gen)  # Initial
 
     inp_values_p = mem[6]
     inp_indices_p = mem[5]
 
-    machine.run() # Setup
+    machine.run()  # Setup
 
     for r in range(16):
         machine.run()
@@ -49,6 +52,7 @@ def do_full_verify():
     print(f"KERNEL FULLY VERIFIED (16 rounds, 256 items)")
     print(f"Total machine cycles: {machine.cycle}")
     return True
+
 
 if __name__ == "__main__":
     do_full_verify()

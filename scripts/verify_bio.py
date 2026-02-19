@@ -12,6 +12,7 @@ from cohezion.swarm.swarm_types import SwarmConfig
 from cohezion.bio.biophotonics import get_light_field, Wavelength
 from cohezion.bio.morphic_field import get_morphic_field
 
+
 async def main():
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger("BioVerification")
@@ -26,7 +27,7 @@ async def main():
 
     # Run once to imprint
     report1 = await agent.process(query)
-    print(report1[-200:]) # Print tail for bio report
+    print(report1[-200:])  # Print tail for bio report
 
     # Check Light Field
     signals = light_field.scan(window_seconds=10)
@@ -57,6 +58,7 @@ async def main():
         print("✅ PASS: Green Signal (Resonance) emitted.")
 
     await agent.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

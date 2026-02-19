@@ -46,7 +46,7 @@ async def train_flume(request: FlumeTrainRequest):
     try:
         metrics = trainer.train(dataset=dataset)
     except Exception as e:
-        logger.error('FLUME training failed: %s', e)
+        logger.error("FLUME training failed: %s", e)
         raise HTTPException(status_code=500, detail=str(e)) from e
 
     final = metrics[-1]

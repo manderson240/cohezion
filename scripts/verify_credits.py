@@ -10,6 +10,7 @@ from cohezion.swarm.agents.analyst import AnalystAgent
 from cohezion.swarm.swarm_types import SwarmConfig, Perspective
 from cohezion.core.credit_manager import get_credit_manager
 
+
 async def main():
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger("CreditVerification")
@@ -33,13 +34,14 @@ async def main():
 
     # 3. Simulate Bankruptcy
     print(f"\n--- Simulating Credit Bankruptcy ---")
-    credit_manager.deduct(agent_id, new_balance) # Set to 0
+    credit_manager.deduct(agent_id, new_balance)  # Set to 0
     print(f"Wiped Balance: {credit_manager.get_balance(agent_id)}")
 
     can_afford = credit_manager.can_afford(agent_id, "mistral:7b")
     print(f"Can afford mistral:7b? {can_afford}")
 
     await agent.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

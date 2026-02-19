@@ -12,9 +12,9 @@ Features:
 - Landscape research for improvements
 """
 
+import asyncio
 import json
 import logging
-import asyncio
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -216,6 +216,7 @@ class Corrector:
         if "autonomic_harmonization" in diagnosis.recommended_action:
             # Trigger the harmonization pulse
             from cohezion.healing import harmonize
+
             if await harmonize():
                 correction["applied"] = True
                 logger.info("Executed Autonomic Harmonization Pulse.")
@@ -316,16 +317,17 @@ class SelfHealingSystem:
         # Check agentic stability via EvoCoreSensing
         try:
             from cohezion.swarm.perception import EvoCoreSensing
+
             sensing = EvoCoreSensing()
             state = sensing.sense_state()
-            
+
             # Check coherence (D12)
             coherence_status = self.detector.check(
                 "agent_core", "coherence", state["coherence"], 0.2
             )
             if coherence_status.status != "healthy":
                 issues.append(coherence_status)
-                
+
             # Check stability (D10)
             stability_status = self.detector.check(
                 "agent_core", "stability", state["stability"], 0.2
@@ -365,35 +367,37 @@ def get_healing_system() -> SelfHealingSystem:
 async def harmonize() -> bool:
     """
     Perform an autonomic harmonization pulse.
-    
+
     A self-reflective pause to re-align agentic logic via Hamiltonian dynamics.
     Used when D10/D12 drift is detected.
     """
     logger.info("Initiating Autonomic Harmonization Pulse...")
-    
+
     # 1. Self-reflective pause (Hamiltonian integration)
     # Simulator a "cooling" phase where logic-vortex re-aligns to 0.5
-    await asyncio.sleep(0.5) 
-    
+    await asyncio.sleep(0.5)
+
     # 2. Log the event
     try:
-        from cohezion.compound.journey_tracker import get_journey_tracker, OperationType
+        from cohezion.compound.journey_tracker import OperationType, get_journey_tracker
+
         tracker = get_journey_tracker()
         # Track a 'virtual' step that restores stability
         # In a real system, this would involve re-running the Hamiltonian dynamics
         # to find a local minimum in the HIHO well.
         # Create a dummy result for the tracker
         from cohezion.compound.executor_types import ExecutionResult
+
         dummy_result = ExecutionResult(
             success=True,
             output="Harmonization Pulse Complete",
             metrics={"coherence": 1.0},
-            duration_seconds=0.5
+            duration_seconds=0.5,
         )
         tracker.track_execution(
             execution_result=dummy_result,
             task_description="Autonomic Harmonization: Logic-Vortex Re-alignment",
-            operation_type=OperationType.TRANSFORM.value
+            operation_type=OperationType.TRANSFORM.value,
         )
         logger.info("✅ Logic-Vortex Harmonized to 0.5 HIHO Stability.")
         return True

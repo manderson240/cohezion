@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import httpx
 
@@ -169,7 +169,7 @@ class LocalExpertRouter:
                 "stream": False,
                 "options": options,
             }
-            if "system" in context and context["system"]:
+            if context.get("system"):
                 payload["system"] = context["system"]
 
             response = await self.client.post(

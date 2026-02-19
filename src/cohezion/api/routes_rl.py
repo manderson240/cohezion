@@ -41,7 +41,7 @@ async def train_rl(request: RLTrainRequest):
     try:
         results = train(config)
     except Exception as e:
-        logger.error('RL training failed: %s', e)
+        logger.error("RL training failed: %s", e)
         raise HTTPException(status_code=500, detail=str(e)) from e
 
     final = results[-1]
@@ -92,7 +92,7 @@ async def get_rl_policy(agent_id: str):
             action_dim=action_dim,
         )
     except Exception as e:
-        logger.warning('Failed to inspect policy checkpoint: %s', e)
+        logger.warning("Failed to inspect policy checkpoint: %s", e)
         return RLPolicyResponse(exists=True, checkpoint_path=str(ckpt_path))
 
 

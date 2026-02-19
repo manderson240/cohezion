@@ -1,6 +1,7 @@
 import asyncio
 from cohezion.core.persistence.surreal_client import SurrealClient
 
+
 async def check():
     db = SurrealClient()
     await db.connect()
@@ -11,6 +12,7 @@ async def check():
         print(f"BBQ LATEST: {res}")
     finally:
         await db.close()
+
 
 if __name__ == "__main__":
     asyncio.run(check())

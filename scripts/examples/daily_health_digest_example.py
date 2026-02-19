@@ -35,7 +35,9 @@ async def main():
 
         # If critical issues detected, route through EDL
         if result.requires_edl_review:
-            print("\n⚠️  Critical issues detected. Routing through Expert Domain Lattice...\n")
+            print(
+                "\n⚠️  Critical issues detected. Routing through Expert Domain Lattice...\n"
+            )
             await digest.route_critical_issues_to_edl(result)
 
         # Summary

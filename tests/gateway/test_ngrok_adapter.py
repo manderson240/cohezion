@@ -306,10 +306,13 @@ class TestNgrokAIGateway:
 
     def test_env_var_loading(self):
         """Test loading configuration from environment variables."""
-        with patch.dict(os.environ, {
-            "NGROK_ENDPOINT": "https://env.ngrok.app/v1",
-            "NGROK_API_KEY": "env-key",
-        }):
+        with patch.dict(
+            os.environ,
+            {
+                "NGROK_ENDPOINT": "https://env.ngrok.app/v1",
+                "NGROK_API_KEY": "env-key",
+            },
+        ):
             gateway = NgrokAIGateway()
             assert gateway.ngrok_endpoint == "https://env.ngrok.app/v1"
             assert gateway.ngrok_api_key == "env-key"
@@ -374,7 +377,10 @@ class TestTokenEfficientClientWithNgrok:
 
     def test_token_client_without_ngrok_endpoint(self, config):
         """Test TokenEfficientClient defaults to Ollama."""
-        from cohezion.swarm.token_client import TokenEfficientClient, ResilientOllamaClient
+        from cohezion.swarm.token_client import (
+            TokenEfficientClient,
+            ResilientOllamaClient,
+        )
 
         client = TokenEfficientClient(config=config)
 

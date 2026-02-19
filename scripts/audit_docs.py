@@ -9,6 +9,7 @@ sys.path.append(str(Path(__name__).parent / "src"))
 from cohezion.swarm.agents.librarian_agent import LibrarianAgent
 from cohezion.swarm.swarm_types import SwarmConfig
 
+
 async def main():
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger("LibrarianVerification")
@@ -21,6 +22,7 @@ async def main():
     print(f"Audit Report:\n{report}")
 
     await librarian.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -13,7 +13,6 @@ Implementation:
 
 import fcntl
 import logging
-import os
 import time
 from collections.abc import Generator
 from contextlib import contextmanager
@@ -86,7 +85,7 @@ class FileLock:
                             raise
                         time.sleep(0.1)
 
-            except (OSError, IOError) as e:
+            except OSError as e:
                 if self._lockfile:
                     self._lockfile.close()
                     self._lockfile = None
@@ -110,7 +109,7 @@ class FileLock:
                 self._lockfile.close()
                 self._acquired = False
                 logger.debug(f"Released lock on {self.filepath}")
-            except (OSError, IOError) as e:
+            except OSError as e:
                 logger.error(f"Error releasing lock on {self.filepath}: {e}")
             finally:
                 self._lockfile = None
@@ -167,7 +166,7 @@ def atomic_file_write(filepath: str, content: str, timeout: float = 5.0) -> None
             # Atomic rename
             temp_file.replace(filepath)
             logger.debug(f"Atomically wrote {filepath}")
-        except (OSError, IOError) as e:
+        except OSError as e:
             if temp_file.exists():
                 temp_file.unlink()
             raise FileLockError(f"Cannot atomically write {filepath}") from e
@@ -226,7 +225,7 @@ def atomic_file_modify(filepath: str, modify_func, timeout: float = 5.0) -> None
             temp_file.write_text(new_content, encoding="utf-8")
             temp_file.replace(filepath)
             logger.debug(f"Atomically modified {filepath}")
-        except (OSError, IOError) as e:
+        except OSError as e:
             if temp_file.exists():
                 temp_file.unlink()
             raise FileLockError(f"Cannot atomically modify {filepath}") from e

@@ -8,11 +8,9 @@ Implements 3-layer health assessment:
 3. Action Routing: EDL for critical issues, Observable AI for recommendations
 """
 
-import asyncio
 import subprocess
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -254,7 +252,7 @@ class DailyHealthDigest:
                 pack_count=pack_count,
             )
 
-        except Exception as e:
+        except Exception:
             # Fallback metrics on error
             return RepositoryMetrics(
                 size_gb=0.0,
@@ -779,7 +777,7 @@ Critical Issues:
             if check.status == HealthStatus.CRITICAL:
                 context += f"- {check.check_name}: {check.message}\n"
 
-        context += f"\nRecommendations:\n"
+        context += "\nRecommendations:\n"
         for rec in digest.recommendations:
             if "❌ CRITICAL" in rec:
                 context += f"- {rec}\n"

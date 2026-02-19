@@ -1,10 +1,13 @@
 import dbus
 import sys
 
+
 def set_resolution(width, height):
     bus = dbus.SessionBus()
-    proxy = bus.get_object('org.gnome.Mutter.DisplayConfig', '/org/gnome/Mutter/DisplayConfig')
-    iface = dbus.Interface(proxy, dbus_interface='org.gnome.Mutter.DisplayConfig')
+    proxy = bus.get_object(
+        "org.gnome.Mutter.DisplayConfig", "/org/gnome/Mutter/DisplayConfig"
+    )
+    iface = dbus.Interface(proxy, dbus_interface="org.gnome.Mutter.DisplayConfig")
 
     # GetCurrentState OUT u serial, a((ssss)a(siiddada{sv})a{sv}) monitors, a(iiduba(ssss)a{sv}) logical_monitors, a{sv} properties
     res = iface.GetCurrentState()
@@ -40,14 +43,28 @@ def set_resolution(width, height):
                     break
 
             if not best_mode_id:
-                print(f"❌ Error: Resolution {width}x{height} not supported by monitor {connector}")
+                print(
+                    f"❌ Error: Resolution {width}x{height} not supported by monitor {connector}"
+                )
                 sys.exit(1)
 
-            new_logical_monitors.append(dbus.Struct(
-                (int(x), int(y), float(scale), int(transform), bool(primary),
-                 [dbus.Struct((connector, best_mode_id, {}), signature='ssa{sv}')]),
-                signature='iiduba(ssa{sv})'
-            ))
+            new_logical_monitors.append(
+                dbus.Struct(
+                    (
+                        int(x),
+                        int(y),
+                        float(scale),
+                        int(transform),
+                        bool(primary),
+                        [
+                            dbus.Struct(
+                                (connector, best_mode_id, {}), signature="ssa{sv}"
+                            )
+                        ],
+                    ),
+                    signature="iiduba(ssa{sv})",
+                )
+            )
         else:
             # For non-primary monitors, just keep existing mode (need to find its ID)
             # This is complex, but on Framework there's usually only one monitor.
@@ -56,6 +73,7 @@ def set_resolution(width, height):
 
     iface.ApplyMonitorsConfig(serial, 2, new_logical_monitors, {})
     print(f"✅ Resolution set to {width}x{height}")
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:

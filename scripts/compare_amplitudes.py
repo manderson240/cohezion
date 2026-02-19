@@ -5,9 +5,10 @@ import numpy as np
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("Compare")
 
+
 def compare():
     path = "/home/mike-anderson/dev/cohezion/src/cohezion/physics/quantum/P1_little_dimple.qasm"
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         qasm_str = f.read()
 
     logger.info("Loading circuit...")
@@ -27,7 +28,7 @@ def compare():
         ("Failed (Big)", failed_str),
         ("New (Big)", new_cand),
         ("Failed (Little)", failed_rev),
-        ("New (Little)", new_rev)
+        ("New (Little)", new_rev),
     ]
 
     logger.info(f"Computing amplitudes for {len(targets)} strings...")
@@ -36,10 +37,11 @@ def compare():
             # We use contract='auto-hq' for high quality heuristics
             # 36 qubits and 4400 gates might be tough, let's see.
             amp = circ.amplitude(bstr)
-            prob = abs(amp)**2
+            prob = abs(amp) ** 2
             print(f"{label}: Prob {prob:.2e}")
         except Exception as e:
             print(f"{label}: Error {e}")
+
 
 if __name__ == "__main__":
     compare()

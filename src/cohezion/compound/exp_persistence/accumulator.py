@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from cohezion.compound.exp_persistence.journey import get_journey_persistence
 from cohezion.compound.exp_persistence.vault import get_vault_logger

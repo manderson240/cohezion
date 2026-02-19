@@ -18,9 +18,9 @@ import time
 
 
 def banner(title: str) -> None:
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  {title}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
 
 def demo_mass_sim() -> None:
@@ -33,7 +33,9 @@ def demo_mass_sim() -> None:
         from cohezion.mass_sim.agent_factory import AgentFactory
         from cohezion_core.cohezion_core_rs import FlumePhysics
     except ImportError:
-        print("  [SKIP] Rust extension not built. Run: cd src/cohezion_core && maturin develop --release")
+        print(
+            "  [SKIP] Rust extension not built. Run: cd src/cohezion_core && maturin develop --release"
+        )
         return
 
     z_dim = 256
@@ -41,9 +43,13 @@ def demo_mass_sim() -> None:
     rng = np.random.default_rng(42)
 
     # Xavier init navigator weights
-    w1 = (rng.standard_normal((hidden, z_dim)) * np.sqrt(2.0 / z_dim)).astype(np.float32)
+    w1 = (rng.standard_normal((hidden, z_dim)) * np.sqrt(2.0 / z_dim)).astype(
+        np.float32
+    )
     b1 = np.zeros(hidden, dtype=np.float32)
-    w2 = (rng.standard_normal((z_dim, hidden)) * np.sqrt(2.0 / hidden)).astype(np.float32)
+    w2 = (rng.standard_normal((z_dim, hidden)) * np.sqrt(2.0 / hidden)).astype(
+        np.float32
+    )
     b2 = np.zeros(z_dim, dtype=np.float32)
     gamma = np.ones(hidden, dtype=np.float32)
     beta = np.zeros(hidden, dtype=np.float32)
@@ -62,7 +68,9 @@ def demo_mass_sim() -> None:
         coh = stats["mean_coherence"]
         pct = stats["pct_within_bounds"]
         marker = "OK" if 0.3 <= coh <= 0.7 else "!!"
-        print(f"  Universe {u}: coherence={coh:.3f} ({pct*100:.0f}% in bounds) [{marker}] [{elapsed*1000:.0f}ms]")
+        print(
+            f"  Universe {u}: coherence={coh:.3f} ({pct * 100:.0f}% in bounds) [{marker}] [{elapsed * 1000:.0f}ms]"
+        )
 
 
 def demo_hamiltonian() -> None:
@@ -82,7 +90,9 @@ def demo_hamiltonian() -> None:
         mean = float(snap.mean())
         std = float(snap.std())
         energy = float(hd.energy(snap).mean())
-        print(f"  Epoch {epoch:4d}: mean={mean:.4f}  std={std:.4f}  energy={energy:.6f}")
+        print(
+            f"  Epoch {epoch:4d}: mean={mean:.4f}  std={std:.4f}  energy={energy:.6f}"
+        )
 
     print(f"  Agents converge toward HIHO target (0.5) under potential gradient")
 
@@ -105,7 +115,9 @@ def demo_rl_environment() -> None:
         obs, reward, terminated, truncated, info = env.step(action)
         total_reward += reward
         if step % 5 == 0:
-            print(f"  Step {step+1:3d}: reward={reward:.3f}  coherence={info['coherence']:.3f}")
+            print(
+                f"  Step {step + 1:3d}: reward={reward:.3f}  coherence={info['coherence']:.3f}"
+            )
         if terminated or truncated:
             break
 
@@ -122,12 +134,19 @@ def demo_flume_vae() -> None:
     from cohezion.flume.dataset import SyntheticFlumeDataset
     from cohezion.flume.training import FlumeVAETrainer, TrainConfig
 
-    config = TrainConfig(epochs=5, batch_size=32, z_dim=64, log_interval=5,
-                         checkpoint_dir="/tmp/demo_flume")
+    config = TrainConfig(
+        epochs=5,
+        batch_size=32,
+        z_dim=64,
+        log_interval=5,
+        checkpoint_dir="/tmp/demo_flume",
+    )
     trainer = FlumeVAETrainer(config)
     dataset = SyntheticFlumeDataset(n_samples=500, z_dim=64)
 
-    print(f"  Training VAE: {len(dataset)} samples, {config.epochs} epochs, z_dim={config.z_dim}")
+    print(
+        f"  Training VAE: {len(dataset)} samples, {config.epochs} epochs, z_dim={config.z_dim}"
+    )
     metrics = trainer.train(dataset=dataset)
 
     first_mse = metrics[0]["mse"]
@@ -162,6 +181,7 @@ def demo_circuit_breaker() -> None:
 
     # Wait for recovery
     import time
+
     time.sleep(0.6)
     states.append(f"After timeout: {cb.state.value}")
 

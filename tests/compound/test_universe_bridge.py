@@ -64,12 +64,22 @@ class TestUniverseBridge:
         """JourneyTracker point correctly maps to AxiomaticState across 4 fabrics."""
         bridge = UniverseBridge(engine=MagicMock())
 
-        vector_12d = np.array([
-            0.1, 0.2, 0.3,  # Space fabric
-            0.4, 0.5, 0.6,  # Field fabric
-            0.7, 0.8, 0.9,  # Control fabric
-            0.15, 0.25, 0.35,  # Precipitation fabric
-        ])
+        vector_12d = np.array(
+            [
+                0.1,
+                0.2,
+                0.3,  # Space fabric
+                0.4,
+                0.5,
+                0.6,  # Field fabric
+                0.7,
+                0.8,
+                0.9,  # Control fabric
+                0.15,
+                0.25,
+                0.35,  # Precipitation fabric
+            ]
+        )
 
         axiomatic = bridge._vector_to_axiomatic(vector_12d)
 

@@ -37,6 +37,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "cloud-vault-mcp" / "src")
 # V1: Flat File Implementation
 # ============================================================================
 
+
 def load_vault_decisions_v1(vault_path: Path, days: int = 7) -> list[dict]:
     """V1: Load recent decisions from vault files"""
     decisions_dir = vault_path / "decisions"
@@ -49,12 +50,14 @@ def load_vault_decisions_v1(vault_path: Path, days: int = 7) -> list[dict]:
             file_date = datetime.strptime(date_str, "%Y-%m-%d")
             if file_date >= cutoff_date:
                 content = decision_file.read_text()
-                recent.append({
-                    "date": date_str,
-                    "title": decision_file.stem,
-                    "path": str(decision_file.relative_to(vault_path)),
-                    "content": content[:200]
-                })
+                recent.append(
+                    {
+                        "date": date_str,
+                        "title": decision_file.stem,
+                        "path": str(decision_file.relative_to(vault_path)),
+                        "content": content[:200],
+                    }
+                )
         except (ValueError, IndexError):
             continue
 
@@ -68,11 +71,13 @@ def load_vault_patterns_v1(vault_path: Path, top_n: int = 10) -> list[dict]:
     patterns = []
     for pattern_file in patterns_dir.glob("*.md"):
         content = pattern_file.read_text()
-        patterns.append({
-            "name": pattern_file.stem,
-            "path": str(pattern_file.relative_to(vault_path)),
-            "preview": content.split("\n\n")[0][:150]
-        })
+        patterns.append(
+            {
+                "name": pattern_file.stem,
+                "path": str(pattern_file.relative_to(vault_path)),
+                "preview": content.split("\n\n")[0][:150],
+            }
+        )
 
     return sorted(patterns, key=lambda x: x["name"])[:top_n]
 
@@ -98,7 +103,9 @@ def compile_memory_v1(vault_path: Path, output_path: Path):
             memory_content += f"- **{decision['date']}**: {decision['title']}\n"
             memory_content += f"  → See `{decision['path']}`\n\n"
     else:
-        memory_content += "No recent decisions. All decisions in vault: `decisions/`\n\n"
+        memory_content += (
+            "No recent decisions. All decisions in vault: `decisions/`\n\n"
+        )
 
     memory_content += """## Most-Used Patterns
 
@@ -146,6 +153,7 @@ def compile_memory_v1(vault_path: Path, output_path: Path):
 # V2: GraphRAG Implementation
 # ============================================================================
 
+
 async def load_high_impact_decisions_v2(days: int = 7, top_n: int = 10) -> list[dict]:
     """V2: Load decisions from SurrealDB sorted by graph impact"""
     import httpx
@@ -166,7 +174,7 @@ async def load_high_impact_decisions_v2(days: int = 7, top_n: int = 10) -> list[
         """
 
         results = await execute_surreal_async(query, client)
-        return results[0].get('result', [])
+        return results[0].get("result", [])
 
 
 async def load_pattern_usage_v2(top_n: int = 10) -> list[dict]:
@@ -187,7 +195,7 @@ async def load_pattern_usage_v2(top_n: int = 10) -> list[dict]:
         """
 
         results = await execute_surreal_async(query, client)
-        return results[0].get('result', [])
+        return results[0].get("result", [])
 
 
 async def compile_memory_v2(output_path: Path):
@@ -204,7 +212,9 @@ async def compile_memory_v2(output_path: Path):
 
     # Pattern auto-detection (Phase 5)
     async with PatternDetector(vault_path) as detector:
-        pattern_suggestions = await detector.suggest_patterns(min_similarity=0.7, max_suggestions=5)
+        pattern_suggestions = await detector.suggest_patterns(
+            min_similarity=0.7, max_suggestions=5
+        )
         pattern_summary = await detector.get_pattern_impact_summary()
 
     lines = []
@@ -214,7 +224,9 @@ async def compile_memory_v2(output_path: Path):
     lines.append(f"# Cohezion Memory (GraphRAG {today})")
     lines.append("")
     lines.append("**Source**: SurrealDB GraphRAG (vault + relationships)")
-    lines.append("**Refresh**: `uv run python scripts/compile_memory_from_vault.py --graphrag`")
+    lines.append(
+        "**Refresh**: `uv run python scripts/compile_memory_from_vault.py --graphrag`"
+    )
     lines.append("")
 
     # High-impact decisions
@@ -223,14 +235,16 @@ async def compile_memory_v2(output_path: Path):
 
     if decisions:
         for dec in decisions:
-            title = dec.get('title', 'Untitled')[:70]
-            impact = dec.get('impact_score', 0)
-            informs = dec.get('informs', 0)
-            led_to = dec.get('led_to', 0)
-            used_in = dec.get('used_in', 0)
+            title = dec.get("title", "Untitled")[:70]
+            impact = dec.get("impact_score", 0)
+            informs = dec.get("informs", 0)
+            led_to = dec.get("led_to", 0)
+            used_in = dec.get("used_in", 0)
 
             lines.append(f"- **{title}**")
-            lines.append(f"  - Impact: {impact} (→{informs} informs, ←{led_to} led to, ↗{used_in} used)")
+            lines.append(
+                f"  - Impact: {impact} (→{informs} informs, ←{led_to} led to, ↗{used_in} used)"
+            )
             lines.append("")
     else:
         lines.append("_No recent decisions in graph_")
@@ -242,10 +256,10 @@ async def compile_memory_v2(output_path: Path):
 
     if patterns:
         for pattern in patterns:
-            title = pattern.get('title', 'Untitled')[:60]
-            usage = pattern.get('total_usage', 0)
-            ref_by = pattern.get('referenced_by', 0)
-            used = pattern.get('used_in', 0)
+            title = pattern.get("title", "Untitled")[:60]
+            usage = pattern.get("total_usage", 0)
+            ref_by = pattern.get("referenced_by", 0)
+            used = pattern.get("used_in", 0)
 
             lines.append(f"- **{title}**")
             lines.append(f"  - Referenced: {ref_by}× | Used: {used}× | Total: {usage}")
@@ -277,8 +291,12 @@ async def compile_memory_v2(output_path: Path):
         lines.append("## Pattern Impact Summary")
         lines.append("")
         lines.append(f"- Total patterns: {pattern_summary.get('total_patterns', 0)}")
-        lines.append(f"- High-impact (≥5 refs): {pattern_summary.get('high_impact_patterns', 0)}")
-        lines.append(f"- Avg usage: {pattern_summary.get('avg_usage', 0.0):.1f} refs/pattern")
+        lines.append(
+            f"- High-impact (≥5 refs): {pattern_summary.get('high_impact_patterns', 0)}"
+        )
+        lines.append(
+            f"- Avg usage: {pattern_summary.get('avg_usage', 0.0):.1f} refs/pattern"
+        )
         lines.append(f"- Unused patterns: {pattern_summary.get('unused_patterns', 0)}")
         lines.append("")
 
@@ -290,14 +308,16 @@ async def compile_memory_v2(output_path: Path):
         """
         stats_results = await execute_surreal_async(stats_query, client)
 
-        doc_count = stats_results[0].get('result', [{}])[0].get('total', 0)
-        edge_count = stats_results[1].get('result', [{}])[0].get('total', 0)
+        doc_count = stats_results[0].get("result", [{}])[0].get("total", 0)
+        edge_count = stats_results[1].get("result", [{}])[0].get("total", 0)
 
         lines.append("## Graph Statistics")
         lines.append("")
         lines.append(f"- **Documents**: {doc_count}")
         lines.append(f"- **Relationships**: {edge_count}")
-        lines.append(f"- **Avg Connections**: {edge_count / doc_count if doc_count > 0 else 0:.2f}")
+        lines.append(
+            f"- **Avg Connections**: {edge_count / doc_count if doc_count > 0 else 0:.2f}"
+        )
         lines.append("")
 
     # Quick reference
@@ -305,12 +325,16 @@ async def compile_memory_v2(output_path: Path):
     lines.append("")
     lines.append("**GraphRAG Search**: Semantic vector + graph ancestry")
     lines.append("**Auto-Sync**: File changes automatically indexed")
-    lines.append("**Vault Tools**: `vault_log_decision()`, `vault_find_relevant_context()`")
+    lines.append(
+        "**Vault Tools**: `vault_log_decision()`, `vault_find_relevant_context()`"
+    )
     lines.append("")
 
     lines.append("## Core Principles")
     lines.append("")
-    lines.append("1. **Compound Engineering**: Knowledge compounds exponentially via graph")
+    lines.append(
+        "1. **Compound Engineering**: Knowledge compounds exponentially via graph"
+    )
     lines.append("2. **Token Efficiency**: 10× context for 0 additional tokens")
     lines.append("3. **Impact Scoring**: Prioritize high-impact learnings")
     lines.append("4. **Graph Awareness**: Decisions inform patterns inform experiments")
@@ -320,7 +344,9 @@ async def compile_memory_v2(output_path: Path):
     memory_content = "\n".join(lines)
     memory_lines = memory_content.split("\n")
     if len(memory_lines) > 200:
-        memory_content = "\n".join(memory_lines[:200]) + "\n\n_(Truncated to 200 lines)_"
+        memory_content = (
+            "\n".join(memory_lines[:200]) + "\n\n_(Truncated to 200 lines)_"
+        )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(memory_content)
@@ -333,9 +359,17 @@ async def compile_memory_v2(output_path: Path):
 # Main Entry Point
 # ============================================================================
 
+
 async def main_async(use_graphrag: bool):
     """Async main for V2"""
-    output_path = Path.home() / ".claude" / "projects" / "-home-mike-anderson-dev-cohezion" / "memory" / "MEMORY.md"
+    output_path = (
+        Path.home()
+        / ".claude"
+        / "projects"
+        / "-home-mike-anderson-dev-cohezion"
+        / "memory"
+        / "MEMORY.md"
+    )
 
     if use_graphrag:
         print("🔍 Compiling MEMORY.md V2 (GraphRAG from SurrealDB)...")
@@ -355,8 +389,9 @@ async def main_async(use_graphrag: bool):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Compile MEMORY.md from vault")
-    parser.add_argument("--graphrag", action="store_true",
-                       help="Use V2 GraphRAG (requires SurrealDB)")
+    parser.add_argument(
+        "--graphrag", action="store_true", help="Use V2 GraphRAG (requires SurrealDB)"
+    )
     args = parser.parse_args()
 
     asyncio.run(main_async(args.graphrag))

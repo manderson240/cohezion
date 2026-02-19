@@ -5,32 +5,40 @@ import sys
 from pathlib import Path
 from datetime import datetime
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("WorkManager")
 
 REPO_ROOT = Path(__file__).parent.parent.resolve()
 JANITOR_CACHE_FILE = REPO_ROOT / ".cache" / "janitor" / "status_cache.json"
 
+
 def run_git_command(args, cwd=REPO_ROOT):
     """Run a git command and return the output."""
     try:
-        result = subprocess.run(["git"] + args, cwd=cwd, capture_output=True, text=True, check=True)
+        result = subprocess.run(
+            ["git"] + args, cwd=cwd, capture_output=True, text=True, check=True
+        )
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
         logger.error(f"Git command failed: {' '.join(args)} - {e.stderr}")
         return None
 
+
 def start_task(task_name):
     """Create a new lean branch for a task."""
     logger.info(f"🚀 Starting task: {task_name}")
-    
+
     # Sanitize task name
     branch_name = task_name.replace(" ", "-").lower()
-    
+
     # Check if we have uncommitted changes
     status = run_git_command(["status", "--porcelain"])
     if status:
-        logger.warning("⚠️ You have uncommitted changes. Stashing them before switching...")
+        logger.warning(
+            "⚠️ You have uncommitted changes. Stashing them before switching..."
+        )
         run_git_command(["stash", "save", f"Auto-stash before task: {task_name}"])
 
     # Create and switch to branch
@@ -42,16 +50,17 @@ def start_task(task_name):
         # Try switching if it already exists
         run_git_command(["checkout", branch_name])
 
+
 def checkpoint(message=None):
     """Save current work in a checkpoint commit or stash."""
     if not message:
         message = f"Checkpoint: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-    
+
     logger.info("💾 Creating checkpoint...")
-    
+
     # Stage current changes (respecting .gitignore)
     run_git_command(["add", "."])
-    
+
     # Check if anything is staged
     staged = run_git_command(["diff", "--cached", "--name-only"])
     if not staged:
@@ -62,20 +71,26 @@ def checkpoint(message=None):
     run_git_command(["commit", "-m", message])
     logger.info(f"✅ Checkpoint created: {message}")
 
+
 def show_status():
     """Show task-oriented status with cache awareness."""
     branch = run_git_command(["rev-parse", "--abbrev-ref", "HEAD"])
     logger.info(f"📍 Active Task: {branch}")
-    
+
     import json
+
     if JANITOR_CACHE_FILE.exists():
         try:
             with open(JANITOR_CACHE_FILE, "r") as f:
                 cache = json.load(f)
                 if (datetime.now().timestamp() - cache.get("timestamp", 0)) < 300:
-                    logger.info(f"Pending changes (cached): {cache.get('pending_count')}")
-                    if cache.get('pending_count', 0) > 1000:
-                        logger.warning("⚠️ High bloat detected. Run 'scripts/repo_janitor.py' for detailed status.")
+                    logger.info(
+                        f"Pending changes (cached): {cache.get('pending_count')}"
+                    )
+                    if cache.get("pending_count", 0) > 1000:
+                        logger.warning(
+                            "⚠️ High bloat detected. Run 'scripts/repo_janitor.py' for detailed status."
+                        )
                         return
         except Exception:
             pass
@@ -91,8 +106,10 @@ def show_status():
     else:
         logger.info("✅ Working directory clean.")
 
+
 def main():
     import argparse
+
     parser = argparse.ArgumentParser(description="Cohezion Work Manager")
     subparsers = parser.add_subparsers(dest="command", help="Command to run")
 
@@ -101,7 +118,9 @@ def main():
     start_parser.add_argument("name", help="Name of the task")
 
     # checkpoint
-    checkpoint_parser = subparsers.add_parser("checkpoint", help="Create a savepoint commit")
+    checkpoint_parser = subparsers.add_parser(
+        "checkpoint", help="Create a savepoint commit"
+    )
     checkpoint_parser.add_argument("-m", "--message", help="Checkpoint message")
 
     # status
@@ -117,6 +136,7 @@ def main():
         show_status()
     else:
         parser.print_help()
+
 
 if __name__ == "__main__":
     main()

@@ -123,7 +123,7 @@ def test_vault_tool(url="http://localhost:8360"):
             f"{url}/call/vault_list",
             data=payload,
             headers={"Content-Type": "application/json"},
-            method="POST"
+            method="POST",
         )
 
         with urllib.request.urlopen(req, timeout=5) as response:
@@ -145,9 +145,9 @@ def test_vault_tool(url="http://localhost:8360"):
 
 def run_integration_tests():
     """Run all integration tests."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Cloud Vault MCP - Claude Code Integration Tests")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     tests = [
         ("MCP Config Check", check_mcp_config),
@@ -181,9 +181,9 @@ def run_integration_tests():
         print("⊘ Skipped (server not running)")
 
     # Summary
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Test Summary")
-    print("="*60)
+    print("=" * 60)
 
     passed = sum(1 for _, result in results if result)
     total = len(results)

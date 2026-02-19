@@ -13,7 +13,7 @@ from src.mcp_server.graphrag_helpers import (
     check_document_exists,
     safe_create_edge,
     detect_circular_reference,
-    GraphRAGError
+    GraphRAGError,
 )
 from pathlib import Path
 
@@ -56,25 +56,31 @@ def test_detect_document_type():
     """Test document type detection"""
     vault_path = Path("/vaults/cohezion-vault")
 
-    assert detect_document_type(
-        Path("/vaults/cohezion-vault/decisions/test.md"),
-        vault_path
-    ) == "decision"
+    assert (
+        detect_document_type(
+            Path("/vaults/cohezion-vault/decisions/test.md"), vault_path
+        )
+        == "decision"
+    )
 
-    assert detect_document_type(
-        Path("/vaults/cohezion-vault/patterns/test.md"),
-        vault_path
-    ) == "pattern"
+    assert (
+        detect_document_type(
+            Path("/vaults/cohezion-vault/patterns/test.md"), vault_path
+        )
+        == "pattern"
+    )
 
-    assert detect_document_type(
-        Path("/vaults/cohezion-vault/experiments/test.md"),
-        vault_path
-    ) == "experiment"
+    assert (
+        detect_document_type(
+            Path("/vaults/cohezion-vault/experiments/test.md"), vault_path
+        )
+        == "experiment"
+    )
 
-    assert detect_document_type(
-        Path("/vaults/cohezion-vault/other/test.md"),
-        vault_path
-    ) == "document"
+    assert (
+        detect_document_type(Path("/vaults/cohezion-vault/other/test.md"), vault_path)
+        == "document"
+    )
 
 
 def test_parse_frontmatter():
@@ -86,8 +92,8 @@ tags: [tag1, tag2]
 Body content here.
 """
     frontmatter, body = parse_frontmatter(content)
-    assert frontmatter['title'] == "Test Document"
-    assert frontmatter['tags'] == ['tag1', 'tag2']
+    assert frontmatter["title"] == "Test Document"
+    assert frontmatter["tags"] == ["tag1", "tag2"]
     assert body == "Body content here."
 
     # No frontmatter
@@ -107,8 +113,8 @@ async def test_check_document_exists():
         status_code=200,
         json=lambda: [
             {"status": "OK"},
-            {"status": "OK", "result": [{"id": "vault_memory:test"}]}
-        ]
+            {"status": "OK", "result": [{"id": "vault_memory:test"}]},
+        ],
     )
 
     exists = await check_document_exists("vault_memory:test", mock_client)
@@ -116,11 +122,7 @@ async def test_check_document_exists():
 
     # Document doesn't exist
     mock_client.post.return_value = AsyncMock(
-        status_code=200,
-        json=lambda: [
-            {"status": "OK"},
-            {"status": "OK", "result": []}
-        ]
+        status_code=200, json=lambda: [{"status": "OK"}, {"status": "OK", "result": []}]
     )
 
     exists = await check_document_exists("vault_memory:missing", mock_client)
@@ -134,11 +136,7 @@ async def test_safe_create_edge_with_missing_target():
 
     # Target doesn't exist
     mock_client.post.return_value = AsyncMock(
-        status_code=200,
-        json=lambda: [
-            {"status": "OK"},
-            {"status": "OK", "result": []}
-        ]
+        status_code=200, json=lambda: [{"status": "OK"}, {"status": "OK", "result": []}]
     )
 
     # skip_missing=True should return None
@@ -148,7 +146,7 @@ async def test_safe_create_edge_with_missing_target():
         "vault_memory:missing",
         None,
         mock_client,
-        skip_missing=True
+        skip_missing=True,
     )
     assert result is None
 
@@ -163,32 +161,22 @@ async def test_detect_circular_reference():
         status_code=200,
         json=lambda: [
             {"status": "OK"},
-            {"status": "OK", "result": [{"id": "vault_memory:source"}]}
-        ]
+            {"status": "OK", "result": [{"id": "vault_memory:source"}]},
+        ],
     )
 
     is_circular = await detect_circular_reference(
-        "vault_memory:source",
-        "vault_memory:target",
-        "informed_by",
-        mock_client
+        "vault_memory:source", "vault_memory:target", "informed_by", mock_client
     )
     assert is_circular is True
 
     # No circular reference
     mock_client.post.return_value = AsyncMock(
-        status_code=200,
-        json=lambda: [
-            {"status": "OK"},
-            {"status": "OK", "result": []}
-        ]
+        status_code=200, json=lambda: [{"status": "OK"}, {"status": "OK", "result": []}]
     )
 
     is_circular = await detect_circular_reference(
-        "vault_memory:source",
-        "vault_memory:target",
-        "informed_by",
-        mock_client
+        "vault_memory:source", "vault_memory:target", "informed_by", mock_client
     )
     assert is_circular is False
 

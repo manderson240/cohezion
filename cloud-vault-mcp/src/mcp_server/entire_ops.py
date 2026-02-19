@@ -177,9 +177,7 @@ class EntireOps:
             matches = re.findall(pattern, section)
 
             for name, percent, current, total in matches:
-                base_key = (
-                    name.strip().lower().replace(" ", "_").replace("-", "_")
-                )
+                base_key = name.strip().lower().replace(" ", "_").replace("-", "_")
                 percent_val = float(percent) / 100.0
                 current_val = float(current)
                 total_val = float(total)

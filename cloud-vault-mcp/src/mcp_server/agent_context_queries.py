@@ -142,9 +142,7 @@ class AgentContextQueries:
             logger.error(f"Lesson validation query failed: {e}")
             return []
 
-    def query_cascade_detection(
-        self, limit: int = 10
-    ) -> list[dict[str, Any]]:
+    def query_cascade_detection(self, limit: int = 10) -> list[dict[str, Any]]:
         """Query 3: Cascade Detection (Lessons preventing future errors).
 
         Shows if lessons learned from one outcome prevented errors in
@@ -241,9 +239,7 @@ class AgentContextQueries:
 
         try:
             result = self._execute_query(query)
-            logger.info(
-                f"Execution performance query returned {len(result)} records"
-            )
+            logger.info(f"Execution performance query returned {len(result)} records")
             return result
         except Exception as e:
             logger.error(f"Execution performance query failed: {e}")

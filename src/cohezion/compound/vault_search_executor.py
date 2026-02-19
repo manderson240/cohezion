@@ -16,7 +16,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
-from cohezion.compound.executor import CompoundExecutor, ExecutionResult
+from cohezion.compound.executor import CompoundExecutor
 from cohezion.core.mcp_client import MCPClient
 
 

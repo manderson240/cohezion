@@ -19,7 +19,6 @@ Architecture:
 
 import asyncio
 import logging
-import time
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -421,7 +420,7 @@ class BatchableExecutor:
                 logger.error(f"Task execution failed: {e}", exc_info=True)
                 unique_results[task_id] = ExecutionResult(
                     success=False,
-                    output=f"Execution failed: {str(e)}",
+                    output=f"Execution failed: {e!s}",
                     metrics={"error": str(e)},
                     duration_seconds=0.0,
                 )

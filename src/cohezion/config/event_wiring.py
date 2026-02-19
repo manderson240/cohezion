@@ -8,8 +8,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Callable
-from datetime import datetime, timedelta
-from typing import Optional
+from datetime import datetime
 
 
 logger = logging.getLogger(__name__)

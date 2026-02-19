@@ -85,7 +85,7 @@ async def run_debate(request: DebateRequest):
             processing_time_ms=result["processing_time_ms"],
         )
     except Exception as e:
-        logger.error('Debate failed: %s', e)
+        logger.error("Debate failed: %s", e)
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 

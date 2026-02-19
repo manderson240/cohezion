@@ -39,6 +39,7 @@ async def main() -> int:
 
         # Apply schema if needed
         from cohezion.mass_sim.persistence import MASS_SIM_SCHEMA
+
         await db.query(MASS_SIM_SCHEMA)
 
         total = 0

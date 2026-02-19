@@ -202,9 +202,7 @@ class Phase2ValidationSuite:
             all_methods_ok = all(
                 hasattr(BatchableExecutor, m) for m in required_methods
             )
-            all_attrs_ok = all(
-                hasattr(BatchableExecutor, a) for a in required_attrs
-            )
+            all_attrs_ok = all(hasattr(BatchableExecutor, a) for a in required_attrs)
 
             # Check CompoundTask dataclass
             task = CompoundTask(task_id="test", prompt="test prompt")
@@ -254,10 +252,10 @@ class Phase2ValidationSuite:
                 ("id5", "prompt C", "system", "model-1"),
             ]
 
-            cache_misses_list = [(
-                BatchItem(id=id_, prompt=p, system=s, model=m),
-                f"{p}|{s}|{m}"
-            ) for id_, p, s, m in items]
+            cache_misses_list = [
+                (BatchItem(id=id_, prompt=p, system=s, model=m), f"{p}|{s}|{m}")
+                for id_, p, s, m in items
+            ]
 
             unique, duplicates = processor._deduplicate_misses(cache_misses_list)
 
@@ -302,7 +300,9 @@ class Phase2ValidationSuite:
                 CompoundFeedbackLoop, "execute_batch_with_feedback"
             )
 
-            logger.info(f"✓ execute_batch_with_feedback method exists: {has_batch_method}")
+            logger.info(
+                f"✓ execute_batch_with_feedback method exists: {has_batch_method}"
+            )
 
             return has_batch_method
 
@@ -375,11 +375,17 @@ class Phase2ValidationSuite:
         logger.info("=" * 60)
 
         tests = [
-            ("Semantic Encoder Discrimination", self.test_semantic_encoder_discrimination),
+            (
+                "Semantic Encoder Discrimination",
+                self.test_semantic_encoder_discrimination,
+            ),
             ("Adaptive Threshold Tuning", self.test_adaptive_threshold_tuning),
             ("Batch Executor Structure", self.test_batch_executor_structure),
             ("Batch Deduplication", self.test_batch_deduplication),
-            ("Feedback Loop Batch Integration", self.test_feedback_loop_batch_integration),
+            (
+                "Feedback Loop Batch Integration",
+                self.test_feedback_loop_batch_integration,
+            ),
             ("Combined Phase 2 Improvements", self.test_combined_phase2_improvements),
         ]
 
@@ -409,12 +415,12 @@ class Phase2ValidationSuite:
         logger.info(f"Total: {self.passed + self.failed}")
 
         if self.failed == 0:
-            logger.info(
-                "\n✅ ALL TESTS PASSED - Phase 2 Ready for Integration\n"
-            )
+            logger.info("\n✅ ALL TESTS PASSED - Phase 2 Ready for Integration\n")
             logger.info("Expected improvements:")
             logger.info("  - L2 cache hit rate: 5% → 25-30%")
-            logger.info("  - Semantic discrimination: 0.98 → 0.3-0.6 (different topics)")
+            logger.info(
+                "  - Semantic discrimination: 0.98 → 0.3-0.6 (different topics)"
+            )
             logger.info("  - Batch deduplication: 6%+ token savings")
             logger.info("  - Batch execution: +40% throughput")
             logger.info("  - Combined Phase 2: 3.4× improvement (85 → 294 tok/sec)")

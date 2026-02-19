@@ -92,9 +92,12 @@ def run_compound_cycle(dry_run: bool = True):
         universe_engine = create_mock_universe_engine()
     else:
         from cohezion.universe.engine import UniverseSimulationEngine
+
         universe_engine = UniverseSimulationEngine()
 
-    universe_bridge = UniverseBridge(engine=universe_engine, agent_name="compound-cycle-test")
+    universe_bridge = UniverseBridge(
+        engine=universe_engine, agent_name="compound-cycle-test"
+    )
 
     logger.info("✓ All components initialized")
 
@@ -152,7 +155,9 @@ def run_compound_cycle(dry_run: bool = True):
     if coherence > 0.55:
         logger.info(f"✓ Phase 1 PASSED: Real cohesion = {coherence:.3f}")
     else:
-        logger.error(f"✗ Phase 1 FAILED: Coherence {coherence:.3f} too low for high-quality task")
+        logger.error(
+            f"✗ Phase 1 FAILED: Coherence {coherence:.3f} too low for high-quality task"
+        )
         return False
 
     # Step 5: Verify Phase 4 (real phi_score)
@@ -194,7 +199,9 @@ def run_compound_cycle(dry_run: bool = True):
         logger.error("✗ FAILED: Retrospection insights not in metrics!")
         return False
 
-    logger.info(f"✓ Phase 6 PASSED: Retrospection insights present ({len(retro_insights)} insights)")
+    logger.info(
+        f"✓ Phase 6 PASSED: Retrospection insights present ({len(retro_insights)} insights)"
+    )
 
     # Summary
     logger.info("\n" + "=" * 80)
@@ -203,7 +210,9 @@ def run_compound_cycle(dry_run: bool = True):
     logger.info(f"✓ Phase 1: Real cohesion scores - {coherence:.3f}")
     logger.info(f"✓ Phase 4: Real phi_score - {phi_score:.3f}")
     logger.info(f"✓ Phase 6: Retrospection gating - {len(retro_insights)} insights")
-    logger.info(f"✓ Journey tracking: {journey_tracker.get_recent_point_count()} points")
+    logger.info(
+        f"✓ Journey tracking: {journey_tracker.get_recent_point_count()} points"
+    )
     logger.info(f"✓ Universe bridge: {'Active' if universe_bridge else 'N/A'}")
 
     logger.info("\nAll phases validated successfully! ✓")
@@ -214,11 +223,13 @@ def main():
     """Entry point."""
     import argparse
 
-    parser = argparse.ArgumentParser(description="Run compound engineering cycle validation")
+    parser = argparse.ArgumentParser(
+        description="Run compound engineering cycle validation"
+    )
     parser.add_argument(
         "--production",
         action="store_true",
-        help="Use real services instead of mocks (requires SurrealDB + vault)"
+        help="Use real services instead of mocks (requires SurrealDB + vault)",
     )
     args = parser.parse_args()
 

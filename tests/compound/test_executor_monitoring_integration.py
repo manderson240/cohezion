@@ -34,9 +34,7 @@ def mock_vault_logger():
         "cohezion.compound.exp_persistence.vault.VaultLogger"
     ) as mock_logger_cls:
         mock_logger = MagicMock()
-        mock_logger.get_experience_guidance.return_value = {
-            "relevant_context": []
-        }
+        mock_logger.get_experience_guidance.return_value = {"relevant_context": []}
         mock_logger.log_execution_start.return_value = "experiments/test.md"
         mock_logger.log_execution_result.return_value = None
         mock_logger.extract_execution_pattern.return_value = "patterns/test.md"
@@ -159,9 +157,7 @@ class TestDegradationDetectorIntegration:
         if "degradation_alerts" in result.metrics:
             assert result.metrics["degradation_alerts"] > 0
 
-    def test_detector_failure_is_non_blocking(
-        self, mock_mcp_client, mock_vault_logger
-    ):
+    def test_detector_failure_is_non_blocking(self, mock_mcp_client, mock_vault_logger):
         """Verify detector failures don't crash execution."""
         detector = MagicMock()
         detector.check_degradation.side_effect = RuntimeError("Detector crash")
@@ -176,9 +172,7 @@ class TestDegradationDetectorIntegration:
 
         assert result.success is True  # Non-blocking
 
-    def test_critical_alert_logged_to_vault(
-        self, mock_mcp_client, mock_vault_logger
-    ):
+    def test_critical_alert_logged_to_vault(self, mock_mcp_client, mock_vault_logger):
         """Verify CRITICAL alerts are logged to vault as decisions."""
         detector = DegradationDetector(coherence_threshold=0.60)
         executor = _make_executor(mock_mcp_client, degradation_detector=detector)
@@ -218,9 +212,7 @@ class TestModelQualityClassifierIntegration:
     ):
         """Verify executor accepts model_quality_classifier parameter."""
         classifier = ModelQualityClassifier()
-        executor = _make_executor(
-            mock_mcp_client, model_quality_classifier=classifier
-        )
+        executor = _make_executor(mock_mcp_client, model_quality_classifier=classifier)
         assert executor._model_quality_classifier is classifier
 
     def test_executor_without_classifier_unchanged(
@@ -273,9 +265,7 @@ class TestModelQualityClassifierIntegration:
         classifier = MagicMock()
         classifier.add_execution.side_effect = RuntimeError("Classifier crash")
 
-        executor = _make_executor(
-            mock_mcp_client, model_quality_classifier=classifier
-        )
+        executor = _make_executor(mock_mcp_client, model_quality_classifier=classifier)
         result = executor.execute_task(
             task_description="Test task",
             skill_name="test_skill",
@@ -285,9 +275,7 @@ class TestModelQualityClassifierIntegration:
 
         assert result.success is True  # Non-blocking
 
-    def test_classifier_learns_from_failures(
-        self, mock_mcp_client, mock_vault_logger
-    ):
+    def test_classifier_learns_from_failures(self, mock_mcp_client, mock_vault_logger):
         """Verify classifier records failed executions."""
         classifier = ModelQualityClassifier()
         token_client = MagicMock()
@@ -352,9 +340,7 @@ class TestCombinedMonitoringIntegration:
         stats = detector.get_baseline_stats()
         assert stats["coherence"]["num_samples"] == 1
 
-    def test_factory_passes_monitoring_params(
-        self, mock_mcp_client, mock_vault_logger
-    ):
+    def test_factory_passes_monitoring_params(self, mock_mcp_client, mock_vault_logger):
         """Verify ExecutorFactory passes through monitoring params."""
         detector = DegradationDetector()
         classifier = ModelQualityClassifier()
@@ -390,9 +376,7 @@ class TestCombinedMonitoringIntegration:
         assert executor._model_quality_classifier is classifier
         ExecutorFactory.reset_singleton()
 
-    def test_full_pipeline_11_steps(
-        self, mock_mcp_client, mock_vault_logger
-    ):
+    def test_full_pipeline_11_steps(self, mock_mcp_client, mock_vault_logger):
         """Verify all 11 steps execute in order with monitoring."""
         from cohezion.compound.journey_tracker import JourneyTracker
         from cohezion.compound.metrics import CompoundMetricsCollector

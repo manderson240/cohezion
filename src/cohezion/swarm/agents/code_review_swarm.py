@@ -4,11 +4,9 @@ Enforces Phase-based scanning (Static First -> Selective LLM) and Safe Mode batc
 """
 
 import asyncio
-import json
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
 
 from cohezion.core.persistence.repositories.pattern_repository import (
     CodeAntiPattern,

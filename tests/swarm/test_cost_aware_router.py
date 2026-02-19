@@ -72,7 +72,9 @@ class TestQueryComplexityAnalyzer:
         for query in non_simple_queries:
             complexity = analyzer.analyze(query)
             # Medium or complex is acceptable - should not be simple
-            assert complexity in [QueryComplexity.MEDIUM, QueryComplexity.COMPLEX], f"Failed for: {query}"
+            assert complexity in [QueryComplexity.MEDIUM, QueryComplexity.COMPLEX], (
+                f"Failed for: {query}"
+            )
 
     def test_token_estimation(self):
         """Test token estimation accuracy."""
@@ -113,7 +115,13 @@ class TestQueryComplexityAnalyzer:
         assert stats["simple_pct"] > 0  # At least 2 simple queries
         assert stats["medium_pct"] >= 0  # May have medium
         # Don't require complex since it's keyword-dependent
-        assert abs(sum([stats["simple_pct"], stats["medium_pct"], stats["complex_pct"]]) - 100.0) < 0.1
+        assert (
+            abs(
+                sum([stats["simple_pct"], stats["medium_pct"], stats["complex_pct"]])
+                - 100.0
+            )
+            < 0.1
+        )
 
 
 class TestCostAwareRouter:
@@ -190,7 +198,9 @@ class TestCostAwareRouter:
     def test_cost_tracking(self, router):
         """Test cost recording and aggregation."""
         router.record_execution("phi3:mini", actual_tokens=150, duration_ms=1000.0)
-        router.record_execution("qwen3-coder:32b", actual_tokens=300, duration_ms=2000.0)
+        router.record_execution(
+            "qwen3-coder:32b", actual_tokens=300, duration_ms=2000.0
+        )
         router.record_execution("deepseek-r1:8b", actual_tokens=600, duration_ms=5000.0)
 
         # All local models should have $0 cost
@@ -203,14 +213,28 @@ class TestCostAwareRouter:
         queries = [
             ("What is this?", "simple", ["phi3:mini"]),
             ("Where is the file?", "simple", ["phi3:mini"]),
-            ("Write a Python function", "medium", ["qwen3-coder:32b", "phi3:mini"]),  # May optimize to phi3
-            ("Design a distributed system", "complex", ["deepseek-r1:8b", "qwen3-coder:32b"]),  # May optimize to qwen
-            ("Implement and optimize a production system", "complex", ["deepseek-r1:8b", "qwen3-coder:32b"]),  # May optimize
+            (
+                "Write a Python function",
+                "medium",
+                ["qwen3-coder:32b", "phi3:mini"],
+            ),  # May optimize to phi3
+            (
+                "Design a distributed system",
+                "complex",
+                ["deepseek-r1:8b", "qwen3-coder:32b"],
+            ),  # May optimize to qwen
+            (
+                "Implement and optimize a production system",
+                "complex",
+                ["deepseek-r1:8b", "qwen3-coder:32b"],
+            ),  # May optimize
         ]
 
         for query, expected_type, allowed_models in queries:
             decision, _ = router.select_model(query)
-            assert decision.model in allowed_models, f"Query '{query}' routed to {decision.model}, expected one of {allowed_models}"
+            assert decision.model in allowed_models, (
+                f"Query '{query}' routed to {decision.model}, expected one of {allowed_models}"
+            )
 
     def test_statistics_tracking(self, router):
         """Test statistics aggregation."""
@@ -334,7 +358,9 @@ class TestCostAwareRouterChaosTest:
 
             if can_proceed:
                 # Simulate execution
-                router.record_execution(decision.model, decision.estimated_tokens, 100.0)
+                router.record_execution(
+                    decision.model, decision.estimated_tokens, 100.0
+                )
 
         # Check enforcer state
         budget_ok, _ = enforcer.check_budget(tracker.total_cost_usd)
@@ -390,7 +416,9 @@ class TestCostAwareRouterChaosTest:
             # All routed models should be allowed
             invalid_count = sum(1 for m in models if m not in allowed)
             if invalid_count > 0:
-                assert False, f"Query '{query}' routed to unexpected models: {set(m for m in models if m not in allowed)}"
+                assert False, (
+                    f"Query '{query}' routed to unexpected models: {set(m for m in models if m not in allowed)}"
+                )
 
             # At least 70% of routes should be to the same model (consistency check)
             model_counts = {}

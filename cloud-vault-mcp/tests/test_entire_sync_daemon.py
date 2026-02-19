@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch, AsyncMock
 
 import sys
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src" / "mcp_server"))
 
 from entire_sync_daemon import EntireSyncDaemon
@@ -468,6 +469,7 @@ class TestBackfill:
     async def test_backfill_empty_repo(self, temp_vault):
         """Test backfill with no commits."""
         import subprocess
+
         subprocess.run(["git", "init"], cwd=temp_vault, capture_output=True)
 
         daemon = EntireSyncDaemon(
@@ -484,6 +486,7 @@ class TestBackfill:
     async def test_backfill_with_since(self, temp_vault):
         """Test backfill sets last_sync_time from since parameter."""
         import subprocess
+
         subprocess.run(["git", "init"], cwd=temp_vault, capture_output=True)
 
         daemon = EntireSyncDaemon(
@@ -499,6 +502,7 @@ class TestBackfill:
     async def test_backfill_skips_processed(self, temp_vault):
         """Test backfill skips already-processed commits."""
         import subprocess
+
         subprocess.run(["git", "init"], cwd=temp_vault, capture_output=True)
 
         daemon = EntireSyncDaemon(
@@ -514,6 +518,7 @@ class TestBackfill:
     async def test_backfill_returns_result_dict(self, temp_vault):
         """Test backfill returns properly structured results."""
         import subprocess
+
         subprocess.run(["git", "init"], cwd=temp_vault, capture_output=True)
 
         daemon = EntireSyncDaemon(
@@ -558,11 +563,16 @@ class TestHealthCheck:
         from entire_main import cli
 
         runner = CliRunner()
-        result = runner.invoke(cli, [
-            "health",
-            "--vault-path", str(temp_vault),
-            "--git-path", str(temp_vault),
-        ])
+        result = runner.invoke(
+            cli,
+            [
+                "health",
+                "--vault-path",
+                str(temp_vault),
+                "--git-path",
+                str(temp_vault),
+            ],
+        )
         assert "HEALTHY" in result.output
         assert result.exit_code == 0
 
@@ -572,13 +582,19 @@ class TestHealthCheck:
         from entire_main import cli
 
         runner = CliRunner()
-        result = runner.invoke(cli, [
-            "health",
-            "--vault-path", str(temp_vault),
-            "--git-path", str(temp_vault),
-            "--json-output",
-        ])
+        result = runner.invoke(
+            cli,
+            [
+                "health",
+                "--vault-path",
+                str(temp_vault),
+                "--git-path",
+                str(temp_vault),
+                "--json-output",
+            ],
+        )
         import json as json_mod
+
         data = json_mod.loads(result.output)
         assert "healthy" in data
         assert "checks" in data
@@ -591,11 +607,16 @@ class TestHealthCheck:
         from entire_main import cli
 
         runner = CliRunner()
-        result = runner.invoke(cli, [
-            "health",
-            "--vault-path", "/nonexistent/path",
-            "--git-path", str(temp_vault),
-        ])
+        result = runner.invoke(
+            cli,
+            [
+                "health",
+                "--vault-path",
+                "/nonexistent/path",
+                "--git-path",
+                str(temp_vault),
+            ],
+        )
         assert "UNHEALTHY" in result.output or result.exit_code == 1
 
     def test_health_check_invalid_git_path(self, temp_vault):
@@ -604,11 +625,16 @@ class TestHealthCheck:
         from entire_main import cli
 
         runner = CliRunner()
-        result = runner.invoke(cli, [
-            "health",
-            "--vault-path", str(temp_vault),
-            "--git-path", "/nonexistent/git/path",
-        ])
+        result = runner.invoke(
+            cli,
+            [
+                "health",
+                "--vault-path",
+                str(temp_vault),
+                "--git-path",
+                "/nonexistent/git/path",
+            ],
+        )
         assert result.exit_code == 1
 
     def test_health_check_surrealdb_skip(self, temp_vault):
@@ -617,13 +643,19 @@ class TestHealthCheck:
         from entire_main import cli
 
         runner = CliRunner()
-        result = runner.invoke(cli, [
-            "health",
-            "--vault-path", str(temp_vault),
-            "--git-path", str(temp_vault),
-            "--json-output",
-        ])
+        result = runner.invoke(
+            cli,
+            [
+                "health",
+                "--vault-path",
+                str(temp_vault),
+                "--git-path",
+                str(temp_vault),
+                "--json-output",
+            ],
+        )
         import json as json_mod
+
         data = json_mod.loads(result.output)
         assert data["checks"]["surrealdb"]["status"] == "skip"
 
@@ -638,13 +670,19 @@ class TestHealthCheck:
         daemon.dlq.add("fail2", "reason2")
 
         runner = CliRunner()
-        result = runner.invoke(cli, [
-            "health",
-            "--vault-path", str(temp_vault),
-            "--git-path", str(temp_vault),
-            "--json-output",
-        ])
+        result = runner.invoke(
+            cli,
+            [
+                "health",
+                "--vault-path",
+                str(temp_vault),
+                "--git-path",
+                str(temp_vault),
+                "--json-output",
+            ],
+        )
         import json as json_mod
+
         data = json_mod.loads(result.output)
         assert data["checks"]["dlq"]["status"] == "warn"
         assert "2 failed" in data["checks"]["dlq"]["detail"]

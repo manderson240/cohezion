@@ -13,10 +13,8 @@ from __future__ import annotations
 
 import logging
 import time
-from collections import defaultdict
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 from cohezion.compound.global_metrics_aggregator import GlobalMetricsAggregator
 from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer

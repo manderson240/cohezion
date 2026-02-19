@@ -1,3 +1,23 @@
+### [2026-02-19] PHASE 21: LOG LIFECYCLE MANAGEMENT
+
+- **Extraction**: Parameterized crash timeline script (`extract_crash_timeline.sh`) mined 6.9M events from Feb 10-18 crash loop into structured report + zstd archive.
+- **Retention**: journald config (`SystemMaxUse=2G`, `MaxRetentionSec=30day`) and logrotate config (`maxsize 100M`, `rotate 8`) prevent unbounded log growth.
+- **Monitoring**: Storage lifecycle script with JSON output integrated into guardian timer (10s timeout).
+- **Adversarial Validation**: All 20 completion claims independently verified — 100% accurate.
+- **Learnings**: 124-126 codified (systemd crash-loop prevention, log lifecycle, adversarial claim validation).
+
+### [2026-02-19] PHASE 20: REPO HEALTH & HOOKS AUDIT (In Progress)
+
+- **Goal**: Fix GitHub CI required status checks, register guard-services hook, consolidate duplicate workflows.
+- **Status**: PENDING (plan approved, implementation not yet started).
+
+### [2026-02-18] PHASE 19: SYSTEM CRASH ROOT CAUSE & PREVENTION
+
+- **Root Cause**: SurrealDB RocksDB MANIFEST corruption caused 129K+ restarts over 4 days (Feb 14-18).
+- **Hardening**: All 5 Cohezion systemd services hardened with `StartLimitBurst` (in `[Unit]` section), `MemoryMax`, `CPUQuota`.
+- **Guardian**: Service guardian timer deployed as secondary crash-loop safety net.
+- **Skill**: `systemd-crash-loop-prevention` skill created from incident learnings.
+
 ### [2026-02-16] PHASE 18: TOKEN EFFICIENT COMPOUND ENGINEERING (Session 14)
 
 - **Protocol**: Token Efficiency Tracker implemented for fiscal awareness ($\$5.00$ default budget).
@@ -102,53 +122,11 @@
 - **Critical Fix — Import Chain Firewall**: Lazy imports with `# noqa: E402` annotations.
 - **Integration**: 5-stage pipeline test, 25 models discovered, 140 tests collected, elite routing confirmed.
 
-### [2026-02-02] PHASE 7: RESILIENCE & SCALE
+### [2026-01-19 — 2026-02-02] PHASES 1-7: FOUNDATION (Compressed)
 
-- Unified Connection Pooling and Circuit Breaker protocols.
-- 100% connection reuse and graceful fallback under simulated failure.
-
-### [2026-02-02] PHASE 6: EDL & MRP
-
-- Expert Domain Lattice (5 streams) + Manifold Memory with 0.85 consensus.
-- Real-time Experience Replay from semantically similar past journeys.
-
-### [2026-01-30] UNIFIED EXPERIENCE CRYSTALLIZATION
-
-- 25M cycle simulation: coherence = 0.49999999999999994 (HIHO verified).
-- Quarter on a String Protocol (QSP) codified for premium/local model hybrid orchestration.
-
-### [2026-01-28] HARDWARE STABILITY & DEEP RESEARCH
-
-- Resolved "Sudo Trap" — direct AMD iGPU VRAM tracking via kernel `/sys` paths.
-- Dynamic model swapping with Priority Slots. Desperation Mode brake system.
-- Deep Research Sprint: 40+ SOTA resources processed (AI, Physics, History).
-- Ouroboros autonomic awareness: Git sensors integrated into 12D state vector.
-
-### [2026-01-25] BIOLOGICAL EVOLUTION
-
-- Fractal Universe upgraded with StabilizerAgent traits: Mitosis, Apoptosis, Phylogeny.
-- Closed loop: agent system critiqued its own dashboard and implemented improvements.
-
-### [2026-01-24] VLIW BREAKTHROUGH
-
-- 2,426 Cycles (60.9x speedup) → later optimized to 349 cycles (423x).
-- Project OMEGA: background daemon auto-generates reusable skills from logs.
-- Fractal Universe: Memory-Augmented Agents, physical entropy, global homeostasis.
-
-### [2026-01-23] QUADRATURE NEXUS GENESIS
-
-- Expert Domain Lattice (EDL) formalized: 5-stream architecture.
-- Autonomic Refinement Loop codified in BaseAgent.
-- VLIW kernel discovery: bit-exact vectorized hash traversal.
-- BlueQubit: 36-qubit "Little Dimple" circuit simulated via FLIER (Bond 64).
-
-### [2026-01-21] MULTIVERSE SCALING
-
-- 40M round simulations (10M/universe), <1s overhead per 1M rounds.
-- Golden Mean Attractor (0.5 HIHO) validated across 4 archetypal universes.
-- 40M state summaries logged to SurrealDB.
-
-### [2026-01-19] LAB DISCOVERIES
-
-- Automated hypothesis testing across multiple research domains.
-- Toroidal thought vector verification: stable state at 0.5 probability amplitude.
+- **VLIW**: 423x speedup (349 cycles), bit-exact vectorized hash, OMEGA auto-skill-gen from logs
+- **Simulation**: 40M rounds across 4 universes, HIHO attractor (0.5) validated, SurrealDB logging
+- **Biology**: Mitosis/Apoptosis/Phylogeny agents, closed-loop self-critique
+- **Hardware**: AMD iGPU sysfs VRAM tracking, Priority Slots, Desperation Mode brake
+- **Resilience**: Connection Pooling, Circuit Breakers, EDL (5 streams), Manifold Memory (0.85 consensus)
+- **Quantum**: 36-qubit "Little Dimple" via FLIER (Bond 64), toroidal thought vectors at 0.5 amplitude

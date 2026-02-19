@@ -98,9 +98,8 @@ class CodebaseHealthAssessment:
         counts["test_files"] = len([f for f in py_files if "test" in f.name])
 
         # Count documentation
-        doc_files = (
-            list(self.repo_root.rglob("*.md"))
-            + list(self.repo_root.rglob("*.rst"))
+        doc_files = list(self.repo_root.rglob("*.md")) + list(
+            self.repo_root.rglob("*.rst")
         )
         counts["doc_files"] = len(doc_files)
 
@@ -171,7 +170,9 @@ class CodebaseHealthAssessment:
                 timeout=5,
             )
             lines = result.stdout.strip().split("\n") if result.stdout.strip() else []
-            health["uncommitted_changes"] = len([l for l in lines if not l.startswith("??")])
+            health["uncommitted_changes"] = len(
+                [l for l in lines if not l.startswith("??")]
+            )
             health["untracked_files"] = len([l for l in lines if l.startswith("??")])
 
         except Exception as e:
@@ -257,9 +258,8 @@ class CodebaseHealthAssessment:
             )
 
             # Check for API docs
-            docs["api_docs_exists"] = (
-                (self.repo_root / "docs").exists()
-                and any((self.repo_root / "docs").rglob("*.md"))
+            docs["api_docs_exists"] = (self.repo_root / "docs").exists() and any(
+                (self.repo_root / "docs").rglob("*.md")
             )
 
             # Count doc files

@@ -101,7 +101,10 @@ class SheetsBridge:
             f"/values/{urllib.parse.quote(range_)}?valueInputOption=USER_ENTERED"
         )
         body = json.dumps(
-            {"range": range_, "values": [[status, abstractions, domain, integration_point]]}
+            {
+                "range": range_,
+                "values": [[status, abstractions, domain, integration_point]],
+            }
         ).encode()
 
         req = urllib.request.Request(
@@ -121,9 +124,7 @@ class SheetsBridge:
         """
         token = self._get_token()
         url = self._api_url("/values:batchUpdate")
-        payload = json.dumps(
-            {"valueInputOption": "RAW", "data": data}
-        ).encode()
+        payload = json.dumps({"valueInputOption": "RAW", "data": data}).encode()
 
         req = urllib.request.Request(
             url, data=payload, headers=self._headers(token), method="POST"

@@ -16,7 +16,6 @@ from __future__ import annotations
 import json
 import logging
 import re
-from dataclasses import asdict
 from typing import TYPE_CHECKING, Any
 
 from cohezion.compound.models import (

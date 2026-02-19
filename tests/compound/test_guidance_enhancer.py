@@ -59,9 +59,7 @@ def mock_trajectory_results():
 class TestGuidanceEnhancer:
     """Tests for GuidanceEnhancer."""
 
-    def test_enhance_guidance_generates_recommendations(
-        self, mock_trajectory_results
-    ):
+    def test_enhance_guidance_generates_recommendations(self, mock_trajectory_results):
         """Enhancer generates recommendations from successful trajectories."""
         enhancer = GuidanceEnhancer()
         base_guidance = {"decisions": [], "patterns": []}
@@ -71,7 +69,10 @@ class TestGuidanceEnhancer:
         assert isinstance(enhanced, EnhancedGuidance)
         assert len(enhanced.recommendations) > 0
         # Should mention high-quality tasks
-        assert any("excellent" in rec.lower() or "high" in rec.lower() for rec in enhanced.recommendations)
+        assert any(
+            "excellent" in rec.lower() or "high" in rec.lower()
+            for rec in enhanced.recommendations
+        )
 
     def test_enhance_guidance_generates_warnings_from_failures(
         self, mock_trajectory_results
@@ -85,9 +86,7 @@ class TestGuidanceEnhancer:
         # Should have at least one warning (1 failed task)
         assert len(enhanced.warnings) > 0
 
-    def test_confidence_high_when_many_successful(
-        self, mock_trajectory_results
-    ):
+    def test_confidence_high_when_many_successful(self, mock_trajectory_results):
         """Confidence is high when many high-quality results."""
         enhancer = GuidanceEnhancer()
         base_guidance = {"decisions": [], "patterns": []}
@@ -112,9 +111,7 @@ class TestGuidanceEnhancer:
         assert enhanced.recommendations == []
         assert enhanced.warnings == []
 
-    def test_to_dict_merges_base_guidance(
-        self, mock_trajectory_results
-    ):
+    def test_to_dict_merges_base_guidance(self, mock_trajectory_results):
         """to_dict() includes both enhanced and base guidance."""
         enhancer = GuidanceEnhancer()
         base_guidance = {"decisions": ["decision1"], "patterns": ["pattern1"]}

@@ -140,9 +140,7 @@ class TestHealthChecker:
     async def test_check_sheets_api_error(self, health_checker):
         """Test Sheets API check with bridge that raises error."""
         mock_bridge = Mock()
-        mock_bridge.get_all_rows = Mock(
-            side_effect=Exception("Auth failed")
-        )
+        mock_bridge.get_all_rows = Mock(side_effect=Exception("Auth failed"))
         health_checker.sheets_bridge = mock_bridge
         result = await health_checker.check_sheets_api()
         assert result["status"] == "error"

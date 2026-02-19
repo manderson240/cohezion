@@ -6,7 +6,11 @@ Tests end-to-end alignment analysis flow within executor.
 import pytest
 from unittest.mock import MagicMock, patch
 
-from cohezion.compound.executor import CompoundExecutor, ExecutorFactory, ExecutionResult
+from cohezion.compound.executor import (
+    CompoundExecutor,
+    ExecutorFactory,
+    ExecutionResult,
+)
 from cohezion.compound.request_alignment_analyzer import RequestAlignmentAnalyzer
 from cohezion.security.guardrail_pipeline import GuardrailPipeline
 
@@ -28,9 +32,7 @@ class MockMCPClient:
         self, project: str, title: str, context: str, decision: str, rationale: str
     ) -> str:
         """Mock decision logging."""
-        self.vault_logs.append(
-            {"type": "decision", "project": project, "title": title}
-        )
+        self.vault_logs.append({"type": "decision", "project": project, "title": title})
         return "decisions/alignment-test.md"
 
     def vault_log_experiment(
@@ -316,9 +318,7 @@ class TestAlignmentFactoryMethods:
     def test_create_executor_factory_method(self):
         """Test ExecutorFactory.create with alignment."""
         mcp_client = MockMCPClient()
-        executor = ExecutorFactory.create(
-            mcp_client, enable_alignment_analysis=True
-        )
+        executor = ExecutorFactory.create(mcp_client, enable_alignment_analysis=True)
 
         assert executor._enable_alignment_analysis
         assert executor.alignment_analyzer is not None
@@ -349,7 +349,9 @@ class TestAlignmentNonBlocking:
 
         # Mock alignment analyzer to raise exception
         with patch.object(
-            RequestAlignmentAnalyzer, "analyze_alignment", side_effect=Exception("Test error")
+            RequestAlignmentAnalyzer,
+            "analyze_alignment",
+            side_effect=Exception("Test error"),
         ):
             executor = ExecutorFactory.create(
                 mcp_client, enable_alignment_analysis=True
@@ -376,9 +378,7 @@ class TestAlignmentNonBlocking:
         mcp_client = MockMCPClient()
         mcp_client.vault_log_decision = MagicMock(side_effect=Exception("Vault error"))
 
-        executor = ExecutorFactory.create(
-            mcp_client, enable_alignment_analysis=True
-        )
+        executor = ExecutorFactory.create(mcp_client, enable_alignment_analysis=True)
 
         def mock_execute(guidance):
             return "Output", {"metric": 1.0}
