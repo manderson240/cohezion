@@ -95,3 +95,35 @@ class VAEJourneyEncoder:
 
         # Join with separator
         return "|".join(parts)
+
+    def encode_trajectory_raw(
+        self, trajectory: list[dict[str, object]],
+    ) -> np.ndarray:
+        """Encode raw trajectory dicts to 256D embedding.
+
+        Accepts trajectory format from BioelectricNavigator (state, signal, action).
+
+        Args:
+            trajectory: List of dicts with 'state' (np.ndarray) keys
+
+        Returns:
+            256D numpy array (normalized)
+        """
+        if not trajectory:
+            return self.vae_encoder.encode("empty_trajectory")
+
+        parts = []
+        for i, point in enumerate(trajectory):
+            state = point.get("state")
+            if isinstance(state, np.ndarray):
+                dims_str = ",".join(f"{d:.2f}" for d in state[:6])
+                coherence = float(np.mean(state[4:11]))
+            else:
+                dims_str = "0.00,0.00,0.00,0.00,0.00,0.00"
+                coherence = 0.5
+
+            part = f"step:{i} coherence:{coherence:.2f} dims:{dims_str}"
+            parts.append(part)
+
+        text = "|".join(parts)
+        return self.vae_encoder.encode(text)
