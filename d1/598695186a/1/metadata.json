@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "d1598695186a",
+  "session_id": "421b98f5-0666-4f12-9092-ab5655566f00",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-19T03:17:39.650834329Z",
+  "branch": "spec/routes-consolidation",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "docs/plans/2026-02-18-system-crash-prevention.md",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "4430cb57-3d31-41f3-82d6-925879510052",
+  "token_usage": {
+    "input_tokens": 119,
+    "cache_creation_tokens": 279633,
+    "cache_read_tokens": 12338618,
+    "output_tokens": 7418,
+    "api_call_count": 107
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-19T03:17:39.519674927Z",
+    "agent_lines": 415,
+    "human_added": 19025,
+    "human_modified": 70,
+    "human_removed": 0,
+    "total_committed": 19510,
+    "agent_percentage": 2.1271143003587905
+  }
+}
