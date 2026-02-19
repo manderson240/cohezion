@@ -3,8 +3,9 @@
   "checkpoint_id": "d1598695186a",
   "strategy": "manual-commit",
   "branch": "spec/routes-consolidation",
-  "checkpoints_count": 27,
+  "checkpoints_count": 32,
   "files_touched": [
+    ".claude/hooks/guard-services.sh",
     ".claude/skills/adversarial-claim-validation/SKILL.md",
     ".claude/skills/appimage-desktop-integration/SKILL.md",
     ".claude/skills/systemd-crash-loop-prevention/SKILL.md",
@@ -118,13 +119,20 @@
       "context": "/d1/598695186a/6/context.md",
       "content_hash": "/d1/598695186a/6/content_hash.txt",
       "prompt": "/d1/598695186a/6/prompt.txt"
+    },
+    {
+      "metadata": "/d1/598695186a/7/metadata.json",
+      "transcript": "/d1/598695186a/7/full.jsonl",
+      "context": "/d1/598695186a/7/context.md",
+      "content_hash": "/d1/598695186a/7/content_hash.txt",
+      "prompt": "/d1/598695186a/7/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 1305,
-    "cache_creation_tokens": 1320513,
-    "cache_read_tokens": 61780227,
-    "output_tokens": 44436,
-    "api_call_count": 533
+    "input_tokens": 4503,
+    "cache_creation_tokens": 1534010,
+    "cache_read_tokens": 70608999,
+    "output_tokens": 47616,
+    "api_call_count": 619
   }
 }
