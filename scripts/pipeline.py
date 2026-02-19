@@ -249,7 +249,9 @@ def main() -> None:
         "--epochs", type=int, default=1000, help="Simulation epochs per universe"
     )
     parser.add_argument("--universes", type=int, default=5, help="Number of universes")
-    parser.add_argument("--vae-epochs", type=int, default=10, help="VAE training epochs")
+    parser.add_argument(
+        "--vae-epochs", type=int, default=10, help="VAE training epochs"
+    )
     parser.add_argument(
         "--rl-episodes", type=int, default=50, help="RL training episodes"
     )

@@ -34,6 +34,7 @@ def _():
     import matplotlib.pyplot as plt
     import numpy as np
     from datetime import datetime
+
     return mo, plt, np, datetime
 
 
@@ -73,7 +74,9 @@ def _(mo):
 """
     for gid, gw in gateway_data.items():
         bar = "█" * int(gw["progress"] * 10) + "░" * (10 - int(gw["progress"] * 10))
-        gateway_table += f"| {gid} | {gw['name']} | {gw['status']} | {bar} {gw['progress']:.0%} |\n"
+        gateway_table += (
+            f"| {gid} | {gw['name']} | {gw['status']} | {bar} {gw['progress']:.0%} |\n"
+        )
 
     mo.md(f"""
 ## 🚪 Gateway Status
@@ -96,28 +99,40 @@ def _(mo, np, plt, gateway_data):
     difficulty = 2.7
     ax1 = axes[0]
     theta = np.linspace(0, np.pi, 100)
-    ax1.plot(np.cos(theta), np.sin(theta), 'gray', linewidth=3)
+    ax1.plot(np.cos(theta), np.sin(theta), "gray", linewidth=3)
     angle = np.pi * (1 - difficulty / 5)  # 0-5 scale
-    ax1.arrow(0, 0, 0.7*np.cos(angle), 0.7*np.sin(angle),
-              head_width=0.1, head_length=0.05, fc='red', ec='red')
+    ax1.arrow(
+        0,
+        0,
+        0.7 * np.cos(angle),
+        0.7 * np.sin(angle),
+        head_width=0.1,
+        head_length=0.05,
+        fc="red",
+        ec="red",
+    )
     ax1.set_xlim(-1.2, 1.2)
     ax1.set_ylim(-0.2, 1.2)
-    ax1.set_aspect('equal')
+    ax1.set_aspect("equal")
     ax1.set_title(f"Challenger Difficulty: {difficulty:.1f}/5.0")
-    ax1.axis('off')
+    ax1.axis("off")
 
     # Gauge 2: Pragmatist Score
     score = 0.87
     ax2 = axes[1]
-    ax2.pie([score, 1-score], colors=['#4CAF50', '#E0E0E0'], startangle=90,
-            wedgeprops=dict(width=0.3))
+    ax2.pie(
+        [score, 1 - score],
+        colors=["#4CAF50", "#E0E0E0"],
+        startangle=90,
+        wedgeprops=dict(width=0.3),
+    )
     ax2.set_title(f"Pragmatist Score: {score:.0%}")
 
     # Gauge 3: Gateway Progress
     progress = sum(g["progress"] for g in gateway_data.values()) / len(gateway_data)
     ax3 = axes[2]
-    ax3.barh(["Progress"], [progress], color='#2196F3', height=0.5)
-    ax3.barh(["Progress"], [1-progress], left=[progress], color='#E0E0E0', height=0.5)
+    ax3.barh(["Progress"], [progress], color="#2196F3", height=0.5)
+    ax3.barh(["Progress"], [1 - progress], left=[progress], color="#E0E0E0", height=0.5)
     ax3.set_xlim(0, 1)
     ax3.set_title(f"Overall Progress: {progress:.0%}")
     ax3.set_xlabel("Gateway Completion")
@@ -142,18 +157,22 @@ def _(mo, np, plt):
     jumps = np.where(np.diff(coherence) > 0.1)[0]
 
     fig2, ax = plt.subplots(figsize=(12, 4))
-    ax.plot(epochs, coherence, 'b-', linewidth=2, label='Coherence')
-    ax.axhline(y=0.85, color='g', linestyle='--', alpha=0.7, label='Gateway 1 Threshold')
-    ax.axhline(y=0.80, color='orange', linestyle='--', alpha=0.7, label='Gateway 3 Threshold')
+    ax.plot(epochs, coherence, "b-", linewidth=2, label="Coherence")
+    ax.axhline(
+        y=0.85, color="g", linestyle="--", alpha=0.7, label="Gateway 1 Threshold"
+    )
+    ax.axhline(
+        y=0.80, color="orange", linestyle="--", alpha=0.7, label="Gateway 3 Threshold"
+    )
 
     # Mark jumps
     for j in jumps:
-        ax.annotate('↑ Jump', (j, coherence[j]), fontsize=8, color='red')
+        ax.annotate("↑ Jump", (j, coherence[j]), fontsize=8, color="red")
 
     ax.fill_between(epochs, coherence, alpha=0.3)
-    ax.set_xlabel('Epoch')
-    ax.set_ylabel('Coherence')
-    ax.set_title('Coherence Evolution (12D Physics State)')
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel("Coherence")
+    ax.set_title("Coherence Evolution (12D Physics State)")
     ax.legend()
     ax.grid(True, alpha=0.3)
 
@@ -244,7 +263,7 @@ def _(mo, datetime):
     mo.md(f"""
 ---
 
-**Dashboard Updated:** {now.strftime('%Y-%m-%d %H:%M:%S')}
+**Dashboard Updated:** {now.strftime("%Y-%m-%d %H:%M:%S")}
 
 *Built for Anthropic Research Engineer, Universes Application*
 *cohezion.duckdns.org | 2026*

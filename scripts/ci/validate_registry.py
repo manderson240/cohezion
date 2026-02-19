@@ -37,7 +37,9 @@ def main() -> int:
             print(f"  - {name}")
 
     if unregistered:
-        print(f"\nUnregistered skills ({len(unregistered)}) — .md exists, not in registry:")
+        print(
+            f"\nUnregistered skills ({len(unregistered)}) — .md exists, not in registry:"
+        )
         for name in sorted(unregistered):
             print(f"  - {name}")
 
@@ -52,8 +54,10 @@ def main() -> int:
         print(f"\nWARN: CapabilityRegistry failed to construct: {exc}")
 
     # Summary
-    print(f"\nSummary: {len(registry)} registered, {len(md_files)} on disk, "
-          f"{len(orphaned)} orphaned, {len(unregistered)} unregistered")
+    print(
+        f"\nSummary: {len(registry)} registered, {len(md_files)} on disk, "
+        f"{len(orphaned)} orphaned, {len(unregistered)} unregistered"
+    )
 
     # Orphaned entries = broken references = fail
     if orphaned:

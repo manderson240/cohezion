@@ -9,6 +9,7 @@ from cohezion.swarm.swarm_types import Perspective, ThoughtVector, SwarmConfig
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("DemocraticConsensus")
 
+
 async def orchestrate_naming_debate():
     """
     Orchestrates a debate between agents to decide on a naming convention.
@@ -39,7 +40,9 @@ async def orchestrate_naming_debate():
     print(f"\n🏗️ [Architect]: {arch_resp[:300]}...")
 
     # Round 2: Analyst's Perspective
-    analyst_vector = await analyst.process(f"Analyze the following proposal and topic: \nTopic: {topic}\nProposal: {arch_resp}")
+    analyst_vector = await analyst.process(
+        f"Analyze the following proposal and topic: \nTopic: {topic}\nProposal: {arch_resp}"
+    )
     analyst_content = analyst_vector.content
     print(f"\n📊 [Analyst]: {analyst_content[:300]}...")
 
@@ -66,6 +69,7 @@ async def orchestrate_naming_debate():
         f.write(f"## Analyst View\n{analyst_resp}\n\n")
         f.write(f"## Critic Recommendation\n{critique_result.recommendation}\n\n")
         f.write(f"## Final Winner\n{final_consensus}\n")
+
 
 if __name__ == "__main__":
     asyncio.run(orchestrate_naming_debate())

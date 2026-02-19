@@ -10,6 +10,7 @@ from cohezion.swarm.agents.analyst import AnalystAgent
 from cohezion.swarm.agents.exploration_agent import ExplorationAgent
 from cohezion.swarm.swarm_types import SwarmConfig, Perspective
 
+
 async def main():
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger("ExplorationVerification")
@@ -22,7 +23,7 @@ async def main():
     print(f"\n--- Generating Routine Thoughts ---")
     routine_query = "What is the capital of France?"
     for i in range(2):
-        print(f"Routine {i+1}...")
+        print(f"Routine {i + 1}...")
         await analyst.analyze(routine_query, ignore_cache=True)
 
     # 2. Generate Nobel/Novel Thought
@@ -38,6 +39,7 @@ async def main():
 
     await analyst.close()
     await explorer.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

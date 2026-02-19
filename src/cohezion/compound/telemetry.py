@@ -11,6 +11,7 @@ from typing import Any
 
 from cohezion.core.mcp_client import get_mcp_client
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -35,7 +36,7 @@ class TokenEfficiencyTracker:
     Persists periodically to the Vault.
     """
 
-    _instance: "TokenEfficiencyTracker | None" = None
+    _instance: TokenEfficiencyTracker | None = None
     _initialized: bool = False
     _session_id: str = ""
     _budget_usd: float = 5.0  # Default $5.0 session budget
@@ -43,7 +44,7 @@ class TokenEfficiencyTracker:
 
     def __new__(cls, *args: Any, **kwargs: Any) -> TokenEfficiencyTracker:
         if cls._instance is None:
-            cls._instance = super(TokenEfficiencyTracker, cls).__new__(cls)
+            cls._instance = super().__new__(cls)
         return cls._instance
 
     def __init__(self, budget: float = 5.0):
@@ -117,7 +118,11 @@ class TokenEfficiencyTracker:
             path = f"telemetry/tokens/{self._session_id}.json"
 
             # Load existing if any
-            data: dict[str, Any] = {"session_id": self._session_id, "records": [], "summary": {}}
+            data: dict[str, Any] = {
+                "session_id": self._session_id,
+                "records": [],
+                "summary": {},
+            }
             try:
                 content = mcp.vault_read(path)
                 loaded_data: Any = json.loads(content)

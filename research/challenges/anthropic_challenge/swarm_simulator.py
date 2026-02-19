@@ -13,11 +13,18 @@ from typing import Dict, Any, List
 # Add src to path to import cohezion modules
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../src"))
 
-from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode, PhysicsState
+from cohezion.core.persistence.surreal_client import (
+    SurrealClient,
+    UniverseNode,
+    PhysicsState,
+)
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(processName)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(processName)s - %(message)s"
+)
 logger = logging.getLogger("SwarmSimulator")
+
 
 @dataclass
 class SimulationConfig:
@@ -36,6 +43,7 @@ class SimulationConfig:
     # Meta
     simulation_id: str = ""
 
+
 def run_simulation_worker(config_dict: Dict[str, Any]) -> Dict[str, Any]:
     """
     Runs a single simulation in a separate process.
@@ -45,6 +53,7 @@ def run_simulation_worker(config_dict: Dict[str, Any]) -> Dict[str, Any]:
     try:
         # 1. Reality Distortion (Monkeypatching Limits)
         import problem
+
         problem.SLOT_LIMITS["load"] = config.load_slots
         problem.SLOT_LIMITS["alu"] = config.alu_slots
         problem.SLOT_LIMITS["valu"] = config.valu_slots
@@ -67,7 +76,7 @@ def run_simulation_worker(config_dict: Dict[str, Any]) -> Dict[str, Any]:
                 load_slots=config.load_slots,
                 disable_hash_opt=config.disable_hash_opt,
                 idx_math_variant=config.idx_math_variant,
-                modulo_mode=config.modulo_mode
+                modulo_mode=config.modulo_mode,
             )
             original_init(self, c)
 
@@ -87,7 +96,7 @@ def run_simulation_worker(config_dict: Dict[str, Any]) -> Dict[str, Any]:
             "cycles": cycles,
             "duration": duration,
             "config": asdict(config),
-            "simulation_id": config.simulation_id
+            "simulation_id": config.simulation_id,
         }
 
     except Exception as e:
@@ -95,8 +104,9 @@ def run_simulation_worker(config_dict: Dict[str, Any]) -> Dict[str, Any]:
             "status": "error",
             "error": str(e),
             "config": asdict(config),
-            "simulation_id": config.simulation_id
+            "simulation_id": config.simulation_id,
         }
+
 
 class SurrealLogger:
     def __init__(self):
@@ -121,8 +131,8 @@ class SurrealLogger:
                 z=float(cfg["alu_slots"]),
                 mass=efficiency,
                 time=time.time(),
-                novelty=0.5, # Placeholder
-                stability=1.0 if result["status"] == "success" else 0.0
+                novelty=0.5,  # Placeholder
+                stability=1.0 if result["status"] == "success" else 0.0,
             )
 
             node = UniverseNode(
@@ -133,8 +143,8 @@ class SurrealLogger:
                 metadata={
                     "cycles": cycles,
                     "target": 1487,
-                    "beat_target": cycles < 1487 if cycles > 0 else False
-                }
+                    "beat_target": cycles < 1487 if cycles > 0 else False,
+                },
             )
 
             await self.client.store_node(node)
@@ -142,10 +152,11 @@ class SurrealLogger:
         except Exception as e:
             logger.error(f"Surreal logging failed: {e}")
 
+
 class SwarmController:
     def __init__(self, output_file="swarm_results.jsonl"):
         self.output_file = output_file
-        self.max_workers = 30 # Leave 2 cores for system/DB
+        self.max_workers = 30  # Leave 2 cores for system/DB
         self.surreal_logger = SurrealLogger()
         self.loop = asyncio.new_event_loop()
 
@@ -168,10 +179,10 @@ class SwarmController:
             disable_hash = random.choice([True, False])
 
             # Idx Math Variant
-            idx_var = 0 # Fixed to known correct
+            idx_var = 0  # Fixed to known correct
 
             # Modulo Mode
-            mod_mode = 0 # Fixed to known correct
+            mod_mode = 0  # Fixed to known correct
 
             cfg = SimulationConfig(
                 smart_load_depth=smart_load,
@@ -179,7 +190,7 @@ class SwarmController:
                 disable_hash_opt=disable_hash,
                 idx_math_variant=idx_var,
                 modulo_mode=mod_mode,
-                simulation_id=f"{int(time.time())}_{i}_{random.randint(1000,9999)}"
+                simulation_id=f"{int(time.time())}_{i}_{random.randint(1000, 9999)}",
             )
             configs.append(asdict(cfg))
         return configs
@@ -188,7 +199,7 @@ class SwarmController:
         logger.info(f"Igniting Swarm on {self.max_workers} cores...")
 
         for b in range(batches):
-            configs = self.generate_configs(self.max_workers * 2) # Queue up 2x workers
+            configs = self.generate_configs(self.max_workers * 2)  # Queue up 2x workers
 
             with multiprocessing.Pool(processes=self.max_workers) as pool:
                 results = pool.imap_unordered(run_simulation_worker, configs)
@@ -205,11 +216,14 @@ class SwarmController:
                         cycles = res["cycles"]
                         load = res["config"]["load_slots"]
                         sld = res["config"]["smart_load_depth"]
-                        logger.info(f"Sim {res['simulation_id']}: {cycles} cycles (Load={load}, SmartLoad={sld})")
+                        logger.info(
+                            f"Sim {res['simulation_id']}: {cycles} cycles (Load={load}, SmartLoad={sld})"
+                        )
 
                         if cycles < 1487 and load == 2:
                             logger.info(">>> GRAIL FOUND! <<<")
 
+
 if __name__ == "__main__":
     swarm = SwarmController()
-    swarm.run_swarm(batches=5) # Run 5 batches of ~60 sims
+    swarm.run_swarm(batches=5)  # Run 5 batches of ~60 sims

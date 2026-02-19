@@ -369,7 +369,7 @@ class TestThermalTimeSeriesCollector:
         current_time = time.time()
         with open(collector.history_path, "w") as f:
             f.write(f'{{"timestamp": {current_time}, "gpu_temp_c": 75.0}}\n')
-            f.write('CORRUPTED DATA\n')
+            f.write("CORRUPTED DATA\n")
             f.write(f'{{"timestamp": {current_time + 60}, "gpu_temp_c": 76.0}}\n')
 
         # Should skip corrupted line and load valid ones

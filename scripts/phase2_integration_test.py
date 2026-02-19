@@ -7,7 +7,9 @@ import sys
 import tempfile
 from pathlib import Path
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -27,15 +29,13 @@ async def test_lru_persistent_token_cache():
             max_entries=5,
             eviction_threshold=0.8,
             target_utilization=0.6,
-            persistence_enabled=False
+            persistence_enabled=False,
         )
 
         # Add entries up to eviction threshold
         for i in range(6):
             cache[f"key_{i}"] = CacheEntry(
-                key=f"key_{i}",
-                value=f"response_{i}",
-                tokens_used=100 + i
+                key=f"key_{i}", value=f"response_{i}", tokens_used=100 + i
             )
 
         # Check stats
@@ -50,7 +50,9 @@ async def test_lru_persistent_token_cache():
             logger.info("✅ Memory bounded correctly")
             return True
         else:
-            logger.error(f"❌ Memory not bounded: {stats['memory_entries']} > {cache.max_entries}")
+            logger.error(
+                f"❌ Memory not bounded: {stats['memory_entries']} > {cache.max_entries}"
+            )
             return False
 
 
@@ -64,7 +66,7 @@ async def test_dynamic_concurrency_gate_integration():
 
     gate = get_concurrency_gate()
     concurrency = gate.get_safe_concurrency()
-    
+
     logger.info(f"Safe concurrency level: {concurrency}")
     logger.info(f"  Base: {gate.base_concurrency}")
 
@@ -100,7 +102,7 @@ async def test_persistent_cache_integration():
         logger.info(f"Restored cache with size {stats2.get('cache_size', 0)}")
 
         # Verify restoration
-        if stats2.get('cache_size', 0) == 1:
+        if stats2.get("cache_size", 0) == 1:
             logger.info("✅ Session restore working correctly")
             return True
         else:
@@ -129,6 +131,7 @@ async def main():
         except Exception as e:
             logger.error(f"❌ Test failed with exception: {e}")
             import traceback
+
             traceback.print_exc()
             results[name] = False
 

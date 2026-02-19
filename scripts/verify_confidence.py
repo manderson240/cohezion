@@ -9,6 +9,7 @@ sys.path.append(str(Path(__name__).parent / "src"))
 from cohezion.swarm.agents.analyst import AnalystAgent
 from cohezion.swarm.swarm_types import SwarmConfig, Perspective
 
+
 async def main():
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger("ConfidenceVerification")
@@ -34,11 +35,14 @@ async def main():
 
     # Validation logic
     if resp_high.confidence > resp_low.confidence:
-        print(f"\n✅ PASS: Calibration delta detected (Delta: {resp_high.confidence - resp_low.confidence:.2f})")
+        print(
+            f"\n✅ PASS: Calibration delta detected (Delta: {resp_high.confidence - resp_low.confidence:.2f})"
+        )
     else:
         print(f"\n❌ FAIL: No significant calibration delta detected.")
 
     await analyst.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

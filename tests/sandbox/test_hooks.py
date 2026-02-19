@@ -48,9 +48,9 @@ class TestHookMetadata:
         )
 
         data = metadata.to_dict()
-        assert data['name'] == "test-hook"
-        assert data['stage'] == "pre_operation"
-        assert data['action'] == "warn"
+        assert data["name"] == "test-hook"
+        assert data["stage"] == "pre_operation"
+        assert data["action"] == "warn"
 
 
 class TestHookDiscovery:
@@ -69,7 +69,7 @@ class TestHookDiscovery:
 
     def test_parse_hook_metadata_valid(self):
         """Test parsing valid hook metadata."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.sh', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".sh", delete=False) as f:
             f.write("""#!/bin/bash
 # HOOK_NAME: test-hook
 # HOOK_STAGE: PRE_EXECUTE
@@ -93,7 +93,7 @@ echo "test"
 
     def test_parse_hook_metadata_missing_stage(self):
         """Test parsing hook with missing stage."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.sh', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".sh", delete=False) as f:
             f.write("""#!/bin/bash
 # HOOK_NAME: test-hook
 # HOOK_ACTION: BLOCK
@@ -142,7 +142,7 @@ class TestHookExecutor:
 
     def test_execute_hook_success(self):
         """Test executing hook that succeeds."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.sh', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".sh", delete=False) as f:
             f.write("""#!/bin/bash
 echo "success output"
 exit 0
@@ -171,7 +171,7 @@ exit 0
 
     def test_execute_hook_block(self):
         """Test executing hook with BLOCK action."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.sh', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".sh", delete=False) as f:
             f.write("""#!/bin/bash
 echo "blocked" >&2
 exit 1
@@ -198,7 +198,7 @@ exit 1
 
     def test_execute_hook_warn(self):
         """Test executing hook with WARN action."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.sh', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".sh", delete=False) as f:
             f.write("""#!/bin/bash
 echo "warning"
 exit 2
@@ -225,7 +225,7 @@ exit 2
 
     def test_execute_hook_timeout(self):
         """Test hook execution timeout."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.sh', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".sh", delete=False) as f:
             f.write("""#!/bin/bash
 sleep 10
 """)
@@ -253,7 +253,7 @@ sleep 10
 
     def test_execute_hook_with_context_env(self):
         """Test that context is passed as environment variables."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.sh', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".sh", delete=False) as f:
             f.write("""#!/bin/bash
 echo "SANDBOX_OPERATION: $SANDBOX_OPERATION"
 echo "FILES: $SANDBOX_FILES_TO_MODIFY"
@@ -487,9 +487,9 @@ exit 0
             integration = HookIntegration(tmpdir)
             data = integration.to_dict()
 
-            assert 'hooks_dir' in data
-            assert 'registry' in data
-            assert 'audit_trail' in data
+            assert "hooks_dir" in data
+            assert "registry" in data
+            assert "audit_trail" in data
 
 
 class TestExecutionContext:
@@ -519,10 +519,10 @@ class TestExecutionContext:
 
         env = context.to_env_dict()
 
-        assert env['SANDBOX_OPERATION'] == "test-op"
-        assert env['SANDBOX_SANDBOX_ID'] == "test-1"
-        assert "file1.py" in env['SANDBOX_FILES_TO_MODIFY']
-        assert env['SANDBOX_COMMAND'] == "pytest"
+        assert env["SANDBOX_OPERATION"] == "test-op"
+        assert env["SANDBOX_SANDBOX_ID"] == "test-1"
+        assert "file1.py" in env["SANDBOX_FILES_TO_MODIFY"]
+        assert env["SANDBOX_COMMAND"] == "pytest"
 
     def test_context_with_extra_env(self):
         """Test context with extra environment variables."""
@@ -533,7 +533,7 @@ class TestExecutionContext:
         )
 
         env = context.to_env_dict()
-        assert env['CUSTOM_VAR'] == "value"
+        assert env["CUSTOM_VAR"] == "value"
 
 
 class TestPhase21HooksIntegration:
@@ -562,8 +562,9 @@ class TestPhase21HooksIntegration:
         ]
 
         for expected in expected_hooks:
-            assert any(expected in name for name in hook_names), \
+            assert any(expected in name for name in hook_names), (
                 f"Expected hook '{expected}' not found"
+            )
 
     def test_pre_execute_hooks(self):
         """Test PRE_EXECUTE stage hooks."""
@@ -582,7 +583,9 @@ class TestPhase21HooksIntegration:
     def test_post_operation_hooks(self):
         """Test POST_OPERATION stage hooks."""
         integration = HookIntegration(".claude/hooks")
-        post_op_hooks = integration.registry.get_hooks_for_stage(HookStage.POST_OPERATION)
+        post_op_hooks = integration.registry.get_hooks_for_stage(
+            HookStage.POST_OPERATION
+        )
 
         assert len(post_op_hooks) >= 0
 
@@ -603,8 +606,8 @@ class TestHookIntegrationFast:
         )
 
         data = result.to_dict()
-        assert data['hook_name'] == "test"
-        assert data['action'] == "allow"
+        assert data["hook_name"] == "test"
+        assert data["action"] == "allow"
 
     def test_hook_object_creation(self):
         """Test Hook object creation."""
@@ -617,13 +620,13 @@ class TestHookIntegrationFast:
 
         assert hook.metadata.name == "test"
         data = hook.to_dict()
-        assert 'path' in data
-        assert 'metadata' in data
+        assert "path" in data
+        assert "metadata" in data
 
     def test_get_hook_integration_singleton(self):
         """Test get_hook_integration singleton pattern."""
-        if hasattr(get_hook_integration, '_instance'):
-            delattr(get_hook_integration, '_instance')
+        if hasattr(get_hook_integration, "_instance"):
+            delattr(get_hook_integration, "_instance")
 
         integration1 = get_hook_integration()
         integration2 = get_hook_integration()

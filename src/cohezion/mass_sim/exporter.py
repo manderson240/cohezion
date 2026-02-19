@@ -134,7 +134,7 @@ class CheckpointExporter:
                 with open(jsonl_file) as f:
                     for line in f:
                         record = json.loads(line)
-                        if "sample_states" in record and record["sample_states"]:
+                        if record.get("sample_states"):
                             for state in record["sample_states"]:
                                 if len(state) == z_dim:
                                     vectors.append(state)

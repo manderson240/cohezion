@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+
 """Hierarchical Swarm Topology definitions for Cohezion."""
 
 from dataclasses import dataclass, field
@@ -47,9 +48,11 @@ class SwarmTopology:
     """The global hierarchical structure of the swarm."""
 
     topology_id: str = field(default_factory=lambda: f"top_{uuid4().hex[:8]}")
-    executive: SwarmNode = field(default_factory=lambda: SwarmNode(role=NodeRole.EXECUTIVE))
+    executive: SwarmNode = field(
+        default_factory=lambda: SwarmNode(role=NodeRole.EXECUTIVE)
+    )
     regions: dict[str, RegionalSwarm] = field(default_factory=dict)
-    
+
     def add_region(self, region: RegionalSwarm) -> None:
         """Add a regional swarm to the topology."""
         self.regions[region.swarm_id] = region

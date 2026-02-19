@@ -62,7 +62,11 @@ class TestRootCauseAnalysis:
                     "decision_id": "agent_decision:test",
                     "reasoning_type": "research",
                     "confidence_score": 0.92,
-                    "reasoning_chain": ["Step 1: Review", "Step 2: Analyze", "Step 3: Decide"],
+                    "reasoning_chain": [
+                        "Step 1: Review",
+                        "Step 2: Analyze",
+                        "Step 3: Decide",
+                    ],
                     "assumptions": ["Assumption 1"],
                     "alternatives_rejected": [{"option": "Alt", "reason": "Rejected"}],
                     "created_at": "2026-02-12T10:00:00Z",
@@ -508,7 +512,9 @@ class TestQueryStructure:
         reasoning_queries.root_cause_analysis("test_decision")
 
         # Verify SELECT query was executed
-        select_queries = [q for q in mock_db.queries if "SELECT * FROM agent_reasoning" in q]
+        select_queries = [
+            q for q in mock_db.queries if "SELECT * FROM agent_reasoning" in q
+        ]
         assert len(select_queries) > 0
         assert "decision_id" in select_queries[0]
         assert "ORDER BY" in select_queries[0]

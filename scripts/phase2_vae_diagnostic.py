@@ -60,7 +60,7 @@ def diagnostic_vae_availability():
         elapsed = time.time() - start
 
         logger.info(f"  Encoded {len(texts)} texts in {elapsed:.3f}s")
-        logger.info(f"  Avg per text: {elapsed/len(texts)*1000:.2f}ms")
+        logger.info(f"  Avg per text: {elapsed / len(texts) * 1000:.2f}ms")
         logger.info(f"  Embedding dimension: {embeddings[0].shape}")
         logger.info("")
 
@@ -146,7 +146,9 @@ async def diagnostic_l3_cache_baseline():
         # Simple health check by doing a search
         results = mcp_client.vault_search("test")
         logger.info("  Vault Status: ✅ CONNECTED")
-        logger.info(f"  Sample Search Results: {len(results) if results else 0} patterns")
+        logger.info(
+            f"  Sample Search Results: {len(results) if results else 0} patterns"
+        )
     except Exception as e:
         logger.info(f"  Vault Status: ❌ DISCONNECTED ({e})")
         logger.info("  (This is ok for local diagnostics)")
@@ -231,7 +233,9 @@ async def diagnostic_vault_query_performance():
             results = mcp_client.vault_search(query)
             elapsed = (time.time() - start) * 1000  # Convert to ms
             latencies.append(elapsed)
-            logger.info(f"  '{query}': {elapsed:.1f}ms ({len(results) if results else 0} results)")
+            logger.info(
+                f"  '{query}': {elapsed:.1f}ms ({len(results) if results else 0} results)"
+            )
         except Exception as e:
             logger.info(f"  '{query}': ERROR ({e})")
 
@@ -255,7 +259,9 @@ def diagnostic_improvement_opportunities():
     vae_available = encoder.is_available()
 
     logger.info("Priority 1: FLUME VAE Integration")
-    logger.info(f"  Current: {'VAE enabled ✅' if vae_available else 'Hash fallback ❌'}")
+    logger.info(
+        f"  Current: {'VAE enabled ✅' if vae_available else 'Hash fallback ❌'}"
+    )
     logger.info("  Action: Verify VAE checkpoint is loaded correctly")
     logger.info("  Target: L3 cache hit 5% → 15%+ (200% improvement)")
     logger.info("  Estimated Impact: +10% overall token efficiency")

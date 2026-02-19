@@ -97,7 +97,9 @@ class AgentContextOps:
         session_id = f"session:{str(uuid4())[:8]}"
         timestamp = datetime.utcnow().isoformat() + "Z"
 
-        error_clause = f", error_message = {json.dumps(error_message)}" if error_message else ""
+        error_clause = (
+            f", error_message = {json.dumps(error_message)}" if error_message else ""
+        )
 
         query = f"""
         USE NS {self.namespace};
@@ -211,7 +213,9 @@ class AgentContextOps:
         timestamp = datetime.utcnow().isoformat() + "Z"
         output_truncated = output[:5000] if output else ""
 
-        error_clause = f", error_details = {json.dumps(error_details)}" if error_details else ""
+        error_clause = (
+            f", error_details = {json.dumps(error_details)}" if error_details else ""
+        )
 
         query = f"""
         USE NS {self.namespace};
@@ -235,7 +239,9 @@ class AgentContextOps:
 
         try:
             result = self._execute_query(query)
-            logger.info(f"Created action: {action_id} ({tool_name}) in session {session_id}")
+            logger.info(
+                f"Created action: {action_id} ({tool_name}) in session {session_id}"
+            )
             return action_id
         except Exception as e:
             logger.error(f"Failed to record action: {e}")
@@ -377,7 +383,9 @@ class AgentContextOps:
 
         try:
             result = self._execute_query(query)
-            logger.info(f"Research lineage query for {session_id}: {len(result)} papers")
+            logger.info(
+                f"Research lineage query for {session_id}: {len(result)} papers"
+            )
             return result
         except Exception as e:
             logger.error(f"Failed to query research lineage: {e}")
@@ -412,7 +420,9 @@ class AgentContextOps:
 
         try:
             result = self._execute_query(query)
-            logger.info(f"Lesson validation query for {session_id}: {len(result)} lessons")
+            logger.info(
+                f"Lesson validation query for {session_id}: {len(result)} lessons"
+            )
             return result
         except Exception as e:
             logger.error(f"Failed to query lesson validation: {e}")

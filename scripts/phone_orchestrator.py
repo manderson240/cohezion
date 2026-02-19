@@ -1,4 +1,3 @@
-
 import asyncio
 import logging
 import os
@@ -12,6 +11,7 @@ from imap_tools import MailBox, AND
 from cohezion.mcp.email_notifier import EmailNotifier, NotificationConfig
 
 logger = logging.getLogger("PhoneOrchestrator")
+
 
 class PhoneOrchestrator:
     """
@@ -31,13 +31,15 @@ class PhoneOrchestrator:
             "ping": self.cmd_ping,
             "run": self.cmd_run,
             "report": self.cmd_report,
-            "resume": self.cmd_resume
+            "resume": self.cmd_resume,
         }
         self.last_event_check = datetime.now().isoformat()
 
     async def poll_forever(self, interval: int = 60):
         """Main loop for polling commands and monitoring blocks."""
-        logger.info(f"📱 PhoneOrchestrator started. Authorized sender: {self.authorized_sender}")
+        logger.info(
+            f"📱 PhoneOrchestrator started. Authorized sender: {self.authorized_sender}"
+        )
 
         # Start the block monitor in parallel
         asyncio.create_task(self.block_monitor_loop())
@@ -57,6 +59,7 @@ class PhoneOrchestrator:
         """Monitor SurrealDB for AGENT_BLOCKED events."""
         logger.info("📡 Block monitor loop active.")
         from cohezion.core.persistence.surreal_client import SurrealClient
+
         db = SurrealClient()
 
         while True:
@@ -75,10 +78,11 @@ class PhoneOrchestrator:
                     event_type = event.get("type")
                     details = event.get("details", {})
 
-                    message = f"Agent {agent} encountered a {event_type}. Details: {details}"
+                    message = (
+                        f"Agent {agent} encountered a {event_type}. Details: {details}"
+                    )
                     await self.notifier.send_block_alert(
-                        task_title=f"{agent} Blocked",
-                        message=message
+                        task_title=f"{agent} Blocked", message=message
                     )
                     logger.info(f"🚨 Block Alert sent for {agent}")
 
@@ -97,8 +101,7 @@ class PhoneOrchestrator:
 
         try:
             with MailBox(self.imap_host).login(
-                self.config.sender_email,
-                self.config.sender_password
+                self.config.sender_email, self.config.sender_password
             ) as mailbox:
                 # Criteria: Unseen AND From authorized sender AND contains [CMD]
                 criteria = AND(seen=False, from_=self.authorized_sender)
@@ -126,27 +129,37 @@ class PhoneOrchestrator:
             await self.notifier.send_email(
                 subject=f"RE: {subject}",
                 body=f"<h3>Response to {cmd_name}</h3><pre>{result}</pre>",
-                is_html=True
+                is_html=True,
             )
         else:
             await self.notifier.send_email(
                 subject=f"RE: {subject}",
                 body=f"Unknown command: {cmd_name}. Supported: {', '.join(self.commands.keys())}",
-                is_html=False
+                is_html=False,
             )
 
     async def cmd_status(self, args, body) -> str:
         """Get system status."""
         try:
             # Check active python processes
-            res = subprocess.run(["ps", "aux", "--sort=-%cpu"], capture_output=True, text=True)
-            procs = [line for line in res.stdout.split('\n') if 'python' in line or 'uv' in line][:5]
+            res = subprocess.run(
+                ["ps", "aux", "--sort=-%cpu"], capture_output=True, text=True
+            )
+            procs = [
+                line
+                for line in res.stdout.split("\n")
+                if "python" in line or "uv" in line
+            ][:5]
 
             status = f"Time: {datetime.now().strftime('%H:%M:%S')}\n"
             status += "Active Processes:\n" + "\n".join(procs)
 
             # Check SurrealDB
-            surreal = subprocess.run(["systemctl", "is-active", "cohezion-surreal.service"], capture_output=True, text=True)
+            surreal = subprocess.run(
+                ["systemctl", "is-active", "cohezion-surreal.service"],
+                capture_output=True,
+                text=True,
+            )
             status += f"\nSurrealDB: {surreal.stdout.strip()}"
 
             return status
@@ -187,10 +200,12 @@ class PhoneOrchestrator:
         """Resume blocked tasks or clear resource throttles."""
         return "System state resumed. Swarm is re-evaluating trajectories."
 
+
 async def main():
     logging.basicConfig(level=logging.INFO)
     orchestrator = PhoneOrchestrator()
     await orchestrator.poll_forever()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

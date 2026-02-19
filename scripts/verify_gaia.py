@@ -9,6 +9,7 @@ from cohezion.gaia.interface import get_planetary_interface
 # Add src to path
 sys.path.append(str(Path.cwd() / "src"))
 
+
 async def main():
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger("GaiaVerify")
@@ -22,13 +23,13 @@ async def main():
     print(response_1[-300:])
 
     if "Vacuum Energy" in response_1:
-         print("✅ PASS: Vital Signs Reported.")
+        print("✅ PASS: Vital Signs Reported.")
     else:
-         print("❌ FAIL: No Gaia Report.")
+        print("❌ FAIL: No Gaia Report.")
 
     print("\n--- 🔥 Test 2: Immunity (Overheating) ---")
     # Artificially spike temperature
-    interface.request_timestamps = [0] * 120 # Simulate 120 requests in last minute
+    interface.request_timestamps = [0] * 120  # Simulate 120 requests in last minute
 
     response_2 = await agent.process("Stress test.")
     print(response_2[-300:])
@@ -45,7 +46,8 @@ async def main():
     # so we rely on the VacuumEnergy calculation being naturally high on this unused machine
     # We inject low entropy samples
     import torch
-    low_entropy = torch.ones(10) # Variance = 0
+
+    low_entropy = torch.ones(10)  # Variance = 0
     interface.report_entropy_flux(low_entropy)
 
     response_3 = await agent.process("Expand universe.")
@@ -57,6 +59,7 @@ async def main():
         print("⚠️ SKIP/FAIL: Parthenogenesis Inhibited (Check Vacuum Energy)")
 
     await agent.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

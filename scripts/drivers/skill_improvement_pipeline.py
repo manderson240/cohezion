@@ -23,6 +23,7 @@ logger = logging.getLogger("r_zero_skills")
 @dataclass
 class SkillEvaluation:
     """Result of R-Zero evaluation on a skill."""
+
     skill_path: Path
     challenger_issues: list[str] = field(default_factory=list)
     solver_proposals: list[str] = field(default_factory=list)
@@ -34,6 +35,7 @@ class SkillEvaluation:
 @dataclass
 class SkillMetrics:
     """Metrics for tracking skill improvement."""
+
     total_evaluated: int = 0
     total_improved: int = 0
     avg_quality_before: float = 0.0
@@ -77,7 +79,9 @@ class RZeroSkillPipeline:
         evaluation.challenger_issues = self._run_challenger(content)
 
         # === SOLVER PHASE ===
-        evaluation.solver_proposals = self._run_solver(content, evaluation.challenger_issues)
+        evaluation.solver_proposals = self._run_solver(
+            content, evaluation.challenger_issues
+        )
 
         # === PRAGMATIST PHASE ===
         evaluation.pragmatist_verdict, evaluation.quality_score = self._run_pragmatist(
@@ -135,9 +139,13 @@ class RZeroSkillPipeline:
 
         for issue in issues:
             if "DOMAIN EXPERTISE" in issue:
-                proposals.append("Add ## DOMAIN EXPERTISE section with role description")
+                proposals.append(
+                    "Add ## DOMAIN EXPERTISE section with role description"
+                )
             elif "INSTRUCTION" in issue:
-                proposals.append("Add ## INSTRUCTION section with step-by-step guidance")
+                proposals.append(
+                    "Add ## INSTRUCTION section with step-by-step guidance"
+                )
             elif "KEY TEXTS" in issue:
                 proposals.append("Add ## KEY TEXTS & CONCEPTS section with references")
             elif "code examples" in issue.lower():
@@ -155,7 +163,9 @@ class RZeroSkillPipeline:
 
         return proposals
 
-    def _run_pragmatist(self, content: str, issues: list[str], proposals: list[str]) -> tuple[str, float]:
+    def _run_pragmatist(
+        self, content: str, issues: list[str], proposals: list[str]
+    ) -> tuple[str, float]:
         """Pragmatist validates and scores the skill."""
         score = 100.0
 
@@ -186,7 +196,9 @@ class RZeroSkillPipeline:
     def generate_report(self, evaluations: list[SkillEvaluation]) -> str:
         """Generate improvement report."""
         report = ["# R-Zero Skill Improvement Report\n"]
-        report.append(f"**Generated:** {__import__('datetime').datetime.now().isoformat()}\n")
+        report.append(
+            f"**Generated:** {__import__('datetime').datetime.now().isoformat()}\n"
+        )
         report.append(f"**Skills Evaluated:** {len(evaluations)}\n\n")
 
         # Summary
@@ -204,7 +216,11 @@ class RZeroSkillPipeline:
         # Details
         report.append("## Detailed Evaluations\n\n")
         for eval in sorted(evaluations, key=lambda e: e.quality_score):
-            status_icon = "✅" if eval.quality_score >= 80 else ("⚠️" if eval.quality_score >= 60 else "❌")
+            status_icon = (
+                "✅"
+                if eval.quality_score >= 80
+                else ("⚠️" if eval.quality_score >= 60 else "❌")
+            )
             report.append(f"### {status_icon} {eval.skill_path.name}\n")
             report.append(f"**Score:** {eval.quality_score:.1f}/100\n")
             report.append(f"**Verdict:** {eval.pragmatist_verdict}\n\n")
@@ -236,7 +252,9 @@ async def main():
     for skill_path in skills:
         eval_result = pipeline.evaluate_skill(skill_path)
         evaluations.append(eval_result)
-        logger.info(f"{skill_path.name}: {eval_result.quality_score:.1f}/100 - {eval_result.pragmatist_verdict}")
+        logger.info(
+            f"{skill_path.name}: {eval_result.quality_score:.1f}/100 - {eval_result.pragmatist_verdict}"
+        )
 
     # Generate report
     report = pipeline.generate_report(evaluations)
@@ -245,7 +263,11 @@ async def main():
     logger.info(f"Report saved to {report_path}")
 
     # Summary stats
-    avg_score = sum(e.quality_score for e in evaluations) / len(evaluations) if evaluations else 0
+    avg_score = (
+        sum(e.quality_score for e in evaluations) / len(evaluations)
+        if evaluations
+        else 0
+    )
     logger.info(f"Average skill quality: {avg_score:.1f}/100")
 
 

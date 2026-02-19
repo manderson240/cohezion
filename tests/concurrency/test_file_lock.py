@@ -14,8 +14,8 @@ from cohezion.concurrency.file_lock import ConfigManager, FileLock, FileLockErro
 @pytest.fixture
 def temp_file():
     """Create temporary file for testing."""
-    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
-        f.write('{}')
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
+        f.write("{}")
         filepath = f.name
     yield filepath
     Path(filepath).unlink(missing_ok=True)
@@ -73,7 +73,7 @@ def test_file_lock_timeout(temp_file):
 def test_config_manager_read(temp_file):
     """Test reading config file."""
     data = {"key1": "value1", "key2": {"nested": "value2"}}
-    with open(temp_file, 'w') as f:
+    with open(temp_file, "w") as f:
         json.dump(data, f)
 
     manager = ConfigManager(temp_file)
@@ -98,7 +98,7 @@ def test_config_manager_write(temp_file):
 def test_config_manager_atomic_update(temp_file):
     """Test atomic read-modify-write."""
     initial_data = {"counter": 0}
-    with open(temp_file, 'w') as f:
+    with open(temp_file, "w") as f:
         json.dump(initial_data, f)
 
     manager = ConfigManager(temp_file)
@@ -120,7 +120,7 @@ def test_config_manager_atomic_update(temp_file):
 def test_config_manager_atomic_update_concurrent(temp_file):
     """Test concurrent atomic updates don't lose data."""
     initial_data = {"counter": 0}
-    with open(temp_file, 'w') as f:
+    with open(temp_file, "w") as f:
         json.dump(initial_data, f)
 
     manager = ConfigManager(temp_file, lock_timeout=30.0)
@@ -193,9 +193,9 @@ def test_file_lock_serial_access(temp_file):
     def access_with_lock(lock_id):
         lock = FileLock(temp_file, timeout=5.0)
         with lock:
-            access_order.append(('enter', lock_id))
+            access_order.append(("enter", lock_id))
             time.sleep(0.1)
-            access_order.append(('exit', lock_id))
+            access_order.append(("exit", lock_id))
 
     threads = [threading.Thread(target=access_with_lock, args=(i,)) for i in range(3)]
 
@@ -208,7 +208,7 @@ def test_file_lock_serial_access(temp_file):
     # Verify no overlapping access (no two enters without an exit between)
     depth = 0
     for event, _lock_id in access_order:
-        if event == 'enter':
+        if event == "enter":
             depth += 1
             assert depth == 1, "Lock not exclusive!"
         else:
@@ -234,7 +234,7 @@ def test_file_lock_held_duration(temp_file):
 def test_config_manager_retry_logic(temp_file):
     """Test retry logic in atomic update."""
     data = {"counter": 0}
-    with open(temp_file, 'w') as f:
+    with open(temp_file, "w") as f:
         json.dump(data, f)
 
     manager = ConfigManager(temp_file, lock_timeout=0.1)

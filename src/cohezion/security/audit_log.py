@@ -15,14 +15,13 @@ Features:
 - Non-blocking async writes
 """
 
-import asyncio
 import json
 import logging
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta, timezone
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 logger = logging.getLogger(__name__)
@@ -196,11 +195,9 @@ class AuditLogger:
 
         # Set default date range (last 90 days)
         if not start_date:
-            start_date = datetime.now(timezone.utc) - timedelta(
-                days=self.retention_days
-            )
+            start_date = datetime.now(UTC) - timedelta(days=self.retention_days)
         if not end_date:
-            end_date = datetime.now(timezone.utc)
+            end_date = datetime.now(UTC)
 
         # Iterate through date-partitioned files
         current_date = start_date.date()
@@ -209,7 +206,7 @@ class AuditLogger:
 
             if log_file.exists():
                 try:
-                    with open(log_file, "r") as f:
+                    with open(log_file) as f:
                         for line in f:
                             if not line.strip():
                                 continue
@@ -308,7 +305,7 @@ class AuditLogger:
             return 0
 
         retention_days = retention_days or self.retention_days
-        cutoff_date = datetime.now(timezone.utc) - timedelta(days=retention_days)
+        cutoff_date = datetime.now(UTC) - timedelta(days=retention_days)
 
         deleted_count = 0
 
@@ -318,9 +315,7 @@ class AuditLogger:
                 date_str = log_file.stem.replace("audit_", "")
 
                 try:
-                    file_date = datetime.fromisoformat(date_str).replace(
-                        tzinfo=timezone.utc
-                    )
+                    file_date = datetime.fromisoformat(date_str).replace(tzinfo=UTC)
 
                     if file_date < cutoff_date:
                         log_file.unlink()

@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class PatternUsage:
     """Pattern with usage statistics"""
+
     pattern_id: str
     title: str
     path: str
@@ -43,6 +44,7 @@ class PatternUsage:
 @dataclass
 class PatternSuggestion:
     """Suggested pattern extraction from similar documents"""
+
     suggested_title: str
     similarity_score: float
     source_docs: List[str]  # Document IDs with similar outcomes
@@ -65,9 +67,7 @@ class PatternDetector:
         self.namespace = namespace
         self.database = database
         self.query_engine = GraphRAGQuery(
-            surrealdb_url=surrealdb_url,
-            namespace=namespace,
-            database=database
+            surrealdb_url=surrealdb_url, namespace=namespace, database=database
         )
 
     async def __aenter__(self):
@@ -151,7 +151,9 @@ class PatternDetector:
                 )
                 patterns.append(pattern)
 
-            logger.info(f"Detected {len(patterns)} patterns with ≥{min_usage} references")
+            logger.info(
+                f"Detected {len(patterns)} patterns with ≥{min_usage} references"
+            )
             return patterns
 
         except Exception as e:
@@ -330,7 +332,9 @@ class PatternDetector:
             max_usage = data.get("max_usage", 0)
 
             # Get high-impact count (≥5 references)
-            high_impact_patterns = await self.detect_patterns(min_usage=5, max_results=100)
+            high_impact_patterns = await self.detect_patterns(
+                min_usage=5, max_results=100
+            )
 
             # Get unused patterns
             unused_query = """

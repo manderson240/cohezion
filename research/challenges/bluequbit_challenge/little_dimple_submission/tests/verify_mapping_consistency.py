@@ -1,5 +1,5 @@
-
 import numpy as np
+
 
 def solver_routing(N, ops):
     site_to_qubit = list(range(N))
@@ -11,10 +11,10 @@ def solver_routing(N, ops):
             s1, s2 = target_sites
             while abs(s1 - s2) > 1:
                 if s1 < s2:
-                    swap_a, swap_b = s1, s1+1
+                    swap_a, swap_b = s1, s1 + 1
                     s1 += 1
                 else:
-                    swap_a, swap_b = s1-1, s1
+                    swap_a, swap_b = s1 - 1, s1
                     s1 -= 1
 
                 q_a = site_to_qubit[swap_a]
@@ -24,20 +24,21 @@ def solver_routing(N, ops):
                 qubit_to_site[q_b] = swap_a
     return site_to_qubit
 
+
 def verifier_routing(N, ops):
     site_to_qubit = list(range(N))
     qubit_to_site = list(range(N))
 
     for name, qubits in ops:
-        if name == 'CZ':
+        if name == "CZ":
             s1 = qubit_to_site[qubits[0]]
             s2 = qubit_to_site[qubits[1]]
             while abs(s1 - s2) > 1:
                 if s1 < s2:
-                    swap_a, swap_b = s1, s1+1
+                    swap_a, swap_b = s1, s1 + 1
                     s1 += 1
                 else:
-                    swap_a, swap_b = s1-1, s1
+                    swap_a, swap_b = s1 - 1, s1
                     s1 -= 1
 
                 q_a, q_b = site_to_qubit[swap_a], site_to_qubit[swap_b]
@@ -45,10 +46,11 @@ def verifier_routing(N, ops):
                 qubit_to_site[q_a], qubit_to_site[q_b] = swap_b, swap_a
     return site_to_qubit
 
+
 if __name__ == "__main__":
     N = 4
     # Test case: CZ q[0], q[3]
-    ops = [('CZ', (0, 3))]
+    ops = [("CZ", (0, 3))]
 
     s_map = solver_routing(N, ops)
     v_map = verifier_routing(N, ops)
@@ -62,16 +64,16 @@ if __name__ == "__main__":
     # Sampling logic check
     # bits[site_idx] is value of qubit site_to_qubit[site_idx]
     # We want ordered[q_idx]
-    bits = "ABCD" # site 0 has A, site 1 has B...
+    bits = "ABCD"  # site 0 has A, site 1 has B...
 
     # Solver reordering
-    ordered_s = [''] * N
+    ordered_s = [""] * N
     for site_idx, bit in enumerate(bits):
         q_idx = s_map[site_idx]
         ordered_s[q_idx] = bit
 
     # Verifier reordering
-    ordered_v = [''] * N
+    ordered_v = [""] * N
     for site_idx, bit in enumerate(bits):
         q_idx = v_map[site_idx]
         ordered_v[q_idx] = bit

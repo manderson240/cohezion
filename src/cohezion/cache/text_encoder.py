@@ -11,7 +11,6 @@ This module replaces hash-based embeddings to achieve:
 """
 
 import logging
-from typing import Optional
 
 import numpy as np
 

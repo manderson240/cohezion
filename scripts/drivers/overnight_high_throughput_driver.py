@@ -12,19 +12,24 @@ import torch
 from cohezion.flume.autoencoder import FlumeEncoder, FlumeConfig
 
 
-from cohezion.simulation.enhanced_simulator import EnhancedSimulator, EnhancedSimulationResult
-from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode, PhysicsState
+from cohezion.simulation.enhanced_simulator import (
+    EnhancedSimulator,
+    EnhancedSimulationResult,
+)
+from cohezion.core.persistence.surreal_client import (
+    SurrealClient,
+    UniverseNode,
+    PhysicsState,
+)
 from cohezion.mcp.email_notifier import EmailNotifier
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("overnight_mission.log"),
-        logging.StreamHandler()
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("overnight_mission.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger("OvernightMission")
+
 
 class MissionController:
     """
@@ -46,13 +51,16 @@ class MissionController:
 
         # Evolutionary State
         self.ancestral_strains: list[str] = []
-        self.refinement_threshold = 1000 # Refine every 1000 for tests, change to 50k for prod
+        self.refinement_threshold = (
+            1000  # Refine every 1000 for tests, change to 50k for prod
+        )
         self.last_refinement_count = 0
-
 
     async def run(self):
         """Main mission loop."""
-        logger.info(f"🚀 Mission 'The Great Convergence' started. Targeting {self.target_end_time.isoformat()}")
+        logger.info(
+            f"🚀 Mission 'The Great Convergence' started. Targeting {self.target_end_time.isoformat()}"
+        )
 
         await self.db.connect()
 
@@ -64,13 +72,18 @@ class MissionController:
                     await self._run_mission_batch()
                 except Exception as e:
                     logger.error(f"Batch execution failed: {e}")
-                    await asyncio.sleep(10) # Cooling period on error
+                    await asyncio.sleep(10)  # Cooling period on error
             else:
-                logger.warning("⚠️ System resources under pressure. Throttling for 60 seconds...")
+                logger.warning(
+                    "⚠️ System resources under pressure. Throttling for 60 seconds..."
+                )
                 await asyncio.sleep(60)
 
             # 3. Evolutionary Refinement
-            if self.total_completed - self.last_refinement_count >= self.refinement_threshold:
+            if (
+                self.total_completed - self.last_refinement_count
+                >= self.refinement_threshold
+            ):
                 await self._perform_evolutionary_refinement()
                 self.last_refinement_count = self.total_completed
 
@@ -82,7 +95,9 @@ class MissionController:
             # Yield to other tasks
             await asyncio.sleep(0.1)
 
-        logger.info(f"🏁 Mission reached target time. Total simulations: {self.total_completed}")
+        logger.info(
+            f"🏁 Mission reached target time. Total simulations: {self.total_completed}"
+        )
         await self._send_status_update(final=True)
         await self.db.close()
 
@@ -111,7 +126,6 @@ class MissionController:
 
             result = await self.simulator.run_simulation(scenario)
 
-
             # Persist Journey to SurrealDB
             await self._persist_to_db(result)
 
@@ -128,16 +142,16 @@ class MissionController:
             physics_state=PhysicsState(
                 stability=result.evaluation.score,
                 coherence=result.evaluation.coherence,
-                complexity=result.challenge.difficulty / 100.0, # Scale to 0-1
-                time=time.time() - self.start_time.timestamp()
+                complexity=result.challenge.difficulty / 100.0,  # Scale to 0-1
+                time=time.time() - self.start_time.timestamp(),
             ),
             node_type="agentic_journey",
             metadata={
                 "stream": result.stream,
                 "approved": result.approved,
                 "issues": result.evaluation.issues,
-                "difficulty": result.challenge.difficulty
-            }
+                "difficulty": result.challenge.difficulty,
+            },
         )
         await self.db.store_node(node)
 
@@ -154,13 +168,13 @@ class MissionController:
         <h2>Mission: The Great Convergence</h2>
         <p><b>Status:</b> {status}</p>
         <p><b>Total Simulations:</b> {self.total_completed}</p>
-        <p><b>Current Difficulty:</b> {stats.get('current_difficulty', 0):.2f}</p>
-        <p><b>Approval Rate:</b> {stats.get('approval_rate', 0):.2%}</p>
+        <p><b>Current Difficulty:</b> {stats.get("current_difficulty", 0):.2f}</p>
+        <p><b>Approval Rate:</b> {stats.get("approval_rate", 0):.2%}</p>
         <p><b>System Health:</b> CPU: {cpu}% | RAM: {ram}%</p>
         <hr>
         <h3>Latest Agentic Journey Snapshot:</h3>
-        <p><i>Scenario: {self.simulator.STREAMS[-1] if self.simulator.STREAMS else 'N/A'}</i></p>
-        <pre>{stats.get('avg_score', 'N/A')}</pre>
+        <p><i>Scenario: {self.simulator.STREAMS[-1] if self.simulator.STREAMS else "N/A"}</i></p>
+        <pre>{stats.get("avg_score", "N/A")}</pre>
         """
 
         success = await self.email.send_email(subject, body, is_html=True)
@@ -171,7 +185,9 @@ class MissionController:
 
     async def _perform_evolutionary_refinement(self):
         """Perform 'Survival of the Fittest' selection and Skill Refinement."""
-        logger.info(f"🧬 Performing Evolutionary Refinement at {self.total_completed} simulations...")
+        logger.info(
+            f"🧬 Performing Evolutionary Refinement at {self.total_completed} simulations..."
+        )
 
         # 1. Fetch top performing nodes
         try:
@@ -182,7 +198,9 @@ class MissionController:
 
             if top_nodes:
                 self.ancestral_strains = [n["content"] for n in top_nodes]
-                logger.info(f"Updated Ancestral Strains with {len(self.ancestral_strains)} high-performers.")
+                logger.info(
+                    f"Updated Ancestral Strains with {len(self.ancestral_strains)} high-performers."
+                )
 
             # 2. Automated Skill Synthesis (Mock for now, would use an LLM expert)
             await self._synthesize_new_skill(top_nodes)
@@ -199,7 +217,9 @@ class MissionController:
         skill_path = Path(f"src/cohezion/skills/{skill_name}.md")
 
         content = f"# SKILL: {skill_name}\n"
-        content += "## DOMAIN EXPERTISE\nExtracted pattern from 1M+ simulation mission.\n"
+        content += (
+            "## DOMAIN EXPERTISE\nExtracted pattern from 1M+ simulation mission.\n"
+        )
         content += "## KEY CONCEPTS\n- High Stability Reasoning\n- Manifold Alignment\n"
         content += "## VERSION\nv0.1\n"
 

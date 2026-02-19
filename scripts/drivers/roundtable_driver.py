@@ -105,7 +105,7 @@ class Roundtable:
 
     async def run_session(self):
         logger.info(
-            f"🚀 Starting Roundtable Session. Duration: {(self.end_time - self.start_time).total_seconds()/3600:.1f}h"
+            f"🚀 Starting Roundtable Session. Duration: {(self.end_time - self.start_time).total_seconds() / 3600:.1f}h"
         )
 
         topic = "Topic: Formulate a concrete, implementable Python prototype for a 'Quantum-Fluid Information Field (QFIF)' system that enhances Cohezion's autonomous optimization capabilities."

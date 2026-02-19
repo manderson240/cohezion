@@ -9,14 +9,11 @@ Implements 4-tier cache hierarchy:
 Gracefully degrades when Redis unavailable, falling back to L1→L2→L3.
 """
 
-import asyncio
 import hashlib
 import json
 import logging
 import time
-from typing import Any, Optional
-
-import numpy as np
+from typing import Any
 
 
 try:

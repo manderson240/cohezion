@@ -43,11 +43,11 @@ async def __():
                 "embedding": np.random.randn(256).tolist(),
                 "agent": np.random.choice(["Analyst", "Critic", "Synthesizer"]),
                 "mission": "Alpha",
-                "coherence": np.random.rand()
+                "coherence": np.random.rand(),
             }
             for i in range(n_points)
         ]
-    return data,
+    return (data,)
 
 
 @app.cell
@@ -64,12 +64,19 @@ def __(PCA, data, mo, np, pd, px):
         df["coherence"] = [d["coherence"] for d in data]
 
         fig = px.scatter_3d(
-            df, x="x", y="y", z="z",
+            df,
+            x="x",
+            y="y",
+            z="z",
             color="agent",
             size="coherence",
             hover_data=["id"],
             title="Agent Thought Trajectories in Latent Space",
-            color_discrete_map={"Analyst": "#FF6B6B", "Critic": "#4ECDC4", "Synthesizer": "#45B7D1"}
+            color_discrete_map={
+                "Analyst": "#FF6B6B",
+                "Critic": "#4ECDC4",
+                "Synthesizer": "#45B7D1",
+            },
         )
 
         fig.update_layout(margin=dict(l=0, r=0, b=0, t=30))
@@ -77,10 +84,7 @@ def __(PCA, data, mo, np, pd, px):
     else:
         plot = mo.md("Not enough data points yet to render manifold.")
 
-    mo.vstack([
-        mo.md("### 3D Latent Manifold Projection"),
-        plot
-    ])
+    mo.vstack([mo.md("### 3D Latent Manifold Projection"), plot])
     return coords, df, fig, i, n_points, pca, plot
 
 
@@ -91,7 +95,9 @@ def __(df, mo, plot):
     if selected and not df.empty:
         idx = selected[0]
         row = df.iloc[idx]
-        details = mo.md(f"**Selected Node**: {row['id']}  \n**Agent**: {row['agent']}  \n**Coherence**: {row['coherence']:.2f}")
+        details = mo.md(
+            f"**Selected Node**: {row['id']}  \n**Agent**: {row['agent']}  \n**Coherence**: {row['coherence']:.2f}"
+        )
     else:
         details = mo.md("*Select a point in the manifold to see details.*")
 

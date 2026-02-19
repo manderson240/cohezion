@@ -4,7 +4,11 @@ import asyncio
 
 import pytest
 
-from cohezion.config.event_wiring import CommitBatcher, EventSubscriber, SyncEventSubscriber
+from cohezion.config.event_wiring import (
+    CommitBatcher,
+    EventSubscriber,
+    SyncEventSubscriber,
+)
 
 
 class TestCommitBatcher:

@@ -48,9 +48,7 @@ def select_skills(n: int) -> list[SkillSpec]:
     return ordered[:n]
 
 
-def build_team_plan(
-    specs: list[SkillSpec], expander: InstructionExpander
-) -> TeamPlan:
+def build_team_plan(specs: list[SkillSpec], expander: InstructionExpander) -> TeamPlan:
     """Build a TeamPlan from expanded skill specs."""
     tasks: list[TaskSpec] = []
     for i, spec in enumerate(specs):
@@ -101,11 +99,11 @@ async def run_compound_cycle(
     }
 
     # --- Step 1: Select skills ---
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  COMPOUND ENGINEERING CYCLE")
     print(f"  Mode: {'DRY RUN' if dry_run else f'LIVE ({model})'}")
     print(f"  Skills: {num_skills} | Threshold: {threshold}")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     specs = select_skills(num_skills)
     report["skills_selected"] = len(specs)
@@ -173,17 +171,19 @@ async def run_compound_cycle(
         if suggestions:
             refiner = SkillRefiner()
             results = refiner.refine_from_suggestions(suggestions)
-            refinements_applied = sum(
-                1 for r in results if r.additions
-            )
+            refinements_applied = sum(1 for r in results if r.additions)
             print(f"\n[5/5] Applied {refinements_applied} skill refinements")
             for r in results:
                 if r.additions:
-                    print(f"  - {r.skill_name}: v{r.version_before} -> v{r.version_after}")
+                    print(
+                        f"  - {r.skill_name}: v{r.version_before} -> v{r.version_after}"
+                    )
         else:
             print("\n[5/5] No refinement suggestions (all skills up to date)")
     else:
-        print(f"\n[5/5] Skipping refinement (delta {compound_delta:.4f} < threshold {threshold})")
+        print(
+            f"\n[5/5] Skipping refinement (delta {compound_delta:.4f} < threshold {threshold})"
+        )
 
     report["refinements_applied"] = refinements_applied
 
@@ -199,11 +199,13 @@ async def run_compound_cycle(
     elapsed = time.monotonic() - t0
     report["total_cycle_duration_s"] = round(elapsed, 2)
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  CYCLE COMPLETE in {elapsed:.1f}s")
     print(f"  Skills: {report['skills_selected']} | Steps: {report['total_steps']}")
-    print(f"  Compound delta: {compound_delta:.4f} | Refinements: {refinements_applied}")
-    print(f"{'='*60}\n")
+    print(
+        f"  Compound delta: {compound_delta:.4f} | Refinements: {refinements_applied}"
+    )
+    print(f"{'=' * 60}\n")
 
     return report
 

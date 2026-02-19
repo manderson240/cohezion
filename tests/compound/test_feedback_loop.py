@@ -287,6 +287,7 @@ class TestExecutionWithFeedback:
     @pytest.mark.asyncio
     async def test_execute_success_on_first_attempt(self, feedback_loop):
         """Test task succeeds on first attempt."""
+
         def execute_fn(guidance):
             return "output", {"coherence": 0.9}
 

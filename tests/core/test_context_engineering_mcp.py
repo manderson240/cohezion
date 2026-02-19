@@ -116,11 +116,13 @@ class TestMCPClient(unittest.TestCase):
         # Now set up tool call response
         tool_response = MagicMock()
         tool_response.status_code = 200
-        tool_response.text = _make_sse_text({
-            "jsonrpc": "2.0",
-            "id": 1,
-            "result": {"content": [{"text": "Tool executed successfully"}]},
-        })
+        tool_response.text = _make_sse_text(
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {"content": [{"text": "Tool executed successfully"}]},
+            }
+        )
         mock_client.post.return_value = tool_response
 
         result = client._call_tool("test_tool", {"arg": "value"})
@@ -160,23 +162,21 @@ class TestMCPClient(unittest.TestCase):
         # Set up tool response
         tool_response = MagicMock()
         tool_response.status_code = 200
-        tool_response.text = _make_sse_text({
-            "jsonrpc": "2.0",
-            "id": 1,
-            "result": {"content": [{"text": "Operation successful"}]},
-        })
+        tool_response.text = _make_sse_text(
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {"content": [{"text": "Operation successful"}]},
+            }
+        )
         mock_client.post.return_value = tool_response
 
-        self.assertEqual(
-            client.vault_read("test.md"), "Operation successful"
-        )
+        self.assertEqual(client.vault_read("test.md"), "Operation successful")
         self.assertEqual(
             client.vault_write("test.md", "content"),
             "Operation successful",
         )
-        self.assertEqual(
-            client.vault_delete("test.md"), "Operation successful"
-        )
+        self.assertEqual(client.vault_delete("test.md"), "Operation successful")
 
     @patch("cohezion.core.mcp_client.httpx.Client")
     def test_compound_operations(self, mock_client_class):
@@ -191,13 +191,15 @@ class TestMCPClient(unittest.TestCase):
         # Test log_decision
         tool_response = MagicMock()
         tool_response.status_code = 200
-        tool_response.text = _make_sse_text({
-            "jsonrpc": "2.0",
-            "id": 1,
-            "result": {"content": [
-                {"text": "decisions/2025-01-15-test-decision.md"}
-            ]},
-        })
+        tool_response.text = _make_sse_text(
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                    "content": [{"text": "decisions/2025-01-15-test-decision.md"}]
+                },
+            }
+        )
         mock_client.post.return_value = tool_response
 
         result = client.vault_log_decision(
@@ -210,13 +212,15 @@ class TestMCPClient(unittest.TestCase):
         self.assertIn("decisions/", result)
 
         # Test log_experiment
-        tool_response.text = _make_sse_text({
-            "jsonrpc": "2.0",
-            "id": 1,
-            "result": {"content": [
-                {"text": "experiments/2025-01-15-test-experiment.md"}
-            ]},
-        })
+        tool_response.text = _make_sse_text(
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                    "content": [{"text": "experiments/2025-01-15-test-experiment.md"}]
+                },
+            }
+        )
         result = client.vault_log_experiment(
             project="test",
             hypothesis="Test hypothesis",
@@ -226,13 +230,13 @@ class TestMCPClient(unittest.TestCase):
         self.assertIn("experiments/", result)
 
         # Test extract_pattern
-        tool_response.text = _make_sse_text({
-            "jsonrpc": "2.0",
-            "id": 1,
-            "result": {"content": [
-                {"text": "patterns/test-pattern.md"}
-            ]},
-        })
+        tool_response.text = _make_sse_text(
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {"content": [{"text": "patterns/test-pattern.md"}]},
+            }
+        )
         result = client.vault_extract_pattern(
             source_path="test.md",
             pattern_name="Test Pattern",
@@ -253,14 +257,16 @@ class TestMCPClient(unittest.TestCase):
         # Set up context search response
         tool_response = MagicMock()
         tool_response.status_code = 200
-        context_json = json.dumps([
-            {"path": "decisions/test.md", "category": "decision", "match_count": 3}
-        ])
-        tool_response.text = _make_sse_text({
-            "jsonrpc": "2.0",
-            "id": 1,
-            "result": {"content": [{"text": context_json}]},
-        })
+        context_json = json.dumps(
+            [{"path": "decisions/test.md", "category": "decision", "match_count": 3}]
+        )
+        tool_response.text = _make_sse_text(
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {"content": [{"text": context_json}]},
+            }
+        )
         mock_client.post.return_value = tool_response
 
         result = client.vault_find_relevant_context("test query")
@@ -353,12 +359,8 @@ class TestContextEngineeringInfrastructure(unittest.TestCase):
     def test_execute_compound_operations(self, mock_create_client):
         """Test executing compound operations via infrastructure."""
         mock_client = MagicMock()
-        mock_client.vault_log_decision.return_value = (
-            "decisions/2025-01-15-test.md"
-        )
-        mock_client.vault_log_experiment.return_value = (
-            "experiments/2025-01-15-test.md"
-        )
+        mock_client.vault_log_decision.return_value = "decisions/2025-01-15-test.md"
+        mock_client.vault_log_experiment.return_value = "experiments/2025-01-15-test.md"
         mock_client.vault_extract_pattern.return_value = "patterns/test-pattern.md"
         mock_client.vault_find_relevant_context.return_value = [
             {"path": "test.md", "category": "decision", "match_count": 2}
@@ -488,9 +490,7 @@ class TestMCPIntegrationWithCompoundSystem(unittest.TestCase):
     def test_retrospection_engine_integration(self, mock_create_client):
         """Test RetrospectionEngine can use MCP for logging decisions."""
         mock_client = MagicMock()
-        mock_client.vault_log_decision.return_value = (
-            "decisions/2025-01-15-test.md"
-        )
+        mock_client.vault_log_decision.return_value = "decisions/2025-01-15-test.md"
         mock_create_client.return_value = mock_client
 
         cei = ContextEngineeringInfrastructure(

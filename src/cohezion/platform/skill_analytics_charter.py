@@ -4,7 +4,6 @@ Complex refinements go through Expert Domain Lattice.
 """
 
 from datetime import datetime, timedelta
-from typing import Dict, List
 
 from pydantic import BaseModel
 

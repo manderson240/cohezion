@@ -87,8 +87,8 @@ class TestResourceLimits:
         """Test conversion to dictionary."""
         limits = ResourceLimits(cpu_percent=150, memory_gb=2)
         data = limits.to_dict()
-        assert data['cpu_percent'] == 150.0
-        assert data['memory_gb'] == 2
+        assert data["cpu_percent"] == 150.0
+        assert data["memory_gb"] == 2
 
 
 class TestResourceMetrics:
@@ -105,9 +105,9 @@ class TestResourceMetrics:
         """Test conversion to dictionary."""
         metrics = ResourceMetrics(cpu_percent=50.0, memory_mb=256.0)
         data = metrics.to_dict()
-        assert data['cpu_percent'] == 50.0
-        assert data['memory_mb'] == 256.0
-        assert 'timestamp' in data
+        assert data["cpu_percent"] == 50.0
+        assert data["memory_mb"] == 256.0
+        assert "timestamp" in data
 
 
 class TestAuditEntry:
@@ -130,8 +130,8 @@ class TestAuditEntry:
             message="Started",
         )
         data = entry.to_dict()
-        assert data['event_type'] == "sandbox_start"
-        assert data['message'] == "Started"
+        assert data["event_type"] == "sandbox_start"
+        assert data["message"] == "Started"
 
 
 class TestSandboxResult:
@@ -169,9 +169,9 @@ class TestSandboxResult:
             audit_log=[],
         )
         data = result.to_dict()
-        assert data['success'] is True
-        assert data['exit_code'] == 0
-        assert isinstance(data['resources_used'], dict)
+        assert data["success"] is True
+        assert data["exit_code"] == 0
+        assert isinstance(data["resources_used"], dict)
 
 
 class TestSandboxExecutor:
@@ -372,9 +372,9 @@ class TestResourceMonitoring:
             disk_gb=8,
         )
         data = limits.to_dict()
-        assert 'cpu_percent' in data
-        assert 'memory_gb' in data
-        assert 'disk_gb' in data
+        assert "cpu_percent" in data
+        assert "memory_gb" in data
+        assert "disk_gb" in data
 
 
 class TestAuditLogging:
@@ -403,7 +403,7 @@ class TestAuditLogging:
 
         assert log_file.exists()
         # Verify file contains JSON lines
-        lines = log_file.read_text().strip().split('\n')
+        lines = log_file.read_text().strip().split("\n")
         assert len(lines) > 0
 
 

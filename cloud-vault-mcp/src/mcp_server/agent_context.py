@@ -178,9 +178,7 @@ class AgentContextOps:
 
             # Update session token count
             try:
-                self.db._execute_query(
-                    f"UPDATE {session_id} SET total_tokens += 500"
-                )
+                self.db._execute_query(f"UPDATE {session_id} SET total_tokens += 500")
             except Exception as e:
                 logger.warning(f"Failed to update session tokens: {e}")
 

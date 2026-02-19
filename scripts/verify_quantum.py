@@ -10,6 +10,7 @@ from cohezion.swarm.agents.quantum_agent import QuantumAgent
 from cohezion.swarm.swarm_types import SwarmConfig
 from cohezion.core.credit_manager import get_credit_manager
 
+
 async def main():
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger("QuantumVerification")
@@ -32,7 +33,7 @@ async def main():
     print(report)
 
     # Validation
-    final_balance = cm.get_balance('QuantumAgent')
+    final_balance = cm.get_balance("QuantumAgent")
     print(f"\nFinal balance: {final_balance}")
 
     if final_balance > 2.0:
@@ -46,6 +47,7 @@ async def main():
         print(f"❌ FAIL: Braiding metrics missing.")
 
     await agent.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

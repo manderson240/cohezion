@@ -13,9 +13,12 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
-from docker.errors import DockerException
-
-import docker
+try:
+    import docker
+    from docker.errors import DockerException
+except ModuleNotFoundError:  # docker package not installed
+    docker = None  # type: ignore[assignment]
+    DockerException = Exception  # type: ignore[assignment,misc]
 
 
 logger = logging.getLogger(__name__)
@@ -204,6 +207,6 @@ class ContainerizedUniverse:
         """Ensure the required image is pulled."""
         try:
             self.client.images.get(self.image_name)
-        except docker.errors.ImageNotFound:
+        except Exception:  # docker.errors.ImageNotFound when docker is available
             logger.info(f"Pulling image {self.image_name}...")
             self.client.images.pull(self.image_name)

@@ -1,10 +1,11 @@
 import json
 import logging
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from cohezion.core.mcp_client import MCPClient, get_mcp_client
+
 
 logger = logging.getLogger(__name__)
 
@@ -26,10 +27,10 @@ class VaultLogger:
     - Implements human-readable Obsidian retrospectives with importance sampling.
     """
 
-    _mcp: Optional[MCPClient]
+    _mcp: MCPClient | None
 
     def __init__(
-        self, novelty_threshold: float = 0.8, mcp_client: Optional[MCPClient] = None
+        self, novelty_threshold: float = 0.8, mcp_client: MCPClient | None = None
     ):
         self._mcp = mcp_client
         self.novelty_threshold = novelty_threshold
@@ -222,7 +223,9 @@ Include tags like #learning #pattern #synthesis.
             # 3. Call local SLM via router
             from cohezion.core.routing.router import LOCAL_ROUTER
 
-            synthesis = await LOCAL_ROUTER.route_task(task_type="reasoning", prompt=prompt)
+            synthesis = await LOCAL_ROUTER.route_task(
+                task_type="reasoning", prompt=prompt
+            )
 
             # 4. Save the synthesis
             # Convert experiments/project/skill/time.json -> learnings/project/skill/time.md

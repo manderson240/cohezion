@@ -4,6 +4,7 @@ import sys
 import pprint
 from cohezion.core.persistence.surreal_client import SurrealClient
 
+
 async def run_query(q_str):
     c = SurrealClient()
     try:
@@ -15,10 +16,11 @@ async def run_query(q_str):
     finally:
         await c.close()
 
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: uv run surreal_cli.py \"SELECT * FROM table\"")
+        print('Usage: uv run surreal_cli.py "SELECT * FROM table"')
         sys.exit(1)
-    
+
     query = sys.argv[1]
     asyncio.run(run_query(query))

@@ -1,7 +1,7 @@
-
 import subprocess
 import sys
 import os
+
 
 def batch_prune(batch_size=50000):
     """
@@ -12,9 +12,7 @@ def batch_prune(batch_size=50000):
     # Get list of deleted files
     try:
         proc = subprocess.Popen(
-            ["git", "ls-files", "--deleted"],
-            stdout=subprocess.PIPE,
-            text=True
+            ["git", "ls-files", "--deleted"], stdout=subprocess.PIPE, text=True
         )
     except Exception as e:
         print(f"Failed to list files: {e}")
@@ -23,28 +21,29 @@ def batch_prune(batch_size=50000):
     batch = []
     count = 0
     total_removed = 0
-    
+
     print(f"Starting batch pruning (Batch size: {batch_size})...")
-    
+
     # Process stream
     for line in proc.stdout:
         filepath = line.strip()
         batch.append(filepath)
         count += 1
-        
+
         if count >= batch_size:
             _execute_batch(batch)
             total_removed += count
             print(f"Pruned {total_removed} files...")
             batch = []
             count = 0
-            
+
     # Final batch
     if batch:
         _execute_batch(batch)
         total_removed += count
-        
+
     print(f"Complete. Removed {total_removed} files from index.")
+
 
 def _execute_batch(files):
     # git update-index --remove --stdin is efficient
@@ -52,9 +51,10 @@ def _execute_batch(files):
     proc = subprocess.Popen(
         ["git", "update-index", "--remove", "--stdin"],
         stdin=subprocess.PIPE,
-        stdout=subprocess.DEVNULL
+        stdout=subprocess.DEVNULL,
     )
     proc.communicate(input="\n".join(files).encode())
+
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
@@ -63,5 +63,5 @@ if __name__ == "__main__":
             if os.path.exists(".git/index.lock"):
                 print("Removing .git/index.lock...")
                 os.remove(".git/index.lock")
-    
+
     batch_prune()

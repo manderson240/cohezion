@@ -105,7 +105,7 @@ RECOMMENDATION:
             return CritiqueResult(
                 analyst_outputs=analyst_outputs,
                 overall_coherence=0.5,
-                recommendation=f"Critique failed: {str(e)}",
+                recommendation=f"Critique failed: {e!s}",
             )
 
     def _format_outputs(self, outputs: list[ThoughtVector]) -> str:

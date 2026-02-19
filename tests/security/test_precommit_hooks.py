@@ -159,13 +159,17 @@ class TestGitHooksInstallation:
         """Verify .git/hooks/pre-commit exists (requires pre-commit install)."""
         hook_path = Path(".git/hooks/pre-commit")
         if not hook_path.exists():
-            pytest.skip("pre-commit hooks not installed (run: uv run pre-commit install)")
+            pytest.skip(
+                "pre-commit hooks not installed (run: uv run pre-commit install)"
+            )
 
     def test_pre_push_hook_exists(self):
         """Verify .git/hooks/pre-push exists."""
         hook_path = Path(".git/hooks/pre-push")
         if not hook_path.exists():
-            pytest.skip("pre-push hooks not installed (run: uv run pre-commit install --hook-type pre-push)")
+            pytest.skip(
+                "pre-push hooks not installed (run: uv run pre-commit install --hook-type pre-push)"
+            )
 
     def test_pre_commit_hook_is_executable(self):
         """Verify .git/hooks/pre-commit is executable."""
@@ -204,9 +208,7 @@ class TestSecurityToolsInstallation:
         """Verify install_security_tools.sh exists and is executable."""
         import os
 
-        script_path = Path(
-            "scripts/setup/install_security_tools.sh"
-        )
+        script_path = Path("scripts/setup/install_security_tools.sh")
         assert script_path.exists(), f"Script not found at {script_path}"
         assert os.access(script_path, os.X_OK), (
             f"Script is not executable: {script_path}"
@@ -214,9 +216,7 @@ class TestSecurityToolsInstallation:
 
     def test_install_script_creates_baseline(self):
         """Verify install script creates secrets baseline."""
-        script_path = Path(
-            "scripts/setup/install_security_tools.sh"
-        )
+        script_path = Path("scripts/setup/install_security_tools.sh")
         with open(script_path) as f:
             content = f.read()
         assert ".secrets.baseline" in content, (
@@ -225,9 +225,7 @@ class TestSecurityToolsInstallation:
 
     def test_install_script_installs_hooks(self):
         """Verify install script installs pre-commit hooks."""
-        script_path = Path(
-            "scripts/setup/install_security_tools.sh"
-        )
+        script_path = Path("scripts/setup/install_security_tools.sh")
         with open(script_path) as f:
             content = f.read()
         assert "pre-commit install" in content, (
@@ -236,9 +234,7 @@ class TestSecurityToolsInstallation:
 
     def test_install_script_documents_usage(self):
         """Verify install script documents setup and usage."""
-        script_path = Path(
-            "scripts/setup/install_security_tools.sh"
-        )
+        script_path = Path("scripts/setup/install_security_tools.sh")
         with open(script_path) as f:
             content = f.read()
 

@@ -29,7 +29,10 @@ def main() -> int:
         help="Directory containing training data (default: data/mass_sim/artifacts)",
     )
     parser.add_argument(
-        "--epochs", type=int, default=100, help="Number of training epochs (default: 100)"
+        "--epochs",
+        type=int,
+        default=100,
+        help="Number of training epochs (default: 100)",
     )
     parser.add_argument(
         "--checkpoint-dir",

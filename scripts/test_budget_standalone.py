@@ -1,10 +1,11 @@
 import time
 
+
 class TokenEfficiencyTrackerStandalone:
     def __init__(self, budget=5.0):
         self._budget_usd = budget
         self._total_spent = 0.0
-    
+
     def record_call(self, model, input_tokens, output_tokens):
         cost = 0.0
         total = max(0, input_tokens + output_tokens)
@@ -24,10 +25,11 @@ class TokenEfficiencyTrackerStandalone:
             "is_critical": self._total_spent >= (self._budget_usd * 0.9),
         }
 
+
 def test_budget_logic():
     print("Starting Standalone Budget Logic Audit")
-    tracker = TokenEfficiencyTrackerStandalone(budget=0.01) # 1 cent budget
-    
+    tracker = TokenEfficiencyTrackerStandalone(budget=0.01)  # 1 cent budget
+
     # 1. Critical threshold ($0.01 * 0.9 = $0.009)
     # Gemini Pro: 1000 tokens = $0.01
     # 900 tokens = $0.009
@@ -38,15 +40,16 @@ def test_budget_logic():
         print("✅ SUCCESS: Critical threshold detected.")
     else:
         print("❌ FAILURE: Critical threshold expected.")
-        
+
     # 2. Exhaustion threshold
-    tracker.record_call("gemini-3-pro", 100, 100) # Total 1100 tokens = $0.011
+    tracker.record_call("gemini-3-pro", 100, 100)  # Total 1100 tokens = $0.011
     status = tracker.get_budget_status()
     print(f"Status after 1100 tokens: {status}")
     if status["is_exhausted"]:
         print("✅ SUCCESS: Exhaustion threshold detected.")
     else:
         print("❌ FAILURE: Exhaustion threshold expected.")
+
 
 if __name__ == "__main__":
     test_budget_logic()

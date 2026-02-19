@@ -12,7 +12,6 @@ import asyncio
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from cohezion.config.config_events import ConfigEvent
 from cohezion.config.config_state import FileMetadata

@@ -7,6 +7,7 @@ sys.path.append("/home/mike-anderson/dev/cohezion/src")
 
 from cohezion.mcp.email_notifier import EmailNotifier
 
+
 async def send_headless_guide():
     notifier = EmailNotifier()
     if not notifier.is_available:
@@ -41,6 +42,7 @@ async def send_headless_guide():
 
     await notifier.send_email(subject, body, is_html=True)
     print("✅ Headless setup guide sent to your email!")
+
 
 if __name__ == "__main__":
     asyncio.run(send_headless_guide())

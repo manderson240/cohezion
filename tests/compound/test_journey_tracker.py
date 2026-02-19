@@ -281,9 +281,7 @@ class TestPhiScore:
 
     def test_phi_score_computation(self, tracker):
         """Test phi score is computed correctly."""
-        phi = tracker._compute_phi_score(
-            coherence=0.8, smoothness=0.6, convergence=0.7
-        )
+        phi = tracker._compute_phi_score(coherence=0.8, smoothness=0.6, convergence=0.7)
 
         # phi = coherence * 0.5 + smoothness * 0.3 + convergence * 0.2
         expected = 0.8 * 0.5 + 0.6 * 0.3 + 0.7 * 0.2
@@ -299,9 +297,7 @@ class TestPhiScore:
 
     def test_phi_score_clipping(self, tracker):
         """Test phi score clips to [0, 1]."""
-        phi = tracker._compute_phi_score(
-            coherence=1.5, smoothness=1.2, convergence=1.0
-        )
+        phi = tracker._compute_phi_score(coherence=1.5, smoothness=1.2, convergence=1.0)
 
         assert 0.0 <= phi <= 1.0
 

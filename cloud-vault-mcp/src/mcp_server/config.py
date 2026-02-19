@@ -57,9 +57,7 @@ class ServerConfig:
         default_factory=lambda: os.environ.get("ALLOWED_HOSTS", "*").split(",")
     )
     tls_enabled: bool = field(
-        default_factory=lambda: (
-            os.environ.get("TLS_ENABLED", "false").lower() == "true"
-        )
+        default_factory=lambda: os.environ.get("TLS_ENABLED", "false").lower() == "true"
     )
     tls_cert_path: str = field(
         default_factory=lambda: os.environ.get("TLS_CERT_PATH", "")
@@ -68,9 +66,7 @@ class ServerConfig:
         default_factory=lambda: os.environ.get("TLS_KEY_PATH", "")
     )
     tls_hsts_max_age: int = field(
-        default_factory=lambda: int(
-            os.environ.get("TLS_HSTS_MAX_AGE", "31536000")
-        )
+        default_factory=lambda: int(os.environ.get("TLS_HSTS_MAX_AGE", "31536000"))
     )
     tls_allowed_origins: list[str] = field(
         default_factory=lambda: os.environ.get(
@@ -125,7 +121,9 @@ class ServerConfig:
         )
     )
     sheets_research_poll_interval: int = field(
-        default_factory=lambda: int(os.environ.get("SHEETS_RESEARCH_POLL_INTERVAL", "300"))
+        default_factory=lambda: int(
+            os.environ.get("SHEETS_RESEARCH_POLL_INTERVAL", "300")
+        )
     )
     sheets_research_batch_size: int = field(
         default_factory=lambda: int(os.environ.get("SHEETS_RESEARCH_BATCH_SIZE", "10"))
@@ -136,7 +134,9 @@ class ServerConfig:
         )
     )
     sheets_research_agent_timeout: int = field(
-        default_factory=lambda: int(os.environ.get("SHEETS_RESEARCH_AGENT_TIMEOUT", "300"))
+        default_factory=lambda: int(
+            os.environ.get("SHEETS_RESEARCH_AGENT_TIMEOUT", "300")
+        )
     )
     sheets_research_work_queue_db: str = field(
         default_factory=lambda: os.environ.get(
@@ -150,7 +150,9 @@ class ServerConfig:
         )
     )
     vault_search_cache_ttl_seconds: float = field(
-        default_factory=lambda: float(os.environ.get("VAULT_SEARCH_CACHE_TTL_SECONDS", "60"))
+        default_factory=lambda: float(
+            os.environ.get("VAULT_SEARCH_CACHE_TTL_SECONDS", "60")
+        )
     )
 
     @classmethod

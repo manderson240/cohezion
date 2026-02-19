@@ -18,7 +18,11 @@ import time
 from cohezion.swarm.cost_aware_router import CostAwareRouter
 from cohezion.swarm.model_ranker import ModelRanker, RankingStrategy
 from cohezion.swarm.model_fallback_strategy import ModelFallbackStrategy
-from cohezion.swarm.anomaly_detector import AnomalyDetector, reset_anomaly_detector, get_anomaly_detector
+from cohezion.swarm.anomaly_detector import (
+    AnomalyDetector,
+    reset_anomaly_detector,
+    get_anomaly_detector,
+)
 from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
 
 
@@ -114,7 +118,9 @@ class TestModelRankerResilience:
         models = ["model-a", "model-b", "model-c"]
         rankings = []
         for _ in range(5):
-            scores = ranker.rank_models(available_models=models, strategy=RankingStrategy.BALANCED)
+            scores = ranker.rank_models(
+                available_models=models, strategy=RankingStrategy.BALANCED
+            )
             rankings.append([m for m, _ in scores])
         first = rankings[0]
         for ranking in rankings[1:]:

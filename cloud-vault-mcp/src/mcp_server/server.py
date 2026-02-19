@@ -791,7 +791,11 @@ def create_server(config: ServerConfig) -> FastMCP:
             """
             try:
                 result = agent_context.record_decision(
-                    session_id, decision_type, reasoning, papers_applied, confidence_score
+                    session_id,
+                    decision_type,
+                    reasoning,
+                    papers_applied,
+                    confidence_score,
                 )
                 return json.dumps(result, indent=2)
             except Exception as e:

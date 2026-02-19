@@ -5,7 +5,6 @@ Charter requirement: "Expose internal states and confidence levels *before* acti
 
 import uuid
 from collections.abc import Callable
-from typing import List, Optional
 
 import numpy as np
 from pydantic import BaseModel

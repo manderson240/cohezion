@@ -9,6 +9,7 @@ sys.path.append(str(Path(__name__).parent / "src"))
 from cohezion.swarm.agents.hypothesis_agent import HypothesisAgent
 from cohezion.swarm.swarm_types import SwarmConfig
 
+
 async def main():
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger("HypothesisVerification")
@@ -30,11 +31,16 @@ async def main():
 
     # Simple validation: Check for "VERIFIED" in report
     if "VERIFIED" in report:
-        print(f"\n✅ PASS: At least one conceptual hypothesis was empirically verified in the sandbox.")
+        print(
+            f"\n✅ PASS: At least one conceptual hypothesis was empirically verified in the sandbox."
+        )
     else:
-        print(f"\n❌ FAIL: No hypotheses were verified (Check logs for sandbox failures).")
+        print(
+            f"\n❌ FAIL: No hypotheses were verified (Check logs for sandbox failures)."
+        )
 
     await hypothesis_agent.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

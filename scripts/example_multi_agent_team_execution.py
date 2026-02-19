@@ -244,7 +244,9 @@ async def main():
     # Show composite score calculation
     logger.info("Example 5: Composite Score Calculation")
     logger.info("-" * 70)
-    logger.info("Composite Score = (success × 0.60) + (coherence × 0.25) + (efficiency × 0.15)")
+    logger.info(
+        "Composite Score = (success × 0.60) + (coherence × 0.25) + (efficiency × 0.15)"
+    )
     logger.info("")
 
     if result_seq.results:
@@ -252,14 +254,10 @@ async def main():
         success_rate = successful / len(result_seq.results) if result_seq.results else 0
 
         coherence_scores = [
-            r.metrics.get("coherence", 0.5)
-            for r in result_seq.results
-            if r.success
+            r.metrics.get("coherence", 0.5) for r in result_seq.results if r.success
         ]
         avg_coherence = (
-            sum(coherence_scores) / len(coherence_scores)
-            if coherence_scores
-            else 0.0
+            sum(coherence_scores) / len(coherence_scores) if coherence_scores else 0.0
         )
 
         efficiency_scores = []
@@ -276,14 +274,28 @@ async def main():
             else 0.5
         )
 
-        logger.info("  Success rate: %.2f (%d/%d tasks)", success_rate, successful, len(result_seq.results))
+        logger.info(
+            "  Success rate: %.2f (%d/%d tasks)",
+            success_rate,
+            successful,
+            len(result_seq.results),
+        )
         logger.info("  Average coherence: %.2f", avg_coherence)
         logger.info("  Average efficiency: %.2f", avg_efficiency)
         logger.info("")
         logger.info("  Calculation:")
-        logger.info("    = (%.2f × 0.60) + (%.2f × 0.25) + (%.2f × 0.15)",
-                    success_rate, avg_coherence, avg_efficiency)
-        logger.info("    = %.3f + %.3f + %.3f", success_rate * 0.60, avg_coherence * 0.25, avg_efficiency * 0.15)
+        logger.info(
+            "    = (%.2f × 0.60) + (%.2f × 0.25) + (%.2f × 0.15)",
+            success_rate,
+            avg_coherence,
+            avg_efficiency,
+        )
+        logger.info(
+            "    = %.3f + %.3f + %.3f",
+            success_rate * 0.60,
+            avg_coherence * 0.25,
+            avg_efficiency * 0.15,
+        )
         logger.info("    = %.3f", result_seq.compound_score)
 
     logger.info("")
@@ -316,16 +328,18 @@ async def main():
     logger.info("--------|-------|---------|-------|--------")
     for pattern_name, result in results_by_pattern:
         success_pct = (
-            f"{(1 - result.tasks_failed/result.tasks_executed)*100:.0f}%"
+            f"{(1 - result.tasks_failed / result.tasks_executed) * 100:.0f}%"
             if result.tasks_executed > 0
             else "N/A"
         )
-        logger.info("%-30s | %5d | %7s | %.3f | %.2f",
-                    pattern_name,
-                    result.tasks_executed,
-                    success_pct,
-                    result.compound_score,
-                    result.execution_time_seconds)
+        logger.info(
+            "%-30s | %5d | %7s | %.3f | %.2f",
+            pattern_name,
+            result.tasks_executed,
+            success_pct,
+            result.compound_score,
+            result.execution_time_seconds,
+        )
 
     logger.info("")
 

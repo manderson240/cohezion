@@ -360,9 +360,7 @@ class TestFallbackIntegration:
 
     def test_complete_failure_and_recovery_cycle(self):
         """Test complete failure and recovery cycle."""
-        strategy = ModelFallbackStrategy(
-            error_threshold=2, recovery_timeout_sec=0.1
-        )
+        strategy = ModelFallbackStrategy(error_threshold=2, recovery_timeout_sec=0.1)
 
         model = "unreliable-model"
 

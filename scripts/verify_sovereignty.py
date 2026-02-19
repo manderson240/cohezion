@@ -6,6 +6,7 @@ from cohezion.swarm.agents.sovereign_agent import SovereignAgent
 from cohezion.swarm.swarm_types import SwarmConfig
 from cohezion.core.local_registry import get_local_registry
 
+
 async def main():
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger("SovereignVerify")
@@ -37,6 +38,7 @@ async def main():
         print("❌ FAIL: Response invalid.")
 
     await agent.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

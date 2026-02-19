@@ -8,7 +8,7 @@ import logging
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from cohezion.core.persistence.surreal_client import SurrealClient
 
@@ -72,7 +72,7 @@ class PatternRepository:
         """Load local buffer from disk."""
         if self.buffer_path.exists():
             try:
-                with open(self.buffer_path, "r") as f:
+                with open(self.buffer_path) as f:
                     self.buffer = json.load(f)
             except Exception as e:
                 logger.error(f"Failed to load pattern buffer: {e}")

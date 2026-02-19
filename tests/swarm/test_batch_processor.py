@@ -139,8 +139,7 @@ async def test_batch_concurrency_limiting(mock_token_client):
     assert processor.config.batch.parallel_tasks == 2
 
     items = [
-        BatchItem(id=str(i), prompt=f"p{i}", system="s", model="m")
-        for i in range(3)
+        BatchItem(id=str(i), prompt=f"p{i}", system="s", model="m") for i in range(3)
     ]
 
     async def dummy_execute(item: BatchItem):
@@ -264,8 +263,7 @@ async def test_batch_result_total_tokens(batch_processor):
 async def test_batch_timing(batch_processor):
     """Test batch execution timing is better with parallelism."""
     items = [
-        BatchItem(id=str(i), prompt=f"p{i}", system="s", model="m")
-        for i in range(3)
+        BatchItem(id=str(i), prompt=f"p{i}", system="s", model="m") for i in range(3)
     ]
 
     async def dummy_execute(item: BatchItem):

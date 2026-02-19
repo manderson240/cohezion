@@ -1,7 +1,7 @@
-
 import asyncio
 import logging
 from cohezion.mcp.email_notifier import EmailNotifier
+
 
 async def main():
     notifier = EmailNotifier()
@@ -34,6 +34,7 @@ async def main():
     if notifier.is_available:
         await notifier.send_email(subject, body, is_html=True)
         print("Instruction email sent.")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

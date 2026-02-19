@@ -1,4 +1,3 @@
-
 import quimb.tensor as qtn
 import inspect
 
@@ -16,7 +15,7 @@ try:
         print(f"Call Result: {type(e).__name__}: {e}")
 
     # Inspect the attribute
-    attr = getattr(qtn.Circuit, 'from_qasm_file', None)
+    attr = getattr(qtn.Circuit, "from_qasm_file", None)
     print(f"Attribute type: {type(attr)}")
     if attr:
         print(f"Attribute dir: {dir(attr)}")

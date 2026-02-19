@@ -12,7 +12,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from cohezion.reliability import get_circuit
 from cohezion.reliability.resource_guard import ResourceGuard

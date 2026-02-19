@@ -6,6 +6,7 @@ from typing import Any
 from cohezion.core.mcp_client import MCPClient, get_mcp_client
 from cohezion.core.persistence.surreal_client import SurrealClient
 
+
 logger = logging.getLogger(__name__)
 
 

@@ -33,6 +33,7 @@ def _():
     import json
     from pathlib import Path
     from datetime import datetime
+
     return mo, plt, np, json, Path, datetime
 
 
@@ -58,22 +59,28 @@ def _(mo):
 @app.cell
 def _(mo, Path, json):
     # Load latest debate results
-    debates_dir = Path("/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/debates")
-    debate_files = sorted(debates_dir.glob("*.json"), reverse=True) if debates_dir.exists() else []
+    debates_dir = Path(
+        "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/debates"
+    )
+    debate_files = (
+        sorted(debates_dir.glob("*.json"), reverse=True) if debates_dir.exists() else []
+    )
 
     if debate_files:
         latest_debate = json.loads(debate_files[0].read_text())
         mo.md(f"""
         ## Latest Swarm Debate
         **File:** `{debate_files[0].name}`
-        **Confidence:** {latest_debate.get('confidence', 0):.0%}
-        **Processing Time:** {latest_debate.get('processing_time_ms', 0):.0f}ms
+        **Confidence:** {latest_debate.get("confidence", 0):.0%}
+        **Processing Time:** {latest_debate.get("processing_time_ms", 0):.0f}ms
 
         ### Decision
-        {latest_debate.get('response', 'No response')[:500]}...
+        {latest_debate.get("response", "No response")[:500]}...
         """)
     else:
-        mo.md("*No debate results found. Run `scripts/run_organization_debate.py` first.*")
+        mo.md(
+            "*No debate results found. Run `scripts/run_organization_debate.py` first.*"
+        )
     return debates_dir, debate_files, latest_debate
 
 
@@ -86,8 +93,18 @@ def _(mo, np, plt):
     np.random.seed(42)
     timesteps = 50
     dimensions = [
-        "x", "y", "z", "time", "mass", "sentiment",
-        "complexity", "factuality", "connectivity", "stability", "novelty", "coherence"
+        "x",
+        "y",
+        "z",
+        "time",
+        "mass",
+        "sentiment",
+        "complexity",
+        "factuality",
+        "connectivity",
+        "stability",
+        "novelty",
+        "coherence",
     ]
 
     # Generate synthetic journey data
@@ -95,7 +112,7 @@ def _(mo, np, plt):
     trajectory[0] = np.random.randn(12) * 0.5
     for t in range(1, timesteps):
         # Physics-constrained evolution
-        trajectory[t] = trajectory[t-1] + np.random.randn(12) * 0.1
+        trajectory[t] = trajectory[t - 1] + np.random.randn(12) * 0.1
         # Coherence increases over time (synthesis effect)
         trajectory[t, 11] = min(1.0, trajectory[t, 11] + 0.02)
 
@@ -131,12 +148,20 @@ def _(mo, np, plt, trajectory):
 
     fig2, ax = plt.subplots(figsize=(10, 8))
     scatter = ax.scatter(
-        projection[:, 0], projection[:, 1],
-        c=range(len(projection)), cmap='viridis', s=100, alpha=0.7
+        projection[:, 0],
+        projection[:, 1],
+        c=range(len(projection)),
+        cmap="viridis",
+        s=100,
+        alpha=0.7,
     )
-    ax.plot(projection[:, 0], projection[:, 1], 'k--', alpha=0.3)
-    ax.scatter(projection[0, 0], projection[0, 1], c='green', s=200, marker='o', label='Start')
-    ax.scatter(projection[-1, 0], projection[-1, 1], c='red', s=200, marker='*', label='End')
+    ax.plot(projection[:, 0], projection[:, 1], "k--", alpha=0.3)
+    ax.scatter(
+        projection[0, 0], projection[0, 1], c="green", s=200, marker="o", label="Start"
+    )
+    ax.scatter(
+        projection[-1, 0], projection[-1, 1], c="red", s=200, marker="*", label="End"
+    )
     ax.set_title("Agent Journey in FLUME Thought-Space")
     ax.set_xlabel("Principal Component 1")
     ax.set_ylabel("Principal Component 2")

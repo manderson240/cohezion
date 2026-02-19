@@ -20,7 +20,6 @@ import logging
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 
 logger = logging.getLogger(__name__)
@@ -382,7 +381,7 @@ class ModelRanker:
             Dict mapping model → cost/token
         """
         # All local models are free ($0.00)
-        return {model: 0.0 for model in models}
+        return dict.fromkeys(models, 0.0)
 
     def _get_default_latencies(self, models: list[str]) -> dict[str, float]:
         """Get default latency expectations for models.

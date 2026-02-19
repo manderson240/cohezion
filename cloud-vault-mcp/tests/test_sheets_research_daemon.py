@@ -65,9 +65,7 @@ class TestWorkQueue:
 
             # Verify state changed
             conn = sqlite3.connect(db_path)
-            cursor = conn.execute(
-                "SELECT state FROM work_queue WHERE row_number = 100"
-            )
+            cursor = conn.execute("SELECT state FROM work_queue WHERE row_number = 100")
             state = cursor.fetchone()[0]
             conn.close()
             assert state == "IN_PROGRESS"
@@ -246,7 +244,7 @@ class TestAgentCoordinator:
         """Test extracting from output with no JSON blocks."""
         coordinator = AgentCoordinator()
 
-        output = 'No JSON here, just plain text output.'
+        output = "No JSON here, just plain text output."
 
         results = coordinator.extract_json_from_output(output)
 
@@ -257,7 +255,7 @@ class TestAgentCoordinator:
         coordinator = AgentCoordinator()
 
         # Two JSON blocks, larger one has more entries
-        output = '''Here are the results:
+        output = """Here are the results:
 
 ```json
 [{"row": 100, "status": "Researched", "abstractions": "Test", "domain": "AI", "integration_point": "Test"}]
@@ -268,7 +266,7 @@ And more results:
 ```json
 [{"row": 101, "status": "Researched", "abstractions": "Test1", "domain": "AI", "integration_point": "Test1"}, {"row": 102, "status": "Researched", "abstractions": "Test2", "domain": "AI", "integration_point": "Test2"}]
 ```
-'''
+"""
 
         results = coordinator.extract_json_from_output(output)
 

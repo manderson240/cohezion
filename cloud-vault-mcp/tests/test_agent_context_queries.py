@@ -77,9 +77,9 @@ class TestAgentContextQueries:
 
         for query_func, expected_type in queries_to_test:
             result = query_func(limit=1)
-            assert isinstance(
-                result, expected_type
-            ), f"{query_func.__name__} should return {expected_type}, got {type(result)}"
+            assert isinstance(result, expected_type), (
+                f"{query_func.__name__} should return {expected_type}, got {type(result)}"
+            )
 
 
 if __name__ == "__main__":

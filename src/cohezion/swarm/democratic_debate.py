@@ -201,7 +201,7 @@ class DemocraticDebate:
         token_client: "TokenEfficientClient | None" = None,
     ):
         from cohezion.swarm.token_client import (
-            TokenEfficientClient as _TC,  # noqa: F811
+            TokenEfficientClient as _TC,
         )
 
         self.ollama_host = ollama_host

@@ -43,9 +43,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--hidden-dim", type=int, default=128, help="Policy hidden layer size"
     )
-    parser.add_argument(
-        "--z-dim", type=int, default=256, help="FLUME latent dimension"
-    )
+    parser.add_argument("--z-dim", type=int, default=256, help="FLUME latent dimension")
     parser.add_argument(
         "--output-dir",
         type=str,
@@ -99,7 +97,9 @@ def main(argv: list[str] | None = None) -> None:
 
     log.info("Starting RL training with config: %s", config)
     if args.reward_type != "default":
-        log.warning("Reward type '%s' selected but not yet implemented", args.reward_type)
+        log.warning(
+            "Reward type '%s' selected but not yet implemented", args.reward_type
+        )
 
     results = train(config)
 

@@ -116,9 +116,7 @@ class TestCircuitBreakerStateTransitions:
 
     def test_transition_to_half_open_after_timeout(self):
         """Test transition to HALF_OPEN after recovery timeout."""
-        breaker = CircuitBreaker(
-            "model", error_threshold=1, recovery_timeout_sec=0.1
-        )
+        breaker = CircuitBreaker("model", error_threshold=1, recovery_timeout_sec=0.1)
 
         # Open circuit
         breaker.record_error()
@@ -159,9 +157,7 @@ class TestCircuitBreakerStateTransitions:
 
     def test_error_rate_threshold_opens_circuit(self):
         """Test that error rate threshold can trigger OPEN."""
-        breaker = CircuitBreaker(
-            "model", error_threshold=10, error_rate_threshold=0.5
-        )
+        breaker = CircuitBreaker("model", error_threshold=10, error_rate_threshold=0.5)
 
         # Record 10 total requests: 6 errors = 60% error rate
         for _ in range(4):
@@ -704,7 +700,9 @@ class TestEdgeCases:
         # When primary unavailable, selects from alternatives
         assert selected in ["phi3:mini", "qwen3-coder:32b", "deepseek-r1:8b"]
         # Should still be considered degraded (not using original choice)
-        assert degraded is True or selected == "deepseek-r1:8b"  # Allow fallback or forced primary
+        assert (
+            degraded is True or selected == "deepseek-r1:8b"
+        )  # Allow fallback or forced primary
 
     def test_empty_available_models(self):
         """Test with empty available models (edge case)."""

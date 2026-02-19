@@ -21,6 +21,7 @@ import scipy.io.wavfile
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
+
 async def generate_narration(text: str, voice: str, output_path: Path):
     """Generate audio for a single frame narration."""
     try:
@@ -32,10 +33,11 @@ async def generate_narration(text: str, voice: str, output_path: Path):
     except Exception as e:
         logger.error(f"TTS Failed: {e}")
 
+
 async def build_showreel(journey_id: str, output_file: str):
     """Assembles the final showreel."""
     logger.info(f"🎬 Building showreel for {journey_id}")
-    
+
     # 1. Load Journey Samples
     data_path = Path(f"data/sim_results_25m.json")
     if not data_path.exists():
@@ -45,20 +47,21 @@ async def build_showreel(journey_id: str, output_file: str):
     # 2. Extract Milestones
     with open(data_path) as f:
         data = json.load(f)
-    
+
     # 3. For each milestone, create a frame + audio
     # (Simplified for now - generating 3 key frames)
     milestones = data.get("milestones", [])
     logger.info(f"Found milestones: {milestones}")
-    
+
     # Assemble using ffmpeg (assuming frames and audio exist)
     # Placeholder for complex assembly logic
     logger.info(f"🚀 Assembly would occur here if ffmpeg were installed.")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--journey-id", default="25m_unified")
     parser.add_argument("--output", default="data/showreel.mp4")
     args = parser.parse_args()
-    
+
     asyncio.run(build_showreel(args.journey_id, args.output))

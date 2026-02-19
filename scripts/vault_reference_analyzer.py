@@ -66,7 +66,7 @@ class VaultReferenceAnalyzer:
         self._check_conventions()
 
         # Generate report
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         return self._generate_report()
 
     def _load_documents(self):
@@ -234,7 +234,8 @@ class VaultReferenceAnalyzer:
                 if targets
             },
             "orphaned_documents": [
-                doc for doc in self.documents.keys()
+                doc
+                for doc in self.documents.keys()
                 if doc not in self.inverse_refs or len(self.inverse_refs[doc]) == 0
             ],
             "high_connectivity": self._find_hubs(),
@@ -243,25 +244,25 @@ class VaultReferenceAnalyzer:
 
         # Print summary
         print("\nREFERENCE INTEGRITY REPORT")
-        print("="*60)
+        print("=" * 60)
         print(f"Total Documents: {report['total_documents']}")
         print(f"Total References: {report['total_references']}")
 
-        if report['missing_references']:
+        if report["missing_references"]:
             print(f"\nBroken References: {len(report['missing_references'])}")
-            for source, targets in list(report['missing_references'].items())[:5]:
+            for source, targets in list(report["missing_references"].items())[:5]:
                 print(f"  {source}:")
                 for target in targets[:3]:
                     print(f"    -> {target}")
 
-        if report['orphaned_documents']:
+        if report["orphaned_documents"]:
             print(f"\nOrphaned Documents: {len(report['orphaned_documents'])}")
-            for doc in report['orphaned_documents'][:5]:
+            for doc in report["orphaned_documents"][:5]:
                 print(f"  - {doc}")
 
-        if report['high_connectivity']:
+        if report["high_connectivity"]:
             print(f"\nHigh-connectivity Hubs (well-integrated):")
-            for doc, count in report['high_connectivity'][:5]:
+            for doc, count in report["high_connectivity"][:5]:
                 print(f"  - {doc}: {count} incoming references")
 
         return report

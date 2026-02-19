@@ -19,7 +19,11 @@ from cohezion.compound.global_metrics_aggregator import (
     get_global_aggregator,
     reset_global_aggregator,
 )
-from cohezion.swarm.team_metrics import TeamCompoundMetrics, TeamMetricsAggregator, WaveMetrics
+from cohezion.swarm.team_metrics import (
+    TeamCompoundMetrics,
+    TeamMetricsAggregator,
+    WaveMetrics,
+)
 
 
 @pytest.fixture
@@ -224,7 +228,7 @@ class TestGlobalMetricsPerformance:
         elapsed = time.time() - start_time
 
         # Should handle 1000 recordings in <100ms
-        assert elapsed < 0.1, f"Recording took {elapsed*1000}ms"
+        assert elapsed < 0.1, f"Recording took {elapsed * 1000}ms"
 
         metrics = global_agg.query_by_agent(executor_id)
         assert len(metrics) == 1000
@@ -331,9 +335,7 @@ class TestGlobalMetricsVaultIntegration:
         data = json.loads((vault_path / result.split("/")[-1]).read_text())
         assert "exported_at" in data
         assert "instance_metrics" in data
-        assert all(
-            isinstance(v, list) for v in data["instance_metrics"].values()
-        )
+        assert all(isinstance(v, list) for v in data["instance_metrics"].values())
 
     def test_csv_export_for_analytics(self, global_agg, tmp_path):
         """Test CSV export for downstream analytics."""

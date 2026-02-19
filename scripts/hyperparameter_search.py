@@ -104,7 +104,9 @@ def perturb_params(params: dict, iteration: int) -> dict:
     perturbed["learning_rate"] = max(1e-5, min(1e-2, params["learning_rate"] * factor))
 
     # Perturb gamma slightly
-    perturbed["gamma"] = max(0.9, min(0.999, params["gamma"] + rng.uniform(-0.02, 0.02)))
+    perturbed["gamma"] = max(
+        0.9, min(0.999, params["gamma"] + rng.uniform(-0.02, 0.02))
+    )
 
     return perturbed
 
@@ -139,10 +141,10 @@ def main() -> int:
 
     for iteration in range(args.iterations):
         t0 = time.time()
-        logger.info(f"\n{'='*40}")
+        logger.info(f"\n{'=' * 40}")
         logger.info(f"ITERATION {iteration + 1}/{args.iterations}")
         logger.info(f"Params: {json.dumps(params, indent=2)}")
-        logger.info(f"{'='*40}")
+        logger.info(f"{'=' * 40}")
 
         # Step 1: Train VAE
         logger.info("[VAE] Training %d epochs...", args.vae_epochs)
@@ -263,7 +265,11 @@ def main() -> int:
     best_path = output_dir / "best_params.json"
     with open(best_path, "w") as f:
         json.dump(
-            {"params": best_params, "coherence": best_coherence, "iteration": best_iteration},
+            {
+                "params": best_params,
+                "coherence": best_coherence,
+                "iteration": best_iteration,
+            },
             f,
             indent=2,
         )

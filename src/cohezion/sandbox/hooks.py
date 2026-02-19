@@ -178,7 +178,7 @@ class HookDiscovery:
             HookMetadata if valid, None otherwise
         """
         try:
-            with open(hook_file, "r") as f:
+            with open(hook_file) as f:
                 content = f.read(500)  # Read first 500 bytes for metadata
         except Exception as e:
             logger.error(f"Failed to read hook file {hook_file}: {e}")

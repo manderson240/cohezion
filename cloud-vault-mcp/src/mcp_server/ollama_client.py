@@ -64,7 +64,9 @@ class OllamaClient:
             logger.error(f"Query failed: {e}")
             raise
 
-    async def embed(self, texts: list[str], model: str = "nomic-embed-text:latest") -> list[list[float]]:
+    async def embed(
+        self, texts: list[str], model: str = "nomic-embed-text:latest"
+    ) -> list[list[float]]:
         """Generate embeddings for texts.
 
         Args:

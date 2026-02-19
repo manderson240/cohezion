@@ -13,14 +13,12 @@ Features:
 - Expiration-based credential lifecycle
 """
 
-import asyncio
-import hashlib
 import logging
 import uuid
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 logger = logging.getLogger(__name__)
@@ -44,7 +42,7 @@ class AgentCredential:
     agent_id: str
     token: str
     api_key_hash: str = ""
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     expires_at: datetime | None = None
     permissions: list[str] = field(default_factory=lambda: ["read", "write"])
     is_active: bool = False
@@ -65,7 +63,7 @@ class AgentCredential:
         """Check if credential has expired."""
         if not self.expires_at:
             return False
-        return datetime.now(timezone.utc) > self.expires_at
+        return datetime.now(UTC) > self.expires_at
 
     def has_permission(self, permission: str) -> bool:
         """Check if credential has specific permission."""
@@ -148,8 +146,8 @@ class AgentAuthManager:
         credential = AgentCredential(
             agent_id=agent_id,
             token=token,
-            created_at=datetime.now(timezone.utc),
-            expires_at=datetime.now(timezone.utc) + timedelta(days=expiry_days),
+            created_at=datetime.now(UTC),
+            expires_at=datetime.now(UTC) + timedelta(days=expiry_days),
             permissions=permissions,
             is_active=True,  # New credentials are active by default
         )
@@ -196,7 +194,7 @@ class AgentAuthManager:
                 return None
 
             # Update last_used timestamp
-            credential.last_used = datetime.now(timezone.utc)
+            credential.last_used = datetime.now(UTC)
             return credential
 
         logger.debug("Token %s not found in cache", token[:8])

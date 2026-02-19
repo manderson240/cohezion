@@ -216,9 +216,7 @@ async def find_similar_documents(
     LIMIT {top_k};
     """
     try:
-        results = await execute_surreal_async(
-            query, http_client, NAMESPACE, DATABASE
-        )
+        results = await execute_surreal_async(query, http_client, NAMESPACE, DATABASE)
         # The SELECT result is the second statement
         if len(results) >= 2 and results[1].get("status") == "OK":
             return results[1].get("result", [])
@@ -274,9 +272,7 @@ def add_wiki_link_to_file(file_path: Path, target_title: str) -> bool:
 
         # Find or create Related section
         if "## Related" in content:
-            content = content.replace(
-                "## Related\n", f"## Related\n- {link}\n", 1
-            )
+            content = content.replace("## Related\n", f"## Related\n- {link}\n", 1)
         else:
             content = content.rstrip() + f"\n\n## Related\n- {link}\n"
 
@@ -419,7 +415,9 @@ async def run_cycle(
     if suggestions:
         links_added = await apply_similarity_links(http_client, suggestions)
         stats["links_added"] = links_added
-        logger.info(f"  Phase 2: {links_added} links added from {len(suggestions)} orphans")
+        logger.info(
+            f"  Phase 2: {links_added} links added from {len(suggestions)} orphans"
+        )
         # Update tracker so link-modified files aren't re-imported next cycle
         if links_added > 0:
             tracker.scan_for_changes()
@@ -490,7 +488,9 @@ async def main():
                 all_stats.append({"cycle": cycle_num, "error": str(e)})
 
             # If converged, use longer sleep to avoid busy-looping
-            sleep_time = CYCLE_INTERVAL * 3 if stats.get("converged") else CYCLE_INTERVAL
+            sleep_time = (
+                CYCLE_INTERVAL * 3 if stats.get("converged") else CYCLE_INTERVAL
+            )
 
             # Wait for next cycle (check stop condition every 30s)
             waited = 0
@@ -518,11 +518,15 @@ async def main():
     logger.info("=" * 60)
 
     # Write summary to vault
-    summary_file = VAULT_PATH / "logs" / f"overnight-summary-{datetime.now(EST).strftime('%Y-%m-%d')}.md"
+    summary_file = (
+        VAULT_PATH
+        / "logs"
+        / f"overnight-summary-{datetime.now(EST).strftime('%Y-%m-%d')}.md"
+    )
     summary_file.write_text(
         f"""---
 title: "Overnight Improvement Summary"
-date: {datetime.now(EST).strftime('%Y-%m-%d')}
+date: {datetime.now(EST).strftime("%Y-%m-%d")}
 type: automated
 ---
 
@@ -533,7 +537,7 @@ type: automated
 - **Documents imported to SurrealDB**: {total_imported}
 - **Wiki-links added**: {total_links}
 - **Graph edges created**: {total_edges}
-- **Duration**: {datetime.now(EST).strftime('%H:%M')} EST
+- **Duration**: {datetime.now(EST).strftime("%H:%M")} EST
 
 ## Cycle Details
 

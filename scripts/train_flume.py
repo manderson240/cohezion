@@ -68,7 +68,9 @@ def main() -> int:
     print(f"\nTraining complete. Metrics saved to {out}")
 
     final = metrics[-1]
-    print(f"Final MSE: {final['mse']:.4f} | KL: {final['kl']:.4f} | Total: {final['total']:.4f}")
+    print(
+        f"Final MSE: {final['mse']:.4f} | KL: {final['kl']:.4f} | Total: {final['total']:.4f}"
+    )
     return 0
 
 

@@ -16,6 +16,7 @@ from problem import (
 import random
 import optimizer
 
+
 class KernelBuilder:
     def __init__(self):
         self.instrs = []
@@ -28,7 +29,12 @@ class KernelBuilder:
         return DebugInfo(scratch_map=self.scratch_debug)
 
     def build_kernel(
-        self, forest_height: int, n_nodes: int, batch_size: int, rounds: int, forest=None
+        self,
+        forest_height: int,
+        n_nodes: int,
+        batch_size: int,
+        rounds: int,
+        forest=None,
     ):
         """
         Optimized implementation using SIMD and VLIW packing.
@@ -38,12 +44,18 @@ class KernelBuilder:
 
         okb = optimizer.OptimizedKernelBuilder()
         # Modified to pass forest
-        self.instrs = okb.build_kernel(forest_height, n_nodes, batch_size, rounds, HASH_STAGES, forest=forest)
+        self.instrs = okb.build_kernel(
+            forest_height, n_nodes, batch_size, rounds, HASH_STAGES, forest=forest
+        )
         # Update scratch_debug for Machine's debug_info
-        self.scratch_debug = {addr: (name, length) for addr, (name, length) in okb.scratch_names.items()}
+        self.scratch_debug = {
+            addr: (name, length) for addr, (name, length) in okb.scratch_names.items()
+        }
         self.scratch_ptr = okb.scratch_ptr
 
+
 BASELINE = 147734
+
 
 def do_kernel_test(
     forest_height: int,
@@ -61,7 +73,13 @@ def do_kernel_test(
 
     kb = KernelBuilder()
     # Modified to pass forest.values
-    kb.build_kernel(forest.height, len(forest.values), len(inp.indices), rounds, forest=forest.values)
+    kb.build_kernel(
+        forest.height,
+        len(forest.values),
+        len(inp.indices),
+        rounds,
+        forest=forest.values,
+    )
     # print(kb.instrs)
 
     value_trace = {}

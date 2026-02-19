@@ -21,7 +21,7 @@ from pathlib import Path
 
 def find_mermaid_blocks(content: str) -> list[tuple[int, int, str]]:
     """Find all mermaid code blocks in markdown content."""
-    pattern = r'```mermaid\n(.*?)```'
+    pattern = r"```mermaid\n(.*?)```"
     matches = []
 
     for match in re.finditer(pattern, content, re.DOTALL):
@@ -37,17 +37,21 @@ def render_diagram(diagram_code: str, output_path: Path, format: str = "png") ->
     """Render mermaid diagram to image using mmdc CLI."""
 
     # Write diagram to temp file
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.mmd', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".mmd", delete=False) as f:
         f.write(diagram_code)
         temp_path = f.name
 
     try:
         cmd = [
             "mmdc",
-            "-i", temp_path,
-            "-o", str(output_path),
-            "-b", "transparent",
-            "-t", "dark",  # Use dark theme for dark mode IDEs
+            "-i",
+            temp_path,
+            "-o",
+            str(output_path),
+            "-b",
+            "transparent",
+            "-t",
+            "dark",  # Use dark theme for dark mode IDEs
         ]
 
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
@@ -69,7 +73,9 @@ def render_diagram(diagram_code: str, output_path: Path, format: str = "png") ->
         Path(temp_path).unlink(missing_ok=True)
 
 
-def process_markdown_file(file_path: Path, output_dir: Path, format: str = "png") -> int:
+def process_markdown_file(
+    file_path: Path, output_dir: Path, format: str = "png"
+) -> int:
     """Process a markdown file, rendering all mermaid diagrams."""
 
     content = file_path.read_text()
@@ -92,7 +98,11 @@ def process_markdown_file(file_path: Path, output_dir: Path, format: str = "png"
             rendered += 1
 
             # Create image reference
-            relative_path = output_path.relative_to(file_path.parent) if output_path.is_relative_to(file_path.parent) else output_path
+            relative_path = (
+                output_path.relative_to(file_path.parent)
+                if output_path.is_relative_to(file_path.parent)
+                else output_path
+            )
             img_ref = f"![Diagram]({relative_path})\n\n<details>\n<summary>Mermaid Source</summary>\n\n```mermaid\n{diagram_code}\n```\n</details>"
 
             # Replace mermaid block with image + collapsible source
@@ -110,7 +120,12 @@ def main():
     parser = argparse.ArgumentParser(description="Render Mermaid diagrams to images")
     parser.add_argument("path", nargs="?", help="Markdown file to process")
     parser.add_argument("--all", action="store_true", help="Process all markdown files")
-    parser.add_argument("--output-dir", "-o", default="renders/mermaid", help="Output directory for images")
+    parser.add_argument(
+        "--output-dir",
+        "-o",
+        default="renders/mermaid",
+        help="Output directory for images",
+    )
     parser.add_argument("--format", "-f", choices=["png", "svg", "pdf"], default="png")
 
     args = parser.parse_args()

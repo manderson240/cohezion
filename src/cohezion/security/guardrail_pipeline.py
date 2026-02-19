@@ -181,7 +181,7 @@ class GuardrailPipeline:
                         {
                             "action": "log_and_allow",
                             "guard": guard_name,
-                            "reason": f"Exception: {str(e)}",
+                            "reason": f"Exception: {e!s}",
                         }
                     )
 

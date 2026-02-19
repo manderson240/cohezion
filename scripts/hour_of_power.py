@@ -14,19 +14,18 @@ from cohezion.mcp.findings_dispatcher import FindingsDispatcher
 # Configure Logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("hour_of_power.log"),
-        logging.StreamHandler()
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("hour_of_power.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger("HourOfPower")
+
 
 class HourOfPowerDriver:
     """
     Experimental 60-minute Autonomous Run.
     Gateway 32: Redundancy Suppression & External Delivery.
     """
+
     def __init__(self):
         self.notifier = EmailNotifier(config=NotificationConfig.from_env())
         self.dispatcher = FindingsDispatcher()
@@ -56,24 +55,35 @@ class HourOfPowerDriver:
             epoch = self._get_mini_epoch(progress)
 
             if epoch != last_epoch:
-                await self.notifier.send_report(f"🌌 New Epoch: {epoch}", f"Simulation has evolved to the {epoch} phase.")
+                await self.notifier.send_report(
+                    f"🌌 New Epoch: {epoch}",
+                    f"Simulation has evolved to the {epoch} phase.",
+                )
                 last_epoch = epoch
 
             # 1. Swarm Step
             await self._run_step(epoch)
 
             # Pacing
-            await asyncio.sleep(30) # 2 ticks per minute
+            await asyncio.sleep(30)  # 2 ticks per minute
 
         # Finalization
         logger.info("🏁 HOUR OF POWER: Simulation Concluded.")
-        await self.dispatcher.dispatch("Conclusion", "1-hour autonomous run complete. Review results/pulse.")
-        await self.notifier.send_report("🏁 Hour of Power: Concluded", "The 1-hour high-fidelity run has completed successfully.")
+        await self.dispatcher.dispatch(
+            "Conclusion", "1-hour autonomous run complete. Review results/pulse."
+        )
+        await self.notifier.send_report(
+            "🏁 Hour of Power: Concluded",
+            "The 1-hour high-fidelity run has completed successfully.",
+        )
 
     def _get_mini_epoch(self, progress: float) -> str:
-        if progress < 0.2: return "Initial Alignment"
-        if progress < 0.5: return "High-Fidelity Expansion"
-        if progress < 0.8: return "Coherent Convergence"
+        if progress < 0.2:
+            return "Initial Alignment"
+        if progress < 0.5:
+            return "High-Fidelity Expansion"
+        if progress < 0.8:
+            return "Coherent Convergence"
         return "Systemic Emergence"
 
     async def _run_step(self, epoch: str):
@@ -81,14 +91,18 @@ class HourOfPowerDriver:
 
         # Gaia Action
         if random.random() < 0.2:
-            res = await self.gaia.process(f"Epoch: {epoch}. Maintain homeostasis for: {vital_signs}")
+            res = await self.gaia.process(
+                f"Epoch: {epoch}. Maintain homeostasis for: {vital_signs}"
+            )
             self._log_event(f"Gaia: {res[:50]}...")
             if "CRITICAL" in res.upper():
                 await self.dispatcher.dispatch("Gaia Alert", res[:200], color=0xFF6B6B)
 
         # SETI Action
         if random.random() < 0.1:
-            res = await self.seti.process("Scanning for exogenic signals in the 1-hour window...")
+            res = await self.seti.process(
+                "Scanning for exogenic signals in the 1-hour window..."
+            )
             self._log_event(f"SETI: {res[:50]}...")
             if "SIGNAL" in res.upper():
                 await self.dispatcher.dispatch("SETI Signal", res[:200], color=0x4ECDC4)
@@ -98,6 +112,7 @@ class HourOfPowerDriver:
         entry = f"[{ts}] {event}"
         self.chronicle.append(entry)
         logger.info(entry)
+
 
 if __name__ == "__main__":
     driver = HourOfPowerDriver()

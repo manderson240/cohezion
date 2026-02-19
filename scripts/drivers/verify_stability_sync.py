@@ -6,8 +6,13 @@ import asyncio
 import logging
 from datetime import datetime
 from cohezion.core.persistence.surreal_client import SurrealClient
-from cohezion.core.persistence.repositories.surreal_journey_repository import SurrealJourneyRepository
-from cohezion.core.persistence.repositories.journey_repository import AgentJourney, JourneyMetrics
+from cohezion.core.persistence.repositories.surreal_journey_repository import (
+    SurrealJourneyRepository,
+)
+from cohezion.core.persistence.repositories.journey_repository import (
+    AgentJourney,
+    JourneyMetrics,
+)
 from cohezion.reliability.monitor import ResourceMonitor
 
 logging.basicConfig(level=logging.INFO)
@@ -27,10 +32,7 @@ async def verify_persistence():
         final_response="Persistence Layer Crystallized.",
         final_confidence=0.99,
         total_duration_ms=150.0,
-        aggregate_metrics=JourneyMetrics(
-            latent_coherence=0.95,
-            capability_delta=0.05
-        )
+        aggregate_metrics=JourneyMetrics(latent_coherence=0.95, capability_delta=0.05),
     )
 
     try:
@@ -66,7 +68,7 @@ async def verify_monitor():
     vitals = monitor.get_vitals()
 
     logger.info(f"Current Vitals: {vitals}")
-    
+
     # Check if we can see the heartbeat file activity
     log_path = Path("logs/system_heartbeat.log")
     if log_path.exists():
@@ -74,7 +76,7 @@ async def verify_monitor():
         logger.info("Waiting for heartbeat (2s loop)...")
         await asyncio.sleep(3)
         mtime_after = log_path.stat().st_mtime
-        
+
         if mtime_after > mtime_before:
             logger.info("✅ Tight heartbeat (2s) confirmed.")
         else:
@@ -90,4 +92,5 @@ async def main():
 
 if __name__ == "__main__":
     from pathlib import Path
+
     asyncio.run(main())

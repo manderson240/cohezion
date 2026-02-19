@@ -34,7 +34,7 @@ def create_mock_mcp():
     client.vault_find_relevant_context.return_value = []
     client.vault_search.return_value = []
     client.vault_write.return_value = "success"
-    client.vault_read.return_value = '{}'
+    client.vault_read.return_value = "{}"
     return client
 
 
@@ -73,7 +73,9 @@ def run_experience_guided_demo():
     logger.info("\n[2/5] Executing first task (cold start - no prior experience)...")
 
     def high_quality_task_1(guidance):
-        logger.info(f"Task 1 guidance: {guidance.get('confidence', 0.0):.2f} confidence")
+        logger.info(
+            f"Task 1 guidance: {guidance.get('confidence', 0.0):.2f} confidence"
+        )
         return "High quality output", {"quality": 0.9}
 
     result1 = executor.execute_task(
@@ -83,7 +85,9 @@ def run_experience_guided_demo():
         execute_fn=high_quality_task_1,
     )
 
-    logger.info(f"✓ Task 1 complete: coherence={result1.metrics.get('coherence', 0.0):.3f}")
+    logger.info(
+        f"✓ Task 1 complete: coherence={result1.metrics.get('coherence', 0.0):.3f}"
+    )
 
     # Step 3: Execute similar task (should get guidance from first task)
     logger.info("\n[3/5] Executing similar task (should receive guidance)...")
@@ -95,7 +99,9 @@ def run_experience_guided_demo():
         recs = guidance.get("recommendations", [])
         warns = guidance.get("warnings", [])
 
-        logger.info(f"Task 2 guidance: {guidance_received['confidence']:.2f} confidence")
+        logger.info(
+            f"Task 2 guidance: {guidance_received['confidence']:.2f} confidence"
+        )
         if recs:
             logger.info(f"  Recommendations: {len(recs)}")
             for rec in recs:
@@ -112,13 +118,17 @@ def run_experience_guided_demo():
         execute_fn=high_quality_task_2,
     )
 
-    logger.info(f"✓ Task 2 complete: coherence={result2.metrics.get('coherence', 0.0):.3f}")
+    logger.info(
+        f"✓ Task 2 complete: coherence={result2.metrics.get('coherence', 0.0):.3f}"
+    )
 
     # Step 4: Execute low-quality task (creates negative experience)
     logger.info("\n[4/5] Executing low-quality task (creates warning for future)...")
 
     def low_quality_task(guidance):
-        logger.info(f"Low quality task guidance: {guidance.get('confidence', 0.0):.2f} confidence")
+        logger.info(
+            f"Low quality task guidance: {guidance.get('confidence', 0.0):.2f} confidence"
+        )
         return "", {}  # Poor output
 
     executor_low = CompoundExecutor(
@@ -135,7 +145,9 @@ def run_experience_guided_demo():
         execute_fn=low_quality_task,
     )
 
-    logger.info(f"✓ Task 3 complete: coherence={result3.metrics.get('coherence', 0.0):.3f} (low)")
+    logger.info(
+        f"✓ Task 3 complete: coherence={result3.metrics.get('coherence', 0.0):.3f} (low)"
+    )
 
     # Step 5: Execute similar risky task (should get warning)
     logger.info("\n[5/5] Executing similar risky task (should receive warnings)...")
@@ -144,7 +156,9 @@ def run_experience_guided_demo():
 
     def risky_task_2(guidance):
         warnings_received.extend(guidance.get("warnings", []))
-        logger.info(f"Risky task guidance: {guidance.get('confidence', 0.0):.2f} confidence")
+        logger.info(
+            f"Risky task guidance: {guidance.get('confidence', 0.0):.2f} confidence"
+        )
         if warnings_received:
             logger.info(f"  Warnings received: {len(warnings_received)}")
             for warn in warnings_received:
@@ -159,18 +173,30 @@ def run_experience_guided_demo():
         execute_fn=risky_task_2,
     )
 
-    logger.info(f"✓ Task 4 complete: coherence={result4.metrics.get('coherence', 0.0):.3f}")
+    logger.info(
+        f"✓ Task 4 complete: coherence={result4.metrics.get('coherence', 0.0):.3f}"
+    )
 
     # Summary
     logger.info("\n" + "=" * 80)
     logger.info("EXPERIENCE-GUIDED LEARNING DEMONSTRATION")
     logger.info("=" * 80)
-    logger.info(f"Task 1: Cold start (no guidance) → coherence={result1.metrics.get('coherence', 0.0):.3f}")
-    logger.info(f"Task 2: Guided by Task 1 (confidence={guidance_received['confidence']:.2f}) → coherence={result2.metrics.get('coherence', 0.0):.3f}")
-    logger.info(f"Task 3: Low quality execution → coherence={result3.metrics.get('coherence', 0.0):.3f}")
-    logger.info(f"Task 4: Warned by Task 3 ({len(warnings_received)} warnings) → coherence={result4.metrics.get('coherence', 0.0):.3f}")
+    logger.info(
+        f"Task 1: Cold start (no guidance) → coherence={result1.metrics.get('coherence', 0.0):.3f}"
+    )
+    logger.info(
+        f"Task 2: Guided by Task 1 (confidence={guidance_received['confidence']:.2f}) → coherence={result2.metrics.get('coherence', 0.0):.3f}"
+    )
+    logger.info(
+        f"Task 3: Low quality execution → coherence={result3.metrics.get('coherence', 0.0):.3f}"
+    )
+    logger.info(
+        f"Task 4: Warned by Task 3 ({len(warnings_received)} warnings) → coherence={result4.metrics.get('coherence', 0.0):.3f}"
+    )
     logger.info("\n✓ Experience-Guided Execution Loop demonstrated!")
-    logger.info("Every execution improves guidance for future executions (exponential learning)")
+    logger.info(
+        "Every execution improves guidance for future executions (exponential learning)"
+    )
 
     return True
 

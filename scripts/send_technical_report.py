@@ -1,9 +1,12 @@
 import asyncio
 from cohezion.mcp.email_notifier import EmailNotifier
 
+
 async def send_report():
     notifier = EmailNotifier()
-    subject = "🔬 Cohezion Technical Report: Hardened Swarm & Quadrature Nexus Transition"
+    subject = (
+        "🔬 Cohezion Technical Report: Hardened Swarm & Quadrature Nexus Transition"
+    )
 
     body = """
     <h2>Cohezion Autonomous Lab: Hardening & Intelligence Report</h2>
@@ -42,6 +45,7 @@ async def send_report():
 
     await notifier.send_email(subject, body, is_html=True)
     print("✅ Technical report sent via email.")
+
 
 if __name__ == "__main__":
     asyncio.run(send_report())

@@ -1,12 +1,15 @@
 import asyncio
 from cohezion.swarm.agents.gaia_agent import GaiaAgent
 
+
 async def test_narration_flow():
     agent = GaiaAgent()
     # Increase DB timeout for test robustness
     agent._db.timeout = 30
     print("🚀 Running inference to test Journey Narration...")
-    res = await agent.process("Perform a rapid homeostasis check on the current latent manifold.")
+    res = await agent.process(
+        "Perform a rapid homeostasis check on the current latent manifold."
+    )
     print(f"Agent Thought: {str(res)[:100]}...")
 
     # Print all attributes for debugging
@@ -17,17 +20,20 @@ async def test_narration_flow():
     print(f"DEBUG: Alignment Score: {getattr(res, 'alignment_score', 'MISSING')}")
 
     # Check if narration exists in the response object
-    if hasattr(res, 'narration') and res.narration:
+    if hasattr(res, "narration") and res.narration:
         print(f"✅ Narration Generated: {res.narration[:50]}...")
     else:
         print(f"❌ Narration issue. Value: {repr(getattr(res, 'narration', None))}")
 
-    if hasattr(res, 'alignment_score'):
+    if hasattr(res, "alignment_score"):
         print(f"✅ Alignment Audit: {res.alignment_score:.2f}")
     else:
-        print(f"❌ Alignment issue. Value: {repr(getattr(res, 'alignment_score', None))}")
+        print(
+            f"❌ Alignment issue. Value: {repr(getattr(res, 'alignment_score', None))}"
+        )
 
     await agent.close()
+
 
 if __name__ == "__main__":
     asyncio.run(test_narration_flow())

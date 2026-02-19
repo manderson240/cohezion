@@ -1,8 +1,8 @@
-
 import subprocess
 import json
 import os
 import time
+
 
 def call_ollama(model, prompt):
     print(f"--- Calling {model} ---")
@@ -11,19 +11,22 @@ def call_ollama(model, prompt):
         result = subprocess.run(
             ["ollama", "run", model],
             input=prompt,
-            capture_output=True, text=True, timeout=1800
+            capture_output=True,
+            text=True,
+            timeout=1800,
         )
         return result.stdout.strip()
     except subprocess.TimeoutExpired:
         print(f"Timeout for {model}")
         return "ERROR: TIMEOUT"
 
+
 def swarm_debate():
     # Specialist Personas
     specialists = {
         "Architect": "deepseek-r1:70b",
         "Optimizer": "qwen3-coder:30b",
-        "Physicist": "llama3.3:70b"
+        "Physicist": "llama3.3:70b",
     }
 
     # Awareness 1.0: Inward Reflection
@@ -46,7 +49,6 @@ def swarm_debate():
     Memory Latency: 4 cycles. Scratch: 1536 words.
     """
 
-
     journey = []
 
     # Round 1: Individual Proposals
@@ -56,7 +58,11 @@ def swarm_debate():
         journey.append({"round": 1, "role": role, "response": resp})
 
     # Round 2: Rebuttal and Cross-Pollination
-    full_context = core_context + "\n" + "\n".join([f"{j['role']}: {j['response'][:1000]}" for j in journey])
+    full_context = (
+        core_context
+        + "\n"
+        + "\n".join([f"{j['role']}: {j['response'][:1000]}" for j in journey])
+    )
     for role, model in specialists.items():
         prompt = f"Role: {role}. Review these proposals:\n{full_context}\nPoint out flaws and refine the architecture. How do we beat the 4-cycle memory wall?"
         resp = call_ollama(model, prompt)
@@ -64,7 +70,9 @@ def swarm_debate():
 
     # Round 3: Synthesis (Final)
     prompt = f"Role: Lead Architect (DeepSeek). Synthesize the final Sub-500 Blueprint based on the debate rounds. Focus on implementation-ready instructions."
-    final_resp = call_ollama(specialists["Architect"], prompt + "\nContext: " + str(journey)[-4000:])
+    final_resp = call_ollama(
+        specialists["Architect"], prompt + "\nContext: " + str(journey)[-4000:]
+    )
     journey.append({"round": 3, "role": "Final_Synthesis", "response": final_resp})
 
     # Persist to JSON
@@ -72,6 +80,7 @@ def swarm_debate():
         json.dump(journey, f, indent=4)
 
     print("Debate Complete. 3 Rounds recorded.")
+
 
 if __name__ == "__main__":
     swarm_debate()

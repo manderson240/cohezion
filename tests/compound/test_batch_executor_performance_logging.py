@@ -201,9 +201,7 @@ class TestBatchPerformanceLogging:
         assert "batch_size=32" in hypothesis
         assert "task_count=20" in hypothesis
 
-    def test_log_batch_performance_method_format(
-        self, batch_executor, mock_mcp_client
-    ):
+    def test_log_batch_performance_method_format(self, batch_executor, mock_mcp_client):
         """Test method description includes configuration."""
         mock_mcp_client.vault_log_experiment = Mock(
             return_value="experiments/batch_perf.md"
@@ -226,9 +224,7 @@ class TestBatchPerformanceLogging:
         assert "deduplication=True" in method
         assert "adaptive_sizing=True" in method
 
-    def test_log_batch_performance_title_format(
-        self, batch_executor, mock_mcp_client
-    ):
+    def test_log_batch_performance_title_format(self, batch_executor, mock_mcp_client):
         """Test title format for vault experiment."""
         mock_mcp_client.vault_log_experiment = Mock(
             return_value="experiments/batch_perf.md"
@@ -370,28 +366,32 @@ class TestBatchPerformanceLogging:
         call_args = mock_mcp_client.vault_log_experiment.call_args
         assert call_args.kwargs["project"] == "cohezion"
 
-    def test_log_batch_performance_return_values(
-        self, batch_executor, mock_mcp_client
-    ):
+    def test_log_batch_performance_return_values(self, batch_executor, mock_mcp_client):
         """Test return values for different scenarios."""
         # Success case
         mock_mcp_client.vault_log_experiment = Mock(
             return_value="experiments/batch_perf.md"
         )
         result = batch_executor._log_batch_performance(
-            batch_size=8, task_count=4, throughput=320.0,
-            cache_hit_rate=75.0, execution_time=5.0,
-            tasks_failed=0, tasks_executed=4,
+            batch_size=8,
+            task_count=4,
+            throughput=320.0,
+            cache_hit_rate=75.0,
+            execution_time=5.0,
+            tasks_failed=0,
+            tasks_executed=4,
         )
         assert result == 1
 
         # Failure case
-        mock_mcp_client.vault_log_experiment = Mock(
-            side_effect=Exception("Error")
-        )
+        mock_mcp_client.vault_log_experiment = Mock(side_effect=Exception("Error"))
         result = batch_executor._log_batch_performance(
-            batch_size=8, task_count=4, throughput=320.0,
-            cache_hit_rate=75.0, execution_time=5.0,
-            tasks_failed=0, tasks_executed=4,
+            batch_size=8,
+            task_count=4,
+            throughput=320.0,
+            cache_hit_rate=75.0,
+            execution_time=5.0,
+            tasks_failed=0,
+            tasks_executed=4,
         )
         assert result == 0

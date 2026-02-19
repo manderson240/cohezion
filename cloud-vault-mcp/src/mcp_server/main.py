@@ -180,9 +180,7 @@ def main():
             )
         else:
             logger.info("TLS certificate validated successfully")
-            app = create_https_app(
-                app, tls_config, allow_http_localhost=True
-            )
+            app = create_https_app(app, tls_config, allow_http_localhost=True)
 
     # Run with uvicorn directly to control host/port
     # Note: For HTTPS, use ssl_certfile and ssl_keyfile parameters

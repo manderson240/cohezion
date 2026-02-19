@@ -11,7 +11,7 @@ Cohezion implements a complete compound engineering pipeline for agentic AI syst
 - **Automatic Error Recovery**: Feedback loop with intelligent retry strategies
 - **Journey Tracking**: 12D FLUME trajectory monitoring for quality analysis
 - **Thread-Safe Operations**: File locking for safe concurrent resource access
-- **Comprehensive Testing**: 3,146 tests with 99.1% pass rate
+- **Comprehensive Testing**: ~3,010 tests collected (775 compound tests)
 
 ## System Architecture
 
@@ -251,9 +251,9 @@ cohezion/
 │   ├── core/              # Core infrastructure
 │   ├── cache/             # Caching systems
 │   ├── security/          # Security and guardrails
-│   └── skills/            # Skill definitions (132 PRIME files)
+│   └── skills/            # Skill definitions (134 PRIME files)
 ├── tests/
-│   ├── compound/          # Compound system tests (275 tests)
+│   ├── compound/          # Compound system tests (775 tests)
 │   ├── core/              # Core infrastructure tests
 │   └── cache/             # Cache tests
 ├── scripts/
@@ -348,6 +348,6 @@ If you use Cohezion in your research, please cite:
 ---
 
 **Status**: ✅ Production Ready (Sessions 40-55 Complete)
-**Last Updated**: February 15, 2026
-**Version**: 1.0.0-phase-18
-**Latest**: Phase 18 GitHub Migration Complete, GitHub Flow established
+**Last Updated**: February 19, 2026
+**Version**: 1.0.0-phase-21
+**Latest**: Phase 21 — Log lifecycle management, systemd crash-loop hardening, 62 API endpoints

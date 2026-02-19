@@ -198,7 +198,7 @@ class SwarmService:
         except Exception as e:
             logger.error(f"QUADRATURE NEXUS execution failed: {e}")
 
-            journey.final_response = f"Error: {str(e)}"
+            journey.final_response = f"Error: {e!s}"
             journey.final_confidence = 0.0
             journey.total_duration_ms = (
                 datetime.now() - start_time
@@ -268,7 +268,7 @@ class SwarmService:
                 started_at=start.isoformat(),
                 completed_at=datetime.now().isoformat(),
                 success=False,
-                output=f"Error: {str(e)}",
+                output=f"Error: {e!s}",
                 duration_ms=(datetime.now() - start).total_seconds() * 1000,
             )
 
@@ -328,7 +328,7 @@ class SwarmService:
                 started_at=start.isoformat(),
                 completed_at=datetime.now().isoformat(),
                 success=False,
-                output=f"Error: {str(e)}",
+                output=f"Error: {e!s}",
                 duration_ms=(datetime.now() - start).total_seconds() * 1000,
             )
 
@@ -390,7 +390,7 @@ class SwarmService:
                 started_at=start.isoformat(),
                 completed_at=datetime.now().isoformat(),
                 success=False,
-                output=f"Error: {str(e)}",
+                output=f"Error: {e!s}",
                 duration_ms=(datetime.now() - start).total_seconds() * 1000,
             )
 

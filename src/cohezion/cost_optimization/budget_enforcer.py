@@ -34,7 +34,7 @@ Usage:
 import asyncio
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import ClassVar, Optional
 
@@ -340,7 +340,7 @@ class BudgetEnforcer:
                 self.vault_logger.log_alert(alert, severity="warning"),
                 timeout=2.0,
             )
-        except (asyncio.TimeoutError, Exception):
+        except (TimeoutError, Exception):
             # Vault failure: log locally
             logger.warning(f"{alert} (vault log failed)")
 

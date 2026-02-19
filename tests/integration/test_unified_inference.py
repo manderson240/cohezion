@@ -8,7 +8,6 @@ Tests:
 - End-to-end workflow
 """
 
-
 import pytest
 
 from cohezion.cache.semantic_cache import SemanticCache

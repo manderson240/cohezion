@@ -1,0 +1,39 @@
+{
+  "model": "qwen2.5-coder:7b",
+  "total": 5,
+  "passed": 0,
+  "pass_rate": 0.0,
+  "pass@1": 0.0,
+  "results": [
+    {
+      "task_id": "HumanEval/0",
+      "status": "FAIL",
+      "time": 36.742175340652466,
+      "completion": "```python\nfrom typing import List\n\n\ndef has_close_elements(numbers: List[float], threshold: float) -> bool:\n    for i in range(len(numbers)):\n        for j in range(i + 1, len(numbers)):\n            i"
+    },
+    {
+      "task_id": "HumanEval/1",
+      "status": "FAIL",
+      "time": 36.417604207992554,
+      "completion": "```python\nfrom typing import List\n\n\ndef separate_paren_groups(paren_string: str) -> List[str]:\n    result = []\n    current_group = []\n    depth = 0\n\n    for char in paren_string.replace(' ', ''):\n    "
+    },
+    {
+      "task_id": "HumanEval/2",
+      "status": "FAIL",
+      "time": 16.356571912765503,
+      "completion": "```python\ndef truncate_number(number: float) -> float:\n    return number - int(number)\n```"
+    },
+    {
+      "task_id": "HumanEval/3",
+      "status": "FAIL",
+      "time": 26.75566267967224,
+      "completion": "```python\nfrom typing import List\n\n\ndef below_zero(operations: List[int]) -> bool:\n    balance = 0\n    for operation in operations:\n        balance += operation\n        if balance < 0:\n            ret"
+    },
+    {
+      "task_id": "HumanEval/4",
+      "status": "FAIL",
+      "time": 25.78254008293152,
+      "completion": "```python\nfrom typing import List\n\ndef mean_absolute_deviation(numbers: List[float]) -> float:\n    mean = sum(numbers) / len(numbers)\n    mad = sum(abs(x - mean) for x in numbers) / len(numbers)\n    r"
+    }
+  ]
+}

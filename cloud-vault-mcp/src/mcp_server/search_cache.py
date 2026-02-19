@@ -125,9 +125,7 @@ class SearchCache:
             # Count expired entries
             now = datetime.now(UTC)
             expired_count = sum(
-                1
-                for ts in self._timestamps.values()
-                if (now - ts) > self._ttl
+                1 for ts in self._timestamps.values() if (now - ts) > self._ttl
             )
 
             return {

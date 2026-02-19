@@ -4,7 +4,6 @@ Primary weight on HIHO stability (0.5 coherence baseline).
 """
 
 from datetime import datetime, timedelta
-from typing import List
 
 from pydantic import BaseModel
 

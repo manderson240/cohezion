@@ -155,11 +155,7 @@ class CodebaseAnalyzer:
                 or f.endswith(".pyo")
             ):
                 categories["cache"].append(f)
-            elif (
-                "log" in f_lower
-                or ".log" in f_lower
-                or f.endswith(".log")
-            ):
+            elif "log" in f_lower or ".log" in f_lower or f.endswith(".log"):
                 categories["logs"].append(f)
             elif (
                 "temp" in f_lower
@@ -248,11 +244,13 @@ async def run_refinement_pipeline():
     logger.info("Executing: Scan untracked files")
 
     def scan_task(guidance):
-        return json.dumps({
-            "untracked_files": untracked,
-            "count": sum(len(v) for v in untracked.values()),
-            "categories": list(untracked.keys()),
-        }), {"coherence": 0.95}
+        return json.dumps(
+            {
+                "untracked_files": untracked,
+                "count": sum(len(v) for v in untracked.values()),
+                "categories": list(untracked.keys()),
+            }
+        ), {"coherence": 0.95}
 
     result = await feedback_loop.execute_with_feedback(
         task_description="Scan and categorize untracked files in repository",
@@ -279,10 +277,12 @@ async def run_refinement_pipeline():
         if git_status["modified"] > 50:
             recommendations.append("Consider staging changes in smaller batches")
 
-        return json.dumps({
-            "status": git_status,
-            "recommendations": recommendations,
-        }), {"coherence": 0.9}
+        return json.dumps(
+            {
+                "status": git_status,
+                "recommendations": recommendations,
+            }
+        ), {"coherence": 0.9}
 
     result = await feedback_loop.execute_with_feedback(
         task_description="Analyze git repository status and recommend improvements",

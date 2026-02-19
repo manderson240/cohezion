@@ -29,6 +29,7 @@ def _():
     import plotly.graph_objects as go
     import plotly.express as px
     from plotly.subplots import make_subplots
+
     return mo, np, go, px, make_subplots
 
 
@@ -56,27 +57,30 @@ def _(mo):
 def _(mo):
     # Control sliders
     voltage = mo.ui.slider(
-        start=5, stop=20, step=1, value=10,
-        label="⚡ Voltage (kV)",
-        show_value=True
+        start=5, stop=20, step=1, value=10, label="⚡ Voltage (kV)", show_value=True
     )
 
     pulse_duration = mo.ui.slider(
-        start=10, stop=500, step=10, value=100,
+        start=10,
+        stop=500,
+        step=10,
+        value=100,
         label="⏱️ Pulse Duration (μs)",
-        show_value=True
+        show_value=True,
     )
 
     num_sparks = mo.ui.slider(
-        start=10, stop=200, step=10, value=50,
+        start=10,
+        stop=200,
+        step=10,
+        value=50,
         label="🔢 Number of Sparks",
-        show_value=True
+        show_value=True,
     )
 
-    mo.vstack([
-        mo.hstack([voltage, pulse_duration], justify="start", gap=2),
-        num_sparks
-    ])
+    mo.vstack(
+        [mo.hstack([voltage, pulse_duration], justify="start", gap=2), num_sparks]
+    )
     return voltage, pulse_duration, num_sparks
 
 
@@ -93,7 +97,7 @@ def _(mo, np, voltage, pulse_duration, num_sparks):
 
         # Energy calculation
         resistance = 1.0 / (conductivity * 0.01)
-        energy_j = (voltage_v ** 2) * pulse_s / resistance
+        energy_j = (voltage_v**2) * pulse_s / resistance
 
         # Plasma bubble
         bubble_radius = (energy_j / 100) ** 0.33
@@ -103,7 +107,7 @@ def _(mo, np, voltage, pulse_duration, num_sparks):
         # FIXED: Coherence depends on energy!
         # Higher voltage + longer pulse = higher energy = better coherence
         # Normalize energy: at max settings (20kV, 500μs), energy should give ~0.6 coherence on average
-        max_energy = (20000 ** 2) * (500e-6) / resistance  # Max possible energy
+        max_energy = (20000**2) * (500e-6) / resistance  # Max possible energy
         energy_ratio = energy_j / max_energy  # 0 to 1
 
         # Base coherence increases with energy, plus random variation
@@ -124,12 +128,14 @@ def _(mo, np, voltage, pulse_duration, num_sparks):
             "num_electrons": num_electrons,
             "radius_nm": radius_nm,
             "lifetime_us": lifetime_us,
-            "energy_j": energy_j
+            "energy_j": energy_j,
         }
 
     # Run simulations
-    results = [simulate_spark(voltage.value, pulse_duration.value)
-               for _ in range(num_sparks.value)]
+    results = [
+        simulate_spark(voltage.value, pulse_duration.value)
+        for _ in range(num_sparks.value)
+    ]
 
     formed_count = sum(1 for r in results if r["formed"])
     success_rate = formed_count / len(results) * 100
@@ -154,7 +160,15 @@ def _(mo, np, voltage, pulse_duration, num_sparks):
 
     > **HIHO Threshold: 0.5** — Clusters only form when coherence reaches this sweet spot!
     """)
-    return results, coherences, lifetimes, radii, success_rate, formed_count, HIHO_THRESHOLD
+    return (
+        results,
+        coherences,
+        lifetimes,
+        radii,
+        success_rate,
+        formed_count,
+        HIHO_THRESHOLD,
+    )
 
 
 @app.cell
@@ -164,13 +178,15 @@ def _(mo, np, go, coherences, HIHO_THRESHOLD):
     # Histogram of coherence values
     fig_hist = go.Figure()
 
-    fig_hist.add_trace(go.Histogram(
-        x=coherences,
-        nbinsx=30,
-        marker_color='#4ECDC4',
-        opacity=0.8,
-        name="Coherence"
-    ))
+    fig_hist.add_trace(
+        go.Histogram(
+            x=coherences,
+            nbinsx=30,
+            marker_color="#4ECDC4",
+            opacity=0.8,
+            name="Coherence",
+        )
+    )
 
     # Add HIHO threshold line
     fig_hist.add_vline(
@@ -178,7 +194,7 @@ def _(mo, np, go, coherences, HIHO_THRESHOLD):
         line_dash="dash",
         line_color="gold",
         annotation_text="HIHO Threshold (0.5)",
-        annotation_position="top right"
+        annotation_position="top right",
     )
 
     fig_hist.update_layout(
@@ -186,7 +202,7 @@ def _(mo, np, go, coherences, HIHO_THRESHOLD):
         xaxis_title="Coherence",
         yaxis_title="Count",
         template="plotly_dark",
-        height=400
+        height=400,
     )
 
     fig_hist
@@ -201,42 +217,44 @@ def _(mo, np, go, make_subplots, results):
     formed = [r for r in results if r["formed"]]
 
     if len(formed) > 0:
-        fig_props = make_subplots(rows=1, cols=2,
-            subplot_titles=["Lifetime vs Coherence", "Radius vs Energy"])
+        fig_props = make_subplots(
+            rows=1, cols=2, subplot_titles=["Lifetime vs Coherence", "Radius vs Energy"]
+        )
 
         # Lifetime vs Coherence
-        fig_props.add_trace(go.Scatter(
-            x=[r["coherence"] for r in formed],
-            y=[r["lifetime_us"] for r in formed],
-            mode='markers',
-            marker=dict(
-                size=10,
-                color=[r["coherence"] for r in formed],
-                colorscale='Viridis',
-                showscale=True,
-                colorbar=dict(title="Coherence", x=0.45)
+        fig_props.add_trace(
+            go.Scatter(
+                x=[r["coherence"] for r in formed],
+                y=[r["lifetime_us"] for r in formed],
+                mode="markers",
+                marker=dict(
+                    size=10,
+                    color=[r["coherence"] for r in formed],
+                    colorscale="Viridis",
+                    showscale=True,
+                    colorbar=dict(title="Coherence", x=0.45),
+                ),
+                name="Clusters",
             ),
-            name="Clusters"
-        ), row=1, col=1)
+            row=1,
+            col=1,
+        )
 
         # Radius vs Energy
-        fig_props.add_trace(go.Scatter(
-            x=[r["energy_j"] for r in formed],
-            y=[r["radius_nm"] for r in formed],
-            mode='markers',
-            marker=dict(
-                size=10,
-                color='#FF6B6B'
+        fig_props.add_trace(
+            go.Scatter(
+                x=[r["energy_j"] for r in formed],
+                y=[r["radius_nm"] for r in formed],
+                mode="markers",
+                marker=dict(size=10, color="#FF6B6B"),
+                name="Size",
+                showlegend=False,
             ),
-            name="Size",
-            showlegend=False
-        ), row=1, col=2)
-
-        fig_props.update_layout(
-            template="plotly_dark",
-            height=400,
-            showlegend=False
+            row=1,
+            col=2,
         )
+
+        fig_props.update_layout(template="plotly_dark", height=400, showlegend=False)
         fig_props.update_xaxes(title_text="Coherence", row=1, col=1)
         fig_props.update_yaxes(title_text="Lifetime (μs)", row=1, col=1)
         fig_props.update_xaxes(title_text="Energy (J)", row=1, col=2)

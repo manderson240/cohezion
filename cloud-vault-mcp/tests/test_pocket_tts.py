@@ -93,8 +93,10 @@ class TestPocketTTSService:
         """Test success at exactly 4096 chars."""
         from mcp_server.pocket_tts import PocketTTSService
 
-        with patch("pocket_tts.TTSModel", create=True) as mock_tts_class, \
-             patch("torchaudio.save"):
+        with (
+            patch("pocket_tts.TTSModel", create=True) as mock_tts_class,
+            patch("torchaudio.save"),
+        ):
             import torch
 
             mock_model = MagicMock()
@@ -188,7 +190,9 @@ class TestTTSMCPTool:
             mcp = create_server(config)
 
             # Call tool
-            result_content, result_dict = await mcp.call_tool("tts_speak", {"text": "Hello"})
+            result_content, result_dict = await mcp.call_tool(
+                "tts_speak", {"text": "Hello"}
+            )
             # Extract text from content
             result_text = result_content[0].text
             result_data = json.loads(result_text)
@@ -220,7 +224,9 @@ class TestTTSMCPTool:
             mcp = create_server(config)
 
             # Call tool
-            result_content, result_dict = await mcp.call_tool("tts_speak", {"text": "Hello"})
+            result_content, result_dict = await mcp.call_tool(
+                "tts_speak", {"text": "Hello"}
+            )
             # Extract text from content
             result_text = result_content[0].text
             result_data = json.loads(result_text)

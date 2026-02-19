@@ -14,16 +14,12 @@ from pathlib import Path
 REPO_ROOT = Path("/home/mike-anderson/dev/cohezion")
 DEV_ROOT = Path("/home/mike-anderson/dev")
 
+
 def run(cmd, check=True, cwd=REPO_ROOT):
     """Run a shell command and return stdout."""
     try:
         result = subprocess.run(
-            cmd,
-            shell=True,
-            check=check,
-            capture_output=True,
-            text=True,
-            cwd=cwd
+            cmd, shell=True, check=check, capture_output=True, text=True, cwd=cwd
         )
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
@@ -33,6 +29,7 @@ def run(cmd, check=True, cwd=REPO_ROOT):
         if check:
             sys.exit(1)
         return None
+
 
 def get_next_session_id():
     """Find the next available session ID."""
@@ -47,6 +44,7 @@ def get_next_session_id():
             except (IndexError, ValueError):
                 continue
     return max(ids, default=46) + 1
+
 
 def start_session(phase):
     """Create a new worktree and branch for a session."""
@@ -69,16 +67,18 @@ def start_session(phase):
     print(f"   cd {worktree_dir}")
     print(f"   export SURREALDB_DB=session_{session_id}")
 
+
 def list_sessions():
     """List active session worktrees."""
     print("📋 Active Sessions:")
     worktrees = run("git worktree list")
     print(worktrees)
 
+
 def clean_session(session_id, force=False):
     """Safely remove a session worktree."""
     worktree_dir = DEV_ROOT / f"cohezion-session-{session_id}"
-    
+
     if not worktree_dir.exists():
         print(f"❌ Worktree directory not found: {worktree_dir}")
         return
@@ -88,7 +88,7 @@ def clean_session(session_id, force=False):
     # Safety Check: Unpushed commits
     branch = run(f"git -C {worktree_dir} rev-parse --abbrev-ref HEAD")
     unpushed = run(f"git -C {worktree_dir} cherry -v origin/main", check=False)
-    
+
     if unpushed and not force:
         print(f"🛑 WARNING: Unpushed commits found in {branch}:")
         print(unpushed)
@@ -105,11 +105,12 @@ def clean_session(session_id, force=False):
 
     # 1. Remove worktree
     run(f"git worktree remove {worktree_dir} {'--force' if force else ''}")
-    
+
     # 2. Prune worktrees just in case
     run("git worktree prune")
 
     print(f"✅ Session {session_id} cleaned up.")
+
 
 def main():
     parser = argparse.ArgumentParser(description="Cohezion Session Manager")
@@ -117,15 +118,21 @@ def main():
 
     # Start
     start_parser = subparsers.add_parser("start", help="Start a new session")
-    start_parser.add_argument("--phase", required=True, help="Short name for the phase (e.g., bugfix)")
+    start_parser.add_argument(
+        "--phase", required=True, help="Short name for the phase (e.g., bugfix)"
+    )
 
     # Status
     subparsers.add_parser("status", help="List active sessions")
 
     # Clean
     clean_parser = subparsers.add_parser("clean", help="Clean up a session")
-    clean_parser.add_argument("--session", type=int, required=True, help="Session ID to clean")
-    clean_parser.add_argument("--force", action="store_true", help="Force removal despite unpushed work")
+    clean_parser.add_argument(
+        "--session", type=int, required=True, help="Session ID to clean"
+    )
+    clean_parser.add_argument(
+        "--force", action="store_true", help="Force removal despite unpushed work"
+    )
 
     args = parser.parse_args()
 
@@ -137,6 +144,7 @@ def main():
         clean_session(args.session, args.force)
     else:
         parser.print_help()
+
 
 if __name__ == "__main__":
     main()

@@ -9,15 +9,19 @@ sys.path.append(str(Path.cwd() / "src"))
 
 from cohezion.mcp.email_notifier import EmailNotifier, NotificationConfig
 
+
 async def main():
     logging.basicConfig(level=logging.INFO)
 
     from dotenv import load_dotenv
+
     load_dotenv()
 
     notifier = EmailNotifier()
 
-    subject = "Sprint 4 Milestone 1: Research Integrated & Core Cognitive Maturity Reached"
+    subject = (
+        "Sprint 4 Milestone 1: Research Integrated & Core Cognitive Maturity Reached"
+    )
     body = """
 <h2>🌊 Cohezion Sprint 4: The Infinite Horizon</h2>
 <p>Cohezion has successfully reached <b>Cognitive Maturity (Gateway 24)</b>. I have processed your recent research emails and integrated the following domains into the next phase of the roadmap:</p>
@@ -41,6 +45,7 @@ async def main():
             print("Failed to send milestone email.")
     else:
         print("Email notifier not configured.")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

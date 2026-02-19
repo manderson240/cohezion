@@ -26,6 +26,7 @@ from typing import Any
 # Optional: Import FLUME encoder if available
 try:
     from cohezion.flume.autoencoder import ThoughtAutoencoder as FlumeEncoder
+
     FLUME_AVAILABLE = True
 except ImportError:
     FLUME_AVAILABLE = False
@@ -33,30 +34,38 @@ except ImportError:
 # Import MassSimulator
 try:
     from cohezion.swarm.mass_simulator import MassSimulator
+
     SIMULATOR_AVAILABLE = True
 except ImportError:
     SIMULATOR_AVAILABLE = False
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("flume_driver")
+
 
 @dataclass
 class ExpertStream:
     """Configuration for an expert domain stream."""
+
     name: str
     domain: str
     prompt_template: str
     thought_seeds: list[str] = field(default_factory=list)
 
+
 @dataclass
 class TrajectoryPoint:
     """A single point in thought-space trajectory."""
+
     stream: str
     step: int
     content: str
     coherence: float
     timestamp: float
     z_vector: list[float] = field(default_factory=list)
+
 
 class QuadratureController:
     """
@@ -67,7 +76,9 @@ class QuadratureController:
     def __init__(self):
         self.streams = self._init_streams()
         self.trajectories: list[TrajectoryPoint] = []
-        self.output_file = Path("src/cohezion/knowledge_graph/universe_nodes/flume_trajectories.jsonl")
+        self.output_file = Path(
+            "src/cohezion/knowledge_graph/universe_nodes/flume_trajectories.jsonl"
+        )
         self.output_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Initialize FLUME encoder if available
@@ -90,8 +101,8 @@ class QuadratureController:
                     "balances form and function",
                     "maximizes information flow",
                     "embodies fractal self-similarity",
-                    "integrates organic and geometric principles"
-                ]
+                    "integrates organic and geometric principles",
+                ],
             ),
             ExpertStream(
                 name="engineer",
@@ -101,8 +112,8 @@ class QuadratureController:
                     "energy is conserved across transformations",
                     "entropy increases but order emerges locally",
                     "forces balance at equilibrium",
-                    "momentum transfers through collision"
-                ]
+                    "momentum transfers through collision",
+                ],
             ),
             ExpertStream(
                 name="biologist",
@@ -112,8 +123,8 @@ class QuadratureController:
                     "adaptation outpaces environmental change",
                     "symbiosis creates new capabilities",
                     "cellular communication enables coordination",
-                    "reproduction transmits information with variation"
-                ]
+                    "reproduction transmits information with variation",
+                ],
             ),
             ExpertStream(
                 name="quantum_hardware",
@@ -123,8 +134,8 @@ class QuadratureController:
                     "maintains coherence for 1000 gate operations",
                     "operates at 20mK with 99.9% fidelity",
                     "scales to 1000 qubits with nearest-neighbor connectivity",
-                    "implements surface code error correction"
-                ]
+                    "implements surface code error correction",
+                ],
             ),
             ExpertStream(
                 name="quantum_algo",
@@ -134,9 +145,9 @@ class QuadratureController:
                     "achieves exponential speedup over classical",
                     "uses variational ansatz with trainable parameters",
                     "solves optimization via QAOA",
-                    "simulates molecular dynamics with VQE"
-                ]
-            )
+                    "simulates molecular dynamics with VQE",
+                ],
+            ),
         ]
 
     async def run_round_robin(self, total_simulations: int = 1000) -> None:
@@ -145,13 +156,17 @@ class QuadratureController:
         Each stream gets equal share of simulations.
         """
         sims_per_stream = total_simulations // len(self.streams)
-        logger.info(f"Starting {total_simulations} simulations across {len(self.streams)} streams ({sims_per_stream} each)")
+        logger.info(
+            f"Starting {total_simulations} simulations across {len(self.streams)} streams ({sims_per_stream} each)"
+        )
 
         for stream in self.streams:
             logger.info(f"🌊 Stream: {stream.name} ({stream.domain})")
             await self._run_stream(stream, sims_per_stream)
 
-        logger.info(f"✅ Completed {total_simulations} simulations. {len(self.trajectories)} trajectory points captured.")
+        logger.info(
+            f"✅ Completed {total_simulations} simulations. {len(self.trajectories)} trajectory points captured."
+        )
         await self._save_trajectories()
 
     async def _run_stream(self, stream: ExpertStream, count: int) -> None:
@@ -169,7 +184,7 @@ class QuadratureController:
                 step=i,
                 content=response[:200],  # Truncate for storage
                 coherence=random.uniform(0.6, 0.95),
-                timestamp=time.time()
+                timestamp=time.time(),
             )
 
             # Encode to z-vector if FLUME available
@@ -184,20 +199,62 @@ class QuadratureController:
 
             # Progress logging
             if (i + 1) % 50 == 0:
-                logger.info(f"  [{stream.name}] {i+1}/{count} complete")
+                logger.info(f"  [{stream.name}] {i + 1}/{count} complete")
 
-    async def _simulate_thought(self, stream: ExpertStream, prompt: str, step: int) -> str:
+    async def _simulate_thought(
+        self, stream: ExpertStream, prompt: str, step: int
+    ) -> str:
         """
         Generate thought content for a simulation step.
         Uses local LLM if available, else generates synthetic content.
         """
         # For now, generate synthetic content that reflects the domain
         domain_vocab = {
-            "architect": ["structure", "pattern", "module", "interface", "layer", "component", "flow"],
-            "engineer": ["force", "energy", "momentum", "field", "particle", "wave", "tensor"],
-            "biologist": ["cell", "organism", "evolution", "adaptation", "ecosystem", "genome", "protein"],
-            "quantum_hardware": ["qubit", "coherence", "gate", "fidelity", "error", "correction", "coupling"],
-            "quantum_algo": ["circuit", "amplitude", "superposition", "entanglement", "measurement", "oracle", "ansatz"]
+            "architect": [
+                "structure",
+                "pattern",
+                "module",
+                "interface",
+                "layer",
+                "component",
+                "flow",
+            ],
+            "engineer": [
+                "force",
+                "energy",
+                "momentum",
+                "field",
+                "particle",
+                "wave",
+                "tensor",
+            ],
+            "biologist": [
+                "cell",
+                "organism",
+                "evolution",
+                "adaptation",
+                "ecosystem",
+                "genome",
+                "protein",
+            ],
+            "quantum_hardware": [
+                "qubit",
+                "coherence",
+                "gate",
+                "fidelity",
+                "error",
+                "correction",
+                "coupling",
+            ],
+            "quantum_algo": [
+                "circuit",
+                "amplitude",
+                "superposition",
+                "entanglement",
+                "measurement",
+                "oracle",
+                "ansatz",
+            ],
         }
 
         vocab = domain_vocab.get(stream.name, ["thought", "concept", "idea"])
@@ -213,7 +270,7 @@ class QuadratureController:
 
     async def _save_trajectories(self) -> None:
         """Save all trajectory points to JSONL file."""
-        with open(self.output_file, 'w') as f:
+        with open(self.output_file, "w") as f:
             for point in self.trajectories:
                 data = {
                     "id": f"{point.stream}_{point.step}",
@@ -223,11 +280,14 @@ class QuadratureController:
                     "coherence": point.coherence,
                     "timestamp": point.timestamp,
                     "status": "survived" if point.coherence > 0.7 else "collapsed",
-                    "z_vector_preview": point.z_vector[:5] if point.z_vector else []
+                    "z_vector_preview": point.z_vector[:5] if point.z_vector else [],
                 }
                 f.write(json.dumps(data) + "\n")
 
-        logger.info(f"💾 Saved {len(self.trajectories)} trajectory points to {self.output_file}")
+        logger.info(
+            f"💾 Saved {len(self.trajectories)} trajectory points to {self.output_file}"
+        )
+
 
 async def main():
     logger.info("=" * 60)
@@ -242,6 +302,7 @@ async def main():
     logger.info("Simulation Complete. Review trajectories in:")
     logger.info(f"  {controller.output_file}")
     logger.info("=" * 60)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

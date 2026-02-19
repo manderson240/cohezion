@@ -153,8 +153,10 @@ async def example_4_feature_flags():
     print("Initial status:")
     status = manager.get_status()
     ngrok_flag = status.get("ngrok_ai_gateway")
-    print(f"  NGROK_AI_GATEWAY: enabled={ngrok_flag['enabled']}, "
-          f"rollout={ngrok_flag['rollout_percentage']}%\n")
+    print(
+        f"  NGROK_AI_GATEWAY: enabled={ngrok_flag['enabled']}, "
+        f"rollout={ngrok_flag['rollout_percentage']}%\n"
+    )
 
     # Enable canary (5%)
     manager.set_flag(FeatureFlag.NGROK_AI_GATEWAY, True)
@@ -162,32 +164,40 @@ async def example_4_feature_flags():
     print("After canary rollout (5%):")
     status = manager.get_status()
     ngrok_flag = status.get("ngrok_ai_gateway")
-    print(f"  NGROK_AI_GATEWAY: enabled={ngrok_flag['enabled']}, "
-          f"rollout={ngrok_flag['rollout_percentage']}%\n")
+    print(
+        f"  NGROK_AI_GATEWAY: enabled={ngrok_flag['enabled']}, "
+        f"rollout={ngrok_flag['rollout_percentage']}%\n"
+    )
 
     # Ramp up (25%)
     manager.ramp_up(FeatureFlag.NGROK_AI_GATEWAY, 25.0)
     print("After ramp up (25%):")
     status = manager.get_status()
     ngrok_flag = status.get("ngrok_ai_gateway")
-    print(f"  NGROK_AI_GATEWAY: enabled={ngrok_flag['enabled']}, "
-          f"rollout={ngrok_flag['rollout_percentage']}%\n")
+    print(
+        f"  NGROK_AI_GATEWAY: enabled={ngrok_flag['enabled']}, "
+        f"rollout={ngrok_flag['rollout_percentage']}%\n"
+    )
 
     # Full rollout (100%)
     manager.ramp_up(FeatureFlag.NGROK_AI_GATEWAY, 100.0)
     print("After full rollout (100%):")
     status = manager.get_status()
     ngrok_flag = status.get("ngrok_ai_gateway")
-    print(f"  NGROK_AI_GATEWAY: enabled={ngrok_flag['enabled']}, "
-          f"rollout={ngrok_flag['rollout_percentage']}%\n")
+    print(
+        f"  NGROK_AI_GATEWAY: enabled={ngrok_flag['enabled']}, "
+        f"rollout={ngrok_flag['rollout_percentage']}%\n"
+    )
 
     # Emergency rollback
     manager.rollback(FeatureFlag.NGROK_AI_GATEWAY)
     print("After emergency rollback:")
     status = manager.get_status()
     ngrok_flag = status.get("ngrok_ai_gateway")
-    print(f"  NGROK_AI_GATEWAY: enabled={ngrok_flag['enabled']}, "
-          f"rollout={ngrok_flag['rollout_percentage']}%\n")
+    print(
+        f"  NGROK_AI_GATEWAY: enabled={ngrok_flag['enabled']}, "
+        f"rollout={ngrok_flag['rollout_percentage']}%\n"
+    )
 
 
 async def example_5_metrics_monitoring():
@@ -249,8 +259,12 @@ async def example_6_batch_processing():
     # Create batch items with different models
     items = [
         BatchItem(id="1", prompt="What is AI?", model="gpt-3.5-turbo", system=""),
-        BatchItem(id="2", prompt="Write code to sort a list", model="gpt-4o", system=""),
-        BatchItem(id="3", prompt="Write a poem about AI", model="claude-3.5-sonnet", system=""),
+        BatchItem(
+            id="2", prompt="Write code to sort a list", model="gpt-4o", system=""
+        ),
+        BatchItem(
+            id="3", prompt="Write a poem about AI", model="claude-3.5-sonnet", system=""
+        ),
     ]
 
     print(f"Processing {len(items)} items in batch...\n")
@@ -259,7 +273,9 @@ async def example_6_batch_processing():
         result = await client.batch_generate(items)
 
         print(f"Batch result:")
-        print(f"  Items processed: {result.total_items if hasattr(result, 'total_items') else len(result.items)}")
+        print(
+            f"  Items processed: {result.total_items if hasattr(result, 'total_items') else len(result.items)}"
+        )
         print(f"  Total tokens:    {result.total_tokens}")
         print(f"  Cache hits:      {result.cache_hits}")
         print(f"  Duration:        {result.total_duration_ms:.1f}ms\n")
@@ -304,7 +320,9 @@ async def main():
     await example_5_metrics_monitoring()
     # await example_6_batch_processing()
 
-    print("\n✓ Examples complete. See docs/ngrok_ai_gateway_integration.md for details.\n")
+    print(
+        "\n✓ Examples complete. See docs/ngrok_ai_gateway_integration.md for details.\n"
+    )
 
 
 if __name__ == "__main__":

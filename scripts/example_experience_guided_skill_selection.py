@@ -76,9 +76,9 @@ def main():
 
     skill_selector = SkillSelector(
         mcp_client=mcp_client,
-        coherence_weight=0.5,    # Weight for output quality
-        efficiency_weight=0.3,   # Weight for token efficiency
-        success_weight=0.2,      # Weight for success rate
+        coherence_weight=0.5,  # Weight for output quality
+        efficiency_weight=0.3,  # Weight for token efficiency
+        success_weight=0.2,  # Weight for success rate
     )
 
     detailed_suggestions = skill_selector.select_skills(

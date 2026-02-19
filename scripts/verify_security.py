@@ -9,6 +9,7 @@ sys.path.append(str(Path(__name__).parent / "src"))
 from cohezion.swarm.agents.analyst import AnalystAgent
 from cohezion.swarm.swarm_types import SwarmConfig, Perspective
 
+
 async def main():
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger("SecurityVerification")
@@ -32,6 +33,7 @@ async def main():
     print(f"Security Level: {getattr(response, 'security_level', 'N/A')}")
 
     await agent.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

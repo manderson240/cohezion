@@ -10,6 +10,7 @@ from cohezion.swarm.agents.analyst import AnalystAgent
 from cohezion.swarm.swarm_types import SwarmConfig, Perspective
 from cohezion.core.credit_manager import get_credit_manager
 
+
 async def main():
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger("DegradationVerification")
@@ -35,11 +36,12 @@ async def main():
     # 2. Test Degraded Mode (PROMPT PRUNING)
     print(f"\n--- Testing Degraded Mode (Prompt Pruning) ---")
     config.degraded_mode = True
-    long_prompt = "A" * 2000 # Very long prompt
+    long_prompt = "A" * 2000  # Very long prompt
 
     await agent.analyze(long_prompt)
 
     await agent.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())
