@@ -2,19 +2,31 @@
   "cli_version": "0.4.2",
   "checkpoint_id": "d1598695186a",
   "strategy": "manual-commit",
-  "branch": "spec/improved-universe-simulations",
-  "checkpoints_count": 12,
+  "branch": "spec/cs249r-book-integration",
+  "checkpoints_count": 14,
   "files_touched": [
     ".claude/skills/systemd-crash-loop-prevention/SKILL.md",
+    "docs/plans/2026-02-18-cs249r-book-integration.md",
     "docs/plans/2026-02-18-improved-universe-simulations.md",
     "docs/plans/2026-02-18-system-crash-prevention.md",
     "ollama-mcp",
     "research/challenges/anthropic_challenge_original",
+    "scripts/cs249r/__init__.py",
+    "scripts/cs249r/ingest_chapters.py",
+    "scripts/cs249r/ingest_glossary.py",
+    "scripts/cs249r/repo_access.py",
+    "src/cohezion/skills/DATA_ENGINEERING_PRIME.md",
+    "src/cohezion/skills/DNN_ARCHITECTURES_PRIME.md",
+    "src/cohezion/skills/ML_SYSTEMS_FOUNDATIONS_PRIME.md",
     "src/cohezion/universe/bioelectric_navigator.py",
     "src/cohezion/universe/capability_evaluator.py",
     "src/cohezion/universe/evo_agent.py",
     "src/cohezion/universe/scenarios.py",
     "src/cohezion/universe/vae_journey_encoder.py",
+    "tests/cs249r/__init__.py",
+    "tests/cs249r/test_ingest_chapters.py",
+    "tests/cs249r/test_ingest_glossary.py",
+    "tests/cs249r/test_repo_access.py",
     "tests/universe/test_bioelectric_navigator.py",
     "tests/universe/test_capability_evaluator.py",
     "tests/universe/test_evo_agent.py",
@@ -56,13 +68,20 @@
       "context": "/d1/598695186a/4/context.md",
       "content_hash": "/d1/598695186a/4/content_hash.txt",
       "prompt": "/d1/598695186a/4/prompt.txt"
+    },
+    {
+      "metadata": "/d1/598695186a/5/metadata.json",
+      "transcript": "/d1/598695186a/5/full.jsonl",
+      "context": "/d1/598695186a/5/context.md",
+      "content_hash": "/d1/598695186a/5/content_hash.txt",
+      "prompt": "/d1/598695186a/5/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 604,
-    "cache_creation_tokens": 844676,
-    "cache_read_tokens": 34825045,
-    "output_tokens": 25273,
-    "api_call_count": 293
+    "input_tokens": 1080,
+    "cache_creation_tokens": 1140407,
+    "cache_read_tokens": 54026099,
+    "output_tokens": 39791,
+    "api_call_count": 442
   }
 }
