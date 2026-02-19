@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "3c8465e77bc7",
+  "session_id": "41744052-0e7b-4025-9ee8-f4700beab18b",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-13T00:25:43.367560901Z",
+  "branch": "master",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "decisions/2026-02-13-use-versioning-headers-instead-of-file-suffixes.md",
+    "inbox/WAVE-2-LAUNCH-CHECKLIST.md"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "f432cb00-026f-4d95-bb80-75ad989497f3",
+  "token_usage": {
+    "input_tokens": 80,
+    "cache_creation_tokens": 59194,
+    "cache_read_tokens": 321418,
+    "output_tokens": 665,
+    "api_call_count": 9
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-13T00:25:43.341835798Z",
+    "agent_lines": 0,
+    "human_added": 4919,
+    "human_modified": 371,
+    "human_removed": 0,
+    "total_committed": 5283,
+    "agent_percentage": 0
+  }
+}

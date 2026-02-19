@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "fed93ffc4b12",
+  "strategy": "manual-commit",
+  "branch": "master",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "CLAUDE.md",
+    "decisions/2026-02-12-claude-code-context-awareness-codification.md",
+    "decisions/2026-02-12-phase-2-track-a-surrealdb-agent-reasoning-complete.md",
+    "decisions/2026-02-12-platform-codification-summary-guide.md",
+    "inbox/SESSION-58-TRACK-A-COMPLETE-TRACK-B-READY.md",
+    "inbox/TRACK-B-READY-TO-START-2026-02-13.md",
+    "patterns/PRIME_CLAUDE_CODE_PRACTICES.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/fe/d93ffc4b12/0/metadata.json",
+      "transcript": "/fe/d93ffc4b12/0/full.jsonl",
+      "context": "/fe/d93ffc4b12/0/context.md",
+      "content_hash": "/fe/d93ffc4b12/0/content_hash.txt",
+      "prompt": "/fe/d93ffc4b12/0/prompt.txt"
+    },
+    {
+      "metadata": "/fe/d93ffc4b12/1/metadata.json",
+      "transcript": "/fe/d93ffc4b12/1/full.jsonl",
+      "context": "/fe/d93ffc4b12/1/context.md",
+      "content_hash": "/fe/d93ffc4b12/1/content_hash.txt",
+      "prompt": "/fe/d93ffc4b12/1/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 246,
+    "cache_creation_tokens": 101294,
+    "cache_read_tokens": 1877993,
+    "output_tokens": 11659,
+    "api_call_count": 30
+  }
+}
