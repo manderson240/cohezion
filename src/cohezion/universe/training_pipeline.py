@@ -8,14 +8,14 @@ VAE Encoding → CapabilityEvaluation → Ouroboros Recording.
 from __future__ import annotations
 
 import logging
+import random
 import tempfile
 from dataclasses import dataclass, field
-
-import random
 from typing import cast
 
 import numpy as np
 
+from cohezion.system.ouroboros_recorder import OuroborosRecorder
 from cohezion.universe.bioelectric_navigator import BioelectricNavigator
 from cohezion.universe.capability_evaluator import (
     CapabilityEvaluator,
@@ -26,7 +26,7 @@ from cohezion.universe.evo_agent import EVOAgent
 from cohezion.universe.nexus_dispatch import NexusScenarioDispatcher
 from cohezion.universe.scenarios import ScenarioGenerator, ScenarioType
 from cohezion.universe.vae_journey_encoder import VAEJourneyEncoder
-from cohezion.system.ouroboros_recorder import OuroborosRecorder
+
 
 logger = logging.getLogger(__name__)
 
@@ -113,25 +113,20 @@ class UniverseTrainingPipeline:
         # 1. Generate scenarios (cycle through types)
         scenario_types = list(ScenarioType)
         scenarios = [
-            self.generator.generate(
-                self.rng.choice(scenario_types)
-            )
+            self.generator.generate(self.rng.choice(scenario_types))
             for _ in range(self.config.scenario_count)
         ]
 
         # 2. Create agents
         agents = [
-            EVOAgent(agent_id=f"agent-{i}")
-            for i in range(self.config.agent_count)
+            EVOAgent(agent_id=f"agent-{i}") for i in range(self.config.agent_count)
         ]
 
         # 3. Start recording
         recording_id = self.recorder.start_recording("training-run")
 
         # 4. Execute scenarios in batches
-        all_scores: dict[str, list[CapabilityScore]] = {
-            a.agent_id: [] for a in agents
-        }
+        all_scores: dict[str, list[CapabilityScore]] = {a.agent_id: [] for a in agents}
         journey_embeddings: list[np.ndarray] = []
         scenarios_completed = 0
         scenarios_failed = 0
@@ -155,10 +150,8 @@ class UniverseTrainingPipeline:
                         )
 
                         # Encode journey to 256D
-                        traj_obj = cast(list[dict[str, object]], trajectory)
-                        embedding = self.encoder.encode_trajectory_raw(
-                            traj_obj
-                        )
+                        traj_obj = cast("list[dict[str, object]]", trajectory)
+                        embedding = self.encoder.encode_trajectory_raw(traj_obj)
                         journey_embeddings.append(embedding)
 
                         # Evaluate capability
@@ -181,9 +174,7 @@ class UniverseTrainingPipeline:
                         scenarios_completed += 1
 
                     except Exception as e:
-                        logger.warning(
-                            f"Scenario failed for {agent.agent_id}: {e}"
-                        )
+                        logger.warning(f"Scenario failed for {agent.agent_id}: {e}")
                         scenarios_failed += 1
                         self.recorder.record_divergence(
                             recording_id,
@@ -269,9 +260,7 @@ class UniverseTrainingPipeline:
                     {
                         "x": float(state[0]),
                         "y": float(state[1]),
-                        "coherence": float(
-                            np.mean(state[4:11])
-                        ),  # HIHO dims average
+                        "coherence": float(np.mean(state[4:11])),  # HIHO dims average
                     }
                 )
             else:

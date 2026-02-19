@@ -183,7 +183,9 @@ class EVOPopulation:
             # Add field influence to action
             action_vector = np.array(action["action_vector"])
             field_vector = np.array(field_influences[i])
-            combined_action = action_vector + field_vector * self.field_coupling_strength
+            combined_action = (
+                action_vector + field_vector * self.field_coupling_strength
+            )
 
             agent.act({"action_vector": combined_action.tolist()})
 

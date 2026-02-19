@@ -56,7 +56,9 @@ class BioelectricNavigator:
 
         # Apply ambiguity noise if present
         if scenario.difficulty.ambiguity_level > 0:
-            target = self._add_ambiguity_noise(target, scenario.difficulty.ambiguity_level)
+            target = self._add_ambiguity_noise(
+                target, scenario.difficulty.ambiguity_level
+            )
 
         trajectory = []
 
@@ -135,7 +137,9 @@ class BioelectricNavigator:
 
         return target
 
-    def _validate_morphospace(self, scenario: Scenario, target: np.ndarray) -> np.ndarray:
+    def _validate_morphospace(
+        self, scenario: Scenario, target: np.ndarray
+    ) -> np.ndarray:
         """Validate that stability wells are not degenerate.
 
         Args:
@@ -169,7 +173,9 @@ class BioelectricNavigator:
 
         return target
 
-    def _add_ambiguity_noise(self, target: np.ndarray, ambiguity_level: float) -> np.ndarray:
+    def _add_ambiguity_noise(
+        self, target: np.ndarray, ambiguity_level: float
+    ) -> np.ndarray:
         """Add noise to target based on ambiguity level.
 
         Args:
@@ -179,7 +185,9 @@ class BioelectricNavigator:
         Returns:
             Noisy target
         """
-        noise = np.random.uniform(-ambiguity_level * 0.3, ambiguity_level * 0.3, size=12)
+        noise = np.random.uniform(
+            -ambiguity_level * 0.3, ambiguity_level * 0.3, size=12
+        )
         return target + noise
 
     def _should_interrupt(self, scenario: Scenario, step: int) -> bool:
@@ -195,13 +203,17 @@ class BioelectricNavigator:
         for interruption in scenario.interruptions:
             interrupt_step_val = interruption.get("step", -1)
             interrupt_step = (
-                int(interrupt_step_val) if isinstance(interrupt_step_val, (int, float)) else -1
+                int(interrupt_step_val)
+                if isinstance(interrupt_step_val, (int, float))
+                else -1
             )
             if interrupt_step == step:
                 return True
         return False
 
-    def _apply_interruption(self, scenario: Scenario, agent: EVOAgent, step: int) -> None:
+    def _apply_interruption(
+        self, scenario: Scenario, agent: EVOAgent, step: int
+    ) -> None:
         """Apply interruption (context switch) to agent.
 
         Args:
@@ -212,7 +224,9 @@ class BioelectricNavigator:
         for interruption in scenario.interruptions:
             interrupt_step_val = interruption.get("step", -1)
             interrupt_step = (
-                int(interrupt_step_val) if isinstance(interrupt_step_val, (int, float)) else -1
+                int(interrupt_step_val)
+                if isinstance(interrupt_step_val, (int, float))
+                else -1
             )
 
             if interrupt_step == step:

@@ -13,6 +13,7 @@ import time
 from pathlib import Path
 from uuid import uuid4
 
+
 logger = logging.getLogger(__name__)
 
 DEFAULT_DATA_DIR = "data/ouroboros"

@@ -80,10 +80,12 @@ class CapabilityProfile:
 
         return cls(
             task_completion=sum(s.task_completion for s in scores) / len(scores),
-            coherence_maintenance=sum(s.coherence_maintenance for s in scores) / len(scores),
+            coherence_maintenance=sum(s.coherence_maintenance for s in scores)
+            / len(scores),
             context_retention=sum(s.context_retention for s in scores) / len(scores),
             ambiguity_handling=sum(s.ambiguity_handling for s in scores) / len(scores),
-            interruption_recovery=sum(s.interruption_recovery for s in scores) / len(scores),
+            interruption_recovery=sum(s.interruption_recovery for s in scores)
+            / len(scores),
             judgment_quality=sum(s.judgment_quality for s in scores) / len(scores),
             num_scenarios=len(scores),
         )
@@ -179,7 +181,9 @@ class CapabilityEvaluator:
         )
 
         # Direct distance (start to end)
-        direct_distance = np.linalg.norm(np.array(positions[-1]) - np.array(positions[0]))
+        direct_distance = np.linalg.norm(
+            np.array(positions[-1]) - np.array(positions[0])
+        )
 
         if total_distance == 0:
             return 0.0  # No movement
@@ -189,7 +193,9 @@ class CapabilityEvaluator:
 
         return float(min(1.0, efficiency))
 
-    def _evaluate_ambiguity(self, scenario: Scenario, journey: list[dict[str, float]]) -> float:
+    def _evaluate_ambiguity(
+        self, scenario: Scenario, journey: list[dict[str, float]]
+    ) -> float:
         """Evaluate ambiguity handling (scenario-specific).
 
         Args:
@@ -202,7 +208,9 @@ class CapabilityEvaluator:
         # For now, use task completion scaled by ambiguity difficulty
         # Higher ambiguity = more impressive completion
         if scenario.difficulty.ambiguity_level > 0:
-            return scenario.reward_function(journey) * (1.0 + scenario.difficulty.ambiguity_level)
+            return scenario.reward_function(journey) * (
+                1.0 + scenario.difficulty.ambiguity_level
+            )
         return 0.5  # Neutral for non-ambiguous scenarios
 
     def _evaluate_interruption_recovery(
@@ -229,7 +237,9 @@ class CapabilityEvaluator:
         for interruption in interruptions:
             interrupt_step_val = interruption.get("step", 0)
             interrupt_step = (
-                int(interrupt_step_val) if isinstance(interrupt_step_val, (int, float)) else 0
+                int(interrupt_step_val)
+                if isinstance(interrupt_step_val, (int, float))
+                else 0
             )
 
             if interrupt_step >= len(journey):
@@ -260,7 +270,9 @@ class CapabilityEvaluator:
 
         return sum(recovery_scores) / len(recovery_scores) if recovery_scores else 0.0
 
-    def _evaluate_judgment(self, scenario: Scenario, journey: list[dict[str, float]]) -> float:
+    def _evaluate_judgment(
+        self, scenario: Scenario, journey: list[dict[str, float]]
+    ) -> float:
         """Evaluate judgment quality (choosing optimal among competing objectives).
 
         Args:

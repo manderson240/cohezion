@@ -97,7 +97,8 @@ class VAEJourneyEncoder:
         return "|".join(parts)
 
     def encode_trajectory_raw(
-        self, trajectory: list[dict[str, object]],
+        self,
+        trajectory: list[dict[str, object]],
     ) -> np.ndarray:
         """Encode raw trajectory dicts to 256D embedding.
 

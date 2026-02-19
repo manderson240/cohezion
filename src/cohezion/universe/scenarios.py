@@ -9,9 +9,10 @@ from __future__ import annotations
 
 import logging
 import random
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Protocol
+from typing import Protocol
 
 import numpy as np
 
@@ -52,7 +53,9 @@ class Scenario:
     difficulty: ScenarioDifficulty
     description: str
     target_state: dict[str, float]  # Goal state or target coordinates
-    reward_function: Callable[[list[dict[str, float]]], float]  # Maps trajectory to score
+    reward_function: Callable[
+        [list[dict[str, float]]], float
+    ]  # Maps trajectory to score
     interruptions: list[dict[str, float | int | bool]] = field(
         default_factory=list
     )  # Context switches
@@ -116,9 +119,13 @@ class ScenarioGenerator:
                 return 0.0
             # Assume trajectory contains dicts with x, y, z keys
             final_pos = trajectory[-1] if trajectory else {"x": 0.0, "y": 0.0, "z": 0.0}
-            distance = sum(
-                (final_pos.get(k, 0.0) - target_state.get(k, 0.0)) ** 2 for k in ["x", "y", "z"]
-            ) ** 0.5
+            distance = (
+                sum(
+                    (final_pos.get(k, 0.0) - target_state.get(k, 0.0)) ** 2
+                    for k in ["x", "y", "z"]
+                )
+                ** 0.5
+            )
             # Inverse distance reward (1.0 = at target, 0.0 = far away)
             return max(0.0, 1.0 - distance / 3.0)  # Normalize by max distance ~3.0
 
@@ -143,9 +150,9 @@ class ScenarioGenerator:
             # Assume trajectory contains dicts with "coherence" key
             coherence_values = [point.get("coherence", 0.5) for point in trajectory]
             # Reward = 1.0 - avg_deviation_from_target
-            avg_deviation = sum(abs(c - target_coherence) for c in coherence_values) / len(
-                coherence_values
-            )
+            avg_deviation = sum(
+                abs(c - target_coherence) for c in coherence_values
+            ) / len(coherence_values)
             return max(0.0, 1.0 - avg_deviation * 2.0)  # Scale deviation
 
         interruptions: list[dict[str, float | int | bool]] = [
@@ -189,16 +196,18 @@ class ScenarioGenerator:
             final_pos = trajectory[-1] if trajectory else {"x": 0.0, "y": 0.0}
             # Find which objective agent is closest to
             distances = [
-                sum(
-                    (final_pos.get(k, 0.0) - well.get(k, 0.0)) ** 2 for k in ["x", "y"]
-                )
+                sum((final_pos.get(k, 0.0) - well.get(k, 0.0)) ** 2 for k in ["x", "y"])
                 ** 0.5
                 for well in competing_wells
             ]
             closest_idx = distances.index(min(distances))
             # Reward if chose best objective
             chosen_quality = competing_wells[closest_idx]["quality"]
-            return chosen_quality if closest_idx == competing_wells.index(best_well) else 0.3
+            return (
+                chosen_quality
+                if closest_idx == competing_wells.index(best_well)
+                else 0.3
+            )
 
         return Scenario(
             type=ScenarioType.JUDGMENT,
@@ -249,20 +258,28 @@ class ScenarioGenerator:
                     continue
                 # Look at next N steps after interruption
                 post_interrupt_steps = trajectory[
-                    interrupt_step : min(interrupt_step + difficulty.context_depth, len(trajectory))
+                    interrupt_step : min(
+                        interrupt_step + difficulty.context_depth, len(trajectory)
+                    )
                 ]
                 if not post_interrupt_steps:
                     recovery_scores.append(0.0)
                     continue
                 # Distance from target at end of recovery window
                 final_pos = post_interrupt_steps[-1]
-                distance = sum(
-                    (final_pos.get(k, 0.0) - target_state.get(k, 0.0)) ** 2 for k in ["x", "y"]
-                ) ** 0.5
+                distance = (
+                    sum(
+                        (final_pos.get(k, 0.0) - target_state.get(k, 0.0)) ** 2
+                        for k in ["x", "y"]
+                    )
+                    ** 0.5
+                )
                 recovery_score = max(0.0, 1.0 - distance / 2.0)
                 recovery_scores.append(recovery_score)
 
-            return sum(recovery_scores) / len(recovery_scores) if recovery_scores else 0.0
+            return (
+                sum(recovery_scores) / len(recovery_scores) if recovery_scores else 0.0
+            )
 
         return Scenario(
             type=ScenarioType.INTERRUPTION,

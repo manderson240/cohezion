@@ -11,10 +11,10 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-
 from typing import Any
 
 from cohezion.universe.scenarios import Scenario, ScenarioType
+
 
 logger = logging.getLogger(__name__)
 
@@ -105,9 +105,7 @@ class NexusScenarioDispatcher:
         # Record via perception layer if available
         self._record_perception(scenario, fabric)
 
-        logger.info(
-            f"Dispatched '{scenario.description}' to {fabric.upper()} fabric"
-        )
+        logger.info(f"Dispatched '{scenario.description}' to {fabric.upper()} fabric")
 
         return DispatchResult(
             fabric=fabric,
