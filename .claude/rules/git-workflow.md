@@ -18,3 +18,5 @@ paths:
 - Never force-push to `main`
 - Remote: GitHub (git@github.com:manderson240/cohezion.git)
 - Branching model: **GitHub Flow** — `main` is the single long-lived branch; all work happens on feature branches merged via pull requests
+- Use git worktrees for Claude sessions: `git worktree add ~/dev/cohezion-session-{N} -b session-{N}-{phase}`
+- Reconsider GitHub Flow when: shipping to users who need stable versions → add GitFlow tagging; multiple contributors → add branch protection + CODEOWNERS; need hotfixes without new features → create vX.Y.Z hotfix branches
