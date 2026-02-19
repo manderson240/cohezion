@@ -3,12 +3,16 @@
   "checkpoint_id": "d1598695186a",
   "strategy": "manual-commit",
   "branch": "spec/routes-consolidation",
-  "checkpoints_count": 44,
+  "checkpoints_count": 46,
   "files_touched": [
     ".claude/hooks/guard-services.sh",
+    ".claude/settings.json",
     ".claude/skills/adversarial-claim-validation/SKILL.md",
     ".claude/skills/appimage-desktop-integration/SKILL.md",
     ".claude/skills/systemd-crash-loop-prevention/SKILL.md",
+    ".github/workflows/ci.yml",
+    ".github/workflows/lint.yml",
+    ".github/workflows/test.yml",
     ".gitignore",
     "CLAUDE.md",
     "README.md",
@@ -155,13 +159,20 @@
       "context": "/d1/598695186a/10/context.md",
       "content_hash": "/d1/598695186a/10/content_hash.txt",
       "prompt": "/d1/598695186a/10/prompt.txt"
+    },
+    {
+      "metadata": "/d1/598695186a/11/metadata.json",
+      "transcript": "/d1/598695186a/11/full.jsonl",
+      "context": "/d1/598695186a/11/context.md",
+      "content_hash": "/d1/598695186a/11/content_hash.txt",
+      "prompt": "/d1/598695186a/11/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 13447,
-    "cache_creation_tokens": 2526416,
-    "cache_read_tokens": 104644115,
-    "output_tokens": 58144,
-    "api_call_count": 908
+    "input_tokens": 13924,
+    "cache_creation_tokens": 3077180,
+    "cache_read_tokens": 124812745,
+    "output_tokens": 63056,
+    "api_call_count": 1067
   }
 }
