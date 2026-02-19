@@ -1,0 +1,30 @@
+name: Release Please
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          # Use RELEASE_PLEASE_TOKEN (PAT with repo+workflow scopes) so that
+          # release PRs trigger CI required status checks and auto-merge works.
+          # Without a PAT, GITHUB_TOKEN cannot trigger downstream workflows on
+          # auto-created PRs — required checks never fire and auto-merge waits
+          # forever. See docs/plans/2026-02-17-autonomous-repo-management.md.
+          #
+          # TODO: Create a PAT with repo+workflow scopes and add it as secret
+          # RELEASE_PLEASE_TOKEN. Until then, fall back to GITHUB_TOKEN (release
+          # PRs will be created but CI won't auto-trigger on them).
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
