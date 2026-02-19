@@ -41,6 +41,8 @@ To maintain a lean context, historical and specialized information is stored in 
   - **Reward & Ratchet**: Economic ascension for successful agents/skills.
   - **JEPA World Model**: Meaning-based predictive trajectories.
   - **UCP/MCP Interoperability**: Protocol-sovereign commerce and context.
+  - **Quadrature Nexus Orchestration (v1.0)**: Canonical 4-fabric swarm governance established (2026-02-18).
+  - **Agentic Journey Perception**: Truth-anchored 12D trajectory capture and HUD visualizer.
   - **Compound Engineering Unification**: Unified model selection and telemetry via `cohezion-bridge`.
 
 ## 6. Standard Operating Protocols

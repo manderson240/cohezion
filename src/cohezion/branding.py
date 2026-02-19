@@ -92,6 +92,11 @@ class Motifs:
     ]
 
 
+def get_nexus_sign_off() -> str:
+    """Returns the canonical Quadrature Nexus sign-off."""
+    return f"\n\n---\nPRECIPITATED BY: {Identity.SIGN_OFF}\nORCHESTRATION: {Identity.ORCHESTRATOR_NAME}\n"
+
+
 def get_theme() -> dict[str, Any]:
     """Returns the Rich theme configuration."""
     from rich.theme import Theme
