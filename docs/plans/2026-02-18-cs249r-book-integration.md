@@ -97,15 +97,15 @@ Worktree: Yes
 - [x] Task 1: Clone repository and set up data access
 - [x] Task 2: Build chapter knowledge ingestion script
 - [x] Task 3: Ingest glossary terms into vault
-- [ ] Task 4: Create vault concept notes for all chapters
-- [ ] Task 5: Create ML Systems Foundations PRIME skills
+- [x] Task 4: Create vault concept notes for all chapters
+- [x] Task 5: Create ML Systems Foundations PRIME skills
 - [ ] Task 6: Create Performance & Deployment PRIME skills
 - [ ] Task 7: Create Trustworthy Systems & Frontiers PRIME skills
 - [ ] Task 8: Integrate TinyTorch core modules (01-09)
 - [ ] Task 9: Integrate TinyTorch advanced modules (10-20)
 - [ ] Task 10: End-to-end validation and SurrealDB indexing
 
-**Total Tasks:** 10 | **Completed:** 3 | **Remaining:** 7
+**Total Tasks:** 10 | **Completed:** 5 | **Remaining:** 5
 
 ## Implementation Tasks
 
