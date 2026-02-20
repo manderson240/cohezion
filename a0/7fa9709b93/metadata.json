@@ -3,10 +3,12 @@
   "checkpoint_id": "a07fa9709b93",
   "strategy": "manual-commit",
   "branch": "spec/routes-consolidation",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
     "ollama-mcp",
-    "research/challenges/anthropic_challenge_original"
+    "pyproject.toml",
+    "research/challenges/anthropic_challenge_original",
+    "src/cohezion/real_envs/multi_agent.py"
   ],
   "sessions": [
     {
@@ -15,13 +17,20 @@
       "context": "/a0/7fa9709b93/0/context.md",
       "content_hash": "/a0/7fa9709b93/0/content_hash.txt",
       "prompt": "/a0/7fa9709b93/0/prompt.txt"
+    },
+    {
+      "metadata": "/a0/7fa9709b93/1/metadata.json",
+      "transcript": "/a0/7fa9709b93/1/full.jsonl",
+      "context": "/a0/7fa9709b93/1/context.md",
+      "content_hash": "/a0/7fa9709b93/1/content_hash.txt",
+      "prompt": "/a0/7fa9709b93/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 85,
-    "cache_creation_tokens": 3678,
-    "cache_read_tokens": 1341966,
-    "output_tokens": 843,
-    "api_call_count": 8
+    "input_tokens": 480,
+    "cache_creation_tokens": 21511,
+    "cache_read_tokens": 4854535,
+    "output_tokens": 5054,
+    "api_call_count": 33
   }
 }
