@@ -5,6 +5,8 @@
   "branch": "spec/routes-consolidation",
   "checkpoints_count": 2,
   "files_touched": [
+    "CLAUDE.local.md",
+    "data/archives/2026-02-crash-loop/timeline.md",
     "ollama-mcp",
     "pyproject.toml",
     "research/challenges/anthropic_challenge_original",
@@ -27,10 +29,10 @@
     }
   ],
   "token_usage": {
-    "input_tokens": 480,
-    "cache_creation_tokens": 21511,
-    "cache_read_tokens": 4854535,
-    "output_tokens": 5054,
-    "api_call_count": 33
+    "input_tokens": 419,
+    "cache_creation_tokens": 21678,
+    "cache_read_tokens": 3898117,
+    "output_tokens": 4681,
+    "api_call_count": 28
   }
 }
