@@ -231,7 +231,10 @@ uv run pytest tests/compound/ --cov=src/cohezion/compound --cov-report=html
 
 ## Documentation
 
-- **CLAUDE.md**: Root orchestration instructions
+- **CLAUDE.md**: Root orchestration instructions (committed, shared with team)
+- **CLAUDE.local.md**: Optional personal customization (gitignored, create your own)
+- **docs/CODE_MAP.md**: Source code navigation map with @ references
+- **docs/DEVELOPMENT.md**: Development guide, includes context management best practices
 - **.agent/CONSTITUTION.md**: Core ethics and values
 - **.agent/CAPABILITY_MAP.md**: Verified capabilities by domain
 - **docs/**: Additional documentation
@@ -344,6 +347,14 @@ If you use Cohezion in your research, please cite:
   url={https://github.com/manderson240/cohezion}
 }
 ```
+
+## Acknowledgments
+
+COHEZION's architecture was inspired by patterns from several excellent projects:
+
+- **[Claude Pilot](https://github.com/maxritter/claude-pilot)** by Max Ritter - Hooks pipeline, context preservation, and intelligence routing patterns. We implemented our own versions from scratch to respect their proprietary license. See `docs/pilot-inspiration.md` and `docs/third-party-inspiration.md` for details.
+
+All implementations in COHEZION are original work using our compound engineering primitives (HIHO, FLUME, JourneyTracker, Expert Domain Lattice).
 
 ---
 
