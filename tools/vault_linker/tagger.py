@@ -22,15 +22,18 @@ class TagPopulator:
     }
 
     def __init__(self, existing_concepts: Optional[List[str]] = None,
-                 existing_tags: Optional[List[List[str]]] = None):
+                 existing_tags: Optional[List[List[str]]] = None,
+                 files_index: Optional[dict] = None):
         """
         Initialize tag populator.
 
         Args:
             existing_concepts: List of existing concept file stems
             existing_tags: List of tag arrays from existing papers
+            files_index: Full files index for similar_papers tag inheritance
         """
         self.existing_concepts = set(existing_concepts or [])
+        self.files_index = files_index or {}
         # Flatten all existing tags into a controlled vocabulary
         self.tag_vocabulary = set()
         if existing_tags:
@@ -128,6 +131,35 @@ class TagPopulator:
 
         return tags[:limit]
 
+    def _inherit_from_similar_papers(self, keywords: List[str], content: str) -> List[str]:
+        """Inherit common tags from similar_papers that share keyword overlap."""
+        # Extract similar_papers from frontmatter in content
+        similar_match = re.search(r'^similar_papers:\s*\n((?:\s*-\s*.+\n)*)', content, re.MULTILINE)
+        if not similar_match:
+            return []
+
+        similar_names = re.findall(r'-\s*(.+)', similar_match.group(1))
+        keyword_set = set(keywords[:20])  # Use top 20 keywords for matching
+        inherited = []
+
+        for name in similar_names:
+            name_lower = name.strip().lower()
+            similar_meta = self.files_index.get(name_lower, {})
+            similar_tags = similar_meta.get("frontmatter", {}).get("tags") or []
+            if not similar_tags or similar_tags is None:
+                continue
+
+            # Check keyword overlap: similar paper's title keywords must overlap
+            similar_title = similar_meta.get("frontmatter", {}).get("title", "")
+            similar_keywords = set(self.extract_keywords(str(similar_title)))
+            if keyword_set & similar_keywords:
+                inherited.extend(similar_tags)
+
+        # Return unique tags, most common first
+        from collections import Counter
+        tag_counts = Counter(inherited)
+        return [tag for tag, _ in tag_counts.most_common(3)]
+
     def populate_tags(self, file_path: Path) -> str:
         """
         Populate tags for a paper with tags: null.
@@ -152,8 +184,16 @@ class TagPopulator:
         keywords = self.extract_keywords(title)
         keywords.extend(self.extract_keywords(content))
 
+        # Inherit tags from similar_papers that share keyword overlap
+        inherited_tags = self._inherit_from_similar_papers(keywords, content)
+
         # Generate tags
         tags = self.generate_tags_from_keywords(keywords)
+
+        # Merge inherited tags (deduplicated)
+        for tag in inherited_tags:
+            if tag not in tags and len(tags) < 5:
+                tags.append(tag)
 
         # Ensure at least 2 tags
         if len(tags) < 2:

@@ -125,7 +125,8 @@ def fix(vault_path: Path, dry_run: bool = False) -> int:
                      if meta.get("frontmatter", {}).get("tags")]
     tagger = TagPopulator(
         existing_concepts=list(files_index.keys()),
-        existing_tags=existing_tags
+        existing_tags=existing_tags,
+        files_index=files_index
     )
 
     for stem, meta in files_index.items():
@@ -146,7 +147,36 @@ def fix(vault_path: Path, dry_run: bool = False) -> int:
     else:
         print(f"  ✓ Populated tags for {changes['tags_populated']} papers")
 
-    # 2. Generate stubs
+    # 2. Resolve broken links (rewrite wiki-links with confidence >= 0.8)
+    print("\n🔗 Resolving broken links...")
+    resolver = LinkResolver(list(files_index.keys()))
+    for stem, meta in files_index.items():
+        file_path = meta["path"]
+        if _is_read_only(file_path, vault_path):
+            continue
+        content = file_path.read_text(encoding='utf-8')
+        updated = content
+        for link in meta.get("wiki_links", []):
+            link_lower = link.lower()
+            if link_lower in files_index:
+                continue  # Not broken
+            matches = resolver.resolve_link(link)
+            if matches and matches[0]["confidence"] >= 0.8:
+                target = matches[0]["target"]
+                # Rewrite [[broken-link]] to [[resolved-target]]
+                updated = updated.replace(f"[[{link}]]", f"[[{target}]]")
+                updated = updated.replace(f"[[{link}|", f"[[{target}|")
+        if updated != content:
+            if not dry_run:
+                file_path.write_text(updated, encoding='utf-8')
+            changes["links_resolved"] += 1
+
+    if dry_run:
+        print(f"  Would resolve links in {changes['links_resolved']} files")
+    else:
+        print(f"  ✓ Resolved links in {changes['links_resolved']} files")
+
+    # 3. Generate stubs
     print("\n🏗️  Generating concept stubs...")
     stubgen = StubGenerator(vault_path=vault_path)
     if not dry_run:
@@ -181,6 +211,7 @@ def fix(vault_path: Path, dry_run: bool = False) -> int:
     print("\n" + "=" * 60)
     print("Summary:")
     print(f"  Tags populated: {changes['tags_populated']}")
+    print(f"  Links resolved: {changes['links_resolved']}")
     print(f"  Stubs created: {changes['stubs_created']}")
     print(f"  Files with new links: {changes['links_injected']}")
     print("=" * 60)

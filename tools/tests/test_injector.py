@@ -162,3 +162,45 @@ similar_papers:
 
     assert link_count <= 8
     assert link_count >= 1
+
+
+def test_append_to_existing_related_section(tmp_path):
+    """Test that new links are appended to existing Related sections."""
+    paper_file = tmp_path / "test-paper.md"
+    paper_file.write_text("""---
+title: Test Paper
+tags: [quantum]
+similar_papers:
+- new-paper
+---
+# Test Paper
+
+Some content.
+
+## Related Papers
+
+- [[existing-paper]]
+
+## Notes
+
+More content here.
+""")
+
+    files_index = {
+        "test-paper": {
+            "frontmatter": {"tags": ["quantum"]},
+            "similar_papers": ["new-paper"],
+        },
+        "existing-paper": {"frontmatter": {"tags": ["quantum"]}},
+        "new-paper": {"frontmatter": {"tags": ["quantum"]}},
+    }
+
+    injector = LinkInjector(files_index)
+    updated = injector.inject_links(paper_file, "test-paper")
+
+    # Should keep existing link
+    assert "[[existing-paper]]" in updated
+    # Should append new link
+    assert "[[new-paper]]" in updated
+    # Notes section should still exist after Related Papers
+    assert "## Notes" in updated
