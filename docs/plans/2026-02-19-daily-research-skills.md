@@ -84,14 +84,14 @@ Worktree: Yes
 
 **MANDATORY: Update this checklist as tasks complete. Change `[ ]` to `[x]`.**
 
-- [ ] Task 1: Research pipeline core engine
+- [x] Task 1: Research pipeline core engine
 - [ ] Task 2: Source configuration and harvest module
 - [ ] Task 3: Hybrid scoring engine
 - [ ] Task 4: Vault publisher module
 - [ ] Task 5: Claude Code skill and command
 - [ ] Task 6: Cron wrapper and automation
 
-**Total Tasks:** 6 | **Completed:** 0 | **Remaining:** 6
+**Total Tasks:** 6 | **Completed:** 1 | **Remaining:** 5
 
 ## Implementation Tasks
 
