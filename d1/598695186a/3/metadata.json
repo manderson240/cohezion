@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "d1598695186a",
+  "session_id": "68eb0bc1-fc52-4dcc-a328-ad5c9935f2fa",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-19T03:54:24.452009763Z",
+  "branch": "spec/routes-consolidation",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "docs/plans/2026-02-18-improved-universe-simulations.md",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "ef7cc97a-b750-4ad0-952c-d52cb5a6ced3",
+  "token_usage": {
+    "input_tokens": 99,
+    "cache_creation_tokens": 157469,
+    "cache_read_tokens": 10840187,
+    "output_tokens": 4522,
+    "api_call_count": 87
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-19T03:54:24.379024427Z",
+    "agent_lines": 431,
+    "human_added": 20643,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 21074,
+    "agent_percentage": 2.045174148239537
+  }
+}

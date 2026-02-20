@@ -1,0 +1,37 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "d1598695186a",
+  "session_id": "6f6d5e07-f1ee-4b9b-a4ef-764cbc04ef14",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-19T19:21:41.715054786Z",
+  "branch": "spec/routes-consolidation",
+  "checkpoints_count": 5,
+  "files_touched": [
+    ".claude/hooks/guard-services.sh",
+    "data/eval/results/humaneval_qwen2.5-coder_7b.json",
+    "docs/SPEC_BENCHMARK_IMPROVEMENT.md",
+    "docs/plans/2026-02-19-log-lifecycle-management.md",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original",
+    "scripts/handoff.py",
+    "src/cohezion/eval/orchestrator.py",
+    "systemd/journald-cohezion.conf"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 3198,
+    "cache_creation_tokens": 213497,
+    "cache_read_tokens": 8828772,
+    "output_tokens": 3180,
+    "api_call_count": 86
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-19T19:21:41.668159391Z",
+    "agent_lines": 0,
+    "human_added": 56043,
+    "human_modified": 19053,
+    "human_removed": 0,
+    "total_committed": 57025,
+    "agent_percentage": 0
+  }
+}

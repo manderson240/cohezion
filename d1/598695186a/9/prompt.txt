@@ -1,0 +1,286 @@
+Multiperspective Adversarially Review Workflow complete! Plan status: VERIFIED                                                                                                                                                                    
+                                                                                                                                                                                                              
+  Summary                                                                                                                                                                                                     
+                                                                                                                                                                                                              
+  Implemented: Log lifecycle management system with three layers — extraction, retention, and monitoring.                                                                                                     
+                                                                                                                                                                                                            
+  Files created:                                                                                                                                                                                            
+  - scripts/maintenance/extract_crash_timeline.sh — Parameterized crash timeline extraction (--service, --from, --to)
+  - scripts/maintenance/install_journald_config.sh — Idempotent journald config installer with --check mode
+  - scripts/maintenance/install_logrotate_config.sh — Idempotent logrotate config installer with --check mode
+  - scripts/maintenance/storage_lifecycle.sh — Storage budget monitor with JSON output and guardian integration
+  - systemd/logrotate-rsyslog.conf — Size-limited logrotate config (maxsize 100M, rotate 8)
+  - data/archives/2026-02-crash-loop/timeline.md — Structured crash report (6.9M events, Feb 10-18)
+  - data/archives/2026-02-crash-loop/raw-crash-events.log.zst — Compressed event archive
+
+  Files modified:
+  - scripts/service_guardian.sh — Added storage lifecycle check with 10s timeout
+  - .gitignore — Added data/archives/
+
+  Vault: Pattern note created at patterns/log-lifecycle-management.md with incident timeline, storage budgets, and destructive operations checklist.
+
+  Code review fixes applied: mktemp for temp files, sha256sum instead of md5sum, removed useless cat, documented intentional glob expansion.
+
+  Next steps (manual):
+  - sudo scripts/maintenance/install_journald_config.sh — Install journald retention policy
+  - sudo scripts/maintenance/install_logrotate_config.sh — Install logrotate size limits
+
+---
+
+I need you to adversarially review those claims
+
+---
+
+Base directory for this skill: /home/mike-anderson/dev/cohezion/.claude/skills/adversarial-claim-validation
+
+# Adversarial Claim Validation
+
+## Problem
+
+When reporting work completion with metrics ("148 tests pass", "0 type errors",
+"linting clean"), claims can be inaccurate due to:
+- Testing wrong scope (all files vs new files only)
+- Using stale cached results instead of fresh verification
+- Mixing pre-existing issues with new code quality
+- Over-generalizing partial verification
+
+This erodes trust and wastes user time on false claims.
+
+## Context / Trigger Conditions
+
+**Use this workflow when:**
+- User explicitly asks: "validate the claims", "verify", "check", "adversarially validate"
+- After reporting completion metrics (test counts, error counts, coverage)
+- Before final sign-off on major work (PR creation, plan verification)
+- When user questions accuracy: "are you sure?", "did you actually check?"
+
+**Symptoms of need:**
+- User asks follow-up questions about numbers you reported
+- Discrepancies between your claims and independent verification
+- Claims like "all clean" when errors exist in broader scope
+
+## Solution
+
+### Step 1: Identify All Claims
+
+Extract every quantitative claim from your reports:
+- Test counts ("147 tests passing")
+- Error counts ("0 type errors", "linting clean")
+- File counts ("9 production files", "8 test files")
+- Status claims ("PR exists", "plan verified")
+
+### Step 2: Determine Exact Scope
+
+For each claim, identify the **exact scope**:
+- "0 errors" → in new files only, or entire codebase?
+- "tests pass" → which test suite? all tests or subset?
+- "files created" → just this PR, or total in directory?
+
+**Default assumption**: if you didn't specify scope, user expects **global** verification.
+
+### Step 3: Run Verification Commands in Parallel
+
+Execute verification commands with explicit scope targeting:
+
+```bash
+# NEW files only (scoped verification)
+uv run ruff check src/module/new_file.py src/module/other_new.py
+uv run basedpyright src/module/new_file.py src/module/other_new.py
+
+# ALL files (global verification)
+uv run ruff check src/module/
+uv run basedpyright src/module/
+
+# Test counts
+uv run pytest tests/module/ -q 2>&1 | grep "passed"
+
+# File existence
+ls path/to/file && echo "exists" || echo "missing"
+
+# PR status
+gh pr view <number> --json state,mergeable
+```
+
+Use parallel Bash invocations when possible to minimize latency.
+
+### Step 4: Report Findings Honestly
+
+Present results in table format:
+
+| Claim | Actual | Verdict |
+|-------|--------|---------|
+| 147 tests passing | 148 passing | Off by 1 |
+| 0 type errors | 10 errors (all pre-existing) | Scope issue |
+| Linting clean | 43 errors (16 in new files) | FALSE |
+| PR exists | Exists, CONFLICTING | Partial |
+
+**Key principles:**
+- Admit errors immediately ("Off by 1", "I was wrong")
+- Distinguish pre-existing vs new issues
+- Note severity (warnings vs errors)
+- Clarify what claims hold with correct scope
+
+### Step 5: Fix or Clarify
+
+Based on findings:
+- **Claims accurate with scope clarification** → "0 errors in new files (10 pre-existing in module)"
+- **Claims false** → fix the issues, re-verify, update claims
+- **Partial truth** → explain nuance (PR exists but has conflicts)
+
+## Verification
+
+After adversarial validation:
+- [ ] Every claim verified with fresh command execution
+- [ ] Scope explicitly stated for each metric
+- [ ] Honest reporting of discrepancies
+- [ ] User has accurate picture of work status
+
+## Example
+
+**Original claims:**
+- "147 tests passing"
+- "0 type errors"
+- "Linting clean"
+- "PR ready to merge"
+
+**Adversarial validation:**
+```bash
+# Run in parallel
+uv run pytest tests/universe/ -q | tail -1
+# → "148 passed" (claimed 147, off by 1)
+
+uv run basedpyright src/cohezion/universe/*.py | grep -c "error:"
+# → "0" (new files clean)
+
+uv run basedpyright src/cohezion/universe/ | grep -c "error:"
+# → "10" (pre-existing errors in old files)
+
+uv run ruff check src/cohezion/universe/*.py
+# → "16 errors" (some in new files)
+
+gh pr view 16 --json mergeable
+# → "CONFLICTING" (not ready)
+```
+
+**Revised claims:**
+- Tests: 148 passing (claimed 147, off by 1)
+- Type errors: 0 in new files, 10 pre-existing in module
+- Linting: 16 errors in new files (need fixes)
+- PR: exists but has merge conflicts
+
+## References
+
+- Pattern emerged from Session 2026-02-19: user requested adversarial validation
+- Verification-before-completion rule: `.claude/rules/verification-before-completion.md`
+
+---
+
+Run a development retrospective that flows insights back into core files.
+
+This is the compound engineering feedback loop. It ensures that session learnings don't just accumulate in knowledge_graph/ — they propagate back into the files that govern future behavior.
+
+## Steps
+
+### 1. Audit Current State
+- Read `REDACTED.md` and `REDACTED.md`
+- Read `CLAUDE.md`, `README.md`, and `memory/MEMORY.md`
+- Identify: new learnings since last retrospect, stale/duplicate entries, insights that should propagate upward
+
+### 2. Prune Knowledge Graph
+- Remove duplicate entries from KEY_LEARNINGS.md (e.g., triplicate retrospective blocks)
+- Remove spam entries from MISSION_JOURNAL.md (e.g., repeated "Automated Hypothesis Testing Report" lines)
+- Compress old session developments into single-line summaries
+- Target: KEY_LEARNINGS.md under 300 lines, MISSION_JOURNAL.md under 150 lines
+
+### 3. Propagate Insights Upward
+For each significant learning or pattern discovered since last retrospect:
+- **If it changes how we code**: Update `CLAUDE.md` Coding Standards or Operational Protocols
+- **If it changes what the project can do**: Update `README.md` Verified Capabilities or Limitations
+- **If it changes architecture**: Update `.agent/CAPABILITY_MAP.md`
+- **If it changes theory**: Update `.agent/COHEZION_CHARTER.md`
+- **If it's a process lesson**: Update `memory/MEMORY.md` (keep under 200 lines)
+
+### 4. Verify Consistency
+- Ensure CLAUDE.md reflects the actual codebase state (module count, test coverage, etc.)
+- Ensure README.md has no fabricated claims
+- Ensure memory/MEMORY.md is under the 200-line limit
+- Run `ruff check src/cohezion/` to verify no regressions
+
+### 5. Report
+- List what was pruned, what was propagated, and what remains stale
+- Note any inconsistencies between core files that need manual resolution
+
+## Rules
+- NEVER delete knowledge without first reading and understanding it
+- Prefer compression over deletion (turn 5 verbose entries into 1 concise entry)
+- Every claim in README.md must be adversarially verifiable
+- CLAUDE.md is the single source of truth — other files defer to it
+
+---
+
+1. Find in the repo history and restore it.  2. Fix them in a background session.  3. Fix them in a background session.
+
+---
+
+<task-notification>
+<task-id>ad98827</task-id>
+<status>completed</status>
+<summary>Agent "Fix universe test collection errors" completed</summary>
+<result>That's just a test name containing "error", not an actual error. The fix is working -- 63 tests collected, 0 collection errors.
+
+**Summary of the fix:**
+
+The single change was in `/home/mike-anderson/dev/cohezion/src/cohezion/universe/sandbox.py`:
+
+1. **Lines 16-17** -- Changed the top-level `docker` import from a hard import to a try/except that sets `docker = None` and `DockerException = Exception` when the `docker` package is not installed:
+
+```python
+# Before:
+from docker.errors import DockerException
+import docker
+
+# After:
+try:
+    import docker
+    from docker.errors import DockerException
+except ModuleNotFoundError:  # docker package not installed
+    docker = None  # type: ignore[assignment]
+    DockerException = Exception  # type: ignore[assignment,misc]
+```
+
+2. **Line 210** -- Changed `except docker.errors.ImageNotFound:` to `except Exception:` since `docker.errors` would fail when `docker` is `None`. This method is only reachable when Docker is actually available (via `self.client`), so the broader catch is safe here.
+
+This mirrors the pattern already used in `sandbox_backends.py` (line 110) where `docker` is imported lazily inside the method that needs it.</result>
+<usage>total_tokens: 56768
+tool_uses: 20
+duration_ms: 83738</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/ad98827.output
+
+---
+
+<task-notification>
+<task-id>a221a6b</task-id>
+<status>completed</status>
+<summary>Agent "Fix ruff auto-fixable errors" completed</summary>
+<result>All test failures are due to a pre-existing `ModuleNotFoundError: No module named 'matplotlib'` -- this is a missing dependency issue, completely unrelated to the ruff fixes.
+
+Here is a summary of what was done:
+
+**Ruff auto-fix results:**
+- **215 safe fixes applied** across `src/cohezion/`
+- **991 remaining errors** -- all require manual fixes or `--unsafe-fixes` (not applied per instructions)
+- **170 hidden unsafe fixes** available but intentionally skipped
+
+**Ruff format results:**
+- **2 files reformatted**, 408 files left unchanged
+
+**Test verification:**
+- All 2,988 test errors are caused by a **pre-existing** `ModuleNotFoundError: No module named 'matplotlib'` -- the `matplotlib` package is not installed in the current environment
+- 10 additional collection errors are also pre-existing (verified by stashing changes and re-running)
+- The ruff fixes did not introduce any new failures</result>
+<usage>total_tokens: 53345
+tool_uses: 13
+duration_ms: 219792</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/a221a6b.output
