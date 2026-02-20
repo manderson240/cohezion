@@ -1,9 +1,11 @@
 {
   "cli_version": "0.4.2",
   "checkpoint_id": "dd55daab1625",
+  "session_id": "762ed4a0-9027-4a08-9723-43332e9012b9",
   "strategy": "manual-commit",
+  "created_at": "2026-02-20T06:29:55.250842597Z",
   "branch": "spec/routes-consolidation",
-  "checkpoints_count": 3,
+  "checkpoints_count": 1,
   "files_touched": [
     "data/real_envs/evaluations/test_content_1771568924.json",
     "data/real_envs/evaluations/test_file_1771568924.json",
@@ -26,34 +28,21 @@
     "ollama-mcp",
     "research/challenges/anthropic_challenge_original"
   ],
-  "sessions": [
-    {
-      "metadata": "/dd/55daab1625/0/metadata.json",
-      "transcript": "/dd/55daab1625/0/full.jsonl",
-      "context": "/dd/55daab1625/0/context.md",
-      "content_hash": "/dd/55daab1625/0/content_hash.txt",
-      "prompt": "/dd/55daab1625/0/prompt.txt"
-    },
-    {
-      "metadata": "/dd/55daab1625/1/metadata.json",
-      "transcript": "/dd/55daab1625/1/full.jsonl",
-      "context": "/dd/55daab1625/1/context.md",
-      "content_hash": "/dd/55daab1625/1/content_hash.txt",
-      "prompt": "/dd/55daab1625/1/prompt.txt"
-    },
-    {
-      "metadata": "/dd/55daab1625/2/metadata.json",
-      "transcript": "/dd/55daab1625/2/full.jsonl",
-      "context": "/dd/55daab1625/2/context.md",
-      "content_hash": "/dd/55daab1625/2/content_hash.txt",
-      "prompt": "/dd/55daab1625/2/prompt.txt"
-    }
-  ],
+  "agent": "Claude Code",
   "token_usage": {
-    "input_tokens": 2642417,
-    "cache_creation_tokens": 14079,
-    "cache_read_tokens": 3600986,
-    "output_tokens": 5000,
-    "api_call_count": 48
+    "input_tokens": 2642026,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 1964,
+    "api_call_count": 25
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-20T06:29:55.223197775Z",
+    "agent_lines": 0,
+    "human_added": 7052,
+    "human_modified": 522,
+    "human_removed": 0,
+    "total_committed": 7574,
+    "agent_percentage": 0
   }
 }
