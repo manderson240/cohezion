@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "717ce8919280",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "CLAUDE.md",
+    "README.md",
+    "data/checkpoints/test.json",
+    "data/real_envs/evaluations/test_content_1771618400.json",
+    "data/real_envs/evaluations/test_file_1771618400.json",
+    "memory/MEMORY.md",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original",
+    "scripts/verify_integration.py",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "src/cohezion/knowledge_graph/MISSION_JOURNAL.md",
+    "src/cohezion/real_envs/shell_env_optimized.py",
+    "tests/real_envs/test_extended.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/71/7ce8919280/0/metadata.json",
+      "transcript": "/71/7ce8919280/0/full.jsonl",
+      "context": "/71/7ce8919280/0/context.md",
+      "content_hash": "/71/7ce8919280/0/content_hash.txt",
+      "prompt": "/71/7ce8919280/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1797,
+    "cache_creation_tokens": 221166,
+    "cache_read_tokens": 6337363,
+    "output_tokens": 3497,
+    "api_call_count": 63
+  }
+}
