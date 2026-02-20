@@ -352,6 +352,7 @@ class ShellEnvironment(RealEnvironment[ShellAction, ShellObservation, ShellState
                     )
 
                 stdout = json.dumps(entries, indent=2)
+                directory_listing = entries
 
             elif action.action_type == "create_dir":
                 path = action.parameters["path"]
