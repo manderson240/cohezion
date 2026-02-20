@@ -33,6 +33,7 @@ from cohezion.api.routes_misc import router as misc_router
 from cohezion.api.routes_rl import router as rl_router
 from cohezion.api.routes_skills import query_router
 from cohezion.api.routes_skills import router as skills_router
+from cohezion.security.middleware import add_security_headers_middleware, add_security_middleware
 
 
 logging.basicConfig(level=logging.INFO)
@@ -77,6 +78,10 @@ app.include_router(knowledge_router)
 app.include_router(swarm_router)
 app.include_router(compare_router)
 app.include_router(misc_router)
+
+# Add security middleware (must be after all routes)
+add_security_middleware(app)
+add_security_headers_middleware(app)
 
 
 __all__ = [
