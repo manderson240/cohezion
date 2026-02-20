@@ -164,7 +164,9 @@ tags: [concept]
         # Generate stubs
         stubs_created = []
         for stub_name, candidate_data in candidates.items():
-            stub_file = concepts_dir / f"{stub_name}.md"
+            # Strip any directory prefix from stub name (e.g., "patterns/foo" -> "foo")
+            clean_stub_name = stub_name.split('/')[-1]
+            stub_file = concepts_dir / f"{clean_stub_name}.md"
 
             # Skip if file already exists
             if stub_file.exists():
