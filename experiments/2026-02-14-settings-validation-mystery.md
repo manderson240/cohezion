@@ -60,3 +60,14 @@ Fixed 2 invalid settings files, verified with jq, confirmed with tools validatio
 - [[2026-02-09-ollama-mcp-server]]
 - [[2026-02-12-platform-codification-summary-guide]]
 - [[2026-02-10-compound-node-linking-plan]]
+
+## Related Concepts
+
+- [[2026-02-12-claude-code-context-awareness-codification]]
+- [[2026-02-10-phase-a-implementation-complete]]
+- [[runbook-ollama-mcp-operations]]
+- [[prime_claude_code_practices]]
+- [[troubleshooting-mcp-infrastructure]]
+- [[mcp-infrastructure-architecture]]
+- [[2026-02-09-ollama-mcp-server-complete]]
+- [[2026-02-09-verification-report]]

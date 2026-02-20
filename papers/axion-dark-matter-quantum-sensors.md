@@ -1,7 +1,7 @@
 ---
 title: Distributed Intercity Quantum Sensors Constrain Axion Dark Matter
 date: 2026-02-07
-tags: null
+tags: [silicon-quantum-computing-platform, quantum-entanglement, quantum-entangled-atomic-sensors, mit-quantum-computing-progress, axion-dark-matter-quantum-sensors]
 connectivity: 0.13
 cross_domain: 0.62
 completion: 0.67
@@ -48,3 +48,14 @@ Published in Nature, this experiment uses five correlated noble-gas laboratory s
 ## Relevance to Cohezion
 
 Distributed sensor networks producing correlated measurements to detect subtle signals is directly analogous to multi-agent observation in `enhanced_simulator.py`. The intercity coordination model maps to distributed agent architectures., [[dark-matter]], [[quantum-mechanics]]
+
+## Related Concepts
+
+- [[quantum-teleportation-logic-gates]]
+- [[amorphous-materials-3d-atomic-structure]]
+- [[quantum-entanglement-speed-measurement]]
+- [[quantum-entangled-atomic-sensors]]
+- [[silicon-quantum-computing-platform]]
+- [[supersolid-quantum-state]]
+- [[quantum-sensors]]
+- [[dark-matter-detection]]

@@ -304,3 +304,14 @@ Next Steps: [recommendations]
 - **MCP Tool Definitions**: `/home/mike-anderson/dev/cohezion/cloud-vault-mcp/src/mcp_server/server.py` (lines 433-513)
 - **Google Sheets API**: https://developers.google.com/sheets/api/reference/rest
 - **A1 Notation Guide**: https://developers.google.com/sheets/api/guides/concepts#a1_notation
+
+## Related Concepts
+
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[2026-02-17-phase-2-full-verification-plan]]
+- [[2026-02-10-kyutai-mcp-obsidian-plugin-plan]]
+- [[2026-02-09-ollama-mcp-server]]
+- [[2026-02-14-settings-files-validation-and-fix]]
+- [[2026-02-09-fastmcp-asgi-integration-fix]]
+- [[entire-io-to-vault-mapping]]
+- [[automated-concept-extraction]]

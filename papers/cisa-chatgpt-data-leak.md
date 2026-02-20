@@ -70,3 +70,18 @@ AI Policy resource captured via mobile link pipeline. general
 
 
 [[ai-safety-alignment]]
+
+## Related Papers
+
+- [[few-shot-prompting-agentic-coding]]
+
+## Related Concepts
+
+- [[anthropic-disempowerment-patterns]]
+- [[mit-quantum-computing-progress]]
+- [[mistral-open-source-ai-strategy]]
+- [[karpathy-claude-code-skills]]
+- [[openai-applied-compute-startup]]
+- [[claude-code-swiftui-skill-patterns]]
+- [[oman-artemis-accords]]
+- [[usaf-stealthy-electromagnetic-attack]]

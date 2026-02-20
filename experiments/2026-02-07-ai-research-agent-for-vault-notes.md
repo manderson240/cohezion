@@ -44,3 +44,14 @@ The document includes 15+ cited references with links (peer-reviewed papers, Qua
 **Decisions**: [[2026-02-07-event-driven-inbox-processor]]
 **Patterns**: [[automated-concept-extraction]], [[token-efficient-implementation-workflow]]
 **Lessons**: [[lesson-37-experience-guided-execution-works-new]]
+
+## Related Concepts
+
+- [[2026-02-09-unique-investment-opportunities-research]]
+- [[session-retrospective-notes]]
+- [[2026-02-11-entire-io-api-investigation]]
+- [[2026-02-12-graphrag-implementation-session-56]]
+- [[2026-02-11-graphrag-proof-of-concept-success]]
+- [[2026-02-11-phase1-production-validation-results]]
+- [[2026-02-12-session-56-compact-retrospective]]
+- [[2026-02-17-spec-verify-token-efficiency-analysis]]

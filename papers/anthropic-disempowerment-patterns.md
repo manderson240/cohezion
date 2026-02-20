@@ -51,3 +51,14 @@ Core research on responsible AI deployment and user protection mechanisms
 ## Relevance to Cohezion
 
 AI Safety & Ethics resource captured via mobile link pipeline. Core research on responsible AI deployment and user protection mechanisms, [[agentic-ai]]
+
+## Related Concepts
+
+- [[mit-quantum-computing-progress]]
+- [[mistral-open-source-ai-strategy]]
+- [[few-shot-prompting-agentic-coding]]
+- [[karpathy-claude-code-skills]]
+- [[openai-applied-compute-startup]]
+- [[claude-code-swiftui-skill-patterns]]
+- [[usaf-stealthy-electromagnetic-attack]]
+- [[claude-code-community-skills]]

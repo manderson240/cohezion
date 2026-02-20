@@ -67,3 +67,15 @@ fractal_universe.py
 ## Relevance to Cohezion
 
 Cosmology resource captured via mobile link pipeline. fractal_universe.py, [[particle-physics]]
+
+## Related Papers
+
+- [[beyond-the-quantum-pilot-wave-theory]]
+
+## Related Concepts
+
+- [[diffraction-gratings-fourier-transforms]]
+- [[woh-g64-dust-obscured-companion]]
+- [[sunspot-ar4366-x-class-flares]]
+- [[quantum-atomic-light-synchronization]]
+- [[pairwise-comparison-fiber-bundles]]

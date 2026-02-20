@@ -1374,3 +1374,14 @@ term_count: 656
 
 **zero-shot learning**: The ability of machine learning models to perform tasks or classify objects they have never seen during training, often achieved through sophisticated representation learning or large-scale pre-training.
 
+
+## Related Concepts
+
+- [[benchmarking]]
+- [[hw_acceleration]]
+- [[dnn_architectures]]
+- [[frameworks]]
+- [[responsible_ai]]
+- [[sustainable_ai]]
+- [[ml_systems]]
+- [[ai_for_good]]

@@ -261,3 +261,14 @@ The team successfully:
 **Patterns**: [[surrealdb-agent-context-schema]], [[phase1-production-validation-runbook]], [[entire-io-sync-daemon-design]], [[token-efficient-implementation-workflow]]
 **Lessons**: [[lesson-11-team-agent-efficiency]], [[lesson-12-layered-validation]], [[lesson-18-mock-live-services-in-tests]]
 **Experiments**: [[2026-02-11-phase1-production-validation-results]], [[2026-02-11-entire-io-api-investigation]]
+
+## Related Concepts
+
+- [[2026-02-13-phase-2-final-completion-summary]]
+- [[2026-02-12-platform-codification-summary-guide]]
+- [[2026-02-11-lessons-compound-engineering-phase-1-complete]]
+- [[12d-graph-implementation]]
+- [[2026-02-10-kyutai-execution-summary]]
+- [[2026-02-10-12d-graph-phase1-kickoff]]
+- [[2026-02-10-kyutai-phase1-complete]]
+- [[2026-02-10-kyutai-mcp-phase1-complete]]

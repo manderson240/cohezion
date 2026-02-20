@@ -117,3 +117,14 @@ date: 2026-02-18
 - Financial Modeling
 - Weather Simulation
 
+
+## Related Concepts
+
+- [[runbook-benchmarking-validation]]
+- [[token-efficiency]]
+- [[astrophysics-observations]]
+- [[surface-chemistry]]
+- [[concept-testing]]
+- [[agent context]]
+- [[jwst-observations]]
+- [[data-discipline-prevent-generated-data-in-git]]

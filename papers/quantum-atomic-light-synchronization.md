@@ -53,3 +53,21 @@ Quantum optics and fundamental quantum behavior
 ## Relevance to Cohezion
 
 Quantum Physics resource captured via mobile link pipeline. Quantum optics and fundamental quantum behavior, [[quantum-mechanics]], [[quantum-computing]]
+
+## Related Papers
+
+- [[karpathy-claude-code-skills]]
+- [[claude-code-community-skills]]
+- [[grok4-ai-benchmarks]]
+- [[woh-g64-dust-obscured-companion]]
+
+## Related Concepts
+
+- [[anthropic-disempowerment-patterns]]
+- [[international-year-quantum-2025]]
+- [[mit-quantum-computing-progress]]
+- [[mistral-open-source-ai-strategy]]
+- [[few-shot-prompting-agentic-coding]]
+- [[diffraction-gratings-fourier-transforms]]
+- [[openai-applied-compute-startup]]
+- [[claude-code-swiftui-skill-patterns]]

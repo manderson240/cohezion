@@ -1,7 +1,7 @@
 ---
 title: Mode Locking Between Helimagnetism and Ferromagnetism
 date: 2026-02-07
-tags: null
+tags: [helimagnetism-ferromagnetism-mode-locking, 2026-02-13-local-model-roster-update-february-2026-sota-assessment, 2026-02-14-modelpoolmanager-3-tier-lifecycle-management, failure-mode-test-priority, yann-lecun-agi-world-models]
 connectivity: 0.13
 cross_domain: 0.38
 completion: 0.67
@@ -45,3 +45,18 @@ Nature Physics paper demonstrating microwave emission and mode coupling in a Cu2
 ## Relevance to Cohezion
 
 Relevant to [[fractal_universe]] for modeling coupled oscillatory systems and phase-locking phenomena in magnetic materials., [[particle-physics]]
+
+## Related Papers
+
+- [[ocean-calcium-climate-mystery-66my]]
+
+## Related Concepts
+
+- [[yann-lecun-agi-world-models]]
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[protein-tape-recorder-cytotape]]
+- [[ai-anomaly-detection-hubble-archive]]
+- [[mars-time-dilation-relativity]]
+- [[magnetic-superhighways-starburst-galaxy]]
+- [[llm-in-sandbox-agentic-intelligence]]
+- [[cu45-superatom-carbon-recycling]]

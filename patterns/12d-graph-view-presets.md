@@ -345,3 +345,14 @@ For questions or issues, check the console (F12) for diagnostic information or r
 ## Related
 
 - [[compound-engineering]]
+
+## Related Concepts
+
+- [[3d-graph-plugin-selection]]
+- [[2026-02-09-12d-graph-refined-plan]]
+- [[2026-02-09-12d-graph-surrealdb-integration]]
+- [[2026-02-10-phase3-3d-graph-adversarial-review]]
+- [[2026-02-12-platform-codification-summary-guide]]
+- [[2026-02-09-12d-graph-next-steps]]
+- [[3d-graph-plugin-installation]]
+- [[12d-graph-implementation]]

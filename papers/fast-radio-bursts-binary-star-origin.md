@@ -1,7 +1,7 @@
 ---
 title: FAST Telescope Traces Fast Radio Bursts to Binary Star Systems
 date: 2026-02-07
-tags: null
+tags: [2026-02-09-fastmcp-asgi-integration-fix, fastmcp-asgi-builder-pattern, fast-radio-bursts-binary-star-origin, runaway-stars-milky-way, quick-start-mcp-tool]
 connectivity: 0.13
 cross_domain: 0.62
 completion: 0.67
@@ -48,3 +48,9 @@ Using China's FAST (Five-hundred-meter Aperture Spherical Telescope), astronomer
 ## Relevance to Cohezion
 
 Binary system dynamics and emergent radio phenomena from component interactions map well to multi-agent system modeling in `fractal_universe.py`., [[astrophysics-observations]], [[stellar-evolution]]
+
+## Related Concepts
+
+- [[llamaagents-builder]]
+- [[transcranial-ultrasound-consciousness]]
+- [[runaway-stars-milky-way]]

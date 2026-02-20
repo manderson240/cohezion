@@ -19,3 +19,14 @@ tags: [experiment]
 **Patterns**: [[data-discipline-prevent-generated-data-in-git]], [[repository-health-monitoring-size-tracking-large-object-detection]]
 **Lessons**: [[lesson-13-8-6m-file-incident]], [[lesson-14-cleanup-is-multi-pass]]
 **Experiments**: [[2026-02-11-github-repo-cleanup-with-bfg]], [[2026-02-11-large-repositories-26gb-with-virtual-environment-files-wi]]
+
+## Related Concepts
+
+- [[2026-02-11-entire-io-api-investigation]]
+- [[2026-02-12-graphrag-implementation-session-56]]
+- [[2026-02-11-graphrag-proof-of-concept-success]]
+- [[2026-02-11-phase1-production-validation-results]]
+- [[2026-02-12-session-56-compact-retrospective]]
+- [[2026-02-17-spec-verify-token-efficiency-analysis]]
+- [[2026-02-14-session-58-7-phase-journey-enrichment-3-agent-adversarial-review]]
+- [[2026-02-19-journal-vacuum-during-crash-loop-recovery]]

@@ -425,3 +425,14 @@ Phase 6C successfully delivers semantic contradiction detection using Ollama emb
 - [[surrealdb-agent-context-phase1-step3-query-testing]]
 - [[surrealdb-agent-context-phase1-implementation-checklist]]
 - [[phase1-production-validation-runbook]]
+
+## Related Concepts
+
+- [[2026-02-14-phase-6b-cascade-impact-computation]]
+- [[2026-02-11-phase-1-agent-context-schema-complete]]
+- [[2026-02-14-track-a-sign-off-approved]]
+- [[2026-02-13-phase-2-track-a-complete]]
+- [[2026-02-14-settings-files-validation-and-fix]]
+- [[2026-02-11-phase1-completion-summary]]
+- [[2026-02-09-12d-graph-surrealdb-integration]]
+- [[2026-02-12-phase-2-schema-design]]

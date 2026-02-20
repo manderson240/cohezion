@@ -43,3 +43,14 @@ Requirements:
 - **After multi-step work** — Sessions involving exploration → decision → implementation are prime candidates
 - **When the [[compound-engineering]] vault would benefit** — Ask: "Would future-me or future-agents benefit from knowing what happened here?"
 - **Skip for trivial sessions** — Quick bug fixes or single-file edits don't need retrospectives
+
+## Related Concepts
+
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[entire-io-to-vault-mapping]]
+- [[automated-concept-extraction]]
+- [[sheetsbr idge-mcp-testing]]
+- [[phase1-production-validation-runbook]]
+- [[typescript-error-diagnostic]]
+- [[surrealdb-query-driven-analysis]]
+- [[agent-logs-vault-schema]]

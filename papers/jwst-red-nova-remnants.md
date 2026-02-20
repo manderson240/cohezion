@@ -1,7 +1,7 @@
 ---
 title: JWST Discovers Red Nova Merger Remnants Are Red Supergiants
 date: 2026-02-07
-tags: null
+tags: [jwst-observations, jwst-dark-matter-map, jwst-early-universe-black-holes, jwst-red-nova-remnants, lesson-12-layered-validation]
 connectivity: 0.27
 cross_domain: 0.5
 completion: 0.67
@@ -46,3 +46,14 @@ JWST observations reveal that when two stars collide and merge in a luminous red
 ## Relevance to Cohezion
 
 Relevant to [[fractal_universe.py]] stellar evolution models and simulation of binary star merger outcomes., [[jwst-observations]], [[astrophysics-observations]], [[stellar-evolution]]
+
+## Related Concepts
+
+- [[jwst-dark-matter-map]]
+- [[circleci-ai-cicd-validation]]
+- [[woh-g64-red-supergiant-mystery]]
+- [[jwst-early-universe-black-holes]]
+- [[mom-z14-farthest-galaxy]]
+- [[anomaly-detection]]
+- [[red-supergiant-stars]]
+- [[early-universe-cosmology]]

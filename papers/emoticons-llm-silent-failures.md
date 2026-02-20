@@ -1,7 +1,7 @@
 ---
 title: Emoticons Cause Silent Failures in LLM Coding Responses
 date: 2026-02-07
-tags: null
+tags: [emoticons-llm-silent-failures, 2026-02-11-session-55-discovered-redundant-pack-files-as-root-cause-of-12gb-size-final-cons, llm-training-methodology-changes, llm-in-sandbox-agentic-intelligence, few-shot-prompting-agentic-coding]
 connectivity: 0.07
 cross_domain: 0.5
 completion: 0.67
@@ -48,3 +48,10 @@ Study across six major LLMs reveals that ASCII emoticons cause a 38%+ semantic c
 ## Relevance to Cohezion
 
 Relevant to [[lab_agent.py]] input validation and robustness testing. Cohezion agents should be aware of tokenization edge cases that could cause silent failures in code generation workflows.
+
+## Related Concepts
+
+- [[woh-g64-red-supergiant-mystery]]
+- [[llm-training-methodology-changes]]
+- [[llm-in-sandbox-agentic-intelligence]]
+- [[agentic-ai-memory-hierarchies]]

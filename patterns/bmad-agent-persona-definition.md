@@ -113,3 +113,14 @@ Extracted from BMAD `bmm/agents/*.md` (10 agents: analyst, architect, dev, pm, s
 
 ## Decisions & Experiments
 - 📋 [[2026-02-08-bmad-framework-removal]] - 2026-02-08-bmad-framework-removal
+
+## Related Concepts
+
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[entire-io-to-vault-mapping]]
+- [[automated-concept-extraction]]
+- [[sheetsbr idge-mcp-testing]]
+- [[phase1-production-validation-runbook]]
+- [[typescript-error-diagnostic]]
+- [[surrealdb-query-driven-analysis]]
+- [[agent-logs-vault-schema]]

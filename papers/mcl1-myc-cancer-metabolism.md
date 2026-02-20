@@ -73,3 +73,10 @@ Molecular Biology resource captured via mobile link pipeline. general
 - [[PRIME_CLAUDE_CODE_PRACTICES]]
 - [[multi-session-compound-engineering-workflow]]
 - [[compound-async-executor-pattern]]
+
+## Related Concepts
+
+- [[artificial-photosynthesis-living-energy]]
+- [[alphafold-cryo-em-structure-prediction]]
+- [[comb-jellies-animal-tree-of-life]]
+- [[tidally-locked-exoplanet-habitability]]
