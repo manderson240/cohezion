@@ -31,7 +31,7 @@ COHEZION: 12D agentic universe with FLUME VAE, compound engineering, multi-agent
 
 ### ⚡ Core Commands
 ```bash
-uv run pytest tests/ -q              # Full test suite (3,172 collected, ~90s)
+uv run pytest tests/ -q              # Full test suite (3,190 collected, ~90s)
 uv run pytest tests/compound/ -v     # Run module tests
 uv run pytest tests/test_*.py::name  # Single test
 make format && make lint && make all # Check → fix → verify
