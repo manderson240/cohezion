@@ -1,0 +1,37 @@
+{
+  "task_id": "test_content",
+  "task_description": "Create Python script",
+  "all_criteria_passed": true,
+  "pass_rate": 1.0,
+  "criteria": [
+    {
+      "criterion_name": "file_exists:script.py",
+      "passed": true,
+      "actual_value": true,
+      "expected_value": true,
+      "details": "File script.py exists"
+    },
+    {
+      "criterion_name": "file_content:script.py",
+      "passed": true,
+      "actual_value": "import flask\napp = Flask(__name__)",
+      "expected_value": "import flask",
+      "details": "Pattern matched"
+    },
+    {
+      "criterion_name": "file_content:script.py",
+      "passed": true,
+      "actual_value": "import flask\napp = Flask(__name__)",
+      "expected_value": "Flask\\(__name__\\)",
+      "details": "Pattern matched"
+    }
+  ],
+  "reward": 0.9600000000000001,
+  "metrics": {
+    "total_steps": 1,
+    "expected_steps": 5,
+    "pass_rate": 1.0,
+    "criteria_count": 3,
+    "passed_criteria": 3
+  }
+}

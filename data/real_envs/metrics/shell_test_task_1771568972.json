@@ -1,0 +1,19 @@
+{
+  "environment_type": "shell",
+  "task_id": "test_task",
+  "start_time": 1771568972.7216485,
+  "end_time": 1771568972.7220247,
+  "duration_seconds": 0.0003762245178222656,
+  "total_steps": 3,
+  "successful_steps": 2,
+  "failed_steps": 1,
+  "success_rate": 0.6666666666666666,
+  "total_duration_ms": 450.0,
+  "avg_step_latency_ms": 150.0,
+  "max_step_latency_ms": 200,
+  "peak_memory_mb": 662.46484375,
+  "peak_cpu_percent": 0.0,
+  "task_completion_rate": 1.0,
+  "final_reward": 0.7,
+  "phi_score": 0.65
+}

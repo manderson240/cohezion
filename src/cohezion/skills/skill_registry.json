@@ -849,5 +849,23 @@
       "HIHO_STABILITY_PRIME"
     ],
     "source": "src/cohezion/skills/VLIW_COG_BRIDGE_PRIME.md"
+  },
+  "TEST_SKILL_PRIME": {
+    "version": "2.5",
+    "concepts": [],
+    "see_also": [],
+    "source": "/tmp/pytest-of-mike-anderson/pytest-20/test_version_header_in_generat0/skills/TEST_SKILL_PRIME.md"
+  },
+  "SKILL_0_PRIME": {
+    "version": "1.0",
+    "concepts": [],
+    "see_also": [],
+    "source": "/tmp/pytest-of-mike-anderson/pytest-20/test_factory_generate_top_skil0/skills/SKILL_0_PRIME.md"
+  },
+  "SKILL_1_PRIME": {
+    "version": "1.0",
+    "concepts": [],
+    "see_also": [],
+    "source": "/tmp/pytest-of-mike-anderson/pytest-20/test_factory_generate_top_skil0/skills/SKILL_1_PRIME.md"
   }
 }

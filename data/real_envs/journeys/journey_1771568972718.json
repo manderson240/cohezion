@@ -1,0 +1,25 @@
+{
+  "journey_id": "journey_1771568972718",
+  "task_description": "Test persistence",
+  "start_time": 1771568972.7189703,
+  "end_time": 1771568972.7190359,
+  "duration_seconds": 6.556510925292969e-05,
+  "segments": [
+    {
+      "segment_id": "test_seg",
+      "environment_type": "TestEnvironment",
+      "task_id": "test",
+      "start_time": 0,
+      "end_time": 1,
+      "steps": [],
+      "phi_score": 0.5,
+      "success_rate": 0.0
+    }
+  ],
+  "success": true,
+  "final_reward": 1.0,
+  "coherence": 0.5,
+  "convergence": 0.1,
+  "smoothness": 0.0,
+  "phi_score": 0.27
+}
