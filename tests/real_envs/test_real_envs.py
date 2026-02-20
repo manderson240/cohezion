@@ -115,8 +115,12 @@ class TestShellEnvironment:
     @pytest.mark.asyncio
     async def test_security_prevents_escape(self, shell_env):
         """Test that paths outside working dir are rejected."""
-        with pytest.raises(ValueError, match="outside working directory"):
-            await shell_env.step(ShellAction.read_file("/etc/passwd"))
+        obs, _, _, _ = await shell_env.step(ShellAction.read_file("/etc/passwd"))
+
+        # Action should fail with security error in observation
+        assert not obs.success
+        assert obs.error_message is not None
+        assert "outside working directory" in obs.error_message
 
     @pytest.mark.asyncio
     async def test_trajectory_tracking(self, shell_env):
