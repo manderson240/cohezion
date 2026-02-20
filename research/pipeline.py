@@ -1,10 +1,9 @@
 """Core pipeline orchestrator for research discovery workflow."""
 
-import asyncio
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Any
 
 logger = logging.getLogger(__name__)
 
