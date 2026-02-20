@@ -123,7 +123,7 @@ All agent execution runs in isolation with resource governance:
 | [`persistence/`](src/cohezion/persistence/) | SurrealDB + JSONL checkpoint storage | `SessionManager` |
 | [`security/`](src/cohezion/security/) | Prompt guardrails, output filtering | `GuardrailPipeline` |
 | [`reliability/`](src/cohezion/reliability/) | Circuit breakers, resource monitoring | `get_circuit()` |
-| [`api/`](src/cohezion/api/) | FastAPI server (46+ endpoints) | `app` |
+| [`api/`](src/cohezion/api/) | FastAPI server (72 endpoints) | `app` |
 
 ---
 
@@ -135,7 +135,7 @@ git clone https://github.com/manderson240/cohezion.git
 cd cohezion
 uv sync
 
-# Run the test suite (3,300+ tests)
+# Run the test suite (3,200+ tests)
 uv run pytest tests/ -q
 
 # Start the API server
@@ -244,7 +244,7 @@ make format && make lint && make type-check
 - **ML**: PyTorch (VAE, RL policy), Gymnasium (RL environments), sentence-transformers (embeddings)
 - **Backend**: FastAPI, SurrealDB (async), JSONL fallback
 - **Inference**: Ollama (local models), Anthropic API, cost-aware model routing
-- **Quality**: ruff (format + lint), mypy (type checking), pytest (3,300+ tests)
+- **Quality**: ruff (format + lint), mypy (type checking), pytest (3,200+ tests)
 - **Deployment**: Docker, Cloud Run, systemd
 
 ---
@@ -253,10 +253,10 @@ make format && make lint && make type-check
 
 | Metric | Value |
 |--------|-------|
-| Source modules | 351 Python files across 36 packages |
-| Test functions | 3,300+ |
+| Source modules | 401 Python files across 67 packages |
+| Test functions | 3,232 |
 | Test pass rate | 99.3% |
-| PRIME skill definitions | 134 |
+| PRIME skill definitions | 74 |
 | API endpoints | 46+ |
 | RL coherence (trained) | 0.991 avg |
 | HIHO band compliance | 92.7% of executions |
