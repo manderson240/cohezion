@@ -110,30 +110,34 @@ def cmd_run(args: argparse.Namespace) -> None:
 
     # Run pipeline
     async def _run():
+        if args.dry_run:
+            # Dry run: report config without executing
+            total_queries = sum(len(a.get("queries", [])) for a in config.get("focus_areas", {}).values())
+            result = {
+                "dry_run": True,
+                "focus_areas": len(config.get("focus_areas", {})),
+                "total_queries": total_queries,
+                "sources_configured": list(config.get("sources", {}).keys()),
+                "max_inbox_notes": config.get("publishing", {}).get("max_inbox_notes", 40),
+            }
+            return result
+
         findings = await harvest(config)
         scored_findings, metadata = await score(findings, config)
         skill_results = detect_skill_candidates(scored_findings)
 
-        if args.dry_run:
-            result = {
-                "dry_run": True,
-                "findings_count": len(scored_findings),
-                "skill_candidates": sum(1 for r in skill_results if r["skill_candidate"]),
-                "would_create_notes": min(len(scored_findings), config.get("publishing", {}).get("max_inbox_notes", 40)),
-            }
-        else:
-            result = publish(scored_findings, skill_results, metadata, config)
-            # Save run metadata
-            run_meta = {
-                "last_run": datetime.now().isoformat(),
-                "findings": len(scored_findings),
-                "inbox_notes": result.get("inbox_notes_created", 0),
-                "skill_candidates": sum(1 for r in skill_results if r["skill_candidate"]),
-            }
-            meta_dir = vault_path / "research"
-            meta_dir.mkdir(parents=True, exist_ok=True)
-            with open(meta_dir / "last_run.json", "w") as f:
-                json.dump(run_meta, f, indent=2)
+        result = publish(scored_findings, skill_results, metadata, config)
+        # Save run metadata
+        run_meta = {
+            "last_run": datetime.now().isoformat(),
+            "findings": len(scored_findings),
+            "inbox_notes": result.get("inbox_notes_created", 0),
+            "skill_candidates": sum(1 for r in skill_results if r["skill_candidate"]),
+        }
+        meta_dir = vault_path / "research"
+        meta_dir.mkdir(parents=True, exist_ok=True)
+        with open(meta_dir / "last_run.json", "w") as f:
+            json.dump(run_meta, f, indent=2)
 
         return result
 
