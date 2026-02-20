@@ -553,3 +553,14 @@ Before marking PRIME_CLAUDE_CODE_PRACTICES as "Production", verify:
 
 **Last Updated**: 2026-02-12
 **Next Review**: 2026-03-12 (1 month metrics cycle)
+
+## Related Concepts
+
+- [[2026-02-12-claude-code-context-awareness-codification]]
+- [[2026-02-09-ollama-mcp-server]]
+- [[2026-02-13-phase-2-execution-strategy-wave-2]]
+- [[2026-02-12-platform-codification-summary-guide]]
+- [[2026-02-13-session-60-retrospective-and-revised-plan]]
+- [[_claude-code-metrics-2026-02-14]]
+- [[_claude-code-metrics-template]]
+- [[2026-02-10-telemetry-corruption-fix]]

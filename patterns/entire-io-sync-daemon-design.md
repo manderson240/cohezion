@@ -404,3 +404,14 @@ WantedBy=multi-user.target
 **Experiments**: [[2026-02-11-entire-io-api-investigation]]
 
 **Projects**: [[Week 1 - Entire.io Integration]]
+
+## Related Concepts
+
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[3d-graph-plugin-selection]]
+- [[2026-02-10-kyutai-mcp-obsidian-plugin-plan]]
+- [[2026-02-11-phase-1-agent-context-schema-complete]]
+- [[2026-02-13-track-b-entire-sync-daemon-complete]]
+- [[2026-02-11-phase1-completion-summary]]
+- [[2026-02-11-phase1-execution-status]]
+- [[2026-02-09-12d-graph-surrealdb-integration]]

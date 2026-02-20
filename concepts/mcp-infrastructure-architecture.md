@@ -494,3 +494,14 @@ curl http://localhost:8360/health | jq .
 - [[patterns/runbook-ci-cd-pipeline]]
 - [[patterns/runbook-health-checks]]
 - [[patterns/troubleshooting-mcp-infrastructure]]
+
+## Related Concepts
+
+- [[3d-graph-plugin-selection]]
+- [[2026-02-10-kyutai-mcp-obsidian-plugin-plan]]
+- [[2026-02-09-ollama-mcp-server]]
+- [[2026-02-11-phase-1-agent-context-schema-complete]]
+- [[2026-02-14-settings-files-validation-and-fix]]
+- [[2026-02-09-12d-graph-surrealdb-integration]]
+- [[2026-02-08-bmad-framework-removal]]
+- [[2026-02-09-fastmcp-asgi-integration-fix]]

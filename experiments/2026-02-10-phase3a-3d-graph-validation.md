@@ -175,3 +175,14 @@ related_papers: [[paper-1]], [[paper-2]]  # ❌ YAML sees nested structures
 [[Kyutai Project]]
 
 [[token-efficiency]], [[compound-engineering]], [[adversarial-review]]
+
+## Related Concepts
+
+- [[2026-02-09-12d-graph-refined-plan]]
+- [[2026-02-10-canvas-driven-compound-engineering-refined]]
+- [[2026-02-14-settings-files-validation-and-fix]]
+- [[2026-02-14-phase-6c-semantic-contradiction-detection-complete]]
+- [[2026-02-10-claude-log-mining-architecture]]
+- [[2026-02-10-phase3-3d-graph-adversarial-review]]
+- [[2026-02-10-kyutai-pocket-tts-token-efficient-success]]
+- [[2026-02-10-kyutai-token-waste-postmortem]]

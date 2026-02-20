@@ -435,3 +435,14 @@ The adversarial review process proved valuable: by validating data availability 
 **Study Quality**: B+ (honest about limitations, validated hypotheses with evidence, ready for future work)
 
 **Meta-lesson**: Always validate data availability BEFORE designing complex systems. "Implementation First, Infrastructure Later."
+
+## Related Concepts
+
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[emu3-multimodal-next-token-prediction]]
+- [[2026-02-10-claude-log-mining-architecture]]
+- [[2026-02-10-compound-engineering-meta-learning]]
+- [[2026-02-10-framework-driven-prioritization]]
+- [[entire-io-to-vault-mapping]]
+- [[automated-concept-extraction]]
+- [[sheetsbr idge-mcp-testing]]

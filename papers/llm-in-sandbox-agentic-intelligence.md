@@ -1,7 +1,7 @@
 ---
 title: LLM-in-Sandbox Elicits General Agentic Intelligence
 date: 2026-02-07
-tags: 
+tags: [llm-in-sandbox-agentic-intelligence, agentic-ai-memory-hierarchies, agentic-ai, few-shot-prompting-agentic-coding, 2026-02-13-local-model-roster-update-february-2026-sota-assessment]
 connectivity: 0.13
 cross_domain: 0.5
 completion: 0.67
@@ -9,19 +9,27 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
-conceptual_depth: 0.50
+conceptual_depth: 0.5
 conceptual_label: Balanced
-similar_papers: ["axion-dark-matter-quantum-sensors", "anthropic-principle-fine-tuning", "ai-anomaly-detection-hubble-archive", "sentinel-1-ice-sheets", "sunspot-ar4366-x-class-flares"]
+similar_papers:
+- axion-dark-matter-quantum-sensors
+- anthropic-principle-fine-tuning
+- ai-anomaly-detection-hubble-archive
+- sentinel-1-ice-sheets
+- sunspot-ar4366-x-class-flares
 dim_conceptual_depth: 0.5
 source: https://arxiv.org/abs/2601.16206
 dimensions:
-  connectivity: 0.100
+  connectivity: 0.1
   cross_domain: 0
   completion: 100
-  temporal: 0.500
-  recency: 0.700
-  conceptual_depth: 0.000
-
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 0.0
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.333
+  interdisciplinary_transfer: 0.0
+  impact_score: 0.158
 ---
 # LLM-in-Sandbox: General Agentic Intelligence via Code Sandbox
 
@@ -39,3 +47,18 @@ This paper introduces LLM-in-Sandbox, a framework enabling LLMs to explore withi
 ## Relevance to Cohezion
 
 Directly relevant to `lab_agent.py` - demonstrates that giving AI agents a sandbox environment with code execution capabilities enables emergent agentic behaviors across diverse domains. This pattern could inform Cohezion's agent architecture for tool use and environment interaction., [[agentic-ai]], [[ai-agents]]
+
+## Related Papers
+
+- [[ai-anomaly-detection-hubble-archive]]
+
+## Related Concepts
+
+- [[yann-lecun-agi-world-models]]
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[scaling-agent-systems]]
+- [[protein-tape-recorder-cytotape]]
+- [[openai-codex-agent-loop]]
+- [[ocean-calcium-climate-mystery-66my]]
+- [[mars-time-dilation-relativity]]
+- [[magnetic-superhighways-starburst-galaxy]]

@@ -158,6 +158,9 @@ export interface CascadeQueryResult {
   total_impacted: number;
   critical_impact_count: number;
   timestamp: string;
+
+  /** Convenience property: length of cascades array */
+  length?: number;
 }
 
 /**

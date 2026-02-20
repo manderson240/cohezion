@@ -126,3 +126,14 @@ domain: "Domain Category"
 
 ## Decisions & Experiments
 - 📋 [[2026-02-09-12d-graph-refined-plan]] - 12D Graph System - Refined Implementation Plan
+
+## Related Concepts
+
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[2026-02-14-phase-6a-automated-reasoning-chain-inference-complete]]
+- [[2026-02-09-ai-model-strategy]]
+- [[2026-02-09-fastmcp-asgi-integration-fix]]
+- [[2026-02-14-graphrag-verification-and-integration-session]]
+- [[entire-io-to-vault-mapping]]
+- [[automated-concept-extraction]]
+- [[sheetsbr idge-mcp-testing]]

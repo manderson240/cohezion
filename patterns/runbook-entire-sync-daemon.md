@@ -267,3 +267,14 @@ SurrealDB is optional. If it fails, vault notes are still created.
 
 - [[runbook-health-checks]] - General infrastructure health checks
 - [[implementation-first-infrastructure-later]] - Development pattern
+
+## Related Concepts
+
+- [[2026-02-13-track-b-entire-sync-daemon-complete]]
+- [[2026-02-13-phase-2-track-b-entire-io-sync-daemon-complete]]
+- [[phase1-production-validation-runbook]]
+- [[runbook-benchmarking-validation]]
+- [[entire-io-sync-daemon-design]]
+- [[runbook-ci-cd-pipeline]]
+- [[runbook-ollama-mcp-operations]]
+- [[entire-io-sync-daemon-operations]]

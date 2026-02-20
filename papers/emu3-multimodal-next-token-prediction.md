@@ -1,7 +1,7 @@
 ---
 title: 'Emu3: Multimodal Learning via Next-Token Prediction'
 date: 2026-02-07
-tags: 
+tags: [emu3-multimodal-next-token-prediction, 2026-02-14-phases-1-3-retrospective-key-learnings, meta-learning, 2026-02-09-operational-principle-no-destructive-operations-without-learning, 2026-02-10-compound-engineering-meta-learning]
 connectivity: 0.07
 cross_domain: 0.5
 completion: 0.67
@@ -9,19 +9,27 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 2/3 sections (66%)
-conceptual_depth: 1.00
+conceptual_depth: 1.0
 conceptual_label: Pure Theory
-similar_papers: ["fast-radio-bursts-binary-star-origin", "usaf-stealthy-electromagnetic-attack", "woh-g64-dust-obscured-companion", "diffraction-gratings-fourier-transforms", "cu45-superatom-co2-ethylene"]
+similar_papers:
+- fast-radio-bursts-binary-star-origin
+- usaf-stealthy-electromagnetic-attack
+- woh-g64-dust-obscured-companion
+- diffraction-gratings-fourier-transforms
+- cu45-superatom-co2-ethylene
 dim_conceptual_depth: 1.0
 source: https://www.nature.com/articles/s41586-025-10041-x
 dimensions:
-  connectivity: 0.050
+  connectivity: 0.05
   cross_domain: 0
   completion: 100
-  temporal: 0.500
-  recency: 0.700
-  conceptual_depth: 0.500
-
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 0.5
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.333
+  interdisciplinary_transfer: 0.0
+  impact_score: 0.082
 ---
 # Emu3: Multimodal Next-Token Prediction
 
@@ -41,3 +49,14 @@ Published in Nature, Emu3 is a family of multimodal models trained solely with n
 ## Relevance to Cohezion
 
 Unified multimodal architecture directly relevant to `lab_agent.py` design. The next-token prediction paradigm as a universal learning objective across modalities could inform how Cohezion agents handle diverse input/output types., [[ai-agents]]
+
+## Related Concepts
+
+- [[operational-data-ai-agents]]
+- [[superfluid-to-supersolid-transition]]
+- [[2026-02-10-claude-log-mining-architecture]]
+- [[2026-02-10-compound-engineering-meta-learning]]
+- [[2026-02-10-framework-driven-prioritization]]
+- [[prompt-optimization-hypotheses]]
+- [[2026-02-10-redesigned-pilot-complete]]
+- [[2026-02-10-meta-pattern-extraction]]

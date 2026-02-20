@@ -1,28 +1,37 @@
 ---
-title: "Anthropic research shows disempowerment patterns in AI usage where AI interactions reduce user au..."
+title: Anthropic research shows disempowerment patterns in AI usage where AI interactions
+  reduce user au...
 date: 2026-02-07
-tags: [ai]
+tags:
+- ai
 connectivity: 0.07
 cross_domain: 0.12
 completion: 0.67
-temporal: 1.00
-recency: 1.00
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 2/3 sections (66%)
-conceptual_depth: 0.50
+conceptual_depth: 0.5
 conceptual_label: Balanced
-similar_papers: ["woh-g64-red-supergiant-mystery", "cosmic-strings-time-travel", "theorem-ai-formal-verification", "llm-in-sandbox-agentic-intelligence", "transcranial-ultrasound-consciousness"]
-domain: "AI Safety & Ethics"
-https: //search.app/64yvj"
-source: "Source: The Quantum Insider
+similar_papers:
+- woh-g64-red-supergiant-mystery
+- cosmic-strings-time-travel
+- theorem-ai-formal-verification
+- llm-in-sandbox-agentic-intelligence
+- transcranial-ultrasound-consciousness
+domain: AI Safety & Ethics
+source: 'Source: The Quantum Insider'
 dimensions:
-  connectivity: 0.050
+  connectivity: 0.05
   cross_domain: 1
   completion: 100
-  temporal: 0.500
-  recency: 0.700
+  temporal: 0.5
+  recency: 0.7
   conceptual_depth: 0.333
-
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 0.25
+  impact_score: 0.082
 ---
 # Anthropic research shows disempowerment patterns in AI usage where AI interactions reduce user au...
 
@@ -42,3 +51,14 @@ Core research on responsible AI deployment and user protection mechanisms
 ## Relevance to Cohezion
 
 AI Safety & Ethics resource captured via mobile link pipeline. Core research on responsible AI deployment and user protection mechanisms, [[agentic-ai]]
+
+## Related Concepts
+
+- [[mit-quantum-computing-progress]]
+- [[mistral-open-source-ai-strategy]]
+- [[few-shot-prompting-agentic-coding]]
+- [[karpathy-claude-code-skills]]
+- [[openai-applied-compute-startup]]
+- [[claude-code-swiftui-skill-patterns]]
+- [[usaf-stealthy-electromagnetic-attack]]
+- [[claude-code-community-skills]]

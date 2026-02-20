@@ -555,3 +555,14 @@ sudo systemctl daemon-reload
 - [[token-efficiency]]
 - [[compound-engineering]]
 - [[agentic-ai]]
+
+## Related Concepts
+
+- [[2026-02-13-track-b-entire-sync-daemon-complete]]
+- [[2026-02-13-phase-2-track-b-entire-io-sync-daemon-complete]]
+- [[runbook-entire-sync-daemon]]
+- [[phase1-production-validation-runbook]]
+- [[runbook-benchmarking-validation]]
+- [[entire-io-sync-daemon-design]]
+- [[runbook-ci-cd-pipeline]]
+- [[runbook-ollama-mcp-operations]]

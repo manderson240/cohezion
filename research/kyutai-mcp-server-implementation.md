@@ -428,3 +428,14 @@ The server can be started immediately and is ready for integration with the Obsi
 **Code quality:** Production-ready
 **Test coverage:** Skeleton (Phase 3)
 **Documentation:** Comprehensive
+
+## Related Concepts
+
+- [[2026-02-10-kyutai-mcp-obsidian-plugin-plan]]
+- [[2026-02-09-ollama-mcp-server]]
+- [[2026-02-14-settings-files-validation-and-fix]]
+- [[2026-02-11-phase1-completion-summary]]
+- [[2026-02-11-phase1-execution-status]]
+- [[2026-02-09-fastmcp-asgi-integration-fix]]
+- [[2026-02-14-phase-7-implementation-ready]]
+- [[2026-02-10-kyutai-pocket-tts-token-efficient-success]]

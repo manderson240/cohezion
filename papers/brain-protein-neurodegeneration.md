@@ -1,28 +1,38 @@
 ---
-title: "Brain protein linking immune response, metabolism, and amyloid pathways in neurodegeneration"
+title: Brain protein linking immune response, metabolism, and amyloid pathways in
+  neurodegeneration
 date: 2026-02-07
-tags: [ai, neuroscience]
+tags:
+- ai
+- neuroscience
 connectivity: 0.07
 cross_domain: 0.25
-completion: 1.00
-temporal: 1.00
-recency: 1.00
+completion: 1.0
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 3/3 sections (100%)
-conceptual_depth: 0.50
+conceptual_depth: 0.5
 conceptual_label: Balanced
-similar_papers: ["tonggeometry-olympiad-tree-search", "super-earth-magnetic-protection-magma", "karpathy-claude-code-skills", "nasa-maven-anomaly", "tonggeometry-ai-math"]
-domain: "Neuroscience"
-https: //search.app/a4Gb1"
-source: "Source: SciTechDaily
+similar_papers:
+- tonggeometry-olympiad-tree-search
+- super-earth-magnetic-protection-magma
+- karpathy-claude-code-skills
+- nasa-maven-anomaly
+- tonggeometry-ai-math
+domain: Neuroscience
+source: 'Source: SciTechDaily'
 dimensions:
-  connectivity: 0.050
+  connectivity: 0.05
   cross_domain: 2
   completion: 100
-  temporal: 0.500
-  recency: 0.700
-  conceptual_depth: 0.000
-
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 0.0
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 0.5
+  impact_score: 0.082
 ---
 ## Abstract
 
@@ -56,3 +66,18 @@ general
 ## Relevance to Cohezion
 
 Neuroscience resource captured via mobile link pipeline. general, [[neutrino-physics]]
+
+## Related Papers
+
+- [[karpathy-claude-code-skills]]
+
+## Related Concepts
+
+- [[anthropic-disempowerment-patterns]]
+- [[mit-quantum-computing-progress]]
+- [[mistral-open-source-ai-strategy]]
+- [[few-shot-prompting-agentic-coding]]
+- [[openai-applied-compute-startup]]
+- [[claude-code-swiftui-skill-patterns]]
+- [[usaf-stealthy-electromagnetic-attack]]
+- [[claude-code-community-skills]]

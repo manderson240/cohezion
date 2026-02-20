@@ -1,28 +1,37 @@
 ---
-title: "Babylonian texts reveal Nebuchadnezzar as restorer/builder, contrasting biblical destroyer narrative"
+title: Babylonian texts reveal Nebuchadnezzar as restorer/builder, contrasting biblical
+  destroyer narrative
 date: 2026-02-07
-tags: [archaeology]
-connectivity: 0.00
+tags:
+- archaeology
+connectivity: 0.0
 cross_domain: 0.12
-completion: 1.00
-temporal: 1.00
-recency: 1.00
+completion: 1.0
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 3/3 sections (100%)
-conceptual_depth: 0.50
+conceptual_depth: 0.5
 conceptual_label: Balanced
-similar_papers: ["cu45-superatom-co2-ethylene", "oman-artemis-accords", "quantum-entanglement-speed-measurement", "artificial-photosynthesis-living-energy", "tonggeometry-olympiad-tree-search"]
-domain: "Archaeology"
-https: //search.app/gQYUf"
-source: "Source: Biblical Archaeology Society
+similar_papers:
+- cu45-superatom-co2-ethylene
+- oman-artemis-accords
+- quantum-entanglement-speed-measurement
+- artificial-photosynthesis-living-energy
+- tonggeometry-olympiad-tree-search
+domain: Archaeology
+source: 'Source: Biblical Archaeology Society'
 dimensions:
-  connectivity: 0.000
+  connectivity: 0.0
   cross_domain: 1
   completion: 100
-  temporal: 0.500
-  recency: 0.700
-  conceptual_depth: 0.000
-
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 0.0
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 0.25
+  impact_score: 0.16
 ---
 ## Abstract
 
@@ -57,3 +66,10 @@ general
 ## Relevance to Cohezion
 
 Archaeology resource captured via mobile link pipeline. general
+
+## Related
+
+- [[fastmcp-asgi-builder-pattern]]
+- [[service-class-singleton-pattern]]
+- [[PRIME_CLAUDE_CODE_PRACTICES]]
+- [[multi-session-compound-engineering-workflow]]

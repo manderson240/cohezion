@@ -1,28 +1,37 @@
 ---
-title: "ASPI: Evidence of USAF secret stealthy uncrewed electromagnetic attack aircraft (P-AEA)"
+title: 'ASPI: Evidence of USAF secret stealthy uncrewed electromagnetic attack aircraft
+  (P-AEA)'
 date: 2026-02-07
-tags: [ai]
-connectivity: 0.00
+tags:
+- ai
+connectivity: 0.0
 cross_domain: 0.12
-completion: 1.00
-temporal: 1.00
-recency: 1.00
+completion: 1.0
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 3/3 sections (100%)
-conceptual_depth: 0.50
+conceptual_depth: 0.5
 conceptual_label: Balanced
-similar_papers: ["graphitic-polytype-switching-nanocavities", "emu3-multimodal-next-token-prediction", "beyond-the-quantum-pilot-wave-theory", "mars-time-dilation-relativity", "ocean-calcium-climate-mystery-66my"]
-domain: "Military Technology"
-https: //search.app/8xed3"
-source: "Source: The Strategist | ASPI's analysis and commentary site
+similar_papers:
+- graphitic-polytype-switching-nanocavities
+- emu3-multimodal-next-token-prediction
+- beyond-the-quantum-pilot-wave-theory
+- mars-time-dilation-relativity
+- ocean-calcium-climate-mystery-66my
+domain: Military Technology
+source: 'Source: The Strategist | ASPI''s analysis and commentary site'
 dimensions:
-  connectivity: 0.000
+  connectivity: 0.0
   cross_domain: 1
   completion: 100
-  temporal: 0.500
-  recency: 0.700
-  conceptual_depth: 0.000
-
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 0.0
+  algorithm_complexity: 0.5
+  implementation_difficulty: 1
+  interdisciplinary_transfer: 0.3
+  impact_score: 0.16
 ---
 ## Abstract
 
@@ -57,3 +66,21 @@ general
 ## Relevance to Cohezion
 
 Military Technology resource captured via mobile link pipeline. general
+
+## Related
+
+- [[service-class-singleton-pattern]]
+- [[PRIME_CLAUDE_CODE_PRACTICES]]
+- [[multi-session-compound-engineering-workflow]]
+- [[compound-async-executor-pattern]]
+
+## Related Concepts
+
+- [[anthropic-disempowerment-patterns]]
+- [[mit-quantum-computing-progress]]
+- [[mistral-open-source-ai-strategy]]
+- [[few-shot-prompting-agentic-coding]]
+- [[karpathy-claude-code-skills]]
+- [[openai-applied-compute-startup]]
+- [[claude-code-swiftui-skill-patterns]]
+- [[claude-code-community-skills]]

@@ -411,3 +411,14 @@ All of the following must pass:
 **Dependency**: Step 2 completion (integration-engineer)
 
 [[Phase 1 Implementation]], [[Query Testing]], [[SurrealDB]]
+
+## Related Concepts
+
+- [[2026-02-11-phase1-completion-summary]]
+- [[2026-02-11-phase1-execution-status]]
+- [[2026-02-13-phase-2-execution-strategy-wave-2]]
+- [[2026-02-14-phase-7-implementation-ready]]
+- [[2026-02-14-phase-4-implementation-progress]]
+- [[2026-02-12-phase2-prioritization-decision]]
+- [[2026-02-11-phase1-step1-schema-complete]]
+- [[surrealdb-agent-context-phase1-step3-query-testing]]
