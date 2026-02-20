@@ -1,0 +1,121 @@
+{
+  "session_id": "session_1771220602",
+  "records": [
+    {
+      "timestamp": "2026-02-16T00:43:22.599122",
+      "model": "gemini-3-pro",
+      "agent": "verifier",
+      "task_type": "verification",
+      "input_tokens": 100,
+      "output_tokens": 50,
+      "total_tokens": 150,
+      "cost_usd": 0.0014999999999999998,
+      "session_id": "session_1771220602"
+    },
+    {
+      "timestamp": "2026-02-16T00:43:22.599133",
+      "model": "gemini-3-pro",
+      "agent": "verifier",
+      "task_type": "verification",
+      "input_tokens": 200,
+      "output_tokens": 100,
+      "total_tokens": 300,
+      "cost_usd": 0.0029999999999999996,
+      "session_id": "session_1771220602"
+    },
+    {
+      "timestamp": "2026-02-16T00:43:22.599137",
+      "model": "gemini-3-pro",
+      "agent": "verifier",
+      "task_type": "verification",
+      "input_tokens": 300,
+      "output_tokens": 150,
+      "total_tokens": 450,
+      "cost_usd": 0.0045,
+      "session_id": "session_1771220602"
+    },
+    {
+      "timestamp": "2026-02-16T00:43:22.599139",
+      "model": "gemini-3-pro",
+      "agent": "verifier",
+      "task_type": "verification",
+      "input_tokens": 400,
+      "output_tokens": 200,
+      "total_tokens": 600,
+      "cost_usd": 0.005999999999999999,
+      "session_id": "session_1771220602"
+    },
+    {
+      "timestamp": "2026-02-16T00:43:22.599141",
+      "model": "gemini-3-pro",
+      "agent": "verifier",
+      "task_type": "verification",
+      "input_tokens": 500,
+      "output_tokens": 250,
+      "total_tokens": 750,
+      "cost_usd": 0.0075,
+      "session_id": "session_1771220602"
+    },
+    {
+      "timestamp": "2026-02-16T00:43:22.599142",
+      "model": "gemini-3-pro",
+      "agent": "verifier",
+      "task_type": "verification",
+      "input_tokens": 600,
+      "output_tokens": 300,
+      "total_tokens": 900,
+      "cost_usd": 0.009,
+      "session_id": "session_1771220602"
+    },
+    {
+      "timestamp": "2026-02-16T00:43:22.599144",
+      "model": "gemini-3-pro",
+      "agent": "verifier",
+      "task_type": "verification",
+      "input_tokens": 700,
+      "output_tokens": 350,
+      "total_tokens": 1050,
+      "cost_usd": 0.010499999999999999,
+      "session_id": "session_1771220602"
+    },
+    {
+      "timestamp": "2026-02-16T00:43:22.599145",
+      "model": "gemini-3-pro",
+      "agent": "verifier",
+      "task_type": "verification",
+      "input_tokens": 800,
+      "output_tokens": 400,
+      "total_tokens": 1200,
+      "cost_usd": 0.011999999999999999,
+      "session_id": "session_1771220602"
+    },
+    {
+      "timestamp": "2026-02-16T00:43:22.599146",
+      "model": "gemini-3-pro",
+      "agent": "verifier",
+      "task_type": "verification",
+      "input_tokens": 900,
+      "output_tokens": 450,
+      "total_tokens": 1350,
+      "cost_usd": 0.013500000000000002,
+      "session_id": "session_1771220602"
+    },
+    {
+      "timestamp": "2026-02-16T00:43:22.599147",
+      "model": "gemini-3-pro",
+      "agent": "verifier",
+      "task_type": "verification",
+      "input_tokens": 1000,
+      "output_tokens": 500,
+      "total_tokens": 1500,
+      "cost_usd": 0.015,
+      "session_id": "session_1771220602"
+    }
+  ],
+  "summary": {
+    "total_tokens": 8250.0,
+    "total_cost_usd": 0.08249999999999999,
+    "last_updated": "2026-02-16T00:43:22.640184",
+    "call_count": 10
+  }
+}

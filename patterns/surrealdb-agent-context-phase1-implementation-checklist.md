@@ -444,3 +444,10 @@ Once Phase 1 complete and approved:
 - **Schema**: `patterns/surrealdb-agent-context-schema.md`
 - **Query Guide**: `patterns/surrealdb-agent-context-visual-guide.md`
 - **Quick Reference**: `patterns/surrealdb-agent-context-quick-reference.md`
+
+## Related
+
+- [[surrealdb-agent-context-visual-guide]]
+- [[surrealdb-agent-context-quick-reference]]
+- [[surrealdb-agent-context-schema]]
+- [[2026-02-11-phase-1-agent-context-schema-complete]]

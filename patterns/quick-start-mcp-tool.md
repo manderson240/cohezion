@@ -211,3 +211,10 @@ Pattern reuse compounds: every feature gets faster.
 ---
 
 **Pro tip**: Bookmark this guide. Copy it for every new MCP tool.
+
+## Related
+
+- [[claude-code-swiftui-skill-patterns]]
+- [[transcranial-ultrasound-consciousness]]
+- [[prime-skill-quick-reference]]
+- [[mcp-tool-scaffold-pattern]]

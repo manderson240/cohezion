@@ -1,7 +1,7 @@
 ---
 title: Cosmic Strings as Potential Time Travel Mechanism
 date: 2026-02-07
-tags: 
+tags: null
 connectivity: 0.13
 cross_domain: 0.62
 completion: 0.67
@@ -9,19 +9,27 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
-conceptual_depth: 0.50
+conceptual_depth: 0.5
 conceptual_label: Balanced
-similar_papers: ["testing-agent-skills-with-evals", "artificial-photosynthesis-living-energy", "helimagnetism-ferromagnetism-mode-locking", "tonggeometry-olympiad-tree-search", "anthropic-disempowerment-patterns"]
+similar_papers:
+- testing-agent-skills-with-evals
+- artificial-photosynthesis-living-energy
+- helimagnetism-ferromagnetism-mode-locking
+- tonggeometry-olympiad-tree-search
+- anthropic-disempowerment-patterns
 dim_conceptual_depth: 0.5
 source: https://www.popularmechanics.com/space/a70113242/time-travel-cosmic-strings/
 dimensions:
-  connectivity: 0.100
+  connectivity: 0.1
   cross_domain: 0
   completion: 100
-  temporal: 0.500
-  recency: 0.700
-  conceptual_depth: 0.000
-
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 0.0
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 0.0
+  impact_score: 0.158
 ---
 # Cosmic Strings and Time Travel
 

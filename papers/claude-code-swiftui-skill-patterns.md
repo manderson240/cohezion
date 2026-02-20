@@ -1,28 +1,38 @@
 ---
-title: "SwiftUI-Agent-Skill: AI coding tool best practices and patterns for Claude Code skills"
+title: 'SwiftUI-Agent-Skill: AI coding tool best practices and patterns for Claude
+  Code skills'
 date: 2026-02-07
-tags: [ai, software-engineering]
+tags:
+- ai
+- software-engineering
 connectivity: 0.07
 cross_domain: 0.25
-completion: 1.00
-temporal: 1.00
-recency: 1.00
+completion: 1.0
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 3/3 sections (100%)
-conceptual_depth: 0.00
+conceptual_depth: 0.0
 conceptual_label: Pure Applied
-similar_papers: ["operational-data-ai-agents", "fast-radio-bursts-binary-star-origin", "humanitys-last-exam-benchmark", "jwst-dark-matter-map", "anthropic-principle-fine-tuning"]
-domain: "Software Engineering"
-https: //search.app/9Eo6H"
-source: "Source: GitHub
+similar_papers:
+- operational-data-ai-agents
+- fast-radio-bursts-binary-star-origin
+- humanitys-last-exam-benchmark
+- jwst-dark-matter-map
+- anthropic-principle-fine-tuning
+domain: Software Engineering
+source: 'Source: GitHub'
 dimensions:
-  connectivity: 0.050
+  connectivity: 0.05
   cross_domain: 2
   completion: 100
-  temporal: 0.500
-  recency: 0.700
-  conceptual_depth: 0.600
-
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 0.6
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 0.5
+  impact_score: 0.082
 ---
 ## Abstract
 

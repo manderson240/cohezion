@@ -187,3 +187,10 @@
 
 **Last Updated**: Session 53 (2026-02-10)
 **Validated by**: Session 53 Kyutai Pocket TTS (11 tests, 1.62s, 90% savings)
+
+## Related
+
+- [[2026-02-11-session-55-git-aggressive-gc-doesnt-consolidate-packs-manual-repack-forced]]
+- [[2026-02-13-phase-2-execution-strategy-wave-2]]
+- [[2026-02-09-ollama-context-management]]
+- [[2026-02-14-compound-engineering-team-execution-retrospective]]

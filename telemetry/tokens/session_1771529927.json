@@ -1,0 +1,231 @@
+{
+  "session_id": "session_1771529927",
+  "records": [
+    {
+      "timestamp": "2026-02-19T14:38:47.945640",
+      "model": "gpt-oss-256k:latest",
+      "agent": "unknown",
+      "task_type": "general",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "cost_usd": 0.0,
+      "session_id": "session_1771529927"
+    },
+    {
+      "timestamp": "2026-02-19T14:38:48.144698",
+      "model": "gpt-oss-256k:latest",
+      "agent": "unknown",
+      "task_type": "general",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "cost_usd": 0.0,
+      "session_id": "session_1771529927"
+    },
+    {
+      "timestamp": "2026-02-19T14:38:48.323549",
+      "model": "gpt-oss-256k:latest",
+      "agent": "unknown",
+      "task_type": "general",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "cost_usd": 0.0,
+      "session_id": "session_1771529927"
+    },
+    {
+      "timestamp": "2026-02-19T14:38:48.509657",
+      "model": "gpt-oss-256k:latest",
+      "agent": "unknown",
+      "task_type": "general",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "cost_usd": 0.0,
+      "session_id": "session_1771529927"
+    },
+    {
+      "timestamp": "2026-02-19T14:38:48.692930",
+      "model": "gpt-oss-256k:latest",
+      "agent": "unknown",
+      "task_type": "general",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "cost_usd": 0.0,
+      "session_id": "session_1771529927"
+    },
+    {
+      "timestamp": "2026-02-19T14:38:48.883495",
+      "model": "gpt-oss-256k:latest",
+      "agent": "unknown",
+      "task_type": "general",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "cost_usd": 0.0,
+      "session_id": "session_1771529927"
+    },
+    {
+      "timestamp": "2026-02-19T14:38:49.063501",
+      "model": "gpt-oss-256k:latest",
+      "agent": "unknown",
+      "task_type": "general",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "cost_usd": 0.0,
+      "session_id": "session_1771529927"
+    },
+    {
+      "timestamp": "2026-02-19T14:38:49.244335",
+      "model": "gpt-oss-256k:latest",
+      "agent": "unknown",
+      "task_type": "general",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "cost_usd": 0.0,
+      "session_id": "session_1771529927"
+    },
+    {
+      "timestamp": "2026-02-19T14:38:49.421730",
+      "model": "gpt-oss-256k:latest",
+      "agent": "unknown",
+      "task_type": "general",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "cost_usd": 0.0,
+      "session_id": "session_1771529927"
+    },
+    {
+      "timestamp": "2026-02-19T14:38:49.602987",
+      "model": "gpt-oss-256k:latest",
+      "agent": "unknown",
+      "task_type": "general",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "cost_usd": 0.0,
+      "session_id": "session_1771529927"
+    },
+    {
+      "timestamp": "2026-02-19T14:38:49.784787",
+      "model": "gpt-oss-256k:latest",
+      "agent": "unknown",
+      "task_type": "general",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "cost_usd": 0.0,
+      "session_id": "session_1771529927"
+    },
+    {
+      "timestamp": "2026-02-19T14:38:49.960233",
+      "model": "gpt-oss-256k:latest",
+      "agent": "unknown",
+      "task_type": "general",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "cost_usd": 0.0,
+      "session_id": "session_1771529927"
+    },
+    {
+      "timestamp": "2026-02-19T14:38:50.132724",
+      "model": "gpt-oss-256k:latest",
+      "agent": "unknown",
+      "task_type": "general",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "cost_usd": 0.0,
+      "session_id": "session_1771529927"
+    },
+    {
+      "timestamp": "2026-02-19T14:38:50.307301",
+      "model": "gpt-oss-256k:latest",
+      "agent": "unknown",
+      "task_type": "general",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "cost_usd": 0.0,
+      "session_id": "session_1771529927"
+    },
+    {
+      "timestamp": "2026-02-19T14:38:50.482330",
+      "model": "gpt-oss-256k:latest",
+      "agent": "unknown",
+      "task_type": "general",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "cost_usd": 0.0,
+      "session_id": "session_1771529927"
+    },
+    {
+      "timestamp": "2026-02-19T14:38:50.658110",
+      "model": "gpt-oss-256k:latest",
+      "agent": "unknown",
+      "task_type": "general",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "cost_usd": 0.0,
+      "session_id": "session_1771529927"
+    },
+    {
+      "timestamp": "2026-02-19T14:38:50.828344",
+      "model": "gpt-oss-256k:latest",
+      "agent": "unknown",
+      "task_type": "general",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "cost_usd": 0.0,
+      "session_id": "session_1771529927"
+    },
+    {
+      "timestamp": "2026-02-19T14:38:51.001443",
+      "model": "gpt-oss-256k:latest",
+      "agent": "unknown",
+      "task_type": "general",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "cost_usd": 0.0,
+      "session_id": "session_1771529927"
+    },
+    {
+      "timestamp": "2026-02-19T14:38:51.175854",
+      "model": "gpt-oss-256k:latest",
+      "agent": "unknown",
+      "task_type": "general",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "cost_usd": 0.0,
+      "session_id": "session_1771529927"
+    },
+    {
+      "timestamp": "2026-02-19T14:38:51.349009",
+      "model": "gpt-oss-256k:latest",
+      "agent": "unknown",
+      "task_type": "general",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "cost_usd": 0.0,
+      "session_id": "session_1771529927"
+    }
+  ],
+  "summary": {
+    "total_tokens": 0.0,
+    "total_cost_usd": 0.0,
+    "last_updated": "2026-02-19T14:38:51.352793",
+    "call_count": 20
+  }
+}

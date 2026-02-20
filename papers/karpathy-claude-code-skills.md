@@ -1,28 +1,36 @@
 ---
-title: "Andrej Karpathy's curated Claude Code skills for AI-assisted development workflows"
+title: Andrej Karpathy's curated Claude Code skills for AI-assisted development workflows
 date: 2026-02-07
-tags: [ai]
+tags:
+- ai
 connectivity: 0.07
 cross_domain: 0.12
-completion: 1.00
-temporal: 1.00
-recency: 1.00
+completion: 1.0
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 3/3 sections (100%)
-conceptual_depth: 0.50
+conceptual_depth: 0.5
 conceptual_label: Balanced
-similar_papers: ["mit-quantum-computing-progress", "quantum-atomic-light-synchronization", "brain-protein-neurodegeneration", "fast-radio-bursts-binary-star-origin", "humanoid-robots-space-launch"]
-domain: "AI Development Tools"
-https: //search.app/YP4f5"
-source: "Source: GitHub
+similar_papers:
+- mit-quantum-computing-progress
+- quantum-atomic-light-synchronization
+- brain-protein-neurodegeneration
+- fast-radio-bursts-binary-star-origin
+- humanoid-robots-space-launch
+domain: AI Development Tools
+source: 'Source: GitHub'
 dimensions:
-  connectivity: 0.050
+  connectivity: 0.05
   cross_domain: 1
   completion: 100
-  temporal: 0.500
-  recency: 0.700
-  conceptual_depth: 0.000
-
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 0.0
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.333
+  interdisciplinary_transfer: 0.25
+  impact_score: 0.082
 ---
 ## Abstract
 

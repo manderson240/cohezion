@@ -1,0 +1,231 @@
+{
+  "session_id": "session_1771361049",
+  "records": [
+    {
+      "timestamp": "2026-02-17T15:44:09.310299",
+      "model": "phi3:mini",
+      "agent": "unknown",
+      "task_type": "stress_test",
+      "input_tokens": 100,
+      "output_tokens": 100,
+      "total_tokens": 200,
+      "cost_usd": 0.0,
+      "session_id": "session_1771361049"
+    },
+    {
+      "timestamp": "2026-02-17T15:44:09.310319",
+      "model": "phi3:mini",
+      "agent": "unknown",
+      "task_type": "stress_test",
+      "input_tokens": 100,
+      "output_tokens": 100,
+      "total_tokens": 200,
+      "cost_usd": 0.0,
+      "session_id": "session_1771361049"
+    },
+    {
+      "timestamp": "2026-02-17T15:44:09.310323",
+      "model": "phi3:mini",
+      "agent": "unknown",
+      "task_type": "stress_test",
+      "input_tokens": 100,
+      "output_tokens": 100,
+      "total_tokens": 200,
+      "cost_usd": 0.0,
+      "session_id": "session_1771361049"
+    },
+    {
+      "timestamp": "2026-02-17T15:44:09.310325",
+      "model": "phi3:mini",
+      "agent": "unknown",
+      "task_type": "stress_test",
+      "input_tokens": 100,
+      "output_tokens": 100,
+      "total_tokens": 200,
+      "cost_usd": 0.0,
+      "session_id": "session_1771361049"
+    },
+    {
+      "timestamp": "2026-02-17T15:44:09.310327",
+      "model": "phi3:mini",
+      "agent": "unknown",
+      "task_type": "stress_test",
+      "input_tokens": 100,
+      "output_tokens": 100,
+      "total_tokens": 200,
+      "cost_usd": 0.0,
+      "session_id": "session_1771361049"
+    },
+    {
+      "timestamp": "2026-02-17T15:44:09.310328",
+      "model": "phi3:mini",
+      "agent": "unknown",
+      "task_type": "stress_test",
+      "input_tokens": 100,
+      "output_tokens": 100,
+      "total_tokens": 200,
+      "cost_usd": 0.0,
+      "session_id": "session_1771361049"
+    },
+    {
+      "timestamp": "2026-02-17T15:44:09.310329",
+      "model": "phi3:mini",
+      "agent": "unknown",
+      "task_type": "stress_test",
+      "input_tokens": 100,
+      "output_tokens": 100,
+      "total_tokens": 200,
+      "cost_usd": 0.0,
+      "session_id": "session_1771361049"
+    },
+    {
+      "timestamp": "2026-02-17T15:44:09.310330",
+      "model": "phi3:mini",
+      "agent": "unknown",
+      "task_type": "stress_test",
+      "input_tokens": 100,
+      "output_tokens": 100,
+      "total_tokens": 200,
+      "cost_usd": 0.0,
+      "session_id": "session_1771361049"
+    },
+    {
+      "timestamp": "2026-02-17T15:44:09.310332",
+      "model": "phi3:mini",
+      "agent": "unknown",
+      "task_type": "stress_test",
+      "input_tokens": 100,
+      "output_tokens": 100,
+      "total_tokens": 200,
+      "cost_usd": 0.0,
+      "session_id": "session_1771361049"
+    },
+    {
+      "timestamp": "2026-02-17T15:44:09.310333",
+      "model": "phi3:mini",
+      "agent": "unknown",
+      "task_type": "stress_test",
+      "input_tokens": 100,
+      "output_tokens": 100,
+      "total_tokens": 200,
+      "cost_usd": 0.0,
+      "session_id": "session_1771361049"
+    },
+    {
+      "timestamp": "2026-02-17T15:44:09.370371",
+      "model": "phi3:mini",
+      "agent": "unknown",
+      "task_type": "stress_test",
+      "input_tokens": 100,
+      "output_tokens": 100,
+      "total_tokens": 200,
+      "cost_usd": 0.0,
+      "session_id": "session_1771361049"
+    },
+    {
+      "timestamp": "2026-02-17T15:44:09.370383",
+      "model": "phi3:mini",
+      "agent": "unknown",
+      "task_type": "stress_test",
+      "input_tokens": 100,
+      "output_tokens": 100,
+      "total_tokens": 200,
+      "cost_usd": 0.0,
+      "session_id": "session_1771361049"
+    },
+    {
+      "timestamp": "2026-02-17T15:44:09.370386",
+      "model": "phi3:mini",
+      "agent": "unknown",
+      "task_type": "stress_test",
+      "input_tokens": 100,
+      "output_tokens": 100,
+      "total_tokens": 200,
+      "cost_usd": 0.0,
+      "session_id": "session_1771361049"
+    },
+    {
+      "timestamp": "2026-02-17T15:44:09.370387",
+      "model": "phi3:mini",
+      "agent": "unknown",
+      "task_type": "stress_test",
+      "input_tokens": 100,
+      "output_tokens": 100,
+      "total_tokens": 200,
+      "cost_usd": 0.0,
+      "session_id": "session_1771361049"
+    },
+    {
+      "timestamp": "2026-02-17T15:44:09.370388",
+      "model": "phi3:mini",
+      "agent": "unknown",
+      "task_type": "stress_test",
+      "input_tokens": 100,
+      "output_tokens": 100,
+      "total_tokens": 200,
+      "cost_usd": 0.0,
+      "session_id": "session_1771361049"
+    },
+    {
+      "timestamp": "2026-02-17T15:44:09.370389",
+      "model": "phi3:mini",
+      "agent": "unknown",
+      "task_type": "stress_test",
+      "input_tokens": 100,
+      "output_tokens": 100,
+      "total_tokens": 200,
+      "cost_usd": 0.0,
+      "session_id": "session_1771361049"
+    },
+    {
+      "timestamp": "2026-02-17T15:44:09.370390",
+      "model": "phi3:mini",
+      "agent": "unknown",
+      "task_type": "stress_test",
+      "input_tokens": 100,
+      "output_tokens": 100,
+      "total_tokens": 200,
+      "cost_usd": 0.0,
+      "session_id": "session_1771361049"
+    },
+    {
+      "timestamp": "2026-02-17T15:44:09.370392",
+      "model": "phi3:mini",
+      "agent": "unknown",
+      "task_type": "stress_test",
+      "input_tokens": 100,
+      "output_tokens": 100,
+      "total_tokens": 200,
+      "cost_usd": 0.0,
+      "session_id": "session_1771361049"
+    },
+    {
+      "timestamp": "2026-02-17T15:44:09.370393",
+      "model": "phi3:mini",
+      "agent": "unknown",
+      "task_type": "stress_test",
+      "input_tokens": 100,
+      "output_tokens": 100,
+      "total_tokens": 200,
+      "cost_usd": 0.0,
+      "session_id": "session_1771361049"
+    },
+    {
+      "timestamp": "2026-02-17T15:44:09.370394",
+      "model": "phi3:mini",
+      "agent": "unknown",
+      "task_type": "stress_test",
+      "input_tokens": 100,
+      "output_tokens": 100,
+      "total_tokens": 200,
+      "cost_usd": 0.0,
+      "session_id": "session_1771361049"
+    }
+  ],
+  "summary": {
+    "total_tokens": 4000.0,
+    "total_cost_usd": 0.0,
+    "last_updated": "2026-02-17T15:44:09.373457",
+    "call_count": 20
+  }
+}

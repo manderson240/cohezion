@@ -1,7 +1,7 @@
 ---
 title: Testing Agent Skills Systematically with Evals
 date: 2026-02-07
-tags: 
+tags: null
 connectivity: 0.2
 cross_domain: 0.62
 completion: 0.67
@@ -9,19 +9,27 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (3/5 links)
 completion_summary: 2/3 sections (66%)
-conceptual_depth: 0.00
+conceptual_depth: 0.0
 conceptual_label: Pure Applied
-similar_papers: ["grok4-ai-benchmarks", "tonggeometry-olympiad-tree-search", "cosmic-strings-time-travel", "super-earth-magnetic-protection-magma", "pairwise-comparison-fiber-bundles"]
+similar_papers:
+- grok4-ai-benchmarks
+- tonggeometry-olympiad-tree-search
+- cosmic-strings-time-travel
+- super-earth-magnetic-protection-magma
+- pairwise-comparison-fiber-bundles
 dim_conceptual_depth: 0.0
 source: https://developers.openai.com/blog/eval-skills/
 dimensions:
-  connectivity: 0.150
+  connectivity: 0.15
   cross_domain: 0
   completion: 100
-  temporal: 0.500
-  recency: 0.700
-  conceptual_depth: 0.800
-
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 0.8
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 0.0
+  impact_score: 0.24
 ---
 # Testing Agent Skills with Evals
 

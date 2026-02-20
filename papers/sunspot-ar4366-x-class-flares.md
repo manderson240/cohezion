@@ -1,28 +1,37 @@
 ---
-title: "Sunspot AR4366: 26 flares in 24hrs including X8"
+title: 'Sunspot AR4366: 26 flares in 24hrs including X8'
 date: 2026-02-07
-tags: [astrophysics, physics]
+tags:
+- astrophysics
+- physics
 connectivity: 0.13
 cross_domain: 0.25
-completion: 1.00
-temporal: 1.00
-recency: 1.00
+completion: 1.0
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 3/3 sections (100%)
-conceptual_depth: 0.50
+conceptual_depth: 0.5
 conceptual_label: Balanced
-similar_papers: ["yann-lecun-agi-world-models", "llm-in-sandbox-agentic-intelligence", "artificial-photosynthesis-living-energy", "comb-jellies-animal-tree-of-life", "protein-tape-recorder-cytotape"]
-domain: "Astrophysics"
-https: //search.app/UbF4P"
-source: "Source: X
+similar_papers:
+- yann-lecun-agi-world-models
+- llm-in-sandbox-agentic-intelligence
+- artificial-photosynthesis-living-energy
+- comb-jellies-animal-tree-of-life
+- protein-tape-recorder-cytotape
+domain: Astrophysics
+source: 'Source: X'
 dimensions:
-  connectivity: 0.100
+  connectivity: 0.1
   cross_domain: 2
   completion: 100
-  temporal: 0.500
-  recency: 0.700
-  conceptual_depth: 0.000
-
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 0.0
+  algorithm_complexity: 0.75
+  implementation_difficulty: 0.65
+  interdisciplinary_transfer: 0.85
+  impact_score: 0.158
 ---
 ## Abstract
 

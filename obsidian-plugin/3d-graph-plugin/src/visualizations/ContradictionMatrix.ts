@@ -15,10 +15,12 @@ import { DecisionContradiction } from '../types/Decision';
  * const modal = new ContradictionMatrix(app, decisionId, contradictions);
  * modal.open();
  */
+type SortColumn = 'severity' | 'challenge_type' | 'lesson_id';
+
 export class ContradictionMatrix extends Modal {
   private decisionId: string;
   private contradictions: DecisionContradiction[];
-  private sortColumn: 'severity' | 'challenge_type' | 'lesson_id' = 'severity';
+  private sortColumn: SortColumn = 'severity';
   private sortAscending: boolean = false;
 
   constructor(app: App, decisionId: string, contradictions: DecisionContradiction[]) {
@@ -108,10 +110,11 @@ export class ContradictionMatrix extends Modal {
 
       // Handle click to sort
       th.onclick = () => {
-        if (this.sortColumn === col.key) {
+        const colKey = col.key as SortColumn;
+        if (this.sortColumn === colKey) {
           this.sortAscending = !this.sortAscending;
         } else {
-          this.sortColumn = col.key as any;
+          this.sortColumn = colKey;
           this.sortAscending = false;
         }
         this.onOpen(); // Refresh
@@ -127,14 +130,14 @@ export class ContradictionMatrix extends Modal {
 
     // Sort contradictions
     const sorted = [...this.contradictions].sort((a, b) => {
-      let aVal: any = a[this.sortColumn as keyof DecisionContradiction];
-      let bVal: any = b[this.sortColumn as keyof DecisionContradiction];
+      let aVal: any = a[this.sortColumn];
+      let bVal: any = b[this.sortColumn];
 
       // Convert to comparable values
       if (this.sortColumn === 'severity') {
-        const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
-        aVal = severityOrder[aVal as any] ?? 999;
-        bVal = severityOrder[bVal as any] ?? 999;
+        const severityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
+        aVal = severityOrder[String(aVal)] ?? 999;
+        bVal = severityOrder[String(bVal)] ?? 999;
       }
 
       if (aVal < bVal) return this.sortAscending ? -1 : 1;

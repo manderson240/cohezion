@@ -337,3 +337,10 @@ In MEMORY.md:
 **Created**: Session 56 (2026-02-12)
 **Status**: ✅ Quick Reference Ready
 **Next**: Use as guide for Tasks #12, #15 skill creation
+
+## Related
+
+- [[2026-02-12-prime-skill-pattern-as-governance-framework]]
+- [[prime-skill-creation-governance-pattern]]
+- [[surrealdb-agent-context-quick-reference]]
+- [[2026-02-12-repository-health-governance-skill-created]]

@@ -205,3 +205,10 @@ record_outcome(session_id, lessons, metrics) → outcome_id
 - **Full spec**: `patterns/surrealdb-agent-context-schema.md`
 - **Visual guide**: `patterns/surrealdb-agent-context-visual-guide.md`
 - **Decision**: `decisions/2026-02-11-surrealdb-agent-context-schema-design.md`
+
+## Related
+
+- [[surrealdb-agent-context-visual-guide]]
+- [[surrealdb-agent-context-phase1-implementation-checklist]]
+- [[surrealdb-agent-context-schema]]
+- [[2026-02-11-surrealdb-agent-context-schema-design]]

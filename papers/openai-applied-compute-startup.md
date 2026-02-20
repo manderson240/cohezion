@@ -1,28 +1,37 @@
 ---
-title: "Ex-OpenAI Applied Compute raising at $1"
+title: Ex-OpenAI Applied Compute raising at $1
 date: 2026-02-07
-tags: [ai, computing]
+tags:
+- ai
+- computing
 connectivity: 0.07
 cross_domain: 0.25
-completion: 1.00
-temporal: 1.00
-recency: 1.00
+completion: 1.0
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 3/3 sections (100%)
-conceptual_depth: 0.50
+conceptual_depth: 0.5
 conceptual_label: Balanced
-similar_papers: ["claude-code-community-skills", "grok4-ai-benchmarks", "helimagnetism-ferromagnetism-mode-locking", "agentic-ai-memory-hierarchies", "circleci-ai-cicd-validation"]
-domain: "AI Industry"
-https: //search.app/wQEn8"
-source: "Source: The Information
+similar_papers:
+- claude-code-community-skills
+- grok4-ai-benchmarks
+- helimagnetism-ferromagnetism-mode-locking
+- agentic-ai-memory-hierarchies
+- circleci-ai-cicd-validation
+domain: AI Industry
+source: 'Source: The Information'
 dimensions:
-  connectivity: 0.050
+  connectivity: 0.05
   cross_domain: 2
   completion: 100
-  temporal: 0.500
-  recency: 0.700
+  temporal: 0.5
+  recency: 0.7
   conceptual_depth: 0.333
-
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 0.5
+  impact_score: 0.082
 ---
 ## Abstract
 

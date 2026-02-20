@@ -74,3 +74,10 @@ metrics:
 ### Actual (Post-Implementation)
 
 ## Related Decisions & Lessons
+
+## Related
+
+- [[mini-adversarial-review-checkpoints]]
+- [[lesson-adversarial-review-before-execution]]
+- [[2026-02-14-session-58-7-phase-journey-enrichment-3-agent-adversarial-review]]
+- [[sheetsbr idge-mcp-testing]]

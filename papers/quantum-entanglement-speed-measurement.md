@@ -1,7 +1,7 @@
 ---
 title: Unprecedented Measurement Reveals Quantum Entanglement Speed
 date: 2026-02-07
-tags: 
+tags: null
 connectivity: 0.13
 cross_domain: 0.5
 completion: 0.67
@@ -9,19 +9,27 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
-conceptual_depth: 1.00
+conceptual_depth: 1.0
 conceptual_label: Pure Theory
-similar_papers: ["nebuchadnezzar-babylonian-texts", "rethinking-exoplanet-habitability", "2026-02-09-unique-investment-opportunities-research", "artemis-ii-laser-comms", "international-year-quantum-2025"]
+similar_papers:
+- nebuchadnezzar-babylonian-texts
+- rethinking-exoplanet-habitability
+- 2026-02-09-unique-investment-opportunities-research
+- artemis-ii-laser-comms
+- international-year-quantum-2025
 dim_conceptual_depth: 1.0
 source: https://cursus.edu/en/35347/unprecedented-measurement-reveals-quantum-speed-beyond-human-understanding
 dimensions:
-  connectivity: 0.100
+  connectivity: 0.1
   cross_domain: 0
   completion: 100
-  temporal: 0.500
-  recency: 0.700
+  temporal: 0.5
+  recency: 0.7
   conceptual_depth: 0.667
-
+  algorithm_complexity: 0.25
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 0.0
+  impact_score: 0.158
 ---
 # Quantum Entanglement Speed Measurement
 

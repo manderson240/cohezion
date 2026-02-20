@@ -1,28 +1,37 @@
 ---
-title: "Comb jellies confirmed as first branch on animal tree of life, rewriting early evolution"
+title: Comb jellies confirmed as first branch on animal tree of life, rewriting early
+  evolution
 date: 2026-02-07
-tags: [biology]
-connectivity: 0.00
+tags:
+- biology
+connectivity: 0.0
 cross_domain: 0.12
-completion: 1.00
-temporal: 1.00
-recency: 1.00
+completion: 1.0
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 3/3 sections (100%)
-conceptual_depth: 0.50
+conceptual_depth: 0.5
 conceptual_label: Balanced
-similar_papers: ["cisa-chatgpt-data-leak", "grok4-ai-benchmarks", "operational-data-ai-agents", "optofluidic-3d-nanofabrication", "anthropic-mcp-apps-claude-integrations"]
-domain: "Evolutionary Biology"
-https: //search.app/wXgj4"
-source: "Source: Popular Mechanics
+similar_papers:
+- cisa-chatgpt-data-leak
+- grok4-ai-benchmarks
+- operational-data-ai-agents
+- optofluidic-3d-nanofabrication
+- anthropic-mcp-apps-claude-integrations
+domain: Evolutionary Biology
+source: 'Source: Popular Mechanics'
 dimensions:
-  connectivity: 0.000
+  connectivity: 0.0
   cross_domain: 1
   completion: 100
-  temporal: 0.500
-  recency: 0.700
-  conceptual_depth: 0.500
-
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 0.5
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 0.25
+  impact_score: 0.16
 ---
 ## Abstract
 
@@ -56,3 +65,10 @@ general
 ## Relevance to Cohezion
 
 Evolutionary Biology resource captured via mobile link pipeline. general
+
+## Related
+
+- [[integration-first-definition-of-done]]
+- [[implementation-first-infrastructure-later]]
+- [[early-universe-cosmology]]
+- [[2026-02-11-vault-first-knowledge-architecture]]

@@ -1,7 +1,7 @@
 ---
 title: FAST Telescope Traces Fast Radio Bursts to Binary Star Systems
 date: 2026-02-07
-tags: 
+tags: null
 connectivity: 0.13
 cross_domain: 0.62
 completion: 0.67
@@ -9,19 +9,27 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
-conceptual_depth: 0.00
+conceptual_depth: 0.0
 conceptual_label: Pure Applied
-similar_papers: ["claude-code-swiftui-skill-patterns", "operational-data-ai-agents", "emu3-multimodal-next-token-prediction", "few-shot-prompting-agentic-coding", "karpathy-claude-code-skills"]
+similar_papers:
+- claude-code-swiftui-skill-patterns
+- operational-data-ai-agents
+- emu3-multimodal-next-token-prediction
+- few-shot-prompting-agentic-coding
+- karpathy-claude-code-skills
 dim_conceptual_depth: 0.0
 source: https://www.universetoday.com/articles/the-china-sky-eye-traces-fast-radio-bursts-to-a-binary-star-system
 dimensions:
-  connectivity: 0.100
+  connectivity: 0.1
   cross_domain: 0
   completion: 100
-  temporal: 0.500
-  recency: 0.700
-  conceptual_depth: 0.000
-
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 0.0
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 0.0
+  impact_score: 0.158
 ---
 # Fast Radio Bursts Traced to Binary Star Systems
 

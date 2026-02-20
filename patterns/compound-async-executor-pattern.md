@@ -263,3 +263,10 @@ Phase 7 Features
 **Pattern Status**: Ready for Phase 7 implementation
 **Validation**: 5+ sessions of working code backing this pattern
 **ROI**: 60% faster Phase 7, plus meta-learning feedback loop
+
+## Related
+
+- [[2026-02-10-phase-7-executor-pattern-launch]]
+- [[2026-02-14-compound-engineering-team-execution-retrospective]]
+- [[2026-02-10-compound-linking-plan-adversarial-review]]
+- [[2026-02-10-claude-log-mining-architecture]]
