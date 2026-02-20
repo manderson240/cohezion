@@ -1,0 +1,2213 @@
+# /spec - Unified Spec-Driven Development
+
+**For new features, major changes, and complex work.** Creates a spec, gets your approval, implements with TDD, and verifies completion - all in one continuous flow.
+
+This command is a **dispatcher** that determines which phase to run and invokes it via `Skill()`.
+
+## ⛔ MANDATORY: /spec = Workflow. No Exceptions.
+
+**When `/spec` is invoked, you MUST follow the spec workflow exactly. The user's phrasing after `/spec` is the TASK DESCRIPTION — it is NOT an instruction to change the workflow.**
+
+- `/spec brainstorm a caching layer` → task_description = "brainstorm a caching layer" → invoke `Skill('spec-plan')` with that description
+- `/spec let's discuss auth options` → task_description = "let's discuss auth options" → invoke `Skill('spec-plan')` with that description
+- `/spec explore and plan a new feature` → task_description = "explore and plan a new feature" → invoke `Skill('spec-plan')` with that description
+
+**Words like "brainstorm", "discuss", "explore", "think about" are part of the task description, NOT instructions to skip the workflow.** The spec-plan phase handles all exploration, discussion, and brainstorming within its structured flow.
+
+**NEVER interpret `/spec` arguments as a reason to have a freeform conversation instead of invoking the phase skill.**
+
+---
+
+## 📋 WORKFLOW OVERVIEW
+
+```
+/spec → Dispatcher → Skill('spec-plan')    → Plan, verify, approve
+                   → Skill('spec-implement') → TDD loop for each task
+                   → Skill('spec-verify')    → Tests, execution, code review
+```
+
+| Phase              | Skill            | What Happens                                     |
+| ------------------ | ---------------- | ------------------------------------------------ |
+| **Planning**       | `spec-plan`      | Explore → Design → Write plan → Verify → Approve |
+| **Implementation** | `spec-implement` | TDD loop for each task                           |
+| **Verification**   | `spec-verify`    | Tests → Execution → Rules → Code Review → E2E    |
+
+### Status-Based Flow
+
+```
+PENDING (Not Approved) → spec-plan    → User approves
+PENDING (Approved)     → spec-implement → All tasks done → COMPLETE
+COMPLETE               → spec-verify   → All checks pass → VERIFIED
+VERIFIED               → Done!
+```
+
+### The Feedback Loop
+
+```
+spec-verify finds issues → Status: PENDING → spec-implement fixes → COMPLETE → spec-verify → ... → VERIFIED
+```
+
+---
+
+## 0.1 Parse Arguments
+
+```
+/spec <task-description>           # Start new workflow from task
+/spec <path/to/plan.md>            # Continue existing plan
+/spec --continue <path/to/plan.md> # Resume after session clear
+```
+
+Parse the arguments: integrate the following knowledge When working with Claude on coding projects, context management is crucial. Your project might have dozens or hundreds of files, but Claude only needs the right information to help you effectively. Too much irrelevant context actually decreases Claude's performance, so learning to guide it toward relevant files and documentation is essential.
+
+
+
+The /init Command
+When you first start Claude in a new project, run the /init command. This tells Claude to analyze your entire codebase and understand:
+
+The project's purpose and architecture
+Important commands and critical files
+Coding patterns and structure
+
+
+After analyzing your code, Claude creates a summary and writes it to a CLAUDE.md file. When Claude asks for permission to create this file, you can either hit Enter to approve each write operation, or press Shift+Tab to let Claude write files freely throughout your session.
+
+The CLAUDE.md File
+The CLAUDE.md file serves two main purposes:
+
+Guides Claude through your codebase, pointing out important commands, architecture, and coding style
+Allows you to give Claude specific or custom directions
+This file gets included in every request you make to Claude, so it's like having a persistent system prompt for your project.
+
+CLAUDE.md File Locations
+Claude recognizes three different CLAUDE.md files in three common locations:
+
+
+
+CLAUDE.md - Generated with /init, committed to source control, shared with other engineers
+CLAUDE.local.md - Not shared with other engineers, contains personal instructions and customizations for Claude
+~/.claude/CLAUDE.md - Used with all projects on your machine, contains instructions that you want Claude to follow on all projects
+Adding Custom Instructions
+You can customize how Claude behaves by adding instructions to your CLAUDE.md file. For example, if Claude is adding too many comments to code, you can address this by updating the file.
+
+Use the # command to enter "memory mode" - this lets you edit your CLAUDE.md files intelligently. Just type something like:
+
+# Use comments sparingly. Only comment complex code.
+Claude will merge this instruction into your CLAUDE.md file automatically.
+
+File Mentions with '@'
+When you need Claude to look at specific files, use the @ symbol followed by the file path. This automatically includes that file's contents in your request to Claude.
+
+For example, if you want to ask about your authentication system and you know the relevant files, you can type:
+
+How does the auth system work? @auth
+Claude will show you a list of auth-related files to choose from, then include the selected file in your conversation.
+
+Referencing Files in CLAUDE.md
+You can also mention files directly in your CLAUDE.md file using the same @ syntax. This is particularly useful for files that are relevant to many aspects of your project.
+
+For example, if you have a database schema file that defines your data structure, you might add this to your CLAUDE.md:
+
+The database schema is defined in the @prisma/schema.prisma file. Reference it anytime you need to understand the structure of data stored in the database.
+When you mention a file this way, its contents are automatically included in every request, so Claude can answer questions about your data structure immediately without having to search for and read the schema file each time.
+
+### Determine Current State
+
+```
+IF arguments start with "--continue":
+    plan_path = extract path after "--continue"
+    1. Read ~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md if it exists
+    2. Delete the continuation file after reading
+    3. Read plan file, check Status AND Approved fields
+    → Dispatch to appropriate phase based on status
+
+ELIF arguments end with ".md" AND file exists:
+    plan_path = arguments
+    → Read plan file, check Status AND Approved fields
+    → Dispatch to appropriate phase based on status
+
+ELSE:
+    task_description = arguments  # ALWAYS treated as task description, regardless of phrasing
+    → Ask worktree question FIRST (see Section 0.1.1 below)
+    → Invoke planning phase with worktree choice: Skill(skill='spec-plan', args='<task_description> --worktree=yes|no')
+    # NEVER have a freeform conversation instead. ALWAYS invoke the Skill.
+```
+
+### 0.1.1 Worktree Question (New Plans Only)
+
+**Before invoking `spec-plan` for a NEW plan, ask the user about worktree isolation:**
+
+```
+AskUserQuestion:
+  question: "Use git worktree isolation for this spec?"
+  header: "Worktree"
+  options:
+    - "Yes" - Isolate work on a dedicated branch; safe to experiment, easy to discard or squash merge
+    - "No" - Work directly on the current branch without worktree isolation
+```
+
+**Append the choice to the spec-plan args:** `Skill(skill='spec-plan', args='<task_description> --worktree=yes')` or `--worktree=no`.
+
+**This question is ONLY asked for new plans.** When continuing an existing plan (`--continue` or `.md` path), the `Worktree:` field is already set in the plan header.
+
+**After reading the plan file, register the plan association (non-blocking):**
+
+```bash
+~/.pilot/bin/pilot register-plan "<plan_path>" "<status>" 2>/dev/null || true
+```
+
+This tells Console which session is working on which plan. Failure is silently ignored.
+
+## 0.2 Status-Based Dispatch
+
+Read the plan file and dispatch based on Status and Approved fields:
+
+| Status   | Approved | Action                                                                                    |
+| -------- | -------- | ----------------------------------------------------------------------------------------- |
+| PENDING  | No       | `Skill(skill='spec-plan', args='<plan-path>')`                                            |
+| PENDING  | Yes      | `Skill(skill='spec-implement', args='<plan-path>')` (worktree if `Worktree: Yes` in plan) |
+| COMPLETE | \*       | `Skill(skill='spec-verify', args='<plan-path>')`                                          |
+| VERIFIED | \*       | Report completion, workflow done                                                          |
+
+**⛔ Phase Transition Context Guard applies before every dispatch (see Section 0.3).**
+
+**Invoke the appropriate Skill immediately. Do not duplicate phase logic here.**
+
+### Report Completion (VERIFIED)
+
+If the plan status is already VERIFIED:
+
+```
+✅ Workflow complete! Plan status: VERIFIED
+
+The plan at <plan-path> has been fully implemented and verified.
+Is there anything else you'd like me to help with?
+```
+
+---
+
+## 0.3 Phase Transition Context Guard
+
+**⛔ MANDATORY: Before EVERY `Skill()` call that transitions to another phase, check context:**
+
+```bash
+~/.pilot/bin/pilot check-context --json
+```
+
+| Percentage | Action                                              |
+| ---------- | --------------------------------------------------- |
+| **< 80%**  | Proceed with phase transition                       |
+| **>= 80%** | **Do NOT invoke the next phase.** Hand off instead. |
+
+Each phase (plan, implement, verify) needs significant context to complete. Starting a new phase above 80% risks overshooting to 100% — the worst-case scenario where all work is lost.
+
+**When >= 80%:** Write continuation file, trigger `send-clear`. The next session dispatches to the correct phase automatically based on plan status.
+
+**This applies to ALL transitions:** plan→implement, implement→verify, verify→implement (feedback loop), and dispatcher→any phase.
+
+---
+
+## 0.4 Context Management (90% Handoff)
+
+After each major operation, check context:
+
+```bash
+~/.pilot/bin/pilot check-context --json
+```
+
+**Between iterations:**
+
+1. If context >= 90%: hand off cleanly (don't rush!)
+2. If context 80-89%: continue but wrap up current task with quality
+3. If context < 80%: continue the loop freely
+
+If response shows `"status": "CLEAR_NEEDED"` (context >= 90%):
+
+**⚠️ CRITICAL: Execute ALL steps below in a SINGLE turn. DO NOT stop or wait for user response between steps.**
+
+**Step 1: Write continuation file (GUARANTEED BACKUP)**
+
+Write to `~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md`:
+
+```markdown
+# Session Continuation (/spec)
+
+**Plan:** <plan-path>
+**Phase:** [planning|implementation|verification]
+**Current Task:** Task N - [description]
+
+**Completed This Session:**
+
+- [x] [What was finished]
+
+**Next Steps:**
+
+1. [What to do immediately when resuming]
+
+**Context:**
+
+- [Key decisions or blockers]
+```
+
+**Step 2: Trigger session clear**
+
+```bash
+~/.pilot/bin/pilot send-clear <plan-path>
+```
+
+Pilot will restart with `/spec --continue <plan-path>`
+
+### Error Handling
+
+**No Active Session:** If `send-clear` fails, tell user: "Context at X%. Please run `/clear` manually, then `/spec --continue <plan-path>`"
+
+**Plan File Not Found:** Tell user: "Plan file not found: <path>" and ask if they want to create a new plan.
+
+---
+
+## 0.5 Rules Summary (Quick Reference)
+
+| #   | Rule                                                                                                                                                                                                                                                             |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **NO sub-agents except verification** - Phases 1 and 2 use direct tools only. Verification steps (Step 1.7, Step 3.0/3.5) launch paired review agents via the **Task tool** (`subagent_type="pilot:*"`). Task tool is the ONLY allowed mechanism for sub-agents. |
+| 2   | **NEVER SKIP verification** - Plan verification (Step 1.7) and Code verification (Step 3.5) are mandatory. No exceptions.                                                                                                                                        |
+| 3   | **ONLY stopping point is plan approval** - Everything else is automatic. Never ask "Should I fix these?"                                                                                                                                                         |
+| 4   | **Batch questions together** - Don't interrupt user flow                                                                                                                                                                                                         |
+| 5   | **Run explorations sequentially** - One at a time, never in parallel                                                                                                                                                                                             |
+| 6   | **NEVER write code during planning** - Separate phases                                                                                                                                                                                                           |
+| 7   | **NEVER assume - verify by reading files**                                                                                                                                                                                                                       |
+| 8   | **Re-read plan after user edits** - Before asking for approval again                                                                                                                                                                                             |
+| 9   | **TDD is MANDATORY** - No production code without failing test first                                                                                                                                                                                             |
+| 10  | **Update plan checkboxes after EACH task** - Not at the end                                                                                                                                                                                                      |
+| 11  | **Quality over speed** - Never rush due to context pressure. But at 90%+ context, handoff overrides everything - do NOT start new fix cycles                                                                                                                     |
+| 12  | **Plan file is source of truth** - Survives session clears                                                                                                                                                                                                       |
+| 13  | **Phase Transition Context Guard** - Check context before EVERY phase transition. If >= 80%, hand off instead of starting next phase (Section 0.3)                                                                                                               |
+
+ARGUMENTS: integrate the following knowledge When working with Claude on coding projects, context management is crucial. Your project might have dozens or hundreds of files, but Claude only needs the right information to help you effectively. Too much irrelevant context actually decreases Claude's performance, so learning to guide it toward relevant files and documentation is essential.
+
+
+
+The /init Command
+When you first start Claude in a new project, run the /init command. This tells Claude to analyze your entire codebase and understand:
+
+The project's purpose and architecture
+Important commands and critical files
+Coding patterns and structure
+
+
+After analyzing your code, Claude creates a summary and writes it to a CLAUDE.md file. When Claude asks for permission to create this file, you can either hit Enter to approve each write operation, or press Shift+Tab to let Claude write files freely throughout your session.
+
+The CLAUDE.md File
+The CLAUDE.md file serves two main purposes:
+
+Guides Claude through your codebase, pointing out important commands, architecture, and coding style
+Allows you to give Claude specific or custom directions
+This file gets included in every request you make to Claude, so it's like having a persistent system prompt for your project.
+
+CLAUDE.md File Locations
+Claude recognizes three different CLAUDE.md files in three common locations:
+
+
+
+CLAUDE.md - Generated with /init, committed to source control, shared with other engineers
+CLAUDE.local.md - Not shared with other engineers, contains personal instructions and customizations for Claude
+~/.claude/CLAUDE.md - Used with all projects on your machine, contains instructions that you want Claude to follow on all projects
+Adding Custom Instructions
+You can customize how Claude behaves by adding instructions to your CLAUDE.md file. For example, if Claude is adding too many comments to code, you can address this by updating the file.
+
+Use the # command to enter "memory mode" - this lets you edit your CLAUDE.md files intelligently. Just type something like:
+
+# Use comments sparingly. Only comment complex code.
+Claude will merge this instruction into your CLAUDE.md file automatically.
+
+File Mentions with '@'
+When you need Claude to look at specific files, use the @ symbol followed by the file path. This automatically includes that file's contents in your request to Claude.
+
+For example, if you want to ask about your authentication system and you know the relevant files, you can type:
+
+How does the auth system work? @auth
+Claude will show you a list of auth-related files to choose from, then include the selected file in your conversation.
+
+Referencing Files in CLAUDE.md
+You can also mention files directly in your CLAUDE.md file using the same @ syntax. This is particularly useful for files that are relevant to many aspects of your project.
+
+For example, if you have a database schema file that defines your data structure, you might add this to your CLAUDE.md:
+
+The database schema is defined in the @prisma/schema.prisma file. Reference it anytime you need to understand the structure of data stored in the database.
+When you mention a file this way, its contents are automatically included in every request, so Claude can answer questions about your data structure immediately without having to search for and read the schema file each time.
+
+---
+
+# /spec-plan - Planning Phase
+
+**Phase 1 of the /spec workflow.** Explores the codebase, designs an implementation plan, verifies it, and gets user approval.
+
+**Input:** Task description (new plan) or plan path (continue unapproved plan)
+**Output:** Approved plan file at `docs/plans/YYYY-MM-DD-<slug>.md`
+**Next phase:** On approval → `Skill(skill='spec-implement', args='<plan-path>')`
+
+---
+
+## ⛔ KEY CONSTRAINTS (Rules Summary)
+
+| #   | Rule                                                                                                     |
+| --- | -------------------------------------------------------------------------------------------------------- |
+| 1   | **NO sub-agents during planning** - Use direct tools only. Exception: Step 1.7 launches `plan-verifier` + `plan-challenger` via the **Task tool** (`subagent_type="pilot:plan-verifier"` and `"pilot:plan-challenger"`). |
+| 2   | **NEVER SKIP verification** - Plan verification (Step 1.7) is mandatory. No exceptions.                  |
+| 3   | **ONLY stopping point is plan approval** - Everything else is automatic. Never ask "Should I fix these?" |
+| 4   | **Batch questions together** - Don't interrupt user flow                                                 |
+| 5   | **Run explorations sequentially** - One at a time, never in parallel                                     |
+| 6   | **NEVER write code during planning** - Separate phases                                                   |
+| 7   | **NEVER assume - verify by reading files**                                                               |
+| 8   | **Re-read plan after user edits** - Before asking for approval again                                     |
+| 9   | **Quality over speed** - Never rush due to context pressure                                              |
+| 10  | **Plan file is source of truth** - Survives session clears                                               |
+
+---
+
+> **WARNING: DO NOT use the built-in `ExitPlanMode` or `EnterPlanMode` tools.**
+
+## Using AskUserQuestion - Core Planning Tool
+
+**Questions are grouped into batches for smooth user experience:**
+
+| Batch       | When                         | Purpose                                |
+| ----------- | ---------------------------- | -------------------------------------- |
+| **Batch 1** | Phase 0 (before exploration) | Clarify task, scope, priorities        |
+| **Batch 2** | Phase 2 (after exploration)  | Architecture choices, design decisions |
+
+**When to Use AskUserQuestion:**
+
+| Situation                     | Example Question                                                     |
+| ----------------------------- | -------------------------------------------------------------------- |
+| **Unclear requirements**      | "Should this feature support batch processing or single items only?" |
+| **Multiple valid approaches** | Present 2-3 options with trade-offs for user to choose               |
+| **Ambiguous scope**           | "Should we include error recovery, or fail fast?"                    |
+| **Technology choices**        | "Prefer async/await or callbacks for this integration?"              |
+| **Priority decisions**        | "Performance or simplicity - which matters more here?"               |
+| **Missing domain knowledge**  | "How does the existing auth flow work in production?"                |
+
+**Questioning philosophy — Dream extraction, not requirements gathering:**
+
+- **Start open, then narrow** — Begin with "What does success look like?" before diving into specifics
+- **Follow energy** — If the user is excited about a detail, explore it; if they're vague, they may not care about the specifics
+- **Challenge vagueness** — "Fast" means what? Sub-100ms? Under 2 seconds? Make abstract concrete
+- **Present interpretations as options** — "I think you mean X — should we do X (simple, covers 80%) or Y (comprehensive, handles edge cases)?" is better than "What do you want?"
+
+**Anti-patterns to avoid:**
+
+- **Checklist walking** — Don't ask every possible question; focus on genuine ambiguities
+- **Canned questions** — Adapt questions to the specific task, not generic templates
+- **Shallow acceptance** — Don't accept "it should work well" — ask what "well" means concretely
+- **Interrogation** — 1-2 focused questions are better than 4 vague ones
+
+**Key principles:**
+
+- Present options, not open-ended questions when possible
+- Include trade-offs for each option
+- **Batch related questions together** — don't interrupt user flow
+- Don't proceed with assumptions — ASK
+- **Scope guardrail** — Questions clarify HOW to implement, not WHETHER to expand scope
+
+## Extending Existing Plans
+
+**When adding tasks to existing plan:**
+
+1. Load existing plan: `Read(file_path="docs/plans/...")`
+2. Parse structure (architecture, completed tasks, pending tasks)
+3. Check git status for partially completed work
+4. Verify new tasks are compatible with existing architecture
+5. Check total: If original + new > 12 tasks, suggest splitting
+6. Mark new tasks with `[NEW]` prefix
+7. Update total count: `Total Tasks: X (Originally: Y)`
+8. Add extension history: `> Extended [Date]: Tasks X-Y for [feature]`
+
+## ⚠️ CRITICAL: Migration/Refactoring Tasks
+
+**When the task involves migrating, refactoring, or replacing existing code, you MUST complete these additional steps to prevent missing features.**
+
+### Mandatory Feature Inventory (Phase 1.5)
+
+**After exploration but BEFORE creating tasks:**
+
+1. **List ALL files being replaced:**
+
+   ```markdown
+   ## Feature Inventory - Files Being Replaced
+
+   | Old File         | Functions/Classes                | Status        |
+   | ---------------- | -------------------------------- | ------------- |
+   | `old/module1.py` | `func_a()`, `func_b()`, `ClassX` | ⬜ Not mapped |
+   | `old/module2.py` | `func_c()`, `func_d()`           | ⬜ Not mapped |
+   ```
+
+2. **Map EVERY function/feature to a new task:**
+
+   ```markdown
+   ## Feature Mapping - Old → New
+
+   | Old Feature        | New Location   | Task #        |
+   | ------------------ | -------------- | ------------- |
+   | `module1.func_a()` | `new/step1.py` | Task 3        |
+   | `module1.func_b()` | `new/step1.py` | Task 3        |
+   | `module2.func_c()` | `new/step2.py` | Task 5        |
+   | `module2.func_d()` | ❌ MISSING     | ⚠️ NEEDS TASK |
+   ```
+
+3. **Verify 100% coverage before proceeding:**
+   - Every row must have a Task # or explicit "Out of Scope" justification
+   - "Out of Scope" means the feature is INTENTIONALLY REMOVED (with user confirmation)
+   - "Out of Scope" does NOT mean "migrate as-is" - that still needs a task!
+
+### "Out of Scope" Clarification
+
+**CRITICAL: "Out of Scope" has a precise meaning:**
+
+| Phrase                             | Meaning                                    | Requires Task?                      |
+| ---------------------------------- | ------------------------------------------ | ----------------------------------- |
+| "Out of Scope: Changes to X"       | X will be migrated AS-IS, no modifications | ✅ YES - migration task             |
+| "Out of Scope: Feature X"          | X is intentionally REMOVED/not included    | ❌ NO - but needs user confirmation |
+| "Out of Scope: New features for X" | X migrates as-is, no NEW features added    | ✅ YES - migration task             |
+
+### Pre-Task Verification Gate
+
+**Before finalizing tasks, verify:**
+
+- [ ] All old files listed in Feature Inventory
+- [ ] All functions/classes from old files identified
+- [ ] Every feature mapped to a task OR explicitly marked "REMOVED" with user confirmation
+- [ ] No row in Feature Mapping has "⬜ Not mapped" status
+- [ ] User has confirmed any features marked for removal
+
+**If any checkbox is unchecked, DO NOT proceed to implementation.**
+
+---
+
+## Creating New Plans
+
+### Step 1.1: Create Plan File Header (FIRST)
+
+**Immediately upon starting planning, create the plan file header for status bar detection.**
+
+1. **Parse worktree choice from arguments:**
+   - Look for `--worktree=yes` or `--worktree=no` at the end of the arguments
+   - Strip the `--worktree=...` flag from the task description
+   - Default to `Yes` if no flag is present (backward compatibility)
+
+2. **Generate filename:** `docs/plans/YYYY-MM-DD-<feature-slug>.md`
+   - Use current date
+   - Create slug from first 3-4 words of task description (lowercase, hyphens)
+   - Example: "add user authentication" → `2026-01-24-add-user-authentication.md`
+
+3. **Create directory if needed:** `mkdir -p docs/plans`
+
+4. **Write initial header immediately (with worktree choice from dispatcher):**
+
+   ```markdown
+   # [Feature Name] Implementation Plan
+
+   Created: [Date]
+   Status: PENDING
+   Approved: No
+   Iterations: 0
+   Worktree: [Yes|No - from dispatcher's --worktree flag]
+
+   > Planning in progress...
+
+   ## Summary
+
+   **Goal:** [Task description from user]
+
+   ---
+
+   _Exploring codebase and gathering requirements..._
+   ```
+
+5. **Register plan association (MANDATORY):**
+
+   ```bash
+   ~/.pilot/bin/pilot register-plan "<plan_path>" "PENDING" 2>/dev/null || true
+   ```
+
+   This tells the statusline which plan belongs to THIS session. Without it, parallel sessions show the wrong plan.
+
+6. **Why this matters:**
+   - Status bar shows "Spec: <name> [/plan]" immediately
+   - User sees progress even during exploration phase
+   - Plan file exists for continuation if session clears
+   - Plan is correctly associated with this specific terminal
+
+**CRITICAL:** Do this FIRST, before any exploration or questions.
+
+---
+
+### Step 1.2: Task Understanding, Discuss & Clarify
+
+**First, clearly state your understanding of the task.**
+
+Before any exploration:
+
+1. Restate what the user is asking for in your own words
+2. Identify the core problem being solved
+3. List any assumptions you're making
+
+**Then identify gray areas using domain-aware analysis:**
+
+Analyze the task description to find ambiguities that NEED resolution before planning. Different types of work have different gray areas:
+
+| Domain                                  | Typical Gray Areas                                                                         |
+| --------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **Something users SEE** (UI/frontend)   | Layout density, interaction patterns, responsive breakpoints, empty states, loading states |
+| **Something users CALL** (API/backend)  | Response shape, error codes, auth model, pagination, rate limiting                         |
+| **Something users RUN** (CLI/scripts)   | Output format, flags/options, exit codes, interactive vs non-interactive                   |
+| **Something users STORE** (data/config) | Schema shape, migration strategy, validation rules, default values                         |
+| **Something users READ** (docs/content) | Audience level, structure, examples needed, update frequency                               |
+
+**Scope guardrail:** Questions should clarify HOW to implement the task, not WHETHER to expand scope. If discussion surfaces new feature ideas, capture them as "Deferred Ideas" in the plan's Open Questions section — don't add them to scope.
+
+**Then gather clarifications if needed (Question Batch 1):**
+
+If gray areas exist, use AskUserQuestion to ask focused questions per area in a single interaction. Present your interpretation as options when possible — "Should the API return paginated results (recommended for large datasets) or all results at once?" is better than "How should the API handle large result sets?"
+
+If the task is clear and unambiguous with no meaningful gray areas, skip directly to Step 1.3.
+
+### Step 1.3: Exploration
+
+**Explore the codebase systematically.** Run explorations **one at a time** (sequentially, not in parallel).
+
+#### 🔧 Tools for Exploration
+
+| Tool               | When to Use                | Example                                                                                            |
+| ------------------ | -------------------------- | -------------------------------------------------------------------------------------------------- |
+| **Context7**       | Library/framework docs     | `resolve-library-id(query="your question", libraryName="lib")` then `query-docs(libraryId, query)` |
+| **Vexor**          | Semantic code search       | `vexor search "query" --mode code`                                                                 |
+| **grep-mcp**       | Real-world GitHub examples | `searchGitHub(query="FastMCP", language=["Python"])`                                               |
+| **Read/Grep/Glob** | Direct file exploration    | Use directly, no sub-agents                                                                        |
+
+**Exploration areas (in order):**
+
+1. **Architecture** - Project structure, entry points, how components connect
+2. **Similar Features** - Existing patterns that relate to the task, what can be reused
+3. **Dependencies** - Imports, modules, what will be impacted
+4. **Tests** - Test infrastructure, existing patterns, available fixtures
+
+**For each area:**
+
+- Document hypotheses (not conclusions)
+- Note full file paths for relevant code
+- Track questions that remain unanswered
+
+**After explorations complete:**
+
+1. Read each identified file to verify hypotheses
+2. Build a complete mental model of current architecture
+3. Identify integration points and potential risks
+4. Note reusable patterns
+
+### Step 1.4: Design Decisions
+
+**Present findings and gather all design decisions (Question Batch 2).**
+
+Summarize what you found, then use AskUserQuestion with all decisions at once.
+
+**After user answers:**
+
+- Incorporate their choices into the plan design
+- Proceed to Step 1.5 — the user will review the full plan at Step 1.8
+
+### Step 1.5: Implementation Planning
+
+**Task Granularity**
+
+Each task should be:
+
+- **Independently testable** — has its own tests that pass without other tasks being complete
+- **Focused** — touches 2-4 files max; more means it should be split
+- **Verifiable** — produces an observable result (test output, API response, UI change)
+
+Split a task if it has multiple unrelated DoD criteria. Merge tasks if one can't be tested without the other. Don't create tasks for setup/boilerplate that have no standalone value — fold them into the first task that uses them.
+
+**For each task, populate:**
+
+- **Dependencies** — Which tasks must complete first? Use `None` for tasks with no ordering requirements.
+- **Verify** — What concrete commands prove this task is done? Include test commands, build commands, or curl/CLI invocations. The implementation phase runs these after completing each task.
+
+**Task Structure:**
+
+```markdown
+### Task N: [Component Name]
+
+**Objective:** [1-2 sentences describing what to build]
+
+**Dependencies:** [None | Task X, Task Y — tasks that must complete before this one]
+
+**Files:**
+
+- Create: `exact/path/to/file.py`
+- Modify: `exact/path/to/existing.py`
+- Test: `tests/exact/path/to/test.py`
+
+**Key Decisions / Notes:**
+
+- [Technical approach or algorithm to use]
+- [Which existing pattern to follow, with file:line reference]
+- [Integration points with other tasks or existing code]
+
+**Definition of Done:**
+
+- [ ] All tests pass (unit, integration if applicable)
+- [ ] No diagnostics errors (linting, type checking)
+- [ ] [Task-specific criterion with observable outcome]
+- [ ] [Task-specific criterion with observable outcome]
+
+**Verify:**
+
+- `uv run pytest tests/path/to/test.py -q` — task-specific tests pass
+- [Additional verification command or check]
+```
+
+**⚠️ DoD criteria must be verifiable.** The verification phase checks each criterion against the actual code and running program. Replace the `[Task-specific criterion]` placeholders with criteria that can be checked with a specific test, command, or observation.
+
+✅ Good DoD examples:
+
+- "GET /api/users?role=admin returns only admin users"
+- "Form shows validation error when email field is empty"
+- "CLI exits with code 1 and prints usage when no arguments given"
+- "Retry logic attempts 3 times with exponential backoff before failing"
+
+❌ Bad DoD (never use these):
+
+- "Feature works correctly"
+- "Edge cases handled appropriately"
+- "Error messages are clear and actionable"
+
+**Zero-context assumption:**
+
+- Assume implementer knows nothing about codebase
+- Provide exact file paths
+- Explain domain concepts
+- List integration points
+- Reference similar patterns in codebase
+
+### Step 1.6: Write Full Plan
+
+**Save plan to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
+
+**Required plan template:**
+
+```markdown
+# [Feature Name] Implementation Plan
+
+Created: [Date]
+Status: PENDING
+Approved: No
+Iterations: 0
+Worktree: Yes
+
+> **Status Lifecycle:** PENDING → COMPLETE → VERIFIED
+> **Iterations:** Tracks implement→verify cycles (incremented by verify phase)
+>
+> - PENDING: Initial state, awaiting implementation
+> - COMPLETE: All tasks implemented
+> - VERIFIED: All checks passed
+>
+> **Approval Gate:** Implementation CANNOT proceed until `Approved: Yes`
+> **Worktree:** Set at plan creation (from dispatcher). `Yes` uses git worktree isolation; `No` works directly on current branch
+
+## Summary
+
+**Goal:** [One sentence describing what this builds]
+
+**Architecture:** [2-3 sentences about chosen approach]
+
+**Tech Stack:** [Key technologies/libraries]
+
+## Scope
+
+### In Scope
+
+- [What WILL be changed/built]
+- [Specific components affected]
+
+### Out of Scope
+
+- [What will NOT be changed]
+- [Explicit boundaries]
+
+## Prerequisites
+
+- [Any requirements before starting]
+- [Dependencies that must exist]
+- [Environment setup needed]
+
+## Context for Implementer
+
+> This section is critical for cross-session continuity. Write it for an implementer who has never seen the codebase.
+
+- **Patterns to follow:** [Reference existing file:line that demonstrates the pattern, e.g., "Follow the route handler pattern in `src/routes/users.ts:45`"]
+- **Conventions:** [Naming, file organization, error handling approach used in this project]
+- **Key files:** [Important files the implementer must read first, with brief description of each]
+- **Gotchas:** [Non-obvious dependencies, quirks, things that look wrong but are intentional]
+- **Domain context:** [Business logic or domain concepts needed to understand the task]
+
+## Runtime Environment (if applicable)
+
+> Include this section when the project has a running service, API, or UI.
+> Delete if the project is a library or CLI tool with no long-running process.
+
+- **Start command:** [How to start the service, e.g., `bun worker-service.cjs`]
+- **Port:** [What port it listens on]
+- **Deploy path:** [Where built artifacts are installed, if different from source]
+- **Health check:** [How to verify the service is running, e.g., `curl http://localhost:PORT/health`]
+- **Restart procedure:** [How to restart after code changes]
+
+## Feature Inventory (FOR MIGRATION/REFACTORING ONLY)
+
+> **Include this section when replacing existing code. Delete if not applicable.**
+
+### Files Being Replaced
+
+| Old File       | Functions/Classes      | Mapped to Task |
+| -------------- | ---------------------- | -------------- |
+| `old/file1.py` | `func_a()`, `func_b()` | Task 3         |
+| `old/file2.py` | `ClassX`, `func_c()`   | Task 4, Task 5 |
+
+### Feature Mapping Verification
+
+- [ ] All old files listed above
+- [ ] All functions/classes identified
+- [ ] Every feature has a task number
+- [ ] No features accidentally omitted
+
+**⚠️ If any feature shows "❌ MISSING", add a task before implementation!**
+
+## Progress Tracking
+
+**MANDATORY: Update this checklist as tasks complete. Change `[ ]` to `[x]`.**
+
+- [ ] Task 1: [Brief summary]
+- [ ] Task 2: [Brief summary]
+- [ ] ...
+
+**Total Tasks:** [Number] | **Completed:** 0 | **Remaining:** [Number]
+
+## Implementation Tasks
+
+### Task 1: [Component Name]
+
+**Objective:** ...
+**Dependencies:** None
+**Files:** ...
+**Key Decisions / Notes:** ...
+**Definition of Done:** ...
+**Verify:** [Concrete commands to verify this task]
+
+### Task 2: [Component Name]
+
+**Objective:** ...
+**Dependencies:** Task 1
+**Files:** ...
+**Key Decisions / Notes:** ...
+**Definition of Done:** ...
+**Verify:** [Concrete commands to verify this task]
+
+## Testing Strategy
+
+- Unit tests: [What to test in isolation]
+- Integration tests: [What to test together]
+- Manual verification: [Steps to verify manually]
+
+## Risks and Mitigations
+
+> Consider: breaking changes, backward compatibility, data loss/migration, performance regression, security implications, state management complexity, cross-component coupling, external dependency failures.
+
+| Risk     | Likelihood   | Impact       | Mitigation                           |
+| -------- | ------------ | ------------ | ------------------------------------ |
+| [Risk 1] | Low/Med/High | Low/Med/High | [Concrete, implementable mitigation] |
+
+**⚠️ Risk mitigations are commitments.** The verification phase (spec-reviewer-compliance) will check that every mitigation listed here is actually implemented in code. Write mitigations as concrete, implementable behaviors, not vague statements.
+
+✅ Good: "If selected project not in available list, reset to null (All Projects)"
+❌ Bad: "Handle edge cases appropriately"
+
+## Open Questions
+
+- [Any remaining questions for the user]
+- [Decisions deferred to implementation]
+
+### Deferred Ideas
+
+- [Ideas surfaced during discussion that are out of scope for this plan]
+```
+
+### Step 1.7: Plan Verification
+
+**⛔ THIS STEP IS NON-NEGOTIABLE. You MUST run plan verification before asking for approval.**
+
+Before presenting the plan to the user, verify it with TWO dedicated reviewer agents running in parallel. This provides both alignment checking (plan-verifier) and adversarial review (plan-challenger) BEFORE the user sees the plan.
+
+#### Resolve Session Path for Findings Persistence
+
+```bash
+echo $PILOT_SESSION_ID
+```
+
+Define output paths (replace `<session-id>` with the resolved value):
+- **Verifier findings:** `~/.pilot/sessions/<session-id>/findings-plan-verifier.json`
+- **Challenger findings:** `~/.pilot/sessions/<session-id>/findings-plan-challenger.json`
+
+#### Launch Plan Verification (Parallel Review)
+
+**⛔ CRITICAL: You MUST send BOTH Task calls in a SINGLE message.** Set `run_in_background=true` on both so they run in parallel. If you send them in separate messages, the first blocks and the second waits — defeating the purpose.
+
+**Agent 1: plan-verifier** (alignment and completeness)
+```
+Task(
+  subagent_type="pilot:plan-verifier",
+  run_in_background=true,
+  prompt="""
+  **Plan file:** <plan-path>
+  **User request:** <original task description from user>
+  **Clarifications:** <any Q&A that clarified requirements>
+  **Output path:** <absolute path to findings-plan-verifier.json>
+
+  Verify this plan correctly captures the user's requirements.
+  Check for missing features, scope issues, and ambiguities.
+
+  **IMPORTANT:** Write your final findings JSON to the output_path using the Write tool.
+  """
+)
+```
+
+**Agent 2: plan-challenger** (adversarial review)
+```
+Task(
+  subagent_type="pilot:plan-challenger",
+  run_in_background=true,
+  prompt="""
+  **Plan file:** <plan-path>
+  **User request:** <original task description from user>
+  **Clarifications:** <any Q&A that clarified requirements>
+  **Output path:** <absolute path to findings-plan-challenger.json>
+
+  Challenge this plan from an adversarial perspective.
+  Find untested assumptions, missing failure modes, and hidden dependencies.
+
+  **IMPORTANT:** Write your final findings JSON to the output_path using the Write tool.
+  """
+)
+```
+
+The verifiers work in parallel:
+
+- **plan-verifier**: Reviews plan against original user request, checks if clarification answers are incorporated, identifies missing requirements or scope issues
+- **plan-challenger**: Challenges assumptions, finds failure modes, questions optimism, identifies architectural weaknesses
+
+Both agents persist their findings JSON to the session directory for reliable retrieval.
+
+#### Collect and Fix Findings (Progressive)
+
+**⛔ NEVER use `TaskOutput` to retrieve agent results.** TaskOutput dumps the full verbose agent transcript (all JSON messages, hook progress, tool calls) into context, wasting thousands of tokens. Instead, poll the output files with the Read tool.
+
+**Progressive polling — fix findings as each agent completes:**
+
+1. **Attempt to read BOTH findings files** using the Read tool on the paths defined above
+2. **If one file exists but the other doesn't** → start fixing findings from the ready agent immediately (by severity: must_fix → should_fix → suggestion). Track which findings you fixed.
+3. After fixing the first batch, **poll for the second file** (retry if not yet ready)
+4. **If a file is still missing after 2-3 retries**, re-launch that specific agent synchronously (without `run_in_background`) with the same prompt
+5. When the second file is ready, **skip findings that overlap** with already-fixed items from the first batch (same file + same issue), then fix the remaining findings
+6. **If both files are ready simultaneously**, deduplicate first (keep higher severity for duplicates on same file + line), then fix all
+
+**Severity actions:**
+
+| Severity       | Action                                               |
+| -------------- | ---------------------------------------------------- |
+| **must_fix**   | Fix immediately - update plan before proceeding      |
+| **should_fix** | Fix immediately - update plan before proceeding      |
+| **suggestion** | Incorporate if reasonable, or note in Open Questions |
+
+**Only proceed to Step 1.8 after all must_fix and should_fix issues are resolved.**
+
+### Step 1.8: Get User Approval
+
+**⛔ MANDATORY APPROVAL GATE - This is NON-NEGOTIABLE**
+
+**After saving plan:**
+
+1. **Summarize the plan** - Provide a brief overview of:
+   - What will be built (goal)
+   - Key tasks (numbered list)
+   - Tech stack / approach
+
+2. **Use AskUserQuestion to request approval:**
+
+   ```
+   Question: "Do you approve this plan for implementation?"
+   Header: "Plan Review"
+   Options:
+   - "Yes, proceed with implementation" - I've reviewed the plan and it looks good
+   - "No, I need to make changes" - I want to edit the plan first
+   ```
+
+   Note: The `Worktree:` field was already set at plan creation time (Step 1.1) based on the user's choice from the dispatcher. It does NOT need to be asked again here.
+
+3. **Based on user response:**
+
+   **If user approves (selects "Yes" or any approval option):**
+   - Update `Approved: No` → `Approved: Yes` in the plan file
+   - **⛔ Phase Transition Context Guard:** Run `~/.pilot/bin/pilot check-context --json`. If >= 80%, hand off instead (see spec.md Section 0.3).
+   - **Invoke implementation phase:** `Skill(skill='spec-implement', args='<plan-path>')`
+
+   **If user selects "No, I need to make changes":**
+   - Tell user: "Please edit the plan file at `<plan-path>`, then say 'ready' when done"
+   - Wait for user to confirm they're done editing
+   - Re-read the plan file to see their changes
+   - Ask for approval again using AskUserQuestion
+
+   **If user provides OTHER feedback (corrections, config values, clarifications):**
+   - This is NOT approval - they're giving you changes to incorporate
+   - Update the plan with their feedback
+   - Ask for approval AGAIN with a fresh AskUserQuestion
+
+4. **DO NOT proceed to implementation until user explicitly selects "Yes, proceed"**
+
+**⚠️ CRITICAL: Any response other than selecting "Yes, proceed with implementation" is NOT approval. Config feedback, threshold changes, clarifications = update plan, then re-ask.**
+
+**⚠️ CRITICAL: Claude handles the `Approved:` field update - user never edits it manually**
+
+---
+
+## Context Management (90% Handoff)
+
+After each major operation, check context:
+
+```bash
+~/.pilot/bin/pilot check-context --json
+```
+
+**Between iterations:**
+
+1. If context >= 90%: hand off cleanly (don't rush!)
+2. If context 80-89%: continue but wrap up current task with quality
+3. If context < 80%: continue the loop freely
+
+If response shows `"status": "CLEAR_NEEDED"` (context >= 90%):
+
+**⚠️ CRITICAL: Execute ALL steps below in a SINGLE turn. DO NOT stop or wait for user response between steps.**
+
+**Step 1: Write continuation file (GUARANTEED BACKUP)**
+
+Write to `~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md`:
+
+```markdown
+# Session Continuation (/spec)
+
+**Plan:** <plan-path>
+**Phase:** planning
+**Current Task:** [description of where you are in planning]
+
+**Completed This Session:**
+
+- [x] [What was finished]
+
+**Next Steps:**
+
+1. [What to do immediately when resuming]
+
+**Context:**
+
+- [Key decisions or blockers]
+```
+
+**Step 2: Trigger session clear**
+
+```bash
+~/.pilot/bin/pilot send-clear <plan-path>
+```
+
+Pilot will restart with `/spec --continue <plan-path>`
+
+ARGUMENTS: integrate the following knowledge When working with Claude on coding projects, context management is crucial. Your project might have dozens or hundreds of files, but Claude only needs the right information to help you effectively. Too much irrelevant context actually decreases Claude's performance, so learning to guide it toward relevant files and documentation is essential.
+
+
+
+The /init Command
+When you first start Claude in a new project, run the /init command. This tells Claude to analyze your entire codebase and understand:
+
+The project's purpose and architecture
+Important commands and critical files
+Coding patterns and structure
+
+
+After analyzing your code, Claude creates a summary and writes it to a CLAUDE.md file. When Claude asks for permission to create this file, you can either hit Enter to approve each write operation, or press Shift+Tab to let Claude write files freely throughout your session.
+
+The CLAUDE.md File
+The CLAUDE.md file serves two main purposes:
+
+Guides Claude through your codebase, pointing out important commands, architecture, and coding style
+Allows you to give Claude specific or custom directions
+This file gets included in every request you make to Claude, so it's like having a persistent system prompt for your project.
+
+CLAUDE.md File Locations
+Claude recognizes three different CLAUDE.md files in three common locations:
+
+
+
+CLAUDE.md - Generated with /init, committed to source control, shared with other engineers
+CLAUDE.local.md - Not shared with other engineers, contains personal instructions and customizations for Claude
+~/.claude/CLAUDE.md - Used with all projects on your machine, contains instructions that you want Claude to follow on all projects
+Adding Custom Instructions
+You can customize how Claude behaves by adding instructions to your CLAUDE.md file. For example, if Claude is adding too many comments to code, you can address this by updating the file.
+
+Use the # command to enter "memory mode" - this lets you edit your CLAUDE.md files intelligently. Just type something like:
+
+# Use comments sparingly. Only comment complex code.
+Claude will merge this instruction into your CLAUDE.md file automatically.
+
+File Mentions with '@'
+When you need Claude to look at specific files, use the @ symbol followed by the file path. This automatically includes that file's contents in your request to Claude.
+
+For example, if you want to ask about your authentication system and you know the relevant files, you can type:
+
+How does the auth system work? @auth
+Claude will show you a list of auth-related files to choose from, then include the selected file in your conversation.
+
+Referencing Files in CLAUDE.md
+You can also mention files directly in your CLAUDE.md file using the same @ syntax. This is particularly useful for files that are relevant to many aspects of your project.
+
+For example, if you have a database schema file that defines your data structure, you might add this to your CLAUDE.md:
+
+The database schema is defined in the @prisma/schema.prisma file. Reference it anytime you need to understand the structure of data stored in the database.
+When you mention a file this way, its contents are automatically included in every request, so Claude can answer questions about your data structure immediately without having to search for and read the schema file each time. --worktree=yes
+
+---
+
+Continue
+
+---
+
+# /spec-implement - Implementation Phase
+
+**Phase 2 of the /spec workflow.** Reads the approved plan and implements each task using TDD (Red → Green → Refactor).
+
+**Input:** Path to an approved plan file (`Approved: Yes`)
+**Output:** All plan tasks completed, status set to COMPLETE
+**Next phase:** On completion → `Skill(skill='spec-verify', args='<plan-path>')`
+
+---
+
+## ⛔ KEY CONSTRAINTS (Rules Summary)
+
+| #   | Rule                                                                                                                                                                               |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **NO sub-agents** - Use direct tools only. All tasks are implemented sequentially in the main context.                                                                             |
+| 2   | **TDD is MANDATORY** - No production code without failing test first                                                                                                               |
+| 3   | **Update plan checkboxes AND task status after EACH task** - Not at the end                                                                                                        |
+| 4   | **NEVER SKIP TASKS** - Every task MUST be fully implemented                                                                                                                        |
+| 5   | **Quality over speed** - Never rush due to context pressure                                                                                                                        |
+| 6   | **Plan file is source of truth** - Survives session clears                                                                                                                         |
+| 7   | **NEVER assume - verify by reading files**                                                                                                                                         |
+| 8   | **Task management is MANDATORY** - Use TaskCreate/TaskUpdate for progress tracking                                                                                                 |
+
+---
+
+## Quality Over Speed - CRITICAL
+
+**NEVER rush or compromise quality due to context pressure.**
+
+- Context warnings are informational, not emergencies
+- Work spans sessions seamlessly via plan file and continuation mechanisms
+- Finish the CURRENT task with full quality, then hand off cleanly
+- Do NOT skip tests, compress code, or cut corners to "beat" context limits
+- **Quality is the #1 metric** - a well-done task split across sessions beats rushed work
+
+## Feedback Loop Awareness
+
+**This phase may be called multiple times in a feedback loop:**
+
+```
+spec-implement → spec-verify → issues found → spec-implement → spec-verify → ... → VERIFIED
+```
+
+**When called after verification found issues:**
+
+1. Read the plan - verification will have added fix tasks (marked with `[MISSING]` or similar)
+2. Check the `Iterations` field in the plan header
+3. **Report iteration start:** "🔄 Starting Iteration N implementation..."
+4. Focus on uncompleted tasks `[ ]` - these are the fixes needed
+5. Complete all fix tasks, then set status to COMPLETE as normal
+
+---
+
+### Step 2.1: Read Plan & Gather Context
+
+**Before ANY implementation, you MUST:**
+
+1. **Read the COMPLETE plan** - Understanding overall architecture and design
+2. **Verify comprehension** - Summarize what you learned to demonstrate understanding
+3. **Identify dependencies** - List files, functions, classes that need modification
+4. **Check current state:**
+   - Git status: `git status --short` and `git diff --name-only`
+   - Plan progress: Check for `[x]` completed tasks
+
+#### 🔧 Tools for Implementation
+
+| Tool         | When to Use              | Example                                                                                                     |
+| ------------ | ------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| **Context7** | Library API lookup       | `resolve-library-id(query="how to use fixtures", libraryName="pytest")` then `query-docs(libraryId, query)` |
+| **Vexor**    | Find similar patterns    | `vexor search "query" --mode code`                                                                          |
+| **grep-mcp** | Production code examples | `searchGitHub(query="useEffect cleanup", language=["TypeScript"])`                                          |
+
+---
+
+### Step 2.1b: Create or Resume Worktree (Conditional)
+
+**Check the plan's `Worktree:` header field to determine isolation mode.**
+
+0. **Read the `Worktree:` header from the plan file:**
+   - Parse `Worktree: Yes` or `Worktree: No` from the plan content (regex: `/^Worktree:\s*(\w+)/m`)
+   - If the field is missing, default to `Yes` (backward compatibility with older plans)
+   - **If `Worktree: No`:** Skip the rest of Step 2.1b entirely. Implementation happens directly on the current branch. Proceed to Step 2.2.
+
+**If `Worktree: Yes` (or missing/default):** All implementation happens in an isolated git worktree. This keeps the main branch clean until verification passes and the user approves sync.
+
+1. **Extract plan slug** from the plan file path:
+   - `docs/plans/2026-02-09-add-auth.md` → plan_slug = `add-auth` (strip date prefix and `.md`)
+
+2. **Check for existing worktree** (continuation session or verify→implement feedback loop):
+
+   ```bash
+   ~/.pilot/bin/pilot worktree detect --json <plan_slug>
+   # Returns: {"found": true, "path": "...", "branch": "...", "base_branch": "..."} or {"found": false}
+   ```
+
+3. **If worktree exists** (`"found": true`): Resume it — `cd` to the `path` from the JSON output for all subsequent commands.
+
+4. **If no worktree exists** (`"found": false`): Create one:
+
+   ```bash
+   ~/.pilot/bin/pilot worktree create --json <plan_slug>
+   # Returns: {"path": "...", "branch": "spec/<slug>", "base_branch": "main"}
+   ```
+
+   Then `cd` to the `path` from the JSON output for all subsequent commands.
+
+5. **If creation fails due to dirty working tree** (JSON contains `"error": "dirty"`):
+
+   The worktree cannot be created with uncommitted changes. Show the user the changed files from the error detail, then ask:
+
+   ```
+   AskUserQuestion:
+     question: "Worktree creation requires a clean working tree. How should we handle your uncommitted changes?"
+     header: "Dirty tree"
+     options:
+       - "Commit changes" (Recommended) — Commit current changes before creating the worktree
+       - "Stash changes" — Stash changes (restore later with `git stash pop`)
+       - "Skip worktree" — Work directly on the current branch instead (no isolation)
+   ```
+
+   **If "Commit changes":** Run `git add` for the changed files, commit with an appropriate message, then retry `pilot worktree create`.
+   **If "Stash changes":** Run `git stash push -m "auto-stash before spec worktree"`, then retry `pilot worktree create`.
+   **If "Skip worktree":** Continue without worktree isolation — implementation happens on the current branch. Log a note to the user.
+
+   Do NOT proceed with worktree creation until the working tree is clean or the user chooses to skip.
+
+6. **If creation fails due to old git version** (error contains "git >= 2.15 required"): Log a warning and continue without worktree isolation. Implementation will happen directly on the current branch. This is a graceful fallback for systems with older git versions.
+
+7. **Verify worktree is active:** Run `git branch --show-current` in the worktree to confirm you're on the `spec/<plan_slug>` branch.
+
+**⚠️ All subsequent implementation steps happen inside the worktree directory (when worktree is active).** The plan file exists at the same relative path in the worktree (e.g., `docs/plans/...`). Commits within the worktree are expected and allowed.
+
+---
+
+### Step 2.2: Set Up Task List (MANDATORY)
+
+**After reading the plan, set up task tracking using the Task management tools.**
+
+This makes implementation progress visible in the terminal (Ctrl+T), enables dependency tracking, and persists across session handoffs via `CLAUDE_CODE_TASK_LIST_ID`.
+
+**Process:**
+
+1. **Check for existing tasks first:** Run `TaskList` to see if a previous session already created tasks
+2. **Branch based on result:**
+
+**If TaskList returns tasks (continuation session):**
+
+- Tasks already exist from a prior session - do NOT recreate them
+- Review existing task statuses to understand where the previous session left off
+- Cross-reference with plan checkboxes (`[x]` = done, `[ ]` = remaining)
+- If a task is `in_progress` but the session that started it is gone, it was interrupted - keep it `in_progress` and resume it
+- Proceed to Step 2.3 starting with the first uncompleted task
+
+**If TaskList is empty (fresh start):**
+
+- Create one task per uncompleted plan task (`[ ]` items):
+  ```
+  TaskCreate(
+    subject="Task N: <title from plan>",
+    description="<objective + implementation steps from plan>",
+    activeForm="Implementing <short description>"
+  )
+  ```
+- Set up dependencies if tasks have ordering requirements:
+  ```
+  TaskUpdate(taskId="<task3_id>", addBlockedBy=["<task2_id>"])
+  ```
+- Skip already-completed plan tasks (`[x]` items) - don't create tasks for them
+
+**Example for a fresh start with 4 tasks:**
+
+```
+TaskCreate: "Task 1: Create user model"           → id=1
+TaskCreate: "Task 2: Add API endpoints"            → id=2, addBlockedBy: [1]
+TaskCreate: "Task 3: Write integration tests"      → id=3, addBlockedBy: [2]
+TaskCreate: "Task 4: Add documentation"            → id=4, addBlockedBy: [2]
+```
+
+**Why this matters:**
+
+- User sees real-time progress in their terminal via status spinners
+- Dependencies prevent skipping ahead when tasks have ordering requirements
+- Tasks persist across session handoffs (stored in `~/.claude/tasks/`)
+- Continuation sessions pick up exactly where the previous session left off
+
+---
+
+### Step 2.3: TDD Loop
+
+**TDD is MANDATORY. No production code without a failing test first.**
+
+| Requires TDD          | Skip TDD                          |
+| --------------------- | --------------------------------- |
+| New functions/methods | Documentation changes             |
+| API endpoints         | Config file updates               |
+| Business logic        | IaC code (CDK, Terraform, Pulumi) |
+| Bug fixes             | Formatting/style changes          |
+
+**For EVERY task, follow this exact sequence:**
+
+1. **READ PLAN'S IMPLEMENTATION STEPS** - List all files to create/modify/delete
+2. **Perform Call Chain Analysis:**
+   - **Trace Upwards (Callers):** Identify what calls the code you're modifying
+   - **Trace Downwards (Callees):** Identify what the modified code calls
+   - **Side Effects:** Check for database, cache, external system impacts
+3. **Mark task as `in_progress`** - `TaskUpdate(taskId="<id>", status="in_progress")`
+4. **Execute TDD Flow (RED → GREEN → REFACTOR):**
+   - Write failing test first, **verify it fails**
+   - Implement minimal code to pass
+   - Refactor if needed (keep tests green)
+5. **Verify tests pass** - Run the project's test runner (e.g., `uv run pytest -q`, `bun test`, `npm test`)
+6. **Run actual program** - Use the plan's Runtime Environment section to start the service/program. Show real output with sample data.
+7. **Check diagnostics** - Must be zero errors
+8. **Validate Definition of Done** - Check all criteria from plan
+9. **Per-task commit (worktree mode only)** - If `Worktree: Yes` in the plan, commit task changes immediately:
+   ```bash
+   git add <task-specific-files>  # Stage only files related to this task
+   git commit -m "{type}(spec): {task-name}"
+   ```
+   Use `feat(spec):` for new features, `fix(spec):` for bug fixes, `test(spec):` for test-only tasks, `refactor(spec):` for refactoring. Skip this step when `Worktree: No` (normal git rules apply).
+10. **Mark task as `completed`** - `TaskUpdate(taskId="<id>", status="completed")`
+11. **UPDATE PLAN FILE IMMEDIATELY** (see Step 2.4)
+12. **Check context usage** - Run `~/.pilot/bin/pilot check-context --json`
+
+**⚠️ NEVER SKIP TASKS:**
+
+- EVERY task MUST be fully implemented
+- NO exceptions for "MVP scope" or complexity
+- If blocked: STOP and report specific blockers
+- NEVER mark complete without doing the work
+
+---
+
+### Step 2.4: Update Plan After EACH Task
+
+**⛔ CRITICAL: Task Completion Tracking is MANDATORY**
+
+**After completing EACH task, you MUST:**
+
+1. **IMMEDIATELY edit the plan file** to change `[ ]` to `[x]` for that task
+2. **Update the Progress Tracking counts** (Completed/Remaining)
+3. **DO NOT proceed to next task** until the checkbox is updated
+
+**This is NON-NEGOTIABLE.**
+
+**Example - After completing Task 5:**
+
+```
+Edit the plan file:
+- [ ] Task 5: Implement X  →  - [x] Task 5: Implement X
+Update counts:
+**Completed:** 4 | **Remaining:** 8  →  **Completed:** 5 | **Remaining:** 7
+```
+
+---
+
+### Step 2.5: All Tasks Complete → Verification
+
+**⚠️ CRITICAL: Follow these steps exactly:**
+
+1. Quick verification: Check diagnostics and run the project's test suite
+2. **FOR MIGRATIONS ONLY - Feature Parity Check:**
+   - Run the NEW code and verify it produces expected output
+   - Compare behavior with OLD code (if still available)
+   - Check Feature Inventory - every feature should now be implemented
+   - If ANY feature is missing: **DO NOT mark complete** - add tasks for missing features
+3. **MANDATORY: Update plan status to COMPLETE**
+   ```
+   Edit the plan file and change the Status line:
+   Status: PENDING  →  Status: COMPLETE
+   ```
+4. **Register status change:** `~/.pilot/bin/pilot register-plan "<plan_path>" "COMPLETE" 2>/dev/null || true`
+5. **⛔ Phase Transition Context Guard:** Run `~/.pilot/bin/pilot check-context --json`. If >= 80%, hand off instead (see spec.md Section 0.3).
+6. **Invoke verification phase:** `Skill(skill='spec-verify', args='<plan-path>')`
+
+---
+
+## ⚠️ Migration/Refactoring Tasks (Phase 2 Additions)
+
+**When the plan involves replacing existing code, perform these ADDITIONAL checks:**
+
+### Before Starting Implementation
+
+1. **Locate the Feature Inventory section** in the plan
+2. **If Feature Inventory is MISSING** - STOP and inform user
+3. **Verify ALL features are mapped** - Every row must have a Task #
+4. **Read the OLD code completely** - Don't rely on the plan alone
+
+### During Implementation
+
+For EACH task that migrates old functionality:
+
+1. **Read the corresponding old file(s)** listed in Feature Inventory
+2. **Create a checklist** of functions/behaviors from old code
+3. **Verify each function/behavior exists** in new code after implementation
+4. **Test with same inputs** - Old and new code should produce same outputs
+
+### Before Marking Task Complete
+
+**For migration tasks, add this to Definition of Done:**
+
+- [ ] All functions from old code have equivalents in new code
+- [ ] Behavior matches old code (same inputs → same outputs)
+- [ ] No features accidentally omitted
+
+### Red Flags - STOP Implementation
+
+If you notice ANY of these, STOP and report to user:
+
+- Feature Inventory section missing from plan
+- Old file has functions not mentioned in any task
+- "Out of Scope" items that should actually be migrated
+- Tests pass but functionality is missing compared to old code
+
+---
+
+## Context Management (90% Handoff)
+
+After each major operation, check context:
+
+```bash
+~/.pilot/bin/pilot check-context --json
+```
+
+**Between iterations:**
+
+1. If context >= 90%: hand off cleanly (don't rush!)
+2. If context 80-89%: continue but wrap up current task with quality
+3. If context < 80%: continue the loop freely
+
+If response shows `"status": "CLEAR_NEEDED"` (context >= 90%):
+
+**⚠️ CRITICAL: Execute ALL steps below in a SINGLE turn. DO NOT stop or wait for user response between steps.**
+
+**Step 1: Write continuation file (GUARANTEED BACKUP)**
+
+Write to `~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md`:
+
+```markdown
+# Session Continuation (/spec)
+
+**Plan:** <plan-path>
+**Phase:** implementation
+**Current Task:** Task N - [description]
+
+**Completed This Session:**
+
+- [x] [What was finished]
+
+**Next Steps:**
+
+1. [What to do immediately when resuming]
+
+**Context:**
+
+- [Key decisions or blockers]
+```
+
+**Step 2: Trigger session clear**
+
+```bash
+~/.pilot/bin/pilot send-clear <plan-path>
+```
+
+Pilot will restart with `/spec --continue <plan-path>`
+
+ARGUMENTS: docs/plans/2026-02-19-context-management-integration.md
+
+---
+
+# /spec-verify - Verification Phase
+
+**Phase 3 of the /spec workflow.** Runs comprehensive verification: tests, process compliance, code review, program execution, E2E tests, and edge case testing.
+
+**Input:** Path to a plan file with `Status: COMPLETE`
+**Output:** Plan status set to VERIFIED (success) or looped back to implementation (failure)
+**On success:** Workflow complete
+**On failure:** → `Skill(skill='spec-implement', args='<plan-path>')` to fix issues
+
+---
+
+## ⛔ KEY CONSTRAINTS (Rules Summary)
+
+| #   | Rule                                                                                                  |
+| --- | ----------------------------------------------------------------------------------------------------- |
+| 1   | **NEVER SKIP verification** - Code review (Step 3.0/3.5) launches `spec-reviewer-compliance` + `spec-reviewer-quality` via the **Task tool** (`subagent_type="pilot:spec-reviewer-compliance"` and `"pilot:spec-reviewer-quality"`). Mandatory. No exceptions. |
+| 2   | **NO stopping** - Everything is automatic. Never ask "Should I fix these?"                            |
+| 3   | **Fix ALL findings automatically** - must_fix AND should_fix. No permission needed.                   |
+| 4   | **Quality over speed** - Never rush due to context pressure                                           |
+| 5   | **Plan file is source of truth** - Survives session clears                                            |
+| 6   | **Code changes finish BEFORE runtime testing** - Code review and fixes happen before build/deploy/E2E |
+| 7   | **Re-verification after fixes is MANDATORY** - Fixes can introduce new bugs. Always re-verify.        |
+
+---
+
+## The Process
+
+The verification process is split into two phases. All code changes (from review findings) happen in Phase A. All runtime testing happens in Phase B against the finalized code.
+
+```
+Phase A — Finalize the code:
+  Launch Reviewers (parallel) → Tests → Process Compliance → Feature Parity → Call Chain → Collect Review Results → Fix → Re-verify loop
+
+Phase B — Verify the running program:
+  Build → Deploy → Code Identity Check → Program Execution → DoD Audit → E2E → Edge Cases
+
+Final:
+  Regression check → Update plan status
+```
+
+**Why this order:** Code review findings change the code. If you run E2E before code review, you test unfixed code and must re-test after fixes. By finishing all code changes first, E2E tests the final product exactly once.
+
+**All test levels are MANDATORY:** Unit tests alone are insufficient. You must run integration tests AND E2E tests AND execute the actual program with real data.
+
+---
+
+## Phase A: Finalize the Code
+
+### Step 3.0: Launch Code Review Agents (Early Launch)
+
+**⛔ CRITICAL: Launch review agents IMMEDIATELY at the start of Phase A, before any other verification steps.**
+
+This early-launch pattern maximizes efficiency: agents begin reading the plan and reviewing code while the main session continues with automated checks (tests, lint, feature parity, call chain). By the time Step 3.5 collects results, agents are done or nearly done.
+
+#### 3.0a: Identify Changed Files
+
+Get list of files changed in this implementation:
+
+```bash
+git status --short  # Shows staged and unstaged changes
+```
+
+#### 3.0b: Gather Context for the Reviewers
+
+Collect information needed for actionable findings:
+
+1. **Test framework constraints** — What can/can't the test framework test? (e.g., "SSR-only via renderToString — no client-side effects or state testing possible")
+2. **Runtime environment** — How to start the program, what port, where artifacts are deployed
+3. **Plan risks section** — Copy the Risks and Mitigations table from the plan (if present)
+
+#### 3.0c: Resolve Session Path for Findings Persistence
+
+**⛔ CRITICAL: Agents write findings to files so they survive agent lifecycle cleanup.**
+
+Background agents' return values can be lost after completion. To guarantee findings are retrievable, each agent writes its JSON to a known file path.
+
+```bash
+echo $PILOT_SESSION_ID
+```
+
+**⚠️ Validate the session ID is set.** If `$PILOT_SESSION_ID` is empty, fall back to `"default"` to avoid writing to `~/.pilot/sessions//`.
+
+Define output paths (replace `<session-id>` with the resolved value):
+- **Compliance findings:** `~/.pilot/sessions/<session-id>/findings-compliance.json`
+- **Quality findings:** `~/.pilot/sessions/<session-id>/findings-quality.json`
+
+#### 3.0d: Launch Both Reviewers in Parallel
+
+Spawn 2 agents in parallel using TWO Task tool calls in a SINGLE message. Set `run_in_background=true` on both.
+
+**Agent 1: spec-reviewer-compliance** (plan alignment, DoD, risk mitigations)
+```
+Task(
+  subagent_type="pilot:spec-reviewer-compliance",
+  run_in_background=true,
+  prompt="""
+  **Plan file:** <plan-path>
+  **Changed files:** [file list from git status]
+  **Output path:** <absolute path to findings-compliance.json>
+
+  **Runtime environment:** [how to start, port, deploy path, etc.]
+  **Test framework constraints:** [what the test framework can/cannot test]
+  **Plan risks section:** [copy risks table if present, or "None listed"]
+
+  Verify this implementation matches the plan. Check spec compliance, DoD criteria,
+  and risk mitigations. Read the plan file first to understand requirements, then
+  verify the changed files implement them correctly.
+
+  **IMPORTANT:** Write your final findings JSON to the output_path using the Write tool.
+  """
+)
+```
+
+**Agent 2: spec-reviewer-quality** (code quality, security, testing, performance)
+```
+Task(
+  subagent_type="pilot:spec-reviewer-quality",
+  run_in_background=true,
+  prompt="""
+  **Plan file:** <plan-path>
+  **Changed files:** [file list from git status]
+  **Output path:** <absolute path to findings-quality.json>
+
+  **Runtime environment:** [how to start, port, deploy path, etc.]
+  **Test framework constraints:** [what the test framework can/cannot test]
+
+  Review code quality, security, testing adequacy, performance, and error handling.
+  Read all rule files first, then verify the changed files follow all standards.
+
+  **IMPORTANT:** Write your final findings JSON to the output_path using the Write tool.
+  """
+)
+```
+
+The reviewers work in parallel:
+
+- **spec-reviewer-compliance**: Verifies implementation matches plan, DoD criteria met, risk mitigations implemented
+- **spec-reviewer-quality**: Verifies code quality, security, testing, performance, error handling
+
+Both agents start immediately and work in the background while Steps 3.1-3.4 proceed.
+
+#### 3.0e: Continue with Automated Checks
+
+**Do NOT wait for agent results.** Proceed immediately to Step 3.1. The agents work in the background while you run tests, linters, feature parity, and call chain analysis.
+
+### Step 3.1: Run & Fix Tests
+
+Run the full test suite (unit + integration) and fix any failures immediately.
+
+**If failures:** Identify → Read test → Fix implementation → Re-run → Continue until all pass
+
+### Step 3.2: Process Compliance Check
+
+Run mechanical verification tools. These check process adherence that the code review agent cannot assess.
+
+**Run each tool and show output:**
+
+1. **Type checker** — `tsc --noEmit` / `basedpyright` / equivalent
+2. **Linter** — `eslint` / `ruff check` / equivalent
+3. **Coverage** — Run with coverage flag, verify ≥ 80%
+4. **Build** — Clean build with no errors
+
+5. **File length** — Check all changed production files (non-test). Any file >300 lines must be refactored (split into focused modules using TDD: write tests first, then extract). Files >500 lines are a hard blocker.
+
+**Fix all errors before proceeding.** Warnings are acceptable; errors are blockers.
+
+**Note:** The review agents (launched in Step 3.0) handle code quality, spec compliance, and rules enforcement. This step only covers mechanical tool checks that produce binary pass/fail results.
+
+### Step 3.3: Feature Parity Check (if applicable)
+
+**For refactoring/migration tasks only:** Verify ALL original functionality is preserved.
+
+**Process:**
+
+1. Compare old implementation with new implementation
+2. Create checklist of features from old code
+3. Verify each feature exists in new code
+4. Run new code and verify same behavior as old code
+
+**If features are MISSING:**
+
+This is a serious issue - the implementation is incomplete.
+
+1. **Add new tasks to the plan file:**
+   - Read the existing plan
+   - Add new tasks for each missing feature (follow existing task format)
+   - Mark new tasks with `[MISSING]` prefix in task title
+   - Update the Progress Tracking section with new task count
+   - Add note: `> Extended [Date]: Tasks X-Y added for missing features found during verification`
+
+2. **Set plan status to PENDING and increment Iterations:**
+
+   ```
+   Edit the plan file:
+   Status: COMPLETE  →  Status: PENDING
+   Iterations: N     →  Iterations: N+1
+   ```
+
+3. **Register status change:** `~/.pilot/bin/pilot register-plan "<plan_path>" "PENDING" 2>/dev/null || true`
+
+4. **Inform user:**
+
+   ```
+   🔄 Iteration N+1: Missing features detected, looping back to implement...
+
+   Found [N] missing features that need implementation:
+   - [Feature 1]
+   - [Feature 2]
+
+   The plan has been updated with [N] new tasks.
+   ```
+
+5. **⛔ Phase Transition Context Guard:** Run `~/.pilot/bin/pilot check-context --json`. If >= 80%, hand off instead (see spec.md Section 0.3).
+6. **Invoke implementation phase:** `Skill(skill='spec-implement', args='<plan-path>')`
+
+### Step 3.4: Call Chain Analysis
+
+**Perform deep impact analysis for all changes:**
+
+1. **Trace Upwards (Callers):**
+   - Identify all code that calls modified functions
+   - Verify they handle new return values/exceptions
+   - Check for breaking changes in interfaces
+
+2. **Trace Downwards (Callees):**
+   - Identify all dependencies of modified code
+   - Verify correct parameter passing
+   - Check error handling from callees
+
+3. **Side Effect Analysis:**
+   - Database state changes
+   - Cache invalidation needs
+   - External system impacts
+   - Global state modifications
+
+### Step 3.5: Collect Review Results
+
+**⛔ THIS STEP IS NON-NEGOTIABLE. You MUST collect and process review findings.**
+
+**⚠️ SKIPPING THIS STEP IS FORBIDDEN.** Even if:
+
+- You're confident the code is correct
+- Context is getting high (do handoff AFTER verification, not instead of it)
+- Tests pass (tests don't catch everything)
+- The implementation seems simple
+
+**None of these are valid reasons to skip. ALWAYS COLLECT AND PROCESS RESULTS.**
+
+#### 3.5a: Retrieve and Fix Findings Progressively
+
+The two review agents (launched in Step 3.0) should be done or nearly done by now. Their findings are persisted to files in the session directory.
+
+**⛔ NEVER use `TaskOutput` to retrieve agent results.** TaskOutput dumps the full verbose agent transcript (all JSON messages, hook progress, tool calls) into context, wasting thousands of tokens. Instead, poll the output files with the Read tool.
+
+**Progressive polling — fix findings as each agent completes:**
+
+1. **Attempt to read BOTH findings files** using the Read tool on the paths defined in Step 3.0c:
+   - `~/.pilot/sessions/<session-id>/findings-compliance.json`
+   - `~/.pilot/sessions/<session-id>/findings-quality.json`
+2. **If one file exists but the other doesn't** → start fixing findings from the ready agent immediately (by severity: must_fix → should_fix → suggestion). Track which findings you fixed.
+3. After fixing the first batch, **poll for the second file** (retry if not yet ready)
+4. When the second file is ready, **skip findings that overlap** with already-fixed items from the first batch (same file + same issue), then fix the remaining findings
+5. **If both files are ready simultaneously**, deduplicate first (keep higher severity for duplicates on same file + line), then fix all
+
+**If a findings file is still missing after 2-3 retries** (agent failed to write):
+1. Re-launch that specific agent synchronously (without `run_in_background`) with the same prompt
+2. If the synchronous re-launch also fails, log the failure and continue with findings from the other agent only
+
+**Expected timeline:**
+- Agents were launched before Step 3.1 (tests, lint, feature parity, call chain)
+- Steps 3.1-3.4 typically take 2-5 minutes
+- Agents typically complete in 3-7 minutes
+- Net result: Agents finish around the same time as Step 3.4, minimal or zero wait time
+
+#### 3.5b: Report Findings
+
+As you collect and fix findings, present them briefly:
+
+```
+## Code Verification Complete
+
+**Issues Found:** X
+
+### Must Fix (N) | Should Fix (N) | Suggestions (N)
+
+Implementing fixes automatically...
+```
+
+#### 3.5c: Fix Severity Order
+
+**⛔ DO NOT ask user for permission. Fix everything automatically.**
+
+This is part of the automated /spec workflow. The user approved the plan - verification fixes are part of that approval. Never stop to ask "Should I fix these?" or "Want me to address these findings?"
+
+**Implementation order (by severity):**
+
+1. **must_fix issues** - Fix immediately (security, crashes, TDD violations)
+2. **should_fix issues** - Fix immediately (spec deviations, missing tests, error handling)
+3. **suggestions** - Implement if reasonable and quick
+
+**For each fix:**
+
+1. Implement the fix
+2. Run relevant tests to verify
+3. Log: "✅ Fixed: [issue title]"
+
+### Step 3.6: Re-verification Loop (MANDATORY)
+
+**⛔ This step is NON-NEGOTIABLE. Fixes can introduce new bugs.**
+
+After implementing ALL code review findings from Step 3.5c:
+
+1. **Re-run BOTH review agents** in parallel (same parameters as Step 3.0d, with `run_in_background=true` and output paths):
+   - `spec-reviewer-compliance` → writes to `findings-compliance.json`
+   - `spec-reviewer-quality` → writes to `findings-quality.json`
+2. **Use the same progressive polling approach as Step 3.5a** — fix findings from whichever agent finishes first, then handle the second when ready
+3. If new must_fix or should_fix issues found → fix them and re-run both agents again
+4. Maximum 3 iterations of the fix → re-verify cycle
+5. **Only proceed to Phase B when BOTH reviewers return zero must_fix and zero should_fix**
+
+If iterations exhausted with remaining issues, add them to plan. **⛔ Phase Transition Context Guard** (spec.md Section 0.3) before invoking `Skill(skill='spec-implement', args='<plan-path>')`
+
+**The only stopping point in /spec is plan approval. Everything else is automatic.**
+
+---
+
+## Phase B: Verify the Running Program
+
+All code is now finalized. No more code changes should happen in this phase (except critical bugs found during execution).
+
+### Step 3.7: Build, Deploy, and Verify Code Identity
+
+**⚠️ CRITICAL: Tests passing ≠ Program works. And building ≠ running your build.**
+
+#### 3.7a: Build
+
+Build/compile the project. Verify zero errors.
+
+#### 3.7b: Deploy (if applicable)
+
+If the project builds artifacts that are deployed separately from source (e.g., bundled JS, compiled binaries, Docker images):
+
+1. Identify where built artifacts are installed (e.g., `~/.claude/pilot/scripts/`)
+2. Copy new builds to the installed location
+3. Restart any running services that use the old artifacts
+
+**If no separate deployment is needed, skip to 3.7c.**
+
+#### 3.7c: Code Identity Verification (MANDATORY)
+
+**Before testing ANY endpoint or behavior, prove the running instance uses your newly built code.**
+
+1. Identify a behavioral change unique to this implementation (new query parameter, changed response field, new endpoint, different behavior for specific input)
+2. Craft a request that ONLY the new code would handle correctly (e.g., filter by nonexistent value should return 0 results; old code returns unfiltered results)
+3. Execute the request against the running program
+4. **If the response matches OLD behavior** → you are testing stale code
+   - Redeploy artifacts
+   - Restart the service
+   - Re-verify until the response matches NEW behavior
+5. **If the response matches NEW behavior** → proceed
+
+**Example:** You added `?project=` filtering. Query `?project=nonexistent-xyz`. New code returns 0 results. Old code ignores the parameter and returns all results. If you see all results, you're testing old code.
+
+**⛔ DO NOT proceed to program execution testing until code identity is confirmed.**
+
+### Step 3.8: Program Execution Verification
+
+Run the actual program and verify real output.
+
+**Execution checklist:**
+
+- [ ] Program starts without errors
+- [ ] **Inspect logs** - Check for errors, warnings, stack traces
+- [ ] **Verify output correctness** - Fetch source data independently, compare against program output
+- [ ] Test with real/sample data, not just mocks
+
+**⛔ Output Correctness - MANDATORY:**
+If code processes external data, ALWAYS verify by fetching source data independently and comparing:
+
+```bash
+# Fetch actual source data (database query, API call, file contents)
+# Compare counts/content with what your code returned
+# If mismatch → BUG (don't trust program output alone)
+```
+
+**If bugs are found:**
+
+| Bug Type                                                       | Action                                                                                                                      |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Minor** (typo, off-by-one, missing import)                   | Fix immediately, re-run, continue verification                                                                              |
+| **Major** (logic error, missing function, architectural issue) | Add task to plan, set PENDING, **⛔ Context Guard** (spec.md 0.3), then `Skill(skill='spec-implement', args='<plan-path>')` |
+
+### Step 3.9: Goal Verification and DoD Audit
+
+**Task completion ≠ Goal achievement.** A task can be marked "done" (file created, test passes) while the plan's actual goal remains unmet. Verify both levels.
+
+#### 3.9a: Goal-Backward Verification
+
+Read the plan's **Summary/Goal** section. Work backwards from the intended outcome:
+
+1. **What must be TRUE** for the goal to be achieved? (e.g., "users can filter by project")
+2. **What must EXIST** for those truths to hold? (e.g., filter component, API parameter, query logic)
+3. **What must be WIRED** for those artifacts to function? (e.g., component imported, route registered, state connected)
+
+Verify each level against the actual codebase and running program. If any level fails, the goal is not achieved regardless of task completion status.
+
+#### 3.9b: Per-Task DoD Audit
+
+**For EACH task in the plan**, read its Definition of Done criteria and verify each criterion is met with evidence from the running program.
+
+```markdown
+### Task N: [title]
+
+- [ ] DoD criterion 1 → [evidence: command output / API response / screenshot]
+- [ ] DoD criterion 2 → [evidence]
+      ...
+```
+
+**If any criterion is unmet (at either goal or task level):**
+
+- If fixable inline → fix immediately
+- If structural → add task to plan and loop back to implementation
+
+### Step 3.10: E2E Verification (MANDATORY for apps with UI/API)
+
+**⚠️ Unit + Integration tests are NOT enough. You MUST also run E2E tests.**
+
+#### 3.10a: Happy Path Testing
+
+Test the primary user workflow end-to-end.
+
+**For APIs:** Test endpoints with curl. Verify status codes, response content, and state changes.
+
+**For Frontend/UI:** Use `playwright-cli` to verify UI renders and workflows complete. See `~/.claude/rules/playwright-cli.md`.
+
+Walk through the main user scenario described in the plan. Every view, every interaction, every state transition.
+
+#### 3.10b: Edge Case and Negative Testing
+
+After the happy path passes, test failure modes. **This is not optional.**
+
+| Category          | What to test                                    | Example                                                          |
+| ----------------- | ----------------------------------------------- | ---------------------------------------------------------------- |
+| **Empty state**   | No data, no items, no results                   | Empty database, no projects, search returns nothing              |
+| **Invalid input** | Bad parameters, wrong types                     | SQL injection in query params, empty strings, special characters |
+| **Stale state**   | Cached/stored data references something deleted | localStorage has project name that no longer exists              |
+| **Error state**   | Backend unreachable, API returns error          | What does the UI show when fetch fails?                          |
+| **Boundary**      | Maximum values, zero values, single item        | Exactly 1 project, 0 observations, 100-char project name         |
+
+For each edge case:
+
+1. Set up the condition
+2. Exercise the UI/API
+3. Verify the result is reasonable (not blank, not broken, not stuck, no unhandled errors)
+
+### Step 3.11: Final Regression Check
+
+Run the test suite and type checker one final time to catch any regressions from Phase B fixes (if any code changed during execution/E2E testing):
+
+1. Run full test suite — all pass
+2. Run type checker — zero errors
+3. Verify build still succeeds
+
+**If no code changed during Phase B** (no bugs found during execution/E2E), this confirms the same green state from Phase A. Still run it — it's cheap insurance.
+
+### Step 3.11a: Auto-Create PR with Auto-Merge (if worktree is active)
+
+**After all verification passes, push the feature branch and create a PR with auto-merge enabled.**
+
+This step runs BEFORE Step 3.11b (worktree sync). When a PR is auto-created, Step 3.11b is SKIPPED — the PR auto-merge IS the sync mechanism. GitHub auto-deletes the branch after merge (configured via `delete-branch-on-merge`).
+
+**⚠️ CRITICAL ORDER:** PR must be created BEFORE `pilot worktree sync`, because sync squash-merges to the base branch and deletes the feature branch. After sync, there is no branch left to create a PR from.
+
+1. **Check for active worktree:**
+
+   ```bash
+   ~/.pilot/bin/pilot worktree detect --json <plan_slug>
+   ```
+
+   If `"found": false`, skip this step entirely and proceed to Step 3.11b.
+
+2. **Extract branch info** from the detect output: `branch` (e.g., `spec/autonomous-repo-management`) and `base_branch`.
+
+3. **Check if PR already exists** (idempotent — safe to re-run):
+
+   ```bash
+   gh pr list --head <branch> --json number,url --jq '.[0]'
+   ```
+
+   If a PR exists, print the URL and skip to Step 3.12 (auto-merge was already enabled).
+
+4. **Push the feature branch** to remote:
+
+   ```bash
+   git -C <worktree_path> push -u origin <branch>
+   ```
+
+5. **Derive PR title** from the plan content:
+   - Read the plan's slug (e.g., `autonomous-repo-management` → `autonomous repo management`)
+   - Check the plan Summary section for keywords to determine commit type:
+     - Contains "bug", "fix", "error", "broken" → `fix:`
+     - Contains "refactor", "restructure", "cleanup", "simplify" → `refactor:`
+     - Contains "docs", "documentation", "readme" → `docs:`
+     - Contains "test", "testing", "coverage" → `test:`
+     - Contains "chore", "maintenance", "deps", "dependency" → `chore:`
+     - Default → `feat:`
+   - Format: `<type>: <slug-with-hyphens-replaced-by-spaces>`
+   - Example: `feat: autonomous repo management`
+
+6. **Create PR** with plan Summary as body:
+
+   ```bash
+   PLAN_SUMMARY=$(grep -A 5 '## Summary' <plan_path> | tail -n +2 | head -5)
+   COMPLETED_TASKS=$(grep '^\- \[x\]' <plan_path>)
+
+   gh pr create \
+     --title "<derived-title>" \
+     --body "$(cat <<'EOF'
+   ## Summary
+
+   <plan_summary>
+
+   ## Completed Tasks
+
+   <completed_tasks>
+
+   **Plan:** <plan_path>
+   EOF
+   )" \
+     --base <base_branch> \
+     --head <branch>
+   ```
+
+7. **Enable auto-merge** on the created PR:
+
+   ```bash
+   gh pr merge --auto --squash <branch>
+   ```
+
+8. **Report and skip Step 3.11b:**
+
+   Print: "✅ PR created with auto-merge enabled — CI will merge automatically when checks pass."
+   Print the PR URL.
+
+   **Proceed directly to Step 3.12.** Do NOT run Step 3.11b (worktree sync). After GitHub merges the PR, run worktree cleanup:
+
+   ```bash
+   ~/.pilot/bin/pilot worktree cleanup --json <plan_slug>
+   ```
+
+---
+
+### Step 3.11b: Worktree Sync (if worktree is active)
+
+**⚠️ SKIP THIS STEP if Step 3.11a successfully created a PR.** The PR auto-merge replaces the manual worktree sync.
+
+**Only run Step 3.11b if Step 3.11a was skipped** (no worktree, or PR creation failed).
+
+**After all verification passes, sync worktree changes back to the original branch with user approval.**
+
+This is the THIRD user interaction point in the `/spec` workflow (first is worktree choice, second is plan approval).
+
+1. **Extract plan slug** from the plan file path:
+   - `docs/plans/2026-02-09-add-auth.md` → plan_slug = `add-auth` (strip date prefix and `.md`)
+
+2. **Check for active worktree:**
+
+   ```bash
+   ~/.pilot/bin/pilot worktree detect --json <plan_slug>
+   # Returns: {"found": true, "path": "...", "branch": "...", "base_branch": "..."} or {"found": false}
+   ```
+
+3. **If no worktree is active** (`"found": false`): Skip to Step 3.12 (this is a non-worktree spec run or worktree was already synced).
+
+4. **Show diff summary:**
+
+   ```bash
+   ~/.pilot/bin/pilot worktree diff --json <plan_slug>
+   # Returns JSON with changed files list
+   ```
+
+5. **Ask user for sync decision:**
+
+   ```
+   AskUserQuestion:
+     question: "Sync worktree changes to <base_branch>?"
+     options:
+       - "Yes, squash merge" (Recommended) — Merge all changes as a single commit on <base_branch>
+       - "No, keep worktree" — Leave the worktree intact for manual review
+       - "Discard all changes" — Remove worktree and branch without merging
+   ```
+
+6. **Handle user choice:**
+
+   **If "Yes, squash merge":**
+
+   ```bash
+   ~/.pilot/bin/pilot worktree sync --json <plan_slug>
+   # Returns: {"success": true, "files_changed": N, "commit_hash": "..."} or {"success": false, "error": "..."}
+   ```
+
+   If sync succeeds, clean up the worktree:
+
+   ```bash
+   ~/.pilot/bin/pilot worktree cleanup --json <plan_slug>
+   ```
+
+   Report: "✅ Changes synced to `<base_branch>` — N files changed, commit `<hash>`"
+
+   **If "No, keep worktree":**
+   Report: "Worktree preserved at `<worktree_path>`. You can sync later via `pilot worktree sync <plan-slug>` or discard via `pilot worktree cleanup <plan-slug>`."
+
+   **If "Discard all changes":**
+
+   ```bash
+   ~/.pilot/bin/pilot worktree cleanup --json <plan_slug>
+   ```
+
+   Report: "Worktree and branch discarded."
+
+### Step 3.12: Update Plan Status
+
+**Status Lifecycle:** `PENDING` → `COMPLETE` → `VERIFIED`
+
+**When ALL verification passes (no missing features, no bugs, rules compliant):**
+
+1. **MANDATORY: Update plan status to VERIFIED**
+   ```
+   Edit the plan file and change the Status line:
+   Status: COMPLETE  →  Status: VERIFIED
+   ```
+2. **Register status change:** `~/.pilot/bin/pilot register-plan "<plan_path>" "VERIFIED" 2>/dev/null || true`
+3. Read the Iterations count from the plan file
+4. Report completion:
+
+   ```
+   ✅ Workflow complete! Plan status: VERIFIED
+
+   Summary:
+   - [Brief summary of what was implemented]
+   - [Key files created/modified]
+   - [Test results]
+
+   Is there anything else you'd like me to help with?
+   ```
+
+**When verification FAILS (missing features, serious bugs, or unfixed rule violations):**
+
+1. Add new tasks to the plan for missing features/bugs
+2. **Set status back to PENDING and increment Iterations:**
+   ```
+   Edit the plan file:
+   Status: COMPLETE  →  Status: PENDING
+   Iterations: N     →  Iterations: N+1
+   ```
+3. **Register status change:** `~/.pilot/bin/pilot register-plan "<plan_path>" "PENDING" 2>/dev/null || true`
+4. Inform user: "🔄 Iteration N+1: Issues found, fixing and re-verifying..."
+5. **⛔ Phase Transition Context Guard:** Run `~/.pilot/bin/pilot check-context --json`. If >= 80%, hand off instead (see spec.md Section 0.3).
+6. **Invoke implementation phase:** `Skill(skill='spec-implement', args='<plan-path>')`
+
+---
+
+## Context Management (90% Handoff)
+
+After each major operation, check context:
+
+```bash
+~/.pilot/bin/pilot check-context --json
+```
+
+**Between iterations:**
+
+1. If context >= 90%: hand off cleanly (don't rush!)
+2. If context 80-89%: continue but wrap up current task with quality
+3. If context < 80%: continue the loop freely
+
+If response shows `"status": "CLEAR_NEEDED"` (context >= 90%):
+
+**⚠️ CRITICAL: Execute ALL steps below in a SINGLE turn. DO NOT stop or wait for user response between steps.**
+
+**Step 1: Write continuation file (GUARANTEED BACKUP)**
+
+Write to `~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md`:
+
+```markdown
+# Session Continuation (/spec)
+
+**Plan:** <plan-path>
+**Phase:** verification
+**Current Task:** Step 3.N - [description]
+
+**Completed This Session:**
+
+- [x] [What was finished]
+
+**Next Steps:**
+
+1. [What to do immediately when resuming]
+
+**Context:**
+
+- [Key decisions or blockers]
+```
+
+**Step 2: Trigger session clear**
+
+```bash
+~/.pilot/bin/pilot send-clear <plan-path>
+```
+
+Pilot will restart with `/spec --continue <plan-path>`
+
+ARGUMENTS: docs/plans/2026-02-19-context-management-integration.md
+
+---
+
+Run a development retrospective that flows insights back into core files.
+
+This is the compound engineering feedback loop. It ensures that session learnings don't just accumulate in knowledge_graph/ — they propagate back into the files that govern future behavior.
+
+## Steps
+
+### 1. Audit Current State
+- Read `REDACTED.md` and `REDACTED.md`
+- Read `CLAUDE.md`, `README.md`, and `memory/MEMORY.md`
+- Identify: new learnings since last retrospect, stale/duplicate entries, insights that should propagate upward
+
+### 2. Prune Knowledge Graph
+- Remove duplicate entries from KEY_LEARNINGS.md (e.g., triplicate retrospective blocks)
+- Remove spam entries from MISSION_JOURNAL.md (e.g., repeated "Automated Hypothesis Testing Report" lines)
+- Compress old session developments into single-line summaries
+- Target: KEY_LEARNINGS.md under 300 lines, MISSION_JOURNAL.md under 150 lines
+
+### 3. Propagate Insights Upward
+For each significant learning or pattern discovered since last retrospect:
+- **If it changes how we code**: Update `CLAUDE.md` Coding Standards or Operational Protocols
+- **If it changes what the project can do**: Update `README.md` Verified Capabilities or Limitations
+- **If it changes architecture**: Update `.agent/CAPABILITY_MAP.md`
+- **If it changes theory**: Update `.agent/COHEZION_CHARTER.md`
+- **If it's a process lesson**: Update `memory/MEMORY.md` (keep under 200 lines)
+
+### 4. Verify Consistency
+- Ensure CLAUDE.md reflects the actual codebase state (module count, test coverage, etc.)
+- Ensure README.md has no fabricated claims
+- Ensure memory/MEMORY.md is under the 200-line limit
+- Run `ruff check src/cohezion/` to verify no regressions
+
+### 5. Report
+- List what was pruned, what was propagated, and what remains stale
+- Note any inconsistencies between core files that need manual resolution
+
+## Rules
+- NEVER delete knowledge without first reading and understanding it
+- Prefer compression over deletion (turn 5 verbose entries into 1 concise entry)
+- Every claim in README.md must be adversarially verifiable
+- CLAUDE.md is the single source of truth — other files defer to it
