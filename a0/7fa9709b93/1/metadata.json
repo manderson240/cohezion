@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "a07fa9709b93",
+  "session_id": "66005183-bea8-4850-bf63-6b1b904dcb75",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-20T06:35:22.637330601Z",
+  "branch": "spec/routes-consolidation",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "ollama-mcp",
+    "pyproject.toml",
+    "research/challenges/anthropic_challenge_original",
+    "src/cohezion/real_envs/multi_agent.py"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "367d6da1-959c-4604-9ecd-c535812037f2",
+  "checkpoint_transcript_start": 616,
+  "transcript_lines_at_start": 616,
+  "token_usage": {
+    "input_tokens": 395,
+    "cache_creation_tokens": 17833,
+    "cache_read_tokens": 3512569,
+    "output_tokens": 4211,
+    "api_call_count": 25
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-20T06:35:22.512753233Z",
+    "agent_lines": 0,
+    "human_added": 4021,
+    "human_modified": 544,
+    "human_removed": 0,
+    "total_committed": 4531,
+    "agent_percentage": 0
+  }
+}
