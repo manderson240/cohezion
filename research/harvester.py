@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
@@ -194,6 +195,97 @@ async def arxiv_adapter(
     return findings
 
 
+async def github_adapter(
+    source_config: dict[str, Any],
+    focus_areas: dict[str, Any],
+) -> list[Finding]:
+    """Fetch trending repos and releases from GitHub via gh CLI search API."""
+    findings: list[Finding] = []
+
+    # Recent popular repos by language
+    languages = source_config.get("languages", ["python", "typescript"])
+    for lang in languages:
+        try:
+            resp = requests.get(
+                "https://api.github.com/search/repositories",
+                params={"q": f"language:{lang} created:>2026-02-13", "sort": "stars", "per_page": 10},
+                headers={"Accept": "application/vnd.github.v3+json"},
+                timeout=15,
+            )
+            resp.raise_for_status()
+            for repo in resp.json().get("items", []):
+                findings.append(
+                    Finding(
+                        title=f"{repo.get('full_name', '')}: {repo.get('description', '')}",
+                        url=repo.get("html_url", ""),
+                        source="github_recent",
+                        snippet=repo.get("description", "")[:300],
+                        category=_best_category(repo.get("description", ""), focus_areas),
+                    )
+                )
+            await asyncio.sleep(API_DELAY)
+        except Exception as e:
+            logger.warning("GitHub search failed for %s: %s", lang, e)
+
+    # Release monitoring for tracked repos
+    for repo_name in source_config.get("repos", [])[:20]:
+        try:
+            resp = requests.get(
+                f"https://api.github.com/repos/{repo_name}/releases/latest",
+                headers={"Accept": "application/vnd.github.v3+json"},
+                timeout=10,
+            )
+            if resp.status_code == 200:
+                release = resp.json()
+                findings.append(
+                    Finding(
+                        title=f"{repo_name} {release.get('tag_name', '')}: {release.get('name', '')}",
+                        url=release.get("html_url", ""),
+                        source="github_releases",
+                        snippet=(release.get("body", "") or "")[:300],
+                        category=_best_category(repo_name + " " + (release.get("body", "") or ""), focus_areas),
+                    )
+                )
+            await asyncio.sleep(API_DELAY)
+        except Exception as e:
+            logger.warning("GitHub release check failed for %s: %s", repo_name, e)
+
+    return findings
+
+
+async def blog_feed_adapter(
+    source_config: dict[str, Any],
+    focus_areas: dict[str, Any],
+) -> list[Finding]:
+    """Check tracked blog URLs for new posts."""
+    findings: list[Finding] = []
+    urls = source_config.get("urls", [])
+
+    for url in urls:
+        try:
+            resp = requests.get(url, timeout=15, headers={"User-Agent": "CohezionResearch/1.0"})
+            resp.raise_for_status()
+            # Simple approach: extract title and first paragraph-like text
+            text = resp.text[:5000]
+            title_match = re.search(r"<title>(.*?)</title>", text, re.IGNORECASE)
+            title = title_match.group(1) if title_match else url
+
+            findings.append(
+                Finding(
+                    title=f"Blog: {title}",
+                    url=url,
+                    source="blog_feed",
+                    snippet=f"Blog index page checked: {url}",
+                    category=_best_category(title, focus_areas),
+                )
+            )
+            await asyncio.sleep(API_DELAY)
+        except Exception as e:
+            logger.warning("Blog feed check failed for %s: %s", url, e)
+
+    return findings
+
+
 async def harvest(config: dict[str, Any]) -> list[Finding]:
     """Run all source adapters in parallel, collecting findings."""
     focus_areas = config.get("focus_areas", {})
@@ -212,6 +304,13 @@ async def harvest(config: dict[str, Any]) -> list[Finding]:
         tasks.append(asyncio.create_task(_safe_adapter("reddit", reddit_adapter(sources["reddit"], focus_areas))))
     if "arxiv" in sources:
         tasks.append(asyncio.create_task(_safe_adapter("arxiv", arxiv_adapter(sources["arxiv"], focus_areas))))
+    if "github_recent" in sources or "github_releases" in sources:
+        gh_config = {**sources.get("github_recent", {}), **sources.get("github_releases", {})}
+        if "repos" not in gh_config and "github_releases" in sources:
+            gh_config["repos"] = sources["github_releases"].get("repos", [])
+        tasks.append(asyncio.create_task(_safe_adapter("github", github_adapter(gh_config, focus_areas))))
+    if "blog_feeds" in sources:
+        tasks.append(asyncio.create_task(_safe_adapter("blog_feeds", blog_feed_adapter(sources["blog_feeds"], focus_areas))))
 
     results = await asyncio.gather(*tasks)
 

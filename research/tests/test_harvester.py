@@ -211,6 +211,65 @@ async def test_web_search_adapter_returns_findings(sample_config):
     assert findings[0].source == "web_search"
 
 
+@pytest.mark.asyncio
+async def test_github_adapter_returns_findings(sample_config):
+    """GitHub adapter returns Finding objects from mock API response."""
+    from research.harvester import github_adapter
+    from research.pipeline import Finding
+
+    mock_search_resp = MagicMock()
+    mock_search_resp.status_code = 200
+    mock_search_resp.json.return_value = {
+        "items": [
+            {
+                "full_name": "org/ai-tool",
+                "description": "An AI agent framework",
+                "html_url": "https://github.com/org/ai-tool",
+            },
+        ],
+    }
+
+    mock_release_resp = MagicMock()
+    mock_release_resp.status_code = 200
+    mock_release_resp.json.return_value = {
+        "tag_name": "v1.0.0",
+        "name": "Initial Release",
+        "body": "First stable release of the framework.",
+        "html_url": "https://github.com/org/repo/releases/tag/v1.0.0",
+    }
+
+    with patch("research.harvester.requests.get", side_effect=[mock_search_resp, mock_release_resp]):
+        findings = await github_adapter(
+            {"languages": ["python"], "repos": ["org/repo"]},
+            sample_config["focus_areas"],
+        )
+
+    assert len(findings) >= 1
+    assert isinstance(findings[0], Finding)
+    assert findings[0].source in ("github_recent", "github_releases")
+
+
+@pytest.mark.asyncio
+async def test_blog_feed_adapter_returns_findings(sample_config):
+    """Blog feed adapter returns Finding objects from mock HTML."""
+    from research.harvester import blog_feed_adapter
+    from research.pipeline import Finding
+
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.text = "<html><title>Simon Willison's Blog</title><body>Latest posts</body></html>"
+
+    with patch("research.harvester.requests.get", return_value=mock_response):
+        findings = await blog_feed_adapter(
+            {"urls": ["https://simonwillison.net"]},
+            sample_config["focus_areas"],
+        )
+
+    assert len(findings) >= 1
+    assert isinstance(findings[0], Finding)
+    assert findings[0].source == "blog_feed"
+
+
 # --- Harvest orchestration ---
 
 
@@ -231,7 +290,9 @@ async def test_harvest_runs_all_adapters(sample_config):
     with patch("research.harvester.web_search_adapter", new_callable=AsyncMock, return_value=[mock_finding]), \
          patch("research.harvester.hackernews_adapter", new_callable=AsyncMock, return_value=[mock_finding]), \
          patch("research.harvester.reddit_adapter", new_callable=AsyncMock, return_value=[mock_finding]), \
-         patch("research.harvester.arxiv_adapter", new_callable=AsyncMock, return_value=[mock_finding]):
+         patch("research.harvester.arxiv_adapter", new_callable=AsyncMock, return_value=[mock_finding]), \
+         patch("research.harvester.github_adapter", new_callable=AsyncMock, return_value=[mock_finding]), \
+         patch("research.harvester.blog_feed_adapter", new_callable=AsyncMock, return_value=[mock_finding]):
         findings = await harvest(sample_config)
 
     assert len(findings) >= 1
@@ -254,7 +315,9 @@ async def test_harvest_handles_adapter_failure(sample_config):
     with patch("research.harvester.web_search_adapter", new_callable=AsyncMock, side_effect=Exception("API down")), \
          patch("research.harvester.hackernews_adapter", new_callable=AsyncMock, return_value=[mock_finding]), \
          patch("research.harvester.reddit_adapter", new_callable=AsyncMock, return_value=[mock_finding]), \
-         patch("research.harvester.arxiv_adapter", new_callable=AsyncMock, return_value=[mock_finding]):
+         patch("research.harvester.arxiv_adapter", new_callable=AsyncMock, return_value=[mock_finding]), \
+         patch("research.harvester.github_adapter", new_callable=AsyncMock, return_value=[mock_finding]), \
+         patch("research.harvester.blog_feed_adapter", new_callable=AsyncMock, return_value=[mock_finding]):
         findings = await harvest(sample_config)
 
     # Should still get findings from the adapters that didn't fail
