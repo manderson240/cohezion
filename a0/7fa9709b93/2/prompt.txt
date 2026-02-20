@@ -1,0 +1,5 @@
+refactor skill_registry.json"
+
+---
+
+commit this
