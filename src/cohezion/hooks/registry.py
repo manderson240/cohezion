@@ -52,9 +52,7 @@ class HookRegistry:
         """Remove a hook from an event."""
         # Note: This simplified implementation doesn't track hook_id on the callable
         # In production, you'd want to wrap callables with metadata
-        logger.warning(
-            f"Hook unregister not fully implemented: {hook_id} for {event}"
-        )
+        logger.warning(f"Hook unregister not fully implemented: {hook_id} for {event}")
 
     def get_hooks(self, event: HookEvent) -> List[Callable]:
         """Get all registered hooks for an event."""

@@ -8,8 +8,13 @@ Provides:
 - Retry-After headers
 """
 
+import os
 import time
 from dataclasses import dataclass
+
+
+# Trusted proxy IPs (configurable for production deployments)
+TRUSTED_PROXIES = os.environ.get("RATE_LIMIT_TRUSTED_PROXIES", "127.0.0.1,::1").split(",")
 
 
 @dataclass
@@ -68,6 +73,30 @@ class RateLimitResult:
     remaining: int
     reset_after: float
     limit: int
+
+
+def get_client_ip(request: "Request") -> str:
+    """Get client IP with proxy awareness.
+
+    Args:
+        request: FastAPI Request object
+
+    Returns:
+        Client IP address, or 'unknown' if not determinable
+    """
+    try:
+        from fastapi import Request
+
+        # Only trust X-Forwarded-For if coming from a trusted proxy
+        if request.client and request.client.host in TRUSTED_PROXIES:
+            forwarded = request.headers.get("X-Forwarded-For")
+            if forwarded:
+                # Take the first IP in the chain (original client)
+                return forwarded.split(",")[0].strip()
+
+        return request.client.host if request.client else "unknown"
+    except Exception:
+        return "unknown"
 
 
 class RateLimiter:

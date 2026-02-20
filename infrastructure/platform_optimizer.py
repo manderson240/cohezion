@@ -75,7 +75,6 @@ class PlatformOptimizer:
                 }
             }
         }
-        }
     
     def _create_framework_pro_config(self) -> Dict[str, Any]:
         """Create 128GB desktop configuration"""
@@ -100,7 +99,6 @@ class PlatformOptimizer:
                     'strategies': ['gpu_kernel_optimization', 'vectorization', 'distributed_processing']
                 }
             }
-        }
         }
     
     def _create_mobile_config(self) -> Dict[str, Any]:

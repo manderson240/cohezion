@@ -1,6 +1,5 @@
 """Tests for event wiring and commit batching."""
 
-
 import pytest
 
 from cohezion.config.event_wiring import (

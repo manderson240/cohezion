@@ -160,9 +160,7 @@ async def record_session_journey():
 
         print("\n✅ Session 12 Journey Captured (Identity: Cohezion).")
         print(f"Mission ID: {session_id}")
-        print(
-            "Archived in: SurrealDB (trajectories) & Obsidian Vault (retrospectives)"
-        )
+        print("Archived in: SurrealDB (trajectories) & Obsidian Vault (retrospectives)")
 
     except Exception as e:
         logger.error(f"💥 Journey recording failed: {e}")

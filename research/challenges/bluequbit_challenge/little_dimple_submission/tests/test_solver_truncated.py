@@ -60,7 +60,6 @@ class PeakedCircuitSolver:
             logger.info(f"Found {N} qubits. Constructing TN...")
             self.circ = qtn.Circuit(N)
 
-
             for line in lines:
                 line = line.strip().replace(";", "")
                 if (

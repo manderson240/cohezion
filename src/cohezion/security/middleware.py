@@ -19,7 +19,7 @@ from fastapi.responses import JSONResponse
 from cohezion.security.audit import get_audit_logger
 from cohezion.security.auth import AuthError, verify_api_key
 from cohezion.security.prompt_guard import PromptGuard
-from cohezion.security.rate_limiter import get_rate_limiter
+from cohezion.security.rate_limiter import get_client_ip, get_rate_limiter
 
 
 def add_security_middleware(app: FastAPI) -> None:
@@ -32,7 +32,7 @@ def add_security_middleware(app: FastAPI) -> None:
     @app.middleware("http")
     async def security_middleware(request: Request, call_next: Callable) -> Response:
         start_time = time.time()
-        ip = request.client.host if request.client else None
+        ip = get_client_ip(request)
         endpoint = request.url.path
         method = request.method
         user = None
@@ -60,7 +60,7 @@ def add_security_middleware(app: FastAPI) -> None:
             )
 
         # Authentication (for protected routes)
-        if endpoint.startswith("/api/") or endpoint.startswith("/swarm/"):
+        if endpoint.startswith("/api/") or endpoint.startswith("/swarm/") or endpoint.startswith("/mcp/"):
             api_key = request.headers.get("X-API-Key")
             if api_key:
                 try:

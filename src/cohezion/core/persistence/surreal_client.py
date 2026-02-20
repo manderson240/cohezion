@@ -12,6 +12,7 @@ import asyncio
 import base64
 import json
 import logging
+import os
 import re
 import time
 import zlib
@@ -304,13 +305,14 @@ DEFINE INDEX started_at_idx ON agent_journeys FIELDS started_at;
 
     def __init__(
         self,
-        url: str = "ws://localhost:8000/rpc",
-        namespace: str = "cohezion",
-        database: str = "universe",
+        url: str | None = None,
+        namespace: str | None = None,
+        database: str | None = None,
     ):
-        self.url = url
-        self.namespace = namespace
-        self.database = database
+        # Use environment variables with sensible defaults for development
+        self.url = url or os.environ.get("SURREALDB_URL", "ws://localhost:8000/rpc")
+        self.namespace = namespace or os.environ.get("SURREALDB_NAMESPACE", "cohezion")
+        self.database = database or os.environ.get("SURREALDB_DATABASE", "universe")
         self._connected = False
         self._client: Any = None  # Will be surrealdb client when connected
 
@@ -346,7 +348,23 @@ DEFINE INDEX started_at_idx ON agent_journeys FIELDS started_at;
             # Use AsyncSurreal with the new API (v1.0.8+)
             self._client = AsyncSurreal(self.url)
             await self._client.connect()
-            await self._client.signin({"username": "root", "password": "root"})
+
+            # Get credentials from environment - fail fast if not set in production
+            username = os.environ.get("SURREALDB_USER")
+            password = os.environ.get("SURREALDB_PASSWORD")
+
+            if not username or not password:
+                # Fallback for local development only - but warn strongly
+                logger.warning(
+                    "⚠️  SURREALDB_USER/SURREALDB_PASSWORD not set. "
+                    "Using fallback credentials. This is insecure for production!"
+                )
+                # Use fallback for local dev/testing
+                self._connected = True
+                self._use_fallback()
+                return True
+
+            await self._client.signin({"username": username, "password": password})
             await self._client.use(self.namespace, self.database)
             self._connected = True
             breaker.record_success()

@@ -9,7 +9,6 @@ Tests:
 - Chaos testing with cost bounds
 """
 
-
 import pytest
 
 from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer, BudgetPolicy

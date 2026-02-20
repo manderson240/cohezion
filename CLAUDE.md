@@ -6,11 +6,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 COHEZION: 12D agentic universe with FLUME VAE, compound engineering, multi-agent swarm, and autonomous skill refinement. **Governed by Constitution (`.agent/CONSTITUTION.md`) and Charter (`.agent/COHEZION_CHARTER.md`).**
 
+## @ Reference Files
+
+**Critical files automatically included when @ referenced. Use these to load essential context on demand.**
+
+### Governance & Charter
+- @.agent/CONSTITUTION.md - Hard constraints: no WMD/infrastructure attacks, honesty mandatory, idempotency required
+- @.agent/COHEZION_CHARTER.md - Design theory: SPIN, FLUME, HIHO, Expert Domain Lattice
+- @.agent/HARDWARE_PROFILE_PRIME.md - Truth anchor: AMD Ryzen AI MAX+ 395, never assume RTX/CUDA
+
+### Configuration
+- @pyproject.toml - Python 3.13+ dependencies, build config, tool settings (ruff, pytest, mypy)
+- @pytest.ini - Test configuration, markers (unit/integration), pytest options
+- @.mcp.json - MCP server configurations for Claude Code integration
+
+### Testing Infrastructure
+- @tests/conftest.py - Shared fixtures, singleton resets (FLUME VAE, RL policy, loggers) - **Read first when debugging tests**
+
+### Documentation
+- @docs/CODE_MAP.md - Source code navigation map organized by architecture layers
+- @README.md - Project overview, quick start, installation guide
+
 ## Token-Efficient Essentials
 
 ### ⚡ Core Commands
 ```bash
-uv run pytest tests/ -q              # Full test suite (~3,147 collected, ~90s)
+uv run pytest tests/ -q              # Full test suite (3,172 collected, ~90s)
 uv run pytest tests/compound/ -v     # Run module tests
 uv run pytest tests/test_*.py::name  # Single test
 make format && make lint && make all # Check → fix → verify
@@ -86,10 +107,12 @@ uv run python scripts/compile_memory_from_vault.py
 | **Persistence** | SessionPersistence (vault + JSONL), MetricsCollector, DegradationDetector | `SessionManager` |
 | **Knowledge** | Vault-First (decisions/patterns/experiments), auto-compiled MEMORY.md | `vault_find_relevant_context` |
 
+**For detailed source file navigation:** See @docs/CODE_MAP.md
+
 ### ⚡ Quick Reference
 - **Language**: Python 3.13+ | **Package Manager**: `uv` (never bare python)
 - **DB**: SurrealDB (ws://localhost:8000) | **API**: FastAPI :8080
-- **Tests**: 3,147 collected, 3,132 passing, 0 collection errors | **Coverage**: html report in `htmlcov/`
+- **Tests**: 3,172 collected, 3,156+ passing | **Coverage**: html report in `htmlcov/`
 - **CI**: GitHub Actions (`.github/workflows/`) | `make lint-check && uv run pytest` before commit
 - **Entry point**: `cohezion = "cohezion.__main__:main"`
 - **Vault**: `~/vaults/cohezion-vault/` — Query via `vault_find_relevant_context(query)`
@@ -126,11 +149,11 @@ Updated Skill (loop again)
 | `src/cohezion/compound/` | Executor, SkillRefiner, RetrospectionEngine, JourneyTracker | `executor.py` (11-step) |
 | `src/cohezion/swarm/` | Team orchestration, cost routing, model quality | `team_executor.py`, `cost_aware_router.py` |
 | `src/cohezion/cache/` | L1/L2/L3 semantic cache (95%+ hit rate) | `semantic_cache.py` |
-| `src/cohezion/skills/` | 134 PRIME skill definitions (*.md + *.py) | `skill_registry.json` |
+| `src/cohezion/skills/` | 136 PRIME skill definitions (*.md + *.py) | `skill_registry.json` |
 | `src/cohezion/persistence/` | SurrealDB, checkpoints, session recovery | `surreal_client.py` |
 | `src/cohezion/api/` | FastAPI backend (62 endpoints across 12 files) | `__init__.py` (FastMCP patterns) |
 | `src/cohezion/flume/` | FLUME VAE (256D latent space) | `flume_vae.py` |
-| `tests/conftest.py` | **CRITICAL**: Singleton reset for FLUME VAE, RL policy, loggers | **Read this first** |
+| @tests/conftest.py | **CRITICAL**: Singleton reset for FLUME VAE, RL policy, loggers | **Read this first** |
 
 ## Coding Standards (Compound-Ready)
 
@@ -181,7 +204,7 @@ if alignment.coherence < 0.5:  # HIHO threshold
 ## Operational Patterns
 
 ### ⚡ Test Isolation (Critical)
-Tests fail only as full suite? **NOT a logic bug — singleton pollution**. Fix in `tests/conftest.py`:
+Tests fail only as full suite? **NOT a logic bug — singleton pollution**. Fix in @tests/conftest.py:
 - FLUME VAE: `cohezion.api._vae_trainer = None` (checkpoint mismatch causes NaN)
 - RL Policy: `cohezion.api._rl_policy = None` (bad reward state persists)
 - Loggers: `logging.getLogger().handlers.clear()` (formatters corrupt across files)
@@ -214,7 +237,7 @@ Before declaring task complete:
 - **RAM**: 128 GiB LPDDR5X | **Storage**: 2TB NVMe + 32GB swap (ZFS)
 - **Local Models**: Ollama (deepseek-r1:70b, qwen3-coder:30b, phi3:mini). **Global limit = 4 concurrent**
 - **Cost**: Cloud Run = Free Tier only (no instances when idle). Prefer local Ollama over API calls
-- **Truth Anchor**: See `HARDWARE_PROFILE_PRIME.md` (never assume RTX/CUDA)
+- **Truth Anchor**: See @.agent/HARDWARE_PROFILE_PRIME.md (never assume RTX/CUDA)
 
 ## Multi-Session Worktree Pattern (MANDATORY)
 
@@ -266,14 +289,14 @@ cd ~/dev/cohezion && git worktree remove ~/dev/cohezion-session-${SESSION_ID}
 
 | Document | Purpose | Key Insight |
 |----------|---------|------------|
-| `tests/conftest.py` | **TEST ISOLATION** | FLUME VAE + RL policy + logger resets prevent flaky tests |
-| `.agent/CONSTITUTION.md` | **HARD CONSTRAINTS** | No WMD/infrastructure attacks. Honesty mandatory. Idempotency required |
-| `.agent/COHEZION_CHARTER.md` | **DESIGN THEORY** | SPIN, FLUME, HIHO, Expert Domain Lattice |
-| `HARDWARE_PROFILE_PRIME.md` | **TRUTH ANCHOR** | Never assume RTX/CUDA. AMD Ryzen AI MAX+ 395 only |
-| `src/cohezion/knowledge_graph/KEY_LEARNINGS.md` | **LESSONS EXTRACTED** | Historical patterns, anti-patterns, cost lessons |
-| `.claude/rules/git-workflow.md` | **GIT PATTERNS** | Conventional commits, branch naming, PR targets |
-| `.claude/rules/testing.md` | **TEST RULES** | Avoid `walk_packages`, mock at source, HIHO invariant |
-| `cloud-vault-mcp/` | **MCP TEMPLATE** | 40+ tools, FastMCP proven. Copy when building MCP servers |
+| @tests/conftest.py | **TEST ISOLATION** | FLUME VAE + RL policy + logger resets prevent flaky tests |
+| @.agent/CONSTITUTION.md | **HARD CONSTRAINTS** | No WMD/infrastructure attacks. Honesty mandatory. Idempotency required |
+| @.agent/COHEZION_CHARTER.md | **DESIGN THEORY** | SPIN, FLUME, HIHO, Expert Domain Lattice |
+| @.agent/HARDWARE_PROFILE_PRIME.md | **TRUTH ANCHOR** | Never assume RTX/CUDA. AMD Ryzen AI MAX+ 395 only |
+| @src/cohezion/knowledge_graph/KEY_LEARNINGS.md | **LESSONS EXTRACTED** | Historical patterns, anti-patterns, cost lessons |
+| @.claude/rules/git-workflow.md | **GIT PATTERNS** | Conventional commits, branch naming, PR targets |
+| @.claude/rules/testing.md | **TEST RULES** | Avoid `walk_packages`, mock at source, HIHO invariant |
+| @cloud-vault-mcp/ | **MCP TEMPLATE** | 40+ tools, FastMCP proven. Copy when building MCP servers |
 
 ## Agent Journey Tracking (Compound Loop Observability)
 
@@ -599,11 +622,11 @@ if metrics.total_cost_usd == 0.0:
 
 | Need | Command | File |
 |------|---------|------|
-| Run tests (all) | `uv run pytest tests/ -q` | `pytest.ini` |
-| Run tests (module) | `uv run pytest tests/compound/ -v` | `tests/conftest.py` |
+| Run tests (all) | `uv run pytest tests/ -q` | @pytest.ini |
+| Run tests (module) | `uv run pytest tests/compound/ -v` | @tests/conftest.py |
 | Format + lint | `make format && make lint` | `Makefile` |
-| Check types | `make type-check` | `pyproject.toml` |
-| Start API | `uv run uvicorn cohezion.api:app --reload` | `src/cohezion/api/__init__.py` |
-| Find skill | `grep -r "skill_name" src/cohezion/skills/` | `skill_registry.json` |
-| Debug journeys | `JourneyTracker.get_journey(agent_id)` | `src/cohezion/compound/journey_tracker.py` |
-| Check alignment | `RequestAlignmentAnalyzer.analyze(...)` | `src/cohezion/compound/request_alignment_analyzer.py` |
+| Check types | `make type-check` | @pyproject.toml |
+| Start API | `uv run uvicorn cohezion.api:app --reload` | @src/cohezion/api/__init__.py |
+| Find skill | `grep -r "skill_name" src/cohezion/skills/` | @src/cohezion/skills/skill_registry.json |
+| Debug journeys | `JourneyTracker.get_journey(agent_id)` | @src/cohezion/compound/journey_tracker.py |
+| Check alignment | `RequestAlignmentAnalyzer.analyze(...)` | @src/cohezion/compound/request_alignment_analyzer.py |
