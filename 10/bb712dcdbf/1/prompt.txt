@@ -2232,3 +2232,1018 @@ Continue
 ---
 
 Do as much as you can teams of agents
+
+---
+
+<task-notification>
+<task-id>a0fd3bf</task-id>
+<status>completed</status>
+<summary>Agent "Verify Obsidian API integration and service instantiation" completed</summary>
+<result>Now let me create a detailed summary writeup:
+
+## Summary
+
+I've completed a comprehensive verification of Phase 2 services integration with the Obsidian plugin architecture. Here are the critical findings:
+
+### Key Findings
+
+**Status: CRITICAL ISSUES - Services implemented but NOT wired into plugin lifecycle**
+
+#### Issue 1: DynamicPaperIngestor Never Instantiated (CRITICAL)
+- **File:** `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/main.ts`
+- **Problem:** The service is never created or started in the plugin's `onload()` method
+- **Impact:** Paper vault watchers never activate, so new papers aren't detected or processed
+- **Evidence:** No import statement, no instantiation in lines 66-144 of main.ts
+
+#### Issue 2: PaperDecisionLinker Not Integrated (HIGH)
+- **File:** `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/ui/DecisionExplorer.ts`
+- **Problem:** Service is imported (line 12) but never used to extract paper references from decisions
+- **Impact:** Paper-decision links are only loaded from SurrealDB queries, never extracted from decision text or maintained automatically
+- **Evidence:** Import exists but no method calls to `extractPaperReferences()` or `buildLinks()`
+
+#### Issue 3: DecisionGraphExtension Never Wired (HIGH)
+- **File:** `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/visualizations/DecisionGraphExtension.ts`
+- **Problem:** This extension is designed to listen for paper ingestion events via `initialize(ingestor)`, but it's never created or initialized
+- **Impact:** Real-time graph updates don't happen when papers are added; decision node overlay remains static
+- **Evidence:** DecisionGraphExtension has event handlers but no code creates an instance or registers it with the ingestor
+
+#### Issue 4: Missing Event Flow Chain
+The intended flow never executes:
+```
+User adds paper → DynamicPaperIngestor detects → 
+Computes dimensions → Emits ingestion event → 
+DecisionGraphExtension receives event → Graph updates
+```
+
+Instead:
+```
+User adds paper → Nothing happens
+```
+
+#### Issue 5: Broken Settings (MEDIUM)
+- **File:** Lines 491-513 in `src/main.ts`
+- **Problem:** Plugin settings UI includes toggles for `showDecisionNodes` and `showCascadeOverlay`, but without DynamicPaperIngestor running, these are non-functional
+- **Impact:** Users see options that appear broken
+
+### Files Verified
+
+All these files were examined and their relationships confirmed:
+- `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/main.ts` - Plugin lifecycle
+- `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/services/DynamicPaperIngestor.ts` - Paper watcher
+- `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/services/PaperDecisionLinker.ts` - Link extraction
+- `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/visualizations/DecisionGraphExtension.ts` - Graph extension
+- `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/ui/DecisionExplorer.ts` - Decision UI
+- `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/ui/DecisionExplorerModal.ts` - Modal wrapper
+- `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/ui/PaperBacklinksPanel.ts` - Paper backlinks
+- `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/visualizations/3DGraph.ts` - 3D visualization
+
+### What's Working
+
+- All Phase 2 service classes are correctly implemented
+- `PaperBacklinksPanel` is properly defined as a Modal
+- `DecisionExplorer` correctly uses `this.app.workspace` methods for file navigation
+- `DecisionExplorerModal` properly initializes SurrealDBClient and VaultBridge
+- Type definitions and interfaces are complete
+
+### What's NOT Working
+
+- DynamicPaperIngestor is never instantiated → vault watchers don't start
+- PaperDecisionLinker never processes decisions → paper links not extracted
+- DecisionGraphExtension never initialized → decision nodes don't render/update
+- No connection between ingestor and graph extension → events have no listeners
+- Settings reference disabled features → UX confusion
+
+**Conclusion:** Phase 2 services are architecturally sound but lack the initialization wiring needed to actually function. The plugin will load without errors, but paper ingestion and decision-graph integration won't work at runtime.</result>
+<usage>total_tokens: 83598
+tool_uses: 13
+duration_ms: 52026</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/tasks/a0fd3bf.output
+
+---
+
+<task-notification>
+<task-id>aeb196d</task-id>
+<status>completed</status>
+<summary>Agent "Run TypeScript compiler and collect all compilation errors" completed</summary>
+<result>## Summary
+
+I've completed a comprehensive TypeScript type checking audit of the Phase 2 code. Here are the findings:
+
+### **Total Errors Found: 16 across 6 files**
+
+#### Error Breakdown by File:
+
+1. **src/physics/ForceLayout.ts** - 3 errors
+   - Lines 141-143: Property 'x', 'y', 'z' does not exist on type 'PaperNode'
+
+2. **src/rendering/ThreeRenderer.ts** - 3 errors
+   - Lines 213, 336, 341: Iterator types (Map, IterableIterator) with ES6 target
+
+3. **src/services/ReasoningInference.ts** - 2 errors
+   - Lines 187, 209: Iterator iteration errors
+
+4. **src/services/SemanticContradictionDetector.ts** - 1 error
+   - Line 244: Set iteration error
+
+5. **src/services/VaultBridge.ts** - 2 errors
+   - Lines 163, 179: Iterator iteration errors
+
+6. **src/ui/DecisionExplorer.ts** - 5 errors
+   - Line 117: Map iteration error
+   - Line 418: Function signature mismatch (expected 1 arg, got 2)
+   - Lines 735, 751: CascadeQueryResult missing 'length' property
+   - Line 741: Cannot find module '../visualizations/CascadeTimeline'
+
+#### Error Categories:
+
+| Error Code | Count | Root Cause |
+|-----------|-------|-----------|
+| **TS2802** | 10 | ES6 target with Map/Set iterators (needs `downlevelIteration: true`) |
+| **TS2339** | 5 | Missing type properties (PaperNode.x/y/z, CascadeQueryResult.length) |
+| **TS2554** | 1 | Function argument count mismatch |
+| **TS2307** | 1 | Missing module import |
+
+#### Quick Fix Priority:
+1. **Priority 1**: Add `"downlevelIteration": true` to tsconfig.json (fixes 10 errors in 2 min)
+2. **Priority 2**: Add missing properties to type definitions (10-15 min)
+3. **Priority 3**: Fix function signatures and imports (10-20 min)
+
+The complete audit report has been saved to `REDACTED.md`</result>
+<usage>total_tokens: 51140
+tool_uses: 17
+duration_ms: 72868</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/tasks/aeb196d.output
+
+---
+
+<task-notification>
+<task-id>ae9024c</task-id>
+<status>completed</status>
+<summary>Agent "Fix TypeScript compilation errors" completed</summary>
+<result>Perfect! No more instanceof-related errors. Let me create a summary document:
+
+## Summary
+
+I have successfully fixed the TypeScript compilation error in the Phase 2 code. Here's what was done:
+
+### Issue Identified
+**File**: `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/services/DynamicPaperIngestor.ts`
+
+**Error** (Line 323): 
+```
+TS2693: 'TFolder' only refers to a type, but is being used as a value here.
+```
+
+The problem was that `TFolder` was defined as a type stub at the bottom of the file:
+```typescript
+type TFolder = any; // Would import from Obsidian
+```
+
+However, it was used with the `instanceof` operator at line 323, which requires a runtime value, not just a type:
+```typescript
+} else if (child instanceof TFolder) {
+```
+
+### Solution Applied
+
+1. **Added TFolder to the import statement** (line 14):
+   - Changed from: `import { App, TAbstractFile, TFile, Vault } from 'obsidian';`
+   - Changed to: `import { App, TAbstractFile, TFile, TFolder, Vault } from 'obsidian';`
+
+2. **Removed the type stub** (lines 340):
+   - Deleted: `type TFolder = any; // Would import from Obsidian`
+
+### Verification
+- Checked all other `instanceof` patterns in the codebase - TFile checks are fine since TFile is properly imported
+- Verified compilation: No DynamicPaperIngestor errors remain
+- Verified no TS2693 errors in entire codebase
+
+### Commit Created
+```
+fix: import TFolder from obsidian to fix instanceof type error
+```
+
+The fix is minimal and correct - TFolder is a real class exported from the obsidian package and should be imported like TFile. The Obsidian API documentation explicitly recommends using `instanceof TFolder` for type checking, and now the code follows that pattern correctly.</result>
+<usage>total_tokens: 59614
+tool_uses: 29
+duration_ms: 75476</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/tasks/ae9024c.output
+
+---
+
+<task-notification>
+<task-id>a2da35b</task-id>
+<status>completed</status>
+<summary>Agent "Design real verification test strategy" completed</summary>
+<result>Perfect! Now I have a comprehensive understanding of the codebase. Let me create a detailed verification strategy document. Since I'm in read-only mode, I'll provide the full plan in my response:
+
+## Real Verification Test Strategy for Phase 2 Components
+
+Based on my analysis of the Phase 2 codebase (PaperDecisionLinker, DynamicPaperIngestor, DecisionExplorer, PaperBacklinksPanel, and DecisionNodeRenderer), I've identified the critical gap between what was claimed (synthetic tests) and what's actually needed (real integration verification).
+
+### Overview
+
+The Phase 2 adversarial review was correct: previous tests were synthetic. They validated JavaScript regex patterns and in-memory data structures, not actual functionality. Real verification requires:
+
+1. **Actual file I/O** from the vault's decision files
+2. **Real SurrealDB queries** against populated databases
+3. **Actual Obsidian Modal rendering** in the plugin environment
+4. **Real THREE.js 3D rendering** in a WebGL context
+5. **Integration between all services** communicating together
+
+---
+
+## Component-by-Component Verification Strategy
+
+### Component 1: PaperDecisionLinker Service
+
+**Purpose**: Extract paper references from decision markdown and classify link types.
+
+**File**: `src/services/PaperDecisionLinker.ts`
+
+#### What "Real Verification" Means
+
+NOT: "Does the regex work?" (synthetic test that's already passing)
+
+YES: "When given actual decision markdown files from the vault, does the service extract all paper references accurately?"
+
+#### Acceptance Criteria
+
+1. **Extract wiki-links from real decisions**
+   - Load actual decision file: `2026-02-10-canvas-driven-compound-engineering.md`
+   - Run `extractPaperReferences()` on the file content
+   - Verify it finds all `[[paper-title]]` patterns
+   - Success: Found N ≥ 2 references with confidence ≥ 0.95
+
+2. **Classify link types accurately**
+   - For each extracted reference, verify `link_type` is one of: 'research', 'validates', 'contradicts', 'reference', 'evidence'
+   - Verify keywords trigger correct type classification
+   - Success: All link types are valid enum values
+
+3. **Build bidirectional links correctly**
+   - Extract references from decision
+   - Build PaperLink objects via `buildLinks()`
+   - Verify each PaperLink has:
+     - `decision_id` = decision's actual ID
+     - `paper_id` = extracted paper ID
+     - `confidence` between 0.0 and 1.0
+     - `link_type` = valid enum value
+     - `extracted_at` = valid ISO timestamp
+   - Success: All fields present and valid types
+
+4. **Process multiple decisions without data loss**
+   - Load 3-5 actual decision files from vault
+   - Call `processAllDecisions(decisions)`
+   - Count total links extracted
+   - Verify:
+     - No links are duplicated
+     - No link data is lost or truncated
+     - All references are preserved
+   - Success: Link count = sum of individual extraction counts
+
+5. **Handle edge cases**
+   - Decision with NO paper references → Returns empty array
+   - Decision with 10+ references → All are extracted
+   - Wiki-link with spaces/hyphens → Correctly parsed
+   - Keyword followed by missing paper ID → Skipped gracefully
+
+#### Test Data Needed
+
+- 3-5 actual decision files from `/home/mike-anderson/vaults/cohezion-vault/decisions/`
+- Specifically files that mention other papers via `[[wiki-links]]`
+
+#### Verification Method
+
+**Manual inspection + automated script**:
+
+```bash
+# 1. Load decision files
+# 2. Run PaperDecisionLinker.extractPaperReferences()
+# 3. Print extracted links with:
+#    - paper_id
+#    - link_type
+#    - confidence
+#    - context excerpt
+# 4. Visually verify accuracy against source markdown
+# 5. Check for completeness: Did we find all the references?
+```
+
+#### Dependencies
+
+- Real decision markdown files
+- No external services needed
+
+#### Failure Modes & Detection
+
+| Failure | Detection Method |
+|---------|------------------|
+| Missing wiki-links | Manually count in source markdown vs output |
+| Wrong link_type classification | Read context, verify classification makes sense |
+| Duplicate references | Check for duplicate paper_id + decision_id pairs |
+| Truncated context | Verify `mentioned_in` field has full excerpt |
+| Regex errors | Check output for malformed paper_ids |
+
+#### Effort Estimate
+
+30 minutes - Load real files, run extraction, manually verify results
+
+---
+
+### Component 2: DynamicPaperIngestor Service
+
+**Purpose**: Watch vault for new paper files and auto-ingest them with semantic dimension computation.
+
+**File**: `src/services/DynamicPaperIngestor.ts`
+
+#### What "Real Verification" Means
+
+NOT: "Does the file watcher debounce work?" (timing test that depends on system)
+
+YES: "When I create/modify/delete a paper file in the vault, does the ingestor detect it and emit the correct event?"
+
+#### Acceptance Criteria
+
+1. **Detect new paper file creation**
+   - Create a test markdown file in `papers/test-paper.md` with valid frontmatter
+   - Ingestor should detect via `vault.on('create')`
+   - Should emit `PaperIngestionEvent` with:
+     - `type: 'paper_added'`
+     - `paperId: 'test-paper'`
+     - `filename: 'test-paper.md'`
+     - `timestamp` = current time
+   - Success: Event received and fields valid
+
+2. **Detect paper file modification**
+   - Modify the test paper (add/change frontmatter)
+   - Ingestor should detect via `vault.on('modify')`
+   - Should emit event with `type: 'paper_updated'`
+   - Success: Event received
+
+3. **Detect paper file deletion**
+   - Delete the test paper
+   - Ingestor should detect via `vault.on('delete')`
+   - Should emit event with `type: 'paper_removed'`
+   - Success: Event received
+
+4. **Parse frontmatter correctly**
+   - File contains YAML with: title, year, authors, dimensions
+   - Should parse and return PaperNode with:
+     - `id` = filename without .md
+     - `title` = from frontmatter
+     - `year` = parsed as number
+     - `authors` = array from comma-separated string
+     - `dimensions` = object with 8 dimension values
+   - Success: All fields present and correctly typed
+
+5. **Estimate connectivity from content**
+   - Paper with 0 wiki-links and 0 citations → connectivity ≈ 0.0
+   - Paper with 5 wiki-links → connectivity ≈ 0.25
+   - Paper with 20+ wiki-links → connectivity ≈ 1.0
+   - Success: Connectivity scores scale linearly with reference count
+
+#### Test Data Needed
+
+- Ability to create test `.md` files in `papers/` directory
+- Obsidian Vault API (real vault, or mock)
+- Sample paper markdown:
+  ```markdown
+  ---
+  title: Test Paper on Knowledge Graphs
+  year: 2024
+  authors: Jane Doe, John Smith
+  dimensions:
+    connectivity: 0.7
+    conceptual_depth: 0.6
+  ---
+  
+  ## Introduction
+  [[graph-databases-2024]] provides foundations.
+  Research shows [[semantic-search]] improves retrieval.
+  ```
+
+#### Verification Method
+
+**Real file system operations**:
+
+1. Create test paper in vault
+2. Call `ingestor.startWatching()`
+3. Register callback: `ingestor.onIngestionEvent(callback)`
+4. Modify file
+5. Delete file
+6. Capture all emitted events
+7. Verify event data matches expectations
+
+#### Dependencies
+
+- Obsidian Vault API (real or mock)
+- File system access
+- PaperDecisionLinker service (used internally)
+
+#### Failure Modes & Detection
+
+| Failure | Detection |
+|---------|-----------|
+| Watcher doesn't trigger | No events received after file operation |
+| Wrong paperId extraction | paperId doesn't match filename |
+| Frontmatter parsing fails | Missing fields in returned PaperNode |
+| Connectivity calculation wrong | Value outside [0.0, 1.0] or doesn't scale |
+| Debounce causes missed events | Expected event never arrives |
+| Memory leak in watcher | Watch continues after `stopWatching()` |
+
+#### Effort Estimate
+
+45 minutes - Requires Obsidian API setup, file operations, callback verification
+
+---
+
+### Component 3: DecisionExplorer UI Panel
+
+**Purpose**: Display decisions with related papers from SurrealDB.
+
+**File**: `src/ui/DecisionExplorer.ts`
+
+#### What "Real Verification" Means
+
+NOT: "Does the HTML rendering code compile?" (code structure test)
+
+YES: "When I load decisions from the vault and click on one, do I see the related papers displayed correctly?"
+
+#### Acceptance Criteria
+
+1. **Load decisions from vault**
+   - Call `loadDecisions()`
+   - Should retrieve all decisions via `vaultBridge.loadAllDecisions()`
+   - Should populate `this.decisions` Map
+   - Success: `decisions.size > 0`
+
+2. **Render search section**
+   - Call `loadPanel(containerEl)`
+   - Should create:
+     - Header with title "Decision Explorer"
+     - Search input field with placeholder "Search decisions..."
+     - Results dropdown (initially empty)
+   - Success: All three elements present in DOM
+
+3. **Search filters decisions**
+   - Type search text in the input
+   - Should find decisions with matching title
+   - Results appear in dropdown
+   - Success: Results list contains matching decisions
+
+4. **Display metadata when decision selected**
+   - Click decision in search results
+   - Panel should show:
+     - Decision title
+     - Chosen option
+     - Rationale
+     - Confidence score
+     - Reasoning type
+   - Success: All fields visible and readable
+
+5. **Show related papers section** (Phase 2 specific)
+   - Selected decision has references to papers
+   - Panel should display related papers:
+     - Paper title/ID
+     - Link type (research, validates, contradicts, etc.)
+     - Confidence score
+   - Success: Papers appear in correct format
+
+#### Test Data Needed
+
+- Real decision files loaded from vault via VaultBridge
+- Mock or real SurrealDB with paper-decision links populated
+- Actual Obsidian App instance (or mock)
+
+#### Verification Method
+
+**Visual inspection + programmatic checks**:
+
+1. Create mock Obsidian App with vault containing decisions
+2. Initialize DecisionExplorer
+3. Load decisions
+4. Render panel to a test container
+5. Verify DOM structure:
+   - `querySelector('.decision-explorer-panel')` exists
+   - Input field is present
+   - Metadata section is present
+6. Simulate user interaction:
+   - Type in search input
+   - Click decision
+7. Verify metadata renders
+8. Check for related papers section
+
+#### Dependencies
+
+- VaultBridge (loads decisions from vault)
+- SurrealDBClient (queries for paper links)
+- Obsidian App instance
+- Real or mock vault data
+
+#### Failure Modes & Detection
+
+| Failure | Detection |
+|---------|-----------|
+| Decisions don't load | `decisions.size === 0` |
+| DOM elements missing | querySelector returns null |
+| Search doesn't filter | All decisions shown regardless of input |
+| Metadata doesn't appear | Click does nothing, no DOM changes |
+| Related papers section missing | Paper links not rendered |
+| Formatting broken | Text overlaps, unreadable |
+
+#### Effort Estimate
+
+1.5 hours - Requires Obsidian mock/instance, vault loading, DOM verification
+
+---
+
+### Component 4: PaperBacklinksPanel Modal
+
+**Purpose**: Show all decisions that reference a given paper.
+
+**File**: `src/ui/PaperBacklinksPanel.ts`
+
+#### What "Real Verification" Means
+
+NOT: "Does the modal code structure look right?" (code review test)
+
+YES: "When I open the modal for a paper, do I see all decisions that reference it?"
+
+#### Acceptance Criteria
+
+1. **Modal opens correctly**
+   - Create panel: `new PaperBacklinksPanel(app, 'test-paper', surrealClient)`
+   - Call `onOpen()`
+   - Modal should open with title: "Decisions Referencing: test-paper"
+   - Success: Modal visible in DOM with correct title
+
+2. **Load backlinks from SurrealDB**
+   - During `onOpen()`, should execute query:
+     ```sql
+     SELECT decision_id, link_type, confidence, mentioned_in
+     FROM paper_decision_links
+     WHERE paper_id = $paperId
+     ```
+   - Should retrieve actual decision links
+   - Success: Links array populated with N ≥ 1 items
+
+3. **Display backlinks correctly**
+   - For each link, render:
+     - Decision ID (clickable, styled blue)
+     - Link type badge (styled with background color)
+     - Confidence score (formatted as percentage)
+     - Mentioned excerpt (italicized, truncated)
+   - Success: All fields visible and properly formatted
+
+4. **Handle empty backlinks**
+   - Paper with no decision references
+   - Should display: "No decisions reference this paper"
+   - Success: Message appears instead of list
+
+5. **Display statistics footer**
+   - Count of decisions referencing paper
+   - List of link types
+   - Average confidence score
+   - Success: Stats match actual data
+
+#### Test Data Needed
+
+- SurrealDB with `paper_decision_links` table populated
+- Sample paper: 'test-paper'
+- Sample links:
+  ```
+  paper_id: 'test-paper'
+  decision_id: 'decision-1', link_type: 'research', confidence: 0.9
+  decision_id: 'decision-2', link_type: 'validates', confidence: 0.85
+  decision_id: 'decision-3', link_type: 'reference', confidence: 0.65
+  ```
+
+#### Verification Method
+
+**Real modal rendering + SurrealDB queries**:
+
+1. Start SurrealDB instance (or mock)
+2. Insert sample links into `paper_decision_links`
+3. Create Obsidian App mock
+4. Initialize PaperBacklinksPanel
+5. Render modal
+6. Verify:
+   - Title contains "Decisions Referencing: test-paper"
+   - Modal contains 3 link items
+   - Each item displays decision_id, link_type, confidence
+   - Stats footer shows: "3 decisions", link types, avg confidence
+7. Verify SurrealDB query was executed correctly
+
+#### Dependencies
+
+- SurrealDB instance running (real or mock)
+- Paper-decision links populated in database
+- Obsidian App instance
+- SurrealDBClient correctly configured
+
+#### Failure Modes & Detection
+
+| Failure | Detection |
+|---------|-----------|
+| Modal doesn't open | Nothing visible, no DOM insertion |
+| Query fails silently | Links array empty even though data exists |
+| Query returns wrong format | Links missing fields or wrong structure |
+| Rendering crashes | Error thrown, modal broken |
+| Statistics incorrect | Counts don't match link count |
+| Excerpts truncated incorrectly | Text cut off mid-word or too long |
+
+#### Effort Estimate
+
+1.5 hours - Requires SurrealDB setup, modal rendering, query verification
+
+---
+
+### Component 5: DecisionNodeRenderer (3D Visualization)
+
+**Purpose**: Render decision nodes in 3D space with visual encoding by reasoning type, confidence, etc.
+
+**File**: `src/visualizations/DecisionNodeRenderer.ts`
+
+#### What "Real Verification" Means
+
+NOT: "Does the code compile?" or "Do the helper functions work?"
+
+YES: "When I create a mesh for a real decision, does it render correctly in THREE.js with the right color, size, and glow?"
+
+#### Acceptance Criteria
+
+1. **Convert decision to node data**
+   - Input: Real Decision object with reasoning_type='research', confidence_score=0.9
+   - Call `decisionToNodeData(decision, position)`
+   - Should return DecisionNodeData with:
+     - `color` = hue value for reasoning type (240 for research)
+     - `size` = 0.5 + 0.9 * 1.5 = 1.85
+     - `opacity` = 0.3 + 0.9 * 0.7 = 0.93
+     - `glowIntensity` = max(0, 0.9 - 0.5) = 0.4
+   - Success: All values correct per formula
+
+2. **Color mapping by reasoning type**
+   - research → hue 240 (blue)
+   - pattern → hue 120 (green)
+   - intuition → hue 280 (purple)
+   - convention → hue 30 (orange)
+   - hybrid → hue 60 (yellow)
+   - Success: Each type returns correct hue
+
+3. **Size scales with confidence**
+   - confidence 0.0 → size 0.5
+   - confidence 0.5 → size 1.25
+   - confidence 1.0 → size 2.0
+   - Success: Sizes scale correctly across range
+
+4. **Create THREE.js mesh**
+   - Prerequisites: THREE.js loaded (window.THREE exists)
+   - Call `createNodeMesh(nodeData)`
+   - Should create:
+     - SphereGeometry with radius=8
+     - MeshStandardMaterial with:
+       - color = converted from HSL hue value
+       - emissive = set if glowIntensity > 0.5
+       - opacity = from nodeData
+     - Mesh positioned at nodeData.position
+     - Mesh scaled by nodeData.size
+   - Success: Mesh object created, no errors
+
+5. **Mesh has proper metadata**
+   - mesh.userData should contain:
+     - `type: 'decision'`
+     - `decisionId: decision.id`
+     - `decision: decision object`
+   - Success: All properties accessible
+
+6. **Fade-in animation**
+   - Call `fadeInNode(mesh, 300)`
+   - Should animate opacity from current to 1.0 over 300ms
+   - Returns Promise that resolves when animation complete
+   - Success: Promise resolves, mesh is fully opaque
+
+#### Test Data Needed
+
+- Real Decision object:
+  ```typescript
+  {
+    id: 'decision-1',
+    title: 'Database Selection',
+    chosen_option: 'SurrealDB',
+    reasoning_type: 'research',
+    confidence_score: 0.9,
+    ...
+  }
+  ```
+- THREE.js loaded globally (window.THREE)
+- WebGL context available
+
+#### Verification Method
+
+**THREE.js scene rendering + visual inspection**:
+
+1. Load THREE.js library
+2. Create WebGL canvas and renderer
+3. Create scene
+4. Create sample Decision object
+5. Convert to DecisionNodeData
+6. Create mesh via `createNodeMesh()`
+7. Add mesh to scene
+8. Render scene
+9. Verify visually:
+   - Node appears in scene
+   - Color matches reasoning type (blue for research)
+   - Size appropriate (not too small or large)
+   - Glow effect visible if confidence high
+   - Position correct
+10. Programmatically verify:
+    - Mesh.userData contains decision data
+    - Material color is correct HSL→RGB conversion
+    - Opacity matches formula
+
+#### Dependencies
+
+- THREE.js library (must be loaded)
+- WebGL-capable browser/environment
+- Obsidian plugin environment (real or mock)
+
+#### Failure Modes & Detection
+
+| Failure | Detection |
+|---------|-----------|
+| THREE.js not found | `window.THREE is undefined` |
+| Mesh creation fails | createNodeMesh returns null |
+| Color conversion wrong | RGB values don't match HSL conversion |
+| Mesh not visible | Rendered but opacity=0 or size too small |
+| Position incorrect | Node appears at (0,0,0) instead of target |
+| Animation crashes | Promise never resolves, or throws error |
+| Material properties invalid | NaN values in material config |
+
+#### Effort Estimate
+
+2 hours - Requires THREE.js setup, WebGL context, visual verification
+
+---
+
+## Verification Roadmap (Dependency Order)
+
+### Phase 1: Foundation (No dependencies)
+
+**Week 1, Days 1-2**
+
+1. **Verify PaperDecisionLinker** (30 min)
+   - Extract references from real decision files
+   - Verify link extraction and classification
+   - Requires: Decision files only
+
+2. **Setup test environment** (1.5 hours)
+   - Mock Obsidian API if not already available
+   - Mock or start real SurrealDB
+   - Setup THREE.js for 3D tests
+
+### Phase 2: Ingest & Input (Depends on Phase 1)
+
+**Week 1, Day 3**
+
+3. **Verify DynamicPaperIngestor** (45 min)
+   - Create test paper files
+   - Verify file watching and event emission
+   - Verify frontmatter parsing
+   - Depends on: Obsidian mock, file system
+
+4. **Verify DecisionExplorer** (1.5 hours)
+   - Load real decisions
+   - Verify search and filter
+   - Verify metadata rendering
+   - Depends on: VaultBridge, SurrealDB, PaperDecisionLinker results
+
+### Phase 3: Output & Visualization (Depends on Phase 2)
+
+**Week 1, Day 4**
+
+5. **Verify PaperBacklinksPanel** (1.5 hours)
+   - SurrealDB queries for backlinks
+   - Modal rendering and styling
+   - Statistics display
+   - Depends on: SurrealDB, PaperDecisionLinker links
+
+6. **Verify DecisionNodeRenderer** (2 hours)
+   - THREE.js mesh creation
+   - Color and size encoding
+   - Animation
+   - Depends on: THREE.js, Decision objects
+
+### Phase 4: Integration & Cross-component (Depends on Phase 3)
+
+**Week 2**
+
+7. **Full integration test**: User workflow
+   - User searches for decision in DecisionExplorer
+   - Clicks to see related papers
+   - Clicks paper to open PaperBacklinksPanel
+   - Related decisions render as 3D nodes
+   - Verify all components work together
+
+---
+
+## Test Data Setup
+
+### Real Data Source
+
+- **Decisions**: `/home/mike-anderson/vaults/cohezion-vault/decisions/` (already exists)
+- **Sample decision files**:
+  - `2026-02-10-canvas-driven-compound-engineering.md` (has paper references)
+  - `2026-02-09-12d-graph-surrealdb-integration.md` (technical decision)
+
+### SurrealDB Fixtures
+
+Create tables and sample data:
+
+```sql
+-- Paper-Decision Links
+CREATE TABLE paper_decision_links {
+  SCHEMAFULL,
+  DEFINE FIELD paper_id ON TABLE paper_decision_links TYPE string;
+  DEFINE FIELD decision_id ON TABLE paper_decision_links TYPE string;
+  DEFINE FIELD link_type ON TABLE paper_decision_links TYPE string;
+  DEFINE FIELD confidence ON TABLE paper_decision_links TYPE number;
+  DEFINE FIELD mentioned_in ON TABLE paper_decision_links TYPE string;
+};
+
+INSERT INTO paper_decision_links {
+  paper_id: 'knowledge-graphs-survey',
+  decision_id: '12d-graph-surrealdb-integration',
+  link_type: 'research',
+  confidence: 0.95,
+  mentioned_in: 'We selected SurrealDB based on the knowledge graph survey...'
+};
+```
+
+### Test Markdown Files
+
+Create sample papers for DynamicPaperIngestor tests:
+
+```markdown
+---
+title: Test Paper - Neural Networks
+year: 2024
+authors: Alice Smith, Bob Jones
+dimensions:
+  connectivity: 0.7
+  conceptual_depth: 0.8
+---
+
+## Abstract
+This paper explores neural network architectures.
+Related work: [[transformer-architecture-2024]]
+```
+
+---
+
+## Success Metrics
+
+### Per-Component Success
+
+| Component | Success = | Evidence |
+|-----------|-----------|----------|
+| PaperDecisionLinker | All 5 acceptance criteria met | Extraction logs showing N references found |
+| DynamicPaperIngestor | File events detected correctly | Event callbacks firing with correct data |
+| DecisionExplorer | Related papers displayed | DOM inspection shows paper list rendered |
+| PaperBacklinksPanel | Backlinks visible | Modal shows N decisions with correct formatting |
+| DecisionNodeRenderer | Mesh renders in scene | Visual inspection + mesh.userData verification |
+
+### Integration Success
+
+- **User can discover papers from decisions**: Search decision → See related papers → Open backlinks → See all decisions
+- **Bi-directional navigation**: Decision → Paper → Decisions → Paper (cycle works)
+- **3D visualization includes paper context**: Nodes render with paper-related metadata
+
+---
+
+## Effort Summary
+
+| Task | Effort | Week |
+|------|--------|------|
+| PaperDecisionLinker verification | 30 min | 1 |
+| Test environment setup | 1.5 h | 1 |
+| DynamicPaperIngestor verification | 45 min | 1 |
+| DecisionExplorer verification | 1.5 h | 1 |
+| PaperBacklinksPanel verification | 1.5 h | 1 |
+| DecisionNodeRenderer verification | 2 h | 1 |
+| **Subtotal** | **~9 hours** | **Week 1** |
+| Integration testing | 2 h | 2 |
+| Documentation & reports | 1 h | 2 |
+| **TOTAL** | **~12 hours** | **2 weeks** |
+
+---
+
+## Critical Files for Implementation
+
+### Core Files to Test
+- `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/services/PaperDecisionLinker.ts` - Paper extraction logic (test with real markdown)
+- `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/services/DynamicPaperIngestor.ts` - File watching and ingestion (test with real Obsidian vault events)
+- `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/ui/DecisionExplorer.ts` - Decision display and paper section (test with real SurrealDB)
+- `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/ui/PaperBacklinksPanel.ts` - Backlinks modal (test with real SurrealDB queries)
+- `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/visualizations/DecisionNodeRenderer.ts` - 3D mesh rendering (test with real THREE.js scenes)
+
+### Supporting Files to Prepare
+- `/home/mike-anderson/vaults/cohezion-vault/decisions/` - Real decision vault (data source for testing)
+- `src/services/SurrealDBClient.ts` - Database integration (must be running and populated)
+- `src/services/VaultBridge.ts` - Vault data loading (must work with real vault)</result>
+<usage>total_tokens: 80490
+tool_uses: 23
+duration_ms: 121179</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/tasks/a2da35b.output
+
+---
+
+<task-notification>
+<task-id>ad4129f</task-id>
+<status>completed</status>
+<summary>Agent "Verify and fix THREE.js integration and type safety" completed</summary>
+<result>Perfect! Everything is in order. Let me create a final summary:
+
+## Summary
+
+I have successfully verified and fixed the THREE.js integration in the 3D Graph plugin, eliminating all unsafe type casts. Here's the complete report:
+
+### Key Accomplishments
+
+**1. Eliminated All Unsafe Casts**
+- Removed `(window as any).THREE` pattern from DecisionNodeRenderer.ts
+- Removed `as any` casts for mesh objects and userData
+- Fixed all type assertions to use proper THREE.js types
+
+**2. Proper THREE.js Imports**
+- DecisionNodeRenderer.ts: Added `import * as THREE from 'three'`
+- DecisionGraphExtension.ts: Added `import * as THREE from 'three'`
+- 3DGraph.ts: Already had proper import
+
+**3. Fixed Type Signatures**
+
+**DecisionNodeRenderer.ts:**
+- `createNodeMesh()` now returns `THREE.Mesh | null` instead of `any`
+- `fadeInNode()` now accepts `THREE.Mesh` instead of `any`
+- Material properly cast to `THREE.MeshStandardMaterial`
+- Mesh userData typed with interface `DecisionUserData`
+
+**DecisionGraphExtension.ts:**
+- `private decisionMeshes: Map<string, THREE.Mesh>` (was `Map<string, any>`)
+- `private scene: THREE.Scene | null` (was `any`)
+- Constructor parameter `scene: THREE.Scene` (was `any`)
+
+**3DGraph.ts:**
+- Fixed MouseEvent event listener types
+- Added proper null checks for renderer properties
+- Improved control flow analysis for null safety
+
+**4. Added TypeScript Type Declarations**
+- Created `/src/types/three.d.ts` with 70+ THREE.js type definitions
+- Covers: Vectors, Geometry, Materials, Cameras, Objects, Lights, Rendering, Raycasting, Constants
+- Provides full IDE autocomplete for THREE.js APIs
+
+**5. Fixed Other Type Issues**
+- ContradictionMatrix.ts: Created `SortColumn` type alias for type-safe sorting
+- ReasoningFlowchart.ts: Fixed optional property checking pattern
+
+### Verification Results
+
+**Files Modified:**
+- `/src/visualizations/DecisionNodeRenderer.ts`
+- `/src/visualizations/DecisionGraphExtension.ts`
+- `/src/visualizations/3DGraph.ts`
+- `/src/visualizations/ContradictionMatrix.ts`
+- `/src/visualizations/ReasoningFlowchart.ts`
+- `/src/types/three.d.ts` (NEW)
+- `/tsconfig.json` (improved)
+
+**Build Status:**
+- ✓ `npm run build` succeeds (1.0mb output)
+- ✓ `npx tsc --noEmit` - 0 errors in visualization files
+- ✓ All THREE.js types properly resolved
+- ✓ No unsafe type casts remaining in visualization code
+
+**Type Safety Improvements:**
+- Removed: 6+ instances of `(window as any)` and unsafe `as any` casts
+- Added: Comprehensive type stubs for THREE.js
+- Verified: SphereGeometry, Mesh, MeshStandardMaterial, Scene all properly typed</result>
+<usage>total_tokens: 99587
+tool_uses: 60
+duration_ms: 230776</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/tasks/ad4129f.output
+
+---
+
+Do what will unlock the most compound engineering, context awareness, and token efficiency
+
+---
+
+Proceed
+
+---
+
+Option 3

@@ -3,7 +3,7 @@
   "checkpoint_id": "10bb712dcdbf",
   "session_id": "5b0e2e88-4c45-4963-8ae6-b02335e242c9",
   "strategy": "manual-commit",
-  "created_at": "2026-02-17T20:38:54.012097884Z",
+  "created_at": "2026-02-20T00:33:21.463790953Z",
   "branch": "track-c",
   "checkpoints_count": 0,
   "files_touched": [
@@ -31,6 +31,8 @@
     "decisions/2026-02-14-phase-4-implementation-progress.md",
     "decisions/2026-02-14-phase-4-retrospective-and-phase-5-overnight-plan.md",
     "decisions/2026-02-16-fix-3-reasoning-inference-option-b.md",
+    "decisions/2026-02-17-phase-2-full-verification-plan.md",
+    "decisions/2026-02-17-phase-2-service-initialization-gap-discovery.md",
     "docs/SURREALDB_SETUP.md",
     "obsidian-plugin/3d-graph-plugin/DECISION_ANALYSIS_GUIDE.md",
     "obsidian-plugin/3d-graph-plugin/PHASE_4_CHANGELOG.md",
@@ -62,25 +64,29 @@
     "obsidian-plugin/3d-graph-plugin/src/visualizations/ContradictionMatrix.ts",
     "obsidian-plugin/3d-graph-plugin/src/visualizations/DecisionNodeRenderer.ts",
     "obsidian-plugin/3d-graph-plugin/src/visualizations/ReasoningFlowchart.ts",
+    "obsidian-plugin/3d-graph-plugin/tsconfig.json",
+    "patterns/service-initialization-checklist.md",
+    "patterns/typescript-error-diagnostic.md",
+    "patterns/verification-strategy-template.md",
     "scripts/surrealdb-paper-decision-links.sql"
   ],
   "agent": "Claude Code",
-  "checkpoint_transcript_start": 384,
-  "transcript_lines_at_start": 384,
+  "checkpoint_transcript_start": 1570,
+  "transcript_lines_at_start": 1570,
   "token_usage": {
-    "input_tokens": 2998,
-    "cache_creation_tokens": 1588634,
-    "cache_read_tokens": 34703480,
-    "output_tokens": 59265,
-    "api_call_count": 274
+    "input_tokens": 655,
+    "cache_creation_tokens": 571347,
+    "cache_read_tokens": 5682140,
+    "output_tokens": 10630,
+    "api_call_count": 40
   },
   "initial_attribution": {
-    "calculated_at": "2026-02-17T20:38:53.737773753Z",
-    "agent_lines": 4252,
-    "human_added": 189189,
-    "human_modified": 592,
+    "calculated_at": "2026-02-20T00:33:20.945428369Z",
+    "agent_lines": 1734,
+    "human_added": 13901,
+    "human_modified": 0,
     "human_removed": 0,
-    "total_committed": 194033,
-    "agent_percentage": 2.1913798168352807
+    "total_committed": 15635,
+    "agent_percentage": 11.090502078669653
   }
 }

@@ -36,6 +36,8 @@
     "decisions/2026-02-14-phase-4-retrospective-and-phase-5-overnight-plan.md",
     "decisions/2026-02-14-phases-1-3-retrospective-key-learnings.md",
     "decisions/2026-02-16-fix-3-reasoning-inference-option-b.md",
+    "decisions/2026-02-17-phase-2-full-verification-plan.md",
+    "decisions/2026-02-17-phase-2-service-initialization-gap-discovery.md",
     "docs/SURREALDB_SETUP.md",
     "docs/TRACK_A_GRAPHRAG_API.md",
     "docs/TRACK_B_SCORING_API.md",
@@ -79,6 +81,9 @@
     "obsidian-plugin/3d-graph-plugin/src/visualizations/DecisionNodeRenderer.ts",
     "obsidian-plugin/3d-graph-plugin/src/visualizations/ReasoningFlowchart.ts",
     "obsidian-plugin/3d-graph-plugin/tsconfig.json",
+    "patterns/service-initialization-checklist.md",
+    "patterns/typescript-error-diagnostic.md",
+    "patterns/verification-strategy-template.md",
     "pytest.ini",
     "scripts/surrealdb-paper-decision-links.sql",
     "src/schema_definitions.py",
@@ -109,10 +114,10 @@
     }
   ],
   "token_usage": {
-    "input_tokens": 6348,
-    "cache_creation_tokens": 4004201,
-    "cache_read_tokens": 70007623,
-    "output_tokens": 137239,
-    "api_call_count": 591
+    "input_tokens": 4005,
+    "cache_creation_tokens": 2986914,
+    "cache_read_tokens": 40986283,
+    "output_tokens": 88604,
+    "api_call_count": 357
   }
 }
