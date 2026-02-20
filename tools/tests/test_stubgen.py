@@ -119,3 +119,40 @@ def test_generate_stubs_for_vault(tmp_path):
     content = stub_file.read_text()
     assert "## Definition" in content
     assert "[[paper1]]" in content
+
+
+def test_skip_date_prefixed_with_directory():
+    """Test that date-prefixed links with directory prefix are skipped."""
+    link_graph = {
+        "p1": {"outgoing": {"lessons/2026-02-10-debug-log"}},
+        "p2": {"outgoing": {"lessons/2026-02-10-debug-log"}},
+        "p3": {"outgoing": {"lessons/2026-02-10-debug-log"}},
+    }
+    files_index = {}
+
+    stubgen = StubGenerator()
+    candidates = stubgen.identify_stub_candidates(link_graph, files_index)
+
+    assert "lessons/2026-02-10-debug-log" not in candidates
+
+
+def test_normalize_filename_with_spaces(tmp_path):
+    """Test that stubs with spaces in names are slug-normalized."""
+    concepts_dir = tmp_path / "concepts"
+    concepts_dir.mkdir()
+
+    link_graph = {
+        "p1": {"outgoing": {"agent context"}},
+        "p2": {"outgoing": {"agent context"}},
+        "p3": {"outgoing": {"agent context"}},
+    }
+    files_index = {}
+
+    stubgen = StubGenerator(vault_path=tmp_path)
+    stubs_created = stubgen.generate_stubs(link_graph, files_index)
+
+    assert len(stubs_created) == 1
+    # File should be slug-normalized
+    assert (concepts_dir / "agent-context.md").exists()
+    # File with spaces should NOT exist
+    assert not (concepts_dir / "agent context.md").exists()

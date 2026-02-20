@@ -26,16 +26,32 @@ class StubGenerator:
         """
         self.vault_path = vault_path
 
+    @staticmethod
+    def _get_filename(link: str) -> str:
+        """Extract filename from link (strip directory prefix)."""
+        return link.split('/')[-1]
+
     def _is_date_prefixed(self, link: str) -> bool:
-        """Check if link has date prefix (YYYY-MM-DD-)."""
-        return bool(re.match(r'^\d{4}-\d{2}-\d{2}-', link))
+        """Check if link (or its filename part) has date prefix (YYYY-MM-DD-)."""
+        filename = self._get_filename(link)
+        return bool(re.match(r'^\d{4}-\d{2}-\d{2}-', filename))
 
     def _is_external_reference(self, link: str) -> bool:
         """Check if link matches external reference patterns."""
+        filename = self._get_filename(link)
         for pattern in self.EXTERNAL_PATTERNS:
-            if re.search(pattern, link):
+            if re.search(pattern, filename):
                 return True
         return False
+
+    @staticmethod
+    def _normalize_filename(name: str) -> str:
+        """Normalize a link name to a valid filename (spaces to hyphens, lowercase)."""
+        slug = name.lower().strip()
+        slug = re.sub(r'[\s_]+', '-', slug)
+        slug = re.sub(r'[^a-z0-9-]', '', slug)
+        slug = re.sub(r'-+', '-', slug).strip('-')
+        return slug
 
     def identify_stub_candidates(
         self,
@@ -164,8 +180,10 @@ tags: [concept]
         # Generate stubs
         stubs_created = []
         for stub_name, candidate_data in candidates.items():
-            # Strip any directory prefix from stub name (e.g., "patterns/foo" -> "foo")
-            clean_stub_name = stub_name.split('/')[-1]
+            # Strip directory prefix and normalize filename
+            clean_stub_name = self._normalize_filename(self._get_filename(stub_name))
+            if not clean_stub_name:
+                continue
             stub_file = concepts_dir / f"{clean_stub_name}.md"
 
             # Skip if file already exists
