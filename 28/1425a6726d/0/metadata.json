@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "281425a6726d",
+  "session_id": "0b2962b4-fafa-4824-bed2-d57d9cecdab7",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-20T05:48:07.135799483Z",
+  "branch": "spec/routes-consolidation",
+  "checkpoints_count": 5,
+  "files_touched": [
+    ".claude/skills/appimage-desktop-integration/SKILL.md",
+    ".github/workflows/lint.yml",
+    ".github/workflows/test.yml",
+    "CLAUDE.md",
+    "README.md",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "src/cohezion/knowledge_graph/MISSION_JOURNAL.md"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "d78a770d-98f8-4b68-a61b-59cd276d0d11",
+  "token_usage": {
+    "input_tokens": 264,
+    "cache_creation_tokens": 413483,
+    "cache_read_tokens": 10792686,
+    "output_tokens": 4935,
+    "api_call_count": 117
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-20T05:48:07.072688565Z",
+    "agent_lines": 0,
+    "human_added": 24158,
+    "human_modified": 180,
+    "human_removed": 0,
+    "total_committed": 24171,
+    "agent_percentage": 0
+  }
+}
