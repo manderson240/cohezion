@@ -3,7 +3,7 @@
   "checkpoint_id": "281425a6726d",
   "strategy": "manual-commit",
   "branch": "spec/routes-consolidation",
-  "checkpoints_count": 9,
+  "checkpoints_count": 12,
   "files_touched": [
     ".claude/skills/appimage-desktop-integration/SKILL.md",
     ".claude/skills/pytest-async-cascade-diagnosis/SKILL.md",
@@ -34,13 +34,20 @@
       "context": "/28/1425a6726d/1/context.md",
       "content_hash": "/28/1425a6726d/1/content_hash.txt",
       "prompt": "/28/1425a6726d/1/prompt.txt"
+    },
+    {
+      "metadata": "/28/1425a6726d/2/metadata.json",
+      "transcript": "/28/1425a6726d/2/full.jsonl",
+      "context": "/28/1425a6726d/2/context.md",
+      "content_hash": "/28/1425a6726d/2/content_hash.txt",
+      "prompt": "/28/1425a6726d/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 1601,
-    "cache_creation_tokens": 617785,
-    "cache_read_tokens": 22265958,
-    "output_tokens": 6289,
-    "api_call_count": 198
+    "input_tokens": 3196,
+    "cache_creation_tokens": 853676,
+    "cache_read_tokens": 25943013,
+    "output_tokens": 8650,
+    "api_call_count": 232
   }
 }
