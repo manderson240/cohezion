@@ -346,3 +346,14 @@ Phase 4 Universe Simulation is **100% complete** with all three components imple
 ---
 
 **Next Phase**: Portfolio packaging (Task #12) - Documentation, demo videos, README.
+
+## Related Concepts
+
+- [[2026-02-10-phase4-simulation-delivery]]
+- [[2026-02-11-entire-io-api-investigation]]
+- [[2026-02-12-graphrag-implementation-session-56]]
+- [[2026-02-11-graphrag-proof-of-concept-success]]
+- [[2026-02-11-phase1-production-validation-results]]
+- [[2026-02-12-session-56-compact-retrospective]]
+- [[2026-02-17-spec-verify-token-efficiency-analysis]]
+- [[2026-02-14-session-58-7-phase-journey-enrichment-3-agent-adversarial-review]]

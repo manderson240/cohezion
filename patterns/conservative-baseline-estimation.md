@@ -364,3 +364,10 @@ class ConservativeEstimator:
 **Evidence Base**: Session 57 adversarial review (21.5h actual, 12h claimed)  
 **ROI**: 114× return (5 min → 9.5h saved)  
 **Last Updated**: 2026-02-14
+
+## Related
+
+- [[quantum-entangled-atomic-sensors]]
+- [[2026-02-11-session-55-git-aggressive-gc-doesnt-consolidate-packs-manual-repack-forced]]
+- [[2026-02-13-phase-2-execution-strategy-wave-2]]
+- [[2026-02-09-ollama-context-management]]

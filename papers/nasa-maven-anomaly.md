@@ -1,7 +1,7 @@
 ---
 title: NASA Assembles Anomaly Review Board for MAVEN Spacecraft
 date: 2026-02-07
-tags: 
+tags: [nasa-maven-anomaly, ai-anomaly-detection-hubble-archive, anomaly-detection, 2026-02-14-phase-2-adversarial-review-corrected-status-and-path-forward, lesson-adversarial-review-before-execution]
 connectivity: 0.0
 cross_domain: 0.5
 completion: 1.0
@@ -9,19 +9,27 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 3/3 sections (100%)
-conceptual_depth: 0.50
+conceptual_depth: 0.5
 conceptual_label: Balanced
-similar_papers: ["brain-protein-neurodegeneration", "grok4-ai-benchmarks", "tidally-locked-exoplanet-habitability", "llm-in-sandbox-agentic-intelligence", "langchain-deep-agents-context-management"]
+similar_papers:
+- brain-protein-neurodegeneration
+- grok4-ai-benchmarks
+- tidally-locked-exoplanet-habitability
+- llm-in-sandbox-agentic-intelligence
+- langchain-deep-agents-context-management
 dim_conceptual_depth: 0.5
 source: https://www.theregister.com/2026/01/27/nasa_anomaly_review_maven/
 dimensions:
-  connectivity: 0.000
+  connectivity: 0.0
   cross_domain: 0
   completion: 100
-  temporal: 0.500
-  recency: 0.700
+  temporal: 0.5
+  recency: 0.7
   conceptual_depth: 0.333
-
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 0.0
+  impact_score: 0.16
 ---
 ## Abstract
 
@@ -55,3 +63,15 @@ NASA is assembling a formal anomaly review board to investigate the loss of cont
 ## Relevance to Cohezion
 
 General reference for space exploration mission tracking and anomaly analysis patterns.
+
+## Related
+
+- [[mini-adversarial-review-checkpoints]]
+- [[anomaly-detection]]
+- [[2026-02-10-compound-linking-plan-adversarial-review]]
+- [[2026-02-14-adversarial-multi-agent-review-protocol]]
+
+## Related Concepts
+
+- [[ai-anomaly-detection-hubble-archive]]
+- [[ai-safety-alignment]]

@@ -460,13 +460,13 @@ export function watchPapersDirectory(
   };
 
   // Register vault event handler
-  app.vault.on('create', onModify);
-  app.vault.on('modify', onModify);
+  (app.vault as any).on('create', onModify);
+  (app.vault as any).on('modify', onModify);
 
   // Return unsubscribe function
   return () => {
-    app.vault.off('create', onModify);
-    app.vault.off('modify', onModify);
+    (app.vault as any).off('create', onModify);
+    (app.vault as any).off('modify', onModify);
     if (debounceTimer) {
       clearTimeout(debounceTimer);
     }

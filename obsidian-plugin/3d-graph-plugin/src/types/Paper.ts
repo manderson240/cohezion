@@ -69,6 +69,30 @@ export interface Dimension {
    * Used to create edges in the graph and show relationships
    */
   similar_papers: SimilarPaper[];
+
+  /**
+   * Phase 3: Technical complexity of methods (0-1 scale)
+   * 0 = simple overview, 1 = novel algorithms/proofs
+   */
+  algorithm_complexity?: number;
+
+  /**
+   * Phase 3: Practical implementation difficulty (0-1 scale)
+   * 0 = conceptual only, 1 = requires specialized expertise
+   */
+  implementation_difficulty?: number;
+
+  /**
+   * Phase 4: Impact score based on vault connectivity (0-1 scale)
+   * Proxy for citation count / influence
+   */
+  impact_score?: number;
+
+  /**
+   * Phase 4: Cross-domain transfer potential (0-1 scale)
+   * 0 = domain-specific, 1 = broadly applicable
+   */
+  interdisciplinary_transfer?: number;
 }
 
 /**
@@ -135,6 +159,15 @@ export interface PaperNode {
 
   /** 3D position in space (computed by ForceLayout) */
   position?: { x: number; y: number; z: number };
+
+  /** X coordinate in 3D space (for direct access by ForceLayout) */
+  x?: number;
+
+  /** Y coordinate in 3D space (for direct access by ForceLayout) */
+  y?: number;
+
+  /** Z coordinate in 3D space (for direct access by ForceLayout) */
+  z?: number;
 
   /** HSL hue value for color (0-360) based on cross_domain */
   color?: number;

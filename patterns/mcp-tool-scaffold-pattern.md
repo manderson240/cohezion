@@ -162,3 +162,10 @@ async def test_mcp_tool():
 
 - Service Class Pattern (vault_ops, ollama_client)
 - Test Mocking Pattern (FastMCP, external services)
+
+## Related
+
+- [[2026-02-10-claude-log-mining-architecture]]
+- [[2026-02-12-prime-skill-pattern-as-governance-framework]]
+- [[2026-02-10-phase-7-executor-pattern-launch]]
+- [[claude-code-swiftui-skill-patterns]]

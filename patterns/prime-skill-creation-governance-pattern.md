@@ -401,3 +401,10 @@ Every 3 months, review PRIME skills:
 **Pattern Created**: Session 56
 **Status**: ✅ Production-ready
 **Next Milestone**: Task #12 (PLATFORM_HEALTH_DIGEST_PRIME) builds on this pattern
+
+## Related
+
+- [[2026-02-12-prime-skill-pattern-as-governance-framework]]
+- [[2026-02-12-repository-health-governance-skill-created]]
+- [[prime-skill-quick-reference]]
+- [[2026-02-10-claude-log-mining-architecture]]

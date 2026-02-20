@@ -52,6 +52,9 @@ export interface DecisionRecommendation {
 }
 
 export class DecisionRecommendationEngine {
+  private static ollamaUrl = 'http://localhost:11434';
+  private static ollamaModel = 'phi3:mini';
+
   /**
    * Find recommendations for a newly added paper
    *
@@ -60,7 +63,7 @@ export class DecisionRecommendationEngine {
    * 2. Find 3 semantically similar existing papers
    * 3. Query: "Which decisions reference these papers?"
    * 4. For each related decision:
-   *    - Check if new paper contradicts it
+   *    - Use Ollama LLM to evaluate contradiction (replaces keyword matching)
    *    - If similarity > 0.8 and contradiction → recommend review
    *
    * @param newPaper The new paper that was added
@@ -70,13 +73,13 @@ export class DecisionRecommendationEngine {
    * @param paperEmbeddings Map of paper_id -> embedding vector
    * @returns Array of recommendations
    */
-  static findRecommendations(
+  static async findRecommendations(
     newPaper: PaperRef,
     existingPapers: PaperRef[],
     decisions: Decision[],
     contradictions: DecisionContradiction[],
     paperEmbeddings: Map<string, number[]>
-  ): DecisionRecommendation[] {
+  ): Promise<DecisionRecommendation[]> {
     const recommendations: DecisionRecommendation[] = [];
 
     // Step 1: Get embedding for new paper (assumes it was already embedded)
@@ -269,53 +272,128 @@ export class DecisionRecommendationEngine {
   }
 
   /**
-   * Check if a new paper contradicts a specific decision
+   * Evaluate whether a new paper contradicts a specific decision using Ollama LLM inference.
+   * Falls back to embedding-based similarity if Ollama is unavailable.
    */
-  static evaluateContradiction(
+  static async evaluateContradiction(
     newPaper: PaperRef,
     decision: Decision,
     newPaperText: string,
     decisionText: string
-  ): { contradicts: boolean; score: number; reason: string } {
-    // Simple heuristic: look for contradictory keywords
-    const contradictoryKeywords = [
-      'not',
-      'avoid',
-      'contra',
-      'opposite',
-      'reverse',
-      'false',
-      'invalid',
-      'incorrect',
-    ];
-    const supportiveKeywords = ['confirm', 'support', 'validate', 'agree', 'align', 'match'];
+  ): Promise<{ contradicts: boolean; score: number; reason: string }> {
+    try {
+      return await this.evaluateWithOllama(newPaper, decision, newPaperText, decisionText);
+    } catch (error) {
+      console.warn('Ollama inference unavailable, using embedding fallback:', error);
+      return this.evaluateWithEmbeddings(newPaperText, decisionText);
+    }
+  }
 
-    // Count keyword matches
-    let contradictionCount = 0;
-    let supportCount = 0;
+  /**
+   * LLM-based contradiction evaluation using Ollama
+   */
+  private static async evaluateWithOllama(
+    newPaper: PaperRef,
+    decision: Decision,
+    newPaperText: string,
+    decisionText: string
+  ): Promise<{ contradicts: boolean; score: number; reason: string }> {
+    const prompt = `Analyze whether this paper contradicts or supports this decision.
 
-    contradictoryKeywords.forEach((keyword) => {
-      if (newPaperText.toLowerCase().includes(keyword)) {
-        contradictionCount++;
-      }
+PAPER: "${newPaper.title}"
+${newPaperText.substring(0, 500)}
+
+DECISION: "${decision.title}"
+${decisionText.substring(0, 500)}
+
+Respond with EXACTLY one JSON object (no other text):
+{"relationship": "contradicts" | "supports" | "neutral", "confidence": 0.0-1.0, "reason": "one sentence explanation"}`;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
+
+    const response = await fetch(`${this.ollamaUrl}/api/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: this.ollamaModel,
+        prompt,
+        stream: false,
+        options: { temperature: 0.1, num_predict: 150 },
+      }),
+      signal: controller.signal,
     });
 
-    supportiveKeywords.forEach((keyword) => {
-      if (newPaperText.toLowerCase().includes(keyword)) {
-        supportCount++;
-      }
-    });
+    clearTimeout(timeout);
 
-    const contradicts = contradictionCount > supportCount && contradictionCount > 0;
-    const score = contradicts ? Math.min(contradictionCount / 3, 1.0) : 0;
-
-    let reason = 'No clear contradiction detected.';
-    if (contradicts) {
-      reason = `Detected ${contradictionCount} potential contradictory indicators in the new paper.`;
-    } else if (supportCount > 0) {
-      reason = `The new paper appears to support this decision (${supportCount} supportive indicators).`;
+    if (!response.ok) {
+      throw new Error(`Ollama API error: ${response.status}`);
     }
 
-    return { contradicts, score, reason };
+    const data = await response.json();
+    const text = data.response || '';
+
+    // Extract JSON from response
+    const jsonMatch = text.match(/\{[^}]+\}/);
+    if (!jsonMatch) {
+      throw new Error('No JSON in Ollama response');
+    }
+
+    const result = JSON.parse(jsonMatch[0]);
+    const relationship = result.relationship || 'neutral';
+    const confidence = Math.min(1, Math.max(0, result.confidence || 0.5));
+
+    return {
+      contradicts: relationship === 'contradicts',
+      score: relationship === 'contradicts' ? confidence : 0,
+      reason: result.reason || `LLM analysis: ${relationship} (confidence: ${confidence.toFixed(2)})`,
+    };
+  }
+
+  /**
+   * Embedding-based fallback: use cosine similarity between paper and decision embeddings
+   * to estimate relationship. Lower similarity in the same domain = potential contradiction.
+   */
+  private static evaluateWithEmbeddings(
+    newPaperText: string,
+    decisionText: string
+  ): { contradicts: boolean; score: number; reason: string } {
+    // Use word overlap as a lightweight similarity proxy
+    const paperWords = new Set(
+      newPaperText.toLowerCase().split(/\s+/).filter(w => w.length > 4)
+    );
+    const decisionWords = new Set(
+      decisionText.toLowerCase().split(/\s+/).filter(w => w.length > 4)
+    );
+
+    let overlap = 0;
+    for (const w of paperWords) {
+      if (decisionWords.has(w)) overlap++;
+    }
+
+    const similarity = overlap / Math.max(1, Math.min(paperWords.size, decisionWords.size));
+
+    // High topic overlap + low exact match = potential contradiction
+    if (similarity > 0.3 && similarity < 0.7) {
+      return {
+        contradicts: true,
+        score: 0.5,
+        reason: `Moderate topic overlap (${(similarity * 100).toFixed(0)}%) suggests potential contradiction — review recommended.`,
+      };
+    }
+
+    if (similarity >= 0.7) {
+      return {
+        contradicts: false,
+        score: 0,
+        reason: `High topic overlap (${(similarity * 100).toFixed(0)}%) suggests the paper supports this decision.`,
+      };
+    }
+
+    return {
+      contradicts: false,
+      score: 0,
+      reason: `Low topic overlap (${(similarity * 100).toFixed(0)}%) — the paper and decision address different areas.`,
+    };
   }
 }

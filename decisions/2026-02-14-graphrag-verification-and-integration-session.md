@@ -68,3 +68,14 @@ Ran SurrealDB re-import and plugin wiring in parallel — zero cross-dependencie
 1. **Verify state catches expensive mistakes** — SurrealDB being empty would have wasted any work that depended on graph queries
 2. **Existing code > new code** — 8,330 LOC already existed; wiring it took 1 agent, not 5
 3. **Git divergence compounds** — 428 commits is too far gone for rebase; use feature branches
+
+## Related Concepts
+
+- [[2026-02-14-phase-6b-cascade-impact-computation]]
+- [[2026-02-17-phase-2-full-verification-plan]]
+- [[2026-02-14-phases-1-3-retrospective-key-learnings]]
+- [[2026-02-10-kyutai-mcp-obsidian-plugin-plan]]
+- [[2026-02-14-phase-6a-automated-reasoning-chain-inference-complete]]
+- [[2026-02-11-phase-1-agent-context-schema-complete]]
+- [[2026-02-10-canvas-driven-compound-engineering-refined]]
+- [[2026-02-14-wave-1-overnight-completion-report]]

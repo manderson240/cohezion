@@ -1,7 +1,7 @@
 ---
 title: LangChain Deep Agents Context Management
 date: 2026-02-07
-tags: 
+tags: [langchain-deep-agents-context-management, operational-data-ai-agents, llamaagents-builder, surrealdb-agent-context-quick-reference, surrealdb-agent-context-visual-guide]
 connectivity: 0.33
 cross_domain: 0.5
 completion: 1.0
@@ -9,19 +9,27 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★★☆☆☆ (5/5 links)
 completion_summary: 3/3 sections (100%)
-conceptual_depth: 0.50
+conceptual_depth: 0.5
 conceptual_label: Balanced
-similar_papers: ["mom-z14-farthest-galaxy", "emu3-multimodal-next-token-prediction", "claude-code-swiftui-skill-patterns", "humanoid-robots-space-launch", "nasa-maven-anomaly"]
+similar_papers:
+- mom-z14-farthest-galaxy
+- emu3-multimodal-next-token-prediction
+- claude-code-swiftui-skill-patterns
+- humanoid-robots-space-launch
+- nasa-maven-anomaly
 dim_conceptual_depth: 0.5
 source: https://blog.langchain.com/context-management-for-deepagents/
 dimensions:
-  connectivity: 0.250
+  connectivity: 0.25
   cross_domain: 0
   completion: 100
-  temporal: 0.500
-  recency: 0.700
-  conceptual_depth: 0.000
-
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 0.0
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 0.0
+  impact_score: 0.398
 ---
 ## Abstract
 
@@ -58,3 +66,12 @@ Deep Agents are equipped with a planning tool, a filesystem backend, and the abi
 ## Relevance to Cohezion
 
 Directly relevant to [[lab_agent.py]] and [[ouroboros.py]] context management. The three-tier approach (offload, truncate, summarize) provides a proven pattern for managing context in long-running Cohezion agent sessions., [[agentic-ai]], [[agent-architecture]], [[prompt-engineering]]
+
+## Related Concepts
+
+- [[scaling-agent-systems]]
+- [[openai-codex-agent-loop]]
+- [[sentinel-1-ice-sheets]]
+- [[llamaagents-builder]]
+- [[testing-agent-skills-with-evals]]
+- [[operational-data-ai-agents]]

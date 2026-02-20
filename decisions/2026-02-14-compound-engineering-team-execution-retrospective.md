@@ -63,3 +63,14 @@ Execute all 3 remediation tasks in parallel using a 3-agent team (`compound-engi
 - 11 orphaned papers (13%) — need concept links
 - 1 orphaned decision — low priority
 - 4 inbox files kept (actionable content: research gaps, Sheets reference, research paper, debugging investigation)
+
+## Related Concepts
+
+- [[2026-02-17-phase-2-full-verification-plan]]
+- [[2026-02-14-phases-1-3-retrospective-key-learnings]]
+- [[2026-02-10-kyutai-mcp-obsidian-plugin-plan]]
+- [[2026-02-14-phase-6a-automated-reasoning-chain-inference-complete]]
+- [[2026-02-10-canvas-driven-compound-engineering-refined]]
+- [[2026-02-14-wave-1-overnight-completion-report]]
+- [[2026-02-14-session-60-retrospective-revised-plan]]
+- [[2026-02-12-lessons-compound-engineering-phase-2-complete]]

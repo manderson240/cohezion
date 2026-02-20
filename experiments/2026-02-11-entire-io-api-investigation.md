@@ -245,3 +245,14 @@ ORDER BY session_count DESC
 **Patterns**: [[Event-Driven Daemon Pattern]], [[SurrealDB Sync Pattern]]
 
 **Projects**: [[Phase 1 - SurrealDB Agent Context Schema]], [[Week 1 - Entire.io Integration]]
+
+## Related Concepts
+
+- [[2026-02-13-track-b-entire-sync-daemon-complete]]
+- [[2026-02-09-fastmcp-asgi-integration-fix]]
+- [[2026-02-13-phase-2-track-b-entire-io-sync-daemon-complete]]
+- [[2026-02-14-graphrag-verification-and-integration-session]]
+- [[entire-io-to-vault-mapping]]
+- [[runbook-entire-sync-daemon]]
+- [[entire-io-sync-daemon-design]]
+- [[entire-io-sync-daemon-operations]]

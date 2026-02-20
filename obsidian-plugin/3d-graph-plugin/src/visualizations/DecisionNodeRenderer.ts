@@ -9,6 +9,7 @@
  * Phase 2: Paper Integration - Task 4
  */
 
+import * as THREE from 'three';
 import { Decision } from '../types/Decision';
 
 export interface DecisionNodeData {
@@ -86,10 +87,7 @@ export class DecisionNodeRenderer {
     return (r << 16) | (g << 8) | b;
   }
 
-  static createNodeMesh(nodeData: DecisionNodeData): any {
-    const THREE = (window as any).THREE;
-    if (!THREE) return null;
-
+  static createNodeMesh(nodeData: DecisionNodeData): THREE.Mesh | null {
     const geometry = new THREE.SphereGeometry(8, 16, 16);
     const rgb = this.hslToRgb(nodeData.color / 360, 0.6, 0.5);
     const hexColor = this.rgbToHex(rgb.r, rgb.g, rgb.b);
@@ -108,7 +106,13 @@ export class DecisionNodeRenderer {
     mesh.position.set(nodeData.position.x, nodeData.position.y, nodeData.position.z);
     mesh.scale.set(nodeData.size, nodeData.size, nodeData.size);
 
-    (mesh as any).userData = {
+    // Store decision metadata using THREE's userData property
+    interface DecisionUserData {
+      type: 'decision';
+      decisionId: string;
+      decision: Decision;
+    }
+    (mesh.userData as unknown as DecisionUserData) = {
       type: 'decision',
       decisionId: nodeData.id,
       decision: nodeData.decision,
@@ -117,15 +121,16 @@ export class DecisionNodeRenderer {
     return mesh;
   }
 
-  static fadeInNode(mesh: any, duration: number = 300): Promise<void> {
+  static fadeInNode(mesh: THREE.Mesh, duration: number = 300): Promise<void> {
     return new Promise((resolve) => {
       const startTime = performance.now();
-      const startOpacity = mesh.material.opacity || 0;
+      const material = mesh.material as THREE.MeshStandardMaterial;
+      const startOpacity = material.opacity || 0;
 
       const animate = (currentTime: number) => {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        mesh.material.opacity = startOpacity + (1 - startOpacity) * progress;
+        material.opacity = startOpacity + (1 - startOpacity) * progress;
         if (progress < 1) {
           requestAnimationFrame(animate);
         } else {

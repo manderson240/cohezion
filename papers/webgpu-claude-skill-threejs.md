@@ -1,7 +1,7 @@
 ---
 title: WebGPU Claude Skill for Three.js Development
 date: 2026-02-07
-tags: 
+tags: [webgpu-claude-skill-threejs, claude-code-community-skills, anthropic-mcp-apps-claude-integrations, karpathy-claude-code-skills, _claude-code-metrics-2026-02-14]
 connectivity: 0.07
 cross_domain: 0.62
 completion: 1.0
@@ -9,19 +9,27 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 3/3 sections (100%)
-conceptual_depth: 0.00
+conceptual_depth: 0.0
 conceptual_label: Pure Applied
-similar_papers: ["openai-applied-compute-startup", "beyond-the-quantum-pilot-wave-theory", "mcl1-myc-cancer-metabolism", "amorphous-materials-3d-atomic-structure", "llamaagents-builder"]
+similar_papers:
+- openai-applied-compute-startup
+- beyond-the-quantum-pilot-wave-theory
+- mcl1-myc-cancer-metabolism
+- amorphous-materials-3d-atomic-structure
+- llamaagents-builder
 dim_conceptual_depth: 0.0
 source: https://github.com/dgreenheck/webgpu-claude-skill
 dimensions:
-  connectivity: 0.050
+  connectivity: 0.05
   cross_domain: 0
   completion: 100
-  temporal: 0.500
-  recency: 0.700
+  temporal: 0.5
+  recency: 0.7
   conceptual_depth: 0.667
-
+  algorithm_complexity: 0.3
+  implementation_difficulty: 0.7
+  interdisciplinary_transfer: 0.5
+  impact_score: 0.082
 ---
 ## Abstract
 
@@ -56,3 +64,8 @@ A Claude Code skill by dgreenheck that provides documentation and templates for 
 ## Relevance to Cohezion
 
 Demonstrates the skill/plugin pattern for Claude Code agents. Could be used as a template for creating Cohezion-specific Claude skills, or directly used for WebGPU-based visualization of simulation outputs from `lab_agent.py`., [[prompt-engineering]]
+
+## Related Concepts
+
+- [[anthropic-mcp-apps-claude-integrations]]
+- [[anthropic-view-universe-nyas]]

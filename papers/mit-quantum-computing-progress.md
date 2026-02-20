@@ -1,28 +1,38 @@
 ---
-title: "MIT Technology Review coverage of quantum computing progress including error correction breakthro..."
+title: MIT Technology Review coverage of quantum computing progress including error
+  correction breakthro...
 date: 2026-02-07
-tags: [quantum, ai]
+tags:
+- quantum
+- ai
 connectivity: 0.13
 cross_domain: 0.25
 completion: 0.67
-temporal: 1.00
-recency: 1.00
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
-conceptual_depth: 1.00
+conceptual_depth: 1.0
 conceptual_label: Pure Theory
-similar_papers: ["karpathy-claude-code-skills", "mom-z14-farthest-galaxy", "cosmic-strings-time-travel", "beyond-the-quantum-pilot-wave-theory", "usaf-stealthy-electromagnetic-attack"]
-domain: "Quantum Computing"
-https: //search.app/cvbGD"
-source: "Source: Nature
+similar_papers:
+- karpathy-claude-code-skills
+- mom-z14-farthest-galaxy
+- cosmic-strings-time-travel
+- beyond-the-quantum-pilot-wave-theory
+- usaf-stealthy-electromagnetic-attack
+domain: Quantum Computing
+source: 'Source: Nature'
 dimensions:
-  connectivity: 0.100
+  connectivity: 0.1
   cross_domain: 2
   completion: 100
-  temporal: 0.500
-  recency: 0.700
-  conceptual_depth: 0.500
-
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 0.5
+  algorithm_complexity: 0.25
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 0.5
+  impact_score: 0.158
 ---
 # MIT Technology Review coverage of quantum computing progress including error correction breakthro...
 
@@ -41,3 +51,20 @@ Quantum technology development and industry growth
 ## Relevance to Cohezion
 
 Quantum Computing resource captured via mobile link pipeline. Quantum technology development and industry growth, [[quantum-computing]], [[quantum-mechanics]]
+
+## Related Papers
+
+- [[karpathy-claude-code-skills]]
+- [[beyond-the-quantum-pilot-wave-theory]]
+- [[usaf-stealthy-electromagnetic-attack]]
+
+## Related Concepts
+
+- [[anthropic-disempowerment-patterns]]
+- [[international-year-quantum-2025]]
+- [[mistral-open-source-ai-strategy]]
+- [[few-shot-prompting-agentic-coding]]
+- [[openai-applied-compute-startup]]
+- [[claude-code-swiftui-skill-patterns]]
+- [[claude-code-community-skills]]
+- [[cisa-chatgpt-data-leak]]

@@ -1,28 +1,37 @@
 ---
-title: "AlphaFold + cryo-EM: protein structure prediction for automated atomic model building"
+title: 'AlphaFold + cryo-EM: protein structure prediction for automated atomic model
+  building'
 date: 2026-02-07
-tags: [biology]
-connectivity: 0.00
+tags:
+- biology
+connectivity: 0.0
 cross_domain: 0.12
-completion: 1.00
-temporal: 1.00
-recency: 1.00
+completion: 1.0
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 3/3 sections (100%)
-conceptual_depth: 1.00
+conceptual_depth: 1.0
 conceptual_label: Pure Theory
-similar_papers: ["woh-g64-dust-obscured-companion", "artemis-ii-laser-comms", "pairwise-comparison-fiber-bundles", "tonggeometry-olympiad-tree-search", "diffraction-gratings-fourier-transforms"]
-domain: "Structural Biology"
-https: //search.app/i4bPv"
-source: "Source: Nature
+similar_papers:
+- woh-g64-dust-obscured-companion
+- artemis-ii-laser-comms
+- pairwise-comparison-fiber-bundles
+- tonggeometry-olympiad-tree-search
+- diffraction-gratings-fourier-transforms
+domain: Structural Biology
+source: 'Source: Nature'
 dimensions:
-  connectivity: 0.100
+  connectivity: 0.1
   cross_domain: 1
   completion: 100
-  temporal: 0.500
-  recency: 0.700
+  temporal: 0.5
+  recency: 0.7
   conceptual_depth: 0.333
-
+  algorithm_complexity: 0.25
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 0.25
+  impact_score: 0.08
 ---
 ## Abstract
 
@@ -58,3 +67,10 @@ Structural Biology resource captured via mobile link pipeline. general
 
 
 [[machine-learning-optimization]], [[neural-network-architecture]]
+
+## Related Concepts
+
+- [[artificial-photosynthesis-living-energy]]
+- [[comb-jellies-animal-tree-of-life]]
+- [[mcl1-myc-cancer-metabolism]]
+- [[tidally-locked-exoplanet-habitability]]

@@ -1,7 +1,7 @@
 ---
 title: Towards a Science of Scaling Agent Systems
 date: 2026-02-07
-tags: 
+tags: [scaling-agent-systems, surrealdb-agent-context-quick-reference, surrealdb-agent-context-visual-guide, surrealdb-agent-context-phase1-step3-query-testing, agentic-ai-memory-hierarchies]
 connectivity: 0.27
 cross_domain: 0.5
 completion: 0.67
@@ -9,19 +9,27 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (4/5 links)
 completion_summary: 2/3 sections (66%)
-conceptual_depth: 0.00
+conceptual_depth: 0.0
 conceptual_label: Pure Applied
-similar_papers: ["helimagnetism-ferromagnetism-mode-locking", "jwst-red-nova-remnants", "llm-training-methodology-changes", "mom-z14-farthest-galaxy", "dna-origami-2d-semiconductor-patterning"]
+similar_papers:
+- helimagnetism-ferromagnetism-mode-locking
+- jwst-red-nova-remnants
+- llm-training-methodology-changes
+- mom-z14-farthest-galaxy
+- dna-origami-2d-semiconductor-patterning
 dim_conceptual_depth: 0.0
 source: https://arxiv.org/abs/2512.08296
 dimensions:
-  connectivity: 0.200
+  connectivity: 0.2
   cross_domain: 0
   completion: 100
-  temporal: 0.500
-  recency: 0.700
+  temporal: 0.5
+  recency: 0.7
   conceptual_depth: 0.333
-
+  algorithm_complexity: 1
+  implementation_difficulty: 0.5
+  interdisciplinary_transfer: 0.8
+  impact_score: 0.322
 ---
 # Towards a Science of Scaling Agent Systems
 
@@ -42,3 +50,12 @@ Evaluated five canonical agent architectures (Single-Agent, Independent, Central
 ## Relevance to Cohezion
 
 Directly applicable to [[lab_agent]] multi-agent orchestration design. The error amplification findings and capability saturation threshold inform when to use multi-agent vs single-agent approaches. The predictive framework could guide automatic architecture selection., [[multi-agent-systems]], [[agentic-ai]], [[agent-architecture]]
+
+## Related Concepts
+
+- [[langchain-deep-agents-context-management]]
+- [[openai-codex-agent-loop]]
+- [[llamaagents-builder]]
+- [[testing-agent-skills-with-evals]]
+- [[llm-in-sandbox-agentic-intelligence]]
+- [[agentic-ai-memory-hierarchies]]

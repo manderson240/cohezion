@@ -176,3 +176,10 @@ def __init__(self, config_path: str = "config.json"):
     with open(config_path) as f:
         self.config = json.load(f)
 ```
+
+## Related
+
+- [[2026-02-10-claude-log-mining-architecture]]
+- [[2026-02-12-prime-skill-pattern-as-governance-framework]]
+- [[2026-02-10-phase-7-executor-pattern-launch]]
+- [[compound-async-executor-pattern]]

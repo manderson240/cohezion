@@ -490,3 +490,10 @@ class StagedProject:
 **Evidence Base**: Session 57 adversarial review (15 blockers, 71% rework)  
 **ROI**: 7.2-8.4× return (2.5h validation → 18-21h rework avoided)  
 **Last Updated**: 2026-02-14
+
+## Related
+
+- [[2026-02-14-settings-files-validation-and-fix]]
+- [[2026-02-14-wave-1-status-all-phases-6-complete]]
+- [[2026-02-14-end-to-end-compound-cycle-validation-script]]
+- [[2026-02-11-use-escalation-staged-deployment-for-large-repository-cleanup]]

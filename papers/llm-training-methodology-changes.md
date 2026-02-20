@@ -1,7 +1,7 @@
 ---
 title: Researchers at OpenAI, Thinking Machines, and Amazon Want to Change How LLMs
 date: 2026-02-07
-tags: 
+tags: [openai-applied-compute-startup, openai-codex-agent-loop, rethinking-exoplanet-habitability, changelog, llm-training-methodology-changes]
 connectivity: 0.13
 cross_domain: 0.5
 completion: 1.0
@@ -9,19 +9,27 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 3/3 sections (100%)
-conceptual_depth: 0.50
+conceptual_depth: 0.5
 conceptual_label: Balanced
-similar_papers: ["comb-jellies-animal-tree-of-life", "cu45-superatom-carbon-recycling", "scaling-agent-systems", "rethinking-exoplanet-habitability", "dna-origami-2d-semiconductor-patterning"]
+similar_papers:
+- comb-jellies-animal-tree-of-life
+- cu45-superatom-carbon-recycling
+- scaling-agent-systems
+- rethinking-exoplanet-habitability
+- dna-origami-2d-semiconductor-patterning
 dim_conceptual_depth: 0.5
 source: https://www.theinformation.com/newsletters/ai-agenda/researchers-openai-thinking-machines-amazon-want-change-llms-trained
 dimensions:
-  connectivity: 0.100
+  connectivity: 0.1
   cross_domain: 0
   completion: 100
-  temporal: 0.500
-  recency: 0.700
+  temporal: 0.5
+  recency: 0.7
   conceptual_depth: 0.333
-
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 0.0
+  impact_score: 0.158
 ---
 ## Abstract
 
@@ -55,3 +63,12 @@ The Information reports on a growing movement among researchers at OpenAI, Think
 ## Relevance to Cohezion
 
 Relevant to [[lab_agent.py]] model selection and fine-tuning strategy. The post-training efficiency approach could inform how Cohezion optimizes its own model interactions., [[prompt-engineering]]
+
+## Related Papers
+
+- [[rethinking-exoplanet-habitability]]
+
+## Related Concepts
+
+- [[openai-codex-agent-loop]]
+- [[emoticons-llm-silent-failures]]

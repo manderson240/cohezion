@@ -269,3 +269,21 @@ The quality distribution (43.2% Good+, 5.7% Very Poor) indicates healthy decisio
 **Quality Score Formula Validated**: YES
 **All Tests Passing**: YES
 **Ready for Production**: YES
+
+## Related
+
+- [[PHASE-6-TASK-1-COMPLETION-REPORT]]
+- [[phase-5b-completion-pattern]]
+- [[PHASE-6-2-COMPLETION-SUMMARY]]
+- [[entire-io-sync-daemon-design]]
+
+## Related Concepts
+
+- [[2026-02-13-phase-2-final-completion-summary]]
+- [[2026-02-13-phase-2-track-a-complete]]
+- [[2026-02-11-phase1-completion-summary]]
+- [[2026-02-14-phase-6d-decision-quality-scoring-complete]]
+- [[2026-02-09-ollama-mcp-server-complete]]
+- [[session-63-final-summary-2026-02-15]]
+- [[2026-02-10-redesigned-pilot-complete]]
+- [[2026-02-14-phase-6b-final-report]]

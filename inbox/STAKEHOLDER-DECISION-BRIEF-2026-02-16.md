@@ -377,3 +377,8 @@ Three execution options are available:
 ---
 
 *End of Stakeholder Decision Brief*
+
+## Related Concepts
+
+- [[2026-02-10-plan-vs-reality-comparison]]
+- [[phase-4-7-master-execution-plan-revised-2026-02-16]]

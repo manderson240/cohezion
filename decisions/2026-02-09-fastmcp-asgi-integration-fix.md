@@ -102,3 +102,14 @@ This fix enables the full MCP ↔ Vault integration chain:
 ## Relevance to Cohezion
 
 [[MCP Infrastructure Architecture]]
+
+## Related Concepts
+
+- [[2026-02-10-kyutai-mcp-obsidian-plugin-plan]]
+- [[2026-02-09-ollama-mcp-server]]
+- [[2026-02-14-settings-files-validation-and-fix]]
+- [[2026-02-14-graphrag-verification-and-integration-session]]
+- [[entire-io-to-vault-mapping]]
+- [[sheetsbr idge-mcp-testing]]
+- [[fastmcp-asgi-builder-pattern]]
+- [[google-sheets-vault-bridge]]

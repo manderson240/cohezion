@@ -1,28 +1,37 @@
 ---
-title: "MCL1 drives cancer metabolism via mTOR; MYC suppresses immune alarms via RNA binding/condensates"
+title: MCL1 drives cancer metabolism via mTOR; MYC suppresses immune alarms via RNA
+  binding/condensates
 date: 2026-02-07
-tags: [biology]
-connectivity: 0.00
+tags:
+- biology
+connectivity: 0.0
 cross_domain: 0.12
-completion: 1.00
-temporal: 1.00
-recency: 1.00
+completion: 1.0
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 3/3 sections (100%)
-conceptual_depth: 0.50
+conceptual_depth: 0.5
 conceptual_label: Balanced
-similar_papers: ["agentic-ai-memory-hierarchies", "ocean-calcium-climate-mystery-66my", "yann-lecun-agi-world-models", "webgpu-claude-skill-threejs", "claude-code-swiftui-skill-patterns"]
-domain: "Molecular Biology"
-https: //search.app/qbJXD"
-source: "Source: SciTechDaily
+similar_papers:
+- agentic-ai-memory-hierarchies
+- ocean-calcium-climate-mystery-66my
+- yann-lecun-agi-world-models
+- webgpu-claude-skill-threejs
+- claude-code-swiftui-skill-patterns
+domain: Molecular Biology
+source: 'Source: SciTechDaily'
 dimensions:
-  connectivity: 0.000
+  connectivity: 0.0
   cross_domain: 1
   completion: 100
-  temporal: 0.500
-  recency: 0.700
-  conceptual_depth: 0.000
-
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 0.0
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 0.25
+  impact_score: 0.16
 ---
 ## Abstract
 
@@ -57,3 +66,17 @@ general
 ## Relevance to Cohezion
 
 Molecular Biology resource captured via mobile link pipeline. general
+
+## Related
+
+- [[service-class-singleton-pattern]]
+- [[PRIME_CLAUDE_CODE_PRACTICES]]
+- [[multi-session-compound-engineering-workflow]]
+- [[compound-async-executor-pattern]]
+
+## Related Concepts
+
+- [[artificial-photosynthesis-living-energy]]
+- [[alphafold-cryo-em-structure-prediction]]
+- [[comb-jellies-animal-tree-of-life]]
+- [[tidally-locked-exoplanet-habitability]]

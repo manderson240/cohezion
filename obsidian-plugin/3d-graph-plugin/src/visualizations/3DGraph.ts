@@ -235,14 +235,27 @@ export class Graph3D extends Modal {
   private setupControls(): void {
     if (!this.renderer) return;
 
-    const canvas = this.renderer['canvas'] || document.querySelector('canvas');
+    // Access renderer properties safely - use proper interface if available
+    const canvas = (this.renderer as any)['canvas'] || document.querySelector('canvas');
+    const camera = (this.renderer as any)['camera'];
+
+    if (!canvas || !camera) {
+      console.warn('Canvas or camera not available for controls setup');
+      return;
+    }
+
     this.controls = new GraphControls(
-      this.renderer['camera'],
+      camera,
       canvas as HTMLCanvasElement,
       () => {
         // Re-render on control changes
         if (this.renderer) {
-          this.renderer['renderer'].render(this.renderer['scene'], this.renderer['camera']);
+          const renderer = (this.renderer as any)['renderer'];
+          const scene = (this.renderer as any)['scene'];
+          const cam = (this.renderer as any)['camera'];
+          if (renderer && scene && cam) {
+            renderer.render(scene, cam);
+          }
         }
       }
     );
@@ -254,12 +267,14 @@ export class Graph3D extends Modal {
   private setupInteraction(): void {
     if (!this.renderer) return;
 
-    const canvas = this.renderer['canvas'] || document.querySelector('canvas');
+    const canvas = (this.renderer as any)['canvas'] || document.querySelector('canvas');
 
-    canvas?.addEventListener('click', (e) => {
+    canvas?.addEventListener('click', (event: Event) => {
+      const e = event as MouseEvent;
       const intersects = this.renderer!.getIntersectedObjects(e.clientX, e.clientY);
 
       if (intersects.length > 0) {
+        // Access object properties - use type assertion for properties added at runtime
         const intersected = intersects[0].object as any;
         const paperId = intersected.paperId;
 
@@ -269,19 +284,22 @@ export class Graph3D extends Modal {
       }
     });
 
-    canvas?.addEventListener('mousemove', (e) => {
+    canvas?.addEventListener('mousemove', (event: Event) => {
+      const e = event as MouseEvent;
       const intersects = this.renderer!.getIntersectedObjects(e.clientX, e.clientY);
 
       // Clear previous hover
-      if (this.hoveredPaper) {
-        this.renderer!.highlightNode(this.hoveredPaper.id, false);
+      if (this.hoveredPaper && this.renderer) {
+        this.renderer.highlightNode(this.hoveredPaper.id, false);
       }
 
       if (intersects.length > 0) {
+        // Access object properties - use type assertion for properties added at runtime
         const intersected = intersects[0].object as any;
-        if (intersected.paperNode) {
-          this.hoveredPaper = intersected.paperNode;
-          this.renderer!.highlightNode(this.hoveredPaper.id, true);
+        const paperNode = intersected.paperNode;
+        if (paperNode && this.renderer) {
+          this.hoveredPaper = paperNode;
+          this.renderer.highlightNode(paperNode.id, true);
         }
       }
     });

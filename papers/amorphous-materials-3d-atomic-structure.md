@@ -1,7 +1,7 @@
 ---
 title: Accurate 3D Atomic Structure Determination of Amorphous Materials
 date: 2026-02-07
-tags: 
+tags: [amorphous-materials-3d-atomic-structure, quantum-entangled-atomic-sensors, quantum-atomic-light-synchronization, alphafold-cryo-em-structure-prediction, mcp-infrastructure-architecture]
 connectivity: 0.2
 cross_domain: 0.5
 completion: 0.67
@@ -9,19 +9,27 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (3/5 links)
 completion_summary: 2/3 sections (66%)
-conceptual_depth: 0.50
+conceptual_depth: 0.5
 conceptual_label: Balanced
-similar_papers: ["quantum-entangled-atomic-sensors", "diffraction-gratings-fourier-transforms", "webgpu-claude-skill-threejs", "brain-protein-neurodegeneration", "tonggeometry-ai-math"]
+similar_papers:
+- quantum-entangled-atomic-sensors
+- diffraction-gratings-fourier-transforms
+- webgpu-claude-skill-threejs
+- brain-protein-neurodegeneration
+- tonggeometry-ai-math
 dim_conceptual_depth: 0.5
 source: https://www.nature.com/articles/s41586-025-09857-4
 dimensions:
-  connectivity: 0.150
+  connectivity: 0.15
   cross_domain: 0
   completion: 100
-  temporal: 0.500
-  recency: 0.700
-  conceptual_depth: 0.000
-
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 0.0
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.333
+  interdisciplinary_transfer: 0.0
+  impact_score: 0.24
 ---
 # 3D Atomic Structure of Amorphous Materials via AET
 
@@ -39,3 +47,14 @@ Published in Nature, this research presents a quantitative framework for atomic 
 ## Relevance to Cohezion
 
 Demonstrates computational approaches to resolving structure from incomplete information - analogous to how `enhanced_simulator.py` might reconstruct system states from partial observations. The tomographic reconstruction approach could inspire agent sensing architectures., [[material-science]], [[nanofabrication]], [[materials-informatics]]
+
+## Related Papers
+
+- [[quantum-entangled-atomic-sensors]]
+
+## Related Concepts
+
+- [[quantum-teleportation-logic-gates]]
+- [[quantum-entanglement-speed-measurement]]
+- [[axion-dark-matter-quantum-sensors]]
+- [[silicon-quantum-computing-platform]]

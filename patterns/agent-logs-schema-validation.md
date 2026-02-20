@@ -452,3 +452,14 @@ Before committing agent log files:
 **Last Updated**: 2026-02-11
 **Status**: Ready for daemon implementation
 **Next Review**: 2026-02-13 (after Week 2 testing)
+
+## Related Concepts
+
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[2026-02-14-settings-files-validation-and-fix]]
+- [[2026-02-14-phase-6c-semantic-contradiction-detection-complete]]
+- [[entire-io-to-vault-mapping]]
+- [[automated-concept-extraction]]
+- [[sheetsbr idge-mcp-testing]]
+- [[phase1-production-validation-runbook]]
+- [[typescript-error-diagnostic]]

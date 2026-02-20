@@ -354,3 +354,14 @@ This codification aligns perfectly with your Constitution:
 
 *Last updated: 2026-02-12*
 *See related: PRIME_CLAUDE_CODE_PRACTICES, CLAUDE.md, MEMORY.md*
+
+## Related Concepts
+
+- [[2026-02-13-phase-2-final-completion-summary]]
+- [[2026-02-12-claude-code-context-awareness-codification]]
+- [[2026-02-09-ollama-mcp-server]]
+- [[2026-02-11-phase1-completion-summary]]
+- [[2026-02-13-phase-2-execution-strategy-wave-2]]
+- [[2026-02-13-session-60-retrospective-and-revised-plan]]
+- [[12d-graph-view-presets]]
+- [[2026-02-10-kyutai-execution-summary]]
