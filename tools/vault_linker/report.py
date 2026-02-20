@@ -32,9 +32,10 @@ class ReportGenerator:
         # Calculate metrics
         total_files = len(self.files_index)
 
-        # Count papers with null tags
+        # Count papers with null tags (only files in papers/ directory)
         null_tags_count = sum(1 for meta in self.files_index.values()
-                              if meta.get("frontmatter", {}).get("tags") is None)
+                              if meta.get("frontmatter", {}).get("tags") is None
+                              and "papers" in str(meta.get("path", "")).split("/"))
 
         # Count broken links by category
         total_broken = sum(len(links) for links in self.broken_links.values())
