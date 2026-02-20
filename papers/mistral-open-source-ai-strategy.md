@@ -51,3 +51,14 @@ Open-source AI governance and enterprise adoption
 ## Relevance to Cohezion
 
 AI Strategy and Business resource captured via mobile link pipeline. Open-source AI governance and enterprise adoption, [[ai-agents]]
+
+## Related Concepts
+
+- [[anthropic-disempowerment-patterns]]
+- [[mit-quantum-computing-progress]]
+- [[few-shot-prompting-agentic-coding]]
+- [[karpathy-claude-code-skills]]
+- [[openai-applied-compute-startup]]
+- [[claude-code-swiftui-skill-patterns]]
+- [[usaf-stealthy-electromagnetic-attack]]
+- [[claude-code-community-skills]]

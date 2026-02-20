@@ -471,3 +471,14 @@ DEFINE INDEX idx_decision_session_type ON agent_decision
 **Decisions**: [[2026-02-11-surrealdb-agent-context-schema-design]]
 
 **Tools**: `record_decision()`, `record_reasoning()`, `record_outcome()` (in Cloud Vault MCP)
+
+## Related Concepts
+
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[2026-02-14-phase-6b-cascade-impact-computation]]
+- [[2026-02-11-phase-1-agent-context-schema-complete]]
+- [[2026-02-14-track-a-sign-off-approved]]
+- [[2026-02-13-phase-2-track-a-complete]]
+- [[2026-02-14-phase-6c-semantic-contradiction-detection-complete]]
+- [[2026-02-11-phase1-completion-summary]]
+- [[2026-02-09-12d-graph-surrealdb-integration]]

@@ -490,3 +490,14 @@ record_decision(...)
 **Task**: Task #10 (Step 5)
 
 [[Phase 1 Implementation]], [[MCP Tools]], [[Agent Context]]
+
+## Related Concepts
+
+- [[2026-02-11-phase1-completion-summary]]
+- [[2026-02-11-phase1-execution-status]]
+- [[2026-02-11-phase1-step1-schema-complete]]
+- [[surrealdb-agent-context-phase1-step3-query-testing]]
+- [[phase1-production-validation-runbook]]
+- [[surrealdb-agent-context-quick-reference]]
+- [[bmad-scale-adaptive-documentation]]
+- [[surrealdb-agent-context-visual-guide]]

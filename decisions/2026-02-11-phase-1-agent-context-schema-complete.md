@@ -247,3 +247,14 @@ Phase 1 Step 1 SUCCESS when:
 - Test suite: `test_agent_context_ops.py`
 - Full roadmap: `PHASE_1_AGENT_CONTEXT_INTEGRATION.md`
 - Implementation guide: `PHASE_1_STEP2_QUICKSTART.md`
+
+## Related Concepts
+
+- [[3d-graph-plugin-selection]]
+- [[2026-02-14-phase-6b-cascade-impact-computation]]
+- [[2026-02-09-ollama-context-management]]
+- [[2026-02-12-claude-code-context-awareness-codification]]
+- [[2026-02-12-charter-aligned-scoring-formula]]
+- [[2026-02-13-local-model-roster-update-february-2026-sota-assessment]]
+- [[2026-02-17-phase-2-full-verification-plan]]
+- [[2026-02-13-gitlab-to-github-consolidation-with-artifact-governance]]

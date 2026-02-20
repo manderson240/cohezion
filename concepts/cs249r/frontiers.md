@@ -98,3 +98,14 @@ date: 2026-02-18
 - Personalized Recommendations
 - Human-AI Collaboration
 
+
+## Related Concepts
+
+- [[token-efficiency]]
+- [[astrophysics-observations]]
+- [[surface-chemistry]]
+- [[concept-testing]]
+- [[agent context]]
+- [[jwst-observations]]
+- [[data-discipline-prevent-generated-data-in-git]]
+- [[agent-loop-architecture]]

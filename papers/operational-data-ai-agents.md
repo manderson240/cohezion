@@ -1,7 +1,7 @@
 ---
 title: 'Operational Data: Giving AI Agents the Senses to Succeed'
 date: 2026-02-07
-tags: null
+tags: [operational-data-ai-agents, 2026-02-09-operational-principle-no-destructive-operations-without-learning, 2026-02-10-operational-forensics-compound-engineering, data_engineering, 2026-02-13-first-real-data-vae-training-run]
 connectivity: 0.13
 cross_domain: 0.5
 completion: 0.67
@@ -47,3 +47,9 @@ VentureBeat article arguing that the primary reason autonomous AI agents fail in
 ## Relevance to Cohezion
 
 Directly relevant to `lab_agent.py` and agent architecture generally. Highlights that agent capability is bounded by data quality, not just model capability. Cohezion agents need robust data pipelines and quality checks as foundational infrastructure., [[agentic-ai]], [[ai-agents]]
+
+## Related Concepts
+
+- [[langchain-deep-agents-context-management]]
+- [[emu3-multimodal-next-token-prediction]]
+- [[sentinel-1-ice-sheets]]

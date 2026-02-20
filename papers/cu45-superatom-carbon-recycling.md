@@ -1,7 +1,7 @@
 ---
 title: Highly Stable Cu45 Superatom Could Transform Carbon Recycling
 date: 2026-02-07
-tags: null
+tags: [cu45-superatom-co2-ethylene, cu45-superatom-carbon-recycling, diffraction-gratings-fourier-transforms, 2026-02-13-local-model-roster-update-february-2026-sota-assessment, 2026-02-10-hyperdim-project-status-update]
 connectivity: 0.0
 cross_domain: 0.62
 completion: 0.67
@@ -51,3 +51,14 @@ Demonstrates how specific geometric/electronic arrangements produce emergent sta
 
 
 [[catalytic-materials]], [[nanofabrication]]
+
+## Related Concepts
+
+- [[yann-lecun-agi-world-models]]
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[protein-tape-recorder-cytotape]]
+- [[ai-anomaly-detection-hubble-archive]]
+- [[ocean-calcium-climate-mystery-66my]]
+- [[mars-time-dilation-relativity]]
+- [[magnetic-superhighways-starburst-galaxy]]
+- [[llm-in-sandbox-agentic-intelligence]]

@@ -67,3 +67,19 @@ general
 ## Relevance to Cohezion
 
 AI Industry resource captured via mobile link pipeline. general, [[ai-agents]]
+
+## Related Papers
+
+- [[claude-code-community-skills]]
+- [[grok4-ai-benchmarks]]
+
+## Related Concepts
+
+- [[anthropic-disempowerment-patterns]]
+- [[mit-quantum-computing-progress]]
+- [[mistral-open-source-ai-strategy]]
+- [[few-shot-prompting-agentic-coding]]
+- [[karpathy-claude-code-skills]]
+- [[claude-code-swiftui-skill-patterns]]
+- [[usaf-stealthy-electromagnetic-attack]]
+- [[cisa-chatgpt-data-leak]]

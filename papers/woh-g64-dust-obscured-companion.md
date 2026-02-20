@@ -67,3 +67,16 @@ fractal_universe.py
 ## Relevance to Cohezion
 
 Astrophysics resource captured via mobile link pipeline. fractal_universe.py, [[stellar-evolution]], [[astrophysics-observations]]
+
+## Related Papers
+
+- [[quantum-atomic-light-synchronization]]
+
+## Related Concepts
+
+- [[diffraction-gratings-fourier-transforms]]
+- [[anthropic-principle-fine-tuning]]
+- [[sunspot-ar4366-x-class-flares]]
+- [[tidally-locked-exoplanet-habitability]]
+- [[beyond-the-quantum-pilot-wave-theory]]
+- [[pairwise-comparison-fiber-bundles]]

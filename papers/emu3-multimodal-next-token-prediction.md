@@ -1,7 +1,7 @@
 ---
 title: 'Emu3: Multimodal Learning via Next-Token Prediction'
 date: 2026-02-07
-tags: null
+tags: [emu3-multimodal-next-token-prediction, 2026-02-14-phases-1-3-retrospective-key-learnings, meta-learning, 2026-02-09-operational-principle-no-destructive-operations-without-learning, 2026-02-10-compound-engineering-meta-learning]
 connectivity: 0.07
 cross_domain: 0.5
 completion: 0.67
@@ -49,3 +49,14 @@ Published in Nature, Emu3 is a family of multimodal models trained solely with n
 ## Relevance to Cohezion
 
 Unified multimodal architecture directly relevant to `lab_agent.py` design. The next-token prediction paradigm as a universal learning objective across modalities could inform how Cohezion agents handle diverse input/output types., [[ai-agents]]
+
+## Related Concepts
+
+- [[operational-data-ai-agents]]
+- [[superfluid-to-supersolid-transition]]
+- [[2026-02-10-claude-log-mining-architecture]]
+- [[2026-02-10-compound-engineering-meta-learning]]
+- [[2026-02-10-framework-driven-prioritization]]
+- [[prompt-optimization-hypotheses]]
+- [[2026-02-10-redesigned-pilot-complete]]
+- [[2026-02-10-meta-pattern-extraction]]

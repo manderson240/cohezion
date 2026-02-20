@@ -1,7 +1,7 @@
 ---
 title: LangChain Deep Agents Context Management
 date: 2026-02-07
-tags: null
+tags: [langchain-deep-agents-context-management, operational-data-ai-agents, llamaagents-builder, surrealdb-agent-context-quick-reference, surrealdb-agent-context-visual-guide]
 connectivity: 0.33
 cross_domain: 0.5
 completion: 1.0
@@ -66,3 +66,12 @@ Deep Agents are equipped with a planning tool, a filesystem backend, and the abi
 ## Relevance to Cohezion
 
 Directly relevant to [[lab_agent.py]] and [[ouroboros.py]] context management. The three-tier approach (offload, truncate, summarize) provides a proven pattern for managing context in long-running Cohezion agent sessions., [[agentic-ai]], [[agent-architecture]], [[prompt-engineering]]
+
+## Related Concepts
+
+- [[scaling-agent-systems]]
+- [[openai-codex-agent-loop]]
+- [[sentinel-1-ice-sheets]]
+- [[llamaagents-builder]]
+- [[testing-agent-skills-with-evals]]
+- [[operational-data-ai-agents]]

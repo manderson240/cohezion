@@ -558,3 +558,14 @@ Phase 2 implementation ready to start upon approval. Estimated timeline: 3-5 day
 **Concepts**: [[mcp-infrastructure-architecture]], [[agentic-ai]]
 
 **Lessons**: [[lesson-12-layered-validation]], [[lesson-18-mock-live-services-in-tests]], [[lesson-05-surrealdb]]
+
+## Related Concepts
+
+- [[2026-02-14-phase-6b-cascade-impact-computation]]
+- [[2026-02-14-track-a-sign-off-approved]]
+- [[2026-02-13-phase-2-track-a-complete]]
+- [[2026-02-14-settings-files-validation-and-fix]]
+- [[2026-02-14-phase-6c-semantic-contradiction-detection-complete]]
+- [[2026-02-11-phase1-execution-status]]
+- [[2026-02-09-12d-graph-surrealdb-integration]]
+- [[2026-02-12-phase-2-schema-design]]

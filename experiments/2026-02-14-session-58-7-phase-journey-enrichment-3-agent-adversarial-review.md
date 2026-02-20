@@ -129,3 +129,14 @@ Implementing 7 phases to enrich agentic journey captures would close critical fe
 **Patterns**: [[compound-engineering-investigation-retrospection-before-destructive-operations]], [[multi-session-compound-engineering-workflow]]
 **Concepts**: [[compound-engineering]], [[multi-agent-systems]], [[agentic-ai]]
 **Lessons**: [[lesson-11-team-agent-efficiency]], [[lesson-37-experience-guided-execution-works-new]]
+
+## Related Concepts
+
+- [[2026-02-11-entire-io-api-investigation]]
+- [[2026-02-12-graphrag-implementation-session-56]]
+- [[2026-02-11-graphrag-proof-of-concept-success]]
+- [[2026-02-11-phase1-production-validation-results]]
+- [[2026-02-12-session-56-compact-retrospective]]
+- [[2026-02-17-spec-verify-token-efficiency-analysis]]
+- [[2026-02-19-journal-vacuum-during-crash-loop-recovery]]
+- [[2026-02-11-large-repositories-26gb-with-virtual-environment-files-wi]]

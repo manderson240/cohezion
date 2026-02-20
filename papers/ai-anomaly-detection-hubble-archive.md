@@ -1,7 +1,7 @@
 ---
 title: AI Discovers 1400 Anomalous Objects in Hubble Archive
 date: 2026-02-07
-tags: null
+tags: [ai-anomaly-detection-hubble-archive, 2026-02-13-local-model-roster-update-february-2026-sota-assessment, 2026-02-10-hyperdim-project-status-update, 2026-02-11-session-55-git-aggressive-gc-doesnt-consolidate-packs-manual-repack-forced, 2026-02-09-vault-completion-status]
 connectivity: 0.07
 cross_domain: 0.62
 completion: 0.67
@@ -49,3 +49,19 @@ ESA researchers David O'Ryan and Pablo Gomez developed AnomalyMatch, a neural ne
 ## Relevance to Cohezion
 
 Demonstrates the power of AI-driven anomaly detection on large archival datasets. The AnomalyMatch approach of training neural networks to find rare patterns in massive image datasets could inform `lab_agent.py` pattern recognition and anomaly detection strategies., [[astrophysics-observations]]
+
+## Related Papers
+
+- [[llm-in-sandbox-agentic-intelligence]]
+- [[dna-origami-2d-semiconductor-patterning]]
+
+## Related Concepts
+
+- [[yann-lecun-agi-world-models]]
+- [[protein-tape-recorder-cytotape]]
+- [[ocean-calcium-climate-mystery-66my]]
+- [[nasa-maven-anomaly]]
+- [[mars-time-dilation-relativity]]
+- [[magnetic-superhighways-starburst-galaxy]]
+- [[cu45-superatom-carbon-recycling]]
+- [[optofluidic-3d-nanofabrication]]

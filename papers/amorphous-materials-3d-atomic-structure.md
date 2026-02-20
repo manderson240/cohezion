@@ -1,7 +1,7 @@
 ---
 title: Accurate 3D Atomic Structure Determination of Amorphous Materials
 date: 2026-02-07
-tags: null
+tags: [amorphous-materials-3d-atomic-structure, quantum-entangled-atomic-sensors, quantum-atomic-light-synchronization, alphafold-cryo-em-structure-prediction, mcp-infrastructure-architecture]
 connectivity: 0.2
 cross_domain: 0.5
 completion: 0.67
@@ -47,3 +47,14 @@ Published in Nature, this research presents a quantitative framework for atomic 
 ## Relevance to Cohezion
 
 Demonstrates computational approaches to resolving structure from incomplete information - analogous to how `enhanced_simulator.py` might reconstruct system states from partial observations. The tomographic reconstruction approach could inspire agent sensing architectures., [[material-science]], [[nanofabrication]], [[materials-informatics]]
+
+## Related Papers
+
+- [[quantum-entangled-atomic-sensors]]
+
+## Related Concepts
+
+- [[quantum-teleportation-logic-gates]]
+- [[quantum-entanglement-speed-measurement]]
+- [[axion-dark-matter-quantum-sensors]]
+- [[silicon-quantum-computing-platform]]

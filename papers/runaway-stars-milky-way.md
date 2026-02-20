@@ -1,7 +1,7 @@
 ---
 title: Massive Runaway Stars in the Milky Way
 date: 2026-02-07
-tags: null
+tags: [runaway-stars-milky-way, red-supergiant-stars, magnetic-superhighways-starburst-galaxy, 2026-02-13-local-model-roster-update-february-2026-sota-assessment, 2026-02-10-hyperdim-project-status-update]
 connectivity: 0.13
 cross_domain: 0.38
 completion: 0.67
@@ -45,3 +45,18 @@ ICCUB/IEEC/IAC study of 214 O-type runaway stars — the most extensive observat
 ## Relevance to Cohezion
 
 Relevant to [[fractal_universe]] stellar dynamics modeling and N-body gravitational simulations., [[stellar-evolution]]
+
+## Related Papers
+
+- [[protein-tape-recorder-cytotape]]
+
+## Related Concepts
+
+- [[fast-radio-bursts-binary-star-origin]]
+- [[yann-lecun-agi-world-models]]
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[ai-anomaly-detection-hubble-archive]]
+- [[ocean-calcium-climate-mystery-66my]]
+- [[mars-time-dilation-relativity]]
+- [[magnetic-superhighways-starburst-galaxy]]
+- [[llm-in-sandbox-agentic-intelligence]]

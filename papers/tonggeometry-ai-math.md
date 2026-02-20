@@ -1,7 +1,7 @@
 ---
 title: 'TongGeometry: Chinese AI System for IMO-Level Geometry'
 date: 2026-02-07
-tags: null
+tags: [tonggeometry-olympiad-tree-search, tonggeometry-ai-math, ml_systems, 2026-02-19-benchmark-improvement-system-complete, lesson-15-system-lockup-2026-01-27]
 connectivity: 0.13
 cross_domain: 0.5
 completion: 0.67
@@ -46,3 +46,9 @@ Chinese neuro-symbolic AI system that outperforms Google DeepMind's AlphaGeometr
 ## Relevance to Cohezion
 
 Relevant to [[enhanced_simulator]] for neuro-symbolic reasoning approaches. The tree search methodology could inform Cohezion's problem-solving architectures., [[prompt-engineering]]
+
+## Related Concepts
+
+- [[webb-cosmic-question-mark-gravitational-lens]]
+- [[humanitys-last-exam-benchmark]]
+- [[tonggeometry-olympiad-tree-search]]

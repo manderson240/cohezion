@@ -66,3 +66,18 @@ general
 ## Relevance to Cohezion
 
 Neuroscience resource captured via mobile link pipeline. general, [[neutrino-physics]]
+
+## Related Papers
+
+- [[karpathy-claude-code-skills]]
+
+## Related Concepts
+
+- [[anthropic-disempowerment-patterns]]
+- [[mit-quantum-computing-progress]]
+- [[mistral-open-source-ai-strategy]]
+- [[few-shot-prompting-agentic-coding]]
+- [[openai-applied-compute-startup]]
+- [[claude-code-swiftui-skill-patterns]]
+- [[usaf-stealthy-electromagnetic-attack]]
+- [[claude-code-community-skills]]

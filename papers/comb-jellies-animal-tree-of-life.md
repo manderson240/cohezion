@@ -72,3 +72,10 @@ Evolutionary Biology resource captured via mobile link pipeline. general
 - [[implementation-first-infrastructure-later]]
 - [[early-universe-cosmology]]
 - [[2026-02-11-vault-first-knowledge-architecture]]
+
+## Related Concepts
+
+- [[artificial-photosynthesis-living-energy]]
+- [[alphafold-cryo-em-structure-prediction]]
+- [[mcl1-myc-cancer-metabolism]]
+- [[tidally-locked-exoplanet-habitability]]

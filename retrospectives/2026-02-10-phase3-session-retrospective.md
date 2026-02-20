@@ -233,3 +233,14 @@ severity: HIGH
 **Applies to**: Any multi-phase project where early phases complete and later phases need execution, not re-validation.
 
 [[token-efficiency]], [[decision-paralysis]], [[compound-engineering]], [[phase-3]]
+
+## Related Concepts
+
+- [[2026-02-14-phases-1-3-retrospective-key-learnings]]
+- [[2026-02-14-session-60-retrospective-revised-plan]]
+- [[2026-02-14-compound-engineering-team-execution-retrospective]]
+- [[2026-02-13-phase-3-unblocking-semantic-dimensions-complete]]
+- [[2026-02-13-session-60-retrospective-and-revised-plan]]
+- [[2026-02-14-graphrag-verification-and-integration-session]]
+- [[2026-02-11-lessons-compound-engineering-phase-1-complete]]
+- [[2026-02-14-phase-4-retrospective-and-phase-5-overnight-plan]]

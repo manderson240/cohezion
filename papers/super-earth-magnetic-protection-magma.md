@@ -1,7 +1,7 @@
 ---
 title: Super-Earth Exoplanets Have Built-In Magnetic Protection from Magma Oceans
 date: 2026-02-07
-tags: null
+tags: [super-earth-magnetic-protection-magma, magnetic-superhighways-starburst-galaxy, usaf-stealthy-electromagnetic-attack, 2026-02-13-local-model-roster-update-february-2026-sota-assessment, 2026-02-10-hyperdim-project-status-update]
 connectivity: 0.2
 cross_domain: 0.62
 completion: 0.67
@@ -49,3 +49,19 @@ University of Rochester researchers found that deep basal magma oceans (BMOs) in
 ## Relevance to Cohezion
 
 Emergent protective properties arising from physical conditions (pressure -> conductivity -> magnetic field -> habitability) illustrate cascading emergence relevant to `fractal_universe.py` planetary modeling., [[planetary-systems]], [[exoplanet-habitability]], [[astrophysics-observations]]
+
+## Related Papers
+
+- [[mars-time-dilation-relativity]]
+- [[ai-anomaly-detection-hubble-archive]]
+
+## Related Concepts
+
+- [[yann-lecun-agi-world-models]]
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[protein-tape-recorder-cytotape]]
+- [[ocean-calcium-climate-mystery-66my]]
+- [[magnetic-superhighways-starburst-galaxy]]
+- [[llm-in-sandbox-agentic-intelligence]]
+- [[cu45-superatom-carbon-recycling]]
+- [[optofluidic-3d-nanofabrication]]

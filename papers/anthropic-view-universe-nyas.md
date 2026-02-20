@@ -1,7 +1,7 @@
 ---
 title: The Anthropic View of the Universe
 date: 2026-02-07
-tags: null
+tags: [anthropic-disempowerment-patterns, anthropic-view-universe-nyas, anthropic-mcp-apps-claude-integrations, 2026-02-19-anthropic-job-alignment-benchmarks-and-training, anthropic-principle-fine-tuning]
 connectivity: 0.13
 cross_domain: 0.5
 completion: 1.0
@@ -60,3 +60,8 @@ NYAS article exploring the anthropic principle and cosmological fine-tuning.
 ## Relevance to Cohezion
 
 Directly relevant to [[fractal_universe]] cosmological modeling and the framework's approach to simulating universes with varying physical parameters., [[early-universe-cosmology]]
+
+## Related Concepts
+
+- [[webgpu-claude-skill-threejs]]
+- [[anthropic-mcp-apps-claude-integrations]]

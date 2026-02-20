@@ -1,7 +1,7 @@
 ---
 title: CircleCI CI/CD for AI developers with autonomous validation agent
 date: 2026-02-07
-tags: null
+tags: [circleci-ai-cicd-validation, lesson-12-layered-validation, 2026-02-14-settings-validation-mystery, 2026-02-14-end-to-end-compound-cycle-validation-script, runbook-benchmarking-validation]
 connectivity: 0.07
 cross_domain: 0.12
 completion: 1.0
@@ -64,3 +64,10 @@ general
 ## Relevance to Cohezion
 
 DevOps/AI resource captured via mobile link pipeline. general, [[agentic-ai]]
+
+## Related Concepts
+
+- [[humanitys-last-exam-benchmark]]
+- [[woh-g64-red-supergiant-mystery]]
+- [[ocean-calcium-climate-mystery-66my]]
+- [[jwst-red-nova-remnants]]
