@@ -1,28 +1,39 @@
 ---
-title: "CISA chief uploaded sensitive files to public ChatGPT - AI security/data governance concerns"
+title: CISA chief uploaded sensitive files to public ChatGPT - AI security/data governance
+  concerns
 date: 2026-02-07
-tags: [ai, security, policy]
-connectivity: 0.00
+tags:
+- ai
+- security
+- policy
+connectivity: 0.0
 cross_domain: 0.38
-completion: 1.00
-temporal: 1.00
-recency: 1.00
+completion: 1.0
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 3/3 sections (100%)
-conceptual_depth: 0.50
+conceptual_depth: 0.5
 conceptual_label: Balanced
-similar_papers: ["ocean-calcium-climate-mystery-66my", "comb-jellies-animal-tree-of-life", "cu45-superatom-co2-ethylene", "diffraction-gratings-fourier-transforms", "few-shot-prompting-agentic-coding"]
-domain: "AI Policy"
-https: //search.app/XvX1A"
-source: "Source: Politico
+similar_papers:
+- ocean-calcium-climate-mystery-66my
+- comb-jellies-animal-tree-of-life
+- cu45-superatom-co2-ethylene
+- diffraction-gratings-fourier-transforms
+- few-shot-prompting-agentic-coding
+domain: AI Policy
+source: 'Source: Politico'
 dimensions:
-  connectivity: 0.050
+  connectivity: 0.05
   cross_domain: 3
   completion: 100
-  temporal: 0.500
-  recency: 0.700
-  conceptual_depth: 0.000
-
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 0.0
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 0.75
+  impact_score: 0.04
 ---
 ## Abstract
 

@@ -305,3 +305,10 @@ After Phase 7 completion:
 **Prepared by**: dashboard-engineer
 **Date**: 2026-02-14
 **Status**: AWAITING PHASE 6 COMPLETION
+
+## Related
+
+- [[entire-io-sync-daemon-design]]
+- [[surrealdb-agent-context-phase1-step3-query-testing]]
+- [[surrealdb-agent-context-phase1-step3-execution-plan]]
+- [[surrealdb-agent-context-phase1-implementation-checklist]]

@@ -1,28 +1,36 @@
 ---
-title: "Cu45 superatom converts CO2 to ethylene at 81"
+title: Cu45 superatom converts CO2 to ethylene at 81
 date: 2026-02-07
-tags: [chemistry]
-connectivity: 0.00
+tags:
+- chemistry
+connectivity: 0.0
 cross_domain: 0.12
-completion: 1.00
-temporal: 1.00
-recency: 1.00
+completion: 1.0
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (0/5 links)
 completion_summary: 3/3 sections (100%)
-conceptual_depth: 0.50
+conceptual_depth: 0.5
 conceptual_label: Balanced
-similar_papers: ["alfven-waves-aurora", "cisa-chatgpt-data-leak", "optofluidic-3d-nanofabrication", "protein-tape-recorder-cytotape", "emu3-multimodal-next-token-prediction"]
-domain: "Chemistry"
-https: //search.app/LYEki"
-source: "Source: Phys.org
+similar_papers:
+- alfven-waves-aurora
+- cisa-chatgpt-data-leak
+- optofluidic-3d-nanofabrication
+- protein-tape-recorder-cytotape
+- emu3-multimodal-next-token-prediction
+domain: Chemistry
+source: 'Source: Phys.org'
 dimensions:
-  connectivity: 0.100
+  connectivity: 0.1
   cross_domain: 1
   completion: 100
-  temporal: 0.500
-  recency: 0.700
-  conceptual_depth: 0.000
-
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 0.0
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 0.25
+  impact_score: 0.08
 ---
 ## Abstract
 

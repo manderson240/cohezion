@@ -82,7 +82,7 @@ export class ReasoningFlowchart extends Modal {
     }
 
     // Show alternatives rejected
-    if (this.decision.alternatives_rejected?.length > 0) {
+    if (this.decision.alternatives_rejected && this.decision.alternatives_rejected.length > 0) {
       const alternativesDiv = detailsSection.createDiv('alternatives-section');
       alternativesDiv.style.marginTop = '15px';
       alternativesDiv.innerHTML = '<h4>Alternatives Rejected</h4>';

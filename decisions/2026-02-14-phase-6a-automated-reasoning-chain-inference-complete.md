@@ -270,3 +270,10 @@ similar_decisions:
 **Owner**: inference-engineer
 **Session**: 64
 **Execution time**: 2 hours total (target: 2 hours)
+
+## Related
+
+- [[automated-concept-extraction]]
+- [[surrealdb-query-driven-analysis]]
+- [[canvas-driven-manual-linking]]
+- [[google-sheets-vault-bridge]]

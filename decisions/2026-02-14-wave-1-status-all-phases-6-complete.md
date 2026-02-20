@@ -250,3 +250,10 @@ All Phase 6 tasks are **COMPLETE and DELIVERED**. Phase 7 (dashboard) has all re
 **Status**: IN PROGRESS (Phase 7 in progress)
 **Next Review**: When Phase 7B completes
 **Contact**: team-lead for status updates
+
+## Related
+
+- [[2026-02-12-week-1-handoff-summary]]
+- [[2026-02-10-phase4-universe-simulation-complete]]
+- [[entire-io-sync-daemon-design]]
+- [[phase1-query-templates-and-scenarios]]

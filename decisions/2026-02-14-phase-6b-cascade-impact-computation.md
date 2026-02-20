@@ -257,3 +257,10 @@ interface DecisionImpact {
 ---
 
 **Next**: Execute `runCascadeInference.ts` against live SurrealDB, verify decision_impacts table, confirm metrics match expectations.
+
+## Related
+
+- [[surrealdb-agent-context-phase1-implementation-checklist]]
+- [[surrealdb-agent-context-phase1-step3-query-testing]]
+- [[phase1-production-validation-runbook]]
+- [[2026-02-10-phase4-universe-simulation-complete]]

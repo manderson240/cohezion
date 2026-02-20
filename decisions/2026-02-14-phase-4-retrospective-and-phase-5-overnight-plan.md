@@ -597,3 +597,9 @@ Once Phase 5-7 complete:
 **Last updated**: 2026-02-14 Session 61 (Phase 4 complete)
 **Next review**: 2026-02-15 (Phase 5-7 completion checkpoint)
 
+## Related
+
+- [[12d-graph-implementation]]
+- [[2026-02-09-vault-completion-retrospective]]
+- [[multi-session-compound-engineering-workflow]]
+- [[session-55-compound-engineering-learnings]]

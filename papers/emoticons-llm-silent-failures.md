@@ -1,7 +1,7 @@
 ---
 title: Emoticons Cause Silent Failures in LLM Coding Responses
 date: 2026-02-07
-tags: 
+tags: null
 connectivity: 0.07
 cross_domain: 0.5
 completion: 0.67
@@ -9,19 +9,27 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ☆☆☆☆☆ (1/5 links)
 completion_summary: 2/3 sections (66%)
-conceptual_depth: 0.50
+conceptual_depth: 0.5
 conceptual_label: Balanced
-similar_papers: ["jwst-red-nova-remnants", "pairwise-comparison-fiber-bundles", "transcranial-ultrasound-consciousness", "grb-250314a-ancient-signal", "rethinking-exoplanet-habitability"]
+similar_papers:
+- jwst-red-nova-remnants
+- pairwise-comparison-fiber-bundles
+- transcranial-ultrasound-consciousness
+- grb-250314a-ancient-signal
+- rethinking-exoplanet-habitability
 dim_conceptual_depth: 0.5
 source: https://techxplore.com/news/2026-01-emoticons-llms-silent-failures-coding.html
 dimensions:
-  connectivity: 0.050
+  connectivity: 0.05
   cross_domain: 0
   completion: 100
-  temporal: 0.500
-  recency: 0.700
-  conceptual_depth: 1.000
-
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 1.0
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 0.0
+  impact_score: 0.082
 ---
 # Emoticons Cause Silent Failures in LLM Coding Responses
 

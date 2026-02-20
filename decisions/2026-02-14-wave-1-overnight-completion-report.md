@@ -389,3 +389,10 @@ Wave 1 Overnight Compound Engineering is **ON TRACK FOR COMPLETION** with:
 **Status**: IN PROGRESS (Phase 7 executing)
 **Confidence**: HIGH (all Phase 6 data validated)
 **Next Review**: Phase 7B completion + Integration readiness
+
+## Related
+
+- [[12d-graph-implementation]]
+- [[multi-session-compound-engineering-workflow]]
+- [[session-55-compound-engineering-learnings]]
+- [[canvas-driven-manual-linking]]

@@ -123,3 +123,10 @@ If Phase 2 or Phase 3 needs higher accuracy:
 **Decided by**: Claude Code AI
 **Date**: 2026-02-16
 **Related commits**: 5f91fe3, b83be1a, 222273b
+
+## Related
+
+- [[grok4-ai-benchmarks]]
+- [[service-class-singleton-pattern]]
+- [[PRIME_CLAUDE_CODE_PRACTICES]]
+- [[multi-session-compound-engineering-workflow]]

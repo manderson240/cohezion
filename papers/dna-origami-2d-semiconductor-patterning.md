@@ -1,7 +1,7 @@
 ---
 title: DNA Origami for Precise Molecular Patterning on 2D Semiconductors
 date: 2026-02-07
-tags: 
+tags: null
 connectivity: 0.27
 cross_domain: 0.5
 completion: 0.67
@@ -9,19 +9,27 @@ temporal: 1.0
 recency: 1.0
 connectivity_summary: ★☆☆☆☆ (4/5 links)
 completion_summary: 2/3 sections (66%)
-conceptual_depth: 0.50
+conceptual_depth: 0.5
 conceptual_label: Balanced
-similar_papers: ["axion-dark-matter-quantum-sensors", "theorem-ai-formal-verification", "quantum-entangled-atomic-sensors", "llm-training-methodology-changes", "ai-anomaly-detection-hubble-archive"]
+similar_papers:
+- axion-dark-matter-quantum-sensors
+- theorem-ai-formal-verification
+- quantum-entangled-atomic-sensors
+- llm-training-methodology-changes
+- ai-anomaly-detection-hubble-archive
 dim_conceptual_depth: 0.5
 source: https://phys.org/news/2026-01-dna-origami-enables-precise-patterning.html
 dimensions:
-  connectivity: 0.200
+  connectivity: 0.2
   cross_domain: 0
   completion: 100
-  temporal: 0.500
-  recency: 0.700
-  conceptual_depth: 0.250
-
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 0.25
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 0.0
+  impact_score: 0.322
 ---
 # DNA Origami for Precise Molecular Patterning on 2D Semiconductors
 

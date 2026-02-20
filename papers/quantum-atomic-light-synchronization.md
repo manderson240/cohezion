@@ -1,28 +1,40 @@
 ---
-title: "Quantum mechanics research demonstrating that atoms cannot achieve complete synchronization of li..."
+title: Quantum mechanics research demonstrating that atoms cannot achieve complete
+  synchronization of li...
 date: 2026-02-07
-tags: [quantum, ai, space, physics]
+tags:
+- quantum
+- ai
+- space
+- physics
 connectivity: 0.13
-cross_domain: 0.50
+cross_domain: 0.5
 completion: 0.67
-temporal: 1.00
-recency: 1.00
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 2/3 sections (66%)
-conceptual_depth: 1.00
+conceptual_depth: 1.0
 conceptual_label: Pure Theory
-similar_papers: ["karpathy-claude-code-skills", "claude-code-community-skills", "grok4-ai-benchmarks", "woh-g64-dust-obscured-companion", "humanitys-last-exam-benchmark"]
-domain: "Quantum Physics"
-https: //search.app/x7QJa"
-source: "Source: Axios
+similar_papers:
+- karpathy-claude-code-skills
+- claude-code-community-skills
+- grok4-ai-benchmarks
+- woh-g64-dust-obscured-companion
+- humanitys-last-exam-benchmark
+domain: Quantum Physics
+source: 'Source: Axios'
 dimensions:
-  connectivity: 0.100
+  connectivity: 0.1
   cross_domain: 4
   completion: 100
-  temporal: 0.500
-  recency: 0.700
-  conceptual_depth: 1.000
-
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 1.0
+  algorithm_complexity: 0.25
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 1.0
+  impact_score: 0.158
 ---
 # Quantum mechanics research demonstrating that atoms cannot achieve complete synchronization of li...
 

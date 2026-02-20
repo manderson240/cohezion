@@ -1,28 +1,38 @@
 ---
-title: "WOH G64 in LMC appeared to vanish but obscured by ejected dust; SALT found hot companion"
+title: WOH G64 in LMC appeared to vanish but obscured by ejected dust; SALT found
+  hot companion
 date: 2026-02-07
-tags: [astrophysics, physics]
+tags:
+- astrophysics
+- physics
 connectivity: 0.13
 cross_domain: 0.25
-completion: 1.00
-temporal: 1.00
-recency: 1.00
+completion: 1.0
+temporal: 1.0
+recency: 1.0
 connectivity_summary: ★☆☆☆☆ (2/5 links)
 completion_summary: 3/3 sections (100%)
-conceptual_depth: 0.50
+conceptual_depth: 0.5
 conceptual_label: Balanced
-similar_papers: ["alphafold-cryo-em-structure-prediction", "emu3-multimodal-next-token-prediction", "quantum-atomic-light-synchronization", "artificial-photosynthesis-living-energy", "tonggeometry-ai-math"]
-domain: "Astrophysics"
-https: //search.app/vpRDv"
-source: "Source: The Daily Galaxy
+similar_papers:
+- alphafold-cryo-em-structure-prediction
+- emu3-multimodal-next-token-prediction
+- quantum-atomic-light-synchronization
+- artificial-photosynthesis-living-energy
+- tonggeometry-ai-math
+domain: Astrophysics
+source: 'Source: The Daily Galaxy'
 dimensions:
-  connectivity: 0.100
+  connectivity: 0.1
   cross_domain: 2
   completion: 100
-  temporal: 0.500
-  recency: 0.700
-  conceptual_depth: 0.000
-
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 0.0
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 0.5
+  impact_score: 0.158
 ---
 ## Abstract
 

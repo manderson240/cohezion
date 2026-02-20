@@ -11,17 +11,18 @@
  * Phase 2: Paper Integration - Task 4
  */
 
+import * as THREE from 'three';
 import { Decision } from '../types/Decision';
 import { DecisionNodeRenderer, DecisionNodeData } from './DecisionNodeRenderer';
 import { DynamicPaperIngestor, PaperIngestionEvent } from '../services/DynamicPaperIngestor';
 
 export class DecisionGraphExtension {
   private showDecisions: boolean = false;
-  private decisionMeshes: Map<string, any> = new Map();
+  private decisionMeshes: Map<string, THREE.Mesh> = new Map();
   private paperIngestor: DynamicPaperIngestor | null = null;
-  private scene: any = null;
+  private scene: THREE.Scene | null = null;
 
-  constructor(scene: any) {
+  constructor(scene: THREE.Scene) {
     this.scene = scene;
   }
 
