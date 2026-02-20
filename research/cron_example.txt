@@ -1,0 +1,10 @@
+# Cohezion Research Pipeline - Cron Configuration
+#
+# Full run daily at 6am:
+0 6 * * * /home/mike-anderson/vaults/cohezion-vault/research/run_research.sh
+#
+# Quick run every 6 hours:
+# 0 */6 * * * /home/mike-anderson/vaults/cohezion-vault/research/run_research.sh --quick
+#
+# Custom log directory:
+# 0 6 * * * RESEARCH_LOG_DIR=/var/log/research /home/mike-anderson/vaults/cohezion-vault/research/run_research.sh
