@@ -11,7 +11,10 @@ Cohezion implements a complete compound engineering pipeline for agentic AI syst
 - **Automatic Error Recovery**: Feedback loop with intelligent retry strategies
 - **Journey Tracking**: 12D FLUME trajectory monitoring for quality analysis
 - **Thread-Safe Operations**: File locking for safe concurrent resource access
-- **Comprehensive Testing**: 3,147 tests collected, 3,132 passing (775 compound tests)
+- **Lifecycle Hooks**: Quality enforcement and context preservation across sessions
+- **Session State Preservation**: Dual persistence (filesystem + vault) for seamless continuation
+- **Intelligence Routing**: Task-aware model selection (planning/verification/implementation/query)
+- **Comprehensive Testing**: 3,190 tests collected (includes hooks, persistence, intelligence routing)
 
 ## System Architecture
 
