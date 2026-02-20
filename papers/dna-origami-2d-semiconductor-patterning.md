@@ -1,7 +1,7 @@
 ---
 title: DNA Origami for Precise Molecular Patterning on 2D Semiconductors
 date: 2026-02-07
-tags: null
+tags: [dna-origami-2d-semiconductor-patterning, pattern, 2026-02-13-local-model-roster-update-february-2026-sota-assessment, 2026-02-10-hyperdim-project-status-update, 2026-02-11-session-55-git-aggressive-gc-doesnt-consolidate-packs-manual-repack-forced]
 connectivity: 0.27
 cross_domain: 0.5
 completion: 0.67
@@ -47,3 +47,18 @@ Skoltech, LMU Munich, Nanjing University, and NIMS Japan developed a method for 
 ## Relevance to Cohezion
 
 Relevant to [[enhanced_simulator.py]] for modeling molecular self-assembly processes and nano-scale energy transfer dynamics., [[nanofabrication]], [[material-science]], [[synthesis-methods]]
+
+## Related Papers
+
+- [[ai-anomaly-detection-hubble-archive]]
+
+## Related Concepts
+
+- [[yann-lecun-agi-world-models]]
+- [[protein-tape-recorder-cytotape]]
+- [[ocean-calcium-climate-mystery-66my]]
+- [[mars-time-dilation-relativity]]
+- [[magnetic-superhighways-starburst-galaxy]]
+- [[llm-in-sandbox-agentic-intelligence]]
+- [[cu45-superatom-carbon-recycling]]
+- [[optofluidic-3d-nanofabrication]]

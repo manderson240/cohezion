@@ -65,3 +65,10 @@ general
 ## Relevance to Cohezion
 
 Bioenergy resource captured via mobile link pipeline. general, [[catalytic-materials]], [[surface-chemistry]], [[synthesis-methods]]
+
+## Related Concepts
+
+- [[alphafold-cryo-em-structure-prediction]]
+- [[comb-jellies-animal-tree-of-life]]
+- [[mcl1-myc-cancer-metabolism]]
+- [[tidally-locked-exoplanet-habitability]]

@@ -233,3 +233,14 @@ Before marking service "complete":
 
 - [[2026-02-17-phase-2-service-initialization-gap-discovery]] (Post-mortem from Phase 2)
 - [[VERIFICATION-STRATEGY-TEMPLATE]] (Real vs synthetic testing)
+
+## Related Concepts
+
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[3d-graph-plugin-selection]]
+- [[2026-02-17-phase-2-full-verification-plan]]
+- [[2026-02-14-phases-1-3-retrospective-key-learnings]]
+- [[2026-02-10-kyutai-mcp-obsidian-plugin-plan]]
+- [[2026-02-14-phase-6a-automated-reasoning-chain-inference-complete]]
+- [[2026-02-11-phase-1-agent-context-schema-complete]]
+- [[2026-02-10-canvas-driven-compound-engineering-refined]]

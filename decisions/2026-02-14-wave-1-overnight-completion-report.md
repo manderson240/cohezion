@@ -396,3 +396,14 @@ Wave 1 Overnight Compound Engineering is **ON TRACK FOR COMPLETION** with:
 - [[multi-session-compound-engineering-workflow]]
 - [[session-55-compound-engineering-learnings]]
 - [[canvas-driven-manual-linking]]
+
+## Related Concepts
+
+- [[2026-02-17-phase-2-full-verification-plan]]
+- [[2026-02-14-phases-1-3-retrospective-key-learnings]]
+- [[2026-02-10-kyutai-mcp-obsidian-plugin-plan]]
+- [[2026-02-14-phase-6a-automated-reasoning-chain-inference-complete]]
+- [[2026-02-10-canvas-driven-compound-engineering-refined]]
+- [[2026-02-14-compound-engineering-team-execution-retrospective]]
+- [[2026-02-12-lessons-compound-engineering-phase-2-complete]]
+- [[2026-02-10-compound-engineering-meta-learning]]

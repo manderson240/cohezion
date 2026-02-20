@@ -1,7 +1,7 @@
 ---
 title: Silicon as the Bedrock of Quantum Computers
 date: 2026-02-07
-tags: null
+tags: [silicon-quantum-computing-platform, quantum-entanglement, quantum-entangled-atomic-sensors, mit-quantum-computing-progress, axion-dark-matter-quantum-sensors]
 connectivity: 0.2
 cross_domain: 0.38
 completion: 0.67
@@ -45,3 +45,14 @@ The 14|15 platform combines crystalline silicon substrates with phosphorus atom 
 ## Relevance to Cohezion
 
 Relevant to [[enhanced_simulator]] for quantum simulation modeling. The Quantum Twins approach of using physical qubit arrays to simulate quantum chemistry could inform simulation architecture., [[quantum-computing]], [[quantum-mechanics]]
+
+## Related Concepts
+
+- [[quantum-teleportation-logic-gates]]
+- [[amorphous-materials-3d-atomic-structure]]
+- [[quantum-entanglement-speed-measurement]]
+- [[axion-dark-matter-quantum-sensors]]
+- [[quantum-entangled-atomic-sensors]]
+- [[supersolid-quantum-state]]
+- [[quantum-sensors]]
+- [[dark-matter-detection]]

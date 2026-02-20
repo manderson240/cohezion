@@ -1,7 +1,7 @@
 ---
 title: WebGPU Claude Skill for Three.js Development
 date: 2026-02-07
-tags: null
+tags: [webgpu-claude-skill-threejs, claude-code-community-skills, anthropic-mcp-apps-claude-integrations, karpathy-claude-code-skills, _claude-code-metrics-2026-02-14]
 connectivity: 0.07
 cross_domain: 0.62
 completion: 1.0
@@ -64,3 +64,8 @@ A Claude Code skill by dgreenheck that provides documentation and templates for 
 ## Relevance to Cohezion
 
 Demonstrates the skill/plugin pattern for Claude Code agents. Could be used as a template for creating Cohezion-specific Claude skills, or directly used for WebGPU-based visualization of simulation outputs from `lab_agent.py`., [[prompt-engineering]]
+
+## Related Concepts
+
+- [[anthropic-mcp-apps-claude-integrations]]
+- [[anthropic-view-universe-nyas]]

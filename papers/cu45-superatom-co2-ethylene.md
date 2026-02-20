@@ -69,3 +69,7 @@ Chemistry resource captured via mobile link pipeline. enhanced_simulator.py
 
 
 [[catalytic-materials]], [[nanofabrication]]
+
+## Related Concepts
+
+- [[international-year-quantum-2025]]

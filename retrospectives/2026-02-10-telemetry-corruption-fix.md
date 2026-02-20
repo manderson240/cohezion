@@ -68,3 +68,14 @@ After fixing telemetry, discovered **1.6GB debug log accumulation** (see [[lesso
 - [[patterns/runbook-health-checks]] - Add telemetry + debug log size checks
 - [[patterns/log-rotation-and-monitoring]] - Automated log rotation
 - [[lessons/2026-02-10-debug-log-bloat-analysis]] - Debug log forensics
+
+## Related Concepts
+
+- [[2026-02-12-claude-code-context-awareness-codification]]
+- [[2026-02-14-phases-1-3-retrospective-key-learnings]]
+- [[2026-02-09-ollama-mcp-server]]
+- [[2026-02-14-session-60-retrospective-revised-plan]]
+- [[2026-02-14-compound-engineering-team-execution-retrospective]]
+- [[2026-02-12-platform-codification-summary-guide]]
+- [[2026-02-13-session-60-retrospective-and-revised-plan]]
+- [[2026-02-14-graphrag-verification-and-integration-session]]

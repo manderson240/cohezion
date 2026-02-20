@@ -1,7 +1,7 @@
 ---
 title: Quantum Teleportation of Logic Gates Between Computers
 date: 2026-02-07
-tags: null
+tags: [silicon-quantum-computing-platform, quantum-entanglement, quantum-entangled-atomic-sensors, mit-quantum-computing-progress, axion-dark-matter-quantum-sensors]
 connectivity: 0.2
 cross_domain: 0.38
 completion: 0.67
@@ -51,3 +51,14 @@ Lays groundwork for a future quantum internet where distant processors form ultr
 ## Relevance to Cohezion
 
 Relevant to [[fractal_universe.py]] quantum simulation models. Distributed quantum computing concepts could inform how Cohezion models quantum interactions across modular systems., [[quantum-computing]], [[quantum-mechanics]]
+
+## Related Concepts
+
+- [[amorphous-materials-3d-atomic-structure]]
+- [[quantum-entanglement-speed-measurement]]
+- [[axion-dark-matter-quantum-sensors]]
+- [[quantum-entangled-atomic-sensors]]
+- [[silicon-quantum-computing-platform]]
+- [[supersolid-quantum-state]]
+- [[quantum-sensors]]
+- [[dark-matter-detection]]

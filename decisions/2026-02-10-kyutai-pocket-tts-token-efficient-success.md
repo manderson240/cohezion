@@ -221,3 +221,14 @@ But current implementation is **DEPLOYMENT READY** as minimal viable feature.
 ---
 
 **Conclusion**: This implementation demonstrates the correct [[token-efficiency|token-efficient]] pattern and achieves 90% token savings while delivering a working, tested feature in 2 hours. Validates [[implementation-first-infrastructure-later]] as a core [[compound-engineering]] practice.
+
+## Related Concepts
+
+- [[3d-graph-plugin-selection]]
+- [[2026-02-09-ollama-context-management]]
+- [[2026-02-12-claude-code-context-awareness-codification]]
+- [[2026-02-12-charter-aligned-scoring-formula]]
+- [[2026-02-13-local-model-roster-update-february-2026-sota-assessment]]
+- [[2026-02-17-phase-2-full-verification-plan]]
+- [[2026-02-13-gitlab-to-github-consolidation-with-artifact-governance]]
+- [[2026-02-14-phases-1-3-retrospective-key-learnings]]

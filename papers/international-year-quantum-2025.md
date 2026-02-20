@@ -51,3 +51,13 @@ Chemistry and quantum computing convergence
 ## Relevance to Cohezion
 
 Quantum Chemistry resource captured via mobile link pipeline. Chemistry and quantum computing convergence, [[quantum-computing]], [[quantum-mechanics]]
+
+## Related Papers
+
+- [[beyond-the-quantum-pilot-wave-theory]]
+
+## Related Concepts
+
+- [[mit-quantum-computing-progress]]
+- [[cu45-superatom-co2-ethylene]]
+- [[quantum-atomic-light-synchronization]]

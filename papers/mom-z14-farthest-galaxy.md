@@ -1,7 +1,7 @@
 ---
 title: 'MoM-z14: Farthest Galaxy Ever Observed by JWST'
 date: 2026-02-07
-tags: null
+tags: [mom-z14-farthest-galaxy, magnetic-superhighways-starburst-galaxy, lesson-26-never-print-credentials, lesson-27-hook-file-revert, jwst-observations]
 connectivity: 0.13
 cross_domain: 0.62
 completion: 0.67
@@ -48,3 +48,14 @@ NASA's James Webb Space Telescope discovered MoM-z14, the most distant galaxy ev
 ## Relevance to Cohezion
 
 Challenges existing models of early galaxy formation and provides observational constraints for cosmological simulations in `fractal_universe.py`. The unexpected brightness suggests missing physics in current formation models., [[early-universe-cosmology]], [[astrophysics-observations]]
+
+## Related Concepts
+
+- [[jwst-dark-matter-map]]
+- [[woh-g64-red-supergiant-mystery]]
+- [[jwst-red-nova-remnants]]
+- [[magnetic-superhighways-starburst-galaxy]]
+- [[jwst-early-universe-black-holes]]
+- [[runaway-stars-milky-way]]
+- [[super-earth-magnetic-protection-magma]]
+- [[anomaly-detection]]

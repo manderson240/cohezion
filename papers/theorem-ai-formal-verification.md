@@ -1,7 +1,7 @@
 ---
 title: 'Theorem: Formal Verification for AI-Generated Code'
 date: 2026-02-07
-tags: null
+tags: [theorem-ai-formal-verification, 2026-02-14-graphrag-verification-and-integration-session, 2026-02-09-verification-report, 2026-02-17-phase-2-full-verification-plan, verification-strategy-template]
 connectivity: 0.13
 cross_domain: 0.38
 completion: 1.0

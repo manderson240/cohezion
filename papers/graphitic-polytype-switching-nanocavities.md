@@ -1,7 +1,7 @@
 ---
 title: Switching Graphitic Polytypes in Elastically Coupled Cavities
 date: 2026-02-07
-tags: null
+tags: [graphitic-polytype-switching-nanocavities, 2026-02-13-local-model-roster-update-february-2026-sota-assessment, 2026-02-10-hyperdim-project-status-update, 2026-02-11-session-55-git-aggressive-gc-doesnt-consolidate-packs-manual-repack-forced, 2026-02-09-vault-completion-status]
 connectivity: 0.2
 cross_domain: 0.5
 completion: 0.67
@@ -48,3 +48,18 @@ Published in Nature Nanotechnology, this research demonstrates fully reversible 
 ## Relevance to Cohezion
 
 Demonstrates emergent material behavior from geometric constraints at the nanoscale - a pattern relevant to `enhanced_simulator.py` for modeling how small-scale structural changes produce macroscopic property shifts., [[material-science]], [[surface-chemistry]], [[nanofabrication]]
+
+## Related Papers
+
+- [[mars-time-dilation-relativity]]
+
+## Related Concepts
+
+- [[yann-lecun-agi-world-models]]
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[protein-tape-recorder-cytotape]]
+- [[ai-anomaly-detection-hubble-archive]]
+- [[ocean-calcium-climate-mystery-66my]]
+- [[magnetic-superhighways-starburst-galaxy]]
+- [[llm-in-sandbox-agentic-intelligence]]
+- [[cu45-superatom-carbon-recycling]]

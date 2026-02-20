@@ -1,7 +1,7 @@
 ---
 title: Yann LeCun on AGI and the Digital Commons
 date: 2026-02-07
-tags: null
+tags: [yann-lecun-agi-world-models, 2026-02-13-local-model-roster-update-february-2026-sota-assessment, 2026-02-10-hyperdim-project-status-update, 2026-02-11-session-55-git-aggressive-gc-doesnt-consolidate-packs-manual-repack-forced, 2026-02-09-vault-completion-status]
 connectivity: 0.13
 cross_domain: 0.5
 completion: 1.0
@@ -62,3 +62,18 @@ Yann LeCun's perspective on achieving human-level AI and the importance of open 
 ## Relevance to Cohezion
 
 Informs [[lab_agent]] architecture decisions. The world models concept aligns with Cohezion's approach to building agents that understand causal relationships rather than relying purely on pattern matching., [[agentic-ai]]
+
+## Related Papers
+
+- [[ocean-calcium-climate-mystery-66my]]
+
+## Related Concepts
+
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[protein-tape-recorder-cytotape]]
+- [[ai-anomaly-detection-hubble-archive]]
+- [[mars-time-dilation-relativity]]
+- [[magnetic-superhighways-starburst-galaxy]]
+- [[llm-in-sandbox-agentic-intelligence]]
+- [[cu45-superatom-carbon-recycling]]
+- [[optofluidic-3d-nanofabrication]]

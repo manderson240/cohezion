@@ -1,7 +1,7 @@
 ---
 title: JWST Creates Sharpest Dark Matter Map
 date: 2026-02-07
-tags: null
+tags: [jwst-observations, jwst-dark-matter-map, jwst-early-universe-black-holes, jwst-red-nova-remnants, dark-matter-detection]
 connectivity: 0.27
 cross_domain: 0.5
 completion: 0.67
@@ -47,3 +47,14 @@ Diana Scognamiglio et al. at NASA JPL used JWST to create the most detailed dark
 ## Relevance to Cohezion
 
 Relevant to [[fractal_universe]] modeling of large-scale cosmic structure and matter distribution patterns., [[jwst-observations]], [[dark-matter]], [[early-universe-cosmology]]
+
+## Related Concepts
+
+- [[jwst-red-nova-remnants]]
+- [[jwst-early-universe-black-holes]]
+- [[mom-z14-farthest-galaxy]]
+- [[quantum-entanglement]]
+- [[anomaly-detection]]
+- [[red-supergiant-stars]]
+- [[quantum-sensors]]
+- [[exoplanet-habitability]]

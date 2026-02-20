@@ -536,3 +536,14 @@ done > /tmp/health_baseline_$(date +%Y-%m-%d).txt
 - [[patterns/runbook-ollama-mcp-operations]]
 - [[patterns/troubleshooting-mcp-infrastructure]]
 - [[concepts/mcp-infrastructure-architecture]]
+
+## Related Concepts
+
+- [[runbook-entire-sync-daemon]]
+- [[phase1-production-validation-runbook]]
+- [[runbook-benchmarking-validation]]
+- [[runbook-ci-cd-pipeline]]
+- [[runbook-ollama-mcp-operations]]
+- [[entire-io-sync-daemon-operations]]
+- [[runbook-sheets-research-pipeline]]
+- [[troubleshooting-mcp-infrastructure]]

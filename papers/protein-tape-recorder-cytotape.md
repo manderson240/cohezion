@@ -1,7 +1,7 @@
 ---
 title: 'CytoTape: A Protein Tape Recorder for Measuring Cellular Processes'
 date: 2026-02-07
-tags: null
+tags: [protein-tape-recorder-cytotape, brain-protein-neurodegeneration, 2026-02-13-local-model-roster-update-february-2026-sota-assessment, 2026-02-10-hyperdim-project-status-update, 2026-02-11-session-55-git-aggressive-gc-doesnt-consolidate-packs-manual-repack-forced]
 connectivity: 0.0
 cross_domain: 0.5
 completion: 0.67
@@ -55,3 +55,14 @@ Demonstrates a recording/replay pattern for complex system dynamics. Could infor
 - [[PRIME_CLAUDE_CODE_PRACTICES]]
 - [[multi-session-compound-engineering-workflow]]
 - [[compound-async-executor-pattern]]
+
+## Related Concepts
+
+- [[yann-lecun-agi-world-models]]
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[ai-anomaly-detection-hubble-archive]]
+- [[ocean-calcium-climate-mystery-66my]]
+- [[mars-time-dilation-relativity]]
+- [[llm-in-sandbox-agentic-intelligence]]
+- [[cu45-superatom-carbon-recycling]]
+- [[optofluidic-3d-nanofabrication]]

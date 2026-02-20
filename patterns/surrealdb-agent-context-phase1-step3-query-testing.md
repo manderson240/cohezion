@@ -464,3 +464,14 @@ All of the following must pass:
 **Dependency**: integration-engineer Step 2 completion
 
 [[Phase 1 Implementation]], [[Query Testing]], [[SurrealDB]]
+
+## Related Concepts
+
+- [[2026-02-14-phase-6b-cascade-impact-computation]]
+- [[2026-02-11-phase-1-agent-context-schema-complete]]
+- [[2026-02-14-track-a-sign-off-approved]]
+- [[2026-02-13-phase-2-track-a-complete]]
+- [[2026-02-14-phase-6c-semantic-contradiction-detection-complete]]
+- [[2026-02-11-phase1-completion-summary]]
+- [[2026-02-11-phase1-execution-status]]
+- [[2026-02-09-12d-graph-surrealdb-integration]]

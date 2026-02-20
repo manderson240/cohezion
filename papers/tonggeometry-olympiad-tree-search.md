@@ -1,7 +1,7 @@
 ---
 title: 'TongGeometry: Neuro-Symbolic Olympiad Geometry via Guided Tree Search'
 date: 2026-02-07
-tags: null
+tags: [tonggeometry-olympiad-tree-search, tonggeometry-ai-math, lesson-37-experience-guided-execution-works-new, lesson-git-worktrees-multi-session-isolation, comb-jellies-animal-tree-of-life]
 connectivity: 0.07
 cross_domain: 0.62
 completion: 0.67
@@ -47,3 +47,8 @@ Published in Nature Machine Intelligence, TongGeometry is a neuro-symbolic syste
 ## Relevance to Cohezion
 
 Neuro-symbolic approach combining neural guidance with structured search directly relevant to `lab_agent.py` reasoning architecture. Tree search with neural pruning is a powerful pattern for agent problem-solving., [[agentic-ai]]
+
+## Related Concepts
+
+- [[rethinking-exoplanet-habitability]]
+- [[tonggeometry-ai-math]]

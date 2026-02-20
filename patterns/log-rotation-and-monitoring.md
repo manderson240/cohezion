@@ -190,3 +190,14 @@ echo "Compression saved $((BEFORE - AFTER))MB"
 ---
 
 **Key Insight**: Log rotation is not a feature, it's a necessity. Without it, every application eventually fills disk and degrades performance.
+
+## Related Concepts
+
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[entire-io-to-vault-mapping]]
+- [[automated-concept-extraction]]
+- [[sheetsbr idge-mcp-testing]]
+- [[runbook-entire-sync-daemon]]
+- [[phase1-production-validation-runbook]]
+- [[typescript-error-diagnostic]]
+- [[runbook-benchmarking-validation]]

@@ -523,3 +523,14 @@ tar czf cohezion_diagnostics.tar.gz /tmp/cohezion_diagnostics/
 - [[patterns/runbook-health-checks]]
 - [[patterns/runbook-ci-cd-pipeline]]
 - [[concepts/mcp-infrastructure-architecture]]
+
+## Related Concepts
+
+- [[2026-02-09-ollama-mcp-server]]
+- [[2026-02-14-settings-files-validation-and-fix]]
+- [[2026-02-10-compound-node-linking-plan]]
+- [[2026-02-10-phase-a-implementation-complete]]
+- [[runbook-entire-sync-daemon]]
+- [[phase1-production-validation-runbook]]
+- [[runbook-benchmarking-validation]]
+- [[runbook-ci-cd-pipeline]]

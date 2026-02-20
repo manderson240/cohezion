@@ -113,3 +113,14 @@ Built Ollama MCP Server to elevate model management from one-off scripts to reus
   - [[claude-code-swiftui-skill-patterns]] (similarity: 0.729)
   - [[llamaagents-builder]] (similarity: 0.728)
   - [[openai-codex-agent-loop]] (similarity: 0.727)
+
+## Related Concepts
+
+- [[2026-02-17-phase-2-full-verification-plan]]
+- [[2026-02-14-phases-1-3-retrospective-key-learnings]]
+- [[2026-02-10-kyutai-mcp-obsidian-plugin-plan]]
+- [[2026-02-14-phase-6a-automated-reasoning-chain-inference-complete]]
+- [[2026-02-10-canvas-driven-compound-engineering-refined]]
+- [[2026-02-14-wave-1-overnight-completion-report]]
+- [[2026-02-14-settings-files-validation-and-fix]]
+- [[2026-02-14-compound-engineering-team-execution-retrospective]]

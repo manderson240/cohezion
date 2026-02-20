@@ -50,3 +50,14 @@ lab_agent.py
 ## Relevance to Cohezion
 
 AI Engineering resource captured via mobile link pipeline. lab_agent.py, [[prompt-engineering]], [[agentic-ai]]
+
+## Related Concepts
+
+- [[anthropic-disempowerment-patterns]]
+- [[mit-quantum-computing-progress]]
+- [[mistral-open-source-ai-strategy]]
+- [[karpathy-claude-code-skills]]
+- [[openai-applied-compute-startup]]
+- [[claude-code-swiftui-skill-patterns]]
+- [[usaf-stealthy-electromagnetic-attack]]
+- [[claude-code-community-skills]]

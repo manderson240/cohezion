@@ -1,7 +1,7 @@
 ---
 title: Cosmic Strings as Potential Time Travel Mechanism
 date: 2026-02-07
-tags: null
+tags: [cosmic-strings-time-travel, webb-cosmic-question-mark-gravitational-lens, honest-time-tracking-all-costs, lesson-21-runtime-json-pollution, mars-time-dilation-relativity]
 connectivity: 0.13
 cross_domain: 0.62
 completion: 0.67
@@ -48,3 +48,8 @@ Physicists theorize that cosmic strings -- one-dimensional topological defects f
 ## Relevance to Cohezion
 
 Topological defects in spacetime and their emergent properties (time travel from string interactions) relate to `fractal_universe.py` modeling of emergent phenomena from fundamental field configurations., [[particle-physics]], [[gravitational-waves]]
+
+## Related Concepts
+
+- [[webb-cosmic-question-mark-gravitational-lens]]
+- [[mars-time-dilation-relativity]]

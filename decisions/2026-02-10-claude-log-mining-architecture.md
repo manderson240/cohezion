@@ -456,3 +456,14 @@ Concepts
   - [[lesson-16-pre-commit-hooks-stage-override]] (validation relevance: 13)
   - [[lesson-37-experience-guided-execution-works-new]] (validation relevance: 13)
   - [[lesson-38-singleton-executor-for-sessions-new]] (validation relevance: 13)
+
+## Related Concepts
+
+- [[emu3-multimodal-next-token-prediction]]
+- [[3d-graph-plugin-selection]]
+- [[2026-02-09-ollama-context-management]]
+- [[2026-02-12-claude-code-context-awareness-codification]]
+- [[2026-02-12-charter-aligned-scoring-formula]]
+- [[2026-02-13-local-model-roster-update-february-2026-sota-assessment]]
+- [[2026-02-17-phase-2-full-verification-plan]]
+- [[2026-02-13-gitlab-to-github-consolidation-with-artifact-governance]]

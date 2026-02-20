@@ -1,7 +1,7 @@
 ---
 title: Anthropic Embeds Slack, Figma, and Asana Inside Claude via MCP Apps
 date: 2026-02-07
-tags: null
+tags: [anthropic-disempowerment-patterns, anthropic-view-universe-nyas, anthropic-mcp-apps-claude-integrations, 2026-02-19-anthropic-job-alignment-benchmarks-and-training, anthropic-principle-fine-tuning]
 connectivity: 0.2
 cross_domain: 0.62
 completion: 0.67
@@ -47,3 +47,8 @@ Anthropic launched MCP Apps, a new extension to the Model Context Protocol that 
 ## Relevance to Cohezion
 
 Demonstrates the trajectory of AI assistants becoming orchestration hubs for tool ecosystems. The MCP Apps pattern is directly relevant to how Cohezion agents could integrate with external services and provide unified interfaces for complex workflows., [[mcp-model-context-protocol]], [[tool-use]], [[api-design]]
+
+## Related Concepts
+
+- [[webgpu-claude-skill-threejs]]
+- [[anthropic-view-universe-nyas]]

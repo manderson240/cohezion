@@ -287,3 +287,14 @@ Ready for Phase 2 kickoff.
 **Patterns**: [[surrealdb-agent-context-schema]], [[entire-io-sync-daemon-design]], [[entire-io-to-vault-mapping]], [[phase1-production-validation-runbook]]
 **Lessons**: [[lesson-11-team-agent-efficiency]], [[lesson-12-layered-validation]], [[lesson-37-experience-guided-execution-works-new]]
 **Experiments**: [[2026-02-11-phase1-production-validation-results]], [[2026-02-11-week-1-completion-summary]], [[2026-02-11-entire-io-api-investigation]]
+
+## Related Concepts
+
+- [[2026-02-13-phase-2-final-completion-summary]]
+- [[2026-02-17-phase-2-full-verification-plan]]
+- [[2026-02-14-track-a-sign-off-approved]]
+- [[2026-02-13-phase-2-track-a-complete]]
+- [[2026-02-13-track-b-entire-sync-daemon-complete]]
+- [[2026-02-13-phase-2-execution-strategy-wave-2]]
+- [[2026-02-17-phase-2-service-initialization-gap-discovery]]
+- [[2026-02-12-phase-2-track-a-surrealdb-agent-reasoning-complete]]

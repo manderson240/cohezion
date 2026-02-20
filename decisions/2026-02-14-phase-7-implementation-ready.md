@@ -312,3 +312,14 @@ After Phase 7 completion:
 - [[surrealdb-agent-context-phase1-step3-query-testing]]
 - [[surrealdb-agent-context-phase1-step3-execution-plan]]
 - [[surrealdb-agent-context-phase1-implementation-checklist]]
+
+## Related Concepts
+
+- [[2026-02-11-phase1-completion-summary]]
+- [[2026-02-11-phase1-execution-status]]
+- [[2026-02-14-phase-4-implementation-progress]]
+- [[2026-02-11-phase1-step1-schema-complete]]
+- [[2026-02-10-sheets-research-pipeline-implementation]]
+- [[2026-02-14-phase-7-execution-complete]]
+- [[2026-02-10-kyutai-mcp-phase1-complete]]
+- [[2026-02-10-benchmarking-framework-complete]]

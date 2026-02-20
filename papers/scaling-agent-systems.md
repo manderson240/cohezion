@@ -1,7 +1,7 @@
 ---
 title: Towards a Science of Scaling Agent Systems
 date: 2026-02-07
-tags: null
+tags: [scaling-agent-systems, surrealdb-agent-context-quick-reference, surrealdb-agent-context-visual-guide, surrealdb-agent-context-phase1-step3-query-testing, agentic-ai-memory-hierarchies]
 connectivity: 0.27
 cross_domain: 0.5
 completion: 0.67
@@ -50,3 +50,12 @@ Evaluated five canonical agent architectures (Single-Agent, Independent, Central
 ## Relevance to Cohezion
 
 Directly applicable to [[lab_agent]] multi-agent orchestration design. The error amplification findings and capability saturation threshold inform when to use multi-agent vs single-agent approaches. The predictive framework could guide automatic architecture selection., [[multi-agent-systems]], [[agentic-ai]], [[agent-architecture]]
+
+## Related Concepts
+
+- [[langchain-deep-agents-context-management]]
+- [[openai-codex-agent-loop]]
+- [[llamaagents-builder]]
+- [[testing-agent-skills-with-evals]]
+- [[llm-in-sandbox-agentic-intelligence]]
+- [[agentic-ai-memory-hierarchies]]

@@ -310,3 +310,14 @@ python /tmp/gap_analysis_poc.py
 
 ## Related
 **Domains**: ai-ml, data, performance
+
+## Related Concepts
+
+- [[3d-graph-plugin-selection]]
+- [[2026-02-12-claude-code-context-awareness-codification]]
+- [[2026-02-12-charter-aligned-scoring-formula]]
+- [[2026-02-13-local-model-roster-update-february-2026-sota-assessment]]
+- [[2026-02-17-phase-2-full-verification-plan]]
+- [[2026-02-13-gitlab-to-github-consolidation-with-artifact-governance]]
+- [[2026-02-14-adversarial-multi-agent-review-protocol]]
+- [[2026-02-14-phase-2-adversarial-review-corrected-status-and-path-forward]]
