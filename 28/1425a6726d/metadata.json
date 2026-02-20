@@ -3,21 +3,43 @@
   "checkpoint_id": "281425a6726d",
   "strategy": "manual-commit",
   "branch": "spec/routes-consolidation",
-  "checkpoints_count": 12,
+  "checkpoints_count": 14,
   "files_touched": [
     ".claude/skills/appimage-desktop-integration/SKILL.md",
     ".claude/skills/pytest-async-cascade-diagnosis/SKILL.md",
     ".github/workflows/lint.yml",
     ".github/workflows/test.yml",
+    ".gitignore",
+    "CLAUDE.local.md",
     "CLAUDE.md",
     "README.md",
+    "docs/CODE_MAP.md",
+    "docs/DEVELOPMENT.md",
+    "docs/pilot-inspiration.md",
+    "docs/pilot-integration-summary.md",
+    "docs/plans/2026-02-19-context-management-integration.md",
+    "docs/plans/2026-02-20-planning-vs-thinking-routing.md",
+    "docs/third-party-inspiration.md",
     "ollama-mcp",
     "pyproject.toml",
     "research/challenges/anthropic_challenge_original",
+    "src/cohezion/hooks/__init__.py",
+    "src/cohezion/hooks/events.py",
+    "src/cohezion/hooks/executor.py",
+    "src/cohezion/hooks/quality.py",
+    "src/cohezion/hooks/registry.py",
     "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
     "src/cohezion/knowledge_graph/MISSION_JOURNAL.md",
+    "src/cohezion/persistence/session_manager.py",
+    "src/cohezion/swarm/intelligence_router.py",
     "tests/compound/test_journey_tracker.py",
+    "tests/hooks/__init__.py",
+    "tests/hooks/test_executor.py",
+    "tests/hooks/test_registry.py",
+    "tests/persistence/__init__.py",
+    "tests/persistence/test_session_manager.py",
     "tests/sandbox/test_hooks.py",
+    "tests/swarm/test_intelligence_router.py",
     "tests/test_api_phase2.py"
   ],
   "sessions": [
@@ -41,13 +63,20 @@
       "context": "/28/1425a6726d/2/context.md",
       "content_hash": "/28/1425a6726d/2/content_hash.txt",
       "prompt": "/28/1425a6726d/2/prompt.txt"
+    },
+    {
+      "metadata": "/28/1425a6726d/3/metadata.json",
+      "transcript": "/28/1425a6726d/3/full.jsonl",
+      "context": "/28/1425a6726d/3/context.md",
+      "content_hash": "/28/1425a6726d/3/content_hash.txt",
+      "prompt": "/28/1425a6726d/3/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 3196,
-    "cache_creation_tokens": 853676,
-    "cache_read_tokens": 25943013,
-    "output_tokens": 8650,
-    "api_call_count": 232
+    "input_tokens": 3847,
+    "cache_creation_tokens": 1386365,
+    "cache_read_tokens": 42024243,
+    "output_tokens": 23589,
+    "api_call_count": 357
   }
 }
