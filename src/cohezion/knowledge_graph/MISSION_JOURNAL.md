@@ -1,3 +1,16 @@
+### [2026-02-20] PHASE 19: DEV ENVIRONMENT RECOVERY & RETROSPECTIVE (Session 15)
+- **Claude Code fix**: Resolved native vs npm install conflict. Removed leftover npm global (`npm -g uninstall @anthropic-ai/claude-code`), restored `autoUpdates: true` in `~/.claude.json`, updated from 2.1.42 → 2.1.49.
+- **Context7 MCP**: Added via `claude mcp add --scope user` (correct path: `~/.claude.json`). Reverted incorrect edit to `~/.claude/mcp.json` (Pilot's config, not Claude Code's).
+- **Retrospective**: Tests 3,214 passing / 4 failing (real_envs + flume training). Linting: 756 errors (down from 1,003). API endpoints: 72 (was documented as 46). PRIME skills: 74 (in sync with registry). 0 missing `__init__.py`.
+- **Learnings**: Added L127 (Claude Code install/MCP scope disambiguation). Updated CLAUDE.md and README.md metrics.
+
+### [2026-02-20] PHASE 18: RETROSPECTIVE & HEALING REFINEMENT (Session 14)
+- **Retrospective**: Audited knowledge graph (KEY_LEARNINGS: 219 lines, MISSION_JOURNAL: 122 lines), verified README metrics, identified discrepancies (PRIME skills: 74 actual vs 134 claimed, Python files: 401 vs 351 claimed).
+- **Healing Protocol**: Re-executed `/heal` - created 18 missing `__init__.py` files, auto-fixed 47 linting errors (unused imports/variables, whitespace), reduced total errors from 1,058 → 1,003 (-5.2%).
+- **SurrealDB**: Persistent auth failure (InvalidAuth) → graceful fallback to InMemoryStore confirmed. Requires manual auth fix.
+- **Learnings**: Added Learning 121 (Autonomic Self-Healing Protocol), propagated metrics corrections to README.md.
+- **Next**: Address line-length violations (432) and security patterns (192 S-prefixed errors).
+
 ### [2026-02-10] PHASE 17: AUTONOMIC HEALING (Session 13)
 - **Protocol**: Autonomic Self-Healing (/heal) executed via `uv run` orchestration.
 - **Diagnostics**: `immune_system.py` triggered self-diagnosis due to demo velocity threshold (0.0 < 100).

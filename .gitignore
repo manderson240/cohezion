@@ -183,3 +183,5 @@ data/compound/metrics/
 /*_BACKUP_*/
 /cohezion-session-[0-9]*/
 .worktrees/
+infrastructure/
+.env.surrealdb

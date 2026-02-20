@@ -10,7 +10,7 @@ COHEZION: 12D agentic universe with FLUME VAE, compound engineering, multi-agent
 
 ### ⚡ Core Commands
 ```bash
-uv run pytest tests/ -q              # Full test suite (2,854 tests, ~5min)
+uv run pytest tests/ -q              # Full test suite (3,200+ tests, ~90s)
 uv run pytest tests/compound/ -v     # Run module tests
 uv run pytest tests/test_*.py::name  # Single test
 make format && make lint && make all # Check → fix → verify
@@ -89,7 +89,7 @@ uv run python scripts/compile_memory_from_vault.py
 ### ⚡ Quick Reference
 - **Language**: Python 3.13+ | **Package Manager**: `uv` (never bare python)
 - **DB**: SurrealDB (ws://localhost:8000) | **API**: FastAPI :8080
-- **Tests**: 2,854 (99.3% passing) | **Coverage**: html report in `htmlcov/`
+- **Tests**: 3,214 passing / 4 failing (99.9%) | **Coverage**: html report in `htmlcov/`
 - **CI**: `make lint-check && uv run pytest` before commit
 - **Entry point**: `cohezion = "cohezion.__main__:main"`
 - **Vault**: `~/vaults/cohezion-vault/` — Query via `vault_find_relevant_context(query)`
@@ -128,7 +128,7 @@ Updated Skill (loop again)
 | `src/cohezion/cache/` | L1/L2/L3 semantic cache (95%+ hit rate) | `semantic_cache.py` |
 | `src/cohezion/skills/` | 124 PRIME skill definitions (*.md + *.py) | `skill_registry.json` |
 | `src/cohezion/persistence/` | SurrealDB, checkpoints, session recovery | `surreal_client.py` |
-| `src/cohezion/api/` | FastAPI backend (46 endpoints) | `__init__.py` (FastMCP patterns) |
+| `src/cohezion/api/` | FastAPI backend (72 endpoints) | `__init__.py` (FastMCP patterns) |
 | `src/cohezion/flume/` | FLUME VAE (256D latent space) | `flume_vae.py` |
 | `tests/conftest.py` | **CRITICAL**: Singleton reset for FLUME VAE, RL policy, loggers | **Read this first** |
 
