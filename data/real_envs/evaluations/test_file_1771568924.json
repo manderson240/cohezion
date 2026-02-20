@@ -1,0 +1,23 @@
+{
+  "task_id": "test_file",
+  "task_description": "Create a file",
+  "all_criteria_passed": true,
+  "pass_rate": 1.0,
+  "criteria": [
+    {
+      "criterion_name": "file_exists:test.txt",
+      "passed": true,
+      "actual_value": true,
+      "expected_value": true,
+      "details": "File test.txt exists"
+    }
+  ],
+  "reward": 0.9600000000000001,
+  "metrics": {
+    "total_steps": 1,
+    "expected_steps": 5,
+    "pass_rate": 1.0,
+    "criteria_count": 1,
+    "passed_criteria": 1
+  }
+}

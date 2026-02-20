@@ -234,18 +234,25 @@ class PromptGuard:
             )
 
         # Scientific context relaxes the 'suspicious' threshold
-        if (
-            is_science
-            and len(matched) == 1
-            and matched[0] in ["base64_encoded", "prompt_leak"]
-        ):
-            logger.info(f"Scientific context detected. Relaxing security for {matched}")
-            return PromptAnalysis(
-                threat_level=ThreatLevel.SAFE,
-                matched_patterns=[],
-                confidence=0.8,
-                recommendation="Allow (scientific context)",
-            )
+        # TIGHTENED: Require more than 2 technical markers and not just common patterns
+        if is_science and len(matched) == 1 and matched[0] in ["base64_encoded", "prompt_leak"]:
+            # Additional check: ensure it looks like legitimate research context
+            # Not just any technical-looking word
+            has_math = bool(re.search(r"\\begin\{|\\frac\{|\\sum_|\\int|\\partial|\\nabla", text))
+            has_algorithm = bool(re.search(r"algorithm|function|method|approach|framework", text))
+            has_formal = has_math or has_algorithm
+
+            if has_formal:
+                logger.info(f"Scientific context with formal math/algorithms. Relaxing security for {matched}")
+                return PromptAnalysis(
+                    threat_level=ThreatLevel.SAFE,
+                    matched_patterns=[],
+                    confidence=0.8,
+                    recommendation="Allow (scientific context)",
+                )
+            else:
+                # Not enough formal markers - treat as suspicious
+                logger.info(f"Scientific context detected but lacks formal markers. Treating as suspicious.")
 
         # Any match is now considered suspicious minimum
         # Multiple matches or jailbreak = malicious

@@ -13,10 +13,13 @@ Features:
 - Compliance export (CSV/JSON)
 - Configurable retention policy
 - Non-blocking async writes
+- Scheduled cleanup via background task
 """
 
+import asyncio
 import json
 import logging
+import os
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime, timedelta
 from enum import Enum
@@ -336,6 +339,29 @@ class AuditLogger:
             )
 
         return deleted_count
+
+    async def cleanup_scheduled(self) -> None:
+        """Scheduled cleanup task - runs automatically every 24 hours.
+
+        Should be started as a background task on application startup.
+        """
+        interval_seconds = int(os.environ.get("AUDIT_LOG_CLEANUP_INTERVAL", 86400))  # Default 24 hours
+
+        logger.info(
+            f"Audit log cleanup scheduled to run every {interval_seconds} seconds"
+        )
+
+        while True:
+            try:
+                await asyncio.sleep(interval_seconds)
+                deleted = self.cleanup_old_logs()
+                if deleted > 0:
+                    logger.info(f"Audit log cleanup removed {deleted} old files")
+            except asyncio.CancelledError:
+                logger.info("Audit log cleanup task cancelled")
+                break
+            except Exception as e:
+                logger.error(f"Audit log cleanup failed: {e}")
 
     def get_stats(self) -> dict[str, Any]:
         """Get audit logging statistics.

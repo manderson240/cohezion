@@ -264,6 +264,7 @@ class ShellEnvironment(RealEnvironment[ShellAction, ShellObservation, ShellState
         stdout = ""
         stderr = ""
         exit_code = 0
+        directory_listing = None
 
         try:
             if action.action_type == "execute":
@@ -302,9 +303,10 @@ class ShellEnvironment(RealEnvironment[ShellAction, ShellObservation, ShellState
                     success = False
 
                 # Record in history
-                if len(self._state.command_history) > 100:
+                if self._state and len(self._state.command_history) > 100:
                     self._state.command_history.pop(0)
-                self._state.command_history.append(command)
+                if self._state:
+                    self._state.command_history.append(command)
 
             elif action.action_type == "read_file":
                 path = action.parameters["path"]
@@ -463,6 +465,7 @@ class ShellEnvironment(RealEnvironment[ShellAction, ShellObservation, ShellState
             exit_code=exit_code,
             working_directory=str(self.working_dir),
             command_executed=action.parameters.get("command", action.action_type),
+            directory_listing=directory_listing,
         )
 
         # Check task completion

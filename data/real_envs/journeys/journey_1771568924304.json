@@ -1,0 +1,161 @@
+{
+  "journey_id": "journey_1771568924304",
+  "task_description": "Multi-environment task",
+  "start_time": 1771568924.3045478,
+  "end_time": 1771568924.3057902,
+  "duration_seconds": 0.0012423992156982422,
+  "segments": [
+    {
+      "segment_id": "shell_seg_1",
+      "environment_type": "ShellEnvironment",
+      "task_id": "shell_task",
+      "start_time": 0,
+      "end_time": 1,
+      "steps": [
+        {
+          "step_number": 0,
+          "action": {
+            "action_type": "create_dir",
+            "parameters": {
+              "path": "project",
+              "parents": true
+            },
+            "timestamp": 1771568924.305053
+          },
+          "observation": {
+            "success": true,
+            "data": {},
+            "error_message": null,
+            "timestamp": 1771568924.3053544,
+            "latency_ms": 0.11348724365234375,
+            "stdout": "Created directory: project",
+            "stderr": "",
+            "exit_code": 0,
+            "working_directory": "/tmp/cohezion_shell_ujb81_9q",
+            "command_executed": "create_dir",
+            "file_content": null,
+            "directory_listing": null
+          },
+          "state": {
+            "state_type": "shell",
+            "timestamp": 1771568924.3053434,
+            "metadata": {},
+            "working_directory": "/tmp/cohezion_shell_ujb81_9q",
+            "environment_variables": {
+              "AGENT": "1",
+              "CHROME_REMOTE_DESKTOP_SESSION": "1",
+              "CLUTTER_DISABLE_MIPMAPPED_TEXT": "1",
+              "COLORTERM": "truecolor",
+              "DBUS_SESSION_BUS_ADDRESS": "unix:path=/run/user/1000/bus",
+              "DEBUGINFOD_URLS": "https://debuginfod.ubuntu.com ",
+              "DESKTOP_SESSION": "ubuntu",
+              "DISPLAY": ":0",
+              "GDK_BACKEND": "x11",
+              "GDMSESSION": "ubuntu",
+              "GNOME_DESKTOP_SESSION_ID": "this-is-deprecated",
+              "GNOME_SETUP_DISPLAY": ":1",
+              "GNOME_SHELL_SESSION_MODE": "ubuntu",
+              "GNOME_TERMINAL_SCREEN": "/org/gnome/Terminal/screen/66884ffc_d46d_40fd_96b9_74bf11872a99",
+              "GNOME_TERMINAL_SERVICE": ":1.184",
+              "GSM_SKIP_SSH_AGENT_WORKAROUND": "true",
+              "GTK_MODULES": "gail:atk-bridge",
+              "HOME": "/home/mike-anderson",
+              "LANG": "en_US.UTF-8",
+              "LD_LIBRARY_PATH": "/usr/lib/mesa-diverted/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu/mesa:/usr/lib/x86_64-linux-gnu/dri:/usr/lib/x86_64-linux-gnu/gallium-pipe"
+            },
+            "file_system_hash": "e3b0c44298fc1c14",
+            "recent_files": [],
+            "command_history": [],
+            "process_info": {}
+          },
+          "reward": 0.0,
+          "done": false,
+          "info": {
+            "latency_ms": 0.11348724365234375
+          }
+        },
+        {
+          "step_number": 1,
+          "action": {
+            "action_type": "write_file",
+            "parameters": {
+              "path": "project/main.py",
+              "content": "print('hello')",
+              "mode": "w"
+            },
+            "timestamp": 1771568924.3053746
+          },
+          "observation": {
+            "success": true,
+            "data": {},
+            "error_message": null,
+            "timestamp": 1771568924.3057308,
+            "latency_ms": 0.16379356384277344,
+            "stdout": "Wrote 14 bytes to project/main.py",
+            "stderr": "",
+            "exit_code": 0,
+            "working_directory": "/tmp/cohezion_shell_ujb81_9q",
+            "command_executed": "write_file",
+            "file_content": null,
+            "directory_listing": null
+          },
+          "state": {
+            "state_type": "shell",
+            "timestamp": 1771568924.305726,
+            "metadata": {},
+            "working_directory": "/tmp/cohezion_shell_ujb81_9q",
+            "environment_variables": {
+              "AGENT": "1",
+              "CHROME_REMOTE_DESKTOP_SESSION": "1",
+              "CLUTTER_DISABLE_MIPMAPPED_TEXT": "1",
+              "COLORTERM": "truecolor",
+              "DBUS_SESSION_BUS_ADDRESS": "unix:path=/run/user/1000/bus",
+              "DEBUGINFOD_URLS": "https://debuginfod.ubuntu.com ",
+              "DESKTOP_SESSION": "ubuntu",
+              "DISPLAY": ":0",
+              "GDK_BACKEND": "x11",
+              "GDMSESSION": "ubuntu",
+              "GNOME_DESKTOP_SESSION_ID": "this-is-deprecated",
+              "GNOME_SETUP_DISPLAY": ":1",
+              "GNOME_SHELL_SESSION_MODE": "ubuntu",
+              "GNOME_TERMINAL_SCREEN": "/org/gnome/Terminal/screen/66884ffc_d46d_40fd_96b9_74bf11872a99",
+              "GNOME_TERMINAL_SERVICE": ":1.184",
+              "GSM_SKIP_SSH_AGENT_WORKAROUND": "true",
+              "GTK_MODULES": "gail:atk-bridge",
+              "HOME": "/home/mike-anderson",
+              "LANG": "en_US.UTF-8",
+              "LD_LIBRARY_PATH": "/usr/lib/mesa-diverted/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu/mesa:/usr/lib/x86_64-linux-gnu/dri:/usr/lib/x86_64-linux-gnu/gallium-pipe"
+            },
+            "file_system_hash": "5c1134a2d4a89f45",
+            "recent_files": [
+              "project/main.py"
+            ],
+            "command_history": [],
+            "process_info": {}
+          },
+          "reward": 0.1,
+          "done": false,
+          "info": {
+            "latency_ms": 0.16379356384277344,
+            "steps_taken": 1,
+            "success_rate": 1.0,
+            "files_created": 1,
+            "commands_executed": 0
+          }
+        }
+      ],
+      "phi_score": 0.5492518703241895,
+      "success_rate": 1.0,
+      "num_steps": 2,
+      "total_reward": 0.1,
+      "coherence": 0.5,
+      "smoothness": 0.9975062344139651
+    }
+  ],
+  "success": true,
+  "final_reward": 0.8,
+  "coherence": 0.5,
+  "convergence": 0.1,
+  "smoothness": 0.0,
+  "phi_score": 0.27
+}

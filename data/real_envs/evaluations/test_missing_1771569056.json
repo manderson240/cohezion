@@ -1,0 +1,23 @@
+{
+  "task_id": "test_missing",
+  "task_description": "Should have created specific file",
+  "all_criteria_passed": false,
+  "pass_rate": 0.0,
+  "criteria": [
+    {
+      "criterion_name": "file_exists:expected_file.txt",
+      "passed": false,
+      "actual_value": false,
+      "expected_value": true,
+      "details": "File expected_file.txt does not exist"
+    }
+  ],
+  "reward": 0.16000000000000003,
+  "metrics": {
+    "total_steps": 1,
+    "expected_steps": 5,
+    "pass_rate": 0.0,
+    "criteria_count": 1,
+    "passed_criteria": 0
+  }
+}
