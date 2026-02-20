@@ -1,0 +1,60 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "a1f823cea709",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 7,
+  "files_touched": [
+    "CLAUDE.md",
+    "README.md",
+    "data/checkpoints/test.json",
+    "data/real_envs/evaluations/fastapi_async_api_1771621011.json",
+    "data/real_envs/evaluations/fastapi_async_api_1771621094.json",
+    "data/real_envs/evaluations/fastapi_async_api_1771621212.json",
+    "data/real_envs/evaluations/fastapi_async_api_1771621556.json",
+    "data/real_envs/evaluations/flask_demo_1771621174.json",
+    "data/real_envs/evaluations/flask_demo_1771621198.json",
+    "data/real_envs/evaluations/pytest_comprehensive_1771621011.json",
+    "data/real_envs/evaluations/pytest_comprehensive_1771621094.json",
+    "data/real_envs/evaluations/pytest_comprehensive_1771621212.json",
+    "data/real_envs/evaluations/pytest_comprehensive_1771621556.json",
+    "data/real_envs/evaluations/test_1771621011.json",
+    "data/real_envs/evaluations/test_1771621094.json",
+    "data/real_envs/evaluations/test_1771621212.json",
+    "data/real_envs/evaluations/test_1771621556.json",
+    "data/real_envs/evaluations/test_content_1771621011.json",
+    "data/real_envs/evaluations/test_content_1771621094.json",
+    "data/real_envs/evaluations/test_content_1771621212.json",
+    "data/real_envs/evaluations/test_content_1771621556.json",
+    "data/real_envs/evaluations/test_file_1771621011.json",
+    "data/real_envs/evaluations/test_file_1771621094.json",
+    "data/real_envs/evaluations/test_file_1771621212.json",
+    "data/real_envs/evaluations/test_file_1771621556.json",
+    "memory/MEMORY.md",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original",
+    "scripts/showcase_real_envs.py",
+    "src/cohezion/core/persistence/surreal_client.py",
+    "src/cohezion/knowledge/__init__.py",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "src/cohezion/knowledge_graph/MISSION_JOURNAL.md",
+    "tests/knowledge/test_vault_logger.py",
+    "tests/test_flume_training.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/a1/f823cea709/0/metadata.json",
+      "transcript": "/a1/f823cea709/0/full.jsonl",
+      "context": "/a1/f823cea709/0/context.md",
+      "content_hash": "/a1/f823cea709/0/content_hash.txt",
+      "prompt": "/a1/f823cea709/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 59,
+    "cache_creation_tokens": 42383,
+    "cache_read_tokens": 6610363,
+    "output_tokens": 3712,
+    "api_call_count": 42
+  }
+}
