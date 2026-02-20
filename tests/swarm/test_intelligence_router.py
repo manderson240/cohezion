@@ -16,32 +16,17 @@ def test_task_type_classifier_planning():
     classifier = TaskTypeClassifier()
 
     assert classifier.classify("design a new system architecture") == TaskType.PLANNING
-    assert (
-        classifier.classify("plan the implementation approach")
-        == TaskType.PLANNING
-    )
-    assert (
-        classifier.classify("outline the project structure")
-        == TaskType.PLANNING
-    )
+    assert classifier.classify("plan the implementation approach") == TaskType.PLANNING
+    assert classifier.classify("outline the project structure") == TaskType.PLANNING
 
 
 def test_task_type_classifier_verification():
     """Test classification of verification tasks."""
     classifier = TaskTypeClassifier()
 
-    assert (
-        classifier.classify("review this code for bugs")
-        == TaskType.VERIFICATION
-    )
-    assert (
-        classifier.classify("validate the implementation")
-        == TaskType.VERIFICATION
-    )
-    assert (
-        classifier.classify("test the authentication flow")
-        == TaskType.VERIFICATION
-    )
+    assert classifier.classify("review this code for bugs") == TaskType.VERIFICATION
+    assert classifier.classify("validate the implementation") == TaskType.VERIFICATION
+    assert classifier.classify("test the authentication flow") == TaskType.VERIFICATION
 
 
 def test_task_type_classifier_implementation():
@@ -49,17 +34,10 @@ def test_task_type_classifier_implementation():
     classifier = TaskTypeClassifier()
 
     assert (
-        classifier.classify("implement the login function")
-        == TaskType.IMPLEMENTATION
+        classifier.classify("implement the login function") == TaskType.IMPLEMENTATION
     )
-    assert (
-        classifier.classify("build a REST API endpoint")
-        == TaskType.IMPLEMENTATION
-    )
-    assert (
-        classifier.classify("write code to parse JSON")
-        == TaskType.IMPLEMENTATION
-    )
+    assert classifier.classify("build a REST API endpoint") == TaskType.IMPLEMENTATION
+    assert classifier.classify("write code to parse JSON") == TaskType.IMPLEMENTATION
 
 
 def test_task_type_classifier_query():
@@ -155,9 +133,7 @@ def test_force_task_type():
     router = IntelligenceRouter()
 
     # Force planning even though query looks like query
-    decision = router.route(
-        "what is this", force_task_type=TaskType.PLANNING
-    )
+    decision = router.route("what is this", force_task_type=TaskType.PLANNING)
 
     assert decision.task_type == TaskType.PLANNING
 

@@ -162,6 +162,9 @@ data/compound/metrics/
 *.swo
 *~
 
+# Personal Claude customization (should not be committed)
+CLAUDE.local.md
+
 # === SESSION ARTIFACT PREVENTION (Repository Cleanup Session) ===
 # Prevent accumulation of numbered session artifacts at repo root.
 # Use number-prefix patterns to avoid blocking legitimate docs (e.g., SESSION_GUIDELINES.md).

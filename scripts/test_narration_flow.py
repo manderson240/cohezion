@@ -29,9 +29,7 @@ async def test_narration_flow():
     if hasattr(res, "alignment_score"):
         print(f"✅ Alignment Audit: {res.alignment_score:.2f}")
     else:
-        print(
-            f"❌ Alignment issue. Value: {getattr(res, 'alignment_score', None)!r}"
-        )
+        print(f"❌ Alignment issue. Value: {getattr(res, 'alignment_score', None)!r}")
 
     await agent.close()
 

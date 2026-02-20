@@ -1,6 +1,5 @@
 """Tests for GraphRAG hybrid query"""
 
-
 import pytest
 
 from mcp_server.graphrag_query import GraphRAGQuery, _cache_key

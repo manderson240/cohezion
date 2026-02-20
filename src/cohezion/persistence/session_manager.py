@@ -113,9 +113,7 @@ class SessionManager:
         journey_checkpoint = {}
         if self._journey_tracker:
             try:
-                journey_checkpoint = (
-                    self._journey_tracker.get_current_checkpoint()
-                )
+                journey_checkpoint = self._journey_tracker.get_current_checkpoint()
             except Exception as e:
                 logger.warning(f"Failed to capture journey checkpoint: {e}")
 
@@ -179,9 +177,7 @@ class SessionManager:
         # Fallback to vault
         if self._vault:
             try:
-                data = await self._vault.get_session_snapshot(
-                    session_id=target_id
-                )
+                data = await self._vault.get_session_snapshot(session_id=target_id)
                 if data:
                     snapshot = SessionSnapshot.from_dict(data)
                     logger.info(f"Restored snapshot from vault for {target_id}")

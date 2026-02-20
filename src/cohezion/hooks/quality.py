@@ -112,9 +112,7 @@ def coherence_drop_hook(context: Dict[str, Any]) -> None:
     threshold = context.get("threshold", 0.5)
 
     if coherence < threshold:
-        logger.warning(
-            f"HIHO coherence violation: {coherence:.2f} < {threshold:.2f}"
-        )
+        logger.warning(f"HIHO coherence violation: {coherence:.2f} < {threshold:.2f}")
 
         # Trigger recovery actions
         # TODO: Integrate with DegradationDetector

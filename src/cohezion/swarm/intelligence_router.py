@@ -252,9 +252,7 @@ class IntelligenceRouter:
         self._routing_history.append(decision)
         return decision
 
-    def get_final_model(
-        self, decision: IntelligenceRoutingDecision
-    ) -> str:
+    def get_final_model(self, decision: IntelligenceRoutingDecision) -> str:
         """Get final model selection from decision.
 
         Args:

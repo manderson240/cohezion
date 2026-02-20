@@ -892,5 +892,153 @@ webpack-bundle-analyzer dist/stats.json
 
 ---
 
+## Context Management Best Practices
+
+**Effective context management with Claude Code improves development speed and reduces token usage.**
+
+### Three CLAUDE.md File Locations
+
+Claude Code recognizes three different CLAUDE.md files, each serving a specific purpose:
+
+| Location | Scope | Purpose | Version Control |
+|----------|-------|---------|-----------------|
+| `CLAUDE.md` | **Project-wide** (shared) | Official project guidance, architecture, coding standards | ✅ Committed to git |
+| `CLAUDE.local.md` | **Personal** (this repo only) | Your customizations, shortcuts, workflows for this project | ❌ Gitignored (personal) |
+| `~/.claude/CLAUDE.md` | **Global** (all projects) | Personal settings applied to every project on your machine | ❌ Not in project |
+
+**When to use which:**
+- **CLAUDE.md**: Add patterns/rules that benefit all team members
+- **CLAUDE.local.md**: Your personal dev shortcuts, custom test data, debug configs
+- **~/.claude/CLAUDE.md**: Personal preferences that apply across ALL your projects
+
+**Note:** CLAUDE.local.md is in .gitignore and should NEVER be committed. It's for personal use only.
+
+### @ Reference Syntax and Best Practices
+
+**@ mentions automatically load file contents into context.** Use them strategically to avoid context bloat.
+
+**Basic syntax:**
+```markdown
+@path/to/file.py - Load this file's contents
+@docs/CODE_MAP.md - Load CODE_MAP for source navigation
+```
+
+**Best practices:**
+
+1. **Load progressively, not all at once:**
+   ```markdown
+   ❌ Bad: "Explain the entire compound engineering system"
+   ✅ Good: "Explain @src/cohezion/compound/executor.py's 11-step pipeline"
+   ```
+
+2. **Use CODE_MAP for source discovery:**
+   - First, check @docs/CODE_MAP.md to find relevant files
+   - Then @ mention only the specific files you need
+
+3. **For large files (>500 lines), request specific sections:**
+   ```markdown
+   "Show the FastAPI app initialization in @src/cohezion/api/__init__.py"
+   (NOT: "Explain @src/cohezion/api/__init__.py")
+   ```
+
+4. **Drop unused @ mentions:**
+   - After you've learned what you needed from a file, stop mentioning it
+   - Only keep @ mentions for files actively being modified
+
+### Using CODE_MAP.md for Source Navigation
+
+**@docs/CODE_MAP.md provides @ references organized by architecture layer.**
+
+**How to use it:**
+
+1. **Discover which files to load:**
+   ```markdown
+   "I'm working on caching. What files should I look at?"
+   → Check @docs/CODE_MAP.md under "Caching Layer"
+   ```
+
+2. **Load specific subsystem:**
+   ```markdown
+   "Load the compound engineering layer"
+   → Mentions files from CODE_MAP's Compound section
+   ```
+
+3. **Navigate dependencies:**
+   ```markdown
+   "How does @src/cohezion/compound/journey_tracker.py integrate with
+    @src/cohezion/core/persistence/surreal_client.py?"
+   ```
+
+### CLAUDE.local.md Examples
+
+**Create CLAUDE.local.md in the project root for personal customizations.**
+
+Example contents (customize to your workflow):
+
+```markdown
+# My Personal Cohezion Settings
+
+## Quick Commands
+- "Run my tests" → uv run pytest tests/cache/ tests/compound/ -q
+- "Load cache context" → @src/cohezion/cache/semantic_cache.py + tests
+
+## Debug Shortcuts
+When debugging flaky tests, ALWAYS load @tests/conftest.py first
+
+## My Environment
+- SurrealDB at custom port: ws://localhost:8001
+- Ollama models installed: deepseek-r1:7b, qwen3-coder:14b
+```
+
+**See CLAUDE.local.md template for more examples** (it's gitignored, so you can modify freely).
+
+### Common Patterns
+
+**Pattern 1: Feature development with minimal context**
+```markdown
+1. Start: "I want to add feature X. Check @src/cohezion/skills/skill_registry.json"
+2. Template: "Show me a similar skill" → Load ONE example
+3. Implement: Don't load anything else yet
+4. Test: NOW load @tests/conftest.py for fixtures
+```
+
+**Pattern 2: Debugging test failures**
+```markdown
+1. "Why did this test fail?" → Load ONLY the failing test file
+2. If unclear: Load @tests/conftest.py (check singleton resets)
+3. If still unclear: Load the implementation file being tested
+```
+
+**Pattern 3: Cost optimization work**
+```markdown
+1. @docs/CODE_MAP.md (find cost-related files)
+2. @src/cohezion/swarm/cost_aware_router.py (router logic)
+3. @src/cohezion/cost_optimization/budget_enforcer.py (if needed)
+```
+
+### Handling Context Limits
+
+**At 90% context usage:**
+1. Finish current task with quality (don't rush)
+2. Ask Claude to write a continuation file with exact state
+3. Trigger session handoff
+4. **Trust the system** - context limits are checkpoints, not failures
+
+**What to include in handoff:**
+- Exact file:line where you left off
+- Specific error or command being debugged
+- Next 1-2 concrete steps
+- Don't compress for token savings - clarity > brevity
+
+### Tips for New Contributors
+
+1. **Read CLAUDE.md first** - Understand project architecture and conventions
+2. **Create CLAUDE.local.md** - Add your personal shortcuts and preferences
+3. **Use @ mentions sparingly** - Load only what you need, when you need it
+4. **Check CODE_MAP.md** - Find source files by subsystem, not by guessing paths
+5. **Update CLAUDE.md** - If you discover patterns others would benefit from, add them to CLAUDE.md (shared)
+
+---
+
 **Last Updated**: 2026-02-10
 **Version**: 0.1.0-alpha

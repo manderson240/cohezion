@@ -158,10 +158,8 @@ class BBQDriver:
                 "Observing Kordylewski cloud formation.",
             ]
             narration = (
-                (float(coherence) > 0.6
-                and "High stability achieved.")
-                or random.choice(thoughts)
-            )
+                float(coherence) > 0.6 and "High stability achieved."
+            ) or random.choice(thoughts)
 
             step = {
                 "step_id": self.current_round,

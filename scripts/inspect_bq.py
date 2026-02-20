@@ -1,4 +1,3 @@
-
 import bluequbit
 from dotenv import load_dotenv
 

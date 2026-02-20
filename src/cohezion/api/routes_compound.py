@@ -13,7 +13,7 @@ from cohezion.api.models import (
     CompoundHistoryResponse,
     CompoundStepOut,
 )
-
+from cohezion.security.utils import sanitize_error_message
 
 logger = logging.getLogger(__name__)
 

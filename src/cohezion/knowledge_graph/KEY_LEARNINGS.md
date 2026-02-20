@@ -307,3 +307,7 @@ Packages installed via `uv pip install` but not in `pyproject.toml[dev]` get dro
 ## Learning 128: Import Cascade Failures via Conftest (2026-02-19)
 
 Top-level imports of heavy optional deps (matplotlib, numpy) in route files cascade through conftest's `import cohezion.api` autouse fixture, breaking ALL tests — not just the importing module's. Fix: lazy imports inside endpoint functions. Rule: never top-level import optional visualization/ML deps in API route files.
+
+## Learning 129: @ Reference Context Management (2026-02-20)
+
+Claude Code's @ mention syntax (`@path/to/file`) auto-loads file contents into context. Strategic usage pattern: (1) @ Reference Files section in CLAUDE.md lists critical files by category (Governance, Config, Testing, Docs), (2) Inline @ mentions replace text-only paths in tables/sections, (3) CODE_MAP.md provides architecture-layer navigation with @ references to source modules, (4) CLAUDE.local.md (gitignored) for personal workflow customization. Three file locations: project-level CLAUDE.md (shared/committed), CLAUDE.local.md (personal/gitignored), ~/.claude/CLAUDE.md (global/machine-wide). Key efficiency gain: progressive context loading (load only what's needed, when needed) vs loading all files upfront.

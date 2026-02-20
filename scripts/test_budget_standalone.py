@@ -1,5 +1,3 @@
-
-
 class TokenEfficiencyTrackerStandalone:
     def __init__(self, budget=5.0):
         self._budget_usd = budget
