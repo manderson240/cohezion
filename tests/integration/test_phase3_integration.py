@@ -14,21 +14,23 @@ Success Metrics:
 """
 
 import asyncio
-import pytest
 from typing import Any
+
+import pytest
+
+from cohezion.cache.text_encoder import get_text_encoder
+from cohezion.compound.session_manager import (
+    InferenceSession,
+    SessionConfig,
+    VaultCheckpointManager,
+)
 
 # Component imports
 from cohezion.security.guardrail_factory import (
     create_default_pipeline,
     create_minimal_pipeline,
 )
-from cohezion.compound.session_manager import (
-    InferenceSession,
-    SessionConfig,
-    VaultCheckpointManager,
-)
 from cohezion.swarm.semantic_cache import SemanticCache
-from cohezion.cache.text_encoder import get_text_encoder
 
 
 class TestPhase3GuardrailIntegration:

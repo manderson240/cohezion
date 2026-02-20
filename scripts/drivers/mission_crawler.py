@@ -1,13 +1,15 @@
 import asyncio
-import logging
 import json
+import logging
 import time
 from pathlib import Path
+
 from cohezion.core.persistence.surreal_client import (
+    PhysicsState,
     SurrealClient,
     UniverseNode,
-    PhysicsState,
 )
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("MissionCrawler")
@@ -47,7 +49,7 @@ class MissionCrawler:
     async def process_inputs(self):
         logger.info(f"✨ New sparks detected in {self.watch_file}")
         try:
-            with open(self.watch_file, "r") as f:
+            with open(self.watch_file) as f:
                 data = json.load(f)
 
             for entry in data.get("inputs", []):

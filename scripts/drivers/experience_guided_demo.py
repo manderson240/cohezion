@@ -15,14 +15,16 @@ import logging
 import sys
 from pathlib import Path
 
+
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from cohezion.compound.executor import CompoundExecutor
-from cohezion.compound.journey_tracker import JourneyTracker
-from cohezion.compound.inflection_detector import Severity
-from cohezion.flume.experience_collector import ExperienceCollector
 from unittest.mock import MagicMock
+
+from cohezion.compound.executor import CompoundExecutor
+from cohezion.compound.inflection_detector import Severity
+from cohezion.compound.journey_tracker import JourneyTracker
+
 
 logging.basicConfig(level=logging.INFO, format="%(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -206,7 +208,7 @@ def main():
     try:
         success = run_experience_guided_demo()
         sys.exit(0 if success else 1)
-    except Exception as e:
+    except Exception:
         logger.exception("Demo failed:")
         sys.exit(1)
 

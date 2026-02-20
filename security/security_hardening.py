@@ -13,19 +13,21 @@ Vulnerabilities Fixed:
 5. Information disclosure - Audit logging and data protection
 """
 
-import os
-import json
-import time
-import subprocess
-import logging
 import asyncio
 import hashlib
+import json
+import logging
+import os
 import re
 import secrets
-from typing import Dict, List, Optional, Any, Union
+import subprocess
+import time
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
+
 import psutil
+
 
 logger = logging.getLogger(__name__)
 
@@ -54,12 +56,12 @@ class Permission(Enum):
 class SecurityContext:
     """Security context for operations"""
 
-    user_id: Optional[str]
+    user_id: str | None
     permissions: Set[Permission]
-    session_token: Optional[str]
+    session_token: str | None
     operation_id: str
     timestamp: float
-    ip_address: Optional[str] = None
+    ip_address: str | None = None
 
 
 class SecurityValidator:
@@ -115,7 +117,7 @@ class SecurityValidator:
         """Validate model name against allowlist"""
         return model_name in self.allowed_model_names
 
-    def validate_parameters(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_parameters(self, params: dict[str, Any]) -> dict[str, Any]:
         """Validate and sanitize model parameters"""
         sanitized = {}
 
@@ -194,7 +196,7 @@ class ResourceLimiter:
 
         self.lock = asyncio.Lock()
 
-    async def check_resources(self) -> Dict[str, float]:
+    async def check_resources(self) -> dict[str, float]:
         """Check current resource usage"""
         async with self.lock:
             memory = psutil.virtual_memory()
@@ -261,7 +263,7 @@ class ResourceLimiter:
                     }
                 )
 
-    def get_resource_stats(self) -> Dict[str, Any]:
+    def get_resource_stats(self) -> dict[str, Any]:
         """Get resource usage statistics"""
         return {
             "max_memory_mb": self.max_memory_mb,
@@ -294,7 +296,7 @@ class SecureModelRouter:
             "user_permissions": {},
         }
 
-    def _load_secure_config(self) -> Dict[str, Any]:
+    def _load_secure_config(self) -> dict[str, Any]:
         """Load security-hardened configuration"""
         return {
             "allow_local_models_only": True,
@@ -307,7 +309,7 @@ class SecureModelRouter:
         }
 
     def generate_session_token(
-        self, user_id: str, permissions: List[Permission]
+        self, user_id: str, permissions: list[Permission]
     ) -> str:
         """Generate secure session token"""
         timestamp = str(int(time.time()))
@@ -327,7 +329,7 @@ class SecureModelRouter:
 
         return session_token
 
-    def validate_session_token(self, token: str) -> Optional[SecurityContext]:
+    def validate_session_token(self, token: str) -> SecurityContext | None:
         """Validate session token and return security context"""
         if token not in self.authenticator["session_tokens"]:
             return None
@@ -351,9 +353,9 @@ class SecureModelRouter:
         self,
         model: str,
         prompt: str,
-        params: Dict[str, Any],
-        context: Optional[SecurityContext] = None,
-    ) -> Dict[str, Any]:
+        params: dict[str, Any],
+        context: SecurityContext | None = None,
+    ) -> dict[str, Any]:
         """Secure model execution with validation and resource limiting"""
 
         request_id = secrets.token_urlsafe(16)
@@ -412,7 +414,7 @@ class SecureModelRouter:
             return {"success": False, "error": str(e), "request_id": request_id}
 
     async def _secure_subprocess_call(
-        self, model: str, prompt: str, params: Dict[str, Any]
+        self, model: str, prompt: str, params: dict[str, Any]
     ) -> str:
         """Execute subprocess call with security controls"""
 
@@ -457,7 +459,7 @@ class SecureModelRouter:
             raise SecurityError(f"Command execution failed: {e}")
 
     def _log_secure_operation(
-        self, model: str, prompt: str, params: Dict[str, Any], context: SecurityContext
+        self, model: str, prompt: str, params: dict[str, Any], context: SecurityContext
     ):
         """Log security-relevant operations"""
 
@@ -484,7 +486,7 @@ class SecureModelRouter:
             with open(audit_file, "a") as f:
                 f.write(json.dumps(audit_log) + "\n")
 
-    def get_security_status(self) -> Dict[str, Any]:
+    def get_security_status(self) -> dict[str, Any]:
         """Get comprehensive security status"""
 
         return {

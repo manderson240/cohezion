@@ -1,18 +1,21 @@
 import marimo
 
+
 __generated_with = "0.10.12"
 app = marimo.App(title="Cohezion Manifold Explorer")
 
 
 @app.cell
 def __():
-    import marimo as mo
-    import plotly.express as px
-    import pandas as pd
-    import numpy as np
-    from cohezion.core.persistence.surreal_client import SurrealClient
     import asyncio
+
+    import marimo as mo
+    import numpy as np
+    import pandas as pd
+    import plotly.express as px
     from sklearn.decomposition import PCA
+
+    from cohezion.core.persistence.surreal_client import SurrealClient
 
     mo.md("# 🌌 Cohezion Manifold Explorer")
     return PCA, SurrealClient, asyncio, mo, np, pd, px

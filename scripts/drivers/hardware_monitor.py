@@ -5,11 +5,13 @@ Logs hardware power draw for R&D tax credit (Section 41/174A) documentation.
 Estimates kWh based on TDP and dynamic load.
 """
 
+import json
 import os
 import time
-import json
-import psutil
 from datetime import datetime
+
+import psutil
+
 
 # CONFIGURATION: Adjust these to your specific rig
 CPU_TDP_WATTS = 65  # Framework 16 Ryzen 9 7945HX Typical
@@ -22,7 +24,7 @@ def get_gpu_load():
     """Mock for systems without nvidia-smi/rocm-smi; can be extended."""
     # For AMD on Linux, we could parse /sys/class/drm/card0/device/gpu_busy_percent
     try:
-        with open("/sys/class/drm/card0/device/gpu_busy_percent", "r") as f:
+        with open("/sys/class/drm/card0/device/gpu_busy_percent") as f:
             return int(f.read().strip())
     except:
         return 0

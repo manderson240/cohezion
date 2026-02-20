@@ -6,11 +6,9 @@ Connects Level 1 (Rewards) to Level 2 (HITL Intent)
 Ensuring that rewarded behaviors reinforce global system COHEZION.
 """
 
-import time
 import logging
-import random
 from dataclasses import dataclass
-from typing import List
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("MYCELIUM_REINFORCE")

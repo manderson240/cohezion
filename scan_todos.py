@@ -78,7 +78,7 @@ def scan_codebase():
                             # Logic for "Next Steps" or "Option" headers to capture list items below could go here
                             # This is a simple improvement for now
 
-            except Exception as e:
+            except Exception:
                 pass
 
     return tasks

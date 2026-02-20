@@ -1,27 +1,23 @@
 import asyncio
 import logging
-import json
-import os
-import psutil
-import socket
+import random
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-import random
-import torch
-from cohezion.flume.autoencoder import FlumeEncoder, FlumeConfig
 
+import psutil
 
-from cohezion.simulation.enhanced_simulator import (
-    EnhancedSimulator,
-    EnhancedSimulationResult,
-)
 from cohezion.core.persistence.surreal_client import (
+    PhysicsState,
     SurrealClient,
     UniverseNode,
-    PhysicsState,
 )
 from cohezion.mcp.email_notifier import EmailNotifier
+from cohezion.simulation.enhanced_simulator import (
+    EnhancedSimulationResult,
+    EnhancedSimulator,
+)
+
 
 logging.basicConfig(
     level=logging.INFO,

@@ -4,15 +4,15 @@ SheetCommandWatcher - Monitors 'Cohezion_Research' Google Sheet for new inputs.
 Part of the 'Sheet-as-Control' Protocol (Learning 61).
 """
 
-import gspread
-import time
+import json
 import logging
 import os
-import json
-from pathlib import Path
-from datetime import datetime
+import time
+
+import gspread
 from dotenv import load_dotenv
 from google.oauth2.credentials import Credentials
+
 
 # Configure Logging
 logging.basicConfig(

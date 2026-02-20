@@ -4,14 +4,12 @@ Tests vault monitoring, config file monitoring, and event emission.
 """
 
 import asyncio
-import tempfile
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
 from cohezion.config import ConfigMonitor, ConfigurationOrchestrator
-from cohezion.config.config_events import ConfigEvent
 from cohezion.core.vault_subscription import VaultEvent
 
 
@@ -149,7 +147,7 @@ class TestConfigMonitor:
             # Wait for task to complete
             try:
                 await asyncio.wait_for(monitor_task, timeout=1.0)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 monitor_task.cancel()
 
         assert not monitor._running

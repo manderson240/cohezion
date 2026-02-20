@@ -3,10 +3,10 @@
 Uses phi_score and coherence to steer generation toward more successful outcomes.
 """
 
-import json
 import logging
 from dataclasses import dataclass
 from typing import Any
+
 
 logger = logging.getLogger(__name__)
 

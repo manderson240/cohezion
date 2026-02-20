@@ -14,8 +14,8 @@ from cohezion.swarm.compound_client import (
     get_compound_client,
     reset_compound_client,
 )
-from cohezion.swarm.model_adapter import SmartRouterAdapter, _TASK_TYPE_MAP
-from cohezion.swarm.smart_router import LOCAL_MODELS, SmartRouter, TaskType
+from cohezion.swarm.model_adapter import _TASK_TYPE_MAP, SmartRouterAdapter
+from cohezion.swarm.smart_router import LOCAL_MODELS, SmartRouter
 from cohezion.swarm.token_client import TokenEfficientClient
 
 

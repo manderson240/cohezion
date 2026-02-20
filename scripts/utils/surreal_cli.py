@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import asyncio
-import sys
 import pprint
+import sys
+
 from cohezion.core.persistence.surreal_client import SurrealClient
 
 

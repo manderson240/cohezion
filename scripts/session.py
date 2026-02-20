@@ -5,10 +5,10 @@ Enforces the mandatory worktree pattern with safety gates.
 """
 
 import argparse
-import os
 import subprocess
 import sys
 from pathlib import Path
+
 
 # Constants - Hardcoded for Mike's environment
 REPO_ROOT = Path("/home/mike-anderson/dev/cohezion")
@@ -61,7 +61,7 @@ def start_session(phase):
 
     # 2. Run validator in the new worktree
     print(f"🔍 Validating setup in {worktree_dir}...")
-    run(f"./scripts/validate-session-setup.sh", cwd=worktree_dir)
+    run("./scripts/validate-session-setup.sh", cwd=worktree_dir)
 
     print(f"\n✅ Session {session_id} ready!")
     print(f"   cd {worktree_dir}")

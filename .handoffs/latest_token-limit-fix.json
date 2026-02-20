@@ -1,0 +1,11 @@
+{
+  "milestone": "token-limit-fix",
+  "completed_tasks": [
+    "\n- Reduced default max_tokens to 512\n- Added calculate_max_tokens() for auto-budget\n- Added error handling with auto-retry (3 attempts)\n- Added CLI flags --max-tokens and --token-budget\n- Updated integrated_runner.py\n- Created retrospective .handoffs/RETROSPECTIVE_TOKEN_LIMIT.md\n"
+  ],
+  "pending_tasks": [],
+  "key_files": {},
+  "context_summary": "",
+  "decisions": [],
+  "next_steps": []
+}

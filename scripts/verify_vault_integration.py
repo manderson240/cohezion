@@ -3,10 +3,12 @@ import json
 import logging
 import time
 from datetime import datetime
-from cohezion.compound.exp_persistence.vault import VaultLogger, ExecutionContext
-from cohezion.compound.session_manager import VaultCheckpointManager, SessionState
+
+from cohezion.compound.exp_persistence.vault import ExecutionContext, VaultLogger
 from cohezion.compound.persistence import CompoundPersistence
+from cohezion.compound.session_manager import SessionState, VaultCheckpointManager
 from cohezion.core.mcp_client import get_mcp_client
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

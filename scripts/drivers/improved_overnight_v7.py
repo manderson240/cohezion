@@ -19,14 +19,15 @@ import math
 import random
 import sys
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from cohezion.core.persistence.surreal_client import SurrealClient
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -76,7 +77,7 @@ class SurrealDBProductionStore:
 
     def __init__(self, session_id: str):
         self.session_id = session_id.replace("-", "_")
-        self.client: Optional[SurrealClient] = None
+        self.client: SurrealClient | None = None
         self.connected = False
         self._write_buffer = []
         self._buffer_size = 100
@@ -183,7 +184,7 @@ class ImprovedOvernightV7:
             return False
         return True
 
-    def evolve_params(self, scores: List[float]):
+    def evolve_params(self, scores: list[float]):
         """Evolve parameters based on performance."""
         if not scores:
             return
@@ -207,7 +208,7 @@ class ImprovedOvernightV7:
             f"🧬 Generation {self.generation} evolved: mutation={self.params.mass_mutation_rate:.3f}, score={avg_score:.3f}"
         )
 
-    async def run_flume_batch(self, count: int) -> List[dict]:
+    async def run_flume_batch(self, count: int) -> list[dict]:
         """Run FLUME simulations with evolved parameters."""
         results = []
 
@@ -234,7 +235,7 @@ class ImprovedOvernightV7:
 
         return results
 
-    async def run_rzero_batch(self, count: int) -> List[dict]:
+    async def run_rzero_batch(self, count: int) -> list[dict]:
         """Run R-Zero with evolved learning rate (0.01)."""
         results = []
 
@@ -259,7 +260,7 @@ class ImprovedOvernightV7:
 
         return results
 
-    async def run_fractal_batch(self, agents: int, steps: int) -> List[dict]:
+    async def run_fractal_batch(self, agents: int, steps: int) -> list[dict]:
         """Run fractal with evolved HIHO parameters."""
         agents_list = []
         for i in range(agents):
@@ -309,7 +310,7 @@ class ImprovedOvernightV7:
             for a in agents_list
         ]
 
-    async def run_mass_batch(self, count: int) -> List[dict]:
+    async def run_mass_batch(self, count: int) -> list[dict]:
         """Run mass parameter sweep with evolved mutation (0.5)."""
         results = []
         golden = 1.618033988749895
@@ -348,7 +349,7 @@ class ImprovedOvernightV7:
         logger.info("🌙 IMPROVED OVERNIGHT SIMULATION v7.0")
         logger.info("=" * 70)
         logger.info(f"Session: {self.session_id}")
-        logger.info(f"Based on: overnight_v6_20260217_001038")
+        logger.info("Based on: overnight_v6_20260217_001038")
         logger.info(
             f"Evolving parameters: mutation={self.params.mass_mutation_rate}, lr={self.params.rzero_solver_lr}"
         )
@@ -359,7 +360,7 @@ class ImprovedOvernightV7:
         try:
             while self.should_continue():
                 self.generation += 1
-                logger.info(f"")
+                logger.info("")
                 logger.info(
                     f"🔄 Generation {self.generation} - {datetime.now().strftime('%H:%M')}"
                 )

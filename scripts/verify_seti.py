@@ -2,9 +2,11 @@ import asyncio
 import logging
 import sys
 from pathlib import Path
+
+from cohezion.seti.array import get_exogenic_array
 from cohezion.swarm.agents.seti_agent import SETIAgent
 from cohezion.swarm.swarm_types import SwarmConfig
-from cohezion.seti.array import get_exogenic_array
+
 
 # Add src to path
 sys.path.append(str(Path.cwd() / "src"))

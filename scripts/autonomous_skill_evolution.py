@@ -2,8 +2,9 @@
 
 import asyncio
 import logging
-import sys
+
 from cohezion.swarm.agents.specialized.skill_architect import get_skill_architect
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

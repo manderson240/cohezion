@@ -1,7 +1,9 @@
 import asyncio
-import logging
 import json
+import logging
+
 from cohezion.core.persistence.surreal_client import SurrealClient
+
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"

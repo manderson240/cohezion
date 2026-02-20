@@ -4,17 +4,20 @@ Sync Research to Sheet
 Updates the 'Cohezion_Research' Google Sheet with findings for Rows 214-223.
 """
 
-import gspread
 import logging
-from pathlib import Path
+
+import gspread
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("SheetSync")
 
-import os
 import json
+import os
+
 from dotenv import load_dotenv
 from google.oauth2.credentials import Credentials
+
 
 # Load environment variables
 load_dotenv("/home/mike-anderson/dev/cohezion/.env")

@@ -3,16 +3,14 @@
 Tests end-to-end alignment analysis flow within executor.
 """
 
-import pytest
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from cohezion.compound.executor import (
-    CompoundExecutor,
     ExecutorFactory,
-    ExecutionResult,
 )
 from cohezion.compound.request_alignment_analyzer import RequestAlignmentAnalyzer
-from cohezion.security.guardrail_pipeline import GuardrailPipeline
 
 
 class MockMCPClient:

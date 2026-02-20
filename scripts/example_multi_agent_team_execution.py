@@ -19,7 +19,7 @@ import asyncio
 import logging
 import sys
 
-from cohezion.compound import CompoundExecutor, TeamExecutor, AgentTask
+from cohezion.compound import AgentTask, CompoundExecutor, TeamExecutor
 from cohezion.core.mcp_client import MCPClient, MCPConfig
 
 

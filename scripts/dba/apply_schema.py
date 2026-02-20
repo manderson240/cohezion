@@ -1,12 +1,14 @@
 import asyncio
+import logging
 import os
 import sys
-import logging
+
 
 # Setup paths
 sys.path.append(os.path.abspath("src"))
 
 from cohezion.core.persistence.admin import DBAdmin
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("SchemaApplier")
@@ -19,7 +21,7 @@ async def apply_schema(schema_file: str):
         logger.error(f"Schema file not found: {schema_file}")
         return
 
-    with open(schema_file, "r") as f:
+    with open(schema_file) as f:
         surql = f.read()
 
     dba = DBAdmin()

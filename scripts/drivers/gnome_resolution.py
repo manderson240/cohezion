@@ -1,5 +1,6 @@
-import dbus
 import sys
+
+import dbus
 
 
 def set_resolution(width, height):

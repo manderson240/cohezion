@@ -7,19 +7,22 @@ Lightweight, runs entirely locally
 
 import sys
 
+
 sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
 
+import json
 import time
 from datetime import datetime
 from pathlib import Path
-import json
+
 import matplotlib
+
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.patches import FancyArrowPatch, Circle, Rectangle
-from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.patches import Circle, Rectangle
+
 
 worker_id = sys.argv[1] if len(sys.argv) > 1 else "1"
 output_dir = Path(

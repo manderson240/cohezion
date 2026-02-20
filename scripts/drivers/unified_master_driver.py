@@ -22,30 +22,27 @@ import json
 import logging
 import sys
 import time
-from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
-import yaml
 
 # Add scripts/drivers to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from simulation_config import (
-    SimulationConfig,
-    FlumeConfig,
-    RZeroConfig,
-    FractalConfig,
-    MassSimConfig,
-    load_default_config,
-)
-from resource_monitor import ResourceMonitor, get_resource_monitor
 from enhanced_simulation_engine import (
     EnhancedSimulationEngine,
     SimulationResult,
-    BatchResult,
 )
+from resource_monitor import get_resource_monitor
+from simulation_config import (
+    FlumeConfig,
+    FractalConfig,
+    MassSimConfig,
+    RZeroConfig,
+    SimulationConfig,
+    load_default_config,
+)
+
 
 # Setup logging
 logging.basicConfig(
@@ -152,7 +149,7 @@ class UnifiedMasterDriver:
     async def run(self):
         """Execute all simulation phases."""
         logger.info("=" * 70)
-        logger.info(f"🚀 UNIFIED MASTER DRIVER v3.0")
+        logger.info("🚀 UNIFIED MASTER DRIVER v3.0")
         logger.info(f"Session: {self.session_id}")
         logger.info("=" * 70)
 
@@ -176,7 +173,7 @@ class UnifiedMasterDriver:
             # Complete
             await self._complete()
 
-        except Exception as e:
+        except Exception:
             logger.exception("❌ Fatal error")
             raise
         finally:

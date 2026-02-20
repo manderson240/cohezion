@@ -10,6 +10,7 @@ from cohezion.core.compound.skill_refiner import RefinementResult, SkillRefiner
 from cohezion.core.plan_executor import ExecutionResult
 from cohezion.swarm.execution_orchestrator import ExecutionReport, TaskResult
 
+
 # ---------------------------------------------------------------------------
 # SkillRefiner
 # ---------------------------------------------------------------------------

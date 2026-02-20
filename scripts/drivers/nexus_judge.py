@@ -1,10 +1,11 @@
 import asyncio
-import logging
 import json
+import logging
 from pathlib import Path
-from typing import Dict, Any
-from cohezion.swarm.agents.base import BaseAgent
+
 from cohezion.core.time_keeper import get_time_keeper
+from cohezion.swarm.agents.base import BaseAgent
+
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - [NEXUS_JUDGE] - %(message)s"
@@ -74,7 +75,7 @@ class NexusJudge(BaseAgent):
         for paper in candidates:
             await self.judge_paper(paper)
 
-    async def judge_paper(self, paper: Dict):
+    async def judge_paper(self, paper: dict):
         paper_id = paper["id"]
         content = paper["content"]
         topic = paper.get("metadata", {}).get("topic", "Unknown Topic")
@@ -154,7 +155,7 @@ class NexusJudge(BaseAgent):
             elif is_verified:
                 # Small reward for passing
                 self._credit_manager.credit("NexusDaemon", 10)
-                logger.info(f"    ✅ Verified. +10 Credits awarded.")
+                logger.info("    ✅ Verified. +10 Credits awarded.")
 
         except Exception as e:
             logger.error(f"    - Judgment failed: {e}")

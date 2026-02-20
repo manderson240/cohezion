@@ -4,19 +4,19 @@ Orchestrates Scout, Fixer, and Auditor agents to find and fix bugs.
 Includes a Deep Retrospective phase to update KEY_LEARNINGS.md.
 """
 
-import asyncio
 import argparse
-import logging
-import os
+import asyncio
 import json
-from pathlib import Path
+import logging
 from datetime import datetime
+from pathlib import Path
 
-from cohezion.healing.deep_audit import DeepAuditor, CodeIssue
-from cohezion.swarm.agents.bug_scout_agent import BugScoutAgent
-from cohezion.swarm.agents.bug_fixer_agent import BugFixerAgent
+from cohezion.healing.deep_audit import DeepAuditor
 from cohezion.swarm.agents.bug_auditor_agent import BugAuditorAgent
+from cohezion.swarm.agents.bug_fixer_agent import BugFixerAgent
+from cohezion.swarm.agents.bug_scout_agent import BugScoutAgent
 from cohezion.universe.engine import UniverseSimulationEngine
+
 
 # Configure logging
 logging.basicConfig(

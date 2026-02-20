@@ -4,9 +4,11 @@ Plotly Gateway Progression Plot
 Modern interactive replacement for matplotlib version
 """
 
-import plotly.graph_objects as go
 import json
 from pathlib import Path
+
+import plotly.graph_objects as go
+
 
 # Load overnight data
 data_path = Path("/home/mike-anderson/dev/cohezion/data/overnight/final_report.json")
@@ -99,5 +101,5 @@ fig.write_image(
 )
 
 print(f"✅ Gateway progression plot saved to {output_dir}")
-print(f"   - Interactive: gateway_progression_interactive.html")
-print(f"   - Static: gateway_progression_plotly.png")
+print("   - Interactive: gateway_progression_interactive.html")
+print("   - Static: gateway_progression_plotly.png")

@@ -15,12 +15,13 @@ import sys
 from dataclasses import asdict
 from pathlib import Path
 
+
 # Global flag for graceful interruption
 _interrupted = False
 
 
 def _handle_sigint(signum: int, frame: object) -> None:
-    global _interrupted  # noqa: PLW0603
+    global _interrupted
     if _interrupted:
         # Second SIGINT — hard exit
         sys.exit(1)

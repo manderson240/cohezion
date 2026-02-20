@@ -13,7 +13,6 @@ Features:
 import asyncio
 import json
 import logging
-import math
 import random
 import statistics
 import sys
@@ -21,11 +20,12 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional, List, Dict
+
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from cohezion.core.persistence.surreal_client import SurrealClient
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -45,8 +45,8 @@ class LearningState:
     """State that persists and improves across iterations."""
 
     generation: int = 0
-    best_parameters: Dict[str, float] = field(default_factory=dict)
-    parameter_history: List[Dict] = field(default_factory=list)
+    best_parameters: dict[str, float] = field(default_factory=dict)
+    parameter_history: list[dict] = field(default_factory=list)
     convergence_rate: float = 0.0
     avg_coherence: float = 0.5
     energy_efficiency: float = 0.0
@@ -70,7 +70,7 @@ class SurrealDBLearningStore:
 
     def __init__(self, session_id: str):
         self.session_id = session_id
-        self.client: Optional[SurrealClient] = None
+        self.client: SurrealClient | None = None
         self.connected = False
 
     async def connect(self) -> bool:
@@ -224,7 +224,7 @@ class SurrealDBLearningStore:
 class RecursiveSimulationEngine:
     """Simulation engine that learns and improves across iterations."""
 
-    def __init__(self, session_id: Optional[str] = None):
+    def __init__(self, session_id: str | None = None):
         self.session_id = (
             session_id or f"recursive-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         )
@@ -565,7 +565,7 @@ class RecursiveSimulationEngine:
         finally:
             await self.store.close()
 
-    def _save_results(self, all_results: List[dict]):
+    def _save_results(self, all_results: list[dict]):
         """Save comprehensive results."""
         final_data = {
             "session_id": self.session_id,

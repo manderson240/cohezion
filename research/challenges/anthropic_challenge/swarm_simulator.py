@@ -1,7 +1,6 @@
 import multiprocessing
 import json
 import time
-import psutil
 import logging
 import random
 import sys

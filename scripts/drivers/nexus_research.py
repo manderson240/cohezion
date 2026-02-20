@@ -1,12 +1,14 @@
 import asyncio
+import json
 import logging
 import time
-import json
-import psutil
 from pathlib import Path
-from typing import List, Dict
-from cohezion.swarm.agents.base import BaseAgent
+
+import psutil
+
 from cohezion.core.time_keeper import get_time_keeper
+from cohezion.swarm.agents.base import BaseAgent
+
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - [NEXUS_DAEMON] - %(message)s"
@@ -39,8 +41,8 @@ DEFAULT_QUEUE = [
 class NexusResearchDaemon(BaseAgent):
     def __init__(self):
         super().__init__(model_name="phi3:mini")
-        self.queue: List[Dict] = []
-        self.done: List[str] = []
+        self.queue: list[dict] = []
+        self.done: list[str] = []
         self.load_state()
 
     def load_state(self):
@@ -212,7 +214,7 @@ class NexusResearchDaemon(BaseAgent):
             logger.error(f"Retry check failed: {e}")
             return False
 
-    async def process(self, task: Dict) -> str:
+    async def process(self, task: dict) -> str:
         """
         Main worker method (Satisfies BaseAgent abstract method).
         """

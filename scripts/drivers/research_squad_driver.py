@@ -7,16 +7,16 @@ Implementing 12D:2048D Manifold Stability for Rigorous Evaluation.
 import asyncio
 import json
 import logging
-import time
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 
-from cohezion.universe.engine import AxiomaticState, UniverseSimulationEngine
-from cohezion.universe.sandbox import ContainerizedUniverse
-from cohezion.core.routing.router import LOCAL_ROUTER
 from cohezion.core.multimodal_bridge import LOCAL_MULTIMODAL_BRIDGE
+from cohezion.core.routing.router import LOCAL_ROUTER
+from cohezion.universe.engine import UniverseSimulationEngine
+from cohezion.universe.sandbox import ContainerizedUniverse
+
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -32,11 +32,11 @@ class ResearchSquad:
         self.sandbox = ContainerizedUniverse()
         self.results = []
 
-    def _load_tasks(self) -> List[Dict[str, Any]]:
+    def _load_tasks(self) -> list[dict[str, Any]]:
         if not self.tasks_file.exists():
             logger.error(f"Task file not found: {self.tasks_file}")
             return []
-        with open(self.tasks_file, "r") as f:
+        with open(self.tasks_file) as f:
             return json.load(f)
 
     async def run_benchmark(self):
@@ -51,7 +51,7 @@ class ResearchSquad:
 
         await self._generate_final_report()
 
-    async def _execute_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    async def _execute_task(self, task: dict[str, Any]) -> dict[str, Any]:
         """
         Implementation of the Scout -> Engineer -> Auditor loop.
         """

@@ -10,8 +10,8 @@ from unittest.mock import MagicMock
 import numpy as np
 import pytest
 
-from cohezion.compound.executor import CompoundExecutor, ExecutionResult
-from cohezion.compound.journey_tracker import JourneyTracker, TrajectoryPoint
+from cohezion.compound.executor import CompoundExecutor
+from cohezion.compound.journey_tracker import JourneyTracker
 from cohezion.compound.universe_bridge import UniverseBridge
 
 

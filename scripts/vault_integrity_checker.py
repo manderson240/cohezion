@@ -13,14 +13,13 @@ Validates:
 8. Backup/recovery procedures
 """
 
-import os
 import json
+import os
 import re
 import sys
-from pathlib import Path
-from datetime import datetime
-from typing import Dict, List, Set, Tuple
 from collections import defaultdict
+from datetime import datetime
+from pathlib import Path
 
 
 class VaultIntegrityChecker:
@@ -42,7 +41,7 @@ class VaultIntegrityChecker:
         self.references = defaultdict(set)  # file -> referenced_files
         self.metadata_index = {}  # path -> metadata
 
-    def run_all_checks(self) -> Dict:
+    def run_all_checks(self) -> dict:
         """Run complete integrity verification suite"""
         print("[*] Starting Vault Integrity Verification")
         print(f"[*] Vault path: {self.vault_path}")
@@ -99,7 +98,7 @@ class VaultIntegrityChecker:
                     rel_path = file_path.relative_to(self.vault_path)
 
                     try:
-                        with open(file_path, "r", encoding="utf-8") as f:
+                        with open(file_path, encoding="utf-8") as f:
                             content = f.read()
                         self.documents[str(rel_path)] = content
                         self.stats["total_documents"] += 1
@@ -274,7 +273,7 @@ class VaultIntegrityChecker:
         config_path = git_dir / "config"
         if config_path.exists():
             try:
-                with open(config_path, "r") as f:
+                with open(config_path) as f:
                     config = f.read()
                     if "repositoryformatversion" not in config:
                         self.warnings.append("WARNING: Git config missing version")
@@ -321,7 +320,7 @@ class VaultIntegrityChecker:
             if not dir_path.exists():
                 self.issues.append(f"CRITICAL: Missing directory: {dir_name}")
 
-    def _generate_report(self) -> Dict:
+    def _generate_report(self) -> dict:
         """Generate comprehensive integrity report"""
         report = {
             "timestamp": datetime.now().isoformat(),
@@ -341,9 +340,9 @@ class VaultIntegrityChecker:
         print(f"{'=' * 60}\n")
 
         print(f"Status: {report['status']}")
-        print(f"\nStatistics:")
+        print("\nStatistics:")
         print(f"  Total Documents: {self.stats['total_documents']}")
-        print(f"  Documents by Category:")
+        print("  Documents by Category:")
         for cat, count in self.stats["files_by_category"].items():
             print(f"    - {cat}: {count}")
 
@@ -359,13 +358,13 @@ class VaultIntegrityChecker:
             if len(self.warnings) > 10:
                 print(f"  ... and {len(self.warnings) - 10} more")
 
-        print(f"\nRecommendations:")
+        print("\nRecommendations:")
         for rec in report["recommendations"]:
             print(f"  - {rec}")
 
         return report
 
-    def _generate_recommendations(self) -> List[str]:
+    def _generate_recommendations(self) -> list[str]:
         """Generate recommendations based on findings"""
         recommendations = []
 

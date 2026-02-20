@@ -7,12 +7,14 @@ and populates the 'swarm_tasks' table in SurrealDB.
 """
 
 import asyncio
+import hashlib
 import logging
 import os
 import re
-import hashlib
 from pathlib import Path
+
 from cohezion.core.persistence.surreal_client import SurrealClient
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - [SCOUT] - %(message)s")
 logger = logging.getLogger("IssueScout")

@@ -9,6 +9,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -42,7 +43,7 @@ class AgentContextOps:
             Dict with session_id, status, timestamp
         """
         try:
-            session_id = f"agent_session:{str(uuid.uuid4())}"
+            session_id = f"agent_session:{uuid.uuid4()!s}"
             now = datetime.now(UTC).isoformat()
 
             query = f"""
@@ -106,7 +107,7 @@ class AgentContextOps:
             Dict with decision_id, links_created, validation warnings
         """
         try:
-            decision_id = f"agent_decision:{str(uuid.uuid4())}"
+            decision_id = f"agent_decision:{uuid.uuid4()!s}"
             now = datetime.now(UTC).isoformat()
 
             # Validate session exists
@@ -174,7 +175,7 @@ class AgentContextOps:
                         paper_errors.append(f"Failed to link paper: {paper_id}")
 
                 except Exception as e:
-                    paper_errors.append(f"Error linking {paper_id}: {str(e)}")
+                    paper_errors.append(f"Error linking {paper_id}: {e!s}")
 
             # Update session token count
             try:
@@ -228,7 +229,7 @@ class AgentContextOps:
             Dict with outcome_id, validated_lessons, validation errors
         """
         try:
-            outcome_id = f"agent_outcome:{str(uuid.uuid4())}"
+            outcome_id = f"agent_outcome:{uuid.uuid4()!s}"
             now = datetime.now(UTC).isoformat()
             metrics = metrics or {}
 
@@ -293,7 +294,7 @@ class AgentContextOps:
                         )
 
                 except Exception as e:
-                    validation_errors.append(f"Error validating {lesson_id}: {str(e)}")
+                    validation_errors.append(f"Error validating {lesson_id}: {e!s}")
 
             # Update session to mark completion
             try:

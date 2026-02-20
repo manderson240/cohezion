@@ -1,7 +1,8 @@
-import time
-import subprocess
 import logging
+import subprocess
+import time
 from pathlib import Path
+
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -12,7 +13,7 @@ REPO_ROOT = Path(__file__).parent.parent.resolve()
 JANITOR_SCRIPT = REPO_ROOT / "scripts" / "repo_janitor.py"
 CHECK_INTERVAL_SECONDS = 3600  # Hourly
 
-from cohezion.healing import get_healing_system, HealthStatus
+from cohezion.healing import get_healing_system
 
 
 def run_janitor():

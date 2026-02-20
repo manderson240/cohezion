@@ -1,13 +1,11 @@
 import asyncio
-import logging
 import json
+import logging
 import os
-import time
 from pathlib import Path
-from typing import List, Dict, Any
-from concurrent.futures import ThreadPoolExecutor
 
 from cohezion.core.persistence.admin import DBAdmin
+
 
 # Logging
 logging.basicConfig(
@@ -24,7 +22,7 @@ MAX_CONCURRENCY = 10
 DELETE_ON_SUCCESS = True
 
 
-async def process_batch(dba: DBAdmin, file_batch: List[Path]):
+async def process_batch(dba: DBAdmin, file_batch: list[Path]):
     """
     Reads a batch of files, ingests them, and deletes them on success.
     """
@@ -35,7 +33,7 @@ async def process_batch(dba: DBAdmin, file_batch: List[Path]):
     # We'll do direct read for simplicity and verify performance.
     for p in file_batch:
         try:
-            with open(p, "r") as f:
+            with open(p) as f:
                 content = f.read().strip()
                 if not content:
                     continue

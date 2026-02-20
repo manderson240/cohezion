@@ -1,6 +1,7 @@
-import time
 import subprocess
+import time
 from pathlib import Path
+
 
 LOG_FILE = Path("scripts/maintenance/prune_status.log")
 STATUS_FILE = Path("PRUNE_STATUS.md")

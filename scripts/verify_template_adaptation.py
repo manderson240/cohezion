@@ -4,8 +4,8 @@ Simulates a retrospective cycle and verifies template patching.
 """
 
 import sys
-import os
 from pathlib import Path
+
 
 # Mocking the Python path to include src/
 sys.path.append(str(Path(__file__).parent.parent / "src"))

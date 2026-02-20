@@ -26,14 +26,10 @@ WARNING: This script modifies your file structure. Always run with --dry-run fir
 """
 
 import argparse
-import json
 import logging
-import os
-import re
 import shutil
-import subprocess
-import sys
 from pathlib import Path
+
 
 logging.basicConfig(
     level=logging.INFO,

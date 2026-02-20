@@ -1,11 +1,8 @@
 """Unit tests for sheets research daemon components."""
 
-import json
 import sqlite3
 import tempfile
 from pathlib import Path
-
-import pytest
 
 from mcp_server.sheets_research_daemon import (
     AgentCoordinator,

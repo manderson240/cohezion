@@ -12,10 +12,12 @@ import logging
 import sys
 from pathlib import Path
 
+
 # Add src to path
 sys.path.append(str(Path(__file__).parents[2] / "src"))
 
 from cohezion.healing.deep_audit import DeepAuditor
+
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"

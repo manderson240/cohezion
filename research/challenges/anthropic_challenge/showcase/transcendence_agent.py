@@ -10,7 +10,6 @@ from typing import Any, Dict
 from cohezion.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
 from cohezion.universe.engine import UniverseSimulationEngine
-from cohezion.core.routing.manifold_bridge import LOCAL_MANIFOLD_BRIDGE
 
 logger = logging.getLogger(__name__)
 

@@ -1,5 +1,5 @@
 from anthropic_challenge.optimizer import OptimizedKernelBuilder
-from anthropic_challenge.problem import Tree, Input, SCRATCH_SIZE, HASH_STAGES
+from anthropic_challenge.problem import Tree, Input, HASH_STAGES
 
 
 def debug_asm():
@@ -24,7 +24,6 @@ def debug_asm():
         build_mem_image,
         Machine,
         DebugInfo,
-        reference_kernel,
     )
 
     t = Tree.generate(2)

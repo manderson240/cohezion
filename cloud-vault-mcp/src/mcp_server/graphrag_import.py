@@ -11,21 +11,21 @@ Handles bulk import with:
 import asyncio
 import logging
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import Any
 
 import httpx
 
 from .graphrag_helpers import (
-    execute_surreal_async,
-    safe_create_edge,
-    batch_create_edges,
-    parse_wiki_links,
-    detect_document_type,
-    parse_frontmatter,
-    slugify,
-    escape_sql,
     GraphRAGError,
+    batch_create_edges,
+    detect_document_type,
+    escape_sql,
+    execute_surreal_async,
+    parse_frontmatter,
+    parse_wiki_links,
+    slugify,
 )
+
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ class GraphRAGImporter:
         self.embedding_model = embedding_model
         self.max_concurrent = max_concurrent
 
-        self.http_client: Optional[httpx.AsyncClient] = None
+        self.http_client: httpx.AsyncClient | None = None
 
     async def __aenter__(self):
         """Async context manager entry"""
@@ -63,7 +63,7 @@ class GraphRAGImporter:
         if self.http_client:
             await self.http_client.aclose()
 
-    async def generate_embedding(self, text: str) -> List[float]:
+    async def generate_embedding(self, text: str) -> list[float]:
         """Generate embedding via Ollama"""
         if not self.http_client:
             raise GraphRAGError(
@@ -84,7 +84,7 @@ class GraphRAGImporter:
 
             embedding = data.get("embedding", [])
             if not embedding:
-                raise GraphRAGError(f"No embedding returned from Ollama")
+                raise GraphRAGError("No embedding returned from Ollama")
 
             return embedding
 
@@ -95,7 +95,7 @@ class GraphRAGImporter:
 
     async def import_document(
         self, file_path: Path, create_edges: bool = True
-    ) -> Optional[str]:
+    ) -> str | None:
         """
         Import single document to SurrealDB
 
@@ -201,7 +201,7 @@ class GraphRAGImporter:
 
     async def import_directory(
         self, directory: str, pattern: str = "*.md", recursive: bool = True
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         """
         Import all documents from directory
 
@@ -264,7 +264,7 @@ class GraphRAGImporter:
             "edges_processed": edge_count,
         }
 
-    async def import_all_vault(self) -> Dict[str, Any]:
+    async def import_all_vault(self) -> dict[str, Any]:
         """
         Import entire vault (decisions, patterns, experiments)
 
@@ -290,7 +290,7 @@ async def import_vault_to_graphrag(
     vault_path: Path,
     ollama_url: str = "http://localhost:11434",
     surrealdb_url: str = "http://localhost:8000",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Convenience function for full vault import
 

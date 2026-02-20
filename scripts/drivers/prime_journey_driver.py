@@ -8,15 +8,12 @@ physical state transitions.
 
 import asyncio
 import logging
-from datetime import datetime
+
+from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.universe.engine import (
     UniverseSimulationEngine,
-    AxiomaticState,
-    LatentState,
-    TrajectoryPoint,
-    UniverseJourney,
 )
-from cohezion.core.persistence.surreal_client import SurrealClient
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

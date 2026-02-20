@@ -5,10 +5,11 @@ Simulates autonomous procurement of TPU v7 (Ironwood) pods via UCP/MCP.
 Connects CreditManager assets to Merchant A2A Endpoints.
 """
 
-import os
 import json
+import os
 import uuid
 from datetime import datetime
+
 
 # CONFIGURATION: Nexus/Commerce Constants
 UCP_ENDPOINT_GOOGLE = "https://ucp.googleapis.com/v1/agent/procure"
@@ -33,7 +34,7 @@ def initiate_a2a_negotiation():
     if not profile:
         return
 
-    print(f"[*] Cohezion Agent 'Nexus-1' initiating A2A session with Merchant-Agent...")
+    print("[*] Cohezion Agent 'Nexus-1' initiating A2A session with Merchant-Agent...")
     print(
         f"[*] Attaching Credit Profile: Qualified for ${profile['qualified_loan']:,}..."
     )
@@ -62,9 +63,9 @@ def initiate_a2a_negotiation():
         json.dump(negotiation_log, f, indent=4)
 
     print(f"[✔] A2A Procurement Successful. Transaction ID: {transaction_id}")
-    print(f"[✔] Procurement Log cached in knowledge_graph/A2A_PROCUREMENT_LOG.json")
+    print("[✔] Procurement Log cached in knowledge_graph/A2A_PROCUREMENT_LOG.json")
     print(
-        f"[✔] IRONWOOD Pod reserved via UCP. Waiting for Physical/Logical provisioning."
+        "[✔] IRONWOOD Pod reserved via UCP. Waiting for Physical/Logical provisioning."
     )
 
 

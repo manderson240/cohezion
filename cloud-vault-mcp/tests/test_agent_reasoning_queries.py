@@ -7,8 +7,9 @@ Tests the 4 key query patterns:
 - high_confidence_reasoning: Find well-justified decisions for reuse
 """
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from src.mcp_server.agent_reasoning_queries import AgentReasoningQueries
 

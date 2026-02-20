@@ -3,6 +3,7 @@ import logging
 import sys
 from pathlib import Path
 
+
 # Add src to path
 sys.path.append(str(Path(__name__).parent / "src"))
 
@@ -17,7 +18,7 @@ async def main():
     config = SwarmConfig()
     librarian = LibrarianAgent(config=config)
 
-    print(f"\n--- Running Librarian Documentation Audit ---")
+    print("\n--- Running Librarian Documentation Audit ---")
     report = await librarian.process("audit")
     print(f"Audit Report:\n{report}")
 

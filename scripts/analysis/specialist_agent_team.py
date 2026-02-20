@@ -10,15 +10,12 @@ A multi-agent system where each agent is an expert in a specific domain:
 - Anthropic Alignment Researcher: Research goal alignment
 """
 
-import json
-import asyncio
 import logging
+import statistics
 from dataclasses import dataclass, field
 from datetime import datetime
-from pathlib import Path
-from typing import Dict, List, Any, Optional
-import statistics
-import math
+from typing import Any
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("SpecialistAgentTeam")
@@ -30,9 +27,9 @@ class AnalysisResult:
 
     agent_name: str
     domain: str
-    findings: Dict[str, Any]
+    findings: dict[str, Any]
     confidence: float
-    recommendations: List[str]
+    recommendations: list[str]
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
 
@@ -43,7 +40,7 @@ class StatisticalAnalyst:
         self.name = "Dr. Statistical Analyst"
         self.domain = "statistical_analysis"
 
-    def analyze(self, data: List[Dict]) -> AnalysisResult:
+    def analyze(self, data: list[dict]) -> AnalysisResult:
         """Perform comprehensive statistical analysis."""
         logger.info(f"🔬 {self.name}: Analyzing {len(data)} data points...")
 
@@ -122,7 +119,7 @@ class PatternRecognitionSpecialist:
         self.name = "Dr. Pattern Recognition"
         self.domain = "pattern_analysis"
 
-    def analyze(self, data: List[Dict]) -> AnalysisResult:
+    def analyze(self, data: list[dict]) -> AnalysisResult:
         """Identify patterns and anomalies."""
         logger.info(f"🔍 {self.name}: Scanning for patterns...")
 
@@ -207,7 +204,7 @@ class AnthropicAlignmentResearcher:
         self.name = "Dr. Alignment Research"
         self.domain = "anthropic_alignment"
 
-    def analyze(self, data: List[Dict], summary: Dict) -> AnalysisResult:
+    def analyze(self, data: list[dict], summary: dict) -> AnalysisResult:
         """Analyze alignment with Anthropic's goals."""
         logger.info(f"🎯 {self.name}: Checking research alignment...")
 
@@ -286,7 +283,7 @@ class DomainExpert:
         self.name = "Dr. COHEZION Integration"
         self.domain = "system_integration"
 
-    def analyze(self, summary: Dict, analyses: List[AnalysisResult]) -> AnalysisResult:
+    def analyze(self, summary: dict, analyses: list[AnalysisResult]) -> AnalysisResult:
         """Generate integration recommendations."""
         logger.info(f"🏗️  {self.name}: Planning integration...")
 
@@ -358,8 +355,8 @@ class SpecialistAgentTeam:
         self.alignment_researcher = AnthropicAlignmentResearcher()
 
     async def analyze_simulation_results(
-        self, data: List[Dict], summary: Dict
-    ) -> Dict[str, AnalysisResult]:
+        self, data: list[dict], summary: dict
+    ) -> dict[str, AnalysisResult]:
         """Run all agents on the data."""
         logger.info("🤖 Starting Specialist Agent Team Analysis...")
 
@@ -382,7 +379,7 @@ class SpecialistAgentTeam:
         return results
 
     def generate_consensus_report(
-        self, results: Dict[str, AnalysisResult], summary: Dict
+        self, results: dict[str, AnalysisResult], summary: dict
     ) -> str:
         """Generate unified report from all agents."""
 

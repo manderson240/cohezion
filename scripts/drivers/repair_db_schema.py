@@ -1,8 +1,6 @@
 import asyncio
-from cohezion.core.persistence.surreal_client import SurrealClient
-
-import asyncio
 from datetime import datetime
+
 from cohezion.core.persistence.surreal_client import SurrealClient
 
 

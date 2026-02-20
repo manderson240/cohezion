@@ -25,6 +25,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+
 # Track execution for compound engineering
 try:
     from cohezion.registry.capability_registry import CapabilityRegistry

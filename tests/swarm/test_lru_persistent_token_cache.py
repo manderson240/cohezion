@@ -8,7 +8,6 @@ Tests cover:
 - Error handling and edge cases
 """
 
-import json
 import tempfile
 from pathlib import Path
 

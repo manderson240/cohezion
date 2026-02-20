@@ -1,6 +1,6 @@
 import asyncio
 import sys
-from pathlib import Path
+
 
 # Add src to path for cohezion imports
 sys.path.append("/home/mike-anderson/dev/cohezion/src")

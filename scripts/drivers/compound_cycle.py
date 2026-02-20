@@ -14,21 +14,22 @@ This script exercises the full loop:
     execute_fn → cohesion → degradation → journey tracking → retrospection → refinement → universe
 """
 
-import asyncio
 import logging
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock
 
+
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from cohezion.compound.executor import CompoundExecutor, ExecutionResult
+from cohezion.compound.degradation_detector import DegradationDetector
+from cohezion.compound.executor import CompoundExecutor
 from cohezion.compound.journey_tracker import JourneyTracker
 from cohezion.compound.skill_refiner import SkillRefiner
 from cohezion.compound.universe_bridge import UniverseBridge
 from cohezion.core.compound.retrospection import RetrospectionEngine
-from cohezion.compound.degradation_detector import DegradationDetector
+
 
 logging.basicConfig(level=logging.INFO, format="%(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -134,7 +135,7 @@ def run_compound_cycle(dry_run: bool = True):
         execute_fn=high_quality_task,
     )
 
-    logger.info(f"✓ Execution 1 complete")
+    logger.info("✓ Execution 1 complete")
     logger.info(f"  - Success: {result1.success}")
     logger.info(f"  - Coherence: {result1.metrics.get('coherence', 'N/A'):.3f}")
     logger.info(f"  - Phi score: {result1.metrics.get('phi_score', 'N/A')}")
@@ -186,7 +187,7 @@ def run_compound_cycle(dry_run: bool = True):
         execute_fn=low_quality_task,
     )
 
-    logger.info(f"✓ Execution 2 complete")
+    logger.info("✓ Execution 2 complete")
     logger.info(f"  - Success: {result2.success}")
     logger.info(f"  - Coherence: {result2.metrics.get('coherence', 'N/A'):.3f}")
     logger.info(f"  - Degraded: {result2.metrics.get('execution_degraded', False)}")
@@ -243,7 +244,7 @@ def main():
     try:
         success = run_compound_cycle(dry_run=dry_run)
         sys.exit(0 if success else 1)
-    except Exception as e:
+    except Exception:
         logger.exception("Compound cycle failed with exception:")
         sys.exit(1)
 

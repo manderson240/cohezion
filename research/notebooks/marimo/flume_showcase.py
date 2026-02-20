@@ -21,18 +21,20 @@ For Anthropic Research Engineer, Universes Application
 
 import marimo
 
+
 __generated_with = "0.10.17"
 app = marimo.App(width="medium")
 
 
 @app.cell
 def _():
+    import json
+    from datetime import datetime
+    from pathlib import Path
+
     import marimo as mo
     import matplotlib.pyplot as plt
     import numpy as np
-    import json
-    from pathlib import Path
-    from datetime import datetime
 
     return mo, plt, np, json, Path, datetime
 

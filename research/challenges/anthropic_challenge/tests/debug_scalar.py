@@ -1,7 +1,3 @@
-import sys
-import unittest
-from optimizer import OptimizedKernelBuilder
-from tests.submission_tests import kernel_builder, do_kernel_test, CorrectnessTests
 
 
 # Monkey patch the builder to use N_SCAL=0

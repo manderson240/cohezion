@@ -1,5 +1,6 @@
 import time
 import timeit
+
 import numpy as np
 
 
@@ -10,7 +11,7 @@ def test_workload():
 
 
 def benchmark():
-    print(f"--- Temporal Precision Benchmark ---")
+    print("--- Temporal Precision Benchmark ---")
 
     # 1. time.time()
     t1 = time.time()

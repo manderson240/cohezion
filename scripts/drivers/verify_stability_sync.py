@@ -5,15 +5,17 @@ Verification Script - Stability Hardening & Persistence Sync.
 import asyncio
 import logging
 from datetime import datetime
-from cohezion.core.persistence.surreal_client import SurrealClient
-from cohezion.core.persistence.repositories.surreal_journey_repository import (
-    SurrealJourneyRepository,
-)
+
 from cohezion.core.persistence.repositories.journey_repository import (
     AgentJourney,
     JourneyMetrics,
 )
+from cohezion.core.persistence.repositories.surreal_journey_repository import (
+    SurrealJourneyRepository,
+)
+from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.reliability.monitor import ResourceMonitor
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

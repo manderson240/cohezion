@@ -1,5 +1,5 @@
+
 from mem0 import Memory
-import os
 
 
 def test_local_mem0():

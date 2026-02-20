@@ -3,6 +3,7 @@ import logging
 import sys
 from pathlib import Path
 
+
 # Add src to path
 sys.path.append(str(Path(__name__).parent / "src"))
 

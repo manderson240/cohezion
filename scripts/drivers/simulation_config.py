@@ -7,10 +7,11 @@ Supports environment variable substitution and validation.
 """
 
 import os
-import yaml
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
+import yaml
 
 
 @dataclass
@@ -18,7 +19,7 @@ class SimulationConfig:
     """Base configuration for simulations."""
 
     # Session settings
-    session_id: Optional[str] = None
+    session_id: str | None = None
     archive_dir: str = "/home/mike-anderson/nvme-simulations"
     log_level: str = "INFO"
 
@@ -28,7 +29,7 @@ class SimulationConfig:
 
     # Checkpointing
     checkpoint_interval: int = 100_000
-    resume_from_checkpoint: Optional[str] = None
+    resume_from_checkpoint: str | None = None
 
     # Parallelization
     max_workers: int = 4

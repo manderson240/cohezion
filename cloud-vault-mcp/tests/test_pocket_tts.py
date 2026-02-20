@@ -167,9 +167,10 @@ class TestTTSMCPTool:
     @pytest.mark.asyncio
     async def test_tts_speak_tool_success(self):
         """Test tts_speak tool returns valid JSON."""
+        from pathlib import Path
+
         from mcp_server.config import ServerConfig
         from mcp_server.server import create_server
-        from pathlib import Path
 
         with patch("mcp_server.pocket_tts.PocketTTSService") as mock_service_class:
             mock_service = MagicMock()
@@ -204,9 +205,10 @@ class TestTTSMCPTool:
     @pytest.mark.asyncio
     async def test_tts_speak_tool_error(self):
         """Test tts_speak tool returns error JSON on failure."""
+        from pathlib import Path
+
         from mcp_server.config import ServerConfig
         from mcp_server.server import create_server
-        from pathlib import Path
 
         with patch("mcp_server.pocket_tts.PocketTTSService") as mock_service_class:
             mock_service = MagicMock()

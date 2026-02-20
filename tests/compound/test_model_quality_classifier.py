@@ -1,6 +1,5 @@
 """Tests for Model Quality Classifier - Phase 5A.7."""
 
-import numpy as np
 import pytest
 
 from cohezion.compound.model_quality_classifier import (

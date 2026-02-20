@@ -15,14 +15,16 @@ import hashlib
 import json
 import logging
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any
 
+from resource_monitor import get_resource_monitor
 from simulation_config import SimulationConfig
-from resource_monitor import ResourceMonitor, get_resource_monitor
+
 
 logger = logging.getLogger("EnhancedSimulationEngine")
 
@@ -151,7 +153,7 @@ class CheckpointManager:
         logger.info(f"💾 Checkpoint saved: {checkpoint_path.name}")
         return checkpoint_path
 
-    def load_checkpoint(self, phase: str) -> Optional[dict]:
+    def load_checkpoint(self, phase: str) -> dict | None:
         """Load the latest checkpoint for a phase."""
         checkpoints = sorted(
             self.checkpoint_dir.glob(f"{self.session_id}_{phase}_cp*.json"),
@@ -206,7 +208,7 @@ class EnhancedSimulationEngine:
         simulation_fn: Callable[[int, dict], SimulationResult],
         total_count: int,
         phase_name: str,
-        initial_state: Optional[dict] = None,
+        initial_state: dict | None = None,
     ) -> list[BatchResult]:
         """Run simulations in parallel with checkpointing."""
         self.stats["start_time"] = time.time()

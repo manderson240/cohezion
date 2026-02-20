@@ -1,13 +1,13 @@
 import asyncio
-import logging
-import json
 import gzip
-import time
-from pathlib import Path
+import json
+import logging
 from datetime import datetime, timedelta
-from typing import List, Dict, Any
-from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode
+from pathlib import Path
+
+from cohezion.core.persistence.surreal_client import UniverseNode
 from cohezion.swarm.agents.base import BaseAgent  # Reuse BaseAgent for summary
+
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - [COMPRESSOR] - %(message)s"

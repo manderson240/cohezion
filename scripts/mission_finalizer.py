@@ -9,14 +9,14 @@ Processes 15 hours of research data.
 """
 
 import asyncio
-import logging
 import json
-import os
+import logging
 from datetime import datetime
 from pathlib import Path
 
 from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.mcp.email_notifier import EmailNotifier
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("MissionFinalizer")
@@ -104,16 +104,16 @@ Generated: {datetime.now().isoformat()}
                     f.write(
                         f"\n\n## MISSION RECURSION ({datetime.now().strftime('%Y-%m-%d')})\n"
                     )
-                    f.write(f"Refined insights from Fractal Nexus mission:\n")
+                    f.write("Refined insights from Fractal Nexus mission:\n")
                     f.write(f"> {insight_summary[:500]}...\n")
 
         # Also update KEY_LEARNINGS
         learning_path = Path("src/cohezion/knowledge_graph/KEY_LEARNINGS.md")
         if learning_path.exists():
             with open(learning_path, "a") as f:
-                f.write(f"\n## Learning from Fractal Nexus (Recursion)\n")
+                f.write("\n## Learning from Fractal Nexus (Recursion)\n")
                 f.write(
-                    f"Refinement: HIHO stability thresholds should include quadratic resonance at 0.5 overlap.\n"
+                    "Refinement: HIHO stability thresholds should include quadratic resonance at 0.5 overlap.\n"
                 )
 
     def _generate_marimo_notebook(self, pulses, reports):

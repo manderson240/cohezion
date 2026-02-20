@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 
 from cohezion.api import app
 
+
 client = TestClient(app)
 
 
@@ -55,7 +56,7 @@ class TestTemplateEndpoints:
     def test_parse_existing_skill(self):
         """Parse a known PRIME skill returns structured spec."""
         resp = client.post(
-            "/templates/parse",
+            "/flume/templates/parse",
             json={"skill_name": "COMPOUND_ENGINEERING_PRIME"},
         )
         assert resp.status_code == 200
@@ -70,7 +71,7 @@ class TestTemplateEndpoints:
     def test_parse_missing_skill(self):
         """Parsing a nonexistent skill returns 404."""
         resp = client.post(
-            "/templates/parse",
+            "/flume/templates/parse",
             json={"skill_name": "NONEXISTENT_SKILL_XYZ"},
         )
         assert resp.status_code == 404
@@ -78,7 +79,7 @@ class TestTemplateEndpoints:
     def test_parse_case_insensitive(self):
         """Skill lookup is case-insensitive."""
         resp = client.post(
-            "/templates/parse",
+            "/flume/templates/parse",
             json={"skill_name": "compound_engineering_prime"},
         )
         assert resp.status_code == 200

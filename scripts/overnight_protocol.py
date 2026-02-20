@@ -12,7 +12,9 @@ import logging
 import subprocess
 import time
 from pathlib import Path
+
 from cohezion.core.persistence.surreal_client import SurrealClient
+
 
 logging.basicConfig(
     level=logging.INFO,

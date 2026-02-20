@@ -25,21 +25,17 @@ Test Organization:
 """
 
 import asyncio
-import time
-from typing import Any, Dict, List, Optional
-from unittest.mock import AsyncMock, MagicMock, patch
-from dataclasses import dataclass
 import json
+import time
+from dataclasses import dataclass
+from unittest.mock import MagicMock
 
 import pytest
-import numpy as np
 
 # Phase 5B component imports (to be implemented)
-from cohezion.cache.semantic_cache import SemanticCache, CacheEntry
-from cohezion.compound.executor import CompoundExecutor, ExecutionResult
+from cohezion.compound.executor import CompoundExecutor
 from cohezion.compound.team_executor import TeamExecutor
-from cohezion.swarm.team_metrics import TeamMetricsAggregator
-from cohezion.cost_optimization.cost_tracker import SessionCostTracker, CostRecord
+from cohezion.cost_optimization.cost_tracker import SessionCostTracker
 
 
 # ============================================================================
@@ -54,7 +50,7 @@ class AgentProfile:
     agent_id: str
     model: str
     coherence_score: float  # 0.0-1.0, for skill selection weighting
-    skill_history: Dict[str, int] = None  # skill_name -> success_count
+    skill_history: dict[str, int] = None  # skill_name -> success_count
 
     def __post_init__(self):
         if self.skill_history is None:
@@ -65,9 +61,9 @@ class AgentProfile:
 class MockRouterConfig:
     """Configuration for cost-aware router."""
 
-    cost_per_token: Dict[str, float]  # model -> cost per token
-    latency_per_token: Dict[str, float]  # model -> latency per token (ms)
-    availability: Dict[str, float]  # model -> availability (0.0-1.0)
+    cost_per_token: dict[str, float]  # model -> cost per token
+    latency_per_token: dict[str, float]  # model -> latency per token (ms)
+    availability: dict[str, float]  # model -> availability (0.0-1.0)
     prefer_cheaper: bool = True
     enable_consensus: bool = True
 
@@ -80,7 +76,7 @@ class MockRedisClient:
         self.ttls = {}
         self.failure_mode = False
 
-    async def get(self, key: str) -> Optional[bytes]:
+    async def get(self, key: str) -> bytes | None:
         """Get value from mock store."""
         if self.failure_mode:
             raise ConnectionError("Mock Redis unavailable")
@@ -149,7 +145,7 @@ class MockSkillRegistry:
             },
         }
 
-    def get_skill(self, skill_name: str) -> Dict[str, float]:
+    def get_skill(self, skill_name: str) -> dict[str, float]:
         """Get skill metrics."""
         return self.skills.get(skill_name, {})
 
@@ -157,8 +153,8 @@ class MockSkillRegistry:
         self,
         agent_id: str,
         query: str,
-        weights: Dict[str, float] = None,
-    ) -> List[tuple[str, float]]:
+        weights: dict[str, float] = None,
+    ) -> list[tuple[str, float]]:
         """Rank skills by score using weights."""
         if weights is None:
             weights = {"coherence": 0.5, "efficiency": 0.3, "success_rate": 0.2}
@@ -193,7 +189,7 @@ def mock_skill_registry():
 
 
 @pytest.fixture
-def agent_profiles() -> List[AgentProfile]:
+def agent_profiles() -> list[AgentProfile]:
     """Create 5 test agent profiles."""
     return [
         AgentProfile(agent_id="agent-1", model="phi3:mini", coherence_score=0.92),

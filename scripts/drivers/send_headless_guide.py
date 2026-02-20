@@ -1,6 +1,6 @@
 import asyncio
 import sys
-from pathlib import Path
+
 
 # Add src to path for cohezion imports
 sys.path.append("/home/mike-anderson/dev/cohezion/src")
@@ -15,7 +15,7 @@ async def send_headless_guide():
 
     subject = "🔑 Action Required: Authorize Remote Desktop for your Pixelbook"
 
-    body = f"""
+    body = """
 <h1>Final Step: Authorize Remote Desktop</h1>
 <p>Hello Mike,</p>
 <p>SSH is working, but <strong>Chrome Remote Desktop</strong> isn't showing up because this machine hasn't been linked to your Google account yet.</p>

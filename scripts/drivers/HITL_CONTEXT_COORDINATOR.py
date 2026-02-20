@@ -9,7 +9,7 @@ The Swarm calculates the 'Manifold' (Execution)
 import asyncio
 import logging
 from dataclasses import dataclass
-from typing import Optional
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("HITL_COORDINATOR")
@@ -25,7 +25,7 @@ class CoordinatorIntent:
 
 class HITLContextCoordinator:
     def __init__(self):
-        self.current_mission: Optional[CoordinatorIntent] = None
+        self.current_mission: CoordinatorIntent | None = None
         self.alignment_lock = False
 
     async def broadcast_intent(self, intent: CoordinatorIntent):

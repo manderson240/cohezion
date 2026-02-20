@@ -23,16 +23,17 @@ import sys
 import time
 from pathlib import Path
 
+
 # Ensure project root is importable
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from cohezion.core.compound.retrospection import RetrospectionEngine
 from cohezion.core.compound.skill_refiner import SkillRefiner
 from cohezion.core.instruction_expander import InstructionExpander
-from cohezion.core.plan_executor import PlanExecutor
 from cohezion.core.template_engine import SkillSpec, TemplateEngine
 from cohezion.swarm.execution_orchestrator import ExecutionOrchestrator
 from cohezion.swarm.team_orchestrator import TaskSpec, TeamPlan
+
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +101,7 @@ async def run_compound_cycle(
 
     # --- Step 1: Select skills ---
     print(f"\n{'=' * 60}")
-    print(f"  COMPOUND ENGINEERING CYCLE")
+    print("  COMPOUND ENGINEERING CYCLE")
     print(f"  Mode: {'DRY RUN' if dry_run else f'LIVE ({model})'}")
     print(f"  Skills: {num_skills} | Threshold: {threshold}")
     print(f"{'=' * 60}\n")
@@ -147,7 +148,7 @@ async def run_compound_cycle(
     report["total_tokens"] = exec_report.total_tokens
     report["execution_duration_ms"] = round(exec_report.total_duration_ms, 1)
 
-    print(f"\n[3/5] Execution complete:")
+    print("\n[3/5] Execution complete:")
     print(f"  Completed: {report['tasks_completed']}/{len(exec_report.task_results)}")
     print(f"  Tokens: {report['total_tokens']}")
     print(f"  Duration: {report['execution_duration_ms']:.0f}ms")
@@ -159,7 +160,7 @@ async def run_compound_cycle(
     report["compound_score_delta"] = compound_delta
     report["patterns"] = analysis.get("patterns", [])
 
-    print(f"\n[4/5] Retrospection analysis:")
+    print("\n[4/5] Retrospection analysis:")
     print(f"  Compound score delta: {compound_delta:.4f}")
     for pattern in report["patterns"]:
         print(f"  - {pattern}")
@@ -191,7 +192,7 @@ async def run_compound_cycle(
     if token_client is not None:
         metrics = token_client.get_metrics()
         report["token_metrics"] = metrics
-        print(f"\n  Token Metrics:")
+        print("\n  Token Metrics:")
         print(f"    Cache hit rate: {metrics.get('cache_hit_rate', 0):.1%}")
         print(f"    Tokens saved: {metrics.get('tokens_saved', 0)}")
         print(f"    Total calls: {metrics.get('total_calls', 0)}")

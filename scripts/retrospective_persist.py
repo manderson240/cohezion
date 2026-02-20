@@ -6,12 +6,14 @@ Saves key overnight mission artifacts to SurrealDB for long-term retrieval
 
 import sys
 
+
 sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
 
 import asyncio
 import json
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
 from surrealdb import Surreal
 
 
@@ -112,7 +114,7 @@ async def save_overnight_artifacts():
                 "mission": "overnight_2026_01_19",
             },
         )
-    print(f"  ✓ Saved 4 image metadata records to generated_images", flush=True)
+    print("  ✓ Saved 4 image metadata records to generated_images", flush=True)
 
     # 5. Save skill metadata
     for skill_name in ["PRE_FLIGHT_VALIDATION_PRIME", "MATSUMOTO_HIHO_SYNTHESIS_PRIME"]:

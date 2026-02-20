@@ -8,14 +8,14 @@ Tests:
 - Health tracking
 """
 
-import pytest
 import time
-from unittest.mock import Mock
+
+import pytest
 
 from cohezion.swarm.model_fallback_strategy import (
+    CircuitBreakerState,
     ModelCircuitBreaker,
     ModelFallbackStrategy,
-    CircuitBreakerState,
     ModelHealthMetrics,
     get_fallback_strategy,
     reset_fallback_strategy,

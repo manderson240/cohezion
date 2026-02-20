@@ -10,6 +10,7 @@ import click
 
 from mcp_server.entire_sync_daemon import EntireSyncDaemon
 
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,

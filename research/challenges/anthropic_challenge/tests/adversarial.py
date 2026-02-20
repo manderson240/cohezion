@@ -19,7 +19,6 @@ except ImportError:
     pass
 
 from optimizer import OptimizedKernelBuilder as KernelBuilder
-import random
 
 
 class AdversarialTests(unittest.TestCase):

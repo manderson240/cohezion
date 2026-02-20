@@ -9,9 +9,10 @@ Tests cover:
   6. Policy matching and escalation
 """
 
-import pytest
 from datetime import datetime
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from cohezion.sandbox.safety import (
     POLICIES,

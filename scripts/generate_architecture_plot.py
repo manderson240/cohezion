@@ -3,9 +3,10 @@
 Generate a Plotly Architecture Diagram for the Overnight Mission
 """
 
-import plotly.graph_objects as go
-import networkx as nx
 from pathlib import Path
+
+import networkx as nx
+import plotly.graph_objects as go
 
 
 def generate_arch_plot():

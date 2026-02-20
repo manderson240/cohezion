@@ -1,9 +1,7 @@
-import asyncio
-import time
-import subprocess
-import signal
 import os
-import sys
+import signal
+import subprocess
+import time
 
 
 def run_process(cmd):

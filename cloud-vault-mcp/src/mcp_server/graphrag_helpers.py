@@ -11,10 +11,11 @@ Handles edge cases:
 import asyncio
 import logging
 import re
-from typing import Optional, Dict, Any, List
 from pathlib import Path
+from typing import Any
 
 import httpx
+
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +56,7 @@ async def execute_surreal_async(
     database: str = "vault",
     auth: tuple = ("root", "root"),
     max_retries: int = 3,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Execute SurrealQL query with retry logic"""
 
     # Prepend USE statement
@@ -127,12 +128,12 @@ async def safe_create_edge(
     source_id: str,
     edge_type: str,
     target_id: str,
-    metadata: Optional[Dict[str, Any]],
+    metadata: dict[str, Any] | None,
     client: httpx.AsyncClient,
     namespace: str = "cohezion",
     database: str = "vault",
     skip_missing: bool = True,
-) -> Optional[str]:
+) -> str | None:
     """
     Create graph edge with existence checks
 
@@ -234,7 +235,7 @@ async def detect_circular_reference(
 
 
 async def batch_create_edges(
-    edges: List[Dict[str, str]],
+    edges: list[dict[str, str]],
     client: httpx.AsyncClient,
     namespace: str = "cohezion",
     database: str = "vault",
@@ -278,7 +279,7 @@ async def batch_create_edges(
     return success_count
 
 
-def parse_wiki_links(content: str) -> List[str]:
+def parse_wiki_links(content: str) -> list[str]:
     """Extract wiki-style links from markdown content"""
     # Pattern: [[link-text]] or [[link-text|display-text]]
     pattern = r"\[\[([^\]|]+)(?:\|[^\]]+)?\]\]"
@@ -300,7 +301,7 @@ def detect_document_type(file_path: Path, vault_path: Path) -> str:
         return "document"
 
 
-def parse_frontmatter(content: str) -> tuple[Dict[str, Any], str]:
+def parse_frontmatter(content: str) -> tuple[dict[str, Any], str]:
     """Parse YAML frontmatter from markdown"""
     if not content.startswith("---"):
         return {}, content

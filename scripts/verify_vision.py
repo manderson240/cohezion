@@ -3,6 +3,7 @@ import logging
 import sys
 from pathlib import Path
 
+
 # Add src to path
 sys.path.append(str(Path(__name__).parent / "src"))
 
@@ -19,7 +20,7 @@ async def main():
 
     image_path = "/home/mike-anderson/dev/cohezion/debate_trajectory.png"
 
-    print(f"\n--- Testing VisionAgent Analysis ---")
+    print("\n--- Testing VisionAgent Analysis ---")
     if Path(image_path).exists():
         description = await vision.process(
             image_path, "Describe the visual structure of this diagram."

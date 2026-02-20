@@ -1,5 +1,5 @@
+
 from cohezion.core.persistence.surreal_client import PhysicsState
-import numpy as np
 
 
 def verify_12d():

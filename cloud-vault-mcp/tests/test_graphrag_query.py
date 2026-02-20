@@ -1,8 +1,7 @@
 """Tests for GraphRAG hybrid query"""
 
+
 import pytest
-from pathlib import Path
-from unittest.mock import AsyncMock, Mock, patch
 
 from mcp_server.graphrag_query import GraphRAGQuery, _cache_key
 

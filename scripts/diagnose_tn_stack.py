@@ -1,6 +1,7 @@
-import sys
 import importlib
 import platform
+import sys
+
 
 print(f"Python: {sys.version}")
 print(f"Platform: {platform.platform()}")
@@ -30,7 +31,6 @@ check_import("optuna")
 
 # Check Numba/Numpy compatibility specifically
 try:
-    import numba.np.numpy_support
 
     print("\n✅ Numba-Numpy linking appears stable.")
 except Exception as e:

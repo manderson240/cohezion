@@ -1,0 +1,24 @@
+{
+  "provider": "anthropic",
+  "model": "claude-sonnet-4-20250514",
+  "total": 3,
+  "passed": 0,
+  "pass_rate": 0.0,
+  "results": [
+    {
+      "task_id": "HumanEval/0",
+      "success": false,
+      "error": "\"Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted\""
+    },
+    {
+      "task_id": "HumanEval/1",
+      "success": false,
+      "error": "\"Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted\""
+    },
+    {
+      "task_id": "HumanEval/2",
+      "success": false,
+      "error": "\"Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted\""
+    }
+  ]
+}

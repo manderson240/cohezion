@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-import sys
-import subprocess
 import os
+import subprocess
+import sys
+
 
 MAX_SIZE_BYTES = 5 * 1024 * 1024  # 5MB
 
@@ -78,7 +79,7 @@ def main():
     for f in staged_files:
         if os.path.isfile(f):
             try:
-                with open(f, "r", encoding="utf-8") as file_content:
+                with open(f, encoding="utf-8") as file_content:
                     content = file_content.read()
                     for pattern, name in SECRET_PATTERNS:
                         if pattern.search(content):

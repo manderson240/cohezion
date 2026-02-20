@@ -3,12 +3,13 @@ import logging
 import sys
 from pathlib import Path
 
+
 # Add src to path
 sys.path.append(str(Path(__name__).parent / "src"))
 
 from cohezion.swarm.agents.analyst import AnalystAgent
 from cohezion.swarm.agents.memory_agent import MemoryAgent
-from cohezion.swarm.swarm_types import SwarmConfig, Perspective
+from cohezion.swarm.swarm_types import Perspective, SwarmConfig
 
 
 async def main():
@@ -20,7 +21,7 @@ async def main():
     memory_agent = MemoryAgent(config=config)
 
     # 1. Seed a specific memory
-    print(f"\n--- Seeding Mission Memory ---")
+    print("\n--- Seeding Mission Memory ---")
     mission_context = "Mission 'Ghost Sparrow' concluded in December 2025. Key finding: The Fractal Toroidal interface requires a 0.52 stability offset to prevent brane-drift."
     print(f"Storing: {mission_context}")
     # Call ollama via analyst to get it into the persistent memory (via BaseAgent's auto-persistence)
@@ -29,7 +30,7 @@ async def main():
     )
 
     # 2. Retrieve via MemoryAgent
-    print(f"\n--- Testing Recursive Recall ---")
+    print("\n--- Testing Recursive Recall ---")
     query = "What do we know about the Ghost Sparrow mission and stability offsets?"
 
     # First, test raw context retrieval

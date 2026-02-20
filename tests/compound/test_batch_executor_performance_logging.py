@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-import pytest
-from unittest.mock import Mock, MagicMock, call
+from unittest.mock import Mock
 
-from cohezion.compound.batch_executor import BatchableExecutor, CompoundTask
+import pytest
+
+from cohezion.compound.batch_executor import BatchableExecutor
 from cohezion.compound.executor import CompoundExecutor
 from cohezion.core.mcp_client import MCPClient, MCPToolError
 

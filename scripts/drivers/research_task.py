@@ -10,10 +10,12 @@ import logging
 import sys
 from pathlib import Path
 
+
 # Add src to path
 sys.path.append(str(Path(__file__).parent.parent.parent / "src"))
 
 from cohezion.swarm.agents.lab_agent import LabAgent
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("research_task")

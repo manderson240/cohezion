@@ -9,12 +9,12 @@ Provides alerts when resources exceed thresholds.
 import json
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 import psutil
+
 
 logger = logging.getLogger("ResourceMonitor")
 
@@ -71,7 +71,7 @@ class ResourceMonitor:
 
     def __init__(
         self,
-        thresholds: Optional[ResourceThresholds] = None,
+        thresholds: ResourceThresholds | None = None,
         check_interval_seconds: float = 5.0,
         history_size: int = 1000,
     ):
@@ -245,11 +245,11 @@ class ResourceMonitor:
 
 
 # Global monitor instance
-_global_monitor: Optional[ResourceMonitor] = None
+_global_monitor: ResourceMonitor | None = None
 
 
 def get_resource_monitor(
-    thresholds: Optional[ResourceThresholds] = None, check_interval_seconds: float = 5.0
+    thresholds: ResourceThresholds | None = None, check_interval_seconds: float = 5.0
 ) -> ResourceMonitor:
     """Get or create global resource monitor."""
     global _global_monitor
@@ -288,7 +288,7 @@ if __name__ == "__main__":
             for alert in alerts:
                 print(f"     - {alert['level']}: {alert['message']}")
         else:
-            print(f"  ✅ All resources within thresholds")
+            print("  ✅ All resources within thresholds")
 
         time.sleep(1)
 

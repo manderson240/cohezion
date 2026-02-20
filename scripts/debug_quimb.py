@@ -1,5 +1,6 @@
+
 import quimb.tensor as qtn
-import inspect
+
 
 print("Inspecting qtn.Circuit:")
 try:

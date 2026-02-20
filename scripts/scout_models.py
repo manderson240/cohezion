@@ -1,9 +1,11 @@
 import asyncio
 import logging
-import sys
 import shutil
+import sys
 from pathlib import Path
+
 from cohezion.core.local_registry import get_local_registry
+
 
 # Add src to path
 sys.path.append(str(Path.cwd() / "src"))

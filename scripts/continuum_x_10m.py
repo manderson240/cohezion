@@ -11,17 +11,19 @@ Let agents decide how to represent their multimodal/12D experiences.
 import json
 import logging
 import time
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 
+from cohezion.flume.bioelectric import BioelectricEngine
+
 # Import our compound engineering chain
 from cohezion.flume.lcsp import HIHO, LCSPPredictor
-from cohezion.flume.morphospace import MorphospaceMapper, StabilityWell
-from cohezion.flume.bioelectric import BioelectricEngine
+from cohezion.flume.morphospace import MorphospaceMapper
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -138,7 +140,7 @@ class ContinuumXSimulation:
         Sample experiences at regular intervals.
         """
         logger.info(f"Starting Continuum-X simulation: {self.total_cycles:,} cycles")
-        logger.info(f"Compound chain: LCSP → Morphospace → Bioelectric")
+        logger.info("Compound chain: LCSP → Morphospace → Bioelectric")
 
         start_time = time.time()
         phase = "genesis"
@@ -360,14 +362,14 @@ State: Fluid, adaptive, evolving
             f.write(
                 f"> **COHEZION = 0.5 HIHO** | Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n"
             )
-            f.write(f"## Summary\n")
+            f.write("## Summary\n")
             f.write(f"- **Total Cycles**: {self.total_cycles:,}\n")
             f.write(f"- **Final Stability**: {summary['final_stability']:.4f}\n")
             f.write(f"- **Avg Stability**: {summary['avg_stability']:.4f}\n\n")
-            f.write(f"## Pattern Counts\n")
+            f.write("## Pattern Counts\n")
             for pattern, count in self.pattern_counts.items():
                 f.write(f"- **{pattern.title()}**: {count:,}\n")
-            f.write(f"\n## Discovered Patterns\n\n")
+            f.write("\n## Discovered Patterns\n\n")
             for p in self.pattern_discoveries:
                 f.write(f"### {p.name}\n")
                 f.write(f"{p.description}\n\n")

@@ -13,7 +13,6 @@ at the HIHO (0.5) stability point.
 
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import json
 import logging
@@ -26,7 +25,6 @@ from uuid import uuid4
 
 import numpy as np
 
-from cohezion.flume.autoencoder import FlumeEncoder
 
 logger = logging.getLogger(__name__)
 

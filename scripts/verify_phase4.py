@@ -1,6 +1,8 @@
 import asyncio
 import logging
+
 from cohezion.compound.optimizer import get_guided_router
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

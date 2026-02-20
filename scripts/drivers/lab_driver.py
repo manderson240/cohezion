@@ -4,16 +4,18 @@ Lab Driver - Orchestrates the Autonomous AI Lab background execution.
 
 import asyncio
 import logging
+import os
 import signal
 import sys
-import os
 import time
 from pathlib import Path
+
 
 # Add src to sys.path
 sys.path.append(str(Path(__file__).parent / "src"))
 
 from cohezion.swarm.agents.lab_agent import LabAgent
+
 
 # Setup logging
 os.makedirs("logs", exist_ok=True)
@@ -128,7 +130,7 @@ async def main():
             logger.info(f"Waiting for {delay:.1f}s (Autonomic Scaling)...")
             try:
                 await asyncio.wait_for(stop_event.wait(), timeout=delay)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 pass
 
     except Exception as e:

@@ -6,8 +6,9 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from cohezion.registry.skill_registry import load_registry
 from cohezion.registry.capability_registry import CapabilityRegistry
+from cohezion.registry.skill_registry import load_registry
+
 
 SKILLS_DIR = Path("src/cohezion/skills")
 

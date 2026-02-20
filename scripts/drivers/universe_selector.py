@@ -6,14 +6,14 @@ Watches the knowledge graph and maintains a 'Golden Set' of 12 transformative si
 import asyncio
 import json
 import logging
-from pathlib import Path
 from dataclasses import dataclass
-from typing import List, Dict
+from pathlib import Path
+
 
 # Attempt to use local embedding for diversity, else fallback to coherence score
 try:
-    from sklearn.metrics.pairwise import cosine_similarity
     import numpy as np
+    from sklearn.metrics.pairwise import cosine_similarity
 
     SKLEARN_AVAILABLE = True
 except ImportError:
@@ -36,8 +36,8 @@ class UniverseSelector:
         self.root_dir = Path("src/cohezion/knowledge_graph/universe_nodes")
         self.input_file = self.root_dir / "universes.jsonl"
         self.output_file = self.root_dir / "top_12_universes.md"
-        self.candidates: List[UniverseCandidate] = []
-        self.top_12: List[UniverseCandidate] = []
+        self.candidates: list[UniverseCandidate] = []
+        self.top_12: list[UniverseCandidate] = []
 
     async def run_forever(self):
         logger.info("Starting Universe Selector...")
@@ -56,7 +56,7 @@ class UniverseSelector:
         try:
             # Snail-read the file (it grows append-only)
             # For 24k lines, this is fine. For 1M, we'd need a cursor.
-            with open(self.input_file, "r") as f:
+            with open(self.input_file) as f:
                 for line in f:
                     try:
                         data = json.loads(line)

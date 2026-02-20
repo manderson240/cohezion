@@ -3,12 +3,13 @@ import logging
 import sys
 from pathlib import Path
 
+
 # Add src to path
 sys.path.append(str(Path(__name__).parent / "src"))
 
-from cohezion.swarm.agents.analyst import AnalystAgent
-from cohezion.swarm.swarm_types import SwarmConfig, Perspective
 from cohezion.core.credit_manager import get_credit_manager
+from cohezion.swarm.agents.analyst import AnalystAgent
+from cohezion.swarm.swarm_types import Perspective, SwarmConfig
 
 
 async def main():
@@ -30,11 +31,11 @@ async def main():
     agent = AnalystAgent(Perspective.TECHNICAL, config=config)
     agent.model_name = "claude-opus-4.5"
 
-    print(f"\n--- Testing Model Fallback (Insufficient Credits) ---")
+    print("\n--- Testing Model Fallback (Insufficient Credits) ---")
     await agent.analyze("Explain quantum entanglement.")
 
     # 2. Test Degraded Mode (PROMPT PRUNING)
-    print(f"\n--- Testing Degraded Mode (Prompt Pruning) ---")
+    print("\n--- Testing Degraded Mode (Prompt Pruning) ---")
     config.degraded_mode = True
     long_prompt = "A" * 2000  # Very long prompt
 

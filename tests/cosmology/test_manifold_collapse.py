@@ -1,7 +1,5 @@
-import numpy as np
-from cohezion.swarm.perception import JourneyPerception
 from cohezion.compound.executor_types import ExecutionResult
-from datetime import datetime
+from cohezion.swarm.perception import JourneyPerception
 
 
 def test_manifold_collapse():

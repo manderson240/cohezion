@@ -456,9 +456,9 @@ class TestDegradationMode:
 
     def _make_critical_detector(self):
         """Create a mock degradation detector that always fires CRITICAL."""
-        from unittest.mock import MagicMock
         from dataclasses import dataclass
         from enum import Enum
+        from unittest.mock import MagicMock
 
         class Sev(Enum):
             CRITICAL = "CRITICAL"
@@ -558,6 +558,7 @@ class TestDegradationMode:
     def test_degradation_clears_on_hiho_return(self, mock_mcp_client):
         """Degradation mode clears when cohesion returns to HIHO band."""
         from unittest.mock import MagicMock
+
         from cohezion.compound.inflection_detector import Severity
 
         detector = self._make_ok_detector()

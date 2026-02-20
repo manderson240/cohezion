@@ -19,12 +19,11 @@ import json
 import logging
 import math
 import random
-import sys
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+
 
 # Setup logging
 logging.basicConfig(
@@ -70,7 +69,7 @@ class SimulationMetrics:
 class HighQualitySimulationEngine:
     """Engine focused on quality, not speed."""
 
-    def __init__(self, session_id: Optional[str] = None):
+    def __init__(self, session_id: str | None = None):
         self.session_id = (
             session_id or f"quality-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         )
@@ -409,7 +408,7 @@ class HighQualitySimulationEngine:
             # Save final results
             self._save_results(all_results)
 
-        except Exception as e:
+        except Exception:
             logger.exception("❌ Fatal error")
             raise
 
@@ -490,7 +489,7 @@ class HighQualitySimulationEngine:
         grid_size = config.get("grid_size", 64)
 
         logger.info("")
-        logger.info(f"🌌 PHASE 3: Fractal Universe")
+        logger.info("🌌 PHASE 3: Fractal Universe")
         logger.info(
             f"   Agents: {n_agents:,}, Steps: {n_steps:,}, Grid: {grid_size}×{grid_size}"
         )

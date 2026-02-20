@@ -1,6 +1,6 @@
-import requests
-import json
 from pathlib import Path
+
+import requests
 
 
 def generate_arch():

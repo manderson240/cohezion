@@ -24,16 +24,18 @@ For Anthropic Research Engineer, Universes Application
 
 import marimo
 
+
 __generated_with = "0.10.17"
 app = marimo.App(width="full")
 
 
 @app.cell
 def _():
+    from datetime import datetime
+
     import marimo as mo
     import matplotlib.pyplot as plt
     import numpy as np
-    from datetime import datetime
 
     return mo, plt, np, datetime
 

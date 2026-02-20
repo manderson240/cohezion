@@ -1,14 +1,13 @@
 import asyncio
 import logging
-import os
 import subprocess
-import sys
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
 
-from imap_tools import MailBox, AND
+from imap_tools import AND, MailBox
+
 from cohezion.mcp.email_notifier import EmailNotifier, NotificationConfig
+
 
 logger = logging.getLogger("PhoneOrchestrator")
 
@@ -93,7 +92,7 @@ class PhoneOrchestrator:
 
             await asyncio.sleep(interval)
 
-    def _fetch_commands(self) -> List[tuple]:
+    def _fetch_commands(self) -> list[tuple]:
         """Fetch UNSEEN emails with [CMD] in subject."""
         commands = []
         if not self.config.sender_password:

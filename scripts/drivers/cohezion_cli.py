@@ -5,8 +5,6 @@ import re
 import sys
 from datetime import datetime
 
-from cohezion.branding import Colors
-from cohezion.ui.nexus_ui import ConsciousnessIgnition, NexusUI
 from rich.align import Align
 from rich.console import Console
 from rich.layout import Layout
@@ -15,6 +13,10 @@ from rich.panel import Panel
 from rich.progress import BarColumn, Progress, TextColumn
 from rich.table import Table
 from rich.text import Text
+
+from cohezion.branding import Colors
+from cohezion.ui.nexus_ui import ConsciousnessIgnition, NexusUI
+
 
 # Configuration
 LOG_PATH = "logs/lab_driver.log"
@@ -25,7 +27,7 @@ EXPERT_DOMAINS = {
     "quantum_hw": "Quantum HW",
     "quantum_algo": "Quantum Algo",
 }
-EXPERTS_STATUS = {e: "Idle" for e in EXPERT_DOMAINS.keys()}
+EXPERTS_STATUS = dict.fromkeys(EXPERT_DOMAINS.keys(), "Idle")
 
 
 class SimulationDriver:
@@ -34,7 +36,7 @@ class SimulationDriver:
     def __init__(self):
         self.discoveries = []
         self.coherence = 0.45
-        self.experts_status = {e: "Idle" for e in EXPERT_DOMAINS.keys()}
+        self.experts_status = dict.fromkeys(EXPERT_DOMAINS.keys(), "Idle")
 
     async def cool_down_expert(self, expert):
         await asyncio.sleep(5)
@@ -55,7 +57,7 @@ class SimulationDriver:
                     continue
 
                 # Check for expert ignition
-                for key in EXPERT_DOMAINS.keys():
+                for key in EXPERT_DOMAINS:
                     if f"route: {key}" in line.lower():
                         self.experts_status[key] = "Ignited"
                         asyncio.create_task(self.cool_down_expert(key))

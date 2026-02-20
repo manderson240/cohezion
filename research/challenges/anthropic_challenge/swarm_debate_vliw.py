@@ -1,7 +1,5 @@
 import subprocess
 import json
-import os
-import time
 
 
 def call_ollama(model, prompt):
@@ -69,7 +67,7 @@ def swarm_debate():
         journey.append({"round": 2, "role": role, "response": resp})
 
     # Round 3: Synthesis (Final)
-    prompt = f"Role: Lead Architect (DeepSeek). Synthesize the final Sub-500 Blueprint based on the debate rounds. Focus on implementation-ready instructions."
+    prompt = "Role: Lead Architect (DeepSeek). Synthesize the final Sub-500 Blueprint based on the debate rounds. Focus on implementation-ready instructions."
     final_resp = call_ollama(
         specialists["Architect"], prompt + "\nContext: " + str(journey)[-4000:]
     )

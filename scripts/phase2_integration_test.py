@@ -7,6 +7,7 @@ import sys
 import tempfile
 from pathlib import Path
 
+
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
 )
@@ -19,8 +20,8 @@ async def test_lru_persistent_token_cache():
     logger.info("TEST: LRUPersistentTokenCache with bounded memory")
     logger.info("=" * 70)
 
-    from cohezion.swarm.lru_persistent_token_cache import LRUPersistentTokenCache
     from cohezion.swarm.batch_processor import CacheEntry
+    from cohezion.swarm.lru_persistent_token_cache import LRUPersistentTokenCache
 
     with tempfile.TemporaryDirectory() as tmpdir:
         # Create cache with small max_entries to test eviction
@@ -40,7 +41,7 @@ async def test_lru_persistent_token_cache():
 
         # Check stats
         stats = cache.get_stats()
-        logger.info(f"Cache stats after 6 puts:")
+        logger.info("Cache stats after 6 puts:")
         logger.info(f"  Memory entries: {stats['memory_entries']}")
         logger.info(f"  Max entries: {stats['max_entries']}")
         logger.info(f"  Utilization: {stats['utilization']:.1%}")

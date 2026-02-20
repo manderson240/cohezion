@@ -1,11 +1,13 @@
 import asyncio
-import logging
 import json
+import logging
 import math
 import random
 import time
+
 import psutil
 import websockets
+
 
 # Configure logging
 logging.basicConfig(
@@ -52,7 +54,7 @@ async def broadcast_loop():
         # Scrape Real Thought from Log
         latest_thought = "BBQ ACTIVE: Monitoring System Vitals..."
         try:
-            with open("autonomous_bbq.log", "r") as f:
+            with open("autonomous_bbq.log") as f:
                 # Read last 2KB for efficiency
                 f.seek(0, 2)
                 size = f.tell()

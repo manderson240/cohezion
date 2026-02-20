@@ -1,7 +1,8 @@
-import ijson
 import json
-import os
 from pathlib import Path
+
+import ijson
+
 
 SOURCE_FILE = Path("data/sim_results_25m.json")
 OUTPUT_DIR = Path("data/ingest_chunks")
@@ -43,7 +44,7 @@ class DecimalEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, Decimal):
             return float(o)
-        return super(DecimalEncoder, self).default(o)
+        return super().default(o)
 
 
 def _write_chunk(idx, data):

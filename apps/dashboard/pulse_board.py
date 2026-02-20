@@ -1,16 +1,18 @@
 import marimo
 
+
 __generated_with = "0.10.9"
 app = marimo.App(width="medium")
 
 
 @app.cell
 def _():
-    import marimo as mo
-    import plotly.graph_objects as go
     import random
     import time
     from datetime import datetime
+
+    import marimo as mo
+    import plotly.graph_objects as go
     import psutil
 
     return datetime, go, mo, psutil, random, time

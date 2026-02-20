@@ -1,5 +1,6 @@
 import marimo as mo
 
+
 app = mo.App(title="Cohezion: The Living Research Paper")
 
 
@@ -19,12 +20,13 @@ def __(mo):
 
 @app.cell
 def __():
+    from pathlib import Path
+
     import marimo as mo
-    import pandas as pd
     import numpy as np
+    import pandas as pd
     import plotly.express as px
     import plotly.graph_objects as go
-    from pathlib import Path
 
     return mo, pd, np, px, go, Path
 

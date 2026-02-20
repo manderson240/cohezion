@@ -23,11 +23,12 @@ Output:
     ~/.claude/projects/-home-mike-anderson-dev-cohezion/memory/MEMORY.md
 """
 
+import argparse
 import asyncio
 import sys
-import argparse
 from datetime import datetime, timedelta
 from pathlib import Path
+
 
 # Add cloud-vault-mcp to path for GraphRAG
 sys.path.insert(0, str(Path(__file__).parent.parent / "cloud-vault-mcp" / "src"))

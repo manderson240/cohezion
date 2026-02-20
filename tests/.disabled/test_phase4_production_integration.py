@@ -18,13 +18,14 @@ Success Criteria:
 Target: Production-ready system with 99.8% uptime, <50ms latency overhead
 """
 
-import pytest
 import asyncio
 from typing import Any
-from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Phase 1 imports
-from cohezion.compound.executor import CompoundExecutor, ExecutionResult
+from cohezion.compound.session_manager import InferenceSession, SessionConfig
+from cohezion.deployment.deployment_config import DeploymentConfig, Environment, Region
 
 # Phase 2 imports
 from cohezion.deployment.feature_flags import (
@@ -32,16 +33,14 @@ from cohezion.deployment.feature_flags import (
     FeatureFlagManager,
     RolloutStage,
 )
-from cohezion.deployment.deployment_config import Environment, Region, DeploymentConfig
-
-# Phase 3 imports
-from cohezion.security.guardrail_factory import create_default_pipeline
-from cohezion.compound.session_manager import InferenceSession, SessionConfig
-from cohezion.swarm.semantic_cache import SemanticCache
+from cohezion.observability.metrics_analytics import MetricsAnalytics
 
 # Phase 4 imports
 from cohezion.observability.unified_metrics import get_metrics_collector
-from cohezion.observability.metrics_analytics import MetricsAnalytics
+
+# Phase 3 imports
+from cohezion.security.guardrail_factory import create_default_pipeline
+from cohezion.swarm.semantic_cache import SemanticCache
 
 
 class TestPhase4ProductionReadiness:

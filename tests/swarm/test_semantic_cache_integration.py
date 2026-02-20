@@ -7,17 +7,17 @@ Tests three-tier caching hierarchy:
 - Fallback: Generate new via Ollama
 """
 
-import pytest
 from unittest.mock import AsyncMock, patch
-import numpy as np
 
-from cohezion.swarm.token_client import TokenEfficientClient
-from cohezion.swarm.semantic_cache import (
-    SemanticCache,
-    EmbeddingResult,
-    SemanticCacheHit,
-)
+import numpy as np
+import pytest
+
 from cohezion.swarm.batch_processor import BatchItem, CacheEntry
+from cohezion.swarm.semantic_cache import (
+    EmbeddingResult,
+    SemanticCache,
+)
+from cohezion.swarm.token_client import TokenEfficientClient
 
 
 @pytest.fixture

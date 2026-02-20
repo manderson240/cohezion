@@ -1,18 +1,20 @@
 import marimo
 
+
 __generated_with = "0.10.14"
 app = marimo.App(title="Universe Explorer: High-Fidelity 12D Metrics")
 
 
 @app.cell
 def __():
+    import re
+    from pathlib import Path
+
     import marimo as mo
+    import numpy as np
     import pandas as pd
     import plotly.express as px
     import plotly.graph_objects as go
-    import re
-    import numpy as np
-    from pathlib import Path
     from sklearn.decomposition import PCA
 
     return Path, PCA, mo, np, pd, px, go, re

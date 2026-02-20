@@ -11,10 +11,10 @@ import time
 from pathlib import Path
 
 from cohezion.compound import (
+    AgentTask,
     CompoundFeedbackLoopFactory,
     ExecutorFactory,
     JourneyTrackerFactory,
-    AgentTask,
 )
 from cohezion.core.mcp_client import MCPClient
 

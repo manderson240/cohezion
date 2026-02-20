@@ -1,18 +1,15 @@
 import asyncio
 import logging
-import json
-import os
+from datetime import datetime
+
 import psutil
-from datetime import datetime, timedelta
-from pathlib import Path
-import random
 
 from cohezion.core.persistence.surreal_client import (
-    SurrealClient,
-    UniverseNode,
     PhysicsState,
+    SurrealClient,
 )
 from cohezion.mcp.email_notifier import EmailNotifier
+
 
 logging.basicConfig(
     level=logging.INFO,

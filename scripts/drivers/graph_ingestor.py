@@ -8,9 +8,10 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 
 import aiofiles
+
 
 logger = logging.getLogger("graph_ingestor")
 
@@ -56,9 +57,9 @@ class GraphIngestor:
             await self._append_to_graph(new_nodes)
             logger.info(f"Ingested {len(new_nodes)} new universe nodes.")
 
-    async def _parse_log(self, file_path: Path) -> Dict[str, Any]:
+    async def _parse_log(self, file_path: Path) -> dict[str, Any]:
         try:
-            async with aiofiles.open(file_path, mode="r") as f:
+            async with aiofiles.open(file_path) as f:
                 content = await f.read()
 
             # Basic extraction based on file type

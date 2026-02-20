@@ -1,11 +1,9 @@
 from perf_takehome import (
-    KernelBuilder,
     Tree,
     Input,
     build_mem_image,
     Machine,
     N_CORES,
-    reference_kernel2,
 )
 from optimizer import OptimizedKernelBuilder, KernelConfig
 import random

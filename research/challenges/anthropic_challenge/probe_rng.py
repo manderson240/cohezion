@@ -1,4 +1,3 @@
-import random
 from anthropic_challenge.problem import Tree, Input
 
 # Check if sequences differ between runs

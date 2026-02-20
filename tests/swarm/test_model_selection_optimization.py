@@ -4,11 +4,12 @@ Tests the decision-making process for selecting between phi3, qwen, and deepseek
 """
 
 import pytest
+
+from cohezion.cost_optimization.cost_tracker import SessionCostTracker
 from cohezion.swarm.cost_aware_router import (
     CostAwareRouter,
     QueryComplexity,
 )
-from cohezion.cost_optimization.cost_tracker import SessionCostTracker
 
 
 class TestModelSelectionOptimization:

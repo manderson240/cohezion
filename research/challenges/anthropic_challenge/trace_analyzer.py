@@ -1,6 +1,5 @@
 import json
 import collections
-import sys
 
 
 def analyze(filename):

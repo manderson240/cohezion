@@ -1,15 +1,17 @@
 import asyncio
-import aiofiles
-import os
 import json
-import time
 import logging
 import sys
+import time
 from pathlib import Path
+
+import aiofiles
+
 
 # Add src to sys.path to find DBAdmin
 sys.path.append(str(Path.cwd() / "src"))
 from cohezion.core.persistence.admin import DBAdmin
+
 
 # Config
 BATCH_SIZE = 2000
@@ -30,7 +32,7 @@ async def process_jsonl_file(file_path: Path):
     """
     records = []
     try:
-        async with aiofiles.open(file_path, "r") as f:
+        async with aiofiles.open(file_path) as f:
             async for line in f:
                 if line.strip():
                     try:

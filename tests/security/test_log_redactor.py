@@ -9,8 +9,9 @@ Verifies:
 """
 
 import logging
-import pytest
 from io import StringIO
+
+import pytest
 
 from cohezion.security.log_redactor import (
     RedactionFilter,

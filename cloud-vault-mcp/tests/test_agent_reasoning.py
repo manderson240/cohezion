@@ -6,8 +6,9 @@ Tests the three new MCP tools:
 - record_cascade: Insert relates_to_decision edges
 """
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from src.mcp_server.agent_reasoning import AgentReasoningOps
 

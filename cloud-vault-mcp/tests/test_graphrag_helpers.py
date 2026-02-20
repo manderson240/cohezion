@@ -1,21 +1,21 @@
 """Tests for GraphRAG helper functions"""
 
-import pytest
-from unittest.mock import AsyncMock, Mock, patch
+from pathlib import Path
+from unittest.mock import AsyncMock
+
 import httpx
+import pytest
 
 from src.mcp_server.graphrag_helpers import (
-    slugify,
-    escape_sql,
-    parse_wiki_links,
-    detect_document_type,
-    parse_frontmatter,
     check_document_exists,
-    safe_create_edge,
     detect_circular_reference,
-    GraphRAGError,
+    detect_document_type,
+    escape_sql,
+    parse_frontmatter,
+    parse_wiki_links,
+    safe_create_edge,
+    slugify,
 )
-from pathlib import Path
 
 
 def test_slugify():

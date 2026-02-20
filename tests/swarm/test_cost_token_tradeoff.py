@@ -4,12 +4,12 @@ Tests the core logic that prefers cheaper-per-token models when latency is accep
 """
 
 import pytest
+
+from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
+from cohezion.cost_optimization.cost_tracker import SessionCostTracker
 from cohezion.swarm.cost_aware_router import (
     CostAwareRouter,
-    QueryComplexity,
 )
-from cohezion.cost_optimization.cost_tracker import SessionCostTracker
-from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
 
 
 class TestCostTokenTradeoff:

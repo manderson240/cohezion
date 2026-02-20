@@ -15,8 +15,10 @@ import asyncio
 import json
 import logging
 from pathlib import Path
-from pocket_tts import TTSModel
+
 import scipy.io.wavfile
+from pocket_tts import TTSModel
+
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -39,7 +41,7 @@ async def build_showreel(journey_id: str, output_file: str):
     logger.info(f"🎬 Building showreel for {journey_id}")
 
     # 1. Load Journey Samples
-    data_path = Path(f"data/sim_results_25m.json")
+    data_path = Path("data/sim_results_25m.json")
     if not data_path.exists():
         logger.error("Simulation results not found. Wait for background task.")
         return
@@ -55,7 +57,7 @@ async def build_showreel(journey_id: str, output_file: str):
 
     # Assemble using ffmpeg (assuming frames and audio exist)
     # Placeholder for complex assembly logic
-    logger.info(f"🚀 Assembly would occur here if ffmpeg were installed.")
+    logger.info("🚀 Assembly would occur here if ffmpeg were installed.")
 
 
 if __name__ == "__main__":

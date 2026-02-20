@@ -21,6 +21,7 @@ from cohezion.universe.sandbox_backends import SubprocessBackend
 from cohezion.universe.sandbox_profiles import SandboxProfile
 from cohezion.universe.sandbox_results import persist_result
 
+
 # Use a lenient profile for tests — high memory limit avoids RLIMIT_AS failures
 # on systems where Python's own footprint is large.
 TEST_PROFILE = SandboxProfile(

@@ -14,6 +14,7 @@ Target: 3.4× cumulative improvement (85 → 294 tok/sec, 65%+ cache hit rate)
 import logging
 import sys
 
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -236,8 +237,8 @@ class Phase2ValidationSuite:
 
         try:
             from cohezion.swarm.batch_processor import (
-                BatchProcessor,
                 BatchItem,
+                BatchProcessor,
             )
 
             # Create mock processor with deduplication
@@ -330,8 +331,8 @@ class Phase2ValidationSuite:
         logger.info("=" * 60)
 
         try:
-            from cohezion.cache.text_encoder import get_text_encoder
             from cohezion.cache.semantic_cache import SemanticCache
+            from cohezion.cache.text_encoder import get_text_encoder
             from cohezion.swarm.batch_processor import BatchProcessor
 
             # Component 1: Semantic encoder (Phase 2.1)

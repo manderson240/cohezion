@@ -11,14 +11,13 @@ We find the 'peak' (heavy bitstring) by:
 3. performing likelihood-based sampling (since it's a peaked distribution) to find candidates.
 """
 
-import os
 import logging
+import os
 import time
+
+import cotengra as ctg
 import numpy as np
 import quimb.tensor as qtn
-import cotengra as ctg
-from typing import List, Tuple, Optional
-import sys
 
 
 # Configure logging
@@ -30,8 +29,8 @@ class PeakedCircuitSolver:
     def __init__(self, qasm_path: str, memory_limit_gb: int = 50):
         self.qasm_path = qasm_path
         self.memory_limit_gb = memory_limit_gb
-        self.circ: Optional[qtn.Circuit] = None
-        self.tn: Optional[qtn.TensorNetwork] = None
+        self.circ: qtn.Circuit | None = None
+        self.tn: qtn.TensorNetwork | None = None
         self.contraction_info = None
 
         # Verify file exists
@@ -43,7 +42,7 @@ class PeakedCircuitSolver:
         logger.info(f"Loading QASM from {self.qasm_path}...")
 
         try:
-            with open(self.qasm_path, "r") as f:
+            with open(self.qasm_path) as f:
                 lines = f.readlines()
 
             # Simple parser for 'u' and 'cz' gates
@@ -61,7 +60,6 @@ class PeakedCircuitSolver:
             logger.info(f"Found {N} qubits. Constructing TN...")
             self.circ = qtn.Circuit(N)
 
-            import re
 
             for line in lines:
                 line = line.strip().replace(";", "")
@@ -129,7 +127,7 @@ class PeakedCircuitSolver:
         )
         return opt
 
-    def simulate_and_sample(self, samples: int = 100000) -> List[Tuple[str, float]]:
+    def simulate_and_sample(self, samples: int = 100000) -> list[tuple[str, float]]:
         """
         Performs Approximate MPS Evolution (Manifold Encoding) to find the peak.
         Strategy: Manual Gate Applications on MPS.
@@ -143,7 +141,7 @@ class PeakedCircuitSolver:
             # Let's re-parse or rely on self.circ structure if we trust it.
             # Safest: Re-parse into a clean list of ops.
 
-            with open(self.qasm_path, "r") as f:
+            with open(self.qasm_path) as f:
                 lines = f.readlines()
 
             N = 36  # Known for this problem
@@ -192,11 +190,11 @@ class PeakedCircuitSolver:
             site_to_qubit = list(range(N))
             qubit_to_site = list(range(N))
 
-            import quimb.gates as qg
-            from tqdm import tqdm
-
             # Resource limit to prevent crashes (40GB)
             import resource
+
+            import quimb.gates as qg
+            from tqdm import tqdm
 
             try:
                 rsrc = resource.RLIMIT_AS

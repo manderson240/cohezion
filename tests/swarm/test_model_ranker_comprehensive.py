@@ -8,9 +8,10 @@ Tests model ranking strategies:
 - Multi-strategy comparison
 """
 
-import pytest
 import time
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
+
+import pytest
 
 from cohezion.swarm.model_ranker import (
     ModelRanker,
