@@ -3,17 +3,22 @@
   "checkpoint_id": "281425a6726d",
   "strategy": "manual-commit",
   "branch": "spec/routes-consolidation",
-  "checkpoints_count": 5,
+  "checkpoints_count": 9,
   "files_touched": [
     ".claude/skills/appimage-desktop-integration/SKILL.md",
+    ".claude/skills/pytest-async-cascade-diagnosis/SKILL.md",
     ".github/workflows/lint.yml",
     ".github/workflows/test.yml",
     "CLAUDE.md",
     "README.md",
     "ollama-mcp",
+    "pyproject.toml",
     "research/challenges/anthropic_challenge_original",
     "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
-    "src/cohezion/knowledge_graph/MISSION_JOURNAL.md"
+    "src/cohezion/knowledge_graph/MISSION_JOURNAL.md",
+    "tests/compound/test_journey_tracker.py",
+    "tests/sandbox/test_hooks.py",
+    "tests/test_api_phase2.py"
   ],
   "sessions": [
     {
@@ -22,13 +27,20 @@
       "context": "/28/1425a6726d/0/context.md",
       "content_hash": "/28/1425a6726d/0/content_hash.txt",
       "prompt": "/28/1425a6726d/0/prompt.txt"
+    },
+    {
+      "metadata": "/28/1425a6726d/1/metadata.json",
+      "transcript": "/28/1425a6726d/1/full.jsonl",
+      "context": "/28/1425a6726d/1/context.md",
+      "content_hash": "/28/1425a6726d/1/content_hash.txt",
+      "prompt": "/28/1425a6726d/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 264,
-    "cache_creation_tokens": 413483,
-    "cache_read_tokens": 10792686,
-    "output_tokens": 4935,
-    "api_call_count": 117
+    "input_tokens": 1601,
+    "cache_creation_tokens": 617785,
+    "cache_read_tokens": 22265958,
+    "output_tokens": 6289,
+    "api_call_count": 198
   }
 }
