@@ -1,7 +1,7 @@
 ---
 title: Optofluidic Three-Dimensional Micro/Nanofabrication
 date: 2026-02-07
-tags: null
+tags: [optofluidic-3d-nanofabrication, nanofabrication, 2026-02-13-local-model-roster-update-february-2026-sota-assessment, 2026-02-10-hyperdim-project-status-update, 2026-02-11-session-55-git-aggressive-gc-doesnt-consolidate-packs-manual-repack-forced]
 connectivity: 0.27
 cross_domain: 0.5
 completion: 0.67
@@ -47,3 +47,14 @@ Nature paper introduces a universal 3D micro/nanofabrication strategy that uses 
 ## Relevance to Cohezion
 
 Relevant to [[enhanced_simulator.py]] for modeling nanoscale fabrication processes and self-assembly dynamics., [[nanofabrication]], [[synthesis-methods]], [[optical-properties]]
+
+## Related Concepts
+
+- [[yann-lecun-agi-world-models]]
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[protein-tape-recorder-cytotape]]
+- [[ai-anomaly-detection-hubble-archive]]
+- [[ocean-calcium-climate-mystery-66my]]
+- [[mars-time-dilation-relativity]]
+- [[magnetic-superhighways-starburst-galaxy]]
+- [[llm-in-sandbox-agentic-intelligence]]

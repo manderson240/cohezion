@@ -1,7 +1,7 @@
 ---
 title: '66-Million-Year Climate Mystery Solved: Ocean Calcium Decline Cooled Earth'
 date: 2026-02-07
-tags: null
+tags: [ocean-calcium-climate-mystery-66my, 2026-02-14-settings-validation-mystery, woh-g64-red-supergiant-mystery, super-earth-magnetic-protection-magma, 2026-02-13-local-model-roster-update-february-2026-sota-assessment]
 connectivity: 0.0
 cross_domain: 0.5
 completion: 0.67
@@ -55,3 +55,14 @@ Demonstrates how slow chemical feedback loops produce dramatic long-term system-
 - [[service-class-singleton-pattern]]
 - [[PRIME_CLAUDE_CODE_PRACTICES]]
 - [[multi-session-compound-engineering-workflow]]
+
+## Related Concepts
+
+- [[yann-lecun-agi-world-models]]
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[circleci-ai-cicd-validation]]
+- [[woh-g64-red-supergiant-mystery]]
+- [[protein-tape-recorder-cytotape]]
+- [[ai-anomaly-detection-hubble-archive]]
+- [[mars-time-dilation-relativity]]
+- [[magnetic-superhighways-starburst-galaxy]]

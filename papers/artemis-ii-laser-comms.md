@@ -64,3 +64,8 @@ general
 ## Relevance to Cohezion
 
 Space Exploration resource captured via mobile link pipeline. general, [[astrophysics-observations]]
+
+## Related Concepts
+
+- [[oman-artemis-accords]]
+- [[quantum-atomic-light-synchronization]]

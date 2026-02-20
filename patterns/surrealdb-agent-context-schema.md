@@ -381,3 +381,14 @@ agent_context.relevance_snapshot = {
 **Decisions**: [[2026-02-09-12d-graph-surrealdb-integration]], [[2026-02-11-adopt-graphrag-for-vault-knowledge-graph]]
 
 **Patterns**: [[MCP Server FastMCP Builder Pattern]], [[SurrealDB Query-Driven Analysis]]
+
+## Related Concepts
+
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[3d-graph-plugin-selection]]
+- [[2026-02-14-phase-6b-cascade-impact-computation]]
+- [[2026-02-10-kyutai-mcp-obsidian-plugin-plan]]
+- [[2026-02-11-phase-1-agent-context-schema-complete]]
+- [[2026-02-14-track-a-sign-off-approved]]
+- [[2026-02-13-phase-2-track-a-complete]]
+- [[2026-02-14-phase-6c-semantic-contradiction-detection-complete]]

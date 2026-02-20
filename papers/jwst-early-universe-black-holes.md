@@ -1,7 +1,7 @@
 ---
 title: JWST Upending Understanding of Early Universe Black Holes
 date: 2026-02-07
-tags: null
+tags: [jwst-observations, jwst-dark-matter-map, jwst-early-universe-black-holes, jwst-red-nova-remnants, early-universe-cosmology]
 connectivity: 0.2
 cross_domain: 0.62
 completion: 0.67
@@ -47,3 +47,14 @@ The James Webb Space Telescope has separated quasar light from surrounding starl
 ## Relevance to Cohezion
 
 Provides updated constraints for cosmological simulation models in `fractal_universe.py`. The direct collapse pathway represents a fundamentally different formation mechanism that should be modeled alongside traditional stellar evolution pathways., [[jwst-observations]], [[early-universe-cosmology]], [[black-holes]]
+
+## Related Concepts
+
+- [[jwst-dark-matter-map]]
+- [[jwst-red-nova-remnants]]
+- [[mom-z14-farthest-galaxy]]
+- [[anomaly-detection]]
+- [[topological-defects]]
+- [[red-supergiant-stars]]
+- [[exoplanet-habitability]]
+- [[dark-matter-detection]]

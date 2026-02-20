@@ -1,7 +1,7 @@
 ---
 title: Unrolling the Codex Agent Loop
 date: 2026-02-07
-tags: null
+tags: [openai-codex-agent-loop, surrealdb-agent-context-quick-reference, surrealdb-agent-context-visual-guide, surrealdb-agent-context-phase1-step3-query-testing, agentic-ai-memory-hierarchies]
 connectivity: 0.27
 cross_domain: 0.5
 completion: 0.67
@@ -47,3 +47,13 @@ OpenAI published a technical deep-dive on the core agent loop architecture power
 ## Relevance to Cohezion
 
 Directly applicable to [[lab_agent.py]] agent loop design. The inner/outer loop pattern, prompt caching strategy, and MCP tool integration approach are all relevant architectural patterns for Cohezion's agentic workflows., [[mcp-model-context-protocol]], [[agent-architecture]], [[tool-use]]
+
+## Related Concepts
+
+- [[langchain-deep-agents-context-management]]
+- [[scaling-agent-systems]]
+- [[llamaagents-builder]]
+- [[llm-training-methodology-changes]]
+- [[testing-agent-skills-with-evals]]
+- [[llm-in-sandbox-agentic-intelligence]]
+- [[agentic-ai-memory-hierarchies]]

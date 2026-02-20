@@ -728,3 +728,12 @@ This revised master plan incorporates all adversarial review findings:
 
 **Document Status**: Ready for stakeholder review and approval
 **Next Action**: Stakeholder decision on Option A/B/C before Feb 27, 2026
+
+## Related Concepts
+
+- [[2026-02-17-phase-2-service-initialization-gap-discovery]]
+- [[2026-02-10-phase3-3d-graph-adversarial-review]]
+- [[2026-02-10-log-mining-adversarial-review]]
+- [[2026-02-10-plan-vs-reality-comparison]]
+- [[stakeholder-decision-brief-2026-02-16]]
+- [[lesson-adversarial-review-before-execution]]

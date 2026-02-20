@@ -71,3 +71,14 @@ Extracted from BMAD `bmm/workflows/workflow-status/project-levels.yaml` and the 
 
 ## Decisions & Experiments
 - 📋 [[2026-02-08-bmad-framework-removal]] - 2026-02-08-bmad-framework-removal
+
+## Related Concepts
+
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[entire-io-to-vault-mapping]]
+- [[automated-concept-extraction]]
+- [[sheetsbr idge-mcp-testing]]
+- [[phase1-production-validation-runbook]]
+- [[typescript-error-diagnostic]]
+- [[phase1-mcp-tool-reference]]
+- [[surrealdb-query-driven-analysis]]

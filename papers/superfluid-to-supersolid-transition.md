@@ -1,7 +1,7 @@
 ---
 title: 'Superfluids Observed Stopping: Superfluid-to-Supersolid Phase Transition'
 date: 2026-02-07
-tags: null
+tags: [superfluid-to-supersolid-transition, 2026-02-14-phases-1-3-retrospective-key-learnings, 2026-02-10-phase5-complete, 2026-02-11-phase1-execution-status, 2026-02-10-12d-graph-phase1-kickoff]
 connectivity: 0.13
 cross_domain: 0.62
 completion: 0.67
@@ -49,3 +49,7 @@ Physicists from Columbia University and UT Austin observed for the first time a 
 ## Relevance to Cohezion
 
 Phase transitions between quantum states demonstrate how system-level properties (superfluidity, crystallization) emerge from density parameters. Relevant to `enhanced_simulator.py` quantum state modeling., [[quantum-mechanics]], [[particle-physics]]
+
+## Related Concepts
+
+- [[emu3-multimodal-next-token-prediction]]

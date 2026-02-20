@@ -51,3 +51,20 @@ Quantum technology development and industry growth
 ## Relevance to Cohezion
 
 Quantum Computing resource captured via mobile link pipeline. Quantum technology development and industry growth, [[quantum-computing]], [[quantum-mechanics]]
+
+## Related Papers
+
+- [[karpathy-claude-code-skills]]
+- [[beyond-the-quantum-pilot-wave-theory]]
+- [[usaf-stealthy-electromagnetic-attack]]
+
+## Related Concepts
+
+- [[anthropic-disempowerment-patterns]]
+- [[international-year-quantum-2025]]
+- [[mistral-open-source-ai-strategy]]
+- [[few-shot-prompting-agentic-coding]]
+- [[openai-applied-compute-startup]]
+- [[claude-code-swiftui-skill-patterns]]
+- [[claude-code-community-skills]]
+- [[cisa-chatgpt-data-leak]]

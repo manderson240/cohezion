@@ -1,7 +1,7 @@
 ---
 title: Rethinking Where Life Could Exist Beyond Earth
 date: 2026-02-07
-tags: null
+tags: [rethinking-exoplanet-habitability, 2026-02-14-modelpoolmanager-3-tier-lifecycle-management, log-lifecycle-management, comb-jellies-animal-tree-of-life, beyond-the-quantum-pilot-wave-theory]
 connectivity: 0.2
 cross_domain: 0.5
 completion: 0.67
@@ -47,3 +47,12 @@ Amri Wandel (Hebrew University) argues the traditional habitable zone definition
 ## Relevance to Cohezion
 
 Expands parameter space for habitability modeling in `fractal_universe.py`. Demonstrates that relaxing assumptions in system models can reveal previously hidden viable states - a general principle for simulation design., [[exoplanet-habitability]], [[habitable-zone]], [[stellar-evolution]]
+
+## Related Papers
+
+- [[llm-training-methodology-changes]]
+- [[helimagnetism-ferromagnetism-mode-locking]]
+
+## Related Concepts
+
+- [[tonggeometry-olympiad-tree-search]]

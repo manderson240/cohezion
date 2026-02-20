@@ -65,3 +65,18 @@ lab_agent.py
 ## Relevance to Cohezion
 
 AI Development Tools resource captured via mobile link pipeline. lab_agent.py, [[agent-architecture]]
+
+## Related Papers
+
+- [[openai-applied-compute-startup]]
+
+## Related Concepts
+
+- [[anthropic-disempowerment-patterns]]
+- [[mit-quantum-computing-progress]]
+- [[mistral-open-source-ai-strategy]]
+- [[few-shot-prompting-agentic-coding]]
+- [[karpathy-claude-code-skills]]
+- [[claude-code-swiftui-skill-patterns]]
+- [[usaf-stealthy-electromagnetic-attack]]
+- [[cisa-chatgpt-data-leak]]

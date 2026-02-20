@@ -1,7 +1,7 @@
 ---
 title: WOH G64 Confirmed Still a Red Supergiant
 date: 2026-02-07
-tags: null
+tags: [woh-g64-red-supergiant-mystery, woh-g64-dust-obscured-companion, lesson-12-layered-validation, 2026-02-11-session-55-discovered-redundant-pack-files-as-root-cause-of-12gb-size-final-cons, lesson-26-never-print-credentials]
 connectivity: 0.13
 cross_domain: 0.5
 completion: 0.67
@@ -48,3 +48,11 @@ Keele University-led team confirmed that WOH G64, the most luminous red supergia
 ## Relevance to Cohezion
 
 Binary system interactions producing misleading observational signatures illustrate how component interactions create emergent behaviors that may be misinterpreted without full system understanding., [[stellar-evolution]], [[astrophysics-observations]]
+
+## Related Concepts
+
+- [[circleci-ai-cicd-validation]]
+- [[ocean-calcium-climate-mystery-66my]]
+- [[jwst-red-nova-remnants]]
+- [[emoticons-llm-silent-failures]]
+- [[mom-z14-farthest-galaxy]]

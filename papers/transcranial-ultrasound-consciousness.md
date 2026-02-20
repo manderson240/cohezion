@@ -1,7 +1,7 @@
 ---
 title: Transcranial Focused Ultrasound as a Tool for Consciousness Research
 date: 2026-02-07
-tags: null
+tags: [transcranial-ultrasound-consciousness, phase1-mcp-tool-reference, mcp-tool-scaffold-pattern, quick-start-mcp-tool, 2026-02-19-block-destructive-system-operations-from-ai-tools]
 connectivity: 0.0
 cross_domain: 0.5
 completion: 0.67
@@ -54,3 +54,7 @@ Provides a methodological framework for causal investigation of emergent propert
 - [[quick-start-mcp-tool]]
 - [[google-sheets-vault-bridge]]
 - [[runbook-sheets-research-pipeline]]
+
+## Related Concepts
+
+- [[fast-radio-bursts-binary-star-origin]]

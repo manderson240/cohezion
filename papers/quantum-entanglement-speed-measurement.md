@@ -1,7 +1,7 @@
 ---
 title: Unprecedented Measurement Reveals Quantum Entanglement Speed
 date: 2026-02-07
-tags: null
+tags: [quantum-entanglement-speed-measurement, lesson-measurement-integrity-honest-reporting, silicon-quantum-computing-platform, quantum-entanglement, quantum-entangled-atomic-sensors]
 connectivity: 0.13
 cross_domain: 0.5
 completion: 0.67
@@ -47,3 +47,14 @@ Researchers at the Technical University of Vienna, with Chinese collaborators, m
 ## Relevance to Cohezion
 
 Provides empirical grounding for quantum timing parameters in simulation models. Could inform `fractal_universe.py` quantum mechanics simulation parameters with real-world entanglement timescales., [[quantum-mechanics]], [[particle-physics]]
+
+## Related Concepts
+
+- [[quantum-teleportation-logic-gates]]
+- [[amorphous-materials-3d-atomic-structure]]
+- [[axion-dark-matter-quantum-sensors]]
+- [[quantum-entangled-atomic-sensors]]
+- [[silicon-quantum-computing-platform]]
+- [[supersolid-quantum-state]]
+- [[quantum-sensors]]
+- [[dark-matter-detection]]

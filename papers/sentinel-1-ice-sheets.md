@@ -1,7 +1,7 @@
 ---
 title: Sentinel-1's Decade of Data Over Shifting Ice Sheets
 date: 2026-02-07
-tags: null
+tags: [sentinel-1-ice-sheets, data_engineering, 2026-02-13-first-real-data-vae-training-run, operational-data-ai-agents, 2026-02-11-session-55-critical-antipattern-training-data-committed-to-git-history-blocks-gi]
 connectivity: 0.0
 cross_domain: 0.5
 completion: 0.67
@@ -52,3 +52,8 @@ General interest for climate modeling applications. Remote sensing data processi
 - [[runbook-sheets-research-pipeline]]
 - [[2026-02-11-session-55-critical-antipattern-training-data-committed-to-git-history-blocks-gi]]
 - [[2026-02-13-first-real-data-vae-training-run]]
+
+## Related Concepts
+
+- [[langchain-deep-agents-context-management]]
+- [[operational-data-ai-agents]]

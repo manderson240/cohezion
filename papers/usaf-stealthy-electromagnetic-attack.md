@@ -73,3 +73,14 @@ Military Technology resource captured via mobile link pipeline. general
 - [[PRIME_CLAUDE_CODE_PRACTICES]]
 - [[multi-session-compound-engineering-workflow]]
 - [[compound-async-executor-pattern]]
+
+## Related Concepts
+
+- [[anthropic-disempowerment-patterns]]
+- [[mit-quantum-computing-progress]]
+- [[mistral-open-source-ai-strategy]]
+- [[few-shot-prompting-agentic-coding]]
+- [[karpathy-claude-code-skills]]
+- [[openai-applied-compute-startup]]
+- [[claude-code-swiftui-skill-patterns]]
+- [[claude-code-community-skills]]

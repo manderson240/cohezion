@@ -1,7 +1,7 @@
 ---
 title: LLM-in-Sandbox Elicits General Agentic Intelligence
 date: 2026-02-07
-tags: null
+tags: [llm-in-sandbox-agentic-intelligence, agentic-ai-memory-hierarchies, agentic-ai, few-shot-prompting-agentic-coding, 2026-02-13-local-model-roster-update-february-2026-sota-assessment]
 connectivity: 0.13
 cross_domain: 0.5
 completion: 0.67
@@ -47,3 +47,18 @@ This paper introduces LLM-in-Sandbox, a framework enabling LLMs to explore withi
 ## Relevance to Cohezion
 
 Directly relevant to `lab_agent.py` - demonstrates that giving AI agents a sandbox environment with code execution capabilities enables emergent agentic behaviors across diverse domains. This pattern could inform Cohezion's agent architecture for tool use and environment interaction., [[agentic-ai]], [[ai-agents]]
+
+## Related Papers
+
+- [[ai-anomaly-detection-hubble-archive]]
+
+## Related Concepts
+
+- [[yann-lecun-agi-world-models]]
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[scaling-agent-systems]]
+- [[protein-tape-recorder-cytotape]]
+- [[openai-codex-agent-loop]]
+- [[ocean-calcium-climate-mystery-66my]]
+- [[mars-time-dilation-relativity]]
+- [[magnetic-superhighways-starburst-galaxy]]

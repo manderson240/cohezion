@@ -52,3 +52,14 @@ fractal_universe.py
 ## Relevance to Cohezion
 
 Astrobiology resource captured via mobile link pipeline. fractal_universe.py, [[exoplanet-habitability]], [[planetary-systems]], [[habitable-zone]]
+
+## Related Concepts
+
+- [[anthropic-disempowerment-patterns]]
+- [[artificial-photosynthesis-living-energy]]
+- [[mit-quantum-computing-progress]]
+- [[alphafold-cryo-em-structure-prediction]]
+- [[comb-jellies-animal-tree-of-life]]
+- [[mistral-open-source-ai-strategy]]
+- [[few-shot-prompting-agentic-coding]]
+- [[karpathy-claude-code-skills]]

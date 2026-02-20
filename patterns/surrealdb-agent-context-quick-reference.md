@@ -212,3 +212,14 @@ record_outcome(session_id, lessons, metrics) → outcome_id
 - [[surrealdb-agent-context-phase1-implementation-checklist]]
 - [[surrealdb-agent-context-schema]]
 - [[2026-02-11-surrealdb-agent-context-schema-design]]
+
+## Related Concepts
+
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[2026-02-14-phase-6b-cascade-impact-computation]]
+- [[2026-02-11-phase-1-agent-context-schema-complete]]
+- [[2026-02-14-track-a-sign-off-approved]]
+- [[2026-02-13-phase-2-track-a-complete]]
+- [[2026-02-14-phase-6c-semantic-contradiction-detection-complete]]
+- [[2026-02-11-phase1-completion-summary]]
+- [[2026-02-09-12d-graph-surrealdb-integration]]

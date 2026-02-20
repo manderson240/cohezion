@@ -269,3 +269,14 @@ const node: Node = someValue;
 
 - [[SERVICE-INITIALIZATION-CHECKLIST]] (Preventing integration gaps)
 - [[2026-02-17-phase-2-service-initialization-gap-discovery]] (Phase 2 post-mortem)
+
+## Related Concepts
+
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[2026-02-17-phase-2-full-verification-plan]]
+- [[2026-02-14-phases-1-3-retrospective-key-learnings]]
+- [[2026-02-10-kyutai-mcp-obsidian-plugin-plan]]
+- [[2026-02-14-phase-6a-automated-reasoning-chain-inference-complete]]
+- [[2026-02-10-canvas-driven-compound-engineering-refined]]
+- [[2026-02-14-wave-1-overnight-completion-report]]
+- [[2026-02-14-compound-engineering-team-execution-retrospective]]

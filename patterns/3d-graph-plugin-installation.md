@@ -222,3 +222,14 @@ This plugin provides the **visualization layer** for Phase 3:
 ## Related
 
 - [[compound-engineering]]
+
+## Related Concepts
+
+- [[3d-graph-plugin-selection]]
+- [[2026-02-09-12d-graph-refined-plan]]
+- [[2026-02-09-12d-graph-surrealdb-integration]]
+- [[2026-02-10-phase3-3d-graph-adversarial-review]]
+- [[2026-02-09-12d-graph-next-steps]]
+- [[12d-graph-view-presets]]
+- [[12d-graph-implementation]]
+- [[2026-02-10-phase2-complete]]

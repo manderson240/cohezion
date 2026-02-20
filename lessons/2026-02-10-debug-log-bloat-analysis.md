@@ -178,3 +178,14 @@ MCP server "ide": Connection error: Uncaught error in notification handler: $Zod
   - [[emoticons-llm-silent-failures]] (similarity: 0.69)
   - [[operational-data-ai-agents]] (similarity: 0.663)
   - [[anthropic-disempowerment-patterns]] (similarity: 0.653)
+
+## Related Concepts
+
+- [[2026-02-10-kyutai-token-waste-postmortem]]
+- [[runbook-benchmarking-validation]]
+- [[log-rotation-and-monitoring]]
+- [[2026-02-10-phase4-complete-summary]]
+- [[2026-02-10-performance-benchmarking-framework]]
+- [[2026-02-10-benchmarking-framework-complete]]
+- [[2026-02-09-ollama-mcp-infrastructure]]
+- [[benchmarking]]

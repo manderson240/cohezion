@@ -200,3 +200,14 @@ All inference performed locally via Ollama:
 
 **Status**: Ready for Phase 3 (3D graph visualization + link enrichment)
 **Next Review**: After Phase 3 completes (expected 2026-02-15)
+
+## Related Concepts
+
+- [[2026-02-13-phase-2-final-completion-summary]]
+- [[2026-02-17-phase-2-full-verification-plan]]
+- [[2026-02-09-12d-graph-refined-plan]]
+- [[2026-02-14-track-a-sign-off-approved]]
+- [[2026-02-13-phase-2-track-a-complete]]
+- [[2026-02-13-track-b-entire-sync-daemon-complete]]
+- [[2026-02-12-phase-2-schema-design]]
+- [[2026-02-13-phase-2-execution-strategy-wave-2]]

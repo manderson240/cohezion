@@ -1,7 +1,7 @@
 ---
 title: Alfven Waves as Primary Energy Source for Earth's Auroras
 date: 2026-02-07
-tags: null
+tags: [alfven-waves-aurora, artificial-photosynthesis-living-energy, mistral-open-source-ai-strategy, super-earth-magnetic-protection-magma, 2026-02-13-local-model-roster-update-february-2026-sota-assessment]
 connectivity: 0.13
 cross_domain: 0.5
 completion: 0.67
@@ -46,3 +46,18 @@ Researchers from University of Hong Kong and UCLA identified Alfven waves as the
 ## Relevance to Cohezion
 
 Relevant to [[fractal_universe]] plasma physics modeling and magnetohydrodynamic simulations., [[astrophysics-observations]]
+
+## Related Papers
+
+- [[grb-250314a-ancient-signal]]
+
+## Related Concepts
+
+- [[yann-lecun-agi-world-models]]
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[protein-tape-recorder-cytotape]]
+- [[ai-anomaly-detection-hubble-archive]]
+- [[ocean-calcium-climate-mystery-66my]]
+- [[mars-time-dilation-relativity]]
+- [[magnetic-superhighways-starburst-galaxy]]
+- [[llm-in-sandbox-agentic-intelligence]]

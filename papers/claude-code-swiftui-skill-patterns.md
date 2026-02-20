@@ -66,3 +66,14 @@ general
 ## Relevance to Cohezion
 
 Software Engineering resource captured via mobile link pipeline. general, [[prompt-engineering]]
+
+## Related Concepts
+
+- [[anthropic-disempowerment-patterns]]
+- [[mit-quantum-computing-progress]]
+- [[mistral-open-source-ai-strategy]]
+- [[few-shot-prompting-agentic-coding]]
+- [[karpathy-claude-code-skills]]
+- [[openai-applied-compute-startup]]
+- [[usaf-stealthy-electromagnetic-attack]]
+- [[claude-code-community-skills]]

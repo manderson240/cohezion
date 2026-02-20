@@ -1,7 +1,7 @@
 ---
 title: How Agentic AI Strains Modern Memory Hierarchies
 date: 2026-02-07
-tags: null
+tags: [agentic-ai-memory-hierarchies, agentic-ai, llm-in-sandbox-agentic-intelligence, few-shot-prompting-agentic-coding, 2026-02-13-local-model-roster-update-february-2026-sota-assessment]
 connectivity: 0.2
 cross_domain: 0.5
 completion: 0.67
@@ -47,3 +47,14 @@ The Register article examines how agentic AI systems are shifting the computatio
 ## Relevance to Cohezion
 
 Directly relevant to [[lab_agent.py]] design decisions around context window management, agent memory persistence, and multi-step reasoning workflows. The KV cache management strategies discussed could inform how Cohezion agents handle long-running tasks., [[agentic-ai]], [[agent-architecture]]
+
+## Related Concepts
+
+- [[yann-lecun-agi-world-models]]
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[scaling-agent-systems]]
+- [[protein-tape-recorder-cytotape]]
+- [[openai-codex-agent-loop]]
+- [[ai-anomaly-detection-hubble-archive]]
+- [[ocean-calcium-climate-mystery-66my]]
+- [[mars-time-dilation-relativity]]

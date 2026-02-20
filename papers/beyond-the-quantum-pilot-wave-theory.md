@@ -52,3 +52,17 @@ Theoretical quantum mechanics and interpretations
 ## Relevance to Cohezion
 
 Quantum Physics and Philosophy resource captured via mobile link pipeline. Theoretical quantum mechanics and interpretations, [[quantum-mechanics]], [[particle-physics]]
+
+## Related Papers
+
+- [[anthropic-principle-fine-tuning]]
+- [[international-year-quantum-2025]]
+
+## Related Concepts
+
+- [[mit-quantum-computing-progress]]
+- [[diffraction-gratings-fourier-transforms]]
+- [[woh-g64-dust-obscured-companion]]
+- [[sunspot-ar4366-x-class-flares]]
+- [[quantum-atomic-light-synchronization]]
+- [[pairwise-comparison-fiber-bundles]]

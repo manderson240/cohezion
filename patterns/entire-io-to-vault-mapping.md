@@ -449,3 +449,14 @@ agent_names: [vault-architect]
 **Last Updated**: 2026-02-11
 **Status**: Ready for daemon implementation
 **Next Review**: 2026-02-13 (after Phase 1 testing)
+
+## Related Concepts
+
+- [[dna-origami-2d-semiconductor-patterning]]
+- [[2026-02-09-fastmcp-asgi-integration-fix]]
+- [[2026-02-14-graphrag-verification-and-integration-session]]
+- [[automated-concept-extraction]]
+- [[sheetsbr idge-mcp-testing]]
+- [[phase1-production-validation-runbook]]
+- [[typescript-error-diagnostic]]
+- [[surrealdb-query-driven-analysis]]

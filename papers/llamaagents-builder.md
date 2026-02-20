@@ -1,7 +1,7 @@
 ---
 title: 'LlamaAgents Builder: Idea to Deployed Agent in Minutes'
 date: 2026-02-07
-tags: null
+tags: [llamaagents-builder, fastmcp-asgi-builder-pattern, surrealdb-agent-context-quick-reference, surrealdb-agent-context-visual-guide, surrealdb-agent-context-phase1-step3-query-testing]
 connectivity: 0.27
 cross_domain: 0.38
 completion: 1.0
@@ -62,3 +62,11 @@ LlamaIndex tool for rapidly creating and deploying AI agents from natural langua
 ## Relevance to Cohezion
 
 Relevant to [[lab_agent]] for comparing agent deployment approaches. The natural-language-to-workflow pattern could inform Cohezion's own agent scaffolding tools., [[agent-architecture]], [[agentic-ai]], [[prompt-engineering]]
+
+## Related Concepts
+
+- [[fast-radio-bursts-binary-star-origin]]
+- [[langchain-deep-agents-context-management]]
+- [[scaling-agent-systems]]
+- [[openai-codex-agent-loop]]
+- [[testing-agent-skills-with-evals]]

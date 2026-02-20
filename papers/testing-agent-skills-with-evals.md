@@ -1,7 +1,7 @@
 ---
 title: Testing Agent Skills Systematically with Evals
 date: 2026-02-07
-tags: null
+tags: [surrealdb-agent-context-phase1-step3-query-testing, testing-agent-skills-with-evals, sheetsbr idge-mcp-testing, surrealdb-agent-context-quick-reference, surrealdb-agent-context-visual-guide]
 connectivity: 0.2
 cross_domain: 0.62
 completion: 0.67
@@ -47,3 +47,10 @@ OpenAI guide (by Dominik Kundel and Gabriel Chua) on systematically evaluating A
 ## Relevance to Cohezion
 
 Directly applicable to `lab_agent.py` evaluation framework design. The four-category eval structure (outcome/process/style/efficiency) provides a practical taxonomy for assessing Cohezion agent performance., [[agentic-ai]], [[ai-agents]], [[prompt-engineering]]
+
+## Related Concepts
+
+- [[langchain-deep-agents-context-management]]
+- [[scaling-agent-systems]]
+- [[openai-codex-agent-loop]]
+- [[llamaagents-builder]]
