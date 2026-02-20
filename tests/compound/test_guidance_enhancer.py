@@ -5,8 +5,8 @@ from unittest.mock import MagicMock
 import pytest
 
 from cohezion.compound.guidance_enhancer import (
-    GuidanceEnhancer,
     EnhancedGuidance,
+    GuidanceEnhancer,
 )
 
 

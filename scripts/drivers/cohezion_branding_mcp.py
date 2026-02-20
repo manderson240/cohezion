@@ -1,5 +1,7 @@
 from mcp.server.fastmcp import FastMCP
+
 from cohezion.branding import Colors, Identity, Motifs
+
 
 mcp = FastMCP("cohezion-branding")
 

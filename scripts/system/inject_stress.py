@@ -1,6 +1,7 @@
 import asyncio
-from cohezion.core.persistence.admin import DBAdmin
 from datetime import datetime
+
+from cohezion.core.persistence.admin import DBAdmin
 
 
 async def inject_stress():

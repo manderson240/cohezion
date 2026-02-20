@@ -1,10 +1,11 @@
 import asyncio
 import logging
 import sys
-import os
 from pathlib import Path
+
 from cohezion.swarm.agents.introspect_agent import IntrospectAgent
 from cohezion.swarm.swarm_types import SwarmConfig
+
 
 # Add src to path
 sys.path.append(str(Path.cwd() / "src"))
@@ -34,7 +35,7 @@ async def main():
         print(response_2[-400:])
 
         if "Disturbance Detected" in response_2:
-            print(f"✅ PASS: High Debt Detected.")
+            print("✅ PASS: High Debt Detected.")
         else:
             print("❌ FAIL: Debt Missed.")
 

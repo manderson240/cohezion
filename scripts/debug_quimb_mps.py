@@ -1,6 +1,8 @@
-import quimb.tensor as qtn
-import quimb.gates as qg
 import logging
+
+import quimb.gates as qg
+import quimb.tensor as qtn
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("MPS_Debug")

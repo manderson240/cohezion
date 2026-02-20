@@ -7,14 +7,11 @@ Token-efficient implementation addressing all adversarial findings
 """
 
 import asyncio
-import subprocess
-import json
 import os
-from pathlib import Path
-from typing import Dict, List, Any, Optional
-from datetime import datetime
 import shlex
-import re
+import subprocess
+from datetime import datetime
+from typing import Any
 
 
 class ConstitutionalSecuritySystem:
@@ -34,7 +31,7 @@ class ConstitutionalSecuritySystem:
             8: "Compound Engineering",
         }
 
-    def _create_input_validation_patterns(self) -> Dict[str, Any]:
+    def _create_input_validation_patterns(self) -> dict[str, Any]:
         """Create comprehensive input validation patterns"""
         return {
             "llm_prompt_injection": {
@@ -62,7 +59,7 @@ class ConstitutionalSecuritySystem:
             },
         }
 
-    def _create_path_sanitization_patterns(self) -> Dict[str, Any]:
+    def _create_path_sanitization_patterns(self) -> dict[str, Any]:
         """Create comprehensive path security patterns"""
         return {
             "absolute_path_block": {
@@ -97,7 +94,7 @@ class ConstitutionalSecuritySystem:
             },
         }
 
-    def _create_command_hardening_patterns(self) -> Dict[str, Any]:
+    def _create_command_hardening_patterns(self) -> dict[str, Any]:
         """Create command execution security patterns"""
         return {
             "subprocess_sanitization": {
@@ -121,7 +118,7 @@ class ConstitutionalSecuritySystem:
             },
         }
 
-    def _create_output_filtering_patterns(self) -> Dict[str, Any]:
+    def _create_output_filtering_patterns(self) -> dict[str, Any]:
         """Create comprehensive output filtering patterns"""
         return {
             "pii_detection": {
@@ -173,7 +170,7 @@ class ConstitutionalSecuritySystem:
         # Use shlex.quote for proper argument escaping
         return shlex.quote(command)
 
-    def _get_allowed_commands_list(self) -> List[str]:
+    def _get_allowed_commands_list(self) -> list[str]:
         """Get list of constitutionally allowed commands"""
         return [
             "python3",
@@ -194,7 +191,7 @@ class ConstitutionalSecuritySystem:
             "kubectl",
         ]
 
-    def _create_input_validation_rules(self) -> Dict[str, Any]:
+    def _create_input_validation_rules(self) -> dict[str, Any]:
         """Create input validation rules"""
         return {
             "llm_input_validation": {
@@ -219,7 +216,7 @@ class ConstitutionalSecuritySystem:
 
     def assess_security_compliance(
         self, component: str, implementation: Any
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Assess security compliance of component"""
         violations = []
 
@@ -309,7 +306,7 @@ class ConstitutionalSecuritySystem:
             practice in getattr(implementation, "", "") for practice in good_practices
         )
 
-    def _has_compound_violations(self, violations: List[Dict[str, Any]]) -> bool:
+    def _has_compound_violations(self, violations: list[dict[str, Any]]) -> bool:
         """Check if any violations block compound engineering"""
         return any(
             v.get("constitutional_violations", [])
@@ -317,8 +314,8 @@ class ConstitutionalSecuritySystem:
         )
 
     def _generate_security_improvements(
-        self, violations: List[Dict[str, Any]]
-    ) -> List[str]:
+        self, violations: list[dict[str, Any]]
+    ) -> list[str]:
         """Generate security improvement recommendations"""
         improvements = []
 
@@ -338,7 +335,7 @@ class ConstitutionalSecuritySystem:
 
         return improvements
 
-    def generate_security_audit_report(self, components: List[str]) -> Dict[str, Any]:
+    def generate_security_audit_report(self, components: list[str]) -> dict[str, Any]:
         """Generate comprehensive security audit report"""
         results = {}
 
@@ -457,7 +454,7 @@ async def test_security_system():
     components = ["gpu_accelerator", "universe_engine", "file_handler"]
     report = security_system.generate_security_audit_report(components)
 
-    print(f"\n🛡️ Security Audit Report:")
+    print("\n🛡️ Security Audit Report:")
     print(f"Constitutional Compliance: {report['constitutional_compliance']}%")
     print(f"Total Violations: {report['total_vulnerabilities']}")
     print(f"Improvement Recommendations: {len(report['recommendations'])}")

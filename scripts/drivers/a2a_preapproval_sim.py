@@ -54,7 +54,7 @@ def simulate_soft_handshake():
         print(
             f"    - {offer['lender']}: ${offer['capacity']:,} at {offer['fee']} (ID: {offer['id']})"
         )
-    print(f"[✔] Results cached in knowledge_graph/A2A_PREAPPROVAL_LOG.json")
+    print("[✔] Results cached in knowledge_graph/A2A_PREAPPROVAL_LOG.json")
 
 
 if __name__ == "__main__":

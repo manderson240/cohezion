@@ -6,14 +6,14 @@ Run with: python3 scripts/persist_physics_learnings.py
 
 import sys
 
+
 sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
 
 import asyncio
-from datetime import datetime
+
 from cohezion.core.persistence.surreal_client import (
     SurrealClient,
     UniverseNode,
-    PhysicsState,
 )
 
 

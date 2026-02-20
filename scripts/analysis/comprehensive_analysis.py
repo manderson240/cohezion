@@ -9,14 +9,15 @@ generates visualizations, and creates integration plan.
 import asyncio
 import json
 import logging
+import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any
-import sys
+
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from specialist_agent_team import SpecialistAgentTeam, AnalysisResult
+from specialist_agent_team import AnalysisResult, SpecialistAgentTeam
+
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - [ANALYSIS] - %(levelname)s - %(message)s"
@@ -29,9 +30,9 @@ class SurrealDBDataExtractor:
 
     def __init__(self, session_id: str):
         self.session_id = session_id
-        self.data: List[Dict] = []
+        self.data: list[dict] = []
 
-    async def extract(self) -> List[Dict]:
+    async def extract(self) -> list[dict]:
         """Extract all data for the session."""
         logger.info(f"📊 Extracting data for session: {self.session_id}")
 
@@ -78,12 +79,12 @@ class SurrealDBDataExtractor:
 class VisualizationDashboard:
     """Generate interactive visualizations."""
 
-    def __init__(self, data: List[Dict], output_dir: Path):
+    def __init__(self, data: list[dict], output_dir: Path):
         self.data = data
         self.output_dir = output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def generate_html_dashboard(self, analyses: Dict[str, AnalysisResult]) -> Path:
+    def generate_html_dashboard(self, analyses: dict[str, AnalysisResult]) -> Path:
         """Generate interactive HTML dashboard."""
 
         html_content = f"""
@@ -284,7 +285,7 @@ class VisualizationDashboard:
 class IntegrationPlanGenerator:
     """Generate production integration plan."""
 
-    def __init__(self, summary: Dict, analyses: Dict[str, AnalysisResult]):
+    def __init__(self, summary: dict, analyses: dict[str, AnalysisResult]):
         self.summary = summary
         self.analyses = analyses
 

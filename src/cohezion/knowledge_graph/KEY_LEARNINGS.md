@@ -290,12 +290,20 @@ Mandating worktrees (`WorktreeOrchestrator`) in `/tmp/cohezion_swarm/` is the on
 
 ## Learning 124: Systemd Crash-Loop Prevention (2026-02-18)
 
-`StartLimitBurst` MUST be in the `[Unit]` section, not `[Service]` (systemd 255+). `EnvironmentFile=` reads files literally — `$(command)` is NOT evaluated (use `ExecStartPre=` for dynamic values). The 4-day SurrealDB crash loop (129K+ restarts) was caused by RocksDB MANIFEST corruption with no restart limits. Three-layer defense: (1) service-level `StartLimitBurst`/`StartLimitIntervalSec`, (2) resource caps (`MemoryMax`, `CPUQuota`), (3) external guardian timer as secondary safety net.
+`StartLimitBurst` MUST be in `[Unit]` not `[Service]` (systemd 255+). `EnvironmentFile=` reads literally — no shell expansion. Three-layer defense: (1) `StartLimitBurst`/`StartLimitIntervalSec`, (2) resource caps (`MemoryMax`, `CPUQuota`), (3) external guardian timer. The 4-day SurrealDB crash loop (129K+ restarts) was caused by RocksDB MANIFEST corruption with no restart limits.
 
 ## Learning 125: Log Lifecycle Management (2026-02-19)
 
-Diagnostics MUST be captured BEFORE data is purged. Three-layer approach: (1) Extract — parameterized scripts to mine crash timelines from syslogs before rotation, (2) Retain — systemd journald + logrotate configs with size-based limits (`maxsize 100M`, `SystemMaxUse=2G`), (3) Monitor — lightweight storage budget script integrated into guardian timer with JSON output and 10s timeout. The Feb 10-18 crash loop generated 6.9M syslog events (1.4GB logical) that would have been lost without extraction first.
+Three-layer approach: (1) Extract crash timelines BEFORE purging, (2) Retain via journald + logrotate size limits (`maxsize 100M`, `SystemMaxUse=2G`), (3) Monitor via guardian timer with JSON output. The Feb 10-18 crash loop generated 6.9M events that would have been lost without extraction first.
 
 ## Learning 126: Adversarial Claim Validation (2026-02-19)
 
-Every completion claim must be independently verified with fresh command execution. Scope must be explicit — "0 errors" means nothing without specifying "in new files only" vs "entire codebase." Variable naming should match the algorithm used (`SOURCE_HASH` not `SOURCE_MD5` when using sha256sum). Table format (Claim | Actual | Verdict) provides honest, scannable reporting.
+Every completion claim must be independently verified with fresh command execution. Scope must be explicit — "0 errors in new files" vs "entire codebase." Table format (Claim | Actual | Verdict) provides honest, scannable reporting.
+
+## Learning 127: Phantom Test Failures from Missing Dev Dependencies (2026-02-19)
+
+Packages installed via `uv pip install` but not in `pyproject.toml[dev]` get dropped by `uv sync`. Missing `pytest-asyncio` caused 453 cascading failures; missing `gymnasium`/`python-jose`/`passlib` caused collection errors. Fix: add to `pyproject.toml` optional-dependencies, use `uv sync --extra dev`. Diagnostic: if tests pass individually but fail in suite, check async test infrastructure before assuming singleton pollution.
+
+## Learning 128: Import Cascade Failures via Conftest (2026-02-19)
+
+Top-level imports of heavy optional deps (matplotlib, numpy) in route files cascade through conftest's `import cohezion.api` autouse fixture, breaking ALL tests — not just the importing module's. Fix: lazy imports inside endpoint functions. Rule: never top-level import optional visualization/ML deps in API route files.

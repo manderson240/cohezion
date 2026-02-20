@@ -6,9 +6,11 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from cohezion.engineering.antiquarian import CodeAntiquarian
+
 
 logging.basicConfig(
     level=logging.INFO,

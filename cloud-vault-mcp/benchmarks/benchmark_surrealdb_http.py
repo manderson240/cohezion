@@ -197,17 +197,17 @@ if __name__ == "__main__":
 
     paper_count = 84
 
-    print(f"\nSequential Sync (10ms latency per paper):")
+    print("\nSequential Sync (10ms latency per paper):")
     print(f"  Expected: {paper_count * 10}ms (no parallelization)")
     print(f"  Actual:   {seq_result['mean_ms']:.1f}ms")
     print(f"  Per paper: {seq_result['mean_ms'] / paper_count:.2f}ms")
 
-    print(f"\nParallel Sync (max_concurrent=10, 10ms latency per paper):")
+    print("\nParallel Sync (max_concurrent=10, 10ms latency per paper):")
     print(f"  Expected: {(paper_count / 10) * 10}ms (10 batches)")
     print(f"  Actual:   {par_result['mean_ms']:.1f}ms")
     print(f"  Per paper: {par_result['mean_ms'] / paper_count:.2f}ms")
 
-    print(f"\nComparison:")
+    print("\nComparison:")
     print(f"  Improvement: {comp['improvement_ms']}ms ({comp['improvement_percent']}%)")
     print(f"  Speedup: {comp['speedup_factor']}x")
     print(f"  Status: {comp['status']}")
@@ -225,7 +225,7 @@ if __name__ == "__main__":
         print("  ✗ Parallelization needs investigation")
 
     print("\n" + "=" * 70)
-    print(f"Results saved to: benchmark_surrealdb_http_results.json")
+    print("Results saved to: benchmark_surrealdb_http_results.json")
 
     # Save results
     with open("benchmark_surrealdb_http_results.json", "w") as f:

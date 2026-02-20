@@ -6,9 +6,10 @@ import sqlite3
 import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from mcp_server.entire_ops import CommitData, EntireOps, ParsingError
+
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +138,7 @@ class DeadLetterQueue:
         finally:
             conn.close()
 
-    def get_all(self) -> List[Dict[str, Any]]:
+    def get_all(self) -> list[dict[str, Any]]:
         """Get all dead letter queue entries."""
         conn = sqlite3.connect(self.db_path)
         try:
@@ -191,8 +192,8 @@ class EntireSyncDaemon:
         self,
         vault_path: str,
         poll_interval_seconds: int = 300,
-        git_path: Optional[str] = None,
-        surrealdb_url: Optional[str] = None,
+        git_path: str | None = None,
+        surrealdb_url: str | None = None,
     ):
         """Initialize daemon.
 
@@ -211,7 +212,7 @@ class EntireSyncDaemon:
         self.work_queue = WorkQueue(str(self.vault_path / ".entire" / "queue.db"))
         self.dlq = DeadLetterQueue(str(self.vault_path / ".entire" / "dlq.db"))
 
-        self.last_sync_time: Optional[datetime] = None
+        self.last_sync_time: datetime | None = None
         self._agent_context_ops = None
 
         if surrealdb_url:
@@ -230,7 +231,7 @@ class EntireSyncDaemon:
             logger.warning(f"SurrealDB unavailable, continuing without it: {e}")
             self._agent_context_ops = None
 
-    async def start(self, since: Optional[str] = None) -> None:
+    async def start(self, since: str | None = None) -> None:
         """Start the daemon polling loop.
 
         Args:
@@ -255,7 +256,7 @@ class EntireSyncDaemon:
                 logger.error(f"Polling error: {e}", exc_info=True)
                 await asyncio.sleep(30)  # Backoff on error
 
-    async def backfill(self, since: Optional[str] = None) -> Dict[str, Any]:
+    async def backfill(self, since: str | None = None) -> dict[str, Any]:
         """Run a one-time backfill of historical commits.
 
         Args:
@@ -328,7 +329,7 @@ class EntireSyncDaemon:
         except Exception as e:
             logger.error(f"Error in poll_and_sync: {e}", exc_info=True)
 
-    async def _get_new_commits(self) -> List[Dict[str, str]]:
+    async def _get_new_commits(self) -> list[dict[str, str]]:
         """Get new commits from git log.
 
         Returns:
@@ -384,7 +385,7 @@ class EntireSyncDaemon:
             logger.error(f"Failed to get commits: {e}")
             return []
 
-    def _is_entire_commit(self, commit: Dict[str, str]) -> bool:
+    def _is_entire_commit(self, commit: dict[str, str]) -> bool:
         """Check if commit is from entire.io (has markers in body)."""
         body = commit.get("body", "").lower()
         # Look for entire.io markers
@@ -396,7 +397,7 @@ class EntireSyncDaemon:
         ]
         return any(marker in body for marker in markers)
 
-    async def _process_commit(self, commit: Dict[str, str]) -> None:
+    async def _process_commit(self, commit: dict[str, str]) -> None:
         """Process a single entire.io commit.
 
         Args:
@@ -573,7 +574,7 @@ tags: [checkpoint, entire-io, {commit_data.agent_id}]
 *Synced from entire.io checkpoint: {commit_data.commit_hash}*
 """
 
-    async def get_status(self) -> Dict[str, Any]:
+    async def get_status(self) -> dict[str, Any]:
         """Get current daemon status."""
         return {
             "status": "running",

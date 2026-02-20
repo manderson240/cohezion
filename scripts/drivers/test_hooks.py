@@ -5,14 +5,14 @@ Registers a test hook and triggers server actions to ensure events are dispatche
 """
 
 import sys
-import os
 from pathlib import Path
+
 
 # Add src to path
 sys.path.append(str(Path(__file__).parent / "src"))
 
-from cohezion.registry.hooks import RegistryHook, get_hook_manager
 from cohezion.mcp.knowledge_server import get_server as get_knowledge_server
+from cohezion.registry.hooks import RegistryHook, get_hook_manager
 
 
 class TestHook(RegistryHook):

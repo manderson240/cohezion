@@ -1,8 +1,9 @@
 import asyncio
 import logging
-import time
-from cohezion.compound.telemetry import TokenEfficiencyTracker
+
 from cohezion.compound.optimizer import get_guided_router
+from cohezion.compound.telemetry import TokenEfficiencyTracker
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

@@ -4,9 +4,9 @@ Tests the vault search enhancement with skill context integration following
 the CompoundAsyncExecutor pattern (7-step execution pipeline).
 """
 
+from unittest.mock import MagicMock
+
 import pytest
-from unittest.mock import MagicMock, patch
-from datetime import datetime
 
 from cohezion.compound.vault_search_executor import (
     SearchQuery,

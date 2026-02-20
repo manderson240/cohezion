@@ -1,8 +1,9 @@
-import os
-import time
-import subprocess
 import json
+import os
+import subprocess
+import time
 from datetime import datetime
+
 
 # Mission Configuration
 TARGET_TIME = "06:00:00"
@@ -106,7 +107,7 @@ def main():
 
     if os.path.exists(EXPERIMENT_LOG):
         try:
-            with open(EXPERIMENT_LOG, "r") as f:
+            with open(EXPERIMENT_LOG) as f:
                 results = json.load(f)
         except:
             pass

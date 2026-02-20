@@ -2,13 +2,14 @@ import asyncio
 import logging
 import sys
 from pathlib import Path
-from imap_tools import MailBox, A
+
+from imap_tools import A, MailBox
+
 
 # Add src to path
 sys.path.append(str(Path.cwd() / "src"))
 
 from cohezion.mcp.email_notifier import NotificationConfig
-from cohezion.swarm.agents.inbox_miner import InboxMiner
 
 
 async def main():
@@ -53,7 +54,7 @@ async def main():
                 ]
 
                 if any(k in body_lower or k in msg.subject.lower() for k in keywords):
-                    print(f"   MATCH: Found relevant keywords.")
+                    print("   MATCH: Found relevant keywords.")
                     # Print first 200 chars of body
                     print(f"   BODY: {(msg.text or '')[:300]}...")
                     count += 1

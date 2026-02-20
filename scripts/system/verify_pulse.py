@@ -1,10 +1,12 @@
 import asyncio
 import logging
-import sys
 import os
+import sys
+
 
 sys.path.append(os.path.abspath("src"))
 from cohezion.core.persistence.admin import DBAdmin
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("PulseVerify")

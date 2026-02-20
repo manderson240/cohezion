@@ -1,4 +1,4 @@
-"""
+r"""
 Overnight Driver: "The Holographic Unification" (v12.0)
 -------------------------------------------------------
 Architecture: Pragmatic R-Zero (Challenger/Solver Co-Evolution)
@@ -23,34 +23,34 @@ Infrastructure:
 
 import asyncio
 import logging
+import random
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-import random
+
 import matplotlib
 
+
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import numpy as np
-import math
-import json
 from dataclasses import dataclass, field
 from typing import Any
+
+import matplotlib.pyplot as plt
+import numpy as np
+from prometheus_client import Counter, Gauge, start_http_server
+
+from cohezion.db.surreal_client import PhysicsState, SurrealClient, UniverseNode
+from cohezion.mcp.email_notifier import EmailNotifier
 
 # Internal imports
 from cohezion.swarm.mass_simulator import (
     MassSimulator,
-    ChunkResult,
-    MassSimulationResult,
 )
-from cohezion.mcp.email_notifier import EmailNotifier
 from cohezion.training.training_data_capture import (
-    TrainingDataCapture,
     InteractionRecord,
-    JourneyRecord,
+    TrainingDataCapture,
 )
-from cohezion.db.surreal_client import SurrealClient, UniverseNode, PhysicsState
-from prometheus_client import start_http_server, Gauge, Counter
+
 
 logger = logging.getLogger(__name__)
 

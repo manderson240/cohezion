@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
-import subprocess
 import sys
+
 
 # Set environment variables
 os.environ["VAULT_PATH"] = "/home/mike-anderson/vaults/cohezion-vault"
@@ -18,5 +18,6 @@ sys.path.insert(0, "/home/mike-anderson/dev/cohezion/cloud-vault-mcp")
 
 # Import and run main
 from src.mcp_server.main import main
+
 
 main()

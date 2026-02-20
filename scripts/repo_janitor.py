@@ -1,8 +1,8 @@
-import os
-import subprocess
 import logging
-from pathlib import Path
+import subprocess
 from datetime import datetime
+from pathlib import Path
+
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -142,7 +142,7 @@ def check_git_vitals(use_cache=False):
 
     if use_cache and CACHE_FILE.exists():
         try:
-            with open(CACHE_FILE, "r") as f:
+            with open(CACHE_FILE) as f:
                 cached_data = json.load(f)
                 if (
                     datetime.now().timestamp() - cached_data.get("timestamp", 0)

@@ -18,31 +18,27 @@ import asyncio
 import json
 import logging
 import os
-import re
 import sys
 import time
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 import httpx
 
+import mcp_server.graphrag_helpers as helpers_module
+import mcp_server.graphrag_import as import_module
 from mcp_server.graphrag_helpers import (
     execute_surreal_async,
     parse_wiki_links,
     slugify,
-    escape_sql,
-    parse_frontmatter,
-    GraphRAGError,
 )
-from mcp_server.graphrag_import import GraphRAGImporter
 
 # Monkey-patch detect_document_type for full vault coverage
-from mcp_server.graphrag_helpers import detect_document_type as _orig_detect
-import mcp_server.graphrag_helpers as helpers_module
-import mcp_server.graphrag_import as import_module
+from mcp_server.graphrag_import import GraphRAGImporter
 
 
 def extended_detect_document_type(file_path: Path, vault_path: Path) -> str:

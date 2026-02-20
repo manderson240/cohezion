@@ -1,8 +1,8 @@
 """Verification test for hierarchical swarm topology."""
 
 import asyncio
+
 from cohezion.swarm.executive import SovereignExecutive
-from cohezion.swarm.topology import NodeRole
 
 
 async def test_topology_hierarchy():

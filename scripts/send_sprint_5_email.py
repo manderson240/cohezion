@@ -1,7 +1,8 @@
-from pathlib import Path
-from cohezion.mcp.email_notifier import EmailNotifier, NotificationConfig
 import asyncio
 import logging
+from pathlib import Path
+
+from cohezion.mcp.email_notifier import EmailNotifier, NotificationConfig
 
 
 async def main():

@@ -12,19 +12,12 @@ Test Coverage:
 - Integration health checks
 """
 
-import pytest
-import asyncio
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, MagicMock
-from typing import Dict, List, Any
+
+import pytest
+
 
 # Phase 6 Component Imports
-from cohezion.swarm.cost_aware_router import CostAwareRouter
-from cohezion.swarm.model_ranker import ModelRanker
-from cohezion.swarm.model_fallback_strategy import ModelFallbackStrategy
-from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
-from cohezion.compound.degradation_detector import DegradationDetector
-from cohezion.compound.model_quality_classifier import ModelQualityClassifier
 
 
 class TestFeatureFlags:
@@ -662,7 +655,7 @@ class TestDeploymentValidationReport:
             "recommendation",
         ]
 
-        report = {section: None for section in required_sections}
+        report = dict.fromkeys(required_sections)
         for section in required_sections:
             assert section in report
 

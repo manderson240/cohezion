@@ -13,12 +13,13 @@ import asyncio
 import sys
 from pathlib import Path
 
+
 # Add parent dir to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "cloud-vault-mcp"))
 
-from src.mcp_server.graphrag_import import GraphRAGImporter
-from src.mcp_server.graphrag_helpers import execute_surreal_async
 import httpx
+from src.mcp_server.graphrag_helpers import execute_surreal_async
+from src.mcp_server.graphrag_import import GraphRAGImporter
 
 
 async def test_import():

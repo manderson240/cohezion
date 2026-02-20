@@ -1,6 +1,7 @@
-import numpy as np
-import wave
 import struct
+import wave
+
+import numpy as np
 
 
 def generate_stability_tone(

@@ -1,5 +1,7 @@
 import logging
-from cohezion.security.prompt_guard import PromptGuard, ThreatLevel
+
+from cohezion.security.prompt_guard import PromptGuard
+
 
 logging.basicConfig(level=logging.INFO)
 

@@ -1,13 +1,14 @@
 """Integration tests for entire.io sync daemon."""
 
 import asyncio
-import pytest
-import tempfile
-from pathlib import Path
-from datetime import datetime, timezone
-from unittest.mock import MagicMock, patch, AsyncMock
-
 import sys
+import tempfile
+from datetime import UTC, datetime
+from pathlib import Path
+from unittest.mock import MagicMock
+
+import pytest
+
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src" / "mcp_server"))
 
@@ -148,7 +149,7 @@ class TestEntireSyncDaemon:
 
         commit_data = CommitData(
             commit_hash="abc123def456",
-            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=UTC),
             agent_id="test-agent",
             outcomes=["Outcome 1", "Outcome 2"],
             metrics={"coverage": 0.87},
@@ -172,7 +173,7 @@ class TestEntireSyncDaemon:
 
         commit_data = CommitData(
             commit_hash="abc123",
-            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=UTC),
             agent_id="test-agent",
             outcomes=["Outcome 1"],
             metrics={"papers_coverage": 0.87},
@@ -232,7 +233,7 @@ class TestCheckpointNoteGeneration:
 
         commit_data = CommitData(
             commit_hash="abc123",
-            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=UTC),
             agent_id="agent",
             outcomes=["outcome"],
             metrics={},
@@ -257,7 +258,7 @@ class TestCheckpointNoteGeneration:
 
         commit_data = CommitData(
             commit_hash="abc123",
-            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=UTC),
             agent_id="agent",
             outcomes=["First outcome", "Second outcome"],
             metrics={},
@@ -276,7 +277,7 @@ class TestCheckpointNoteGeneration:
 
         commit_data = CommitData(
             commit_hash="abc123",
-            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=UTC),
             agent_id="agent",
             outcomes=[],
             metrics={"papers_coverage": 0.87, "decisions_coverage": 0.88},
@@ -317,7 +318,7 @@ class TestSurrealDBIntegration:
 
         commit_data = CommitData(
             commit_hash="abc123",
-            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=UTC),
             agent_id="test-agent",
             outcomes=["outcome"],
             metrics={},
@@ -342,7 +343,7 @@ class TestSurrealDBIntegration:
 
         commit_data = CommitData(
             commit_hash="abc123def456",
-            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=UTC),
             agent_id="test-agent",
             outcomes=["Completed task", "Deployed code"],
             metrics={"papers_coverage": 0.87},
@@ -380,7 +381,7 @@ class TestSurrealDBIntegration:
 
         commit_data = CommitData(
             commit_hash="abc123",
-            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=UTC),
             agent_id="test-agent",
             outcomes=[],
             metrics={},
@@ -394,7 +395,6 @@ class TestSurrealDBIntegration:
     @pytest.mark.asyncio
     async def test_process_commit_with_surrealdb(self, temp_vault):
         """Test full _process_commit flow with SurrealDB enabled."""
-        from entire_ops import CommitData
 
         daemon = EntireSyncDaemon(vault_path=str(temp_vault))
 

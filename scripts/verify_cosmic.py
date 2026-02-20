@@ -2,15 +2,17 @@ import asyncio
 import logging
 import sys
 from pathlib import Path
+
 import torch
+
 
 # Add src to path
 sys.path.append(str(Path.cwd() / "src"))
 
+from cohezion.cosmic.plasma import get_plasma_filaments
+from cohezion.cosmic.reality import get_reality_stabilizer
 from cohezion.swarm.agents.cosmic_agent import CosmicAgent
 from cohezion.swarm.swarm_types import SwarmConfig
-from cohezion.cosmic.reality import get_reality_stabilizer
-from cohezion.cosmic.plasma import get_plasma_filaments
 
 
 async def main():

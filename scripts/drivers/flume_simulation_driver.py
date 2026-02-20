@@ -15,13 +15,13 @@ Trajectories captured to universes.jsonl.
 """
 
 import asyncio
-import logging
 import json
-import time
+import logging
 import random
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+
 
 # Optional: Import FLUME encoder if available
 try:

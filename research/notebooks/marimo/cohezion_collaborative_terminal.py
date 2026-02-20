@@ -15,20 +15,22 @@ The final mission control for the SLM Swarm, enabling real-time human-agent
 collaboration across memory, architecture, and imagination.
 """
 
-import marimo as mo
-import asyncio
 import sys
 from pathlib import Path
+
+import marimo as mo
+
 
 # Add src to path
 sys.path.append(str(Path.cwd() / "src"))
 
+from cohezion.core.credit_manager import get_credit_manager
 from cohezion.swarm.agents.analyst import AnalystAgent
-from cohezion.swarm.agents.memory_agent import MemoryAgent
 from cohezion.swarm.agents.architect_agent import ArchitectAgent
 from cohezion.swarm.agents.hypothesis_agent import HypothesisAgent
-from cohezion.swarm.swarm_types import SwarmConfig, Perspective
-from cohezion.core.credit_manager import get_credit_manager
+from cohezion.swarm.agents.memory_agent import MemoryAgent
+from cohezion.swarm.swarm_types import Perspective, SwarmConfig
+
 
 # Cell 1: Header
 mo.md("""
@@ -122,9 +124,10 @@ mo.md(f"""
 """)
 
 # Cell 5: Vector Manifold & Light Field
-import plotly.graph_objects as go
 import numpy as np
-from cohezion.bio.biophotonics import get_light_field, Wavelength
+import plotly.graph_objects as go
+
+from cohezion.bio.biophotonics import get_light_field
 
 
 def generate_visuals():

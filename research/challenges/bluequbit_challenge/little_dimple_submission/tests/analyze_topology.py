@@ -1,12 +1,10 @@
-import collections
 import networkx as nx
-import matplotlib.pyplot as plt
 
 
 def analyze_connectivity(qasm_path):
     edges = []
     qubits = set()
-    with open(qasm_path, "r") as f:
+    with open(qasm_path) as f:
         for line in f:
             if (
                 line.startswith("cz")

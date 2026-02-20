@@ -1,10 +1,11 @@
 """Unit tests for entire.io commit parsing (entire_ops.py)."""
 
-import pytest
-from datetime import datetime, timezone
+import sys
+from datetime import UTC, datetime
 from pathlib import Path
 
-import sys
+import pytest
+
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src" / "mcp_server"))
 
@@ -268,7 +269,7 @@ class TestCommitDataclass:
         """Test creating CommitData instance."""
         data = CommitData(
             commit_hash="abc123",
-            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 2, 12, 14, 30, tzinfo=UTC),
             agent_id="test-agent",
             outcomes=["outcome1", "outcome2"],
             metrics={"coverage": 0.87},

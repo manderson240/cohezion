@@ -21,16 +21,17 @@ Archive: /home/mike-anderson/nvme-simulations/
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 import asyncio
 import json
 import logging
 import random
-import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
+
 
 # Setup logging
 LOG_DIR = Path("/home/mike-anderson/nvme-simulations/logs")
@@ -150,7 +151,7 @@ class TomorrowDriver:
             # Complete
             await self._complete()
 
-        except Exception as e:
+        except Exception:
             logger.exception("❌ Fatal error")
             raise
 
@@ -254,7 +255,7 @@ class TomorrowDriver:
             )
 
         except Exception as e:
-            logger.exception(f"❌ Fractal phase failed")
+            logger.exception("❌ Fractal phase failed")
             self.phase_results[phase_name] = {"status": "failed", "error": str(e)}
             raise
 
@@ -331,7 +332,7 @@ class TomorrowDriver:
             )
 
         except Exception as e:
-            logger.exception(f"❌ Mass phase failed")
+            logger.exception("❌ Mass phase failed")
             self.phase_results[phase_name] = {"status": "failed", "error": str(e)}
             raise
 

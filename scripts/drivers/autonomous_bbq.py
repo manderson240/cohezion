@@ -14,23 +14,25 @@ Philosophy: "Low and Slow BBQ Approach"
 
 import asyncio
 import logging
-import time
 import sys
-from pathlib import Path
+import time
 from datetime import datetime
+from pathlib import Path
+
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from cohezion.simulation.fractal_universe import FractalSimulator, UniverseGrid
+from cohezion.core.persistence.repositories.journey_repository import JourneyMetrics
+from cohezion.core.persistence.repositories.surreal_journey_repository import (
+    AgentJourney,
+    SurrealJourneyRepository,
+)
+from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.reliability.monitor import get_resource_monitor
 from cohezion.simulation.biological_diversity import get_diversity_engine
-from cohezion.core.persistence.surreal_client import SurrealClient
-from cohezion.core.persistence.repositories.surreal_journey_repository import (
-    SurrealJourneyRepository,
-    AgentJourney,
-)
-from cohezion.core.persistence.repositories.journey_repository import JourneyMetrics
+from cohezion.simulation.fractal_universe import UniverseGrid
+
 
 # Logging Setup
 logging.basicConfig(
@@ -151,13 +153,13 @@ class BBQDriver:
                 f"Resonance harmonic {random.randint(1, 9)} engaged.",
                 "Purging entropic residue from previous cycle.",
                 "Cross-referencing biological diversity matrix.",
-                f"Deep sleep recommended. System pressure nominal.",
+                "Deep sleep recommended. System pressure nominal.",
                 "Recalibrating stabilizer agents for phase shift.",
                 "Observing Kordylewski cloud formation.",
             ]
             narration = (
-                float(coherence) > 0.6
-                and "High stability achieved."
+                (float(coherence) > 0.6
+                and "High stability achieved.")
                 or random.choice(thoughts)
             )
 
@@ -203,6 +205,7 @@ class BBQDriver:
 
 
 import numpy as np
+
 
 if __name__ == "__main__":
     driver = BBQDriver()

@@ -17,8 +17,9 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from cohezion.swarm.workflows import DebateWorkflow
 from cohezion.swarm.swarm_types import Perspective, SwarmConfig
+from cohezion.swarm.workflows import DebateWorkflow
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

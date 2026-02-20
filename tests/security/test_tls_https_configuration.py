@@ -1,7 +1,6 @@
 """Tests for TLS/HTTPS configuration and certificate management."""
 
 import os
-import ssl
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch

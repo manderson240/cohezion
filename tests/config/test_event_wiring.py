@@ -1,6 +1,5 @@
 """Tests for event wiring and commit batching."""
 
-import asyncio
 
 import pytest
 

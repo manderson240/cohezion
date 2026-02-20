@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 
+from cohezion.compound.executor import ExecutionResult
 from cohezion.compound.journey_tracker import (
     Journey,
     JourneyTracker,
@@ -10,7 +11,6 @@ from cohezion.compound.journey_tracker import (
     OperationType,
     TrajectoryPoint,
 )
-from cohezion.compound.executor import ExecutionResult
 
 
 @pytest.fixture
@@ -151,28 +151,28 @@ class TestTextToLatent:
 
     def test_text_to_latent_output_shape(self, tracker):
         """Test latent vector has correct shape."""
-        latent = tracker._text_to_latent("test text")
+        latent = tracker.text_to_latent("test text")
 
         assert len(latent) == 2048
         assert isinstance(latent, np.ndarray)
 
     def test_text_to_latent_normalized(self, tracker):
         """Test latent vector is normalized."""
-        latent = tracker._text_to_latent("test text")
+        latent = tracker.text_to_latent("test text")
 
         assert np.all(latent >= -1.0) and np.all(latent <= 1.0)
 
     def test_text_to_latent_deterministic(self, tracker):
         """Test same text produces same embedding."""
-        latent1 = tracker._text_to_latent("test text")
-        latent2 = tracker._text_to_latent("test text")
+        latent1 = tracker.text_to_latent("test text")
+        latent2 = tracker.text_to_latent("test text")
 
         np.testing.assert_array_almost_equal(latent1, latent2)
 
     def test_text_to_latent_different_text(self, tracker):
         """Test different text produces different embeddings."""
-        latent1 = tracker._text_to_latent("test text 1")
-        latent2 = tracker._text_to_latent("test text 2")
+        latent1 = tracker.text_to_latent("test text 1")
+        latent2 = tracker.text_to_latent("test text 2")
 
         # Should not be identical
         assert not np.allclose(latent1, latent2)
@@ -183,39 +183,39 @@ class TestHolographicProjection:
 
     def test_holographic_projection_output_shape(self, tracker):
         """Test projection output has correct shape."""
-        latent = tracker._text_to_latent("test text")
-        projection = tracker._holographic_project(latent)
+        latent = tracker.text_to_latent("test text")
+        projection = tracker.holographic_project(latent)
 
         assert len(projection) == 12
         assert isinstance(projection, np.ndarray)
 
     def test_holographic_projection_normalized(self, tracker):
         """Test projection is normalized to [0, 1]."""
-        latent = tracker._text_to_latent("test text")
-        projection = tracker._holographic_project(latent)
+        latent = tracker.text_to_latent("test text")
+        projection = tracker.holographic_project(latent)
 
         assert np.all(projection >= 0.0) and np.all(projection <= 1.0)
 
     def test_holographic_projection_deterministic(self, tracker):
         """Test same input produces same projection."""
-        latent = tracker._text_to_latent("test text")
-        proj1 = tracker._holographic_project(latent)
-        proj2 = tracker._holographic_project(latent)
+        latent = tracker.text_to_latent("test text")
+        proj1 = tracker.holographic_project(latent)
+        proj2 = tracker.holographic_project(latent)
 
         np.testing.assert_array_almost_equal(proj1, proj2)
 
     def test_holographic_projection_caching(self, tracker):
         """Test projection results are cached."""
-        latent = tracker._text_to_latent("test text")
+        latent = tracker.text_to_latent("test text")
 
         # First call
-        proj1 = tracker._holographic_project(latent)
+        proj1 = tracker.holographic_project(latent)
 
         # Should be in cache
         assert len(tracker._projection_cache) > 0
 
         # Second call should use cache
-        proj2 = tracker._holographic_project(latent)
+        proj2 = tracker.holographic_project(latent)
 
         np.testing.assert_array_equal(proj1, proj2)
 
@@ -443,8 +443,8 @@ class TestDeterminism:
         tracker2 = JourneyTracker(seed=42)
 
         text = "test text for determinism"
-        latent1 = tracker1._text_to_latent(text)
-        latent2 = tracker2._text_to_latent(text)
+        latent1 = tracker1.text_to_latent(text)
+        latent2 = tracker2.text_to_latent(text)
 
         np.testing.assert_array_equal(latent1, latent2)
 
@@ -592,10 +592,11 @@ class TestRealPhiScore:
         assert quality["convergence"] > 0.7
 
     def test_buffer_caps_at_window_size(self):
-        """Buffer caps at TRAJECTORY_WINDOW (20 max)."""
+        """Buffer caps at TRAJECTORY_WINDOW size."""
         tracker = JourneyTracker(seed=42)
 
-        for i in range(25):
+        # Add more items than the window to trigger trimming
+        for i in range(tracker.TRAJECTORY_WINDOW + 10):
             result = ExecutionResult(
                 success=True,
                 output="output",

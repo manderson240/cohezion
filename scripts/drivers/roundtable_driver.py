@@ -10,6 +10,7 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
+
 # Add src to path
 sys.path.append(str(Path(__file__).parents[2] / "src"))
 

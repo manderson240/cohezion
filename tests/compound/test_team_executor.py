@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from cohezion.compound.executor import CompoundExecutor, ExecutionResult
 from cohezion.compound.team_executor import (
     AgentTask,
     AgentTaskResult,
@@ -11,7 +12,6 @@ from cohezion.compound.team_executor import (
     TeamExecutor,
     TeamExecutorFactory,
 )
-from cohezion.compound.executor import CompoundExecutor, ExecutionResult
 
 
 @pytest.fixture

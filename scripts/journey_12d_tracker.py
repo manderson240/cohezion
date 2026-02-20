@@ -11,13 +11,13 @@ COHEZION = 0.5 HIHO
 import asyncio
 import json
 import logging
-import subprocess
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -354,7 +354,6 @@ def _generate_heatmap(journey: Journey, output_dir: Path) -> Path:
 
 def _generate_3d_trajectory(journey: Journey, output_dir: Path) -> Path:
     """Generate 3D trajectory visualization."""
-    from mpl_toolkits.mplot3d import Axes3D
 
     fig = plt.figure(figsize=(10, 10), facecolor="#0a0a1a")
     ax = fig.add_subplot(111, projection="3d", facecolor="#0a0a1a")
@@ -485,7 +484,6 @@ def generate_journey_animation(
 ) -> Path | None:
     """Generate animated video of the 12D journey."""
     import matplotlib.animation as animation
-    from mpl_toolkits.mplot3d import Axes3D
 
     fig = plt.figure(figsize=(10, 10), facecolor="#0a0a1a")
     ax = fig.add_subplot(111, projection="3d", facecolor="#0a0a1a")
@@ -637,7 +635,7 @@ async def generate_multimodal_journey(
     _generate_report(journey, images, audio, video, report_path)
     print(f"   ✓ Generated report: {report_path}")
 
-    print(f"\n✨ Multimodal Journey Complete!")
+    print("\n✨ Multimodal Journey Complete!")
     print(f"   Output: {output_dir}")
 
     return MultimodalOutput(
@@ -689,7 +687,7 @@ def _generate_report(
 🎬 [Watch animation]({video.absolute()})
 """
 
-    report += f"""
+    report += """
 ## The Journey
 
 This 12-dimensional journey demonstrates the holographic principle in action:
@@ -720,7 +718,7 @@ if __name__ == "__main__":
         )
     )
 
-    print(f"\n📁 Generated files:")
+    print("\n📁 Generated files:")
     for img in output.images:
         print(f"   📊 {img}")
     if output.audio:

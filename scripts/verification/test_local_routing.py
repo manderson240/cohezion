@@ -1,6 +1,8 @@
 import asyncio
 import logging
+
 from cohezion.core.routing.router import LOCAL_ROUTER
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

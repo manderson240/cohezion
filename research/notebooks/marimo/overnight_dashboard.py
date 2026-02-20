@@ -17,20 +17,22 @@ Ask questions, get live analysis from SLM swarm.
 
 import marimo
 
+
 __generated_with = "0.10.17"
 app = marimo.App(width="full", app_title="Cohezion Overnight Research")
 
 
 @app.cell
 def _():
+    import json
+    from datetime import datetime
+    from pathlib import Path
+
     import marimo as mo
     import matplotlib.pyplot as plt
     import numpy as np
-    import json
-    from pathlib import Path
-    from datetime import datetime
-    from watchdog.observers import Observer
     from watchdog.events import FileSystemEventHandler
+    from watchdog.observers import Observer
 
     return mo, plt, np, json, Path, datetime, Observer, FileSystemEventHandler
 

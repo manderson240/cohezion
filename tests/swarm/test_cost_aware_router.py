@@ -9,21 +9,17 @@ Tests:
 - Chaos testing with cost bounds
 """
 
-import pytest
-import time
-from unittest.mock import Mock, MagicMock, patch
 
+import pytest
+
+from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer, BudgetPolicy
+from cohezion.cost_optimization.cost_tracker import SessionCostTracker
 from cohezion.swarm.cost_aware_router import (
     CostAwareRouter,
-    QueryComplexityAnalyzer,
     QueryComplexity,
-    ModelRoutingDecision,
-    RoutingStatistics,
-    get_cost_aware_router,
+    QueryComplexityAnalyzer,
     reset_cost_aware_router,
 )
-from cohezion.cost_optimization.cost_tracker import SessionCostTracker
-from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer, BudgetPolicy
 
 
 class TestQueryComplexityAnalyzer:
@@ -346,7 +342,6 @@ class TestCostAwareRouterChaosTest:
         router, tracker, enforcer = router_with_tight_budget
 
         # Generate 100 random queries
-        import random
 
         queries = [
             f"Query {i}: {'What' if i % 3 == 0 else 'Design' if i % 3 == 1 else 'Write'} something"

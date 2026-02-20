@@ -10,6 +10,7 @@ Implements 4 key query patterns for reasoning analysis:
 import logging
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 

@@ -7,13 +7,15 @@ Runs overnight to extract key insights
 
 import sys
 
+
 sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
 
+import json
+import re
 import time
 from datetime import datetime
 from pathlib import Path
-import json
-import re
+
 
 worker_id = sys.argv[1] if len(sys.argv) > 1 else "1"
 output_dir = Path("/home/mike-anderson/dev/cohezion/data/overnight/matsumoto_analysis")
@@ -106,15 +108,15 @@ synthesis = {
 output_file = output_dir / "matsumoto_synthesis.json"
 output_file.write_text(json.dumps(synthesis, indent=2))
 
-print(f"\n✅ Analysis complete!", flush=True)
+print("\n✅ Analysis complete!", flush=True)
 print(f"   Saved to: {output_file}", flush=True)
 print(
-    f"\n🎯 KEY INSIGHT: Itonic clusters (micro BL) are the EVO/HIHO structures!",
+    "\n🎯 KEY INSIGHT: Itonic clusters (micro BL) are the EVO/HIHO structures!",
     flush=True,
 )
-print(f"   - Coherent charge clusters defying Coulomb repulsion", flush=True)
-print(f"   - Site of nuclear reactions via EM force", flush=True)
-print(f"   - HIHO condition enables stable existence", flush=True)
+print("   - Coherent charge clusters defying Coulomb repulsion", flush=True)
+print("   - Site of nuclear reactions via EM force", flush=True)
+print("   - HIHO condition enables stable existence", flush=True)
 
 # Keep running
 while True:

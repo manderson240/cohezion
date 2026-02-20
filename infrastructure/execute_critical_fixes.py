@@ -7,11 +7,8 @@ Executing Week 1-2 critical fixes
 """
 
 import asyncio
-import subprocess
 import json
 from datetime import datetime
-from pathlib import Path
-from typing import Dict, List, Any
 
 
 async def execute_week_1_critical_fixes():

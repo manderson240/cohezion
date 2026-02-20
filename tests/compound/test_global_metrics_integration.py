@@ -9,12 +9,10 @@ Tests how GlobalMetricsAggregator integrates with:
 from __future__ import annotations
 
 import time
-from unittest.mock import MagicMock, patch
 
 import pytest
 
 from cohezion.compound.global_metrics_aggregator import (
-    GlobalMetricsAggregator,
     InstanceMetrics,
     get_global_aggregator,
     reset_global_aggregator,

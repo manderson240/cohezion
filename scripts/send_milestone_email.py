@@ -1,13 +1,13 @@
 import asyncio
 import logging
 import sys
-import os
 from pathlib import Path
+
 
 # Add src to path
 sys.path.append(str(Path.cwd() / "src"))
 
-from cohezion.mcp.email_notifier import EmailNotifier, NotificationConfig
+from cohezion.mcp.email_notifier import EmailNotifier
 
 
 async def main():

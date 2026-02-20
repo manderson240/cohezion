@@ -11,12 +11,12 @@ Tests:
 import pytest
 
 from cohezion.cache.semantic_cache import SemanticCache
+from cohezion.compound.session_manager import create_session
 from cohezion.observability.unified_metrics import (
     InferenceMetrics,
     UnifiedMetricsCollector,
 )
 from cohezion.security.guardrail_factory import create_default_pipeline
-from cohezion.compound.session_manager import create_session
 
 
 class TestGuardrailIntegration:

@@ -13,6 +13,7 @@ from httpx import ASGITransport, AsyncClient
 
 from cohezion.api import app
 
+
 Z_DIM = 256
 
 

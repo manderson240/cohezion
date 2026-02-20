@@ -8,6 +8,7 @@ import yaml
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
+
 # Configuration
 SKILLS_DIR = "src/cohezion/skills"
 REGISTRY_FILE = "src/cohezion/registry/skill_registry.json"

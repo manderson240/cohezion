@@ -31,6 +31,7 @@ from cohezion.swarm.git_health import (
 from cohezion.swarm.journey_tracker import AgentType, get_journey_tracker
 from cohezion.swarm.swarm_types import SwarmConfig
 
+
 # Setup logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"

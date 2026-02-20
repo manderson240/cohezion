@@ -2,13 +2,15 @@
 Tests for JourneyLogger - Journey persistence with FLUME trajectories.
 """
 
-import pytest
 from datetime import datetime
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import numpy as np
+import pytest
+
 from cohezion.platform.journey_logger import (
-    JourneyLogger,
     Journey,
+    JourneyLogger,
     get_journey_logger,
     reset_journey_logger,
 )

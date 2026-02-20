@@ -3,21 +3,19 @@
 from __future__ import annotations
 
 import json
-import time
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from cohezion.swarm.smart_router import (
+    LOCAL_MODELS,
+    TASK_REQUIREMENTS,
     AgentAction,
     ModelCapability,
     ModelProfile,
     RoutingDecision,
     SmartRouter,
     TaskType,
-    TASK_REQUIREMENTS,
-    LOCAL_MODELS,
 )
 
 

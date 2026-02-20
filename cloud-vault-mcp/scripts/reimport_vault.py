@@ -12,11 +12,13 @@ import sys
 import time
 from pathlib import Path
 
+
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from mcp_server.graphrag_import import GraphRAGImporter
 from mcp_server.graphrag_helpers import detect_document_type
+from mcp_server.graphrag_import import GraphRAGImporter
+
 
 # Monkey-patch detect_document_type to handle all vault directories
 _original_detect = detect_document_type
@@ -47,10 +49,12 @@ def extended_detect_document_type(file_path: Path, vault_path: Path) -> str:
 # Apply the patch
 import mcp_server.graphrag_helpers as helpers_module
 
+
 helpers_module.detect_document_type = extended_detect_document_type
 
 # Also patch it in the import module since it may have imported it directly
 import mcp_server.graphrag_import as import_module
+
 
 import_module.detect_document_type = extended_detect_document_type
 

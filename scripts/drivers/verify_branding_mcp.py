@@ -1,4 +1,4 @@
-from cohezion_branding_mcp import get_brand_colors, get_brand_identity, get_ascii_logo
+from cohezion_branding_mcp import get_ascii_logo, get_brand_colors, get_brand_identity
 from rich.console import Console
 from rich.panel import Panel
 

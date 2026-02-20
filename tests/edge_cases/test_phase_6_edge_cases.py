@@ -10,20 +10,16 @@ Comprehensive edge case testing for Phase 6 components under extreme loads and b
 - Data consistency under extreme load
 """
 
-import pytest
-import time
-from typing import Dict, List
-from unittest.mock import Mock, patch
 
-from cohezion.swarm.cost_aware_router import CostAwareRouter
-from cohezion.swarm.model_ranker import ModelRanker
-from cohezion.swarm.model_fallback_strategy import ModelFallbackStrategy
+import pytest
+
 from cohezion.swarm.anomaly_detector import (
-    AnomalyDetector,
     get_anomaly_detector,
     reset_anomaly_detector,
 )
-from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
+from cohezion.swarm.cost_aware_router import CostAwareRouter
+from cohezion.swarm.model_fallback_strategy import ModelFallbackStrategy
+from cohezion.swarm.model_ranker import ModelRanker
 
 
 class TestTokenCountingEdgeCases:

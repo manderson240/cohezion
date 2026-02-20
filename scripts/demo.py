@@ -30,8 +30,9 @@ def demo_mass_sim() -> None:
     banner("1. Mass Simulation — HIHO Coherence Convergence")
 
     try:
-        from cohezion.mass_sim.agent_factory import AgentFactory
         from cohezion_core.cohezion_core_rs import FlumePhysics
+
+        from cohezion.mass_sim.agent_factory import AgentFactory
     except ImportError:
         print(
             "  [SKIP] Rust extension not built. Run: cd src/cohezion_core && maturin develop --release"
@@ -94,7 +95,7 @@ def demo_hamiltonian() -> None:
             f"  Epoch {epoch:4d}: mean={mean:.4f}  std={std:.4f}  energy={energy:.6f}"
         )
 
-    print(f"  Agents converge toward HIHO target (0.5) under potential gradient")
+    print("  Agents converge toward HIHO target (0.5) under potential gradient")
 
 
 def demo_rl_environment() -> None:

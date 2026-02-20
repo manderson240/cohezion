@@ -1,7 +1,7 @@
-import pandas as pd
-import pathlib
-import numpy as np
 import json
+import pathlib
+
+import pandas as pd
 
 
 def analyze_fractal_shards(storage_dir="data/simulations/fractal_nexus"):

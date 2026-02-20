@@ -9,12 +9,14 @@ import logging
 import sys
 from pathlib import Path
 
+
 # Add src to path
 sys.path.append(str(Path(__file__).parent.parent / "src"))
 
-from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.core.persistence.repositories.pattern_repository import PatternRepository
+from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.swarm.agents.code_review_swarm import CodeReviewSwarm
+
 
 # Configure logging
 logging.basicConfig(

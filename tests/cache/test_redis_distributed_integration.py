@@ -7,11 +7,8 @@ Tests focus on:
 - End-to-end cache promotion workflow (L0→L1→L2)
 """
 
-import asyncio
-import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
-import numpy as np
 import pytest
 
 from cohezion.cache.redis_cache import RedisSemanticCache

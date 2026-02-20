@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import hashlib
-import json
-import time
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -163,7 +161,7 @@ class TestCacheKey:
         agent, patchers = _make_agent(tmp_path)
         try:
             key = agent._cache_key("test")
-            expected = hashlib.sha256("test-model:test".encode()).hexdigest()
+            expected = hashlib.sha256(b"test-model:test").hexdigest()
             assert key == expected
         finally:
             _cleanup(patchers)

@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+
 # MCP Config for SurrealDB
 mcp_config = {
     "mcpServers": {

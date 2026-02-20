@@ -2,11 +2,9 @@
 """Test Cloud Vault MCP integration with Claude Code."""
 
 import json
-import subprocess
 import sys
-import time
-import urllib.request
 import urllib.error
+import urllib.request
 from pathlib import Path
 
 
@@ -134,7 +132,7 @@ def test_vault_tool(url="http://localhost:8360"):
             return True
     except urllib.error.HTTPError as e:
         if e.code == 404:
-            print(f"⚠ vault_list endpoint not found (404) - tool may not be registered")
+            print("⚠ vault_list endpoint not found (404) - tool may not be registered")
         else:
             print(f"✗ vault_list tool error: HTTP {e.code}")
         return False
@@ -169,7 +167,7 @@ def run_integration_tests():
 
     # Try tool test only if server is running
     if any(name == "Server Health Check" and passed for name, passed in results):
-        print(f"\n[Vault Tool Test]")
+        print("\n[Vault Tool Test]")
         try:
             result = test_vault_tool()
             results.append(("Vault Tool Test", result))
@@ -177,7 +175,7 @@ def run_integration_tests():
             print(f"✗ Test error: {e}")
             results.append(("Vault Tool Test", False))
     else:
-        print(f"\n[Vault Tool Test]")
+        print("\n[Vault Tool Test]")
         print("⊘ Skipped (server not running)")
 
     # Summary

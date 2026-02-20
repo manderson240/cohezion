@@ -5,12 +5,15 @@ import logging
 import sys
 from pathlib import Path
 
+
 # Add src to path
 sys.path.append(str(Path(__file__).parent.parent / "src"))
 
+from unittest.mock import MagicMock, patch
+
 from cohezion.swarm import QuadratureNexus
 from cohezion.swarm.topology import NodeRole
-from unittest.mock import MagicMock, patch
+
 
 # Configure logging
 logging.basicConfig(

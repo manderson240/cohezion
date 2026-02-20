@@ -13,15 +13,15 @@ Usage:
     await detector.detect_patterns(min_usage=3)
 """
 
-import asyncio
 import logging
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
 from collections import defaultdict
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
 
-from .graphrag_helpers import execute_surreal_async, GraphRAGError
+from .graphrag_helpers import GraphRAGError, execute_surreal_async
 from .graphrag_query import GraphRAGQuery
+
 
 logger = logging.getLogger(__name__)
 
@@ -35,9 +35,9 @@ class PatternUsage:
     path: str
     content: str
     usage_count: int
-    referenced_by: List[str]  # Document IDs that reference this pattern
-    used_in: List[str]  # Document IDs where pattern was used
-    informed_by: List[str]  # Document IDs that informed this pattern
+    referenced_by: list[str]  # Document IDs that reference this pattern
+    used_in: list[str]  # Document IDs where pattern was used
+    informed_by: list[str]  # Document IDs that informed this pattern
     total_impact: int  # Sum of all relationship types
 
 
@@ -47,8 +47,8 @@ class PatternSuggestion:
 
     suggested_title: str
     similarity_score: float
-    source_docs: List[str]  # Document IDs with similar outcomes
-    common_themes: List[str]  # Shared keywords/concepts
+    source_docs: list[str]  # Document IDs with similar outcomes
+    common_themes: list[str]  # Shared keywords/concepts
     rationale: str
 
 
@@ -79,7 +79,7 @@ class PatternDetector:
 
     async def detect_patterns(
         self, min_usage: int = 3, max_results: int = 20
-    ) -> List[PatternUsage]:
+    ) -> list[PatternUsage]:
         """
         Detect high-usage patterns from graph relationships.
 
@@ -162,7 +162,7 @@ class PatternDetector:
 
     async def suggest_patterns(
         self, min_similarity: float = 0.7, max_suggestions: int = 10
-    ) -> List[PatternSuggestion]:
+    ) -> list[PatternSuggestion]:
         """
         Suggest pattern extraction from similar decisions/experiments.
 
@@ -287,7 +287,7 @@ class PatternDetector:
             logger.error(f"Pattern suggestion failed: {e}")
             raise GraphRAGError(f"Pattern suggestion failed: {e}") from e
 
-    async def get_pattern_impact_summary(self) -> Dict[str, Any]:
+    async def get_pattern_impact_summary(self) -> dict[str, Any]:
         """
         Get summary statistics about pattern usage in vault.
 

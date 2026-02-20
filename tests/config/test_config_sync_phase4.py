@@ -3,12 +3,7 @@
 Tests template rendering, sync operations, commit generation, and orchestrator integration.
 """
 
-import asyncio
-import json
-import tempfile
-from datetime import datetime
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -18,7 +13,6 @@ from cohezion.config.config_templates import (
     TemplateContext,
     TemplateType,
 )
-from cohezion.config.config_sync_logger import ConfigSyncLogger
 
 
 class TestConfigTemplateEngine:

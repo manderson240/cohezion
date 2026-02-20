@@ -1,9 +1,10 @@
 import asyncio
 import logging
 import sys
-import os
 from pathlib import Path
+
 from imap_tools import MailBox
+
 
 # Add src to path
 sys.path.append(str(Path.cwd() / "src"))

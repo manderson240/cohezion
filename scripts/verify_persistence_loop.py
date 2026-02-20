@@ -1,10 +1,10 @@
 import asyncio
 import logging
-import time
+
 from cohezion.agents.base import BaseAgent
-from cohezion.compound.exp_persistence.accumulator import get_accumulator
-from cohezion.swarm.swarm_types import SwarmConfig
 from cohezion.reliability.monitor import get_resource_monitor
+from cohezion.swarm.swarm_types import SwarmConfig
+
 
 # Configure logging to see the persistence flushes
 logging.basicConfig(level=logging.INFO)

@@ -5,7 +5,6 @@ Tests that matter for Phase 1: state tracking, git integration, validation frame
 """
 
 import asyncio
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -361,7 +360,7 @@ async def test_monitoring_startup_stop(tmp_path: Path) -> None:
     # Monitor should complete shortly
     try:
         await asyncio.wait_for(monitor_task, timeout=2.0)
-    except asyncio.TimeoutError:
+    except TimeoutError:
         pytest.fail("Monitoring did not stop within timeout")
 
     assert not orch._monitoring

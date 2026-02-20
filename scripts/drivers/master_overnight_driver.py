@@ -24,10 +24,10 @@ Features:
 import asyncio
 import json
 import logging
-import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
+
 
 # Setup logging first
 LOG_DIR = Path("/home/mike-anderson/nvme-simulations/logs")
@@ -281,7 +281,7 @@ class MasterOvernightDriver:
             logger.exception("❌ Fatal error in overnight driver")
             await self.send_notification(
                 f"⚠️ Overnight Simulations FAILED: {self.session_id}",
-                f"Error: {str(e)}\n\nCheck logs: {LOG_DIR}/master_overnight_{TIMESTAMP}.log",
+                f"Error: {e!s}\n\nCheck logs: {LOG_DIR}/master_overnight_{TIMESTAMP}.log",
             )
             raise
 
@@ -296,7 +296,7 @@ class MasterOvernightDriver:
         logger.info("=" * 70)
 
         await self.send_notification(
-            f"🌊 Starting FLUME Quadrature",
+            "🌊 Starting FLUME Quadrature",
             f"Target: {TARGET_FlUME_SIMS} simulations\n"
             f"Streams: 5 expert domains\n"
             f"Est. Duration: 1-2 hours",
@@ -355,7 +355,7 @@ class MasterOvernightDriver:
             )
 
         except Exception as e:
-            logger.exception(f"❌ FLUME phase failed")
+            logger.exception("❌ FLUME phase failed")
             self.phase_results[phase_name] = {"status": "failed", "error": str(e)}
             raise
 
@@ -371,7 +371,7 @@ class MasterOvernightDriver:
         logger.info("=" * 70)
 
         await self.send_notification(
-            f"🎯 Starting R-Zero Pragmatic",
+            "🎯 Starting R-Zero Pragmatic",
             f"Target: {TARGET_RZERO_SIMS} simulations\n"
             f"Batch Size: {RZERO_BATCH_SIZE}\n"
             f"Est. Duration: 6-8 hours",
@@ -438,7 +438,7 @@ class MasterOvernightDriver:
             )
 
         except Exception as e:
-            logger.exception(f"❌ R-Zero phase failed")
+            logger.exception("❌ R-Zero phase failed")
             self.phase_results[phase_name] = {"status": "failed", "error": str(e)}
             raise
 

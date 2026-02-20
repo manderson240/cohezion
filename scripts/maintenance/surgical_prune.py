@@ -1,6 +1,6 @@
+import os
 import subprocess
 import sys
-import os
 
 
 def batch_prune(batch_size=50000):

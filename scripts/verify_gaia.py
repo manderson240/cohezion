@@ -2,9 +2,11 @@ import asyncio
 import logging
 import sys
 from pathlib import Path
+
+from cohezion.gaia.interface import get_planetary_interface
 from cohezion.swarm.agents.gaia_agent import GaiaAgent
 from cohezion.swarm.swarm_types import SwarmConfig
-from cohezion.gaia.interface import get_planetary_interface
+
 
 # Add src to path
 sys.path.append(str(Path.cwd() / "src"))
@@ -37,7 +39,7 @@ async def main():
     if "Emitted RED signal" in response_2:
         print("✅ PASS: Immune Response Triggered (Red Light).")
     else:
-        print(f"❌ FAIL: No Immune Response.")
+        print("❌ FAIL: No Immune Response.")
 
     print("\n--- 🌱 Test 3: Parthenogenesis (Creation) ---")
     # Reset temp, Maximize Energy, Minimize Entropy

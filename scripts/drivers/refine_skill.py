@@ -6,9 +6,10 @@ Allows an agent to append a validated insight to a skill file.
 This is the "Reward" for completing a task successfully.
 """
 
-import sys
 import datetime
+import sys
 from pathlib import Path
+
 
 # Add scripts/drivers to path to import pipeline
 sys.path.append(str(Path(__file__).parent))

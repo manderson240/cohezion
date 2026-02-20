@@ -7,24 +7,24 @@ Charter compliance verification:
 - Layer 3: EDL routing for critical issues
 """
 
-import pytest
-from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, AsyncMock
 import subprocess
+from datetime import datetime
+from unittest.mock import AsyncMock, Mock, patch
 
+import pytest
+
+from cohezion.platform.coherence_tracker import CoherenceMetrics
 from cohezion.platform.daily_health_digest import (
     DailyHealthDigest,
+    DependencyMetrics,
+    HealthCheckResult,
     HealthDigest,
     HealthStatus,
     RepositoryMetrics,
     TestMetrics,
-    DependencyMetrics,
-    CICDMetrics,
-    HealthCheckResult,
     get_daily_health_digest,
     reset_daily_health_digest,
 )
-from cohezion.platform.coherence_tracker import CoherenceMetrics
 
 
 @pytest.fixture

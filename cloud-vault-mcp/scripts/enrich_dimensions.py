@@ -17,11 +17,11 @@ Updates both YAML frontmatter and SurrealDB records.
 import asyncio
 import json
 import re
-import sys
 from pathlib import Path
 
 import httpx
 import yaml
+
 
 VAULT_PATH = Path("/home/mike-anderson/vaults/cohezion-vault")
 PAPERS_DIR = VAULT_PATH / "papers"
@@ -284,7 +284,7 @@ async def main():
         f"\nDone: {updated_count} papers enriched, {surreal_count} SurrealDB records updated"
     )
     print(
-        f"Dimensions added: algorithm_complexity, implementation_difficulty, interdisciplinary_transfer, impact_score"
+        "Dimensions added: algorithm_complexity, implementation_difficulty, interdisciplinary_transfer, impact_score"
     )
 
 

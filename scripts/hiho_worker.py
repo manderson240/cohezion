@@ -6,13 +6,16 @@ Utilizes 1-2 CPU cores, ~10GB RAM per worker
 
 import sys
 
+
 sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
 
+import json
 import time
 from datetime import datetime
 from pathlib import Path
-import json
+
 from cohezion.swarm.hiho_vector_engine import HihoVectorEngine
+
 
 worker_id = sys.argv[1] if len(sys.argv) > 1 else "1"
 output_dir = Path(f"/home/mike-anderson/dev/cohezion/data/overnight/worker_{worker_id}")

@@ -13,17 +13,16 @@ Dynamics:
 """
 
 import asyncio
-import logging
 import json
+import logging
 import random
-from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 # Cohezion Imports
 from cohezion.registry.capability_registry import CapabilityRegistry
-from cohezion.swarm.agents import CriticAgent, AnalystAgent, NexusResearchAgent
+from cohezion.swarm.agents import AnalystAgent, CriticAgent, NexusResearchAgent
 from cohezion.swarm.swarm_types import Perspective
+
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(name)s | %(message)s")

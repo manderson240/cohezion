@@ -14,23 +14,21 @@ Tests cover:
 
 from __future__ import annotations
 
-import asyncio
 import json
 import time
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from cohezion.compound.thermal_trend_predictor import (
-    ThermalTimeSeries,
-    ThermalTrendPredictor,
-    get_thermal_trend_predictor,
-)
 from cohezion.compound.thermal_history_persistence import (
     ThermalTimeSeriesCollector,
     get_thermal_time_series_collector,
     load_jsonl_history,
+)
+from cohezion.compound.thermal_trend_predictor import (
+    ThermalTimeSeries,
+    ThermalTrendPredictor,
+    get_thermal_trend_predictor,
 )
 
 

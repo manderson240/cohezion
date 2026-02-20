@@ -1,4 +1,4 @@
-from problem import SLOT_LIMITS, SCRATCH_SIZE, VLEN, N_CORES
+from problem import SCRATCH_SIZE, VLEN
 from optimizer import VLIWPacker, KernelConfig
 from dataclasses import dataclass
 

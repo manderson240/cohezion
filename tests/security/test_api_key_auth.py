@@ -9,6 +9,7 @@ Verifies:
 """
 
 import os
+
 import pytest
 
 from cohezion.security.api_key_auth import (

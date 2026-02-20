@@ -1,20 +1,23 @@
 import marimo
 
+
 __generated_with = "0.7.12"
 app = marimo.App(width="full")
 
 
 @app.cell
 def __():
-    import marimo as mo
-    import plotly.express as px
-    import pandas as pd
-    import numpy as np
     import asyncio
     import json
-    from datetime import datetime
     import time
-    from cohezion.core.persistence.surreal_client import SurrealClient, PhysicsState
+    from datetime import datetime
+
+    import marimo as mo
+    import numpy as np
+    import pandas as pd
+    import plotly.express as px
+
+    from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient
 
     return PhysicsState, SurrealClient, asyncio, datetime, json, mo, np, pd, px, time
 

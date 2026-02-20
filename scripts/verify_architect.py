@@ -3,6 +3,7 @@ import logging
 import sys
 from pathlib import Path
 
+
 # Add src to path
 sys.path.append(str(Path(__name__).parent / "src"))
 
@@ -20,7 +21,7 @@ async def main():
     # Complex multi-component request
     request = "Develop a high-performance image processing pipeline that uses Moondream for visual analysis and stores results in SurrealDB, accessible via a Marimo dashboard."
 
-    print(f"\n--- Testing Compositional Decomposition ---")
+    print("\n--- Testing Compositional Decomposition ---")
     print(f"Request: {request}")
 
     # 1. Test raw decomposition
@@ -34,7 +35,7 @@ async def main():
             print(f"   Depends on: {task.get('depends_on')}")
 
     # 2. Test full report generation
-    print(f"\n--- Final Architecture Report ---")
+    print("\n--- Final Architecture Report ---")
     report = await architect.process(request)
     print(report)
 

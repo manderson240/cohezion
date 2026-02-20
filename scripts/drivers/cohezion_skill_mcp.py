@@ -1,6 +1,7 @@
-from mcp.server.fastmcp import FastMCP
 from pathlib import Path
-import os
+
+from mcp.server.fastmcp import FastMCP
+
 
 # Initialize FastMCP for Cohezion Skills
 mcp = FastMCP("CohezionSkillMCP")

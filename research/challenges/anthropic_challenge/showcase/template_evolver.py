@@ -3,11 +3,9 @@ Template Evolver for Cohezion.
 Automates the refinement of structural blueprints (templates) based on task retrospectives.
 """
 
-import os
 import logging
 import re
 from pathlib import Path
-from typing import Dict, Any, List, Optional
 
 logger = logging.getLogger(__name__)
 

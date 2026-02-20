@@ -8,15 +8,14 @@ Tests cover:
 - Historical data aggregation
 """
 
-import pytest
 import time
-import math
+
+import pytest
 
 from cohezion.cost_optimization.forecast_engine import (
-    ForecastEngine,
-    Forecast,
-    ForecastSummary,
     AnomalyScore,
+    Forecast,
+    ForecastEngine,
     get_forecast_engine,
     reset_forecast_engine,
 )

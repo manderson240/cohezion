@@ -1,9 +1,10 @@
 import asyncio
-import logging
 import json
-import os
+import logging
 from pathlib import Path
+
 from cohezion.core.persistence.admin import DBAdmin
+
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -32,7 +33,7 @@ async def ingest_recovery():
     for file_path in files:
         logger.info(f"Processing {file_path.name}...")
         try:
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 # Check if it's a list or individual objects (JSONL vs JSON)
                 # Assuming JSON list based on previous context, but will handle both
                 first_char = f.read(1)

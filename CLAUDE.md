@@ -10,7 +10,7 @@ COHEZION: 12D agentic universe with FLUME VAE, compound engineering, multi-agent
 
 ### ⚡ Core Commands
 ```bash
-uv run pytest tests/ -q              # Full test suite (~3,010 tests, ~2min)
+uv run pytest tests/ -q              # Full test suite (~3,147 collected, ~90s)
 uv run pytest tests/compound/ -v     # Run module tests
 uv run pytest tests/test_*.py::name  # Single test
 make format && make lint && make all # Check → fix → verify
@@ -89,7 +89,7 @@ uv run python scripts/compile_memory_from_vault.py
 ### ⚡ Quick Reference
 - **Language**: Python 3.13+ | **Package Manager**: `uv` (never bare python)
 - **DB**: SurrealDB (ws://localhost:8000) | **API**: FastAPI :8080
-- **Tests**: ~3,010 collected (10 collection errors in universe/) | **Coverage**: html report in `htmlcov/`
+- **Tests**: 3,147 collected, 3,132 passing, 0 collection errors | **Coverage**: html report in `htmlcov/`
 - **CI**: GitHub Actions (`.github/workflows/`) | `make lint-check && uv run pytest` before commit
 - **Entry point**: `cohezion = "cohezion.__main__:main"`
 - **Vault**: `~/vaults/cohezion-vault/` — Query via `vault_find_relevant_context(query)`
@@ -142,6 +142,8 @@ Updated Skill (loop again)
 - **KISS**: Simple logic beats multi-agent swarms. Measure first, optimize later
 - **Every `src/` dir**: MUST have `__init__.py`. Enables vault skill discovery
 - **Observability**: Log state transitions (input → processing → output). Track coherence. Measure alignment
+- **Lazy imports for optional deps**: Never top-level import matplotlib/numpy/heavy ML libs in API route files — they cascade via conftest and break all tests. Use lazy imports inside endpoint functions
+- **Dev deps**: Use `uv sync --extra dev` (not bare `uv sync`) to include pytest/ruff/etc.
 
 ### Journey Tracking Checklist (Compound Loop)
 When implementing features, add:

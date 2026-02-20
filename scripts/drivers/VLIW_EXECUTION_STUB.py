@@ -9,11 +9,11 @@ This stub demonstrates:
 """
 
 import asyncio
-import time
-import logging
 import hashlib
+import logging
+import time
 from dataclasses import dataclass
-from typing import List
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("VLIW_ENGINE")
@@ -33,7 +33,7 @@ class VLIWExecutor:
         self.vram_budget = 12.0  # GB
         self.active_strands = 0
 
-    async def execute_bundle(self, bundle: List[AgentInstruction]):
+    async def execute_bundle(self, bundle: list[AgentInstruction]):
         """
         Execute a bundle of agentic instructions in parallel (VLIW Style).
         Applies a 'Barrier' to ensure all semantic strands align before precipitation.

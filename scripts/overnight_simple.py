@@ -5,19 +5,20 @@ SIMPLIFIED OVERNIGHT RUN - GUARANTEED 8 HOURS
 Stripped down to ESSENTIAL functionality that WORKS.
 """
 
+import json
 import sys
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-import json
+
 
 # Force unbuffered output
 sys.stdout = open(sys.stdout.fileno(), "w", buffering=1)
 sys.stderr = open(sys.stderr.fileno(), "w", buffering=1)
 
 print(f"🌙 OVERNIGHT MISSION START: {datetime.now().strftime('%H:%M:%S')}", flush=True)
-print(f"   Target End: 08:31 EST (8 hours)", flush=True)
-print(f"   Mission: Maximize Coherence through simulation\n", flush=True)
+print("   Target End: 08:31 EST (8 hours)", flush=True)
+print("   Mission: Maximize Coherence through simulation\n", flush=True)
 
 start_time = datetime.now()
 end_time = start_time + timedelta(hours=8)
@@ -93,7 +94,7 @@ finally:
     # Final report
     duration = datetime.now() - start_time
     print(f"\n\n{'=' * 70}", flush=True)
-    print(f"OVERNIGHT MISSION COMPLETE", flush=True)
+    print("OVERNIGHT MISSION COMPLETE", flush=True)
     print(f"{'=' * 70}", flush=True)
     print(f"Duration: {duration}", flush=True)
     print(f"Iterations: {iteration}", flush=True)
@@ -121,4 +122,4 @@ Discoveries: {len(discoveries)}
 """)
 
     print(f"\n📊 Report saved to: {data_dir / 'final_report.json'}", flush=True)
-    print(f"🎯 Mission accomplished!\n", flush=True)
+    print("🎯 Mission accomplished!\n", flush=True)

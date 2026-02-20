@@ -1,5 +1,5 @@
 import asyncio
-import logging
+
 from cohezion.mcp.email_notifier import EmailNotifier
 
 

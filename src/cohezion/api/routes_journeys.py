@@ -4,31 +4,133 @@ import json
 import logging
 from pathlib import Path
 
-import matplotlib
-import matplotlib.pyplot as plt
-import numpy as np
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 
 from cohezion.compound.journey_tracker import get_journey_tracker
 
 
-matplotlib.use("Agg")
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/journeys", tags=["journeys"])
 
 
+class JourneyCreateRequest(BaseModel):
+    """Request to create a journey."""
+
+    task_description: str
+    operation_type: str
+    session_id: str | None = None
+
+
+class JourneySearchRequest(BaseModel):
+    """Request to search for similar journeys."""
+
+    task_description: str | None = None
+    limit: int = 5
+    use_256d: bool = True
+
+
 @router.get("/journeys")
-async def list_journeys():
+async def list_journeys(operation_type: str | None = None, limit: int = 20):
     """List recent agent journeys."""
 
     tracker = get_journey_tracker()
-    journeys = tracker.get_recent_journeys(limit=20)
+
+    if tracker.use_surreal:
+        journeys = await tracker.get_recent_journeys(
+            operation_type=operation_type, limit=limit
+        )
+        return {
+            "journeys": [
+                {
+                    "journey_id": j.journey_id,
+                    "task_description": j.task_description[:50],
+                    "operation_type": j.operation_type,
+                    "phi_score": j.phi_score,
+                    "coherence_at_start": j.coherence_at_start,
+                    "coherence_at_end": j.coherence_at_end,
+                    "final_success": j.final_success,
+                    "has_embedding_2048d": j.embedding_2048d is not None,
+                    "has_flume_latent_256d": j.flume_latent_256d is not None,
+                    "has_trajectory_12d": j.trajectory_12d is not None,
+                }
+                for j in journeys
+            ]
+        }
+
+    return {"journeys": [], "message": "SurrealDB not available, using legacy mode"}
+
+
+@router.post("/journeys")
+async def create_journey(request: JourneyCreateRequest):
+    """Create a new unified journey with full trajectory."""
+    from cohezion.compound.executor_types import ExecutionResult
+
+    tracker = get_journey_tracker()
+
+    mock_result = ExecutionResult(
+        id=f"exec_{request.task_description[:8]}",
+        success=True,
+        output=f"Output for: {request.task_description}",
+        duration_seconds=1.0,
+        metrics={"coherence": 0.8},
+        token_metrics={"cache_hit_rate": 0.7},
+    )
+
+    journey = await tracker.record_journey(
+        execution_result=mock_result,
+        task_description=request.task_description,
+        operation_type=request.operation_type,
+        session_id=request.session_id,
+        coherence_at_start=0.5,
+        decisions=[],
+        actions=[],
+        outcome="completed",
+    )
+
+    return {
+        "journey_id": journey.journey_id,
+        "execution_id": journey.execution_id,
+        "phi_score": journey.phi_score,
+        "embedding_2048d_dim": len(journey.embedding_2048d)
+        if journey.embedding_2048d
+        else 0,
+        "flume_latent_256d_dim": len(journey.flume_latent_256d)
+        if journey.flume_latent_256d
+        else 0,
+        "trajectory_12d_dim": len(journey.trajectory_12d)
+        if journey.trajectory_12d
+        else 0,
+    }
+
+
+@router.post("/journeys/search")
+async def search_similar_journeys(request: JourneySearchRequest):
+    """Search for similar journeys using vector similarity."""
+
+    tracker = get_journey_tracker()
+
+    if not tracker.use_surreal:
+        return {"journeys": [], "message": "SurrealDB not available"}
+
+    similar = await tracker.find_similar_journeys(
+        task_description=request.task_description,
+        limit=request.limit,
+        use_256d=request.use_256d,
+    )
+
     return {
         "journeys": [
-            {"id": j["journey_id"], "query": j["query"][:50], "steps": j["step_count"]}
-            for j in journeys
+            {
+                "journey_id": j.get("journey_id"),
+                "task_description": j.get("task_description", "")[:50],
+                "operation_type": j.get("operation_type"),
+                "phi_score": j.get("phi_score"),
+                "score": j.get("score"),
+            }
+            for j in similar
         ]
     }
 
@@ -38,12 +140,30 @@ async def get_journey(journey_id: str):
     """Get a specific journey with full trajectory."""
 
     tracker = get_journey_tracker()
-    journey_file = tracker.output_dir / f"{journey_id}.json"
-    if not journey_file.exists():
-        raise HTTPException(status_code=404, detail=f"Journey {journey_id} not found")
-    import json
 
-    return json.loads(journey_file.read_text())
+    if tracker.use_surreal:
+        journey = await tracker.get_journey(journey_id)
+        if journey:
+            return {
+                "journey_id": journey.journey_id,
+                "execution_id": journey.execution_id,
+                "session_id": journey.session_id,
+                "task_description": journey.task_description,
+                "operation_type": journey.operation_type,
+                "coherence_at_start": journey.coherence_at_start,
+                "coherence_at_end": journey.coherence_at_end,
+                "phi_score": journey.phi_score,
+                "final_success": journey.final_success,
+                "embedding_2048d": journey.embedding_2048d,
+                "flume_latent_256d": journey.flume_latent_256d,
+                "trajectory_12d": journey.trajectory_12d,
+                "decisions_made": journey.decisions_made,
+                "actions_taken": journey.actions_taken,
+                "outcome": journey.outcome,
+                "metadata": journey.metadata,
+            }
+
+    raise HTTPException(status_code=404, detail=f"Journey {journey_id} not found")
 
 
 @router.get("/{journey_id}/trajectory")
@@ -215,6 +335,8 @@ async def visualize_journey(journey_id: str):
             status_code=400, detail="Journey needs at least 2 steps for visualization"
         )
 
+    import numpy as np
+
     trajectory = np.array(trajectory_data)
 
     viz = HyperToolsViz(output_dir=Path("renders"))
@@ -238,6 +360,8 @@ async def plot_journey(journey_id: str):
     import matplotlib
 
     matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
 
     from cohezion.compound.journey_tracker import get_journey_tracker
 

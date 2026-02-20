@@ -1,7 +1,9 @@
 import asyncio
 import logging
+
 from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.core.time_keeper import get_time_keeper
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - [CHAOS] - %(message)s")
 logger = logging.getLogger("ChaosMonkey")

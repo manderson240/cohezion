@@ -9,16 +9,17 @@ Runs in parallel with Physics and Societal drivers.
 """
 
 import asyncio
-import logging
-import time
 import gc
+import logging
+import random
+import time
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-import random
-from dataclasses import dataclass
 
 # Internal imports
 from cohezion.swarm.mass_simulator import MassSimulator
+
 
 logger = logging.getLogger("linguistic")
 

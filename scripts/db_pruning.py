@@ -1,7 +1,9 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta
+
 from cohezion.core.persistence.surreal_client import SurrealClient
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("DBPruning")

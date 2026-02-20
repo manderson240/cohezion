@@ -9,7 +9,8 @@ from pathlib import Path
 
 from cohezion.eval.flume_guided import FLUMEGuidedGenerator, create_flume_guided_runner
 from cohezion.eval.journey_integration import BenchmarkFeedbackLoop
-from cohezion.eval.pattern_analyzer import PatternAnalyzer, JourneyAttempt
+from cohezion.eval.pattern_analyzer import JourneyAttempt, PatternAnalyzer
+
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,16 @@ class IntegratedBenchmarkRunner:
         model: str = "claude-sonnet-4-20250514",
     ):
         """Initialize integrated runner."""
-        self.generator = generator
+        # Use API runner with safe defaults
+        from cohezion.eval.api_runner import APIBenchmarkRunner
+
+        # Default to safe token settings
+        self.generator = APIBenchmarkRunner(
+            provider="anthropic",
+            model="claude-sonnet-4-20250514",
+            token_budget=4096,
+            max_tokens=None,  # Auto-calculate
+        )
         self.provider = provider
         self.model = model
 

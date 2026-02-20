@@ -1,16 +1,18 @@
 import marimo
 
+
 __generated_with = "0.10.15"
 app = marimo.App(width="full", title="Cohezion v1.6 Ascension Cockpit")
 
 
 @app.cell
 def __():
+    import random
+    from datetime import datetime
+
     import marimo as mo
     import numpy as np
     import plotly.graph_objects as go
-    from datetime import datetime
-    import random
 
     return datetime, go, mo, np, random
 
@@ -82,7 +84,7 @@ def __(go, np, mo):
                             ]
                         ),
                     }
-        except Exception as e:
+        except Exception:
             pass
 
         # Fallback if DB is down or empty (Mock for demo)

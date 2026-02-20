@@ -1,5 +1,5 @@
 import os
-import torch
+
 import soundfile as sf
 from pocket_tts import TTSModel
 from pocket_tts.modules.stateful_module import init_states

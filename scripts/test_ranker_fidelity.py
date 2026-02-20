@@ -1,6 +1,7 @@
-import asyncio
 import logging
+
 from cohezion.compound.optimizer import SemanticContextRanker
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

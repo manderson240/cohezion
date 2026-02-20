@@ -1,13 +1,15 @@
 import asyncio
+import logging
 import os
 import sys
-import logging
 import time
+
 
 # Setup paths
 sys.path.append(os.path.abspath("src"))
 
 from cohezion.caching.semantic_cache import SemanticCache
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("CacheTest")

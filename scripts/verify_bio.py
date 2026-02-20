@@ -2,15 +2,15 @@ import asyncio
 import logging
 import sys
 from pathlib import Path
-import time
+
 
 # Add src to path
 sys.path.append(str(Path.cwd() / "src"))
 
+from cohezion.bio.biophotonics import Wavelength, get_light_field
+from cohezion.bio.morphic_field import get_morphic_field
 from cohezion.swarm.agents.biological_agent import BiologicalAgent
 from cohezion.swarm.swarm_types import SwarmConfig
-from cohezion.bio.biophotonics import get_light_field, Wavelength
-from cohezion.bio.morphic_field import get_morphic_field
 
 
 async def main():

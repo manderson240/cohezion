@@ -1,10 +1,14 @@
 import asyncio
 import logging
-from cohezion.swarm.agents.universe_sim_agent import UniverseSimulationAgent
+
 from cohezion.core.persistence.surreal_client import (
     SurrealClient,
+)
+from cohezion.core.persistence.surreal_client import (
     UniverseNode as DBNode,
 )
+from cohezion.swarm.agents.universe_sim_agent import UniverseSimulationAgent
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("HealingTest")
@@ -26,7 +30,7 @@ async def test_healing():
     # We manually inject a COMPLETED mission because running the real Daemon is too slow for a unit test
     db = SurrealClient()
     cure_node = DBNode(
-        id=f"mission_test_cure",
+        id="mission_test_cure",
         node_type="mission",
         content="Solution found.",
         metadata={"topic": "Test Cure", "status": "COMPLETED", "applied": False},

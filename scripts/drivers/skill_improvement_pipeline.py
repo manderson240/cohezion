@@ -10,11 +10,10 @@ The R-Zero triad:
 """
 
 import asyncio
-import json
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("r_zero_skills")
@@ -207,8 +206,8 @@ class RZeroSkillPipeline:
         rejected = sum(1 for e in evaluations if e.quality_score < 60)
 
         report.append("## Summary\n")
-        report.append(f"| Status | Count |\n")
-        report.append(f"|--------|-------|\n")
+        report.append("| Status | Count |\n")
+        report.append("|--------|-------|\n")
         report.append(f"| ✅ Approved | {approved} |\n")
         report.append(f"| ⚠️ Needs Improvement | {needs_work} |\n")
         report.append(f"| ❌ Rejected | {rejected} |\n\n")

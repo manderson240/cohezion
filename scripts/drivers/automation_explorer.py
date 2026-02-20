@@ -3,6 +3,7 @@ from pathlib import Path
 
 import requests
 
+
 # Configuration
 OLLAMA_URL = "http://localhost:11434/api/generate"
 SCOUT_MODEL = "qwen3-coder:30b"  # Fast, good at code reading

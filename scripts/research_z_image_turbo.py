@@ -3,9 +3,7 @@
 Z-Image-Turbo Installation & Research Script
 """
 
-import sys
 import subprocess
-from pathlib import Path
 
 
 def research_z_image_turbo():
@@ -16,9 +14,9 @@ def research_z_image_turbo():
     # Check GPU
     try:
         gpu_info = subprocess.check_output(["radeontop", "-l", "1"]).decode()
-        print(f"  ✓ AMD GPU detected (Radeon RX 7700S)")
+        print("  ✓ AMD GPU detected (Radeon RX 7700S)")
     except:
-        print(f"  ⚠️ radeontop failed, assuming 12GB VRAM available")
+        print("  ⚠️ radeontop failed, assuming 12GB VRAM available")
 
     # Requirements
     model_name = "Z-Image-Turbo"  # 6B parameters
@@ -30,17 +28,17 @@ def research_z_image_turbo():
     print(f"  - Available VRAM: {we_have}GB")
 
     if we_have < vram_target:
-        print(f"  ⚠️ Recommendation: Use Q4_K_M or Q5_K_M quantization via Ollama or HF")
+        print("  ⚠️ Recommendation: Use Q4_K_M or Q5_K_M quantization via Ollama or HF")
 
     # Check if Ollama has it
     try:
         ollama_list = subprocess.check_output(["ollama", "list"]).decode()
         if "z-image-turbo" in ollama_list:
-            print(f"  ✓ Z-Image-Turbo already available in Ollama roster")
+            print("  ✓ Z-Image-Turbo already available in Ollama roster")
         else:
-            print(f"  - Not in Ollama roster. Searching library...")
+            print("  - Not in Ollama roster. Searching library...")
     except:
-        print(f"  - Ollama not responsive")
+        print("  - Ollama not responsive")
 
     # Final Installation Recommendations
     print("\n🚀 Proposed Installation Steps:")

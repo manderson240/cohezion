@@ -3,12 +3,13 @@ import logging
 import sys
 from pathlib import Path
 
+
 # Add src to path
 sys.path.append(str(Path(__name__).parent / "src"))
 
-from cohezion.swarm.agents.analyst import AnalystAgent
-from cohezion.swarm.swarm_types import SwarmConfig, Perspective
 from cohezion.core.credit_manager import get_credit_manager
+from cohezion.swarm.agents.analyst import AnalystAgent
+from cohezion.swarm.swarm_types import Perspective, SwarmConfig
 
 
 async def main():
@@ -26,14 +27,14 @@ async def main():
     agent = AnalystAgent(Perspective.TECHNICAL, config=config)
 
     # 2. Run a task and check deduction
-    print(f"\n--- Running Task (Mistral:7b, Cost: 3) ---")
+    print("\n--- Running Task (Mistral:7b, Cost: 3) ---")
     await agent._call_ollama("What is the capital of France?")
 
     new_balance = credit_manager.get_balance(agent_id)
     print(f"Post-task Balance: {new_balance}")
 
     # 3. Simulate Bankruptcy
-    print(f"\n--- Simulating Credit Bankruptcy ---")
+    print("\n--- Simulating Credit Bankruptcy ---")
     credit_manager.deduct(agent_id, new_balance)  # Set to 0
     print(f"Wiped Balance: {credit_manager.get_balance(agent_id)}")
 

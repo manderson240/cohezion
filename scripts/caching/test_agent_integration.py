@@ -1,14 +1,15 @@
 import asyncio
 import os
 import sys
-import logging
 from unittest.mock import MagicMock
+
 
 # Setup paths
 sys.path.append(os.path.abspath("src"))
 
 from cohezion.swarm.agents.base import BaseAgent
 from cohezion.swarm.swarm_types import SwarmConfig
+
 
 # Mocks
 # Prevent ResourceMonitor from killing the test due to high VRAM (likely from other background tasks)

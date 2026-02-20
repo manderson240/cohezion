@@ -4,6 +4,7 @@ import time
 
 import requests
 
+
 # Configure "Red Team" Logger
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - [RED TEAM] - %(message)s")
 logger = logging.getLogger("ChaosMonkey")

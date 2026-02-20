@@ -19,20 +19,20 @@ Inspired by:
 """
 
 import asyncio
-import time
+import json
+import random
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List
-import json
-import subprocess
-import random
+
 import numpy as np
+
+from cohezion.evaluation.draconian_grader import DraconianGrader
 
 # Import our components
 from cohezion.monitoring.ratchet_monitor import RatchetMonitor
-from cohezion.evaluation.draconian_grader import DraconianGrader
-from cohezion.swarm.rzero_challenger import RZeroChallengerSolver
 from cohezion.swarm.hiho_vector_engine import HihoVectorEngine
+from cohezion.swarm.rzero_challenger import RZeroChallengerSolver
+
 
 # January 2026 SLM Swarm (8+ models as requested)
 SWARM_ROSTER = {
@@ -70,10 +70,10 @@ class OvernightResearchMission:
         self.discoveries = []
         self.skills_generated = []
 
-        print(f"🌙 OVERNIGHT MISSION INITIALIZED")
+        print("🌙 OVERNIGHT MISSION INITIALIZED")
         print(f"   Start: {self.start_time.strftime('%H:%M:%S')}")
         print(f"   End:   {self.end_time.strftime('%H:%M:%S')}")
-        print(f"   Duration: 8 hours")
+        print("   Duration: 8 hours")
         print(f"   Swarm Size: {len(SWARM_ROSTER)} models")
         print()
 
@@ -181,7 +181,7 @@ class OvernightResearchMission:
 
         return results
 
-    def check_gateway_unlock(self, results: dict) -> List[int]:
+    def check_gateway_unlock(self, results: dict) -> list[int]:
         """Check if simulation results unlock new gateways."""
         unlocked = []
 

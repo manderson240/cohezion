@@ -20,17 +20,19 @@ Includes:
 
 import marimo
 
+
 __generated_with = "0.10.17"
 app = marimo.App(width="full")
 
 
 @app.cell
 def _():
+    import json
+    from pathlib import Path
+
     import marimo as mo
     import matplotlib.pyplot as plt
     import numpy as np
-    import json
-    from pathlib import Path
 
     return mo, plt, np, json, Path
 

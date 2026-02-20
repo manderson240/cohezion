@@ -5,7 +5,6 @@ and measures performance improvements.
 """
 
 import asyncio
-import json
 import tempfile
 import time
 from pathlib import Path
@@ -283,31 +282,29 @@ class TestErrorHandling:
             "_execute_query_async",
             new_callable=AsyncMock,
             side_effect=mock_execute,
-        ):
-            with patch.object(sync_instance, "_sync_paper_links"):
-                count = await sync_instance._bulk_import_papers_parallel()
+        ), patch.object(sync_instance, "_sync_paper_links"):
+            count = await sync_instance._bulk_import_papers_parallel()
 
-                # Should succeed for papers without HTTP error
-                assert count == 9  # 1 failed, 9 succeeded
+            # Should succeed for papers without HTTP error
+            assert count == 9  # 1 failed, 9 succeeded
 
     @pytest.mark.asyncio
     async def test_timeout_handling(self, sync_instance, temp_vault):
         """Verify timeout errors are caught."""
 
         async def timeout_execute(*args, **kwargs):
-            raise asyncio.TimeoutError("Request timeout")
+            raise TimeoutError("Request timeout")
 
         with patch.object(
             sync_instance,
             "_execute_query_async",
             new_callable=AsyncMock,
             side_effect=timeout_execute,
-        ):
-            with patch.object(sync_instance, "_sync_paper_links"):
-                count = await sync_instance._bulk_import_papers_parallel()
+        ), patch.object(sync_instance, "_sync_paper_links"):
+            count = await sync_instance._bulk_import_papers_parallel()
 
-                # All should fail due to timeout
-                assert count == 0
+            # All should fail due to timeout
+            assert count == 0
 
 
 class TestConcurrencyControl:
@@ -333,12 +330,11 @@ class TestConcurrencyControl:
             "_execute_query_async",
             new_callable=AsyncMock,
             side_effect=mock_execute,
-        ):
-            with patch.object(sync_instance, "_sync_paper_links"):
-                await sync_instance._bulk_import_papers_parallel()
+        ), patch.object(sync_instance, "_sync_paper_links"):
+            await sync_instance._bulk_import_papers_parallel()
 
-                # Should never exceed max_concurrent
-                assert max_concurrent[0] <= sync_instance.max_concurrent
+            # Should never exceed max_concurrent
+            assert max_concurrent[0] <= sync_instance.max_concurrent
 
 
 class TestDataIntegrity:
@@ -411,11 +407,10 @@ Content {i}
 
         with patch.object(
             sync_par, "_execute_query_async", new_callable=AsyncMock, return_value=[]
-        ):
-            with patch.object(sync_par, "_sync_paper_links"):
-                start = time.perf_counter()
-                count_par = await sync_par._bulk_import_papers_parallel()
-                time_par = time.perf_counter() - start
+        ), patch.object(sync_par, "_sync_paper_links"):
+            start = time.perf_counter()
+            count_par = await sync_par._bulk_import_papers_parallel()
+            time_par = time.perf_counter() - start
 
         # Both should import same number
         assert count_seq == count_par == 20

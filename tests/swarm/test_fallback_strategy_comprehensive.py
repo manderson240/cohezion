@@ -10,16 +10,16 @@ Tests cover:
 - Edge cases (all unavailable, single model, etc.)
 """
 
-import pytest
 import time
-from unittest.mock import Mock
+
+import pytest
 
 from cohezion.swarm.fallback_strategy import (
-    FallbackStrategy,
     CircuitBreaker,
     CircuitBreakerState,
-    ModelHealthMetrics,
     FallbackEvent,
+    FallbackStrategy,
+    ModelHealthMetrics,
     get_fallback_strategy,
     reset_fallback_strategy,
 )

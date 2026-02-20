@@ -5,10 +5,8 @@ Creates sample data in SurrealDB and validates queries return correct results.
 
 import json
 import uuid
-from datetime import datetime
 
 from mcp_server.agent_context_queries import AgentContextQueries
-from mcp_server.agent_context_schema import AgentContextSchema
 
 
 def create_sample_data():

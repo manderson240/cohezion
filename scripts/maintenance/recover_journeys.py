@@ -1,10 +1,12 @@
 import asyncio
 import logging
-import re
 import os
+import re
+from datetime import UTC, datetime
 from pathlib import Path
-from datetime import datetime, UTC
+
 from cohezion.core.persistence.surreal_client import SurrealClient
+
 
 # Configure Logging
 logging.basicConfig(

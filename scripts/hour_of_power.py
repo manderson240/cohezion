@@ -2,14 +2,13 @@ import asyncio
 import logging
 import random
 from datetime import datetime, timedelta
-from pathlib import Path
-from typing import List
 
+from cohezion.gaia.interface import get_planetary_interface
+from cohezion.mcp.email_notifier import EmailNotifier, NotificationConfig
+from cohezion.mcp.findings_dispatcher import FindingsDispatcher
 from cohezion.swarm.agents.gaia_agent import GaiaAgent
 from cohezion.swarm.agents.seti_agent import SETIAgent
-from cohezion.mcp.email_notifier import EmailNotifier, NotificationConfig
-from cohezion.gaia.interface import get_planetary_interface
-from cohezion.mcp.findings_dispatcher import FindingsDispatcher
+
 
 # Configure Logging
 logging.basicConfig(
@@ -36,7 +35,7 @@ class HourOfPowerDriver:
         self.seti = SETIAgent()
 
         # Simulation State
-        self.chronicle: List[str] = []
+        self.chronicle: list[str] = []
         self.start_time = datetime.now()
         self.end_time = self.start_time + timedelta(hours=1)
 

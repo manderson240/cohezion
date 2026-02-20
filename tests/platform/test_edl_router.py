@@ -2,13 +2,15 @@
 Tests for ExpertDomainRouter - Expert Domain Lattice consensus routing.
 """
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+
 from cohezion.platform.edl_router import (
+    EDLConsensus,
     ExpertDomainRouter,
     ExpertStream,
     StreamRecommendation,
-    EDLConsensus,
     get_edl_router,
     reset_edl_router,
 )

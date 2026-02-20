@@ -1,14 +1,15 @@
-import quimb.tensor as qtn
-import numpy as np
 import logging
-import os
+
+import numpy as np
+import quimb.tensor as qtn
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("AmplitudeAudit")
 
 
 def load_qasm_manual(qasm_path):
-    with open(qasm_path, "r") as f:
+    with open(qasm_path) as f:
         lines = f.readlines()
 
     N = 0

@@ -1,8 +1,8 @@
 import asyncio
 import logging
 import sys
-import os
 from unittest.mock import MagicMock
+
 
 # Mock vitals before importing reflex
 sys.modules["cohezion.reliability.monitor"] = MagicMock()

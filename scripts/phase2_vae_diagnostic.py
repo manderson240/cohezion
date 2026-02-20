@@ -19,6 +19,7 @@ from cohezion.cache.semantic_cache import SemanticCache
 from cohezion.core.mcp_client import MCPClient, MCPConfig
 from cohezion.flume.vae_encoder import get_encoder
 
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,

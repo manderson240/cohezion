@@ -8,11 +8,11 @@ This stub demonstrates:
 3. Skill Ratcheting: Permanently committing successful skills to the 'Root of Trust'.
 """
 
-import time
 import logging
 import random
-from dataclasses import dataclass, field
-from typing import Dict, List
+import time
+from dataclasses import dataclass
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("REWARD_ENGINE")
@@ -30,7 +30,7 @@ class AgentProfile:
 
 class RewardManager:
     def __init__(self):
-        self.profiles: Dict[str, AgentProfile] = {}
+        self.profiles: dict[str, AgentProfile] = {}
         self.global_cohezion = 0.85
 
     def register_agent(self, agent_id: str):

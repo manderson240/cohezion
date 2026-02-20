@@ -1,10 +1,8 @@
 """Tests for TLS/HTTPS security configuration and middleware."""
 
-import ssl
 import tempfile
 from pathlib import Path
 
-import pytest
 from starlette.applications import Starlette
 from starlette.responses import PlainTextResponse
 from starlette.testclient import TestClient

@@ -1,8 +1,8 @@
 import asyncio
-import torch
-from cohezion.flume.autoencoder import FlumeEncoder, FlumeConfig
-from cohezion.flume.navigator import FlumeNavigator
+
+from cohezion.flume.autoencoder import FlumeConfig, FlumeEncoder
 from cohezion.flume.mnm import ManifoldManager
+from cohezion.flume.navigator import FlumeNavigator
 
 
 async def test_navigator():

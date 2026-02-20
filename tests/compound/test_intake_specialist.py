@@ -7,10 +7,11 @@ Covers:
 - IntakeSpecialist (complete intake pipeline)
 """
 
-import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import MagicMock
 
-from cohezion.compound.intake_specialist import IntakeSpecialist, IntakeGreeting
+import pytest
+
+from cohezion.compound.intake_specialist import IntakeSpecialist
 from cohezion.compound.intent_classifier import IntentClassifier
 from cohezion.compound.prompt_optimizer import PromptOptimizer
 from cohezion.compound.request_cache import RequestCache

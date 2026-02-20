@@ -7,8 +7,9 @@ Tests the complete workflow:
 - Query chaining (reasoning → lessons → papers)
 """
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from src.mcp_server.agent_reasoning import AgentReasoningOps
 from src.mcp_server.agent_reasoning_queries import AgentReasoningQueries

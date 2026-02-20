@@ -4,12 +4,13 @@ Ollama Research Worker - Queries models continuously
 Tests different SLMs on physics questions
 """
 
+import json
+import subprocess
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
-import json
-import subprocess
+
 
 worker_id = sys.argv[1] if len(sys.argv) > 1 else "1"
 output_dir = Path(f"/home/mike-anderson/dev/cohezion/data/overnight/ollama_{worker_id}")
@@ -53,7 +54,7 @@ while True:
         response = "TIMEOUT"
         success = False
     except Exception as e:
-        response = f"ERROR: {str(e)}"
+        response = f"ERROR: {e!s}"
         success = False
 
     end = datetime.now()

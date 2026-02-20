@@ -1,9 +1,11 @@
 import asyncio
 import logging
+
 from cohezion.swarm.agents.universe_sim_agent import (
-    UniverseSimulationAgent,
     UniverseNode,
+    UniverseSimulationAgent,
 )
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("HypercubeTest")

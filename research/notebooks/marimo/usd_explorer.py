@@ -18,6 +18,7 @@ Uses HIHO framework: Stability at 0.5 coherence threshold.
 
 import marimo
 
+
 __generated_with = "0.19.4"
 app = marimo.App(width="full")
 
@@ -26,8 +27,8 @@ app = marimo.App(width="full")
 def _():
     import marimo as mo
     import numpy as np
-    import plotly.graph_objects as go
     import plotly.express as px
+    import plotly.graph_objects as go
     from plotly.subplots import make_subplots
 
     return mo, np, go, px, make_subplots

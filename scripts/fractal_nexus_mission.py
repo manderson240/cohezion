@@ -13,30 +13,32 @@ Features:
 """
 
 import asyncio
-import logging
 import json
+import logging
 import time
-import random
-import psutil
 from datetime import datetime, timedelta
 from pathlib import Path
 
-# Core Cohezion Imports
-from cohezion.swarm.hiho_vector_engine import HihoVectorEngine
-from cohezion.monitoring.ratchet_monitor import RatchetMonitor, SystemVitals
-from cohezion.swarm.agents.base import BaseAgent
-from cohezion.swarm.swarm_types import SwarmConfig
-from cohezion.swarm.journey_tracker import (
-    get_journey_tracker,
-    AgentType,
-    JourneyMetrics,
-)
+import psutil
+
 from cohezion.core.persistence.surreal_client import (
+    PhysicsState,
     SurrealClient,
     UniverseNode,
-    PhysicsState,
 )
 from cohezion.mcp.email_notifier import EmailNotifier
+from cohezion.monitoring.ratchet_monitor import RatchetMonitor
+from cohezion.swarm.agents.base import BaseAgent
+
+# Core Cohezion Imports
+from cohezion.swarm.hiho_vector_engine import HihoVectorEngine
+from cohezion.swarm.journey_tracker import (
+    AgentType,
+    JourneyMetrics,
+    get_journey_tracker,
+)
+from cohezion.swarm.swarm_types import SwarmConfig
+
 
 # Setup Logging
 logging.basicConfig(
@@ -410,7 +412,7 @@ Address the "Black Box" concern: what is the underlying physics logic of this co
                     checkpoint = records[0]
                     logger.info("⚡ Resuming from SurrealDB checkpoint.")
             elif self.checkpoint_path.exists():
-                with open(self.checkpoint_path, "r") as f:
+                with open(self.checkpoint_path) as f:
                     checkpoint = json.load(f)
                 logger.info("⚡ Resuming from local checkpoint.")
 

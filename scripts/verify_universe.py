@@ -1,9 +1,7 @@
 import asyncio
 import logging
 import sys
-from datetime import datetime, timedelta
 from pathlib import Path
-from cohezion.mcp.email_notifier import EmailNotifier
 
 # Mock the UniverseDriver to run fast
 from scripts.universe_driver import UniverseDriver

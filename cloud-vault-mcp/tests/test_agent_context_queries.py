@@ -4,6 +4,7 @@ Validates that query infrastructure works and returns correct structure.
 """
 
 import json
+
 import pytest
 
 from mcp_server.agent_context_queries import AgentContextQueries
@@ -84,7 +85,6 @@ class TestAgentContextQueries:
 
 if __name__ == "__main__":
     # Manual test run
-    import sys
 
     q = AgentContextQueries()
 
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     print("\n6. Session Summary Query")
     print("-" * 60)
     result = q.get_session_summary("session:test")
-    print(f"Status: Session lookup completed")
+    print("Status: Session lookup completed")
     print(f"Result: {result}")
 
     print("\n" + "=" * 60)

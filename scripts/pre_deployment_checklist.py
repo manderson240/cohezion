@@ -6,7 +6,6 @@ Automated checks for production deployment readiness
 
 import subprocess
 import sys
-from pathlib import Path
 
 
 def run_command(cmd, description):

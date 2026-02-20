@@ -1,17 +1,15 @@
 import asyncio
 import logging
-import json
-import os
-import time
-from typing import Any
-from datetime import datetime
 from pathlib import Path
+from typing import Any
+from unittest.mock import AsyncMock, MagicMock
+
 import numpy as np
-from cohezion.compound.exp_persistence.journey import get_journey_persistence
+
 from cohezion.agents.base import BaseAgent
+from cohezion.compound.exp_persistence.journey import get_journey_persistence
 from cohezion.reliability.semantic_cache import SemanticCache
-from cohezion.core.mcp_client import get_mcp_client
-from unittest.mock import MagicMock, AsyncMock
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

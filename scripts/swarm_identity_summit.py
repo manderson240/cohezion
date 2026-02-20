@@ -1,9 +1,10 @@
-import aiohttp
-import json
-import os
 import asyncio
+import os
+
+import aiohttp
 from rich.console import Console
 from rich.panel import Panel
+
 
 console = Console()
 
@@ -28,7 +29,7 @@ async def prompt_agent(role: str, model: str, prompt: str) -> str:
                 data = await response.json()
                 return data.get("response", "").strip()
     except Exception as e:
-        return f"Exception: {str(e)}"
+        return f"Exception: {e!s}"
 
 
 async def run_summit():
@@ -36,7 +37,7 @@ async def run_summit():
         console.print("[red]Charter not found.[/red]")
         return
 
-    with open(CHARTER_PATH, "r") as f:
+    with open(CHARTER_PATH) as f:
         charter = f.read()
 
     base_prompt = f"""

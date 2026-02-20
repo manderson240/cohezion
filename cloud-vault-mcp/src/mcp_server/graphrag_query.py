@@ -7,15 +7,14 @@ Combines:
 - Query caching (LRU for frequent queries)
 """
 
-import asyncio
 import logging
 from functools import lru_cache
-from typing import List, Dict, Any, Optional
-from pathlib import Path
+from typing import Any
 
 import httpx
 
-from .graphrag_helpers import execute_surreal_async, GraphRAGError
+from .graphrag_helpers import GraphRAGError, execute_surreal_async
+
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +38,7 @@ class GraphRAGQuery:
         self.embedding_model = embedding_model
         self.max_graph_depth = max_graph_depth
 
-        self.http_client: Optional[httpx.AsyncClient] = None
+        self.http_client: httpx.AsyncClient | None = None
 
     async def __aenter__(self):
         """Async context manager entry"""
@@ -51,7 +50,7 @@ class GraphRAGQuery:
         if self.http_client:
             await self.http_client.aclose()
 
-    async def generate_embedding(self, text: str) -> List[float]:
+    async def generate_embedding(self, text: str) -> list[float]:
         """Generate query embedding via Ollama"""
         if not self.http_client:
             raise GraphRAGError("HTTP client not initialized")
@@ -77,7 +76,7 @@ class GraphRAGQuery:
 
     async def semantic_search(
         self, query: str, top_k: int = 5, min_score: float = 0.3
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Semantic vector search
 
@@ -119,7 +118,7 @@ class GraphRAGQuery:
         include_ancestry: bool = True,
         include_descendants: bool = True,
         max_depth: int = None,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Hybrid semantic + graph search
 
@@ -174,8 +173,8 @@ class GraphRAGQuery:
         self,
         doc_id: str,
         max_depth: int = None,
-        relation_types: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        relation_types: list[str] | None = None,
+    ) -> dict[str, Any]:
         """
         Find all related documents via graph edges
 
@@ -227,7 +226,7 @@ def _cache_key(
 
 async def cached_hybrid_search(
     query_engine: GraphRAGQuery, query: str, top_k: int = 5, **kwargs
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Cached hybrid search (use for frequent queries)"""
     # Check cache
     cache_key = _cache_key(

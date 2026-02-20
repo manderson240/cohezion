@@ -1,7 +1,7 @@
 import marimo as mo
 import pandas as pd
-import numpy as np
 import plotly.express as px
+
 
 mo.md("# 🌌 Fractal Nexus Exploration")
 

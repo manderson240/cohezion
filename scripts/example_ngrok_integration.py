@@ -19,13 +19,14 @@ Usage:
 
 import asyncio
 import logging
-from cohezion.swarm.token_client import TokenEfficientClient
-from cohezion.gateway import NgrokAIGateway
+
 from cohezion.deployment.feature_flags import (
     FeatureFlag,
-    FeatureFlagContext,
     get_feature_flag_manager,
 )
+from cohezion.gateway import NgrokAIGateway
+from cohezion.swarm.token_client import TokenEfficientClient
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -105,7 +106,7 @@ async def example_2_cost_optimization():
             print(f"Error on {task['description']}: {e}\n")
 
     metrics = client.get_metrics()
-    print(f"\n--- Cost Summary ---")
+    print("\n--- Cost Summary ---")
     print(f"Total cost: ${metrics['total_cost']:.6f}")
     print(f"Average cost per request: ${metrics['average_cost_per_request']:.6f}")
     print(f"Total tokens: {metrics['total_tokens']}\n")
@@ -134,7 +135,7 @@ async def example_3_failover_behavior():
         print(f"Response: {response}\n")
 
         metrics = gateway.get_metrics()
-        print(f"Provider stats:")
+        print("Provider stats:")
         print(f"  ngrok requests: {metrics['ngrok_requests']}")
         print(f"  ollama requests: {metrics['ollama_requests']}")
         print(f"  fallback requests: {metrics['fallback_requests']}\n")
@@ -223,23 +224,23 @@ async def example_5_metrics_monitoring():
     metrics = gateway.get_metrics()
 
     print("=== ngrok AI Gateway Metrics ===\n")
-    print(f"Requests:")
+    print("Requests:")
     print(f"  Total:      {metrics['total_requests']}")
     print(f"  Successful: {metrics['successful_requests']}")
     print(f"  Failed:     {metrics['failed_requests']}")
     print(f"  Fallbacks:  {metrics['fallback_requests']}\n")
 
-    print(f"Providers:")
+    print("Providers:")
     print(f"  ngrok:      {metrics['ngrok_requests']} requests")
     print(f"  ollama:     {metrics['ollama_requests']} requests\n")
 
-    print(f"Performance:")
+    print("Performance:")
     print(f"  Success rate: {metrics['success_rate']}%")
     print(f"  Cache hits:   {metrics['cache_hits']}")
     print(f"  Uptime:       {metrics['uptime_seconds']}s")
     print(f"  Throughput:   {metrics['requests_per_minute']} req/min\n")
 
-    print(f"Cost & Tokens:")
+    print("Cost & Tokens:")
     print(f"  Total cost:          ${metrics['total_cost']:.4f}")
     print(f"  Avg cost/request:    ${metrics['average_cost_per_request']:.6f}")
     print(f"  Total tokens:        {metrics['total_tokens']}\n")
@@ -272,7 +273,7 @@ async def example_6_batch_processing():
     try:
         result = await client.batch_generate(items)
 
-        print(f"Batch result:")
+        print("Batch result:")
         print(
             f"  Items processed: {result.total_items if hasattr(result, 'total_items') else len(result.items)}"
         )
@@ -281,7 +282,7 @@ async def example_6_batch_processing():
         print(f"  Duration:        {result.total_duration_ms:.1f}ms\n")
 
         metrics = client.get_metrics()
-        print(f"Overall metrics:")
+        print("Overall metrics:")
         print(f"  Total cost: ${metrics['total_cost']:.6f}")
         print(f"  Success rate: {metrics['success_rate']}%\n")
 

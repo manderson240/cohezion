@@ -1,18 +1,20 @@
 import asyncio
 import logging
-import time
-import httpx
-from datetime import datetime
-from pathlib import Path
 
 # Add src to path
 import sys
+import time
+from pathlib import Path
+
+import httpx
+
 
 sys.path.append(str(Path(__file__).parent.parent / "src"))
 
-from cohezion.compound.journey_tracker import JourneyTracker, OperationType
 from cohezion.compound.executor import ExecutionResult
 from cohezion.compound.exp_persistence.accumulator import get_accumulator
+from cohezion.compound.journey_tracker import JourneyTracker, OperationType
+
 
 # Configure logging
 logging.basicConfig(
@@ -159,7 +161,7 @@ async def record_session_journey():
         print("\n✅ Session 12 Journey Captured (Identity: Cohezion).")
         print(f"Mission ID: {session_id}")
         print(
-            f"Archived in: SurrealDB (trajectories) & Obsidian Vault (retrospectives)"
+            "Archived in: SurrealDB (trajectories) & Obsidian Vault (retrospectives)"
         )
 
     except Exception as e:

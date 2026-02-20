@@ -5,7 +5,6 @@ Five expert perspectives on presenting Wilbert Smith's 12-Parameter Reality Mode
 """
 
 from dataclasses import dataclass
-from typing import List
 
 
 @dataclass

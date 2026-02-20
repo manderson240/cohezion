@@ -16,15 +16,18 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+
 # Add src to path
 sys.path.append(str(Path(__file__).parents[2] / "src"))
 
 from cohezion.core.resource_monitor import get_resource_monitor
 from cohezion.mcp.email_notifier import notify_completion
 
+
 # Import the Code Simplifier (locally)
 sys.path.append(str(Path(__file__).parent))
 from code_simplifier import CodeSimplifier
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -38,6 +41,7 @@ logger = logging.getLogger("EvolutionaryDriver")
 
 # ... (Imports remain the same)
 import asyncio
+
 
 # ... (Logging setup remains the same)
 

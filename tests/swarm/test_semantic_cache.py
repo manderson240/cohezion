@@ -1,14 +1,15 @@
 """Tests for SemanticCache - Phase 2 Task #2.2."""
 
-import pytest
-import numpy as np
 from unittest.mock import AsyncMock
 
+import numpy as np
+import pytest
+
 from cohezion.swarm.semantic_cache import (
-    SemanticCache,
     DistilledEmbeddingModel,
-    FlumeVAEEmbeddingModel,
     EmbeddingResult,
+    FlumeVAEEmbeddingModel,
+    SemanticCache,
     SemanticCacheHit,
 )
 

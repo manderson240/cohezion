@@ -2,27 +2,29 @@
 Tests for Charter-Aligned Skill Effectiveness Tracker.
 """
 
-import pytest
 from datetime import datetime
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import numpy as np
-from cohezion.platform.skill_tracker_charter import (
-    CharterAlignedSkillTracker,
-    SkillUsageEvent,
-    get_skill_tracker,
-    reset_skill_tracker,
+import pytest
+
+from cohezion.platform.coherence_tracker import CoherenceMetrics
+from cohezion.platform.skill_analytics_charter import (
+    CharterAlignedSkillAnalytics,
+    get_skill_analytics,
+    reset_skill_analytics,
 )
 from cohezion.platform.skill_scorer_charter import (
     CharterAlignedSkillScorer,
     get_skill_scorer,
     reset_skill_scorer,
 )
-from cohezion.platform.skill_analytics_charter import (
-    CharterAlignedSkillAnalytics,
-    get_skill_analytics,
-    reset_skill_analytics,
+from cohezion.platform.skill_tracker_charter import (
+    CharterAlignedSkillTracker,
+    SkillUsageEvent,
+    get_skill_tracker,
+    reset_skill_tracker,
 )
-from cohezion.platform.coherence_tracker import CoherenceMetrics
 
 
 @pytest.fixture

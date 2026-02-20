@@ -1,7 +1,7 @@
+import logging
 import os
 import pickle
-import quimb.tensor as qtn
-import logging
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("Verifier")
@@ -36,7 +36,7 @@ def verify():
 
         # 1. Parse QASM (Simplified version of Solver parser)
         ops = []
-        with open(qasm_path, "r") as f:
+        with open(qasm_path) as f:
             lines = f.readlines()
 
         import numpy as np

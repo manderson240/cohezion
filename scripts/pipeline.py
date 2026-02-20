@@ -23,6 +23,7 @@ from pathlib import Path
 
 import numpy as np
 
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(name)s %(levelname)s %(message)s",

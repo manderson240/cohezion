@@ -1,9 +1,8 @@
-import os
-import subprocess
 import logging
-import sys
-from pathlib import Path
+import subprocess
 from datetime import datetime
+from pathlib import Path
+
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -81,7 +80,7 @@ def show_status():
 
     if JANITOR_CACHE_FILE.exists():
         try:
-            with open(JANITOR_CACHE_FILE, "r") as f:
+            with open(JANITOR_CACHE_FILE) as f:
                 cache = json.load(f)
                 if (datetime.now().timestamp() - cache.get("timestamp", 0)) < 300:
                     logger.info(

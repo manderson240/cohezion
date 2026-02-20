@@ -3,15 +3,13 @@
 import asyncio
 import json
 import logging
-import os
 import re
 import sqlite3
-import subprocess
-import tempfile
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -315,9 +313,10 @@ class AgentCoordinator:
         try:
             # Use provided client or create one
             if not self.client:
-                import anthropic
                 import json as json_lib
                 from pathlib import Path as PathLib
+
+                import anthropic
 
                 # Try OAuth token first (Claude Code)
                 auth_token = None
@@ -348,7 +347,7 @@ class AgentCoordinator:
             logger.debug(f"Agent response: {response_text[:200]}...")
             return response_text
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error(f"Agent timed out after {self.timeout_seconds}s")
             return ""
         except Exception as e:
@@ -515,7 +514,7 @@ class SheetsResearchDaemon:
                         self._poll_and_process(),
                         timeout=self.config.sheets_research_poll_interval,
                     )
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     pass
                 except Exception:
                     logger.exception("Unexpected error in poll cycle")

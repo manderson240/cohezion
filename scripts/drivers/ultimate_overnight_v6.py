@@ -23,13 +23,14 @@ import statistics
 import sys
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional, Dict, List
+
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from cohezion.core.persistence.surreal_client import SurrealClient
+
 
 # Setup logging
 logging.basicConfig(
@@ -54,11 +55,11 @@ class LearningState:
     """Persistent learning state across all simulations."""
 
     generation: int = 0
-    best_parameters: Dict[str, float] = field(default_factory=dict)
+    best_parameters: dict[str, float] = field(default_factory=dict)
     mutation_rate: float = 0.1
     learning_rate: float = 0.05
-    convergence_history: List[float] = field(default_factory=list)
-    avg_score_history: List[float] = field(default_factory=list)
+    convergence_history: list[float] = field(default_factory=list)
+    avg_score_history: list[float] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
@@ -69,7 +70,7 @@ class LearningState:
             "score_trend": self._calculate_trend(self.avg_score_history),
         }
 
-    def _calculate_trend(self, values: List[float]) -> str:
+    def _calculate_trend(self, values: list[float]) -> str:
         if len(values) < 2:
             return "insufficient_data"
         recent = statistics.mean(values[-3:]) if len(values) >= 3 else values[-1]
@@ -86,7 +87,7 @@ class SurrealDBOvernightStore:
 
     def __init__(self, session_id: str):
         self.session_id = session_id.replace("-", "_")  # Safe ID format
-        self.client: Optional[SurrealClient] = None
+        self.client: SurrealClient | None = None
         self.connected = False
         self._buffer = []
         self._buffer_size = 100
@@ -106,7 +107,7 @@ class SurrealDBOvernightStore:
             return False
 
     async def store_simulation_batch(
-        self, sim_type: str, generation: int, results: List[dict]
+        self, sim_type: str, generation: int, results: list[dict]
     ):
         """Store a batch of simulation results."""
         if not self.connected:
@@ -278,7 +279,7 @@ class UltimateOvernightSimulation:
         )
         logger.info(f"   Convergence: {convergence:.3f}")
 
-    async def run_flume_generation(self, count: int) -> List[dict]:
+    async def run_flume_generation(self, count: int) -> list[dict]:
         """Run one generation of FLUME simulations."""
         params = self.learning.best_parameters
         results = []
@@ -312,7 +313,7 @@ class UltimateOvernightSimulation:
 
         return results
 
-    async def run_rzero_generation(self, count: int) -> List[dict]:
+    async def run_rzero_generation(self, count: int) -> list[dict]:
         """Run one generation of R-Zero simulations."""
         params = self.learning.best_parameters
         difficulty = params["rzero_initial_difficulty"]
@@ -342,7 +343,7 @@ class UltimateOvernightSimulation:
 
         return results
 
-    async def run_fractal_generation(self, agents_count: int, steps: int) -> List[dict]:
+    async def run_fractal_generation(self, agents_count: int, steps: int) -> list[dict]:
         """Run agent-based fractal simulation."""
         params = self.learning.best_parameters
 
@@ -401,7 +402,7 @@ class UltimateOvernightSimulation:
             for a in agents
         ]
 
-    async def run_mass_generation(self, count: int) -> List[dict]:
+    async def run_mass_generation(self, count: int) -> list[dict]:
         """Run parameter sweep generation."""
         params = self.learning.best_parameters
         results = []
@@ -456,7 +457,7 @@ class UltimateOvernightSimulation:
             generation = 0
             while self.should_continue():
                 generation += 1
-                logger.info(f"")
+                logger.info("")
                 logger.info(
                     f"🔄 GENERATION {generation} - {datetime.now().strftime('%H:%M')}"
                 )

@@ -2,8 +2,9 @@
 
 import asyncio
 import time
+
 import numpy as np
-from cohezion.swarm.executive import QuadratureNexus
+
 from cohezion.compound.universe_bridge import UniverseBridge
 
 

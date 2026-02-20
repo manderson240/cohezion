@@ -1,6 +1,7 @@
 """API-based benchmark runner for Anthropic/GPT models.
 
 Enables benchmark evaluation using API models for accurate capability assessment.
+Includes token limit handling and auto-retry for robustness.
 """
 
 import json
@@ -10,7 +11,12 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
+
+# Default token limits for different providers
+DEFAULT_MAX_TOKENS = 512  # Reduced from 2048 to prevent limit errors
+DEFAULT_TOKEN_BUDGET = 4096  # Total budget (prompt + completion)
 
 
 @dataclass
@@ -33,11 +39,14 @@ class AnthropicBenchmarkRunner:
         self,
         model: str = "claude-sonnet-4-20250514",
         api_key: str | None = None,
+        token_budget: int = DEFAULT_TOKEN_BUDGET,
     ):
         """Initialize runner."""
         self.model = model
         self.api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
         self.client = None
+        self.token_budget = token_budget
+        self._token_reduction_factor = 2  # How much to reduce on token errors
 
     def _get_client(self):
         """Get or create Anthropic client."""
@@ -47,8 +56,80 @@ class AnthropicBenchmarkRunner:
             self.client = anthropic.Anthropic(api_key=self.api_key)
         return self.client
 
-    def generate(self, prompt: str, max_tokens: int = 2048) -> str:
-        """Generate completion."""
+    def calculate_max_tokens(self, prompt: str) -> int:
+        """Calculate safe max completion tokens based on prompt.
+
+        Args:
+            prompt: Input prompt
+
+        Returns:
+            Safe max_tokens for completion
+        """
+        # Rough estimate: 1 token ≈ 4 characters
+        prompt_tokens = len(prompt) // 4
+
+        # Reserve buffer for response overhead
+        buffer = 100
+
+        max_completion = self.token_budget - prompt_tokens - buffer
+
+        return max(256, min(max_completion, 4096))  # Min 256, max 4096
+
+    def generate(
+        self,
+        prompt: str,
+        max_tokens: int | None = None,
+    ) -> str:
+        """Generate completion with error handling and auto-retry.
+
+        Args:
+            prompt: Input prompt
+            max_tokens: Max tokens (auto-calculated if None)
+
+        Returns:
+            Generated text
+
+        Raises:
+            Exception: If all retries fail
+        """
+        # Auto-calculate safe max_tokens if not provided
+        if max_tokens is None:
+            max_tokens = self.calculate_max_tokens(prompt)
+            logger.debug(f"Auto-calculated max_tokens: {max_tokens}")
+
+        last_error = None
+        current_max_tokens = max_tokens
+
+        for attempt in range(3):  # Max 3 attempts
+            try:
+                return self._do_generate(prompt, current_max_tokens)
+            except Exception as e:
+                error_msg = str(e).lower()
+                last_error = e
+
+                if "too many tokens" in error_msg or "max_tokens" in error_msg:
+                    # Reduce tokens and retry
+                    current_max_tokens = max(256, current_max_tokens // 2)
+                    logger.warning(
+                        f"Token limit hit (attempt {attempt + 1}), "
+                        f"reducing to {current_max_tokens} tokens"
+                    )
+                    continue
+                elif "rate_limit" in error_msg or "rate limit" in error_msg:
+                    # Wait and retry with backoff
+                    wait_time = (attempt + 1) * 10
+                    logger.warning(f"Rate limit hit, waiting {wait_time}s")
+                    time.sleep(wait_time)
+                    continue
+                else:
+                    # Non-retryable error
+                    raise
+
+        # All retries failed
+        raise last_error
+
+    def _do_generate(self, prompt: str, max_tokens: int) -> str:
+        """Actual generation call."""
         client = self._get_client()
         response = client.messages.create(
             model=self.model,
@@ -65,17 +146,60 @@ class OpenAIBenchmarkRunner:
         self,
         model: str = "gpt-4o",
         api_key: str | None = None,
+        token_budget: int = DEFAULT_TOKEN_BUDGET,
     ):
         """Initialize runner."""
         self.model = model
         self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
+        self.token_budget = token_budget
+        self.client = None
 
-    def generate(self, prompt: str, max_tokens: int = 2048) -> str:
-        """Generate completion."""
+    def calculate_max_tokens(self, prompt: str) -> int:
+        """Calculate safe max completion tokens based on prompt."""
+        prompt_tokens = len(prompt) // 4
+        buffer = 100
+        max_completion = self.token_budget - prompt_tokens - buffer
+        return max(256, min(max_completion, 4096))
+
+    def generate(
+        self,
+        prompt: str,
+        max_tokens: int | None = None,
+    ) -> str:
+        """Generate with error handling."""
+        if max_tokens is None:
+            max_tokens = self.calculate_max_tokens(prompt)
+
+        last_error = None
+        current_max_tokens = max_tokens
+
+        for attempt in range(3):
+            try:
+                return self._do_generate(prompt, current_max_tokens)
+            except Exception as e:
+                error_msg = str(e).lower()
+                last_error = e
+
+                if "too many tokens" in error_msg or "max_tokens" in error_msg:
+                    current_max_tokens = max(256, current_max_tokens // 2)
+                    logger.warning(f"Token limit hit, reducing to {current_max_tokens}")
+                    continue
+                elif "rate_limit" in error_msg:
+                    time.sleep((attempt + 1) * 10)
+                    continue
+                else:
+                    raise
+
+        raise last_error
+
+    def _do_generate(self, prompt: str, max_tokens: int) -> str:
+        """Actual generation call."""
         from openai import OpenAI
 
-        client = OpenAI(api_key=self.api_key)
-        response = client.chat.completions.create(
+        if self.client is None:
+            self.client = OpenAI(api_key=self.api_key)
+
+        response = self.client.chat.completions.create(
             model=self.model,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=max_tokens,
@@ -95,6 +219,8 @@ class APIBenchmarkRunner:
         self,
         provider: str = "anthropic",
         model: str = "claude-sonnet-4-20250514",
+        token_budget: int = DEFAULT_TOKEN_BUDGET,
+        max_tokens: int | None = None,
         **kwargs,
     ):
         """Initialize runner.
@@ -102,29 +228,39 @@ class APIBenchmarkRunner:
         Args:
             provider: "anthropic" or "openai"
             model: Model name
+            token_budget: Total token budget (prompt + completion)
+            max_tokens: Override max completion tokens (None = auto-calculate)
             **kwargs: Additional provider-specific args
         """
         if provider not in self.PROVIDERS:
             raise ValueError(f"Unknown provider: {provider}")
 
-        self.runner = self.PROVIDERS[provider](model=model, **kwargs)
+        runner_class = self.PROVIDERS[provider]
+        self.runner = runner_class(
+            model=model,
+            token_budget=token_budget,
+            **kwargs,
+        )
         self.model = model
         self.provider = provider
+        self._max_tokens_override = max_tokens
 
-    def generate(self, prompt: str, max_tokens: int = 2048) -> str:
+    def generate(self, prompt: str, max_tokens: int | None = None) -> str:
         """Generate completion."""
-        return self.runner.generate(prompt, max_tokens)
+        # Use override or provided value
+        tokens = max_tokens or self._max_tokens_override
+        return self.runner.generate(prompt, tokens)
 
     def run_humaneval(
         self,
         limit: int | None = None,
-        max_tokens: int = 2048,
+        max_tokens: int | None = None,
     ) -> dict[str, Any]:
         """Run HumanEval benchmark.
 
         Args:
             limit: Number of problems to run
-            max_tokens: Max completion tokens
+            max_tokens: Max completion tokens (None = auto-calculate)
 
         Returns:
             Benchmark results
@@ -263,12 +399,28 @@ def main():
     )
     parser.add_argument("--model", default="claude-sonnet-4-20250514")
     parser.add_argument("--limit", type=int, default=10)
-    parser.add_argument("--max-tokens", type=int, default=2048)
+    parser.add_argument(
+        "--max-tokens",
+        type=int,
+        default=None,
+        help="Max completion tokens (default: auto-calculate)",
+    )
+    parser.add_argument(
+        "--token-budget",
+        type=int,
+        default=DEFAULT_TOKEN_BUDGET,
+        help=f"Total token budget (default: {DEFAULT_TOKEN_BUDGET})",
+    )
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
 
-    runner = APIBenchmarkRunner(provider=args.provider, model=args.model)
+    runner = APIBenchmarkRunner(
+        provider=args.provider,
+        model=args.model,
+        token_budget=args.token_budget,
+        max_tokens=args.max_tokens,
+    )
     runner.run_humaneval(limit=args.limit, max_tokens=args.max_tokens)
 
 

@@ -1,13 +1,15 @@
 import sys
-import os
 from pathlib import Path
+
 
 # Add src to path
 sys.path.append(str(Path(__file__).parent.parent.parent / "src"))
 
-import time
 import logging
+import time
+
 from cohezion.system.daemon_manager import DaemonManager
+
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"

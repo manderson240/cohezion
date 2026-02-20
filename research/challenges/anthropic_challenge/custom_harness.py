@@ -1,15 +1,10 @@
 from problem import (
-    Engine,
     DebugInfo,
-    SLOT_LIMITS,
-    VLEN,
     N_CORES,
-    SCRATCH_SIZE,
     Machine,
     Tree,
     Input,
     HASH_STAGES,
-    reference_kernel,
     build_mem_image,
     reference_kernel2,
 )
@@ -40,7 +35,6 @@ class KernelBuilder:
         Optimized implementation using SIMD and VLIW packing.
         """
         # Note: hash_stages passed explicitly to underlying builder usually
-        from problem import HASH_STAGES
 
         okb = optimizer.OptimizedKernelBuilder()
         # Modified to pass forest

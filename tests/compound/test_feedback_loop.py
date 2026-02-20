@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from cohezion.compound.executor import CompoundExecutor, ExecutionResult
 from cohezion.compound.feedback_loop import (
     CompoundFeedbackLoop,
     CompoundFeedbackLoopFactory,
@@ -11,10 +12,9 @@ from cohezion.compound.feedback_loop import (
     RetryAttempt,
     RetryStrategy,
 )
-from cohezion.compound.executor import CompoundExecutor, ExecutionResult
 from cohezion.compound.inflection_detector import (
-    InflectionDetector,
     AnomalyDetection,
+    InflectionDetector,
     Severity,
 )
 

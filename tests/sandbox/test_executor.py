@@ -1,15 +1,16 @@
 """Tests for SandboxExecutor."""
 
-import pytest
 from datetime import datetime
-from unittest.mock import Mock, MagicMock
+from unittest.mock import MagicMock, Mock
+
+import pytest
 
 from cohezion.sandbox import (
+    ResourceLimits,
+    ResourceMetrics,
     SandboxExecutor,
     SandboxRequest,
     SandboxResult,
-    ResourceLimits,
-    ResourceMetrics,
     get_executor,
 )
 from cohezion.sandbox.executor import (

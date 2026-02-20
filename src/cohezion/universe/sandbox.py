@@ -13,9 +13,11 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
+
 try:
-    import docker
     from docker.errors import DockerException
+
+    import docker
 except ModuleNotFoundError:  # docker package not installed
     docker = None  # type: ignore[assignment]
     DockerException = Exception  # type: ignore[assignment,misc]

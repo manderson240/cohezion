@@ -24,6 +24,7 @@ Agent: Antigravity | Model: claude-opus-4 | MCP: sequential-thinking
 
 import marimo as mo
 
+
 # Cell 1: Header and Introduction
 mo.md("""
 # 🌊 FLUME SLM Swarm Experience

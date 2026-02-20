@@ -5,10 +5,12 @@ import logging
 import sys
 from pathlib import Path
 
+
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.engineering.shadow_scripter import ShadowScripter
+
 
 logging.basicConfig(
     level=logging.INFO,

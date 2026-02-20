@@ -1,11 +1,12 @@
+import json
+import logging
 import os
 import re
-import logging
-import json
 from pathlib import Path
+
 from cohezion.security.audit import get_audit_logger
 from cohezion.security.vault import get_vault
-from cohezion.security.prompt_guard import PromptGuard
+
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -46,7 +47,7 @@ def audit_secrets():
             file_path = Path(root) / file
             if file_path.suffix in {".py", ".json", ".env", ".md", ".sh"}:
                 try:
-                    with open(file_path, "r", encoding="utf-8") as f:
+                    with open(file_path, encoding="utf-8") as f:
                         lines = f.readlines()
                         for i, line in enumerate(lines):
                             for pattern, name in SECRET_PATTERNS:

@@ -4,7 +4,6 @@ import argparse
 import asyncio
 import json
 import logging
-import signal
 import sys
 from pathlib import Path
 

@@ -3,8 +3,9 @@
 Tests request parsing, constraint extraction, alignment analysis, and vault integration.
 """
 
+from unittest.mock import MagicMock
+
 import pytest
-from unittest.mock import MagicMock, patch
 
 from cohezion.compound.models import (
     ConstraintType,

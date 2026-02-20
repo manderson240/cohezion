@@ -208,7 +208,66 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 ) OR 0.0;
 
 -- Index for vector similarity search (SurrealDB 2.0+)
--- DEFINE INDEX embedding_idx ON universe_nodes FIELDS embedding MTREE DIMENSION 768 DIST COSINE;
+-- MTREE DIMENSION 768 DIST COSINE
+"""
+
+    # Unified journey tracking schema
+    JOURNEY_SCHEMA = """
+-- Unified journey tracking with full trajectory chain
+DEFINE TABLE agent_journeys SCHEMAFULL;
+
+-- Core identifiers
+DEFINE FIELD journey_id ON agent_journeys TYPE string;
+DEFINE FIELD execution_id ON agent_journeys TYPE string;
+DEFINE FIELD session_id ON agent_journeys TYPE string;
+
+-- Temporal fields
+DEFINE FIELD started_at ON agent_journeys TYPE datetime;
+DEFINE FIELD completed_at ON agent_journeys TYPE datetime;
+DEFINE FIELD duration_ms ON agent_journeys TYPE int DEFAULT 0;
+
+-- Task context
+DEFINE FIELD task_description ON agent_journeys TYPE string;
+DEFINE FIELD operation_type ON agent_journeys TYPE string;
+DEFINE FIELD journey_type ON agent_journeys TYPE string DEFAULT 'compound';
+
+-- Quality metrics
+DEFINE FIELD coherence_at_start ON agent_journeys TYPE float DEFAULT 0.0;
+DEFINE FIELD coherence_at_end ON agent_journeys TYPE float DEFAULT 0.0;
+DEFINE FIELD phi_score ON agent_journeys TYPE float DEFAULT 0.0;
+DEFINE FIELD final_success ON agent_journeys TYPE bool DEFAULT false;
+
+-- Full trajectory: 2048D semantic embedding (for similarity search)
+DEFINE FIELD embedding_2048d ON agent_journeys TYPE array;
+
+-- Full trajectory: 256D FLUME VAE latent (for VAE operations)
+DEFINE FIELD flume_latent_256d ON agent_journeys TYPE array;
+
+-- Full trajectory: 12D axiomatic trajectory points (physics visualization)
+DEFINE FIELD trajectory_12d ON agent_journeys TYPE array;
+
+-- Decision chain
+DEFINE FIELD decisions_made ON agent_journeys TYPE array DEFAULT [];
+
+-- Action chain
+DEFINE FIELD actions_taken ON agent_journeys TYPE array DEFAULT [];
+
+-- Outcome
+DEFINE FIELD outcome ON agent_journeys TYPE string DEFAULT '';
+
+-- Additional metadata
+DEFINE FIELD metadata ON agent_journeys TYPE object DEFAULT {};
+
+-- Indexes for vector similarity search (SurrealDB 2.0+)
+-- MTREE indexes for vector search
+-- DEFINE INDEX embedding_2048d_idx ON agent_journeys FIELDS embedding_2048d MTREE DIMENSION 2048 DIST COSINE;
+-- DEFINE INDEX flume_latent_256d_idx ON agent_journeys FIELDS flume_latent_256d MTREE DIMENSION 256 DIST COSINE;
+
+-- Indexes for common queries
+DEFINE INDEX journey_id_idx ON agent_journeys FIELDS journey_id UNIQUE;
+DEFINE INDEX session_id_idx ON agent_journeys FIELDS session_id;
+DEFINE INDEX operation_type_idx ON agent_journeys FIELDS operation_type;
+DEFINE INDEX started_at_idx ON agent_journeys FIELDS started_at;
 """
 
     async def is_alive(self) -> bool:
@@ -325,6 +384,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             if isinstance(self._client, InMemoryStore):
                 return True
             await self._client.query(self.SCHEMA)
+            await self._client.query(self.JOURNEY_SCHEMA)
             logger.info("Schema created successfully")
             return True
         except Exception as e:

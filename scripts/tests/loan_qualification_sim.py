@@ -6,7 +6,6 @@ Target: TPU v7 (Ironwood) Expansion.
 """
 
 import os
-import json
 
 
 def calculate_qualification(annual_income, rd_spend_labor, hardware_cost):

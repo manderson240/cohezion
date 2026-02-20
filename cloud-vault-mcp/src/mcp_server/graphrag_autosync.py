@@ -8,10 +8,10 @@ documents in SurrealDB when files change.
 import asyncio
 import logging
 from pathlib import Path
-from typing import Optional
 
-from .vault_watcher import VaultFileWatcher, VaultEvent
 from .graphrag_import import GraphRAGImporter
+from .vault_watcher import VaultEvent, VaultFileWatcher
+
 
 logger = logging.getLogger(__name__)
 
@@ -26,9 +26,9 @@ class GraphRAGAutoSync:
         self.watcher = watcher
         self.enable_edges = enable_edges
 
-        self.importer: Optional[GraphRAGImporter] = None
-        self.task: Optional[asyncio.Task] = None
-        self.queue: Optional[asyncio.Queue[VaultEvent]] = None
+        self.importer: GraphRAGImporter | None = None
+        self.task: asyncio.Task | None = None
+        self.queue: asyncio.Queue[VaultEvent] | None = None
 
     async def start(self):
         """Start auto-sync background task"""
@@ -111,7 +111,7 @@ class GraphRAGAutoSync:
 
 
 # Global auto-sync instance (singleton)
-_auto_sync: Optional[GraphRAGAutoSync] = None
+_auto_sync: GraphRAGAutoSync | None = None
 
 
 async def start_autosync(
@@ -138,6 +138,6 @@ async def stop_autosync():
         _auto_sync = None
 
 
-def get_autosync() -> Optional[GraphRAGAutoSync]:
+def get_autosync() -> GraphRAGAutoSync | None:
     """Get current auto-sync instance"""
     return _auto_sync

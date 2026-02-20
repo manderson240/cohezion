@@ -1,8 +1,8 @@
-import pickle
-import quimb.tensor as qtn
 import logging
-import os
+import pickle
+
 import numpy as np
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("FinalAnalysis")
@@ -21,7 +21,7 @@ def analyze():
     site_to_qubit = list(range(N))
     qubit_to_site = list(range(N))
 
-    with open(qasm_path, "r") as f:
+    with open(qasm_path) as f:
         for line in f:
             line = line.strip()
             if line.startswith("cz"):
