@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "2953fef8bb7d",
+  "strategy": "manual-commit",
+  "branch": "spec/routes-consolidation",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "CLAUDE.md",
+    "README.md",
+    "docs/retrospectives/2026-02-20-retrospective.md",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original",
+    "src/cohezion/cosmic/reality.py",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "src/cohezion/knowledge_graph/MISSION_JOURNAL.md",
+    "src/cohezion/swarm/agents/cosmic_agent.py",
+    "tests/cosmic/test_cosmic_core.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/29/53fef8bb7d/0/metadata.json",
+      "transcript": "/29/53fef8bb7d/0/full.jsonl",
+      "context": "/29/53fef8bb7d/0/context.md",
+      "content_hash": "/29/53fef8bb7d/0/content_hash.txt",
+      "prompt": "/29/53fef8bb7d/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 6198,
+    "cache_creation_tokens": 27559,
+    "cache_read_tokens": 2287630,
+    "output_tokens": 3945,
+    "api_call_count": 14
+  }
+}
