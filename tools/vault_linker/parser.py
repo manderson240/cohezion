@@ -89,7 +89,16 @@ class VaultParser:
                 - wiki_links: List of wiki-links
                 - similar_papers: List from frontmatter (if present)
         """
-        content = file_path.read_text(encoding='utf-8')
+        try:
+            content = file_path.read_text(encoding='utf-8')
+        except (OSError, UnicodeDecodeError):
+            return {
+                'path': file_path,
+                'stem': file_path.stem,
+                'frontmatter': {},
+                'wiki_links': [],
+                'similar_papers': []
+            }
 
         frontmatter = self.parse_frontmatter(content)
         wiki_links = self.extract_wiki_links(content)
@@ -99,7 +108,7 @@ class VaultParser:
             'stem': file_path.stem,
             'frontmatter': frontmatter,
             'wiki_links': wiki_links,
-            'similar_papers': frontmatter.get('similar_papers', [])
+            'similar_papers': frontmatter.get('similar_papers') or []
         }
 
     def walk_vault(self, vault_path: Path) -> tuple[Dict[str, Any], Dict[str, Dict[str, Set[str]]]]:

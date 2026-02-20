@@ -80,7 +80,7 @@ class LinkInjector:
         file_meta = self.files_index.get(file_stem, {})
         frontmatter = file_meta.get("frontmatter", {})
         tags = set(frontmatter.get("tags", []) or [])
-        similar_papers = file_meta.get("similar_papers", frontmatter.get("similar_papers", []))
+        similar_papers = file_meta.get("similar_papers") or frontmatter.get("similar_papers") or []
 
         # Check existing sections
         has_papers, has_concepts = self.detect_related_sections(content)

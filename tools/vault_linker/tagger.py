@@ -120,7 +120,11 @@ class TagPopulator:
 
         # Ensure minimum of 2 tags if possible
         if len(tags) < 2 and keywords:
-            tags.extend(keywords[:2])
+            for kw in keywords:
+                if kw not in tags:
+                    tags.append(kw)
+                if len(tags) >= 2:
+                    break
 
         return tags[:limit]
 

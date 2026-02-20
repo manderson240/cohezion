@@ -1,7 +1,7 @@
 """Link resolver for mapping broken wiki-links to existing files using fuzzy matching."""
 
 import re
-from typing import List, Dict
+from typing import Any, List, Dict
 
 
 class LinkResolver:
@@ -49,7 +49,7 @@ class LinkResolver:
         """
         return re.sub(r'^\d{4}-\d{2}-\d{2}-', '', text)
 
-    def resolve_link(self, link_text: str) -> List[Dict[str, any]]:
+    def resolve_link(self, link_text: str) -> List[Dict[str, Any]]:
         """
         Resolve a broken link to possible matches.
 
