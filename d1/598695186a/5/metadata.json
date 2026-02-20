@@ -1,0 +1,42 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "d1598695186a",
+  "session_id": "b6d5ecfb-3dd8-4eaf-8d0d-0b0f310827e7",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-19T05:05:48.128833584Z",
+  "branch": "spec/cs249r-book-integration",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "docs/plans/2026-02-18-cs249r-book-integration.md",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original",
+    "scripts/cs249r/__init__.py",
+    "scripts/cs249r/ingest_chapters.py",
+    "scripts/cs249r/ingest_glossary.py",
+    "scripts/cs249r/repo_access.py",
+    "src/cohezion/skills/DATA_ENGINEERING_PRIME.md",
+    "src/cohezion/skills/DNN_ARCHITECTURES_PRIME.md",
+    "src/cohezion/skills/ML_SYSTEMS_FOUNDATIONS_PRIME.md",
+    "tests/cs249r/__init__.py",
+    "tests/cs249r/test_ingest_chapters.py",
+    "tests/cs249r/test_ingest_glossary.py",
+    "tests/cs249r/test_repo_access.py"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 476,
+    "cache_creation_tokens": 295731,
+    "cache_read_tokens": 19201054,
+    "output_tokens": 14518,
+    "api_call_count": 149
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-19T05:05:48.022034319Z",
+    "agent_lines": 2177,
+    "human_added": 9420,
+    "human_modified": 6,
+    "human_removed": 0,
+    "total_committed": 11603,
+    "agent_percentage": 18.762389037317938
+  }
+}
