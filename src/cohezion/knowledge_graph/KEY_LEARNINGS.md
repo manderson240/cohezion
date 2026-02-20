@@ -287,3 +287,11 @@ Bridging SurrealDB (high-density thought memory) and Obsidian (high-fidelity lea
 ## Learning 123: Git Worktree Session Isolation (2026-02-16)
 
 Mandating worktrees (`WorktreeOrchestrator`) in `/tmp/cohezion_swarm/` is the only way to ensure non-destructive parallel agentic development. Isolated environments prevent repository index corruption and environment drift during long-horizon missions with multiple concurrent agents.
+
+## Learning 124: External Knowledge Integration Protocol (2026-02-19)
+
+Three-layer integration (Knowledge/Skills/Code) for ingesting external textbooks: (1) Vault concept notes with cross-links for searchable knowledge, (2) PRIME skill definitions for agentic reasoning, (3) Isolated code extraction (no imports from host project). TinyTorch extracted from CS249R as NumPy-only standalone — zero coupling prevents dependency contamination. Skill registration uses relative paths to avoid worktree/absolute path leakage into `skill_registry.json`. Loosened test assertions (> 500 instead of == 656) prevent brittleness against upstream changes.
+
+## Learning 125: Jupytext-to-Module Extraction Pattern (2026-02-19)
+
+Educational notebooks (Jupytext `.py` format) can be extracted as standalone modules by: stripping `# %%` cell markers, converting `# +`/`# -` paired blocks, preserving only executable code and docstrings, adding type hints. The 20 TinyTorch modules demonstrate this pattern. Key: keep extracted modules self-contained (import only stdlib + numpy) so they remain useful as teaching material independent of the host project.

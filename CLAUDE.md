@@ -10,7 +10,7 @@ COHEZION: 12D agentic universe with FLUME VAE, compound engineering, multi-agent
 
 ### ⚡ Core Commands
 ```bash
-uv run pytest tests/ -q              # Full test suite (3,146 tests, ~2min)
+uv run pytest tests/ -q              # Full test suite (3,230 tests, ~2min)
 uv run pytest tests/compound/ -v     # Run module tests
 uv run pytest tests/test_*.py::name  # Single test
 make format && make lint && make all # Check → fix → verify
@@ -126,10 +126,12 @@ Updated Skill (loop again)
 | `src/cohezion/compound/` | Executor, SkillRefiner, RetrospectionEngine, JourneyTracker | `executor.py` (11-step) |
 | `src/cohezion/swarm/` | Team orchestration, cost routing, model quality | `team_executor.py`, `cost_aware_router.py` |
 | `src/cohezion/cache/` | L1/L2/L3 semantic cache (95%+ hit rate) | `semantic_cache.py` |
-| `src/cohezion/skills/` | 132 PRIME skill definitions (*.md + *.py) | `skill_registry.json` |
+| `src/cohezion/skills/` | 142 PRIME skill definitions (*.md + *.py) | `skill_registry.json` |
 | `src/cohezion/persistence/` | SurrealDB, checkpoints, session recovery | `surreal_client.py` |
 | `src/cohezion/api/` | FastAPI backend (46 endpoints) | `__init__.py` (FastMCP patterns) |
 | `src/cohezion/flume/` | FLUME VAE (256D latent space) | `flume_vae.py` |
+| `src/cohezion/tinytorch/` | 20 educational ML modules (NumPy-only, standalone) | From CS249R textbook |
+| `scripts/cs249r/` | CS249R book ingestion scripts (chapters, glossary, TinyTorch) | `repo_access.py` |
 | `tests/conftest.py` | **CRITICAL**: Singleton reset for FLUME VAE, RL policy, loggers | **Read this first** |
 
 ## Coding Standards (Compound-Ready)
