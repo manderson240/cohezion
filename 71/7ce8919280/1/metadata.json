@@ -1,24 +1,22 @@
 {
   "cli_version": "0.4.2",
   "checkpoint_id": "717ce8919280",
+  "session_id": "84f71eef-81bf-4374-bfae-3df7094afad7",
   "strategy": "manual-commit",
+  "created_at": "2026-02-20T20:51:56.698865787Z",
   "branch": "main",
-  "checkpoints_count": 7,
+  "checkpoints_count": 3,
   "files_touched": [
     ".env.surrealdb",
-    "CLAUDE.md",
     "README.md",
     "data/checkpoints/test.json",
     "data/real_envs/evaluations/test_content_1771617071.json",
-    "data/real_envs/evaluations/test_content_1771618400.json",
     "data/real_envs/evaluations/test_file_1771617071.json",
-    "data/real_envs/evaluations/test_file_1771618400.json",
     "memory/MEMORY.md",
     "ollama-mcp",
     "pyproject.toml",
     "research/challenges/anthropic_challenge_original",
     "scripts/recursive_improvement.py",
-    "scripts/verify_integration.py",
     "src/cohezion/api/services/__init__.py",
     "src/cohezion/deployment/__init__.py",
     "src/cohezion/eval/__init__.py",
@@ -34,35 +32,27 @@
     "src/cohezion/knowledge_graph/universe_nodes/__init__.py",
     "src/cohezion/knowledge_graph/universe_nodes/actions/__init__.py",
     "src/cohezion/knowledge_graph/universe_nodes/debates/__init__.py",
-    "src/cohezion/real_envs/shell_env_optimized.py",
     "src/cohezion/real_envs/tasks/__init__.py",
     "src/cohezion/research/__init__.py",
     "src/cohezion/swarm/agents/__init__.py",
     "src/cohezion/swarm/agents/specialized/__init__.py",
-    "src/cohezion/training/__init__.py",
-    "tests/real_envs/test_extended.py"
+    "src/cohezion/training/__init__.py"
   ],
-  "sessions": [
-    {
-      "metadata": "/71/7ce8919280/0/metadata.json",
-      "transcript": "/71/7ce8919280/0/full.jsonl",
-      "context": "/71/7ce8919280/0/context.md",
-      "content_hash": "/71/7ce8919280/0/content_hash.txt",
-      "prompt": "/71/7ce8919280/0/prompt.txt"
-    },
-    {
-      "metadata": "/71/7ce8919280/1/metadata.json",
-      "transcript": "/71/7ce8919280/1/full.jsonl",
-      "context": "/71/7ce8919280/1/context.md",
-      "content_hash": "/71/7ce8919280/1/content_hash.txt",
-      "prompt": "/71/7ce8919280/1/prompt.txt"
-    }
-  ],
+  "agent": "Claude Code",
   "token_usage": {
-    "input_tokens": 2129,
-    "cache_creation_tokens": 341384,
-    "cache_read_tokens": 8656906,
-    "output_tokens": 5331,
-    "api_call_count": 88
+    "input_tokens": 332,
+    "cache_creation_tokens": 120218,
+    "cache_read_tokens": 2319543,
+    "output_tokens": 1834,
+    "api_call_count": 25
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-20T20:51:56.659959391Z",
+    "agent_lines": 0,
+    "human_added": 35423,
+    "human_modified": 9779,
+    "human_removed": 0,
+    "total_committed": 35958,
+    "agent_percentage": 0
   }
 }
