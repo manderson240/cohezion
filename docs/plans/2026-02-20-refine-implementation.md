@@ -66,7 +66,7 @@ Worktree: Yes
 
 **MANDATORY: Update this checklist as tasks complete. Change `[ ]` to `[x]`.**
 
-- [ ] Task 1: Curate wildcard patterns and update user settings
+- [x] Task 1: Curate wildcard patterns and update user settings
 - [ ] Task 2: Reset project settings.local.json
 - [ ] Task 3: Fix spec.md YAML frontmatter warning
 - [ ] Task 4: Resolve SONATYPE_GUIDE_TOKEN warning
@@ -75,7 +75,7 @@ Worktree: Yes
 - [ ] Task 7: Add PreToolUse hook for permission management
 - [ ] Task 8: Add PostToolUse hook for settings cleanup
 
-**Total Tasks:** 8 | **Completed:** 0 | **Remaining:** 8
+**Total Tasks:** 8 | **Completed:** 1 | **Remaining:** 7
 
 ## Implementation Tasks
 
