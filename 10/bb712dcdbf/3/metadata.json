@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "10bb712dcdbf",
+  "session_id": "74c6ef00-7b99-4518-aa80-dd06eb877286",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-20T00:33:21.550165817Z",
+  "branch": "track-c",
+  "checkpoints_count": 0,
+  "files_touched": [
+    ".claude/rules/development-workflows.md",
+    ".claude/rules/mcp-servers.md",
+    ".claude/rules/project.md",
+    ".claude/rules/vault-conventions.md",
+    "docs/plans/2026-02-19-connect-unlinked-vault-nodes.md"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 1886,
+    "cache_creation_tokens": 271990,
+    "cache_read_tokens": 5068964,
+    "output_tokens": 395,
+    "api_call_count": 55
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-20T00:33:21.516375088Z",
+    "agent_lines": 700,
+    "human_added": 14215,
+    "human_modified": 40,
+    "human_removed": 0,
+    "total_committed": 14955,
+    "agent_percentage": 4.680708793045804
+  }
+}

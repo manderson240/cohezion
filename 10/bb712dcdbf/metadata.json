@@ -5,6 +5,10 @@
   "branch": "track-c",
   "checkpoints_count": 0,
   "files_touched": [
+    ".claude/rules/development-workflows.md",
+    ".claude/rules/mcp-servers.md",
+    ".claude/rules/project.md",
+    ".claude/rules/vault-conventions.md",
     ".github/workflows/phase-4a-tests.yml",
     "ADVERSARIAL_REVIEW_PHASE_5_7.md",
     "AGENT_FEEDBACK_FROM_ADVERSARIAL_REVIEW.md",
@@ -42,6 +46,7 @@
     "docs/TRACK_A_GRAPHRAG_API.md",
     "docs/TRACK_B_SCORING_API.md",
     "docs/TRACK_C_IMPACT_API.md",
+    "docs/plans/2026-02-19-connect-unlinked-vault-nodes.md",
     "inbox/HANDOFF-lessons-phase-2-decisions-linking.md",
     "inbox/PHASE-2-KICKOFF-TEAM-DIRECTION.md",
     "inbox/SESSION-58-TRACK-A-COMPLETE-TRACK-B-READY.md",
@@ -111,13 +116,20 @@
       "context": "/10/bb712dcdbf/2/context.md",
       "content_hash": "/10/bb712dcdbf/2/content_hash.txt",
       "prompt": "/10/bb712dcdbf/2/prompt.txt"
+    },
+    {
+      "metadata": "/10/bb712dcdbf/3/metadata.json",
+      "transcript": "/10/bb712dcdbf/3/full.jsonl",
+      "context": "/10/bb712dcdbf/3/context.md",
+      "content_hash": "/10/bb712dcdbf/3/content_hash.txt",
+      "prompt": "/10/bb712dcdbf/3/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 4005,
-    "cache_creation_tokens": 2986914,
-    "cache_read_tokens": 40986283,
-    "output_tokens": 88604,
-    "api_call_count": 357
+    "input_tokens": 5891,
+    "cache_creation_tokens": 3258904,
+    "cache_read_tokens": 46055247,
+    "output_tokens": 88999,
+    "api_call_count": 412
   }
 }
