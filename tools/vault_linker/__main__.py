@@ -79,6 +79,15 @@ def analyze(vault_path: Path) -> int:
     return 0
 
 
+def _is_read_only(file_path: Path, vault_path: Path) -> bool:
+    """Check if file is in a read-only directory (parsed but not modified)."""
+    try:
+        rel = file_path.relative_to(vault_path)
+        return rel.parts[0] == "daily"
+    except (ValueError, IndexError):
+        return False
+
+
 def fix(vault_path: Path, dry_run: bool = False) -> int:
     """
     Fix broken links and populate tags.
@@ -122,6 +131,8 @@ def fix(vault_path: Path, dry_run: bool = False) -> int:
     for stem, meta in files_index.items():
         if meta.get("frontmatter", {}).get("tags") is None:
             file_path = meta["path"]
+            if _is_read_only(file_path, vault_path):
+                continue
             updated_content = tagger.populate_tags(file_path)
             if "tags: null" not in updated_content and not dry_run:
                 file_path.write_text(updated_content)
@@ -129,7 +140,8 @@ def fix(vault_path: Path, dry_run: bool = False) -> int:
 
     if dry_run:
         null_tags_count = sum(1 for meta in files_index.values()
-                              if meta.get("frontmatter", {}).get("tags") is None)
+                              if meta.get("frontmatter", {}).get("tags") is None
+                              and not _is_read_only(meta["path"], vault_path))
         print(f"  Would populate tags for {null_tags_count} papers")
     else:
         print(f"  ✓ Populated tags for {changes['tags_populated']} papers")
@@ -150,6 +162,8 @@ def fix(vault_path: Path, dry_run: bool = False) -> int:
     injector = LinkInjector(files_index)
     for stem, meta in files_index.items():
         file_path = meta["path"]
+        if _is_read_only(file_path, vault_path):
+            continue
         original_content = file_path.read_text()
         updated_content = injector.inject_links(file_path, stem)
 
