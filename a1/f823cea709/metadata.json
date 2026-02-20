@@ -3,7 +3,7 @@
   "checkpoint_id": "a1f823cea709",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 9,
+  "checkpoints_count": 10,
   "files_touched": [
     "CLAUDE.md",
     "README.md",
@@ -40,9 +40,20 @@
     "data/real_envs/evaluations/test_file_1771621212.json",
     "data/real_envs/evaluations/test_file_1771621556.json",
     "data/real_envs/evaluations/test_file_1771624591.json",
+    "data/surrealdb-old/190965.sst",
+    "data/surrealdb-old/190968.sst",
+    "data/surrealdb-old/LOG.old.1771625483532891",
+    "data/surrealdb-old/LOG.old.1771625622803865",
+    "data/surrealdb-old/LOG.old.1771625676371343",
+    "data/surrealdb-old/LOG.old.1771625718479718",
+    "data/surrealdb-old/MANIFEST-190970",
+    "data/surrealdb-old/OPTIONS-190964",
+    "data/surrealdb-old/OPTIONS-190972",
+    "docs/plans/2026-02-20-optimize-session-work.md",
     "memory/MEMORY.md",
     "ollama-mcp",
     "research/challenges/anthropic_challenge_original",
+    "scripts/backup_surrealdb.sh",
     "scripts/showcase_real_envs.py",
     "src/cohezion/core/persistence/surreal_client.py",
     "src/cohezion/knowledge/__init__.py",
@@ -67,13 +78,20 @@
       "context": "/a1/f823cea709/1/context.md",
       "content_hash": "/a1/f823cea709/1/content_hash.txt",
       "prompt": "/a1/f823cea709/1/prompt.txt"
+    },
+    {
+      "metadata": "/a1/f823cea709/2/metadata.json",
+      "transcript": "/a1/f823cea709/2/full.jsonl",
+      "context": "/a1/f823cea709/2/context.md",
+      "content_hash": "/a1/f823cea709/2/content_hash.txt",
+      "prompt": "/a1/f823cea709/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 631,
-    "cache_creation_tokens": 60475,
-    "cache_read_tokens": 8131493,
-    "output_tokens": 3740,
-    "api_call_count": 54
+    "input_tokens": 682,
+    "cache_creation_tokens": 220037,
+    "cache_read_tokens": 12255910,
+    "output_tokens": 4493,
+    "api_call_count": 101
   }
 }
