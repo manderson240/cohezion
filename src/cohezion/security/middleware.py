@@ -8,8 +8,11 @@ Integrates all security components:
 - Prompt guard
 - Output filtering
 - Audit logging
+- Security headers
 """
 
+import logging
+import os
 import time
 from collections.abc import Callable
 
@@ -20,6 +23,56 @@ from cohezion.security.audit import get_audit_logger
 from cohezion.security.auth import AuthError, verify_api_key
 from cohezion.security.prompt_guard import PromptGuard
 from cohezion.security.rate_limiter import get_client_ip, get_rate_limiter
+
+logger = logging.getLogger(__name__)
+
+
+def add_security_headers_middleware(app: FastAPI) -> None:
+    """Add security headers middleware to FastAPI app.
+
+    Adds standard security headers:
+    - X-Content-Type-Options: nosniff
+    - X-Frame-Options: DENY
+    - X-XSS-Protection: 1; mode=block
+    - Referrer-Policy: strict-origin-when-cross-origin
+    - Permissions-Policy: geolocation=(), microphone=(), camera=()
+    - Strict-Transport-Security (when HTTPS enabled)
+    - Content-Security-Policy (default-src 'self')
+    """
+    security_headers_enabled = os.environ.get("SECURITY_HEADERS_ENABLED", "true").lower() == "true"
+
+    if not security_headers_enabled:
+        logger.debug("Security headers middleware disabled")
+        return
+
+    @app.middleware("http")
+    async def security_headers_middleware(request: Request, call_next: Callable) -> Response:
+        response = await call_next(request)
+
+        # Add security headers
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+
+        # CSP - allow inline styles for FastAPI docs, but restrict other sources
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: https:; "
+            "font-src 'self' data:; "
+            "connect-src 'self' https://*;"
+        )
+
+        # HSTS - only add if HTTPS is enabled (detected via scheme)
+        if request.url.scheme == "https":
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+
+        return response
+
+    logger.info("Security headers middleware enabled")
 
 
 def add_security_middleware(app: FastAPI) -> None:
