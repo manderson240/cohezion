@@ -73,3 +73,7 @@ Read the output file to retrieve the result: REDACTED.output
 </task-notification>
 Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bd581a0.output
 
+### Prompt 10
+
+create a git safe handoff, I need to reboot the platform
+

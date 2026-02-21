@@ -99,3 +99,7 @@ Read the output file to retrieve the result: REDACTED.output
 <summary>Background command "Check coverage for newly tested modules" completed (exit code 0)</summary>
 </task-notification>
 Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bd581a0.output
+
+---
+
+create a git safe handoff, I need to reboot the platform
