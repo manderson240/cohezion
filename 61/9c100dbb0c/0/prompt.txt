@@ -19,3 +19,7 @@ merge it
 ---
 
 git checkout main && git pull
+
+---
+
+git status --short
