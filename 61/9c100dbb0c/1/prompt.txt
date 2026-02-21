@@ -1,0 +1,71 @@
+Trigger the autonomic self-healing protocol for Cohezion.
+
+Steps:
+1. Run immune system check: `uv run python3 src/cohezion/healing/immune_system.py`
+2. If drift is detected, apply corrections via the healing system
+3. Run linting: `uv run ruff check src/cohezion/ --fix`
+4. Run formatter: `uv run ruff format src/cohezion/`
+5. Verify package integrity: ensure every directory in `src/cohezion/` has `__init__.py`
+6. Report healing outcomes and any remaining issues.
+
+---
+
+Run a development retrospective that flows insights back into core files.
+
+This is the compound engineering feedback loop. It ensures that session learnings don't just accumulate in knowledge_graph/ — they propagate back into the files that govern future behavior.
+
+## Steps
+
+### 1. Audit Current State
+- Read `REDACTED.md` and `REDACTED.md`
+- Read `CLAUDE.md`, `README.md`, and `memory/MEMORY.md`
+- Identify: new learnings since last retrospect, stale/duplicate entries, insights that should propagate upward
+
+### 2. Prune Knowledge Graph
+- Remove duplicate entries from KEY_LEARNINGS.md (e.g., triplicate retrospective blocks)
+- Remove spam entries from MISSION_JOURNAL.md (e.g., repeated "Automated Hypothesis Testing Report" lines)
+- Compress old session developments into single-line summaries
+- Target: KEY_LEARNINGS.md under 300 lines, MISSION_JOURNAL.md under 150 lines
+
+### 3. Propagate Insights Upward
+For each significant learning or pattern discovered since last retrospect:
+- **If it changes how we code**: Update `CLAUDE.md` Coding Standards or Operational Protocols
+- **If it changes what the project can do**: Update `README.md` Verified Capabilities or Limitations
+- **If it changes architecture**: Update `.agent/CAPABILITY_MAP.md`
+- **If it changes theory**: Update `.agent/COHEZION_CHARTER.md`
+- **If it's a process lesson**: Update `memory/MEMORY.md` (keep under 200 lines)
+
+### 4. Verify Consistency
+- Ensure CLAUDE.md reflects the actual codebase state (module count, test coverage, etc.)
+- Ensure README.md has no fabricated claims
+- Ensure memory/MEMORY.md is under the 200-line limit
+- Run `ruff check src/cohezion/` to verify no regressions
+
+### 5. Report
+- List what was pruned, what was propagated, and what remains stale
+- Note any inconsistencies between core files that need manual resolution
+
+## Rules
+- NEVER delete knowledge without first reading and understanding it
+- Prefer compression over deletion (turn 5 verbose entries into 1 concise entry)
+- Every claim in README.md must be adversarially verifiable
+- CLAUDE.md is the single source of truth — other files defer to it
+
+
+ARGUMENTS: then proceed with next steps refined with key learnings
+
+---
+
+commit this
+
+---
+
+uv run pytest tests/ -q
+
+---
+
+commit this
+
+---
+
+Improve coverage
