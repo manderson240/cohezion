@@ -1,0 +1,21 @@
+refactor skill_registry.json"
+
+---
+
+commit this
+
+---
+
+push it
+
+---
+
+create PR for this branch
+
+---
+
+merge it
+
+---
+
+git checkout main && git pull
