@@ -3,27 +3,45 @@
   "checkpoint_id": "10bb712dcdbf",
   "session_id": "a96c8197-b434-4886-8c97-747f06d4e705",
   "strategy": "manual-commit",
-  "created_at": "2026-02-20T03:27:29.479624326Z",
+  "created_at": "2026-02-21T06:51:26.319892417Z",
   "branch": "track-c",
   "checkpoints_count": 0,
   "files_touched": [
-    "docs/plans/2026-02-20-refine-implementation.md"
+    ".claude/commands/research.md",
+    ".claude/skills/daily-research/SKILL.md",
+    "docs/plans/2026-02-19-daily-research-skills.md",
+    "docs/plans/2026-02-20-refine-implementation.md",
+    "mcp_servers.json",
+    "research/cli.py",
+    "research/cron_example.txt",
+    "research/harvester.py",
+    "research/mcp_server.py",
+    "research/publisher.py",
+    "research/run_research.sh",
+    "research/scorer.py",
+    "research/sources.yaml",
+    "research/tests/test_cli.py",
+    "research/tests/test_harvester.py",
+    "research/tests/test_publisher.py",
+    "research/tests/test_scorer.py"
   ],
   "agent": "Claude Code",
+  "checkpoint_transcript_start": 123,
+  "transcript_lines_at_start": 123,
   "token_usage": {
-    "input_tokens": 26,
-    "cache_creation_tokens": 101478,
-    "cache_read_tokens": 1928338,
-    "output_tokens": 3670,
-    "api_call_count": 23
+    "input_tokens": 5662,
+    "cache_creation_tokens": 11828749,
+    "cache_read_tokens": 23885278,
+    "output_tokens": 22488,
+    "api_call_count": 251
   },
   "initial_attribution": {
-    "calculated_at": "2026-02-20T03:27:29.42680912Z",
-    "agent_lines": 272,
-    "human_added": 130,
-    "human_modified": 2,
+    "calculated_at": "2026-02-21T06:51:26.07382602Z",
+    "agent_lines": 9,
+    "human_added": 508,
+    "human_modified": 1959,
     "human_removed": 0,
-    "total_committed": 404,
-    "agent_percentage": 67.32673267326733
+    "total_committed": 2476,
+    "agent_percentage": 0.36348949919224555
   }
 }
