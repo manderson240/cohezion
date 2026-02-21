@@ -26,3 +26,7 @@ merge it
 
 git checkout main && git pull
 
+### Prompt 7
+
+git status --short
+
