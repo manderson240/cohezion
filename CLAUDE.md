@@ -16,6 +16,20 @@ uv run pytest tests/test_*.py::name  # Single test
 make format && make lint && make all # Check → fix → verify
 ```
 
+### ⚡ Security Standards (MANDATORY)
+```bash
+# NEVER print, echo, or display any passwords or secrets
+# NEVER store SUDO_PASSWORD in .env for scripts - use passwordless sudo
+# NEVER write secrets to temp files that persist
+
+# ALWAYS use 'uv' for package management - NEVER bare 'pip' or 'pip install'
+uv pip install package              # Install package
+uv venv && source .venv/bin/activate && uv pip install -e .  # New project setup
+
+# For sudo: configure passwordless sudo for automation OR run interactively
+# Do NOT attempt to parse .env for SUDO_PASSWORD - this is a security risk
+```
+
 ### ⚡ Critical Principles (Sessions 40-55)
 1. **Implement ONE feature, validate manually, write 5 tests** (NOT 600 pre-implementation tests)
 2. **Use proven templates** (e.g., cloud-vault-mcp: 40+ tools) over greenfield exploration
@@ -216,30 +230,49 @@ Before declaring task complete:
 
 ## Multi-Session Worktree Pattern (MANDATORY)
 
-**Every Claude session creates an isolated feature branch to prevent conflicts and data loss.**
+**Every Claude session MUST start with an isolated worktree.** This is the primary development pattern.
+
+### ⚡ Quick Start (Session Scripts)
 
 ```bash
-# Session startup
-SESSION_ID="55"
-PHASE="test-fixes"
-git worktree add ~/dev/cohezion-session-${SESSION_ID} -b session-${SESSION_ID}-${PHASE}
-cd ~/dev/cohezion-session-${SESSION_ID}
+# Start session (interactive or explicit)
+./scripts/session/start_session.sh           # Auto-increments session ID
+./scripts/session/start_session.sh 56 feature  # Explicit
+
+# List active sessions
+./scripts/session/list_sessions.sh
+
+# End session (commit, push, cleanup)
+./scripts/session/end_session.sh 56
+```
+
+See [`scripts/session/README.md`](scripts/session/README.md) for complete documentation.
+
+### Manual Worktree Commands (Fallback)
+
+```bash
+# Create worktree with new branch
+git worktree add -b session-56-feature ~/dev/cohezion-session-56 main
+cd ~/dev/cohezion-session-56
 
 # Session work: One goal, atomic commits
 uv run pytest tests/ -q  # Verify baseline
 # ... make changes, test incrementally ...
 
-# Session cleanup
-git commit -m "Session ${SESSION_ID}: ${PHASE}
+# Commit with session summary
+git commit -m "Session 56: feature
 
 ## Accomplishments
 - [Deliverables + test count/%, regressions: zero]
 
-## For Session ${SESSION_ID+1}
-- [Key assumptions, remaining work, gotchas]"
+## For Session 57
+- [Key assumptions, remaining work, gotchas]
 
-git push origin session-${SESSION_ID}-${PHASE}
-cd ~/dev/cohezion && git worktree remove ~/dev/cohezion-session-${SESSION_ID}
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+# Push and cleanup
+git push -u origin session-56-feature
+cd ~/dev/cohezion && git worktree remove ~/dev/cohezion-session-56
 ```
 
 **Why**: Isolation → no conflicts | Reversibility → safe branching | Audit trail → clear history | Safety → main never edited directly
@@ -250,6 +283,13 @@ cd ~/dev/cohezion && git worktree remove ~/dev/cohezion-session-${SESSION_ID}
 - AI commits include: `Co-Authored-By: Claude <noreply@anthropic.com>`
 - No files >1MB (use git-lfs)
 - Check `git status` before any commit
+
+**Recommended Git Config**:
+```bash
+git config worktree.useRelativePaths true   # Portable worktrees
+git config worktree.guessRemote true        # Auto-track remotes
+git config gc.worktreePruneExpire 2.weeks.ago
+```
 
 ## Design Principles (Compound-Aligned)
 
