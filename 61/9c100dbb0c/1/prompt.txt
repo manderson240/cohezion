@@ -69,3 +69,33 @@ commit this
 ---
 
 Improve coverage
+
+---
+
+<task-notification>
+<task-id>bf82f6f</task-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bf82f6f.output</output-file>
+<status>completed</status>
+<summary>Background command "Find more 0% coverage modules in core packages" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bf82f6f.output
+
+---
+
+<task-notification>
+<task-id>b34a625</task-id>
+<output-file>REDACTED.output</output-file>
+<status>completed</status>
+<summary>Background command "Re-run all new tests" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: REDACTED.output
+
+---
+
+<task-notification>
+<task-id>bd581a0</task-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bd581a0.output</output-file>
+<status>completed</status>
+<summary>Background command "Check coverage for newly tested modules" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bd581a0.output
