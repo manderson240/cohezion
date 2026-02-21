@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "619c100dbb0c",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "data/checkpoints/test.json",
+    "data/real_envs/evaluations/fastapi_async_api_1771649145.json",
+    "data/real_envs/evaluations/pytest_comprehensive_1771649145.json",
+    "data/real_envs/evaluations/test_1771649145.json",
+    "data/real_envs/evaluations/test_content_1771649145.json",
+    "data/real_envs/evaluations/test_file_1771649145.json",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original"
+  ],
+  "sessions": [
+    {
+      "metadata": "/61/9c100dbb0c/0/metadata.json",
+      "transcript": "/61/9c100dbb0c/0/full.jsonl",
+      "context": "/61/9c100dbb0c/0/context.md",
+      "content_hash": "/61/9c100dbb0c/0/content_hash.txt",
+      "prompt": "/61/9c100dbb0c/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 275961,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 111,
+    "api_call_count": 2
+  }
+}
