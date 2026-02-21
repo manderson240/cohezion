@@ -44,6 +44,7 @@
     "docs/TRACK_C_IMPACT_API.md",
     "docs/plans/2026-02-19-daily-research-skills.md",
     "docs/plans/2026-02-20-refine-implementation.md",
+    "docs/plans/2026-02-21-abstract-apply-pilot.md",
     "inbox/HANDOFF-lessons-phase-2-decisions-linking.md",
     "inbox/PHASE-2-KICKOFF-TEAM-DIRECTION.md",
     "inbox/SESSION-58-TRACK-A-COMPLETE-TRACK-B-READY.md",
@@ -137,13 +138,20 @@
       "context": "/10/bb712dcdbf/4/context.md",
       "content_hash": "/10/bb712dcdbf/4/content_hash.txt",
       "prompt": "/10/bb712dcdbf/4/prompt.txt"
+    },
+    {
+      "metadata": "/10/bb712dcdbf/5/metadata.json",
+      "transcript": "/10/bb712dcdbf/5/full.jsonl",
+      "context": "/10/bb712dcdbf/5/context.md",
+      "content_hash": "/10/bb712dcdbf/5/content_hash.txt",
+      "prompt": "/10/bb712dcdbf/5/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 12050,
-    "cache_creation_tokens": 15916852,
-    "cache_read_tokens": 96725417,
-    "output_tokens": 162074,
-    "api_call_count": 880
+    "input_tokens": 12193,
+    "cache_creation_tokens": 16148489,
+    "cache_read_tokens": 101500559,
+    "output_tokens": 165386,
+    "api_call_count": 942
   }
 }
