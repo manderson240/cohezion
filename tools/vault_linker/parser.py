@@ -16,7 +16,8 @@ class VaultParser:
 
     # Directories to exclude from parsing
     EXCLUDE_DIRS = {'.git', 'node_modules', '.obsidian', 'mcp-server',
-                     'obsidian-plugin', '.claude', 'tools', 'htmlcov', 'docs', '.venv'}
+                     'obsidian-plugin', '.claude', 'tools', 'htmlcov', 'docs',
+                     '.venv', '.worktrees', 'checkpoints'}
 
     def parse_frontmatter(self, content: str) -> Dict[str, Any]:
         """

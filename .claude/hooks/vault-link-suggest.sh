@@ -7,8 +7,8 @@
 # Cooldown: silently exits if last run was <30 seconds ago.
 
 VAULT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-COOLDOWN_FILE="/tmp/vault-link-suggest.last"
-ERROR_LOG="/tmp/vault-link-suggest.log"
+COOLDOWN_FILE="/tmp/vault-link-suggest-$(id -u).last"
+ERROR_LOG="/tmp/vault-link-suggest-$(id -u).log"
 COOLDOWN_SECONDS=30
 
 # ── Extract file_path from stdin JSON ────────────────────────────────────────
