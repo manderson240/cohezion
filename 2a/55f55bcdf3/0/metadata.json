@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "2a55f55bcdf3",
+  "session_id": "0fbff462-06bc-4dfb-94a5-4573fe3e941e",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-22T17:58:19.291373297Z",
+  "branch": "spec/maximize-node-connections",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "docs/plans/2026-02-21-maximize-node-connections.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "4b91b2e16abd",
+  "initial_attribution": {
+    "calculated_at": "2026-02-22T17:58:19.288526254Z",
+    "agent_lines": 0,
+    "human_added": 0,
+    "human_modified": 1,
+    "human_removed": 0,
+    "total_committed": 0,
+    "agent_percentage": 0
+  }
+}
