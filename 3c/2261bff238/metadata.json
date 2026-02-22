@@ -45,6 +45,20 @@
       "context": "",
       "content_hash": "/3c/2261bff238/1/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/3c/2261bff238/2/metadata.json",
+      "transcript": "/3c/2261bff238/2/full.jsonl",
+      "context": "/3c/2261bff238/2/context.md",
+      "content_hash": "/3c/2261bff238/2/content_hash.txt",
+      "prompt": "/3c/2261bff238/2/prompt.txt"
     }
-  ]
+  ],
+  "token_usage": {
+    "input_tokens": 14764,
+    "cache_creation_tokens": 1629379,
+    "cache_read_tokens": 64182772,
+    "output_tokens": 86497,
+    "api_call_count": 531
+  }
 }
