@@ -2,8 +2,8 @@
   "cli_version": "0.4.5",
   "checkpoint_id": "921e8342a738",
   "strategy": "manual-commit",
-  "branch": "track-c",
-  "checkpoints_count": 1,
+  "branch": "fix/security-review",
+  "checkpoints_count": 0,
   "files_touched": [
     ".claude/commands/security-review.md",
     "research/harvester.py",
