@@ -5,7 +5,7 @@
 
 VAULT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 HOOK="$VAULT_ROOT/.claude/hooks/vault-link-suggest.sh"
-COOLDOWN_FILE="/tmp/vault-link-suggest.last"
+COOLDOWN_FILE="/tmp/vault-link-suggest-$(id -u).last"
 PASS=0
 FAIL=0
 

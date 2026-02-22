@@ -9,6 +9,7 @@ from vault_linker.tagger import TagPopulator
 from vault_linker.stubgen import StubGenerator
 from vault_linker.injector import LinkInjector
 from vault_linker.report import ReportGenerator
+from vault_linker.suggester import suggest_file
 
 
 def main():
@@ -69,15 +70,7 @@ def main():
 
 
 def analyze(vault_path: Path) -> int:
-    """
-    Analyze vault and generate report.
-
-    Args:
-        vault_path: Path to vault root
-
-    Returns:
-        Exit code (0 = success)
-    """
+    """Analyze vault and generate report."""
     print(f"Analyzing vault at: {vault_path}")
 
     # Parse vault
@@ -111,16 +104,7 @@ def _is_read_only(file_path: Path, vault_path: Path) -> bool:
 
 
 def fix(vault_path: Path, dry_run: bool = False) -> int:
-    """
-    Fix broken links and populate tags.
-
-    Args:
-        vault_path: Path to vault root
-        dry_run: If True, preview changes without modifying files
-
-    Returns:
-        Exit code (0 = success)
-    """
+    """Fix broken links and populate tags."""
     if dry_run:
         print(f"🔍 DRY RUN: Previewing changes for vault at: {vault_path}")
         print("(No files will be modified)\n")
@@ -209,7 +193,7 @@ def fix(vault_path: Path, dry_run: bool = False) -> int:
         candidates = stubgen.identify_stub_candidates(link_graph, files_index)
         print(f"  Would create {len(candidates)} concept stubs")
 
-    # 3. Inject cross-reference links
+    # 4. Inject cross-reference links
     print("\n🔗 Injecting cross-reference links...")
     injector = LinkInjector(files_index)
     for stem, meta in files_index.items():
@@ -246,81 +230,8 @@ def fix(vault_path: Path, dry_run: bool = False) -> int:
     return 0
 
 
-def suggest_file(vault_path: Path, file_path: Path) -> str:
-    """
-    Suggest cross-reference links for a single vault file.
-
-    Uses full walk_vault() to build the link graph (~350ms), then returns
-    tag-overlap suggestions and bidirectional gap suggestions for the target file.
-
-    Args:
-        vault_path: Root path of the vault
-        file_path: Absolute path to the target markdown file
-
-    Returns:
-        Human-readable suggestion string (may be empty if no suggestions)
-    """
-    vp = VaultParser()
-    files_index, link_graph = vp.walk_vault(vault_path)
-
-    target_stem = file_path.stem.lower()
-    target_meta = files_index.get(target_stem, {})
-    target_tags = set(target_meta.get("frontmatter", {}).get("tags") or [])
-    existing_links = {lnk.lower() for lnk in target_meta.get("wiki_links", [])}
-
-    # No tags and no incoming links → helpful message
-    incoming = link_graph.get(target_stem, {}).get('incoming', set())
-    if not target_tags and not incoming:
-        return "📎 No suggestions available (add tags to get link suggestions)"
-
-    # Tag-overlap suggestions (up to 5 total across both categories)
-    MAX_SUGGESTIONS = 5
-    tag_suggestions: list[str] = []
-    if target_tags:
-        for stem, meta in files_index.items():
-            if stem == target_stem:
-                continue
-            if stem in existing_links:
-                continue
-            other_tags = set(meta.get("frontmatter", {}).get("tags") or [])
-            if target_tags & other_tags:
-                tag_suggestions.append(stem)
-            if len(tag_suggestions) >= MAX_SUGGESTIONS:
-                break
-
-    # Bidirectional gap suggestions
-    bidi_gaps = vp.find_bidirectional_gaps(link_graph, target_stem)
-    # Remove gaps already captured in tag suggestions or already linked
-    bidi_suggestions = [g for g in bidi_gaps if g not in existing_links and g not in tag_suggestions]
-
-    if not tag_suggestions and not bidi_suggestions:
-        return "📎 No new suggestions found"
-
-    lines = [f"📎 Suggested links for {file_path.name}:"]
-    if tag_suggestions:
-        lines.append("  Tag overlap:")
-        for stem in tag_suggestions[:MAX_SUGGESTIONS]:
-            lines.append(f"  - [[{stem}]]")
-    if bidi_suggestions:
-        remaining = MAX_SUGGESTIONS - len(tag_suggestions)
-        lines.append("  Bidirectional gaps (links to you):")
-        for stem in bidi_suggestions[:remaining]:
-            lines.append(f"  - [[{stem}]]")
-
-    return "\n".join(lines)
-
-
 def suggest(vault_path: Path, file_path: Path) -> int:
-    """
-    CLI handler for the suggest subcommand.
-
-    Args:
-        vault_path: Root path of the vault
-        file_path: Absolute path to the target markdown file
-
-    Returns:
-        Exit code (0 = success, 1 = error)
-    """
+    """CLI handler for the suggest subcommand."""
     if not file_path.exists():
         print(f"Error: file not found: {file_path}", file=sys.stderr)
         return 1
@@ -335,21 +246,7 @@ def suggest(vault_path: Path, file_path: Path) -> int:
 
 
 def inject_single(vault_path: Path, file_path: Path, dry_run: bool = False) -> int:
-    """
-    Inject cross-reference links into a single vault file.
-
-    Runs full VaultParser + LinkInjector but only writes the target file.
-    The value is surgical modification (one file write), not speed — indexing
-    cost is the same as running 'fix' on the entire vault.
-
-    Args:
-        vault_path: Root path of the vault
-        file_path: Absolute path to the target markdown file
-        dry_run: If True, preview changes without modifying files
-
-    Returns:
-        Exit code (0 = success, 1 = error)
-    """
+    """Inject cross-reference links into a single vault file."""
     if not file_path.exists():
         print(f"Error: file not found: {file_path}", file=sys.stderr)
         return 1
