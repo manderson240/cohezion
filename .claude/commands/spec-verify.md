@@ -8,109 +8,157 @@ Phase 3 of the /spec workflow. Runs tests, code review agents, and confirms all 
 
 ---
 
-## Step 3.0: Pre-Verification Check
+## Step 3.0: Pre-Verification Setup
 
 1. Read the plan file — confirm `Status: COMPLETE`
-2. Run full test suite:
+2. Extract from **Runtime Environment** section:
+   - `project_root` — where to run commands from
+   - `test_command` — how to run tests
+   - `lint_command` — how to lint (skip if "none")
+   - `type_check_command` — how to type-check (skip if "none")
+3. Run test_command from project_root — all must pass before code review agents run
+4. Resolve session directory for findings output:
    ```bash
-   cd tools/cohezion-engine && uv run pytest -q
+   SESSION_DIR=$(cz session status --json | python3 -c "import sys,json; print(json.load(sys.stdin)['session_dir'])")
    ```
-   All tests must pass before code review agents run.
+5. Get changed files:
+   ```bash
+   git diff --name-only HEAD~N..HEAD  # N = number of commits in this spec branch
+   ```
 
 ---
 
-## Step 3.1: Run Code Review Agents (MANDATORY — NEVER SKIP)
+## Step 3.1: Launch Code Review Agents (MANDATORY — NEVER SKIP)
 
-Launch both agents in parallel via Task tool with `run_in_background=true`:
+**Launch immediately** — agents work in parallel while you run lint/type checks.
+
+Resolve all paths before constructing prompts. Never pass `<session-id>` as a placeholder.
 
 ```python
 Task(
   subagent_type="general-purpose",
   description="Compliance review",
-  prompt="You are a compliance reviewer. Read .claude/agents/spec-reviewer-compliance.md for your instructions, then read the plan at <plan-path> and all changed files. Execute those instructions. Write findings JSON to ~/.cohezion-engine/sessions/<session-id>/compliance.json",
+  prompt=f"""You are a compliance reviewer.
+  Read agent instructions: <absolute-path>/.claude/agents/spec-reviewer-compliance.md
+  Read plan: <absolute-plan-path>
+
+  Files to review (from plan's Files sections — read these first):
+  <list files from each task's Files section>
+
+  Expand to other changed files only if needed for integration checks.
+  Write findings JSON to: {SESSION_DIR}/findings-compliance.json""",
   run_in_background=True
 )
 
 Task(
   subagent_type="general-purpose",
   description="Quality review",
-  prompt="You are a quality reviewer. Read .claude/agents/spec-reviewer-quality.md for your instructions, then read the plan at <plan-path> and all changed files. Execute those instructions. Write findings JSON to ~/.cohezion-engine/sessions/<session-id>/quality.json",
+  prompt=f"""You are a quality reviewer.
+  Read agent instructions: <absolute-path>/.claude/agents/spec-reviewer-quality.md
+  Read plan: <absolute-plan-path>
+
+  Production files to review (non-test files from plan's Files sections):
+  <list production files from plan>
+
+  Test files to review:
+  <list test files from plan>
+
+  Write findings JSON to: {SESSION_DIR}/findings-quality.json""",
   run_in_background=True
 )
 ```
 
-Poll output files using Read tool.
-
 ---
 
-## Step 3.2: Process Findings (Automatic — No User Confirmation)
+## Step 3.2: Run Linting and Type Checks
 
-For every `must_fix` and `should_fix` finding:
-
-1. Fix immediately without asking permission
-2. Re-run the test suite after fixes
-3. If fixes require significant new work → add tasks to plan, set `Status: PENDING`, invoke `Skill('spec-implement')`
-
-For `suggestion` findings: implement if quick and low-risk.
-
-**NEVER ask "Should I fix these?" — fix them automatically.**
-
----
-
-## Step 3.3: Definition of Done Checklist
-
-Validate every task's Definition of Done criteria from the plan. For each criterion:
-
-- [ ] Is it actually implemented?
-- [ ] Is it tested?
-- [ ] Does the verify command pass?
-
-Run all verify commands listed in the plan's task sections.
-
----
-
-## Step 3.4: Grep Verification
-
-Confirm no references to the old CLI remain:
+While agents work in background, run mechanical checks from project_root:
 
 ```bash
-# Check for old binary references (should return no output)
-grep -r "~/.pil""ot" .claude/rules/ .claude/commands/ .claude/agents/ .claude/hooks/ 2>/dev/null
+# Lint (if not "none")
+<lint_command>
 
-# Check for old session env var (should return no output)
-grep -r "PIL""OT_SESSION""_ID" .claude/rules/ .claude/commands/ .claude/agents/ 2>/dev/null
-
-# Check for general old-CLI references in commands and agents
-grep -r "pil""ot" .claude/commands/ .claude/agents/ 2>/dev/null | grep -v "autopil""ot\|copil""ot"
+# Type check (if not "none")
+<type_check_command>
 ```
 
-All must return no matches.
+Fix all errors immediately. Warnings are acceptable; errors are blockers.
+
+**File length check — all production files:**
+```bash
+wc -l <production files> | sort -n | tail -20
+```
+- > 300 lines: warning, refactor if time allows
+- > 500 lines: must_fix, split before marking complete
 
 ---
 
-## Step 3.5: Re-Verification Loop
+## Step 3.3: Collect Agent Findings
 
-If any fixes were applied in Step 3.2:
+Poll for results by reading the findings files (do not use TaskOutput):
 
-1. Re-run test suite
-2. Re-run code review agents (Step 3.1)
-3. Repeat until agents return clean (zero must_fix/should_fix findings)
+```python
+Read(f"{SESSION_DIR}/findings-compliance.json")
+Read(f"{SESSION_DIR}/findings-quality.json")
+```
+
+Retry every 15-30 seconds if not ready. If still missing after 3 attempts, re-launch that agent synchronously (without `run_in_background`).
+
+**Fix all findings automatically — no user confirmation needed:**
+
+1. **must_fix** findings: fix immediately, re-run test_command after each
+2. **should_fix** findings: fix immediately
+3. **suggestions**: implement if quick and low-risk
+
+**NEVER ask "Should I fix these?"**
+
+---
+
+## Step 3.4: Definition of Done Audit
+
+For each task in the plan, validate every DoD criterion:
+
+```markdown
+Task N: <title>
+- [ ] criterion 1 → [evidence: command output or code reference]
+- [ ] criterion 2 → [evidence]
+```
+
+Run each task's Verify commands. If a criterion is unmet:
+- Fixable inline → fix immediately
+- Requires significant work → add task to plan, set Status: PENDING, increment Iterations, loop back
+
+---
+
+## Step 3.5: Re-Verification Loop (if fixes applied)
+
+If any code changed in Steps 3.2-3.4:
+
+1. Re-run test_command
+2. Re-run both review agents (same prompts, same output paths — agents overwrite)
+3. Collect and process findings
+4. Repeat until both agents return zero must_fix and zero should_fix
+
+Maximum 3 iterations. If issues persist after 3 loops, add them as tasks in the plan.
 
 ---
 
 ## Step 3.6: Worktree Sync (Conditional)
 
-**Only when `Worktree: Yes` in plan header:**
+**Only when `Worktree: Yes` in plan header.**
 
-Show user the list of changed files:
+Get diff:
 ```bash
 cz worktree diff --json <slug>
 ```
 
-Ask for sync approval:
+Ask user for sync decision:
 ```
-AskUserQuestion: "Ready to merge worktree changes to base branch?"
-Options: Merge and clean up / Keep worktree for now / Discard changes
+AskUserQuestion: "Sync worktree changes to base branch?"
+Options:
+  - Merge and clean up (squash merge + delete worktree)
+  - Keep worktree (sync manually later)
+  - Discard changes
 ```
 
 **If approved:**
@@ -133,12 +181,10 @@ Register:
 cz plan register <plan-path> VERIFIED
 ```
 
-Report completion:
+Report:
 ```
-✅ Workflow complete! All tasks implemented and verified.
-Plan: <plan-path>
-Tasks: N/N complete
-Tests: X passed
+✅ Workflow complete! Plan: <plan-path>
+Tasks: N/N | Tests: X passed | Iterations: N
 ```
 
 ---
@@ -146,7 +192,8 @@ Tests: X passed
 ## Rules
 
 - NEVER skip code review agents (Step 3.1)
+- ALWAYS resolve SESSION_DIR to a real path before Task calls — never use `<session-id>` placeholder
+- Agent prompts must list the specific Files from each plan task (scope limiting)
 - Auto-fix ALL must_fix and should_fix findings without asking
-- The only user interaction is worktree sync approval (when Worktree: Yes)
 - Re-verify after every round of fixes
-- Grep verification is mandatory before VERIFIED status
+- The only user interaction is worktree sync approval
