@@ -150,6 +150,19 @@ from cohezion.compound.group_evolution import (
     SelectionStrategy,
     TaskSuccessVector,
 )
+from cohezion.compound.evolution_training_bridge import (
+    EvolutionRoundResult,
+    EvolutionTrainingConfig,
+    EvolutionTrainingExporter,
+    EvolutionTrainingPipeline,
+    EvolutionTrainingSignalGenerator,
+    EvolutionTrajectory,
+    FitnessEvaluator,
+    LatentNoveltyScorer,
+    ModelEvaluationResult,
+    TraceToTrajectoryConverter,
+    TrainingSignals,
+)
 from cohezion.compound.exp_persistence.vault import (
     ExecutionContext,
     VaultLogger,
@@ -274,4 +287,15 @@ __all__ = [
     "load_jsonl_history",
     "reset_collector",
     "reset_global_aggregator",
+    "EvolutionRoundResult",
+    "EvolutionTrainingConfig",
+    "EvolutionTrainingExporter",
+    "EvolutionTrainingPipeline",
+    "EvolutionTrainingSignalGenerator",
+    "EvolutionTrajectory",
+    "FitnessEvaluator",
+    "LatentNoveltyScorer",
+    "ModelEvaluationResult",
+    "TraceToTrajectoryConverter",
+    "TrainingSignals",
 ]
