@@ -4,6 +4,7 @@ import asyncio
 import logging
 import re
 import xml.etree.ElementTree as ET
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -208,7 +209,7 @@ async def github_adapter(
         try:
             resp = requests.get(
                 "https://api.github.com/search/repositories",
-                params={"q": f"language:{lang} created:>2026-02-13", "sort": "stars", "per_page": 10},
+                params={"q": f"language:{lang} created:>{date.today() - timedelta(days=7)}", "sort": "stars", "per_page": 10},
                 headers={"Accept": "application/vnd.github.v3+json"},
                 timeout=15,
             )

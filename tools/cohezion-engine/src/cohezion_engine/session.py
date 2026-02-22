@@ -1,13 +1,21 @@
 """Session lifecycle management for cohezion-engine."""
 import os
+import re
 from pathlib import Path
 
 from cohezion_engine.config import get_config_dir
 
+_SESSION_ID_RE = re.compile(r"[^a-zA-Z0-9_\-]")
+
 
 def get_session_id() -> str:
-    """Return the current session ID from env var or PID-based fallback."""
-    return os.environ.get("COHEZION_SESSION_ID") or f"pid-{os.getpid()}"
+    """Return the current session ID from env var or PID-based fallback.
+
+    The session ID is sanitized to prevent path traversal — only alphanumerics,
+    hyphens, and underscores are allowed.
+    """
+    raw = os.environ.get("COHEZION_SESSION_ID") or f"pid-{os.getpid()}"
+    return _SESSION_ID_RE.sub("_", raw)
 
 
 def get_session_dir(base_dir: Path | None = None) -> Path:
