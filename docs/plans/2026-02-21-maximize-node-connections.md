@@ -1,7 +1,7 @@
 # Maximize Node Connections Implementation Plan
 
 Created: 2026-02-21
-Status: PENDING
+Status: COMPLETE
 Approved: Yes
 Iterations: 0
 Worktree: Yes
@@ -126,12 +126,12 @@ Hook script wraps vault_linker invocation with error handling. On failure: log e
 
 ## Progress Tracking
 
-Done: 0 / Left: 5
-- [ ] Task 1: Add `suggest` subcommand with bidirectional detection
-- [ ] Task 2: Add `inject-single` subcommand
-- [ ] Task 3: Write hook shell script with cooldown
-- [ ] Task 4: Register hook in settings.json
-- [ ] Task 5: Add bidirectional gap section to analyze report
+Done: 5 / Left: 0
+- [x] Task 1: Add `suggest` subcommand with bidirectional detection
+- [x] Task 2: Add `inject-single` subcommand
+- [x] Task 3: Write hook shell script with cooldown
+- [x] Task 4: Register hook in settings.json
+- [x] Task 5: Add bidirectional gap section to analyze report
 
 ## Implementation Tasks
 
