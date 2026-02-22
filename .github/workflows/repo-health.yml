@@ -12,15 +12,20 @@ on:
     - cron: '0 2 * * 0'  # Weekly Sunday 2am UTC
   workflow_dispatch:  # Manual trigger
 
+permissions:
+  contents: read
+
 jobs:
   check-repo-health:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Full history for comprehensive analysis
+          persist-credentials: false
 
       - name: Check repository size
         run: |

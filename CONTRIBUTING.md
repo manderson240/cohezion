@@ -1,84 +1,100 @@
 # Contributing to Cohezion
 
-## Branch Strategy
+Thank you for your interest in contributing to Cohezion! This project is an agentic AI framework for 12D universe simulation, FLUME manifold encoding, and multi-agent swarm orchestration.
 
-| Branch | Purpose |
-|--------|---------|
-| `main` | Stable releases only |
-| `develop` | Active development |
-| `feature/*` | New features |
-| `fix/*` | Bug fixes |
+## Development Setup
 
-### Workflow
+### Prerequisites
 
-1. Create feature branch from `develop`:
+- Python 3.13 or higher
+- [uv](https://docs.astral.sh/uv/) for package management (**never** use bare `pip`)
+
+### Initial Setup
+
+1. Clone the repository
+2. Install dependencies:
    ```bash
-   git checkout develop
-   git pull
-   git checkout -b feature/my-feature
+   uv sync
    ```
 
-2. Make changes with atomic commits
+3. Set up pre-commit hooks:
+   ```bash
+   uv run pre-commit install
+   ```
 
-3. Push and create PR to `develop`
+## Code Quality Tools
 
-4. After review, merge to `develop`
+This project uses modern Python tooling for code quality:
 
-5. Periodic releases merge `develop` → `main`
+- **Ruff** - Fast linter and formatter (replaces Black, isort, flake8)
+- **mypy** - Static type checking
+- **pytest** - Testing framework
+- **pre-commit** - Git hook enforcement
 
-## Pre-commit Hooks
-
-Hooks run automatically on commit:
-- **ruff**: Lint and format Python
-- **mypy**: Type checking
-- **trailing-whitespace**: Remove trailing spaces
-- **check-yaml/json**: Validate config files
-
-On push:
-- **pytest**: Run full test suite
-
-### Manual Run
+### Using Make (Recommended)
 
 ```bash
-# Run all hooks
-uv run pre-commit run --all-files
-
-# Run specific hook
-uv run pre-commit run ruff --all-files
+make format      # Format code with ruff
+make lint        # Lint and auto-fix issues
+make lint-check  # Check linting without fixing
+make type-check  # Run mypy type checking
+make test        # Run test suite
+make all         # Run format, lint, type-check, and test
+make ci          # Run all CI checks locally
+make clean       # Clean up cache files
 ```
 
-## Adding a Skill
+### Manual Commands
 
-1. Create `skills/MY_SKILL_PRIME.md`
-2. Register:
-   ```python
-   from cohezion.registry.skill_registry import register_skill
-   register_skill("MY_SKILL_PRIME", "Description", ["keywords"], "skills/MY_SKILL_PRIME.md")
-   ```
+```bash
+# Format code
+uv run ruff format .
 
-## Adding an MCP Server
+# Lint and auto-fix
+uv run ruff check --fix .
 
-1. Create `mcp/my_server.py` with tools
-2. Add to `mcp/mcp_registry.json`
-3. Test with:
-   ```python
-   from cohezion.mcp.my_server import get_server
-   server = get_server()
-   ```
+# Check linting without fixing
+uv run ruff check .
+
+# Type checking
+uv run mypy --ignore-missing-imports src/cohezion/
+
+# Run tests
+uv run pytest tests/ -q
+```
 
 ## Code Style
 
-- Type hints required for public functions
-- Docstrings for all classes and public methods
-- Max line length: 88 (ruff default)
-- PEP 8 compliance enforced
+- Line length: 100 characters
+- Quote style: Double quotes
+- Python version: 3.13+
+- Type hints: mandatory for new code
 
-## Testing
+The project configuration in `pyproject.toml` enforces:
+- PEP 8 compliance
+- Import sorting (isort via ruff)
+- Security best practices (Bandit rules via ruff `S` prefix)
+- Common bug patterns (Bugbear rules via ruff `B` prefix)
+- Code simplifications
+- Modern Python syntax (pyupgrade)
 
-```bash
-# Run all tests
-uv run pytest tests/ -v
+## Branch Strategy
 
-# Run with coverage
-uv run pytest tests/ --cov=src/cohezion
-```
+This project uses **GitHub Flow**:
+
+- `main` is the only long-lived branch
+- All work happens on feature branches merged via pull requests
+- Branch naming: `feature/*`, `fix/*`, `refactor/*`, `docs/*`, `session-*`
+- Conventional commit messages: `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`, `ci:`
+
+## Pull Requests
+
+- Fill out the PR template completely
+- Ensure CI passes (lint, test, validate)
+- Keep PRs focused on a single concern
+- Include tests for new functionality
+- No files > 1MB without git-lfs
+
+## Security
+
+Please report security vulnerabilities via [GitHub Security Advisories](https://github.com/manderson240/cohezion/security/advisories/new), **not** public issues. See [SECURITY.md](SECURITY.md) for details.

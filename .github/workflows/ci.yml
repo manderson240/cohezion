@@ -8,6 +8,11 @@ on:
   merge_group:
     types: [checks_requested]
 
+# Least-privilege default: no permissions unless explicitly granted per job.
+# This follows OpenSSF Scorecard and post-tj-actions best practices.
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -21,8 +26,11 @@ jobs:
   # ── Lint & Format ────────────────────────────────────────────
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: astral-sh/setup-uv@v5
         with:
@@ -44,8 +52,11 @@ jobs:
   # ── Validate ─────────────────────────────────────────────────
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: astral-sh/setup-uv@v5
         with:
@@ -81,8 +92,11 @@ jobs:
   # ── Type Check ───────────────────────────────────────────────
   typecheck:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: astral-sh/setup-uv@v5
         with:
@@ -102,6 +116,7 @@ jobs:
   # ── Test ─────────────────────────────────────────────────────
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: [lint, validate]
     strategy:
       fail-fast: false
@@ -109,6 +124,8 @@ jobs:
         python-version: ["3.13"]
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: astral-sh/setup-uv@v5
         with:
@@ -158,9 +175,12 @@ jobs:
   # ── Compound Audit ───────────────────────────────────────────
   compound:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: validate
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: astral-sh/setup-uv@v5
         with:
@@ -189,8 +209,13 @@ jobs:
   dependency-review:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Dependency review
         uses: actions/dependency-review-action@v4
@@ -201,6 +226,7 @@ jobs:
   # ── CI Status Gate ───────────────────────────────────────────
   ci-status:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: [lint, validate, test, typecheck, compound]
     if: always()
     steps:
