@@ -185,3 +185,6 @@ data/compound/metrics/
 .worktrees/
 infrastructure/
 .env.surrealdb
+
+# Generated render artifacts (images, visualizations)
+renders/
