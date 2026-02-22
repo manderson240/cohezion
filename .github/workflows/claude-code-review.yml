@@ -20,9 +20,13 @@ jobs:
 
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      pull-requests: read
-      issues: read
+      # CRITICAL: contents, pull-requests, and issues MUST remain 'write'.
+      # Downgrading these to 'read' silently breaks @claude mentions — Claude
+      # can receive the trigger event but cannot post a reply or push code.
+      # The validate-claude-config.yml workflow enforces this automatically.
+      contents: write
+      pull-requests: write
+      issues: write
       id-token: write
 
     steps:
