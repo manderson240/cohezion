@@ -1,0 +1,42 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "717ce8919280",
+  "session_id": "e6c4d954-8116-4441-bf79-912ee034b205",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-20T20:51:24.190724401Z",
+  "branch": "main",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "CLAUDE.md",
+    "README.md",
+    "data/checkpoints/test.json",
+    "data/real_envs/evaluations/test_content_1771618400.json",
+    "data/real_envs/evaluations/test_file_1771618400.json",
+    "memory/MEMORY.md",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original",
+    "scripts/verify_integration.py",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "src/cohezion/knowledge_graph/MISSION_JOURNAL.md",
+    "src/cohezion/real_envs/shell_env_optimized.py",
+    "tests/real_envs/test_extended.py"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "1cdd1857-8f35-4fc4-9d1c-60f85e9cfeec",
+  "token_usage": {
+    "input_tokens": 1797,
+    "cache_creation_tokens": 221166,
+    "cache_read_tokens": 6337363,
+    "output_tokens": 3497,
+    "api_call_count": 63
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-20T20:51:24.131600949Z",
+    "agent_lines": 64,
+    "human_added": 18259,
+    "human_modified": 1012,
+    "human_removed": 0,
+    "total_committed": 19335,
+    "agent_percentage": 0.33100594776312386
+  }
+}

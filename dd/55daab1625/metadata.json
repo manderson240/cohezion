@@ -1,0 +1,59 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "dd55daab1625",
+  "strategy": "manual-commit",
+  "branch": "spec/routes-consolidation",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "data/real_envs/evaluations/test_content_1771568924.json",
+    "data/real_envs/evaluations/test_file_1771568924.json",
+    "data/real_envs/evaluations/test_missing_1771568924.json",
+    "data/real_envs/journeys/journey_1771568924304.json",
+    "data/real_envs/journeys/journey_1771568924309.json",
+    "data/real_envs/journeys/journey_1771568972718.json",
+    "data/real_envs/metrics/shell_task_0_1771568924.json",
+    "data/real_envs/metrics/shell_task_0_1771568972.json",
+    "data/real_envs/metrics/shell_task_1_1771568924.json",
+    "data/real_envs/metrics/shell_task_1_1771568972.json",
+    "data/real_envs/metrics/shell_task_2_1771568924.json",
+    "data/real_envs/metrics/shell_task_2_1771568972.json",
+    "data/real_envs/metrics/shell_task_3_1771568924.json",
+    "data/real_envs/metrics/shell_task_3_1771568972.json",
+    "data/real_envs/metrics/shell_task_4_1771568924.json",
+    "data/real_envs/metrics/shell_task_4_1771568972.json",
+    "data/real_envs/metrics/shell_test_task_1771568924.json",
+    "data/real_envs/metrics/shell_test_task_1771568972.json",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original"
+  ],
+  "sessions": [
+    {
+      "metadata": "/dd/55daab1625/0/metadata.json",
+      "transcript": "/dd/55daab1625/0/full.jsonl",
+      "context": "/dd/55daab1625/0/context.md",
+      "content_hash": "/dd/55daab1625/0/content_hash.txt",
+      "prompt": "/dd/55daab1625/0/prompt.txt"
+    },
+    {
+      "metadata": "/dd/55daab1625/1/metadata.json",
+      "transcript": "/dd/55daab1625/1/full.jsonl",
+      "context": "/dd/55daab1625/1/context.md",
+      "content_hash": "/dd/55daab1625/1/content_hash.txt",
+      "prompt": "/dd/55daab1625/1/prompt.txt"
+    },
+    {
+      "metadata": "/dd/55daab1625/2/metadata.json",
+      "transcript": "/dd/55daab1625/2/full.jsonl",
+      "context": "/dd/55daab1625/2/context.md",
+      "content_hash": "/dd/55daab1625/2/content_hash.txt",
+      "prompt": "/dd/55daab1625/2/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 2642417,
+    "cache_creation_tokens": 14079,
+    "cache_read_tokens": 3600986,
+    "output_tokens": 5000,
+    "api_call_count": 48
+  }
+}

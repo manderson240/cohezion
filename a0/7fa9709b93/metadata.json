@@ -1,0 +1,72 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "a07fa9709b93",
+  "strategy": "manual-commit",
+  "branch": "spec/routes-consolidation",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "CLAUDE.local.md",
+    "data/archives/2026-02-crash-loop/timeline.md",
+    "data/real_envs/evaluations/flask_api_with_db_1771569614.json",
+    "data/real_envs/evaluations/test_content_1771569614.json",
+    "data/real_envs/evaluations/test_content_1771569639.json",
+    "data/real_envs/evaluations/test_file_1771569614.json",
+    "data/real_envs/evaluations/test_file_1771569639.json",
+    "data/real_envs/evaluations/test_missing_1771569614.json",
+    "data/real_envs/evaluations/test_missing_1771569639.json",
+    "data/real_envs/journeys/journey_1771569614393.json",
+    "data/real_envs/journeys/journey_1771569614399.json",
+    "data/real_envs/journeys/journey_1771569639370.json",
+    "data/real_envs/journeys/journey_1771569639377.json",
+    "data/real_envs/metrics/shell_task_0_1771569614.json",
+    "data/real_envs/metrics/shell_task_0_1771569639.json",
+    "data/real_envs/metrics/shell_task_1_1771569614.json",
+    "data/real_envs/metrics/shell_task_1_1771569639.json",
+    "data/real_envs/metrics/shell_task_2_1771569614.json",
+    "data/real_envs/metrics/shell_task_2_1771569639.json",
+    "data/real_envs/metrics/shell_task_3_1771569614.json",
+    "data/real_envs/metrics/shell_task_3_1771569639.json",
+    "data/real_envs/metrics/shell_task_4_1771569614.json",
+    "data/real_envs/metrics/shell_task_4_1771569639.json",
+    "data/real_envs/metrics/shell_test_task_1771569614.json",
+    "data/real_envs/metrics/shell_test_task_1771569639.json",
+    "ollama-mcp",
+    "pyproject.toml",
+    "research/challenges/anthropic_challenge_original",
+    "src/cohezion/cosmic/__init__.py",
+    "src/cohezion/cosmic/three_fires.py",
+    "src/cohezion/real_envs/benchmark.py",
+    "src/cohezion/real_envs/multi_agent.py",
+    "src/cohezion/real_envs/rl_integration.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/a0/7fa9709b93/0/metadata.json",
+      "transcript": "/a0/7fa9709b93/0/full.jsonl",
+      "context": "/a0/7fa9709b93/0/context.md",
+      "content_hash": "/a0/7fa9709b93/0/content_hash.txt",
+      "prompt": "/a0/7fa9709b93/0/prompt.txt"
+    },
+    {
+      "metadata": "/a0/7fa9709b93/1/metadata.json",
+      "transcript": "/a0/7fa9709b93/1/full.jsonl",
+      "context": "/a0/7fa9709b93/1/context.md",
+      "content_hash": "/a0/7fa9709b93/1/content_hash.txt",
+      "prompt": "/a0/7fa9709b93/1/prompt.txt"
+    },
+    {
+      "metadata": "/a0/7fa9709b93/2/metadata.json",
+      "transcript": "/a0/7fa9709b93/2/full.jsonl",
+      "context": "/a0/7fa9709b93/2/context.md",
+      "content_hash": "/a0/7fa9709b93/2/content_hash.txt",
+      "prompt": "/a0/7fa9709b93/2/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1638137,
+    "cache_creation_tokens": 21678,
+    "cache_read_tokens": 3898117,
+    "output_tokens": 5677,
+    "api_call_count": 42
+  }
+}

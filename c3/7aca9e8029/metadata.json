@@ -1,0 +1,58 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "c37aca9e8029",
+  "strategy": "manual-commit",
+  "branch": "spec/routes-consolidation",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "CLAUDE.md",
+    "README.md",
+    "docs/pilot-inspiration.md",
+    "docs/pilot-integration-summary.md",
+    "docs/third-party-inspiration.md",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original",
+    "src/cohezion/hooks/__init__.py",
+    "src/cohezion/hooks/events.py",
+    "src/cohezion/hooks/executor.py",
+    "src/cohezion/hooks/quality.py",
+    "src/cohezion/hooks/registry.py",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "src/cohezion/knowledge_graph/MISSION_JOURNAL.md",
+    "src/cohezion/persistence/__init__.py",
+    "src/cohezion/persistence/session_manager.py",
+    "src/cohezion/real_envs/evaluator.py",
+    "src/cohezion/real_envs/metrics.py",
+    "src/cohezion/real_envs/tasks/scenarios.py",
+    "src/cohezion/swarm/intelligence_router.py",
+    "tests/hooks/__init__.py",
+    "tests/hooks/test_executor.py",
+    "tests/hooks/test_registry.py",
+    "tests/persistence/__init__.py",
+    "tests/persistence/test_session_manager.py",
+    "tests/swarm/test_intelligence_router.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/c3/7aca9e8029/0/metadata.json",
+      "transcript": "/c3/7aca9e8029/0/full.jsonl",
+      "context": "/c3/7aca9e8029/0/context.md",
+      "content_hash": "/c3/7aca9e8029/0/content_hash.txt",
+      "prompt": "/c3/7aca9e8029/0/prompt.txt"
+    },
+    {
+      "metadata": "/c3/7aca9e8029/1/metadata.json",
+      "transcript": "/c3/7aca9e8029/1/full.jsonl",
+      "context": "/c3/7aca9e8029/1/context.md",
+      "content_hash": "/c3/7aca9e8029/1/content_hash.txt",
+      "prompt": "/c3/7aca9e8029/1/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 2116,
+    "cache_creation_tokens": 271319,
+    "cache_read_tokens": 5825692,
+    "output_tokens": 8129,
+    "api_call_count": 47
+  }
+}

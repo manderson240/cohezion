@@ -1,0 +1,34 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "336a322b5da4",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "CLAUDE.local.md",
+    "apps/webapp/src/hooks/useJourneyApi.ts",
+    "data/archives/2026-02-crash-loop/timeline.md",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original",
+    "src/cohezion/real_envs/base.py",
+    "src/cohezion/real_envs/evaluator.py",
+    "src/cohezion/real_envs/shell_env.py",
+    "tests/real_envs/test_real_envs.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/33/6a322b5da4/0/metadata.json",
+      "transcript": "/33/6a322b5da4/0/full.jsonl",
+      "context": "/33/6a322b5da4/0/context.md",
+      "content_hash": "/33/6a322b5da4/0/content_hash.txt",
+      "prompt": "/33/6a322b5da4/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 3213318,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 2140,
+    "api_call_count": 25
+  }
+}

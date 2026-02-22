@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "619c100dbb0c",
+  "session_id": "84f71eef-81bf-4374-bfae-3df7094afad7",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-21T05:49:54.569053731Z",
+  "branch": "main",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "REBOOT_HANDOFF.md",
+    "data/checkpoints/test.json",
+    "docs/PORTFOLIO_ANTHROPIC_UNIVERSES.md",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "936431db-a550-47a1-8c16-80598ff74147",
+  "checkpoint_transcript_start": 1410,
+  "transcript_lines_at_start": 1410,
+  "token_usage": {
+    "input_tokens": 390,
+    "cache_creation_tokens": 327660,
+    "cache_read_tokens": 1965457,
+    "output_tokens": 28,
+    "api_call_count": 13
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-21T05:49:54.470501049Z",
+    "agent_lines": 163,
+    "human_added": 1704693,
+    "human_modified": 123,
+    "human_removed": 0,
+    "total_committed": 1704979,
+    "agent_percentage": 0.00956023505274845
+  }
+}

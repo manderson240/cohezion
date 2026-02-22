@@ -1,0 +1,43 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "281425a6726d",
+  "session_id": "7a499c0c-9439-416d-8d87-c3a4067c3666",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-20T05:48:08.56570529Z",
+  "branch": "spec/routes-consolidation",
+  "checkpoints_count": 4,
+  "files_touched": [
+    ".claude/skills/pytest-async-cascade-diagnosis/SKILL.md",
+    ".github/workflows/lint.yml",
+    ".github/workflows/test.yml",
+    "CLAUDE.md",
+    "README.md",
+    "ollama-mcp",
+    "pyproject.toml",
+    "research/challenges/anthropic_challenge_original",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "tests/compound/test_journey_tracker.py",
+    "tests/sandbox/test_hooks.py",
+    "tests/test_api_phase2.py"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "eb701954-68d5-4104-bbf2-b58945282bcd",
+  "checkpoint_transcript_start": 581,
+  "transcript_lines_at_start": 581,
+  "token_usage": {
+    "input_tokens": 1337,
+    "cache_creation_tokens": 204302,
+    "cache_read_tokens": 11473272,
+    "output_tokens": 1354,
+    "api_call_count": 81
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-20T05:48:08.474754461Z",
+    "agent_lines": 0,
+    "human_added": 19584,
+    "human_modified": 260,
+    "human_removed": 0,
+    "total_committed": 19773,
+    "agent_percentage": 0
+  }
+}
