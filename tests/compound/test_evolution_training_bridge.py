@@ -7,10 +7,14 @@ training signal generation, and the feedback loop back to GEA.
 from __future__ import annotations
 
 import json
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pytest
+
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 from cohezion.compound.evolution_training_bridge import (
     EvolutionTrainingConfig,
@@ -256,7 +260,7 @@ class TestTraceToTrajectoryConverter:
         converter = TraceToTrajectoryConverter()
         trajectories = converter.pool_to_trajectories(pool, sample_candidates)
 
-        for traj, cand in zip(trajectories, sample_candidates):
+        for traj, cand in zip(trajectories, sample_candidates, strict=True):
             assert traj.performance == cand.performance
             assert traj.coherence == cand.coherence
             assert traj.novelty == cand.novelty
@@ -310,7 +314,6 @@ class TestLatentNoveltyScorer:
 
     def test_diverse_embeddings_high_novelty(self) -> None:
         """Orthogonal 256D embeddings produce high novelty."""
-        rng = np.random.default_rng(99)
         agents = []
         for i in range(5):
             emb = np.zeros(256, dtype=np.float32)
@@ -491,7 +494,7 @@ class TestExporter:
 
 
 class TestEvolutionTrainingPipeline:
-    def test_run_round(self, task_ids: list[str]) -> None:
+    def test_run_round(self, task_ids: list[str], tmp_path: Path) -> None:
         agents = [
             {
                 "agent_id": f"agent-{i}",
@@ -515,7 +518,7 @@ class TestEvolutionTrainingPipeline:
 
         engine = GroupEvolutionEngine()
         config = EvolutionTrainingConfig(
-            output_dir=Path("/tmp/test_evo_training"),
+            output_dir=tmp_path / "evo_training",
         )
         pipeline = EvolutionTrainingPipeline(config)
 
@@ -526,7 +529,7 @@ class TestEvolutionTrainingPipeline:
         assert result.training_signals.n_agents > 0
         assert result.elapsed_seconds > 0.0
 
-    def test_multi_generation_accumulates(self, task_ids: list[str]) -> None:
+    def test_multi_generation_accumulates(self, task_ids: list[str], tmp_path: Path) -> None:
         agents = [
             {
                 "agent_id": f"agent-{i}",
@@ -550,7 +553,7 @@ class TestEvolutionTrainingPipeline:
 
         engine = GroupEvolutionEngine()
         config = EvolutionTrainingConfig(
-            output_dir=Path("/tmp/test_evo_multi"),
+            output_dir=tmp_path / "evo_multi",
         )
         pipeline = EvolutionTrainingPipeline(config)
 
@@ -629,7 +632,7 @@ class TestFitnessEvaluator:
         evaluator = FitnessEvaluator()
         eval_result = ModelEvaluationResult(
             model_name="cohezion_v2",
-            task_results={tid: True for tid in task_ids[:6]},
+            task_results=dict.fromkeys(task_ids[:6], True),
             avg_coherence=0.52,
             avg_phi_score=0.85,
             latent_novelty=0.7,
@@ -676,16 +679,16 @@ class TestHelpers:
 
     def test_trajectory_reward_favors_performance(self) -> None:
         """Higher performance -> higher reward, all else equal."""
-        base = dict(
-            generation=0,
-            parent_ids=[],
-            trajectory_12d=np.full(12, 0.5),
-            embedding_256d=np.zeros(256, dtype=np.float32),
-            phi_score=0.5,
-            coherence=0.5,
-            novelty=0.5,
-            gea_score=0.35,
-        )
+        base = {
+            "generation": 0,
+            "parent_ids": [],
+            "trajectory_12d": np.full(12, 0.5),
+            "embedding_256d": np.zeros(256, dtype=np.float32),
+            "phi_score": 0.5,
+            "coherence": 0.5,
+            "novelty": 0.5,
+            "gea_score": 0.35,
+        }
         low = EvolutionTrajectory(agent_id="low", performance=0.2, **base)
         high = EvolutionTrajectory(agent_id="high", performance=0.9, **base)
 
@@ -726,7 +729,7 @@ class TestHelpers:
 
 
 class TestEndToEnd:
-    def test_full_evolution_to_training_loop(self, task_ids: list[str]) -> None:
+    def test_full_evolution_to_training_loop(self, task_ids: list[str], tmp_path: Path) -> None:
         """Complete loop: GEA evolution -> training signals -> feedback.
 
         Validates:
@@ -785,7 +788,7 @@ class TestEndToEnd:
         # Step 2: Run evolution round
         engine = GroupEvolutionEngine()
         config = EvolutionTrainingConfig(
-            output_dir=Path("/tmp/test_e2e_evo"),
+            output_dir=tmp_path / "e2e_evo",
             min_phi_score=0.4,
         )
         pipeline = EvolutionTrainingPipeline(config)
@@ -801,9 +804,7 @@ class TestEndToEnd:
         evaluator = FitnessEvaluator()
         model_eval = ModelEvaluationResult(
             model_name="cohezion_evolved_v1",
-            task_results={
-                tid: True for tid in task_ids[:6]
-            },  # Solves 6/8
+            task_results=dict.fromkeys(task_ids[:6], True),  # Solves 6/8
             avg_coherence=0.52,
             avg_phi_score=0.8,
             latent_novelty=0.6,
@@ -815,14 +816,15 @@ class TestEndToEnd:
         assert new_candidate.metadata["source"] == "finetuned_local_model"
 
         # Step 5: Verify the candidate can enter next generation
-        new_agents = agents + [
+        new_agents = [
+            *agents,
             {
                 "agent_id": new_candidate.agent_id,
                 "execution_results": [
                     model_eval.task_results.get(tid, False) for tid in task_ids
                 ],
                 "coherence": new_candidate.coherence,
-            }
+            },
         ]
 
         result2 = pipeline.run_round(engine, trace_sources, task_ids, new_agents)

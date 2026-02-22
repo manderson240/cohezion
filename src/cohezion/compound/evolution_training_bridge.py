@@ -47,12 +47,12 @@ from cohezion.compound.group_evolution import (
     AgentCandidate,
     ArchiveEntry,
     ExperienceTrace,
-    ExperienceTraceType,
     GroupEvolutionEngine,
     GroupExperiencePool,
     TaskSuccessVector,
 )
 from cohezion.flume.experience_encoder import ExperienceEncoder
+
 
 logger = logging.getLogger(__name__)
 
@@ -378,7 +378,7 @@ class EvolutionTrainingSignalGenerator:
         """
         pairs: list[dict[str, Any]] = []
         scored = sorted(
-            zip(trajectories, rewards), key=lambda x: x[1], reverse=True
+            zip(trajectories, rewards, strict=True), key=lambda x: x[1], reverse=True
         )
         n = len(scored)
 
@@ -413,7 +413,7 @@ class EvolutionTrainingSignalGenerator:
     ) -> list[dict[str, Any]]:
         """Generate reward model training records."""
         records: list[dict[str, Any]] = []
-        for traj, reward in zip(trajectories, rewards):
+        for traj, reward in zip(trajectories, rewards, strict=True):
             records.append(
                 {
                     "task": _build_evolution_prompt(traj),
