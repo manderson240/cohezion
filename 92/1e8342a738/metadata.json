@@ -3,7 +3,7 @@
   "checkpoint_id": "921e8342a738",
   "strategy": "manual-commit",
   "branch": "track-c",
-  "checkpoints_count": 0,
+  "checkpoints_count": 1,
   "files_touched": [
     ".claude/commands/security-review.md",
     "research/harvester.py",
@@ -16,6 +16,13 @@
       "context": "/92/1e8342a738/0/context.md",
       "content_hash": "/92/1e8342a738/0/content_hash.txt",
       "prompt": "/92/1e8342a738/0/prompt.txt"
+    },
+    {
+      "metadata": "/92/1e8342a738/1/metadata.json",
+      "transcript": "/92/1e8342a738/1/full.jsonl",
+      "context": "",
+      "content_hash": "/92/1e8342a738/1/content_hash.txt",
+      "prompt": ""
     }
   ],
   "token_usage": {
