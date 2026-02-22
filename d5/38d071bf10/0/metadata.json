@@ -1,0 +1,22 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "d538d071bf10",
+  "session_id": "75d74f20-b3cd-4c28-aa55-4f31efe0a9dc",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-22T04:47:05.616966203Z",
+  "branch": "spec/abstract-apply-pilot",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "docs/plans/2026-02-21-abstract-apply-pilot.md"
+  ],
+  "agent": "Claude Code",
+  "initial_attribution": {
+    "calculated_at": "2026-02-22T04:47:05.615339006Z",
+    "agent_lines": 0,
+    "human_added": 0,
+    "human_modified": 1,
+    "human_removed": 0,
+    "total_committed": 0,
+    "agent_percentage": 0
+  }
+}
