@@ -147,6 +147,26 @@ class VaultParser:
 
         return files_index, link_graph
 
+    def find_bidirectional_gaps(
+        self,
+        link_graph: Dict[str, Dict[str, Set[str]]],
+        target_stem: str,
+    ) -> List[str]:
+        """
+        Find files that link TO target but target does not link back.
+
+        Args:
+            link_graph: Link graph from walk_vault (stem -> {'outgoing', 'incoming'})
+            target_stem: Lowercase stem of the target file
+
+        Returns:
+            List of stems that have a one-way link to target (bidirectional gaps)
+        """
+        target_stem = target_stem.lower()
+        incoming = link_graph.get(target_stem, {}).get('incoming', set())
+        outgoing = link_graph.get(target_stem, {}).get('outgoing', set())
+        return [stem for stem in incoming if stem not in outgoing]
+
     def classify_broken_links(
         self,
         files_index: Dict[str, Any],
