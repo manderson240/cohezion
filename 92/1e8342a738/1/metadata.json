@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "921e8342a738",
+  "session_id": "41744052-0e7b-4025-9ee8-f4700beab18b",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-22T15:50:39.194999791Z",
+  "branch": "track-c",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".claude/commands/security-review.md",
+    "research/harvester.py",
+    "tools/cohezion-engine/src/cohezion_engine/session.py"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "f432cb00-026f-4d95-bb80-75ad989497f3",
+  "initial_attribution": {
+    "calculated_at": "2026-02-22T15:50:39.193861333Z",
+    "agent_lines": 0,
+    "human_added": 57,
+    "human_modified": 3,
+    "human_removed": 0,
+    "total_committed": 57,
+    "agent_percentage": 0
+  },
+  "transcript_path": ".claude/projects/-home-mike-anderson-vaults-cohezion-vault/41744052-0e7b-4025-9ee8-f4700beab18b.jsonl"
+}
