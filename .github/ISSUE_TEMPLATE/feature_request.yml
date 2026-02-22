@@ -1,0 +1,57 @@
+name: Feature Request
+description: Propose a new feature or enhancement
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting a feature. Please describe the problem and your proposed solution.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve? What's the current limitation?
+      placeholder: "Currently, Cohezion cannot..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: How should this work? Include API sketches or pseudocode if helpful.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which area of the system would this affect?
+      options:
+        - Compound Engine
+        - Swarm Orchestration
+        - FLUME VAE
+        - API / FastAPI
+        - Cache / Semantic Cache
+        - Cost Optimization
+        - Persistence / SurrealDB
+        - Skills / Registry
+        - CI / Tooling
+        - New Component
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What other approaches did you consider?
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other context, mockups, or references.

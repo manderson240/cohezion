@@ -61,8 +61,7 @@ clean:  ## Clean up cache files
 
 # Development workflow targets
 dev-setup:  ## Install pre-commit hooks
-	pip install pre-commit
-	pre-commit install
+	uv run pre-commit install
 	@echo "✓ Pre-commit hooks installed"
 
 ci:  ## Run CI checks locally (fast linters + tests)

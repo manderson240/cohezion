@@ -5,48 +5,55 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  merge_group:
+    types: [checks_requested]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   COHEZION_CI: "true"
+  UV_CACHE_DIR: /tmp/.uv-cache
+  PYTHON_VERSION: "3.13"
 
 jobs:
-  # ── Lint ─────────────────────────────────────────────────────
+  # ── Lint & Format ────────────────────────────────────────────
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.13"
+          enable-cache: true
 
-      - name: Install uv
-        run: pip install uv
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Sync dependencies
         run: uv sync --frozen
 
       - name: Ruff format check
         run: uv run ruff format --check src/ tests/
-        continue-on-error: true
 
       - name: Ruff lint check
         run: uv run ruff check src/ tests/
-        continue-on-error: true
 
-  # ── Validate ──────────────────────────────────────────────────
+  # ── Validate ─────────────────────────────────────────────────
   validate:
     runs-on: ubuntu-latest
-    needs: lint
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.13"
+          enable-cache: true
 
-      - name: Install uv
-        run: pip install uv
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Sync dependencies
         run: uv sync --frozen
@@ -68,25 +75,48 @@ jobs:
           from cohezion.registry.capability_registry import CapabilityRegistry
           from cohezion.core.compound.retrospection import RetrospectionEngine
           from cohezion.validation.agent_schema import validate_all_agent_files
-          print('✓ All critical imports OK')
+          print('All critical imports OK')
           "
 
-  # ── Test ──────────────────────────────────────────────────────
-  test:
+  # ── Type Check ───────────────────────────────────────────────
+  typecheck:
     runs-on: ubuntu-latest
-    needs: validate
-    strategy:
-      matrix:
-        python-version: ["3.11", "3.13"]
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Sync dependencies
+        run: uv sync --frozen
+
+      - name: Type check with mypy
+        run: uv run mypy src/cohezion/ --ignore-missing-imports
+        continue-on-error: true
+
+  # ── Test ─────────────────────────────────────────────────────
+  test:
+    runs-on: ubuntu-latest
+    needs: [lint, validate]
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: Install uv
-        run: pip install uv
 
       - name: Sync dependencies
         run: uv sync --frozen
@@ -108,7 +138,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload coverage
-        if: matrix.python-version == '3.13'
+        if: always()
         uses: codecov/codecov-action@v4
         with:
           files: ./coverage.xml
@@ -125,19 +155,20 @@ jobs:
             integration-report.xml
           check_name: Test Results (Python ${{ matrix.python-version }})
 
-  # ── Compound ──────────────────────────────────────────────────
+  # ── Compound Audit ───────────────────────────────────────────
   compound:
     runs-on: ubuntu-latest
     needs: validate
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.13"
+          enable-cache: true
 
-      - name: Install uv
-        run: pip install uv
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Sync dependencies
         run: uv sync --frozen
@@ -154,31 +185,23 @@ jobs:
           path: compound-report.json
           if-no-files-found: ignore
 
-  # ── Typecheck ─────────────────────────────────────────────────
-  typecheck:
+  # ── Dependency Review (PRs only) ────────────────────────────
+  dependency-review:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    needs: validate
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - name: Dependency review
+        uses: actions/dependency-review-action@v4
         with:
-          python-version: "3.13"
+          fail-on-severity: high
+          deny-licenses: AGPL-3.0, GPL-3.0
 
-      - name: Install uv
-        run: pip install uv
-
-      - name: Sync dependencies
-        run: uv sync --frozen
-
-      - name: Type check with mypy
-        run: uv run mypy src/cohezion/ --ignore-missing-imports
-        continue-on-error: true
-
-  # ── Summary ───────────────────────────────────────────────────
+  # ── CI Status Gate ───────────────────────────────────────────
   ci-status:
     runs-on: ubuntu-latest
-    needs: [lint, validate, test, compound, typecheck]
+    needs: [lint, validate, test, typecheck, compound]
     if: always()
     steps:
       - name: Check CI status
@@ -186,7 +209,7 @@ jobs:
           if [ "${{ needs.lint.result }}" = "failure" ] || \
              [ "${{ needs.validate.result }}" = "failure" ] || \
              [ "${{ needs.test.result }}" = "failure" ]; then
-            echo "❌ CI Pipeline Failed"
+            echo "CI Pipeline Failed"
             exit 1
           fi
-          echo "✅ CI Pipeline Passed"
+          echo "CI Pipeline Passed"

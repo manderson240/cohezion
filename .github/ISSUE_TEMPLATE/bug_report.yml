@@ -1,0 +1,77 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a bug. Please fill out the sections below.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear description of the bug.
+      placeholder: What happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Minimal steps to reproduce the behavior.
+      placeholder: |
+        1. Run `uv run pytest tests/compound/...`
+        2. Observe error in...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened. Include error messages or logs.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which part of Cohezion is affected?
+      options:
+        - Compound Engine
+        - Swarm Orchestration
+        - FLUME VAE
+        - API / FastAPI
+        - Cache / Semantic Cache
+        - Cost Optimization
+        - Persistence / SurrealDB
+        - Skills / Registry
+        - CI / Tooling
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python Version
+      description: Output of `python --version`
+      placeholder: "3.13.x"
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other context, screenshots, or log output.

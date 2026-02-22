@@ -7,7 +7,7 @@ Thank you for your interest in contributing to Cohezion! This project is an agen
 ### Prerequisites
 
 - Python 3.13 or higher
-- [uv](https://docs.astral.sh/uv/) for package management
+- [uv](https://docs.astral.sh/uv/) for package management (**never** use bare `pip`)
 
 ### Initial Setup
 
@@ -17,11 +17,9 @@ Thank you for your interest in contributing to Cohezion! This project is an agen
    uv sync
    ```
 
-3. Set up pre-commit hooks (optional but recommended):
+3. Set up pre-commit hooks:
    ```bash
-   make dev-setup
-   # or manually:
-   pre-commit install
+   uv run pre-commit install
    ```
 
 ## Code Quality Tools
@@ -31,6 +29,7 @@ This project uses modern Python tooling for code quality:
 - **Ruff** - Fast linter and formatter (replaces Black, isort, flake8)
 - **mypy** - Static type checking
 - **pytest** - Testing framework
+- **pre-commit** - Git hook enforcement
 
 ### Using Make (Recommended)
 
@@ -49,40 +48,53 @@ make clean       # Clean up cache files
 
 ```bash
 # Format code
-ruff format .
+uv run ruff format .
 
 # Lint and auto-fix
-ruff check --fix .
+uv run ruff check --fix .
 
 # Check linting without fixing
-ruff check .
+uv run ruff check .
 
 # Type checking
-mypy --ignore-missing-imports src/cohezion/
+uv run mypy --ignore-missing-imports src/cohezion/
 
 # Run tests
-pytest tests/
+uv run pytest tests/ -q
 ```
 
 ## Code Style
 
-- Line length: 88 characters
+- Line length: 100 characters
 - Quote style: Double quotes
 - Python version: 3.13+
-- Type hints encouraged but not required
+- Type hints: mandatory for new code
 
 The project configuration in `pyproject.toml` enforces:
 - PEP 8 compliance
-- Import sorting
-- Security best practices (Bandit rules)
-- Common bug patterns (Bugbear rules)
+- Import sorting (isort via ruff)
+- Security best practices (Bandit rules via ruff `S` prefix)
+- Common bug patterns (Bugbear rules via ruff `B` prefix)
 - Code simplifications
 - Modern Python syntax (pyupgrade)
 
+## Branch Strategy
+
+This project uses **GitHub Flow**:
+
+- `main` is the only long-lived branch
+- All work happens on feature branches merged via pull requests
+- Branch naming: `feature/*`, `fix/*`, `refactor/*`, `docs/*`, `session-*`
+- Conventional commit messages: `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`, `ci:`
+
 ## Pull Requests
 
-When submitting a pull request, please ensure your changes are consistent with the project's architecture and include tests for new functionality.
+- Fill out the PR template completely
+- Ensure CI passes (lint, test, validate)
+- Keep PRs focused on a single concern
+- Include tests for new functionality
+- No files > 1MB without git-lfs
 
-## Issues
+## Security
 
-When submitting an issue, please provide as much detail as possible including reproduction steps and environment information.
+Please report security vulnerabilities via [GitHub Security Advisories](https://github.com/manderson240/cohezion/security/advisories/new), **not** public issues. See [SECURITY.md](../SECURITY.md) for details.

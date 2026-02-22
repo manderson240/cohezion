@@ -1,0 +1,29 @@
+# Cohezion CODEOWNERS
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Order matters — last match wins. More specific paths override broader ones.
+
+# Default owner for everything
+* @manderson240
+
+# Core compound engine — changes here affect all agent orchestration
+src/cohezion/compound/ @manderson240
+src/cohezion/swarm/ @manderson240
+
+# FLUME VAE — changes affect universe simulation stability
+src/cohezion/flume/ @manderson240
+
+# API surface — changes affect all downstream consumers
+src/cohezion/api/ @manderson240
+
+# CI/CD and repository configuration
+.github/ @manderson240
+.claude/ @manderson240
+
+# Agent and skill definitions
+.claude/agents/ @manderson240
+src/cohezion/skills/ @manderson240
+
+# Governance documents
+.agent/ @manderson240
+CLAUDE.md @manderson240
