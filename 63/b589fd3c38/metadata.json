@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "63b589fd3c38",
+  "strategy": "manual-commit",
+  "branch": "track-c",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "CLAUDE.md",
+    "projects/repo-and-process-debt.md",
+    "research/harvester.py",
+    "research/mcp_server.py",
+    "research/requirements.txt",
+    "research/run_research.sh",
+    "tools/cohezion-engine/src/cohezion_engine/session.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/63/b589fd3c38/0/metadata.json",
+      "transcript": "/63/b589fd3c38/0/full.jsonl",
+      "context": "",
+      "content_hash": "/63/b589fd3c38/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
