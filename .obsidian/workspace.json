@@ -6,7 +6,7 @@
       {
         "id": "8120a7668cff7cd4",
         "type": "tabs",
-        "dimension": 16.736401673640167,
+        "dimension": 45.77405857740586,
         "children": [
           {
             "id": "d6b8f6e62f789898",
@@ -27,12 +27,12 @@
       {
         "id": "f6fd1c3429853220",
         "type": "split",
-        "dimension": 83.26359832635984,
+        "dimension": 54.22594142259414,
         "children": [
           {
             "id": "08ba9beafd99c156",
             "type": "tabs",
-            "dimension": 50,
+            "dimension": 65.44642857142857,
             "children": [
               {
                 "id": "03490927c39b5984",
@@ -49,7 +49,7 @@
           {
             "id": "2570e9cdfa16e34e",
             "type": "tabs",
-            "dimension": 50,
+            "dimension": 34.55357142857143,
             "children": [
               {
                 "id": "927348831f1501c5",
@@ -226,7 +226,8 @@
             "state": {
               "type": "infranodus-graph-view",
               "state": {},
-              "icon": "infranodus-icon"
+              "icon": "infranodus-icon",
+              "title": "concepts/cs249r/workflow.md"
             }
           }
         ],
@@ -255,44 +256,44 @@
       "infranodus-graph-view:InfraNodus Graph View": false
     }
   },
-  "active": "927348831f1501c5",
+  "active": "03490927c39b5984",
   "lastOpenFiles": [
-    "docs/plans/2026-02-21-abstract-apply-pilot.md.tmp.10738.1771656615661",
-    "docs/plans/2026-02-21-abstract-apply-pilot.md.tmp.10738.1771654930456",
-    "docs/plans/2026-02-21-abstract-apply-pilot.md.tmp.10738.1771654925284",
-    "docs/plans/2026-02-21-abstract-apply-pilot.md.tmp.10738.1771654917307",
-    "docs/plans/2026-02-21-abstract-apply-pilot.md.tmp.10738.1771654900899",
-    "docs/plans/2026-02-21-abstract-apply-pilot.md.tmp.10738.1771654886743",
-    "docs/plans/2026-02-21-abstract-apply-pilot.md.tmp.10738.1771654877493",
-    "docs/plans/2026-02-21-abstract-apply-pilot.md.tmp.13587.1771654241149",
-    "docs/plans/2026-02-21-maximize-node-connections.md.tmp.13575.1771654197346",
-    "tools/vault_linker/__pycache__/report.cpython-312.pyc",
-    "tools/vault_linker/__pycache__/injector.cpython-312.pyc",
-    "docs/plans/2026-02-21-maximize-node-connections.md",
-    "docs/plans/2026-02-21-abstract-apply-pilot.md",
-    "missions/thought_1771652520153_9dabb14700b3.md",
-    "missions/thought_1771652519973_4ab580558213.md",
-    "missions/thought_1771652464160_652e9d624c6a.md",
-    "experiments/session-57-local-finetuning.md",
-    "decisions/2026-02-20-session-59-autonomous-compound-engineering-foundation.md",
-    "specs/2026-02-20-autonomous-compound-engineering-spec.md",
-    "skills/AUTONOMOUS_COMPOUND_ENGINEERING_PRIME.md",
-    "decisions/2026-02-20-session-59-compound-engineering-complete.md",
-    "specs/2026-02-20-session-59-enhancement-roadmap.md",
-    "skills/COSMIC_FIRE_PRIME.md",
-    "decisions/2026-02-20-session-58-cosmic-fire-module-retrospective.md",
-    "skills/ENVIRONMENT_DESIGN_PRIME.md",
-    "skills/BENCHMARK_ORCHESTRATION_PRIME.md",
-    "skills/RESPONSIBLE_AI_PRIME.md",
-    "skills/MODEL_OPTIMIZATION_PRIME.md",
-    "skills/ML_SYSTEMS_FOUNDATIONS_PRIME.md",
-    "skills/MLOPS_DEPLOYMENT_PRIME.md",
-    "skills/EFFICIENT_AI_PRIME.md",
-    "skills/EDGE_INTELLIGENCE_PRIME.md",
-    "skills/DNN_ARCHITECTURES_PRIME.md",
-    "skills/DATA_ENGINEERING_PRIME.md",
+    "docs/plans/2026-02-20-refine-implementation.md.tmp.10638.1771557913340",
+    "docs/plans/2026-02-20-refine-implementation.md.tmp.10638.1771557785975",
+    "docs/plans/2026-02-20-refine-implementation.md.tmp.10638.1771557778113",
+    "docs/plans/2026-02-20-refine-implementation.md.tmp.10638.1771557757257",
+    "docs/plans/2026-02-20-refine-implementation.md.tmp.10638.1771557538894",
     "papers/2026-02-09-unique-investment-opportunities-research.md",
     "docs/plans/2026-02-20-refine-implementation.md",
+    "tools/vault_linker/tagger.py",
+    "tools/vault_linker/stubgen.py",
+    "tools/vault_linker/resolver.py",
+    "tools/vault_linker/report.py",
+    "tools/vault_linker/parser.py",
+    "tools/vault_linker/injector.py",
+    "tools/vault_health_report.md",
+    "concepts/workflow-orchestration.md",
+    "concepts/wiki-links.md",
+    "concepts/troubleshooting-mcp-infrastructure.md",
+    "concepts/tool-use.md",
+    "concepts/token-efficient-implementation-workflow.md",
+    "concepts/synthesis-methods.md",
+    "concepts/surrealdb.md",
+    "concepts/surface-chemistry.md",
+    "concepts/stellar-evolution.md",
+    "concepts/session-retrospective.md",
+    "concepts/runbook-ollama-mcp-operations.md",
+    "concepts/runbook-health-checks.md",
+    "concepts/runbook-ci-cd-pipeline.md",
+    "concepts/repository-health-monitoring-size-tracking-large-object-detection.md",
+    "concepts/quantum-mechanics.md",
+    "concepts/quantum-computing.md",
+    "concepts/planetary-systems.md",
+    "concepts/phase-1-implementation.md",
+    "concepts/particle-physics.md",
+    "concepts/paper-name.md",
+    "concepts/multi-platform-repository-deployment-with-external-integration.md",
+    "concepts/material-science.md",
     "obsidian-plugin/3d-graph-plugin/node_modules/@jest/reporters/assets/jest_logo.png",
     "obsidian-plugin/3d-graph-plugin/node_modules/istanbul-reports/lib/html/assets/sort-arrow-sprite.png",
     "obsidian-plugin/3d-graph-plugin/node_modules/istanbul-reports/lib/html/assets/favicon.png",

@@ -1,0 +1,98 @@
+# Research pipeline source configuration
+# Defines search queries, source adapters, and scoring parameters
+
+focus_areas:
+  compound_engineering:
+    queries:
+      - "compound AI system architecture 2026"
+      - "knowledge graph agent memory"
+      - "decision record automation ADR"
+      - "session memory persistence LLM"
+      - "pattern extraction from code"
+      - "multi-session AI workflow"
+    weight: 1.0
+  token_efficiency:
+    queries:
+      - "LLM token optimization techniques"
+      - "context window compression"
+      - "prompt caching strategies"
+      - "speculative decoding inference"
+      - "KV cache optimization"
+      - "model distillation efficiency"
+    weight: 1.0
+  context_awareness:
+    queries:
+      - "context window management LLM"
+      - "long context retrieval augmented"
+      - "memory augmented language model"
+      - "cross-session context injection"
+      - "RAG pipeline optimization"
+      - "semantic memory agent"
+    weight: 1.0
+  app_creation:
+    queries:
+      - "agentic AI framework 2026"
+      - "MCP server model context protocol"
+      - "AI code generation tool"
+      - "tool use function calling LLM"
+      - "multi-agent orchestration"
+      - "AI app builder framework"
+    weight: 1.0
+
+sources:
+  github_recent:
+    languages: [python, typescript, rust]
+    since: daily
+  github_releases:
+    repos:
+      - anthropics/anthropic-sdk-python
+      - anthropics/claude-code
+      - modelcontextprotocol/servers
+      - langchain-ai/langchain
+      - run-llama/llama_index
+      - openai/openai-python
+      - huggingface/transformers
+      - vllm-project/vllm
+      - ggml-org/llama.cpp
+      - ollama/ollama
+      - lm-sys/FastChat
+      - guidance-ai/guidance
+      - microsoft/autogen
+      - CrewAI/crewAI
+      - BerriAI/litellm
+      - pydantic/pydantic-ai
+      - prefecthq/marvin
+      - instructor-ai/instructor
+      - outlines-dev/outlines
+      - dspy-ai/dspy
+  hackernews:
+    tags: [story]
+    queries: ["AI agent", "LLM tool", "context window", "MCP server"]
+    min_points: 10
+  reddit:
+    subreddits: [MachineLearning, LocalLLaMA, artificial, ClaudeAI]
+    sort: hot
+    limit: 25
+  arxiv:
+    categories: [cs.AI, cs.CL, cs.SE]
+    max_results: 30
+  blog_feeds:
+    urls:
+      - https://simonwillison.net
+      - https://lilianweng.github.io
+      - https://huyenchip.com/blog
+      - https://thegradient.pub
+      - https://www.latent.space
+
+# Scoring configuration
+scoring:
+  model: "mistral:latest"
+  ollama_url: "http://localhost:11434"
+  keyword_threshold: 0
+  top_n: 60
+
+# Publishing configuration
+publishing:
+  max_inbox_notes: 40
+  max_scored: 80
+  vault_path: "."
