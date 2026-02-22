@@ -9,7 +9,7 @@ tools:
 disallowedTools:
   - Bash
   - NotebookEdit
-model: haiku
+model: sonnet
 ---
 
 # Skill Researcher Agent

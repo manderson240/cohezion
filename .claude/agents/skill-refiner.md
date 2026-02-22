@@ -12,7 +12,7 @@ disallowedTools:
   - NotebookEdit
   - WebFetch
   - WebSearch
-model: haiku
+model: sonnet
 ---
 
 # Skill Refiner Agent
