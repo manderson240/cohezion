@@ -6,12 +6,10 @@ Cohezion background task schedules.
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from typing import Any
 
 from cohezion.triggers.client import TriggerClient, ScheduleHandle
-from cohezion.triggers.config import TriggerConfig
 from cohezion.triggers.tasks import (
     TaskDefinition,
     get_scheduled_tasks,
@@ -109,9 +107,9 @@ class ScheduleManager:
                     "task_id": s.task_id,
                     "cron": s.cron,
                     "active": s.active,
-                    "description": registry.get(s.task_id, TaskDefinition(
-                        task_id=s.task_id, category="unknown", description="Unknown"
-                    )).description,
+                    "description": registry[s.task_id].description
+                    if s.task_id in registry
+                    else "Unknown task",
                 }
                 for s in schedules
             ],
