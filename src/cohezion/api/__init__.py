@@ -20,6 +20,7 @@ from cohezion.mcp.knowledge_server import get_server as get_knowledge_server
 from cohezion.mcp.registry import get_registry
 from cohezion.mcp.swarm_server import get_server as get_swarm_server
 from cohezion.security.rate_limiter import get_rate_limiter
+from cohezion.api.trigger_routes import router as trigger_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -71,6 +72,9 @@ async def rate_limit_middleware(request: Request, call_next):
 static_dir = Path(__file__).parent / "static"
 if static_dir.exists():
     app.mount("/static", StaticFiles(directory=static_dir, html=True), name="static")
+
+# Trigger.dev background task management
+app.include_router(trigger_router)
 
 
 # Root redirect to UI
