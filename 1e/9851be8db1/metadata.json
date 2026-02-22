@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "1e9851be8db1",
+  "strategy": "manual-commit",
+  "branch": "spec/abstract-apply-pilot",
+  "checkpoints_count": 0,
+  "files_touched": [
+    ".claude/commands/spec-verify.md",
+    "tools/cohezion-engine/tests/test_integration.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/1e/9851be8db1/0/metadata.json",
+      "transcript": "/1e/9851be8db1/0/full.jsonl",
+      "context": "/1e/9851be8db1/0/context.md",
+      "content_hash": "/1e/9851be8db1/0/content_hash.txt",
+      "prompt": "/1e/9851be8db1/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 2797,
+    "cache_creation_tokens": 251094,
+    "cache_read_tokens": 5600415,
+    "output_tokens": 10688,
+    "api_call_count": 57
+  }
+}

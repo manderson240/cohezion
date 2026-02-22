@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "1e9851be8db1",
+  "session_id": "75d74f20-b3cd-4c28-aa55-4f31efe0a9dc",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-22T04:46:13.765920379Z",
+  "branch": "spec/abstract-apply-pilot",
+  "checkpoints_count": 0,
+  "files_touched": [
+    ".claude/commands/spec-verify.md",
+    "tools/cohezion-engine/tests/test_integration.py"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 2797,
+    "cache_creation_tokens": 251094,
+    "cache_read_tokens": 5600415,
+    "output_tokens": 10688,
+    "api_call_count": 57
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-22T04:46:13.494336868Z",
+    "agent_lines": 0,
+    "human_added": 49,
+    "human_modified": 19,
+    "human_removed": 0,
+    "total_committed": 49,
+    "agent_percentage": 0
+  }
+}
