@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "1202419ed3e6",
+  "strategy": "manual-commit",
+  "branch": "spec/maximize-node-connections",
+  "checkpoints_count": 0,
+  "files_touched": [
+    ".claude/hooks/vault-link-suggest.sh"
+  ],
+  "sessions": [
+    {
+      "metadata": "/12/02419ed3e6/0/metadata.json",
+      "transcript": "/12/02419ed3e6/0/full.jsonl",
+      "context": "/12/02419ed3e6/0/context.md",
+      "content_hash": "/12/02419ed3e6/0/content_hash.txt",
+      "prompt": "/12/02419ed3e6/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 2186,
+    "cache_creation_tokens": 495567,
+    "cache_read_tokens": 17137522,
+    "output_tokens": 14741,
+    "api_call_count": 126
+  }
+}
