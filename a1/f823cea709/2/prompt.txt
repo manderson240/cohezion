@@ -1,61 +1,3 @@
-# Debug Skill
-
-Help the user debug an issue they're encountering in this current Claude Code session.
-
-## Session Debug Log
-
-The debug log for the current session is at: `/home/mike-anderson/.claude/debug/a96c8197-b434-4886-8c97-747f06d4e705.txt`
-
-Total lines: 275
-
-### Last 20 lines
-
-```
-2026-02-20T03:00:25.957Z [DEBUG] High write ratio: blit=468, write=558 (54.4% writes), screen=18x78
-2026-02-20T03:00:25.982Z [DEBUG] High write ratio: blit=468, write=558 (54.4% writes), screen=18x78
-2026-02-20T03:00:26.001Z [DEBUG] High write ratio: blit=468, write=558 (54.4% writes), screen=18x78
-2026-02-20T03:00:26.049Z [DEBUG] High write ratio: blit=468, write=558 (54.4% writes), screen=18x78
-2026-02-20T03:00:26.069Z [DEBUG] High write ratio: blit=468, write=558 (54.4% writes), screen=18x78
-2026-02-20T03:00:26.115Z [DEBUG] High write ratio: blit=468, write=558 (54.4% writes), screen=18x78
-2026-02-20T03:00:26.136Z [DEBUG] High write ratio: blit=468, write=558 (54.4% writes), screen=18x78
-2026-02-20T03:00:26.157Z [DEBUG] High write ratio: blit=468, write=558 (54.4% writes), screen=18x78
-2026-02-20T03:00:26.203Z [DEBUG] High write ratio: blit=468, write=558 (54.4% writes), screen=18x78
-2026-02-20T03:00:26.224Z [DEBUG] High write ratio: blit=468, write=558 (54.4% writes), screen=18x78
-2026-02-20T03:00:26.270Z [DEBUG] High write ratio: blit=468, write=558 (54.4% writes), screen=18x78
-2026-02-20T03:00:26.291Z [DEBUG] High write ratio: blit=468, write=558 (54.4% writes), screen=18x78
-2026-02-20T03:00:26.315Z [DEBUG] High write ratio: blit=468, write=558 (54.4% writes), screen=18x78
-2026-02-20T03:00:26.352Z [DEBUG] High write ratio: blit=468, write=558 (54.4% writes), screen=18x78
-2026-02-20T03:00:26.770Z [DEBUG] High write ratio: blit=468, write=558 (54.4% writes), screen=18x78
-2026-02-20T03:00:27.149Z [DEBUG] High write ratio: blit=468, write=558 (54.4% writes), screen=18x78
-2026-02-20T03:00:27.423Z [DEBUG] High write ratio: blit=468, write=559 (54.4% writes), screen=18x78
-2026-02-20T03:00:27.813Z [DEBUG] High write ratio: blit=468, write=560 (54.5% writes), screen=18x78
-2026-02-20T03:00:28.927Z [DEBUG] High write ratio: blit=468, write=560 (54.5% writes), screen=18x78
-
-```
-
-For additional context, grep for [ERROR] and [WARN] lines across the full file.
-
-## Issue Description
-
-settings errors described by /doctor
-
-## Settings
-
-Remember that settings are in:
-* user - /home/mike-anderson/.claude/settings.json
-* project - /home/mike-anderson/vaults/cohezion-vault/.claude/settings.json
-* local - /home/mike-anderson/vaults/cohezion-vault/.claude/settings.local.json
-
-## Instructions
-
-1. Review the user's issue description
-2. The last 20 lines show the debug file format. Look for [ERROR] and [WARN] entries, stack traces, and failure patterns across the file
-3. Consider launching the claude-code-guide subagent to understand the relevate Claude Code features
-4. Explain what you found in plain language
-5. Suggest concrete fixes or next steps
-
----
-
 # /spec - Unified Spec-Driven Development
 
 **For new features, major changes, and complex work.** Creates a spec, gets your approval, implements with TDD, and verifies completion - all in one continuous flow.
@@ -115,7 +57,7 @@ spec-verify finds issues → Status: PENDING → spec-implement fixes → COMPLE
 /spec --continue <path/to/plan.md> # Resume after session clear
 ```
 
-Parse the arguments: Refine implementation with lasting solutions.
+Parse the arguments: Optimize what we've just accomplished in this session
 
 ### Determine Current State
 
@@ -289,7 +231,7 @@ Pilot will restart with `/spec --continue <plan-path>`
 | 12  | **Plan file is source of truth** - Survives session clears                                                                                                                                                                                                       |
 | 13  | **Phase Transition Context Guard** - Check context before EVERY phase transition. If >= 80%, hand off instead of starting next phase (Section 0.3)                                                                                                               |
 
-ARGUMENTS: Refine implementation with lasting solutions.
+ARGUMENTS: Optimize what we've just accomplished in this session
 
 ---
 
@@ -982,4 +924,4 @@ Write to `~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md`:
 
 Pilot will restart with `/spec --continue <plan-path>`
 
-ARGUMENTS: Refine implementation with lasting solutions. --worktree=yes
+ARGUMENTS: Optimize what we've just accomplished in this session --worktree=no

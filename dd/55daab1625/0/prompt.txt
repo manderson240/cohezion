@@ -1,0 +1,9 @@
+we only have one day of Pilot left.  Make sure to abstract and apply key components to COHEZION.  Find a way to respect their license. https://github.com/maxritter/claude-pilot
+
+---
+
+commit these changes
+
+---
+
+push to origin

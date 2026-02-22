@@ -1,0 +1,41 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "2953fef8bb7d",
+  "session_id": "66005183-bea8-4850-bf63-6b1b904dcb75",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-20T06:49:30.233177154Z",
+  "branch": "spec/routes-consolidation",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "CLAUDE.md",
+    "README.md",
+    "docs/retrospectives/2026-02-20-retrospective.md",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original",
+    "src/cohezion/cosmic/reality.py",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "src/cohezion/knowledge_graph/MISSION_JOURNAL.md",
+    "src/cohezion/swarm/agents/cosmic_agent.py",
+    "tests/cosmic/test_cosmic_core.py"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "e978a4a9-dcad-41bd-b269-d240c6029a42",
+  "checkpoint_transcript_start": 1009,
+  "transcript_lines_at_start": 1009,
+  "token_usage": {
+    "input_tokens": 6198,
+    "cache_creation_tokens": 27559,
+    "cache_read_tokens": 2287630,
+    "output_tokens": 3945,
+    "api_call_count": 14
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-20T06:49:30.115220976Z",
+    "agent_lines": 0,
+    "human_added": 4333,
+    "human_modified": 1167,
+    "human_removed": 0,
+    "total_committed": 5044,
+    "agent_percentage": 0
+  }
+}

@@ -5,8 +5,6 @@
   "branch": "track-c",
   "checkpoints_count": 0,
   "files_touched": [
-    ".claude/commands/research.md",
-    ".claude/skills/daily-research/SKILL.md",
     ".github/workflows/phase-4a-tests.yml",
     "ADVERSARIAL_REVIEW_PHASE_5_7.md",
     "AGENT_FEEDBACK_FROM_ADVERSARIAL_REVIEW.md",
@@ -44,12 +42,10 @@
     "docs/TRACK_C_IMPACT_API.md",
     "docs/plans/2026-02-19-daily-research-skills.md",
     "docs/plans/2026-02-20-refine-implementation.md",
-    "docs/plans/2026-02-21-abstract-apply-pilot.md",
     "inbox/HANDOFF-lessons-phase-2-decisions-linking.md",
     "inbox/PHASE-2-KICKOFF-TEAM-DIRECTION.md",
     "inbox/SESSION-58-TRACK-A-COMPLETE-TRACK-B-READY.md",
     "inbox/TRACK-B-READY-TO-START-2026-02-13.md",
-    "mcp_servers.json",
     "obsidian-plugin/3d-graph-plugin/.gitignore",
     "obsidian-plugin/3d-graph-plugin/DECISION_ANALYSIS_GUIDE.md",
     "obsidian-plugin/3d-graph-plugin/PHASE_4_CHANGELOG.md",
@@ -86,18 +82,6 @@
     "obsidian-plugin/3d-graph-plugin/src/visualizations/ReasoningFlowchart.ts",
     "obsidian-plugin/3d-graph-plugin/tsconfig.json",
     "pytest.ini",
-    "research/cli.py",
-    "research/cron_example.txt",
-    "research/harvester.py",
-    "research/mcp_server.py",
-    "research/publisher.py",
-    "research/run_research.sh",
-    "research/scorer.py",
-    "research/sources.yaml",
-    "research/tests/test_cli.py",
-    "research/tests/test_harvester.py",
-    "research/tests/test_publisher.py",
-    "research/tests/test_scorer.py",
     "scripts/surrealdb-paper-decision-links.sql",
     "src/schema_definitions.py",
     "tests/conftest.py",
@@ -138,20 +122,13 @@
       "context": "/10/bb712dcdbf/4/context.md",
       "content_hash": "/10/bb712dcdbf/4/content_hash.txt",
       "prompt": "/10/bb712dcdbf/4/prompt.txt"
-    },
-    {
-      "metadata": "/10/bb712dcdbf/5/metadata.json",
-      "transcript": "/10/bb712dcdbf/5/full.jsonl",
-      "context": "/10/bb712dcdbf/5/context.md",
-      "content_hash": "/10/bb712dcdbf/5/content_hash.txt",
-      "prompt": "/10/bb712dcdbf/5/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 12193,
-    "cache_creation_tokens": 16148489,
-    "cache_read_tokens": 101500559,
-    "output_tokens": 165386,
-    "api_call_count": 942
+    "input_tokens": 6414,
+    "cache_creation_tokens": 4189581,
+    "cache_read_tokens": 74768477,
+    "output_tokens": 143256,
+    "api_call_count": 652
   }
 }

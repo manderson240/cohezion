@@ -1,0 +1,48 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "dd55daab1625",
+  "session_id": "762ed4a0-9027-4a08-9723-43332e9012b9",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-20T06:29:55.250842597Z",
+  "branch": "spec/routes-consolidation",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "data/real_envs/evaluations/test_content_1771568924.json",
+    "data/real_envs/evaluations/test_file_1771568924.json",
+    "data/real_envs/evaluations/test_missing_1771568924.json",
+    "data/real_envs/journeys/journey_1771568924304.json",
+    "data/real_envs/journeys/journey_1771568924309.json",
+    "data/real_envs/journeys/journey_1771568972718.json",
+    "data/real_envs/metrics/shell_task_0_1771568924.json",
+    "data/real_envs/metrics/shell_task_0_1771568972.json",
+    "data/real_envs/metrics/shell_task_1_1771568924.json",
+    "data/real_envs/metrics/shell_task_1_1771568972.json",
+    "data/real_envs/metrics/shell_task_2_1771568924.json",
+    "data/real_envs/metrics/shell_task_2_1771568972.json",
+    "data/real_envs/metrics/shell_task_3_1771568924.json",
+    "data/real_envs/metrics/shell_task_3_1771568972.json",
+    "data/real_envs/metrics/shell_task_4_1771568924.json",
+    "data/real_envs/metrics/shell_task_4_1771568972.json",
+    "data/real_envs/metrics/shell_test_task_1771568924.json",
+    "data/real_envs/metrics/shell_test_task_1771568972.json",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 2642026,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 1964,
+    "api_call_count": 25
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-20T06:29:55.223197775Z",
+    "agent_lines": 0,
+    "human_added": 7052,
+    "human_modified": 522,
+    "human_removed": 0,
+    "total_committed": 7574,
+    "agent_percentage": 0
+  }
+}

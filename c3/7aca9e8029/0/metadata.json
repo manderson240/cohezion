@@ -1,0 +1,49 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "c37aca9e8029",
+  "session_id": "66005183-bea8-4850-bf63-6b1b904dcb75",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-20T06:21:18.85599019Z",
+  "branch": "spec/routes-consolidation",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "README.md",
+    "docs/pilot-inspiration.md",
+    "docs/pilot-integration-summary.md",
+    "docs/third-party-inspiration.md",
+    "ollama-mcp",
+    "research/challenges/anthropic_challenge_original",
+    "src/cohezion/hooks/__init__.py",
+    "src/cohezion/hooks/events.py",
+    "src/cohezion/hooks/executor.py",
+    "src/cohezion/hooks/quality.py",
+    "src/cohezion/hooks/registry.py",
+    "src/cohezion/persistence/__init__.py",
+    "src/cohezion/persistence/session_manager.py",
+    "src/cohezion/real_envs/tasks/scenarios.py",
+    "src/cohezion/swarm/intelligence_router.py",
+    "tests/hooks/__init__.py",
+    "tests/hooks/test_executor.py",
+    "tests/hooks/test_registry.py",
+    "tests/persistence/__init__.py",
+    "tests/persistence/test_session_manager.py",
+    "tests/swarm/test_intelligence_router.py"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 1966,
+    "cache_creation_tokens": 105877,
+    "cache_read_tokens": 2693347,
+    "output_tokens": 4854,
+    "api_call_count": 29
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-20T06:21:18.798630442Z",
+    "agent_lines": 1816,
+    "human_added": 10326,
+    "human_modified": 460,
+    "human_removed": 0,
+    "total_committed": 12602,
+    "agent_percentage": 14.410411045865738
+  }
+}

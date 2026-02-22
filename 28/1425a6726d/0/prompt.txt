@@ -1,0 +1,474 @@
+open
+
+---
+
+obsidian vault app image so I can use it myself
+
+---
+
+The actual program with the UI
+
+---
+
+Nothing is there.  That isn't what I wanted.  Look at these docs https://help.obsidian.md/
+
+---
+
+It is definitely installed.  We used the app image.
+
+---
+
+Examine the vault itself with the Obisdian MCP server we created to find the solution we arrived at previously.
+
+---
+
+I don't see it anywhere.  I would like an icon I can click on the desktop.
+
+---
+
+I see the icon, I enabled launching, nothing happens
+
+---
+
+Whatever you just did worked.  But I accidentally closed it.  Can you link it with the icon so I can just double-click that when I want to open it?
+
+---
+
+icon still not working.  Is there a way you can test it?
+
+---
+
+Now it works.
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+Run a development retrospective that flows insights back into core files.
+
+This is the compound engineering feedback loop. It ensures that session learnings don't just accumulate in knowledge_graph/ — they propagate back into the files that govern future behavior.
+
+## Steps
+
+### 1. Audit Current State
+- Read `REDACTED.md` and `REDACTED.md`
+- Read `CLAUDE.md`, `README.md`, and `memory/MEMORY.md`
+- Identify: new learnings since last retrospect, stale/duplicate entries, insights that should propagate upward
+
+### 2. Prune Knowledge Graph
+- Remove duplicate entries from KEY_LEARNINGS.md (e.g., triplicate retrospective blocks)
+- Remove spam entries from MISSION_JOURNAL.md (e.g., repeated "Automated Hypothesis Testing Report" lines)
+- Compress old session developments into single-line summaries
+- Target: KEY_LEARNINGS.md under 300 lines, MISSION_JOURNAL.md under 150 lines
+
+### 3. Propagate Insights Upward
+For each significant learning or pattern discovered since last retrospect:
+- **If it changes how we code**: Update `CLAUDE.md` Coding Standards or Operational Protocols
+- **If it changes what the project can do**: Update `README.md` Verified Capabilities or Limitations
+- **If it changes architecture**: Update `.agent/CAPABILITY_MAP.md`
+- **If it changes theory**: Update `.agent/COHEZION_CHARTER.md`
+- **If it's a process lesson**: Update `memory/MEMORY.md` (keep under 200 lines)
+
+### 4. Verify Consistency
+- Ensure CLAUDE.md reflects the actual codebase state (module count, test coverage, etc.)
+- Ensure README.md has no fabricated claims
+- Ensure memory/MEMORY.md is under the 200-line limit
+- Run `ruff check src/cohezion/` to verify no regressions
+
+### 5. Report
+- List what was pruned, what was propagated, and what remains stale
+- Note any inconsistencies between core files that need manual resolution
+
+## Rules
+- NEVER delete knowledge without first reading and understanding it
+- Prefer compression over deletion (turn 5 verbose entries into 1 concise entry)
+- Every claim in README.md must be adversarially verifiable
+- CLAUDE.md is the single source of truth — other files defer to it
+
+---
+
+Let's proceed with what we can do here.
+
+---
+
+Can you do them in parallel with a team of specialist agents?
+
+---
+
+<task-notification>
+<task-id>ae7adda</task-id>
+<status>completed</status>
+<summary>Agent "Fix ruff auto-fixable lint errors" completed</summary>
+<result>Here is the summary:
+
+**Fixed: 8 errors** (out of the 208 that ruff claimed were fixable with `--fix`). The remaining 200 "fixable" ones are classified as **unsafe fixes** -- ruff will only apply them with the `--unsafe-fixes` flag.
+
+**Remaining: 1,006 errors** across 55 rule categories.
+
+**Top 10 error categories (accounting for 82% of all remaining errors):**
+
+| Count | Code | Description |
+|-------|------|-------------|
+| 389 | `E501` | Line too long (>88 chars) |
+| 92 | `S311` | Suspicious non-cryptographic random usage |
+| 71 | `S607` | Starting process with partial executable path |
+| 44 | `S603` | subprocess without `shell=True` check |
+| 39 | `RUF012` | Mutable class default |
+| 32 | `F841` | Unused variable |
+| 24 | `TC001` | Typing-only first-party import |
+| 20 | `RUF003` | Ambiguous unicode character in comment |
+| 20 | `S110` | `try-except-pass` (silent exception swallowing) |
+| 18 | `SIM102` | Collapsible if statements |
+
+**Key observations:**
+
+- **Line length (`E501`)** dominates at 389 errors (39% of all remaining). These require manual reformatting.
+- **Security rules (`S*`)** account for 207+ errors (S311, S607, S603, S110, S108, S608, etc.) -- mostly flagging `random` usage, subprocess calls, and hardcoded paths. Many are likely intentional in this codebase (simulation code using `random`, subprocess calls to `git`).
+- **Unused variables (`F841`)** at 32 -- these are auto-fixable with `--unsafe-fixes` if desired.
+- **171 additional fixes** are available via `uv run ruff check src/cohezion/ --fix --unsafe-fixes`, but those can change semantics (e.g., removing unused variables, rewriting imports), so they need manual review first.</result>
+<usage>total_tokens: 44243
+tool_uses: 2
+duration_ms: 21060</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/ae7adda.output
+
+---
+
+<task-notification>
+<task-id>a17cff3</task-id>
+<status>completed</status>
+<summary>Agent "Add pytest to uv dev dependencies" completed</summary>
+<result>All three packages are confirmed available. Here is the summary:
+
+## What Was Found and Done
+
+**No changes to `pyproject.toml` were needed.** The file at `/home/mike-anderson/dev/cohezion/pyproject.toml` already had `pytest`, `pytest-cov`, and `ruff` listed under `[project.optional-dependencies] dev` (lines 30-38):
+
+```toml
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.8.0",
+    "mypy>=1.5.0",
+    "black>=23.0",
+    "flake8>=6.0",
+]
+```
+
+**The root cause** of pytest not being in the lockfile was that `uv sync` was being run without the `--extra dev` flag. By default, `uv sync` only installs the core `[project.dependencies]` -- optional dependency groups must be explicitly requested.
+
+**Fix applied:** Ran `uv sync --extra dev`, which resolved and installed the dev dependencies into the lockfile and virtual environment.
+
+**Verification:**
+- `pytest` 9.0.2 -- available via `uv run python -m pytest --version`
+- `pytest-cov` 7.0.0 -- importable
+- `ruff` 0.14.13 -- available via `uv run ruff --version`
+
+**Going forward**, always use `uv sync --extra dev` (or `uv sync --all-extras`) to ensure dev tools are included. Alternatively, you could migrate from `[project.optional-dependencies]` to `[dependency-groups]` (PEP 735), which `uv sync` installs by default -- but that is a separate decision.</result>
+<usage>total_tokens: 49135
+tool_uses: 5
+duration_ms: 31744</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/a17cff3.output
+
+---
+
+<task-notification>
+<task-id>a87e389</task-id>
+<status>completed</status>
+<summary>Agent "Fix universe test collection errors" completed</summary>
+<result>All 62 tests pass, 1 skipped, 0 errors. The full `tests/universe/` suite is clean.
+
+---
+
+Here is what I found and fixed:
+
+**Root cause:** `/home/mike-anderson/dev/cohezion/src/cohezion/api/routes_journeys.py` had top-level imports of `matplotlib`, `matplotlib.pyplot`, and `numpy` at lines 7-9. These are optional visualization dependencies not installed in the test environment.
+
+**Import chain that triggered the failure:**
+1. `tests/conftest.py` line 65: `import cohezion.api as api_module` (autouse fixture `reset_singletons`)
+2. `src/cohezion/api/__init__.py` line 29: `from cohezion.api.routes_journeys import router as journeys_router`
+3. `src/cohezion/api/routes_journeys.py` line 7: `import matplotlib` -- **ModuleNotFoundError**
+
+This caused all 35 tests across the three files to fail at collection time because the autouse conftest fixture runs before every test.
+
+**Fix applied to `/home/mike-anderson/dev/cohezion/src/cohezion/api/routes_journeys.py`:**
+- Removed the top-level `import matplotlib`, `import matplotlib.pyplot as plt`, `import numpy as np`, and `matplotlib.use("Agg")` statements
+- Added `import numpy as np` as a lazy import inside the `visualize_journey` endpoint (the only other function that uses numpy)
+- Added `import matplotlib.pyplot as plt` and `import numpy as np` as lazy imports inside the `plot_journey` endpoint (which already had a lazy `import matplotlib`)
+
+The visualization endpoints only execute when explicitly called via the API, so lazy imports are the correct pattern here -- they avoid forcing a heavy optional dependency on the entire import tree.</result>
+<usage>total_tokens: 68236
+tool_uses: 23
+duration_ms: 161941</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/a87e389.output
+
+---
+
+Run a development retrospective that flows insights back into core files.
+
+This is the compound engineering feedback loop. It ensures that session learnings don't just accumulate in knowledge_graph/ — they propagate back into the files that govern future behavior.
+
+## Steps
+
+### 1. Audit Current State
+- Read `REDACTED.md` and `REDACTED.md`
+- Read `CLAUDE.md`, `README.md`, and `memory/MEMORY.md`
+- Identify: new learnings since last retrospect, stale/duplicate entries, insights that should propagate upward
+
+### 2. Prune Knowledge Graph
+- Remove duplicate entries from KEY_LEARNINGS.md (e.g., triplicate retrospective blocks)
+- Remove spam entries from MISSION_JOURNAL.md (e.g., repeated "Automated Hypothesis Testing Report" lines)
+- Compress old session developments into single-line summaries
+- Target: KEY_LEARNINGS.md under 300 lines, MISSION_JOURNAL.md under 150 lines
+
+### 3. Propagate Insights Upward
+For each significant learning or pattern discovered since last retrospect:
+- **If it changes how we code**: Update `CLAUDE.md` Coding Standards or Operational Protocols
+- **If it changes what the project can do**: Update `README.md` Verified Capabilities or Limitations
+- **If it changes architecture**: Update `.agent/CAPABILITY_MAP.md`
+- **If it changes theory**: Update `.agent/COHEZION_CHARTER.md`
+- **If it's a process lesson**: Update `memory/MEMORY.md` (keep under 200 lines)
+
+### 4. Verify Consistency
+- Ensure CLAUDE.md reflects the actual codebase state (module count, test coverage, etc.)
+- Ensure README.md has no fabricated claims
+- Ensure memory/MEMORY.md is under the 200-line limit
+- Run `ruff check src/cohezion/` to verify no regressions
+
+### 5. Report
+- List what was pruned, what was propagated, and what remains stale
+- Note any inconsistencies between core files that need manual resolution
+
+## Rules
+- NEVER delete knowledge without first reading and understanding it
+- Prefer compression over deletion (turn 5 verbose entries into 1 concise entry)
+- Every claim in README.md must be adversarially verifiable
+- CLAUDE.md is the single source of truth — other files defer to it
