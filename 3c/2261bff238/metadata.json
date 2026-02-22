@@ -3,7 +3,7 @@
   "checkpoint_id": "3c2261bff238",
   "strategy": "manual-commit",
   "branch": "track-c",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
     ".claude/commands/research.md",
     ".claude/skills/daily-research/SKILL.md",
@@ -37,6 +37,13 @@
       "transcript": "/3c/2261bff238/0/full.jsonl",
       "context": "",
       "content_hash": "/3c/2261bff238/0/content_hash.txt",
+      "prompt": ""
+    },
+    {
+      "metadata": "/3c/2261bff238/1/metadata.json",
+      "transcript": "/3c/2261bff238/1/full.jsonl",
+      "context": "",
+      "content_hash": "/3c/2261bff238/1/content_hash.txt",
       "prompt": ""
     }
   ]
