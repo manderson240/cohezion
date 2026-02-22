@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "1202419ed3e6",
+  "session_id": "0fbff462-06bc-4dfb-94a5-4573fe3e941e",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-22T17:49:03.78278796Z",
+  "branch": "spec/maximize-node-connections",
+  "checkpoints_count": 0,
+  "files_touched": [
+    ".claude/hooks/vault-link-suggest.sh"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "4b91b2e16abd",
+  "token_usage": {
+    "input_tokens": 2186,
+    "cache_creation_tokens": 495567,
+    "cache_read_tokens": 17137522,
+    "output_tokens": 14741,
+    "api_call_count": 126
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-22T17:49:03.501547856Z",
+    "agent_lines": 0,
+    "human_added": 0,
+    "human_modified": 22,
+    "human_removed": 8,
+    "total_committed": 0,
+    "agent_percentage": 0
+  }
+}
