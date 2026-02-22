@@ -1,0 +1,34 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "e9ace41f6e2e",
+  "session_id": "a8ef61bd-3cc4-4391-bfce-f382819de4f8",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-22T16:47:05.271623948Z",
+  "branch": "track-c",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "decisions/2026-02-22-security-fixes-session-id-path-traversal-and-github-date.md",
+    "patterns/sanitize-env-var-path-components.md"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "3218178b-982f-43e9-922f-4c766ee4ce96",
+  "checkpoint_transcript_start": 4946,
+  "transcript_lines_at_start": 4946,
+  "token_usage": {
+    "input_tokens": 14764,
+    "cache_creation_tokens": 1629379,
+    "cache_read_tokens": 64182772,
+    "output_tokens": 86497,
+    "api_call_count": 531
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-22T16:46:55.632345296Z",
+    "agent_lines": 0,
+    "human_added": 500593,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 500593,
+    "agent_percentage": 0
+  },
+  "transcript_path": ".claude/projects/-home-mike-anderson-vaults-cohezion-vault/a8ef61bd-3cc4-4391-bfce-f382819de4f8.jsonl"
+}
