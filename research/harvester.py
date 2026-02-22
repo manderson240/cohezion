@@ -3,7 +3,7 @@
 import asyncio
 import logging
 import re
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
@@ -100,6 +100,8 @@ async def hackernews_adapter(
                 )
 
             await asyncio.sleep(API_DELAY)
+        except requests.exceptions.HTTPError as e:
+            logger.warning("HackerNews search failed for '%s' (HTTP %s): %s", query, e.response.status_code, e)
         except Exception as e:
             logger.warning("HackerNews search failed for '%s': %s", query, e)
 
@@ -143,6 +145,8 @@ async def reddit_adapter(
                 )
 
             await asyncio.sleep(API_DELAY)
+        except requests.exceptions.HTTPError as e:
+            logger.warning("Reddit fetch failed for r/%s (HTTP %s): %s", sub, e.response.status_code, e)
         except Exception as e:
             logger.warning("Reddit fetch failed for r/%s: %s", sub, e)
 
@@ -190,6 +194,8 @@ async def arxiv_adapter(
                     category=_best_category(title + " " + summary, focus_areas),
                 )
             )
+    except requests.exceptions.HTTPError as e:
+        logger.warning("arXiv fetch failed (HTTP %s): %s", e.response.status_code, e)
     except Exception as e:
         logger.warning("arXiv fetch failed: %s", e)
 
@@ -225,6 +231,8 @@ async def github_adapter(
                     )
                 )
             await asyncio.sleep(API_DELAY)
+        except requests.exceptions.HTTPError as e:
+            logger.warning("GitHub search failed for %s (HTTP %s): %s", lang, e.response.status_code, e)
         except Exception as e:
             logger.warning("GitHub search failed for %s: %s", lang, e)
 
@@ -281,6 +289,8 @@ async def blog_feed_adapter(
                 )
             )
             await asyncio.sleep(API_DELAY)
+        except requests.exceptions.HTTPError as e:
+            logger.warning("Blog feed check failed for %s (HTTP %s): %s", url, e.response.status_code, e)
         except Exception as e:
             logger.warning("Blog feed check failed for %s: %s", url, e)
 

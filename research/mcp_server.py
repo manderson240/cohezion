@@ -18,6 +18,9 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+# Security note: this MCP server has no authentication. It is intended for
+# local use only (loopback / Unix socket). Do not expose it on a public
+# interface or network without adding authentication middleware first.
 mcp = FastMCP("research-pipeline")
 
 DEFAULT_CONFIG = "research/sources.yaml"

@@ -61,10 +61,14 @@ def send_clear(plan_path: str | None = None) -> dict:
 
     Returns a dict with keys: success, method, message.
     """
+    # Sanitize plan_path: strip newlines and null bytes to prevent injection
+    # into the trigger file (plan_path may come from user input or env vars).
+    safe_plan = (plan_path or "general").replace("\n", "").replace("\r", "").replace("\x00", "")
+
     # Write a trigger file for documentation purposes
     session_dir = get_session_dir()
     trigger_file = session_dir / "send_clear.trigger"
-    trigger_content = f"plan={plan_path or 'general'}\n"
+    trigger_content = f"plan={safe_plan}\n"
     trigger_file.write_text(trigger_content)
 
     fallback_reason = ""

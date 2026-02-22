@@ -16,6 +16,23 @@ Knowledge base for the Cohezion agentic AI framework, managed as an Obsidian vau
 | `concepts/` | Core concepts and definitions | — |
 | `attachments/` | Binary files and images | — |
 
+## Repository Branch Model
+
+This repo has **two parallel, disconnected git histories** — `track-c` and `main` share no common ancestor and cannot be merged without a major restructuring effort.
+
+| Branch | Purpose | Notes |
+|--------|---------|-------|
+| `track-c` | Vault content + cohezion tooling | Obsidian notes, decisions, patterns, cohezion-engine, research pipeline |
+| `main` | Platform code | Separate project, different origin |
+
+**Working rules:**
+- All vault and tooling work happens on `track-c`
+- Do not attempt `git merge`, `git rebase`, or `git diff origin/main` across branches — there is no merge base
+- PRs from `track-c` feature branches target `track-c` (not `main`)
+- The `/security-review` command has a local override that handles the no-merge-base case
+
+**Known debt:** This split is intentional for now but is technical debt. See `projects/repo-and-process-debt.md` for the plan to address it.
+
 ## Conventions
 
 - Notes use YAML frontmatter with `title`, `date`, `status`, and `tags` fields

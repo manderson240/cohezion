@@ -40,7 +40,7 @@ log "Python: $PYTHON"
 # Check venv exists
 if [ ! -f "$PYTHON" ]; then
     log "ERROR: Python venv not found at $VENV"
-    log "Run: python3 -m venv $VENV && $VENV/bin/pip install -r requirements.txt"
+    log "Run: python3 -m venv $VENV && $VENV/bin/pip install -r $SCRIPT_DIR/requirements.txt"
     exit 2
 fi
 
