@@ -1,6 +1,6 @@
 """Report generator for vault health metrics."""
 
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Set
 from collections import Counter
 
 
@@ -90,14 +90,49 @@ class ReportGenerator:
                 category = "missing"
             report += f"- `{link}` ({count} references) - {category}\n"
 
+        report += self._generate_bidirectional_section()
+
         report += f"""
 ## Recommendations
 
 1. **Populate tags:** {null_tags_count} papers need tags
 2. **Create concept stubs:** {min(20, len([l for l in broken_ref_counts if broken_ref_counts[l] >= 3]))} frequently-referenced concepts should get stub files
 3. **Add cross-references:** Papers and concepts need Related sections populated
+4. **Fix bidirectional gaps:** See section above for files missing reverse links
 
 Run `python -m vault_linker fix` to apply automated fixes.
+Run `python -m vault_linker suggest <file>` for per-file link suggestions.
 """
 
         return report
+
+    def _generate_bidirectional_section(self) -> str:
+        """Generate the Bidirectional Gaps section of the report."""
+        from vault_linker.parser import VaultParser
+
+        vp = VaultParser()
+
+        # Find files with missing reverse links and count their gaps
+        gap_counts: Counter = Counter()
+        gap_examples: Dict[str, list] = {}
+
+        for stem in self.files_index:
+            gaps = vp.find_bidirectional_gaps(self.link_graph, stem)
+            if gaps:
+                gap_counts[stem] = len(gaps)
+                gap_examples[stem] = gaps[:3]  # Up to 3 examples per file
+
+        if not gap_counts:
+            return "\n## Bidirectional Gaps\n\nNo bidirectional gaps found. All links are reciprocated!\n"
+
+        section = "\n## Bidirectional Gaps\n\n"
+        section += "Files that are linked TO but don't link back (top 20 by gap count):\n\n"
+        section += "| File | Missing Reverse Links | Examples |\n"
+        section += "|------|----------------------|---------|\n"
+
+        for stem, count in gap_counts.most_common(20):
+            examples = ", ".join(f"`{e}`" for e in gap_examples.get(stem, []))
+            section += f"| `{stem}` | {count} | {examples} |\n"
+
+        section += "\n"
+        return section

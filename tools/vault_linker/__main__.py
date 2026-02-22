@@ -9,6 +9,7 @@ from vault_linker.tagger import TagPopulator
 from vault_linker.stubgen import StubGenerator
 from vault_linker.injector import LinkInjector
 from vault_linker.report import ReportGenerator
+from vault_linker.suggester import suggest_file
 
 
 def main():
@@ -30,6 +31,24 @@ def main():
     fix_parser.add_argument("--dry-run", action="store_true",
                            help="Preview changes without modifying files")
 
+    # Suggest command
+    suggest_parser = subparsers.add_parser(
+        "suggest", help="Suggest links for a single vault file"
+    )
+    suggest_parser.add_argument("file", type=Path, help="Path to the target markdown file")
+    suggest_parser.add_argument("--vault-path", type=Path, default=Path("."),
+                                help="Path to vault root (default: current directory)")
+
+    # Inject-single command
+    inject_single_parser = subparsers.add_parser(
+        "inject-single", help="Inject cross-reference links into a single file"
+    )
+    inject_single_parser.add_argument("file", type=Path, help="Path to the target markdown file")
+    inject_single_parser.add_argument("--vault-path", type=Path, default=Path("."),
+                                      help="Path to vault root (default: current directory)")
+    inject_single_parser.add_argument("--dry-run", action="store_true",
+                                      help="Preview changes without modifying files")
+
     args = parser.parse_args()
 
     if not args.command:
@@ -42,20 +61,16 @@ def main():
         return analyze(vault_path)
     elif args.command == "fix":
         return fix(vault_path, dry_run=args.dry_run)
+    elif args.command == "suggest":
+        return suggest(vault_path, args.file.resolve())
+    elif args.command == "inject-single":
+        return inject_single(vault_path, args.file.resolve(), dry_run=args.dry_run)
 
     return 1
 
 
 def analyze(vault_path: Path) -> int:
-    """
-    Analyze vault and generate report.
-
-    Args:
-        vault_path: Path to vault root
-
-    Returns:
-        Exit code (0 = success)
-    """
+    """Analyze vault and generate report."""
     print(f"Analyzing vault at: {vault_path}")
 
     # Parse vault
@@ -89,16 +104,7 @@ def _is_read_only(file_path: Path, vault_path: Path) -> bool:
 
 
 def fix(vault_path: Path, dry_run: bool = False) -> int:
-    """
-    Fix broken links and populate tags.
-
-    Args:
-        vault_path: Path to vault root
-        dry_run: If True, preview changes without modifying files
-
-    Returns:
-        Exit code (0 = success)
-    """
+    """Fix broken links and populate tags."""
     if dry_run:
         print(f"🔍 DRY RUN: Previewing changes for vault at: {vault_path}")
         print("(No files will be modified)\n")
@@ -187,7 +193,7 @@ def fix(vault_path: Path, dry_run: bool = False) -> int:
         candidates = stubgen.identify_stub_candidates(link_graph, files_index)
         print(f"  Would create {len(candidates)} concept stubs")
 
-    # 3. Inject cross-reference links
+    # 4. Inject cross-reference links
     print("\n🔗 Injecting cross-reference links...")
     injector = LinkInjector(files_index)
     for stem, meta in files_index.items():
@@ -220,6 +226,66 @@ def fix(vault_path: Path, dry_run: bool = False) -> int:
         print("\n✓ Dry run complete. Run without --dry-run to apply changes.")
     else:
         print("\n✓ Vault fixes applied successfully!")
+
+    return 0
+
+
+def suggest(vault_path: Path, file_path: Path) -> int:
+    """CLI handler for the suggest subcommand."""
+    if not file_path.exists():
+        print(f"Error: file not found: {file_path}", file=sys.stderr)
+        return 1
+
+    try:
+        output = suggest_file(vault_path, file_path)
+        print(output)
+        return 0
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+
+
+def inject_single(vault_path: Path, file_path: Path, dry_run: bool = False) -> int:
+    """Inject cross-reference links into a single vault file."""
+    if not file_path.exists():
+        print(f"Error: file not found: {file_path}", file=sys.stderr)
+        return 1
+
+    if _is_read_only(file_path, vault_path):
+        print(f"Error: {file_path.relative_to(vault_path)} is in a read-only directory (daily/)",
+              file=sys.stderr)
+        return 1
+
+    if dry_run:
+        print(f"🔍 DRY RUN: Previewing changes for {file_path.name}")
+    else:
+        print(f"🔗 Injecting links into {file_path.name}")
+
+    # Build full vault index (same cost as fix, but only writes one file)
+    vp = VaultParser()
+    files_index, _ = vp.walk_vault(vault_path)
+
+    target_stem = file_path.stem.lower()
+    injector = LinkInjector(files_index)
+
+    original_content = file_path.read_text(encoding='utf-8')
+    updated_content = injector.inject_links(file_path, target_stem)
+
+    if updated_content == original_content:
+        print("  No new links to inject.")
+        return 0
+
+    if dry_run:
+        # Show diff summary
+        orig_lines = set(original_content.splitlines())
+        new_lines = set(updated_content.splitlines())
+        added = [l for l in new_lines if l not in orig_lines]
+        print(f"  Would add {len(added)} line(s):")
+        for line in added[:10]:
+            print(f"  + {line}")
+    else:
+        file_path.write_text(updated_content, encoding='utf-8')
+        print("  ✓ Links injected successfully.")
 
     return 0
 

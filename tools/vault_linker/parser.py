@@ -16,7 +16,8 @@ class VaultParser:
 
     # Directories to exclude from parsing
     EXCLUDE_DIRS = {'.git', 'node_modules', '.obsidian', 'mcp-server',
-                     'obsidian-plugin', '.claude', 'tools', 'htmlcov', 'docs', '.venv'}
+                     'obsidian-plugin', '.claude', 'tools', 'htmlcov', 'docs',
+                     '.venv', '.worktrees', 'checkpoints'}
 
     def parse_frontmatter(self, content: str) -> Dict[str, Any]:
         """
@@ -128,8 +129,12 @@ class VaultParser:
 
         # Walk vault recursively
         for md_file in vault_path.rglob('*.md'):
-            # Skip excluded directories
-            if any(part in self.EXCLUDE_DIRS for part in md_file.parts):
+            # Skip excluded directories (use relative path to avoid matching parent dirs)
+            try:
+                rel_parts = md_file.relative_to(vault_path).parts
+            except ValueError:
+                continue
+            if any(part in self.EXCLUDE_DIRS for part in rel_parts):
                 continue
 
             # Parse file
@@ -146,6 +151,26 @@ class VaultParser:
                 link_graph[link_target]['incoming'].add(stem)
 
         return files_index, link_graph
+
+    def find_bidirectional_gaps(
+        self,
+        link_graph: Dict[str, Dict[str, Set[str]]],
+        target_stem: str,
+    ) -> List[str]:
+        """
+        Find files that link TO target but target does not link back.
+
+        Args:
+            link_graph: Link graph from walk_vault (stem -> {'outgoing', 'incoming'})
+            target_stem: Lowercase stem of the target file
+
+        Returns:
+            List of stems that have a one-way link to target (bidirectional gaps)
+        """
+        target_stem = target_stem.lower()
+        incoming = link_graph.get(target_stem, {}).get('incoming', set())
+        outgoing = link_graph.get(target_stem, {}).get('outgoing', set())
+        return [stem for stem in incoming if stem not in outgoing]
 
     def classify_broken_links(
         self,
