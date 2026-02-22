@@ -129,8 +129,12 @@ class VaultParser:
 
         # Walk vault recursively
         for md_file in vault_path.rglob('*.md'):
-            # Skip excluded directories
-            if any(part in self.EXCLUDE_DIRS for part in md_file.parts):
+            # Skip excluded directories (use relative path to avoid matching parent dirs)
+            try:
+                rel_parts = md_file.relative_to(vault_path).parts
+            except ValueError:
+                continue
+            if any(part in self.EXCLUDE_DIRS for part in rel_parts):
                 continue
 
             # Parse file
