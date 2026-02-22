@@ -1,0 +1,29 @@
+{
+  "description": "Cohezion Engine hooks - context monitoring and quality checks",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --project tools/cohezion-engine python tools/cohezion-engine/src/cohezion_engine/hooks/file_checker.py"
+          },
+          {
+            "type": "command",
+            "command": "uv run --project tools/cohezion-engine python tools/cohezion-engine/src/cohezion_engine/hooks/tdd_enforcer.py"
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Write|Edit|MultiEdit|Bash|Task|Skill|Grep|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --project tools/cohezion-engine python tools/cohezion-engine/src/cohezion_engine/hooks/context_monitor.py"
+          }
+        ]
+      }
+    ]
+  }
+}
