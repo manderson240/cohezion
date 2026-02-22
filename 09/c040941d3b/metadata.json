@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "09c040941d3b",
+  "strategy": "manual-commit",
+  "branch": "spec/maximize-node-connections",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".claude/hooks/vault-link-suggest.sh",
+    "tools/tests/test_hook_script.sh",
+    "tools/tests/test_inject_single.py",
+    "tools/tests/test_report.py",
+    "tools/tests/test_suggest.py",
+    "tools/vault_linker/__main__.py",
+    "tools/vault_linker/parser.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/09/c040941d3b/0/metadata.json",
+      "transcript": "/09/c040941d3b/0/full.jsonl",
+      "context": "",
+      "content_hash": "/09/c040941d3b/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
