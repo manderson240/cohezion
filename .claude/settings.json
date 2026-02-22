@@ -65,6 +65,15 @@
             "command": "entire hooks claude-code post-todo"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /home/mike-anderson/vaults/cohezion-vault/.claude/hooks/vault-link-suggest.sh"
+          }
+        ]
       }
     ]
   },
