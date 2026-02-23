@@ -3,7 +3,7 @@
   "checkpoint_id": "c26cccad429f",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 1,
+  "checkpoints_count": 3,
   "files_touched": [
     ".agent/teams/phase3_validation.md",
     ".claude/commands/async-audit.md",
@@ -14,6 +14,7 @@
     "IMPLEMENTATION_SUMMARY.md",
     "README.md",
     "REFINED_EXECUTION_PLAN.md",
+    "RETROSPECTIVE.md",
     "TEST_DRIVEN_DEVELOPMENT_SUMMARY.md",
     "cloud-vault-mcp/tests/test_config.py",
     "cloud-vault-mcp/tests/test_server_stateless.py",
@@ -56,9 +57,11 @@
     "src/cohezion/swarm/context_model_router.py",
     "src/cohezion/swarm/journey_persistence.py",
     "src/cohezion/training/__init__.py",
+    "tests/load/results/baseline_performance.json",
     "tests/swarm/test_model_integration.py",
     "tests/swarm/test_overload_coordinator.py",
     "tests/swarm/test_specifications.py",
+    "tests/unit/persistence/test_surreal_universe_repository.py",
     "tests/unit/test_emergency_shutdown_logic.py",
     "tests/unit/test_recursive_challenger.py"
   ],
@@ -76,13 +79,20 @@
       "context": "/c2/6cccad429f/1/context.md",
       "content_hash": "/c2/6cccad429f/1/content_hash.txt",
       "prompt": "/c2/6cccad429f/1/prompt.txt"
+    },
+    {
+      "metadata": "/c2/6cccad429f/2/metadata.json",
+      "transcript": "/c2/6cccad429f/2/full.jsonl",
+      "context": "/c2/6cccad429f/2/context.md",
+      "content_hash": "/c2/6cccad429f/2/content_hash.txt",
+      "prompt": "/c2/6cccad429f/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 13996,
-    "cache_creation_tokens": 1587694,
-    "cache_read_tokens": 74872673,
-    "output_tokens": 82989,
-    "api_call_count": 601
+    "input_tokens": 24774,
+    "cache_creation_tokens": 2452759,
+    "cache_read_tokens": 118038461,
+    "output_tokens": 132978,
+    "api_call_count": 934
   }
 }
