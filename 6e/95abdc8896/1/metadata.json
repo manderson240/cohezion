@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "6e95abdc8896",
+  "session_id": "11981d5b-a498-426c-9100-67df73bf6783",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-23T21:58:35.138407513Z",
+  "branch": "feature/model-pool-v1.1.0",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "data/checkpoints/test.json",
+    "data/config-sync-logs/config_sync.jsonl",
+    "pyproject.toml",
+    "src/cohezion/compound/executor.py",
+    "uv.lock"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "6157bd33c3e2",
+  "token_usage": {
+    "input_tokens": 74,
+    "cache_creation_tokens": 147877,
+    "cache_read_tokens": 527108,
+    "output_tokens": 6939,
+    "api_call_count": 9
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-23T21:58:34.761797103Z",
+    "agent_lines": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 0,
+    "agent_percentage": 0
+  },
+  "transcript_path": ".claude/projects/-home-mike-anderson-dev-cohezion/11981d5b-a498-426c-9100-67df73bf6783.jsonl"
+}
