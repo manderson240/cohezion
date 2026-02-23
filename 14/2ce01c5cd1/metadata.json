@@ -3,7 +3,7 @@
   "checkpoint_id": "142ce01c5cd1",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 1,
+  "checkpoints_count": 4,
   "files_touched": [
     "CLAUDE.md",
     "memory/MEMORY.md",
@@ -24,13 +24,20 @@
       "context": "/14/2ce01c5cd1/1/context.md",
       "content_hash": "/14/2ce01c5cd1/1/content_hash.txt",
       "prompt": "/14/2ce01c5cd1/1/prompt.txt"
+    },
+    {
+      "metadata": "/14/2ce01c5cd1/2/metadata.json",
+      "transcript": "/14/2ce01c5cd1/2/full.jsonl",
+      "context": "/14/2ce01c5cd1/2/context.md",
+      "content_hash": "/14/2ce01c5cd1/2/content_hash.txt",
+      "prompt": "/14/2ce01c5cd1/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 13991,
-    "cache_creation_tokens": 1586481,
-    "cache_read_tokens": 73990007,
-    "output_tokens": 82054,
-    "api_call_count": 596
+    "input_tokens": 21078,
+    "cache_creation_tokens": 2410219,
+    "cache_read_tokens": 110026230,
+    "output_tokens": 118857,
+    "api_call_count": 887
   }
 }
