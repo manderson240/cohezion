@@ -24,7 +24,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT = REPO_ROOT / "pyproject.toml"
-CI_WORKFLOW = REPO_ROOT / ".github" / "workflows" / "ci.yml"
+WORKFLOWS_DIR = REPO_ROOT / ".github" / "workflows"
 PYTEST_INI = REPO_ROOT / "pytest.ini"
 
 # Package name prefixes that indicate test infrastructure
@@ -93,17 +93,19 @@ def _find_uv_sync_lines(ci_content: str) -> list[tuple[int, str]]:
     return results
 
 
-def check_extras_in_ci(
+def check_extras_in_workflow(
+    workflow_path: Path,
     test_groups: list[str],
     uv_sync_lines: list[tuple[int, str]],
 ) -> list[str]:
     """Return violation messages for uv sync lines missing --extra flags."""
     violations = []
+    name = workflow_path.name
     for lineno, line in uv_sync_lines:
         for group in test_groups:
             if f"--extra {group}" not in line:
                 violations.append(
-                    f"  ci.yml:{lineno}: `uv sync` missing --extra {group}\n"
+                    f"  {name}:{lineno}: `uv sync` missing --extra {group}\n"
                     f"    Line: {line.strip()}\n"
                     f"    Fix:  add --extra {group} (group contains test packages)"
                 )
@@ -150,26 +152,27 @@ def _parse_core_deps(content: str) -> list[str]:
 def main() -> int:
     violations: list[str] = []
 
-    # --- Read files ---
+    # --- Read pyproject ---
     if not PYPROJECT.exists():
         print(f"ERROR: {PYPROJECT} not found")
         return 1
-    if not CI_WORKFLOW.exists():
-        print(f"ERROR: {CI_WORKFLOW} not found")
-        return 1
 
     pyproject_text = PYPROJECT.read_text(encoding="utf-8")
-    ci_text = CI_WORKFLOW.read_text(encoding="utf-8")
     pytest_ini_text = PYTEST_INI.read_text(encoding="utf-8") if PYTEST_INI.exists() else ""
 
-    # --- Parse ---
+    # --- Parse optional extras and core deps ---
     extras = _parse_optional_extras(pyproject_text)
     core_deps = _parse_core_deps(pyproject_text)
     test_groups = _find_test_extra_groups(extras)
-    uv_sync_lines = _find_uv_sync_lines(ci_text)
 
-    # --- Check 1: every uv sync must include --extra <test-group> ---
-    violations.extend(check_extras_in_ci(test_groups, uv_sync_lines))
+    # --- Check 1: every uv sync in every workflow must include --extra <test-group> ---
+    workflow_files = sorted(WORKFLOWS_DIR.glob("*.yml")) if WORKFLOWS_DIR.exists() else []
+    total_sync_lines = 0
+    for wf in workflow_files:
+        wf_text = wf.read_text(encoding="utf-8")
+        uv_sync_lines = _find_uv_sync_lines(wf_text)
+        total_sync_lines += len(uv_sync_lines)
+        violations.extend(check_extras_in_workflow(wf, test_groups, uv_sync_lines))
 
     # --- Check 2: --cov in pytest.ini requires pytest-cov in core deps ---
     violations.extend(check_pytest_ini_cov(pytest_ini_text, core_deps))
@@ -185,11 +188,10 @@ def main() -> int:
         return 1
 
     groups_str = ", ".join(test_groups) if test_groups else "(none)"
-    sync_count = len(uv_sync_lines)
     print(
         f"OK: CI installs test extras correctly.\n"
         f"  Test groups: {groups_str}\n"
-        f"  uv sync lines checked: {sync_count}"
+        f"  Workflows checked: {len(workflow_files)}, uv sync lines: {total_sync_lines}"
     )
     return 0
 

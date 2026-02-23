@@ -54,7 +54,7 @@ repos:
         name: Check CI installs dev extras
         language: python
         entry: python scripts/ci/check_ci_deps.py
-        files: ^(pyproject\.toml|\.github/workflows/ci\.yml)$
+        files: ^(pyproject\.toml|\.github/workflows/.*\.yml)$
         stages: [pre-push]
         pass_filenames: false
 

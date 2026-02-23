@@ -22,23 +22,24 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Install uv
+        run: pip install uv
+
       - name: Install root dependencies
-        run: |
-          pip install -e ".[dev]"
+        run: uv sync --frozen --extra dev
 
       - name: Install cloud-vault-mcp dependencies
         run: |
           cd cloud-vault-mcp
-          pip install -e ".[dev]"
+          uv sync --frozen --extra dev
 
       - name: Run root project tests
-        run: |
-          pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing -v
+        run: uv run pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing -v
 
       - name: Run cloud-vault-mcp tests
         run: |
           cd cloud-vault-mcp
-          pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing -v
+          uv run pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing -v
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -61,15 +62,18 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: "3.13"
+
+      - name: Install uv
+        run: pip install uv
 
       - name: Install dependencies
         run: |
-          pip install -e ".[dev]"
+          uv sync --frozen --extra dev
           cd cloud-vault-mcp
-          pip install -e ".[dev]"
+          uv sync --frozen --extra dev
 
       - name: Run ${{ matrix.test-type }} tests
         run: |
-          pytest -m ${{ matrix.test-type }} --co -q
-          pytest -m ${{ matrix.test-type }} -v
+          uv run pytest -m ${{ matrix.test-type }} --co -q
+          uv run pytest -m ${{ matrix.test-type }} -v
