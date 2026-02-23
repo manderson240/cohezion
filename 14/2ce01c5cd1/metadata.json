@@ -3,7 +3,7 @@
   "checkpoint_id": "142ce01c5cd1",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 5,
+  "checkpoints_count": 6,
   "files_touched": [
     "CLAUDE.md",
     "memory/MEMORY.md",
@@ -38,6 +38,13 @@
       "context": "/14/2ce01c5cd1/3/context.md",
       "content_hash": "/14/2ce01c5cd1/3/content_hash.txt",
       "prompt": "/14/2ce01c5cd1/3/prompt.txt"
+    },
+    {
+      "metadata": "/14/2ce01c5cd1/4/metadata.json",
+      "transcript": "/14/2ce01c5cd1/4/full.jsonl",
+      "context": "",
+      "content_hash": "/14/2ce01c5cd1/4/content_hash.txt",
+      "prompt": ""
     }
   ],
   "token_usage": {
