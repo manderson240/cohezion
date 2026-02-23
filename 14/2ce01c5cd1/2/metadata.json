@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "142ce01c5cd1",
+  "session_id": "2d8bbfe1-ffe9-4218-93d7-116069587140",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-23T21:11:17.663324371Z",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "CLAUDE.md",
+    "memory/MEMORY.md",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "src/cohezion/knowledge_graph/MISSION_JOURNAL.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "0f61ee3d114e",
+  "transcript_identifier_at_start": "40a33ddd-87ac-477c-9871-8c69d48236fe",
+  "token_usage": {
+    "input_tokens": 7087,
+    "cache_creation_tokens": 823738,
+    "cache_read_tokens": 36036223,
+    "output_tokens": 36803,
+    "api_call_count": 291
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-23T21:11:17.029097816Z",
+    "agent_lines": 0,
+    "human_added": 0,
+    "human_modified": 41,
+    "human_removed": 6797,
+    "total_committed": 199,
+    "agent_percentage": 0
+  },
+  "transcript_path": ".claude/projects/-home-mike-anderson-dev-cohezion/2d8bbfe1-ffe9-4218-93d7-116069587140.jsonl"
+}
