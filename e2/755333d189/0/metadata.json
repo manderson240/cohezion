@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "e2755333d189",
+  "session_id": "06560fd8-f35f-4af6-bf73-1ef720e67a57",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-23T22:03:15.686131276Z",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "data/checkpoints/test.json",
+    "src/cohezion/core/persistence/repositories/surreal_journey_repository.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "e69e516ac361",
+  "transcript_identifier_at_start": "446f2f65-65b1-4a26-8d83-5b43e3b042b3",
+  "token_usage": {
+    "input_tokens": 14179,
+    "cache_creation_tokens": 1324510,
+    "cache_read_tokens": 62173554,
+    "output_tokens": 78796,
+    "api_call_count": 504
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-23T22:03:13.577287704Z",
+    "agent_lines": 0,
+    "human_added": 27,
+    "human_modified": 14,
+    "human_removed": 0,
+    "total_committed": 29,
+    "agent_percentage": 0
+  },
+  "transcript_path": ".claude/projects/-home-mike-anderson-dev-cohezion/06560fd8-f35f-4af6-bf73-1ef720e67a57.jsonl"
+}
