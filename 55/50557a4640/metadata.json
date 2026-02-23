@@ -3,7 +3,7 @@
   "checkpoint_id": "5550557a4640",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 9,
+  "checkpoints_count": 20,
   "files_touched": [
     ".claude/commands/bash-report.md",
     ".claude/hooks/bash_tool_catcher.py",
@@ -25,13 +25,20 @@
       "context": "/55/50557a4640/1/context.md",
       "content_hash": "/55/50557a4640/1/content_hash.txt",
       "prompt": "/55/50557a4640/1/prompt.txt"
+    },
+    {
+      "metadata": "/55/50557a4640/2/metadata.json",
+      "transcript": "/55/50557a4640/2/full.jsonl",
+      "context": "/55/50557a4640/2/context.md",
+      "content_hash": "/55/50557a4640/2/content_hash.txt",
+      "prompt": "/55/50557a4640/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 7668,
-    "cache_creation_tokens": 982691,
-    "cache_read_tokens": 46908907,
-    "output_tokens": 46931,
-    "api_call_count": 371
+    "input_tokens": 8487,
+    "cache_creation_tokens": 1662745,
+    "cache_read_tokens": 75615496,
+    "output_tokens": 68878,
+    "api_call_count": 603
   }
 }
