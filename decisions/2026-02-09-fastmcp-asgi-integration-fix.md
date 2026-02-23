@@ -102,7 +102,7 @@ This fix enables the full MCP ↔ Vault integration chain:
 
 ## Relevance to Cohezion
 
-[[MCP Infrastructure Architecture]]
+[[mcp-infrastructure-architecture]]
 
 ## Related Concepts
 

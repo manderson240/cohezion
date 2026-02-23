@@ -633,8 +633,8 @@ Implement `analyze_prompt_effectiveness()` MVP:
 
 ## Related
 
-- [[patterns/prompt-optimization-hypotheses]] - Pilot study results
-- [[decisions/2026-02-10-log-mining-adversarial-review]] - How we avoided wasting effort
+- [[prompt-optimization-hypotheses]] - Pilot study results
+- [[2026-02-10-log-mining-adversarial-review]] - How we avoided wasting effort
 - [[compound-engineering]] - Core methodology
 - [[token-efficiency]] - Economic optimization
 - [[meta-learning]] - Self-improving systems

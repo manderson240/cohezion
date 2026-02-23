@@ -54,9 +54,9 @@ All 6 causes fixed, verified individually then full suite.
 
 ## Bidirectional Links
 
-- [[decisions/2026-02-22-asyncio-lock-in-init-not-class-level]]
-- [[decisions/2026-02-22-pytestmark-asyncio-module-level]]
-- [[patterns/async-singleton-lock-isolation]]
-- [[patterns/async-mock-subprocess-in-tests]]
-- [[patterns/private-to-public-rename-drift]]
+- [[2026-02-22-asyncio-lock-in-init-not-class-level]]
+- [[2026-02-22-pytestmark-asyncio-module-level]]
+- [[async-singleton-lock-isolation]]
+- [[async-mock-subprocess-in-tests]]
+- [[private-to-public-rename-drift]]
 - [[sessions/session-69-retrospective]]

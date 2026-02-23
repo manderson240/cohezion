@@ -188,7 +188,7 @@ Similar structures for agent_reasoning, agent_outcome, outcome_validates_lesson.
 
 **Communication**: integration-engineer has all details needed to proceed with MCP tool implementation.
 
-[[SurrealDB]], [[Agent Context]], [[Phase 1 Implementation]]
+[[surrealdb]], [[agent-context]], [[phase-1-implementation]]
 
 ## Related Lessons
 

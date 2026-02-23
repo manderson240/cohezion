@@ -662,9 +662,9 @@ If full 12D seems too ambitious initially:
 
 ## Relevance to Cohezion
 
-[[MCP Infrastructure Architecture]]
-[[Compound Engineering]]
-[[Context Management]]
+[[mcp-infrastructure-architecture]]
+[[compound-engineering]]
+[[context-management]]
 
 ## Related Lessons
 

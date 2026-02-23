@@ -95,9 +95,9 @@ This pattern saves ~30k tokens in Phase 3-4 by:
 
 ## Related Patterns
 
-- [[SERVICE-INITIALIZATION-CHECKLIST]] (reusable template)
-- [[VERIFICATION-STRATEGY-TEMPLATE]] (real vs synthetic testing)
-- [[TYPESCRIPT-ERROR-DIAGNOSTIC]] (error patterns and fixes)
+- [[service-initialization-checklist]] (reusable template)
+- [[verification-strategy-template]] (real vs synthetic testing)
+- [[typescript-error-diagnostic]] (error patterns and fixes)
 
 ## Alternatives Considered
 

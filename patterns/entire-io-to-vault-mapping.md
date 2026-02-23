@@ -412,7 +412,7 @@ agent_names: [vault-architect]
 
 ## Key Decisions
 
-- [[Use SurrealDB for agent context]] - Native graph edges
+- [[surrealdb]] - Native graph edges
 
 ## Context Shifts
 
@@ -420,7 +420,7 @@ agent_names: [vault-architect]
 
 ## Extracted Learnings
 
-- [[Implementation-first methodology]] - Severity: CRITICAL (auto-extracted)
+- [[implementation-first-infrastructure-later]] - Severity: CRITICAL (auto-extracted)
 
 ## Metrics & Performance
 

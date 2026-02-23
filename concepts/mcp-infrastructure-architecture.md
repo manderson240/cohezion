@@ -362,14 +362,14 @@ cohezion-vault/
 # Paper: Attention is All You Need
 
 ## Key Concepts
-- [[Transformer Architecture]]
-- [[Self-Attention Mechanism]]
-- [[Sequence Modeling]]
+- [[transformer-architecture]]
+- [[self-attention-mechanism]]
+- [[neural-network-architecture]]
 
 ## Related Papers
-- [[Vaswani et al. (2017)]] (original)
-- [[BERT Architecture]] (successor)
-- [[Vision Transformer]] (application)
+- [[transformer-architecture]] (original)
+- [[neural-network-architecture]] (successor)
+- [[transformer-architecture]] (application)
 ```
 
 ## Health Check Monitoring
@@ -489,11 +489,11 @@ curl http://localhost:8360/health | jq .
 | MAX_REQUEST_SIZE | 10MB | int | Max request body size |
 
 ## Related Documentation
-- [[decisions/2026-02-10-phase-a-implementation-complete]]
-- [[patterns/runbook-ollama-mcp-operations]]
-- [[patterns/runbook-ci-cd-pipeline]]
-- [[patterns/runbook-health-checks]]
-- [[patterns/troubleshooting-mcp-infrastructure]]
+- [[2026-02-10-phase-a-implementation-complete]]
+- [[runbook-ollama-mcp-operations]]
+- [[runbook-ci-cd-pipeline]]
+- [[runbook-health-checks]]
+- [[troubleshooting-mcp-infrastructure]]
 
 ## Related Concepts
 

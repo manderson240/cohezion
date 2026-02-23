@@ -93,7 +93,7 @@ CostAwareRouter now classifies tasks:
 ## Related Decisions
 
 - [[2026-02-20-session-58-cosmic-fire-module-retrospective]]
-- [[2026-02-20-session-59-enhancement-roadmap]]
+- [[2026-02-20-session-59-compound-engineering-complete]]
 
 ## Next Steps
 

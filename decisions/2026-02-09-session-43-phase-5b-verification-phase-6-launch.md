@@ -429,5 +429,5 @@ All major decisions were aligned with user priorities (highest ROI work), transp
 
 ## Relevance to Cohezion
 
-[[Compound Engineering]]
-[[Context Management]]
+[[compound-engineering]]
+[[context-management]]

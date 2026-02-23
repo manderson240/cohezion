@@ -36,5 +36,5 @@ decision_reasoning:
 ## See Also
 
 - [[compound-engineering]]
-- [[universe-simulation-reproducibility-architecture]]
+- [[universe-simulation]]
 - [[compound-engineering-investigation-retrospection-before-destructive-operations]]

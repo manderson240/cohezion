@@ -224,7 +224,7 @@ Operations authorized by explicit prior approval:
 
 ## Relevance to Cohezion
 
-[[Agentic Ai]]
+[[agentic-ai]]
 
 ## Related Lessons
 

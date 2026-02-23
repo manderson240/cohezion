@@ -518,10 +518,10 @@ Save this as a reference for future benchmarks:
 ```
 
 ## Related Documentation
-- [[decisions/2026-02-10-phase-a-implementation-complete]]
-- [[patterns/runbook-ci-cd-pipeline]]
-- [[patterns/troubleshooting-mcp-infrastructure]]
-- [[concepts/mcp-infrastructure-architecture]]
+- [[2026-02-10-phase-a-implementation-complete]]
+- [[runbook-ci-cd-pipeline]]
+- [[troubleshooting-mcp-infrastructure]]
+- [[mcp-infrastructure-architecture]]
 
 ## Related Concepts
 

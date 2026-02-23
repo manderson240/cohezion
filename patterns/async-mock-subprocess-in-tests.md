@@ -70,6 +70,6 @@ Symptom: pytest test hangs indefinitely (not failing with error, just frozen). U
 
 ## Related
 
-- [[patterns/async-singleton-lock-isolation]]
-- [[decisions/2026-02-22-asyncio-lock-in-init-not-class-level]]
+- [[async-singleton-lock-isolation]]
+- [[2026-02-22-asyncio-lock-in-init-not-class-level]]
 - KEY_LEARNINGS.md L133-134

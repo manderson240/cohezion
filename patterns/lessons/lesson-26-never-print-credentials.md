@@ -19,7 +19,7 @@ Created: 2026-02-08 14:43:24
 
 ## Related
 **Domains**: architecture, cicd, git, performance, security, testing
-**Concepts**: [[concept-automation]], [[concept-optimization]], [[concept-security]], [[concept-testing]], [[concept-versioning]]
+**Concepts**: [[concept-automation]], [[concept-optimization]], [[lesson-26-never-print-credentials]], [[concept-testing]], [[concept-versioning]]
 
 ## Related Papers
 

@@ -44,7 +44,7 @@ Nature Physics paper demonstrating microwave emission and mode coupling in a Cu2
 
 ## Relevance to Cohezion
 
-Relevant to [[fractal_universe]] for modeling coupled oscillatory systems and phase-locking phenomena in magnetic materials., [[particle-physics]]
+Relevant to [[fractal-universe]] for modeling coupled oscillatory systems and phase-locking phenomena in magnetic materials., [[particle-physics]]
 
 ## Related Papers
 

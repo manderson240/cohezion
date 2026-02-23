@@ -284,6 +284,6 @@ The quality distribution (43.2% Good+, 5.7% Very Poor) indicates healthy decisio
 - [[2026-02-11-phase1-completion-summary]]
 - [[2026-02-14-phase-6d-decision-quality-scoring-complete]]
 - [[2026-02-09-ollama-mcp-server-complete]]
-- [[session-63-final-summary-2026-02-15]]
+- [[SESSION-63-FINAL-SUMMARY-2026-02-15]]
 - [[2026-02-10-redesigned-pilot-complete]]
 - [[2026-02-14-phase-6b-final-report]]

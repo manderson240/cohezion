@@ -19,9 +19,9 @@ agent_names: [vault-architect, team-lead]
 ## Key Decisions
 
 - [[decision-vault-first-knowledge-architecture]] - Treat agent logs as ephemeral operational telemetry, not first-class knowledge
-- [[Use SurrealDB for agent context tracking]] - Native graph edges enable research lineage queries
+- [[surrealdb]] - Native graph edges enable research lineage queries
 - [[Daily/agent-logs schema as vault integration point]] - Ephemeral notes that seed permanent lessons/decisions/patterns
-- [[Service-oriented architecture for agent context]] - AgentContextOps follows cloud-vault-mcp patterns
+- [[mcp-infrastructure-architecture]] - AgentContextOps follows cloud-vault-mcp patterns
 
 ## Context Shifts
 
@@ -31,29 +31,29 @@ agent_names: [vault-architect, team-lead]
 
 ## Extracted Learnings
 
-- [[Implementation-first methodology beats research-first]] - Severity: CRITICAL (auto-extracted)
+- [[implementation-first-infrastructure-later]] - Severity: CRITICAL (auto-extracted)
   - Proved by delivering complete schema + service in 2h 45m vs estimated 3-4h with research
   - Applied pattern: Copy templates, implement one feature, write tests = success
-- [[Service layer pattern enables MCP tool integration]] - Severity: HIGH (auto-extracted)
+- [[mcp-infrastructure-architecture]] - Severity: HIGH (auto-extracted)
   - AgentContextOps with 6 core methods decouples from HTTP/MCP concerns
   - Integration-engineer can wrap with 3 @mcp.tool() decorators in 50 min
 - [[Test-first documentation reduces implementation friction]] - Severity: HIGH (auto-extracted)
   - Providing 40+ test cases + quickstart guide eliminates blockers for next step
-- [[Graph schema design benefits from edge relationships]] - Severity: MEDIUM (auto-extracted)
+- [[surrealdb]] - Severity: MEDIUM (auto-extracted)
   - SurrealDB edges (has_decisions, informs_actions, etc.) enable complex queries
   - Relational approach would require joins; graph is natural fit
 
 ## Session Artifacts
 
-- [[decisions/2026-02-11-phase-1-agent-context-schema-complete.md]] - Architecture decision record
-- [[patterns/agent-logs-vault-schema.md]] - This schema pattern
+- [[2026-02-11-phase-1-agent-context-schema-complete]] - Architecture decision record
+- [[agent-logs-vault-schema]] - This schema pattern
 - [[patterns/compound-engineering-investigation-retrospection-before-destructive-operations]] - Methodology used
 
 ## Related Research
 
-- [[papers/surrealdb-graph-databases]] - Informed database choice and schema design
-- [[papers/knowledge-graph-semantic-relationships]] - Influenced edge relationship modeling
-- [[papers/service-layer-architecture]] - Informed separation of concerns
+- [[surrealdb-graph-databases]] - Informed database choice and schema design
+- [[knowledge-graph-semantic-relationships]] - Influenced edge relationship modeling
+- [[service-layer-architecture]] - Informed separation of concerns
 
 ## Metrics & Performance
 
@@ -93,6 +93,6 @@ agent_names: [vault-architect, team-lead]
 ## Cross-References
 
 - **Team**: [[team-lead]], [[vault-architect]], [[integration-engineer]]
-- **Project**: [[Phase 1 - SurrealDB Agent Context Integration]]
-- **MCP Server**: [[Cloud Vault MCP]] (port 8360)
-- **Database**: [[SurrealDB]] (localhost:8000)
+- **Project**: [[2026-02-11-phase-1-agent-context-schema-complete]]
+- **MCP Server**: [[cloud-vault-mcp]] (port 8360)
+- **Database**: [[surrealdb]] (localhost:8000)

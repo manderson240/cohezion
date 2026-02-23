@@ -635,4 +635,4 @@ inbox/COMPLETION-SUMMARY-PHASES-4B-7-2026-02-16.md (this file)
 - [[2026-02-12-platform-codification-summary-guide]]
 - [[2026-02-09-ollama-mcp-server-complete]]
 - [[2026-02-10-kyutai-execution-summary]]
-- [[session-63-final-summary-2026-02-15]]
+- [[SESSION-63-FINAL-SUMMARY-2026-02-15]]

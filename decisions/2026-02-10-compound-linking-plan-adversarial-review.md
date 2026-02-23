@@ -303,7 +303,7 @@ This analysis mirrors previous planning failures:
 
 ## Relevance to Cohezion
 
-[[Compound Engineering]]
+[[compound-engineering]]
 
 ## Related Concepts
 

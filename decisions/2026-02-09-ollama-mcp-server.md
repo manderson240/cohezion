@@ -495,8 +495,8 @@ result = ollama_query("analyze vault", context="auto")
 
 ## Relevance to Cohezion
 
-[[MCP Infrastructure Architecture]]
-[[Context Management]]
+[[mcp-infrastructure-architecture]]
+[[context-management]]
 
 ## Related Lessons
 

@@ -232,7 +232,7 @@ Before marking service "complete":
 ## Related
 
 - [[2026-02-17-phase-2-service-initialization-gap-discovery]] (Post-mortem from Phase 2)
-- [[VERIFICATION-STRATEGY-TEMPLATE]] (Real vs synthetic testing)
+- [[verification-strategy-template]] (Real vs synthetic testing)
 
 ## Related Concepts
 

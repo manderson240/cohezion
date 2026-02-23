@@ -45,7 +45,7 @@ NASA detected a 10-second gamma-ray burst from 13 billion light-years away, orig
 
 ## Relevance to Cohezion
 
-Relevant to [[fractal_universe]] early universe modeling and transient event detection algorithms., [[astrophysics-observations]], [[particle-physics]]
+Relevant to [[fractal-universe]] early universe modeling and transient event detection algorithms., [[astrophysics-observations]], [[particle-physics]]
 
 ## Related Papers
 

@@ -519,10 +519,10 @@ tar czf cohezion_diagnostics.tar.gz /tmp/cohezion_diagnostics/
 ```
 
 ## Related Documentation
-- [[patterns/runbook-ollama-mcp-operations]]
-- [[patterns/runbook-health-checks]]
-- [[patterns/runbook-ci-cd-pipeline]]
-- [[concepts/mcp-infrastructure-architecture]]
+- [[runbook-ollama-mcp-operations]]
+- [[runbook-health-checks]]
+- [[runbook-ci-cd-pipeline]]
+- [[mcp-infrastructure-architecture]]
 
 ## Related Concepts
 

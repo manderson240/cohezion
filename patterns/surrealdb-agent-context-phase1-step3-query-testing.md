@@ -463,7 +463,7 @@ All of the following must pass:
 **Assigned**: data-graph-specialist
 **Dependency**: integration-engineer Step 2 completion
 
-[[Phase 1 Implementation]], [[Query Testing]], [[SurrealDB]]
+[[phase-1-implementation]], [[query-testing]], [[surrealdb]]
 
 ## Related Concepts
 

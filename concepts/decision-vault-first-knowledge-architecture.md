@@ -16,7 +16,7 @@ tags: [concept]
 
 ## Related Papers
 
-- [[2026-02-11t14-30-example-phase1-step1]]
+- [[2026-02-11-phase1-step1-schema-complete]]
 - [[2026-02-12-phase-2-schema-design]]
 - [[agent-logs-vault-schema]]
 

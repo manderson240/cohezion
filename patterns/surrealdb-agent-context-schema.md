@@ -376,11 +376,11 @@ agent_context.relevance_snapshot = {
 
 **Tags**: surrealdb, knowledge-graph, agent-context, architecture
 
-**Concepts**: [[Graph Databases]], [[Knowledge Graph Systems]], [[Agent Tracking]], [[Research Lineage]]
+**Concepts**: [[graph-databases]], [[knowledge-graph-systems]], [[agent-context]], [[research-lineage]]
 
 **Decisions**: [[2026-02-09-12d-graph-surrealdb-integration]], [[2026-02-11-adopt-graphrag-for-vault-knowledge-graph]]
 
-**Patterns**: [[MCP Server FastMCP Builder Pattern]], [[SurrealDB Query-Driven Analysis]]
+**Patterns**: [[fastmcp-asgi-builder-pattern]], [[surrealdb-query-driven-analysis]]
 
 ## Related Concepts
 

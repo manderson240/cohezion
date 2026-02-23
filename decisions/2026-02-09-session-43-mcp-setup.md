@@ -102,4 +102,4 @@ LOG_LEVEL: info
 
 ## Relevance to Cohezion
 
-[[MCP Infrastructure Architecture]]
+[[mcp-infrastructure-architecture]]

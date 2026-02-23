@@ -92,7 +92,7 @@ Records session-level metrics from entire.io. Used for:
 ```markdown
 ## Key Decisions
 
-- [[Use SurrealDB for agent context]] - Provides native graph edges for research lineage queries
+- [[surrealdb]] - Provides native graph edges for research lineage queries
 - [[Defer daemon implementation to Week 2]] - Validate Phase 1 schema first
 ```
 
@@ -123,9 +123,9 @@ Records significant context changes that affected decision-making. Useful for:
 ```markdown
 ## Extracted Learnings
 
-- [[Implementation-first methodology]] - Severity: CRITICAL (auto-extracted)
-- [[Batch operations for database updates]] - Severity: HIGH (auto-extracted)
-- [[SurrealDB schema design]] - Severity: MEDIUM (human-added)
+- [[implementation-first-infrastructure-later]] - Severity: CRITICAL (auto-extracted)
+- [[surrealdb]] - Severity: HIGH (auto-extracted)
+- [[lesson-surrealdb-schema-design]] - Severity: MEDIUM (human-added)
 ```
 
 Lessons validated or discovered during this session:
@@ -141,7 +141,7 @@ Lessons validated or discovered during this session:
 ## Session Artifacts
 
 - [[decisions/2026-02-11-use-surrealdb.md]]
-- [[patterns/agent-logs-vault-schema.md]]
+- [[agent-logs-vault-schema]]
 - [[experiments/graphrag-proof-of-concept.md]]
 ```
 
@@ -155,8 +155,8 @@ Direct links to notes created during this session. Enables:
 ```markdown
 ## Related Research
 
-- [[papers/surrealdb-graph-databases]] - Informed decision on database choice
-- [[papers/schema-design-relational]] - Influenced schema decisions
+- [[surrealdb-graph-databases]] - Informed decision on database choice
+- [[schema-design-relational]] - Influenced schema decisions
 ```
 
 Papers consulted during research phase. Shows:
@@ -255,8 +255,8 @@ agent_names: [researcher, implementer, tester]
 
 ## Key Decisions
 
-- [[Use SurrealDB for agent context]] - Provides native relationship edges for research lineage queries
-- [[Finalize schema before daemon implementation]] - Prevents rework on Week 2
+- [[surrealdb]] - Provides native relationship edges for research lineage queries
+- [[surrealdb]] - Prevents rework on Week 2
 
 ## Context Shifts
 
@@ -265,18 +265,18 @@ agent_names: [researcher, implementer, tester]
 
 ## Extracted Learnings
 
-- [[Implementation-first methodology]] - Severity: CRITICAL (auto-extracted)
-- [[Service layer pattern for MCP]] - Severity: HIGH (auto-extracted)
+- [[implementation-first-infrastructure-later]] - Severity: CRITICAL (auto-extracted)
+- [[mcp-infrastructure-architecture]] - Severity: HIGH (auto-extracted)
 
 ## Session Artifacts
 
-- [[decisions/2026-02-11-phase-1-agent-context-schema-complete.md]]
-- [[patterns/agent-logs-vault-schema.md]]
+- [[2026-02-11-phase-1-agent-context-schema-complete]]
+- [[agent-logs-vault-schema]]
 
 ## Related Research
 
-- [[papers/surrealdb-graph-databases]] - Informed database decision
-- [[papers/knowledge-graphs-semantic-web]] - Influenced relationship design
+- [[surrealdb-graph-databases]] - Informed database decision
+- [[knowledge-graphs-semantic-web]] - Influenced relationship design
 
 ## Metrics & Performance
 

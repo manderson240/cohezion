@@ -125,16 +125,16 @@ The adversarial review had predicted this exact failure mode:
 - **Method**: Read decision titles + summaries → identify relevant concepts → manual assignment
 
 **Decisions Linked** (10 of 10 orphans targeted):
-1. **3d-graph-plugin-selection** → [[MCP Infrastructure Architecture]], [[Compound Engineering]]
-2. **2026-02-10-compound-linking-plan-adversarial-review** → [[Compound Engineering]]
-3. **2026-02-09-12d-graph-surrealdb-integration** → [[MCP Infrastructure Architecture]], [[Compound Engineering]], [[Context Management]]
-4. **2026-02-09-fastmcp-asgi-integration-fix** → [[MCP Infrastructure Architecture]]
-5. **2026-02-10-kyutai-mcp-obsidian-plugin-plan** → [[MCP Infrastructure Architecture]], [[Multi Agent Systems]]
-6. **2026-02-09-session-43-phase-5b-verification-phase-6-launch** → [[Compound Engineering]], [[Context Management]]
-7. **2026-02-09-session-43-mcp-setup** → [[MCP Infrastructure Architecture]]
-8. **2026-02-09-ollama-mcp-server** → [[MCP Infrastructure Architecture]], [[Context Management]]
-9. **2026-02-09-operational-principle-no-destructive-operations-without-learning** → [[Agentic Ai]]
-10. **2026-02-09-rust-flume-python313-incompatibility** → [[MCP Infrastructure Architecture]]
+1. **3d-graph-plugin-selection** → [[mcp-infrastructure-architecture]], [[compound-engineering]]
+2. **2026-02-10-compound-linking-plan-adversarial-review** → [[compound-engineering]]
+3. **2026-02-09-12d-graph-surrealdb-integration** → [[mcp-infrastructure-architecture]], [[compound-engineering]], [[context-management]]
+4. **2026-02-09-fastmcp-asgi-integration-fix** → [[mcp-infrastructure-architecture]]
+5. **2026-02-10-kyutai-mcp-obsidian-plugin-plan** → [[mcp-infrastructure-architecture]], [[multi-agent-systems]]
+6. **2026-02-09-session-43-phase-5b-verification-phase-6-launch** → [[compound-engineering]], [[context-management]]
+7. **2026-02-09-session-43-mcp-setup** → [[mcp-infrastructure-architecture]]
+8. **2026-02-09-ollama-mcp-server** → [[mcp-infrastructure-architecture]], [[context-management]]
+9. **2026-02-09-operational-principle-no-destructive-operations-without-learning** → [[agentic-ai]]
+10. **2026-02-09-rust-flume-python313-incompatibility** → [[mcp-infrastructure-architecture]]
 
 **Quality Assessment**:
 - ✅ All 10 links semantically correct (100%)

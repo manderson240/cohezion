@@ -19,7 +19,7 @@ tags: [concept]
 - [[2026-02-11-phase1-completion-summary]]
 - [[2026-02-11-phase1-step1-schema-complete]]
 - [[2026-02-11-surrealdb-agent-context-schema-design]]
-- [[2026-02-11t14-30-example-phase1-step1]]
+- [[2026-02-11-phase1-step1-schema-complete]]
 - [[surrealdb-agent-context-phase1-step3-execution-plan]]
 - [[surrealdb-agent-context-phase1-step3-query-testing]]
 

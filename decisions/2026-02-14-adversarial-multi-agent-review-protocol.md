@@ -44,7 +44,7 @@ metrics:
   tokens_used: 18500
   cost_per_lesson: 0.0
   lessons_generated:
-  - '[[experiments/2026-02-14-session-58-7-phase-journey-enrichment-3-agent-adversarial-review]]'
+  - '[[2026-02-14-session-58-7-phase-journey-enrichment-3-agent-adversarial-review]]'
 ---
 
 ## Context
@@ -187,7 +187,7 @@ uv run claude-code --spawn-agents \
 
 ## Related Decisions & Lessons
 
-**Experiment**: [[experiments/2026-02-14-session-58-7-phase-journey-enrichment-3-agent-adversarial-review]]
+**Experiment**: [[2026-02-14-session-58-7-phase-journey-enrichment-3-agent-adversarial-review]]
 **Session 55 Review**: [[2026-02-11-session-55-adversarial-review-blockers-identified]]
 **Pattern**: Multi-agent systems provide diverse perspectives that single-agent misses
 **Learnings**: Adversarial review catches integration bugs that unit tests miss

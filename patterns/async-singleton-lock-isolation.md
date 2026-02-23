@@ -67,6 +67,6 @@ Symptom: Tests pass individually but become ERROR in full suite, specifically in
 
 ## Related
 
-- [[decisions/2026-02-22-asyncio-lock-in-init-not-class-level]]
-- [[patterns/async-mock-subprocess-in-tests]]
+- [[2026-02-22-asyncio-lock-in-init-not-class-level]]
+- [[async-mock-subprocess-in-tests]]
 - KEY_LEARNINGS.md L130

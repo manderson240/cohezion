@@ -19,7 +19,7 @@ tags: [concept]
 - [[12d-graph-implementation]]
 - [[2026-02-09-12d-graph-next-steps]]
 - [[2026-02-09-12d-graph-surrealdb-integration]]
-- [[2026-02-10-execution-complete]]
+- [[2026-02-10-EXECUTION-COMPLETE]]
 - [[3d-graph-plugin-selection]]
 - [[lesson-11-team-agent-efficiency]]
 

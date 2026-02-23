@@ -87,5 +87,5 @@ See above.
 
 ## Related Decisions & Lessons
 
-- [[patterns/sanitize-env-var-path-components]]
+- [[sanitize-env-var-path-components]]
 - See also: remaining security review findings (XML entity expansion via `ET.fromstring`, broad exception swallowing)

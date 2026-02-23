@@ -267,7 +267,7 @@ const node: Node = someValue;
 
 ## Related Patterns
 
-- [[SERVICE-INITIALIZATION-CHECKLIST]] (Preventing integration gaps)
+- [[service-initialization-checklist]] (Preventing integration gaps)
 - [[2026-02-17-phase-2-service-initialization-gap-discovery]] (Phase 2 post-mortem)
 
 ## Related Concepts

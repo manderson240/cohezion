@@ -429,11 +429,11 @@ cd /home/mike-anderson/dev/cohezion/cloud-vault-mcp && \
 
 ## Related
 
-**Patterns**: [[Phase 1 Implementation Checklist]], [[Error Handling with DLQ]]
+**Patterns**: [[2026-02-11-phase-1-agent-context-schema-complete]], [[error-handling-with-dlq]]
 
-**Decisions**: [[Phase 1 SurrealDB Agent Context Schema]]
+**Decisions**: [[2026-02-11-phase-1-agent-context-schema-complete]]
 
-**Projects**: [[Phase 1 - SurrealDB Agent Context Schema Implementation]]
+**Projects**: [[2026-02-11-phase-1-agent-context-schema-complete]]
 
 ## Related Concepts
 

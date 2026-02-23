@@ -260,8 +260,8 @@ Adopt a **5-phase compound engineering approach** with 6 specialist agent types,
 
 ## Relevance to Cohezion
 
-[[MCP Infrastructure Architecture]]
-[[Multi Agent Systems]]
+[[mcp-infrastructure-architecture]]
+[[multi-agent-systems]]
 
 ## Related Lessons
 

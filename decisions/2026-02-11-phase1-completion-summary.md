@@ -295,7 +295,7 @@ The foundation is solid for Phases 2-4, which will add misalignment detection, c
 **Team**: data-graph-specialist (lead), integration-engineer, vault-architect, observability-specialist
 **Next Phase**: Phase 2 - Misalignment Detection (target 2026-02-18)
 
-[[Phase 1 Implementation]], [[SurrealDB]], [[Completion]]
+[[phase-1-implementation]], [[surrealdb]], [[Completion]]
 
 ## Related Concepts
 

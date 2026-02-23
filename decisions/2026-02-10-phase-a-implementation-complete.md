@@ -154,12 +154,12 @@ Plans underestimate actual effort by 1.5-2.5x:
 This decision is implemented as of 2026-02-10.
 
 **Related Documents:**
-- [[patterns/runbook-ollama-mcp-operations]]
-- [[patterns/runbook-ci-cd-pipeline]]
-- [[patterns/runbook-health-checks]]
-- [[patterns/runbook-benchmarking-validation]]
-- [[patterns/troubleshooting-mcp-infrastructure]]
-- [[concepts/mcp-infrastructure-architecture]]
+- [[runbook-ollama-mcp-operations]]
+- [[runbook-ci-cd-pipeline]]
+- [[runbook-health-checks]]
+- [[runbook-benchmarking-validation]]
+- [[troubleshooting-mcp-infrastructure]]
+- [[mcp-infrastructure-architecture]]
 
 ## Related Concepts
 

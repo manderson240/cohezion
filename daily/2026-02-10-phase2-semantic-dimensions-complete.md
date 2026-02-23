@@ -180,8 +180,8 @@ Users can now:
    - Priority: MEDIUM
 
 5. **Concept Extraction** (expand from 21 to 26+ concepts)
-   - [[Semantic Search]], [[Optimization]], [[Embodied AI]]
-   - [[Quantum Information]], [[Synthetic Biology]]
+   - [[semantic-search]], [[compound-engineering]], [[embodied-ai]]
+   - [[quantum-information]], [[synthetic-biology]]
    - Priority: MEDIUM
 
 ## Files Generated

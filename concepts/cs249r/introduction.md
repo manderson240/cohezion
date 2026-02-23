@@ -86,7 +86,7 @@ date: 2026-02-18
 - [[astrophysics-observations]]
 - [[surface-chemistry]]
 - [[concept-testing]]
-- [[agent context]]
+- [[agent-context]]
 - [[jwst-observations]]
 - [[data-discipline-prevent-generated-data-in-git]]
 - [[agent-loop-architecture]]

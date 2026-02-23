@@ -44,7 +44,7 @@ ICCUB/IEEC/IAC study of 214 O-type runaway stars — the most extensive observat
 
 ## Relevance to Cohezion
 
-Relevant to [[fractal_universe]] stellar dynamics modeling and N-body gravitational simulations., [[stellar-evolution]]
+Relevant to [[fractal-universe]] stellar dynamics modeling and N-body gravitational simulations., [[stellar-evolution]]
 
 ## Related Papers
 

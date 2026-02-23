@@ -45,7 +45,7 @@ NIST scientists confirmed that clocks on Mars run faster than on Earth due to we
 
 ## Relevance to Cohezion
 
-Relevant to [[fractal_universe]] relativistic physics modeling. Time dilation calculations are essential for accurate space mission simulations.
+Relevant to [[fractal-universe]] relativistic physics modeling. Time dilation calculations are essential for accurate space mission simulations.
 
 ## Related Papers
 

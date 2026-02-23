@@ -18,7 +18,7 @@ tags: [concept]
 
 - [[2026-02-09-operational-principle-no-destructive-operations-without-learning]]
 - [[2026-02-09-session-43-phase-5b-verification-phase-6-launch]]
-- [[2026-02-10-execution-complete]]
+- [[2026-02-10-EXECUTION-COMPLETE]]
 - [[multi-session-compound-engineering-workflow]]
 - [[phase-5b-completion-pattern]]
 

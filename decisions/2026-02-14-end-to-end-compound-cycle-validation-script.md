@@ -43,7 +43,7 @@ metrics:
   tokens_used: 12500
   cost_per_lesson: 0.0
   lessons_generated:
-  - '[[experiments/2026-02-14-session-58-7-phase-journey-enrichment-3-agent-adversarial-review]]'
+  - '[[2026-02-14-session-58-7-phase-journey-enrichment-3-agent-adversarial-review]]'
 ---
 
 ## Context
@@ -154,8 +154,8 @@ All phases validated successfully! ✓
 
 ## Related Decisions & Lessons
 
-**Experiment**: [[experiments/2026-02-14-session-58-7-phase-journey-enrichment-3-agent-adversarial-review]]
-**Multi-Agent Review**: [[decisions/2026-02-14-adversarial-multi-agent-review-protocol]]
+**Experiment**: [[2026-02-14-session-58-7-phase-journey-enrichment-3-agent-adversarial-review]]
+**Multi-Agent Review**: [[2026-02-14-adversarial-multi-agent-review-protocol]]
 **Phases 1-7**: See plan file at `/home/mike-anderson/.claude/plans/curried-swimming-clover.md`
 
 ## Related Concepts

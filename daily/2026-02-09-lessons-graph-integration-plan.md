@@ -117,7 +117,7 @@ Compound engineering plan to integrate 38 lessons into the 12D graph and create 
 - [[automated-concept-extraction]] - Similar extraction method
 - [[google-sheets-vault-bridge]] - Batch processing pattern
 - [[python-optimized-flume-pattern]] - Ollama integration
-- [[decisions/2026-02-09-ollama-mcp-server]] - Local model infrastructure
+- [[2026-02-09-ollama-mcp-server]] - Local model infrastructure
 
 ---
 

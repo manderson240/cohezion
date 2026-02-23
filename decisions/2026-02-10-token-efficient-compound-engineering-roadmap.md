@@ -427,8 +427,8 @@ Document learnings; prepare pattern for community sharing; identify scaling opti
 
 ## Relevance to Cohezion
 
-[[Compound Engineering]]
-[[Context Management]]
+[[compound-engineering]]
+[[context-management]]
 
 ## Related Concepts
 

@@ -45,7 +45,7 @@ Chinese neuro-symbolic AI system that outperforms Google DeepMind's AlphaGeometr
 
 ## Relevance to Cohezion
 
-Relevant to [[enhanced_simulator]] for neuro-symbolic reasoning approaches. The tree search methodology could inform Cohezion's problem-solving architectures., [[prompt-engineering]]
+Relevant to [[enhanced-simulator]] for neuro-symbolic reasoning approaches. The tree search methodology could inform Cohezion's problem-solving architectures., [[prompt-engineering]]
 
 ## Related Concepts
 

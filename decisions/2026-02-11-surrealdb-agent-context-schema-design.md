@@ -281,7 +281,7 @@ Week 1: Validation
 **Date**: 2026-02-11
 **Status**: Proposed
 
-[[SurrealDB]], [[Knowledge Graph]], [[Agent Context]], [[12D Graph]]
+[[surrealdb]], [[knowledge-graph-systems]], [[agent-context]], [[12d-graph-implementation]]
 
 ## Related Lessons
 

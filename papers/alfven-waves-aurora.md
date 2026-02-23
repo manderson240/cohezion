@@ -45,7 +45,7 @@ Researchers from University of Hong Kong and UCLA identified Alfven waves as the
 
 ## Relevance to Cohezion
 
-Relevant to [[fractal_universe]] plasma physics modeling and magnetohydrodynamic simulations., [[astrophysics-observations]]
+Relevant to [[fractal-universe]] plasma physics modeling and magnetohydrodynamic simulations., [[astrophysics-observations]]
 
 ## Related Papers
 

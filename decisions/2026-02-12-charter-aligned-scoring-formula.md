@@ -35,5 +35,5 @@ decision_reasoning:
 ## See Also
 
 - [[roi-analysis]]
-- [[charter-compliant-feature-implementation]]
+- [[compound-engineering]]
 - [[token-efficiency]]

@@ -229,7 +229,7 @@ Phase 1 Step 1 SUCCESS when:
 
 ## Related Notes
 
-- [[decision-vault-architecture-implications]] - Integration options evaluated
+- [[mcp-infrastructure-architecture]] - Integration options evaluated
 - [[pattern-implementation-first-infrastructure-later]] - Design approach used
 - [[lesson-surrealdb-schema-design]] - Lessons from SurrealDB experience
 

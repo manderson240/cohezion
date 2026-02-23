@@ -72,7 +72,7 @@ metrics:
 
 ## Related Decisions & Lessons
 
-- [[3-tier-hotwarmcold-model-rotation-for-local-llm-orchestration]]
+- [[3-tier-hotwarmcold-model-rotation]]
 - [[runbook-ollama-mcp-operations]]
 - [[2026-02-09-ollama-mcp-server]]
 - [[2026-02-09-ai-model-strategy]]

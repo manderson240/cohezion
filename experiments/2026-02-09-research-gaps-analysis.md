@@ -123,7 +123,7 @@ Each orphaned paper likely relates to 2-5 concepts already in the vault:
 **Examples**:
 - `ai-anomaly-detection-hubble-archive.md` → could link to [[machine-learning]], [[astronomy]], [[data-analysis]]
 - `anthropic-disempowerment-patterns.md` → could link to [[ai-safety]], [[agent-architecture]], [[alignment]]
-- `circleci-ai-cicd-validation.md` → could link to [[devops]], [[ci-cd]], [[testing]]
+- `circleci-ai-cicd-validation.md` → could link to [[runbook-ci-cd-pipeline]], [[runbook-ci-cd-pipeline]], [[lesson-34-test-hang-unmocked-live-service]]
 
 **Estimated effort**: 1-2 wiki-links per paper × 28 papers = 28-56 new connections (~2 hours manual work)
 
@@ -143,11 +143,11 @@ Identify 5-10 papers to add per under-represented domain:
 Current 21 concepts are foundational. Additional cross-cutting concepts needed:
 
 **New concepts to consider**:
-- [[Semantic Search]] (connects papers across domains via embeddings)
-- [[Optimization Under Constraints]] (appears in 6+ papers)
-- [[Embodied AI]] (robotics + cognition)
-- [[Quantum Information]] (bridges quantum computing + information theory)
-- [[Synthetic Biology]] (biotech + engineering)
+- [[semantic-search]] (connects papers across domains via embeddings)
+- [[compound-engineering]] (appears in 6+ papers)
+- [[embodied-ai]] (robotics + cognition)
+- [[quantum-information]] (bridges quantum computing + information theory)
+- [[synthetic-biology]] (biotech + engineering)
 
 ## Recommendations
 

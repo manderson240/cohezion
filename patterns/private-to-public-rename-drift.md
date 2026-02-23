@@ -46,5 +46,5 @@ The "Did you mean" suggestion is Python identifying the correct public name.
 
 ## Related
 
-- [[experiments/2026-02-22-session-70-heal-and-test-fix]]
+- [[2026-02-22-session-70-heal-and-test-fix]]
 - KEY_LEARNINGS.md L131

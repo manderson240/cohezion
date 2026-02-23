@@ -61,7 +61,7 @@ LlamaIndex tool for rapidly creating and deploying AI agents from natural langua
 
 ## Relevance to Cohezion
 
-Relevant to [[lab_agent]] for comparing agent deployment approaches. The natural-language-to-workflow pattern could inform Cohezion's own agent scaffolding tools., [[agent-architecture]], [[agentic-ai]], [[prompt-engineering]]
+Relevant to [[lab-agent]] for comparing agent deployment approaches. The natural-language-to-workflow pattern could inform Cohezion's own agent scaffolding tools., [[agent-architecture]], [[agentic-ai]], [[prompt-engineering]]
 
 ## Related Concepts
 

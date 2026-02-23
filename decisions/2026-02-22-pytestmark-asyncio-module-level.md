@@ -29,6 +29,6 @@ New rule: files with >50% async tests should use module-level `pytestmark` not p
 
 ## Related
 
-- [[decisions/2026-02-22-asyncio-lock-in-init-not-class-level]]
-- [[patterns/async-mock-subprocess-in-tests]]
+- [[2026-02-22-asyncio-lock-in-init-not-class-level]]
+- [[async-mock-subprocess-in-tests]]
 - KEY_LEARNINGS.md L132

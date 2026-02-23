@@ -19,7 +19,7 @@ Created: 2026-02-08 14:43:24
 
 ## Related
 **Domains**: architecture, cicd, git, performance, testing
-**Concepts**: [[concept-automation]], [[concept-caching]], [[concept-modularity]], [[concept-optimization]], [[concept-orchestration]], [[concept-testing]], [[concept-versioning]]
+**Concepts**: [[concept-automation]], [[concept-caching]], [[concept-modularity]], [[concept-optimization]], [[compound-engineering]], [[concept-testing]], [[concept-versioning]]
 
 ## Related Papers
 

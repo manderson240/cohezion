@@ -38,9 +38,9 @@ Ran SurrealDB re-import and plugin wiring in parallel — zero cross-dependencie
 - 22/22 GraphRAG tests pass
 
 ### SurrealDB Re-import
-- 354 documents imported with 768-dim [[nomic-embed-text]] embeddings
+- 354 documents imported with 768-dim [[semantic-search]] embeddings
 - 794 `informed_by` graph edges from wiki-link parsing
-- Vector similarity search verified (cosine 0.77 for "quantum computing" → [[quantum_error_correction]])
+- Vector similarity search verified (cosine 0.77 for "quantum computing" → [[quantum-error-correction]])
 - Import script: `scripts/reimport_vault.py`
 
 ### Plugin Wiring (Phase 6-7)

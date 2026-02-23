@@ -735,5 +735,5 @@ This revised master plan incorporates all adversarial review findings:
 - [[2026-02-10-phase3-3d-graph-adversarial-review]]
 - [[2026-02-10-log-mining-adversarial-review]]
 - [[2026-02-10-plan-vs-reality-comparison]]
-- [[stakeholder-decision-brief-2026-02-16]]
+- [[STAKEHOLDER-DECISION-BRIEF-2026-02-16]]
 - [[lesson-adversarial-review-before-execution]]

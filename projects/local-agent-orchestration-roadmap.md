@@ -180,8 +180,8 @@ Create specialized PRIME skill definitions:
 
 ## Dependencies
 
-- [[decisions/2026-02-14-agent-orchestration-design-3-tier-hotwarmcold-model-rotation]]
-- [[decisions/2026-02-13-local-model-roster-update-february-2026-sota-assessment]]
-- [[decisions/2026-02-13-experience-vae-training-pipeline-session-58]]
-- [[patterns/3-tier-hotwarmcold-model-rotation-for-local-llm-orchestration]]
-- [[patterns/experience-feedback-loop]]
+- [[2026-02-14-agent-orchestration-design-3-tier-hotwarmcold-model-rotation]]
+- [[2026-02-13-local-model-roster-update-february-2026-sota-assessment]]
+- [[2026-02-13-experience-vae-training-pipeline-session-58]]
+- [[3-tier-hotwarmcold-model-rotation]]
+- [[experience-feedback-loop]]

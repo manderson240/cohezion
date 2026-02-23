@@ -22,7 +22,7 @@ Execute all 3 remediation tasks in parallel using a 3-agent team (`compound-engi
 |-------|-------|--------|
 | [[decision-linker]] | 51 orphaned decisions | Read + semantic link identification + Edit |
 | [[inbox-triager]] | 59 inbox files | Categorize → delete/archive/keep |
-| [[experiment-linker]] | 20 experiment files | Read + cross-reference + Edit |
+| [[compound-engineering]] | 20 experiment files | Read + cross-reference + Edit |
 
 ## Results
 

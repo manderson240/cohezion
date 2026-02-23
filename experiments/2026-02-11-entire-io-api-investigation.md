@@ -238,13 +238,13 @@ ORDER BY session_count DESC
 
 ## Related
 
-**Concepts**: [[Entire.io Integration]], [[Research Lineage]], [[Agent Context Tracking]]
+**Concepts**: [[entire-io-to-vault-mapping]], [[research-lineage]], [[agent-context]]
 
-**Decisions**: [[2026-02-11-entire-io-integration-architecture]], [[2026-02-11-use-event-driven-daemon-for-entire-io]]
+**Decisions**: [[entire-io-to-vault-mapping]], [[2026-02-11-use-event-driven-daemon-for-entire-io]]
 
-**Patterns**: [[Event-Driven Daemon Pattern]], [[SurrealDB Sync Pattern]]
+**Patterns**: [[event-driven-daemon-pattern]], [[surrealdb-sync-pattern]]
 
-**Projects**: [[Phase 1 - SurrealDB Agent Context Schema]], [[Week 1 - Entire.io Integration]]
+**Projects**: [[2026-02-11-phase-1-agent-context-schema-complete]], [[2026-02-12-week-1-handoff-summary]]
 
 ## Related Concepts
 

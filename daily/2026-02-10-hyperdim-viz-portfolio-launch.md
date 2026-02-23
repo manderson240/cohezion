@@ -384,4 +384,4 @@ interface AgentJourney { agentId, path: [{ taskId, papersAccessed, conceptsAcces
 
 ---
 
-Related: [[hyperdim-viz-portfolio]], [[anthropic-research-engineer]], [[12d-graph]], [[agent-journey-tracking]], [[compound-engineering]]
+Related: [[hyperdim-viz-portfolio]], [[anthropic-research-engineer]], [[12d-graph-implementation]], [[agent-journey-tracking]], [[compound-engineering]]

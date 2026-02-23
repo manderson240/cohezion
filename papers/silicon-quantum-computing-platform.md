@@ -44,7 +44,7 @@ The 14|15 platform combines crystalline silicon substrates with phosphorus atom 
 
 ## Relevance to Cohezion
 
-Relevant to [[enhanced_simulator]] for quantum simulation modeling. The Quantum Twins approach of using physical qubit arrays to simulate quantum chemistry could inform simulation architecture., [[quantum-computing]], [[quantum-mechanics]]
+Relevant to [[enhanced-simulator]] for quantum simulation modeling. The Quantum Twins approach of using physical qubit arrays to simulate quantum chemistry could inform simulation architecture., [[quantum-computing]], [[quantum-mechanics]]
 
 ## Related Concepts
 

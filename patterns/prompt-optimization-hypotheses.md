@@ -423,9 +423,9 @@ The adversarial review process proved valuable: by validating data availability 
 
 ## Related Vault Notes
 
-- [[decisions/2026-02-10-claude-log-mining-architecture|Original Architecture]] (flawed)
-- [[decisions/2026-02-10-log-mining-adversarial-review|Adversarial Review]] (7 critical flaws identified)
-- [[daily/2026-02-10-redesigned-pilot-launch|Execution Report]]
+- [[2026-02-10-claude-log-mining-architecture|Original Architecture]] (flawed)
+- [[2026-02-10-log-mining-adversarial-review|Adversarial Review]] (7 critical flaws identified)
+- [[2026-02-10-redesigned-pilot-launch|Execution Report]]
 - [[token-efficiency]]
 - [[prompt-engineering]]
 - [[compound-engineering]]

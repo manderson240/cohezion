@@ -59,4 +59,4 @@ YC startup raised $6M (Khosla Ventures led) to mathematically prove AI-generated
 
 ## Relevance to Cohezion
 
-Applicable to [[lab_agent]] code generation pipeline. Could inform verification strategies for agent-generated code in the framework., [[ai-agents]]
+Applicable to [[lab-agent]] code generation pipeline. Could inform verification strategies for agent-generated code in the framework., [[ai-agents]]

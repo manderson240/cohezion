@@ -489,7 +489,7 @@ record_decision(...)
 **Status**: Phase 1 Documentation Complete ✅
 **Task**: Task #10 (Step 5)
 
-[[Phase 1 Implementation]], [[MCP Tools]], [[Agent Context]]
+[[phase-1-implementation]], [[mcp-infrastructure-architecture]], [[agent-context]]
 
 ## Related Concepts
 

@@ -18,7 +18,7 @@ tags: [concept]
 
 - [[2026-02-10-hyperdim-project-status-update]]
 - [[2026-02-10-hyperdim-viz-portfolio-launch]]
-- [[2026-02-10-project-complete-100-percent]]
+- [[2026-02-10-PROJECT-COMPLETE-100-PERCENT]]
 - [[2026-02-10-session-complete-final-status]]
 
 ## Related Concepts

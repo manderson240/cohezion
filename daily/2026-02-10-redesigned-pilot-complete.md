@@ -251,10 +251,10 @@ status: complete
 
 ## Related Vault Notes
 
-- [[decisions/2026-02-10-claude-log-mining-architecture|Original Architecture]] (flawed)
-- [[decisions/2026-02-10-log-mining-adversarial-review|Adversarial Review]] (saved us)
-- [[daily/2026-02-10-redesigned-pilot-launch|Launch]] (execution plan)
-- [[patterns/prompt-optimization-hypotheses|Final Deliverable]] (hypotheses)
+- [[2026-02-10-claude-log-mining-architecture|Original Architecture]] (flawed)
+- [[2026-02-10-log-mining-adversarial-review|Adversarial Review]] (saved us)
+- [[2026-02-10-redesigned-pilot-launch|Launch]] (execution plan)
+- [[prompt-optimization-hypotheses|Final Deliverable]] (hypotheses)
 - [[token-efficiency]]
 - [[prompt-engineering]]
 

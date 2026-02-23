@@ -466,7 +466,7 @@ DEFINE INDEX idx_decision_session_type ON agent_decision
 
 ## Related
 
-**Patterns**: [[SurrealDB Agent Context Schema]]
+**Patterns**: [[surrealdb-agent-context-schema]]
 
 **Decisions**: [[2026-02-11-surrealdb-agent-context-schema-design]]
 

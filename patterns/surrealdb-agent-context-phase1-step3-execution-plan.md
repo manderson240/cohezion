@@ -410,7 +410,7 @@ All of the following must pass:
 **Owner**: data-graph-specialist
 **Dependency**: Step 2 completion (integration-engineer)
 
-[[Phase 1 Implementation]], [[Query Testing]], [[SurrealDB]]
+[[phase-1-implementation]], [[query-testing]], [[surrealdb]]
 
 ## Related Concepts
 

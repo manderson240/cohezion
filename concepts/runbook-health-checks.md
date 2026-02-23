@@ -17,7 +17,7 @@ tags: [concept]
 ## Related Papers
 
 - [[2026-02-10-debug-log-bloat-analysis]]
-- [[2026-02-10-log-mining-retrospective]]
+- [[2026-02-10-claude-log-mining-architecture]]
 - [[2026-02-10-phase-a-implementation-complete]]
 - [[2026-02-10-telemetry-corruption-fix]]
 - [[log-rotation-and-monitoring]]

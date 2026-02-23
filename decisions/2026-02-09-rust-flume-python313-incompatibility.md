@@ -249,7 +249,7 @@ app = mcp.streamable_http_app()
 
 ## Relevance to Cohezion
 
-[[MCP Infrastructure Architecture]]
+[[mcp-infrastructure-architecture]]
 
 ## Related Lessons
 

@@ -240,8 +240,8 @@ Before marking component "complete":
 
 ## Related
 
-- [[SERVICE-INITIALIZATION-CHECKLIST]] (Integration wiring)
-- [[TYPESCRIPT-ERROR-DIAGNOSTIC]] (Compilation verification)
+- [[service-initialization-checklist]] (Integration wiring)
+- [[typescript-error-diagnostic]] (Compilation verification)
 - [[2026-02-17-phase-2-service-initialization-gap-discovery]] (Phase 2 post-mortem)
 
 ## Related Concepts

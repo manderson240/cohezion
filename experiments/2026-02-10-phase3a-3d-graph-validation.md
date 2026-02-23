@@ -169,10 +169,10 @@ related_papers: [[paper-1]], [[paper-2]]  # ❌ YAML sees nested structures
 
 ## Related
 
-[[Implementation First, Infrastructure Later]]
-[[Phase 3: 3D Graph Plugin - Adversarial Review]]
-[[12D Graph Implementation]]
-[[Kyutai Project]]
+[[implementation-first-infrastructure-later]]
+[[2026-02-09-12d-graph-next-steps]]
+[[12d-graph-implementation]]
+[[kyutai-project]]
 
 [[token-efficiency]], [[compound-engineering]], [[adversarial-review]]
 

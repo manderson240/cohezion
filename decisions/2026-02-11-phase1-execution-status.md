@@ -295,7 +295,7 @@ Phase 1 is **on track and ahead of schedule**. The team is well-coordinated with
 **Author**: data-graph-specialist
 **Confidence**: High
 
-[[Phase 1 Implementation]], [[Executive Summary]]
+[[phase-1-implementation]], [[Executive Summary]]
 
 ## Related Concepts
 

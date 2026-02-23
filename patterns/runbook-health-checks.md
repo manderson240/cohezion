@@ -163,7 +163,7 @@ du -sh ~/.claude/debug/
 0 3 * * 1 find ~/.claude/debug -name "*.txt" -mtime +30 -delete
 ```
 
-**Reference**: [[lessons/2026-02-10-debug-log-bloat-analysis]] - 1.6GB forensic analysis
+**Reference**: [[2026-02-10-debug-log-bloat-analysis]] - 1.6GB forensic analysis
 
 ---
 
@@ -532,10 +532,10 @@ done > /tmp/health_baseline_$(date +%Y-%m-%d).txt
 | Ollama MCP | "Timeout" | Restart Claude Code | `ps aux \| grep ollama` |
 
 ## Related Documentation
-- [[decisions/2026-02-10-phase-a-implementation-complete]]
-- [[patterns/runbook-ollama-mcp-operations]]
-- [[patterns/troubleshooting-mcp-infrastructure]]
-- [[concepts/mcp-infrastructure-architecture]]
+- [[2026-02-10-phase-a-implementation-complete]]
+- [[runbook-ollama-mcp-operations]]
+- [[troubleshooting-mcp-infrastructure]]
+- [[mcp-infrastructure-architecture]]
 
 ## Related Concepts
 

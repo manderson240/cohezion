@@ -82,7 +82,7 @@ python3 /tmp/canvas_gap_analyzer.py > gap_analysis.json
 ```
 Input: decisions/2026-02-09-ollama-mcp-server
 Summary: "Ollama MCP server implementation details..."
-Candidates: [[MCP Infrastructure Architecture]], [[Context Management]]
+Candidates: [[mcp-infrastructure-architecture]], [[context-management]]
 Decision: Both relevant → assign both
 Output: ["concepts/mcp-infrastructure-architecture", "concepts/context-management"]
 ```

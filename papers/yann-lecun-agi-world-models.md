@@ -61,7 +61,7 @@ Yann LeCun's perspective on achieving human-level AI and the importance of open 
 
 ## Relevance to Cohezion
 
-Informs [[lab_agent]] architecture decisions. The world models concept aligns with Cohezion's approach to building agents that understand causal relationships rather than relying purely on pattern matching., [[agentic-ai]]
+Informs [[lab-agent]] architecture decisions. The world models concept aligns with Cohezion's approach to building agents that understand causal relationships rather than relying purely on pattern matching., [[agentic-ai]]
 
 ## Related Papers
 

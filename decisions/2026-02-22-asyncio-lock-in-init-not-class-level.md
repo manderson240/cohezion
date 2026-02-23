@@ -25,6 +25,6 @@ asyncio.Lock objects are bound to the event loop that creates them. Class-level 
 
 ## Related
 
-- [[patterns/async-singleton-lock-isolation]]
-- [[experiments/2026-02-22-session-70-heal-and-test-fix]]
+- [[async-singleton-lock-isolation]]
+- [[2026-02-22-session-70-heal-and-test-fix]]
 - KEY_LEARNINGS.md L130

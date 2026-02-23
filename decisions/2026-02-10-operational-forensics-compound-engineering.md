@@ -96,8 +96,8 @@ Layer 3: Lessons/Retrospectives (NEW: 8% coverage) ← UNTAPPED
 **Insight**: Lessons are POST-HOC validation of decisions
 
 **Example**:
-- Decision: [[decisions/ollama-mcp-server]]
-- Lesson: [[lessons/2026-02-10-debug-log-bloat-analysis]]
+- Decision: [[2026-02-09-ollama-mcp-server]]
+- Lesson: [[2026-02-10-debug-log-bloat-analysis]]
 - Link: "MCP connection retry spam validates need for exponential backoff (see ollama-mcp design)"
 
 **Value**: Close decision ↔ outcome feedback loop
@@ -194,10 +194,10 @@ Lesson: Outcome + metrics
 
 ## Related Work
 
-- [[decisions/2026-02-10-canvas-driven-compound-engineering-refined]] - Manual linking approach
-- [[patterns/canvas-driven-manual-linking]] - Proven methodology
-- [[lessons/2026-02-10-debug-log-bloat-analysis]] - Example rich lesson
-- [[retrospectives/2026-02-10-log-mining-retrospective]] - Meta-learning process
+- [[2026-02-10-canvas-driven-compound-engineering-refined]] - Manual linking approach
+- [[canvas-driven-manual-linking]] - Proven methodology
+- [[2026-02-10-debug-log-bloat-analysis]] - Example rich lesson
+- [[2026-02-10-claude-log-mining-architecture]] - Meta-learning process
 
 ## Decision
 

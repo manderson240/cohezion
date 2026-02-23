@@ -49,7 +49,7 @@ Evaluated five canonical agent architectures (Single-Agent, Independent, Central
 
 ## Relevance to Cohezion
 
-Directly applicable to [[lab_agent]] multi-agent orchestration design. The error amplification findings and capability saturation threshold inform when to use multi-agent vs single-agent approaches. The predictive framework could guide automatic architecture selection., [[multi-agent-systems]], [[agentic-ai]], [[agent-architecture]]
+Directly applicable to [[lab-agent]] multi-agent orchestration design. The error amplification findings and capability saturation threshold inform when to use multi-agent vs single-agent approaches. The predictive framework could guide automatic architecture selection., [[multi-agent-systems]], [[agentic-ai]], [[agent-architecture]]
 
 ## Related Concepts
 

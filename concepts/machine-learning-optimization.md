@@ -17,7 +17,7 @@ tags: [concept]
 ## Related Papers
 
 - [[2026-02-09-ollama-mcp-server]]
-- [[2026-02-10-execution-complete]]
+- [[2026-02-10-EXECUTION-COMPLETE]]
 - [[alphafold-cryo-em-structure-prediction]]
 - [[lesson-31-operation-specific-modulation]]
 

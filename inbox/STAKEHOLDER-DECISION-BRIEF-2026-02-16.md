@@ -381,4 +381,4 @@ Three execution options are available:
 ## Related Concepts
 
 - [[2026-02-10-plan-vs-reality-comparison]]
-- [[phase-4-7-master-execution-plan-revised-2026-02-16]]
+- [[PHASE-4-7-MASTER-EXECUTION-PLAN-REVISED-2026-02-16]]

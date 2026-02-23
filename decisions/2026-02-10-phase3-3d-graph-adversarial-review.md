@@ -287,12 +287,12 @@ Before ANY coding:
 
 ## References
 
-- [[Implementation First, Infrastructure Later]] - Critical lesson from Kyutai
-- [[Kyutai Project]] - 2,151 LOC TypeScript plugin (template source)
-- [[3D Graph Plugin Selection]] - New 3D Graph research
-- [[12D Graph Implementation]] - Original plan (needs updating)
+- [[implementation-first-infrastructure-later]] - Critical lesson from Kyutai
+- [[kyutai-project]] - 2,151 LOC TypeScript plugin (template source)
+- [[3d-graph-plugin-selection]] - New 3D Graph research
+- [[12d-graph-implementation]] - Original plan (needs updating)
 
-[[token-efficiency]], [[compound-engineering]], [[12d-graph]], [[adversarial-review]]
+[[token-efficiency]], [[compound-engineering]], [[12d-graph-implementation]], [[adversarial-review]]
 
 ## Related Concepts
 

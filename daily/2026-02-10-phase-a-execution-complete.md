@@ -43,8 +43,8 @@ Identified 2 remaining orphan decisions:
 ### Step 3: Apply Links
 Added "Relevance to Cohezion" section to roadmap decision:
 ```
-[[Compound Engineering]]
-[[Context Management]]
+[[compound-engineering]]
+[[context-management]]
 ```
 
 ### Step 4: Regenerate Canvas

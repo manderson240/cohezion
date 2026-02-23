@@ -679,7 +679,7 @@ PYTHONUNBUFFERED=1                                        # Unbuffered output
 **Status**: Production Ready
 **Contact**: integration-engineer (Track B lead)
 
-See also: [[entire-io-sync-daemon-design]], [[Phase 2 Track B]], [[Entire.io API Investigation]]
+See also: [[entire-io-sync-daemon-design]], [[2026-02-13-phase-2-track-b-entire-io-sync-daemon-complete]], [[2026-02-11-entire-io-api-investigation]]
 
 ## Related Concepts
 

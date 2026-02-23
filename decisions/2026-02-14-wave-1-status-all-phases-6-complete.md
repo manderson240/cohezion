@@ -264,7 +264,7 @@ All Phase 6 tasks are **COMPLETE and DELIVERED**. Phase 7 (dashboard) has all re
 - [[2026-02-11-phase1-execution-status]]
 - [[2026-02-10-kyutai-execution-kickoff]]
 - [[2026-02-14-wave-1-delivery-complete]]
-- [[2026-02-10-final-status]]
+- [[2026-02-10-session-complete-final-status]]
 - [[2026-02-14-wave-1-status-snapshot]]
 - [[2026-02-10-cohezion-status-checkpoint]]
 - [[2026-02-11-project-quick-reference]]

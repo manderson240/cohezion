@@ -180,12 +180,12 @@ echo "Compression saved $((BEFORE - AFTER))MB"
 ```
 
 ## Related Lessons
-- [[lessons/2026-02-10-debug-log-bloat-analysis]] - 1.6GB accumulation forensics
-- [[lessons/2026-02-10-telemetry-corruption-fix]] - Similar cleanup issue
+- [[2026-02-10-debug-log-bloat-analysis]] - 1.6GB accumulation forensics
+- [[2026-02-10-telemetry-corruption-fix]] - Similar cleanup issue
 
 ## Related Patterns
-- [[patterns/runbook-health-checks]] - Add log size check
-- [[patterns/troubleshooting-mcp-infrastructure]] - MCP debugging
+- [[runbook-health-checks]] - Add log size check
+- [[troubleshooting-mcp-infrastructure]] - MCP debugging
 
 ---
 

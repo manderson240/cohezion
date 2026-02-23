@@ -147,9 +147,9 @@ MCP server "ide": Connection error: Uncaught error in notification handler: $Zod
 4. Create admin dashboard for log health monitoring
 
 ## Related Patterns
-- [[patterns/runbook-health-checks]] - Add debug log size check
-- [[lessons/2026-02-10-telemetry-corruption-fix]] - Similar accumulation issue
-- [[patterns/troubleshooting-mcp-infrastructure]] - MCP connection troubleshooting
+- [[runbook-health-checks]] - Add debug log size check
+- [[2026-02-10-telemetry-corruption-fix]] - Similar accumulation issue
+- [[troubleshooting-mcp-infrastructure]] - MCP connection troubleshooting
 
 ## Prevention Checklist
 
@@ -184,7 +184,7 @@ MCP server "ide": Connection error: Uncaught error in notification handler: $Zod
 - [[2026-02-10-kyutai-token-waste-postmortem]]
 - [[runbook-benchmarking-validation]]
 - [[log-rotation-and-monitoring]]
-- [[2026-02-10-phase4-complete-summary]]
+- [[2026-02-10-phase4-COMPLETE-summary]]
 - [[2026-02-10-performance-benchmarking-framework]]
 - [[2026-02-10-benchmarking-framework-complete]]
 - [[2026-02-09-ollama-mcp-infrastructure]]

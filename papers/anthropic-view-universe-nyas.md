@@ -59,7 +59,7 @@ NYAS article exploring the anthropic principle and cosmological fine-tuning.
 
 ## Relevance to Cohezion
 
-Directly relevant to [[fractal_universe]] cosmological modeling and the framework's approach to simulating universes with varying physical parameters., [[early-universe-cosmology]]
+Directly relevant to [[fractal-universe]] cosmological modeling and the framework's approach to simulating universes with varying physical parameters., [[early-universe-cosmology]]
 
 ## Related Concepts
 

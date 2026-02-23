@@ -380,10 +380,10 @@ gh deployment status <deployment-id>
    - Update tests if behavior change is intentional
 
 ## Related Documentation
-- [[decisions/2026-02-10-phase-a-implementation-complete]]
-- [[patterns/runbook-health-checks]]
-- [[patterns/troubleshooting-mcp-infrastructure]]
-- [[concepts/mcp-infrastructure-architecture]]
+- [[2026-02-10-phase-a-implementation-complete]]
+- [[runbook-health-checks]]
+- [[troubleshooting-mcp-infrastructure]]
+- [[mcp-infrastructure-architecture]]
 
 ## Related Concepts
 

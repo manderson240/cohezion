@@ -46,7 +46,7 @@ Diana Scognamiglio et al. at NASA JPL used JWST to create the most detailed dark
 
 ## Relevance to Cohezion
 
-Relevant to [[fractal_universe]] modeling of large-scale cosmic structure and matter distribution patterns., [[jwst-observations]], [[dark-matter]], [[early-universe-cosmology]]
+Relevant to [[fractal-universe]] modeling of large-scale cosmic structure and matter distribution patterns., [[jwst-observations]], [[dark-matter]], [[early-universe-cosmology]]
 
 ## Related Concepts
 

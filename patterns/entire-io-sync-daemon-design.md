@@ -397,13 +397,13 @@ WantedBy=multi-user.target
 
 ## Related
 
-**Patterns**: [[Event-Driven Daemon Pattern]], [[SurrealDB Sync Pattern]], [[Error Handling with DLQ]]
+**Patterns**: [[event-driven-daemon-pattern]], [[surrealdb-sync-pattern]], [[error-handling-with-dlq]]
 
 **Decisions**: [[2026-02-11-use-event-driven-daemon-for-entire-io]]
 
 **Experiments**: [[2026-02-11-entire-io-api-investigation]]
 
-**Projects**: [[Week 1 - Entire.io Integration]]
+**Projects**: [[2026-02-12-week-1-handoff-summary]]
 
 ## Related Concepts
 
