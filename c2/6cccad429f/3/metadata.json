@@ -1,0 +1,53 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "c26cccad429f",
+  "session_id": "6b0ee3ac-f992-44f8-9cc3-099d587fc318",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-23T21:23:37.833060086Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    ".claude/commands/async-audit.md",
+    ".claude/commands/test-fix.md",
+    "CZ_CONTEXT_BUG_DIAGNOSIS.md",
+    "SYSTEM_RESOURCE_AUDIT.md",
+    "apply_optimizations.sh",
+    "cloud-vault-mcp/run_mcp.py",
+    "cloud-vault-mcp/src/mcp_server/config.py",
+    "cloud-vault-mcp/src/mcp_server/server.py",
+    "cloud-vault-mcp/tests/test_config.py",
+    "cloud-vault-mcp/tests/test_server_stateless.py",
+    "cloud-vault-mcp/tests/test_stateless_http.py",
+    "data/checkpoints/test.json",
+    "docs/COMPOUND_ENGINEERING_NEXT_STEPS.md",
+    "docs/plans/2026-02-23-fix-vault-mcp-session-error.md",
+    "history.txt",
+    "monitor_resources.sh",
+    "src/cohezion/core/persistence/repositories/journey_knowledge_repository.py",
+    "src/cohezion/healing/recursive_challenger.py",
+    "tests/integration/test_surreal_persistence.py",
+    "tests/unit/persistence/__init__.py",
+    "tests/unit/persistence/test_surreal_skill_repository.py",
+    "tests/unit/persistence/test_surreal_universe_repository.py",
+    "tests/unit/test_recursive_challenger.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "822c621282af",
+  "token_usage": {
+    "input_tokens": 613,
+    "cache_creation_tokens": 794068,
+    "cache_read_tokens": 29011963,
+    "output_tokens": 23094,
+    "api_call_count": 228
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-23T21:23:37.215363944Z",
+    "agent_lines": 0,
+    "human_added": 6521204,
+    "human_modified": 6863,
+    "human_removed": 0,
+    "total_committed": 6526237,
+    "agent_percentage": 0
+  },
+  "transcript_path": ".claude/projects/-home-mike-anderson-dev-cohezion/6b0ee3ac-f992-44f8-9cc3-099d587fc318.jsonl"
+}
