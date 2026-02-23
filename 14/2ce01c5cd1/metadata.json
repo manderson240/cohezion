@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "142ce01c5cd1",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "CLAUDE.md",
+    "memory/MEMORY.md",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "src/cohezion/knowledge_graph/MISSION_JOURNAL.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/14/2ce01c5cd1/0/metadata.json",
+      "transcript": "/14/2ce01c5cd1/0/full.jsonl",
+      "context": "/14/2ce01c5cd1/0/context.md",
+      "content_hash": "/14/2ce01c5cd1/0/content_hash.txt",
+      "prompt": "/14/2ce01c5cd1/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 13795,
+    "cache_creation_tokens": 1089056,
+    "cache_read_tokens": 53579833,
+    "output_tokens": 71624,
+    "api_call_count": 441
+  }
+}
