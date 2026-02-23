@@ -3,7 +3,7 @@
   "checkpoint_id": "6e95abdc8896",
   "strategy": "manual-commit",
   "branch": "feature/model-pool-v1.1.0",
-  "checkpoints_count": 0,
+  "checkpoints_count": 1,
   "files_touched": [
     "data/checkpoints/test.json",
     "data/config-sync-logs/config_sync.jsonl",
@@ -39,13 +39,20 @@
       "context": "/6e/95abdc8896/3/context.md",
       "content_hash": "/6e/95abdc8896/3/content_hash.txt",
       "prompt": "/6e/95abdc8896/3/prompt.txt"
+    },
+    {
+      "metadata": "/6e/95abdc8896/4/metadata.json",
+      "transcript": "/6e/95abdc8896/4/full.jsonl",
+      "context": "/6e/95abdc8896/4/context.md",
+      "content_hash": "/6e/95abdc8896/4/content_hash.txt",
+      "prompt": "/6e/95abdc8896/4/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 1200,
-    "cache_creation_tokens": 951050,
-    "cache_read_tokens": 29539626,
-    "output_tokens": 25148,
-    "api_call_count": 239
+    "input_tokens": 1425,
+    "cache_creation_tokens": 957524,
+    "cache_read_tokens": 33018969,
+    "output_tokens": 29281,
+    "api_call_count": 258
   }
 }
