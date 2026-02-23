@@ -51,6 +51,9 @@ jobs:
       - name: Sync dependencies
         run: uv sync --frozen --extra dev
 
+      - name: Check CI installs dev extras
+        run: uv run python scripts/ci/check_ci_deps.py
+
       - name: Validate agent files
         run: uv run python scripts/ci/validate_agents.py
 

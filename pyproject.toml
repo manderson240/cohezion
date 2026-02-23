@@ -136,14 +136,4 @@ strict_equality = true
 module = "tests.*"
 disallow_untyped_defs = false
 
-# Pytest configuration
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-markers = [
-    "fast: Fast unit tests (<1s each, no live services)",
-    "integration: Integration tests (require live services like Ollama/SurrealDB)",
-    "mcp: MCP server tests (require vault access)",
-]
+# Pytest configuration is in pytest.ini (canonical source — takes precedence over this section)

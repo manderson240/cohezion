@@ -53,6 +53,15 @@
             "command": "entire hooks claude-code pre-task"
           }
         ]
+      },
+      {
+        "matcher": "Bash(git commit*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python scripts/ci/check_ci_deps.py"
+          }
+        ]
       }
     ],
     "PostToolUse": [
