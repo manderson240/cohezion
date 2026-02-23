@@ -2,7 +2,7 @@
 
 ## Session Summary
 
-This handoff captures work from the 2026-02-23 security review and test coverage session.
+This handoff captures work from the 2026-02-23 security review, test coverage, and vault paper test suite session.
 
 ## Completed This Session
 
@@ -24,14 +24,27 @@ This handoff captures work from the 2026-02-23 security review and test coverage
 - `projects/repo-and-process-debt.md` — high-priority note for future session (coding standards, repo management, project management)
 - `.coverage` untracked from git (was force-added previously, now gitignored properly)
 
+### Vault Paper Test Suite (this session)
+
+- `tools/tests/test_paper_anthropic_mcp_apps.py` — 20 targeted tests for the MCP Apps paper
+- `tools/tests/test_all_papers.py` — parametrized structural tests for all vault papers (1769 tests)
+  - Validates: frontmatter fields, tags as array, source present, dimension score ranges,
+    section structure, title headings, self-link detection, similar_papers type
+  - Discovered and fixed: unquoted YAML colon in `surrealdb-graph-databases` title, missing
+    `source` fields in 5 new stubs, 3 papers with missing frontmatter/headings
+  - Deleted duplicate `The Awareness of Nothing at All and Quadrature Physics.md` (spaces in filename)
+
 ## Repository State
 
 **Branch:** `track-c`
 **Remote:** up to date with `origin/track-c`
-**Tests:** 128 passing, 88% coverage
+**Tests:** 1769 passing, 0 failures (vault paper suite) + 128 passing (component suite)
 
 ```bash
-# Verify state
+# Verify vault paper tests
+cd tools && PYTHONPATH=. /home/mike-anderson/dev/cohezion/cloud-vault-mcp/.venv/bin/pytest tests/test_all_papers.py --no-cov -q
+
+# Verify full suite
 PYTHONPATH=tools /home/mike-anderson/dev/cohezion/cloud-vault-mcp/.venv/bin/python -m pytest -q
 ```
 
