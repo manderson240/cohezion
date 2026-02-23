@@ -1,3 +1,8 @@
+---
+title: 'Staged Validation for Long-Horizon Tasks'
+date: 2026-02-23
+tags: [pattern]
+---
 # Staged Validation for Long-Horizon Tasks
 
 ## Pattern ID

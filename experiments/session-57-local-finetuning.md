@@ -1,3 +1,9 @@
+---
+title: 'Local Model Finetuning Pipeline'
+date: 2026-02-21
+status: complete
+tags: [experiment]
+---
 # Session 57: Local Model Finetuning Pipeline
 
 ## Date: 2026-02-21

@@ -7,16 +7,30 @@ DEFAULT_CONTEXT_LIMIT = 200_000
 
 
 def _find_active_session_jsonl() -> Path | None:
-    """Find the most recently modified session JSONL for the current project."""
-    cwd = Path(os.getcwd())
-    # Claude Code stores conversations at ~/.claude/projects/<slug>/*.jsonl
-    # where slug is the cwd path with / replaced by -
-    slug = str(cwd).replace("/", "-").lstrip("-")
-    projects_dir = Path.home() / ".claude" / "projects" / slug
-    if not projects_dir.exists():
+    """Find the most recently modified session JSONL for the current project.
+
+    Strategy:
+    1. Try the cwd-based slug (exact match for the current project).
+    2. Fall back to scanning all project dirs and returning the globally most
+       recent JSONL.  This handles subprocess/hook contexts where the working
+       directory may differ from the directory Claude Code is actually running in.
+    """
+    claude_projects = Path.home() / ".claude" / "projects"
+    if not claude_projects.exists():
         return None
-    jsonl_files = sorted(projects_dir.glob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
-    return jsonl_files[0] if jsonl_files else None
+
+    # Strategy 1: cwd-derived slug
+    cwd = Path(os.getcwd())
+    slug = str(cwd).replace("/", "-").lstrip("-")
+    projects_dir = claude_projects / slug
+    if projects_dir.exists():
+        jsonl_files = sorted(projects_dir.glob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
+        if jsonl_files:
+            return jsonl_files[0]
+
+    # Strategy 2: global most-recent JSONL across all projects
+    all_jsonl = sorted(claude_projects.rglob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
+    return all_jsonl[0] if all_jsonl else None
 
 
 def estimate_context(

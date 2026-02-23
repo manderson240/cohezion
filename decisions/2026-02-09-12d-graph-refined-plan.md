@@ -2,13 +2,7 @@
 title: 12D Graph System - Refined Implementation Plan (Specialist-Driven)
 date: 2026-02-09
 status: proposed
-tags:
-- decision
-- 12d-graph
-- infranodus
-- ai-features
-- specialist-team
-- inferred
+tags: [decision, 12d-graph, infranodus, ai-features, specialist-team, inferred]
 decision_reasoning:
   reasoning_chain:
   - sequence: 1

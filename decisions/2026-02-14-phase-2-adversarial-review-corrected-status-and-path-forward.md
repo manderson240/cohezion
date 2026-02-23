@@ -2,9 +2,7 @@
 title: Phase 2 Adversarial Review - Corrected Status and Path Forward
 date: '2026-02-14'
 status: proposed
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   chosen_option: '{{chosen_option}}'
   rationale: '**Why revise Phase 2 status:**

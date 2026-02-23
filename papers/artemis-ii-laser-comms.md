@@ -1,8 +1,7 @@
 ---
 title: Artemis II communication networks + laser comms testing for deep-space exploration
 date: 2026-02-07
-tags:
-- space
+tags: [space]
 connectivity: 0.07
 cross_domain: 0.12
 completion: 1.0

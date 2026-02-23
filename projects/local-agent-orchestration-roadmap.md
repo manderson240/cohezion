@@ -1,3 +1,9 @@
+---
+title: 'Local Agent Orchestration Roadmap'
+date: 2026-02-13
+status: active
+tags: [agent-orchestration, compound-engineering, local-models, project, roadmap]
+---
 # Local Agent Orchestration Roadmap
 
 **Created**: 2026-02-13

@@ -1,3 +1,8 @@
+---
+title: 'Failure Mode Test Priority'
+date: 2026-02-14
+tags: [pattern, testing-strategy]
+---
 # Failure Mode Test Priority
 
 **Category**: Testing Strategy

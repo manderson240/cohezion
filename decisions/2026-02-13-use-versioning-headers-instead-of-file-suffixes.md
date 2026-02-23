@@ -2,9 +2,7 @@
 title: Use Versioning Headers Instead of File Suffixes
 date: '2026-02-13'
 status: proposed
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   chosen_option: '{{chosen_option}}'
   rationale: 'Benefits: 1. Single source of truth (no file proliferation) 2. Git history

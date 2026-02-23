@@ -2,9 +2,7 @@
 title: 'Daily CLI Tool Update via Systemd Timer'
 date: '2026-02-22'
 status: proposed
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   chosen_option: '{{chosen_option}}'
   rationale: 'Stale CLI tools cause hidden compatibility issues. Automated daily checks are zero-cost (version checks are fast API calls). Systemd timer pattern matches existing cohezion-guardian.timer pattern for consistency. Skill enables manual `/update-tools` invocation from any Claude session.'

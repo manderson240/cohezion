@@ -2,12 +2,7 @@
 title: 3D Graph Plugin Selection for Cohezion Vault
 date: 2026-02-09
 status: proposed
-tags:
-- decision
-- architecture
-- visualization
-- obsidian
-- inferred
+tags: [decision, architecture, visualization, obsidian, inferred]
 decision_reasoning:
   reasoning_chain:
   - sequence: 1

@@ -2,8 +2,7 @@
 title: 'Artificial photosynthesis breakthrough: living energy systems converting sunlight
   to fuel'
 date: 2026-02-07
-tags:
-- biology
+tags: [biology]
 connectivity: 0.2
 cross_domain: 0.12
 completion: 1.0

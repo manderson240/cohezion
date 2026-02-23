@@ -1,3 +1,8 @@
+---
+title: 'Service Class & Singleton Factory Pattern'
+date: 2026-02-23
+tags: [pattern]
+---
 # Service Class & Singleton Factory Pattern
 
 **Validated**: Sessions 38-51 (VaultOps, OllamaClient, HealthChecker)

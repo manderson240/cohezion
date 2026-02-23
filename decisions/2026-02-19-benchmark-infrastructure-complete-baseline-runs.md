@@ -2,9 +2,7 @@
 title: 'Benchmark infrastructure complete - baseline runs'
 date: '2026-02-19'
 status: proposed
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   chosen_option: '{{chosen_option}}'
   rationale: 'Infrastructure enables quantitative evaluation of agentic capabilities. qwen2.5-coder baseline shows 0% pass rate - expected for non-code-tuned models. Next: fine-tune for code generation.'

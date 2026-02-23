@@ -2,9 +2,7 @@
 title: 'Block destructive system operations from AI tools'
 date: '2026-02-19'
 status: proposed
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   chosen_option: '{{chosen_option}}'
   rationale: 'Destructive operations (vacuum, rm -rf on logs, database drops) are irreversible. AI tools operate fast and don't naturally pause to consider irreversibility. The guard hook forces a manual step for destructive operations, which gives the human operator a moment to consider whether backup is needed. The journald config prevents the root cause (unbounded journal growth) so vacuum should rarely be needed. The cascade: crash loop → journal bloat → panic vacuum → lost diagnostics. Breaking ANY link in this chain prevents the problem.'

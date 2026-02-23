@@ -2,9 +2,7 @@
 title: 'Post-Crash Venv Recovery: pytest Missing Despite pyproject.toml'
 date: '2026-02-22'
 status: proposed
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   chosen_option: '{{chosen_option}}'
   rationale: 'System crashes can corrupt venv without touching pyproject.toml. The lock file and installed packages can desync. `uv add --dev` forces reinstallation even when deps appear present. pytest-cov and pytest-asyncio are required by pytest.ini addopts and asyncio_mode=strict respectively.'

@@ -1,8 +1,7 @@
 ---
+title: Unique Investment Opportunities Research
 date: 2026-02-09
-tags:
-- research
-- auto-processed
+tags: [research, auto-processed]
 connectivity: 0.0
 cross_domain: 0.0
 completion: 0.67

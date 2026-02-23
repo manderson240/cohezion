@@ -2,13 +2,7 @@
 title: Phase 2 Prioritization Decision - Track Selection for 2026-02-13
 date: 2026-02-12
 status: pending
-tags:
-- decision
-- phase-2
-- prioritization
-- strategy
-- execution
-- inferred
+tags: [decision, phase-2, prioritization, strategy, execution, inferred]
 decision_reasoning:
   reasoning_chain:
   - sequence: 1

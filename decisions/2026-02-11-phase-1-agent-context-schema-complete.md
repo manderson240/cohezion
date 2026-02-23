@@ -2,12 +2,7 @@
 title: Phase 1 Agent Context Integration - Step 1 Complete
 date: 2026-02-11
 status: completed
-tags:
-- decision
-- architecture
-- surrealdb
-- agent-context
-- inferred
+tags: [decision, architecture, surrealdb, agent-context, inferred]
 decision_reasoning:
   reasoning_chain:
   - sequence: 1

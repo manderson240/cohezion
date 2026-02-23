@@ -2,8 +2,7 @@
 title: Babylonian texts reveal Nebuchadnezzar as restorer/builder, contrasting biblical
   destroyer narrative
 date: 2026-02-07
-tags:
-- archaeology
+tags: [archaeology]
 connectivity: 0.0
 cross_domain: 0.12
 completion: 1.0

@@ -2,12 +2,7 @@
 title: Claude Code Context Awareness Codification
 date: 2026-02-12
 status: proposed
-tags:
-- decision
-- governance
-- claude-code
-- platform-health
-- inferred
+tags: [decision, governance, claude-code, platform-health, inferred]
 decision_reasoning:
   reasoning_chain:
   - sequence: 1

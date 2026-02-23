@@ -1,3 +1,8 @@
+---
+title: 'Decisions & Experiments Integration - v2'
+date: 2026-02-09
+tags: [daily]
+---
 # Decisions & Experiments Integration - v2
 
 **Date**: 2026-02-09

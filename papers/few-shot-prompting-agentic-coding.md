@@ -2,8 +2,7 @@
 title: Few-shot prompting achieves 5x performance in agentic coding tasks by providing
   examples to LLMs ...
 date: 2026-02-07
-tags:
-- ai
+tags: [ai]
 connectivity: 0.13
 cross_domain: 0.12
 completion: 0.67

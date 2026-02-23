@@ -2,13 +2,7 @@
 title: 'Phase 2 Schema Design: Agent Reasoning + Decision Cascades'
 date: 2026-02-12
 status: proposed
-tags:
-- decision
-- architecture
-- surrealdb
-- phase-2
-- agent-context
-- inferred
+tags: [decision, architecture, surrealdb, phase-2, agent-context, inferred]
 decision_reasoning:
   reasoning_chain:
   - sequence: 1

@@ -2,9 +2,7 @@
 title: 'Token limit error prevention implemented'
 date: '2026-02-19'
 status: proposed
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   chosen_option: '{{chosen_option}}'
   rationale: 'Fixed by reducing default max_tokens to 512, adding calculate_max_tokens(), auto-retry with token reduction, CLI configuration. Now robust against token limit errors.'

@@ -2,10 +2,7 @@
 title: Oxford Academic book exploring pilot-wave theory as a deeper foundation for
   quantum mechanics, pr...
 date: 2026-02-07
-tags:
-- quantum
-- physics
-- cosmology
+tags: [quantum, physics, cosmology]
 connectivity: 0.13
 cross_domain: 0.38
 completion: 0.67

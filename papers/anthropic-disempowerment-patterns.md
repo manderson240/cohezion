@@ -2,8 +2,7 @@
 title: Anthropic research shows disempowerment patterns in AI usage where AI interactions
   reduce user au...
 date: 2026-02-07
-tags:
-- ai
+tags: [ai]
 connectivity: 0.07
 cross_domain: 0.12
 completion: 0.67

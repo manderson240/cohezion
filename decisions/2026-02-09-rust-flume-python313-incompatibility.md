@@ -1,3 +1,9 @@
+---
+title: 'Rust FLUME Binary Incompatibility with Python 3.13'
+date: 2026-02-09
+status: accepted
+tags: [decision]
+---
 # Rust FLUME Binary Incompatibility with Python 3.13
 
 **Date:** 2026-02-09

@@ -3,9 +3,7 @@ title: Session 55 - Discovered redundant pack files as root cause of 12GB size; 
   consolidation in progress
 date: '2026-02-11'
 status: proposed
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   reasoning_chain:
   - sequence: 1

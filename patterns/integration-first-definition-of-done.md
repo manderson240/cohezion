@@ -1,3 +1,8 @@
+---
+title: 'Integration-First Definition of Done'
+date: 2026-02-14
+tags: [pattern, software-development-lifecycle]
+---
 # Integration-First Definition of Done
 
 **Category**: Software Development Lifecycle

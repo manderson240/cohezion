@@ -1,7 +1,8 @@
 ---
+title: FastMCP ASGI Builder Pattern
+date: 2026-02-09
 domain: mcp-integration
 tags: [asgi, fastmcp, python, server-framework, builder-pattern]
-created: 2026-02-09
 ---
 
 # Pattern: FastMCP ASGI Builder Pattern

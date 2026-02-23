@@ -2,9 +2,7 @@
 title: 'SwiftUI-Agent-Skill: AI coding tool best practices and patterns for Claude
   Code skills'
 date: 2026-02-07
-tags:
-- ai
-- software-engineering
+tags: [ai, software-engineering]
 connectivity: 0.07
 cross_domain: 0.25
 completion: 1.0

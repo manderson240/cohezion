@@ -2,9 +2,7 @@
 title: PRIME Skill Pattern as Governance Framework
 date: '2026-02-12'
 status: proposed
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   chosen_option: '{{chosen_option}}'
   rationale: "PRIME skills solve four critical needs: (1) Reusability\u2014procedure\

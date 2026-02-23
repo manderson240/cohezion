@@ -2,8 +2,7 @@
 title: Comb jellies confirmed as first branch on animal tree of life, rewriting early
   evolution
 date: 2026-02-07
-tags:
-- biology
+tags: [biology]
 connectivity: 0.0
 cross_domain: 0.12
 completion: 1.0

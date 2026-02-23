@@ -2,9 +2,7 @@
 title: Brain protein linking immune response, metabolism, and amyloid pathways in
   neurodegeneration
 date: 2026-02-07
-tags:
-- ai
-- neuroscience
+tags: [ai, neuroscience]
 connectivity: 0.07
 cross_domain: 0.25
 completion: 1.0

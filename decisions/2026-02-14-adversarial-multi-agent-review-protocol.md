@@ -2,9 +2,7 @@
 title: Adversarial Multi-Agent Review Protocol
 date: '2026-02-14'
 status: accepted
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   chosen_option: '{{chosen_option}}'
   rationale: Single-agent implementation misses bugs that would cause production crashes.

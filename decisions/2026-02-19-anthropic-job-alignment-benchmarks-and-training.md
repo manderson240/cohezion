@@ -2,9 +2,7 @@
 title: 'Anthropic job alignment - benchmarks and training'
 date: '2026-02-19'
 status: proposed
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   chosen_option: '{{chosen_option}}'
   rationale: 'Built SWE-bench, HumanEval, AgentBench integrations with FLUME paper draft and FSDP training support. This demonstrates research engineering capabilities for agentic environment development.'

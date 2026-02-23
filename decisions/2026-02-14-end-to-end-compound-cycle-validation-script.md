@@ -2,9 +2,7 @@
 title: End-to-End Compound Cycle Validation Script
 date: '2026-02-14'
 status: accepted
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   chosen_option: '{{chosen_option}}'
   rationale: 'End-to-end validation catches integration bugs that unit tests miss.

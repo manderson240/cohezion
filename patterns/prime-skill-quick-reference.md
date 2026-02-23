@@ -1,3 +1,8 @@
+---
+title: 'PRIME Skill Quick Reference (Session 56)'
+date: 2026-02-23
+tags: [pattern]
+---
 # PRIME Skill Quick Reference (Session 56)
 
 **Status**: Quick guide for creating governance skills

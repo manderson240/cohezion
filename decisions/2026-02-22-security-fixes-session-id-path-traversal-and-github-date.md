@@ -2,11 +2,7 @@
 title: 'Security fixes: session ID path traversal and hardcoded GitHub search date'
 date: '2026-02-22'
 status: accepted
-tags:
-- decision
-- security
-- cohezion-engine
-- research-pipeline
+tags: [decision, security, cohezion-engine, research-pipeline]
 decision_reasoning:
   chosen_option: Sanitize session ID with regex; replace hardcoded date with dynamic timedelta
   rationale: Minimal, targeted fixes that close the vulnerabilities without changing public API or behaviour

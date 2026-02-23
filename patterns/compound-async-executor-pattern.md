@@ -1,3 +1,8 @@
+---
+title: 'Compound Async Executor Pattern - COHEZION Core'
+date: 2026-02-23
+tags: [pattern]
+---
 # Compound Async Executor Pattern - COHEZION Core
 
 **Validated**: Sessions 25-29 (CompoundExecutor), 36-39 (persistence wiring), 40-45 (team coordination)

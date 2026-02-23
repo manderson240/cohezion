@@ -3,9 +3,7 @@ title: Session 55 - HTTP 500 failure may be protocol-specific; SSH push alternat
   available
 date: '2026-02-11'
 status: proposed
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   reasoning_chain:
   - sequence: 1

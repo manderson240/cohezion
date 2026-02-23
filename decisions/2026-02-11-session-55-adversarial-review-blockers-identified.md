@@ -1,3 +1,9 @@
+---
+title: 'Adversarial Review — Blockers Identified'
+date: 2026-02-11
+status: do not execute current plan
+tags: [decision]
+---
 # Session 55: Adversarial Review — Blockers Identified
 
 **Date**: 2026-02-11

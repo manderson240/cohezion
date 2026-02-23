@@ -1,3 +1,8 @@
+---
+title: 'Lessons Graph Integration Plan'
+date: 2026-02-09
+tags: [daily]
+---
 # Lessons Graph Integration Plan
 
 **Date**: 2026-02-09

@@ -1,3 +1,8 @@
+---
+title: 'Production-Ready Definition Checklist'
+date: 2026-02-23
+tags: [pattern]
+---
 # Production-Ready Definition Checklist
 
 ## Pattern ID

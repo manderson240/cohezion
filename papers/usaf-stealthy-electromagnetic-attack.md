@@ -2,8 +2,7 @@
 title: 'ASPI: Evidence of USAF secret stealthy uncrewed electromagnetic attack aircraft
   (P-AEA)'
 date: 2026-02-07
-tags:
-- ai
+tags: [ai]
 connectivity: 0.0
 cross_domain: 0.12
 completion: 1.0

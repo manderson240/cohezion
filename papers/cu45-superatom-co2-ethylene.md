@@ -1,8 +1,7 @@
 ---
 title: Cu45 superatom converts CO2 to ethylene at 81
 date: 2026-02-07
-tags:
-- chemistry
+tags: [chemistry]
 connectivity: 0.0
 cross_domain: 0.12
 completion: 1.0

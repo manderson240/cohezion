@@ -1,3 +1,9 @@
+---
+title: 'Session 43 Phase 5B Verification & Phase 6 Launch'
+date: 2026-02-09
+status: accepted
+tags: [decision]
+---
 # Decision: Session 43 Phase 5B Verification & Phase 6 Launch
 
 **Date**: 2026-02-09

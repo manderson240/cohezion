@@ -1,3 +1,9 @@
+---
+title: 'Status'
+date: 2026-02-23
+status: 79
+tags: [project]
+---
 ## Google Sheets → Vault Integration
 
 **Status**: 79/99 rows researched and updated. Rows 62-81 pending (batch 4).

@@ -2,9 +2,7 @@
 title: 'Singleton consolidation mandatory during file splits'
 date: '2026-02-17'
 status: proposed
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   chosen_option: '{{chosen_option}}'
   rationale: 'Duplicate singletons cause: memory waste (two instances), inconsistent state between request paths, and silent test pollution when conftest resets wrong module. The bug is invisible — tests pass individually but flake in suite. Cost: 3 extra verification iterations (~50K tokens wasted).'

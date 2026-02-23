@@ -2,11 +2,7 @@
 title: Quantum mechanics research demonstrating that atoms cannot achieve complete
   synchronization of li...
 date: 2026-02-07
-tags:
-- quantum
-- ai
-- space
-- physics
+tags: [quantum, ai, space, physics]
 connectivity: 0.13
 cross_domain: 0.5
 completion: 0.67

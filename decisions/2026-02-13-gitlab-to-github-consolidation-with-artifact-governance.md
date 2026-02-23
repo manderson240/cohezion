@@ -2,9 +2,7 @@
 title: GitLab to GitHub Consolidation with Artifact Governance
 date: '2026-02-13'
 status: proposed
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   chosen_option: '{{chosen_option}}'
   rationale: "1) Enables Claude Code on the web (parallel tasks, background execution)\

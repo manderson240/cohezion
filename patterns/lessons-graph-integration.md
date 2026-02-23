@@ -1,3 +1,8 @@
+---
+title: 'Lessons Graph Integration Pattern'
+date: 2026-02-09
+tags: [pattern]
+---
 # Lessons Graph Integration Pattern
 
 **Status**: Implemented (v1), Refined (v2)

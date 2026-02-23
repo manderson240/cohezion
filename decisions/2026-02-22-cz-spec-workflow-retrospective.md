@@ -81,7 +81,18 @@ The "no old-CLI references" check belongs in the project's integration tests (as
 
 ## Next Steps for Compound Engineering
 
-1. Update spec workflow skills with the above fixes (D1-D5)
-2. Add `cz context` fallback: when no JSONL found, estimate from `CLAUDE_CODE_TASK_LIST_ID` or return "context_unknown" with graceful handling
+1. ~~Update spec workflow skills with the above fixes (D1-D5)~~ — **DONE** (were already incorporated during original implementation)
+2. ~~Add `cz context` fallback~~ — **DONE** (2026-02-23): `context.py` now uses two-strategy JSONL discovery: cwd-slug first, then global most-recent scan. Eliminates UNKNOWN in subprocess/hook contexts.
 3. Consider adding a `cz plan template` command that generates plans with the Runtime Environment section pre-filled
 4. The TDD enforcer hook needs strengthening: detect and warn on `except Exception` pattern
+
+## PILOT Removal (2026-02-23)
+
+PILOT fully uninstalled:
+- `~/.pilot/` deleted
+- `~/.claude/mcp.json`: migrated context7, web-search, grep-mcp, web-fetch directly (mem-search lost — was PILOT-specific `.cjs`)
+- `~/.claude/rules/pilot-cli.md` → deleted; replaced with `~/.claude/rules/cz-cli.md`
+- `~/.claude/rules/workflow-enforcement.md`: all `~/.pilot/bin/pilot` and `pilot:*` refs replaced with `cz`
+- `~/.claude/rules/context-continuation.md`: all `PILOT_SESSION_ID` and `~/.pilot/sessions/` refs replaced with `cz` equivalents
+- `~/.claude/settings.json`: pilot MCP permissions → `mcp__context7__*` etc; `statusLine.command` → removed; `companyAnnouncements` → removed
+- 62/62 tests passing after context fix

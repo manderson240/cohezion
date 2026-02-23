@@ -2,9 +2,7 @@
 title: 'GitHub Flow appropriate for pre-alpha'
 date: '2026-02-19'
 status: proposed
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   chosen_option: '{{chosen_option}}'
   rationale: 'GitHub Flow suits fast iteration without release cadence. Add GitFlow-like tagging and branch protection when pain emerges (post-alpha with users, or multi-contributor). Worktree isolation added to git-workflow.md as coding standard.'

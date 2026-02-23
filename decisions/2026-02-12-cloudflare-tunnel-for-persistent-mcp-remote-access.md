@@ -2,9 +2,7 @@
 title: Cloudflare Tunnel for Persistent MCP Remote Access
 date: '2026-02-12'
 status: proposed
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   reasoning_chain:
   - sequence: 1

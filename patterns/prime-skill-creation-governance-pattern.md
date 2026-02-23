@@ -1,3 +1,8 @@
+---
+title: 'PRIME Skill Creation: Governance Pattern'
+date: 2026-02-12
+tags: [pattern]
+---
 # PRIME Skill Creation: Governance Pattern
 
 **Status**: Extracted from Session 56 Task #9 (REPOSITORY_HEALTH_PRIME)

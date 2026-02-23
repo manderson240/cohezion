@@ -2,8 +2,7 @@
 title: MCL1 drives cancer metabolism via mTOR; MYC suppresses immune alarms via RNA
   binding/condensates
 date: 2026-02-07
-tags:
-- biology
+tags: [biology]
 connectivity: 0.0
 cross_domain: 0.12
 completion: 1.0

@@ -2,8 +2,7 @@
 title: 'Artificial Analysis benchmarks: Grok 4 leading at 73 across reasoning and
   coding tasks'
 date: 2026-02-07
-tags:
-- ai
+tags: [ai]
 connectivity: 0.07
 cross_domain: 0.12
 completion: 1.0

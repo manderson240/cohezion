@@ -1,3 +1,9 @@
+---
+title: 'Session 43 - MCP Server Setup & Obsidian Integration'
+date: 2026-02-09
+status: in progress - server infrastructure initialized
+tags: [decision]
+---
 # Session 43 - MCP Server Setup & Obsidian Integration
 
 **Date**: 2026-02-09

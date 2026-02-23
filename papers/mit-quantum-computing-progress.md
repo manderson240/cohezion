@@ -2,9 +2,7 @@
 title: MIT Technology Review coverage of quantum computing progress including error
   correction breakthro...
 date: 2026-02-07
-tags:
-- quantum
-- ai
+tags: [quantum, ai]
 connectivity: 0.13
 cross_domain: 0.25
 completion: 0.67

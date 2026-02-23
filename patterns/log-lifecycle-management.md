@@ -1,3 +1,8 @@
+---
+title: 'Log Lifecycle Management Pattern'
+date: 2026-02-19
+tags: [pattern]
+---
 # Log Lifecycle Management Pattern
 
 **Tags:** #pattern #operations #logging #incident-response #storage-governance

@@ -2,9 +2,7 @@
 title: Next 10 Phases GraphRAG Roadmap
 date: '2026-02-13'
 status: proposed
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   chosen_option: '{{chosen_option}}'
   rationale: 'Phased approach allows validation at each stage: 1. Complete graph first

@@ -2,12 +2,7 @@
 title: Remove BMAD Framework from Cohezion Repository
 date: '2026-02-08'
 status: accepted
-tags:
-- decision
-- architecture
-- repository-management
-- bmad
-- inferred
+tags: [decision, architecture, repository-management, bmad, inferred]
 decision_reasoning:
   reasoning_chain:
   - sequence: 1

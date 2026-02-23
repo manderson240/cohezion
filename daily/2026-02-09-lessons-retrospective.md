@@ -1,3 +1,8 @@
+---
+title: 'Lessons Integration Retrospective'
+date: 2026-02-09
+tags: [daily]
+---
 # Lessons Integration Retrospective
 
 **Date**: 2026-02-09

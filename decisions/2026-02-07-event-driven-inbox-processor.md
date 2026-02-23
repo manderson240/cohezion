@@ -2,12 +2,7 @@
 title: Event-Driven Inbox Processor Daemon
 date: '2026-02-07'
 status: proposed
-tags:
-- decision
-- architecture
-- automation
-- inbox
-- inferred
+tags: [decision, architecture, automation, inbox, inferred]
 decision_reasoning:
   reasoning_chain:
   - sequence: 1

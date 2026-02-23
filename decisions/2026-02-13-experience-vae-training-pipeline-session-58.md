@@ -2,9 +2,7 @@
 title: "Experience \u2192 VAE Training Pipeline (Session 58)"
 date: '2026-02-13'
 status: proposed
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   chosen_option: '{{chosen_option}}'
   rationale: Closes the feedback loop so the VAE learns from actual agentic behavior

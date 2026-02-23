@@ -1,3 +1,8 @@
+---
+title: 'Quick Start: Build MCP Tool in 2 Hours'
+date: 2026-02-23
+tags: [pattern]
+---
 # Quick Start: Build MCP Tool in 2 Hours
 
 **Goal**: Use MCP Tool Scaffold pattern to add new tool

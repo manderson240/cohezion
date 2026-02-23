@@ -1,7 +1,8 @@
 ---
+title: Use FastMCP streamable_http_app() for ASGI Integration
 date: 2026-02-09
 project: cloud-vault-mcp
-status: implemented
+status: accepted
 tags: [mcp, asgi, bugfix, integration]
 ---
 

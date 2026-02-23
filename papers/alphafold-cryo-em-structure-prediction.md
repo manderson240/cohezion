@@ -2,8 +2,7 @@
 title: 'AlphaFold + cryo-EM: protein structure prediction for automated atomic model
   building'
 date: 2026-02-07
-tags:
-- biology
+tags: [biology]
 connectivity: 0.0
 cross_domain: 0.12
 completion: 1.0

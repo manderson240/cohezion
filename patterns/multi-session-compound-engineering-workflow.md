@@ -1,3 +1,8 @@
+---
+title: 'Multi-Session Compound Engineering Workflow'
+date: 2026-02-23
+tags: [pattern]
+---
 # Multi-Session Compound Engineering Workflow
 
 **Status**: ✅ ESTABLISHED (Session 46)

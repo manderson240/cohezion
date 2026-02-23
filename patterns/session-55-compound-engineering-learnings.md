@@ -1,3 +1,8 @@
+---
+title: 'Compound Engineering Learnings'
+date: 2026-02-11
+tags: [pattern]
+---
 # Session 55: Compound Engineering Learnings
 
 **Date**: 2026-02-11  

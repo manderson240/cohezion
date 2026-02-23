@@ -1,0 +1,62 @@
+---
+title: Team Agent Efficiency: Coordination Overhead Exceeds Benefits Below Task Threshold
+date: 2026-02-23
+severity: CRITICAL
+category: agent-workflow
+tags: [team-agents, efficiency, coordination, multi-agent, token-efficiency]
+status: validated
+---
+
+# Lesson: Team Agent Efficiency: Coordination Overhead Exceeds Benefits Below Task Threshold
+
+## Context
+
+Multi-agent team configurations incur significant coordination overhead: context passing, result aggregation, and inter-agent communication. For tasks below a complexity threshold, a single skilled agent outperforms a team.
+
+## Core Learning
+
+**Use team agents only when task parallelism and specialization benefits exceed coordination costs. Single agents are faster for most tasks under 4 hours.**
+
+### Why This Matters
+- Each agent handoff costs 2-5K tokens in context passing
+- Aggregating results from 5 agents requires another agent pass
+- Coordination failures cascade across the team
+- This is the most frequently referenced lesson in the vault (25 refs)
+
+### Decision Framework
+```
+Task duration estimate:
+  < 2 hours  -- Single agent (always)
+  2-4 hours  -- Single agent with checkpoints
+  4-8 hours  -- Team of 2-3 specialists
+  8+ hours   -- Full team with orchestrator
+
+Task parallelism:
+  Sequential dependencies -- Single agent
+  Independent subtasks    -- Team agents
+  Shared state           -- Single agent (coordination cost too high)
+```
+
+## Recommendations
+
+### Do
+- Profile single-agent completion time before adding agents
+- Use teams only for genuinely parallel subtasks with clear boundaries
+- Set timeouts on all agent tasks to prevent cascade stalls
+
+### Don't
+- Add agents to speed up tasks that are fundamentally sequential
+- Assume more agents = more throughput
+- Use teams for tasks under 2 hours estimated duration
+
+## Related Concepts
+
+- [[compound-engineering]] - Team efficiency is a prerequisite for compound scalability
+- [[agentic-ai]] - Agent coordination patterns and anti-patterns
+- [[token-efficiency]] - Coordination overhead directly impacts token costs
+
+## Validation
+
+**Discovered**: Feb 2026 across phases 1-3 retrospectives
+**Impact**: Reduced wasted agent coordination cycles across the project
+**Status**: CRITICAL -- most frequently referenced lesson in vault (25 refs)

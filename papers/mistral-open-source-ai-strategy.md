@@ -2,9 +2,7 @@
 title: Mistral CEO Arthur Mensch articulates open-source AI strategy emphasizing enterprise
   resilience—o...
 date: 2026-02-07
-tags:
-- ai
-- open-source
+tags: [ai, open-source]
 connectivity: 0.07
 cross_domain: 0.25
 completion: 0.67

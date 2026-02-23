@@ -1,3 +1,8 @@
+---
+title: 'MCP Tool Scaffold Pattern'
+date: 2026-02-23
+tags: [pattern]
+---
 # MCP Tool Scaffold Pattern
 
 **Validated**: Session 53 (Kyutai Pocket TTS)

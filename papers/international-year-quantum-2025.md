@@ -2,9 +2,7 @@
 title: Coverage of 2025 as International Year of Quantum Science and Technology, highlighting
   quantum ch...
 date: 2026-02-07
-tags:
-- quantum
-- chemistry
+tags: [quantum, chemistry]
 connectivity: 0.13
 cross_domain: 0.25
 completion: 0.67

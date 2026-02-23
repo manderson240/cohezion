@@ -1,3 +1,9 @@
+---
+title: 'Git Repository Unification Complete'
+date: 2026-02-09
+status: accepted
+tags: [decision]
+---
 # Session 46: Git Repository Unification Complete
 
 **Date**: 2026-02-09

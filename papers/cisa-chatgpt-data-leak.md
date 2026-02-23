@@ -2,10 +2,7 @@
 title: CISA chief uploaded sensitive files to public ChatGPT - AI security/data governance
   concerns
 date: 2026-02-07
-tags:
-- ai
-- security
-- policy
+tags: [ai, security, policy]
 connectivity: 0.0
 cross_domain: 0.38
 completion: 1.0

@@ -1,3 +1,8 @@
+---
+title: 'Lessons Graph Integration - COMPLETE'
+date: 2026-02-09
+tags: [daily]
+---
 # Lessons Graph Integration - COMPLETE
 
 **Date**: 2026-02-09

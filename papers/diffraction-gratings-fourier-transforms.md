@@ -2,9 +2,7 @@
 title: Diffraction gratings physically perform Fourier transforms, connecting optics
   to signal processing
 date: 2026-02-07
-tags:
-- physics
-- optics
+tags: [physics, optics]
 connectivity: 0.07
 cross_domain: 0.25
 completion: 1.0

@@ -2,9 +2,7 @@
 title: Repository Health Governance Skill Created
 date: '2026-02-12'
 status: proposed
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   chosen_option: '{{chosen_option}}'
   rationale: 'Repository health governance was successfully implemented in Task #7

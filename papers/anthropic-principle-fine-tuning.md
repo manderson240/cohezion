@@ -2,9 +2,7 @@
 title: 'Anthropic principle and cosmological fine-tuning: why physical constants appear
   optimized for life'
 date: 2026-02-07
-tags:
-- cosmology
-- physics
+tags: [cosmology, physics]
 connectivity: 0.07
 cross_domain: 0.12
 completion: 1.0

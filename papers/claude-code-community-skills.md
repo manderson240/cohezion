@@ -2,8 +2,7 @@
 title: 36 Claude Code skills from 23 creators covering coding, research, automation,
   integration
 date: 2026-02-07
-tags:
-- ai
+tags: [ai]
 connectivity: 0.07
 cross_domain: 0.12
 completion: 1.0

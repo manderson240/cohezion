@@ -2,9 +2,7 @@
 title: 'Benchmark improvement system complete'
 date: '2026-02-19'
 status: proposed
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   chosen_option: '{{chosen_option}}'
   rationale: 'Created BenchmarkOrchestrator, SelfCorrectionLoop, PatternAnalyzer, and CLI. System can now run benchmarks with journey tracking, self-correction, and pattern-based improvement recommendations.'

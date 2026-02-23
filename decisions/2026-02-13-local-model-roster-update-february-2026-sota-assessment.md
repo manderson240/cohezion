@@ -2,9 +2,7 @@
 title: Local Model Roster Update - February 2026 SOTA Assessment
 date: '2026-02-13'
 status: proposed
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   chosen_option: '{{chosen_option}}'
   rationale: GLM-4.7-Flash dominates every benchmark vs deepseek-r1:70b at half the

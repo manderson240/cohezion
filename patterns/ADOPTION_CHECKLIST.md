@@ -1,3 +1,8 @@
+---
+title: 'Pattern Adoption Checklist - Team Use'
+date: 2026-02-23
+tags: [pattern]
+---
 # Pattern Adoption Checklist - Team Use
 
 **Purpose**: Ensure patterns are applied correctly across team

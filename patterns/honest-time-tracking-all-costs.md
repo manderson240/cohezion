@@ -1,3 +1,8 @@
+---
+title: 'Honest Time Tracking - All Costs Included'
+date: 2026-02-14
+tags: [pattern, project-management]
+---
 # Honest Time Tracking - All Costs Included
 
 **Category**: Project Management

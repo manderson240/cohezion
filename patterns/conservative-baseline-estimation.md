@@ -1,3 +1,8 @@
+---
+title: 'Conservative Baseline Estimation'
+date: 2026-02-23
+tags: [pattern]
+---
 # Conservative Baseline Estimation
 
 ## Pattern ID

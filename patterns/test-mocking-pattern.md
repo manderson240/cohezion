@@ -1,3 +1,8 @@
+---
+title: 'Test Mocking Pattern - External Services & FastMCP'
+date: 2026-02-23
+tags: [pattern]
+---
 # Test Mocking Pattern - External Services & FastMCP
 
 **Validated**: Session 53 (Pocket TTS, FastMCP integration)

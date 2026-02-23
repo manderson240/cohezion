@@ -2,13 +2,7 @@
 title: SurrealDB Agent Context Schema Design Decision
 date: 2026-02-11
 status: proposed
-tags:
-- decision
-- architecture
-- surrealdb
-- agent-context
-- knowledge-graph
-- inferred
+tags: [decision, architecture, surrealdb, agent-context, knowledge-graph, inferred]
 decision_reasoning:
   reasoning_chain:
   - sequence: 1

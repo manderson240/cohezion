@@ -2,9 +2,7 @@
 title: Agent Orchestration Design - 3-Tier Hot/Warm/Cold Model Rotation
 date: '2026-02-14'
 status: proposed
-tags:
-- decision
-- inferred
+tags: [decision, inferred]
 decision_reasoning:
   chosen_option: '{{chosen_option}}'
   rationale: "1. MoE models (glm-4.7-flash, qwen3-coder:30b) load all 30B params into\

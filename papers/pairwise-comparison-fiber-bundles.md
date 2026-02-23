@@ -2,9 +2,7 @@
 title: Mathematical framework for analyzing random pairwise comparison matrices using
   fiber bundles
 date: 2026-02-07
-tags:
-- mathematics
-- physics
+tags: [mathematics, physics]
 connectivity: 0.07
 cross_domain: 0.25
 completion: 0.67
