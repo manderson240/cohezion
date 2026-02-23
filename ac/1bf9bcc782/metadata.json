@@ -3,7 +3,7 @@
   "checkpoint_id": "ac1bf9bcc782",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 23,
+  "checkpoints_count": 24,
   "files_touched": [
     ".claude/hooks/format-on-edit.sh",
     ".claude/hooks/guard-services.sh",
@@ -67,13 +67,20 @@
       "context": "/ac/1bf9bcc782/7/context.md",
       "content_hash": "/ac/1bf9bcc782/7/content_hash.txt",
       "prompt": "/ac/1bf9bcc782/7/prompt.txt"
+    },
+    {
+      "metadata": "/ac/1bf9bcc782/8/metadata.json",
+      "transcript": "/ac/1bf9bcc782/8/full.jsonl",
+      "context": "/ac/1bf9bcc782/8/context.md",
+      "content_hash": "/ac/1bf9bcc782/8/content_hash.txt",
+      "prompt": "/ac/1bf9bcc782/8/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 15118,
-    "cache_creation_tokens": 4501694,
-    "cache_read_tokens": 162440831,
-    "output_tokens": 126082,
-    "api_call_count": 1336
+    "input_tokens": 17953,
+    "cache_creation_tokens": 4976587,
+    "cache_read_tokens": 188308790,
+    "output_tokens": 165526,
+    "api_call_count": 1537
   }
 }
