@@ -1,8 +1,11 @@
 ---
-title: 'Zero-point energy'
+title: The Awareness of Nothing at All and Quadrature Physics
 date: 2026-02-23
 tags: [paper]
+source: original
 ---
+
+# The Awareness of Nothing at All and Quadrature Physics
 
 ## Overview
 

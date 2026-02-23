@@ -32,20 +32,7 @@ NESTED_DIMS_UNCONSTRAINED = {"completion", "cross_domain"}
 
 # Papers with known structural issues — marked xfail rather than excluded so the
 # failures are still visible in the test report and prompt remediation.
-KNOWN_BROKEN: dict[str, str] = {
-    # Duplicate file with spaces in filename — no frontmatter at all
-    "The Awareness of Nothing at All and Quadrature Physics": (
-        "spaces-in-filename duplicate; no frontmatter"
-    ),
-    # Hyphenated version also missing frontmatter (no --- block)
-    "the-awareness-of-nothing-at-all-and-quadrature-physics": (
-        "missing frontmatter block"
-    ),
-    # Auto-processed draft — missing 'title' field and no # heading
-    "2026-02-09-unique-investment-opportunities-research": (
-        "auto-processed draft; missing title field and # heading"
-    ),
-}
+KNOWN_BROKEN: dict[str, str] = {}
 
 
 def _paper_param(path: Path) -> pytest.param:

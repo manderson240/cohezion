@@ -33,6 +33,9 @@ dimensions:
   interdisciplinary_transfer: 0.5
   impact_score: 0.16
 ---
+
+# Unique Investment Opportunities Research
+
 It looks like I need write permission to the inbox directory. Could you approve the file write? The expanded document is ready — it takes your original three-section note and restructures it into:
 
 - **Overview**: Synthesizes the three themes and their common thread (financializing previously non-tradable assets/events)
