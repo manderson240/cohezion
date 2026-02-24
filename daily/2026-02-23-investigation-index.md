@@ -11,18 +11,18 @@ tags: [daily]
 
 ## Quick Navigation
 
-**👉 START HERE:** [`2026-02-23-flume-strategic-roadmap.md`](daily/2026-02-23-flume-strategic-roadmap.md)
+**👉 START HERE:** [[2026-02-23-flume-strategic-roadmap]]
 - Complete 6-month execution plan
 - Phases, timelines, risk mitigation
 - Everything you need to know
 
-**For Quick Lookup:** [`2026-02-23-quick-reference.md`](daily/2026-02-23-quick-reference.md)
+**For Quick Lookup:** [[2026-02-23-quick-reference]]
 - Phase 1-3 checklist
 - Critical metrics
 - Troubleshooting guide
 - Decision trees
 
-**High-Level Summary:** [`2026-02-23-flume-investigation-summary.md`](daily/2026-02-23-flume-investigation-summary.md)
+**High-Level Summary:** [[2026-02-23-flume-investigation-summary]]
 - What we found
 - Diagnostic picture
 - Key insights
@@ -33,7 +33,7 @@ tags: [daily]
 ## Specialist Team Reports (Deep Dives)
 
 ### Team 1: Architecture Analyst
-**Document:** [`2026-02-23-architecture-investigation.md`](daily/2026-02-23-architecture-investigation.md)
+**Document:** [[2026-02-23-architecture-investigation]]
 
 **Investigates:**
 - Semantic space geometry (what does 256D space look like?)
@@ -52,7 +52,7 @@ tags: [daily]
 ---
 
 ### Team 2: Training Dynamics Engineer
-**Document:** [`2026-02-23-training-dynamics-investigation.md`](daily/2026-02-23-training-dynamics-investigation.md)
+**Document:** [[2026-02-23-training-dynamics-investigation]]
 
 **Investigates:**
 - Loss landscape and ELBO behavior
@@ -71,7 +71,7 @@ tags: [daily]
 ---
 
 ### Team 3: Evaluation Frameworks Researcher
-**Document:** [`2026-02-23-evaluation-investigation.md`](daily/2026-02-23-evaluation-investigation.md)
+**Document:** [[2026-02-23-evaluation-investigation]]
 
 **Investigates:**
 - JourneyTracker validity
@@ -90,7 +90,7 @@ tags: [daily]
 ---
 
 ### Team 4: Integration Specialist
-**Document:** [`2026-02-23-integration-investigation.md`](daily/2026-02-23-integration-investigation.md)
+**Document:** [[2026-02-23-integration-investigation]]
 
 **Investigates:**
 - Information flow from FLUME to agent actions
@@ -109,7 +109,7 @@ tags: [daily]
 ---
 
 ### Team 5: Anthropic Alignment Strategist
-**Document:** [`2026-02-23-anthropic-alignment-investigation.md`](daily/2026-02-23-anthropic-alignment-investigation.md)
+**Document:** [[2026-02-23-anthropic-alignment-investigation]]
 
 **Investigates:**
 - Universes team research fit
@@ -130,7 +130,7 @@ tags: [daily]
 ## Framework Documents
 
 ### Initial Investigation Framework
-**Document:** [`2026-02-23-flume-specialist-investigation.md`](daily/2026-02-23-flume-specialist-investigation.md)
+**Document:** [[2026-02-23-flume-specialist-investigation]]
 
 Describes the investigation framework and team briefs that were deployed.
 
@@ -139,13 +139,13 @@ Describes the investigation framework and team briefs that were deployed.
 ## How to Use This Package
 
 ### If You Have 15 Minutes
-Read the summary at top of [`2026-02-23-flume-strategic-roadmap.md`](daily/2026-02-23-flume-strategic-roadmap.md)
+Read the summary at top of [[2026-02-23-flume-strategic-roadmap]]
 
 ### If You Have 1 Hour
-Read all of [`2026-02-23-flume-investigation-summary.md`](daily/2026-02-23-flume-investigation-summary.md) + [`2026-02-23-quick-reference.md`](daily/2026-02-23-quick-reference.md)
+Read all of [[2026-02-23-flume-investigation-summary]] + [[2026-02-23-quick-reference]]
 
 ### If You Have 3 Hours
-Read the complete [`2026-02-23-flume-strategic-roadmap.md`](daily/2026-02-23-flume-strategic-roadmap.md)
+Read the complete [[2026-02-23-flume-strategic-roadmap]]
 
 ### If You Have 8 Hours
 Read all summary documents + at least 2-3 specialist team reports that feel most relevant to your next work
