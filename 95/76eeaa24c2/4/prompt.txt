@@ -1,0 +1,568 @@
+Implement the following plan:
+
+# FLUME VAE: Red Flags → Green Lights
+
+## Core Principles
+
+### 1. Learn Before You Burn
+
+**No destructive operations without extracting knowledge first.** Before removing, replacing, or deprecating any code, data, or artifact:
+
+1. **Identify patterns** — What good ideas exist in the code being removed? What design decisions were sound even if the implementation failed?
+2. **Identify anti-patterns** — What went wrong? What assumptions were incorrect? What traps should future work avoid?
+3. **Store in vault** — Log all patterns via `vault_extract_pattern` and anti-patterns via `vault_log_decision` to the MCP vault. Knowledge compounds; deleted code doesn't.
+4. **Only then proceed** with removal.
+
+This applies to every phase of this spec, not just Sprint 0. When Phase 2 replaces Phase 1 components, the same discipline applies.
+
+### 2. Test-Driven Development (Red → Green → Refactor)
+
+**Every feature starts with a failing test.** No production code without seeing RED first.
+
+| Step | Action | Verification |
+|------|--------|-------------|
+| **RED** | Write a test that describes the desired behavior. Run it. Watch it fail. | Test fails for the *right reason* (missing feature, not syntax error) |
+| **GREEN** | Write the minimum code to make the test pass. Nothing more. | Test passes. All existing tests still pass. |
+| **REFACTOR** | Improve code quality while keeping tests green. | All tests still pass after changes. |
+
+**Applied to FLUME:**
+- Each VAE component (encoder, decoder, loss, training loop) gets its test FIRST
+- Evaluation metrics get tests that verify known inputs produce expected outputs BEFORE implementation
+- Integration points (SemanticCache, JourneyTracker) get contract tests BEFORE wiring
+
+**Recovery rule:** If production code was written first (hook fires), write the test immediately — don't revert working code, but apply TDD properly going forward.
+
+### 3. Compound Engineering
+
+**Every feature makes future features easier.** The compound loop applies to this spec:
+
+```
+Implement feature → Validate manually → Write 5 tests → Extract learning → Refine skill
+```
+
+| Principle | Application in This Spec |
+|-----------|-------------------------|
+| **Knowledge compounds** | Every anti-pattern logged to vault prevents re-occurrence. Every pattern extracted is reusable. |
+| **Build on proven templates** | New EmbeddingProvider follows existing `ExperienceCollector` multi-tier fallback pattern. New VAE loss follows existing `FlumeVAETrainer` structure (improved, not reinvented). |
+| **Experience-guided execution** | Query vault for prior learnings before each sprint (lesson-37 validates this). |
+| **Skill refinement loop** | After Sprint 3 evaluation, log results as vault experiment. Learnings flow back into Sprint 4 decisions. |
+| **Honest metrics** | Report actual numbers (98.8% beats inflated 100%). Green-light criteria are pass/fail, not "close enough." |
+
+### 4. Context Awareness
+
+**Every session starts informed.** No cold starts.
+
+| Checkpoint | Action |
+|------------|--------|
+| **Sprint start** | Query vault: `vault_find_relevant_context(query="FLUME VAE training")`. Read continuation file if exists. Check existing experiment notes. |
+| **Before building** | Query Context7 for library docs (PyTorch VAE patterns, nomic-embed-text API). Don't assume — verify. |
+| **Mid-sprint** | Check `cz context --json`. If >80%, prepare handoff. Write continuation with EXACT state. |
+| **Sprint end** | Log to vault: decisions made, metrics achieved, patterns discovered. Next session starts informed. |
+
+**Overnight simulation data** (5.5M trajectories) is a context asset. Log its characteristics to vault so Phase 2 sessions can find it without re-discovering.
+
+### 5. Token Efficiency
+
+**Budget tokens like money.** Based on CLAUDE.md token budgets:
+
+| Task Type | Budget | Pattern |
+|-----------|--------|---------|
+| Implement 1 feature | 500-1,500 tokens | Copy template → code → manual test → 5 tests |
+| Research + implement | 2,000-3,000 tokens | Quick survey → proof of concept → tests |
+| Single test debug | 200-500 tokens | Add print → run → check → fix → verify |
+
+**Anti-patterns to avoid:**
+- Research-first (5,000-10,000 tokens for no implementation)
+- Infrastructure for products that don't exist (8,000+ tokens)
+- Running full test suite repeatedly (use `-k` to target specific tests)
+
+**Efficiency tactics for this spec:**
+- Use `uv run pytest tests/flume/ -k "test_vae"` not `uv run pytest tests/ -q` during development
+- Cache Ollama embeddings in Sprint 1 LRU cache — avoid redundant API calls during training
+- Batch embed texts (50 at a time) instead of one-by-one
+- Mock Ollama in tests — never call live Ollama in unit tests
+- Write narrow tests (one behavior per test) — faster to run, faster to debug
+
+### 6. Evidence Over Assumptions
+
+Every red flag became a red flag because someone assumed something worked without checking. Every claim in this spec has a concrete verification command. If you can't run a command to prove it, you can't claim it.
+
+### 7. Phased with Hard Gates
+
+No Phase 2 work begins until ALL Phase 1 green-light criteria are met with evidence. "Probably fine" is not a gate-pass.
+
+---
+
+## Context
+
+The FLUME investigation (2026-02-23) identified 6 red flags — critical unknowns that determine whether FLUME is a viable research artifact or an architectural dead end. Codebase exploration revealed the situation is worse than the investigation assumed: **the system the investigation analyzed doesn't actually exist.** Two incompatible VAE implementations, a broken data pipeline training on random noise, and zero integration with agent behavior mean the red flags aren't "unknowns to measure" — they're **architectural problems to solve.**
+
+This plan starts by freeing system resources (7 GB RAM from zombie processes, 7.4 GB disk from stale artifacts, 2,000+ lines of dead code), then rebuilds FLUME from first principles in two phases, turning each red flag green with concrete, verifiable criteria. It also maps FLUME's capabilities to the Anthropic Universes team Research Engineer role to validate strategic alignment.
+
+---
+
+## Sprint 0: Free RAM + Extract Knowledge
+
+No file deletions needed — plenty of disk space. Focus on reclaiming RAM and extracting knowledge from existing code before building new.
+
+### Physical Resources
+
+| Resource | What | Recovery | Command |
+|----------|------|----------|---------|
+| **7 GB RAM** | 12 zombie pytest processes running 25+ hours | Kill all | `kill 286767 286775 288864 288872 290708 290714 290718 293426 293432 293435 294452 294457` |
+
+### Prerequisite: Install nomic-embed-text
+
+```bash
+ollama pull nomic-embed-text
+```
+
+### Valuable Data Discovered (preserved, not deleted)
+
+| Data | Size | Value |
+|------|------|-------|
+| `data/overnight/journeys.jsonl` | 3.2 GB, 5.5M records | Real 12D simulation trajectories — Phase 2 training data |
+| `data/overnight/checkpoints/` | 200 JSON files | Simulation convergence history (coherence 0.568 → 0.613) |
+| `data/flume/checkpoints/flume_vae_ep*.pt` | 4 checkpoints | Noise-trained model weights — reference for comparison |
+| `data/surrealdb-old/` | 28 MB | Old SurrealDB instance — may contain queryable journey data |
+
+### Sprint 0 Verification
+
+```bash
+free -h                                # Confirm RAM recovered
+python -c "from cohezion.flume import FlumeVAEEncoder"  # Core import works
+```
+
+### Knowledge Extraction (BEFORE any deletions)
+
+**Rule: No destructive operations without learning.** Before removing any code, extract patterns and anti-patterns into the MCP vault. This preserves institutional knowledge for future sessions.
+
+**Anti-patterns to document (via `vault_log_decision` / `vault_extract_pattern`):**
+
+| Anti-Pattern | Source File | Lesson |
+|-------------|------------|--------|
+| Dual VAE architecture | `autoencoder.py` + `training.py` | Two models operating on different input spaces creates integration debt that compounds silently. One coherent model > two partial ones. |
+| Training on random noise | `dataset.py` (SyntheticFlumeDataset) | VAE trained on N(0.5, 0.15) learns Gaussian structure, not semantic structure. Synthetic data must have the *kind* of structure you want the model to learn. |
+| SHA-256 as semantic embedding | `vae_encoder.py` + `experience_encoder.py` | Cryptographic hashes destroy semantic similarity. "deploy API" and "API deployment" hash to completely unrelated 256D vectors. Never use hash functions where semantic distance matters. |
+| Hash-based journey tracking | `journey_tracker.py` | Deterministic text hashing for 12D trajectories means semantically identical tasks map to different points. Observable AI requires *meaningful* representations, not arbitrary ones. |
+| Disconnected modules | morphospace, bioelectric, lcsp, etc. | 1,353 lines of code with zero consumers = pure maintenance burden. If a module has no imports, it's not "future work" — it's dead weight. Enforce "no orphan modules" policy. |
+| HIHO coherence loss on batch mean | `training.py` line 118-120 | Penalizing `mean(μ) → 0.5` at batch level doesn't ensure per-sample coherence. Regularization must target the right granularity. |
+| Character-level tokenizer | `tokenizer.py` + `autoencoder.py` | 74-char vocabulary for semantic embeddings produces poor representations. Always use subword tokenization (or better: pre-trained embeddings). |
+| Zombie test processes | System observation | Pytest processes with async tests can hang indefinitely if event loops aren't properly torn down. Always set test timeouts (`pytest-timeout`). |
+
+**Patterns worth preserving (good ideas in dead code):**
+
+| Pattern | Source File | Worth Keeping |
+|---------|------------|---------------|
+| Morphospace stability wells | `morphospace.py` | Concept of "stability wells" around HIHO=0.5 in latent space is sound theory. Re-implement in Phase 2 with real learned latent space. |
+| Trajectory prediction with physics | `predictor.py` | Momentum-based prediction and counterfactual branching (`imagine_branches()`) are good Phase 2 features. Preserve the API design. |
+| Multi-tier data collection | `experience_collector.py` | Parquet → SurrealDB → Vault → synthetic fallback hierarchy is good architecture. Reuse in new data pipeline. |
+| ExperienceEncoder layout | `experience_encoder.py` | The `[12D trajectory | 12 metrics | 5 op_type | ...]` prefix structure is well-designed. Keep for Phase 2, replace only the 227D fingerprint segment. |
+| Checkpoint format with config | `training.py` | Saving `{model, optimizer, config, epoch, metrics}` together is correct practice. Carry forward to new training pipeline. |
+| LCSP concept | `lcsp.py` | Latent Coherence Stability Predictor concept is valid for Phase 2 — predicting whether a latent point is in a stable region. |
+| Bioelectric field modeling | `bioelectric.py` | Mapping latent gradients to "field strength" for action generation is creative. Document for Phase 2 investigation. |
+
+**Vault storage plan:**
+1. Log each anti-pattern as a `vault_log_decision` (decision: "don't do X because Y")
+2. Extract each preservable pattern as a `vault_extract_pattern` (with code examples from the dead modules)
+3. Log the overall cleanup as a `vault_log_experiment` (hypothesis: "dead code removal improves system health")
+
+### Sprint 0 Task List
+
+- [ ] Task 0a: Kill zombie pytest processes (recover 7 GB RAM)
+- [ ] Task 0b: Install `nomic-embed-text` via Ollama
+- [ ] Task 0c: **EXTRACT**: Log 8 anti-patterns to vault via `vault_log_decision` (from existing broken FLUME code analysis)
+- [ ] Task 0d: **EXTRACT**: Log 7 preservable patterns to vault via `vault_extract_pattern` (stability wells, multi-tier collection, etc.)
+- [ ] Task 0e: Log overnight simulation stats to vault as experiment (5.5M trajectories, convergence data)
+
+---
+
+## Red Flag → Green Light Summary
+
+| # | Red Flag | Root Cause | Green Light Criteria | Phase |
+|---|----------|-----------|---------------------|-------|
+| 1 | KL collapse risk | No KL annealing, trains on noise | KL > 0.1, 128+ active latent units (of 256) | 1 |
+| 2 | Reconstruction fidelity unknown | Two VAEs, neither validated | cos_sim(input, reconstructed) > 0.95 on validation set | 1 |
+| 3 | Synthetic quality unknown | No generation/evaluation pipeline | Paraphrase Precision@1 > 0.85, Spearman ρ > 0.90 | 1 |
+| 4 | Evaluation metrics unvalidated | JourneyTracker uses SHA-256 hashes | Metrics correlate with task performance R² > 0.5 | 1+2 |
+| 5 | Integration impact unknown | FLUME only used for cache similarity | A/B: FLUME cache outperforms hash on precision-recall | 1+2 |
+| 6 | Universes team fit unclear | No mapping to their research needs | Clear alignment document with 3+ intersection points | 1 |
+
+---
+
+## Architecture: Fresh FLUME VAE
+
+### Core Insight
+
+Don't learn semantic embeddings from scratch with a tiny model. Use a **pre-trained embedding model** (Ollama `nomic-embed-text`, 768D) as input, then train a **proper VAE** to learn a structured, compressed 256D latent space on top of those embeddings.
+
+### Phase 1 Architecture: Semantic Cache Engine
+
+```
+Text Input
+    │
+    ▼
+[Ollama nomic-embed-text]  ─── 768D dense semantic embedding
+    │
+    ▼
+[FLUME VAE Encoder]         ─── MLP: 768→512→512→384 → mu(256), logvar(256)
+    │
+    ▼
+256D latent z (mu used as embedding at inference)
+    │
+    ▼
+[FLUME VAE Decoder]         ─── MLP: 256→384→512→512→768 (reconstruct input)
+    │
+    ▼
+[SemanticCache]             ─── cosine similarity matching (threshold ~0.88)
+```
+
+**Why this works:**
+- Pre-trained embeddings already capture "deploy API" ≈ "API deployment"
+- VAE learns *structured* 256D space where distances are meaningful
+- KL regularization ensures smooth latent space (no holes between clusters)
+- Decoder forces VAE to retain information (reconstruction validates quality)
+- ~2.1M parameters — trains on CPU in minutes
+
+### Loss Function
+
+```
+L = L_recon + β·L_KL + λ_align·L_contrastive + λ_coh·L_coherence
+
+L_recon       = MSE(decoded, original_embedding)
+L_KL          = -0.5·Σ(1 + logvar - μ² - exp(logvar))    with free-bits per dimension
+L_contrastive = InfoNCE over known paraphrase pairs        (τ=0.07)
+L_coherence   = (mean(μ) - 0.5)²                          HIHO target
+```
+
+**KL collapse prevention (Red Flag 1):**
+- β annealing: 0.0 → 0.1 over first 30% of training steps
+- Free-bits: min 0.125 bits/dimension — forces each dimension to encode information
+- Active unit monitoring: alert if <128 of 256 dimensions are active
+
+### Phase 2 Architecture: Reasoning Latent Space
+
+Extends Phase 1 with a **temporal encoder** over trajectory sequences:
+
+```
+Trajectory Steps [(12D_state, metrics, op_type), ...]
+    │
+    ▼
+[Step Embedding]       ─── Linear(29→128) + positional encoding
+    │
+    ▼
+[Transformer Encoder]  ─── 2 layers, 4 heads, d_model=128
+    │
+    ▼
+[Attention Pooling → mu(256), logvar(256)]
+    │
+    ▼
+[Transformer Decoder]  ─── autoregressive trajectory reconstruction
+```
+
+Enables: interpolation between strategies, novel trajectory sampling, latent space navigation for agent guidance. JourneyTracker transitions from SHA-256 hashing to learned FLUME projections.
+
+---
+
+## Training Data Strategy (Hybrid)
+
+### Bootstrap (Phase 1 — immediate)
+
+1. **Structured synthetic tasks** (~5,000 samples)
+   - Task descriptions across 5 operation types (generate, analyze, search, transform, persist)
+   - Template groups with known paraphrases: `["deploy API", "API deployment", "launch API service"]`
+   - Each embedded via `nomic-embed-text` → 768D vectors
+
+2. **Codebase docstrings** (~2,000 samples)
+   - Extract from Cohezion source via AST parsing
+   - Real domain-specific language
+
+3. **Vault experiment descriptions** (variable, ~500+ samples)
+   - From `~/vaults/cohezion-vault/experiments/*.json`
+
+4. **Paraphrase generation** (~15,000 pairs)
+   - Use Ollama to generate 3 paraphrases per task template
+   - Provides contrastive training pairs
+
+### Fine-tune (accumulates over time)
+
+5. **Real execution data pipeline**
+   - After each compound execution: store `(task_description, operation_type, metrics, skill_name)` as JSONL
+   - Path: `data/flume/experiences/execution_log.jsonl`
+   - Periodic re-embed + re-train (weekly or on-demand)
+
+### External (Phase 2)
+
+6. **Published reasoning datasets** (GSM8K chains, MATH solutions, code generation traces)
+   - For trajectory-level training in Phase 2
+
+---
+
+## Universes Team Alignment (Red Flag 6)
+
+**Source:** [Research Engineer, Universes](https://job-boards.greenhouse.io/anthropic/jobs/5061517008)
+
+### Mapping: Team Needs → FLUME Capabilities
+
+| Universes Team Need | FLUME Capability | Alignment |
+|---------------------|------------------|-----------|
+| **Agentic training environments** for extended-duration tasks | Compound engineering loop: 11-step execution pipeline with skill refinement, retrospection, and journey tracking. Literally an RL training environment for agentic tasks. | **Strong** |
+| **Evaluation frameworks measuring genuine capability gains** | Red Flag 4 resolution produces a validated evaluation framework with correlation-tested metrics. Phase 1 evaluation suite (reconstruction fidelity, similarity preservation, KL health, cache ablation) demonstrates evaluation engineering rigor. | **Strong** |
+| **Navigate ambiguity, manage interruptions, sustain context** | Phase 2 reasoning latent space compresses reasoning trajectories for context sustainability. 256D embeddings preserve semantic meaning across long interactions. Morphospace navigation handles ambiguity via stability wells. | **Strong** (Phase 2) |
+| **RL environments and simulation platforms** | 12D universe simulation with FLUME VAE as the representation layer. JourneyTracker records state transitions. DegradationDetector monitors drift. This is RL infrastructure. | **Strong** |
+| **Integrate into production training systems** | Phase 1 semantic cache engine is a production system. Demonstrates ability to ship ML infrastructure, not just research prototypes. | **Strong** |
+| **Rapidly troubleshoot across research and production ML** | This spec itself — diagnosing architectural fractures, designing fixes, implementing with TDD — demonstrates this capability directly. | **Meta** |
+
+### Preferred Qualifications Match
+
+| Qualification | Evidence |
+|---------------|----------|
+| LLM training/fine-tuning/evaluation | VAE training pipeline, evaluation framework, metric validation |
+| RL environments, simulation platforms | 12D universe simulation, compound loop as RL env |
+| Large-scale ML infrastructure | SemanticCache, ExperienceCollector, multi-tier data pipeline |
+| Containerization, distributed systems | Cloud Run deployment, Tailscale Funnel for MCP, multi-session worktree pattern |
+
+### Positioning Document (Deliverable)
+
+Produce a concise document (max 2 pages) that:
+1. Frames FLUME as an **agentic training environment** with validated evaluation
+2. Highlights the **evaluation engineering** (not just the model)
+3. Shows **production readiness** (Phase 1 cache engine in production)
+4. Positions the **compound engineering loop** as an RL training methodology
+5. Demonstrates research taste: honest red-flag identification, systematic resolution
+
+---
+
+## Implementation Plan
+
+### Phase 1 Scope (This Spec)
+
+**New files:**
+
+| File | Purpose | ~Lines |
+|------|---------|--------|
+| `src/cohezion/flume/vae.py` | Core VAE model (encoder, decoder, reparameterization, loss) | 200 |
+| `src/cohezion/flume/embedding_provider.py` | Pre-trained embedding interface (Ollama + hash fallback) | 120 |
+| `src/cohezion/flume/train_vae.py` | Training pipeline (KL annealing, free-bits, contrastive) | 250 |
+| `src/cohezion/flume/evaluate_vae.py` | Evaluation framework (all red flag metrics) | 200 |
+| `src/cohezion/flume/data_pipeline.py` | Data prep (synthetic tasks, embedding, contrastive pairs) | 180 |
+| `scripts/train_flume_v2.py` | CLI training entry point | 50 |
+| `tests/flume/test_vae_v2.py` | VAE model unit tests | 150 |
+| `tests/flume/test_embedding_provider.py` | Embedding provider tests | 100 |
+| `tests/flume/test_train_vae_v2.py` | Training pipeline tests | 150 |
+| `tests/flume/test_evaluate_vae.py` | Evaluation framework tests | 120 |
+| `tests/flume/test_data_pipeline.py` | Data pipeline tests | 100 |
+
+**Modified files:**
+
+| File | Change | Risk |
+|------|--------|------|
+| `src/cohezion/flume/vae_encoder.py` | Load new VAE model, use EmbeddingProvider. Public interface unchanged. | Low |
+| `src/cohezion/flume/__init__.py` | Add new exports | Low |
+| `src/cohezion/compound/journey_tracker.py` | Optional FLUME encoder path in `text_to_latent()` | Low |
+| `src/cohezion/swarm/semantic_cache.py` | Threshold validation after new model (may need tuning) | Low |
+
+**Legacy files** (not removed, but superseded by new implementations — knowledge extracted to vault in Sprint 0):
+`autoencoder.py`, `training.py`, `dataset.py` and 12 disconnected modules remain on disk but are not imported by new code.
+
+### Task Breakdown
+
+**Sprint 1: Foundation + Positioning** *(context: query vault first, then build)*
+
+- [ ] Task 1: Write Universes team positioning document (guides all subsequent sprint decisions)
+- [ ] Task 2: `embedding_provider.py` — TDD:
+  - RED: Test Ollama returns 768D embedding, test hash fallback returns 256D, test LRU cache hits
+  - GREEN: Implement OllamaEmbeddingProvider + HashFallbackProvider + LRU cache
+  - Token budget: ~1,000 (template from ExperienceCollector multi-tier pattern)
+- [ ] Task 3: `vae.py` — TDD:
+  - RED: Test encoder output shape (768→256), test decoder output shape (256→768), test reparameterization produces different z on each call, test loss components compute correctly
+  - GREEN: Implement FlumeVAE with dropout=0.1, LayerNorm, GELU
+  - Token budget: ~1,500
+- [ ] Task 4: `data_pipeline.py` — TDD:
+  - RED: Test synthetic task generation produces N samples across 5 op types, test contrastive pair mining finds same-group pairs, test batch embedding calls provider correctly
+  - GREEN: Implement TrainingDataPipeline (mock Ollama in tests)
+  - Token budget: ~1,000
+
+**Sprint 2: Training** *(context: check vault for prior training experiment 2026-02-13)*
+
+- [ ] Task 5: `train_vae.py` — TDD:
+  - RED: Test KL annealing schedule increases β correctly, test free-bits clamps minimum KL per dimension, test loss decreases over 5 epochs on synthetic data, test checkpoint saves/loads correctly
+  - GREEN: Implement VAETrainer with AdamW + CosineAnnealing + grad clipping
+  - Token budget: ~1,500
+- [ ] Task 6: `scripts/train_flume_v2.py` — CLI entry point (~50 lines, minimal TDD)
+- [ ] Task 7: Generate bootstrap training data
+  - Use `data_pipeline.py` to produce ~7,500 embedded samples (5K synthetic + 2K docstrings + 500 vault)
+  - Generate ~15K contrastive pairs via paraphrase templates
+  - Token budget: ~500 (mostly running existing code)
+- [ ] Task 8: Train initial model + validate convergence
+  - Run training: `uv run python scripts/train_flume_v2.py --evaluate`
+  - **Verify RED→GREEN**: KL > 0.1 (RED FLAG 1 check), loss decreasing
+  - Log training results as vault experiment (filling in the empty 2026-02-13 experiment)
+  - Token budget: ~500
+
+**Sprint 3: Evaluation + Integration** *(context: compound loop — results feed back to Sprint 4)*
+
+- [ ] Task 9: `evaluate_vae.py` — TDD:
+  - RED: Test reconstruction metric computes cos_sim correctly, test paraphrase discrimination returns P@1, test KL health checker flags collapse, test Spearman ρ computed correctly
+  - GREEN: Implement VAEEvaluator with all red-flag metrics
+  - Token budget: ~1,200
+- [ ] Task 10: Run evaluation suite — validate ALL green-light criteria met
+  - `uv run pytest tests/flume/test_evaluate_vae.py -v`
+  - Log results to vault: `vault_log_experiment(project="cohezion", ...)`
+- [ ] Task 11: Update `vae_encoder.py` — TDD:
+  - RED: Test new VAE loads and produces 256D output, test fallback chain works when Ollama unavailable
+  - GREEN: Modify `_load_encoder()` and `_vae_encode()` (public interface unchanged)
+- [ ] Task 12: Update `journey_tracker.py` — TDD:
+  - RED: Test FLUME path produces semantically meaningful 2048D vectors (paraphrases closer than unrelated texts)
+  - GREEN: Add optional FLUME encoder path in `text_to_latent()`
+- [ ] Task 13: SemanticCache A/B comparison
+  - Run with FLUME embeddings vs. hash embeddings on benchmark set
+  - Compare precision-recall curves
+  - Log results to vault
+
+**Sprint 4: Data Collection + Phase 2 Prep** *(compound: learnings flow back, inform Phase 2 design)*
+
+- [ ] Task 14: Instrument `ExperienceCollector` — TDD:
+  - RED: Test that compound execution produces JSONL record with task description + metrics
+  - GREEN: Add logging hook to store execution data at `data/flume/experiences/`
+- [ ] Task 15: Characterize overnight simulation data (5.5M trajectories)
+  - Distribution analysis: coherence, novelty, skill coverage
+  - Convergence patterns across 5.5M iterations
+  - Log characterization to vault for Phase 2 reference
+- [ ] Task 16: End-to-end integration test
+  - RED: Compound execution → data logged → text embedded → cache lookup succeeds
+  - GREEN: Full pipeline verified
+  - Log as vault experiment with compound metrics
+
+### Key Integration Points
+
+**`vae_encoder.py`** (primary integration surface):
+```
+Current: text → SHA-256 hash → expand to 256D → MLP encoder → mu → 256D
+New:     text → Ollama embed → 768D → VAE encoder → mu → 256D
+         (fallback: text → SHA-256 hash → expand to 256D if Ollama unavailable)
+```
+
+**`semantic_cache.py`** (consumer — no interface changes):
+```
+FlumeVAEEmbeddingModel.encode(text) → EmbeddingResult(embedding=[...256 floats...])
+# Same interface, better embeddings
+```
+
+**`journey_tracker.py`** (Phase 1 minimal change):
+```
+text_to_latent(text):
+    if flume_encoder available:
+        flume_256d = flume_encoder.encode(text)
+        return np.tile(flume_256d, 8)  # 256×8 = 2048D for existing pipeline
+    else:
+        return hash_based_latent(text)  # existing behavior
+```
+
+---
+
+## Verification Strategy
+
+### Per Red Flag
+
+| Red Flag | Verification Command/Method | Pass Criteria |
+|----------|----------------------------|---------------|
+| 1. KL collapse | `uv run python -m scripts.train_flume_v2 --evaluate-kl` | Active units ≥ 128/256, KL > 0.1 |
+| 2. Reconstruction | `uv run pytest tests/flume/test_evaluate_vae.py -k reconstruction` | cos_sim(input, recon) > 0.95 on validation |
+| 3. Synthetic quality | `uv run pytest tests/flume/test_evaluate_vae.py -k paraphrase` | Precision@1 > 0.85 |
+| 4. Metrics validation | `uv run pytest tests/flume/test_evaluate_vae.py -k similarity_preservation` | Spearman ρ > 0.90 between original and latent similarities |
+| 5. Integration impact | `uv run pytest tests/flume/test_evaluate_vae.py -k cache_ablation` | FLUME precision-recall dominates hash baseline |
+| 6. Team fit | Read positioning document, verify 3+ alignment points | Qualitative: convincing narrative |
+
+### Full Suite
+
+```bash
+# Unit tests
+uv run pytest tests/flume/ -v
+
+# Train and evaluate
+uv run python scripts/train_flume_v2.py --config default --evaluate
+
+# Integration test
+uv run pytest tests/flume/test_evaluate_vae.py -v
+
+# Existing test suite (no regressions)
+uv run pytest tests/ -q
+```
+
+---
+
+## Adversarial Review Findings
+
+Three-perspective review per vault protocol (ADR 2026-02-14). All findings addressed in the plan above.
+
+### Feasibility Challenger
+
+| Finding | Severity | Resolution |
+|---------|----------|------------|
+| `nomic-embed-text` not installed in Ollama | HIGH | Added Task 0b: `ollama pull nomic-embed-text` |
+| 768D→256D is only 3x compression — bottleneck may not force meaningful structure learning | MEDIUM | Contrastive loss (InfoNCE) provides additional learning signal beyond reconstruction. If bottleneck proves insufficient, reduce decoder capacity or add dropout. Monitor active units. |
+| ~22,500 training samples for 2.1M params = overfitting risk | MEDIUM | Weight decay (1e-4), dropout (0.1), early stopping (patience=10), and data augmentation (paraphrases). Phase 1 is a starting point; real data accumulates. |
+| Ollama network dependency at inference | MEDIUM | Fallback chain in EmbeddingProvider: Ollama → cached embeddings → SHA-256 hash. Cache hot embeddings in LRU cache (text→768D). |
+| Paraphrase generation quality depends on Ollama model | LOW | Use simple templates + programmatic augmentation (word reordering, synonym substitution) before LLM generation. LLM paraphrases are supplementary, not primary. |
+
+### Strategic Reviewer
+
+| Finding | Severity | Resolution |
+|---------|----------|------------|
+| Phase 1 (cache engine) doesn't demonstrate RL capability — weak positioning | HIGH | Move positioning document to Sprint 1 (not Sprint 4). Frame Phase 1 as "evaluation engineering rigor" and Phase 2 as "RL environment." The investigation and systematic red-flag resolution ARE the demonstration of research engineering quality. |
+| Overnight simulation data (5.5M trajectories) = irreplaceable Phase 2 training data | CRITICAL | Changed from "delete" to "compress and preserve." Added data characterization task. |
+| Green-light criteria are internally defined — may not match what Universes team values | MEDIUM | Positioning document (moved to Sprint 1) explicitly maps our metrics to team needs. Adjust criteria if mapping reveals misalignment. |
+| Experience-guided execution (lesson-37) validates hybrid data approach | LOW | Confirmed — our plan aligns with proven vault lesson. |
+
+### Risk & Completeness Reviewer
+
+| Finding | Severity | Resolution |
+|---------|----------|------------|
+| experience_collector/encoder/pipeline/dataset must be preserved | HIGH | No files deleted — all existing code stays on disk. New code supersedes, doesn't replace. |
+| Vault's 6-step process (ADR 2026-02-09) — EXTRACT step is critical | HIGH | Sprint 0 extracts anti-patterns and patterns to vault before building new code |
+| Overnight simulation data is irreplaceable Phase 2 training data | CRITICAL | Preserved. Stats logged to vault in Sprint 0. |
+| Existing FLUME checkpoints should be examined | LOW | Remain on disk for reference. Can compare old vs. new model quality. |
+| lesson-30 (holographic projection fallback) directly relevant to JourneyTracker integration | LOW | Already addressed — Phase 1 JourneyTracker change uses FLUME→tile→existing pipeline, avoiding projection issues. Phase 2 uses learned Linear(256→12) which doesn't need eigendecomposition. |
+
+### Vault Insights Incorporated
+
+| Vault Entry | Insight | Applied Where |
+|-------------|---------|---------------|
+| ADR: No Destructive Operations (2026-02-09) | Full 6-step process is mandatory | Sprint 0 restructured to follow all 6 steps |
+| ADR: Adversarial Review Protocol (2026-02-14) | 3-agent review catches integration bugs | This review section + plan verification |
+| Lesson 30: Holographic Projection Fallback | Singular matrix guard needed for dimensionality reduction | JourneyTracker integration design |
+| Lesson 37: Experience-Guided Execution | Prior context materially improves quality | Validates hybrid data strategy |
+| Experiment: First Real VAE Training (2026-02-13) | Started but empty — previous attempt didn't complete | Our plan fills this experiment with real results |
+| Existing lessons 1-38 | 38 accumulated lessons available for pattern reuse | Referenced throughout plan design |
+
+---
+
+### Go/No-Go Gate (Phase 1 → Phase 2)
+
+Phase 2 proceeds only if ALL Phase 1 green-light criteria are met:
+- [ ] KL healthy (128+ active units)
+- [ ] Reconstruction fidelity (cos_sim > 0.95)
+- [ ] Paraphrase discrimination (P@1 > 0.85)
+- [ ] Similarity preservation (ρ > 0.90)
+- [ ] Cache A/B positive (FLUME beats hash)
+- [ ] Real execution data collection pipeline operational
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.REDACTED.jsonl
+
+---
+
+Refine plan to avoid bun failure
+
+---
+
+Proceed
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+We should consider using claude sonnet or other ollama cloud models

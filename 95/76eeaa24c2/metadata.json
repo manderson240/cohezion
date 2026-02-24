@@ -3,7 +3,7 @@
   "checkpoint_id": "9576eeaa24c2",
   "strategy": "manual-commit",
   "branch": "fix/ide-error-resolution",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
     ".agent/CODING_STANDARDS.md",
     ".agent/TDD_COMPOUND_ENGINEERING_SPEC.md",
@@ -61,13 +61,20 @@
       "context": "/95/76eeaa24c2/3/context.md",
       "content_hash": "/95/76eeaa24c2/3/content_hash.txt",
       "prompt": "/95/76eeaa24c2/3/prompt.txt"
+    },
+    {
+      "metadata": "/95/76eeaa24c2/4/metadata.json",
+      "transcript": "/95/76eeaa24c2/4/full.jsonl",
+      "context": "/95/76eeaa24c2/4/context.md",
+      "content_hash": "/95/76eeaa24c2/4/content_hash.txt",
+      "prompt": "/95/76eeaa24c2/4/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 14784,
-    "cache_creation_tokens": 2734113,
-    "cache_read_tokens": 103457484,
-    "output_tokens": 111034,
-    "api_call_count": 844
+    "input_tokens": 28278,
+    "cache_creation_tokens": 3067252,
+    "cache_read_tokens": 109850237,
+    "output_tokens": 118913,
+    "api_call_count": 903
   }
 }
