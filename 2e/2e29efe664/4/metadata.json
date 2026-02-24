@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "2e2e29efe664",
+  "session_id": "b6200af4-ec60-4035-95c1-549ea71589ba",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-24T05:01:35.249697538Z",
+  "branch": "fix/ide-error-resolution",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "GEMINI.md",
+    "docs/archive/GEMINI.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "8072ab0b1888",
+  "transcript_identifier_at_start": "fbaf2450-b85e-4ca9-baae-08164ddd25e1",
+  "token_usage": {
+    "input_tokens": 13477,
+    "cache_creation_tokens": 214793,
+    "cache_read_tokens": 4633518,
+    "output_tokens": 6586,
+    "api_call_count": 44
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-24T05:01:34.928975972Z",
+    "agent_lines": 58,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 48,
+    "total_committed": 58,
+    "agent_percentage": 100
+  },
+  "transcript_path": ".claude/projects/-home-mike-anderson-dev-cohezion/b6200af4-ec60-4035-95c1-549ea71589ba.jsonl"
+}
