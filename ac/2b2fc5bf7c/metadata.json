@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "ac2b2fc5bf7c",
+  "strategy": "manual-commit",
+  "branch": "spec/maximize-node-connections",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tools/vault_linker/parser.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ac/2b2fc5bf7c/0/metadata.json",
+      "transcript": "/ac/2b2fc5bf7c/0/full.jsonl",
+      "context": "",
+      "content_hash": "/ac/2b2fc5bf7c/0/content_hash.txt",
+      "prompt": ""
+    },
+    {
+      "metadata": "/ac/2b2fc5bf7c/1/metadata.json",
+      "transcript": "/ac/2b2fc5bf7c/1/full.jsonl",
+      "context": "",
+      "content_hash": "/ac/2b2fc5bf7c/1/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}

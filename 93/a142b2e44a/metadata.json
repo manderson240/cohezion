@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "93a142b2e44a",
+  "strategy": "manual-commit",
+  "branch": "track-c",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "HANDOFF.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/93/a142b2e44a/0/metadata.json",
+      "transcript": "/93/a142b2e44a/0/full.jsonl",
+      "context": "",
+      "content_hash": "/93/a142b2e44a/0/content_hash.txt",
+      "prompt": ""
+    },
+    {
+      "metadata": "/93/a142b2e44a/1/metadata.json",
+      "transcript": "/93/a142b2e44a/1/full.jsonl",
+      "context": "/93/a142b2e44a/1/context.md",
+      "content_hash": "/93/a142b2e44a/1/content_hash.txt",
+      "prompt": "/93/a142b2e44a/1/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 14764,
+    "cache_creation_tokens": 1629379,
+    "cache_read_tokens": 64182772,
+    "output_tokens": 86497,
+    "api_call_count": 531
+  }
+}
