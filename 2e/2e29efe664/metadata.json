@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "2e2e29efe664",
+  "strategy": "manual-commit",
+  "branch": "fix/ide-error-resolution",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "GEMINI.md",
+    "docs/archive/GEMINI.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/2e/2e29efe664/0/metadata.json",
+      "transcript": "/2e/2e29efe664/0/full.jsonl",
+      "context": "/2e/2e29efe664/0/context.md",
+      "content_hash": "/2e/2e29efe664/0/content_hash.txt",
+      "prompt": "/2e/2e29efe664/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 14179,
+    "cache_creation_tokens": 1324510,
+    "cache_read_tokens": 62173554,
+    "output_tokens": 78796,
+    "api_call_count": 504
+  }
+}
