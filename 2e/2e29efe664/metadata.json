@@ -3,7 +3,7 @@
   "checkpoint_id": "2e2e29efe664",
   "strategy": "manual-commit",
   "branch": "fix/ide-error-resolution",
-  "checkpoints_count": 3,
+  "checkpoints_count": 5,
   "files_touched": [
     "GEMINI.md",
     "docs/archive/GEMINI.md"
@@ -50,13 +50,20 @@
       "context": "/2e/2e29efe664/5/context.md",
       "content_hash": "/2e/2e29efe664/5/content_hash.txt",
       "prompt": "/2e/2e29efe664/5/prompt.txt"
+    },
+    {
+      "metadata": "/2e/2e29efe664/6/metadata.json",
+      "transcript": "/2e/2e29efe664/6/full.jsonl",
+      "context": "/2e/2e29efe664/6/context.md",
+      "content_hash": "/2e/2e29efe664/6/content_hash.txt",
+      "prompt": "/2e/2e29efe664/6/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 31022,
-    "cache_creation_tokens": 3275922,
-    "cache_read_tokens": 133431853,
-    "output_tokens": 150125,
-    "api_call_count": 1080
+    "input_tokens": 31268,
+    "cache_creation_tokens": 3953410,
+    "cache_read_tokens": 162500179,
+    "output_tokens": 174028,
+    "api_call_count": 1318
   }
 }
