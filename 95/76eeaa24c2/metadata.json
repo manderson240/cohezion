@@ -5,10 +5,33 @@
   "branch": "fix/ide-error-resolution",
   "checkpoints_count": 1,
   "files_touched": [
+    ".agent/CODING_STANDARDS.md",
+    ".agent/TDD_COMPOUND_ENGINEERING_SPEC.md",
+    ".env.example",
+    ".gitignore",
+    ".pre-commit-config.yaml",
     "CLAUDE.md",
     "memory/MEMORY.md",
+    "scripts/recursive_challenger.py",
+    "src/cohezion/agents/generated/__init__.py",
+    "src/cohezion/branding.py",
+    "src/cohezion/compound/executor.py",
+    "src/cohezion/compound/exp_persistence/accumulator.py",
+    "src/cohezion/compound/journey_tracker.py",
+    "src/cohezion/compound/persistence.py",
     "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
-    "src/cohezion/knowledge_graph/MISSION_JOURNAL.md"
+    "src/cohezion/knowledge_graph/MISSION_JOURNAL.md",
+    "src/cohezion/knowledge_graph/RETROSPECTIVE_2026-02-24_IDE_ERRORS.md",
+    "src/cohezion/models/__init__.py",
+    "src/cohezion/models/model_registry.py",
+    "src/cohezion/real_envs/evaluator.py",
+    "src/cohezion/simulation/enhanced_simulator.py",
+    "src/cohezion/swarm/executive.py",
+    "src/cohezion/swarm/git_health.py",
+    "src/cohezion/swarm/topology.py",
+    "tests/smoke/__init__.py",
+    "tests/smoke/test_imports.py",
+    "tests/smoke/test_instantiation.py"
   ],
   "sessions": [
     {
@@ -17,13 +40,20 @@
       "context": "/95/76eeaa24c2/0/context.md",
       "content_hash": "/95/76eeaa24c2/0/content_hash.txt",
       "prompt": "/95/76eeaa24c2/0/prompt.txt"
+    },
+    {
+      "metadata": "/95/76eeaa24c2/1/metadata.json",
+      "transcript": "/95/76eeaa24c2/1/full.jsonl",
+      "context": "/95/76eeaa24c2/1/context.md",
+      "content_hash": "/95/76eeaa24c2/1/content_hash.txt",
+      "prompt": "/95/76eeaa24c2/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 14179,
-    "cache_creation_tokens": 1324510,
-    "cache_read_tokens": 62173554,
-    "output_tokens": 78796,
-    "api_call_count": 504
+    "input_tokens": 14288,
+    "cache_creation_tokens": 1556836,
+    "cache_read_tokens": 67534901,
+    "output_tokens": 91294,
+    "api_call_count": 546
   }
 }
