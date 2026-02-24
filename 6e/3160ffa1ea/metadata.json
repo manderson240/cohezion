@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "6e3160ffa1ea",
+  "strategy": "manual-commit",
+  "branch": "track-c",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tools/tests/test_paper_anthropic_mcp_apps.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/6e/3160ffa1ea/0/metadata.json",
+      "transcript": "/6e/3160ffa1ea/0/full.jsonl",
+      "context": "",
+      "content_hash": "/6e/3160ffa1ea/0/content_hash.txt",
+      "prompt": ""
+    },
+    {
+      "metadata": "/6e/3160ffa1ea/1/metadata.json",
+      "transcript": "/6e/3160ffa1ea/1/full.jsonl",
+      "context": "/6e/3160ffa1ea/1/context.md",
+      "content_hash": "/6e/3160ffa1ea/1/content_hash.txt",
+      "prompt": "/6e/3160ffa1ea/1/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 14764,
+    "cache_creation_tokens": 1629379,
+    "cache_read_tokens": 64182772,
+    "output_tokens": 86497,
+    "api_call_count": 531
+  }
+}

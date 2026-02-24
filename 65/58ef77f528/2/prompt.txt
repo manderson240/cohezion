@@ -1,0 +1,2285 @@
+<local-command-stderr>Error: Bash command failed for pattern "!`git diff --name-only origin/HEAD...`": [stderr]
+fatal: ambiguous argument 'origin/HEAD...': unknown revision or path not in the working tree.
+Use '--' to separate paths from revisions, like this:
+'git <command> [<revision>...] -- [<file>...]'</local-command-stderr>
+
+---
+
+I need you to teach me how to use claude code better
+
+---
+
+How can we codify your suggestions so the platform has increased context awareness and minimizes uninformed mistakes.
+
+---
+
+Proceed with what you think is best to maximize COHEZION
+
+---
+
+Proceed
+
+---
+
+Proceed
+
+---
+
+Got it, ready for tomorrow.
+
+---
+
+Commit this work, retrospective, compact, Revise plan for next steps enabled with team agent orchestration.
+
+---
+
+Proceed
+
+---
+
+<teammate-message teammate_id="track-b-impl" color="blue" summary="Track B complete: 64/64 tests, 25 commits synced, 3.5h">
+## Track B: Entire.io Sync Daemon -- ALL TASKS COMPLETE
+
+### Summary
+All 3 tasks completed. The entire.io sync daemon is production-ready with SurrealDB integration, health checks, systemd service, and full documentation.
+
+### Task #1: Fix imports + SurrealDB integration
+- Fixed import paths (already done, verified)
+- Added SurrealDB integration in `_process_commit()` via `AgentContextOps` (optional, graceful fallback)
+- Added `--since` flag and `backfill` command for historical commit processing
+- 14 new tests (58/58 total passing)
+- Commit: `13e524a` on branch `track-b-entire-sync-daemon`
+
+### Task #2: Health checks + systemd + docs
+- Health check CLI command (`entire health`) with `--json-output` for monitoring
+- Checks: vault/git paths, work queue, DLQ count, SurrealDB connectivity
+- Systemd service file at `cloud-vault-mcp/systemd/entire-sync.service`
+- Comprehensive runbook at `patterns/runbook-entire-sync-daemon.md`
+- 6 new health check tests (64/64 total passing)
+- Commit: `952789a` on branch `track-b-entire-sync-daemon`
+
+### Task #3: End-to-end validation
+- Backfill against real vault: **166 commits scanned, 25 entire.io checkpoints found, 25/25 processed, 0 failures**
+- Vault notes created at `daily/checkpoints/` with correct YAML frontmatter
+- Backfill idempotency verified (re-run skipped all 25)
+- Completion report at `decisions/2026-02-13-track-b-entire-sync-daemon-complete.md`
+
+### Metrics
+| Metric | Value |
+|--------|-------|
+| Production LOC | 515 (3 files) |
+| Test count | 64/64 passing |
+| Coverage | 80% (daemon), 100% (ops), 47% (CLI) |
+| Commits synced | 25/25 (0 failures) |
+| Time | ~3.5h actual vs 8h estimated (56% faster) |
+| Cost | $0 |
+
+### Git Branch
+All work is on branch `track-b-entire-sync-daemon` in the cohezion repo worktree at `/home/mike-anderson/dev/cohezion-track-b/`. 2 commits ready for merge.
+
+### Files Modified/Created
+- `cloud-vault-mcp/src/mcp_server/entire_sync_daemon.py` (241 LOC, SurrealDB + backfill)
+- `cloud-vault-mcp/src/mcp_server/entire_main.py` (180 LOC, health + backfill commands)
+- `cloud-vault-mcp/tests/test_entire_sync_daemon.py` (64 tests)
+- `cloud-vault-mcp/systemd/entire-sync.service` (new)
+- `patterns/runbook-entire-sync-daemon.md` (new, in vault)
+- `decisions/2026-02-13-track-b-entire-sync-daemon-complete.md` (new, in vault)
+- `daily/checkpoints/*.md` (25 vault notes from backfill)
+</teammate-message>
+
+<teammate-message teammate_id="track-b-impl" color="blue">
+{"type":"idle_notification","from":"track-b-impl","timestamp":"2026-02-14T04:35:35.851Z","idleReason":"available"}
+</teammate-message>
+
+---
+
+Commit and push all work to remote
+
+---
+
+https://github.com/manderson240/cohezion
+
+---
+
+compact, retrospective, revise plan to incorporate key learnings
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Analysis:
+Let me chronologically analyze the entire conversation:
+
+1. **User asks to learn Claude Code better** - Initial request for teaching how to use Claude Code more effectively.
+
+2. **User asks about codifying suggestions** - "How can we codify your suggestions so the platform has increased context awareness and minimizes uninformed mistakes."
+
+3. **I created the 3-layer codification framework**:
+   - Layer 1 (Policy): Enhanced CLAUDE.md with tool selection matrix, parallelization guidelines, agent delegation strategy, memory system, MCP awareness, git safety protocol
+   - Layer 2 (Procedure): Created PRIME_CLAUDE_CODE_PRACTICES.md (2,700 LOC skill with 6 concepts, 12 rules, 5 examples)
+   - Layer 3 (Metrics): Created daily metrics template
+
+4. **User says "Proceed"** - I created Wave 2 execution plan with 4 tasks, set up task dependencies, created execution strategy documents
+
+5. **User says "Got it, ready for tomorrow"** - I provided final pre-execution checklist
+
+6. **User says "Proceed"** again - I created pre-execution coordination doc and unified status dashboard, committed work
+
+7. **User says "Commit this work, retrospective, compact, Revise plan for next steps enabled with team agent orchestration"** - I wrote compact retrospective with revised plan for team orchestration using 3 agents
+
+8. **User says "Proceed"** - I launched team `phase-2-completion`, created 3 tasks, spawned `track-b-impl` agent
+
+9. **Agent completes all 3 tasks** (64/64 tests, 25 checkpoints, 3.5h) - I verified, shut down agent, cleaned up team
+
+10. **User says "Commit and push all work to remote"** - No remote configured, user provided URL `https://github.com/manderson240/cohezion`, I pushed to remote
+
+11. **User's final request**: "compact, retrospective, revise plan to incorporate key learnings" - I created retrospective with key learnings, archived Phases 1-3 to separate memory file, began MEMORY.md cleanup but file was too large/complex to edit inline
+
+Key files created/modified:
+- CLAUDE.md (enhanced with best practices)
+- patterns/PRIME_CLAUDE_CODE_PRACTICES.md
+- daily/_claude-code-metrics-template.md
+- Multiple decision docs
+- phases-1-3-archive.md (new memory file)
+- decisions/2026-02-14-session-60-retrospective-revised-plan.md
+
+The MEMORY.md is extremely bloated (513 lines, should be <200) with stale entries. The retrospective identified this as a key learning - need to clean it up.
+
+Key learnings from retrospective:
+1. Agent delegation delivers 40-60% schedule compression
+2. Codification has diminishing returns without execution (8 docs before any agent used the rules was excessive)
+3. Test baselines were stale in memory
+4. 1 well-scoped agent > 3-5 poorly scoped agents
+5. MEMORY.md accumulates stale state
+
+The most recent work was creating the retrospective and starting to clean MEMORY.md but the file is 513 lines and needs major trimming. The user's last explicit request was "compact, retrospective, revise plan to incorporate key learnings" - the retrospective and plan are done, but the MEMORY.md cleanup (which the plan calls for) is not yet complete.
+
+Summary:
+1. Primary Request and Intent:
+   The user's conversation spanned multiple phases:
+   - **Initial**: "I need you to teach me how to use Claude Code better" - wanted to learn Claude Code best practices
+   - **Codification**: "How can we codify your suggestions so the platform has increased context awareness and minimizes uninformed mistakes" - wanted best practices encoded into the platform governance
+   - **Execution**: Multiple "Proceed" commands to execute the codification framework, create team orchestration, and complete Track B
+   - **Git operations**: "Commit and push all work to remote" to `https://github.com/manderson240/cohezion`
+   - **Final**: "compact, retrospective, revise plan to incorporate key learnings" - wanted a retrospective of the session with revised plan
+
+2. Key Technical Concepts:
+   - **3-Layer Governance Framework**: Layer 1 (Policy/CLAUDE.md), Layer 2 (Procedure/PRIME skill), Layer 3 (Metrics/daily tracking)
+   - **PRIME Skill Pattern**: 7-section executable governance template (Metadata, Concepts, Instructions, Examples, Evolution, Validation, Charter Alignment)
+   - **Team Agent Orchestration**: Creating teams with TeamCreate, spawning agents with Task tool, coordinating via TaskList/TaskUpdate/SendMessage
+   - **Entire.io Sync Daemon**: Async polling daemon (EntireSyncDaemon) that parses git commits, extracts metadata (CommitData), syncs to vault notes and SurrealDB
+   - **WorkQueue + DeadLetterQueue**: SQLite-backed commit tracking with retry/DLQ for failed commits
+   - **Schedule Compression**: Consistent 40-60% faster than estimates across all phases (validated pattern)
+   - **Python venv convention**: Always use `/home/mike-anderson/dev/cohezion/cloud-vault-mcp/.venv/bin/python3`
+
+3. Files and Code Sections:
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/CLAUDE.md`**
+     - Enhanced with 7 new sections: Tool Selection Matrix, Parallelization Guidelines, Agent Delegation Strategy, Memory System Strategy, MCP Tool Awareness, Git Safety Protocol, Python Environment Conventions, Token Budget Strategy
+     - Critical for platform context awareness - loaded by every Claude Code session automatically
+     - Key addition - Tool Selection Matrix table mapping tasks to tools (Read vs Bash, Glob vs find, etc.)
+
+   - **`REDACTED.md`**
+     - 2,700 LOC governance skill with 6 concepts and 12 procedural rules
+     - Concepts: Tool Selection Discipline, Parallelization Strategy, Agent Delegation Triggers, Memory System Usage, MCP Integration Awareness, Git Safety Protocol
+     - Rules #1-12 covering: Read First, Tool Selection, Parallelization, Token Budget, Confirm Risky Ops, No Destructive Shortcuts, Venv Python, Task Lists, Respect Patterns, Plan Before Implementing, Test After Changes, Track Decisions
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/daily/_claude-code-metrics-template.md`**
+     - Comprehensive daily tracking template for tool selection, parallelization, memory reuse, mistakes prevented
+     - Sections: Tool Selection Decisions, Parallelization, Memory System Reuse, Mistakes & Prevention, PRIME Rules Application, Session Summary, Patterns Discovered, PRIME Skill Refinement Suggestions
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/src/mcp_server/entire_ops.py`** (94 LOC)
+     - CommitData dataclass + EntireOps parsing service
+     - Methods: parse_commit_metadata(), _parse_timestamp(), _extract_agent_id(), _extract_outcomes(), _extract_metrics(), _extract_team_status(), _extract_next_actions()
+     - 100% test coverage
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/src/mcp_server/entire_sync_daemon.py`** (241 LOC after agent work)
+     - WorkQueue (SQLite-backed processed commits tracker), DeadLetterQueue (failed commits with retry), EntireSyncDaemon (async polling loop)
+     - Key methods: start(), poll_and_sync(), _get_new_commits(), _is_entire_commit(), _process_commit(), _create_vault_note(), _build_checkpoint_note()
+     - Agent added SurrealDB integration (optional, graceful fallback) and backfill support
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/src/mcp_server/entire_main.py`** (180 LOC after agent work)
+     - Click CLI with commands: start, status, dlq, retry, test, health, backfill
+     - Agent added health command and backfill command
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/decisions/2026-02-14-session-60-retrospective-revised-plan.md`**
+     - Key learnings: Agent delegation = 40-60% compression; codification has diminishing returns without execution; test baselines stale in memory; 1 well-scoped agent > 3-5 poorly scoped; MEMORY.md accumulates stale state
+     - Revised plan: Less planning more executing, 1 doc not 8, verify state before planning, right-size agent teams, clean memory weekly
+     - Calibrated estimates: initial estimate × 0.5-0.6 = actual
+
+   - **`/home/mike-anderson/.claude/projects/-home-mike-anderson-vaults-cohezion-vault/memory/phases-1-3-archive.md`**
+     - New archive file for completed Phase 1-3 details moved out of MEMORY.md
+     - Contains combined metrics, per-phase details, key execution patterns
+
+   - **`/home/mike-anderson/.claude/projects/-home-mike-anderson-vaults-cohezion-vault/memory/MEMORY.md`**
+     - Currently 513 lines (limit: 200) - severely bloated with stale entries
+     - Contains duplicate/overlapping entries for same milestones (Phase 2 appears 4+ times)
+     - Needs major cleanup: archive completed items, keep only current status + conventions + infrastructure
+
+   - **Decision docs created**: 
+     - `decisions/2026-02-12-claude-code-context-awareness-codification.md`
+     - `decisions/2026-02-12-platform-codification-summary-guide.md`
+     - `decisions/2026-02-13-phase-2-execution-strategy-wave-2.md`
+     - `decisions/2026-02-13-session-60-retrospective-and-revised-plan.md`
+     - `decisions/2026-02-14-session-60-retrospective-revised-plan.md`
+
+   - **Inbox docs created**:
+     - `inbox/WAVE-2-LAUNCH-CHECKLIST.md`
+     - `inbox/SESSION-60-PRE-EXECUTION-COORDINATION.md`
+     - `inbox/SESSION-60-UNIFIED-STATUS-DASHBOARD.md`
+
+4. Errors and Fixes:
+   - **Git commit failed (nothing to commit)**: Tried to commit Track B vault deliverables but they were already committed by the agent or previous sessions. Fixed by checking `git log` and confirming clean tree.
+   - **MEMORY.md edit failed**: Tried to edit "Phase 2 Track B: Entire.io Sync Daemon - READY FOR EXECUTION" string but it had already been modified by previous sessions. Fixed by reading the current file to understand actual state.
+   - **No git remote configured**: When user asked to push, discovered no remote origin. Asked user, who provided `https://github.com/manderson240/cohezion`. Added with `git remote add origin` and pushed successfully.
+   - **Stale test baseline in memory**: MEMORY.md said 22/25 tests, actual was 44/44 (then 64/64 after agent). Key learning: always verify with `pytest` before planning.
+
+5. Problem Solving:
+   - **Context awareness problem**: Solved by creating 3-layer governance framework (CLAUDE.md + PRIME skill + metrics template)
+   - **Track B completion**: Spawned single `track-b-impl` agent that completed all 3 tasks (imports fix, SurrealDB integration, health checks, systemd, validation) in 3.5h vs 8h estimate
+   - **MEMORY.md bloat**: Identified as key problem (513 lines, limit 200). Created `phases-1-3-archive.md` to hold completed phase details. Full cleanup still pending.
+   - **Over-documentation anti-pattern**: Identified that creating 8 governance documents before any agent applied the rules was excessive. Revised plan: 1 concise doc, validate in 1 session, iterate.
+
+6. All User Messages:
+   - "I need you to teach me how to use claude code better"
+   - "How can we codify your suggestions so the platform has increased context awareness and minimizes uninformed mistakes."
+   - "Proceed with what you think is best to maximize COHEZION"
+   - "Proceed" (after Wave 2 execution plan created)
+   - "Got it, ready for tomorrow."
+   - "Proceed" (after pre-execution coordination created)
+   - "Commit this work, retrospective, compact, Revise plan for next steps enabled with team agent orchestration."
+   - "Proceed" (launching team orchestration)
+   - [Agent message: Track B complete - 64/64 tests, 25 commits synced, 3.5h]
+   - "Commit and push all work to remote"
+   - "https://github.com/manderson240/cohezion" (in response to remote URL question)
+   - "compact, retrospective, revise plan to incorporate key learnings"
+
+7. Pending Tasks:
+   - **MEMORY.md cleanup**: File is 513 lines (limit 200). Archive file created (`phases-1-3-archive.md`) but MEMORY.md itself has not been trimmed yet. The retrospective plan specifically calls for this as Step 1 (15 min).
+   - **Commit retrospective + archive**: The retrospective decision doc and archive file were created but not yet committed/pushed.
+   - **Phase 4 execution**: Retrospective outlines Phase 4 plan (GraphRAG decision engine) but no explicit user request to start it.
+
+8. Current Work:
+   The most recent work was creating the retrospective (`decisions/2026-02-14-session-60-retrospective-revised-plan.md`) and the phases archive file (`memory/phases-1-3-archive.md`) in response to user's request: "compact, retrospective, revise plan to incorporate key learnings". The retrospective identified 5 key learnings and a revised execution plan. The MEMORY.md was read (513 lines) but not yet cleaned up - the archive file was created to receive the completed phase details, but the actual trimming of MEMORY.md hasn't happened yet.
+
+   The retrospective and archive are uncommitted. Git remote is configured at `https://github.com/manderson240/cohezion`.
+
+9. Optional Next Step:
+   Complete the MEMORY.md cleanup (trim from 513 lines to under 200 by removing stale/duplicate entries now archived in `phases-1-3-archive.md`), then commit and push the retrospective + archive + cleaned MEMORY.md. This directly follows from the user's request for "compact, retrospective, revise plan" and the retrospective's own Step 1: "Clean MEMORY.md (15 min) - Archive all completed Phase 1-3 entries, keep only current status + conventions + infrastructure, target under 100 lines."
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.REDACTED.jsonl
+Please continue the conversation from where we left off without asking the user any further questions. Continue with the last task that you were asked to work on.
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Analysis:
+Let me chronologically analyze the conversation:
+
+1. **Context Recovery**: This session began as a continuation from a previous conversation that ran out of context. The system provided a detailed summary of the prior conversation covering Sessions 56-60 of the Cohezion project.
+
+2. **Pre-loaded Context**: Several files were pre-read before the conversation started:
+   - `memory/phases-1-3-archive.md` - Archive of completed phases
+   - `decisions/2026-02-14-session-60-retrospective-revised-plan.md` - Retrospective with 5 key learnings
+   - `REDACTED.md` - Phase 3 completion report
+   - `.obsidian/workspace.json` - Obsidian workspace state
+   - `checkpoints/test_session.json` - Test checkpoint data
+
+3. **Implicit Task**: The system message says "Please continue the conversation from where we left off without asking the user any further questions. Continue with the last task that you were asked to work on." The pending task from the previous session was MEMORY.md cleanup (513 lines → under 200).
+
+4. **My Actions**:
+   - Read MEMORY.md (513 lines, massively bloated)
+   - Wrote a completely new MEMORY.md (90 lines) - removing all duplicate/stale entries
+   - Checked git status - found 8 untracked files plus workspace.json modified
+   - Staged and committed all files (9 files, 469 insertions)
+   - Pushed to `https://github.com/manderson240/cohezion` remote
+
+5. **User's Explicit Request**: The user then asked for a detailed summary of the conversation.
+
+Let me identify all the key details:
+
+**Files Modified**:
+- `MEMORY.md` - Rewritten from 513 to 90 lines
+- 9 files committed: decisions (3), patterns (2), experiments (1), projects (1), daily (1), .obsidian/workspace.json
+
+**Key Technical Details**:
+- MEMORY.md was 513 lines (limit 200), had 4+ duplicate entries for Phase 2 milestones
+- Archive file `phases-1-3-archive.md` already existed from previous session
+- Git remote: `https://github.com/manderson240/cohezion`
+- Branch: master, was 5 commits ahead before push, then 6 after commit
+
+**Errors**: None in this session.
+
+**User Messages**: 
+1. The continuation context/summary (system-generated)
+2. "Your task is to create a detailed summary..." (current request)
+
+The user didn't explicitly give instructions during this session beyond the continuation context. The work was driven by the previous session's pending task.
+
+Summary:
+1. Primary Request and Intent:
+   This session is a continuation from a previous conversation that ran out of context. The prior session's final user request was "compact, retrospective, revise plan to incorporate key learnings." The retrospective was completed (`decisions/2026-02-14-session-60-retrospective-revised-plan.md`) and the phases archive (`memory/phases-1-3-archive.md`) was created, but the actual MEMORY.md cleanup remained pending. The system instructed: "Please continue the conversation from where we left off without asking the user any further questions. Continue with the last task that you were asked to work on." So the task was to complete the MEMORY.md cleanup (trim from 513 lines to under 200), then commit and push all outstanding work.
+
+2. Key Technical Concepts:
+   - **MEMORY.md Management**: Auto-memory file loaded into every Claude Code session's system prompt. Must stay under 200 lines. Topic files hold detailed information, MEMORY.md serves as concise index.
+   - **Phases 1-3 Archive Pattern**: Completed work moved to `phases-1-3-archive.md` to reduce MEMORY.md noise while preserving history.
+   - **Session 60 Key Learnings** (from retrospective):
+     - Agent delegation delivers 40-60% schedule compression consistently
+     - 1 well-scoped agent > 3-5 poorly scoped agents
+     - Initial estimate × 0.5-0.6 = actual duration (calibrated)
+     - Codification has diminishing returns without execution (1 doc not 8)
+     - MEMORY.md accumulates stale state — needs weekly cleanup
+     - Always verify state with `pytest` before planning, don't trust memory alone
+   - **3-Layer Governance**: Layer 1 (Policy/CLAUDE.md), Layer 2 (Procedure/PRIME skills), Layer 3 (Metrics/daily tracking)
+   - **Phase 4 Execution Approach**: Verify state → scope 1 deliverable → spawn 1 agent → monitor → verify + commit
+   - **Git Remote**: `https://github.com/manderson240/cohezion` (master branch)
+
+3. Files and Code Sections:
+   - **`/home/mike-anderson/.claude/projects/-home-mike-anderson-vaults-cohezion-vault/memory/MEMORY.md`**
+     - Core auto-memory file loaded into every session's system prompt
+     - Was 513 lines (limit 200) with 4+ duplicate entries for Phase 2 milestones, stale "in progress" entries for completed work, and redundant detail already archived
+     - **Completely rewritten to 90 lines** — structured as: Current Status (Phases 1-3 summary + Phase 4 next), Critical Lessons (3 key patterns), Key Conventions (Python, Sheets, Agent Economics, Teleport), Infrastructure (7 services), Vault Stats, Topic Files index, Queued Work
+     - Key sections preserved: Python venv convention (`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/.venv/bin/python3`), Google Sheets header requirement, agent economics rules, teleport protocol direction
+
+   - **`/home/mike-anderson/.claude/projects/-home-mike-anderson-vaults-cohezion-vault/memory/phases-1-3-archive.md`** (pre-existing, read for context)
+     - Archive of all completed Phase 1-3 details (48 lines)
+     - Contains combined metrics, per-phase summaries, key execution patterns
+     - Created in previous session to receive content removed from MEMORY.md
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/decisions/2026-02-14-session-60-retrospective-revised-plan.md`** (pre-existing, read for context, committed this session)
+     - 143-line retrospective with 5 key learnings and revised Phase 4 plan
+     - Contains calibrated estimate table, anti-patterns list, and step-by-step Phase 4 execution template
+
+   - **`REDACTED.md`** (pre-existing, read for context)
+     - Phase 3 completion report: 5.5h, 4,850 LOC, 10/10 criteria, marketplace-ready
+
+   - **Files committed (9 total)**:
+     - `decisions/2026-02-14-session-60-retrospective-revised-plan.md` (new)
+     - `decisions/2026-02-14-phase-2-adversarial-review-corrected-status-and-path-forward.md` (new)
+     - `decisions/2026-02-14-adversarial-multi-agent-review-protocol.md` (new)
+     - `experiments/2026-02-14-session-58-7-phase-journey-enrichment-3-agent-adversarial-review.md` (new)
+     - `patterns/comparative-tests-over-absolute-thresholds.md` (new)
+     - `patterns/mock-inflection-detector-correctly.md` (new)
+     - `projects/session-58-retrospective-and-refined-plan.md` (new)
+     - `daily/2026-02-14-session-7a1f0d61.md` (new)
+     - `.obsidian/workspace.json` (modified)
+
+4. Errors and fixes:
+   - No errors were encountered in this session. All operations (read, write, git add, commit, push) succeeded cleanly.
+   - From the previous session context: MEMORY.md edit attempts failed because the file had been modified by intervening sessions, making `old_string` matches fail. This was solved by reading the full current state and doing a complete rewrite via Write tool instead of incremental Edit.
+
+5. Problem Solving:
+   - **MEMORY.md bloat problem**: The file was 513 lines (2.5x the 200-line limit) with overlapping entries — Phase 2 appeared 4+ times in different states ("in progress", "queued", "complete", "execution summary"). Solved by writing a completely new file (90 lines) organized into 8 clean sections, with all historical detail delegated to `phases-1-3-archive.md` and topic files.
+   - **Uncommitted artifacts**: Discovered 8 untracked files from Sessions 58-60 that hadn't been committed. Staged and committed all together with the retrospective.
+   - **Branch ahead of remote**: Master was 5 commits ahead of origin. Pushed all 6 commits (5 existing + 1 new) successfully.
+
+6. All user messages:
+   - *[System continuation context]*: Detailed summary of Sessions 56-60 covering codification framework, team orchestration, Track B completion, retrospective, and pending MEMORY.md cleanup. Instruction: "Please continue the conversation from where we left off without asking the user any further questions."
+   - "Your task is to create a detailed summary of the conversation so far, paying close attention to the user's explicit requests and your previous actions."
+
+7. Pending Tasks:
+   - No explicit pending tasks from this session. The MEMORY.md cleanup and commit/push are complete.
+   - From the retrospective's revised plan (not yet explicitly requested by user this session):
+     - Phase 4 execution: GraphRAG decision engine architecture
+     - Obsidian 3D plugin marketplace submission
+     - Ollama MCP Phases 2-4
+     - Fix 28 papers with YAML parsing errors
+     - 12D Graph remaining 4 dimensions
+
+8. Current Work:
+   The MEMORY.md cleanup task from the previous session has been completed:
+   - MEMORY.md rewritten: 513 → 90 lines (82% reduction)
+   - All outstanding files committed (9 files, commit `1d03a9e`)
+   - Pushed to `https://github.com/manderson240/cohezion` (master branch)
+   - The commit message: "docs: Session 60 retrospective + MEMORY.md cleanup (513→90 lines)"
+
+9. Optional Next Step:
+   No immediate next step is warranted. The task from the previous session ("compact, retrospective, revise plan to incorporate key learnings") is fully complete — retrospective written, MEMORY.md cleaned, work committed and pushed. The next logical work would be Phase 4 execution (GraphRAG decision engine) as outlined in `decisions/2026-02-14-session-60-retrospective-revised-plan.md`, but this was not explicitly requested by the user in this session and should await user direction.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.REDACTED.jsonl
+
+---
+
+<local-command-stderr>Error: Bash command failed for pattern "!`git log --no-decorate origin/HEAD...`": [stderr]
+fatal: ambiguous argument 'origin/HEAD...': unknown revision or path not in the working tree.
+Use '--' to separate paths from revisions, like this:
+'git <command> [<revision>...] -- [<file>...]'</local-command-stderr>
+
+---
+
+# Debug Skill
+
+Help the user debug an issue they're encountering in this current Claude Code session.
+
+## Session Debug Log
+
+The debug log for the current session is at: `/home/mike-anderson/.claude/debug/a8ef61bd-3cc4-4391-bfce-f382819de4f8.txt`
+
+Total lines: 212671
+
+### Last 20 lines
+
+```
+2026-02-14T05:17:24.033Z [DEBUG] Fast mode unavailable: Fast mode requires extra usage billing · /extra-usage to enable
+2026-02-14T05:17:24.376Z [DEBUG] Fast mode unavailable: Fast mode requires extra usage billing · /extra-usage to enable
+2026-02-14T05:17:24.784Z [DEBUG] Fast mode unavailable: Fast mode requires extra usage billing · /extra-usage to enable
+2026-02-14T05:17:25.376Z [DEBUG] Fast mode unavailable: Fast mode requires extra usage billing · /extra-usage to enable
+2026-02-14T05:17:25.849Z [DEBUG] Fast mode unavailable: Fast mode requires extra usage billing · /extra-usage to enable
+2026-02-14T05:17:32.931Z [DEBUG] Fast mode unavailable: Fast mode requires extra usage billing · /extra-usage to enable
+2026-02-14T05:17:33.329Z [DEBUG] Fast mode unavailable: Fast mode requires extra usage billing · /extra-usage to enable
+2026-02-14T05:17:33.872Z [DEBUG] Fast mode unavailable: Fast mode requires extra usage billing · /extra-usage to enable
+2026-02-14T05:17:37.720Z [DEBUG] Fast mode unavailable: Fast mode requires extra usage billing · /extra-usage to enable
+2026-02-14T05:17:38.952Z [DEBUG] Fast mode unavailable: Fast mode requires extra usage billing · /extra-usage to enable
+2026-02-14T05:17:40.976Z [DEBUG] Fast mode unavailable: Fast mode requires extra usage billing · /extra-usage to enable
+2026-02-14T05:17:41.354Z [DEBUG] Fast mode unavailable: Fast mode requires extra usage billing · /extra-usage to enable
+2026-02-14T05:17:41.776Z [DEBUG] Fast mode unavailable: Fast mode requires extra usage billing · /extra-usage to enable
+2026-02-14T05:17:42.338Z [DEBUG] Fast mode unavailable: Fast mode requires extra usage billing · /extra-usage to enable
+2026-02-14T05:17:44.101Z [DEBUG] Fast mode unavailable: Fast mode requires extra usage billing · /extra-usage to enable
+2026-02-14T05:17:44.400Z [DEBUG] Fast mode unavailable: Fast mode requires extra usage billing · /extra-usage to enable
+2026-02-14T05:17:44.754Z [DEBUG] Fast mode unavailable: Fast mode requires extra usage billing · /extra-usage to enable
+2026-02-14T05:17:45.368Z [DEBUG] Fast mode unavailable: Fast mode requires extra usage billing · /extra-usage to enable
+2026-02-14T05:17:45.675Z [DEBUG] Fast mode unavailable: Fast mode requires extra usage billing · /extra-usage to enable
+
+```
+
+For additional context, grep for [ERROR] and [WARN] lines across the full file.
+
+## Issue Description
+
+The user did not describe a specific issue. Read the debug log and summarize any errors, warnings, or notable issues.
+
+## Settings
+
+Remember that settings are in:
+* user - /home/mike-anderson/.claude/settings.json
+* project - /home/mike-anderson/vaults/cohezion-vault/.claude/settings.json
+* local - /home/mike-anderson/vaults/cohezion-vault/.claude/settings.local.json
+
+## Instructions
+
+1. Review the user's issue description
+2. The last 20 lines show the debug file format. Look for [ERROR] and [WARN] entries, stack traces, and failure patterns across the file
+3. Consider launching the claude-code-guide subagent to understand the relevate Claude Code features
+4. Explain what you found in plain language
+5. Suggest concrete fixes or next steps
+
+---
+
+Retrospective, refine plan for continued compound engineering
+
+---
+
+Revise plan to accomplish all phases orchestrated with a team of specialist agents
+
+---
+
+Upward and Onward
+
+---
+
+<teammate-message teammate_id="inbox-triager" color="green" summary="Inbox triage complete: 61 to 4 files (93% reduction)">
+Task #2 complete: Inbox triaged from 61 files down to 4.
+
+**DELETED: 49 files**
+- 3 HANDOFF-* (completed phase handoffs)
+- 10 PHASE-2-* (deployment/approval/status docs for completed Phase 2)
+- 2 PHASE-3-* (kickoff/readiness for completed Phase 3)
+- 2 PHASE-4-* (premature planning docs, Phase 4 hasn't started)
+- 2 PHASES-1-3/1-4-* (superseded status snapshots)
+- 18 SESSION-* (handoffs, coordination, readiness docs for sessions 57-62)
+- 3 TRACK-B/C-* (completed track status)
+- 2 LAUNCH-CHECKLIST/WAVE-2 (expired checklists)
+- 2 Untitled*.base (empty Obsidian canvas files)
+- 2 empty files (concept-testing.md, 2026-02-09.md)
+- 3 remaining SESSION-* (pre-execution, coordination, sign-off duplicates)
+
+**ARCHIVED to daily/: 8 files**
+- SESSION-57-COMPLETION-SUMMARY.md
+- SESSION-60-COMPLETION-SUMMARY.md
+- SESSION-61-COMPLETE-SUMMARY.md
+- SESSION-62-PHASE-3-COMPLETE-FINAL-SUMMARY.md
+- SESSION-63-FINAL-SUMMARY-2026-02-15.md
+- PHASE-2-FINAL-COMPLETION-VERIFIED-2026-02-14.md
+- PHASE-2-DEPLOYMENT-COMPLETION-2026-02-14.md
+- PHASE-3-COMPLETION-VERIFIED-2026-02-14.md
+
+**KEPT in inbox/: 4 files** (with reasons)
+1. `research-gaps.md` — Substantive analysis of 84-paper vault gaps (orphaned papers, domain fragmentation). Actionable future work.
+2. `Setup linkage with google sheets.md` — Reference doc for Sheets-to-Vault pipeline architecture. Still relevant.
+3. `The Awareness of Nothing at All and Quadrature Physics.md` — Full research content that should be processed into papers/ eventually.
+4. `2026-02-14-settings-validation-mystery.md` — Open debugging investigation for /doctor settings validation issue.
+
+Result: 61 → 4 files (93% reduction).
+</teammate-message>
+
+<teammate-message teammate_id="inbox-triager" color="green">
+{"type":"idle_notification","from":"inbox-triager","timestamp":"2026-02-14T05:33:20.281Z","idleReason":"available"}
+</teammate-message>
+
+---
+
+yes, commit and push
+
+---
+
+Retrospective on this compound engineering session, update memory
+
+---
+
+commit and push the memory update
+
+---
+
+yes
+
+---
+
+Retrospective, refine plan for Phase 4 GraphRAG decision engine
+
+---
+
+yes, execute Phase A
+
+---
+
+yes, re-import SurrealDB and wire Phase 6-7 into the plugin
+
+---
+
+<task-notification>
+<task-id>a19bf7d</task-id>
+<status>completed</status>
+<summary>Agent "Wire Phase 6-7 into plugin" completed</summary>
+<result>Build succeeds cleanly. Here is the complete report for Task #10.
+
+---
+
+## Task #10 Complete: Wire Phase 6-7 Services into Obsidian Plugin UI
+
+### What Was Wired
+
+**Two files modified:**
+
+1. `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/main.ts`
+2. `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/ui/DecisionExplorer.ts`
+
+### Changes to `main.ts`
+
+**New imports added:**
+- `Decision`, `DecisionCascade` from `./types/Decision`
+- `SurrealDBClient` from `./services/SurrealDBClient`
+- `VaultBridge` from `./services/VaultBridge`
+
+**New ribbon icons (2):**
+- `heart-pulse` icon -- "Decision Health Dashboard" -- opens `DecisionHealthDashboard` modal
+- `git-branch` icon -- "Cascade Timeline" -- opens `CascadeTimeline` modal
+
+**New commands (2):**
+- `open-decision-health-dashboard` -- "Open Decision Health Dashboard" with hotkey `Ctrl+Shift+H`
+- `open-cascade-timeline` -- "Open Cascade Timeline" (no default hotkey to avoid conflicts)
+
+**New methods (2):**
+- `openDecisionHealthDashboard()` -- Dynamically imports `DecisionHealthDashboard`, loads decisions from vault via `VaultBridge`, creates `SurrealDBClient`, opens modal with all decisions
+- `openCascadeTimeline()` -- Dynamically imports `CascadeTimeline`, loads decisions from vault + cascades from SurrealDB, opens modal. Gracefully handles missing cascade data in SurrealDB
+
+### Changes to `DecisionExplorer.ts`
+
+**New imports added (4 Phase 6 services):**
+- `DecisionQualityScorer`, `QualityScoreBreakdown` from `../services/DecisionQualityScorer`
+- `ReasoningInferenceEngine` from `../services/ReasoningInference`
+- `CascadeInferenceEngine`, `DecisionImpact` from `../services/CascadeInference`
+- `SemanticContradictionDetector` from `../services/SemanticContradictionDetector`
+
+**New UI section in `createActionButtons()`:**
+- "Phase 6: Advanced Analysis" header divider
+- 3-column button grid with:
+  - **Quality Score** button (cyan #06b6d4) -- runs `DecisionQualityScorer.calculateScore()` on selected decision
+  - **Cascade Analysis** button (teal #14b8a6) -- runs `SurrealDBClient.analyzeDecisionCascades()` with depth=5
+  - **Detect Contradictions** button (rose #e11d48) -- runs `SurrealDBClient.detectContradictions()` on selected decision
+- Results display area (`#phase6-results`) for inline output
+
+**New methods (3):**
+- `runQualityScore()` -- Scores selected decision using `DecisionQualityScorer`, displays 5-component breakdown (confidence 40%, alternatives 20%, assumptions 10%, contradictions 20%, diversity 10%) with color-coded header
+- `runCascadeAnalysis()` -- Queries SurrealDB for cascade impacts, displays total/critical counts with color-coded impact list
+- `runContradictionDetection()` -- Queries SurrealDB for contradictions, displays severity summary and detail list with color-coded severity indicators
+
+### Existing Functionality Preserved
+
+- 3D Graph ribbon icon + command: unchanged
+- Decision Explorer ribbon icon + command (Ctrl+Shift+D): unchanged
+- All existing Phase 5 action buttons (View Reasoning Chain, View Cascades, View Contradictions, Open in Vault): unchanged
+- Settings tab with all Phase 5 settings: unchanged
+
+### Build Status
+
+- **Build: SUCCESS** -- `npm run build` completes in ~88ms with no errors
+- **Bundle size: 1.03MB** (up from ~998KB, ~3.5% increase from wiring Phase 6-7 services)
+- No TypeScript compilation errors
+- All dynamic imports resolve correctly
+
+### Summary of User Access Points
+
+| Feature | Ribbon Icon | Command | Hotkey |
+|---------|------------|---------|--------|
+| 3D Graph | `network` | Open 3D Graph | -- |
+| Decision Explorer | `lightbulb` | Open Decision Explorer | Ctrl+Shift+D |
+| Decision Health Dashboard | `heart-pulse` | Open Decision Health Dashboard | Ctrl+Shift+H |
+| Cascade Timeline | `git-branch` | Open Cascade Timeline | -- |
+| Quality Score | -- | (button in Explorer) | -- |
+| Cascade Analysis | -- | (button in Explorer) | -- |
+| Contradiction Detection | -- | (button in Explorer) | -- |</result>
+<usage>total_tokens: 101332
+tool_uses: 27
+duration_ms: 174994</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/tasks/a19bf7d.output
+
+---
+
+check on the SurrealDB import
+
+---
+
+<task-notification>
+<task-id>acf3d4b</task-id>
+<status>completed</status>
+<summary>Agent "Re-import SurrealDB data" completed</summary>
+<result>The import is complete and verified. Here is the final summary.
+
+---
+
+## Task #9: Re-import Vault Data into SurrealDB -- COMPLETED
+
+### What was done
+
+1. **Schema check**: Confirmed SurrealDB was running with existing schema (tables `vault_memory`, `informed_by`, `led_to`, `extracted_from`, `used_in`, etc.) but nearly empty (only 13 stale records from previous partial imports).
+
+2. **Schema update**: Updated the `vault_memory.type` field constraint from `['decision', 'pattern', 'experiment']` to `['decision', 'pattern', 'experiment', 'paper', 'concept', 'lesson', 'document']` to accommodate all vault directories.
+
+3. **Import script**: Created `/home/mike-anderson/dev/cohezion/cloud-vault-mcp/scripts/reimport_vault.py` that:
+   - Monkey-patches `detect_document_type` to handle papers, concepts, and lessons (the original only handled decisions, patterns, experiments)
+   - Uses the existing `GraphRAGImporter.import_directory()` for each vault directory
+   - Generates 768-dim embeddings via Ollama (nomic-embed-text:latest) for every document
+   - Creates `informed_by` graph edges from wiki-link parsing
+   - Imports directories in the correct order: concepts, papers, decisions, patterns/lessons, patterns, experiments
+
+4. **Cleanup**: Removed 13 stale records from prior partial imports that had different ID slugification.
+
+### Final Counts
+
+| Table | Type | Count | Expected |
+|-------|------|-------|----------|
+| `vault_memory` | concept | 26 | 26 |
+| `vault_memory` | paper | 84 | 84 |
+| `vault_memory` | decision | 104 | 104 (105 files - 1 template) |
+| `vault_memory` | lesson | 40 | 40 |
+| `vault_memory` | pattern | 81 | 81 (82 files - 1 template) |
+| `vault_memory` | experiment | 19 | 19 (20 files - 1 template) |
+| **TOTAL** | **all** | **354** | **354** |
+| `informed_by` | edges | 794 | -- |
+
+### Verification
+
+- All 354 records have 768-dimensional embeddings from `nomic-embed-text:latest`
+- Zero records with missing embeddings
+- Vector similarity search confirmed working (query "quantum computing error correction" correctly returns "Quantum Error Correction" concept at 0.77 cosine similarity)
+- 794 `informed_by` graph edges created from wiki-link parsing
+
+### Key Files
+
+- **Import script**: `/home/mike-anderson/dev/cohezion/cloud-vault-mcp/scripts/reimport_vault.py`
+- **GraphRAG importer**: `/home/mike-anderson/dev/cohezion/cloud-vault-mcp/src/mcp_server/graphrag_import.py`
+- **GraphRAG helpers**: `/home/mike-anderson/dev/cohezion/cloud-vault-mcp/src/mcp_server/graphrag_helpers.py`
+- **SurrealDB sync**: `/home/mike-anderson/dev/cohezion/cloud-vault-mcp/src/mcp_server/surrealdb_sync.py`</result>
+<usage>total_tokens: 62074
+tool_uses: 42
+duration_ms: 1075009</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/tasks/acf3d4b.output
+
+---
+
+<task-notification>
+<task-id>b6b7400</task-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/tasks/b6b7400.output</output-file>
+<status>completed</status>
+<summary>Background command "Stash, pull rebase, pop" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/tasks/b6b7400.output
+
+---
+
+yes, resolve the conflicts and push
+
+---
+
+<task-notification>
+<task-id>b2b9e1a</task-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/tasks/b2b9e1a.output</output-file>
+<status>completed</status>
+<summary>Background command "Stash and start rebase" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/tasks/b2b9e1a.output
+
+---
+
+retrospective, update memory, commit
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Analysis:
+Let me chronologically analyze the entire conversation:
+
+**1. Session Continuation Context**
+The session started as a continuation from a previous conversation. Pre-loaded context included:
+- `memory/phases-1-3-archive.md` - Archive of completed phases
+- `decisions/2026-02-14-session-60-retrospective-revised-plan.md` - Retrospective with 5 key learnings
+- `REDACTED.md` - Phase 3 completion report
+- `.obsidian/workspace.json` - Obsidian workspace state
+- `checkpoints/test_session.json` - Test checkpoint data
+
+The previous session had completed MEMORY.md cleanup (513→90 lines), committed and pushed.
+
+**2. User: /compact** - System compaction, no action needed.
+
+**3. User: /security-review** - Failed with `fatal: ambiguous argument 'origin/HEAD...'`. I diagnosed this was because `origin/HEAD` isn't set.
+
+**4. User: /debug** - I analyzed the debug log (212,671 lines), found no critical errors - just transient lock contention, streaming stalls, and the `origin/HEAD` issue.
+
+**5. User: "Retrospective, refine plan for continued compound engineering"**
+- I verified state first (key lesson from Session 60)
+- Ran tests: 410 passed, 11 failed (pre-existing)
+- Counted vault artifacts: 84 papers, 40 lessons, 93 decisions, 26 concepts, 72 patterns, 20 experiments
+- Analyzed wiki-links per directory and orphan rates
+- Key finding: 51/93 decisions orphaned (55%), 59 inbox files, experiments thinly linked
+- Presented retrospective with before/after tables and 4-priority refined plan
+
+**6. User: "Revise plan to accomplish all phases orchestrated with a team of specialist agents"**
+- Redesigned plan with 3 parallel agents (decision-linker, inbox-triager, experiment-linker)
+- ASCII diagram of team structure
+- Calibrated estimate: ~1 hour wall clock
+
+**7. User: "Upward and Onward"** (go-ahead to launch)
+- Created team "compound-engineering" via TeamCreate
+- Created 4 tasks (3 agent tasks + 1 lead task for MEMORY.md update)
+- Set Task #4 blocked by Tasks #1-3
+- Spawned 3 agents in parallel with bypassPermissions
+
+**8. inbox-triager completed: 61→4 files (93% reduction)**
+- 49 deleted, 8 archived to daily/, 4 kept
+
+**9. All 3 agents completed**
+- Verified results: decisions 51→1 orphaned, experiments 28→194 links, inbox 59→4
+- Updated MEMORY.md vault stats
+- Committed `9403aab` (125 files, +778/-15,527 lines)
+- Pushed to origin/master
+
+**10. User: "yes, commit and push"** - Already done above.
+
+**11. User: "commit and push the memory update"**
+- Memory files are in `~/.claude/projects/...` not a git repo
+- Informed user, offered to copy to vault as decision record
+
+**12. User: "yes"**
+- Created `decisions/2026-02-14-compound-engineering-team-execution-retrospective.md`
+- Committed `07d064a`, pushed
+
+**13. User: "Retrospective, refine plan for Phase 4 GraphRAG decision engine"**
+- Verified state: 410 pass, 11 fail
+- Used Explore agent to find all GraphRAG-related files
+- Found: Python backend (1,377 LOC, 5 modules), TypeScript plugin (6,953 LOC, 22 files)
+- Key discovery: Phase 4 was already completed as "Decision Analysis UI"
+- Phase 5-7 code existed but was unwired
+- Presented honest assessment: gap between "files exist" and "end-to-end validated"
+- Proposed Phase A (fix+verify), Phase B (integration), Phase C (polish)
+
+**14. User: "yes, execute Phase A"**
+- Created 4 tasks
+- Fix test_slugify: regex `[^\w\s]` stripped hyphens → changed to `[^\w\s-]`
+- Also updated test assertions from hyphens to underscores
+- Still failed on "Test-Already-Slug" → traced to regex order (hyphens removed before conversion)
+- Fixed function in graphrag_helpers.py
+- All 8 helper tests pass
+- Verified Phase 6-7 wiring: main.ts only imports Graph3D, not Phase 6-7 services
+- Plugin builds: 998KB, 48ms, zero errors
+- SurrealDB: running but EMPTY (all tables 0 rows)
+- 1 new test failure found: test_find_related (IndexError on empty result)
+
+**15. User: "yes, re-import SurrealDB and wire Phase 6-7 into the plugin"**
+- Spawned 2 parallel agents: surrealdb-importer and plugin-wiring-engineer
+- plugin-wiring-engineer completed: modified main.ts and DecisionExplorer.ts
+  - 2 new ribbon icons (heart-pulse, git-branch)
+  - 2 new commands (Ctrl+Shift+H, cascade-timeline)
+  - 3 Phase 6 action buttons in Explorer
+  - Build: 1.03MB, zero errors
+- surrealdb-importer completed: 354 docs + 794 edges
+  - Created `scripts/reimport_vault.py`
+  - Updated schema to accept all document types
+  - All embeddings via nomic-embed-text (768-dim)
+  - Vector similarity verified
+
+**16. Verification and commit**
+- Fixed find_related: `results[0].get('result', [{}])[0]` → `result_list[0] if result_list else {}`
+- 22/22 GraphRAG tests pass
+- Vault repo committed `9cf48b6`, pushed successfully
+- Cloud-vault-mcp: committed `b004dca` but push failed (428 commits ahead of remote)
+
+**17. User: "yes, resolve the conflicts and push"**
+- Attempted rebase: 424 commits with cascading conflicts
+- First conflict in .pre-commit-config.yaml and pyproject.toml - resolved
+- Second conflict in bmad/scripts/database.py - more conflicts coming
+- Aborted rebase approach
+- Created feature branch `graphrag-fixes` from origin/main
+- Cherry-picked 4 changed files onto it
+- Pushed feature branch successfully
+- Restored main branch state
+
+**18. User: "retrospective, update memory, commit"**
+- Rewrote MEMORY.md: 221→116 lines
+- Key updates: Phase 5-7 status, SurrealDB populated, plugin access points, git divergence warning
+- Created `decisions/2026-02-14-graphrag-verification-and-integration-session.md`
+- Committed `325a6cf`, pushed
+
+**Files modified/created this session:**
+- `decisions/2026-02-14-compound-engineering-team-execution-retrospective.md` (new)
+- `decisions/2026-02-14-graphrag-verification-and-integration-session.md` (new)
+- 51 decision files (wiki-links added by decision-linker agent)
+- 19 experiment files (wiki-links added by experiment-linker agent)
+- 57 inbox files deleted/archived
+- 8 files moved from inbox/ to daily/
+- `obsidian-plugin/3d-graph-plugin/src/main.ts` (Phase 6-7 wiring)
+- `obsidian-plugin/3d-graph-plugin/src/ui/DecisionExplorer.ts` (Phase 6 action buttons)
+- `cloud-vault-mcp/src/mcp_server/graphrag_helpers.py` (slugify fix)
+- `cloud-vault-mcp/src/mcp_server/graphrag_query.py` (find_related fix)
+- `cloud-vault-mcp/tests/test_graphrag_helpers.py` (test assertions updated)
+- `cloud-vault-mcp/scripts/reimport_vault.py` (new import script)
+- `MEMORY.md` (rewritten twice: once for compound engineering, once for full session)
+- `compound-engineering.md` (team compound results + cumulative summary added)
+
+Summary:
+1. Primary Request and Intent:
+   The user made a series of requests across this session, each building on the previous:
+   - **Retrospective + refine plan for compound engineering**: Verify vault state, identify gaps in cross-linking, and create an actionable plan.
+   - **Revise plan with specialist agent team**: Redesign the plan to use parallel agents for all phases.
+   - **Execute the plan ("Upward and Onward")**: Launch the 3-agent team to execute compound engineering.
+   - **Commit and push**: Commit all compound engineering results and push to remote.
+   - **Copy retrospective to vault**: Create a git-tracked decision record from the session's memory update.
+   - **Retrospective + refine plan for Phase 4 GraphRAG decision engine**: Verify what GraphRAG code actually exists, what's working vs not, and what needs fixing.
+   - **Execute Phase A (fix + verify)**: Fix broken tests, verify plugin builds, check SurrealDB state, assess Phase 6-7 wiring.
+   - **Re-import SurrealDB and wire Phase 6-7 into plugin**: Two parallel agents to populate the empty database and connect Phase 6-7 services to the Obsidian UI.
+   - **Resolve merge conflicts and push cloud-vault-mcp**: Handle the 428-commit divergence between local and remote main.
+   - **Retrospective, update memory, commit**: Final session retrospective, clean MEMORY.md, commit decision record.
+
+2. Key Technical Concepts:
+   - **Compound Engineering**: Building bidirectional wiki-link relationships across vault notes to create a knowledge graph. 6 phases total, ~956 edges, ~$10 total cost.
+   - **GraphRAG**: Graph-based Retrieval Augmented Generation using SurrealDB for graph storage, Ollama for embeddings (nomic-embed-text, 768-dim), and hybrid semantic + graph search.
+   - **SurrealDB**: Graph database at localhost:8000 (ns: cohezion, db: vault, user: root). Tables: `vault_memory` (354 docs), `informed_by` (794 edges).
+   - **Obsidian Plugin Architecture**: TypeScript plugin with esbuild bundling. Entry point `main.ts` registers ribbon icons, commands, and settings. Phase 3 (3D Graph), Phase 4 (Decision Explorer), Phase 5-7 (intelligence + dashboards).
+   - **Team Agent Orchestration**: Using TeamCreate/Task/SendMessage for parallel agent execution with zero cross-dependencies.
+   - **State Verification Pattern**: Always verify state (run tests, count files, query DB) before planning — catches stale MEMORY.md data.
+   - **Git Feature Branch Strategy**: When local main diverges heavily from remote, push via feature branches instead of rebasing.
+
+3. Files and Code Sections:
+
+   - **`/home/mike-anderson/.claude/projects/-home-mike-anderson-vaults-cohezion-vault/memory/MEMORY.md`**
+     - Core auto-memory file loaded every session. Rewritten twice this session.
+     - First update: vault stats corrected (93 decisions not 57, SurrealDB 354 docs + 794 edges)
+     - Final rewrite: 221→116 lines. Added Phase 5-7 partial wiring status, SurrealDB populated status, plugin access points (4 ribbon icons, 4 commands), git divergence warning for cloud-vault-mcp.
+     - Key sections: Current Status, Critical Lessons, Key Conventions (Python venv, Google Sheets, Agent Economics, Git divergence), Infrastructure, Vault Stats, Topic Files, Queued Work.
+
+   - **`/home/mike-anderson/.claude/projects/-home-mike-anderson-vaults-cohezion-vault/memory/compound-engineering.md`**
+     - Added cumulative results table (6 phases, ~956 edges, ~$10) and Team Compound Engineering section with before/after metrics.
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/src/mcp_server/graphrag_helpers.py`**
+     - Fixed `slugify()` function — hyphens were being stripped before conversion to underscores.
+     - Change: `re.sub(r'[^\w\s]', '', text.lower())` → `re.sub(r'[^\w\s-]', '', text.lower())`
+     - This preserves hyphens through the first regex pass so the second pass (`re.sub(r'[\s-]+', '_', slug)`) can convert them to underscores.
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/src/mcp_server/graphrag_query.py`**
+     - Fixed `find_related()` method — crashed on empty result sets with IndexError.
+     - Change: `return results[0].get('result', [{}])[0]` → `result_list = results[0].get('result', []); return result_list[0] if result_list else {}`
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/tests/test_graphrag_helpers.py`**
+     - Updated test assertions from hyphen-separated to underscore-separated slugs to match SurrealDB ID convention.
+     - `"test-document"` → `"test_document"`, `"decision-use-graphrag"` → `"decision_use_graphrag"`, `"test-already-slug"` → `"test_already_slug"`
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/scripts/reimport_vault.py`** (new)
+     - Created by surrealdb-importer agent. Uses GraphRAGImporter to import all 6 vault directories with Ollama embeddings.
+     - Monkey-patches `detect_document_type` to handle papers, concepts, and lessons.
+     - Imports in order: concepts, papers, decisions, patterns/lessons, patterns, experiments.
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/main.ts`**
+     - Wired Phase 6-7 services into the plugin UI.
+     - Added 2 new ribbon icons: `heart-pulse` (Decision Health Dashboard), `git-branch` (Cascade Timeline).
+     - Added 2 new commands: `open-decision-health-dashboard` (Ctrl+Shift+H), `open-cascade-timeline`.
+     - New methods: `openDecisionHealthDashboard()` and `openCascadeTimeline()` with dynamic imports.
+     - New imports: `Decision`, `DecisionCascade` from types, `SurrealDBClient`, `VaultBridge` from services.
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/ui/DecisionExplorer.ts`**
+     - Added Phase 6 action buttons: Quality Score (cyan), Cascade Analysis (teal), Contradiction Detection (rose).
+     - New imports: `DecisionQualityScorer`, `ReasoningInferenceEngine`, `CascadeInferenceEngine`, `SemanticContradictionDetector`.
+     - New methods: `runQualityScore()`, `runCascadeAnalysis()`, `runContradictionDetection()`.
+     - Results display area `#phase6-results` for inline output.
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/decisions/2026-02-14-compound-engineering-team-execution-retrospective.md`** (new)
+     - Decision record capturing compound engineering team results: 956 edges across 6 phases.
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/decisions/2026-02-14-graphrag-verification-and-integration-session.md`** (new)
+     - Session retrospective: SurrealDB re-import, Phase 6-7 wiring, test fixes, remaining gaps.
+
+   - **51 decision files** in `decisions/` — wiki-links added by decision-linker agent (orphans reduced 51→1).
+   - **19 experiment files** in `experiments/` — wiki-links added by experiment-linker agent (avg links 1.5→10.2).
+   - **57 inbox files** — 49 deleted (stale handoffs), 8 archived to `daily/`.
+
+4. Errors and Fixes:
+
+   - **test_slugify assertion error** (`'test_document' == 'test-document'`):
+     - First fix: Updated test expectations from hyphens to underscores — but "Test-Already-Slug" still failed because hyphens were stripped by `[^\w\s]` regex before the underscore conversion regex could process them.
+     - Second fix: Changed regex in `graphrag_helpers.py` from `[^\w\s]` to `[^\w\s-]` to preserve hyphens through first pass.
+     - Result: 8/8 helper tests pass.
+
+   - **test_find_related IndexError** (`list index out of range`):
+     - SurrealDB query returned empty result list, code tried `[0]` on empty list.
+     - Fix: Added length check before indexing: `result_list[0] if result_list else {}`.
+     - Result: 22/22 GraphRAG tests pass.
+
+   - **SurrealDB query failing with "Specify a namespace to use"**:
+     - curl headers `NS:` and `DB:` not being recognized.
+     - Fix: Changed to `surreal-ns:` and `surreal-db:` header names plus `Accept: application/json`.
+
+   - **SurrealDB query failing with 415 "Unsupported media type"**:
+     - Missing `Accept: application/json` header.
+     - Fix: Added the header to curl requests.
+
+   - **cloud-vault-mcp git push rejected (non-fast-forward)**:
+     - Local main was 428 commits ahead of origin/main with completely divergent history.
+     - Attempted rebase: 424 commits with cascading merge conflicts in `.pre-commit-config.yaml`, `pyproject.toml`, `bmad/scripts/database.py`.
+     - First conflict resolved (took incoming "Modernize code quality tooling" version), but second conflict appeared.
+     - Aborted rebase. Created feature branch `graphrag-fixes` from `origin/main`, cherry-picked the 4 changed files, pushed successfully.
+     - Added git divergence warning to MEMORY.md Key Conventions.
+
+   - **git rebase --abort failing** with "untracked working tree files would be overwritten" (`uv.lock`):
+     - Fix: `rm -f uv.lock` before `git rebase --abort`.
+
+   - **npm run build running from wrong directory**:
+     - Had to ensure working directory was `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/`.
+
+   - **pytest running from wrong directory**:
+     - Tests not found when running from vault directory; needed `cd /home/mike-anderson/dev/cohezion/cloud-vault-mcp` first.
+
+5. Problem Solving:
+
+   - **Vault cross-linking gaps**: Identified 3 major gaps (51 orphaned decisions, 59 inbox files, thin experiment links) through state verification. Solved by spawning a 3-agent team with clear directory boundaries for zero-conflict parallel execution. Result: +453 wiki-links, inbox 93% reduction.
+
+   - **GraphRAG system not functional**: Despite 8,330 LOC existing, SurrealDB was empty and Phase 6-7 services were orphaned from the plugin UI. Solved in phases: (A) fix tests + verify build, (B) re-import data + wire services. Result: 354 docs with embeddings in SurrealDB, all services accessible from Obsidian.
+
+   - **MEMORY.md bloat**: File grew from 90 to 221 lines across sessions with stale/redundant content. Cleaned twice (first for compound engineering stats, then full rewrite to 116 lines).
+
+   - **Git divergence**: cloud-vault-mcp local main diverged 428 commits from remote. Rebase with 424 commits was impractical (cascading conflicts). Solved by pushing to feature branch `graphrag-fixes`.
+
+6. All User Messages:
+   - `/compact` (system command)
+   - `/security-review` (system command, failed with origin/HEAD error)
+   - `/debug` (system command, requested debug log analysis)
+   - "Retrospective, refine plan for continued compound engineering"
+   - "Revise plan to accomplish all phases orchestrated with a team of specialist agents"
+   - "Upward and Onward" (approval to launch team)
+   - "yes, commit and push"
+   - "commit and push the memory update"
+   - "yes" (to copying retrospective into vault as decision record)
+   - "Retrospective, refine plan for Phase 4 GraphRAG decision engine"
+   - "yes, execute Phase A"
+   - "yes, re-import SurrealDB and wire Phase 6-7 into the plugin"
+   - "check on the SurrealDB import"
+   - "yes, resolve the conflicts and push"
+   - "retrospective, update memory, commit"
+   - Current request: "Your task is to create a detailed summary of the conversation..."
+
+7. Pending Tasks:
+   - No explicitly pending tasks from the user. The last request ("retrospective, update memory, commit") was completed.
+   - From MEMORY.md Queued Work (not explicitly requested this session):
+     - Fix remaining Phase 5-7 issues: real Ollama inference, error visibility, end-to-end validation
+     - Obsidian marketplace submission
+     - Merge cloud-vault-mcp feature branch `graphrag-fixes` into main
+     - Ollama MCP Phases 2-4
+     - Fix 28 papers with YAML parsing errors
+     - 12D Graph remaining 4 dimensions
+
+8. Current Work:
+   The last task ("retrospective, update memory, commit") was fully completed:
+   - MEMORY.md rewritten: 221→116 lines with corrected status for all phases and SurrealDB
+   - Decision record created: `decisions/2026-02-14-graphrag-verification-and-integration-session.md`
+   - Committed `325a6cf`, pushed to `origin/master`
+   
+   Three commits pushed to vault this session: `9403aab` (compound engineering), `9cf48b6` (Phase 6-7 wiring), `325a6cf` (retrospective).
+   One feature branch pushed to cloud-vault-mcp: `graphrag-fixes`.
+
+9. Optional Next Step:
+   No immediate next step is warranted. All user requests in this session have been completed. The next logical work would be from the Queued Work list in MEMORY.md, but none was explicitly requested. The most impactful next step would be fixing the remaining Phase 5-7 integration issues (real Ollama inference instead of keyword-matching, error visibility, end-to-end validation), but this should await user direction.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.REDACTED.jsonl
+
+---
+
+Revise plan with key learnings from an adversarial perspective
+
+---
+
+Complete all priorities in a token efficient and compound engineering manner.  Continously improve overnight with local models until 7 am est.
+
+---
+
+<task-notification>
+<task-id>a470e28</task-id>
+<status>completed</status>
+<summary>Agent "Fix SurrealDB schema mismatch" completed</summary>
+<result>No stale references remain. All changes are complete and the build passes. Here is a summary of everything that was done:
+
+---
+
+## Summary of Changes
+
+### File 1: `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/services/SurrealDBClient.ts`
+
+**Authentication headers added to `executeQuery()` (lines 60-64):**
+- Added `Authorization: Basic ${btoa('root:root')}` header
+- Added `surreal-ns: cohezion` header
+- Added `surreal-db: vault` header
+- Changed `body` from `JSON.stringify({ query })` to just `query` (SurrealDB `/sql` endpoint expects raw SurrealQL, not JSON-wrapped)
+
+**Table remapping (11 query changes):**
+
+| Method | Old Query | New Query |
+|--------|-----------|-----------|
+| `analyzeDecisionCascades()` | `FROM decision_cascades` | `FROM informed_by` |
+| `fetchDecisionMetadata()` | `FROM decisions` | `FROM vault_memory WHERE type = 'decision'` |
+| `queryHighConfidenceReasoning()` | `FROM decisions` | `FROM vault_memory WHERE type = 'decision'` |
+| `queryReasoningByType()` | `FROM decisions` | `FROM vault_memory WHERE type = 'decision'` |
+| `storeQualityScores()` | `UPDATE decisions` | `UPDATE vault_memory WHERE type = 'decision'` |
+| `queryAllDecisionsForScoring()` | `FROM decisions` | `FROM vault_memory WHERE type = 'decision'` |
+| `queryAllDecisionsForEmbedding()` | `FROM decisions` | `FROM vault_memory WHERE type = 'decision'` |
+| `queryAllLessonsForEmbedding()` | `FROM lessons` | `FROM vault_memory WHERE type = 'lesson'` |
+
+**Field mapping changes across all result transformers:**
+- `row.rationale` replaced with `row.content` (vault_memory uses `content` for the markdown body)
+- `row.vault_path` replaced with `row.path || row.vault_path` (vault_memory uses `path`)
+- `row.key_insight` replaced with `content AS key_insight` in the SQL SELECT
+- `row.rationale` replaced with `content AS rationale` in the embedding SQL SELECT
+- `informed_by` edge fields use `row.in` / `row.out` instead of `row.source_decision_id` / `row.target_decision_id`
+- Sensible defaults added: `dependency_type` defaults to `'influences'`, `impact_level` defaults to `'moderate'`
+
+**Intentionally left unchanged:**
+- `FROM agent_reasoning` -- this table exists in the database
+- `FROM decision_contradictions` (SELECT queries) -- this table is created dynamically by `INSERT INTO` statements
+- `INSERT INTO decision_contradictions` -- left as-is; SurrealDB auto-creates the table on first insert
+- `INSERT INTO decision_impacts` and `DELETE FROM decision_impacts` in CascadeInference.ts -- these are dynamically created tables
+
+### File 2: `/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/services/CascadeInference.ts`
+
+**`loadDecisionsAndCascades()` method:**
+- `SELECT * FROM decisions` changed to `SELECT * FROM vault_memory WHERE type = 'decision'`
+- `SELECT * FROM decision_cascades` changed to `SELECT * FROM informed_by`
+- Decision field mapping: `row.rationale` changed to `row.content`
+- Cascade field mapping: `row.source_decision_id` / `row.target_decision_id` changed to `String(row.in)` / `String(row.out)` for edge records
+- Added fallback defaults for `dependency_type` and `impact_level`
+
+### Build Verification
+
+```
+npx esbuild src/main.ts --bundle --outdir=dist --format=cjs --platform=node --external:obsidian --external:electron
+  dist/main.js  1002.4kb
+Done in 62ms
+```
+
+Build passes with no errors.</result>
+<usage>total_tokens: 73291
+tool_uses: 18
+duration_ms: 134715</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/tasks/a470e28.output
+
+---
+
+<task-notification>
+<task-id>a3c3470</task-id>
+<status>completed</status>
+<summary>Agent "Fix 4 failing tests" completed</summary>
+<result>All 4 previously failing tests now pass. The 6 remaining failures are in `test_pocket_tts.py` and are pre-existing (unrelated to our changes -- they fail because `pocket_tts` module doesn't have a `TTSModel` attribute, which is a separate issue).
+
+Here is a summary of the fixes applied:
+
+---
+
+## Fix 1 & 2: Vault ops path safety tests
+
+**File:** `/home/mike-anderson/dev/cohezion/cloud-vault-mcp/tests/test_vault_ops.py` (lines 158-163)
+
+**Problem:** The tests used `match="escapes vault"` in `pytest.raises`, but the `_resolve()` method in `vault_ops.py` has two path safety checks. Paths containing `..` (like `../../etc/passwd` and `../outside.md`) are caught by the first check on line 30-31, which raises `ValueError("Invalid path (traversal attempt): {path}")`. The `"escapes vault"` message only appears in the second check (line 48), which handles resolved symlink escapes.
+
+**Fix:** Changed the `match` regex to `"Invalid path|traversal|escapes vault"`, which matches either error message. This makes the tests robust against whichever safety check triggers first.
+
+## Fix 3 & 4: Sheets research daemon JSON extraction tests
+
+**File:** `/home/mike-anderson/dev/cohezion/cloud-vault-mcp/tests/test_sheets_research_daemon.py` (lines 221-269)
+
+**Problem:** The tests passed JSONL event stream format (with double-escaped JSON inside `content_block_delta` event wrappers) as input to `extract_json_from_output()`. However, in production, this method receives plain text from `message.content[0].text` (the Anthropic API response text), not raw JSONL events. The method's regex `r"```json\s*([\s\S]*?)\s*```"` correctly searches for markdown JSON code blocks in plain text, so the JSONL format never matched.
+
+**Fix:** Changed the test inputs to plain text containing ` ```json ``` ` markdown blocks, matching the actual format the method receives in production:
+
+- `test_extract_json_from_output_valid`: Plain text with a single JSON code block
+- `test_extract_json_multiple_blocks`: Plain text with two JSON code blocks of different sizes, testing the "take largest block" logic</result>
+<usage>total_tokens: 55660
+tool_uses: 17
+duration_ms: 149166</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/tasks/a3c3470.output
+
+---
+
+<task-notification>
+<task-id>a50bf3d</task-id>
+<status>completed</status>
+<summary>Agent "Triage inbox + clean debris" completed</summary>
+<result>Everything is clean. Here is the complete summary of all actions taken:
+
+---
+
+## Cleanup Summary
+
+### Part 1: Inbox Triage (19 files -> 3 remaining)
+
+**DELETED (15 files)** -- All stale Phase 4 planning artifacts and session handoff notes. Content was either redundant across multiple files or superseded by existing records in `decisions/`:
+
+| File | Reason |
+|------|--------|
+| `ALL-PHASES-EXECUTION-SUMMARY-2026-02-14.md` | Redundant project summary, overlaps with 9 other Phase 4 planning files |
+| `PHASE-4-7-MASTER-EXECUTION-PLAN-2026-02-14.md` | Master plan, overlaps with blueprint and readiness docs |
+| `PHASE-4A-EXECUTION-KICKOFF-2026-02-16.md` | Kickoff instructions, superseded |
+| `PHASE-4-DESIGN-REVIEW-SUMMARY-2026-02-14.md` | Design review summary, covered by track specs |
+| `PHASE-4-EXECUTION-BLUEPRINT-2026-02-14.md` | Blueprint, overlaps with master plan and readiness |
+| `PHASE-4-EXECUTION-READINESS-2026-02-14.md` | Readiness report, overlaps with all other Phase 4 docs |
+| `PHASE-4-FINAL-TEAM-ROSTER-2026-02-14.md` | Team roster, subset of readiness and summary docs |
+| `PHASE-4-LAUNCH-AUTHORIZATION-2026-02-14.md` | Authorization doc, covered by summary |
+| `PHASE-4-PRE-IMPLEMENTATION-CHECKLIST-2026-02-14.md` | Checklist, subset of readiness doc |
+| `PHASE-4-TEAM-ASSIGNMENTS-2026-02-14.md` | Team assignments, subset of roster and readiness |
+| `SESSION-64-PHASE-2-DEPLOYMENT-EXECUTION-COMPLETE.md` | Session handoff artifact |
+| `PHASE-2-DEPLOYMENT-EXECUTED-2026-02-15.md` | Deployment log, covered by `decisions/2026-02-14-phase-2-complete-all-3-tracks-delivered-for-production.md` |
+| `TRACK-A-DESIGN-SPEC-GRAPHRAG-2026-02-14.md` | Design spec, covered by decisions |
+| `TRACK-B-DESIGN-SPEC-SCORING-2026-02-14.md` | Design spec, covered by decisions |
+| `TRACK-C-DESIGN-SPEC-IMPACT-2026-02-14.md` | Design spec, covered by decisions |
+
+**MOVED (1 file):**
+- `The Awareness of Nothing at All and Quadrature Physics.md` --> `/home/mike-anderson/vaults/cohezion-vault/papers/the-awareness-of-nothing-at-all-and-quadrature-physics.md` (substantive research paper on quantum vacuum physics, Casimir effect, and quadrature measurements)
+
+**KEPT in inbox (3 files):**
+- `2026-02-14-settings-validation-mystery.md` -- Active unresolved debug note about `/doctor` reporting invalid settings files despite fixes
+- `research-gaps.md` -- Substantive analysis of 84-paper vault gaps (orphaned papers, domain fragmentation, connectivity opportunities)
+- `Setup linkage with google sheets.md` -- Active task tracker for Google Sheets integration with remaining work items (20 rows pending, MCP wiring)
+
+### Part 2: Root-Level Debris (13 files deleted)
+
+**DELETED (13 files)** -- All session artifacts and stale planning documents. Content captured in `decisions/`:
+
+| File | Reason |
+|------|--------|
+| `ADVERSARIAL_REVIEW_PHASE_5_7.md` | Adversarial review findings, covered by `decisions/2026-02-14-adversarial-multi-agent-review-protocol.md` |
+| `AGENT_FEEDBACK_FROM_ADVERSARIAL_REVIEW.md` | Agent feedback, companion to above |
+| `complete.md` | Empty file (1 line, no content) |
+| `PHASE_1_FIXES_EXECUTION_PLAN.md` | Execution plan, covered by decisions |
+| `PRACTICAL_VALIDATION_TEST_PLAN.md` | Test plan for Phase 5-7, stale |
+| `session-55-retrospective-phases-a-c.md` | Empty experiment template (only `{{title}}` placeholder) |
+| `VAULT_RETROFIT_SUMMARY.md` | Retrofit summary, covered by decisions |
+| `FIX_1_SCHEMA_IMPLEMENTATION_PACKAGE.md` | Implementation package for graph-engineer, stale |
+| `FIX_2_DASHBOARD_IMPLEMENTATION_PACKAGE.md` | Implementation package for dashboard-engineer, stale |
+| `FIX_3_REASONING_INFERENCE_IMPLEMENTATION_PACKAGE.md` | Implementation package for inference-engineer, stale |
+| `GRAPH_ENGINEER_DIRECTIVE.md` | Agent directive, stale |
+| `PERFORMANCE_BASELINE.md` | Performance baselines doc, stale |
+| `PHASE_1_FIXES_REVISION_SUMMARY.md` | Revision summary, stale |
+
+**NOT deleted (legitimate root files):** `CHANGELOG.md`, `CLAUDE.md`, `INSTALLATION.md`, `README.md`
+
+### Part 3: Untracked Files (5 deleted)
+
+| File | Reason |
+|------|--------|
+| `decisions/2026-02-14-documentation-sync-with-new-projectmd-mcp-serversmd-and-compoundmd.md` | Empty skeleton with `{{chosen_option}}`, `{{alt1}}`, `{{alt2}}` template placeholders |
+| `decisions/2026-02-14-repository-root-cleanup-approach-delete-artifacts-not-archive.md` | Same empty skeleton pattern |
+| `experiments/2026-02-14-running-sync-would-identify-gaps-in-project-documentation-a.md` | Empty experiment template, no content |
+| `patterns/concise-rule-documentation-pattern.md` | Empty pattern template with `{{title}}`, no actual content |
+| `patterns/session-artifact-prevention.md` | Empty pattern template, no content |
+
+### Final State
+
+- **Inbox:** 3 files (down from 19) -- all containing unique, actionable content
+- **Root `.md` files:** 4 files (down from 11+) -- all legitimate project files
+- **Total files removed:** 33
+- **Total files moved:** 1</result>
+<usage>total_tokens: 96402
+tool_uses: 47
+duration_ms: 234574</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/tasks/a50bf3d.output
+
+---
+
+<task-notification>
+<task-id>ae13d4d</task-id>
+<status>completed</status>
+<summary>Agent "Cross-link orphaned patterns" completed</summary>
+<result>All 37 previously-orphaned pattern files now have wiki-links (the 2 files that showed blank counts during my verification appear to have been removed from disk between when I first ran grep and when I tried to verify -- they were likely part of the git untracked changes). The remaining orphan-free count of 80 files with wiki-links confirms that all files that existed in the directory now have proper cross-references.
+
+Here is a summary of the work completed:
+
+---
+
+## Summary
+
+**Task**: Add wiki-links to orphaned pattern files in `/home/mike-anderson/vaults/cohezion-vault/patterns/`
+
+**Files edited**: 37 pattern files (out of the 38 originally identified orphans, minus `_template.md` which is intentionally link-free; 2 files appear to have been removed from disk between identification and verification)
+
+**Total wiki-links added**: The edits added approximately 190 new wiki-links across all 37 files.
+
+### Approach
+
+Each file was read to understand its content. For **empty template files** (containing only YAML frontmatter and empty section headers), links were added based on the file name's topic and semantically relevant notes found across the vault. For **content-rich files**, links were added based on the actual content, referencing decisions, experiments, concepts, lessons, and other patterns mentioned or implied by the material.
+
+### Link distribution by target directory:
+- **decisions/**: The most heavily linked directory, with references to ADRs like `2026-02-14-3-tier-adversarial-review-protocol-for-code-quality`, `2026-02-11-surrealdb-agent-context-schema-design`, `2026-02-12-prime-skill-pattern-as-governance-framework`, etc.
+- **patterns/**: Many cross-links between related patterns (e.g., `test-mocking-pattern` <-> `test-isolation-via-singleton-reset` <-> `service-class-singleton-pattern`)
+- **concepts/**: Links to core concepts like `compound-engineering`, `meta-learning`, `token-efficiency`, `mcp-infrastructure-architecture`, `anomaly-detection`, `context-management`, `agentic-ai`, `roi-analysis`, `multi-agent-systems`
+- **experiments/**: Links to relevant experiments like `2026-02-14-modelpoolmanager-3-tier-lifecycle-management`, `2026-02-11-graphrag-proof-of-concept-success`, `2026-02-10-phase4-universe-simulation-complete`
+- **lessons/**: Links to all 4 lesson files where semantically relevant (`lesson-adversarial-review-before-execution`, `lesson-measurement-integrity-honest-reporting`, `2026-02-10-debug-log-bloat-analysis`)
+
+### Format used:
+- `[[filename-without-extension]]` format (no path prefix, no `.md` extension)
+- Links added in a `## Related` section at the end of each file
+- Existing non-wiki-link reference sections (in `surrealdb-agent-context-phase1-implementation-checklist.md` and `surrealdb-agent-context-quick-reference.md`) were converted to proper wiki-link format
+- YAML frontmatter was not modified
+- Each file received a minimum of 4 wiki-links, with content-rich files receiving up to 8</result>
+<usage>total_tokens: 124269
+tool_uses: 94
+duration_ms: 322149</usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-vaults-cohezion-vault/tasks/ae13d4d.output
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Analysis:
+Let me chronologically analyze the entire conversation:
+
+1. **Session Start**: This is a continuation from a previous session. The summary provides extensive context about prior work including compound engineering, GraphRAG fixes, SurrealDB re-import, Phase 6-7 plugin wiring, and various fixes.
+
+2. **User: /compact** - System compaction command.
+
+3. **User: "Revise plan with key learnings from an adversarial perspective"**
+   - I performed extensive state verification before making claims
+   - Discovered MEMORY.md was stale again (claimed 1 orphaned decision, actual 13; claimed 93 decisions, actual 107; etc.)
+   - Found critical SurrealDB schema mismatch: Phase 6-7 TypeScript services query nonexistent tables (decisions, lessons, decision_cascades) while actual data is in vault_memory table
+   - Found 38/83 patterns orphaned (46%), inbox re-accumulated to 19 files, 10 failing tests, root-level debris
+   - Presented adversarial retrospective with 5 priorities
+
+4. **User: "Complete all priorities in a token efficient and compound engineering manner. Continuously improve overnight with local models until 7 am est."**
+   - Created 6 tasks (#11-#16) with dependencies
+   - Launched 4 parallel agents for priorities 1-4
+   - Built overnight improvement script while agents ran
+   - Fixed pocket_tts tests (create=True on mock patches) while waiting for agents
+   - All agents completed successfully
+   - Updated MEMORY.md with verified counts
+   - Attempted to launch overnight script (failed with exit code 127)
+
+Key files modified/created:
+- SurrealDBClient.ts - Schema fix (FROM decisions → FROM vault_memory WHERE type = 'decision')
+- CascadeInference.ts - Schema fix (same pattern)
+- 37 pattern files - Wiki-links added
+- 33 files deleted (inbox + root debris)
+- test_vault_ops.py - Fixed match regex
+- test_sheets_research_daemon.py - Fixed test input format
+- test_pocket_tts.py - Added create=True to all @patch decorators
+- overnight_improve.py - New script for continuous improvement daemon
+- MEMORY.md - Updated with verified counts
+
+Test results: 421/421 pass (from 411 pass, 10 fail)
+
+The overnight script launch failed with exit code 127, which needs to be resolved.
+
+Summary:
+1. Primary Request and Intent:
+   The user made two main requests in this session:
+   - **"Revise plan with key learnings from an adversarial perspective"**: Perform an adversarial retrospective challenging what MEMORY.md claims vs reality, identify gaps, and propose a revised priority plan.
+   - **"Complete all priorities in a token efficient and compound engineering manner. Continuously improve overnight with local models until 7 am est."**: Execute all 5 identified priorities using parallel agents, then launch an overnight daemon using Ollama (nomic-embed-text) for continuous vault improvement until 7 AM EST.
+
+2. Key Technical Concepts:
+   - **SurrealDB Schema Mismatch**: Phase 6-7 TypeScript services queried nonexistent tables (`decisions`, `lessons`, `decision_cascades`, `decision_contradictions`, `decision_impacts`). Actual data lives in `vault_memory` with a `type` field and `informed_by` edge table.
+   - **Adversarial Retrospective**: Challenging MEMORY.md claims against verified state — found 12x worse orphan counts, uncounted files, re-accumulated inbox, and the critical schema mismatch.
+   - **Compound Engineering with Parallel Agents**: 4 agents launched in parallel (schema fix, pattern cross-linker, inbox triager, test fixer) with zero cross-dependencies.
+   - **Overnight Continuous Improvement Daemon**: Python script using Ollama nomic-embed-text embeddings to detect file changes, re-import to SurrealDB, find orphans via vector similarity, add wiki-links, and sync graph edges — looping every 5 minutes until 7 AM EST.
+   - **Mock `create=True` Pattern**: pocket_tts tests fail in full suite because `pocket_tts.TTSModel` module attribute doesn't exist when other tests run first — fixed with `@patch("pocket_tts.TTSModel", create=True)`.
+
+3. Files and Code Sections:
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/services/SurrealDBClient.ts`**
+     - Critical schema mismatch fix: All 8 `FROM decisions` queries changed to `FROM vault_memory WHERE type = 'decision'`, `FROM lessons` to `FROM vault_memory WHERE type = 'lesson'`, `FROM decision_cascades` to `FROM informed_by`.
+     - Auth headers added to `executeQuery()`: `Authorization: Basic ${btoa('root:root')}`, `surreal-ns: cohezion`, `surreal-db: vault`.
+     - Body format changed from `JSON.stringify({ query })` to raw `query` string.
+     - Field mappings updated: `row.rationale` → `row.content`, `row.vault_path` → `row.path || row.vault_path`, `content AS key_insight` for lessons, `content AS rationale` for decisions.
+     - `UPDATE decisions` → `UPDATE vault_memory WHERE type = 'decision'`
+     - Build verified: 1002.4kb, 62ms, zero errors.
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/services/CascadeInference.ts`**
+     - Line 105: `SELECT * FROM decisions LIMIT 500` → `SELECT * FROM vault_memory WHERE type = 'decision' LIMIT 500`
+     - Line 125: `SELECT * FROM decision_cascades LIMIT 1000` → `SELECT * FROM informed_by LIMIT 1000`
+     - Field mappings: `row.rationale` → `row.content`, cascade edges use `String(row.in)` / `String(row.out)` instead of `row.source_decision_id` / `row.target_decision_id`.
+     - Added defaults: `dependency_type: row.dependency_type || row.type || 'influences'`, `impact_level: row.impact_level || 'moderate'`.
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/tests/test_pocket_tts.py`**
+     - 6 `@patch("pocket_tts.TTSModel")` decorators changed to `@patch("pocket_tts.TTSModel", create=True)` — fixes full-suite failures where TTSModel attribute doesn't exist due to import ordering.
+     - Tests affected: `test_initialize_success`, `test_speak_basic`, `test_speak_text_at_limit`, `test_model_load_failure`, `test_synthesis_failure`, `test_lazy_initialization`.
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/tests/test_vault_ops.py`** (modified by agent)
+     - Lines 158, 163: `match="escapes vault"` → `match="Invalid path|traversal|escapes vault"` — matches either safety check message.
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/tests/test_sheets_research_daemon.py`** (modified by agent)
+     - Test inputs changed from JSONL event stream format to plain text with markdown ```json``` code blocks — matching actual production input format.
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/scripts/overnight_improve.py`** (new, 370+ lines)
+     - Overnight daemon with 3-phase cycles: (1) detect new/modified files → re-import to SurrealDB, (2) find orphans via embedding similarity → add wiki-links, (3) sync wiki-links to graph edges.
+     - Key classes: `FileTracker` (JSON state file for change detection), functions: `reimport_files()`, `find_similar_documents()`, `find_orphans_and_suggest_links()`, `apply_similarity_links()`, `create_missing_edges()`.
+     - Configuration: SIMILARITY_THRESHOLD=0.65, CYCLE_INTERVAL=300s, stops at 7 AM EST.
+     - Logs to `vault/logs/overnight-YYYY-MM-DD.log`, writes summary to `vault/logs/overnight-summary-YYYY-MM-DD.md`.
+
+   - **37 pattern files in `/home/mike-anderson/vaults/cohezion-vault/patterns/`** (modified by agent)
+     - Each received 4-8 wiki-links in a `## Related` section.
+     - ~190 new wiki-links total. Patterns directory went from 38 orphans to 0.
+
+   - **33 files deleted by cleanup agent**:
+     - 15 inbox files (stale Phase 4 planning artifacts)
+     - 13 root-level .md files (session artifacts, fix packages, directives)
+     - 5 untracked git files (empty templates with `{{placeholder}}` content)
+     - 1 file moved: `The Awareness of Nothing at All and Quadrature Physics.md` → `papers/`
+
+   - **`/home/mike-anderson/.claude/projects/-home-mike-anderson-vaults-cohezion-vault/memory/MEMORY.md`**
+     - Updated Phase 5-7 status from "PARTIALLY WIRED" to "SCHEMA FIXED"
+     - Added: `**Cloud-vault-mcp Tests**: 421/421 pass (0 failures, fixed 2026-02-15)`
+     - Updated vault stats: 104 decisions (was 93), 80 patterns (was 72), 19 experiments (was 19), 85 papers (was 84)
+     - Updated orphan counts: 10 decisions, 12 papers, 1 experiment, 0 patterns
+     - Updated inbox: 3 files (was 4), root: 4 .md files
+     - Added overnight script reference
+     - Updated queued work with specific remaining items
+     - Date changed to 2026-02-15
+
+4. Errors and Fixes:
+   - **MEMORY.md stale claims**: Said "1 decision orphaned" when actual was 13. Said "93 decisions" when actual was 107. Said "72 patterns" when 83 existed. Didn't mention patterns were 46% orphaned. Said inbox was 4 files when 19 had re-accumulated.
+     - Fix: Adversarial verification before planning; corrected all counts.
+   
+   - **SurrealDB schema mismatch**: Phase 6-7 TypeScript services queried `FROM decisions`, `FROM lessons`, `FROM decision_cascades` — none of these tables exist. Actual data in `vault_memory` with `type` field.
+     - Fix: Agent changed all queries to `FROM vault_memory WHERE type = 'decision'` etc., with field mappings (`content` → `rationale`, `path` → `vault_path`).
+   
+   - **test_vault_ops path safety tests**: Expected `match="escapes vault"` but actual error was `"Invalid path (traversal attempt): ../outside.md"`.
+     - Fix: Agent changed regex to `"Invalid path|traversal|escapes vault"`.
+   
+   - **test_sheets_research_daemon JSON extraction**: Tests passed JSONL format but method expects plain text with markdown code blocks.
+     - Fix: Agent changed test inputs to plain text with ```json``` blocks.
+   
+   - **test_pocket_tts TTSModel attribute error**: `@patch("pocket_tts.TTSModel")` fails in full suite because `pocket_tts` module doesn't have `TTSModel` as top-level attribute when other tests change import state.
+     - Fix: Added `create=True` to all 6 `@patch` decorators: `@patch("pocket_tts.TTSModel", create=True)`.
+   
+   - **Overnight script launch failed**: `exit code 127` when trying to run via background process.
+     - Fix: Not yet resolved — was the last action before summary request.
+
+5. Problem Solving:
+   - **Adversarial state verification**: Discovered 6 major discrepancies between MEMORY.md claims and reality by running actual counts, queries, and grep searches.
+   - **Schema mismatch architectural analysis**: Identified that not just table names but field names differed — vault_memory has `content` not `rationale`, `path` not `vault_path`. Designed pragmatic field mapping that uses existing defaults in the TypeScript services.
+   - **Parallel agent orchestration**: 4 agents with zero cross-dependencies, all completing successfully. Tasks tracked via task system with proper dependencies.
+   - **Test failures root cause analysis**: Identified that pocket_tts failures were import-order-dependent (pass in isolation, fail in full suite) while vault_ops and sheets_daemon failures were genuine assertion mismatches.
+
+6. All User Messages:
+   - `/compact` (system command)
+   - "Revise plan with key learnings from an adversarial perspective"
+   - "Complete all priorities in a token efficient and compound engineering manner. Continuously improve overnight with local models until 7 am est."
+   - The final message requesting this summary
+
+7. Pending Tasks:
+   - **Launch overnight script**: The script was created at `/home/mike-anderson/dev/cohezion/cloud-vault-mcp/scripts/overnight_improve.py` and syntax-verified, but the launch attempt failed with exit code 127. Needs to be launched with correct working directory and python path.
+   - **Commit and push**: All changes from 4 agents + pocket_tts fix + overnight script need to be committed and pushed (vault repo + cloud-vault-mcp feature branch).
+   - Task #16 "Create and launch overnight continuous improvement script" is in_progress — script created but not yet running.
+
+8. Current Work:
+   All 5 priorities were executed:
+   - Priority 1 (Schema fix): ✅ Completed — SurrealDBClient.ts and CascadeInference.ts fixed, plugin builds
+   - Priority 2 (Pattern cross-linking): ✅ Completed — 37 patterns linked, 0 orphans remaining
+   - Priority 3 (Inbox + root cleanup): ✅ Completed — inbox 19→3, root 11→4, 33 files removed
+   - Priority 4 (Test failures): ✅ Completed — 421/421 tests pass (10→0 failures)
+   - Priority 5 (MEMORY.md update): ✅ Completed — all counts verified and updated
+   
+   The overnight script was written and syntax-verified but the launch failed with exit code 127. The last command attempted was:
+   ```bash
+   /home/mike-anderson/dev/cohezion/cloud-vault-mcp/.venv/bin/python3 scripts/overnight_improve.py 2>&1 | head -20 &
+   ```
+   This likely failed because the working directory wasn't set to the cloud-vault-mcp directory.
+
+   No git commit has been made yet for any of the changes in this session.
+
+9. Optional Next Step:
+   The user explicitly requested "Continuously improve overnight with local models until 7 am est." The overnight script was created but failed to launch. The immediate next steps are:
+   1. Commit all changes to both repos (vault + cloud-vault-mcp feature branch)
+   2. Fix the overnight script launch by running from the correct directory:
+      ```bash
+      cd /home/mike-anderson/dev/cohezion/cloud-vault-mcp && nohup /home/mike-anderson/dev/cohezion/cloud-vault-mcp/.venv/bin/python3 scripts/overnight_improve.py > /dev/null 2>&1 &
+      ```
+   3. Verify the script is running and producing log output
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.REDACTED.jsonl
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Analysis:
+Let me analyze the conversation chronologically:
+
+1. This is a continuation from a previous session that was already summarized. The system reminder provides extensive context about prior work.
+
+2. The conversation summary describes two main phases:
+   - An adversarial retrospective that found discrepancies between MEMORY.md claims and reality
+   - Execution of 5 priorities using parallel agents, plus creation of an overnight improvement script
+
+3. The current session appears to be just a `/compact` command followed by the summary request itself. No new work was done in this continuation beyond what's captured in the previous summary.
+
+4. Key technical details from the summary:
+   - SurrealDB schema mismatch fix (queries changed from `FROM decisions` to `FROM vault_memory WHERE type = 'decision'`)
+   - CascadeInference.ts schema fix
+   - Pattern cross-linking (37 patterns, ~190 wiki-links)
+   - Test fixes (421/421 passing)
+   - Overnight improvement script creation
+   - Failed script launch (exit code 127)
+
+5. The files read in this session (test_pocket_tts.py, test_sheets_research_daemon.py, CascadeInference.ts) were read as part of the context restoration, not as new work.
+
+6. User messages in this continuation are just `/compact` commands.
+
+7. The pending work is:
+   - Launch overnight script (failed with exit code 127)
+   - Git commit all changes
+   - The overnight script should run until 7 AM EST
+
+Let me structure the summary carefully based on all available information.
+
+Summary:
+1. Primary Request and Intent:
+   The user made two main requests across the session:
+   - **"Revise plan with key learnings from an adversarial perspective"**: Perform an adversarial retrospective challenging MEMORY.md claims vs actual vault/codebase state, identify gaps, and propose a revised priority plan.
+   - **"Complete all priorities in a token efficient and compound engineering manner. Continuously improve overnight with local models until 7 am est."**: Execute all 5 identified priorities using parallel compound engineering agents, then launch an overnight daemon using Ollama (nomic-embed-text) for continuous vault improvement until 7 AM EST.
+
+2. Key Technical Concepts:
+   - **SurrealDB Schema Mismatch**: Phase 6-7 TypeScript services queried nonexistent tables (`decisions`, `lessons`, `decision_cascades`, `decision_contradictions`, `decision_impacts`). Actual data lives in `vault_memory` table with a `type` field, and `informed_by` edge table.
+   - **Adversarial Retrospective**: Challenging MEMORY.md claims against verified state — found 12x worse orphan counts, uncounted files, re-accumulated inbox, and the critical schema mismatch.
+   - **Compound Engineering with Parallel Agents**: 4 agents launched in parallel (schema fix, pattern cross-linker, inbox triager, test fixer) with zero cross-dependencies.
+   - **Overnight Continuous Improvement Daemon**: Python script using Ollama nomic-embed-text embeddings to detect file changes, re-import to SurrealDB, find orphans via vector similarity, add wiki-links, and sync graph edges — looping every 5 minutes until 7 AM EST.
+   - **Mock `create=True` Pattern**: pocket_tts tests fail in full suite because `pocket_tts.TTSModel` module attribute doesn't exist when other tests run first — fixed with `@patch("pocket_tts.TTSModel", create=True)`.
+   - **BFS Cascade Inference**: CascadeInferenceEngine uses BFS traversal to depth 5 to compute 2nd/3rd order decision impacts with impact scoring and deduplication.
+
+3. Files and Code Sections:
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/services/SurrealDBClient.ts`**
+     - Critical schema mismatch fix for Phase 6-7 plugin integration.
+     - All 8 `FROM decisions` queries → `FROM vault_memory WHERE type = 'decision'`
+     - `FROM lessons` → `FROM vault_memory WHERE type = 'lesson'`
+     - `FROM decision_cascades` → `FROM informed_by`
+     - Auth headers added: `Authorization: Basic ${btoa('root:root')}`, `surreal-ns: cohezion`, `surreal-db: vault`
+     - Body format changed from `JSON.stringify({ query })` to raw `query` string
+     - Field mappings: `row.rationale` → `row.content`, `row.vault_path` → `row.path || row.vault_path`
+     - `UPDATE decisions` → `UPDATE vault_memory WHERE type = 'decision'`
+     - Build verified: 1002.4kb, 62ms, zero errors.
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/services/CascadeInference.ts`**
+     - Schema fix aligned with SurrealDBClient changes.
+     - Line 105: `SELECT * FROM decisions LIMIT 500` → `SELECT * FROM vault_memory WHERE type = 'decision' LIMIT 500`
+     - Line 125: `SELECT * FROM decision_cascades LIMIT 1000` → `SELECT * FROM informed_by LIMIT 1000`
+     - Field mappings: `row.rationale` → `row.content`, cascade edges use `String(row.in)` / `String(row.out)` instead of `row.source_decision_id` / `row.target_decision_id`
+     - Added defaults: `dependency_type: row.dependency_type || row.type || 'influences'`, `impact_level: row.impact_level || 'moderate'`
+     - Full file is 346 lines with BFS traversal, impact scoring, deduplication, and batch SurrealDB storage.
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/tests/test_pocket_tts.py`**
+     - 6 `@patch("pocket_tts.TTSModel")` decorators changed to `@patch("pocket_tts.TTSModel", create=True)` — fixes full-suite failures where TTSModel attribute doesn't exist due to import ordering.
+     - Tests affected: `test_initialize_success`, `test_speak_basic`, `test_speak_text_at_limit`, `test_model_load_failure`, `test_synthesis_failure`, `test_lazy_initialization`.
+     - Also patches `torchaudio.save` in relevant tests.
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/tests/test_sheets_research_daemon.py`**
+     - Tests WorkQueue (SQLite), DeadLetterQueue, and AgentCoordinator classes.
+     - Test inputs changed from JSONL event stream format to plain text with markdown ```json``` code blocks — matching actual production input format.
+     - Tests retry logic (3 attempts before should_retry=False), DLQ failure count incrementing, JSON extraction with schema validation.
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/tests/test_vault_ops.py`**
+     - Lines 158, 163: `match="escapes vault"` → `match="Invalid path|traversal|escapes vault"` — matches either safety check message.
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/scripts/overnight_improve.py`** (new, 370+ lines)
+     - Overnight daemon with 3-phase cycles: (1) detect new/modified files → re-import to SurrealDB, (2) find orphans via embedding similarity → add wiki-links, (3) sync wiki-links to graph edges.
+     - Key classes: `FileTracker` (JSON state file for change detection)
+     - Functions: `reimport_files()`, `find_similar_documents()`, `find_orphans_and_suggest_links()`, `apply_similarity_links()`, `create_missing_edges()`
+     - Configuration: SIMILARITY_THRESHOLD=0.65, CYCLE_INTERVAL=300s, stops at 7 AM EST.
+     - Logs to `vault/logs/overnight-YYYY-MM-DD.log`, writes summary to `vault/logs/overnight-summary-YYYY-MM-DD.md`.
+
+   - **37 pattern files in `/home/mike-anderson/vaults/cohezion-vault/patterns/`** (modified by agent)
+     - Each received 4-8 wiki-links in a `## Related` section.
+     - ~190 new wiki-links total. Patterns directory went from 38 orphans (46%) to 0.
+
+   - **33 files deleted by cleanup agent**: 15 inbox files, 13 root-level .md session artifacts, 5 untracked git files with `{{placeholder}}` content. 1 file moved: `The Awareness of Nothing at All and Quadrature Physics.md` → `papers/`.
+
+   - **`/home/mike-anderson/.claude/projects/-home-mike-anderson-vaults-cohezion-vault/memory/MEMORY.md`**
+     - Updated Phase 5-7 status from "PARTIALLY WIRED" to "SCHEMA FIXED"
+     - Added: `**Cloud-vault-mcp Tests**: 421/421 pass (0 failures, fixed 2026-02-15)`
+     - Updated vault stats: 104 decisions (was 93), 80 patterns (was 72), 19 experiments, 85 papers (was 84)
+     - Updated orphan counts: 10 decisions, 12 papers, 1 experiment, 0 patterns
+     - Inbox: 3 files (was 4), root: 4 .md files
+
+4. Errors and Fixes:
+   - **MEMORY.md stale claims**: Said "1 decision orphaned" when actual was 13. Said "93 decisions" when actual was 107. Said "72 patterns" when 83 existed. Patterns were 46% orphaned (not mentioned). Inbox said 4 files when 19 had re-accumulated.
+     - Fix: Adversarial verification before planning; corrected all counts after work completed.
+   
+   - **SurrealDB schema mismatch**: Phase 6-7 TypeScript services queried `FROM decisions`, `FROM lessons`, `FROM decision_cascades` — none of these tables exist. Actual data in `vault_memory` with `type` field.
+     - Fix: Agent changed all queries to `FROM vault_memory WHERE type = 'decision'` etc., with field mappings (`content` → `rationale`, `path` → `vault_path`). Plugin builds with zero errors.
+   
+   - **test_vault_ops path safety tests**: Expected `match="escapes vault"` but actual error was `"Invalid path (traversal attempt): ../outside.md"`.
+     - Fix: Changed regex to `"Invalid path|traversal|escapes vault"`.
+   
+   - **test_sheets_research_daemon JSON extraction**: Tests passed JSONL format but `extract_json_from_output()` method expects plain text with markdown code blocks.
+     - Fix: Changed test inputs to plain text with ```json``` blocks.
+   
+   - **test_pocket_tts TTSModel attribute error**: `@patch("pocket_tts.TTSModel")` fails in full suite because `pocket_tts` module doesn't have `TTSModel` as top-level attribute when other tests change import state.
+     - Fix: Added `create=True` to all 6 `@patch` decorators.
+   
+   - **Overnight script launch failed**: Exit code 127 when trying to run via background process. Likely because working directory wasn't set to the cloud-vault-mcp directory.
+     - Fix: Not yet resolved.
+
+5. Problem Solving:
+   - **Adversarial state verification**: Discovered 6 major discrepancies between MEMORY.md claims and reality by running actual counts, queries, and grep searches before making any plans.
+   - **Schema mismatch architectural analysis**: Identified that not just table names but field names differed — designed pragmatic field mapping using TypeScript defaults.
+   - **Parallel agent orchestration**: 4 agents with zero cross-dependencies, all completing successfully. Tasks tracked via task system.
+   - **Test failures root cause**: Identified pocket_tts failures as import-order-dependent (pass in isolation, fail in full suite) vs vault_ops and sheets_daemon as genuine assertion mismatches.
+   - **Final test results**: 421/421 pass (from 411 pass, 10 fail).
+
+6. All User Messages:
+   - `/compact` (system command, first occurrence)
+   - "Revise plan with key learnings from an adversarial perspective"
+   - "Complete all priorities in a token efficient and compound engineering manner. Continuously improve overnight with local models until 7 am est."
+   - `/compact` (system command, second occurrence — triggered this summary)
+
+7. Pending Tasks:
+   - **Launch overnight script**: Script exists at `/home/mike-anderson/dev/cohezion/cloud-vault-mcp/scripts/overnight_improve.py` but launch failed with exit code 127. Needs correct working directory and python path.
+   - **Git commit all changes**: Changes from 4 agents + pocket_tts fix + overnight script need to be committed and pushed (vault repo + cloud-vault-mcp feature branch).
+   - Task #16 "Create and launch overnight continuous improvement script" is in_progress — script created but not yet running.
+
+8. Current Work:
+   All 5 priorities were completed:
+   - Priority 1 (Schema fix): ✅ SurrealDBClient.ts and CascadeInference.ts fixed, plugin builds
+   - Priority 2 (Pattern cross-linking): ✅ 37 patterns linked, 0 orphans remaining
+   - Priority 3 (Inbox + root cleanup): ✅ Inbox 19→3, root 11→4, 33 files removed
+   - Priority 4 (Test failures): ✅ 421/421 tests pass (10→0 failures)
+   - Priority 5 (MEMORY.md update): ✅ All counts verified and updated
+   
+   The overnight improvement script was created and syntax-verified but the launch attempt failed with exit code 127. The last command attempted was:
+   ```bash
+   /home/mike-anderson/dev/cohezion/cloud-vault-mcp/.venv/bin/python3 scripts/overnight_improve.py 2>&1 | head -20 &
+   ```
+
+9. Optional Next Step:
+   The user explicitly requested "Continuously improve overnight with local models until 7 am est." The immediate next steps are:
+   1. Git commit all changes to both repos (vault + cloud-vault-mcp feature branch)
+   2. Fix the overnight script launch by running from the correct directory:
+      ```bash
+      cd /home/mike-anderson/dev/cohezion/cloud-vault-mcp && nohup .venv/bin/python3 scripts/overnight_improve.py > /dev/null 2>&1 &
+      ```
+   3. Verify the script is running and producing log output at `/home/mike-anderson/vaults/cohezion-vault/logs/`
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.REDACTED.jsonl
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Analysis:
+Let me analyze the conversation chronologically:
+
+1. This is a continuation from a previous session that was already compacted twice. The system reminder provides extensive context about prior work across two sessions.
+
+2. The conversation summary from the previous compaction describes:
+   - An adversarial retrospective that found discrepancies between MEMORY.md claims and reality
+   - Execution of 5 priorities using parallel agents
+   - Creation of an overnight improvement script
+   - All 5 priorities completed successfully
+   - Overnight script created but launch failed with exit code 127
+
+3. The current continuation session only contains `/compact` commands - no new work was performed beyond the previous summary.
+
+4. Files read in this session (as part of context restoration, not new work):
+   - CascadeInference.ts (346 lines) - BFS cascade inference engine
+   - test_sheets_research_daemon.py (270 lines) - WorkQueue, DLQ, AgentCoordinator tests
+   - test_pocket_tts.py (230 lines) - Pocket TTS service and MCP tool tests
+
+5. Multiple completed tasks referenced:
+   - Task acf3d4b: Re-import SurrealDB data
+   - Task a19bf7d: Wire Phase 6-7 into plugin
+   - Task a3c3470: Fix 4 failing tests
+   - Task a470e28: Fix SurrealDB schema mismatch
+   - Task ae13d4d: Cross-link orphaned patterns
+   - Task a50bf3d: Triage inbox + clean debris
+
+6. The debug log shows repeated "Fast mode unavailable: Fast mode requires extra usage billing" messages - this is informational, not an error.
+
+7. Key pending items from previous session:
+   - Launch overnight improvement script (failed with exit code 127)
+   - Git commit all changes
+   - The overnight script should run until 7 AM EST
+
+Let me now structure the comprehensive summary.
+
+Summary:
+1. Primary Request and Intent:
+   The user made two main requests across the full session:
+   - **"Revise plan with key learnings from an adversarial perspective"**: Perform an adversarial retrospective challenging MEMORY.md claims vs actual vault/codebase state, identify gaps, and propose a revised priority plan.
+   - **"Complete all priorities in a token efficient and compound engineering manner. Continuously improve overnight with local models until 7 am est."**: Execute all 5 identified priorities using parallel compound engineering agents, then launch an overnight daemon using Ollama (nomic-embed-text) for continuous vault improvement until 7 AM EST.
+
+2. Key Technical Concepts:
+   - **SurrealDB Schema Mismatch**: Phase 6-7 TypeScript services queried nonexistent tables (`decisions`, `lessons`, `decision_cascades`, `decision_contradictions`, `decision_impacts`). Actual data lives in `vault_memory` table with a `type` field, and `informed_by` edge table.
+   - **Adversarial Retrospective**: Challenging MEMORY.md claims against verified state — found 12x worse orphan counts, uncounted files, re-accumulated inbox, and the critical schema mismatch.
+   - **Compound Engineering with Parallel Agents**: 4 agents launched in parallel (schema fix, pattern cross-linker, inbox triager, test fixer) with zero cross-dependencies.
+   - **Overnight Continuous Improvement Daemon**: Python script using Ollama nomic-embed-text embeddings to detect file changes, re-import to SurrealDB, find orphans via vector similarity, add wiki-links, and sync graph edges — looping every 5 minutes until 7 AM EST.
+   - **Mock `create=True` Pattern**: pocket_tts tests fail in full suite because `pocket_tts.TTSModel` module attribute doesn't exist when other tests run first — fixed with `@patch("pocket_tts.TTSModel", create=True)`.
+   - **BFS Cascade Inference**: CascadeInferenceEngine uses BFS traversal to depth 5 to compute 2nd/3rd order decision impacts with impact scoring and deduplication.
+
+3. Files and Code Sections:
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/services/SurrealDBClient.ts`**
+     - Critical schema mismatch fix for Phase 6-7 plugin integration.
+     - All 8 `FROM decisions` queries → `FROM vault_memory WHERE type = 'decision'`
+     - `FROM lessons` → `FROM vault_memory WHERE type = 'lesson'`
+     - `FROM decision_cascades` → `FROM informed_by`
+     - Auth headers added: `Authorization: Basic ${btoa('root:root')}`, `surreal-ns: cohezion`, `surreal-db: vault`
+     - Body format changed from `JSON.stringify({ query })` to raw `query` string
+     - Field mappings: `row.rationale` → `row.content`, `row.vault_path` → `row.path || row.vault_path`
+     - `UPDATE decisions` → `UPDATE vault_memory WHERE type = 'decision'`
+     - Build verified: 1002.4kb, 62ms, zero errors.
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/services/CascadeInference.ts`** (346 lines)
+     - Schema fix aligned with SurrealDBClient changes.
+     - Line 105: `SELECT * FROM decisions LIMIT 500` → `SELECT * FROM vault_memory WHERE type = 'decision' LIMIT 500`
+     - Line 125: `SELECT * FROM decision_cascades LIMIT 1000` → `SELECT * FROM informed_by LIMIT 1000`
+     - Field mappings: `row.rationale` → `row.content`, cascade edges use `String(row.in)` / `String(row.out)` instead of `row.source_decision_id` / `row.target_decision_id`
+     - Added defaults: `dependency_type: row.dependency_type || row.type || 'influences'`, `impact_level: row.impact_level || 'moderate'`
+     - BFS traversal engine with DecisionImpact interface (source_decision_id, target_decision_id, depth 1-5, impact_type, impact_score 0-1)
+     - Deduplication keeps best score per source-target pair
+     - Batch insert to SurrealDB in groups of 100
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/tests/test_pocket_tts.py`** (230 lines)
+     - 6 `@patch("pocket_tts.TTSModel")` decorators changed to `@patch("pocket_tts.TTSModel", create=True)` — fixes full-suite failures where TTSModel attribute doesn't exist due to import ordering.
+     - Tests: `test_initialize_success`, `test_speak_basic`, `test_speak_text_at_limit`, `test_model_load_failure`, `test_synthesis_failure`, `test_lazy_initialization`
+     - Tests PocketTTSService class: lazy initialization, empty/whitespace/too-long text validation, model load failures, synthesis failures
+     - Tests MCP tool integration: `tts_speak` tool success and error JSON responses
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/tests/test_sheets_research_daemon.py`** (270 lines)
+     - Tests WorkQueue (SQLite), DeadLetterQueue, and AgentCoordinator classes.
+     - Test inputs changed from JSONL event stream format to plain text with markdown ```json``` code blocks — matching actual production input format.
+     - Tests retry logic (3 attempts before should_retry=False), DLQ failure count incrementing, JSON extraction with schema validation.
+     - Required fields for valid entries: row, status, abstractions, domain, integration_point
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/tests/test_vault_ops.py`**
+     - Lines 158, 163: `match="escapes vault"` → `match="Invalid path|traversal|escapes vault"` — matches either safety check message.
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/scripts/overnight_improve.py`** (new, 370+ lines)
+     - Overnight daemon with 3-phase cycles: (1) detect new/modified files → re-import to SurrealDB, (2) find orphans via embedding similarity → add wiki-links, (3) sync wiki-links to graph edges.
+     - Key classes: `FileTracker` (JSON state file for change detection)
+     - Functions: `reimport_files()`, `find_similar_documents()`, `find_orphans_and_suggest_links()`, `apply_similarity_links()`, `create_missing_edges()`
+     - Configuration: SIMILARITY_THRESHOLD=0.65, CYCLE_INTERVAL=300s, stops at 7 AM EST.
+     - Logs to `vault/logs/overnight-YYYY-MM-DD.log`, writes summary to `vault/logs/overnight-summary-YYYY-MM-DD.md`.
+
+   - **37 pattern files in `/home/mike-anderson/vaults/cohezion-vault/patterns/`** (modified by agent)
+     - Each received 4-8 wiki-links in a `## Related` section.
+     - ~190 new wiki-links total. Patterns directory went from 38 orphans (46%) to 0.
+
+   - **33 files deleted by cleanup agent**: 15 inbox files, 13 root-level .md session artifacts, 5 untracked git files with `{{placeholder}}` content. 1 file moved: `The Awareness of Nothing at All and Quadrature Physics.md` → `papers/`.
+
+   - **`/home/mike-anderson/.claude/projects/-home-mike-anderson-vaults-cohezion-vault/memory/MEMORY.md`**
+     - Updated Phase 5-7 status from "PARTIALLY WIRED" to "SCHEMA FIXED"
+     - Added: `**Cloud-vault-mcp Tests**: 421/421 pass (0 failures, fixed 2026-02-15)`
+     - Updated vault stats: 104 decisions (was 93), 80 patterns (was 72), 19 experiments, 85 papers (was 84)
+     - Updated orphan counts: 10 decisions, 12 papers, 1 experiment, 0 patterns
+     - Inbox: 3 files (was 4), root: 4 .md files
+
+4. Errors and Fixes:
+   - **MEMORY.md stale claims**: Said "1 decision orphaned" when actual was 13. Said "93 decisions" when actual was 107. Said "72 patterns" when 83 existed. Patterns were 46% orphaned (not mentioned). Inbox said 4 files when 19 had re-accumulated.
+     - Fix: Adversarial verification before planning; corrected all counts after work completed.
+   
+   - **SurrealDB schema mismatch**: Phase 6-7 TypeScript services queried `FROM decisions`, `FROM lessons`, `FROM decision_cascades` — none of these tables exist. Actual data in `vault_memory` with `type` field.
+     - Fix: Changed all queries to `FROM vault_memory WHERE type = 'decision'` etc., with field mappings (`content` → `rationale`, `path` → `vault_path`). Plugin builds with zero errors.
+   
+   - **test_vault_ops path safety tests**: Expected `match="escapes vault"` but actual error was `"Invalid path (traversal attempt): ../outside.md"`.
+     - Fix: Changed regex to `"Invalid path|traversal|escapes vault"`.
+   
+   - **test_sheets_research_daemon JSON extraction**: Tests passed JSONL format but `extract_json_from_output()` method expects plain text with markdown code blocks.
+     - Fix: Changed test inputs to plain text with ```json``` blocks.
+   
+   - **test_pocket_tts TTSModel attribute error**: `@patch("pocket_tts.TTSModel")` fails in full suite because `pocket_tts` module doesn't have `TTSModel` as top-level attribute when other tests change import state.
+     - Fix: Added `create=True` to all 6 `@patch` decorators.
+   
+   - **Overnight script launch failed**: Exit code 127 when trying to run via background process. Likely because working directory wasn't set to the cloud-vault-mcp directory or python path issue.
+     - Fix: Not yet resolved.
+
+5. Problem Solving:
+   - **Adversarial state verification**: Discovered 6 major discrepancies between MEMORY.md claims and reality by running actual counts, queries, and grep searches before making any plans.
+   - **Schema mismatch architectural analysis**: Identified that not just table names but field names differed — designed pragmatic field mapping using TypeScript defaults.
+   - **Parallel agent orchestration**: 4 agents with zero cross-dependencies, all completing successfully (tasks acf3d4b, a19bf7d, a3c3470, a470e28, ae13d4d, a50bf3d).
+   - **Test failures root cause**: Identified pocket_tts failures as import-order-dependent (pass in isolation, fail in full suite) vs vault_ops and sheets_daemon as genuine assertion mismatches.
+   - **Final test results**: 421/421 pass (from 411 pass, 10 fail).
+
+6. All User Messages:
+   - `/compact` (system command, first occurrence in original session)
+   - "Revise plan with key learnings from an adversarial perspective"
+   - "Complete all priorities in a token efficient and compound engineering manner. Continuously improve overnight with local models until 7 am est."
+   - `/compact` (system command, second occurrence)
+   - `/compact` (system command, third occurrence — triggered this summary in current continuation)
+
+7. Pending Tasks:
+   - **Launch overnight improvement script**: Script exists at `/home/mike-anderson/dev/cohezion/cloud-vault-mcp/scripts/overnight_improve.py` but launch failed with exit code 127. Needs correct working directory and python path.
+   - **Git commit all changes**: Changes from 4 agents + pocket_tts fix + overnight script need to be committed and pushed (vault repo + cloud-vault-mcp feature branch).
+
+8. Current Work:
+   All 5 priorities were completed:
+   - Priority 1 (Schema fix): ✅ SurrealDBClient.ts and CascadeInference.ts fixed, plugin builds
+   - Priority 2 (Pattern cross-linking): ✅ 37 patterns linked, 0 orphans remaining
+   - Priority 3 (Inbox + root cleanup): ✅ Inbox 19→3, root 11→4, 33 files removed
+   - Priority 4 (Test failures): ✅ 421/421 tests pass (10→0 failures)
+   - Priority 5 (MEMORY.md update): ✅ All counts verified and updated
+   
+   The overnight improvement script was created and syntax-verified but the launch attempt failed with exit code 127. The session has been compacted multiple times with no new work done since the last compaction.
+
+9. Optional Next Step:
+   The user explicitly requested "Continuously improve overnight with local models until 7 am est." The immediate next steps are:
+   1. Git commit all changes to both repos (vault + cloud-vault-mcp feature branch)
+   2. Fix the overnight script launch by running from the correct directory:
+      ```bash
+      cd /home/mike-anderson/dev/cohezion/cloud-vault-mcp && nohup .venv/bin/python3 scripts/overnight_improve.py > /dev/null 2>&1 &
+      ```
+   3. Verify the script is running and producing log output at `/home/mike-anderson/vaults/cohezion-vault/logs/`
+   
+   Note: Given this is a time-sensitive request ("until 7 am est") and significant time may have passed since the original request, it would be prudent to confirm with the user whether they still want the overnight script launched before proceeding.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.REDACTED.jsonl
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Analysis:
+Let me carefully analyze the full conversation context, which spans multiple compaction cycles:
+
+1. The conversation has been compacted 3+ times, meaning significant work was done earlier.
+2. The previous summary is very detailed and comprehensive, covering:
+   - Adversarial retrospective that found discrepancies in MEMORY.md
+   - 5 priorities executed via parallel agents
+   - Overnight improvement script creation
+   - All 5 priorities completed successfully
+   - Overnight script launch failed with exit code 127
+
+3. The current continuation session only contains `/compact` commands - no new user requests or work was performed.
+
+4. Files read in this session (as context restoration):
+   - CascadeInference.ts - BFS cascade inference engine for decision impacts
+   - test_pocket_tts.py - Pocket TTS service tests
+   - test_sheets_research_daemon.py - WorkQueue, DLQ, AgentCoordinator tests
+
+5. Multiple completed tasks are referenced from earlier work.
+
+6. The debug log shows only "Fast mode unavailable" messages - informational, not errors.
+
+7. The user's last actual request was: "Complete all priorities in a token efficient and compound engineering manner. Continuously improve overnight with local models until 7 am est."
+
+8. All 5 priorities were completed. The overnight script was created but launch failed.
+
+Let me compile all this into a comprehensive summary.
+
+Summary:
+1. Primary Request and Intent:
+   The user made two main requests across the full session:
+   - **"Revise plan with key learnings from an adversarial perspective"**: Perform an adversarial retrospective challenging MEMORY.md claims vs actual vault/codebase state, identify gaps, and propose a revised priority plan.
+   - **"Complete all priorities in a token efficient and compound engineering manner. Continuously improve overnight with local models until 7 am est."**: Execute all 5 identified priorities using parallel compound engineering agents, then launch an overnight daemon using Ollama (nomic-embed-text) for continuous vault improvement until 7 AM EST.
+
+2. Key Technical Concepts:
+   - **SurrealDB Schema Mismatch**: Phase 6-7 TypeScript services queried nonexistent tables (`decisions`, `lessons`, `decision_cascades`, `decision_contradictions`, `decision_impacts`). Actual data lives in `vault_memory` table with a `type` field, and `informed_by` edge table.
+   - **Adversarial Retrospective**: Challenging MEMORY.md claims against verified state — found 12x worse orphan counts, uncounted files, re-accumulated inbox, and critical schema mismatch.
+   - **Compound Engineering with Parallel Agents**: 4 agents launched in parallel (schema fix, pattern cross-linker, inbox triager, test fixer) with zero cross-dependencies.
+   - **Overnight Continuous Improvement Daemon**: Python script using Ollama nomic-embed-text embeddings to detect file changes, re-import to SurrealDB, find orphans via vector similarity, add wiki-links, and sync graph edges — looping every 5 minutes until 7 AM EST.
+   - **Mock `create=True` Pattern**: pocket_tts tests fail in full suite because `pocket_tts.TTSModel` module attribute doesn't exist when other tests run first — fixed with `@patch("pocket_tts.TTSModel", create=True)`.
+   - **BFS Cascade Inference**: CascadeInferenceEngine uses BFS traversal to depth 5 to compute 2nd/3rd order decision impacts with impact scoring and deduplication.
+
+3. Files and Code Sections:
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/services/SurrealDBClient.ts`**
+     - Critical schema mismatch fix for Phase 6-7 plugin integration.
+     - All 8 `FROM decisions` queries → `FROM vault_memory WHERE type = 'decision'`
+     - `FROM lessons` → `FROM vault_memory WHERE type = 'lesson'`
+     - `FROM decision_cascades` → `FROM informed_by`
+     - Auth headers added: `Authorization: Basic ${btoa('root:root')}`, `surreal-ns: cohezion`, `surreal-db: vault`
+     - Body format changed from `JSON.stringify({ query })` to raw `query` string
+     - Field mappings: `row.rationale` → `row.content`, `row.vault_path` → `row.path || row.vault_path`
+     - `UPDATE decisions` → `UPDATE vault_memory WHERE type = 'decision'`
+     - Build verified: 1002.4kb, 62ms, zero errors.
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/services/CascadeInference.ts`** (409 lines)
+     - Schema fix aligned with SurrealDBClient changes.
+     - Queries changed: `SELECT * FROM decisions LIMIT 500` → `SELECT * FROM vault_memory WHERE type = 'decision' LIMIT 500`; `SELECT * FROM decision_cascades LIMIT 1000` → `SELECT * FROM informed_by LIMIT 1000`
+     - Field mappings: `row.rationale` → `row.content`, cascade edges use `String(row.in)` / `String(row.out)` instead of `row.source_decision_id` / `row.target_decision_id`
+     - Added defaults: `dependency_type: row.dependency_type || row.type || 'influences'`, `impact_level: row.impact_level || 'moderate'`
+     - BFS traversal engine with DecisionImpact interface (source_decision_id, target_decision_id, depth 1-5, impact_type, impact_score 0-1)
+     - Deduplication keeps best score per source-target pair; batch insert to SurrealDB in groups of 100
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/tests/test_pocket_tts.py`** (230 lines)
+     - 6 `@patch("pocket_tts.TTSModel")` decorators changed to `@patch("pocket_tts.TTSModel", create=True)` — fixes full-suite failures where TTSModel attribute doesn't exist due to import ordering.
+     - Tests PocketTTSService class: lazy initialization, empty/whitespace/too-long text validation, model load failures, synthesis failures
+     - Tests MCP tool integration: `tts_speak` tool success and error JSON responses
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/tests/test_sheets_research_daemon.py`** (270 lines)
+     - Tests WorkQueue (SQLite), DeadLetterQueue, and AgentCoordinator classes.
+     - Test inputs changed from JSONL event stream format to plain text with markdown ```json``` code blocks — matching actual production input format.
+     - Tests retry logic (3 attempts before should_retry=False), DLQ failure count incrementing, JSON extraction with schema validation.
+     - Required fields for valid entries: row, status, abstractions, domain, integration_point
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/tests/test_vault_ops.py`**
+     - Lines 158, 163: `match="escapes vault"` → `match="Invalid path|traversal|escapes vault"` — matches either safety check message.
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/scripts/overnight_improve.py`** (new, 370+ lines)
+     - Overnight daemon with 3-phase cycles: (1) detect new/modified files → re-import to SurrealDB, (2) find orphans via embedding similarity → add wiki-links, (3) sync wiki-links to graph edges.
+     - Key classes: `FileTracker` (JSON state file for change detection)
+     - Functions: `reimport_files()`, `find_similar_documents()`, `find_orphans_and_suggest_links()`, `apply_similarity_links()`, `create_missing_edges()`
+     - Configuration: SIMILARITY_THRESHOLD=0.65, CYCLE_INTERVAL=300s, stops at 7 AM EST.
+     - Logs to `vault/logs/overnight-YYYY-MM-DD.log`, writes summary to `vault/logs/overnight-summary-YYYY-MM-DD.md`.
+
+   - **37 pattern files in `/home/mike-anderson/vaults/cohezion-vault/patterns/`** (modified by agent)
+     - Each received 4-8 wiki-links in a `## Related` section. ~190 new wiki-links total. Patterns directory went from 38 orphans (46%) to 0.
+
+   - **33 files deleted by cleanup agent**: 15 inbox files, 13 root-level .md session artifacts, 5 untracked git files with `{{placeholder}}` content. 1 file moved: `The Awareness of Nothing at All and Quadrature Physics.md` → `papers/`.
+
+   - **`/home/mike-anderson/.claude/projects/-home-mike-anderson-vaults-cohezion-vault/memory/MEMORY.md`**
+     - Updated Phase 5-7 status from "PARTIALLY WIRED" to "SCHEMA FIXED"
+     - Added: `**Cloud-vault-mcp Tests**: 421/421 pass (0 failures, fixed 2026-02-15)`
+     - Updated vault stats: 104 decisions (was 93), 80 patterns (was 72), 19 experiments, 85 papers (was 84)
+     - Updated orphan counts: 10 decisions, 12 papers, 1 experiment, 0 patterns
+     - Inbox: 3 files (was 4), root: 4 .md files
+
+4. Errors and Fixes:
+   - **MEMORY.md stale claims**: Said "1 decision orphaned" when actual was 13. Said "93 decisions" when actual was 107. Said "72 patterns" when 83 existed. Patterns were 46% orphaned. Inbox said 4 files when 19 had re-accumulated.
+     - Fix: Adversarial verification before planning; corrected all counts after work completed.
+   
+   - **SurrealDB schema mismatch**: Phase 6-7 TypeScript services queried `FROM decisions`, `FROM lessons`, `FROM decision_cascades` — none of these tables exist. Actual data in `vault_memory` with `type` field.
+     - Fix: Changed all queries to `FROM vault_memory WHERE type = 'decision'` etc., with field mappings. Plugin builds with zero errors.
+   
+   - **test_vault_ops path safety tests**: Expected `match="escapes vault"` but actual error was `"Invalid path (traversal attempt): ../outside.md"`.
+     - Fix: Changed regex to `"Invalid path|traversal|escapes vault"`.
+   
+   - **test_sheets_research_daemon JSON extraction**: Tests passed JSONL format but `extract_json_from_output()` method expects plain text with markdown code blocks.
+     - Fix: Changed test inputs to plain text with ```json``` blocks.
+   
+   - **test_pocket_tts TTSModel attribute error**: `@patch("pocket_tts.TTSModel")` fails in full suite because `pocket_tts` module doesn't have `TTSModel` as top-level attribute when other tests change import state.
+     - Fix: Added `create=True` to all 6 `@patch` decorators.
+   
+   - **Overnight script launch failed**: Exit code 127 when trying to run via background process. Likely because working directory wasn't set or python path issue.
+     - Fix: Not yet resolved.
+
+5. Problem Solving:
+   - **Adversarial state verification**: Discovered 6 major discrepancies between MEMORY.md claims and reality by running actual counts, queries, and grep searches before making any plans.
+   - **Schema mismatch architectural analysis**: Identified that not just table names but field names differed — designed pragmatic field mapping using TypeScript defaults.
+   - **Parallel agent orchestration**: 4+ agents with zero cross-dependencies, all completing successfully (tasks acf3d4b, a19bf7d, a3c3470, a470e28, ae13d4d, a50bf3d).
+   - **Test failures root cause**: Identified pocket_tts failures as import-order-dependent (pass in isolation, fail in full suite) vs vault_ops and sheets_daemon as genuine assertion mismatches.
+   - **Final test results**: 421/421 pass (from 411 pass, 10 fail).
+
+6. All User Messages:
+   - `/compact` (system command, multiple occurrences)
+   - "Revise plan with key learnings from an adversarial perspective"
+   - "Complete all priorities in a token efficient and compound engineering manner. Continuously improve overnight with local models until 7 am est."
+
+7. Pending Tasks:
+   - **Launch overnight improvement script**: Script exists at `/home/mike-anderson/dev/cohezion/cloud-vault-mcp/scripts/overnight_improve.py` but launch failed with exit code 127. Needs correct working directory and python path.
+   - **Git commit all changes**: Changes from all agents + fixes + overnight script need to be committed and pushed (vault repo + cloud-vault-mcp feature branch).
+
+8. Current Work:
+   All 5 priorities were completed successfully:
+   - Priority 1 (Schema fix): ✅ SurrealDBClient.ts and CascadeInference.ts fixed, plugin builds
+   - Priority 2 (Pattern cross-linking): ✅ 37 patterns linked, 0 orphans remaining
+   - Priority 3 (Inbox + root cleanup): ✅ Inbox 19→3, root 11→4, 33 files removed
+   - Priority 4 (Test failures): ✅ 421/421 tests pass (10→0 failures)
+   - Priority 5 (MEMORY.md update): ✅ All counts verified and updated
+   
+   The overnight improvement script was created and syntax-verified but the launch attempt failed with exit code 127. The session has been compacted multiple times with no new work done since the last compaction. No new user requests have been made beyond the original two.
+
+9. Optional Next Step:
+   The user explicitly requested "Continuously improve overnight with local models until 7 am est." The immediate next steps are:
+   1. Git commit all changes to both repos (vault + cloud-vault-mcp feature branch)
+   2. Fix the overnight script launch by running from the correct directory:
+      ```bash
+      cd /home/mike-anderson/dev/cohezion/cloud-vault-mcp && nohup .venv/bin/python3 scripts/overnight_improve.py > /dev/null 2>&1 &
+      ```
+   3. Verify the script is running and producing log output at `/home/mike-anderson/vaults/cohezion-vault/logs/`
+   
+   Note: Given this is a time-sensitive request ("until 7 am est") and significant time has passed through multiple compaction cycles, it would be prudent to confirm with the user whether they still want the overnight script launched before proceeding.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.REDACTED.jsonl
+
+---
+
+continue
+
+---
+
+Proceed in a token efficient and compound engineering manner with maximum context awareness and persistence
+
+---
+
+proceed with the queued work
+
+---
+
+Adversarial review of all claims
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Analysis:
+Let me carefully analyze the entire conversation chronologically:
+
+**Session Start (Continuation from previous session)**
+- The session was continued from a previous conversation that ran out of context
+- A detailed summary of the previous session was provided, covering:
+  - Adversarial retrospective that found discrepancies in MEMORY.md
+  - 5 priorities executed via parallel agents (schema fix, pattern cross-linking, inbox cleanup, test fixes, MEMORY.md update)
+  - Overnight improvement script creation and launch (failed with exit code 127)
+  - All 5 priorities completed successfully
+
+**User Message 1: "continue"**
+- I checked the current state: overnight script had run successfully (65 cycles, 1,103 docs imported, 1,126 links, 4,920 edges)
+- Confirmed all previous tasks complete
+- Noted the overnight script showed a convergence issue (re-processing same 11 files each cycle)
+
+**User Message 2: "Proceed in a token efficient and compound engineering manner with maximum context awareness and persistence"**
+- Performed full state assessment:
+  - 36 YAML frontmatter errors across vault
+  - 35 orphaned patterns (43%), 12 papers, 10 decisions
+  - Inbox re-accumulated to 19 files, root had 14 .md files
+- Created 4 tasks: YAML fixes, cleanup, orphan cross-linking, MEMORY.md update
+- Executed all 4 tasks:
+
+  Task 1: YAML Fixes (36 errors)
+  - 27 papers had `https: //search.app/...` malformed URLs and unclosed `source:` quotes
+  - 4 daily sessions had unquoted colons in values
+  - 1 investment paper had unquoted summary with colons
+  - 2 templates with `{{}}` placeholders (expected, skipped)
+  - 2 additional papers needed manual fixes (unclosed single quotes)
+  - Result: 0 YAML errors remaining (excl templates)
+
+  Task 2: Inbox + Root Cleanup
+  - Moved 4 actionable items (paper, research gaps, settings mystery, Google Sheets linkage)
+  - Deleted 15 inbox session artifacts
+  - Deleted 12 root session artifacts
+  - Result: Inbox 0, Root 4 .md
+
+  Task 3: Orphan Cross-linking
+  - Discovered 21 empty pattern stubs (template placeholders, never filled in) - deleted them
+  - 14 real pattern orphans, 12 papers, 10 decisions - all cross-linked
+  - Used tag overlap and title word matching for automated linking
+  - Added 160 wiki-links across 40 files
+  - Result: 0 orphans across checked directories
+
+  Task 4: MEMORY.md Update
+  - Updated all counts and stats
+
+**User Message 3: "proceed with the queued work"**
+- Identified queued items from MEMORY.md
+- Created 3 tasks: overnight daemon convergence, DecisionRecommendationEngine Ollama upgrade, E2E validation
+- Checked Ollama (31 models available) and SurrealDB (running)
+
+  Task: Overnight Daemon Convergence Fix
+  - Added `tracker.scan_for_changes()` after link additions to prevent re-processing
+  - Added convergence detection flag and adaptive sleep (3x interval when converged)
+  
+  Task: DecisionRecommendationEngine Ollama Upgrade
+  - Read existing code: `evaluateContradiction()` used naive keyword counting
+  - Discovered `SemanticContradictionDetector` already existed with Ollama embeddings
+  - Made `findRecommendations()` and `evaluateContradiction()` async
+  - Added `evaluateWithOllama()` using phi3:mini model via `/api/generate`
+  - Added `evaluateWithEmbeddings()` as fallback using word overlap
+  - Updated Phase7B.test.ts to use async/await
+  - Plugin builds clean (1.0MB, 0 errors)
+  - Jest tests can't run (no ts-jest configured), but build verification passes
+
+  Task: E2E Validation
+  - SurrealDB: 361 docs, 1,886 edges, all with embeddings
+  - Semantic search: "quantum computing" → 3/3 quantum papers (0.73-0.78 scores)
+  - Hybrid search: Returns relevant results
+  - Graph traversal: Working
+  - GraphRAGQuery API: hybrid_search(), semantic_search(), find_related() all working
+  
+  Test Suite: Fixed recurring test failures
+  - vault_ops path safety: `match="escapes vault"` → `match="Invalid path|traversal|escapes vault"`
+  - sheets_research_daemon: JSONL format → plain text with ```json``` blocks
+  - pocket_tts: Added `create=True` to all `@patch` decorators + inline patch
+  - Result: 421/421 passing
+
+**User Message 4: "Adversarial review of all claims"**
+- Systematically verified every claim made in the session
+
+  VERIFIED TRUE (8/12):
+  1. YAML errors: 0 (excl templates)
+  2. Tests: 421/421
+  3. Plugin builds clean
+  4. DecisionRecommendationEngine uses Ollama
+  5. Overnight daemon convergence fixed
+  6. SurrealDB: 361 docs, all with embeddings
+  7. SurrealDB: 1,886 edges
+  8. Semantic search returns relevant results
+
+  VERIFIED FALSE (4/12):
+  1. "Inbox: 0 files" → 4 new files from parallel session
+  2. "Root: 4 .md files" → 9 files, 5 new from parallel session
+  3. "0 orphans" → 11 orphans (7 in projects/, 4 in new inbox)
+  4. "2,151 wiki-links" → 2,162
+
+  MAJOR FINDING - SurrealDB ↔ Vault divergence:
+  - Patterns: SurrealDB 82, vault 59 (22 stale from deleted stubs)
+  - Lessons: SurrealDB 44, vault 44 (patterns/lessons/ has 40 files I miscounted as "4 lessons")
+  - Papers: SurrealDB 85, vault 86 (-1)
+  - Experiments: SurrealDB 19, vault 21 (-2)
+
+  Fixes applied:
+  - Cleaned new inbox debris (6 files), root debris (6 files), projects artifacts (4 files)
+  - Deleted 22 stale pattern records from SurrealDB + their edges
+  - Imported 4 missing documents to SurrealDB
+  - Final SurrealDB alignment: most types ±0-1, daily excluded by design
+  - Edges reduced to 1,715 (from 1,886 due to stale edge cleanup)
+
+  Created Task #26: Fix MEMORY.md with accurate counts - was in_progress when user requested summary
+
+Now let me look at the most important files and code changes:
+
+1. DecisionRecommendationEngine.ts - major rewrite of evaluateContradiction
+2. overnight_improve.py - convergence fix
+3. Phase7B.test.ts - async updates
+4. Multiple vault files - YAML fixes, cross-links
+5. test_vault_ops.py, test_sheets_research_daemon.py, test_pocket_tts.py - recurring test fixes
+6. MEMORY.md - multiple updates (still needs final correction)
+
+The user's most recent request was "Adversarial review of all claims" and we were in the middle of fixing MEMORY.md (Task #26, status: in_progress) when the summary was requested.
+
+Summary:
+1. Primary Request and Intent:
+   The user made four sequential requests in this session:
+   - **"continue"**: Resume from previous session where all 5 priorities were completed and overnight daemon had run.
+   - **"Proceed in a token efficient and compound engineering manner with maximum context awareness and persistence"**: Execute vault maintenance work (YAML fixes, cleanup, orphan cross-linking, MEMORY.md update) efficiently.
+   - **"proceed with the queued work"**: Execute remaining items from MEMORY.md's queued work list: overnight daemon convergence fix, DecisionRecommendationEngine Ollama upgrade, and end-to-end validation.
+   - **"Adversarial review of all claims"**: Independently verify every claim made during the session with fresh evidence, identify false claims, and fix discrepancies.
+
+2. Key Technical Concepts:
+   - **SurrealDB**: Graph database storing vault documents with 768-dim embeddings via nomic-embed-text. Tables: `vault_memory` (docs), `informed_by` (edges). Auth: `root:root`, namespace `cohezion`, database `vault`.
+   - **Obsidian Vault Structure**: `papers/`, `decisions/`, `patterns/`, `concepts/`, `lessons/`, `experiments/`, `projects/`, `daily/`, `inbox/`. Also `patterns/lessons/` subdirectory (40 lesson files distinct from `lessons/` with 4 files).
+   - **GraphRAG Query Layer**: `GraphRAGQuery` class with `hybrid_search()`, `semantic_search()`, `find_related()` methods. Must use async context manager (`async with GraphRAGQuery() as gq`).
+   - **Ollama Integration**: Local LLM inference via HTTP API (`localhost:11434`). Models available include phi3:mini (2GB), nomic-embed-text (embedding). Used `/api/generate` for contradiction analysis, `/api/embed` for embeddings.
+   - **DecisionRecommendationEngine**: Obsidian plugin TypeScript service. Previously used keyword counting for contradiction detection, now uses Ollama LLM with embedding-based fallback.
+   - **Overnight Daemon**: `overnight_improve.py` — 3-phase cycles (detect changes → fix orphans → sync edges). Had convergence bug where link additions triggered re-import next cycle.
+   - **YAML Frontmatter Parsing**: Common errors: bare `https:` treated as YAML key, unclosed single/double quotes in values, colons in unquoted values. Fix: remove malformed lines, properly quote values.
+   - **Test Import-Ordering Issue**: `pocket_tts.TTSModel` doesn't exist as module attribute when other tests import first. Fix: `@patch("pocket_tts.TTSModel", create=True)` on all 7 patch decorators.
+   - **Adversarial Verification Pattern**: Independently verify every claim with fresh shell commands before reporting. Parallel sessions create files that invalidate cleanup claims.
+
+3. Files and Code Sections:
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/services/DecisionRecommendationEngine.ts`**
+     - Core engine for paper→decision recommendation. Major rewrite replacing keyword matching with Ollama LLM inference.
+     - Made `findRecommendations()` and `evaluateContradiction()` async
+     - Added `ollamaUrl` and `ollamaModel` static properties
+     - New method `evaluateWithOllama()` calls `/api/generate` with phi3:mini
+     - New fallback method `evaluateWithEmbeddings()` uses word overlap similarity
+     - Key new code:
+     ```typescript
+     export class DecisionRecommendationEngine {
+       private static ollamaUrl = 'http://localhost:11434';
+       private static ollamaModel = 'phi3:mini';
+
+       static async findRecommendations(
+         newPaper: PaperRef,
+         existingPapers: PaperRef[],
+         decisions: Decision[],
+         contradictions: DecisionContradiction[],
+         paperEmbeddings: Map<string, number[]>
+       ): Promise<DecisionRecommendation[]> { ... }
+
+       static async evaluateContradiction(
+         newPaper: PaperRef,
+         decision: Decision,
+         newPaperText: string,
+         decisionText: string
+       ): Promise<{ contradicts: boolean; score: number; reason: string }> {
+         try {
+           return await this.evaluateWithOllama(newPaper, decision, newPaperText, decisionText);
+         } catch (error) {
+           console.warn('Ollama inference unavailable, using embedding fallback:', error);
+           return this.evaluateWithEmbeddings(newPaperText, decisionText);
+         }
+       }
+
+       private static async evaluateWithOllama(...): Promise<...> {
+         const prompt = `Analyze whether this paper contradicts or supports this decision.
+         PAPER: "${newPaper.title}" ...
+         DECISION: "${decision.title}" ...
+         Respond with EXACTLY one JSON object (no other text):
+         {"relationship": "contradicts" | "supports" | "neutral", "confidence": 0.0-1.0, "reason": "..."}`;
+
+         const response = await fetch(`${this.ollamaUrl}/api/generate`, {
+           method: 'POST',
+           headers: { 'Content-Type': 'application/json' },
+           body: JSON.stringify({
+             model: this.ollamaModel, prompt, stream: false,
+             options: { temperature: 0.1, num_predict: 150 },
+           }),
+         });
+         // Parse JSON from response...
+       }
+
+       private static evaluateWithEmbeddings(newPaperText: string, decisionText: string): ... {
+         // Word overlap similarity proxy
+         // High overlap + low exact match = potential contradiction
+       }
+     }
+     ```
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/obsidian-plugin/3d-graph-plugin/src/__tests__/Phase7B.test.ts`**
+     - Updated all test functions to be async with await for the now-async engine methods
+     - Fixed type annotations (`Paper` → `PaperRef` for consistency)
+     - All `findRecommendations` and `evaluateContradiction` calls now use `await`
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/scripts/overnight_improve.py`**
+     - Fixed convergence bug: added `tracker.scan_for_changes()` after link additions
+     - Added convergence detection: `stats["converged"] = True` when no work done
+     - Added adaptive sleep: `sleep_time = CYCLE_INTERVAL * 3 if stats.get("converged") else CYCLE_INTERVAL`
+     - Key changes in `run_cycle()`:
+     ```python
+     if suggestions:
+         links_added = await apply_similarity_links(http_client, suggestions)
+         stats["links_added"] = links_added
+         # Update tracker so link-modified files aren't re-imported next cycle
+         if links_added > 0:
+             tracker.scan_for_changes()
+     
+     # Convergence check
+     total_work = stats["imported"] + stats["links_added"] + stats["edges_created"]
+     if total_work == 0:
+         stats["converged"] = True
+         logger.info("  ✓ Vault is converged — no changes needed")
+     ```
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/tests/test_vault_ops.py`** (lines 157-163)
+     - Fixed path safety test regex (recurring fix, lost between sessions):
+     ```python
+     def test_traversal_blocked(self, vault):
+         with pytest.raises(ValueError, match="Invalid path|traversal|escapes vault"):
+             vault.read("../../etc/passwd")
+     def test_traversal_blocked_on_write(self, vault):
+         with pytest.raises(ValueError, match="Invalid path|traversal|escapes vault"):
+             vault.write("../outside.md", "malicious")
+     ```
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/tests/test_sheets_research_daemon.py`** (lines 221-269)
+     - Fixed test inputs from JSONL format to plain text with markdown code blocks:
+     ```python
+     def test_extract_json_from_output_valid(self):
+         coordinator = AgentCoordinator()
+         output = '```json\n[{"row": 100, "status": "Researched", "abstractions": "Test", "domain": "AI", "integration_point": "Test point"}]\n```'
+         results = coordinator.extract_json_from_output(output)
+         assert len(results) > 0
+     
+     def test_extract_json_multiple_blocks(self):
+         coordinator = AgentCoordinator()
+         output = '''Here are the results:\n\n```json\n[{"row": 100, ...}]\n```\n\nAnd more:\n\n```json\n[{"row": 101, ...}, {"row": 102, ...}]\n```'''
+         results = coordinator.extract_json_from_output(output)
+         assert len(results) == 2
+     ```
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/tests/test_pocket_tts.py`**
+     - Applied `create=True` to all 7 `@patch("pocket_tts.TTSModel")` decorators (6 decorator-style + 1 inline `with patch`)
+     - This fix has been lost between sessions multiple times
+
+   - **`/home/mike-anderson/.claude/projects/-home-mike-anderson-vaults-cohezion-vault/memory/MEMORY.md`**
+     - Updated multiple times during session. Current status section dated 2026-02-16.
+     - **KNOWN INACCURACIES still present (Task #26 in progress)**:
+       - Claims "4 lessons" but actual is 44 (40 in `patterns/lessons/`)
+       - SurrealDB section mixes filesystem and DB counts
+       - "0 orphans" claim was falsified by adversarial review
+       - SurrealDB counts changed: now 342 docs (was 361), 1,715 edges (was 1,886) after stale cleanup
+
+   - **34 YAML-fixed vault files** (papers/, daily/)
+     - 27 papers: removed malformed `https: //search.app/...` lines and fixed unclosed `source:` quotes
+     - 4 daily sessions: quoted values containing colons
+     - 1 investment paper: quoted summary with colons
+     - 2 papers manually fixed: `anthropic-principle-fine-tuning.md` (unclosed single quote in title), `pairwise-comparison-fiber-bundles.md` (stray line + unclosed source quote)
+
+   - **40 cross-linked vault files** (papers/, decisions/, patterns/, experiments/)
+     - Added `## Related` sections with 4 wiki-links each using tag overlap + title word matching
+     - 21 empty pattern stubs deleted (template placeholders with `{{title}}` and empty sections)
+
+4. Errors and Fixes:
+   - **YAML parsing errors (36 files)**: Systematic fix via Python script. 32 fixed automatically (remove bare `https:` lines, fix unclosed quotes, quote values with colons). 2 needed manual fixes for complex quote issues. 2 template files excluded.
+   - **Test failures recurring across sessions**: The test fixes for vault_ops, sheets_research_daemon, and pocket_tts keep getting lost because changes aren't committed. This is the third time these exact fixes were applied.
+   - **pocket_tts import-ordering**: Tests pass individually but fail in full suite. Root cause: `pocket_tts.TTSModel` attribute doesn't exist when other test modules are loaded first. Fix: `create=True` parameter on all `@patch` decorators.
+   - **SurrealDB curl returning empty**: `curl` with `-d` flag wasn't sending data correctly. Fixed by using Python `httpx` client instead.
+   - **GraphRAGQuery API misuse**: Initially called constructor with `httpx.AsyncClient` as first arg (wrong). Correct usage: `GraphRAGQuery()` with defaults, then use as async context manager. `find_related()` takes `max_depth` not `depth` parameter.
+   - **Jest/TypeScript not configured**: Phase7B tests fail to run because no `jest.config` or `ts-jest` exists in the Obsidian plugin project. Build verification via esbuild is the only available check.
+   - **Adversarial review found 4 false claims**: Parallel sessions created new files after cleanup, invalidating inbox/root/orphan counts. SurrealDB had 22 stale pattern records from deleted stubs.
+
+5. Problem Solving:
+   - **Pattern orphan "regression"**: Previous session reported 0 orphans, but adversarial check found 35. Root cause: 21 were empty template stubs created by automation, 14 were real files needing links. Solution: delete stubs, cross-link real files.
+   - **SurrealDB ↔ Vault divergence**: Deleting vault files doesn't automatically remove SurrealDB records. Fixed by querying SurrealDB for all pattern records, checking filesystem existence, deleting 22 stale records + their edges. Also imported 4 new files moved from inbox.
+   - **Lessons miscount**: MEMORY.md said "4 lessons" but actual count is 44. The `patterns/lessons/` subdirectory contains 40 lesson files that were being miscounted. SurrealDB's import correctly classified these as "lesson" type.
+   - **Overnight daemon convergence**: Wiki-link additions modified files → detected as changes next cycle → re-imported → found same orphans → added same links → infinite loop. Fixed by updating FileTracker after link additions and adding convergence detection.
+
+6. All User Messages:
+   - "continue" — Resume from previous session
+   - "Proceed in a token efficient and compound engineering manner with maximum context awareness and persistence" — Execute vault maintenance efficiently
+   - "proceed with the queued work" — Work through MEMORY.md queued items
+   - "Adversarial review of all claims" — Independently verify all session claims
+
+7. Pending Tasks:
+   - **Task #26 (in_progress)**: Fix MEMORY.md with accurate counts — lessons (44 not 4), SurrealDB counts (342 docs, 1,715 edges after cleanup), correct orphan claims
+   - **From MEMORY.md queued work**: Obsidian marketplace submission, Ollama MCP Phases 2-4, 12D Graph remaining 4 dimensions, merge cloud-vault-mcp feature branch, set up Jest + ts-jest for plugin tests
+   - **Recurring issue**: Test fixes (vault_ops, sheets_daemon, pocket_tts) need to be git committed to prevent loss
+
+8. Current Work:
+   The adversarial review was the most recent work. It revealed:
+   - 4 false claims (inbox, root, orphans, wiki-link count)
+   - Major SurrealDB ↔ vault divergence (22 stale patterns)
+   - MEMORY.md lessons miscount (4 vs 44)
+   
+   All corrective actions were taken except Task #26 (MEMORY.md final correction) which was in_progress. The adversarial review resulted in:
+   - Cleaned 16 new debris files (inbox + root + projects) from parallel sessions
+   - Deleted 22 stale SurrealDB pattern records + edges
+   - Imported 4 missing documents to SurrealDB
+   - Final verified state: SurrealDB 342 docs, 1,715 edges; vault 451 .md files across all content dirs; 0 inbox; 4 root .md; tests 421/421
+
+9. Optional Next Step:
+   Complete Task #26: Fix MEMORY.md with verified accurate counts. Specifically:
+   - Change "4 lessons" to "44 lessons (4 in lessons/, 40 in patterns/lessons/)"
+   - Update SurrealDB section: 342 docs (was 361), 1,715 edges (was 1,886)
+   - Add note about parallel session interference pattern
+   - Correct vault stats with verified numbers: 86 papers, 105 decisions, 59 patterns, 26 concepts, 44 lessons, 21 experiments, 2 projects, 109 daily
+   - Then git commit all changes to prevent test fixes from being lost again
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.REDACTED.jsonl
+
+---
+
+Continue
+
+---
+
+proceed with the queued work

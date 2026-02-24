@@ -1,0 +1,24 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "249777a31030",
+  "session_id": "41744052-0e7b-4025-9ee8-f4700beab18b",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-23T21:01:25.397653583Z",
+  "branch": "track-c",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tools/tests/test_all_papers.py"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "f432cb00-026f-4d95-bb80-75ad989497f3",
+  "initial_attribution": {
+    "calculated_at": "2026-02-23T21:01:25.387496358Z",
+    "agent_lines": 0,
+    "human_added": 222,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 222,
+    "agent_percentage": 0
+  },
+  "transcript_path": ".claude/projects/-home-mike-anderson-vaults-cohezion-vault/41744052-0e7b-4025-9ee8-f4700beab18b.jsonl"
+}
