@@ -1,5 +1,5 @@
 # Lessons Index
-Total lessons indexed: 38
+Total lessons indexed: 40
 Last updated: 2026-02-24
 ---
 ## All Lessons
@@ -41,6 +41,8 @@ Last updated: 2026-02-24
 - [[lesson-36-mcp-configuration-requires-end-to-end-test-new]] - MCP CONFIGURATION REQUIRES END-TO-END TEST (NEW)
 - [[lesson-37-experience-guided-execution-works-new]] - EXPERIENCE-GUIDED EXECUTION WORKS (NEW)
 - [[lesson-38-singleton-executor-for-sessions-new]] - SINGLETON EXECUTOR FOR SESSIONS (NEW)
+- [[lesson-39-vault-audit-must-exclude-worktrees]] - VAULT AUDIT MUST EXCLUDE WORKTREES
+- [[lesson-40-sequential-numbering-offset-corrupts-indexes]] - SEQUENTIAL NUMBERING OFFSET CORRUPTS INDEXES
 
 ## Quick Navigation by Topic
 
@@ -83,6 +85,10 @@ Last updated: 2026-02-24
 - [[lesson-08-import-graph]] - Module reachability
 - [[lesson-14-cleanup-is-multi-pass]] - Refactoring strategy
 - [[lesson-11-team-agent-efficiency]] - Parallel work
+
+### Vault & Knowledge Management
+- [[lesson-39-vault-audit-must-exclude-worktrees]] - Exclude worktrees from vault scans
+- [[lesson-40-sequential-numbering-offset-corrupts-indexes]] - Use semantic IDs not sequential counters
 
 
 ## Related Papers
