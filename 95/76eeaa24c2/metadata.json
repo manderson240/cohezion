@@ -1,0 +1,101 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "9576eeaa24c2",
+  "strategy": "manual-commit",
+  "branch": "fix/ide-error-resolution",
+  "checkpoints_count": 4,
+  "files_touched": [
+    ".agent/CODING_STANDARDS.md",
+    ".agent/TDD_COMPOUND_ENGINEERING_SPEC.md",
+    ".env.example",
+    ".gitignore",
+    ".pre-commit-config.yaml",
+    "CLAUDE.md",
+    "memory/MEMORY.md",
+    "scripts/recursive_challenger.py",
+    "src/cohezion/agents/generated/__init__.py",
+    "src/cohezion/branding.py",
+    "src/cohezion/compound/executor.py",
+    "src/cohezion/compound/exp_persistence/accumulator.py",
+    "src/cohezion/compound/journey_tracker.py",
+    "src/cohezion/compound/persistence.py",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "src/cohezion/knowledge_graph/MISSION_JOURNAL.md",
+    "src/cohezion/knowledge_graph/RETROSPECTIVE_2026-02-24_IDE_ERRORS.md",
+    "src/cohezion/models/__init__.py",
+    "src/cohezion/models/model_registry.py",
+    "src/cohezion/real_envs/evaluator.py",
+    "src/cohezion/simulation/enhanced_simulator.py",
+    "src/cohezion/swarm/executive.py",
+    "src/cohezion/swarm/git_health.py",
+    "src/cohezion/swarm/topology.py",
+    "tests/smoke/__init__.py",
+    "tests/smoke/test_imports.py",
+    "tests/smoke/test_instantiation.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/95/76eeaa24c2/0/metadata.json",
+      "transcript": "/95/76eeaa24c2/0/full.jsonl",
+      "context": "/95/76eeaa24c2/0/context.md",
+      "content_hash": "/95/76eeaa24c2/0/content_hash.txt",
+      "prompt": "/95/76eeaa24c2/0/prompt.txt"
+    },
+    {
+      "metadata": "/95/76eeaa24c2/1/metadata.json",
+      "transcript": "/95/76eeaa24c2/1/full.jsonl",
+      "context": "/95/76eeaa24c2/1/context.md",
+      "content_hash": "/95/76eeaa24c2/1/content_hash.txt",
+      "prompt": "/95/76eeaa24c2/1/prompt.txt"
+    },
+    {
+      "metadata": "/95/76eeaa24c2/2/metadata.json",
+      "transcript": "/95/76eeaa24c2/2/full.jsonl",
+      "context": "/95/76eeaa24c2/2/context.md",
+      "content_hash": "/95/76eeaa24c2/2/content_hash.txt",
+      "prompt": "/95/76eeaa24c2/2/prompt.txt"
+    },
+    {
+      "metadata": "/95/76eeaa24c2/3/metadata.json",
+      "transcript": "/95/76eeaa24c2/3/full.jsonl",
+      "context": "/95/76eeaa24c2/3/context.md",
+      "content_hash": "/95/76eeaa24c2/3/content_hash.txt",
+      "prompt": "/95/76eeaa24c2/3/prompt.txt"
+    },
+    {
+      "metadata": "/95/76eeaa24c2/4/metadata.json",
+      "transcript": "/95/76eeaa24c2/4/full.jsonl",
+      "context": "/95/76eeaa24c2/4/context.md",
+      "content_hash": "/95/76eeaa24c2/4/content_hash.txt",
+      "prompt": "/95/76eeaa24c2/4/prompt.txt"
+    },
+    {
+      "metadata": "/95/76eeaa24c2/5/metadata.json",
+      "transcript": "/95/76eeaa24c2/5/full.jsonl",
+      "context": "/95/76eeaa24c2/5/context.md",
+      "content_hash": "/95/76eeaa24c2/5/content_hash.txt",
+      "prompt": "/95/76eeaa24c2/5/prompt.txt"
+    },
+    {
+      "metadata": "/95/76eeaa24c2/6/metadata.json",
+      "transcript": "/95/76eeaa24c2/6/full.jsonl",
+      "context": "/95/76eeaa24c2/6/context.md",
+      "content_hash": "/95/76eeaa24c2/6/content_hash.txt",
+      "prompt": "/95/76eeaa24c2/6/prompt.txt"
+    },
+    {
+      "metadata": "/95/76eeaa24c2/7/metadata.json",
+      "transcript": "/95/76eeaa24c2/7/full.jsonl",
+      "context": "/95/76eeaa24c2/7/context.md",
+      "content_hash": "/95/76eeaa24c2/7/content_hash.txt",
+      "prompt": "/95/76eeaa24c2/7/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 32577,
+    "cache_creation_tokens": 5100540,
+    "cache_read_tokens": 201469791,
+    "output_tokens": 226181,
+    "api_call_count": 1618
+  }
+}

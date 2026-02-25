@@ -1,0 +1,1289 @@
+How far did we get with absracting and applying key concepts from PILOT while still respecting their license?
+
+---
+
+Ok, now let's uninstall PILOT completely then.
+
+---
+
+Run a development retrospective that flows insights back into core files.
+
+This is the compound engineering feedback loop. It ensures that session learnings don't just accumulate in knowledge_graph/ — they propagate back into the files that govern future behavior.
+
+## Steps
+
+### 1. Audit Current State
+- Read `REDACTED.md` and `REDACTED.md`
+- Read `CLAUDE.md`, `README.md`, and `memory/MEMORY.md`
+- Identify: new learnings since last retrospect, stale/duplicate entries, insights that should propagate upward
+
+### 2. Prune Knowledge Graph
+- Remove duplicate entries from KEY_LEARNINGS.md (e.g., triplicate retrospective blocks)
+- Remove spam entries from MISSION_JOURNAL.md (e.g., repeated "Automated Hypothesis Testing Report" lines)
+- Compress old session developments into single-line summaries
+- Target: KEY_LEARNINGS.md under 300 lines, MISSION_JOURNAL.md under 150 lines
+
+### 3. Propagate Insights Upward
+For each significant learning or pattern discovered since last retrospect:
+- **If it changes how we code**: Update `CLAUDE.md` Coding Standards or Operational Protocols
+- **If it changes what the project can do**: Update `README.md` Verified Capabilities or Limitations
+- **If it changes architecture**: Update `.agent/CAPABILITY_MAP.md`
+- **If it changes theory**: Update `.agent/COHEZION_CHARTER.md`
+- **If it's a process lesson**: Update `memory/MEMORY.md` (keep under 200 lines)
+
+### 4. Verify Consistency
+- Ensure CLAUDE.md reflects the actual codebase state (module count, test coverage, etc.)
+- Ensure README.md has no fabricated claims
+- Ensure memory/MEMORY.md is under the 200-line limit
+- Run `ruff check src/cohezion/` to verify no regressions
+
+### 5. Report
+- List what was pruned, what was propagated, and what remains stale
+- Note any inconsistencies between core files that need manual resolution
+
+## Rules
+- NEVER delete knowledge without first reading and understanding it
+- Prefer compression over deletion (turn 5 verbose entries into 1 concise entry)
+- Every claim in README.md must be adversarially verifiable
+- CLAUDE.md is the single source of truth — other files defer to it
+
+---
+
+<task-notification>
+<task-id>bcd8a26</task-id>
+<tool-use-id>toolu_01H63jjg5xottBhkCVnxrBAK</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bcd8a26.output</output-file>
+<status>completed</status>
+<summary>Background command "Get accurate package count and passing test count" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bcd8a26.output
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Analysis:
+Let me chronologically analyze the conversation:
+
+1. **First message**: User asked about progress on abstracting PILOT concepts while respecting their license. I searched through vault notes, plans, and decisions to find the retrospective file at `/home/mike-anderson/vaults/cohezion-vault/decisions/2026-02-22-cz-spec-workflow-retrospective.md` and the plan at `/home/mike-anderson/vaults/cohezion-vault/docs/plans/2026-02-21-abstract-apply-pilot.md`. Found that all 10 tasks were complete — a clean-room Python CLI called `cz` (cohezion-engine) was built to replace every PILOT binary call.
+
+2. **Second message**: User said "Ok, now let's uninstall PILOT completely then." followed immediately (mid-task) by "Then fix the known issues in our implementation". I created two tasks and worked through both:
+   - Task 1: Uninstall PILOT (migrate MCPs, rewrite rules, update settings, delete ~/.pilot)
+   - Task 2: Fix known issues in cz implementation
+
+3. **Third message**: User ran `/retrospect` command. I ran a full retrospective: audited KEY_LEARNINGS, MISSION_JOURNAL, CLAUDE.md, README.md, MEMORY.md; corrected stale entries; added L136/L137; updated metrics throughout.
+
+4. **Fourth message**: Task notification for background command (already captured in retrospective work).
+
+Key technical decisions:
+- `mem-search` MCP server was PILOT-specific (.cjs script) — could not be migrated, was lost
+- `cz context` fix: two-strategy JSONL discovery (cwd-slug first, then global mtime rglob fallback)
+- `~/.pilot/bin/pilot statusline` and `companyAnnouncements` removed from settings.json
+- `subagent_type="pilot:*"` → `subagent_type="plan-verifier"` etc. in workflow-enforcement.md
+- Issues 1, 2, 4 from the retrospective were already fixed in the vault skills; only issue 3 (context UNKNOWN) needed code changes
+
+Files modified:
+- `~/.claude/mcp.json` — added context7, web-search, grep-mcp, web-fetch
+- `~/.claude/settings.json` — removed pilot refs, added cz Bash permission, fixed statusLine
+- `~/.claude/rules/workflow-enforcement.md` — 5 edits: pilot refs → cz
+- `~/.claude/rules/context-continuation.md` — full rewrite (PILOT_SESSION_ID → COHEZION_SESSION_ID, ~/.pilot/sessions → ~/.cohezion-engine/sessions)
+- `~/.claude/rules/cz-cli.md` — new file
+- `~/.claude/rules/pilot-cli.md` — deleted
+- `~/.claude/rules/mcp-cli.md` — updated Pilot Core row
+- `~/.claude/rules/web-search.md` — removed "blocked by hook" PILOT reference
+- `~/vaults/cohezion-vault/tools/cohezion-engine/src/cohezion_engine/context.py` — two-strategy JSONL discovery
+- `~/vaults/cohezion-vault/decisions/2026-02-22-cz-spec-workflow-retrospective.md` — updated Next Steps with completion status
+- `REDACTED.md` — fixed L127, added L136/L137
+- `REDACTED.md` — added Session 71 entry
+- `memory/MEMORY.md` — updated to Session 71, new decisions
+- `README.md` — updated metrics (tests, files, packages, pass rate)
+- `CLAUDE.md` — updated test count
+
+The retrospective completed cleanly. There are no pending tasks.
+
+Summary:
+1. Primary Request and Intent:
+   The session covered three explicit user requests:
+   1. **Status check**: "How far did we get with abstracting and applying key concepts from PILOT while still respecting their license?" — wanted a summary of the prior abstract-apply-pilot work
+   2. **Full PILOT uninstall**: "Ok, now let's uninstall PILOT completely then." plus mid-task addition "Then fix the known issues in our implementation" — remove the PILOT binary/installation, migrate MCP servers, rewrite all global rules referencing `pilot`, clean settings.json, and fix the 4 known bugs in the `cz` cohezion-engine implementation
+   3. **Retrospective**: `/retrospect` — run the standard compound-engineering feedback loop: audit KEY_LEARNINGS/MISSION_JOURNAL/CLAUDE.md/README.md/MEMORY.md, prune stale entries, propagate new learnings, verify metric consistency
+
+2. Key Technical Concepts:
+   - **PILOT**: A proprietary CLI tool providing session management (endless mode context continuation), worktree isolation, plan registration, context monitoring, and MCP server bundling. Replaced by `cz` (cohezion-engine).
+   - **cohezion-engine (`cz`)**: Clean-room Python CLI built as a PILOT replacement. Provides `cz context`, `cz session status/send-clear`, `cz worktree detect/create/diff/sync/cleanup/status`, `cz plan register`. Installed at `~/.local/bin/cz`.
+   - **Two-strategy JSONL discovery**: Fix for `cz context` returning UNKNOWN in subprocess/hook contexts. Strategy 1: cwd-slug lookup (`~/.claude/projects/<slug>/*.jsonl`). Strategy 2: global `rglob("*.jsonl")` on `~/.claude/projects/` sorted by mtime — reliably finds the active session regardless of working directory.
+   - **MCP server migration**: PILOT bundled context7, mem-search, web-search, grep-mcp, web-fetch via `~/.claude/.pilot/.mcp.json`. The first four (excluding mem-search which used a proprietary `.cjs` script) were migrated directly to `~/.claude/mcp.json`.
+   - **Global rules (`~/.claude/rules/`)**: Three rules files had PILOT references: `pilot-cli.md` (deleted, replaced by `cz-cli.md`), `workflow-enforcement.md` (5 edits), `context-continuation.md` (full rewrite).
+   - **Spec workflow**: The `/spec` → `spec-plan` → `spec-implement` → `spec-verify` pipeline uses `cz` for context checks, plan registration, and worktree management. Verification agents use `SESSION_DIR=$(cz session status --json | ...)` to resolve output paths before `Task()` calls.
+   - **`COHEZION_SESSION_ID` / `~/.cohezion-engine/sessions/`**: Replaces `PILOT_SESSION_ID` / `~/.pilot/sessions/` as the session identity and continuation file location.
+   - **Retrospective / compound engineering feedback loop**: Prune knowledge graph files to line limits (KEY_LEARNINGS <300, MISSION_JOURNAL <150, MEMORY <200), propagate learnings to CLAUDE.md/README.md/MEMORY.md, verify metric accuracy.
+
+3. Files and Code Sections:
+
+   - **`~/.claude/mcp.json`** — Added four MCP server entries migrated from PILOT's bundle:
+     ```json
+     {
+       "cloud-vault-mcp": { "type": "http", "url": "http://127.0.0.1:8360", ... },
+       "ollama": { "type": "stdio", "command": "...", ... },
+       "context7": { "command": "npx", "args": ["-y", "@upstash/context7-mcp"] },
+       "web-search": { "command": "npx", "args": ["-y", "open-websearch@latest"], "env": { "MODE": "stdio", ... } },
+       "grep-mcp": { "type": "http", "url": "https://mcp.grep.app" },
+       "web-fetch": { "command": "npx", "args": ["-y", "fetcher-mcp"] }
+     }
+     ```
+
+   - **`~/.claude/settings.json`** — Removed: `statusLine.command` (`/home/mike-anderson/.pilot/bin/pilot statusline`), `companyAnnouncements` (Pilot Console URL), 6 `mcp__plugin_pilot_*` permissions. Added: `"Bash(cz:*)"` permission, new MCP permissions `mcp__context7__*`, `mcp__web-search__*`, `mcp__web-fetch__*`, `mcp__grep-mcp__grep_query`, `mcp__grep-mcp__searchGitHub`.
+
+   - **`~/.claude/rules/cz-cli.md`** — New file created; full `cz` CLI reference covering Session & Context commands, Worktree Management, Plan Lifecycle, Status. Replaces deleted `pilot-cli.md`.
+
+   - **`~/.claude/rules/pilot-cli.md`** — Deleted.
+
+   - **`~/.claude/rules/workflow-enforcement.md`** — Five edits:
+     1. "Each Pilot session gets a unique task namespace (`pilot-{PID}`)" → generic session language
+     2. "Pilot Memory is shared" → "vault memory is shared"
+     3. `subagent_type="pilot:plan-verifier"` etc → `subagent_type="plan-verifier"` etc
+     4. `~/.pilot/bin/pilot register-plan` → `cz plan register`
+     5. `pilot worktree *` commands → `cz worktree *`; reference `pilot-cli.md` → `cz-cli.md`
+     6. `~/.pilot/bin/pilot check-context --json` → `cz context --json`
+
+   - **`~/.claude/rules/context-continuation.md`** — Full rewrite replacing all PILOT references:
+     - `~/.pilot/sessions/<session-id>/` → `~/.cohezion-engine/sessions/<session-id>/`
+     - `PILOT_SESSION_ID` → `COHEZION_SESSION_ID`
+     - `echo $PILOT_SESSION_ID` → `cz session status --json`
+     - `~/.pilot/bin/pilot send-clear` → `cz session send-clear`
+     - `~/.pilot/bin/pilot check-context --json` → `cz context --json`
+     - Cleanup bash: `rm -f ~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md` → `SESSION_DIR=$(cz session status --json ...) && rm -f "$SESSION_DIR/continuation.md"`
+     - "Pilot Memory" → "vault memory" throughout
+
+   - **`~/.claude/rules/mcp-cli.md`** — Changed "Pilot Core | `.claude/pilot/.mcp.json`" row to "Global | `~/.claude/mcp.json`"
+
+   - **`~/.claude/rules/web-search.md`** — Changed "Built-in WebSearch/WebFetch are blocked by hook" (PILOT hook reference) to "Prefer MCP tools for web access — they provide full page content without truncation"
+
+   - **`~/vaults/cohezion-vault/tools/cohezion-engine/src/cohezion_engine/context.py`** — Core fix for issue 3 (UNKNOWN in subprocess). Replaced `_find_active_session_jsonl()`:
+     ```python
+     def _find_active_session_jsonl() -> Path | None:
+         """Find the most recently modified session JSONL for the current project.
+
+         Strategy:
+         1. Try the cwd-based slug (exact match for the current project).
+         2. Fall back to scanning all project dirs and returning the globally most
+            recent JSONL.  This handles subprocess/hook contexts where the working
+            directory may differ from the directory Claude Code is actually running in.
+         """
+         claude_projects = Path.home() / ".claude" / "projects"
+         if not claude_projects.exists():
+             return None
+
+         # Strategy 1: cwd-derived slug
+         cwd = Path(os.getcwd())
+         slug = str(cwd).replace("/", "-").lstrip("-")
+         projects_dir = claude_projects / slug
+         if projects_dir.exists():
+             jsonl_files = sorted(projects_dir.glob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
+             if jsonl_files:
+                 return jsonl_files[0]
+
+         # Strategy 2: global most-recent JSONL across all projects
+         all_jsonl = sorted(claude_projects.rglob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
+         return all_jsonl[0] if all_jsonl else None
+     ```
+
+   - **`~/vaults/cohezion-vault/decisions/2026-02-22-cz-spec-workflow-retrospective.md`** — Updated Next Steps section marking issues 1, 2 as already done; marking issue 3 (cz context) as DONE with the fix; added PILOT Removal section documenting all changes made.
+
+   - **`REDACTED.md`** (278 lines) — Fixed L127 (removed false claim that `~/.claude/mcp.json` is "Pilot's config"). Added:
+     - **L136**: PILOT→cz clean-room abstraction migration pattern
+     - **L137**: Two-strategy subprocess JSONL discovery pattern
+
+   - **`REDACTED.md`** (115 lines) — Added Session 71 entry at top:
+     ```
+     ### [2026-02-23] PHASE 23: PILOT REMOVAL & CZ STABILISATION (Session 71)
+     - Status: Complete.
+     - Tests: 3,506 collected / ~3,450+ passing. cz: 62/62 tests.
+     ```
+
+   - **`memory/MEMORY.md`** (125 lines) — Updated Active Context from Session 70→71; replaced two oldest Recent Decisions with 2026-02-23 entries (PILOT removal, cz context fix); updated Ongoing Issues (added mem-search loss).
+
+   - **`README.md`** — Updated Project Metrics table:
+     - "389 Python files across 84 packages" → "390 Python files across 68 packages"
+     - "3,342 test functions / 3,318 passing (100%)" → "3,506 / ~98.5% (SurrealDB integration tests require live DB)"
+
+   - **`CLAUDE.md`** — Updated: "3,318 passing / 0 failing (100%)" → "~3,450+ passing / 3,506 collected (~98.5%) | SurrealDB integration tests require live DB"
+
+4. Errors and Fixes:
+   - **`rm -rf ~/.pilot/` blocked by shell hook**: The pre-bash-check.sh hook denied the `rm -rf` command. Asked user to run it manually in their terminal; user confirmed it was deleted.
+   - **`cz context` returns UNKNOWN in subprocess hooks**: Root cause — when the context_monitor hook runs as a subprocess, the working directory differs from Claude Code's actual project dir, so the cwd-slug doesn't match the session JSONL location. Fixed by adding Strategy 2 (global `rglob` by mtime) as fallback in `_find_active_session_jsonl()`. Verified: `cd /tmp && cz context --json` now returns a real percentage instead of UNKNOWN.
+   - **Known issues 1, 2, 4 were already fixed**: The retrospective noted 4 issues but investigation showed issues 1 (session ID resolution in agent prompts), 2 (test command hardcoded), and 4 (spec-verify Step 3.4 vault-specific) were already correctly implemented in the vault skills during the original abstract-apply-pilot session. Only issue 3 required a code fix.
+
+5. Problem Solving:
+   - **PILOT uninstall sequencing**: Had to handle the `rm -rf` block by delegating to the user for the single destructive step, then verifying completion.
+   - **mem-search loss**: PILOT's `mem-search` MCP server used `~/.claude/pilot/scripts/mcp-server.cjs` (a proprietary script). It could not be migrated — documented as a known gap; flagged in MEMORY.md Ongoing Issues and the retrospective report.
+   - **MCP permissions update**: Changed `mcp__plugin_pilot_*` prefix pattern to the new direct server names (`mcp__context7__*`, `mcp__web-search__*`, etc.) in settings.json permissions.
+   - **Retrospective metric correction**: README claimed "84 packages" but actual `__init__.py` count was 68. Fixed. Test count had grown from 3,318 to 3,506 (collected) with ~3,450+ passing (SurrealDB integration failures are expected without a live DB).
+
+6. All User Messages:
+   - "How far did we get with abstracting and applying key concepts from PILOT while still respecting their license?"
+   - "Ok, now let's uninstall PILOT completely then." (with mid-task follow-up: "Then fix the known issues in our implementation")
+   - `/retrospect` (slash command invoking the retrospective skill)
+   - Task notification message asking to read background task output file
+
+7. Pending Tasks:
+   - None explicitly pending. The retrospective identified these as future work but they were not assigned as tasks:
+     - `mem-search` replacement (was PILOT-specific `.cjs`, no replacement yet)
+     - SurrealDB auth fix (ongoing InvalidAuth → graceful InMemoryStore fallback)
+     - Scale RecursiveChallenger to `self_healing` module
+     - `cz plan template` command for pre-filled Runtime Environment plans
+     - TDD enforcer hook: detect/warn on `except Exception` pattern
+
+8. Current Work:
+   The retrospective was the last completed work. The full cycle was:
+   1. Audited KEY_LEARNINGS (278 lines), MISSION_JOURNAL (115 lines), MEMORY (125 lines), CLAUDE.md, README.md
+   2. Pruned: corrected stale L127 claim about `~/.claude/mcp.json`
+   3. Propagated: added L136 (PILOT migration pattern) and L137 (two-strategy JSONL), updated MISSION_JOURNAL with Session 71 entry, updated MEMORY Active Context to Session 71 with new decisions
+   4. Verified: README/CLAUDE.md metrics updated (390 files, 68 packages, 3,506 tests, ~98.5% pass rate); confirmed no new lint regressions (only pre-existing 203 errors in Python source)
+   All three tasks (#1 Uninstall PILOT, #2 Fix cz issues, #3 Retrospective) completed.
+
+9. Optional Next Step:
+   All explicitly requested tasks are complete. The retrospective itself surfaced these as the natural next items, but they should be confirmed with the user before starting:
+   - Fix SurrealDB auth failure (InvalidAuth → real connection)
+   - Find a replacement for the lost `mem-search` MCP server
+   No verbatim quote applies as the most recent work (retrospective) concluded cleanly.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.REDACTED.jsonl
+
+---
+
+Think deeply and consider next steps.
+
+---
+
+Create a spec and test driven architecture to tackleall of the next steps.
+
+---
+
+# /spec - Unified Spec-Driven Development
+
+**For new features, major changes, and complex work.** Creates a spec, gets your approval, implements with TDD, and verifies completion - all in one continuous flow.
+
+This command is a **dispatcher** that determines which phase to run and invokes it via `Skill()`.
+
+## ⛔ MANDATORY: /spec = Workflow. No Exceptions.
+
+**When `/spec` is invoked, you MUST follow the spec workflow exactly. The user's phrasing after `/spec` is the TASK DESCRIPTION — it is NOT an instruction to change the workflow.**
+
+- `/spec brainstorm a caching layer` → task_description = "brainstorm a caching layer" → invoke `Skill('spec-plan')` with that description
+- `/spec let's discuss auth options` → task_description = "let's discuss auth options" → invoke `Skill('spec-plan')` with that description
+- `/spec explore and plan a new feature` → task_description = "explore and plan a new feature" → invoke `Skill('spec-plan')` with that description
+
+**Words like "brainstorm", "discuss", "explore", "think about" are part of the task description, NOT instructions to skip the workflow.** The spec-plan phase handles all exploration, discussion, and brainstorming within its structured flow.
+
+**NEVER interpret `/spec` arguments as a reason to have a freeform conversation instead of invoking the phase skill.**
+
+---
+
+## 📋 WORKFLOW OVERVIEW
+
+```
+/spec → Dispatcher → Skill('spec-plan')    → Plan, verify, approve
+                   → Skill('spec-implement') → TDD loop for each task
+                   → Skill('spec-verify')    → Tests, execution, code review
+```
+
+| Phase              | Skill            | What Happens                                     |
+| ------------------ | ---------------- | ------------------------------------------------ |
+| **Planning**       | `spec-plan`      | Explore → Design → Write plan → Verify → Approve |
+| **Implementation** | `spec-implement` | TDD loop for each task                           |
+| **Verification**   | `spec-verify`    | Tests → Execution → Rules → Code Review → E2E    |
+
+### Status-Based Flow
+
+```
+PENDING (Not Approved) → spec-plan    → User approves
+PENDING (Approved)     → spec-implement → All tasks done → COMPLETE
+COMPLETE               → spec-verify   → All checks pass → VERIFIED
+VERIFIED               → Done!
+```
+
+### The Feedback Loop
+
+```
+spec-verify finds issues → Status: PENDING → spec-implement fixes → COMPLETE → spec-verify → ... → VERIFIED
+```
+
+---
+
+## 0.1 Parse Arguments
+
+```
+/spec <task-description>           # Start new workflow from task
+/spec <path/to/plan.md>            # Continue existing plan
+/spec --continue <path/to/plan.md> # Resume after session clear
+```
+
+Parse the arguments: Fix all outstanding technical debt: (1) RUF012 mutable class defaults in Pydantic/dataclasses - 43 instances, (2) RUF006 asyncio dangling tasks - 15 instances, (3) SurrealDB auth fix - currently failing with InvalidAuth and falling back to InMemoryStore, (4) mem-search MCP replacement - PILOT's proprietary mem-search is gone, need a persistent memory MCP server that stores observations across sessions. All fixes must be test-driven with green test suite before and after each change.
+
+### Determine Current State
+
+```
+IF arguments start with "--continue":
+    plan_path = extract path after "--continue"
+    1. Read ~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md if it exists
+    2. Delete the continuation file after reading
+    3. Read plan file, check Status AND Approved fields
+    → Dispatch to appropriate phase based on status
+
+ELIF arguments end with ".md" AND file exists:
+    plan_path = arguments
+    → Read plan file, check Status AND Approved fields
+    → Dispatch to appropriate phase based on status
+
+ELSE:
+    task_description = arguments  # ALWAYS treated as task description, regardless of phrasing
+    → Ask worktree question FIRST (see Section 0.1.1 below)
+    → Invoke planning phase with worktree choice: Skill(skill='spec-plan', args='<task_description> --worktree=yes|no')
+    # NEVER have a freeform conversation instead. ALWAYS invoke the Skill.
+```
+
+### 0.1.1 Worktree Question (New Plans Only)
+
+**Before invoking `spec-plan` for a NEW plan, ask the user about worktree isolation:**
+
+```
+AskUserQuestion:
+  question: "Use git worktree isolation for this spec?"
+  header: "Worktree"
+  options:
+    - "Yes" - Isolate work on a dedicated branch; safe to experiment, easy to discard or squash merge
+    - "No" - Work directly on the current branch without worktree isolation
+```
+
+**Append the choice to the spec-plan args:** `Skill(skill='spec-plan', args='<task_description> --worktree=yes')` or `--worktree=no`.
+
+**This question is ONLY asked for new plans.** When continuing an existing plan (`--continue` or `.md` path), the `Worktree:` field is already set in the plan header.
+
+**After reading the plan file, register the plan association (non-blocking):**
+
+```bash
+~/.pilot/bin/pilot register-plan "<plan_path>" "<status>" 2>/dev/null || true
+```
+
+This tells Console which session is working on which plan. Failure is silently ignored.
+
+## 0.2 Status-Based Dispatch
+
+Read the plan file and dispatch based on Status and Approved fields:
+
+| Status   | Approved | Action                                                                                    |
+| -------- | -------- | ----------------------------------------------------------------------------------------- |
+| PENDING  | No       | `Skill(skill='spec-plan', args='<plan-path>')`                                            |
+| PENDING  | Yes      | `Skill(skill='spec-implement', args='<plan-path>')` (worktree if `Worktree: Yes` in plan) |
+| COMPLETE | \*       | `Skill(skill='spec-verify', args='<plan-path>')`                                          |
+| VERIFIED | \*       | Report completion, workflow done                                                          |
+
+**⛔ Phase Transition Context Guard applies before every dispatch (see Section 0.3).**
+
+**Invoke the appropriate Skill immediately. Do not duplicate phase logic here.**
+
+### Report Completion (VERIFIED)
+
+If the plan status is already VERIFIED:
+
+```
+✅ Workflow complete! Plan status: VERIFIED
+
+The plan at <plan-path> has been fully implemented and verified.
+Is there anything else you'd like me to help with?
+```
+
+---
+
+## 0.3 Phase Transition Context Guard
+
+**⛔ MANDATORY: Before EVERY `Skill()` call that transitions to another phase, check context:**
+
+```bash
+~/.pilot/bin/pilot check-context --json
+```
+
+| Percentage | Action                                              |
+| ---------- | --------------------------------------------------- |
+| **< 80%**  | Proceed with phase transition                       |
+| **>= 80%** | **Do NOT invoke the next phase.** Hand off instead. |
+
+Each phase (plan, implement, verify) needs significant context to complete. Starting a new phase above 80% risks overshooting to 100% — the worst-case scenario where all work is lost.
+
+**When >= 80%:** Write continuation file, trigger `send-clear`. The next session dispatches to the correct phase automatically based on plan status.
+
+**This applies to ALL transitions:** plan→implement, implement→verify, verify→implement (feedback loop), and dispatcher→any phase.
+
+---
+
+## 0.4 Context Management (90% Handoff)
+
+After each major operation, check context:
+
+```bash
+~/.pilot/bin/pilot check-context --json
+```
+
+**Between iterations:**
+
+1. If context >= 90%: hand off cleanly (don't rush!)
+2. If context 80-89%: continue but wrap up current task with quality
+3. If context < 80%: continue the loop freely
+
+If response shows `"status": "CLEAR_NEEDED"` (context >= 90%):
+
+**⚠️ CRITICAL: Execute ALL steps below in a SINGLE turn. DO NOT stop or wait for user response between steps.**
+
+**Step 1: Write continuation file (GUARANTEED BACKUP)**
+
+Write to `~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md`:
+
+```markdown
+# Session Continuation (/spec)
+
+**Plan:** <plan-path>
+**Phase:** [planning|implementation|verification]
+**Current Task:** Task N - [description]
+
+**Completed This Session:**
+
+- [x] [What was finished]
+
+**Next Steps:**
+
+1. [What to do immediately when resuming]
+
+**Context:**
+
+- [Key decisions or blockers]
+```
+
+**Step 2: Trigger session clear**
+
+```bash
+~/.pilot/bin/pilot send-clear <plan-path>
+```
+
+Pilot will restart with `/spec --continue <plan-path>`
+
+### Error Handling
+
+**No Active Session:** If `send-clear` fails, tell user: "Context at X%. Please run `/clear` manually, then `/spec --continue <plan-path>`"
+
+**Plan File Not Found:** Tell user: "Plan file not found: <path>" and ask if they want to create a new plan.
+
+---
+
+## 0.5 Rules Summary (Quick Reference)
+
+| #   | Rule                                                                                                                                                                                                                                                             |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **NO sub-agents except verification** - Phases 1 and 2 use direct tools only. Verification steps (Step 1.7, Step 3.0/3.5) launch paired review agents via the **Task tool** (`subagent_type="pilot:*"`). Task tool is the ONLY allowed mechanism for sub-agents. |
+| 2   | **NEVER SKIP verification** - Plan verification (Step 1.7) and Code verification (Step 3.5) are mandatory. No exceptions.                                                                                                                                        |
+| 3   | **ONLY stopping point is plan approval** - Everything else is automatic. Never ask "Should I fix these?"                                                                                                                                                         |
+| 4   | **Batch questions together** - Don't interrupt user flow                                                                                                                                                                                                         |
+| 5   | **Run explorations sequentially** - One at a time, never in parallel                                                                                                                                                                                             |
+| 6   | **NEVER write code during planning** - Separate phases                                                                                                                                                                                                           |
+| 7   | **NEVER assume - verify by reading files**                                                                                                                                                                                                                       |
+| 8   | **Re-read plan after user edits** - Before asking for approval again                                                                                                                                                                                             |
+| 9   | **TDD is MANDATORY** - No production code without failing test first                                                                                                                                                                                             |
+| 10  | **Update plan checkboxes after EACH task** - Not at the end                                                                                                                                                                                                      |
+| 11  | **Quality over speed** - Never rush due to context pressure. But at 90%+ context, handoff overrides everything - do NOT start new fix cycles                                                                                                                     |
+| 12  | **Plan file is source of truth** - Survives session clears                                                                                                                                                                                                       |
+| 13  | **Phase Transition Context Guard** - Check context before EVERY phase transition. If >= 80%, hand off instead of starting next phase (Section 0.3)                                                                                                               |
+
+ARGUMENTS: Fix all outstanding technical debt: (1) RUF012 mutable class defaults in Pydantic/dataclasses - 43 instances, (2) RUF006 asyncio dangling tasks - 15 instances, (3) SurrealDB auth fix - currently failing with InvalidAuth and falling back to InMemoryStore, (4) mem-search MCP replacement - PILOT's proprietary mem-search is gone, need a persistent memory MCP server that stores observations across sessions. All fixes must be test-driven with green test suite before and after each change.
+
+---
+
+# /spec-plan - Planning Phase
+
+**Phase 1 of the /spec workflow.** Explores the codebase, designs an implementation plan, verifies it, and gets user approval.
+
+**Input:** Task description (new plan) or plan path (continue unapproved plan)
+**Output:** Approved plan file at `docs/plans/YYYY-MM-DD-<slug>.md`
+**Next phase:** On approval → `Skill(skill='spec-implement', args='<plan-path>')`
+
+---
+
+## ⛔ KEY CONSTRAINTS (Rules Summary)
+
+| #   | Rule                                                                                                     |
+| --- | -------------------------------------------------------------------------------------------------------- |
+| 1   | **NO sub-agents during planning** - Use direct tools only. Exception: Step 1.7 launches `plan-verifier` + `plan-challenger` via the **Task tool** (`subagent_type="pilot:plan-verifier"` and `"pilot:plan-challenger"`). |
+| 2   | **NEVER SKIP verification** - Plan verification (Step 1.7) is mandatory. No exceptions.                  |
+| 3   | **ONLY stopping point is plan approval** - Everything else is automatic. Never ask "Should I fix these?" |
+| 4   | **Batch questions together** - Don't interrupt user flow                                                 |
+| 5   | **Run explorations sequentially** - One at a time, never in parallel                                     |
+| 6   | **NEVER write code during planning** - Separate phases                                                   |
+| 7   | **NEVER assume - verify by reading files**                                                               |
+| 8   | **Re-read plan after user edits** - Before asking for approval again                                     |
+| 9   | **Quality over speed** - Never rush due to context pressure                                              |
+| 10  | **Plan file is source of truth** - Survives session clears                                               |
+
+---
+
+> **WARNING: DO NOT use the built-in `ExitPlanMode` or `EnterPlanMode` tools.**
+
+## Using AskUserQuestion - Core Planning Tool
+
+**Questions are grouped into batches for smooth user experience:**
+
+| Batch       | When                         | Purpose                                |
+| ----------- | ---------------------------- | -------------------------------------- |
+| **Batch 1** | Phase 0 (before exploration) | Clarify task, scope, priorities        |
+| **Batch 2** | Phase 2 (after exploration)  | Architecture choices, design decisions |
+
+**When to Use AskUserQuestion:**
+
+| Situation                     | Example Question                                                     |
+| ----------------------------- | -------------------------------------------------------------------- |
+| **Unclear requirements**      | "Should this feature support batch processing or single items only?" |
+| **Multiple valid approaches** | Present 2-3 options with trade-offs for user to choose               |
+| **Ambiguous scope**           | "Should we include error recovery, or fail fast?"                    |
+| **Technology choices**        | "Prefer async/await or callbacks for this integration?"              |
+| **Priority decisions**        | "Performance or simplicity - which matters more here?"               |
+| **Missing domain knowledge**  | "How does the existing auth flow work in production?"                |
+
+**Questioning philosophy — Dream extraction, not requirements gathering:**
+
+- **Start open, then narrow** — Begin with "What does success look like?" before diving into specifics
+- **Follow energy** — If the user is excited about a detail, explore it; if they're vague, they may not care about the specifics
+- **Challenge vagueness** — "Fast" means what? Sub-100ms? Under 2 seconds? Make abstract concrete
+- **Present interpretations as options** — "I think you mean X — should we do X (simple, covers 80%) or Y (comprehensive, handles edge cases)?" is better than "What do you want?"
+
+**Anti-patterns to avoid:**
+
+- **Checklist walking** — Don't ask every possible question; focus on genuine ambiguities
+- **Canned questions** — Adapt questions to the specific task, not generic templates
+- **Shallow acceptance** — Don't accept "it should work well" — ask what "well" means concretely
+- **Interrogation** — 1-2 focused questions are better than 4 vague ones
+
+**Key principles:**
+
+- Present options, not open-ended questions when possible
+- Include trade-offs for each option
+- **Batch related questions together** — don't interrupt user flow
+- Don't proceed with assumptions — ASK
+- **Scope guardrail** — Questions clarify HOW to implement, not WHETHER to expand scope
+
+## Extending Existing Plans
+
+**When adding tasks to existing plan:**
+
+1. Load existing plan: `Read(file_path="docs/plans/...")`
+2. Parse structure (architecture, completed tasks, pending tasks)
+3. Check git status for partially completed work
+4. Verify new tasks are compatible with existing architecture
+5. Check total: If original + new > 12 tasks, suggest splitting
+6. Mark new tasks with `[NEW]` prefix
+7. Update total count: `Total Tasks: X (Originally: Y)`
+8. Add extension history: `> Extended [Date]: Tasks X-Y for [feature]`
+
+## ⚠️ CRITICAL: Migration/Refactoring Tasks
+
+**When the task involves migrating, refactoring, or replacing existing code, you MUST complete these additional steps to prevent missing features.**
+
+### Mandatory Feature Inventory (Phase 1.5)
+
+**After exploration but BEFORE creating tasks:**
+
+1. **List ALL files being replaced:**
+
+   ```markdown
+   ## Feature Inventory - Files Being Replaced
+
+   | Old File         | Functions/Classes                | Status        |
+   | ---------------- | -------------------------------- | ------------- |
+   | `old/module1.py` | `func_a()`, `func_b()`, `ClassX` | ⬜ Not mapped |
+   | `old/module2.py` | `func_c()`, `func_d()`           | ⬜ Not mapped |
+   ```
+
+2. **Map EVERY function/feature to a new task:**
+
+   ```markdown
+   ## Feature Mapping - Old → New
+
+   | Old Feature        | New Location   | Task #        |
+   | ------------------ | -------------- | ------------- |
+   | `module1.func_a()` | `new/step1.py` | Task 3        |
+   | `module1.func_b()` | `new/step1.py` | Task 3        |
+   | `module2.func_c()` | `new/step2.py` | Task 5        |
+   | `module2.func_d()` | ❌ MISSING     | ⚠️ NEEDS TASK |
+   ```
+
+3. **Verify 100% coverage before proceeding:**
+   - Every row must have a Task # or explicit "Out of Scope" justification
+   - "Out of Scope" means the feature is INTENTIONALLY REMOVED (with user confirmation)
+   - "Out of Scope" does NOT mean "migrate as-is" - that still needs a task!
+
+### "Out of Scope" Clarification
+
+**CRITICAL: "Out of Scope" has a precise meaning:**
+
+| Phrase                             | Meaning                                    | Requires Task?                      |
+| ---------------------------------- | ------------------------------------------ | ----------------------------------- |
+| "Out of Scope: Changes to X"       | X will be migrated AS-IS, no modifications | ✅ YES - migration task             |
+| "Out of Scope: Feature X"          | X is intentionally REMOVED/not included    | ❌ NO - but needs user confirmation |
+| "Out of Scope: New features for X" | X migrates as-is, no NEW features added    | ✅ YES - migration task             |
+
+### Pre-Task Verification Gate
+
+**Before finalizing tasks, verify:**
+
+- [ ] All old files listed in Feature Inventory
+- [ ] All functions/classes from old files identified
+- [ ] Every feature mapped to a task OR explicitly marked "REMOVED" with user confirmation
+- [ ] No row in Feature Mapping has "⬜ Not mapped" status
+- [ ] User has confirmed any features marked for removal
+
+**If any checkbox is unchecked, DO NOT proceed to implementation.**
+
+---
+
+## Creating New Plans
+
+### Step 1.1: Create Plan File Header (FIRST)
+
+**Immediately upon starting planning, create the plan file header for status bar detection.**
+
+1. **Parse worktree choice from arguments:**
+   - Look for `--worktree=yes` or `--worktree=no` at the end of the arguments
+   - Strip the `--worktree=...` flag from the task description
+   - Default to `Yes` if no flag is present (backward compatibility)
+
+2. **Generate filename:** `docs/plans/YYYY-MM-DD-<feature-slug>.md`
+   - Use current date
+   - Create slug from first 3-4 words of task description (lowercase, hyphens)
+   - Example: "add user authentication" → `2026-01-24-add-user-authentication.md`
+
+3. **Create directory if needed:** `mkdir -p docs/plans`
+
+4. **Write initial header immediately (with worktree choice from dispatcher):**
+
+   ```markdown
+   # [Feature Name] Implementation Plan
+
+   Created: [Date]
+   Status: PENDING
+   Approved: No
+   Iterations: 0
+   Worktree: [Yes|No - from dispatcher's --worktree flag]
+
+   > Planning in progress...
+
+   ## Summary
+
+   **Goal:** [Task description from user]
+
+   ---
+
+   _Exploring codebase and gathering requirements..._
+   ```
+
+5. **Register plan association (MANDATORY):**
+
+   ```bash
+   ~/.pilot/bin/pilot register-plan "<plan_path>" "PENDING" 2>/dev/null || true
+   ```
+
+   This tells the statusline which plan belongs to THIS session. Without it, parallel sessions show the wrong plan.
+
+6. **Why this matters:**
+   - Status bar shows "Spec: <name> [/plan]" immediately
+   - User sees progress even during exploration phase
+   - Plan file exists for continuation if session clears
+   - Plan is correctly associated with this specific terminal
+
+**CRITICAL:** Do this FIRST, before any exploration or questions.
+
+---
+
+### Step 1.2: Task Understanding, Discuss & Clarify
+
+**First, clearly state your understanding of the task.**
+
+Before any exploration:
+
+1. Restate what the user is asking for in your own words
+2. Identify the core problem being solved
+3. List any assumptions you're making
+
+**Then identify gray areas using domain-aware analysis:**
+
+Analyze the task description to find ambiguities that NEED resolution before planning. Different types of work have different gray areas:
+
+| Domain                                  | Typical Gray Areas                                                                         |
+| --------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **Something users SEE** (UI/frontend)   | Layout density, interaction patterns, responsive breakpoints, empty states, loading states |
+| **Something users CALL** (API/backend)  | Response shape, error codes, auth model, pagination, rate limiting                         |
+| **Something users RUN** (CLI/scripts)   | Output format, flags/options, exit codes, interactive vs non-interactive                   |
+| **Something users STORE** (data/config) | Schema shape, migration strategy, validation rules, default values                         |
+| **Something users READ** (docs/content) | Audience level, structure, examples needed, update frequency                               |
+
+**Scope guardrail:** Questions should clarify HOW to implement the task, not WHETHER to expand scope. If discussion surfaces new feature ideas, capture them as "Deferred Ideas" in the plan's Open Questions section — don't add them to scope.
+
+**Then gather clarifications if needed (Question Batch 1):**
+
+If gray areas exist, use AskUserQuestion to ask focused questions per area in a single interaction. Present your interpretation as options when possible — "Should the API return paginated results (recommended for large datasets) or all results at once?" is better than "How should the API handle large result sets?"
+
+If the task is clear and unambiguous with no meaningful gray areas, skip directly to Step 1.3.
+
+### Step 1.3: Exploration
+
+**Explore the codebase systematically.** Run explorations **one at a time** (sequentially, not in parallel).
+
+#### 🔧 Tools for Exploration
+
+| Tool               | When to Use                | Example                                                                                            |
+| ------------------ | -------------------------- | -------------------------------------------------------------------------------------------------- |
+| **Context7**       | Library/framework docs     | `resolve-library-id(query="your question", libraryName="lib")` then `query-docs(libraryId, query)` |
+| **Vexor**          | Semantic code search       | `vexor search "query" --mode code`                                                                 |
+| **grep-mcp**       | Real-world GitHub examples | `searchGitHub(query="FastMCP", language=["Python"])`                                               |
+| **Read/Grep/Glob** | Direct file exploration    | Use directly, no sub-agents                                                                        |
+
+**Exploration areas (in order):**
+
+1. **Architecture** - Project structure, entry points, how components connect
+2. **Similar Features** - Existing patterns that relate to the task, what can be reused
+3. **Dependencies** - Imports, modules, what will be impacted
+4. **Tests** - Test infrastructure, existing patterns, available fixtures
+
+**For each area:**
+
+- Document hypotheses (not conclusions)
+- Note full file paths for relevant code
+- Track questions that remain unanswered
+
+**After explorations complete:**
+
+1. Read each identified file to verify hypotheses
+2. Build a complete mental model of current architecture
+3. Identify integration points and potential risks
+4. Note reusable patterns
+
+### Step 1.4: Design Decisions
+
+**Present findings and gather all design decisions (Question Batch 2).**
+
+Summarize what you found, then use AskUserQuestion with all decisions at once.
+
+**After user answers:**
+
+- Incorporate their choices into the plan design
+- Proceed to Step 1.5 — the user will review the full plan at Step 1.8
+
+### Step 1.5: Implementation Planning
+
+**Task Granularity**
+
+Each task should be:
+
+- **Independently testable** — has its own tests that pass without other tasks being complete
+- **Focused** — touches 2-4 files max; more means it should be split
+- **Verifiable** — produces an observable result (test output, API response, UI change)
+
+Split a task if it has multiple unrelated DoD criteria. Merge tasks if one can't be tested without the other. Don't create tasks for setup/boilerplate that have no standalone value — fold them into the first task that uses them.
+
+**For each task, populate:**
+
+- **Dependencies** — Which tasks must complete first? Use `None` for tasks with no ordering requirements.
+- **Verify** — What concrete commands prove this task is done? Include test commands, build commands, or curl/CLI invocations. The implementation phase runs these after completing each task.
+
+**Task Structure:**
+
+```markdown
+### Task N: [Component Name]
+
+**Objective:** [1-2 sentences describing what to build]
+
+**Dependencies:** [None | Task X, Task Y — tasks that must complete before this one]
+
+**Files:**
+
+- Create: `exact/path/to/file.py`
+- Modify: `exact/path/to/existing.py`
+- Test: `tests/exact/path/to/test.py`
+
+**Key Decisions / Notes:**
+
+- [Technical approach or algorithm to use]
+- [Which existing pattern to follow, with file:line reference]
+- [Integration points with other tasks or existing code]
+
+**Definition of Done:**
+
+- [ ] All tests pass (unit, integration if applicable)
+- [ ] No diagnostics errors (linting, type checking)
+- [ ] [Task-specific criterion with observable outcome]
+- [ ] [Task-specific criterion with observable outcome]
+
+**Verify:**
+
+- `uv run pytest tests/path/to/test.py -q` — task-specific tests pass
+- [Additional verification command or check]
+```
+
+**⚠️ DoD criteria must be verifiable.** The verification phase checks each criterion against the actual code and running program. Replace the `[Task-specific criterion]` placeholders with criteria that can be checked with a specific test, command, or observation.
+
+✅ Good DoD examples:
+
+- "GET /api/users?role=admin returns only admin users"
+- "Form shows validation error when email field is empty"
+- "CLI exits with code 1 and prints usage when no arguments given"
+- "Retry logic attempts 3 times with exponential backoff before failing"
+
+❌ Bad DoD (never use these):
+
+- "Feature works correctly"
+- "Edge cases handled appropriately"
+- "Error messages are clear and actionable"
+
+**Zero-context assumption:**
+
+- Assume implementer knows nothing about codebase
+- Provide exact file paths
+- Explain domain concepts
+- List integration points
+- Reference similar patterns in codebase
+
+### Step 1.6: Write Full Plan
+
+**Save plan to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
+
+**Required plan template:**
+
+```markdown
+# [Feature Name] Implementation Plan
+
+Created: [Date]
+Status: PENDING
+Approved: No
+Iterations: 0
+Worktree: Yes
+
+> **Status Lifecycle:** PENDING → COMPLETE → VERIFIED
+> **Iterations:** Tracks implement→verify cycles (incremented by verify phase)
+>
+> - PENDING: Initial state, awaiting implementation
+> - COMPLETE: All tasks implemented
+> - VERIFIED: All checks passed
+>
+> **Approval Gate:** Implementation CANNOT proceed until `Approved: Yes`
+> **Worktree:** Set at plan creation (from dispatcher). `Yes` uses git worktree isolation; `No` works directly on current branch
+
+## Summary
+
+**Goal:** [One sentence describing what this builds]
+
+**Architecture:** [2-3 sentences about chosen approach]
+
+**Tech Stack:** [Key technologies/libraries]
+
+## Scope
+
+### In Scope
+
+- [What WILL be changed/built]
+- [Specific components affected]
+
+### Out of Scope
+
+- [What will NOT be changed]
+- [Explicit boundaries]
+
+## Prerequisites
+
+- [Any requirements before starting]
+- [Dependencies that must exist]
+- [Environment setup needed]
+
+## Context for Implementer
+
+> This section is critical for cross-session continuity. Write it for an implementer who has never seen the codebase.
+
+- **Patterns to follow:** [Reference existing file:line that demonstrates the pattern, e.g., "Follow the route handler pattern in `src/routes/users.ts:45`"]
+- **Conventions:** [Naming, file organization, error handling approach used in this project]
+- **Key files:** [Important files the implementer must read first, with brief description of each]
+- **Gotchas:** [Non-obvious dependencies, quirks, things that look wrong but are intentional]
+- **Domain context:** [Business logic or domain concepts needed to understand the task]
+
+## Runtime Environment (if applicable)
+
+> Include this section when the project has a running service, API, or UI.
+> Delete if the project is a library or CLI tool with no long-running process.
+
+- **Start command:** [How to start the service, e.g., `bun worker-service.cjs`]
+- **Port:** [What port it listens on]
+- **Deploy path:** [Where built artifacts are installed, if different from source]
+- **Health check:** [How to verify the service is running, e.g., `curl http://localhost:PORT/health`]
+- **Restart procedure:** [How to restart after code changes]
+
+## Feature Inventory (FOR MIGRATION/REFACTORING ONLY)
+
+> **Include this section when replacing existing code. Delete if not applicable.**
+
+### Files Being Replaced
+
+| Old File       | Functions/Classes      | Mapped to Task |
+| -------------- | ---------------------- | -------------- |
+| `old/file1.py` | `func_a()`, `func_b()` | Task 3         |
+| `old/file2.py` | `ClassX`, `func_c()`   | Task 4, Task 5 |
+
+### Feature Mapping Verification
+
+- [ ] All old files listed above
+- [ ] All functions/classes identified
+- [ ] Every feature has a task number
+- [ ] No features accidentally omitted
+
+**⚠️ If any feature shows "❌ MISSING", add a task before implementation!**
+
+## Progress Tracking
+
+**MANDATORY: Update this checklist as tasks complete. Change `[ ]` to `[x]`.**
+
+- [ ] Task 1: [Brief summary]
+- [ ] Task 2: [Brief summary]
+- [ ] ...
+
+**Total Tasks:** [Number] | **Completed:** 0 | **Remaining:** [Number]
+
+## Implementation Tasks
+
+### Task 1: [Component Name]
+
+**Objective:** ...
+**Dependencies:** None
+**Files:** ...
+**Key Decisions / Notes:** ...
+**Definition of Done:** ...
+**Verify:** [Concrete commands to verify this task]
+
+### Task 2: [Component Name]
+
+**Objective:** ...
+**Dependencies:** Task 1
+**Files:** ...
+**Key Decisions / Notes:** ...
+**Definition of Done:** ...
+**Verify:** [Concrete commands to verify this task]
+
+## Testing Strategy
+
+- Unit tests: [What to test in isolation]
+- Integration tests: [What to test together]
+- Manual verification: [Steps to verify manually]
+
+## Risks and Mitigations
+
+> Consider: breaking changes, backward compatibility, data loss/migration, performance regression, security implications, state management complexity, cross-component coupling, external dependency failures.
+
+| Risk     | Likelihood   | Impact       | Mitigation                           |
+| -------- | ------------ | ------------ | ------------------------------------ |
+| [Risk 1] | Low/Med/High | Low/Med/High | [Concrete, implementable mitigation] |
+
+**⚠️ Risk mitigations are commitments.** The verification phase (spec-reviewer-compliance) will check that every mitigation listed here is actually implemented in code. Write mitigations as concrete, implementable behaviors, not vague statements.
+
+✅ Good: "If selected project not in available list, reset to null (All Projects)"
+❌ Bad: "Handle edge cases appropriately"
+
+## Open Questions
+
+- [Any remaining questions for the user]
+- [Decisions deferred to implementation]
+
+### Deferred Ideas
+
+- [Ideas surfaced during discussion that are out of scope for this plan]
+```
+
+### Step 1.7: Plan Verification
+
+**⛔ THIS STEP IS NON-NEGOTIABLE. You MUST run plan verification before asking for approval.**
+
+Before presenting the plan to the user, verify it with TWO dedicated reviewer agents running in parallel. This provides both alignment checking (plan-verifier) and adversarial review (plan-challenger) BEFORE the user sees the plan.
+
+#### Resolve Session Path for Findings Persistence
+
+```bash
+echo $PILOT_SESSION_ID
+```
+
+Define output paths (replace `<session-id>` with the resolved value):
+- **Verifier findings:** `~/.pilot/sessions/<session-id>/findings-plan-verifier.json`
+- **Challenger findings:** `~/.pilot/sessions/<session-id>/findings-plan-challenger.json`
+
+#### Launch Plan Verification (Parallel Review)
+
+**⛔ CRITICAL: You MUST send BOTH Task calls in a SINGLE message.** Set `run_in_background=true` on both so they run in parallel. If you send them in separate messages, the first blocks and the second waits — defeating the purpose.
+
+**Agent 1: plan-verifier** (alignment and completeness)
+```
+Task(
+  subagent_type="pilot:plan-verifier",
+  run_in_background=true,
+  prompt="""
+  **Plan file:** <plan-path>
+  **User request:** <original task description from user>
+  **Clarifications:** <any Q&A that clarified requirements>
+  **Output path:** <absolute path to findings-plan-verifier.json>
+
+  Verify this plan correctly captures the user's requirements.
+  Check for missing features, scope issues, and ambiguities.
+
+  **IMPORTANT:** Write your final findings JSON to the output_path using the Write tool.
+  """
+)
+```
+
+**Agent 2: plan-challenger** (adversarial review)
+```
+Task(
+  subagent_type="pilot:plan-challenger",
+  run_in_background=true,
+  prompt="""
+  **Plan file:** <plan-path>
+  **User request:** <original task description from user>
+  **Clarifications:** <any Q&A that clarified requirements>
+  **Output path:** <absolute path to findings-plan-challenger.json>
+
+  Challenge this plan from an adversarial perspective.
+  Find untested assumptions, missing failure modes, and hidden dependencies.
+
+  **IMPORTANT:** Write your final findings JSON to the output_path using the Write tool.
+  """
+)
+```
+
+The verifiers work in parallel:
+
+- **plan-verifier**: Reviews plan against original user request, checks if clarification answers are incorporated, identifies missing requirements or scope issues
+- **plan-challenger**: Challenges assumptions, finds failure modes, questions optimism, identifies architectural weaknesses
+
+Both agents persist their findings JSON to the session directory for reliable retrieval.
+
+#### Collect and Fix Findings (Progressive)
+
+**⛔ NEVER use `TaskOutput` to retrieve agent results.** TaskOutput dumps the full verbose agent transcript (all JSON messages, hook progress, tool calls) into context, wasting thousands of tokens. Instead, poll the output files with the Read tool.
+
+**Progressive polling — fix findings as each agent completes:**
+
+1. **Attempt to read BOTH findings files** using the Read tool on the paths defined above
+2. **If one file exists but the other doesn't** → start fixing findings from the ready agent immediately (by severity: must_fix → should_fix → suggestion). Track which findings you fixed.
+3. After fixing the first batch, **poll for the second file** (retry if not yet ready)
+4. **If a file is still missing after 2-3 retries**, re-launch that specific agent synchronously (without `run_in_background`) with the same prompt
+5. When the second file is ready, **skip findings that overlap** with already-fixed items from the first batch (same file + same issue), then fix the remaining findings
+6. **If both files are ready simultaneously**, deduplicate first (keep higher severity for duplicates on same file + line), then fix all
+
+**Severity actions:**
+
+| Severity       | Action                                               |
+| -------------- | ---------------------------------------------------- |
+| **must_fix**   | Fix immediately - update plan before proceeding      |
+| **should_fix** | Fix immediately - update plan before proceeding      |
+| **suggestion** | Incorporate if reasonable, or note in Open Questions |
+
+**Only proceed to Step 1.8 after all must_fix and should_fix issues are resolved.**
+
+### Step 1.8: Get User Approval
+
+**⛔ MANDATORY APPROVAL GATE - This is NON-NEGOTIABLE**
+
+**After saving plan:**
+
+1. **Summarize the plan** - Provide a brief overview of:
+   - What will be built (goal)
+   - Key tasks (numbered list)
+   - Tech stack / approach
+
+2. **Use AskUserQuestion to request approval:**
+
+   ```
+   Question: "Do you approve this plan for implementation?"
+   Header: "Plan Review"
+   Options:
+   - "Yes, proceed with implementation" - I've reviewed the plan and it looks good
+   - "No, I need to make changes" - I want to edit the plan first
+   ```
+
+   Note: The `Worktree:` field was already set at plan creation time (Step 1.1) based on the user's choice from the dispatcher. It does NOT need to be asked again here.
+
+3. **Based on user response:**
+
+   **If user approves (selects "Yes" or any approval option):**
+   - Update `Approved: No` → `Approved: Yes` in the plan file
+   - **⛔ Phase Transition Context Guard:** Run `~/.pilot/bin/pilot check-context --json`. If >= 80%, hand off instead (see spec.md Section 0.3).
+   - **Invoke implementation phase:** `Skill(skill='spec-implement', args='<plan-path>')`
+
+   **If user selects "No, I need to make changes":**
+   - Tell user: "Please edit the plan file at `<plan-path>`, then say 'ready' when done"
+   - Wait for user to confirm they're done editing
+   - Re-read the plan file to see their changes
+   - Ask for approval again using AskUserQuestion
+
+   **If user provides OTHER feedback (corrections, config values, clarifications):**
+   - This is NOT approval - they're giving you changes to incorporate
+   - Update the plan with their feedback
+   - Ask for approval AGAIN with a fresh AskUserQuestion
+
+4. **DO NOT proceed to implementation until user explicitly selects "Yes, proceed"**
+
+**⚠️ CRITICAL: Any response other than selecting "Yes, proceed with implementation" is NOT approval. Config feedback, threshold changes, clarifications = update plan, then re-ask.**
+
+**⚠️ CRITICAL: Claude handles the `Approved:` field update - user never edits it manually**
+
+---
+
+## Context Management (90% Handoff)
+
+After each major operation, check context:
+
+```bash
+~/.pilot/bin/pilot check-context --json
+```
+
+**Between iterations:**
+
+1. If context >= 90%: hand off cleanly (don't rush!)
+2. If context 80-89%: continue but wrap up current task with quality
+3. If context < 80%: continue the loop freely
+
+If response shows `"status": "CLEAR_NEEDED"` (context >= 90%):
+
+**⚠️ CRITICAL: Execute ALL steps below in a SINGLE turn. DO NOT stop or wait for user response between steps.**
+
+**Step 1: Write continuation file (GUARANTEED BACKUP)**
+
+Write to `~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md`:
+
+```markdown
+# Session Continuation (/spec)
+
+**Plan:** <plan-path>
+**Phase:** planning
+**Current Task:** [description of where you are in planning]
+
+**Completed This Session:**
+
+- [x] [What was finished]
+
+**Next Steps:**
+
+1. [What to do immediately when resuming]
+
+**Context:**
+
+- [Key decisions or blockers]
+```
+
+**Step 2: Trigger session clear**
+
+```bash
+~/.pilot/bin/pilot send-clear <plan-path>
+```
+
+Pilot will restart with `/spec --continue <plan-path>`
+
+ARGUMENTS: Fix all outstanding technical debt: (1) RUF012 mutable class defaults in Pydantic/dataclasses - 43 instances, (2) RUF006 asyncio dangling tasks - 15 instances, (3) SurrealDB auth fix - currently failing with InvalidAuth and falling back to InMemoryStore, (4) mem-search MCP replacement - PILOT's proprietary mem-search is gone, need a persistent memory MCP server that stores observations across sessions. All fixes must be test-driven with green test suite before and after each change. --worktree=yes
+
+---
+
+<task-notification>
+<task-id>ae4d9e3</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<status>completed</status>
+<summary>Agent "Plan verification review" completed</summary>
+<result>The output directory exists from the session context. I'll now write the findings file directly.
+
+## Code Review: /home/mike-anderson/dev/cohezion/docs/plans/2026-02-23-fix-technical-debt.md
+
+### Summary
+
+The plan correctly captures all four user requirements and the clarifications. Architecture decisions are sound and consistent with CLAUDE.md conventions. Five issues were identified — none are blocking, but two should be fixed before implementation begins to prevent implementer confusion.
+
+### Findings
+
+#### CRITICAL
+- None.
+
+#### HIGH
+- [docs/plans/2026-02-23-fix-technical-debt.md:128-141] **Task 2 file count header says "10 files" but 11 distinct files are listed in the bullet points.** `src/cohezion/reliability/quantum_performance_monitor.py` is included as an 11th file. A discrepancy between the stated count and actual file list will cause the implementer to think they've missed something or skip a file. Recommendation: Change the header to "11 files" or recount and verify against `ruff check --select RUF006`.
+
+#### MEDIUM
+- [docs/plans/2026-02-23-fix-technical-debt.md:102] **Missing `tests/lint/__init__.py` in Task 1 file list.** The plan creates `tests/lint/test_ruf012_classvar.py` (and `tests/lint/test_ruf006_dangling_tasks.py` in Task 2), but `tests/lint/` does not currently exist as a directory. Per CLAUDE.md, every directory under `src/` must have `__init__.py`, and the project testing standard applies the same to `tests/`. Without `tests/lint/__init__.py`, pytest may fail to collect the new test files. Recommendation: Add `Create: tests/lint/__init__.py` to both Task 1 and Task 2 file lists.
+
+- [docs/plans/2026-02-23-fix-technical-debt.md:182-188] **Task 3 root cause analysis is incomplete regarding `asyncio_mode`.** The project's `pyproject.toml` has no `asyncio_mode` set, meaning it defaults to `strict` mode, which requires explicit `@pytest.mark.asyncio` on every test function. The plan adds `pytestmark = [pytest.mark.asyncio, pytest.mark.integration]` at module level which does address this correctly (CLAUDE.md L132 confirms module-level `pytestmark` is the approved pattern). However, the plan does not explain *why* module-level `pytestmark` is necessary alongside the fixture scope change. Without this context, an implementer might omit it thinking the scope change alone is sufficient. Recommendation: Expand the root cause note to explicitly state that both the fixture scope change AND the module-level `pytestmark` are required fixes.
+
+- [docs/plans/2026-02-23-fix-technical-debt.md:155-158] **Task 2 `loop.create_task` guidance leaves deprecated API in place.** The plan says for `cost_tracker.py` line 186, to keep `loop.create_task` and just apply the reference pattern. In Python 3.10+, `loop.create_task` is deprecated in favor of `asyncio.create_task`. Since this project targets Python 3.13+, leaving `loop.create_task` would introduce a deprecation warning in test output and fails the spirit of the cleanup. Recommendation: Change the note to "convert `loop.create_task` to `asyncio.create_task`" — the same instruction already given for `asyncio.ensure_future` in `executor.py`.
+
+- [docs/plans/2026-02-23-fix-technical-debt.md:244-262] **Task 5 does not flag that worktree isolation prevents modifying files outside the repo.** With `Worktree: Yes`, implementation happens in `.worktrees/spec-<slug>/`. The files `~/.claude/rules/memory.md` and `~/.claude/rules/mcp-cli.md` live outside the repo entirely. A worktree will not give the implementer access to modify these files via the normal worktree workflow — they must be modified in the host filesystem, not the worktree checkout. The plan gives no guidance on this. Recommendation: Add a note to Task 5 that the `~/.claude/rules/` files must be modified directly in the host environment (not the worktree), and that this should happen after Task 4 is merged.
+
+#### LOW
+- [docs/plans/2026-02-23-fix-technical-debt.md:81] **Task 1 `branding.py` annotation spans two different classes.** The plan groups the 3 violations as `EXPERTS, NEXUS_AVATAR_FRAMES, IGNITION_SEQUENCE` for `branding.py`. In the actual file, `EXPERTS` is a class attribute on `Identity` while `NEXUS_AVATAR_FRAMES` and `IGNITION_SEQUENCE` are on `Motifs`. This is not an error — both need `ClassVar` — but noting which class each attribute belongs to would help the implementer navigate the file faster. Recommendation: Clarify the parenthetical as "(Identity.EXPERTS, Motifs.NEXUS_AVATAR_FRAMES, Motifs.IGNITION_SEQUENCE)" for precision.
+
+### Verdict
+
+REQUEST CHANGES — two medium-severity items should be corrected before implementation: (1) the `tests/lint/__init__.py` omission which would cause pytest collection failures, and (2) the `loop.create_task` deprecation guidance which leaves Python 3.13+ deprecated API in place. The Task 2 file count discrepancy (HIGH) should also be resolved to prevent implementer confusion.
+
+---
+
+Now writing the findings to the requested JSON file:
+
+```json
+{
+  "findings": [
+    {
+      "severity": "must_fix",
+      "file": "docs/plans/2026-02-23-fix-technical-debt.md",
+      "issue": "Task 2 header says '10 files' but 11 distinct files are listed in the bullet points. src/cohezion/reliability/quantum_performance_monitor.py is the 11th. A mismatch between stated count and actual file list causes implementer uncertainty and risks skipping a file or over-counting.",
+      "recommendation": "Change the Task 2 file count from '10 files' to '11 files' in the Objective/Files header. Alternatively, re-run `ruff check src/cohezion/ --select RUF006 --output-format=concise` to confirm the exact file list before implementation begins."
+    },
+    {
+      "severity": "should_fix",
+      "file": "docs/plans/2026-02-23-fix-technical-debt.md",
+      "issue": "Task 1 and Task 2 both create files under tests/lint/ (test_ruf012_classvar.py and test_ruf006_dangling_tasks.py), but tests/lint/ does not currently exist. Per project convention (CLAUDE.md: every directory must have __init__.py), missing tests/lint/__init__.py will cause pytest to fail to collect those tests on some configurations.",
+      "recommendation": "Add 'Create: tests/lint/__init__.py' to the file list in both Task 1 and Task 2."
+    },
+    {
+      "severity": "should_fix",
+      "file": "docs/plans/2026-02-23-fix-technical-debt.md",
+      "issue": "Task 2 Key Decisions notes 'for cost_tracker.py line 186 which uses loop.create_task: same pattern but with loop.create_task'. In Python 3.10+ (and this project targets 3.13+), loop.create_task is deprecated in favor of asyncio.create_task. Leaving the deprecated call in place creates deprecation warnings in test output and is inconsistent with the analogous instruction for executor.py's asyncio.ensure_future.",
+      "recommendation": "Change the Task 2 note for cost_tracker.py to: 'convert loop.create_task to asyncio.create_task and apply the same _background_tasks pattern' — matching the instruction already given for asyncio.ensure_future in executor.py."
+    },
+    {
+      "severity": "should_fix",
+      "file": "docs/plans/2026-02-23-fix-technical-debt.md",
+      "issue": "Task 5 modifies ~/.claude/rules/memory.md and ~/.claude/rules/mcp-cli.md, which live outside the repository entirely. With Worktree: Yes, implementation happens in a worktree checkout. The worktree does not include files from ~/ — the implementer cannot modify these files through the normal worktree flow and there is no guidance on this constraint.",
+      "recommendation": "Add a note to Task 5 that files under ~/.claude/rules/ must be edited directly in the host filesystem (not inside the worktree), and that this step should be performed after Task 4 changes are synced to the base branch."
+    },
+    {
+      "severity": "should_fix",
+      "file": "docs/plans/2026-02-23-fix-technical-debt.md",
+      "issue": "Task 3 root cause explanation states the fix is to change fixture scope to 'function' and add a lightweight sync connectivity check. The plan also says to add 'pytestmark = [pytest.mark.asyncio, pytest.mark.integration]' but does not explain why this is required. The project pyproject.toml has no asyncio_mode configured (defaults to strict), which requires explicit @pytest.mark.asyncio. Without this context, an implementer might omit the pytestmark, thinking the scope change alone is sufficient.",
+      "recommendation": "Expand the Task 3 root cause note to explicitly state: 'Because asyncio_mode is not set in pyproject.toml (defaults to strict), every async test must be marked. The module-level pytestmark = [pytest.mark.asyncio] is required alongside the fixture scope fix — neither alone is sufficient.'"
+    },
+    {
+      "severity": "suggestion",
+      "file": "docs/plans/2026-02-23-fix-technical-debt.md",
+      "issue": "Task 1 groups branding.py violations as '(EXPERTS, NEXUS_AVATAR_FRAMES, IGNITION_SEQUENCE)' without noting they span two different classes. In the actual file, EXPERTS belongs to class Identity, while NEXUS_AVATAR_FRAMES and IGNITION_SEQUENCE belong to class Motifs. Not a blocker, but slightly imprecise.",
+      "recommendation": "Clarify as '(Identity.EXPERTS, Motifs.NEXUS_AVATAR_FRAMES, Motifs.IGNITION_SEQUENCE)' so the implementer can navigate directly to the right class without re-reading the file."
+    }
+  ],
+  "summary": "The plan correctly captures all four user requirements and respects the stated clarifications (extend cloud-vault-mcp rather than standalone, fix event loop issues, auth is working). Architecture decisions are sound and consistent with project conventions. Two should_fix issues require attention before implementation: the missing tests/lint/__init__.py (will cause pytest collection failures) and the deprecated loop.create_task guidance (inconsistent with the project's Python 3.13+ target). The Task 2 file count discrepancy is a must_fix to prevent implementer confusion. The worktree constraint for Task 5 is a meaningful gap. The plan is otherwise well-structured and ready for implementation after these corrections."
+}
+```
+
+The findings file content is displayed above. Here is the path where it should be written:
+
+`/home/mike-anderson/.cohezion-engine/sessions/pid-714647/findings-plan-verifier.json`
+
+The file was not written because this agent is strictly read-only and cannot modify files. The findings JSON above represents the complete output for the orchestrating process to consume and write to that path.</result>
+<usage><total_tokens>86535</total_tokens><tool_uses>22</tool_uses><duration_ms>129811</duration_ms></usage>
+</task-notification>
+Full transcript available at: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/ae4d9e3.output
+
+---
+
+[Request interrupted by user]

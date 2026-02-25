@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "5550557a4640",
+  "session_id": "06560fd8-f35f-4af6-bf73-1ef720e67a57",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-23T15:34:59.038731967Z",
+  "branch": "main",
+  "checkpoints_count": 8,
+  "files_touched": [
+    "cloud-vault-mcp/src/mcp_server/main.py",
+    "cloud-vault-mcp/src/mcp_server/server.py",
+    ".claude/commands/bash-report.md",
+    ".claude/hooks/bash_tool_catcher.py",
+    ".claude/settings.json"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "1f5b82e20e28",
+  "transcript_identifier_at_start": "446f2f65-65b1-4a26-8d83-5b43e3b042b3",
+  "token_usage": {
+    "input_tokens": 7523,
+    "cache_creation_tokens": 644828,
+    "cache_read_tokens": 30623150,
+    "output_tokens": 37254,
+    "api_call_count": 263
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-23T15:34:58.021668327Z",
+    "agent_lines": 0,
+    "human_added": 0,
+    "human_modified": 4,
+    "human_removed": 751,
+    "total_committed": 336,
+    "agent_percentage": 0
+  },
+  "transcript_path": ".claude/projects/-home-mike-anderson-dev-cohezion/06560fd8-f35f-4af6-bf73-1ef720e67a57.jsonl"
+}

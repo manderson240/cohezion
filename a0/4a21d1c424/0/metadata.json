@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.4.6",
+  "checkpoint_id": "a04a21d1c424",
+  "session_id": "b6200af4-ec60-4035-95c1-549ea71589ba",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-24T18:55:03.503158336Z",
+  "branch": "fix/ide-error-resolution",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "src/cohezion/compound/journey_tracker.py",
+    "tests/flume/test_temporal_encoder.py",
+    "src/cohezion/flume/temporal_encoder.py",
+    "src/cohezion/flume/__init__.py",
+    "tests/flume/test_trajectory_dataset.py",
+    "src/cohezion/flume/trajectory_dataset.py",
+    "tests/flume/test_journey_temporal.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "15dc3568dd4c",
+  "token_usage": {
+    "input_tokens": 13817,
+    "cache_creation_tokens": 719205,
+    "cache_read_tokens": 45265307,
+    "output_tokens": 58195,
+    "api_call_count": 352
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-24T18:55:02.260847589Z",
+    "agent_lines": 868,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 868,
+    "agent_percentage": 100
+  }
+}

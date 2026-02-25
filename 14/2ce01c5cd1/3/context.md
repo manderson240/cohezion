@@ -1,0 +1,12 @@
+# Session Context
+
+## User Prompts
+
+### Prompt 1
+
+We need to maximize the inference capabilities of our local machine while using local llms.  Examine what we've done so far and what we need to improve and or validate/verify.  Remember we are test driven, spec-enabled, compound-engineering focused for increased context awarness and token efficiencies.
+
+### Prompt 2
+
+Proceed
+
