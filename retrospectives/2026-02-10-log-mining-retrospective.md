@@ -21,8 +21,8 @@ Mined 1.6GB of debug logs before cleanup, extracting critical learnings about sy
 - Extracted specific anti-patterns with quantified impact
 
 ### 2. Knowledge Extraction (10 min)
-- Created comprehensive lesson: [[lessons/2026-02-10-debug-log-bloat-analysis]]
-- Created reusable pattern: [[patterns/log-rotation-and-monitoring]]
+- Created comprehensive lesson: [[2026-02-10-debug-log-bloat-analysis]]
+- Created reusable pattern: [[log-rotation-and-monitoring]]
 - Documented 4 major anti-patterns with metrics
 
 ### 3. Cleanup (5 min)
@@ -132,10 +132,10 @@ Mined 1.6GB of debug logs before cleanup, extracting critical learnings about sy
 
 ## Related Documentation
 
-- [[lessons/2026-02-10-debug-log-bloat-analysis]] - Full forensic analysis
-- [[patterns/log-rotation-and-monitoring]] - Prevention pattern
-- [[retrospectives/2026-02-10-telemetry-corruption-fix]] - Related cleanup
-- [[patterns/runbook-health-checks]] - Updated with log checks
+- [[2026-02-10-debug-log-bloat-analysis]] - Full forensic analysis
+- [[log-rotation-and-monitoring]] - Prevention pattern
+- [[2026-02-10-telemetry-corruption-fix]] - Related cleanup
+- [[runbook-health-checks]] - Updated with log checks
 
 ## Meta-Lesson
 

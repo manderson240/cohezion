@@ -140,9 +140,9 @@ Lessons validated or discovered during this session:
 ```markdown
 ## Session Artifacts
 
-- [[decisions/2026-02-11-use-surrealdb.md]]
+- [[2026-02-09-12d-graph-surrealdb-integration]]
 - [[agent-logs-vault-schema]]
-- [[experiments/graphrag-proof-of-concept.md]]
+- [[2026-02-11-graphrag-proof-of-concept-success]]
 ```
 
 Direct links to notes created during this session. Enables:

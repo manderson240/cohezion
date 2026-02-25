@@ -47,7 +47,7 @@ agent_names: [vault-architect, team-lead]
 
 - [[2026-02-11-phase-1-agent-context-schema-complete]] - Architecture decision record
 - [[agent-logs-vault-schema]] - This schema pattern
-- [[patterns/compound-engineering-investigation-retrospection-before-destructive-operations]] - Methodology used
+- [[pattern-compound-engineering]] - Methodology used
 
 ## Related Research
 

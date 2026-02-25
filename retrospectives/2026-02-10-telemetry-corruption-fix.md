@@ -46,7 +46,7 @@ find ~/.claude/telemetry -name "*.json" -size +1M -delete
 
 ## Follow-Up: Debug Log Bloat Discovery
 
-After fixing telemetry, discovered **1.6GB debug log accumulation** (see [[lessons/2026-02-10-debug-log-bloat-analysis]]).
+After fixing telemetry, discovered **1.6GB debug log accumulation** (see [[2026-02-10-debug-log-bloat-analysis]]).
 
 **Root Causes**:
 1. **Mailbox Polling Storm**: 734,658 polling calls → 474MB log
@@ -60,14 +60,14 @@ After fixing telemetry, discovered **1.6GB debug log accumulation** (see [[lesso
 - Preserved: 112 recent small logs for debugging
 
 **Lessons Extracted**:
-- [[lessons/2026-02-10-debug-log-bloat-analysis]] - Complete forensic analysis
-- [[patterns/log-rotation-and-monitoring]] - Prevention pattern
+- [[2026-02-10-debug-log-bloat-analysis]] - Complete forensic analysis
+- [[log-rotation-and-monitoring]] - Prevention pattern
 
 ## Related Patterns
-- [[patterns/troubleshooting-mcp-infrastructure]] - Add telemetry section
-- [[patterns/runbook-health-checks]] - Add telemetry + debug log size checks
-- [[patterns/log-rotation-and-monitoring]] - Automated log rotation
-- [[lessons/2026-02-10-debug-log-bloat-analysis]] - Debug log forensics
+- [[troubleshooting-mcp-infrastructure]] - Add telemetry section
+- [[runbook-health-checks]] - Add telemetry + debug log size checks
+- [[log-rotation-and-monitoring]] - Automated log rotation
+- [[2026-02-10-debug-log-bloat-analysis]] - Debug log forensics
 
 ## Related Concepts
 

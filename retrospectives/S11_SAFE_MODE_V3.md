@@ -16,7 +16,7 @@ tags:
 
 ## Context
 
-Related to [[ollama-mcp-server|Ollama MCP Server]] implementation and [[token-efficiency]] optimization efforts.
+Related to [[2026-02-09-ollama-mcp-server|Ollama MCP Server]] implementation and [[token-efficiency]] optimization efforts.
 
 ## The Pivot
 
@@ -42,7 +42,7 @@ Extracted **Repository Pattern** from `core/persistence` while system was under 
 ## Related Decisions
 
 - [[ollama-context-management]] — Context management strategy for local models
-- [[ollama-mcp-server]] — MCP server implementation decisions
+- [[2026-02-09-ollama-mcp-server]] — MCP server implementation decisions
 
 ## Related Concepts
 
