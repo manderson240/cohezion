@@ -1,0 +1,1 @@
+It's become very clear we need a project management skill, repository management skill, and autonomous agents that are actively doing what they need to make this a reality.

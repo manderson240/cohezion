@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "6e95abdc8896",
+  "session_id": "06560fd8-f35f-4af6-bf73-1ef720e67a57",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-23T21:57:47.111028077Z",
+  "branch": "feature/surrealdb-3.0-repository-implementation",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "data/checkpoints/test.json",
+    "data/config-sync-logs/config_sync.jsonl",
+    "pyproject.toml",
+    "src/cohezion/compound/executor.py",
+    "uv.lock"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "cad33b6942e9",
+  "transcript_identifier_at_start": "446f2f65-65b1-4a26-8d83-5b43e3b042b3",
+  "checkpoint_transcript_start": 7294,
+  "transcript_lines_at_start": 7294,
+  "token_usage": {
+    "input_tokens": 369,
+    "cache_creation_tokens": 232058,
+    "cache_read_tokens": 6554798,
+    "output_tokens": 5573,
+    "api_call_count": 50
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-23T21:57:44.965142383Z",
+    "agent_lines": 0,
+    "human_added": 0,
+    "human_modified": 27,
+    "human_removed": 12,
+    "total_committed": 0,
+    "agent_percentage": 0
+  },
+  "transcript_path": ".claude/projects/-home-mike-anderson-dev-cohezion/06560fd8-f35f-4af6-bf73-1ef720e67a57.jsonl"
+}

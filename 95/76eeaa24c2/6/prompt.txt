@@ -1,0 +1,2025 @@
+Implement the following plan:
+
+# FLUME VAE: Red Flags → Green Lights
+
+## Core Principles
+
+### 1. Learn Before You Burn
+
+**No destructive operations without extracting knowledge first.** Before removing, replacing, or deprecating any code, data, or artifact:
+
+1. **Identify patterns** — What good ideas exist in the code being removed? What design decisions were sound even if the implementation failed?
+2. **Identify anti-patterns** — What went wrong? What assumptions were incorrect? What traps should future work avoid?
+3. **Store in vault** — Log all patterns via `vault_extract_pattern` and anti-patterns via `vault_log_decision` to the MCP vault. Knowledge compounds; deleted code doesn't.
+4. **Only then proceed** with removal.
+
+This applies to every phase of this spec, not just Sprint 0. When Phase 2 replaces Phase 1 components, the same discipline applies.
+
+### 2. Test-Driven Development (Red → Green → Refactor)
+
+**Every feature starts with a failing test.** No production code without seeing RED first.
+
+| Step | Action | Verification |
+|------|--------|-------------|
+| **RED** | Write a test that describes the desired behavior. Run it. Watch it fail. | Test fails for the *right reason* (missing feature, not syntax error) |
+| **GREEN** | Write the minimum code to make the test pass. Nothing more. | Test passes. All existing tests still pass. |
+| **REFACTOR** | Improve code quality while keeping tests green. | All tests still pass after changes. |
+
+**Applied to FLUME:**
+- Each VAE component (encoder, decoder, loss, training loop) gets its test FIRST
+- Evaluation metrics get tests that verify known inputs produce expected outputs BEFORE implementation
+- Integration points (SemanticCache, JourneyTracker) get contract tests BEFORE wiring
+
+**Recovery rule:** If production code was written first (hook fires), write the test immediately — don't revert working code, but apply TDD properly going forward.
+
+### 3. Compound Engineering
+
+**Every feature makes future features easier.** The compound loop applies to this spec:
+
+```
+Implement feature → Validate manually → Write 5 tests → Extract learning → Refine skill
+```
+
+| Principle | Application in This Spec |
+|-----------|-------------------------|
+| **Knowledge compounds** | Every anti-pattern logged to vault prevents re-occurrence. Every pattern extracted is reusable. |
+| **Build on proven templates** | New EmbeddingProvider follows existing `ExperienceCollector` multi-tier fallback pattern. New VAE loss follows existing `FlumeVAETrainer` structure (improved, not reinvented). |
+| **Experience-guided execution** | Query vault for prior learnings before each sprint (lesson-37 validates this). |
+| **Skill refinement loop** | After Sprint 3 evaluation, log results as vault experiment. Learnings flow back into Sprint 4 decisions. |
+| **Honest metrics** | Report actual numbers (98.8% beats inflated 100%). Green-light criteria are pass/fail, not "close enough." |
+
+### 4. Context Awareness
+
+**Every session starts informed.** No cold starts.
+
+| Checkpoint | Action |
+|------------|--------|
+| **Sprint start** | Query vault: `vault_find_relevant_context(query="FLUME VAE training")`. Read continuation file if exists. Check existing experiment notes. |
+| **Before building** | Query Context7 for library docs (PyTorch VAE patterns, nomic-embed-text API). Don't assume — verify. |
+| **Mid-sprint** | Check `cz context --json`. If >80%, prepare handoff. Write continuation with EXACT state. |
+| **Sprint end** | Log to vault: decisions made, metrics achieved, patterns discovered. Next session starts informed. |
+
+**Overnight simulation data** (5.5M trajectories) is a context asset. Log its characteristics to vault so Phase 2 sessions can find it without re-discovering.
+
+### 5. Token Efficiency
+
+**Budget tokens like money.** Based on CLAUDE.md token budgets:
+
+| Task Type | Budget | Pattern |
+|-----------|--------|---------|
+| Implement 1 feature | 500-1,500 tokens | Copy template → code → manual test → 5 tests |
+| Research + implement | 2,000-3,000 tokens | Quick survey → proof of concept → tests |
+| Single test debug | 200-500 tokens | Add print → run → check → fix → verify |
+
+**Anti-patterns to avoid:**
+- Research-first (5,000-10,000 tokens for no implementation)
+- Infrastructure for products that don't exist (8,000+ tokens)
+- Running full test suite repeatedly (use `-k` to target specific tests)
+
+**Efficiency tactics for this spec:**
+- Use `uv run pytest tests/flume/ -k "test_vae"` not `uv run pytest tests/ -q` during development
+- Cache Ollama embeddings in Sprint 1 LRU cache — avoid redundant API calls during training
+- Batch embed texts (50 at a time) instead of one-by-one
+- Mock Ollama in tests — never call live Ollama in unit tests
+- Write narrow tests (one behavior per test) — faster to run, faster to debug
+
+### 6. Evidence Over Assumptions
+
+Every red flag became a red flag because someone assumed something worked without checking. Every claim in this spec has a concrete verification command. If you can't run a command to prove it, you can't claim it.
+
+### 7. Phased with Hard Gates
+
+No Phase 2 work begins until ALL Phase 1 green-light criteria are met with evidence. "Probably fine" is not a gate-pass.
+
+---
+
+## Context
+
+The FLUME investigation (2026-02-23) identified 6 red flags — critical unknowns that determine whether FLUME is a viable research artifact or an architectural dead end. Codebase exploration revealed the situation is worse than the investigation assumed: **the system the investigation analyzed doesn't actually exist.** Two incompatible VAE implementations, a broken data pipeline training on random noise, and zero integration with agent behavior mean the red flags aren't "unknowns to measure" — they're **architectural problems to solve.**
+
+This plan starts by freeing system resources (7 GB RAM from zombie processes, 7.4 GB disk from stale artifacts, 2,000+ lines of dead code), then rebuilds FLUME from first principles in two phases, turning each red flag green with concrete, verifiable criteria. It also maps FLUME's capabilities to the Anthropic Universes team Research Engineer role to validate strategic alignment.
+
+---
+
+## Sprint 0: Free RAM + Extract Knowledge
+
+No file deletions needed — plenty of disk space. Focus on reclaiming RAM and extracting knowledge from existing code before building new.
+
+### Physical Resources
+
+| Resource | What | Recovery | Command |
+|----------|------|----------|---------|
+| **7 GB RAM** | 12 zombie pytest processes running 25+ hours | Kill all | `kill 286767 286775 288864 288872 290708 290714 290718 293426 293432 293435 294452 294457` |
+
+### Prerequisite: Install nomic-embed-text
+
+```bash
+ollama pull nomic-embed-text
+```
+
+### Valuable Data Discovered (preserved, not deleted)
+
+| Data | Size | Value |
+|------|------|-------|
+| `data/overnight/journeys.jsonl` | 3.2 GB, 5.5M records | Real 12D simulation trajectories — Phase 2 training data |
+| `data/overnight/checkpoints/` | 200 JSON files | Simulation convergence history (coherence 0.568 → 0.613) |
+| `data/flume/checkpoints/flume_vae_ep*.pt` | 4 checkpoints | Noise-trained model weights — reference for comparison |
+| `data/surrealdb-old/` | 28 MB | Old SurrealDB instance — may contain queryable journey data |
+
+### Sprint 0 Verification
+
+```bash
+free -h                                # Confirm RAM recovered
+python -c "from cohezion.flume import FlumeVAEEncoder"  # Core import works
+```
+
+### Knowledge Extraction (BEFORE any deletions)
+
+**Rule: No destructive operations without learning.** Before removing any code, extract patterns and anti-patterns into the MCP vault. This preserves institutional knowledge for future sessions.
+
+**Anti-patterns to document (via `vault_log_decision` / `vault_extract_pattern`):**
+
+| Anti-Pattern | Source File | Lesson |
+|-------------|------------|--------|
+| Dual VAE architecture | `autoencoder.py` + `training.py` | Two models operating on different input spaces creates integration debt that compounds silently. One coherent model > two partial ones. |
+| Training on random noise | `dataset.py` (SyntheticFlumeDataset) | VAE trained on N(0.5, 0.15) learns Gaussian structure, not semantic structure. Synthetic data must have the *kind* of structure you want the model to learn. |
+| SHA-256 as semantic embedding | `vae_encoder.py` + `experience_encoder.py` | Cryptographic hashes destroy semantic similarity. "deploy API" and "API deployment" hash to completely unrelated 256D vectors. Never use hash functions where semantic distance matters. |
+| Hash-based journey tracking | `journey_tracker.py` | Deterministic text hashing for 12D trajectories means semantically identical tasks map to different points. Observable AI requires *meaningful* representations, not arbitrary ones. |
+| Disconnected modules | morphospace, bioelectric, lcsp, etc. | 1,353 lines of code with zero consumers = pure maintenance burden. If a module has no imports, it's not "future work" — it's dead weight. Enforce "no orphan modules" policy. |
+| HIHO coherence loss on batch mean | `training.py` line 118-120 | Penalizing `mean(μ) → 0.5` at batch level doesn't ensure per-sample coherence. Regularization must target the right granularity. |
+| Character-level tokenizer | `tokenizer.py` + `autoencoder.py` | 74-char vocabulary for semantic embeddings produces poor representations. Always use subword tokenization (or better: pre-trained embeddings). |
+| Zombie test processes | System observation | Pytest processes with async tests can hang indefinitely if event loops aren't properly torn down. Always set test timeouts (`pytest-timeout`). |
+
+**Patterns worth preserving (good ideas in dead code):**
+
+| Pattern | Source File | Worth Keeping |
+|---------|------------|---------------|
+| Morphospace stability wells | `morphospace.py` | Concept of "stability wells" around HIHO=0.5 in latent space is sound theory. Re-implement in Phase 2 with real learned latent space. |
+| Trajectory prediction with physics | `predictor.py` | Momentum-based prediction and counterfactual branching (`imagine_branches()`) are good Phase 2 features. Preserve the API design. |
+| Multi-tier data collection | `experience_collector.py` | Parquet → SurrealDB → Vault → synthetic fallback hierarchy is good architecture. Reuse in new data pipeline. |
+| ExperienceEncoder layout | `experience_encoder.py` | The `[12D trajectory | 12 metrics | 5 op_type | ...]` prefix structure is well-designed. Keep for Phase 2, replace only the 227D fingerprint segment. |
+| Checkpoint format with config | `training.py` | Saving `{model, optimizer, config, epoch, metrics}` together is correct practice. Carry forward to new training pipeline. |
+| LCSP concept | `lcsp.py` | Latent Coherence Stability Predictor concept is valid for Phase 2 — predicting whether a latent point is in a stable region. |
+| Bioelectric field modeling | `bioelectric.py` | Mapping latent gradients to "field strength" for action generation is creative. Document for Phase 2 investigation. |
+
+**Vault storage plan:**
+1. Log each anti-pattern as a `vault_log_decision` (decision: "don't do X because Y")
+2. Extract each preservable pattern as a `vault_extract_pattern` (with code examples from the dead modules)
+3. Log the overall cleanup as a `vault_log_experiment` (hypothesis: "dead code removal improves system health")
+
+### Sprint 0 Task List
+
+- [ ] Task 0a: Kill zombie pytest processes (recover 7 GB RAM)
+- [ ] Task 0b: Install `nomic-embed-text` via Ollama
+- [ ] Task 0c: **EXTRACT**: Log 8 anti-patterns to vault via `vault_log_decision` (from existing broken FLUME code analysis)
+- [ ] Task 0d: **EXTRACT**: Log 7 preservable patterns to vault via `vault_extract_pattern` (stability wells, multi-tier collection, etc.)
+- [ ] Task 0e: Log overnight simulation stats to vault as experiment (5.5M trajectories, convergence data)
+
+---
+
+## Red Flag → Green Light Summary
+
+| # | Red Flag | Root Cause | Green Light Criteria | Phase |
+|---|----------|-----------|---------------------|-------|
+| 1 | KL collapse risk | No KL annealing, trains on noise | KL > 0.1, 128+ active latent units (of 256) | 1 |
+| 2 | Reconstruction fidelity unknown | Two VAEs, neither validated | cos_sim(input, reconstructed) > 0.95 on validation set | 1 |
+| 3 | Synthetic quality unknown | No generation/evaluation pipeline | Paraphrase Precision@1 > 0.85, Spearman ρ > 0.90 | 1 |
+| 4 | Evaluation metrics unvalidated | JourneyTracker uses SHA-256 hashes | Metrics correlate with task performance R² > 0.5 | 1+2 |
+| 5 | Integration impact unknown | FLUME only used for cache similarity | A/B: FLUME cache outperforms hash on precision-recall | 1+2 |
+| 6 | Universes team fit unclear | No mapping to their research needs | Clear alignment document with 3+ intersection points | 1 |
+
+---
+
+## Architecture: Fresh FLUME VAE
+
+### Core Insight
+
+Don't learn semantic embeddings from scratch with a tiny model. Use a **pre-trained embedding model** (Ollama `nomic-embed-text`, 768D) as input, then train a **proper VAE** to learn a structured, compressed 256D latent space on top of those embeddings.
+
+### Phase 1 Architecture: Semantic Cache Engine
+
+```
+Text Input
+    │
+    ▼
+[Ollama nomic-embed-text]  ─── 768D dense semantic embedding
+    │
+    ▼
+[FLUME VAE Encoder]         ─── MLP: 768→512→512→384 → mu(256), logvar(256)
+    │
+    ▼
+256D latent z (mu used as embedding at inference)
+    │
+    ▼
+[FLUME VAE Decoder]         ─── MLP: 256→384→512→512→768 (reconstruct input)
+    │
+    ▼
+[SemanticCache]             ─── cosine similarity matching (threshold ~0.88)
+```
+
+**Why this works:**
+- Pre-trained embeddings already capture "deploy API" ≈ "API deployment"
+- VAE learns *structured* 256D space where distances are meaningful
+- KL regularization ensures smooth latent space (no holes between clusters)
+- Decoder forces VAE to retain information (reconstruction validates quality)
+- ~2.1M parameters — trains on CPU in minutes
+
+### Loss Function
+
+```
+L = L_recon + β·L_KL + λ_align·L_contrastive + λ_coh·L_coherence
+
+L_recon       = MSE(decoded, original_embedding)
+L_KL          = -0.5·Σ(1 + logvar - μ² - exp(logvar))    with free-bits per dimension
+L_contrastive = InfoNCE over known paraphrase pairs        (τ=0.07)
+L_coherence   = (mean(μ) - 0.5)²                          HIHO target
+```
+
+**KL collapse prevention (Red Flag 1):**
+- β annealing: 0.0 → 0.1 over first 30% of training steps
+- Free-bits: min 0.125 bits/dimension — forces each dimension to encode information
+- Active unit monitoring: alert if <128 of 256 dimensions are active
+
+### Phase 2 Architecture: Reasoning Latent Space
+
+Extends Phase 1 with a **temporal encoder** over trajectory sequences:
+
+```
+Trajectory Steps [(12D_state, metrics, op_type), ...]
+    │
+    ▼
+[Step Embedding]       ─── Linear(29→128) + positional encoding
+    │
+    ▼
+[Transformer Encoder]  ─── 2 layers, 4 heads, d_model=128
+    │
+    ▼
+[Attention Pooling → mu(256), logvar(256)]
+    │
+    ▼
+[Transformer Decoder]  ─── autoregressive trajectory reconstruction
+```
+
+Enables: interpolation between strategies, novel trajectory sampling, latent space navigation for agent guidance. JourneyTracker transitions from SHA-256 hashing to learned FLUME projections.
+
+---
+
+## Training Data Strategy (Hybrid)
+
+### Bootstrap (Phase 1 — immediate)
+
+1. **Structured synthetic tasks** (~5,000 samples)
+   - Task descriptions across 5 operation types (generate, analyze, search, transform, persist)
+   - Template groups with known paraphrases: `["deploy API", "API deployment", "launch API service"]`
+   - Each embedded via `nomic-embed-text` → 768D vectors
+
+2. **Codebase docstrings** (~2,000 samples)
+   - Extract from Cohezion source via AST parsing
+   - Real domain-specific language
+
+3. **Vault experiment descriptions** (variable, ~500+ samples)
+   - From `~/vaults/cohezion-vault/experiments/*.json`
+
+4. **Paraphrase generation** (~15,000 pairs)
+   - Use Ollama to generate 3 paraphrases per task template
+   - Provides contrastive training pairs
+
+### Fine-tune (accumulates over time)
+
+5. **Real execution data pipeline**
+   - After each compound execution: store `(task_description, operation_type, metrics, skill_name)` as JSONL
+   - Path: `data/flume/experiences/execution_log.jsonl`
+   - Periodic re-embed + re-train (weekly or on-demand)
+
+### External (Phase 2)
+
+6. **Published reasoning datasets** (GSM8K chains, MATH solutions, code generation traces)
+   - For trajectory-level training in Phase 2
+
+---
+
+## Universes Team Alignment (Red Flag 6)
+
+**Source:** [Research Engineer, Universes](https://job-boards.greenhouse.io/anthropic/jobs/5061517008)
+
+### Mapping: Team Needs → FLUME Capabilities
+
+| Universes Team Need | FLUME Capability | Alignment |
+|---------------------|------------------|-----------|
+| **Agentic training environments** for extended-duration tasks | Compound engineering loop: 11-step execution pipeline with skill refinement, retrospection, and journey tracking. Literally an RL training environment for agentic tasks. | **Strong** |
+| **Evaluation frameworks measuring genuine capability gains** | Red Flag 4 resolution produces a validated evaluation framework with correlation-tested metrics. Phase 1 evaluation suite (reconstruction fidelity, similarity preservation, KL health, cache ablation) demonstrates evaluation engineering rigor. | **Strong** |
+| **Navigate ambiguity, manage interruptions, sustain context** | Phase 2 reasoning latent space compresses reasoning trajectories for context sustainability. 256D embeddings preserve semantic meaning across long interactions. Morphospace navigation handles ambiguity via stability wells. | **Strong** (Phase 2) |
+| **RL environments and simulation platforms** | 12D universe simulation with FLUME VAE as the representation layer. JourneyTracker records state transitions. DegradationDetector monitors drift. This is RL infrastructure. | **Strong** |
+| **Integrate into production training systems** | Phase 1 semantic cache engine is a production system. Demonstrates ability to ship ML infrastructure, not just research prototypes. | **Strong** |
+| **Rapidly troubleshoot across research and production ML** | This spec itself — diagnosing architectural fractures, designing fixes, implementing with TDD — demonstrates this capability directly. | **Meta** |
+
+### Preferred Qualifications Match
+
+| Qualification | Evidence |
+|---------------|----------|
+| LLM training/fine-tuning/evaluation | VAE training pipeline, evaluation framework, metric validation |
+| RL environments, simulation platforms | 12D universe simulation, compound loop as RL env |
+| Large-scale ML infrastructure | SemanticCache, ExperienceCollector, multi-tier data pipeline |
+| Containerization, distributed systems | Cloud Run deployment, Tailscale Funnel for MCP, multi-session worktree pattern |
+
+### Positioning Document (Deliverable)
+
+Produce a concise document (max 2 pages) that:
+1. Frames FLUME as an **agentic training environment** with validated evaluation
+2. Highlights the **evaluation engineering** (not just the model)
+3. Shows **production readiness** (Phase 1 cache engine in production)
+4. Positions the **compound engineering loop** as an RL training methodology
+5. Demonstrates research taste: honest red-flag identification, systematic resolution
+
+---
+
+## Implementation Plan
+
+### Phase 1 Scope (This Spec)
+
+**New files:**
+
+| File | Purpose | ~Lines |
+|------|---------|--------|
+| `src/cohezion/flume/vae.py` | Core VAE model (encoder, decoder, reparameterization, loss) | 200 |
+| `src/cohezion/flume/embedding_provider.py` | Pre-trained embedding interface (Ollama + hash fallback) | 120 |
+| `src/cohezion/flume/train_vae.py` | Training pipeline (KL annealing, free-bits, contrastive) | 250 |
+| `src/cohezion/flume/evaluate_vae.py` | Evaluation framework (all red flag metrics) | 200 |
+| `src/cohezion/flume/data_pipeline.py` | Data prep (synthetic tasks, embedding, contrastive pairs) | 180 |
+| `scripts/train_flume_v2.py` | CLI training entry point | 50 |
+| `tests/flume/test_vae_v2.py` | VAE model unit tests | 150 |
+| `tests/flume/test_embedding_provider.py` | Embedding provider tests | 100 |
+| `tests/flume/test_train_vae_v2.py` | Training pipeline tests | 150 |
+| `tests/flume/test_evaluate_vae.py` | Evaluation framework tests | 120 |
+| `tests/flume/test_data_pipeline.py` | Data pipeline tests | 100 |
+
+**Modified files:**
+
+| File | Change | Risk |
+|------|--------|------|
+| `src/cohezion/flume/vae_encoder.py` | Load new VAE model, use EmbeddingProvider. Public interface unchanged. | Low |
+| `src/cohezion/flume/__init__.py` | Add new exports | Low |
+| `src/cohezion/compound/journey_tracker.py` | Optional FLUME encoder path in `text_to_latent()` | Low |
+| `src/cohezion/swarm/semantic_cache.py` | Threshold validation after new model (may need tuning) | Low |
+
+**Legacy files** (not removed, but superseded by new implementations — knowledge extracted to vault in Sprint 0):
+`autoencoder.py`, `training.py`, `dataset.py` and 12 disconnected modules remain on disk but are not imported by new code.
+
+### Task Breakdown
+
+**Sprint 1: Foundation + Positioning** *(context: query vault first, then build)*
+
+- [ ] Task 1: Write Universes team positioning document (guides all subsequent sprint decisions)
+- [ ] Task 2: `embedding_provider.py` — TDD:
+  - RED: Test Ollama returns 768D embedding, test hash fallback returns 256D, test LRU cache hits
+  - GREEN: Implement OllamaEmbeddingProvider + HashFallbackProvider + LRU cache
+  - Token budget: ~1,000 (template from ExperienceCollector multi-tier pattern)
+- [ ] Task 3: `vae.py` — TDD:
+  - RED: Test encoder output shape (768→256), test decoder output shape (256→768), test reparameterization produces different z on each call, test loss components compute correctly
+  - GREEN: Implement FlumeVAE with dropout=0.1, LayerNorm, GELU
+  - Token budget: ~1,500
+- [ ] Task 4: `data_pipeline.py` — TDD:
+  - RED: Test synthetic task generation produces N samples across 5 op types, test contrastive pair mining finds same-group pairs, test batch embedding calls provider correctly
+  - GREEN: Implement TrainingDataPipeline (mock Ollama in tests)
+  - Token budget: ~1,000
+
+**Sprint 2: Training** *(context: check vault for prior training experiment 2026-02-13)*
+
+- [ ] Task 5: `train_vae.py` — TDD:
+  - RED: Test KL annealing schedule increases β correctly, test free-bits clamps minimum KL per dimension, test loss decreases over 5 epochs on synthetic data, test checkpoint saves/loads correctly
+  - GREEN: Implement VAETrainer with AdamW + CosineAnnealing + grad clipping
+  - Token budget: ~1,500
+- [ ] Task 6: `scripts/train_flume_v2.py` — CLI entry point (~50 lines, minimal TDD)
+- [ ] Task 7: Generate bootstrap training data
+  - Use `data_pipeline.py` to produce ~7,500 embedded samples (5K synthetic + 2K docstrings + 500 vault)
+  - Generate ~15K contrastive pairs via paraphrase templates
+  - Token budget: ~500 (mostly running existing code)
+- [ ] Task 8: Train initial model + validate convergence
+  - Run training: `uv run python scripts/train_flume_v2.py --evaluate`
+  - **Verify RED→GREEN**: KL > 0.1 (RED FLAG 1 check), loss decreasing
+  - Log training results as vault experiment (filling in the empty 2026-02-13 experiment)
+  - Token budget: ~500
+
+**Sprint 3: Evaluation + Integration** *(context: compound loop — results feed back to Sprint 4)*
+
+- [ ] Task 9: `evaluate_vae.py` — TDD:
+  - RED: Test reconstruction metric computes cos_sim correctly, test paraphrase discrimination returns P@1, test KL health checker flags collapse, test Spearman ρ computed correctly
+  - GREEN: Implement VAEEvaluator with all red-flag metrics
+  - Token budget: ~1,200
+- [ ] Task 10: Run evaluation suite — validate ALL green-light criteria met
+  - `uv run pytest tests/flume/test_evaluate_vae.py -v`
+  - Log results to vault: `vault_log_experiment(project="cohezion", ...)`
+- [ ] Task 11: Update `vae_encoder.py` — TDD:
+  - RED: Test new VAE loads and produces 256D output, test fallback chain works when Ollama unavailable
+  - GREEN: Modify `_load_encoder()` and `_vae_encode()` (public interface unchanged)
+- [ ] Task 12: Update `journey_tracker.py` — TDD:
+  - RED: Test FLUME path produces semantically meaningful 2048D vectors (paraphrases closer than unrelated texts)
+  - GREEN: Add optional FLUME encoder path in `text_to_latent()`
+- [ ] Task 13: SemanticCache A/B comparison
+  - Run with FLUME embeddings vs. hash embeddings on benchmark set
+  - Compare precision-recall curves
+  - Log results to vault
+
+**Sprint 4: Data Collection + Phase 2 Prep** *(compound: learnings flow back, inform Phase 2 design)*
+
+- [ ] Task 14: Instrument `ExperienceCollector` — TDD:
+  - RED: Test that compound execution produces JSONL record with task description + metrics
+  - GREEN: Add logging hook to store execution data at `data/flume/experiences/`
+- [ ] Task 15: Characterize overnight simulation data (5.5M trajectories)
+  - Distribution analysis: coherence, novelty, skill coverage
+  - Convergence patterns across 5.5M iterations
+  - Log characterization to vault for Phase 2 reference
+- [ ] Task 16: End-to-end integration test
+  - RED: Compound execution → data logged → text embedded → cache lookup succeeds
+  - GREEN: Full pipeline verified
+  - Log as vault experiment with compound metrics
+
+### Key Integration Points
+
+**`vae_encoder.py`** (primary integration surface):
+```
+Current: text → SHA-256 hash → expand to 256D → MLP encoder → mu → 256D
+New:     text → Ollama embed → 768D → VAE encoder → mu → 256D
+         (fallback: text → SHA-256 hash → expand to 256D if Ollama unavailable)
+```
+
+**`semantic_cache.py`** (consumer — no interface changes):
+```
+FlumeVAEEmbeddingModel.encode(text) → EmbeddingResult(embedding=[...256 floats...])
+# Same interface, better embeddings
+```
+
+**`journey_tracker.py`** (Phase 1 minimal change):
+```
+text_to_latent(text):
+    if flume_encoder available:
+        flume_256d = flume_encoder.encode(text)
+        return np.tile(flume_256d, 8)  # 256×8 = 2048D for existing pipeline
+    else:
+        return hash_based_latent(text)  # existing behavior
+```
+
+---
+
+## Verification Strategy
+
+### Per Red Flag
+
+| Red Flag | Verification Command/Method | Pass Criteria |
+|----------|----------------------------|---------------|
+| 1. KL collapse | `uv run python -m scripts.train_flume_v2 --evaluate-kl` | Active units ≥ 128/256, KL > 0.1 |
+| 2. Reconstruction | `uv run pytest tests/flume/test_evaluate_vae.py -k reconstruction` | cos_sim(input, recon) > 0.95 on validation |
+| 3. Synthetic quality | `uv run pytest tests/flume/test_evaluate_vae.py -k paraphrase` | Precision@1 > 0.85 |
+| 4. Metrics validation | `uv run pytest tests/flume/test_evaluate_vae.py -k similarity_preservation` | Spearman ρ > 0.90 between original and latent similarities |
+| 5. Integration impact | `uv run pytest tests/flume/test_evaluate_vae.py -k cache_ablation` | FLUME precision-recall dominates hash baseline |
+| 6. Team fit | Read positioning document, verify 3+ alignment points | Qualitative: convincing narrative |
+
+### Full Suite
+
+```bash
+# Unit tests
+uv run pytest tests/flume/ -v
+
+# Train and evaluate
+uv run python scripts/train_flume_v2.py --config default --evaluate
+
+# Integration test
+uv run pytest tests/flume/test_evaluate_vae.py -v
+
+# Existing test suite (no regressions)
+uv run pytest tests/ -q
+```
+
+---
+
+## Adversarial Review Findings
+
+Three-perspective review per vault protocol (ADR 2026-02-14). All findings addressed in the plan above.
+
+### Feasibility Challenger
+
+| Finding | Severity | Resolution |
+|---------|----------|------------|
+| `nomic-embed-text` not installed in Ollama | HIGH | Added Task 0b: `ollama pull nomic-embed-text` |
+| 768D→256D is only 3x compression — bottleneck may not force meaningful structure learning | MEDIUM | Contrastive loss (InfoNCE) provides additional learning signal beyond reconstruction. If bottleneck proves insufficient, reduce decoder capacity or add dropout. Monitor active units. |
+| ~22,500 training samples for 2.1M params = overfitting risk | MEDIUM | Weight decay (1e-4), dropout (0.1), early stopping (patience=10), and data augmentation (paraphrases). Phase 1 is a starting point; real data accumulates. |
+| Ollama network dependency at inference | MEDIUM | Fallback chain in EmbeddingProvider: Ollama → cached embeddings → SHA-256 hash. Cache hot embeddings in LRU cache (text→768D). |
+| Paraphrase generation quality depends on Ollama model | LOW | Use simple templates + programmatic augmentation (word reordering, synonym substitution) before LLM generation. LLM paraphrases are supplementary, not primary. |
+
+### Strategic Reviewer
+
+| Finding | Severity | Resolution |
+|---------|----------|------------|
+| Phase 1 (cache engine) doesn't demonstrate RL capability — weak positioning | HIGH | Move positioning document to Sprint 1 (not Sprint 4). Frame Phase 1 as "evaluation engineering rigor" and Phase 2 as "RL environment." The investigation and systematic red-flag resolution ARE the demonstration of research engineering quality. |
+| Overnight simulation data (5.5M trajectories) = irreplaceable Phase 2 training data | CRITICAL | Changed from "delete" to "compress and preserve." Added data characterization task. |
+| Green-light criteria are internally defined — may not match what Universes team values | MEDIUM | Positioning document (moved to Sprint 1) explicitly maps our metrics to team needs. Adjust criteria if mapping reveals misalignment. |
+| Experience-guided execution (lesson-37) validates hybrid data approach | LOW | Confirmed — our plan aligns with proven vault lesson. |
+
+### Risk & Completeness Reviewer
+
+| Finding | Severity | Resolution |
+|---------|----------|------------|
+| experience_collector/encoder/pipeline/dataset must be preserved | HIGH | No files deleted — all existing code stays on disk. New code supersedes, doesn't replace. |
+| Vault's 6-step process (ADR 2026-02-09) — EXTRACT step is critical | HIGH | Sprint 0 extracts anti-patterns and patterns to vault before building new code |
+| Overnight simulation data is irreplaceable Phase 2 training data | CRITICAL | Preserved. Stats logged to vault in Sprint 0. |
+| Existing FLUME checkpoints should be examined | LOW | Remain on disk for reference. Can compare old vs. new model quality. |
+| lesson-30 (holographic projection fallback) directly relevant to JourneyTracker integration | LOW | Already addressed — Phase 1 JourneyTracker change uses FLUME→tile→existing pipeline, avoiding projection issues. Phase 2 uses learned Linear(256→12) which doesn't need eigendecomposition. |
+
+### Vault Insights Incorporated
+
+| Vault Entry | Insight | Applied Where |
+|-------------|---------|---------------|
+| ADR: No Destructive Operations (2026-02-09) | Full 6-step process is mandatory | Sprint 0 restructured to follow all 6 steps |
+| ADR: Adversarial Review Protocol (2026-02-14) | 3-agent review catches integration bugs | This review section + plan verification |
+| Lesson 30: Holographic Projection Fallback | Singular matrix guard needed for dimensionality reduction | JourneyTracker integration design |
+| Lesson 37: Experience-Guided Execution | Prior context materially improves quality | Validates hybrid data strategy |
+| Experiment: First Real VAE Training (2026-02-13) | Started but empty — previous attempt didn't complete | Our plan fills this experiment with real results |
+| Existing lessons 1-38 | 38 accumulated lessons available for pattern reuse | Referenced throughout plan design |
+
+---
+
+### Go/No-Go Gate (Phase 1 → Phase 2)
+
+Phase 2 proceeds only if ALL Phase 1 green-light criteria are met:
+- [ ] KL healthy (128+ active units)
+- [ ] Reconstruction fidelity (cos_sim > 0.95)
+- [ ] Paraphrase discrimination (P@1 > 0.85)
+- [ ] Similarity preservation (ρ > 0.90)
+- [ ] Cache A/B positive (FLUME beats hash)
+- [ ] Real execution data collection pipeline operational
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.REDACTED.jsonl
+
+---
+
+# /spec - Unified Spec-Driven Development
+
+**For new features, major changes, and complex work.** Creates a spec, gets your approval, implements with TDD, and verifies completion - all in one continuous flow.
+
+This command is a **dispatcher** that determines which phase to run and invokes it via `Skill()`.
+
+## ⛔ MANDATORY: /spec = Workflow. No Exceptions.
+
+**When `/spec` is invoked, you MUST follow the spec workflow exactly. The user's phrasing after `/spec` is the TASK DESCRIPTION — it is NOT an instruction to change the workflow.**
+
+- `/spec brainstorm a caching layer` → task_description = "brainstorm a caching layer" → invoke `Skill('spec-plan')` with that description
+- `/spec let's discuss auth options` → task_description = "let's discuss auth options" → invoke `Skill('spec-plan')` with that description
+- `/spec explore and plan a new feature` → task_description = "explore and plan a new feature" → invoke `Skill('spec-plan')` with that description
+
+**Words like "brainstorm", "discuss", "explore", "think about" are part of the task description, NOT instructions to skip the workflow.** The spec-plan phase handles all exploration, discussion, and brainstorming within its structured flow.
+
+**NEVER interpret `/spec` arguments as a reason to have a freeform conversation instead of invoking the phase skill.**
+
+---
+
+## 📋 WORKFLOW OVERVIEW
+
+```
+/spec → Dispatcher → Skill('spec-plan')    → Plan, verify, approve
+                   → Skill('spec-implement') → TDD loop for each task
+                   → Skill('spec-verify')    → Tests, execution, code review
+```
+
+| Phase              | Skill            | What Happens                                     |
+| ------------------ | ---------------- | ------------------------------------------------ |
+| **Planning**       | `spec-plan`      | Explore → Design → Write plan → Verify → Approve |
+| **Implementation** | `spec-implement` | TDD loop for each task                           |
+| **Verification**   | `spec-verify`    | Tests → Execution → Rules → Code Review → E2E    |
+
+### Status-Based Flow
+
+```
+PENDING (Not Approved) → spec-plan    → User approves
+PENDING (Approved)     → spec-implement → All tasks done → COMPLETE
+COMPLETE               → spec-verify   → All checks pass → VERIFIED
+VERIFIED               → Done!
+```
+
+### The Feedback Loop
+
+```
+spec-verify finds issues → Status: PENDING → spec-implement fixes → COMPLETE → spec-verify → ... → VERIFIED
+```
+
+---
+
+## 0.1 Parse Arguments
+
+```
+/spec <task-description>           # Start new workflow from task
+/spec <path/to/plan.md>            # Continue existing plan
+/spec --continue <path/to/plan.md> # Resume after session clear
+```
+
+Parse the arguments: the rest of the sprints
+
+### Determine Current State
+
+```
+IF arguments start with "--continue":
+    plan_path = extract path after "--continue"
+    1. Read ~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md if it exists
+    2. Delete the continuation file after reading
+    3. Read plan file, check Status AND Approved fields
+    → Dispatch to appropriate phase based on status
+
+ELIF arguments end with ".md" AND file exists:
+    plan_path = arguments
+    → Read plan file, check Status AND Approved fields
+    → Dispatch to appropriate phase based on status
+
+ELSE:
+    task_description = arguments  # ALWAYS treated as task description, regardless of phrasing
+    → Ask worktree question FIRST (see Section 0.1.1 below)
+    → Invoke planning phase with worktree choice: Skill(skill='spec-plan', args='<task_description> --worktree=yes|no')
+    # NEVER have a freeform conversation instead. ALWAYS invoke the Skill.
+```
+
+### 0.1.1 Worktree Question (New Plans Only)
+
+**Before invoking `spec-plan` for a NEW plan, ask the user about worktree isolation:**
+
+```
+AskUserQuestion:
+  question: "Use git worktree isolation for this spec?"
+  header: "Worktree"
+  options:
+    - "Yes" - Isolate work on a dedicated branch; safe to experiment, easy to discard or squash merge
+    - "No" - Work directly on the current branch without worktree isolation
+```
+
+**Append the choice to the spec-plan args:** `Skill(skill='spec-plan', args='<task_description> --worktree=yes')` or `--worktree=no`.
+
+**This question is ONLY asked for new plans.** When continuing an existing plan (`--continue` or `.md` path), the `Worktree:` field is already set in the plan header.
+
+**After reading the plan file, register the plan association (non-blocking):**
+
+```bash
+~/.pilot/bin/pilot register-plan "<plan_path>" "<status>" 2>/dev/null || true
+```
+
+This tells Console which session is working on which plan. Failure is silently ignored.
+
+## 0.2 Status-Based Dispatch
+
+Read the plan file and dispatch based on Status and Approved fields:
+
+| Status   | Approved | Action                                                                                    |
+| -------- | -------- | ----------------------------------------------------------------------------------------- |
+| PENDING  | No       | `Skill(skill='spec-plan', args='<plan-path>')`                                            |
+| PENDING  | Yes      | `Skill(skill='spec-implement', args='<plan-path>')` (worktree if `Worktree: Yes` in plan) |
+| COMPLETE | \*       | `Skill(skill='spec-verify', args='<plan-path>')`                                          |
+| VERIFIED | \*       | Report completion, workflow done                                                          |
+
+**⛔ Phase Transition Context Guard applies before every dispatch (see Section 0.3).**
+
+**Invoke the appropriate Skill immediately. Do not duplicate phase logic here.**
+
+### Report Completion (VERIFIED)
+
+If the plan status is already VERIFIED:
+
+```
+✅ Workflow complete! Plan status: VERIFIED
+
+The plan at <plan-path> has been fully implemented and verified.
+Is there anything else you'd like me to help with?
+```
+
+---
+
+## 0.3 Phase Transition Context Guard
+
+**⛔ MANDATORY: Before EVERY `Skill()` call that transitions to another phase, check context:**
+
+```bash
+~/.pilot/bin/pilot check-context --json
+```
+
+| Percentage | Action                                              |
+| ---------- | --------------------------------------------------- |
+| **< 80%**  | Proceed with phase transition                       |
+| **>= 80%** | **Do NOT invoke the next phase.** Hand off instead. |
+
+Each phase (plan, implement, verify) needs significant context to complete. Starting a new phase above 80% risks overshooting to 100% — the worst-case scenario where all work is lost.
+
+**When >= 80%:** Write continuation file, trigger `send-clear`. The next session dispatches to the correct phase automatically based on plan status.
+
+**This applies to ALL transitions:** plan→implement, implement→verify, verify→implement (feedback loop), and dispatcher→any phase.
+
+---
+
+## 0.4 Context Management (90% Handoff)
+
+After each major operation, check context:
+
+```bash
+~/.pilot/bin/pilot check-context --json
+```
+
+**Between iterations:**
+
+1. If context >= 90%: hand off cleanly (don't rush!)
+2. If context 80-89%: continue but wrap up current task with quality
+3. If context < 80%: continue the loop freely
+
+If response shows `"status": "CLEAR_NEEDED"` (context >= 90%):
+
+**⚠️ CRITICAL: Execute ALL steps below in a SINGLE turn. DO NOT stop or wait for user response between steps.**
+
+**Step 1: Write continuation file (GUARANTEED BACKUP)**
+
+Write to `~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md`:
+
+```markdown
+# Session Continuation (/spec)
+
+**Plan:** <plan-path>
+**Phase:** [planning|implementation|verification]
+**Current Task:** Task N - [description]
+
+**Completed This Session:**
+
+- [x] [What was finished]
+
+**Next Steps:**
+
+1. [What to do immediately when resuming]
+
+**Context:**
+
+- [Key decisions or blockers]
+```
+
+**Step 2: Trigger session clear**
+
+```bash
+~/.pilot/bin/pilot send-clear <plan-path>
+```
+
+Pilot will restart with `/spec --continue <plan-path>`
+
+### Error Handling
+
+**No Active Session:** If `send-clear` fails, tell user: "Context at X%. Please run `/clear` manually, then `/spec --continue <plan-path>`"
+
+**Plan File Not Found:** Tell user: "Plan file not found: <path>" and ask if they want to create a new plan.
+
+---
+
+## 0.5 Rules Summary (Quick Reference)
+
+| #   | Rule                                                                                                                                                                                                                                                             |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **NO sub-agents except verification** - Phases 1 and 2 use direct tools only. Verification steps (Step 1.7, Step 3.0/3.5) launch paired review agents via the **Task tool** (`subagent_type="pilot:*"`). Task tool is the ONLY allowed mechanism for sub-agents. |
+| 2   | **NEVER SKIP verification** - Plan verification (Step 1.7) and Code verification (Step 3.5) are mandatory. No exceptions.                                                                                                                                        |
+| 3   | **ONLY stopping point is plan approval** - Everything else is automatic. Never ask "Should I fix these?"                                                                                                                                                         |
+| 4   | **Batch questions together** - Don't interrupt user flow                                                                                                                                                                                                         |
+| 5   | **Run explorations sequentially** - One at a time, never in parallel                                                                                                                                                                                             |
+| 6   | **NEVER write code during planning** - Separate phases                                                                                                                                                                                                           |
+| 7   | **NEVER assume - verify by reading files**                                                                                                                                                                                                                       |
+| 8   | **Re-read plan after user edits** - Before asking for approval again                                                                                                                                                                                             |
+| 9   | **TDD is MANDATORY** - No production code without failing test first                                                                                                                                                                                             |
+| 10  | **Update plan checkboxes after EACH task** - Not at the end                                                                                                                                                                                                      |
+| 11  | **Quality over speed** - Never rush due to context pressure. But at 90%+ context, handoff overrides everything - do NOT start new fix cycles                                                                                                                     |
+| 12  | **Plan file is source of truth** - Survives session clears                                                                                                                                                                                                       |
+| 13  | **Phase Transition Context Guard** - Check context before EVERY phase transition. If >= 80%, hand off instead of starting next phase (Section 0.3)                                                                                                               |
+
+ARGUMENTS: the rest of the sprints
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+Run a development retrospective that flows insights back into core files.
+
+This is the compound engineering feedback loop. It ensures that session learnings don't just accumulate in knowledge_graph/ — they propagate back into the files that govern future behavior.
+
+## Steps
+
+### 1. Audit Current State
+- Read `REDACTED.md` and `REDACTED.md`
+- Read `CLAUDE.md`, `README.md`, and `memory/MEMORY.md`
+- Identify: new learnings since last retrospect, stale/duplicate entries, insights that should propagate upward
+
+### 2. Prune Knowledge Graph
+- Remove duplicate entries from KEY_LEARNINGS.md (e.g., triplicate retrospective blocks)
+- Remove spam entries from MISSION_JOURNAL.md (e.g., repeated "Automated Hypothesis Testing Report" lines)
+- Compress old session developments into single-line summaries
+- Target: KEY_LEARNINGS.md under 300 lines, MISSION_JOURNAL.md under 150 lines
+
+### 3. Propagate Insights Upward
+For each significant learning or pattern discovered since last retrospect:
+- **If it changes how we code**: Update `CLAUDE.md` Coding Standards or Operational Protocols
+- **If it changes what the project can do**: Update `README.md` Verified Capabilities or Limitations
+- **If it changes architecture**: Update `.agent/CAPABILITY_MAP.md`
+- **If it changes theory**: Update `.agent/COHEZION_CHARTER.md`
+- **If it's a process lesson**: Update `memory/MEMORY.md` (keep under 200 lines)
+
+### 4. Verify Consistency
+- Ensure CLAUDE.md reflects the actual codebase state (module count, test coverage, etc.)
+- Ensure README.md has no fabricated claims
+- Ensure memory/MEMORY.md is under the 200-line limit
+- Run `ruff check src/cohezion/` to verify no regressions
+
+### 5. Report
+- List what was pruned, what was propagated, and what remains stale
+- Note any inconsistencies between core files that need manual resolution
+
+## Rules
+- NEVER delete knowledge without first reading and understanding it
+- Prefer compression over deletion (turn 5 verbose entries into 1 concise entry)
+- Every claim in README.md must be adversarially verifiable
+- CLAUDE.md is the single source of truth — other files defer to it
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Analysis:
+Let me chronologically analyze the conversation:
+
+1. The user provided a massive, detailed implementation plan called "FLUME VAE: Red Flags → Green Lights" - a comprehensive spec for rebuilding the FLUME VAE system from first principles.
+
+2. The plan had multiple sprints:
+   - Sprint 0: Free RAM + Extract Knowledge
+   - Sprint 1: Foundation (EmbeddingProvider, VAE model, Data Pipeline)
+   - Sprint 2: Training pipeline
+   - Sprint 3: Evaluation + Integration
+   - Sprint 4: Data Collection + Phase 2 Prep
+
+3. I executed Sprints 0-3 (partially) in the first major block of work:
+   - Sprint 0: Killed zombie processes, verified nomic-embed-text, extracted 8 anti-patterns and 7 patterns to vault
+   - Sprint 1: Built embedding_provider.py, vae.py, data_pipeline.py with TDD
+   - Sprint 2: Built train_vae.py with TDD
+   - Sprint 3: Built evaluate_vae.py, updated vae_encoder.py and journey_tracker.py
+
+4. The user then invoked `/spec the rest of the sprints` but cancelled the worktree question.
+
+5. The user then invoked `/retrospect` - a development retrospective command.
+
+6. I executed the retrospective:
+   - Audited KEY_LEARNINGS.md (272 lines), MISSION_JOURNAL.md (140 lines), MEMORY.md (125 lines)
+   - Added Learning 142 and 143 to KEY_LEARNINGS.md
+   - Added Phase 26 entry to MISSION_JOURNAL.md
+   - Compressed old MISSION_JOURNAL entries (157→135 lines)
+   - Updated CLAUDE.md metrics (tests: 3,535→3,599, lint: 178→160)
+   - Updated MEMORY.md active context
+   - Fixed 9 lint issues in new files
+   - Verified all 93 FLUME tests still pass
+
+Key errors encountered:
+- Integration test `test_flume_paraphrases_closer_than_unrelated` failed because constant vectors (np.ones * 0.8) tiled 8x and normalized to [-1,1] all collapsed to the same value. Fixed by using varied random vectors with distinct patterns.
+- Integration test `test_new_vae_produces_256d_output` failed because it tried to patch `OllamaEmbeddingProvider` in `vae_encoder` before the import existed there. Fixed by updating vae_encoder.py to import from embedding_provider.
+- `Edit` tool failed on journey_tracker.py because the linter had reformatted the file (single-line expression instead of multi-line). Fixed by re-reading the file.
+
+Files created:
+- src/cohezion/flume/embedding_provider.py
+- src/cohezion/flume/vae.py
+- src/cohezion/flume/data_pipeline.py
+- src/cohezion/flume/train_vae.py
+- src/cohezion/flume/evaluate_vae.py
+- tests/flume/test_embedding_provider.py
+- tests/flume/test_vae_v2.py
+- tests/flume/test_data_pipeline.py
+- tests/flume/test_train_vae_v2.py
+- tests/flume/test_evaluate_vae.py
+- tests/flume/test_integration_v2.py
+
+Files modified:
+- src/cohezion/flume/vae_encoder.py (v1/v2 checkpoint detection)
+- src/cohezion/flume/__init__.py (new exports)
+- src/cohezion/compound/journey_tracker.py (FLUME semantic path)
+- CLAUDE.md (metrics update)
+- memory/MEMORY.md (active context update)
+- REDACTED.md (L142, L143)
+- REDACTED.md (Phase 26 + compression)
+
+Remaining work from the plan (not yet done):
+- CLI entry point (scripts/train_flume_v2.py)
+- Bootstrap training data generation
+- Actual VAE training run
+- Evaluation against green-light criteria
+- SemanticCache A/B comparison
+- Universes team positioning document
+- Sprint 4 tasks (ExperienceCollector instrumentation, overnight data characterization, E2E integration test)
+
+Summary:
+1. Primary Request and Intent:
+   The user provided a comprehensive implementation plan titled "FLUME VAE: Red Flags → Green Lights" — a multi-sprint spec to rebuild the FLUME VAE system from first principles. The plan identified 6 red flags in the existing system (KL collapse, reconstruction fidelity unknown, synthetic quality unknown, unvalidated metrics, unknown integration impact, unclear team fit) and defined concrete green-light criteria for each. The core architectural insight was to use pre-trained embeddings (Ollama nomic-embed-text, 768D) as VAE input instead of SHA-256 hashes, then train a VAE to learn structured 256D latent compression.
+
+   After the implementation work, the user attempted `/spec the rest of the sprints` but cancelled the worktree question, then invoked `/retrospect` to run a development retrospective that flows insights back into core files.
+
+2. Key Technical Concepts:
+   - **FLUME VAE v2 Architecture**: Ollama nomic-embed-text (768D) → VAE encoder (768→512→512→384→μ(256)/σ(256)) → decoder (256→384→512→512→768), ~2.1M params
+   - **KL Collapse Prevention**: β annealing (0→0.1 over 30% warmup steps), free-bits (0.125 nats/dimension minimum), active unit monitoring (≥128 of 256 required)
+   - **Loss Function**: MSE reconstruction + β·KL (with free-bits) + λ_coherence·(mean(μ)-0.5)² for HIHO target
+   - **Reparameterization Trick**: Train mode = stochastic (μ + ε·σ), eval mode = deterministic (return μ)
+   - **Contrastive Learning**: InfoNCE over paraphrase pairs mined from task template groups
+   - **Multi-tier Embedding Providers**: Ollama (768D, best) → Hash fallback (256D, always available) → LRU cache wrapper
+   - **TDD Workflow**: RED (write failing test) → GREEN (minimum code to pass) → REFACTOR
+   - **Learn Before Burn Protocol**: Extract patterns/anti-patterns to vault before replacing code
+   - **Checkpoint Format**: v1 (legacy 256→512 encoder with hash input) vs v2 (768→256 FlumeVAE with Ollama input)
+
+3. Files and Code Sections:
+
+   - **`src/cohezion/flume/embedding_provider.py`** (NEW - ~120 lines)
+     - Core embedding abstraction with three providers and factory function
+     - `OllamaEmbeddingProvider`: Calls Ollama API for 768D nomic-embed-text embeddings, L2-normalized
+     - `HashFallbackProvider`: SHA-256 hash expansion to 256D, deterministic, always available
+     - `CachedEmbeddingProvider`: LRU cache (OrderedDict-based) wrapping any provider
+     - `create_embedding_provider()`: Factory that probes Ollama availability, falls back to hash
+     ```python
+     class OllamaEmbeddingProvider:
+         def embed(self, text: str) -> np.ndarray:
+             resp = requests.post(f"{self.base_url}/api/embed", json={"model": self.model, "input": text}, timeout=self.timeout)
+             resp.raise_for_status()
+             vec = np.array(resp.json()["embeddings"][0], dtype=np.float32)
+             norm = np.linalg.norm(vec)
+             if norm > 0: vec /= norm
+             return vec
+     ```
+
+   - **`src/cohezion/flume/vae.py`** (NEW - ~125 lines)
+     - Core VAE model with encoder, decoder, reparameterization, and loss function
+     - Encoder: 768→512→512→384 with LayerNorm + GELU + Dropout(0.1), then mu_head(384→256) and logvar_head(384→256)
+     - Decoder: 256→384→512→512→768 mirrored architecture
+     - Loss: `flume_vae_loss()` returns dict with recon_loss, kl_loss, coherence_loss, total_loss
+     ```python
+     def flume_vae_loss(x, recon, mu, logvar, *, beta=0.1, free_bits=0.125, lambda_coherence=0.01):
+         recon_loss = F.mse_loss(recon, x, reduction="mean")
+         kl_per_dim = -0.5 * (1 + logvar - mu.pow(2) - logvar.exp())
+         if free_bits > 0:
+             kl_per_dim = torch.clamp(kl_per_dim, min=free_bits)
+         kl_loss = kl_per_dim.mean()
+         sample_means = mu.mean(dim=1)
+         coherence_loss = ((sample_means - 0.5) ** 2).mean()
+         total = recon_loss + beta * kl_loss + lambda_coherence * coherence_loss
+         return {"total_loss": total, "recon_loss": recon_loss, "kl_loss": kl_loss, "coherence_loss": coherence_loss}
+     ```
+
+   - **`src/cohezion/flume/data_pipeline.py`** (NEW - ~150 lines)
+     - `SyntheticTaskGenerator`: Generates task descriptions from 25 template groups across 5 operation types (generate, analyze, search, transform, persist), 3 paraphrases each
+     - `ContrastivePairMiner`: Finds (anchor_idx, positive_idx) pairs from same paraphrase group using itertools.combinations
+     - `TrainingDataPipeline`: Orchestrates generation → batch embedding → pair mining
+
+   - **`src/cohezion/flume/train_vae.py`** (NEW - ~145 lines)
+     - `kl_annealing_beta()`: Linear warmup 0→max_beta over warmup_steps
+     - `count_active_units()`: Counts latent dims with variance > threshold across samples
+     - `VAETrainer`: Full training loop with AdamW, grad clipping, KL annealing, checkpoint save/load
+     ```python
+     class VAETrainer:
+         def train(self, data: torch.Tensor, epochs=50, batch_size=64) -> list[dict[str, float]]:
+             # Returns per-epoch history with total_loss, recon_loss, kl_loss, beta, etc.
+         def save_checkpoint(self, path, epoch, metrics=None): ...
+         def load_checkpoint(self, path) -> dict: ...
+     ```
+
+   - **`src/cohezion/flume/evaluate_vae.py`** (NEW - ~160 lines)
+     - `reconstruction_cosine_similarity()`: Mean cos_sim between original and reconstructed embeddings
+     - `paraphrase_precision_at_1()`: For each anchor, checks if paraphrase is nearest neighbor
+     - `kl_health_check()`: Checks KL > threshold AND active_units > threshold
+     - `similarity_preservation_spearman()`: Spearman rank correlation between pairwise similarities in original vs latent space
+     - `VAEEvaluator`: Runs all evaluations, returns comprehensive metrics dict
+
+   - **`src/cohezion/flume/vae_encoder.py`** (MODIFIED - production integration)
+     - Added v2 checkpoint detection: `"model_state_dict" in checkpoint` → `_load_v2()`, else `"encoder" in checkpoint` → `_load_v1()`
+     - v2 path: text → Ollama embed (768D) → FlumeVAE.encode() → μ (256D) → normalize
+     - v1 path: text → hash (256D) → SimpleEncoder → mu_head → normalize
+     - Added `OllamaEmbeddingProvider` import and `_ollama_provider` field
+     - Added `_hash_encode_nd()` static method for arbitrary-dimension hash encoding (fallback for 768D when Ollama unavailable)
+
+   - **`src/cohezion/compound/journey_tracker.py`** (MODIFIED)
+     - Added `self._flume_encoder = None` in `__init__`
+     - Modified `text_to_latent()`: Tries FLUME encoder first (256D → tile to 2048D), falls back to SHA-256 hash expansion
+     ```python
+     if self._flume_encoder is not None:
+         try:
+             flume_256d = self._flume_encoder.encode(text)
+             latent = np.tile(flume_256d, self.HASH_DIMS // len(flume_256d))
+             latent = 2.0 * (latent - np.min(latent)) / (np.max(latent) - np.min(latent) + 1e-8) - 1.0
+             return latent
+         except Exception as e:
+             logger.debug("FLUME encoder failed, falling back to hash: %s", e)
+     ```
+
+   - **`src/cohezion/flume/__init__.py`** (MODIFIED)
+     - Added lazy imports for `FlumeVAE`, `VAETrainer`, `VAEEvaluator` to `__all__` and `__getattr__`
+
+   - **Test files created** (6 files, 93 total tests):
+     - `tests/flume/test_embedding_provider.py` — 14 tests (Ollama mock, hash fallback, cache, factory)
+     - `tests/flume/test_vae_v2.py` — 16 tests (encoder shape, decoder shape, reparameterization, loss components, param count)
+     - `tests/flume/test_data_pipeline.py` — 7 tests (task generation, pair mining, pipeline)
+     - `tests/flume/test_train_vae_v2.py` — 10 tests (KL annealing, active units, training loop, checkpoints)
+     - `tests/flume/test_evaluate_vae.py` — 11 tests (reconstruction, paraphrase P@1, KL health, Spearman, evaluator)
+     - `tests/flume/test_integration_v2.py` — 6 tests (vae_encoder v2, journey_tracker FLUME path)
+
+   - **Vault entries created** (via MCP tools):
+     - 8 decisions (anti-patterns): SHA-256 as embeddings, noise training, dual VAE, batch-mean HIHO, orphan modules, pytest timeouts, char-level tokenizers, hash-based journey tracking
+     - 7 patterns: morphospace stability wells, trajectory prediction, multi-tier collection, experience vector layout, checkpoint format, LCSP concept, bioelectric field modeling
+     - 1 experiment: overnight simulation data characterization (5.5M trajectories)
+
+   - **Knowledge graph files updated** (retrospective):
+     - `KEY_LEARNINGS.md`: Added L142 (pre-trained embeddings > scratch) and L143 (Learn Before Burn protocol). 272→278 lines.
+     - `MISSION_JOURNAL.md`: Added Phase 26 entry, compressed old Phase 4 and Phases 7-8.5. 157→135 lines.
+     - `memory/MEMORY.md`: Updated active context to Session 74 with FLUME VAE v2 status.
+     - `CLAUDE.md`: Updated test count (3,535→3,599), lint (178→160), FLUME directory description.
+
+4. Errors and fixes:
+   - **Integration test `test_new_vae_produces_256d_output` failed with `AttributeError: module does not have attribute 'OllamaEmbeddingProvider'`**:
+     - Root cause: Test tried to `patch("cohezion.flume.vae_encoder.OllamaEmbeddingProvider")` but vae_encoder.py hadn't been updated yet to import it
+     - Fix: Updated vae_encoder.py to import OllamaEmbeddingProvider and add v2 checkpoint support
+   
+   - **Integration test `test_flume_paraphrases_closer_than_unrelated` failed with `assert np.float32(1.0000001) > np.float32(1.0000001)`**:
+     - Root cause: Mock encoder returned constant vectors (np.ones * 0.8), which when tiled 8x and normalized to [-1,1] collapsed to identical values (constant array → min==max → division produces zeros)
+     - Fix: Changed mock to use `rng.randn(256)` with distinct additive offsets (+2.0 in first/second half) to produce vectors that remain distinguishable after tiling and normalization
+
+   - **`Edit` tool failed on journey_tracker.py with "String to replace not found"**:
+     - Root cause: The linter had reformatted the file after the previous edit, changing multi-line expressions to single-line
+     - Fix: Re-read the file to get the current content, then used the linter-reformatted version in the old_string
+
+   - **Lint issues in new files (9 errors)**:
+     - 5 I001 (unsorted imports) — auto-fixed with `ruff --fix`
+     - 2 RUF059 (unused unpacked variable `z`) — renamed to `_z`
+     - 1 RUF002 (Unicode ρ in docstring) — replaced with "rho"
+     - 1 N812 (`import F` alias) — added `# noqa: N812` (standard PyTorch convention)
+
+   - **Unnecessary `pytestmark = pytest.mark.asyncio` in test_embedding_provider.py**:
+     - Caused warnings since all tests were sync
+     - Fix: Removed the pytestmark line and unused AsyncMock import
+
+5. Problem Solving:
+   - Solved the core FLUME architecture problem: replaced SHA-256 hash-based embeddings with Ollama pre-trained semantic embeddings as VAE input
+   - Solved v1/v2 checkpoint compatibility: vae_encoder.py auto-detects checkpoint format and uses appropriate model
+   - Solved journey_tracker integration: FLUME semantic embeddings tiled from 256D to 2048D to match existing pipeline expectations
+   - All 93 FLUME tests pass, all 14 existing vae_encoder tests pass, all 6+2 journey_tracker tests pass
+   - Retrospective completed: knowledge files updated, metrics corrected, lint reduced 160→151
+
+6. All user messages:
+   - First message: The complete FLUME VAE implementation plan (massive spec with Sprint 0-4 breakdown, architecture diagrams, loss functions, verification strategy, adversarial review findings)
+   - Second message: `/spec the rest of the sprints` (cancelled the worktree question)
+   - Third message: `/retrospect` (run a development retrospective)
+
+7. Pending Tasks:
+   From the original plan, remaining work not yet implemented:
+   - **Sprint 2 remaining**: CLI entry point (`scripts/train_flume_v2.py` ~50 lines), bootstrap training data generation (~7,500 samples + ~15K contrastive pairs), actual VAE training run + convergence validation
+   - **Sprint 3 remaining**: Run evaluation suite against green-light criteria (KL>0.1, cos_sim>0.95, P@1>0.85, ρ>0.90), SemanticCache A/B comparison (FLUME vs hash)
+   - **Sprint 1 remaining**: Universes team positioning document
+   - **Sprint 4**: Instrument ExperienceCollector for real execution data, characterize overnight simulation data (5.5M trajectories), end-to-end integration test
+   - **Go/No-Go Gate**: All Phase 1 green-light criteria must be met before Phase 2
+
+8. Current Work:
+   The most recent work was the `/retrospect` command, which has been fully completed. The retrospective:
+   - Audited KEY_LEARNINGS.md (278 lines, <300 target), MISSION_JOURNAL.md (135 lines, <150 target), MEMORY.md (127 lines, <200 target)
+   - Added Learning 142 and 143, Phase 26 journal entry
+   - Updated CLAUDE.md metrics and FLUME module description
+   - Updated MEMORY.md active context
+   - Fixed 9 lint issues, verified 93 FLUME tests still pass
+   - Produced final report showing pruned, propagated, and remaining stale items
+
+9. Optional Next Step:
+   The user's last explicit request before the retrospective was `/spec the rest of the sprints` which they cancelled. The retrospective is complete. The natural next step would be to resume the remaining sprints from the FLUME VAE plan (CLI entry point, data generation, training, evaluation) — but this should be confirmed with the user since they cancelled the `/spec` invocation. The MEMORY.md next steps list:
+   1. CLI entry point (`scripts/train_flume_v2.py`)
+   2. Generate bootstrap training data
+   3. Train initial model + validate convergence
+   4. Run evaluation against green-light criteria
+   5. SemanticCache A/B comparison
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.REDACTED.jsonl
+
+---
+
+# /spec - Unified Spec-Driven Development
+
+**For new features, major changes, and complex work.** Creates a spec, gets your approval, implements with TDD, and verifies completion - all in one continuous flow.
+
+This command is a **dispatcher** that determines which phase to run and invokes it via `Skill()`.
+
+## ⛔ MANDATORY: /spec = Workflow. No Exceptions.
+
+**When `/spec` is invoked, you MUST follow the spec workflow exactly. The user's phrasing after `/spec` is the TASK DESCRIPTION — it is NOT an instruction to change the workflow.**
+
+- `/spec brainstorm a caching layer` → task_description = "brainstorm a caching layer" → invoke `Skill('spec-plan')` with that description
+- `/spec let's discuss auth options` → task_description = "let's discuss auth options" → invoke `Skill('spec-plan')` with that description
+- `/spec explore and plan a new feature` → task_description = "explore and plan a new feature" → invoke `Skill('spec-plan')` with that description
+
+**Words like "brainstorm", "discuss", "explore", "think about" are part of the task description, NOT instructions to skip the workflow.** The spec-plan phase handles all exploration, discussion, and brainstorming within its structured flow.
+
+**NEVER interpret `/spec` arguments as a reason to have a freeform conversation instead of invoking the phase skill.**
+
+---
+
+## 📋 WORKFLOW OVERVIEW
+
+```
+/spec → Dispatcher → Skill('spec-plan')    → Plan, verify, approve
+                   → Skill('spec-implement') → TDD loop for each task
+                   → Skill('spec-verify')    → Tests, execution, code review
+```
+
+| Phase              | Skill            | What Happens                                     |
+| ------------------ | ---------------- | ------------------------------------------------ |
+| **Planning**       | `spec-plan`      | Explore → Design → Write plan → Verify → Approve |
+| **Implementation** | `spec-implement` | TDD loop for each task                           |
+| **Verification**   | `spec-verify`    | Tests → Execution → Rules → Code Review → E2E    |
+
+### Status-Based Flow
+
+```
+PENDING (Not Approved) → spec-plan    → User approves
+PENDING (Approved)     → spec-implement → All tasks done → COMPLETE
+COMPLETE               → spec-verify   → All checks pass → VERIFIED
+VERIFIED               → Done!
+```
+
+### The Feedback Loop
+
+```
+spec-verify finds issues → Status: PENDING → spec-implement fixes → COMPLETE → spec-verify → ... → VERIFIED
+```
+
+---
+
+## 0.1 Parse Arguments
+
+```
+/spec <task-description>           # Start new workflow from task
+/spec <path/to/plan.md>            # Continue existing plan
+/spec --continue <path/to/plan.md> # Resume after session clear
+```
+
+Parse the arguments: the rest of the remaining phases
+
+### Determine Current State
+
+```
+IF arguments start with "--continue":
+    plan_path = extract path after "--continue"
+    1. Read ~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md if it exists
+    2. Delete the continuation file after reading
+    3. Read plan file, check Status AND Approved fields
+    → Dispatch to appropriate phase based on status
+
+ELIF arguments end with ".md" AND file exists:
+    plan_path = arguments
+    → Read plan file, check Status AND Approved fields
+    → Dispatch to appropriate phase based on status
+
+ELSE:
+    task_description = arguments  # ALWAYS treated as task description, regardless of phrasing
+    → Ask worktree question FIRST (see Section 0.1.1 below)
+    → Invoke planning phase with worktree choice: Skill(skill='spec-plan', args='<task_description> --worktree=yes|no')
+    # NEVER have a freeform conversation instead. ALWAYS invoke the Skill.
+```
+
+### 0.1.1 Worktree Question (New Plans Only)
+
+**Before invoking `spec-plan` for a NEW plan, ask the user about worktree isolation:**
+
+```
+AskUserQuestion:
+  question: "Use git worktree isolation for this spec?"
+  header: "Worktree"
+  options:
+    - "Yes" - Isolate work on a dedicated branch; safe to experiment, easy to discard or squash merge
+    - "No" - Work directly on the current branch without worktree isolation
+```
+
+**Append the choice to the spec-plan args:** `Skill(skill='spec-plan', args='<task_description> --worktree=yes')` or `--worktree=no`.
+
+**This question is ONLY asked for new plans.** When continuing an existing plan (`--continue` or `.md` path), the `Worktree:` field is already set in the plan header.
+
+**After reading the plan file, register the plan association (non-blocking):**
+
+```bash
+~/.pilot/bin/pilot register-plan "<plan_path>" "<status>" 2>/dev/null || true
+```
+
+This tells Console which session is working on which plan. Failure is silently ignored.
+
+## 0.2 Status-Based Dispatch
+
+Read the plan file and dispatch based on Status and Approved fields:
+
+| Status   | Approved | Action                                                                                    |
+| -------- | -------- | ----------------------------------------------------------------------------------------- |
+| PENDING  | No       | `Skill(skill='spec-plan', args='<plan-path>')`                                            |
+| PENDING  | Yes      | `Skill(skill='spec-implement', args='<plan-path>')` (worktree if `Worktree: Yes` in plan) |
+| COMPLETE | \*       | `Skill(skill='spec-verify', args='<plan-path>')`                                          |
+| VERIFIED | \*       | Report completion, workflow done                                                          |
+
+**⛔ Phase Transition Context Guard applies before every dispatch (see Section 0.3).**
+
+**Invoke the appropriate Skill immediately. Do not duplicate phase logic here.**
+
+### Report Completion (VERIFIED)
+
+If the plan status is already VERIFIED:
+
+```
+✅ Workflow complete! Plan status: VERIFIED
+
+The plan at <plan-path> has been fully implemented and verified.
+Is there anything else you'd like me to help with?
+```
+
+---
+
+## 0.3 Phase Transition Context Guard
+
+**⛔ MANDATORY: Before EVERY `Skill()` call that transitions to another phase, check context:**
+
+```bash
+~/.pilot/bin/pilot check-context --json
+```
+
+| Percentage | Action                                              |
+| ---------- | --------------------------------------------------- |
+| **< 80%**  | Proceed with phase transition                       |
+| **>= 80%** | **Do NOT invoke the next phase.** Hand off instead. |
+
+Each phase (plan, implement, verify) needs significant context to complete. Starting a new phase above 80% risks overshooting to 100% — the worst-case scenario where all work is lost.
+
+**When >= 80%:** Write continuation file, trigger `send-clear`. The next session dispatches to the correct phase automatically based on plan status.
+
+**This applies to ALL transitions:** plan→implement, implement→verify, verify→implement (feedback loop), and dispatcher→any phase.
+
+---
+
+## 0.4 Context Management (90% Handoff)
+
+After each major operation, check context:
+
+```bash
+~/.pilot/bin/pilot check-context --json
+```
+
+**Between iterations:**
+
+1. If context >= 90%: hand off cleanly (don't rush!)
+2. If context 80-89%: continue but wrap up current task with quality
+3. If context < 80%: continue the loop freely
+
+If response shows `"status": "CLEAR_NEEDED"` (context >= 90%):
+
+**⚠️ CRITICAL: Execute ALL steps below in a SINGLE turn. DO NOT stop or wait for user response between steps.**
+
+**Step 1: Write continuation file (GUARANTEED BACKUP)**
+
+Write to `~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md`:
+
+```markdown
+# Session Continuation (/spec)
+
+**Plan:** <plan-path>
+**Phase:** [planning|implementation|verification]
+**Current Task:** Task N - [description]
+
+**Completed This Session:**
+
+- [x] [What was finished]
+
+**Next Steps:**
+
+1. [What to do immediately when resuming]
+
+**Context:**
+
+- [Key decisions or blockers]
+```
+
+**Step 2: Trigger session clear**
+
+```bash
+~/.pilot/bin/pilot send-clear <plan-path>
+```
+
+Pilot will restart with `/spec --continue <plan-path>`
+
+### Error Handling
+
+**No Active Session:** If `send-clear` fails, tell user: "Context at X%. Please run `/clear` manually, then `/spec --continue <plan-path>`"
+
+**Plan File Not Found:** Tell user: "Plan file not found: <path>" and ask if they want to create a new plan.
+
+---
+
+## 0.5 Rules Summary (Quick Reference)
+
+| #   | Rule                                                                                                                                                                                                                                                             |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **NO sub-agents except verification** - Phases 1 and 2 use direct tools only. Verification steps (Step 1.7, Step 3.0/3.5) launch paired review agents via the **Task tool** (`subagent_type="pilot:*"`). Task tool is the ONLY allowed mechanism for sub-agents. |
+| 2   | **NEVER SKIP verification** - Plan verification (Step 1.7) and Code verification (Step 3.5) are mandatory. No exceptions.                                                                                                                                        |
+| 3   | **ONLY stopping point is plan approval** - Everything else is automatic. Never ask "Should I fix these?"                                                                                                                                                         |
+| 4   | **Batch questions together** - Don't interrupt user flow                                                                                                                                                                                                         |
+| 5   | **Run explorations sequentially** - One at a time, never in parallel                                                                                                                                                                                             |
+| 6   | **NEVER write code during planning** - Separate phases                                                                                                                                                                                                           |
+| 7   | **NEVER assume - verify by reading files**                                                                                                                                                                                                                       |
+| 8   | **Re-read plan after user edits** - Before asking for approval again                                                                                                                                                                                             |
+| 9   | **TDD is MANDATORY** - No production code without failing test first                                                                                                                                                                                             |
+| 10  | **Update plan checkboxes after EACH task** - Not at the end                                                                                                                                                                                                      |
+| 11  | **Quality over speed** - Never rush due to context pressure. But at 90%+ context, handoff overrides everything - do NOT start new fix cycles                                                                                                                     |
+| 12  | **Plan file is source of truth** - Survives session clears                                                                                                                                                                                                       |
+| 13  | **Phase Transition Context Guard** - Check context before EVERY phase transition. If >= 80%, hand off instead of starting next phase (Section 0.3)                                                                                                               |
+
+ARGUMENTS: the rest of the remaining phases
+
+---
+
+# /spec-plan - Planning Phase
+
+**Phase 1 of the /spec workflow.** Explores the codebase, designs an implementation plan, verifies it, and gets user approval.
+
+**Input:** Task description (new plan) or plan path (continue unapproved plan)
+**Output:** Approved plan file at `docs/plans/YYYY-MM-DD-<slug>.md`
+**Next phase:** On approval → `Skill(skill='spec-implement', args='<plan-path>')`
+
+---
+
+## ⛔ KEY CONSTRAINTS (Rules Summary)
+
+| #   | Rule                                                                                                     |
+| --- | -------------------------------------------------------------------------------------------------------- |
+| 1   | **NO sub-agents during planning** - Use direct tools only. Exception: Step 1.7 launches `plan-verifier` + `plan-challenger` via the **Task tool** (`subagent_type="pilot:plan-verifier"` and `"pilot:plan-challenger"`). |
+| 2   | **NEVER SKIP verification** - Plan verification (Step 1.7) is mandatory. No exceptions.                  |
+| 3   | **ONLY stopping point is plan approval** - Everything else is automatic. Never ask "Should I fix these?" |
+| 4   | **Batch questions together** - Don't interrupt user flow                                                 |
+| 5   | **Run explorations sequentially** - One at a time, never in parallel                                     |
+| 6   | **NEVER write code during planning** - Separate phases                                                   |
+| 7   | **NEVER assume - verify by reading files**                                                               |
+| 8   | **Re-read plan after user edits** - Before asking for approval again                                     |
+| 9   | **Quality over speed** - Never rush due to context pressure                                              |
+| 10  | **Plan file is source of truth** - Survives session clears                                               |
+
+---
+
+> **WARNING: DO NOT use the built-in `ExitPlanMode` or `EnterPlanMode` tools.**
+
+## Using AskUserQuestion - Core Planning Tool
+
+**Questions are grouped into batches for smooth user experience:**
+
+| Batch       | When                         | Purpose                                |
+| ----------- | ---------------------------- | -------------------------------------- |
+| **Batch 1** | Phase 0 (before exploration) | Clarify task, scope, priorities        |
+| **Batch 2** | Phase 2 (after exploration)  | Architecture choices, design decisions |
+
+**When to Use AskUserQuestion:**
+
+| Situation                     | Example Question                                                     |
+| ----------------------------- | -------------------------------------------------------------------- |
+| **Unclear requirements**      | "Should this feature support batch processing or single items only?" |
+| **Multiple valid approaches** | Present 2-3 options with trade-offs for user to choose               |
+| **Ambiguous scope**           | "Should we include error recovery, or fail fast?"                    |
+| **Technology choices**        | "Prefer async/await or callbacks for this integration?"              |
+| **Priority decisions**        | "Performance or simplicity - which matters more here?"               |
+| **Missing domain knowledge**  | "How does the existing auth flow work in production?"                |
+
+**Questioning philosophy — Dream extraction, not requirements gathering:**
+
+- **Start open, then narrow** — Begin with "What does success look like?" before diving into specifics
+- **Follow energy** — If the user is excited about a detail, explore it; if they're vague, they may not care about the specifics
+- **Challenge vagueness** — "Fast" means what? Sub-100ms? Under 2 seconds? Make abstract concrete
+- **Present interpretations as options** — "I think you mean X — should we do X (simple, covers 80%) or Y (comprehensive, handles edge cases)?" is better than "What do you want?"
+
+**Anti-patterns to avoid:**
+
+- **Checklist walking** — Don't ask every possible question; focus on genuine ambiguities
+- **Canned questions** — Adapt questions to the specific task, not generic templates
+- **Shallow acceptance** — Don't accept "it should work well" — ask what "well" means concretely
+- **Interrogation** — 1-2 focused questions are better than 4 vague ones
+
+**Key principles:**
+
+- Present options, not open-ended questions when possible
+- Include trade-offs for each option
+- **Batch related questions together** — don't interrupt user flow
+- Don't proceed with assumptions — ASK
+- **Scope guardrail** — Questions clarify HOW to implement, not WHETHER to expand scope
+
+## Extending Existing Plans
+
+**When adding tasks to existing plan:**
+
+1. Load existing plan: `Read(file_path="docs/plans/...")`
+2. Parse structure (architecture, completed tasks, pending tasks)
+3. Check git status for partially completed work
+4. Verify new tasks are compatible with existing architecture
+5. Check total: If original + new > 12 tasks, suggest splitting
+6. Mark new tasks with `[NEW]` prefix
+7. Update total count: `Total Tasks: X (Originally: Y)`
+8. Add extension history: `> Extended [Date]: Tasks X-Y for [feature]`
+
+## ⚠️ CRITICAL: Migration/Refactoring Tasks
+
+**When the task involves migrating, refactoring, or replacing existing code, you MUST complete these additional steps to prevent missing features.**
+
+### Mandatory Feature Inventory (Phase 1.5)
+
+**After exploration but BEFORE creating tasks:**
+
+1. **List ALL files being replaced:**
+
+   ```markdown
+   ## Feature Inventory - Files Being Replaced
+
+   | Old File         | Functions/Classes                | Status        |
+   | ---------------- | -------------------------------- | ------------- |
+   | `old/module1.py` | `func_a()`, `func_b()`, `ClassX` | ⬜ Not mapped |
+   | `old/module2.py` | `func_c()`, `func_d()`           | ⬜ Not mapped |
+   ```
+
+2. **Map EVERY function/feature to a new task:**
+
+   ```markdown
+   ## Feature Mapping - Old → New
+
+   | Old Feature        | New Location   | Task #        |
+   | ------------------ | -------------- | ------------- |
+   | `module1.func_a()` | `new/step1.py` | Task 3        |
+   | `module1.func_b()` | `new/step1.py` | Task 3        |
+   | `module2.func_c()` | `new/step2.py` | Task 5        |
+   | `module2.func_d()` | ❌ MISSING     | ⚠️ NEEDS TASK |
+   ```
+
+3. **Verify 100% coverage before proceeding:**
+   - Every row must have a Task # or explicit "Out of Scope" justification
+   - "Out of Scope" means the feature is INTENTIONALLY REMOVED (with user confirmation)
+   - "Out of Scope" does NOT mean "migrate as-is" - that still needs a task!
+
+### "Out of Scope" Clarification
+
+**CRITICAL: "Out of Scope" has a precise meaning:**
+
+| Phrase                             | Meaning                                    | Requires Task?                      |
+| ---------------------------------- | ------------------------------------------ | ----------------------------------- |
+| "Out of Scope: Changes to X"       | X will be migrated AS-IS, no modifications | ✅ YES - migration task             |
+| "Out of Scope: Feature X"          | X is intentionally REMOVED/not included    | ❌ NO - but needs user confirmation |
+| "Out of Scope: New features for X" | X migrates as-is, no NEW features added    | ✅ YES - migration task             |
+
+### Pre-Task Verification Gate
+
+**Before finalizing tasks, verify:**
+
+- [ ] All old files listed in Feature Inventory
+- [ ] All functions/classes from old files identified
+- [ ] Every feature mapped to a task OR explicitly marked "REMOVED" with user confirmation
+- [ ] No row in Feature Mapping has "⬜ Not mapped" status
+- [ ] User has confirmed any features marked for removal
+
+**If any checkbox is unchecked, DO NOT proceed to implementation.**
+
+---
+
+## Creating New Plans
+
+### Step 1.1: Create Plan File Header (FIRST)
+
+**Immediately upon starting planning, create the plan file header for status bar detection.**
+
+1. **Parse worktree choice from arguments:**
+   - Look for `--worktree=yes` or `--worktree=no` at the end of the arguments
+   - Strip the `--worktree=...` flag from the task description
+   - Default to `Yes` if no flag is present (backward compatibility)
+
+2. **Generate filename:** `docs/plans/YYYY-MM-DD-<feature-slug>.md`
+   - Use current date
+   - Create slug from first 3-4 words of task description (lowercase, hyphens)
+   - Example: "add user authentication" → `2026-01-24-add-user-authentication.md`
+
+3. **Create directory if needed:** `mkdir -p docs/plans`
+
+4. **Write initial header immediately (with worktree choice from dispatcher):**
+
+   ```markdown
+   # [Feature Name] Implementation Plan
+
+   Created: [Date]
+   Status: PENDING
+   Approved: No
+   Iterations: 0
+   Worktree: [Yes|No - from dispatcher's --worktree flag]
+
+   > Planning in progress...
+
+   ## Summary
+
+   **Goal:** [Task description from user]
+
+   ---
+
+   _Exploring codebase and gathering requirements..._
+   ```
+
+5. **Register plan association (MANDATORY):**
+
+   ```bash
+   ~/.pilot/bin/pilot register-plan "<plan_path>" "PENDING" 2>/dev/null || true
+   ```
+
+   This tells the statusline which plan belongs to THIS session. Without it, parallel sessions show the wrong plan.
+
+6. **Why this matters:**
+   - Status bar shows "Spec: <name> [/plan]" immediately
+   - User sees progress even during exploration phase
+   - Plan file exists for continuation if session clears
+   - Plan is correctly associated with this specific terminal
+
+**CRITICAL:** Do this FIRST, before any exploration or questions.
+
+---
+
+### Step 1.2: Task Understanding, Discuss & Clarify
+
+**First, clearly state your understanding of the task.**
+
+Before any exploration:
+
+1. Restate what the user is asking for in your own words
+2. Identify the core problem being solved
+3. List any assumptions you're making
+
+**Then identify gray areas using domain-aware analysis:**
+
+Analyze the task description to find ambiguities that NEED resolution before planning. Different types of work have different gray areas:
+
+| Domain                                  | Typical Gray Areas                                                                         |
+| --------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **Something users SEE** (UI/frontend)   | Layout density, interaction patterns, responsive breakpoints, empty states, loading states |
+| **Something users CALL** (API/backend)  | Response shape, error codes, auth model, pagination, rate limiting                         |
+| **Something users RUN** (CLI/scripts)   | Output format, flags/options, exit codes, interactive vs non-interactive                   |
+| **Something users STORE** (data/config) | Schema shape, migration strategy, validation rules, default values                         |
+| **Something users READ** (docs/content) | Audience level, structure, examples needed, update frequency                               |
+
+**Scope guardrail:** Questions should clarify HOW to implement the task, not WHETHER to expand scope. If discussion surfaces new feature ideas, capture them as "Deferred Ideas" in the plan's Open Questions section — don't add them to scope.
+
+**Then gather clarifications if needed (Question Batch 1):**
+
+If gray areas exist, use AskUserQuestion to ask focused questions per area in a single interaction. Present your interpretation as options when possible — "Should the API return paginated results (recommended for large datasets) or all results at once?" is better than "How should the API handle large result sets?"
+
+If the task is clear and unambiguous with no meaningful gray areas, skip directly to Step 1.3.
+
+### Step 1.3: Exploration
+
+**Explore the codebase systematically.** Run explorations **one at a time** (sequentially, not in parallel).
+
+#### 🔧 Tools for Exploration
+
+| Tool               | When to Use                | Example                                                                                            |
+| ------------------ | -------------------------- | -------------------------------------------------------------------------------------------------- |
+| **Context7**       | Library/framework docs     | `resolve-library-id(query="your question", libraryName="lib")` then `query-docs(libraryId, query)` |
+| **Vexor**          | Semantic code search       | `vexor search "query" --mode code`                                                                 |
+| **grep-mcp**       | Real-world GitHub examples | `searchGitHub(query="FastMCP", language=["Python"])`                                               |
+| **Read/Grep/Glob** | Direct file exploration    | Use directly, no sub-agents                                                                        |
+
+**Exploration areas (in order):**
+
+1. **Architecture** - Project structure, entry points, how components connect
+2. **Similar Features** - Existing patterns that relate to the task, what can be reused
+3. **Dependencies** - Imports, modules, what will be impacted
+4. **Tests** - Test infrastructure, existing patterns, available fixtures
+
+**For each area:**
+
+- Document hypotheses (not conclusions)
+- Note full file paths for relevant code
+- Track questions that remain unanswered
+
+**After explorations complete:**
+
+1. Read each identified file to verify hypotheses
+2. Build a complete mental model of current architecture
+3. Identify integration points and potential risks
+4. Note reusable patterns
+
+### Step 1.4: Design Decisions
+
+**Present findings and gather all design decisions (Question Batch 2).**
+
+Summarize what you found, then use AskUserQuestion with all decisions at once.
+
+**After user answers:**
+
+- Incorporate their choices into the plan design
+- Proceed to Step 1.5 — the user will review the full plan at Step 1.8
+
+### Step 1.5: Implementation Planning
+
+**Task Granularity**
+
+Each task should be:
+
+- **Independently testable** — has its own tests that pass without other tasks being complete
+- **Focused** — touches 2-4 files max; more means it should be split
+- **Verifiable** — produces an observable result (test output, API response, UI change)
+
+Split a task if it has multiple unrelated DoD criteria. Merge tasks if one can't be tested without the other. Don't create tasks for setup/boilerplate that have no standalone value — fold them into the first task that uses them.
+
+**For each task, populate:**
+
+- **Dependencies** — Which tasks must complete first? Use `None` for tasks with no ordering requirements.
+- **Verify** — What concrete commands prove this task is done? Include test commands, build commands, or curl/CLI invocations. The implementation phase runs these after completing each task.
+
+**Task Structure:**
+
+```markdown
+### Task N: [Component Name]
+
+**Objective:** [1-2 sentences describing what to build]
+
+**Dependencies:** [None | Task X, Task Y — tasks that must complete before this one]
+
+**Files:**
+
+- Create: `exact/path/to/file.py`
+- Modify: `exact/path/to/existing.py`
+- Test: `tests/exact/path/to/test.py`
+
+**Key Decisions / Notes:**
+
+- [Technical approach or algorithm to use]
+- [Which existing pattern to follow, with file:line reference]
+- [Integration points with other tasks or existing code]
+
+**Definition of Done:**
+
+- [ ] All tests pass (unit, integration if applicable)
+- [ ] No diagnostics errors (linting, type checking)
+- [ ] [Task-specific criterion with observable outcome]
+- [ ] [Task-specific criterion with observable outcome]
+
+**Verify:**
+
+- `uv run pytest tests/path/to/test.py -q` — task-specific tests pass
+- [Additional verification command or check]
+```
+
+**⚠️ DoD criteria must be verifiable.** The verification phase checks each criterion against the actual code and running program. Replace the `[Task-specific criterion]` placeholders with criteria that can be checked with a specific test, command, or observation.
+
+✅ Good DoD examples:
+
+- "GET /api/users?role=admin returns only admin users"
+- "Form shows validation error when email field is empty"
+- "CLI exits with code 1 and prints usage when no arguments given"
+- "Retry logic attempts 3 times with exponential backoff before failing"
+
+❌ Bad DoD (never use these):
+
+- "Feature works correctly"
+- "Edge cases handled appropriately"
+- "Error messages are clear and actionable"
+
+**Zero-context assumption:**
+
+- Assume implementer knows nothing about codebase
+- Provide exact file paths
+- Explain domain concepts
+- List integration points
+- Reference similar patterns in codebase
+
+### Step 1.6: Write Full Plan
+
+**Save plan to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
+
+**Required plan template:**
+
+```markdown
+# [Feature Name] Implementation Plan
+
+Created: [Date]
+Status: PENDING
+Approved: No
+Iterations: 0
+Worktree: Yes
+
+> **Status Lifecycle:** PENDING → COMPLETE → VERIFIED
+> **Iterations:** Tracks implement→verify cycles (incremented by verify phase)
+>
+> - PENDING: Initial state, awaiting implementation
+> - COMPLETE: All tasks implemented
+> - VERIFIED: All checks passed
+>
+> **Approval Gate:** Implementation CANNOT proceed until `Approved: Yes`
+> **Worktree:** Set at plan creation (from dispatcher). `Yes` uses git worktree isolation; `No` works directly on current branch
+
+## Summary
+
+**Goal:** [One sentence describing what this builds]
+
+**Architecture:** [2-3 sentences about chosen approach]
+
+**Tech Stack:** [Key technologies/libraries]
+
+## Scope
+
+### In Scope
+
+- [What WILL be changed/built]
+- [Specific components affected]
+
+### Out of Scope
+
+- [What will NOT be changed]
+- [Explicit boundaries]
+
+## Prerequisites
+
+- [Any requirements before starting]
+- [Dependencies that must exist]
+- [Environment setup needed]
+
+## Context for Implementer
+
+> This section is critical for cross-session continuity. Write it for an implementer who has never seen the codebase.
+
+- **Patterns to follow:** [Reference existing file:line that demonstrates the pattern, e.g., "Follow the route handler pattern in `src/routes/users.ts:45`"]
+- **Conventions:** [Naming, file organization, error handling approach used in this project]
+- **Key files:** [Important files the implementer must read first, with brief description of each]
+- **Gotchas:** [Non-obvious dependencies, quirks, things that look wrong but are intentional]
+- **Domain context:** [Business logic or domain concepts needed to understand the task]
+
+## Runtime Environment (if applicable)
+
+> Include this section when the project has a running service, API, or UI.
+> Delete if the project is a library or CLI tool with no long-running process.
+
+- **Start command:** [How to start the service, e.g., `bun worker-service.cjs`]
+- **Port:** [What port it listens on]
+- **Deploy path:** [Where built artifacts are installed, if different from source]
+- **Health check:** [How to verify the service is running, e.g., `curl http://localhost:PORT/health`]
+- **Restart procedure:** [How to restart after code changes]
+
+## Feature Inventory (FOR MIGRATION/REFACTORING ONLY)
+
+> **Include this section when replacing existing code. Delete if not applicable.**
+
+### Files Being Replaced
+
+| Old File       | Functions/Classes      | Mapped to Task |
+| -------------- | ---------------------- | -------------- |
+| `old/file1.py` | `func_a()`, `func_b()` | Task 3         |
+| `old/file2.py` | `ClassX`, `func_c()`   | Task 4, Task 5 |
+
+### Feature Mapping Verification
+
+- [ ] All old files listed above
+- [ ] All functions/classes identified
+- [ ] Every feature has a task number
+- [ ] No features accidentally omitted
+
+**⚠️ If any feature shows "❌ MISSING", add a task before implementation!**
+
+## Progress Tracking
+
+**MANDATORY: Update this checklist as tasks complete. Change `[ ]` to `[x]`.**
+
+- [ ] Task 1: [Brief summary]
+- [ ] Task 2: [Brief summary]
+- [ ] ...
+
+**Total Tasks:** [Number] | **Completed:** 0 | **Remaining:** [Number]
+
+## Implementation Tasks
+
+### Task 1: [Component Name]
+
+**Objective:** ...
+**Dependencies:** None
+**Files:** ...
+**Key Decisions / Notes:** ...
+**Definition of Done:** ...
+**Verify:** [Concrete commands to verify this task]
+
+### Task 2: [Component Name]
+
+**Objective:** ...
+**Dependencies:** Task 1
+**Files:** ...
+**Key Decisions / Notes:** ...
+**Definition of Done:** ...
+**Verify:** [Concrete commands to verify this task]
+
+## Testing Strategy
+
+- Unit tests: [What to test in isolation]
+- Integration tests: [What to test together]
+- Manual verification: [Steps to verify manually]
+
+## Risks and Mitigations
+
+> Consider: breaking changes, backward compatibility, data loss/migration, performance regression, security implications, state management complexity, cross-component coupling, external dependency failures.
+
+| Risk     | Likelihood   | Impact       | Mitigation                           |
+| -------- | ------------ | ------------ | ------------------------------------ |
+| [Risk 1] | Low/Med/High | Low/Med/High | [Concrete, implementable mitigation] |
+
+**⚠️ Risk mitigations are commitments.** The verification phase (spec-reviewer-compliance) will check that every mitigation listed here is actually implemented in code. Write mitigations as concrete, implementable behaviors, not vague statements.
+
+✅ Good: "If selected project not in available list, reset to null (All Projects)"
+❌ Bad: "Handle edge cases appropriately"
+
+## Open Questions
+
+- [Any remaining questions for the user]
+- [Decisions deferred to implementation]
+
+### Deferred Ideas
+
+- [Ideas surfaced during discussion that are out of scope for this plan]
+```
+
+### Step 1.7: Plan Verification
+
+**⛔ THIS STEP IS NON-NEGOTIABLE. You MUST run plan verification before asking for approval.**
+
+Before presenting the plan to the user, verify it with TWO dedicated reviewer agents running in parallel. This provides both alignment checking (plan-verifier) and adversarial review (plan-challenger) BEFORE the user sees the plan.
+
+#### Resolve Session Path for Findings Persistence
+
+```bash
+echo $PILOT_SESSION_ID
+```
+
+Define output paths (replace `<session-id>` with the resolved value):
+- **Verifier findings:** `~/.pilot/sessions/<session-id>/findings-plan-verifier.json`
+- **Challenger findings:** `~/.pilot/sessions/<session-id>/findings-plan-challenger.json`
+
+#### Launch Plan Verification (Parallel Review)
+
+**⛔ CRITICAL: You MUST send BOTH Task calls in a SINGLE message.** Set `run_in_background=true` on both so they run in parallel. If you send them in separate messages, the first blocks and the second waits — defeating the purpose.
+
+**Agent 1: plan-verifier** (alignment and completeness)
+```
+Task(
+  subagent_type="pilot:plan-verifier",
+  run_in_background=true,
+  prompt="""
+  **Plan file:** <plan-path>
+  **User request:** <original task description from user>
+  **Clarifications:** <any Q&A that clarified requirements>
+  **Output path:** <absolute path to findings-plan-verifier.json>
+
+  Verify this plan correctly captures the user's requirements.
+  Check for missing features, scope issues, and ambiguities.
+
+  **IMPORTANT:** Write your final findings JSON to the output_path using the Write tool.
+  """
+)
+```
+
+**Agent 2: plan-challenger** (adversarial review)
+```
+Task(
+  subagent_type="pilot:plan-challenger",
+  run_in_background=true,
+  prompt="""
+  **Plan file:** <plan-path>
+  **User request:** <original task description from user>
+  **Clarifications:** <any Q&A that clarified requirements>
+  **Output path:** <absolute path to findings-plan-challenger.json>
+
+  Challenge this plan from an adversarial perspective.
+  Find untested assumptions, missing failure modes, and hidden dependencies.
+
+  **IMPORTANT:** Write your final findings JSON to the output_path using the Write tool.
+  """
+)
+```
+
+The verifiers work in parallel:
+
+- **plan-verifier**: Reviews plan against original user request, checks if clarification answers are incorporated, identifies missing requirements or scope issues
+- **plan-challenger**: Challenges assumptions, finds failure modes, questions optimism, identifies architectural weaknesses
+
+Both agents persist their findings JSON to the session directory for reliable retrieval.
+
+#### Collect and Fix Findings (Progressive)
+
+**⛔ NEVER use `TaskOutput` to retrieve agent results.** TaskOutput dumps the full verbose agent transcript (all JSON messages, hook progress, tool calls) into context, wasting thousands of tokens. Instead, poll the output files with the Read tool.
+
+**Progressive polling — fix findings as each agent completes:**
+
+1. **Attempt to read BOTH findings files** using the Read tool on the paths defined above
+2. **If one file exists but the other doesn't** → start fixing findings from the ready agent immediately (by severity: must_fix → should_fix → suggestion). Track which findings you fixed.
+3. After fixing the first batch, **poll for the second file** (retry if not yet ready)
+4. **If a file is still missing after 2-3 retries**, re-launch that specific agent synchronously (without `run_in_background`) with the same prompt
+5. When the second file is ready, **skip findings that overlap** with already-fixed items from the first batch (same file + same issue), then fix the remaining findings
+6. **If both files are ready simultaneously**, deduplicate first (keep higher severity for duplicates on same file + line), then fix all
+
+**Severity actions:**
+
+| Severity       | Action                                               |
+| -------------- | ---------------------------------------------------- |
+| **must_fix**   | Fix immediately - update plan before proceeding      |
+| **should_fix** | Fix immediately - update plan before proceeding      |
+| **suggestion** | Incorporate if reasonable, or note in Open Questions |
+
+**Only proceed to Step 1.8 after all must_fix and should_fix issues are resolved.**
+
+### Step 1.8: Get User Approval
+
+**⛔ MANDATORY APPROVAL GATE - This is NON-NEGOTIABLE**
+
+**After saving plan:**
+
+1. **Summarize the plan** - Provide a brief overview of:
+   - What will be built (goal)
+   - Key tasks (numbered list)
+   - Tech stack / approach
+
+2. **Use AskUserQuestion to request approval:**
+
+   ```
+   Question: "Do you approve this plan for implementation?"
+   Header: "Plan Review"
+   Options:
+   - "Yes, proceed with implementation" - I've reviewed the plan and it looks good
+   - "No, I need to make changes" - I want to edit the plan first
+   ```
+
+   Note: The `Worktree:` field was already set at plan creation time (Step 1.1) based on the user's choice from the dispatcher. It does NOT need to be asked again here.
+
+3. **Based on user response:**
+
+   **If user approves (selects "Yes" or any approval option):**
+   - Update `Approved: No` → `Approved: Yes` in the plan file
+   - **⛔ Phase Transition Context Guard:** Run `~/.pilot/bin/pilot check-context --json`. If >= 80%, hand off instead (see spec.md Section 0.3).
+   - **Invoke implementation phase:** `Skill(skill='spec-implement', args='<plan-path>')`
+
+   **If user selects "No, I need to make changes":**
+   - Tell user: "Please edit the plan file at `<plan-path>`, then say 'ready' when done"
+   - Wait for user to confirm they're done editing
+   - Re-read the plan file to see their changes
+   - Ask for approval again using AskUserQuestion
+
+   **If user provides OTHER feedback (corrections, config values, clarifications):**
+   - This is NOT approval - they're giving you changes to incorporate
+   - Update the plan with their feedback
+   - Ask for approval AGAIN with a fresh AskUserQuestion
+
+4. **DO NOT proceed to implementation until user explicitly selects "Yes, proceed"**
+
+**⚠️ CRITICAL: Any response other than selecting "Yes, proceed with implementation" is NOT approval. Config feedback, threshold changes, clarifications = update plan, then re-ask.**
+
+**⚠️ CRITICAL: Claude handles the `Approved:` field update - user never edits it manually**
+
+---
+
+## Context Management (90% Handoff)
+
+After each major operation, check context:
+
+```bash
+~/.pilot/bin/pilot check-context --json
+```
+
+**Between iterations:**
+
+1. If context >= 90%: hand off cleanly (don't rush!)
+2. If context 80-89%: continue but wrap up current task with quality
+3. If context < 80%: continue the loop freely
+
+If response shows `"status": "CLEAR_NEEDED"` (context >= 90%):
+
+**⚠️ CRITICAL: Execute ALL steps below in a SINGLE turn. DO NOT stop or wait for user response between steps.**
+
+**Step 1: Write continuation file (GUARANTEED BACKUP)**
+
+Write to `~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md`:
+
+```markdown
+# Session Continuation (/spec)
+
+**Plan:** <plan-path>
+**Phase:** planning
+**Current Task:** [description of where you are in planning]
+
+**Completed This Session:**
+
+- [x] [What was finished]
+
+**Next Steps:**
+
+1. [What to do immediately when resuming]
+
+**Context:**
+
+- [Key decisions or blockers]
+```
+
+**Step 2: Trigger session clear**
+
+```bash
+~/.pilot/bin/pilot send-clear <plan-path>
+```
+
+Pilot will restart with `/spec --continue <plan-path>`
+
+ARGUMENTS: the rest of the remaining phases --worktree=yes
+
+---
+
+[Request interrupted by user for tool use]

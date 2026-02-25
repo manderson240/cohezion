@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.6",
+  "checkpoint_id": "2e0cde8a3b91",
+  "strategy": "manual-commit",
+  "branch": "feat/flume-vae-clean",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "scripts/train_flume.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/2e/0cde8a3b91/0/metadata.json",
+      "transcript": "/2e/0cde8a3b91/0/full.jsonl",
+      "context": "/2e/0cde8a3b91/0/context.md",
+      "content_hash": "/2e/0cde8a3b91/0/content_hash.txt",
+      "prompt": "/2e/0cde8a3b91/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 4875,
+    "cache_creation_tokens": 255991,
+    "cache_read_tokens": 4290092,
+    "output_tokens": 566,
+    "api_call_count": 43
+  }
+}

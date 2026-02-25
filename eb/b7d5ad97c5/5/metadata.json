@@ -1,0 +1,45 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "ebb7d5ad97c5",
+  "session_id": "b6d5ecfb-3dd8-4eaf-8d0d-0b0f310827e7",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-23T21:32:54.630655523Z",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "cache/swarm/a5c6d07b27b7a644809020071339e42bcdce0c4048ddbeb51f58e9d20b7a95f6.json",
+    "cache/swarm/a9209b0b908d0cb5fd3d96bff31b225d494bad8ca71d454f876c201bbb0e048b.json",
+    "data/checkpoints/test.json",
+    "history.txt",
+    "src/cohezion/reliability/quantum_performance_monitor.py",
+    "src/cohezion/skills/skill_registry.json",
+    "cache/swarm/3f7e674b420e80fc111cd41aa3b437f550102471f3344827c0e0f05441d61b67.json",
+    "cache/swarm/54046dbd1471a094ca3484150c2f26b008dc5a0085c09ebf418b5b6b8bac3e18.json",
+    "cache/swarm/7a2bcb54741f8ba1fcc3822b72e5db05ef8ddf965678e463671790587035d461.json",
+    "cache/swarm/965c7d8f7f277c20dc5509f7ed6031a9e2cb37d185eb40c5aba2c44ecd7da2a9.json",
+    "cloud-vault-mcp/src/mcp_server/server.py",
+    "data/config-sync-logs/config_sync.jsonl",
+    "src/cohezion/cost_optimization/budget_enforcer.py",
+    "src/cohezion/cost_optimization/cost_tracker.py"
+  ],
+  "agent": "Claude Code",
+  "checkpoint_transcript_start": 1418,
+  "transcript_lines_at_start": 1418,
+  "token_usage": {
+    "input_tokens": 2835,
+    "cache_creation_tokens": 474893,
+    "cache_read_tokens": 25867959,
+    "output_tokens": 39444,
+    "api_call_count": 201
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-23T21:32:53.653894681Z",
+    "agent_lines": 0,
+    "human_added": 265,
+    "human_modified": 101,
+    "human_removed": 0,
+    "total_committed": 331,
+    "agent_percentage": 0
+  },
+  "transcript_path": ".claude/projects/-home-mike-anderson-dev-cohezion/b6d5ecfb-3dd8-4eaf-8d0d-0b0f310827e7.jsonl"
+}

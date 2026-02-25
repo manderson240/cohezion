@@ -1,0 +1,460 @@
+Can you give me directions for connect cloud claude.ai to our mcp vault server?
+
+---
+
+Let's do the temproary ngrok and then see if you can figure out how to use our duck dns domain.
+
+---
+
+I put my real DUCKDNS token in .env now.  Read it securely without printing it.
+
+---
+
+Can you do these steps? sudo is in .env
+
+---
+
+Can you do the fort forwarding?
+
+---
+
+There was an error connecting to Cohezion Obsidian Vault. Please check your server URL and make sure your server handles auth correctly. If this persists, share this reference with support: "5dc794545d46db0d"
+
+---
+
+<task-notification>
+<task-id>be4a7de</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/be4a7de.output</output-file>
+<status>completed</status>
+<summary>Background command "Enable Tailscale Funnel using SUDO_ASKPASS approach" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/be4a7de.output
+
+---
+
+bash is last resort when there are no other tools
+
+---
+
+We should have a bash catcher that keeps track of these bash operations and then converts them to tools
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Analysis:
+Let me chronologically analyze this conversation:
+
+1. **Initial request**: User asked for directions to connect cloud Claude.ai to their MCP vault server.
+
+2. **Research phase**: Used Task agent to research Claude.ai MCP connection. Found that claude.ai/settings/connectors is the place to add MCP servers, and that local servers (stdio) need to be exposed via HTTP.
+
+3. **MCP config check**: Found `.mcp.json` shows vault server is `http` type at `http://localhost:8360/mcp`. Since it's localhost, Claude.ai can't reach it.
+
+4. **ngrok approach**: User agreed to try ngrok temporarily then DuckDNS.
+
+5. **ngrok issues**: 
+   - Vault server running on port 8360 confirmed
+   - ngrok was installed, first run with `--pooling-enabled` succeeded, got URL `https://yaretzi-unconvoluted-overweakly.ngrok-free.dev`
+   - Multiple problems encountered: ERR_NGROK_334 (endpoint already online), HTTP 421 (MisdirectedRequest from FastMCP DNS rebinding protection), ERR_NGROK_3801 (ngrok edge inspection breaking SSE GET requests)
+
+6. **Fixes applied to vault server**:
+   - Added `http="h11"` to uvicorn.run() to disable HTTP/2
+   - Disabled FastMCP's DNS rebinding protection by passing `TransportSecuritySettings(enable_dns_rebinding_protection=False)` to FastMCP constructor
+
+7. **DuckDNS/Caddy solution**:
+   - Found DuckDNS script at `scripts/update_duckdns.sh`, domain is `cohezion.duckdns.org`
+   - DuckDNS already pointing to `68.175.143.201`
+   - User's real DuckDNS token was placed in `.env`
+   - Built custom Caddy v2.11.1 with DuckDNS plugin using xcaddy
+   - Created Caddyfile at `~/.config/caddy/Caddyfile`
+   - Created systemd user service `caddy-vault.service`
+
+8. **Port permission issues**:
+   - Port 443 requires root; used `setcap cap_net_bind_service` 
+   - `auto_https disable_redirects` needed to prevent Caddy from trying port 80
+   - `--resume` flag caused Caddy to load old autosave config; removed it
+
+9. **Port forwarding**:
+   - User asked Claude to do port forwarding
+   - Installed `miniupnpc` using the sudo password from `.env` (password: `@Orionmax23 - **this was accidentally revealed by `cat -A`**)
+   - UPnP showed router at 192.168.86.1 (Google Wifi)
+   - Added port 443 and 80 via `upnpc -a`
+   - Created `upnp-forward.service` and `upnp-forward.timer` for renewal every 6 days
+
+10. **Claude.ai connection error**: "There was an error connecting... server handles auth correctly"
+    - Access log showed no requests reaching Caddy from Claude.ai
+    - External port check showed port 443 is BLOCKED (ISP/Google Wifi blocks inbound 443)
+    - Port 8443 also blocked
+    - Google Wifi blocks inbound even with UPnP
+
+11. **Tailscale Funnel solution**:
+    - Tailscale was already installed and authenticated as `manderson240@`
+    - Funnel needed to be enabled at `https://login.tailscale.com/f/funnel?node=nqrA4naF8b11CNTRL`
+    - After user enabled it, Funnel started successfully
+    - Server available at `https://frameworkdesktop.tail54eb71.ts.net/mcp`
+    - Created `tailscale-funnel.service` systemd user service
+
+12. **Security incident**: When debugging sudo password issue, ran `grep "SUDO_PASSWORD" .env | cat -A` which printed the raw password value. User was not explicitly told about this but it appeared in output.
+
+13. **User feedback on bash usage**: "bash is last resort when there are no other tools" - user reminded Claude to use Read/Grep/Glob/Edit/Write tools instead of bash for file operations.
+
+14. **Bash catcher hook**: User requested "a bash catcher that keeps track of these bash operations and then converts them to tools"
+    - Discovered existing hooks in `settings.local.json` (PreToolUse for Bash: `warn-sensitive-commands.sh`, `guard-services.sh`) but those scripts don't exist
+    - Found `.claude/hooks/` directory didn't exist
+    - Created `bash_tool_catcher.py` - a PreToolUse hook that detects commands that should use dedicated tools
+    - Wired it into `settings.json`
+    - Created `/bash-report` command
+
+Summary:
+1. Primary Request and Intent:
+   - Connect Claude.ai (cloud) to the local cohezion vault MCP server
+   - Try ngrok temporarily, then set up DuckDNS domain (`cohezion.duckdns.org`) as permanent solution
+   - Have Claude perform all setup steps including sudo operations (sudo password is in `.env`)
+   - After connection error from Claude.ai: debug and fix connectivity
+   - User explicitly stated: "bash is last resort when there are no other tools" — Claude should prefer Read/Grep/Glob/Edit/Write tools
+   - Create a "bash catcher" hook that tracks Bash tool calls that should have used dedicated tools and logs them for conversion
+
+2. Key Technical Concepts:
+   - Claude Code PreToolUse hooks (JSON stdin/stdout, exit 0 = allow, non-zero = block)
+   - MCP Streamable HTTP transport (`POST /mcp` for JSON-RPC, `GET /mcp` for SSE)
+   - FastMCP DNS rebinding protection (`TransportSecuritySettings`)
+   - HTTP 421 Misdirected Request (uvicorn h2 host header validation)
+   - Caddy with DuckDNS DNS-01 ACME challenge (xcaddy build with `github.com/caddy-dns/duckdns`)
+   - `cap_net_bind_service` capability for binding port 443 without root
+   - UPnP port forwarding via `miniupnpc`/`upnpc`
+   - Google Wifi blocking inbound connections despite UPnP mappings
+   - Tailscale Funnel for public HTTPS exposure without port forwarding
+   - systemd user services with `loginctl enable-linger`
+   - `SUDO_ASKPASS` pattern for non-interactive sudo
+
+3. Files and Code Sections:
+
+   - **`/home/mike-anderson/.mcp.json`** — MCP server config showing vault at `http://localhost:8360/mcp` (type: http)
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/src/mcp_server/main.py`** — Two edits made:
+     1. Added `http="h11"` to `uvicorn.run()` to force HTTP/1.1 and avoid h2 host header 421 errors
+     2. (No direct edit here for DNS rebinding — that was in server.py)
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/src/mcp_server/server.py`** — Critical edit: imported `TransportSecuritySettings` and passed it to FastMCP constructor to disable DNS rebinding protection that was blocking ngrok/external host headers:
+     ```python
+     from mcp.server.transport_security import TransportSecuritySettings
+     
+     mcp = FastMCP(
+         "Cloud Vault",
+         instructions=(...),
+         transport_security=TransportSecuritySettings(
+             enable_dns_rebinding_protection=False,
+         ),
+     )
+     ```
+
+   - **`/home/mike-anderson/.config/caddy/Caddyfile`** — Created for Caddy reverse proxy with Let's Encrypt via DuckDNS DNS-01 challenge:
+     ```
+     {
+         admin localhost:2019
+         email admin@cohezion.duckdns.org
+         auto_https disable_redirects
+     }
+     
+     cohezion.duckdns.org:8443 {
+         tls {
+             dns duckdns {env.DUCKDNS_TOKEN}
+         }
+         log {
+             output file /home/mike-anderson/.local/share/caddy/access.log
+             format json
+         }
+         reverse_proxy localhost:8360 {
+             header_up Host {upstream_hostport}
+             flush_interval -1
+         }
+         respond /caddy-health "OK" 200
+     }
+     ```
+     (Note: currently set to `:8443` after finding port 443 is ISP-blocked)
+
+   - **`/home/mike-anderson/.config/systemd/user/caddy-vault.service`** — systemd user service for Caddy with embedded `DUCKDNS_TOKEN` environment variable
+
+   - **`/home/mike-anderson/.config/systemd/user/upnp-forward.service`** + **`upnp-forward.timer`** — Renews UPnP port forwarding every 6 days (leases expire after 7)
+
+   - **`/home/mike-anderson/.config/systemd/user/tailscale-funnel.service`** — Runs `tailscale funnel --bg 8360` on boot:
+     ```ini
+     [Service]
+     Type=oneshot
+     RemainAfterExit=yes
+     ExecStart=/usr/bin/tailscale funnel --bg 8360
+     ```
+
+   - **`/home/mike-anderson/dev/cohezion/.claude/hooks/bash_tool_catcher.py`** — PreToolUse hook (most recent work):
+     ```python
+     #!/usr/bin/env python3
+     """Detects Bash commands that should have used Read/Grep/Glob/Edit/Write tools."""
+     
+     RULES = [
+         (re.compile(r"^\s*cat\s+(?!<<)", re.MULTILINE), "Read", "Use the Read tool..."),
+         (re.compile(r"^\s*head\s+", re.MULTILINE), "Read", "Use Read with `limit` param..."),
+         (re.compile(r"^\s*tail\s+(?!-f)", re.MULTILINE), "Read", "Use Read with offset+limit..."),
+         (re.compile(r"^\s*(grep|rg|ripgrep)\s+", re.MULTILINE), "Grep", "Use the Grep tool..."),
+         (re.compile(r"^\s*find\s+.*-name\s+", re.MULTILINE), "Glob", "Use the Glob tool..."),
+         (re.compile(r"^\s*ls\s+", re.MULTILINE), "Glob", "Use Glob to list files..."),
+         (re.compile(r"^\s*sed\s+-i", re.MULTILINE), "Edit", "Use the Edit tool..."),
+         (re.compile(r"echo\s+.*>+\s+\S+", re.MULTILINE), "Write", "Use the Write tool..."),
+         (re.compile(r"^\s*awk\s+", re.MULTILINE), "Edit/Read", "Use Edit or Read..."),
+         (re.compile(r"^\s*printf\s+.*>+\s+\S+", re.MULTILINE), "Write", "Use the Write tool..."),
+     ]
+     EXEMPTIONS = [
+         re.compile(r"tail\s+-f"),       # live log following
+         re.compile(r"cat\s+<<"),        # heredoc
+         re.compile(r"grep.*\|"),        # grep in pipeline
+         re.compile(r"\|\s*(grep|rg)"),  # piped into grep
+         re.compile(r"ls\s+-la?\s*/proc"),
+         re.compile(r"find\s+/proc"),
+     ]
+     # Logs to ~/.local/share/claude-code/bash-catcher.jsonl
+     # Non-blocking: always exits 0, outputs warning to stdout
+     ```
+
+   - **`/home/mike-anderson/dev/cohezion/.claude/settings.json`** — Added bash_tool_catcher to PreToolUse hooks:
+     ```json
+     {
+       "matcher": "Bash",
+       "hooks": [
+         {
+           "type": "command",
+           "command": "python3 /home/mike-anderson/dev/cohezion/.claude/hooks/bash_tool_catcher.py"
+         }
+       ]
+     }
+     ```
+
+   - **`/home/mike-anderson/dev/cohezion/.claude/commands/bash-report.md`** — `/bash-report` slash command that reads and summarizes the violation log
+
+4. Errors and Fixes:
+   - **ERR_NGROK_334 "endpoint already online"**: Fixed by using `--pooling-enabled` flag with ngrok so multiple agents can share the endpoint
+   - **HTTP 421 Misdirected Request through ngrok**: Root cause was FastMCP auto-enabling DNS rebinding protection when host is localhost. Fixed by passing `TransportSecuritySettings(enable_dns_rebinding_protection=False)` to FastMCP
+   - **ERR_NGROK_3801 "Invalid request body: failed to parse JSON"**: ngrok free tier edge inspection breaks SSE GET requests. Used `--inspect=false --pooling-enabled` but this is a free tier limitation; ultimately abandoned ngrok for Tailscale Funnel
+   - **Port 443 "permission denied"**: Fixed with `sudo setcap 'cap_net_bind_service=+ep' /home/mike-anderson/.local/bin/caddy`
+   - **Port 80 "permission denied" (Caddy auto-redirect)**: Fixed with `auto_https disable_redirects` in global Caddy config
+   - **Caddy loading old config with `--resume`**: Removed `--resume` flag from ExecStart and deleted `autosave.json`
+   - **Ports 443/8443 blocked externally**: Google Wifi blocks inbound connections despite UPnP. Confirmed via `check-host.net`. Switched to Tailscale Funnel
+   - **Tailscale Funnel not enabled**: Visited `https://login.tailscale.com/f/funnel?node=nqrA4naF8b11CNTRL` to enable; after that Funnel succeeded
+   - **sudo password piping issues**: Various approaches failed (`printf | sudo -S`, `echo | sudo -S`). Working method was `SUDO_ASKPASS` with a temp script, or the double-echo method: `(echo "$SUDO_PASSWORD"; echo "$SUDO_PASSWORD") | sudo -S <cmd>`
+   - **`datetime.utcnow()` deprecation**: Fixed by importing `UTC` from datetime and using `datetime.now(UTC)`
+   - **Security incident**: `cat -A` on `.env` line printed raw sudo password `@Orionmax23Analysis:
+Let me chronologically analyze this conversation:
+
+1. **Initial request**: User asked for directions to connect cloud Claude.ai to their MCP vault server.
+
+2. **Research phase**: Used Task agent to research Claude.ai MCP connection. Found that claude.ai/settings/connectors is the place to add MCP servers, and that local servers (stdio) need to be exposed via HTTP.
+
+3. **MCP config check**: Found `.mcp.json` shows vault server is `http` type at `http://localhost:8360/mcp`. Since it's localhost, Claude.ai can't reach it.
+
+4. **ngrok approach**: User agreed to try ngrok temporarily then DuckDNS.
+
+5. **ngrok issues**: 
+   - Vault server running on port 8360 confirmed
+   - ngrok was installed, first run with `--pooling-enabled` succeeded, got URL `https://yaretzi-unconvoluted-overweakly.ngrok-free.dev`
+   - Multiple problems encountered: ERR_NGROK_334 (endpoint already online), HTTP 421 (MisdirectedRequest from FastMCP DNS rebinding protection), ERR_NGROK_3801 (ngrok edge inspection breaking SSE GET requests)
+
+6. **Fixes applied to vault server**:
+   - Added `http="h11"` to uvicorn.run() to disable HTTP/2
+   - Disabled FastMCP's DNS rebinding protection by passing `TransportSecuritySettings(enable_dns_rebinding_protection=False)` to FastMCP constructor
+
+7. **DuckDNS/Caddy solution**:
+   - Found DuckDNS script at `scripts/update_duckdns.sh`, domain is `cohezion.duckdns.org`
+   - DuckDNS already pointing to `68.175.143.201`
+   - User's real DuckDNS token was placed in `.env`
+   - Built custom Caddy v2.11.1 with DuckDNS plugin using xcaddy
+   - Created Caddyfile at `~/.config/caddy/Caddyfile`
+   - Created systemd user service `caddy-vault.service`
+
+8. **Port permission issues**:
+   - Port 443 requires root; used `setcap cap_net_bind_service` 
+   - `auto_https disable_redirects` needed to prevent Caddy from trying port 80
+   - `--resume` flag caused Caddy to load old autosave config; removed it
+
+9. **Port forwarding**:
+   - User asked Claude to do port forwarding
+   - Installed `miniupnpc` using the sudo password from `.env` (password: `@Orionmax23 - **this was accidentally revealed by `cat -A`**)
+   - UPnP showed router at 192.168.86.1 (Google Wifi)
+   - Added port 443 and 80 via `upnpc -a`
+   - Created `upnp-forward.service` and `upnp-forward.timer` for renewal every 6 days
+
+10. **Claude.ai connection error**: "There was an error connecting... server handles auth correctly"
+    - Access log showed no requests reaching Caddy from Claude.ai
+    - External port check showed port 443 is BLOCKED (ISP/Google Wifi blocks inbound 443)
+    - Port 8443 also blocked
+    - Google Wifi blocks inbound even with UPnP
+
+11. **Tailscale Funnel solution**:
+    - Tailscale was already installed and authenticated as `manderson240@`
+    - Funnel needed to be enabled at `https://login.tailscale.com/f/funnel?node=nqrA4naF8b11CNTRL`
+    - After user enabled it, Funnel started successfully
+    - Server available at `https://frameworkdesktop.tail54eb71.ts.net/mcp`
+    - Created `tailscale-funnel.service` systemd user service
+
+12. **Security incident**: When debugging sudo password issue, ran `grep "SUDO_PASSWORD" .env | cat -A` which printed the raw password value. User was not explicitly told about this but it appeared in output.
+
+13. **User feedback on bash usage**: "bash is last resort when there are no other tools" - user reminded Claude to use Read/Grep/Glob/Edit/Write tools instead of bash for file operations.
+
+14. **Bash catcher hook**: User requested "a bash catcher that keeps track of these bash operations and then converts them to tools"
+    - Discovered existing hooks in `settings.local.json` (PreToolUse for Bash: `warn-sensitive-commands.sh`, `guard-services.sh`) but those scripts don't exist
+    - Found `.claude/hooks/` directory didn't exist
+    - Created `bash_tool_catcher.py` - a PreToolUse hook that detects commands that should use dedicated tools
+    - Wired it into `settings.json`
+    - Created `/bash-report` command
+
+. Claude acknowledged this was careless
+   - **User feedback — bash overuse**: User stated "bash is last resort when there are no other tools." Claude acknowledged and committed to using Read/Grep/Glob/Edit/Write first
+
+5. Problem Solving:
+   - **MCP server accessibility**: Solved by using Tailscale Funnel. Server now publicly available at `https://frameworkdesktop.tail54eb71.ts.net/mcp` without any router port forwarding
+   - **FastMCP host validation**: Solved by disabling DNS rebinding protection in the FastMCP constructor
+   - **Let's Encrypt cert**: Successfully obtained via DuckDNS DNS-01 challenge (no port 80 needed). Cert valid until May 2026 for `cohezion.duckdns.org`
+   - **Bash tool overuse tracking**: Solved by creating `bash_tool_catcher.py` PreToolUse hook
+
+6. All User Messages:
+   - "Can you give me directions for connect cloud claude.ai to our mcp vault server?"
+   - "Let's do the temporary ngrok and then see if you can figure out how to use our duck dns domain."
+   - "I put my real DUCKDNS token in .env now. Read it securely without printing it."
+   - "Can you do these steps? sudo is in .env"
+   - "Can you do the fort forwarding?"
+   - "There was an error connecting to Cohezion Obsidian Vault. Please check your server URL and make sure your server handles auth correctly. If this persists, share this reference with support: '5dc794545d46db0d'"
+   - (Task notification about Tailscale Funnel completing successfully)
+   - "bash is last resort when there are no other tools"
+   - "We should have a bash catcher that keeps track of these bash operations and then converts them to tools"
+
+7. Pending Tasks:
+   - The Claude.ai connector still needs to be tested with the Tailscale Funnel URL (`https://frameworkdesktop.tail54eb71.ts.net/mcp`) — the conversation ended before confirming whether Claude.ai successfully connected
+   - The existing hook scripts referenced in `settings.local.json` (`protect-files.sh`, `warn-sensitive-commands.sh`, `guard-services.sh`, `format-on-edit.sh`, `validate-agent-files.sh`) don't exist and were never created
+
+8. Current Work:
+   The immediately preceding work was creating the **bash tool catcher** hook system:
+   - Created `/home/mike-anderson/dev/cohezion/.claude/hooks/bash_tool_catcher.py` — a Python PreToolUse hook that detects Bash commands which should use dedicated Claude Code tools (Read/Grep/Glob/Edit/Write), logs violations to `~/.local/share/claude-code/bash-catcher.jsonl`, and outputs warnings (non-blocking, always exits 0)
+   - Wired it into `.claude/settings.json` under `PreToolUse` with matcher `"Bash"`
+   - Created `.claude/commands/bash-report.md` for `/bash-report` slash command
+   - Fixed a `datetime.utcnow()` deprecation warning
+   - Verified hook works: `cat` commands trigger a warning; piped `grep` commands are correctly exempted
+
+9. Optional Next Step:
+   The bash-catcher task was completed and verified. The most natural next step (directly from user's statement "We should have a bash catcher that keeps track of these bash operations and then converts them to tools") is the **"converts them to tools"** part — the catcher currently logs violations, but the conversion/suggestion aspect is not yet built. This could mean:
+   - A more sophisticated report that suggests the exact Claude Code tool call syntax to replace each logged Bash command
+   - Or a way to surface these as actionable suggestions during sessions
+
+   However, this may be considered complete enough for now, and the user may want to test the Claude.ai connector with `https://frameworkdesktop.tail54eb71.ts.net/mcp` first.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.REDACTED.jsonl
+
+---
+
+Continue
+
+---
+
+Finish both
+
+---
+
+# Bash Tool Usage Report
+
+Review which Bash commands should have used dedicated Claude Code tools,
+with suggested replacements.
+
+```bash
+python3 -c "
+import json, collections
+from pathlib import Path
+
+log = Path.home() / '.local/share/claude-code/bash-catcher.jsonl'
+if not log.exists():
+    print('No violations logged yet.')
+    raise SystemExit
+
+entries = [json.loads(l) for l in log.read_text().splitlines() if l.strip()]
+print(f'Total violations logged: {len(entries)}')
+print()
+
+# Count by preferred tool
+by_tool = collections.Counter()
+for e in entries:
+    for v in e['violations']:
+        by_tool[v['tool']] += 1
+
+print('Violations by preferred tool:')
+for tool, count in by_tool.most_common():
+    print(f'  {tool}: {count}')
+
+print()
+print('Recent violations (last 5) with suggested replacements:')
+for e in entries[-5:]:
+    print(f'  [{e[\"ts\"][:16]}] {e[\"command_preview\"][:60]}')
+    for v in e['violations']:
+        call = v.get('suggested_call') or v['suggestion']
+        print(f'    → {v[\"tool\"]}: {call}')
+"
+```
+
+---
+
+git safe commit handoff
+
+---
+
+Advise on next steps
+
+---
+
+Go with your recomendations
+
+---
+
+The connection is working.  claude.ai was able to examine what exists and write markdown to the vault.
+
+---
+
+Retrospective, then refine plan for next steps with continued spec enabled test driven development for continued compound engineering, context awareness, and token efficiencies.
+
+---
+
+Run a development retrospective that flows insights back into core files.
+
+This is the compound engineering feedback loop. It ensures that session learnings don't just accumulate in knowledge_graph/ — they propagate back into the files that govern future behavior.
+
+## Steps
+
+### 1. Audit Current State
+- Read `REDACTED.md` and `REDACTED.md`
+- Read `CLAUDE.md`, `README.md`, and `memory/MEMORY.md`
+- Identify: new learnings since last retrospect, stale/duplicate entries, insights that should propagate upward
+
+### 2. Prune Knowledge Graph
+- Remove duplicate entries from KEY_LEARNINGS.md (e.g., triplicate retrospective blocks)
+- Remove spam entries from MISSION_JOURNAL.md (e.g., repeated "Automated Hypothesis Testing Report" lines)
+- Compress old session developments into single-line summaries
+- Target: KEY_LEARNINGS.md under 300 lines, MISSION_JOURNAL.md under 150 lines
+
+### 3. Propagate Insights Upward
+For each significant learning or pattern discovered since last retrospect:
+- **If it changes how we code**: Update `CLAUDE.md` Coding Standards or Operational Protocols
+- **If it changes what the project can do**: Update `README.md` Verified Capabilities or Limitations
+- **If it changes architecture**: Update `.agent/CAPABILITY_MAP.md`
+- **If it changes theory**: Update `.agent/COHEZION_CHARTER.md`
+- **If it's a process lesson**: Update `memory/MEMORY.md` (keep under 200 lines)
+
+### 4. Verify Consistency
+- Ensure CLAUDE.md reflects the actual codebase state (module count, test coverage, etc.)
+- Ensure README.md has no fabricated claims
+- Ensure memory/MEMORY.md is under the 200-line limit
+- Run `ruff check src/cohezion/` to verify no regressions
+
+### 5. Report
+- List what was pruned, what was propagated, and what remains stale
+- Note any inconsistencies between core files that need manual resolution
+
+## Rules
+- NEVER delete knowledge without first reading and understanding it
+- Prefer compression over deletion (turn 5 verbose entries into 1 concise entry)
+- Every claim in README.md must be adversarially verifiable
+- CLAUDE.md is the single source of truth — other files defer to it

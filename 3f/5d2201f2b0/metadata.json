@@ -1,0 +1,44 @@
+{
+  "cli_version": "0.4.6",
+  "checkpoint_id": "3f5d2201f2b0",
+  "strategy": "manual-commit",
+  "branch": "feat/flume-vae-clean",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "src/cohezion/agents/generated/__init__.py",
+    "src/cohezion/flume/data_pipeline.py",
+    "src/cohezion/flume/embedding_provider.py",
+    "src/cohezion/flume/experience_collector.py",
+    "src/cohezion/flume/train_vae.py",
+    "src/cohezion/flume/vae.py",
+    "src/cohezion/flume/vae_encoder.py",
+    "tests/flume/test_data_pipeline.py",
+    "tests/flume/test_execution_logger.py",
+    "tests/flume/test_experience_pipeline.py",
+    "tests/flume/test_integration_e2e.py",
+    "tests/flume/test_vae_encoder.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/3f/5d2201f2b0/0/metadata.json",
+      "transcript": "/3f/5d2201f2b0/0/full.jsonl",
+      "context": "/3f/5d2201f2b0/0/context.md",
+      "content_hash": "/3f/5d2201f2b0/0/content_hash.txt",
+      "prompt": "/3f/5d2201f2b0/0/prompt.txt"
+    },
+    {
+      "metadata": "/3f/5d2201f2b0/1/metadata.json",
+      "transcript": "/3f/5d2201f2b0/1/full.jsonl",
+      "context": "/3f/5d2201f2b0/1/context.md",
+      "content_hash": "/3f/5d2201f2b0/1/content_hash.txt",
+      "prompt": "/3f/5d2201f2b0/1/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 14201,
+    "cache_creation_tokens": 1764951,
+    "cache_read_tokens": 92646781,
+    "output_tokens": 108577,
+    "api_call_count": 715
+  }
+}

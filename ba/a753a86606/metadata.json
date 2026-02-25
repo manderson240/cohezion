@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.4.6",
+  "checkpoint_id": "baa753a86606",
+  "strategy": "manual-commit",
+  "branch": "feat/flume-vae-clean",
+  "checkpoints_count": 0,
+  "files_touched": [
+    ".chief/prds/main/prd.json",
+    ".chief/prds/main/progress.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ba/a753a86606/0/metadata.json",
+      "transcript": "/ba/a753a86606/0/full.jsonl",
+      "context": "/ba/a753a86606/0/context.md",
+      "content_hash": "/ba/a753a86606/0/content_hash.txt",
+      "prompt": "/ba/a753a86606/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 461,
+    "cache_creation_tokens": 50010,
+    "cache_read_tokens": 184819,
+    "output_tokens": 54,
+    "api_call_count": 4
+  }
+}

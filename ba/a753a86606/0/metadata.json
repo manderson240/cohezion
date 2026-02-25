@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.4.6",
+  "checkpoint_id": "baa753a86606",
+  "session_id": "c85075df-0549-4f77-9497-ded4a313470b",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-25T02:52:13.771297859Z",
+  "branch": "feat/flume-vae-clean",
+  "checkpoints_count": 0,
+  "files_touched": [
+    ".chief/prds/main/prd.json",
+    ".chief/prds/main/progress.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "338985a33471",
+  "token_usage": {
+    "input_tokens": 461,
+    "cache_creation_tokens": 50010,
+    "cache_read_tokens": 184819,
+    "output_tokens": 54,
+    "api_call_count": 4
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-25T02:52:13.728595557Z",
+    "agent_lines": 193,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 193,
+    "agent_percentage": 100
+  }
+}

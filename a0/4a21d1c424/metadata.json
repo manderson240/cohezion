@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.6",
+  "checkpoint_id": "a04a21d1c424",
+  "strategy": "manual-commit",
+  "branch": "fix/ide-error-resolution",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "src/cohezion/compound/journey_tracker.py",
+    "src/cohezion/flume/__init__.py",
+    "src/cohezion/flume/temporal_encoder.py",
+    "src/cohezion/flume/trajectory_dataset.py",
+    "tests/flume/test_journey_temporal.py",
+    "tests/flume/test_temporal_encoder.py",
+    "tests/flume/test_trajectory_dataset.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/a0/4a21d1c424/0/metadata.json",
+      "transcript": "/a0/4a21d1c424/0/full.jsonl",
+      "context": "/a0/4a21d1c424/0/context.md",
+      "content_hash": "/a0/4a21d1c424/0/content_hash.txt",
+      "prompt": "/a0/4a21d1c424/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 13817,
+    "cache_creation_tokens": 719205,
+    "cache_read_tokens": 45265307,
+    "output_tokens": 58195,
+    "api_call_count": 352
+  }
+}
