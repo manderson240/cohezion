@@ -10,12 +10,11 @@ from __future__ import annotations
 
 import json
 import logging
-import os
-import shutil
 import subprocess
 from pathlib import Path
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -197,7 +196,7 @@ Then export to GGUF:
 SYSTEM '''You are Cohezion - an expert software engineering agent trained on high-quality journey executions from the Cohezion universe simulation system.
 
 ## Your Expertise
-- Research: Deep investigation, fact-checking, multi-source synthesis  
+- Research: Deep investigation, fact-checking, multi-source synthesis
 - Coding: Clean code, proper types, comprehensive tests
 - Analysis: Root cause identification, pattern recognition
 - Debugging: Systematic diagnosis, minimal repro steps
@@ -258,7 +257,7 @@ def quick_finetune(
     tuner = LocalFinetuner(base_model=base, output_name=name)
 
     print(f"\n{'=' * 50}")
-    print(f"Local Finetuning Pipeline")
+    print("Local Finetuning Pipeline")
     print(f"{'=' * 50}")
     print(f"Base: {base}")
     print(f"Output: {name}")

@@ -11,8 +11,9 @@ import logging
 import torch
 import torch.nn.functional as F
 
-from cohezion.flume import FlumeEncoder
+from cohezion.flume.autoencoder import FlumeEncoder
 from cohezion.swarm.git_health import GitCommit
+
 
 logger = logging.getLogger(__name__)
 
@@ -51,9 +52,7 @@ class GitEncoder:
         z_sequence = self.encoder.encode(messages)
         return z_sequence
 
-    def get_health_direction(
-        self, trajectory: torch.Tensor
-    ) -> tuple[torch.Tensor, float]:
+    def get_health_direction(self, trajectory: torch.Tensor) -> tuple[torch.Tensor, float]:
         """
         Calculates the semantic vector indicating the "drift" in health.
 
@@ -94,9 +93,7 @@ class GitEncoder:
         recent_mean = trajectory[pivot_index:].mean(dim=0)
 
         # Cosine similarity
-        sim = F.cosine_similarity(
-            old_mean.unsqueeze(0), recent_mean.unsqueeze(0)
-        ).item()
+        sim = F.cosine_similarity(old_mean.unsqueeze(0), recent_mean.unsqueeze(0)).item()
         return sim
 
 
