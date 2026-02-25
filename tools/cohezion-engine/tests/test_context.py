@@ -6,9 +6,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
-
-
 WKDIR = Path(__file__).parent.parent
 
 
@@ -286,3 +283,321 @@ class TestContextEstimation:
 
         result = _find_active_session_jsonl()
         assert result == session_file
+
+
+class TestOutputTokenTracking:
+    def test_output_tokens_included_in_result(self, tmp_path):
+        from cohezion_engine.context import estimate_context
+
+        jsonl = make_jsonl(
+            tmp_path,
+            [
+                {
+                    "message": {
+                        "role": "assistant",
+                        "usage": {"input_tokens": 10_000, "output_tokens": 2_000},
+                    }
+                }
+            ],
+        )
+        result = estimate_context(session_jsonl=jsonl, context_limit=200_000)
+        assert "output_tokens" in result
+        assert result["output_tokens"] == 2_000
+
+    def test_output_tokens_zero_when_absent(self, tmp_path):
+        from cohezion_engine.context import estimate_context
+
+        jsonl = make_jsonl(
+            tmp_path,
+            [{"message": {"role": "assistant", "usage": {"input_tokens": 10_000}}}],
+        )
+        result = estimate_context(session_jsonl=jsonl, context_limit=200_000)
+        assert result["output_tokens"] == 0
+
+    def test_output_tokens_summed_across_turns(self, tmp_path):
+        from cohezion_engine.context import estimate_context
+
+        jsonl = make_jsonl(
+            tmp_path,
+            [
+                {
+                    "message": {
+                        "role": "assistant",
+                        "usage": {"input_tokens": 5_000, "output_tokens": 1_000},
+                    }
+                },
+                {
+                    "message": {
+                        "role": "assistant",
+                        "usage": {"input_tokens": 5_000, "output_tokens": 3_000},
+                    }
+                },
+            ],
+        )
+        result = estimate_context(session_jsonl=jsonl, context_limit=200_000)
+        assert result["output_tokens"] == 4_000
+
+
+class TestContextVelocity:
+    def test_velocity_zero_when_single_turn(self, tmp_path):
+        from cohezion_engine.context import estimate_context
+
+        jsonl = make_jsonl(
+            tmp_path,
+            [{"message": {"role": "assistant", "usage": {"input_tokens": 10_000}}}],
+        )
+        result = estimate_context(session_jsonl=jsonl, context_limit=200_000)
+        assert "velocity_tokens_per_turn" in result
+        assert result["velocity_tokens_per_turn"] == 10_000
+
+    def test_velocity_averages_last_n_turns(self, tmp_path):
+        from cohezion_engine.context import estimate_context
+
+        # 3 turns of 10k, 20k, 30k — velocity over last 2 = avg(20k, 30k) = 25k
+        jsonl = make_jsonl(
+            tmp_path,
+            [
+                {"message": {"role": "assistant", "usage": {"input_tokens": 10_000}}},
+                {"message": {"role": "assistant", "usage": {"input_tokens": 20_000}}},
+                {"message": {"role": "assistant", "usage": {"input_tokens": 30_000}}},
+            ],
+        )
+        result = estimate_context(session_jsonl=jsonl, context_limit=200_000, velocity_window=2)
+        assert result["velocity_tokens_per_turn"] == 25_000
+
+    def test_turns_remaining_computed_from_velocity(self, tmp_path):
+        from cohezion_engine.context import estimate_context
+
+        # 2 turns of 10k each → velocity = 10k, total = 20k, remaining = 180k → 18 turns
+        jsonl = make_jsonl(
+            tmp_path,
+            [
+                {"message": {"role": "assistant", "usage": {"input_tokens": 10_000}}},
+                {"message": {"role": "assistant", "usage": {"input_tokens": 10_000}}},
+            ],
+        )
+        result = estimate_context(session_jsonl=jsonl, context_limit=200_000)
+        assert "turns_remaining" in result
+        assert result["turns_remaining"] == 18
+
+    def test_turns_remaining_none_when_velocity_zero(self, tmp_path):
+        from cohezion_engine.context import estimate_context
+
+        jsonl = tmp_path / "empty.jsonl"
+        jsonl.write_text("")
+        result = estimate_context(session_jsonl=jsonl, context_limit=200_000)
+        assert result["turns_remaining"] is None
+
+    def test_turns_remaining_zero_when_already_at_limit(self, tmp_path):
+        from cohezion_engine.context import estimate_context
+
+        jsonl = make_jsonl(
+            tmp_path,
+            [{"message": {"role": "assistant", "usage": {"input_tokens": 200_000}}}],
+        )
+        result = estimate_context(session_jsonl=jsonl, context_limit=200_000)
+        assert result["turns_remaining"] == 0
+
+
+class TestContextTopTurns:
+    def test_top_turns_omitted_by_default(self, tmp_path):
+        from cohezion_engine.context import estimate_context
+
+        jsonl = make_jsonl(
+            tmp_path,
+            [{"message": {"role": "assistant", "usage": {"input_tokens": 10_000}}}],
+        )
+        result = estimate_context(session_jsonl=jsonl)
+        assert "top_turns" not in result
+
+    def test_top_turns_returns_sorted_descending(self, tmp_path):
+        from cohezion_engine.context import estimate_context
+
+        jsonl = make_jsonl(
+            tmp_path,
+            [
+                {"message": {"role": "assistant", "usage": {"input_tokens": 10_000}}},
+                {"message": {"role": "assistant", "usage": {"input_tokens": 30_000}}},
+                {"message": {"role": "assistant", "usage": {"input_tokens": 20_000}}},
+            ],
+        )
+        result = estimate_context(session_jsonl=jsonl, top_turns=2)
+        assert "top_turns" in result
+        assert len(result["top_turns"]) == 2
+        assert result["top_turns"][0]["tokens"] == 30_000
+        assert result["top_turns"][1]["tokens"] == 20_000
+
+    def test_top_turns_has_turn_index(self, tmp_path):
+        from cohezion_engine.context import estimate_context
+
+        jsonl = make_jsonl(
+            tmp_path,
+            [
+                {"message": {"role": "assistant", "usage": {"input_tokens": 5_000}}},
+                {"message": {"role": "assistant", "usage": {"input_tokens": 15_000}}},
+            ],
+        )
+        result = estimate_context(session_jsonl=jsonl, top_turns=2)
+        turns = {t["turn"]: t["tokens"] for t in result["top_turns"]}
+        assert turns[2] == 15_000  # turn index is 1-based
+        assert turns[1] == 5_000
+
+    def test_top_turns_capped_at_available(self, tmp_path):
+        from cohezion_engine.context import estimate_context
+
+        jsonl = make_jsonl(
+            tmp_path,
+            [{"message": {"role": "assistant", "usage": {"input_tokens": 10_000}}}],
+        )
+        result = estimate_context(session_jsonl=jsonl, top_turns=5)
+        assert len(result["top_turns"]) == 1
+
+
+class TestContextHypothetical:
+    def test_hypothetical_fits_when_under_limit(self, tmp_path):
+        from cohezion_engine.context import estimate_context
+
+        # 10k used + 30k hypothetical = 40k / 200k = 20% → fits
+        jsonl = make_jsonl(
+            tmp_path,
+            [{"message": {"role": "assistant", "usage": {"input_tokens": 10_000}}}],
+        )
+        result = estimate_context(
+            session_jsonl=jsonl, context_limit=200_000, hypothetical_tokens=30_000
+        )
+        assert result["fits"] is True
+        assert result["status_after"] == "OK"
+        assert abs(result["percentage_after"] - 20.0) < 0.1
+
+    def test_hypothetical_not_fits_over_clear_threshold(self, tmp_path):
+        from cohezion_engine.context import estimate_context
+
+        # 10k used + 190k hypothetical = 200k / 200k = 100% → CLEAR_NEEDED
+        jsonl = make_jsonl(
+            tmp_path,
+            [{"message": {"role": "assistant", "usage": {"input_tokens": 10_000}}}],
+        )
+        result = estimate_context(
+            session_jsonl=jsonl, context_limit=200_000, hypothetical_tokens=190_000
+        )
+        assert result["fits"] is False
+        assert result["status_after"] == "CLEAR_NEEDED"
+
+    def test_hypothetical_warning_boundary(self, tmp_path):
+        from cohezion_engine.context import estimate_context
+
+        # 50k used + 120k hypothetical = 170k / 200k = 85% → WARNING, fits=True (< 90%)
+        jsonl = make_jsonl(
+            tmp_path,
+            [{"message": {"role": "assistant", "usage": {"input_tokens": 50_000}}}],
+        )
+        result = estimate_context(
+            session_jsonl=jsonl, context_limit=200_000, hypothetical_tokens=120_000
+        )
+        assert result["fits"] is True
+        assert result["status_after"] == "WARNING"
+
+
+class TestContextSnapshot:
+    def test_write_snapshot_creates_file(self, tmp_path):
+        from cohezion_engine.context import write_context_snapshot
+
+        session_dir = tmp_path / "session"
+        session_dir.mkdir()
+        result = {"status": "WARNING", "percentage": 82.5}
+        path = write_context_snapshot(session_dir, result)
+        assert path.exists()
+        import json as _json
+
+        data = _json.loads(path.read_text())
+        assert data["status"] == "WARNING"
+        assert "timestamp" in data
+
+    def test_write_snapshot_creates_snapshots_dir(self, tmp_path):
+        from cohezion_engine.context import write_context_snapshot
+
+        session_dir = tmp_path / "session"
+        session_dir.mkdir()
+        write_context_snapshot(session_dir, {"status": "WARNING"})
+        assert (session_dir / "context-snapshots").is_dir()
+
+    def test_read_previous_status_returns_none_when_absent(self, tmp_path):
+        from cohezion_engine.context import read_previous_status
+
+        assert read_previous_status(tmp_path) is None
+
+    def test_read_write_current_status_roundtrip(self, tmp_path):
+        from cohezion_engine.context import read_previous_status, write_current_status
+
+        write_current_status(tmp_path, "WARNING")
+        assert read_previous_status(tmp_path) == "WARNING"
+
+    def test_context_monitor_writes_snapshot_on_warning_transition(self, tmp_path):
+        """Hook writes snapshot when status transitions OK → WARNING."""
+        import json as _json
+        import os
+        import subprocess
+        import sys
+
+        hooks_dir = Path(__file__).parent.parent / "src" / "cohezion_engine" / "hooks"
+        session_dir = tmp_path / "session"
+        session_dir.mkdir()
+
+        # Seed previous status as OK
+        (session_dir / "context-status.txt").write_text("OK")
+
+        # Create a JSONL that puts context at WARNING (85%)
+        jsonl = tmp_path / "session.jsonl"
+        jsonl.write_text(
+            _json.dumps({"message": {"role": "assistant", "usage": {"input_tokens": 170_000}}})
+            + "\n"
+        )
+
+        env = {
+            **os.environ,
+            "CZ_TEST_SESSION_JSONL": str(jsonl),
+            "CZ_TEST_SESSION_DIR": str(session_dir),
+        }
+        result = subprocess.run(
+            [sys.executable, str(hooks_dir / "context_monitor.py")],
+            input=_json.dumps({}),
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        assert result.returncode == 0
+        snapshots = list((session_dir / "context-snapshots").glob("*.json"))
+        assert len(snapshots) == 1
+
+    def test_context_monitor_no_snapshot_on_repeat_warning(self, tmp_path):
+        """Hook does NOT write snapshot when status stays WARNING → WARNING."""
+        import json as _json
+        import os
+        import subprocess
+        import sys
+
+        hooks_dir = Path(__file__).parent.parent / "src" / "cohezion_engine" / "hooks"
+        session_dir = tmp_path / "session"
+        session_dir.mkdir()
+        (session_dir / "context-status.txt").write_text("WARNING")
+
+        jsonl = tmp_path / "session.jsonl"
+        jsonl.write_text(
+            _json.dumps({"message": {"role": "assistant", "usage": {"input_tokens": 170_000}}})
+            + "\n"
+        )
+
+        env = {
+            **os.environ,
+            "CZ_TEST_SESSION_JSONL": str(jsonl),
+            "CZ_TEST_SESSION_DIR": str(session_dir),
+        }
+        subprocess.run(
+            [sys.executable, str(hooks_dir / "context_monitor.py")],
+            input=_json.dumps({}),
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        snapshots_dir = session_dir / "context-snapshots"
+        assert not snapshots_dir.exists() or len(list(snapshots_dir.glob("*.json"))) == 0

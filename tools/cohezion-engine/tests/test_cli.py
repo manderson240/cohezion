@@ -1,10 +1,9 @@
 """Tests for the cohezion-engine CLI entry point."""
+
 import json
 import subprocess
 import sys
 from pathlib import Path
-
-import pytest
 
 
 def run_cz(*args: str) -> subprocess.CompletedProcess:
@@ -52,3 +51,63 @@ class TestCLIHelp:
     def test_unknown_command_exits_nonzero(self):
         result = run_cz("nonexistent-command")
         assert result.returncode != 0
+
+
+class TestContextEstimateSubcommand:
+    def test_estimate_fits_when_tokens_within_budget(self):
+        result = run_cz("context", "estimate", "--tokens", "10000", "--json")
+        assert result.returncode == 0
+        data = json.loads(result.stdout)
+        assert "fits" in data
+        assert "status_after" in data
+        assert "percentage_after" in data
+
+    def test_estimate_fits_false_when_tokens_overflow(self):
+        # 199k tokens would push most sessions to CLEAR_NEEDED
+        result = run_cz("context", "estimate", "--tokens", "199000", "--limit", "200000", "--json")
+        assert result.returncode == 0
+        data = json.loads(result.stdout)
+        assert "fits" in data
+        assert "status_after" in data
+
+    def test_context_backward_compat_json_flag_still_works(self):
+        """cz context --json must still work after converting to group."""
+        result = run_cz("context", "--json")
+        assert result.returncode == 0
+        data = json.loads(result.stdout)
+        assert "status" in data
+        assert "percentage" in data
+
+    def test_estimate_requires_tokens_flag(self):
+        result = run_cz("context", "estimate")
+        assert result.returncode != 0
+
+
+class TestContextRichOutput:
+    def test_human_output_shows_velocity(self):
+        result = run_cz("context")
+        assert result.returncode == 0
+        # Rich output should include velocity info
+        assert "Velocity" in result.stdout or "velocity" in result.stdout.lower()
+
+    def test_human_output_shows_turns_remaining(self):
+        result = run_cz("context")
+        assert result.returncode == 0
+        assert "urn" in result.stdout  # "Turns remaining" or "turns"
+
+    def test_human_output_shows_status_bracket(self):
+        result = run_cz("context")
+        assert result.returncode == 0
+        # New format: "Context: X.X% [STATUS]"
+        assert "%" in result.stdout
+        assert any(s in result.stdout for s in ["[OK]", "[WARNING]", "[CLEAR_NEEDED]", "[UNKNOWN]"])
+
+    def test_json_output_unchanged_structure(self):
+        result = run_cz("context", "--json")
+        assert result.returncode == 0
+        data = json.loads(result.stdout)
+        assert "status" in data
+        assert "percentage" in data
+        assert "output_tokens" in data
+        assert "velocity_tokens_per_turn" in data
+        assert "turns_remaining" in data

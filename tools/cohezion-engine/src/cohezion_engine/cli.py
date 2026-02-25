@@ -1,14 +1,15 @@
 """Cohezion Engine CLI - spec-driven development workflow tool."""
+
 import json
 
 import click
 
 from cohezion_engine import __version__
-from cohezion_engine.config import get_config_dir
-from cohezion_engine.context import estimate_context
+from cohezion_engine import plan as plan_mod
 from cohezion_engine import session as session_mod
 from cohezion_engine import worktree as worktree_mod
-from cohezion_engine import plan as plan_mod
+from cohezion_engine.config import get_config_dir
+from cohezion_engine.context import estimate_context
 
 
 @click.group()
@@ -37,21 +38,73 @@ def status(as_json: bool):
         click.echo(f"Config: {data['config_dir']}")
 
 
-@cli.command("context")
+@cli.group("context", invoke_without_command=True)
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON")
 @click.option("--limit", default=200_000, help="Context token limit", show_default=True)
-def context_cmd(as_json: bool, limit: int):
+@click.pass_context
+def context_cmd(ctx: click.Context, as_json: bool, limit: int):
     """Estimate current Claude Code context usage."""
+    if ctx.invoked_subcommand is not None:
+        ctx.ensure_object(dict)
+        ctx.obj["limit"] = limit
+        return
     data = estimate_context(context_limit=limit)
     if as_json:
         click.echo(json.dumps(data))
     else:
-        pct = data["percentage"]
-        status_str = data["status"]
-        color = "green" if status_str == "OK" else "yellow" if status_str == "WARNING" else "red"
-        click.echo(f"Context: {click.style(f'{pct:.1f}%', fg=color)} ({status_str})")
-        if "error" in data:
-            click.echo(f"  Note: {data['error']}", err=True)
+        _print_context_human(data)
+
+
+def _print_context_human(data: dict) -> None:
+    pct = data["percentage"]
+    status_str = data["status"]
+    color = "green" if status_str == "OK" else "yellow" if status_str == "WARNING" else "red"
+    click.echo(f"Context: {click.style(f'{pct:.1f}%', fg=color)} [{status_str}]")
+    velocity = data.get("velocity_tokens_per_turn", 0)
+    turns = data.get("turns_remaining")
+    if velocity > 0:
+        turns_str = str(turns) if turns is not None else "0"
+        click.echo(f"  Velocity: ~{velocity:,} tokens/turn")
+        click.echo(f"  Turns remaining: ~{turns_str}")
+    else:
+        click.echo("  Velocity: \u221e (no data)")
+    top = data.get("top_turns")
+    if top:
+        peak = top[0]
+        click.echo(f"  Peak turn: turn {peak['turn']} ({peak['tokens']:,} tokens)")
+    if "error" in data:
+        click.echo(f"  Note: {data['error']}", err=True)
+
+
+@context_cmd.command("estimate")
+@click.option("--tokens", required=True, type=int, help="Hypothetical tokens to add")
+@click.option("--json", "as_json", is_flag=True, help="Output as JSON")
+@click.option("--limit", default=200_000, help="Context token limit", show_default=True)
+def context_estimate(tokens: int, as_json: bool, limit: int):
+    """Pre-flight check: will TOKENS fit in remaining context budget?"""
+    data = estimate_context(context_limit=limit, hypothetical_tokens=tokens)
+    if as_json:
+        click.echo(
+            json.dumps(
+                {
+                    "fits": data.get("fits"),
+                    "status_after": data.get("status_after"),
+                    "percentage_after": data.get("percentage_after"),
+                    "current_percentage": data["percentage"],
+                }
+            )
+        )
+    else:
+        fits = data.get("fits")
+        icon = "✓" if fits else "✗"
+        color = "green" if fits else "red"
+        click.echo(
+            f"{click.style(icon, fg=color)} {tokens:,} tokens {'' if fits else 'do NOT '}fit"
+        )
+        after_pct = data.get("percentage_after", 0)
+        after_status = data.get("status_after")
+        cur = data["percentage"]
+        click.echo(f"  Current: {cur:.1f}%  →  After: {after_pct:.1f}% [{after_status}]")
 
 
 @cli.group()
