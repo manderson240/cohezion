@@ -21,13 +21,17 @@ Features:
 
 import hashlib
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
 from cohezion.compound.executor import ExecutionResult
+
+
+if TYPE_CHECKING:
+    from cohezion.compound.thermodynamic_metrics import ThermodynamicState
 
 
 logger = logging.getLogger(__name__)
@@ -53,7 +57,7 @@ class TrajectoryPoint:
     efficiency: float  # Token efficiency (0.0-1.0)
     operation_type: str  # Type of operation
     task_description: str  # Task that generated this point
-    metadata: dict[str, Any] = None  # Additional context
+    metadata: dict[str, Any] | None = field(default=None)  # Additional context
 
 
 @dataclass
@@ -122,6 +126,12 @@ class JourneyTracker:
         # Cache for projections
         self._projection_cache: dict[str, np.ndarray] = {}
 
+        # Optional FLUME encoder for semantic embeddings — auto-initialized if checkpoint exists
+        self._flume_encoder = self._try_load_flume_encoder()
+
+        # Optional TemporalEncoder for trajectory sequence encoding (Phase 2)
+        self._temporal_encoder = self._try_load_temporal_encoder()
+
         # Recent trajectory points for real smoothness/convergence
         self._recent_points: list[TrajectoryPoint] = []
 
@@ -129,6 +139,35 @@ class JourneyTracker:
         self._modulation_profiles = self._create_modulation_profiles()
 
         logger.debug("Initialized JourneyTracker with seed=%d", seed)
+
+    @staticmethod
+    def _try_load_flume_encoder():
+        """Auto-initialize FLUME encoder if checkpoint exists. Returns None on any failure."""
+        try:
+            from cohezion.flume.vae_encoder import FlumeVAEEncoder
+
+            enc = FlumeVAEEncoder(fallback_to_hash=False)
+            if enc.enabled:
+                logger.info("JourneyTracker: FLUME semantic encoder active (v%d)", enc._version)
+                return enc
+        except Exception as e:
+            logger.debug("FLUME encoder not loaded: %s", e)
+        return None
+
+    @staticmethod
+    def _try_load_temporal_encoder():
+        """Auto-initialize TemporalVAELoader if checkpoint exists. Returns None on failure."""
+        try:
+            from cohezion.flume.temporal_encoder import TemporalVAELoader
+
+            loader = TemporalVAELoader()
+            if loader.enabled:
+                logger.info("JourneyTracker: TemporalVAE encoder loaded from checkpoint")
+                return loader
+            logger.debug("TemporalVAE checkpoint not found — sequence encoding unavailable")
+        except Exception as e:
+            logger.debug("TemporalVAELoader not loaded: %s", e)
+        return None
 
     def _create_modulation_profiles(self) -> dict[str, np.ndarray]:
         """Create operation-specific modulation profiles.
@@ -142,91 +181,102 @@ class JourneyTracker:
         profiles = {}
 
         # GENERATE: High novelty (0) + logic (1)
-        profiles[OperationType.GENERATE.value] = np.array([
-            0.9,  # novelty
-            0.8,  # logic
-            0.4,  # field
-            0.3,  # spatial
-            0.5,  # temporal
-            0.5,  # precipitation
-            0.6,  # coherence
-            0.5,  # efficiency
-            0.4,  # convergence
-            0.3,  # smoothness
-            0.5,  # resonance
-            0.4,  # harmony
-        ])
+        profiles[OperationType.GENERATE.value] = np.array(
+            [
+                0.9,  # novelty
+                0.8,  # logic
+                0.4,  # field
+                0.3,  # spatial
+                0.5,  # temporal
+                0.5,  # precipitation
+                0.6,  # coherence
+                0.5,  # efficiency
+                0.4,  # convergence
+                0.3,  # smoothness
+                0.5,  # resonance
+                0.4,  # harmony
+            ]
+        )
 
         # ANALYZE: High logic (1) + field (2)
-        profiles[OperationType.ANALYZE.value] = np.array([
-            0.5,  # novelty
-            0.9,  # logic
-            0.8,  # field
-            0.4,  # spatial
-            0.3,  # temporal
-            0.4,  # precipitation
-            0.7,  # coherence
-            0.6,  # efficiency
-            0.5,  # convergence
-            0.4,  # smoothness
-            0.6,  # resonance
-            0.5,  # harmony
-        ])
+        profiles[OperationType.ANALYZE.value] = np.array(
+            [
+                0.5,  # novelty
+                0.9,  # logic
+                0.8,  # field
+                0.4,  # spatial
+                0.3,  # temporal
+                0.4,  # precipitation
+                0.7,  # coherence
+                0.6,  # efficiency
+                0.5,  # convergence
+                0.4,  # smoothness
+                0.6,  # resonance
+                0.5,  # harmony
+            ]
+        )
 
         # SEARCH: High spatial (3)
-        profiles[OperationType.SEARCH.value] = np.array([
-            0.6,  # novelty
-            0.5,  # logic
-            0.4,  # field
-            0.9,  # spatial
-            0.4,  # temporal
-            0.3,  # precipitation
-            0.6,  # coherence
-            0.8,  # efficiency
-            0.4,  # convergence
-            0.5,  # smoothness
-            0.5,  # resonance
-            0.4,  # harmony
-        ])
+        profiles[OperationType.SEARCH.value] = np.array(
+            [
+                0.6,  # novelty
+                0.5,  # logic
+                0.4,  # field
+                0.9,  # spatial
+                0.4,  # temporal
+                0.3,  # precipitation
+                0.6,  # coherence
+                0.8,  # efficiency
+                0.4,  # convergence
+                0.5,  # smoothness
+                0.5,  # resonance
+                0.4,  # harmony
+            ]
+        )
 
         # TRANSFORM: Moderate all
-        profiles[OperationType.TRANSFORM.value] = np.array([
-            0.6,  # novelty
-            0.6,  # logic
-            0.6,  # field
-            0.6,  # spatial
-            0.6,  # temporal
-            0.6,  # precipitation
-            0.6,  # coherence
-            0.6,  # efficiency
-            0.5,  # convergence
-            0.5,  # smoothness
-            0.6,  # resonance
-            0.6,  # harmony
-        ])
+        profiles[OperationType.TRANSFORM.value] = np.array(
+            [
+                0.6,  # novelty
+                0.6,  # logic
+                0.6,  # field
+                0.6,  # spatial
+                0.6,  # temporal
+                0.6,  # precipitation
+                0.6,  # coherence
+                0.6,  # efficiency
+                0.5,  # convergence
+                0.5,  # smoothness
+                0.6,  # resonance
+                0.6,  # harmony
+            ]
+        )
 
         # PERSIST: High temporal (4) + precipitation (5)
-        profiles[OperationType.PERSIST.value] = np.array([
-            0.3,  # novelty
-            0.4,  # logic
-            0.5,  # field
-            0.4,  # spatial
-            0.9,  # temporal
-            0.8,  # precipitation
-            0.7,  # coherence
-            0.5,  # efficiency
-            0.6,  # convergence
-            0.4,  # smoothness
-            0.5,  # resonance
-            0.5,  # harmony
-        ])
+        profiles[OperationType.PERSIST.value] = np.array(
+            [
+                0.3,  # novelty
+                0.4,  # logic
+                0.5,  # field
+                0.4,  # spatial
+                0.9,  # temporal
+                0.8,  # precipitation
+                0.7,  # coherence
+                0.5,  # efficiency
+                0.6,  # convergence
+                0.4,  # smoothness
+                0.5,  # resonance
+                0.5,  # harmony
+            ]
+        )
 
         return profiles
 
-    def _text_to_latent(self, text: str) -> np.ndarray:
-        """Generate deterministic 2048D embedding from text.
+    def text_to_latent(self, text: str) -> np.ndarray:
+        """Generate 2048D embedding from text.
 
-        Uses SHA-256 hash expanded to 2048D with sine wave modulation.
+        Uses FLUME encoder (256D tiled to 2048D) when available,
+        otherwise falls back to SHA-256 hash expansion.
 
         Args:
             text: Input text to embed
@@ -234,30 +284,81 @@ class JourneyTracker:
         Returns:
             2048D numpy array with normalized values
         """
-        # Generate hash
+        # Try FLUME semantic path first
+        if self._flume_encoder is not None:
+            try:
+                flume_256d = self._flume_encoder.encode(text)
+                # Tile 256D → 2048D to match existing pipeline expectations
+                latent = np.tile(flume_256d, self.HASH_DIMS // len(flume_256d))
+                latent = 2.0 * (latent - np.min(latent)) / (np.max(latent) - np.min(latent) + 1e-8) - 1.0
+                return latent
+            except Exception as e:
+                logger.debug("FLUME encoder failed, falling back to hash: %s", e)
+
+        # Hash fallback
         hash_obj = hashlib.sha256(text.encode())
         hash_bytes = hash_obj.digest()
 
-        # Expand to 2048 dimensions using deterministic method
         latent = np.zeros(self.HASH_DIMS)
         for i in range(self.HASH_DIMS):
-            # Cycle through hash bytes
             byte_idx = i % len(hash_bytes)
-            # Use sine wave modulation for smooth variation
             phase = (2.0 * np.pi * i) / self.HASH_DIMS
-            latent[i] = (
-                (hash_bytes[byte_idx] / 255.0) * 0.5
-                + 0.25 * np.sin(phase)
-                + 0.25 * np.cos(phase * 2)
-            )
+            latent[i] = (hash_bytes[byte_idx] / 255.0) * 0.5 + 0.25 * np.sin(phase) + 0.25 * np.cos(phase * 2)
 
         # Normalize to [-1, 1]
         latent = 2.0 * (latent - np.min(latent)) / (np.max(latent) - np.min(latent) + 1e-8) - 1.0
 
         return latent
 
-    def _holographic_project(self, latent_2048d: np.ndarray) -> np.ndarray:
-        """Project 2048D embedding to 12D using holographic method.
+    def encode_step_sequence(self, steps: list[dict]) -> np.ndarray:
+        """Encode a sequence of execution steps to 2048D using TemporalEncoder.
+
+        Each step dict should contain: trajectory (12D list), coherence, novelty,
+        improvement, skill. The TemporalEncoder processes the full sequence and
+        returns a 256D mu vector, which is tiled to 2048D.
+
+        Falls back to encoding the last step's trajectory via text_to_latent if
+        TemporalEncoder is unavailable.
+
+        Parameters
+        ----------
+        steps : list[dict]
+            Ordered list of execution step dicts.
+
+        Returns
+        -------
+        np.ndarray
+            2048D normalized latent vector.
+        """
+        if not steps:
+            return np.zeros(self.HASH_DIMS, dtype=np.float32)
+
+        if self._temporal_encoder is not None:
+            try:
+                import torch
+                from cohezion.flume.trajectory_dataset import _record_to_step
+
+                step_vecs = np.stack([_record_to_step(s) for s in steps])  # [T, 29]
+                tensor = torch.from_numpy(step_vecs).float()  # [T, 29]
+                latent_256d = self._temporal_encoder.encode_sequence(tensor)  # [256]
+                # Tile to 2048D and normalize to [-1, 1]
+                latent = np.tile(latent_256d, self.HASH_DIMS // len(latent_256d))
+                min_v, max_v = latent.min(), latent.max()
+                latent = 2.0 * (latent - min_v) / (max_v - min_v + 1e-8) - 1.0
+                return latent.astype(np.float32)
+            except Exception as e:
+                logger.debug("TemporalEncoder encoding failed, using fallback: %s", e)
+
+        # Fallback: use task description from last step if available
+        last_task = steps[-1].get("task_description", "")
+        if last_task:
+            return self.text_to_latent(last_task)
+
+        # Final fallback: zero vector
+        return np.zeros(self.HASH_DIMS, dtype=np.float32)
+
+    def holographic_project(self, latent_2048d: np.ndarray) -> np.ndarray:
+        """Project 2048D embedding to 12D using chunk-mean averaging.
 
         Uses chunk-mean averaging: divide 2048D into 128-element segments
         and take mean of each segment. Then interpolate to 12D.
@@ -275,10 +376,9 @@ class JourneyTracker:
 
         # Chunk-mean projection: 2048 → 16 dimensions (128-element chunks)
         num_chunks = self.HASH_DIMS // self.CHUNK_SIZE
-        chunk_means = np.array([
-            np.mean(latent_2048d[i * self.CHUNK_SIZE:(i + 1) * self.CHUNK_SIZE])
-            for i in range(num_chunks)
-        ])
+        chunk_means = np.array(
+            [np.mean(latent_2048d[i * self.CHUNK_SIZE : (i + 1) * self.CHUNK_SIZE]) for i in range(num_chunks)]
+        )
 
         # Interpolate 16D → 12D
         if len(chunk_means) > self.AXIOMATIC_DIMS:
@@ -291,9 +391,7 @@ class JourneyTracker:
             result_12d = np.interp(indices, np.arange(len(chunk_means)), chunk_means)
 
         # Normalize to [0, 1]
-        result_12d = (result_12d - np.min(result_12d)) / (
-            np.max(result_12d) - np.min(result_12d) + 1e-8
-        )
+        result_12d = (result_12d - np.min(result_12d)) / (np.max(result_12d) - np.min(result_12d) + 1e-8)
 
         # Cache result (evict oldest if at capacity)
         if len(self._projection_cache) >= self.MAX_CACHE_SIZE:
@@ -325,11 +423,7 @@ class JourneyTracker:
             12D axiomatic vector
         """
         # Get modulation profile
-        operation_str = (
-            operation_type
-            if isinstance(operation_type, str)
-            else operation_type.value
-        )
+        operation_str = operation_type if isinstance(operation_type, str) else operation_type.value
         modulation = self._modulation_profiles.get(
             operation_str,
             self._modulation_profiles[OperationType.TRANSFORM.value],
@@ -338,9 +432,7 @@ class JourneyTracker:
         # Combine projection with modulation
         # Weight modulation by execution quality
         quality_weight = 0.5 * coherence + 0.5 * efficiency
-        axiomatic = (
-            projection_12d * (1.0 - quality_weight) + modulation * quality_weight
-        )
+        axiomatic = projection_12d * (1.0 - quality_weight) + modulation * quality_weight
 
         # Normalize
         axiomatic = np.clip(axiomatic, 0.0, 1.0)
@@ -366,9 +458,7 @@ class JourneyTracker:
         Returns:
             Phi score (0.0-1.0)
         """
-        phi = (
-            coherence * 0.5 + smoothness * 0.3 + convergence * 0.2
-        )
+        phi = coherence * 0.5 + smoothness * 0.3 + convergence * 0.2
         return np.clip(phi, 0.0, 1.0)
 
     def track_execution(
@@ -390,19 +480,15 @@ class JourneyTracker:
         # Extract metrics
         coherence = execution_result.metrics.get("coherence", 0.5)
         efficiency = (
-            execution_result.token_metrics.get("cache_hit_rate", 0.5)
-            if execution_result.token_metrics
-            else 0.5
+            execution_result.token_metrics.get("cache_hit_rate", 0.5) if execution_result.token_metrics else 0.5
         )
 
         # Generate embeddings
-        latent_2048d = self._text_to_latent(task_description)
-        projection_12d = self._holographic_project(latent_2048d)
+        latent_2048d = self.text_to_latent(task_description)
+        projection_12d = self.holographic_project(latent_2048d)
 
         # Apply operation modulation
-        axiomatic_12d = self._step_to_axiomatic(
-            projection_12d, operation_type, coherence, efficiency
-        )
+        axiomatic_12d = self._step_to_axiomatic(projection_12d, operation_type, coherence, efficiency)
 
         # Compute quality score using real trajectory history
         smoothness = 0.5
@@ -435,11 +521,10 @@ class JourneyTracker:
         # Maintain recent points buffer (capped at window size)
         self._recent_points.append(point)
         if len(self._recent_points) > self.TRAJECTORY_WINDOW:
-            self._recent_points = self._recent_points[-self.TRAJECTORY_WINDOW:]
+            self._recent_points = self._recent_points[-self.TRAJECTORY_WINDOW :]
 
         logger.debug(
-            "Tracked execution: %s (phi=%.2f, coherence=%.2f, "
-            "smoothness=%.2f, convergence=%.2f, buffer=%d)",
+            "Tracked execution: %s (phi=%.2f, coherence=%.2f, smoothness=%.2f, convergence=%.2f, buffer=%d)",
             task_description[:50],
             phi_score,
             coherence,
@@ -447,11 +532,14 @@ class JourneyTracker:
             convergence,
             len(self._recent_points),
         )
-
         return point
 
+    def get_recent_trajectory(self) -> list[TrajectoryPoint]:
+        """Get the recent trajectory points."""
+        return self._recent_points
+
     def get_last_point(self) -> TrajectoryPoint | None:
-        """Return the most recent trajectory point, or None if no points tracked."""
+        """Get the most recent point in the trajectory."""
         return self._recent_points[-1] if self._recent_points else None
 
     def get_recent_point_count(self) -> int:
@@ -481,9 +569,7 @@ class JourneyTracker:
 
         coherences = np.array([p.coherence for p in points])
         efficiencies = np.array([p.efficiency for p in points])
-        phi_scores = np.array([
-            (p.metadata or {}).get("phi_score", 0.0) for p in points
-        ])
+        phi_scores = np.array([(p.metadata or {}).get("phi_score", 0.0) for p in points])
 
         # Compute smoothness (variance of dimension changes)
         dimensions = np.array([p.dimensions for p in points])
@@ -495,7 +581,7 @@ class JourneyTracker:
 
         # Compute convergence (trend toward stable state)
         if len(coherences) > 1:
-            convergence = 1.0 - np.std(coherences[-min(3, len(coherences)):])
+            convergence = 1.0 - np.std(coherences[-min(3, len(coherences)) :])
         else:
             convergence = 1.0
 
@@ -625,3 +711,14 @@ class JourneyTrackerFactory:
             JourneyTracker instance
         """
         return JourneyTracker(seed=seed)
+
+
+_journey_tracker_instance: JourneyTracker | None = None
+
+
+def get_journey_tracker() -> JourneyTracker:
+    """Get the global JourneyTracker instance."""
+    global _journey_tracker_instance
+    if _journey_tracker_instance is None:
+        _journey_tracker_instance = JourneyTracker()
+    return _journey_tracker_instance

@@ -1,4 +1,5 @@
 import json
+from typing import ClassVar
 
 from transformers import PreTrainedTokenizer
 
@@ -8,12 +9,11 @@ class FlumeTokenizer(PreTrainedTokenizer):
     Simple character-level tokenizer for Flume.
     """
 
-    model_input_names = ["input_ids", "attention_mask"]
+    model_input_names: ClassVar[list[str]] = ["input_ids", "attention_mask"]
 
     def __init__(
         self,
-        chars: str
-        | None = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?;:'\"()-\n",
+        chars: str | None = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?;:'\"()-\n",
         bos_token="<BOS>",
         eos_token="<EOS>",
         unk_token="<UNK>",
@@ -62,14 +62,10 @@ class FlumeTokenizer(PreTrainedTokenizer):
     def convert_tokens_to_string(self, tokens: list[str]) -> str:
         return "".join(tokens)
 
-    def save_vocabulary(
-        self, save_directory: str, filename_prefix: str | None = None
-    ) -> tuple[str]:
+    def save_vocabulary(self, save_directory: str, filename_prefix: str | None = None) -> tuple[str]:
         import os
 
-        vocab_file = os.path.join(
-            save_directory, (filename_prefix or "") + "vocab.json"
-        )
+        vocab_file = os.path.join(save_directory, (filename_prefix or "") + "vocab.json")
         with open(vocab_file, "w", encoding="utf-8") as f:
             json.dump(self._char_to_idx, f, ensure_ascii=False)
         return (vocab_file,)

@@ -4,21 +4,28 @@ Three tiers, each non-blocking:
   Tier 1: Parquet journey shards  (data/journeys/shard_*.parquet)
   Tier 2: SurrealDB mission_journey table
   Tier 3: Vault experiment JSON files
+
+Execution logging:
+  Compound executions can be logged via log_execution() to
+  data/flume/experiences/execution_log.jsonl for future training.
 """
 
 from __future__ import annotations
 
 import json
 import logging
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
 # Default paths
 _PARQUET_DIR = Path("data/journeys")
 _VAULT_DIR = Path.home() / "vaults" / "cohezion-vault" / "experiments"
+_EXECUTION_LOG_DIR = Path("data/flume/experiences")
 
 
 class ExperienceCollector:
@@ -30,15 +37,19 @@ class ExperienceCollector:
         Directory containing ``shard_*.parquet`` files.
     vault_dir : Path
         Directory containing vault experiment JSON files.
+    execution_log_dir : Path
+        Directory for compound execution JSONL log.
     """
 
     def __init__(
         self,
         parquet_dir: Path | str = _PARQUET_DIR,
         vault_dir: Path | str = _VAULT_DIR,
+        execution_log_dir: Path | str = _EXECUTION_LOG_DIR,
     ) -> None:
         self.parquet_dir = Path(parquet_dir)
         self.vault_dir = Path(vault_dir)
+        self.execution_log_dir = Path(execution_log_dir)
 
     def collect_all(self, max_samples: int = 100_000) -> list[dict]:
         """Collect experiences from all tiers.
@@ -79,7 +90,7 @@ class ExperienceCollector:
                 break
             try:
                 table = pq.read_table(pf)
-                for row in table.to_pydict().values():
+                for _row in table.to_pydict().values():
                     # pydict returns {col: [values]} — need to iterate rows
                     break  # just need to check structure
                 df_rows = table.to_pandas().to_dict(orient="records")
@@ -127,7 +138,7 @@ class ExperienceCollector:
             diffs = np.diff(pts_arr, axis=0)
             smoothness = float(np.clip(1.0 - np.mean(np.abs(diffs)), 0.0, 1.0))
             # Convergence: 1.0 - std of last 3 norms (HIHO approach stability)
-            tail = pts_arr[-min(3, len(pts_arr)):]
+            tail = pts_arr[-min(3, len(pts_arr)) :]
             norms = np.linalg.norm(tail, axis=1)
             convergence = float(np.clip(1.0 - np.std(norms), 0.0, 1.0))
 
@@ -136,9 +147,7 @@ class ExperienceCollector:
     @staticmethod
     def _normalize_parquet_row(row: dict) -> dict:
         """Convert a parquet row into the canonical experience schema."""
-        trajectory, smoothness, convergence = ExperienceCollector._compute_trajectory_stats(
-            row.get("state_trajectory")
-        )
+        trajectory, smoothness, convergence = ExperienceCollector._compute_trajectory_stats(row.get("state_trajectory"))
 
         return {
             "trajectory": trajectory,
@@ -184,9 +193,7 @@ class ExperienceCollector:
 
             client = SurrealClient()
             await client.connect()
-            result = await client.query(
-                f"SELECT * FROM mission_journey LIMIT {max_samples}"
-            )
+            result = await client.query(f"SELECT * FROM mission_journey LIMIT {max_samples}")
             records = []
             if result and isinstance(result, list):
                 for row in result:
@@ -201,9 +208,7 @@ class ExperienceCollector:
     @staticmethod
     def _normalize_surreal_row(row: dict) -> dict:
         """Normalize a SurrealDB mission_journey record."""
-        trajectory, smoothness, convergence = ExperienceCollector._compute_trajectory_stats(
-            row.get("state_trajectory")
-        )
+        trajectory, smoothness, convergence = ExperienceCollector._compute_trajectory_stats(row.get("state_trajectory"))
 
         return {
             "trajectory": trajectory,
@@ -257,3 +262,31 @@ class ExperienceCollector:
             "phi_score": float(record.get("phi_score", 0.0)),
             "operation_type": record.get("operation_type", "analyze"),
         }
+
+    # ------------------------------------------------------------------
+    # Execution logging (compound loop → training data)
+    # ------------------------------------------------------------------
+    def log_execution(
+        self,
+        task_description: str,
+        operation_type: str,
+        metrics: dict,
+        skill_name: str,
+    ) -> None:
+        """Append a compound execution record to the JSONL execution log.
+
+        Creates data/flume/experiences/execution_log.jsonl (or configured
+        path) for periodic re-embedding and VAE fine-tuning.
+        """
+        self.execution_log_dir.mkdir(parents=True, exist_ok=True)
+        record = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "task_description": task_description,
+            "operation_type": operation_type,
+            "metrics": metrics,
+            "skill_name": skill_name,
+        }
+        log_file = self.execution_log_dir / "execution_log.jsonl"
+        with open(log_file, "a") as f:
+            f.write(json.dumps(record) + "\n")
+        logger.debug("Logged execution: skill=%s op=%s", skill_name, operation_type)
