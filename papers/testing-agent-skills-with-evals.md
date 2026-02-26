@@ -48,6 +48,13 @@ OpenAI guide (by Dominik Kundel and Gabriel Chua) on systematically evaluating A
 
 Directly applicable to `lab_agent.py` evaluation framework design. The four-category eval structure (outcome/process/style/efficiency) provides a practical taxonomy for assessing Cohezion agent performance., [[agentic-ai]], [[ai-agents]], [[prompt-engineering]]
 
+## Related Papers
+
+- [[circleci-ai-cicd-validation]] — CircleCI's Chunk operationalizes the eval categories (outcome, process, efficiency) described here as an autonomous CI/CD pipeline
+- [[humanitys-last-exam-benchmark]] — HLE's expert-level benchmark design applies the same "measure to improve" philosophy as agent skill evals
+- [[emoticons-llm-silent-failures]] — silent failures that pass functional tests but fail semantically highlight why style-goal evals (checking for semantic correctness) are essential
+- [[grok4-ai-benchmarks]] — benchmark comparisons like Grok 4's scores reflect the same "measure → improve → ship" loop the evals framework formalizes
+
 ## Related Concepts
 
 - [[langchain-deep-agents-context-management]]

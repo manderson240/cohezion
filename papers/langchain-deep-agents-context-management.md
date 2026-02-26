@@ -75,3 +75,6 @@ Directly relevant to [[lab_agent.py]] and [[ouroboros.py]] context management. T
 - [[llamaagents-builder]]
 - [[testing-agent-skills-with-evals]]
 - [[operational-data-ai-agents]]
+- [[llm-in-sandbox-agentic-intelligence]] — both use filesystem access as a key mechanism for extending agent context beyond the context window
+- [[agentic-ai-memory-hierarchies]] — LangChain's three-tier context strategy (offload/truncate/summarize) is a software-level answer to the hardware KV cache challenges described in memory hierarchies
+- [[context-management]] — Deep Agents' three-tier strategy is a concrete implementation of the context management patterns surveyed in the concept note

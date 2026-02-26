@@ -54,7 +54,10 @@ Directly relevant to `lab_agent.py` for designing evaluation frameworks. HLE's a
 
 - [[webb-cosmic-question-mark-gravitational-lens]]
 - [[circleci-ai-cicd-validation]]
-- [[tonggeometry-ai-math]]
+- [[tonggeometry-ai-math]] — TongGeometry's IMO-level geometry problems directly overlap with HLE's expert mathematics domain
+- [[tonggeometry-olympiad-tree-search]] — neuro-symbolic tree search is the kind of approach needed to tackle HLE-level mathematical reasoning
+- [[theorem-ai-formal-verification]] — formal verification of AI-generated mathematical reasoning is relevant to HLE's unambiguous, verifiable answer requirements
+- [[grok4-ai-benchmarks]] — Grok 4 benchmark results include HLE performance (24%), providing a direct reference point for state-of-the-art on this benchmark
 - [[2026-02-09-model-wrangler-strategy]]
 - [[runbook-benchmarking-validation]]
 - [[2026-02-10-performance-benchmarking-framework]]

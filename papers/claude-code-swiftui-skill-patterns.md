@@ -65,6 +65,12 @@ general
 
 Software Engineering resource captured via mobile link pipeline. general, [[prompt-engineering]]
 
+## Related Papers
+
+- [[karpathy-claude-code-skills]] — the SwiftUI skill implements the Karpathy workflow in a specific domain: replacing manual iOS development knowledge lookup with AI-assisted expertise
+- [[claude-code-community-skills]] — the SwiftUI skill is one of the 36 community skills, exemplifying domain-specific Claude Code skill creation
+- [[webgpu-claude-skill-threejs]] — a parallel domain-specific Claude skill (WebGPU/Three.js) demonstrating the same skill packaging pattern for a different technical domain
+
 ## Related Concepts
 
 - [[anthropic-disempowerment-patterns]]

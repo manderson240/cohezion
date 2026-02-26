@@ -233,3 +233,9 @@ The field is advancing rapidly, with major milestones achieved in 2024-2025 and 
 - [[service-class-singleton-pattern]]
 - [[PRIME_CLAUDE_CODE_PRACTICES]]
 - [[multi-session-compound-engineering-workflow]]
+
+## Cross-Domain Bridges
+
+- [[transcranial-ultrasound-consciousness]] — quadrature physics probes the quantum vacuum (apparently empty space with hidden internal structure), while tFUS probes consciousness (apparently unlocalized phenomenon with hidden physical substrate) — both research programs use precision field measurements to access dynamics that are invisible to direct observation.
+- [[superfluid-to-supersolid-transition]] — the squeezed vacuum (less noise than "nothing") and the superfluid-to-supersolid transition both demonstrate that quantum ground states have richer structure than classical intuition allows: both reveal that what looks like a featureless substrate (vacuum / superfluid) undergoes a phase transition into an ordered state when boundary conditions change.
+- [[quantum-teleportation-logic-gates]] — LIGO's squeezed-light enhancement and quantum gate teleportation both exploit vacuum fluctuations as a resource: LIGO squeezes the vacuum to reduce noise below the standard quantum limit, while quantum teleportation uses vacuum-seeded entanglement to transfer computation. The quantum vacuum is the enabling technology in both cases.

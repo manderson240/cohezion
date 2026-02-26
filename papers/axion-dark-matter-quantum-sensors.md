@@ -59,3 +59,7 @@ Distributed sensor networks producing correlated measurements to detect subtle s
 - [[supersolid-quantum-state]]
 - [[quantum-sensors]]
 - [[dark-matter-detection]]
+- [[jwst-dark-matter-map]] — JWST's gravitational lensing dark matter map and this quantum sensor network represent complementary detection approaches: large-scale structure mapping vs. direct particle sensing for axions
+- [[fast-radio-bursts-binary-star-origin]] — FRBs have been proposed as probes of axion dark matter via differential birefringence in their radio signals, directly connecting FRB science to axion detection physics
+- [[beyond-the-quantum-pilot-wave-theory]] — axion detection depends on precise quantum measurement; pilot-wave theory's hidden variable framework may provide alternative interpretations of the quantum spin rotation signals being measured
+- [[dark-matter]]

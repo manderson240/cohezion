@@ -59,10 +59,15 @@ Demonstrates a recording/replay pattern for complex system dynamics. Could infor
 ## Related Concepts
 
 - [[yann-lecun-agi-world-models]]
-- [[dna-origami-2d-semiconductor-patterning]]
+- [[dna-origami-2d-semiconductor-patterning]] — both use engineered molecular structures (protein fiber vs. DNA scaffold) as programmable information carriers at the nanoscale
 - [[ai-anomaly-detection-hubble-archive]]
 - [[ocean-calcium-climate-mystery-66my]]
 - [[mars-time-dilation-relativity]]
 - [[llm-in-sandbox-agentic-intelligence]]
 - [[cu45-superatom-carbon-recycling]]
 - [[optofluidic-3d-nanofabrication]]
+- [[alphafold-cryo-em-structure-prediction]] — AlphaFold's structural models help interpret what CytoTape's recorded protein signals represent in 3D conformation space
+- [[brain-protein-neurodegeneration]] — CytoTape was validated in mouse brain tissue and could directly record the temporal dynamics of amyloid and tau aggregation events
+- [[bioinformatics]] — CytoTape generates spatiotemporal protein activity data that bioinformatics pipelines can decode
+- [[knowledge-graph-semantic-relationships]] — Both CytoTape and knowledge graphs encode *temporal sequences of state* along a traversable structure: CytoTape records molecular signals along a protein fiber, while a knowledge graph encodes relationships traversable across time. Both are read-out systems for prior activity.
+- [[sentinel-1-ice-sheets]] — Sentinel-1's decade-long continuous radar record of ice-sheet dynamics and CytoTape's three-week intracellular recording share the same design challenge: maintaining high-fidelity sequential data over extended timescales without distorting the underlying process being observed.

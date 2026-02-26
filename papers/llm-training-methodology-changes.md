@@ -67,6 +67,9 @@ Relevant to [[lab_agent.py]] model selection and fine-tuning strategy. The post-
 ## Related Papers
 
 - [[rethinking-exoplanet-habitability]]
+- [[emoticons-llm-silent-failures]] — post-training efficiency improvements could specifically address tokenization edge cases that cause silent coding failures
+- [[grok4-ai-benchmarks]] — Grok 4's benchmark leadership reflects the outcome of training methodology decisions; smarter post-training is the lever being pulled
+- [[mistral-open-source-ai-strategy]] — Mistral's open-source enterprise strategy depends on efficient training to compete with closed labs that scale brute-force compute
 
 ## Related Concepts
 

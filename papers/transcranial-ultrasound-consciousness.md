@@ -55,6 +55,17 @@ Provides a methodological framework for causal investigation of emergent propert
 - [[google-sheets-vault-bridge]]
 - [[runbook-sheets-research-pipeline]]
 
+## Related Papers
+
+- [[brain-protein-neurodegeneration]] — tFUS can causally probe the deep brain regions where amyloid/tau pathology disrupts microglial metabolism in Alzheimer's disease
+
 ## Related Concepts
 
 - [[fast-radio-bursts-binary-star-origin]]
+- [[cognitive-science]] — consciousness research via tFUS directly informs cognitive science models of perception and awareness
+
+## Cross-Domain Bridges
+
+- [[yann-lecun-agi-world-models]] — tFUS enables causal rather than correlational study of consciousness, which is the same methodological demand LeCun makes for world models in AI: interventional experiments that reveal causal structure rather than statistical correlation. Both disciplines are forcing a move from "what correlates with X" to "what causes X."
+- [[quantum-teleportation-logic-gates]] — tFUS modulates neural circuits across physical barriers (skull, deep tissue) without direct contact, just as quantum gate teleportation transfers computation between processors with no physical wire — both achieve remote state manipulation through field-mediated coupling.
+- [[the-awareness-of-nothing-at-all-and-quadrature-physics]] — tFUS probes the physical substrate of consciousness using acoustic pressure waves, while quadrature physics probes the quantum vacuum; both are attempts to experimentally access something that appears structureless from the outside (consciousness / nothingness) and reveal internal dynamics.

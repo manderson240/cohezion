@@ -54,3 +54,7 @@ Binary system dynamics and emergent radio phenomena from component interactions 
 - [[llamaagents-builder]]
 - [[transcranial-ultrasound-consciousness]]
 - [[runaway-stars-milky-way]]
+- [[woh-g64-red-supergiant-mystery]] — both papers investigate binary star system dynamics; here a magnetar-companion system produces FRBs, while WOH G64's companion triggers mass loss and dimming
+- [[woh-g64-dust-obscured-companion]] — direct parallel: both studies reveal hidden binary companions causing unexpected astrophysical phenomena in stellar systems
+- [[grb-250314a-ancient-signal]] — both FRBs and gamma-ray bursts are extreme transient electromagnetic events likely linked to neutron star/magnetar physics in the early universe
+- [[astrophysics-observations]]

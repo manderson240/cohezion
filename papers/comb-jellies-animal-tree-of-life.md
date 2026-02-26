@@ -78,3 +78,11 @@ Evolutionary Biology resource captured via mobile link pipeline. general
 - [[alphafold-cryo-em-structure-prediction]]
 - [[mcl1-myc-cancer-metabolism]]
 - [[tidally-locked-exoplanet-habitability]]
+- [[brain-protein-neurodegeneration]] — comb jellies evolved neurons independently from all other animals; comparative analysis of their neural proteins may reveal which features of neurodegeneration are evolutionarily ancient vs. derived
+- [[bioinformatics]] — the comb jelly phylogenetic analysis used chromosomal gene-location bioinformatics; genomic rearrangement mapping is a core bioinformatics method
+
+## Cross-Domain Bridges
+
+- [[rethinking-exoplanet-habitability]] — ctenophores independently evolved nervous systems from all other animals, proving complex neural organization can arise through multiple evolutionary pathways. This convergent evolution argument directly supports expanded habitability models: if complex life is not a single improbable event, life-bearing planets are more likely than the "one narrow path" view allows.
+- [[knowledge-graph-semantic-relationships]] — the comb-jelly phylogenetics debate (13+ years unresolved) illustrates how competing knowledge graph structures (sponge-first vs. ctenophore-first tree) can both fit the same entity set but encode incompatible relationship hierarchies — exactly the ontology conflict problem that semantic web reconciliation methods address.
+- [[tonggeometry-olympiad-tree-search]] — both the comb jelly phylogenetics study and TongGeometry's 6.7-billion-theorem repository use tree structures as their core data representation: the tree of life and the geometry theorem tree are both enormous search spaces where the key question is which branches to explore first — the methods (neural guidance + symbolic verification) are surprisingly similar.

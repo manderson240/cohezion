@@ -53,5 +53,8 @@ Relevant to [[fractal_universe.py]] quantum mechanics simulations and modeling o
 - [[quantum-teleportation-logic-gates]]
 - [[amorphous-materials-3d-atomic-structure]]
 - [[quantum-entanglement-speed-measurement]]
-- [[axion-dark-matter-quantum-sensors]]
+- [[axion-dark-matter-quantum-sensors]] — both papers advance quantum sensing precision; distributed intercity noble-gas sensors and entangled optical lattice clock arrays are complementary quantum sensor architectures aimed at detecting weak signals
 - [[silicon-quantum-computing-platform]]
+- [[mit-quantum-computing-progress]] — the entangled sensor arrays represent practical quantum advantage; MIT's progress on error correction is what enables scaling these quantum sensing networks to useful size
+- [[international-year-quantum-2025]] — this paper exemplifies the quantum sensing breakthroughs highlighted during the International Year of Quantum Science and Technology
+- [[artemis-ii-laser-comms]] — quantum entangled atomic sensors could dramatically improve the precision of optical atomic clocks needed for laser communication timing in deep-space missions

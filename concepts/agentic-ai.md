@@ -34,6 +34,10 @@ AI systems that operate autonomously across extended workflows, integrating mult
 - [[operational-data-ai-agents]]
 - [[scaling-agent-systems]]
 - [[langchain-deep-agents-context-management]]
+- [[openai-codex-agent-loop]] — the Codex inner/outer loop is a concrete production implementation of the observe-reason-act cycle that defines agentic AI
+- [[llamaagents-builder]] — natural-language-to-agent scaffolding democratizes agentic AI deployment
+- [[few-shot-prompting-agentic-coding]] — few-shot prompting provides the prompt engineering layer that makes agentic coding tasks 5x more effective
+- [[anthropic-disempowerment-patterns]] — empirical evidence that agentic AI interactions must be designed carefully to preserve user autonomy
 
 ## Related Concepts
 

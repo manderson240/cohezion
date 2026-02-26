@@ -53,8 +53,10 @@ Quantum Computing resource captured via mobile link pipeline. Quantum technology
 ## Related Papers
 
 - [[karpathy-claude-code-skills]]
-- [[beyond-the-quantum-pilot-wave-theory]]
+- [[beyond-the-quantum-pilot-wave-theory]] — quantum error correction resolves the measurement problem at a practical level; pilot-wave theory attempts to resolve it at a foundational level — both address the tension between quantum mechanics and reliable classical outcomes
 - [[usaf-stealthy-electromagnetic-attack]]
+- [[silicon-quantum-computing-platform]] — silicon qubit platforms and MIT's error correction breakthroughs are the two pillars of practical fault-tolerant quantum computing; hardware and algorithms advancing in tandem
+- [[quantum-teleportation-logic-gates]] — modular quantum computing via gate teleportation requires the error correction advances covered by MIT to achieve fault-tolerant distributed quantum processing
 
 ## Related Concepts
 
@@ -66,3 +68,4 @@ Quantum Computing resource captured via mobile link pipeline. Quantum technology
 - [[claude-code-swiftui-skill-patterns]]
 - [[claude-code-community-skills]]
 - [[cisa-chatgpt-data-leak]]
+- [[axion-dark-matter-quantum-sensors]] — quantum error correction enables the high-fidelity measurements needed to detect the subtle ~10^-6 rad spin rotations from potential axion dark matter interactions

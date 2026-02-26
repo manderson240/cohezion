@@ -29,8 +29,9 @@ Engineered materials designed to accelerate specific chemical reactions while re
 
 ## Related Papers
 
-- [[cu45-superatom-carbon-recycling]]
-- [[cu45-superatom-co2-ethylene]]
+- [[cu45-superatom-carbon-recycling]] — Cu45 is a prime example of a superatom cluster outperforming conventional nanoparticle catalysts in CO2 recycling
+- [[cu45-superatom-co2-ethylene]] — the same Cu45 superatom achieves 81.8% selectivity for CO2-to-ethylene, exemplifying superatomic catalytic performance
+- [[artificial-photosynthesis-living-energy]] — photoelectrochemical catalytic materials and engineered biohybrid systems are central to artificial photosynthesis
 
 ## Related Concepts
 

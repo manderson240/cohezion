@@ -5,41 +5,21 @@ tags: [concept]
 ---
 ## Definition
 
-> Auto-generated stub. Expand with full content.
-
-[Add definition here]
+The study of chemical phenomena occurring at the interface between two phases — solid/gas, solid/liquid, or solid/solid — including adsorption, catalysis, friction, wetting, and reconstruction. Surface atomic arrangement and electronic structure govern reactivity and material behavior at interfaces.
 
 ## Key Properties
 
-- [Add property 1]
-- [Add property 2]
+- Adsorption energetics determine catalytic selectivity and reaction pathways
+- Superlubricity emerges at incommensurate interfaces where surface atoms are out of registry
+- Surface reconstruction and passivation control stability under harsh conditions (acid, heat, oxidation)
+- Quantum confinement effects emerge when surface-to-volume ratios become large (nanoclusters, 2D materials)
 
 ## Related Papers
 
-- [[2026-02-09-phase1-completion]]
-- [[ai_for_good]]
-- [[artificial-photosynthesis-living-energy]]
-- [[benchmarking]]
-- [[conclusion]]
-- [[data_engineering]]
-- [[dl_primer]]
-- [[dnn_architectures]]
-- [[efficient_ai]]
-- [[frameworks]]
-- [[frontiers]]
-- [[graphitic-polytype-switching-nanocavities]]
-- [[hw_acceleration]]
-- [[introduction]]
-- [[ml_systems]]
-- [[ondevice_learning]]
-- [[ops]]
-- [[optimizations]]
-- [[privacy_security]]
-- [[responsible_ai]]
-- [[robust_ai]]
-- [[sustainable_ai]]
-- [[training]]
-- [[workflow]]
+- [[artificial-photosynthesis-living-energy]] — photoelectrochemical cells depend on semiconductor surface chemistry for water splitting and CO2 reduction
+- [[graphitic-polytype-switching-nanocavities]] — superlubric incommensurate graphene interfaces are a landmark surface chemistry phenomenon enabling ultralow friction switching
+- [[cu45-superatom-co2-ethylene]] — Cu45's superatomic electronic configuration governs its exceptional surface reactivity for CO2 electroreduction
+- [[cu45-superatom-carbon-recycling]] — the stability of Cu45 under boiling water and concentrated acid reflects its engineered surface passivation
 
 ## Related Concepts
 

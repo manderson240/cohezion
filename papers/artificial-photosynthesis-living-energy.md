@@ -71,3 +71,12 @@ Bioenergy resource captured via mobile link pipeline. general, [[catalytic-mater
 - [[comb-jellies-animal-tree-of-life]]
 - [[mcl1-myc-cancer-metabolism]]
 - [[tidally-locked-exoplanet-habitability]]
+- [[cu45-superatom-co2-ethylene]] — inorganic electrocatalyst achieving similar CO2 reduction goals via copper superatom chemistry
+- [[cu45-superatom-carbon-recycling]] — superatom approach to carbon recycling, a complementary non-biological strategy
+- [[ocean-calcium-climate-mystery-66my]] — geological CO2/carbon cycle context that motivates artificial photosynthesis as a climate intervention
+
+## Cross-Domain Bridges
+
+- [[rethinking-exoplanet-habitability]] — artificial photosynthesis on a tidally locked exoplanet would be a fundamentally different engineering challenge: a permanent day-side offers unlimited solar input, but CO2 transport from the night-side (where it can freeze) becomes the rate-limiting step. The habitability constraints and the energy technology constraints are deeply coupled — planets that seem "habitable" may be energy deserts for photosynthesis-dependent life.
+- [[dna-origami-2d-semiconductor-patterning]] — both artificial photosynthesis and DNA origami semiconductor patterning use biological molecular structures as templates for controlling energy transfer (FRET dye coupling / chlorophyll light harvesting). In both cases, the biological information-carrying structure (DNA / chlorophyll arrangement) is being reverse-engineered and replicated in synthetic form.
+- [[superfluid-to-supersolid-transition]] — the FRET energy transfer in artificial photosynthesis and the exciton condensation in graphene that produced the superfluid-to-supersolid transition involve the same physical object: excitons (bound electron-hole pairs) that transfer energy through semiconductor materials. Artificial photosynthesis harvests excitons; the supersolid experiment condenses them.

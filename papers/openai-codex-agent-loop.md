@@ -57,3 +57,6 @@ Directly applicable to [[lab_agent.py]] agent loop design. The inner/outer loop 
 - [[testing-agent-skills-with-evals]]
 - [[llm-in-sandbox-agentic-intelligence]]
 - [[agentic-ai-memory-hierarchies]]
+- [[few-shot-prompting-agentic-coding]] — few-shot examples in the Codex prompt assembly phase are a key mechanism for the 5x performance gains in agentic coding tasks
+- [[karpathy-claude-code-skills]] — the Codex agent loop architecture powers the AI-driven coding workflow Karpathy describes shifting to 80% AI-generated code
+- [[anthropic-mcp-apps-claude-integrations]] — MCP Apps extend the same MCP server list pattern in the Codex prompt assembly to interactive UI embedding

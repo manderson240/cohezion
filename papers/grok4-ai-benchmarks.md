@@ -70,6 +70,12 @@ AI Evaluation resource captured via mobile link pipeline. lab_agent.py, [[ai-age
 - [[quantum-atomic-light-synchronization]]
 - [[openai-applied-compute-startup]]
 
+## Related Papers
+
+- [[humanitys-last-exam-benchmark]] — HLE is one of the key benchmarks on which Grok 4 scores (24%), making these two directly complementary
+- [[tonggeometry-ai-math]] — Grok 4's AIME math scores and TongGeometry's olympiad-level geometry achievements are comparable milestones in AI mathematical reasoning
+- [[llm-training-methodology-changes]] — the training methodology shifts discussed there directly affect benchmark outcomes like Grok 4's scores
+
 ## Related Concepts
 
 - [[anthropic-disempowerment-patterns]]

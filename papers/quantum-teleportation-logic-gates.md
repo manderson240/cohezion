@@ -55,10 +55,18 @@ Relevant to [[fractal_universe.py]] quantum simulation models. Distributed quant
 ## Related Concepts
 
 - [[amorphous-materials-3d-atomic-structure]]
-- [[quantum-entanglement-speed-measurement]]
+- [[quantum-entanglement-speed-measurement]] — the 232-attosecond entanglement lag measured there sets physical limits on gate teleportation timing; both papers probe the fundamental speed of quantum information transfer
 - [[axion-dark-matter-quantum-sensors]]
 - [[quantum-entangled-atomic-sensors]]
-- [[silicon-quantum-computing-platform]]
+- [[silicon-quantum-computing-platform]] — silicon spin qubits and photonic network interfaces used here for gate teleportation are complementary hardware platforms converging toward scalable modular quantum computers
+- [[mit-quantum-computing-progress]] — gate teleportation between separate processors is a key milestone toward modular quantum computing, the direction MIT's error correction progress is enabling
 - [[supersolid-quantum-state]]
 - [[quantum-sensors]]
 - [[dark-matter-detection]]
+- [[diffraction-gratings-fourier-transforms]] — the photonic network interface enabling gate teleportation relies on optical Fourier transform principles for beam routing; diffraction grating physics underlies the spatial filtering in quantum photonic interconnects
+
+## Cross-Domain Bridges
+
+- [[transcranial-ultrasound-consciousness]] — quantum gate teleportation transfers computation between processors with no physical wire via field-mediated coupling; tFUS modulates deep brain circuits without direct contact via acoustic field coupling — both achieve remote state manipulation by exploiting the physics of field propagation rather than direct physical connection.
+- [[the-awareness-of-nothing-at-all-and-quadrature-physics]] — quantum gate teleportation and LIGO's squeezed-light detection both exploit vacuum-seeded quantum entanglement as a resource. The squeezed vacuum is not merely background noise but an active ingredient enabling both gravitational wave detection and quantum computation across distance.
+- [[artemis-ii-laser-comms]] — Artemis II's laser communication system and quantum gate teleportation both push the frontier of information transmission across extreme distances (Earth-Moon vs. 6.5 feet between quantum processors), and both lay groundwork for a future where quantum and photonic communication converge in a "quantum internet."

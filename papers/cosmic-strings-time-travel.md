@@ -51,5 +51,8 @@ Topological defects in spacetime and their emergent properties (time travel from
 
 ## Related Concepts
 
-- [[webb-cosmic-question-mark-gravitational-lens]]
-- [[mars-time-dilation-relativity]]
+- [[webb-cosmic-question-mark-gravitational-lens]] — cosmic strings produce gravitational lensing signatures; JWST's rare hyperbolic umbilic lens configuration demonstrates the observational capability needed to search for cosmic string lensing
+- [[mars-time-dilation-relativity]] — both papers probe spacetime geometry: cosmic strings warp spacetime into closed timelike curves while gravitational time dilation is a confirmed relativistic effect measured by NIST on Mars
+- [[beyond-the-quantum-pilot-wave-theory]] — pilot-wave theory's hidden variables and cosmic string spacetime topology both represent deeper substructure beneath observable quantum/relativistic phenomena; both papers probe whether standard theories are complete
+- [[grb-250314a-ancient-signal]] — cosmic strings form during phase transitions in the early universe, the same epoch probed by this ancient gamma-ray burst; both investigate relic signatures of the first billion years
+- [[gravitational-waves]] — merging or oscillating cosmic strings would produce a distinctive gravitational wave background detectable by LIGO/LISA, directly connecting this theory to gravitational wave observations

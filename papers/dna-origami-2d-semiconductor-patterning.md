@@ -55,10 +55,17 @@ Relevant to [[enhanced_simulator.py]] for modeling molecular self-assembly proce
 ## Related Concepts
 
 - [[yann-lecun-agi-world-models]]
-- [[protein-tape-recorder-cytotape]]
+- [[protein-tape-recorder-cytotape]] — both use engineered molecular structures as programmable information carriers; DNA origami as spatial template vs. CytoTape as temporal recorder
 - [[ocean-calcium-climate-mystery-66my]]
 - [[mars-time-dilation-relativity]]
 - [[magnetic-superhighways-starburst-galaxy]]
 - [[llm-in-sandbox-agentic-intelligence]]
 - [[cu45-superatom-carbon-recycling]]
-- [[optofluidic-3d-nanofabrication]]
+- [[optofluidic-3d-nanofabrication]] — complementary nanofabrication platform: DNA origami for 2D molecular placement vs. optofluidic laser-driven assembly for 3D volumetric structures
+- [[graphitic-polytype-switching-nanocavities]] — both achieve nanometer-scale structural control; DNA origami uses molecular templating while graphitic polytypes use elastic coupling in cavities
+- [[amorphous-materials-3d-atomic-structure]] — AET structural mapping and DNA origami FRET measurements both operate at the nanometer resolution frontier
+
+## Cross-Domain Bridges
+
+- [[superfluid-to-supersolid-transition]] — DNA origami deposits dye molecules on monolayer MoS₂ (2D semiconductor), while the superfluid-to-supersolid transition was observed in monolayer graphene excitons — both exploit the unique physics of truly 2D quantum materials where reduced dimensionality enables phenomena impossible in bulk.
+- [[knowledge-graph-semantic-relationships]] — DNA origami uses a molecular "code" (base-pair complementarity) to specify precisely which molecule goes where, just as a knowledge graph uses an ontological schema to specify which entity relates to which — both are declarative programming models where structure encodes relationships rather than imperative instructions.

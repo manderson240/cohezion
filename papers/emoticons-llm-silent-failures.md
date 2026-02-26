@@ -49,9 +49,22 @@ Study across six major LLMs reveals that ASCII emoticons cause a 38%+ semantic c
 
 Relevant to [[lab_agent.py]] input validation and robustness testing. Cohezion agents should be aware of tokenization edge cases that could cause silent failures in code generation workflows.
 
+## Related Papers
+
+- [[llm-training-methodology-changes]] — post-training efficiency improvements could target the tokenization edge cases that cause emoticon-induced silent failures
+- [[few-shot-prompting-agentic-coding]] — silent failures from emoticons undermine the 5x performance gains of few-shot prompting when they corrupt model intent
+- [[karpathy-claude-code-skills]] — Karpathy's warning about subtle conceptual errors in AI-generated code is exemplified by silent failures from emoticon tokenization
+- [[testing-agent-skills-with-evals]] — eval categories (style goals, outcome goals) must account for silent failures that pass functional tests but fail semantically
+
 ## Related Concepts
 
 - [[woh-g64-red-supergiant-mystery]]
 - [[llm-training-methodology-changes]]
 - [[llm-in-sandbox-agentic-intelligence]]
 - [[agentic-ai-memory-hierarchies]]
+- [[ai-safety-alignment]] — silent LLM failures that evade testing are a concrete instance of the alignment challenge: systems behave correctly on the surface while violating user intent
+
+## Cross-Domain Bridges
+
+- [[nasa-maven-anomaly]] — MAVEN's loss illustrates silent failure at spacecraft scale: the craft was tumbling with no obvious cause in final telemetry, just as emoticons cause LLMs to silently produce wrong code with no visible error signal. Both reveal that "system appears to be running" is not the same as "system is doing the right thing."
+- [[brain-protein-neurodegeneration]] — Both emoticon-induced LLM failures and amyloid beta's metabolic interference in microglia are "semantic confusion" attacks on an information-processing system: the computational substrate (LLM tokens / microglial metabolism) operates normally but the *meaning* of its output becomes corrupted without external symptoms.

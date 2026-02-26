@@ -32,6 +32,8 @@ Systematic strategies for optimizing information payloads delivered to AI system
 - [[agentic-ai-memory-hierarchies]]
 - [[langchain-deep-agents-context-management]]
 - [[llm-in-sandbox-agentic-intelligence]]
+- [[openai-codex-agent-loop]] — the Codex inner/outer loop and prompt caching strategy are concrete implementations of context management for agentic coding
+- [[scaling-agent-systems]] — quantitative scaling findings show how context management directly affects error amplification in multi-agent systems
 
 ## Related Concepts
 

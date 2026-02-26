@@ -50,5 +50,7 @@ Relevant to [[enhanced-simulator]] for neuro-symbolic reasoning approaches. The 
 ## Related Concepts
 
 - [[webb-cosmic-question-mark-gravitational-lens]]
-- [[humanitys-last-exam-benchmark]]
-- [[tonggeometry-olympiad-tree-search]]
+- [[humanitys-last-exam-benchmark]] — HLE benchmark includes mathematics at the olympiad level, where TongGeometry's problem-generation methodology is directly relevant
+- [[tonggeometry-olympiad-tree-search]] — companion paper with full technical detail on the guided tree search architecture behind TongGeometry
+- [[theorem-ai-formal-verification]] — both advance AI-powered formal mathematical reasoning; TongGeometry generates and proves geometry theorems, Theorem verifies code proofs
+- [[grok4-ai-benchmarks]] — Grok 4 benchmark results on AIME math overlap with TongGeometry's olympiad-level scope

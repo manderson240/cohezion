@@ -60,3 +60,5 @@ Astrobiology resource captured via mobile link pipeline. fractal_universe.py, [[
 - [[mistral-open-source-ai-strategy]]
 - [[few-shot-prompting-agentic-coding]]
 - [[karpathy-claude-code-skills]]
+- [[rethinking-exoplanet-habitability]] — companion paper arguing that the traditional habitable zone is too restrictive; together these papers form an expanded framework for exoplanet habitability
+- [[super-earth-magnetic-protection-magma]] — magnetic fields from deep magma oceans protect atmospheres that enable the heat transport mechanisms explored here

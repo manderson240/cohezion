@@ -49,6 +49,8 @@ Relevant to [[fractal-universe]] for modeling coupled oscillatory systems and ph
 ## Related Papers
 
 - [[ocean-calcium-climate-mystery-66my]]
+- [[alfven-waves-aurora]] — Alfvén waves are MHD oscillations propagating along magnetic field lines; mode locking in helimagnetic heterostructures and Alfvén wave energy transfer in planetary magnetospheres both study how magnetic oscillatory modes couple and synchronize across spatial boundaries
+- [[magnetic-superhighways-starburst-galaxy]] — organized magnetic field order at nanoscale (phase-locked spin precession) and galactic scale (1-10 milligauss superhighway outflows) share the same underlying MHD physics of field-organized energy transport
 
 ## Related Concepts
 
@@ -60,3 +62,12 @@ Relevant to [[fractal-universe]] for modeling coupled oscillatory systems and ph
 - [[magnetic-superhighways-starburst-galaxy]]
 - [[llm-in-sandbox-agentic-intelligence]]
 - [[cu45-superatom-carbon-recycling]]
+- [[superfluid-to-supersolid-transition]] — both probe exotic quantum ordering: helimagnetic spin textures and superfluid/supersolid exciton condensates are distinct quantum phases exhibiting collective order
+- [[international-year-quantum-2025]] — helimagnetism-ferromagnetism mode locking exemplifies the frontier quantum materials physics highlighted in the 2025 International Year of Quantum
+- [[diffraction-gratings-fourier-transforms]] — time-resolved resonant elastic X-ray scattering used to visualize spin precession modes relies on the Fourier decomposition that diffraction fundamentally performs
+
+## Cross-Domain Bridges
+
+- [[alfven-waves-aurora]] — Alfven waves propagate along planetary magnetic field lines maintaining phase coherence over thousands of kilometers; helimagnetic mode locking maintains phase-locked spin precession across a material heterostructure interface. Both describe how magnetic field geometry enforces coherent oscillatory coupling across a spatial boundary — the physics is the same, only the scale changes by 10 orders of magnitude.
+- [[protein-tape-recorder-cytotape]] — CytoTape records temporal signals by encoding them in spatially ordered patterns along a protein fiber; helimagnetic mode locking demonstrates that ordered spatial spin textures can encode and transfer oscillatory temporal information across material interfaces. Both exploit spatial ordering as a medium for temporal signal processing.
+- [[the-awareness-of-nothing-at-all-and-quadrature-physics]] — the helimagnet's chiral spin dynamics and the squeezed vacuum's quadrature asymmetry are both examples of physical systems where breaking a symmetry (chirality / quadrature balance) creates a directional or asymmetric resource that can be exploited for information transfer or measurement enhancement.

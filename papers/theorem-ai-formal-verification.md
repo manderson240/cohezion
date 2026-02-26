@@ -60,3 +60,11 @@ YC startup raised $6M (Khosla Ventures led) to mathematically prove AI-generated
 ## Relevance to Cohezion
 
 Applicable to [[lab-agent]] code generation pipeline. Could inform verification strategies for agent-generated code in the framework., [[ai-agents]]
+
+## Related Papers
+
+- [[tonggeometry-ai-math]] — both apply AI-powered formal reasoning to mathematical domains; TongGeometry proves geometry theorems, Theorem verifies code correctness
+- [[tonggeometry-olympiad-tree-search]] — guided tree search for mathematical proof is closely related to formal verification's structured proof decomposition
+- [[few-shot-prompting-agentic-coding]] — few-shot prompting for code generation creates the AI-written code that Theorem's verification targets
+- [[karpathy-claude-code-skills]] — Karpathy's AI-driven coding workflow produces the code artifacts that formal verification tools like Theorem aim to check
+- [[humanitys-last-exam-benchmark]] — HLE includes math reasoning tasks where formal verification techniques become relevant for ensuring correctness

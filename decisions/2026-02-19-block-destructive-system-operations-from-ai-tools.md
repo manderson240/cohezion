@@ -62,3 +62,8 @@ metrics:
 ### Actual (Post-Implementation)
 
 ## Related Decisions & Lessons
+
+- [[patterns/log-lifecycle-management|Log Lifecycle Management Pattern]] — the concrete pattern that emerged from the SurrealDB crash-loop incident; shows what happens when destructive operations (vacuum) are run without pre-flight checks
+- [[concepts/compound-engineering-investigation-retrospection-before-destructive-operations|Compound Engineering: Investigation Before Destructive Operations]] — the principle this decision operationalizes
+- [[decisions/2026-02-09-operational-principle-no-destructive-operations-without-learning|Operational Principle: No Destructive Operations Without Learning]] — the predecessor principle; this decision adds a system-level enforcement hook
+- [[concepts/ai-safety|AI Safety]] — the broader field motivating guards on irreversible AI tool actions

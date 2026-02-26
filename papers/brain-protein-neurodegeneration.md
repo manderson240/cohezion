@@ -68,6 +68,7 @@ Neuroscience resource captured via mobile link pipeline. general, [[neutrino-phy
 ## Related Papers
 
 - [[karpathy-claude-code-skills]]
+- [[transcranial-ultrasound-consciousness]] — tFUS enables causal testing of the deep brain regions (amygdala, hippocampus) where amyloid/tau pathology drives neurodegeneration
 
 ## Related Concepts
 
@@ -79,3 +80,9 @@ Neuroscience resource captured via mobile link pipeline. general, [[neutrino-phy
 - [[claude-code-swiftui-skill-patterns]]
 - [[usaf-stealthy-electromagnetic-attack]]
 - [[claude-code-community-skills]]
+- [[alphafold-cryo-em-structure-prediction]] — cryo-EM and AlphaFold reveal the 3D structure of amyloid beta and tau tangles, the core pathological proteins in neurodegeneration
+- [[protein-tape-recorder-cytotape]] — CytoTape's in vivo neuronal recording capability offers a tool to track amyloid and microglial activity dynamics in real time
+- [[comb-jellies-animal-tree-of-life]] — ctenophore nervous systems evolved independently; comparative study with neurodegeneration offers evolutionary insights into neural vulnerability
+- [[mcl1-myc-cancer-metabolism]] — MCL1's role in mitochondrial metabolism parallels the microglial metabolic switch (oxidative phosphorylation to glycolysis) seen in neurodegeneration
+- [[emoticons-llm-silent-failures]] — amyloid beta's interference with microglial metabolism is a "semantic corruption" attack on an information-processing system: the cellular substrate continues operating but its output (amyloid clearance) becomes corrupted without visible error — structurally identical to emoticons silently corrupting LLM code generation.
+- [[yann-lecun-agi-world-models]] — LeCun's argument that LLMs lack causal world models finds a biological parallel here: microglia in neurodegeneration lose the ability to correctly model cause-and-effect (amyloid → clear vs. amyloid → neurotoxic killing), switching to a dysfunctional strategy for reasons that are internally consistent but globally catastrophic.

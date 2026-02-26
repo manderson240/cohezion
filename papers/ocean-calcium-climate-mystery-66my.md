@@ -66,3 +66,11 @@ Demonstrates how slow chemical feedback loops produce dramatic long-term system-
 - [[ai-anomaly-detection-hubble-archive]]
 - [[mars-time-dilation-relativity]]
 - [[magnetic-superhighways-starburst-galaxy]]
+- [[artificial-photosynthesis-living-energy]] — artificial photosynthesis aims to remove atmospheric CO2; ocean calcium's 66My-long CO2 sequestration history provides natural precedent for how carbon cycling shapes climate
+- [[cu45-superatom-carbon-recycling]] — copper superatom carbon recycling is a technological response to the same CO2/climate challenge that the ocean calcium record reveals at geological timescales
+
+## Cross-Domain Bridges
+
+- [[superfluid-to-supersolid-transition]] — the ocean calcium decline and the superfluid-to-supersolid transition are both examples of a continuous control parameter (calcium concentration / exciton density) crossing a critical threshold and driving a qualitative phase transition in the system's macroscopic state (greenhouse/icehouse / superfluid/supersolid). The same mathematical structure (order parameter, critical point, symmetry breaking) underlies both geological and quantum phase transitions.
+- [[sentinel-1-ice-sheets]] — Sentinel-1's decade of ice-velocity data provides the high-resolution short-term view that complements the 66-million-year geological record: the ocean calcium study explains *why* ice sheets grew, while Sentinel-1 measures *how fast* they are now changing. Together they span 10 orders of magnitude in timescale for the same climate system.
+- [[rethinking-exoplanet-habitability]] — Earth's 66-million-year transition from greenhouse to icehouse directly informs exoplanet habitability modeling: a planet with different ocean chemistry could be permanently locked in greenhouse or icehouse states that Earth's calcium cycle happened to escape. The ocean calcium story is a case study in how narrow the habitability window can be.

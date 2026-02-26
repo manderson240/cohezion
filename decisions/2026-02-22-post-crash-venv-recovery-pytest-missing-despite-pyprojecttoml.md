@@ -62,3 +62,6 @@ metrics:
 ### Actual (Post-Implementation)
 
 ## Related Decisions & Lessons
+
+- [[experiments/2026-02-22-session-70-heal-and-test-fix|Session 70: Heal + Test Fix Cycle]] — the experiment that revealed this venv issue and fixed 83 test failures in the same session
+- [[decisions/2026-02-22-cz-spec-workflow-retrospective|cz spec workflow retrospective]] — broader session context where venv integrity was critical for 62-test suite

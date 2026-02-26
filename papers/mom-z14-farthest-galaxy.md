@@ -54,8 +54,10 @@ Challenges existing models of early galaxy formation and provides observational 
 - [[jwst-dark-matter-map]]
 - [[woh-g64-red-supergiant-mystery]]
 - [[jwst-red-nova-remnants]]
-- [[magnetic-superhighways-starburst-galaxy]]
+- [[magnetic-superhighways-starburst-galaxy]] — Arp 220 is described as the closest analog to the extreme dusty starburst galaxies found at high redshift; understanding its magnetic outflows helps interpret why MoM-z14 is so unexpectedly luminous
 - [[jwst-early-universe-black-holes]]
 - [[runaway-stars-milky-way]]
 - [[super-earth-magnetic-protection-magma]]
 - [[anomaly-detection]]
+- [[grb-250314a-ancient-signal]] — the gamma-ray burst from 730 million years after the Big Bang and MoM-z14 from 280 million years after both probe the reionization era; they are complementary messengers from the universe's first billion years
+- [[early-universe-cosmology]]

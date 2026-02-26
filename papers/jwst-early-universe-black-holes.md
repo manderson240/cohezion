@@ -58,3 +58,8 @@ Provides updated constraints for cosmological simulation models in `fractal_univ
 - [[red-supergiant-stars]]
 - [[exoplanet-habitability]]
 - [[dark-matter-detection]]
+- [[grb-250314a-ancient-signal]] — GRBs like this one from 730 million years after the Big Bang probe the same epoch as CAPERS-LRD-z9; both illuminate physics of the universe's first billion years
+- [[cosmic-strings-time-travel]] — the direct collapse of massive gas clouds (without stars) to form black holes is theorized to connect to topological defect physics from the same early-universe phase transitions that may have produced cosmic strings
+- [[webb-cosmic-question-mark-gravitational-lens]] — JWST gravitational lensing observations (the question mark) and black hole mass measurements both rely on the same gravitational optics principles
+- [[early-universe-cosmology]]
+- [[black-holes]]

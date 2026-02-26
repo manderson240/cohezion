@@ -29,9 +29,12 @@ Study of the universe's first billions of years, from the Big Bang through cosmi
 
 ## Related Papers
 
-- [[jwst-early-universe-black-holes]]
-- [[mom-z14-farthest-galaxy]]
-- [[grb-250314a-ancient-signal]]
+- [[jwst-early-universe-black-holes]] — JWST revealing supermassive black holes forming via direct gas collapse just 500 million years after the Big Bang
+- [[mom-z14-farthest-galaxy]] — MoM-z14 at redshift 14.44, only 280 million years after the Big Bang, challenges galaxy formation models
+- [[grb-250314a-ancient-signal]] — gamma-ray burst from 730 million years post-Big Bang, among the earliest ever detected
+- [[cosmic-strings-time-travel]] — cosmic strings are topological defects from phase transitions in the early universe, direct relics of conditions studied by early universe cosmology
+- [[magnetic-superhighways-starburst-galaxy]] — Arp 220 is the closest analog to high-redshift starburst galaxies; understanding its magnetic outflows illuminates early-universe star formation
+- [[webb-cosmic-question-mark-gravitational-lens]] — the lensed galaxy pair at 7 billion light-years shows what Milky Way-like galaxies looked like in their formative "teenage years"
 
 ## Related Concepts
 

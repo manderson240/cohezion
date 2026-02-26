@@ -29,9 +29,11 @@ The field addressing how to ensure advanced AI systems behave in accordance with
 
 ## Related Papers
 
-- [[anthropic-disempowerment-patterns]]
-- [[emoticons-llm-silent-failures]]
-- [[llm-training-methodology-changes]]
+- [[anthropic-disempowerment-patterns]] — empirical measurement of user autonomy erosion in AI interactions; provides real-world data on the disempowerment failure mode alignment must prevent
+- [[emoticons-llm-silent-failures]] — silent failures that produce intent-misaligned code without visible error signals are a concrete alignment failure in production LLMs
+- [[llm-training-methodology-changes]] — post-training efficiency shifts affect how well alignment objectives (RLHF, RLAIF) can be embedded relative to raw capability
+- [[cisa-chatgpt-data-leak]] — institutional data governance failures demonstrate that alignment extends beyond model behavior to the organizational systems around AI deployment
+- [[theorem-ai-formal-verification]] — formal verification of AI-generated code is a technical alignment approach: mathematically proving code behavior matches intent
 
 ## Related Concepts
 

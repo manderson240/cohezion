@@ -73,5 +73,14 @@ General reference for space exploration mission tracking and anomaly analysis pa
 
 ## Related Concepts
 
-- [[ai-anomaly-detection-hubble-archive]]
+- [[ai-anomaly-detection-hubble-archive]] — AnomalyMatch's neural network approach to detecting anomalies in Hubble archives represents the AI-driven counterpart to NASA's human review board approach; complementary anomaly detection strategies at different scales
 - [[ai-safety-alignment]]
+- [[mars-time-dilation-relativity]] — MAVEN was the primary telecommunications relay for Mars rovers and studied Mars atmosphere; precise relativistic timing corrections are essential for the orbital mechanics that determine when contact windows occur
+- [[sentinel-1-ice-sheets]] — both MAVEN and Sentinel-1 are long-duration remote sensing satellites demonstrating how continuous orbital monitoring creates irreplaceable data records; losing MAVEN shows the fragility of single-point scientific infrastructure
+- [[artemis-ii-laser-comms]] — MAVEN's loss as a relay highlights why Artemis II's laser comm testing matters; future deep-space networks need redundant high-bandwidth communication pathways to avoid single points of failure
+
+## Cross-Domain Bridges
+
+- [[woh-g64-red-supergiant-mystery]] — MAVEN and WOH G64 are parallel cases of "system apparently failed / died" that required systematic evidence review to reveal a more mundane cause (spacecraft tumbling vs. binary companion dust cloud). Both illustrate that anomalies in complex systems are almost never what they first appear.
+- [[emoticons-llm-silent-failures]] — MAVEN's loss illustrates "silent failure" at spacecraft scale: final telemetry showed tumbling but no obvious cause, just as emoticons cause LLMs to produce syntactically valid but semantically wrong code with no visible error signal. Both are failures invisible to surface-level inspection.
+- [[humanoid-robots-space-launch]] — MAVEN's dual role as both science platform and communications relay for ground rovers previews the operational dependency problem that humanoid robot astronauts will face: what happens to surface operations when the communication or support node goes silent?

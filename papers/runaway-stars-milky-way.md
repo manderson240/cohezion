@@ -49,6 +49,8 @@ Relevant to [[fractal-universe]] stellar dynamics modeling and N-body gravitatio
 ## Related Papers
 
 - [[protein-tape-recorder-cytotape]]
+- [[woh-g64-red-supergiant-mystery]] — supernova kicks in binary systems are a primary ejection mechanism for runaway stars; WOH G64 represents a pre-supernova binary at risk of producing such an event
+- [[fast-radio-bursts-binary-star-origin]] — magnetar systems in FRB binaries represent the post-supernova remnants of systems that could eject runaway stars; the binary evolution chain connects these phenomena
 
 ## Related Concepts
 
@@ -60,3 +62,10 @@ Relevant to [[fractal-universe]] stellar dynamics modeling and N-body gravitatio
 - [[mars-time-dilation-relativity]]
 - [[magnetic-superhighways-starburst-galaxy]]
 - [[llm-in-sandbox-agentic-intelligence]]
+- [[astrophysics-observations]]
+
+## Cross-Domain Bridges
+
+- [[rethinking-exoplanet-habitability]] — runaway stars ejected from stellar clusters sterilize any surrounding planetary systems through high-velocity passages and radiation bursts. Understanding how frequently binary supernovae eject runaway O-type stars through inhabited galactic regions is a hidden constraint on the galactic habitable zone that Wandel's habitability models need to account for.
+- [[comb-jellies-animal-tree-of-life]] — the two competing mechanisms for runaway star ejection (supernova kick vs. dynamic cluster ejection) and the comb jelly phylogenetics debate (sponge-first vs. ctenophore-first) are structurally identical inference problems: two explanatory hypotheses, one dataset, statistical evidence slightly favoring one — the epistemological challenge of resolving competing mechanisms from observational data is the same in astrophysics and evolutionary biology.
+- [[sunspot-ar4366-x-class-flares]] — AR4366's extreme flare activity and runaway star ejection both represent stellar instability events where a previously stable configuration releases enormous energy catastrophically. The magnetic instability that destabilizes an active region shares the same class of physics as the supernova kick that ejects a companion star.

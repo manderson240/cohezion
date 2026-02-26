@@ -70,6 +70,11 @@ Physics/Optics resource captured via mobile link pipeline. enhanced_simulator.py
 - [[woh-g64-dust-obscured-companion]]
 - [[anthropic-principle-fine-tuning]]
 - [[sunspot-ar4366-x-class-flares]]
-- [[quantum-atomic-light-synchronization]]
+- [[quantum-atomic-light-synchronization]] — quantum limits on optical synchronization and the Fourier optics of diffraction gratings are two sides of the same quantum optics framework; the mathematical decomposition diffraction performs physically underlies quantum optics
 - [[beyond-the-quantum-pilot-wave-theory]]
 - [[pairwise-comparison-fiber-bundles]]
+- [[amorphous-materials-3d-atomic-structure]] — atomic electron tomography uses Fourier-transform-based phase retrieval from diffraction data — the same physical transform that diffraction gratings perform optically
+- [[optofluidic-3d-nanofabrication]] — femtosecond laser optics in optofluidic fabrication rely on Fourier optical principles for beam shaping and spatial intensity control
+- [[helimagnetism-ferromagnetism-mode-locking]] — resonant X-ray scattering used to image spin precession modes shares the Fourier-frequency-decomposition logic of diffraction gratings
+- [[artemis-ii-laser-comms]] — the O2O infrared laser communication system uses spectral selection and beam shaping optics that implement Fourier optical principles; diffraction gratings are core components in narrow-linewidth laser sources
+- [[quantum-teleportation-logic-gates]] — photonic quantum network interfaces use spatial mode filtering and Fourier optical components to route and select the quantum photon modes used for gate teleportation

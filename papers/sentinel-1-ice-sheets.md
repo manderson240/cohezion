@@ -57,3 +57,10 @@ General interest for climate modeling applications. Remote sensing data processi
 
 - [[langchain-deep-agents-context-management]]
 - [[operational-data-ai-agents]]
+
+## Cross-Domain Bridges
+
+- [[protein-tape-recorder-cytotape]] — Sentinel-1 and CytoTape solve the same fundamental problem at radically different scales: maintaining a continuous, non-distorting temporal record of a slow-moving dynamic process (ice-sheet flow vs. intracellular molecular signaling) to reconstruct history and predict future states.
+- [[ocean-calcium-climate-mystery-66my]] — Sentinel-1's decade of ice-velocity data provides the high-resolution short-term view of ice dynamics that complements the 66-million-year geological record: the ocean calcium study explains *why* ice sheets grew, while Sentinel-1 measures *how fast* they are now changing.
+- [[ai-anomaly-detection-hubble-archive]] — Both Sentinel-1 and AnomalyMatch apply systematic machine-assisted survey to large archival datasets (radar imagery vs. Hubble optical images) to identify meaningful changes against a baseline — the same pattern-over-archive approach applied to Earth observation vs. deep-space observation.
+- [[nasa-maven-anomaly]] — Sentinel-1 and MAVEN both illustrate the critical importance of maintaining continuous monitoring satellite constellations; MAVEN's loss disrupted both Mars science and rover relay communications, showing what is at stake when such infrastructure fails

@@ -88,3 +88,6 @@ Compound engineering is the foundational philosophy of Cohezion itself, formaliz
 - 📋 [[2026-02-08-bmad-framework-removal]] — Removing unused framework patterns
 - 📋 [[2026-02-07-event-driven-inbox-processor]] — Event-driven inbox processing
 - 🔬 [[2026-02-07-ai-research-agent-for-vault-notes]] — AI research agent validation
+- 📋 [[decisions/2026-02-22-cz-spec-workflow-retrospective|cz spec workflow retrospective]] — end-to-end run of the compound engineering spec workflow; real-world validation of the full decision→experiment→pattern cycle
+- 🔬 [[experiments/2026-02-22-recursive-challenger-session-68-autonomous-improvement-loop|Recursive Challenger Session 68]] — applying compound engineering recursively to improve the compound engineering loop itself
+- 📋 [[decisions/2026-02-20-session-59-autonomous-compound-engineering-foundation|Session 59: Autonomous Compound Engineering Foundation]] — the implementation that operationalizes autonomous compound engineering with TaskDecomposer and skill infrastructure

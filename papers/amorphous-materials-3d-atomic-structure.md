@@ -58,3 +58,6 @@ Demonstrates computational approaches to resolving structure from incomplete inf
 - [[quantum-entanglement-speed-measurement]]
 - [[axion-dark-matter-quantum-sensors]]
 - [[silicon-quantum-computing-platform]]
+- [[diffraction-gratings-fourier-transforms]] — atomic electron tomography reconstructs 3D structure using Fourier-transform-based phase retrieval from diffraction data; the same mathematical bridge exploited in optical diffraction gratings
+- [[alphafold-cryo-em-structure-prediction]] — both tackle the challenge of determining atomic-scale structure from indirect imaging data (cryo-EM density maps vs. electron tomography projections)
+- [[international-year-quantum-2025]] — amorphous materials underpin quantum device substrates; AET-level atomic mapping enables quantum material engineering

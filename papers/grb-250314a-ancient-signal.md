@@ -51,6 +51,10 @@ Relevant to [[fractal-universe]] early universe modeling and transient event det
 
 - [[protein-tape-recorder-cytotape]]
 - [[alfven-waves-aurora]]
+- [[fast-radio-bursts-binary-star-origin]] — both are extreme transient radio/gamma events from the early universe; GRBs and FRBs may share magnetar-based origin physics
+- [[jwst-early-universe-black-holes]] — GRB 250314A originates from 730 million years after the Big Bang, the same epoch where JWST is uncovering supermassive black holes via direct collapse
+- [[mom-z14-farthest-galaxy]] — GRBs like this one probe the reionization era, the same epoch in which MoM-z14 formed; both are messengers from the earliest billion years of cosmic history
+- [[cosmic-strings-time-travel]] — both papers engage with the extreme physics of the very early universe; topological defects from cosmic phase transitions could influence GRB formation environments
 
 ## Related Concepts
 
@@ -62,3 +66,5 @@ Relevant to [[fractal-universe]] early universe modeling and transient event det
 - [[magnetic-superhighways-starburst-galaxy]]
 - [[llm-in-sandbox-agentic-intelligence]]
 - [[cu45-superatom-carbon-recycling]]
+- [[early-universe-cosmology]]
+- [[black-holes]]

@@ -53,3 +53,14 @@ Phase transitions between quantum states demonstrate how system-level properties
 ## Related Concepts
 
 - [[emu3-multimodal-next-token-prediction]]
+- [[helimagnetism-ferromagnetism-mode-locking]] — both are condensed-matter quantum phase phenomena; helimagnetic spin ordering and superfluid/supersolid exciton condensation represent distinct collective quantum states
+- [[international-year-quantum-2025]] — superfluid-to-supersolid transition is a landmark quantum observation directly relevant to quantum materials goals of IYQ 2025
+- [[graphitic-polytype-switching-nanocavities]] — the superfluid excitons were hosted in graphene (monolayer carbon), the same material platform as graphitic polytype switching
+- [[beyond-the-quantum-pilot-wave-theory]] — supersolids that are simultaneously crystalline and fluid represent exactly the paradoxical dual-nature states pilot-wave theory was designed to explain; the hidden variable framework offers an alternative to the Copenhagen interpretation of quantum phase coexistence
+- [[silicon-quantum-computing-platform]] — both exploit low-noise quantum behavior in solid-state platforms; long coherence silicon qubits and superfluid graphene excitons both require isolating quantum states from thermal and electromagnetic noise
+
+## Cross-Domain Bridges
+
+- [[the-awareness-of-nothing-at-all-and-quadrature-physics]] — the superfluid-to-supersolid transition and the squeezed vacuum both demonstrate that quantum ground states have richer internal structure than classical intuition allows. Both reveal a hidden phase transition in what appears to be a featureless baseline: the vacuum fluctuates below its own noise floor; the superfluid crystallizes without losing frictionlessness.
+- [[ocean-calcium-climate-mystery-66my]] — the superfluid-to-supersolid transition occurs at a density threshold, analogous to the ocean calcium threshold that tipped Earth's climate from greenhouse to icehouse. Both are examples of a continuous control parameter crossing a critical point and producing a qualitatively different macroscopic phase — the same mathematical structure underlies geological and quantum phase transitions.
+- [[dna-origami-2d-semiconductor-patterning]] — DNA origami deposits dye molecules on monolayer MoS₂ (a 2D semiconductor), while the superfluid-to-supersolid transition was observed in monolayer graphene excitons — both exploit the unique physics of truly 2D quantum materials where reduced dimensionality enables phenomena impossible in bulk.

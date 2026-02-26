@@ -56,10 +56,13 @@ Demonstrates emergent material behavior from geometric constraints at the nanosc
 ## Related Concepts
 
 - [[yann-lecun-agi-world-models]]
-- [[dna-origami-2d-semiconductor-patterning]]
+- [[dna-origami-2d-semiconductor-patterning]] — complementary nanoscale patterning: graphitic polytype switching controls carbon lattice structure via mechanical shear, while DNA origami templates molecules via base-pairing geometry
 - [[protein-tape-recorder-cytotape]]
 - [[ai-anomaly-detection-hubble-archive]]
 - [[ocean-calcium-climate-mystery-66my]]
 - [[magnetic-superhighways-starburst-galaxy]]
 - [[llm-in-sandbox-agentic-intelligence]]
 - [[cu45-superatom-carbon-recycling]]
+- [[optofluidic-3d-nanofabrication]] — both papers demonstrate ultralow-energy nanoscale assembly: sub-femtojoule polytype switching vs. femtosecond-laser-driven optofluidic assembly
+- [[superfluid-to-supersolid-transition]] — both involve graphene/carbon systems undergoing quantum state transitions; graphitic polytypes in graphene layers, superfluid excitons in graphene sheets
+- [[surface-chemistry]] — graphitic polytype interfaces exhibit superlubric incommensurate surfaces with ultralow friction, a key surface chemistry phenomenon

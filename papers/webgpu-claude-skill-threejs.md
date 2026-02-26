@@ -69,3 +69,6 @@ Demonstrates the skill/plugin pattern for Claude Code agents. Could be used as a
 
 - [[anthropic-mcp-apps-claude-integrations]]
 - [[anthropic-view-universe-nyas]]
+- [[claude-code-community-skills]] — the WebGPU skill is an example of the specialized domain skills collected in the 36-skill community initiative
+- [[karpathy-claude-code-skills]] — the WebGPU skill embodies the Karpathy-style workflow: domain experts package their knowledge as AI-assistable Claude Code skills
+- [[claude-code-swiftui-skill-patterns]] — SwiftUI and WebGPU skills are parallel examples of the same pattern: wrapping platform-specific expert knowledge as Claude Code skills

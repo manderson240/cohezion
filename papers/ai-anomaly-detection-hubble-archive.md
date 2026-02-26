@@ -54,6 +54,8 @@ Demonstrates the power of AI-driven anomaly detection on large archival datasets
 
 - [[llm-in-sandbox-agentic-intelligence]]
 - [[dna-origami-2d-semiconductor-patterning]]
+- [[nasa-maven-anomaly]] — both papers deal with anomaly detection in space missions; AnomalyMatch scans astronomical archives while NASA's review board investigates spacecraft anomalies — complementary applications of systematic anomaly analysis
+- [[sentinel-1-ice-sheets]] — both involve systematic, large-scale automated analysis of satellite remote sensing data archives to extract scientifically valuable patterns; the AI anomaly detection approach could be applied to Sentinel-1's decade of ice sheet data
 
 ## Related Concepts
 
@@ -65,3 +67,11 @@ Demonstrates the power of AI-driven anomaly detection on large archival datasets
 - [[magnetic-superhighways-starburst-galaxy]]
 - [[cu45-superatom-carbon-recycling]]
 - [[optofluidic-3d-nanofabrication]]
+- [[astrophysics-observations]]
+- [[jwst-observations]]
+
+## Cross-Domain Bridges
+
+- [[usaf-stealthy-electromagnetic-attack]] — ASPI's reconstruction of the P-AEA program from scattered public documents uses the same methodology as AnomalyMatch scanning the Hubble archive: systematic pattern recognition across fragmented archival records to identify something hidden in plain sight. Open-source intelligence and astrophysical anomaly detection are algorithmically identical activities — both are "find the signal in the noise of the public record."
+- [[nebuchadnezzar-babylonian-texts]] — archaeologists reconstructed Nebuchadnezzar's building programs from clay cylinder inscriptions across multiple sites, exactly as AnomalyMatch reconstructed 1400 astrophysical objects from archived image cutouts. Both are systematic excavation of hidden structure from fragmented historical records, separated by 2500 years and 13 billion light-years.
+- [[humanitys-last-exam-benchmark]] — HLE tests whether AI can answer expert-level questions across domains; AnomalyMatch demonstrates that AI can exceed human expert throughput on pattern discovery in a specific domain (100M image cutouts in 2.5 days). Together they bracket the AI capability question: not "is AI smarter than humans?" but "where is AI already superhuman and where does it still fall short?"

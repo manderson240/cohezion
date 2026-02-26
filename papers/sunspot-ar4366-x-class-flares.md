@@ -75,3 +75,12 @@ Astrophysics resource captured via mobile link pipeline. fractal_universe.py, [[
 - [[tidally-locked-exoplanet-habitability]]
 - [[beyond-the-quantum-pilot-wave-theory]]
 - [[pairwise-comparison-fiber-bundles]]
+- [[alfven-waves-aurora]] — solar X-class flares launch the coronal mass ejections that drive Alfvén wave energy into Earth's magnetosphere, powering the auroras studied in that paper
+- [[magnetic-superhighways-starburst-galaxy]] — extreme magnetic field activity on AR4366 (delta-class configuration) connects to how organized magnetic fields channel energy at galactic scale
+- [[astrophysics-observations]]
+
+## Cross-Domain Bridges
+
+- [[runaway-stars-milky-way]] — AR4366's rapid magnetic destabilization and the supernova kick that ejects runaway stars are both examples of a stellar system accumulating magnetic stress until a catastrophic release event. The delta-class sunspot configuration and a pre-supernova binary companion are different scales of the same instability class: magnetically stressed systems that release energy violently.
+- [[helimagnetism-ferromagnetism-mode-locking]] — AR4366's magnetically unstable delta-class configuration and the helimagnetic mode locking experiment both study how complex magnetic order (competing magnetic domains) releases energy or transitions states. The sunspot's 26 flares in 24 hours are a macroscopic analogue of the spin precession mode coupling observed in the nanoscale heterostructure.
+- [[ai-anomaly-detection-hubble-archive]] — detecting AR4366-class extreme events in stellar light curves from distant stars is exactly the class of anomaly AnomalyMatch is designed to find. Unusual morphologies and extreme flux variations in Hubble archive data include stellar flare events analogous to AR4366; the paper's methods could identify candidate flare stars in archival data.

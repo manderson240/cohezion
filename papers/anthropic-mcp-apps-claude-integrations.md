@@ -48,7 +48,13 @@ Anthropic launched MCP Apps, a new extension to the Model Context Protocol that 
 
 Demonstrates the trajectory of AI assistants becoming orchestration hubs for tool ecosystems. The MCP Apps pattern is directly relevant to how Cohezion agents could integrate with external services and provide unified interfaces for complex workflows., [[mcp-model-context-protocol]], [[tool-use]], [[api-design]]
 
+## Related Papers
+
+- [[llamaagents-builder]] — both demonstrate natural-language-to-agent workflows; MCP Apps through interactive UI embedding, LlamaAgents Builder through workflow code generation
+- [[openai-codex-agent-loop]] — the Codex agent loop architecture is the backend pattern that MCP Apps UI embedding builds on top of
+
 ## Related Concepts
 
 - [[webgpu-claude-skill-threejs]]
 - [[anthropic-view-universe-nyas]]
+- [[cloud-vault-mcp]] — the Cloud Vault MCP server participates in the same MCP ecosystem; MCP Apps demonstrates the direction of travel for MCP-based agent integrations

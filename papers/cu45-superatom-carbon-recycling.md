@@ -62,3 +62,12 @@ Demonstrates how specific geometric/electronic arrangements produce emergent sta
 - [[mars-time-dilation-relativity]]
 - [[magnetic-superhighways-starburst-galaxy]]
 - [[llm-in-sandbox-agentic-intelligence]]
+- [[cu45-superatom-co2-ethylene]] — companion paper reporting the same Cu45 cluster's 81.8% CO2-to-ethylene selectivity in detail
+- [[artificial-photosynthesis-living-energy]] — complementary carbon-neutral strategy using biological photocatalysts rather than copper nanoclusters
+- [[ocean-calcium-climate-mystery-66my]] — historical perspective on CO2 and ocean chemistry driving planetary-scale climate change, motivating carbon recycling research
+
+## Cross-Domain Bridges
+
+- [[superfluid-to-supersolid-transition]] — both Cu45 and the graphene supersolid exploit the unique physics of quantum confinement: Cu45 achieves noble-gas-like electronic stability through quantum shell closure in a 45-atom cluster, while the supersolid forms through quantum confinement of excitons in a 2D graphene layer. Both are cases where reducing system size to the nanoscale unlocks quantum electronic configurations impossible in bulk matter.
+- [[beyond-the-quantum-pilot-wave-theory]] — Cu45's "closed-shell" noble-gas-like electron configuration is a macroscopic chemical manifestation of the same quantum orbital mechanics that pilot-wave theory seeks to explain at a foundational level. The superatom's exceptional stability is a direct consequence of quantum mechanical wave function structure — the "hidden variable" explanation of why 45 copper atoms behave more like a noble gas atom than like copper.
+- [[knowledge-graph-semantic-relationships]] — the Cu45 superatom's catalytic selectivity (81.8% CO2 → multi-carbon products, 58% → ethylene) is determined by the precise geometric and electronic structure of 45 atoms — an atomic-scale semantic structure where every position matters. Knowledge graphs and molecular catalysts are both systems where specific structural relationships (bond angles / entity-relation types) determine functional outcomes with extreme precision.

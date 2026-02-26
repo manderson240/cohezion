@@ -67,4 +67,12 @@ Space Exploration resource captured via mobile link pipeline. general, [[astroph
 ## Related Concepts
 
 - [[oman-artemis-accords]]
-- [[quantum-atomic-light-synchronization]]
+- [[quantum-atomic-light-synchronization]] — quantum coherence limits on synchronized light emission are directly relevant to the laser communication system tested on Artemis II; understanding these constraints is essential for maximizing laser comm bandwidth
+- [[mars-time-dilation-relativity]] — relativistic time dilation at 477 microseconds/day on Mars introduces navigation and timing errors that laser communication relay systems must compensate for; this paper motivates precision timing in deep-space comm networks
+- [[diffraction-gratings-fourier-transforms]] — the laser communication optics in the O2O system rely on Fourier optics principles for beam shaping and frequency selection; diffraction gratings are key components in infrared laser systems
+
+## Cross-Domain Bridges
+
+- [[quantum-teleportation-logic-gates]] — Artemis II's laser comm system and quantum gate teleportation both push the frontier of information transfer across extreme distances using photonic channels, and both lay groundwork for a future quantum internet where photonic communication and quantum entanglement converge. Artemis II's 100x bandwidth gain over radio mirrors the qualitative leap quantum networks offer over classical ones.
+- [[nasa-maven-anomaly]] — MAVEN's loss as a Mars relay illustrates exactly why Artemis II's laser comm demonstration matters: future deep-space networks need redundant, high-bandwidth pathways independent of a single relay satellite. The MAVEN failure is the motivating failure case for the infrastructure Artemis II is developing.
+- [[humanoid-robots-space-launch]] — humanoid robot astronauts on the lunar surface will need the 100x bandwidth that Artemis II's laser comm system provides — high-definition video, real-time telemetry, and autonomous coordination between robots and ground control all require the shift from radio to optical communication that Artemis II is demonstrating.

@@ -65,6 +65,13 @@ general
 
 DevOps/AI resource captured via mobile link pipeline. general, [[agentic-ai]]
 
+## Related Papers
+
+- [[testing-agent-skills-with-evals]] — CircleCI's Chunk performs the same kind of systematic agent skill evaluation (outcome, process, efficiency goals) described in the OpenAI evals framework
+- [[theorem-ai-formal-verification]] — both address AI-generated code correctness: Theorem via formal proof, CircleCI Chunk via autonomous CI/CD validation
+- [[claude-code-community-skills]] — the 36 community skills produce AI-generated code that CircleCI-style CI/CD validation must catch for regressions
+- [[karpathy-claude-code-skills]] — the 80% AI-driven coding workflow Karpathy describes requires exactly the kind of autonomous CI validation CircleCI Chunk provides
+
 ## Related Concepts
 
 - [[humanitys-last-exam-benchmark]]

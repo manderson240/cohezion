@@ -12,3 +12,7 @@ Reference for relational database schema design — normalization, indexing, and
 
 ## Related
 - [[lesson-surrealdb-schema-design]]
+- [[surrealdb-graph-databases]] — SurrealDB bridges relational and graph models; relational schema principles apply to its document/table layer
+- [[knowledge-graphs-semantic-web]] — contrasting approach; graph/ontology schemas trade normalization for flexible semantic relationships
+- [[knowledge-graph-semantic-relationships]] — relational normalization and semantic entity-relation modeling address overlapping design concerns
+- [[service-layer-architecture]] — relational schema design underpins the data access layer in service-oriented architectures

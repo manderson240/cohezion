@@ -51,9 +51,12 @@ Relevant to [[fractal_universe.py]] stellar evolution models and simulation of b
 
 - [[jwst-dark-matter-map]]
 - [[circleci-ai-cicd-validation]]
-- [[woh-g64-red-supergiant-mystery]]
+- [[woh-g64-red-supergiant-mystery]] — JWST's confirmation that red nova merger remnants become red supergiants provides direct interpretive context for WOH G64, which is itself a red supergiant in a binary system approaching a potential merger event
+- [[woh-g64-dust-obscured-companion]] — the dust obscuration mechanism that hid WOH G64 parallels the ejected material shell that initially obscures red nova remnants observed by JWST
 - [[jwst-early-universe-black-holes]]
 - [[mom-z14-farthest-galaxy]]
 - [[anomaly-detection]]
 - [[red-supergiant-stars]]
 - [[early-universe-cosmology]]
+- [[fast-radio-bursts-binary-star-origin]] — the binary stellar mergers producing red novae and the magnetar binaries producing FRBs both demonstrate how binary interactions create extreme astrophysical transients
+- [[jwst-observations]]

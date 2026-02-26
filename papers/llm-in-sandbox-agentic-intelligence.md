@@ -51,6 +51,9 @@ Directly relevant to `lab_agent.py` - demonstrates that giving AI agents a sandb
 ## Related Papers
 
 - [[ai-anomaly-detection-hubble-archive]]
+- [[langchain-deep-agents-context-management]] — LangChain's Deep Agents use similar filesystem offloading and context strategies as the LLM-in-Sandbox framework's file system access pattern
+- [[few-shot-prompting-agentic-coding]] — few-shot prompting is the primary technique through which LLM-in-Sandbox generalizes to non-code domains
+- [[emoticons-llm-silent-failures]] — tokenization edge cases that cause silent coding failures are amplified in sandbox environments where LLMs autonomously execute code
 
 ## Related Concepts
 

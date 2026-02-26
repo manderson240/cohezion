@@ -29,8 +29,12 @@ Techniques to identify dark matter (~85% of all matter), including axion searche
 
 ## Related Papers
 
-- [[axion-dark-matter-quantum-sensors]]
-- [[jwst-dark-matter-map]]
+- [[axion-dark-matter-quantum-sensors]] — distributed intercity quantum sensor network using noble-gas hyperpolarization to constrain axion mass ranges
+- [[jwst-dark-matter-map]] — gravitational lensing approach mapping dark matter distribution across 800,000 galaxies
+- [[quantum-entangled-atomic-sensors]] — entangled atomic sensor arrays improve the measurement precision critical for weak dark matter signal detection
+- [[quantum-entanglement-speed-measurement]] — attosecond precision quantum measurements could eventually constrain the interaction timescales of ultralight dark matter candidates
+- [[fast-radio-bursts-binary-star-origin]] — FRBs passing through dark matter halos can probe axion dark matter via differential birefringence; FRBs are proposed as natural dark matter detectors
+- [[quantum-teleportation-logic-gates]] — distributed quantum computing networks could serve as the infrastructure backbone for continental-scale dark matter detection arrays
 
 ## Related Concepts
 

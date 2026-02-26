@@ -54,10 +54,13 @@ Relevant to [[fractal-universe]] relativistic physics modeling. Time dilation ca
 ## Related Concepts
 
 - [[webb-cosmic-question-mark-gravitational-lens]]
-- [[cosmic-strings-time-travel]]
+- [[cosmic-strings-time-travel]] — both deal with general relativity and spacetime geometry; time dilation on Mars is a confirmed relativistic effect while cosmic strings are a speculative spacetime topology that could produce time travel
 - [[yann-lecun-agi-world-models]]
 - [[dna-origami-2d-semiconductor-patterning]]
 - [[protein-tape-recorder-cytotape]]
 - [[ai-anomaly-detection-hubble-archive]]
 - [[ocean-calcium-climate-mystery-66my]]
 - [[magnetic-superhighways-starburst-galaxy]]
+- [[artemis-ii-laser-comms]] — precise timing corrections from relativistic time dilation are critical for laser communication systems over Earth-Moon and Earth-Mars distances; the O2O system must account for these effects
+- [[beyond-the-quantum-pilot-wave-theory]] — time dilation measured at Mars validates general relativity's treatment of gravity and spacetime, directly relevant to the interpretational questions in pilot-wave theory about the completeness of quantum mechanics
+- [[quantum-entanglement-speed-measurement]] — both papers measure time at extreme precision (attosecond vs. microsecond scales); quantum entanglement timing and relativistic time dilation represent the two domains where precision timekeeping pushes against fundamental physics

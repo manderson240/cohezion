@@ -61,3 +61,13 @@ Multiple efforts are underway to deploy humanoid robots in space. Chinese firm E
 ## Relevance to Cohezion
 
 Relevant to [[enhanced_simulator.py]] for modeling robotic systems and human-robot interaction in extreme environments.
+
+## Related Concepts
+
+- [[oman-artemis-accords]] — Oman's Artemis Accords signing and the humanoid robot space race represent parallel expansions of the human (and robotic) presence in space under international governance frameworks
+
+## Cross-Domain Bridges
+
+- [[artemis-ii-laser-comms]] — humanoid robot astronauts operating on lunar or Martian surfaces will require the 100x bandwidth upgrade that Artemis II's laser comm system demonstrates: high-definition video feeds, real-time telemetry, and multi-robot coordination all demand optical communication rates impossible over legacy radio links.
+- [[nasa-maven-anomaly]] — MAVEN's loss as a relay satellite previews the operational dependency problem that humanoid robot missions will face: surface robot operations (excavation, maintenance, emergency response) could be crippled if a single relay satellite fails. Redundancy architecture for robot astronaut communications must solve the MAVEN problem first.
+- [[rethinking-exoplanet-habitability]] — humanoid robots could extend the habitable-zone concept by enabling operations in environments inhospitable to humans: Mars in 2026, then tidally locked planets with permanent day/night hemispheres — robots relax the biological constraints that define the classical habitable zone.

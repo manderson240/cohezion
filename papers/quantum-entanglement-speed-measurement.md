@@ -50,11 +50,14 @@ Provides empirical grounding for quantum timing parameters in simulation models.
 
 ## Related Concepts
 
-- [[quantum-teleportation-logic-gates]]
+- [[quantum-teleportation-logic-gates]] — gate teleportation between processors must operate within the fundamental timing constraints revealed by this measurement; the 232-attosecond lag sets a physical limit on modular quantum computing
 - [[amorphous-materials-3d-atomic-structure]]
-- [[axion-dark-matter-quantum-sensors]]
+- [[axion-dark-matter-quantum-sensors]] — attosecond precision quantum measurements are directly applicable to quantum sensors trying to detect ultra-weak axion-induced spin rotations (~10^-6 rad)
 - [[quantum-entangled-atomic-sensors]]
 - [[silicon-quantum-computing-platform]]
 - [[supersolid-quantum-state]]
 - [[quantum-sensors]]
 - [[dark-matter-detection]]
+- [[mars-time-dilation-relativity]] — both papers push the frontier of precision timing: attosecond quantum entanglement dynamics and microsecond relativistic time dilation on Mars represent the quantum and classical limits of timekeeping
+- [[beyond-the-quantum-pilot-wave-theory]] — the 232-attosecond measured lag provides empirical data that pilot-wave theory must account for with its hidden trajectory formalism; any hidden variable theory must reproduce this timing exactly
+- [[international-year-quantum-2025]] — this measurement represents one of the defining fundamental quantum physics achievements of the International Year of Quantum Science and Technology

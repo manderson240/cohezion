@@ -51,7 +51,7 @@ Gravitational lensing geometry and rare cosmic configurations could inform `frac
 
 ## Related Concepts
 
-- [[cosmic-strings-time-travel]]
+- [[cosmic-strings-time-travel]] — cosmic strings would also produce characteristic gravitational lensing signatures detectable by JWST, making the question mark observation directly relevant to cosmic string searches
 - [[humanitys-last-exam-benchmark]]
 - [[mars-time-dilation-relativity]]
 - [[tonggeometry-ai-math]]
@@ -59,3 +59,6 @@ Gravitational lensing geometry and rare cosmic configurations could inform `frac
 - [[runbook-benchmarking-validation]]
 - [[2026-02-10-performance-benchmarking-framework]]
 - [[2026-02-10-benchmarking-framework-complete]]
+- [[jwst-dark-matter-map]] — both observations rely on JWST gravitational lensing; the dark matter map uses weak lensing across 800,000 galaxies while the question mark shows a rare strong lensing configuration
+- [[jwst-early-universe-black-holes]] — the galaxy pair at 7 billion light-years forms during a crucial epoch for understanding black hole growth; gravitational lensing both magnifies these galaxies and traces the dark matter responsible for their formation
+- [[gravitational-waves]]

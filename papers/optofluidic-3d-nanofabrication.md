@@ -51,10 +51,12 @@ Relevant to [[enhanced_simulator.py]] for modeling nanoscale fabrication process
 ## Related Concepts
 
 - [[yann-lecun-agi-world-models]]
-- [[dna-origami-2d-semiconductor-patterning]]
+- [[dna-origami-2d-semiconductor-patterning]] — complementary nanofabrication strategies: DNA origami for 2D molecular placement on semiconductors vs. optofluidic assembly for 3D volumetric nanostructures
 - [[protein-tape-recorder-cytotape]]
 - [[ai-anomaly-detection-hubble-archive]]
 - [[ocean-calcium-climate-mystery-66my]]
 - [[mars-time-dilation-relativity]]
 - [[magnetic-superhighways-starburst-galaxy]]
 - [[llm-in-sandbox-agentic-intelligence]]
+- [[graphitic-polytype-switching-nanocavities]] — both achieve sub-femtojoule / ultralow-energy nanoscale manipulation; optofluidic via laser heating gradients, graphitic via elastic cavity shear forces
+- [[diffraction-gratings-fourier-transforms]] — optofluidic fabrication relies on femtosecond laser optics whose beam shaping and spatial control depends on Fourier optical principles

@@ -62,3 +62,6 @@ metrics:
 ### Actual (Post-Implementation)
 
 ## Related Decisions & Lessons
+
+- [[patterns/daily-cli-tool-update-with-version-comparison|Daily CLI Tool Update Pattern]] — implements this decision as a reusable pattern
+- [[decisions/2026-02-22-cz-spec-workflow-retrospective|cz spec workflow retrospective]] — context from same session where CLI tooling was evaluated

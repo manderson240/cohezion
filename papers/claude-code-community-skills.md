@@ -69,6 +69,14 @@ AI Development Tools resource captured via mobile link pipeline. lab_agent.py, [
 
 - [[openai-applied-compute-startup]]
 
+## Related Papers
+
+- [[karpathy-claude-code-skills]] — Karpathy's AI-driven coding workflow is precisely the context in which these 36 community skills operate
+- [[few-shot-prompting-agentic-coding]] — the community skills are essentially curated few-shot examples packaged for reuse across coding tasks
+- [[claude-code-swiftui-skill-patterns]] — the SwiftUI skill is one example of a domain-specific Claude Code skill of the type surveyed here
+- [[circleci-ai-cicd-validation]] — CI/CD validation for AI-generated code (CircleCI Chunk) is the infrastructure layer that tests code produced using these skills
+- [[webgpu-claude-skill-threejs]] — the WebGPU skill exemplifies the specialized technical skills included in the broader community skills ecosystem
+
 ## Related Concepts
 
 - [[anthropic-disempowerment-patterns]]

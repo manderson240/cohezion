@@ -50,6 +50,9 @@ Relevant to [[fractal-universe]] plasma physics modeling and magnetohydrodynamic
 ## Related Papers
 
 - [[grb-250314a-ancient-signal]]
+- [[sunspot-ar4366-x-class-flares]] — X-class solar flares generate the coronal mass ejections that drive intense Alfvén wave activity in Earth's magnetosphere, directly energizing auroral displays
+- [[magnetic-superhighways-starburst-galaxy]] — both papers examine how ordered magnetic field structures channel energy and particle flow; Alfvén waves in Earth's magnetosphere and magnetically guided galactic winds share the same MHD physics
+- [[super-earth-magnetic-protection-magma]] — understanding how Alfvén waves transfer energy in planetary magnetospheres informs models of magnetic shielding on super-Earths
 
 ## Related Concepts
 
@@ -61,3 +64,9 @@ Relevant to [[fractal-universe]] plasma physics modeling and magnetohydrodynamic
 - [[mars-time-dilation-relativity]]
 - [[magnetic-superhighways-starburst-galaxy]]
 - [[llm-in-sandbox-agentic-intelligence]]
+- [[astronomy]]
+
+## Cross-Domain Bridges
+
+- [[usaf-stealthy-electromagnetic-attack]] — the P-AEA exploits the same physics as Alfven waves: directed electromagnetic energy propagating along field geometries to disrupt or energize a target region. Alfven waves channel solar wind energy along magnetic field lines to the auroral acceleration region; the P-AEA channels directed EM emissions along optimized propagation paths to suppress adversary radar — both are electromagnetic energy delivery systems using field geometry as the conduit.
+- [[helimagnetism-ferromagnetism-mode-locking]] — both Alfven waves and the helimagnetic mode-locking experiment describe how magnetic field structures can couple and phase-lock oscillating systems: Alfven waves traveling along field lines maintain coherent phase relationships over thousands of kilometers, analogous to how the helimagnet and ferromagnet layers phase-lock their spin precession across a material interface.

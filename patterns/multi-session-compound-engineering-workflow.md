@@ -222,3 +222,5 @@ git commit -m "Session 47: Phase 2 Security - TLS/HTTPS Implementation
 
 
 [[workflow-orchestration]], [[agentic-ai]]
+
+- [[decisions/2026-02-22-cz-spec-workflow-retrospective|cz spec workflow retrospective]] — a real-world run of the worktree + spec workflow pattern documented here; the retrospective identifies concrete improvements (D1–D5) to this workflow

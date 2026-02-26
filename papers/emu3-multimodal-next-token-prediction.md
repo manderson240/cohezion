@@ -50,6 +50,11 @@ Published in Nature, Emu3 is a family of multimodal models trained solely with n
 
 Unified multimodal architecture directly relevant to `lab_agent.py` design. The next-token prediction paradigm as a universal learning objective across modalities could inform how Cohezion agents handle diverse input/output types., [[ai-agents]]
 
+## Related Papers
+
+- [[llm-training-methodology-changes]] — Emu3's unified next-token prediction approach is a concrete example of the "train smarter" paradigm: one training objective across all modalities instead of separate specialized architectures
+- [[yann-lecun-agi-world-models]] — Emu3's video generation capability is exactly the kind of world-model grounding LeCun argues is necessary for human-level AI; learning from video prediction is AMI Labs' stated approach
+
 ## Related Concepts
 
 - [[operational-data-ai-agents]]

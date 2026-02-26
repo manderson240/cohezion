@@ -59,3 +59,5 @@ Directly applicable to [[lab-agent]] multi-agent orchestration design. The error
 - [[testing-agent-skills-with-evals]]
 - [[llm-in-sandbox-agentic-intelligence]]
 - [[agentic-ai-memory-hierarchies]]
+- [[yann-lecun-agi-world-models]] — capability saturation at 45% supports LeCun's thesis: adding more agents doesn't compensate for the fundamental lack of causal world models
+- [[operational-data-ai-agents]] — the 17.2x error amplification in independent multi-agent systems is the scaling consequence of the data hygiene failures described there

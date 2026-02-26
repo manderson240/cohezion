@@ -364,3 +364,4 @@ Python-optimized FLUME delivers **17.4x speedup** in production scenarios with *
 - [[token-efficiency]]
 - [[compound-engineering]]
 - [[context-management]]
+- [[experiments/2026-02-24-sprint-4-end-to-end-integration-compound-execution-flume-cache-pipeline|Sprint 4: Compound Execution → FLUME Cache Pipeline]] — the end-to-end integration experiment that exercises this pattern in the compound execution pipeline

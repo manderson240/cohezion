@@ -56,6 +56,9 @@ Quantum Physics resource captured via mobile link pipeline. Quantum optics and f
 - [[claude-code-community-skills]]
 - [[grok4-ai-benchmarks]]
 - [[woh-g64-dust-obscured-companion]]
+- [[artemis-ii-laser-comms]] — quantum limits on atomic light synchronization constrain the maximum coherence achievable in the laser sources used for the O2O system; this paper defines the fundamental performance ceiling for laser communication systems
+- [[quantum-entangled-atomic-sensors]] — superradiance suppression and entangled atomic sensor precision both involve quantum coherence in atomic ensembles; they are complementary studies of what quantum atoms can and cannot do collectively
+- [[beyond-the-quantum-pilot-wave-theory]] — the fundamental constraint that atoms cannot fully synchronize their light emission in free space is exactly the kind of quantum no-go result that pilot-wave theory must explain with hidden trajectories
 
 ## Related Concepts
 
@@ -67,3 +70,4 @@ Quantum Physics resource captured via mobile link pipeline. Quantum optics and f
 - [[diffraction-gratings-fourier-transforms]]
 - [[openai-applied-compute-startup]]
 - [[claude-code-swiftui-skill-patterns]]
+- [[alfven-waves-aurora]] — Alfvén wave energy transfer in plasma shares conceptual structure with quantum coherence transfer in atomic ensembles; both involve energy propagating through a medium via wave-like field oscillations

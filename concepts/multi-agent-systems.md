@@ -31,6 +31,9 @@ Systems comprising multiple autonomous AI agents that collaborate to solve compl
 - [[scaling-agent-systems]]
 - [[llamaagents-builder]]
 - [[langchain-deep-agents-context-management]]
+- [[llm-in-sandbox-agentic-intelligence]] — sandbox-based agentic intelligence is a building block for multi-agent systems where each agent uses code execution for tool access
+- [[operational-data-ai-agents]] — multi-agent systems require high-quality operational data pipelines as their shared "senses"; data quality failures amplify across agents
+- [[testing-agent-skills-with-evals]] — evaluating multi-agent systems requires the same four-category eval taxonomy (outcome, process, style, efficiency) applied at the system level
 
 ## Related Concepts
 

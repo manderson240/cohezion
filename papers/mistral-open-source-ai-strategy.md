@@ -50,6 +50,12 @@ Open-source AI governance and enterprise adoption
 
 AI Strategy and Business resource captured via mobile link pipeline. Open-source AI governance and enterprise adoption, [[ai-agents]]
 
+## Related Papers
+
+- [[yann-lecun-agi-world-models]] — LeCun and Mistral share the same core advocacy: open AI research and independence from single-vendor lock-in
+- [[llm-training-methodology-changes]] — Mistral's enterprise competitiveness depends on efficient training to match closed-lab models without their compute budgets
+- [[cisa-chatgpt-data-leak]] — the CISA incident illustrates exactly the data sovereignty risk Mistral's open-source enterprise strategy is designed to prevent
+
 ## Related Concepts
 
 - [[anthropic-disempowerment-patterns]]

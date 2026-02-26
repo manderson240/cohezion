@@ -48,6 +48,12 @@ VentureBeat article arguing that the primary reason autonomous AI agents fail in
 
 Directly relevant to `lab_agent.py` and agent architecture generally. Highlights that agent capability is bounded by data quality, not just model capability. Cohezion agents need robust data pipelines and quality checks as foundational infrastructure., [[agentic-ai]], [[ai-agents]]
 
+## Related Papers
+
+- [[scaling-agent-systems]] — the data hygiene failures cited here as the top production failure mode align with the error amplification findings; bad operational data compounds across multi-agent pipelines
+- [[surrealdb-graph-databases]] — SurrealDB's multi-model design supports the real-time operational data pipelines and contextual enrichment that agents need as their "senses"
+- [[service-layer-architecture]] — operational data pipelines for AI agents require clean service-layer separation between data ingestion, quality monitoring, and agent access
+
 ## Related Concepts
 
 - [[langchain-deep-agents-context-management]]

@@ -18,3 +18,8 @@ Reference for SurrealDB's graph database capabilities and multi-model query appr
 ## Related
 - [[lesson-05-surrealdb]]
 - [[lesson-surrealdb-schema-design]]
+- [[knowledge-graph-semantic-relationships]] — semantic relationship modeling maps naturally onto SurrealDB's record-link graph edges
+- [[knowledge-graphs-semantic-web]] — SurrealDB can serve as a storage and query layer for semantic web-style graph data
+- [[schema-design-relational]] — SurrealDB's multi-model nature bridges relational and graph schema design
+- [[service-layer-architecture]] — SurrealDB is commonly accessed through a service layer that abstracts graph traversal from business logic
+- [[cloud-vault-mcp]] — the Cloud Vault MCP server uses SurrealDB as its agent context graph backend

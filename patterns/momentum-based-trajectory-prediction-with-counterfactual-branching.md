@@ -112,3 +112,6 @@ class CounterfactualBranchPredictor:
 
 - [[patterns/momentum-based-trajectory-prediction-with-counterfactuals]]
 - [[patterns/morphospace-stability-wells]]
+- [[experiments/2026-02-23-overnight-simulation-data-characterization-55m-trajectories|Overnight Simulation Data Characterization (5.5M trajectories)]] — the trajectory dataset this pattern is designed to analyze
+- [[experiments/2026-02-24-overnight-simulation-55m-12d-trajectories|Overnight Simulation: 5.5M 12D Trajectories]] — extends the dataset to 12D; this pattern operates on the same trajectory space
+- [[patterns/predictive-throttling-via-12d-trajectory-velocity|Predictive Throttling via 12D Trajectory Velocity]] — complementary pattern: where this one branches into futures, that one uses velocity to throttle agent execution

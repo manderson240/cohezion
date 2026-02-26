@@ -50,9 +50,10 @@ Directly relevant to [[lab_agent.py]] design decisions around context window man
 
 ## Related Concepts
 
-- [[yann-lecun-agi-world-models]]
+- [[yann-lecun-agi-world-models]] — LeCun's world models thesis predicts exactly the memory bottleneck described here: without persistent world representations, LLMs must reload context every inference, stressing the KV cache hierarchy
 - [[dna-origami-2d-semiconductor-patterning]]
-- [[scaling-agent-systems]]
+- [[scaling-agent-systems]] — the tool-coordination trade-off in scaling is amplified by memory hierarchy costs: multi-agent coordination adds overhead precisely when KV caches are already stressed
+- [[langchain-deep-agents-context-management]] — LangChain's three-tier context strategy (offload/truncate/summarize) is a software-side answer to the hardware memory hierarchy challenges described here
 - [[protein-tape-recorder-cytotape]]
 - [[openai-codex-agent-loop]]
 - [[ai-anomaly-detection-hubble-archive]]

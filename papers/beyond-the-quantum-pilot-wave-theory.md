@@ -54,6 +54,10 @@ Quantum Physics and Philosophy resource captured via mobile link pipeline. Theor
 
 - [[anthropic-principle-fine-tuning]]
 - [[international-year-quantum-2025]]
+- [[cosmic-strings-time-travel]] — both papers probe hidden substructure beneath observable physics; cosmic strings are topological hidden variables in spacetime just as pilot-wave theory proposes hidden particle trajectories beneath quantum outcomes
+- [[mars-time-dilation-relativity]] — Mars time dilation confirms general relativity; pilot-wave theory proposes modifications to standard quantum mechanics — together they bracket the question of whether our fundamental theories are complete or require deeper foundations
+- [[superfluid-to-supersolid-transition]] — supersolids (simultaneously fluid and crystalline) exemplify the quantum paradoxes pilot-wave theory aims to explain with hidden classical trajectories
+- [[quantum-entanglement-speed-measurement]] — the measured 232-attosecond lag in quantum entanglement dynamics provides empirical constraints that any interpretation of quantum mechanics, including pilot-wave theory, must accommodate
 
 ## Related Concepts
 
@@ -63,3 +67,4 @@ Quantum Physics and Philosophy resource captured via mobile link pipeline. Theor
 - [[sunspot-ar4366-x-class-flares]]
 - [[quantum-atomic-light-synchronization]]
 - [[pairwise-comparison-fiber-bundles]]
+- [[axion-dark-matter-quantum-sensors]] — axion dark matter searches rely on quantum measurement at the limits of sensitivity; pilot-wave theory's hidden variables could in principle affect the interpretation of marginal signals in these experiments

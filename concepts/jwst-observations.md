@@ -34,6 +34,10 @@ Discoveries from the James Webb Space Telescope, the most powerful infrared spac
 - [[jwst-red-nova-remnants]]
 - [[mom-z14-farthest-galaxy]]
 - [[webb-cosmic-question-mark-gravitational-lens]]
+- [[grb-250314a-ancient-signal]] — JWST confirmed the GRB afterglow from 13 billion light-years away ~3.5 months after the initial detection; JWST is the critical confirmation instrument for transient high-energy events
+- [[woh-g64-red-supergiant-mystery]] — JWST infrared capabilities are the natural instrument for observing dust-obscured massive stars like WOH G64 in the Large Magellanic Cloud
+- [[ai-anomaly-detection-hubble-archive]] — AI anomaly detection in Hubble archives is a precursor methodology to what will be applied to JWST's far larger data archive
+- [[axion-dark-matter-quantum-sensors]] — JWST's dark matter mapping via gravitational lensing provides complementary spatial data to quantum sensor networks searching for axion dark matter directly
 
 ## Related Concepts
 

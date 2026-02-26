@@ -54,9 +54,16 @@ Mathematics and Statistics resource captured via mobile link pipeline. Quantitat
 
 ## Related Concepts
 
-- [[diffraction-gratings-fourier-transforms]]
+- [[diffraction-gratings-fourier-transforms]] — both use mathematical transforms to decompose complex signals into structured components; Fourier transforms decompose light by frequency, fiber bundle decomposition decomposes comparison matrices by consistent local structure
 - [[woh-g64-dust-obscured-companion]]
 - [[anthropic-principle-fine-tuning]]
 - [[sunspot-ar4366-x-class-flares]]
 - [[quantum-atomic-light-synchronization]]
-- [[beyond-the-quantum-pilot-wave-theory]]
+- [[beyond-the-quantum-pilot-wave-theory]] — fiber bundles are the fundamental mathematical structure underlying gauge field theories in quantum mechanics; pilot-wave theory attempts to replace the gauge structure with hidden classical trajectories — both engage with the same topological foundations of quantum theory
+- [[cosmic-strings-time-travel]] — cosmic strings are topological defects, and fiber bundle mathematics is the natural language for describing topological defects in field theories; the same mathematical framework spans both papers
+
+## Cross-Domain Bridges
+
+- [[tonggeometry-olympiad-tree-search]] — fiber bundle decomposition (a topological tool for analyzing comparison inconsistency in high-dimensional spaces) and TongGeometry's guided tree search are both frameworks for navigating complex mathematical constraint spaces by imposing geometric structure on the search. Topology and proof search meet in the challenge of finding consistent solutions in over-determined systems.
+- [[nebuchadnezzar-babylonian-texts]] — fiber bundle decomposition is applied to "pairwise comparison matrices" where different sources give inconsistent preferences — exactly the problem of reconciling Babylonian and Biblical accounts of Nebuchadnezzar: multiple pairwise comparisons (Babylonian texts vs. Biblical texts vs. archaeological evidence) produce an inconsistent matrix that needs inconsistency reduction to extract the most consistent underlying preference ordering (who the historical Nebuchadnezzar really was).
+- [[helimagnetism-ferromagnetism-mode-locking]] — the fiber bundle framework decomposes preference matrices into consistent local structures that patch together globally, analogous to how the helimagnetic spin texture forms a globally chiral pattern from locally consistent spin orientations. Both are examples of using differential geometric structure (fiber bundles / spin manifolds) to understand how local consistency constraints produce global order.

@@ -83,3 +83,9 @@ Military Technology resource captured via mobile link pipeline. general
 - [[openai-applied-compute-startup]]
 - [[claude-code-swiftui-skill-patterns]]
 - [[claude-code-community-skills]]
+
+## Cross-Domain Bridges
+
+- [[cisa-chatgpt-data-leak]] — the P-AEA's existence is inferred from document leaks and procurement records, while the CISA incident involves sensitive documents leaking into a commercial AI system. Both illustrate that information security perimeters fail at human decision points — the P-AEA was "secret" until administrative documents revealed it, the CISA data was "secure" until a senior official bypassed controls.
+- [[alfven-waves-aurora]] — the P-AEA is an electromagnetic attack aircraft that disrupts adversary radar and communications using directed EM emissions. Alfven waves are plasma waves traveling along magnetic field lines that transfer energy across the auroral acceleration region. Both involve controlling directed electromagnetic energy propagation along specific field geometries — one natural, one engineered for warfare.
+- [[ai-anomaly-detection-hubble-archive]] — ASPI's reconstruction of the P-AEA from scattered public documents (requirements briefs, missile specs, flight records) uses the same methodology as AnomalyMatch scanning the Hubble archive: pattern recognition across fragmented archival data to identify something hidden in plain sight. Open-source intelligence and astrophysical anomaly detection are algorithmically similar activities.

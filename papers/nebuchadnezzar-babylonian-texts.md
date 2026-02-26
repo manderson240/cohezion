@@ -72,3 +72,9 @@ Archaeology resource captured via mobile link pipeline. general
 - [[service-class-singleton-pattern]]
 - [[PRIME_CLAUDE_CODE_PRACTICES]]
 - [[multi-session-compound-engineering-workflow]]
+
+## Cross-Domain Bridges
+
+- [[knowledge-graph-semantic-relationships]] — The Babylonian cylinder inscriptions are a physical knowledge graph: entities (Nebuchadnezzar, Marduk, temples), typed relationships (restored, built, dedicated), and provenance metadata (first-person cuneiform). The ancient scribes instinctively used entity-relationship modeling millennia before RDF and OWL formalized it — the "semantic web" is as old as writing.
+- [[knowledge-graphs-semantic-web]] — The debate between Babylonian and Biblical accounts of Nebuchadnezzar is a real-world case study in knowledge graph *conflicting provenance*: two sources, same entity, contradictory predicates. Semantic web reconciliation techniques (owl:sameAs, trust provenance) address exactly this class of problem.
+- [[woh-g64-red-supergiant-mystery]] — Both the Nebuchadnezzar case and WOH G64's apparent "vanishing" illustrate how observational perspective determines interpretation: the Babylonians saw a builder, the biblical authors saw a destroyer; astronomers saw a stellar death, but the star was still alive — the underlying reality unchanged, only the viewpoint.

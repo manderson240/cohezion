@@ -48,11 +48,13 @@ Relevant to [[enhanced-simulator]] for quantum simulation modeling. The Quantum 
 
 ## Related Concepts
 
-- [[quantum-teleportation-logic-gates]]
+- [[quantum-teleportation-logic-gates]] — silicon qubit arrays and photonic gate teleportation represent complementary paths to modular quantum computers; silicon provides the qubit registers while photonic interfaces enable inter-module communication
 - [[amorphous-materials-3d-atomic-structure]]
 - [[quantum-entanglement-speed-measurement]]
-- [[axion-dark-matter-quantum-sensors]]
+- [[axion-dark-matter-quantum-sensors]] — high-purity silicon qubits with long coherence times are directly applicable to quantum sensor networks searching for dark matter; the platform described here could serve as the sensing element
 - [[quantum-entangled-atomic-sensors]]
 - [[supersolid-quantum-state]]
 - [[quantum-sensors]]
 - [[dark-matter-detection]]
+- [[mit-quantum-computing-progress]] — silicon quantum computing and MIT's error correction work are complementary milestones toward fault-tolerant quantum computing
+- [[international-year-quantum-2025]] — silicon quantum computing exemplifies the hardware advances highlighted in the International Year of Quantum Science coverage

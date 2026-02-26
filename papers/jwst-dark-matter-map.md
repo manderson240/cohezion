@@ -58,3 +58,8 @@ Relevant to [[fractal-universe]] modeling of large-scale cosmic structure and ma
 - [[red-supergiant-stars]]
 - [[quantum-sensors]]
 - [[exoplanet-habitability]]
+- [[webb-cosmic-question-mark-gravitational-lens]] — both observations use JWST gravitational lensing; the dark matter map uses statistical weak lensing while the question mark is a rare strong lensing configuration — complementary techniques revealing the same dark matter distribution
+- [[axion-dark-matter-quantum-sensors]] — quantum sensor networks searching for axion dark matter and JWST's gravitational lensing map are complementary detection approaches: direct particle sensing vs. large-scale structure mapping
+- [[dark-matter]]
+- [[dark-matter-detection]]
+- [[jwst-observations]]

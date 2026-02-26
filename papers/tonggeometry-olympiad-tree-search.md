@@ -51,4 +51,13 @@ Neuro-symbolic approach combining neural guidance with structured search directl
 ## Related Concepts
 
 - [[rethinking-exoplanet-habitability]]
-- [[tonggeometry-ai-math]]
+- [[tonggeometry-ai-math]] — companion paper covering TongGeometry's results and competitive standing; this paper provides the deep technical architecture
+- [[theorem-ai-formal-verification]] — both use structured proof decomposition: TongGeometry applies guided tree search to geometry proofs, Theorem uses fractional proof decomposition for code verification
+- [[humanitys-last-exam-benchmark]] — HLE's expert-level math questions represent the broader evaluation context in which neuro-symbolic approaches like TongGeometry are assessed
+- [[testing-agent-skills-with-evals]] — the eval methodology for agent skills (outcome, process, style goals) applies to evaluating mathematical problem-solving agents like TongGeometry
+
+## Cross-Domain Bridges
+
+- [[yann-lecun-agi-world-models]] — TongGeometry's neuro-symbolic architecture is the closest existing realization of LeCun's world-model vision: neural networks provide learned geometric intuitions, while symbolic tree search provides causal chain verification. The hybrid overcomes pure pattern-matching by grounding search in verifiable symbolic steps.
+- [[comb-jellies-animal-tree-of-life]] — the tree-of-life phylogenetics problem and the geometry theorem tree are both enormous search spaces (billions of possible topologies / 6.7 billion theorems) where the core algorithmic challenge is which branch to explore next — neural-guided tree pruning is the shared solution, whether the domain is evolutionary biology or formal geometry.
+- [[pairwise-comparison-fiber-bundles]] — fiber bundle decomposition (a topological tool for analyzing comparison matrices) and TongGeometry's guided tree search are both approaches to navigating high-dimensional mathematical spaces by imposing geometric structure on the search problem. Topology and tree search meet in the challenge of finding consistent solutions in complex constraint spaces.

@@ -52,7 +52,16 @@ Expands parameter space for habitability modeling in `fractal_universe.py`. Demo
 
 - [[llm-training-methodology-changes]]
 - [[helimagnetism-ferromagnetism-mode-locking]]
+- [[tidally-locked-exoplanet-habitability]] — a complementary study focusing specifically on the night-side liquid water mechanism on tidally locked worlds
+- [[super-earth-magnetic-protection-magma]] — magnetic shielding from basal magma oceans extends habitability by protecting atmospheres from stellar winds, directly relevant to expanded habitable zone models
 
 ## Related Concepts
 
 - [[tonggeometry-olympiad-tree-search]]
+- [[exoplanet-habitability]]
+
+## Cross-Domain Bridges
+
+- [[ocean-calcium-climate-mystery-66my]] — Earth's 66-million-year greenhouse-to-icehouse transition is a calibration case for exoplanet habitability modeling: different ocean chemistry could permanently lock a planet in states Earth's calcium cycle escaped. The ocean calcium study shows how sensitive habitability is to slow geochemical feedback, which is exactly the kind of constraint Wandel's expanded habitability models need.
+- [[artificial-photosynthesis-living-energy]] — artificial photosynthesis on a tidally locked exoplanet would be a fundamentally different engineering problem: a permanent day-side with perpetual sunlight offers unlimited solar energy, but CO2 transport from the night side (where it might freeze out) becomes the bottleneck — the habitability constraints and the energy technology constraints are deeply coupled.
+- [[comb-jellies-animal-tree-of-life]] — ctenophores independently evolved nervous systems, meaning complex neural organization can arise through multiple evolutionary pathways. This is a direct argument for expanded habitability: if nervous system evolution is not a single improbable event, life-bearing planets are more likely than a strict "one path to complexity" model allows.

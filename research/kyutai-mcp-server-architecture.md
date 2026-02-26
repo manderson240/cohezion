@@ -1473,3 +1473,11 @@ async def speak_text(text: str, voice_id: str = "default") -> dict:
 **End of Architecture Document**
 
 Next steps: Hand off to Phase 3 Implementation team with detailed tool APIs, data schemas, and service examples ready for coding.
+
+## Related
+
+- [[research/kyutai-api-specification|Kyutai API Specification]] — the upstream API research this architecture builds upon; documents Pocket TTS, Delayed Streams STT/TTS, Moshi, and Unmute APIs
+- [[research/kyutai-obsidian-plugin-architecture|Kyutai Obsidian Plugin Architecture]] — the TypeScript plugin layer that calls this MCP server via HTTP; defines the UI components and workflows
+- [[decisions/2026-02-10-kyutai-mcp-obsidian-plugin-plan|Kyutai MCP + Obsidian Plugin Plan]] — the compound engineering plan authorizing and scoping this architecture document
+- [[concepts/cloud-vault-mcp|Cloud Vault MCP]] — the existing MCP server (FastMCP, port 8360) whose patterns (service-oriented architecture, health checks, Docker composition) are directly reused in this design
+- [[decisions/2026-02-10-kyutai-token-waste-postmortem|Kyutai Token Waste Postmortem]] — lessons from Phase 1 that influenced the architecture decisions here (why FastMCP over TypeScript, why phased rollout)

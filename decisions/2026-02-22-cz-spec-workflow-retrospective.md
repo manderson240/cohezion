@@ -79,6 +79,13 @@ Agent prompts should include the Files list from each plan task, directing agent
 ### D5: Move coherence checks to project-specific tests
 The "no old-CLI references" check belongs in the project's integration tests (as we did with `TestCoherenceChecks`), not in a generic skill step.
 
+## Related
+
+- [[patterns/multi-session-compound-engineering-workflow|Multi-Session Compound Engineering Workflow]] — the worktree isolation pattern exercised in this run
+- [[decisions/2026-02-22-daily-cli-tool-update-via-systemd-timer|Daily CLI Tool Update via Systemd Timer]] — decided in the same session; motivation was keeping `cz` CLI current
+- [[patterns/daily-cli-tool-update-with-version-comparison|Daily CLI Tool Update Pattern]] — pattern that operationalizes keeping CLI tools up to date
+- [[concepts/compound-engineering|Compound Engineering]] — the framework this retrospective improves
+
 ## Next Steps for Compound Engineering
 
 1. ~~Update spec workflow skills with the above fixes (D1-D5)~~ — **DONE** (were already incorporated during original implementation)

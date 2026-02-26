@@ -72,3 +72,7 @@ Chemistry resource captured via mobile link pipeline. enhanced_simulator.py
 ## Related Concepts
 
 - [[international-year-quantum-2025]]
+- [[cu45-superatom-carbon-recycling]] — companion paper describing the same Cu45 nanocluster from the perspective of long-term carbon recycling potential
+- [[artificial-photosynthesis-living-energy]] — parallel approach to CO2-to-fuel conversion using biological and photoelectrochemical systems
+- [[surface-chemistry]] — Cu45's superatomic electronic configuration governs its exceptional surface reactivity for CO2 reduction
+- [[catalytic-materials]] — Cu45 is a prime example of a superatom cluster outperforming conventional metal nanoparticle catalysts

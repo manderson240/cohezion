@@ -54,6 +54,8 @@ All 6 causes fixed, verified individually then full suite.
 
 ## Bidirectional Links
 
+- [[decisions/2026-02-22-post-crash-venv-recovery-pytest-missing-despite-pyprojecttoml|Post-Crash Venv Recovery Decision]] — the companion decision from the same session documenting venv corruption and `uv add --dev` recovery
+- [[decisions/2026-02-22-cz-spec-workflow-retrospective|cz spec workflow retrospective]] — same date; the TDD and test suite patterns from this session informed those workflow improvements
 - [[2026-02-22-asyncio-lock-in-init-not-class-level]]
 - [[2026-02-22-pytestmark-asyncio-module-level]]
 - [[async-singleton-lock-isolation]]

@@ -51,8 +51,15 @@ Core research on responsible AI deployment and user protection mechanisms
 
 AI Safety & Ethics resource captured via mobile link pipeline. Core research on responsible AI deployment and user protection mechanisms, [[agentic-ai]]
 
+## Related Papers
+
+- [[cisa-chatgpt-data-leak]] — the CISA ChatGPT incident is a real-world example of institutional disempowerment: an authority figure circumvented controls, reducing organizational autonomy over data governance
+- [[emoticons-llm-silent-failures]] — silent LLM failures are a technical form of disempowerment: users believe they have agency over code generation but AI silently produces wrong outputs
+
 ## Related Concepts
 
+- [[ai-safety-alignment]] — disempowerment patterns are a concrete empirical finding that motivates the alignment problem; the value alignment field exists to prevent exactly this user autonomy erosion
+- [[ai-safety]] — disempowerment research is foundational AI safety data: it shows how well-intentioned AI interactions can systematically reduce user autonomy
 - [[mit-quantum-computing-progress]]
 - [[mistral-open-source-ai-strategy]]
 - [[few-shot-prompting-agentic-coding]]

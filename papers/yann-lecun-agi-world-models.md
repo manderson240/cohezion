@@ -66,6 +66,10 @@ Informs [[lab-agent]] architecture decisions. The world models concept aligns wi
 ## Related Papers
 
 - [[ocean-calcium-climate-mystery-66my]]
+- [[agentic-ai-memory-hierarchies]] — the KV cache and memory hierarchy bottlenecks are symptoms of LeCun's core argument: LLM architectures lack the persistent world-model representations that would make them memory-efficient
+- [[llm-training-methodology-changes]] — the "train smarter" paradigm shift aligns with LeCun's advocacy for moving beyond brute-force scaling toward architectures with genuine world models
+- [[scaling-agent-systems]] — capability saturation findings support LeCun's critique: adding more agents doesn't fix the underlying lack of causal world models
+- [[mistral-open-source-ai-strategy]] — both LeCun and Mistral's Mensch advocate open AI research and warn against vendor lock-in
 
 ## Related Concepts
 
@@ -77,3 +81,9 @@ Informs [[lab-agent]] architecture decisions. The world models concept aligns wi
 - [[llm-in-sandbox-agentic-intelligence]]
 - [[cu45-superatom-carbon-recycling]]
 - [[optofluidic-3d-nanofabrication]]
+
+## Cross-Domain Bridges
+
+- [[brain-protein-neurodegeneration]] — microglial failure in Alzheimer's is a biological instance of LeCun's world-model problem: the immune cells lack a valid causal model of the amyloid threat, so they switch from clearance (correct strategy) to neurotoxic killing (wrong strategy) — exactly the catastrophic failure mode LeCun predicts for LLMs that pattern-match without causal understanding.
+- [[transcranial-ultrasound-consciousness]] — tFUS enables causal testing of consciousness theories by manipulating brain activity, which is methodologically identical to what LeCun demands for world models: not correlational observation but interventional experiments that reveal causal structure. Both push from "what correlates with X" toward "what causes X."
+- [[tonggeometry-olympiad-tree-search]] — TongGeometry's neuro-symbolic architecture (neural guidance + symbolic tree search) is the closest existing implementation of LeCun's world-model vision: neural networks provide learned intuitions, symbolic search provides causal chain verification — a hybrid that overcomes pure LLM pattern-matching.

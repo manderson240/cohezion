@@ -78,3 +78,7 @@ Astrophysics resource captured via mobile link pipeline. fractal_universe.py, [[
 - [[tidally-locked-exoplanet-habitability]]
 - [[beyond-the-quantum-pilot-wave-theory]]
 - [[pairwise-comparison-fiber-bundles]]
+- [[woh-g64-red-supergiant-mystery]] — the companion paper from Keele University confirming the same finding; together they provide the full picture of WOH G64's binary system
+- [[fast-radio-bursts-binary-star-origin]] — parallel case where a companion star's interaction with a magnetar drives extreme astrophysical transients in a binary system
+- [[jwst-red-nova-remnants]] — JWST's imaging of red nova remnants as red supergiants provides direct comparison context for WOH G64's binary merger scenario
+- [[astrophysics-observations]]

@@ -1190,3 +1190,11 @@ async def full_duplex_conversation(user_audio):
 ---
 
 **Document Status:** Research Complete - Ready for Phase 2 (MCP Architecture Design)
+
+## Related
+
+- [[research/kyutai-mcp-server-architecture|Kyutai MCP Server Architecture]] — the MCP server design that consumes this API specification; defines the 7 tools (speak_text, transcribe_audio, etc.) that wrap the APIs documented here
+- [[research/kyutai-obsidian-plugin-architecture|Kyutai Obsidian Plugin Architecture]] — the plugin UI layer that sits above the MCP server; makes calls to the tools backed by these APIs
+- [[decisions/2026-02-10-kyutai-mcp-obsidian-plugin-plan|Kyutai MCP + Obsidian Plugin Plan]] — the compound engineering plan that produced this research document as Phase 1 output
+- [[decisions/2026-02-10-kyutai-pocket-tts-token-efficient-success|Kyutai Pocket TTS: Token-Efficient Success]] — the post-research validation showing Pocket TTS (the primary Phase 1 API) performed as specified
+- [[concepts/cloud-vault-mcp|Cloud Vault MCP]] — the existing MCP server whose patterns (FastMCP, service classes) are reused in the Kyutai MCP server design

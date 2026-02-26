@@ -53,6 +53,12 @@ Binary system interactions producing misleading observational signatures illustr
 
 - [[circleci-ai-cicd-validation]]
 - [[ocean-calcium-climate-mystery-66my]]
-- [[jwst-red-nova-remnants]]
+- [[jwst-red-nova-remnants]] — JWST directly confirmed that luminous red nova mergers produce red supergiants, providing observational context for interpreting WOH G64's status
 - [[emoticons-llm-silent-failures]]
 - [[mom-z14-farthest-galaxy]]
+- [[fast-radio-bursts-binary-star-origin]] — both cases involve binary systems where a compact or hot companion drives dramatic astrophysical events in the primary star
+- [[woh-g64-dust-obscured-companion]] — companion paper detailing the SALT spectroscopic evidence; the two papers together resolve the mystery of WOH G64's apparent disappearance
+- [[runaway-stars-milky-way]] — supernova kicks in binary systems (which produce runaway stars) represent the end-stage evolution of systems like WOH G64
+- [[astrophysics-observations]]
+- [[nebuchadnezzar-babylonian-texts]] — the WOH G64 "vanishing" and the Nebuchadnezzar narrative conflict are the same epistemological problem at different scales: the object (star / historical figure) is unchanged, but incomplete observational data produces radically different interpretations. Both cases were resolved by obtaining evidence from a different instrument or independent source.
+- [[nasa-maven-anomaly]] — both WOH G64 and MAVEN present cases where a system appeared to have catastrophically changed state, only for investigation to reveal a more mundane mechanical cause (binary companion dust cloud vs. spacecraft tumbling). Both demonstrate that assembling a formal review of all available evidence is the only reliable path to correct interpretation.

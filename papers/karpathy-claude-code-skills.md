@@ -71,6 +71,14 @@ AI Development Tools resource captured via mobile link pipeline. lab_agent.py, [
 - [[quantum-atomic-light-synchronization]]
 - [[brain-protein-neurodegeneration]]
 
+## Related Papers
+
+- [[few-shot-prompting-agentic-coding]] — the 5x performance gain from few-shot prompting explains much of Karpathy's 80% AI-driven coding shift
+- [[claude-code-community-skills]] — the 36 community skills are direct extensions of the AI-coding workflows Karpathy describes
+- [[claude-code-swiftui-skill-patterns]] — domain-specific coding skills (SwiftUI) embody the Karpathy-style workflow applied to a specific platform
+- [[emoticons-llm-silent-failures]] — the subtle conceptual errors Karpathy warns about are precisely the silent failures discovered in this study
+- [[theorem-ai-formal-verification]] — Karpathy warns AI-generated mistakes are subtle conceptual errors; Theorem's fractional proof decomposition targets exactly this failure mode
+
 ## Related Concepts
 
 - [[anthropic-disempowerment-patterns]]

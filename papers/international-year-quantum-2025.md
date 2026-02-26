@@ -52,10 +52,16 @@ Quantum Chemistry resource captured via mobile link pipeline. Chemistry and quan
 
 ## Related Papers
 
-- [[beyond-the-quantum-pilot-wave-theory]]
+- [[beyond-the-quantum-pilot-wave-theory]] — pilot-wave theory offers a philosophical counterpoint to the applied breakthroughs celebrated during the International Year; both are part of the same conversation about what quantum mechanics means
+- [[silicon-quantum-computing-platform]] — silicon qubit arrays represent a hardware milestone directly relevant to the quantum computing applications highlighted in IYQ 2025
+- [[quantum-teleportation-logic-gates]] — gate teleportation between separate quantum processors is a landmark quantum networking achievement of this period
+- [[quantum-entangled-atomic-sensors]] — multiparameter entangled sensing demonstrates practical quantum advantage in precision metrology, a highlighted IYQ application
 
 ## Related Concepts
 
 - [[mit-quantum-computing-progress]]
 - [[cu45-superatom-co2-ethylene]]
 - [[quantum-atomic-light-synchronization]]
+- [[amorphous-materials-3d-atomic-structure]] — atomic electron tomography enables engineering of quantum device substrates by resolving their atomic structure; a key capability for quantum materials research
+- [[superfluid-to-supersolid-transition]] — first observation of a superfluid-to-supersolid transition in graphene exemplifies the frontier quantum phase physics spotlighted in IYQ 2025
+- [[helimagnetism-ferromagnetism-mode-locking]] — mode locking between magnetic phases demonstrates the quantum coherence phenomena central to IYQ 2025 research themes

@@ -54,6 +54,9 @@ Emergent protective properties arising from physical conditions (pressure -> con
 
 - [[mars-time-dilation-relativity]]
 - [[ai-anomaly-detection-hubble-archive]]
+- [[rethinking-exoplanet-habitability]] — both papers challenge the traditional habitable zone, this one adding magnetic shielding as a new habitability variable
+- [[tidally-locked-exoplanet-habitability]] — tidally locked worlds around M-dwarfs are prime candidates for magnetic protection via basal magma oceans given their strong tidal heating
+- [[alfven-waves-aurora]] — Alfvén wave plasma dynamics are central to how planetary magnetic fields interact with stellar winds, directly relevant to magnetic protection of atmospheres
 
 ## Related Concepts
 

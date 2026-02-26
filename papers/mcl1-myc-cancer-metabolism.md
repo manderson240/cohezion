@@ -76,6 +76,8 @@ Molecular Biology resource captured via mobile link pipeline. general
 ## Related Concepts
 
 - [[artificial-photosynthesis-living-energy]]
-- [[alphafold-cryo-em-structure-prediction]]
+- [[alphafold-cryo-em-structure-prediction]] — structural biology of MCL1 and MYC proteins guides drug design; AlphaFold predicted structures accelerate inhibitor development
 - [[comb-jellies-animal-tree-of-life]]
 - [[tidally-locked-exoplanet-habitability]]
+- [[brain-protein-neurodegeneration]] — MCL1's mitochondrial metabolic control parallels the oxidative-phosphorylation-to-glycolysis switch in Alzheimer's microglia
+- [[bioinformatics]] — mTOR pathway analysis and MYC-driven transcriptome reprogramming rely heavily on bioinformatics for network-level interpretation

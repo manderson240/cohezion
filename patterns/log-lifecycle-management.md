@@ -203,6 +203,12 @@ fi
 7. **System-level budgets:** logrotate + journald enforce limits without manual intervention
 8. **Hooks prevent accidents:** Guard against destructive commands in commits
 
+## Related Decisions
+
+- [[decisions/2026-02-19-block-destructive-system-operations-from-ai-tools|Block Destructive System Operations from AI Tools]] — the architectural decision that resulted in adding pre-flight enforcement hooks for operations like `journalctl --vacuum`
+- [[decisions/2026-02-09-operational-principle-no-destructive-operations-without-learning|Operational Principle: No Destructive Operations Without Learning]] — the general principle this pattern operationalizes for log management specifically
+- [[concepts/compound-engineering-investigation-retrospection-before-destructive-operations|Compound Engineering: Investigation Before Destructive Operations]] — the conceptual foundation
+
 ## Related Patterns
 
 - **Systemd Crash-Loop Prevention:** Use StartLimitBurst/Interval in [Unit] section

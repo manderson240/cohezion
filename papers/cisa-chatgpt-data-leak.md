@@ -71,9 +71,13 @@ AI Policy resource captured via mobile link pipeline. general
 ## Related Papers
 
 - [[few-shot-prompting-agentic-coding]]
+- [[anthropic-disempowerment-patterns]] — the CISA incident is a real-world example of how AI tools can reduce organizational autonomy over data governance when circumventing controls
+- [[mistral-open-source-ai-strategy]] — Mistral's argument for enterprise AI independence directly addresses the vendor lock-in risk exemplified by sensitive data uploaded to commercial LLMs
 
 ## Related Concepts
 
+- [[ai-safety-alignment]] — data governance failures around LLM usage are an organizational-level alignment problem; the CISA incident shows alignment extends beyond model behavior
+- [[ai-safety]] — institutional failures around AI deployment illustrate the broader AI safety challenge beyond just model alignment
 - [[anthropic-disempowerment-patterns]]
 - [[mit-quantum-computing-progress]]
 - [[mistral-open-source-ai-strategy]]
@@ -82,3 +86,8 @@ AI Policy resource captured via mobile link pipeline. general
 - [[claude-code-swiftui-skill-patterns]]
 - [[oman-artemis-accords]]
 - [[usaf-stealthy-electromagnetic-attack]]
+
+## Cross-Domain Bridges
+
+- [[usaf-stealthy-electromagnetic-attack]] — the CISA data leak and the P-AEA aircraft represent symmetric security failures: one is a classified physical system whose existence is inferred from document leaks, the other is sensitive documents leaked into a commercial AI system. Both illustrate that information security perimeters fail at human decision points, not technical barriers.
+- [[emoticons-llm-silent-failures]] — the CISA data leak is the governance-level analogue of LLM silent failures: in both cases the dangerous behavior (data exfiltration / semantic code corruption) passes undetected through normal monitoring — one because the perpetrator had elevated privileges, the other because the corrupted output is syntactically valid. Both are "passes all surface checks" failures.

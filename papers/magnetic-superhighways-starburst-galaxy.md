@@ -52,6 +52,9 @@ Demonstrates how structured field configurations channel energy and material flo
 ## Related Papers
 
 - [[mars-time-dilation-relativity]]
+- [[alfven-waves-aurora]] — both involve organized magnetic field structures channeling energetic particles; Alfvén wave dynamics in planetary magnetospheres and galactic-scale magnetic outflows share fundamental MHD mechanisms
+- [[sunspot-ar4366-x-class-flares]] — solar magnetic field instabilities in delta-class configurations mirror the extreme magnetization in Arp 220's starburst outflows, linking stellar and galactic magnetic physics
+- [[mom-z14-farthest-galaxy]] — Arp 220 serves as the closest analog to high-redshift starburst galaxies, bridging to early-universe galaxy formation observed in MoM-z14
 
 ## Related Concepts
 
@@ -63,3 +66,4 @@ Demonstrates how structured field configurations channel energy and material flo
 - [[llm-in-sandbox-agentic-intelligence]]
 - [[cu45-superatom-carbon-recycling]]
 - [[optofluidic-3d-nanofabrication]]
+- [[early-universe-cosmology]]

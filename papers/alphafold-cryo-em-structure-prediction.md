@@ -71,5 +71,9 @@ Structural Biology resource captured via mobile link pipeline. general
 
 - [[artificial-photosynthesis-living-energy]]
 - [[comb-jellies-animal-tree-of-life]]
-- [[mcl1-myc-cancer-metabolism]]
+- [[mcl1-myc-cancer-metabolism]] — structural biology of MCL1 and MYC proteins; AlphaFold predictions accelerate cancer target identification and drug design
 - [[tidally-locked-exoplanet-habitability]]
+- [[protein-tape-recorder-cytotape]] — CytoTape records protein-level cellular dynamics; AlphaFold's structural predictions inform what those recorded proteins look like and how they function
+- [[brain-protein-neurodegeneration]] — cryo-EM and AlphaFold together resolve amyloid beta and tau tangle structures central to Alzheimer's pathology
+- [[bioinformatics]] — AlphaFold + cryo-EM integration represents a landmark in computational structural biology, the core of modern bioinformatics
+- [[amorphous-materials-3d-atomic-structure]] — parallel approach to 3D atomic-scale structure determination; both use iterative computational modeling to extract structure from experimental imaging data

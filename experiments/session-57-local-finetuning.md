@@ -38,3 +38,11 @@ Agentic experiences (journeys) can be collected and used to finetune local model
 1. Install ROCm manually (needs user interaction)
 2. Collect more journey data (target: 500+)
 3. Run full QLoRA training when GPU available
+
+## Related
+
+- [[concepts/agent-journey-tracking|Agent Journey Tracking]] — the journey data collection mechanism that produces the JSONL training format used in this experiment
+- [[experiments/2026-02-13-first-real-data-vae-training-run|First Real-Data VAE Training Run]] — the parallel effort training the VAE on agentic experience data; both experiments close the experience→model feedback loop
+- [[decisions/2026-02-13-experience-vae-training-pipeline-session-58|Experience → VAE Training Pipeline]] — the architectural decision for the experience-to-training feedback loop that motivates collecting journey data
+- [[decisions/2026-02-13-local-model-roster-update-february-2026-sota-assessment|Local Model Roster Update: February 2026 SOTA Assessment]] — the model selection context for cohezion_v1 (phi3:mini) and cohezion_v2 (qwen3:8b) deployed here
+- [[concepts/compound-engineering|Compound Engineering]] — the framework motivating a closed-loop improvement system where agentic journeys improve future agents

@@ -62,3 +62,4 @@ Space Policy & Governance resource captured via mobile link pipeline. Internatio
 - [[cisa-chatgpt-data-leak]]
 - [[quantum-atomic-light-synchronization]]
 - [[artemis-ii-laser-comms]]
+- [[humanoid-robots-space-launch]] — humanoid robot space deployment and the Artemis Accords governance framework are parallel developments shaping the near-term human (and robotic) expansion into space

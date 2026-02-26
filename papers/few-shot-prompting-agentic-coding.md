@@ -50,6 +50,14 @@ lab_agent.py
 
 AI Engineering resource captured via mobile link pipeline. lab_agent.py, [[prompt-engineering]], [[agentic-ai]]
 
+## Related Papers
+
+- [[karpathy-claude-code-skills]] — Karpathy's workflow shift (80% AI-driven coding) is enabled by precisely the few-shot prompting techniques this paper quantifies
+- [[claude-code-community-skills]] — the 36 community skills are practical applications of few-shot prompting patterns for specialized coding domains
+- [[openai-codex-agent-loop]] — the Codex agent loop's inner loop architecture depends on few-shot examples assembled per turn
+- [[theorem-ai-formal-verification]] — few-shot prompting generates the AI code that formal verification tools like Theorem must check for correctness
+- [[emoticons-llm-silent-failures]] — silent failures in LLM coding responses can confound the 5x performance claims of few-shot prompting
+
 ## Related Concepts
 
 - [[anthropic-disempowerment-patterns]]
