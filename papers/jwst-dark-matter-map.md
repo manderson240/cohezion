@@ -63,3 +63,5 @@ Relevant to [[fractal-universe]] modeling of large-scale cosmic structure and ma
 - [[dark-matter]]
 - [[dark-matter-detection]]
 - [[jwst-observations]]
+- [[early-hot-galaxy-cluster-14-billion-years]] — dark matter halos drive galaxy cluster formation; the anomalously hot early cluster may trace an unusually dense dark matter concentration, connecting JWST's dark matter mapping to the puzzle of why such extreme clusters existed so early
+- [[neutrinos-large-scale-structure-desi]] — JWST's gravitational lensing dark matter map and DESI's neutrino-induced structure suppression measurement are complementary views of the same cosmic web: one traces where dark matter clusters, the other measures how neutrinos smooth small-scale structure

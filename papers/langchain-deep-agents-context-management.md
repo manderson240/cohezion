@@ -78,3 +78,11 @@ Directly relevant to [[lab_agent.py]] and [[ouroboros.py]] context management. T
 - [[llm-in-sandbox-agentic-intelligence]] — both use filesystem access as a key mechanism for extending agent context beyond the context window
 - [[agentic-ai-memory-hierarchies]] — LangChain's three-tier context strategy (offload/truncate/summarize) is a software-level answer to the hardware KV cache challenges described in memory hierarchies
 - [[context-management]] — Deep Agents' three-tier strategy is a concrete implementation of the context management patterns surveyed in the concept note
+- [[data-engineering-ai-era-2026]] — LangChain's filesystem offloading is context engineering at the agent level; data engineering in the AI era applies the same principles at the data infrastructure level
+- [[lesson-19-session-awareness-protocol]] — the startup context-loading sequence is the agent-level complement to LangChain's session-level context management: both ensure agents have continuity across boundaries, one via explicit startup loading, the other via tiered storage
+
+## Engineering Implementations
+
+- [[compound-async-executor-pattern]] — Cohezion's 7-step compound executor implements LangChain's three-tier context strategy at the execution layer: Phase 1 (vault query) is the "retrieve from offloaded storage" step; Phase 6 (analyze and refine) uses summarization to compact context; Phase 7 (record metrics/journey) writes back to the filesystem tier. The executor architecture is a production implementation of LangChain's published research.
+- [[lesson-37-experience-guided-execution-works-new]] — the experience-loading startup sequence is a manual implementation of LangChain's summarization fallback: distilling past sessions into structured summaries that replace full conversation history. Both achieve the same goal — maintain continuity within a context window — by the same mechanism: LLM-generated structured summaries.
+- [[2026-02-09-ollama-context-management]] — the Ollama context management decision applies LangChain's tiered principles to local model serving: chunking (offload), model selection by content length (truncation), and keep-alive configuration (context persistence)

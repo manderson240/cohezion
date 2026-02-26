@@ -72,4 +72,6 @@ Symptom: pytest test hangs indefinitely (not failing with error, just frozen). U
 
 - [[async-singleton-lock-isolation]]
 - [[2026-02-22-asyncio-lock-in-init-not-class-level]]
+- [[2026-02-23-always-set-pytest-timeouts-for-async-tests]] — timeouts catch the hangs that mocking should prevent
+- [[2026-02-24-anti-pattern-zombie-test-processes-from-async-event-loop-teardown]] — zombie processes arise from the same hang patterns this pattern prevents
 - KEY_LEARNINGS.md L133-134

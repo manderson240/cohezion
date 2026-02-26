@@ -251,6 +251,10 @@ app = mcp.streamable_http_app()
 
 [[mcp-infrastructure-architecture]]
 
+## Related Patterns
+
+- [[python-optimized-flume-pattern]] — the pure-Python fallback that implements the workaround decided here
+
 ## Related Lessons
 
   - [[lesson-20-ci-scope-discipline]] (validation relevance: 14)

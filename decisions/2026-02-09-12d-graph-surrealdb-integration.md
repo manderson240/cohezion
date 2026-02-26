@@ -670,6 +670,15 @@ If full 12D seems too ambitious initially:
 
 - [[lesson-11-team-agent-efficiency]] (operational validation)
 
+## Related Patterns
+
+- [[12d-graph-implementation]] — the production implementation plan for the 12D system designed here
+
+## Related Decisions (Series)
+
+- [[2026-02-09-12d-graph-next-steps]] — follow-on strategy choosing incremental vs full build
+- [[2026-02-09-12d-graph-refined-plan]] — refined specialist-driven implementation plan
+
 ## Related Concepts
 
 - [[3d-graph-plugin-selection]]

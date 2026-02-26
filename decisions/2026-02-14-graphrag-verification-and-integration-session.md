@@ -79,3 +79,7 @@ Ran SurrealDB re-import and plugin wiring in parallel — zero cross-dependencie
 - [[2026-02-11-phase-1-agent-context-schema-complete]]
 - [[2026-02-10-canvas-driven-compound-engineering-refined]]
 - [[2026-02-14-wave-1-overnight-completion-report]]
+- [[2026-02-11-adopt-graphrag-for-vault-knowledge-graph]] — the original adoption decision this session verifies
+- [[2026-02-13-next-10-phases-graphrag-roadmap]] — the roadmap whose Phase 4 decision engine this session verified
+- [[2026-02-14-compound-engineering-team-execution-retrospective]] — the compound engineering team run executed in parallel with this session
+- [[lessons-graph-integration]] — the graph integration pattern verified as working during this session

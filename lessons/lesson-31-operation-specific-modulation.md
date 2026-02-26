@@ -48,6 +48,7 @@ HIGH RISK (delete, overwrite, push, history-rewrite):
 
 - [[compound-engineering]] - Risk-modulated validation enables safe compound operations
 - [[mcp-infrastructure-architecture]] - MCP tool operations need risk classification
+- [[service-layer-architecture]] - service layers implement risk-modulated validation naturally: read endpoints have different validation intensity than write/delete endpoints, matching the risk levels described in this lesson
 
 ## Validation
 

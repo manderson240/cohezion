@@ -76,3 +76,5 @@ Chemistry resource captured via mobile link pipeline. enhanced_simulator.py
 - [[artificial-photosynthesis-living-energy]] — parallel approach to CO2-to-fuel conversion using biological and photoelectrochemical systems
 - [[surface-chemistry]] — Cu45's superatomic electronic configuration governs its exceptional surface reactivity for CO2 reduction
 - [[catalytic-materials]] — Cu45 is a prime example of a superatom cluster outperforming conventional metal nanoparticle catalysts
+- [[materials-informatics]] — superatom cluster design exemplifies how quantum electronic structure determines macroscopic catalytic behavior; a materials informatics case study
+- [[quantum-materials]] — Cu45's superatomic electronic shell configuration is a quantum materials phenomenon enabling the exceptional stability and selectivity

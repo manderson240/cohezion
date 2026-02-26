@@ -233,6 +233,8 @@ The field is advancing rapidly, with major milestones achieved in 2024-2025 and 
 - [[service-class-singleton-pattern]]
 - [[PRIME_CLAUDE_CODE_PRACTICES]]
 - [[multi-session-compound-engineering-workflow]]
+- [[electron-orbital-direct-image-hydrogen]] — both papers make mathematical abstractions physically visible: quadrature physics renders vacuum fluctuations measurable below the standard quantum limit, while this orbital image renders the probability cloud as a tangible portrait — both cross the century-old boundary between abstract quantum formalism and direct physical observation
+- [[is-metaphysics-useful]] — this paper's exploration of vacuum physics raises exactly the metaphysical question "why is there something rather than nothing?"; Krauss's equivocation between quantum vacuum and absolute nothing is a case study in how metaphysical precision matters for scientific claims
 
 ## Cross-Domain Bridges
 

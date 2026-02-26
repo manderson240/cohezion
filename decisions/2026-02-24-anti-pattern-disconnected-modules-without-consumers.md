@@ -105,3 +105,6 @@ High. Orphan modules are a well-documented failure mode in software engineering.
 ## Related Decisions & Lessons
 
 - [[2026-02-23-enforce-no-orphan-modules-policy]]
+- [[patterns/bioelectric-field-modeling-for-action-generation]] — example: bioelectric_field.py was an orphan module, now preserved as vault pattern
+- [[patterns/morphospace-stability-wells]] — example: morphospace.py was an orphan module, now preserved as vault pattern
+- [[failure-mode-test-priority]] — orphan modules have 0% test coverage because nothing imports them; failure modes go undetected

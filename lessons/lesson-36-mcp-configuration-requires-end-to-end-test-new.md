@@ -43,6 +43,14 @@ curl -s http://127.0.0.1:8360/health
 ## Related Concepts
 
 - [[mcp-infrastructure-architecture]] - MCP is core Cohezion infrastructure
+- [[testing-agent-skills-with-evals]] - The evals framework's end-to-end testing philosophy applies directly to MCP: unit tests of tool logic are insufficient; protocol negotiation must be validated with a real client
+- [[circleci-ai-cicd-validation]] - CircleCI Chunk's autonomous CI/CD validation must include MCP end-to-end tests to catch protocol configuration failures that unit tests miss
+- [[cloud-vault-mcp]] - the cloud-vault-mcp server requires end-to-end client tests after every configuration change
+- [[api-design]] - configuration validation requires end-to-end tests beyond unit tests
+- [[concept-isolation]] - MCP protocol testing cannot be isolated to unit tests alone
+- [[mcp-model-context-protocol]] - protocol negotiation failures only surface in end-to-end tests
+- [[concept-validation]] - MCP configuration must be validated with real client connections
+- [[tool-use]] - tool integration via MCP requires end-to-end validation before declaring tools callable
 
 ## Validation
 

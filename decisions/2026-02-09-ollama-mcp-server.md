@@ -498,6 +498,11 @@ result = ollama_query("analyze vault", context="auto")
 [[mcp-infrastructure-architecture]]
 [[context-management]]
 
+## Related Patterns
+
+- [[quick-start-mcp-tool]] — scaffold pattern for building the MCP server infrastructure decided here
+- [[fastmcp-asgi-builder-pattern]] — FastMCP builder pattern that powers this server's HTTP transport
+
 ## Related Lessons
 
 - [[lesson-31-operation-specific-modulation]] (operational validation)

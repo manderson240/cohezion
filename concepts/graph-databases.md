@@ -26,6 +26,11 @@ tags: [concept]
 
 - [Add related concepts]
 
+## Related Lessons
+
+- [[lesson-05-surrealdb]] — SurrealDB graph database gotchas: record IDs are typed, graph traversal (-> and <-) replaces JOINs, FETCH required for nested records
+- [[lesson-surrealdb-schema-design]] — design graph database schemas around records as nodes and RELATE as edges; emulating SQL schemas misses graph model strengths
+
 ## Relevance to Cohezion
 
 [Describe relevance to the Cohezion framework]

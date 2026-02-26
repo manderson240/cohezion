@@ -177,6 +177,15 @@ def tts_speak(text: str) -> str:
 **Related Decisions**: [[2026-02-10-phase-a-implementation-complete]]
 **Related Concepts**: [[compound-engineering]], [[context-management]]
 
+## Related Patterns
+
+- [[implementation-first-infrastructure-later]] — the corrective pattern whose absence caused the token waste documented here
+
+## Related Decisions (Kyutai Arc)
+
+- [[2026-02-10-kyutai-pocket-tts-token-efficient-success]] — the successful implementation that followed this postmortem
+- [[2026-02-10-kyutai-mcp-obsidian-plugin-plan]] — the revised plan developed after this postmortem
+
 ## Related Concepts
 
 - [[3d-graph-plugin-selection]]

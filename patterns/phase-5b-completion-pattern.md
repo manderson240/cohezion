@@ -261,6 +261,12 @@ All deviations handled without affecting phase completion timeline.
 - `documentation-consolidation-pattern.md` (master index approach)
 - `operational-principle-no-destructive-operations.md` (process enforcement)
 
+## Related Decisions
+
+- [[2026-02-09-session-43-phase-5b-verification-phase-6-launch|Decision: Session 43 Phase 5B Verification & Phase 6 Launch]] — verification of the phase this pattern documents
+- [[2026-02-09-operational-principle-no-destructive-operations-without-learning|Decision: No Destructive Operations Without Learning]] — operational principle codified from Phase 5B
+- [[2026-02-14-adversarial-multi-agent-review-protocol|Decision: Adversarial Multi-Agent Review Protocol]] — review protocol used in Phase 5B Step 4
+
 ## Lessons Learned
 
 1. **Wave dependencies matter more than individual task speed**: Fast Wave 1 → Fast Wave 2
@@ -284,3 +290,7 @@ All deviations handled without affecting phase completion timeline.
 
 
 [[workflow-orchestration]]
+
+## Decisions That Applied This Pattern
+
+- [[2026-02-09-session-43-phase-5b-verification-phase-6-launch]] — the decision that applied this pattern for independent Phase 5B verification before launching Phase 6

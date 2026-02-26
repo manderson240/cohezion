@@ -60,3 +60,6 @@ Directly applicable to [[lab_agent.py]] agent loop design. The inner/outer loop 
 - [[few-shot-prompting-agentic-coding]] — few-shot examples in the Codex prompt assembly phase are a key mechanism for the 5x performance gains in agentic coding tasks
 - [[karpathy-claude-code-skills]] — the Codex agent loop architecture powers the AI-driven coding workflow Karpathy describes shifting to 80% AI-generated code
 - [[anthropic-mcp-apps-claude-integrations]] — MCP Apps extend the same MCP server list pattern in the Codex prompt assembly to interactive UI embedding
+- [[gemini-cli-ai-employees-agent-factory]] — Agent Factory's orchestrator/worker model with parallel CLI execution is Google's implementation of the same agent loop architecture described here
+- [[agentic-ai-foundation-mcp-linux-foundation]] — AAIF governs MCP, which is the tool integration layer in Codex's prompt assembly step; AAIF standardizes the protocol Codex depends on
+- [[lesson-15-system-lockup-2026-01-27]] — the Codex inner loop's deterministic exit conditions (tool call resolved → output appended → next iteration or stop) prevent the unbounded accumulation that caused the system lockup; explicit loop termination is architectural in Codex, not optional

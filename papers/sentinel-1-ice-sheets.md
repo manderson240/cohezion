@@ -57,6 +57,8 @@ General interest for climate modeling applications. Remote sensing data processi
 
 - [[langchain-deep-agents-context-management]]
 - [[operational-data-ai-agents]]
+- [[lesson-measurement-integrity-honest-reporting]] — Sentinel-1's decade of verified ice-velocity measurements is measurement integrity at planetary scale: the exact discipline of verified data over claimed estimates that this lesson encodes
+- [[lesson-13-8-6m-file-incident]] — both involve discipline around large data files: Sentinel-1 produces 200-250m resolution datasets requiring careful pipeline governance; the 8.6M git incident shows what happens without it
 
 ## Cross-Domain Bridges
 

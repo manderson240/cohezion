@@ -126,7 +126,10 @@ Implementing 7 phases to enrich agentic journey captures would close critical fe
 ## Related
 
 **Decisions**: [[2026-02-14-adversarial-multi-agent-review-protocol]], [[2026-02-14-phases-1-3-retrospective-key-learnings]], [[2026-02-14-phase-2-complete-all-3-tracks-delivered-for-production]]
+**Decisions (pipeline)**: [[2026-02-13-experience-vae-training-pipeline-session-58]] — the architectural decision this experiment executes (Phase 5 VAE training)
+**Decisions (validation)**: [[2026-02-14-end-to-end-compound-cycle-validation-script]] — the validation script created as Phase 8 of this experiment
 **Patterns**: [[compound-engineering-investigation-retrospection-before-destructive-operations]], [[multi-session-compound-engineering-workflow]]
+**Patterns (checkpoint)**: [[checkpoint-format-with-full-reproducibility-state]] — applicable pattern for the VAE training checkpoints in Phase 5
 **Concepts**: [[compound-engineering]], [[multi-agent-systems]], [[agentic-ai]]
 **Lessons**: [[lesson-11-team-agent-efficiency]], [[lesson-37-experience-guided-execution-works-new]]
 

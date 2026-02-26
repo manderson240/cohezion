@@ -343,3 +343,9 @@ Key to success:
 - [[lesson-11-team-agent-efficiency]]
 - [[honest-metrics-over-inflated-claims]]
 - [[PRIME_CLAUDE_CODE_PRACTICES]]
+- [[2026-02-14-phase-4-retrospective-and-phase-5-overnight-plan]] — the follow-on retrospective that extended these learnings to Phase 4
+- [[2026-02-14-compound-engineering-team-execution-retrospective]] — parallel retrospective on the vault linking team run that also produced phase-spanning metrics
+- [[2026-02-13-phase-2-final-completion-summary]] — Phase 2 summary from which the cross-track metrics in this retrospective are drawn
+- [[2026-02-13-session-60-retrospective-and-revised-plan]] — the session-60 retro that mid-course corrected Phase 2 execution
+- [[mini-adversarial-review-checkpoints]] — pattern extracted from "Pattern 3: Test-Driven Development" finding
+- [[integration-first-definition-of-done]] — pattern extracted from Track B anti-pattern (orphaned code)

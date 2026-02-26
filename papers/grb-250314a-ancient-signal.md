@@ -68,3 +68,5 @@ Relevant to [[fractal-universe]] early universe modeling and transient event det
 - [[cu45-superatom-carbon-recycling]]
 - [[early-universe-cosmology]]
 - [[black-holes]]
+- [[early-hot-galaxy-cluster-14-billion-years]] — GRB 250314A (730 million years post-Big Bang) and this hot galaxy cluster (1.4 billion years post-Big Bang) are both extreme early-universe observations that challenge standard models; they bracket the epoch during which galaxy clusters should not yet exist in such heated, massive form
+- [[m87-jet-base-eht-2026]] — GRBs are powered by relativistic jets from compact object formation; the jet base structure identified at M87* provides the closest resolved view of the same jet-launch mechanism that drives the most energetic GRBs in the early universe — GRB 250314A (730 million years post-Big Bang) and this hot galaxy cluster (1.4 billion years post-Big Bang) are both extreme early-universe observations that challenge standard models; they bracket the epoch during which galaxy clusters should not yet exist in such heated, massive form

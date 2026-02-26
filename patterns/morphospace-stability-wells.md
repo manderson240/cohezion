@@ -81,3 +81,4 @@ class MorphospaceStabilityWells:
 - [[patterns/bioelectric-field-modeling-for-action-generation]]
 - [[patterns/momentum-based-trajectory-prediction-with-counterfactuals]]
 - [[decisions/2026-02-23-enforce-no-orphan-modules-policy]]
+- [[2026-02-24-anti-pattern-disconnected-modules-without-consumers]] — this pattern is the vault preservation of an orphan module (morphospace.py)

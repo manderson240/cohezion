@@ -214,6 +214,17 @@ Weekly coordination meetings
 
 [[graph-databases]], [[knowledge-graph-systems]], [[mcp-infrastructure-architecture]]
 
+## Related Patterns
+
+- [[12d-graph-implementation]] — implements the hybrid incremental-to-full 12D build strategy decided here
+- [[compound-async-executor-pattern]] — the 7-step compound execution pipeline used in Phase 7 features planned here
+
+## Related Decisions (Series)
+
+- [[2026-02-09-12d-graph-refined-plan]] — refined specialist-team implementation plan
+- [[2026-02-09-12d-graph-surrealdb-integration]] — original 12D SurrealDB backend decision
+- [[2026-02-10-phase3-3d-graph-adversarial-review]] — adversarial review before Phase 3 build
+
 ## Related Lessons
 
 - [[lesson-11-team-agent-efficiency]] (operational validation)

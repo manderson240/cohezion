@@ -59,6 +59,11 @@ tags: [concept]
 
 - [Add related concepts]
 
+## Key Lesson Links
+
+- [[lesson-06-ollama-latency]] — Ollama cold-start latency (5-30s) must be budgeted; pre-warm models before pipeline execution
+- [[lesson-30-holographic-projection-fallback]] — dimensionality reduction operations require singular matrix guards and fallback paths
+
 ## Relevance to Cohezion
 
 [Describe relevance to the Cohezion framework]

@@ -54,6 +54,8 @@ Directly relevant to `lab_agent.py` - demonstrates that giving AI agents a sandb
 - [[langchain-deep-agents-context-management]] — LangChain's Deep Agents use similar filesystem offloading and context strategies as the LLM-in-Sandbox framework's file system access pattern
 - [[few-shot-prompting-agentic-coding]] — few-shot prompting is the primary technique through which LLM-in-Sandbox generalizes to non-code domains
 - [[emoticons-llm-silent-failures]] — tokenization edge cases that cause silent coding failures are amplified in sandbox environments where LLMs autonomously execute code
+- [[agyn-multi-agent-software-engineering]] — Agyn's isolated execution sandbox per agent is a direct production application of the LLM-in-Sandbox elicitation framework
+- [[nvidia-nemotron-3-nano-nemo-gym]] — NeMo Gym's standardized RL environments are the next-generation evolution of the sandbox pattern: structured training environments built on the same code-execution-as-environment insight
 
 ## Related Concepts
 
@@ -65,3 +67,9 @@ Directly relevant to `lab_agent.py` - demonstrates that giving AI agents a sandb
 - [[ocean-calcium-climate-mystery-66my]]
 - [[mars-time-dilation-relativity]]
 - [[magnetic-superhighways-starburst-galaxy]]
+
+## Engineering Implementations
+
+- [[lesson-git-worktrees-multi-session-isolation]] — git worktrees are a production implementation of the sandbox isolation principle: each agent session receives an isolated filesystem (worktree) with full write access, sharing only the underlying git object store. This is the LLM-in-Sandbox pattern applied to multi-session compound engineering.
+- [[multi-session-compound-engineering-workflow]] — the full workflow built on worktree sandboxes as the isolation foundation for multi-agent coordination
+- [[async-singleton-lock-isolation]] — singleton lock isolation is the in-process equivalent: per-event-loop primitives prevent cross-context state contamination, just as sandbox filesystems prevent cross-session contamination

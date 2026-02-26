@@ -42,6 +42,7 @@ done | sort -u | xargs pytest
 ## Related Concepts
 
 - [[compound-engineering]] - Scoped CI enables rapid compound iteration
+- [[circleci-ai-cicd-validation]] - CircleCI Chunk automates exactly this discipline: uses dependency graph analysis to run only tests for changed modules and their dependents, implementing scope discipline at scale
 
 ## Validation
 

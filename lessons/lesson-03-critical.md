@@ -46,6 +46,7 @@ In agentic workflows, certain operations are irreversible, have large blast radi
 ## Related Concepts
 
 - [[compound-engineering]] - Safety gates compound into reliable pipelines
+- [[operational-data-ai-agents]] - verifying actual system state (reads, queries) before critical operations is the implementation of agents using operational data as their senses rather than acting on assumptions
 
 ## Validation
 

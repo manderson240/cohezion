@@ -609,5 +609,8 @@ All components are ready for immediate deployment to production. Phase 3 plannin
 - [[token-efficiency]]
 - [[2026-02-13-phase-2-track-a-complete]]
 - [[2026-02-13-phase-2-track-b-entire-io-sync-daemon-complete]]
-- [[2026-02-13-phase-2-completion-approved-ready-for-production-deployment]]
+- [[2026-02-13-phase-2-completion-approved-ready-for-production-deployment]] — the formal sign-off that followed this summary
 - [[2026-02-12-phase-2-track-a-surrealdb-agent-reasoning-complete]]
+- [[2026-02-13-phase-3-unblocking-semantic-dimensions-complete]] — Phase 3 unblocking that immediately followed Phase 2 completion
+- [[2026-02-14-phases-1-3-retrospective-key-learnings]] — retrospective that analyses the patterns from this and prior phases
+- [[2026-02-13-session-60-retrospective-and-revised-plan]] — retrospective that planned the team orchestration used to deliver this phase

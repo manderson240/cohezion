@@ -41,6 +41,7 @@ repos:
 ## Related Concepts
 
 - [[compound-engineering]] - Clean pre-commit hooks are foundational to compound dev workflows
+- [[concept-automation]] - ruff hook with --fix must re-stage modified files or causes an automation loop
 
 ## Validation
 

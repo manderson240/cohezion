@@ -54,6 +54,11 @@ Task parallelism:
 - [[compound-engineering]] - Team efficiency is a prerequisite for compound scalability
 - [[agentic-ai]] - Agent coordination patterns and anti-patterns
 - [[token-efficiency]] - Coordination overhead directly impacts token costs
+- [[agent-architecture]] - informs when to use single vs. multi-agent architectural designs
+- [[multi-agent-systems]] - CRITICAL calibration: coordination overhead exceeds benefits below task complexity threshold
+- [[ai-agents]] - empirical finding that single agents outperform teams for tasks under ~2 hours
+- [[agent-context]] - inter-agent context passing costs 2-5K tokens per handoff
+- [[scaling-agent-systems]] - Google Research quantitative validation: capability saturation at 45% accuracy means single agents outperform teams on most tasks; tool-heavy tasks suffer disproportionate multi-agent overhead — the paper provides the empirical foundation for this lesson's thresholds
 
 ## Validation
 

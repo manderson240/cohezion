@@ -38,6 +38,7 @@ git status                          # Confirm only intended files are staged
 ## Related Concepts
 
 - [[compound-engineering]] - Deterministic commits are prerequisite for compound git workflows
+- [[concept-automation]] - pre-commit hooks that modify and re-stage files are a key automation side-effect to understand
 
 ## Validation
 

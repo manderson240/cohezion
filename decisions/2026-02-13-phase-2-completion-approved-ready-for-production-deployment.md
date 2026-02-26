@@ -423,3 +423,6 @@ All components are production-ready and can be deployed immediately to productio
 - [[2026-02-13-phase-2-track-a-complete]]
 - [[2026-02-13-phase-2-track-b-entire-io-sync-daemon-complete]]
 - [[2026-02-12-phase-2-track-a-surrealdb-agent-reasoning-complete]]
+- [[2026-02-13-session-60-retrospective-and-revised-plan]] — the retrospective that structured the team orchestration leading to this approval
+- [[2026-02-13-phase-3-unblocking-semantic-dimensions-complete]] — Phase 3 that was unblocked immediately after this approval
+- [[2026-02-14-phases-1-3-retrospective-key-learnings]] — the retrospective that analyses what made Phase 2 succeed (40-45% compression)

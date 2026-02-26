@@ -54,6 +54,7 @@ Relevant to [[fractal-universe]] for modeling coupled oscillatory systems and ph
 
 ## Related Concepts
 
+- [[quantum-materials]] — helimagnetic ordering is a core quantum materials phenomenon: collective quantum spin states exhibiting macroscopic ordered phase behavior
 - [[yann-lecun-agi-world-models]]
 - [[dna-origami-2d-semiconductor-patterning]]
 - [[protein-tape-recorder-cytotape]]

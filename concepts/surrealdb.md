@@ -27,6 +27,11 @@ tags: [concept]
 
 - [Add related concepts]
 
+## Related Lessons
+
+- [[lesson-05-surrealdb]] — SurrealDB query syntax diverges from SQL in ways that cause silent failures; record IDs are typed and must match at query time
+- [[lesson-surrealdb-schema-design]] — record-centric schema with RELATE edges outperforms table-centric for agent context; 60-70% query complexity reduction after redesign
+
 ## Relevance to Cohezion
 
 [Describe relevance to the Cohezion framework]

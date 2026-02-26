@@ -191,6 +191,11 @@ echo "Compression saved $((BEFORE - AFTER))MB"
 
 **Key Insight**: Log rotation is not a feature, it's a necessity. Without it, every application eventually fills disk and degrades performance.
 
+## Related Decisions
+
+- [[2026-02-22-daily-cli-tool-update-via-systemd-timer|Decision: Daily CLI Tool Update via Systemd Timer]] - Systemd timer pattern for scheduled maintenance
+- [[2026-02-10-claude-log-mining-architecture|Decision: Claude Log Mining Architecture]] - Log data as a source of insight
+
 ## Related Concepts
 
 - [[dna-origami-2d-semiconductor-patterning]]

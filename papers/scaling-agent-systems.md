@@ -61,3 +61,15 @@ Directly applicable to [[lab-agent]] multi-agent orchestration design. The error
 - [[agentic-ai-memory-hierarchies]]
 - [[yann-lecun-agi-world-models]] — capability saturation at 45% supports LeCun's thesis: adding more agents doesn't compensate for the fundamental lack of causal world models
 - [[operational-data-ai-agents]] — the 17.2x error amplification in independent multi-agent systems is the scaling consequence of the data hygiene failures described there
+- [[group-evolving-agents-gea-framework]] — GEA's 71% SWE-bench result tests exactly the multi-agent coordination configurations studied in this paper; GEA's collective evolution is a new architecture class beyond the five canonical ones evaluated
+- [[agentic-ai-foundation-mcp-linux-foundation]] — vendor-neutral interoperability standards reduce the coordination overhead that this paper identifies as limiting multi-agent performance
+- [[python-314-free-threaded-gil-removal]] — true Python threading reduces the tool-coordination overhead identified as the primary bottleneck in tool-heavy multi-agent scaling
+
+## Engineering Implementations
+
+- [[multi-session-compound-engineering-workflow]] — the worktree isolation pattern directly implements the paper's "centralized coordination" finding: each git worktree is an isolated agent session and the merge-review step acts as the orchestrator "validation bottleneck" that the paper shows contains error amplification to 4.4x (vs 17.2x in fully independent systems). Feature branches with mandatory review before merging IS centralized coordination.
+- [[lesson-11-team-agent-efficiency]] — the observed 5-parallel-agents efficiency (20 files in ~15 min) directly validates the paper's finding that centralized coordination outperforms independent agents on parallelizable tasks; the sequential-deps leader maps to the paper's "centralized orchestrator" architecture.
+- [[lesson-38-singleton-executor-for-sessions-new]] — singleton session executors prevent the resource overhead that the paper identifies as the primary tax on multi-agent coordination; one executor per session reduces the coordination infrastructure cost
+- [[agyn-multi-agent-software-engineering]] — Agyn's four-role dynamic coordination model is a real-world implementation of the paper's "centralized + dynamic" architecture that scores highest on benchmark tasks
+- [[lesson-git-worktrees-multi-session-isolation]] — git worktrees provide the session isolation that prevents history divergence when scaling to multiple concurrent agent sessions, implementing the paper's session boundary discipline
+- [[lesson-15-system-lockup-2026-01-27]] — the system lockup from unbounded agent loops is the catastrophic scaling failure that explicit iteration limits and resource guards must prevent in any multi-agent deployment

@@ -87,6 +87,10 @@ AI Policy resource captured via mobile link pipeline. general
 - [[oman-artemis-accords]]
 - [[usaf-stealthy-electromagnetic-attack]]
 
+## Engineering Lessons
+
+- [[lesson-26-never-print-credentials]] — the CISA incident at organizational scale matches this lesson at code scale: in both cases, sensitive data reaches an unintended recipient (public ChatGPT / debug logs) through a decision made under time pressure by someone with elevated access
+
 ## Cross-Domain Bridges
 
 - [[usaf-stealthy-electromagnetic-attack]] — the CISA data leak and the P-AEA aircraft represent symmetric security failures: one is a classified physical system whose existence is inferred from document leaks, the other is sensitive documents leaked into a commercial AI system. Both illustrate that information security perimeters fail at human decision points, not technical barriers.

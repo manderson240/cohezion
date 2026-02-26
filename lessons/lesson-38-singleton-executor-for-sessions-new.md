@@ -60,6 +60,13 @@ executor.shutdown()
 ## Related Concepts
 
 - [[compound-engineering]] - Resource-efficient execution enables compound session scaling
+- [[scaling-agent-systems]] — the singleton executor reduces the "coordination overhead" the paper identifies as the primary multi-agent tax: per-operation executors (independent resource allocation) compound to hundreds of idle threads; one executor per session (centralized resource pool) is the implementation of centralized resource management that the paper shows outperforms independent agent configurations
+- [[async-singleton-lock-isolation]] — complementary singleton disciplines: this lesson scopes ThreadPoolExecutors per session lifecycle; async-singleton-lock-isolation scopes asyncio primitives per event loop. Both prevent cross-context resource leakage through proper singleton lifecycle management. Together they cover the two main async resource categories: thread pools and coroutine synchronization primitives.
+- [[lesson-15-system-lockup-2026-01-27]] - System lockup from unbounded agent loops is the catastrophic version of the per-operation executor leak; both require explicit resource lifecycle management
+- [[agent-architecture]] - singleton executor is a core architectural pattern for session-scoped agent systems
+- [[multi-agent-systems]] - prevents resource exhaustion when multiple agent sessions run concurrently
+- [[agentic-ai]] - session-scoped singletons are a production requirement for agentic systems at scale
+- [[ai-agents]] - one executor per session lifecycle prevents thread leaks across concurrent agent deployments
 
 ## Validation
 

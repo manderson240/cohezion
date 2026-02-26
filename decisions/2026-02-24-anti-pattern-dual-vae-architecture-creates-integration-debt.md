@@ -113,3 +113,5 @@ High. The dual-model integration bugs were directly observed and traced to archi
 
 - [[2026-02-23-one-coherent-model-beats-two-partial-implementations]]
 - [[2026-02-24-temporalvae-first-training-run-on-overnight-data]]
+- [[integration-first-definition-of-done]] — dual models are an integration-debt failure; integration-first would have forced model selection earlier
+- [[failure-mode-test-priority]] — conflicting fixtures from dual models are a test-infrastructure failure mode this anti-pattern creates

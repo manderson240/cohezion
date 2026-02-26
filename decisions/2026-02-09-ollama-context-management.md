@@ -308,6 +308,17 @@ python /tmp/gap_analysis_poc.py
 **Next**: Extend Model Wrangler role OR spawn Ollama Specialist (TBD based on needs)
 **Related**: [[2026-02-09-model-wrangler-strategy]], [[2026-02-09-12d-graph-refined-plan]]
 
+## Related Patterns
+
+- [[async-singleton-lock-isolation]] — singleton + lock pattern for preventing concurrent Ollama model loading issues decided here
+- [[3-tier-hotwarmcold-model-rotation]] — hot/warm/cold model tier rotation strategy that implements model pre-loading and LRU eviction
+
+## Scientific Foundation
+
+- [[langchain-deep-agents-context-management]] — the three-tier strategy described there (offload to filesystem / truncate / summarize) is exactly what `OllamaContextManager.chunk_paper()` and `OllamaMemoryManager.unload_least_used()` implement at the local inference layer: chunking = offloading; model selection by content length = truncation-avoidance; LRU unloading = slow-tier management. This decision is a production implementation of LangChain's published architecture.
+- [[agentic-ai-memory-hierarchies]] — the 5-30 second Ollama cold-start latency documented here is the software manifestation of the PCIe bottleneck the paper predicts: model weights traversing NVMe → DRAM → VRAM during load create exactly the "additional latency, bandwidth gaps between memory tiers" described. The pre-loading strategy in Fix #2 is the software workaround for the hardware hierarchy constraint.
+- [[lesson-06-ollama-latency]] — the lesson that codified the operational experience this decision was designed to prevent
+
 ## Related
 **Domains**: ai-ml, data, performance
 
@@ -321,3 +332,4 @@ python /tmp/gap_analysis_poc.py
 - [[2026-02-13-gitlab-to-github-consolidation-with-artifact-governance]]
 - [[2026-02-14-adversarial-multi-agent-review-protocol]]
 - [[2026-02-14-phase-2-adversarial-review-corrected-status-and-path-forward]]
+- [[ollama-context-management]] — the concept note that generalizes and summarizes this decision's context management strategies

@@ -336,5 +336,8 @@ All 5 implementation steps completed with 100% test pass rate, zero blockers, an
 - [[runbook-entire-sync-daemon]]
 - [[surrealdb-agent-context-schema]]
 - [[compound-engineering]]
-- [[2026-02-13-phase-2-track-a-complete]]
-- [[2026-02-13-phase-2-final-completion-summary]]
+- [[2026-02-13-phase-2-track-a-complete]] — Track A schema that Track B writes to
+- [[2026-02-13-phase-2-final-completion-summary]] — Phase 2 roll-up including this track's 51% compression
+- [[mini-adversarial-review-checkpoints]] — pattern motivated by 8 P0 blockers found during Track B adversarial review (the negative example)
+- [[integration-first-definition-of-done]] — pattern motivated by Track B's orphaned code (no @mcp.tool decorators until late)
+- [[failure-mode-test-priority]] — pattern emerging from test quality analysis of initial Track B tests

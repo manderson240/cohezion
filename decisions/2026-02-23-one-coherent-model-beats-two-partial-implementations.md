@@ -105,3 +105,6 @@ High. The dual-model confusion caused multiple integration bugs and wasted devel
 
 - [[2026-02-24-anti-pattern-dual-vae-architecture-creates-integration-debt]]
 - [[2026-02-24-temporalvae-first-training-run-on-overnight-data]]
+- [[2026-02-23-character-level-tokenizers-are-inadequate-for-semantic-embeddings]] — same session: choosing TemporalVAE requires the pre-trained embedding pipeline this decision establishes
+- [[integration-first-definition-of-done]] — the dual-model problem persisted because neither model was integration-complete
+- [[latent-coherence-stability-predictor-lcsp]] — LCSP applies to the single canonical TemporalVAE to verify its latent space converges

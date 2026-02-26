@@ -43,6 +43,7 @@ test:
 ## Related Concepts
 
 - [[compound-engineering]] - CI parity enables reliable compound deployment pipelines
+- [[circleci-ai-cicd-validation]] - CircleCI Chunk's autonomous validation agent addresses the same clean-room assumption this lesson encodes: every dependency declared, historical behavior verified, no local state assumed
 
 ## Validation
 

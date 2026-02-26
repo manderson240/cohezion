@@ -75,10 +75,13 @@ metrics:
 
 ## Related
 
-- [[mini-adversarial-review-checkpoints]]
+- [[mini-adversarial-review-checkpoints]] — pattern this decision formalises into a 3-tier protocol
 - [[lesson-adversarial-review-before-execution]]
 - [[2026-02-14-session-58-7-phase-journey-enrichment-3-agent-adversarial-review]]
 - [[sheetsbr idge-mcp-testing]]
+- [[2026-02-14-adversarial-multi-agent-review-protocol]] — companion decision defining the multi-agent spawn protocol
+- [[failure-mode-test-priority]] — pattern for the kinds of bugs adversarial review targets
+- [[integration-first-definition-of-done]] — complementary gate: adversarial review + integration check
 
 ## Related Concepts
 

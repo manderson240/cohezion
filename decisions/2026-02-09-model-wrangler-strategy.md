@@ -594,6 +594,10 @@ echo "   Rollback command: ./swap_model.sh $NEW_MODEL $OLD_MODEL"
 **Next**: Add Model Wrangler to specialist team (Specialist #6)
 **Related**: [[2026-02-09-ai-model-strategy]], [[2026-02-09-12d-graph-refined-plan]]
 
+## Related Patterns
+
+- [[3-tier-hotwarmcold-model-rotation]] — implements the daily monitoring and aggressive swap strategy decided here
+
 ## Related
 **Domains**: ai-ml, architecture, data, infrastructure, integration, performance
 **Categories**: operational, technical

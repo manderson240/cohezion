@@ -54,6 +54,7 @@ Demonstrates computational approaches to resolving structure from incomplete inf
 
 ## Related Concepts
 
+- [[quantum-materials]] — amorphous materials represent the disordered quantum phase; AET mapping bridges amorphous and crystalline quantum material characterization at atomic resolution
 - [[quantum-teleportation-logic-gates]]
 - [[quantum-entanglement-speed-measurement]]
 - [[axion-dark-matter-quantum-sensors]]

@@ -45,6 +45,7 @@ def record_metric(name, value, tags=None):
 ## Related Concepts
 
 - [[compound-engineering]] - Non-blocking observability enables compound system reliability
+- [[operational-data-ai-agents]] - telemetry must be isolated from primary data flow; blocking observability degrades the operational data quality that agents depend on as their "senses"
 
 ## Validation
 

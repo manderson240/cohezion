@@ -121,6 +121,11 @@ git worktree remove ../cohezion-session-47
 
 ## Related Papers
 
-  - [[langchain-deep-agents-context-management]] (similarity: 0.67)
-  - [[openai-codex-agent-loop]] (similarity: 0.653)
-  - [[scaling-agent-systems]] (similarity: 0.645)
+  - [[langchain-deep-agents-context-management]] (similarity: 0.67) — LangChain's filesystem offloading strategy for large tool responses parallels worktrees as isolation: both use filesystem boundaries to prevent session-to-session interference
+  - [[openai-codex-agent-loop]] (similarity: 0.653) — the Codex agent loop's inner/outer architecture benefits from worktree isolation: each outer-loop session works on its own branch without interfering with concurrent sessions
+  - [[scaling-agent-systems]] (similarity: 0.645) — git worktrees implement the paper's "centralized coordination" architecture: isolated branches (decentralized work) + merge review (centralized validation bottleneck)
+
+## Scientific Foundation
+
+- [[llm-in-sandbox-agentic-intelligence]] — git worktrees are a filesystem-level sandbox: each worktree is an isolated "virtual computer" (code, venv, state) that shares only the underlying `.git/objects`. This is structurally identical to the LLM-in-Sandbox framework — the agent gets full environment access without contaminating concurrent agents. Both achieve emergent multi-agent capability through isolation rather than coordination overhead.
+- [[scaling-agent-systems]] — the 17.2x error amplification in independent non-isolated systems explains exactly why diverged git histories occur: each session committing to `main` directly is the "independent multi-agent" configuration the paper shows is worst-performing. Worktrees + merge review IS the "centralized coordinator bottleneck" the paper shows contains amplification to 4.4x.

@@ -63,6 +63,10 @@ metrics:
 
 ## Related Decisions & Lessons
 
+- [[2026-02-19-benchmark-improvement-system-complete]] — the improvement system built on top of this baseline infrastructure
+- [[2026-02-19-benchmark-infrastructure-improvements-and-learnings]] — learnings from the same benchmark session (pass@k, journey tracking)
+- [[patterns/runbook-benchmarking-validation]] — benchmarking runbook for repeatable validation runs
+
 ## Related Concepts
 
 - [[3d-graph-plugin-selection]]

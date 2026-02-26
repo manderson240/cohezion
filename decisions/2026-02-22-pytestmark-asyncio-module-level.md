@@ -31,4 +31,6 @@ New rule: files with >50% async tests should use module-level `pytestmark` not p
 
 - [[2026-02-22-asyncio-lock-in-init-not-class-level]]
 - [[async-mock-subprocess-in-tests]]
+- [[async-singleton-lock-isolation]] — asyncio_mode=strict combined with module-level pytestmark prevents missing async marks
+- [[2026-02-23-always-set-pytest-timeouts-for-async-tests]] — async test configuration sibling: module-level marks + global timeouts form complete async test hygiene
 - KEY_LEARNINGS.md L132

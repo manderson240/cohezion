@@ -69,4 +69,14 @@ Symptom: Tests pass individually but become ERROR in full suite, specifically in
 
 - [[2026-02-22-asyncio-lock-in-init-not-class-level]]
 - [[async-mock-subprocess-in-tests]]
+- [[2026-02-23-always-set-pytest-timeouts-for-async-tests]] — timeouts complement lock isolation to prevent zombie test accumulation
+- [[2026-02-24-anti-pattern-zombie-test-processes-from-async-event-loop-teardown]] — zombie anti-pattern that proper lock isolation and timeouts together prevent
 - KEY_LEARNINGS.md L130
+
+## Decisions That Applied This Pattern
+
+- [[2026-02-09-ollama-context-management]] — the decision to consolidate Ollama model loading into the Model Wrangler; this pattern solves the concurrent request queuing problem identified there
+
+## Scientific Analogues
+
+- [[quantum-entangled-atomic-sensors]] — quantum entanglement achieves precision because each atom maintains an isolated quantum state correlated with, but not bound to, its partner's measurement context. The class-level `asyncio.Lock()` failure documented here is the engineering parallel: the lock is bound at class-definition time to one event loop (one "measurement context"), and using it from a fresh pytest event loop causes runtime collapse — exactly like forcing two entangled atoms into the same measurement basis prematurely. The fix (move lock to `__init__`) creates fresh primitives per instantiation context, maintaining isolation until coordination is explicitly needed.

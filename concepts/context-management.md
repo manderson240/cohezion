@@ -34,12 +34,20 @@ Systematic strategies for optimizing information payloads delivered to AI system
 - [[llm-in-sandbox-agentic-intelligence]]
 - [[openai-codex-agent-loop]] — the Codex inner/outer loop and prompt caching strategy are concrete implementations of context management for agentic coding
 - [[scaling-agent-systems]] — quantitative scaling findings show how context management directly affects error amplification in multi-agent systems
+- [[data-engineering-ai-era-2026]] — "context engineering" as described for data pipelines is the data-infrastructure layer of context management: embedding machine-readable semantic, temporal, and provenance context alongside data for agent consumption
+- [[agentic-ai-foundation-mcp-linux-foundation]] — AAIF's AGENTS.md convention standardizes the context handoff format across agents, making cross-vendor context management interoperable
 
 ## Related Concepts
 
 - [[agentic-ai]]
 - [[agent-loop-architecture]]
 - [[prompt-engineering]]
+- [[ollama-context-management]] — a concrete implementation of context management for Ollama-served local models, covering truncation, chunking, and LRU-based budget tracking
+
+## Related Lessons
+
+- [[lesson-29-batch-cache-two-phase]] — batch cache two-phase pattern: check cache before compute; directly optimizes context retrieval at scale
+- [[lesson-19-session-awareness-protocol]] — agents must explicitly load prior context at session start; context is not inherited between sessions automatically
 
 ## Relevance to Cohezion
 

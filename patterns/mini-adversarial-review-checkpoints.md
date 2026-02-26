@@ -214,6 +214,10 @@ async def test_module_integrated_with_real_service():
 - [[staged-validation-long-horizon-tasks]] - When to use checkpoints
 - [[failure-mode-test-priority]] - How to write failure tests
 - [[integration-first-definition-of-done]] - What "complete" means
+- [[2026-02-14-adversarial-multi-agent-review-protocol|Decision: Adversarial Multi-Agent Review Protocol]]
+- [[2026-02-14-3-tier-adversarial-review-protocol-for-code-quality|Decision: 3-Tier Adversarial Review Protocol for Code Quality]]
+- [[2026-02-10-compound-linking-plan-adversarial-review|Decision: Adversarial Review Result — Compound Node Linking Plan Rejected]]
+- [[2026-02-13-phase-2-track-b-entire-io-sync-daemon-complete]] — Track B was the real-world negative example (8 P0 blockers found post-hoc) that this pattern was designed to prevent
 
 ---
 
@@ -372,3 +376,10 @@ async def implement_module():
 **Last Updated**: 2026-02-14
 **Validated**: Session 57 Track B (negative example), Session 58+ (positive application expected)
 **ROI**: 12.5× return (2h investment → 25h saved)
+
+## Decisions That Applied This Pattern
+
+- [[2026-02-10-canvas-driven-compound-engineering-refined]] — used adversarial review checkpoints to refine the canvas linking plan
+- [[2026-02-10-compound-linking-plan-adversarial-review]] — full adversarial review of the compound linking plan
+- [[2026-02-10-log-mining-adversarial-review]] — applied adversarial review to validate the log mining architecture
+- [[2026-02-10-phase3-3d-graph-adversarial-review]] — adversarial review of the 12D graph Phase 3 plan before implementation

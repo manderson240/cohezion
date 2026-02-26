@@ -46,6 +46,8 @@ vexor search "imports from module_name" --mode code --ext .py
 ## Related Concepts
 
 - [[compound-engineering]] - Graph-aware refactoring is prerequisite for safe compound changes
+- [[concept-modularity]] - import graph analysis is mandatory before any module restructuring
+- [[knowledge-graph-semantic-relationships]] - import dependency graphs are a form of semantic relationship graph: modules are entities, import statements are directed edges, and refactoring requires traversing the full graph before modifying any node
 
 ## Validation
 

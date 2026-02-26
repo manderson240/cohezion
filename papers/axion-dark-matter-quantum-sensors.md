@@ -63,3 +63,5 @@ Distributed sensor networks producing correlated measurements to detect subtle s
 - [[fast-radio-bursts-binary-star-origin]] — FRBs have been proposed as probes of axion dark matter via differential birefringence in their radio signals, directly connecting FRB science to axion detection physics
 - [[beyond-the-quantum-pilot-wave-theory]] — axion detection depends on precise quantum measurement; pilot-wave theory's hidden variable framework may provide alternative interpretations of the quantum spin rotation signals being measured
 - [[dark-matter]]
+- [[electron-orbital-direct-image-hydrogen]] — both represent frontier quantum measurement science: attosecond orbital imaging and distributed quantum spin sensors both push precision measurement beyond classical limits to access quantum phenomena previously considered unobservable
+- [[neutrinos-large-scale-structure-desi]] — neutrinos and axions are both ultra-light, weakly-interacting particles shaping cosmic structure; DESI's neutrino constraints and axion quantum sensor limits are complementary precision measurements of different corners of the light-particle parameter space

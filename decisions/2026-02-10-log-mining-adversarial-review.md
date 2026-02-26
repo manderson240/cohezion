@@ -642,6 +642,11 @@ Implement in parallel:
 - [[token-efficiency]]
 - [[prompt-engineering]]
 
+## Related Patterns
+
+- [[mini-adversarial-review-checkpoints]] — the adversarial review checkpoint pattern applied in this log-mining review
+- [[log-lifecycle-management]] — the log lifecycle pattern whose architecture is validated by this adversarial review
+
 ## Related Lessons
 
   - [[lesson-20-ci-scope-discipline]] (validation relevance: 15)

@@ -48,6 +48,8 @@ for i in range(MAX_ITERATIONS):
 ## Related Concepts
 
 - [[agentic-ai]] - Core safety property for all agent systems
+- [[scaling-agent-systems]] - The paper's findings on error amplification and capability saturation include resource exhaustion as a failure mode; explicit loop termination guards are prerequisite for safe multi-agent scaling
+- [[openai-codex-agent-loop]] - The Codex inner/outer loop architecture describes how agent loops must have explicit termination conditions; unbounded loops are the failure mode this lesson documents
 
 ## Validation
 

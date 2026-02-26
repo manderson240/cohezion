@@ -317,6 +317,17 @@ except MCPNotAvailable:
 - [[automated-concept-extraction]] - Similar extraction methodology
 - [[google-sheets-vault-bridge]] - Batch processing approach
 - [[python-optimized-flume-pattern]] - Ollama integration pattern
+- [[vault-link-audit-pattern]] - Link integrity enforces graph quality
+
+## Related Decisions
+
+- [[2026-02-11-adopt-graphrag-for-vault-knowledge-graph|Decision: Adopt GraphRAG for Vault Knowledge Graph]] — architectural decision that adopted GraphRAG as the approach this pattern implements
+- [[2026-02-10-operational-forensics-compound-engineering|Decision: Operational Forensics → Compound Engineering]] — 3-layer linking approach (papers → decisions → lessons)
+- [[2026-02-10-compound-linking-plan-adversarial-review|Decision: Adversarial Review Result — Compound Node Linking Plan Rejected]] — quality concerns about automated linking
+- [[2026-02-24-vault-link-integrity-first-principle|Decision: Vault Link Integrity Is a First-Class Concern]] — why graph integration must produce clean links
+- [[2026-02-13-next-10-phases-graphrag-roadmap]] — the multi-phase roadmap built on GraphRAG integration
+- [[2026-02-14-graphrag-verification-and-integration-session]] — verification that graph integration works end-to-end
+- [[2026-02-13-phase-2-track-a-complete]] — Track A implemented the SurrealDB graph schema supporting this pattern
 
 ## Files Created
 

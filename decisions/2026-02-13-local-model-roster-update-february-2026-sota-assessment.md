@@ -72,10 +72,12 @@ metrics:
 
 ## Related Decisions & Lessons
 
-- [[3-tier-hotwarmcold-model-rotation]]
+- [[3-tier-hotwarmcold-model-rotation]] — pattern that consumes these model selections (GLM-4.7-Flash → hot/warm tier)
 - [[runbook-ollama-mcp-operations]]
 - [[2026-02-09-ollama-mcp-server]]
 - [[2026-02-09-ai-model-strategy]]
+- [[2026-02-14-agent-orchestration-design-3-tier-hotwarmcold-model-rotation]] — architectural decision that defines the tier assignments this roster populates
+- [[2026-02-14-modelpoolmanager-3-tier-lifecycle-management|Experiment: ModelPoolManager]] — experiment validating the tier model against real workloads
 
 ## Related Concepts
 

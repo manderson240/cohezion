@@ -447,6 +447,17 @@ Canvas becomes the **"cognitive amplifier"** for vault analysis:
 4. **Iterate**: Weekly Canvas updates (Phase 6a) + cluster analysis as needed
 5. **Document**: Extract reusable pattern to `patterns/` directory
 
+## Related Patterns
+
+- [[canvas-driven-manual-linking]] — the extracted reusable pattern implementing the canvas-centric approach decided here
+- [[multi-session-compound-engineering-workflow]] — the multi-session compound workflow this canvas approach fits into
+- [[pattern-compound-engineering|Pattern: Compound Engineering]] — the meta-pattern that describes the compounding methodology this decision demonstrates
+
+## Related Decisions (Series)
+
+- [[2026-02-10-canvas-driven-compound-engineering-refined]] — refined version of this plan
+- [[2026-02-10-compound-node-linking-plan]] — initial node-linking plan that this canvas approach improves upon
+- [[2026-02-10-compound-linking-plan-adversarial-review]] — adversarial review of the compound linking plan
 
 ## Related Concepts
 
@@ -458,3 +469,9 @@ Canvas becomes the **"cognitive amplifier"** for vault analysis:
 - [[2026-02-17-phase-2-full-verification-plan]]
 - [[2026-02-13-gitlab-to-github-consolidation-with-artifact-governance]]
 - [[2026-02-14-phases-1-3-retrospective-key-learnings]]
+
+## Scientific Foundation
+
+- [[operational-data-ai-agents]] — the paper's core thesis (data hygiene is the top failure mode for autonomous agents in production) directly motivates the canvas-driven approach: Phase 1 Gap Analysis (orphan detection, cluster analysis, bridge identification) IS operational data quality work for the knowledge agent. The Canvas produces the "high-quality operational data" the paper identifies as the agent's essential "senses."
+- [[ai-anomaly-detection-hubble-archive]] — the Phase 1 structural gap analysis applies the same anomaly-detection principle as AnomalyMatch: systematically scan the entire dataset for structural anomalies (orphan nodes, disconnected clusters) rather than assuming the graph is well-connected. Both methodologies are "scan everything, surface the rare anomalies" applied to different domains.
+- [[lesson-effective-retrospectives]] — the 6-phase canvas-driven plan is structured retrospective applied to knowledge graph management: high-connectivity clusters = "what worked"; orphan nodes = "what failed"; Phase 6c pattern extraction = "reusable patterns." Both disciplines convert raw experience/data into structured actionable knowledge.

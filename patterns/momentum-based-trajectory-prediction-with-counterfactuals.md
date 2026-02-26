@@ -79,3 +79,9 @@ class MomentumTrajectoryPredictor:
 
 - [[patterns/morphospace-stability-wells]]
 - [[patterns/momentum-based-trajectory-prediction-with-counterfactual-branching]]
+
+## Related Decisions
+
+- [[2026-02-09-12d-graph-next-steps|Decision: 12D Graph — Compound Engineering Next Steps]] — decision that established 12D trajectory space as the target for this pattern
+- [[2026-02-23-hash-based-journey-tracking-produces-meaningless-12d-trajectories|Decision: Hash-based journey tracking produces meaningless 12D trajectories]] — anti-pattern showing why momentum-based (not hash-based) tracking is required
+- [[2026-02-24-anti-pattern-hash-based-journey-tracking-destroys-semantic-meaning|Anti-pattern: Hash-based journey tracking destroys semantic meaning]]

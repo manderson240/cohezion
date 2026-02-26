@@ -48,6 +48,12 @@ tags: [concept]
 
 - [Add related concepts]
 
+## Related Lessons
+
+- [[lesson-29-batch-cache-two-phase]] — batch cache two-phase pattern reduces redundant computation in context retrieval pipelines
+- [[lesson-19-session-awareness-protocol]] — agents must explicitly load prior context at session start; context is not inherited automatically
+- [[lesson-21-runtime-json-pollution]] — debug output on stdout corrupts JSON-based context pipelines; always use stderr for logs
+
 ## Relevance to Cohezion
 
 [Describe relevance to the Cohezion framework]

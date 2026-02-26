@@ -26,6 +26,10 @@ tags: [concept]
 
 - [Add related concepts]
 
+## Related Lessons
+
+- [[lesson-effective-retrospectives]] — validated retrospective structure: What Worked / What Failed / What Was Surprising / Reusable Patterns Extracted; complete at session end before context is lost
+
 ## Relevance to Cohezion
 
 [Describe relevance to the Cohezion framework]

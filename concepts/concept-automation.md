@@ -60,6 +60,11 @@ tags: [concept]
 
 - [Add related concepts]
 
+## Key Lesson Links
+
+- [[lesson-16-pre-commit-hooks-stage-override]] — pre-commit hooks that modify and re-stage files can commit unintended changes; review staged content after hooks run
+- [[lesson-09-ruff-hook-fights]] — ruff with --fix in pre-commit hooks must be followed by git add of modified files or the hook fights itself in a loop
+
 ## Relevance to Cohezion
 
 [Describe relevance to the Cohezion framework]

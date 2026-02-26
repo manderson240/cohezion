@@ -395,6 +395,15 @@ def validate_quality_sample():
 **Domains**: ai-ml, architecture, data, infrastructure, integration, performance
 **Categories**: operational
 
+## Related Patterns
+
+- [[3-tier-hotwarmcold-model-rotation]] — the hot/warm/cold model tier pattern implements the Opus/Haiku/local hierarchy decided here
+
+## Related Decisions (Series)
+
+- [[2026-02-09-12d-graph-refined-plan]] — applies this model strategy to the 12D graph project
+- [[2026-02-09-model-wrangler-strategy]] — the operational role managing local LLMs in this strategy
+
 ## Related Concepts
 
 - [[3d-graph-plugin-selection]]
@@ -405,3 +414,10 @@ def validate_quality_sample():
 - [[2026-02-17-phase-2-full-verification-plan]]
 - [[2026-02-13-gitlab-to-github-consolidation-with-artifact-governance]]
 - [[2026-02-14-adversarial-multi-agent-review-protocol]]
+
+## Scientific Foundation
+
+- [[yann-lecun-agi-world-models]] — LeCun's advocacy for open research and against vendor lock-in directly supports the hybrid architecture here: local Ollama for batch execution avoids the API-vendor lock-in LeCun warns against, while still leveraging Claude's superior reasoning for planning tasks. The decision's 95% cost reduction ($3.90 vs $50+/month) validates LeCun's practical argument for open inference.
+- [[grok4-ai-benchmarks]] — Grok4 at Intelligence Index 73 (vs Claude Opus) provides the benchmark context for the planning-tier model selection. The benchmark landscape justifies using frontier API models for architecture decisions while routing repetitive tasks to local inference.
+- [[agentic-ai-memory-hierarchies]] — the hardware KV cache bottleneck described there justifies routing batch work (embeddings, gap analysis) to local Ollama: this keeps API-tier models' KV caches available for multi-step reasoning tasks where the memory hierarchy cost is highest.
+- [[llm-training-methodology-changes]] — the "train smarter" paradigm shift is the scientific trajectory that will eventually make local models competitive with frontier reasoning; this decision's Phase 3 (fully local inference after fine-tuning) aligns with the training efficiency direction described there

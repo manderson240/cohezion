@@ -41,3 +41,10 @@ Permanent vault directories (papers/, concepts/, etc.)
 - [ ] Wire `sheets_bridge.py` into MCP server as `sheets_sync` / `sheets_status` tools
 - [ ] Add config fields to `ServerConfig` (SHEETS_SPREADSHEET_ID, SHEETS_SHEET_NAME, SHEETS_QUOTA_PROJECT)
 - [ ] Consider cron/systemd timer for periodic sheet polling
+
+## Related
+
+- [[cloud-vault-mcp]] — the MCP server that the sheets_bridge.py integrates with; SheetsBridge is a core tool category in the cloud-vault-mcp server
+- [[google-sheets-vault-bridge]] — the reusable pattern note that generalizes the implementation built in this project
+- [[research-pipeline-mission-2026-02-26]] — the research mission that uses this pipeline infrastructure to process 900+ unresearched rows
+- [[data-analysis]] — downstream consumer of the data captured via this pipeline

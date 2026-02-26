@@ -70,3 +70,5 @@ Relevant to [[lab-agent]] for comparing agent deployment approaches. The natural
 - [[scaling-agent-systems]]
 - [[openai-codex-agent-loop]]
 - [[testing-agent-skills-with-evals]]
+- [[agentic-ai-foundation-mcp-linux-foundation]] — AAIF's MCP governance creates the standardized protocol substrate that LlamaAgents Builder's agent workflows communicate over
+- [[gemini-cli-ai-employees-agent-factory]] — Agent Factory's SOP-in-markdown approach and LlamaAgents Builder's natural-language-to-workflow are two parallel solutions to the same agent scaffolding problem

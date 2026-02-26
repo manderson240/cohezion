@@ -151,6 +151,9 @@ Adversarial review revealed **7 critical flaws** that would waste 90% of effort 
 
 - [[token-efficiency]] - Adversarial review prevents token waste on doomed plans
 - [[compound-engineering]] - Review quality compounds (better plans → better execution)
+- [[adversarial-review]] - this lesson is the validated implementation of the adversarial review concept
+- [[ai-safety]] - adversarial review catches dangerous assumptions before execution prevents costly failures
+- [[compound-engineering]] - review gates every phase of compound engineering workflows
 
 ## Validation
 
@@ -186,3 +189,7 @@ Adversarial review revealed **7 critical flaws** that would waste 90% of effort 
   - [[yann-lecun-agi-world-models]] (similarity: 0.713)
   - [[theorem-ai-formal-verification]] (similarity: 0.683)
   - [[humanitys-last-exam-benchmark]] (similarity: 0.682)
+  - [[operational-data-ai-agents]] — adversarial review of data availability (sample size, completeness) before pipeline execution is the primary check that prevents wasted effort on bad operational data
+  - [[nasa-maven-anomaly]] — NASA's formal anomaly review board is the institutional equivalent of adversarial review: structured challenge of assumptions before conclusions
+  - [[anthropic-disempowerment-patterns]] — adversarial review is the procedural countermeasure to AI disempowerment: explicitly challenging AI-generated plans before execution keeps the human in the decision seat. The mild disempowerment rate (1:50-70 conversations) suggests passive acceptance is the default; this lesson codifies the active counterpattern of structured skepticism.
+  - [[failure-mode-test-priority]] — adversarial review and failure-mode testing are the same discipline at different layers: review tests the plan's failure modes before execution; failure-mode tests test the implementation's failure modes before production. Both invert the happy-path assumption and invest specifically in finding what breaks.

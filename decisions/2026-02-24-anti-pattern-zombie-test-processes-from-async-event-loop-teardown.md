@@ -96,3 +96,8 @@ High. Empirically observed; solution is standard.
 ## Related Decisions & Lessons
 
 - [[2026-02-23-always-set-pytest-timeouts-for-async-tests]]
+- [[async-singleton-lock-isolation]] — pattern for proper event loop isolation in singleton async tests
+- [[async-mock-subprocess-in-tests]] — prevents test hangs from unmocked external service calls
+- [[failure-mode-test-priority]] — zombie processes are a resource-exhaustion failure mode; test suites must detect them
+- [[patterns/lessons/lesson-32-concurrent-pytest-contention|lesson-32]] — concurrent pytest contention and async process accumulation
+- [[patterns/lessons/lesson-34-test-hang-unmocked-live-service|lesson-34]] — test hang patterns from unmocked live services

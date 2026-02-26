@@ -19,6 +19,9 @@ tags: [experiment]
 - [[2026-02-09-ollama-context-management]]
 - [[2026-02-09-model-wrangler-strategy]]
 - [[2026-02-09-ollama-mcp-server]]
+- [[3-tier-hotwarmcold-model-rotation]] — the pattern this experiment is validating (Hot/Warm/Cold tier assignment for local LLMs)
+- [[2026-02-14-agent-orchestration-design-3-tier-hotwarmcold-model-rotation]] — the architectural decision whose ModelPoolManager this experiment tests
+- [[2026-02-13-local-model-roster-update-february-2026-sota-assessment]] — the SOTA roster whose models (GLM-4.7-Flash, phi4-mini) are assigned to tiers in this experiment
 
 ## Related Concepts
 

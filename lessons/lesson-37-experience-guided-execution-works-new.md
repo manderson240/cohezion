@@ -43,6 +43,12 @@ This 5-minute sequence replaces 30-60 minutes of re-orientation.
 
 - [[compound-engineering]] - Experience-guided execution is the engine of compound knowledge growth
 - [[agentic-ai]] - Memory and continuity as first-class agent properties
+- [[agentic-ai-memory-hierarchies]] - The KV cache hierarchy paper explains the hardware challenge that makes software-side session memory injection (loading prior context) so important for long-running agent workflows
+- [[langchain-deep-agents-context-management]] - LangChain's three-tier context management (offload, truncate, summarize) is the technical mechanism that enables experience-guided execution across long sessions
+- [[agent-architecture]] - architecture must support context injection for experience-guided execution
+- [[ai-agents]] - agents with prior context materially outperform cold-start agents
+- [[experience-feedback-loop]] - this lesson empirically validates the experience feedback loop concept
+- [[context-management]] - context injection at session start is the mechanism of experience-guided execution
 
 ## Validation
 

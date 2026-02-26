@@ -87,5 +87,7 @@ See above.
 
 ## Related Decisions & Lessons
 
-- [[sanitize-env-var-path-components]]
+- [[sanitize-env-var-path-components|Pattern: Sanitize Environment Variable Path Components]] — the reusable pattern extracted from this fix
+- [[concepts/ai-safety]] — broader context: AI tools executing with user-supplied env vars require input sanitization
+- [[2026-02-09-operational-principle-no-destructive-operations-without-learning]] — companion safety principle for AI-executed operations
 - See also: remaining security review findings (XML entity expansion via `ET.fromstring`, broad exception swallowing)

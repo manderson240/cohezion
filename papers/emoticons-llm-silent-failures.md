@@ -55,6 +55,7 @@ Relevant to [[lab_agent.py]] input validation and robustness testing. Cohezion a
 - [[few-shot-prompting-agentic-coding]] — silent failures from emoticons undermine the 5x performance gains of few-shot prompting when they corrupt model intent
 - [[karpathy-claude-code-skills]] — Karpathy's warning about subtle conceptual errors in AI-generated code is exemplified by silent failures from emoticon tokenization
 - [[testing-agent-skills-with-evals]] — eval categories (style goals, outcome goals) must account for silent failures that pass functional tests but fail semantically
+- [[lesson-measurement-integrity-honest-reporting]] — emoticon-induced silent failures are a measurement integrity problem: output appears correct (syntactically valid code) while being semantically wrong; honest reporting requires detecting semantic failures, not just surface-level correctness
 
 ## Related Concepts
 

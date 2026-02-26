@@ -478,6 +478,10 @@ SELECT
 *Total frameworks referenced: 3*
 *Estimated decision time saved: 30 min (vs exploratory research)*
 
+## Related Patterns
+
+- [[pattern-compound-engineering]] — the compound engineering framework applied as a decision-making tool here
+
 ## Related Lessons
 
 - [[lesson-31-operation-specific-modulation]] (operational validation)

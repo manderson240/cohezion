@@ -48,6 +48,7 @@ with isolated_env("test") as env:
 ## Related Concepts
 
 - [[compound-engineering]] - Proper isolation enables reliable parallel compound work
+- [[testing-agent-skills-with-evals]] - agent eval isolation suffers the same carveout illusion: logical eval namespaces may share file system state, network ports, or database connections; verify physical isolation with actual resource probes
 
 ## Validation
 

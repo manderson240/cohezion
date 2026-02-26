@@ -68,3 +68,5 @@ AI Engineering resource captured via mobile link pipeline. lab_agent.py, [[promp
 - [[claude-code-swiftui-skill-patterns]]
 - [[usaf-stealthy-electromagnetic-attack]]
 - [[claude-code-community-skills]]
+- [[gemini-cli-ai-employees-agent-factory]] — Agent Factory's SOP markdown files are a structured form of few-shot prompting: the SOP provides the example trajectory that guides worker-agent execution
+- [[agyn-multi-agent-software-engineering]] — Agyn's role-specific agents each receive role-tailored few-shot examples that prime specialized behavior within the multi-agent team

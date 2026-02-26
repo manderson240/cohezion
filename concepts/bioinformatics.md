@@ -17,3 +17,4 @@ Computational approaches to biological data analysis — sequence alignment, pro
 - [[mcl1-myc-cancer-metabolism]] — mTOR pathway analysis and MYC transcriptome reprogramming are interpreted through bioinformatics network models
 - [[comb-jellies-animal-tree-of-life]] — chromosomal gene-location mapping used to settle the ctenophore phylogeny debate is a core bioinformatics method
 - [[brain-protein-neurodegeneration]] — multi-omics analysis of amyloid, tau, and microglial metabolic pathways relies on bioinformatics for systems-level interpretation
+- [[alphagenom-dna-understanding]] — AlphaGenome extends foundation model approaches to genome-scale functional prediction, representing the next landmark in computational genomics after AlphaFold

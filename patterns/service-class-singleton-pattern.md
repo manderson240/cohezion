@@ -188,3 +188,5 @@ def __init__(self, config_path: str = "config.json"):
 - [[2026-02-12-prime-skill-pattern-as-governance-framework]]
 - [[2026-02-10-phase-7-executor-pattern-launch]]
 - [[compound-async-executor-pattern]]
+- [[2026-02-17-singleton-consolidation-mandatory-during-file-splits]] — enforces that singletons are consolidated when the file containing this pattern is split
+- [[async-singleton-lock-isolation]] — async-specific extension: asyncio primitives must be in __init__, not class-level

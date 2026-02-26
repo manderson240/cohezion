@@ -41,6 +41,7 @@ general code reviews, PR reviews, or quality reviews.
 ## Related Concepts
 
 - [[compound-engineering]] - Precise skill triggers enable reliable compound workflows
+- [[testing-agent-skills-with-evals]] - The evals framework's "process goals" category measures whether agents invoke the right tools in the right sequence; broad keyword matching is the primary failure mode for process goal eval failures
 
 ## Validation
 

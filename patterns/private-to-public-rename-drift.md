@@ -48,3 +48,5 @@ The "Did you mean" suggestion is Python identifying the correct public name.
 
 - [[2026-02-22-session-70-heal-and-test-fix]]
 - KEY_LEARNINGS.md L131
+- [[2026-02-13-gitlab-to-github-consolidation-with-artifact-governance|Decision: GitLab to GitHub Consolidation with Artifact Governance]] — consolidation refactoring where such renames commonly occur
+- [[2026-02-23-enforce-no-orphan-modules-policy|Decision: Enforce No Orphan Modules Policy]] — methods renamed without updating callers create orphaned call paths

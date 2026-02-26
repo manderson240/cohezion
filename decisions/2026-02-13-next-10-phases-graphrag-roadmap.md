@@ -75,8 +75,11 @@ metrics:
 - [[surrealdb-agent-context-schema]]
 - [[compound-engineering]]
 - [[12d-graph-implementation]]
-- [[2026-02-11-adopt-graphrag-for-vault-knowledge-graph]]
+- [[2026-02-11-adopt-graphrag-for-vault-knowledge-graph]] — the foundational adoption decision this roadmap extends
 - [[roi-analysis]]
+- [[2026-02-14-graphrag-verification-and-integration-session]] — the verification session that executed Phase 4 of this roadmap
+- [[2026-02-13-phase-2-completion-approved-ready-for-production-deployment]] — Phase 2 (SurrealDB + reasoning) sign-off that preceded phases in this roadmap
+- [[lessons-graph-integration]] — the graph integration pattern that implements the "connect vault nodes" phases of this roadmap
 
 ## Related Concepts
 

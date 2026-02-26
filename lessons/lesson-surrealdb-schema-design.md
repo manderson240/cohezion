@@ -51,6 +51,9 @@ SELECT ->contains->task->produced->artifact FROM session:s47;
 
 - [[lesson-05-surrealdb]] - SurrealDB query patterns and syntax
 - [[mcp-infrastructure-architecture]] - SurrealDB role in Cohezion infrastructure
+- [[surrealdb]] - record-centric schema design is the foundational SurrealDB knowledge
+- [[cloud-vault-mcp]] - the agent context graph in cloud-vault-mcp uses this schema design
+- [[graph-databases]] - RELATE edges as graph connections outperform foreign key simulation
 
 ## Validation
 

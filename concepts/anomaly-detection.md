@@ -37,6 +37,10 @@ Methods for identifying unusual patterns and outliers in large datasets through 
 - [[jwst-observations]]
 - [[ai-safety-alignment]]
 
+## Related Lessons
+
+- [[lesson-measurement-integrity-honest-reporting]] — verified metrics over claimed metrics is the foundation of trustworthy anomaly detection; inflated numbers hide real anomalies
+
 ## Relevance to Cohezion
 
 Anomaly detection capabilities in Cohezion are supported through the SemanticCache's L2 semantic similarity layer and the Knowledge Graph's anomaly-tracking capability within universe nodes. The ContextEngineeringInfrastructure's find_relevant_context function helps surface unusual patterns in prior execution logs stored by VaultExecutionLogger, enabling agents to detect deviations from normal solution patterns.

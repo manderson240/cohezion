@@ -92,4 +92,8 @@ print(f"Using {result.tier.value} data from {result.source} ({result.count} samp
 ## Related
 
 - [[experiments/2026-02-24-overnight-simulation-data-characterization-55m-trajectories]]
-- [[decisions/2026-02-23-never-train-vae-on-random-noise-as-synthetic-data]]
+- [[2026-02-23-never-train-vae-on-random-noise-as-synthetic-data|Decision: Never Train VAE on Random Noise as Synthetic Data]] — motivating decision: training data must come from agent interactions, not random noise; this pattern provides the fallback hierarchy for sourcing real data
+- [[2026-02-24-anti-pattern-training-vae-on-random-noise-syntheticflumedataset|Anti-pattern: Training VAE on Random Noise (SyntheticFlumeDataset)]] — anti-pattern this pattern replaces
+- [[2026-02-13-experience-vae-training-pipeline-session-58|Decision: Experience VAE Training Pipeline Session 58]] — pipeline that uses tiered data collection
+- [[operational-data-ai-agents]] — the paper that defines operational data tiers (real-time sensors, batch, historical) — directly maps to the HOT/WARM/COLD tier model in this pattern
+- [[data-analysis]] — multi-tier collection is the data acquisition layer that feeds downstream analysis; tier choice affects analysis quality

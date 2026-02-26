@@ -34,12 +34,20 @@ Systems comprising multiple autonomous AI agents that collaborate to solve compl
 - [[llm-in-sandbox-agentic-intelligence]] — sandbox-based agentic intelligence is a building block for multi-agent systems where each agent uses code execution for tool access
 - [[operational-data-ai-agents]] — multi-agent systems require high-quality operational data pipelines as their shared "senses"; data quality failures amplify across agents
 - [[testing-agent-skills-with-evals]] — evaluating multi-agent systems requires the same four-category eval taxonomy (outcome, process, style, efficiency) applied at the system level
+- [[agyn-multi-agent-software-engineering]] — Agyn's four-role organizational model (manager, researcher, engineer, reviewer) is a reference architecture for role-specialized multi-agent software engineering
+- [[group-evolving-agents-gea-framework]] — GEA advances multi-agent systems to collective evolution: treating the group as the evolutionary unit, achieving 71% SWE-bench with zero additional inference cost
+- [[agentic-ai-foundation-mcp-linux-foundation]] — AAIF provides the governance and interoperability standards that make heterogeneous multi-agent systems possible across vendor boundaries
 
 ## Related Concepts
 
 - [[agentic-ai]]
 - [[agent-loop-architecture]]
 - [[mcp-model-context-protocol]]
+
+## Related Lessons
+
+- [[lesson-11-team-agent-efficiency]] — CRITICAL: coordination overhead exceeds benefits below task complexity threshold; single agents outperform teams for tasks under ~2 hours
+- [[lesson-38-singleton-executor-for-sessions-new]] — singleton executor per session prevents resource leaks when multiple agent sessions run concurrently
 
 ## Relevance to Cohezion
 

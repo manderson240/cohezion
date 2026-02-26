@@ -67,3 +67,4 @@ Demonstrates how structured field configurations channel energy and material flo
 - [[cu45-superatom-carbon-recycling]]
 - [[optofluidic-3d-nanofabrication]]
 - [[early-universe-cosmology]]
+- [[m87-jet-base-eht-2026]] — Arp 220's galactic-scale magnetic outflows and M87*'s AGN jet both demonstrate organized magnetic fields as drivers of large-scale energy transport; the MHD mechanisms operating in starburst winds and relativistic black hole jets are different scales of the same fundamental physics

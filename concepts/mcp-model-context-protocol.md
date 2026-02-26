@@ -42,5 +42,9 @@ An open-source standard released by Anthropic in November 2024 providing a unive
 
 MCP is the foundational protocol enabling Cohezion's entire architecture—the Cloud Vault MCP Server exposes VaultOps, CompoundOps, and ObsidianOps through bidirectional MCP communication. CompoundExecutor coordinates with agents through MCP-defined interfaces, ContextEngineeringInfrastructure's tool registry leverages MCP for standardized tool integration, and the framework's ability to connect heterogeneous data sources depends entirely on MCP's universal interface abstraction.
 
+## Related Lessons
+
+- [[lesson-36-mcp-configuration-requires-end-to-end-test-new]] — MCP servers must be tested end-to-end with a real client connection; unit tests miss transport and protocol negotiation failures
+
 ## Decisions & Experiments
 - 📋 [[2026-02-09-12d-graph-refined-plan]] - 12D Graph System - Refined Implementation Plan

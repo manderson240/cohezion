@@ -307,3 +307,6 @@ curl http://localhost:8000/health
 - [[compound-engineering]]
 - [[2026-02-14-phase-2-track-a-complete]]
 - [[implementation-first-infrastructure-later]]
+- [[2026-02-13-phase-3-unblocking-semantic-dimensions-complete]] — Phase 3 that provided the 8-D dimensional data this plugin reads
+- [[2026-02-14-phase-4-retrospective-and-phase-5-overnight-plan]] — retrospective and Phase 5 plan following this implementation
+- [[2026-02-14-graphrag-verification-and-integration-session]] — session that verified and fixed GraphRAG tests alongside Phase 4 UI work

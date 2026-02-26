@@ -77,3 +77,4 @@ Structural Biology resource captured via mobile link pipeline. general
 - [[brain-protein-neurodegeneration]] — cryo-EM and AlphaFold together resolve amyloid beta and tau tangle structures central to Alzheimer's pathology
 - [[bioinformatics]] — AlphaFold + cryo-EM integration represents a landmark in computational structural biology, the core of modern bioinformatics
 - [[amorphous-materials-3d-atomic-structure]] — parallel approach to 3D atomic-scale structure determination; both use iterative computational modeling to extract structure from experimental imaging data
+- [[alphagenom-dna-understanding]] — AlphaGenome extends AlphaFold's deep learning approach from protein structure prediction to genome-scale DNA understanding; together they represent DeepMind's systematic application of foundation models to molecular biology, progressing from 3D structure to functional genomics

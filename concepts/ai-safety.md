@@ -16,3 +16,8 @@ Research field focused on ensuring AI systems behave safely and beneficially. In
 - [[anthropic-disempowerment-patterns]] — empirical data on disempowerment as an AI safety failure mode
 - [[cisa-chatgpt-data-leak]] — institutional AI safety failure: bypassing governance controls on sensitive data
 - [[theorem-ai-formal-verification]] — formal verification is a technical AI safety approach for proving code behavior correctness
+
+## Related Lessons
+
+- [[lesson-26-never-print-credentials]] — CRITICAL: API keys and tokens must never appear in logs; zero-tolerance security discipline
+- [[lesson-adversarial-review-before-execution]] — adversarial review of plans before execution prevents wasted effort and catches dangerous assumptions

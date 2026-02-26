@@ -48,6 +48,13 @@ def batch_embed(texts):
 ## Related Concepts
 
 - [[compound-engineering]] - Caching compounds across sessions and batches
+- [[agentic-ai-memory-hierarchies]] — the two-phase cache pattern reduces KV cache memory pressure: by computing only cache misses, it minimizes the volume of new inference that must be held in HBM. The paper identifies KV cache bandwidth as the primary agentic AI bottleneck; this pattern attacks it at the software layer.
+- [[3-tier-hotwarmcold-model-rotation]] — the two-phase check is the decision logic for tier selection: Phase 1 (check cache = check hot tier) before Phase 2 (compute = invoke warm/cold model). Both patterns share the "cheapest available source first" principle. Cache miss = tier miss → escalate.
+- [[concept-caching]] - this lesson defines the canonical batch caching pattern: check cache before compute
+- [[context-management]] - batch cache pattern directly optimizes context retrieval at scale
+- [[agent-context]] - reduces redundant computation in context retrieval pipelines
+- [[token-efficiency]] - 60% reduction in compute costs through cache-before-compute ordering
+- [[semantic-search]] - batch embedding cache lookups before computing new embeddings saves significant compute
 
 ## Validation
 

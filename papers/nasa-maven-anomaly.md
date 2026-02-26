@@ -70,6 +70,7 @@ General reference for space exploration mission tracking and anomaly analysis pa
 - [[anomaly-detection]]
 - [[2026-02-10-compound-linking-plan-adversarial-review]]
 - [[2026-02-14-adversarial-multi-agent-review-protocol]]
+- [[lesson-adversarial-review-before-execution]] — NASA's formal anomaly review board is the institutional equivalent of adversarial review before execution: systematic challenge of assumptions ("what do we actually know vs. what do we believe?") before drawing conclusions about an anomalous system
 
 ## Related Concepts
 

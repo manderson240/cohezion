@@ -47,6 +47,10 @@ metrics:
 
 ## Decision Reasoning
 
+## Related
+
+- [[repo-and-process-debt]] — this decision directly addresses the repo management debt item (Phase 2: define a clear branching strategy)
+
 ### Why This Option?
 
 ### Alternatives Rejected

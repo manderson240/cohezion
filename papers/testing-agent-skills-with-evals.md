@@ -61,3 +61,11 @@ Directly applicable to `lab_agent.py` evaluation framework design. The four-cate
 - [[scaling-agent-systems]]
 - [[openai-codex-agent-loop]]
 - [[llamaagents-builder]]
+- [[lesson-18-mock-live-services-in-tests]] — unit tests in agent evals require mocked external services to isolate the agent skill under evaluation
+- [[lesson-34-test-hang-unmocked-live-service]] — unmocked live services in agent evals cause test suite hangs, not just flakiness; timeout guards are required
+- [[lesson-36-mcp-configuration-requires-end-to-end-test-new]] — MCP-based agent skills require end-to-end client connection tests; unit tests miss protocol negotiation failures
+- [[lesson-33-skill-keyword-matching-is-broad]] — evaluating agent skill invocation accuracy (process goals) requires precise trigger pattern testing
+- [[lesson-07-gtt-carveout-illusion]] — logical isolation in agent evals does not guarantee physical resource isolation; verify with actual resource probes
+- [[nvidia-nemotron-3-nano-nemo-gym]] — NeMo Gym's standardized RL environments provide the training infrastructure that feeds the "measure → improve → ship" eval loop; the two systems are complementary training and evaluation infrastructure
+- [[group-evolving-agents-gea-framework]] — GEA's performance+novelty scoring is an evolutionary application of the eval framework's outcome and efficiency goal categories at the agent-group level
+- [[agyn-multi-agent-software-engineering]] — Agyn's dedicated reviewer agent role is a specialized implementation of the outcome and process goal eval categories applied in-loop during agent execution

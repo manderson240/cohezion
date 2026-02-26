@@ -68,3 +68,10 @@ Quantum Physics and Philosophy resource captured via mobile link pipeline. Theor
 - [[quantum-atomic-light-synchronization]]
 - [[pairwise-comparison-fiber-bundles]]
 - [[axion-dark-matter-quantum-sensors]] — axion dark matter searches rely on quantum measurement at the limits of sensitivity; pilot-wave theory's hidden variables could in principle affect the interpretation of marginal signals in these experiments
+- [[electron-orbital-direct-image-hydrogen]] — the first direct image of a hydrogen electron orbital is a key empirical touchstone for quantum interpretation debates; pilot-wave theory predicts definite particle trajectories beneath probability distributions, and this image is the closest thing yet to making those trajectories "real"
+- [[is-metaphysics-useful]] — pilot-wave theory is itself a metaphysical choice about the nature of quantum reality (hidden variables vs. Copenhagen); this paper directly grounds the philosophical utility of metaphysics in exactly the kind of interpretational question pilot-wave theory embodies
+
+## Engineering Analogues
+
+- [[lesson-adversarial-review-before-execution]] — pilot-wave theory's core thesis (deterministic hidden trajectories beneath probabilistic quantum outcomes) maps onto adversarial review's core claim: plan outcomes that appear probabilistic ("this might work") have deterministic hidden causes (broken assumptions, bad sample sizes) that can be revealed by explicit investigation. Both claim the apparent randomness is epistemic, not ontological — you just haven't looked at the right layer yet.
+- [[async-singleton-lock-isolation]] — the singleton lock failure (tests "randomly" fail in full suite) is a pilot-wave analog: the test failures appear non-deterministic (probabilistic, hard to reproduce) but have a fully deterministic hidden cause (class-level lock bound to wrong event loop). Debugging it required finding the "hidden variable" (class-level asyncio.Lock) beneath the apparent randomness.

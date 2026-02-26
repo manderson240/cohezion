@@ -75,3 +75,9 @@ Relevant to [[lab_agent.py]] model selection and fine-tuning strategy. The post-
 
 - [[openai-codex-agent-loop]]
 - [[emoticons-llm-silent-failures]]
+
+## Engineering Implementations
+
+- [[lesson-06-ollama-latency]] — the cold-start latency problem documented there is the current operational consequence of large model size; post-training efficiency (smaller high-quality models) is the architectural path to eliminating this problem. "Train smarter, not bigger" = "load faster, stall less."
+- [[3-tier-hotwarmcold-model-rotation]] — the tier rotation pattern is a runtime workaround for the training methodology gap: pre-warming compensates for large model load times that would shrink as training efficiency improves. Post-training efficiency improvements reduce how many models need to be in the hot tier.
+- [[2026-02-09-ai-model-strategy]] — the model strategy decision's "local LLMs for batch execution" relies on this paper's efficiency trend: as post-training gets more efficient, local models become increasingly competitive with API frontier models for the planning tier as well

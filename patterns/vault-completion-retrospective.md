@@ -11,3 +11,6 @@ Pattern for conducting vault-level retrospectives — assessing knowledge covera
 
 ## Related
 - [[lesson-effective-retrospectives]]
+- [[2026-02-14-phases-1-3-retrospective-key-learnings]] — the retrospective decision that captured Phase 1-3 learnings using this structured format
+- [[2026-02-14-phase-4-retrospective-and-phase-5-overnight-plan]] — Phase 4 retrospective demonstrating the pattern applied to a major compound engineering milestone
+- [[2026-02-14-compound-engineering-team-execution-retrospective]] — team execution retrospective that fed forward into Phase 5-7 planning

@@ -45,3 +45,8 @@ def get_session_id() -> str:
 - Before constructing paths with `pathlib` or `os.path.join`
 
 **Do not use** `os.path.basename` as a substitute — it strips leading separators but not embedded traversal sequences like `foo/../../etc`.
+
+## Related
+
+- [[2026-02-22-security-fixes-session-id-path-traversal-and-github-date|Decision: Security Fixes — Session ID Path Traversal and Hardcoded GitHub Date]] — real-world application: COHEZION_SESSION_ID path traversal fix in cohezion-engine
+- [[2026-02-19-block-destructive-system-operations-from-ai-tools|Decision: Block Destructive System Operations from AI Tools]] — broader security posture within which path sanitization fits

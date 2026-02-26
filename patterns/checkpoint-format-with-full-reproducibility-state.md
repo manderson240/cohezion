@@ -110,3 +110,15 @@ def save_checkpoint(
 
 - [[patterns/vae-checkpoint-format-with-config]]
 - [[experiments/2026-02-24-flume-vae-v2-training-results]]
+- [[2026-02-23-never-train-vae-on-random-noise-as-synthetic-data|Decision: Never Train VAE on Random Noise as Synthetic Data]] - Reproducibility requires meaningful training data
+- [[2026-02-24-anti-pattern-training-vae-on-random-noise-syntheticflumedataset]] — the anti-pattern: checkpoint records must include dataset source to prevent silent reuse of synthetic data
+- [[2026-02-23-never-use-sha-256-hashes-as-semantic-embeddings|Decision: Never Use SHA-256 Hashes as Semantic Embeddings]]
+- [[2026-02-13-experience-vae-training-pipeline-session-58|Decision: Experience VAE Training Pipeline Session 58]]
+- [[2026-02-14-session-58-7-phase-journey-enrichment-3-agent-adversarial-review|Experiment: Session 58 — 7-Phase Journey Enrichment]] — Phase 5 of this experiment implemented the VAE training pipeline where this checkpoint format applies
+- [[experiments/2026-02-24-temporalvae-first-training-run-on-overnight-data]] — the TemporalVAE training run that requires full reproducibility state to enable re-run from overnight simulation data
+- [[patterns/latent-coherence-stability-predictor-lcsp]] — LCSP temporal coherence metrics should be included in checkpoint history alongside train/val loss for complete training state
+
+## Scientific Foundation
+
+- [[protein-tape-recorder-cytotape]] — CytoTape is nature's implementation of this exact pattern: a protein fiber that records temporal signals in chronological order for post-mortem readout, analogous to the training history + random seeds + git commit this format preserves. Both answer the same question: "given this artifact, can you reconstruct exactly what happened and replay it?" CytoTape does it for cell biology; this checkpoint format does it for ML training. The biological insight — record the *sequence* not just the *endpoint* — is the key design principle.
+- [[lesson-measurement-integrity-honest-reporting]] — the `git_dirty=True` warning in this pattern is a direct implementation of measurement integrity: a dirty-tree checkpoint cannot be honestly claimed as reproducible. Honest provenance tracking is the reproducibility equivalent of honest test reporting.

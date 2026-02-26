@@ -33,6 +33,12 @@ tags: [concept]
 
 - [Add related concepts]
 
+## Related Lessons
+
+- [[lesson-37-experience-guided-execution-works-new]] — AI agents that load prior session context outperform cold-start agents; memory is a first-class agent capability
+- [[lesson-38-singleton-executor-for-sessions-new]] — AI agents sharing a singleton executor per session prevent resource exhaustion in concurrent deployments
+- [[lesson-11-team-agent-efficiency]] — empirical finding: single agents outperform teams for tasks under ~2 hours estimated duration
+
 ## Relevance to Cohezion
 
 [Describe relevance to the Cohezion framework]

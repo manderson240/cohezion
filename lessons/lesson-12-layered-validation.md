@@ -48,6 +48,10 @@ def store_agent_output(data: dict):
 ## Related Concepts
 
 - [[compound-engineering]] - Layered validation is foundational to compound system reliability
+- [[circleci-ai-cicd-validation]] - CircleCI's Chunk autonomous agent applies layered validation (diff analysis, dependency graphs, historical behavior) at each CI boundary
+- [[service-layer-architecture]] - Service layer design depends on boundary-by-boundary validation to keep each layer independently correct
+- [[concept-validation]] — concept validation in the vault knowledge graph applies this same layered principle: validate at each boundary where knowledge enters the system
+- [[api-design]] - validate at each API boundary; corrupt data propagates to cryptic failures otherwise
 
 ## Validation
 

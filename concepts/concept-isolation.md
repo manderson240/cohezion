@@ -24,6 +24,12 @@ tags: [concept]
 
 - [Add related concepts]
 
+## Key Lesson Links
+
+- [[lesson-32-concurrent-pytest-contention]] — parallel test workers sharing resources cause flaky tests; use worker-unique resource identifiers (tmp_path, dynamic ports)
+- [[lesson-25-uv-venv-contention]] — concurrent uv installs to the same venv cause package corruption; serialize all installs to a given venv
+- [[lesson-18-mock-live-services-in-tests]] — isolate unit tests from live services with mocks; real service calls belong in separate integration tests
+
 ## Relevance to Cohezion
 
 [Describe relevance to the Cohezion framework]

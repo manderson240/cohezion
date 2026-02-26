@@ -44,3 +44,5 @@ Treat vault link integrity as a first-class engineering concern with the same di
 - [[lesson-39-vault-audit-must-exclude-worktrees]]
 - [[lesson-40-sequential-numbering-offset-corrupts-indexes]]
 - [[2026-02-24-vault-link-integrity-sprint]]
+- [[vault-completion-retrospective|Pattern: Vault Completion Retrospective]] — retrospective pattern that uses link integrity as a primary metric
+- [[lessons-graph-integration|Pattern: Lessons Graph Integration]] — graph integration work this decision's link quality standard applies to

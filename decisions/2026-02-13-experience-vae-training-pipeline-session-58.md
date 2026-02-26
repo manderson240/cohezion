@@ -76,7 +76,10 @@ metrics:
 - [[experience-feedback-loop]]
 - [[meta-learning]]
 - [[agentic-ai]]
-- [[2026-02-13-first-real-data-vae-training-run]]
+- [[2026-02-13-first-real-data-vae-training-run]] — the experiment that executed this pipeline design
+- [[checkpoint-format-with-full-reproducibility-state]] — the checkpoint pattern needed for reproducible VAE training runs
+- [[2026-02-14-session-58-7-phase-journey-enrichment-3-agent-adversarial-review|Experiment: Session 58 — 7-Phase Journey Enrichment]] — the session that implemented Phase 5 of this pipeline
+- [[2026-02-14-end-to-end-compound-cycle-validation-script]] — the validation script that exercised VAE training as part of the full compound cycle
 
 ## Related Concepts
 

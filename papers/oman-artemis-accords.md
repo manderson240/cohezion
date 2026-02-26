@@ -63,3 +63,4 @@ Space Policy & Governance resource captured via mobile link pipeline. Internatio
 - [[quantum-atomic-light-synchronization]]
 - [[artemis-ii-laser-comms]]
 - [[humanoid-robots-space-launch]] — humanoid robot space deployment and the Artemis Accords governance framework are parallel developments shaping the near-term human (and robotic) expansion into space
+- [[artemis-ii-crewed-lunar-mission]] — Oman's signing as the 61st Artemis Accords nation and Artemis II's crewed lunar mission represent the diplomatic and operational dimensions of the same program; the accords create the governance framework for the crewed missions

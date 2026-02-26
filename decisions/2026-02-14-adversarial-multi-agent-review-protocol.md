@@ -191,6 +191,10 @@ uv run claude-code --spawn-agents \
 **Session 55 Review**: [[2026-02-11-session-55-adversarial-review-blockers-identified]]
 **Pattern**: Multi-agent systems provide diverse perspectives that single-agent misses
 **Learnings**: Adversarial review catches integration bugs that unit tests miss
+**Pattern — Mini Checkpoints**: [[mini-adversarial-review-checkpoints]] — implements this protocol embedded mid-implementation
+**Pattern — Integration Gate**: [[integration-first-definition-of-done]] — ensures reviewed code is also reachable
+**Pattern — Failure Tests**: [[failure-mode-test-priority]] — defines which bug classes adversarial review targets
+**Related Decision**: [[2026-02-14-3-tier-adversarial-review-protocol-for-code-quality]] — the 3-tier variant of this protocol
 
 ## Related Concepts
 

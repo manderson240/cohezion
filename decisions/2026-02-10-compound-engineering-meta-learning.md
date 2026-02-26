@@ -645,6 +645,11 @@ Implement `analyze_prompt_effectiveness()` MVP:
 
 **Expected Value**: Transformative for COHESION + AI community
 
+## Related Patterns
+
+- [[pattern-compound-engineering]] — the core compound engineering pattern this meta-learning feedback loop enhances
+- [[multi-session-compound-engineering-workflow]] — the multi-session workflow that provides the raw log data for the feedback loop
+
 ## Related Lessons
 
 - [[lesson-31-operation-specific-modulation]] (operational validation)

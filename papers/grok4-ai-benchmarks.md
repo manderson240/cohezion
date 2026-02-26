@@ -75,6 +75,8 @@ AI Evaluation resource captured via mobile link pipeline. lab_agent.py, [[ai-age
 - [[humanitys-last-exam-benchmark]] — HLE is one of the key benchmarks on which Grok 4 scores (24%), making these two directly complementary
 - [[tonggeometry-ai-math]] — Grok 4's AIME math scores and TongGeometry's olympiad-level geometry achievements are comparable milestones in AI mathematical reasoning
 - [[llm-training-methodology-changes]] — the training methodology shifts discussed there directly affect benchmark outcomes like Grok 4's scores
+- [[transformers-v5-huggingface-release]] — the benchmark leaders like Grok 4 are trained using infrastructure that Transformers v5's pre-training scale support and modular architecture enable; benchmark progress tracks library infrastructure maturity
+- [[nvidia-nemotron-3-nano-nemo-gym]] — NeMo Gym's standardized RL training environments are the kind of infrastructure that would train models to improve on the reasoning/coding benchmarks where Grok 4 leads
 
 ## Related Concepts
 

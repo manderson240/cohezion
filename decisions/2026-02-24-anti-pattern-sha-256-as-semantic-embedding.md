@@ -97,3 +97,5 @@ High. This is a fundamental mathematical property, not an empirical observation 
 
 - [[2026-02-23-never-use-sha-256-hashes-as-semantic-embeddings]]
 - [[2026-02-23-character-level-tokenizers-are-inadequate-for-semantic-embeddings]]
+- [[2026-02-24-anti-pattern-hash-based-journey-tracking-destroys-semantic-meaning]] — the downstream consequence: SHA-256 hashes as journey tracking IDs produce meaningless 12D trajectories
+- [[latent-coherence-stability-predictor-lcsp]] — LCSP semantic coherence measures immediately reveal that hash-based inputs have near-zero cluster separation

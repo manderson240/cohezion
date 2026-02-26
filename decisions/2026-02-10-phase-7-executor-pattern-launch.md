@@ -216,8 +216,13 @@ This approach maximizes COHEZION by:
 
 ## See Also
 
-- [[compound-async-executor-pattern]]
+- [[compound-async-executor-pattern]] — the core pattern this decision launches as COHEZION's Phase 7 foundation
 - [[token-efficient-implementation-workflow]]
 - [[token-efficiency]]
 - [[roi-analysis]]
 - [[compound-engineering]]
+
+## Related Patterns (explicit)
+
+- [[compound-async-executor-pattern]] — the 7-step compound execution pipeline launched in Phase 7 by this decision
+- [[pattern-compound-engineering|Pattern: Compound Engineering]] — the meta-pattern that describes the compounding methodology Phase 7 validates at scale

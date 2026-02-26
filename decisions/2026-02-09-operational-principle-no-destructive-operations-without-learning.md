@@ -226,6 +226,10 @@ Operations authorized by explicit prior approval:
 
 [[agentic-ai]]
 
+## Related Patterns
+
+- [[log-lifecycle-management]] — the log lifecycle and extraction pattern that operationalizes this principle's "Extract Learning" step
+
 ## Related Lessons
 
 - [[lesson-11-team-agent-efficiency]] (operational validation)

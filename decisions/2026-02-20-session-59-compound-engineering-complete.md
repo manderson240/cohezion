@@ -93,7 +93,10 @@ CostAwareRouter now classifies tasks:
 ## Related Decisions
 
 - [[2026-02-20-session-58-cosmic-fire-module-retrospective]]
-- [[2026-02-20-session-59-compound-engineering-complete]]
+- [[2026-02-20-session-59-autonomous-compound-engineering-foundation]] — sibling session that established the autonomous compound engineering architecture
+- [[latent-coherence-stability-predictor-lcsp]] — LCSP integrated with fire_state in this session
+- [[2026-02-24-anti-pattern-hiho-coherence-loss-on-batch-mean]] — HIHO cache stabilization implemented here; the anti-pattern documents what the per-sample approach corrects
+- [[patterns/compound-async-executor-pattern]] — async executor pattern used for parallel agent orchestration in this session
 
 ## Next Steps
 

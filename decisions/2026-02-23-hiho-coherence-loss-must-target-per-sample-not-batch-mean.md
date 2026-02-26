@@ -105,3 +105,5 @@ High. The mathematical failure mode of batch-mean regularization is clear. The f
 ## Related Decisions & Lessons
 
 - [[2026-02-24-anti-pattern-hiho-coherence-loss-on-batch-mean]]
+- [[latent-coherence-stability-predictor-lcsp]] — LCSP measures whether per-sample coherence is stable over training; this decision ensures the loss signal supports that goal
+- [[failure-mode-test-priority]] — bimodal coherence failure is a silent failure mode; tests should verify per-sample coherence distribution not just batch mean

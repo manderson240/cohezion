@@ -50,6 +50,11 @@ SELECT ->produced->artifact FROM agent:session-47 FETCH artifact;
 
 - [[mcp-infrastructure-architecture]] - SurrealDB is core to the Cohezion context graph
 - [[agentic-ai]] - Agent context persistence relies on correct SurrealDB patterns
+- [[surrealdb-graph-databases]] - Reference paper for SurrealDB's graph-native data model and SurrealQL traversal syntax
+- [[lesson-surrealdb-schema-design]] - Deeper dive: record-centric schema design outperforms relational emulation
+- [[surrealdb]] - this lesson contains the essential SurrealDB query patterns and syntax gotchas
+- [[cloud-vault-mcp]] - the cloud-vault-mcp SurrealDB tools depend on these query patterns
+- [[graph-databases]] - SurrealDB's graph traversal replaces SQL JOINs; RELATE creates edges
 
 ## Validation
 

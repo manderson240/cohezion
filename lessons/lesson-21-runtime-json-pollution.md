@@ -43,6 +43,11 @@ def get_results():
 ## Related Concepts
 
 - [[compound-engineering]] - Clean data pipelines require pollution-free stdout
+- [[agent-context]] - JSON pollution corrupts context pipelines that parse stdout
+- [[data-analysis]] - clean stdout is foundational to trustworthy data analysis pipelines
+- [[api-design]] - API outputs must separate data (stdout) from diagnostics (stderr)
+- [[concept-modularity]] - module boundaries should enforce stdout/stderr discipline at each layer
+- [[operational-data-ai-agents]] - debug output contaminating stdout is a concrete data hygiene failure; agents that parse stdout JSON receive corrupted "senses" when print statements pollute the stream
 
 ## Validation
 

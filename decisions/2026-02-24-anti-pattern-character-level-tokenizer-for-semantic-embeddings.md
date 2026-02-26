@@ -94,3 +94,6 @@ High. Both theoretical (insufficient capacity) and empirical (observed similarit
 ## Related Decisions & Lessons
 
 - [[2026-02-23-character-level-tokenizers-are-inadequate-for-semantic-embeddings]]
+- [[latent-coherence-stability-predictor-lcsp]] — measures the semantic coherence quality that character-level tokenizers fail to produce
+- [[2026-02-24-anti-pattern-sha-256-as-semantic-embedding]] — related anti-pattern: hashes also lack semantic content
+- [[2026-02-24-anti-pattern-hash-based-journey-tracking-destroys-semantic-meaning]] — hash-based approach fails for same fundamental reason: no semantic encoding

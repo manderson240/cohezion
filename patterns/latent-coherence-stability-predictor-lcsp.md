@@ -89,4 +89,9 @@ class LatentCoherenceStabilityPredictor:
 ## Related
 
 - [[decisions/2026-02-23-hiho-coherence-loss-must-target-per-sample-not-batch-mean]]
+- [[2026-02-24-anti-pattern-hiho-coherence-loss-on-batch-mean]] — batch-mean anti-pattern that LCSP metrics expose
+- [[2026-02-24-anti-pattern-character-level-tokenizer-for-semantic-embeddings]] — poor embeddings produce low LCSP semantic coherence scores
 - [[patterns/vae-checkpoint-format-with-config]]
+- [[experiments/2026-02-24-temporalvae-first-training-run-on-overnight-data]] — the first TemporalVAE training run where LCSP should be applied to detect whether the latent space stabilizes
+- [[patterns/checkpoint-format-with-full-reproducibility-state]] — LCSP temporal coherence metrics belong in the full reproducibility checkpoint so convergence evidence is preserved alongside weights
+- [[experiments/2026-02-24-overnight-simulation-data-characterization-55m-trajectories]] — the 55M trajectory dataset whose diversity determines representative anchor input selection for semantic coherence measurement

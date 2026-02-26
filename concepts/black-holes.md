@@ -16,3 +16,4 @@ Regions of spacetime where gravity is so strong that nothing can escape. Key obj
 - [[webb-cosmic-question-mark-gravitational-lens]] — gravitational lensing by galaxy clusters (which contain supermassive black holes) creates the rare question mark configuration
 - [[mom-z14-farthest-galaxy]] — MoM-z14 is the farthest known galaxy, likely containing an active supermassive black hole in its first 280 million years
 - [[fractal-universe]]
+- [[m87-jet-base-eht-2026]] — EHT 2026 identified the base of M87*'s 3,000-light-year relativistic jet just 0.09 light-years from the black hole, directly connecting the photon ring shadow to the jet-launch mechanism for the first time

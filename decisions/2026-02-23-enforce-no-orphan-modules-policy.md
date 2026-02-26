@@ -103,4 +103,7 @@ High. Orphan modules consistently cause confusion and accumulate silent stalenes
 ## Related Decisions & Lessons
 
 - [[2026-02-24-anti-pattern-disconnected-modules-without-consumers]]
-- [[patterns/bioelectric-field-modeling-for-action-generation]]
+- [[patterns/bioelectric-field-modeling-for-action-generation]] — preserved as vault pattern when bioelectric_field.py was deleted
+- [[patterns/morphospace-stability-wells]] — preserved as vault pattern when morphospace.py was deleted
+- [[safe-file-split-checklist]] — file splits are a common source of orphan modules; this checklist requires a consumer
+- [[integration-first-definition-of-done]] — "done" requires integration, not just code; prevents orphan module creation

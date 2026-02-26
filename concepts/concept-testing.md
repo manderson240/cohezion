@@ -81,6 +81,12 @@ tags: [concept]
 
 - [Add related concepts]
 
+## Key Lesson Links
+
+- [[lesson-18-mock-live-services-in-tests]] — all external service calls in unit tests MUST be mocked; integration tests run separately
+- [[lesson-34-test-hang-unmocked-live-service]] — unmocked live services cause indefinite test hangs; set explicit timeouts as a safety net
+- [[lesson-32-concurrent-pytest-contention]] — parallel pytest workers sharing resources cause flaky tests; use worker-unique resource identifiers
+
 ## Relevance to Cohezion
 
 [Describe relevance to the Cohezion framework]

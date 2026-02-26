@@ -161,6 +161,11 @@ This decision is implemented as of 2026-02-10.
 - [[troubleshooting-mcp-infrastructure]]
 - [[mcp-infrastructure-architecture]]
 
+## Related Patterns
+
+- [[quick-start-mcp-tool]] — the MCP tool scaffold pattern implemented in Phase A
+- [[runbook-health-checks]] — the health check runbook pattern this phase produced as a deliverable
+
 ## Related Concepts
 
 - [[3d-graph-plugin-selection]]

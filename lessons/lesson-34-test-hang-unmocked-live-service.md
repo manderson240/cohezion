@@ -52,6 +52,10 @@ timeout = 30
 ## Related Concepts
 
 - [[compound-engineering]] - Reliable test suite timing enables reliable compound CI
+- [[testing-agent-skills-with-evals]] - Agent skill evals require explicit timeout guards to prevent indefinite hangs when live services are unavailable during evaluation runs
+- [[lesson-18-mock-live-services-in-tests]] - The preferred solution: mock external services entirely rather than rely on timeout guards
+- [[concept-testing]] - unmocked live services cause indefinite test hangs; global timeout is the safety net
+- [[concept-isolation]] - test isolation via mocking prevents test suite stalls from unavailable services
 
 ## Validation
 

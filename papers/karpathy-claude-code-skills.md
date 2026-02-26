@@ -89,3 +89,5 @@ AI Development Tools resource captured via mobile link pipeline. lab_agent.py, [
 - [[usaf-stealthy-electromagnetic-attack]]
 - [[claude-code-community-skills]]
 - [[cisa-chatgpt-data-leak]]
+- [[gemini-cli-ai-employees-agent-factory]] — Agent Factory's "AI employees" pattern operationalizes the 80% AI-driven coding workflow Karpathy describes, but generalized beyond Claude Code to any CLI-driven AI agent
+- [[agyn-multi-agent-software-engineering]] — Agyn's researcher/engineer/reviewer team mirrors how Karpathy's AI-first workflow naturally decomposes into specialist agents rather than a single code-generation tool

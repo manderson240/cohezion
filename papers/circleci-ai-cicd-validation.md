@@ -68,6 +68,10 @@ DevOps/AI resource captured via mobile link pipeline. general, [[agentic-ai]]
 ## Related Papers
 
 - [[testing-agent-skills-with-evals]] — CircleCI's Chunk performs the same kind of systematic agent skill evaluation (outcome, process, efficiency goals) described in the OpenAI evals framework
+- [[lesson-12-layered-validation]] — Chunk's per-boundary validation (diff analysis → dependency graph → historical behavior) is the CI/CD instantiation of layered validation at each system boundary
+- [[lesson-10-gitlab-ci-runner]] — GitLab CI's clean-room environment assumption is the same discipline CircleCI Chunk automates: every dependency declared, no local state assumed
+- [[lesson-20-ci-scope-discipline]] — Chunk's targeted test scoping (changed modules + their dependents) directly implements CI scope discipline via dependency graph analysis
+- [[lesson-measurement-integrity-honest-reporting]] — honest metric collection is prerequisite for Chunk's "measure → improve" feedback loop
 - [[theorem-ai-formal-verification]] — both address AI-generated code correctness: Theorem via formal proof, CircleCI Chunk via autonomous CI/CD validation
 - [[claude-code-community-skills]] — the 36 community skills produce AI-generated code that CircleCI-style CI/CD validation must catch for regressions
 - [[karpathy-claude-code-skills]] — the 80% AI-driven coding workflow Karpathy describes requires exactly the kind of autonomous CI validation CircleCI Chunk provides

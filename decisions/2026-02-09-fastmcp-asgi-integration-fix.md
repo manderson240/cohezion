@@ -104,6 +104,11 @@ This fix enables the full MCP ↔ Vault integration chain:
 
 [[mcp-infrastructure-architecture]]
 
+## Related Patterns
+
+- [[fastmcp-asgi-builder-pattern]] — the builder/factory pattern that is the fix documented in this decision
+- [[quick-start-mcp-tool]] — quick-start scaffold pattern for MCP server setup this unblocked
+
 ## Related Concepts
 
 - [[2026-02-10-kyutai-mcp-obsidian-plugin-plan]]

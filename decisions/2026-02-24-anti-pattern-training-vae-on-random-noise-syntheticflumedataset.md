@@ -99,3 +99,6 @@ High. The failure mode (model learns synthetic distribution, fails on real data)
 
 - [[2026-02-23-never-train-vae-on-random-noise-as-synthetic-data]]
 - [[2026-02-24-flume-vae-v2-training-results]]
+- [[latent-coherence-stability-predictor-lcsp]] — LCSP temporal coherence would show apparent stability on synthetic data but collapse on real data; always measure on real anchors
+- [[checkpoint-format-with-full-reproducibility-state]] — checkpoint format must record training dataset source to prevent silent reuse of synthetic data in future runs
+- [[failure-mode-test-priority]] — false confidence from good ELBO on synthetic data is a training-pipeline failure mode; test with distribution-sampled data

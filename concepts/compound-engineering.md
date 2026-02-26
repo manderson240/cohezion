@@ -72,6 +72,9 @@ The [[2026-02-07-ai-research-agent-for-vault-notes|research agent experiment]] d
 ### Technical Layer
 - [[agentic-ai]] — AI agents as compound engineering contributors
 - [[context-management]] — Managing context windows for compound knowledge
+- [[agyn-multi-agent-software-engineering]] — Agyn's captured-learnings model applies compound engineering to multi-agent teams: each session's learnings compound into improved future coordination
+- [[gemini-cli-ai-employees-agent-factory]] — SOP-in-markdown is compound engineering for agent instructions: reusable SOPs capture proven workflows and compound value across repeated tasks
+- [[python-314-free-threaded-gil-removal]] — free-threaded Python enables true parallel compound engineering sessions without the process isolation overhead of subprocess-based parallelism
 
 ## Relevance to Cohezion
 
@@ -81,6 +84,12 @@ Compound engineering is the foundational philosophy of Cohezion itself, formaliz
 
 - [[implementation-first-infrastructure-later]] — Validate before scaling infrastructure
 - [[session-retrospective]] — Capture lessons from each engineering session
+
+## Related Lessons
+
+- [[lesson-adversarial-review-before-execution]] — adversarial review before execution prevents 90% wasted effort; 45x ROI on 10-minute review investment
+- [[lesson-effective-retrospectives]] — structured retrospective format extracts maximum reusable patterns from session experience; feeds the compound learning loop
+- [[lesson-37-experience-guided-execution-works-new]] — experience-guided execution is the engine of compound knowledge growth; context injection replaces re-discovery
 
 ## Decisions & Experiments
 

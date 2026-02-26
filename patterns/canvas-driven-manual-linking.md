@@ -302,6 +302,15 @@ High-priority orphans:
 - Cluster-driven discovery (analyze Canvas structure)
 
 
+## Decisions That Produced This Pattern
+
+- [[2026-02-10-canvas-driven-compound-engineering]] — the original decision to use canvas-driven top-down linking
+- [[2026-02-10-canvas-driven-compound-engineering-refined]] — the refined 4-phase plan this pattern extracts
+- [[2026-02-10-compound-linking-plan-adversarial-review]] — adversarial review that endorsed the canvas approach over bottom-up matching
+- [[2026-02-10-compound-node-linking-plan]] — the bottom-up plan superseded by this pattern
+- [[2026-02-10-operational-forensics-compound-engineering]] — applied this pattern for forensic analysis linking
+- [[2026-02-10-token-efficient-compound-engineering-roadmap]] — the roadmap that includes this pattern as a core vault enrichment method
+
 ## Related Concepts
 
 - [[dna-origami-2d-semiconductor-patterning]]
@@ -309,6 +318,5 @@ High-priority orphans:
 - [[2026-02-14-phases-1-3-retrospective-key-learnings]]
 - [[2026-02-10-kyutai-mcp-obsidian-plugin-plan]]
 - [[2026-02-14-phase-6a-automated-reasoning-chain-inference-complete]]
-- [[2026-02-10-canvas-driven-compound-engineering-refined]]
 - [[2026-02-14-wave-1-overnight-completion-report]]
 - [[2026-02-14-compound-engineering-team-execution-retrospective]]

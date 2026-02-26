@@ -430,6 +430,15 @@ Document learnings; prepare pattern for community sharing; identify scaling opti
 [[compound-engineering]]
 [[context-management]]
 
+## Related Patterns
+
+- [[canvas-driven-manual-linking]] — the canvas-driven linking approach that implements the vault enrichment roadmap here
+- [[pattern-compound-engineering]] — the compound engineering pattern whose token-efficient execution this roadmap describes
+
+## Related Decisions (Series)
+
+- [[2026-02-09-12d-graph-next-steps]] — the 12D strategy decision whose lessons informed this roadmap
+
 ## Related Concepts
 
 - [[3d-graph-plugin-selection]]

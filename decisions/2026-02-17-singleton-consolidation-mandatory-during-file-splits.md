@@ -63,6 +63,11 @@ metrics:
 
 ## Related Decisions & Lessons
 
+- [[safe-file-split-checklist]] — the checklist that enforces singleton consolidation during splits
+- [[service-class-singleton-pattern]] — the correct singleton pattern that avoids duplicate instances
+- [[async-singleton-lock-isolation]] — async-specific singleton isolation needed during file splits to prevent event loop binding issues
+- [[2026-02-22-asyncio-lock-in-init-not-class-level]] — related class-level singleton lock issue discovered 5 days later; same root cause pattern
+
 ## Related Concepts
 
 - [[3d-graph-plugin-selection]]

@@ -59,3 +59,13 @@ Directly relevant to [[lab_agent.py]] design decisions around context window man
 - [[ai-anomaly-detection-hubble-archive]]
 - [[ocean-calcium-climate-mystery-66my]]
 - [[mars-time-dilation-relativity]]
+
+## Engineering Implementations
+
+- [[3-tier-hotwarmcold-model-rotation]] — this pattern IS the "intelligent memory management software" the paper calls for: hot/warm/cold model tiers directly mirror the HBM/DRAM/NVMe hardware hierarchy described here. The pattern translates the paper's hardware constraints into an actionable software design.
+- [[lesson-37-experience-guided-execution-works-new]] — experience-guided execution is one mechanism for reducing KV cache pressure: pre-loaded prior session context reduces how much the agent must reconstruct in working memory during a new session, directly alleviating the "time-to-live" problem described here.
+- [[2026-02-14-agent-orchestration-design-3-tier-hotwarmcold-model-rotation]] — the formal decision that instantiates the software response to this paper's hardware analysis
+- [[lesson-29-batch-cache-two-phase]] — the two-phase batch cache pattern (bulk lookup before compute) is a software strategy that reduces KV cache pressure: by computing only cache misses, it minimizes the volume of new inference that must be held in HBM
+- [[lesson-19-session-awareness-protocol]] — the startup context-loading sequence is a software workaround for hardware KV caches that cannot persist across session boundaries; loading prior context at startup replaces what hardware cannot retain
+- [[group-evolving-agents-gea-framework]] — cross-agent experience sharing in GEA creates persistent cross-generational memory demands that stress the same KV cache hierarchies described here
+- [[python-314-free-threaded-gil-removal]] — free-threaded Python enables concurrent KV cache management across multiple agent threads without subprocess memory duplication overhead

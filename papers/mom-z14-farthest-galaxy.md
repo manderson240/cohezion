@@ -61,3 +61,4 @@ Challenges existing models of early galaxy formation and provides observational 
 - [[anomaly-detection]]
 - [[grb-250314a-ancient-signal]] — the gamma-ray burst from 730 million years after the Big Bang and MoM-z14 from 280 million years after both probe the reionization era; they are complementary messengers from the universe's first billion years
 - [[early-universe-cosmology]]
+- [[early-hot-galaxy-cluster-14-billion-years]] — MoM-z14 at 280 million years and this hot galaxy cluster at 1.4 billion years are complementary early-universe anomalies; both exist far earlier and in more extreme states than ΛCDM predicts, together building the case for revising standard cosmological structure formation models

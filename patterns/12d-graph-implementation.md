@@ -182,6 +182,14 @@ tags: [pattern, 12d-graph, compound-engineering, phase-1]
 
 
 [[graph-databases]], [[knowledge-graph-systems]], [[mcp-infrastructure-architecture]]
+
+## Decisions That Produced This Pattern
+
+- [[2026-02-09-12d-graph-next-steps]] — the hybrid path (incremental + full) strategy this plan implements
+- [[2026-02-09-12d-graph-refined-plan]] — the specialist-driven implementation plan this pattern extracts the token-efficient version of
+- [[2026-02-09-12d-graph-surrealdb-integration]] — the original SurrealDB integration decision this builds on
+- [[2026-02-10-phase3-3d-graph-adversarial-review]] — the adversarial review that identified improvements to the original plan
+
 ## Related Concepts
 
 - [[dna-origami-2d-semiconductor-patterning]]

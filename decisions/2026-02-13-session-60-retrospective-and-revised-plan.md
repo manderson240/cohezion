@@ -244,5 +244,10 @@ When starting Session 61 (2026-02-14 09:00 UTC):
 - [[entire-io-sync-daemon-design]]
 - [[surrealdb-agent-context-schema]]
 - [[lesson-11-team-agent-efficiency]]
+- [[2026-02-13-phase-2-execution-strategy-wave-2]] — the Wave 2 execution strategy this retrospective issued
+- [[2026-02-13-phase-2-final-completion-summary]] — the Phase 2 completion summary that resulted from this orchestration plan
+- [[2026-02-13-phase-2-track-a-complete]] — Track A delivery this plan coordinated the sign-off for
+- [[2026-02-13-phase-2-track-b-entire-io-sync-daemon-complete]] — Track B delivery this plan remediated
+- [[2026-02-14-phases-1-3-retrospective-key-learnings]] — the full retrospective that this session fed into
 
 *Session 60 Complete. Phase 2 execution ready for team orchestration.*

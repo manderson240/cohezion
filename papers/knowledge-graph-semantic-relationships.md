@@ -16,6 +16,10 @@ Reference for modeling semantic relationships in knowledge graphs — entity typ
 - [[schema-design-relational]] — complementary data modeling approach; relational and graph schemas address different parts of the same design space
 - [[service-layer-architecture]] — service layers depend on well-modeled semantic relationships for clean data access boundaries
 
+## Engineering Lessons
+
+- [[lesson-08-import-graph]] — Python import dependency graphs are a concrete instance of semantic relationship modeling: modules are entities, import statements are directed edges, and refactoring requires traversing the full relationship graph before modifying any node
+
 ## Cross-Domain Bridges
 
 - [[protein-tape-recorder-cytotape]] — CytoTape and knowledge graphs both encode prior state as a traversable structure: CytoTape records cellular temporal signals along a protein fiber, while a knowledge graph encodes conceptual relationships as navigable edges. Both enable post-hoc replay and inference from recorded history — biology solved the "append-only log with semantic retrieval" problem 3 billion years before computer science did.

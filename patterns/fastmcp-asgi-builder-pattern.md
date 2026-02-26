@@ -180,9 +180,10 @@ def main():
 | **Execution** | Happens in ASGI app from factory method |
 
 ## See Also
-- `/decisions/2026-02-09-fastmcp-asgi-integration-fix.md` - Bug fix decision log
+
+- [[2026-02-09-fastmcp-asgi-integration-fix|Decision: FastMCP ASGI Integration Fix]] - Bug fix decision log
+- [[2026-02-09-session-43-mcp-setup|Decision: Session 43 MCP Server Setup & Obsidian Integration]] - Context where bug was first identified
 - FastMCP documentation: https://modelcontextprotocol.io
 - Starlette ASGI app docs: https://www.starlette.io/
-
 
 [[mcp-infrastructure-architecture]], [[mcp-model-context-protocol]]

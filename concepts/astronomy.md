@@ -19,3 +19,6 @@ Observational science of celestial objects and phenomena. Research domain in the
 - [[sentinel-1-ice-sheets]] — satellite remote sensing for Earth observation
 - [[grb-250314a-ancient-signal]] — high-energy astrophysics transients
 - [[fast-radio-bursts-binary-star-origin]] — radio astronomy and transient detection
+- [[milky-way-barred-spiral-structure]] — galactic structure and bar-driven gas dynamics shaping the Milky Way's long-term evolution
+- [[m87-jet-base-eht-2026]] — EHT resolved the base of M87*'s relativistic jet, connecting the photon ring to jet-launch physics for the first time
+- [[early-hot-galaxy-cluster-14-billion-years]] — galaxy cluster formation and intra-cluster gas physics in the early universe

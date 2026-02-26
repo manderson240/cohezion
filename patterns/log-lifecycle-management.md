@@ -231,3 +231,10 @@ fi
 - Journald config: `systemd/journald-cohezion.conf`
 - Logrotate config: `systemd/logrotate-rsyslog.conf`
 - Guard hook: `.claude/hooks/guard-services.sh`
+
+## Decisions That Produced This Pattern
+
+- [[2026-02-09-operational-principle-no-destructive-operations-without-learning]] — the operational governance principle whose "Extract Learning" step this pattern implements
+- [[2026-02-10-claude-log-mining-architecture]] — the log mining architecture whose pipeline feeds into this lifecycle management pattern
+- [[2026-02-10-log-mining-adversarial-review]] — adversarial review that validated the log mining approach
+- [[2026-02-10-operational-forensics-compound-engineering]] — the forensics approach that applies this log lifecycle to extract compound engineering learnings

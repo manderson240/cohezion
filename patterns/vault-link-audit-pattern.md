@@ -92,3 +92,4 @@ In a 906-note vault starting with 728 broken targets:
 - [[lesson-39-vault-audit-must-exclude-worktrees]]
 - [[lesson-40-sequential-numbering-offset-corrupts-indexes]]
 - [[2026-02-24-vault-link-integrity-sprint]]
+- [[2026-02-24-vault-link-integrity-first-principle]] — the decision that establishes vault link integrity as a first-class engineering concern

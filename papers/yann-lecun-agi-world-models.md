@@ -63,6 +63,10 @@ Yann LeCun's perspective on achieving human-level AI and the importance of open 
 
 Informs [[lab-agent]] architecture decisions. The world models concept aligns with Cohezion's approach to building agents that understand causal relationships rather than relying purely on pattern matching., [[agentic-ai]]
 
+## Related Concepts
+
+- [[embodied-ai]] — LeCun's world model architecture is the leading theoretical framework for embodied AI; his AMI Labs work targets exactly the physical-world grounding that embodied systems need
+
 ## Related Papers
 
 - [[ocean-calcium-climate-mystery-66my]]
@@ -81,6 +85,8 @@ Informs [[lab-agent]] architecture decisions. The world models concept aligns wi
 - [[llm-in-sandbox-agentic-intelligence]]
 - [[cu45-superatom-carbon-recycling]]
 - [[optofluidic-3d-nanofabrication]]
+- [[four-ai-research-trends-enterprise-2026]] — the "world models" enterprise trend is directly built on LeCun's JEPA architecture; AMI Labs is the primary research organization driving this trend
+- [[group-evolving-agents-gea-framework]] — GEA's cross-agent collective knowledge sharing is a step toward the persistent causal representations LeCun argues LLMs lack; group evolution accumulates cross-generational knowledge that begins to approximate world-model persistence
 
 ## Cross-Domain Bridges
 

@@ -77,6 +77,8 @@ metrics:
 - [[repository-health-monitoring-size-tracking-large-object-detection]]
 - [[multi-platform-repository-deployment-with-external-integration]]
 - [[2026-02-11-use-escalation-staged-deployment-for-large-repository-cleanup]]
+- [[2026-02-11-session-55-discovered-redundant-pack-files-as-root-cause-of-12gb-size-final-cons]] — the root-cause investigation that found the 12GB problem this migration resolves
+- [[platform-issue-analysis-template]] — the analysis methodology used to diagnose the repository size issue
 
 ## Related Concepts
 

@@ -12,3 +12,7 @@ Interdisciplinary study of mind and intelligence — spanning neuroscience, psyc
 ## Related
 - [[agentic-ai]]
 - [[meta-learning]]
+
+## Related Lessons
+
+- [[lesson-effective-retrospectives]] — structured session reviews mirror cognitive science principles: consistent frameworks extract maximum reusable patterns from experience

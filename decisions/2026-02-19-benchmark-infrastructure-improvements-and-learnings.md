@@ -63,6 +63,10 @@ metrics:
 
 ## Related Decisions & Lessons
 
+- [[2026-02-19-benchmark-infrastructure-complete-baseline-runs]] — the baseline infrastructure these improvements build upon
+- [[2026-02-19-benchmark-improvement-system-complete]] — the system that automates the improvement loop (BenchmarkOrchestrator, SelfCorrectionLoop)
+- [[patterns/runbook-benchmarking-validation]] — benchmarking runbook for repeatable validation runs
+
 ## Related Concepts
 
 - [[3d-graph-plugin-selection]]

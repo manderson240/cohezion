@@ -110,3 +110,5 @@ High. Mathematical certainty about non-commutativity. Empirically confirmed thro
 ## Related Decisions & Lessons
 
 - [[2026-02-23-hiho-coherence-loss-must-target-per-sample-not-batch-mean]]
+- [[latent-coherence-stability-predictor-lcsp]] — LCSP monitors per-sample coherence stability; batch-mean anti-pattern undermines this measurement
+- [[failure-mode-test-priority]] — batch-mean coherence is a silent training failure mode; tests should verify per-sample coherence distribution

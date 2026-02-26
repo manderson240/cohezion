@@ -603,6 +603,10 @@ Once Phase 5-7 complete:
 - [[2026-02-09-vault-completion-retrospective]]
 - [[multi-session-compound-engineering-workflow]]
 - [[session-55-compound-engineering-learnings]]
+- [[2026-02-14-phase-4-implementation-progress]] — the Phase 4 execution this retrospective analyses (47% schedule compression)
+- [[2026-02-14-phases-1-3-retrospective-key-learnings]] — the prior retrospective whose patterns this document refines
+- [[2026-02-14-compound-engineering-team-execution-retrospective]] — parallel retrospective covering the vault linking team execution
+- [[implementation-first-infrastructure-later]] — the pattern validated by Phase 4's 47% schedule compression through template reuse
 
 ## Related Concepts
 

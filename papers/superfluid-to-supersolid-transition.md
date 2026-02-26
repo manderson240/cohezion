@@ -52,6 +52,7 @@ Phase transitions between quantum states demonstrate how system-level properties
 
 ## Related Concepts
 
+- [[quantum-materials]] — superfluid/supersolid phase transitions are a flagship example of emergent quantum mechanical properties at macroscopic scale; core quantum materials research
 - [[emu3-multimodal-next-token-prediction]]
 - [[helimagnetism-ferromagnetism-mode-locking]] — both are condensed-matter quantum phase phenomena; helimagnetic spin ordering and superfluid/supersolid exciton condensation represent distinct collective quantum states
 - [[international-year-quantum-2025]] — superfluid-to-supersolid transition is a landmark quantum observation directly relevant to quantum materials goals of IYQ 2025
@@ -64,3 +65,8 @@ Phase transitions between quantum states demonstrate how system-level properties
 - [[the-awareness-of-nothing-at-all-and-quadrature-physics]] — the superfluid-to-supersolid transition and the squeezed vacuum both demonstrate that quantum ground states have richer internal structure than classical intuition allows. Both reveal a hidden phase transition in what appears to be a featureless baseline: the vacuum fluctuates below its own noise floor; the superfluid crystallizes without losing frictionlessness.
 - [[ocean-calcium-climate-mystery-66my]] — the superfluid-to-supersolid transition occurs at a density threshold, analogous to the ocean calcium threshold that tipped Earth's climate from greenhouse to icehouse. Both are examples of a continuous control parameter crossing a critical point and producing a qualitatively different macroscopic phase — the same mathematical structure underlies geological and quantum phase transitions.
 - [[dna-origami-2d-semiconductor-patterning]] — DNA origami deposits dye molecules on monolayer MoS₂ (a 2D semiconductor), while the superfluid-to-supersolid transition was observed in monolayer graphene excitons — both exploit the unique physics of truly 2D quantum materials where reduced dimensionality enables phenomena impossible in bulk.
+
+## Engineering Analogues
+
+- [[2026-02-14-agent-orchestration-design-3-tier-hotwarmcold-model-rotation]] — the hot/warm/cold model tier system undergoes phase transitions structurally analogous to the superfluid-to-supersolid: at high request density, models are in the fluid hot tier (fast, frictionless flow); at lower utilization density, models transition to cold storage (rigid, ordered). The density-threshold phase boundary maps directly to the request-rate threshold driving tier assignment. Both are density-driven critical-point transitions producing qualitatively different macroscopic behavior.
+- [[3-tier-hotwarmcold-model-rotation]] — the pattern implementing the tier-transition logic where LLM models undergo utilization-density-driven phase changes between hot/warm/cold states

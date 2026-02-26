@@ -41,3 +41,7 @@ metrics:
 - [[compound-engineering]]
 - [[canvas-driven-manual-linking]]
 - [[surrealdb-agent-context-schema]]
+- [[lessons-graph-integration]] — pattern this decision instantiates for connecting vault nodes
+- [[2026-02-13-next-10-phases-graphrag-roadmap]] — the roadmap that builds on this decision
+- [[2026-02-12-session-57-graphrag-complete-phases-1-4-delivered]] — first delivery under this decision
+- [[2026-02-14-graphrag-verification-and-integration-session]] — later verification and fixes

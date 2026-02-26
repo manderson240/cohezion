@@ -24,6 +24,10 @@ tags: [concept]
 
 - [Add related concepts]
 
+## Key Lesson Links
+
+- [[lesson-29-batch-cache-two-phase]] — the canonical caching pattern: bulk cache lookup BEFORE computation, compute only misses, write results; 60% reduction in compute costs
+
 ## Relevance to Cohezion
 
 [Describe relevance to the Cohezion framework]

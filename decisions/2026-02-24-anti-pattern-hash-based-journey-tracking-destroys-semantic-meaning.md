@@ -103,3 +103,6 @@ High. Direct observation of uniform random distribution in trajectory visualizat
 
 - [[2026-02-23-hash-based-journey-tracking-produces-meaningless-12d-trajectories]]
 - [[2026-02-23-never-use-sha-256-hashes-as-semantic-embeddings]]
+- [[2026-02-24-anti-pattern-sha-256-as-semantic-embedding]] — root cause: SHA-256 has avalanche property incompatible with semantic distance
+- [[latent-coherence-stability-predictor-lcsp]] — LCSP semantic coherence would immediately detect zero cluster structure in hash-based trajectories
+- [[predictive-throttling-via-12d-trajectory-velocity]] — trajectory velocity prediction only works when 12D positions are semantically meaningful

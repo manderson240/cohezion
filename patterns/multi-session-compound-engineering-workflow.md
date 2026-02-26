@@ -224,3 +224,15 @@ git commit -m "Session 47: Phase 2 Security - TLS/HTTPS Implementation
 [[workflow-orchestration]], [[agentic-ai]]
 
 - [[decisions/2026-02-22-cz-spec-workflow-retrospective|cz spec workflow retrospective]] — a real-world run of the worktree + spec workflow pattern documented here; the retrospective identifies concrete improvements (D1–D5) to this workflow
+- [[2026-02-09-session-46-git-unification-complete]] — the session that first proved and approved the git-worktree multi-session pattern, resolving 30+ file conflicts across diverged histories
+- [[2026-02-10-canvas-driven-compound-engineering]] — the canvas-driven workflow fits into this multi-session compound engineering pattern for vault enrichment
+- [[2026-02-10-compound-engineering-meta-learning]] — the meta-learning feedback loop that provides the continuous data source for this multi-session workflow
+- [[2026-02-14-compound-engineering-team-execution-retrospective]] — the 3-agent team run (decision-linker + inbox-triager + compound-engineering agents) that demonstrated this pattern applied to vault maintenance at scale: +453 wiki-links, -55pp orphan rate, 15min wall time
+- [[2026-02-13-phase-2-track-a-complete]] — Track A used this pattern (isolated parallel execution, zero conflicts)
+- [[2026-02-14-phases-1-3-retrospective-key-learnings]] — the retrospective that codified parallel-track execution as Pattern 1 (40-45% compression)
+
+## Scientific Foundation
+
+- [[scaling-agent-systems]] — the paper's key finding that centralized coordination contains error amplification to 4.4x (vs 17.2x for independent agents) directly validates this pattern's design: each git worktree is an isolated agent, and the mandatory merge-review step before touching main IS the centralized validation bottleneck the paper prescribes. The workflow's measurable token-efficiency gains (55K vs 80K for concurrent-without-isolation) align with the paper's "fixed compute budget" framing.
+- [[llm-in-sandbox-agentic-intelligence]] — git worktrees are a filesystem-level sandbox, equivalent to the code sandbox isolation described in the paper; both prevent cross-session state contamination while enabling full environment access
+- [[lesson-git-worktrees-multi-session-isolation]] — the lesson that motivated this pattern, grounded in the real cost of diverged histories (213 vs 145 commits, no common ancestor)

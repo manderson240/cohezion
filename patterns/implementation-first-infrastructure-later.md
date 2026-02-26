@@ -169,6 +169,12 @@ Building elaborate test infrastructure, comprehensive documentation, and full de
 *Extracted from: [[2026-02-10-kyutai-token-waste-postmortem]]*
 *Validated by: [[S11_SAFE_MODE_V3]] retrospective*
 
+## Decisions That Validated This Pattern
+
+- [[2026-02-10-kyutai-token-waste-postmortem]] — the failure case that motivated this pattern (infrastructure-first led to 7.6x token waste)
+- [[2026-02-10-kyutai-pocket-tts-token-efficient-success]] — the success case that validated this pattern (90% token savings achieved)
+- [[2026-02-10-phase3-3d-graph-adversarial-review]] — the 3D graph adversarial review that recommended applying this pattern to avoid repeating kyutai mistakes
+
 ## Related Concepts
 
 - [[dna-origami-2d-semiconductor-patterning]]

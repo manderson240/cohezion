@@ -365,3 +365,5 @@ Python-optimized FLUME delivers **17.4x speedup** in production scenarios with *
 - [[compound-engineering]]
 - [[context-management]]
 - [[experiments/2026-02-24-sprint-4-end-to-end-integration-compound-execution-flume-cache-pipeline|Sprint 4: Compound Execution → FLUME Cache Pipeline]] — the end-to-end integration experiment that exercises this pattern in the compound execution pipeline
+- [[2026-02-09-rust-flume-python313-incompatibility|Decision: Rust FLUME Binary Incompatibility with Python 3.13]] — the root cause decision that motivated building this Python-optimized fallback
+- [[2026-02-24-anti-pattern-sha-256-as-semantic-embedding|Anti-pattern: SHA-256 as Semantic Embedding]] — the hash-based deterministic tier in this pattern's fallback hierarchy has limited semantic value; prefer trained embeddings

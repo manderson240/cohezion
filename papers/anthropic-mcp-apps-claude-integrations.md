@@ -52,6 +52,8 @@ Demonstrates the trajectory of AI assistants becoming orchestration hubs for too
 
 - [[llamaagents-builder]] — both demonstrate natural-language-to-agent workflows; MCP Apps through interactive UI embedding, LlamaAgents Builder through workflow code generation
 - [[openai-codex-agent-loop]] — the Codex agent loop architecture is the backend pattern that MCP Apps UI embedding builds on top of
+- [[agentic-ai-foundation-mcp-linux-foundation]] — AAIF's governance of MCP creates the vendor-neutral standard that MCP Apps products depend on; AAIF is the organizational infrastructure for the MCP ecosystem
+- [[gemini-cli-ai-employees-agent-factory]] — Agent Factory is Google's parallel architecture to MCP Apps: both embed workplace tooling into AI assistants, approaching the same goal from competing ecosystems
 
 ## Related Concepts
 

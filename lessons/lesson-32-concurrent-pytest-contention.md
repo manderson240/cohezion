@@ -43,6 +43,10 @@ def test_output_file(tmp_path):
 ## Related Concepts
 
 - [[compound-engineering]] - Reliable test infrastructure enables reliable compound builds
+- [[concept-testing]] - parallel pytest requires resource isolation per worker
+- [[concept-isolation]] - worker-unique resource identifiers (tmp_path, dynamic ports) are the isolation mechanism
+- [[python-314-free-threaded-gil-removal]] - free-threaded Python amplifies shared resource contention in parallel test runs; with true parallelism, the tmp_path and dynamic port isolation discipline becomes mandatory rather than just best practice
+- [[lesson-07-gtt-carveout-illusion]] - concurrent pytest contention is a manifestation of the carveout illusion: test workers appear isolated by namespace but still share /tmp paths, ports, and database tables
 
 ## Validation
 

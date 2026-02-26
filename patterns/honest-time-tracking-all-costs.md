@@ -488,6 +488,11 @@ Path("SESSION_57_SUMMARY.md").write_text(md_report)
 - [[mini-adversarial-review-checkpoints]] - Code review is part of time
 - [[staged-validation-long-horizon-tasks]] - Validation time must be tracked
 
+## Related Decisions
+
+- [[2026-02-14-compound-engineering-team-execution-retrospective|Decision: Compound Engineering Team Execution Retrospective]] — session 57 retrospective that exposed the hidden 44% cost gap
+- [[2026-02-14-phases-1-3-retrospective-key-learnings|Decision: Phases 1-3 Retrospective Key Learnings]] — retrospective that codified honest metrics as a standard
+
 ---
 
 **Last Updated**: 2026-02-14

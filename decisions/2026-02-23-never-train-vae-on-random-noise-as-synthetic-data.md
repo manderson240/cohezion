@@ -96,3 +96,9 @@ High. The empirical evidence (model fails on real data after training on noise) 
 
 - [[2026-02-24-anti-pattern-training-vae-on-random-noise-syntheticflumedataset]]
 - [[2026-02-24-flume-vae-v2-training-results]]
+
+## Related Patterns
+
+- [[multi-tier-data-collection-with-graceful-fallback|Pattern: Multi-Tier Data Collection with Graceful Fallback]] — the pattern for sourcing real agent training data instead of synthetic noise
+- [[checkpoint-format-with-full-reproducibility-state|Pattern: Checkpoint Format with Full Reproducibility State]] — training on real data requires full checkpoint state to reproduce runs
+- [[latent-coherence-stability-predictor-lcsp|Pattern: Latent Coherence Stability Predictor (LCSP)]] — use LCSP to verify that the model has learned meaningful semantic structure, not just random noise reconstruction

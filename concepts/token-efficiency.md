@@ -195,6 +195,12 @@ Over 100 sessions:
 - [[context-management]] — Related to token context windows
 - [[agentic-ai]] — Agent-based token consumption patterns
 
+## Related Lessons
+
+- [[lesson-11-team-agent-efficiency]] — CRITICAL: team coordination overhead (2-5K tokens per handoff) directly impacts token costs; single agents are token-efficient for tasks under ~2 hours
+- [[lesson-29-batch-cache-two-phase]] — batch cache two-phase pattern delivers 60% reduction in compute costs; amortizes token overhead across batch operations
+- [[lesson-adversarial-review-before-execution]] — adversarial review prevents wasted token spend; 45x ROI (5K tokens of review prevents 225K tokens of wasted execution)
+
 ## Relevance to Cohezion
 
 Token efficiency is critical for Cohezion's agent orchestration model. With 12+ agents potentially running in parallel, poor token efficiency would make projects economically infeasible. The [[implementation-first-infrastructure-later]] pattern, combined with Haiku-first research and local Ollama processing, keeps per-project costs under $5 while maintaining production quality.

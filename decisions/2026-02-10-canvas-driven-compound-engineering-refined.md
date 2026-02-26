@@ -339,6 +339,15 @@ git commit -m "phase-enrichment: Add N semantic links via manual review"
 
 **Recommendation**: Use this pattern for future vault enrichment cycles. Build embedding-based automation only if manual review becomes bottleneck (>200 orphans).
 
+## Related Patterns
+
+- [[canvas-driven-manual-linking]] — the pattern extracted from this refined workflow
+- [[mini-adversarial-review-checkpoints]] — inline adversarial review approach applied to refining this plan
+
+## Related Decisions (Series)
+
+- [[2026-02-10-canvas-driven-compound-engineering]] — original canvas-driven plan this refines
+- [[2026-02-10-compound-linking-plan-adversarial-review]] — adversarial review that prompted this refinement
 
 ## Related Concepts
 

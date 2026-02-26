@@ -223,3 +223,9 @@ Pattern reuse compounds: every feature gets faster.
 - [[transcranial-ultrasound-consciousness]]
 - [[prime-skill-quick-reference]]
 - [[mcp-tool-scaffold-pattern]]
+
+## Related Decisions
+
+- [[2026-02-09-session-43-mcp-setup|Decision: Session 43 MCP Server Setup & Obsidian Integration]] — established the MCP server infrastructure this pattern builds tools for
+- [[2026-02-09-fastmcp-asgi-integration-fix|Decision: FastMCP ASGI Integration Fix]] — critical fix without which the tool registration step (Step 2) would fail
+- [[2026-02-10-kyutai-pocket-tts-token-efficient-success|Decision: Kyutai Pocket TTS Token-Efficient Success]] — the worked example referenced in this pattern (pocket_tts.py)

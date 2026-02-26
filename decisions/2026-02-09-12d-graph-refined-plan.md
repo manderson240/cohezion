@@ -544,6 +544,17 @@ User edits paper: adds 3 new wiki-links → [[quantum-computing]], [[ai-agents]]
 **Next Action**: Spawn 5 specialist agents in parallel
 **Timeline**: 6-7 weeks to production-ready 12D Graph System
 
+## Related Patterns
+
+- [[12d-graph-implementation]] — token-efficient plan implementing the specialist-driven phases designed here
+- [[3-tier-hotwarmcold-model-rotation]] — the Opus/Sonnet/Haiku + local LLM model hierarchy applied in this plan
+
+## Related Decisions (Series)
+
+- [[2026-02-09-12d-graph-next-steps]] — next-steps strategy document
+- [[2026-02-09-12d-graph-surrealdb-integration]] — original 12D SurrealDB backend decision
+- [[2026-02-09-ai-model-strategy]] — detailed AI model selection strategy for 12D features
+
 ## Related Lessons
 
 - [[lesson-11-team-agent-efficiency]] (operational validation)

@@ -29,6 +29,10 @@ tags: [concept]
 
 - [Add related concepts]
 
+## Key Lesson Links
+
+- [[lesson-40-sequential-numbering-offset-corrupts-indexes]] — sequential numbering offsets across corpus boundaries corrupt indexes; semantic IDs are resilient, sequential offsets are fragile
+
 ## Relevance to Cohezion
 
 [Describe relevance to the Cohezion framework]

@@ -45,6 +45,11 @@ def test_embedding(mock_ollama):
 ## Related Concepts
 
 - [[compound-engineering]] - Reliable test suites enable reliable compound deployment
+- [[testing-agent-skills-with-evals]] - The evals framework's four-category approach (outcome, process, style, efficiency) requires properly mocked external services to isolate agent skill under test
+- [[lesson-34-test-hang-unmocked-live-service]] - Related failure mode: unmocked live services cause test hangs, not just flakiness
+- [[concept-testing]] - mock live services is a foundational testing discipline
+- [[concept-isolation]] - mocking is the primary isolation mechanism for external service dependencies
+- [[concept-modularity]] - clean module boundaries enable mocking at the client level
 
 ## Validation
 

@@ -275,3 +275,9 @@ Phase 7 Features
 - [[2026-02-14-compound-engineering-team-execution-retrospective]]
 - [[2026-02-10-compound-linking-plan-adversarial-review]]
 - [[2026-02-10-claude-log-mining-architecture]]
+
+## Scientific Foundation
+
+- [[langchain-deep-agents-context-management]] — LangChain's three-tier context strategy (offload/truncate/summarize) maps directly onto the 7-step executor pipeline: Phase 1 (vault query) implements "retrieve from offloaded filesystem storage"; the Phase 6 refinement loop implements "LLM-powered summarization to compact context"; Phase 7 (record journey) writes back to the filesystem tier for future retrieval. Cohezion's compound executor is an independent parallel invention of the same architecture LangChain published.
+- [[scaling-agent-systems]] — the 7-step pipeline's Phase 5 (anomaly detection) implements the "validation bottleneck" the paper identifies as critical for containing error amplification in orchestrated systems: checking output quality before committing to Phase 6 refinement prevents compounding degradation.
+- [[protein-tape-recorder-cytotape]] — the CytoTape tape-recorder metaphor describes Phase 7 of this executor: recording the 12D journey creates a protein-fiber-like sequential record of execution state, enabling post-mortem analysis of agent behavior over time

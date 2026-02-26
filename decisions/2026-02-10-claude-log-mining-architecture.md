@@ -457,6 +457,11 @@ Concepts
   - [[lesson-37-experience-guided-execution-works-new]] (validation relevance: 13)
   - [[lesson-38-singleton-executor-for-sessions-new]] (validation relevance: 13)
 
+## Related Patterns
+
+- [[log-lifecycle-management]] — the log lifecycle pattern implementing the mining pipeline architecture decided here
+- [[log-rotation-and-monitoring]] — the log rotation and retention pattern that supports the log mining data flow
+
 ## Related Concepts
 
 - [[emu3-multimodal-next-token-prediction]]

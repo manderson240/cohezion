@@ -54,6 +54,8 @@ Unified multimodal architecture directly relevant to `lab_agent.py` design. The 
 
 - [[llm-training-methodology-changes]] — Emu3's unified next-token prediction approach is a concrete example of the "train smarter" paradigm: one training objective across all modalities instead of separate specialized architectures
 - [[yann-lecun-agi-world-models]] — Emu3's video generation capability is exactly the kind of world-model grounding LeCun argues is necessary for human-level AI; learning from video prediction is AMI Labs' stated approach
+- [[transformers-v5-huggingface-release]] — Transformers v5's modular architecture is designed to accommodate unified multi-modal models like Emu3; the library's pre-training support enables the scale at which Emu3-class models are trained
+- [[time-series-foundation-models-2026]] — Emu3's next-token prediction paradigm applied to temporal video sequences is architecturally equivalent to time series foundation models; both treat temporal data as token streams for unified prediction
 
 ## Related Concepts
 

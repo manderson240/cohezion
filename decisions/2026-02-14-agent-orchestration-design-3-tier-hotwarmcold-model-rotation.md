@@ -76,7 +76,7 @@ metrics:
 
 ## Related Decisions & Lessons
 
-- [[3-tier-hotwarmcold-model-rotation]]
+- [[3-tier-hotwarmcold-model-rotation|Pattern: 3-Tier Hot/Warm/Cold Model Rotation]] — the pattern that operationalizes this decision
 - [[runbook-ollama-mcp-operations]]
 - [[2026-02-09-ai-model-strategy]]
 - [[2026-02-09-ollama-mcp-server]]
@@ -93,3 +93,8 @@ metrics:
 - [[2026-02-13-gitlab-to-github-consolidation-with-artifact-governance]]
 - [[2026-02-14-adversarial-multi-agent-review-protocol]]
 - [[2026-02-14-phase-2-adversarial-review-corrected-status-and-path-forward]]
+
+## Scientific Foundation
+
+- [[agentic-ai-memory-hierarchies]] — the hot/warm/cold tier design directly implements the paper's call for "intelligent memory management software" that decides which context parts reside in fastest memory. Hot = HBM/VRAM (always loaded, nanosecond access); Warm = DRAM (loaded on first request, microsecond access); Cold = NVMe (load on demand, seconds). This decision IS the memory management software the paper calls for.
+- [[superfluid-to-supersolid-transition]] — the model tier system undergoes phase transitions analogous to the superfluid-to-supersolid transition: at high request density (like high exciton density), all models are in the hot fluid tier (fast, flexible flow); at lower demand, models crystallize into the cold tier (solid, structured storage). The density parameter that drives the quantum phase transition maps to the request-rate threshold that drives model tier assignment. Phase transitions between agent tiers follow the same non-linear threshold behavior.

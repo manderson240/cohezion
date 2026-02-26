@@ -72,4 +72,5 @@ class BioelectricField:
 ## Related
 
 - [[decisions/2026-02-23-enforce-no-orphan-modules-policy]]
+- [[2026-02-24-anti-pattern-disconnected-modules-without-consumers]] — this pattern is the vault preservation of an orphan module (bioelectric_field.py)
 - [[patterns/morphospace-stability-wells]]

@@ -85,6 +85,10 @@ The "no old-CLI references" check belongs in the project's integration tests (as
 - [[decisions/2026-02-22-daily-cli-tool-update-via-systemd-timer|Daily CLI Tool Update via Systemd Timer]] — decided in the same session; motivation was keeping `cz` CLI current
 - [[patterns/daily-cli-tool-update-with-version-comparison|Daily CLI Tool Update Pattern]] — pattern that operationalizes keeping CLI tools up to date
 - [[concepts/compound-engineering|Compound Engineering]] — the framework this retrospective improves
+- [[2026-02-22-asyncio-lock-in-init-not-class-level]] — async isolation fix that enabled 62 tests to pass in the same session
+- [[2026-02-22-pytestmark-asyncio-module-level]] — module-level async marking fix discovered during same session's test healing
+- [[2026-02-22-post-crash-venv-recovery-pytest-missing-despite-pyprojecttoml]] — venv recovery challenge encountered during this session's test run
+- [[role-based-multi-agent-coordination]] — parallel verification agent pattern that this retrospective validates as effective
 
 ## Next Steps for Compound Engineering
 

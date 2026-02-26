@@ -38,6 +38,11 @@ AI systems that operate autonomously across extended workflows, integrating mult
 - [[llamaagents-builder]] — natural-language-to-agent scaffolding democratizes agentic AI deployment
 - [[few-shot-prompting-agentic-coding]] — few-shot prompting provides the prompt engineering layer that makes agentic coding tasks 5x more effective
 - [[anthropic-disempowerment-patterns]] — empirical evidence that agentic AI interactions must be designed carefully to preserve user autonomy
+- [[agentic-ai-foundation-mcp-linux-foundation]] — AAIF provides the organizational governance for the agentic AI ecosystem; the foundation is the institutional infrastructure for standards and interoperability
+- [[agyn-multi-agent-software-engineering]] — Agyn's team-based engineering model demonstrates agentic AI applied to software organizations with dynamic coordination
+- [[group-evolving-agents-gea-framework]] — GEA represents the frontier of agentic AI: self-improving agent groups that evolve without additional inference cost
+- [[four-ai-research-trends-enterprise-2026]] — the four enterprise AI trends (continual learning, world models, orchestration, multi-modal) define the 2026 trajectory for agentic AI systems
+- [[gemini-cli-ai-employees-agent-factory]] — Agent Factory operationalizes agentic AI as "AI employees" — the workforce metaphor for autonomous agents acting in production environments
 
 ## Related Concepts
 
@@ -48,6 +53,12 @@ AI systems that operate autonomously across extended workflows, integrating mult
 ## Relevance to Cohezion
 
 Cohezion exemplifies agentic AI principles through its multi-agent architecture, where CompoundExecutor orchestrates specialized agents accessing tools via the Cloud Vault MCP Server's VaultOps and CompoundOps layers. The framework's persistent memory across sessions is enabled by the VaultExecutionLogger's trajectory logging and SemanticCache's multi-layer persistence, allowing agents to maintain context and extract learnings from prior experiments.
+
+## Related Lessons
+
+- [[lesson-37-experience-guided-execution-works-new]] — experience-guided execution is a validated agentic AI property: past session context materially improves quality
+- [[lesson-38-singleton-executor-for-sessions-new]] — singleton executor pattern for agentic sessions prevents resource leaks at scale
+- [[lesson-11-team-agent-efficiency]] — critical calibration for agentic system design: coordination overhead exceeds benefits below the task complexity threshold
 
 ## Decisions & Experiments
 - 📋 [[2026-02-09-12d-graph-refined-plan]] - 12D Graph System - Refined Implementation Plan

@@ -537,6 +537,13 @@ async def verify_feature_complete():
 - [[mini-adversarial-review-checkpoints]] - When to verify integration
 - [[staged-validation-long-horizon-tasks]] - Integration checkpoints in multi-week projects
 - [[production-ready-definition-checklist]] - Integration is part of production-ready
+- [[2026-02-09-session-43-phase-5b-verification-phase-6-launch|Decision: Session 43 Phase 5B Verification & Phase 6 Launch]] - Negative example: SessionPersistence delivered without integration
+- [[2026-02-14-adversarial-multi-agent-review-protocol|Decision: Adversarial Multi-Agent Review Protocol]] - Adversarial review as integration gate
+- [[2026-02-13-phase-2-track-b-entire-io-sync-daemon-complete]] — Track B: the definitive negative example (1,494 LOC orphaned, prompted this pattern)
+- [[2026-02-14-phases-1-3-retrospective-key-learnings]] — retrospective that codified this pattern as project standard
+- [[2026-02-14-end-to-end-compound-cycle-validation-script]] — the end-to-end validation script that embodies this pattern's "executable spec" principle
+- [[2026-02-23-enforce-no-orphan-modules-policy]] — policy that enforces integration-first at code review level
+- [[2026-02-24-anti-pattern-disconnected-modules-without-consumers]] — the anti-pattern this principle prevents
 
 ---
 

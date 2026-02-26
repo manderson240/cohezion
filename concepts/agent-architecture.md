@@ -25,10 +25,20 @@ tags: [concept]
 - [[llamaagents-builder]]
 - [[openai-codex-agent-loop]]
 - [[scaling-agent-systems]]
+- [[agyn-multi-agent-software-engineering]] — Agyn's four-role (manager, researcher, engineer, reviewer) architecture is a reference design for role-specialized agent teams
+- [[group-evolving-agents-gea-framework]] — GEA introduces a new architecture class beyond the five canonical types: collectively-evolving agent groups selected by performance+novelty scoring
+- [[nvidia-nemotron-3-nano-nemo-gym]] — NeMo Gym's agentic safety dataset and environment design directly inform agent architecture decisions around tool-use safety
+- [[agentic-ai-foundation-mcp-linux-foundation]] — AAIF's interoperability standards (MCP, A2A, AGENTS.md) are the cross-cutting architectural substrate that any production agent architecture must conform to
 
 ## Related Concepts
 
 - [Add related concepts]
+
+## Related Lessons
+
+- [[lesson-38-singleton-executor-for-sessions-new]] — singleton executor pattern prevents resource leaks across agent sessions; critical for multi-agent architectures
+- [[lesson-37-experience-guided-execution-works-new]] — past session context materially improves current session quality; architecture must support context injection
+- [[lesson-11-team-agent-efficiency]] — coordination overhead exceeds benefits below a task complexity threshold; informs when to use single vs. multi-agent designs
 
 ## Relevance to Cohezion
 

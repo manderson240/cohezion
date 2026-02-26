@@ -305,6 +305,17 @@ This analysis mirrors previous planning failures:
 
 [[compound-engineering]]
 
+## Related Patterns
+
+- [[mini-adversarial-review-checkpoints]] — the adversarial review checkpoint pattern applied in this review session
+- [[canvas-driven-manual-linking]] — the canvas-driven approach recommended as output of this review
+
+## Related Decisions (Series)
+
+- [[2026-02-10-compound-node-linking-plan]] — the original plan being reviewed here
+- [[2026-02-10-canvas-driven-compound-engineering]] — the canvas-based alternative endorsed by this review
+- [[2026-02-10-canvas-driven-compound-engineering-refined]] — refined implementation following this review
+
 ## Related Concepts
 
 - [[3d-graph-plugin-selection]]

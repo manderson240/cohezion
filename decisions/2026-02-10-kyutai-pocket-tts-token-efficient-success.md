@@ -222,6 +222,16 @@ But current implementation is **DEPLOYMENT READY** as minimal viable feature.
 
 **Conclusion**: This implementation demonstrates the correct [[token-efficiency|token-efficient]] pattern and achieves 90% token savings while delivering a working, tested feature in 2 hours. Validates [[implementation-first-infrastructure-later]] as a core [[compound-engineering]] practice.
 
+## Related Patterns
+
+- [[implementation-first-infrastructure-later]] — the core pattern validated as successful in this session
+- [[quick-start-mcp-tool]] — the scaffold pattern used to rapidly spin up the kyutai MCP tool
+
+## Related Decisions (Kyutai Arc)
+
+- [[2026-02-10-kyutai-token-waste-postmortem]] — the failed earlier approach this success corrects
+- [[2026-02-10-kyutai-mcp-obsidian-plugin-plan]] — the replanned approach this implements
+
 ## Related Concepts
 
 - [[3d-graph-plugin-selection]]

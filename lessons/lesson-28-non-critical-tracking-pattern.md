@@ -45,6 +45,7 @@ return result  # Work continues regardless
 ## Related Concepts
 
 - [[compound-engineering]] - Non-blocking observability enables compound system resilience
+- [[operational-data-ai-agents]] - observability failures that block primary pipelines corrupt the operational data quality that agents depend on; fire-and-forget tracking preserves data pipeline integrity
 
 ## Validation
 

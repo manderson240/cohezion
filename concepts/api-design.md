@@ -25,6 +25,12 @@ tags: [concept]
 
 - [Add related concepts]
 
+## Related Lessons
+
+- [[lesson-12-layered-validation]] — validate at each system boundary (API → service → database), not just at the entry point
+- [[lesson-36-mcp-configuration-requires-end-to-end-test-new]] — API configuration requires end-to-end tests; unit tests miss protocol negotiation failures
+- [[lesson-21-runtime-json-pollution]] — API outputs must keep stdout clean; debug output corrupts machine-parseable JSON responses
+
 ## Relevance to Cohezion
 
 [Describe relevance to the Cohezion framework]

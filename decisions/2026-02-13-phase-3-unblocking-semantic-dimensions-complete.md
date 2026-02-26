@@ -412,4 +412,7 @@ A simple 20-minute unblocking operation restored Phase 3 from blocked status to 
 - [[12d-graph-view-presets]]
 - [[3d-graph-plugin-installation]]
 - [[compound-engineering]]
-- [[2026-02-13-phase-2-final-completion-summary]]
+- [[2026-02-13-phase-2-final-completion-summary]] — Phase 2 that was completed before this unblocking
+- [[2026-02-14-phase-4-implementation-progress]] — Phase 4 that built the plugin UI consuming these enriched dimensions
+- [[2026-02-14-phases-1-3-retrospective-key-learnings]] — retrospective that captures the "vault as source of truth" principle this unblocking restored
+- [[implementation-first-infrastructure-later]] — pattern matching the "20-minute unblocking > waiting" approach used here

@@ -45,3 +45,5 @@ decision_reasoning:
 - [[data-discipline-prevent-generated-data-in-git]]
 - [[2026-02-11-session-55-git-aggressive-gc-doesnt-consolidate-packs-manual-repack-forced]]
 - [[lesson-14-cleanup-is-multi-pass]]
+- [[platform-issue-analysis-template]] — this investigation is an exemplar of the diagnose-root-cause → fix pattern
+- [[2026-02-13-gitlab-to-github-consolidation-with-artifact-governance]] — the GitHub migration decision motivated in part by fixing this 12GB repo size problem

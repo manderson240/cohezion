@@ -431,3 +431,8 @@ All major decisions were aligned with user priorities (highest ROI work), transp
 
 [[compound-engineering]]
 [[context-management]]
+
+## Related Patterns
+
+- [[phase-5b-completion-pattern]] — the production verification checklist pattern applied in this session's Phase 5B verification
+- [[compound-async-executor-pattern]] — the executor pattern launched in Phase 6 as a result of this decision

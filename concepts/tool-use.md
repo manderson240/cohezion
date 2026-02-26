@@ -25,6 +25,11 @@ tags: [concept]
 
 - [Add related concepts]
 
+## Related Lessons
+
+- [[lesson-36-mcp-configuration-requires-end-to-end-test-new]] — tool integration via MCP requires end-to-end tests; unit tests miss the protocol negotiation layer that makes tools actually callable
+- [[lesson-18-mock-live-services-in-tests]] — when testing tool-use code, mock external tool calls at the client level for reliable unit tests
+
 ## Relevance to Cohezion
 
 [Describe relevance to the Cohezion framework]

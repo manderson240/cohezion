@@ -58,3 +58,8 @@ Relevant to [[fractal_universe.py]] quantum mechanics simulations and modeling o
 - [[mit-quantum-computing-progress]] — the entangled sensor arrays represent practical quantum advantage; MIT's progress on error correction is what enables scaling these quantum sensing networks to useful size
 - [[international-year-quantum-2025]] — this paper exemplifies the quantum sensing breakthroughs highlighted during the International Year of Quantum Science and Technology
 - [[artemis-ii-laser-comms]] — quantum entangled atomic sensors could dramatically improve the precision of optical atomic clocks needed for laser communication timing in deep-space missions
+
+## Engineering Analogues
+
+- [[async-singleton-lock-isolation]] — entangled sensors work because each atom is in a correlated-but-isolated quantum state: the entanglement provides coordination without coupling the atoms to the same measurement basis until observation. Async singleton locks follow the same isolation logic — each test event loop is an isolated "measurement basis" and the singleton must not be shared across them. The pattern failure (lock bound at class-level = shared across event loops) is the engineering equivalent of collapsing both entangled atoms into the same measurement frame prematurely.
+- [[conservative-baseline-estimation]] — quantum sensors achieve precision by reducing uncertainty through entanglement, not by increasing raw measurement count. Similarly, conservative baseline estimation reduces decision uncertainty through structured reasoning rather than more data. Both are methods for beating the standard uncertainty limit through correlated information.

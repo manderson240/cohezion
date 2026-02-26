@@ -212,6 +212,11 @@ Lesson: Outcome + metrics
 
 **Key Insight**: Operational lessons are the missing validation layer in compound engineering. They prove which theories work in practice and reveal anti-patterns theory misses.
 
+## Related Patterns
+
+- [[log-lifecycle-management]] — the log lifecycle pattern that operationalizes the forensic analysis approach decided here
+- [[canvas-driven-manual-linking]] — the canvas-driven approach used to visually organize the operational lessons discovered
+
 ## Related Concepts
 
 - [[3d-graph-plugin-selection]]

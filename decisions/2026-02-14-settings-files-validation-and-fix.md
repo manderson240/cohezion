@@ -131,3 +131,6 @@ Removed session-level hooks with empty matchers. Replaced with tool-specific hoo
 - [[mcp-model-context-protocol]]
 - [[troubleshooting-mcp-infrastructure]]
 - [[surrealdb-agent-context-schema]]
+- [[2026-02-13-phase-2-track-b-entire-io-sync-daemon-complete]] — Track B implemented the hook matchers (track_session, record_decision) this decision wires up
+- [[2026-02-13-phase-2-track-a-complete]] — Track A defined the SurrealDB agent context schema referenced in the hook alignment
+- [[platform-issue-analysis-template]] — template pattern for diagnosing infrastructure configuration issues like this

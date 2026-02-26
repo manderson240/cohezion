@@ -55,6 +55,7 @@ Demonstrates a recording/replay pattern for complex system dynamics. Could infor
 - [[PRIME_CLAUDE_CODE_PRACTICES]]
 - [[multi-session-compound-engineering-workflow]]
 - [[compound-async-executor-pattern]]
+- [[checkpoint-format-with-full-reproducibility-state]] — CytoTape's "tape recorder" metaphor is the biological instance of the reproducibility checkpoint: both record not just the current state but the temporal sequence leading to it, so the past can be reconstructed. CytoTape encodes signals along a protein fiber in chronological order; the checkpoint format encodes seeds, git commit, training history in a single artifact. Both enable post-mortem replay of how a system arrived at its current state.
 
 ## Related Concepts
 

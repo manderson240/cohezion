@@ -98,3 +98,5 @@ High. The semantic similarity failure was observed empirically; the reason is th
 
 - [[2026-02-23-never-use-sha-256-hashes-as-semantic-embeddings]]
 - [[2026-02-24-anti-pattern-character-level-tokenizer-for-semantic-embeddings]]
+- [[latent-coherence-stability-predictor-lcsp]] — LCSP temporal/semantic coherence metrics reveal when embeddings are semantically poor
+- [[2026-02-23-one-coherent-model-beats-two-partial-implementations]] — same session: consolidation to TemporalVAE is the correct architecture once pre-trained embeddings are chosen

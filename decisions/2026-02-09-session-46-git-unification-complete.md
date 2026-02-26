@@ -55,6 +55,10 @@ tags: [decision]
 - Branch: `main`
 - Remote: `origin/main` (synced)
 
+## Related Patterns
+
+- [[multi-session-compound-engineering-workflow]] — the multi-session workflow pattern, specifically the git worktree isolation strategy endorsed in this session
+
 ## Related
 - [[lesson-git-worktrees-multi-session-isolation]]
 - [[lesson-measurement-integrity-honest-reporting]]

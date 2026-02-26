@@ -263,6 +263,16 @@ Adopt a **5-phase compound engineering approach** with 6 specialist agent types,
 [[mcp-infrastructure-architecture]]
 [[multi-agent-systems]]
 
+## Related Patterns
+
+- [[compound-async-executor-pattern]] — the async executor pattern used in the kyutai compound engineering pipeline
+- [[quick-start-mcp-tool]] — the MCP tool scaffold applied when building the kyutai MCP server
+
+## Related Decisions (Kyutai Arc)
+
+- [[2026-02-10-kyutai-pocket-tts-token-efficient-success]] — the token-efficient success story following this plan
+- [[2026-02-10-kyutai-token-waste-postmortem]] — the earlier failed approach that led to this replanned version
+
 ## Related Lessons
 
 - [[lesson-31-operation-specific-modulation]] (operational validation)

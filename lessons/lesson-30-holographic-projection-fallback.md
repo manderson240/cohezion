@@ -45,6 +45,7 @@ def holographic_project(vectors, target_dim):
 ## Related Concepts
 
 - [[meta-learning]] - Projection stability enables reliable meta-learning across sessions
+- [[concept-optimization]] - singular matrix guard with epsilon regularization is the key optimization for projection stability
 
 ## Validation
 

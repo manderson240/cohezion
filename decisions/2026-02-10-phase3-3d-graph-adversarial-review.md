@@ -294,6 +294,17 @@ Before ANY coding:
 
 [[token-efficiency]], [[compound-engineering]], [[12d-graph-implementation]], [[adversarial-review]]
 
+## Related Patterns
+
+- [[12d-graph-implementation]] — the original implementation plan reviewed adversarially here
+- [[mini-adversarial-review-checkpoints]] — the checkpoint pattern applied in this review
+- [[implementation-first-infrastructure-later]] — the key lesson from kyutai referenced in this review as the corrective approach
+
+## Related Decisions (Series)
+
+- [[2026-02-09-12d-graph-next-steps]] — earlier strategy decision for the 12D graph
+- [[2026-02-09-12d-graph-refined-plan]] — refined plan being reviewed here
+
 ## Related Concepts
 
 - [[3d-graph-plugin-selection]]

@@ -63,3 +63,4 @@ Provides updated constraints for cosmological simulation models in `fractal_univ
 - [[webb-cosmic-question-mark-gravitational-lens]] — JWST gravitational lensing observations (the question mark) and black hole mass measurements both rely on the same gravitational optics principles
 - [[early-universe-cosmology]]
 - [[black-holes]]
+- [[early-hot-galaxy-cluster-14-billion-years]] — the earliest known galaxy cluster with anomalously hot intra-cluster gas (1.4 billion years post-Big Bang) likely requires AGN feedback from early black holes like those JWST discovered; the direct-collapse black holes are the leading candidate for the cluster's unexplained heating mechanism

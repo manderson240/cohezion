@@ -49,6 +49,7 @@ git diff --cached --name-only | xargs -I{} find {} -size +1M
 
 - [[data-governance-prevention-through-pre-commit-enforcement]] - Prevention mechanism
 - [[repository-health-monitoring-size-tracking-large-object-detection]] - Detection
+- [[sentinel-1-ice-sheets]] - both involve discipline around large scientific/operational datasets: Sentinel-1 produces gigabytes of radar imagery requiring careful pipeline governance; this incident shows what happens to git repositories without equivalent data governance controls
 
 ## Validation
 

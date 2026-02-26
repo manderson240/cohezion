@@ -254,6 +254,11 @@ Meta-learning is the **strategic layer** of [[token-efficiency]]:
 - [[token-efficiency]] — Tactical layer (meta-learning is strategic layer)
 - [[implementation-first-infrastructure-later]] — Pattern extracted via meta-learning
 
+## Related Lessons
+
+- [[lesson-effective-retrospectives]] — structured retrospectives are the primary meta-learning mechanism; consistent format extracts maximum reusable patterns
+- [[lesson-30-holographic-projection-fallback]] — discovering fallback requirements through production failure is meta-learning in action: add singular matrix guard after encountering the failure
+
 ## Relevance to Cohezion
 
 Meta-learning is **foundational** to Cohezion's compound engineering model. Without meta-learning, each session starts from scratch (blank slate problem). With meta-learning, each session builds on accumulated lessons stored in the vault.

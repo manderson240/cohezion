@@ -97,6 +97,11 @@ echo "Tests passing: $PERCENT% ($PASSING/$TOTAL tests)" >> report.md
 ## Related Concepts
 
 - [[token-efficiency]] - Verified metrics prevent wasted effort on false assumptions
+- [[sentinel-1-ice-sheets]] - Sentinel-1's decade of ice-velocity measurements demonstrates measurement integrity at planetary scale: verified, continuous data vs. claimed estimates
+- [[circleci-ai-cicd-validation]] - Chunk's autonomous CI validation embodies the same principle: only ship verified metrics, not assumed pass rates
+- [[emoticons-llm-silent-failures]] - Silent LLM failures are the measurement integrity failure at model scale: outputs appear correct but are semantically wrong, passing surface checks
+- [[anomaly-detection]] - honest metrics are the foundation of trustworthy anomaly detection; inflated numbers hide real anomalies
+- [[data-analysis]] - verified metrics over claimed metrics is the core data analysis discipline
 
 ## Validation
 
@@ -130,3 +135,8 @@ echo "Tests passing: $PERCENT% ($PASSING/$TOTAL tests)" >> report.md
   - [[theorem-ai-formal-verification]] (similarity: 0.763)
   - [[emoticons-llm-silent-failures]] (similarity: 0.713)
   - [[circleci-ai-cicd-validation]] (similarity: 0.71)
+
+## Scientific Parallels
+
+- [[quantum-entanglement-speed-measurement]] — the 232-attosecond measurement is the physical science instance of this lesson: the research was publishable because the team measured the actual lag rather than assuming entanglement was instantaneous (the theoretically expected value). "98.5% verified beats 99.4% claimed" is structurally identical to "232 attoseconds measured beats 0 assumed." Both cases: the honest number that contradicts the expected value is the valuable one.
+- [[checkpoint-format-with-full-reproducibility-state]] — the `git_dirty=True` warning in the reproducibility checkpoint is a direct implementation of this lesson: flag when provenance cannot be verified rather than claiming reproducibility that doesn't exist

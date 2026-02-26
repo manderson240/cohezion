@@ -61,3 +61,8 @@ Provides empirical grounding for quantum timing parameters in simulation models.
 - [[mars-time-dilation-relativity]] — both papers push the frontier of precision timing: attosecond quantum entanglement dynamics and microsecond relativistic time dilation on Mars represent the quantum and classical limits of timekeeping
 - [[beyond-the-quantum-pilot-wave-theory]] — the 232-attosecond measured lag provides empirical data that pilot-wave theory must account for with its hidden trajectory formalism; any hidden variable theory must reproduce this timing exactly
 - [[international-year-quantum-2025]] — this measurement represents one of the defining fundamental quantum physics achievements of the International Year of Quantum Science and Technology
+
+## Engineering Analogues
+
+- [[lesson-measurement-integrity-honest-reporting]] — this paper is a scientific exemplar of the lesson's core principle: the measured value (232 attoseconds) contradicted the assumed value (instantaneous), and reporting the honest number was the entire point. "98.5% verified beats 99.4% claimed" maps directly to "232 attoseconds measured beats 0 assumed." The value of the experiment was precisely that it questioned the assumption.
+- [[conservative-baseline-estimation]] — the paper's technique (attosecond laser control of entanglement degree) is a physical instantiation of conservative baseline establishment: measure from the most controlled possible state before adding complexity, and report the minimal reproducible result

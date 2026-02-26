@@ -103,3 +103,8 @@ LOG_LEVEL: info
 ## Relevance to Cohezion
 
 [[mcp-infrastructure-architecture]]
+
+## Related Patterns
+
+- [[quick-start-mcp-tool]] — quick-start scaffold implementing the MCP server setup described here
+- [[fastmcp-asgi-builder-pattern]] — the builder pattern that is the root cause of the bug found in this session

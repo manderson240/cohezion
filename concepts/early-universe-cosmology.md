@@ -35,6 +35,8 @@ Study of the universe's first billions of years, from the Big Bang through cosmi
 - [[cosmic-strings-time-travel]] — cosmic strings are topological defects from phase transitions in the early universe, direct relics of conditions studied by early universe cosmology
 - [[magnetic-superhighways-starburst-galaxy]] — Arp 220 is the closest analog to high-redshift starburst galaxies; understanding its magnetic outflows illuminates early-universe star formation
 - [[webb-cosmic-question-mark-gravitational-lens]] — the lensed galaxy pair at 7 billion light-years shows what Milky Way-like galaxies looked like in their formative "teenage years"
+- [[early-hot-galaxy-cluster-14-billion-years]] — earliest known galaxy cluster with anomalously hot intra-cluster gas just 1.4 billion years after the Big Bang, challenging standard ΛCDM cluster formation timelines
+- [[neutrinos-large-scale-structure-desi]] — DESI's first precision measurement of neutrino-induced suppression of large-scale structure, constraining the same ΛCDM framework that early-universe observations stress-test
 
 ## Related Concepts
 

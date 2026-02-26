@@ -72,3 +72,5 @@ Demonstrates the skill/plugin pattern for Claude Code agents. Could be used as a
 - [[claude-code-community-skills]] — the WebGPU skill is an example of the specialized domain skills collected in the 36-skill community initiative
 - [[karpathy-claude-code-skills]] — the WebGPU skill embodies the Karpathy-style workflow: domain experts package their knowledge as AI-assistable Claude Code skills
 - [[claude-code-swiftui-skill-patterns]] — SwiftUI and WebGPU skills are parallel examples of the same pattern: wrapping platform-specific expert knowledge as Claude Code skills
+- [[optofluidic-3d-nanofabrication]] — optofluidic 3D nanofabrication produces physical 3D structures that WebGPU/Three.js is used to visualize and simulate; the rendering and the fabrication domain are complementary
+- [[3d-graph-plugin-selection]] — the Cohezion 3D graph plugin uses Three.js; WebGPU is the next-generation GPU backend that would accelerate the force simulation for large vaults

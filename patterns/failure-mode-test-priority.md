@@ -540,6 +540,21 @@ print(generate_failure_tests("entire_ops", ["create_checkpoint", "get_checkpoint
 - [[mini-adversarial-review-checkpoints]] - Verify failure mode tests exist
 - [[integration-first-definition-of-done]] - Integration tests include failure modes
 - [[production-ready-definition-checklist]] - Failure mode tests are part of production-ready
+- [[2026-02-24-anti-pattern-zombie-test-processes-from-async-event-loop-teardown|Anti-pattern: Zombie test processes from async event loop teardown]]
+- [[2026-02-23-always-set-pytest-timeouts-for-async-tests|Decision: Always set pytest timeouts for async tests]]
+- [[2026-02-22-pytestmark-asyncio-module-level|Decision: pytestmark asyncio module level]]
+
+## Related Decisions (Origin)
+
+- [[2026-02-13-phase-2-track-b-entire-io-sync-daemon-complete]] — Track B was the concrete negative example: 45% trivial tests, 0% failure injection, 8 P0 blockers uncovered by adversarial review
+- [[2026-02-14-adversarial-multi-agent-review-protocol]] — the adversarial review that discovered Track B's test quality gap
+- [[2026-02-14-3-tier-adversarial-review-protocol-for-code-quality]] — the 3-tier review protocol whose test-quality-reviewer role specifically enforces this pattern
+- [[2026-02-14-phases-1-3-retrospective-key-learnings]] — retrospective that elevated "Test-Driven Development Reduces Rework" to Pattern 3 based on 0 integration defects across 219 tests
+
+## Scientific Foundation
+
+- [[ai-anomaly-detection-hubble-archive]] — AnomalyMatch validates this pattern at scientific scale: it achieves discovery density by specifically hunting the 0.0014% anomalous cases rather than confirming the 99.9986% normal ones. The same math applies to software testing — bugs that escape to production are rare failure-mode cases that happy-path tests never exercise. AnomalyMatch scanned 100M images in 2.5 days to find 1400 anomalies; this pattern's failure-injection templates do the same for software systems.
+- [[lesson-adversarial-review-before-execution]] — adversarial review before execution is the pre-production equivalent of this pattern: both disciplines force explicit modeling of what can go wrong before assuming the happy path holds. The 45× ROI on adversarial review directly parallels the "3× ROI" estimate for writing failure-mode tests.
 
 ---
 

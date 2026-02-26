@@ -108,3 +108,8 @@ High. The 7 GB RAM recovery from killing 12 processes is direct empirical eviden
 ## Related Decisions & Lessons
 
 - [[2026-02-24-anti-pattern-zombie-test-processes-from-async-event-loop-teardown]]
+- [[async-singleton-lock-isolation]] — lock isolation prevents the event loop conflicts that lead to zombie tests
+- [[async-mock-subprocess-in-tests]] — mocking external calls prevents the hang-based zombie pattern
+- [[failure-mode-test-priority]] — resource-exhaustion failure mode (zombie RAM accumulation) that test timeouts prevent
+- [[patterns/lessons/lesson-32-concurrent-pytest-contention|lesson-32]] — related async test contention pattern
+- [[patterns/lessons/lesson-34-test-hang-unmocked-live-service|lesson-34]] — test hangs from unmocked services produce same zombie symptom

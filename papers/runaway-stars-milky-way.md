@@ -63,6 +63,7 @@ Relevant to [[fractal-universe]] stellar dynamics modeling and N-body gravitatio
 - [[magnetic-superhighways-starburst-galaxy]]
 - [[llm-in-sandbox-agentic-intelligence]]
 - [[astrophysics-observations]]
+- [[milky-way-barred-spiral-structure]] — the Milky Way's central bar creates gravitational resonances that reshape stellar cluster orbits and may contribute to dynamical ejection of runaway stars; the bar's influence on galactic-center cluster dynamics is a missing context for interpreting the highest-velocity runaway star population
 
 ## Cross-Domain Bridges
 

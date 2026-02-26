@@ -54,6 +54,7 @@ Expands parameter space for habitability modeling in `fractal_universe.py`. Demo
 - [[helimagnetism-ferromagnetism-mode-locking]]
 - [[tidally-locked-exoplanet-habitability]] — a complementary study focusing specifically on the night-side liquid water mechanism on tidally locked worlds
 - [[super-earth-magnetic-protection-magma]] — magnetic shielding from basal magma oceans extends habitability by protecting atmospheres from stellar winds, directly relevant to expanded habitable zone models
+- [[artemis-ii-crewed-lunar-mission]] — Artemis II expands where humans can live and work beyond Earth; the habitability research expanding where life could exist beyond Earth is intellectually continuous with the crewed spaceflight program — both are efforts to broaden the domain of the habitable, biological and technological
 
 ## Related Concepts
 

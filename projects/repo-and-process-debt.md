@@ -53,3 +53,10 @@ See [[2026-02-22-security-fixes-session-id-path-traversal-and-github-date]] for 
 - [ ] Separate repos or stay unified? → ADR needed
 - [ ] Which CI system? (GitHub Actions already partially in use)
 - [ ] Monorepo tooling if staying unified? (nx, turborepo, or plain makefiles)
+
+## Related
+
+- [[2026-02-19-github-flow-appropriate-for-pre-alpha]] — the decision establishing GitHub Flow as the branching strategy; directly addresses the repo management debt
+- [[2026-02-13-gitlab-to-github-consolidation-with-artifact-governance]] — the consolidation decision that created the current track-c/main split being tracked here
+- [[2026-02-22-security-fixes-session-id-path-traversal-and-github-date]] — security work that surfaced the impact of the disconnected branch histories on the security review process
+- [[circleci-ai-cicd-validation]] — the CI/CD pattern that would implement the automated coding standards enforcement described in Phase 1

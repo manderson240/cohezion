@@ -46,6 +46,7 @@ When fixing bugs or implementing features, the temptation is to improve surround
 ## Related Concepts
 
 - [[compound-engineering]] - Surgical changes compound cleanly; broad changes create chaos
+- [[concept-modularity]] - surgical changes respect module boundaries and don't expand scope unnecessarily
 
 ## Validation
 

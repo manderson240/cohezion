@@ -254,6 +254,15 @@ This plan is **compound** because it:
 
 **Result**: Maximum vault enrichment with minimum token spend ($0-2 vs $8-12 for equivalent Claude-only approach).
 
+## Related Patterns
+
+- [[canvas-driven-manual-linking]] — the canvas-driven pattern that replaced the bottom-up approach in this plan
+
+## Related Decisions (Series)
+
+- [[2026-02-10-compound-linking-plan-adversarial-review]] — adversarial review that found issues with this plan
+- [[2026-02-10-canvas-driven-compound-engineering]] — alternative approach that superseded this plan
+
 ## Related Concepts
 
 - [[3d-graph-plugin-selection]]

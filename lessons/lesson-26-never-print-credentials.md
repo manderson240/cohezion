@@ -40,6 +40,8 @@ raise ValueError("Connection failed -- check credentials in environment")
 ## Related Concepts
 
 - [[compound-engineering]] - Security discipline compounds -- one breach compromises the system
+- [[ai-safety]] - CRITICAL: credential leakage is a direct AI safety and security failure mode
+- [[cisa-chatgpt-data-leak]] - The CISA incident is the institutional-scale version of this lesson: sensitive data leaked into a commercial AI system via a human decision point, exactly as credentials leak into logs via a developer print statement
 
 ## Validation
 

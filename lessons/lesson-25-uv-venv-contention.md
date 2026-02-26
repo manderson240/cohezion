@@ -46,6 +46,8 @@ uv pip install -r combined.txt
 ## Related Concepts
 
 - [[compound-engineering]] - Reliable dependency management enables reliable compound builds
+- [[concept-isolation]] - concurrent uv installs must be isolated to separate venv directories or serialized
+- [[python-314-free-threaded-gil-removal]] - free-threaded Python changes the venv contention model: true thread parallelism means concurrent uv installs triggered from threads require the same serialization discipline, but failure modes may differ from multiprocess contention
 
 ## Validation
 

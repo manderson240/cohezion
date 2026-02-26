@@ -24,6 +24,11 @@ tags: [concept]
 
 - [Add related concepts]
 
+## Key Lesson Links
+
+- [[lesson-08-import-graph]] — map the full import graph before refactoring any module; 50+ transitive dependents can break simultaneously
+- [[lesson-04-surgery-lesson]] — make the smallest possible change that satisfies the requirement; resist all scope creep during implementation
+
 ## Relevance to Cohezion
 
 [Describe relevance to the Cohezion framework]

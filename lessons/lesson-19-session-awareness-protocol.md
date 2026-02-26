@@ -41,6 +41,10 @@ Agentic sessions start fresh -- they don't inherit context from previous session
 
 - [[compound-engineering]] - Session continuity enables compound work across time
 - [[agentic-ai]] - Memory and continuity as first-class agent properties
+- [[agentic-ai-memory-hierarchies]] - The startup context-loading sequence is a software workaround for hardware KV caches that don't persist across session boundaries; loading prior context at startup replaces what hardware cannot retain
+- [[langchain-deep-agents-context-management]] - LangChain's three-tier strategy (offload, truncate, summarize) is the technical mechanism enabling the session continuity this protocol depends on
+- [[agent-context]] - session awareness protocol is the practical implementation of agent context management
+- [[context-management]] - explicit context-loading at session start is the core context management discipline
 
 ## Validation
 

@@ -56,6 +56,12 @@ AI Safety & Ethics resource captured via mobile link pipeline. Core research on 
 - [[cisa-chatgpt-data-leak]] — the CISA ChatGPT incident is a real-world example of institutional disempowerment: an authority figure circumvented controls, reducing organizational autonomy over data governance
 - [[emoticons-llm-silent-failures]] — silent LLM failures are a technical form of disempowerment: users believe they have agency over code generation but AI silently produces wrong outputs
 
+## Engineering Countermeasures
+
+- [[lesson-adversarial-review-before-execution]] — adversarial review is the operational procedure that prevents AI disempowerment: by explicitly challenging AI-generated plans rather than accepting them passively, engineers preserve decision authority. The 1:50-70 mild disempowerment rate implies passive acceptance is the default; adversarial review is the deliberate counterpattern.
+- [[mini-adversarial-review-checkpoints]] — structured checkpoint reviews throughout execution are the institutionalized form of the countermeasure: regular points where human judgment overrides AI continuity
+- [[lesson-measurement-integrity-honest-reporting]] — measurement integrity is a specific disempowerment countermeasure: when AI reports inflated metrics, it subtly shifts the human from informed decision-maker to passive acceptor of AI-generated conclusions. Verifying metrics restores decision autonomy.
+
 ## Related Concepts
 
 - [[ai-safety-alignment]] — disempowerment patterns are a concrete empirical finding that motivates the alignment problem; the value alignment field exists to prevent exactly this user autonomy erosion

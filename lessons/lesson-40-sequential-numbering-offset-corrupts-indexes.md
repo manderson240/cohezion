@@ -46,3 +46,4 @@ Completely rewrote `_lessons_index.md` with the correct semantic IDs:
 - [[patterns/lessons/_lessons_index.md]]
 - [[2026-02-24-vault-link-integrity-sprint]]
 - [[lesson-39-vault-audit-must-exclude-worktrees]]
+- [[concept-versioning]] - sequential numbering offsets are a versioning anti-pattern; semantic IDs are resilient across corpus boundaries

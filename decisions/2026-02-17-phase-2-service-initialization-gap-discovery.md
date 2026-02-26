@@ -98,6 +98,8 @@ This pattern saves ~30k tokens in Phase 3-4 by:
 - [[service-initialization-checklist]] (reusable template)
 - [[verification-strategy-template]] (real vs synthetic testing)
 - [[typescript-error-diagnostic]] (error patterns and fixes)
+- [[integration-first-definition-of-done]] — this incident is the TypeScript-plugin parallel of that Python track failure: code complete, never integrated
+- [[failure-mode-test-priority]] — "18/18 synthetic tests pass, 0% functionality" is the canonical failure-mode-testing gap
 
 ## Alternatives Considered
 
