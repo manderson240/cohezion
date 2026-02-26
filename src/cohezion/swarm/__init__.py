@@ -56,6 +56,12 @@ from cohezion.swarm.model_pool_manager import (
     get_pool_manager,
     reset_pool_manager,
 )
+from cohezion.swarm.cost_aware_router import (
+    CostAwareRouter,
+)
+from cohezion.swarm.team_orchestrator import (
+    TeamOrchestrator,
+)
 from cohezion.swarm.token_client import (
     ResilientOllamaClient,
     TokenEfficientClient,
@@ -93,4 +99,6 @@ __all__ = [
     "PoolStatus",
     "reset_pool_manager",
     "TierConfig",
+    "CostAwareRouter",
+    "TeamOrchestrator",
 ]

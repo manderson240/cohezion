@@ -544,7 +544,11 @@ async def cmd_evolve(args: argparse.Namespace) -> int:
 
 async def cmd_generate(args: argparse.Namespace) -> int:
     """Handle generate command (Meta-Programming)."""
-    from cohezion.meta.generator import MetaGenerator
+    try:
+        from cohezion.meta.generator import MetaGenerator
+    except ImportError:
+        logger.error("Meta-programming module not yet implemented (cohezion.meta.generator)")
+        return 1
 
     generator = MetaGenerator()
 
@@ -586,7 +590,12 @@ async def cmd_generate(args: argparse.Namespace) -> int:
 async def cmd_ouroboros(args: argparse.Namespace) -> int:
     """Handle ouroboros command (System Flight Recorder)."""
     from cohezion.rewards.system import RewardSystem
-    from cohezion.system.ouroboros_recorder import OuroborosRecorder
+
+    try:
+        from cohezion.system.ouroboros_recorder import OuroborosRecorder  # noqa: F401
+    except ImportError:
+        logger.error("Ouroboros recorder module not yet implemented (cohezion.system.ouroboros_recorder)")
+        return 1
 
     rewards = RewardSystem()
 
@@ -663,9 +672,14 @@ async def cmd_ouroboros(args: argparse.Namespace) -> int:
 
 async def cmd_mycelium(args: argparse.Namespace) -> int:
     """Handle mycelium command (Autonomous Test Generation)."""
-    from cohezion.mycelium.shadow_scripter import ShadowScripter
     from cohezion.rewards.system import RewardSystem
     from cohezion.universe.engine import UniverseSimulationEngine
+
+    try:
+        from cohezion.mycelium.shadow_scripter import ShadowScripter  # noqa: F401
+    except ImportError:
+        logger.error("Mycelium module not yet implemented (cohezion.mycelium.shadow_scripter)")
+        return 1
 
     engine = UniverseSimulationEngine()
     rewards = RewardSystem()

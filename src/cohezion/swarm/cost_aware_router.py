@@ -372,6 +372,12 @@ class CostAwareRouter:
                         fallback,
                     )
                     model = fallback
+                else:
+                    logger.warning(
+                        "Pool manager: %s unavailable and no fallback found in %s",
+                        model,
+                        available,
+                    )
 
         # Calculate estimated cost
         cost_per_1k = self.MODEL_COSTS.get(model, 0.0)

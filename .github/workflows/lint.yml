@@ -17,32 +17,30 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.13'
 
-      - name: Install dependencies
-        run: |
-          pip install ruff mypy
+      - name: Install uv
+        run: pip install uv
+
+      - name: Sync dependencies
+        run: uv sync --frozen
 
       - name: Run ruff format check (root)
-        run: ruff format --check src/ tests/ || true
+        run: uv run ruff format --check src/ tests/
 
       - name: Run ruff format check (cloud-vault-mcp)
         run: |
           cd cloud-vault-mcp
-          ruff format --check src/ tests/ || true
+          uv run ruff format --check src/ tests/ || true
 
       - name: Run ruff linter (root)
-        run: ruff check src/ tests/ || true
+        run: uv run ruff check src/ tests/
 
       - name: Run ruff linter (cloud-vault-mcp)
         run: |
           cd cloud-vault-mcp
-          ruff check src/ tests/ || true
+          uv run ruff check src/ tests/ || true
 
       - name: Run mypy (root)
-        run: mypy --ignore-missing-imports src/ || true
-
-      - name: Run mypy (cloud-vault-mcp)
-        run: |
-          cd cloud-vault-mcp
-          mypy --ignore-missing-imports src/ || true
+        run: uv run mypy --ignore-missing-imports src/
+        continue-on-error: true
