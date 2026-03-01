@@ -3,9 +3,10 @@
   "checkpoint_id": "42271af4e222",
   "strategy": "manual-commit",
   "branch": "feat/epic-5-shadowscripter-v1.3.0",
-  "checkpoints_count": 1,
+  "checkpoints_count": 3,
   "files_touched": [
     ".gitignore",
+    "scripts/maintenance/harvest_knowledge.py",
     "src/cohezion/knowledge_graph/MISSION_JOURNAL.md"
   ],
   "sessions": [
@@ -15,13 +16,20 @@
       "context": "/42/271af4e222/0/context.md",
       "content_hash": "/42/271af4e222/0/content_hash.txt",
       "prompt": "/42/271af4e222/0/prompt.txt"
+    },
+    {
+      "metadata": "/42/271af4e222/1/metadata.json",
+      "transcript": "/42/271af4e222/1/full.jsonl",
+      "context": "/42/271af4e222/1/context.md",
+      "content_hash": "/42/271af4e222/1/content_hash.txt",
+      "prompt": "/42/271af4e222/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 1876,
-    "cache_creation_tokens": 181302,
-    "cache_read_tokens": 20767249,
-    "output_tokens": 28163,
-    "api_call_count": 142
+    "input_tokens": 14432,
+    "cache_creation_tokens": 408003,
+    "cache_read_tokens": 26993768,
+    "output_tokens": 48905,
+    "api_call_count": 197
   }
 }

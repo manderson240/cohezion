@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.8",
+  "checkpoint_id": "42271af4e222",
+  "session_id": "41e0a631-2e33-4868-88e9-04021457d69a",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-01T19:39:58.197744361Z",
+  "branch": "feat/epic-5-shadowscripter-v1.3.0",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "scripts/maintenance/harvest_knowledge.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "5b5e305c5ca8",
+  "token_usage": {
+    "input_tokens": 12556,
+    "cache_creation_tokens": 226701,
+    "cache_read_tokens": 6226519,
+    "output_tokens": 20742,
+    "api_call_count": 55
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-01T19:39:58.048441122Z",
+    "agent_lines": 0,
+    "human_added": 0,
+    "human_modified": 150,
+    "human_removed": 10,
+    "total_committed": 125,
+    "agent_percentage": 0
+  }
+}
