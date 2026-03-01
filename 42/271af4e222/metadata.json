@@ -7,6 +7,7 @@
   "files_touched": [
     ".gitignore",
     "scripts/maintenance/harvest_knowledge.py",
+    "scripts/maintenance/heal_branches.py",
     "src/cohezion/knowledge_graph/MISSION_JOURNAL.md"
   ],
   "sessions": [
@@ -23,13 +24,20 @@
       "context": "/42/271af4e222/1/context.md",
       "content_hash": "/42/271af4e222/1/content_hash.txt",
       "prompt": "/42/271af4e222/1/prompt.txt"
+    },
+    {
+      "metadata": "/42/271af4e222/2/metadata.json",
+      "transcript": "/42/271af4e222/2/full.jsonl",
+      "context": "/42/271af4e222/2/context.md",
+      "content_hash": "/42/271af4e222/2/content_hash.txt",
+      "prompt": "/42/271af4e222/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 14432,
-    "cache_creation_tokens": 408003,
-    "cache_read_tokens": 26993768,
-    "output_tokens": 48905,
-    "api_call_count": 197
+    "input_tokens": 19759,
+    "cache_creation_tokens": 488098,
+    "cache_read_tokens": 27211497,
+    "output_tokens": 50105,
+    "api_call_count": 201
   }
 }

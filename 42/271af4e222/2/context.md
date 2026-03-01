@@ -1,0 +1,19 @@
+# Session Context
+
+## User Prompts
+
+### Prompt 1
+
+# help
+
+Read the entire task file at: {project-root}/_bmad/core/tasks/help.md
+
+Follow all instructions in the task file exactly as written.
+
+
+ARGUMENTS:   Next: Epic 8 Planning
+
+  Epic 8 requires the full BMAD planning cycle. Start with:
+  1. /bmad-bmm-create-prd — Define requirements for the next body of work
+  2. Then architecture → epics/stories → readiness check → sprint planning
+
