@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.4.8",
+  "checkpoint_id": "b5985ffa5a1a",
+  "strategy": "manual-commit",
+  "branch": "feat/epic-5-shadowscripter-v1.3.0",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "src/cohezion/release/__init__.py",
+    "src/cohezion/release/story_completion_gate.py",
+    "tests/release/test_story_completion_gate.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/b5/985ffa5a1a/0/metadata.json",
+      "transcript": "/b5/985ffa5a1a/0/full.jsonl",
+      "context": "/b5/985ffa5a1a/0/context.md",
+      "content_hash": "/b5/985ffa5a1a/0/content_hash.txt",
+      "prompt": "/b5/985ffa5a1a/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 12556,
+    "cache_creation_tokens": 226701,
+    "cache_read_tokens": 6226519,
+    "output_tokens": 20742,
+    "api_call_count": 55
+  }
+}
