@@ -3,10 +3,12 @@
   "checkpoint_id": "7406191913c4",
   "strategy": "manual-commit",
   "branch": "tmp/worktree-setup",
-  "checkpoints_count": 1,
+  "checkpoints_count": 9,
   "files_touched": [
     "docs/INDEX.md",
+    "docs/architecture.md",
     "docs/assets/VISUAL_INTEGRATION_GUIDE.md",
+    "docs/index.md",
     "docs/testing/surrealdb-integration.md"
   ],
   "sessions": [
@@ -16,13 +18,20 @@
       "context": "/74/06191913c4/0/context.md",
       "content_hash": "/74/06191913c4/0/content_hash.txt",
       "prompt": "/74/06191913c4/0/prompt.txt"
+    },
+    {
+      "metadata": "/74/06191913c4/1/metadata.json",
+      "transcript": "/74/06191913c4/1/full.jsonl",
+      "context": "/74/06191913c4/1/context.md",
+      "content_hash": "/74/06191913c4/1/content_hash.txt",
+      "prompt": "/74/06191913c4/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 4037,
-    "cache_creation_tokens": 259088,
-    "cache_read_tokens": 21311951,
-    "output_tokens": 29740,
-    "api_call_count": 149
+    "input_tokens": 5526,
+    "cache_creation_tokens": 367853,
+    "cache_read_tokens": 24495789,
+    "output_tokens": 49169,
+    "api_call_count": 183
   }
 }
