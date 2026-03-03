@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "e204a0217739",
+  "strategy": "manual-commit",
+  "branch": "track-c",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "daily/2026-02-23-investigation-index.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/e2/04a0217739/0/metadata.json",
+      "transcript": "/e2/04a0217739/0/full.jsonl",
+      "context": "",
+      "content_hash": "/e2/04a0217739/0/content_hash.txt",
+      "prompt": ""
+    },
+    {
+      "metadata": "/e2/04a0217739/1/metadata.json",
+      "transcript": "/e2/04a0217739/1/full.jsonl",
+      "context": "/e2/04a0217739/1/context.md",
+      "content_hash": "/e2/04a0217739/1/content_hash.txt",
+      "prompt": "/e2/04a0217739/1/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 14764,
+    "cache_creation_tokens": 1629379,
+    "cache_read_tokens": 64182772,
+    "output_tokens": 86497,
+    "api_call_count": 531
+  }
+}
