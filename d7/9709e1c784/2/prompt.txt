@@ -1,0 +1,383 @@
+# help
+
+Read the entire task file at: {project-root}/_bmad/core/tasks/help.md
+
+Follow all instructions in the task file exactly as written.
+
+
+ARGUMENTS: We should use our Research Lab to perform technical research of our entire stack to find optimizations that we might not be aware of.
+
+---
+
+Proceed
+
+---
+
+IT IS CRITICAL THAT YOU FOLLOW THIS COMMAND: LOAD the FULL {project-root}/_bmad/bmm/workflows/1-analysis/research/workflow-technical-research.md, READ its entire contents and follow its directions exactly!
+
+---
+
+We need depth and breadth
+
+---
+
+[C]
+
+---
+
+[C]
+
+---
+
+[C]
+
+---
+
+[C]
+
+---
+
+[C]
+
+---
+
+Implement all phases
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Analysis:
+Let me chronologically trace through the entire conversation to capture all details:
+
+1. **Initial Request**: User invoked `/bmad-help` asking to use their Research Lab to perform technical research of their entire stack to find optimizations.
+
+2. **BMAD Help Response**: I read the help task file and recommended `/bmad-bmm-technical-research` as the best match, with `/bmad-bmm-domain-research` and `/bmad-cis-problem-solving` as alternatives.
+
+3. **User said "Proceed"**: I launched the `bmad-bmm-technical-research` skill.
+
+4. **Workflow Loading**: Read the technical research workflow file and config. Asked clarifying questions about scope.
+
+5. **User said "We need depth and breadth"**: Both broad and deep - holistic optimization audit across all layers.
+
+6. **Step 1 - Scope Confirmation**: Created the research output file at `_bmad-output/planning-artifacts/research/technical-cohezion-full-stack-optimization-audit-research-2026-03-03.md`. User confirmed with [C].
+
+7. **Step 2 - Technology Stack Analysis**: Conducted 8 web searches covering Python 3.14, FastAPI, SurrealDB, AMD ROCm, Ollama alternatives, semantic caching, multi-agent orchestration, and asyncio. Wrote comprehensive findings to the document. User confirmed with [C].
+
+8. **Step 3 - Integration Patterns Analysis**: Conducted 6 web searches covering MCP communication, WebSocket vs SSE, SurrealDB client, Tailscale vs Cloudflare, A2A protocol, and serialization. Wrote findings to document. User confirmed with [C].
+
+9. **Step 4 - Architectural Patterns**: Conducted 4 web searches covering compound AI architecture, async event loop isolation, VAE latent space optimization, and circuit breaker patterns. Plus 2 more on FastAPI DI patterns and OpenTelemetry. Wrote comprehensive architectural analysis. User confirmed with [C].
+
+10. **Step 5 - Implementation Research**: Conducted 4 web searches on Python 3.14 migration, uvloop FastAPI deployment, OpenTelemetry FastAPI setup, and vLLM/SGLang AMD ROCm. Created phased implementation roadmap with Phase 1 (quick wins), Phase 2 (architectural), Phase 3 (major upgrades). User confirmed with [C].
+
+11. **Step 6 - Research Synthesis**: Conducted 1 final web search on compound AI systems 2026 trends. Replaced the Research Overview placeholder, wrote executive summary, TOC, methodology, future outlook. User confirmed with [C].
+
+12. **User said "Implement all phases"**: This is the critical pivot from research to implementation.
+
+13. **Implementation Setup**: 
+    - Checked current state of dependencies (uvloop NOT installed, surrealdb >=1.0.8, msgpack installed, no gunicorn, no opentelemetry)
+    - Created 10 tasks for tracking
+    - Set up task dependencies
+
+14. **Task 1 - Dependencies** (COMPLETED):
+    - Added to pyproject.toml: uvloop>=0.21.0, gunicorn>=22.0.0, msgpack>=1.0.0, sse-starlette>=2.0.0, opentelemetry-api>=1.25.0, opentelemetry-sdk>=1.25.0, opentelemetry-instrumentation-fastapi>=0.46b0, opentelemetry-exporter-otlp>=1.25.0
+    - Ran `uv pip install -e ".[dev]"`
+    - Verified: uvloop 0.22.1, gunicorn 25.1.0, otel-sdk 1.39.1, msgpack (1,1,2), sse-starlette OK
+
+15. **Task 2 - Gunicorn Config** (COMPLETED):
+    - Created `gunicorn.conf.py` with 16 workers, UvicornWorker class, preload, max_requests, etc.
+
+16. **Task 3 - SurrealDB Indexes** (COMPLETED):
+    - Used agent to explore all SurrealDB query patterns
+    - Found journey schema already had comprehensive indexes
+    - Fixed bug: `DEFINE INDEX INDEX journey_phi_idx` (double INDEX keyword) → `DEFINE INDEX journey_phi_idx`
+    - Added `node_type_idx` and `node_created_idx` to universe_nodes in surreal_client.py SCHEMA
+
+17. **Task 4 - MessagePack Serialization** (COMPLETED):
+    - Created `src/cohezion/core/serialization.py` with pack/unpack/pack_line/unpack_line/to_json/from_json utilities
+    - Analysis showed most JSON usage is for file persistence (appropriate) - hot-path optimization applies to JSONL line serialization
+
+18. **Task 5 - OpenTelemetry** (COMPLETED):
+    - Modified `src/cohezion/api/__init__.py`:
+      - Added OTel imports
+      - Added `_setup_telemetry()` function with TracerProvider, Resource, BatchSpanProcessor
+      - Added `tracer = trace.get_tracer("cohezion.api")`
+      - Added `FastAPIInstrumentor.instrument_app()` with excluded_urls
+    - Verified import works and health endpoint returns 200
+
+19. **Task 6 - Singleton → Lifespan Migration** (COMPLETED):
+    - Added `lifespan` async context manager to FastAPI app
+    - Refactored `_get_vae()` to use `_init_vae()` helper + app.state with module-level fallback
+    - Refactored `_get_rl_policy()` to use `_init_rl_policy()` helper + app.state with module-level fallback
+    - Added `reset_singletons()` function for test cleanup
+    - Verified with smoke test
+
+20. **Task 8 - SSE Endpoints** (COMPLETED):
+    - Added `@app.post("/compound/execute/stream")` endpoint using `sse_starlette.sse.EventSourceResponse`
+    - Events: started, step (per pipeline step), completed, error
+    - Added `import json` to top-level imports
+    - Verified with smoke test
+
+21. **Task 9 - Pipeline Parallelization** (IN PROGRESS):
+    - Found `ExecutionOrchestrator` already uses DAG-based parallel execution with `_topological_sort` and `asyncio.gather`
+    - Investigated `CompoundExecutor.execute_task()` - found it's a sequential 11-step pipeline
+    - Was reading through post-execution steps (steps 5-7) to identify parallelizable pairs when summary was requested
+
+Now let me identify all pending tasks:
+- Task 7: SurrealDB connection pooling (pending)
+- Task 9: Pipeline parallelization (in_progress - was actively working on this)
+- Task 10: Cloudflare Tunnel (pending)
+
+The user's original request was "Implement all phases" which covers all 18 optimizations across 3 phases. Several Phase 3 items weren't even created as tasks:
+- Python 3.14 free-threading migration
+- vLLM/SGLang for production LLM serving
+- ROCm 7.x + PyTorch on Radeon 8060S
+- FLUME VAE hyperspherical coordinate transform
+- A2A protocol adoption
+
+Summary:
+1. Primary Request and Intent:
+   The user initially requested technical research across their entire Cohezion stack to find optimizations they might not be aware of. This was invoked via `/bmad-help` and routed to the `/bmad-bmm-technical-research` workflow. The research was conducted across 6 steps following the BMAD workflow, producing a comprehensive research document. After completing the research document, the user explicitly said **"Implement all phases"** — requesting implementation of all 18 optimization opportunities identified across 3 phases (Quick Wins, Architectural Improvements, Major Upgrades). The scope covers Python runtime, FastAPI serving, SurrealDB, semantic caching, multi-agent orchestration, LLM inference, and AMD hardware optimization.
+
+2. Key Technical Concepts:
+   - **Python 3.14 free-threading**: 3.1x multi-threaded speedup, 5-10% single-thread cost (Phase 3)
+   - **uvloop**: Drop-in asyncio replacement, 2-4x networking speed (already bundled with fastapi[standard])
+   - **Gunicorn + Uvicorn workers**: Production process manager with preload, max_requests, 16 workers for 16C CPU
+   - **OpenTelemetry GenAI Semantic Conventions**: Industry-standard AI agent tracing (v1.37+)
+   - **FastAPI lifespan + app.state**: Replace module-level singleton globals for proper lifecycle management
+   - **Server-Sent Events (SSE)**: Lighter alternative to WebSocket for agent response streaming via sse-starlette
+   - **SurrealDB indexing**: DEFINE INDEX on hot query fields (node_type, created_at for universe_nodes)
+   - **MessagePack serialization**: 3x faster decode, 30-40% smaller than JSON for internal hot paths
+   - **vLLM/SGLang on AMD ROCm**: 3.23x faster inference than Ollama, gfx1151 support for Radeon 8060S
+   - **A2A protocol**: Google's Agent2Agent protocol for standardized inter-agent communication
+   - **Cloudflare Tunnel**: 1-10 Gbps throughput vs Tailscale Funnel's 100Mbps-1Gbps
+   - **SurrealDB connection pooling**: Application-level async pool (official SDK lacks built-in pooling)
+   - **DAG-based pipeline parallelization**: asyncio.gather for independent pipeline steps
+   - **Hyperspherical VAE coordinates**: Latent space optimization for dimensions >12 (FLUME VAE is 256D)
+   - **Circuit breaker + Tenacity retry layering**: Retry (inner) → Circuit Breaker (outer)
+   - **Plan-and-Execute pattern**: Frontier models plan, cheap models execute — up to 90% cost reduction
+
+3. Files and Code Sections:
+
+   - **`/home/mike-anderson/dev/cohezion/_bmad-output/planning-artifacts/research/technical-cohezion-full-stack-optimization-audit-research-2026-03-03.md`**
+     - The comprehensive research report produced by the 6-step BMAD technical research workflow
+     - Contains Technology Stack Analysis, Integration Patterns, Architectural Patterns, Implementation Approaches, and Research Synthesis with executive summary
+     - Final frontmatter: `stepsCompleted: [1, 2, 3, 4, 5, 6]`
+
+   - **`/home/mike-anderson/dev/cohezion/pyproject.toml`** (MODIFIED)
+     - Added optimization dependencies to the project
+     - Changes to dependencies array:
+     ```python
+     "uvloop>=0.21.0",
+     "gunicorn>=22.0.0",
+     "msgpack>=1.0.0",
+     "sse-starlette>=2.0.0",
+     "opentelemetry-api>=1.25.0",
+     "opentelemetry-sdk>=1.25.0",
+     "opentelemetry-instrumentation-fastapi>=0.46b0",
+     "opentelemetry-exporter-otlp>=1.25.0",
+     ```
+     - Installed versions: uvloop 0.22.1, gunicorn 25.1.0, otel-sdk 1.39.1
+
+   - **`/home/mike-anderson/dev/cohezion/gunicorn.conf.py`** (CREATED)
+     - Gunicorn production configuration for AMD Ryzen AI MAX+ 395
+     ```python
+     import multiprocessing
+     import os
+     
+     bind = os.environ.get("COHEZION_BIND", "0.0.0.0:8080")
+     workers = int(os.environ.get("COHEZION_WORKERS", min(multiprocessing.cpu_count(), 16)))
+     worker_class = "uvicorn.workers.UvicornWorker"
+     preload_app = True
+     max_requests = int(os.environ.get("COHEZION_MAX_REQUESTS", 1000))
+     max_requests_jitter = int(os.environ.get("COHEZION_MAX_REQUESTS_JITTER", 100))
+     timeout = int(os.environ.get("COHEZION_TIMEOUT", 120))
+     graceful_timeout = 30
+     keepalive = 5
+     accesslog = "-"
+     errorlog = "-"
+     loglevel = os.environ.get("COHEZION_LOG_LEVEL", "info")
+     proc_name = "cohezion-api"
+     ```
+
+   - **`/home/mike-anderson/dev/cohezion/src/cohezion/core/persistence/surreal_client.py`** (MODIFIED)
+     - Added SurrealDB indexes for universe_nodes table
+     - Added after line 216's existing HNSW embedding index:
+     ```sql
+     DEFINE INDEX node_type_idx ON universe_nodes FIELDS node_type;
+     DEFINE INDEX node_created_idx ON universe_nodes FIELDS created_at;
+     ```
+
+   - **`/home/mike-anderson/dev/cohezion/src/cohezion/compound/journey/schema.py`** (MODIFIED - BUG FIX)
+     - Fixed syntax bug: `DEFINE INDEX INDEX journey_phi_idx` → `DEFINE INDEX journey_phi_idx` (removed duplicate INDEX keyword on line 62)
+
+   - **`/home/mike-anderson/dev/cohezion/src/cohezion/core/serialization.py`** (CREATED)
+     - Fast serialization utilities for internal hot paths using MessagePack
+     ```python
+     import json
+     import logging
+     from typing import Any
+     import msgpack
+     
+     def pack(data: Any) -> bytes:
+         return msgpack.packb(data, use_bin_type=True)
+     
+     def unpack(data: bytes) -> Any:
+         return msgpack.unpackb(data, raw=False)
+     
+     def pack_line(record: dict[str, Any]) -> bytes:
+         return msgpack.packb(record, use_bin_type=True)
+     
+     def unpack_line(data: bytes) -> dict[str, Any]:
+         return msgpack.unpackb(data, raw=False)
+     
+     def to_json(data: Any, indent: int | None = None) -> str:
+         return json.dumps(data, indent=indent, default=str)
+     
+     def from_json(data: str) -> Any:
+         return json.loads(data)
+     ```
+
+   - **`/home/mike-anderson/dev/cohezion/src/cohezion/api/__init__.py`** (MODIFIED - MAJOR)
+     - **OpenTelemetry instrumentation added**:
+       ```python
+       from opentelemetry import trace
+       from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+       from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+       from opentelemetry.sdk.resources import Resource
+       from opentelemetry.sdk.trace import TracerProvider
+       from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
+       
+       def _setup_telemetry() -> None:
+           resource = Resource.create({
+               "service.name": "cohezion-api",
+               "service.version": "1.0.0",
+               "deployment.environment": os.environ.get("COHEZION_ENV", "development"),
+           })
+           provider = TracerProvider(resource=resource)
+           otlp_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
+           if otlp_endpoint:
+               provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(endpoint=otlp_endpoint)))
+           else:
+               if os.environ.get("OTEL_CONSOLE_EXPORT", "").lower() == "true":
+                   provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
+           trace.set_tracer_provider(provider)
+       
+       _setup_telemetry()
+       tracer = trace.get_tracer("cohezion.api")
+       ```
+     - **FastAPI lifespan context manager added**:
+       ```python
+       @contextlib.asynccontextmanager
+       async def lifespan(application: FastAPI):
+           logger.info("Cohezion API starting up — initializing shared resources")
+           application.state.vae_trainer = None
+           application.state.rl_policy = None
+           yield
+           logger.info("Cohezion API shutting down — cleaning up resources")
+           application.state.vae_trainer = None
+           application.state.rl_policy = None
+       ```
+     - **App creation updated** with `lifespan=lifespan` and `FastAPIInstrumentor.instrument_app()`
+     - **Singleton getters refactored**: `_get_vae()` and `_get_rl_policy()` now use `_init_vae()`/`_init_rl_policy()` helper functions + app.state with module-level fallback for backward compatibility
+     - **`reset_singletons()` function added** for test cleanup
+     - **SSE streaming endpoint added**:
+       ```python
+       @app.post("/compound/execute/stream")
+       async def compound_execute_stream(request: CompoundExecuteRequest):
+           from sse_starlette.sse import EventSourceResponse
+           from cohezion.compound.executor import get_executor
+           
+           async def event_generator():
+               executor = get_executor()
+               try:
+                   yield {"event": "started", "data": json.dumps({"skill_name": request.skill_name})}
+                   result = await executor.execute_skill(request.skill_name, request.input_text, model=request.model)
+                   for step in result.steps:
+                       yield {"event": "step", "data": json.dumps({...})}
+                       await asyncio.sleep(0)
+                   yield {"event": "completed", "data": json.dumps({...})}
+               except KeyError:
+                   yield {"event": "error", "data": json.dumps({"detail": f"Skill not found: {request.skill_name}"})}
+               except Exception as exc:
+                   yield {"event": "error", "data": json.dumps({"detail": str(exc)[:200]})}
+           return EventSourceResponse(event_generator())
+       ```
+     - Added `import json` to top-level imports
+
+   - **`/home/mike-anderson/dev/cohezion/src/cohezion/swarm/execution_orchestrator.py`** (READ ONLY)
+     - Discovered that `ExecutionOrchestrator` already implements DAG-based parallel execution via `_topological_sort()` and `asyncio.gather()` within waves
+
+   - **`/home/mike-anderson/dev/cohezion/src/cohezion/compound/executor.py`** (READ ONLY - ACTIVE INVESTIGATION)
+     - `CompoundExecutor.execute_task()` at line 336 is a sequential 11-step pipeline
+     - Steps identified: guidance → alignment → guardrails → execute → output check → anomaly detection → alignment analysis → cohesion score → pattern extraction → retrospection → skill refinement
+     - Was analyzing post-execution steps (5-7.3) for parallelization opportunities when summary was requested
+
+4. Errors and Fixes:
+   - **OpenTelemetry version attribute error**: `AttributeError: module 'opentelemetry' has no attribute 'version'` — Fixed by using `from opentelemetry.sdk import version; print('otel-sdk:', version.__version__)` instead of `opentelemetry.version.__version__`
+   - **Double INDEX keyword bug in journey schema**: Line 62 had `DEFINE INDEX INDEX journey_phi_idx ON journey FIELDS final_phi;` — Fixed by removing the duplicate `INDEX` keyword
+   - **Pre-existing API test failures**: 66 tests failed in tests/api/ — verified these are NOT caused by my changes (versioning tests expect `/api/v1/` routes that don't exist, gateway tests have TypeError). Health endpoint confirmed working at 200 status.
+   - **`python` command not found**: Initial dependency checks used `python` instead of `uv run python` — fixed by switching to `uv run python`
+
+5. Problem Solving:
+   - **Research Phase**: Successfully completed a 6-step BMAD technical research workflow producing a comprehensive 500+ line research document with 40+ verified web sources across 8 technology layers
+   - **Implementation Phase**: Created task tracking system with 10 tasks across 3 phases, set up dependencies between tasks, and began executing in priority order
+   - **Singleton pollution**: Identified root cause (module-level globals) and implemented FastAPI lifespan + app.state pattern while maintaining backward compatibility via fallback to module-level globals
+   - **SurrealDB index gap**: Used agent to discover all query patterns; found journey schema already well-indexed but universe_nodes missing node_type and created_at indexes
+   - **Pipeline parallelization discovery**: Found that `ExecutionOrchestrator` already uses DAG parallelism; the actual sequential bottleneck is in `CompoundExecutor.execute_task()` which has independent post-execution steps (anomaly detection, alignment analysis, pattern extraction, retrospection) that could run concurrently
+
+6. All User Messages:
+   - `/bmad-help` with args: "We should use our Research Lab to perform technical research of our entire stack to find optimizations that we might not be aware of."
+   - "Proceed"
+   - "We need depth and breadth"
+   - "[C]" (confirming research scope — Step 1)
+   - "[C]" (confirming technology stack analysis — Step 2)
+   - "[C]" (confirming integration patterns — Step 3)
+   - "[C]" (confirming architectural patterns — Step 4)
+   - "[C]" (confirming implementation research — Step 5)
+   - "[C]" (confirming research synthesis — Step 6)
+   - "Implement all phases"
+
+7. Pending Tasks (from task tracking system):
+   - **Task #7** [pending]: Phase 2.3: Implement SurrealDB connection pooling — Application-level async connection pool wrapping the official SurrealDB SDK
+   - **Task #9** [in_progress]: Phase 2.5: Parallelize independent pipeline steps (DAG execution) — Was actively analyzing `CompoundExecutor.execute_task()` for parallelizable post-execution steps
+   - **Task #10** [pending]: Phase 3.1: Cloudflare Tunnel for production MCP endpoint
+   - **Not yet created as tasks** (from Phase 3 roadmap):
+     - Python 3.14 free-threading migration
+     - vLLM/SGLang for production LLM serving
+     - ROCm 7.x + PyTorch on Radeon 8060S
+     - FLUME VAE hyperspherical coordinate transform
+     - A2A protocol adoption for inter-agent comms
+
+8. Current Work:
+   I was actively working on **Task #9: Parallelize independent pipeline steps (DAG execution)**. I had:
+   - Discovered that `ExecutionOrchestrator` (in `src/cohezion/swarm/execution_orchestrator.py`) already uses DAG-based parallel execution with `_topological_sort()` and `asyncio.gather()`
+   - Pivoted to investigating `CompoundExecutor.execute_task()` (in `src/cohezion/compound/executor.py`, starting at line 336) as the actual sequential pipeline
+   - Read through the full execute_task method (lines 336-684+) identifying the sequential steps
+   - Was specifically analyzing post-execution steps 5-7.3 for parallelization:
+     - Step 5: Anomaly detection (non-blocking, independent)
+     - Step 5.5: Alignment analysis (non-blocking, independent but depends on parsed_request)
+     - Step 5.8: Cohesion score computation (depends on anomaly + alignment results)
+     - Step 6: Pattern extraction (depends on success status only)
+     - Step 7.3: Retrospection analysis (independent)
+     - Step 7: Skill refinement (depends on retrospection result)
+   - Had not yet written any code for this task when the summary was requested
+
+9. Optional Next Step:
+   Continue **Task #9** — the user said "Implement all phases" and I was mid-way through analyzing `CompoundExecutor.execute_task()` in `src/cohezion/compound/executor.py` for parallelization opportunities. The immediate next action is to:
+   1. Read the remaining post-execution steps in `executor.py` (lines 684+) to complete the dependency analysis
+   2. Identify which steps can run in parallel via `asyncio.gather()` (candidates: anomaly detection + pattern extraction + retrospection can likely run concurrently)
+   3. Implement the parallelization in the execute_task method
+   4. Then continue to remaining pending tasks: Task #7 (SurrealDB connection pooling), Task #10 (Cloudflare Tunnel), and create/implement Phase 3 tasks
+
+   After Task #9, the remaining tasks from the user's "Implement all phases" request are: Task #7 (SurrealDB connection pooling), Task #10 (Cloudflare Tunnel), and the Phase 3 items not yet created as tasks.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/e74cb26c-3632-4d13-8d81-b331c5b5d551.jsonl
+
+---
+
+Continue
+
+---
+
+Continue
