@@ -9,6 +9,7 @@ from typing import Any
 from cohezion.core.persistence.repositories.skill_repository import Skill
 from cohezion.core.persistence.repositories.universe_repository import UniverseNode
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -127,7 +128,10 @@ class KnowledgeService:
             # Format for MISSION_JOURNAL.md
             date_str = datetime.now().strftime("%Y-%m-%d")
             journal_entry = f"\n\n## Session Developments ({date_str})\n"
-            journal_entry += f"- **Targeted Mission State**: Synchronized journey from `{os.path.basename(task_file)}` and `{os.path.basename(plan_file)}`.\n"
+            journal_entry += (
+                f"- **Targeted Mission State**: Synchronized journey from "
+                f"`{os.path.basename(task_file)}` and `{os.path.basename(plan_file)}`.\n"
+            )
 
             # Extract key milestones (simple heuristic)
             for line in task_content.split("\n"):
@@ -459,14 +463,10 @@ class KnowledgeService:
             )
 
             for edge in edges:
-                neighbor = (
-                    edge.get("to")
-                    if edge.get("from") == current_id
-                    else edge.get("from")
-                )
+                neighbor = edge.get("to") if edge.get("from") == current_id else edge.get("from")
                 if neighbor and neighbor not in visited:
                     visited.add(neighbor)
-                    queue.append((neighbor, path + [neighbor]))
+                    queue.append((neighbor, [*path, neighbor]))
 
         return []
 
@@ -474,7 +474,8 @@ class KnowledgeService:
         """Convert concept string to a simple vector."""
         import hashlib
 
-        hash_obj = hashlib.md5(concept.encode())
+        # Security: SHA-256 used for deterministic vector generation (non-security purpose)
+        hash_obj = hashlib.sha256(concept.encode())
         hash_bytes = hash_obj.digest()
 
         vector = [float(b) / 255.0 for b in hash_bytes[:32]]
