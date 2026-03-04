@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "62981d6d047e",
+  "strategy": "manual-commit",
+  "branch": "security/hardening-review-20260303",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "_bmad/bmm/agents/code-review-assistant.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/62/981d6d047e/0/metadata.json",
+      "transcript": "/62/981d6d047e/0/full.jsonl",
+      "context": "/62/981d6d047e/0/context.md",
+      "content_hash": "/62/981d6d047e/0/content_hash.txt",
+      "prompt": "/62/981d6d047e/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 2029,
+    "cache_creation_tokens": 151882,
+    "cache_read_tokens": 1341243,
+    "output_tokens": 5262,
+    "api_call_count": 17
+  }
+}
