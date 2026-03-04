@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "ac7c7993a58d",
+  "session_id": "1cd76d30-0eee-4c44-8c5f-6d1cffff4d68",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-04T05:42:01.37382428Z",
+  "branch": "security/hardening-clean-20260303",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "src/cohezion/agents/base.py",
+    "src/cohezion/compound/checkpoint_transparency.py",
+    "src/cohezion/compound/coherence_dashboard.py",
+    "src/cohezion/compound/cost_visibility.py",
+    "src/cohezion/compound/progressive_api.py",
+    "src/cohezion/compound/shadow_scripter.py",
+    "src/cohezion/compound/unified_session.py",
+    "src/cohezion/services/knowledge_service.py",
+    "src/cohezion/swarm/token_client.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "9e63ef768a85",
+  "token_usage": {
+    "input_tokens": 4037,
+    "cache_creation_tokens": 259088,
+    "cache_read_tokens": 21311951,
+    "output_tokens": 29740,
+    "api_call_count": 149
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-04T05:42:00.706046124Z",
+    "agent_lines": 5125,
+    "human_added": 8142997,
+    "human_modified": 7,
+    "human_removed": 0,
+    "total_committed": 8148129,
+    "agent_percentage": 0.06289787508273371
+  }
+}
