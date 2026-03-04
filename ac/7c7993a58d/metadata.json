@@ -1,0 +1,34 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "ac7c7993a58d",
+  "strategy": "manual-commit",
+  "branch": "security/hardening-clean-20260303",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "src/cohezion/agents/base.py",
+    "src/cohezion/compound/checkpoint_transparency.py",
+    "src/cohezion/compound/coherence_dashboard.py",
+    "src/cohezion/compound/cost_visibility.py",
+    "src/cohezion/compound/progressive_api.py",
+    "src/cohezion/compound/shadow_scripter.py",
+    "src/cohezion/compound/unified_session.py",
+    "src/cohezion/services/knowledge_service.py",
+    "src/cohezion/swarm/token_client.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ac/7c7993a58d/0/metadata.json",
+      "transcript": "/ac/7c7993a58d/0/full.jsonl",
+      "context": "/ac/7c7993a58d/0/context.md",
+      "content_hash": "/ac/7c7993a58d/0/content_hash.txt",
+      "prompt": "/ac/7c7993a58d/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 4037,
+    "cache_creation_tokens": 259088,
+    "cache_read_tokens": 21311951,
+    "output_tokens": 29740,
+    "api_call_count": 149
+  }
+}
