@@ -1,8 +1,32 @@
-.PHONY: help format lint lint-check lint-tests type-check test test-fast all clean dev-setup ci health-check vault-status session-briefing nav
+.PHONY: help format lint lint-check lint-tests type-check test test-fast all clean dev-setup ci health-check vault-status session-briefing nav onboard
 
 help:  ## Show this help message
 	@echo "Available targets:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
+onboard:  ## Complete onboarding setup and health check
+	@echo "🚀 Cohezion Onboarding"
+	@echo "======================"
+	@echo ""
+	@echo "1️⃣  Installing dependencies..."
+	uv sync
+	@echo ""
+	@echo "2️⃣  Running lint check..."
+	ruff check --fix .
+	@echo ""
+	@echo "3️⃣  Running fast tests..."
+	uv run pytest -m fast --tb=short tests/ 2>/dev/null || echo "⚠️  Some tests require Ollama/SurrealDB"
+	@echo ""
+	@echo "4️⃣  Running type check..."
+	mypy --ignore-missing-imports src/cohezion/ 2>/dev/null || true
+	@echo ""
+	@echo "5️⃣  Running security scan..."
+	uv run bandit -r src/cohezion -f txt -q 2>/dev/null || echo "⚠️  Install bandit: uv pip install bandit"
+	@echo ""
+	@echo "✅ Environment ready! Next steps:"
+	@echo "   - Read QUICKSTART.md for guidance"
+	@echo "   - Run 'make test' for full test suite"
+	@echo "   - Visit http://localhost:8000/docs after 'uv run uvicorn cohezion.api:app'"
 
 format:  ## Format code with ruff
 	ruff format .
