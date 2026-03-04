@@ -208,3 +208,21 @@ COHEZION_ANTHROPIC_PORTFOLIO_2026.zip
 
 # Temporary files
 *.tmp
+
+# === DATA DIRECTORY LIFECYCLE POLICY (P3 Consensus) ===
+# data/ is ephemeral cache - all contents regenerable from source
+# Only track .gitkeep and README.md
+data/
+!data/.gitkeep
+!data/README.md
+
+# Specific cache patterns (anywhere in repo)
+*.parquet
+*.jsonl
+*.pt
+*.pkl
+*.checkpoint
+*.model
+*.weights
+*.npy
+*.npz

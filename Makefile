@@ -1,4 +1,4 @@
-.PHONY: help format lint lint-check lint-tests type-check test test-fast all clean dev-setup ci health-check vault-status session-briefing nav onboard
+.PHONY: help format lint lint-check lint-tests type-check test test-fast all clean dev-setup ci health-check vault-status session-briefing nav onboard entire-clean entire-status clean-data reset-data data-status
 
 help:  ## Show this help message
 	@echo "Available targets:"
@@ -82,6 +82,36 @@ clean:  ## Clean up cache files
 	find . -type d -name ".mypy_cache" -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name "*.pyc" -delete 2>/dev/null || true
 	@echo "✓ Cache cleaned"
+
+# Data lifecycle targets (P3 Consensus: Data Directory Policy)
+clean-data:  ## Remove all generated data (ephemeral cache)
+	@echo "🗑️  Cleaning generated data..."
+	@if [ -d data/journeys_25m ]; then rm -rf data/journeys_25m; fi
+	@if [ -d data/surrealdb ]; then rm -rf data/surrealdb; fi
+	@if [ -d data/overnight ]; then rm -rf data/overnight; fi
+	@if [ -d data/ouroboros ]; then rm -rf data/ouroboros; fi
+	@if [ -d data/journeys_integration_test ]; then rm -rf data/journeys_integration_test; fi
+	@if [ -d data/checkpoints ]; then rm -rf data/checkpoints; fi
+	@if [ -d data/cache ]; then rm -rf data/cache; fi
+	@find data -name "*.parquet" -delete 2>/dev/null || true
+	@find data -name "*.jsonl" -delete 2>/dev/null || true
+	@find data -name "*.pt" -delete 2>/dev/null || true
+	@find data -name "*.pkl" -delete 2>/dev/null || true
+	@echo "✓ Data cleaned"
+
+reset-data: clean-data onboard  ## Clean and regenerate all data
+	@echo "✓ Data reset complete"
+
+data-status:  ## Show data directory status
+	@echo "📊 Data Directory Status:"
+	@echo "========================"
+	@du -sh data/ 2>/dev/null || echo "data/ not found"
+	@echo ""
+	@echo "Subdirectories:"
+	@du -sh data/*/ 2>/dev/null | sort -rh | head -10 || echo "No subdirectories"
+	@echo ""
+	@echo "Tracked files: $(shell git ls-files data/ 2>/dev/null | wc -l)"
+	@echo "Untracked files: $(shell git status --short data/ 2>/dev/null | grep '^??' | wc -l)"
 
 # Development workflow targets
 dev-setup:  ## Install pre-commit hooks
