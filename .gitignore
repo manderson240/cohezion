@@ -185,3 +185,26 @@ data/compound/metrics/
 .worktrees/
 infrastructure/
 .env.surrealdb
+cloud-vault-mcp/history.txt
+
+# Generated/large files discovered during triage
+ruff_*.txt
+ruff_*.json
+mypy_*.txt
+f821_out.txt
+
+# Claude worktrees (ephemeral)
+.claude/worktrees/
+
+# Generated data
+data/cache/
+*.db
+
+# Session archives
+.archived/
+
+# Large generated files
+COHEZION_ANTHROPIC_PORTFOLIO_2026.zip
+
+# Temporary files
+*.tmp
