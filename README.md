@@ -1,5 +1,9 @@
 # Cohezion
 
+[![Health Check](https://github.com/manderson240/cohezion/actions/workflows/health-check.yml/badge.svg)](https://github.com/manderson240/cohezion/actions/workflows/health-check.yml)
+[![CI](https://github.com/manderson240/cohezion/actions/workflows/ci.yml/badge.svg)](https://github.com/manderson240/cohezion/actions/workflows/ci.yml)
+[![Security](https://img.shields.io/badge/security-bandit-blue)](https://github.com/manderson240/cohezion)
+
 **Training environments, evaluation systems, and ML infrastructure for agentic AI operating in simulated universes.**
 
 Cohezion is a framework for building and evaluating autonomous agents that perform long-horizon tasks within a 12-dimensional simulated universe. Agents navigate continuous latent spaces, coordinate in multi-agent swarms, and are evaluated through trajectory-based coherence metrics — all within sandboxed, reproducible environments.
@@ -221,7 +225,7 @@ print(f"Metrics: {result.metrics}")
 
 ```bash
 # Full suite
-uv run pytest tests/ -q
+uv run pytest tests/ -q  # 3,486 pass; SurrealDB integration tests require live DB
 
 # By module
 uv run pytest tests/compound/ -v       # Compound engineering (275 tests)
@@ -244,7 +248,7 @@ make format && make lint && make type-check
 - **ML**: PyTorch (VAE, RL policy), Gymnasium (RL environments), sentence-transformers (embeddings)
 - **Backend**: FastAPI, SurrealDB (async), JSONL fallback
 - **Inference**: Ollama (local models), Anthropic API, cost-aware model routing
-- **Quality**: ruff (format + lint), mypy (type checking), pytest (3,200+ tests)
+- **Quality**: ruff (format + lint, 203 errors remaining), mypy (type checking), pytest (3,486 passing)
 - **Deployment**: Docker, Cloud Run, systemd
 
 ---
@@ -253,11 +257,11 @@ make format && make lint && make type-check
 
 | Metric | Value |
 |--------|-------|
-| Source modules | 401 Python files across 67 packages |
-| Test functions | 3,232 |
-| Test pass rate | 99.3% |
-| PRIME skill definitions | 74 |
-| API endpoints | 46+ |
+| Source modules | 391 Python files across 68 packages |
+| Test functions | 3,530 collected |
+| Test pass rate | 3,486 passing / 0 failing (SurrealDB integration tests require live DB) |
+| PRIME skill definitions | 74 (registry) / 134 (.md files) |
+| API endpoints | 72 |
 | RL coherence (trained) | 0.991 avg |
 | HIHO band compliance | 92.7% of executions |
 | Simulation stability | 25M cycles |
