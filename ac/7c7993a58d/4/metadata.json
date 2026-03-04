@@ -1,0 +1,21 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "ac7c7993a58d",
+  "session_id": "d1f5a1c0-81f5-4140-a94c-e7630e516456",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-04T05:49:00.328916713Z",
+  "branch": "security/hardening-clean-20260303",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "src/cohezion/swarm/model_profile.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "0d382b63cfa9",
+  "token_usage": {
+    "input_tokens": 2767,
+    "cache_creation_tokens": 345940,
+    "cache_read_tokens": 6980113,
+    "output_tokens": 27436,
+    "api_call_count": 64
+  }
+}
