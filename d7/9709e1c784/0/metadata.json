@@ -1,0 +1,48 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "d79709e1c784",
+  "session_id": "5b14d913-2fb1-49ac-86f2-9971352ee388",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-04T18:46:11.104914911Z",
+  "branch": "release/v1.1.0",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "_bmad-output/implementation-artifacts/inception-labs-integration-report.md",
+    "_bmad-output/implementation-artifacts/production-scaling-plan.md",
+    "apps/webapp/src/components/CommandCenter.tsx",
+    "apps/webapp/src/components/DiffusionRenderer.tsx",
+    "pyproject.toml",
+    "scripts/benchmarks/mercury_benchmark.py",
+    "scripts/benchmarks/ouroboros_test.py",
+    "scripts/verify_inception_integration.py",
+    "src/cohezion/compound/ouroboros.py",
+    "src/cohezion/deployment/feature_flags.py",
+    "src/cohezion/gateway/__init__.py",
+    "src/cohezion/gateway/base_openai_adapter.py",
+    "src/cohezion/gateway/inception_adapter.py",
+    "src/cohezion/gateway/ngrok_adapter.py",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "src/cohezion/swarm/model_registry.py",
+    "tests/shadowscripter/generated/test_generated_abc123.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "4ed7b5b4bd78",
+  "checkpoint_transcript_start": 16,
+  "transcript_lines_at_start": 16,
+  "token_usage": {
+    "input_tokens": 17423,
+    "cache_creation_tokens": 431191,
+    "cache_read_tokens": 4270993,
+    "output_tokens": 21791,
+    "api_call_count": 40
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-04T18:46:10.762076613Z",
+    "agent_lines": 482,
+    "human_added": 49,
+    "human_modified": 312,
+    "human_removed": 0,
+    "total_committed": 788,
+    "agent_percentage": 61.16751269035533
+  }
+}
