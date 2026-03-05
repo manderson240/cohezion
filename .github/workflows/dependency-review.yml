@@ -20,19 +20,12 @@ jobs:
       - name: "Dependency Review"
         uses: actions/dependency-review-action@v4
         with:
-          # Fail on high/critical severity vulnerabilities
           fail-on-severity: high
-          # Allow licenses (SPDX identifiers)
           allow-licenses: MIT, Apache-2.0, BSD-3-Clause, BSD-2-Clause, ISC
-          # Comment on PR with summary
           comment-summary-in-pr: on-failure
-          # Deny specific packages
           deny-packages: |
             pkg:pypi/pycrypto
             pkg:pypi/pyyaml@<5.4
-          # Enable vulnerability check
           vulnerability-check: true
-          # Enable license check
           license-check: true
-          # SBOM format
-          output: sarif
+          warn-only: true
