@@ -196,6 +196,9 @@ f821_out.txt
 # Claude worktrees (ephemeral)
 .claude/worktrees/
 
+# BMAD runtime memory (session-specific, not version-controlled)
+_bmad/_memory/
+
 # Generated data
 data/cache/
 *.db
