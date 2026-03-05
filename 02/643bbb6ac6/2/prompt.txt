@@ -1,0 +1,757 @@
+IT IS CRITICAL THAT YOU FOLLOW THIS COMMAND: LOAD the FULL {project-root}/_bmad/bmm/workflows/1-analysis/research/workflow-technical-research.md, READ its entire contents and follow its directions exactly!
+
+
+ARGUMENTS: https://help.obsidian.md/ and figure out how we can better leverage and/or improve our vault and vault MCP server.  Make sure we integrate with PRD, Architecture, Epics, and Stories.
+
+---
+
+[C]
+
+---
+
+[C]
+
+---
+
+[C]
+
+---
+
+[C]
+
+---
+
+[C]
+
+---
+
+IT IS CRITICAL THAT YOU FOLLOW THIS COMMAND: LOAD the FULL {project-root}/_bmad/bmm/workflows/generate-project-context/workflow.md, READ its entire contents and follow its directions exactly!
+
+---
+
+[C]
+
+---
+
+[C]
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Analysis:
+Let me chronologically analyze the conversation:
+
+1. **First command: `/bmad-bmm-technical-research`** - User requested technical research on Obsidian vault capabilities and how to improve the Cohezion vault MCP server, with integration into PRD, Architecture, Epics, and Stories.
+
+2. I loaded the workflow file from `_bmad/bmm/workflows/1-analysis/research/workflow-technical-research.md` and followed its step-by-step process.
+
+3. **Step 1 (Init)**: Created the research output file at `_bmad-output/planning-artifacts/research/technical-obsidian-vault-mcp-improvement-research-2026-03-03.md`. User confirmed scope with [C].
+
+4. **Step 2 (Technology Stack Analysis)**: 
+   - Fetched https://help.obsidian.md/ for Obsidian capabilities
+   - Searched for Obsidian MCP server ecosystem, vault API, Dataview, Properties, Canvas, Templater
+   - Used a sub-agent to explore the existing Cohezion vault MCP server codebase
+   - Discovered 47 existing tools across 12 categories in cloud-vault-mcp/
+   - Key finding: GAP - No BMAD workflow integration
+   - User confirmed with [C]
+
+5. **Step 3 (Integration Patterns)**:
+   - Searched for MCP protocol design patterns (Tools, Resources, Prompts)
+   - Searched for BMAD artifact-to-vault integration approaches
+   - Found we only use MCP Tools - not Resources or Prompts
+   - Designed bidirectional BMAD ↔ Vault bridge pattern
+   - Proposed MCP Resources for vault browsing, MCP Prompts for BMAD workflows
+   - Canvas generation for epic boards and ADR maps
+   - Unified frontmatter schema (3-tier)
+   - User confirmed with [C]
+
+6. **Step 4 (Architectural Patterns)**:
+   - Searched for knowledge management system architecture, MCP server modular patterns, Obsidian scalability
+   - Designed layered bridge architecture (Vault MCP Server → BMAD Bridge Layer → Dual Storage)
+   - Document lifecycle state machines (PRD, Architecture, Epic, Story)
+   - MCP modular extension pattern with capability-based registration
+   - Scalability analysis (current <200 notes, SQLite FTS5 upgrade path)
+   - Canvas generation architecture
+   - Security architecture
+   - User confirmed with [C]
+
+7. **Step 5 (Implementation Research)**:
+   - Searched for FastMCP Resources/Prompts implementation, testing strategies, incremental adoption
+   - 4-phase implementation roadmap (6-10 days total)
+   - 8 new tools, 6 new resources, 4 new prompts
+   - Zero new infrastructure
+   - Testing strategy: 3-tier (unit/integration/live)
+   - User confirmed with [C]
+
+8. **Step 6 (Research Synthesis)**:
+   - Searched for future outlook (Obsidian MCP 2026)
+   - Produced complete synthesis with Executive Summary, TOC, all sections
+   - Updated Research Overview placeholder
+   - Finalized the research document
+   - User confirmed with [C]
+
+9. **Second command: `/bmad-bmm-generate-project-context`** - User requested project context generation.
+
+10. I loaded the workflow from `_bmad/bmm/workflows/generate-project-context/workflow.md` and executed step-01-discover.
+
+11. **Step 1 (Discovery)**:
+    - Found existing project-context.md at `_bmad-output/planning-artifacts/project-context.md` with 10 sections
+    - Analyzed pyproject.toml for tech stack (Python 3.13+, FastAPI, SurrealDB, MCP, etc.)
+    - Found 8 compound engineering patterns, 6 coding conventions, 5 anti-patterns
+    - Identified missing areas: Vault MCP, Security, BMAD, 37 source packages
+    - User confirmed with [C]
+
+12. **Step 2 (Generate)**:
+    - Presented the plan for updated project context
+    - User confirmed with [C] (skipping A/P options)
+    - Wrote the complete updated project-context.md (480 lines, 52 rules, 10 sections)
+
+13. **Step 3 (Complete)**:
+    - Updated frontmatter with status: complete, rule_count: 52, optimized_for_llm: true
+    - Presented completion summary showing before/after comparison
+
+Key files created/modified:
+- `_bmad-output/planning-artifacts/research/technical-obsidian-vault-mcp-improvement-research-2026-03-03.md` (research document)
+- `_bmad-output/planning-artifacts/project-context.md` (project context - rewritten)
+
+No errors encountered. User approved every step with [C] without requesting changes.
+
+User messages:
+1. `/bmad-bmm-technical-research` with args about Obsidian vault research
+2. [C] (continue scope)
+3. [C] (continue to integration patterns)
+4. [C] (continue to architectural patterns)
+5. [C] (continue to implementation research)
+6. [C] (continue to synthesis)
+7. `/bmad-bmm-generate-project-context`
+8. [C] (continue to context generation)
+9. [C] (continue to save rules)
+10. Summary request
+
+The last completed task was the project context generation. Both workflows are complete.
+
+Summary:
+1. Primary Request and Intent:
+   The user (Mike) issued two sequential BMAD workflow commands:
+   
+   **Command 1: `/bmad-bmm-technical-research`** — Conduct comprehensive technical research on Obsidian vault capabilities, specifically how to better leverage and improve the Cohezion vault MCP server. The research must integrate with PRD, Architecture, Epics, and Stories BMAD workflows. The source to investigate was https://help.obsidian.md/.
+   
+   **Command 2: `/bmad-bmm-generate-project-context`** — Generate/update the project-context.md file with AI-optimized rules and patterns for the Cohezion project, following the BMAD generate-project-context workflow.
+
+2. Key Technical Concepts:
+   - **MCP (Model Context Protocol)** — 3 primitives: Tools, Resources, Prompts. Cohezion only uses Tools currently.
+   - **Obsidian Properties** — 7 typed fields (text, list, number, checkbox, date, datetime, tags) with vault-wide type enforcement
+   - **Obsidian Canvas** — Open JSON format (.canvas) with 4 node types (file, text, link, group), programmable via JSON
+   - **Dataview Plugin** — Query engine for vault-as-database; read-only, DQL + DataviewJS
+   - **Templater Plugin** — Dynamic template insertion with JavaScript execution
+   - **FastMCP** — Python MCP server framework, v3.1.0, powers 70% of MCP servers, supports Tools/Resources/Prompts via decorators
+   - **BMAD-Vault Integration Gap** — `_bmad-output/` artifacts (PRDs, Architecture, Epics, Stories) have zero connection to `cloud-vault-mcp/vault/` knowledge store
+   - **Bidirectional Bridge Pattern** — BMAD→Vault (approved PRD → vault project note; accepted ADR → vault decision) and Vault→BMAD (new PRD queries vault for past decisions/patterns)
+   - **Document Lifecycle State Machines** — PRD (Draft→Approved→Archived), Architecture (Proposed→Accepted→Superseded), Epic (Defined→In Progress→Completed→Retrospected), Story (Draft→Ready→In Progress→Done→Verified)
+   - **Unified Frontmatter Schema** — 3-tier: universal (date, tags, status, project) → artifact-typed (artifact_type, bmad_source, linked_artifacts) → type-specific (per artifact type)
+   - **Canvas Generation Architecture** — Programmatic JSON generation for epic boards and ADR maps
+   - **Scalability Strategy** — <1K notes: regex (current), 1K-5K: SQLite FTS5, 5K+: vector embeddings via Ollama
+   - **Existing Vault MCP Server** — 47 tools, 12 categories, ~10,475 lines Python, FastMCP HTTP on port 8360
+   - **4-Phase Implementation Roadmap** — Foundation (1-2 days) → BMAD Bridge (2-3 days) → Intelligence (2-3 days) → Enhancement (1-2 days)
+
+3. Files and Code Sections:
+
+   - **`_bmad-output/planning-artifacts/research/technical-obsidian-vault-mcp-improvement-research-2026-03-03.md`** (CREATED)
+     - Comprehensive technical research document on Obsidian Vault & MCP Server improvement
+     - Contains: Executive Summary, Technology Stack Analysis, Integration Patterns, Architectural Patterns, Implementation Approaches, Research Synthesis with full source documentation
+     - Frontmatter: `stepsCompleted: [1, 2, 3, 4, 5, 6]`, `workflowType: 'research'`
+     - Key sections include proposed new tools, resources, prompts, and phased roadmap
+     - 8 new MCP tools proposed: `bmad_sync_artifact`, `bmad_list_artifacts`, `bmad_get_artifact_status`, `bmad_update_status`, `bmad_link_artifacts`, `bmad_generate_canvas`, `bmad_enrich_context`, `bmad_retrospective_summary`
+     - 6 new MCP Resources: `vault://decisions`, `vault://patterns`, `vault://projects/{project}`, `vault://bmad/prd`, `vault://bmad/epics`, `vault://bmad/architecture`
+     - 4 new MCP Prompts: `create-prd-with-context`, `architecture-decision-with-history`, `epic-retrospective`, `story-implementation-context`
+
+   - **`_bmad-output/planning-artifacts/project-context.md`** (REWRITTEN)
+     - Complete project context rewrite from ~190 lines to 480 lines
+     - 52 critical rules across 10 sections, optimized for LLM consumption
+     - Frontmatter: `status: 'complete'`, `rule_count: 52`, `optimized_for_llm: true`
+     - New sections added: Vault MCP (47 tools, 12 categories), Security Modules (20+ modules), full 44-package project structure, expanded anti-patterns (15 items)
+     - Key code patterns documented:
+       ```python
+       # Async event loop conflict resolution
+       try:
+           loop = asyncio.get_running_loop()
+       except RuntimeError:
+           return asyncio.run(async_func(*args))
+       with ThreadPoolExecutor() as executor:
+           future = executor.submit(lambda: asyncio.run(async_func(*args)))
+           return future.result()
+       ```
+     - FastMCP configuration: `TransportSecuritySettings(enable_dns_rebinding_protection=False)` + uvicorn `http="h11"`
+     - Testing singleton resets documented: FLUME VAE, RL Policy, Loggers
+     - Ruff ignored rules with rationale (S311, S603, S607, S608, N806, S108, TC001-3, RUF003)
+
+   - **`cloud-vault-mcp/src/mcp_server/`** (READ/EXPLORED by sub-agent)
+     - 47 tools across: vault_ops.py, obsidian_ops.py, compound_ops.py, teleport.py, memory_bridge.py, sheets_bridge.py, surrealdb_sync.py, ollama_client.py, agent_context.py, pocket_tts.py, health.py, server.py
+     - Server config: port 8360, FastMCP HTTP, conditional modules (SURREALDB_ENABLED, SHEETS_ENABLED, OLLAMA_ENABLED)
+
+   - **`pyproject.toml`** (READ)
+     - Python >=3.13, hatchling build system, 23 core dependencies
+     - Ruff config: line-length 120, comprehensive rule set with documented ignores
+     - mypy config: check_untyped_defs=true, no_implicit_optional=true
+     - pytest markers: fast, integration, mcp
+
+   - **`_bmad/bmm/workflows/2-plan-workflows/create-prd/templates/prd-template.md`** (READ)
+     - BMAD PRD frontmatter: `workflowType: 'prd'`, `stepsCompleted`, `inputDocuments`
+
+   - **`_bmad/bmm/workflows/3-solutioning/create-architecture/architecture-decision-template.md`** (READ)
+     - Architecture frontmatter: `workflowType: 'architecture'`, `project_name`, `user_name`, `date`
+
+   - **`_bmad/bmm/workflows/3-solutioning/create-epics-and-stories/templates/epics-template.md`** (READ)
+     - Epics template with requirements inventory, FR coverage map, epic/story breakdown
+
+4. Errors and Fixes:
+   - No errors encountered during this session. All workflow steps completed successfully.
+   - No user corrections or feedback requesting changes — all steps approved with [C].
+
+5. Problem Solving:
+   - **Problem**: Cohezion vault MCP server (47 tools) has zero integration with BMAD workflow artifacts (PRDs, Architecture, Epics, Stories)
+   - **Solution Designed**: 4-phase implementation roadmap with bidirectional BMAD bridge, MCP Resources/Prompts, Canvas generation, unified frontmatter schema
+   - **Problem**: Existing project-context.md only covered 7 of 44 source packages, lacked vault MCP, security, and BMAD documentation
+   - **Solution**: Complete rewrite expanding from ~190 to 480 lines with 52 rules across 10 sections
+
+6. All User Messages:
+   - `/bmad-bmm-technical-research` with args: "https://help.obsidian.md/ and figure out how we can better leverage and/or improve our vault and vault MCP server. Make sure we integrate with PRD, Architecture, Epics, and Stories."
+   - `[C]` — Continue research scope confirmation
+   - `[C]` — Continue to integration patterns
+   - `[C]` — Continue to architectural patterns
+   - `[C]` — Continue to implementation research
+   - `[C]` — Continue to synthesis
+   - `/bmad-bmm-generate-project-context` — Generate project context
+   - `[C]` — Continue to context generation
+   - `[C]` — Save rules and generate document
+   - Summary request (current message)
+
+7. Pending Tasks:
+   - No explicitly pending tasks. Both workflows completed successfully.
+   - Research document recommends these next steps:
+     1. Create a PRD from the research (`/bmad-bmm-create-prd`)
+     2. Create an Architecture Decision for the unified frontmatter schema
+     3. Break into Epics and Stories for the 4-phase implementation
+
+8. Current Work:
+   The most recently completed task was the **project context generation workflow** (`/bmad-bmm-generate-project-context`). The final output was:
+   - File: `_bmad-output/planning-artifacts/project-context.md` (480 lines, 52 rules, 10 sections)
+   - Status: Complete with frontmatter `status: 'complete'`
+   - The completion summary showed a before/after comparison of all sections expanded (Technology Stack: 6→23 entries, Project Structure: 7→44 packages, etc.)
+
+9. Optional Next Step:
+   Both workflows are complete. The research document's recommended next steps are:
+   1. Create a PRD based on the Obsidian vault research (use `/bmad-bmm-create-prd`)
+   2. Create an architecture decision document for the unified frontmatter schema
+   3. Create epics and stories from the Phase 1-4 implementation tasks
+   
+   However, the user has not explicitly requested any of these next steps, so no action should be taken without user confirmation.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/9da42ddb-83a4-462a-b083-f0f59e1b1f36.jsonl
+
+---
+
+Continue
+
+---
+
+All of the above
+
+---
+
+IT IS CRITICAL THAT YOU FOLLOW THIS COMMAND: LOAD the FULL {project-root}/_bmad/bmm/workflows/2-plan-workflows/create-prd/workflow-create-prd.md, READ its entire contents and follow its directions exactly!
+
+---
+
+[C]
+
+---
+
+[C]
+
+---
+
+[C]
+
+---
+
+Me, but I'm trying to impress future employers and investors.
+
+---
+
+[C]
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Analysis:
+Let me chronologically analyze the conversation:
+
+1. **Session Start (from previous conversation summary)**:
+   - Previous session completed two workflows: technical research on Obsidian vault MCP improvement, and project context generation
+   - Research document created at `_bmad-output/planning-artifacts/research/technical-obsidian-vault-mcp-improvement-research-2026-03-03.md`
+   - Project context updated at `_bmad-output/planning-artifacts/project-context.md` (480 lines, 52 rules)
+
+2. **User says "Continue"** after compaction - I summarized what was done and presented recommended next steps from the research document:
+   1. Create a PRD from research findings
+   2. Create an Architecture Decision for unified frontmatter schema
+   3. Break into Epics and Stories for 4-phase implementation
+
+3. **User says "All of the above"** - wants all three workflows executed
+
+4. **Task tracking setup**: Created 3 tasks:
+   - Task #1: Create PRD from vault MCP research (set to in_progress)
+   - Task #3: Create Architecture Decision (blocked by #1)
+   - Task #2: Create Epics and Stories (blocked by #1 and #3)
+
+5. **Invoked `/bmad-bmm-create-prd` skill** which instructed me to load and follow `_bmad/bmm/workflows/2-plan-workflows/create-prd/workflow-create-prd.md`
+
+6. **Step 01 - Init**:
+   - Read workflow file, config.yaml (project_name: cohezion, output_folder: _bmad-output, user_name: Mike, date: 2026-03-04)
+   - Read step-01-init.md
+   - Found existing complete PRD at `_bmad-output/planning-artifacts/prd.md` (Cohezion Optimization Initiative, step-12-complete)
+   - Decided to create a NEW separate PRD file: `prd-vault-mcp-improvement.md`
+   - Discovered input documents: research, product brief, project context, MCP_SERVER.md, mcp-integration.md
+   - User confirmed with [C]
+
+7. **Step 02 - Discovery**:
+   - Read step-02-discovery.md
+   - Loaded ALL input documents in full:
+     - `technical-obsidian-vault-mcp-improvement-research-2026-03-03.md` (full ~925 lines research)
+     - `product-brief-cohezion-2026-02-27.md`
+     - `project-context.md`
+     - `docs/MCP_SERVER.md` (Kyutai MCP server config)
+     - `docs/mcp-integration.md` (Cloud Vault MCP integration guide)
+   - Loaded classification CSVs: project-types.csv and domain-complexity.csv
+   - Created the PRD output file with initial frontmatter
+   - Classified project as:
+     - Project Type: Developer Tool / MCP Server Extension
+     - Domain: Scientific (AI Research & Simulation)
+     - Complexity: Medium
+     - Project Context: Brownfield
+   - User confirmed with [C]
+   - Updated frontmatter: stepsCompleted added 'step-02-discovery', classification updated
+
+8. **Step 02b - Vision Discovery**:
+   - Read step-02b-vision.md
+   - Presented vision synthesis from research:
+     - Vision: Transform vault from passive store to active workflow participant
+     - What Makes It Special: Only vault MCP with bidirectional BMAD integration, all 3 MCP primitives
+     - Core Insight: Knowledge not connected to workflows is dead knowledge
+   - Asked clarifying questions about primary user, magic moment, timing
+   - User responded: "Me, but I'm trying to impress future employers and investors."
+   - This revealed dual purpose: personal productivity + portfolio showcase
+   - Refined vision to include two layers: Functional + Showcase
+   - User confirmed with [C]
+   - Updated frontmatter: stepsCompleted added 'step-02b-vision'
+
+9. **Step 02c - Executive Summary**:
+   - Read step-02c-executive-summary.md
+   - Generated Executive Summary content with:
+     - Vision alignment content (BMAD-Vault bridge, bidirectional integration)
+     - What Makes This Special (6 bullet points)
+     - Project Classification table
+   - Key details in Executive Summary:
+     - Target user: Solo developer (Mike) with portfolio quality design
+     - 8 new tools, 6 new resources, 4 new prompts, ~300-500 new lines
+     - Zero new infrastructure
+     - Quantifiable: 500-1,500 tokens saved/session, 100% artifact traceability
+   - Presented for review with A/P/C menu
+   - **This is where the conversation stops** - user has NOT yet selected C for this step
+
+Key files:
+- Output file: `/home/mike-anderson/dev/cohezion/_bmad-output/planning-artifacts/prd-vault-mcp-improvement.md`
+- Research input: `_bmad-output/planning-artifacts/research/technical-obsidian-vault-mcp-improvement-research-2026-03-03.md`
+- Workflow being followed: `_bmad/bmm/workflows/2-plan-workflows/create-prd/`
+- Current step file: `step-02c-executive-summary.md`
+- Next step file: `step-03-success.md`
+
+Tasks:
+- Task #1: Create PRD (in_progress - currently on step 2c of 13)
+- Task #3: Create Architecture Decision (pending, blocked by #1)
+- Task #2: Create Epics and Stories (pending, blocked by #1 and #3)
+
+Summary:
+1. Primary Request and Intent:
+   The user said **"All of the above"** when presented with three recommended next steps from the completed technical research:
+   1. **Create a PRD** from the Obsidian vault MCP improvement research (`/bmad-bmm-create-prd`)
+   2. **Create an Architecture Decision** for the unified frontmatter schema
+   3. **Break into Epics and Stories** for the 4-phase implementation roadmap
+   
+   These are sequential — PRD first, then Architecture, then Epics/Stories. The user is the sole developer (Mike) building both for personal productivity AND as a portfolio showcase for employers and investors.
+
+2. Key Technical Concepts:
+   - **BMAD-Vault Bridge** — Bidirectional integration layer connecting `_bmad-output/` workflow artifacts with `cloud-vault-mcp/vault/` knowledge store
+   - **MCP Protocol 3 Primitives** — Tools (existing 47), Resources (new: vault browsing URIs), Prompts (new: context-enriched BMAD workflows)
+   - **Unified Frontmatter Schema** — 3-tier: universal (date, tags, status, project) → artifact-typed (artifact_type, bmad_source, linked_artifacts) → type-specific
+   - **Document Lifecycle State Machines** — PRD (Draft→Approved→Archived), Architecture (Proposed→Accepted→Superseded), Epic (Defined→Completed→Retrospected), Story (Draft→Verified)
+   - **Programmatic Canvas Generation** — Obsidian `.canvas` JSON for epic boards and ADR maps
+   - **4-Phase Implementation Roadmap** — Foundation (1-2d) → BMAD Bridge (2-3d) → Intelligence (2-3d) → Enhancement (1-2d)
+   - **FastMCP** — Python MCP server framework v3.1.0, supports all 3 primitives via decorators
+   - **Conditional Module Pattern** — BMAD bridge loads like existing Sheets/SurrealDB/Ollama modules with feature flag
+   - **Scope**: ~8 new tools, 6 new resources, 4 new prompts, ~300-500 new lines, zero new infrastructure
+
+3. Files and Code Sections:
+   - **`_bmad-output/planning-artifacts/prd-vault-mcp-improvement.md`** (CREATED — the PRD being built)
+     - Created from template, currently at step 2c of 13-step workflow
+     - Current frontmatter:
+     ```yaml
+     stepsCompleted: ['step-01-init', 'step-02-discovery', 'step-02b-vision']
+     inputDocuments:
+       [
+         "_bmad-output/planning-artifacts/research/technical-obsidian-vault-mcp-improvement-research-2026-03-03.md",
+         "_bmad-output/planning-artifacts/product-brief-cohezion-2026-02-27.md",
+         "_bmad-output/planning-artifacts/project-context.md",
+         "docs/MCP_SERVER.md",
+         "docs/mcp-integration.md"
+       ]
+     workflowType: 'prd'
+     classification:
+       domain: 'Scientific (AI Research & Simulation)'
+       projectType: 'Developer Tool / MCP Server Extension'
+       complexity: 'medium'
+       projectContext: 'brownfield'
+     documentCounts:
+       brief: 1
+       research: 1
+       brainstorming: 0
+       projectDocs: 2
+     ```
+     - Body contains only title and author/date so far — Executive Summary has been drafted but NOT yet appended (awaiting user [C])
+
+   - **`_bmad-output/planning-artifacts/research/technical-obsidian-vault-mcp-improvement-research-2026-03-03.md`** (READ — primary input, ~925 lines)
+     - Full research document with 6 completed steps covering Obsidian platform, MCP ecosystem, integration patterns, architectural patterns, implementation approaches, synthesis
+     - Key proposals: 8 new tools (`bmad_sync_artifact`, `bmad_list_artifacts`, `bmad_get_artifact_status`, `bmad_update_status`, `bmad_link_artifacts`, `bmad_generate_canvas`, `bmad_enrich_context`, `bmad_retrospective_summary`), 6 resources, 4 prompts
+
+   - **`_bmad-output/planning-artifacts/product-brief-cohezion-2026-02-27.md`** (READ — product vision context)
+
+   - **`_bmad-output/planning-artifacts/project-context.md`** (READ — 52 rules, tech stack, architecture)
+
+   - **`docs/MCP_SERVER.md`** (READ — Kyutai MCP Server config, 935 lines covering deployment, GPU config, monitoring)
+
+   - **`docs/mcp-integration.md`** (READ — Cloud Vault MCP integration, 650 lines covering setup, client config, 47 tools, vault structure)
+
+   - **`_bmad-output/planning-artifacts/prd.md`** (READ first 50 lines — existing complete PRD for "Cohezion Optimization Initiative", has step-12-complete, preserved as-is)
+
+   - **Workflow files READ**:
+     - `_bmad/bmm/workflows/2-plan-workflows/create-prd/workflow-create-prd.md`
+     - `_bmad/bmm/config.yaml`
+     - `_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-c/step-01-init.md`
+     - `_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-c/step-02-discovery.md`
+     - `_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-c/step-02b-vision.md`
+     - `_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-c/step-02c-executive-summary.md`
+     - `_bmad/bmm/workflows/2-plan-workflows/create-prd/data/project-types.csv`
+     - `_bmad/bmm/workflows/2-plan-workflows/create-prd/data/domain-complexity.csv`
+     - `_bmad/bmm/workflows/2-plan-workflows/create-prd/templates/prd-template.md`
+
+4. Errors and fixes:
+   - **Existing PRD conflict**: Found existing complete PRD at `prd.md` (different topic — "Cohezion Optimization Initiative"). Resolved by creating a separate file `prd-vault-mcp-improvement.md` to preserve the existing PRD.
+   - **No other errors encountered** — all workflow steps completed smoothly with user approving each with [C].
+
+5. Problem Solving:
+   - Successfully navigated the BMAD create-PRD workflow through steps 01 → 02 → 02b → 02c
+   - Identified that the existing `prd.md` was a different project's PRD and created a separate output file
+   - Synthesized ~925 lines of research into a concise Executive Summary
+   - Incorporated user's key insight about dual purpose (personal productivity + portfolio showcase) into the vision and Executive Summary framing
+
+6. All user messages:
+   - "Continue" (after session compaction, to resume work)
+   - "All of the above" (requesting all 3 recommended workflows: PRD, Architecture Decision, Epics & Stories)
+   - "[C]" (continue past Step 01 init - approve document setup and input discovery)
+   - "[C]" (continue past Step 02 discovery - approve project classification)
+   - "Me, but I'm trying to impress future employers and investors." (answering who the primary user is — critical context for vision framing)
+   - "[C]" (continue past Step 02b vision - approve vision understanding)
+   - Summary request (current message)
+
+7. Pending Tasks:
+   - **Task #1 (in_progress)**: Create PRD from vault MCP research — currently on step 2c (Executive Summary), awaiting user [C] to append content and proceed to step 3 (Success Criteria). PRD has 13 total steps.
+   - **Task #3 (pending, blocked by #1)**: Create Architecture Decision for unified frontmatter schema
+   - **Task #2 (pending, blocked by #1 and #3)**: Create Epics and Stories for 4-phase implementation
+
+8. Current Work:
+   Actively executing the **BMAD create-PRD workflow** (`/bmad-bmm-create-prd`) for the Vault MCP Improvement project. Currently on **Step 2c of 13: Executive Summary Generation**.
+
+   The Executive Summary has been drafted and presented to the user for review. It includes:
+   - Executive Summary body (3 paragraphs covering the BMAD-Vault Bridge vision, MCP primitive upgrade, and target user)
+   - "What Makes This Special" section (6 bullet points)
+   - "Project Classification" table
+
+   The A/P/C menu was displayed:
+   > **Select:** [A] Advanced Elicitation [P] Party Mode [C] Continue to Success Criteria (Step 3 of 13)
+
+   The user has NOT yet responded to this menu — the summary request interrupted the workflow.
+
+   When the user selects [C], the next actions are:
+   1. Append the Executive Summary content to `_bmad-output/planning-artifacts/prd-vault-mcp-improvement.md`
+   2. Update frontmatter stepsCompleted to add 'step-02c-executive-summary'
+   3. Load and follow `step-03-success.md` (Success Criteria — Step 3 of 13)
+
+9. Optional Next Step:
+   **Await user's response to the Step 2c Executive Summary menu**, then:
+   - If [C]: Append Executive Summary to PRD file, update frontmatter, load `_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-c/step-03-success.md`
+   - Continue through remaining PRD steps (3 through 11) to complete Task #1
+   - Then proceed to Task #3 (Architecture Decision) and Task #2 (Epics & Stories)
+
+   The last presented content was the Executive Summary draft ending with:
+   > "Review the content above and let me know what you'd like to do."
+   > "**Select:** [A] Advanced Elicitation [P] Party Mode [C] Continue to Success Criteria (Step 3 of 13)"
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/9da42ddb-83a4-462a-b083-f0f59e1b1f36.jsonl
+
+---
+
+Continue
+
+---
+
+Continue
+
+---
+
+[C]
+
+---
+
+Continue
+
+---
+
+[C]
+
+---
+
+[C]
+
+---
+
+Continue
+
+---
+
+[C]
+
+---
+
+[C]
+
+---
+
+Continue
+
+---
+
+Continue
+
+---
+
+Proceed
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Analysis:
+Let me chronologically analyze the entire conversation:
+
+1. **Session start from compaction**: The conversation began with a restored session context. Previous work had completed:
+   - Technical research on Obsidian vault MCP improvement
+   - Project context generation
+   - Started PRD creation workflow, was at Step 2c (Executive Summary) awaiting user [C]
+
+2. **User says "Continue"**: I interpreted this as selecting [C] for the Step 2c Executive Summary. I read the current PRD file and step-03-success.md, then appended the Executive Summary and updated frontmatter.
+
+3. **Step 3 (Success Criteria)**: I drafted success criteria and scope. Presented to user with A/P/C menu.
+   - User said "Continue" → I took as [C]
+
+4. **Step 4 (User Journeys)**: Drafted 4 narrative journeys. Presented with menu.
+   - User said "Continue" → [C]
+
+5. **Step 5 (Domain Requirements)**: Drafted MCP protocol compliance, Obsidian compatibility, BMAD integration constraints, risk mitigations.
+   - User said "[C]"
+
+6. **Step 6 (Innovation)**: Detected genuine innovation signals, drafted innovation analysis.
+   - User said "[C]"
+
+7. **Step 7 (Project Type)**: Developer tool requirements - language matrix, API surface (8 tools, 6 resources, 4 prompts), IDE integration.
+   - User said "Continue"
+
+8. **Step 8 (Scoping)**: 4-phase roadmap, scope cut line, risk mitigation strategy.
+   - User said "[C]"
+
+9. **Step 9 (Functional Requirements)**: 38 FRs across 10 capability areas.
+   - User said "[C]" (next day, March 5)
+
+10. **FILE LOSS DISCOVERED**: When trying to update the PRD file, found `_bmad-output/planning-artifacts/` directory was gone. Investigated - we were on `release/v1.1.0` branch, not the branch where the file was created. The file was never committed.
+    - **Fix**: Recreated the directory and wrote the complete PRD file from memory (all content from steps 1-9)
+
+11. **Step 10 (Non-Functional Requirements)**: Loaded step-10 from `entire/6e77af7-e3b0c4` branch (since BMAD workflow files weren't on current branch). Drafted 16 NFRs across performance, reliability, integration, maintainability.
+    - User said "Continue"
+
+12. **Step 11 (Polish)**: Loaded step-11 from same branch. Reviewed full document, identified duplication between early "Product Scope" section and later "Project Scoping" section. Removed the early duplicate (25 lines).
+    - User said "[C]" → Updated frontmatter
+
+13. **Step 12 (Complete)**: Loaded step-12. Marked PRD complete. Task #1 completed.
+
+14. **Task #3 (Architecture Decision)**: Created `architecture-unified-frontmatter-schema.md` directly (not using full workflow since all info was known). Contains 3-tier schema design, lifecycle state machines, alternatives considered, sync algorithm, vault directory structure, traceability matrix.
+
+15. **Task #2 (Epics & Stories)**: Created `epics-vault-mcp-improvement.md` with 4 epics, 12 stories, full FR/NFR traceability matrix.
+
+16. **User says "Proceed"**: Started implementation of Epic 1.
+
+17. **Implementation exploration**: Read server.py (872 lines), config.py (164 lines) to understand patterns:
+    - `ServerConfig` dataclass with env var fields
+    - `create_server()` function with conditional `if config.X_enabled:` blocks
+    - Tools registered with `@mcp.tool()` decorator
+    - Operations classes handle business logic
+
+18. **Created `bmad_bridge.py`** (~280 lines): The core operations module with:
+    - Schema validation (`validate_frontmatter`)
+    - Artifact type detection from filename/frontmatter
+    - Frontmatter parsing/writing
+    - `BmadBridge` class with sync, list, status, update_status, link operations
+    - Lifecycle state machines with transition validation
+    - Linter auto-formatted the file
+
+19. **Modified `config.py`**: Added `bmad_bridge_enabled` and `bmad_output_path` fields
+
+20. **Modified `server.py`**: 
+    - Added `from pathlib import Path` import
+    - Added conditional BMAD bridge block with 5 tools registered:
+      - `bmad_sync_artifact` (supports glob patterns)
+      - `bmad_list_artifacts` (with type/status/project filters)
+      - `bmad_get_artifact_status`
+      - `bmad_update_status`
+      - `bmad_link_artifacts`
+    
+    The summary request came DURING the implementation — I had just added the server.py tool registrations and Path import. Tests have NOT been written or run yet.
+
+Key errors:
+- PRD file lost due to branch switch (not committed) → recreated from conversation memory
+- BMAD workflow step files not on current branch → used `git show entire/6e77af7-e3b0c4:` to read from another branch
+- One Edit failed with "String to replace not found" when trying to append domain requirements → fixed by reading the actual file content first and finding the correct anchor string
+
+Summary:
+1. Primary Request and Intent:
+   The user initially requested **three sequential deliverables** by saying "All of the above":
+   1. Create a PRD from vault MCP research (Task #1 — **COMPLETED**)
+   2. Create an Architecture Decision for unified frontmatter schema (Task #3 — **COMPLETED**)
+   3. Create Epics and Stories for 4-phase implementation (Task #2 — **COMPLETED**)
+   
+   After all three planning artifacts were complete, the user said **"Proceed"** — requesting implementation of the planned work, starting with Epic 1: Foundation (Schema, Sync, Query, Module Loading). The user is a solo developer (Mike) building both for personal productivity AND as a portfolio showcase for employers and investors.
+
+2. Key Technical Concepts:
+   - **BMAD-Vault Bridge** — Bidirectional integration between `_bmad-output/` workflow artifacts and `cloud-vault-mcp/vault/` knowledge store
+   - **3-Tier Frontmatter Schema** — Universal (bmad_artifact_type, project, status, source, synced_at, content_hash) → Artifact-Typed (linked_artifacts, status_history) → Type-Specific (prd_step, adr_decision_type, epic_number, etc.)
+   - **MCP Protocol 3 Primitives** — Tools (8 new), Resources (6 new), Prompts (4 new)
+   - **Document Lifecycle State Machines** — PRD: draft→in_review→approved→archived; Architecture: proposed→accepted→deprecated→superseded; Epic: defined→in_progress→completed→retrospected; Story: draft→ready→in_progress→implemented→verified
+   - **Conditional Module Loading** — Feature flag `BMAD_BRIDGE_ENABLED` or auto-detection of `_bmad-output/` directory, following existing sheets/surrealdb/ollama pattern
+   - **FastMCP** — Python MCP server framework, tools registered with `@mcp.tool()` decorator
+   - **4-Phase Implementation** — Foundation (1-2d), BMAD Bridge Intelligence (2-3d), Full MCP Primitives (2-3d), Polish & Portfolio (1-2d)
+   - **Current branch**: `release/v1.1.0` — BMAD workflow files only exist on `entire/6e77af7-e3b0c4` branch
+
+3. Files and Code Sections:
+
+   - **`/home/mike-anderson/dev/cohezion/_bmad-output/planning-artifacts/prd-vault-mcp-improvement.md`** (CREATED — ~440 lines)
+     - The complete PRD for the vault MCP improvement project, built through 12 BMAD workflow steps
+     - Was lost when branch changed (never committed), had to be fully recreated from conversation memory
+     - Contains: Executive Summary, Success Criteria (5 measurable outcomes), 4 User Journeys, Domain Requirements, Innovation Analysis, Developer Tool Requirements (API surface tables for 8 tools, 6 resources, 4 prompts), 4-Phase Scoping, 38 Functional Requirements across 10 capability areas, 16 Non-Functional Requirements
+     - Frontmatter: `stepsCompleted: ['step-01-init' through 'step-12-complete']`, classification as Developer Tool / MCP Server Extension, medium complexity, brownfield
+
+   - **`/home/mike-anderson/dev/cohezion/_bmad-output/planning-artifacts/architecture-unified-frontmatter-schema.md`** (CREATED)
+     - Architecture Decision Record for the unified frontmatter schema
+     - Contains: 3-tier schema with full YAML examples, lifecycle state machines for all 4 artifact types, 3 alternatives considered (flat schema, separate schema files, no schema), sync process algorithm (9 steps), filename convention for type detection, vault directory structure, Obsidian compatibility notes, PRD traceability matrix
+
+   - **`/home/mike-anderson/dev/cohezion/_bmad-output/planning-artifacts/epics-vault-mcp-improvement.md`** (CREATED)
+     - 4 Epics with 12 Stories, each with acceptance criteria
+     - Full Story-to-FR traceability matrix (all 38 FRs and 16 NFRs traced)
+     - Epic 1: Foundation (Stories 1.1-1.4), Epic 2: Intelligence (2.1-2.4), Epic 3: Full Primitives (3.1-3.3), Epic 4: Polish (4.1-4.2)
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/src/mcp_server/bmad_bridge.py`** (CREATED — ~280 lines after linter formatting)
+     - Core BMAD bridge operations module implementing Story 1.1-1.3, 2.1-2.2
+     - Contains schema validation, artifact type detection, frontmatter parsing, and the BmadBridge class
+     - Key constants: `ARTIFACT_TYPES`, `FILENAME_TYPE_MAP`, `LIFECYCLE_TRANSITIONS`, `DEFAULT_STATUS`, `RELATIONSHIP_TYPES`, `TIER1_REQUIRED`
+     - Key functions: `validate_frontmatter(data, artifact_type)`, `_detect_artifact_type(path, frontmatter)`, `_parse_frontmatter(content)`, `_compute_hash(content)`
+     - BmadBridge class methods: `sync_artifact(source_path)`, `sync_glob(pattern)`, `list_artifacts(artifact_type, status, project)`, `get_artifact_status(name, project)`, `update_status(name, new_status, project)`, `link_artifacts(source, target, relationship, project)`, `_add_link(artifact_name, project, target, relationship)`
+     - Linter auto-formatted the file (long lines broken, etc.)
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/src/mcp_server/config.py`** (MODIFIED)
+     - Added two new config fields at end of ServerConfig dataclass:
+     ```python
+     bmad_bridge_enabled: bool = field(
+         default_factory=lambda: (
+             os.environ.get("BMAD_BRIDGE_ENABLED", "false").lower() == "true"
+         )
+     )
+     bmad_output_path: str = field(
+         default_factory=lambda: os.environ.get("BMAD_OUTPUT_PATH", "")
+     )
+     ```
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/src/mcp_server/server.py`** (MODIFIED)
+     - Added `from pathlib import Path` import at top
+     - Added BMAD bridge conditional block before the Pocket TTS section (~100 lines), registering 5 MCP tools:
+       - `bmad_sync_artifact(path)` — supports file path or glob
+       - `bmad_list_artifacts(artifact_type, status, project)` — with optional filters
+       - `bmad_get_artifact_status(name, project)` — full artifact detail
+       - `bmad_update_status(name, new_status, project)` — lifecycle transition
+       - `bmad_link_artifacts(source, target, relationship, project)` — bidirectional linking
+     - Module activation logic: enabled if `config.bmad_bridge_enabled` OR `config.bmad_output_path` points to existing directory; auto-detects `_bmad-output/` relative to vault parent
+
+   - **`/home/mike-anderson/dev/cohezion/cloud-vault-mcp/src/mcp_server/vault_ops.py`** (READ reference — not modified)
+     - The existing VaultOps class that bmad_bridge.py's BmadBridge class takes a similar approach to but operates at a higher abstraction level
+
+4. Errors and fixes:
+   - **PRD file lost due to branch switch**: The file was created on a previous branch/session but never committed. When the session resumed on `release/v1.1.0`, the `_bmad-output/planning-artifacts/` directory didn't exist. Fixed by recreating the directory with `mkdir -p` and writing the complete PRD from conversation memory.
+   - **BMAD workflow step files not on current branch**: Steps 10-12 couldn't be read from disk. Fixed by using `git show entire/6e77af7-e3b0c4:path/to/file` to read from a branch that had them.
+   - **Edit "String to replace not found"**: When trying to append domain requirements using the last line of the risk table as anchor, the exact string wasn't found (likely formatting differences). Fixed by reading the actual file content to find the correct line numbers, then using the actual text as the anchor.
+
+5. Problem Solving:
+   - Successfully completed the full 12-step BMAD PRD workflow, creating a comprehensive 440-line PRD
+   - Created Architecture Decision and Epics/Stories documents with full traceability
+   - Began Epic 1 implementation by exploring existing codebase patterns (server.py, config.py) and implementing the BMAD bridge module following the established conditional module pattern
+   - The BmadBridge operates directly on the filesystem (reading/writing vault files with frontmatter) rather than going through VaultOps, since it needs frontmatter-aware operations that VaultOps doesn't provide
+
+6. All user messages:
+   - "Continue" (after session compaction — resume PRD workflow at Step 2c)
+   - "Continue" (accept Step 3 success criteria, proceed to Step 4)
+   - "Continue" (accept Step 4 journeys, proceed to Step 5)
+   - "[C]" (accept Step 5 domain requirements, proceed to Step 6)
+   - "[C]" (accept Step 6 innovation, proceed to Step 7)
+   - "Continue" (accept Step 7 project type, proceed to Step 8)
+   - "[C]" (accept Step 8 scoping, proceed to Step 9)
+   - "[C]" (accept Step 9 functional requirements, proceed to Step 10 — next day March 5)
+   - "Continue" (accept Step 10 NFRs, proceed to Step 11)
+   - "[C]" (accept Step 11 polish, proceed to Step 12 completion)
+   - "Continue" (after PRD complete — proceed to Architecture Decision task)
+   - "Proceed" (after all 3 planning artifacts complete — start implementation)
+
+7. Pending Tasks:
+   - **Task #4 (in_progress)**: Implement Epic 1: Foundation — Schema, Sync, Query, Module Loading
+     - Story 1.1 (Schema & Validation): Core code written in `bmad_bridge.py` — needs tests
+     - Story 1.2 (bmad_sync_artifact): Core code written — needs tests
+     - Story 1.3 (list/status tools): Core code written — needs tests
+     - Story 1.4 (Conditional module loading): Server registration done — needs integration tests
+   - **Future**: Epic 2 (Lifecycle & Context), Epic 3 (Canvas & Full Primitives), Epic 4 (Docs & E2E)
+
+8. Current Work:
+   I was implementing **Epic 1: Foundation** for the BMAD-Vault Bridge. I had just completed:
+   
+   1. Created `cloud-vault-mcp/src/mcp_server/bmad_bridge.py` — the core operations module with schema validation, sync, list, status, lifecycle, and linking operations
+   2. Added `bmad_bridge_enabled` and `bmad_output_path` config fields to `config.py`
+   3. Added the conditional BMAD bridge block to `server.py` registering 5 tools with `@mcp.tool()` decorators
+   4. Added `from pathlib import Path` import to `server.py`
+   
+   The code has been written but **no tests have been created or run yet**. The linter auto-formatted `bmad_bridge.py`. I have not yet verified the code compiles or that existing tests still pass.
+
+9. Optional Next Step:
+   Complete Epic 1 by writing tests and verifying everything works. Per Story 1.4 acceptance criteria:
+   - Write unit tests for `bmad_bridge.py` (schema validation, sync, list, status, lifecycle, linking) with mock vault fixtures
+   - Run `ruff check` and `ruff format` on new/modified files
+   - Run existing test suite to verify zero regression (`uv run pytest -q`)
+   - Write integration tests: server starts with/without BMAD module, all new tools discoverable, all 47 existing tools still work
+   
+   The user said "Proceed" and I was actively implementing. The last action was modifying `server.py` to add the Path import and BMAD tool registrations.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/9da42ddb-83a4-462a-b083-f0f59e1b1f36.jsonl
