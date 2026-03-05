@@ -116,6 +116,31 @@ jobs:
             echo "✅ .gitignore has all recommended patterns"
           fi
 
+      - name: Check protected directories
+        run: |
+          echo "=== Protected Directory Check ==="
+          PROTECTED_DIRS=("_bmad" ".claude/commands" ".agent" "src/cohezion")
+          MISSING=()
+
+          for dir in "${PROTECTED_DIRS[@]}"; do
+            if [ ! -d "$dir" ]; then
+              MISSING+=("$dir")
+              echo "::error::Protected directory missing: $dir"
+            else
+              FILE_COUNT=$(find "$dir" -type f | wc -l)
+              echo "  $dir: $FILE_COUNT files"
+            fi
+          done
+
+          if [ ${#MISSING[@]} -gt 0 ]; then
+            echo ""
+            echo "::error::${#MISSING[@]} protected directory(ies) missing!"
+            echo "::error::Run recovery scripts or check recent commits for accidental deletion."
+            exit 1
+          else
+            echo "All protected directories present."
+          fi
+
       - name: Upload health metrics
         uses: actions/upload-artifact@v4
         if: always()
