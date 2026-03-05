@@ -3,8 +3,9 @@
   "checkpoint_id": "02643bbb6ac6",
   "strategy": "manual-commit",
   "branch": "fix/bmad-memory-physics-restore",
-  "checkpoints_count": 1,
+  "checkpoints_count": 5,
   "files_touched": [
+    "_bmad/_memory/physics/400-years-physics-complete-traceability.md",
     "src/cohezion/physics/quantum/peaked_solver.py"
   ],
   "sessions": [
@@ -14,13 +15,20 @@
       "context": "/02/643bbb6ac6/0/context.md",
       "content_hash": "/02/643bbb6ac6/0/content_hash.txt",
       "prompt": "/02/643bbb6ac6/0/prompt.txt"
+    },
+    {
+      "metadata": "/02/643bbb6ac6/1/metadata.json",
+      "transcript": "/02/643bbb6ac6/1/full.jsonl",
+      "context": "/02/643bbb6ac6/1/context.md",
+      "content_hash": "/02/643bbb6ac6/1/content_hash.txt",
+      "prompt": "/02/643bbb6ac6/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 20,
-    "cache_creation_tokens": 63469,
-    "cache_read_tokens": 1011982,
-    "output_tokens": 3231,
-    "api_call_count": 18
+    "input_tokens": 913,
+    "cache_creation_tokens": 181694,
+    "cache_read_tokens": 7044193,
+    "output_tokens": 24099,
+    "api_call_count": 89
   }
 }
