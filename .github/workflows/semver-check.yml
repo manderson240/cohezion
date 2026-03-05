@@ -30,10 +30,7 @@ jobs:
       - name: Install uv
         run: pip install uv
 
-      - name: Install dependencies
-        run: uv sync --frozen
-
       - name: Run version governance
         run: >
-          uv run python scripts/ci/version_governance.py
+          python scripts/ci/version_governance.py
           ${{ github.event.pull_request.base.sha }}
