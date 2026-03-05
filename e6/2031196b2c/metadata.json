@@ -3,8 +3,9 @@
   "checkpoint_id": "e62031196b2c",
   "strategy": "manual-commit",
   "branch": "fix/bmad-memory-physics-restore",
-  "checkpoints_count": 3,
+  "checkpoints_count": 6,
   "files_touched": [
+    "scripts/setup-strix-halo.sh",
     "src/cohezion/swarm/token_client.py"
   ],
   "sessions": [
@@ -28,13 +29,20 @@
       "context": "/e6/2031196b2c/2/context.md",
       "content_hash": "/e6/2031196b2c/2/content_hash.txt",
       "prompt": "/e6/2031196b2c/2/prompt.txt"
+    },
+    {
+      "metadata": "/e6/2031196b2c/3/metadata.json",
+      "transcript": "/e6/2031196b2c/3/full.jsonl",
+      "context": "/e6/2031196b2c/3/context.md",
+      "content_hash": "/e6/2031196b2c/3/content_hash.txt",
+      "prompt": "/e6/2031196b2c/3/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 21647,
-    "cache_creation_tokens": 1485017,
-    "cache_read_tokens": 29954670,
-    "output_tokens": 113726,
-    "api_call_count": 274
+    "input_tokens": 24072,
+    "cache_creation_tokens": 2004867,
+    "cache_read_tokens": 54379590,
+    "output_tokens": 170519,
+    "api_call_count": 460
   }
 }
