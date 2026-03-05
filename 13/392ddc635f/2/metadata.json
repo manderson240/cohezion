@@ -1,9 +1,11 @@
 {
   "cli_version": "0.4.9",
   "checkpoint_id": "13392ddc635f",
+  "session_id": "e9757f90-52d1-451d-94c2-98e8642d1c44",
   "strategy": "manual-commit",
+  "created_at": "2026-03-05T18:11:43.998309563Z",
   "branch": "fix/bmad-memory-physics-restore",
-  "checkpoints_count": 37,
+  "checkpoints_count": 12,
   "files_touched": [
     ".claude/commands/bmad-agent-bmad-master.md",
     ".claude/commands/bmad-agent-bmb-agent-builder.md",
@@ -114,34 +116,22 @@
     ".claude/commands/bmad-tea-testarch-test-review.md",
     ".claude/commands/bmad-tea-testarch-trace.md"
   ],
-  "sessions": [
-    {
-      "metadata": "/13/392ddc635f/0/metadata.json",
-      "transcript": "/13/392ddc635f/0/full.jsonl",
-      "context": "/13/392ddc635f/0/context.md",
-      "content_hash": "/13/392ddc635f/0/content_hash.txt",
-      "prompt": "/13/392ddc635f/0/prompt.txt"
-    },
-    {
-      "metadata": "/13/392ddc635f/1/metadata.json",
-      "transcript": "/13/392ddc635f/1/full.jsonl",
-      "context": "/13/392ddc635f/1/context.md",
-      "content_hash": "/13/392ddc635f/1/content_hash.txt",
-      "prompt": "/13/392ddc635f/1/prompt.txt"
-    },
-    {
-      "metadata": "/13/392ddc635f/2/metadata.json",
-      "transcript": "/13/392ddc635f/2/full.jsonl",
-      "context": "/13/392ddc635f/2/context.md",
-      "content_hash": "/13/392ddc635f/2/content_hash.txt",
-      "prompt": "/13/392ddc635f/2/prompt.txt"
-    }
-  ],
+  "agent": "Claude Code",
+  "turn_id": "41a0cc269482",
   "token_usage": {
-    "input_tokens": 88180,
-    "cache_creation_tokens": 4592646,
-    "cache_read_tokens": 176944179,
-    "output_tokens": 426358,
-    "api_call_count": 1267
+    "input_tokens": 29718,
+    "cache_creation_tokens": 1867739,
+    "cache_read_tokens": 91100272,
+    "output_tokens": 188876,
+    "api_call_count": 640
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-05T18:11:41.483647601Z",
+    "agent_lines": 0,
+    "human_added": 8188322,
+    "human_modified": 2786,
+    "human_removed": 0,
+    "total_committed": 8188322,
+    "agent_percentage": 0
   }
 }
