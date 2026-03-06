@@ -18,16 +18,30 @@ from passlib.context import CryptContext
 logger = logging.getLogger(__name__)
 
 # Configuration
-SECRET_KEY = os.environ.get("COHEZION_SECRET_KEY", "dev-secret-change-in-production")
+_secret_key_env = os.environ.get("COHEZION_SECRET_KEY")
+if not _secret_key_env:
+    raise RuntimeError(
+        "COHEZION_SECRET_KEY is not set. "
+        "Generate one with: python3 -c \"import secrets; print(secrets.token_hex(32))\" "
+        "then store it in Bitwarden and regenerate .env with scripts/secrets/restore_env.sh"
+    )
+SECRET_KEY: str = _secret_key_env
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+_api_key_env = os.environ.get("COHEZION_API_KEY")
+if not _api_key_env:
+    raise RuntimeError(
+        "COHEZION_API_KEY is not set. "
+        "Store it in Bitwarden and regenerate .env with scripts/secrets/restore_env.sh"
+    )
+
 # API Keys (in production, load from secure storage)
-API_KEYS = {
-    os.environ.get("COHEZION_API_KEY", "dev-api-key"): {
+API_KEYS: dict[str, dict[str, object]] = {
+    _api_key_env: {
         "name": "default",
         "role": "admin",
         "enabled": True,

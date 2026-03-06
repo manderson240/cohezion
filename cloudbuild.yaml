@@ -8,6 +8,14 @@ steps:
     args: ['push', 'gcr.io/$PROJECT_ID/cohezion-universe']
 
   # 3. Deploy to Cloud Run
+  # Secrets are injected from GCP Secret Manager via --set-secrets.
+  # Grant the Cloud Run service account the Secret Manager Secret Accessor role:
+  #   gcloud projects add-iam-policy-binding $PROJECT_ID \
+  #     --member="serviceAccount:$SA@$PROJECT_ID.iam.gserviceaccount.com" \
+  #     --role="roles/secretmanager.secretAccessor"
+  #
+  # Each entry maps an env var name to a GCP secret version:
+  #   ENV_VAR=secret-resource-name:version
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -21,3 +29,16 @@ steps:
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
+      - '--set-secrets'
+      - >-
+        ANTHROPIC_API_KEY=cohezion-anthropic-api-key:latest,
+        COHEZION_API_KEY=cohezion-api-key:latest,
+        COHEZION_SECRET_KEY=cohezion-secret-key:latest,
+        MCP_API_KEY=cohezion-mcp-api-key:latest,
+        CLOUD_VAULT_API_KEY=cohezion-cloud-vault-api-key:latest,
+        GOOGLE_EMAIL=cohezion-google-email:latest,
+        NOTIFICATION_PASSWORD=cohezion-notification-password:latest,
+        NGROK_API_KEY=cohezion-ngrok-api-key:latest,
+        SURREALDB_USERNAME=cohezion-surrealdb-username:latest,
+        SURREALDB_PASSWORD=cohezion-surrealdb-password:latest,
+        SURREAL_PASSWORD=cohezion-surreal-password:latest

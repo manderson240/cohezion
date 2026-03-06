@@ -92,10 +92,10 @@ class ServerConfig:
         default_factory=lambda: os.environ.get("SURREALDB_DATABASE", "vault")
     )
     surrealdb_username: str = field(
-        default_factory=lambda: os.environ.get("SURREALDB_USERNAME", "root")
+        default_factory=lambda: os.environ.get("SURREALDB_USERNAME", "")
     )
     surrealdb_password: str = field(
-        default_factory=lambda: os.environ.get("SURREALDB_PASSWORD", "root")
+        default_factory=lambda: os.environ.get("SURREALDB_PASSWORD", "")
     )
     health_check_enabled: bool = field(
         default_factory=lambda: (
