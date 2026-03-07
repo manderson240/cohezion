@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "fb6142d80360",
+  "session_id": "fc959e56-1bae-4e9e-af9f-96c2ebcf6127",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-07T14:34:39.170123305Z",
+  "branch": "feat/semver-400-year-physics-hiho-flume",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "src/cohezion/skills/AUTONOMOUS_RESILIENCE_PRIME.md",
+    "src/cohezion/skills/COMPUTATIONAL_RELATIVITY_PRIME.md",
+    "src/cohezion/skills/HIHO_STABILITY_PRIME.md",
+    "src/cohezion/skills/THROTTLED_SCOUT_PRIME.md",
+    "src/cohezion/skills/hiho_reality_sim.md",
+    "src/cohezion/skills/physics.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "10ba60942a60",
+  "token_usage": {
+    "input_tokens": 16,
+    "cache_creation_tokens": 51124,
+    "cache_read_tokens": 549330,
+    "output_tokens": 1265,
+    "api_call_count": 12
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-07T14:34:39.164103076Z",
+    "agent_lines": 662,
+    "human_added": 32149,
+    "human_modified": 46,
+    "human_removed": 0,
+    "total_committed": 32857,
+    "agent_percentage": 2.0147913686581247
+  }
+}
