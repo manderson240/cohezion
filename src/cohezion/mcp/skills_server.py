@@ -21,6 +21,7 @@ from cohezion.registry.skill_registry import (
     search_skills as _search_skills,
 )
 
+
 logger = logging.getLogger(__name__)
 
 SKILLS_PATH = Path(__file__).parent.parent / "skills"

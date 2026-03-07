@@ -12,8 +12,9 @@ from typing import Any
 
 import numpy as np
 
-from cohezion.core.persistence.redis_aggregator import get_redis
 from cohezion.compound.exp_persistence.vault import get_vault_logger
+from cohezion.core.persistence.redis_aggregator import get_redis
+
 
 logger = logging.getLogger(__name__)
 

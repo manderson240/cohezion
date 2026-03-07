@@ -25,15 +25,16 @@ from cohezion.universe.sandbox_profiles import (
 )
 from cohezion.universe.sandbox_results import persist_result
 
+
 __all__ = [
+    "EXAMPLES",
+    "PROFILES",
     "BackendResult",
     "ContainerizedUniverse",
     "DivergenceDetector",
     "DivergenceStatus",
     "DockerBackend",
-    "EXAMPLES",
     "IsolationBackend",
-    "PROFILES",
     "SandboxManager",
     "SandboxProfile",
     "SandboxResult",

@@ -1,0 +1,14 @@
+mcp_servers:
+  bmad:
+    name: "BMAD Method"
+    url: "http://localhost:8361"
+    type: "streamable-http"
+    description: "108 BMAD commands for agile AI-driven development"
+    tools:
+      - bmad_help
+      - bmad_bmm_create_prd
+      - bmad_bmm_create_story
+      - bmad_bmm_sprint_planning
+      - bmad_list_workflows
+      - bmad_list_agents
+      - bmad_status

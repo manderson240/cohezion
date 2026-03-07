@@ -10,7 +10,6 @@ Supports:
 
 import asyncio
 import base64
-import json
 import logging
 import re
 import time
@@ -23,6 +22,7 @@ import httpx
 import numpy as np
 
 from cohezion.reliability import get_circuit
+
 
 logger = logging.getLogger(__name__)
 

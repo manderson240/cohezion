@@ -11,7 +11,8 @@ import logging
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ class SyncLogEntry:
     file: str
     details: dict[str, Any]
     duration_ms: float = 0.0
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for storage."""
@@ -53,7 +54,7 @@ class ConfigSyncLogger:
         status: str,
         details: dict[str, Any],
         duration_ms: float = 0.0,
-        error_message: Optional[str] = None,
+        error_message: str | None = None,
     ) -> None:
         """Log a validation operation."""
         entry = SyncLogEntry(
@@ -80,7 +81,7 @@ class ConfigSyncLogger:
         status: str,
         details: dict[str, Any],
         duration_ms: float = 0.0,
-        error_message: Optional[str] = None,
+        error_message: str | None = None,
     ) -> None:
         """Log a sync operation."""
         entry = SyncLogEntry(

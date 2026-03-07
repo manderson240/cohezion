@@ -26,16 +26,16 @@ Usage:
     cost = tracker.track_usage_fast(model, tokens)
 """
 
-import asyncio
 import logging
 import re
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Tuple
+from typing import Optional
 
-from cohezion.cost_optimization.cost_tracker import SessionCostTracker
 from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
+from cohezion.cost_optimization.cost_tracker import SessionCostTracker
+
 
 if __import__("typing").TYPE_CHECKING:
     from cohezion.swarm.model_pool_manager import ModelPoolManager
@@ -268,8 +268,8 @@ class CostAwareRouter:
 
     def __init__(
         self,
-        cost_tracker: Optional[SessionCostTracker] = None,
-        budget_enforcer: Optional[BudgetEnforcer] = None,
+        cost_tracker: SessionCostTracker | None = None,
+        budget_enforcer: BudgetEnforcer | None = None,
         prefer_longer_models_if_cheaper_per_token: bool = True,
         cost_threshold: float = 0.10,  # 10% cost threshold
         latency_threshold: float = 150.0,  # 150ms latency threshold (increased tolerance)
@@ -303,10 +303,8 @@ class CostAwareRouter:
 
         # Statistics tracking
         self.routing_decisions: list[ModelRoutingDecision] = []
-        self.cost_per_model: dict[str, float] = {
-            m: 0.0 for m in self.MODEL_COSTS.keys()
-        }
-        self.query_count_per_model: dict[str, int] = {m: 0 for m in self.MODEL_COSTS.keys()}
+        self.cost_per_model: dict[str, float] = dict.fromkeys(self.MODEL_COSTS.keys(), 0.0)
+        self.query_count_per_model: dict[str, int] = dict.fromkeys(self.MODEL_COSTS.keys(), 0)
         self.token_optimization_swaps: int = 0  # Track optimization improvements
 
         # Dynamic threshold tracking
@@ -327,8 +325,8 @@ class CostAwareRouter:
         cls._instance = None
 
     def select_model(
-        self, query: str, max_cost_usd: Optional[float] = None
-    ) -> Tuple[ModelRoutingDecision, bool]:
+        self, query: str, max_cost_usd: float | None = None
+    ) -> tuple[ModelRoutingDecision, bool]:
         """Select optimal model for query with cost/token optimization.
 
         Args:
@@ -698,8 +696,8 @@ class CostAwareRouter:
     def reset_statistics(self) -> None:
         """Reset router statistics (testing only)."""
         self.routing_decisions.clear()
-        self.cost_per_model = {m: 0.0 for m in self.MODEL_COSTS.keys()}
-        self.query_count_per_model = {m: 0 for m in self.MODEL_COSTS.keys()}
+        self.cost_per_model = dict.fromkeys(self.MODEL_COSTS.keys(), 0.0)
+        self.query_count_per_model = dict.fromkeys(self.MODEL_COSTS.keys(), 0)
         self.token_optimization_swaps = 0
 
 

@@ -6,9 +6,9 @@ Acts as the primary filter for selective LLM analysis.
 import ast
 import logging
 from pathlib import Path
-from typing import Optional
 
-from cohezion.swarm.agents.base_scout import ASTSummary, BaseScout, Finding
+from cohezion.swarm.agents.base_scout import BaseScout, Finding
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class QualityScout(BaseScout):
     """
 
     def __init__(self, **kwargs) -> None:
-        # QualityScout doesn't need an LLM model for its core phase, 
+        # QualityScout doesn't need an LLM model for its core phase,
         # but we pass a placeholder for compatibility.
         super().__init__(model="static-only", **kwargs)
 
@@ -26,7 +26,7 @@ class QualityScout(BaseScout):
         """Perform static analysis on the file."""
         findings = []
         rel_path = str(path)
-        
+
         ast_summary = self._parse_python_ast(path)
         if not ast_summary:
             return []

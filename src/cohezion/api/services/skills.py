@@ -3,9 +3,10 @@ PRIME Skill Service - Logic for parsing and matching PRIME skills.
 """
 
 import logging
+
 from fastapi import HTTPException
 from pydantic import BaseModel
-from typing import Any, Optional
+
 
 logger = logging.getLogger(__name__)
 

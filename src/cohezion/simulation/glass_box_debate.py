@@ -18,6 +18,7 @@ import torch
 
 from cohezion.flume.autoencoder import FlumeEncoder
 
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

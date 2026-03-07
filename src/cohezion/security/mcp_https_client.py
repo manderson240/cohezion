@@ -3,7 +3,7 @@
 import logging
 import ssl
 from pathlib import Path
-from typing import Optional
+
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ class MCPHTTPSClient:
         host: str = "localhost",
         port: int = 8360,
         use_https: bool = True,
-        ca_cert_path: Optional[str] = None,
+        ca_cert_path: str | None = None,
         verify_ssl: bool = True,
     ):
         """
@@ -42,7 +42,7 @@ class MCPHTTPSClient:
         protocol = "https" if self.use_https else "http"
         return f"{protocol}://{self.host}:{self.port}"
 
-    def get_ssl_context(self) -> Optional[ssl.SSLContext]:
+    def get_ssl_context(self) -> ssl.SSLContext | None:
         """
         Get SSL context for HTTPS connections.
 
@@ -134,7 +134,7 @@ class MCPHTTPSClient:
             )
             return False
 
-    def configure_urllib(self) -> Optional[ssl.SSLContext]:
+    def configure_urllib(self) -> ssl.SSLContext | None:
         """
         Configure urllib for HTTPS connections.
 

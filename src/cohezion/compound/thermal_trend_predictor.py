@@ -22,10 +22,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import math
 import time
-from dataclasses import dataclass, field
-from typing import Any, Optional
+from dataclasses import dataclass
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -81,12 +81,12 @@ class ThermalTrendPredictor:
         self.history: list[ThermalTimeSeries] = []
 
         # Trained model (lazy loaded)
-        self._model_30min: Optional[dict[str, Any]] = None
+        self._model_30min: dict[str, Any] | None = None
         self._model_trained_at: float = 0.0
         self._model_training_in_progress = False
 
         # Prediction cache
-        self._last_prediction: Optional[tuple[float, float]] = None  # (temp, confidence)
+        self._last_prediction: tuple[float, float] | None = None  # (temp, confidence)
 
     def record_sample(self, sample: ThermalTimeSeries) -> None:
         """Record a thermal observation.
@@ -495,7 +495,7 @@ def get_thermal_trend_predictor(reset: bool = False) -> ThermalTrendPredictor:
 
 
 # Module-level singleton
-_predictor_instance: Optional[ThermalTrendPredictor] = None
+_predictor_instance: ThermalTrendPredictor | None = None
 
 
 __all__ = [

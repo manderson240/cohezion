@@ -13,6 +13,7 @@ from typing import Any
 
 from cohezion.swarm.democratic_debate import DemocraticDebate
 
+
 logger = logging.getLogger(__name__)
 
 # Sensible defaults and bounds for each hyperparameter

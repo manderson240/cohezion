@@ -10,6 +10,7 @@ import asyncio
 import logging
 from dataclasses import dataclass
 
+
 @dataclass
 class HardwareMetrics:
     """Stub hardware metrics class."""
@@ -274,7 +275,7 @@ def get_concurrency_gate(reset: bool = False) -> DynamicConcurrencyGate:
 
 
 __all__ = [
-    "DynamicConcurrencyGate",
     "ConcurrencyDecision",
+    "DynamicConcurrencyGate",
     "get_concurrency_gate",
 ]

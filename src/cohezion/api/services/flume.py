@@ -2,12 +2,14 @@
 FLUME VAE Service - Logic for encoding, decoding, and training Flume latent vectors.
 """
 
-import logging
 import json
+import logging
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
 from fastapi import HTTPException
 from pydantic import BaseModel
+
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +33,8 @@ class FlumeTrainResponse(BaseModel):
 
 class FlumeStatusResponse(BaseModel):
     trained: bool
-    checkpoint_path: Optional[str] = None
-    last_metrics: Optional[dict[str, Any]] = None
+    checkpoint_path: str | None = None
+    last_metrics: dict[str, Any] | None = None
 
 class FlumeEncodeRequest(BaseModel):
     vector: list[float]  # 256D input vector
@@ -69,8 +71,9 @@ def get_vae():
     global _vae_trainer
     if _vae_trainer is None:
         import torch
+
         from cohezion.flume.training import FlumeVAETrainer
-        
+
         _vae_trainer = FlumeVAETrainer()
         ckpt_path = Path("data/flume/checkpoints/flume_vae_ep50.pt")
         if ckpt_path.exists():

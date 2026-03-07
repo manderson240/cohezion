@@ -248,8 +248,8 @@ class CompoundExecutor:
 
         # Step 2: Enhance with trajectory search (if available)
         try:
-            from cohezion.compound.trajectory_search import TrajectorySearchEngine
             from cohezion.compound.guidance_enhancer import GuidanceEnhancer
+            from cohezion.compound.trajectory_search import TrajectorySearchEngine
             from cohezion.flume.experience_collector import ExperienceCollector
             from cohezion.flume.experience_encoder import ExperienceEncoder
 
