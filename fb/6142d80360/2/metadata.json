@@ -1,9 +1,11 @@
 {
   "cli_version": "0.4.9",
   "checkpoint_id": "fb6142d80360",
+  "session_id": "5dd59dc5-d514-4b37-b212-61301479b200",
   "strategy": "manual-commit",
+  "created_at": "2026-03-07T14:34:37.550036084Z",
   "branch": "feat/semver-400-year-physics-hiho-flume",
-  "checkpoints_count": 4,
+  "checkpoints_count": 2,
   "files_touched": [
     ".antigravity/mcp.yml",
     ".claude/mcp.json",
@@ -123,7 +125,6 @@
     ".zed/mcp.json",
     "cloud-vault-mcp/vault/projects/bmad-mcp-infrastructure/IMPLEMENTATION_STATUS.md",
     "cloud-vault-mcp/vault/projects/bmad-mcp-infrastructure/README.md",
-    "pyproject.toml",
     "src/cohezion/mcp/servers/skills/__init__.py",
     "src/cohezion/mcp/servers/skills/cache.py",
     "src/cohezion/mcp/servers/skills/client.py",
@@ -137,38 +138,24 @@
     "src/cohezion/skills/PHYSICS_LINEAGE_PRIME.md",
     "src/cohezion/skills/THROTTLED_SCOUT_PRIME.md",
     "src/cohezion/skills/hiho_reality_sim.md",
-    "src/cohezion/skills/physics.md",
-    "tools/overture-proxy.mjs",
-    "uv.lock"
+    "src/cohezion/skills/physics.md"
   ],
-  "sessions": [
-    {
-      "metadata": "/fb/6142d80360/0/metadata.json",
-      "transcript": "/fb/6142d80360/0/full.jsonl",
-      "context": "/fb/6142d80360/0/context.md",
-      "content_hash": "/fb/6142d80360/0/content_hash.txt",
-      "prompt": "/fb/6142d80360/0/prompt.txt"
-    },
-    {
-      "metadata": "/fb/6142d80360/1/metadata.json",
-      "transcript": "/fb/6142d80360/1/full.jsonl",
-      "context": "/fb/6142d80360/1/context.md",
-      "content_hash": "/fb/6142d80360/1/content_hash.txt",
-      "prompt": "/fb/6142d80360/1/prompt.txt"
-    },
-    {
-      "metadata": "/fb/6142d80360/2/metadata.json",
-      "transcript": "/fb/6142d80360/2/full.jsonl",
-      "context": "/fb/6142d80360/2/context.md",
-      "content_hash": "/fb/6142d80360/2/content_hash.txt",
-      "prompt": "/fb/6142d80360/2/prompt.txt"
-    }
-  ],
+  "agent": "Claude Code",
+  "turn_id": "8fef60b467f3",
   "token_usage": {
-    "input_tokens": 5411,
-    "cache_creation_tokens": 669752,
-    "cache_read_tokens": 8269807,
-    "output_tokens": 88552,
-    "api_call_count": 89
+    "input_tokens": 5172,
+    "cache_creation_tokens": 527271,
+    "cache_read_tokens": 5210998,
+    "output_tokens": 66564,
+    "api_call_count": 48
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-07T14:34:37.070883014Z",
+    "agent_lines": 4638,
+    "human_added": 28265,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 32903,
+    "agent_percentage": 14.09597909005258
   }
 }
