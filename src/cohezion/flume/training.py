@@ -19,6 +19,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -260,9 +261,9 @@ class FlumeVAETrainer:
         list[dict]
             Per-epoch training metrics.
         """
+        from cohezion.flume.dataset import SyntheticFlumeDataset
         from cohezion.flume.experience_collector import ExperienceCollector
         from cohezion.flume.experience_dataset import ExperienceDataset
-        from cohezion.flume.dataset import SyntheticFlumeDataset
 
         if collector is None:
             collector = ExperienceCollector()

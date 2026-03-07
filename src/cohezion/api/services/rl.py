@@ -2,12 +2,14 @@
 RL Service - Logic for training and running RL policies on Flume environments.
 """
 
-import logging
 import json
+import logging
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
 from fastapi import HTTPException
 from pydantic import BaseModel
+
 
 logger = logging.getLogger(__name__)
 
@@ -28,10 +30,10 @@ class RLTrainResponse(BaseModel):
 
 class RLPolicyResponse(BaseModel):
     exists: bool
-    checkpoint_path: Optional[str] = None
-    parameters: Optional[int] = None
-    state_dim: Optional[int] = None
-    action_dim: Optional[int] = None
+    checkpoint_path: str | None = None
+    parameters: int | None = None
+    state_dim: int | None = None
+    action_dim: int | None = None
 
 class RlStepRequest(BaseModel):
     state: list[float]  # 256D state vector
@@ -49,13 +51,13 @@ class RlEpisodeResponse(BaseModel):
 
 class RlPolicyInfoResponse(BaseModel):
     loaded: bool
-    architecture: Optional[str] = None
-    state_dim: Optional[int] = None
-    action_dim: Optional[int] = None
-    hidden_dim: Optional[int] = None
-    parameters: Optional[int] = None
-    checkpoint_path: Optional[str] = None
-    training_metrics: Optional[Any] = None
+    architecture: str | None = None
+    state_dim: int | None = None
+    action_dim: int | None = None
+    hidden_dim: int | None = None
+    parameters: int | None = None
+    checkpoint_path: str | None = None
+    training_metrics: Any | None = None
 
 # --- Service Logic ---
 
@@ -66,6 +68,7 @@ def get_rl_policy_singleton():
     global _rl_policy
     if _rl_policy is None:
         import torch
+
         from cohezion.rl.trainer import PolicyNetwork
 
         _rl_policy = PolicyNetwork(state_dim=256, action_dim=256, hidden=128)
@@ -82,8 +85,9 @@ def get_rl_policy_singleton():
 
 async def train_rl_service(request: RLTrainRequest) -> RLTrainResponse:
     """Trigger RL policy training on FlumeNav-v0."""
-    from cohezion.rl.trainer import TrainingConfig, train
     import numpy as np
+
+    from cohezion.rl.trainer import TrainingConfig, train
 
     config = TrainingConfig(
         n_episodes=request.n_episodes,
@@ -149,6 +153,7 @@ async def get_rl_policy_service(agent_id: str) -> RLPolicyResponse:
 async def rl_step_service(request: RlStepRequest) -> RlStepResponse:
     """Run a single RL step."""
     import numpy as np
+
     from cohezion.api.services.flume import compute_coherence
 
     if len(request.state) != 256:
@@ -173,6 +178,7 @@ async def rl_episode_service() -> RlEpisodeResponse:
     """Run a full RL episode."""
     import gymnasium as gym
     import numpy as np
+
     import cohezion.rl.environment  # noqa: F401
 
     policy = get_rl_policy_singleton()
@@ -215,7 +221,6 @@ async def rl_episode_service() -> RlEpisodeResponse:
 
 async def rl_policy_info_service() -> RlPolicyInfoResponse:
     """Return policy metadata."""
-    import json
 
     ckpt_path = Path("data/rl/checkpoints/policy_final.pt")
     if not ckpt_path.exists():

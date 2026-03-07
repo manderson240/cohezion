@@ -7,6 +7,7 @@ Agent implementations for the SLM Swarm.
 
 from cohezion.agents.base import BaseAgent
 
+
 __all__ = [
     "BaseAgent",
 ]

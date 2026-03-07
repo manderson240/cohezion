@@ -19,7 +19,6 @@ Usage:
     )
 """
 
-import asyncio
 import hashlib
 import logging
 import time
@@ -27,6 +26,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import requests  # type: ignore[import-untyped]
+
 
 logger = logging.getLogger(__name__)
 

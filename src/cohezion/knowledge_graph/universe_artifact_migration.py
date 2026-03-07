@@ -24,7 +24,8 @@ import tarfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Dict, Any, List
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -101,12 +102,12 @@ class UniverseArtifactMigration:
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # State tracking
-        self.artifacts: List[ArtifactMetadata] = []
-        self.training_runs: List[TrainingRunMetadata] = []
-        self.migration_snapshots: List[MigrationSnapshot] = []
-        self.errors: List[Dict[str, Any]] = []
+        self.artifacts: list[ArtifactMetadata] = []
+        self.training_runs: list[TrainingRunMetadata] = []
+        self.migration_snapshots: list[MigrationSnapshot] = []
+        self.errors: list[dict[str, Any]] = []
 
-    def phase_0_measure(self) -> Dict[str, Any]:
+    def phase_0_measure(self) -> dict[str, Any]:
         """
         Phase 0: Measure universe artifacts in git history.
 
@@ -186,7 +187,7 @@ class UniverseArtifactMigration:
             self.errors.append({"phase": 0, "error": str(e)})
             raise
 
-    def phase_1_extract(self) -> Dict[str, Any]:
+    def phase_1_extract(self) -> dict[str, Any]:
         """
         Phase 1: Extract artifacts from git history into tar files.
 
@@ -247,7 +248,7 @@ class UniverseArtifactMigration:
             self.errors.append({"phase": 1, "error": str(e)})
             raise
 
-    def phase_2_migrate(self, surreal_client: Optional[Any] = None) -> Dict[str, Any]:
+    def phase_2_migrate(self, surreal_client: Any | None = None) -> dict[str, Any]:
         """
         Phase 2: Migrate artifacts to SurrealDB asynchronously.
 
@@ -304,7 +305,7 @@ class UniverseArtifactMigration:
             self.errors.append({"phase": 2, "error": str(e)})
             raise
 
-    def phase_3_verify(self) -> Dict[str, Any]:
+    def phase_3_verify(self) -> dict[str, Any]:
         """
         Phase 3: Verify migration completeness and data integrity.
 
@@ -357,7 +358,7 @@ class UniverseArtifactMigration:
             self.errors.append({"phase": 3, "error": str(e)})
             raise
 
-    def execute_full_migration(self) -> Dict[str, Any]:
+    def execute_full_migration(self) -> dict[str, Any]:
         """
         Execute the complete migration pipeline (Phases 0-3).
 

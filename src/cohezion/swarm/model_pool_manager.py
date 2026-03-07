@@ -32,6 +32,7 @@ from cohezion.swarm.model_pool_config import (
     TierConfig,
 )
 
+
 logger = logging.getLogger(__name__)
 
 # Health-check prompt: minimal tokens, fast response

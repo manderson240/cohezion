@@ -1,9 +1,11 @@
-import logging
 import json
-from dataclasses import dataclass, asdict
+import logging
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 from cohezion.core.mcp_client import get_mcp_client
+
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +24,7 @@ class VaultLogger:
     - Implements the VaultExecutionLogger contract for machine-readable guidance.
     - Implements human-readable Obsidian retrospectives with importance sampling.
     """
-    
+
     def __init__(self, novelty_threshold: float = 0.8, mcp_client: Any | None = None):
         self._mcp = mcp_client
         self.novelty_threshold = novelty_threshold
@@ -53,7 +55,7 @@ class VaultLogger:
             logger.error(f"Failed to log execution start to Vault: {e}")
             return ""
 
-    def log_execution_result(self, experiment_path: str, success: bool, output: str, metrics: Dict[str, Any]):
+    def log_execution_result(self, experiment_path: str, success: bool, output: str, metrics: dict[str, Any]):
         """Update the execution log with results."""
         if not experiment_path:
             return
@@ -61,28 +63,28 @@ class VaultLogger:
             # Read existing
             content = self.mcp.vault_read(experiment_path)
             data = json.loads(content)
-            
+
             # Update
             data["success"] = success
             data["output_summary"] = output[:1000] if output else ""
             data["metrics"] = metrics
             data["status"] = "completed"
             data["end_time"] = datetime.now().isoformat()
-            
+
             self.mcp.vault_write(experiment_path, json.dumps(data, indent=2))
         except Exception as e:
             logger.error(f"Failed to log execution result to Vault: {e}")
 
-    def get_experience_guidance(self, task_description: str, project: str = "cohezion") -> Dict[str, Any]:
+    def get_experience_guidance(self, task_description: str, project: str = "cohezion") -> dict[str, Any]:
         """Fetch similar patterns from the Vault for guidance."""
         try:
             # Simple keyword extraction for search
             keywords = [w for w in task_description.lower().split() if len(w) > 4][:3]
             query = " ".join(keywords) if keywords else "general"
-            
+
             logger.debug(f"Searching Vault for guidance: {query}")
             patterns = self.mcp.vault_search(query)
-            
+
             return {
                 "relevant_context": patterns,
                 "guidance": f"Retrieved {len(patterns)} historical patterns from the Cohezion Vault matching: {query}" if patterns else "No prior patterns found for this specific intent."
@@ -138,7 +140,7 @@ class VaultLogger:
 
     # ── Obsidian Mission Retrospectives ────────────────────────────────
 
-    async def log_batch(self, batch: List[Dict[str, Any]]):
+    async def log_batch(self, batch: list[dict[str, Any]]):
         """Log high-value mission summaries to the Vault for humans."""
         for data in batch:
             # Importance Sampling
@@ -150,7 +152,7 @@ class VaultLogger:
                 mission_id = data.get("mission_id", "unknown")
                 summary = data.get("summary", "No summary provided.")
                 decisions = data.get("decisions", [])
-                
+
                 # Format as Obsidian Markdown
                 content = f"""# Mission Retrospective: {mission_id}
 - **Novelty Score**: {novelty:.2f}
@@ -163,14 +165,14 @@ class VaultLogger:
 """
                 for d in decisions:
                     content += f"- {d}\n"
-                
+
                 filename = f"missions/{mission_id}.md"
                 # Add links to relevant project and skill for Obsidian Graph connectivity
                 content += f"\n\n--- \nTags: #retrospective #{data.get('agent', 'agent').lower()} #{data.get('skill_name', 'skill').lower()}\n"
-                
+
                 self.mcp.vault_write(filename, content)
                 logger.info(f"Architectural insight persisted to Vault: {filename}")
-                
+
             except Exception as e:
                 logger.error(f"Vault human-readable persistence failed for mission {data.get('mission_id')}: {e}")
 

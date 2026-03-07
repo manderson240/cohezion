@@ -1,11 +1,10 @@
 """TLS/HTTPS configuration and enforcement for secure communications."""
 
+import logging
 import os
 import ssl
 from pathlib import Path
-from typing import Optional
 
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -24,11 +23,11 @@ class TLSConfig:
 
     def __init__(
         self,
-        cert_path: Optional[str] = None,
-        key_path: Optional[str] = None,
+        cert_path: str | None = None,
+        key_path: str | None = None,
         hsts_max_age: int = 31536000,  # 1 year
         secure_cookies: bool = True,
-        allowed_origins: Optional[list[str]] = None,
+        allowed_origins: list[str] | None = None,
     ):
         """
         Initialize TLS configuration.
@@ -81,7 +80,7 @@ class TLSConfig:
 
         return True
 
-    def load_ssl_context(self) -> Optional[ssl.SSLContext]:
+    def load_ssl_context(self) -> ssl.SSLContext | None:
         """
         Load and configure SSL context for HTTPS.
 
@@ -197,12 +196,12 @@ class TLSConfig:
 
 
 # Singleton instance
-_tls_config: Optional[TLSConfig] = None
+_tls_config: TLSConfig | None = None
 
 
 def get_tls_config(
-    cert_path: Optional[str] = None,
-    key_path: Optional[str] = None,
+    cert_path: str | None = None,
+    key_path: str | None = None,
     **kwargs,
 ) -> TLSConfig:
     """

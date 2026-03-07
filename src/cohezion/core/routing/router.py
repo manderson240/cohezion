@@ -2,6 +2,7 @@ import logging
 
 import httpx
 
+
 logger = logging.getLogger(__name__)
 
 # Import adaptive framework optimizer
@@ -175,7 +176,7 @@ class LocalExpertRouter:
                 "stream": False,
                 "options": options,
             }
-            if "system" in context and context["system"]:
+            if context.get("system"):
                 payload["system"] = context["system"]
 
             response = await self.client.post(

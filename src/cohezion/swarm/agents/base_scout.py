@@ -12,10 +12,11 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from cohezion.reliability import get_circuit
 from cohezion.reliability.resource_guard import ResourceGuard
+
 
 logger = logging.getLogger(__name__)
 
@@ -32,8 +33,8 @@ class Finding:
     line_range: tuple[int, int]
     confidence: float
     code_snippet: str
-    severity: Optional[str] = None  # for anti-patterns
-    remediation: Optional[str] = None  # for anti-patterns
+    severity: str | None = None  # for anti-patterns
+    remediation: str | None = None  # for anti-patterns
     metadata: dict[str, Any] = field(default_factory=dict)
 
 @dataclass
@@ -79,7 +80,7 @@ class BaseScout(ABC):
     def _get_file_hash(self, path: Path) -> str:
         return hashlib.sha256(path.read_bytes()).hexdigest()
 
-    def _parse_python_ast(self, path: Path) -> Optional[ASTSummary]:
+    def _parse_python_ast(self, path: Path) -> ASTSummary | None:
         """Structurally analyze file without LLM costs."""
         try:
             tree = ast.parse(path.read_text())
@@ -120,7 +121,7 @@ class BaseScout(ABC):
             logger.info(f"LLM Lock acquired. Running {self.model}...")
             # Wait for system stability before calling LLM
             await self.guard.wait_for_stability()
-            
+
             breaker = get_circuit("ollama")
             if not breaker.allow_request():
                 raise RuntimeError("Ollama circuit breaker is open")
@@ -156,7 +157,7 @@ class BaseScout(ABC):
         file_hash = self._get_file_hash(path)
         rel_path = str(path)
         cache_key = f"{self.__class__.__name__}:{rel_path}"
-        
+
         # Cache check
         if cache_key in self.cache and self.cache[cache_key]["hash"] == file_hash:
             logger.debug(f"Skipping cached file: {cache_key}")
@@ -164,7 +165,7 @@ class BaseScout(ABC):
 
         logger.info(f"Scanning file: {rel_path} ({self.__class__.__name__})...")
         findings = await self.analyze(path)
-        
+
         # Update cache
         self.cache[cache_key] = {
             "hash": file_hash,
@@ -172,9 +173,9 @@ class BaseScout(ABC):
             "findings_count": len(findings)
         }
         self._save_cache()
-        
+
         # Mandatory cooldown to let system breathe
         logger.info(f"Cooldown active ({self.cooldown}s)...")
         await asyncio.sleep(self.cooldown)
-        
+
         return findings

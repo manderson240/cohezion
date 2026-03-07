@@ -15,9 +15,9 @@ Features:
 import hashlib
 import logging
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
+
 
 try:
     import torch
@@ -63,7 +63,7 @@ class FlumeVAEEncoder:
 
     def __init__(
         self,
-        model_path: Optional[Path] = None,
+        model_path: Path | None = None,
         device: str = "cpu",
         fallback_to_hash: bool = True,
     ):
@@ -215,7 +215,7 @@ class FlumeVAEEncoder:
 
 
 # Global encoder instance
-_encoder_instance: Optional[FlumeVAEEncoder] = None
+_encoder_instance: FlumeVAEEncoder | None = None
 
 
 def get_encoder() -> FlumeVAEEncoder:

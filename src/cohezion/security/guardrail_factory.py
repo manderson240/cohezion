@@ -12,6 +12,7 @@ from cohezion.security.guardrail_adapters import (
 )
 from cohezion.security.guardrail_pipeline import GuardrailPipeline
 
+
 logger = logging.getLogger(__name__)
 
 

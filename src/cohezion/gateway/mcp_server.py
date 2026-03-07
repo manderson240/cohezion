@@ -32,9 +32,10 @@ from typing import Any
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
-from mcp.types import Tool, TextContent
+from mcp.types import TextContent, Tool
 
 from cohezion.gateway.demo_gateway import DemoGateway
+
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(

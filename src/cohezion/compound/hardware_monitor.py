@@ -19,7 +19,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+
 
 logger = logging.getLogger(__name__)
 
@@ -376,7 +376,7 @@ class HardwareMonitor:
 
 
 # Module-level singleton
-_monitor_instance: Optional[HardwareMonitor] = None
+_monitor_instance: HardwareMonitor | None = None
 
 
 def get_hardware_monitor(reset: bool = False) -> HardwareMonitor:

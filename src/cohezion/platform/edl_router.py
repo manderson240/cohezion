@@ -3,13 +3,14 @@ Expert Domain Lattice routing for complex decisions.
 Charter requirement: "All complex problems must route through five specialized streams"
 """
 
-from typing import List
-from enum import Enum
-from pydantic import BaseModel
-from cohezion.swarm.compound_client import get_compound_client
-from cohezion.platform.coherence_tracker import get_coherence_tracker
-import json
 import asyncio
+import json
+from enum import Enum
+
+from pydantic import BaseModel
+
+from cohezion.platform.coherence_tracker import get_coherence_tracker
+from cohezion.swarm.compound_client import get_compound_client
 
 
 class ExpertStream(str, Enum):
@@ -39,7 +40,7 @@ class EDLConsensus(BaseModel):
     coherence: float  # Average coherence across streams
     hiho_stable: bool  # Within 0.4-0.6
     consensus_strength: float  # 1.0 = perfect HIHO alignment
-    stream_recommendations: List[StreamRecommendation]
+    stream_recommendations: list[StreamRecommendation]
     requires_human_review: bool
     reasoning: str
 
@@ -78,7 +79,7 @@ class ExpertDomainRouter:
 
         return consensus
 
-    def _select_streams(self, decision_type: str) -> List[ExpertStream]:
+    def _select_streams(self, decision_type: str) -> list[ExpertStream]:
         """Select appropriate expert streams for decision type."""
         stream_map = {
             "architecture": [ExpertStream.ARCHITECT, ExpertStream.ENGINEER],
@@ -166,7 +167,7 @@ Respond in JSON format:
         return model_map.get(stream, "phi3:mini")
 
     def _stabilize_consensus(
-        self, recommendations: List[StreamRecommendation]
+        self, recommendations: list[StreamRecommendation]
     ) -> EDLConsensus:
         """
         Stabilize consensus using 0.5 coherence rule.
@@ -214,7 +215,7 @@ Respond in JSON format:
         )
 
     def _merge_recommendations(
-        self, recommendations: List[StreamRecommendation]
+        self, recommendations: list[StreamRecommendation]
     ) -> str:
         """Merge recommendations from multiple streams."""
         # Weighted by confidence
@@ -228,7 +229,7 @@ Respond in JSON format:
 
     def _generate_consensus_reasoning(
         self,
-        recommendations: List[StreamRecommendation],
+        recommendations: list[StreamRecommendation],
         coherence: float,
         hiho_stable: bool,
         consensus_strength: float,

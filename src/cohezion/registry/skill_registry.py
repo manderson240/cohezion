@@ -5,6 +5,7 @@ import os
 import re
 from typing import Any
 
+
 # Path to the JSON registry file located alongside this module
 _REGISTRY_FILE = os.path.join(os.path.dirname(__file__), "skill_registry.json")
 

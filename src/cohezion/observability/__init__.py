@@ -5,4 +5,5 @@ from cohezion.observability.unified_metrics import (
     UnifiedMetricsCollector,
 )
 
+
 __all__ = ["InferenceMetrics", "UnifiedMetricsCollector"]

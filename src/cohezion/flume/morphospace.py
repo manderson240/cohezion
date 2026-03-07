@@ -14,6 +14,7 @@ import numpy as np
 
 from cohezion.flume.lcsp import HIHO, LCSPPredictor
 
+
 logger = logging.getLogger(__name__)
 
 

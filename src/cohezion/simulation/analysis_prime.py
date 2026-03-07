@@ -16,6 +16,7 @@ import pandas as pd
 
 from cohezion.simulation.simulation_logger import SimulationLogger
 
+
 logger = logging.getLogger("SimAnalyzer")
 
 

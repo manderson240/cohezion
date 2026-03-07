@@ -31,11 +31,10 @@ Usage:
 
 import logging
 import time
+from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional, Dict, List, Tuple
-from datetime import datetime, timedelta
-from collections import deque
+
 
 logger = logging.getLogger(__name__)
 
@@ -57,13 +56,13 @@ class AnomalyAlert:
     anomaly_type: AnomalyType
     detected_at: float
     cost_actual: float
-    cost_forecasted: Optional[float]
+    cost_forecasted: float | None
     cost_deviation_pct: float
     model: str
     severity: float  # 0.0 - 1.0
     description: str
     confidence: float  # 0.0 - 1.0 (1 - false positive risk)
-    metrics: Dict[str, float] = field(default_factory=dict)
+    metrics: dict[str, float] = field(default_factory=dict)
 
     def is_valid_alert(self, fp_threshold: float = 0.05) -> bool:
         """Check if alert passes false positive threshold.
@@ -94,7 +93,7 @@ class ModelCostHistory:
     def add_datapoint(
         self,
         cost: float,
-        forecast: Optional[float] = None,
+        forecast: float | None = None,
         coherence: float = 0.7,
     ) -> None:
         """Add cost datapoint to history."""
@@ -103,7 +102,7 @@ class ModelCostHistory:
         self.forecasts.append(forecast or cost)
         self.coherence_scores.append(coherence)
 
-    def get_recent_costs(self, minutes: int = 10) -> List[float]:
+    def get_recent_costs(self, minutes: int = 10) -> list[float]:
         """Get costs from last N minutes."""
         now = time.time()
         cutoff = now - (minutes * 60)
@@ -181,7 +180,7 @@ class AnomalyDetector:
         self.fp_adjustment_factor = fp_adjustment_factor
 
         # Per-model cost history
-        self.model_histories: Dict[str, ModelCostHistory] = {}
+        self.model_histories: dict[str, ModelCostHistory] = {}
 
         # Alert tracking
         self.recent_alerts: deque = deque(maxlen=1000)
@@ -190,10 +189,10 @@ class AnomalyDetector:
     def detect_spike(
         self,
         actual_cost: float,
-        forecasted_cost: Optional[float] = None,
+        forecasted_cost: float | None = None,
         model: str = "unknown",
         coherence_score: float = 0.7,
-    ) -> Optional[AnomalyAlert]:
+    ) -> AnomalyAlert | None:
         """Detect sudden cost spike.
 
         Args:
@@ -256,7 +255,7 @@ class AnomalyDetector:
         self,
         model: str,
         coherence_score: float = 0.7,
-    ) -> Optional[AnomalyAlert]:
+    ) -> AnomalyAlert | None:
         """Detect cost trending upward over time.
 
         Args:
@@ -329,7 +328,7 @@ class AnomalyDetector:
         cost: float,
         coherence_score: float,
         model: str = "unknown",
-    ) -> Optional[AnomalyAlert]:
+    ) -> AnomalyAlert | None:
         """Detect high cost with low quality output.
 
         Args:
@@ -423,7 +422,7 @@ class AnomalyDetector:
         self,
         anomaly_type: AnomalyType,
         deviation: float,
-        recent_history: List[float],
+        recent_history: list[float],
     ) -> float:
         """Calculate confidence that anomaly is real.
 
@@ -470,7 +469,7 @@ class AnomalyDetector:
 
 
 # Singleton instance
-_anomaly_detector: Optional[AnomalyDetector] = None
+_anomaly_detector: AnomalyDetector | None = None
 
 
 def get_anomaly_detector() -> AnomalyDetector:

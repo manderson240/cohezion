@@ -1,12 +1,13 @@
-import asyncio
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pandas as pd
 from datasets import Dataset, Features, Sequence, Value
+
 from cohezion.core.persistence.surreal_client import get_surreal_client
+
 
 logger = logging.getLogger(__name__)
 
@@ -16,13 +17,13 @@ class JourneyPersistence:
     - Uses SurrealDB for checkpoints.
     - Uses sharded Parquet for high-volume raw metrics and trajectories.
     """
-    
+
     def __init__(self, storage_dir: str = "data/journeys", batch_size: int = 50):
         self._db = None
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(parents=True, exist_ok=True)
         self.batch_size = batch_size
-        self.current_buffer: List[Dict[str, Any]] = []
+        self.current_buffer: list[dict[str, Any]] = []
 
         # Define features for trajectory consistency (12D Flume support)
         self.features = Features({
@@ -44,30 +45,30 @@ class JourneyPersistence:
             self._db = get_surreal_client()
         return self._db
 
-    async def persist_batch(self, batch: List[Dict[str, Any]]):
+    async def persist_batch(self, batch: list[dict[str, Any]]):
         """Coordinate persistence to SurrealDB and Parquet."""
         # 1. SurrealDB Persistence (Machine search/Checkpoints)
         await self._persist_to_surreal(batch)
-        
+
         # 2. Sharded Parquet Persistence (High-volume telemetry)
         for data in batch:
             self.current_buffer.append(data)
             if len(self.current_buffer) >= self.batch_size:
                 await self._flush_to_parquet()
 
-    async def _persist_to_surreal(self, batch: List[Dict[str, Any]]):
+    async def _persist_to_surreal(self, batch: list[dict[str, Any]]):
         """Persist a batch of mission data to SurrealDB."""
         for data in batch:
             try:
                 mission_id = data.get("mission_id", "anonymous")
                 record_id = f"mission_journey:{mission_id}"
-                
+
                 data["flume_version"] = "1.0"
                 data["state_dimensions"] = 12
-                
+
                 if not self.db._connected:
                     await self.db.connect()
-                
+
                 await self.db.query(f"UPSERT {record_id} CONTENT $data", {"data": data})
                 logger.debug(f"Persisted mission journey to Surreal: {mission_id}")
             except Exception as e:

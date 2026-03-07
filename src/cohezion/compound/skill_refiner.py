@@ -17,7 +17,8 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +67,7 @@ class SkillRefiner:
         operation_type: str,
         execution_result: dict[str, Any],
         patterns_extracted: list[str] | None = None,
-    ) -> Optional[str]:
+    ) -> str | None:
         """Learn from execution result and refine PRIME skill.
 
         Analyzes execution metrics and appends learned refinements
@@ -160,7 +161,7 @@ class SkillRefiner:
         skill_name: str,
         operation_type: str,
         metrics: ExecutionMetrics,
-    ) -> Optional[LearningSignal]:
+    ) -> LearningSignal | None:
         """Generate learning signal from metrics.
 
         Args:
@@ -228,7 +229,7 @@ class SkillRefiner:
         else:
             return f"Acceptable performance for {operation_type} operations"
 
-    def _find_prime_file(self, skill_name: str) -> Optional[Path]:
+    def _find_prime_file(self, skill_name: str) -> Path | None:
         """Find PRIME skill file for given skill name.
 
         Args:
@@ -251,7 +252,7 @@ class SkillRefiner:
 
         return None
 
-    def _append_refinement(self, prime_file: Path, signal: LearningSignal) -> Optional[Path]:
+    def _append_refinement(self, prime_file: Path, signal: LearningSignal) -> Path | None:
         """Append learned refinement to PRIME file.
 
         Args:
@@ -354,7 +355,7 @@ class SkillRefiner:
 class SkillRefinerFactory:
     """Factory for creating skill refiner instances."""
 
-    _instance: Optional[SkillRefiner] = None
+    _instance: SkillRefiner | None = None
 
     @staticmethod
     def create(mcp_client: Any = None) -> SkillRefiner:
