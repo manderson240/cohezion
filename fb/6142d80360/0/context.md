@@ -1,0 +1,8 @@
+# Session Context
+
+## User Prompts
+
+### Prompt 1
+
+deep research https://github.com/overturetool/overturetool.github.io. we have it installed but aren't using it properly.  are plans are not getting sent there.  and can we extend it and make it available from anywhere so I can review the plans from my phone or another computer
+
