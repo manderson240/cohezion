@@ -36,17 +36,16 @@ Usage::
 
 import asyncio
 import hashlib
-import json
 import logging
 import os
 import time
 from dataclasses import dataclass
 from typing import Any
 
-import aiohttp  # type: ignore[import-untyped]
 import requests  # type: ignore[import-untyped]
 
 from cohezion.deployment.feature_flags import FeatureFlag, FeatureFlagContext, is_feature_enabled
+
 
 logger = logging.getLogger(__name__)
 

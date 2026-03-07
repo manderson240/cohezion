@@ -21,7 +21,8 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ class QueuedTask:
 
     task_id: str
     prompt: str
-    system_prompt: Optional[str]
+    system_prompt: str | None
     model: str
     priority: TaskPriority = TaskPriority.NORMAL
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -93,7 +94,7 @@ class TaskQueue:
     def __init__(
         self,
         queue_size_limit: int = 10000,
-        persistence_dir: Optional[Path] = None,
+        persistence_dir: Path | None = None,
         enable_persistence: bool = True,
     ) -> None:
         """Initialize task queue."""
@@ -154,7 +155,7 @@ class TaskQueue:
 
         return True
 
-    def dequeue(self) -> Optional[QueuedTask]:
+    def dequeue(self) -> QueuedTask | None:
         """Dequeue next task (priority order).
 
         Returns highest priority task that hasn't expired.
@@ -457,8 +458,8 @@ class TaskQueue:
 
 
 __all__ = [
-    "TaskPriority",
-    "QueuedTask",
     "QueueMetrics",
+    "QueuedTask",
+    "TaskPriority",
     "TaskQueue",
 ]

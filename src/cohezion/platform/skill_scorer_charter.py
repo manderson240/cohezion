@@ -4,10 +4,12 @@ Primary weight on HIHO stability (0.5 coherence baseline).
 """
 
 import logging
-from typing import List
 from datetime import datetime, timedelta
+
 from pydantic import BaseModel
+
 from cohezion.core.persistence.surreal_client import get_surreal_client
+
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +33,7 @@ class CharterAlignedSkillScorer:
         self.db = get_surreal_client()
         self.target_coherence = 0.5  # Charter mandated
 
-    async def calculate_daily_scores(self, date: datetime) -> List[CharterSkillScore]:
+    async def calculate_daily_scores(self, date: datetime) -> list[CharterSkillScore]:
         """Calculate Charter-aligned effectiveness scores."""
 
         # Query all skill usage for the day
@@ -141,7 +143,7 @@ class CharterAlignedSkillScorer:
 
     async def get_trending_skills(
         self, days: int = 7, limit: int = 10
-    ) -> List[CharterSkillScore]:
+    ) -> list[CharterSkillScore]:
         """Get top skills by Charter-aligned effectiveness over time period."""
 
         end_date = datetime.now()

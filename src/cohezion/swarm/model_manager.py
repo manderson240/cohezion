@@ -18,6 +18,7 @@ from typing import Any
 
 import httpx
 
+
 logger = logging.getLogger(__name__)
 
 OLLAMA_HOST = "http://localhost:11434"

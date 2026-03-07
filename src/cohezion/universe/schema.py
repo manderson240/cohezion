@@ -6,6 +6,7 @@ as 12D/512D manifold data, enabling universe simulation and experience learning.
 
 from __future__ import annotations
 
+
 UNIVERSE_SCHEMA = """
 -- Universe Simulation Tables
 

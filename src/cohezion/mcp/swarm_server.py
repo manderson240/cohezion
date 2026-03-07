@@ -9,12 +9,17 @@ Provides tools:
 
 import asyncio
 import logging
+import os
 from typing import Any
+from aiohttp import web
 
 from cohezion.swarm.swarm_types import Perspective, SwarmConfig
 from cohezion.swarm.workflows import DebateWorkflow
 
+
 logger = logging.getLogger(__name__)
+
+MCP_PORT = int(os.getenv("MCP_PORT", "8372"))
 
 
 class SwarmMCP:
@@ -34,7 +39,7 @@ class SwarmMCP:
             self._workflow = DebateWorkflow(config=self.config)
         return self._workflow
 
-    def run_debate(
+    async def run_debate(
         self,
         query: str,
         perspectives: list[str] | None = None,
@@ -64,18 +69,14 @@ class SwarmMCP:
             )
 
         # Run async workflow
-        loop = asyncio.new_event_loop()
-        try:
-            result = loop.run_until_complete(workflow.execute(query))
-            return {
-                "content": result.content,
-                "confidence": result.confidence,
-                "model_chain": result.model_chain,
-                "processing_time_ms": result.processing_time_ms,
-                "resolved_contradictions": result.resolved_contradictions,
-            }
-        finally:
-            loop.close()
+        result = await workflow.execute(query)
+        return {
+            "content": result.content,
+            "confidence": result.confidence,
+            "model_chain": result.model_chain,
+            "processing_time_ms": result.processing_time_ms,
+            "resolved_contradictions": result.resolved_contradictions,
+        }
 
     def get_perspectives(self) -> list[dict[str, str]]:
         """Get available analyst perspectives."""
@@ -87,24 +88,6 @@ class SwarmMCP:
         return workflow.get_metrics()
 
 
-# MCP tool definitions
-TOOLS = [
-    {
-        "name": "run_debate",
-        "description": "Execute full multi-perspective debate on a query",
-        "parameters": {
-            "query": {"type": "string", "required": True},
-            "perspectives": {"type": "array", "items": {"type": "string"}},
-        },
-    },
-    {
-        "name": "get_perspectives",
-        "description": "Get available analyst perspectives",
-        "parameters": {},
-    },
-]
-
-
 # Singleton
 _server: SwarmMCP | None = None
 
@@ -114,3 +97,51 @@ def get_server() -> SwarmMCP:
     if _server is None:
         _server = SwarmMCP()
     return _server
+
+
+routes = web.RouteTableDef()
+
+
+@routes.get("/health")
+async def health(request: web.Request) -> web.Response:
+    return web.json_response({"status": "healthy", "server": "swarm"})
+
+
+@routes.post("/tools/run_debate")
+async def tool_run_debate(request: web.Request) -> web.Response:
+    data = await request.json()
+    query = data.get("query", "")
+    perspectives = data.get("perspectives")
+    server = get_server()
+    result = await server.run_debate(query, perspectives)
+    return web.json_response(result)
+
+
+@routes.post("/tools/get_perspectives")
+async def tool_get_perspectives(request: web.Request) -> web.Response:
+    server = get_server()
+    return web.json_response(server.get_perspectives())
+
+
+def create_app() -> web.Application:
+    app = web.Application()
+    app.add_routes(routes)
+    return app
+
+
+app = create_app()
+
+
+async def main():
+    get_server()
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", MCP_PORT)
+    await site.start()
+    logger.info(f"Swarm MCP Server running on port {MCP_PORT}")
+    while True:
+        await asyncio.sleep(3600)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

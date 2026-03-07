@@ -25,6 +25,7 @@ from uuid import uuid4
 
 import numpy as np
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -141,7 +142,7 @@ class AxiomaticState:
     # --- Tempic Field (Gap 2: Smith's rate-of-change, not clock-time) ---
 
     @staticmethod
-    def compute_tempic(state_before: "AxiomaticState", state_after: "AxiomaticState") -> float:
+    def compute_tempic(state_before: AxiomaticState, state_after: AxiomaticState) -> float:
         """Compute Smith's Tempic field: the rate of change between two states.
 
         Smith: 'The Tempic field is NOT time, but change itself.'
@@ -176,7 +177,7 @@ class AxiomaticState:
 
     @staticmethod
     def compute_tempic_vector(
-        state_before: "AxiomaticState", state_after: "AxiomaticState"
+        state_before: AxiomaticState, state_after: AxiomaticState
     ) -> list[float]:
         """Compute per-dimension Tempic field (directional change vector).
 

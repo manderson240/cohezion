@@ -16,9 +16,9 @@ from __future__ import annotations
 import json
 import logging
 import re
-import time
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +93,7 @@ class BatchSizePredictor:
         self,
         history_size: int = 100,
         min_confidence_threshold: float = 0.5,
-        vault_client: Optional[Any] = None,
+        vault_client: Any | None = None,
     ) -> None:
         """Initialize batch size predictor."""
         self.history_size = history_size
@@ -102,7 +102,7 @@ class BatchSizePredictor:
 
         # In-memory history: {task_type: [metrics]}
         self.history: dict[str, list[BatchExecutionMetrics]] = {}
-        self._last_prediction: Optional[tuple[int, float]] = None  # (size, confidence)
+        self._last_prediction: tuple[int, float] | None = None  # (size, confidence)
 
     def record_execution(self, metrics: BatchExecutionMetrics) -> None:
         """Record a batch execution for learning.
@@ -346,7 +346,7 @@ class BatchSizePredictor:
             )
             return 0
 
-    def _parse_batch_metrics(self, content: str) -> Optional[BatchExecutionMetrics]:
+    def _parse_batch_metrics(self, content: str) -> BatchExecutionMetrics | None:
         """Parse batch execution metrics from vault experiment markdown.
 
         Extracts metrics from YAML front matter or structured markdown format.
@@ -394,7 +394,7 @@ class BatchSizePredictor:
             logger.debug(f"Error parsing batch metrics: {e}")
             return None
 
-    def _parse_yaml_metrics(self, yaml_content: str) -> Optional[BatchExecutionMetrics]:
+    def _parse_yaml_metrics(self, yaml_content: str) -> BatchExecutionMetrics | None:
         """Parse metrics from YAML front matter.
 
         Parameters
@@ -436,7 +436,7 @@ class BatchSizePredictor:
             logger.debug(f"Error parsing YAML metrics: {e}")
             return None
 
-    def _parse_markdown_fields(self, content: str) -> Optional[BatchExecutionMetrics]:
+    def _parse_markdown_fields(self, content: str) -> BatchExecutionMetrics | None:
         """Parse metrics from structured markdown fields.
 
         Looks for patterns like:
@@ -524,7 +524,7 @@ class BatchSizePredictor:
             logger.debug(f"Error parsing markdown fields: {e}")
             return None
 
-    def _dict_to_metrics(self, data: dict[str, Any]) -> Optional[BatchExecutionMetrics]:
+    def _dict_to_metrics(self, data: dict[str, Any]) -> BatchExecutionMetrics | None:
         """Convert dictionary to BatchExecutionMetrics.
 
         Parameters
@@ -584,7 +584,7 @@ def get_batch_size_predictor(reset: bool = False) -> BatchSizePredictor:
 
 
 # Module-level singleton
-_predictor_instance: Optional[BatchSizePredictor] = None
+_predictor_instance: BatchSizePredictor | None = None
 
 
 __all__ = [

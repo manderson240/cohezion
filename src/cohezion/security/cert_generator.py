@@ -3,7 +3,7 @@
 import logging
 import subprocess
 from pathlib import Path
-from typing import Optional
+
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +99,7 @@ class CertificateGenerator:
         cert_dir: str = ".certs",
         cert_name: str = "server",
         force: bool = False,
-    ) -> tuple[Optional[str], Optional[str]]:
+    ) -> tuple[str | None, str | None]:
         """
         Ensure development certificates exist, generating them if needed.
 

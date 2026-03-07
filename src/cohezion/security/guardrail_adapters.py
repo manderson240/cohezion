@@ -9,6 +9,7 @@ from typing import Any
 
 from cohezion.security.guardrail_pipeline import GuardrailAction, GuardrailResult
 
+
 logger = logging.getLogger(__name__)
 
 

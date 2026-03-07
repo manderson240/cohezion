@@ -14,6 +14,7 @@ import torch.nn.functional as F
 from cohezion.flume import FlumeEncoder
 from cohezion.swarm.git_health import GitCommit
 
+
 logger = logging.getLogger(__name__)
 
 

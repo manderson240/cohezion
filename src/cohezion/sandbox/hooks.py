@@ -178,7 +178,7 @@ class HookDiscovery:
             HookMetadata if valid, None otherwise
         """
         try:
-            with open(hook_file, "r") as f:
+            with open(hook_file) as f:
                 content = f.read(500)  # Read first 500 bytes for metadata
         except Exception as e:
             logger.error(f"Failed to read hook file {hook_file}: {e}")
@@ -525,15 +525,15 @@ def get_hook_integration(
 
 
 __all__ = [
-    "HookStage",
-    "HookAction",
-    "HookMetadata",
-    "Hook",
-    "HookResult",
     "ExecutionContext",
+    "Hook",
+    "HookAction",
     "HookDiscovery",
     "HookExecutor",
-    "HookRegistry",
     "HookIntegration",
+    "HookMetadata",
+    "HookRegistry",
+    "HookResult",
+    "HookStage",
     "get_hook_integration",
 ]

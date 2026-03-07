@@ -6,12 +6,11 @@ and conflict detection via git state.
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import subprocess
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +24,7 @@ class GitUtils:
         if not (repo_root / ".git").exists():
             logger.warning(f"Not a git repository: {repo_root}")
 
-    def get_last_commit_author(self, file_path: Path) -> Optional[str]:
+    def get_last_commit_author(self, file_path: Path) -> str | None:
         """Get the author of the last commit for a file."""
         try:
             result = subprocess.run(
@@ -41,7 +40,7 @@ class GitUtils:
             logger.warning(f"Failed to get commit author for {file_path}: {e}")
         return None
 
-    def get_last_commit_time(self, file_path: Path) -> Optional[datetime]:
+    def get_last_commit_time(self, file_path: Path) -> datetime | None:
         """Get the timestamp of the last commit for a file."""
         try:
             result = subprocess.run(
@@ -86,7 +85,7 @@ class GitUtils:
             logger.warning(f"Failed to check git changes for {file_path}: {e}")
             return False
 
-    def get_file_diff(self, file_path: Path) -> Optional[str]:
+    def get_file_diff(self, file_path: Path) -> str | None:
         """Get diff of uncommitted changes for a file."""
         try:
             result = subprocess.run(

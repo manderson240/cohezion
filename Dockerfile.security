@@ -1,0 +1,16 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install git for scanning repos
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+
+# Install dependencies
+RUN pip install --no-cache-dir aiohttp
+
+# Copy server code
+COPY src/cohezion/mcp/servers/security /app/mcp/security
+
+EXPOSE 8369
+
+CMD ["python3", "-m", "mcp.security.server"]

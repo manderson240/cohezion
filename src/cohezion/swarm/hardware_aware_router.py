@@ -120,6 +120,6 @@ class RoutingDecision:
 
 __all__ = [
     "Priority",
-    "RoutingRequest",
     "RoutingDecision",
+    "RoutingRequest",
 ]

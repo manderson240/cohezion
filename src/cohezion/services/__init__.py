@@ -19,19 +19,20 @@ from cohezion.services.swarm_service import (
     SwarmService,
 )
 
+
 __all__ = [
-    "AgentService",
     "AgentConfig",
+    "AgentService",
     "AgentStatus",
-    "PhysicsService",
-    "PhysicsConfig",
-    "PhysicsAnalysis",
-    "KnowledgeService",
-    "KnowledgeNode",
     "KnowledgeEdge",
+    "KnowledgeNode",
     "KnowledgeQuery",
-    "SwarmService",
+    "KnowledgeService",
+    "PhysicsAnalysis",
+    "PhysicsConfig",
+    "PhysicsService",
     "QuadratureConfig",
-    "QuadratureResult",
     "QuadraturePhase",
+    "QuadratureResult",
+    "SwarmService",
 ]

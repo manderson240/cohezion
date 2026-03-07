@@ -1,0 +1,14 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+COPY pyproject.toml .
+RUN pip install --no-cache-dir aiohttp
+
+# Copy server code
+COPY src/cohezion/mcp/servers/memory /app/mcp/memory
+
+EXPOSE 8366
+
+CMD ["python3", "-m", "mcp.memory.server"]
