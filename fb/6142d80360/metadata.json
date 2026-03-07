@@ -3,10 +3,13 @@
   "checkpoint_id": "fb6142d80360",
   "strategy": "manual-commit",
   "branch": "feat/semver-400-year-physics-hiho-flume",
-  "checkpoints_count": 7,
+  "checkpoints_count": 19,
   "files_touched": [
     ".antigravity/mcp.yml",
     ".claude/mcp.json",
+    ".github/ISSUE_TEMPLATE/claude-command.yml",
+    ".github/ISSUE_TEMPLATE/claude-research.yml",
+    ".github/workflows/autonomous-scout.yml",
     ".opencode/commands/bmad-agent-bmad-master.md",
     ".opencode/commands/bmad-agent-bmb-agent-builder.md",
     ".opencode/commands/bmad-agent-bmb-module-builder.md",
@@ -358,6 +361,7 @@
     "src/cohezion/skills/HOLOGRAPHIC_FLUME_PRIME.md",
     "src/cohezion/skills/NOETHER_CONSERVATION_PRIME.md",
     "src/cohezion/skills/PHYSICS_LINEAGE_PRIME.md",
+    "src/cohezion/skills/REMOTE_ORCHESTRATION_PRIME.md",
     "src/cohezion/skills/THROTTLED_SCOUT_PRIME.md",
     "src/cohezion/skills/cohezion_mcp.py",
     "src/cohezion/skills/hiho_reality_sim.md",
@@ -438,13 +442,20 @@
       "context": "/fb/6142d80360/3/context.md",
       "content_hash": "/fb/6142d80360/3/content_hash.txt",
       "prompt": "/fb/6142d80360/3/prompt.txt"
+    },
+    {
+      "metadata": "/fb/6142d80360/4/metadata.json",
+      "transcript": "/fb/6142d80360/4/full.jsonl",
+      "context": "/fb/6142d80360/4/context.md",
+      "content_hash": "/fb/6142d80360/4/content_hash.txt",
+      "prompt": "/fb/6142d80360/4/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 17188,
-    "cache_creation_tokens": 769665,
-    "cache_read_tokens": 9584121,
-    "output_tokens": 96706,
-    "api_call_count": 109
+    "input_tokens": 20738,
+    "cache_creation_tokens": 860292,
+    "cache_read_tokens": 11155697,
+    "output_tokens": 114085,
+    "api_call_count": 142
   }
 }

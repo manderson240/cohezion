@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "fb6142d80360",
+  "session_id": "9b133726-0fcf-4fee-8c8b-ee3e33340faa",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-07T14:34:38.284428129Z",
+  "branch": "feat/semver-400-year-physics-hiho-flume",
+  "checkpoints_count": 12,
+  "files_touched": [
+    ".github/ISSUE_TEMPLATE/claude-command.yml",
+    ".github/ISSUE_TEMPLATE/claude-research.yml",
+    ".github/workflows/autonomous-scout.yml",
+    "src/cohezion/skills/AUTONOMOUS_RESILIENCE_PRIME.md",
+    "src/cohezion/skills/REMOTE_ORCHESTRATION_PRIME.md",
+    "src/cohezion/skills/THROTTLED_SCOUT_PRIME.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "ac8f49e871e4",
+  "token_usage": {
+    "input_tokens": 3550,
+    "cache_creation_tokens": 90627,
+    "cache_read_tokens": 1571576,
+    "output_tokens": 17379,
+    "api_call_count": 33
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-07T14:34:38.073565259Z",
+    "agent_lines": 737,
+    "human_added": 32166,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 32903,
+    "agent_percentage": 2.239917332766009
+  }
+}
