@@ -3,7 +3,7 @@
   "checkpoint_id": "fb6142d80360",
   "strategy": "manual-commit",
   "branch": "feat/semver-400-year-physics-hiho-flume",
-  "checkpoints_count": 21,
+  "checkpoints_count": 28,
   "files_touched": [
     ".antigravity/mcp.yml",
     ".claude/mcp.json",
@@ -125,6 +125,7 @@
     ".vscode/mcp.json",
     ".zed/mcp.json",
     "_bmad-output/planning-artifacts/research/technical-marimo-reactive-notebooks-scientific-publications-research-2026-03-06.md",
+    "_bmad/bmm/prds/mcp-infrastructure/PRD-validation-report.md",
     "cloud-vault-mcp/vault/projects/bmad-mcp-infrastructure/IMPLEMENTATION_STATUS.md",
     "cloud-vault-mcp/vault/projects/bmad-mcp-infrastructure/README.md",
     "docker-compose.yml",
@@ -456,13 +457,20 @@
       "context": "/fb/6142d80360/5/context.md",
       "content_hash": "/fb/6142d80360/5/content_hash.txt",
       "prompt": "/fb/6142d80360/5/prompt.txt"
+    },
+    {
+      "metadata": "/fb/6142d80360/6/metadata.json",
+      "transcript": "/fb/6142d80360/6/full.jsonl",
+      "context": "/fb/6142d80360/6/context.md",
+      "content_hash": "/fb/6142d80360/6/content_hash.txt",
+      "prompt": "/fb/6142d80360/6/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 20796,
-    "cache_creation_tokens": 927883,
-    "cache_read_tokens": 11527369,
-    "output_tokens": 115741,
-    "api_call_count": 150
+    "input_tokens": 20954,
+    "cache_creation_tokens": 1546186,
+    "cache_read_tokens": 20233022,
+    "output_tokens": 160847,
+    "api_call_count": 232
   }
 }
