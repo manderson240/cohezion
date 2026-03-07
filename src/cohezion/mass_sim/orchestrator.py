@@ -22,6 +22,7 @@ from cohezion.mass_sim.config import (
 from cohezion.mass_sim.persistence import SimulationPersistence
 from cohezion.mass_sim.system_monitor import MemoryGuard
 
+
 logger = logging.getLogger(__name__)
 
 

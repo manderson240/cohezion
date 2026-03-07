@@ -15,6 +15,7 @@ from typing import Any
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
+
 logger = logging.getLogger(__name__)
 
 # Configuration

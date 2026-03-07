@@ -47,6 +47,7 @@ from typing import Any
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
 
+
 logger = logging.getLogger(__name__)
 
 

@@ -40,8 +40,23 @@ await asyncio.sleep(delay)
 ### 3. Verification Protocol
 Always verify persistence with a specialized script (`check_bbq_status.py`) before leaving the process unattended.
 
+## Remote Scheduled Resilience (GitHub Actions)
+
+The COMA_MODE local pattern extends to remote scheduling:
+
+| Local | GitHub Actions equivalent |
+|-------|--------------------------|
+| `VRAM > 96%` → sleep | `concurrency.cancel-in-progress: true` → cancel stale run |
+| `workflow_dispatch` (manual override) | `workflow_dispatch.inputs.focus` (parameterized manual trigger) |
+| Email notification on completion | Issue comment / GitHub Step Summary |
+| Checkpoint recovery on restart | Vault-logged experiment notes survive across runs |
+
+The `workflow_dispatch` + `inputs.focus` pattern enables targeted research without modifying the skill: pass `focus="adiabatic quantum optimization"` and the scheduled workflow runs a focused scout instead of the general weekly sweep.
+
+**Recommended**: Pair with `session-registry.md` in vault to track active CI runs alongside local sessions.
+
 ## VERSION
-v1.0 (Born from the Overnight BBQ Mission, 2026-01-31)
+v1.1 (Extended with remote scheduled autonomy via GitHub Actions, 2026-03-05)
 
 ## SEE ALSO
 - `src/cohezion/reliability/monitor.py`

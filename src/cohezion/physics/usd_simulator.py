@@ -9,6 +9,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+
 sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
 
 # Simplified: Use NumPy directly instead of importing HihoVectorEngine

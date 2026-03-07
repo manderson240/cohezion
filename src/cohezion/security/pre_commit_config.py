@@ -3,7 +3,7 @@
 import logging
 import subprocess
 from pathlib import Path
-from typing import Optional
+
 
 logger = logging.getLogger(__name__)
 
@@ -243,7 +243,7 @@ repos:
 
     @staticmethod
     def install_git_hooks(
-        repo_path: Optional[str] = None,
+        repo_path: str | None = None,
     ) -> bool:
         """
         Install pre-commit git hooks.
@@ -316,7 +316,7 @@ repos:
 
     @staticmethod
     def setup_security_hooks(
-        repo_path: Optional[str] = None,
+        repo_path: str | None = None,
     ) -> bool:
         """
         Complete setup of security hooks in repository.

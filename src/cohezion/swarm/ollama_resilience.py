@@ -18,6 +18,7 @@ import httpx
 from cohezion.reliability import get_circuit
 from cohezion.reliability.monitor import get_resource_monitor
 
+
 logger = logging.getLogger(__name__)
 
 _DEFAULT_BASE_URL = "http://localhost:11434"

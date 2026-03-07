@@ -13,9 +13,9 @@ Lifecycle:
 from __future__ import annotations
 
 import logging
-import time
 from typing import Any
 from uuid import uuid4
+
 
 logger = logging.getLogger(__name__)
 
@@ -68,9 +68,9 @@ class UniverseBridge:
         AxiomaticState
             Universe engine state organized by fabric.
         """
-        from cohezion.universe.engine import AxiomaticState
-
         import numpy as np
+
+        from cohezion.universe.engine import AxiomaticState
         arr = np.asarray(vector_12d, dtype=float).ravel()
         # Pad to 12 if needed
         if len(arr) < 12:

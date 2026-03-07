@@ -27,11 +27,13 @@ import numpy as np
 
 from cohezion.reliability.monitor import get_resource_monitor
 
+
 # Add src to path if running directly
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from cohezion.flume.mnm import SCENARIO_MANIFOLDS
 from cohezion.simulation.simulation_logger import SimulationLogger
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -41,6 +43,7 @@ logging.basicConfig(
 logger = logging.getLogger("FractalNexus")
 
 from cohezion.simulation.analysis_prime import SimulationAnalyzer
+
 
 # Constants
 GRID_SIZE = 64

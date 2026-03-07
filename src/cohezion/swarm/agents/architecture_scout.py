@@ -5,7 +5,9 @@ Uses qwen2.5-coder:7b to classify structural findings.
 
 import logging
 from pathlib import Path
+
 from cohezion.swarm.agents.base_scout import BaseScout, Finding
+
 
 logger = logging.getLogger(__name__)
 
@@ -47,12 +49,12 @@ class ArchitectureScout(BaseScout):
             ]
         }}
         """
-        
+
         try:
             response_json = await self._call_local_llm(prompt)
             import json
             data = json.loads(response_json)
-            
+
             findings = []
             for p in data.get("patterns", []):
                 findings.append(Finding(

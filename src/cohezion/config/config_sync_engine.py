@@ -7,16 +7,16 @@ handle conflicts, and manage atomic operations.
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from cohezion.config.config_state import FileMetadata
 from cohezion.config.config_sync_logger import ConfigSyncLogger
 from cohezion.config.config_templates import ConfigTemplateEngine, TemplateContext, TemplateType
 from cohezion.config.git_utils import GitUtils
+
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ class ConfigSyncEngine:
         self,
         repo_root: Path = Path.cwd(),
         vault_root: Path = Path.home() / "vaults" / "cohezion-vault",
-        sync_logger: Optional[ConfigSyncLogger] = None,
+        sync_logger: ConfigSyncLogger | None = None,
     ):
         """Initialize sync engine."""
         self.repo_root = Path(repo_root)

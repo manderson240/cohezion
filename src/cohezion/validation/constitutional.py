@@ -14,6 +14,7 @@ from typing import Any
 from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.universe.engine import AxiomaticState
 
+
 logger = logging.getLogger(__name__)
 
 

@@ -12,6 +12,7 @@ from cohezion.universe.engine import (
     UniverseJourney,
 )
 
+
 logger = logging.getLogger(__name__)
 
 

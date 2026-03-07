@@ -13,14 +13,13 @@ from __future__ import annotations
 
 import logging
 import time
-from collections import defaultdict
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timedelta
-from typing import Any, Optional
+from dataclasses import asdict, dataclass, field
+from typing import Any
 
-from cohezion.cost_optimization.cost_tracker import SessionCostTracker
-from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
 from cohezion.compound.global_metrics_aggregator import GlobalMetricsAggregator
+from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
+from cohezion.cost_optimization.cost_tracker import SessionCostTracker
+
 
 logger = logging.getLogger(__name__)
 
@@ -91,9 +90,9 @@ class CostDashboard:
 
     def __init__(
         self,
-        cost_tracker: Optional[SessionCostTracker] = None,
-        budget_enforcer: Optional[BudgetEnforcer] = None,
-        metrics_aggregator: Optional[GlobalMetricsAggregator] = None,
+        cost_tracker: SessionCostTracker | None = None,
+        budget_enforcer: BudgetEnforcer | None = None,
+        metrics_aggregator: GlobalMetricsAggregator | None = None,
         history_window_hours: int = 24,
     ):
         """Initialize cost dashboard.

@@ -29,7 +29,7 @@ import hashlib
 import json
 import logging
 from collections import OrderedDict
-from typing import Any, Optional
+from typing import Any
 
 from cohezion.compound.team_executor import AgentTask
 from cohezion.core.mcp_client import MCPClient
@@ -91,7 +91,7 @@ class RequestCache:
         self._l2_hits = 0
         self._l2_misses = 0
 
-    def get_exact(self, request_text: str) -> Optional[AgentTask]:
+    def get_exact(self, request_text: str) -> AgentTask | None:
         """Get cached task via exact hash match (L1, 0 tokens, <1ms).
 
         Args:
@@ -117,8 +117,8 @@ class RequestCache:
             return None
 
     def get_semantic(
-        self, request_text: str, threshold: Optional[float] = None
-    ) -> Optional[AgentTask]:
+        self, request_text: str, threshold: float | None = None
+    ) -> AgentTask | None:
         """Get cached task via string similarity (L2, 0 tokens, ~5ms).
 
         Uses word overlap similarity to find similar cached requests.
@@ -338,7 +338,7 @@ class RequestCache:
             return ""
 
     @staticmethod
-    def _deserialize_task(json_str: str) -> Optional[AgentTask]:
+    def _deserialize_task(json_str: str) -> AgentTask | None:
         """Deserialize JSON string to AgentTask.
 
         Args:
@@ -379,7 +379,7 @@ class RequestCache:
         except Exception:
             return False
 
-    def _parse_pattern(self, result: Any) -> tuple[Optional[str], Optional[AgentTask]]:
+    def _parse_pattern(self, result: Any) -> tuple[str | None, AgentTask | None]:
         """Parse vault pattern into request_text and AgentTask.
 
         Args:

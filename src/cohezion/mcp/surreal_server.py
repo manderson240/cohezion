@@ -16,6 +16,7 @@ from cohezion.core.persistence.surreal_client import (
     UniverseNode,
 )
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -306,7 +307,7 @@ class SurrealMCP:
                 )
                 synced += 1
             except Exception as e:
-                errors.append(f"{learning_id}: {str(e)}")
+                errors.append(f"{learning_id}: {e!s}")
                 logger.error(f"Failed to sync {learning_id}: {e}")
 
         logger.info(f"Synced {synced} learnings from KEY_LEARNINGS.md")

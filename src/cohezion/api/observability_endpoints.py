@@ -14,8 +14,9 @@ from datetime import datetime
 
 from fastapi import APIRouter, HTTPException
 
-from cohezion.observability.unified_metrics import get_metrics_collector
 from cohezion.observability.metrics_analytics import MetricsAnalytics
+from cohezion.observability.unified_metrics import get_metrics_collector
+
 
 logger = logging.getLogger(__name__)
 

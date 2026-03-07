@@ -11,10 +11,9 @@ Security:
 - Integrates with Flask app middleware stack
 """
 
-import os
 import logging
-from functools import wraps
-from typing import Optional, Callable, Any
+import os
+
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +35,7 @@ class APIKeyValidator:
                 "Set %s to enable authentication.", env_key
             )
 
-    def validate(self, request_key: Optional[str]) -> bool:
+    def validate(self, request_key: str | None) -> bool:
         """
         Validate a request API key.
 
@@ -67,7 +66,7 @@ class APIKeyValidator:
 
 
 # Global validator instance
-_validator: Optional[APIKeyValidator] = None
+_validator: APIKeyValidator | None = None
 
 
 def get_validator(env_key: str = "MCP_API_KEY") -> APIKeyValidator:

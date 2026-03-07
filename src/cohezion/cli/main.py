@@ -30,6 +30,7 @@ from cohezion.services.knowledge_service import KnowledgeService
 from cohezion.services.physics_service import PhysicsService
 from cohezion.services.swarm_service import SwarmService
 
+
 app = typer.Typer(
     name="cohezion",
     help="Cohezion: Self-Evolving Agentic Sandbox",

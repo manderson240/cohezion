@@ -6,8 +6,9 @@ shared vault knowledge, and intelligent skill selection.
 
 import asyncio
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 from cohezion.compound.executor import CompoundExecutor, ExecutionResult
 from cohezion.compound.skill_selector import SkillSelector

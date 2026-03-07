@@ -6,11 +6,12 @@ to enable compound engineering workflows with persistent knowledge storage.
 
 import json
 import logging
+import os
 from dataclasses import dataclass
 from typing import Any
 
 import httpx
-import os
+
 
 logger = logging.getLogger(__name__)
 

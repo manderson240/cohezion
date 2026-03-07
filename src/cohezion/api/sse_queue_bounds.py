@@ -11,6 +11,7 @@ import asyncio
 import logging
 from typing import Any, TypeVar
 
+
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
@@ -59,7 +60,7 @@ class BoundedAsyncQueue:
             # Try to put with timeout to prevent indefinite blocking
             await asyncio.wait_for(self._queue.put(item), timeout=1.0)
             return True
-        except asyncio.TimeoutError:
+        except TimeoutError:
             self._overflow_count += 1
             logger.warning(
                 f"SSE queue put timeout (maxsize={self.maxsize}, total overflows={self._overflow_count})"
