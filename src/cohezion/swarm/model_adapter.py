@@ -14,6 +14,7 @@ from typing import Any
 
 from cohezion.swarm.smart_router import SmartRouter, TaskType
 
+
 logger = logging.getLogger(__name__)
 
 # Map free-form task_type strings to SmartRouter TaskType enums

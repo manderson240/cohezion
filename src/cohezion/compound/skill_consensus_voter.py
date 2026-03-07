@@ -10,7 +10,6 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from pathlib import Path
 from typing import Any
 
 from cohezion.compound.skill_selector import SkillScore

@@ -14,6 +14,7 @@ import math
 
 import numpy as np
 
+
 # Dimension layout
 _TRAJECTORY_DIM = 12  # dims [0:12]
 _METRICS_DIM = 12  # dims [12:24]

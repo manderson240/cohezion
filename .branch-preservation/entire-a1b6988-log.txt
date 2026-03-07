@@ -1,0 +1,5 @@
+303097688 Well make sure the branch is clean before we merge it.  If there are thi
+48eab5e64 Yes
+42d428f3f And this will get back our bmad slash commands on the main branch again
+02dc6bdb2 Everything that's been created has been created for a reason.  It may no
+dadec50dc Make sure the plan you create is written to the obsidian vault so if we

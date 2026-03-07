@@ -7,4 +7,5 @@ Workflow implementations for coordinating swarm agents.
 
 from cohezion.swarm.workflows.debate_protocol import DebateWorkflow
 
+
 __all__ = ["DebateWorkflow"]

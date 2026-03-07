@@ -10,4 +10,5 @@ Two server options:
 
 from cohezion.gateway.ngrok_adapter import NgrokAIGateway, NgrokMetrics
 
+
 __all__ = ["NgrokAIGateway", "NgrokMetrics"]

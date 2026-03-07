@@ -12,6 +12,7 @@ import numpy as np
 
 from cohezion.mass_sim.config import UniverseSpec
 
+
 logger = logging.getLogger(__name__)
 
 

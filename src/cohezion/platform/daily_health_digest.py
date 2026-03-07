@@ -8,21 +8,20 @@ Implements 3-layer health assessment:
 3. Action Routing: EDL for critical issues, Observable AI for recommendations
 """
 
-from typing import Dict, List, Optional
-from datetime import datetime, timedelta
-from pydantic import BaseModel
-from enum import Enum
 import subprocess
-import asyncio
+from datetime import datetime, timedelta
+from enum import Enum
 
+from pydantic import BaseModel
+
+from cohezion.core.persistence.surreal_client import get_surreal_client
 from cohezion.platform.coherence_tracker import (
-    get_coherence_tracker,
     CoherenceMetrics,
+    get_coherence_tracker,
 )
+from cohezion.platform.edl_router import get_edl_router
 from cohezion.platform.journey_logger import get_journey_logger
 from cohezion.platform.observable_action import get_observable_proposer
-from cohezion.platform.edl_router import get_edl_router
-from cohezion.core.persistence.surreal_client import get_surreal_client
 
 
 class HealthStatus(str, Enum):
@@ -92,9 +91,9 @@ class HealthDigest(BaseModel):
     repository_metrics: RepositoryMetrics
     test_metrics: TestMetrics
     dependency_metrics: DependencyMetrics
-    cicd_metrics: Optional[CICDMetrics]
-    health_checks: List[HealthCheckResult]
-    recommendations: List[str]
+    cicd_metrics: CICDMetrics | None
+    health_checks: list[HealthCheckResult]
+    recommendations: list[str]
     trend_7d: float  # -1 to 1, negative = declining
     requires_edl_review: bool
 
@@ -253,7 +252,7 @@ class DailyHealthDigest:
                 pack_count=pack_count,
             )
 
-        except Exception as e:
+        except Exception:
             # Fallback metrics on error
             return RepositoryMetrics(
                 size_gb=0.0,
@@ -334,7 +333,7 @@ class DailyHealthDigest:
             health_score=0.5,
         )
 
-    async def _collect_cicd_metrics(self) -> Optional[CICDMetrics]:
+    async def _collect_cicd_metrics(self) -> CICDMetrics | None:
         """Collect CI/CD health metrics."""
 
         result = await self.db.query(
@@ -365,8 +364,8 @@ class DailyHealthDigest:
         repo: RepositoryMetrics,
         test: TestMetrics,
         dep: DependencyMetrics,
-        cicd: Optional[CICDMetrics],
-    ) -> List[HealthCheckResult]:
+        cicd: CICDMetrics | None,
+    ) -> list[HealthCheckResult]:
         """Run all health checks and generate results."""
 
         checks = []
@@ -507,7 +506,7 @@ class DailyHealthDigest:
         test: TestMetrics,
         dep: DependencyMetrics,
         coherence: CoherenceMetrics,
-        health_checks: List[HealthCheckResult],
+        health_checks: list[HealthCheckResult],
     ) -> float:
         """
         Calculate Charter-aligned health score.
@@ -602,9 +601,9 @@ class DailyHealthDigest:
         repo: RepositoryMetrics,
         test: TestMetrics,
         dep: DependencyMetrics,
-        health_checks: List[HealthCheckResult],
+        health_checks: list[HealthCheckResult],
         hiho_stable: bool,
-    ) -> List[str]:
+    ) -> list[str]:
         """Generate actionable recommendations based on health checks."""
 
         recommendations = []
@@ -688,7 +687,7 @@ class DailyHealthDigest:
         return recommendations
 
     def _requires_edl_review(
-        self, overall_score: float, health_checks: List[HealthCheckResult]
+        self, overall_score: float, health_checks: list[HealthCheckResult]
     ) -> bool:
         """
         Determine if EDL review is required.
@@ -708,7 +707,7 @@ class DailyHealthDigest:
         return False
 
     def _determine_overall_status(
-        self, overall_score: float, health_checks: List[HealthCheckResult]
+        self, overall_score: float, health_checks: list[HealthCheckResult]
     ) -> HealthStatus:
         """Determine overall health status from score and checks."""
 
@@ -780,7 +779,7 @@ Critical Issues:
             if check.status == HealthStatus.CRITICAL:
                 context += f"- {check.check_name}: {check.message}\n"
 
-        context += f"\nRecommendations:\n"
+        context += "\nRecommendations:\n"
         for rec in digest.recommendations:
             if "❌ CRITICAL" in rec:
                 context += f"- {rec}\n"

@@ -13,6 +13,7 @@ import numpy as np
 from cohezion.flume.lcsp import HIHO, LCSPPredictor
 from cohezion.flume.morphospace import MorphospaceMapper, StabilityWell
 
+
 logger = logging.getLogger(__name__)
 
 

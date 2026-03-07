@@ -42,10 +42,9 @@ import logging
 import multiprocessing as mp
 import time
 from dataclasses import dataclass, field
-from multiprocessing import Queue
-from typing import Any
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 

@@ -6,7 +6,9 @@ import json
 import logging
 from pathlib import Path
 from typing import Any
+
 from cohezion.core.mcp_client import get_mcp_client
+
 
 logger = logging.getLogger(__name__)
 

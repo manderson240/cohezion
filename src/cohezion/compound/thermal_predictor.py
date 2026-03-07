@@ -19,7 +19,8 @@ from __future__ import annotations
 import logging
 import math
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +106,7 @@ class ThermalTrendAnalyzer:
         self,
         history_size: int = 200,
         target_temp_celsius: float = 85.0,
-        vault_client: Optional[Any] = None,
+        vault_client: Any | None = None,
     ) -> None:
         """Initialize thermal trend analyzer."""
         self.history_size = history_size
@@ -114,7 +115,7 @@ class ThermalTrendAnalyzer:
 
         # In-memory history: {task_type: [metrics]}
         self.history: dict[str, list[ThermalMetrics]] = {}
-        self._last_prediction: Optional[tuple[float, float]] = None  # (temp, confidence)
+        self._last_prediction: tuple[float, float] | None = None  # (temp, confidence)
 
     def record_execution(self, metrics: ThermalMetrics) -> None:
         """Record a batch execution for thermal learning.
@@ -246,7 +247,7 @@ class ThermalTrendAnalyzer:
         return predicted
 
     def get_safe_batch_size(
-        self, task_type: str, target_temp: Optional[float] = None
+        self, task_type: str, target_temp: float | None = None
     ) -> int:
         """Find maximum safe batch size via binary search.
 
@@ -433,7 +434,7 @@ def get_thermal_trend_analyzer(reset: bool = False) -> ThermalTrendAnalyzer:
 
 
 # Module-level singleton
-_analyzer_instance: Optional[ThermalTrendAnalyzer] = None
+_analyzer_instance: ThermalTrendAnalyzer | None = None
 
 
 __all__ = [

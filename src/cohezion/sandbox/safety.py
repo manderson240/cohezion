@@ -14,12 +14,14 @@ import logging
 import re
 import threading
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Optional
+from typing import Any
 
 import psutil
+
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +94,7 @@ class Monitor:
     def __init__(
         self,
         policy: SafetyPolicy,
-        process_id: Optional[int] = None,
+        process_id: int | None = None,
         check_interval: float = 0.5,
     ):
         """Initialize monitor.
@@ -106,7 +108,7 @@ class Monitor:
         self.process_id = process_id
         self.check_interval = check_interval
         self.is_running = False
-        self._thread: Optional[threading.Thread] = None
+        self._thread: threading.Thread | None = None
         self.violations: list[Violation] = []
         self._callbacks: dict[str, list[Callable]] = {
             "cpu_violation": [],
@@ -335,7 +337,7 @@ class PreFlightChecker:
 
     def _check_blocked_commands(
         self, request: dict[str, Any], policy: SafetyPolicy
-    ) -> Optional[str]:
+    ) -> str | None:
         """Check for blocked command patterns."""
         context = request.get("context", {})
         command = str(context.get("command", ""))
@@ -618,7 +620,7 @@ class SafetyHarness:
     def start_monitoring(
         self,
         policy: SafetyPolicy,
-        process_id: Optional[int] = None,
+        process_id: int | None = None,
         check_interval: float = 0.5,
     ) -> Monitor:
         """Start real-time constraint monitoring.

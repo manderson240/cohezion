@@ -4,6 +4,7 @@ import torch
 
 from cohezion.flume.autoencoder import FlumeConfig, FlumeEncoder
 
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("VLIW_Latent_Alignment")

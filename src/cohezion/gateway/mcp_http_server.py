@@ -16,7 +16,6 @@ import asyncio
 import json
 import logging
 import os
-from typing import Any
 
 import uvicorn
 from starlette.applications import Starlette
@@ -24,6 +23,7 @@ from starlette.responses import StreamingResponse
 from starlette.routing import Route
 
 from cohezion.gateway.mcp_server import server as mcp_server
+
 
 logger = logging.getLogger(__name__)
 

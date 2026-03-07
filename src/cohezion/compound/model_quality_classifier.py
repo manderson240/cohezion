@@ -48,9 +48,10 @@ import logging
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -101,10 +102,10 @@ class QualityForecast:
     success_confidence: float
     success_trend: str
 
-    failure_mode: Optional[FailureMode] = None  # Predicted failure if any
+    failure_mode: FailureMode | None = None  # Predicted failure if any
     failure_probability: float = 0.0  # 0.0-1.0
 
-    recommendation: Optional[ActionRecommendation] = None
+    recommendation: ActionRecommendation | None = None
     num_steps_ahead: int = 3
 
 
@@ -411,9 +412,9 @@ class ModelQualityClassifier:
         model: str,
         predicted_coherence: float,
         coherence_trend: str,
-        failure_mode: Optional[FailureMode],
+        failure_mode: FailureMode | None,
         failure_probability: float,
-    ) -> Optional[ActionRecommendation]:
+    ) -> ActionRecommendation | None:
         """Generate recommended action based on predictions.
 
         Args:
@@ -521,11 +522,11 @@ class ModelQualityClassifier:
 
 
 __all__ = [
-    "FailureMode",
-    "RecommendedAction",
-    "ExecutionRecord",
-    "QualityForecast",
     "ActionRecommendation",
-    "QualityPredictor",
+    "ExecutionRecord",
+    "FailureMode",
     "ModelQualityClassifier",
+    "QualityForecast",
+    "QualityPredictor",
+    "RecommendedAction",
 ]

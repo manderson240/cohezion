@@ -12,8 +12,9 @@ from __future__ import annotations
 import logging
 import math
 import time
-from dataclasses import dataclass, field, asdict
-from typing import Any, Optional
+from dataclasses import asdict, dataclass
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +131,7 @@ class ForecastEngine:
         self,
         horizon_hours: int,
         confidence_pct: float = 90.0,
-    ) -> Optional[Forecast]:
+    ) -> Forecast | None:
         """Generate forecast for given horizon.
 
         Args:
@@ -167,7 +168,7 @@ class ForecastEngine:
             method="exponential_smoothing",
         )
 
-    def forecast_summary(self) -> Optional[ForecastSummary]:
+    def forecast_summary(self) -> ForecastSummary | None:
         """Get forecasts for standard time horizons.
 
         Returns:
@@ -288,7 +289,7 @@ class ForecastEngine:
         self.smoothed_trend = 0.0
 
 
-_instance: Optional[ForecastEngine] = None
+_instance: ForecastEngine | None = None
 
 
 def get_forecast_engine() -> ForecastEngine:

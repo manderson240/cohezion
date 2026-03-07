@@ -5,7 +5,9 @@ Specifically checks for blocking sync calls, matplotlib usage, and missing docum
 
 import logging
 from pathlib import Path
+
 from cohezion.swarm.agents.base_scout import BaseScout, Finding
+
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +21,7 @@ class AntiPatternScout(BaseScout):
 
     async def analyze(self, path: Path) -> list[Finding]:
         content = path.read_text()
-        
+
         prompt = f"""
         Analyze this code for Anti-Patterns.
         
@@ -34,12 +36,12 @@ class AntiPatternScout(BaseScout):
         
         Return JSON structure: {{ "anti_patterns": [...] }}
         """
-        
+
         try:
             response_json = await self._call_local_llm(prompt)
             import json
             data = json.loads(response_json)
-            
+
             findings = []
             for ap in data.get("anti_patterns", []):
                 findings.append(Finding(

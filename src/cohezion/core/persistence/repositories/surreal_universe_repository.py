@@ -8,6 +8,7 @@ from typing import Any
 
 from cohezion.core.persistence.surreal_client import UniverseNode
 
+
 logger = logging.getLogger(__name__)
 
 
