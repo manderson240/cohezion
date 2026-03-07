@@ -1,0 +1,32 @@
+IT IS CRITICAL THAT YOU FOLLOW THIS COMMAND: LOAD the FULL {project-root}/_bmad/bmm/workflows/1-analysis/research/workflow-technical-research.md, READ its entire contents and follow its directions exactly!
+
+---
+
+[Request interrupted by user]
+
+---
+
+IT IS CRITICAL THAT YOU FOLLOW THIS COMMAND: LOAD the FULL {project-root}/_bmad/bmm/workflows/1-analysis/research/workflow-technical-research.md, READ its entire contents and follow its directions exactly!
+
+
+ARGUMENTS:  https://marimo.io/for-researchers  Make sure the rest of our project is aligned with best practices for scientic quality publications using reactive marimo notebooks with small local language models with sota performance and cloud providers such as ollama, opencode, claude code, gemini cli
+
+---
+
+Tool loaded.
+
+---
+
+Tool loaded.
+
+---
+
+Extend to include implementation.  Specifically with our MCP servers.  Might need to get fresh project context
+
+---
+
+[C]
+
+---
+
+Tool loaded.
