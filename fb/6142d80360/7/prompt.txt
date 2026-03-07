@@ -1,0 +1,5 @@
+We need to update our claude code version again.  I don't understand why autoupdate keeps breaking
+
+---
+
+yes go ahead and remove it

@@ -3,7 +3,7 @@
   "checkpoint_id": "fb6142d80360",
   "strategy": "manual-commit",
   "branch": "feat/semver-400-year-physics-hiho-flume",
-  "checkpoints_count": 28,
+  "checkpoints_count": 30,
   "files_touched": [
     ".antigravity/mcp.yml",
     ".claude/mcp.json",
@@ -464,13 +464,20 @@
       "context": "/fb/6142d80360/6/context.md",
       "content_hash": "/fb/6142d80360/6/content_hash.txt",
       "prompt": "/fb/6142d80360/6/prompt.txt"
+    },
+    {
+      "metadata": "/fb/6142d80360/7/metadata.json",
+      "transcript": "/fb/6142d80360/7/full.jsonl",
+      "context": "/fb/6142d80360/7/context.md",
+      "content_hash": "/fb/6142d80360/7/content_hash.txt",
+      "prompt": "/fb/6142d80360/7/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 20954,
-    "cache_creation_tokens": 1546186,
-    "cache_read_tokens": 20233022,
-    "output_tokens": 160847,
-    "api_call_count": 232
+    "input_tokens": 20970,
+    "cache_creation_tokens": 1597310,
+    "cache_read_tokens": 20782352,
+    "output_tokens": 162112,
+    "api_call_count": 244
   }
 }
