@@ -1,0 +1,66 @@
+{
+  "version": "1.0.0",
+  "created": "2026-03-08",
+  "project": "cohezion",
+  "traceability_model": "source_commit_section",
+  "core_files": [
+    {
+      "path": "core/syntax-rules.md",
+      "token_budget": 200,
+      "coherence_threshold": 0.5,
+      "sources": [
+        {
+          "file": "AGENTS.md",
+          "sections": ["Code Style Guidelines", "Async/Await"],
+          "commit": "d2f7129f"
+        }
+      ]
+    },
+    {
+      "path": "core/testing-rules.md",
+      "token_budget": 250,
+      "coherence_threshold": 0.5,
+      "sources": [
+        {
+          "file": "AGENTS.md",
+          "sections": ["Testing Guidelines", "Test Isolation"],
+          "commit": "d2f7129f"
+        },
+        {
+          "file": "compound-engineering/skill",
+          "sections": ["Common Issues"],
+          "commit": "810f2e10"
+        }
+      ]
+    },
+    {
+      "path": "core/compound-patterns.md",
+      "token_budget": 300,
+      "coherence_threshold": 0.5,
+      "sources": [
+        {
+          "file": ".claude/skills/compound-engineering",
+          "sections": ["Instructions"],
+          "commit": "810f2e10"
+        },
+        {
+          "file": ".claude/skills/compound-engineering/references/key-concepts.md",
+          "sections": ["All"],
+          "commit": "810f2e10"
+        }
+      ]
+    }
+  ],
+  "skills": {
+    "compound-engineering": {
+      "context_file": "skills/compound-engineering/context.yaml",
+      "auto_load": false,
+      "triggers": ["compound", "skill refinement", "orchestration"]
+    }
+  },
+  "loading_rules": {
+    "core_first": true,
+    "skill_overlay": true,
+    "token_budget_total": 1000
+  }
+}
