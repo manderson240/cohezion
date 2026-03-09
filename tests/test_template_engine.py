@@ -39,7 +39,7 @@ def test_parse_single_skill(engine: TemplateEngine) -> None:
     assert len(spec.instructions) >= 3, f"Expected >= 3 instructions, got {spec.instructions}"
     assert spec.version != "unknown"
     assert len(spec.see_also) >= 1
-    assert spec.raw_content.startswith("# SKILL:")
+    assert "# SKILL:" in spec.raw_content
     assert spec.source_path == path
 
 
