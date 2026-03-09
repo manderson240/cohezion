@@ -3,7 +3,7 @@
   "checkpoint_id": "a3a93264b58e",
   "strategy": "manual-commit",
   "branch": "feat/semver-400-year-physics-hiho-flume",
-  "checkpoints_count": 3,
+  "checkpoints_count": 20,
   "files_touched": [
     ".claude/skills/pre-commit-yaml-hooks/SKILL.md",
     ".pre-commit-config.yaml",
@@ -17,13 +17,20 @@
       "context": "/a3/a93264b58e/0/context.md",
       "content_hash": "/a3/a93264b58e/0/content_hash.txt",
       "prompt": "/a3/a93264b58e/0/prompt.txt"
+    },
+    {
+      "metadata": "/a3/a93264b58e/1/metadata.json",
+      "transcript": "/a3/a93264b58e/1/full.jsonl",
+      "context": "/a3/a93264b58e/1/context.md",
+      "content_hash": "/a3/a93264b58e/1/content_hash.txt",
+      "prompt": "/a3/a93264b58e/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 115,
-    "cache_creation_tokens": 408380,
-    "cache_read_tokens": 10007847,
-    "output_tokens": 19701,
-    "api_call_count": 95
+    "input_tokens": 14982,
+    "cache_creation_tokens": 2944737,
+    "cache_read_tokens": 74347399,
+    "output_tokens": 200068,
+    "api_call_count": 559
   }
 }
