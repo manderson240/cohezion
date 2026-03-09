@@ -323,3 +323,13 @@ KV cache pruning must be task-aware. By keeping only the KV pairs essential for 
 
 ### Learning 146: Internal State-Driven Trajectories (Vacuum Engineering)
 Research from Sheet 4 (Zenodo 18353294 / QDE) indicates that thrust and trajectory can be emergent properties of internal mass/magnetic configuration (Centrifugal Impulse Drive). In our 12D Manifold, we map these internal parameters to the **8 Brane dimensions**, enabling the simulation of "Propellant-Free" propulsion and spacetime engineering as a programmable substrate.
+
+---
+
+## Session 66: Grounded TDD & Substrate Verification (2026-03-09)
+
+### Learning 147: The Grounded TDD Axiom
+Autonomous loops must never be launched without a corresponding "Red" test phase. Relying on "Green" implementation alone leads to "Hallucination Artifacts"—where the agent assumes the existence of classes or parameters that do not exist in the physical codebase. Our `test_overnight_integrity.py` now serves as the mandatory verification barrier for all background swarms.
+
+### Learning 148: SurrealDB 3.0 surrealkv Migration
+SurrealDB 3.0 requires the `surrealkv` prefix for file-based storage. Persistence failed until the datastore path was corrected to `surrealkv:/my/surreal/data` and the container was launched with explicit UID/GID (1000:1000) to match the host filesystem owner. This establishes the pattern for high-fidelity local logging.
