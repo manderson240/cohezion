@@ -145,9 +145,7 @@ class ConnectionPool:
     async def _scale_pool(self) -> None:
         """Auto-scale pool based on usage patterns."""
         async with self._lock:
-            current_usage = len(self._active_connections) / max(
-                1, self._metrics["current_size"]
-            )
+            current_usage = len(self._active_connections) / max(1, self._metrics["current_size"])
             self._metrics["usage_percent"] = current_usage
 
             # Record usage for predictive scaling
@@ -333,9 +331,7 @@ class ConnectionPool:
 
     async def get_metrics(self) -> dict[str, Any]:
         """Get pool metrics."""
-        current_usage = len(self._active_connections) / max(
-            1, self._metrics["current_size"]
-        )
+        current_usage = len(self._active_connections) / max(1, self._metrics["current_size"])
         return {
             **self._metrics,
             "usage_percent": current_usage,

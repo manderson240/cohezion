@@ -87,7 +87,7 @@ class FileLock:
                     self._lockfile = None
 
                 if attempt < self.max_retries - 1:
-                    wait_time = 0.1 * (2 ** attempt)  # Exponential backoff
+                    wait_time = 0.1 * (2**attempt)  # Exponential backoff
                     logger.warning(
                         f"Failed to acquire lock on {self.filepath}, retrying in {wait_time}s"
                     )
@@ -112,9 +112,7 @@ class FileLock:
 
 
 @contextmanager
-def locked_file_operation(
-    filepath: str, timeout: float = 5.0, max_retries: int = 3
-) -> Generator:
+def locked_file_operation(filepath: str, timeout: float = 5.0, max_retries: int = 3) -> Generator:
     """
     Context manager for atomic file operations with locking.
 
@@ -191,9 +189,7 @@ def atomic_file_read(filepath: str, timeout: float = 5.0) -> str:
         return filepath.read_text(encoding="utf-8")
 
 
-def atomic_file_modify(
-    filepath: str, modify_func, timeout: float = 5.0
-) -> None:
+def atomic_file_modify(filepath: str, modify_func, timeout: float = 5.0) -> None:
     """
     Modify file atomically with locking.
 

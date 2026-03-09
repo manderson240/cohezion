@@ -6,16 +6,12 @@ Uses small parameters to run in seconds, not minutes.
 
 from __future__ import annotations
 
-import json
-
 import numpy as np
 import pytest
 import torch
 
 from cohezion.flume.dataset import FlumeTrajectoryDataset
 from cohezion.flume.training import FlumeVAETrainer, TrainConfig
-from cohezion.mass_sim.config import CheckpointData, UniverseResult
-from cohezion.mass_sim.exporter import CheckpointExporter
 from cohezion.pipeline.trained_navigator import TrainedNavigator
 from cohezion.pipeline.weight_bridge import WeightBridge
 from cohezion.rl.trainer import PolicyNetwork, TrainingConfig, train

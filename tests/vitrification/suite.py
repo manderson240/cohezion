@@ -62,9 +62,7 @@ class VitrificationSuite:
         content = open(file_path).read()
         # Verify 3+1+8 structure presence
         if "3 Spatial + 1 Time + 8 Brane" in content:
-            print(
-                f"✅ 12D Manifold signature verified in {os.path.basename(file_path)}"
-            )
+            print(f"✅ 12D Manifold signature verified in {os.path.basename(file_path)}")
             return True
         return False
 

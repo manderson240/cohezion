@@ -128,13 +128,9 @@ class TeamMetricsAggregator:
         # Parallel efficiency: sum of wave durations / total duration
         # > 1.0 means we saved time via parallelism
         sum_wave_durations = sum(w.duration_ms for w in self._waves)
-        efficiency = (
-            sum_wave_durations / total_duration_ms if total_duration_ms > 0 else 1.0
-        )
+        efficiency = sum_wave_durations / total_duration_ms if total_duration_ms > 0 else 1.0
 
-        success_rate = (
-            self._successes / self._total_tasks if self._total_tasks > 0 else 0.0
-        )
+        success_rate = self._successes / self._total_tasks if self._total_tasks > 0 else 0.0
 
         return TeamCompoundMetrics(
             plan_name=self._plan_name,

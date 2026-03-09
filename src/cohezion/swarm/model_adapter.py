@@ -87,9 +87,7 @@ class SmartRouterAdapter:
             try:
                 await self._router.refresh_models()
             except Exception:
-                logger.warning(
-                    "SmartRouter refresh_models failed; using static fallback"
-                )
+                logger.warning("SmartRouter refresh_models failed; using static fallback")
 
         decision = self._router.route(task_type)
         logger.debug(

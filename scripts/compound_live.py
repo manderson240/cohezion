@@ -81,9 +81,7 @@ async def run_live_cycle(
         if guidance:
             all_guidance[name] = guidance
             best = max(guidance, key=lambda g: g.get("phi_score", 0))
-            print(
-                f"  {name}: {len(guidance)} past runs, best phi={best.get('phi_score', 0):.4f}"
-            )
+            print(f"  {name}: {len(guidance)} past runs, best phi={best.get('phi_score', 0):.4f}")
         else:
             print(f"  {name}: no prior experience")
 
@@ -115,9 +113,7 @@ async def run_live_cycle(
             elapsed = time.monotonic() - step_t0
             results.append({"name": name, "result": result})
             print(f"  Output: {result.final_output[:120]}...")
-            print(
-                f"  Steps: {len(result.steps)} | Tokens: {result.total_tokens} | {elapsed:.1f}s"
-            )
+            print(f"  Steps: {len(result.steps)} | Tokens: {result.total_tokens} | {elapsed:.1f}s")
 
             # Check for step-level inflection events
             for step in result.steps:
@@ -176,9 +172,7 @@ async def run_live_cycle(
     print(f"  Total tokens: {total_tokens}")
     print(f"  Journeys persisted: {len(recent_journeys)}")
     print(f"  Inflection events: {len(history)}")
-    print(
-        f"  Experience guidance: {sum(len(v) for v in all_guidance.values())} records"
-    )
+    print(f"  Experience guidance: {sum(len(v) for v in all_guidance.values())} records")
     print(f"{'=' * 70}\n")
 
     return {
@@ -192,9 +186,7 @@ async def run_live_cycle(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Live compound cycle with FLUME journeys"
-    )
+    parser = argparse.ArgumentParser(description="Live compound cycle with FLUME journeys")
     parser.add_argument("--skills", type=int, default=3, help="Number of skills")
     parser.add_argument("--model", type=str, default="phi3:mini", help="Ollama model")
     parser.add_argument("-v", "--verbose", action="store_true", help="Debug logging")

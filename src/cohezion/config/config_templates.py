@@ -83,6 +83,7 @@ This file is kept lean (<200 lines) via automated synchronization.
 
 class TemplateType(Enum):
     """Available configuration templates."""
+
     CLAUDE_MD = "claude_md"
     GEMINI_MD = "gemini_md"
 
@@ -90,6 +91,7 @@ class TemplateType(Enum):
 @dataclass
 class TemplateContext:
     """Context variables for template rendering."""
+
     latest_decisions: list[str]
     operational_protocols: list[str]
     operational_guardrails: list[str]

@@ -14,17 +14,16 @@ Features:
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import os
 import sys
 import uuid
-from dataclasses import dataclass, field
-from datetime import datetime
+from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
 from aiohttp import web
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -490,8 +489,8 @@ async def main():
     await site.start()
 
     logger.info(f"✅ Plasma Physics Server running on http://localhost:{MCP_PORT}")
-    logger.info(f"   Exotic vacuum objects: Enabled")
-    logger.info(f"   HIHO story: 400-year unification")
+    logger.info("   Exotic vacuum objects: Enabled")
+    logger.info("   HIHO story: 400-year unification")
 
     while True:
         await asyncio.sleep(3600)

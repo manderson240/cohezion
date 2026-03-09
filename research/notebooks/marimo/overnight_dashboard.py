@@ -17,20 +17,23 @@ Ask questions, get live analysis from SLM swarm.
 
 import marimo
 
+
 __generated_with = "0.10.17"
 app = marimo.App(width="full", app_title="Cohezion Overnight Research")
 
 
 @app.cell
 def _():
+    import json
+    from datetime import datetime
+    from pathlib import Path
+
     import marimo as mo
     import matplotlib.pyplot as plt
     import numpy as np
-    import json
-    from pathlib import Path
-    from datetime import datetime
-    from watchdog.observers import Observer
     from watchdog.events import FileSystemEventHandler
+    from watchdog.observers import Observer
+
     return mo, plt, np, json, Path, datetime, Observer, FileSystemEventHandler
 
 
@@ -48,7 +51,9 @@ def _(mo):
 @app.cell
 def _(Path, json):
     # Load latest simulation results
-    results_path = Path("/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/hiho_results.json")
+    results_path = Path(
+        "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/hiho_results.json"
+    )
 
     def load_results():
         if results_path.exists():
@@ -64,10 +69,10 @@ def _(mo, results):
     mo.md(f"""
     ## 📊 Current Simulation Status
 
-    - **Total Rounds**: {results.get('num_rounds', 0):,}
-    - **Bright Spots**: {results.get('bright_spot_count', 0):,}
-    - **Mean Stability**: {results.get('mean_stability', 0):.4f}
-    - **Max Reality**: {results.get('max_reality', 0):.4f}
+    - **Total Rounds**: {results.get("num_rounds", 0):,}
+    - **Bright Spots**: {results.get("bright_spot_count", 0):,}
+    - **Mean Stability**: {results.get("mean_stability", 0):.4f}
+    - **Max Reality**: {results.get("max_reality", 0):.4f}
     """)
     return
 
@@ -80,7 +85,7 @@ def _(mo):
     question = mo.ui.text_area(
         placeholder="e.g., 'Why is mean stability only 0.87?' or 'How can we discover more gateways?'",
         label="Your Question",
-        rows=3
+        rows=3,
     )
     ask_button = mo.ui.button(label="Ask Swarm", on_click=lambda: None)
 
@@ -128,7 +133,7 @@ def _(mo, plt, np, results):
         axes[0, 0].set_xlabel("Awareness")
         axes[0, 0].set_ylabel("Field Coherence")
         axes[0, 0].set_title("Bright Spot Distribution")
-        axes[0, 0].axhline(y=0.5, color='r', linestyle='--', label='HIHO Threshold')
+        axes[0, 0].axhline(y=0.5, color="r", linestyle="--", label="HIHO Threshold")
         axes[0, 0].legend()
 
         # Spin correlation
@@ -144,7 +149,7 @@ def _(mo, plt, np, results):
         axes[1, 0].set_title("Charge Distribution")
 
         # Precipitation
-        axes[1, 1].hist(samples[:, 11], bins=20, alpha=0.7, color='purple')
+        axes[1, 1].hist(samples[:, 11], bins=20, alpha=0.7, color="purple")
         axes[1, 1].set_xlabel("Precipitation")
         axes[1, 1].set_ylabel("Count")
         axes[1, 1].set_title("Reality Precipitation")
@@ -184,7 +189,7 @@ def _(mo, Path):
 def _(mo, datetime):
     mo.md(f"""
     ---
-    *Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} EST*
+    *Last updated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")} EST*
 
     **Refresh the page to see latest results**
     """)

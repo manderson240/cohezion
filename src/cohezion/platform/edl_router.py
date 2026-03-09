@@ -52,9 +52,7 @@ class ExpertDomainRouter:
         self.client = get_compound_client()
         self.coherence_tracker = get_coherence_tracker()
 
-    async def route_decision(
-        self, decision_type: str, context: str, proposal: str
-    ) -> EDLConsensus:
+    async def route_decision(self, decision_type: str, context: str, proposal: str) -> EDLConsensus:
         """
         Route decision through appropriate expert streams.
 
@@ -166,9 +164,7 @@ Respond in JSON format:
         }
         return model_map.get(stream, "phi3:mini")
 
-    def _stabilize_consensus(
-        self, recommendations: list[StreamRecommendation]
-    ) -> EDLConsensus:
+    def _stabilize_consensus(self, recommendations: list[StreamRecommendation]) -> EDLConsensus:
         """
         Stabilize consensus using 0.5 coherence rule.
 
@@ -214,16 +210,12 @@ Respond in JSON format:
             reasoning=reasoning,
         )
 
-    def _merge_recommendations(
-        self, recommendations: list[StreamRecommendation]
-    ) -> str:
+    def _merge_recommendations(self, recommendations: list[StreamRecommendation]) -> str:
         """Merge recommendations from multiple streams."""
         # Weighted by confidence
         weighted_recs = []
         for rec in recommendations:
-            weighted_recs.append(
-                f"{rec.stream.value} ({rec.confidence:.2f}): {rec.recommendation}"
-            )
+            weighted_recs.append(f"{rec.stream.value} ({rec.confidence:.2f}): {rec.recommendation}")
 
         return "\n".join(weighted_recs)
 

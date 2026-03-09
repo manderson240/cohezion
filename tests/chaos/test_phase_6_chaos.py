@@ -13,13 +13,18 @@ Comprehensive chaos testing for Phase 6 components focusing on:
 Tests validate system resilience and recovery behavior.
 """
 
-import pytest
 import time
-from cohezion.swarm.cost_aware_router import CostAwareRouter
-from cohezion.swarm.model_ranker import ModelRanker, RankingStrategy
-from cohezion.swarm.model_fallback_strategy import ModelFallbackStrategy
-from cohezion.swarm.anomaly_detector import AnomalyDetector, reset_anomaly_detector, get_anomaly_detector
+
+import pytest
+
 from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
+from cohezion.swarm.anomaly_detector import (
+    get_anomaly_detector,
+    reset_anomaly_detector,
+)
+from cohezion.swarm.cost_aware_router import CostAwareRouter
+from cohezion.swarm.model_fallback_strategy import ModelFallbackStrategy
+from cohezion.swarm.model_ranker import ModelRanker, RankingStrategy
 
 
 class TestCostRouterResilience:

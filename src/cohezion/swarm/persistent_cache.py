@@ -103,9 +103,7 @@ class PersistentCache:
                                 }
                                 entries_loaded += 1
                         except json.JSONDecodeError as e:
-                            logger.warning(
-                                f"Skipping invalid JSON on line {line_num}: {e}"
-                            )
+                            logger.warning(f"Skipping invalid JSON on line {line_num}: {e}")
 
                 self._stats["loaded"] = entries_loaded
                 logger.info(
@@ -176,9 +174,7 @@ class PersistentCache:
         except Exception as e:
             logger.debug(f"Failed to persist cache entry {key}: {e}")
 
-    def batch_set(
-        self, entries: dict[str, str], persist: bool = True
-    ) -> int:
+    def batch_set(self, entries: dict[str, str], persist: bool = True) -> int:
         """Set multiple cache entries efficiently.
 
         Args:

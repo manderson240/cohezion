@@ -3,6 +3,7 @@ import logging
 
 from cohezion.system.ganglion import OuroborosGanglion
 
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -14,6 +15,7 @@ logger = logging.getLogger("OuroborosDaemon")
 import json
 
 import websockets
+
 
 # WS Clients
 CONNECTED_CLIENTS = set()

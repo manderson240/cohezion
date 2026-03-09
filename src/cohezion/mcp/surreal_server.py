@@ -61,9 +61,7 @@ class SurrealMCP:
         return [
             {
                 "id": n.id,
-                "content": n.content[:200] + "..."
-                if len(n.content) > 200
-                else n.content,
+                "content": n.content[:200] + "..." if len(n.content) > 200 else n.content,
                 "physics": n.physics_state.to_dict(),
                 "created_at": n.created_at.isoformat() if n.created_at else None,
             }
@@ -246,8 +244,7 @@ class SurrealMCP:
         learnings = [
             n
             for n in nodes
-            if n.metadata.get("type") == "learning"
-            and n.metadata.get("score", 0) >= min_score
+            if n.metadata.get("type") == "learning" and n.metadata.get("score", 0) >= min_score
         ][:limit]
 
         return [
@@ -257,9 +254,7 @@ class SurrealMCP:
                 "title": n.metadata.get("title"),
                 "pattern": n.metadata.get("pattern"),
                 "score": n.metadata.get("score"),
-                "content": n.content[:300] + "..."
-                if len(n.content) > 300
-                else n.content,
+                "content": n.content[:300] + "..." if len(n.content) > 300 else n.content,
                 "created_at": n.created_at.isoformat() if n.created_at else None,
             }
             for n in learnings
@@ -281,7 +276,9 @@ class SurrealMCP:
         from pathlib import Path
 
         if markdown_path is None:
-            markdown_path = "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/KEY_LEARNINGS.md"
+            markdown_path = (
+                "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/KEY_LEARNINGS.md"
+            )
 
         path = Path(markdown_path)
         if not path.exists():

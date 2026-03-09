@@ -117,10 +117,7 @@ if __name__ == "__main__":
             download = input("Install amd-debug-tools python wheel (y/N)? ")
         if "y" in download.lower():
             try:
-                pipx = (
-                    subprocess.call(["pipx", "--version"], stdout=subprocess.DEVNULL)
-                    == 0
-                )
+                pipx = subprocess.call(["pipx", "--version"], stdout=subprocess.DEVNULL) == 0
             except FileNotFoundError:
                 pipx = False
             if not pipx:

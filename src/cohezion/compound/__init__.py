@@ -8,6 +8,12 @@ from cohezion.compound.batch_sizer import (
     BatchSizePredictor,
     get_batch_size_predictor,
 )
+from cohezion.compound.context_integration import (
+    CompoundContextMixin,
+    ContextCoherenceError,
+    ContextLoadError,
+    ContextManager,
+)
 from cohezion.compound.cache_persistence import CachePersistence, WarmCacheLoader
 from cohezion.compound.degradation_detector import (
     AlertSeverity,
@@ -151,6 +157,10 @@ from cohezion.compound.vault_search_executor import (
 
 __all__ = [
     "ActionRecommendation",
+    "CompoundContextMixin",
+    "ContextCoherenceError",
+    "ContextLoadError",
+    "ContextManager",
     "AgentTask",
     "AgentTaskResult",
     "AgentVote",

@@ -176,9 +176,7 @@ class FilesystemIsolation:
         mounts = []
 
         if backend == "overlay":
-            merged_path, overlay_mounts = self._setup_overlay(
-                isolation_dir, source_path
-            )
+            merged_path, overlay_mounts = self._setup_overlay(isolation_dir, source_path)
             mounts.extend(overlay_mounts)
         elif backend == "btrfs":
             merged_path, btrfs_mounts = self._setup_btrfs(isolation_dir, source_path)
@@ -192,9 +190,7 @@ class FilesystemIsolation:
 
         return str(merged_path), mounts
 
-    def _setup_overlay(
-        self, isolation_dir: Path, source_path: str
-    ) -> tuple[str, list[MountPoint]]:
+    def _setup_overlay(self, isolation_dir: Path, source_path: str) -> tuple[str, list[MountPoint]]:
         """Setup overlay filesystem (fastest for most cases)."""
         lower = isolation_dir / "lower"
         upper = isolation_dir / "upper"
@@ -243,15 +239,11 @@ class FilesystemIsolation:
             mounts.append(mount)
             logger.debug(f"Overlay mount successful at {merged}")
         except subprocess.CalledProcessError as e:
-            logger.warning(
-                f"Failed to mount overlay: {e}. Using copy-on-write simulation."
-            )
+            logger.warning(f"Failed to mount overlay: {e}. Using copy-on-write simulation.")
 
         return str(merged), mounts
 
-    def _setup_btrfs(
-        self, isolation_dir: Path, source_path: str
-    ) -> tuple[str, list[MountPoint]]:
+    def _setup_btrfs(self, isolation_dir: Path, source_path: str) -> tuple[str, list[MountPoint]]:
         """Setup BTRFS snapshot (copy-on-write filesystem)."""
         # BTRFS requires filesystem support - check availability
         try:
@@ -287,9 +279,7 @@ class FilesystemIsolation:
 
         return str(snapshot_dir), mounts
 
-    def _setup_lvm(
-        self, isolation_dir: Path, source_path: str
-    ) -> tuple[str, list[MountPoint]]:
+    def _setup_lvm(self, isolation_dir: Path, source_path: str) -> tuple[str, list[MountPoint]]:
         """Setup LVM logical volume (copy-on-write)."""
         try:
             subprocess.run(
@@ -304,9 +294,7 @@ class FilesystemIsolation:
         logger.warning("LVM setup not fully implemented, using fallback")
         return self._setup_overlay(isolation_dir, source_path)
 
-    def _setup_rsync(
-        self, isolation_dir: Path, source_path: str
-    ) -> tuple[str, list[MountPoint]]:
+    def _setup_rsync(self, isolation_dir: Path, source_path: str) -> tuple[str, list[MountPoint]]:
         """Setup rsync-based copy (fallback for CoW)."""
         copy_dir = isolation_dir / "copy"
         copy_dir.mkdir(parents=True, exist_ok=True)
@@ -546,9 +534,7 @@ class NetworkIsolation:
                 NetworkIsolation._setup_iptables_rules(veth_host, bridge_name)
 
             network_ns.active = True
-            logger.debug(
-                f"Network isolation setup: veth={veth_host}, bridge={bridge_name}"
-            )
+            logger.debug(f"Network isolation setup: veth={veth_host}, bridge={bridge_name}")
 
         except Exception as e:
             logger.warning(f"Network isolation setup failed: {e}")
@@ -625,9 +611,7 @@ class CleanupRegistry:
         self.handlers.pop(isolation_id, None)
         return results
 
-    def verify_cleanup(
-        self, isolation_context: IsolationContext
-    ) -> tuple[bool, list[str]]:
+    def verify_cleanup(self, isolation_context: IsolationContext) -> tuple[bool, list[str]]:
         """Verify isolation is completely cleaned up.
 
         Args:

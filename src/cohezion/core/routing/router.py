@@ -73,9 +73,7 @@ class LocalExpertRouter:
             "fallback_threshold": 20,  # GB threshold for legacy models
         }
 
-    async def route_task(
-        self, task_type: str, prompt: str, context: dict | None = None
-    ) -> str:
+    async def route_task(self, task_type: str, prompt: str, context: dict | None = None) -> str:
         """
         Elite compound engineering routing with MoE optimization and memory awareness.
         Implements intelligent model selection and dynamic context scaling for optimal performance.
@@ -101,9 +99,7 @@ class LocalExpertRouter:
                     task_type, available_memory, hardware_profile
                 )
             else:
-                model = self._select_optimal_model(
-                    task_type, available_memory, dilation
-                )
+                model = self._select_optimal_model(task_type, available_memory, dilation)
         else:
             model = self._select_optimal_model(task_type, available_memory, dilation)
 
@@ -138,9 +134,7 @@ class LocalExpertRouter:
         # 6. OCR Optimization for GLM-OCR
         if "glm-ocr" in model:
             final_ctx = min(final_ctx, 128000)  # Native context limit
-            logger.info(
-                f"👁️ OCR Optimization: {model} with 94.62% OmniDocBench accuracy"
-            )
+            logger.info(f"👁️ OCR Optimization: {model} with 94.62% OmniDocBench accuracy")
 
         # Minimum safety floor
         final_ctx = max(final_ctx, 4096)
@@ -179,18 +173,14 @@ class LocalExpertRouter:
             if context.get("system"):
                 payload["system"] = context["system"]
 
-            response = await self.client.post(
-                f"{self.ollama_url}/api/generate", json=payload
-            )
+            response = await self.client.post(f"{self.ollama_url}/api/generate", json=payload)
             response.raise_for_status()
 
             result = response.json()
             response_text = result.get("response", "")
 
             # 8. Performance logging for compound engineering
-            await self._log_performance_metrics(
-                task_type, model, final_ctx, available_memory
-            )
+            await self._log_performance_metrics(task_type, model, final_ctx, available_memory)
 
             return response_text
         except Exception as e:
@@ -227,30 +217,21 @@ class LocalExpertRouter:
                 return "phi3:mini"
 
         # Elite models available (Only if no dilation pressure)
-        if (
-            available_memory >= self.memory_thresholds["elite_threshold"]
-            and dilation >= 0.8
-        ):
+        if available_memory >= self.memory_thresholds["elite_threshold"] and dilation >= 0.8:
             if task_type == "coding":
                 return self.role_map["elite-coding"]
             elif task_type == "vision":
                 return self.role_map["ocr-vision"]
 
         # Agentic models available
-        elif (
-            available_memory >= self.memory_thresholds["agentic_threshold"]
-            and dilation >= 0.7
-        ):
+        elif available_memory >= self.memory_thresholds["agentic_threshold"] and dilation >= 0.7:
             if task_type == "coding":
                 return self.role_map["agentic-coding"]
             elif task_type == "vision":
                 return self.role_map["ocr-vision"]
 
         # Fallback for memory constraints OR moderate pressure
-        elif (
-            available_memory < self.memory_thresholds["fallback_threshold"]
-            or dilation < 0.8
-        ):
+        elif available_memory < self.memory_thresholds["fallback_threshold"] or dilation < 0.8:
             if task_type == "vision":
                 return self.role_map["legacy-vision"]
             elif task_type in ["coding", "elite-coding", "agentic-coding"]:
@@ -334,9 +315,7 @@ class LocalExpertRouter:
         """Fallback routing for error recovery"""
         fallback_model = "phi4-256k:latest"  # Most reliable fallback
 
-        logger.warning(
-            f"🔄 Fallback routing to {fallback_model} due to: {original_error}"
-        )
+        logger.warning(f"🔄 Fallback routing to {fallback_model} due to: {original_error}")
 
         try:
             payload = {
@@ -346,9 +325,7 @@ class LocalExpertRouter:
                 "options": {"num_ctx": 8192},
             }
 
-            response = await self.client.post(
-                f"{self.ollama_url}/api/generate", json=payload
-            )
+            response = await self.client.post(f"{self.ollama_url}/api/generate", json=payload)
             response.raise_for_status()
 
             result = response.json()

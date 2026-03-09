@@ -8,10 +8,9 @@ into the 256D vector.
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from cohezion.flume.experience_collector import ExperienceCollector
-from cohezion.flume.experience_encoder import ExperienceEncoder, TOTAL_DIM
+from cohezion.flume.experience_encoder import TOTAL_DIM, ExperienceEncoder
 
 
 class TestTrajectoryStats:

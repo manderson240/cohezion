@@ -227,9 +227,7 @@ class SessionCostTracker:
             return
 
         records_to_flush = self.records[: self.batch_size]
-        logger.debug(
-            f"Cost tracker: Synchronous flush of {len(records_to_flush)} records"
-        )
+        logger.debug(f"Cost tracker: Synchronous flush of {len(records_to_flush)} records")
         # In sync context, just log locally. Records stay in memory.
         self._pending_flush = False
 
@@ -263,7 +261,7 @@ class SessionCostTracker:
         finally:
             # Remove successfully flushed records
             if flushed_count > 0:
-                self.records = self.records[flushed_count :]
+                self.records = self.records[flushed_count:]
 
         return flushed_count
 

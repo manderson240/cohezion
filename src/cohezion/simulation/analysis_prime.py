@@ -46,14 +46,9 @@ class SimulationAnalyzer:
                 if res and hasattr(res, "__getitem__") and len(res) > 0:
                     exps = res[0].get("result", [])
                     if exps:
-                        logger.info(
-                            f"Found {len(exps)} QFTDHD Trace Summaries in SurrealDB"
-                        )
+                        logger.info(f"Found {len(exps)} QFTDHD Trace Summaries in SurrealDB")
                         best_energy = min(
-                            [
-                                float(e.get("metadata", {}).get("final_energy", 999))
-                                for e in exps
-                            ]
+                            [float(e.get("metadata", {}).get("final_energy", 999)) for e in exps]
                         )
 
                         if best_energy < 50.0:
@@ -73,9 +68,7 @@ class SimulationAnalyzer:
 
         # 2. Compute Metrics
         # Extract cycle number from cycle_id (e.g., "tick_100" -> 100)
-        df["tick"] = df["cycle_id"].apply(
-            lambda x: int(x.split("_")[1]) if "_" in x else 0
-        )
+        df["tick"] = df["cycle_id"].apply(lambda x: int(x.split("_")[1]) if "_" in x else 0)
         df = df.sort_values("tick")
 
         total_cycles = len(df["tick"].unique())
@@ -164,9 +157,7 @@ v1.0 (Auto-Generated)
 
             plt.plot(trend.index, trend.values, label="Avg Coherence")
             plt.axhline(y=0.5, color="r", linestyle="--", label="HIHO Threshold (0.5)")
-            plt.fill_between(
-                trend.index, 0.4, 0.6, alpha=0.2, color="green", label="Stable Zone"
-            )
+            plt.fill_between(trend.index, 0.4, 0.6, alpha=0.2, color="green", label="Stable Zone")
 
             plt.title("System Stability Over Time")
             plt.xlabel("Tick")

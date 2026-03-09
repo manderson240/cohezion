@@ -185,9 +185,7 @@ class SemanticCacheStore:
         total_queries = sum(self._stats.values())
         hit_rate = 0.0
         if total_queries > 0:
-            hit_rate = (
-                self._stats["exact_hits"] + self._stats["semantic_hits"]
-            ) / total_queries
+            hit_rate = (self._stats["exact_hits"] + self._stats["semantic_hits"]) / total_queries
 
         return {
             "total_entries": len(self._entries),
@@ -324,9 +322,7 @@ class KVCacheOptimizer:
             "deepseek-r1:70b": 3.0,
         }
 
-    def register_model(
-        self, model: str, allocated_mb: int, cost_factor: float = 1.0
-    ) -> None:
+    def register_model(self, model: str, allocated_mb: int, cost_factor: float = 1.0) -> None:
         """Register model for KV-cache tracking.
 
         Parameters
@@ -346,9 +342,7 @@ class KVCacheOptimizer:
         self._model_costs[model] = cost_factor
         self._defrag_history[model] = []
 
-    def update_usage(
-        self, model: str, used_mb: int, fragmentation_percent: float
-    ) -> None:
+    def update_usage(self, model: str, used_mb: int, fragmentation_percent: float) -> None:
         """Update KV-cache usage metrics.
 
         Parameters
@@ -381,9 +375,7 @@ class KVCacheOptimizer:
             if metrics.fragmentation_percent > 30.0
         ]
 
-    def recommend_reallocation(
-        self, available_vram_mb: int
-    ) -> dict[str, int]:
+    def recommend_reallocation(self, available_vram_mb: int) -> dict[str, int]:
         """Recommend KV-cache reallocation based on performance.
 
         Parameters
@@ -405,7 +397,9 @@ class KVCacheOptimizer:
             priority = hit_rate / cost_factor
 
             recommendations[model] = int(
-                available_vram_mb * priority / sum(
+                available_vram_mb
+                * priority
+                / sum(
                     m.hit_rate / self._model_costs.get(m.model, 1.0)
                     for m in self._model_metrics.values()
                     if m.hit_rate > 0
@@ -423,9 +417,7 @@ class KVCacheOptimizer:
             "total_allocated_mb": total_allocated,
             "total_used_mb": total_used,
             "utilization_percent": round(
-                100 * total_used / total_allocated
-                if total_allocated > 0
-                else 0,
+                100 * total_used / total_allocated if total_allocated > 0 else 0,
                 1,
             ),
             "models": {
@@ -478,9 +470,7 @@ class MultiLayerCache:
         persistence_enabled : bool
             Whether to save/load cache from disk
         """
-        self._semantic_cache = SemanticCacheStore(
-            max_entries=semantic_max_entries
-        )
+        self._semantic_cache = SemanticCacheStore(max_entries=semantic_max_entries)
         self._context_pools = ContextPoolManager(max_pools=context_pool_max)
         self._kv_cache = KVCacheOptimizer()
         self._cache_dir = cache_dir or Path("data/cache")
@@ -510,9 +500,9 @@ class MultiLayerCache:
                         self._semantic_cache._embeddings[key] = (
                             self._semantic_cache._text_to_tokens(entry.key)
                         )
-                logger.info("Loaded semantic cache with %d entries", len(
-                    self._semantic_cache._entries
-                ))
+                logger.info(
+                    "Loaded semantic cache with %d entries", len(self._semantic_cache._entries)
+                )
         except Exception as e:
             logger.warning("Failed to load cache: %s", e)
 
@@ -542,9 +532,7 @@ class MultiLayerCache:
             with semantic_file.open("w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
 
-            logger.debug("Saved semantic cache with %d entries", len(
-                self._semantic_cache._entries
-            ))
+            logger.debug("Saved semantic cache with %d entries", len(self._semantic_cache._entries))
         except Exception as e:
             logger.warning("Failed to save cache: %s", e)
 

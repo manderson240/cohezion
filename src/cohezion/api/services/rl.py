@@ -15,11 +15,13 @@ logger = logging.getLogger(__name__)
 
 # --- Models ---
 
+
 class RLTrainRequest(BaseModel):
     n_episodes: int = 100
     max_steps: int = 200
     lr: float = 3e-4
     gamma: float = 0.99
+
 
 class RLTrainResponse(BaseModel):
     episodes_completed: int
@@ -28,6 +30,7 @@ class RLTrainResponse(BaseModel):
     mean_reward: float
     checkpoint_path: str
 
+
 class RLPolicyResponse(BaseModel):
     exists: bool
     checkpoint_path: str | None = None
@@ -35,12 +38,15 @@ class RLPolicyResponse(BaseModel):
     state_dim: int | None = None
     action_dim: int | None = None
 
+
 class RlStepRequest(BaseModel):
     state: list[float]  # 256D state vector
+
 
 class RlStepResponse(BaseModel):
     action: list[float]  # 256D action vector
     coherence: float
+
 
 class RlEpisodeResponse(BaseModel):
     steps: int
@@ -48,6 +54,7 @@ class RlEpisodeResponse(BaseModel):
     mean_coherence: float
     final_coherence: float
     trajectory: list[dict[str, Any]]
+
 
 class RlPolicyInfoResponse(BaseModel):
     loaded: bool
@@ -59,9 +66,11 @@ class RlPolicyInfoResponse(BaseModel):
     checkpoint_path: str | None = None
     training_metrics: Any | None = None
 
+
 # --- Service Logic ---
 
 _rl_policy = None
+
 
 def get_rl_policy_singleton():
     """Lazy-load the trained RL policy singleton."""
@@ -74,14 +83,13 @@ def get_rl_policy_singleton():
         _rl_policy = PolicyNetwork(state_dim=256, action_dim=256, hidden=128)
         ckpt_path = Path("data/rl/checkpoints/policy_final.pt")
         if ckpt_path.exists():
-            _rl_policy.load_state_dict(
-                torch.load(ckpt_path, map_location="cpu", weights_only=True)
-            )
+            _rl_policy.load_state_dict(torch.load(ckpt_path, map_location="cpu", weights_only=True))
             _rl_policy.eval()
             logger.info("Loaded RL policy from %s", ckpt_path)
         else:
             logger.warning("No RL checkpoint at %s — using random policy", ckpt_path)
     return _rl_policy
+
 
 async def train_rl_service(request: RLTrainRequest) -> RLTrainResponse:
     """Trigger RL policy training on FlumeNav-v0."""
@@ -114,6 +122,7 @@ async def train_rl_service(request: RLTrainRequest) -> RLTrainResponse:
         mean_reward=mean_reward,
         checkpoint_path=str(ckpt) if ckpt.exists() else "",
     )
+
 
 async def get_rl_policy_service(agent_id: str) -> RLPolicyResponse:
     """Inspect a trained RL policy checkpoint."""
@@ -150,6 +159,7 @@ async def get_rl_policy_service(agent_id: str) -> RLPolicyResponse:
         logger.warning(f"Failed to inspect policy checkpoint: {e}")
         return RLPolicyResponse(exists=True, checkpoint_path=str(ckpt_path))
 
+
 async def rl_step_service(request: RlStepRequest) -> RlStepResponse:
     """Run a single RL step."""
     import numpy as np
@@ -173,6 +183,7 @@ async def rl_step_service(request: RlStepRequest) -> RlStepResponse:
         action=action.tolist(),
         coherence=coherence,
     )
+
 
 async def rl_episode_service() -> RlEpisodeResponse:
     """Run a full RL episode."""
@@ -218,6 +229,7 @@ async def rl_episode_service() -> RlEpisodeResponse:
         final_coherence=coherences[-1],
         trajectory=trajectory,
     )
+
 
 async def rl_policy_info_service() -> RlPolicyInfoResponse:
     """Return policy metadata."""

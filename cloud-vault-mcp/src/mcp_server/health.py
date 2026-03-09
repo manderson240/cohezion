@@ -1,17 +1,16 @@
 """Health check module for monitoring MCP dependencies."""
 
 import asyncio
-import json
 import logging
 import shutil
 import time
-from dataclasses import dataclass, asdict
-from datetime import datetime, timezone
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Optional
 
 import httpx
 import psutil
+
 
 logger = logging.getLogger(__name__)
 
@@ -54,8 +53,8 @@ class HealthChecker:
         self.sheets_bridge = sheets_bridge
         self.ollama_url = ollama_url
         self.sheets_research_daemon = sheets_research_daemon
-        self.last_check_time: Optional[float] = None
-        self.last_check_result: Optional[HealthStatus] = None
+        self.last_check_time: float | None = None
+        self.last_check_result: HealthStatus | None = None
         self.cache_ttl = 60  # Cache results for 60 seconds
 
     async def check_vault(self) -> dict:
@@ -92,7 +91,7 @@ class HealthChecker:
                 test_file.write_text("test")
                 test_file.unlink()
                 writable = True
-            except (OSError, IOError):
+            except OSError:
                 writable = False
 
             latency_ms = int((time.time() - start) * 1000)
@@ -390,11 +389,9 @@ class HealthChecker:
                 return_exceptions=True,
             )
             results = await asyncio.wait_for(checks_task, timeout=timeout)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error("Health check timed out")
-            results = [
-                {"status": "error", "message": "Check timed out"}
-            ] * 7
+            results = [{"status": "error", "message": "Check timed out"}] * 7
 
         # Extract individual results
         (
@@ -409,19 +406,33 @@ class HealthChecker:
 
         # Handle exceptions
         checks = {
-            "vault": vault_result if isinstance(vault_result, dict) else {"status": "error", "message": str(vault_result)},
-            "surrealdb": surrealdb_result if isinstance(surrealdb_result, dict) else {"status": "error", "message": str(surrealdb_result)},
-            "sheets_api": sheets_result if isinstance(sheets_result, dict) else {"status": "error", "message": str(sheets_result)},
-            "ollama": ollama_result if isinstance(ollama_result, dict) else {"status": "error", "message": str(ollama_result)},
-            "disk_space": disk_result if isinstance(disk_result, dict) else {"status": "error", "message": str(disk_result)},
-            "memory": memory_result if isinstance(memory_result, dict) else {"status": "error", "message": str(memory_result)},
-            "sheets_research_pipeline": sheets_research_result if isinstance(sheets_research_result, dict) else {"status": "error", "message": str(sheets_research_result)},
+            "vault": vault_result
+            if isinstance(vault_result, dict)
+            else {"status": "error", "message": str(vault_result)},
+            "surrealdb": surrealdb_result
+            if isinstance(surrealdb_result, dict)
+            else {"status": "error", "message": str(surrealdb_result)},
+            "sheets_api": sheets_result
+            if isinstance(sheets_result, dict)
+            else {"status": "error", "message": str(sheets_result)},
+            "ollama": ollama_result
+            if isinstance(ollama_result, dict)
+            else {"status": "error", "message": str(ollama_result)},
+            "disk_space": disk_result
+            if isinstance(disk_result, dict)
+            else {"status": "error", "message": str(disk_result)},
+            "memory": memory_result
+            if isinstance(memory_result, dict)
+            else {"status": "error", "message": str(memory_result)},
+            "sheets_research_pipeline": sheets_research_result
+            if isinstance(sheets_research_result, dict)
+            else {"status": "error", "message": str(sheets_research_result)},
         }
 
         # Determine overall status
         overall_status = self._aggregate_status(checks)
 
-        timestamp = datetime.now(timezone.utc).isoformat()
+        timestamp = datetime.now(UTC).isoformat()
         health_status = HealthStatus(
             status=overall_status,
             timestamp=timestamp,

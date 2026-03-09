@@ -10,16 +10,16 @@ Tests cover:
 - Edge cases (all unavailable, single model, etc.)
 """
 
-import pytest
 import time
-from unittest.mock import Mock
+
+import pytest
 
 from cohezion.swarm.fallback_strategy import (
-    FallbackStrategy,
     CircuitBreaker,
     CircuitBreakerState,
-    ModelHealthMetrics,
     FallbackEvent,
+    FallbackStrategy,
+    ModelHealthMetrics,
     get_fallback_strategy,
     reset_fallback_strategy,
 )
@@ -116,9 +116,7 @@ class TestCircuitBreakerStateTransitions:
 
     def test_transition_to_half_open_after_timeout(self):
         """Test transition to HALF_OPEN after recovery timeout."""
-        breaker = CircuitBreaker(
-            "model", error_threshold=1, recovery_timeout_sec=0.1
-        )
+        breaker = CircuitBreaker("model", error_threshold=1, recovery_timeout_sec=0.1)
 
         # Open circuit
         breaker.record_error()
@@ -159,9 +157,7 @@ class TestCircuitBreakerStateTransitions:
 
     def test_error_rate_threshold_opens_circuit(self):
         """Test that error rate threshold can trigger OPEN."""
-        breaker = CircuitBreaker(
-            "model", error_threshold=10, error_rate_threshold=0.5
-        )
+        breaker = CircuitBreaker("model", error_threshold=10, error_rate_threshold=0.5)
 
         # Record 10 total requests: 6 errors = 60% error rate
         for _ in range(4):

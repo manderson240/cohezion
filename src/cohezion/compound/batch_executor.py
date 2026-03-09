@@ -108,9 +108,7 @@ class BatchableExecutor:
         else:
             self.batch_sizer = None
 
-    async def execute_batch(
-        self, tasks: list[CompoundTask]
-    ) -> BatchCompoundResult:
+    async def execute_batch(self, tasks: list[CompoundTask]) -> BatchCompoundResult:
         """Execute batch of compound tasks in 3 phases.
 
         Phase 1: Query vault for experience guidance (all tasks)
@@ -144,10 +142,8 @@ class BatchableExecutor:
         prediction_confidence = 0.0
         if self.batch_sizer and len(tasks) > 1:
             task_types = self._detect_task_types(tasks)
-            predicted_batch_size, prediction_confidence = (
-                self.batch_sizer.predict_optimal_size(
-                    task_types[0] if task_types else "unknown", len(tasks)
-                )
+            predicted_batch_size, prediction_confidence = self.batch_sizer.predict_optimal_size(
+                task_types[0] if task_types else "unknown", len(tasks)
             )
             self.batch_size = predicted_batch_size
             logger.info(
@@ -162,9 +158,7 @@ class BatchableExecutor:
 
             # Phase 2: Execute tasks with batch optimization
             logger.debug("Phase 2: Executing batch LLM operations")
-            batch_results = await self._execute_batch_phase2(
-                tasks, guidance_map
-            )
+            batch_results = await self._execute_batch_phase2(tasks, guidance_map)
 
             # Phase 3: Post-execution (logging, anomaly, patterns)
             logger.debug("Phase 3: Post-execution (logging and refinement)")
@@ -185,18 +179,10 @@ class BatchableExecutor:
         # Calculate aggregate statistics
         tasks_executed = len([r for r in results if r.success])
         tasks_failed = len([r for r in results if not r.success])
-        cache_hits = sum(
-            r.metrics.get("cache_hits", 0) for r in results
-        )
-        cache_misses = sum(
-            r.metrics.get("cache_misses", 0) for r in results
-        )
+        cache_hits = sum(r.metrics.get("cache_hits", 0) for r in results)
+        cache_misses = sum(r.metrics.get("cache_misses", 0) for r in results)
         total_requests = cache_hits + cache_misses
-        cache_hit_rate = (
-            (cache_hits / total_requests * 100)
-            if total_requests > 0
-            else 0.0
-        )
+        cache_hit_rate = (cache_hits / total_requests * 100) if total_requests > 0 else 0.0
 
         # Phase 3 Sprint 1: Record metrics for batch sizing learning
         if self.batch_sizer and results:
@@ -272,9 +258,7 @@ class BatchableExecutor:
             errors=errors,
         )
 
-    async def _get_batch_guidance(
-        self, tasks: list[CompoundTask]
-    ) -> dict[str, dict[str, Any]]:
+    async def _get_batch_guidance(self, tasks: list[CompoundTask]) -> dict[str, dict[str, Any]]:
         """Phase 1: Get experience guidance for all tasks in parallel.
 
         Queries vault for each task to find similar prior executions.
@@ -286,31 +270,22 @@ class BatchableExecutor:
         Returns:
             Dict mapping task_id → guidance dict
         """
-        guidance_tasks = [
-            self._get_single_guidance(task)
-            for task in tasks
-        ]
+        guidance_tasks = [self._get_single_guidance(task) for task in tasks]
 
         # Run all guidance queries in parallel
-        guidance_results = await asyncio.gather(
-            *guidance_tasks, return_exceptions=True
-        )
+        guidance_results = await asyncio.gather(*guidance_tasks, return_exceptions=True)
 
         guidance_map = {}
         for task, result in zip(tasks, guidance_results):
             if isinstance(result, Exception):
-                logger.debug(
-                    f"Guidance lookup failed for {task.task_id}: {result}"
-                )
+                logger.debug(f"Guidance lookup failed for {task.task_id}: {result}")
                 guidance_map[task.task_id] = {}
             else:
                 guidance_map[task.task_id] = result or {}
 
         return guidance_map
 
-    async def _get_single_guidance(
-        self, task: CompoundTask
-    ) -> dict[str, Any]:
+    async def _get_single_guidance(self, task: CompoundTask) -> dict[str, Any]:
         """Get experience guidance for a single task.
 
         Args:
@@ -323,9 +298,7 @@ class BatchableExecutor:
             # Use skill selector if available
             if hasattr(self.executor, "skill_selector"):
                 selector = self.executor.skill_selector
-                guidance = await selector.select_skill(
-                    task.prompt, task.task_id
-                )
+                guidance = await selector.select_skill(task.prompt, task.task_id)
                 return guidance if guidance else {}
 
             return {}
@@ -374,8 +347,7 @@ class BatchableExecutor:
             ):
                 task_types.append("analyze")
             elif any(
-                word in prompt_lower
-                for word in ["search", "find", "look for", "retrieve", "list"]
+                word in prompt_lower for word in ["search", "find", "look for", "retrieve", "list"]
             ):
                 task_types.append("search")
             elif any(
@@ -384,8 +356,7 @@ class BatchableExecutor:
             ):
                 task_types.append("transform")
             elif any(
-                word in prompt_lower
-                for word in ["save", "store", "persist", "record", "store"]
+                word in prompt_lower for word in ["save", "store", "persist", "record", "store"]
             ):
                 task_types.append("persist")
             else:
@@ -413,17 +384,17 @@ class BatchableExecutor:
         results = []
 
         # Optional: Deduplicate identical prompts within batch
-        task_groups = self._deduplicate_tasks(tasks) if self.enable_deduplication else {
-            id(task): [task] for task in tasks
-        }
+        task_groups = (
+            self._deduplicate_tasks(tasks)
+            if self.enable_deduplication
+            else {id(task): [task] for task in tasks}
+        )
 
         # Execute each unique task
         unique_results = {}
         for task_id, task_group in task_groups.items():
             representative_task = task_group[0]
-            guidance = guidance_map.get(
-                representative_task.task_id, {}
-            )
+            guidance = guidance_map.get(representative_task.task_id, {})
 
             try:
                 # Execute single task
@@ -436,9 +407,7 @@ class BatchableExecutor:
                 )
                 unique_results[task_id] = result
             except Exception as e:
-                logger.error(
-                    f"Task execution failed: {e}", exc_info=True
-                )
+                logger.error(f"Task execution failed: {e}", exc_info=True)
                 unique_results[task_id] = ExecutionResult(
                     success=False,
                     output=f"Execution failed: {e!s}",
@@ -470,16 +439,13 @@ class BatchableExecutor:
             results: ExecutionResults from Phase 2
         """
         phase3_tasks = [
-            self._process_single_result(task, result)
-            for task, result in zip(tasks, results)
+            self._process_single_result(task, result) for task, result in zip(tasks, results)
         ]
 
         # Run all post-execution in parallel
         await asyncio.gather(*phase3_tasks, return_exceptions=True)
 
-    async def _process_single_result(
-        self, task: CompoundTask, result: ExecutionResult
-    ) -> None:
+    async def _process_single_result(self, task: CompoundTask, result: ExecutionResult) -> None:
         """Process single task's post-execution.
 
         Logs to vault, detects anomalies, extracts patterns.
@@ -523,9 +489,7 @@ class BatchableExecutor:
             # Non-blocking: log and continue
             logger.debug(f"Post-execution processing failed: {e}")
 
-    def _deduplicate_tasks(
-        self, tasks: list[CompoundTask]
-    ) -> dict[int, list[CompoundTask]]:
+    def _deduplicate_tasks(self, tasks: list[CompoundTask]) -> dict[int, list[CompoundTask]]:
         """Deduplicate identical prompts within batch.
 
         Returns dict mapping representative task id → list of duplicate tasks.
@@ -553,9 +517,7 @@ class BatchableExecutor:
             representative = tasks_group[0]
             result[id(representative)] = tasks_group
 
-        logger.info(
-            f"Batch deduplication: {len(tasks)} tasks → {len(result)} unique"
-        )
+        logger.info(f"Batch deduplication: {len(tasks)} tasks → {len(result)} unique")
 
         return result
 
@@ -603,10 +565,7 @@ class BatchableExecutor:
 
         try:
             # Format metrics for vault experiment
-            hypothesis = (
-                f"Batch execution with batch_size={batch_size}, "
-                f"task_count={task_count}"
-            )
+            hypothesis = f"Batch execution with batch_size={batch_size}, task_count={task_count}"
 
             method = (
                 f"Executed {task_count} tasks in batch with "
@@ -620,13 +579,13 @@ class BatchableExecutor:
                 f"Throughput: {throughput:.1f} tokens/sec\n"
                 f"Cache Hit Rate: {cache_hit_rate:.1f}%\n"
                 f"Execution Time: {execution_time:.2f}s\n"
-                f"Average Time per Task: {execution_time/task_count:.3f}s"
+                f"Average Time per Task: {execution_time / task_count:.3f}s"
             )
 
             learnings = (
                 f"Achieved {throughput:.1f} tok/sec with {cache_hit_rate:.1f}% cache hits. "
                 f"Batch size {batch_size} processed {task_count} tasks in {execution_time:.2f}s. "
-                f"Success rate: {(tasks_executed/task_count*100):.1f}%"
+                f"Success rate: {(tasks_executed / task_count * 100):.1f}%"
             )
 
             # Log to vault as experiment
@@ -649,16 +608,12 @@ class BatchableExecutor:
 
         except MCPToolError as e:
             # Vault unavailable - non-blocking failure
-            logger.debug(
-                f"Vault logging failed (non-blocking): {e}"
-            )
+            logger.debug(f"Vault logging failed (non-blocking): {e}")
             return 0
 
         except Exception as e:
             # Unexpected error - non-blocking failure
-            logger.debug(
-                f"Batch performance logging failed (non-blocking): {e}"
-            )
+            logger.debug(f"Batch performance logging failed (non-blocking): {e}")
             return 0
 
 

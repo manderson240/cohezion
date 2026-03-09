@@ -1,6 +1,6 @@
-
 from optimizer import OptimizedKernelBuilder, KernelConfig
 from problem import HASH_STAGES
+
 
 def count_bundles():
     builder = OptimizedKernelBuilder(KernelConfig(smart_load_depth=4, crown_depth=5))
@@ -10,6 +10,7 @@ def count_bundles():
     print(f"Total Bundles for 1 Round, 256 Items: {len(instrs)}")
     # Total vector-rounds = 256 / 8 = 32
     print(f"Bundles per Vector-Round (Approx): {len(instrs) / 32:.2f}")
+
 
 if __name__ == "__main__":
     count_bundles()

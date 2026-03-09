@@ -15,14 +15,16 @@ import logging
 import sys
 from pathlib import Path
 
+
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from cohezion.compound.executor import CompoundExecutor
-from cohezion.compound.journey_tracker import JourneyTracker
-from cohezion.compound.inflection_detector import Severity
-from cohezion.flume.experience_collector import ExperienceCollector
 from unittest.mock import MagicMock
+
+from cohezion.compound.executor import CompoundExecutor
+from cohezion.compound.inflection_detector import Severity
+from cohezion.compound.journey_tracker import JourneyTracker
+
 
 logging.basicConfig(level=logging.INFO, format="%(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -34,7 +36,7 @@ def create_mock_mcp():
     client.vault_find_relevant_context.return_value = []
     client.vault_search.return_value = []
     client.vault_write.return_value = "success"
-    client.vault_read.return_value = '{}'
+    client.vault_read.return_value = "{}"
     return client
 
 
@@ -165,10 +167,18 @@ def run_experience_guided_demo():
     logger.info("\n" + "=" * 80)
     logger.info("EXPERIENCE-GUIDED LEARNING DEMONSTRATION")
     logger.info("=" * 80)
-    logger.info(f"Task 1: Cold start (no guidance) → coherence={result1.metrics.get('coherence', 0.0):.3f}")
-    logger.info(f"Task 2: Guided by Task 1 (confidence={guidance_received['confidence']:.2f}) → coherence={result2.metrics.get('coherence', 0.0):.3f}")
-    logger.info(f"Task 3: Low quality execution → coherence={result3.metrics.get('coherence', 0.0):.3f}")
-    logger.info(f"Task 4: Warned by Task 3 ({len(warnings_received)} warnings) → coherence={result4.metrics.get('coherence', 0.0):.3f}")
+    logger.info(
+        f"Task 1: Cold start (no guidance) → coherence={result1.metrics.get('coherence', 0.0):.3f}"
+    )
+    logger.info(
+        f"Task 2: Guided by Task 1 (confidence={guidance_received['confidence']:.2f}) → coherence={result2.metrics.get('coherence', 0.0):.3f}"
+    )
+    logger.info(
+        f"Task 3: Low quality execution → coherence={result3.metrics.get('coherence', 0.0):.3f}"
+    )
+    logger.info(
+        f"Task 4: Warned by Task 3 ({len(warnings_received)} warnings) → coherence={result4.metrics.get('coherence', 0.0):.3f}"
+    )
     logger.info("\n✓ Experience-Guided Execution Loop demonstrated!")
     logger.info("Every execution improves guidance for future executions (exponential learning)")
 
@@ -180,7 +190,7 @@ def main():
     try:
         success = run_experience_guided_demo()
         sys.exit(0 if success else 1)
-    except Exception as e:
+    except Exception:
         logger.exception("Demo failed:")
         sys.exit(1)
 

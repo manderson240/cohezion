@@ -116,9 +116,7 @@ class RequestCache:
             self._l1_misses += 1
             return None
 
-    def get_semantic(
-        self, request_text: str, threshold: float | None = None
-    ) -> AgentTask | None:
+    def get_semantic(self, request_text: str, threshold: float | None = None) -> AgentTask | None:
         """Get cached task via string similarity (L2, 0 tokens, ~5ms).
 
         Uses word overlap similarity to find similar cached requests.
@@ -188,9 +186,7 @@ class RequestCache:
                 self.l2_cache.popitem(last=False)  # Remove oldest (first inserted)
                 logger.debug(f"L2 cache evicted oldest entry (size={self.l2_size})")
 
-            logger.debug(
-                f"Cached request: {request_text[:50]}... → task_id={task.task_id}"
-            )
+            logger.debug(f"Cached request: {request_text[:50]}... → task_id={task.task_id}")
         except Exception as e:
             logger.warning(f"Failed to cache request: {e}")
 
@@ -256,8 +252,11 @@ class RequestCache:
         # Estimate average tokens per request
         # L1/L2 hits: 0 tokens, misses: ~250 tokens (LLM fallback)
         avg_tokens = (
-            (self._l1_hits + self._l2_hits) * 0 + (self._l1_misses + self._l2_misses) * 250
-        ) / total if total > 0 else 0
+            ((self._l1_hits + self._l2_hits) * 0 + (self._l1_misses + self._l2_misses) * 250)
+            / total
+            if total > 0
+            else 0
+        )
 
         return {
             "l1_hits": self._l1_hits,
@@ -373,9 +372,7 @@ class RequestCache:
         try:
             # Check if result contains key intake-related terms
             text = str(result).lower()
-            return any(
-                term in text for term in ["request", "task", "operation", "intent"]
-            )
+            return any(term in text for term in ["request", "task", "operation", "intent"])
         except Exception:
             return False
 

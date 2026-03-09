@@ -117,9 +117,7 @@ class MCPRegistry:
     def list_tools(self, server_name: str | None = None) -> list[str]:
         """List all available tools."""
         tools = []
-        servers = (
-            self._internal if server_name is None else [self.get_server(server_name)]
-        )
+        servers = self._internal if server_name is None else [self.get_server(server_name)]
         for server in servers:
             if server and server.tools:
                 tools.extend([f"{server.name}.{t}" for t in server.tools])

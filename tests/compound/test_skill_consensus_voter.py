@@ -1,7 +1,6 @@
 """Tests for multi-agent skill consensus voting."""
 
-from datetime import datetime
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -695,6 +694,7 @@ class TestVaultPersistence:
 
         # Should be valid JSON
         import json
+
         data = json.loads(content)
         assert data["strategy"] == "majority"
         assert data["num_agents"] == 1
@@ -812,12 +812,8 @@ class TestConsensusAchievementRate:
                 )
             )
 
-        majority_result = voter.vote_on_skills(
-            votes, strategy=VotingStrategy.MAJORITY
-        )
-        weighted_result = voter.vote_on_skills(
-            votes, strategy=VotingStrategy.WEIGHTED
-        )
+        majority_result = voter.vote_on_skills(votes, strategy=VotingStrategy.MAJORITY)
+        weighted_result = voter.vote_on_skills(votes, strategy=VotingStrategy.WEIGHTED)
 
         # Majority: skill_b wins (75%)
         assert majority_result.consensus_skill.skill_name == "skill_b"

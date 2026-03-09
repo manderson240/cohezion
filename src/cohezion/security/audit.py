@@ -162,9 +162,7 @@ class AuditLogger:
         )
         self._write(event)
 
-    def get_recent_events(
-        self, limit: int = 100, event_type: str | None = None
-    ) -> list[dict]:
+    def get_recent_events(self, limit: int = 100, event_type: str | None = None) -> list[dict]:
         """Read recent audit events."""
         if not self.log_file.exists():
             return []

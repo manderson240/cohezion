@@ -1,10 +1,13 @@
 import asyncio
-import logging
 import json
+import logging
+
 from cohezion.core.persistence.surreal_client import SurrealClient
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("DBInspect")
+
 
 async def inspect():
     client = SurrealClient()
@@ -19,6 +22,7 @@ async def inspect():
         print(f"  {json.dumps(res, indent=2)}")
 
     await client.close()
+
 
 if __name__ == "__main__":
     asyncio.run(inspect())
