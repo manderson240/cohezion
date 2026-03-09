@@ -74,7 +74,7 @@ development_status:
   epic-3: in-progress
   3-1-vault-three-pillars: done  # VaultMode with Decisions/Experiments/Patterns tabs
   3-2-semantic-search-engine: done  # VaultMode semantic search interface (FR17)
-  3-3-metacognitive-intent-capture: backlog
+  3-3-metacognitive-intent-capture: done  # IntentCapture middleware: blocks silent state changes, logs violations for Ouroboros (FR6)
   3-4-freeze-frame-reality: backlog
   3-5-provenance-first-ux: done  # ProvenanceTag hover tooltips tracing data to source (FR16)
   3-6-vector-pruning-compaction: backlog
