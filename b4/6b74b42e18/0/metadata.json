@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "b46b74b42e18",
+  "session_id": "79715e35-e3bd-4941-a109-da0ea278dc88",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-09T02:43:28.210682883Z",
+  "branch": "feat/semver-400-year-physics-hiho-flume",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "tests/healing/test_ouroboros_loop.py",
+    "tests/integration/test_weight_bridge.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "1a235c97ba7a",
+  "token_usage": {
+    "input_tokens": 457,
+    "cache_creation_tokens": 998034,
+    "cache_read_tokens": 44438065,
+    "output_tokens": 60033,
+    "api_call_count": 329
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-09T02:43:27.500976321Z",
+    "agent_lines": 2,
+    "human_added": 46,
+    "human_modified": 8,
+    "human_removed": 0,
+    "total_committed": 56,
+    "agent_percentage": 3.571428571428571
+  }
+}

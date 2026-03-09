@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "b46b74b42e18",
+  "strategy": "manual-commit",
+  "branch": "feat/semver-400-year-physics-hiho-flume",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "tests/healing/test_ouroboros_loop.py",
+    "tests/integration/test_weight_bridge.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/b4/6b74b42e18/0/metadata.json",
+      "transcript": "/b4/6b74b42e18/0/full.jsonl",
+      "context": "/b4/6b74b42e18/0/context.md",
+      "content_hash": "/b4/6b74b42e18/0/content_hash.txt",
+      "prompt": "/b4/6b74b42e18/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 457,
+    "cache_creation_tokens": 998034,
+    "cache_read_tokens": 44438065,
+    "output_tokens": 60033,
+    "api_call_count": 329
+  }
+}
