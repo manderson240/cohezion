@@ -50,7 +50,7 @@ development_status:
   1-0-8-heterogeneous-sharding: backlog
   1-0-9-type-safe-zero-copy: backlog
   1-2-vliw-aligned-steel-thread: backlog
-  1-3-substrate-governor: backlog
+  1-3-substrate-governor: done  # SubstrateGovernor: temporal dilation protocol, graduated pressure response (FR9, FR10, NFR-5)
   1-4-substrate-loom-zero-copy: backlog
   1-5-journey-persistence-manager: backlog
   1-6-memory-mapped-barrier: backlog
@@ -75,10 +75,10 @@ development_status:
   3-1-vault-three-pillars: done  # VaultMode with Decisions/Experiments/Patterns tabs
   3-2-semantic-search-engine: done  # VaultMode semantic search interface (FR17)
   3-3-metacognitive-intent-capture: done  # IntentCapture middleware: blocks silent state changes, logs violations for Ouroboros (FR6)
-  3-4-freeze-frame-reality: backlog
+  3-4-freeze-frame-reality: done  # FreezeFrameCapture: 12D state snapshots with deduplication for Ouroboros training (NFR-8)
   3-5-provenance-first-ux: done  # ProvenanceTag hover tooltips tracing data to source (FR16)
-  3-6-vector-pruning-compaction: backlog
-  3-7-intent-action-sync: backlog
+  3-6-vector-pruning-compaction: done  # VectorPruningEngine: semantic decay + compaction for constant HNSW performance (FR8, NFR-3)
+  3-7-intent-action-sync: done  # IntentActionSync: HMAC-SHA256 signed intent-action pairs with drift detection (FR6)
   epic-3-retrospective: optional
 
   # Epic 4: Vanguard Pipeline & The Anima (DOER)
@@ -87,24 +87,24 @@ development_status:
   4-1b-vanguard-multi-source: backlog
   4-1c-vanguard-attribution-license: backlog
   4-2-substrate-sandbox-validation: backlog
-  4-3-constitutional-shielding: backlog
+  4-3-constitutional-shielding: done  # ConstitutionalShield: safe/quarantine/incinerate with permanent blacklist (NFR-10)
   4-4-anima-sigil-voice: done  # AnimaChatPanel with MCP routing (FR15)
   4-5-context-aware-narration: done  # AnimaNarrationBar typewriter from live HIHO metrics (FR15)
-  4-6-mycelium-registry: backlog
-  4-7-immutable-provenance: backlog
+  4-6-mycelium-registry: done  # MyceliumRegistry: autonomous skill synthesis from journal entries (FR11)
+  4-7-immutable-provenance: done  # ProvenanceRegistry: SHA-256 chain verification for artifact lineage (FR5)
   epic-4-retrospective: optional
 
   # Epic 5: Ouroboros Evolution & Loop Theater
   epic-5: in-progress
-  5-1-ouroboros-trigger-vae: backlog
-  5-2-shadowscripter-test-gen: backlog
+  5-1-ouroboros-trigger-vae: done  # OuroborosTrigger: TDD failure -> VAE fine-tuning with divergence watchdog (NFR-4, NFR-8)
+  5-2-shadowscripter-test-gen: done  # ShadowScripter: autonomous test generation with syntax validation and quarantine (FR7)
   5-3-loop-visualization: done  # OuroborosControlRoom in CockpitMode with live SSE data (FR18)
-  5-4-retrospection-summaries: backlog
-  5-5-skill-evolution-diffs: backlog
-  5-6-agentic-mitosis-apoptosis: backlog
-  5-7-autonomous-skill-registration: backlog
-  5-8-lifecycle-pre-simulation: backlog
-  5-9-adversarial-reality-grounding: backlog
+  5-4-retrospection-summaries: done  # RetrospectionEngine: first-person Voice Identity post-mortem narratives (FR18, NFR-4)
+  5-5-skill-evolution-diffs: done  # SkillEvolutionTracker: unified diff with Biolume additions / Plasma removals (FR18)
+  5-6-agentic-mitosis-apoptosis: done  # SwarmGovernor: biological mitosis (context>80%) + apoptosis (coherence<0.3 x3) (NFR-1)
+  5-7-autonomous-skill-registration: done  # AutonomousSkillRegistry: auto-register with provenance hash + version conflict handling (FR11)
+  5-8-lifecycle-pre-simulation: done  # LifecyclePreSimulator: 12D trajectory projection with knot detection (FR19)
+  5-9-adversarial-reality-grounding: done  # AdversarialGrounding: perturbation injection + hallucination alert + resync trigger (FR20)
   epic-5-retrospective: optional
 
   # Epic 6: [ASPIRATIONAL] Cloud Substrate Expansion (Ironwood)
@@ -115,8 +115,8 @@ development_status:
   epic-6-retrospective: optional
 
   # Epic 7: Automated Version Health & Compound Registry
-  epic-7: backlog
-  7-1-semver-ci-pipeline: backlog
+  epic-7: in-progress
+  7-1-semver-ci-pipeline: done  # SemverValidator: version bump detection from conventional commits + validation
   7-2-dependency-security-scanner: backlog
   7-3-compound-version-registry: backlog
   7-4-version-telemetry-dashboard: backlog
