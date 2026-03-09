@@ -47,13 +47,9 @@ class SynthesizerAgent(BaseAgent):
             config=config,
         )
 
-    async def process(
-        self, critique: CritiqueResult, **kwargs: Any
-    ) -> SynthesizedResponse:
+    async def process(self, critique: CritiqueResult, **kwargs: Any) -> SynthesizedResponse:
         """Process critique result and return synthesized response."""
-        return await self.synthesize(
-            critique, original_query=kwargs.get("original_query", "")
-        )
+        return await self.synthesize(critique, original_query=kwargs.get("original_query", ""))
 
     async def synthesize(
         self,

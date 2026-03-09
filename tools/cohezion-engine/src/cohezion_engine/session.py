@@ -1,9 +1,11 @@
 """Session lifecycle management for cohezion-engine."""
+
 import os
 import re
 from pathlib import Path
 
 from cohezion_engine.config import get_config_dir
+
 
 _SESSION_ID_RE = re.compile(r"[^a-zA-Z0-9_\-]")
 
@@ -71,8 +73,9 @@ def send_clear(plan_path: str | None = None) -> dict:
     sse_port = os.environ.get("CLAUDE_CODE_SSE_PORT")
     if sse_port:
         try:
-            import urllib.request
             import json
+            import urllib.request
+
             # Attempt WebSocket-based clear signal (requires websocket-client)
             # Fall back gracefully if not available
             try:
@@ -82,7 +85,11 @@ def send_clear(plan_path: str | None = None) -> dict:
                 msg = json.dumps({"type": "clear", "plan": plan_path})
                 ws.send(msg)
                 ws.close()
-                return {"success": True, "method": "websocket", "message": "Session clear triggered via WebSocket"}
+                return {
+                    "success": True,
+                    "method": "websocket",
+                    "message": "Session clear triggered via WebSocket",
+                }
             except ImportError:
                 pass  # websocket-client not installed, try HTTP
             except (ConnectionRefusedError, TimeoutError, OSError) as ws_err:
@@ -98,8 +105,17 @@ def send_clear(plan_path: str | None = None) -> dict:
             )
             try:
                 with urllib.request.urlopen(req, timeout=3) as resp:
-                    return {"success": True, "method": "http", "message": f"HTTP response: {resp.status}"}
-            except (ConnectionRefusedError, TimeoutError, OSError, urllib.error.URLError) as http_err:
+                    return {
+                        "success": True,
+                        "method": "http",
+                        "message": f"HTTP response: {resp.status}",
+                    }
+            except (
+                ConnectionRefusedError,
+                TimeoutError,
+                OSError,
+                urllib.error.URLError,
+            ) as http_err:
                 fallback_reason = f"HTTP failed: {http_err}"
         except (ConnectionRefusedError, TimeoutError, OSError) as outer_err:
             fallback_reason = f"Connection failed: {outer_err}"

@@ -83,7 +83,7 @@ class TestSemanticCache:
 
         assert isinstance(stats, dict)
         assert "l1_hits" in stats
-        assert "hits_l2" in stats
+        assert "l2_hits" in stats
         assert "misses" in stats
 
     def test_clear_resets_cache(self, semantic_cache):

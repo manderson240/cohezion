@@ -90,8 +90,7 @@ class AgentFactory:
 
             config = AgentConfig(
                 name=registry_name,
-                default_model=default_model
-                or getattr(agent_class, "_default_model", "gemma3:4b"),
+                default_model=default_model or getattr(agent_class, "_default_model", "gemma3:4b"),
                 capabilities=capabilities or getattr(agent_class, "_capabilities", []),
                 description=description or agent_class.__doc__ or "",
                 version=version,
@@ -215,11 +214,7 @@ class AgentFactory:
         agents = list(cls._registry.keys())
 
         if capability:
-            agents = [
-                name
-                for name in agents
-                if capability in cls._metadata[name].capabilities
-            ]
+            agents = [name for name in agents if capability in cls._metadata[name].capabilities]
 
         if tag:
             agents = [name for name in agents if tag in cls._metadata[name].tags]

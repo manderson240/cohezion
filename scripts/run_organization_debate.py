@@ -17,8 +17,9 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from cohezion.swarm.workflows import DebateWorkflow
 from cohezion.swarm.swarm_types import Perspective, SwarmConfig
+from cohezion.swarm.workflows import DebateWorkflow
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -49,33 +50,33 @@ What is the most coherent path forward?
 
 async def run_organization_debate():
     """Run the swarm debate with FLUME tracking."""
-    
+
     # Configure for strategic decision-making
     config = SwarmConfig(
         analyst_model="phi3:mini",  # Local efficient model
         critic_model="phi3:mini",
         synthesizer_model="mistral:7b",  # Available for synthesis
     )
-    
+
     # Use all three perspectives
     workflow = DebateWorkflow(
         config=config,
         perspectives=[
-            Perspective.TECHNICAL,   # Engineering quality
-            Perspective.ETHICAL,     # Attribution, honesty
+            Perspective.TECHNICAL,  # Engineering quality
+            Perspective.ETHICAL,  # Attribution, honesty
             Perspective.HISTORICAL,  # What worked before
-        ]
+        ],
     )
-    
+
     try:
         logger.info("Starting FLUME-tracked swarm debate...")
         start_time = datetime.now()
-        
+
         response = await workflow.execute(DEBATE_QUERY)
-        
+
         end_time = datetime.now()
         duration = (end_time - start_time).total_seconds()
-        
+
         # Save results
         result = {
             "query": DEBATE_QUERY,
@@ -87,27 +88,29 @@ async def run_organization_debate():
             "timestamp": start_time.isoformat(),
             "duration_seconds": duration,
         }
-        
-        output_path = Path("src/cohezion/knowledge_graph/debates/project_organization_2026-01-18.json")
+
+        output_path = Path(
+            "src/cohezion/knowledge_graph/debates/project_organization_2026-01-18.json"
+        )
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(json.dumps(result, indent=2))
-        
+
         # Print summary
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("SWARM DEBATE RESULT: PROJECT ORGANIZATION")
-        print("="*80)
+        print("=" * 80)
         print(f"\nConfidence: {response.confidence:.0%}")
         print(f"Processing Time: {response.processing_time_ms:.0f}ms")
         print(f"Model Chain: {' → '.join(response.model_chain)}")
-        print("\n" + "-"*80)
+        print("\n" + "-" * 80)
         print("SYNTHESIZED DECISION:")
-        print("-"*80)
+        print("-" * 80)
         print(response.content)
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print(f"\nResults saved to: {output_path}")
-        
+
         return result
-        
+
     finally:
         await workflow.close()
 

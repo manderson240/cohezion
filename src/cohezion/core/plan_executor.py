@@ -146,9 +146,7 @@ class PlanExecutor:
             total_duration_ms=round(total_duration, 2),
         )
 
-    async def _run_step(
-        self, step: PlanStep, context: str, domain: str
-    ) -> tuple[str, int]:
+    async def _run_step(self, step: PlanStep, context: str, domain: str) -> tuple[str, int]:
         """Dispatch a single step to the appropriate handler.
 
         Returns
@@ -201,9 +199,7 @@ class PlanExecutor:
                 )
 
         # Placeholder when no client is available
-        return (
-            f"[{step.operation}] {step.description} | input_length={len(context)}"
-        ), 0
+        return (f"[{step.operation}] {step.description} | input_length={len(context)}"), 0
 
     def _run_search(self, step: PlanStep, context: str) -> tuple[str, int]:
         """Run a search step via CapabilityRegistry if available."""
@@ -213,10 +209,7 @@ class PlanExecutor:
             registry = CapabilityRegistry()
             results = registry.find(context[:200], top_k=3)
             if results:
-                lines = [
-                    f"- {cap.name} ({cap.type}): {cap.description[:80]}"
-                    for cap in results
-                ]
+                lines = [f"- {cap.name} ({cap.type}): {cap.description[:80]}" for cap in results]
                 return "\n".join(lines), 0
         except Exception:
             logger.debug("CapabilityRegistry unavailable; returning input")

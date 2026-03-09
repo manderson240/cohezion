@@ -10,7 +10,6 @@ Tests verify:
 - >80% target hit rates
 """
 
-
 import pytest
 
 from cohezion.swarm.multi_layer_cache import (
@@ -327,8 +326,8 @@ class TestMultiLayerCache:
         # Simulate 100 requests with 85 hits
         for i in range(100):
             if i < 85:
-                cache.put(f"p{i%17}", f"r{i%17}", 10, 10)
-                cache.get(f"p{i%17}")
+                cache.put(f"p{i % 17}", f"r{i % 17}", 10, 10)
+                cache.get(f"p{i % 17}")
             else:
                 cache.get(f"p_miss_{i}")
 
@@ -517,7 +516,7 @@ class TestCacheIntegration:
         prompts = [
             "Analyze this code: def foo(): pass",
             "Analyze this code: def foo(): pass",  # Repeat
-            "Analyze this code: def bar(): pass",   # Similar
+            "Analyze this code: def bar(): pass",  # Similar
             "Generate a poem about AI",
             "Generate a poem about AI",  # Repeat
         ]
@@ -537,7 +536,7 @@ class TestCacheIntegration:
 
         # Pattern: 20% unique, 80% repeated
         unique_prompts = [f"unique_{i}" for i in range(20)]
-        repeated = [f"repeated_{i%5}" for i in range(80)]
+        repeated = [f"repeated_{i % 5}" for i in range(80)]
 
         all_prompts = unique_prompts + repeated
 

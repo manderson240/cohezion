@@ -25,12 +25,8 @@ class ConstitutionalShield:
     """
 
     def __init__(self, teacher_model: str = "claude-3-5-sonnet"):
-        self.constitution_path = (
-            "/home/mike-anderson/dev/cohezion/.agent/CONSTITUTION.md"
-        )
-        self.charter_path = (
-            "/home/mike-anderson/dev/cohezion/.agent/COHEZION_CHARTER.md"
-        )
+        self.constitution_path = "/home/mike-anderson/dev/cohezion/.agent/CONSTITUTION.md"
+        self.charter_path = "/home/mike-anderson/dev/cohezion/.agent/COHEZION_CHARTER.md"
         self.teacher_model = teacher_model
         self.db = SurrealClient()
         self._constitution_cache: str | None = None
@@ -133,9 +129,7 @@ if __name__ == "__main__":
         equilibrium = ManifoldEquilibrium()
 
         # Test 1: Shield Audit
-        audit = await shield.audit_output(
-            "Nexus-1", "Implementing VLIW kernel for 60x speedup."
-        )
+        audit = await shield.audit_output("Nexus-1", "Implementing VLIW kernel for 60x speedup.")
         print(f"Audit Verdict: {audit['verdict']} (Score: {audit['alignment_score']})")
 
         # Test 2: Equilibrium Check

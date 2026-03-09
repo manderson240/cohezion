@@ -102,9 +102,7 @@ class BatchSimulationRunner:
             safe_batch = self.guard.safe_batch_size(batch_size, z_dim)
 
             # Epochs in this chunk
-            epochs_this_chunk = min(
-                checkpoint_interval, total_epochs - epochs_completed
-            )
+            epochs_this_chunk = min(checkpoint_interval, total_epochs - epochs_completed)
 
             # Process agents in memory-bounded batches
             evolved_parts: list[np.ndarray] = []
@@ -115,9 +113,7 @@ class BatchSimulationRunner:
                 if self.trained_navigator is not None:
                     evolved = self._navigate_with_policy(batch, epochs_this_chunk)
                 elif cfg.use_navigator:
-                    evolved = physics.simulate_epochs_navigated(
-                        batch, epochs_this_chunk
-                    )
+                    evolved = physics.simulate_epochs_navigated(batch, epochs_this_chunk)
                 else:
                     evolved = physics.simulate_epochs_batch(batch, epochs_this_chunk)
                 evolved_parts.append(np.asarray(evolved))

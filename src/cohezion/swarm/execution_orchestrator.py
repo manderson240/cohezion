@@ -119,9 +119,7 @@ def _topological_sort(tasks: list[TaskSpec]) -> list[list[TaskSpec]]:
     while remaining:
         # Find tasks whose dependencies are all satisfied
         ready = [
-            tid
-            for tid in remaining
-            if all(dep in completed for dep in task_map[tid].blocked_by)
+            tid for tid in remaining if all(dep in completed for dep in task_map[tid].blocked_by)
         ]
         if not ready:
             # Break cycle: force remaining tasks into one wave
@@ -307,8 +305,7 @@ class ExecutionOrchestrator:
             if spec is None:
                 for skill_spec in engine._cache.values():
                     if any(
-                        kw.lower() in task.subject.lower()
-                        for kw in skill_spec.name.split("_")[:3]
+                        kw.lower() in task.subject.lower() for kw in skill_spec.name.split("_")[:3]
                     ):
                         spec = skill_spec
                         break

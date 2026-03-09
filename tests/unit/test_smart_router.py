@@ -3,21 +3,19 @@
 from __future__ import annotations
 
 import json
-import time
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from cohezion.swarm.smart_router import (
+    LOCAL_MODELS,
+    TASK_REQUIREMENTS,
     AgentAction,
     ModelCapability,
     ModelProfile,
     RoutingDecision,
     SmartRouter,
     TaskType,
-    TASK_REQUIREMENTS,
-    LOCAL_MODELS,
 )
 
 
@@ -111,9 +109,7 @@ class TestClassifyTask:
     def test_coding(self):
         assert self.router.classify_task("implement a function") == TaskType.CODING
         assert self.router.classify_task("debug this code") == TaskType.CODING
-        assert (
-            self.router.classify_task("write a function for sorting") == TaskType.CODING
-        )
+        assert self.router.classify_task("write a function for sorting") == TaskType.CODING
 
     def test_factual(self):
         assert self.router.classify_task("verify this fact") == TaskType.FACTUAL
@@ -121,10 +117,7 @@ class TestClassifyTask:
 
     def test_debate(self):
         assert self.router.classify_task("debate the merits") == TaskType.DEBATE
-        assert (
-            self.router.classify_task("different perspective on this")
-            == TaskType.DEBATE
-        )
+        assert self.router.classify_task("different perspective on this") == TaskType.DEBATE
         assert self.router.classify_task("argue for and against") == TaskType.DEBATE
 
     def test_summary(self):
@@ -133,9 +126,7 @@ class TestClassifyTask:
         assert self.router.classify_task("tldr of this document") == TaskType.SUMMARY
 
     def test_default_is_analysis(self):
-        assert (
-            self.router.classify_task("something random entirely") == TaskType.ANALYSIS
-        )
+        assert self.router.classify_task("something random entirely") == TaskType.ANALYSIS
 
 
 # ---------------------------------------------------------------------------

@@ -1,8 +1,10 @@
 import tiktoken
 
+
 def estimate_tokens(text: str, model="gpt-4"):
     enc = tiktoken.encoding_for_model(model)
     return len(enc.encode(text))
+
 
 # Scenario: Searching for a skill and reading its content
 manual_prompt = """
@@ -25,7 +27,7 @@ t2 = estimate_tokens(mcp_tool_call)
 
 print(f"Manual Orchestration Baseline: ~{t1} tokens")
 print(f"MCP Tool-Based Orchestration: ~{t2} tokens")
-print(f"Token Reduction: {((t1-t2)/t1)*100:.1f}%")
+print(f"Token Reduction: {((t1 - t2) / t1) * 100:.1f}%")
 
 # Scenario 2: Complex Graph Traversal in SurrealDB
 manual_sql_code = """
@@ -50,4 +52,4 @@ t4 = estimate_tokens(mcp_sql_call)
 
 print(f"\nManual DB Client Code: ~{t3} tokens")
 print(f"MCP DB Tool Call: ~{t4} tokens")
-print(f"Token Reduction: {((t3-t4)/t3)*100:.1f}%")
+print(f"Token Reduction: {((t3 - t4) / t3) * 100:.1f}%")

@@ -51,8 +51,12 @@ class Splitter:
 
         # Start with docstring if exists
         first_node = self.tree.body[0] if self.tree.body else None
-        if isinstance(first_node, ast.Expr) and isinstance(first_node.value, ast.Constant) and isinstance(first_node.value.value, str):
-             remaining_source_parts.append(f'"""{first_node.value.value}"""')
+        if (
+            isinstance(first_node, ast.Expr)
+            and isinstance(first_node.value, ast.Constant)
+            and isinstance(first_node.value.value, str)
+        ):
+            remaining_source_parts.append(f'"""{first_node.value.value}"""')
 
         remaining_source_parts.extend(import_lines)
 
@@ -76,7 +80,12 @@ class Splitter:
 
                 item_seg = ast.get_source_segment(self.source, item)
                 if item_seg:
-                    content = "from __future__ import annotations\n\n" + "\n".join(import_lines) + "\n\n" + item_seg
+                    content = (
+                        "from __future__ import annotations\n\n"
+                        + "\n".join(import_lines)
+                        + "\n\n"
+                        + item_seg
+                    )
                     new_files[new_path] = content
                     split_names.append(item.name)
                     print(f"  -> Target: {new_path} ({item_len} lines)")
@@ -87,7 +96,8 @@ class Splitter:
 
         for node in other_nodes:
             # Skip the docstring which we already added
-            if node == first_node: continue
+            if node == first_node:
+                continue
             seg = ast.get_source_segment(self.source, node)
             if seg:
                 remaining_source_parts.append(seg)
@@ -104,13 +114,16 @@ class Splitter:
                 # Find which file it went to
                 for p in new_files:
                     if item_name.lower() in p.name:
-                        remaining_source_parts.insert(len(import_lines) + 1, f"from . {p.stem} import {item_name}")
+                        remaining_source_parts.insert(
+                            len(import_lines) + 1, f"from . {p.stem} import {item_name}"
+                        )
                         break
 
             self.path.write_text("\n\n".join(remaining_source_parts))
             print(f"  Updated {self.path}")
         else:
             print(f"  DRY RUN: Would create {len(new_files)} files and update {self.path}")
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

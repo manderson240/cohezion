@@ -61,9 +61,7 @@ class TestDebateRound:
                 vote=VoteValue.STRONGLY_AGREE,
                 reasoning="good",
             ),
-            AgentVote(
-                role=AgentRole.BUILDER, vote=VoteValue.STRONGLY_AGREE, reasoning="great"
-            ),
+            AgentVote(role=AgentRole.BUILDER, vote=VoteValue.STRONGLY_AGREE, reasoning="great"),
         ]
         dr = DebateRound(round_number=1, topic="test", proposals={}, votes=votes)
         consensus, score = dr.calculate_consensus()

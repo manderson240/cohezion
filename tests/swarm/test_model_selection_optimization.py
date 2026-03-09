@@ -4,11 +4,12 @@ Tests the decision-making process for selecting between phi3, qwen, and deepseek
 """
 
 import pytest
+
+from cohezion.cost_optimization.cost_tracker import SessionCostTracker
 from cohezion.swarm.cost_aware_router import (
     CostAwareRouter,
     QueryComplexity,
 )
-from cohezion.cost_optimization.cost_tracker import SessionCostTracker
 
 
 class TestModelSelectionOptimization:
@@ -60,7 +61,9 @@ class TestModelSelectionOptimization:
         for query in complex_queries:
             decision, _ = router.select_model(query)
             # Complex queries may optimize to qwen or phi3 if TPS/latency acceptable
-            assert decision.model in ["deepseek-r1:8b", "qwen3-coder:32b", "phi3:mini"], f"Failed for: {query}"
+            assert decision.model in ["deepseek-r1:8b", "qwen3-coder:32b", "phi3:mini"], (
+                f"Failed for: {query}"
+            )
 
     def test_complexity_analysis_drives_base_selection(self, router):
         """Test that query complexity correctly determines base model selection."""

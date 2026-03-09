@@ -11,6 +11,7 @@ from cohezion.core.persistence.surreal_client import get_surreal_client
 
 logger = logging.getLogger(__name__)
 
+
 class JourneyPersistence:
     """
     Handles persistence of high-frequency mission trajectories.
@@ -26,18 +27,20 @@ class JourneyPersistence:
         self.current_buffer: list[dict[str, Any]] = []
 
         # Define features for trajectory consistency (12D Flume support)
-        self.features = Features({
-            "timestamp": Value("string"),
-            "mission_id": Value("string"),
-            "agent_id": Value("string"),
-            "skill_name": Value("string"),
-            "input_preview": Value("string"),
-            "output_preview": Value("string"),
-            "phi_score": Value("float32"),
-            "novelty": Value("float32"),
-            "flume_version": Value("string"),
-            "state_trajectory": Sequence(Sequence(Value("float32"))), # 12D vectors
-        })
+        self.features = Features(
+            {
+                "timestamp": Value("string"),
+                "mission_id": Value("string"),
+                "agent_id": Value("string"),
+                "skill_name": Value("string"),
+                "input_preview": Value("string"),
+                "output_preview": Value("string"),
+                "phi_score": Value("float32"),
+                "novelty": Value("float32"),
+                "flume_version": Value("string"),
+                "state_trajectory": Sequence(Sequence(Value("float32"))),  # 12D vectors
+            }
+        )
 
     @property
     def db(self):
@@ -72,7 +75,9 @@ class JourneyPersistence:
                 await self.db.query(f"UPSERT {record_id} CONTENT $data", {"data": data})
                 logger.debug(f"Persisted mission journey to Surreal: {mission_id}")
             except Exception as e:
-                logger.error(f"SurrealDB persistence failed for mission {data.get('mission_id')}: {e}")
+                logger.error(
+                    f"SurrealDB persistence failed for mission {data.get('mission_id')}: {e}"
+                )
 
     async def _flush_to_parquet(self):
         """Persist current buffer to a sharded Parquet file."""
@@ -107,6 +112,7 @@ class JourneyPersistence:
             self.current_buffer = []
         except Exception as e:
             logger.error(f"❌ Failed to flush mission journey to Parquet: {e}")
+
 
 def get_journey_persistence() -> JourneyPersistence:
     return JourneyPersistence()

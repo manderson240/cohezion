@@ -103,10 +103,7 @@ class ExecutionConstraint:
 
     def __repr__(self) -> str:
         """String representation."""
-        return (
-            f"Constraint({self.type.value}: {self.value}{self.unit}, "
-            f"hard={self.is_hard})"
-        )
+        return f"Constraint({self.type.value}: {self.value}{self.unit}, hard={self.is_hard})"
 
 
 @dataclass

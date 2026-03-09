@@ -128,9 +128,7 @@ class TaskQueue:
             True if successfully enqueued, False if queue full
         """
         if self.is_full():
-            logger.warning(
-                f"Queue full ({self.size()} tasks), dropping task {task.task_id}"
-            )
+            logger.warning(f"Queue full ({self.size()} tasks), dropping task {task.task_id}")
             return False
 
         # Add to appropriate priority queue
@@ -144,9 +142,7 @@ class TaskQueue:
         # Update metrics
         self.metrics.total_enqueued += 1
         self.metrics.current_depth = self.size()
-        self.metrics.max_depth_seen = max(
-            self.metrics.max_depth_seen, self.metrics.current_depth
-        )
+        self.metrics.max_depth_seen = max(self.metrics.max_depth_seen, self.metrics.current_depth)
 
         logger.debug(
             f"Enqueued task {task.task_id} "
@@ -174,8 +170,7 @@ class TaskQueue:
                 # Check expiry
                 if task.has_expired():
                     logger.debug(
-                        f"Task {task.task_id} expired after "
-                        f"{time.time() - task.enqueued_at:.1f}s"
+                        f"Task {task.task_id} expired after {time.time() - task.enqueued_at:.1f}s"
                     )
                     self.metrics.total_expired += 1
                     continue
@@ -265,10 +260,7 @@ class TaskQueue:
         self.metrics.total_flushed += flushed
         self.metrics.current_depth = self.size()
 
-        logger.warning(
-            f"Flushed {flushed} tasks "
-            f"(priority < {priority_threshold.name})"
-        )
+        logger.warning(f"Flushed {flushed} tasks (priority < {priority_threshold.name})")
 
         return flushed
 
@@ -297,11 +289,7 @@ class TaskQueue:
         int
             Number of tasks in queue
         """
-        return (
-            len(self._critical_queue)
-            + len(self._normal_queue)
-            + len(self._low_queue)
-        )
+        return len(self._critical_queue) + len(self._normal_queue) + len(self._low_queue)
 
     def is_empty(self) -> bool:
         """Check if queue is empty.
@@ -371,9 +359,7 @@ class TaskQueue:
                         }
                         f.write(json.dumps(record) + "\n")
 
-            logger.info(
-                f"Persisted {self.size()} tasks to {filepath}"
-            )
+            logger.info(f"Persisted {self.size()} tasks to {filepath}")
             return True
         except Exception as e:
             logger.error(f"Failed to persist queue: {e}")

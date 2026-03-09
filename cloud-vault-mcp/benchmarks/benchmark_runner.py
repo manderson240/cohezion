@@ -7,16 +7,27 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+
 try:
-    from benchmarks import benchmark_ollama_inference, benchmark_sheets_api
-    from benchmarks import benchmark_surrealdb_sync, benchmark_vault_backlinks
-    from benchmarks import benchmark_vault_search, benchmark_vault_search_cache
+    from benchmarks import (
+        benchmark_ollama_inference,
+        benchmark_sheets_api,
+        benchmark_surrealdb_sync,
+        benchmark_vault_backlinks,
+        benchmark_vault_search,
+        benchmark_vault_search_cache,
+    )
 except ImportError:
     # Allow running from project root
     sys.path.insert(0, str(Path(__file__).parent.parent))
-    from benchmarks import benchmark_ollama_inference, benchmark_sheets_api
-    from benchmarks import benchmark_surrealdb_sync, benchmark_vault_backlinks
-    from benchmarks import benchmark_vault_search, benchmark_vault_search_cache
+    from benchmarks import (
+        benchmark_ollama_inference,
+        benchmark_sheets_api,
+        benchmark_surrealdb_sync,
+        benchmark_vault_backlinks,
+        benchmark_vault_search,
+        benchmark_vault_search_cache,
+    )
 
 
 def run_all_benchmarks(output_file: str | None = None) -> dict:

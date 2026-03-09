@@ -170,6 +170,5 @@ class TestTrainingRuns:
         # The environment's Hamiltonian dynamics already push toward HIHO target,
         # so even random achieves decent coherence. Use generous threshold.
         assert trained_mean >= random_mean * 0.9, (
-            f"Trained ({trained_mean:.3f}) should match or beat "
-            f"random ({random_mean:.3f})"
+            f"Trained ({trained_mean:.3f}) should match or beat random ({random_mean:.3f})"
         )

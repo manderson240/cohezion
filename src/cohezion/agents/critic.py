@@ -46,9 +46,7 @@ class CriticAgent(BaseAgent):
             config=config,
         )
 
-    async def process(
-        self, analyst_outputs: list[ThoughtVector], **kwargs: Any
-    ) -> CritiqueResult:
+    async def process(self, analyst_outputs: list[ThoughtVector], **kwargs: Any) -> CritiqueResult:
         """Process analyst outputs and return critique."""
         return await self.critique(analyst_outputs)
 
@@ -113,8 +111,7 @@ RECOMMENDATION:
         sections = []
         for i, output in enumerate(outputs, 1):
             sections.append(
-                f"## Perspective {i}: {output.perspective.value.upper()}\n"
-                f"{output.content}\n"
+                f"## Perspective {i}: {output.perspective.value.upper()}\n{output.content}\n"
             )
         return "\n".join(sections)
 
@@ -174,8 +171,7 @@ RECOMMENDATION:
             contradictions=contradictions,
             logical_issues=logical_issues,
             overall_coherence=coherence,
-            recommendation=recommendation.strip()
-            or "Synthesize perspectives carefully.",
+            recommendation=recommendation.strip() or "Synthesize perspectives carefully.",
         )
 
     def __repr__(self) -> str:

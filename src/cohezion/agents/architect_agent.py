@@ -92,9 +92,7 @@ OUTPUT FORMAT (JSON list of objects):
             report.append(f"### Task: {task.get('title', 'Untitled')}")
             report.append(f"- **ID**: {task.get('id')}")
             report.append(f"- **Agent**: {task.get('suggested_agent')}")
-            report.append(
-                f"- **Dependencies**: {', '.join(task.get('depends_on', [])) or 'None'}"
-            )
+            report.append(f"- **Dependencies**: {', '.join(task.get('depends_on', [])) or 'None'}")
             report.append(f"- **Description**: {task.get('description')}\n")
 
         return "\n".join(report)

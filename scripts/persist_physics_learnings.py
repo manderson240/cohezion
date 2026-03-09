@@ -5,11 +5,14 @@ Run with: python3 scripts/persist_physics_learnings.py
 """
 
 import sys
-sys.path.insert(0, '/home/mike-anderson/dev/cohezion/src')
+
+
+sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
 
 import asyncio
-from datetime import datetime
-from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode, PhysicsState
+
+from cohezion.core.persistence.surreal_client import SurrealClient, UniverseNode
+
 
 async def persist_learnings():
     """Save physics notebook learnings to SurrealDB."""
@@ -41,8 +44,8 @@ Marimo's interactive output triggers terminal stop signal when process tries to 
         metadata={
             "learning_id": 60,
             "title": "Marimo Process Management",
-            "tags": ["marimo", "process_management", "nohup", "terminal"]
-        }
+            "tags": ["marimo", "process_management", "nohup", "terminal"],
+        },
     )
     await db.store_node(node60)
     print("  ✓ Saved Learning 60: Marimo Process Management", flush=True)
@@ -69,8 +72,8 @@ Visual elements (emojis, cards, spacing) enhance retention.""",
         metadata={
             "learning_id": 61,
             "title": "Layperson Physics Communication Pattern",
-            "tags": ["communication", "layperson", "physics", "analogies", "universe_storybook"]
-        }
+            "tags": ["communication", "layperson", "physics", "analogies", "universe_storybook"],
+        },
     )
     await db.store_node(node61)
     print("  ✓ Saved Learning 61: Layperson Physics Communication", flush=True)
@@ -87,23 +90,24 @@ Visual elements (emojis, cards, spacing) enhance retention.""",
                 "mathematical_necessity",
                 "anthropic_selection",
                 "multiverse_selection",
-                "hiho_flume_synthesis"
+                "hiho_flume_synthesis",
             ],
             "key_equations": [
                 "Noether: Symmetry → Conservation",
                 "Least Action: S = ∫L dt",
                 "HIHO: max[C(Ψ,Φ)·(1-C(Ψ,Φ))] at C=0.5",
-                "FLUME: dz/dt = f(z) + ∇C(z)"
+                "FLUME: dz/dt = f(z) + ∇C(z)",
             ],
             "visualization_dimensions": ["Energy", "Coherence", "Stability", "Novelty"],
-            "coherence_final": 0.498
-        }
+            "coherence_final": 0.498,
+        },
     )
     await db.store_node(journey_node)
     print("  ✓ Saved notebook journey record", flush=True)
 
     await db.close()
     print("\n✅ All learnings persisted to SurrealDB!", flush=True)
+
 
 if __name__ == "__main__":
     asyncio.run(persist_learnings())

@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 
 async def sse_endpoint(request):
     """SSE endpoint for MCP protocol (Claude.ai compatible)."""
+
     async def event_generator():
         try:
             # Send initial connection message
@@ -60,19 +61,25 @@ async def tools(request):
     """List available tools."""
     tools_list = await mcp_server.list_tools()
     return StreamingResponse(
-        iter([
-            b"data: " + json.dumps({
-                "type": "tools",
-                "tools": [
+        iter(
+            [
+                b"data: "
+                + json.dumps(
                     {
-                        "name": t.name,
-                        "description": t.description,
-                        "inputSchema": t.inputSchema,
+                        "type": "tools",
+                        "tools": [
+                            {
+                                "name": t.name,
+                                "description": t.description,
+                                "inputSchema": t.inputSchema,
+                            }
+                            for t in tools_list
+                        ],
                     }
-                    for t in tools_list
-                ]
-            }).encode() + b"\n\n"
-        ]),
+                ).encode()
+                + b"\n\n"
+            ]
+        ),
         media_type="text/event-stream",
     )
 

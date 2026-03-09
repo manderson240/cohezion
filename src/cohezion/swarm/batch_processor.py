@@ -67,16 +67,15 @@ class BatchResult:
     @property
     def tokens_saved(self) -> int:
         """Tokens saved from caching."""
-        return sum(item.cache_entry.tokens_used for item in self.items
-                   if item.cached and item.cache_entry)
+        return sum(
+            item.cache_entry.tokens_used for item in self.items if item.cached and item.cache_entry
+        )
 
     @property
     def avg_semantic_confidence(self) -> float:
         """Average confidence of semantic cache hits."""
         confidences = [
-            item.semantic_confidence
-            for item in self.items
-            if item.semantic_confidence is not None
+            item.semantic_confidence for item in self.items if item.semantic_confidence is not None
         ]
         return sum(confidences) / len(confidences) if confidences else 0.0
 
@@ -138,6 +137,7 @@ class BatchProcessor:
             BatchResult with results, metrics, and cache statistics
         """
         import time
+
         start_time = time.time()
 
         # Phase 1: Cache Lookup (O(n) but zero latency)
@@ -169,13 +169,19 @@ class BatchProcessor:
         )
 
         # Phase 1.5: Semantic cache lookup (L2 fuzzy matching) for remaining misses
-        if cache_misses > 0 and hasattr(self.token_client, "semantic_cache") and self.token_client.semantic_cache:
+        if (
+            cache_misses > 0
+            and hasattr(self.token_client, "semantic_cache")
+            and self.token_client.semantic_cache
+        ):
             logger.info("Phase 1.5: Checking L2 semantic cache for %d misses", cache_misses)
             remaining_misses = []
 
             for item, key in cache_misses_list:
                 try:
-                    semantic_hit = await self.token_client.semantic_cache.get(item.prompt, item.system)
+                    semantic_hit = await self.token_client.semantic_cache.get(
+                        item.prompt, item.system
+                    )
                     if semantic_hit:
                         item.cache_entry = CacheEntry(
                             key=key,
@@ -187,7 +193,11 @@ class BatchProcessor:
                         item.cached = True
                         item.semantic_confidence = semantic_hit.confidence
                         semantic_hits += 1
-                        logger.debug("L2 semantic cache hit: %s (confidence=%.3f)", item.id, semantic_hit.confidence)
+                        logger.debug(
+                            "L2 semantic cache hit: %s (confidence=%.3f)",
+                            item.id,
+                            semantic_hit.confidence,
+                        )
                     else:
                         remaining_misses.append((item, key))
                 except Exception as e:
@@ -209,8 +219,7 @@ class BatchProcessor:
             dedup_savings = cache_misses - len(unique_misses)
             if dedup_savings > 0:
                 logger.info(
-                    "Phase 1.5: Batch deduplication found %d duplicate prompts "
-                    "(%.1f%% savings)",
+                    "Phase 1.5: Batch deduplication found %d duplicate prompts (%.1f%% savings)",
                     dedup_savings,
                     100.0 * dedup_savings / cache_misses,
                 )
@@ -232,8 +241,7 @@ class BatchProcessor:
             self._concurrency_semaphore = asyncio.Semaphore(actual_concurrency)
 
             tasks = [
-                self._execute_with_concurrency(item, key, execute_fn)
-                for item, key in unique_misses
+                self._execute_with_concurrency(item, key, execute_fn) for item, key in unique_misses
             ]
 
             results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -273,7 +281,9 @@ class BatchProcessor:
             cache_hits=cache_hits,
             cache_misses=cache_misses,
             total_duration_ms=round(elapsed_ms, 2),
-            parallel_executions=min(len(unique_misses) if cache_misses > 0 else 0, actual_concurrency),
+            parallel_executions=min(
+                len(unique_misses) if cache_misses > 0 else 0, actual_concurrency
+            ),
             semantic_hits=semantic_hits,
         )
 

@@ -238,9 +238,7 @@ class AgentFactory:
         try:
             import importlib
 
-            module = importlib.import_module(
-                f"cohezion.agents.generated.{snake_name}_agent"
-            )
+            module = importlib.import_module(f"cohezion.agents.generated.{snake_name}_agent")
             class_name = "".join(w.capitalize() for w in base.split("_")) + "Agent"
             return getattr(module, class_name, None)  # type: ignore[return-value]
         except Exception:
@@ -272,13 +270,11 @@ class AgentFactory:
         AgentFactory._validate_spec_name(spec.name)
         match = re.search(r"class (\w+)\(", source)
         if not match:
-            raise RuntimeError(
-                f"Could not find class definition in generated stub for {spec.name}"
-            )
+            raise RuntimeError(f"Could not find class definition in generated stub for {spec.name}")
         class_name = match.group(1)
-        source = source.replace(
-            "from cohezion.agents.base import BaseAgent", ""
-        ).replace("(BaseAgent)", f"({_StubAgent.__name__})")
+        source = source.replace("from cohezion.agents.base import BaseAgent", "").replace(
+            "(BaseAgent)", f"({_StubAgent.__name__})"
+        )
         # Restrict builtins to only what's needed for class definition
         namespace: dict[str, Any] = {
             "__builtins__": __builtins__,
@@ -287,9 +283,7 @@ class AgentFactory:
         exec(compile(source, f"<agent:{spec.name}>", "exec"), namespace)  # noqa: S102
         cls = namespace.get(class_name)
         if cls is None:
-            raise RuntimeError(
-                f"Class {class_name} not found after compiling stub for {spec.name}"
-            )
+            raise RuntimeError(f"Class {class_name} not found after compiling stub for {spec.name}")
         return cls
 
     @staticmethod
@@ -299,9 +293,7 @@ class AgentFactory:
         # Extract class name from the source
         match = re.search(r"class (\w+)\(", source)
         if not match:
-            raise RuntimeError(
-                f"Could not find class definition in generated stub for {spec.name}"
-            )
+            raise RuntimeError(f"Could not find class definition in generated stub for {spec.name}")
         class_name = match.group(1)
 
         # Build a namespace with a BaseAgent fallback
@@ -330,7 +322,5 @@ class AgentFactory:
 
         cls = namespace.get(class_name)
         if cls is None:
-            raise RuntimeError(
-                f"Class {class_name} not found after compiling stub for {spec.name}"
-            )
+            raise RuntimeError(f"Class {class_name} not found after compiling stub for {spec.name}")
         return cls

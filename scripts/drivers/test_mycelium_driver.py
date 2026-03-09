@@ -6,6 +6,7 @@ from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.engineering.test_mycelium import TestMycelium
 from cohezion.reliability.monitor import ResourceMonitor
 
+
 logger = logging.getLogger("TestMyceliumDriver")
 
 

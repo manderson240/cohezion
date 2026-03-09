@@ -169,9 +169,7 @@ class DemoGateway:
             "success_rate": round(success_rate, 2),
             "total_tokens": self.metrics.total_tokens,
             "uptime_seconds": round(uptime, 2),
-            "requests_per_minute": round(
-                (self.metrics.total_requests / uptime * 60), 2
-            )
+            "requests_per_minute": round((self.metrics.total_requests / uptime * 60), 2)
             if uptime > 0
             else 0.0,
             "available_models": list(self.MODEL_COSTS.keys()),
@@ -202,9 +200,7 @@ class DemoGateway:
             ],
         }
 
-    def cost_estimate(
-        self, model: str, input_tokens: int, output_tokens: int
-    ) -> dict[str, Any]:
+    def cost_estimate(self, model: str, input_tokens: int, output_tokens: int) -> dict[str, Any]:
         """Estimate cost (simulated for demo)."""
         cost = self._calculate_cost(model, input_tokens, output_tokens)
         return {

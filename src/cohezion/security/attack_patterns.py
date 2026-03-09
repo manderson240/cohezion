@@ -628,9 +628,7 @@ XSS_PATTERNS = [
         "high",
         "Event handler",
     ),
-    AttackPattern(
-        "<svg onload=alert('XSS')>", AttackCategory.XSS, "svg", "high", "SVG injection"
-    ),
+    AttackPattern("<svg onload=alert('XSS')>", AttackCategory.XSS, "svg", "high", "SVG injection"),
     AttackPattern(
         "<body onload=alert('XSS')>",
         AttackCategory.XSS,
@@ -666,9 +664,7 @@ XSS_PATTERNS = [
         "high",
         "Iframe injection",
     ),
-    AttackPattern(
-        "'-alert(1)-'", AttackCategory.XSS, "attribute", "medium", "Attribute escape"
-    ),
+    AttackPattern("'-alert(1)-'", AttackCategory.XSS, "attribute", "medium", "Attribute escape"),
     AttackPattern(
         "<img src=1 onerror=alert(document.cookie)>",
         AttackCategory.XSS,
@@ -781,12 +777,8 @@ COMMAND_INJECTION_PATTERNS = [
         "critical",
         "Semicolon chain",
     ),
-    AttackPattern(
-        "| whoami", AttackCategory.COMMAND_INJECTION, "pipe", "high", "Pipe command"
-    ),
-    AttackPattern(
-        "& dir", AttackCategory.COMMAND_INJECTION, "windows", "high", "Ampersand chain"
-    ),
+    AttackPattern("| whoami", AttackCategory.COMMAND_INJECTION, "pipe", "high", "Pipe command"),
+    AttackPattern("& dir", AttackCategory.COMMAND_INJECTION, "windows", "high", "Ampersand chain"),
     AttackPattern(
         "`id`",
         AttackCategory.COMMAND_INJECTION,
@@ -1069,7 +1061,5 @@ PATTERN_SUMMARY = {
     "categories": len({p.category for p in ALL_PATTERNS}),
     "malicious_patterns": len([p for p in ALL_PATTERNS if p.expected_blocked]),
     "benign_patterns": len([p for p in ALL_PATTERNS if not p.expected_blocked]),
-    "by_category": {
-        cat.value: len(patterns) for cat, patterns in PATTERNS_BY_CATEGORY.items()
-    },
+    "by_category": {cat.value: len(patterns) for cat, patterns in PATTERNS_BY_CATEGORY.items()},
 }

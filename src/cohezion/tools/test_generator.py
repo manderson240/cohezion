@@ -214,7 +214,9 @@ class TestGenerator:
         # Basic test
         if func.is_async:
             lines.append(f"{self.indent}@pytest.mark.asyncio")
-        lines.append(f"{self.indent}def test_{func.name}_basic(self):")
+            lines.append(f"{self.indent}async def test_{func.name}_basic(self):")
+        else:
+            lines.append(f"{self.indent}def test_{func.name}_basic(self):")
         lines.append(
             f'{self.indent}{self.indent}"""[P0] Should execute {func.name} successfully."""'
         )

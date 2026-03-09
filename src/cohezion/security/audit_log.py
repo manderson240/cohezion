@@ -225,9 +225,7 @@ class AuditLogger:
                                 entries.append(entry)
 
                             except Exception as e:
-                                logger.warning(
-                                    "Failed to parse audit log entry: %s", e
-                                )
+                                logger.warning("Failed to parse audit log entry: %s", e)
 
                 except Exception as e:
                     logger.warning("Failed to read audit log file %s: %s", log_file, e)
@@ -315,9 +313,7 @@ class AuditLogger:
                 date_str = log_file.stem.replace("audit_", "")
 
                 try:
-                    file_date = datetime.fromisoformat(date_str).replace(
-                        tzinfo=UTC
-                    )
+                    file_date = datetime.fromisoformat(date_str).replace(tzinfo=UTC)
 
                     if file_date < cutoff_date:
                         log_file.unlink()
@@ -331,9 +327,9 @@ class AuditLogger:
             logger.error("Failed to cleanup audit logs: %s", e)
 
         if deleted_count > 0:
-            logger.info("Cleaned up %d audit logs older than %d days",
-                       deleted_count,
-                       retention_days)
+            logger.info(
+                "Cleaned up %d audit logs older than %d days", deleted_count, retention_days
+            )
 
         return deleted_count
 

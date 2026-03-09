@@ -8,14 +8,14 @@ Tests:
 - Health tracking
 """
 
-import pytest
 import time
-from unittest.mock import Mock
+
+import pytest
 
 from cohezion.swarm.model_fallback_strategy import (
+    CircuitBreakerState,
     ModelCircuitBreaker,
     ModelFallbackStrategy,
-    CircuitBreakerState,
     ModelHealthMetrics,
     get_fallback_strategy,
     reset_fallback_strategy,
@@ -100,9 +100,7 @@ class TestCircuitBreakerStateTransitions:
 
     def test_transition_to_half_open_after_timeout(self):
         """Test transition to HALF_OPEN after recovery timeout."""
-        breaker = ModelCircuitBreaker(
-            "model", error_threshold=1, recovery_timeout_sec=0.1
-        )
+        breaker = ModelCircuitBreaker("model", error_threshold=1, recovery_timeout_sec=0.1)
 
         # Open circuit
         breaker.record_error()
@@ -143,9 +141,7 @@ class TestCircuitBreakerStateTransitions:
 
     def test_error_rate_threshold(self):
         """Test that consecutive error threshold takes precedence."""
-        breaker = ModelCircuitBreaker(
-            "model", error_threshold=2, error_rate_threshold=0.5
-        )
+        breaker = ModelCircuitBreaker("model", error_threshold=2, error_rate_threshold=0.5)
 
         # Record 2 errors → hits consecutive error threshold first
         breaker.record_error()
@@ -360,9 +356,7 @@ class TestFallbackIntegration:
 
     def test_complete_failure_and_recovery_cycle(self):
         """Test complete failure and recovery cycle."""
-        strategy = ModelFallbackStrategy(
-            error_threshold=2, recovery_timeout_sec=0.1
-        )
+        strategy = ModelFallbackStrategy(error_threshold=2, recovery_timeout_sec=0.1)
 
         model = "unreliable-model"
 

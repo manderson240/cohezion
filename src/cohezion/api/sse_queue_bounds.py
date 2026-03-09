@@ -102,9 +102,7 @@ def create_bounded_queue(maxsize: int = 1000) -> BoundedAsyncQueue:
     return BoundedAsyncQueue(maxsize=maxsize)
 
 
-async def safe_queue_put(
-    queue: asyncio.Queue, item: Any, max_retries: int = 3
-) -> bool:
+async def safe_queue_put(queue: asyncio.Queue, item: Any, max_retries: int = 3) -> bool:
     """
     Safely put item in queue with retries.
 
@@ -122,11 +120,9 @@ async def safe_queue_put(
             return True
         except asyncio.QueueFull:
             if attempt < max_retries - 1:
-                await asyncio.sleep(0.01 * (2 ** attempt))  # Exponential backoff
+                await asyncio.sleep(0.01 * (2**attempt))  # Exponential backoff
             else:
-                logger.warning(
-                    f"Failed to queue item after {max_retries} retries (queue full)"
-                )
+                logger.warning(f"Failed to queue item after {max_retries} retries (queue full)")
                 return False
 
     return False

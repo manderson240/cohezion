@@ -1,11 +1,13 @@
+import asyncio
 import logging
+import os
 import random
 import time
-import os
-import asyncio
 from typing import Any
+
 import requests
 from aiohttp import web
+
 
 logger = logging.getLogger(__name__)
 

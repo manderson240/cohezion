@@ -15,6 +15,7 @@ from cohezion.core.persistence.surreal_client import SurrealClient
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class CodePattern:
     name: str
@@ -31,6 +32,7 @@ class CodePattern:
     sync_status: str = "pending"
     metadata: dict[str, Any] = field(default_factory=dict)
     embedding: list[float] | None = None
+
 
 @dataclass
 class CodeAntiPattern:
@@ -52,17 +54,14 @@ class CodeAntiPattern:
     metadata: dict[str, Any] = field(default_factory=dict)
     embedding: list[float] | None = None
 
+
 class PatternRepository:
     """
     Handles persistence of patterns and anti-patterns.
     Uses a local write-buffer (.pattern_buffer.json) for reliability.
     """
 
-    def __init__(
-        self,
-        client: SurrealClient,
-        buffer_path: str = ".pattern_buffer.json"
-    ) -> None:
+    def __init__(self, client: SurrealClient, buffer_path: str = ".pattern_buffer.json") -> None:
         self.client = client
         self.buffer_path = Path(buffer_path)
         self._load_buffer()

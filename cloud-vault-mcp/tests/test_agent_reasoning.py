@@ -6,8 +6,9 @@ Tests the three new MCP tools:
 - record_cascade: Insert relates_to_decision edges
 """
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from src.mcp_server.agent_reasoning import AgentReasoningOps
 
@@ -210,7 +211,9 @@ class TestRecordChallenge:
 
     def test_record_challenge_lesson_not_found(self, mock_db, reasoning_ops):
         """Test challenge when lesson doesn't exist."""
-        mock_db.set_response("SELECT id FROM agent_decision", [{"id": "agent_decision:test"}])
+        mock_db.set_response(
+            "SELECT id FROM agent_decision", [{"id": "agent_decision:test"}]
+        )
         mock_db.set_response("SELECT id FROM lesson", [])
 
         result = reasoning_ops.record_challenge(
@@ -302,6 +305,7 @@ class TestRecordCascade:
 
     def test_record_cascade_source_not_found(self, mock_db, reasoning_ops):
         """Test cascade when source decision doesn't exist."""
+
         # Set up responses: source check returns empty, dependent check returns success
         def response_handler(query):
             if "agent_decision:nonexistent" in query:
@@ -321,6 +325,7 @@ class TestRecordCascade:
 
     def test_record_cascade_dependent_not_found(self, mock_db, reasoning_ops):
         """Test cascade when dependent decision doesn't exist."""
+
         # Set up responses: source check returns success, dependent check returns empty
         def response_handler(query):
             if "agent_decision:nonexistent" in query:
@@ -453,7 +458,9 @@ class TestQueryGeneration:
         )
 
         # Verify RELATE query was executed
-        relate_queries = [q for q in mock_db.queries if "RELATE" in q and "challenges_lesson" in q]
+        relate_queries = [
+            q for q in mock_db.queries if "RELATE" in q and "challenges_lesson" in q
+        ]
         assert len(relate_queries) > 0
 
         relate_query = relate_queries[0]
@@ -475,7 +482,9 @@ class TestQueryGeneration:
         )
 
         # Verify RELATE query was executed
-        relate_queries = [q for q in mock_db.queries if "RELATE" in q and "relates_to_decision" in q]
+        relate_queries = [
+            q for q in mock_db.queries if "RELATE" in q and "relates_to_decision" in q
+        ]
         assert len(relate_queries) > 0
 
         relate_query = relate_queries[0]

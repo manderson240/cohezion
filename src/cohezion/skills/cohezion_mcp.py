@@ -11,9 +11,7 @@ from typing import Any
 
 
 # Add project root to path to allow importing cohezion modules
-project_root = (
-    os.environ.get("COHEZION_ROOT", "/home/mike-anderson/dev/cohezion") + "/src"
-)
+project_root = os.environ.get("COHEZION_ROOT", "/home/mike-anderson/dev/cohezion") + "/src"
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
@@ -45,16 +43,12 @@ class CohezionMCP:
             os.environ.get("COHEZION_ROOT", "/home/mike-anderson/dev/cohezion")
             + "/src/cohezion/registry/workflow_registry.json"
         )
-        self.knowledge_graph_path = (
-            "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph"
-        )
+        self.knowledge_graph_path = "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph"
         self.model_registry_path = (
             os.environ.get("COHEZION_ROOT", "/home/mike-anderson/dev/cohezion")
             + "/model_registry.json"
         )
-        self.compound_config_path = (
-            "/home/mike-anderson/.config/opencode/compound_engineering.json"
-        )
+        self.compound_config_path = "/home/mike-anderson/.config/opencode/compound_engineering.json"
 
         self.skills = self._load_json(self.skill_registry_path)
         self.workflows = self._load_json(self.workflow_registry_path)
@@ -85,9 +79,7 @@ class CohezionMCP:
                 content = f.read()
                 # Simple comment stripping
                 lines = content.splitlines()
-                clean_lines = [
-                    l for l in lines if not l.strip().startswith(("#", "//"))
-                ]
+                clean_lines = [l for l in lines if not l.strip().startswith(("#", "//"))]
                 return json.loads("\n".join(clean_lines))
         except Exception as e:
             sys.stderr.write(f"Error loading {path}: {e}\n")
@@ -640,15 +632,11 @@ class CohezionMCP:
         elif name == "daily_scout_research":
             return self.daily_scout_research(arguments)
         elif name == "offload_task":
-            return self.offload_task(
-                arguments.get("query", ""), arguments.get("system_prompt")
-            )
+            return self.offload_task(arguments.get("query", ""), arguments.get("system_prompt"))
         elif name.startswith("skill_"):
             skill_id = name.replace("skill_", "").upper()
             # Try to find the exact case match in self.skills
-            match = next(
-                (s for s in self.skills if s.lower() == skill_id.lower()), None
-            )
+            match = next((s for s in self.skills if s.lower() == skill_id.lower()), None)
             if match:
                 inputs = arguments.get("inputs", {})
                 return self.execute_skill(match, inputs)
@@ -663,11 +651,7 @@ class CohezionMCP:
             output_format = args.get("output_format", "structured")
 
             if not image_path:
-                return {
-                    "content": [
-                        {"type": "text", "text": "Error: image_path is required"}
-                    ]
-                }
+                return {"content": [{"type": "text", "text": "Error: image_path is required"}]}
 
             # Construct OCR prompt based on analysis type
             ocr_prompts = {
@@ -719,11 +703,7 @@ class CohezionMCP:
 
             res = subprocess.run(cmd, capture_output=True, text=True)
             if res.returncode != 0:
-                return {
-                    "content": [
-                        {"type": "text", "text": f"OCR API call failed: {res.stderr}"}
-                    ]
-                }
+                return {"content": [{"type": "text", "text": f"OCR API call failed: {res.stderr}"}]}
 
             result = json.loads(res.stdout)
             ocr_result = result.get("response", "")
@@ -739,16 +719,10 @@ class CohezionMCP:
 
             final_result = {"ocr_result": ocr_result, "metadata": metadata}
 
-            return {
-                "content": [
-                    {"type": "text", "text": json.dumps(final_result, indent=2)}
-                ]
-            }
+            return {"content": [{"type": "text", "text": json.dumps(final_result, indent=2)}]}
 
         except Exception as e:
-            return {
-                "content": [{"type": "text", "text": f"Elite OCR analysis failed: {e}"}]
-            }
+            return {"content": [{"type": "text", "text": f"Elite OCR analysis failed: {e}"}]}
 
     def agentic_coding_workflow(self, args: dict[str, Any]) -> dict[str, Any]:
         """Agentic coding workflow using Qwen3-Coder-Next with elite performance"""
@@ -761,9 +735,7 @@ class CohezionMCP:
 
             if not task_description:
                 return {
-                    "content": [
-                        {"type": "text", "text": "Error: task_description is required"}
-                    ]
+                    "content": [{"type": "text", "text": "Error: task_description is required"}]
                 }
 
             # Select optimal model based on complexity
@@ -774,9 +746,7 @@ class CohezionMCP:
                 "enterprise": "qwen3-coder-next:q8_0",
             }
 
-            selected_model = model_mapping.get(
-                complexity_level, "qwen3-coder-next:latest"
-            )
+            selected_model = model_mapping.get(complexity_level, "qwen3-coder-next:latest")
 
             # Build comprehensive coding prompt
             coding_prompts = {
@@ -803,9 +773,7 @@ Complexity: {complexity_level}
                             content = f.read()
                         base_prompt += f"\n--- {file_path} ---\n{content}\n"
                     except Exception as e:
-                        base_prompt += (
-                            f"\n--- {file_path} ---\nError reading file: {e}\n"
-                        )
+                        base_prompt += f"\n--- {file_path} ---\nError reading file: {e}\n"
 
             # Add system prompt for agentic behavior
             system_prompt = f"""
@@ -876,18 +844,10 @@ Generate production-ready, maintainable code that follows industry standards.
 
             final_result = {"coding_solution": coding_result, "metadata": metadata}
 
-            return {
-                "content": [
-                    {"type": "text", "text": json.dumps(final_result, indent=2)}
-                ]
-            }
+            return {"content": [{"type": "text", "text": json.dumps(final_result, indent=2)}]}
 
         except Exception as e:
-            return {
-                "content": [
-                    {"type": "text", "text": f"Agentic coding workflow failed: {e}"}
-                ]
-            }
+            return {"content": [{"type": "text", "text": f"Agentic coding workflow failed: {e}"}]}
 
     def compound_engineering_orchestrator(self, args: dict[str, Any]) -> dict[str, Any]:
         """Orchestrate compound engineering workflows with elite models"""
@@ -975,9 +935,7 @@ Generate production-ready, maintainable code that follows industry standards.
             }
 
             return {
-                "content": [
-                    {"type": "text", "text": json.dumps(orchestration_result, indent=2)}
-                ]
+                "content": [{"type": "text", "text": json.dumps(orchestration_result, indent=2)}]
             }
 
         except Exception as e:
@@ -1003,27 +961,18 @@ Generate production-ready, maintainable code that follows industry standards.
             # Filter models by task specialization and memory constraints
             candidates = []
             for model_id, model_info in models.items():
-                if (
-                    task_type in model_info.get("specialization", "")
-                    or task_type in model_id
-                ):
+                if task_type in model_info.get("specialization", "") or task_type in model_id:
                     model_memory = model_info.get("memory", 0)
                     if model_memory <= memory_available:
                         candidates.append((model_id, model_info))
 
             # Sort by priority and performance
             if performance_priority == "accuracy":
-                candidates.sort(
-                    key=lambda x: (-x[1].get("priority", 99), x[1].get("memory", 999))
-                )
+                candidates.sort(key=lambda x: (-x[1].get("priority", 99), x[1].get("memory", 999)))
             elif performance_priority == "memory-efficiency":
-                candidates.sort(
-                    key=lambda x: (x[1].get("memory", 999), -x[1].get("priority", 99))
-                )
+                candidates.sort(key=lambda x: (x[1].get("memory", 999), -x[1].get("priority", 99)))
             else:  # balanced
-                candidates.sort(
-                    key=lambda x: (x[1].get("priority", 99), x[1].get("memory", 999))
-                )
+                candidates.sort(key=lambda x: (x[1].get("priority", 99), x[1].get("memory", 999)))
 
             recommended_model = candidates[0][0] if candidates else "phi4-256k:latest"
 
@@ -1041,18 +990,10 @@ Generate production-ready, maintainable code that follows industry standards.
                 },
             }
 
-            return {
-                "content": [
-                    {"type": "text", "text": json.dumps(selection_result, indent=2)}
-                ]
-            }
+            return {"content": [{"type": "text", "text": json.dumps(selection_result, indent=2)}]}
 
         except Exception as e:
-            return {
-                "content": [
-                    {"type": "text", "text": f"Elite model selection failed: {e}"}
-                ]
-            }
+            return {"content": [{"type": "text", "text": f"Elite model selection failed: {e}"}]}
 
     def performance_benchmark(self, args: dict[str, Any]) -> dict[str, Any]:
         """Benchmark elite models and generate performance reports"""
@@ -1061,9 +1002,7 @@ Generate production-ready, maintainable code that follows industry standards.
                 "models",
                 ["qwen3-coder-next:q8_0", "qwen3-coder-next:latest", "glm-ocr:latest"],
             )
-            benchmark_types = args.get(
-                "benchmark_types", ["inference-speed", "memory-usage"]
-            )
+            benchmark_types = args.get("benchmark_types", ["inference-speed", "memory-usage"])
             iterations = args.get("iterations", 3)
 
             benchmark_results = {}
@@ -1113,11 +1052,7 @@ Generate production-ready, maintainable code that follows industry standards.
             return {"content": [{"type": "text", "text": json.dumps(report, indent=2)}]}
 
         except Exception as e:
-            return {
-                "content": [
-                    {"type": "text", "text": f"Performance benchmark failed: {e}"}
-                ]
-            }
+            return {"content": [{"type": "text", "text": f"Performance benchmark failed: {e}"}]}
 
     def resolve_claims(self, text: str) -> dict[str, Any]:
         if not self.resolver:
@@ -1176,15 +1111,9 @@ Generate production-ready, maintainable code that follows industry standards.
             ]
         }
 
-    def offload_task(
-        self, query: str, system_prompt: str | None = None
-    ) -> dict[str, Any]:
+    def offload_task(self, query: str, system_prompt: str | None = None) -> dict[str, Any]:
         if not self.offloader:
-            return {
-                "content": [
-                    {"type": "text", "text": "Error: OffloadManager not available"}
-                ]
-            }
+            return {"content": [{"type": "text", "text": "Error: OffloadManager not available"}]}
 
         recommendation = self.offloader.get_offload_recommendation(query)
         if not recommendation["offload"]:
@@ -1225,9 +1154,7 @@ Generate production-ready, maintainable code that follows industry standards.
 
             res = subprocess.run(cmd, capture_output=True, text=True)
             if res.returncode != 0:
-                return {
-                    "content": [{"type": "text", "text": f"Curl failed: {res.stderr}"}]
-                }
+                return {"content": [{"type": "text", "text": f"Curl failed: {res.stderr}"}]}
 
             try:
                 res_json = json.loads(res.stdout)
@@ -1243,9 +1170,7 @@ Generate production-ready, maintainable code that follows industry standards.
                     ]
                 }
         except Exception as e:
-            return {
-                "content": [{"type": "text", "text": f"Offload execution failed: {e}"}]
-            }
+            return {"content": [{"type": "text", "text": f"Offload execution failed: {e}"}]}
 
     def batch_offload(
         self, tasks: list[dict[str, Any]], model: str | None = None
@@ -1290,9 +1215,7 @@ Generate production-ready, maintainable code that follows industry standards.
             res_text = res_json.get("response", "")
 
             results = batch_mgr.parse_batch_response(res_text)
-            return {
-                "content": [{"type": "text", "text": json.dumps(results, indent=2)}]
-            }
+            return {"content": [{"type": "text", "text": json.dumps(results, indent=2)}]}
         except Exception as e:
             return {"content": [{"type": "text", "text": f"Batch offload failed: {e}"}]}
 
@@ -1313,9 +1236,7 @@ Generate production-ready, maintainable code that follows industry standards.
             speed = args.get("speed", 1.0)
 
             if not text:
-                return {
-                    "content": [{"type": "text", "text": "Error: text is required"}]
-                }
+                return {"content": [{"type": "text", "text": "Error: text is required"}]}
 
             # Import pocket-tts
             try:
@@ -1352,19 +1273,11 @@ Generate production-ready, maintainable code that follows industry standards.
             }
 
         except Exception as e:
-            return {
-                "content": [
-                    {"type": "text", "text": f"Pocket TTS generation failed: {e}"}
-                ]
-            }
+            return {"content": [{"type": "text", "text": f"Pocket TTS generation failed: {e}"}]}
 
     def execute_skill(self, skill_name: str, inputs: dict[str, Any]) -> dict[str, Any]:
         if skill_name not in self.skills:
-            return {
-                "content": [
-                    {"type": "text", "text": f"Error: Skill '{skill_name}' not found"}
-                ]
-            }
+            return {"content": [{"type": "text", "text": f"Error: Skill '{skill_name}' not found"}]}
         skill = self.skills[skill_name]
         skill_path_rel = skill.get("path")
         if not skill_path_rel:
@@ -1394,16 +1307,10 @@ Generate production-ready, maintainable code that follows industry standards.
             with open(skill_path) as f:
                 return {"content": [{"type": "text", "text": f.read()}]}
         except Exception as e:
-            return {
-                "content": [{"type": "text", "text": f"Error executing skill: {e}"}]
-            }
+            return {"content": [{"type": "text", "text": f"Error executing skill: {e}"}]}
 
     def get_compound_config(self) -> dict[str, Any]:
-        vitals = (
-            self.monitor.get_vitals()
-            if self.monitor
-            else {"status": "monitor_not_available"}
-        )
+        vitals = self.monitor.get_vitals() if self.monitor else {"status": "monitor_not_available"}
         return {
             "content": [
                 {
@@ -1420,9 +1327,7 @@ Generate production-ready, maintainable code that follows industry standards.
             ]
         }
 
-    def select_model(
-        self, task_type: str, complexity: int, context_needs: int
-    ) -> dict[str, Any]:
+    def select_model(self, task_type: str, complexity: int, context_needs: int) -> dict[str, Any]:
         models = self.model_registry.get("models", {})
 
         # Pre-flight check: which models are actually in Ollama?
@@ -1469,9 +1374,7 @@ Generate production-ready, maintainable code that follows industry standards.
                 "phi4-256k",
                 "phi4-mini",
             ]
-            recommended = next(
-                (m for m in fallback_order if m in installed_models), "phi4-mini"
-            )
+            recommended = next((m for m in fallback_order if m in installed_models), "phi4-mini")
 
         return {
             "content": [

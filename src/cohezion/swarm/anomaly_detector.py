@@ -106,11 +106,7 @@ class ModelCostHistory:
         """Get costs from last N minutes."""
         now = time.time()
         cutoff = now - (minutes * 60)
-        return [
-            cost
-            for cost, t in zip(self.costs, self.times)
-            if t >= cutoff
-        ]
+        return [cost for cost, t in zip(self.costs, self.times) if t >= cutoff]
 
     def get_average_cost(self, minutes: int = 10) -> float:
         """Get average cost over last N minutes."""
@@ -141,10 +137,7 @@ class ModelCostHistory:
         mean_x = sum(recent_times) / n
         mean_y = sum(recent_costs) / n
 
-        numerator = sum(
-            (t - mean_x) * (c - mean_y)
-            for t, c in zip(recent_times, recent_costs)
-        )
+        numerator = sum((t - mean_x) * (c - mean_y) for t, c in zip(recent_times, recent_costs))
         denominator = sum((t - mean_x) ** 2 for t in recent_times)
 
         if denominator == 0:
@@ -238,7 +231,7 @@ class AnomalyDetector:
             severity=severity,
             confidence=confidence,
             description=f"Cost spike: {actual_cost:.4f} vs {forecasted_cost:.4f} "
-            f"({deviation*100:+.1f}%)",
+            f"({deviation * 100:+.1f}%)",
             metrics={
                 "actual": actual_cost,
                 "forecasted": forecasted_cost,
@@ -309,7 +302,7 @@ class AnomalyDetector:
             model=model,
             severity=severity,
             confidence=confidence,
-            description=f"Cost trend: rising {trend_slope*3600:.6f} cost/hour "
+            description=f"Cost trend: rising {trend_slope * 3600:.6f} cost/hour "
             f"over {self.trend_window_hours}h",
             metrics={
                 "trend_slope": trend_slope,
@@ -392,18 +385,13 @@ class AnomalyDetector:
         now = time.time()
         cutoff = now - (minutes * 60)
 
-        recent = [
-            a for a in self.recent_alerts
-            if a.detected_at >= cutoff
-        ]
+        recent = [a for a in self.recent_alerts if a.detected_at >= cutoff]
 
         if not recent:
             return 0.0
 
         # Heuristic: assume alerts with very high confidence are true positives
-        false_positives = sum(
-            1 for a in recent if a.confidence < 0.85
-        )
+        false_positives = sum(1 for a in recent if a.confidence < 0.85)
 
         return false_positives / len(recent)
 
@@ -446,8 +434,7 @@ class AnomalyDetector:
         if len(recent_history) >= 3:
             # Check if values are consistently high/low
             variance = sum(
-                (x - sum(recent_history) / len(recent_history)) ** 2
-                for x in recent_history
+                (x - sum(recent_history) / len(recent_history)) ** 2 for x in recent_history
             ) / len(recent_history)
             consistency = 1.0 / (1.0 + variance)  # Normalize
             base_confidence = base_confidence * (0.5 + 0.5 * consistency)

@@ -92,9 +92,7 @@ class SkillRefiner:
                 return None
 
             # Generate learning signal
-            signal = self._generate_learning_signal(
-                skill_name, operation_type, metrics
-            )
+            signal = self._generate_learning_signal(skill_name, operation_type, metrics)
 
             if not signal:
                 logger.debug("No significant learning signal generated")
@@ -110,9 +108,7 @@ class SkillRefiner:
             refined_path = self._append_refinement(prime_file, signal)
 
             if refined_path:
-                logger.info(
-                    f"Refined skill {skill_name}: {signal.key_insight}"
-                )
+                logger.info(f"Refined skill {skill_name}: {signal.key_insight}")
                 return str(refined_path)
 
             return None
@@ -208,9 +204,7 @@ class SkillRefiner:
             confidence=confidence,
         )
 
-    def _generate_recommendation(
-        self, metrics: ExecutionMetrics, operation_type: str
-    ) -> str:
+    def _generate_recommendation(self, metrics: ExecutionMetrics, operation_type: str) -> str:
         """Generate recommendation based on metrics.
 
         Args:

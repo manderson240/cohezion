@@ -32,9 +32,7 @@ class TestHierarchicalVaultSearch:
             {"path": "patterns/operations/analyze/p2.md", "line": 2},
         ]
 
-        mcp_client._call_tool.return_value = (
-            "" if not mock_patterns else str(mock_patterns)
-        )
+        mcp_client._call_tool.return_value = "" if not mock_patterns else str(mock_patterns)
         # Mock the tool to use vault_search implementation
         with patch.object(mcp_client, "vault_search") as mock_search:
             mock_search.return_value = mock_patterns
@@ -78,11 +76,7 @@ class TestHierarchicalVaultSearch:
 
     def test_hierarchical_search_combined_criteria(self, mcp_client):
         """Test hierarchical search with multiple criteria."""
-        mock_patterns = [
-            {
-                "path": "patterns/operations/analyze/domains/nlp/skills/core/p1.md"
-            }
-        ]
+        mock_patterns = [{"path": "patterns/operations/analyze/domains/nlp/skills/core/p1.md"}]
 
         with patch.object(mcp_client, "vault_search") as mock_search:
             mock_search.return_value = mock_patterns
@@ -127,9 +121,7 @@ class TestHierarchicalVaultSearch:
 
     def test_hierarchical_search_graceful_error_handling(self, mcp_client):
         """Test graceful error handling."""
-        with patch.object(
-            mcp_client, "vault_search", side_effect=Exception("Network error")
-        ):
+        with patch.object(mcp_client, "vault_search", side_effect=Exception("Network error")):
             # Should not raise, returns empty list
             results = mcp_client.vault_search_by_operation("analyze", limit=5)
             assert results == []
@@ -147,9 +139,7 @@ class TestHierarchicalVaultSearch:
 
         # Mock hierarchical search (fast path)
         with patch.object(client, "vault_search") as mock_search:
-            mock_search.return_value = [
-                {"path": f"patterns/analyze/p{i}.md"} for i in range(10)
-            ]
+            mock_search.return_value = [{"path": f"patterns/analyze/p{i}.md"} for i in range(10)]
 
             start = time.perf_counter()
             results_hierarchical = client.vault_search_by_operation("analyze")
@@ -174,9 +164,7 @@ class TestHierarchicalSearchIntegration:
         client = MCPClient(config)
 
         # Mock the vault_find_relevant_context to simulate fast search
-        with patch.object(
-            client, "vault_find_relevant_context"
-        ) as mock_find_context:
+        with patch.object(client, "vault_find_relevant_context") as mock_find_context:
             mock_find_context.return_value = [
                 {
                     "path": "patterns/analyze_skill_coherence.md",

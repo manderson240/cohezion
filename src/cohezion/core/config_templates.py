@@ -171,14 +171,10 @@ class ConfigTemplateManager:
 
         # Update __init__.py with the new class
         class_name = re.sub(r"_PRIME$", "", spec.name, flags=re.IGNORECASE)
-        class_name = (
-            "".join(word.capitalize() for word in class_name.split("_")) + "Agent"
-        )
+        class_name = "".join(word.capitalize() for word in class_name.split("_")) + "Agent"
 
         init_content = init_path.read_text(encoding="utf-8")
-        import_line = (
-            f"from cohezion.agents.generated.{snake_name}_agent import {class_name}"
-        )
+        import_line = f"from cohezion.agents.generated.{snake_name}_agent import {class_name}"
         if import_line not in init_content:
             # Add import and update __all__
             if "__all__" in init_content:
