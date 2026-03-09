@@ -46,6 +46,7 @@ async def test_rah_execution_flow():
         "context": {"test": "data"}
     }
     
-    await manager._execute_healing(analysis)
+    vitals = {"cpu_percent": 85, "memory_percent": 50}
+    await manager._execute_healing(analysis, vitals)
     
     mock_strategy.execute.assert_called_once_with({"test": "data"})
