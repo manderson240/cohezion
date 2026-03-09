@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """
-Overnight Job: The Elegance Engine
-Runs continuously to identify complex code and propose elegantly simple refactors.
+Overnight Job: The Elegance Engine (Active Manifestation Edition)
+Continuously identifies complex code, refactors it, validates via tests, and commits.
 """
 
 import asyncio
 import logging
 import sys
 import time
+import re
+import subprocess
 from pathlib import Path
 from datetime import datetime
-import subprocess
 
 PROJECT_ROOT = Path("/home/mike-anderson/dev/cohezion")
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
@@ -19,97 +20,129 @@ from cohezion.swarm.compound_client import get_compound_client
 import trackio
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-logger = logging.getLogger("EleganceEngine")
+logger = logging.getLogger("EleganceManifest")
+
+def run_command(cmd, cwd=None):
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True, cwd=cwd)
+    return result
 
 def get_complex_files():
-    """Use ruff to find files with high cyclomatic complexity."""
+    """Use ruff to find files with high cyclomatic complexity (C901)."""
     try:
-        # Run ruff check for complexity (C901)
-        result = subprocess.run(
-            "ruff check src/cohezion --select C901 --format text", 
-            shell=True, capture_output=True, text=True, cwd=PROJECT_ROOT
-        )
+        # Check src/cohezion
+        result = run_command("ruff check src/cohezion --select C901 --format text", cwd=PROJECT_ROOT)
         files = set()
         for line in result.stdout.split('\n'):
             if "C901" in line and ":" in line:
                 filepath = line.split(":")[0]
                 if (PROJECT_ROOT / filepath).exists():
                     files.add(PROJECT_ROOT / filepath)
-        return list(files)
+        return sorted(list(files))
     except Exception as e:
         logger.error(f"Error checking complexity: {e}")
         return []
 
-async def run_elegance_loop():
-    logger.info("✨ Starting the Elegance Engine (Overnight Continuous Refactoring)...")
-    trackio.init(project="cohezion-core", space_id="manderson240/cohezion-trackio", run_name="elegance-engine")
+async def manifest_elegance():
+    logger.info("✨ Elegance Engine: ACTIVE MANIFESTATION phase started...")
+    # Fix: trackio.init uses project, not run_name directly in some versions
+    trackio.init(project="cohezion-core", space_id="manderson240/cohezion-trackio")
     
     client = get_compound_client()
-    proposals_dir = PROJECT_ROOT / "reports/elegance_proposals"
+    proposals_dir = PROJECT_ROOT / "reports/elegance_manifestations"
     proposals_dir.mkdir(parents=True, exist_ok=True)
     
     end_time = time.time() + (8 * 3600)  # Run for 8 hours
     
     while time.time() < end_time:
-        complex_files = get_complex_files()
+        # Check system health before starting a cycle
+        logger.info("Checking system vitals...")
         
+        complex_files = get_complex_files()
         if not complex_files:
-            logger.info("No highly complex files found by Ruff. System is elegant.")
-            trackio.log({"complex_files_count": 0})
-            await asyncio.sleep(3600) # Sleep an hour
+            logger.info("No complexity detected. System is elegant.")
+            await asyncio.sleep(1800)
             continue
             
-        trackio.log({"complex_files_count": len(complex_files)})
-        
-        # Pick one file to refactor per cycle to keep it breathable
         target_file = complex_files[0]
-        logger.info(f"Targeting {target_file.name} for elegant simplification.")
+        logger.info(f"Targeting: {target_file.relative_to(PROJECT_ROOT)}")
         
         code_content = target_file.read_text()
-        
-        # Skip if too large for simple context window handling right now
-        if len(code_content) > 15000:
-            logger.info("File too large for zero-waste context. Skipping.")
-            await asyncio.sleep(600)
+        if len(code_content) > 20000: # Context guard
+            logger.info("File too large for safe overnight refactor. Skipping.")
+            await asyncio.sleep(300)
             continue
-            
+
         prompt = f"""
         You are an ELEGANT_SIMPLICITY_PRIME specialist.
-        Review the following Python file: {target_file.name}
+        REFACOR FOR MINIMALISM: {target_file.name}
         
+        Current Code:
         ```python
         {code_content}
         ```
         
         Instruction:
-        - Refactor this code to drastically reduce cyclomatic complexity and line count.
-        - Apply the principles of "Elegant Simplicity". Remove redundant loops, consolidate state, and rely on functional patterns.
-        - Do not change the core public API.
-        - Output the proposed refactored code wrapped in ```python ... ``` tags, preceded by a brief summary of the complexity removed.
+        - Rewrite the logic to be "Elegantly Simple".
+        - Focus on cyclomatic complexity reduction.
+        - Output the COMPLETE refactored file content inside a single ```python ... ``` block.
+        - Keep public signatures identical.
         """
         
         try:
             response = await client.generate(prompt, task_type="coding")
             
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            proposal_file = proposals_dir / f"simplify_{target_file.stem}_{timestamp}.md"
-            
-            with open(proposal_file, "w") as f:
-                f.write(f"# Elegance Proposal for {target_file.name}\n\n")
-                f.write(response)
+            # Extract code block
+            match = re.search(r"```python\n(.*?)\n```", response, re.DOTALL)
+            if not match:
+                logger.warning("No code block found in response. Skipping.")
+                continue
                 
-            logger.info(f"✅ Elegance proposal generated: {proposal_file.name}")
-            trackio.log({"proposals_generated": 1})
+            new_code = match.group(1)
+            
+            # --- START MANIFESTATION BARRIER ---
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            branch_name = f"elegance/refactor-{target_file.stem}-{timestamp}"
+            
+            logger.info(f"Applying manifestation on branch {branch_name}...")
+            
+            # 1. Branch
+            run_command(f"git checkout -b {branch_name}", cwd=PROJECT_ROOT)
+            
+            # 2. Apply
+            original_code = target_file.read_text()
+            target_file.write_text(new_code)
+            
+            # 3. Validate
+            logger.info("Running validation (Lint + Fast Tests)...")
+            lint = run_command(f"ruff check {target_file}", cwd=PROJECT_ROOT)
+            # Run fast tests related to the file if possible, or just general fast tests
+            test = run_command("uv run pytest -m fast --tb=short", cwd=PROJECT_ROOT)
+            
+            if lint.returncode == 0 and test.returncode == 0:
+                logger.info("✅ VALIDATION PASSED. Committing manifestation.")
+                run_command(f"git add {target_file}", cwd=PROJECT_ROOT)
+                run_command(f"git commit -m 'Elegance Manifestation: Refactored {target_file.name} for simplicity'", cwd=PROJECT_ROOT)
+                trackio.log({"manifestations_success": 1})
+            else:
+                logger.error("❌ VALIDATION FAILED. Reverting changes.")
+                target_file.write_text(original_code)
+                run_command("git checkout main", cwd=PROJECT_ROOT)
+                run_command(f"git branch -D {branch_name}", cwd=PROJECT_ROOT)
+                trackio.log({"manifestations_failed": 1})
+                
+            # Always return to main
+            run_command("git checkout main", cwd=PROJECT_ROOT)
+            # --- END MANIFESTATION BARRIER ---
             
         except Exception as e:
-            logger.error(f"Failed to generate elegance proposal: {e}")
+            logger.error(f"Elegance cycle crashed: {e}")
             
-        # Sleep for 45 minutes between refactor attempts to avoid API/Compute saturation
-        logger.info("Sleeping before next elegance cycle...")
-        await asyncio.sleep(2700) 
+        # Sleep 1 hour between manifestations to allow system to cool and avoid massive git drift
+        logger.info("Manifestation cycle complete. Sleeping for 1 hour...")
+        await asyncio.sleep(3600)
 
-    logger.info("🌅 8-Hour Elegance Engine cycle complete.")
+    logger.info("🌅 Overnight Elegance Manifestation complete.")
     trackio.finish()
 
 if __name__ == "__main__":
-    asyncio.run(run_elegance_loop())
+    asyncio.run(manifest_elegance())
