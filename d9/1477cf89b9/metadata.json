@@ -1,0 +1,41 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "d91477cf89b9",
+  "strategy": "manual-commit",
+  "branch": "feat/semver-400-year-physics-hiho-flume",
+  "checkpoints_count": 2,
+  "files_touched": [
+    ".context/README.md",
+    ".context/core/compound-patterns.md",
+    ".context/core/syntax-rules.md",
+    ".context/core/testing-rules.md",
+    ".context/session/current-session.md",
+    ".context/skills/compound-engineering/context.yaml",
+    ".context/traceability/manifest.json",
+    "COMPOUND_TEST_COVERAGE_REPORT.md",
+    "EXTENDED_TEST_COVERAGE_PLAN.md",
+    "tests/cache/test_semantic_cache.py",
+    "tests/compound/test_batch_executor.py",
+    "tests/compound/test_context_integration.py",
+    "tests/compound/test_executor.py",
+    "tests/security/test_api_key_auth.py",
+    "tests/swarm/test_ollama_resilience.py",
+    "tests/universe/test_hiho_unified_engine.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/d9/1477cf89b9/0/metadata.json",
+      "transcript": "/d9/1477cf89b9/0/full.jsonl",
+      "context": "/d9/1477cf89b9/0/context.md",
+      "content_hash": "/d9/1477cf89b9/0/content_hash.txt",
+      "prompt": "/d9/1477cf89b9/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 4328,
+    "cache_creation_tokens": 1826587,
+    "cache_read_tokens": 57183417,
+    "output_tokens": 86403,
+    "api_call_count": 418
+  }
+}
