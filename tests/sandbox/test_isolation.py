@@ -23,11 +23,8 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-# OverlayFS requires CAP_SYS_ADMIN — unavailable in GitHub Actions containers
-pytestmark = pytest.mark.skipif(
-    os.environ.get("CI") == "true",
-    reason="OverlayFS not available in CI containers",
-)
+_IN_CI = os.environ.get("CI") == "true"
+_CI_SKIP_REASON = "OverlayFS requires CAP_SYS_ADMIN — unavailable in CI containers"
 
 from cohezion.sandbox.isolation import (
     ChangeType,
@@ -44,6 +41,7 @@ from cohezion.sandbox.isolation import (
 )
 
 
+@unittest.skipIf(_IN_CI, _CI_SKIP_REASON)
 class TestFilesystemIsolation(unittest.TestCase):
     """Test filesystem isolation functionality."""
 
@@ -239,6 +237,7 @@ class TestFilesystemIsolation(unittest.TestCase):
         self.assertTrue(os.path.exists(merged_link))
 
 
+@unittest.skipIf(_IN_CI, _CI_SKIP_REASON)
 class TestProcessIsolation(unittest.TestCase):
     """Test process namespace isolation."""
 
@@ -271,6 +270,7 @@ class TestProcessIsolation(unittest.TestCase):
         self.assertIsInstance(result, bool)
 
 
+@unittest.skipIf(_IN_CI, _CI_SKIP_REASON)
 class TestNetworkIsolation(unittest.TestCase):
     """Test network isolation functionality."""
 
@@ -317,6 +317,7 @@ class TestNetworkIsolation(unittest.TestCase):
             self.assertTrue(network_ns.allow_external)
 
 
+@unittest.skipIf(_IN_CI, _CI_SKIP_REASON)
 class TestCleanupRegistry(unittest.TestCase):
     """Test cleanup registry functionality."""
 
@@ -396,6 +397,7 @@ class TestCleanupRegistry(unittest.TestCase):
         self.assertEqual(len(remaining), 0)
 
 
+@unittest.skipIf(_IN_CI, _CI_SKIP_REASON)
 class TestIsolationManager(unittest.TestCase):
     """Test IsolationManager orchestration."""
 
@@ -518,6 +520,7 @@ class TestIsolationManager(unittest.TestCase):
         self.assertNotIn(context.isolation_id, self.manager.contexts)
 
 
+@unittest.skipIf(_IN_CI, _CI_SKIP_REASON)
 class TestIsolationLifecycle(unittest.TestCase):
     """Test complete isolation lifecycle."""
 
@@ -587,6 +590,7 @@ class TestIsolationLifecycle(unittest.TestCase):
         self.assertTrue(result2.success)
 
 
+@unittest.skipIf(_IN_CI, _CI_SKIP_REASON)
 class TestGetIsolationManager(unittest.TestCase):
     """Test factory function."""
 
