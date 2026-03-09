@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "5b10f641a8fb",
+  "session_id": "79715e35-e3bd-4941-a109-da0ea278dc88",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-09T03:05:41.867119864Z",
+  "branch": "feat/semver-400-year-physics-hiho-flume",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "cloud-vault-mcp/tests/test_agent_context_queries_with_data.py",
+    "cloud-vault-mcp/tests/test_graphrag_query.py",
+    "cloud-vault-mcp/tests/test_health_check.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "1a235c97ba7a",
+  "token_usage": {
+    "input_tokens": 4274,
+    "cache_creation_tokens": 1285829,
+    "cache_read_tokens": 50054603,
+    "output_tokens": 70366,
+    "api_call_count": 373
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-09T03:05:41.027639402Z",
+    "agent_lines": 10,
+    "human_added": 22,
+    "human_modified": 1,
+    "human_removed": 0,
+    "total_committed": 33,
+    "agent_percentage": 30.303030303030305
+  }
+}
