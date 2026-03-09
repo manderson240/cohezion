@@ -215,9 +215,7 @@ def auto_sync() -> int:
     int
         The number of skills synced (new + existing).
     """
-    skills_dir = os.path.normpath(
-        os.path.join(os.path.dirname(__file__), "..", "skills")
-    )
+    skills_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "skills"))
     md_files = sorted(glob.glob(os.path.join(skills_dir, "*.md")))
 
     registry = load_registry()

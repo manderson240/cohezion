@@ -59,9 +59,7 @@ class TestSemanticCacheVaultLookup:
             "response": "This is a cached response from vault",
             "timestamp": 1234567890.0,
         }
-        mcp_client.vault_data["cache_patterns/test.json"] = json.dumps(
-            cache_pattern
-        )
+        mcp_client.vault_data["cache_patterns/test.json"] = json.dumps(cache_pattern)
         # Vault search returns the path to this file
         mcp_client.vault_search_results = [
             {"path": "cache_patterns/test.json", "context": "cache entry"}
@@ -102,9 +100,7 @@ class TestSemanticCacheVaultLookup:
         mcp_client = MockMCPClient()
         # Store invalid JSON
         mcp_client.vault_data["cache_patterns/invalid.json"] = "invalid json"
-        mcp_client.vault_search_results = [
-            {"path": "cache_patterns/invalid.json"}
-        ]
+        mcp_client.vault_search_results = [{"path": "cache_patterns/invalid.json"}]
 
         cache = SemanticCache(mcp_client=mcp_client)
         result = await cache._vault_lookup("test prompt")
@@ -191,9 +187,7 @@ class TestCacheWarmerVault:
         # Add 10 patterns to vault
         for i in range(10):
             pattern = {"prompt": f"pattern {i}", "response": f"response {i}"}
-            mcp_client.vault_data[f"cache_patterns/p{i}.json"] = json.dumps(
-                pattern
-            )
+            mcp_client.vault_data[f"cache_patterns/p{i}.json"] = json.dumps(pattern)
 
         cache = SemanticCache(mcp_client=mcp_client)
         warmer = CacheWarmer(cache, mcp_client=mcp_client)
@@ -212,9 +206,7 @@ class TestCacheWarmerVault:
         valid = {"prompt": "valid", "response": "response"}
         invalid = {"invalid": "structure"}
         mcp_client.vault_data["cache_patterns/valid.json"] = json.dumps(valid)
-        mcp_client.vault_data["cache_patterns/invalid.json"] = json.dumps(
-            invalid
-        )
+        mcp_client.vault_data["cache_patterns/invalid.json"] = json.dumps(invalid)
 
         cache = SemanticCache(mcp_client=mcp_client)
         warmer = CacheWarmer(cache, mcp_client=mcp_client)
@@ -251,12 +243,8 @@ class TestSemanticCacheL3Integration:
             "response": "Response from vault that should be promoted to L1",
             "timestamp": 1234567890.0,
         }
-        mcp_client.vault_data["cache_patterns/vault_test.json"] = json.dumps(
-            cache_pattern
-        )
-        mcp_client.vault_search_results = [
-            {"path": "cache_patterns/vault_test.json"}
-        ]
+        mcp_client.vault_data["cache_patterns/vault_test.json"] = json.dumps(cache_pattern)
+        mcp_client.vault_search_results = [{"path": "cache_patterns/vault_test.json"}]
 
         cache = SemanticCache(mcp_client=mcp_client)
 
@@ -310,9 +298,7 @@ class TestSemanticCacheL3Integration:
         # Set up search results to find the stored pattern
         stored_paths = list(mcp_client.vault_data.keys())
         if stored_paths:
-            mcp_client.vault_search_results = [
-                {"path": stored_paths[0]}
-            ]
+            mcp_client.vault_search_results = [{"path": stored_paths[0]}]
 
             # Lookup should find the cached response from vault
             result = await cache2.get("test_prompt")

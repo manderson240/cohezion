@@ -16,9 +16,7 @@ from cohezion.concurrency.file_lock import ConfigManager
 logger = logging.getLogger(__name__)
 
 SKILL_REGISTRY_PATH = Path(__file__).parent.parent / "skills" / "skill_registry.json"
-CAPABILITY_USAGE_PATH = (
-    Path(__file__).parent.parent / "skills" / "capability_usage.json"
-)
+CAPABILITY_USAGE_PATH = Path(__file__).parent.parent / "skills" / "capability_usage.json"
 
 
 class SkillRegistry:

@@ -7,15 +7,10 @@ Covers:
 - A/B testing support
 """
 
-import pytest
 from datetime import datetime
 
-from cohezion.deployment.feature_flags import (
-    FeatureFlag,
-    FeatureFlagContext,
-    FeatureFlagManager,
-    RolloutStage,
-)
+import pytest
+
 from cohezion.deployment.deployment_config import (
     DeploymentConfig,
     DeploymentMetrics,
@@ -26,7 +21,12 @@ from cohezion.deployment.deployment_config import (
 )
 from cohezion.deployment.deployment_orchestrator import (
     DeploymentOrchestrator,
-    RolloutPlan,
+)
+from cohezion.deployment.feature_flags import (
+    FeatureFlag,
+    FeatureFlagContext,
+    FeatureFlagManager,
+    RolloutStage,
 )
 
 

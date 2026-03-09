@@ -141,9 +141,7 @@ class MCPClient:
                     result = _parse_sse_response(response.text)
                     if "error" in result:
                         error_msg = result["error"].get("message", "Unknown error")
-                        raise MCPConnectionError(
-                            f"Session initialization failed: {error_msg}"
-                        )
+                        raise MCPConnectionError(f"Session initialization failed: {error_msg}")
                 except ValueError as e:
                     logger.warning(f"Could not parse SSE response: {e}")
                     # Session ID in header is sufficient for success
@@ -151,9 +149,7 @@ class MCPClient:
 
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 403:
-                raise MCPAuthenticationError(
-                    "Invalid API key for MCP server"
-                ) from e
+                raise MCPAuthenticationError("Invalid API key for MCP server") from e
             raise MCPConnectionError(f"Connection check failed: {e}") from e
         except httpx.RequestError as e:
             raise MCPConnectionError(
@@ -206,9 +202,7 @@ class MCPClient:
                 # Check for JSON-RPC error
                 if "error" in result:
                     error_msg = result["error"].get("message", "Unknown error")
-                    raise MCPToolError(
-                        f"Tool '{tool_name}' failed: {error_msg}"
-                    )
+                    raise MCPToolError(f"Tool '{tool_name}' failed: {error_msg}")
 
                 content = result.get("result", {}).get("content", [{}])
                 text: str = content[0].get("text", "")
@@ -216,9 +210,7 @@ class MCPClient:
 
             except httpx.HTTPStatusError as e:
                 if e.response.status_code == 403:
-                    raise MCPAuthenticationError(
-                        "Authentication failed during tool call"
-                    ) from e
+                    raise MCPAuthenticationError("Authentication failed during tool call") from e
                 last_error = e
                 logger.warning(
                     "Tool call failed (attempt %d/%d): %s",
@@ -320,16 +312,12 @@ class MCPClient:
         Raises:
             MCPToolError: If listing fails
         """
-        result = self._call_tool(
-            "vault_list", {"directory": directory, "recursive": recursive}
-        )
+        result = self._call_tool("vault_list", {"directory": directory, "recursive": recursive})
         if result == "(empty)":
             return []
         return result.strip().split("\n")
 
-    def vault_search(
-        self, query: str, scope: str = "all", folder: str = ""
-    ) -> list[dict]:
+    def vault_search(self, query: str, scope: str = "all", folder: str = "") -> list[dict]:
         """Full-text search across the vault.
 
         Args:
@@ -343,16 +331,12 @@ class MCPClient:
         Raises:
             MCPToolError: If search fails
         """
-        result = self._call_tool(
-            "vault_search", {"query": query, "scope": scope, "folder": folder}
-        )
+        result = self._call_tool("vault_search", {"query": query, "scope": scope, "folder": folder})
         if result == "No results found.":
             return []
         return json.loads(result)  # type: ignore[no-any-return]
 
-    def vault_search_by_operation(
-        self, operation_type: str, limit: int = 20
-    ) -> list[dict]:
+    def vault_search_by_operation(self, operation_type: str, limit: int = 20) -> list[dict]:
         """Fast hierarchical search for patterns by operation type.
 
         Uses folder structure for O(log n) lookup instead of O(n) full-text search.
@@ -373,9 +357,7 @@ class MCPClient:
         # Search in operation-specific folder
         folder = f"patterns/operations/{operation_type}"
         try:
-            results = self.vault_search(
-                query="", scope="folder", folder=folder
-            )
+            results = self.vault_search(query="", scope="folder", folder=folder)
             if results:
                 return results[:limit]
         except Exception:
@@ -392,9 +374,7 @@ class MCPClient:
         except Exception:
             return []
 
-    def vault_search_by_domain(
-        self, domain: str, limit: int = 20
-    ) -> list[dict]:
+    def vault_search_by_domain(self, domain: str, limit: int = 20) -> list[dict]:
         """Fast hierarchical search for patterns by domain.
 
         Uses folder structure for O(log n) lookup.
@@ -410,9 +390,7 @@ class MCPClient:
         """
         folder = f"patterns/domains/{domain}"
         try:
-            results = self.vault_search(
-                query="", scope="folder", folder=folder
-            )
+            results = self.vault_search(query="", scope="folder", folder=folder)
             if results:
                 return results[:limit]
         except Exception as e:
@@ -420,17 +398,13 @@ class MCPClient:
 
         # Fall back to full-text search
         try:
-            results = self.vault_search(
-                query=f"{domain} pattern", scope="all", folder=""
-            )
+            results = self.vault_search(query=f"{domain} pattern", scope="all", folder="")
             return results[:limit] if results else []
         except Exception as e:
             logger.debug("Vault text search fallback failed for domain %s: %s", domain, e)
             return []
 
-    def vault_search_by_skill_category(
-        self, category: str, limit: int = 20
-    ) -> list[dict]:
+    def vault_search_by_skill_category(self, category: str, limit: int = 20) -> list[dict]:
         """Fast hierarchical search for patterns by skill category.
 
         Uses folder structure for O(log n) lookup.
@@ -446,9 +420,7 @@ class MCPClient:
         """
         folder = f"patterns/skills/{category}"
         try:
-            results = self.vault_search(
-                query="", scope="folder", folder=folder
-            )
+            results = self.vault_search(query="", scope="folder", folder=folder)
             if results:
                 return results[:limit]
         except Exception as e:
@@ -456,9 +428,7 @@ class MCPClient:
 
         # Fall back to full-text search
         try:
-            results = self.vault_search(
-                query=f"{category} skill", scope="all", folder=""
-            )
+            results = self.vault_search(query=f"{category} skill", scope="all", folder="")
             return results[:limit] if results else []
         except Exception as e:
             logger.debug("Vault text search fallback failed for category %s: %s", category, e)
@@ -497,13 +467,8 @@ class MCPClient:
         """
         if operation_type and domain and category:
             # Most specific: search exact path
-            folder = (
-                f"patterns/operations/{operation_type}"
-                f"/domains/{domain}/skills/{category}"
-            )
-            results = self.vault_search(
-                query="", scope="folder", folder=folder
-            )
+            folder = f"patterns/operations/{operation_type}/domains/{domain}/skills/{category}"
+            results = self.vault_search(query="", scope="folder", folder=folder)
             return results[:limit] if results else []
 
         # Collect results from available dimensions
@@ -535,9 +500,7 @@ class MCPClient:
         # Fall back to general patterns search if no specific match
         if not all_results:
             results = self.vault_search(query="skill", scope="folder", folder="patterns")
-            all_results = {
-                result.get("path", ""): result for result in results
-            }
+            all_results = {result.get("path", ""): result for result in results}
 
         # Return limited results
         return list(all_results.values())[:limit]
@@ -740,9 +703,7 @@ class MCPClient:
             },
         )
 
-    def vault_find_relevant_context(
-        self, query: str, project: str = ""
-    ) -> list[dict]:
+    def vault_find_relevant_context(self, query: str, project: str = "") -> list[dict]:
         """Search for prior decisions, patterns, and experiments.
 
         This is the primary 'compound engineering' tool. It searches
@@ -780,6 +741,7 @@ def create_mcp_client(server_url: str, api_key: str, **kwargs) -> MCPClient:
     """
     config = MCPConfig(server_url=server_url, api_key=api_key, **kwargs)
     return MCPClient(config)
+
 
 def get_mcp_client() -> MCPClient:
     """Get the singleton MCP client instance."""

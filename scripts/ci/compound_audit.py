@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from cohezion.core.compound.retrospection import RetrospectionEngine
@@ -58,7 +58,7 @@ def main() -> int:
             for ref in refinements
         ],
         "cross_reference_edges": cross_ref_edges,
-        "timestamp": datetime.now(tz=timezone.utc).isoformat(),
+        "timestamp": datetime.now(tz=UTC).isoformat(),
     }
 
     report_path = Path("compound-report.json")

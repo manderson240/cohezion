@@ -97,9 +97,7 @@ class IntakeSpecialist:
 
         # Initialize components
         self.classifier = IntentClassifier(default_operation="generate")
-        self.optimizer = PromptOptimizer(
-            enable_filler_removal=True, estimate_tokens=True
-        )
+        self.optimizer = PromptOptimizer(enable_filler_removal=True, estimate_tokens=True)
         self.cache = RequestCache(mcp_client, l1_size=256, l2_size=512)
         self.skill_selector = SkillSelector(mcp_client)
 
@@ -108,9 +106,7 @@ class IntakeSpecialist:
         self.user_id: str | None = None
         self.greeting: IntakeGreeting | None = None
 
-    async def greet(
-        self, user_id: str, initial_request: str = ""
-    ) -> IntakeGreeting:
+    async def greet(self, user_id: str, initial_request: str = "") -> IntakeGreeting:
         """Greet user and warm cache from vault.
 
         Establishes a session and loads cached patterns from vault to prime
@@ -127,9 +123,7 @@ class IntakeSpecialist:
         self.session_id = str(uuid.uuid4())
         self.user_id = user_id
 
-        logger.info(
-            f"Greeting user {user_id} (session {self.session_id[:8]}...), warming cache..."
-        )
+        logger.info(f"Greeting user {user_id} (session {self.session_id[:8]}...), warming cache...")
 
         # Warm cache from vault
         cache_entries = await self._warm_cache_from_vault()
@@ -143,8 +137,7 @@ class IntakeSpecialist:
         )
 
         logger.info(
-            f"Session ready: {self.session_id[:8]}... "
-            f"(cache warmed with {cache_entries} patterns)"
+            f"Session ready: {self.session_id[:8]}... (cache warmed with {cache_entries} patterns)"
         )
 
         return self.greeting
@@ -228,9 +221,7 @@ class IntakeSpecialist:
         """
         try:
             self.cache.put(request_text, task)
-            logger.info(
-                f"Logged success: {request_text[:50]}... → {task.task_id[:8]}..."
-            )
+            logger.info(f"Logged success: {request_text[:50]}... → {task.task_id[:8]}...")
         except Exception as e:
             logger.warning(f"Failed to log success: {e}")
 

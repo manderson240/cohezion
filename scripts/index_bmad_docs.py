@@ -17,10 +17,11 @@ import asyncio
 import sys
 from pathlib import Path
 
+
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from cohezion.mcp.servers.doc.indexer import create_indexer, index_bmad_docs
+from cohezion.mcp.servers.doc.indexer import index_bmad_docs
 
 
 async def main():

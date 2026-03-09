@@ -115,9 +115,7 @@ class ThermalTrendPredictor:
                 # No event loop running, skip async training
                 pass
 
-    def predict_temperature_ahead(
-        self, lookahead_minutes: int = 30
-    ) -> tuple[float, float]:
+    def predict_temperature_ahead(self, lookahead_minutes: int = 30) -> tuple[float, float]:
         """Predict GPU temperature N minutes ahead.
 
         Uses trained model if available, otherwise falls back to heuristic
@@ -196,9 +194,7 @@ class ThermalTrendPredictor:
         # Find samples within window
         current_temp = self.history[-1].gpu_temp_c
         window_temps = [
-            s.gpu_temp_c
-            for s in self.history
-            if (current_time - s.timestamp) <= window_seconds
+            s.gpu_temp_c for s in self.history if (current_time - s.timestamp) <= window_seconds
         ]
 
         if len(window_temps) < 2:
@@ -319,7 +315,9 @@ class ThermalTrendPredictor:
         # More samples in recent window = higher confidence in trend
         current_time = time.time()
         recent_samples = [
-            s for s in self.history if (current_time - s.timestamp) < 3600  # 1 hour
+            s
+            for s in self.history
+            if (current_time - s.timestamp) < 3600  # 1 hour
         ]
 
         sample_density = len(recent_samples) / 12.0  # 12 samples in 1 hour @ 5-min intervals
@@ -387,14 +385,15 @@ class ThermalTrendPredictor:
                 future_candidates = [
                     self.history[j]
                     for j in range(i + 1, len(self.history))
-                    if abs(
-                        (self.history[j].timestamp - sample.timestamp) - window_seconds
-                    )
+                    if abs((self.history[j].timestamp - sample.timestamp) - window_seconds)
                     < 300  # Within 5 min of 30-min mark
                 ]
 
                 if future_candidates:
-                    closest = min(future_candidates, key=lambda s: abs(s.timestamp - sample.timestamp - window_seconds))
+                    closest = min(
+                        future_candidates,
+                        key=lambda s: abs(s.timestamp - sample.timestamp - window_seconds),
+                    )
                     pairs.append((sample.gpu_temp_c, closest.gpu_temp_c))
 
             if len(pairs) < 5:

@@ -10,11 +10,10 @@ The R-Zero triad:
 """
 
 import asyncio
-import json
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("r_zero_skills")
@@ -23,6 +22,7 @@ logger = logging.getLogger("r_zero_skills")
 @dataclass
 class SkillEvaluation:
     """Result of R-Zero evaluation on a skill."""
+
     skill_path: Path
     challenger_issues: list[str] = field(default_factory=list)
     solver_proposals: list[str] = field(default_factory=list)
@@ -34,6 +34,7 @@ class SkillEvaluation:
 @dataclass
 class SkillMetrics:
     """Metrics for tracking skill improvement."""
+
     total_evaluated: int = 0
     total_improved: int = 0
     avg_quality_before: float = 0.0
@@ -155,7 +156,9 @@ class RZeroSkillPipeline:
 
         return proposals
 
-    def _run_pragmatist(self, content: str, issues: list[str], proposals: list[str]) -> tuple[str, float]:
+    def _run_pragmatist(
+        self, content: str, issues: list[str], proposals: list[str]
+    ) -> tuple[str, float]:
         """Pragmatist validates and scores the skill."""
         score = 100.0
 
@@ -195,8 +198,8 @@ class RZeroSkillPipeline:
         rejected = sum(1 for e in evaluations if e.quality_score < 60)
 
         report.append("## Summary\n")
-        report.append(f"| Status | Count |\n")
-        report.append(f"|--------|-------|\n")
+        report.append("| Status | Count |\n")
+        report.append("|--------|-------|\n")
         report.append(f"| ✅ Approved | {approved} |\n")
         report.append(f"| ⚠️ Needs Improvement | {needs_work} |\n")
         report.append(f"| ❌ Rejected | {rejected} |\n\n")
@@ -204,7 +207,9 @@ class RZeroSkillPipeline:
         # Details
         report.append("## Detailed Evaluations\n\n")
         for eval in sorted(evaluations, key=lambda e: e.quality_score):
-            status_icon = "✅" if eval.quality_score >= 80 else ("⚠️" if eval.quality_score >= 60 else "❌")
+            status_icon = (
+                "✅" if eval.quality_score >= 80 else ("⚠️" if eval.quality_score >= 60 else "❌")
+            )
             report.append(f"### {status_icon} {eval.skill_path.name}\n")
             report.append(f"**Score:** {eval.quality_score:.1f}/100\n")
             report.append(f"**Verdict:** {eval.pragmatist_verdict}\n\n")
@@ -236,7 +241,9 @@ async def main():
     for skill_path in skills:
         eval_result = pipeline.evaluate_skill(skill_path)
         evaluations.append(eval_result)
-        logger.info(f"{skill_path.name}: {eval_result.quality_score:.1f}/100 - {eval_result.pragmatist_verdict}")
+        logger.info(
+            f"{skill_path.name}: {eval_result.quality_score:.1f}/100 - {eval_result.pragmatist_verdict}"
+        )
 
     # Generate report
     report = pipeline.generate_report(evaluations)

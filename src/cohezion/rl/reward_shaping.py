@@ -24,9 +24,7 @@ class CoherenceReward:
         Maximum reward magnitude (default 1.0).
     """
 
-    def __init__(
-        self, target: float = 0.5, sigma: float = 0.25, scale: float = 1.0
-    ) -> None:
+    def __init__(self, target: float = 0.5, sigma: float = 0.25, scale: float = 1.0) -> None:
         self.target = target
         self.sigma = sigma
         self.scale = scale
@@ -137,9 +135,7 @@ class CompositeReward:
         self.coherence_reward = CoherenceReward()
         self.diversity_bonus = DiversityBonus()
         self.stability_penalty = StabilityPenalty()
-        self.hamiltonian_reward = (
-            HamiltonianReward() if hamiltonian_weight > 0 else None
-        )
+        self.hamiltonian_reward = HamiltonianReward() if hamiltonian_weight > 0 else None
         self.coherence_weight = coherence_weight
         self.diversity_weight = diversity_weight
         self.stability_weight = stability_weight

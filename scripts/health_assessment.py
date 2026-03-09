@@ -98,10 +98,7 @@ class CodebaseHealthAssessment:
         counts["test_files"] = len([f for f in py_files if "test" in f.name])
 
         # Count documentation
-        doc_files = (
-            list(self.repo_root.rglob("*.md"))
-            + list(self.repo_root.rglob("*.rst"))
-        )
+        doc_files = list(self.repo_root.rglob("*.md")) + list(self.repo_root.rglob("*.rst"))
         counts["doc_files"] = len(doc_files)
 
         # Config files
@@ -120,9 +117,7 @@ class CodebaseHealthAssessment:
                 text=True,
                 timeout=10,
             )
-            counts["untracked"] = len(
-                [l for l in result.stdout.strip().split("\n") if l]
-            )
+            counts["untracked"] = len([l for l in result.stdout.strip().split("\n") if l])
         except Exception as e:
             logger.warning(f"Could not count untracked files: {e}")
 
@@ -257,15 +252,12 @@ class CodebaseHealthAssessment:
             )
 
             # Check for API docs
-            docs["api_docs_exists"] = (
-                (self.repo_root / "docs").exists()
-                and any((self.repo_root / "docs").rglob("*.md"))
+            docs["api_docs_exists"] = (self.repo_root / "docs").exists() and any(
+                (self.repo_root / "docs").rglob("*.md")
             )
 
             # Count doc files
-            doc_files = list(self.repo_root.rglob("*.md")) + list(
-                self.repo_root.rglob("*.rst")
-            )
+            doc_files = list(self.repo_root.rglob("*.md")) + list(self.repo_root.rglob("*.rst"))
             docs["doc_files_count"] = len(doc_files)
 
         except Exception as e:
@@ -290,9 +282,7 @@ class CodebaseHealthAssessment:
         try:
             quality["has_pyproject_toml"] = (self.repo_root / "pyproject.toml").exists()
             quality["has_setup_cfg"] = (self.repo_root / "setup.cfg").exists()
-            quality["has_pre_commit_config"] = (
-                self.repo_root / ".pre-commit-config.yaml"
-            ).exists()
+            quality["has_pre_commit_config"] = (self.repo_root / ".pre-commit-config.yaml").exists()
 
             # Check for ruff config
             if quality["has_pyproject_toml"]:
@@ -323,12 +313,8 @@ class CodebaseHealthAssessment:
         self.metrics.add_metric("file_organization", org)
 
         if org["untracked"] > 50:
-            self.metrics.add_issue(
-                f"High number of untracked files: {org['untracked']}"
-            )
-            self.metrics.add_recommendation(
-                "Review .gitignore and clean up untracked files"
-            )
+            self.metrics.add_issue(f"High number of untracked files: {org['untracked']}")
+            self.metrics.add_recommendation("Review .gitignore and clean up untracked files")
 
         # Assessment 2: Git Health
         logger.info("Assessing git repository health...")
@@ -336,9 +322,7 @@ class CodebaseHealthAssessment:
         self.metrics.add_metric("git_health", git)
 
         if git["uncommitted_changes"] > 20:
-            self.metrics.add_issue(
-                f"Significant uncommitted changes: {git['uncommitted_changes']}"
-            )
+            self.metrics.add_issue(f"Significant uncommitted changes: {git['uncommitted_changes']}")
             self.metrics.add_recommendation("Stage and commit pending changes")
 
         # Assessment 3: Test Coverage
@@ -348,9 +332,7 @@ class CodebaseHealthAssessment:
 
         if coverage["total_tests"] < 50:
             self.metrics.add_issue(f"Low test count: {coverage['total_tests']}")
-            self.metrics.add_recommendation(
-                "Increase test coverage with additional test cases"
-            )
+            self.metrics.add_recommendation("Increase test coverage with additional test cases")
 
         # Assessment 4: Documentation
         logger.info("Assessing documentation...")
@@ -372,9 +354,7 @@ class CodebaseHealthAssessment:
 
         if not quality["has_pyproject_toml"]:
             self.metrics.add_issue("Missing pyproject.toml")
-            self.metrics.add_recommendation(
-                "Create pyproject.toml with tool configurations"
-            )
+            self.metrics.add_recommendation("Create pyproject.toml with tool configurations")
 
         # Calculate health score
         health_score = self._calculate_health_score()

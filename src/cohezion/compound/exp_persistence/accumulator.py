@@ -9,10 +9,11 @@ from cohezion.reliability.monitor import get_resource_monitor
 
 logger = logging.getLogger(__name__)
 
+
 class PersistenceAccumulator:
     """
     Non-blocking buffer for swarm experience persistence.
-    
+
     Implements the 'Accumulator' pattern:
     - Buffers mission data in an asyncio.Queue.
     - Flushes to SurrealDB and Vault based on system dilation.
@@ -110,6 +111,7 @@ class PersistenceAccumulator:
                 await self._worker_task
             except asyncio.CancelledError:
                 pass
+
 
 def get_accumulator() -> PersistenceAccumulator:
     """Get the global PersistenceAccumulator instance."""

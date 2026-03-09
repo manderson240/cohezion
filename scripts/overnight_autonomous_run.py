@@ -19,43 +19,40 @@ Inspired by:
 """
 
 import asyncio
-import time
+import json
+import random
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List
-import json
-import subprocess
-import random
+
 import numpy as np
+
+from cohezion.evaluation.draconian_grader import DraconianGrader
 
 # Import our components
 from cohezion.monitoring.ratchet_monitor import RatchetMonitor
-from cohezion.evaluation.draconian_grader import DraconianGrader
-from cohezion.swarm.rzero_challenger import RZeroChallengerSolver
 from cohezion.swarm.hiho_vector_engine import HihoVectorEngine
+from cohezion.swarm.rzero_challenger import RZeroChallengerSolver
+
 
 # January 2026 SLM Swarm (8+ models as requested)
 SWARM_ROSTER = {
     # Reasoning/Thinking
     "reasoning_heavy": "deepseek-r1:70b",
     "reasoning_fast": "glm-4.7-thinking",
-
     # Coding/Implementation
     "coding_expert": "qwen3-coder:32b",
     "coding_micro": "phi-4-mini:3.8b",
-
     # Efficiency Champions
     "efficient_1": "mistral-nemo:12b",
     "efficient_2": "falcon-h1r:7b",  # Jan 2026 release, hybrid Transformer-Mamba
-
     # Multimodal
     "vision": "qwen3-vl:8b",
     "multilingual": "gemma-3n:2b",
-
     # Orchestrators (for LangChain coordination)
     "orchestrator_1": "llama-3.1:8b",
-    "orchestrator_2": "mistral:7b"
+    "orchestrator_2": "mistral:7b",
 }
+
 
 class OvernightResearchMission:
     """
@@ -73,10 +70,10 @@ class OvernightResearchMission:
         self.discoveries = []
         self.skills_generated = []
 
-        print(f"🌙 OVERNIGHT MISSION INITIALIZED")
+        print("🌙 OVERNIGHT MISSION INITIALIZED")
         print(f"   Start: {self.start_time.strftime('%H:%M:%S')}")
         print(f"   End:   {self.end_time.strftime('%H:%M:%S')}")
-        print(f"   Duration: 8 hours")
+        print("   Duration: 8 hours")
         print(f"   Swarm Size: {len(SWARM_ROSTER)} models")
         print()
 
@@ -90,9 +87,9 @@ class OvernightResearchMission:
         iteration = 0
         while datetime.now() < self.end_time - timedelta(minutes=60):
             iteration += 1
-            print(f"\n{'='*80}")
+            print(f"\n{'=' * 80}")
             print(f"ITERATION {iteration} - {datetime.now().strftime('%H:%M:%S')}")
-            print(f"{'='*80}\n")
+            print(f"{'=' * 80}\n")
 
             # Health check (Ratchet-style)
             if not await self.health_check():
@@ -161,7 +158,7 @@ class OvernightResearchMission:
         print(f"\n🌌 PHASE 2: Universe Simulation (Gateway {self.current_gateway})")
 
         # Use random seed for diversity (bootstrap - Jan 2026 term)
-        seed = random.randint(0, 2**32-1)
+        seed = random.randint(0, 2**32 - 1)
         np.random.seed(seed)
 
         # Run 1M cycles (takes ~3-5s with vectorization)
@@ -175,21 +172,21 @@ class OvernightResearchMission:
 
         # Check for new gateway unlocks
         new_gateways = self.check_gateway_unlock(results)
-        results['new_gateways'] = new_gateways
-        results['seed'] = seed
+        results["new_gateways"] = new_gateways
+        results["seed"] = seed
 
         self.discoveries.append(results)
 
         return results
 
-    def check_gateway_unlock(self, results: dict) -> List[int]:
+    def check_gateway_unlock(self, results: dict) -> list[int]:
         """Check if simulation results unlock new gateways."""
         unlocked = []
 
         # Gateway unlock criteria (gets harder as we go)
         threshold = 0.95 + (self.current_gateway - 43) * 0.001
 
-        if results['mean_stability'] > threshold:
+        if results["mean_stability"] > threshold:
             unlocked.append(self.current_gateway)
             print(f"🎉 GATEWAY {self.current_gateway} UNLOCKED!")
             print(f"   Criteria: Stability > {threshold:.4f}")
@@ -206,14 +203,15 @@ class OvernightResearchMission:
         """Query the reasoning model to explain the 'black box' logic for this gateway."""
         prompt = f"""MECHANISTIC INTERPRETABILITY REPORT:
 Gateway: {gateway}
-Stability: {results['mean_stability']:.4f}
-Bright Spots: {results['bright_spot_count']:,}
+Stability: {results["mean_stability"]:.4f}
+Bright Spots: {results["bright_spot_count"]:,}
 
 Explain the internal state transitions (FLUME/12D) that led to this stability breakthrough.
 Address the "Black Box" concern: what specific emergent patterns were observed in the latent manifold?
 """
         try:
             from cohezion.swarm.agents.base import BaseAgent
+
             agent = BaseAgent(model_name=SWARM_ROSTER["reasoning_heavy"])
             response = await agent._call_ollama(prompt, temperature=0.7)
             await agent.close()
@@ -240,25 +238,25 @@ Address the "Black Box" concern: what specific emergent patterns were observed i
   </tr>
   <tr>
     <td><b>Mean Stability</b></td>
-    <td>{results['mean_stability']:.4f}</td>
+    <td>{results["mean_stability"]:.4f}</td>
   </tr>
   <tr>
     <td><b>Bright Spots</b></td>
-    <td>{results['bright_spot_count']:,}</td>
+    <td>{results["bright_spot_count"]:,}</td>
   </tr>
   <tr>
     <td><b>Seed</b></td>
-    <td>{results.get('seed', 'N/A')}</td>
+    <td>{results.get("seed", "N/A")}</td>
   </tr>
 </table>
 
 <h3>🧠 Mechanistic Interpretability (The "Why")</h3>
 <div style="background-color: #f9f9f9; padding: 15px; border-left: 5px solid #45B7D1; font-style: italic;">
-    {reasoning.replace('\n', '<br>')}
+    {reasoning.replace("\n", "<br>")}
 </div>
 
 <h3>📡 FLUME Trajectory</h3>
-<p>The swarm observed a <b>{results.get('trajectory_type', 'Toroidal')}</b> convergence at Gateway {gateway}.
+<p>The swarm observed a <b>{results.get("trajectory_type", "Toroidal")}</b> convergence at Gateway {gateway}.
 This indicates a stable resonance in the 8-brane sub-manifold, matching the 0.5 Coherence Rule.</p>
 
 <p><i>- Your Cohezion Swarm (Interpretability Layer Alpha)</i></p>
@@ -266,6 +264,7 @@ This indicates a stable resonance in the 8-brane sub-manifold, matching the 0.5 
 
         try:
             from cohezion.mcp.email_notifier import EmailNotifier
+
             notifier = EmailNotifier()
             if notifier.is_available:
                 await notifier.send_email(subject, body, is_html=True)
@@ -295,7 +294,7 @@ This indicates a stable resonance in the 8-brane sub-manifold, matching the 0.5 
                     judges=list(SWARM_ROSTER.values())[:4],  # 4 judges
                     efficacy_score=0.92,  # Would be measured
                     completeness_score=0.91,
-                    forward_looking_score=0.88
+                    forward_looking_score=0.88,
                 )
 
                 if grade.passed:
@@ -409,7 +408,9 @@ R_ZERO_PRIME, HIHO_REALITY_SIM_PRIME
 """
 
         # Append to KEY_LEARNINGS.md
-        with open("/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/KEY_LEARNINGS.md", "a") as f:
+        with open(
+            "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/KEY_LEARNINGS.md", "a"
+        ) as f:
             f.write(f"\n## Learning {len(self.discoveries) + 56}: Overnight Discovery\n")
             f.write(reflection)
 
@@ -430,7 +431,7 @@ R_ZERO_PRIME, HIHO_REALITY_SIM_PRIME
             "Test conscious plasma formation in magnetic confinement",
             "Explore Wilbert B Smith's geomagnetic energy extraction",
             "Map TensorBeam quadrature to quantum field operators",
-            "Simulate EVOs formation at different particle densities"
+            "Simulate EVOs formation at different particle densities",
         ]
 
         for step in novel_steps:
@@ -446,9 +447,9 @@ R_ZERO_PRIME, HIHO_REALITY_SIM_PRIME
         duration = datetime.now() - self.start_time
 
         report = f"""
-{'='*80}
+{"=" * 80}
 OVERNIGHT MISSION COMPLETE
-{'='*80}
+{"=" * 80}
 
 Duration: {duration}
 Discoveries: {len(self.discoveries)}
@@ -456,18 +457,19 @@ Skills Generated: {len(self.skills_generated)}
 Gateways Unlocked: {self.current_gateway - 43}
 
 METRICS:
-- Simulation Cycles: {sum(d.get('num_rounds', 0) for d in self.discoveries):,}
-- Bright Spots: {sum(d.get('bright_spot_count', 0) for d in self.discoveries):,}
-- Mean Coherence: {np.mean([d.get('mean_stability', 0) for d in self.discoveries]):.4f}
+- Simulation Cycles: {sum(d.get("num_rounds", 0) for d in self.discoveries):,}
+- Bright Spots: {sum(d.get("bright_spot_count", 0) for d in self.discoveries):,}
+- Mean Coherence: {np.mean([d.get("mean_stability", 0) for d in self.discoveries]):.4f}
 
 🎯 Mission accomplished!
-{'='*80}
+{"=" * 80}
         """
 
         print(report)
 
         with open("/home/mike-anderson/dev/cohezion/logs/overnight_report.txt", "w") as f:
             f.write(report)
+
 
 if __name__ == "__main__":
     import numpy as np

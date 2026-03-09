@@ -30,7 +30,9 @@ class RankingStrategy(Enum):
 
     COST_OPTIMIZED = "cost_optimized"  # Prioritize cost (cost×0.5)
     QUALITY_FIRST = "quality_first"  # Prioritize quality (coherence×0.6)
-    BALANCED = "balanced"  # Balanced weighting (coherence×0.4 + cost×0.3 + latency×0.2 + freshness×0.1)
+    BALANCED = (
+        "balanced"  # Balanced weighting (coherence×0.4 + cost×0.3 + latency×0.2 + freshness×0.1)
+    )
 
 
 @dataclass
@@ -124,9 +126,7 @@ class ModelRanker:
         self.freshness_decay_hours = freshness_decay_hours
 
         # Verify weights sum to approximately 1.0
-        total_weight = sum(
-            [coherence_weight, cost_weight, latency_weight, freshness_weight]
-        )
+        total_weight = sum([coherence_weight, cost_weight, latency_weight, freshness_weight])
         if not (0.9 <= total_weight <= 1.1):
             logger.warning(
                 f"Model ranking weights sum to {total_weight}, expected ~1.0. "
@@ -256,28 +256,13 @@ class ModelRanker:
         # Apply strategy-specific weighting
         if strategy == RankingStrategy.COST_OPTIMIZED:
             # Prioritize cost: cost×0.5, coherence×0.25, latency×0.15, freshness×0.1
-            composite = (
-                cost_score * 0.5
-                + coherence * 0.25
-                + latency_score * 0.15
-                + freshness * 0.1
-            )
+            composite = cost_score * 0.5 + coherence * 0.25 + latency_score * 0.15 + freshness * 0.1
         elif strategy == RankingStrategy.QUALITY_FIRST:
             # Prioritize quality: coherence×0.6, latency×0.2, cost×0.1, freshness×0.1
-            composite = (
-                coherence * 0.6
-                + latency_score * 0.2
-                + cost_score * 0.1
-                + freshness * 0.1
-            )
+            composite = coherence * 0.6 + latency_score * 0.2 + cost_score * 0.1 + freshness * 0.1
         else:  # BALANCED (default)
             # Balanced: coherence×0.4, cost×0.3, latency×0.2, freshness×0.1
-            composite = (
-                coherence * 0.4
-                + cost_score * 0.3
-                + latency_score * 0.2
-                + freshness * 0.1
-            )
+            composite = coherence * 0.4 + cost_score * 0.3 + latency_score * 0.2 + freshness * 0.1
 
         return ModelScore(
             model=model,
@@ -320,9 +305,7 @@ class ModelRanker:
         # Fallback to default
         return self.DEFAULT_COHERENCE.get(model, 0.70)
 
-    def _query_vault_coherence(
-        self, model: str, task_description: str
-    ) -> float | None:
+    def _query_vault_coherence(self, model: str, task_description: str) -> float | None:
         """Query vault for model coherence on similar tasks.
 
         Args:
@@ -390,10 +373,7 @@ class ModelRanker:
         Returns:
             Dict mapping model → latency_ms
         """
-        return {
-            model: self.DEFAULT_LATENCY.get(model, 100.0)
-            for model in models
-        }
+        return {model: self.DEFAULT_LATENCY.get(model, 100.0) for model in models}
 
     def update_coherence_score(
         self, model: str, coherence_score: float, timestamp: float | None = None

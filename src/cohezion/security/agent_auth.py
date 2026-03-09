@@ -211,9 +211,7 @@ class AgentAuthManager:
         """
         # Find credential by agent_id
         tokens_to_revoke = [
-            token
-            for token, cred in self.token_cache.items()
-            if cred.agent_id == agent_id
+            token for token, cred in self.token_cache.items() if cred.agent_id == agent_id
         ]
 
         if not tokens_to_revoke:
@@ -261,9 +259,7 @@ class AgentAuthManager:
 
         # Create new credential
         permissions = new_permissions or old_permissions
-        new_credential = self.create_agent_credential(
-            agent_id=agent_id, permissions=permissions
-        )
+        new_credential = self.create_agent_credential(agent_id=agent_id, permissions=permissions)
 
         logger.info(
             "Rotated credential for agent %s (old: %s, new: %s)",
@@ -303,9 +299,7 @@ class AgentAuthManager:
             # Non-blocking async write
             import json
 
-            cred_file = (
-                self.vault_path / f"{credential.agent_id}_{credential.token[:8]}.json"
-            )
+            cred_file = self.vault_path / f"{credential.agent_id}_{credential.token[:8]}.json"
             with open(cred_file, "w") as f:
                 json.dump(credential.to_dict(), f, indent=2)
 
@@ -320,11 +314,7 @@ class AgentAuthManager:
         Returns:
             Number of credentials cleaned up
         """
-        expired_tokens = [
-            token
-            for token, cred in self.token_cache.items()
-            if cred.is_expired()
-        ]
+        expired_tokens = [token for token, cred in self.token_cache.items() if cred.is_expired()]
 
         for token in expired_tokens:
             del self.token_cache[token]

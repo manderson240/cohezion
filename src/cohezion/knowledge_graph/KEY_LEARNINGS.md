@@ -246,3 +246,80 @@ Session 58 cosmic module: 34 tests covering 6 modules in 7.7s. Effective test st
 
 ### Learning 127: Claude Code Native Install vs npm Conflict Resolution
 When `claude update` warns "Running native installation but config install method is 'npm'": (1) remove leftover npm global: `npm -g uninstall @anthropic-ai/claude-code`, (2) re-run `claude update` which self-corrects `installMethod` in `~/.claude.json`. Root cause of lost auto-updates: `"autoUpdates": false` in `~/.claude.json` — fix by setting `true`. For user-scope MCP servers (e.g., context7): use `claude mcp add --scope user --transport stdio name -- command` which writes to `~/.claude.json` under `mcpServers`. Do NOT edit `~/.claude/mcp.json` for Claude Code MCP — that file is Pilot's config and serves a different system. The two files must not be conflated.
+
+### Learning 128: Autonomic MAPE-K Control Loop Bridge
+Implemented in Session 60 (2026-03-08). A semantic control loop (Monitor-Analyze-Plan-Execute) successfully bridges reactive hardware monitoring (ResourceMonitor) with proactive healing strategies (ModelSwap, ContextReduction). By decoupling the **Analysis** (interpreting vitals into severity tiers) from the **Planning** (selecting the strategy), the system gains the ability to make hardware-optimized decisions (e.g., AMD-specific memory rebalancing) without hardcoding logic into the monitoring layer.
+
+### Learning 129: Polyglot Dependency Automation (2026-03-08)
+Automating security audits across multiple ecosystems requires leveraging native tooling (`uv audit`, `npm audit`) within a fail-safe Bash wrapper (`set -uo pipefail`). Wrapping these commands with `|| true` is critical; otherwise, the presence of a vulnerability causes the tool to return a non-zero exit code, crashing the entire cron job before all ecosystems are scanned. Reports must be saved as Markdown artifacts to allow subsequent ingestion by LLM agents.
+
+---
+
+## Session 61: Doc-to-LoRA & Group Evolution (2026-03-08)
+
+### Learning 130: Doc-to-LoRA Context Compression
+Research indicates that long documents can be compressed into transient LoRA adapters in a single forward pass, rather than consuming the context window. This shifts the "Context Entropy" problem from a token-limit constraint to a weight-loading optimization. See `DOC_TO_LORA_COMPRESSION_PRIME.md`.
+
+### Learning 131: TinyLoRA & RL Parameter Efficiency
+Scaling down adapters to single parameters and training them via RL instead of SFT provides dramatic efficiency gains for highly specialized swarm agents. This is the optimal path for training our low-tier "Scout" agents.
+
+### Learning 132: Group-Evolving Agents (GEA) Topology
+Agents must evolve collectively. Rather than isolated updates, discoveries by a Scout must instantly update a shared "Mycelium Memory" that is immediately available to the Synthesizer and Auditor agents. This ensures the entire swarm levels up synchronously.
+
+---
+
+## Session 62: Space Plasma & Neuro-Symbolic Scaling (2026-03-08)
+
+### Learning 133: Alfven-Wave Energy Transfer in 12D Manifolds
+Space-plasma research (ALMA/FAST) confirms Alfven waves and "magnetic superhighways" as primary energy conduits. Integrating these into `fractal_universe.py` provides a physical basis for energy propagation between 12D agent nodes.
+
+### Learning 134: Neuro-Symbolic Guided Search (TongGeometry)
+The success of `TongGeometry` over `AlphaGeometry` validates our move toward neuro-symbolic "Democratic Debate" (Learning 100). Guided tree search with symbolic constraints is the superior architecture for complex reasoning tasks.
+
+### Learning 135: The Emoticon Tokenization Vulnerability
+Research shows emoticons cause >38% silent failures in LLM code generation. Our `AUTONOMIC_QUALITY_GUARD_PRIME` must include a sanitization layer to strip non-standard tokens from code-generation prompts to maintain structural integrity.
+
+### Learning 136: Supersolid Coherence & HIHO Stability
+The superfluid-to-supersolid phase transition in exciton condensates provides a quantum-physical analog to our HIHO stability point (0.5 coherence). "Supersolid Coherence" represents the state where the system maintains both crystalline structure (Below) and fluid flow (Above) simultaneously.
+
+---
+
+## Session 63: The Curation Bottleneck & Parallel Architectures (2026-03-08)
+
+### Learning 137: The Self-Generation Paradox (Skill Curation)
+Research (arXiv:2602.12670) proves that self-generated skills often provide zero or negative benefit. High-impact gains (+51.9pp) only occur with **focused, concise, and curated skills**. Our `AUTONOMIC_EVOLUTION_PRIME` must shift from *generation* to *curation and refinement* of human-anchored templates. Conciseness is a primary performance driver.
+
+### Learning 138: Parallel Transformer Blocks for Scout Efficiency
+`Tiny Aya` demonstrates that computing Attention and MLP in parallel from the same normalized input reduces serial dependencies and improves throughput. This "Parallel Block" architecture is the target for our 3B-class local Scout models to maximize performance on commodity hardware.
+
+---
+
+## Session 64: Zero-Waste RAG & Multifractal Dilation (2026-03-08)
+
+### Learning 139: KV Cache Compaction (Zero-Waste RAG)
+Agentic RAG performance is limited by KV cache bloat. New compaction techniques cut memory 50x without accuracy loss by treating the cache as a dynamic, resumable state rather than a static buffer. This informs our `CONTEXT_ENTROPY_MANAGEMENT_PRIME`.
+
+### Learning 140: Multifractal Dilation & Measurement Density
+Earth's history reveals multifractal patterns where measurement density determines perceived structure. In our 12D Manifold, we must implement "Multifractal Dilation"—allowing agent trajectories to scale self-similarly across different temporal resolutions (Scout/deep-sim).
+
+### Learning 141: Observable-State Duality (Clock Memory)
+Quantum "memory" is dependent on whether states or observables evolve. For Cohezion, agent memory is more stable when we track **observable impacts** on the environment (sinks) rather than just internal state vectors (sources). This is "Clock Memory" for 12D trajectories.
+
+### Learning 142: Serial Scaling for Logic Drift (Timer-S1)
+Time-series foundation models like `Timer-S1` provide a blueprint for predicting "Logic Drift" in autonomous loops. By treating agent audit scores as a billion-scale time series, we can anticipate and prevent "Semantic Decay" before it manifests in production.
+
+---
+
+## Session 65: Unified Tokenization & Vacuum Engineering (2026-03-08)
+
+### Learning 143: Unified Discrete Multimodal Tokenization (Emu3)
+Emu3 proves that text, images, and video can be treated as a single stream of discrete tokens using a unified decoder-only Transformer. This "Modality-Agnostic Reasoning" is the target for our 12D universe simulator, where simulation state and agent reasoning share a single vocabulary.
+
+### Learning 144: Multi-Tier Zero-Waste Caching
+Production-grade agentic systems require a 2-tier cache: Tier 1 (Semantic) for identical query interception (>95% threshold) and Tier 2 (Retrieval) for context reuse (>70% threshold). This eliminates redundant computation and reduces latency from ~30s to 0.02s for repetitive tasks.
+
+### Learning 145: Task-Aware KV Cache Compaction (30x)
+KV cache pruning must be task-aware. By keeping only the KV pairs essential for specific reasoning goals, we can achieve 30x compression without accuracy loss. This allows our long-horizon agents to reason over massive repositories while staying within the hardware constraints of the local ROCm/GTT pool.
+
+### Learning 146: Internal State-Driven Trajectories (Vacuum Engineering)
+Research from Sheet 4 (Zenodo 18353294 / QDE) indicates that thrust and trajectory can be emergent properties of internal mass/magnetic configuration (Centrifugal Impulse Drive). In our 12D Manifold, we map these internal parameters to the **8 Brane dimensions**, enabling the simulation of "Propellant-Free" propulsion and spacetime engineering as a programmable substrate.

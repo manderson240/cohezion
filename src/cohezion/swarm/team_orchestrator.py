@@ -61,9 +61,7 @@ class TeamPlan:
             lines.append(f"  - {a.name} ({a.model}): {a.description[:60]}")
         lines.append(f"\nTasks ({len(self.tasks)}):")
         for t in self.tasks:
-            blocked = (
-                f" [blocked by: {', '.join(t.blocked_by)}]" if t.blocked_by else ""
-            )
+            blocked = f" [blocked by: {', '.join(t.blocked_by)}]" if t.blocked_by else ""
             lines.append(f"  - [{t.id}] {t.subject}{blocked}")
         return "\n".join(lines)
 
@@ -160,9 +158,7 @@ class TeamOrchestrator:
 
         return plan
 
-    def generate_agent_spec(
-        self, skill_name: str, role: str = "implementer"
-    ) -> AgentSpec:
+    def generate_agent_spec(self, skill_name: str, role: str = "implementer") -> AgentSpec:
         """Convert a PRIME skill into a Claude Code agent specification.
 
         Parameters
@@ -192,9 +188,7 @@ class TeamOrchestrator:
 
         return self._spec_to_agent(spec, role)
 
-    def generate_agent_spec_from_capability(
-        self, cap, role: str = "implementer"
-    ) -> AgentSpec:
+    def generate_agent_spec_from_capability(self, cap, role: str = "implementer") -> AgentSpec:
         """Convert a Capability registry entry into an AgentSpec."""
         # Try to find the underlying skill spec for richer instructions
         skill_spec = self.engine.get_spec_by_name(cap.name)
@@ -369,18 +363,11 @@ class TeamOrchestrator:
         name_lower = name.lower()
         tags_str = " ".join(tags).lower()
 
-        if any(
-            kw in name_lower or kw in tags_str for kw in ["test", "verify", "quality"]
-        ):
+        if any(kw in name_lower or kw in tags_str for kw in ["test", "verify", "quality"]):
             return "tester"
-        if any(
-            kw in name_lower or kw in tags_str for kw in ["review", "audit", "security"]
-        ):
+        if any(kw in name_lower or kw in tags_str for kw in ["review", "audit", "security"]):
             return "reviewer"
-        if any(
-            kw in name_lower or kw in tags_str
-            for kw in ["research", "scout", "explore"]
-        ):
+        if any(kw in name_lower or kw in tags_str for kw in ["research", "scout", "explore"]):
             return "researcher"
         return "implementer"
 

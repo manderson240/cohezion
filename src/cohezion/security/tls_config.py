@@ -217,9 +217,7 @@ def get_tls_config(
     """
     global _tls_config
     if _tls_config is None:
-        _tls_config = TLSConfig(
-            cert_path=cert_path, key_path=key_path, **kwargs
-        )
+        _tls_config = TLSConfig(cert_path=cert_path, key_path=key_path, **kwargs)
     return _tls_config
 
 

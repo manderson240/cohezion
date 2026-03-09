@@ -1,3 +1,15 @@
+---
+name: self-healing
+description: Self-healing AI system patterns for detecting performance drift,
+  diagnosing failures, and applying autonomous corrections. Use when setting up
+  health monitoring, implementing auto-recovery, or when user mentions "self
+  healing", "drift detection", "auto correction", "health check", or
+  "autonomous recovery".
+metadata:
+  version: "0.1"
+  legacy-name: SELF_HEALING_PRIME
+---
+
 # SKILL: SELF_HEALING_PRIME
 
 ## DOMAIN EXPERTISE

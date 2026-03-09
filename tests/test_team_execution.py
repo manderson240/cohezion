@@ -59,9 +59,7 @@ class TestTeamMetricsAggregator:
 
     def test_multiple_waves(self) -> None:
         agg = TeamMetricsAggregator(plan_name="multi")
-        agg.record_wave(
-            0, [{"tokens": 50, "model": "phi3:mini", "status": "completed"}], 200.0
-        )
+        agg.record_wave(0, [{"tokens": 50, "model": "phi3:mini", "status": "completed"}], 200.0)
         agg.record_wave(
             1,
             [
@@ -134,9 +132,7 @@ class TestTeamCompoundExecutor:
 
     @pytest.mark.asyncio
     @patch("cohezion.swarm.compound_client.get_compound_client")
-    async def test_execute_task_with_matching_skill(
-        self, mock_client: MagicMock
-    ) -> None:
+    async def test_execute_task_with_matching_skill(self, mock_client: MagicMock) -> None:
         """When a skill matches, delegates to compound executor."""
         mock_exec = AsyncMock()
         mock_exec.execute_skill.return_value = MagicMock(
@@ -247,9 +243,7 @@ class TestTeamCompoundExecutor:
 class TestExecutionOrchestratorCompound:
     @pytest.mark.asyncio
     @patch("cohezion.swarm.compound_client.get_compound_client")
-    async def test_orchestrator_uses_compound_executor(
-        self, mock_client: MagicMock
-    ) -> None:
+    async def test_orchestrator_uses_compound_executor(self, mock_client: MagicMock) -> None:
         """When compound_executor is provided, ExecutionOrchestrator delegates to it."""
         from cohezion.swarm.execution_orchestrator import ExecutionOrchestrator
 
@@ -327,9 +321,7 @@ class TestExecutionOrchestratorCompound:
             name="dag-plan",
             intent="Test DAG execution",
             tasks=[
-                TaskSpec(
-                    id="t1", subject="Research", description="First", tags=["research"]
-                ),
+                TaskSpec(id="t1", subject="Research", description="First", tags=["research"]),
                 TaskSpec(
                     id="t2",
                     subject="Implement A",
@@ -362,9 +354,7 @@ class TestExecutionOrchestratorCompound:
 
     @pytest.mark.asyncio
     @patch("cohezion.swarm.compound_client.get_compound_client")
-    async def test_orchestrator_handles_compound_failure(
-        self, mock_client: MagicMock
-    ) -> None:
+    async def test_orchestrator_handles_compound_failure(self, mock_client: MagicMock) -> None:
         """A failed compound task results in partial status."""
         from cohezion.swarm.execution_orchestrator import ExecutionOrchestrator
 
@@ -390,12 +380,8 @@ class TestExecutionOrchestratorCompound:
             name="partial-plan",
             intent="Test partial failure",
             tasks=[
-                TaskSpec(
-                    id="t1", subject="OK task", description="Succeeds", tags=["test"]
-                ),
-                TaskSpec(
-                    id="t2", subject="Bad task", description="Fails", tags=["test"]
-                ),
+                TaskSpec(id="t1", subject="OK task", description="Succeeds", tags=["test"]),
+                TaskSpec(id="t2", subject="Bad task", description="Fails", tags=["test"]),
             ],
         )
 

@@ -178,10 +178,7 @@ class ResilientOllamaClient:
     @staticmethod
     def _fallback(prompt: str) -> str:
         """Provide a degraded response when the circuit is open."""
-        return (
-            "[Ollama unavailable — circuit breaker open] "
-            f"Cannot process: {prompt[:100]}..."
-        )
+        return f"[Ollama unavailable — circuit breaker open] Cannot process: {prompt[:100]}..."
 
     async def close(self) -> None:
         """Close the HTTP client."""

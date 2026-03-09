@@ -12,19 +12,12 @@ Test Coverage:
 - Integration health checks
 """
 
-import pytest
-import asyncio
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, MagicMock
-from typing import Dict, List, Any
+
+import pytest
+
 
 # Phase 6 Component Imports
-from cohezion.swarm.cost_aware_router import CostAwareRouter
-from cohezion.swarm.model_ranker import ModelRanker
-from cohezion.swarm.model_fallback_strategy import ModelFallbackStrategy
-from cohezion.cost_optimization.budget_enforcer import BudgetEnforcer
-from cohezion.compound.degradation_detector import DegradationDetector
-from cohezion.compound.model_quality_classifier import ModelQualityClassifier
 
 
 class TestFeatureFlags:
@@ -229,7 +222,7 @@ class TestMonitoringAndMetrics:
                     "avg_latency": 45.0,
                     "p95_latency": 120.0,
                     "p99_latency": 250.0,
-                }
+                },
             }
 
         assert len(self.time_windows) == 4
@@ -255,8 +248,12 @@ class TestMonitoringAndMetrics:
 
         # Check alert conditions
         should_warn_error = current_metrics["error_rate"] > alert_thresholds["error_rate_warning"]
-        should_critical_error = current_metrics["error_rate"] > alert_thresholds["error_rate_critical"]
-        should_warn_latency = current_metrics["latency_change"] > alert_thresholds["latency_degradation_warning"]
+        should_critical_error = (
+            current_metrics["error_rate"] > alert_thresholds["error_rate_critical"]
+        )
+        should_warn_latency = (
+            current_metrics["latency_change"] > alert_thresholds["latency_degradation_warning"]
+        )
 
         assert should_warn_error is False
         assert should_critical_error is False
@@ -291,8 +288,9 @@ class TestProductionReadiness:
         }
 
         for component, targets in coverage_targets.items():
-            assert targets["actual"] >= targets["target"], \
+            assert targets["actual"] >= targets["target"], (
                 f"{component} coverage {targets['actual']} below target {targets['target']}"
+            )
 
     def test_performance_gates(self):
         """Test performance requirements met."""
@@ -306,12 +304,14 @@ class TestProductionReadiness:
         for metric, targets in performance_targets.items():
             if "rate" in metric or "throughput" in metric:
                 # For rates and throughput, higher is better
-                assert targets["actual"] >= targets["target"], \
+                assert targets["actual"] >= targets["target"], (
                     f"{metric} {targets['actual']} below target {targets['target']}"
+                )
             else:
                 # For latency/overhead, lower is better
-                assert targets["actual"] <= targets["target"], \
+                assert targets["actual"] <= targets["target"], (
                     f"{metric} {targets['actual']} exceeds target {targets['target']}"
+                )
 
     def test_dependency_readiness(self):
         """Test all dependencies ready for production."""
@@ -411,11 +411,13 @@ class TestRollbackProcedures:
         }
 
         # Simulate rollback
-        self.rollback_history.append({
-            "timestamp": datetime.now(),
-            "pre_state": pre_rollback_metrics.copy(),
-            "action": "full_phase6_rollback",
-        })
+        self.rollback_history.append(
+            {
+                "timestamp": datetime.now(),
+                "pre_state": pre_rollback_metrics.copy(),
+                "action": "full_phase6_rollback",
+            }
+        )
 
         # Post-rollback state
         post_rollback_metrics = {
@@ -627,7 +629,7 @@ class TestDeploymentValidationReport:
             "recommendation",
         ]
 
-        report = {section: None for section in required_sections}
+        report = dict.fromkeys(required_sections)
         for section in required_sections:
             assert section in report
 

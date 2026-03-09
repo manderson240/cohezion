@@ -76,9 +76,7 @@ class TestMetrics:
     false_negatives: int = 0
     total_time_ms: float = 0.0
     by_category: dict = field(
-        default_factory=lambda: defaultdict(
-            lambda: {"total": 0, "correct": 0, "fp": 0, "fn": 0}
-        )
+        default_factory=lambda: defaultdict(lambda: {"total": 0, "correct": 0, "fp": 0, "fn": 0})
     )
 
     @property
@@ -151,8 +149,7 @@ def test_single_pattern(pattern: AttackPattern) -> TestResult:
     # Test validator
     validation_result = validate_input(pattern.pattern)
     validator_blocked = (
-        validation_result is not None
-        and validation_result.code == ValidationResult.BLOCKED_PATTERN
+        validation_result is not None and validation_result.code == ValidationResult.BLOCKED_PATTERN
     )
 
     # Combined result
@@ -352,9 +349,7 @@ class AdversarialTester:
                             "correct": result.correct,
                         }
                     )
-            logger.info(
-                f"Saved {len(self.failed_patterns)} failures to {failures_path}"
-            )
+            logger.info(f"Saved {len(self.failed_patterns)} failures to {failures_path}")
 
         # Generate report
         self._generate_report(timestamp)
@@ -436,9 +431,7 @@ def main():
     """CLI entry point."""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Adversarial Security Testing Framework"
-    )
+    parser = argparse.ArgumentParser(description="Adversarial Security Testing Framework")
     parser.add_argument(
         "--rounds",
         "-r",

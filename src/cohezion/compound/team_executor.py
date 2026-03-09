@@ -111,9 +111,7 @@ class TeamExecutor:
         self.mcp_client = mcp_client
         self.project = project
         self.skill_selector = SkillSelector(mcp_client)
-        logger.debug(
-            "Initialized TeamExecutor with %d agents", len(agents)
-        )
+        logger.debug("Initialized TeamExecutor with %d agents", len(agents))
 
     def _topological_sort(self, tasks: list[AgentTask]) -> list[AgentTask]:
         """Sort tasks by dependencies (topological sort).
@@ -151,9 +149,7 @@ class TeamExecutor:
         logger.debug("Sorted %d tasks by dependencies", len(sorted_tasks))
         return sorted_tasks
 
-    def _build_dependency_graph(
-        self, tasks: list[AgentTask]
-    ) -> dict[str, list[str]]:
+    def _build_dependency_graph(self, tasks: list[AgentTask]) -> dict[str, list[str]]:
         """Build dependency graph for parallel execution.
 
         Returns:
@@ -168,9 +164,7 @@ class TeamExecutor:
 
         return graph
 
-    async def _select_skill_for_task(
-        self, task: AgentTask
-    ) -> str:
+    async def _select_skill_for_task(self, task: AgentTask) -> str:
         """Select best skill for task using vault patterns.
 
         Args:
@@ -247,12 +241,9 @@ class TeamExecutor:
                 def execute_fn(guidance):
                     # Default execution: pass parent results as context
                     parent_outputs = {
-                        parent_id: result.output
-                        for parent_id, result in parent_results.items()
+                        parent_id: result.output for parent_id, result in parent_results.items()
                     }
-                    return f"Executed {task.task_id}", {
-                        "parent_context": parent_outputs
-                    }
+                    return f"Executed {task.task_id}", {"parent_context": parent_outputs}
 
             # Execute task
             execution_result = agent.execute_task(
@@ -299,9 +290,7 @@ class TeamExecutor:
                 error=str(e),
             )
 
-    def _compute_compound_score(
-        self, results: list[AgentTaskResult]
-    ) -> float:
+    def _compute_compound_score(self, results: list[AgentTaskResult]) -> float:
         """Compute overall team performance score.
 
         Combines:
@@ -323,42 +312,25 @@ class TeamExecutor:
         success_rate = successful / len(results)
 
         # Average coherence
-        coherence_scores = [
-            r.metrics.get("coherence", 0.5)
-            for r in results
-            if r.success
-        ]
-        avg_coherence = (
-            sum(coherence_scores) / len(coherence_scores)
-            if coherence_scores
-            else 0.0
-        )
+        coherence_scores = [r.metrics.get("coherence", 0.5) for r in results if r.success]
+        avg_coherence = sum(coherence_scores) / len(coherence_scores) if coherence_scores else 0.0
 
         # Average efficiency (token efficiency)
         efficiency_scores = []
         for r in results:
             if r.execution_result and r.execution_result.token_metrics:
-                cache_hit_rate = r.execution_result.token_metrics.get(
-                    "cache_hit_rate", 0.0
-                )
+                cache_hit_rate = r.execution_result.token_metrics.get("cache_hit_rate", 0.0)
                 efficiency_scores.append(cache_hit_rate)
 
         avg_efficiency = (
-            sum(efficiency_scores) / len(efficiency_scores)
-            if efficiency_scores
-            else 0.5
+            sum(efficiency_scores) / len(efficiency_scores) if efficiency_scores else 0.5
         )
 
         # Weighted combination
-        compound = (
-            (success_rate * 0.6)
-            + (avg_coherence * 0.25)
-            + (avg_efficiency * 0.15)
-        )
+        compound = (success_rate * 0.6) + (avg_coherence * 0.25) + (avg_efficiency * 0.15)
 
         logger.info(
-            "Compound score: %.3f "
-            "(success=%.2f, coherence=%.2f, efficiency=%.2f)",
+            "Compound score: %.3f (success=%.2f, coherence=%.2f, efficiency=%.2f)",
             compound,
             success_rate,
             avg_coherence,
@@ -401,10 +373,7 @@ class TeamExecutor:
 
             for task in sorted_tasks:
                 # Wait for dependencies to complete
-                while not all(
-                    dep_id in task_results
-                    for dep_id in task.dependencies
-                ):
+                while not all(dep_id in task_results for dep_id in task.dependencies):
                     await asyncio.sleep(0.1)
 
                 # Get agent
@@ -441,9 +410,7 @@ class TeamExecutor:
                 execution_order.append(task.task_id)
 
             # Collect results
-            results_list = [
-                task_results[task.task_id] for task in sorted_tasks
-            ]
+            results_list = [task_results[task.task_id] for task in sorted_tasks]
 
             # Compute metrics
             successful = sum(1 for r in results_list if r.success)
@@ -461,8 +428,7 @@ class TeamExecutor:
             )
 
             logger.info(
-                "Team execution complete: "
-                "%d/%d successful, score=%.3f, time=%.2fs",
+                "Team execution complete: %d/%d successful, score=%.3f, time=%.2fs",
                 successful,
                 len(results_list),
                 compound_score,

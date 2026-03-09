@@ -31,8 +31,7 @@ class APIKeyValidator:
         self.api_key = os.getenv(env_key)
         if not self.api_key:
             logger.warning(
-                "No API key configured in environment. "
-                "Set %s to enable authentication.", env_key
+                "No API key configured in environment. Set %s to enable authentication.", env_key
             )
 
     def validate(self, request_key: str | None) -> bool:
@@ -55,6 +54,7 @@ class APIKeyValidator:
 
         # Constant-time comparison to prevent timing attacks
         import hmac
+
         expected_bytes = self.api_key.encode()
         provided_bytes = request_key.encode()
 
@@ -89,5 +89,3 @@ def reset_validator() -> None:
     """Reset the global validator instance (for testing)."""
     global _validator
     _validator = None
-
-

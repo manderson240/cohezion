@@ -5,10 +5,12 @@ import logging
 import sys
 from datetime import datetime
 
+
 sys.path.insert(0, "src")
 
 from cohezion.core.persistence.surreal_client import PhysicsState, SurrealClient, UniverseNode
 from cohezion.simulation.simulation_logger import SimulationLogger
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("PersistSim")
@@ -37,7 +39,7 @@ async def persist_run():
         # Calculate metrics
         avg_coherence = float(df["phi_score"].mean())
         avg_energy = float(df["energy_level"].mean())
-        total_ticks = int(len(df["cycle_id"].unique()))
+        total_ticks = len(df["cycle_id"].unique())
 
         # Create Physics State for the Simulation Run
         # Mapping:

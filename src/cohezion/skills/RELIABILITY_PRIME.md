@@ -1,3 +1,15 @@
+---
+name: reliability
+description: System reliability patterns including circuit breakers, connection
+  pooling, and graceful degradation for AI services. Use when implementing
+  fault tolerance, handling cascading failures, or when user mentions "circuit
+  breaker", "connection pool", "reliability", "graceful degradation", or
+  "fallback strategy".
+metadata:
+  version: "1.0"
+  legacy-name: RELIABILITY_PRIME
+---
+
 # SKILL: RELIABILITY_PRIME
 
 ## DOMAIN EXPERTISE

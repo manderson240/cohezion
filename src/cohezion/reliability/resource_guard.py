@@ -13,12 +13,14 @@ import psutil
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class SystemVitals:
     cpu_load_1m: float
     ram_available_mb: int
     ram_percent: float
     swap_used_mb: int
+
 
 class ResourceGuard:
     """

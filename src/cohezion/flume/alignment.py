@@ -42,9 +42,7 @@ class LatentAligner:
             self.aligners[key] = DomainAlignmentMLP(self.z_dim)
         return self.aligners[key]
 
-    def align(
-        self, vector: torch.Tensor, source_domain: str, target_domain: str
-    ) -> torch.Tensor:
+    def align(self, vector: torch.Tensor, source_domain: str, target_domain: str) -> torch.Tensor:
         """
         Translates a thought-vector from source domain context to target domain context.
         """
@@ -71,9 +69,7 @@ class LatentAligner:
             self.domain_centroids[domain] = current_mean
         else:
             # Running average update (ema)
-            self.domain_centroids[domain] = (
-                0.9 * self.domain_centroids[domain] + 0.1 * current_mean
-            )
+            self.domain_centroids[domain] = 0.9 * self.domain_centroids[domain] + 0.1 * current_mean
 
     def domain_shift(
         self, vector: torch.Tensor, source_domain: str, target_domain: str
@@ -81,16 +77,11 @@ class LatentAligner:
         """
         Applies a simple centroid-based shift as a fast approximation of alignment.
         """
-        if (
-            source_domain not in self.domain_centroids
-            or target_domain not in self.domain_centroids
-        ):
+        if source_domain not in self.domain_centroids or target_domain not in self.domain_centroids:
             logger.warning(
                 f"⚠️ Centroids missing for {source_domain} or {target_domain}. Returning original vector."
             )
             return vector
 
-        shift = (
-            self.domain_centroids[target_domain] - self.domain_centroids[source_domain]
-        )
+        shift = self.domain_centroids[target_domain] - self.domain_centroids[source_domain]
         return vector + shift

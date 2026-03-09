@@ -32,9 +32,7 @@ class LocalRegistry:
     def refresh(self):
         """Scans local Ollama instance for installed models."""
         try:
-            result = subprocess.run(
-                ["ollama", "list"], capture_output=True, text=True, timeout=5
-            )
+            result = subprocess.run(["ollama", "list"], capture_output=True, text=True, timeout=5)
             if result.returncode == 0:
                 # Parse output (skip header)
                 lines = result.stdout.strip().split("\n")[1:]

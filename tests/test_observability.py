@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
 
 from cohezion.api import app
 from cohezion.knowledge_graph.query_engine import KnowledgeGraphQueryEngine
+
 
 client = TestClient(app)
 

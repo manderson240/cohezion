@@ -55,9 +55,7 @@ class ResourceMonitor:
 
             self_pid = os.getpid()
 
-            for proc in psutil.process_iter(
-                ["pid", "name", "memory_percent", "cmdline"]
-            ):
+            for proc in psutil.process_iter(["pid", "name", "memory_percent", "cmdline"]):
                 try:
                     # Don't kill ourselves or init
                     if proc.info["pid"] == self_pid or proc.info["pid"] < 100:
@@ -75,17 +73,12 @@ class ResourceMonitor:
                         "node_modules",
                     ]
 
-                    if (
-                        any(t in cmd for t in targets)
-                        and proc.info["memory_percent"] > 5.0
-                    ):
+                    if any(t in cmd for t in targets) and proc.info["memory_percent"] > 5.0:
                         logger.warning(
                             f"Killing process {proc.info['pid']} ({proc.info['name']}) - {proc.info['memory_percent']:.1f}% MEM"
                         )
                         proc.kill()
-                        actions.append(
-                            f"Killed {proc.info['name']} (PID {proc.info['pid']})"
-                        )
+                        actions.append(f"Killed {proc.info['name']} (PID {proc.info['pid']})")
 
                 except (
                     psutil.NoSuchProcess,

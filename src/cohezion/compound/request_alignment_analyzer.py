@@ -97,9 +97,7 @@ _CONSTRAINT_PATTERNS = {
         r"(?:under|within|limit.*?to)\s+(\d+)\s*(ms|millisecond|sec|second|min|minute)",
         re.IGNORECASE,
     ),
-    ConstraintType.QUALITY: re.compile(
-        r"(high|low|max|min)\s*quality", re.IGNORECASE
-    ),
+    ConstraintType.QUALITY: re.compile(r"(high|low|max|min)\s*quality", re.IGNORECASE),
     ConstraintType.SCOPE: re.compile(
         r"(?:only|just|restrict(?:ed)?|limit)\s+to\s+(\w+)", re.IGNORECASE
     ),
@@ -176,9 +174,7 @@ class RequestAlignmentAnalyzer:
                 self._text_encoder = get_text_encoder()
                 logger.debug("Initialized semantic text encoder")
             except Exception as e:
-                logger.debug(
-                    "Failed to load semantic encoder (using keyword fallback): %s", e
-                )
+                logger.debug("Failed to load semantic encoder (using keyword fallback): %s", e)
                 self._text_encoder = False  # Flag: tried and failed
         return self._text_encoder if self._text_encoder else None
 
@@ -212,9 +208,7 @@ class RequestAlignmentAnalyzer:
         logger.debug("Extracted %d success criteria", len(request.criteria))
 
         # Step 4: Extract scope
-        request.scope_includes, request.scope_excludes = self._extract_scope(
-            request_text
-        )
+        request.scope_includes, request.scope_excludes = self._extract_scope(request_text)
 
         return request
 
@@ -242,42 +236,28 @@ class RequestAlignmentAnalyzer:
         )
 
         # Check constraint satisfaction
-        violations = self._check_constraints(
-            request.constraints, execution_result.metrics
-        )
-        constraint_satisfaction = max(
-            0.0, 1.0 - (len(violations) * 0.3)
-        )  # Penalty per violation
+        violations = self._check_constraints(request.constraints, execution_result.metrics)
+        constraint_satisfaction = max(0.0, 1.0 - (len(violations) * 0.3))  # Penalty per violation
 
         # Check success criteria
         failures = self._check_criteria(request.criteria, execution_result.metrics)
-        criteria_satisfaction = max(
-            0.0, 1.0 - (len(failures) * 0.2)
-        )  # Penalty per failure
+        criteria_satisfaction = max(0.0, 1.0 - (len(failures) * 0.2))  # Penalty per failure
 
         # Detect drift signals
-        drift_signals = self._detect_drift_signals(
-            execution_result, anomaly_analysis
-        )
+        drift_signals = self._detect_drift_signals(execution_result, anomaly_analysis)
         drift_penalty = (
-            sum(s.severity for s in drift_signals) / len(drift_signals)
-            if drift_signals
-            else 0.0
+            sum(s.severity for s in drift_signals) / len(drift_signals) if drift_signals else 0.0
         )
 
         # Compute composite misalignment score
         alignment_score = (
-            0.4 * intent_match_score
-            + 0.3 * constraint_satisfaction
-            + 0.3 * criteria_satisfaction
+            0.4 * intent_match_score + 0.3 * constraint_satisfaction + 0.3 * criteria_satisfaction
         )
         misalignment_score = (1.0 - alignment_score) + (drift_penalty * 0.2)
         misalignment_score = min(1.0, max(0.0, misalignment_score))
 
         # Generate issues and recommendations
-        issues = self._generate_issues(
-            violations, failures, drift_signals, intent_match_score
-        )
+        issues = self._generate_issues(violations, failures, drift_signals, intent_match_score)
         recommendations = self._generate_recommendations(
             violations, failures, drift_signals, request.intent
         )
@@ -337,9 +317,7 @@ class RequestAlignmentAnalyzer:
             )
             return {"alignment_patterns": context if context else []}
         except Exception as e:
-            logger.warning(
-                "Failed to query alignment patterns (non-blocking): %s", e
-            )
+            logger.warning("Failed to query alignment patterns (non-blocking): %s", e)
             return {"alignment_patterns": [], "error": str(e)}
 
     # ========================================================================
@@ -409,16 +387,10 @@ class RequestAlignmentAnalyzer:
                 "generate": encoder.encode(
                     "Create, write, compose, draft, and produce new content"
                 ),
-                "analyze": encoder.encode(
-                    "Evaluate, assess, review, and analyze existing content"
-                ),
+                "analyze": encoder.encode("Evaluate, assess, review, and analyze existing content"),
                 "search": encoder.encode("Find, locate, discover, and search for items"),
-                "transform": encoder.encode(
-                    "Convert, reformat, extract, and transform data"
-                ),
-                "persist": encoder.encode(
-                    "Store, save, record, and persist information"
-                ),
+                "transform": encoder.encode("Convert, reformat, extract, and transform data"),
+                "persist": encoder.encode("Store, save, record, and persist information"),
             }
 
             # Compute similarities
@@ -469,8 +441,14 @@ class RequestAlignmentAnalyzer:
             value = float(match.group(1))
             unit = match.group(2).lower()
             # Normalize to milliseconds
-            multipliers = {"ms": 1, "millisecond": 1, "sec": 1000, "second": 1000,
-                          "min": 60000, "minute": 60000}
+            multipliers = {
+                "ms": 1,
+                "millisecond": 1,
+                "sec": 1000,
+                "second": 1000,
+                "min": 60000,
+                "minute": 60000,
+            }
             value_ms = value * multipliers.get(unit, 1)
             constraints.append(
                 ExecutionConstraint(
@@ -498,9 +476,7 @@ class RequestAlignmentAnalyzer:
         if match:
             scope = match.group(1)
             constraints.append(
-                ExecutionConstraint(
-                    type=ConstraintType.SCOPE, value=1.0, unit=scope, is_hard=True
-                )
+                ExecutionConstraint(type=ConstraintType.SCOPE, value=1.0, unit=scope, is_hard=True)
             )
 
         return constraints
@@ -520,9 +496,7 @@ class RequestAlignmentAnalyzer:
         criteria = []
 
         # Look for explicit criteria ("must be...", "should be...")
-        explicit_pattern = re.compile(
-            r"(?:must|should|needs?)\s+(?:be\s+)?(\w+)", re.IGNORECASE
-        )
+        explicit_pattern = re.compile(r"(?:must|should|needs?)\s+(?:be\s+)?(\w+)", re.IGNORECASE)
         for match in explicit_pattern.finditer(request_text):
             criterion_word = match.group(1).lower()
             if criterion_word in _CRITERION_METRIC_MAP:
@@ -542,9 +516,7 @@ class RequestAlignmentAnalyzer:
 
         return criteria
 
-    def _extract_scope(
-        self, request_text: str
-    ) -> tuple[list[str], list[str]]:
+    def _extract_scope(self, request_text: str) -> tuple[list[str], list[str]]:
         """Extract scope inclusions/exclusions from request.
 
         Args:
@@ -562,9 +534,7 @@ class RequestAlignmentAnalyzer:
             includes.append(match.group(1))
 
         # Look for "except", "excluding", "not", "without" (exclusions)
-        except_pattern = re.compile(
-            r"(?:except|excluding|not|without)\s+(\w+)", re.IGNORECASE
-        )
+        except_pattern = re.compile(r"(?:except|excluding|not|without)\s+(\w+)", re.IGNORECASE)
         for match in except_pattern.finditer(request_text):
             excludes.append(match.group(1))
 
@@ -657,9 +627,7 @@ class RequestAlignmentAnalyzer:
             elif constraint.type == ConstraintType.QUALITY:
                 # Check quality metrics (coherence, accuracy, etc.)
                 quality_metrics = ["coherence", "accuracy", "correctness"]
-                actual_quality = max(
-                    (metrics.get(m, 0) for m in quality_metrics), default=0.0
-                )
+                actual_quality = max((metrics.get(m, 0) for m in quality_metrics), default=0.0)
                 if actual_quality < constraint.value:
                     severity = min(1.0, (constraint.value - actual_quality) / constraint.value)
                     violations.append(
@@ -806,9 +774,7 @@ class RequestAlignmentAnalyzer:
         issues = []
 
         if intent_match < 0.5:
-            issues.append(
-                f"Execution may not match request intent (match={intent_match:.2f})"
-            )
+            issues.append(f"Execution may not match request intent (match={intent_match:.2f})")
 
         for violation in violations:
             issues.append(
@@ -850,26 +816,18 @@ class RequestAlignmentAnalyzer:
 
         for violation in violations:
             if violation.constraint.type == ConstraintType.TOKENS:
-                recommendations.append(
-                    "Reduce token requirements or optimize prompt/execution"
-                )
+                recommendations.append("Reduce token requirements or optimize prompt/execution")
             elif violation.constraint.type == ConstraintType.LATENCY:
-                recommendations.append(
-                    "Optimize execution speed or increase time budget"
-                )
+                recommendations.append("Optimize execution speed or increase time budget")
             elif violation.constraint.type == ConstraintType.QUALITY:
                 recommendations.append("Use higher-quality model or improve prompt")
 
         for failure in failures:
-            recommendations.append(
-                f"Improve {failure.criterion.metric_name} to meet requirements"
-            )
+            recommendations.append(f"Improve {failure.criterion.metric_name} to meet requirements")
 
         for signal in drift_signals:
             if signal.signal_type == "coherence_drop":
-                recommendations.append(
-                    "Improve prompt clarity or use higher-capability model"
-                )
+                recommendations.append("Improve prompt clarity or use higher-capability model")
             elif signal.signal_type == "retry_required":
                 recommendations.append("Investigate root cause of retries")
             elif signal.signal_type == "cache_miss_storm":
@@ -894,10 +852,7 @@ class RequestAlignmentAnalyzer:
             Vault path or empty string on failure
         """
         try:
-            title = (
-                f"High misalignment in {request.intent.value} task: "
-                f"{request.raw_text[:50]}"
-            )
+            title = f"High misalignment in {request.intent.value} task: {request.raw_text[:50]}"
             context = (
                 f"Request: {request.raw_text}\n\n"
                 f"Intent: {request.intent.value} (confidence={request.intent_confidence:.2f})\n\n"
@@ -944,8 +899,7 @@ class RequestAlignmentAnalyzer:
         """
         try:
             hypothesis = (
-                f"Request alignment for {request.intent.value} task: "
-                f"{request.raw_text[:100]}"
+                f"Request alignment for {request.intent.value} task: {request.raw_text[:100]}"
             )
             method = (
                 f"Analyzed request with intent={request.intent.value}, "

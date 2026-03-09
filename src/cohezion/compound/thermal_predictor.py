@@ -143,9 +143,7 @@ class ThermalTrendAnalyzer:
             f"throttle={'YES' if metrics.throttle_detected else 'NO'}"
         )
 
-    def predict_thermal_safety(
-        self, task_type: str, batch_size: int, duration_sec: float
-    ) -> float:
+    def predict_thermal_safety(self, task_type: str, batch_size: int, duration_sec: float) -> float:
         """Predict peak GPU temperature for a workload.
 
         Uses linear regression model: temp = base + (batch_size * slope) + (duration * ramp)
@@ -179,9 +177,7 @@ class ThermalTrendAnalyzer:
             return predicted
 
         # Analyze historical thermal data by batch size
-        predicted = self._predict_from_history(
-            type_history, batch_size, duration_sec, task_type
-        )
+        predicted = self._predict_from_history(type_history, batch_size, duration_sec, task_type)
         return predicted
 
     def _predict_from_history(
@@ -246,9 +242,7 @@ class ThermalTrendAnalyzer:
 
         return predicted
 
-    def get_safe_batch_size(
-        self, task_type: str, target_temp: float | None = None
-    ) -> int:
+    def get_safe_batch_size(self, task_type: str, target_temp: float | None = None) -> int:
         """Find maximum safe batch size via binary search.
 
         Parameters
@@ -274,9 +268,7 @@ class ThermalTrendAnalyzer:
 
         for _ in range(10):  # Max 10 iterations
             mid_batch = (min_batch + max_batch) // 2
-            predicted_temp = self.predict_thermal_safety(
-                task_type, mid_batch, duration_sec=1.0
-            )
+            predicted_temp = self.predict_thermal_safety(task_type, mid_batch, duration_sec=1.0)
 
             if predicted_temp <= target_temp:
                 # Can go higher
@@ -293,9 +285,7 @@ class ThermalTrendAnalyzer:
 
         return max(1, safe_batch)
 
-    def predict_throttle_probability(
-        self, task_type: str, batch_size: int
-    ) -> float:
+    def predict_throttle_probability(self, task_type: str, batch_size: int) -> float:
         """Predict probability of thermal throttling.
 
         Uses sigmoid function: P(throttle) = 1 / (1 + e^(-k*(temp - 92)))
@@ -369,7 +359,8 @@ class ThermalTrendAnalyzer:
             "total_records": sum(len(v) for v in self.history.values()),
             "history_per_type": {k: len(v) for k, v in self.history.items()},
             "throttle_events": sum(
-                1 for metrics_list in self.history.values()
+                1
+                for metrics_list in self.history.values()
                 for m in metrics_list
                 if m.throttle_detected
             ),

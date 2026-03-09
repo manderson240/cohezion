@@ -100,11 +100,13 @@ class PersistentTokenCache(dict):
         # Persist to disk if persistence is enabled
         if self.persistence_enabled and isinstance(value, CacheEntry):
             # Store as JSON string - PersistentCache expects string values
-            persistent_value = json.dumps({
-                "key": value.key,
-                "value": value.value,
-                "tokens_used": value.tokens_used,
-            })
+            persistent_value = json.dumps(
+                {
+                    "key": value.key,
+                    "value": value.value,
+                    "tokens_used": value.tokens_used,
+                }
+            )
             self.persistent_store.set(key, persistent_value)
 
     def __getitem__(self, key: str) -> Any:
