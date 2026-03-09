@@ -88,7 +88,7 @@ class TestCompoundExecutorContextIntegration:
                 task_description="Test task",
                 skill_name="test-skill",
                 operation_type="generate",
-                execute_fn=lambda: ("output", {"metric": 1.0}),
+                execute_fn=lambda guidance: ("output", {"metric": 1.0}),
             )
 
             assert isinstance(result, ExecutionResult)
@@ -114,7 +114,7 @@ class TestCompoundExecutorContextIntegration:
                     task_description="Test task",
                     skill_name="test-skill",
                     operation_type="generate",
-                    execute_fn=lambda: ("output", {}),
+                    execute_fn=lambda guidance: ("output", {}),
                 )
 
                 assert result.success is True
@@ -130,7 +130,7 @@ class TestCompoundExecutorContextIntegration:
                 task_description="Test task",
                 skill_name="test-skill",
                 operation_type="generate",
-                execute_fn=lambda: ("output", {"context_loaded": True}),
+                execute_fn=lambda guidance: ("output", {"context_loaded": True}),
             )
 
             assert result.metrics is not None
