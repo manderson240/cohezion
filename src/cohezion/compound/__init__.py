@@ -71,15 +71,10 @@ from cohezion.compound.analytics.metrics import (
 # ============================================================================
 
 from cohezion.compound.skills.selector import (
-    Agent,
-    AgentResult,
-    SimpleSkills,
     SkillMatch,
     SkillRefiner,
     SkillSelector,
-    Swarm,
-    SwarmConfig,
-    Task as SkillTask,
+    SimpleSkills,
 )
 
 # ============================================================================
@@ -114,7 +109,7 @@ __all__ = [
     # Compatibility layer (old API)
     "CompoundCycleReport",
     "CompoundCycleResult",
-    "CompoundExecutor",  # Legacy wrapper
+    "CompoundExecutor",
     "ConstraintType",
     "ConstraintViolation",
     "CriterionFailure",
@@ -147,16 +142,11 @@ __all__ = [
     "MetricsCollector",
     "MetricsSnapshot",
     "SimpleMetrics",
-    # New skills/swarm
-    "Agent",
-    "AgentResult",
+    # New skills
     "SkillMatch",
     "SkillSelector",
     "SkillRefiner",
     "SimpleSkills",
-    "SkillTask",
-    "Swarm",
-    "SwarmConfig",
     # New persistence
     "PersistenceConfig",
     "SessionPersister",
