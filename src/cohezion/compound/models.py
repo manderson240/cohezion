@@ -157,3 +157,128 @@ class BatchConfig:
 TaskId = str
 SessionId = str
 VaultPath = str
+
+
+# ============================================================================
+# Legacy Compatibility Models (for backward compatibility)
+# These preserve old API while new code uses simplified models above
+# ============================================================================
+
+
+class ConstraintType(Enum):
+    """Legacy constraint type enum."""
+
+    LATENCY = auto()
+    TOKENS = auto()
+    QUALITY = auto()
+    COST = auto()
+    SCOPE = auto()
+
+
+@dataclass
+class ExecutionConstraint:
+    """Legacy constraint - maps to new config."""
+
+    type: ConstraintType
+    value: float
+    unit: str
+    is_hard: bool = True
+
+
+@dataclass
+class SuccessCriterion:
+    """Legacy success criterion."""
+
+    description: str
+    metric_name: str
+    threshold: float
+    is_explicit: bool = False
+
+
+@dataclass
+class DriftSignal:
+    """Legacy drift signal - now part of AnalysisReport."""
+
+    signal_type: str
+    severity: float
+    description: str
+    metadata: dict[str, Any] | None = None
+
+
+@dataclass
+class ConstraintViolation:
+    """Legacy constraint violation."""
+
+    constraint: ExecutionConstraint
+    requested_value: float
+    actual_value: float
+    severity: float
+
+
+@dataclass
+class CriterionFailure:
+    """Legacy criterion failure."""
+
+    criterion: SuccessCriterion
+    expected_value: float
+    actual_value: float
+    gap: float
+
+
+@dataclass
+class ExecutionAlignment:
+    """Legacy execution alignment - now AnalysisReport."""
+
+    intent_match_score: float
+    constraint_satisfaction: float
+    criteria_satisfaction: float
+    misalignment_score: float
+    violations: list[ConstraintViolation] | None = None
+    failures: list[CriterionFailure] | None = None
+    drift_signals: list[DriftSignal] | None = None
+    issues: list[str] | None = None
+    recommendations: list[str] | None = None
+    should_retry: bool = False
+
+
+@dataclass
+class HumanRequest:
+    """Legacy human request."""
+
+    raw_text: str
+    intent: IntentType = IntentType.UNKNOWN
+    intent_confidence: float = 0.0
+    constraints: list[ExecutionConstraint] | None = None
+    criteria: list[SuccessCriterion] | None = None
+    scope_includes: list[str] | None = None
+    scope_excludes: list[str] | None = None
+
+
+@dataclass
+class CompoundCycleResult:
+    """Legacy cycle result - mapped to new."""
+
+    skill_name: str = ""
+    input_text: str = ""
+    execution_output: str = ""
+    execution_tokens: int = 0
+    execution_duration_ms: float = 0.0
+    compound_score_delta: float = 0.0
+    patterns: list[str] | None = None
+    refinements_applied: int = 0
+    version_before: str = ""
+    version_after: str = ""
+    model_usage: dict[str, int] | None = None
+
+
+@dataclass
+class CompoundCycleReport:
+    """Legacy cycle report."""
+
+    skill_name: str = ""
+    cycles: list[CompoundCycleResult] | None = None
+    total_cycles: int = 0
+    total_tokens: int = 0
+    total_duration_ms: float = 0.0
+    total_refinements: int = 0
+    final_compound_score_delta: float = 0.0
