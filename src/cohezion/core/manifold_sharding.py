@@ -41,6 +41,11 @@ class HolographicCoherenceReport:
     coherence_score: float  # 0.0-1.0, 1.0 = perfectly coherent
     pointer_flips: int
 
+    @property
+    def boundary_coherence(self) -> float:
+        """Alias for coherence_score — boundary coherence across shard partitions."""
+        return self.coherence_score
+
     def to_dict(self) -> dict:
         return {
             "shard_count": self.shard_count,
@@ -53,8 +58,16 @@ class HolographicCoherenceReport:
 class DistributedManifold:
     """2048D latent space with optional distributed sharding."""
 
-    def __init__(self, shard_count: int = 8) -> None:
-        self._shard_count = shard_count
+    def __init__(
+        self,
+        shard_count: int = 8,
+        num_shards: int | None = None,
+        total_dims: int | None = None,
+    ) -> None:
+        # Accept num_shards as alias for shard_count (test interface)
+        self._shard_count = num_shards if num_shards is not None else shard_count
+        # total_dims overrides SOUL_DIM when provided
+        self._total_dims = total_dims if total_dims is not None else SOUL_DIM
         self._mode = PulseMode.LOCAL
         self._shards: list[ManifoldShard] = []
         self._lock = threading.Lock()
