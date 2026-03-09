@@ -5,11 +5,21 @@ from scripts.overnight_autonomous_run import OvernightMission
 from scripts.jobs.elegance_engine import manifest_elegance
 from cohezion.core.persistence.surreal_client import SurrealClient
 
+from cohezion.simulation.enhanced_simulator import EnhancedSimulator
+
 def test_autonomic_scripts_loadable():
     """Verify that autonomous scripts are grounded in real components."""
-    # If this fails, the scripts are still hallucinating imports
     assert OvernightMission is not None
     assert manifest_elegance is not None
+    assert EnhancedSimulator is not None
+
+@pytest.mark.asyncio
+async def test_enhanced_simulator_functional():
+    """Verify that EnhancedSimulator can run a basic batch."""
+    simulator = EnhancedSimulator()
+    results = await simulator.run_batch(2)
+    assert len(results) == 2
+    assert simulator.total_completed >= 2
 
 def test_trackio_vitals():
     """Verify trackio setup in elegance engine is breathable (No invalid args)."""
