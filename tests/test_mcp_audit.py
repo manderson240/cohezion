@@ -1,6 +1,23 @@
-import pytest
+import socket
+
 import aiohttp
 import json
+import pytest
+
+
+def _mcp_manager_available() -> bool:
+    """Check if the MCP Manager is reachable at localhost:8370."""
+    try:
+        with socket.create_connection(("localhost", 8370), timeout=1):
+            return True
+    except OSError:
+        return False
+
+
+pytestmark = pytest.mark.skipif(
+    not _mcp_manager_available(),
+    reason="MCP Manager not running at localhost:8370 — start with `uv run cohezion mcp`",
+)
 
 # MCP Server ports based on MCPServerManager.init_default_servers
 SERVER_PORTS = {
