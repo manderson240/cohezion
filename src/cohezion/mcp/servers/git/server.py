@@ -38,7 +38,9 @@ class GitContext:
     """Git repository context analyzer."""
 
     def __init__(self, repo_path: str = "."):
-        self.repo_path = Path(repo_path).resolve()
+        from cohezion.mcp.servers.safe_input import sanitize_path
+
+        self.repo_path = sanitize_path(repo_path)
 
     def _run_git(self, args: list[str]) -> tuple[str, bool]:
         """Run git command and return output."""

@@ -42,14 +42,14 @@ class SkillsCache:
             data = await self._session_manager.get_session(key)
 
             if data:
-                logger.debug(f"Cache hit: {skill_id}")
+                logger.debug("Cache hit: %s", skill_id.replace("\n", " "))
                 return data.get("data")
 
-            logger.debug(f"Cache miss: {skill_id}")
+            logger.debug("Cache miss: %s", skill_id.replace("\n", " "))
             return None
 
         except Exception as e:
-            logger.exception(f"Error getting from cache: {e}")
+            logger.exception("Error getting from cache")
             return None
 
     async def set(self, skill_id: str, data: dict[str, Any]) -> bool:
@@ -81,7 +81,7 @@ class SkillsCache:
             await redis_client.expire(f"skills:session:{key}", CACHE_TTL)
             await redis_client.close()
 
-            logger.debug(f"Cached: {skill_id}")
+            logger.debug("Cached: %s", skill_id.replace("\n", " "))
             return True
 
         except Exception as e:

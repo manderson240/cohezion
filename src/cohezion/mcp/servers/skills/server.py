@@ -178,12 +178,15 @@ async def tool_skills_install(request: web.Request) -> web.Response:
         data = await request.json()
         skill_id = data.get("skill_id", "")
 
-        if "/" not in skill_id:
+        import re as _re
+
+        # Validate skill_id is a safe owner/repo format (alphanumeric, hyphens, underscores)
+        if not _re.match(r"^[a-zA-Z0-9_-]+/[a-zA-Z0-9_.-]+$", skill_id):
             return web.json_response(
-                {"error": "Invalid skill_id format. Use owner/repo format."}, status=400
+                {"error": "Invalid skill_id format. Use owner/repo format (alphanumeric only)."}, status=400
             )
 
-        # Run npx skills add
+        # Run npx skills add — skill_id is validated above
         cmd = ["npx", "skills", "add", skill_id]
 
         result = subprocess.run(

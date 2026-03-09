@@ -49,9 +49,7 @@ class DebateWorkflow:
         self.perspectives = perspectives or self.DEFAULT_PERSPECTIVES
 
         # Initialize agents
-        self.analysts = [
-            AnalystAgent(perspective=p, config=self.config) for p in self.perspectives
-        ]
+        self.analysts = [AnalystAgent(perspective=p, config=self.config) for p in self.perspectives]
         self.critic = CriticAgent(config=self.config)
         self.synthesizer = SynthesizerAgent(config=self.config)
 
@@ -76,7 +74,7 @@ class DebateWorkflow:
         total_start = time.perf_counter()
         self._metrics["total_queries"] += 1
 
-        logger.info(f"Starting debate workflow for query: {query[:100]}...")
+        logger.info("Starting debate workflow for query: %s...", query[:100].replace("\n", " "))
 
         # Phase 1: Parallel analysis
         analyst_start = time.perf_counter()
@@ -98,9 +96,7 @@ class DebateWorkflow:
         # Phase 3: Synthesis
         synthesis_start = time.perf_counter()
         response = await self.synthesizer.synthesize(critique, original_query=query)
-        self._metrics["synthesis_time_ms"] += (
-            time.perf_counter() - synthesis_start
-        ) * 1000
+        self._metrics["synthesis_time_ms"] += (time.perf_counter() - synthesis_start) * 1000
 
         total_time = (time.perf_counter() - total_start) * 1000
         self._metrics["total_time_ms"] += total_time
@@ -165,9 +161,7 @@ async def main() -> None:
 
     logging.basicConfig(level=logging.INFO)
 
-    query = (
-        args.query or "What are the implications of quantum computing for cryptography?"
-    )
+    query = args.query or "What are the implications of quantum computing for cryptography?"
 
     workflow = DebateWorkflow()
     try:
