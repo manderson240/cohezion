@@ -7,13 +7,15 @@ Provides tools:
 - list_skills: List available skills
 """
 
+import asyncio
 import json
 import logging
 import os
-import asyncio
 from pathlib import Path
 from typing import Any
+
 from aiohttp import web
+
 
 logger = logging.getLogger(__name__)
 
@@ -58,9 +60,7 @@ class KnowledgeMCP:
                     }
                 )
 
-        logger.info(
-            f"Indexed {len(self._skills_cache)} skills, {len(self._library_index)} docs"
-        )
+        logger.info(f"Indexed {len(self._skills_cache)} skills, {len(self._library_index)} docs")
 
     def search_knowledge(self, query: str, limit: int = 5) -> list[dict[str, Any]]:
         """
@@ -111,12 +111,14 @@ class KnowledgeMCP:
         Returns:
             Skill content and metadata
         """
-        skill_path = SKILLS_PATH / f"{skill_name}.md"
+        from cohezion.mcp.servers.safe_input import sanitize_path
+
+        skill_path = sanitize_path(f"{skill_name}.md", base_dir=SKILLS_PATH)
         if not skill_path.exists():
             # Try fuzzy match
             for name in self._skills_cache:
                 if skill_name.lower() in name.lower():
-                    skill_path = SKILLS_PATH / f"{name}.md"
+                    skill_path = sanitize_path(f"{name}.md", base_dir=SKILLS_PATH)
                     break
 
         if not skill_path.exists():
@@ -132,8 +134,7 @@ class KnowledgeMCP:
     def list_skills(self) -> list[dict[str, str]]:
         """List all available skills."""
         return [
-            {"name": name, "summary": content[:80]}
-            for name, content in self._skills_cache.items()
+            {"name": name, "summary": content[:80]} for name, content in self._skills_cache.items()
         ]
 
     def get_entity(self, entity_id: str) -> dict[str, Any] | None:
@@ -160,10 +161,15 @@ class KnowledgeMCP:
         Get a specific chunk of context for a prompt.
         Inspired by the context7 pattern for high-fidelity doc retrieval.
         """
-        file_path = Path(path)
-        if not file_path.exists() or not str(file_path).startswith(
-            str(Path(__file__).parent.parent)
-        ):
+        from cohezion.mcp.servers.safe_input import sanitize_path
+
+        project_root = Path(__file__).parent.parent
+        try:
+            file_path = sanitize_path(path, base_dir=project_root)
+        except ValueError:
+            return {"error": "Invalid or inaccessible path"}
+
+        if not file_path.exists():
             return {"error": "Invalid or inaccessible path"}
 
         content = file_path.read_text()
