@@ -1,0 +1,43 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "b3813ef97fc8",
+  "strategy": "manual-commit",
+  "branch": "feat/semver-400-year-physics-hiho-flume",
+  "checkpoints_count": 3,
+  "files_touched": [
+    ".github/workflows/health-check.yml",
+    ".github/workflows/playwright.yml",
+    "src/cohezion/mcp/compound_unified.py",
+    "src/cohezion/mcp/knowledge_server.py",
+    "src/cohezion/mcp/manager/server_manager.py",
+    "src/cohezion/mcp/servers/git/server.py",
+    "src/cohezion/mcp/servers/memory/server.py",
+    "src/cohezion/mcp/servers/security/server.py",
+    "src/cohezion/mcp/servers/skills/cache.py",
+    "src/cohezion/mcp/servers/skills/server.py",
+    "src/cohezion/pipeline/hyperparameter_debate.py",
+    "src/cohezion/reliability/semantic_cache.py",
+    "src/cohezion/security/mcp_https_client.py",
+    "src/cohezion/simulation/glass_box_debate.py",
+    "src/cohezion/swarm/democratic_debate.py",
+    "src/cohezion/swarm/workflows/debate_protocol.py",
+    "src/cohezion/universe/sandbox.py",
+    "tests/sandbox/test_isolation.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/b3/813ef97fc8/0/metadata.json",
+      "transcript": "/b3/813ef97fc8/0/full.jsonl",
+      "context": "/b3/813ef97fc8/0/context.md",
+      "content_hash": "/b3/813ef97fc8/0/content_hash.txt",
+      "prompt": "/b3/813ef97fc8/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 254,
+    "cache_creation_tokens": 831653,
+    "cache_read_tokens": 30724214,
+    "output_tokens": 40472,
+    "api_call_count": 227
+  }
+}
