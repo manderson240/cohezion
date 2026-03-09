@@ -1,301 +1,228 @@
-"""Comprehensive tests for compound executor.
+"""Comprehensive tests for NEW simplified compound executor.
 
-Generated for P0 coverage of executor.py (1106 lines).
-Tests all major functionality including execution lifecycle,
-guardrails, skill refinement, and token metrics.
+Tests the clean, focused 200-line implementation.
 """
 
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 
-from cohezion.compound.executor import CompoundExecutor, ExecutionResult
-from cohezion.core.mcp_client import MCPClient
-from cohezion.security.guardrail_pipeline import GuardrailAction, GuardrailPipeline, GuardrailResult
+from cohezion.compound.core.executor import CompoundExecutor, ExecutionConfig
+from cohezion.compound.models import ExecutionResult, ExecutionMetrics, Task, ExecutionContext
 
 
 class TestCompoundExecutorInitialization:
-    """[P0] Tests for executor initialization."""
+    """[P0] Tests for new executor initialization."""
 
-    @pytest.fixture()
-    def mock_mcp(self):
-        """Create mock MCP client."""
-        return MagicMock(spec=MCPClient)
+    def test_executor_initializes_minimal(self):
+        """[P0] Should initialize with minimal dependencies."""
 
-    def test_executor_initializes_with_mcp_client(self, mock_mcp):
-        """[P0] Should initialize with MCP client."""
-        executor = CompoundExecutor(mcp_client=mock_mcp)
+        def execute_fn(task, context):
+            return ("output", {"tokens": 100})
 
-        assert executor.mcp_client == mock_mcp
-        assert executor.logger is not None
+        executor = CompoundExecutor(execute_fn=execute_fn)
 
-    def test_executor_initializes_with_optional_components(self, mock_mcp):
-        """[P0] Should initialize with optional components."""
-        token_client = MagicMock()
-        guardrail_pipeline = MagicMock(spec=GuardrailPipeline)
+        assert executor.execute_fn == execute_fn
+        assert executor.config is not None
 
+    def test_executor_initializes_with_config(self):
+        """[P0] Should initialize with custom config."""
+
+        def execute_fn(task, context):
+            return ("output", {})
+
+        config = ExecutionConfig(max_retries=5)
+        executor = CompoundExecutor(execute_fn=execute_fn, config=config)
+
+        assert executor.config.max_retries == 5
+
+    def test_executor_initializes_with_analyzer(self):
+        """[P0] Should initialize with analyzer."""
+
+        def execute_fn(task, context):
+            return ("output", {})
+
+        analyzer = Mock()
         executor = CompoundExecutor(
-            mcp_client=mock_mcp,
-            token_client=token_client,
-            guardrail_pipeline=guardrail_pipeline,
-            enable_guardrails=True,
+            execute_fn=execute_fn,
+            analyzer=analyzer,
         )
 
-        assert executor.token_client == token_client
-        assert executor._guardrail_pipeline == guardrail_pipeline
-        assert executor._enable_guardrails is True
-
-    def test_executor_initializes_with_guardrails_disabled(self, mock_mcp):
-        """[P1] Should initialize with guardrails disabled."""
-        executor = CompoundExecutor(
-            mcp_client=mock_mcp,
-            enable_guardrails=False,
-        )
-
-        assert executor._enable_guardrails is False
+        assert executor.analyzer == analyzer
 
 
 class TestCompoundExecutorExecution:
     """[P0] Tests for task execution."""
 
     @pytest.fixture()
-    def mock_mcp(self):
-        """Create mock MCP client."""
-        return MagicMock(spec=MCPClient)
+    def executor(self):
+        """Create executor with mock function."""
+
+        def execute_fn(task, context):
+            return (f"output for {task.description}", {"tokens": 100})
+
+        return CompoundExecutor(execute_fn=execute_fn)
 
     @pytest.fixture()
-    def executor(self, mock_mcp):
-        """Create executor with mocked logger."""
-        executor = CompoundExecutor(mcp_client=mock_mcp)
-        executor.logger = MagicMock()
-        executor.logger.get_experience_guidance.return_value = {}
-        executor.logger.log_execution_start.return_value = "test-experiment-path"
-        executor.logger.log_decision_point.return_value = "test-decision-path"
-        return executor
-
-    def test_execute_task_successful(self, executor):
-        """[P0] Should execute task successfully."""
-        result = executor.execute_task(
-            task_description="Test task",
+    def task(self):
+        """Create test task."""
+        return Task(
+            id="test-1",
+            description="Test task",
             skill_name="test-skill",
             operation_type="generate",
-            execute_fn=lambda guidance: ("output", {"metric": 1.0}),
         )
+
+    def test_execute_task_successful(self, executor, task):
+        """[P0] Should execute task successfully."""
+        result = executor.execute(task)
 
         assert isinstance(result, ExecutionResult)
         assert result.success is True
-        assert result.output == "output"
-        assert result.metrics["metric"] == 1.0
+        assert "Test task" in result.output
 
-    def test_execute_task_with_failure(self, executor):
+    def test_execute_task_with_metrics(self, executor, task):
+        """[P0] Should capture metrics."""
+        result = executor.execute(task)
+
+        assert result.metrics.total_tokens == 100
+        assert result.metrics.duration_seconds > 0
+
+    def test_execute_task_with_failure(self, task):
         """[P0] Should handle task execution failure."""
 
-        def failing_fn(guidance):
+        def failing_fn(task, context):
             raise ValueError("Test error")
 
-        result = executor.execute_task(
-            task_description="Test task",
-            skill_name="test-skill",
-            operation_type="generate",
-            execute_fn=failing_fn,
-        )
+        executor = CompoundExecutor(execute_fn=failing_fn)
+        result = executor.execute(task)
 
         assert isinstance(result, ExecutionResult)
         assert result.success is False
         assert "Test error" in result.output
 
-    def test_execute_task_records_duration(self, executor):
+    def test_execute_task_records_duration(self, executor, task):
         """[P1] Should record execution duration."""
-        result = executor.execute_task(
-            task_description="Test task",
-            skill_name="test-skill",
-            operation_type="generate",
-            execute_fn=lambda guidance: ("output", {}),
-        )
+        result = executor.execute(task)
 
-        assert result.duration_seconds > 0
+        assert result.metrics.duration_seconds > 0
 
-    def test_execute_task_logs_to_vault(self, executor):
-        """[P0] Should log execution to vault."""
-        executor.execute_task(
-            task_description="Test task",
-            skill_name="test-skill",
-            operation_type="generate",
-            execute_fn=lambda guidance: ("output", {}),
-        )
+    def test_execute_task_with_retry(self, task):
+        """[P0] Should retry on failure."""
+        attempts = []
 
-        executor.logger.log_execution_start.assert_called_once()
-
-
-class TestCompoundExecutorGuardrails:
-    """[P1] Tests for guardrail integration."""
-
-    @pytest.fixture()
-    def mock_mcp(self):
-        return MagicMock(spec=MCPClient)
-
-    @pytest.fixture()
-    def executor_with_guardrails(self, mock_mcp):
-        """Create executor with mock guardrails."""
-        guardrail_pipeline = MagicMock(spec=GuardrailPipeline)
-        guardrail_pipeline.check_input.return_value = GuardrailResult(action=GuardrailAction.ALLOW)
-        guardrail_pipeline.check_output.return_value = GuardrailResult(action=GuardrailAction.ALLOW)
+        def flaky_fn(task, context):
+            attempts.append(context.attempt_number)
+            if context.attempt_number < 2:
+                raise ValueError("Retry me")
+            return ("success", {})
 
         executor = CompoundExecutor(
-            mcp_client=mock_mcp,
-            guardrail_pipeline=guardrail_pipeline,
-            enable_guardrails=True,
+            execute_fn=flaky_fn,
+            config=ExecutionConfig(max_retries=3),
         )
-        executor.logger = MagicMock()
-        executor.logger.get_experience_guidance.return_value = {}
-        return executor
-
-    def test_guardrails_check_output(self, executor_with_guardrails):
-        """[P1] Should check output through guardrails."""
-        result = executor_with_guardrails.execute_task(
-            task_description="Test task",
-            skill_name="test-skill",
-            operation_type="generate",
-            execute_fn=lambda guidance: ("output", {}),
-        )
+        result = executor.execute(task)
 
         assert result.success is True
-        executor_with_guardrails._guardrail_pipeline.check_output.assert_called()
+        assert len(attempts) == 3  # Initial + 2 retries
 
+    def test_execute_task_max_retries_exhausted(self, task):
+        """[P0] Should fail after max retries."""
 
-class TestCompoundExecutorTokenMetrics:
-    """[P1] Tests for token metrics integration."""
-
-    @pytest.fixture()
-    def mock_mcp(self):
-        return MagicMock(spec=MCPClient)
-
-    @pytest.fixture()
-    def executor_with_token_client(self, mock_mcp):
-        """Create executor with token client."""
-        token_client = MagicMock()
-        token_client.get_metrics.return_value = {
-            "prompt_tokens": 100,
-            "completion_tokens": 50,
-            "total_tokens": 150,
-        }
+        def always_fails(task, context):
+            raise ValueError("Always fails")
 
         executor = CompoundExecutor(
-            mcp_client=mock_mcp,
-            token_client=token_client,
+            execute_fn=always_fails,
+            config=ExecutionConfig(max_retries=2),
         )
-        executor.logger = MagicMock()
-        executor.logger.get_experience_guidance.return_value = {}
-        return executor
+        result = executor.execute(task)
 
-    def test_token_metrics_captured(self, executor_with_token_client):
-        """[P1] Should capture token metrics."""
-        result = executor_with_token_client.execute_task(
-            task_description="Test task",
-            skill_name="test-skill",
-            operation_type="generate",
-            execute_fn=lambda guidance: ("output", {}),
-        )
-
-        assert result.token_metrics is not None
+        assert result.success is False
+        assert "Always fails" in result.output
 
 
-class TestCompoundExecutorExperienceGuidance:
-    """[P1] Tests for experience guidance."""
+class TestCompoundExecutorPlugins:
+    """[P1] Tests for plugin system."""
 
     @pytest.fixture()
-    def mock_mcp(self):
-        return MagicMock(spec=MCPClient)
-
-    def test_get_experience_guidance(self, mock_mcp):
-        """[P1] Should retrieve experience guidance."""
-        executor = CompoundExecutor(mcp_client=mock_mcp)
-        executor.logger = MagicMock()
-        executor.logger.get_experience_guidance.return_value = {
-            "similar_tasks": [{"task_id": "123", "success": True}],
-        }
-
-        guidance = executor.get_experience_guidance(
-            task_description="Test task",
-            project="cohezion",
+    def task(self):
+        return Task(
+            id="test-1",
+            description="Test task",
+            skill_name="test-skill",
             operation_type="generate",
         )
 
-        assert "similar_tasks" in guidance
-        assert len(guidance["similar_tasks"]) == 1
+    def test_analyzer_called(self, task):
+        """[P1] Should call analyzer after execution."""
 
-    def test_guidance_used_in_execution(self, mock_mcp):
-        """[P1] Should use guidance during execution."""
-        received_guidance = {}
-
-        def capture_guidance(guidance):
-            nonlocal received_guidance
-            received_guidance = guidance
+        def execute_fn(task, context):
             return ("output", {})
 
-        executor = CompoundExecutor(mcp_client=mock_mcp)
-        executor.logger = MagicMock()
-        executor.logger.get_experience_guidance.return_value = {"hint": "use async/await"}
-
-        executor.execute_task(
-            task_description="Test task",
-            skill_name="test-skill",
-            operation_type="generate",
-            execute_fn=capture_guidance,
+        analyzer = Mock()
+        analyzer.return_value = Mock(
+            has_issues=lambda: False,
+            retry_recommended=False,
         )
 
-        assert received_guidance.get("hint") == "use async/await"
-
-
-class TestCompoundExecutorEdgeCases:
-    """[P2] Edge case tests."""
-
-    @pytest.fixture()
-    def mock_mcp(self):
-        return MagicMock(spec=MCPClient)
-
-    @pytest.fixture()
-    def executor(self, mock_mcp):
-        executor = CompoundExecutor(mcp_client=mock_mcp)
-        executor.logger = MagicMock()
-        executor.logger.get_experience_guidance.return_value = {}
-        return executor
-
-    def test_empty_output_handled(self, executor):
-        """[P2] Should handle empty output."""
-        result = executor.execute_task(
-            task_description="Test task",
-            skill_name="test-skill",
-            operation_type="generate",
-            execute_fn=lambda guidance: ("", {}),
+        executor = CompoundExecutor(
+            execute_fn=execute_fn,
+            analyzer=analyzer,
+            config=ExecutionConfig(enable_analysis=True),
         )
+
+        result = executor.execute(task)
+
+        analyzer.assert_called_once()
+
+    def test_analyzer_recommends_retry(self, task):
+        """[P1] Should retry when analyzer recommends."""
+        attempts = []
+
+        def execute_fn(task, context):
+            attempts.append(1)
+            return ("output", {})
+
+        analyzer = Mock()
+        # First call recommends retry, second doesn't
+        analyzer.side_effect = [
+            Mock(has_issues=lambda: True, retry_recommended=True),
+            Mock(has_issues=lambda: False, retry_recommended=False),
+        ]
+
+        executor = CompoundExecutor(
+            execute_fn=execute_fn,
+            analyzer=analyzer,
+            config=ExecutionConfig(enable_analysis=True),
+        )
+
+        result = executor.execute(task)
 
         assert result.success is True
-        assert result.output == ""
+        assert len(attempts) == 2  # Retried once
 
-    def test_execution_with_context_parameter(self, executor):
-        """[P1] Should pass context to execute_fn."""
-        received_context = None
+    def test_persister_called(self, task):
+        """[P1] Should call persister after execution."""
 
-        def check_context(guidance):
-            nonlocal received_context
-            received_context = guidance
+        def execute_fn(task, context):
             return ("output", {})
 
-        executor.execute_task(
-            task_description="Test task",
-            skill_name="test-skill",
-            operation_type="generate",
-            execute_fn=check_context,
+        persister = Mock()
+
+        executor = CompoundExecutor(
+            execute_fn=execute_fn,
+            persister=persister,
+            config=ExecutionConfig(enable_checkpointing=True),
         )
 
-        # guidance should be a dict
-        assert isinstance(received_context, dict)
+        result = executor.execute(task)
+
+        persister.assert_called_once()
 
 
 class TestExecutionResult:
@@ -306,39 +233,90 @@ class TestExecutionResult:
         result = ExecutionResult(
             success=True,
             output="test output",
-            metrics={"key": "value"},
-            duration_seconds=1.5,
+            metrics=ExecutionMetrics(total_tokens=100),
         )
 
         assert result.success is True
         assert result.output == "test output"
-        assert result.metrics == {"key": "value"}
-        assert result.duration_seconds == 1.5
+        assert result.metrics.total_tokens == 100
 
-    def test_result_with_optional_fields(self):
-        """[P1] Should create result with optional fields."""
+    def test_result_failed_property(self):
+        """[P0] Should have failed property."""
+        result = ExecutionResult(
+            success=False,
+            output="error",
+            metrics=ExecutionMetrics(),
+        )
+
+        assert result.failed is True
+
+    def test_result_to_dict(self):
+        """[P1] Should convert to dict."""
         result = ExecutionResult(
             success=True,
             output="test",
-            metrics={},
-            duration_seconds=1.0,
-            vault_experiment_path="/path/to/experiment",
-            vault_decision_paths=["/path/to/decision"],
-            token_metrics={"tokens": 100},
+            metrics=ExecutionMetrics(total_tokens=50),
+            vault_path="/path/to/vault",
         )
 
-        assert result.vault_experiment_path == "/path/to/experiment"
-        assert result.vault_decision_paths == ["/path/to/decision"]
-        assert result.token_metrics == {"tokens": 100}
+        data = result.to_dict()
 
-    def test_failed_result(self):
-        """[P0] Should create failed result."""
-        result = ExecutionResult(
-            success=False,
-            output="Error: something failed",
-            metrics={"error": "something failed"},
-            duration_seconds=0.5,
+        assert data["success"] is True
+        assert data["output"] == "test"
+        assert data["metrics"]["total_tokens"] == 50
+
+
+class TestExecutionConfig:
+    """[P1] Tests for ExecutionConfig."""
+
+    def test_default_config(self):
+        """[P1] Should have sensible defaults."""
+        config = ExecutionConfig()
+
+        assert config.max_retries == 3
+        assert config.retry_delay_seconds == 1.0
+        assert config.enable_analysis is True
+        assert config.enable_checkpointing is True
+
+    def test_custom_config(self):
+        """[P1] Should accept custom values."""
+        config = ExecutionConfig(
+            max_retries=5,
+            retry_delay_seconds=2.0,
+            enable_analysis=False,
+        )
+
+        assert config.max_retries == 5
+        assert config.retry_delay_seconds == 2.0
+        assert config.enable_analysis is False
+
+
+class TestExecuteSimple:
+    """[P1] Tests for execute_simple convenience function."""
+
+    def test_execute_simple_success(self):
+        """[P1] Should execute simple task."""
+        from cohezion.compound.core.executor import execute_simple
+
+        result = execute_simple(
+            task_description="Test",
+            execute_fn=lambda: "output",
+        )
+
+        assert result.success is True
+        assert result.output == "output"
+
+    def test_execute_simple_failure(self):
+        """[P1] Should handle simple failure."""
+        from cohezion.compound.core.executor import execute_simple
+
+        def failing_fn():
+            raise ValueError("Failed")
+
+        result = execute_simple(
+            task_description="Test",
+            execute_fn=failing_fn,
         )
 
         assert result.success is False
-        assert "Error" in result.output
+        assert "Failed" in result.output

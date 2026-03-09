@@ -6,16 +6,28 @@ Preserves all original functionality while using clean internals.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from enum import Enum, auto
+import logging
 from typing import Any
 
-# Import new simplified models
+# Import new simplified models AND legacy types now canonical in models
 from cohezion.compound.models import (
     AnalysisReport as NewAnalysisReport,
     ExecutionResult as NewExecutionResult,
     ExecutionMetrics as NewExecutionMetrics,
     Task as NewTask,
+    # Legacy types — canonical definitions now live in models.py
+    ConstraintType,
+    ConstraintViolation,
+    CriterionFailure,
+    DriftSignal,
+    ExecutionAlignment,
+    ExecutionConstraint,
+    HumanRequest,
+    IntentType,
+    SuccessCriterion,
+    CompoundCycleReport,
+    CompoundCycleResult,
+    SessionCheckpoint,
 )
 
 from cohezion.compound.core.executor import (
@@ -25,123 +37,8 @@ from cohezion.compound.core.executor import (
 
 # ============================================================================
 # Legacy Type Aliases (for backward compatibility)
+# All legacy types are now canonical in models.py and re-exported above.
 # ============================================================================
-
-
-# Keep old enums for compatibility
-class ConstraintType(Enum):
-    """Legacy constraint type enum."""
-
-    LATENCY = auto()
-    TOKENS = auto()
-    QUALITY = auto()
-    COST = auto()
-    SCOPE = auto()
-
-
-class IntentType(Enum):
-    """Legacy intent type enum."""
-
-    GENERATE = auto()
-    ANALYZE = auto()
-    SEARCH = auto()
-    TRANSFORM = auto()
-    PERSIST = auto()
-    MULTI_STEP = auto()
-    UNKNOWN = auto()
-
-
-# ============================================================================
-# Legacy Data Classes (mapped to new implementation)
-# ============================================================================
-
-
-@dataclass
-class ExecutionConstraint:
-    """Legacy constraint - maps to new config."""
-
-    type: ConstraintType
-    value: float
-    unit: str
-    is_hard: bool = True
-
-    def to_config(self) -> dict[str, Any]:
-        """Convert to new config format."""
-        return {
-            "type": self.type.name,
-            "value": self.value,
-            "unit": self.unit,
-            "is_hard": self.is_hard,
-        }
-
-
-@dataclass
-class SuccessCriterion:
-    """Legacy success criterion."""
-
-    description: str
-    metric_name: str
-    threshold: float
-    is_explicit: bool = False
-
-
-@dataclass
-class DriftSignal:
-    """Legacy drift signal - now part of AnalysisReport."""
-
-    signal_type: str
-    severity: float
-    description: str
-    metadata: dict[str, Any] | None = None
-
-
-@dataclass
-class ConstraintViolation:
-    """Legacy constraint violation."""
-
-    constraint: ExecutionConstraint
-    requested_value: float
-    actual_value: float
-    severity: float
-
-
-@dataclass
-class CriterionFailure:
-    """Legacy criterion failure."""
-
-    criterion: SuccessCriterion
-    expected_value: float
-    actual_value: float
-    gap: float
-
-
-@dataclass
-class ExecutionAlignment:
-    """Legacy execution alignment - now AnalysisReport."""
-
-    intent_match_score: float
-    constraint_satisfaction: float
-    criteria_satisfaction: float
-    misalignment_score: float
-    violations: list[ConstraintViolation] | None = None
-    failures: list[CriterionFailure] | None = None
-    drift_signals: list[DriftSignal] | None = None
-    issues: list[str] | None = None
-    recommendations: list[str] | None = None
-    should_retry: bool = False
-
-
-@dataclass
-class HumanRequest:
-    """Legacy human request."""
-
-    raw_text: str
-    intent: IntentType = IntentType.UNKNOWN
-    intent_confidence: float = 0.0
-    constraints: list[ExecutionConstraint] | None = None
-    criteria: list[SuccessCriterion] | None = None
-    scope_includes: list[str] | None = None
-    scope_excludes: list[str] | None = None
 
 
 # ============================================================================
