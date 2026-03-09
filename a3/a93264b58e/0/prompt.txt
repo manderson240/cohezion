@@ -1,0 +1,1014 @@
+Implement the following plan:
+
+# COHEZION Coherence Plan — Full-Spectrum Engineering Excellence
+
+## Context
+
+**Target**: Research Engineer, Universes at Anthropic (job 5061517008)
+**Mission**: Make COHEZION coherent — align the entire platform with the engineering discipline, methodology, and production quality that demonstrates paradigm-level thinking.
+**Method**: Full SDLC with Specs, PRD, Architecture, Epics/Stories, TDD (Red→Green→Refactor), polyglot code (right language for right task), security-first quality assurance, compound engineering, multiperspective evaluation, and proactive automated repository management.
+
+---
+
+## CURRENT STATUS (2026-03-08, Session Continuation)
+
+### Completed This Session
+- [x] **Epic A (Living Universe API)**: All 12 tasks DONE — 7 API endpoints, SSE 10Hz stream, R3F TensorBeam, HIHO CSS Bridge, PersistenceDiagram, AnimaChatPanel, AnimaNarrationBar, OuroborosControlRoom, VaultMode, ProvenanceTag
+- [x] **6 Runtime Bug Fixes**: NaN CA density, OuroborosControlRoom stuck connecting, AnimaChatPanel DOM leak, empty narration, Three.js 197 SSR errors, React hooks ordering
+- [x] **56 tests passing**, 0 regressions, TypeScript clean
+- [x] **Sprint status updated**: 13 stories moved to `done`, 4 epics now `in-progress`
+- [x] **Epics.md updated**: Implementation notes added to all 12 completed stories
+- [x] **6 SurrealDB learnings** persisted
+- [x] **Frontend coding standards** created (`.claude/rules/frontend.md`)
+- [x] **Playwright WebGL testing skill** created (`.claude/skills/playwright-webgl-testing/`)
+
+### FRs Implemented: FR1, FR2, FR12-FR18, FR22 (11 of 24)
+### Stories Done: 13 of 55
+
+### Remaining In This Session
+1. **R-Zero Challenger/Solver debate** on compound identity architecture (Task #27)
+2. **BMAD retrospective** on compound identity sprint (Task #26)
+3. **Vault persistence** — save decision artifacts to Obsidian vault
+
+---
+
+## I. THE COMPLETE PLATFORM INVENTORY
+
+### A. Physics Engine (Rust + Python, HIHO Paradigm)
+
+| Module | Path | LOC | Language |
+|--------|------|-----|----------|
+| 12D Axiomatic Manifold | `src/cohezion/universe/engine.py` | ~250 | Python |
+| HIHO Unified Engine (CA, Chaos, MHD, Twistors, Sacred Geometry) | `src/cohezion/universe/hiho_unified_engine.py` | ~250 | Python |
+| Rust Physics Core (SIMD CA + MHD) | `src/cohezion-physics-core/src/lib.rs` | 75 | Rust (PyO3) |
+| Fractal Universe Simulator | `src/cohezion/simulation/fractal_universe.py` | ~250 | Python |
+| Divergence Detector | `src/cohezion/universe/divergence.py` | ~100 | Python |
+| Sandbox Manager (100GB budget) | `src/cohezion/universe/sandbox_manager.py` | ~150 | Python |
+| FLUME Physics (Python fallback) | `src/cohezion/mass_sim/flume_physics_py.py` | ~100 | Python |
+| Mass Sim Orchestrator | `src/cohezion/mass_sim/orchestrator.py` | ~100 | Python |
+
+### B. RL Training Environment (Gymnasium)
+
+| Module | Path | Purpose |
+|--------|------|---------|
+| FlumeNavEnv | `src/cohezion/rl/environment.py` | 256D continuous obs/action, Hamiltonian dynamics |
+| Reward Shaping | `src/cohezion/rl/reward_shaping.py` | CoherenceReward (Gaussian@0.5), DiversityBonus, CompositeReward |
+
+### C. FLUME Intelligence Pipeline (16 modules)
+
+`src/cohezion/flume/`: alignment, autoencoder, bioelectric, compression, dataset, experience_collector, experience_dataset, experience_encoder, git_encoder, lcsp, morphospace, navigator, predictor, tokenizer, training, vae_encoder, vliw_kernel_sim, vliw_latent_alignment
+
+### D. Learning & Self-Improvement
+
+| Module | Path | Purpose |
+|--------|------|---------|
+| Ouroboros Engine | `src/cohezion/learning/ouroboros.py` | Recursive self-improvement from execution exhaust |
+| Mycelium Network | `src/cohezion/learning/mycelium_network.py` | Distributed KnowledgeSpore broadcast across EVOs |
+| Deep Research | `src/cohezion/learning/deep_research.py` | arXiv/GitHub/HuggingFace mining pipeline |
+| Skill Acquisition | `src/cohezion/learning/skill_acquisition.py` | Dynamic skill learning from experience |
+| Self-Evaluation | `src/cohezion/evaluation/self_eval.py` | Pre-flight quality checks before execution |
+
+### E. Multi-Agent Swarm (Compound Engineering)
+
+`src/cohezion/compound/` (30+ modules): Executor (11-step pipeline), SkillRefiner, RetrospectionEngine, JourneyTracker, RequestAlignmentAnalyzer, GlobalMetricsAggregator, DegradationDetector, InflectionDetector, IntakeSpecialist, IntentClassifier, ModelQualityClassifier, PromptOptimizer, SessionManager, SkillConsensusVoter, SkillSelector, TaskQueue, TeamExecutor, ThermalPredictor, TopologicalPersistence, UniverseBridge, VaultSearchExecutor
+
+`src/cohezion/swarm/` (25+ modules): TeamOrchestrator, ExecutionOrchestrator, DynamicModelRouter, CostAwareRouter (27.3% savings), SemanticCache (95%+ hit), DemocraticDebate, AnomalyDetector, BatchProcessor, ModelRanker, OllamaResilience
+
+### F. Security & Safety
+
+`src/cohezion/security/`: eval_awareness_defense, ethical_framework, consent_manager, prompt_guard, audit, agent_auth, api_key_auth, cert_generator, tls_config, attack_patterns, adversarial_tester
+`src/cohezion/sandbox/`: safety, isolation, rollback, hooks
+
+### G. Protocols & Interop
+
+| Module | Path | Purpose |
+|--------|------|---------|
+| A2A Server | `src/cohezion/protocols/a2a_server.py` | Google Agent-to-Agent protocol |
+| UCP Handler | `src/cohezion/protocols/ucp_capability_handler.py` | Universal Commerce Protocol |
+| MCP Fleet | `src/cohezion/mcp/` (12+ servers) | WebMCP Bridge, Knowledge, Skills, Swarm, Research, Surreal |
+
+### H. Visualization Stack
+
+| App | Path | Stack |
+|-----|------|-------|
+| **Anima Dashboard** | `src/web/anima_dashboard/` | Next.js 16, React Three Fiber, Tailwind v4 |
+| 3D Knowledge Graph | `cohezion-3d-graph-plugin/` | Obsidian, Three.js, 84 papers, 8D semantic |
+| Morphospace Loom | `apps/morphospace-loom/` | Vite, React |
+| Legacy Webapp | `apps/webapp/` | Vite, Framer Motion |
+| Marimo Notebooks | `notebooks/marimo/` | 10 reactive notebooks |
+| Pulse Board | `apps/dashboard/pulse_board.py` | Python dashboard |
+
+### I. BMAD Planning Artifacts (Full SDLC)
+
+| Artifact | Path | Content |
+|----------|------|---------|
+| PRD | `_bmad-output/planning-artifacts/prd.md` | 24 FRs, 15 NFRs |
+| Architecture | `_bmad-output/planning-artifacts/architecture.md` | Full system design |
+| UX Design | `_bmad-output/planning-artifacts/ux-design-specification.md` | Triune Self UX |
+| Epics | `_bmad-output/planning-artifacts/epics.md` | 7 epics, 55 stories, bidirectional FR traceability |
+| Sprint Status | `_bmad-output/implementation-artifacts/sprint-status.yaml` | Story-level tracking |
+| Constitution | `.agent/CONSTITUTION.md` | Ethical + operational governance |
+| Charter | `.agent/COHEZION_CHARTER.md` | SPIN, FLUME, HIHO, Expert Domain Lattice |
+| Capability Map | `.agent/CAPABILITY_MAP.md` | System capability inventory |
+
+### J. Scale Metrics
+
+| Metric | Value |
+|--------|-------|
+| Python modules | 441 |
+| Lines of source | 90,869 |
+| Test files | 216 |
+| Tests passing | 3,200+ (99.9%) |
+| Adversarial suite | 28/28 |
+| PRIME skills | 124 |
+| API endpoints | 72 |
+| MCP servers | 12+ |
+| Epics | 7 |
+| Stories | 55 |
+| Functional requirements | 24 |
+
+---
+
+## II. WHAT NEEDS TO BE MADE COHERENT
+
+### A. Dashboard → Real Physics Connection
+OuroborosControlRoom uses `Math.random()`, not `HIHOStabilizationEngine`. TensorBeam renders a hardcoded Clifford Torus, not live FLUME/CA state. Mycelium stats are hardcoded constants. **The engines exist and work — the display is disconnected.**
+
+### B. WebMCP Bridge Mock
+`webmcp_bridge.py:55` returns `"MOCKED output"`. Needs real MCP client routing.
+
+### C. System Card Evidence Gap
+26 lines, no math, no measured data, no code references.
+
+### D. Version Scatter
+v0.1.0, v1.0.2-rc.1, v4.0.0 across different files.
+
+### E. Repository Coherence
+Three webapps without canonical designation. No automated quality gates. Sprint status shows 54/55 stories in backlog.
+
+---
+
+## III. PRE-FLIGHT: RESOURCE MANAGEMENT & PLATFORM OPTIMIZATION
+
+### Step 0: Free RAM & Kill Duplicates
+
+**Current state**: 70GB used / 128GB total. Target ceiling: **85GB**.
+
+```bash
+# Kill 2 duplicate swarm_server_mcp processes (pts/5 and pts/6 from yesterday)
+kill 344155 343162
+
+# Verify freed ~1.3GB
+free -h
+```
+
+**Memory budget for implementation work**:
+| Consumer | Budget |
+|----------|--------|
+| OS + Desktop + Chrome + Obsidian | ~60GB (baseline) |
+| FastAPI backend | ~500MB |
+| Next.js dev server | ~500MB |
+| Pytest suite | ~2GB (peak) |
+| Cargo build (Rust core) | ~1GB (peak) |
+| **Hard ceiling** | **85GB** |
+| **Available headroom** | ~20GB |
+
+### Step 0.1: SandboxManager Budget Update
+
+**Modify**: `src/cohezion/universe/sandbox_manager.py`
+- Change `SYSTEM_MEMORY_BUDGET_MB = 100 * 1024` → `SYSTEM_MEMORY_BUDGET_MB = 85 * 1024`
+- This aligns the sandbox orchestrator with the 85GB ceiling to prevent OOM during simulation runs
+
+### Step 0.2: Platform-Aware Configuration
+
+**Hardware**: AMD Ryzen AI MAX+ 395 (16C/32T, AVX-512, AMX), 128GB LPDDR5X, Radeon 8060S (iGPU, unified memory), 2TB NVMe (ZFS)
+
+**Optimizations to enforce**:
+- Rust physics core: `RUSTFLAGS="-C target-cpu=znver5"` for Zen 5 native codegen (AVX-512 auto-vectorization)
+- Python: numpy with OpenBLAS (already default on AMD)
+- Next.js: `NODE_OPTIONS="--max-old-space-size=4096"` to cap Node heap
+- Ollama: 4 concurrent model limit (already in CLAUDE.md)
+- ResourceMonitor integration: `dilation_factor < 0.3` → backpressure on new sandbox launches
+
+---
+
+## III. THE PLAN — COMPOUND ENGINEERING APPROACH
+
+### Epic A: Living Universe API (Spec → TDD → Ship)
+
+**PRD**: "The Anima Dashboard shall display real-time HIHO universe physics, driven by the actual HIHOStabilizationEngine, CellularAutomataEngine, and MagnetohydrodynamicsEngine."
+
+**Architecture**: FastAPI service layer → Universe state manager (singleton) → Physics engines → JSON serialization → SSE/polling to Next.js frontend
+
+**Stories**:
+
+#### A.1: Universe State API Service
+- **Spec**: New file `src/cohezion/api/services/universe.py`
+- **TDD Red**: Write test — `POST /api/universe/tick` returns JSON with `coherence` float near 0.5, `evo_states` array, `ca_grid` array of 256 ints
+- **TDD Green**: Implement `UniverseStateService` — instantiate EVOs via `EVOInitializationFactory`, hold CA/MHD/HIHO/Chaos engines, expose tick + state endpoints
+- **TDD Refactor**: Extract physics orchestration into clean `UniversePhysicsOrchestrator` if >150 lines
+- **Language**: Python (FastAPI, Pydantic models matching existing EvoState)
+- **Reuse**: `hiho_unified_engine.py:174` (EVOInitializationFactory), `:189` (HIHOStabilizationEngine), `:131` (MHD), `:41` (CA), `:100` (Chaos)
+- **Security**: Input validation on tick parameters, rate limiting, no arbitrary code execution
+- **Token Efficiency**: Batch EVO state updates in single numpy operation, use Rust core when available
+
+#### A.2: CORS + API Mount
+- **Spec**: Modify `src/cohezion/api/__init__.py`
+- **TDD Red**: Test that `OPTIONS /api/universe/state` returns CORS headers for `localhost:3000`
+- **TDD Green**: Add `CORSMiddleware` with appropriate origins, mount universe router
+- **TDD Refactor**: Ensure middleware ordering doesn't break existing 72 endpoints
+
+#### A.3: OuroborosControlRoom Live Data
+- **Spec**: Modify `src/web/anima_dashboard/src/components/OuroborosControlRoom.tsx`
+- **TDD Red**: Playwright test — page loads, coherence value matches `/api/universe/state` response within 5s
+- **TDD Green**: Replace `useState + Math.random()` with `useSWR` or `useEffect + fetch` polling `/api/universe/state` every 3s
+- **TDD Refactor**: Extract API hook into `src/web/anima_dashboard/src/hooks/useUniverseState.ts`
+- **Language**: TypeScript (React hooks, proper error boundaries)
+- **Token Efficiency**: SWR deduplication prevents redundant fetches
+
+#### A.4: TensorBeam Physics-Driven Particles
+- **Spec**: Modify `src/web/anima_dashboard/src/components/TensorBeamVisualizer.tsx`
+- **TDD Red**: Visual regression — particle positions change when CA grid state changes
+- **TDD Green**: Feed CA grid into particle brightness modulation. Feed EVO helicity/toroidal_moment into Clifford Torus parameters (R, r values). Add HUD overlay showing live physics labels.
+- **TDD Refactor**: Separate physics data mapping from Three.js rendering
+- **Language**: TypeScript (R3F, Three.js)
+
+#### A.5: Snapshot Gallery → Real CA Renders
+- **Spec**: Modify `src/web/anima_dashboard/src/components/SnapshotGallery.tsx`
+- **TDD Red**: Gallery shows canvas-rendered CA grid heatmap instead of fake type icons
+- **TDD Green**: Replace simulated snapshots with actual CA grid state rendered as a small canvas heatmap
+- **Language**: TypeScript (HTML5 Canvas for CA rendering)
+
+#### A.6: Mycelium Stats → Real Metrics
+- **Spec**: Modify `src/web/anima_dashboard/src/app/page.tsx`
+- **TDD Red**: Mycelium stats section shows values from API, not hardcoded
+- **TDD Green**: Fetch from `/api/metrics/dashboard` (or reuse universe state endpoint)
+- **Version**: Footer → "COHEZION v1.0.2"
+
+### Epic B: System Card as Research Paper
+
+**PRD**: "SYSTEM_CARD.md shall be a 3-4 page document with mathematical formulations, code references, and measured data that positions HIHO as a genuine stability principle."
+
+**Stories**:
+
+#### B.1: Rewrite SYSTEM_CARD.md
+- **Structure**: Abstract → HIHO Principle (math) → EVOs (physics models) → 12D Axiomatic State (Smith mapping) → FLUME Pipeline (2048→256→12) → RL Environment (FlumeNavEnv spec) → First Principles (CA, Chaos, Twistors) → Simulation Infrastructure (SandboxManager, FractalSim, MassSim) → Emergence Detection (Tononi/Hoel EI) → Safety Architecture (eval-awareness, ethical framework, consent) → Measured Results (441 modules, 90K LOC, 3200+ tests, 28/28 adversarial) → Recursive Self-Improvement (Ouroboros, Mycelium) → BMAD Methodology (PRD, 7 epics, 55 stories, bidirectional traceability) → Limitations
+- **Evidence**: Include actual code snippets for key formulations (Hooke's Law, MHD rotation, Gaussian reward)
+- **Quality**: No unexplained jargon. Every term grounded in either physics literature or code reference.
+
+#### B.2: Update anthropic-delivery/README.md
+- Quick-start instructions
+- Point to SYSTEM_CARD.md, Anima Dashboard, and key code entry points
+- Link to PRD, Architecture, and Epics for SDLC evidence
+
+### Epic C: WebMCP Bridge Integration
+
+**PRD**: "The WebMCP Bridge shall route browser tool calls to actual running MCP servers via MCPClient."
+
+#### C.1: Replace Mock Handler
+- **TDD Red**: `POST /mcp/call_tool` with `server=knowledge, tool=search` returns real search results (not "MOCKED output")
+- **TDD Green**: Import MCPClient, route through actual client, handle offline servers with proper error JSON
+- **TDD Refactor**: Add connection pooling for MCP client
+- **Security**: Input validation on server/tool names (whitelist), argument sanitization
+- **Language**: Python (aiohttp, existing MCPClient patterns)
+
+### Epic D: Version & Repository Coherence
+
+#### D.1: Version Alignment
+- `package.json` → 1.0.2
+- `page.tsx` footer → v1.0.2
+- `SYSTEM_CARD.md` → v1.0.2
+
+#### D.2: Canonical Webapp Designation
+- Root README or CLAUDE.md section clarifying canonical app
+- Mark `apps/webapp/` and `apps/morphospace-loom/` as legacy prototypes
+
+#### D.3: Sprint Status Update
+- Move Story 1-1 from `review` to `done`
+- Update epic-1 progress
+
+### Epic E: Automated Quality & Proactive Repository Management
+
+**PRD**: "The repository shall enforce quality gates automatically, use multiperspective evaluation, and leverage SLMs for token-efficient operations."
+
+#### E.1: Pre-commit Quality Gate
+- **Spec**: Enhance `.pre-commit-config.yaml`
+- Ruff format + lint on all Python
+- Large file check (>50MB → require artifact registration)
+- Version consistency check (all version strings match)
+
+#### E.2: Multiperspective Code Review
+- Use `cohezion-swarm` MCP for democratic debate on architectural decisions
+- SelfEvaluationEngine (`src/cohezion/evaluation/self_eval.py`) as pre-execution gate
+- Constitution compliance check for all agent outputs
+
+#### E.3: SLM Token Efficiency
+- Route 90% of routine operations through local Ollama (deepseek-r1, qwen3-coder, phi3:mini)
+- CostAwareRouter (`src/cohezion/swarm/cost_aware_router.py`) enforcing 27.3%+ savings
+- SemanticCache (`src/cohezion/cache/semantic_cache.py`) maintaining 95%+ hit rate
+- Document the compound engineering loop: skill → execute → retrospect → refine → compound
+
+#### E.4: System Resource Awareness
+- ResourceMonitor (`src/cohezion/core/resource_monitor.py`) integration with dashboard
+- SandboxManager backpressure (dilation_factor < 0.3 → delay launch)
+- MemoryGuard from mass_sim (`src/cohezion/mass_sim/system_monitor.py`)
+- Hardware Profile grounding: AMD Ryzen AI MAX+ 395, 128GB LPDDR5X, 2TB NVMe, 32GB ZFS swap
+
+---
+
+## IV. ENGINEERING METHODOLOGY (The Process IS the Product)
+
+### TDD Discipline (Red → Green → Refactor)
+Every story follows:
+1. Write failing test first (name: `test_<feature>_<scenario>_<expected>`)
+2. Verify it fails for the right reason
+3. Write minimal code to pass
+4. Verify all tests pass
+5. Refactor while keeping green
+6. Re-verify
+
+### Polyglot Code (Right Language, Right Task)
+| Task | Language | Why |
+|------|----------|-----|
+| Physics core (CA, MHD) | **Rust** (PyO3) | SIMD performance, memory safety |
+| API services, orchestration | **Python** (FastAPI, Pydantic) | Ecosystem, async, type safety |
+| Dashboard, visualization | **TypeScript** (Next.js, R3F) | React ecosystem, WebGL |
+| Knowledge graph | **TypeScript** (Obsidian API) | Plugin system requirement |
+| Database queries | **SurrealQL** | Native SurrealDB |
+| CI/CD | **YAML + Bash** | Standard tooling |
+
+### Security-First Quality Assurance
+- Input validation at all boundaries (API, WebMCP, MCP tool args)
+- No arbitrary code execution in user-facing endpoints
+- ConsentManager for simulation data (SHA-256 signed tokens)
+- EvalAwarenessDefense (canary injection, metacognition monitoring)
+- EthicalFramework (4-principle hierarchy, OWASP agentic threats)
+- Pre-commit hooks (no secrets, no large files, format + lint)
+
+### Compound Engineering (Token Efficient)
+- Compound loop: Skill → Execute → Retrospect → Refine → Loop
+- SLM routing for 90% of tasks (local Ollama, 4 concurrent max)
+- SemanticCache (L1 hash + L2 cosine + L3 vault)
+- Batch operations for physics ticks (numpy vectorization)
+- Rust core for hot paths (10x speedup)
+
+### Multiperspective Evaluation
+- DemocraticDebate (`src/cohezion/swarm/democratic_debate.py`) for architectural decisions
+- SkillConsensusVoter (`src/cohezion/compound/skill_consensus_voter.py`) for skill refinement
+- Adversarial review suite (28 tests across 8 modules)
+- EmergentDetector for simulation analysis (phase transitions, causal emergence)
+
+---
+
+## V. VERIFICATION MATRIX
+
+| Check | Command | Expected |
+|-------|---------|----------|
+| Tests pass | `uv run pytest tests/ -q` | 3,200+ pass |
+| Lint clean | `ruff check . --fix` | 0 errors |
+| Format clean | `ruff format .` | No changes |
+| Dashboard runs | `cd src/web/anima_dashboard && npm run dev` | Live physics at localhost:3000 |
+| API responds | `curl localhost:8080/api/universe/state` | Real EVO states + coherence |
+| WebMCP routes | `POST localhost:8380/mcp/call_tool` | Real MCP responses |
+| System Card | Read SYSTEM_CARD.md | 3-4 pages, math, evidence |
+| Versions match | `grep -r "v1.0.2\|0.1.0\|v4.0.0"` | All v1.0.2 |
+| Rust core builds | `cd src/cohezion-physics-core && cargo build` | Compiles clean |
+| Sprint updated | `cat _bmad-output/implementation-artifacts/sprint-status.yaml` | Progress reflected |
+
+---
+
+## VI. KEY CODE REFERENCES
+
+| What | File | Line |
+|------|------|------|
+| HIHO Hooke's Law | `hiho_unified_engine.py` | 192-212 |
+| MHD Helicity Rotation | `hiho_unified_engine.py` | 131-171 |
+| EVO State Model | `hiho_unified_engine.py` | 117-128 |
+| 12D AxiomaticState | `engine.py` | 33-97 |
+| FlumeNavEnv | `environment.py` | 23-100 |
+| Coherence Reward | `reward_shaping.py` | 14-34 |
+| Diversity Bonus | `reward_shaping.py` | 37-59 |
+| Rust CA SIMD | `lib.rs` | 8-32 |
+| Rust MHD SIMD | `lib.rs` | 37-66 |
+| Divergence Detector | `divergence.py` | 46-60 |
+| Emergent Detector | `emergent_detector.py` | 1-60 |
+| SandboxManager | `sandbox_manager.py` | 66-80 |
+| Ouroboros Engine | `ouroboros.py` | 28-52 |
+| Mycelium Network | `mycelium_network.py` | 27-56 |
+| FLUME VAE | `vae_encoder.py` | 33-60 |
+| FLUME Navigator | `navigator.py` | 21-60 |
+| Constitution | `.agent/CONSTITUTION.md` | Full |
+| PRD (24 FRs) | `_bmad-output/planning-artifacts/prd.md` | Full |
+| Epics (55 stories) | `_bmad-output/planning-artifacts/epics.md` | Full |
+| Sprint Status | `sprint-status.yaml` | Full |
+| FlumePhysicsPy | `flume_physics_py.py` | 17-80 |
+| MassSim Orchestrator | `orchestrator.py` | 29-60 |
+| TensorBeam 3D | `TensorBeamVisualizer.tsx` | 1-270 |
+| OuroborosControlRoom | `OuroborosControlRoom.tsx` | 1-94 |
+| WebMCP Bridge | `webmcp_bridge.py` | 1-75 |
+| CostAwareRouter | `cost_aware_router.py` | - |
+| SemanticCache | `semantic_cache.py` | - |
+| ResourceMonitor | `resource_monitor.py` | - |
+| GlobalMetricsAggregator | `global_metrics_aggregator.py` | - |
+
+---
+
+## VII. PERSISTENCE — OBSIDIAN VAULT & SURREALDB
+
+### Step P.1: Save Plan to Obsidian Vault
+
+Save the full plan as a decision artifact in `~/vaults/cohezion-vault/decisions/`:
+- File: `2026-03-08-anthropic-universes-coherence-plan.md`
+- Tags: `#anthropic #universes #plan #hiho #paradigm`
+- Links: `[[CONSTITUTION]]`, `[[COHEZION_CHARTER]]`, `[[epics]]`
+
+### Step P.2: Save Inventory to Obsidian Vault
+
+Save the complete platform inventory (Section I) as an architecture artifact:
+- File: `~/vaults/cohezion-vault/assessments/2026-03-08-platform-inventory-441-modules.md`
+- Tags: `#inventory #architecture #assessment`
+
+### Step P.3: Store Key Learnings in SurrealDB
+
+Use `mcp__cohezion-surreal__store_learning` to persist:
+
+1. **Learning: HIHO Dashboard Gap**
+   - ID: `learn-2026-03-08-dashboard-physics-gap`
+   - Pattern: `HIHO`
+   - Content: Dashboard uses Math.random() not real HIHOStabilizationEngine. Physics engines exist and work but aren't wired to the display. Fix: create /api/universe/state endpoint.
+   - Score: 0.95
+
+2. **Learning: Full Platform Scale**
+   - ID: `learn-2026-03-08-platform-scale`
+   - Pattern: `COMPOUND`
+   - Content: 441 Python modules, 90,869 LOC, 216 test files, 3200+ tests, Rust physics core, 7 epics, 55 stories, 24 FRs, 15 NFRs. Full SDLC with bidirectional traceability.
+   - Score: 1.0
+
+3. **Learning: Resource Ceiling**
+   - ID: `learn-2026-03-08-resource-ceiling-85gb`
+   - Pattern: `HIHO`
+   - Content: SandboxManager SYSTEM_MEMORY_BUDGET_MB must be 85*1024 not 100*1024. Desktop baseline ~60GB (Chrome, Obsidian, Antigravity, OpenCode). Duplicate swarm_server_mcp processes found on pts/5 and pts/6.
+   - Score: 0.9
+
+### Step P.4: Store Universe Node in SurrealDB
+
+Use `mcp__cohezion-surreal__store_node` to persist the plan as a universe node:
+- Type: `plan`
+- Content: Plan summary with all 5 epics (A-E) and verification matrix
+- Physics: `{coherence: 0.5, logic: 0.9, precipitation: 0.1}` (plan ready, not yet precipitated into code)
+
+---
+
+## VIII. WHY THIS IS THE PARADIGM SHIFT
+
+Anthropic's Universes team wants someone who can create environments where models learn to handle ambiguity, interruptions, and open-ended scenarios across long horizons.
+
+**COHEZION doesn't simulate a universe. It IS a universe.**
+
+- **400 years of physics** — MHD, Chaos Theory, Cellular Automata, Penrose Twistors, Sacred Geometry — unified into a computable semantic manifold
+- **The HIHO Principle** — a Hooke's Law attractor at 0.5 coherence that mathematically prevents both hallucination collapse and rigid over-fitting
+- **Agents as EVOs** — charge clusters with magnetic helicity, toroidal moments, and chirality. Not metaphors — computable physics.
+- **Full SDLC** — PRD with 24 FRs, Architecture, 7 Epics, 55 Stories, bidirectional traceability, TDD, sprint tracking
+- **Polyglot engineering** — Rust for SIMD physics, Python for orchestration, TypeScript for visualization
+- **Constitutional governance** — Anthropic's own safety hierarchy (Safe > Ethical > Compliant > Helpful) embedded in `.agent/CONSTITUTION.md`
+- **Compound engineering** — every feature makes every future feature easier
+- **441 modules, 90K lines, 3,200+ tests, 28/28 adversarial suite**
+- **Self-improving** — Ouroboros consumes failure exhaust, Mycelium broadcasts learned insights, skills compound autonomously
+
+The dashboard doesn't just *display* a universe. It lets you *watch intelligence stabilize at the HIHO boundary in real time*.
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/c69327c6-213b-4354-ad4c-f9ad4f11e336.jsonl
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/superpowers/4.3.1/skills/executing-plans
+
+# Executing Plans
+
+## Overview
+
+Load plan, review critically, execute tasks in batches, report for review between batches.
+
+**Core principle:** Batch execution with checkpoints for architect review.
+
+**Announce at start:** "I'm using the executing-plans skill to implement this plan."
+
+## The Process
+
+### Step 1: Load and Review Plan
+1. Read plan file
+2. Review critically - identify any questions or concerns about the plan
+3. If concerns: Raise them with your human partner before starting
+4. If no concerns: Create TodoWrite and proceed
+
+### Step 2: Execute Batch
+**Default: First 3 tasks**
+
+For each task:
+1. Mark as in_progress
+2. Follow each step exactly (plan has bite-sized steps)
+3. Run verifications as specified
+4. Mark as completed
+
+### Step 3: Report
+When batch complete:
+- Show what was implemented
+- Show verification output
+- Say: "Ready for feedback."
+
+### Step 4: Continue
+Based on feedback:
+- Apply changes if needed
+- Execute next batch
+- Repeat until complete
+
+### Step 5: Complete Development
+
+After all tasks complete and verified:
+- Announce: "I'm using the finishing-a-development-branch skill to complete this work."
+- **REQUIRED SUB-SKILL:** Use superpowers:finishing-a-development-branch
+- Follow that skill to verify tests, present options, execute choice
+
+## When to Stop and Ask for Help
+
+**STOP executing immediately when:**
+- Hit a blocker mid-batch (missing dependency, test fails, instruction unclear)
+- Plan has critical gaps preventing starting
+- You don't understand an instruction
+- Verification fails repeatedly
+
+**Ask for clarification rather than guessing.**
+
+## When to Revisit Earlier Steps
+
+**Return to Review (Step 1) when:**
+- Partner updates the plan based on your feedback
+- Fundamental approach needs rethinking
+
+**Don't force through blockers** - stop and ask.
+
+## Remember
+- Review plan critically first
+- Follow plan steps exactly
+- Don't skip verifications
+- Reference skills when plan says to
+- Between batches: just report and wait
+- Stop when blocked, don't guess
+- Never start implementation on main/master branch without explicit user consent
+
+## Integration
+
+**Required workflow skills:**
+- **superpowers:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting
+- **superpowers:writing-plans** - Creates the plan this skill executes
+- **superpowers:finishing-a-development-branch** - Complete development after all tasks
+
+---
+
+IT IS CRITICAL THAT YOU FOLLOW THESE STEPS - while staying in character as the current agent persona you may have loaded:
+
+<steps CRITICAL="TRUE">
+1. Always LOAD the FULL {project-root}/_bmad/core/tasks/workflow.xml
+2. READ its entire contents - this is the CORE OS for EXECUTING the specific workflow-config {project-root}/_bmad/bmm/workflows/4-implementation/retrospective/workflow.yaml
+3. Pass the yaml path {project-root}/_bmad/bmm/workflows/4-implementation/retrospective/workflow.yaml as 'workflow-config' parameter to the workflow.xml instructions
+4. Follow workflow.xml instructions EXACTLY as written to process and follow the specific workflow config and its instructions
+5. Save outputs after EACH section when generating any documents from templates
+</steps>
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+
+ARGUMENTS: and then continue
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/superpowers/4.3.1/skills/finishing-a-development-branch
+
+# Finishing a Development Branch
+
+## Overview
+
+Guide completion of development work by presenting clear options and handling chosen workflow.
+
+**Core principle:** Verify tests → Present options → Execute choice → Clean up.
+
+**Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
+
+## The Process
+
+### Step 1: Verify Tests
+
+**Before presenting options, verify tests pass:**
+
+```bash
+# Run project's test suite
+npm test / cargo test / pytest / go test ./...
+```
+
+**If tests fail:**
+```
+Tests failing (<N> failures). Must fix before completing:
+
+[Show failures]
+
+Cannot proceed with merge/PR until tests pass.
+```
+
+Stop. Don't proceed to Step 2.
+
+**If tests pass:** Continue to Step 2.
+
+### Step 2: Determine Base Branch
+
+```bash
+# Try common base branches
+git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null
+```
+
+Or ask: "This branch split from main - is that correct?"
+
+### Step 3: Present Options
+
+Present exactly these 4 options:
+
+```
+Implementation complete. What would you like to do?
+
+1. Merge back to <base-branch> locally
+2. Push and create a Pull Request
+3. Keep the branch as-is (I'll handle it later)
+4. Discard this work
+
+Which option?
+```
+
+**Don't add explanation** - keep options concise.
+
+### Step 4: Execute Choice
+
+#### Option 1: Merge Locally
+
+```bash
+# Switch to base branch
+git checkout <base-branch>
+
+# Pull latest
+git pull
+
+# Merge feature branch
+git merge <feature-branch>
+
+# Verify tests on merged result
+<test command>
+
+# If tests pass
+git branch -d <feature-branch>
+```
+
+Then: Cleanup worktree (Step 5)
+
+#### Option 2: Push and Create PR
+
+```bash
+# Push branch
+git push -u origin <feature-branch>
+
+# Create PR
+gh pr create --title "<title>" --body "$(cat <<'EOF'
+## Summary
+<2-3 bullets of what changed>
+
+## Test Plan
+- [ ] <verification steps>
+EOF
+)"
+```
+
+Then: Cleanup worktree (Step 5)
+
+#### Option 3: Keep As-Is
+
+Report: "Keeping branch <name>. Worktree preserved at <path>."
+
+**Don't cleanup worktree.**
+
+#### Option 4: Discard
+
+**Confirm first:**
+```
+This will permanently delete:
+- Branch <name>
+- All commits: <commit-list>
+- Worktree at <path>
+
+Type 'discard' to confirm.
+```
+
+Wait for exact confirmation.
+
+If confirmed:
+```bash
+git checkout <base-branch>
+git branch -D <feature-branch>
+```
+
+Then: Cleanup worktree (Step 5)
+
+### Step 5: Cleanup Worktree
+
+**For Options 1, 2, 4:**
+
+Check if in worktree:
+```bash
+git worktree list | grep $(git branch --show-current)
+```
+
+If yes:
+```bash
+git worktree remove <worktree-path>
+```
+
+**For Option 3:** Keep worktree.
+
+## Quick Reference
+
+| Option | Merge | Push | Keep Worktree | Cleanup Branch |
+|--------|-------|------|---------------|----------------|
+| 1. Merge locally | ✓ | - | - | ✓ |
+| 2. Create PR | - | ✓ | ✓ | - |
+| 3. Keep as-is | - | - | ✓ | - |
+| 4. Discard | - | - | - | ✓ (force) |
+
+## Common Mistakes
+
+**Skipping test verification**
+- **Problem:** Merge broken code, create failing PR
+- **Fix:** Always verify tests before offering options
+
+**Open-ended questions**
+- **Problem:** "What should I do next?" → ambiguous
+- **Fix:** Present exactly 4 structured options
+
+**Automatic worktree cleanup**
+- **Problem:** Remove worktree when might need it (Option 2, 3)
+- **Fix:** Only cleanup for Options 1 and 4
+
+**No confirmation for discard**
+- **Problem:** Accidentally delete work
+- **Fix:** Require typed "discard" confirmation
+
+## Red Flags
+
+**Never:**
+- Proceed with failing tests
+- Merge without verifying tests on result
+- Delete work without confirmation
+- Force-push without explicit request
+
+**Always:**
+- Verify tests before offering options
+- Present exactly 4 options
+- Get typed confirmation for Option 4
+- Clean up worktree for Options 1 & 4 only
+
+## Integration
+
+**Called by:**
+- **subagent-driven-development** (Step 7) - After all tasks complete
+- **executing-plans** (Step 5) - After all batches complete
+
+**Pairs with:**
+- **using-git-worktrees** - Cleans up worktree created by that skill
+
+---
+
+Do what professionals do.  What will provide the most compound engineering context awareness with elegantly simple token efficient solutions.
+
+---
+
+Proceed with that you think is best.
