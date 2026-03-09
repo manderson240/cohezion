@@ -42,11 +42,11 @@ story_location: _bmad-output/implementation-artifacts
 
 development_status:
   # Epic 1: Hardware-Accelerated 12D Simulation at 60fps
-  epic-1: backlog
-  1-1-sovereign-workspace-convergence: backlog
+  epic-1: in-progress
+  1-1-sovereign-workspace-convergence: done
   1-0-5-tee-key-management: backlog
-  1-0-6-persistent-homology: backlog
-  1-0-7-adversarial-reality-check: backlog
+  1-0-6-persistent-homology: done  # TopologicalPersistence + PersistenceDiagram overlay (FR22)
+  1-0-7-adversarial-reality-check: done  # TruthAnchorValidator: coherence bubble detection via physics truth anchors (FR20)
   1-0-8-heterogeneous-sharding: backlog
   1-0-9-type-safe-zero-copy: backlog
   1-2-vliw-aligned-steel-thread: backlog
@@ -60,45 +60,45 @@ development_status:
   epic-1-retrospective: optional
 
   # Epic 2: The Multi-Sensory Observatory (KNOWER)
-  epic-2: backlog
-  2-1-observatory-hud-viewport: backlog
-  2-2-12d-toroidal-manifold: backlog
-  2-3-reentry-narrative: backlog
-  2-4-hiho-reactive-design: backlog
-  2-5-master-clock: backlog
+  epic-2: in-progress
+  2-1-observatory-hud-viewport: done  # TriuneNav, ObservatoryMode, VaultMode, CockpitMode (FR12, NFR11-13)
+  2-2-12d-toroidal-manifold: done  # TensorBeamVisualizer R3F + Clifford Torus particles (FR1, FR2)
+  2-3-reentry-narrative: done  # ReEntryNarrative component, session-scoped (FR13)
+  2-4-hiho-reactive-design: done  # HIHOBridge CSS custom properties, pulse animations (FR14)
+  2-5-master-clock: done  # SSE EventSource 10Hz via UniverseProvider context (FR1, FR2)
   2-6-neural-audio-streaming: backlog
   2-7-triune-consensus-homology: backlog
   epic-2-retrospective: optional
 
   # Epic 3: The Sovereign Vault (THINKER)
-  epic-3: backlog
-  3-1-vault-three-pillars: backlog
-  3-2-semantic-search-engine: backlog
+  epic-3: in-progress
+  3-1-vault-three-pillars: done  # VaultMode with Decisions/Experiments/Patterns tabs
+  3-2-semantic-search-engine: done  # VaultMode semantic search interface (FR17)
   3-3-metacognitive-intent-capture: backlog
   3-4-freeze-frame-reality: backlog
-  3-5-provenance-first-ux: backlog
+  3-5-provenance-first-ux: done  # ProvenanceTag hover tooltips tracing data to source (FR16)
   3-6-vector-pruning-compaction: backlog
   3-7-intent-action-sync: backlog
   epic-3-retrospective: optional
 
   # Epic 4: Vanguard Pipeline & The Anima (DOER)
-  epic-4: backlog
+  epic-4: in-progress
   4-1-vanguard-source-connector: backlog
   4-1b-vanguard-multi-source: backlog
   4-1c-vanguard-attribution-license: backlog
   4-2-substrate-sandbox-validation: backlog
   4-3-constitutional-shielding: backlog
-  4-4-anima-sigil-voice: backlog
-  4-5-context-aware-narration: backlog
+  4-4-anima-sigil-voice: done  # AnimaChatPanel with MCP routing (FR15)
+  4-5-context-aware-narration: done  # AnimaNarrationBar typewriter from live HIHO metrics (FR15)
   4-6-mycelium-registry: backlog
   4-7-immutable-provenance: backlog
   epic-4-retrospective: optional
 
   # Epic 5: Ouroboros Evolution & Loop Theater
-  epic-5: backlog
+  epic-5: in-progress
   5-1-ouroboros-trigger-vae: backlog
   5-2-shadowscripter-test-gen: backlog
-  5-3-loop-visualization: backlog
+  5-3-loop-visualization: done  # OuroborosControlRoom in CockpitMode with live SSE data (FR18)
   5-4-retrospection-summaries: backlog
   5-5-skill-evolution-diffs: backlog
   5-6-agentic-mitosis-apoptosis: backlog
