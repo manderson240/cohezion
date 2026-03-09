@@ -50,7 +50,6 @@ class ContainerizedUniverse:
             from cohezion.universe.sandbox_profiles import SandboxProfile
 
             if isinstance(profile, SandboxProfile):
-                image_name = image_name
                 memory_limit = profile.to_docker_memory_str()
                 cpu_quota = profile.cpu_quota_percent * 1000
                 timeout_seconds = profile.timeout_seconds
@@ -149,9 +148,7 @@ class ContainerizedUniverse:
                 except Exception:
                     pass
 
-    def _create_tar_stream(
-        self, script: str, files: dict[str, str | bytes] | None
-    ) -> bytes:
+    def _create_tar_stream(self, script: str, files: dict[str, str | bytes] | None) -> bytes:
         """Create a tar archive in memory."""
         import io
 
