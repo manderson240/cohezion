@@ -189,10 +189,8 @@ class TestSemanticCacheL2:
     @pytest.mark.asyncio
     async def test_l2_semantic_match(self, semantic_cache):
         """[P0] Should match similar prompts in L2."""
-        # Skip if no encoder available
-        with patch.object(semantic_cache, "_get_embedding") as mock_embed:
-            mock_embed.return_value = np.array([0.5, 0.5])
-
+        # Patch _text_to_embedding at class level (it's a static method)
+        with patch.object(SemanticCache, "_text_to_embedding", return_value=np.array([0.5] * 384)):
             await semantic_cache.put(
                 "What is artificial intelligence?",
                 "AI is...",
