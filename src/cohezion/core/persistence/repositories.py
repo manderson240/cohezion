@@ -68,14 +68,10 @@ class NodeRepository(ABC):
     async def get_by_id(self, node_id: str) -> UniverseNode | None: ...
 
     @abstractmethod
-    async def get_by_journey(
-        self, journey_id: str, limit: int = 100
-    ) -> list[UniverseNode]: ...
+    async def get_by_journey(self, journey_id: str, limit: int = 100) -> list[UniverseNode]: ...
 
     @abstractmethod
-    async def get_by_agent(
-        self, agent_id: str, limit: int = 100
-    ) -> list[UniverseNode]: ...
+    async def get_by_agent(self, agent_id: str, limit: int = 100) -> list[UniverseNode]: ...
 
     @abstractmethod
     async def create(self, node: UniverseNode) -> UniverseNode: ...
@@ -103,9 +99,7 @@ class SurrealNodeRepository(NodeRepository):
                 return self._to_entity(data)
         return None
 
-    async def get_by_journey(
-        self, journey_id: str, limit: int = 100
-    ) -> list[UniverseNode]:
+    async def get_by_journey(self, journey_id: str, limit: int = 100) -> list[UniverseNode]:
         result = await self._client.query(
             "SELECT * FROM universe_nodes WHERE journey_id = $journey_id LIMIT $limit",
             {"journey_id": journey_id, "limit": limit},
@@ -166,9 +160,7 @@ class SurrealNodeRepository(NodeRepository):
             id=str(data.get("id", "")),
             agent_id=data.get("agent_id", ""),
             journey_id=data.get("journey_id", ""),
-            timestamp=datetime.fromisoformat(
-                data.get("timestamp", datetime.now().isoformat())
-            ),
+            timestamp=datetime.fromisoformat(data.get("timestamp", datetime.now().isoformat())),
             spatial_x=data.get("spatial_x", 0.0),
             spatial_y=data.get("spatial_y", 0.0),
             spatial_z=data.get("spatial_z", 0.0),
@@ -213,9 +205,7 @@ class JourneyRepository(ABC):
     async def get_by_id(self, journey_id: str) -> AgentJourney | None: ...
 
     @abstractmethod
-    async def get_by_agent(
-        self, agent_name: str, limit: int = 100
-    ) -> list[AgentJourney]: ...
+    async def get_by_agent(self, agent_name: str, limit: int = 100) -> list[AgentJourney]: ...
 
     @abstractmethod
     async def create(self, journey: AgentJourney) -> AgentJourney: ...
@@ -243,9 +233,7 @@ class SurrealJourneyRepository(JourneyRepository):
                 return self._to_entity(data)
         return None
 
-    async def get_by_agent(
-        self, agent_name: str, limit: int = 100
-    ) -> list[AgentJourney]:
+    async def get_by_agent(self, agent_name: str, limit: int = 100) -> list[AgentJourney]:
         result = await self._client.query(
             "SELECT * FROM agent_journeys WHERE agent_name = $agent_name LIMIT $limit",
             {"agent_name": agent_name, "limit": limit},
@@ -285,9 +273,7 @@ class SurrealJourneyRepository(JourneyRepository):
             id=str(data.get("id", "")),
             agent_name=data.get("agent_name", ""),
             model=data.get("model", ""),
-            start_time=datetime.fromisoformat(
-                data.get("start_time", datetime.now().isoformat())
-            ),
+            start_time=datetime.fromisoformat(data.get("start_time", datetime.now().isoformat())),
             end_time=datetime.fromisoformat(end_time) if end_time else None,
             status=data.get("status", "unknown"),
             node_count=data.get("node_count", 0),

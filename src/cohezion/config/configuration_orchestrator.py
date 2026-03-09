@@ -143,7 +143,6 @@ class ConfigurationOrchestrator:
         await asyncio.gather(*self._monitor_tasks, return_exceptions=True)
         logger.info("Configuration orchestration monitoring stopped")
 
-
     async def _run_reconciliation_loop(self) -> None:
         """Run periodic reconciliation and validation.
 

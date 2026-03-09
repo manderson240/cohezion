@@ -39,9 +39,7 @@ def tier_config() -> TierConfig:
 @pytest.fixture
 def pool(tier_config: TierConfig) -> ModelPoolManager:
     """Pool manager with mocked MemoryBandwidthAnalyzer."""
-    with patch(
-        "cohezion.swarm.model_pool_manager.MemoryBandwidthAnalyzer"
-    ) as MockAnalyzer:
+    with patch("cohezion.swarm.model_pool_manager.MemoryBandwidthAnalyzer") as MockAnalyzer:
         mock_analyzer = MockAnalyzer.return_value
         mock_analyzer.analyze_memory_pressure.return_value = 0.5  # 50% pressure
         mock_analyzer.total_memory_gb = 128.0
@@ -117,12 +115,8 @@ class TestModelPoolManager:
     @pytest.mark.asyncio
     async def test_initialize_marks_loaded_models(self, pool: ModelPoolManager):
         """Initialize should reconcile with Ollama and mark running models."""
-        tags_resp = _mock_httpx_ok(
-            {"models": [{"name": "hot-model:latest", "size": 5 * 1024**3}]}
-        )
-        ps_resp = _mock_httpx_ok(
-            {"models": [{"name": "hot-model:latest"}]}
-        )
+        tags_resp = _mock_httpx_ok({"models": [{"name": "hot-model:latest", "size": 5 * 1024**3}]})
+        ps_resp = _mock_httpx_ok({"models": [{"name": "hot-model:latest"}]})
 
         with patch("httpx.AsyncClient") as MockClient:
             mock_client = AsyncMock()
@@ -189,9 +183,7 @@ class TestModelPoolManager:
             mock_client = AsyncMock()
             MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_client)
             MockClient.return_value.__aexit__ = AsyncMock(return_value=False)
-            mock_client.post = AsyncMock(
-                side_effect=[evict_resp, load_resp, health_resp]
-            )
+            mock_client.post = AsyncMock(side_effect=[evict_resp, load_resp, health_resp])
 
             result = await pool.ensure_loaded("hot-model:latest")
 
@@ -321,9 +313,7 @@ class TestPoolManagerIntegration:
             warm_models=[],
             cold_models=[],
         )
-        with patch(
-            "cohezion.swarm.model_pool_manager.MemoryBandwidthAnalyzer"
-        ):
+        with patch("cohezion.swarm.model_pool_manager.MemoryBandwidthAnalyzer"):
             pool_mgr = ModelPoolManager(config=config)
 
         pool_mgr.get_model("phi3:mini").loaded = True
@@ -402,17 +392,13 @@ class TestPoolManagerEdgeCases:
     def test_singleton_lifecycle(self):
         """get_pool_manager / reset_pool_manager should manage singleton."""
         reset_pool_manager()
-        with patch(
-            "cohezion.swarm.model_pool_manager.MemoryBandwidthAnalyzer"
-        ):
+        with patch("cohezion.swarm.model_pool_manager.MemoryBandwidthAnalyzer"):
             mgr1 = get_pool_manager()
             mgr2 = get_pool_manager()
         assert mgr1 is mgr2
 
         reset_pool_manager()
-        with patch(
-            "cohezion.swarm.model_pool_manager.MemoryBandwidthAnalyzer"
-        ):
+        with patch("cohezion.swarm.model_pool_manager.MemoryBandwidthAnalyzer"):
             mgr3 = get_pool_manager()
         assert mgr3 is not mgr1
 

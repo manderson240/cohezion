@@ -167,9 +167,7 @@ class GlobalMetricsAggregator:
 
             # Keep memory bounded: keep only last 1000 records per instance
             if len(self._instance_metrics[instance_id]) > 1000:
-                self._instance_metrics[instance_id] = self._instance_metrics[
-                    instance_id
-                ][-1000:]
+                self._instance_metrics[instance_id] = self._instance_metrics[instance_id][-1000:]
 
             logger.debug(
                 "Recorded metrics from instance %s: %d executions",
@@ -195,11 +193,7 @@ class GlobalMetricsAggregator:
         total_executions = metrics.total_tasks
         total_successes = sum(w.successes for w in metrics.waves)
 
-        avg_duration = (
-            metrics.total_duration_ms / len(metrics.waves)
-            if metrics.waves
-            else 0.0
-        )
+        avg_duration = metrics.total_duration_ms / len(metrics.waves) if metrics.waves else 0.0
 
         instance_metrics = InstanceMetrics(
             instance_id=instance_id,
@@ -217,9 +211,7 @@ class GlobalMetricsAggregator:
 
         self.record_instance_metrics(instance_id, instance_metrics)
 
-    def query_by_time_range(
-        self, start_time: float, end_time: float
-    ) -> TimeWindowMetrics:
+    def query_by_time_range(self, start_time: float, end_time: float) -> TimeWindowMetrics:
         """Query aggregated metrics for a time range.
 
         Optimized to run in <500ms for 1-week ranges.
@@ -269,9 +261,7 @@ class GlobalMetricsAggregator:
 
             # Calculate window duration
             window_duration = end_time - start_time
-            avg_throughput = (
-                total_executions / window_duration if window_duration > 0 else 0.0
-            )
+            avg_throughput = total_executions / window_duration if window_duration > 0 else 0.0
 
             # Calculate percentiles
             p50_latency = self._calculate_percentile(all_latencies, 0.5)
@@ -280,13 +270,9 @@ class GlobalMetricsAggregator:
 
             # Calculate means
             avg_coherence = (
-                sum(coherence_scores) / len(coherence_scores)
-                if coherence_scores
-                else 0.0
+                sum(coherence_scores) / len(coherence_scores) if coherence_scores else 0.0
             )
-            cache_hit_mean = (
-                sum(cache_hit_rates) / len(cache_hit_rates) if cache_hit_rates else 0.0
-            )
+            cache_hit_mean = sum(cache_hit_rates) / len(cache_hit_rates) if cache_hit_rates else 0.0
 
             # Normalize model distribution
             model_distribution: dict[str, float] = {}
@@ -509,18 +495,14 @@ class GlobalMetricsAggregator:
 
             # Export instance metrics
             for instance_id, metrics_list in self._instance_metrics.items():
-                snapshot["instance_metrics"][instance_id] = [
-                    m.to_dict() for m in metrics_list
-                ]
+                snapshot["instance_metrics"][instance_id] = [m.to_dict() for m in metrics_list]
 
             # Export skill metrics
             for skill_name, metrics in self._skill_metrics.items():
                 snapshot["skill_metrics"][skill_name] = metrics.to_dict()
 
             # Write to vault
-            filename = (
-                f"global_metrics_{int(time.time())}.json"
-            )
+            filename = f"global_metrics_{int(time.time())}.json"
             filepath = vault_path / filename
 
             try:
@@ -569,17 +551,19 @@ class GlobalMetricsAggregator:
 
                     for instance_id, metrics_list in self._instance_metrics.items():
                         for m in metrics_list:
-                            writer.writerow({
-                                "timestamp": m.timestamp,
-                                "instance_id": instance_id,
-                                "execution_count": m.execution_count,
-                                "success_count": m.success_count,
-                                "success_rate": m.success_rate,
-                                "total_tokens": m.total_tokens,
-                                "avg_duration_ms": m.avg_duration_ms,
-                                "coherence_score": m.coherence_score,
-                                "cache_hit_rate": m.cache_hit_rate,
-                            })
+                            writer.writerow(
+                                {
+                                    "timestamp": m.timestamp,
+                                    "instance_id": instance_id,
+                                    "execution_count": m.execution_count,
+                                    "success_count": m.success_count,
+                                    "success_rate": m.success_rate,
+                                    "total_tokens": m.total_tokens,
+                                    "avg_duration_ms": m.avg_duration_ms,
+                                    "coherence_score": m.coherence_score,
+                                    "cache_hit_rate": m.cache_hit_rate,
+                                }
+                            )
 
                 logger.info("Exported metrics to CSV: %s", csv_path)
                 return str(csv_path)

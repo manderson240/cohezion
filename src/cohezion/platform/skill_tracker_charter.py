@@ -43,9 +43,7 @@ class CharterAlignedSkillTracker:
         self.journey_logger = get_journey_logger()
         self.vae = get_encoder()
 
-    async def log_skill_usage(
-        self, event: SkillUsageEvent, journey_id: str | None = None
-    ):
+    async def log_skill_usage(self, event: SkillUsageEvent, journey_id: str | None = None):
         """
         Log skill usage with Charter-compliant tracking.
 

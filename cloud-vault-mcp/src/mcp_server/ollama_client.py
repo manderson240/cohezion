@@ -1,9 +1,8 @@
 """Client for interacting with Ollama API."""
 
-import asyncio
-import httpx
 import logging
-from typing import Optional
+
+import httpx
 
 
 logger = logging.getLogger(__name__)
@@ -21,7 +20,7 @@ class OllamaClient:
         """
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client: httpx.AsyncClient | None = None
 
     async def _get_client(self) -> httpx.AsyncClient:
         """Get or create async HTTP client."""
@@ -64,7 +63,9 @@ class OllamaClient:
             logger.error(f"Query failed: {e}")
             raise
 
-    async def embed(self, texts: list[str], model: str = "nomic-embed-text:latest") -> list[list[float]]:
+    async def embed(
+        self, texts: list[str], model: str = "nomic-embed-text:latest"
+    ) -> list[list[float]]:
         """Generate embeddings for texts.
 
         Args:

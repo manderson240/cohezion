@@ -8,13 +8,12 @@ import yaml
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
+
 # Configuration
 SKILLS_DIR = "src/cohezion/skills"
 REGISTRY_FILE = "src/cohezion/registry/skill_registry.json"
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("SkillWatchdog")
 
 

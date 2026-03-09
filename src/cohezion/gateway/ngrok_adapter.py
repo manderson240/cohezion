@@ -302,9 +302,11 @@ class NgrokAIGateway:
 
             except Exception as e:
                 if attempt == self.max_retries - 1:
-                    raise RuntimeError(f"ngrok request failed after {self.max_retries} retries: {e}") from e
+                    raise RuntimeError(
+                        f"ngrok request failed after {self.max_retries} retries: {e}"
+                    ) from e
 
-                wait_time = 0.5 * (2 ** attempt)
+                wait_time = 0.5 * (2**attempt)
                 logger.warning(
                     f"ngrok request failed (attempt {attempt + 1}/{self.max_retries}), "
                     f"retrying in {wait_time:.1f}s: {e}"
@@ -364,7 +366,7 @@ class NgrokAIGateway:
                         f"Ollama request failed after {self.max_retries} retries: {e}"
                     ) from e
 
-                wait_time = 0.5 * (2 ** attempt)
+                wait_time = 0.5 * (2**attempt)
                 logger.warning(
                     f"Ollama request failed (attempt {attempt + 1}/{self.max_retries}), "
                     f"retrying in {wait_time:.1f}s: {e}"
@@ -403,9 +405,7 @@ class NgrokAIGateway:
             if self.metrics.total_requests > 0
             else 0.0,
             "uptime_seconds": round(uptime, 2),
-            "requests_per_minute": round(
-                (self.metrics.total_requests / uptime * 60), 2
-            )
+            "requests_per_minute": round((self.metrics.total_requests / uptime * 60), 2)
             if uptime > 0
             else 0.0,
         }

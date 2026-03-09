@@ -3,6 +3,7 @@ from pathlib import Path
 
 import requests
 
+
 # Configuration
 OLLAMA_URL = "http://localhost:11434/api/generate"
 SCOUT_MODEL = "qwen3-coder:30b"  # Fast, good at code reading
@@ -10,9 +11,7 @@ STRATEGIST_MODEL = "deepseek-r1:70b"  # Deep reasoning for architecture
 TARGET_DIRS = ["src/cohezion", "scripts"]
 OUTPUT_FILE = "AUTOMATION_OPPORTUNITIES.md"
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("AutoExplorer")
 
 

@@ -12,16 +12,15 @@ import logging
 import time
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
-import psutil
+import psutil  # type: ignore[import-untyped]
 
 from cohezion.concurrency.safe_singleton import safe_singleton
 
 
 # Configure logging for compound engineering insights
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -55,38 +54,37 @@ class ModelConfig:
     cache_hit_rate: float  # L3 cache efficiency
     template_format: str
     optimal_for_ide: list[IDEPriority]
+    is_cloud: bool = False
 
 
 class MemoryBandwidthAnalyzer:
     """Real-time memory bandwidth analysis for optimal routing"""
 
-    def __init__(self):
-        self.total_memory_gb = psutil.virtual_memory().total / (1024**3)
-        self.available_memory_gb = psutil.virtual_memory().available / (1024**3)
-        self.l3_cache_mb = 64  # AMD Ryzen AI MAX+ 395 specific
-        self.ddr5_bandwidth_gbps = 85  # Estimated DDR5-8000 performance
+    def __init__(self) -> None:
+        self.total_memory_gb: float = float(psutil.virtual_memory().total) / (1024**3)
+        self.available_memory_gb: float = float(psutil.virtual_memory().available) / (1024**3)
+        self.l3_cache_mb: int = 64  # AMD Ryzen AI MAX+ 395 specific
+        self.ddr5_bandwidth_gbps: int = 85  # Estimated DDR5-8000 performance
 
     def analyze_memory_pressure(self) -> float:
         """Calculate memory pressure ratio (0-1)"""
-        return 1.0 - (self.available_memory_gb / self.total_memory_gb)
+        return float(1.0 - (self.available_memory_gb / self.total_memory_gb))
 
     def calculate_optimal_concurrent_models(self, model_tier: ModelTier) -> int:
         """Calculate optimal concurrent models based on memory bandwidth"""
         memory_pressure = self.analyze_memory_pressure()
 
         if memory_pressure < 0.3:
-            return model_tier.value[2]  # Full concurrent capacity
+            return int(model_tier.value[2])  # Full concurrent capacity
         elif memory_pressure < 0.7:
-            return max(1, model_tier.value[2] // 2)  # Reduced capacity
+            return max(1, int(model_tier.value[2]) // 2)  # Reduced capacity
         else:
             return 1  # Conservative single model
 
     def estimate_tokens_per_second(self, model_config: ModelConfig) -> float:
         """Estimate tokens/second based on memory bandwidth and cache efficiency"""
         base_bandwidth_factor = self.ddr5_bandwidth_gbps / 100  # Normalize to 1.0
-        cache_bonus = (
-            model_config.cache_hit_rate * 0.3
-        )  # L3 cache provides up to 30% boost
+        cache_bonus = model_config.cache_hit_rate * 0.3  # L3 cache provides up to 30% boost
         quantization_factor = self.get_quantization_factor(model_config.quantization)
 
         estimated_tps = (
@@ -119,8 +117,8 @@ class MemoryBandwidthAnalyzer:
 class AdaptiveTemplateManager:
     """Dynamic template adaptation for cross-model family compatibility"""
 
-    def __init__(self):
-        self.templates = {
+    def __init__(self) -> None:
+        self.templates: dict[str, dict[str, str]] = {
             "chatml": {
                 "prefix": "<<|im_start|>>",
                 "suffix": "<<|im_end|>>",
@@ -159,9 +157,11 @@ class AdaptiveTemplateManager:
             return "chatml"  # Safe default
 
     def adapt_message_format(
-        self, messages: list[dict], source_template: str, target_template: str
-    ) -> list[dict]:
-        """Convert message format between different template types"""
+        self, messages: list[dict[str, str]], source_template: str, target_template: str
+    ) -> list[dict[str, str]]:
+        """Convert message format between different template types."""
+        _ = source_template  # Suppress unused parameter warning
+        _ = target_template
         # For now, return as-is (templates handle formatting)
         # Future: implement sophisticated format conversion
         return messages
@@ -170,19 +170,42 @@ class AdaptiveTemplateManager:
 class DynamicModelRouter:
     """Core routing engine implementing compound engineering principles"""
 
-    def __init__(self):
-        self.memory_analyzer = MemoryBandwidthAnalyzer()
-        self.template_manager = AdaptiveTemplateManager()
-        self.active_models = {}  # Track currently loaded models
-        self.request_queue = asyncio.Queue()
-        self.performance_history = []
+    def __init__(self) -> None:
+        self.memory_analyzer: MemoryBandwidthAnalyzer = MemoryBandwidthAnalyzer()
+        self.template_manager: AdaptiveTemplateManager = AdaptiveTemplateManager()
+        self.active_models: dict[str, ModelConfig] = {}  # Track currently loaded models
+        self.request_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
+        self.performance_history: list[dict[str, Any]] = []
 
         # Load optimized model configurations for this hardware
-        self.models = self.load_model_registry()
+        self.models: dict[str, ModelConfig] = self.load_model_registry()
 
     def load_model_registry(self) -> dict[str, ModelConfig]:
-        """Load quantization-optimized model configurations"""
+        """Load quantization-optimized model configurations including Hybrid Cloud fallbacks"""
         return {
+            # Cloud Fallbacks for Complex Reasoning
+            "gemini-3.0-pro": ModelConfig(
+                name="gemini-3.0-pro",
+                size_gb=0.0,
+                quantization="FP16",
+                context_max=2000000,
+                expected_tps=50.0,
+                cache_hit_rate=0.0,
+                template_format="cloud",
+                optimal_for_ide=[IDEPriority.ANTIGRAVITY],
+                is_cloud=True,
+            ),
+            "claude-3.5-sonnet": ModelConfig(
+                name="claude-3.5-sonnet",
+                size_gb=0.0,
+                quantization="FP16",
+                context_max=200000,
+                expected_tps=60.0,
+                cache_hit_rate=0.0,
+                template_format="cloud",
+                optimal_for_ide=[IDEPriority.ZED],
+                is_cloud=True,
+            ),
             # Ultra-large models for Antigravity priority
             "qwen3-coder-next:q8_0": ModelConfig(
                 name="qwen3-coder-next:q8_0",
@@ -248,23 +271,21 @@ class DynamicModelRouter:
             ),
         }
 
-    async def select_optimal_model(self, request: dict) -> ModelConfig:
+    async def select_optimal_model(self, request: dict[str, Any]) -> ModelConfig:
         """Intelligent model selection using compound engineering algorithm"""
         ide = IDEPriority(request.get("ide_priority", 1))
-        task_type = request.get("task_type", "general")
-        context_length = request.get("context_length", 0)
-        urgency = request.get("urgency", "medium")
+        task_type: str = str(request.get("task_type", "general"))
+        request.get("context_length", 0)
+        request.get("urgency", "medium")
 
         # Calculate routing score based on multiple factors
         memory_pressure = self.memory_analyzer.analyze_memory_pressure()
 
         # Filter by IDE compatibility
-        compatible_models = [
-            m for m in self.models.values() if ide in m.optimal_for_ide
-        ]
+        compatible_models = [m for m in self.models.values() if ide in m.optimal_for_ide]
 
         # Score each model based on current conditions
-        scored_models = []
+        scored_models: list[tuple[float, ModelConfig]] = []
         for model in compatible_models:
             score = self.calculate_model_score(model, request, memory_pressure)
             scored_models.append((score, model))
@@ -283,20 +304,32 @@ class DynamicModelRouter:
             return self.models["qwen3:8b"]
 
     def calculate_model_score(
-        self, model: ModelConfig, request: dict, memory_pressure: float
+        self, model: ModelConfig, request: dict[str, Any], memory_pressure: float
     ) -> float:
         """Compound scoring algorithm for model selection"""
         score = 0.0
 
+        task_type: str = str(request.get("task_type", "general"))
+        urgency: str = str(request.get("urgency", "medium"))
+
         # Base capability score
-        if request.get("task_type") == "coding":
-            if "coder" in model.name or "phi" in model.name:
-                score += 30
+        if task_type == "coding" and ("coder" in model.name or "phi" in model.name):
+            score += 30
+
+        # Cloud Hybrid Routing Rules
+        if (task_type == "complex_reasoning" or task_type == "architecture") and model.is_cloud:
+            score += 100  # Enormously prioritize Cloud for advanced logic
+
+        # Avoid network roundtrip of cloud if local fits for urgent tasks
+        if urgency == "high" and not model.is_cloud:
+            score += 15
+
+        # Avoid cloud for simple code formatting
+        if task_type == "formatting" and model.is_cloud:
+            score -= 50
 
         # Memory efficiency score (prefer models that fit comfortably)
-        memory_fit = max(
-            0, (model.size_gb / self.memory_analyzer.available_memory_gb) * 100
-        )
+        memory_fit = max(0, (model.size_gb / self.memory_analyzer.available_memory_gb) * 100)
         if memory_fit < 30:
             score += 25
         elif memory_fit < 60:
@@ -313,9 +346,7 @@ class DynamicModelRouter:
         score += cache_bonus
 
         # Quantization efficiency
-        quant_bonus = {"Q8_0": 5, "Q4_K_M": 15, "Q6_K": 10, "Q3_K_M": 8}.get(
-            model.quantization, 0
-        )
+        quant_bonus = {"Q8_0": 5, "Q4_K_M": 15, "Q6_K": 10, "Q3_K_M": 8}.get(model.quantization, 0)
         score += quant_bonus
 
         # Context window adequacy
@@ -329,9 +360,8 @@ class DynamicModelRouter:
         if memory_pressure > 0.8:
             if model.size_gb > 32:  # Large models penalized under pressure
                 score -= 30
-        elif memory_pressure > 0.6:
-            if model.size_gb > 16:
-                score -= 15
+        elif memory_pressure > 0.6 and model.size_gb > 16:
+            score -= 15
 
         # IDE priority alignment
         ide_weight = request.get("ide_priority", 1)
@@ -340,7 +370,7 @@ class DynamicModelRouter:
 
         return score
 
-    async def execute_request(self, request: dict) -> dict:
+    async def execute_request(self, request: dict[str, Any]) -> dict[str, Any]:
         """Execute a request with optimal model selection"""
         start_time = time.time()
 
@@ -348,12 +378,10 @@ class DynamicModelRouter:
         model = await self.select_optimal_model(request)
 
         # Prepare request with adaptive template
-        template_format = self.template_manager.detect_model_template(model.name)
+        _ = self.template_manager.detect_model_template(model.name)
 
         # Calculate dynamic context scaling
-        max_context = min(
-            model.context_max, self.calculate_dynamic_context_limit(model)
-        )
+        max_context = min(model.context_max, self.calculate_dynamic_context_limit(model))
 
         # Execute via Ollama (simplified for demonstration)
         result = await self.ollama_generate(model, request, max_context)
@@ -401,14 +429,28 @@ class DynamicModelRouter:
         return min(soft_cap, model.context_max)
 
     async def ollama_generate(
-        self, model: ModelConfig, request: dict, max_context: int
-    ) -> dict:
+        self, model: ModelConfig, request: dict[str, Any], max_context: int
+    ) -> dict[str, Any]:
         """Execute Ollama generation via HTTP API.
 
         Uses ``httpx.AsyncClient`` to POST to ``/api/generate`` on the
         local Ollama server instead of spawning a subprocess.
         """
         import httpx
+
+        # Token Burn Security Check
+        requested_tokens: int = int(request.get("max_tokens", 4096))
+        max_safe_tokens = 8192
+
+        if requested_tokens > max_safe_tokens:
+            logger.warning(
+                "🚨 TOKEN BURN SECURITY ALERT: "
+                f"Requested {requested_tokens} tokens for "
+                f"local offload model {model.name}. "
+                f"Hard-capping to {max_safe_tokens} "
+                "to prevent runaway OOM/Burn loops."
+            )
+            requested_tokens = max_safe_tokens
 
         payload = {
             "model": model.name,
@@ -419,7 +461,7 @@ class DynamicModelRouter:
                 "num_ctx": max_context,
                 "temperature": request.get("temperature", 0.7),
                 "top_p": request.get("top_p", 0.9),
-                "num_predict": request.get("max_tokens", 4096),
+                "num_predict": requested_tokens,
             },
         }
 
@@ -429,7 +471,7 @@ class DynamicModelRouter:
                     "http://localhost:11434/api/generate",
                     json=payload,
                 )
-                resp.raise_for_status()
+                _ = resp.raise_for_status()
                 data = resp.json()
                 return {"text": data.get("response", ""), **data}
 
@@ -440,18 +482,14 @@ class DynamicModelRouter:
             logger.error("Ollama HTTP error: %s", e)
             return {"text": "", "error": str(e)}
 
-    def record_performance(
-        self, model: ModelConfig, execution_time: float, response_length: int
-    ):
+    def record_performance(self, model: ModelConfig, execution_time: float, response_length: int):
         """Record performance metrics for compound learning"""
         performance_data = {
             "timestamp": time.time(),
             "model": model.name,
             "execution_time": execution_time,
             "response_length": response_length,
-            "tokens_per_second": response_length / execution_time
-            if execution_time > 0
-            else 0,
+            "tokens_per_second": response_length / execution_time if execution_time > 0 else 0,
             "memory_available": self.memory_analyzer.available_memory_gb,
             "memory_pressure": self.memory_analyzer.analyze_memory_pressure(),
         }
@@ -479,14 +517,14 @@ router = get_router()
 
 async def main():
     """Demonstration of the dynamic routing system"""
+    logger.info("🚀 COHEZION Quantum-Aware Dynamic Routing Engine v1.1.48 Initializing...")
     logger.info(
-        "🚀 COHEZION Quantum-Aware Dynamic Routing Engine v1.1.48 Initializing..."
+        f"💾 System: {router.memory_analyzer.total_memory_gb:.1f}GB RAM, "
+        f"{router.memory_analyzer.available_memory_gb:.1f}GB available"
     )
     logger.info(
-        f"💾 System: {router.memory_analyzer.total_memory_gb:.1f}GB RAM, {router.memory_analyzer.available_memory_gb:.1f}GB available"
-    )
-    logger.info(
-        f"⚡ L3 Cache: {router.memory_analyzer.l3_cache_mb}MB, DDR5 Bandwidth: {router.memory_analyzer.ddr5_bandwidth_gbps}GB/s"
+        f"⚡ L3 Cache: {router.memory_analyzer.l3_cache_mb}MB, "
+        f"DDR5 Bandwidth: {router.memory_analyzer.ddr5_bandwidth_gbps}GB/s"
     )
 
     # Test requests
@@ -516,11 +554,13 @@ async def main():
 
     for request in test_requests:
         logger.info(
-            f"\n🎯 Processing request: {request['task_type']} for IDE priority {request['ide_priority']}"
+            f"\n🎯 Processing request: {request['task_type']} "
+            f"for IDE priority {request['ide_priority']}"
         )
         result = await router.execute_request(request)
         logger.info(
-            f"✅ Completed with {result['model_used']} in {result['execution_time']:.2f}s ({result['tokens_per_second']:.1f} t/s)"
+            f"✅ Completed with {result['model_used']} "
+            f"in {result['execution_time']:.2f}s ({result['tokens_per_second']:.1f} t/s)"
         )
 
 

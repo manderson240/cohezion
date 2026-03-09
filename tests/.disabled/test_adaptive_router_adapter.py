@@ -126,9 +126,7 @@ class TestFallback:
 
         adapter = AdaptiveRouterAdapter(selector)
 
-        result = await adapter.select_optimal_model(
-            {"task_type": "coding", "context_length": 100}
-        )
+        result = await adapter.select_optimal_model({"task_type": "coding", "context_length": 100})
 
         assert result.name == "phi3:mini"
         assert result.confidence == 0.5

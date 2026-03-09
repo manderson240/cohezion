@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ArtifactMetadata:
     """Metadata for a single universe artifact file."""
+
     artifact_id: str
     run_id: str
     file_path: str
@@ -48,6 +49,7 @@ class ArtifactMetadata:
 @dataclass
 class TrainingRunMetadata:
     """Metadata for a complete training/simulation run."""
+
     run_id: str
     timestamp: str
     model_id: str
@@ -65,6 +67,7 @@ class TrainingRunMetadata:
 @dataclass
 class MigrationSnapshot:
     """Progress snapshot for a migration phase."""
+
     snapshot_id: str
     phase: str
     timestamp: str
@@ -121,8 +124,11 @@ class UniverseArtifactMigration:
             # Get file count
             result = subprocess.run(
                 [
-                    "git", "ls-tree", "-r", "--name-only",
-                    "HEAD:src/cohezion/knowledge_graph/universe_nodes/linguistic_evolution/logs"
+                    "git",
+                    "ls-tree",
+                    "-r",
+                    "--name-only",
+                    "HEAD:src/cohezion/knowledge_graph/universe_nodes/linguistic_evolution/logs",
                 ],
                 cwd=self.cohezion_root,
                 capture_output=True,
@@ -133,14 +139,17 @@ class UniverseArtifactMigration:
             if result.returncode != 0:
                 raise RuntimeError(f"Git ls-tree failed: {result.stderr}")
 
-            files = result.stdout.strip().split('\n')
+            files = result.stdout.strip().split("\n")
             file_count = len([f for f in files if f])
 
             # Calculate total size
             result = subprocess.run(
                 [
-                    "git", "ls-tree", "-r", "--format=%(size)",
-                    "HEAD:src/cohezion/knowledge_graph/universe_nodes/linguistic_evolution/logs"
+                    "git",
+                    "ls-tree",
+                    "-r",
+                    "--format=%(size)",
+                    "HEAD:src/cohezion/knowledge_graph/universe_nodes/linguistic_evolution/logs",
                 ],
                 cwd=self.cohezion_root,
                 capture_output=True,
@@ -148,18 +157,18 @@ class UniverseArtifactMigration:
                 timeout=30,
             )
 
-            total_bytes = sum(
-                int(line)
-                for line in result.stdout.strip().split('\n')
-                if line
-            )
+            total_bytes = sum(int(line) for line in result.stdout.strip().split("\n") if line)
 
             # Get commit history
             result = subprocess.run(
                 [
-                    "git", "log", "--all", "--follow", "--oneline",
+                    "git",
+                    "log",
+                    "--all",
+                    "--follow",
+                    "--oneline",
                     "--",
-                    "src/cohezion/knowledge_graph/universe_nodes/linguistic_evolution/logs"
+                    "src/cohezion/knowledge_graph/universe_nodes/linguistic_evolution/logs",
                 ],
                 cwd=self.cohezion_root,
                 capture_output=True,
@@ -167,9 +176,7 @@ class UniverseArtifactMigration:
                 timeout=30,
             )
 
-            commit_count = len(
-                [line for line in result.stdout.strip().split('\n') if line]
-            )
+            commit_count = len([line for line in result.stdout.strip().split("\n") if line])
 
             summary = {
                 "file_count": file_count,
@@ -198,9 +205,7 @@ class UniverseArtifactMigration:
         start_time = time.time()
 
         try:
-            artifacts_path = (
-                self.output_dir / "artifacts"
-            )
+            artifacts_path = self.output_dir / "artifacts"
             artifacts_path.mkdir(parents=True, exist_ok=True)
 
             # Export artifacts from git
@@ -208,11 +213,14 @@ class UniverseArtifactMigration:
 
             result = subprocess.run(
                 [
-                    "git", "archive", "--format=tar.gz",
+                    "git",
+                    "archive",
+                    "--format=tar.gz",
                     "--prefix=universe_artifacts/",
-                    "-o", str(tar_path),
+                    "-o",
+                    str(tar_path),
                     "HEAD",
-                    "src/cohezion/knowledge_graph/universe_nodes/linguistic_evolution/logs"
+                    "src/cohezion/knowledge_graph/universe_nodes/linguistic_evolution/logs",
                 ],
                 cwd=self.cohezion_root,
                 capture_output=True,
@@ -268,17 +276,15 @@ class UniverseArtifactMigration:
 
             # Load schema
             schema_path = (
-                self.cohezion_root /
-                "src/cohezion/knowledge_graph/universe_artifact_surrealdb_schema.sql"
+                self.cohezion_root
+                / "src/cohezion/knowledge_graph/universe_artifact_surrealdb_schema.sql"
             )
 
             if not schema_path.exists():
                 raise FileNotFoundError(f"Schema not found: {schema_path}")
 
             # Count expected artifacts to insert
-            artifacts_tar = (
-                self.output_dir / "artifacts" / "universe_artifacts.tar.gz"
-            )
+            artifacts_tar = self.output_dir / "artifacts" / "universe_artifacts.tar.gz"
 
             if not artifacts_tar.exists():
                 raise FileNotFoundError(f"Artifacts tar not found: {artifacts_tar}")
@@ -316,9 +322,7 @@ class UniverseArtifactMigration:
         start_time = time.time()
 
         try:
-            artifacts_tar = (
-                self.output_dir / "artifacts" / "universe_artifacts.tar.gz"
-            )
+            artifacts_tar = self.output_dir / "artifacts" / "universe_artifacts.tar.gz"
 
             if not artifacts_tar.exists():
                 raise FileNotFoundError(f"Artifacts tar not found: {artifacts_tar}")
@@ -331,7 +335,7 @@ class UniverseArtifactMigration:
                 verified_count = 0
                 failed_count = 0
 
-                for i, member in enumerate(members[:min(10, len(members))]):
+                for i, member in enumerate(members[: min(10, len(members))]):
                     if not member.isdir():
                         try:
                             f = tar.extractfile(member)
@@ -396,9 +400,7 @@ class UniverseArtifactMigration:
             results["status"] = "failed"
             results["error"] = str(e)
 
-        results["total_duration_seconds"] = round(
-            time.time() - overall_start, 2
-        )
+        results["total_duration_seconds"] = round(time.time() - overall_start, 2)
         results["total_errors"] = len(self.errors)
 
         logger.info(f"Migration complete: {results}")

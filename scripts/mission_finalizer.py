@@ -9,17 +9,18 @@ Processes 15 hours of research data.
 """
 
 import asyncio
-import logging
 import json
-import os
+import logging
 from datetime import datetime
 from pathlib import Path
 
 from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.mcp.email_notifier import EmailNotifier
 
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("MissionFinalizer")
+
 
 class MissionFinalizer:
     def __init__(self):
@@ -34,7 +35,9 @@ class MissionFinalizer:
 
         # 1. Fetch Data
         pulses = await self.db.query("SELECT * FROM mission_pulse ORDER BY timestamp ASC")
-        reports = await self.db.query("SELECT * FROM interpretability_reports ORDER BY timestamp ASC")
+        reports = await self.db.query(
+            "SELECT * FROM interpretability_reports ORDER BY timestamp ASC"
+        )
 
         # 2. Generate Summary
         summary = self._generate_summary(pulses, reports)
@@ -51,8 +54,8 @@ class MissionFinalizer:
         logger.info("✓ Finalization Sequence Complete.")
 
     def _generate_summary(self, pulses, reports):
-        total_cycles = pulses[-1]['total_cycles'] if pulses else 0
-        avg_stability = sum(p['current_stability'] for p in pulses) / len(pulses) if pulses else 0
+        total_cycles = pulses[-1]["total_cycles"] if pulses else 0
+        avg_stability = sum(p["current_stability"] for p in pulses) / len(pulses) if pulses else 0
         breakthroughs = len(reports)
 
         report_text = f"""
@@ -82,7 +85,7 @@ Generated: {datetime.now().isoformat()}
         if not reports:
             return
 
-        insight_summary = "\n".join([r.get('content', '')[:200] for r in reports[-3:]])
+        insight_summary = "\n".join([r.get("content", "")[:200] for r in reports[-3:]])
 
         # Skill targets
         skills = ["RECOVERY_PRIME", "HIHO_REALITY_SIM_PRIME"]
@@ -92,20 +95,36 @@ Generated: {datetime.now().isoformat()}
                 logger.info(f"Adding recursion notes to {skill_name}...")
                 with open(skill_path, "a") as f:
                     f.write(f"\n\n## MISSION RECURSION ({datetime.now().strftime('%Y-%m-%d')})\n")
-                    f.write(f"Refined insights from Fractal Nexus mission:\n")
+                    f.write("Refined insights from Fractal Nexus mission:\n")
                     f.write(f"> {insight_summary[:500]}...\n")
 
         # Also update KEY_LEARNINGS
         learning_path = Path("src/cohezion/knowledge_graph/KEY_LEARNINGS.md")
         if learning_path.exists():
             with open(learning_path, "a") as f:
-                f.write(f"\n## Learning from Fractal Nexus (Recursion)\n")
-                f.write(f"Refinement: HIHO stability thresholds should include quadratic resonance at 0.5 overlap.\n")
+                f.write("\n## Learning from Fractal Nexus (Recursion)\n")
+                f.write(
+                    "Refinement: HIHO stability thresholds should include quadratic resonance at 0.5 overlap.\n"
+                )
 
     def _generate_marimo_notebook(self, pulses, reports):
         """Create an interactive Marimo notebook for 12D exploration."""
-        pulse_data = [{'stability': p.get('current_stability', 0), 'time': p.get('timestamp', ''), 'cpu': p.get('vitals', {}).get('cpu_percent', 0)} for p in pulses]
-        report_data = [{'iteration': r.get('iteration', 0), 'stability': r.get('stability', 0), 'resonance': r.get('resonance_hz', 0)} for r in reports]
+        pulse_data = [
+            {
+                "stability": p.get("current_stability", 0),
+                "time": p.get("timestamp", ""),
+                "cpu": p.get("vitals", {}).get("cpu_percent", 0),
+            }
+            for p in pulses
+        ]
+        report_data = [
+            {
+                "iteration": r.get("iteration", 0),
+                "stability": r.get("stability", 0),
+                "resonance": r.get("resonance_hz", 0),
+            }
+            for r in reports
+        ]
 
         notebook_content = f"""
 import marimo as mo
@@ -145,6 +164,7 @@ if not pulse_df.empty:
         subject = "☀️ Final Mission Report: Fractal Nexus (15H Complete)"
         await self.notifier.send_email(subject, summary, is_html=False)
         logger.info("✓ Final Email Report Sent.")
+
 
 if __name__ == "__main__":
     finalizer = MissionFinalizer()

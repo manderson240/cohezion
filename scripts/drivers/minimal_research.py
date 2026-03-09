@@ -3,6 +3,7 @@ import logging
 
 from cohezion.swarm.agents.lab_agent import LabAgent
 
+
 logging.basicConfig(level=logging.INFO)
 
 

@@ -118,9 +118,7 @@ class CircuitBreaker:
         elif self._state == CircuitState.CLOSED:
             if self._stats.failures >= self.failure_threshold:
                 self._state = CircuitState.OPEN
-                logger.warning(
-                    f"Circuit {self.name}: CLOSED -> OPEN (threshold reached)"
-                )
+                logger.warning(f"Circuit {self.name}: CLOSED -> OPEN (threshold reached)")
 
     def reset(self) -> None:
         """Manually reset the circuit."""

@@ -116,7 +116,7 @@ class ResilientOllamaClient:
                         f"Ollama request failed after {self.max_retries} retries: {e}"
                     ) from e
 
-                wait_time = 0.5 * (2 ** attempt)
+                wait_time = 0.5 * (2**attempt)
                 logger.warning(
                     "Ollama request failed (attempt %d/%d), retrying in %.1f seconds: %s",
                     attempt + 1,
@@ -276,6 +276,7 @@ class TokenEfficientClient:
                     )
                     # Store in L1 cache for future exact matches
                     from cohezion.swarm.batch_processor import CacheEntry
+
                     self.batch_processor.cache[cache_key] = CacheEntry(
                         key=cache_key,
                         value=semantic_hit.value,
@@ -339,6 +340,7 @@ class TokenEfficientClient:
         Returns:
             BatchResult with results, metrics, cache statistics
         """
+
         async def execute_item(item: BatchItem) -> tuple[str, int]:
             """Execute single item (used by Phase 2)."""
             return await self.generate(
@@ -385,9 +387,7 @@ class TokenEfficientClient:
         combined_hit_rate = total_cache_hits / total_ops if total_ops > 0 else 0.0
 
         semantic_confidence_avg = (
-            self._semantic_confidence_sum / self._semantic_hits
-            if self._semantic_hits > 0
-            else 0.0
+            self._semantic_confidence_sum / self._semantic_hits if self._semantic_hits > 0 else 0.0
         )
 
         # Estimate tokens saved
@@ -411,9 +411,7 @@ class TokenEfficientClient:
             "api_calls": self._api_calls,
             "estimated_tokens_saved": estimated_tokens_saved,
             "elapsed_seconds": round(elapsed, 2),
-            "tokens_per_second": round(self._total_tokens / elapsed, 2)
-            if elapsed > 0
-            else 0.0,
+            "tokens_per_second": round(self._total_tokens / elapsed, 2) if elapsed > 0 else 0.0,
         }
 
         # Add semantic cache stats if available

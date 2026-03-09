@@ -269,9 +269,7 @@ class SmartRouter:
         self.available_models: dict[str, ModelProfile] = {}
 
         # Action log persistence
-        self.action_log_dir = Path(
-            "src/cohezion/knowledge_graph/universe_nodes/actions"
-        )
+        self.action_log_dir = Path("src/cohezion/knowledge_graph/universe_nodes/actions")
         self.action_log_dir.mkdir(parents=True, exist_ok=True)
 
     async def refresh_models(self):
@@ -298,9 +296,7 @@ class SmartRouter:
             return TaskType.SYNTHESIS
         elif any(kw in prompt_lower for kw in ["create", "imagine", "story", "poem"]):
             return TaskType.CREATIVE
-        elif any(
-            kw in prompt_lower for kw in ["code", "function", "implement", "debug"]
-        ):
+        elif any(kw in prompt_lower for kw in ["code", "function", "implement", "debug"]):
             return TaskType.CODING
         elif any(kw in prompt_lower for kw in ["fact", "true", "verify"]):
             return TaskType.FACTUAL

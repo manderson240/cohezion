@@ -23,7 +23,6 @@ import argparse
 import asyncio
 import json
 import logging
-import sys
 import time
 from pathlib import Path
 
@@ -76,8 +75,7 @@ class ThermalProfiler:
             Dict with profiling results
         """
         logger.info(
-            f"Profiling: batch_size={batch_size}, "
-            f"concurrency={concurrency_limit}, model={model}"
+            f"Profiling: batch_size={batch_size}, concurrency={concurrency_limit}, model={model}"
         )
 
         # Reset gate with new concurrency limit
@@ -142,9 +140,11 @@ class ThermalProfiler:
                 "cache_hit_rate": round(client_metrics.get("combined_hit_rate", 0), 3),
             }
             iteration_results.append(result)
-            logger.debug(f"    {tokens_per_sec:.1f} tok/sec, "
-                        f"{gpu_stats['avg_gpu_load']:.1f}% GPU, "
-                        f"{gpu_stats['avg_temperature']:.1f}°C")
+            logger.debug(
+                f"    {tokens_per_sec:.1f} tok/sec, "
+                f"{gpu_stats['avg_gpu_load']:.1f}% GPU, "
+                f"{gpu_stats['avg_temperature']:.1f}°C"
+            )
 
         # Aggregate results
         if iteration_results:
@@ -164,7 +164,9 @@ class ThermalProfiler:
                 "avg_gpu_load": round(np.mean(gpu_load_list), 1),
                 "peak_gpu_load": round(np.max([r["peak_gpu_load"] for r in iteration_results]), 1),
                 "avg_temperature": round(np.mean(temp_list), 1),
-                "peak_temperature": round(np.max([r["peak_temperature"] for r in iteration_results]), 1),
+                "peak_temperature": round(
+                    np.max([r["peak_temperature"] for r in iteration_results]), 1
+                ),
                 "thermal_throttled": any(r["thermal_throttled"] for r in iteration_results),
                 "iterations": iteration_results,
             }
@@ -255,8 +257,10 @@ class ThermalProfiler:
                 key=lambda x: (x.get("batch_size", 0), x.get("concurrency_limit", 0)),
             ):
                 if "error" in result:
-                    logger.info(f"{result['batch_size']:<8} {result['concurrency_limit']:<12} "
-                               f"ERROR: {result['error']}")
+                    logger.info(
+                        f"{result['batch_size']:<8} {result['concurrency_limit']:<12} "
+                        f"ERROR: {result['error']}"
+                    )
                     continue
 
                 batch = result.get("batch_size", 0)
@@ -278,7 +282,8 @@ class ThermalProfiler:
 
         # Find optimal configuration (max throughput without throttle)
         non_throttled = [
-            r for r in self.results
+            r
+            for r in self.results
             if not r.get("thermal_throttled", False) and "avg_tokens_per_second" in r
         ]
 

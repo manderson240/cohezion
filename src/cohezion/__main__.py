@@ -63,20 +63,14 @@ Examples:
     start_cmd = journey_sub.add_parser("start", help="Start a new journey")
     start_cmd.add_argument("intent", help="The task/query to accomplish")
     start_cmd.add_argument("--agent", "-a", default="AutoAgent", help="Agent to use")
-    start_cmd.add_argument(
-        "--model", "-m", default="deepseek-r1:7b", help="Model to use"
-    )
-    start_cmd.add_argument(
-        "--agents", "-n", type=int, default=1, help="Number of agents"
-    )
+    start_cmd.add_argument("--model", "-m", default="deepseek-r1:7b", help="Model to use")
+    start_cmd.add_argument("--agents", "-n", type=int, default=1, help="Number of agents")
 
     # journey list
     list_cmd = journey_sub.add_parser("list", help="List journeys")
     list_cmd.add_argument("--mine", action="store_true", help="Show only my journeys")
     list_cmd.add_argument("--status", choices=["active", "completed", "failed"])
-    list_cmd.add_argument(
-        "--since", help="Filter by date (e.g., 'yesterday', '2024-01-01')"
-    )
+    list_cmd.add_argument("--since", help="Filter by date (e.g., 'yesterday', '2024-01-01')")
 
     # journey status
     status_cmd = journey_sub.add_parser("status", help="Check journey status")
@@ -119,9 +113,7 @@ Examples:
         "--target", "-t", choices=["git", "production", "staging"], default="git"
     )
     precipitate_parser.add_argument("--branch", "-b", help="Git branch name")
-    precipitate_parser.add_argument(
-        "--verify", "-v", action="store_true", help="Run verification"
-    )
+    precipitate_parser.add_argument("--verify", "-v", action="store_true", help="Run verification")
 
     # Rewards command
     rewards_parser = subparsers.add_parser(
@@ -134,17 +126,11 @@ Examples:
     rewards_status.add_argument("--agent", "-a", default="me", help="Agent to check")
 
     # rewards leaderboard
-    rewards_leaderboard = rewards_sub.add_parser(
-        "leaderboard", help="View XP leaderboard"
-    )
-    rewards_leaderboard.add_argument(
-        "--top", "-t", type=int, default=10, help="Number of entries"
-    )
+    rewards_leaderboard = rewards_sub.add_parser("leaderboard", help="View XP leaderboard")
+    rewards_leaderboard.add_argument("--top", "-t", type=int, default=10, help="Number of entries")
 
     # rewards achievements
-    rewards_achievements = rewards_sub.add_parser(
-        "achievements", help="View achievements"
-    )
+    rewards_achievements = rewards_sub.add_parser("achievements", help="View achievements")
     rewards_achievements.add_argument(
         "--locked", action="store_true", help="Show locked achievements"
     )
@@ -162,9 +148,7 @@ Examples:
     )
 
     # Evolve command
-    evolve_parser = subparsers.add_parser(
-        "evolve", help="Self-improvement and code evolution"
-    )
+    evolve_parser = subparsers.add_parser("evolve", help="Self-improvement and code evolution")
     evolve_parser.add_argument(
         "--detect_patterns", action="store_true", help="Detect improvement patterns"
     )
@@ -182,14 +166,10 @@ Examples:
     generate_sub = generate_parser.add_subparsers(dest="generate_cmd")
 
     _generate_list = generate_sub.add_parser("list", help="List available specs")
-    generate_agent = generate_sub.add_parser(
-        "agent", help="Generate an agent from spec"
-    )
+    generate_agent = generate_sub.add_parser("agent", help="Generate an agent from spec")
     generate_agent.add_argument("--spec", "-s", required=True, help="Path to YAML spec")
     generate_agent.add_argument("--output", "-o", default="src/cohezion/swarm/agents/")
-    generate_agent.add_argument(
-        "--dry-run", action="store_true", help="Preview without generating"
-    )
+    generate_agent.add_argument("--dry-run", action="store_true", help="Preview without generating")
 
     # Ouroboros command (System Flight Recorder)
     ouroboros_parser = subparsers.add_parser(
@@ -210,26 +190,16 @@ Examples:
     _ouroboros_stop = ouroboros_sub.add_parser("stop", help="Stop Ouroboros recorder")
 
     # Mycelium command (Test Generation)
-    mycelium_parser = subparsers.add_parser(
-        "mycelium", help="Mycelium autonomous test generation"
-    )
+    mycelium_parser = subparsers.add_parser("mycelium", help="Mycelium autonomous test generation")
     mycelium_sub = mycelium_parser.add_subparsers(dest="mycelium_cmd")
 
     mycelium_grow = mycelium_sub.add_parser("grow", help="Generate tests for a file")
     mycelium_grow.add_argument("file", help="Source file to generate tests for")
-    mycelium_grow.add_argument(
-        "--model", "-m", default="qwen2.5-coder:7b", help="Model to use"
-    )
+    mycelium_grow.add_argument("--model", "-m", default="qwen2.5-coder:7b", help="Model to use")
 
-    mycelium_garden = mycelium_sub.add_parser(
-        "garden", help="Generate tests for entire directory"
-    )
-    mycelium_garden.add_argument(
-        "--dir", "-d", default="src/cohezion", help="Directory to scan"
-    )
-    mycelium_garden.add_argument(
-        "--model", "-m", default="qwen2.5-coder:7b", help="Model to use"
-    )
+    mycelium_garden = mycelium_sub.add_parser("garden", help="Generate tests for entire directory")
+    mycelium_garden.add_argument("--dir", "-d", default="src/cohezion", help="Directory to scan")
+    mycelium_garden.add_argument("--model", "-m", default="qwen2.5-coder:7b", help="Model to use")
 
     # Mass Simulation command
     mass_sim_parser = subparsers.add_parser(
@@ -454,9 +424,7 @@ async def cmd_rewards_status(args: argparse.Namespace) -> int:
 
     print(f"\n🎯 Tier: {status['tier']} ({status['total_xp']:,} XP)")
     print(f"🔓 Capabilities: {', '.join(status['capabilities'])}")
-    print(
-        f"🔥 Streak: {status['streak']['current']} days (longest: {status['streak']['longest']})"
-    )
+    print(f"🔥 Streak: {status['streak']['current']} days (longest: {status['streak']['longest']})")
     print(f"🎖️ Achievements: {len(status['achievements'])}")
 
     if status["next_unlock"]:
@@ -489,9 +457,7 @@ async def cmd_rewards_leaderboard(args: argparse.Namespace) -> int:
             if entry["rank"] == 3
             else "  "
         )
-        print(
-            f"{medal} #{entry['rank']} {entry['agent']}: {entry['xp']:,} XP ({entry['tier']})"
-        )
+        print(f"{medal} #{entry['rank']} {entry['agent']}: {entry['xp']:,} XP ({entry['tier']})")
 
     return 0
 

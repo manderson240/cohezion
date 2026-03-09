@@ -119,9 +119,7 @@ class JourneyLogger:
             },
         )
 
-    async def complete_journey(
-        self, journey_id: str, outcome: str, context_end: str
-    ) -> Journey:
+    async def complete_journey(self, journey_id: str, outcome: str, context_end: str) -> Journey:
         """
         Complete journey and calculate final coherence.
 
@@ -180,9 +178,7 @@ class JourneyLogger:
             coherence_at_end=journey_data.get("coherence_at_end", 0.5),
             hiho_stable=journey_data.get("hiho_stable", False),
             flume_trajectory=journey_data.get("flume_state_end", []),
-            decisions_made=[
-                d["decision"] for d in journey_data.get("decisions_made", [])
-            ],
+            decisions_made=[d["decision"] for d in journey_data.get("decisions_made", [])],
             learnings_extracted=[
                 l["learning"] for l in journey_data.get("learnings_extracted", [])
             ],
@@ -227,9 +223,7 @@ class JourneyLogger:
                     hiho_stable=j.get("hiho_stable", False),
                     flume_trajectory=j.get("flume_state_end", []),
                     decisions_made=[d["decision"] for d in j.get("decisions_made", [])],
-                    learnings_extracted=[
-                        l["learning"] for l in j.get("learnings_extracted", [])
-                    ],
+                    learnings_extracted=[l["learning"] for l in j.get("learnings_extracted", [])],
                     outcome=j.get("outcome", ""),
                     metadata=j.get("metadata", {}),
                 )

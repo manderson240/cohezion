@@ -65,9 +65,7 @@ class CreditManager:
         """Add credits to an agent's balance."""
         balance = self.get_balance(agent_id)
         self._balances[agent_id] = balance + amount
-        logger.info(
-            f"Agent {agent_id}: Credited {amount}. New balance: {self._balances[agent_id]}"
-        )
+        logger.info(f"Agent {agent_id}: Credited {amount}. New balance: {self._balances[agent_id]}")
 
     def can_afford(self, agent_id: str, model: str) -> bool:
         """Check if agent can afford the specified model."""
@@ -103,9 +101,7 @@ class CreditManager:
 
         if affordable_locals:
             # Sort by cost descending (best affordable local)
-            sorted_locals = sorted(
-                affordable_locals, key=lambda x: MODEL_COSTS[x], reverse=True
-            )
+            sorted_locals = sorted(affordable_locals, key=lambda x: MODEL_COSTS[x], reverse=True)
             return sorted_locals[0]
 
         return FALLBACK_MODEL

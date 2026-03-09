@@ -1,11 +1,12 @@
 import asyncio
 import sys
-from pathlib import Path
+
 
 # Add src to path for cohezion imports
 sys.path.append("/home/mike-anderson/dev/cohezion/src")
 
 from cohezion.mcp.email_notifier import EmailNotifier
+
 
 async def send_headless_guide():
     notifier = EmailNotifier()
@@ -14,7 +15,7 @@ async def send_headless_guide():
 
     subject = "🔑 Action Required: Authorize Remote Desktop for your Pixelbook"
 
-    body = f"""
+    body = """
 <h1>Final Step: Authorize Remote Desktop</h1>
 <p>Hello Mike,</p>
 <p>SSH is working, but <strong>Chrome Remote Desktop</strong> isn't showing up because this machine hasn't been linked to your Google account yet.</p>
@@ -41,6 +42,7 @@ async def send_headless_guide():
 
     await notifier.send_email(subject, body, is_html=True)
     print("✅ Headless setup guide sent to your email!")
+
 
 if __name__ == "__main__":
     asyncio.run(send_headless_guide())

@@ -58,9 +58,7 @@ class Event:
         )
 
     @classmethod
-    def agent_complete(
-        cls, agent_name: str, result: Any, duration_ms: float, **kwargs
-    ) -> Event:
+    def agent_complete(cls, agent_name: str, result: Any, duration_ms: float, **kwargs) -> Event:
         return cls(
             type=EventType.AGENT_COMPLETE,
             source=agent_name,
@@ -68,9 +66,7 @@ class Event:
         )
 
     @classmethod
-    def llm_call(
-        cls, agent_name: str, model: str, prompt_tokens: int = 0, **kwargs
-    ) -> Event:
+    def llm_call(cls, agent_name: str, model: str, prompt_tokens: int = 0, **kwargs) -> Event:
         return cls(
             type=EventType.LLM_CALL,
             source=agent_name,
@@ -78,9 +74,7 @@ class Event:
         )
 
     @classmethod
-    def cache_access(
-        cls, agent_name: str, hit: bool, tier: str | None = None, **kwargs
-    ) -> Event:
+    def cache_access(cls, agent_name: str, hit: bool, tier: str | None = None, **kwargs) -> Event:
         return cls(
             type=EventType.CACHE_HIT if hit else EventType.CACHE_MISS,
             source=agent_name,
@@ -168,9 +162,7 @@ class EventBus:
 
         return decorator
 
-    def unsubscribe(
-        self, handler: EventHandler, event_type: EventType | None = None
-    ) -> None:
+    def unsubscribe(self, handler: EventHandler, event_type: EventType | None = None) -> None:
         """Remove a handler subscription."""
         if event_type is None:
             if handler in self._wildcard_handlers:

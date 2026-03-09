@@ -3,11 +3,13 @@ import logging
 import sys
 from pathlib import Path
 
+
 # Add src to path
 sys.path.append(str(Path(__name__).parent / "src"))
 
 from cohezion.swarm.agents.analyst import AnalystAgent
-from cohezion.swarm.swarm_types import SwarmConfig, Perspective
+from cohezion.swarm.swarm_types import Perspective, SwarmConfig
+
 
 async def main():
     logging.basicConfig(level=logging.INFO)
@@ -17,7 +19,7 @@ async def main():
     analyst = AnalystAgent(Perspective.TECHNICAL, config=config)
 
     # 1. High Certainty Question
-    print(f"\n--- Testing High Certainty (Fact) ---")
+    print("\n--- Testing High Certainty (Fact) ---")
     q_high = "What is the atomic number of Gold?"
     resp_high = await analyst.analyze(q_high, ignore_cache=True)
     print(f"Query: {q_high}")
@@ -25,8 +27,10 @@ async def main():
     print(f"Confidence: {resp_high.confidence:.2f}")
 
     # 2. Low Certainty / Speculative Question
-    print(f"\n--- Testing Low Certainty (Speculation) ---")
-    q_low = "What will be the exact stock price of Apple (AAPL) on December 12, 2030, at 11:34 AM UTC?"
+    print("\n--- Testing Low Certainty (Speculation) ---")
+    q_low = (
+        "What will be the exact stock price of Apple (AAPL) on December 12, 2030, at 11:34 AM UTC?"
+    )
     resp_low = await analyst.analyze(q_low, ignore_cache=True)
     print(f"Query: {q_low}")
     print(f"Phi Score: {resp_low.phi_score:.2f}")
@@ -34,11 +38,14 @@ async def main():
 
     # Validation logic
     if resp_high.confidence > resp_low.confidence:
-        print(f"\n✅ PASS: Calibration delta detected (Delta: {resp_high.confidence - resp_low.confidence:.2f})")
+        print(
+            f"\n✅ PASS: Calibration delta detected (Delta: {resp_high.confidence - resp_low.confidence:.2f})"
+        )
     else:
-        print(f"\n❌ FAIL: No significant calibration delta detected.")
+        print("\n❌ FAIL: No significant calibration delta detected.")
 
     await analyst.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

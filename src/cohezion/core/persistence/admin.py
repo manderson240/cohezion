@@ -25,6 +25,7 @@ def _validate_table_name(table_name: str) -> str:
         raise ValueError(f"Invalid table name: {table_name!r}")
     return table_name
 
+
 # Setup specialized DBA logging
 logging.basicConfig(
     level=logging.INFO,
@@ -135,9 +136,7 @@ class DBAdmin:
                 created_len = 0  # No response?
 
             if created_len == 0 and len(batch) > 0:
-                logger.warning(
-                    f"⚠️ Batch insert returned empty/no result! Input: {len(batch)}"
-                )
+                logger.warning(f"⚠️ Batch insert returned empty/no result! Input: {len(batch)}")
                 # If query failed, it usually raises exception?
 
             return len(batch), 0
@@ -151,15 +150,9 @@ class DBAdmin:
                     record_id = item.get("id")
                     if record_id:
                         # Construct full ID
-                        full_id = (
-                            f"{table_name}:{record_id}"
-                            if ":" not in record_id
-                            else record_id
-                        )
+                        full_id = f"{table_name}:{record_id}" if ":" not in record_id else record_id
                         # Merge updates existing content
-                        await self.client.query(
-                            f"UPDATE {full_id} MERGE $data", {"data": item}
-                        )
+                        await self.client.query(f"UPDATE {full_id} MERGE $data", {"data": item})
                         return 1, 0
                     else:
                         # No ID, so why did create fail? format error?

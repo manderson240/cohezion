@@ -12,14 +12,17 @@ import sys
 import time
 from pathlib import Path
 
+
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from mcp_server.graphrag_import import GraphRAGImporter
 from mcp_server.graphrag_helpers import detect_document_type
+from mcp_server.graphrag_import import GraphRAGImporter
+
 
 # Monkey-patch detect_document_type to handle all vault directories
 _original_detect = detect_document_type
+
 
 def extended_detect_document_type(file_path: Path, vault_path: Path) -> str:
     """Extended type detection for all vault directories."""
@@ -42,19 +45,24 @@ def extended_detect_document_type(file_path: Path, vault_path: Path) -> str:
     else:
         return "document"
 
+
 # Apply the patch
 import mcp_server.graphrag_helpers as helpers_module
+
+
 helpers_module.detect_document_type = extended_detect_document_type
 
 # Also patch it in the import module since it may have imported it directly
 import mcp_server.graphrag_import as import_module
+
+
 import_module.detect_document_type = extended_detect_document_type
 
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%H:%M:%S"
+    datefmt="%H:%M:%S",
 )
 logger = logging.getLogger(__name__)
 
@@ -65,12 +73,12 @@ SURREALDB_URL = "http://localhost:8000"
 
 # Directories to import (order matters: import targets before sources for edges)
 DIRECTORIES = [
-    ("concepts", False),      # non-recursive
-    ("papers", False),        # non-recursive
-    ("decisions", False),     # non-recursive
+    ("concepts", False),  # non-recursive
+    ("papers", False),  # non-recursive
+    ("decisions", False),  # non-recursive
     ("patterns/lessons", False),  # lessons subdirectory
-    ("patterns", False),      # patterns root (non-recursive to avoid re-importing lessons)
-    ("experiments", False),   # non-recursive
+    ("patterns", False),  # patterns root (non-recursive to avoid re-importing lessons)
+    ("experiments", False),  # non-recursive
 ]
 
 
@@ -93,7 +101,9 @@ async def verify_services():
             models = resp.json().get("models", [])
             model_names = [m["name"] for m in models]
             has_nomic = any("nomic-embed-text" in n for n in model_names)
-            logger.info(f"Ollama: OK (models: {model_names}, nomic-embed-text: {has_nomic})")
+            logger.info(
+                f"Ollama: OK (models: {model_names}, nomic-embed-text: {has_nomic})"
+            )
             if not has_nomic:
                 logger.error("nomic-embed-text model not available!")
                 return False
@@ -166,7 +176,9 @@ async def main():
                 recursive=recursive,
             )
             all_stats[directory] = stats
-            logger.info(f"  Result: {stats['success']}/{stats['total']} imported, {stats['failed']} failed")
+            logger.info(
+                f"  Result: {stats['success']}/{stats['total']} imported, {stats['failed']} failed"
+            )
 
     # Step 4: Show post-import counts
     logger.info("\n--- Post-import counts ---")
@@ -184,11 +196,15 @@ async def main():
     total_files = 0
     total_failed = 0
     for directory, stats in all_stats.items():
-        logger.info(f"  {directory:25s}: {stats['success']:3d}/{stats['total']:3d} imported, {stats['failed']} failed")
+        logger.info(
+            f"  {directory:25s}: {stats['success']:3d}/{stats['total']:3d} imported, {stats['failed']} failed"
+        )
         total_success += stats["success"]
         total_files += stats["total"]
         total_failed += stats["failed"]
-    logger.info(f"  {'TOTAL':25s}: {total_success:3d}/{total_files:3d} imported, {total_failed} failed")
+    logger.info(
+        f"  {'TOTAL':25s}: {total_success:3d}/{total_files:3d} imported, {total_failed} failed"
+    )
     logger.info(f"  Elapsed: {elapsed:.1f}s")
     logger.info("=" * 60)
 

@@ -32,9 +32,7 @@ class ManifoldBridge:
         Takes a latent intent and precipitates a physical reality.
         This is an autonomous 'Genie-style' action.
         """
-        logger.info(
-            f"🔗 [MANIFOLD BRIDGE] Precipitating intent: {latent_intent.semantic_intent}"
-        )
+        logger.info(f"🔗 [MANIFOLD BRIDGE] Precipitating intent: {latent_intent.semantic_intent}")
 
         # 1. Determine Action Archetype from Latent Vector
         # (In a real implementation, this would use a small classifier or vector search)

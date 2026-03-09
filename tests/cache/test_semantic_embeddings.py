@@ -117,9 +117,7 @@ class TestSemanticTextEncoder:
         similarity = encoder.similarity(emb1, emb2)
 
         print(f"Paraphrase similarity: {similarity:.3f}")
-        assert similarity > 0.70, (
-            f"Paraphrases should have similarity >0.70, got {similarity:.3f}"
-        )
+        assert similarity > 0.70, f"Paraphrases should have similarity >0.70, got {similarity:.3f}"
 
     def test_singleton_pattern(self):
         """Test that get_text_encoder() returns singleton."""

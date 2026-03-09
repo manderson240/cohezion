@@ -2,12 +2,14 @@
 Tests for CoherenceTracker - HIHO stability measurement.
 """
 
-import pytest
 from datetime import datetime
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
 from cohezion.platform.coherence_tracker import (
-    CoherenceTracker,
     CoherenceMetrics,
+    CoherenceTracker,
     get_coherence_tracker,
     reset_coherence_tracker,
 )
@@ -73,9 +75,7 @@ class TestCoherenceTracker:
         assert coherence_tracker.is_hiho_stable(1.0) is False
 
     @pytest.mark.asyncio
-    async def test_get_test_pass_rate_with_data(
-        self, coherence_tracker, mock_surreal_client
-    ):
+    async def test_get_test_pass_rate_with_data(self, coherence_tracker, mock_surreal_client):
         """Test getting test pass rate from DB."""
         mock_surreal_client.query.return_value = [{"pass_rate": 0.99}]
 
@@ -85,9 +85,7 @@ class TestCoherenceTracker:
         mock_surreal_client.query.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_get_test_pass_rate_no_data(
-        self, coherence_tracker, mock_surreal_client
-    ):
+    async def test_get_test_pass_rate_no_data(self, coherence_tracker, mock_surreal_client):
         """Test getting test pass rate with no data."""
         mock_surreal_client.query.return_value = []
 
@@ -107,9 +105,7 @@ class TestCoherenceTracker:
             mock_run.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_get_dependency_health_with_data(
-        self, coherence_tracker, mock_surreal_client
-    ):
+    async def test_get_dependency_health_with_data(self, coherence_tracker, mock_surreal_client):
         """Test dependency health with data."""
         mock_surreal_client.query.return_value = [{"health_score": 95.0}]
 
@@ -118,9 +114,7 @@ class TestCoherenceTracker:
         assert health == 0.95
 
     @pytest.mark.asyncio
-    async def test_get_dependency_health_no_data(
-        self, coherence_tracker, mock_surreal_client
-    ):
+    async def test_get_dependency_health_no_data(self, coherence_tracker, mock_surreal_client):
         """Test dependency health with no data."""
         mock_surreal_client.query.return_value = []
 
@@ -129,9 +123,7 @@ class TestCoherenceTracker:
         assert health == 0.5
 
     @pytest.mark.asyncio
-    async def test_get_security_posture_no_vulns(
-        self, coherence_tracker, mock_surreal_client
-    ):
+    async def test_get_security_posture_no_vulns(self, coherence_tracker, mock_surreal_client):
         """Test security posture with no vulnerabilities."""
         mock_surreal_client.query.return_value = [
             {"vulnerabilities_critical": 0, "vulnerabilities_high": 0}
@@ -155,9 +147,7 @@ class TestCoherenceTracker:
         assert posture == 0.0
 
     @pytest.mark.asyncio
-    async def test_get_security_posture_high_vulns(
-        self, coherence_tracker, mock_surreal_client
-    ):
+    async def test_get_security_posture_high_vulns(self, coherence_tracker, mock_surreal_client):
         """Test security posture with high vulnerabilities."""
         mock_surreal_client.query.return_value = [
             {"vulnerabilities_critical": 0, "vulnerabilities_high": 2}
@@ -190,13 +180,9 @@ class TestCoherenceTracker:
         assert 0.0 < performance < 1.0
 
     @pytest.mark.asyncio
-    async def test_get_performance_alignment_poor(
-        self, coherence_tracker, mock_surreal_client
-    ):
+    async def test_get_performance_alignment_poor(self, coherence_tracker, mock_surreal_client):
         """Test performance alignment with poor latency."""
-        mock_surreal_client.query.return_value = [
-            {"compound_executor_latency_ms": 1500}
-        ]
+        mock_surreal_client.query.return_value = [{"compound_executor_latency_ms": 1500}]
 
         performance = await coherence_tracker._get_performance_alignment()
 
@@ -208,9 +194,7 @@ class TestCoherenceTracker:
         with (
             patch.object(coherence_tracker, "_get_test_pass_rate", return_value=0.99),
             patch.object(coherence_tracker, "_get_code_quality", return_value=0.95),
-            patch.object(
-                coherence_tracker, "_get_dependency_health", return_value=0.90
-            ),
+            patch.object(coherence_tracker, "_get_dependency_health", return_value=0.90),
         ):
             internal = await coherence_tracker._measure_internal_state()
 
@@ -221,13 +205,9 @@ class TestCoherenceTracker:
     async def test_measure_external_alignment(self, coherence_tracker):
         """Test external alignment measurement."""
         with (
-            patch.object(
-                coherence_tracker, "_get_research_relevance", return_value=0.8
-            ),
+            patch.object(coherence_tracker, "_get_research_relevance", return_value=0.8),
             patch.object(coherence_tracker, "_get_security_posture", return_value=1.0),
-            patch.object(
-                coherence_tracker, "_get_performance_alignment", return_value=0.9
-            ),
+            patch.object(coherence_tracker, "_get_performance_alignment", return_value=0.9),
         ):
             external = await coherence_tracker._measure_external_alignment()
 
@@ -240,12 +220,8 @@ class TestCoherenceTracker:
     ):
         """Test system coherence measurement in HIHO stable range."""
         with (
-            patch.object(
-                coherence_tracker, "_measure_internal_state", return_value=0.5
-            ),
-            patch.object(
-                coherence_tracker, "_measure_external_alignment", return_value=0.5
-            ),
+            patch.object(coherence_tracker, "_measure_internal_state", return_value=0.5),
+            patch.object(coherence_tracker, "_measure_external_alignment", return_value=0.5),
         ):
             metrics = await coherence_tracker.measure_system_coherence()
 
@@ -262,12 +238,8 @@ class TestCoherenceTracker:
     ):
         """Test system coherence measurement with high coherence (unstable)."""
         with (
-            patch.object(
-                coherence_tracker, "_measure_internal_state", return_value=0.9
-            ),
-            patch.object(
-                coherence_tracker, "_measure_external_alignment", return_value=0.9
-            ),
+            patch.object(coherence_tracker, "_measure_internal_state", return_value=0.9),
+            patch.object(coherence_tracker, "_measure_external_alignment", return_value=0.9),
         ):
             metrics = await coherence_tracker.measure_system_coherence()
 
@@ -282,12 +254,8 @@ class TestCoherenceTracker:
     ):
         """Test system coherence measurement with low coherence (unstable)."""
         with (
-            patch.object(
-                coherence_tracker, "_measure_internal_state", return_value=0.1
-            ),
-            patch.object(
-                coherence_tracker, "_measure_external_alignment", return_value=0.1
-            ),
+            patch.object(coherence_tracker, "_measure_internal_state", return_value=0.1),
+            patch.object(coherence_tracker, "_measure_external_alignment", return_value=0.1),
         ):
             metrics = await coherence_tracker.measure_system_coherence()
 

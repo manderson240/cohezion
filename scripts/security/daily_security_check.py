@@ -63,7 +63,14 @@ def check_code_scanning_alerts() -> dict[str, Any]:
     print("🔍 Checking CodeQL alerts...")
 
     alerts = run_gh_command(
-        ["api", f"/repos/{REPO_OWNER}/{REPO_NAME}/code-scanning/alerts", "-X", "GET", "-f", "state=open"]
+        [
+            "api",
+            f"/repos/{REPO_OWNER}/{REPO_NAME}/code-scanning/alerts",
+            "-X",
+            "GET",
+            "-f",
+            "state=open",
+        ]
     )
 
     if not isinstance(alerts, list):
@@ -99,7 +106,14 @@ def check_dependabot_alerts() -> dict[str, Any]:
     print("🔍 Checking Dependabot alerts...")
 
     alerts = run_gh_command(
-        ["api", f"/repos/{REPO_OWNER}/{REPO_NAME}/dependabot/alerts", "-X", "GET", "-f", "state=open"]
+        [
+            "api",
+            f"/repos/{REPO_OWNER}/{REPO_NAME}/dependabot/alerts",
+            "-X",
+            "GET",
+            "-f",
+            "state=open",
+        ]
     )
 
     if not isinstance(alerts, list):
@@ -159,7 +173,16 @@ def check_dependabot_prs() -> dict[str, Any]:
     print("🔍 Checking Dependabot PRs...")
 
     prs = run_gh_command(
-        ["api", f"/repos/{REPO_OWNER}/{REPO_NAME}/pulls", "-X", "GET", "-f", "state=open", "-f", "per_page=100"]
+        [
+            "api",
+            f"/repos/{REPO_OWNER}/{REPO_NAME}/pulls",
+            "-X",
+            "GET",
+            "-f",
+            "state=open",
+            "-f",
+            "per_page=100",
+        ]
     )
 
     if not isinstance(prs, list):
@@ -284,9 +307,9 @@ def main():
     print(f"📄 Report saved to: {report_file}")
 
     # Critical alert check
-    critical_count = results.get("codeql", {}).get("by_severity", {}).get("critical", 0) + results.get(
-        "dependabot", {}
-    ).get("by_severity", {}).get("critical", 0)
+    critical_count = results.get("codeql", {}).get("by_severity", {}).get(
+        "critical", 0
+    ) + results.get("dependabot", {}).get("by_severity", {}).get("critical", 0)
 
     if critical_count > 0:
         print()
