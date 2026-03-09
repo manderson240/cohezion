@@ -1,0 +1,101 @@
+Implement the following plan:
+
+# Technical Research: Anthropic's Complete Guide to Building Skills for Claude
+
+## Context
+
+**Research Topic:** Anthropic's "The Complete Guide to Building Skills for Claude" (official PDF, 29 pages, 6 chapters)
+**Research Goals:** Extract and synthesize all technical guidance from Anthropic's official skills guide, with emphasis on how it applies to Cohezion's existing skill infrastructure
+**Workflow:** BMAD Technical Research (6-step interactive workflow)
+**Source Document:** `https://resources.anthropic.com/hubfs/The-Complete-Guide-to-Building-Skill-for-Claude.pdf`
+
+## Why This Research Matters
+
+Cohezion has an extensive skill system (100+ skills in `.claude/skills/`, BMAD workflow skills, team vault sharing via `sx`). Anthropic's official guide codifies best practices for skill architecture that may reveal opportunities to improve Cohezion's skill quality, triggering accuracy, token efficiency, and distribution model.
+
+## PDF Content Summary (Source Document - 29 Pages)
+
+### Chapter 1: Fundamentals (pp. 4-6)
+- **Skill = folder**: `SKILL.md` (required) + optional `scripts/`, `references/`, `assets/`
+- **Progressive Disclosure**: 3 levels - YAML frontmatter (always in system prompt), SKILL.md body (loaded on trigger), linked files (on demand)
+- **Composability**: Skills coexist; don't assume exclusivity
+- **Portability**: Works across Claude.ai, Claude Code, API
+- **MCP + Skills**: MCP = connectivity (tools), Skills = knowledge (workflows). "Kitchen analogy" - MCP is the kitchen, skills are the recipes
+
+### Chapter 2: Planning and Design (pp. 7-13)
+- **Start with use cases**: 2-3 concrete use cases before coding
+- **3 skill categories**: (1) Document & Asset Creation, (2) Workflow Automation, (3) MCP Enhancement
+- **Success criteria**: Quantitative (90% trigger rate, X tool calls, 0 API failures) + Qualitative (no user prompting, consistent results)
+- **File structure**: `SKILL.md` must be exact case. Folder naming: kebab-case only. No README.md inside skill folder
+- **YAML frontmatter fields**: `name` (kebab-case, required), `description` (required, <1024 chars, must include WHAT + WHEN), `license`, `compatibility`, `metadata`
+- **Description formula**: `[What it does] + [When to use it] + [Key capabilities]`
+- **Security**: No XML angle brackets in frontmatter. No "claude" or "anthropic" in name
+- **Instructions best practices**: Be specific/actionable, include error handling, reference bundled resources clearly, use progressive disclosure
+
+### Chapter 3: Testing and Iteration (pp. 14-17)
+- **3 testing approaches**: Manual (Claude.ai), Scripted (Claude Code), Programmatic (Skills API)
+- **3 test areas**: Triggering tests (loads at right time), Functional tests (correct output), Performance comparison (vs baseline)
+- **skill-creator tool**: Built into Claude.ai + Claude Code. Generates, reviews, suggests improvements
+- **Iteration signals**: Undertriggering (add detail to description) vs Overtriggering (add negative triggers, be more specific)
+
+### Chapter 4: Distribution and Sharing (pp. 18-20)
+- **Individual**: Download folder → zip → upload via Settings > Capabilities > Skills (or Claude Code skills directory)
+- **Organization**: Workspace-wide deployment (shipped Dec 2025), automatic updates, centralized management
+- **Open standard**: Agent Skills - portable across platforms
+- **Skills API**: `/v1/skills` endpoint, `container.skills` parameter in Messages API, version control via Console
+- **API vs Claude.ai routing**: End users → Claude.ai/Code; Programmatic/production → API
+- **Positioning**: Focus on outcomes not features; highlight MCP + skills story
+
+### Chapter 5: Patterns and Troubleshooting (pp. 21-27)
+- **Problem-first vs Tool-first**: Two design approaches depending on user context
+- **5 Patterns**:
+  1. Sequential Workflow Orchestration (multi-step, explicit ordering, rollback)
+  2. Multi-MCP Coordination (cross-service, phase separation, data passing)
+  3. Iterative Refinement (quality loops, validation scripts, stop criteria)
+  4. Context-aware Tool Selection (decision trees, fallback options, transparency)
+  5. Domain-specific Intelligence (embedded expertise, compliance-before-action, audit trails)
+- **Troubleshooting**: Upload errors (SKILL.md naming), invalid frontmatter (YAML formatting), trigger issues (description quality), MCP connection issues, instructions not followed (verbose/buried/ambiguous), large context issues (optimize SKILL.md size, reduce enabled skills)
+- **Advanced technique**: Bundle validation scripts for deterministic checks rather than relying on language instructions
+
+### Chapter 6: Resources and References (pp. 28-29)
+- Official docs: Best Practices Guide, Skills Documentation, API Reference, MCP Documentation
+- Blog posts: Introducing Agent Skills, Engineering Blog, Skills Explained, How to Create Skills, Building Skills for Claude Code, Improving Frontend Design
+- Public skills repo: `anthropic/skills` on GitHub
+- skill-creator: Built-in tool for generating, reviewing, and validating skills
+- Support: Claude Developers Discord, GitHub Issues at `anthropic/skills/issues`
+
+## BMAD Workflow Execution Plan
+
+The technical research workflow has 6 steps, each requiring user confirmation before proceeding:
+
+| Step | Focus | Key Activities |
+|------|-------|---------------|
+| 1 | Scope Confirmation | Confirm research topic, goals, and approach with user |
+| 2 | Technology Stack Analysis | Web-verified analysis of skill architecture, file formats, APIs |
+| 3 | Integration Patterns | MCP integration, Skills API, multi-tool coordination |
+| 4 | Architectural Patterns | Progressive disclosure, composability, design patterns |
+| 5 | Implementation Research | Adoption strategies, testing, deployment, team workflows |
+| 6 | Research Synthesis | Comprehensive document with executive summary, TOC, recommendations |
+
+### Cohezion-Specific Research Angles
+- Compare Cohezion's `.claude/skills/` structure against Anthropic's official spec
+- Evaluate BMAD skill descriptions against the `[What] + [When] + [Capabilities]` formula
+- Assess progressive disclosure compliance (are SKILL.md files too large?)
+- Review triggering quality using Anthropic's test methodology
+- Identify gaps in Cohezion's skill distribution (team vault vs Anthropic's org-level deployment)
+
+## Output File
+`_bmad-output/planning-artifacts/research/technical-building-skills-for-claude-research-2026-03-07.md`
+
+## Verification
+- Research document covers all 6 PDF chapters with proper citations
+- Cohezion-specific recommendations are actionable and grounded in the guide
+- All web research claims verified with source URLs
+- Document follows BMAD research template structure
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/41e5c2ce-9c22-4cb9-a8b9-cd215cefa6e0.jsonl
+
+---
+
+Proceed with all fixes
