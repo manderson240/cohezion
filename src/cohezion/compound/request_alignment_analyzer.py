@@ -143,7 +143,7 @@ class RequestAlignmentAnalyzer:
     def __init__(
         self,
         mcp_client: MCPClient,
-        intent_confidence_threshold: float = 0.5,
+        intent_confidence_threshold: float = 0.1,
         constraint_tolerance: float = 0.1,
     ):
         """Initialize request alignment analyzer.
@@ -346,8 +346,10 @@ class RequestAlignmentAnalyzer:
 
         best_intent = max(scores, key=scores.get)
         best_score = scores[best_intent]
-        total_keywords = sum(len(kws) for kws in _INTENT_KEYWORDS.values())
-        confidence = best_score / max(1, total_keywords)
+        # Normalize by matched category's keywords (not all keywords) so a
+        # single match out of 7 gives confidence ≈ 0.14, not 0.03.
+        intent_keyword_count = len(_INTENT_KEYWORDS.get(best_intent, [1]))
+        confidence = best_score / max(1, intent_keyword_count)
 
         if confidence >= self.intent_confidence_threshold:
             return (

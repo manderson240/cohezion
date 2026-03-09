@@ -105,7 +105,7 @@ class CompoundExecutor:
 
         try:
             # Execute user-provided function
-            output, metrics_dict = self.execute_fn(task, context.checkpoint_data)
+            output, metrics_dict = self.execute_fn(task, context)
 
             duration = time.time() - start_time
 
