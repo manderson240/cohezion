@@ -182,14 +182,16 @@ class MCPServerManager:
         Returns:
             True if started successfully
         """
+        from cohezion.mcp.servers.safe_input import sanitize_log, sanitize_path
+
         if name not in self.servers:
-            logger.error(f"Server not found: {name}")
+            logger.error("Server not found: %s", sanitize_log(name))
             return False
 
         config = self.servers[name]
 
         if config.status == "running":
-            logger.warning(f"Server '{name}' is already running")
+            logger.warning("Server '%s' is already running", sanitize_log(name))
             return True
 
         try:
@@ -209,8 +211,8 @@ class MCPServerManager:
                 module_path,
             ]
 
-            # Create log file
-            log_file = VAULT_LOG_PATH / f"{name}.log"
+            # Create log file (validate path stays in log directory)
+            log_file = sanitize_path(f"{name}.log", base_dir=VAULT_LOG_PATH)
 
             process = subprocess.Popen(
                 cmd,
@@ -224,7 +226,7 @@ class MCPServerManager:
             config.pid = process.pid
             config.status = "starting"
 
-            logger.info(f"Started server '{name}' (PID: {process.pid})")
+            logger.info("Started server '%s' (PID: %d)", sanitize_log(name), process.pid)
 
             # Wait a moment for server to start
             await asyncio.sleep(2)
@@ -236,11 +238,11 @@ class MCPServerManager:
                 return True
             else:
                 config.status = "failed"
-                logger.error(f"Server '{name}' failed to start")
+                logger.error("Server '%s' failed to start", sanitize_log(name))
                 return False
 
         except Exception as e:
-            logger.exception(f"Error starting server '{name}': {e}")
+            logger.exception("Error starting server '%s'", sanitize_log(name))
             config.status = "failed"
             return False
 
@@ -274,11 +276,13 @@ class MCPServerManager:
             config.pid = None
             config.process = None
 
-            logger.info(f"Stopped server '{name}'")
+            from cohezion.mcp.servers.safe_input import sanitize_log
+
+            logger.info("Stopped server '%s'", sanitize_log(name))
             return True
 
         except Exception as e:
-            logger.exception(f"Error stopping server '{name}': {e}")
+            logger.exception("Error stopping server '%s'", sanitize_log(name))
             return False
 
     async def restart_server(self, name: str) -> bool:
@@ -309,10 +313,13 @@ class MCPServerManager:
         config.last_health_check = datetime.utcnow()
 
         try:
-            async with aiohttp.ClientSession() as session, session.get(
-                f"http://localhost:{config.port}/health",
-                timeout=aiohttp.ClientTimeout(total=5),
-            ) as response:
+            async with (
+                aiohttp.ClientSession() as session,
+                session.get(
+                    f"http://localhost:{config.port}/health",
+                    timeout=aiohttp.ClientTimeout(total=5),
+                ) as response,
+            ):
                 healthy = response.status == 200
                 if healthy:
                     config.status = "running"

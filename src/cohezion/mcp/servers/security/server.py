@@ -266,14 +266,18 @@ class SecurityScanner:
         findings = []
         # This would query PyPI vulnerability database
         # For now, return empty with note
-        logger.info(f"Scanning Python deps: {req_file}")
+        from cohezion.mcp.servers.safe_input import sanitize_log
+
+        logger.info("Scanning Python deps: %s", sanitize_log(str(req_file)))
         return findings
 
     async def _scan_js_dependencies(self, pkg_file: Path) -> list[Vulnerability]:
         """Scan JS dependencies."""
         findings = []
         # This would query npm audit
-        logger.info(f"Scanning JS deps: {pkg_file}")
+        from cohezion.mcp.servers.safe_input import sanitize_log
+
+        logger.info("Scanning JS deps: %s", sanitize_log(str(pkg_file)))
         return findings
 
     def generate_report(self) -> dict[str, Any]:
@@ -383,8 +387,10 @@ async def tool_scan_file(request: web.Request) -> web.Response:
         if not file_path:
             return web.json_response({"error": "filePath is required"}, status=400)
 
+        from cohezion.mcp.servers.safe_input import sanitize_path
+
         scanner = get_scanner()
-        path = Path(file_path)
+        path = sanitize_path(file_path)
         findings = scanner.scan_file(path, content)
 
         return web.json_response(
@@ -407,8 +413,10 @@ async def tool_scan_project(request: web.Request) -> web.Response:
         data = await request.json()
         project_path = data.get("projectPath", ".")
 
+        from cohezion.mcp.servers.safe_input import sanitize_path
+
         scanner = get_scanner()
-        path = Path(project_path)
+        path = sanitize_path(project_path)
 
         all_findings = []
 

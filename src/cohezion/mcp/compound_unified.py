@@ -280,33 +280,24 @@ class UnifiedCompoundManager:
 
     async def _checkpoint_doc_retriever(self) -> dict:
         """Checkpoint doc cache."""
-        try:
-            return {
-                "cached_libraries": [],
-                "total_chunks": 0,
-            }
-        except Exception:
-            return {}
+        return {
+            "cached_libraries": [],
+            "total_chunks": 0,
+        }
 
     async def _checkpoint_git(self) -> dict:
         """Checkpoint git snapshots."""
-        try:
-            return {
-                "repos": {},
-                "snapshots": {},
-            }
-        except Exception:
-            return {}
+        return {
+            "repos": {},
+            "snapshots": {},
+        }
 
     async def _checkpoint_security(self) -> dict:
         """Checkpoint security state."""
-        try:
-            return {
-                "last_scan": "",
-                "vulnerabilities": [],
-            }
-        except Exception:
-            return {}
+        return {
+            "last_scan": "",
+            "vulnerabilities": [],
+        }
 
     # -- Restore implementations --
 
