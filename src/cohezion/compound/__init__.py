@@ -83,7 +83,6 @@ from cohezion.compound.model_quality_classifier import (
     QualityPredictor,
     RecommendedAction,
 )
-from cohezion.compound.models import CompoundCycleReport, CompoundCycleResult
 from cohezion.compound.prompt_optimizer import PromptOptimizer
 from cohezion.compound.request_alignment_analyzer import (
     ConstraintType,
