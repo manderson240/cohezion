@@ -13,14 +13,13 @@ from httpx import ASGITransport, AsyncClient
 
 from cohezion.api import app
 
+
 Z_DIM = 256
 
 
 @pytest_asyncio.fixture()
 async def client():
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as c:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
         yield c
 
 

@@ -129,9 +129,7 @@ class BatchSizePredictor:
             f"task_type={task_type}"
         )
 
-    def predict_optimal_size(
-        self, task_type: str, task_count: int
-    ) -> tuple[int, float]:
+    def predict_optimal_size(self, task_type: str, task_count: int) -> tuple[int, float]:
         """Predict optimal batch size for a task.
 
         Uses historical patterns to recommend batch size. Falls back to
@@ -159,9 +157,7 @@ class BatchSizePredictor:
             # No history: use heuristic
             size = self.DEFAULT_BATCH_SIZES[task_type]
             confidence = 0.3  # Low confidence for heuristic
-            logger.debug(
-                f"No history for {task_type}, using heuristic batch_size={size}"
-            )
+            logger.debug(f"No history for {task_type}, using heuristic batch_size={size}")
             self._last_prediction = (size, confidence)
             return size, confidence
 
@@ -213,9 +209,7 @@ class BatchSizePredictor:
             size_groups[metrics.batch_size].append(metrics.throughput)
 
         # Calculate average throughput per batch size
-        size_throughput = {
-            size: sum(values) / len(values) for size, values in size_groups.items()
-        }
+        size_throughput = {size: sum(values) / len(values) for size, values in size_groups.items()}
 
         # Find optimal size (highest throughput)
         if not size_throughput:
@@ -237,9 +231,7 @@ class BatchSizePredictor:
         # Variance penalty: if very inconsistent, lower confidence
         if num_samples > 1:
             throughputs = size_groups[optimal_size]
-            variance = sum((t - max_throughput) ** 2 for t in throughputs) / len(
-                throughputs
-            )
+            variance = sum((t - max_throughput) ** 2 for t in throughputs) / len(throughputs)
             variance_penalty = min(0.2, variance / max_throughput)
             confidence -= variance_penalty
 
@@ -303,8 +295,7 @@ class BatchSizePredictor:
         try:
             # Query vault for batch execution patterns
             results = self.vault_client.vault_search(
-                "batch_size throughput execution metrics",
-                scope="all"
+                "batch_size throughput execution metrics", scope="all"
             )
 
             if not results:
@@ -329,21 +320,15 @@ class BatchSizePredictor:
 
                 except Exception as e:
                     # Non-blocking: skip problematic entries
-                    logger.debug(
-                        f"Failed to load batch metrics from {path}: {e}"
-                    )
+                    logger.debug(f"Failed to load batch metrics from {path}: {e}")
                     continue
 
-            logger.info(
-                f"Loaded {loaded_count} batch execution metrics from vault"
-            )
+            logger.info(f"Loaded {loaded_count} batch execution metrics from vault")
             return loaded_count
 
         except Exception as e:
             # Non-blocking: vault unavailable, continue with in-memory history
-            logger.debug(
-                f"Vault learning failed (non-blocking): {e}"
-            )
+            logger.debug(f"Vault learning failed (non-blocking): {e}")
             return 0
 
     def _parse_batch_metrics(self, content: str) -> BatchExecutionMetrics | None:
@@ -480,41 +465,29 @@ class BatchSizePredictor:
             # Extract task_types - handle various formats
             # Patterns: [analyze, search], "analyze, search", or just text
             task_types_match = re.search(
-                r"task[_\s]*types?[:\s]*\[([^\]]+)\]",
-                content,
-                re.IGNORECASE
+                r"task[_\s]*types?[:\s]*\[([^\]]+)\]", content, re.IGNORECASE
             )
             if task_types_match:
                 types_str = task_types_match.group(1)
-                data["task_types"] = [
-                    t.strip().strip('"\'') for t in types_str.split(",")
-                ]
+                data["task_types"] = [t.strip().strip("\"'") for t in types_str.split(",")]
             else:
                 # Try alternative format without brackets
                 task_types_alt = re.search(
-                    r"task[_\s]*types?[:\s]*([^\n]+?)(?:\n|$)",
-                    content,
-                    re.IGNORECASE
+                    r"task[_\s]*types?[:\s]*([^\n]+?)(?:\n|$)", content, re.IGNORECASE
                 )
                 if task_types_alt:
                     types_str = task_types_alt.group(1).strip()
                     # Handle comma-separated or space-separated
                     if "," in types_str:
-                        data["task_types"] = [
-                            t.strip().strip('"\'') for t in types_str.split(",")
-                        ]
+                        data["task_types"] = [t.strip().strip("\"'") for t in types_str.split(",")]
                     else:
-                        data["task_types"] = [types_str.strip('"\'')]
+                        data["task_types"] = [types_str.strip("\"'")]
                 else:
                     # Default to unknown if not specified
                     data["task_types"] = ["unknown"]
 
             # Extract timestamp
-            timestamp_match = re.search(
-                r"timestamp[:\s]*([^\n]+)",
-                content,
-                re.IGNORECASE
-            )
+            timestamp_match = re.search(r"timestamp[:\s]*([^\n]+)", content, re.IGNORECASE)
             if timestamp_match:
                 data["timestamp"] = timestamp_match.group(1).strip()
 

@@ -11,6 +11,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+
 # Constants — use environment variables with sensible defaults
 REPO_ROOT = Path(os.environ.get("COHEZION_ROOT", ".")).resolve()
 DEV_ROOT = REPO_ROOT.parent
@@ -97,9 +98,7 @@ def clean_session(session_id, force=False):
 
     # Safety Check: Unpushed commits
     branch = run(["git", "-C", str(worktree_dir), "rev-parse", "--abbrev-ref", "HEAD"])
-    unpushed = run(
-        ["git", "-C", str(worktree_dir), "cherry", "-v", "origin/main"], check=False
-    )
+    unpushed = run(["git", "-C", str(worktree_dir), "cherry", "-v", "origin/main"], check=False)
 
     if unpushed and not force:
         print(f"WARNING: Unpushed commits found in {branch}:")
@@ -126,13 +125,16 @@ def clean_session(session_id, force=False):
 
     print(f"Session {session_id} cleaned up.")
 
+
 def main():
     parser = argparse.ArgumentParser(description="Cohezion Session Manager")
     subparsers = parser.add_subparsers(dest="command", help="Command to run")
 
     # Start
     start_parser = subparsers.add_parser("start", help="Start a new session")
-    start_parser.add_argument("--phase", required=True, help="Short name for the phase (e.g., bugfix)")
+    start_parser.add_argument(
+        "--phase", required=True, help="Short name for the phase (e.g., bugfix)"
+    )
 
     # Status
     subparsers.add_parser("status", help="List active sessions")
@@ -140,7 +142,9 @@ def main():
     # Clean
     clean_parser = subparsers.add_parser("clean", help="Clean up a session")
     clean_parser.add_argument("--session", type=int, required=True, help="Session ID to clean")
-    clean_parser.add_argument("--force", action="store_true", help="Force removal despite unpushed work")
+    clean_parser.add_argument(
+        "--force", action="store_true", help="Force removal despite unpushed work"
+    )
 
     args = parser.parse_args()
 
@@ -152,6 +156,7 @@ def main():
         clean_session(args.session, args.force)
     else:
         parser.print_help()
+
 
 if __name__ == "__main__":
     main()

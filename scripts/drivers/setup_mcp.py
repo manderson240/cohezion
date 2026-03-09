@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+
 # MCP Config for SurrealDB
 mcp_config = {
     "mcpServers": {
@@ -10,13 +11,10 @@ mcp_config = {
             "env": {
                 "SURREALDB_URL": "ws://localhost:8000/rpc",
                 "SURREALDB_NS": "cohezion",
-                "SURREALDB_DB": "core"
-            }
+                "SURREALDB_DB": "core",
+            },
         },
-        "cohezion-skills": {
-            "command": "./.venv/bin/python3",
-            "args": ["cohezion_skill_mcp.py"]
-        }
+        "cohezion-skills": {"command": "./.venv/bin/python3", "args": ["cohezion_skill_mcp.py"]},
     }
 }
 

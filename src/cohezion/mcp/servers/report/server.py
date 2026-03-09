@@ -20,15 +20,14 @@ import logging
 import os
 import subprocess
 import sys
-import tempfile
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import aiohttp
 from aiohttp import web
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -478,7 +477,7 @@ async def main():
 
     logger.info(f"✅ Report Generation Server running on http://localhost:{MCP_PORT}")
     logger.info(f"   Marimo port: {MARIMO_PORT}")
-    logger.info(f"   Templates: analysis, physics, default")
+    logger.info("   Templates: analysis, physics, default")
 
     while True:
         await asyncio.sleep(3600)

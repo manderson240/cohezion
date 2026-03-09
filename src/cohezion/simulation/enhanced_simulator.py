@@ -76,9 +76,7 @@ class FlumeIntegration:
             logger.info("FlumeEncoder initialized successfully")
 
         except Exception as e:
-            logger.warning(
-                f"FlumeEncoder not available ({e}). Using synthetic vectors."
-            )
+            logger.warning(f"FlumeEncoder not available ({e}). Using synthetic vectors.")
             self.encoder = None
 
     def encode(self, text: str) -> list[float]:
@@ -106,9 +104,7 @@ class FlumeIntegration:
         z = z / (np.linalg.norm(z) + 1e-8)
         return z.tolist()
 
-    def interpolate(
-        self, z1: list[float], z2: list[float], alpha: float = 0.5
-    ) -> list[float]:
+    def interpolate(self, z1: list[float], z2: list[float], alpha: float = 0.5) -> list[float]:
         """Spherical linear interpolation between two z-vectors."""
         z1_arr = np.array(z1)
         z2_arr = np.array(z2)
@@ -299,9 +295,7 @@ class RZeroEnhancedTriad:
             iterations=1,
         )
 
-    def _simulate_kimi_trace(
-        self, challenge: AllostaticaChallenge, scenario: str
-    ) -> str:
+    def _simulate_kimi_trace(self, challenge: AllostaticaChallenge, scenario: str) -> str:
         """Simulates the deep reasoning traces of a 2026-edge model."""
         laws = self.PINO_LAWS.get(scenario, self.PINO_LAWS["newtonian"])
 
@@ -337,11 +331,7 @@ class RZeroEnhancedTriad:
 
         # Add metrics
         energy = random.uniform(0.1, 100.0)
-        coherence = (
-            random.uniform(0.5, 1.0)
-            if self.difficulty < 3.0
-            else random.uniform(0.3, 0.8)
-        )
+        coherence = random.uniform(0.5, 1.0) if self.difficulty < 3.0 else random.uniform(0.3, 0.8)
         response += f"Energy: {energy:.2f}. Coherence: {coherence:.2f}."
 
         return response
@@ -355,17 +345,13 @@ class RZeroEnhancedTriad:
         coherence_match = re.search(r"Coherence:\s*([\d]+\.[\d]+)", response)
 
         try:
-            energy = (
-                float(energy_match.group(1)) if energy_match else random.uniform(1, 100)
-            )
+            energy = float(energy_match.group(1)) if energy_match else random.uniform(1, 100)
         except ValueError:
             energy = random.uniform(1, 100)
 
         try:
             coherence = (
-                float(coherence_match.group(1))
-                if coherence_match
-                else random.uniform(0.5, 1.0)
+                float(coherence_match.group(1)) if coherence_match else random.uniform(0.5, 1.0)
             )
         except ValueError:
             coherence = random.uniform(0.5, 1.0)
@@ -388,9 +374,7 @@ class RZeroEnhancedTriad:
         return 1.0 / (1.0 + np.exp(-0.1 * (energy - 50)))
 
     # === PRAGMATIST ===
-    def evaluate(
-        self, solution: RZeroSolution, challenge: AllostaticaChallenge
-    ) -> RZeroEvaluation:
+    def evaluate(self, solution: RZeroSolution, challenge: AllostaticaChallenge) -> RZeroEvaluation:
         """Evaluate solution for quality and correctness."""
         score = 1.0
         issues = []
@@ -408,9 +392,7 @@ class RZeroEnhancedTriad:
         metrics = solution.metrics
 
         if edge_case["name"] == "Zero Energy Paradox":
-            if metrics.get("energy", 1) < 0.1 and metrics.get(
-                "edge_case_handled", False
-            ):
+            if metrics.get("energy", 1) < 0.1 and metrics.get("edge_case_handled", False):
                 score += 0.1  # Bonus for handling correctly
             elif metrics.get("energy", 1) > 50:
                 score -= 0.2
@@ -427,9 +409,7 @@ class RZeroEnhancedTriad:
         # 4. Constraint Satisfaction (simplified check)
         if len(challenge.constraints) > 0:
             addressed = sum(
-                1
-                for c in challenge.constraints
-                if c.split()[0].lower() in response_lower
+                1 for c in challenge.constraints if c.split()[0].lower() in response_lower
             )
             satisfaction = addressed / len(challenge.constraints)
             if satisfaction < 0.5:
@@ -468,9 +448,7 @@ class RZeroEnhancedTriad:
             recent_avg = sum(self.history[-10:]) / 10
             if recent_avg < 0.3:
                 self.difficulty = max(1.0, self.difficulty - self.difficulty_step * 2)
-                logger.info(
-                    f"R-Zero: Struggling. Difficulty reduced to {self.difficulty:.2f}"
-                )
+                logger.info(f"R-Zero: Struggling. Difficulty reduced to {self.difficulty:.2f}")
 
 
 # ============================================================================

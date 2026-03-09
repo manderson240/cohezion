@@ -9,14 +9,15 @@ Tests:
 - Confidence calculation
 """
 
-import pytest
 import time
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
+
+import pytest
 
 from cohezion.swarm.anomaly_detector import (
+    AnomalyAlert,
     AnomalyDetector,
     AnomalyType,
-    AnomalyAlert,
     ModelCostHistory,
     get_anomaly_detector,
     reset_anomaly_detector,

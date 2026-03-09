@@ -71,9 +71,7 @@ class ConfigSyncLogger:
         await self._persist_entry(entry)
 
         level = "error" if status == "failed" else "info"
-        getattr(logger, level)(
-            f"Validation {status}: {file} ({duration_ms:.1f}ms)"
-        )
+        getattr(logger, level)(f"Validation {status}: {file} ({duration_ms:.1f}ms)")
 
     async def log_sync(
         self,
@@ -212,8 +210,6 @@ class ConfigSyncLogger:
             "average_duration_ms": avg_duration,
             "failure_count": statuses.get("failed", 0),
             "success_rate": (
-                statuses.get("success", 0) / len(self._entries) * 100
-                if self._entries
-                else 0
+                statuses.get("success", 0) / len(self._entries) * 100 if self._entries else 0
             ),
         }

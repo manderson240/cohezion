@@ -1,3 +1,15 @@
+---
+name: compound-engineering
+description: Compound AI orchestration methodology for multi-agent coordination,
+  local model optimization, and hallucination mitigation. Use when implementing
+  compound features, debugging coherence drift, setting up model routing, or
+  when user mentions "compound engineering", "skill refinement", "orchestration
+  loop", or "compound impact".
+metadata:
+  version: "1.0"
+  legacy-name: COMPOUND_ENGINEERING_PRIME
+---
+
 # SKILL: COMPOUND_ENGINEERING_PRIME
 
 ## DOMAIN EXPERTISE

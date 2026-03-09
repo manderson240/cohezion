@@ -8,6 +8,7 @@ Usage:
     # Validate all agent files manually:
     python scripts/hooks/validate-agent-files.py --all
 """
+
 from __future__ import annotations
 
 import sys

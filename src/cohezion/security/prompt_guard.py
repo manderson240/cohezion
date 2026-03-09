@@ -149,9 +149,7 @@ INJECTION_PATTERNS = [
     (r"elevated.*permissions", "privilege_escalation"),
 ]
 
-COMPILED_PATTERNS = [
-    (re.compile(p, re.IGNORECASE), name) for p, name in INJECTION_PATTERNS
-]
+COMPILED_PATTERNS = [(re.compile(p, re.IGNORECASE), name) for p, name in INJECTION_PATTERNS]
 
 
 # Deobfuscation mappings
@@ -234,11 +232,7 @@ class PromptGuard:
             )
 
         # Scientific context relaxes the 'suspicious' threshold
-        if (
-            is_science
-            and len(matched) == 1
-            and matched[0] in ["base64_encoded", "prompt_leak"]
-        ):
+        if is_science and len(matched) == 1 and matched[0] in ["base64_encoded", "prompt_leak"]:
             logger.info(f"Scientific context detected. Relaxing security for {matched}")
             return PromptAnalysis(
                 threat_level=ThreatLevel.SAFE,

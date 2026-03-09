@@ -87,15 +87,9 @@ class HardwareMonitor:
             thermal_path = Path("/sys/class/thermal")
             if thermal_path.exists():
                 self._hardware_available = True
-                logger.debug(
-                    "Hardware metrics available: "
-                    f"found thermal_path={thermal_path}"
-                )
+                logger.debug(f"Hardware metrics available: found thermal_path={thermal_path}")
             else:
-                logger.debug(
-                    "Hardware metrics unavailable: "
-                    "no /sys/class/thermal found"
-                )
+                logger.debug("Hardware metrics unavailable: no /sys/class/thermal found")
         except Exception as e:
             logger.debug(f"Hardware detection error: {e}")
             self._hardware_available = False
@@ -250,7 +244,7 @@ class HardwareMonitor:
             # Rough estimation: power ∝ clock^2
             # At 2800MHz: ~25W, at 1400MHz: ~6W
             normalized_clock = gpu_clock / 2800.0
-            power = 25.0 * (normalized_clock ** 2)
+            power = 25.0 * (normalized_clock**2)
             return max(self.DEFAULT_GPU_POWER, min(50.0, power))
         except Exception as e:
             logger.debug("GPU power read failed, using default: %s", e)
@@ -265,9 +259,7 @@ class HardwareMonitor:
             Clock speed in MHz
         """
         try:
-            for pp_sclk in Path("/sys/class/drm").glob(
-                "card*/device/pp_sclk"
-            ):
+            for pp_sclk in Path("/sys/class/drm").glob("card*/device/pp_sclk"):
                 try:
                     content = pp_sclk.read_text().strip()
                     # Format: "0: 400Mhz *\n1: 800Mhz\n..."

@@ -11,6 +11,7 @@ from cohezion.swarm.agents.base_scout import BaseScout, Finding
 
 logger = logging.getLogger(__name__)
 
+
 class ArchitectureScout(BaseScout):
     """
     Identifies architectural patterns (Repository, Service Layer, Factory, etc.)
@@ -53,20 +54,23 @@ class ArchitectureScout(BaseScout):
         try:
             response_json = await self._call_local_llm(prompt)
             import json
+
             data = json.loads(response_json)
 
             findings = []
             for p in data.get("patterns", []):
-                findings.append(Finding(
-                    type="pattern",
-                    name=p["name"],
-                    category=p["category"],
-                    description=p["description"],
-                    file_path=str(path),
-                    line_range=(1, ast_summary.loc),
-                    confidence=p["confidence"],
-                    code_snippet="N/A (Structural)"
-                ))
+                findings.append(
+                    Finding(
+                        type="pattern",
+                        name=p["name"],
+                        category=p["category"],
+                        description=p["description"],
+                        file_path=str(path),
+                        line_range=(1, ast_summary.loc),
+                        confidence=p["confidence"],
+                        code_snippet="N/A (Structural)",
+                    )
+                )
             return findings
         except Exception as e:
             logger.error(f"ArchitectureScout LLM call failed for {path}: {e}")

@@ -183,9 +183,7 @@ class InferenceSession:
 
                     # Update model usage
                     model = metrics.get("model", "unknown")
-                    self.state.model_usage[model] = (
-                        self.state.model_usage.get(model, 0) + tokens
-                    )
+                    self.state.model_usage[model] = self.state.model_usage.get(model, 0) + tokens
 
                     final_output = output
 

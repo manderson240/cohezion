@@ -20,17 +20,20 @@ Includes:
 
 import marimo
 
+
 __generated_with = "0.10.17"
 app = marimo.App(width="full")
 
 
 @app.cell
 def _():
+    import json
+    from pathlib import Path
+
     import marimo as mo
     import matplotlib.pyplot as plt
     import numpy as np
-    import json
-    from pathlib import Path
+
     return mo, plt, np, json, Path
 
 
@@ -52,15 +55,17 @@ def _(mo):
 @app.cell
 def _(mo, Path, json):
     # Load mass simulation results
-    results_path = Path("/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/hiho_results.json")
+    results_path = Path(
+        "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/hiho_results.json"
+    )
     if results_path.exists():
         results = json.loads(results_path.read_text())
         mo.md(f"""
         ### 📊 Mass Simulation Summary
-        - **Total Rounds**: {results['num_rounds']:,}
-        - **Stability Bright Spots**: {results['bright_spot_count']:,}
-        - **Max Reality Precipitation**: {results['max_reality']:.4f}
-        - **Processing Time**: {results['duration']:.2f}s
+        - **Total Rounds**: {results["num_rounds"]:,}
+        - **Stability Bright Spots**: {results["bright_spot_count"]:,}
+        - **Max Reality Precipitation**: {results["max_reality"]:.4f}
+        - **Processing Time**: {results["duration"]:.2f}s
         """)
     else:
         mo.md("⚠️ Mass simulation results not found. Run the HIHO engine first.")
@@ -145,13 +150,20 @@ def _(mo, coherence, stability, precipitated, charge_polarity, particle_type, sp
     - **Particle Type**: **{particle_type}** (Charge: {charge_polarity:.3f})
 
     **Toroidal Spin Analysis:**
-    {"The rotation and precession are aligned (coherent), maximizing stability." if spin_coherence > 0.5 else
-     "The rotation and precession are counter-aligned, creating instability."}
+    {
+        "The rotation and precession are aligned (coherent), maximizing stability."
+        if spin_coherence > 0.5
+        else "The rotation and precession are counter-aligned, creating instability."
+    }
 
     **HIHO Analysis:**
-    {"The system is perfectly balanced at the 0.5 threshold. Stability is maximum." if abs(coherence-0.5) < 0.05 else
-     "The system is too 'dense' (> 0.5). Reality is formed but may be unstable." if coherence > 0.5 else
-     "The system is in the 'Void' state (< 0.5). No matter has precipitated."}
+    {
+        "The system is perfectly balanced at the 0.5 threshold. Stability is maximum."
+        if abs(coherence - 0.5) < 0.05
+        else "The system is too 'dense' (> 0.5). Reality is formed but may be unstable."
+        if coherence > 0.5
+        else "The system is in the 'Void' state (< 0.5). No matter has precipitated."
+    }
     """)
     return status_emoji, precip_status
 
@@ -159,25 +171,27 @@ def _(mo, coherence, stability, precipitated, charge_polarity, particle_type, sp
 @app.cell
 def _(plt, np, coherence, stability):
     # Visualization: Radar Chart of the 4 Fabrics
-    labels = ['Space', 'Field', 'Control', 'Percip']
-    values = [0.5, (coherence/0.8), 0.45, 0.4] # Mock values for visualization
+    labels = ["Space", "Field", "Control", "Percip"]
+    values = [0.5, (coherence / 0.8), 0.45, 0.4]  # Mock values for visualization
 
     # 12D State Visualization
     fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
 
-    angles = np.linspace(0, 2*np.pi, len(labels), endpoint=False).tolist()
+    angles = np.linspace(0, 2 * np.pi, len(labels), endpoint=False).tolist()
     values += values[:1]
     angles += angles[:1]
 
-    ax.fill(angles, values, color='purple', alpha=0.25)
-    ax.plot(angles, values, color='purple', linewidth=2)
+    ax.fill(angles, values, color="purple", alpha=0.25)
+    ax.plot(angles, values, color="purple", linewidth=2)
     ax.set_yticklabels([])
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels(labels)
 
     # Add a marker for the 0.5 Stability Threshold
-    ax.plot(np.linspace(0, 2*np.pi, 100), [0.5]*100, 'r--', alpha=0.5, label='HIHO 0.5 Threshold')
-    ax.legend(loc='upper right')
+    ax.plot(
+        np.linspace(0, 2 * np.pi, 100), [0.5] * 100, "r--", alpha=0.5, label="HIHO 0.5 Threshold"
+    )
+    ax.legend(loc="upper right")
 
     ax.set_title("12D Fabric Map (HIHO View)")
     fig
@@ -200,7 +214,9 @@ def _(mo):
 @app.cell
 def _(mo, q):
     if q.value:
-        mo.md(f"**Swarm Analysis of '{q.value}':**\n\nThe 12-parameter model suggests that your question addresses the interaction between the Control and Percipitation fabrics. At the stability point (0.5), your query would manifest as a coherent thought-form.")
+        mo.md(
+            f"**Swarm Analysis of '{q.value}':**\n\nThe 12-parameter model suggests that your question addresses the interaction between the Control and Percipitation fabrics. At the stability point (0.5), your query would manifest as a coherent thought-form."
+        )
     return
 
 

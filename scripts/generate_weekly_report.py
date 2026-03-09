@@ -4,9 +4,10 @@ ASCENDED COHEZION - Weekly Evolution Report
 Called by cron on Sundays at 5:00 AM
 """
 
-import sys
 import json
+import sys
 from datetime import datetime
+
 
 # Add src to path
 sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")

@@ -1,3 +1,15 @@
+---
+name: team-orchestration
+description: Multi-agent team planning and orchestration that converts PRIME
+  skills into agent specifications with dependency-tracked task plans. Use when
+  creating agent teams, decomposing tasks for swarm execution, or when user
+  mentions "team planning", "agent orchestration", "task decomposition",
+  "swarm coordination", or "dependency tracking".
+metadata:
+  version: "1.0.0"
+  legacy-name: TEAM_ORCHESTRATION_PRIME
+---
+
 # SKILL: TEAM_ORCHESTRATION_PRIME
 
 ## DOMAIN EXPERTISE

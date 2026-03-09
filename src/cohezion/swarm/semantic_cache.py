@@ -182,9 +182,7 @@ class FlumeVAEEmbeddingModel(EmbeddingModel):
 
         # Fallback: use hash-based embeddings
         if self._fallback_model is None:
-            self._fallback_model = DistilledEmbeddingModel(
-                embedding_dim=self._embedding_dim
-            )
+            self._fallback_model = DistilledEmbeddingModel(embedding_dim=self._embedding_dim)
 
         return await self._fallback_model.encode(text)
 

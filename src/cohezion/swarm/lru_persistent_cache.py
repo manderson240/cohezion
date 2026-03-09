@@ -205,7 +205,7 @@ class LRUPersistentCache(PersistentCache):
 
         logger.info(
             f"LRU eviction: {current_size}/{self.max_entries} entries "
-            f"({current_size/self.max_entries*100:.1f}%). "
+            f"({current_size / self.max_entries * 100:.1f}%). "
             f"Evicting {entries_to_evict} entries to {target_size}/{self.max_entries}"
         )
 
@@ -232,7 +232,7 @@ class LRUPersistentCache(PersistentCache):
             logger.debug(
                 f"Evicted {len(evicted_keys)} LRU entries. "
                 f"Cache now at {len(self.memory_cache)}/{self.max_entries} "
-                f"({len(self.memory_cache)/self.max_entries*100:.1f}%)"
+                f"({len(self.memory_cache) / self.max_entries * 100:.1f}%)"
             )
 
     def get_stats(self) -> dict[str, Any]:
@@ -297,9 +297,7 @@ class LRUPersistentCache(PersistentCache):
             for key in self.memory_cache.keys():
                 self._access_order[key] = None
 
-            logger.debug(
-                f"Rebuilt LRU access order for {len(self._access_order)} entries"
-            )
+            logger.debug(f"Rebuilt LRU access order for {len(self._access_order)} entries")
 
     @property
     def eviction_threshold_percent(self) -> float:

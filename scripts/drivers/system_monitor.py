@@ -6,6 +6,7 @@ from pathlib import Path
 
 import psutil
 
+
 # Cohezion Resource Guard (Quadrature Nexus Stability)
 # Hardware Profile: 128GB RAM, AMD Ryzen 9 (32 threads)
 MEM_WARN_PERCENT = 85

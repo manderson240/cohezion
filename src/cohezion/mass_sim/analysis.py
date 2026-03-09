@@ -78,15 +78,9 @@ class SimulationAnalyzer:
                     coherence_violations += 1
 
         return {
-            "mean_final_within_bounds": float(np.mean(final_within))
-            if final_within
-            else 0,
-            "min_final_within_bounds": float(np.min(final_within))
-            if final_within
-            else 0,
-            "checkpoint_violation_rate": (
-                coherence_violations / max(total_checkpoints, 1)
-            ),
+            "mean_final_within_bounds": float(np.mean(final_within)) if final_within else 0,
+            "min_final_within_bounds": float(np.min(final_within)) if final_within else 0,
+            "checkpoint_violation_rate": (coherence_violations / max(total_checkpoints, 1)),
             "bounds": list(bounds),
         }
 
@@ -164,9 +158,7 @@ class SimulationAnalyzer:
 
         return {
             "mean_dim_std": float(np.mean(norm_stds)) if norm_stds else 0,
-            "coherence_spread": float(np.std(mean_coherences))
-            if mean_coherences
-            else 0,
+            "coherence_spread": float(np.std(mean_coherences)) if mean_coherences else 0,
             "mean_effective_dimensionality": (
                 float(np.mean(effective_dims)) if effective_dims else 0
             ),
@@ -184,9 +176,7 @@ class SimulationAnalyzer:
                     "seed": r.seed,
                     "stability_score": round(stability, 4),
                     "mean_coherence": round(final_c, 4),
-                    "within_bounds_pct": round(
-                        r.final_stats.get("pct_within_bounds", 0), 4
-                    ),
+                    "within_bounds_pct": round(r.final_stats.get("pct_within_bounds", 0), 4),
                     "elapsed_s": round(r.elapsed_seconds, 2),
                 }
             )

@@ -166,9 +166,7 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
                     )
                     return JSONResponse(
                         status_code=403,
-                        content={
-                            "detail": f"Permission '{permission}' required"
-                        },
+                        content={"detail": f"Permission '{permission}' required"},
                     )
 
                 return await func(request, *args, **kwargs)

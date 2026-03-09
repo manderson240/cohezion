@@ -42,9 +42,7 @@ class ModelMetrics:
     def update(self, latency_ms: float, success: bool, quality: float = 0.5):
         n = self.total_calls
         self.avg_latency_ms = (self.avg_latency_ms * n + latency_ms) / (n + 1)
-        self.success_rate = (self.success_rate * n + (1.0 if success else 0.0)) / (
-            n + 1
-        )
+        self.success_rate = (self.success_rate * n + (1.0 if success else 0.0)) / (n + 1)
         self.quality_score = (self.quality_score * n + quality) / (n + 1)
         self.total_calls += 1
         self.last_used = datetime.now().isoformat()
@@ -202,9 +200,7 @@ class OllamaModelManager:
         if len(prompt) <= max_chars:
             return prompt
 
-        logger.warning(
-            f"⚠️ Context Guard: Truncating large prompt ({len(prompt)} chars)"
-        )
+        logger.warning(f"⚠️ Context Guard: Truncating large prompt ({len(prompt)} chars)")
         header = f"--- CONTEXT TRUNCATED ({len(prompt)} -> {max_chars}) ---\n"
         footer = "\n--- END TRUNCATED CONTEXT ---"
 

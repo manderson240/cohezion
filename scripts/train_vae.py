@@ -13,6 +13,7 @@ import argparse
 import logging
 import sys
 
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s",
@@ -45,9 +46,7 @@ def main() -> int:
     parser.add_argument(
         "--batch-size", type=int, default=64, help="Training batch size (default: 64)"
     )
-    parser.add_argument(
-        "--lr", type=float, default=1e-3, help="Learning rate (default: 1e-3)"
-    )
+    parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate (default: 1e-3)")
     parser.add_argument(
         "--resume",
         type=str,

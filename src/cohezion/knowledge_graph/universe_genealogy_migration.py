@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class UniverseEpoch:
     """A single era in universe evolution (Nov 2025 → Feb 2026)."""
+
     epoch_id: str
     epoch_number: int
     name: str
@@ -46,6 +47,7 @@ class UniverseEpoch:
 @dataclass
 class UniversePattern:
     """One of 7 patterns discovered in universe design."""
+
     pattern_id: str
     pattern_number: int
     name: str
@@ -59,6 +61,7 @@ class UniversePattern:
 @dataclass
 class CoherenceMeasurement:
     """Empirical HIHO stability measurement (targeting 0.462-0.463)."""
+
     measurement_id: str
     epoch_id: str
     timestamp: str
@@ -100,8 +103,7 @@ class UniverseGenealogySurvey:
         try:
             # Get git log to identify major phases
             result = subprocess.run(
-                ["git", "log", "--all", "--oneline", "--date=short",
-                 "--format=%h %ad %s"],
+                ["git", "log", "--all", "--oneline", "--date=short", "--format=%h %ad %s"],
                 cwd=self.cohezion_root,
                 capture_output=True,
                 text=True,
@@ -111,19 +113,34 @@ class UniverseGenealogySurvey:
             if result.returncode != 0:
                 raise RuntimeError(f"Git log failed: {result.stderr}")
 
-            commits = result.stdout.strip().split('\n')
+            commits = result.stdout.strip().split("\n")
 
             # Parse commit history to identify epoch boundaries
             # Look for major structural commits
             epochs = {
-                1: {"name": "Philosophical foundation", "keywords": ["Co-evolution", "HIHO", "principle"]},
+                1: {
+                    "name": "Philosophical foundation",
+                    "keywords": ["Co-evolution", "HIHO", "principle"],
+                },
                 2: {"name": "Universe architecture", "keywords": ["12D", "manifold", "soul"]},
-                3: {"name": "Physics mechanization", "keywords": ["Hamiltonian", "physics", "simulation"]},
+                3: {
+                    "name": "Physics mechanization",
+                    "keywords": ["Hamiltonian", "physics", "simulation"],
+                },
                 4: {"name": "FLUME VAE integration", "keywords": ["FLUME", "VAE", "learning"]},
-                5: {"name": "Production embeddings", "keywords": ["embedding", "production", "validate"]},
-                6: {"name": "Optimization sprint", "keywords": ["optimize", "performance", "17.4x"]},
+                5: {
+                    "name": "Production embeddings",
+                    "keywords": ["embedding", "production", "validate"],
+                },
+                6: {
+                    "name": "Optimization sprint",
+                    "keywords": ["optimize", "performance", "17.4x"],
+                },
                 7: {"name": "Robustness hardening", "keywords": ["robust", "graceful", "degrade"]},
-                8: {"name": "Self-awareness", "keywords": ["metric", "measure", "pattern", "analyze"]},
+                8: {
+                    "name": "Self-awareness",
+                    "keywords": ["metric", "measure", "pattern", "analyze"],
+                },
             }
 
             summary = {
@@ -131,7 +148,8 @@ class UniverseGenealogySurvey:
                 "epoch_count": len(epochs),
                 "epochs_identified": epochs,
                 "git_history_span": f"{commits[-1].split()[1]} → {commits[0].split()[1]}"
-                if commits else "unknown",
+                if commits
+                else "unknown",
                 "status": "measured",
             }
 
@@ -201,9 +219,7 @@ class UniverseGenealogySurvey:
             summary = {
                 "patterns_identified": len(patterns),
                 "patterns": patterns,
-                "total_evidence_points": sum(
-                    1 for p in patterns for _ in [p.get("evidence")]
-                ),
+                "total_evidence_points": sum(1 for p in patterns for _ in [p.get("evidence")]),
                 "status": "extracted",
             }
 
@@ -225,8 +241,7 @@ class UniverseGenealogySurvey:
 
         try:
             schema_path = (
-                self.cohezion_root /
-                "src/cohezion/knowledge_graph/universe_genealogy_schema.sql"
+                self.cohezion_root / "src/cohezion/knowledge_graph/universe_genealogy_schema.sql"
             )
 
             if not schema_path.exists():

@@ -25,9 +25,11 @@ class HardwareProfilerFactory:
     @staticmethod
     def get_profiler():
         """Return a mock profiler that doesn't fail on missing imports."""
+
         class MockProfiler:
             def measure(self):
                 return {"vram_percent": 50.0, "thermal_percent": 40.0}
+
         return MockProfiler()
 
 
@@ -66,9 +68,7 @@ class DynamicConcurrencyGate:
         profiler: HardwareProfiler for thermal prediction
     """
 
-    def __init__(
-        self, base_concurrency: int = 4, enable_thermal_prediction: bool = False
-    ):
+    def __init__(self, base_concurrency: int = 4, enable_thermal_prediction: bool = False):
         """Initialize DynamicConcurrencyGate.
 
         Args:
@@ -92,10 +92,7 @@ class DynamicConcurrencyGate:
 
                 self._thermal_predictor = get_thermal_trend_predictor()
             except Exception as e:
-                logger.debug(
-                    f"Failed to initialize thermal predictor: {e}, "
-                    "disabling prediction"
-                )
+                logger.debug(f"Failed to initialize thermal predictor: {e}, disabling prediction")
                 self.enable_thermal_prediction = False
 
     def get_safe_concurrency(self) -> int:
@@ -146,8 +143,8 @@ class DynamicConcurrencyGate:
             # Phase 3 Sprint 2: Check 30-minute thermal prediction
             if self.enable_thermal_prediction and self._thermal_predictor:
                 try:
-                    predicted_temp, confidence = (
-                        self._thermal_predictor.predict_temperature_ahead(30)
+                    predicted_temp, confidence = self._thermal_predictor.predict_temperature_ahead(
+                        30
                     )
 
                     # Pre-emptive throttling based on prediction

@@ -4,7 +4,6 @@ import argparse
 import asyncio
 import json
 import logging
-import signal
 import sys
 from pathlib import Path
 
@@ -141,6 +140,7 @@ def main():
 
     # Handle non-daemon commands
     if args.command in ("dlq", "retry", "mark-inaccessible", "status"):
+
         async def run_command():
             daemon = await _init_daemon(config)
             if args.command == "dlq":

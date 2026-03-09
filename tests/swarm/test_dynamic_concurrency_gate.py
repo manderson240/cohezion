@@ -1,11 +1,12 @@
 """Tests for DynamicConcurrencyGate - Phase 1 Bottleneck #1."""
 
-import pytest
 from unittest.mock import MagicMock
 
+import pytest
+
 from cohezion.swarm.dynamic_concurrency_gate import (
-    DynamicConcurrencyGate,
     ConcurrencyDecision,
+    DynamicConcurrencyGate,
     get_concurrency_gate,
 )
 

@@ -168,9 +168,7 @@ class ThermodynamicMetrics:
         """
         n = len(self._coherence_history)
         if n < self.min_samples:
-            raise ValueError(
-                f"Need at least {self.min_samples} samples, have {n}"
-            )
+            raise ValueError(f"Need at least {self.min_samples} samples, have {n}")
 
         # Use recent window
         window = slice(-self.window_size, None)
@@ -205,7 +203,7 @@ class ThermodynamicMetrics:
         susceptibility = len(coherences) * float(np.var(coherences)) / temperature
 
         # Heat capacity: Cv = Var(E) / T²
-        heat_capacity = energy_var / (temperature ** 2)
+        heat_capacity = energy_var / (temperature**2)
 
         return ThermodynamicState(
             entropy=entropy,
@@ -338,9 +336,7 @@ class ThermodynamicMetrics:
         coherences = np.array(self._coherence_history)
 
         # Scan susceptibility across temperatures
-        temperatures = np.linspace(
-            temperature_range[0], temperature_range[1], n_temperatures
-        )
+        temperatures = np.linspace(temperature_range[0], temperature_range[1], n_temperatures)
         susceptibilities = np.zeros(n_temperatures)
 
         for i, T in enumerate(temperatures):
@@ -371,9 +367,7 @@ class ThermodynamicMetrics:
 
                 # Confidence: how sharp is the peak?
                 # Sharp peaks = high confidence transitions
-                peak_prominence = chi_peak / max(
-                    np.mean(susceptibilities), 1e-10
-                )
+                peak_prominence = chi_peak / max(np.mean(susceptibilities), 1e-10)
                 confidence = min(1.0, peak_prominence / 10.0)
 
                 transitions.append(
@@ -410,7 +404,7 @@ class ThermodynamicMetrics:
         if len(self._energy_history) < self.min_samples:
             return 1.0
 
-        energies = np.array(self._energy_history[-self.window_size:])
+        energies = np.array(self._energy_history[-self.window_size :])
         dE = np.diff(energies)
 
         if len(dE) == 0:
@@ -436,9 +430,7 @@ class ThermodynamicMetrics:
 
         return ratio
 
-    def compute_mutual_information(
-        self, lag: int = 1, n_bins: int = 10
-    ) -> float:
+    def compute_mutual_information(self, lag: int = 1, n_bins: int = 10) -> float:
         """Compute mutual information I(X_t; X_{t+lag}) between trajectory points.
 
         Measures how much knowing the agent's state at time t tells you about
@@ -463,9 +455,7 @@ class ThermodynamicMetrics:
         y = np.array(self._coherence_history[lag:])
 
         # Joint histogram
-        joint_hist, _, _ = np.histogram2d(
-            x, y, bins=n_bins, range=[[0, 1], [0, 1]]
-        )
+        joint_hist, _, _ = np.histogram2d(x, y, bins=n_bins, range=[[0, 1], [0, 1]])
         joint_prob = joint_hist / joint_hist.sum()
 
         # Marginals
@@ -477,9 +467,7 @@ class ThermodynamicMetrics:
         for i in range(n_bins):
             for j in range(n_bins):
                 if joint_prob[i, j] > 0 and px[i] > 0 and py[j] > 0:
-                    mi += joint_prob[i, j] * math.log(
-                        joint_prob[i, j] / (px[i] * py[j])
-                    )
+                    mi += joint_prob[i, j] * math.log(joint_prob[i, j] / (px[i] * py[j]))
 
         return max(mi, 0.0)
 
@@ -533,7 +521,11 @@ class ThermodynamicMetrics:
         # Escape barrier: minimum energy needed to leave the basin
         # Look for the lowest saddle point on either side
         left_barrier = float(np.max(F_landscape[:hiho_idx]) - hiho_energy) if hiho_idx > 0 else 0.0
-        right_barrier = float(np.max(F_landscape[hiho_idx + 1:]) - hiho_energy) if hiho_idx < n_bins - 1 else 0.0
+        right_barrier = (
+            float(np.max(F_landscape[hiho_idx + 1 :]) - hiho_energy)
+            if hiho_idx < n_bins - 1
+            else 0.0
+        )
         escape_barrier = min(left_barrier, right_barrier)
 
         # Is HIHO actually an attractor? Check if it's a local minimum in
@@ -543,7 +535,7 @@ class ThermodynamicMetrics:
         neighborhood = 2
         lo = max(0, hiho_idx - neighborhood)
         hi = min(n_bins, hiho_idx + neighborhood + 1)
-        neighbors = np.concatenate([F_landscape[lo:hiho_idx], F_landscape[hiho_idx + 1:hi]])
+        neighbors = np.concatenate([F_landscape[lo:hiho_idx], F_landscape[hiho_idx + 1 : hi]])
 
         is_local_min = bool(len(neighbors) > 0 and hiho_energy <= np.min(neighbors))
         is_deep_well = well_depth > 0.5 * T  # Well must be at least 0.5*kT deep

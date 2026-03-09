@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 # Global lock to ensure strictly sequential LLM calls across all scouts
 _LLM_LOCK = asyncio.Lock()
 
+
 @dataclass
 class Finding:
     type: str  # 'pattern' | 'anti_pattern'
@@ -37,6 +38,7 @@ class Finding:
     remediation: str | None = None  # for anti-patterns
     metadata: dict[str, Any] = field(default_factory=dict)
 
+
 @dataclass
 class ASTSummary:
     classes: list[str]
@@ -45,6 +47,7 @@ class ASTSummary:
     complexity_score: int
     loc: int
     has_type_hints_ratio: float
+
 
 class BaseScout(ABC):
     """
@@ -96,7 +99,18 @@ class BaseScout(ABC):
             # Simple complexity: count branch nodes
             complexity = 1
             for node in ast.walk(tree):
-                if isinstance(node, (ast.If, ast.While, ast.For, ast.AsyncFor, ast.ExceptHandler, ast.With, ast.AsyncWith)):
+                if isinstance(
+                    node,
+                    (
+                        ast.If,
+                        ast.While,
+                        ast.For,
+                        ast.AsyncFor,
+                        ast.ExceptHandler,
+                        ast.With,
+                        ast.AsyncWith,
+                    ),
+                ):
                     complexity += 1
 
             lines = path.read_text().splitlines()
@@ -106,7 +120,7 @@ class BaseScout(ABC):
                 imports=imports,
                 complexity_score=complexity,
                 loc=len(lines),
-                has_type_hints_ratio=0.0 # Placeholder
+                has_type_hints_ratio=0.0,  # Placeholder
             )
         except SyntaxError:
             logger.warning(f"Syntax error in {path}, skipping AST analysis.")
@@ -128,6 +142,7 @@ class BaseScout(ABC):
 
             try:
                 import httpx
+
                 async with httpx.AsyncClient(timeout=180.0) as client:
                     response = await client.post(
                         f"{self.ollama_url}/api/generate",
@@ -135,8 +150,8 @@ class BaseScout(ABC):
                             "model": self.model,
                             "prompt": prompt,
                             "stream": False,
-                            "format": "json"
-                        }
+                            "format": "json",
+                        },
                     )
                     response.raise_for_status()
                     breaker.record_success()
@@ -170,7 +185,7 @@ class BaseScout(ABC):
         self.cache[cache_key] = {
             "hash": file_hash,
             "last_scan": datetime.now().isoformat(),
-            "findings_count": len(findings)
+            "findings_count": len(findings),
         }
         self._save_cache()
 

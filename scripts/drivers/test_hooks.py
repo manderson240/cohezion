@@ -5,14 +5,15 @@ Registers a test hook and triggers server actions to ensure events are dispatche
 """
 
 import sys
-import os
 from pathlib import Path
+
 
 # Add src to path
 sys.path.append(str(Path(__file__).parent / "src"))
 
-from cohezion.registry.hooks import RegistryHook, get_hook_manager
 from cohezion.mcp.knowledge_server import get_server as get_knowledge_server
+from cohezion.registry.hooks import RegistryHook, get_hook_manager
+
 
 class TestHook(RegistryHook):
     def __init__(self):
@@ -22,6 +23,7 @@ class TestHook(RegistryHook):
         print(f"HOOK TRIGGERED: {entity_id}")
         self.triggered = True
 
+
 def verify_hooks():
     # 1. Register Hook
     hook = TestHook()
@@ -29,10 +31,7 @@ def verify_hooks():
 
     # 2. Trigger Action via Server
     server = get_knowledge_server()
-    test_entity = {
-        "id": "test_hook_entity",
-        "content": "This is a test for hooks"
-    }
+    test_entity = {"id": "test_hook_entity", "content": "This is a test for hooks"}
 
     print("Storing entity...")
     server.store_entity(test_entity)
@@ -42,11 +41,14 @@ def verify_hooks():
         print("✅ Hook verified successfully")
 
         # Cleanup
-        (Path("src/cohezion/knowledge_graph/entities/test_hook_entity.json")).unlink(missing_ok=True)
+        (Path("src/cohezion/knowledge_graph/entities/test_hook_entity.json")).unlink(
+            missing_ok=True
+        )
         return True
     else:
         print("❌ Hook FAILED to trigger")
         return False
+
 
 if __name__ == "__main__":
     success = verify_hooks()

@@ -12,6 +12,7 @@ Usage:
 """
 
 import asyncio
+
 from cohezion.platform.daily_health_digest import get_daily_health_digest
 
 

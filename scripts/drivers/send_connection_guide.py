@@ -1,11 +1,12 @@
 import asyncio
 import sys
-from pathlib import Path
+
 
 # Add src to path for cohezion imports
 sys.path.append("/home/mike-anderson/dev/cohezion/src")
 
 from cohezion.mcp.email_notifier import EmailNotifier
+
 
 async def send_guide():
     notifier = EmailNotifier()
@@ -64,6 +65,7 @@ sudo ufw allow ssh
         print("✅ Connection guide sent successfully!")
     else:
         print("❌ Failed to send connection guide.")
+
 
 if __name__ == "__main__":
     asyncio.run(send_guide())

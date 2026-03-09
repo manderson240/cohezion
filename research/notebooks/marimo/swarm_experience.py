@@ -24,6 +24,7 @@ Agent: Antigravity | Model: claude-opus-4 | MCP: sequential-thinking
 
 import marimo as mo
 
+
 # Cell 1: Header and Introduction
 mo.md("""
 # 🌊 FLUME SLM Swarm Experience
@@ -42,12 +43,11 @@ This interactive notebook demonstrates how the Cohezion SLM swarm operates:
 stream_select = mo.ui.dropdown(
     options=["architect", "engineer", "biologist", "quantum_hardware", "quantum_algo"],
     value="engineer",
-    label="🎯 Select Expert Stream"
+    label="🎯 Select Expert Stream",
 )
 
 coherence_threshold = mo.ui.slider(
-    start=0.0, stop=1.0, value=0.7, step=0.05,
-    label="📊 Coherence Threshold"
+    start=0.0, stop=1.0, value=0.7, step=0.05, label="📊 Coherence Threshold"
 )
 
 mo.hstack([stream_select, coherence_threshold])
@@ -67,7 +67,7 @@ mo.md(f"""
 
 **Domain:** {selected["domain"]}
 **Voice Profile:** {selected["voice"]}
-**Color:** <span style="color:{selected['color']}">███</span> `{selected['color']}`
+**Color:** <span style="color:{selected["color"]}">███</span> `{selected["color"]}`
 
 Each stream maintains its own FLUME manifold for domain-specific reasoning.
 """)
@@ -76,7 +76,7 @@ Each stream maintains its own FLUME manifold for domain-specific reasoning.
 encoding_input = mo.ui.text_area(
     label="💭 Enter thought to encode",
     value="The universe follows deterministic physical laws.",
-    full_width=True
+    full_width=True,
 )
 
 mo.md(f"""
@@ -104,7 +104,7 @@ interpolations = [
     "Constraints exist but allow for emergence",
     "Physical world constrains but does not eliminate choice",
     "Free will operates within physical constraints",
-    "Free will allows choice"
+    "Free will allows choice",
 ]
 
 idx = int(alpha.value * (len(interpolations) - 1))
@@ -160,7 +160,7 @@ mo.md(f"""
 
 Using **CALM** (Continuous Audio Language Model) for natural prosody.
 
-**Current Voice:** `{selected['voice']}` for {stream_select.value} stream
+**Current Voice:** `{selected["voice"]}` for {stream_select.value} stream
 
 ```python
 from cohezion.audio.tts_service import TTSService
@@ -168,7 +168,7 @@ from cohezion.audio.tts_service import TTSService
 tts = TTSService()
 audio = tts.synthesize(
     text="Engineer stream completed physics validation",
-    voice="{selected['voice']}",
+    voice="{selected["voice"]}",
     style="expressive"
 )
 ```
