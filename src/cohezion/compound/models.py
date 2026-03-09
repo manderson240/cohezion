@@ -165,6 +165,41 @@ VaultPath = str
 # ============================================================================
 
 
+@dataclass
+class SessionCheckpoint:
+    """Session checkpoint for persistence."""
+
+    session_id: str
+    timestamp: datetime
+    task: Task
+    results: list[ExecutionResult]
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "session_id": self.session_id,
+            "timestamp": self.timestamp.isoformat(),
+            "task": self.task.__dict__,
+            "result_count": len(self.results),
+        }
+
+
+@dataclass
+class ThermodynamicState:
+    """Thermodynamic state (legacy compatibility)."""
+
+    entropy: float = 0.0
+    energy: float = 0.0
+    free_energy: float = 0.0
+    temperature: float = 0.0
+    entropy_production_rate: float = 0.0
+    susceptibility: float = 0.0
+    heat_capacity: float = 0.0
+    order_parameter: float = 0.0
+    timestamp: float = 0.0
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
 class ConstraintType(Enum):
     """Legacy constraint type enum."""
 
@@ -252,6 +287,26 @@ class HumanRequest:
     criteria: list[SuccessCriterion] | None = None
     scope_includes: list[str] | None = None
     scope_excludes: list[str] | None = None
+
+
+@dataclass
+class SessionCheckpoint:
+    """Checkpoint for session recovery."""
+
+    session_id: str
+    timestamp: datetime
+    task: Task
+    results: list[ExecutionResult] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "session_id": self.session_id,
+            "timestamp": str(self.timestamp),
+            "task_id": self.task.id if hasattr(self.task, "id") else str(self.task),
+            "results_count": len(self.results),
+            "metadata": self.metadata,
+        }
 
 
 @dataclass
