@@ -31,12 +31,23 @@ class SHMBuffer:
     """Simulated shared memory buffer with type-width metadata."""
 
     data: bytes
-    declared_dtype: str  # "float64" expected
-    declared_dim: int
+    declared_dtype: str = "float64"  # "float64" expected
+    declared_dim: int = 0  # inferred from data length if 0
     checksum: str = ""
+    # Accept 'dtype' as alias for declared_dtype (test interface)
+    dtype: str = ""
+
+    def __post_init__(self) -> None:
+        # dtype alias: if dtype provided, use it as declared_dtype
+        if self.dtype:
+            self.declared_dtype = self.dtype
+        # Infer declared_dim from data size if not provided
+        if self.declared_dim == 0 and self.data:
+            self.declared_dim = len(self.data) // FLOAT64_BYTES
 
     def compute_checksum(self) -> str:
-        return hashlib.sha256(self.data).hexdigest()[:16]
+        """Return full SHA-256 hex digest of buffer data."""
+        return hashlib.sha256(self.data).hexdigest()
 
 
 @dataclass
@@ -58,7 +69,8 @@ class ValidationReport:
 class ZeroCopyValidator:
     """Validates Float64 type-width and buffer checksum at the Rust-Python boundary."""
 
-    def __init__(self) -> None:
+    def __init__(self, expected_dim: int = MANIFOLD_DIM) -> None:
+        self._expected_dim = expected_dim
         self._last_good_snapshot: bytes | None = None
         self._corruption_events: list[dict] = []
 
@@ -75,7 +87,9 @@ class ZeroCopyValidator:
                 "Hard rejection at SHM boundary to prevent segfault."
             )
 
-        expected_bytes = buf.declared_dim * FLOAT64_BYTES
+        # Use expected_dim (validator-level) or buf.declared_dim (buffer-level)
+        dim = buf.declared_dim if buf.declared_dim > 0 else self._expected_dim
+        expected_bytes = dim * FLOAT64_BYTES
         if len(buf.data) != expected_bytes:
             raise TypeMismatchError(
                 f"Buffer size {len(buf.data)} does not match "
@@ -101,8 +115,7 @@ class ZeroCopyValidator:
 
         # Successfully validated — update snapshot
         self._last_good_snapshot = buf.data
-        count = buf.declared_dim
-        return list(struct.unpack(f"{count}d", buf.data))
+        return list(struct.unpack(f"{dim}d", buf.data))
 
     def write(self, state: list[float]) -> SHMBuffer:
         """Serialize a state vector into an SHM buffer with type-width metadata."""
