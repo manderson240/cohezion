@@ -210,17 +210,15 @@ class DemocraticDebate:
         """Call an agent via Ollama, using TokenEfficientClient if available."""
         if self._token_client is not None:
             try:
-                return await self._token_client.generate(
+                result = await self._token_client.generate(
                     prompt=prompt,
                     system=persona.system_prompt(),
                     model=persona.model,
-                    temperature=0.8,
                     num_predict=512,
                 )
+                return result[0] if isinstance(result, tuple) else result
             except Exception as e:
-                logger.error(
-                    f"TokenEfficientClient call for {persona.name} failed: {e}"
-                )
+                logger.error(f"TokenEfficientClient call for {persona.name} failed: {e}")
                 return f"[{persona.name} error: {e}]"
 
         # Fallback: direct httpx POST (original path)
@@ -324,9 +322,7 @@ class DemocraticDebate:
         context = ""
         if previous_rounds:
             last_round = previous_rounds[-1]
-            context = (
-                f"\nPrevious round proposals received {len(last_round.votes)} votes.\n"
-            )
+            context = f"\nPrevious round proposals received {len(last_round.votes)} votes.\n"
             for v in last_round.votes:
                 context += f"- {v.role.value}: {v.vote.name}\n"
 
@@ -355,9 +351,7 @@ Your proposal:"""
         proposals: dict[str, str],
     ) -> list[AgentVote]:
         """Each agent votes on the combined proposals."""
-        proposals_str = "\n".join(
-            [f"- {role}: {prop}" for role, prop in proposals.items()]
-        )
+        proposals_str = "\n".join([f"- {role}: {prop}" for role, prop in proposals.items()])
 
         vote_prompt = f"""Topic: {topic}
 
@@ -394,10 +388,7 @@ Reasoning: (2-3 sentences)"""
         synthesizer = self.personas[AgentRole.SYNTHESIZER]
 
         feedback = "\n".join(
-            [
-                f"- {v.role.value} ({v.vote.name}): {v.reasoning[:100]}..."
-                for v in last_round.votes
-            ]
+            [f"- {v.role.value} ({v.vote.name}): {v.reasoning[:100]}..." for v in last_round.votes]
         )
 
         prompt = f"""Based on this round's feedback, refine the topic for the next round.
@@ -428,9 +419,7 @@ List the TOP 5 actionable improvements with highest consensus:"""
 
         # Calculate overall consensus metrics
         total_votes = sum(len(r.votes) for r in session.rounds)
-        positive_votes = sum(
-            1 for r in session.rounds for v in r.votes if v.vote.value > 0
-        )
+        positive_votes = sum(1 for r in session.rounds for v in r.votes if v.vote.value > 0)
 
         return {
             "synthesis": response,
