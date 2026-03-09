@@ -126,5 +126,6 @@ class ExperienceEncoder:
         for i in range(dim):
             byte_val = hash_bytes[i % len(hash_bytes)]
             phase = (2.0 * math.pi * i) / dim
-            out[i] = (byte_val / 255.0) * 0.5 + 0.25 * math.sin(phase) + 0.25 * math.cos(phase * 2)
+            # Center at 0.5: byte_val/255 in [0,1] has mean 0.5; modulation is zero-mean
+        out[i] = 0.5 + (byte_val / 255.0 - 0.5) * 0.6 + 0.1 * math.sin(phase) + 0.1 * math.cos(phase * 2)
         return out

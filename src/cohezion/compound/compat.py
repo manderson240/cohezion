@@ -208,24 +208,41 @@ class CompoundExecutor:
         execute_fn,
         **kwargs,
     ):
-        """Execute task with legacy interface."""
-        # Bridge to new implementation
-        # This is a simplified placeholder
-        task = NewTask(
-            id=f"task-{hash(task_description)}",
-            description=task_description,
-            skill_name=skill_name,
-            operation_type=operation_type,
+        """Execute task with legacy interface.
+
+        For Phase 1: Delegates to the original executor.
+        In Phase 2: Will bridge to new implementation.
+        """
+        # Import and delegate to the original executor
+        from cohezion.compound.executor import CompoundExecutor as OriginalExecutor
+
+        # Create original executor with stored dependencies
+        original = OriginalExecutor(
+            mcp_client=self._mcp_client,
+            token_client=self._token_client,
+            guardrail_pipeline=self._guardrail_pipeline,
+            enable_guardrails=self._enable_guardrails,
+            inflection_detector=self._inflection_detector,
+            skill_refiner=self._skill_refiner,
+            enable_skill_refinement=self._enable_skill_refinement,
+            metrics_collector=self._metrics_collector,
+            journey_tracker=self._journey_tracker,
+            journey_persistence=self._journey_persistence,
+            alignment_analyzer=self._alignment_analyzer,
+            enable_alignment_analysis=self._enable_alignment_analysis,
+            degradation_detector=self._degradation_detector,
+            model_quality_classifier=self._model_quality_classifier,
+            retrospection_engine=self._retrospection_engine,
+            universe_bridge=self._universe_bridge,
         )
 
-        # Call new executor (when implemented)
-        # result = self._new_executor.execute(task, ...)
-
-        # Return in legacy format
-        return NewExecutionResult(
-            success=True,
-            output="",
-            metrics=NewExecutionMetrics(),
+        # Delegate to original executor
+        return original.execute_task(
+            task_description=task_description,
+            skill_name=skill_name,
+            operation_type=operation_type,
+            execute_fn=execute_fn,
+            **kwargs,
         )
 
     def get_experience_guidance(self, **kwargs):
