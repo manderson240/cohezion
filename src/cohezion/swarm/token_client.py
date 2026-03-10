@@ -78,37 +78,43 @@ class ResilientOllamaClient:
         system: str = "",
         num_predict: int = 256,
     ) -> tuple[str, int]:
-        """Generate response from Ollama.
+        """Generate response from Ollama via OpenAI-compatible API.
 
         Args:
             prompt: User prompt
-            model: Model name (e.g., "qwen3-coder:30b")
+            model: Model name
             system: System prompt
             num_predict: Max tokens to generate
 
         Returns:
             Tuple of (response_text, tokens_used)
-
-        Raises:
-            RuntimeError: If all retries fail
         """
         for attempt in range(self.max_retries):
             try:
+                # Construct OpenAI-compatible messages
+                messages = []
+                if system:
+                    messages.append({"role": "system", "content": system})
+                messages.append({"role": "user", "content": prompt})
+
                 response = requests.post(
-                    f"{self.base_url}/api/generate",
+                    f"{self.base_url}/v1/chat/completions",
                     json={
                         "model": model,
-                        "prompt": prompt,
-                        "system": system,
+                        "messages": messages,
+                        "max_tokens": num_predict,
                         "stream": False,
-                        "num_predict": num_predict,
                     },
                     timeout=self.timeout,
                 )
                 response.raise_for_status()
 
                 data = response.json()
-                return data.get("response", ""), data.get("eval_count", 0)
+                choice = data.get("choices", [{}])[0]
+                content = choice.get("message", {}).get("content", "")
+                tokens = data.get("usage", {}).get("total_tokens", 0)
+                
+                return content, tokens
 
             except Exception as e:
                 if attempt == self.max_retries - 1:
