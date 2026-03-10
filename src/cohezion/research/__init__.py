@@ -9,10 +9,10 @@ from cohezion.research.agent import ResearchAgent, ResearchSession
 from cohezion.research.config import (
     ExperimentResult,
     ResearchConfig,
-    MultiAgentResearchConfig,
-    MultiAgentResult,
 )
 from cohezion.research.multi_agent import (
+    MultiAgentResearchConfig,
+    MultiAgentResult,
     ResearchSwarm,
     SimpleMultiAgent,
 )

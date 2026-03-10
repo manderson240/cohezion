@@ -141,6 +141,33 @@ rm -rf ~/.cache/claude-cli-nodejs/*/mcp-logs-plugin-serena-serena/
 
 Result: 4020 tests passed, no regressions, no more startup timeout.
 
+## Bulk Namespace Deduplication (Multiple Duplicate Plugins)
+
+When the same skills appear under multiple namespace prefixes (e.g., `claude-api:*`,
+`document-skills:*`, `example-skills:*` all providing identical pdf/docx/pptx skills),
+remove all but one canonical namespace:
+
+```python
+import json
+
+path = f"{os.path.expanduser('~')}/.claude/plugins/installed_plugins.json"
+with open(path) as f:
+    data = json.load(f)
+
+# Remove duplicate namespaces, keep the canonical one
+to_remove = ['claude-api@anthropic-agent-skills', 'example-skills@anthropic-agent-skills']
+# keep: 'document-skills@anthropic-agent-skills'
+
+for key in to_remove:
+    if key in data['plugins']:
+        del data['plugins'][key]
+
+with open(path, 'w') as f:
+    json.dump(data, f, indent=2)
+```
+
+Plugin registry structure: `{"version": int, "plugins": {"name@marketplace": {...}}}`
+
 ## Notes
 
 - `.pyc` bytecode files in `__pycache__/` may still contain old strings — safe to ignore,
@@ -148,3 +175,6 @@ Result: 4020 tests passed, no regressions, no more startup timeout.
 - The `~/.claude/plugins/installed_plugins.json` file also controls which plugin cache
   directories get loaded — removing the entry here is the most important step
 - If the plugin has no source code references in the project, only Steps 2-4 are needed
+- Removals from `installed_plugins.json` may be reverted by marketplace syncs or session
+  restarts — keep a `.bak` file and re-apply if needed:
+  `cp installed_plugins.json installed_plugins.json.bak.$(date +%Y%m%d)`
