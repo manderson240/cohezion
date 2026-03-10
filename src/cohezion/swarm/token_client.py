@@ -74,7 +74,7 @@ class ResilientOllamaClient:
     async def generate(
         self,
         prompt: str,
-        model: str = "ministral-3:3b",
+        model: str = "phi4:latest",
         system: str = "",
         **kwargs: Any,
     ) -> tuple[str, int]:
@@ -97,8 +97,13 @@ class ResilientOllamaClient:
                     messages.append({"role": "system", "content": system})
                 messages.append({"role": "user", "content": prompt})
 
+                # Normalize base URL: strip trailing slashes, /api, or /v1 to prevent doubling
+                clean_base = self.base_url.rstrip("/")
+                if clean_base.endswith("/api"): clean_base = clean_base[:-4]
+                if clean_base.endswith("/v1"): clean_base = clean_base[:-3]
+
                 response = requests.post(
-                    f"{self.base_url}/api/chat",
+                    f"{clean_base}/api/chat",
                     json={
                         "model": model,
                         "messages": messages,
@@ -295,12 +300,11 @@ class TokenEfficientClient:
         self._cache_misses += 1
         self._api_calls += 1
 
-        num_predict = self.config.inference.num_predict_default
+        # Use the resilient client with modern chat parameters
         response, tokens = await self.ollama.generate(
             prompt=prompt,
             model=model,
             system=system,
-            num_predict=num_predict,
         )
 
         self._total_tokens += tokens
