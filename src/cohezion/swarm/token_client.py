@@ -74,11 +74,11 @@ class ResilientOllamaClient:
     async def generate(
         self,
         prompt: str,
-        model: str,
+        model: str = "ministral-3:3b",
         system: str = "",
-        num_predict: int = 256,
+        **kwargs: Any,
     ) -> tuple[str, int]:
-        """Generate response from Ollama via OpenAI-compatible API.
+        """Generate response from Ollama via standard API.
 
         Args:
             prompt: User prompt
@@ -91,18 +91,17 @@ class ResilientOllamaClient:
         """
         for attempt in range(self.max_retries):
             try:
-                # Construct OpenAI-compatible messages
+                # Construct standard Ollama messages
                 messages = []
                 if system:
                     messages.append({"role": "system", "content": system})
                 messages.append({"role": "user", "content": prompt})
 
                 response = requests.post(
-                    f"{self.base_url}/v1/chat/completions",
+                    f"{self.base_url}/api/chat",
                     json={
                         "model": model,
                         "messages": messages,
-                        "max_tokens": num_predict,
                         "stream": False,
                     },
                     timeout=self.timeout,
@@ -110,9 +109,8 @@ class ResilientOllamaClient:
                 response.raise_for_status()
 
                 data = response.json()
-                choice = data.get("choices", [{}])[0]
-                content = choice.get("message", {}).get("content", "")
-                tokens = data.get("usage", {}).get("total_tokens", 0)
+                content = data.get("message", {}).get("content", "")
+                tokens = data.get("eval_count", 0)
                 
                 return content, tokens
 
