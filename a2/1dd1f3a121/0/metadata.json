@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "a21dd1f3a121",
+  "session_id": "ad58968c-6eea-4dfc-b4f5-aa08e3601223",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-10T14:03:02.774980357Z",
+  "branch": "feat/compound-elegant-simplification",
+  "checkpoints_count": 23,
+  "files_touched": [
+    ".claude/skills/ci-silent-failure-patterns/SKILL.md",
+    ".claude/skills/claude-code-plugin-removal/SKILL.md",
+    "scripts/overnight_autonomous_run.py",
+    "src/cohezion/swarm/token_client.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "889c91ff5899",
+  "token_usage": {
+    "input_tokens": 1689,
+    "cache_creation_tokens": 879952,
+    "cache_read_tokens": 7923578,
+    "output_tokens": 32679,
+    "api_call_count": 80
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-10T14:03:02.380019128Z",
+    "agent_lines": 312,
+    "human_added": 530,
+    "human_modified": 1,
+    "human_removed": 0,
+    "total_committed": 843,
+    "agent_percentage": 37.01067615658363
+  }
+}
