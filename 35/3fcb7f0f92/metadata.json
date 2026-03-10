@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "353fcb7f0f92",
+  "strategy": "manual-commit",
+  "branch": "feat/compound-elegant-simplification",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "src/cohezion/mcp/servers/plasma/server.py",
+    "src/cohezion/reliability/monitor.py",
+    "src/cohezion/resilience/manager.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/35/3fcb7f0f92/0/metadata.json",
+      "transcript": "/35/3fcb7f0f92/0/full.jsonl",
+      "context": "/35/3fcb7f0f92/0/context.md",
+      "content_hash": "/35/3fcb7f0f92/0/content_hash.txt",
+      "prompt": "/35/3fcb7f0f92/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 404,
+    "cache_creation_tokens": 729680,
+    "cache_read_tokens": 4436797,
+    "output_tokens": 16577,
+    "api_call_count": 52
+  }
+}
