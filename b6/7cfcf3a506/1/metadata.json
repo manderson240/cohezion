@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "b67cfcf3a506",
+  "session_id": "b5164d70-585f-45b3-8e68-7aa086d25caf",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-10T16:46:45.405080424Z",
+  "branch": "feat/compound-elegant-simplification",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "src/cohezion/gateway/ngrok_adapter.py",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "src/cohezion/research/__init__.py",
+    "src/cohezion/swarm/smart_router.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "b8bb5c70c093",
+  "checkpoint_transcript_start": 294,
+  "transcript_lines_at_start": 294,
+  "token_usage": {
+    "input_tokens": 9,
+    "cache_creation_tokens": 104793,
+    "cache_read_tokens": 294956,
+    "output_tokens": 1886,
+    "api_call_count": 4
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-10T16:46:45.232535083Z",
+    "agent_lines": 82,
+    "human_added": 2247,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 2329,
+    "agent_percentage": 3.5208243881494203
+  }
+}
