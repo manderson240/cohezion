@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "873d04f74c10",
+  "strategy": "manual-commit",
+  "branch": "feat/compound-elegant-simplification",
+  "checkpoints_count": 7,
+  "files_touched": [
+    ".claude/skills/tdd-elegant-development/SKILL.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/87/3d04f74c10/0/metadata.json",
+      "transcript": "/87/3d04f74c10/0/full.jsonl",
+      "context": "/87/3d04f74c10/0/context.md",
+      "content_hash": "/87/3d04f74c10/0/content_hash.txt",
+      "prompt": "/87/3d04f74c10/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 8521,
+    "cache_creation_tokens": 1660717,
+    "cache_read_tokens": 21975991,
+    "output_tokens": 82921,
+    "api_call_count": 198
+  }
+}

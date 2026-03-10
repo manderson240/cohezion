@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "873d04f74c10",
+  "session_id": "ad58968c-6eea-4dfc-b4f5-aa08e3601223",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-10T20:16:19.675736658Z",
+  "branch": "feat/compound-elegant-simplification",
+  "checkpoints_count": 7,
+  "files_touched": [
+    ".claude/skills/tdd-elegant-development/SKILL.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "c5b4d494e1d6",
+  "token_usage": {
+    "input_tokens": 8521,
+    "cache_creation_tokens": 1660717,
+    "cache_read_tokens": 21975991,
+    "output_tokens": 82921,
+    "api_call_count": 198
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-10T20:16:18.369096487Z",
+    "agent_lines": 122,
+    "human_added": 514,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 636,
+    "agent_percentage": 19.18238993710692
+  }
+}
