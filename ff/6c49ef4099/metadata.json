@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "ff6c49ef4099",
+  "strategy": "manual-commit",
+  "branch": "feat/compound-elegant-simplification",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "_bmad-output/test-artifacts/automation-summary.md",
+    "src/cohezion/swarm/token_client.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ff/6c49ef4099/0/metadata.json",
+      "transcript": "/ff/6c49ef4099/0/full.jsonl",
+      "context": "/ff/6c49ef4099/0/context.md",
+      "content_hash": "/ff/6c49ef4099/0/content_hash.txt",
+      "prompt": "/ff/6c49ef4099/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1287,
+    "cache_creation_tokens": 287610,
+    "cache_read_tokens": 3551629,
+    "output_tokens": 11427,
+    "api_call_count": 48
+  }
+}
