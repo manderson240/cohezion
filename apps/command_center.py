@@ -16,6 +16,7 @@ DATA_DIR = PROJECT_ROOT / "apps/dashboard/src/assets/data"
 AUDIT_DIR = PROJECT_ROOT / "reports/audits"
 MEMORY_FILE = PROJECT_ROOT / "memory/session_snapshot.md"
 RESEARCH_FILE = PROJECT_ROOT / "src/cohezion/knowledge_graph/RESEARCH_FEED.md"
+INSIGHTS_FILE = PROJECT_ROOT / "src/cohezion/knowledge_graph/LIVE_INSIGHTS.md"
 
 # SurrealDB Client for Logs
 log_client = SurrealClient(url="ws://localhost:8000/rpc", namespace="cohezion", database="logs")
@@ -60,6 +61,11 @@ def get_latest_research():
     if not RESEARCH_FILE.exists():
         return "No research data found."
     return RESEARCH_FILE.read_text()
+
+def get_live_insights():
+    if not INSIGHTS_FILE.exists():
+        return "No live insights generated yet."
+    return INSIGHTS_FILE.read_text()
 
 def get_system_status():
     pulses = sorted(DATA_DIR.glob("pulse_*.json"))
@@ -138,6 +144,11 @@ with gr.Blocks(title="Cohezion Command Center") as demo:
             research_output = gr.Markdown(label="Latest Findings (HF/arXiv)")
             research_btn = gr.Button("Refresh Feed")
             research_btn.click(get_latest_research, outputs=research_output)
+
+        with gr.TabItem("📡 Live Insights"):
+            insights_output = gr.Markdown(label="In-Flight Mission Adjustments")
+            insights_btn = gr.Button("Refresh Insights")
+            insights_btn.click(get_live_insights, outputs=insights_output)
 
         with gr.TabItem("🗄️ Surreal Logs"):
             surreal_log_output = gr.Markdown(label="Latest 50 Logs from SurrealDB 3.0")

@@ -84,7 +84,6 @@ class ResilientOllamaClient:
             prompt: User prompt
             model: Model name
             system: System prompt
-            num_predict: Max tokens to generate
 
         Returns:
             Tuple of (response_text, tokens_used)
@@ -115,7 +114,7 @@ class ResilientOllamaClient:
 
                 data = response.json()
                 content = data.get("message", {}).get("content", "")
-                tokens = data.get("eval_count", 0)
+                tokens = data.get("eval_count", 0) + data.get("prompt_eval_count", 0)
                 
                 return content, tokens
 

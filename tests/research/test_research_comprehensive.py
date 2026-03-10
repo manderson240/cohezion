@@ -25,7 +25,7 @@ from cohezion.research import (
     ResearchSwarm,
     SimpleMultiAgent,
 )
-from cohezion.research.config import ResearchSession as ConfigSession
+from cohezion.research.agent import ResearchSession as ConfigSession
 
 
 class TestResearchConfig:
@@ -223,7 +223,7 @@ class TestMultiAgentResearch:
 
     def test_multi_agent_result_structure(self):
         """[P0] Should track multi-agent results."""
-        from cohezion.research.config import MultiAgentResult
+        from cohezion.research import MultiAgentResult
 
         result = MultiAgentResult(
             experiments_completed=100,
@@ -269,10 +269,10 @@ class TestSimpleMultiAgent:
 class TestResearchIntegration:
     """[P0] Integration tests."""
 
-    def test_full_research_workflow_mocked(self, temp_dir):
+    def test_full_research_workflow_mocked(self, tmp_path):
         """[P0] Should complete research workflow."""
         config = ResearchConfig(
-            experiment_log=temp_dir / "experiments.jsonl",
+            experiment_log=tmp_path / "experiments.jsonl",
             max_experiments=2,
             experiment_time_budget=1.0,  # Fast for testing
         )
