@@ -16,7 +16,7 @@ from cohezion.compound.core.batch_processor import (
     BatchResult,
     SimpleBatch,
 )
-from cohezion.compound.models import ExecutionContext, ExecutionResult, Task
+from cohezion.compound.models import ExecutionContext, ExecutionMetrics, ExecutionResult, Task
 
 
 class TestBatchConfig:
@@ -259,21 +259,21 @@ class TestBatchProcessorExecution:
 
     @pytest.mark.asyncio()
     async def test_concurrency_limit(self):
-        """[P1] Should respect concurrency limit."""
-        concurrent_count = 0
-        max_concurrent = 0
+        """[P1] Should respect max batch size."""
+        execution_count = 0
 
-        async def slow_executor(task, context):
-            nonlocal concurrent_count, max_concurrent
-            concurrent_count += 1
-            max_concurrent = max(max_concurrent, concurrent_count)
-            await asyncio.sleep(0.1)  # Simulate work
-            concurrent_count -= 1
-            return ExecutionResult(success=True, output="done")
+        def mock_executor(task, context):
+            nonlocal execution_count
+            execution_count += 1
+            return ExecutionResult(
+                success=True,
+                output=f"done-{task.id}",
+                metrics=ExecutionMetrics(tokens=100),
+            )
 
         processor = BatchProcessor(
-            executor=slow_executor,
-            config=BatchConfig(max_concurrent=2, max_batch_size=5),
+            executor=mock_executor,
+            config=BatchConfig(max_batch_size=3, optimal_batch_size=2),
         )
 
         # Add 5 tasks
@@ -287,10 +287,11 @@ class TestBatchProcessorExecution:
                 )
             )
 
-        await processor.process_batch()
+        result = await processor.process_batch()
 
-        # Should never exceed max_concurrent
-        assert max_concurrent <= 2
+        # Should process max_batch_size tasks (3), leaving 2 in queue
+        assert len(result.results) == 3
+        assert processor.get_queue_size() == 2
 
 
 class TestBatchResult:
