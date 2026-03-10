@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "b67cfcf3a506",
+  "session_id": "ad58968c-6eea-4dfc-b4f5-aa08e3601223",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-10T16:46:41.989972159Z",
+  "branch": "feat/compound-elegant-simplification",
+  "checkpoints_count": 4,
+  "files_touched": [
+    ".claude/skills/dependabot-ai-review-bias/SKILL.md",
+    "src/cohezion/gateway/ngrok_adapter.py",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "src/cohezion/research/training.py",
+    "src/cohezion/skills/AUTONOMIC_ANALYST_PRIME.md",
+    "src/cohezion/swarm/smart_router.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "85f7f79194e9",
+  "token_usage": {
+    "input_tokens": 2135,
+    "cache_creation_tokens": 1133201,
+    "cache_read_tokens": 11207326,
+    "output_tokens": 45739,
+    "api_call_count": 111
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-10T16:46:41.118835004Z",
+    "agent_lines": 0,
+    "human_added": 1304,
+    "human_modified": 20,
+    "human_removed": 0,
+    "total_committed": 1304,
+    "agent_percentage": 0
+  }
+}
