@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "b27b0831b0d5",
+  "session_id": "ad58968c-6eea-4dfc-b4f5-aa08e3601223",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-10T11:14:36.859254345Z",
+  "branch": "feat/compound-elegant-simplification",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "src/cohezion-archive/mcp/__init__.py",
+    "src/cohezion-archive/mcp/mcp_registry.json",
+    "src/cohezion-archive/mcp/registry.py",
+    "src/cohezion/mcp/__init__.py",
+    "src/cohezion/mcp/mcp_registry.json",
+    "src/cohezion/mcp/registry.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "b38c71985375",
+  "token_usage": {
+    "input_tokens": 1416,
+    "cache_creation_tokens": 182199,
+    "cache_read_tokens": 1810454,
+    "output_tokens": 7687,
+    "api_call_count": 25
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-10T11:14:36.789469857Z",
+    "agent_lines": 2,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 2,
+    "agent_percentage": 100
+  }
+}
