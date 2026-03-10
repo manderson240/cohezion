@@ -250,6 +250,9 @@ When `claude update` warns "Running native installation but config install metho
 ### Learning 128: Autonomic MAPE-K Control Loop Bridge
 Implemented in Session 60 (2026-03-08). A semantic control loop (Monitor-Analyze-Plan-Execute) successfully bridges reactive hardware monitoring (ResourceMonitor) with proactive healing strategies (ModelSwap, ContextReduction). By decoupling the **Analysis** (interpreting vitals into severity tiers) from the **Planning** (selecting the strategy), the system gains the ability to make hardware-optimized decisions (e.g., AMD-specific memory rebalancing) without hardcoding logic into the monitoring layer.
 
+### Learning 129: Semantic Lagrange Points for Multi-Topic Memory Stability
+The Restricted Three-Body Problem (Earth-Moon-Satellite) maps directly to semantic 12D manifolds (Topic A - Topic B - Context). L4 and L5 points act as stable "gravity wells" where memory context can be "parked" as a low-density plasma cloud. This maintains semantic accessibility without active computational pressure. **Critical Threshold**: Mass ratio $\mu$ (Semantic Weight B / Total Weight) must be $< 0.0385$ for stability. This provides a physical substrate for hierarchical memory management in swarms.
+
 ### Learning 129: Polyglot Dependency Automation (2026-03-08)
 Automating security audits across multiple ecosystems requires leveraging native tooling (`uv audit`, `npm audit`) within a fail-safe Bash wrapper (`set -uo pipefail`). Wrapping these commands with `|| true` is critical; otherwise, the presence of a vulnerability causes the tool to return a non-zero exit code, crashing the entire cron job before all ecosystems are scanned. Reports must be saved as Markdown artifacts to allow subsequent ingestion by LLM agents.
 

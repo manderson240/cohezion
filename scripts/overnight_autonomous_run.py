@@ -66,7 +66,7 @@ class OvernightMission:
         logger.info(f"✅ Cycle {iteration} Complete.")
 
     async def main_loop(self):
-        trackio.init(project="cohezion-core", space_id="manderson240/cohezion-trackio")
+        trackio.init(project="cohezion-core")
         iteration = 1
         while datetime.now() < self.end_time:
             try:
