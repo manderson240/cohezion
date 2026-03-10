@@ -353,7 +353,7 @@ class RequestAlignmentAnalyzer:
 
         if confidence >= self.intent_confidence_threshold:
             return (
-                IntentType(best_intent),
+                IntentType[best_intent.upper()],
                 confidence,
             )
 
@@ -409,7 +409,7 @@ class RequestAlignmentAnalyzer:
                     best_intent = intent_str
 
             if best_similarity >= 0.3:  # Semantic threshold
-                return IntentType(best_intent), best_similarity
+                return IntentType[best_intent.upper()], best_similarity
 
             return IntentType.UNKNOWN, 0.0
         except Exception as e:
@@ -555,8 +555,8 @@ class RequestAlignmentAnalyzer:
         Returns:
             0.0-1.0 intent match score
         """
-        # Direct intent match
-        if request_intent.value == operation_type:
+        # Direct intent match (compare lowercase name to operation_type string)
+        if request_intent.name.lower() == operation_type.lower():
             return 1.0
 
         # Semantic similarity (if encoder available)
@@ -565,7 +565,7 @@ class RequestAlignmentAnalyzer:
                 import numpy as np
 
                 encoder = self.text_encoder
-                intent_prototype = encoder.encode(f"This is a {request_intent.value} task")
+                intent_prototype = encoder.encode(f"This is a {request_intent.name.lower()} task")
                 output_embedding = encoder.encode(result.output[:500])  # First 500 chars
 
                 similarity = float(
@@ -780,7 +780,7 @@ class RequestAlignmentAnalyzer:
 
         for violation in violations:
             issues.append(
-                f"{violation.constraint.type.value.capitalize()} constraint violated: "
+                f"{violation.constraint.type.name.capitalize()} constraint violated: "
                 f"requested {violation.requested_value}, got {violation.actual_value}"
             )
 
@@ -854,12 +854,12 @@ class RequestAlignmentAnalyzer:
             Vault path or empty string on failure
         """
         try:
-            title = f"High misalignment in {request.intent.value} task: {request.raw_text[:50]}"
+            title = f"High misalignment in {request.intent.name} task: {request.raw_text[:50]}"
             context = (
                 f"Request: {request.raw_text}\n\n"
-                f"Intent: {request.intent.value} (confidence={request.intent_confidence:.2f})\n\n"
-                f"Constraints: {len(request.constraints)}\n"
-                f"Criteria: {len(request.criteria)}"
+                f"Intent: {request.intent.name} (confidence={request.intent_confidence:.2f})\n\n"
+                f"Constraints: {len(request.constraints or [])}\n"
+                f"Criteria: {len(request.criteria or [])}"
             )
             decision = (
                 f"Misalignment score: {alignment.misalignment_score:.2f}\n"
@@ -900,23 +900,25 @@ class RequestAlignmentAnalyzer:
             Vault path or empty string on failure
         """
         try:
+            issues = alignment.issues or []
+            recommendations = alignment.recommendations or []
             hypothesis = (
-                f"Request alignment for {request.intent.value} task: {request.raw_text[:100]}"
+                f"Request alignment for {request.intent.name} task: {request.raw_text[:100]}"
             )
             method = (
-                f"Analyzed request with intent={request.intent.value}, "
-                f"{len(request.constraints)} constraints, {len(request.criteria)} criteria"
+                f"Analyzed request with intent={request.intent.name}, "
+                f"{len(request.constraints or [])} constraints, {len(request.criteria or [])} criteria"
             )
             result = (
                 f"Misalignment score: {alignment.misalignment_score:.2f} "
-                f"({len(alignment.issues)} issues)"
+                f"({len(issues)} issues)"
             )
             learnings = (
                 f"Execution aligned well with request. "
-                f"Recommendations: {', '.join(alignment.recommendations)}"
+                f"Recommendations: {', '.join(recommendations)}"
                 if alignment.misalignment_score <= 0.3
                 else f"Moderate misalignment detected. "
-                f"{len(alignment.issues)} issues, retry recommended."
+                f"{len(issues)} issues, retry recommended."
             )
 
             path = self.mcp_client.vault_log_experiment(
