@@ -122,8 +122,8 @@ class VAEEvaluator:
         recon, mu, logvar, _z = self.model(data)
 
         # Reconstruction fidelity (Red Flag 2)
-        orig_np = data.numpy()
-        recon_np = recon.numpy()
+        orig_np = data.cpu().numpy()
+        recon_np = recon.cpu().numpy()
         recon_sim = reconstruction_cosine_similarity(orig_np, recon_np)
 
         # KL health (Red Flag 1)
@@ -134,7 +134,7 @@ class VAEEvaluator:
 
         # Paraphrase discrimination (Red Flag 3)
         # Use mu (latent mean) as embedding
-        mu_np = mu.numpy()
+        mu_np = mu.cpu().numpy()
         p_at_1 = paraphrase_precision_at_1(mu_np, pairs)
 
         # Similarity preservation (Red Flag 4)

@@ -118,7 +118,7 @@ class ExperienceEncoder:
     def _sha256_expand(text: str, dim: int) -> np.ndarray:
         """Deterministic hash expansion to ``dim`` floats in [0, 1].
 
-        Same approach as JourneyTracker._text_to_latent: SHA-256 bytes
+        Same approach as JourneyTracker.text_to_latent: SHA-256 bytes
         cycled with sine-wave modulation for smooth variation.
         """
         hash_bytes = hashlib.sha256(text.encode("utf-8")).digest()
