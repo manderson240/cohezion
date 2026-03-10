@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "19b525a072e9",
+  "session_id": "b5164d70-585f-45b3-8e68-7aa086d25caf",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-10T16:56:26.728913857Z",
+  "branch": "feat/flume-vae-clean",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "tests/compound/test_journey_tracker.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "b8bb5c70c093",
+  "checkpoint_transcript_start": 431,
+  "transcript_lines_at_start": 431,
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 0
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-10T16:56:26.363759809Z",
+    "agent_lines": 37,
+    "human_added": 20227,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 20264,
+    "agent_percentage": 0.18258981444926964
+  }
+}
