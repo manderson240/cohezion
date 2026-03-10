@@ -44,7 +44,7 @@ class MCPRegistry:
     """
     Registry for MCP servers.
 
-    Manages both external (Mem0, Context7, Serena) and
+    Manages both external (Mem0, Context7) and
     internal (Knowledge, Skills, SurrealDB, Swarm) servers.
     """
 

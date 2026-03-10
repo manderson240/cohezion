@@ -14,13 +14,6 @@
             "description": "Up-to-date code documentation",
             "url": "https://mcp.context7.com/mcp",
             "status": "pending"
-        },
-        {
-            "name": "serena",
-            "type": "codebase",
-            "description": "Codebase memory with .serena/memories/",
-            "url": "local",
-            "status": "pending"
         }
     ],
     "internal": [
