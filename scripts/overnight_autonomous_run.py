@@ -50,7 +50,7 @@ class OvernightMission:
         - Propose a 'Compound Engineering' learning.
         - Format as a Learning for KEY_LEARNINGS.md.
         """
-        response = await self.client.generate(prompt, task_type="analysis")
+        response, tokens = await self.client.generate(prompt)
         
         # 3. Log to Trackio
         trackio.log({
