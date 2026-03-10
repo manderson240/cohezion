@@ -236,11 +236,11 @@ class RequestAlignmentAnalyzer:
         )
 
         # Check constraint satisfaction
-        violations = self._check_constraints(request.constraints, execution_result.metrics)
+        violations = self._check_constraints(request.constraints or [], execution_result.metrics)
         constraint_satisfaction = max(0.0, 1.0 - (len(violations) * 0.3))  # Penalty per violation
 
         # Check success criteria
-        failures = self._check_criteria(request.criteria, execution_result.metrics)
+        failures = self._check_criteria(request.criteria or [], execution_result.metrics)
         criteria_satisfaction = max(0.0, 1.0 - (len(failures) * 0.2))  # Penalty per failure
 
         # Detect drift signals
