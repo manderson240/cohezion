@@ -378,20 +378,24 @@ class SmartRouter:
 
         for model in models_to_try:
             try:
+                # Construct standard Ollama messages
+                messages = []
+                if system_prompt:
+                    messages.append({"role": "system", "content": system_prompt})
+                messages.append({"role": "user", "content": prompt})
+
                 resp = await self.client.post(
-                    f"{self.ollama_host}/api/generate",
+                    f"{self.ollama_host}/api/chat",
                     json={
                         "model": model,
-                        "prompt": prompt,
-                        "system": system_prompt,
+                        "messages": messages,
                         "stream": False,
-                        "options": {"temperature": 0.7, "num_predict": 512},
                     },
                 )
 
                 if resp.status_code == 200:
                     data = resp.json()
-                    response = data.get("response", "").strip()
+                    response = data.get("message", {}).get("content", "").strip()
                     success = True
                     break
 
