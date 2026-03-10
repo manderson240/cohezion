@@ -5,7 +5,6 @@ Model Context Protocol servers for token-efficient tool access.
 External (configured via settings):
 - Mem0: Persistent AI memory
 - Context7: Up-to-date code documentation
-- Serena: Codebase memory
 
 Internal (custom):
 - Knowledge MCP: RAG over library/skills
