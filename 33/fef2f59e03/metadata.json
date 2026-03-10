@@ -3,8 +3,10 @@
   "checkpoint_id": "33fef2f59e03",
   "strategy": "manual-commit",
   "branch": "feat/compound-elegant-simplification",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
+    ".claude/skills/prime-skill-migration/SKILL.md",
+    ".claude/skills/skill-trigger-testing/SKILL.md",
     "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
     "src/cohezion/knowledge_graph/MISSION_JOURNAL.md",
     "src/cohezion/mcp/servers/plasma/server.py"
@@ -16,13 +18,20 @@
       "context": "/33/fef2f59e03/0/context.md",
       "content_hash": "/33/fef2f59e03/0/content_hash.txt",
       "prompt": "/33/fef2f59e03/0/prompt.txt"
+    },
+    {
+      "metadata": "/33/fef2f59e03/1/metadata.json",
+      "transcript": "/33/fef2f59e03/1/full.jsonl",
+      "context": "/33/fef2f59e03/1/context.md",
+      "content_hash": "/33/fef2f59e03/1/content_hash.txt",
+      "prompt": "/33/fef2f59e03/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 399,
-    "cache_creation_tokens": 877667,
-    "cache_read_tokens": 6951962,
-    "output_tokens": 31331,
-    "api_call_count": 68
+    "input_tokens": 3458,
+    "cache_creation_tokens": 956758,
+    "cache_read_tokens": 7761861,
+    "output_tokens": 36287,
+    "api_call_count": 81
   }
 }
