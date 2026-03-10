@@ -253,7 +253,18 @@ class ResourceMonitor:
         which is equivalent on UMA hardware.
         """
         try:
-            device = Path("/sys/class/drm/card1/device")
+            # Dynamically discover AMD GPU device path
+            gpu_paths = list(Path("/sys/class/drm/").glob("card*/device"))
+            device = None
+            for p in gpu_paths:
+                vendor_path = p / "vendor"
+                if vendor_path.exists() and vendor_path.read_text().strip() == "0x1002":
+                    device = p
+                    break
+            
+            if not device:
+                # Fallback to default if discovery fails
+                device = Path("/sys/class/drm/card1/device")
 
             # Prefer GTT (unified memory pool) over dedicated VRAM carveout
             gtt_total_path = device / "mem_info_gtt_total"
@@ -444,10 +455,15 @@ class ResourceMonitor:
                 f"Sandboxes: {len(self._sandbox_registry)} ({sandbox_mem}MB)\n"
             )
 
-            with open(self.heartbeat_log, "a") as f:
-                f.write(log_entry)
+            # Use thread for blocking file I/O to avoid event loop latency
+            await asyncio.to_thread(self._append_log, log_entry)
 
             await asyncio.sleep(2)  # Tight 2s loop for Framework 16 stability
+
+    def _append_log(self, entry: str):
+        """Synchronous log append for use in thread."""
+        with open(self.heartbeat_log, "a") as f:
+            f.write(entry)
 
     def checkpoint_active_mission(self, data: dict[str, Any], mission_id: str):
         """
