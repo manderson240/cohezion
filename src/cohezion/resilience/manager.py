@@ -49,7 +49,10 @@ class AutonomicManager:
         self._running = True
         
         # Ensure surreal connection
-        await self._surreal.connect()
+        try:
+            await self._surreal.connect()
+        except Exception as e:
+            logger.error(f"RAH: Failed to connect to SurrealDB: {e}. Decisions will not be persisted.")
         
         self._loop_task = asyncio.create_task(self._run_loop(interval_seconds))
         logger.info("RAH: Autonomic Manager started")

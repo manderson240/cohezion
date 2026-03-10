@@ -133,19 +133,30 @@ class SemanticLagrangeFinder:
         # Barycenter position
         barycenter = (1 - mu) * topic_a + mu * topic_b
         
-        # In a 12D space, we define the 'orbital plane' using the first 2 principal 
-        # components of the difference vector or just arbitrary orthogonal vectors.
-        # For simplicity, we'll use a 2D rotation in the first two dimensions of the manifold.
+        # In a 12D space, we define the 'orbital plane' using the difference vector 
+        # and a robust orthogonal basis vector found via Gram-Schmidt.
         
         # Unit vector from A to B
         u = r_ab / distance
         
-        # Create an orthogonal vector 'v' for the triangle height
-        # (This is a simplification for 12D; a real manifold would use the 'field' dimension)
+        # Robust 12D orthogonalization: 
+        # 1. Find dimension with minimum influence in u to use as seed
+        min_dim = np.argmin(np.abs(u))
         v = np.zeros_like(u)
-        v[0], v[1] = -u[1], u[0] # Simple 2D orthogonal rotation
-        if np.linalg.norm(v) == 0: # Fallback if u is [0,0,z...]
-            v[2], v[3] = -u[3], u[2]
+        v[min_dim] = 1.0
+        
+        # 2. Project v onto the subspace orthogonal to u (Gram-Schmidt)
+        v = v - np.dot(v, u) * u
+        v_norm = np.linalg.norm(v)
+        
+        # 3. Handle edge case (should be impossible with min_dim seed)
+        if v_norm < 1e-10:
+            v = np.zeros_like(u)
+            v[0] = 1.0 # Emergency fallback
+            v = v - np.dot(v, u) * u
+            v_norm = np.linalg.norm(v)
+            
+        v = v / v_norm
             
         height = distance * np.sqrt(3) / 2
         midpoint = topic_a + 0.5 * r_ab

@@ -73,8 +73,8 @@ class ContextReductionStrategy(HealingStrategy):
         reduction_factor = context.get("reduction_factor", 0.5)
         logger.info(f"RAH: Reducing context windows by {reduction_factor*100}%")
 
-        # In a real system, this would update the global context manager
-        # or signal active agents to truncate their history.
+        # TODO: Integrate with cohezion.reliability.context_harness
+        # This would iterate through active sessions and trigger compaction
         return True
 
 
@@ -92,8 +92,24 @@ class SystemRestartStrategy(HealingStrategy):
         monitor = get_resource_monitor()
         vitals = monitor.get_vitals()
 
-        # Trigger existing emergency shutdown logic
+        # 1. Trigger existing emergency shutdown logic (kills runaway pids)
         await monitor.emergency_shutdown(vitals)
 
-        # Implementation would then trigger service restart via systemd or docker
-        return True
+        # 2. Implementation of actual restart logic
+        try:
+            if service == "all" or "mcp" in service:
+                # Attempt to restart via local script if available
+                process = await asyncio.create_subprocess_exec(
+                    "bash", "start-mcp-servers.sh",
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                )
+                logger.info("RAH: Triggered start-mcp-servers.sh for service recovery")
+            
+            # Additional Docker-based recovery if applicable
+            # await asyncio.create_subprocess_exec("docker", "restart", "redis-mcp")
+            
+            return True
+        except Exception as e:
+            logger.error(f"RAH: Service restart failed: {e}")
+            return False
