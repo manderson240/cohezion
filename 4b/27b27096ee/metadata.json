@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "4b27b27096ee",
+  "strategy": "manual-commit",
+  "branch": "feat/compound-elegant-simplification",
+  "checkpoints_count": 3,
+  "files_touched": [
+    ".claude/skills/claude-code-plugin-removal/SKILL.md",
+    ".claude/skills/github-actions-silent-failures/SKILL.md",
+    "apps/command_center.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/4b/27b27096ee/0/metadata.json",
+      "transcript": "/4b/27b27096ee/0/full.jsonl",
+      "context": "/4b/27b27096ee/0/context.md",
+      "content_hash": "/4b/27b27096ee/0/content_hash.txt",
+      "prompt": "/4b/27b27096ee/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 8352,
+    "cache_creation_tokens": 1517854,
+    "cache_read_tokens": 20031545,
+    "output_tokens": 72354,
+    "api_call_count": 181
+  }
+}
