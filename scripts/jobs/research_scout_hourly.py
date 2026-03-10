@@ -23,8 +23,8 @@ logger = logging.getLogger("ResearchScout")
 async def main():
     logger.info("🛰️ Starting Hourly Research Scout (Hugging Face / arXiv)...")
     
-    # Initialize Trackio
-    trackio.init(project="cohezion-core", space_id="manderson240/cohezion-trackio")
+    # Initialize Trackio (Local only)
+    trackio.init(project="cohezion-core")
     
     # 1. Sensing: Delegate the SEARCH to the Smart Router
     # We use the prompt to trigger 'paper_search' or 'hub_repo_search' via the agent
