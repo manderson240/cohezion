@@ -285,10 +285,8 @@ class TestResearchIntegration:
 
         agent.executor.execute_fn = fast_train
 
-        # Run session
-        import asyncio
-
-        session = asyncio.run(agent.run_session(max_experiments=2))
+        # Run session (synchronous method)
+        session = agent.run_session(max_experiments=2)
 
         assert session.experiments_completed == 2
 
