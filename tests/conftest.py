@@ -119,6 +119,10 @@ def reset_singletons():
     if hasattr(api_module, '_rl_policy'):
         api_module._rl_policy = None
 
+    # Reset JourneyTracker singleton to prevent trajectory/cache pollution
+    import cohezion.compound.journey_tracker as jt_module
+    jt_module._journey_tracker_instance = None
+
     # Clear ALL logger handlers and filters to prevent test pollution.
     # Root cause: RedactionFilter (or any filter) can modify LogRecord.args,
     # corrupting types (%d expects int, but filter may convert to str).
@@ -154,6 +158,9 @@ def reset_singletons():
     # Reset RL policy singleton after test
     if hasattr(api_module, '_rl_policy'):
         api_module._rl_policy = None
+
+    # Reset JourneyTracker singleton after test
+    jt_module._journey_tracker_instance = None
 
     # Clear ALL logger handlers and filters after test too
     root = logging.getLogger()
