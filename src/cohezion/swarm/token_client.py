@@ -237,6 +237,7 @@ class TokenEfficientClient:
         prompt: str,
         model: str = "phi3:mini",
         system: str = "",
+        **kwargs: Any,
     ) -> tuple[str, int]:
         """Generate response with three-tier caching (L1 exact, L2 semantic, L3 persistent).
 

@@ -1,7 +1,7 @@
 ---
-stepsCompleted: ['step-01-preflight-and-context', 'step-02-identify-targets', 'step-03-generate-tests', 'step-04-validate-and-summarize']
-lastStep: 'step-04-validate-and-summarize'
-lastSaved: '2026-03-08'
+stepsCompleted: ['step-01-preflight-and-context', 'step-02-identify-targets', 'step-03-generate-tests', 'step-04-validate-and-summarize', 'step-01-preflight-and-context-v2']
+lastStep: 'step-01-preflight-and-context-v2'
+lastSaved: '2026-03-09'
 inputDocuments:
   - /home/mike-anderson/dev/cohezion/pyproject.toml
   - /home/mike-anderson/dev/cohezion/tests/conftest.py
