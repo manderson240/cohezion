@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Updated persistence plan incorporating adversarial guardrails: non-blocking buffers, dilation-awareness, and importance sampling.",
+  "updatedAt": "2026-02-10T04:02:21.486444253Z",
+  "version": "1"
+}

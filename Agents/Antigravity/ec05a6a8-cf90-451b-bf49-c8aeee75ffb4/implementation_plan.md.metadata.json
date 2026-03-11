@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Create a systemd user environment configuration to force GDK_BACKEND to 'wayland', resolving the Desktop Icons NG warning.",
+  "updatedAt": "2026-01-24T04:33:59.156622446Z"
+}

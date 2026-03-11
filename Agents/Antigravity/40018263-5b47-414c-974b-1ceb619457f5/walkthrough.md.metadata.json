@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Walkthrough of the sleep stabilization fixes applied to the Framework Desktop (Strix Halo). Includes updated GRUB parameters, logind.conf changes, and instructions for final reboot and verification.",
+  "updatedAt": "2026-01-21T14:25:51.671230246Z"
+}

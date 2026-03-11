@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_TASK",
+  "summary": "Task list for hardening the Cohezion Journey substrate following a system crash. Focuses on memory optimization in JourneyPerception, caching in UniverseSimulationEngine, and overall loop resilience.",
+  "updatedAt": "2026-02-19T03:21:48.741691080Z"
+}

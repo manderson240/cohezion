@@ -439,3 +439,7 @@ The server can be started immediately and is ready for integration with the Obsi
 - [[2026-02-09-fastmcp-asgi-integration-fix]]
 - [[2026-02-14-phase-7-implementation-ready]]
 - [[2026-02-10-kyutai-pocket-tts-token-efficient-success]]
+- [[mcp-model-context-protocol]]
+- [[api-design]]
+- [[kyutai-project]]
+- [[cloud-vault-mcp]]

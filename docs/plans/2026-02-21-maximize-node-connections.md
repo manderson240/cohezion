@@ -310,3 +310,8 @@ Done: 5 / Left: 0
 | `.claude/settings.json` | Add PostToolUse Write\|Edit hook |
 
 **Total Tasks: 5 | Completed: 0 | Remaining: 5**
+
+## Related Concepts
+- [[knowledge-graph-systems]]
+- [[semantic-search]]
+- [[cohezion]]

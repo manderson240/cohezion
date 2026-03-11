@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Walkthrough of the Memory Recovery Protocol (MRP) implementation, documenting the new synchronization logic, background pulsing, and verification results.",
+  "updatedAt": "2026-01-21T04:22:05.797258324Z"
+}

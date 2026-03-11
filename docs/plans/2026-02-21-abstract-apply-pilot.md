@@ -474,3 +474,9 @@ Worktree: Yes
 - Memory/observation system integration -- depends on existing MCP infrastructure
 - Auto-update mechanism -- not needed for internal tool
 - Web viewer for session history -- separate project
+
+## Related Concepts
+- [[cohezion]]
+- [[context-management]]
+- [[workflow-orchestration]]
+- [[compound-engineering]]

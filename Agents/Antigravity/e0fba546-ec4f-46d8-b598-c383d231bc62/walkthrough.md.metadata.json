@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Documentation of the system stability fix: Capping ZFS ARC to 16GB and hardening the ResourceMonitor to detect Swap pressure.",
+  "updatedAt": "2026-01-29T00:16:33.618895611Z"
+}

@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_TASK",
+  "summary": "Task list for Dataset Preparation.\nFocuses on extracting verified trajectories from SurrealDB and formatting them for training.",
+  "updatedAt": "2026-01-28T11:04:03.888528587Z"
+}

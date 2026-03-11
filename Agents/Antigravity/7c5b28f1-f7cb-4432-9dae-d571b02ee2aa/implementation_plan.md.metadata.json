@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Implementation plan for Sprint 6: The Infinite Game. This sprint focuses on a single massive overnight simulation ('Phase 21') that runs until 6 AM. It utilizes all Sovereignty, Gaia, and Cosmic subsystems to simulate the evolution of a universe from 'Genesis' to 'Civilization', sending hourly telemetry reports via email.",
+  "updatedAt": "2026-01-20T04:27:39.991744449Z",
+  "version": "16"
+}

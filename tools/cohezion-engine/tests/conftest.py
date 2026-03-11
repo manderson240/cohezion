@@ -1,4 +1,5 @@
 """Shared pytest fixtures for cohezion-engine tests."""
+
 import subprocess
 from pathlib import Path
 

@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Add memory safety guardrails to `peaked_solver.py` to prevent OOM crashes by limiting MPS bond dimensions and adding psutil checks.",
+  "updatedAt": "2026-01-22T20:09:08.444527483Z"
+}

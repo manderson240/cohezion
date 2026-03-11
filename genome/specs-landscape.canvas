@@ -1,0 +1,301 @@
+{
+  "nodes": [
+    {
+      "id": "title",
+      "type": "text",
+      "text": "# Vault as System of Record\n\n*Everything needed to reconstruct Cohezion from scratch*",
+      "x": -100,
+      "y": -600,
+      "width": 500,
+      "height": 80,
+      "color": "6"
+    },
+    {
+      "id": "g-skills",
+      "type": "group",
+      "label": "Skills",
+      "x": -600,
+      "y": -480,
+      "width": 400,
+      "height": 340,
+      "color": "4"
+    },
+    {
+      "id": "n-vk",
+      "type": "file",
+      "file": "specs/skills/vault-keeper.md",
+      "x": -560,
+      "y": -440,
+      "width": 320,
+      "height": 50
+    },
+    {
+      "id": "n-sk-research",
+      "type": "text",
+      "text": "daily-research\nflesh-out\nlink\nnote\ntriage",
+      "x": -560,
+      "y": -370,
+      "width": 320,
+      "height": 100,
+      "color": "4"
+    },
+    {
+      "id": "n-sk-spec",
+      "type": "text",
+      "text": "spec · spec-plan\nspec-implement\nspec-verify",
+      "x": -560,
+      "y": -250,
+      "width": 320,
+      "height": 80,
+      "color": "4"
+    },
+    {
+      "id": "g-mcp",
+      "type": "group",
+      "label": "MCP Servers",
+      "x": -140,
+      "y": -480,
+      "width": 400,
+      "height": 340,
+      "color": "5"
+    },
+    {
+      "id": "n-cvmcp",
+      "type": "file",
+      "file": "specs/mcp-servers/cloud-vault-mcp.md",
+      "x": -100,
+      "y": -440,
+      "width": 320,
+      "height": 50
+    },
+    {
+      "id": "n-mcp-ollama",
+      "type": "text",
+      "text": "Ollama MCP\nstdio · port 22360\n38 models loaded",
+      "x": -100,
+      "y": -370,
+      "width": 320,
+      "height": 80,
+      "color": "5"
+    },
+    {
+      "id": "n-mcp-c7",
+      "type": "text",
+      "text": "Context7 · Web Search\nWeb Fetch · grep-mcp",
+      "x": -100,
+      "y": -270,
+      "width": 320,
+      "height": 60,
+      "color": "5"
+    },
+    {
+      "id": "n-mcp-surreal",
+      "type": "text",
+      "text": "SurrealMCP (planned)\nDirect DB access",
+      "x": -100,
+      "y": -190,
+      "width": 320,
+      "height": 50,
+      "color": "1"
+    },
+    {
+      "id": "g-tools",
+      "type": "group",
+      "label": "Tools & Hooks",
+      "x": 320,
+      "y": -480,
+      "width": 400,
+      "height": 340,
+      "color": "2"
+    },
+    {
+      "id": "n-cz",
+      "type": "file",
+      "file": "specs/tools/cohezion-engine-cli.md",
+      "x": 360,
+      "y": -440,
+      "width": 320,
+      "height": 50
+    },
+    {
+      "id": "n-hooks",
+      "type": "text",
+      "text": "vault-keeper-check.sh\nvault-link-suggest.sh\ncontext_monitor.py\ntdd_enforcer.py",
+      "x": 360,
+      "y": -370,
+      "width": 320,
+      "height": 100,
+      "color": "2"
+    },
+    {
+      "id": "n-tools-other",
+      "type": "text",
+      "text": "mcp-cli · playwright-cli\nvexor · sx (team vault)",
+      "x": 360,
+      "y": -250,
+      "width": 320,
+      "height": 60,
+      "color": "2"
+    },
+    {
+      "id": "g-agents",
+      "type": "group",
+      "label": "Agent Cards",
+      "x": -600,
+      "y": -80,
+      "width": 400,
+      "height": 240,
+      "color": "3"
+    },
+    {
+      "id": "n-agents-verify",
+      "type": "text",
+      "text": "**Verification Agents**\nplan-verifier\nplan-challenger\nspec-reviewer-compliance\nspec-reviewer-quality",
+      "x": -560,
+      "y": -40,
+      "width": 320,
+      "height": 120,
+      "color": "3"
+    },
+    {
+      "id": "n-agents-vault",
+      "type": "text",
+      "text": "**Vault Agents**\nvault-keeper · triage · link\nflesh-out · daily-research",
+      "x": -560,
+      "y": 100,
+      "width": 320,
+      "height": 60,
+      "color": "3"
+    },
+    {
+      "id": "g-cards",
+      "type": "group",
+      "label": "Cards (Structured Documentation)",
+      "x": -600,
+      "y": 220,
+      "width": 1120,
+      "height": 200,
+      "color": "1"
+    },
+    {
+      "id": "n-cards-systems",
+      "type": "text",
+      "text": "**System Cards**\nCloud Vault MCP\nSurrealDB 3.0\nOllama\nCohezion Engine CLI",
+      "x": -560,
+      "y": 260,
+      "width": 240,
+      "height": 120,
+      "color": "1"
+    },
+    {
+      "id": "n-cards-models",
+      "type": "text",
+      "text": "**Model Cards**\nClaude Opus 4.6\nClaude Sonnet 4.6\nClaude Haiku 4.5\nGemini 2.5 Pro",
+      "x": -280,
+      "y": 260,
+      "width": 240,
+      "height": 120,
+      "color": "1"
+    },
+    {
+      "id": "n-cards-agents",
+      "type": "text",
+      "text": "**Agent Cards**\nplan-verifier\nplan-challenger\nspec-reviewer-compliance\nspec-reviewer-quality\nvault-keeper",
+      "x": 0,
+      "y": 260,
+      "width": 240,
+      "height": 120,
+      "color": "1"
+    },
+    {
+      "id": "n-cards-embeddings",
+      "type": "text",
+      "text": "**Embedding Cards**\nnomic-embed-text (768d)\nmxbai-embed-large (1024d)",
+      "x": 280,
+      "y": 260,
+      "width": 240,
+      "height": 120,
+      "color": "1"
+    },
+    {
+      "id": "g-integrations",
+      "type": "group",
+      "label": "IDE & Model Integrations",
+      "x": -140,
+      "y": -80,
+      "width": 860,
+      "height": 240,
+      "color": "6"
+    },
+    {
+      "id": "n-int-spec",
+      "type": "file",
+      "file": "specs/integrations/ide-and-model-providers.md",
+      "x": -100,
+      "y": -40,
+      "width": 320,
+      "height": 50
+    },
+    {
+      "id": "n-int-ides",
+      "type": "text",
+      "text": "**IDEs:** Claude Code · Cursor · Windsurf\nJetBrains · VS Code · Neovim",
+      "x": -100,
+      "y": 30,
+      "width": 380,
+      "height": 60,
+      "color": "6"
+    },
+    {
+      "id": "n-int-cli",
+      "type": "text",
+      "text": "**CLI Agents:** Gemini CLI · OpenCode\nCodex CLI · Aider",
+      "x": -100,
+      "y": 110,
+      "width": 380,
+      "height": 50,
+      "color": "6"
+    },
+    {
+      "id": "n-int-entry",
+      "type": "text",
+      "text": "**Entry Points:**\nCLAUDE.md → VAULT_MANIFEST.md\nAGENTS.md → VAULT_MANIFEST.md",
+      "x": 340,
+      "y": 30,
+      "width": 340,
+      "height": 80,
+      "color": "6"
+    },
+    {
+      "id": "n-int-models",
+      "type": "text",
+      "text": "**Models:** Anthropic · Google · OpenAI\nOllama (local) · DeepSeek · Groq",
+      "x": 340,
+      "y": 110,
+      "width": 340,
+      "height": 50,
+      "color": "6"
+    },
+    {
+      "id": "n-adr",
+      "type": "file",
+      "file": "decisions/2026-03-05-vault-as-system-of-record.md",
+      "x": 320,
+      "y": -480,
+      "width": 160,
+      "height": 50
+    }
+  ],
+  "edges": [
+    {"id": "e1", "fromNode": "n-vk", "toNode": "n-cvmcp", "label": "uses MCP"},
+    {"id": "e2", "fromNode": "n-cz", "toNode": "n-hooks", "label": "triggers"},
+    {"id": "e3", "fromNode": "n-cvmcp", "toNode": "n-mcp-surreal", "label": "planned"},
+    {"id": "e4", "fromNode": "n-int-entry", "toNode": "n-int-ides", "label": "read by"},
+    {"id": "e5", "fromNode": "n-int-entry", "toNode": "n-int-cli", "label": "read by"},
+    {"id": "e6", "fromNode": "n-agents-vault", "toNode": "n-vk", "label": "invoked by"},
+    {"id": "e7", "fromNode": "n-cards-systems", "toNode": "n-cvmcp", "label": "documents"},
+    {"id": "e8", "fromNode": "n-cards-models", "toNode": "n-int-models", "label": "documents"},
+    {"id": "e9", "fromNode": "n-cards-agents", "toNode": "n-agents-verify", "label": "documents"},
+    {"id": "e10", "fromNode": "n-cards-embeddings", "toNode": "n-mcp-ollama", "label": "served by"}
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_TASK",
+  "summary": "Investigation and resolution of recurring system unresponsiveness. Focus on resource exhaustion, ZFS swap verification, and hardening monitor thresholds.",
+  "updatedAt": "2026-01-29T00:10:51.567692970Z"
+}

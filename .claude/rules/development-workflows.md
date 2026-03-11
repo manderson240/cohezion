@@ -145,7 +145,7 @@ python3 script.py
 
 ### Adding a New Paper to 3D Graph
 
-1. Add paper markdown to `papers/`
+1. Add paper markdown to `sensory/`
 2. Include frontmatter with tags
 3. Regenerate graph data:
    ```bash

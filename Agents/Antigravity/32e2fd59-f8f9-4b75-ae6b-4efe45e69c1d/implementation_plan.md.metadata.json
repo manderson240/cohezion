@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Implementation plan to resolve the \"Desktop Icons NG is running under X11Wayland\" warning by ensuring `GDK_BACKEND=x11` is not forced in local Wayland sessions.",
+  "updatedAt": "2026-01-28T14:07:36.946329966Z"
+}

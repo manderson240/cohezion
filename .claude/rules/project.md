@@ -30,14 +30,14 @@ Knowledge persistence system for the Cohezion agentic AI framework. Obsidian vau
 
 ```
 cohezion-vault/
-├── decisions/          Architecture Decision Records (ADRs)
-├── experiments/        Hypothesis testing and validation
-├── patterns/           Reusable solutions and code patterns
-├── papers/             Research papers (84+ papers)
-├── projects/           Project-level tracking
-├── daily/              Daily notes and logs
-├── inbox/              Unsorted notes (triage point)
-├── concepts/           Core concepts and definitions
+├── prefrontal/          Architecture Decision Records (ADRs)
+├── laboratory/        Hypothesis testing and validation
+├── cerebellum/           Reusable solutions and code patterns
+├── sensory/             Research papers (84+ papers)
+├── motor/           Project-level tracking
+├── hippocampus/              Daily notes and logs
+├── thalamus/              Unsorted notes (triage point)
+├── cortex/           Core concepts and definitions
 ├── obsidian-plugin/
 │   └── 3d-graph-plugin/  TypeScript plugin for 3D visualization
 └── mcp-server/         Python FastMCP server

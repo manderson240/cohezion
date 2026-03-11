@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Implement GitMetricsSensor for Ouroboros.\n- Real-time Git status monitoring.\n- Metrics: Entropy (Dirty State), Momentum (Commit Velocity).\n- Integration into OuroborosSense.",
+  "updatedAt": "2026-01-28T12:00:19.902713699Z"
+}

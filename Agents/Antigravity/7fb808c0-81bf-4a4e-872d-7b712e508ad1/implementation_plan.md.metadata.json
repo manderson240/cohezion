@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Implementation plan to harden the system against resource-induced lockups by introducing multi-tier thresholds and kernel-level process prioritization.",
+  "updatedAt": "2026-01-28T03:56:44.332753455Z"
+}

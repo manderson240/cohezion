@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Implementation plan for the Nexus Research Miner. This includes a new skill for external research and a specialized agent to monitor arXiv, Hugging Face, and GitHub.",
+  "updatedAt": "2026-01-20T21:18:57.741952791Z"
+}

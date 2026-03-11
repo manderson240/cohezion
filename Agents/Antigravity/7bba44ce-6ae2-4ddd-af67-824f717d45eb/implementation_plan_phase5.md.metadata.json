@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Phase 5 Implementation: Swarm Visualization Bridge.\nAdds an Express/SSE server to `mcp-swarm` to broadcast debate events to the WebApp.\nUpdates WebApp to consume this stream.",
+  "updatedAt": "2026-01-27T15:39:37.975183429Z"
+}

@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Walkthrough of Phase 20: System Introspection. Details the implementation of the InternalScanner for repository/history analysis and the IntrospectAgent ('The Monk') for daily system meditation. Verification confirmed the detection of high technical debt (karmic debt).",
+  "updatedAt": "2026-01-20T04:21:43.877081241Z"
+}

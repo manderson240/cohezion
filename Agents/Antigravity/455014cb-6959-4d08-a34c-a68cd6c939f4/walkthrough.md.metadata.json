@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Formalization of Antigravity system constraints and Marimo reactivity protocols. These improvements prevent multi-session deadlocks and recursive execution loops.",
+  "updatedAt": "2026-01-22T03:26:53.113220499Z",
+  "version": "9"
+}

@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Implementation plan to overhaul the Autonomic HUD, fixing scaling bugs and integrating all 12 parameters of the Ouroboros state for a full \"Quadrature Pulse\" visualization.",
+  "updatedAt": "2026-01-28T14:10:10.430791633Z"
+}

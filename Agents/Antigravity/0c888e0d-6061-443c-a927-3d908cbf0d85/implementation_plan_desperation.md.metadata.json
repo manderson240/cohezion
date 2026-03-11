@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Implementation plan for 'Desperation Mode' throttling. Introduces non-privileged process prioritization and signal-based pausing to prevent system lockups during extreme resource pressure.",
+  "updatedAt": "2026-01-28T14:52:01.371250063Z"
+}

@@ -1,0 +1,94 @@
+---
+title: LangChain Deep Agents Context Management
+date: 2026-02-07
+tags: [context-management, agentic-ai, agent-architecture, langchain, deep-agents]
+connectivity: 0.33
+cross_domain: 0.5
+completion: 1.0
+temporal: 1.0
+recency: 1.0
+connectivity_summary: ★★☆☆☆ (5/5 links)
+completion_summary: 3/3 sections (100%)
+conceptual_depth: 0.5
+conceptual_label: Balanced
+similar_papers:
+- agentic-ai-memory-hierarchies
+- openai-codex-agent-loop
+- scaling-agent-systems
+- operational-data-ai-agents
+dim_conceptual_depth: 0.5
+source: https://blog.langchain.com/context-management-for-deepagents/
+dimensions:
+  connectivity: 0.25
+  cross_domain: 0
+  completion: 100
+  temporal: 0.5
+  recency: 0.7
+  conceptual_depth: 0.0
+  algorithm_complexity: 0.0
+  implementation_difficulty: 0.0
+  interdisciplinary_transfer: 0.0
+  impact_score: 0.398
+aspect: knower
+neural:
+  activation: 0.688
+  stage: mature
+  cluster: papers
+---
+## Abstract
+
+LangChain's Deep Agents SDK implements a sophisticated three-tier context management strategy for long-horizon agentic tasks, addressing the critical challenge of maintaining conversation history within model context windows. The approach combines filesystem offloading, intelligent truncation, and LLM-powered summarization.
+
+## Key Findings
+
+- Tool responses exceeding 20,000 tokens are offloaded to filesystem storage with file path references and 10-line previews
+- Context truncation triggers at 85% of available context window, replacing older tool calls with disk file pointers
+- Summarization fallback generates structured session summaries capturing intent, artifacts, and next steps when offloading is insufficient
+- Deep Agents architecture includes planning tools, filesystem backend, and subagent spawning for complex multi-step tasks
+- Three-tier approach provides proven pattern for managing extended agent sessions without context window overflow
+
+## Source
+
+https://blog.langchain.com/context-management-for-deepagents/
+
+# LangChain Deep Agents Context Management
+
+## Summary
+
+LangChain's Deep Agents SDK implements a tiered context management strategy for long-horizon agentic tasks, using filesystem offloading, truncation, and summarization to stay within model context windows.
+
+## Key Strategies
+
+1. **Tool Response Offloading**: When tool responses exceed 20,000 tokens, they are offloaded to the filesystem and replaced with a file path reference plus a 10-line preview.
+2. **Context Truncation**: At 85% of the model's available context window, older tool calls are truncated and replaced with pointers to files on disk.
+3. **Summarization Fallback**: When offloading is insufficient, an LLM generates a structured summary of the conversation (session intent, artifacts created, next steps) that replaces the full conversation history.
+
+## Architecture
+
+Deep Agents are equipped with a planning tool, a filesystem backend, and the ability to spawn subagents, making them well-suited for complex, long-running tasks.
+
+## Relevance to Cohezion
+
+Directly relevant to `lab_agent.py` and `ouroboros.py` context management. The three-tier approach (offload, truncate, summarize) provides a proven pattern for managing context in long-running Cohezion agent sessions., [[agentic-ai]], [[agent-architecture]], [[prompt-engineering]]
+
+## Related Concepts
+
+- [[agent-context]] — the concept note defining agent context management; this paper's three-tier strategy is a concrete implementation of the principles described there
+- [[agent-loop-architecture]] — the agent loop is the execution framework within which context management strategies operate
+- [[scaling-agent-systems]]
+- [[openai-codex-agent-loop]]
+- [[sentinel-1-ice-sheets]]
+- [[llamaagents-builder]]
+- [[testing-agent-skills-with-evals]]
+- [[operational-data-ai-agents]]
+- [[llm-in-sandbox-agentic-intelligence]] — both use filesystem access as a key mechanism for extending agent context beyond the context window
+- [[agentic-ai-memory-hierarchies]] — LangChain's three-tier context strategy (offload/truncate/summarize) is a software-level answer to the hardware KV cache challenges described in memory hierarchies
+- [[context-management]] — Deep Agents' three-tier strategy is a concrete implementation of the context management patterns surveyed in the concept note
+- [[data-engineering-ai-era-2026]] — LangChain's filesystem offloading is context engineering at the agent level; data engineering in the AI era applies the same principles at the data infrastructure level
+- [[lesson-19-session-awareness-protocol]] — the startup context-loading sequence is the agent-level complement to LangChain's session-level context management: both ensure agents have continuity across boundaries, one via explicit startup loading, the other via tiered storage
+
+## Engineering Implementations
+
+- [[compound-async-executor-pattern]] — Cohezion's 7-step compound executor implements LangChain's three-tier context strategy at the execution layer: Phase 1 (vault query) is the "retrieve from offloaded storage" step; Phase 6 (analyze and refine) uses summarization to compact context; Phase 7 (record metrics/journey) writes back to the filesystem tier. The executor architecture is a production implementation of LangChain's published research.
+- [[lesson-37-experience-guided-execution-works-new]] — the experience-loading startup sequence is a manual implementation of LangChain's summarization fallback: distilling past sessions into structured summaries that replace full conversation history. Both achieve the same goal — maintain continuity within a context window — by the same mechanism: LLM-generated structured summaries.
+- [[2026-02-09-ollama-context-management]] — the Ollama context management decision applies LangChain's tiered principles to local model serving: chunking (offload), model selection by content length (truncation), and keep-alive configuration (context persistence)

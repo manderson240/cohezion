@@ -25,14 +25,14 @@
 
 ## Session Identity
 
-Continuation files are stored under `~/.cohezion-engine/sessions/<session-id>/` where `<session-id>` comes from the `COHEZION_SESSION_ID` environment variable (defaults to a PID-based ID if not set).
+Continuation files are stored under `~/.cohezion-engine/hippocampus/<session-id>/` where `<session-id>` comes from the `COHEZION_SESSION_ID` environment variable (defaults to a PID-based ID if not set).
 
 ```bash
 echo $COHEZION_SESSION_ID
 cz session status --json
 ```
 
-Then construct the path: `~/.cohezion-engine/sessions/<resolved-id>/continuation.md`
+Then construct the path: `~/.cohezion-engine/hippocampus/<resolved-id>/continuation.md`
 
 ## How It Works
 

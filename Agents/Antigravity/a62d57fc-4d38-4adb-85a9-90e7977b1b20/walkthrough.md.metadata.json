@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Final walkthrough for the Experience Persistence mission. Covers the unification of SurrealDB and Cohezion Vault, advanced sharded telemetry, novelty-driven sampling, and the resulting high-density knowledge graph.",
+  "updatedAt": "2026-02-10T05:29:00.986496302Z",
+  "version": "3"
+}

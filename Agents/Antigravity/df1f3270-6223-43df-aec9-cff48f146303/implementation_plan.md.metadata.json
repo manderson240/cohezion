@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Implementation plan for Phase 4: Enhanced Resource Stewardship. Includes SurrealDB-based hardware telemetry and a 'Desperation Mode' for CPU throttling.",
+  "updatedAt": "2026-01-28T14:09:49.321374496Z",
+  "version": "1"
+}

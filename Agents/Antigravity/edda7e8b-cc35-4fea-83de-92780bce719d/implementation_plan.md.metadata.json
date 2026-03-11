@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Plan to optimize swap usage by increasing swap capacity to 32GB, enabling zswap, and tuning kernel parameters for better OOM prevention.",
+  "updatedAt": "2026-01-28T21:28:53.553843294Z"
+}

@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_OTHER",
+  "summary": "Adversarial audit of the git worktree automation system, identifying risks and mitigations.",
+  "updatedAt": "2026-02-10T17:06:20.972003840Z"
+}

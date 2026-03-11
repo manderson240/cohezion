@@ -10,6 +10,8 @@ expected_output: |
   1. Key learnings document with patterns and antipatterns
   2. Abstracted patterns applicable to cohezion
   3. Removal plan with dependency analysis
+date: 2026-02-07
+tags: [teleport-task, bmad, framework-analysis, patterns, architecture]
 ---
 # Analyze BMAD Framework, Extract Patterns, and Plan Removal
 
@@ -54,6 +56,12 @@ Analyze these BMAD components and document patterns/antipatterns:
 
 7. **Agent Definition Pattern** — Agents defined as markdown files with personality, capabilities,
    and workflow bindings. Compare to cohezion's `.claude/agents/` YAML definitions.
+
+## Related
+- [[workflow-orchestration]]
+- [[agent-architecture]]
+- [[multi-agent-systems]]
+- [[2026-02-08-bmad-framework-removal]]
 
 **Antipatterns to identify:**
 - Over-engineering: Is BMAD's 112-file structure justified for its scope?

@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "A plan to restore Cohezion's system health by fixing package structures, synchronizing dependencies with `uv`, and resolving test failures while adhering to FLUME principles.",
+  "updatedAt": "2026-01-28T15:08:19.096997701Z"
+}

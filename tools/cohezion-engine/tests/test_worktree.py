@@ -1,12 +1,10 @@
 """Tests for worktree management module."""
+
 import json
 import os
 import subprocess
 import sys
 from pathlib import Path
-
-import pytest
-
 
 WKDIR = Path(__file__).parent.parent
 

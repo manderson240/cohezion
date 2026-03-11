@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_OTHER",
+  "summary": "Retrospective on the Jan 28 system unresponsiveness event. Details the VRAM exhaustion root cause, the \"Sudo Trap\" failure mode, and the implemented solutions. Maps out future resilience strategies.",
+  "updatedAt": "2026-01-28T13:58:31.737833762Z"
+}

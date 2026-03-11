@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Walkthrough for Sprint 20, detailing the restoration of narration fidelity, the implementation of a Constitutional Alignment Layer (inspired by Anthropic research), and the hardening of the Marimo observability dashboard. It also notes the status of the remote access deployment.",
+  "updatedAt": "2026-01-20T17:32:34.740749194Z"
+}

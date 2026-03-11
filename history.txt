@@ -2,3 +2,5 @@
 INFO FOR DB;
 -- Phase 2: Create agent_reasoning table
 INFO FOR DB;
+SELECT count() FROM mission_journey GROUP ALL;
+INFO FOR DB;

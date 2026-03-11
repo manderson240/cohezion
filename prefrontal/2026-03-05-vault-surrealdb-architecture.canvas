@@ -1,0 +1,247 @@
+{
+  "nodes": [
+    {
+      "id": "title",
+      "type": "text",
+      "text": "# Vault↔SurrealDB Sync Architecture\n\n*Three-layer compound pattern: Hook → Journal → Daemon → DB*",
+      "x": -200,
+      "y": -800,
+      "width": 600,
+      "height": 80,
+      "color": "6"
+    },
+    {
+      "id": "g-layer1",
+      "type": "group",
+      "label": "Layer 1: Change Detection (Hook)",
+      "x": -500,
+      "y": -680,
+      "width": 1200,
+      "height": 200,
+      "color": "4"
+    },
+    {
+      "id": "n-agent",
+      "type": "text",
+      "text": "## Agent\n\nClaude Code · Gemini CLI\nOpenCode · Cursor\n\nWrites `.md` file →",
+      "x": -460,
+      "y": -640,
+      "width": 260,
+      "height": 120,
+      "color": "4"
+    },
+    {
+      "id": "n-hook",
+      "type": "text",
+      "text": "## PostToolUse Hook\n\n`vault-keeper-check.sh`\nFires on Write/Edit\n<5ms overhead",
+      "x": -140,
+      "y": -640,
+      "width": 260,
+      "height": 120,
+      "color": "4"
+    },
+    {
+      "id": "n-journal-append",
+      "type": "text",
+      "text": "## Journal Append\n\nAppends JSONL line:\n`{ts, action, path, hash}`\nNon-blocking",
+      "x": 180,
+      "y": -640,
+      "width": 260,
+      "height": 120,
+      "color": "4"
+    },
+    {
+      "id": "g-layer2",
+      "type": "group",
+      "label": "Layer 2: Change Journal (Buffer)",
+      "x": -500,
+      "y": -420,
+      "width": 1200,
+      "height": 200,
+      "color": "3"
+    },
+    {
+      "id": "n-journal",
+      "type": "text",
+      "text": "## changes.jsonl\n\nAppend-only log\nTimestamped mutations\nDeduplication by path+hash",
+      "x": -460,
+      "y": -380,
+      "width": 300,
+      "height": 120,
+      "color": "3"
+    },
+    {
+      "id": "n-checkpoint",
+      "type": "text",
+      "text": "## checkpoint.json\n\nLast-synced position\nResumable after crash",
+      "x": -100,
+      "y": -380,
+      "width": 260,
+      "height": 120,
+      "color": "3"
+    },
+    {
+      "id": "n-archive",
+      "type": "text",
+      "text": "## archive/\n\nDaily rotation\ngzip compressed\n30-day retention",
+      "x": 220,
+      "y": -380,
+      "width": 260,
+      "height": 120,
+      "color": "3"
+    },
+    {
+      "id": "g-layer3",
+      "type": "group",
+      "label": "Layer 3: Sync Daemon (Engine)",
+      "x": -500,
+      "y": -160,
+      "width": 1200,
+      "height": 200,
+      "color": "5"
+    },
+    {
+      "id": "n-daemon",
+      "type": "text",
+      "text": "## Sync Daemon\n\n`cohezion-vault-sync.service`\nPolls journal every 10s\nParses frontmatter + links\nIdempotent upserts",
+      "x": -460,
+      "y": -120,
+      "width": 300,
+      "height": 120,
+      "color": "5"
+    },
+    {
+      "id": "n-parse",
+      "type": "text",
+      "text": "## Parse Pipeline\n\n`.md` → frontmatter YAML\n→ wiki-links extracted\n→ content hash (SHA256)\n→ typed SurrealDB record",
+      "x": -100,
+      "y": -120,
+      "width": 280,
+      "height": 120,
+      "color": "5"
+    },
+    {
+      "id": "n-dlq",
+      "type": "text",
+      "text": "## Dead Letter Queue\n\nFailed upserts logged\nNot retried inline\nManual inspection",
+      "x": 240,
+      "y": -120,
+      "width": 240,
+      "height": 120,
+      "color": "1"
+    },
+    {
+      "id": "g-surreal",
+      "type": "group",
+      "label": "SurrealDB 3.0",
+      "x": -500,
+      "y": 100,
+      "width": 1200,
+      "height": 200,
+      "color": "6"
+    },
+    {
+      "id": "n-tables",
+      "type": "text",
+      "text": "## Tables\n\n`paper` · `concept` · `decision`\n`lesson` · `pattern` · `experiment`\n`project` · `spec`",
+      "x": -460,
+      "y": 140,
+      "width": 280,
+      "height": 120,
+      "color": "6"
+    },
+    {
+      "id": "n-edges",
+      "type": "text",
+      "text": "## Record References\n\nWiki-links → typed edges\n`RELATE concept:X->links->concept:Y`\nBidirectional, schema-level",
+      "x": -120,
+      "y": 140,
+      "width": 300,
+      "height": 120,
+      "color": "6"
+    },
+    {
+      "id": "n-features",
+      "type": "text",
+      "text": "## SurrealDB 3.0 Features\n\nHNSW vector search\nChange Feeds (90d)\nComputed fields\n8-22x faster graph queries",
+      "x": 240,
+      "y": 140,
+      "width": 280,
+      "height": 120,
+      "color": "6"
+    },
+    {
+      "id": "g-query",
+      "type": "group",
+      "label": "Query Path (Agents Read)",
+      "x": -500,
+      "y": 360,
+      "width": 580,
+      "height": 200,
+      "color": "2"
+    },
+    {
+      "id": "n-mcp-tools",
+      "type": "text",
+      "text": "## MCP Tools\n\n`surrealdb_query` — raw SurrealQL\n`surrealdb_search` — full-text + graph\n`surrealdb_import_all` — bulk sync",
+      "x": -460,
+      "y": 400,
+      "width": 280,
+      "height": 120,
+      "color": "2"
+    },
+    {
+      "id": "n-mcp-server",
+      "type": "text",
+      "text": "## Cloud Vault MCP\n\nPort 8360\nStreamable HTTP\nBearer token auth",
+      "x": -130,
+      "y": 400,
+      "width": 180,
+      "height": 120,
+      "color": "2"
+    },
+    {
+      "id": "g-write",
+      "type": "group",
+      "label": "Writeback Path (Agents Write)",
+      "x": 120,
+      "y": 360,
+      "width": 580,
+      "height": 200,
+      "color": "1"
+    },
+    {
+      "id": "n-write-tool",
+      "type": "text",
+      "text": "## vault_write\n\nAgent creates vault note\n→ PostToolUse fires\n→ Journal appended\n→ Loop closes automatically",
+      "x": 160,
+      "y": 400,
+      "width": 280,
+      "height": 120,
+      "color": "1"
+    },
+    {
+      "id": "n-adr",
+      "type": "file",
+      "file": "decisions/2026-03-05-vault-surrealdb-architecture.md",
+      "x": 500,
+      "y": 400,
+      "width": 160,
+      "height": 50
+    }
+  ],
+  "edges": [
+    {"id": "e1", "fromNode": "n-agent", "toNode": "n-hook", "label": "writes .md"},
+    {"id": "e2", "fromNode": "n-hook", "toNode": "n-journal-append", "label": "appends"},
+    {"id": "e3", "fromNode": "n-journal-append", "toNode": "n-journal", "label": "JSONL"},
+    {"id": "e4", "fromNode": "n-journal", "toNode": "n-daemon", "label": "polls"},
+    {"id": "e5", "fromNode": "n-daemon", "toNode": "n-parse", "label": "reads .md"},
+    {"id": "e6", "fromNode": "n-parse", "toNode": "n-tables", "label": "upserts"},
+    {"id": "e7", "fromNode": "n-parse", "toNode": "n-edges", "label": "creates edges"},
+    {"id": "e8", "fromNode": "n-daemon", "toNode": "n-dlq", "label": "on failure"},
+    {"id": "e9", "fromNode": "n-tables", "toNode": "n-mcp-tools", "label": "queries"},
+    {"id": "e10", "fromNode": "n-mcp-tools", "toNode": "n-mcp-server", "label": "via MCP"},
+    {"id": "e11", "fromNode": "n-write-tool", "toNode": "n-agent", "label": "closes loop"},
+    {"id": "e12", "fromNode": "n-checkpoint", "toNode": "n-daemon", "label": "resumes from"}
+  ]
+}

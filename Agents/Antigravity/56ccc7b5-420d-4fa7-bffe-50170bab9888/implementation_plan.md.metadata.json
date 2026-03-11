@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Implementation plan for adding robust file locking and concurrency control to the Cohezion project, including advisory locks, atomic writes, and agent workspace staging.",
+  "updatedAt": "2026-01-21T15:23:38.227364781Z"
+}

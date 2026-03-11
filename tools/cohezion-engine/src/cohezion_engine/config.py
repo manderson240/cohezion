@@ -1,4 +1,5 @@
 """Configuration management for cohezion-engine."""
+
 from pathlib import Path
 
 

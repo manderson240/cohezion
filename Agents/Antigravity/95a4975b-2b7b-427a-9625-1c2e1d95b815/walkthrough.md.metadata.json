@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Walkthrough of the Multi-Core Instability Fix.\nResolved an `IndexError` caused by incorrect loop bounds in the multi-core batch distributor and fixed an `AssertionError` in round-by-round validation. The validation failure was traced to the VLIW packer reordering instructions across Round boundaries, which was resolved by implementing a `barrier()` mechanism to ensure strict ordering around `pause` instructions. Final performance achieved 385 cycles (approx. 383x speedup).",
+  "updatedAt": "2026-01-23T06:51:15.929022502Z"
+}

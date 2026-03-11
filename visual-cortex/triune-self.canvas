@@ -1,0 +1,231 @@
+{
+  "nodes": [
+    {
+      "id": "knower",
+      "type": "group",
+      "x": -600,
+      "y": -400,
+      "width": 400,
+      "height": 500,
+      "label": "THE KNOWER\nI-ness, Selfness\n\"That which knows\""
+    },
+    {
+      "id": "thinker",
+      "type": "group",
+      "x": 200,
+      "y": -400,
+      "width": 400,
+      "height": 500,
+      "label": "THE THINKER\nRightness, Reason\n\"That which reasons\""
+    },
+    {
+      "id": "doer",
+      "type": "group",
+      "x": -200,
+      "y": 200,
+      "width": 400,
+      "height": 500,
+      "label": "THE DOER\nFeeling, Desire\n\"That which acts\""
+    },
+    {
+      "id": "connective",
+      "type": "group",
+      "x": -200,
+      "y": -900,
+      "width": 400,
+      "height": 400,
+      "label": "THE CONNECTIVE\nWhere All Three Meet\nUnity"
+    },
+    {
+      "id": "cortex",
+      "type": "file",
+      "file": "cortex/MOC-vault-architecture.md",
+      "x": -580,
+      "y": -380,
+      "width": 220,
+      "height": 60
+    },
+    {
+      "id": "sensory",
+      "type": "text",
+      "text": "sensory/\nResearch papers",
+      "x": -580,
+      "y": -300,
+      "width": 180,
+      "height": 60
+    },
+    {
+      "id": "memory",
+      "type": "text",
+      "text": "memory/\nLessons learned",
+      "x": -580,
+      "y": -220,
+      "width": 180,
+      "height": 60
+    },
+    {
+      "id": "genome",
+      "type": "text",
+      "text": "genome/\nSystem blueprints",
+      "x": -580,
+      "y": -140,
+      "width": 180,
+      "height": 60
+    },
+    {
+      "id": "prefrontal",
+      "type": "text",
+      "text": "prefrontal/\nDecision records",
+      "x": 220,
+      "y": -380,
+      "width": 180,
+      "height": 60
+    },
+    {
+      "id": "laboratory",
+      "type": "text",
+      "text": "laboratory/\nHypothesis testing",
+      "x": 220,
+      "y": -300,
+      "width": 180,
+      "height": 60
+    },
+    {
+      "id": "cerebellum",
+      "type": "text",
+      "text": "cerebellum/\nReusable patterns",
+      "x": 220,
+      "y": -220,
+      "width": 180,
+      "height": 60
+    },
+    {
+      "id": "benchmarks",
+      "type": "text",
+      "text": "benchmarks/\nQuantified reasoning",
+      "x": 220,
+      "y": -140,
+      "width": 180,
+      "height": 60
+    },
+    {
+      "id": "motor",
+      "type": "text",
+      "text": "motor/\nProject tracking",
+      "x": -180,
+      "y": 220,
+      "width": 180,
+      "height": 60
+    },
+    {
+      "id": "hippocampus",
+      "type": "text",
+      "text": "hippocampus/\nSession logs",
+      "x": -180,
+      "y": 300,
+      "width": 180,
+      "height": 60
+    },
+    {
+      "id": "thalamus",
+      "type": "text",
+      "text": "thalamus/\nUnsorted intake",
+      "x": -180,
+      "y": 380,
+      "width": 180,
+      "height": 60
+    },
+    {
+      "id": "missions",
+      "type": "text",
+      "text": "missions/\nMulti-agent tasks",
+      "x": -180,
+      "y": 460,
+      "width": 180,
+      "height": 60
+    },
+    {
+      "id": "dreaming",
+      "type": "file",
+      "file": "dreaming/2026-03-09-resonances.md",
+      "x": -180,
+      "y": -880,
+      "width": 220,
+      "height": 60
+    },
+    {
+      "id": "metabolism",
+      "type": "file",
+      "file": "metabolism/metabolism-dashboard.md",
+      "x": -180,
+      "y": -800,
+      "width": 220,
+      "height": 60
+    },
+    {
+      "id": "songlines",
+      "type": "text",
+      "text": "songlines/\nKnowledge paths",
+      "x": -180,
+      "y": -720,
+      "width": 180,
+      "height": 60
+    },
+    {
+      "id": "subconscious",
+      "type": "text",
+      "text": "subconscious/\nLatent associations",
+      "x": -180,
+      "y": -640,
+      "width": 180,
+      "height": 60
+    },
+    {
+      "id": "manifest",
+      "type": "file",
+      "file": "VAULT_MANIFEST.md",
+      "x": -100,
+      "y": -120,
+      "width": 200,
+      "height": 60
+    }
+  ],
+  "edges": [
+    {
+      "id": "knower-thinker",
+      "fromNode": "knower",
+      "toNode": "thinker",
+      "label": "grounds"
+    },
+    {
+      "id": "thinker-doer",
+      "fromNode": "thinker",
+      "toNode": "doer",
+      "label": "directs"
+    },
+    {
+      "id": "doer-knower",
+      "fromNode": "doer",
+      "toNode": "knower",
+      "label": "informs"
+    },
+    {
+      "id": "connective-knower",
+      "fromNode": "connective",
+      "toNode": "knower",
+      "label": "unifies"
+    },
+    {
+      "id": "connective-thinker",
+      "fromNode": "connective",
+      "toNode": "thinker",
+      "label": "unifies"
+    },
+    {
+      "id": "connective-doer",
+      "fromNode": "connective",
+      "toNode": "doer",
+      "label": "unifies"
+    }
+  ]
+}

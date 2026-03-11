@@ -1,6 +1,6 @@
 """Plan file lifecycle management for cohezion-engine."""
+
 import json
-import re
 from pathlib import Path
 
 from cohezion_engine.session import get_session_dir

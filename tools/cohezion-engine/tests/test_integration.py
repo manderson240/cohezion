@@ -1,4 +1,5 @@
 """Integration tests for cohezion-engine: full CLI, coherence checks, worktree cycle."""
+
 import json
 import os
 import subprocess
@@ -6,7 +7,6 @@ import sys
 from pathlib import Path
 
 import pytest
-
 
 WKDIR = Path(__file__).parent.parent
 VAULT_ROOT = WKDIR.parent.parent
@@ -30,6 +30,7 @@ def run_cz(*args: str, env_overrides: dict | None = None) -> subprocess.Complete
 # ---------------------------------------------------------------------------
 # Coherence checks — vault structure integrity
 # ---------------------------------------------------------------------------
+
 
 class TestCoherenceChecks:
     """Verify that the vault .claude/ directory has no Pilot references and all required files."""
@@ -120,6 +121,7 @@ class TestCoherenceChecks:
 # CLI integration — JSON schema validation across all subcommands
 # ---------------------------------------------------------------------------
 
+
 class TestCLIJsonSchemas:
     """Verify that all --json outputs conform to their documented schemas."""
 
@@ -169,6 +171,7 @@ class TestCLIJsonSchemas:
 # Worktree full cycle in a temporary git repository
 # ---------------------------------------------------------------------------
 
+
 class TestWorktreeCycle:
     """Test create → detect → diff → cleanup in an isolated git repo."""
 
@@ -187,8 +190,11 @@ class TestWorktreeCycle:
             )
 
         from cohezion_engine.worktree import (
-            create_worktree, detect_worktree, diff_worktree,
-            sync_worktree, cleanup_worktree,
+            cleanup_worktree,
+            create_worktree,
+            detect_worktree,
+            diff_worktree,
+            sync_worktree,
         )
 
         # Step 1: Detect — not found
@@ -210,12 +216,20 @@ class TestWorktreeCycle:
         # Step 4: Make a change in the worktree and commit it
         new_file = worktree_path / "feature.txt"
         new_file.write_text("new feature\n")
-        subprocess.run(["git", "-C", str(worktree_path), "add", "feature.txt"], check=True, capture_output=True)
+        subprocess.run(
+            ["git", "-C", str(worktree_path), "add", "feature.txt"], check=True, capture_output=True
+        )
         subprocess.run(
             ["git", "-C", str(worktree_path), "commit", "-m", "add feature"],
-            check=True, capture_output=True,
-            env={**os.environ, "GIT_AUTHOR_NAME": "Test", "GIT_AUTHOR_EMAIL": "test@test.com",
-                 "GIT_COMMITTER_NAME": "Test", "GIT_COMMITTER_EMAIL": "test@test.com"},
+            check=True,
+            capture_output=True,
+            env={
+                **os.environ,
+                "GIT_AUTHOR_NAME": "Test",
+                "GIT_AUTHOR_EMAIL": "test@test.com",
+                "GIT_COMMITTER_NAME": "Test",
+                "GIT_COMMITTER_EMAIL": "test@test.com",
+            },
         )
 
         # Step 5: Diff — should show changes vs base branch
@@ -257,12 +271,15 @@ class TestWorktreeCycle:
 # Hook script integration
 # ---------------------------------------------------------------------------
 
+
 class TestHookIntegration:
     """Test that hook scripts respond correctly to real-world-style inputs."""
 
     HOOKS_DIR = WKDIR / "src" / "cohezion_engine" / "hooks"
 
-    def run_hook(self, hook_file: str, stdin_data: dict, env: dict | None = None) -> subprocess.CompletedProcess:
+    def run_hook(
+        self, hook_file: str, stdin_data: dict, env: dict | None = None
+    ) -> subprocess.CompletedProcess:
         hook_env = {**os.environ}
         if env:
             hook_env.update(env)
@@ -279,7 +296,14 @@ class TestHookIntegration:
         # Create a fake JSONL with enough tokens to trigger CLEAR_NEEDED (91%)
         # 200k * 0.91 = 182,000 tokens
         jsonl = tmp_path / "session.jsonl"
-        entry = {"role": "assistant", "usage": {"input_tokens": 182000, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0}}
+        entry = {
+            "role": "assistant",
+            "usage": {
+                "input_tokens": 182000,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+            },
+        }
         jsonl.write_text(json.dumps({"message": entry}) + "\n")
 
         result = self.run_hook(

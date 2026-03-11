@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Implementation plan for the REDUNDANCY_SUPPRESSION_PRIME skill and its integration into the Cohezion swarm. This skill introduces entropy-based task hashing, rolling frequency analysis, and tiered suppression (Warning -> Stochastic Perturbation -> Hard Sleep) to prevent infinite loops and optimize compute. It includes updates to the BaseAgent for autonomic protection and unit tests for verification.",
+  "updatedAt": "2026-01-20T12:19:49.405417548Z"
+}

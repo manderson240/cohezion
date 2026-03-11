@@ -1,3 +1,10 @@
+---
+title: "Track A: GraphRAG Reasoning Engine - API Documentation"
+date: 2026-02-14
+status: draft
+tags: [documentation, graphrag, api-design, surrealdb, knowledge-graph]
+---
+
 # Track A: GraphRAG Reasoning Engine - API Documentation
 
 **Status**: [DRAFT - Under Development]
@@ -6,7 +13,7 @@
 
 ## Overview
 
-The GraphRAG Reasoning Engine provides LangChain-based GraphRAG integration for extracting and querying decision reasoning chains from the SurrealDB knowledge graph.
+The GraphRAG Reasoning Engine provides LangChain-based [[graphrag-knowledge-graph-with-surrealdb|GraphRAG]] integration for extracting and querying decision reasoning chains from the [[surrealdb]] knowledge graph.
 
 ## Quick Start
 
@@ -67,3 +74,8 @@ class ReasoningExtractor:
 - [Track B: Confidence Scoring](TRACK_B_SCORING_API.md)
 - [Track C: Impact Analysis](TRACK_C_IMPACT_API.md)
 - [Design Spec](../decisions/TRACK-A-DESIGN-SPEC-GRAPHRAG-2026-02-14.md)
+- [[graphrag-knowledge-graph-with-surrealdb]]
+- [[knowledge-graph-systems]]
+- [[surrealdb]]
+- [[api-design]]
+- [[semantic-search]]

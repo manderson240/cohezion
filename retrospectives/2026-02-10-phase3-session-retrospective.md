@@ -3,6 +3,11 @@ title: "Phase 3 Session Retrospective - Over-Engineering vs Execution"
 date: 2026-02-10
 tags: [retrospective, phase-3, lessons, decision-paralysis]
 severity: HIGH
+aspect: doer
+neural:
+  activation: 0.640
+  stage: mature
+  cluster: retrospectives
 ---
 
 # Session Retrospective: Phase 3 Planning

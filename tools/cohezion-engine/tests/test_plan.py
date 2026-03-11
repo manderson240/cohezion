@@ -1,18 +1,20 @@
 """Tests for plan lifecycle module."""
+
 import json
 import os
 import subprocess
 import sys
 from pathlib import Path
 
-import pytest
-
-
 WKDIR = Path(__file__).parent.parent
 
 
 def run_cz(*args: str, env_overrides: dict | None = None) -> subprocess.CompletedProcess:
-    env = {**os.environ, "PYTHONPATH": str(WKDIR / "src"), "COHEZION_SESSION_ID": "test-plan-session"}
+    env = {
+        **os.environ,
+        "PYTHONPATH": str(WKDIR / "src"),
+        "COHEZION_SESSION_ID": "test-plan-session",
+    }
     if env_overrides:
         env.update(env_overrides)
     return subprocess.run(
@@ -59,8 +61,10 @@ class TestPlanModule:
 
     def test_register_plan_creates_association(self, tmp_path, monkeypatch):
         monkeypatch.setenv("COHEZION_SESSION_ID", "test-reg-session")
-        from cohezion_engine import plan as plan_mod
         import importlib
+
+        from cohezion_engine import plan as plan_mod
+
         importlib.reload(plan_mod)
 
         plan_file = tmp_path / "my_plan.md"
@@ -74,8 +78,10 @@ class TestPlanModule:
 
     def test_get_plan_status_includes_frontmatter(self, tmp_path, monkeypatch):
         monkeypatch.setenv("COHEZION_SESSION_ID", "test-status-session")
-        from cohezion_engine import plan as plan_mod
         import importlib
+
+        from cohezion_engine import plan as plan_mod
+
         importlib.reload(plan_mod)
 
         plan_file = tmp_path / "plan.md"
@@ -88,8 +94,10 @@ class TestPlanModule:
 
     def test_get_plan_status_returns_none_when_no_plan(self, tmp_path, monkeypatch):
         monkeypatch.setenv("COHEZION_SESSION_ID", "test-empty-session")
-        from cohezion_engine import plan as plan_mod
         import importlib
+
+        from cohezion_engine import plan as plan_mod
+
         importlib.reload(plan_mod)
 
         info = plan_mod.get_plan_status(base_dir=tmp_path)
@@ -98,18 +106,29 @@ class TestPlanModule:
     def test_cli_plan_register(self, tmp_path):
         plan_file = tmp_path / "plan.md"
         plan_file.write_text(SAMPLE_PLAN)
-        result = run_cz("plan", "register", str(plan_file), "PENDING",
-                        env_overrides={"COHEZION_SESSION_ID": "test-cli-plan"})
+        result = run_cz(
+            "plan",
+            "register",
+            str(plan_file),
+            "PENDING",
+            env_overrides={"COHEZION_SESSION_ID": "test-cli-plan"},
+        )
         assert result.returncode == 0
 
     def test_cli_plan_status_json(self, tmp_path):
         plan_file = tmp_path / "plan.md"
         plan_file.write_text(SAMPLE_PLAN)
         # Register first
-        run_cz("plan", "register", str(plan_file), "PENDING",
-                env_overrides={"COHEZION_SESSION_ID": "test-cli-status"})
-        result = run_cz("plan", "status", "--json",
-                        env_overrides={"COHEZION_SESSION_ID": "test-cli-status"})
+        run_cz(
+            "plan",
+            "register",
+            str(plan_file),
+            "PENDING",
+            env_overrides={"COHEZION_SESSION_ID": "test-cli-status"},
+        )
+        result = run_cz(
+            "plan", "status", "--json", env_overrides={"COHEZION_SESSION_ID": "test-cli-status"}
+        )
         assert result.returncode == 0
         data = json.loads(result.stdout)
         assert "path" in data

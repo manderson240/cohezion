@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Technical plan to enable remote access (SSH and Chrome Remote Desktop) and send a connection guide to the user via email.",
+  "updatedAt": "2026-01-20T22:27:36.642592751Z"
+}

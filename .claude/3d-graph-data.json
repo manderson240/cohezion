@@ -6664,12 +6664,6 @@
     },
     {
       "source": "patterns:google-sheets-vault-bridge",
-      "target": "concepts:status, abstractions, domain, integration",
-      "strength": 1.0,
-      "type": "wikilink"
-    },
-    {
-      "source": "patterns:google-sheets-vault-bridge",
       "target": "concepts:2026-02-07-event-driven-inbox-processor",
       "strength": 1.0,
       "type": "wikilink"
@@ -6689,18 +6683,6 @@
     {
       "source": "patterns:google-sheets-vault-bridge",
       "target": "concepts:2026-02-09-12d-graph-refined-plan",
-      "strength": 1.0,
-      "type": "wikilink"
-    },
-    {
-      "source": "patterns:sheetsbr idge-mcp-testing",
-      "target": "concepts:\"batch_test_1\", \"abstractions1\", \"domain1\", \"integration1\"",
-      "strength": 1.0,
-      "type": "wikilink"
-    },
-    {
-      "source": "patterns:sheetsbr idge-mcp-testing",
-      "target": "concepts:\"batch_test_2\", \"abstractions2\", \"domain2\", \"integration2\"",
       "strength": 1.0,
       "type": "wikilink"
     },

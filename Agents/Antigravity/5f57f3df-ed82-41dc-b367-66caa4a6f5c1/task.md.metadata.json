@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_TASK",
+  "summary": "Task checklist for codifying Red Team vs Blue Team to achieve HIHO 0.5 stability. Includes research, implementation of adversarial agents, and verification via simulation.",
+  "updatedAt": "2026-02-05T06:04:10.742008520Z"
+}

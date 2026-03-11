@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Plan to resolve system unresponsiveness by capping ZFS ARC to 16GB, enhancing ResourceMonitor with faster polling (3s) and swap/ARC awareness, and persisting these settings. Includes verification via stress tests.",
+  "updatedAt": "2026-01-29T00:11:24.718420254Z"
+}

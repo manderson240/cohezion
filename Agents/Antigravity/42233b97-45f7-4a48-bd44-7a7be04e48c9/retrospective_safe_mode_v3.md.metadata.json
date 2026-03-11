@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_OTHER",
+  "summary": "Retrospective on the Safe Mode v3 implementation and verification. Covers hardware constraints, resource guarding, and sequential execution logic.",
+  "updatedAt": "2026-02-10T06:30:24.961057742Z"
+}

@@ -179,3 +179,9 @@ Manual verification:
 cz context --json         # Shows velocity and turns_remaining
 cz context estimate --tokens 50000 --json   # Shows fits/status_after
 ```
+
+## Related Concepts
+- [[context-management]]
+- [[cohezion]]
+- [[compound-engineering]]
+- [[token-efficiency]]

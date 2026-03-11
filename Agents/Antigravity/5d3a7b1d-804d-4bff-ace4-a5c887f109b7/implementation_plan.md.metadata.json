@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Phase 10: High-performance ingestion of 9.3M archived nodes into SurrealDB.",
+  "updatedAt": "2026-01-28T22:40:40.452773105Z",
+  "version": "5"
+}

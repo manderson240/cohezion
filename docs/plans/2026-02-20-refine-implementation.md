@@ -349,3 +349,9 @@ Worktree: Yes
 - Automated settings.local.json cleanup via cron job
 - Dashboard showing permission accumulation rate over time
 - Integration with `sx` vault system to share curated patterns across team
+
+## Related Concepts
+- [[cohezion]]
+- [[context-management]]
+- [[tool-use]]
+- [[workflow-orchestration]]

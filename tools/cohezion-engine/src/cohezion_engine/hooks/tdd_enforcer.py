@@ -7,6 +7,7 @@ Protocol:
   - Prints TDD reminder to stdout when production Python file is written
     without a corresponding test file being modified in the same turn.
 """
+
 import json
 import sys
 from pathlib import Path

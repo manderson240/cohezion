@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Walkthrough documenting the root cause of the system unresponsiveness and the implemented guardrail enhancements. Includes proof of verification via stress tests and a detailed explanation of the non-privileged shutdown strategy.",
+  "updatedAt": "2026-01-28T13:54:49.050543478Z"
+}

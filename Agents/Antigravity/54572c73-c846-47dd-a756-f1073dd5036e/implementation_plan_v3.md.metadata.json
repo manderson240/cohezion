@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Implementation plan for the Hallucination Resolver, a proactive guardrail to detect and mitigate AI hallucinations using grounded truth anchors.",
+  "updatedAt": "2026-02-02T21:56:09.804275196Z"
+}

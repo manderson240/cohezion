@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Hardening plan for Cohezion CLI: validation, error handling, and security.",
+  "updatedAt": "2026-01-24T16:29:01.576502571Z",
+  "version": "1"
+}

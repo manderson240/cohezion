@@ -1,5 +1,16 @@
 {
   "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /home/mike-anderson/vaults/cohezion-vault/.claude/hooks/project-agenda.sh"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "track_session",
@@ -72,6 +83,19 @@
           {
             "type": "command",
             "command": "bash /home/mike-anderson/vaults/cohezion-vault/.claude/hooks/vault-link-suggest.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash /home/mike-anderson/vaults/cohezion-vault/.claude/hooks/vault-keeper-check.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /home/mike-anderson/vaults/cohezion-vault/.claude/hooks/vault-keeper-check.sh"
           }
         ]
       }

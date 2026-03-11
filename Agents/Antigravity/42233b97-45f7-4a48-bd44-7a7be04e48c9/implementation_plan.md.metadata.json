@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Hardened implementation plan for the Code Review Swarm (Safe Mode v3). Features sequential LLM locking, load-based throttling, and selective semantic analysis.",
+  "updatedAt": "2026-02-10T06:32:15.949645655Z",
+  "version": "3"
+}

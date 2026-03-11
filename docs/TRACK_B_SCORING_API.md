@@ -1,3 +1,10 @@
+---
+title: "Track B: Confidence Scoring System - API Documentation"
+date: 2026-02-14
+status: draft
+tags: [documentation, scoring, api-design, decision-analysis]
+---
+
 # Track B: Confidence Scoring System - API Documentation
 
 **Status**: [DRAFT - Under Development]
@@ -79,3 +86,6 @@ class ConfidenceScorer:
 - [Track A: GraphRAG](TRACK_A_GRAPHRAG_API.md)
 - [Track C: Impact Analysis](TRACK_C_IMPACT_API.md)
 - [Design Spec](../decisions/TRACK-B-DESIGN-SPEC-SCORING-2026-02-14.md)
+- [[api-design]]
+- [[machine-learning]]
+- [[knowledge-graph-systems]]

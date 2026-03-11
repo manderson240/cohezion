@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Plan to parse ruff and mypy errors and insert them into SurrealDB as swarm tasks for Ouroboros to heal.",
+  "updatedAt":  "2026-03-03T05:13:08.297985227Z"
+}

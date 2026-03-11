@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Updating implementation plan with debugging findings: v_idx corrupted by hash constant. Planning fix in add_hash_hybrid or allocation.",
+  "updatedAt": "2026-01-24T13:32:43.292081146Z",
+  "version": "6"
+}

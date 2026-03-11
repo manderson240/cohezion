@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_OTHER",
+  "summary": "Consolidated report detailing the semantic analysis of the first 6 Cohezion architectural anchors (Pillars). Each entry identifies the core architectural pattern, design patterns (e.g., Strategy, Observer), and provides a summary of the component's role within the system. This synthesis bridges the gap between raw LLM findings and high-level architectural understanding.",
+  "updatedAt": "2026-02-10T15:14:51.367194077Z"
+}

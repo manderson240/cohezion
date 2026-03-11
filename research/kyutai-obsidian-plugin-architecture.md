@@ -1,3 +1,10 @@
+---
+title: Kyutai Obsidian Plugin Architecture
+date: 2026-02-09
+status: complete
+tags: [research, kyutai, obsidian, plugin, architecture, ui-design]
+---
+
 # Kyutai Obsidian Plugin Architecture
 
 **Document Version:** 1.0
@@ -2344,8 +2351,11 @@ This architecture provides a comprehensive design for integrating Kyutai's voice
 
 ## Related
 
-- [[research/kyutai-api-specification|Kyutai API Specification]] — the foundational API research; this plugin calls the models documented there via the MCP bridge
-- [[research/kyutai-mcp-server-architecture|Kyutai MCP Server Architecture]] — the Python backend this TypeScript plugin communicates with over HTTP/WebSocket
-- [[decisions/2026-02-10-kyutai-mcp-obsidian-plugin-plan|Kyutai MCP + Obsidian Plugin Plan]] — the compound engineering plan that produced this architecture document
-- [[decisions/2026-02-10-kyutai-pocket-tts-token-efficient-success|Kyutai Pocket TTS: Token-Efficient Success]] — post-implementation validation of the Phase 1 TTS workflow described in Workflow 1 of this document
-- [[concepts/cloud-vault-mcp|Cloud Vault MCP]] — the existing Obsidian MCP integration (port 8360) whose infrastructure patterns informed this plugin design
+- [[kyutai-api-specification|Kyutai API Specification]] — the foundational API research; this plugin calls the models documented there via the MCP bridge
+- [[kyutai-mcp-server-architecture|Kyutai MCP Server Architecture]] — the Python backend this TypeScript plugin communicates with over HTTP/WebSocket
+- [[2026-02-10-kyutai-mcp-obsidian-plugin-plan|Kyutai MCP + Obsidian Plugin Plan]] — the compound engineering plan that produced this architecture document
+- [[2026-02-10-kyutai-pocket-tts-token-efficient-success|Kyutai Pocket TTS: Token-Efficient Success]] — post-implementation validation of the Phase 1 TTS workflow described in Workflow 1 of this document
+- [[cloud-vault-mcp|Cloud Vault MCP]] — the existing Obsidian MCP integration (port 8360) whose infrastructure patterns informed this plugin design
+- [[kyutai-project]]
+- [[mcp-model-context-protocol]]
+- [[api-design]]

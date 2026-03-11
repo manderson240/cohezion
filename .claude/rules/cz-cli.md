@@ -22,8 +22,8 @@ cd tools/cohezion-engine && uv pip install -e .
 - `CLEAR_NEEDED` — 90%+ (hand off immediately)
 
 **Session ID:** Uses `COHEZION_SESSION_ID` env var, falls back to `pid-<PID>`.
-**Session directory:** `~/.cohezion-engine/sessions/<session-id>/`
-**Continuation file:** `~/.cohezion-engine/sessions/<session-id>/continuation.md`
+**Session directory:** `~/.cohezion-engine/hippocampus/<session-id>/`
+**Continuation file:** `~/.cohezion-engine/hippocampus/<session-id>/continuation.md`
 
 ### Worktree Management
 

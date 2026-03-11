@@ -3,6 +3,11 @@ title: Session 69 Retrospective
 date: 2026-02-22
 status: stub
 tags: [retrospective, session, stub]
+aspect: doer
+neural:
+  activation: 0.267
+  stage: embryo
+  cluster: retrospectives
 ---
 
 # Session 69 Retrospective

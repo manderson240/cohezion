@@ -1,0 +1,169 @@
+{
+  "nodes": [
+    {
+      "id": "title",
+      "type": "text",
+      "text": "# Cohezion Architecture\n\nAgentic AI framework for knowledge-accumulating workflows\n\n*Vault-First · Compound Engineering · Offline-First*",
+      "x": -400,
+      "y": -2060,
+      "width": 800,
+      "height": 120,
+      "color": "6"
+    },
+
+    { "id": "g-orchestration", "type": "group", "label": "Orchestration Layer", "x": -1160, "y": -1880, "width": 1920, "height": 460, "color": "6" },
+    { "id": "g-mcp",           "type": "group", "label": "MCP Protocol Layer",  "x": -1160, "y": -1360, "width": 1920, "height": 460, "color": "5" },
+    { "id": "g-backend",       "type": "group", "label": "Backend Services",     "x": -1160, "y": -840,  "width": 1920, "height": 460, "color": "4" },
+    { "id": "g-vault",         "type": "group", "label": "Knowledge Vault  ·  Vault-First Architecture", "x": -1160, "y": -320, "width": 1440, "height": 480, "color": "3" },
+    { "id": "g-methodology",   "type": "group", "label": "Compound Engineering Methodology",             "x": 340,   "y": -320, "width": 860,  "height": 480, "color": "2" },
+    { "id": "g-viz",           "type": "group", "label": "Visualization",        "x": -340,  "y": 220,   "width": 780,  "height": 280, "color": "1" },
+
+    {
+      "id": "n-cz",
+      "type": "text",
+      "text": "## ⚙️ cohezion-engine\n\n`cz` CLI · Python 3.12+\n\n**Commands:**\n`cz context --json`\n`cz session status|send-clear`\n`cz worktree detect|create|sync|cleanup`\n`cz plan register|status`\n\nSessions: `~/.cohezion-engine/sessions/`",
+      "x": -1100, "y": -1820, "width": 420, "height": 340, "color": "6"
+    },
+    {
+      "id": "n-claude-code",
+      "type": "text",
+      "text": "## 🤖 Claude Code IDE\n\nSonnet 4.6 · Primary interface\n\n- MCP tool orchestration\n- Context tracking (0–100%)\n- Task management (TaskCreate/TaskList)\n- Endless mode via 90% handoff\n- Worktree isolation per /spec",
+      "x": -640, "y": -1820, "width": 400, "height": 340, "color": "6"
+    },
+    {
+      "id": "n-spec",
+      "type": "text",
+      "text": "## 📋 /spec Workflow\n\n**Phases (automatic):**\nspec-plan → spec-implement → spec-verify\n\n**Plan lifecycle:**\nPENDING → COMPLETE → VERIFIED\n\n**Verification (parallel agents):**\nplan-verifier + plan-challenger\nspec-reviewer-compliance + spec-reviewer-quality\n\nWorktree isolation · TDD enforcement",
+      "x": -200, "y": -1820, "width": 480, "height": 340, "color": "6"
+    },
+    {
+      "id": "n-skills",
+      "type": "text",
+      "text": "## 🎯 Skills & Hooks\n\n**Skills:**\n/spec · /learn · /sync · /vault\n/research · /daily-research\n/security-review · /spec-plan\n\n**Hooks:**\nContext monitor · TDD enforcer\nFile checker · Auto-learn\n\n**Agents:** 14 specialist · 4.2× throughput",
+      "x": 320, "y": -1820, "width": 380, "height": 340, "color": "6"
+    },
+
+    {
+      "id": "n-cloud-mcp",
+      "type": "text",
+      "text": "## ☁️ Cloud Vault MCP\n\nHTTP · Port **8360**\n\n**30+ Tools:**\n- VaultOps (10): read, write, search, watch\n- CompoundOps (4): enrich, cross-ref, gap\n- SurrealDB Ops (5): query, import, index\n- Sheets Bridge (5): get, update, batch\n- Teleport (6): submit, result, sync\n- Memory Ops (3): store, retrieve, list",
+      "x": -1100, "y": -1300, "width": 480, "height": 340, "color": "5"
+    },
+    {
+      "id": "n-ollama-mcp",
+      "type": "text",
+      "text": "## 🧠 Ollama MCP\n\nStdio · Smart model routing\n\n**5 Tools:**\n- ollama_query — inference\n- ollama_embed — vectors\n- ollama_batch — parallel\n- ollama_select_model — dynamic routing\n- ollama_status — health",
+      "x": -580, "y": -1300, "width": 380, "height": 340, "color": "5"
+    },
+    {
+      "id": "n-pilot-mcp",
+      "type": "text",
+      "text": "## 💾 Pilot Console MCP\n\nPersistent memory across sessions\n\n**3-layer workflow:**\n1. `search(query)` → index\n2. `timeline(anchor=ID)` → context\n3. `get_observations(ids)` → details\n\n10× token savings via filtering\nWeb viewer: `localhost:41777`",
+      "x": -160, "y": -1300, "width": 380, "height": 340, "color": "5"
+    },
+    {
+      "id": "n-external",
+      "type": "text",
+      "text": "## 🌐 External Tools\n\n**Context7** — Library docs (indexed)\n**grep-mcp** — GitHub code search\n**web-search** — DuckDuckGo/Bing\n**web-fetch** — Full page via Playwright\n**vexor** — Semantic codebase search\n**playwright-cli** — E2E browser testing\n\n*Learn before you code*",
+      "x": 260, "y": -1300, "width": 460, "height": 340, "color": "5"
+    },
+
+    {
+      "id": "n-surrealdb",
+      "type": "text",
+      "text": "## 🗄️ SurrealDB\n\nGraph DB · Port **8000**\n\n**Schema:**\n`papers` — 12-dim semantic graph\n`concepts` — Definitions + links\n`links` — Typed relationships\n\nSurrealQL · < 700ms batch (100×)\nGraph traversal · Semantic queries",
+      "x": -1100, "y": -780, "width": 440, "height": 340, "color": "4"
+    },
+    {
+      "id": "n-sheets",
+      "type": "text",
+      "text": "## 📊 Google Sheets Bridge\n\nSheet: **Cohesion_Research**\n\n**Columns:**\nLink · Status · Key Abstractions\nDomain · Integration Point · Vault Note\n\nGoogle Cloud ADC\nBatch sync via SheetsBridge",
+      "x": -620, "y": -780, "width": 380, "height": 340, "color": "4"
+    },
+    {
+      "id": "n-ollama-svc",
+      "type": "text",
+      "text": "## 🔥 Ollama Service\n\nLocal inference · Port **11434**\n\n**28+ Models:**\n- Embed: `nomic-embed-text`\n- Short (<10K): `qwen3:8b`, `deepseek-r1:7b`\n- Medium: `qwen2.5-coder:14b`, `phi4`\n- Long (256K): `phi4-256k`\n\n< 1500ms warm · Privacy-first",
+      "x": -200, "y": -780, "width": 420, "height": 340, "color": "4"
+    },
+    {
+      "id": "n-teleport",
+      "type": "text",
+      "text": "## 🚀 Teleport\n\nCloud ↔ Local file sync\n\n`submit_task` · `get_result`\n`list_tasks` · `update_status`\n`archive_result` · `cleanup`\n\nResults: `teleport/results/`\nTasks: `teleport/tasks/`",
+      "x": 260, "y": -780, "width": 460, "height": 340, "color": "4"
+    },
+
+    { "id": "n-papers",      "type": "text", "text": "## 📄 papers/\n\n84+ research papers\nAI · Physics · Space · Biology\nEnriched metadata + wiki-links\n~500+ cross-references",           "x": -1100, "y": -260, "width": 280, "height": 180, "color": "3" },
+    { "id": "n-decisions",   "type": "text", "text": "## ⚖️ decisions/\n\nArchitecture Decision Records\nContext → Decision → Consequences\nConfidence scores + reasoning",    "x": -780,  "y": -260, "width": 280, "height": 180, "color": "3" },
+    { "id": "n-patterns",    "type": "text", "text": "## 🔁 patterns/\n\nReusable solutions\nProblem · Solution · Code\nExtracted from project work",         "x": -460,  "y": -260, "width": 280, "height": 180, "color": "3" },
+    { "id": "n-concepts",    "type": "text", "text": "## 💡 concepts/\n\n21+ core definitions\nCross-linked to papers\n& decisions via `[[wiki-links]]`",        "x": -140,  "y": -260, "width": 280, "height": 180, "color": "3" },
+    { "id": "n-experiments", "type": "text", "text": "## 🧪 experiments/\n\nHypothesis-driven logs\nFailed = as valuable as passed\nPrevent dead-end repeats",           "x": -1100, "y": -60,  "width": 280, "height": 180, "color": "3" },
+    { "id": "n-daily",       "type": "text", "text": "## 📅 daily/\n\nSession logs\nTask · Notes · Learnings\nTemporal anchor for vault",                    "x": -780,  "y": -60,  "width": 280, "height": 180, "color": "3" },
+    { "id": "n-projects",    "type": "text", "text": "## 🗂️ projects/\n\nLong-term tracking\nGoals · Status · Key Decisions\nActive → Complete → Archived",        "x": -460,  "y": -60,  "width": 280, "height": 180, "color": "3" },
+    { "id": "n-inbox",       "type": "text", "text": "## 📥 inbox/\n\nRaw idea capture\nTriage → permanent dir\nAdd frontmatter on exit",                       "x": -140,  "y": -60,  "width": 280, "height": 180, "color": "3" },
+
+    {
+      "id": "n-m1",
+      "type": "text",
+      "text": "## ⚖️ Pillar 1\nDecisions\n\nCapture the **why**\n- Avoid re-discovery\n- ADR format\n- Confidence scores\n- Reasoning chains",
+      "x": 380, "y": -260, "width": 240, "height": 220, "color": "2"
+    },
+    {
+      "id": "n-m2",
+      "type": "text",
+      "text": "## 🧪 Pillar 2\nExperiments\n\nPrevent **dead ends**\n- Failed = valuable\n- Hypothesis-driven\n- Stop dead-end repeats",
+      "x": 640, "y": -260, "width": 240, "height": 220, "color": "2"
+    },
+    {
+      "id": "n-m3",
+      "type": "text",
+      "text": "## 🔁 Pillar 3\nPatterns\n\nEnable **reuse**\n- Compound returns\n- Generalized solutions\n- When-to-use guides",
+      "x": 900, "y": -260, "width": 240, "height": 220, "color": "2"
+    },
+    {
+      "id": "n-compounding",
+      "type": "text",
+      "text": "## 📈 Compounding Value\n\nVault grows → Knowledge compounds → Non-linear returns across sessions\n\n**1,370+ tests** · **14 agents** · **4.2× throughput** · **99.4% pass rate**",
+      "x": 380, "y": -20, "width": 760, "height": 120, "color": "2"
+    },
+    {
+      "id": "n-principle",
+      "type": "text",
+      "text": "**No Destructive Operations Without Learning**\nDocument → Analyze → Extract Learning → Create Abstraction → Preserve Context → Execute Safely",
+      "x": 380, "y": 120, "width": 760, "height": 60, "color": "2"
+    },
+
+    {
+      "id": "n-3d",
+      "type": "text",
+      "text": "## 🌐 3D Graph Plugin  ·  TypeScript · Three.js · D3-force\n\n**8 Semantic Dimensions:** Connectivity · Conceptual depth · Temporal distribution · Cross-domain presence · Completion maturity · Recency · Semantic similarity · Domain clustering\n\nForce-directed layout · 84+ nodes · `.claude/3d-graph-data.json`",
+      "x": -280, "y": 260, "width": 660, "height": 200, "color": "1"
+    }
+  ],
+
+  "edges": [
+    { "id": "e-cz-cc",         "fromNode": "n-cz",         "fromSide": "right",  "toNode": "n-claude-code", "toSide": "left",   "label": "workflow" },
+    { "id": "e-cc-spec",       "fromNode": "n-claude-code","fromSide": "right",  "toNode": "n-spec",        "toSide": "left",   "label": "/spec" },
+    { "id": "e-spec-skills",   "fromNode": "n-spec",       "fromSide": "right",  "toNode": "n-skills",      "toSide": "left" },
+
+    { "id": "e-cc-cloudmcp",   "fromNode": "n-claude-code","fromSide": "bottom", "toNode": "n-cloud-mcp",   "toSide": "top",    "label": "MCP" },
+    { "id": "e-cc-ollamamp",   "fromNode": "n-claude-code","fromSide": "bottom", "toNode": "n-ollama-mcp",  "toSide": "top",    "label": "MCP" },
+    { "id": "e-cc-pilot",      "fromNode": "n-claude-code","fromSide": "bottom", "toNode": "n-pilot-mcp",   "toSide": "top",    "label": "MCP" },
+    { "id": "e-cc-ext",        "fromNode": "n-claude-code","fromSide": "bottom", "toNode": "n-external",    "toSide": "top",    "label": "MCP" },
+
+    { "id": "e-cmcp-surreal",  "fromNode": "n-cloud-mcp",  "fromSide": "bottom", "toNode": "n-surrealdb",   "toSide": "top" },
+    { "id": "e-cmcp-sheets",   "fromNode": "n-cloud-mcp",  "fromSide": "bottom", "toNode": "n-sheets",      "toSide": "top" },
+    { "id": "e-cmcp-teleport", "fromNode": "n-cloud-mcp",  "fromSide": "bottom", "toNode": "n-teleport",    "toSide": "top" },
+    { "id": "e-omcp-svc",      "fromNode": "n-ollama-mcp", "fromSide": "bottom", "toNode": "n-ollama-svc",  "toSide": "top" },
+
+    { "id": "e-cmcp-vault",    "fromNode": "n-cloud-mcp",  "fromSide": "bottom", "toNode": "n-papers",      "toSide": "top",    "label": "VaultOps" },
+    { "id": "e-surreal-vault", "fromNode": "n-surrealdb",  "fromSide": "bottom", "toNode": "n-papers",      "toSide": "top",    "label": "graph data" },
+
+    { "id": "e-dec-m1",        "fromNode": "n-decisions",  "fromSide": "right",  "toNode": "n-m1",          "toSide": "left" },
+    { "id": "e-exp-m2",        "fromNode": "n-experiments","fromSide": "right",  "toNode": "n-m2",          "toSide": "left" },
+    { "id": "e-pat-m3",        "fromNode": "n-patterns",   "fromSide": "right",  "toNode": "n-m3",          "toSide": "left" },
+
+    { "id": "e-papers-3d",     "fromNode": "n-papers",     "fromSide": "bottom", "toNode": "n-3d",          "toSide": "top",    "label": "visualize" },
+    { "id": "e-surreal-3d",    "fromNode": "n-surrealdb",  "fromSide": "bottom", "toNode": "n-3d",          "toSide": "top",    "label": "graph data" }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Walkthrough of Phase 17: Sovereign Computation. Details the implementation of the LocalRegistry for dynamic model management and storage safety. Includes the SovereignAgent (for verified local execution), Deep Model Scout (for SOTA discovery), and Granular Journey Attribution. Verification confirms robust fallback logic.",
+  "updatedAt": "2026-01-20T03:43:49.277914994Z"
+}

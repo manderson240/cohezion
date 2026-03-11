@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Fixed IDE OOM crash by adding memory guardrails to `peaked_solver.py`. Verified that the script now safely handles low memory or missing attributes by falling back to sliced TN contraction.",
+  "updatedAt": "2026-01-22T20:11:01.395894591Z"
+}

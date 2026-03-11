@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_OTHER",
+  "summary": "Rust Physics Bridge Prime. Design for integrating Rust-based high-performance physics simulations via PyO3.",
+  "updatedAt": "2026-01-25T20:44:48.231361124Z"
+}

@@ -3,6 +3,8 @@ task_id: bmad-analysis
 title: Analyze BMAD framework, extract patterns, and plan removal from cohezion repo
 completed_at: '2026-02-08T12:00:00+00:00'
 assigned_to: local-claude-code
+date: 2026-02-08
+tags: [teleport-result, bmad, framework-analysis, patterns, architecture]
 ---
 # Result: Analyze BMAD Framework, Extract Patterns, and Plan Removal
 
@@ -72,3 +74,12 @@ Written to `decisions/2026-02-08-bmad-framework-removal.md`.
 ### Code Worth Preserving: None
 
 All useful BMAD concepts have been captured as vault pattern notes. The code itself (Python scripts, YAML workflows, XML-in-markdown agents) is not portable to cohezion's architecture.
+
+## Related
+- [[workflow-orchestration]]
+- [[agent-architecture]]
+- [[multi-agent-systems]]
+- [[2026-02-08-bmad-framework-removal]]
+- [[bmad-scale-adaptive-documentation]]
+- [[bmad-agent-persona-definition]]
+- [[bmad-workflow-orchestration]]

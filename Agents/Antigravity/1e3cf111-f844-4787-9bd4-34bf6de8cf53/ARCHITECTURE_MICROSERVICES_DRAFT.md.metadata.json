@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_OTHER",
+  "summary": "Refined architecture for Cohezion microservices, incorporating the \"Scientist\" service for automated research and the \"Context Guard\" for agentic stability.",
+  "updatedAt": "2026-02-01T03:42:14.648324520Z",
+  "version": "1"
+}

@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_OTHER",
+  "summary": "Local Fine-Tuning Prime. Strategy for adapting Mistral/Qwen models to the Cohezion corpus using QLoRA and Unsloth.",
+  "updatedAt": "2026-01-25T20:45:17.968772544Z"
+}

@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Walkthrough of the fix applied to resolve the Desktop Icons NG X11/Wayland warning. Includes identification of the root cause and the implementation of a conditional unset in ~/.profile.",
+  "updatedAt": "2026-01-28T14:09:57.126587933Z"
+}

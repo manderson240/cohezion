@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Detailed walkthrough of the VLIW Latent Manifold optimization, achieving 60x speedup via non-speculative round folding and correct vector gathering.",
+  "updatedAt": "2026-01-24T18:32:48.502541043Z"
+}

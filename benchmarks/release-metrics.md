@@ -1,3 +1,14 @@
+---
+title: "Kyutai v0.1.0-alpha: Performance Release Metrics"
+date: 2026-02-11
+tags: [benchmarks, kyutai, mcp, performance, release]
+aspect: thinker
+neural:
+  activation: 0.575
+  stage: growing
+  cluster: benchmarks
+---
+
 # Kyutai v0.1.0-alpha: Performance Release Metrics
 
 **Release Date**: 2026-02-11
@@ -317,3 +328,8 @@ Interpretation: Stable, predictable throughput
 Generated: 2026-02-10
 Framework Version: 1.0
 Status: Final for release
+
+## Related
+- [[kyutai-project]]
+- [[mcp-model-context-protocol]]
+- [[api-design]]

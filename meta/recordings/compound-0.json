@@ -1,0 +1,40 @@
+{
+  "iteration": 0,
+  "timestamp": "2026-03-04T11:59:46.444780",
+  "duration_s": 0.000132,
+  "gallery": {
+    "particles": 10000,
+    "fps": 60,
+    "coherence_range": [
+      0.2,
+      0.8
+    ],
+    "avg_coherence": 0.51
+  },
+  "journeys": {
+    "journeys": 5,
+    "query_time_ms": 87,
+    "trajectories_rendered": 500
+  },
+  "ouroboros": {
+    "failures_healed": 3,
+    "heal_time_s": 12.5,
+    "vae_finetune_steps": 100
+  },
+  "multimodal": {
+    "outputs": 4,
+    "gen_time_s": 18.3,
+    "modalities": [
+      "diagram",
+      "video",
+      "audio",
+      "text"
+    ]
+  },
+  "meta": {
+    "events": 47,
+    "recording_path": "/home/mike-anderson/vaults/cohezion-vault/meta/recordings/compound-0.json",
+    "vault_notes_created": 2
+  },
+  "improvements": []
+}

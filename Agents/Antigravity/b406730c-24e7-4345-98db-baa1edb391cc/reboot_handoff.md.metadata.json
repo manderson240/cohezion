@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_TASK",
+  "summary":  "This handoff document summarizes the current state of the system investigation before a reboot. It details the missing `multimodal_bridge` module, broken dependencies, and resource saturation issues. It provides recommendations for the next session.",
+  "updatedAt":  "2026-02-21T06:08:07.182626471Z"
+}

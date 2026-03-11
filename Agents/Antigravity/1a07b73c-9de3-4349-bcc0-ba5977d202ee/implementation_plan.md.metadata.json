@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Implementation plan to harden the Cohezion Journey substrate. Includes memory optimization for JourneyPerception, caching for system vitals, and singleton patterns for heavy physics objects to prevent OOM and resource exhaustion during large-scale simulations.",
+  "updatedAt": "2026-02-19T03:21:56.924877045Z"
+}

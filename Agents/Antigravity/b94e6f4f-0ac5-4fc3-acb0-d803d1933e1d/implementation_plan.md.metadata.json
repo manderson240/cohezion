@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Plan to revert GDK_BACKEND to default Ubuntu settings (unset) for Wayland sessions.",
+  "updatedAt": "2026-01-21T03:43:26.932650744Z"
+}

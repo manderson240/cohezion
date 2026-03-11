@@ -1,6 +1,17 @@
+---
+title: Kyutai Performance Benchmarking Guide
+date: 2026-02-10
+tags: [benchmarks, kyutai, mcp, performance, documentation]
+aspect: thinker
+neural:
+  activation: 0.633
+  stage: growing
+  cluster: benchmarks
+---
+
 # Kyutai Performance Benchmarking Guide
 
-Comprehensive performance baseline capture and analysis for the Kyutai MCP Server and Obsidian Plugin.
+Comprehensive performance baseline capture and analysis for the [[kyutai-project|Kyutai]] [[mcp-model-context-protocol|MCP]] Server and Obsidian Plugin.
 
 ## Overview
 
@@ -509,3 +520,9 @@ For issues or questions:
 **Last Updated**: 2026-02-10
 **Status**: Phase 1 - Baseline capture framework
 **Next Steps**: Execute benchmarks, capture baselines, implement Phase 2 optimizations
+
+## Related
+- [[kyutai-project]]
+- [[mcp-model-context-protocol]]
+- [[api-design]]
+- [[cloud-vault-mcp]]

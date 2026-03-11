@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Finalized walkthrough documenting the optimization of local inference and the implementation of System identity / Persistent Memory. Includes the new Sovereign Memory Manager and Residency Anchors protocols for the Strix Halo substrate.",
+  "updatedAt": "2026-02-05T11:16:29.832924904Z",
+  "version": "1"
+}

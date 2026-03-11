@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Plan to fix the IDE problems in ASCENSION_REACTIVE.py and overnight_driver.py, including adding missing modules and fixing types.",
+  "updatedAt": "2026-02-26T13:57:07.688943793Z"
+}

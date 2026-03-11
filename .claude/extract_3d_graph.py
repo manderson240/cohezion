@@ -1,171 +1,119 @@
 #!/usr/bin/env python3
-"""Extract 3D Graph data from SurrealDB for Obsidian visualization."""
+"""Extract 3D Graph data from vault for Obsidian visualization.
+
+Uses the Triune Self directory architecture:
+- Knower: cortex, sensory, memory, genome
+- Thinker: prefrontal, laboratory, cerebellum
+- Doer: motor, hippocampus, thalamus, missions, retrospectives
+- Connective: dreaming, songlines, subconscious, metabolism, visual-cortex
+"""
 
 import json
+import re
 import sys
-import subprocess
 from pathlib import Path
 
-# Use direct SurrealQL CLI instead
-SURREALDB_URL = "http://localhost:8000"
-NAMESPACE = "cohezion"
-DATABASE = "vault"
-
 VAULT_PATH = Path("/home/mike-anderson/vaults/cohezion-vault")
+
+# Directory -> (type_name, aspect)
+DIR_CONFIG = {
+    # Knower
+    "cortex": ("concept", "knower"),
+    "sensory": ("paper", "knower"),
+    "memory": ("lesson", "knower"),
+    "genome": ("spec", "knower"),
+    # Thinker
+    "prefrontal": ("decision", "thinker"),
+    "laboratory": ("experiment", "thinker"),
+    "cerebellum": ("pattern", "thinker"),
+    "benchmarks": ("benchmark", "thinker"),
+    # Doer
+    "motor": ("project", "doer"),
+    "hippocampus": ("session", "doer"),
+    "missions": ("mission", "doer"),
+    "retrospectives": ("retrospective", "doer"),
+    # Connective
+    "dreaming": ("dream", "connective"),
+    "songlines": ("songline", "connective"),
+}
+
+WIKILINK_RE = re.compile(r"\[\[([^\]|#]+?)(?:[|#][^\]]*?)?\]\]")
 
 
 def query_vault_files():
     """Extract vault file structure for graph nodes."""
-    
     nodes = []
     node_map = {}
-    
-    # Scan papers directory
-    papers_dir = VAULT_PATH / "papers"
-    if papers_dir.exists():
-        for paper_file in papers_dir.glob("*.md"):
-            node_id = f"papers:{paper_file.stem}"
-            title = paper_file.stem
+
+    for dir_name, (type_name, aspect) in DIR_CONFIG.items():
+        dir_path = VAULT_PATH / dir_name
+        if not dir_path.exists():
+            continue
+        for md_file in dir_path.rglob("*.md"):
+            if md_file.name.startswith("_"):
+                continue
+            node_id = f"{dir_name}:{md_file.stem}"
+            title = md_file.stem
             nodes.append({
                 "id": node_id,
                 "label": title,
-                "type": "paper",
-                "path": str(paper_file.relative_to(VAULT_PATH)),
+                "type": type_name,
+                "aspect": aspect,
+                "path": str(md_file.relative_to(VAULT_PATH)),
             })
             node_map[title.lower()] = node_id
-    
-    # Scan concepts directory
-    concepts_dir = VAULT_PATH / "concepts"
-    if concepts_dir.exists():
-        for concept_file in concepts_dir.glob("*.md"):
-            node_id = f"concepts:{concept_file.stem}"
-            title = concept_file.stem
-            nodes.append({
-                "id": node_id,
-                "label": title,
-                "type": "concept",
-                "path": str(concept_file.relative_to(VAULT_PATH)),
-            })
-            node_map[title.lower()] = node_id
-    
-    # Scan decisions directory
-    decisions_dir = VAULT_PATH / "decisions"
-    if decisions_dir.exists():
-        for decision_file in decisions_dir.glob("*.md"):
-            node_id = f"decisions:{decision_file.stem}"
-            title = decision_file.stem
-            nodes.append({
-                "id": node_id,
-                "label": title,
-                "type": "decision",
-                "path": str(decision_file.relative_to(VAULT_PATH)),
-            })
-            node_map[title.lower()] = node_id
-    
-    # Scan patterns directory
-    patterns_dir = VAULT_PATH / "patterns"
-    if patterns_dir.exists():
-        for pattern_file in patterns_dir.glob("*.md"):
-            node_id = f"patterns:{pattern_file.stem}"
-            title = pattern_file.stem
-            nodes.append({
-                "id": node_id,
-                "label": title,
-                "type": "pattern",
-                "path": str(pattern_file.relative_to(VAULT_PATH)),
-            })
-            node_map[title.lower()] = node_id
-    
-    # Scan experiments directory
-    experiments_dir = VAULT_PATH / "experiments"
-    if experiments_dir.exists():
-        for exp_file in experiments_dir.glob("*.md"):
-            node_id = f"experiments:{exp_file.stem}"
-            title = exp_file.stem
-            nodes.append({
-                "id": node_id,
-                "label": title,
-                "type": "experiment",
-                "path": str(exp_file.relative_to(VAULT_PATH)),
-            })
-            node_map[title.lower()] = node_id
-    
+
     return nodes, node_map
 
 
 def extract_wikilinks():
     """Extract wikilinks from vault files to build graph edges."""
-    
-    import re
-    
     links = []
-    wikilink_pattern = re.compile(r'\[\[([^\]]+)\]\]')
-    
-    # Scan all markdown files
+
     for md_file in VAULT_PATH.rglob("*.md"):
-        if ".obsidian" in str(md_file) or ".git" in str(md_file):
+        rel = str(md_file.relative_to(VAULT_PATH))
+        if any(skip in rel for skip in [".obsidian", ".git", ".claude", "node_modules", ".worktrees"]):
             continue
-        
+
         try:
-            content = md_file.read_text(encoding='utf-8')
-            matches = wikilink_pattern.findall(content)
-            
-            # Source node ID
-            rel_path = md_file.relative_to(VAULT_PATH)
-            source_type = rel_path.parts[0] if rel_path.parts else "other"
-            source_id = f"{source_type}:{md_file.stem}"
-            
-            for target in matches:
-                target_clean = target.split("|")[0].strip()  # Handle [[name|display]]
-                target_type = None
-                target_id = None
-                
-                # Determine target type
-                if target_clean.startswith("papers/"):
-                    target_id = f"papers:{Path(target_clean).stem}"
-                    target_type = "paper"
-                elif target_clean.startswith("concepts/"):
-                    target_id = f"concepts:{Path(target_clean).stem}"
-                    target_type = "concept"
-                elif target_clean.startswith("decisions/"):
-                    target_id = f"decisions:{Path(target_clean).stem}"
-                    target_type = "decision"
-                elif target_clean.startswith("patterns/"):
-                    target_id = f"patterns:{Path(target_clean).stem}"
-                    target_type = "pattern"
-                elif target_clean.startswith("experiments/"):
-                    target_id = f"experiments:{Path(target_clean).stem}"
-                    target_type = "experiment"
-                else:
-                    # Implicit reference - try to find in concepts first
-                    target_id = f"concepts:{target_clean}"
-                    target_type = "concept"
-                
-                links.append({
-                    "source": source_id,
-                    "target": target_id,
-                    "strength": 1.0,
-                    "type": "wikilink"
-                })
-        except Exception as e:
+            content = md_file.read_text(encoding="utf-8", errors="replace")
+        except OSError:
             continue
-    
+
+        rel_path = md_file.relative_to(VAULT_PATH)
+        source_type = rel_path.parts[0] if rel_path.parts else "other"
+        source_id = f"{source_type}:{md_file.stem}"
+
+        for target in WIKILINK_RE.findall(content):
+            target_clean = target.strip()
+            # For path-prefixed links, use the directory
+            if "/" in target_clean:
+                parts = target_clean.split("/", 1)
+                target_id = f"{parts[0]}:{Path(parts[1]).stem}"
+            else:
+                target_id = f"cortex:{target_clean}"
+
+            links.append({
+                "source": source_id,
+                "target": target_id,
+                "strength": 1.0,
+                "type": "wikilink",
+            })
+
     return links
 
 
 def main():
     """Extract and output 3D Graph data."""
-    
     print("Extracting vault structure...", file=sys.stderr)
     nodes, node_map = query_vault_files()
-    
     print(f"Found {len(nodes)} nodes", file=sys.stderr)
+
     print("Extracting wikilinks...", file=sys.stderr)
     links = extract_wikilinks()
-    
     print(f"Found {len(links)} links", file=sys.stderr)
-    
-    # Deduplicate links
+
+    # Deduplicate
     unique_links = []
     seen = set()
     for link in links:
@@ -173,26 +121,26 @@ def main():
         if key not in seen:
             unique_links.append(link)
             seen.add(key)
-    
+
     print(f"Unique links: {len(unique_links)}", file=sys.stderr)
-    
+
     graph_data = {
         "nodes": nodes,
         "links": unique_links,
         "metadata": {
             "total_nodes": len(nodes),
             "total_links": len(unique_links),
-            "node_types": {}
-        }
+            "node_types": {},
+            "aspects": {},
+        },
     }
-    
-    # Count node types
+
     for node in nodes:
-        node_type = node["type"]
-        if node_type not in graph_data["metadata"]["node_types"]:
-            graph_data["metadata"]["node_types"][node_type] = 0
-        graph_data["metadata"]["node_types"][node_type] += 1
-    
+        t = node["type"]
+        a = node["aspect"]
+        graph_data["metadata"]["node_types"][t] = graph_data["metadata"]["node_types"].get(t, 0) + 1
+        graph_data["metadata"]["aspects"][a] = graph_data["metadata"]["aspects"].get(a, 0) + 1
+
     print(json.dumps(graph_data, indent=2))
 
 

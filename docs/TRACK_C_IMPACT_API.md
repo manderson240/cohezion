@@ -1,3 +1,10 @@
+---
+title: "Track C: Impact & Dependency Analyzer - API Documentation"
+date: 2026-02-14
+status: draft
+tags: [documentation, impact-analysis, api-design, graph-databases]
+---
+
 # Track C: Impact & Dependency Analyzer - API Documentation
 
 **Status**: [DRAFT - Under Development]
@@ -6,7 +13,7 @@
 
 ## Overview
 
-The Impact & Dependency Analyzer identifies and analyzes decision dependencies, impact cascades, and critical paths using graph algorithms.
+The Impact & Dependency Analyzer identifies and analyzes decision dependencies, impact cascades, and critical paths using [[graph-databases|graph algorithms]].
 
 ## Quick Start
 
@@ -87,3 +94,7 @@ class ImpactAnalyzer:
 - [Track A: GraphRAG](TRACK_A_GRAPHRAG_API.md)
 - [Track B: Confidence Scoring](TRACK_B_SCORING_API.md)
 - [Design Spec](../decisions/TRACK-C-DESIGN-SPEC-IMPACT-2026-02-14.md)
+- [[graph-databases]]
+- [[api-design]]
+- [[knowledge-graph-systems]]
+- [[surrealdb]]

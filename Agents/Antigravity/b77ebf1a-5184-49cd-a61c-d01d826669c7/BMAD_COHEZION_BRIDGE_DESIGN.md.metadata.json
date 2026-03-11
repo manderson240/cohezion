@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_OTHER",
+  "summary":  "Deep bridge design document explaining the fundamental paradigm difference between BMAD (LLM-as-runtime, conversation-native) and Cohezion (Python process, API-native), and the correct architectural patterns to bridge them — not via subprocess but via context injection, workflow tasks, and skill exec handlers.",
+  "updatedAt":  "2026-03-03T04:27:44.831526995Z"
+}

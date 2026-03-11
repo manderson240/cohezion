@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-01-28T21:21:58Z",
+  "hardware": "AMD Ryzen 9 7945HX / 128GB RAM",
+  "latency_ms": {
+    "naive_py_ms": 0.0003571332000319671,
+    "flume_py_single_ms": 1.789460190002501,
+    "flume_py_batch_100_avg_ms": 0.7651480470003662,
+    "flume_rust_batch_100_avg_ms": 0.007024530999842681
+  },
+  "fidelity_scores": {
+    "naive_jaccard": 0.13043478260869565,
+    "flume_semantic": 0.7621046304702759
+  }
+}

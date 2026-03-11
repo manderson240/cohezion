@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Live WebSocket Pulse Implementation Plan.\n- Backend: Add websockets to start_ouroboros.py.\n- Frontend: Update useOuroboros.ts to connect to WS.\n- Goal: Real-time visualization of system vitals.",
+  "updatedAt": "2026-01-28T12:16:27.618997754Z"
+}

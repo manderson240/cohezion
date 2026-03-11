@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Detailed summary of the Bug Hunting Swarm implementation, debugging of the FlumePhysics error, and optimization of model routing via task_type overrides.",
+  "updatedAt": "2026-02-05T12:54:59.551480795Z"
+}

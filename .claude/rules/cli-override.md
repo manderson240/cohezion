@@ -6,4 +6,4 @@
 
 All session, context, worktree, and plan management is done via `cz` commands.
 The session ID environment variable is `COHEZION_SESSION_ID`.
-Session files live at `~/.cohezion-engine/sessions/<session-id>/`.
+Session files live at `~/.cohezion-engine/hippocampus/<session-id>/`.

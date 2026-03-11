@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Implementation plan to codify Red Team vs Blue Team roles in the Cohezion swarm to achieve HIHO 0.5 stability. Includes updates to the debate personas, physics simulation, and a new adversarial orchestrator.",
+  "updatedAt": "2026-02-05T06:04:32.764140712Z"
+}

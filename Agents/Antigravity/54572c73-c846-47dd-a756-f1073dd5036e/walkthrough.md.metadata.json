@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Walkthrough update for Phase 7: Resilience & Scale, including connection pooling and circuit breakers.",
+  "updatedAt": "2026-02-03T00:01:23.729481412Z",
+  "version": "9"
+}

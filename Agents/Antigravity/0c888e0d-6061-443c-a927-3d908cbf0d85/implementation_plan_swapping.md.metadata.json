@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Implementation plan for Dynamic Model Swapping and Priority Model Slots. Introduces prioritized model management to ensure critical reasoning tasks are not blocked by secondary agents.",
+  "updatedAt": "2026-01-28T14:01:33.559574494Z"
+}

@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Rewrote the implementation plan to specifically address the Tsunami Simulator memory leak and CPU lockup.",
+  "updatedAt":  "2026-02-22T04:30:29.491246720Z",
+  "version":  "3"
+}

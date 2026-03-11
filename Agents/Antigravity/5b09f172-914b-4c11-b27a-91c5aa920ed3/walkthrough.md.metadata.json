@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Updated walkthrough to emphasize data preservation and recovery. Corrected the 'Hygiene' section to show that core research memory was saved, and added a recovery section for telemetry.",
+  "updatedAt": "2026-02-01T05:17:41.022507857Z",
+  "version": "5"
+}

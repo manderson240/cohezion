@@ -5,6 +5,11 @@ tags: [retrospective, forensics, learning]
 status: complete
 duration: 25 minutes
 cost: $0
+aspect: doer
+neural:
+  activation: 0.568
+  stage: mature
+  cluster: retrospectives
 ---
 
 # Log Mining Retrospective

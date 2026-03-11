@@ -10,6 +10,11 @@ tags:
   - stability
   - hardware-limits
   - ollama
+aspect: doer
+neural:
+  activation: 0.341
+  stage: growing
+  cluster: retrospectives
 ---
 
 # Retrospective: Safe Mode v3

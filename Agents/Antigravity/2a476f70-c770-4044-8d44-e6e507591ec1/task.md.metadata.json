@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_TASK",
+  "summary": "Updated task list for Physics Integration.\nAdds task to create `physics/energy.py` and register it in R-Zero.",
+  "updatedAt": "2026-01-25T17:57:49.090740159Z",
+  "version": "3"
+}

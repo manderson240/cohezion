@@ -2,19 +2,46 @@
 
 Knowledge base for the Cohezion agentic AI framework, managed as an Obsidian vault.
 
-## Structure
+## Agent Orientation
 
-| Directory | Purpose | Template |
-|-----------|---------|----------|
-| `inbox/` | New unsorted notes — triage point for raw ideas | None |
-| `decisions/` | Architecture Decision Records (ADRs) | `status: proposed` with Context/Decision/Consequences/Alternatives |
-| `experiments/` | Hypothesis testing and results | `status: in-progress` with Hypothesis/Method/Results/Learnings |
-| `patterns/` | Reusable solutions and code patterns | Problem/Solution/Code Example/When to Use |
-| `papers/` | Research papers and references | — |
-| `daily/` | Daily notes and logs | Tasks/Notes/Learnings |
-| `projects/` | Project-level tracking | `status: active` with Overview/Goals/Current Status/Key Decisions |
-| `concepts/` | Core concepts and definitions | — |
-| `attachments/` | Binary files and images | — |
+**New to this vault?** Read `VAULT_MANIFEST.md` first — it maps every directory, explains where to put your output, and lists entry points. Each directory also has a `_index.md` file with purpose, conventions, and key notes.
+
+The `/vault-keeper` skill runs proactively — it monitors vault health and acts on issues without being asked. See `.claude/skills/vault-keeper/SKILL.md` for details.
+
+## Structure — The Triune Self
+
+### The Knower (awareness, ground truth)
+| Directory | Purpose |
+|-----------|---------|
+| `cortex/` | Core concepts and definitions (was `concepts/`) |
+| `sensory/` | Research papers, external observations (was `papers/`) |
+| `memory/` | Lessons learned — embodied knowledge (was `lessons/`) |
+| `genome/` | System blueprints — specs, skills, agents (was `specs/`) |
+
+### The Thinker (reasoning, judgment)
+| Directory | Purpose |
+|-----------|---------|
+| `prefrontal/` | Architecture Decision Records (was `decisions/`) |
+| `laboratory/` | Hypothesis testing and results (was `experiments/`) |
+| `cerebellum/` | Reusable patterns and procedures (was `patterns/`) |
+
+### The Doer (action, lived experience)
+| Directory | Purpose |
+|-----------|---------|
+| `motor/` | Project tracking and action plans (was `projects/`) |
+| `hippocampus/` | Daily notes, session logs (was `daily/` + `sessions/`) |
+| `thalamus/` | Unsorted intake — triage point (was `inbox/`) |
+| `missions/` | Multi-agent coordinated tasks |
+| `retrospectives/` | Post-session analysis |
+
+### The Connective (where all three meet)
+| Directory | Purpose |
+|-----------|---------|
+| `dreaming/` | Cross-domain resonances (SurrealDB-generated) |
+| `songlines/` | Narrative knowledge paths across domains |
+| `subconscious/` | Latent associations — notes that should be linked |
+| `metabolism/` | System health dashboards |
+| `visual-cortex/` | Canvases and spatial diagrams (was `canvas/`) |
 
 ## Repository Branch Model
 
@@ -31,7 +58,7 @@ This repo has **two parallel, disconnected git histories** — `track-c` and `ma
 - PRs from `track-c` feature branches target `track-c` (not `main`)
 - The `/security-review` command has a local override that handles the no-merge-base case
 
-**Known debt:** This split is intentional for now but is technical debt. See `projects/repo-and-process-debt.md` for the plan to address it.
+**Known debt:** This split is intentional for now but is technical debt. See `motor/repo-and-process-debt.md` for the plan to address it.
 
 ## Conventions
 
@@ -47,10 +74,10 @@ This repo has **two parallel, disconnected git histories** — `track-c` and `ma
 
 ## Working with This Vault
 
-- When fleshing out inbox notes, research the topic thoroughly and write structured content in-place
+- When fleshing out thalamus notes, research the topic thoroughly and write structured content in-place
 - Respect existing frontmatter schemas when creating notes in templated directories
 - Keep notes atomic and cross-linked where relevant
-- When moving notes from `inbox/` to a permanent directory, add appropriate frontmatter
+- When moving notes from `thalamus/` to a permanent directory, add appropriate frontmatter and `aspect:` field
 
 ## Claude Code Best Practices
 

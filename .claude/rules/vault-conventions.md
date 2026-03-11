@@ -1,4 +1,4 @@
-# Vault Conventions
+# Vault Conventions — Triune Self Architecture
 
 Standards for working with notes in the Cohezion vault.
 
@@ -9,91 +9,85 @@ All notes use YAML frontmatter. **Tags must be arrays**, not strings.
 ```yaml
 ---
 title: Note Title
-date: 2026-02-19
+date: 2026-03-09
 status: active
-tags: [decision, architecture]
+tags: [topic, subtopic]
+aspect: knower          # knower | thinker | doer | connective
 ---
 ```
 
 ### Required Fields by Directory
 
-| Directory      | Required Fields                  |
-|----------------|----------------------------------|
-| `decisions/`   | title, date, status, tags        |
-| `experiments/` | title, date, status, tags        |
-| `patterns/`    | title, date, tags                |
-| `projects/`    | title, date, status, tags        |
-| `papers/`      | title, date, tags                |
+| Directory        | Required Fields                         |
+|------------------|-----------------------------------------|
+| `cortex/`        | title, date, tags, aspect               |
+| `sensory/`       | title, date, tags, aspect               |
+| `memory/`        | title, date, tags, aspect, severity     |
+| `genome/`        | title, date, tags, aspect               |
+| `prefrontal/`    | title, date, status, tags, aspect       |
+| `laboratory/`    | title, date, status, tags, aspect       |
+| `cerebellum/`    | title, date, tags, aspect               |
+| `motor/`         | title, date, status, tags, aspect       |
+| `hippocampus/`   | title, date, tags                       |
+| `thalamus/`      | title (minimum — triage adds the rest)  |
+
+### Aspect Assignment
+
+| Aspect | Directories |
+|--------|-------------|
+| `knower` | cortex, sensory, memory, genome |
+| `thinker` | prefrontal, laboratory, cerebellum, benchmarks |
+| `doer` | motor, hippocampus, thalamus, missions, retrospectives, Agents |
+| `connective` | dreaming, songlines, subconscious, metabolism, visual-cortex |
 
 ### Status Values
 
-- **Decisions:** `proposed`, `accepted`, `rejected`, `deprecated`
-- **Experiments:** `in-progress`, `complete`, `failed`
-- **Projects:** `active`, `complete`, `archived`
+- **prefrontal/:** `proposed`, `accepted`, `rejected`, `deprecated`
+- **laboratory/:** `in-progress`, `complete`, `failed`
+- **motor/:** `active`, `complete`, `archived`
 
 ## Cross-Referencing
 
-Use Obsidian wiki-links for cross-references:
+Use Obsidian wiki-links: `[[note-name]]`
 
-```markdown
-See [[2026-02-14-phase-completion-pattern]] for details.
-
-Related to [[operational-principle-no-destructive-operations]].
-```
-
-**Rules:**
-- Use full note name including date prefix
+- Use bare filename (no path prefix): `[[machine-learning]]` not `[[cortex/machine-learning]]`
 - Link at first mention of a concept
 - Keep links atomic (one concept per note)
 
 ## Directory Templates
 
 Templates are named `_template.md` in each directory:
-- `decisions/_template.md`
-- `experiments/_template.md`
-- `patterns/_template.md`
-
-**When creating notes:** Copy template, fill sections, update frontmatter.
+- `prefrontal/_template.md`
+- `laboratory/_template.md`
+- `cerebellum/_template.md`
 
 ## Note Organization
 
-### Inbox Workflow
+### Thalamus Workflow (was Inbox)
 
-1. **Capture** - Drop new ideas in `inbox/`
+1. **Capture** - Drop new ideas in `thalamus/`
 2. **Triage** - Review weekly, research thoroughly
-3. **Move** - Relocate to appropriate directory with frontmatter
+3. **Move** - Relocate to correct aspect directory with frontmatter
 4. **Link** - Cross-reference related notes
 
 ### Naming Conventions
 
 **Include date prefix for temporal notes:**
-- `decisions/2026-02-19-feature-name.md`
-- `experiments/2026-02-19-hypothesis-test.md`
-- `daily/2026-02-19-session-173cdb02.md`
+- `prefrontal/2026-03-09-feature-name.md`
+- `laboratory/2026-03-09-hypothesis-test.md`
+- `hippocampus/2026-03-09-session-173cdb02.md`
 
 **No date prefix for timeless content:**
-- `patterns/safe-file-split-checklist.md`
-- `concepts/cohezion-framework.md`
-
-## 3D Graph Data
-
-The 3D graph plugin loads data from:
-```
-.claude/3d-graph-data.json
-```
-
-**When adding papers:**
-1. Add frontmatter with proper tags
-2. Regenerate graph data: `.claude/extract_3d_graph.py`
-3. Reload plugin in Obsidian
+- `cerebellum/safe-file-split-checklist.md`
+- `cortex/cohezion-framework.md`
 
 ## Common Mistakes
 
 **Bad:** `tags: decision, architecture` (comma-separated string)
 **Good:** `tags: [decision, architecture]` (YAML array)
 
-**Bad:** `[[note]]` without date prefix when note has one
-**Good:** `[[2026-02-19-note]]` (full name)
+**Bad:** Missing `aspect:` field on new notes
+**Good:** Always include `aspect:` matching the directory zone
 
 **Bad:** Creating notes directly in final location without template
-**Good:** Use inbox, then move with proper frontmatter
+**Good:** Use `thalamus/`, then move with proper frontmatter

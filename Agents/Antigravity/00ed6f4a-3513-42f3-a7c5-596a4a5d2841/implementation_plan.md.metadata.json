@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Plan to implement local fine-tuning using Unsloth. Adds training capabilities to Model Wrangler.",
+  "updatedAt": "2026-01-28T13:14:07.424145248Z",
+  "version": "3"
+}

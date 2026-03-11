@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_OTHER",
+  "summary": "Guide for setting up secure remote access to the Cohezion platform from a Pixelbook. Recommends using Tailscale for mesh networking, SSH for terminal access, and port forwarding for Marimo notebooks. Covers configuration for the Framework Desktop 16 in a Linux environment, ensuring productivity away from the desk.",
+  "updatedAt": "2026-01-20T15:30:11.092930081Z"
+}

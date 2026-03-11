@@ -1,6 +1,12 @@
+---
+title: SurrealDB Setup for Phase 5-7 Decision Analysis System
+date: 2026-02-10
+tags: [documentation, surrealdb, setup, graph-databases]
+---
+
 # SurrealDB Setup for Phase 5-7 Decision Analysis System
 
-This guide explains how to set up SurrealDB for the decision analysis system.
+This guide explains how to set up [[surrealdb]] for the decision analysis system.
 
 ## Prerequisites
 
@@ -192,3 +198,9 @@ For issues, see:
 - PHASE_1_FIXES_EXECUTION_PLAN.md - Detailed requirements
 - PRE_EXECUTION_VALIDATION_RESULTS.md - Validation status
 - FIX_1_SCHEMA_IMPLEMENTATION_PACKAGE.md - Full implementation guide
+
+## Related
+- [[surrealdb]]
+- [[graph-databases]]
+- [[knowledge-graph-systems]]
+- [[graphrag-knowledge-graph-with-surrealdb]]

@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Data Preparation for Local Fine-Tuning.\n- Extract `fix_recommendation` nodes from SurrealDB.\n- Pair `bug_trajectory` (Input) with `fix_recommendation` (Output).\n- Export to `data/training/cohezion_instruct.jsonl`.",
+  "updatedAt": "2026-01-28T05:21:37.128516993Z"
+}

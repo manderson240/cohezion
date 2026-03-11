@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Walkthrough of the Stability Hardening task. Documents the RCA findings, the implemented guardrails (GPU hang detection, 96GB budget, dynamic heartbeat), and the system configuration changes. Includes verification results.",
+  "updatedAt": "2026-01-28T19:56:07.027350973Z"
+}

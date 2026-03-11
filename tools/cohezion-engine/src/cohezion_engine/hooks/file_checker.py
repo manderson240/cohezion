@@ -7,6 +7,7 @@ Protocol:
   - Exit 2: block with message (file exceeds hard limit)
   - Prints warnings to stdout
 """
+
 import json
 import sys
 from pathlib import Path

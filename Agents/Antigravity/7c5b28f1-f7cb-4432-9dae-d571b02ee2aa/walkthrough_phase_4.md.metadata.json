@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Walkthrough of Phase 4: Adversarial Robustness. Demonstrates native integration of prompt guard and output filtering. Includes verification results for both input and output security.",
+  "updatedAt": "2026-01-20T01:41:57.682549750Z"
+}

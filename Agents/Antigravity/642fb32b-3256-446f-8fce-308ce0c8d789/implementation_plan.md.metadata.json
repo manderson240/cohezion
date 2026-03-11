@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Implementation plan for Phase 1 of Stability Hardening: Automated Model Replacement (LRU Swap). Includes usage tracking in ResourceMonitor and LRU-based eviction in ModelWrangler.",
+  "updatedAt": "2026-01-28T20:03:43.149236243Z",
+  "version": "2"
+}

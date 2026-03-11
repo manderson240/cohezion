@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary": "Walkthrough of the reliability and concurrency layer implementation, featuring advisory file locking, atomic writes, and isolated agent workspaces.",
+  "updatedAt": "2026-01-21T15:32:16.587181002Z"
+}

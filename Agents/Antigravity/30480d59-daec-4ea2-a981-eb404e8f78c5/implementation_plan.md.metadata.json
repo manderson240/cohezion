@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Implementation plan for the Memory Recovery Protocol, designed to ensure rapid context synchronization at the start of new agentic sessions.",
+  "updatedAt": "2026-01-21T04:15:55.878272521Z"
+}

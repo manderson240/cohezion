@@ -60,7 +60,7 @@ Worktree: Yes
   - **PyYAML round-tripping corrupts frontmatter** — `yaml.dump()` changes quote styles, key ordering, and breaks titles with colons. Use PyYAML for **reading only**; all writes must use surgical regex replacement (e.g., replace `tags: null` line directly).
   - **17 papers have inline wiki-links** in a `Relevant to [[...]], [[concept1]], [[concept2]]` pattern. The link injector must scan ALL existing wiki-links in the entire file body (not just `## Related` sections) to avoid duplicating these.
   - **`similar_papers` metadata contains nonsensical associations** (e.g., JWST dark matter paper lists `claude-code-swiftui-skill-patterns`). Never blindly convert — require tag/keyword overlap validation.
-  - **Broken link categories:** The 441 broken links include external references (`[[fractal_universe]]`, `[[enhanced_simulator]]`), references to deleted files, and genuine missing concepts. Classify before acting.
+  - **Broken link categories:** The 441 broken links include external references (`[[fractal-universe]]`, `[[enhanced-simulator]]`), references to deleted files, and genuine missing concepts. Classify before acting.
   - **Existing "Related" section variants:** Files use `## Related`, `## Related Papers`, `## Related Concepts`, `## See Also`. Detect all variants; append to existing sections rather than creating new ones.
 
 ## Progress Tracking
@@ -180,7 +180,7 @@ Worktree: Yes
 **Key Decisions / Notes:**
 - Only create stubs for broken links referenced 3+ times
 - **Skip date-prefixed links** (e.g., `[[2026-02-10-decision-name]]`) — these are references to dated artifacts, not concepts
-- **Skip known external references** (e.g., `[[fractal_universe]]`, `[[enhanced_simulator]]`, `[[lab_agent.py]]`) — these reference code/systems, not concepts
+- **Skip known external references** (e.g., `[[fractal-universe]]`, `[[enhanced-simulator]]`, `[[lab_agent.py]]`) — these reference code/systems, not concepts
 - Follow existing concept template: frontmatter (title, date, tags), Definition placeholder, Related Papers (auto-populated from files that link to it), Related Concepts (auto-populated from co-occurring links)
 - File created at `concepts/<slug>.md`
 - Stubs are clearly marked as auto-generated: `> Auto-generated stub. Expand with full content.`

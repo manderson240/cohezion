@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Implementation plan to unify structured Cohezion Vault persistence with human-readable Obsidian retrospectives. Covers restoring the VaultExecutionLogger contract, wiring up session checkpoints, and enabling multi-tiered persistence (Vault + SurrealDB).",
+  "updatedAt": "2026-02-10T04:34:41.865920910Z"
+}

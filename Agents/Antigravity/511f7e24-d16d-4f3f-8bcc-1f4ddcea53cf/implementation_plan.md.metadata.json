@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Implementation plan for modularizing the Cohezion codebase into services using Red/Blue swarms.",
+  "updatedAt": "2026-02-05T13:04:34.500121566Z",
+  "version": "2"
+}

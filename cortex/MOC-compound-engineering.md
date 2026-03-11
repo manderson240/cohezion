@@ -1,0 +1,78 @@
+---
+title: "MOC — Compound Engineering"
+date: 2026-03-04
+tags: [moc, navigation, compound-engineering, methodology]
+aspect: knower
+neural:
+  activation: 0.681
+  stage: mature
+  cluster: concepts
+---
+
+# Map of Content — Compound Engineering
+
+## Overview
+
+Compound engineering is the foundational methodology of the Cohezion framework: every decision, experiment, and pattern is systematically captured so knowledge compounds across sessions rather than being lost when context windows close. This topic covers the execute-observe-extract-index-inject cycle, session retrospectives that transform ephemeral experience into durable vault knowledge, token efficiency strategies that maximize output per token spent, and the meta-learning feedback loops that make each session smarter than the last.
+
+## Core Concepts
+
+- [[compound-engineering]] — Knowledge management approach where decisions and patterns compound into reusable knowledge over time
+- [[experience-feedback-loop]] — The cycle that converts session experience into permanent vault knowledge
+- [[session-retrospective]] — Structured end-of-session reflection to extract reusable knowledge before context is lost
+- [[meta-learning]] — Learning from the process of learning itself to improve future efficiency
+- [[token-efficiency]] — Optimization of LLM token consumption to maximize functional output per token spent
+- [[token-efficiency-patterns]] — Concrete patterns for reducing token waste across agent workflows
+- [[context-management]] — Strategies for optimizing information payloads delivered to AI systems
+- [[agent-context]] — The information payload an agent accesses at a given moment in its execution cycle
+- [[agent-journey-tracking]] — Observability of agent workflows for debugging and knowledge extraction
+- [[concept-caching]] — Storing computed results for reuse across sessions without recomputing
+- [[concept-modularity]] — Principle that knowledge nodes should be self-contained and independently reusable
+- [[concept-testing]] — Validating that knowledge concepts are accurate before they become permanent graph nodes
+- [[concept-validation]] — Ensuring concept notes are correct, complete, and genuinely useful
+- [[implementation-first-infrastructure-later]] — Build working features before abstracting infrastructure
+- [[compound-engineering-investigation-retrospection-before-destructive-operations]] — Mandatory knowledge extraction before any destructive operation
+- [[non-blocking-observability]] — Telemetry that never interrupts the primary agent workflow
+
+## Key Decisions
+
+- [[2026-02-10-compound-engineering-meta-learning]] — Expanding log mining into a continuous meta-learning feedback loop
+- [[2026-02-10-token-efficient-compound-engineering-roadmap]] — One-month roadmap for systematizing token-efficient compound engineering
+- [[2026-02-10-compound-linking-plan-adversarial-review]] — Adversarial review rejecting a compound linking plan due to critical flaws
+
+## Patterns
+
+- [[pattern-compound-engineering]] — The meta-pattern: execute, observe, extract, index, inject
+- [[session-retrospective-notes]] — Automating session knowledge capture to prevent context loss
+- [[mini-adversarial-review-checkpoints]] — Lightweight quality gates inserted at key implementation milestones
+
+## Research Papers
+
+- [[scaling-agent-systems]] — Toward a science of scaling multi-agent systems (Google Research)
+- [[few-shot-prompting-agentic-coding]] — Few-shot prompting techniques for agentic coding workflows
+- [[testing-agent-skills-with-evals]] — Systematic skill evaluation using structured evals
+- [[langchain-deep-agents-context-management]] — Deep agents and context management patterns in LangChain
+
+## Lessons Learned
+
+- [[lesson-adversarial-review-before-execution]] — Adversarial review before execution prevents wasted effort
+- [[lesson-35-non-blocking-observability-pattern-new]] — Synchronous telemetry stalls workflows; must be async
+- [[lesson-04-surgery-lesson]] — Modify only what is required; surgical edits prevent regressions
+- [[lesson-03-critical]] — Critical operations require explicit verification before proceeding
+
+## Experiments
+
+- [[2026-02-11-session-56-retrospective-and-plan-refinement]] — Session retrospective experiment proving structured reflection improves planning
+- [[2026-02-22-recursive-challenger-session-68-autonomous-improvement-loop]] — Recursive challenger loop for autonomous improvement via adversarial self-review
+
+## Start Here
+
+- **New to this topic?** Start with [[compound-engineering]]
+- **Looking for patterns?** See [[pattern-compound-engineering]]
+- **Recent work:** [[experience-feedback-loop]]
+
+## Related Maps
+
+- [[MOC-platform-infrastructure]]
+- [[MOC-safety-alignment]]
+- [[MOC-astrophysics]]

@@ -1,8 +1,15 @@
+---
+title: Kyutai API Specification & Integration Guide
+date: 2026-02-09
+status: complete
+tags: [research, kyutai, api-design, mcp, voice-ai]
+---
+
 # Kyutai API Specification & Integration Guide
 
 **Document Created:** 2026-02-09
 **Status:** Research Complete
-**Research Coverage:** 100% of official Kyutai repositories + community implementations
+**Research Coverage:** 100% of official [[kyutai-project|Kyutai]] repositories + community implementations
 
 ---
 
@@ -1193,8 +1200,10 @@ async def full_duplex_conversation(user_audio):
 
 ## Related
 
-- [[research/kyutai-mcp-server-architecture|Kyutai MCP Server Architecture]] — the MCP server design that consumes this API specification; defines the 7 tools (speak_text, transcribe_audio, etc.) that wrap the APIs documented here
-- [[research/kyutai-obsidian-plugin-architecture|Kyutai Obsidian Plugin Architecture]] — the plugin UI layer that sits above the MCP server; makes calls to the tools backed by these APIs
-- [[decisions/2026-02-10-kyutai-mcp-obsidian-plugin-plan|Kyutai MCP + Obsidian Plugin Plan]] — the compound engineering plan that produced this research document as Phase 1 output
-- [[decisions/2026-02-10-kyutai-pocket-tts-token-efficient-success|Kyutai Pocket TTS: Token-Efficient Success]] — the post-research validation showing Pocket TTS (the primary Phase 1 API) performed as specified
-- [[concepts/cloud-vault-mcp|Cloud Vault MCP]] — the existing MCP server whose patterns (FastMCP, service classes) are reused in the Kyutai MCP server design
+- [[kyutai-mcp-server-architecture|Kyutai MCP Server Architecture]] — the MCP server design that consumes this API specification; defines the 7 tools (speak_text, transcribe_audio, etc.) that wrap the APIs documented here
+- [[kyutai-obsidian-plugin-architecture|Kyutai Obsidian Plugin Architecture]] — the plugin UI layer that sits above the MCP server; makes calls to the tools backed by these APIs
+- [[2026-02-10-kyutai-mcp-obsidian-plugin-plan|Kyutai MCP + Obsidian Plugin Plan]] — the compound engineering plan that produced this research document as Phase 1 output
+- [[2026-02-10-kyutai-pocket-tts-token-efficient-success|Kyutai Pocket TTS: Token-Efficient Success]] — the post-research validation showing Pocket TTS (the primary Phase 1 API) performed as specified
+- [[cloud-vault-mcp|Cloud Vault MCP]] — the existing MCP server whose patterns (FastMCP, service classes) are reused in the Kyutai MCP server design
+- [[api-design]]
+- [[mcp-model-context-protocol]]

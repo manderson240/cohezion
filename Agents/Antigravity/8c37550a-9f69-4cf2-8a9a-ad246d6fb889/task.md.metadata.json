@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_TASK",
+  "summary": "Task checklist for fixing tsconfig and lint errors in apps/webapp.",
+  "updatedAt": "2026-01-27T01:58:47.207382413Z",
+  "version": "13"
+}

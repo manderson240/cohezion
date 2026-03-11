@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Implementation plan for stabilizing Framework Desktop (Strix Halo) sleep issues. Includes kernel parameter adjustments (amd_iommu=off), logind.conf hardening, and diagnostic steps using amd_s2idle.py.",
+  "updatedAt": "2026-01-21T13:53:31.872137498Z"
+}

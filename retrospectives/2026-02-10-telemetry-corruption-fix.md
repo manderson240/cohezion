@@ -4,6 +4,11 @@ date: 2026-02-10
 tags: [retrospective, troubleshooting, claude-code]
 status: complete
 duration: 5 minutes
+aspect: doer
+neural:
+  activation: 0.478
+  stage: growing
+  cluster: retrospectives
 ---
 
 # Telemetry Corruption Fix
