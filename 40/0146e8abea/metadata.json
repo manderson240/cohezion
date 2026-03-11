@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "400146e8abea",
+  "strategy": "manual-commit",
+  "branch": "feat/compound-elegant-simplification",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "docs/plans/2026-03-11-deferred-research-modules.md",
+    "src/cohezion/mcp/servers/plasma/server.py",
+    "src/cohezion/physics/manifold_utils.py",
+    "src/cohezion/reliability/viscoelastic.py",
+    "tests/research/test_research_squad.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/40/0146e8abea/0/metadata.json",
+      "transcript": "/40/0146e8abea/0/full.jsonl",
+      "context": "/40/0146e8abea/0/context.md",
+      "content_hash": "/40/0146e8abea/0/content_hash.txt",
+      "prompt": "/40/0146e8abea/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 2643,
+    "cache_creation_tokens": 2351627,
+    "cache_read_tokens": 20194732,
+    "output_tokens": 69245,
+    "api_call_count": 183
+  }
+}
