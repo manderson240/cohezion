@@ -3,7 +3,7 @@
   "checkpoint_id": "4f35ece47451",
   "strategy": "manual-commit",
   "branch": "challenge-luma-cqq4mojz",
-  "checkpoints_count": 1,
+  "checkpoints_count": 6,
   "files_touched": [
     "conductor/tracks/bootstrap_manifold_20260311/plan.md",
     "src/cohezion/universe/triune_manifold.py",
@@ -16,13 +16,20 @@
       "context": "/4f/35ece47451/0/context.md",
       "content_hash": "/4f/35ece47451/0/content_hash.txt",
       "prompt": "/4f/35ece47451/0/prompt.txt"
+    },
+    {
+      "metadata": "/4f/35ece47451/1/metadata.json",
+      "transcript": "/4f/35ece47451/1/full.jsonl",
+      "context": "/4f/35ece47451/1/context.md",
+      "content_hash": "/4f/35ece47451/1/content_hash.txt",
+      "prompt": "/4f/35ece47451/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 18,
-    "cache_creation_tokens": 137258,
-    "cache_read_tokens": 540788,
-    "output_tokens": 7869,
-    "api_call_count": 10
+    "input_tokens": 7943,
+    "cache_creation_tokens": 651722,
+    "cache_read_tokens": 18989856,
+    "output_tokens": 64025,
+    "api_call_count": 157
   }
 }
