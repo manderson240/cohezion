@@ -133,7 +133,7 @@ class ConnectionPool:
         try:
             start = time.time()
             await asyncio.wait_for(connection.client.query("SELECT 1"), 5.0)
-            latency = time.time() - start
+            _latency = time.time() - start
 
             # Consider connection healthy if query succeeds within timeout
             return True
@@ -242,7 +242,7 @@ class ConnectionPool:
 
     async def acquire(self) -> PooledConnection:
         """Acquire a connection from the pool."""
-        start_time = time.time()
+        _start_time = time.time()
 
         try:
             # First try to get from queue

@@ -71,7 +71,6 @@ class AnimaService:
 
         # Tier 3: Check if pocket-tts model is available
         try:
-            from cohezion.mcp.servers.plasma.server import PocketTTSService  # noqa: F401
 
             self._voice_available = True
         except Exception:

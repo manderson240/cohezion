@@ -59,7 +59,7 @@ def create_compound_client(
     adapter = SmartRouterAdapter(smart_router)
 
     # 3. ContextHarness targeting the cheapest model for prompt pruning
-    harness = ContextHarness(target_model="phi3:mini")
+    _harness = ContextHarness(target_model="phi3:mini")
 
     # 4. Create TokenEfficientClient with SmartRouter adapter
     client = TokenEfficientClient(

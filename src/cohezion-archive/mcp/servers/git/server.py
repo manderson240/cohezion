@@ -18,7 +18,6 @@ import logging
 import os
 import subprocess
 import sys
-from pathlib import Path
 from typing import Any
 
 from aiohttp import web
@@ -46,7 +45,7 @@ class GitContext:
         """Run git command and return output."""
         try:
             result = subprocess.run(
-                ["git", "-C", str(self.repo_path)] + args,
+                ["git", "-C", str(self.repo_path), *args],
                 capture_output=True,
                 text=True,
                 timeout=30,

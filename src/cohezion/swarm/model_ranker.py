@@ -320,7 +320,7 @@ class ModelRanker:
 
         try:
             # Query vault for patterns matching task and model
-            query = f"coherence pattern where model='{model}' and similarity(task, '{task_description}') > 0.7"
+            _query = f"coherence pattern where model='{model}' and similarity(task, '{task_description}') > 0.7"
             # Note: This is a conceptual query - actual implementation would depend on vault API
             # For now, return None to fall back to defaults
             return None
@@ -343,7 +343,7 @@ class ModelRanker:
             # No cached evaluation = moderate freshness
             return 0.7
 
-        score, timestamp = self._coherence_cache[model]
+        _score, timestamp = self._coherence_cache[model]
         age_hours = (time.time() - timestamp) / 3600.0
 
         # Exponential decay with half-life of freshness_decay_hours

@@ -99,7 +99,7 @@ class LabAgent(BaseAgent):
 
         return self.session_discoveries[-1] if self.session_discoveries else None
 
-    async def run_cycle(self, seed_override: str = None):
+    async def run_cycle(self, seed_override: str | None = None):
         """Execute a single autonomous lab cycle."""
         logger.info("LabAgent: Starting new research cycle...")
 

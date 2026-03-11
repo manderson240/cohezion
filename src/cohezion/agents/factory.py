@@ -280,7 +280,7 @@ class AgentFactory:
             "__builtins__": __builtins__,
             _StubAgent.__name__: _StubAgent,
         }
-        exec(compile(source, f"<agent:{spec.name}>", "exec"), namespace)  # noqa: S102
+        exec(compile(source, f"<agent:{spec.name}>", "exec"), namespace)
         cls = namespace.get(class_name)
         if cls is None:
             raise RuntimeError(f"Class {class_name} not found after compiling stub for {spec.name}")
@@ -318,7 +318,7 @@ class AgentFactory:
             ).replace("(BaseAgent)", f"({_StubAgent.__name__})")
             namespace[_StubAgent.__name__] = _StubAgent
 
-        exec(compile(source, f"<agent:{spec.name}>", "exec"), namespace)  # noqa: S102
+        exec(compile(source, f"<agent:{spec.name}>", "exec"), namespace)
 
         cls = namespace.get(class_name)
         if cls is None:

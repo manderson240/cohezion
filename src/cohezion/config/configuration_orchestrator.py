@@ -183,10 +183,7 @@ class ConfigurationOrchestrator:
                 logger.debug("Checking size limits")
 
                 for filename, _limit in self.size_limits.items():
-                    if filename == "CLAUDE.md":
-                        file_path = self.claude_md
-                    else:
-                        file_path = self.gemini_md
+                    file_path = self.claude_md if filename == "CLAUDE.md" else self.gemini_md
 
                     if file_path.exists():
                         # Check for violations
@@ -360,7 +357,7 @@ class ConfigurationOrchestrator:
 
         try:
             # Phase 2: Detect manual edits
-            is_manual = self.detect_manual_edits(file_path)
+            _is_manual = self.detect_manual_edits(file_path)
 
             # Phase 2: Detect conflicts
             conflicts = await self.detect_conflicts()

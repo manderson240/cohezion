@@ -22,14 +22,14 @@ import time
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 
 logger = logging.getLogger(__name__)
 
 
-class IsolationMode(str, Enum):
+class IsolationMode(StrEnum):
     """Filesystem isolation mode."""
 
     COW = "cow"  # Copy-on-write (BTRFS/LVM preferred)
@@ -38,7 +38,7 @@ class IsolationMode(str, Enum):
     OVERLAY = "overlay"  # Overlay filesystem
 
 
-class IsolationStatus(str, Enum):
+class IsolationStatus(StrEnum):
     """Status of isolation context."""
 
     ACTIVE = "active"
@@ -47,7 +47,7 @@ class IsolationStatus(str, Enum):
     FAILED = "failed"
 
 
-class ChangeType(str, Enum):
+class ChangeType(StrEnum):
     """Type of file change."""
 
     CREATED = "created"
@@ -448,7 +448,7 @@ class ProcessIsolation:
         """
         try:
             # Check if namespace exists in /var/run/netns or /proc/*/ns/
-            result = subprocess.run(
+            _result = subprocess.run(
                 ["ip", "netns", "list"],
                 capture_output=True,
                 text=True,

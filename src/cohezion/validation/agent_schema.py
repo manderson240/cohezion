@@ -56,7 +56,7 @@ class AgentFileSchema(BaseModel):
         default=None,
         description="Tool names the agent is allowed to use.",
     )
-    disallowedTools: list[str] | None = Field(  # noqa: N815
+    disallowedTools: list[str] | None = Field(
         default=None,
         description="Tool names the agent is forbidden from using.",
     )

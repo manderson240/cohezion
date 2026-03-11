@@ -1189,7 +1189,7 @@ Generate production-ready, maintainable code that follows industry standards.
             text = args.get("text")
             voice = args.get("voice", "alba")
             output_path = args.get("output_path", "/tmp/pocket_tts_output.wav")
-            speed = args.get("speed", 1.0)
+            _speed = args.get("speed", 1.0)
 
             if not text:
                 return {"content": [{"type": "text", "text": "Error: text is required"}]}
@@ -1338,7 +1338,7 @@ Generate production-ready, maintainable code that follows industry standards.
                     "text": json.dumps(
                         {
                             "recommended_model": f"{recommended}:latest",
-                            "all_models": [f"{m}:latest" for m in models.keys()],
+                            "all_models": [f"{m}:latest" for m in models],
                             "installed_only": list(installed_models),
                         },
                         indent=2,

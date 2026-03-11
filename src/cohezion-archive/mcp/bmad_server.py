@@ -98,7 +98,7 @@ async def bmad_help(
     session = await get_session_manager().get_session(session_id) if session_id else None
 
     # Load help workflow
-    help_workflow = engine.load_workflow("core", "tasks/help")
+    _help_workflow = engine.load_workflow("core", "tasks/help")
 
     # Analyze context
     analysis = engine.analyze_context(context, session)
@@ -288,7 +288,7 @@ async def bmad_bmm_dev_story(
 async def bmad_bmm_code_review(
     code_changes: str,
     review_type: str = "general",
-    focus_areas: list[str] = None,
+    focus_areas: list[str] | None = None,
     session_id: str = "",
 ) -> dict[str, Any]:
     """Review code changes. Use for quality assurance.
@@ -404,7 +404,7 @@ async def bmad_cis_brainstorming(
     topic: str,
     participants: int = 1,
     timebox_minutes: int = 15,
-    techniques: list[str] = None,
+    techniques: list[str] | None = None,
     session_id: str = "",
 ) -> dict[str, Any]:
     """Facilitate brainstorming session. Use for creative ideation.
@@ -444,7 +444,7 @@ async def bmad_cis_brainstorming(
 async def bmad_tea_test_design(
     feature_description: str,
     risk_level: str = "medium",
-    test_types: list[str] = None,
+    test_types: list[str] | None = None,
     session_id: str = "",
 ) -> dict[str, Any]:
     """Design tests for a feature. Use when planning quality assurance.
@@ -608,7 +608,7 @@ async def bmad_list_agents(
 @app.tool()
 async def bmad_index_docs(
     project_path: str = ".",
-    include_patterns: list[str] = None,
+    include_patterns: list[str] | None = None,
     session_id: str = "",
 ) -> dict[str, Any]:
     """Index project documentation. Use to make project searchable.

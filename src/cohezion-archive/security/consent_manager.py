@@ -16,14 +16,14 @@ import hashlib
 import logging
 import time
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
 logger = logging.getLogger(__name__)
 
 
-class ConsentScope(str, Enum):
+class ConsentScope(StrEnum):
     """Scope of a consent grant."""
 
     SINGLE_ACTION = "single_action"

@@ -127,7 +127,7 @@ class VaultSearchExecutor(CompoundExecutor):
 
             # Phase 6: Analyze and refine search patterns
             logger.info("Phase 6: Analyzing and refining search patterns")
-            refined_patterns = self._analyze_search_patterns(search_docs, skill_context)
+            _refined_patterns = self._analyze_search_patterns(search_docs, skill_context)
 
             # Phase 7: Record metrics and journey
             execution_time_ms = (time.time() - start_time) * 1000
@@ -266,9 +266,8 @@ class VaultSearchExecutor(CompoundExecutor):
         score += (matching_keywords / len(query.keywords)) * 0.7
 
         # Skill context boost
-        if skill_context and "skill" in document:
-            if document.get("skill") in skill_context:
-                score += 0.3
+        if skill_context and "skill" in document and document.get("skill") in skill_context:
+            score += 0.3
 
         return min(score, 1.0)
 

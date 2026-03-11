@@ -82,7 +82,7 @@ class BMADEngine:
 
     def list_modules(self) -> list[dict]:
         """List all modules."""
-        return [{"name": name} for name in self._modules.keys()]
+        return [{"name": name} for name in self._modules]
 
     def list_workflows(self, module: str | None = None) -> list[dict]:
         """List workflows."""
@@ -627,7 +627,7 @@ async def tool_bmad_doc_retrieve(request: web.Request) -> web.Response:
         data = await request.json()
         library = data.get("library", "")
         query = data.get("query", "")
-        max_tokens = data.get("max_tokens", 2000)
+        _max_tokens = data.get("max_tokens", 2000)
 
         if not query:
             return web.json_response({"error": "Query is required"}, status=400)

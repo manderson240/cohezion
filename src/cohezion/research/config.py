@@ -44,16 +44,35 @@ class ResearchConfig:
     enable_guardrails: bool = True
     require_human_review: bool = False  # Set True for production
 
+    # Session timeout (Issue #11)
+    session_timeout_seconds: float = 3600.0  # 1 hour default
+
     def __post_init__(self):
         """Ensure directories exist and validate paths."""
-        # Validate time budget bounds
+        # Validate time budget bounds (Issue #10)
         if not (10.0 <= self.experiment_time_budget <= 86400.0):
             raise ValueError("experiment_time_budget must be between 10s and 24h")
 
-        # Validate paths stay within data/ directory
+        # Validate max_experiments (Issue #10)
+        if not (1 <= self.max_experiments <= 10000):
+            raise ValueError("max_experiments must be between 1 and 10000")
+
+        # Validate max_code_changes (Issue #10)
+        if self.max_code_changes < 1 or self.max_code_changes > 1000:
+            raise ValueError("max_code_changes must be between 1 and 1000")
+
+        # Validate target_metric (Issue #10)
+        valid_metrics = ["val_bpb", "val_loss", "train_loss", "accuracy", "f1"]
+        if self.target_metric not in valid_metrics:
+            raise ValueError(f"target_metric must be one of {valid_metrics}")
+
+        # Validate paths stay within data/ directory (Issue #12)
         for path_attr in ("experiment_log", "checkpoint_dir"):
             path = getattr(self, path_attr)
             resolved = Path(path).resolve()
+            data_dir = Path("data").resolve()
+            if not str(resolved).startswith(str(data_dir)):
+                raise ValueError(f"{path_attr} must be within data/ directory: {path}")
             if ".." in str(path):
                 raise ValueError(f"{path_attr} must not contain path traversal: {path}")
 

@@ -236,7 +236,7 @@ class UnifiedMetricsCollector:
 
     def get_aggregate_metrics(self) -> dict[str, Any]:
         """Get aggregate statistics across all recorded operations."""
-        all_metrics = [self.current_metrics] + self.history
+        all_metrics = [self.current_metrics, *self.history]
 
         total_tokens = sum(m.total_tokens for m in all_metrics)
         total_duration_ms = sum(m.total_duration_ms for m in all_metrics)

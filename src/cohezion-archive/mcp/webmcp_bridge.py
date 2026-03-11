@@ -16,6 +16,7 @@ from aiohttp import web
 
 from cohezion.mcp.registry import get_registry
 
+
 logger = logging.getLogger(__name__)
 
 # Allowed name pattern: alphanumeric, hyphens, underscores; max 64 chars

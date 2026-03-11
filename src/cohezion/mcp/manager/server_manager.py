@@ -12,6 +12,7 @@ Features:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import os
 import subprocess
@@ -320,8 +321,9 @@ class MCPServerManager:
         try:
             # Use MCP_API_KEY for internal health checks
             headers = {}
-            if MCP_API_KEY:
-                headers["Authorization"] = f"Bearer {MCP_API_KEY}"
+            mcp_api_key = os.environ.get("MCP_API_KEY")
+            if mcp_api_key:
+                headers["Authorization"] = f"Bearer {mcp_api_key}"
 
             async with (
                 aiohttp.ClientSession() as session,
@@ -391,10 +393,8 @@ class MCPServerManager:
         """Stop all servers."""
         if self.health_check_task:
             self.health_check_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self.health_check_task
-            except asyncio.CancelledError:
-                pass
 
         logger.info(f"Stopping {len(self.servers)} MCP servers...")
 

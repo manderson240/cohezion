@@ -155,7 +155,7 @@ class QueryComplexityAnalyzer:
             word in query_lower for word in ["process", "analyze", "transform", "pipeline"]
         )
         has_logic = " and " in query_lower or " or " in query_lower or "if " in query_lower
-        is_short = token_count < 30
+        _is_short = token_count < 30
         is_long = token_count > 200
 
         # Determine complexity tier
@@ -406,7 +406,7 @@ class CostAwareRouter:
 
         # Check budget enforcer (if available)
         if self.budget_enforcer and self.cost_tracker:
-            enforcer_ok, enforcer_msg = self.budget_enforcer.check_budget(
+            enforcer_ok, _enforcer_msg = self.budget_enforcer.check_budget(
                 self.cost_tracker.total_cost_usd + estimated_cost
             )
             if not enforcer_ok:

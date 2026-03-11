@@ -13,6 +13,7 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum
 
+
 logger = logging.getLogger(__name__)
 
 HEARTBEAT_CYCLE_S = 0.1  # 100ms heartbeat cycle

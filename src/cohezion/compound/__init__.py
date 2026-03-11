@@ -102,6 +102,13 @@ def get_version() -> str:
 # ============================================================================
 
 __all__ = [
+    # New analytics
+    "AnalysisConfig",
+    # New models
+    "AnalysisReport",
+    "BatchConfig",
+    "BatchProcessor",
+    "BatchResult",
     # Compatibility layer (old API)
     "CompoundCycleReport",
     "CompoundCycleResult",
@@ -111,44 +118,37 @@ __all__ = [
     "CriterionFailure",
     "DriftSignal",
     "ExecutionAlignment",
+    "ExecutionAnalyzer",
+    "ExecutionConfig",
     "ExecutionConstraint",
-    "HumanRequest",
-    "IntentType",
-    "SuccessCriterion",
-    "LegacyExecutionResult",
-    # New models
-    "AnalysisReport",
-    "BatchConfig",
     "ExecutionContext",
     "ExecutionMetrics",
     "ExecutionResult",
     "ExecutionStatus",
-    "Task",
-    # New core
-    "NewCompoundExecutor",
-    "ExecutionConfig",
-    "execute_simple",
-    "BatchProcessor",
-    "BatchResult",
-    "SimpleBatch",
-    # New analytics
-    "AnalysisConfig",
-    "ExecutionAnalyzer",
-    "SimpleAnalyzer",
+    "HumanRequest",
+    "IntentType",
+    "LegacyExecutionResult",
     "MetricsCollector",
     "MetricsSnapshot",
-    "SimpleMetrics",
-    # New skills
-    "SkillMatch",
-    "SkillSelector",
-    "SkillRefiner",
-    "SimpleSkills",
+    # New core
+    "NewCompoundExecutor",
     # New persistence
     "PersistenceConfig",
     "SessionPersister",
+    "SimpleAnalyzer",
+    "SimpleBatch",
+    "SimpleMetrics",
     "SimplePersistence",
+    "SimpleSkills",
+    # New skills
+    "SkillMatch",
+    "SkillRefiner",
+    "SkillSelector",
+    "SuccessCriterion",
+    "Task",
     "VaultPersister",
     # Version
     "__version__",
+    "execute_simple",
     "get_version",
 ]

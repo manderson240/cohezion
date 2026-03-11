@@ -9,6 +9,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -93,7 +94,7 @@ class FLUMEResearchOptimizer:
             return HyperparameterConfig()
 
         # Simple heuristic: if we have history, vary learning rate
-        best_config, best_metric = min(self.history, key=lambda x: x[1])
+        best_config, _best_metric = min(self.history, key=lambda x: x[1])
         new_config = HyperparameterConfig(
             learning_rate=best_config.learning_rate * 0.95,  # Decay LR
             batch_size=best_config.batch_size,

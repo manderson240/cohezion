@@ -116,7 +116,7 @@ class SkillRefiner:
             next_heading = text.find("\n## ", insert_point + 5)
             if next_heading == -1:
                 next_heading = len(text)
-            existing = text[insert_point:next_heading].rstrip()
+            _existing = text[insert_point:next_heading].rstrip()
             new_entries = "\n".join(f"- {learning}" for learning in learnings)
             text = (
                 text[:next_heading].rstrip()

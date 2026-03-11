@@ -9,6 +9,7 @@ Phase 2: Real-time event-driven monitoring.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 from datetime import datetime
 from pathlib import Path
@@ -278,10 +279,8 @@ class VaultSubscriptionClientProxy:
         await self.client.disconnect()
         if self._task:
             self._task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._task
-            except asyncio.CancelledError:
-                pass
         logger.info("Vault subscription stopped")
 
     def on_event(self, event_type: str):
