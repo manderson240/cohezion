@@ -62,7 +62,7 @@ class ResearchConfig:
             raise ValueError("max_code_changes must be between 1 and 1000")
 
         # Validate target_metric (Issue #10)
-        valid_metrics = ["val_bpb", "val_loss", "train_loss", "accuracy", "f1"]
+        valid_metrics = ["val_bpb", "val_loss", "train_loss", "accuracy", "f1", "coherence"]
         if self.target_metric not in valid_metrics:
             raise ValueError(f"target_metric must be one of {valid_metrics}")
 

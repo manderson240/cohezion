@@ -4,7 +4,7 @@ Created: 2026-03-11
 Status: PENDING
 Approved: Yes
 Iterations: 0
-Worktree: Yes
+Worktree: No
 
 > **Status Lifecycle:** PENDING → COMPLETE → VERIFIED
 > **Iterations:** Tracks implement→verify cycles (incremented by verify phase)
@@ -52,13 +52,13 @@ Worktree: Yes
 
 ## Progress Tracking
 
-- [ ] Task 1: Split orborous.py into consensus.py + orborous.py
-- [ ] Task 2: Trim research_squad.py to <300 lines
-- [ ] Task 3: Delete gateways/ module
-- [ ] Task 4: Validate and fix test files
+- [x] Task 1: Split orborous.py into consensus.py + orborous.py
+- [x] Task 2: Trim research_squad.py to <300 lines
+- [x] Task 3: Delete gateways/ module
+- [x] Task 4: Validate and fix test files
 - [ ] Task 5: Commit all changes
 
-**Total Tasks:** 5 | **Completed:** 0 | **Remaining:** 5
+**Total Tasks:** 5 | **Completed:** 4 | **Remaining:** 1
 
 ## Implementation Tasks
 
