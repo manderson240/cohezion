@@ -12,7 +12,8 @@ import os
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from jose import JWTError, jwt
+import jwt
+from jwt.exceptions import PyJWTError
 from passlib.context import CryptContext
 
 
@@ -114,7 +115,7 @@ def verify_token(token: str) -> dict[str, Any]:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except JWTError as e:
+    except PyJWTError as e:
         raise AuthError(f"Invalid token: {e}", "invalid_token") from e
 
 
