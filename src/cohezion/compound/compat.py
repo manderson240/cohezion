@@ -219,9 +219,6 @@ class CompoundCycleReport:
         self.final_compound_score_delta = final_compound_score_delta
 
 
-import logging
-
-
 # Re-export all legacy symbols
 __all__ = [
     # Enums
