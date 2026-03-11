@@ -46,3 +46,18 @@ This command is a **dispatcher** that determines which phase to run and invokes 
 
 | #   | Rule                                                                             ...
 
+### Prompt 4
+
+# /spec-verify - Verification Phase
+
+**Phase 3 of the /spec workflow.** Runs comprehensive verification: tests, process compliance, code review, program execution, E2E tests, and edge case testing.
+
+**Input:** Path to a plan file with `Status: COMPLETE`
+**Output:** Plan status set to VERIFIED (success) or looped back to implementation (failure)
+**On success:** Workflow complete
+**On failure:** → `Skill(skill='spec-implement', args='<plan-path>')` to fix issues
+
+---
+
+## ⛔ KEY CONSTRAINTS (Rule...
+
