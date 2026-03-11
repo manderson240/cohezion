@@ -3,8 +3,9 @@
   "checkpoint_id": "cfcde0463cf1",
   "strategy": "manual-commit",
   "branch": "triune-self-migration",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
+    "AGENTS.md",
     "VAULT_MANIFEST.md",
     "cerebellum/bioelectric-field-modeling-for-action-generation.md",
     "cortex/12D-Manifold.md",
@@ -104,6 +105,13 @@
       "transcript": "/cf/cde0463cf1/0/full.jsonl",
       "context": "",
       "content_hash": "/cf/cde0463cf1/0/content_hash.txt",
+      "prompt": ""
+    },
+    {
+      "metadata": "/cf/cde0463cf1/1/metadata.json",
+      "transcript": "/cf/cde0463cf1/1/full.jsonl",
+      "context": "",
+      "content_hash": "/cf/cde0463cf1/1/content_hash.txt",
       "prompt": ""
     }
   ]
