@@ -10,8 +10,6 @@ import logging
 
 # Import new simplified models AND legacy types now canonical in models
 from cohezion.compound.models import (
-    CompoundCycleReport,
-    CompoundCycleResult,
     # Legacy types — canonical definitions now live in models.py
     ConstraintType,
     ConstraintViolation,

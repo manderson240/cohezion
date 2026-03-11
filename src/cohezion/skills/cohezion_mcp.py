@@ -79,7 +79,7 @@ class CohezionMCP:
                 content = f.read()
                 # Simple comment stripping
                 lines = content.splitlines()
-                clean_lines = [l for l in lines if not l.strip().startswith(("#", "//"))]
+                clean_lines = [ln for ln in lines if not ln.strip().startswith(("#", "//"))]
                 return json.loads("\n".join(clean_lines))
         except Exception as e:
             sys.stderr.write(f"Error loading {path}: {e}\n")
@@ -1066,50 +1066,6 @@ Generate production-ready, maintainable code that follows industry standards.
             }
         res = self.resolver.resolve_claims(text)
         return {"content": [{"type": "text", "text": json.dumps(res, indent=2)}]}
-
-    def get_truth_anchors(self, arguments: dict[str, Any]) -> dict[str, Any]:
-        from cohezion.reliability.residency_awareness import ResidencyAnchorBase
-
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": ResidencyAnchorBase.get_context_block(),
-                }
-            ]
-        }
-
-    def remember_fact(self, arguments: dict[str, Any]) -> dict[str, Any]:
-        from cohezion.reliability.memory_manager import MemoryManager
-
-        fact = arguments.get("fact")
-        category = arguments.get("category", "general")
-        mgr = MemoryManager()
-        res = mgr.add(fact, metadata={"category": category})
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"Fact remembered successfully. Result: {res}",
-                }
-            ]
-        }
-
-    def recall_context(self, arguments: dict[str, Any]) -> dict[str, Any]:
-        from cohezion.reliability.memory_manager import MemoryManager
-
-        query = arguments.get("query")
-        limit = arguments.get("limit", 5)
-        mgr = MemoryManager()
-        results = mgr.search(query, limit=limit)
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": json.dumps(results, indent=2),
-                }
-            ]
-        }
 
     def offload_task(self, query: str, system_prompt: str | None = None) -> dict[str, Any]:
         if not self.offloader:
