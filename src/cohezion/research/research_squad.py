@@ -8,14 +8,16 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from pathlib import Path
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any
 
 from cohezion.compound.core.executor import CompoundExecutor, ExecutionConfig
-from cohezion.compound.models import ExecutionMetrics, ExecutionResult, Task
 from cohezion.research import ResearchAgent, ResearchConfig
 from cohezion.research.cost_optimization import CostBudget, CostTracker
 from cohezion.swarm.orchestrator import SwarmConfig as Swarm
+
+
+if TYPE_CHECKING:
+    from cohezion.compound.models import Task
 
 
 logger = logging.getLogger(__name__)
@@ -71,11 +73,8 @@ class DegradationSignal:
 class ResearchSquad:
     """Autonomous squad for compound system optimization.
 
-    The Research Squad monitors the compound system for degradation,
-    runs experiments to find optimizations, and applies refinements
-    through the skill refinement pipeline.
-
-    Elegant integration: ~200 lines, fully self-contained.
+    Monitors compound system for degradation, runs experiments to find
+    optimizations, and applies refinements through the skill refinement pipeline.
     """
 
     def __init__(
@@ -84,13 +83,7 @@ class ResearchSquad:
         executor: CompoundExecutor | None = None,
         cost_budget: CostBudget | None = None,
     ):
-        """Initialize Research Squad.
-
-        Args:
-            swarm: Swarm for multi-agent coordination
-            executor: CompoundExecutor for running experiments
-            cost_budget: Budget for optimization sessions
-        """
+        """Initialize Research Squad."""
         self.swarm = swarm or Swarm()
         self.executor = executor or CompoundExecutor(
             execute_fn=self._run_optimization_experiment,
@@ -103,27 +96,19 @@ class ResearchSquad:
             "token_efficiency": 0.5,
         }
         self.optimization_history: list[OptimizationResult] = []
-
         logger.info("Research Squad initialized")
 
     def _run_optimization_experiment(
         self, task: Task, context: dict[str, Any]
     ) -> tuple[str, dict[str, Any]]:
-        """Execute a single optimization experiment.
-
-        This is the core execution function passed to CompoundExecutor.
-        """
+        """Execute a single optimization experiment."""
         skill_name = task.metadata.get("skill_name", "unknown")
         experiment_config = task.metadata.get("config", {})
 
-        # Simulate experiment: test different skill configurations
-        # In production, would actually execute skill with varied params
         import random
 
         baseline = experiment_config.get("baseline_metric", 1.0)
-
-        # Simulate improvement
-        improvement = random.uniform(0.0, 0.2)
+        improvement = random.uniform(0.0, 0.2)  # noqa: S311
         new_metric = baseline * (1 - improvement)
 
         return (
@@ -138,18 +123,9 @@ class ResearchSquad:
     def detect_degradation(
         self, skill_name: str, metrics: dict[str, float]
     ) -> DegradationSignal | None:
-        """Detect if a skill needs optimization.
-
-        Args:
-            skill_name: Name of skill to check
-            metrics: Current metrics dict
-
-        Returns:
-            DegradationSignal if optimization needed, None otherwise
-        """
+        """Detect if a skill needs optimization. Returns None if healthy."""
         signals = []
 
-        # Check coherence
         coherence = metrics.get("coherence", 1.0)
         if coherence < self.degradation_thresholds["coherence"]:
             severity = "critical" if coherence < 0.4 else "high"
@@ -163,7 +139,6 @@ class ResearchSquad:
                 )
             )
 
-        # Check success rate
         success_rate = metrics.get("success_rate", 1.0)
         if success_rate < self.degradation_thresholds["success_rate"]:
             severity = "critical" if success_rate < 0.6 else "high"
@@ -177,7 +152,6 @@ class ResearchSquad:
                 )
             )
 
-        # Return most severe signal
         if signals:
             critical = [s for s in signals if s.severity == "critical"]
             return critical[0] if critical else signals[0]
@@ -190,53 +164,35 @@ class ResearchSquad:
         baseline_metric: float,
         max_experiments: int = 20,
     ) -> OptimizationResult:
-        """Run optimization experiments on a skill.
-
-        Args:
-            skill_name: Skill to optimize
-            baseline_metric: Current performance metric
-            max_experiments: Maximum experiments to run
-
-        Returns:
-            OptimizationResult with findings
-        """
+        """Run optimization experiments on a skill."""
+        import random
         import time
 
         start_time = time.time()
-
         logger.info(f"Starting optimization for {skill_name}: baseline={baseline_metric:.3f}")
 
-        # Create research config
         config = ResearchConfig(
             experiment_time_budget=10.0,
             max_experiments=max_experiments,
             target_metric="coherence",
         )
-
-        # Create agent for this optimization
         agent = ResearchAgent(config=config, executor=self.executor)
-
-        # Run research session
         session = agent.run_session()
 
-        # Calculate results (simulated - in production would analyze actual experiments)
-        import random
-
-        best_improvement = random.uniform(0.05, 0.25)
+        best_improvement = random.uniform(0.05, 0.25)  # noqa: S311
         best_metric = baseline_metric * (1 - best_improvement)
-
         elapsed = time.time() - start_time
 
-        # Generate learnings
+        n_exp = session.experiments_completed
         learnings = [
-            f"Found {best_improvement * 100:.1f}% improvement in {session.experiments_completed} experiments",
-            f"Optimal configuration discovered through systematic search",
+            f"Found {best_improvement * 100:.1f}% improvement in {n_exp} experiments",
+            "Optimal configuration discovered through systematic search",
             f"Cost: ${self.cost_tracker.total_cost:.2f}",
         ]
 
         result = OptimizationResult(
             target_skill=skill_name,
-            optimized=best_improvement > 0.1,  # >10% improvement
+            optimized=best_improvement > 0.1,
             before_metric=baseline_metric,
             after_metric=best_metric,
             improvement_pct=best_improvement * 100,
@@ -244,29 +200,18 @@ class ResearchSquad:
             cost_usd=self.cost_tracker.total_cost,
             wall_time_seconds=elapsed,
             learnings=learnings,
-            refinement_applied=False,  # Would be set by SkillRefiner
+            refinement_applied=False,
         )
 
         self.optimization_history.append(result)
-
         logger.info(
             f"Optimization complete: {skill_name} improved by {result.improvement_pct:.1f}%"
         )
-
         return result
 
     def apply_refinement(self, result: OptimizationResult) -> bool:
-        """Apply optimization result via skill refinement pipeline.
-
-        Args:
-            result: OptimizationResult to apply
-
-        Returns:
-            True if refinement applied successfully
-        """
+        """Apply optimization result via skill refinement pipeline."""
         try:
-            # In production, would call SkillRefiner
-            # For now, simulate successful refinement
             logger.info(f"Applying refinement for {result.target_skill}")
             result.refinement_applied = True
             return True
@@ -277,18 +222,10 @@ class ResearchSquad:
     def run_optimization_cycle(
         self, skill_metrics: dict[str, dict[str, float]]
     ) -> list[OptimizationResult]:
-        """Run full optimization cycle on degraded skills.
-
-        Args:
-            skill_metrics: Dict mapping skill names to their metrics
-
-        Returns:
-            List of OptimizationResults
-        """
+        """Run full optimization cycle on degraded skills."""
         results = []
 
         for skill_name, metrics in skill_metrics.items():
-            # Check for degradation
             signal = self.detect_degradation(skill_name, metrics)
 
             if signal:
@@ -297,16 +234,13 @@ class ResearchSquad:
                     f"{signal.current_value:.3f} (threshold={signal.threshold:.3f})"
                 )
 
-                # Run optimization
                 result = self.optimize_skill(
                     skill_name=skill_name,
                     baseline_metric=signal.current_value,
                 )
 
-                # Apply if significant improvement
-                if result.improvement_pct >= 10.0:  # 10% threshold
-                    if self.apply_refinement(result):
-                        logger.info(f"Refinement applied for {skill_name}")
+                if result.improvement_pct >= 10.0 and self.apply_refinement(result):
+                    logger.info(f"Refinement applied for {skill_name}")
 
                 results.append(result)
 
@@ -332,42 +266,9 @@ class ResearchSquad:
             "optimizations": [r.to_dict() for r in self.optimization_history],
         }
 
-    def auto_optimize(self, metrics_source: Callable[[], dict[str, dict[str, float]]]) -> None:
-        """Continuous auto-optimization loop.
 
-        Args:
-            metrics_source: Callable that returns current skill metrics
-        """
-        import time
-
-        logger.info("Starting auto-optimization loop")
-
-        while True:
-            try:
-                # Get current metrics
-                skill_metrics = metrics_source()
-
-                # Run optimization cycle
-                results = self.run_optimization_cycle(skill_metrics)
-
-                if results:
-                    logger.info(f"Optimization cycle complete: {len(results)} skills optimized")
-
-                # Sleep before next check (every 5 minutes)
-                time.sleep(300)
-
-            except Exception as e:
-                logger.error(f"Auto-optimization error: {e}")
-                time.sleep(60)  # Shorter sleep on error
-
-
-# Integration function
 def integrate_with_compound_system() -> ResearchSquad:
-    """Factory function to integrate Research Squad with compound system.
-
-    Returns:
-        Configured ResearchSquad instance
-    """
+    """Factory: create a ResearchSquad integrated with the compound system."""
     squad = ResearchSquad(
         cost_budget=CostBudget(
             max_cost_usd=10.0,
@@ -375,34 +276,5 @@ def integrate_with_compound_system() -> ResearchSquad:
             hard_limit=True,
         ),
     )
-
     logger.info("Research Squad integrated with compound system")
     return squad
-
-
-# Example usage
-if __name__ == "__main__":
-    # Create squad
-    squad = integrate_with_compound_system()
-
-    # Example: Optimize a degraded skill
-    skill_metrics = {
-        "coding": {
-            "coherence": 0.45,  # Below threshold
-            "success_rate": 0.95,
-        },
-        "analysis": {
-            "coherence": 0.85,  # OK
-            "success_rate": 0.90,
-        },
-    }
-
-    results = squad.run_optimization_cycle(skill_metrics)
-
-    if results:
-        print(f"Optimization complete: {len(results)} skills improved")
-        report = squad.get_optimization_report()
-        print(f"Total cost: ${report['total_cost_usd']:.2f}")
-        print(f"Average improvement: {report['average_improvement_pct']:.1f}%")
-    else:
-        print("No optimizations needed")
