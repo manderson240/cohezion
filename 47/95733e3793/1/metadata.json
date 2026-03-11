@@ -1,14 +1,14 @@
 {
   "cli_version": "0.4.9",
   "checkpoint_id": "4795733e3793",
+  "session_id": "b5164d70-585f-45b3-8e68-7aa086d25caf",
   "strategy": "manual-commit",
+  "created_at": "2026-03-11T03:52:00.345062575Z",
   "branch": "feat/compound-elegant-simplification",
-  "checkpoints_count": 7,
+  "checkpoints_count": 3,
   "files_touched": [
     ".claude/skills/llm-pipeline-prompt-injection-defense/SKILL.md",
-    ".claude/skills/python-module-level-method-bug/SKILL.md",
     ".claude/skills/research-agent/SKILL.md",
-    ".claude/skills/ruff-release-readiness-sweep/SKILL.md",
     ".claude/skills/torch-load-rce-weights-only/SKILL.md",
     ".env.mcp.example",
     ".github/workflows/autonomous-scout.yml",
@@ -151,27 +151,22 @@
     "tests/vanguard/test_connectors.py",
     "uv.lock"
   ],
-  "sessions": [
-    {
-      "metadata": "/47/95733e3793/0/metadata.json",
-      "transcript": "/47/95733e3793/0/full.jsonl",
-      "context": "/47/95733e3793/0/context.md",
-      "content_hash": "/47/95733e3793/0/content_hash.txt",
-      "prompt": "/47/95733e3793/0/prompt.txt"
-    },
-    {
-      "metadata": "/47/95733e3793/1/metadata.json",
-      "transcript": "/47/95733e3793/1/full.jsonl",
-      "context": "/47/95733e3793/1/context.md",
-      "content_hash": "/47/95733e3793/1/content_hash.txt",
-      "prompt": "/47/95733e3793/1/prompt.txt"
-    }
-  ],
+  "agent": "Claude Code",
+  "turn_id": "e94e127c2eb4",
   "token_usage": {
-    "input_tokens": 15503,
-    "cache_creation_tokens": 4512857,
-    "cache_read_tokens": 101560862,
-    "output_tokens": 313564,
-    "api_call_count": 790
+    "input_tokens": 984,
+    "cache_creation_tokens": 1679726,
+    "cache_read_tokens": 12358451,
+    "output_tokens": 47019,
+    "api_call_count": 116
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-11T03:51:59.023439637Z",
+    "agent_lines": 2267,
+    "human_added": 2710,
+    "human_modified": 2,
+    "human_removed": 0,
+    "total_committed": 4979,
+    "agent_percentage": 45.531231170917856
   }
 }
