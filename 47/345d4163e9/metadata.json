@@ -1,0 +1,46 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "47345d4163e9",
+  "strategy": "manual-commit",
+  "branch": "triune-self-migration",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "history.txt",
+    "learnings/verification/verify_skill/1771220602.md",
+    "missions/session_12_hardening_1770737305.md",
+    "missions/session_12_hardening_1770737305_milestone_2.md",
+    "missions/session_12_hardening_1770737305_milestone_3.md",
+    "missions/session_12_hardening_1770737831.md",
+    "missions/session_12_hardening_1770737831_milestone_2.md",
+    "missions/session_12_hardening_1770737831_milestone_3.md",
+    "missions/session_12_hardening_1770737831_milestone_4.md",
+    "missions/session_12_hardening_1770737898.md",
+    "missions/session_12_hardening_1770737898_milestone_2.md",
+    "missions/session_12_hardening_1770737898_milestone_3.md",
+    "missions/session_12_hardening_1770737898_milestone_4.md",
+    "missions/thought_1770697310227_ec4a0132357e.md",
+    "missions/thought_1771211551652_45f5d3121e1c.md",
+    "missions/thought_1771211551847_652e9d624c6a.md",
+    "missions/thought_1771652464160_652e9d624c6a.md",
+    "missions/thought_1771652519973_4ab580558213.md",
+    "missions/thought_1771652520153_9dabb14700b3.md",
+    "research/kyutai-api-specification.md",
+    "research/kyutai-mcp-server-architecture.md",
+    "research/kyutai-mcp-server-implementation.md",
+    "research/kyutai-obsidian-plugin-architecture.md",
+    "retrospectives/2026-02-10-log-mining-retrospective.md",
+    "retrospectives/2026-02-10-phase3-session-retrospective.md",
+    "retrospectives/2026-02-10-telemetry-corruption-fix.md",
+    "retrospectives/S11_SAFE_MODE_V3.md",
+    "retrospectives/session-69-retrospective.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/47/345d4163e9/0/metadata.json",
+      "transcript": "/47/345d4163e9/0/full.jsonl",
+      "context": "",
+      "content_hash": "/47/345d4163e9/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
