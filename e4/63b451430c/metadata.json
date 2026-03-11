@@ -1,0 +1,47 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "e463b451430c",
+  "strategy": "manual-commit",
+  "branch": "triune-self-migration",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "daily/2026-02-13-session-173cdb02.md",
+    "daily/2026-02-13-session-cf44ece1.md",
+    "daily/2026-02-14-phase-6b-execution-complete.md",
+    "daily/2026-02-14-phase-6b-final-report.md",
+    "daily/2026-02-14-phase-7-execution-complete.md",
+    "daily/2026-02-14-phase-7-preparation-complete.md",
+    "daily/2026-02-14-session-7a1f0d61.md",
+    "daily/2026-02-14-wave-1-delivery-complete.md",
+    "daily/2026-02-14-wave-1-status-snapshot.md",
+    "daily/2026-02-23-anthropic-alignment-investigation.md",
+    "daily/2026-02-23-architecture-investigation.md",
+    "daily/2026-02-23-evaluation-investigation.md",
+    "daily/2026-02-23-flume-investigation-summary.md",
+    "daily/2026-02-23-flume-specialist-investigation.md",
+    "daily/2026-02-23-flume-strategic-roadmap.md",
+    "daily/2026-02-23-integration-investigation.md",
+    "daily/2026-02-23-investigation-index.md",
+    "daily/2026-02-23-quick-reference.md",
+    "daily/2026-02-23-training-dynamics-investigation.md",
+    "daily/PHASE-2-DEPLOYMENT-COMPLETION-2026-02-14.md",
+    "daily/PHASE-2-FINAL-COMPLETION-VERIFIED-2026-02-14.md",
+    "daily/PHASE-3-COMPLETION-VERIFIED-2026-02-14.md",
+    "daily/SESSION-2026-02-10-WORK-SUMMARY.md",
+    "daily/SESSION-57-COMPLETION-SUMMARY.md",
+    "daily/SESSION-60-COMPLETION-SUMMARY.md",
+    "daily/SESSION-61-COMPLETE-SUMMARY.md",
+    "daily/SESSION-62-PHASE-3-COMPLETE-FINAL-SUMMARY.md",
+    "daily/SESSION-63-FINAL-SUMMARY-2026-02-15.md",
+    "daily/agent-logs/2026-02-11T14-30-example-phase1-step1.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/e4/63b451430c/0/metadata.json",
+      "transcript": "/e4/63b451430c/0/full.jsonl",
+      "context": "",
+      "content_hash": "/e4/63b451430c/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
