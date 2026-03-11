@@ -43,7 +43,7 @@ class CapabilityRegistry:
 
     USAGE_FILE = "capability_usage.json"
 
-    def __init__(self, root_dir: Path = None):
+    def __init__(self, root_dir: Path | None = None):
         self.root_dir = root_dir or Path(__file__).parent.parent.parent.parent
         self.capabilities: list[Capability] = []
         self.vectorizer = None
@@ -134,7 +134,7 @@ class CapabilityRegistry:
                         type="mcp",
                         description=server.get("description", ""),
                         path=server.get("path", ""),
-                        tags=["tool", "server", "int"] + server.get("tools", []),
+                        tags=["tool", "server", "int", *server.get("tools", [])],
                     )
                 )
             # External

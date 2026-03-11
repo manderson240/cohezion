@@ -74,7 +74,7 @@ class LocalRegistry:
         """
         Check if system has enough storage headroom.
         """
-        total, used, free = shutil.disk_usage("/")
+        _total, _used, free = shutil.disk_usage("/")
         free_gb = free / (1024**3)
         return free_gb >= min_gb
 

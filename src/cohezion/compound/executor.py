@@ -396,7 +396,7 @@ class CompoundExecutor:
         # Step 1.5: Parse request for alignment analysis (if enabled)
         # Skip in degradation mode to conserve resources
         parsed_request = None
-        alignment_patterns = None
+        _alignment_patterns = None
         if (
             self._enable_alignment_analysis
             and self.alignment_analyzer
@@ -405,7 +405,7 @@ class CompoundExecutor:
             try:
                 request_text = human_request or task_description
                 parsed_request = self.alignment_analyzer.parse_request(request_text)
-                alignment_patterns = self.alignment_analyzer.query_alignment_patterns(
+                _alignment_patterns = self.alignment_analyzer.query_alignment_patterns(
                     task_description, project
                 )
                 logger.debug(
@@ -705,12 +705,11 @@ class CompoundExecutor:
         # Coherence within HIHO band [0.4, 0.6] -> exit degradation mode
         # Coherence outside band with CRITICAL alert -> enter degradation mode
         coherence_val = metrics.get("coherence", 0.5)
-        if 0.4 <= coherence_val <= 0.6:
-            if self._degradation_mode:
-                logger.info(
-                    "Cohesion returned to HIHO band (%.2f), exiting degradation mode", coherence_val
-                )
-                self._degradation_mode = False
+        if 0.4 <= coherence_val <= 0.6 and self._degradation_mode:
+            logger.info(
+                "Cohesion returned to HIHO band (%.2f), exiting degradation mode", coherence_val
+            )
+            self._degradation_mode = False
 
         if self._degradation_detector:
             try:
@@ -839,7 +838,7 @@ class CompoundExecutor:
                         exec_id = f"exec_{int(time.time())}"
                         try:
                             asyncio.get_running_loop()
-                            _task = asyncio.ensure_future(  # noqa: RUF006
+                            _task = asyncio.ensure_future(
                                 self._journey_persistence.save_trajectory_point(
                                     exec_id,
                                     point_data,

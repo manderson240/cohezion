@@ -8,7 +8,7 @@ import time
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -31,7 +31,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class ResourceLimitType(str, Enum):
+class ResourceLimitType(StrEnum):
     """Resource limit types."""
 
     CPU_PERCENT = "cpu_percent"
@@ -39,7 +39,7 @@ class ResourceLimitType(str, Enum):
     DISK_GB = "disk_gb"
 
 
-class ExecutorEventType(str, Enum):
+class ExecutorEventType(StrEnum):
     """Executor-specific audit event types (internal use)."""
 
     SANDBOX_START = "sandbox_start"
@@ -409,7 +409,7 @@ class SandboxExecutor:
             SandboxResult with execution outcome
         """
         start_time = time.time()
-        audit_log = []
+        _audit_log = []
         container_id = None
 
         try:

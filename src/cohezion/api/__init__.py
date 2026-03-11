@@ -4,6 +4,7 @@ Cohezion API - FastAPI server exposing swarm and MCP tools.
 Provides REST endpoints for Open-Notebook integration.
 """
 
+import contextlib
 import logging
 import os
 import re
@@ -794,7 +795,7 @@ async def rl_episode():
     import gymnasium as gym
     import numpy as np
 
-    import cohezion.rl.environment  # noqa: F401
+    import cohezion.rl.environment
 
     policy = _get_rl_policy()
     env = gym.make("cohezion/FlumeNav-v0", max_steps=200)
@@ -851,10 +852,8 @@ async def rl_policy_info():
     metrics_path = Path("data/rl/checkpoints/training_metrics.json")
     training_metrics = None
     if metrics_path.exists():
-        try:
+        with contextlib.suppress(json.JSONDecodeError, OSError):
             training_metrics = json.loads(metrics_path.read_text())
-        except (json.JSONDecodeError, OSError):
-            pass
 
     return RlPolicyInfoResponse(
         loaded=True,

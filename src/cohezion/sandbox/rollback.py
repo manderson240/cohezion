@@ -376,7 +376,7 @@ class BtrfsSnapshotBackend(SnapshotBackend):
 class JsonlSnapshotBackend(SnapshotBackend):
     """JSONL-based metadata-only snapshots (no actual filesystem restore)."""
 
-    def __init__(self, metadata_dir: Path = None):
+    def __init__(self, metadata_dir: Path | None = None):
         """Initialize with metadata directory."""
         self.metadata_dir = metadata_dir or Path("/tmp/rollback_snapshots")
         self.metadata_dir.mkdir(parents=True, exist_ok=True)
@@ -801,7 +801,7 @@ class TransactionManager:
     def begin(
         self,
         operation_name: str,
-        working_dir: Path = None,
+        working_dir: Path | None = None,
         config: TransactionConfig = None,
         backend: SnapshotBackendType = SnapshotBackendType.JSONL,
     ) -> Transaction:

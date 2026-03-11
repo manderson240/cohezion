@@ -126,10 +126,7 @@ class SemanticTextEncoder:
 
             # Normalize to unit vector
             norm = np.linalg.norm(embedding)
-            if norm > 0:
-                embedding = embedding / norm
-            else:
-                embedding = self._zero_embedding()
+            embedding = embedding / norm if norm > 0 else self._zero_embedding()
 
             return embedding.astype(np.float32)
         except Exception as e:

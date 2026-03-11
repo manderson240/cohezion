@@ -10,10 +10,10 @@ from __future__ import annotations
 import hashlib
 import hmac
 import logging
-import os
 import secrets
 from dataclasses import dataclass, field
 from enum import Enum
+
 
 logger = logging.getLogger(__name__)
 

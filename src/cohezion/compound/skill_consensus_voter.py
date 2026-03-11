@@ -214,7 +214,7 @@ class SkillConsensusVoter:
             reverse=True,
         )
 
-        best_skill_name, best_data = sorted_skills[0]
+        _best_skill_name, best_data = sorted_skills[0]
         vote_fraction = best_data["count"] / len(votes)
 
         # Check if threshold met (strictly greater for majority)
@@ -296,7 +296,7 @@ class SkillConsensusVoter:
             reverse=True,
         )
 
-        best_skill_name, best_data = sorted_skills[0]
+        _best_skill_name, best_data = sorted_skills[0]
         weight_fraction = best_data["weight"] / total_weight if total_weight > 0 else 0
 
         consensus_achieved = weight_fraction > threshold

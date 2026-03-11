@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import json
 import logging
 import time
@@ -53,6 +54,9 @@ class ResourceMonitor:
         self.service_health: dict[str, str] = {}  # service -> status
         self._initialized = True
 
+        # Initialize cpu_percent to avoid 0.0 on first call
+        psutil.cpu_percent(interval=None)
+
         # Start background heartbeat if loop is running
         try:
             loop = asyncio.get_running_loop()
@@ -68,10 +72,8 @@ class ResourceMonitor:
         self._running = False
         if hasattr(self, "_heartbeat_task"):
             self._heartbeat_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._heartbeat_task
-            except asyncio.CancelledError:
-                pass
         logger.info("ResourceMonitor stopped.")
 
     def register_coordinator(self, coordinator: Any):

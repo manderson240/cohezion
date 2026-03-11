@@ -260,7 +260,7 @@ class SurrealMCP:
             for n in learnings
         ]
 
-    async def sync_key_learnings(self, markdown_path: str = None) -> dict[str, Any]:
+    async def sync_key_learnings(self, markdown_path: str | None = None) -> dict[str, Any]:
         """
         Sync KEY_LEARNINGS.md to SurrealDB.
 

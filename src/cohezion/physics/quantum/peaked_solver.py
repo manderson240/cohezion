@@ -239,7 +239,7 @@ class PeakedCircuitSolver:
 
             try:
                 rsrc = resource.RLIMIT_AS
-                soft, hard = resource.getrlimit(rsrc)
+                _soft, hard = resource.getrlimit(rsrc)
                 limit_bytes = 40 * 1024**3
                 resource.setrlimit(rsrc, (limit_bytes, hard))
                 logger.info("Memory Limit set to 40GB")

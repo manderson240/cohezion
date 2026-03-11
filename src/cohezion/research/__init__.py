@@ -21,6 +21,12 @@ from cohezion.research.security import (
     ResearchSecurityGuardrails,
     ValidationResult,
 )
+from cohezion.research.research_squad import (
+    DegradationSignal,
+    OptimizationResult,
+    ResearchSquad,
+    integrate_with_compound_system,
+)
 from cohezion.research.training import (
     SimpleTrainingRunner,
     TrainingExecutor,
@@ -28,23 +34,27 @@ from cohezion.research.training import (
 
 
 __all__ = [
-    # Core
-    "ResearchAgent",
-    "ResearchSession",
-    "ResearchConfig",
+    "CodeChange",
+    "DegradationSignal",
     "ExperimentResult",
-    # Multi-agent
-    "ResearchSwarm",
     "MultiAgentResearchConfig",
     "MultiAgentResult",
-    "SimpleMultiAgent",
-    # Security
+    "OptimizationResult",
+    # Core
+    "ResearchAgent",
+    "ResearchConfig",
+    # Squad
     "ResearchSecurityGuardrails",
-    "CodeChange",
-    "ValidationResult",
+    "ResearchSession",
+    "ResearchSquad",
+    # Multi-agent
+    "ResearchSwarm",
+    "SimpleMultiAgent",
+    "SimpleTrainingRunner",
     # Training
     "TrainingExecutor",
-    "SimpleTrainingRunner",
+    "ValidationResult",
+    "integrate_with_compound_system",
 ]
 
 __version__ = "0.2.0"

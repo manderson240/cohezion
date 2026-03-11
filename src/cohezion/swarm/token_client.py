@@ -103,11 +103,13 @@ class ResilientOllamaClient:
                 if clean_base.endswith("/v1"):
                     clean_base = clean_base[:-3]
 
+                # Using /api/generate for better legacy stability in high-load scenarios
                 response = requests.post(
-                    f"{clean_base}/api/chat",
+                    f"{clean_base}/api/generate",
                     json={
                         "model": model,
-                        "messages": messages,
+                        "prompt": prompt,
+                        "system": system,
                         "stream": False,
                     },
                     timeout=self.timeout,
@@ -115,7 +117,7 @@ class ResilientOllamaClient:
                 response.raise_for_status()
 
                 data = response.json()
-                content = data.get("message", {}).get("content", "")
+                content = data.get("response", "")
                 tokens = data.get("eval_count", 0) + data.get("prompt_eval_count", 0)
 
                 return content, tokens
@@ -191,6 +193,13 @@ class TokenEfficientClient:
             ngrok_api_key: ngrok API key for authentication
             enable_ngrok_failover: Whether to failover to Ollama if ngrok fails (default: True)
         """
+        # Normalize base URL: strip trailing slashes, /api, or /v1
+        clean_base = ollama_base_url.rstrip("/")
+        if clean_base.endswith("/api"):
+            clean_base = clean_base[:-4]
+        if clean_base.endswith("/v1"):
+            clean_base = clean_base[:-3]
+
         # Initialize with ngrok gateway if configured
         if ngrok_endpoint:
             from cohezion.gateway import NgrokAIGateway
@@ -198,14 +207,14 @@ class TokenEfficientClient:
             self.ollama = NgrokAIGateway(
                 ngrok_endpoint=ngrok_endpoint,
                 ngrok_api_key=ngrok_api_key,
-                fallback_ollama_url=ollama_base_url,
+                fallback_ollama_url=clean_base,
                 enable_failover=enable_ngrok_failover,
             )
             from urllib.parse import urlparse
             _safe_host = urlparse(ngrok_endpoint).netloc
             logger.info("TokenEfficientClient using ngrok gateway host: %s", _safe_host)
         else:
-            self.ollama = ResilientOllamaClient(base_url=ollama_base_url)
+            self.ollama = ResilientOllamaClient(base_url=clean_base)
 
         self.router = router
         self.config = config or CohezionConfig()
@@ -303,10 +312,22 @@ class TokenEfficientClient:
         self._cache_misses += 1
         self._api_calls += 1
 
+        # Use the router if available to select the optimal model
+        selected_model = model
+        if self.router:
+            try:
+                # The adapter maps context to SmartRouter TaskType
+                selection = await self.router.select_optimal_model(
+                    {"task_type": kwargs.get("task_type", "general"), "context_length": len(prompt)}
+                )
+                selected_model = selection.name
+            except Exception as e:
+                logger.warning(f"Router selection failed, falling back to {model}: {e}")
+
         # Use the resilient client with modern chat parameters
         response, tokens = await self.ollama.generate(
             prompt=prompt,
-            model=model,
+            model=selected_model,
             system=system,
         )
 

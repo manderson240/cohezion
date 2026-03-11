@@ -86,8 +86,8 @@ class SwarmGovernor:
 
         # Split task queue between two children
         mid = len(agent.task_queue) // 2
-        child_a_tasks = agent.task_queue[:mid]
-        child_b_tasks = agent.task_queue[mid:]
+        _child_a_tasks = agent.task_queue[:mid]
+        _child_b_tasks = agent.task_queue[mid:]
 
         child_a_id = f"{agent.agent_id}-a"
         child_b_id = f"{agent.agent_id}-b"

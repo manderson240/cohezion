@@ -409,10 +409,7 @@ class MetricsAnalytics:
         previous = values[-2]
         change = current - previous
 
-        if previous != 0:
-            change_percent = (change / previous) * 100
-        else:
-            change_percent = 0.0
+        change_percent = change / previous * 100 if previous != 0 else 0.0
 
         # Determine trend direction
         if change > 1:

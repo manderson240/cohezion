@@ -22,6 +22,7 @@ from typing import Any
 from cohezion.compound.core.executor import CompoundExecutor, ExecutionConfig
 from cohezion.compound.models import ExecutionResult, Task
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -39,7 +40,10 @@ class SkillMetrics:
 
 @dataclass
 class SkillRefinement:
-    """A refinement made to a skill."""
+    """A refinement made to a skill.
+
+    Tracks previous version for rollback capability (Issue #13).
+    """
 
     skill_name: str
     timestamp: str
@@ -47,6 +51,8 @@ class SkillRefinement:
     previous_score: float
     new_score: float
     improvement_type: str  # 'performance', 'coherence', 'reliability'
+    previous_version: str | None = None  # For rollback
+    rollback_available: bool = False
 
 
 class AdaptiveSkillRefiner:
@@ -226,6 +232,37 @@ class AdaptiveSkillRefiner:
 
         return None
 
+    def rollback_refinement(self, skill_name: str) -> bool:
+        """Rollback a skill refinement (Issue #13).
+
+        Args:
+            skill_name: Skill to rollback
+
+        Returns:
+            True if rollback successful
+        """
+        # Find last refinement for this skill
+        skill_refinements = [r for r in self.refinements if r.skill_name == skill_name]
+        if not skill_refinements:
+            logger.warning(f"No refinements to rollback for skill: {skill_name}")
+            return False
+
+        last_refinement = skill_refinements[-1]
+        if not last_refinement.rollback_available:
+            logger.warning(f"Rollback not available for skill: {skill_name}")
+            return False
+
+        # Restore previous metric values
+        if skill_name in self.metrics:
+            self.metrics[skill_name].avg_coherence = last_refinement.previous_score
+            self.metrics[skill_name].improvements_made -= 1
+
+        # Mark refinement as rolled back
+        last_refinement.rollback_available = False
+
+        logger.info(f"Rolled back refinement for skill: {skill_name}")
+        return True
+
     def get_skill_report(self, skill_name: str) -> dict[str, Any]:
         """Get report for a skill.
 
@@ -260,7 +297,7 @@ class AdaptiveSkillRefiner:
         Returns:
             List of skill reports
         """
-        return [self.get_skill_report(name) for name in self.metrics.keys()]
+        return [self.get_skill_report(name) for name in self.metrics]
 
     def save_metrics(self, path: Path | None = None) -> None:
         """Save metrics to file.

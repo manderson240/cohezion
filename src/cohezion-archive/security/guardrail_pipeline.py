@@ -19,14 +19,14 @@ import logging
 import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Protocol
 
 
 logger = logging.getLogger(__name__)
 
 
-class GuardrailAction(str, Enum):
+class GuardrailAction(StrEnum):
     """Action taken by guardrail."""
 
     ALLOW = "allow"

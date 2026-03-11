@@ -40,6 +40,17 @@ class CostBudget:
     warning_threshold: float = 0.8  # Warn at 80% of budget
     hard_limit: bool = True  # Hard stop at limit
 
+    def __post_init__(self):
+        """Validate budget parameters (Issue #6)."""
+        if self.max_cost_usd <= 0:
+            raise ValueError("max_cost_usd must be > 0")
+        if self.max_tokens <= 0:
+            raise ValueError("max_tokens must be > 0")
+        if self.max_experiments <= 0:
+            raise ValueError("max_experiments must be > 0")
+        if not (0.0 < self.warning_threshold <= 1.0):
+            raise ValueError("warning_threshold must be between 0.0 and 1.0")
+
     def is_within_budget(
         self,
         current_cost: float,

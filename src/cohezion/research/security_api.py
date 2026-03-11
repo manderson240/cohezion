@@ -91,7 +91,7 @@ class RateLimiter:
 
         now = time.time()
         minute_ago = now - 60
-        hour_ago = now - 3600
+        _hour_ago = now - 3600
 
         entry = self._clients.get(client_id)
 

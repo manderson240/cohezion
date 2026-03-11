@@ -42,7 +42,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("FractalNexus")
 
-from cohezion.simulation.analysis_prime import SimulationAnalyzer  # noqa: E402
+from cohezion.simulation.analysis_prime import SimulationAnalyzer
 
 
 # Constants
@@ -510,10 +510,7 @@ if __name__ == "__main__":
     # Parse duration
     units = {"s": 1, "m": 60, "h": 3600}
     unit = args.duration[-1]
-    if unit in units:
-        duration_s = int(args.duration[:-1]) * units[unit]
-    else:
-        duration_s = int(args.duration)
+    duration_s = int(args.duration[:-1]) * units[unit] if unit in units else int(args.duration)
 
     sim = FractalSimulator()
     sim.run(max_seconds=duration_s)

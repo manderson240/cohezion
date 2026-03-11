@@ -10,7 +10,8 @@ from __future__ import annotations
 import hashlib
 import logging
 import struct
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+
 
 logger = logging.getLogger(__name__)
 

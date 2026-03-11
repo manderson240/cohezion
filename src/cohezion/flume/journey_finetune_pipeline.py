@@ -303,7 +303,7 @@ async def main():
 
     # Step 1: Collect and convert
     converter = JourneyToFinetuneConverter()
-    output_path = converter.run(min_phi=args.min_phi, max_samples=args.max_samples)
+    _output_path = converter.run(min_phi=args.min_phi, max_samples=args.max_samples)
 
     # Step 2: Optionally deploy
     if args.deploy:

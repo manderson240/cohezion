@@ -64,7 +64,7 @@ class MCPAuditor:
                     security_score -= 0.1
 
         except Exception as e:
-            issues.append(f"Connection failed: {str(e)}")
+            issues.append(f"Connection failed: {e!s}")
             healthy = False
 
         return AuditResult(
@@ -77,7 +77,7 @@ class MCPAuditor:
         )
 
     async def run_fleet_audit(self) -> list[AuditResult]:
-        results: list[AuditResult] = []
+        _results: list[AuditResult] = []
         # We audit the servers registered in the manager
         manager_status = self.manager.get_status()
         servers = manager_status["servers"]

@@ -2,6 +2,7 @@
 RL Service - Logic for training and running RL policies on Flume environments.
 """
 
+import contextlib
 import json
 import logging
 from pathlib import Path
@@ -190,7 +191,6 @@ async def rl_episode_service() -> RlEpisodeResponse:
     import gymnasium as gym
     import numpy as np
 
-    import cohezion.rl.environment  # noqa: F401
 
     policy = get_rl_policy_singleton()
     env = gym.make("cohezion/FlumeNav-v0", max_steps=200)
@@ -244,10 +244,8 @@ async def rl_policy_info_service() -> RlPolicyInfoResponse:
     metrics_path = Path("data/rl/checkpoints/training_metrics.json")
     training_metrics = None
     if metrics_path.exists():
-        try:
+        with contextlib.suppress(json.JSONDecodeError, OSError):
             training_metrics = json.loads(metrics_path.read_text())
-        except (json.JSONDecodeError, OSError):
-            pass
 
     return RlPolicyInfoResponse(
         loaded=True,

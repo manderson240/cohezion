@@ -79,7 +79,7 @@ class TestGenerator:
             if isinstance(node, ast.ClassDef):
                 class_info = self._extract_class(node)
                 classes.append(class_info)
-            elif isinstance(node, ast.FunctionDef) or isinstance(node, ast.AsyncFunctionDef):
+            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 func_info = self._extract_function(node)
                 functions.append(func_info)
 
@@ -169,7 +169,7 @@ class TestGenerator:
 
     def _generate_header(self, module_info: ModuleInfo) -> list[str]:
         """Generate file header."""
-        module_name = module_info.path.stem
+        _module_name = module_info.path.stem
         return [
             f'"""Tests for {module_info.path}.',
             "",
@@ -188,7 +188,7 @@ class TestGenerator:
     def _generate_imports(self, module_info: ModuleInfo) -> list[str]:
         """Generate import statements."""
         imports = []
-        module_name = module_info.path.stem
+        _module_name = module_info.path.stem
 
         # Import the module under test
         relative_path = (

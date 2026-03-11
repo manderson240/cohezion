@@ -24,6 +24,11 @@ class HealingStrategy(ABC):
         """Name of the strategy."""
         pass
 
+    @property
+    def confidence(self) -> float:
+        """Estimated reliability of this strategy (0.0 to 1.0)."""
+        return 0.8
+
     @abstractmethod
     async def execute(self, context: dict[str, Any]) -> bool:
         """Execute the healing action.
@@ -40,6 +45,10 @@ class ModelSwapStrategy(HealingStrategy):
     @property
     def name(self) -> str:
         return "model_swap"
+
+    @property
+    def confidence(self) -> float:
+        return 0.9
 
     async def execute(self, context: dict[str, Any]) -> bool:
         current_model = context.get("current_model")
@@ -72,6 +81,10 @@ class ContextReductionStrategy(HealingStrategy):
     def name(self) -> str:
         return "context_reduction"
 
+    @property
+    def confidence(self) -> float:
+        return 0.95
+
     async def execute(self, context: dict[str, Any]) -> bool:
         reduction_factor = context.get("reduction_factor", 0.5)
         logger.info(f"RAH: Reducing context windows by {reduction_factor * 100}%")
@@ -88,7 +101,7 @@ class ContextReductionStrategy(HealingStrategy):
         # Broadcast signal (simulated)
         logger.warning("RAH: Broadcast COMPACT_CONTEXT signal to all active agents")
 
-        # We assume success once flagged; components like ContextHarness 
+        # We assume success once flagged; components like ContextHarness
         # should check this flag during prompt preparation.
         return True
 
@@ -98,6 +111,10 @@ class SystemRestartStrategy(HealingStrategy):
     @property
     def name(self) -> str:
         return "system_restart"
+
+    @property
+    def confidence(self) -> float:
+        return 0.7
 
     async def execute(self, context: dict[str, Any]) -> bool:
         service = context.get("service", "all")
@@ -134,7 +151,7 @@ class SystemRestartStrategy(HealingStrategy):
                     if process.returncode != 0:
                         logger.error(f"RAH: Recovery script failed with code {process.returncode}")
                         return False
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     # Script is likely long-running (daemon mode), consider trigger successful
                     pass
 

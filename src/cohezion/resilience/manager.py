@@ -1,6 +1,7 @@
 """RAH Autonomic Manager - Core MAPE-K loop implementation."""
 
 import asyncio
+import contextlib
 import logging
 import time
 import uuid
@@ -65,10 +66,8 @@ class AutonomicManager:
         self._running = False
         if self._loop_task:
             self._loop_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._loop_task
-            except asyncio.CancelledError:
-                pass
         logger.info("RAH: Autonomic Manager stopped")
 
     async def _run_loop(self, interval: int):
@@ -102,16 +101,16 @@ class AutonomicManager:
 
         analysis = {"action_needed": False, "strategy": None, "context": {}}
 
-        # Logic hierarchy based on severity
-        if cpu > 98 or ram > 98 or vram > 98:
+        # Proactive logic hierarchy based on severity
+        if cpu > 95 or ram > 95 or vram > 95:
             analysis["action_needed"] = True
             analysis["strategy"] = "system_restart"
-            analysis["context"] = {"reason": "Emergency pressure", "vitals": vitals}
-        elif ram > 90 or vram > 90:
+            analysis["context"] = {"reason": "Critical pressure", "vitals": vitals}
+        elif ram > 85 or vram > 85:
             analysis["action_needed"] = True
             analysis["strategy"] = "context_reduction"
-            analysis["context"] = {"reduction_factor": 0.7}
-        elif cpu > 85:
+            analysis["context"] = {"reduction_factor": 0.6}
+        elif cpu > 80:
             analysis["action_needed"] = True
             analysis["strategy"] = "model_swap"
             analysis["context"] = {"target_model": "phi3:mini"}
@@ -130,27 +129,30 @@ class AutonomicManager:
         logger.warning(f"RAH: Executing healing strategy: {strategy_name}")
         success = await strategy.execute(analysis.get("context", {}))
 
-        # Log decision to SurrealDB
-        await self._log_decision(strategy_name, success, analysis, vitals)
+        # Log decision to SurrealDB with strategy confidence
+        await self._log_decision(strategy, success, analysis, vitals)
 
         if success:
             logger.info(f"RAH: Strategy {strategy_name} executed successfully")
         else:
             logger.error(f"RAH: Strategy {strategy_name} execution failed")
 
-    async def _log_decision(self, strategy: str, success: bool, analysis: dict, vitals: dict):
+    async def _log_decision(
+        self, strategy: HealingStrategy, success: bool, analysis: dict, vitals: dict
+    ):
         """Persist RAH decision to SurrealDB."""
         try:
             node_id = f"rah_{uuid.uuid4()}"
-            content = f"RAH Decision: {strategy} | Success: {success}"
+            content = f"RAH Decision: {strategy.name} | Success: {success}"
 
             # Map vitals to 12D physics state for visualization
+            # Use strategy's base confidence as the 'logic' value
             physics = PhysicsState(
                 x=vitals.get("cpu_percent", 0) / 100.0,
                 y=vitals.get("memory_percent", 0) / 100.0,
                 z=vitals.get("vram_percent", 0) / 100.0,
                 control=1.0 if success else 0.0,
-                logic=0.9 if success else 0.1, # Confidence in RAH logic
+                logic=strategy.confidence if success else 0.1,
                 time=time.time(),
             )
 
@@ -160,7 +162,7 @@ class AutonomicManager:
                 node_type="rah_decision",
                 physics_state=physics,
                 metadata={
-                    "strategy": strategy,
+                    "strategy": strategy.name,
                     "success": success,
                     "analysis": analysis,
                     "vitals": vitals,

@@ -65,7 +65,7 @@ async def main():
 
     # Force use of phi4-mini via task_type mapping if possible,
     # or just use standard generation which the router will handle.
-    response = await client.generate(prompt, task_type="telemetry")
+    response, tokens = await client.generate(prompt, task_type="telemetry")
 
     # 3. Manifest: Save to dashboard assets
     output_dir = Path("apps/dashboard/src/assets/data")
