@@ -22,7 +22,7 @@ class TestCompoundExecutorInitialization:
         """[P0] Should initialize with minimal dependencies."""
 
         def execute_fn(task, context):
-            return ("output", {"tokens": 100})
+            return ("output", {"total_tokens": 100})
 
         executor = CompoundExecutor(execute_fn=execute_fn)
 
@@ -63,7 +63,7 @@ class TestCompoundExecutorExecution:
         """Create executor with mock function."""
 
         def execute_fn(task, context):
-            return (f"output for {task.description}", {"tokens": 100})
+            return (f"output for {task.description}", {"total_tokens": 100})
 
         return CompoundExecutor(execute_fn=execute_fn)
 
