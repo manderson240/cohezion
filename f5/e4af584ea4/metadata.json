@@ -3,7 +3,7 @@
   "checkpoint_id": "f5e4af584ea4",
   "strategy": "manual-commit",
   "branch": "challenge-luma-cqq4mojz",
-  "checkpoints_count": 3,
+  "checkpoints_count": 4,
   "files_touched": [
     "OMNIBUS_FINAL.md",
     "cache/swarm/0802d3ae1bb15ef3807829a81460e20f643c23bc84576b4cf75908f0132def36.json",
@@ -76,13 +76,20 @@
       "context": "/f5/e4af584ea4/1/context.md",
       "content_hash": "/f5/e4af584ea4/1/content_hash.txt",
       "prompt": "/f5/e4af584ea4/1/prompt.txt"
+    },
+    {
+      "metadata": "/f5/e4af584ea4/2/metadata.json",
+      "transcript": "/f5/e4af584ea4/2/full.jsonl",
+      "context": "/f5/e4af584ea4/2/context.md",
+      "content_hash": "/f5/e4af584ea4/2/content_hash.txt",
+      "prompt": "/f5/e4af584ea4/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 5363,
-    "cache_creation_tokens": 1028171,
-    "cache_read_tokens": 16294250,
-    "output_tokens": 51627,
-    "api_call_count": 135
+    "input_tokens": 8006,
+    "cache_creation_tokens": 3379798,
+    "cache_read_tokens": 36488982,
+    "output_tokens": 120872,
+    "api_call_count": 318
   }
 }
