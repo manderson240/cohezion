@@ -1,0 +1,697 @@
+Implement the following plan:
+
+# Luma AMD Speedrun: MXFP4 Kernel Optimization Plan
+
+Created: 2026-03-11
+Status: PENDING
+Approved: No
+Iterations: 0
+Worktree: Yes
+
+> **Status Lifecycle:** PENDING -> COMPLETE -> VERIFIED
+> **Iterations:** Tracks implement->verify cycles
+> **Deadline:** March 30, 2026 (19 days remaining)
+
+## Summary
+
+**Goal:** Optimize three GPU kernels (MXFP4 GEMM, MLA Decode, MXFP4 MoE) for AMD MI355X to beat the aiter reference baselines in the Luma AMD x GPU MODE Hackathon Phase 1. Priority order: GEMM -> MLA -> MoE.
+
+**Architecture:** Each kernel lives in `research/challenges/luma_amd_speedrun/kernels/<name>/submission.py` and must implement `custom_kernel(data: input_t) -> output_t`. Submissions are evaluated remotely on MI355X via Popcorn CLI. Scoring uses geometric mean of benchmark runtimes.
+
+**Tech Stack:** Python, PyTorch, Triton (AMD ROCm backend), aiter library (AMD's optimized kernels), Popcorn CLI for remote submission.
+
+## Scope
+
+### In Scope
+
+- Complete Phase 2 knowledge accumulation (GPU MODE lectures, aiter source study)
+- Run baseline benchmarks via Popcorn CLI for all three kernels
+- Optimize MXFP4 GEMM submission (`kernels/mxfp4-mm/submission.py`)
+- Optimize MLA Decode submission (`kernels/mixed-mla/submission.py`)
+- Optimize MXFP4 MoE submission (`kernels/moe-mxfp4/submission.py`)
+- Leaderboard submissions for all three
+
+### Out of Scope
+
+- Phase 2 hackathon work (end-to-end DeepSeek-R1 optimization)
+- Custom HIP C++ kernels (starting with Triton; HIP only if Triton can't reach targets)
+- Local MI355X testing (hardware not available; all testing via Popcorn CLI)
+- Changes to reference.py, task.py, eval.py, or utils.py (competition-provided files)
+
+## Prerequisites
+
+- Popcorn CLI installed and authenticated (DONE: GitHub manderson240)
+- aiter library available in Popcorn remote environment (pre-installed)
+- GPU MODE Discord access for community insights and lecture materials
+
+## Context for Implementer
+
+> **This is a GPU kernel optimization competition, not typical software engineering.**
+
+- **Pattern:** Each kernel has the same structure: `submission.py` exports `custom_kernel(data) -> output`. The eval harness calls `generate_input()` from `reference.py`, passes data to your kernel, checks correctness via `check_implementation()`, then benchmarks.
+- **Correctness tolerances:** GEMM: rtol=1e-2, atol=1e-2. MLA: rtol=1e-2, atol=1e-2. MoE: rtol=5e-2, atol=5e-2.
+- **Current submissions are NOT optimized** — GEMM and MoE just call the same aiter functions as reference (1.0x speedup = no improvement). MLA has a naive torch implementation (SLOWER than reference).
+- **No local testing:** All benchmarking happens on remote MI355X via `popcorn submit`. Iteration cycles are slow.
+- **Key aiter APIs:** `aiter.gemm_a4w4`, `aiter.get_triton_quant(QuantType.per_1x32)`, `aiter.fused_moe`, `aiter.mla.mla_decode_fwd`
+- **Gotcha:** The benchmark clears L2 cache between runs (`clear_l2_cache_large()`), so cache warming tricks won't help.
+- **Gotcha:** Benchmark includes quantization time for GEMM (quantizing A to MXFP4 is part of timed region).
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `kernels/mxfp4-mm/submission.py` | GEMM submission (modify this) |
+| `kernels/mixed-mla/submission.py` | MLA submission (modify this) |
+| `kernels/moe-mxfp4/submission.py` | MoE submission (modify this) |
+| `kernels/mxfp4-mm/reference.py` | GEMM reference (read-only, study for API usage) |
+| `kernels/mixed-mla/reference.py` | MLA reference (read-only, has quantize_fp8/mxfp4 helpers) |
+| `kernels/moe-mxfp4/reference.py` | MoE reference (read-only, has dequant helpers) |
+| `kernels/eval.py` | Evaluation harness (read-only, understand benchmark methodology) |
+| `kernels/utils.py` | Shared utils (read-only) |
+| `RULES.md` | Competition rules (compliance required) |
+| `technical_analysis.md` | Optimization strategy notes |
+
+### Competition Rules (MUST FOLLOW)
+
+1. All submissions via **Popcorn CLI** only
+2. Scoring: **geometric mean** of benchmark runtimes (lower = better)
+3. Must **beat the baseline** to receive points
+4. **Top 10 fastest** kernels per problem considered for aggregate score
+5. All code must be **original work**
+6. If advancing to Phase 2, code must be **mergeable into AMD repos** (ATOM/vLLM/SGLang)
+7. Only the **top scoring kernel** per problem from a team is considered
+
+## Progress Tracking
+
+- [ ] Task 1: Knowledge Accumulation & Baseline Benchmarks
+- [ ] Task 2: MXFP4 GEMM - Optimized Quantization
+- [ ] Task 3: MXFP4 GEMM - Custom Triton GEMM Kernel
+- [ ] Task 4: MLA Decode - MXFP4 KV Cache Attention
+- [ ] Task 5: MoE - Optimized Dispatch & Fusion
+- [ ] Task 6: Final Leaderboard Submissions
+
+**Total Tasks:** 6 | **Completed:** 0 | **Remaining:** 6
+
+## Implementation Tasks
+
+### Task 1: Knowledge Accumulation & Baseline Benchmarks
+
+**Objective:** Complete research phase and establish baseline performance numbers for all three kernels via Popcorn CLI.
+
+**Dependencies:** None
+
+**Files:**
+- Modify: `research/challenges/luma_amd_speedrun/TODO.md` (update checklist)
+- Create: `research/challenges/luma_amd_speedrun/results.md` (baseline numbers)
+
+**Key Decisions / Notes:**
+- Watch GPU MODE Lecture 97 (HipKittens/AMD primitives) and Lecture 93 (Popcorn CLI)
+- Study aiter source code: `gemm_a4w4`, `fused_moe`, `mla_decode_fwd` implementations
+- Read DeepSeek-R1 paper MLA and MoE sections
+- Run current submissions through `popcorn submit --mode test` and `--mode benchmark` for all 3 kernels
+- Record baseline latencies in `results.md`
+- Understand the aiter Triton quantization kernel (`get_triton_quant(QuantType.per_1x32)`) to identify optimization opportunities
+
+**Definition of Done:**
+- [ ] GPU MODE lectures watched and key insights documented
+- [ ] aiter GEMM/MoE/MLA kernel interfaces understood
+- [ ] Baseline benchmark numbers recorded for all 3 kernels
+- [ ] Optimization opportunities identified and prioritized
+
+**Verify:**
+- `popcorn submit --mode test` passes for all 3 current submissions
+- Baseline numbers documented in `results.md`
+
+---
+
+### Task 2: MXFP4 GEMM - Optimized Quantization
+
+**Objective:** Optimize the MXFP4 GEMM by improving the A-matrix quantization step, which is included in the timed region. The current submission calls `aiter.get_triton_quant(QuantType.per_1x32)` for quantization + `aiter.gemm_a4w4` for GEMM. Optimize the quantization kernel.
+
+**Dependencies:** Task 1
+
+**Files:**
+- Modify: `research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/submission.py`
+
+**Key Decisions / Notes:**
+- The benchmark times the ENTIRE `custom_kernel()` call, including quantization of A
+- Current flow: `quant_func(A, shuffle=True)` -> `gemm_a4w4(A_q, B_shuffle, ...)`
+- Optimization path 1: Write a custom Triton quantization kernel optimized for the specific shapes (M=4-256, K=512-7168)
+- Optimization path 2: Fuse quantization with GEMM (avoid writing quantized A to global memory)
+- Optimization path 3: Use aiter's alternative Triton GEMM implementation (`aiter.ops.triton.gemm.basic.gemm_afp4wfp4`) as noted in reference.py:97
+- Input shapes from benchmarks: M in {4,16,32,64,256}, N in {2112,2880,3072,4096,7168}, K in {512,1536,2048,7168}
+- Small M values (4-64) are common — these are memory-bound, not compute-bound
+
+**Definition of Done:**
+- [ ] Quantization step is faster than `get_triton_quant` for benchmark shapes
+- [ ] `popcorn submit --mode test` passes (correctness: rtol=1e-2, atol=1e-2)
+- [ ] `popcorn submit --mode benchmark` shows improvement over baseline
+
+**Verify:**
+- `popcorn submit --mode test` for mxfp4-mm kernel passes all 4 test cases
+- `popcorn submit --mode benchmark` shows geometric mean improvement
+
+---
+
+### Task 3: MXFP4 GEMM - Custom Triton GEMM Kernel
+
+**Objective:** Write a custom Triton GEMM kernel for MXFP4 that is optimized for the specific shapes in the benchmark suite. Focus on small-M scenarios (M=4-64) where the workload is memory-bound.
+
+**Dependencies:** Task 2
+
+**Files:**
+- Modify: `research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/submission.py`
+
+**Key Decisions / Notes:**
+- For small M (4-64), the GEMM is memory-bound: focus on maximizing memory bandwidth utilization
+- For larger M (256), GEMM is compute-bound: focus on MFMA (Matrix Fused Multiply-Add) utilization
+- Key technique: Fuse quantization + GEMM into a single kernel launch (saves one global memory write + read)
+- Triton on ROCm: Use `tl.load`, `tl.store`, `tl.dot` — compiler handles MFMA mapping
+- MXFP4 dequantization in Triton: load fp4x2 packed data, unpack to fp16/bf16 using bitwise ops, apply E8M0 scales
+- Tile sizes to explore: BLOCK_M in {16,32,64,128}, BLOCK_N in {64,128,256}, BLOCK_K in {32,64,128}
+- Consider split-K strategy for small M values
+- Must handle the (16,16) shuffle layout that aiter expects, or operate on raw quantized data
+
+**Definition of Done:**
+- [ ] Custom Triton GEMM kernel implemented for MXFP4
+- [ ] Handles all benchmark shapes correctly (M divisible by 64, K divisible by 64)
+- [ ] `popcorn submit --mode test` passes all 4 test cases
+- [ ] `popcorn submit --mode benchmark` beats aiter baseline on geometric mean
+
+**Verify:**
+- `popcorn submit --mode test` passes
+- `popcorn submit --mode benchmark` shows improvement
+- `popcorn submit --mode leaderboard` for official ranking
+
+---
+
+### Task 4: MLA Decode - MXFP4 KV Cache Attention
+
+**Objective:** Implement an optimized MLA decode kernel that uses the MXFP4 KV cache (4x bandwidth savings over bf16, 2x over fp8) with fused dequantization.
+
+**Dependencies:** Task 1
+
+**Files:**
+- Modify: `research/challenges/luma_amd_speedrun/kernels/mixed-mla/submission.py`
+
+**Key Decisions / Notes:**
+- **Big opportunity:** Reference uses fp8 KV cache. Using MXFP4 KV cache gives 2x bandwidth savings over reference.
+- Current submission has bf16 and fp8 paths. Need to add MXFP4 path.
+- MLA specifics: 1 KV head broadcast across 16-32 query heads (MQA). This is extremely memory-bound.
+- KV buffer: full 576 dims for keys, first 512 dims for values
+- Approach A: Dequantize MXFP4 to bf16/fp16 in shared memory, then compute attention normally
+- Approach B: Keep computation in low precision (harder, requires careful accumulation)
+- Variable-length batching via indptr — must handle per-request segment boundaries
+- q_seq_len is typically 1 or 4 (decode mode), kv_seq_len up to 8192
+- Consider using aiter's `mla_decode_fwd` with MXFP4 if it supports that dtype
+- Alternative: Write custom Triton flash-attention-style kernel with MXFP4 dequant fused into K/V loading
+- Split-KV strategy: Process KV in chunks to fit in shared memory, reduce across chunks
+
+**Definition of Done:**
+- [ ] MXFP4 KV cache attention kernel implemented
+- [ ] Dequantization fused into attention (no separate bf16 materialization)
+- [ ] `popcorn submit --mode test` passes all 6 test cases (rtol=1e-2, atol=1e-2)
+- [ ] `popcorn submit --mode benchmark` beats fp8 reference on geometric mean
+
+**Verify:**
+- `popcorn submit --mode test` for mixed-mla kernel passes
+- `popcorn submit --mode benchmark` shows improvement
+- `popcorn submit --mode leaderboard` for official ranking
+
+---
+
+### Task 5: MoE - Optimized Dispatch & Fusion
+
+**Objective:** Optimize the MXFP4 MoE kernel beyond aiter's `fused_moe`. Focus on activation quantization fusion and expert dispatch optimization.
+
+**Dependencies:** Task 1
+
+**Files:**
+- Modify: `research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/submission.py`
+
+**Key Decisions / Notes:**
+- Current submission is identical to reference (`fused_moe` call). Must do something different.
+- aiter `fused_moe` already fuses: quant + stage1 GEMM + SwiGLU + stage2 GEMM + weighted reduction
+- This is the HARDEST kernel to beat because aiter already does heavy fusion
+- Possible optimizations:
+  1. **Shared expert specialization:** Shared expert (always weight=1.0) could use a separate dense GEMM path optimized for all-token computation, instead of going through the sparse MoE dispatch
+  2. **Better expert load balancing:** Custom token-to-expert mapping that improves GPU occupancy
+  3. **Custom Triton MoE:** Write the full 2-stage pipeline in Triton with AMD-specific tuning
+  4. **Parameter tuning:** aiter `fused_moe` may have tuneable parameters not exposed in the simple API
+- DeepSeek-R1 shapes: d_hidden=7168, d_expert=256-2048, E=33-257, top_k=9
+- The wide range of expert counts (33 vs 257) means different strategies may be optimal per config
+
+**Definition of Done:**
+- [ ] MoE kernel optimized beyond vanilla `fused_moe` call
+- [ ] `popcorn submit --mode test` passes all 3 test cases (rtol=5e-2, atol=5e-2)
+- [ ] `popcorn submit --mode benchmark` beats aiter baseline on geometric mean
+
+**Verify:**
+- `popcorn submit --mode test` for moe-mxfp4 kernel passes
+- `popcorn submit --mode benchmark` shows improvement
+- `popcorn submit --mode leaderboard` for official ranking
+
+---
+
+### Task 6: Final Leaderboard Submissions
+
+**Objective:** Cross-validate all three optimized kernels, ensure they pass correctness on all test cases, and submit final versions to the leaderboard.
+
+**Dependencies:** Task 3, Task 4, Task 5
+
+**Files:**
+- Modify: `research/challenges/luma_amd_speedrun/results.md` (final numbers)
+- Modify: `research/challenges/luma_amd_speedrun/TODO.md` (mark complete)
+
+**Key Decisions / Notes:**
+- Run `--mode test` for all three to ensure correctness
+- Run `--mode benchmark` for all three to get final numbers
+- Submit `--mode leaderboard` for all three
+- Document final performance vs baseline in results.md
+- Ensure code is clean and mergeable (Phase 2 requirement)
+
+**Definition of Done:**
+- [ ] All 3 kernels pass `--mode test`
+- [ ] All 3 kernels beat baseline on `--mode benchmark`
+- [ ] All 3 kernels submitted to leaderboard via `--mode leaderboard`
+- [ ] Final results documented
+
+**Verify:**
+- `popcorn submit --mode leaderboard` succeeds for all 3 kernels
+- Leaderboard shows our submissions
+
+## Testing Strategy
+
+- **Correctness:** `popcorn submit --mode test` (remote MI355X, checks against reference with tolerance)
+- **Performance:** `popcorn submit --mode benchmark` (remote MI355X, geometric mean of runtimes)
+- **Local validation:** Limited — can verify Python syntax and basic logic on Radeon 8060S, but MXFP4/aiter requires MI355X
+- **Iteration strategy:** Write kernel locally -> submit via popcorn -> analyze results -> iterate
+
+## Risks and Mitigations
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|-----------|--------|------------|
+| Can't beat aiter baseline (already highly optimized) | Medium | High | Focus on MXFP4 KV cache for MLA (new capability, not just optimization). For GEMM, optimize quantization step. For MoE, try shared expert specialization. |
+| Slow iteration (remote-only testing) | High | Medium | Write thorough local tests for correctness (using torch on CPU/Radeon). Only submit to MI355X for performance. Batch test+benchmark in single submission. |
+| Triton on ROCm has bugs/limitations | Medium | Medium | Fall back to aiter API with different parameters. Check GPU MODE Discord for known issues. |
+| MXFP4 dequant in Triton is complex | Medium | Medium | Study aiter's `fp4_utils.py` for reference dequant logic. Start with simple dequant, optimize later. |
+| Deadline pressure (19 days, learning phase needed) | High | High | GEMM first (smallest scope). Get one leaderboard submission ASAP, then iterate. |
+| Correctness failures at tolerance boundary | Low | High | Test with tighter tolerances locally. Use float32 accumulation for all reductions. |
+
+## Open Questions
+
+- Does aiter's `mla_decode_fwd` support MXFP4 KV dtype natively, or only fp8/bf16?
+- What Triton version is available in the Popcorn remote environment?
+- Are there undocumented aiter parameters in `fused_moe` that could improve performance?
+- What tile sizes does the MI355X MFMA instruction support for fp4?
+
+### Deferred Ideas
+
+- Custom HIP C++ kernels (only if Triton can't reach competitive performance)
+- Assembly-level optimization of MFMA instruction scheduling
+- Autotuning framework for Triton tile sizes across all benchmark shapes
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/38d57531-924a-492b-be5b-f5e3097d525c.jsonl
+
+---
+
+# /spec-implement - Implementation Phase
+
+**Phase 2 of the /spec workflow.** Reads the approved plan and implements each task using TDD (Red → Green → Refactor).
+
+**Input:** Path to an approved plan file (`Approved: Yes`)
+**Output:** All plan tasks completed, status set to COMPLETE
+**Next phase:** On completion → `Skill(skill='spec-verify', args='<plan-path>')`
+
+---
+
+## ⛔ KEY CONSTRAINTS (Rules Summary)
+
+| #   | Rule                                                                                                                                                                               |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **NO sub-agents** - Use direct tools only. All tasks are implemented sequentially in the main context.                                                                             |
+| 2   | **TDD is MANDATORY** - No production code without failing test first                                                                                                               |
+| 3   | **Update plan checkboxes AND task status after EACH task** - Not at the end                                                                                                        |
+| 4   | **NEVER SKIP TASKS** - Every task MUST be fully implemented                                                                                                                        |
+| 5   | **Quality over speed** - Never rush due to context pressure                                                                                                                        |
+| 6   | **Plan file is source of truth** - Survives session clears                                                                                                                         |
+| 7   | **NEVER assume - verify by reading files**                                                                                                                                         |
+| 8   | **Task management is MANDATORY** - Use TaskCreate/TaskUpdate for progress tracking                                                                                                 |
+
+---
+
+## Quality Over Speed - CRITICAL
+
+**NEVER rush or compromise quality due to context pressure.**
+
+- Context warnings are informational, not emergencies
+- Work spans sessions seamlessly via plan file and continuation mechanisms
+- Finish the CURRENT task with full quality, then hand off cleanly
+- Do NOT skip tests, compress code, or cut corners to "beat" context limits
+- **Quality is the #1 metric** - a well-done task split across sessions beats rushed work
+
+## Feedback Loop Awareness
+
+**This phase may be called multiple times in a feedback loop:**
+
+```
+spec-implement → spec-verify → issues found → spec-implement → spec-verify → ... → VERIFIED
+```
+
+**When called after verification found issues:**
+
+1. Read the plan - verification will have added fix tasks (marked with `[MISSING]` or similar)
+2. Check the `Iterations` field in the plan header
+3. **Report iteration start:** "🔄 Starting Iteration N implementation..."
+4. Focus on uncompleted tasks `[ ]` - these are the fixes needed
+5. Complete all fix tasks, then set status to COMPLETE as normal
+
+---
+
+### Step 2.1: Read Plan & Gather Context
+
+**Before ANY implementation, you MUST:**
+
+1. **Read the COMPLETE plan** - Understanding overall architecture and design
+2. **Verify comprehension** - Summarize what you learned to demonstrate understanding
+3. **Identify dependencies** - List files, functions, classes that need modification
+4. **Check current state:**
+   - Git status: `git status --short` and `git diff --name-only`
+   - Plan progress: Check for `[x]` completed tasks
+
+#### 🔧 Tools for Implementation
+
+| Tool         | When to Use              | Example                                                                                                     |
+| ------------ | ------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| **Context7** | Library API lookup       | `resolve-library-id(query="how to use fixtures", libraryName="pytest")` then `query-docs(libraryId, query)` |
+| **Vexor**    | Find similar patterns    | `vexor search "query" --mode code`                                                                          |
+| **grep-mcp** | Production code examples | `searchGitHub(query="useEffect cleanup", language=["TypeScript"])`                                          |
+
+---
+
+### Step 2.1b: Create or Resume Worktree (Conditional)
+
+**Check the plan's `Worktree:` header field to determine isolation mode.**
+
+0. **Read the `Worktree:` header from the plan file:**
+   - Parse `Worktree: Yes` or `Worktree: No` from the plan content (regex: `/^Worktree:\s*(\w+)/m`)
+   - If the field is missing, default to `Yes` (backward compatibility with older plans)
+   - **If `Worktree: No`:** Skip the rest of Step 2.1b entirely. Implementation happens directly on the current branch. Proceed to Step 2.2.
+
+**If `Worktree: Yes` (or missing/default):** All implementation happens in an isolated git worktree. This keeps the main branch clean until verification passes and the user approves sync.
+
+1. **Extract plan slug** from the plan file path:
+   - `docs/plans/2026-02-09-add-auth.md` → plan_slug = `add-auth` (strip date prefix and `.md`)
+
+2. **Check for existing worktree** (continuation session or verify→implement feedback loop):
+
+   ```bash
+   ~/.pilot/bin/pilot worktree detect --json <plan_slug>
+   # Returns: {"found": true, "path": "...", "branch": "...", "base_branch": "..."} or {"found": false}
+   ```
+
+3. **If worktree exists** (`"found": true`): Resume it — `cd` to the `path` from the JSON output for all subsequent commands.
+
+4. **If no worktree exists** (`"found": false`): Create one:
+
+   ```bash
+   ~/.pilot/bin/pilot worktree create --json <plan_slug>
+   # Returns: {"path": "...", "branch": "spec/<slug>", "base_branch": "main"}
+   ```
+
+   Then `cd` to the `path` from the JSON output for all subsequent commands.
+
+5. **If creation fails due to dirty working tree** (JSON contains `"error": "dirty"`):
+
+   The worktree cannot be created with uncommitted changes. Show the user the changed files from the error detail, then ask:
+
+   ```
+   AskUserQuestion:
+     question: "Worktree creation requires a clean working tree. How should we handle your uncommitted changes?"
+     header: "Dirty tree"
+     options:
+       - "Commit changes" (Recommended) — Commit current changes before creating the worktree
+       - "Stash changes" — Stash changes (restore later with `git stash pop`)
+       - "Skip worktree" — Work directly on the current branch instead (no isolation)
+   ```
+
+   **If "Commit changes":** Run `git add` for the changed files, commit with an appropriate message, then retry `pilot worktree create`.
+   **If "Stash changes":** Run `git stash push -m "auto-stash before spec worktree"`, then retry `pilot worktree create`.
+   **If "Skip worktree":** Continue without worktree isolation — implementation happens on the current branch. Log a note to the user.
+
+   Do NOT proceed with worktree creation until the working tree is clean or the user chooses to skip.
+
+6. **If creation fails due to old git version** (error contains "git >= 2.15 required"): Log a warning and continue without worktree isolation. Implementation will happen directly on the current branch. This is a graceful fallback for systems with older git versions.
+
+7. **Verify worktree is active:** Run `git branch --show-current` in the worktree to confirm you're on the `spec/<plan_slug>` branch.
+
+**⚠️ All subsequent implementation steps happen inside the worktree directory (when worktree is active).** The plan file exists at the same relative path in the worktree (e.g., `docs/plans/...`). Commits within the worktree are expected and allowed.
+
+---
+
+### Step 2.2: Set Up Task List (MANDATORY)
+
+**After reading the plan, set up task tracking using the Task management tools.**
+
+This makes implementation progress visible in the terminal (Ctrl+T), enables dependency tracking, and persists across session handoffs via `CLAUDE_CODE_TASK_LIST_ID`.
+
+**Process:**
+
+1. **Check for existing tasks first:** Run `TaskList` to see if a previous session already created tasks
+2. **Branch based on result:**
+
+**If TaskList returns tasks (continuation session):**
+
+- Tasks already exist from a prior session - do NOT recreate them
+- Review existing task statuses to understand where the previous session left off
+- Cross-reference with plan checkboxes (`[x]` = done, `[ ]` = remaining)
+- If a task is `in_progress` but the session that started it is gone, it was interrupted - keep it `in_progress` and resume it
+- Proceed to Step 2.3 starting with the first uncompleted task
+
+**If TaskList is empty (fresh start):**
+
+- Create one task per uncompleted plan task (`[ ]` items):
+  ```
+  TaskCreate(
+    subject="Task N: <title from plan>",
+    description="<objective + implementation steps from plan>",
+    activeForm="Implementing <short description>"
+  )
+  ```
+- Set up dependencies if tasks have ordering requirements:
+  ```
+  TaskUpdate(taskId="<task3_id>", addBlockedBy=["<task2_id>"])
+  ```
+- Skip already-completed plan tasks (`[x]` items) - don't create tasks for them
+
+**Example for a fresh start with 4 tasks:**
+
+```
+TaskCreate: "Task 1: Create user model"           → id=1
+TaskCreate: "Task 2: Add API endpoints"            → id=2, addBlockedBy: [1]
+TaskCreate: "Task 3: Write integration tests"      → id=3, addBlockedBy: [2]
+TaskCreate: "Task 4: Add documentation"            → id=4, addBlockedBy: [2]
+```
+
+**Why this matters:**
+
+- User sees real-time progress in their terminal via status spinners
+- Dependencies prevent skipping ahead when tasks have ordering requirements
+- Tasks persist across session handoffs (stored in `~/.claude/tasks/`)
+- Continuation sessions pick up exactly where the previous session left off
+
+---
+
+### Step 2.3: TDD Loop
+
+**TDD is MANDATORY. No production code without a failing test first.**
+
+| Requires TDD          | Skip TDD                          |
+| --------------------- | --------------------------------- |
+| New functions/methods | Documentation changes             |
+| API endpoints         | Config file updates               |
+| Business logic        | IaC code (CDK, Terraform, Pulumi) |
+| Bug fixes             | Formatting/style changes          |
+
+**For EVERY task, follow this exact sequence:**
+
+1. **READ PLAN'S IMPLEMENTATION STEPS** - List all files to create/modify/delete
+2. **Perform Call Chain Analysis:**
+   - **Trace Upwards (Callers):** Identify what calls the code you're modifying
+   - **Trace Downwards (Callees):** Identify what the modified code calls
+   - **Side Effects:** Check for database, cache, external system impacts
+3. **Mark task as `in_progress`** - `TaskUpdate(taskId="<id>", status="in_progress")`
+4. **Execute TDD Flow (RED → GREEN → REFACTOR):**
+   - Write failing test first, **verify it fails**
+   - Implement minimal code to pass
+   - Refactor if needed (keep tests green)
+5. **Verify tests pass** - Run the project's test runner (e.g., `uv run pytest -q`, `bun test`, `npm test`)
+6. **Run actual program** - Use the plan's Runtime Environment section to start the service/program. Show real output with sample data.
+7. **Check diagnostics** - Must be zero errors
+8. **Validate Definition of Done** - Check all criteria from plan
+9. **Per-task commit (worktree mode only)** - If `Worktree: Yes` in the plan, commit task changes immediately:
+   ```bash
+   git add <task-specific-files>  # Stage only files related to this task
+   git commit -m "{type}(spec): {task-name}"
+   ```
+   Use `feat(spec):` for new features, `fix(spec):` for bug fixes, `test(spec):` for test-only tasks, `refactor(spec):` for refactoring. Skip this step when `Worktree: No` (normal git rules apply).
+10. **Mark task as `completed`** - `TaskUpdate(taskId="<id>", status="completed")`
+11. **UPDATE PLAN FILE IMMEDIATELY** (see Step 2.4)
+12. **Check context usage** - Run `~/.pilot/bin/pilot check-context --json`
+
+**⚠️ NEVER SKIP TASKS:**
+
+- EVERY task MUST be fully implemented
+- NO exceptions for "MVP scope" or complexity
+- If blocked: STOP and report specific blockers
+- NEVER mark complete without doing the work
+
+---
+
+### Step 2.4: Update Plan After EACH Task
+
+**⛔ CRITICAL: Task Completion Tracking is MANDATORY**
+
+**After completing EACH task, you MUST:**
+
+1. **IMMEDIATELY edit the plan file** to change `[ ]` to `[x]` for that task
+2. **Update the Progress Tracking counts** (Completed/Remaining)
+3. **DO NOT proceed to next task** until the checkbox is updated
+
+**This is NON-NEGOTIABLE.**
+
+**Example - After completing Task 5:**
+
+```
+Edit the plan file:
+- [ ] Task 5: Implement X  →  - [x] Task 5: Implement X
+Update counts:
+**Completed:** 4 | **Remaining:** 8  →  **Completed:** 5 | **Remaining:** 7
+```
+
+---
+
+### Step 2.5: All Tasks Complete → Verification
+
+**⚠️ CRITICAL: Follow these steps exactly:**
+
+1. Quick verification: Check diagnostics and run the project's test suite
+2. **FOR MIGRATIONS ONLY - Feature Parity Check:**
+   - Run the NEW code and verify it produces expected output
+   - Compare behavior with OLD code (if still available)
+   - Check Feature Inventory - every feature should now be implemented
+   - If ANY feature is missing: **DO NOT mark complete** - add tasks for missing features
+3. **MANDATORY: Update plan status to COMPLETE**
+   ```
+   Edit the plan file and change the Status line:
+   Status: PENDING  →  Status: COMPLETE
+   ```
+4. **Register status change:** `~/.pilot/bin/pilot register-plan "<plan_path>" "COMPLETE" 2>/dev/null || true`
+5. **⛔ Phase Transition Context Guard:** Run `~/.pilot/bin/pilot check-context --json`. If >= 80%, hand off instead (see spec.md Section 0.3).
+6. **Invoke verification phase:** `Skill(skill='spec-verify', args='<plan-path>')`
+
+---
+
+## ⚠️ Migration/Refactoring Tasks (Phase 2 Additions)
+
+**When the plan involves replacing existing code, perform these ADDITIONAL checks:**
+
+### Before Starting Implementation
+
+1. **Locate the Feature Inventory section** in the plan
+2. **If Feature Inventory is MISSING** - STOP and inform user
+3. **Verify ALL features are mapped** - Every row must have a Task #
+4. **Read the OLD code completely** - Don't rely on the plan alone
+
+### During Implementation
+
+For EACH task that migrates old functionality:
+
+1. **Read the corresponding old file(s)** listed in Feature Inventory
+2. **Create a checklist** of functions/behaviors from old code
+3. **Verify each function/behavior exists** in new code after implementation
+4. **Test with same inputs** - Old and new code should produce same outputs
+
+### Before Marking Task Complete
+
+**For migration tasks, add this to Definition of Done:**
+
+- [ ] All functions from old code have equivalents in new code
+- [ ] Behavior matches old code (same inputs → same outputs)
+- [ ] No features accidentally omitted
+
+### Red Flags - STOP Implementation
+
+If you notice ANY of these, STOP and report to user:
+
+- Feature Inventory section missing from plan
+- Old file has functions not mentioned in any task
+- "Out of Scope" items that should actually be migrated
+- Tests pass but functionality is missing compared to old code
+
+---
+
+## Context Management (90% Handoff)
+
+After each major operation, check context:
+
+```bash
+~/.pilot/bin/pilot check-context --json
+```
+
+**Between iterations:**
+
+1. If context >= 90%: hand off cleanly (don't rush!)
+2. If context 80-89%: continue but wrap up current task with quality
+3. If context < 80%: continue the loop freely
+
+If response shows `"status": "CLEAR_NEEDED"` (context >= 90%):
+
+**⚠️ CRITICAL: Execute ALL steps below in a SINGLE turn. DO NOT stop or wait for user response between steps.**
+
+**Step 1: Write continuation file (GUARANTEED BACKUP)**
+
+Write to `~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md`:
+
+```markdown
+# Session Continuation (/spec)
+
+**Plan:** <plan-path>
+**Phase:** implementation
+**Current Task:** Task N - [description]
+
+**Completed This Session:**
+
+- [x] [What was finished]
+
+**Next Steps:**
+
+1. [What to do immediately when resuming]
+
+**Context:**
+
+- [Key decisions or blockers]
+```
+
+**Step 2: Trigger session clear**
+
+```bash
+~/.pilot/bin/pilot send-clear <plan-path>
+```
+
+Pilot will restart with `/spec --continue <plan-path>`
+
+ARGUMENTS: research/challenges/luma_amd_speedrun/plan.md
+
+---
+
+Make sure you document the stashed changes decision in the cohezion vault so the system is aware of what's happening and why
+
+---
+
+[Request interrupted by user]
+
+---
+
+We need worktree isolation or the rest of the project will get even dirtier
