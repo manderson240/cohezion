@@ -15,6 +15,7 @@ Tests cover:
 
 import os
 import shutil
+import subprocess
 import tempfile
 import time
 import unittest
@@ -24,6 +25,26 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 _IN_CI = os.environ.get("CI") == "true"
+
+
+def _cleanup_dir(path: str) -> None:
+    """Unmount any overlay filesystems under path, then remove it.
+
+    Necessary because OverlayFS mounts leave the 'merged' directory busy
+    and shutil.rmtree raises OSError: [Errno 16] Device or resource busy.
+    """
+    if not os.path.exists(path):
+        return
+    # Unmount any submounts (reverse order so children unmount before parents)
+    result = subprocess.run(
+        ["findmnt", "--raw", "--noheadings", "-o", "TARGET", "--submounts", path],
+        capture_output=True,
+        text=True,
+    )
+    for mount_point in reversed(result.stdout.strip().split("\n")):
+        if mount_point.strip():
+            subprocess.run(["umount", mount_point.strip()], capture_output=True)
+    shutil.rmtree(path, ignore_errors=True)
 _CI_SKIP_REASON = "OverlayFS requires CAP_SYS_ADMIN — unavailable in CI containers"
 
 from cohezion.sandbox.isolation import (
@@ -52,8 +73,7 @@ class TestFilesystemIsolation(unittest.TestCase):
 
     def tearDown(self):
         """Cleanup test artifacts."""
-        if os.path.exists(self.test_dir):
-            shutil.rmtree(self.test_dir)
+        _cleanup_dir(self.test_dir)
 
     def test_setup_overlay_filesystem(self):
         """Test overlay filesystem setup creation."""
@@ -408,8 +428,7 @@ class TestIsolationManager(unittest.TestCase):
 
     def tearDown(self):
         """Cleanup test artifacts."""
-        if os.path.exists(self.test_dir):
-            shutil.rmtree(self.test_dir)
+        _cleanup_dir(self.test_dir)
 
     def test_setup_filesystem(self):
         """Test filesystem isolation setup."""
@@ -490,10 +509,14 @@ class TestIsolationManager(unittest.TestCase):
         # Setup isolation
         context = self.manager.setup_filesystem(source_dir, snapshot_backend="overlay")
 
-        # Cleanup (with mocking for unmount)
-        with patch("subprocess.run") as mock_run:
-            mock_run.return_value = MagicMock(returncode=0)
+        # Cleanup with mocking for subprocess calls.
+        # umount → returncode=0 (success), findmnt → returncode=1 (mount gone).
+        def _side_effect(cmd, **kwargs):
+            if isinstance(cmd, list) and "findmnt" in cmd:
+                return MagicMock(returncode=1)  # mount not found = cleaned up
+            return MagicMock(returncode=0)  # umount and others succeed
 
+        with patch("subprocess.run", side_effect=_side_effect):
             result = self.manager.cleanup(context)
 
             # Verify cleanup
@@ -531,8 +554,7 @@ class TestIsolationLifecycle(unittest.TestCase):
 
     def tearDown(self):
         """Cleanup test artifacts."""
-        if os.path.exists(self.test_dir):
-            shutil.rmtree(self.test_dir)
+        _cleanup_dir(self.test_dir)
 
     def test_complete_lifecycle(self):
         """Test complete isolation lifecycle."""
@@ -580,9 +602,13 @@ class TestIsolationLifecycle(unittest.TestCase):
         # Verify different isolations
         self.assertNotEqual(context1.isolation_id, context2.isolation_id)
 
-        # Cleanup both
-        with patch("subprocess.run") as mock_run:
-            mock_run.return_value = MagicMock(returncode=0)
+        # Cleanup both — findmnt must return 1 (not found) or cleanup reports failure
+        def _side_effect(cmd, **kwargs):
+            if isinstance(cmd, list) and "findmnt" in cmd:
+                return MagicMock(returncode=1)  # mount gone = clean
+            return MagicMock(returncode=0)
+
+        with patch("subprocess.run", side_effect=_side_effect):
             result1 = self.manager.cleanup(context1)
             result2 = self.manager.cleanup(context2)
 

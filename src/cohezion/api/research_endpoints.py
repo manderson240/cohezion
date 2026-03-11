@@ -6,13 +6,13 @@ Integrates with existing Cohezion API infrastructure.
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
+import math
 from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from cohezion.research import (
@@ -68,7 +68,26 @@ class ResearchResultResponse(BaseModel):
     collaboration_insights: list[str]
 
 
+def _sanitize_metric(value: float | None) -> float | None:
+    """Return None for non-finite floats (inf, -inf, nan) to keep JSON valid."""
+    if value is None or not math.isfinite(value):
+        return None
+    return value
+
+
+def _sanitize_json(obj: Any) -> Any:
+    """Recursively replace non-finite floats with None for JSON compliance."""
+    if isinstance(obj, float):
+        return None if not math.isfinite(obj) else obj
+    if isinstance(obj, dict):
+        return {k: _sanitize_json(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_sanitize_json(item) for item in obj]
+    return obj
+
+
 # Active sessions storage (in production: use Redis/SurrealDB)
+_MAX_SESSIONS = 50
 _active_sessions: dict[str, ResearchAgent] = {}
 _active_swarm_sessions: dict[str, ResearchSwarm] = {}
 
@@ -83,6 +102,9 @@ async def start_research(
     Launches research agent to optimize training configuration.
     """
     try:
+        if len(_active_sessions) + len(_active_swarm_sessions) >= _MAX_SESSIONS:
+            raise HTTPException(status_code=429, detail="Too many active sessions")
+
         research_config = ResearchConfig(
             experiment_time_budget=config.experiment_time_budget,
             max_experiments=config.max_experiments,
@@ -111,9 +133,11 @@ async def start_research(
             experiments_remaining=config.max_experiments,
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Failed to start research: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Failed to start research: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.post("/start-multi-agent", response_model=ResearchResponse)
@@ -138,10 +162,8 @@ async def start_multi_agent_research(
         # Store session
         _active_swarm_sessions[session_id] = swarm
 
-        # Start in background
-        import asyncio
-
-        background_tasks.add_task(lambda: asyncio.create_task(swarm.run_multi_agent_research()))
+        # Start in background - FastAPI handles async tasks automatically
+        background_tasks.add_task(swarm.run_multi_agent_research)
 
         logger.info(f"Started multi-agent research: {session_id}")
 
@@ -154,8 +176,8 @@ async def start_multi_agent_research(
         )
 
     except Exception as e:
-        logger.error(f"Failed to start multi-agent research: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Failed to start multi-agent research: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/status/{session_id}", response_model=ResearchResponse)
@@ -169,7 +191,7 @@ async def get_research_status(session_id: str):
             session_id=session_id,
             status="running" if agent.session.active else "completed",
             experiments_completed=agent.session.experiments_completed,
-            best_metric=agent.session.best_metric,
+            best_metric=_sanitize_metric(agent.session.best_metric),
             experiments_remaining=agent.config.max_experiments
             - agent.session.experiments_completed,
         )
@@ -182,7 +204,7 @@ async def get_research_status(session_id: str):
             session_id=session_id,
             status="running",  # Simplified
             experiments_completed=swarm.results.experiments_completed,
-            best_metric=swarm.results.best_metric,
+            best_metric=_sanitize_metric(swarm.results.best_metric),
             experiments_remaining=0,  # Would calculate
         )
 
@@ -214,7 +236,7 @@ async def get_research_results(session_id: str):
         return ResearchResultResponse(
             session_id=session_id,
             experiments_completed=report["total_experiments"],
-            best_metric=report["best_metric"],
+            best_metric=_sanitize_metric(report.get("best_metric")),
             checkpoint_path=None,
             agent_breakdown=report["agent_breakdown"],
             collaboration_insights=report["insights"],
@@ -227,7 +249,7 @@ async def get_research_results(session_id: str):
 async def stop_research(session_id: str):
     """Stop research session gracefully."""
     if session_id in _active_sessions:
-        agent = _active_sessions[session_id]
+        agent = _active_sessions.pop(session_id)
         agent.stop()
 
         logger.info(f"Stopped research session: {session_id}")
@@ -244,7 +266,7 @@ async def stop_research(session_id: str):
 
 
 @router.get("/experiments/{session_id}")
-async def get_experiment_log(session_id: str, limit: int = 100):
+async def get_experiment_log(session_id: str, limit: int = Query(default=100, ge=1, le=10000)):
     """Get experiment log for a session."""
     if session_id not in _active_sessions:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -265,15 +287,15 @@ async def get_experiment_log(session_id: str, limit: int = 100):
                     break
                 try:
                     exp = json.loads(line)
-                    experiments.append(exp)
+                    experiments.append(_sanitize_json(exp))
                 except json.JSONDecodeError:
                     continue
 
         return {"experiments": experiments}
 
     except Exception as e:
-        logger.error(f"Failed to read experiment log: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Failed to read experiment log: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/dashboard")
