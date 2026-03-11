@@ -1,0 +1,51 @@
+# Session Context
+
+## User Prompts
+
+### Prompt 1
+
+# help
+
+Read the entire task file at: {project-root}/_bmad/core/tasks/help.md
+
+Follow all instructions in the task file exactly as written.
+
+
+ARGUMENTS: What's next?
+
+### Prompt 2
+
+[Request interrupted by user for tool use]
+
+### Prompt 3
+
+Proceed
+
+### Prompt 4
+
+IT IS CRITICAL THAT YOU FOLLOW THIS COMMAND: LOAD the FULL {project-root}/_bmad/bmm/workflows/2-plan-workflows/create-prd/workflow-validate-prd.md, READ its entire contents and follow its directions exactly!
+
+### Prompt 5
+
+[C]
+
+### Prompt 6
+
+B
+
+### Prompt 7
+
+I just got an epiphany.  We need a concierge agent that can interpret and direct the task that is being asked to the right model with the the right prompt and context regardless of where the request is coming from.  Claude Code, Gemini CLI, Open Code, Ollama....etcs.
+
+### Prompt 8
+
+Explore further, reminds me of ask Jeeves from back in the day
+
+### Prompt 9
+
+Is there still any IP on Jeeves?
+
+### Prompt 10
+
+Use party mode to pick a new Agentic identity
+

@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.8",
+  "checkpoint_id": "42271af4e222",
+  "session_id": "8d5996b0-a891-4a7b-b39a-8a2e3c757ff4",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-01T19:40:03.74355028Z",
+  "branch": "feat/epic-5-shadowscripter-v1.3.0",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "scripts/maintenance/harvest_knowledge.py",
+    "scripts/maintenance/heal_branches.py",
+    "src/cohezion/knowledge_graph/MISSION_JOURNAL.md",
+    ".gitignore"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "195f38976def",
+  "token_usage": {
+    "input_tokens": 5327,
+    "cache_creation_tokens": 80095,
+    "cache_read_tokens": 217729,
+    "output_tokens": 1200,
+    "api_call_count": 4
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-01T19:40:03.688565024Z",
+    "agent_lines": 285,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 285,
+    "agent_percentage": 100
+  }
+}

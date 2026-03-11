@@ -1,0 +1,56 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "d79709e1c784",
+  "strategy": "manual-commit",
+  "branch": "release/v1.1.0",
+  "checkpoints_count": 12,
+  "files_touched": [
+    "_bmad-output/implementation-artifacts/inception-labs-integration-report.md",
+    "_bmad-output/implementation-artifacts/production-scaling-plan.md",
+    "apps/webapp/src/components/CommandCenter.tsx",
+    "apps/webapp/src/components/DiffusionRenderer.tsx",
+    "pyproject.toml",
+    "scripts/benchmarks/mercury_benchmark.py",
+    "scripts/benchmarks/ouroboros_test.py",
+    "scripts/verify_inception_integration.py",
+    "src/cohezion/compound/ouroboros.py",
+    "src/cohezion/deployment/feature_flags.py",
+    "src/cohezion/gateway/__init__.py",
+    "src/cohezion/gateway/base_openai_adapter.py",
+    "src/cohezion/gateway/inception_adapter.py",
+    "src/cohezion/gateway/ngrok_adapter.py",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "src/cohezion/swarm/model_registry.py",
+    "tests/shadowscripter/generated/test_generated_abc123.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/d7/9709e1c784/0/metadata.json",
+      "transcript": "/d7/9709e1c784/0/full.jsonl",
+      "context": "/d7/9709e1c784/0/context.md",
+      "content_hash": "/d7/9709e1c784/0/content_hash.txt",
+      "prompt": "/d7/9709e1c784/0/prompt.txt"
+    },
+    {
+      "metadata": "/d7/9709e1c784/1/metadata.json",
+      "transcript": "/d7/9709e1c784/1/full.jsonl",
+      "context": "/d7/9709e1c784/1/context.md",
+      "content_hash": "/d7/9709e1c784/1/content_hash.txt",
+      "prompt": "/d7/9709e1c784/1/prompt.txt"
+    },
+    {
+      "metadata": "/d7/9709e1c784/2/metadata.json",
+      "transcript": "/d7/9709e1c784/2/full.jsonl",
+      "context": "/d7/9709e1c784/2/context.md",
+      "content_hash": "/d7/9709e1c784/2/content_hash.txt",
+      "prompt": "/d7/9709e1c784/2/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 56420,
+    "cache_creation_tokens": 2306343,
+    "cache_read_tokens": 54134282,
+    "output_tokens": 149486,
+    "api_call_count": 394
+  }
+}

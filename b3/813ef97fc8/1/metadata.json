@@ -1,0 +1,41 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "b3813ef97fc8",
+  "session_id": "c69327c6-213b-4354-ad4c-f9ad4f11e336",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-09T02:14:38.162137017Z",
+  "branch": "feat/semver-400-year-physics-hiho-flume",
+  "checkpoints_count": 0,
+  "files_touched": [
+    ".github/workflows/playwright.yml",
+    "src/cohezion/mcp/knowledge_server.py",
+    "src/cohezion/mcp/manager/server_manager.py",
+    "src/cohezion/reliability/semantic_cache.py",
+    "src/cohezion/security/mcp_https_client.py",
+    "src/cohezion/simulation/glass_box_debate.py",
+    "src/cohezion/swarm/democratic_debate.py",
+    "src/cohezion/swarm/workflows/debate_protocol.py",
+    "src/cohezion/universe/sandbox.py",
+    "tests/sandbox/test_isolation.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "14ebd8c3e6a1",
+  "checkpoint_transcript_start": 3899,
+  "transcript_lines_at_start": 3899,
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 0
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-09T02:14:35.781922506Z",
+    "agent_lines": 106,
+    "human_added": 81,
+    "human_modified": 1,
+    "human_removed": 0,
+    "total_committed": 188,
+    "agent_percentage": 56.38297872340425
+  }
+}

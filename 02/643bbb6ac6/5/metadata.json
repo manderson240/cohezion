@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "02643bbb6ac6",
+  "session_id": "e9757f90-52d1-451d-94c2-98e8642d1c44",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-05T18:34:31.805154215Z",
+  "branch": "fix/bmad-memory-physics-restore",
+  "checkpoints_count": 12,
+  "files_touched": [
+    "_bmad/_memory/governance/programming-language-stack-strategy.md",
+    "_bmad/_memory/product/cohezion-epics-stories-complete-rust.md",
+    "_bmad/_memory/product/cohezion-flume-hiho-architecture-v1.md",
+    "_bmad/_memory/product/cohezion-flume-hiho-rust-architecture-v1.md",
+    "_bmad/_memory/product/cohezion-hiho-prd-v3-rust-first.md",
+    "src/cohezion/physics/quantum/peaked_solver.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "41a0cc269482",
+  "token_usage": {
+    "input_tokens": 29718,
+    "cache_creation_tokens": 1867739,
+    "cache_read_tokens": 91100272,
+    "output_tokens": 188876,
+    "api_call_count": 640
+  }
+}

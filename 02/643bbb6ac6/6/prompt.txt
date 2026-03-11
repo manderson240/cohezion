@@ -1,0 +1,5 @@
+Are we on the newest version of Claude Code?
+
+---
+
+I mean claude code cli

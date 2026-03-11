@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "02643bbb6ac6",
+  "session_id": "9da42ddb-83a4-462a-b083-f0f59e1b1f36",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-05T18:04:09.951763315Z",
+  "branch": "fix/bmad-memory-physics-restore",
+  "checkpoints_count": 16,
+  "files_touched": [
+    "src/cohezion/physics/quantum/peaked_solver.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "a3cd644c2d46",
+  "checkpoint_transcript_start": 508,
+  "transcript_lines_at_start": 508,
+  "token_usage": {
+    "input_tokens": 7586,
+    "cache_creation_tokens": 517321,
+    "cache_read_tokens": 14733995,
+    "output_tokens": 53992,
+    "api_call_count": 114
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-05T18:04:09.001449534Z",
+    "agent_lines": 0,
+    "human_added": 0,
+    "human_modified": 4043,
+    "human_removed": 30662,
+    "total_committed": 0,
+    "agent_percentage": 0
+  }
+}

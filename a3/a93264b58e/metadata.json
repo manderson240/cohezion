@@ -1,0 +1,43 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "a3a93264b58e",
+  "strategy": "manual-commit",
+  "branch": "feat/semver-400-year-physics-hiho-flume",
+  "checkpoints_count": 22,
+  "files_touched": [
+    ".claude/skills/pre-commit-yaml-hooks/SKILL.md",
+    ".pre-commit-config.yaml",
+    "_bmad-output/implementation-artifacts/retro-2026-03-08-living-universe-sprint.md",
+    "scripts/hooks/check_version_consistency.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/a3/a93264b58e/0/metadata.json",
+      "transcript": "/a3/a93264b58e/0/full.jsonl",
+      "context": "/a3/a93264b58e/0/context.md",
+      "content_hash": "/a3/a93264b58e/0/content_hash.txt",
+      "prompt": "/a3/a93264b58e/0/prompt.txt"
+    },
+    {
+      "metadata": "/a3/a93264b58e/1/metadata.json",
+      "transcript": "/a3/a93264b58e/1/full.jsonl",
+      "context": "/a3/a93264b58e/1/context.md",
+      "content_hash": "/a3/a93264b58e/1/content_hash.txt",
+      "prompt": "/a3/a93264b58e/1/prompt.txt"
+    },
+    {
+      "metadata": "/a3/a93264b58e/2/metadata.json",
+      "transcript": "/a3/a93264b58e/2/full.jsonl",
+      "context": "/a3/a93264b58e/2/context.md",
+      "content_hash": "/a3/a93264b58e/2/content_hash.txt",
+      "prompt": "/a3/a93264b58e/2/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 16085,
+    "cache_creation_tokens": 3248514,
+    "cache_read_tokens": 79705812,
+    "output_tokens": 223597,
+    "api_call_count": 604
+  }
+}

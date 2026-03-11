@@ -1,0 +1,236 @@
+Implement the following plan:
+
+# Session Continuation — /learn + Compound Engineering Fix
+
+**Status: COMPLETED** — All 3 parts done in prior session (commits `54fdfac4`, `c1492c9f`).
+
+## Context
+
+**Branch**: `feat/compound-elegant-simplification`
+**Prior session work**: Fixed HIHO invariant tests (17/17 passing), unified type definitions (`compat.py` → `models.py` as single source of truth), fixed `ExperienceEncoder` mean (~0.5), `TriuneConsensus` quorum enforcement, `ManifoldSharding` HIHO sigmoid, `ZeroCopyValidator` interface.
+
+**Immediate blocker** (resolved): `IntentType(best_intent)` raised `ValueError` due to `auto()` int values.
+**Test status**: 3969 passing, 10 pre-existing sandbox failures (all alignment tests green: 43/43).
+
+---
+
+## Part 1: /learn — Create New Skill
+
+### Skill to Create: `python-enum-auto-string-lookup`
+
+**Location**: `.claude/skills/python-enum-auto-string-lookup/SKILL.md`
+
+**Why worth extracting**: Non-obvious Python footgun — `auto()` enum members look like they should be addressable by name string, but `EnumClass("name")` does *value* lookup (integers for `auto()`), not name lookup. Affects any code that builds an enum value from a dict key or user input string. No existing skill covers this.
+
+**Content plan**:
+- **Trigger conditions**: `ValueError: 'X' is not a valid SomeEnum`, enum uses `auto()`, caller has a string key from a dict/config/user input
+- **Root cause**: `auto()` assigns integer values (1, 2, 3...). `EnumClass(value)` is value-based lookup. `EnumClass["NAME"]` is name-based lookup (case-sensitive).
+- **Fix**: `EnumClass[key.upper()]` or a case-insensitive lookup dict:
+  ```python
+  _INTENT_MAP = {name.lower(): member for name, member in IntentType.__members__.items()}
+  intent = _INTENT_MAP.get(best_intent, IntentType.UNKNOWN)
+  ```
+- **Alternative**: Use `str`-valued enum (`class IntentType(str, Enum): GENERATE = "generate"`) so value lookup works with strings — but this requires changing the enum definition.
+- **Where this bit us**: `request_alignment_analyzer.py:356` and `:412` — `IntentType(best_intent)` where `best_intent` is a string key like `"generate"` from `_INTENT_KEYWORDS` dict.
+
+---
+
+## Part 2: Fix the IntentType Bug
+
+### Files to Modify
+
+**`src/cohezion/compound/request_alignment_analyzer.py`**
+
+Two locations with `IntentType(best_intent)`:
+
+1. **Line ~356** in `_classify_intent()`:
+   ```python
+   # Current (broken):
+   return (IntentType(best_intent), confidence)
+
+   # Fix:
+   return (IntentType[best_intent.upper()], confidence)
+   ```
+
+2. **Line ~412** in `_classify_intent_semantic()`:
+   ```python
+   # Current (broken):
+   return IntentType(best_intent), best_similarity
+
+   # Fix:
+   return IntentType[best_intent.upper()], best_similarity
+   ```
+
+**Note**: The `_INTENT_KEYWORDS` dict uses lowercase keys (`"generate"`, `"analyze"`, etc.) that map exactly to `IntentType` member names uppercased. The `_classify_intent_semantic` dict also uses lowercase keys. So `.upper()` is the minimal, correct fix.
+
+### TDD Verification
+
+Before fixing, confirm the tests that expose this:
+```bash
+uv run pytest tests/compound/test_request_alignment_analyzer.py::test_intent_keywords_all_types -xvs --no-cov 2>&1 | tail -20
+```
+
+After fixing:
+```bash
+uv run pytest tests/compound/test_request_alignment_analyzer.py tests/compound/test_executor_alignment_integration.py -q --no-cov
+```
+
+Full suite regression check:
+```bash
+uv run pytest tests/ -q 2>&1 | tail -5
+```
+
+---
+
+## Part 3: Commit All Session Changes
+
+### Files changed this session (to commit together):
+- `src/cohezion/compound/models.py` — Added `SessionCheckpoint` dataclass
+- `src/cohezion/compound/compat.py` — Removed duplicate type defs, imports from models.py
+- `src/cohezion/compound/request_alignment_analyzer.py` — Fix IntentType lookup + confidence normalization
+- `src/cohezion/flume/experience_encoder.py` — Fixed `_sha256_expand` formula + indentation
+- `src/cohezion/swarm/triune_consensus.py` — Fixed quorum enforcement
+- `src/cohezion/core/manifold_sharding.py` — Added params, HIHO sigmoid formula
+- `src/cohezion/core/zero_copy_validator.py` — Fixed interface (dtype alias, full checksum, expected_dim)
+- `.claude/skills/pytest-cov-import-masking/SKILL.md` — New skill (already created)
+- `.claude/skills/python-enum-auto-string-lookup/SKILL.md` — New skill (to create)
+
+**Commit message**:
+```
+fix: compound engineering elegance pass — HIHO invariants, type unification, enum lookup
+
+- Add SessionCheckpoint to models.py (canonical type location)
+- Remove all duplicate type definitions from compat.py (single source of truth)
+- Fix IntentType enum string-to-member lookup (auto() uses int values, not strings)
+- Fix ExperienceEncoder _sha256_expand: center output at 0.5 for HIHO compliance
+- Enforce quorum in TriuneConsensus (behavioral contract: quorum AND convergence)
+- Add HIHO sigmoid to ManifoldSharding coherence (maps to [0.3, 0.7] by construction)
+- Fix ZeroCopyValidator interface (dtype alias, full SHA-256, expected_dim param)
+- Add pytest-cov-import-masking and python-enum-auto-string-lookup skills
+
+17/17 HIHO invariant tests passing. 3963→3977 tests passing (14 failures resolved).
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+---
+
+## Verification
+
+| Step | Command | Expected |
+|------|---------|----------|
+| Confirm bug exists | `uv run pytest tests/compound/test_request_alignment_analyzer.py -x --no-cov -q` | 14 failures (pre-fix) |
+| After fix | `uv run pytest tests/compound/test_request_alignment_analyzer.py --no-cov -q` | 0 failures |
+| Full suite | `uv run pytest tests/ -q 2>&1 \| tail -5` | 3977+ passing, 0 new failures |
+| Import chain clean | `python -c "from cohezion.compound import CompoundExecutor; print('OK')"` | OK |
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/faa138db-f54f-4741-8660-b2bf9f9d03a5.jsonl
+
+---
+
+Base directory for this skill: /home/mike-anderson/dev/cohezion/.claude/skills/python-enum-auto-string-lookup
+
+# Python Enum auto() String Lookup
+
+## Problem
+
+`auto()` enum members look like they should be addressable by name string, but
+`EnumClass("name")` does *value* lookup (integers for `auto()`), not name lookup.
+This causes either `ValueError` or silent fallback to a wrong/default member.
+
+```python
+from enum import Enum, auto
+
+class IntentType(Enum):
+    GENERATE = auto()   # value = 1
+    ANALYZE  = auto()   # value = 2
+    UNKNOWN  = auto()   # value = 7
+
+# BROKEN: value-based lookup, "generate" != 1
+IntentType("generate")   # → ValueError OR silently returns wrong member
+IntentType("GENERATE")   # → ValueError (same reason)
+
+# CORRECT: name-based lookup
+IntentType["GENERATE"]   # → IntentType.GENERATE ✓
+```
+
+## Context / Trigger Conditions
+
+- Enum uses `auto()` (not string values like `class MyEnum(str, Enum)`)
+- Caller has a string key from a dict key, config file, user input, or API response
+- Error: `ValueError: 'foo' is not a valid MyEnum`
+- Symptom: always returns a default/UNKNOWN member when a string is passed
+
+**Where this bit us in Cohezion:**
+`request_alignment_analyzer.py` — `_classify_intent()` builds scores using
+`_INTENT_KEYWORDS` dict (lowercase keys: `"generate"`, `"analyze"`, ...) then
+called `IntentType(best_intent)`. Since `auto()` values are integers, the string
+lookup always failed and fell through to `IntentType.UNKNOWN`.
+
+## Solution
+
+### Option A — `.upper()` name lookup (minimal fix, best when dict keys match enum names)
+
+```python
+# Before (broken):
+return IntentType(best_intent), confidence
+
+# After (fixed):
+return IntentType[best_intent.upper()], confidence
+```
+
+Works when dict keys are lowercase versions of enum member names (e.g., `"generate"` → `GENERATE`).
+
+### Option B — Case-insensitive mapping dict (robust, handles arbitrary casing)
+
+```python
+_INTENT_MAP = {name.lower(): member for name, member in IntentType.__members__.items()}
+
+intent = _INTENT_MAP.get(best_intent.lower(), IntentType.UNKNOWN)
+```
+
+Handles any casing of the input string. Preferred when dict keys may not exactly
+match enum names.
+
+### Option C — Switch to str-valued enum (changes the definition)
+
+```python
+class IntentType(str, Enum):
+    GENERATE = "generate"
+    ANALYZE  = "analyze"
+    UNKNOWN  = "unknown"
+
+# Now value-based lookup works with strings:
+IntentType("generate")  # → IntentType.GENERATE ✓
+```
+
+Trade-off: requires changing the enum definition and any code that compares `.value`.
+
+## Verification
+
+```bash
+python -c "
+from enum import Enum, auto
+class IntentType(Enum):
+    GENERATE = auto()
+    UNKNOWN = auto()
+
+# Option A
+print(IntentType['GENERATE'])      # IntentType.GENERATE
+print(IntentType['generate'.upper()])  # IntentType.GENERATE
+
+# Option B
+_map = {n.lower(): m for n, m in IntentType.__members__.items()}
+print(_map.get('generate', IntentType.UNKNOWN))  # IntentType.GENERATE
+"
+```
+
+## Quick Reference
+
+| Syntax | Lookup type | Works with auto()? |
+|--------|------------|-------------------|
+| `MyEnum(value)` | Value-based | ❌ (auto values are ints) |
+| `MyEnum["NAME"]` | Name-based | ✓ (case-sensitive) |
+| `MyEnum.__members__["NAME"]` | Name-based | ✓ (same as above) |
+| `MyEnum[key.upper()]` | Name-based | ✓ if key matches name |

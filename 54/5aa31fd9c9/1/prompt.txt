@@ -1,0 +1,1921 @@
+Implement the following plan:
+
+# COHEZION Coherence Plan — Full-Spectrum Engineering Excellence
+
+## Context
+
+**Target**: Research Engineer, Universes at Anthropic (job 5061517008)
+**Mission**: Make COHEZION coherent — align the entire platform with the engineering discipline, methodology, and production quality that demonstrates paradigm-level thinking.
+**Method**: Full SDLC with Specs, PRD, Architecture, Epics/Stories, TDD (Red→Green→Refactor), polyglot code (right language for right task), security-first quality assurance, compound engineering, multiperspective evaluation, and proactive automated repository management.
+
+---
+
+## I. THE COMPLETE PLATFORM INVENTORY
+
+### A. Physics Engine (Rust + Python, HIHO Paradigm)
+
+| Module | Path | LOC | Language |
+|--------|------|-----|----------|
+| 12D Axiomatic Manifold | `src/cohezion/universe/engine.py` | ~250 | Python |
+| HIHO Unified Engine (CA, Chaos, MHD, Twistors, Sacred Geometry) | `src/cohezion/universe/hiho_unified_engine.py` | ~250 | Python |
+| Rust Physics Core (SIMD CA + MHD) | `src/cohezion-physics-core/src/lib.rs` | 75 | Rust (PyO3) |
+| Fractal Universe Simulator | `src/cohezion/simulation/fractal_universe.py` | ~250 | Python |
+| Divergence Detector | `src/cohezion/universe/divergence.py` | ~100 | Python |
+| Sandbox Manager (100GB budget) | `src/cohezion/universe/sandbox_manager.py` | ~150 | Python |
+| FLUME Physics (Python fallback) | `src/cohezion/mass_sim/flume_physics_py.py` | ~100 | Python |
+| Mass Sim Orchestrator | `src/cohezion/mass_sim/orchestrator.py` | ~100 | Python |
+
+### B. RL Training Environment (Gymnasium)
+
+| Module | Path | Purpose |
+|--------|------|---------|
+| FlumeNavEnv | `src/cohezion/rl/environment.py` | 256D continuous obs/action, Hamiltonian dynamics |
+| Reward Shaping | `src/cohezion/rl/reward_shaping.py` | CoherenceReward (Gaussian@0.5), DiversityBonus, CompositeReward |
+
+### C. FLUME Intelligence Pipeline (16 modules)
+
+`src/cohezion/flume/`: alignment, autoencoder, bioelectric, compression, dataset, experience_collector, experience_dataset, experience_encoder, git_encoder, lcsp, morphospace, navigator, predictor, tokenizer, training, vae_encoder, vliw_kernel_sim, vliw_latent_alignment
+
+### D. Learning & Self-Improvement
+
+| Module | Path | Purpose |
+|--------|------|---------|
+| Ouroboros Engine | `src/cohezion/learning/ouroboros.py` | Recursive self-improvement from execution exhaust |
+| Mycelium Network | `src/cohezion/learning/mycelium_network.py` | Distributed KnowledgeSpore broadcast across EVOs |
+| Deep Research | `src/cohezion/learning/deep_research.py` | arXiv/GitHub/HuggingFace mining pipeline |
+| Skill Acquisition | `src/cohezion/learning/skill_acquisition.py` | Dynamic skill learning from experience |
+| Self-Evaluation | `src/cohezion/evaluation/self_eval.py` | Pre-flight quality checks before execution |
+
+### E. Multi-Agent Swarm (Compound Engineering)
+
+`src/cohezion/compound/` (30+ modules): Executor (11-step pipeline), SkillRefiner, RetrospectionEngine, JourneyTracker, RequestAlignmentAnalyzer, GlobalMetricsAggregator, DegradationDetector, InflectionDetector, IntakeSpecialist, IntentClassifier, ModelQualityClassifier, PromptOptimizer, SessionManager, SkillConsensusVoter, SkillSelector, TaskQueue, TeamExecutor, ThermalPredictor, TopologicalPersistence, UniverseBridge, VaultSearchExecutor
+
+`src/cohezion/swarm/` (25+ modules): TeamOrchestrator, ExecutionOrchestrator, DynamicModelRouter, CostAwareRouter (27.3% savings), SemanticCache (95%+ hit), DemocraticDebate, AnomalyDetector, BatchProcessor, ModelRanker, OllamaResilience
+
+### F. Security & Safety
+
+`src/cohezion/security/`: eval_awareness_defense, ethical_framework, consent_manager, prompt_guard, audit, agent_auth, api_key_auth, cert_generator, tls_config, attack_patterns, adversarial_tester
+`src/cohezion/sandbox/`: safety, isolation, rollback, hooks
+
+### G. Protocols & Interop
+
+| Module | Path | Purpose |
+|--------|------|---------|
+| A2A Server | `src/cohezion/protocols/a2a_server.py` | Google Agent-to-Agent protocol |
+| UCP Handler | `src/cohezion/protocols/ucp_capability_handler.py` | Universal Commerce Protocol |
+| MCP Fleet | `src/cohezion/mcp/` (12+ servers) | WebMCP Bridge, Knowledge, Skills, Swarm, Research, Surreal |
+
+### H. Visualization Stack
+
+| App | Path | Stack |
+|-----|------|-------|
+| **Anima Dashboard** | `src/web/anima_dashboard/` | Next.js 16, React Three Fiber, Tailwind v4 |
+| 3D Knowledge Graph | `cohezion-3d-graph-plugin/` | Obsidian, Three.js, 84 papers, 8D semantic |
+| Morphospace Loom | `apps/morphospace-loom/` | Vite, React |
+| Legacy Webapp | `apps/webapp/` | Vite, Framer Motion |
+| Marimo Notebooks | `notebooks/marimo/` | 10 reactive notebooks |
+| Pulse Board | `apps/dashboard/pulse_board.py` | Python dashboard |
+
+### I. BMAD Planning Artifacts (Full SDLC)
+
+| Artifact | Path | Content |
+|----------|------|---------|
+| PRD | `_bmad-output/planning-artifacts/prd.md` | 24 FRs, 15 NFRs |
+| Architecture | `_bmad-output/planning-artifacts/architecture.md` | Full system design |
+| UX Design | `_bmad-output/planning-artifacts/ux-design-specification.md` | Triune Self UX |
+| Epics | `_bmad-output/planning-artifacts/epics.md` | 7 epics, 55 stories, bidirectional FR traceability |
+| Sprint Status | `_bmad-output/implementation-artifacts/sprint-status.yaml` | Story-level tracking |
+| Constitution | `.agent/CONSTITUTION.md` | Ethical + operational governance |
+| Charter | `.agent/COHEZION_CHARTER.md` | SPIN, FLUME, HIHO, Expert Domain Lattice |
+| Capability Map | `.agent/CAPABILITY_MAP.md` | System capability inventory |
+
+### J. Scale Metrics
+
+| Metric | Value |
+|--------|-------|
+| Python modules | 441 |
+| Lines of source | 90,869 |
+| Test files | 216 |
+| Tests passing | 3,200+ (99.9%) |
+| Adversarial suite | 28/28 |
+| PRIME skills | 124 |
+| API endpoints | 72 |
+| MCP servers | 12+ |
+| Epics | 7 |
+| Stories | 55 |
+| Functional requirements | 24 |
+
+---
+
+## II. WHAT NEEDS TO BE MADE COHERENT
+
+### A. Dashboard → Real Physics Connection
+OuroborosControlRoom uses `Math.random()`, not `HIHOStabilizationEngine`. TensorBeam renders a hardcoded Clifford Torus, not live FLUME/CA state. Mycelium stats are hardcoded constants. **The engines exist and work — the display is disconnected.**
+
+### B. WebMCP Bridge Mock
+`webmcp_bridge.py:55` returns `"MOCKED output"`. Needs real MCP client routing.
+
+### C. System Card Evidence Gap
+26 lines, no math, no measured data, no code references.
+
+### D. Version Scatter
+v0.1.0, v1.0.2-rc.1, v4.0.0 across different files.
+
+### E. Repository Coherence
+Three webapps without canonical designation. No automated quality gates. Sprint status shows 54/55 stories in backlog.
+
+---
+
+## III. PRE-FLIGHT: RESOURCE MANAGEMENT & PLATFORM OPTIMIZATION
+
+### Step 0: Free RAM & Kill Duplicates
+
+**Current state**: 70GB used / 128GB total. Target ceiling: **85GB**.
+
+```bash
+# Kill 2 duplicate swarm_server_mcp processes (pts/5 and pts/6 from yesterday)
+kill 344155 343162
+
+# Verify freed ~1.3GB
+free -h
+```
+
+**Memory budget for implementation work**:
+| Consumer | Budget |
+|----------|--------|
+| OS + Desktop + Chrome + Obsidian | ~60GB (baseline) |
+| FastAPI backend | ~500MB |
+| Next.js dev server | ~500MB |
+| Pytest suite | ~2GB (peak) |
+| Cargo build (Rust core) | ~1GB (peak) |
+| **Hard ceiling** | **85GB** |
+| **Available headroom** | ~20GB |
+
+### Step 0.1: SandboxManager Budget Update
+
+**Modify**: `src/cohezion/universe/sandbox_manager.py`
+- Change `SYSTEM_MEMORY_BUDGET_MB = 100 * 1024` → `SYSTEM_MEMORY_BUDGET_MB = 85 * 1024`
+- This aligns the sandbox orchestrator with the 85GB ceiling to prevent OOM during simulation runs
+
+### Step 0.2: Platform-Aware Configuration
+
+**Hardware**: AMD Ryzen AI MAX+ 395 (16C/32T, AVX-512, AMX), 128GB LPDDR5X, Radeon 8060S (iGPU, unified memory), 2TB NVMe (ZFS)
+
+**Optimizations to enforce**:
+- Rust physics core: `RUSTFLAGS="-C target-cpu=znver5"` for Zen 5 native codegen (AVX-512 auto-vectorization)
+- Python: numpy with OpenBLAS (already default on AMD)
+- Next.js: `NODE_OPTIONS="--max-old-space-size=4096"` to cap Node heap
+- Ollama: 4 concurrent model limit (already in CLAUDE.md)
+- ResourceMonitor integration: `dilation_factor < 0.3` → backpressure on new sandbox launches
+
+---
+
+## III. THE PLAN — COMPOUND ENGINEERING APPROACH
+
+### Epic A: Living Universe API (Spec → TDD → Ship)
+
+**PRD**: "The Anima Dashboard shall display real-time HIHO universe physics, driven by the actual HIHOStabilizationEngine, CellularAutomataEngine, and MagnetohydrodynamicsEngine."
+
+**Architecture**: FastAPI service layer → Universe state manager (singleton) → Physics engines → JSON serialization → SSE/polling to Next.js frontend
+
+**Stories**:
+
+#### A.1: Universe State API Service
+- **Spec**: New file `src/cohezion/api/services/universe.py`
+- **TDD Red**: Write test — `POST /api/universe/tick` returns JSON with `coherence` float near 0.5, `evo_states` array, `ca_grid` array of 256 ints
+- **TDD Green**: Implement `UniverseStateService` — instantiate EVOs via `EVOInitializationFactory`, hold CA/MHD/HIHO/Chaos engines, expose tick + state endpoints
+- **TDD Refactor**: Extract physics orchestration into clean `UniversePhysicsOrchestrator` if >150 lines
+- **Language**: Python (FastAPI, Pydantic models matching existing EvoState)
+- **Reuse**: `hiho_unified_engine.py:174` (EVOInitializationFactory), `:189` (HIHOStabilizationEngine), `:131` (MHD), `:41` (CA), `:100` (Chaos)
+- **Security**: Input validation on tick parameters, rate limiting, no arbitrary code execution
+- **Token Efficiency**: Batch EVO state updates in single numpy operation, use Rust core when available
+
+#### A.2: CORS + API Mount
+- **Spec**: Modify `src/cohezion/api/__init__.py`
+- **TDD Red**: Test that `OPTIONS /api/universe/state` returns CORS headers for `localhost:3000`
+- **TDD Green**: Add `CORSMiddleware` with appropriate origins, mount universe router
+- **TDD Refactor**: Ensure middleware ordering doesn't break existing 72 endpoints
+
+#### A.3: OuroborosControlRoom Live Data
+- **Spec**: Modify `src/web/anima_dashboard/src/components/OuroborosControlRoom.tsx`
+- **TDD Red**: Playwright test — page loads, coherence value matches `/api/universe/state` response within 5s
+- **TDD Green**: Replace `useState + Math.random()` with `useSWR` or `useEffect + fetch` polling `/api/universe/state` every 3s
+- **TDD Refactor**: Extract API hook into `src/web/anima_dashboard/src/hooks/useUniverseState.ts`
+- **Language**: TypeScript (React hooks, proper error boundaries)
+- **Token Efficiency**: SWR deduplication prevents redundant fetches
+
+#### A.4: TensorBeam Physics-Driven Particles
+- **Spec**: Modify `src/web/anima_dashboard/src/components/TensorBeamVisualizer.tsx`
+- **TDD Red**: Visual regression — particle positions change when CA grid state changes
+- **TDD Green**: Feed CA grid into particle brightness modulation. Feed EVO helicity/toroidal_moment into Clifford Torus parameters (R, r values). Add HUD overlay showing live physics labels.
+- **TDD Refactor**: Separate physics data mapping from Three.js rendering
+- **Language**: TypeScript (R3F, Three.js)
+
+#### A.5: Snapshot Gallery → Real CA Renders
+- **Spec**: Modify `src/web/anima_dashboard/src/components/SnapshotGallery.tsx`
+- **TDD Red**: Gallery shows canvas-rendered CA grid heatmap instead of fake type icons
+- **TDD Green**: Replace simulated snapshots with actual CA grid state rendered as a small canvas heatmap
+- **Language**: TypeScript (HTML5 Canvas for CA rendering)
+
+#### A.6: Mycelium Stats → Real Metrics
+- **Spec**: Modify `src/web/anima_dashboard/src/app/page.tsx`
+- **TDD Red**: Mycelium stats section shows values from API, not hardcoded
+- **TDD Green**: Fetch from `/api/metrics/dashboard` (or reuse universe state endpoint)
+- **Version**: Footer → "COHEZION v1.0.2"
+
+### Epic B: System Card as Research Paper
+
+**PRD**: "SYSTEM_CARD.md shall be a 3-4 page document with mathematical formulations, code references, and measured data that positions HIHO as a genuine stability principle."
+
+**Stories**:
+
+#### B.1: Rewrite SYSTEM_CARD.md
+- **Structure**: Abstract → HIHO Principle (math) → EVOs (physics models) → 12D Axiomatic State (Smith mapping) → FLUME Pipeline (2048→256→12) → RL Environment (FlumeNavEnv spec) → First Principles (CA, Chaos, Twistors) → Simulation Infrastructure (SandboxManager, FractalSim, MassSim) → Emergence Detection (Tononi/Hoel EI) → Safety Architecture (eval-awareness, ethical framework, consent) → Measured Results (441 modules, 90K LOC, 3200+ tests, 28/28 adversarial) → Recursive Self-Improvement (Ouroboros, Mycelium) → BMAD Methodology (PRD, 7 epics, 55 stories, bidirectional traceability) → Limitations
+- **Evidence**: Include actual code snippets for key formulations (Hooke's Law, MHD rotation, Gaussian reward)
+- **Quality**: No unexplained jargon. Every term grounded in either physics literature or code reference.
+
+#### B.2: Update anthropic-delivery/README.md
+- Quick-start instructions
+- Point to SYSTEM_CARD.md, Anima Dashboard, and key code entry points
+- Link to PRD, Architecture, and Epics for SDLC evidence
+
+### Epic C: WebMCP Bridge Integration
+
+**PRD**: "The WebMCP Bridge shall route browser tool calls to actual running MCP servers via MCPClient."
+
+#### C.1: Replace Mock Handler
+- **TDD Red**: `POST /mcp/call_tool` with `server=knowledge, tool=search` returns real search results (not "MOCKED output")
+- **TDD Green**: Import MCPClient, route through actual client, handle offline servers with proper error JSON
+- **TDD Refactor**: Add connection pooling for MCP client
+- **Security**: Input validation on server/tool names (whitelist), argument sanitization
+- **Language**: Python (aiohttp, existing MCPClient patterns)
+
+### Epic D: Version & Repository Coherence
+
+#### D.1: Version Alignment
+- `package.json` → 1.0.2
+- `page.tsx` footer → v1.0.2
+- `SYSTEM_CARD.md` → v1.0.2
+
+#### D.2: Canonical Webapp Designation
+- Root README or CLAUDE.md section clarifying canonical app
+- Mark `apps/webapp/` and `apps/morphospace-loom/` as legacy prototypes
+
+#### D.3: Sprint Status Update
+- Move Story 1-1 from `review` to `done`
+- Update epic-1 progress
+
+### Epic E: Automated Quality & Proactive Repository Management
+
+**PRD**: "The repository shall enforce quality gates automatically, use multiperspective evaluation, and leverage SLMs for token-efficient operations."
+
+#### E.1: Pre-commit Quality Gate
+- **Spec**: Enhance `.pre-commit-config.yaml`
+- Ruff format + lint on all Python
+- Large file check (>50MB → require artifact registration)
+- Version consistency check (all version strings match)
+
+#### E.2: Multiperspective Code Review
+- Use `cohezion-swarm` MCP for democratic debate on architectural decisions
+- SelfEvaluationEngine (`src/cohezion/evaluation/self_eval.py`) as pre-execution gate
+- Constitution compliance check for all agent outputs
+
+#### E.3: SLM Token Efficiency
+- Route 90% of routine operations through local Ollama (deepseek-r1, qwen3-coder, phi3:mini)
+- CostAwareRouter (`src/cohezion/swarm/cost_aware_router.py`) enforcing 27.3%+ savings
+- SemanticCache (`src/cohezion/cache/semantic_cache.py`) maintaining 95%+ hit rate
+- Document the compound engineering loop: skill → execute → retrospect → refine → compound
+
+#### E.4: System Resource Awareness
+- ResourceMonitor (`src/cohezion/core/resource_monitor.py`) integration with dashboard
+- SandboxManager backpressure (dilation_factor < 0.3 → delay launch)
+- MemoryGuard from mass_sim (`src/cohezion/mass_sim/system_monitor.py`)
+- Hardware Profile grounding: AMD Ryzen AI MAX+ 395, 128GB LPDDR5X, 2TB NVMe, 32GB ZFS swap
+
+---
+
+## IV. ENGINEERING METHODOLOGY (The Process IS the Product)
+
+### TDD Discipline (Red → Green → Refactor)
+Every story follows:
+1. Write failing test first (name: `test_<feature>_<scenario>_<expected>`)
+2. Verify it fails for the right reason
+3. Write minimal code to pass
+4. Verify all tests pass
+5. Refactor while keeping green
+6. Re-verify
+
+### Polyglot Code (Right Language, Right Task)
+| Task | Language | Why |
+|------|----------|-----|
+| Physics core (CA, MHD) | **Rust** (PyO3) | SIMD performance, memory safety |
+| API services, orchestration | **Python** (FastAPI, Pydantic) | Ecosystem, async, type safety |
+| Dashboard, visualization | **TypeScript** (Next.js, R3F) | React ecosystem, WebGL |
+| Knowledge graph | **TypeScript** (Obsidian API) | Plugin system requirement |
+| Database queries | **SurrealQL** | Native SurrealDB |
+| CI/CD | **YAML + Bash** | Standard tooling |
+
+### Security-First Quality Assurance
+- Input validation at all boundaries (API, WebMCP, MCP tool args)
+- No arbitrary code execution in user-facing endpoints
+- ConsentManager for simulation data (SHA-256 signed tokens)
+- EvalAwarenessDefense (canary injection, metacognition monitoring)
+- EthicalFramework (4-principle hierarchy, OWASP agentic threats)
+- Pre-commit hooks (no secrets, no large files, format + lint)
+
+### Compound Engineering (Token Efficient)
+- Compound loop: Skill → Execute → Retrospect → Refine → Loop
+- SLM routing for 90% of tasks (local Ollama, 4 concurrent max)
+- SemanticCache (L1 hash + L2 cosine + L3 vault)
+- Batch operations for physics ticks (numpy vectorization)
+- Rust core for hot paths (10x speedup)
+
+### Multiperspective Evaluation
+- DemocraticDebate (`src/cohezion/swarm/democratic_debate.py`) for architectural decisions
+- SkillConsensusVoter (`src/cohezion/compound/skill_consensus_voter.py`) for skill refinement
+- Adversarial review suite (28 tests across 8 modules)
+- EmergentDetector for simulation analysis (phase transitions, causal emergence)
+
+---
+
+## V. VERIFICATION MATRIX
+
+| Check | Command | Expected |
+|-------|---------|----------|
+| Tests pass | `uv run pytest tests/ -q` | 3,200+ pass |
+| Lint clean | `ruff check . --fix` | 0 errors |
+| Format clean | `ruff format .` | No changes |
+| Dashboard runs | `cd src/web/anima_dashboard && npm run dev` | Live physics at localhost:3000 |
+| API responds | `curl localhost:8080/api/universe/state` | Real EVO states + coherence |
+| WebMCP routes | `POST localhost:8380/mcp/call_tool` | Real MCP responses |
+| System Card | Read SYSTEM_CARD.md | 3-4 pages, math, evidence |
+| Versions match | `grep -r "v1.0.2\|0.1.0\|v4.0.0"` | All v1.0.2 |
+| Rust core builds | `cd src/cohezion-physics-core && cargo build` | Compiles clean |
+| Sprint updated | `cat _bmad-output/implementation-artifacts/sprint-status.yaml` | Progress reflected |
+
+---
+
+## VI. KEY CODE REFERENCES
+
+| What | File | Line |
+|------|------|------|
+| HIHO Hooke's Law | `hiho_unified_engine.py` | 192-212 |
+| MHD Helicity Rotation | `hiho_unified_engine.py` | 131-171 |
+| EVO State Model | `hiho_unified_engine.py` | 117-128 |
+| 12D AxiomaticState | `engine.py` | 33-97 |
+| FlumeNavEnv | `environment.py` | 23-100 |
+| Coherence Reward | `reward_shaping.py` | 14-34 |
+| Diversity Bonus | `reward_shaping.py` | 37-59 |
+| Rust CA SIMD | `lib.rs` | 8-32 |
+| Rust MHD SIMD | `lib.rs` | 37-66 |
+| Divergence Detector | `divergence.py` | 46-60 |
+| Emergent Detector | `emergent_detector.py` | 1-60 |
+| SandboxManager | `sandbox_manager.py` | 66-80 |
+| Ouroboros Engine | `ouroboros.py` | 28-52 |
+| Mycelium Network | `mycelium_network.py` | 27-56 |
+| FLUME VAE | `vae_encoder.py` | 33-60 |
+| FLUME Navigator | `navigator.py` | 21-60 |
+| Constitution | `.agent/CONSTITUTION.md` | Full |
+| PRD (24 FRs) | `_bmad-output/planning-artifacts/prd.md` | Full |
+| Epics (55 stories) | `_bmad-output/planning-artifacts/epics.md` | Full |
+| Sprint Status | `sprint-status.yaml` | Full |
+| FlumePhysicsPy | `flume_physics_py.py` | 17-80 |
+| MassSim Orchestrator | `orchestrator.py` | 29-60 |
+| TensorBeam 3D | `TensorBeamVisualizer.tsx` | 1-270 |
+| OuroborosControlRoom | `OuroborosControlRoom.tsx` | 1-94 |
+| WebMCP Bridge | `webmcp_bridge.py` | 1-75 |
+| CostAwareRouter | `cost_aware_router.py` | - |
+| SemanticCache | `semantic_cache.py` | - |
+| ResourceMonitor | `resource_monitor.py` | - |
+| GlobalMetricsAggregator | `global_metrics_aggregator.py` | - |
+
+---
+
+## VII. PERSISTENCE — OBSIDIAN VAULT & SURREALDB
+
+### Step P.1: Save Plan to Obsidian Vault
+
+Save the full plan as a decision artifact in `~/vaults/cohezion-vault/decisions/`:
+- File: `2026-03-08-anthropic-universes-coherence-plan.md`
+- Tags: `#anthropic #universes #plan #hiho #paradigm`
+- Links: `[[CONSTITUTION]]`, `[[COHEZION_CHARTER]]`, `[[epics]]`
+
+### Step P.2: Save Inventory to Obsidian Vault
+
+Save the complete platform inventory (Section I) as an architecture artifact:
+- File: `~/vaults/cohezion-vault/assessments/2026-03-08-platform-inventory-441-modules.md`
+- Tags: `#inventory #architecture #assessment`
+
+### Step P.3: Store Key Learnings in SurrealDB
+
+Use `mcp__cohezion-surreal__store_learning` to persist:
+
+1. **Learning: HIHO Dashboard Gap**
+   - ID: `learn-2026-03-08-dashboard-physics-gap`
+   - Pattern: `HIHO`
+   - Content: Dashboard uses Math.random() not real HIHOStabilizationEngine. Physics engines exist and work but aren't wired to the display. Fix: create /api/universe/state endpoint.
+   - Score: 0.95
+
+2. **Learning: Full Platform Scale**
+   - ID: `learn-2026-03-08-platform-scale`
+   - Pattern: `COMPOUND`
+   - Content: 441 Python modules, 90,869 LOC, 216 test files, 3200+ tests, Rust physics core, 7 epics, 55 stories, 24 FRs, 15 NFRs. Full SDLC with bidirectional traceability.
+   - Score: 1.0
+
+3. **Learning: Resource Ceiling**
+   - ID: `learn-2026-03-08-resource-ceiling-85gb`
+   - Pattern: `HIHO`
+   - Content: SandboxManager SYSTEM_MEMORY_BUDGET_MB must be 85*1024 not 100*1024. Desktop baseline ~60GB (Chrome, Obsidian, Antigravity, OpenCode). Duplicate swarm_server_mcp processes found on pts/5 and pts/6.
+   - Score: 0.9
+
+### Step P.4: Store Universe Node in SurrealDB
+
+Use `mcp__cohezion-surreal__store_node` to persist the plan as a universe node:
+- Type: `plan`
+- Content: Plan summary with all 5 epics (A-E) and verification matrix
+- Physics: `{coherence: 0.5, logic: 0.9, precipitation: 0.1}` (plan ready, not yet precipitated into code)
+
+---
+
+## VIII. WHY THIS IS THE PARADIGM SHIFT
+
+Anthropic's Universes team wants someone who can create environments where models learn to handle ambiguity, interruptions, and open-ended scenarios across long horizons.
+
+**COHEZION doesn't simulate a universe. It IS a universe.**
+
+- **400 years of physics** — MHD, Chaos Theory, Cellular Automata, Penrose Twistors, Sacred Geometry — unified into a computable semantic manifold
+- **The HIHO Principle** — a Hooke's Law attractor at 0.5 coherence that mathematically prevents both hallucination collapse and rigid over-fitting
+- **Agents as EVOs** — charge clusters with magnetic helicity, toroidal moments, and chirality. Not metaphors — computable physics.
+- **Full SDLC** — PRD with 24 FRs, Architecture, 7 Epics, 55 Stories, bidirectional traceability, TDD, sprint tracking
+- **Polyglot engineering** — Rust for SIMD physics, Python for orchestration, TypeScript for visualization
+- **Constitutional governance** — Anthropic's own safety hierarchy (Safe > Ethical > Compliant > Helpful) embedded in `.agent/CONSTITUTION.md`
+- **Compound engineering** — every feature makes every future feature easier
+- **441 modules, 90K lines, 3,200+ tests, 28/28 adversarial suite**
+- **Self-improving** — Ouroboros consumes failure exhaust, Mycelium broadcasts learned insights, skills compound autonomously
+
+The dashboard doesn't just *display* a universe. It lets you *watch intelligence stabilize at the HIHO boundary in real time*.
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/46d7db17-21f1-43eb-a875-57e11c6ee91a.jsonl
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/superpowers/4.3.1/skills/executing-plans
+
+# Executing Plans
+
+## Overview
+
+Load plan, review critically, execute tasks in batches, report for review between batches.
+
+**Core principle:** Batch execution with checkpoints for architect review.
+
+**Announce at start:** "I'm using the executing-plans skill to implement this plan."
+
+## The Process
+
+### Step 1: Load and Review Plan
+1. Read plan file
+2. Review critically - identify any questions or concerns about the plan
+3. If concerns: Raise them with your human partner before starting
+4. If no concerns: Create TodoWrite and proceed
+
+### Step 2: Execute Batch
+**Default: First 3 tasks**
+
+For each task:
+1. Mark as in_progress
+2. Follow each step exactly (plan has bite-sized steps)
+3. Run verifications as specified
+4. Mark as completed
+
+### Step 3: Report
+When batch complete:
+- Show what was implemented
+- Show verification output
+- Say: "Ready for feedback."
+
+### Step 4: Continue
+Based on feedback:
+- Apply changes if needed
+- Execute next batch
+- Repeat until complete
+
+### Step 5: Complete Development
+
+After all tasks complete and verified:
+- Announce: "I'm using the finishing-a-development-branch skill to complete this work."
+- **REQUIRED SUB-SKILL:** Use superpowers:finishing-a-development-branch
+- Follow that skill to verify tests, present options, execute choice
+
+## When to Stop and Ask for Help
+
+**STOP executing immediately when:**
+- Hit a blocker mid-batch (missing dependency, test fails, instruction unclear)
+- Plan has critical gaps preventing starting
+- You don't understand an instruction
+- Verification fails repeatedly
+
+**Ask for clarification rather than guessing.**
+
+## When to Revisit Earlier Steps
+
+**Return to Review (Step 1) when:**
+- Partner updates the plan based on your feedback
+- Fundamental approach needs rethinking
+
+**Don't force through blockers** - stop and ask.
+
+## Remember
+- Review plan critically first
+- Follow plan steps exactly
+- Don't skip verifications
+- Reference skills when plan says to
+- Between batches: just report and wait
+- Stop when blocked, don't guess
+- Never start implementation on main/master branch without explicit user consent
+
+## Integration
+
+**Required workflow skills:**
+- **superpowers:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting
+- **superpowers:writing-plans** - Creates the plan this skill executes
+- **superpowers:finishing-a-development-branch** - Complete development after all tasks
+
+---
+
+It's fantastic!  Let's take it for a spin (pun intended)
+
+---
+
+<task-notification>
+<task-id>bg40fgkjf</task-id>
+<tool-use-id>toolu_01ELtyofU8LQTRFTtSmPLJV8</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bg40fgkjf.output</output-file>
+<status>failed</status>
+<summary>Background command "Start FastAPI server in background" failed with exit code 1</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bg40fgkjf.output
+
+---
+
+We need to update it so the Fetch Synthesis Report actually fetches something
+
+---
+
+We need to inject some perterbations.
+
+---
+
+Are we saving to surrealdb 3.0 and analyzing what we have?
+
+---
+
+<task-notification>
+<task-id>bqawnt40b</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bqawnt40b.output</output-file>
+<status>completed</status>
+<summary>Background command "Check for SurrealDB via docker or local install" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bqawnt40b.output
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The user requested implementation of a comprehensive "COHEZION Coherence Plan" targeting a Research Engineer role at Anthropic. The plan has 5 epics covering: (A) Living Universe API connecting real HIHO physics engines to the Anima Dashboard, (B) System Card rewrite as a research paper, (C) WebMCP Bridge real routing, (D) Version/Repository Coherence, and (E) Automated Quality. After initial implementation, the user requested three follow-up features: (1) taking the system for a live spin, (2) making the "Fetch Synthesis Report" button functional, (3) adding perturbation injection controls, and most recently (4) saving data to SurrealDB 3.0 and analyzing what we have.
+
+2. Key Technical Concepts:
+   - **HIHO Principle**: Hooke's Law attractor at 0.5 coherence — `F = 2.0 * (0.5 - C) * dt` — prevents hallucination collapse (C→0) and rigid over-fitting (C→1)
+   - **EVOs (Exotic Vacuum Objects)**: Agent models with charge_density, magnetic_helicity, toroidal_moment, coherence
+   - **Cellular Automata**: Wolfram Rule 30, 256-cell grid with toroidal topology, expanding from center impulse
+   - **MHD Helicity Rotation**: Rotates first 2 latent dims by magnetic_helicity * dt
+   - **HIHOUnifiedEngine**: Orchestrates 9 physics sub-engines per tick (CA, Chaos, MHD, HIHO, Twistors, Quantum, Bio, Sacred Geometry, Kordylewski Swarm)
+   - **TDD Red→Green→Refactor**: All features test-first
+   - **FastAPI + Pydantic**: Universe state API with typed response models
+   - **Next.js 16 + React Three Fiber**: Anima Dashboard with 3D visualization
+   - **SurrealDB**: Multi-model database for persistence (not yet running)
+   - **MCP (Model Context Protocol)**: WebMCP Bridge routes browser calls to MCP servers
+   - **PyO3/Rust**: SIMD-accelerated physics core with Python fallback
+
+3. Files and Code Sections:
+
+   - **`src/cohezion/api/services/universe.py`** (NEW — core of the implementation)
+     - Universe physics API service with real HIHO engine
+     - Contains: UniverseStateService, UniverseStateResponse, SynthesisReport, PerturbRequest models
+     - Key endpoints: GET /state, POST /tick, GET /report, POST /perturb
+     - Currently ~200 lines with perturb() method and get_report() method
+     ```python
+     class UniverseStateService:
+         def __init__(self, num_evos: int = 8, ca_rule: int = 30) -> None:
+             self._tick = 0
+             self._time = 0.0
+             self._dt = 0.01
+             self._ca = CellularAutomataEngine(CellularAutomataState(rule=ca_rule))
+             self._chaos = ChaosTheoryEngine(ChaosTheoryParameters(lyapunov_exponent=0.05))
+             self._mhd = MagnetohydrodynamicsEngine()
+             self._hiho = HIHOStabilizationEngine()
+             self._evos: list[EvoState] = [EVOInitializationFactory.create_evo(seed=i) for i in range(num_evos)]
+             self._vectors: list[np.ndarray] = [np.random.default_rng(i).standard_normal(12) for i in range(num_evos)]
+
+         def perturb(self, kind: str, magnitude: float) -> UniverseStateResponse:
+             mag = max(0.0, min(1.0, magnitude))
+             if kind == "coherence_spike":
+                 for evo in self._evos: evo.coherence = min(1.0, evo.coherence + mag)
+             elif kind == "coherence_collapse":
+                 for evo in self._evos: evo.coherence = max(0.0, evo.coherence - mag)
+             elif kind == "charge_injection":
+                 for evo in self._evos: evo.charge_density += mag
+             elif kind == "ca_reset":
+                 grid_size = self._ca.config.grid_size
+                 self._ca.config.state = [0] * grid_size
+                 self._ca.config.state[grid_size // 2] = 1
+             return self.get_state()
+     ```
+
+   - **`src/cohezion/api/__init__.py`** (MODIFIED)
+     - Added `from cohezion.api.services.universe import universe_router`
+     - Added `app.include_router(universe_router, prefix="/api/universe")`
+     - Changed `version="0.1.0"` → `version="1.0.2"`
+
+   - **`src/web/anima_dashboard/src/hooks/useUniverseState.ts`** (NEW)
+     - React hook polling POST /api/universe/tick every 3s
+     - Returns `{ state, error, loading }` with typed UniverseState/EvoState interfaces
+     - AbortController for cleanup
+
+   - **`src/web/anima_dashboard/src/components/OuroborosControlRoom.tsx`** (REWRITTEN)
+     - Replaced Math.random() with `useUniverseState(3000)` hook
+     - Shows live coherence, tick count, simulation time, EVO count
+     - Per-EVO telemetry in log panel
+
+   - **`src/web/anima_dashboard/src/components/TensorBeamVisualizer.tsx`** (MODIFIED)
+     - Added props: `coherence`, `caGridDensity`, `evoCount`
+     - HUD overlay shows live physics values instead of hardcoded "0.9994"
+
+   - **`src/web/anima_dashboard/src/components/SnapshotGallery.tsx`** (REWRITTEN)
+     - Replaced random snapshot generation with CA grid canvas heatmap
+     - CAGridCanvas component renders 256-cell grid as 16x16 heatmap
+     - Shows CA density, coherence, tick metrics
+
+   - **`src/web/anima_dashboard/src/app/page.tsx`** (REWRITTEN)
+     - Added "use client" directive, useState/useCallback imports
+     - SynthesisReport interface for typed report data
+     - fetchReport() and perturb() async handlers
+     - 4 perturbation buttons (SPIKE, COLLAPSE, CHARGE, CA RESET)
+     - Report display panel with per-EVO health grid and dismiss button
+     - All components wired to shared useUniverseState data
+     - Mycelium stats show live EVO count, mean coherence, CA density, tick
+     - Footer: `COHEZION v1.0.2`
+
+   - **`src/cohezion/mcp/webmcp_bridge.py`** (REWRITTEN)
+     - Replaced "MOCKED output" with real MCP routing via registry
+     - Added `_validate_name()` with regex `^[a-zA-Z][a-zA-Z0-9_-]{0,63}
+
+     - Routes to HTTP servers (via httpx) or internal Python handlers
+     - `_resolve_internal_handler()` dispatches to knowledge/swarm servers
+
+   - **`SYSTEM_CARD.md`** (REWRITTEN)
+     - From 26 lines to 189 lines
+     - 11 sections: Abstract, HIHO Principle (with math), EVOs, 12D State, Physics Engines, RL Environment, Safety Architecture, Compound Engineering, Measured Results, Hardware, Limitations
+     - Code references with file:line citations
+
+   - **`src/cohezion/universe/sandbox_manager.py`** (MODIFIED)
+     - `SYSTEM_MEMORY_BUDGET_MB = 85 * 1024` (was `100 * 1024`)
+
+   - **`pyproject.toml`** — version `"1.0.0"` → `"1.0.2"`
+   - **`src/web/anima_dashboard/package.json`** — version `"0.1.0"` → `"1.0.2"`
+
+   - **`tests/api/test_universe_service.py`** (NEW — 20 tests)
+     - TestUniverseStateService (5 tests), TestUniverseAPIEndpoints (3 tests), TestSynthesisReport (5 tests), TestPerturbations (7 tests)
+     - Key test: `test_hiho_recovers_after_perturbation` proves attractor dynamics
+
+   - **`tests/api/test_universe_api_mount.py`** (NEW — 3 tests)
+     - Verifies router mount in main app and CORS for localhost:3000
+
+   - **`tests/mcp/test_webmcp_bridge.py`** (NEW — 5 tests)
+     - Route existence, name validation, no-mock verification
+
+   - **`src/cohezion/core/persistence/surreal_client.py`** (READ — investigation in progress)
+     - Has PhysicsState dataclass with 12D state vector
+     - SurrealDB client infrastructure exists but DB not running
+
+4. Errors and Fixes:
+   - **Test files lost after mkdir -p**: Running `mkdir -p tests/api tests/mcp && touch tests/api/__init__.py` created new empty directories, losing test files that had been written via the Write tool. Fixed by recreating all 3 test files.
+   - **Shell working directory changed**: `cd /home/mike-anderson/dev/cohezion/src/web/anima_dashboard && npx tsc` left the shell in the dashboard directory, causing subsequent `uv run pytest tests/...` to fail with "0 items collected". Fixed by prefixing commands with `cd /home/mike-anderson/dev/cohezion &&`.
+   - **Port 8080 already in use**: FastAPI server start failed because port was already bound by an existing process running the same app. This was harmless — the existing process had hot-reloaded our changes.
+   - **`server_name` possibly unbound**: basedpyright flagged that `server_name` in the except clause could be unbound if `request.json()` raised. Fixed by initializing `server_name = ""` before the try block.
+   - **`sleep -s` invalid option**: Initial bash command used `sleep` with wrong syntax. Fixed by using separate background process + sleep command.
+
+5. Problem Solving:
+   - Identified the core coherence gap: physics engines exist (587 lines of real physics) but dashboard used Math.random() — solved with API service layer
+   - WebMCP "MOCKED output" replaced with registry-based routing to real handlers
+   - SYSTEM_CARD.md evidence gap closed with math formulations and measured metrics (444 modules, 107K LOC, 3302 tests)
+   - Version scatter (v0.1.0, v1.0.0, v4.0.0) unified to v1.0.2
+   - Live demo proved HIHO recovery dynamics: spike 0.5→0.9→0.767→0.619 over 60 ticks
+   - SurrealDB persistence investigation is in progress — DB is not installed/running
+
+6. All User Messages:
+   - "Implement the following plan: [massive coherence plan with 5 epics, platform inventory, verification matrix]"
+   - "It's fantastic! Let's take it for a spin (pun intended)"
+   - "We need to update it so the Fetch Synthesis Report actually fetches something"
+   - "We need to inject some perterbations."
+   - "Are we saving to surrealdb 3.0 and analyzing what we have?"
+
+7. Pending Tasks:
+   - **SurrealDB persistence**: Save simulation state, learnings, and plan to SurrealDB (Section VII of plan: Steps P.1-P.4)
+   - **Plan Section VII.P.3**: Store key learnings via `mcp__cohezion-surreal__store_learning` (3 learnings: dashboard-physics-gap, platform-scale, resource-ceiling)
+   - **Plan Section VII.P.4**: Store universe node via `mcp__cohezion-surreal__store_node`
+   - **Obsidian vault persistence** (Plan Steps P.1-P.2): Save plan and inventory as vault artifacts
+   - **Sprint status update** (Epic D.3): Move stories in sprint-status.yaml
+   - **Pre-commit quality gate** (Epic E.1)
+   - Analysis of collected simulation data
+
+8. Current Work:
+   The user asked "Are we saving to surrealdb 3.0 and analyzing what we have?" — I was investigating the SurrealDB infrastructure:
+   - Confirmed SurrealDB is NOT running (no process, no binary, not in docker)
+   - Docker only has `redis-mcp redis:7-alpine`
+   - Started reading `src/cohezion/core/persistence/surreal_client.py` which has a `PhysicsState` dataclass with 12D state vectors
+   - Was mid-investigation of the surreal_client.py file and the cohezion-surreal MCP server when the summary was requested
+   - The MCP tools `mcp__cohezion-surreal__store_learning`, `mcp__cohezion-surreal__store_node`, `mcp__cohezion-surreal__query_nodes` etc. are available as deferred tools
+
+9. Optional Next Step:
+   Continue the SurrealDB investigation and setup. The user's most recent message was: **"Are we saving to surrealdb 3.0 and analyzing what we have?"**
+   
+   Next steps directly in line with this:
+   1. Get SurrealDB 3.0 running (docker or direct install)
+   2. Wire universe tick data to persist to SurrealDB (tick snapshots, EVO states, CA grid state)
+   3. Store the 3 key learnings from Plan Section VII.P.3 via MCP tools
+   4. Add analysis queries to surface patterns in the collected data (coherence trends, charge decay rates, CA entropy over time)
+   5. Potentially add a `/api/universe/history` endpoint for the dashboard to show time-series data
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/c69327c6-213b-4354-ad4c-f9ad4f11e336.jsonl
+
+---
+
+Where is our actual Cohezion logo as an assistant to guide the user with how to use the app and can take their questions.  Where are our high fidelity diagrams, images, voices, audio?
+
+---
+
+We want compound engineered lasting solutions
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/superpowers/4.3.1/skills/brainstorming
+
+# Brainstorming Ideas Into Designs
+
+## Overview
+
+Help turn ideas into fully formed designs and specs through natural collaborative dialogue.
+
+Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design and get user approval.
+
+<HARD-GATE>
+Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it. This applies to EVERY project regardless of perceived simplicity.
+</HARD-GATE>
+
+## Anti-Pattern: "This Is Too Simple To Need A Design"
+
+Every project goes through this process. A todo list, a single-function utility, a config change — all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple projects), but you MUST present it and get approval.
+
+## Checklist
+
+You MUST create a task for each of these items and complete them in order:
+
+1. **Explore project context** — check files, docs, recent commits
+2. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
+3. **Propose 2-3 approaches** — with trade-offs and your recommendation
+4. **Present design** — in sections scaled to their complexity, get user approval after each section
+5. **Write design doc** — save to `docs/plans/YYYY-MM-DD-<topic>-design.md` and commit
+6. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+
+## Process Flow
+
+```dot
+digraph brainstorming {
+    "Explore project context" [shape=box];
+    "Ask clarifying questions" [shape=box];
+    "Propose 2-3 approaches" [shape=box];
+    "Present design sections" [shape=box];
+    "User approves design?" [shape=diamond];
+    "Write design doc" [shape=box];
+    "Invoke writing-plans skill" [shape=doublecircle];
+
+    "Explore project context" -> "Ask clarifying questions";
+    "Ask clarifying questions" -> "Propose 2-3 approaches";
+    "Propose 2-3 approaches" -> "Present design sections";
+    "Present design sections" -> "User approves design?";
+    "User approves design?" -> "Present design sections" [label="no, revise"];
+    "User approves design?" -> "Write design doc" [label="yes"];
+    "Write design doc" -> "Invoke writing-plans skill";
+}
+```
+
+**The terminal state is invoking writing-plans.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. The ONLY skill you invoke after brainstorming is writing-plans.
+
+## The Process
+
+**Understanding the idea:**
+- Check out the current project state first (files, docs, recent commits)
+- Ask questions one at a time to refine the idea
+- Prefer multiple choice questions when possible, but open-ended is fine too
+- Only one question per message - if a topic needs more exploration, break it into multiple questions
+- Focus on understanding: purpose, constraints, success criteria
+
+**Exploring approaches:**
+- Propose 2-3 different approaches with trade-offs
+- Present options conversationally with your recommendation and reasoning
+- Lead with your recommended option and explain why
+
+**Presenting the design:**
+- Once you believe you understand what you're building, present the design
+- Scale each section to its complexity: a few sentences if straightforward, up to 200-300 words if nuanced
+- Ask after each section whether it looks right so far
+- Cover: architecture, components, data flow, error handling, testing
+- Be ready to go back and clarify if something doesn't make sense
+
+## After the Design
+
+**Documentation:**
+- Write the validated design to `docs/plans/YYYY-MM-DD-<topic>-design.md`
+- Use elements-of-style:writing-clearly-and-concisely skill if available
+- Commit the design document to git
+
+**Implementation:**
+- Invoke the writing-plans skill to create a detailed implementation plan
+- Do NOT invoke any other skill. writing-plans is the next step.
+
+## Key Principles
+
+- **One question at a time** - Don't overwhelm with multiple questions
+- **Multiple choice preferred** - Easier to answer than open-ended when possible
+- **YAGNI ruthlessly** - Remove unnecessary features from all designs
+- **Explore alternatives** - Always propose 2-3 approaches before settling
+- **Incremental validation** - Present design, get approval before moving on
+- **Be flexible** - Go back and clarify when something doesn't make sense
+
+
+ARGUMENTS: Design a compound-engineered identity and media system for Cohezion. The system needs: (1) A proper brand asset pipeline where the logo, favicon, OG images, and dashboard theme are all derived from a single source of truth (branding.py). (2) An in-app assistant/guide component in the Anima Dashboard that can answer user questions about HIHO physics, perturbations, and how to use the app — routed through existing MCP infrastructure. (3) Architecture diagrams generated programmatically from actual code structure (not hand-drawn). (4) Voice/audio narration for physics state changes using pocket-tts. Each layer must compound into the next — the branding feeds the assistant's personality, the assistant explains the diagrams, the voice narrates the assistant's responses.
+
+---
+
+All of the above.  We should have percival's triune self at the front.
+
+---
+
+Full epic Push
+
+---
+
+Approach 2, substrate up
+
+---
+
+Yes
+
+---
+
+That makes more sense.
+
+---
+
+Let's give it a whirl.  We can always modify later.  Do what you think will present the most engaging agentic journey.
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/superpowers/4.3.1/skills/writing-plans
+
+# Writing Plans
+
+## Overview
+
+Write comprehensive implementation plans assuming the engineer has zero context for our codebase and questionable taste. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.
+
+Assume they are a skilled developer, but know almost nothing about our toolset or problem domain. Assume they don't know good test design very well.
+
+**Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
+
+**Context:** This should be run in a dedicated worktree (created by brainstorming skill).
+
+**Save plans to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
+
+## Bite-Sized Task Granularity
+
+**Each step is one action (2-5 minutes):**
+- "Write the failing test" - step
+- "Run it to make sure it fails" - step
+- "Implement the minimal code to make the test pass" - step
+- "Run the tests and make sure they pass" - step
+- "Commit" - step
+
+## Plan Document Header
+
+**Every plan MUST start with this header:**
+
+```markdown
+# [Feature Name] Implementation Plan
+
+> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+
+**Goal:** [One sentence describing what this builds]
+
+**Architecture:** [2-3 sentences about approach]
+
+**Tech Stack:** [Key technologies/libraries]
+
+---
+```
+
+## Task Structure
+
+````markdown
+### Task N: [Component Name]
+
+**Files:**
+- Create: `exact/path/to/file.py`
+- Modify: `exact/path/to/existing.py:123-145`
+- Test: `tests/exact/path/to/test.py`
+
+**Step 1: Write the failing test**
+
+```python
+def test_specific_behavior():
+    result = function(input)
+    assert result == expected
+```
+
+**Step 2: Run test to verify it fails**
+
+Run: `pytest tests/path/test.py::test_name -v`
+Expected: FAIL with "function not defined"
+
+**Step 3: Write minimal implementation**
+
+```python
+def function(input):
+    return expected
+```
+
+**Step 4: Run test to verify it passes**
+
+Run: `pytest tests/path/test.py::test_name -v`
+Expected: PASS
+
+**Step 5: Commit**
+
+```bash
+git add tests/path/test.py src/path/file.py
+git commit -m "feat: add specific feature"
+```
+````
+
+## Remember
+- Exact file paths always
+- Complete code in plan (not "add validation")
+- Exact commands with expected output
+- Reference relevant skills with @ syntax
+- DRY, YAGNI, TDD, frequent commits
+
+## Execution Handoff
+
+After saving the plan, offer execution choice:
+
+**"Plan complete and saved to `docs/plans/<filename>.md`. Two execution options:**
+
+**1. Subagent-Driven (this session)** - I dispatch fresh subagent per task, review between tasks, fast iteration
+
+**2. Parallel Session (separate)** - Open new session with executing-plans, batch execution with checkpoints
+
+**Which approach?"**
+
+**If Subagent-Driven chosen:**
+- **REQUIRED SUB-SKILL:** Use superpowers:subagent-driven-development
+- Stay in this session
+- Fresh subagent per task + code review
+
+**If Parallel Session chosen:**
+- Guide them to open new session in worktree
+- **REQUIRED SUB-SKILL:** New session uses superpowers:executing-plans
+
+
+ARGUMENTS: docs/plans/2026-03-08-compound-identity-system-design.md
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The user asked "Where is our actual Cohezion logo as an assistant to guide the user with how to use the app and can take their questions. Where are our high fidelity diagrams, images, voices, audio?" This revealed that the platform lacks: a proper brand identity in the Anima Dashboard, an in-app assistant/guide, architecture diagrams, voice/audio narration, and high-fidelity media assets. The user explicitly demanded "compound engineered lasting solutions" — not quick patches. They wanted "Percival's Triune Self at the front" with ALL three persona types (Nexus as the system, a named guide, and contextual tooltips). They chose the "Full Epic Push" scope covering Epics 2+4 (FR12-FR18, FR22), "Approach 2: Compound Substrate Up" architecture, and approved all design layers. Their final instruction was to proceed with **Subagent-Driven execution (this session)** to get through Tasks 1-5 (Layers 0-2).
+
+2. Key Technical Concepts:
+   - **Triune Self (FR12):** Three cognitive modes — KNOWER (Observatory), THINKER (Vault), DOER (Cockpit) with embodied transitions (400ms/600ms/800ms)
+   - **HIHO-Reactive CSS Bridge (FR14):** Coherence value drives CSS custom properties in real-time — colors shift between CRITICAL_RED (extremes) through WARNING_GOLD to NEXUS_GREEN (0.5 sweet spot)
+   - **Anima Sigil (FR15):** System voice with 3-tier graceful degradation — Template (always works) → MCP-Grounded (Knowledge MCP) → Voice (pocket-tts)
+   - **Re-Entry Narrative (FR13):** First-person summary of recent history on session arrival
+   - **Provenance Tags (FR16):** Every data point carries hover tooltip showing its physics engine source
+   - **SSE Master Clock:** Server-side tick loop broadcasting via Server-Sent Events replaces client-side polling
+   - **Brand as Code:** `branding.py` is single source of truth → API + CSS tokens + favicons + OG images
+   - **Compound Substrate Up:** 8 layers where each IS the foundation for the next — brand → SSE → Triune nav → Observatory → Anima → Vault → Cockpit → Persistent Homology
+   - **Persistent Homology (FR22):** Topological persistence diagrams showing stable vs. transient 12D features
+   - **UniverseProvider:** React Context wrapping SSE stream, shared across all Triune modes
+
+3. Files and Code Sections:
+
+   - **`src/cohezion/branding.py`** (Read — Source of Truth for brand pipeline)
+     - Defines `Colors` (NEXUS_GREEN=#00FF00, MATTE_BLACK=#0A0A0A, EARTH_BLUE=#0077BE, CRITICAL_RED=#FF3B3B, WARNING_GOLD=#F6D365, PLASMA_BLUE=#4facfe, NEON_CYAN=#00f2fe)
+     - `Identity` (NAME="COHEZION", TAGLINE="The Nexus of Coherence", SIGN_OFF="QUADRATURE NEXUS")
+     - `Motifs` with ASCII art NEXUS_LOGO, WALL_OF_TEXT_LOGO, NEXUS_AVATAR_FRAMES
+     - `get_theme()` returns Rich theme config
+     - This becomes the single source for Layer 0's brand API and CSS token generation
+
+   - **`src/cohezion/skills/BRANDING_OPS_PRIME/SKILL.md`** (Read — brand operations skill)
+     - Documents "Organic Modularity" aesthetic, "Inspired Motifs" for IP safety
+     - References `scripts/init_brand.surql` for DB sync
+
+   - **`cloud-vault-mcp/src/mcp_server/pocket_tts.py`** (Read — TTS infrastructure)
+     - `PocketTTSService` class with lazy loading, 24kHz sample rate
+     - Model: `config="b6369a24"`, `temp=0.7`, `eos_threshold=-4.0`
+     - Returns base64-encoded WAV audio
+     - Model NOT installed — this is Anima Tier 3
+
+   - **`scripts/gen_audio.py`** (Read — audio generation)
+     - `generate_stability_tone()` — 432Hz sine wave with subtle 2Hz modulation
+     - Outputs 16-bit PCM WAV to `src/cohezion/api/static/stability_pulse.wav`
+
+   - **`src/cohezion/mcp/knowledge_server.py`** (Read — Anima Tier 2 brain)
+     - `KnowledgeMCP` class on port 8371
+     - Indexes skills from `src/cohezion/skills/` and library docs from `src/cohezion/library/`
+     - Provides `search_knowledge`, `get_skill`, `list_skills` tools
+     - This is what Anima routes questions through in Tier 2
+
+   - **`src/web/anima_dashboard/src/app/layout.tsx`** (Read — needs rewrite)
+     - Still says `title: "Create Next App"` and `description: "Generated by create next app"`
+     - Uses Geist fonts, no Cohezion branding
+     - Task 2 will fix this with proper metadata, favicon, OG tags
+
+   - **`src/web/anima_dashboard/src/app/globals.css`** (Read — needs HIHO variables)
+     - Default Tailwind v4 with `@import "tailwindcss"`
+     - `--background: #0a0a0a` (dark) / `#ffffff` (light) — not using brand colors
+     - Task 2 will add brand-tokens.css import and HIHO-reactive CSS variables
+
+   - **`src/web/anima_dashboard/src/hooks/useUniverseState.ts`** (Read — being replaced)
+     - Current polling hook: POST /api/universe/tick every 3s
+     - Interfaces: `EvoState` (charge_density, magnetic_helicity, toroidal_moment, coherence) and `UniverseState` (tick, coherence, ca_grid, evo_states, time)
+     - `API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080"`
+     - Task 4 replaces this with `useUniverseStream.ts` using EventSource SSE
+
+   - **`src/cohezion/api/streaming.py`** (Read — SSE patterns exist)
+     - Already has `StreamingResponse` with SSE for inference streaming
+     - Uses `text/event-stream` content type
+     - Task 3 extends this pattern for the universe stream
+
+   - **`src/cohezion/api/__init__.py`** (Read — router mounting point)
+     - FastAPI app with CORS, version="1.0.2"
+     - Already imports `universe_router`
+     - Tasks 1 and 7 add `brand_router` and `anima_router` mounts
+
+   - **`src/cohezion/api/services/universe.py`** (From previous session context — core physics API)
+     - `UniverseStateService` with CA, Chaos, MHD, HIHO engines and 8 EVOs
+     - Endpoints: GET /state, POST /tick, GET /report, POST /perturb
+     - Task 3 adds history deque, SSE stream endpoint, background tick loop
+
+   - **`_bmad-output/planning-artifacts/epics.md`** (Read — Triune Self specification)
+     - FR12: KNOWER (Observatory), THINKER (Vault), DOER (Cockpit) with 400-800ms transitions
+     - FR13: Re-Entry Narrative on session arrival
+     - FR14: HIHO-Reactive UI — color shift Biolume to Orbital
+     - FR15: Anima Sigil — Gemma 3n voice, falls back to template narration
+     - Story 4.4: Anima renders narrative in Instrument Serif italic, "Anima Offline — Template Mode" fallback
+     - Story 4.5: Context-Aware Narration with live metrics and journal entries
+     - Epic 2 Compound Value: Master Clock, HIHO CSS Bridge, WebGL canvas shared across all epics
+     - Epic 4 Compound Value: Anima narration engine becomes system's voice across all modes
+
+   - **`docs/cohezion-method.md`** (Read — Triune Self methodology)
+     - Principle 4: "Embrace the Triune Self (the Knower, the Thinker, and the Doer)"
+     - 16 core principles including Hierarchical Reasoning, Challenger/Solver Co-evolution, Markovian Thinking
+
+   - **`src/cohezion/compound/topological_persistence.py`** (Read — Layer 7 backend)
+     - Vietoris-Rips filtration with Union-Find for H0, boundary matrix reduction for H1
+     - `PersistencePair` dataclass with birth/death
+     - Self-contained (no external TDA library), O(n² log n)
+     - Task 11 wires this into the SynthesisReport
+
+   - **`scripts/gen_arch.py`** (Read — existing Mermaid generation)
+     - Generates Mermaid classDiagram via Ollama (qwen2.5-coder:7b)
+     - Outputs to `src/cohezion/knowledge_graph/ARCHITECTURE_MAP.mermaid`
+     - Task 10 extends this pattern to output JSON for dashboard consumption
+
+   - **`scripts/drivers/render_mermaid.py`** (Read — Mermaid to PNG/SVG)
+     - Uses `mmdc` CLI (mermaid-cli) to render diagrams
+     - `find_mermaid_blocks()` extracts from markdown, `render_diagram()` converts
+
+   - **`scripts/generate_architecture_plot.py`** (Read — Plotly interactive graph)
+     - Uses networkx + plotly for interactive architecture visualization
+     - Defines nodes (Coordinator, Watchdog, Workers, etc.) with positions and colors
+
+   - **`src/web/anima_dashboard/package.json`** (Read — dashboard dependencies)
+     - React Three Fiber, Plotly, Tailwind v4, Playwright, Next.js 16.1.6, React 19.2.3
+
+   - **`docs/plans/2026-03-08-compound-identity-system-design.md`** (Created — approved design)
+     - 8-layer compound substrate-up architecture
+     - Covers all FRs (12-18, 22)
+     - Compounding matrix showing layer dependencies
+     - ~28 files total (22 new, 6 modified, 5 test files)
+
+   - **`docs/plans/2026-03-08-compound-identity-system.md`** (Created — implementation plan)
+     - 12 tasks with TDD (Red→Green→Refactor) steps
+     - Full code snippets for tests and implementations
+     - Session boundaries: Tasks 1-5 (Session 1), Tasks 6-8 (Session 2), Tasks 9-12 (Session 3)
+     - Exact file paths, commands, expected outputs for every step
+
+   - **Brand asset audit findings:**
+     - Real Cohezion logo: `apps/webapp/src/logo.png` (65KB, organic-circuit "C")
+     - Duplicate: `research/challenges/anthropic_challenge/showcase/logo.png`
+     - WRONG logos: `apps/dashboard/` has marimo's favicons (not Cohezion's)
+     - Anima Dashboard: only Next.js default SVGs (globe.svg, vercel.svg, etc.)
+     - `docs/assets/`: Real matplotlib plots (journey_12d_plot.png, calm_vs_llm_comparison.png, journey_3d_plot.png)
+     - Zero: video, Excalidraw, Mermaid files, assistant/guide components, OG images
+
+4. Errors and fixes:
+   - No code errors in this session — it was entirely design and planning work
+   - No user corrections on technical approach
+   - User gave clear directional feedback at each decision point (see user messages below)
+
+5. Problem Solving:
+   - **Brand disconnection:** Identified that `branding.py` defines a complete identity system but it's CLI-only — the Anima Dashboard uses none of it. Solved by designing a brand API endpoint + build-time CSS token generation pipeline.
+   - **Polling vs. Push:** Identified that client-side polling (3s interval) creates multiple timelines with multiple browser tabs and can't support shared state across Triune modes. Solved by designing SSE Master Clock with server-driven tick loop.
+   - **Assistant architecture:** Identified no assistant exists anywhere in the web stack. Solved by designing 3-tier Anima service (Template → MCP-Grounded → Voice) with graceful degradation.
+   - **HIHO-Reactive UI:** Dashboard looks identical regardless of coherence value. Solved by designing CSS bridge that maps coherence zones to CSS custom properties inherited by all components.
+   - **Marimo favicon confusion:** `apps/dashboard/` uses marimo's logo as Cohezion's favicon. Solved by designing a Pillow-based favicon generation pipeline from the real logo.
+
+6. All user messages:
+   - "Where is our actual Cohezion logo as an assistant to guide the user with how to use the app and can take their questions. Where are our high fidelity diagrams, images, voices, audio?"
+   - "We want compound engineered lasting solutions"
+   - "All of the above. We should have percival's triune self at the front."
+   - "Full epic Push"
+   - "Approach 2, substrate up"
+   - "Yes" (approving Layer 0 design)
+   - "That makes more sense." (approving Layer 1 design)
+   - "Let's give it a whirl. We can always modify later. Do what you think will present the most engaging agentic journey."
+   - (In summary instructions): "Proceed with 1. Subagent-Driven (this session) — I dispatch a fresh subagent per task, review between tasks, fast iteration. We can get through Tasks 1-5 (Layers 0-2) this session."
+
+7. Pending Tasks:
+   - **Task 1:** Brand API Service (Layer 0 Backend) — `src/cohezion/api/services/brand.py` + tests
+   - **Task 2:** Brand Asset Pipeline (Layer 0 Build Tools) — `scripts/generate_brand_assets.py`, copy logo, update layout.tsx and globals.css
+   - **Task 3:** SSE Universe Stream (Layer 1 Backend) — history deque, SSE endpoint, background tick loop in `universe.py`
+   - **Task 4:** Universe Context Provider (Layer 1 Frontend) — `useUniverseStream.ts` + `UniverseProvider.tsx`
+   - **Task 5:** Triune Navigation Shell (Layer 2 Frontend) — `TriuneNav.tsx`, `HIHOBridge.tsx`, `AnimaNarrationBar.tsx`, mode components, page.tsx rewrite, globals.css HIHO variables
+   - **Tasks 6-12:** Observatory Re-Entry/Provenance (Layer 3), Anima Service (Layer 4), Anima Chat Panel (Layer 4 Frontend), Vault Mode (Layer 5), Cockpit Mode (Layer 6), Persistent Homology (Layer 7), Integration Testing — these are for Sessions 2-3
+
+8. Current Work:
+   The brainstorming and planning phase is complete. Two documents were created:
+   - Design doc: `docs/plans/2026-03-08-compound-identity-system-design.md`
+   - Implementation plan: `docs/plans/2026-03-08-compound-identity-system.md`
+   
+   The implementation plan has 12 tasks across 8 layers. The user was offered the choice between Subagent-Driven execution and Parallel Session execution. The user chose **Subagent-Driven (this session)** to execute Tasks 1-5 (Layers 0-2: Brand Pipeline + SSE Master Clock + Triune Navigation).
+
+   The plan was just written and no implementation has started yet. The executing-plans skill should be invoked next to begin Task 1.
+
+9. Optional Next Step:
+   Invoke `superpowers:executing-plans` to begin subagent-driven execution of the implementation plan at `docs/plans/2026-03-08-compound-identity-system.md`, starting with **Task 1: Brand API Service**. The user explicitly chose: "Proceed with 1. Subagent-Driven (this session) — I dispatch a fresh subagent per task, review between tasks, fast iteration. We can get through Tasks 1-5 (Layers 0-2) this session."
+
+   The first concrete action will be:
+   - Create `tests/api/test_brand_service.py` with 4 tests (TDD Red)
+   - Run tests to verify they fail
+   - Create `src/cohezion/api/services/brand.py` with `BrandThemeResponse` model and `GET /theme` endpoint (TDD Green)
+   - Mount `brand_router` in `src/cohezion/api/__init__.py`
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/c69327c6-213b-4354-ad4c-f9ad4f11e336.jsonl
+
+---
+
+1. Subagent-Driven (this session) — I dispatch a fresh subagent per task, review between tasks, fast iteration. We can get through Tasks 1-5
+   (Layers 0-2) this session.
+
+---
+
+Let's proceed through everything and then I can provide feedback on the final deliverable.
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The user requested a compound-engineered identity and media system for Cohezion's Anima Dashboard. From a prior session, a full design was approved at `docs/plans/2026-03-08-compound-identity-system-design.md` covering 8 layers (substrate-up architecture) and an implementation plan at `docs/plans/2026-03-08-compound-identity-system.md` with 12 tasks. The system includes: (1) Brand asset pipeline from `branding.py` as single source of truth, (2) SSE Master Clock replacing polling, (3) Triune Self navigation (KNOWER/THINKER/DOER), (4) HIHO-reactive CSS bridge, (5) Anima 3-tier assistant (Template → MCP → Voice), (6) Re-Entry Narrative + Provenance Tags, (7) Vault semantic search, (8) Cockpit with compound loop viz + architecture graph, (9) Persistent homology overlay. FRs covered: FR12-FR18, FR22. User explicitly said "Let's proceed through everything and then I can provide feedback on the final deliverable."
+
+2. Key Technical Concepts:
+   - **Compound Substrate-Up Architecture:** 8 layers where each IS the foundation for the next (brand → SSE → Triune → Observatory → Anima → Vault → Cockpit → Homology)
+   - **HIHO-Reactive CSS Bridge:** Coherence value drives CSS custom properties (`--hiho-hue`, `--hiho-glow-color`, `--hiho-pulse-speed`) on `document.documentElement` — all components inherit mood through CSS inheritance
+   - **Triune Self (FR12):** Three cognitive modes — KNOWER (Observatory, 400ms), THINKER (Vault, 600ms), DOER (Cockpit, 800ms) with ritualized transitions
+   - **SSE Master Clock:** Server-Sent Events at 10Hz replacing client-side 3s polling, shared via React Context (UniverseProvider)
+   - **Anima 3-Tier Degradation:** Template (always works) → MCP-Grounded (KnowledgeMCP port 8371) → Voice (PocketTTS)
+   - **Provenance Tags (FR16):** Hover tooltips showing physics engine source for each data point
+   - **Re-Entry Narrative (FR13):** History summary with typewriter animation on first visit
+   - **Architecture Graph:** AST-based package scanning from actual `src/cohezion/` directory structure
+   - **Persistent Homology (FR22):** Vietoris-Rips filtration from `topological_persistence.py` — birth/death scatter plot
+   - **TDD Red→Green→Refactor:** All backend features follow strict TDD discipline
+   - **Brand as Code:** `branding.py` Colors/Identity classes served via API + generated as CSS tokens
+
+3. Files and Code Sections:
+
+   - **`src/cohezion/api/services/brand.py`** (Created — Task 1)
+     - Brand API endpoint serving theme JSON from branding.py
+     - Pydantic models: BrandColors, BrandIdentity, HIHOPalette, BrandThemeResponse
+     - `GET /theme` returns colors, identity, and HIHO palette for CSS bridge
+     ```python
+     @brand_router.get("/theme", response_model=BrandThemeResponse)
+     async def get_brand_theme() -> BrandThemeResponse:
+         return BrandThemeResponse(
+             colors=BrandColors(nexus_green=Colors.NEXUS_GREEN, ...),
+             identity=BrandIdentity(name=Identity.NAME, ...),
+             hiho_palette=HIHOPalette(critical_low=Colors.CRITICAL_RED, warning=Colors.WARNING_GOLD, stable=Colors.NEXUS_GREEN, critical_high=Colors.EARTH_BLUE),
+         )
+     ```
+
+   - **`tests/api/test_brand_service.py`** (Created — Task 1)
+     - 4 TDD tests: 200 status, colors match branding.py, identity matches, HIHO palette zones exist
+     - All 4 passing
+
+   - **`scripts/generate_brand_assets.py`** (Created — Task 2)
+     - Pillow-based favicon generation (16, 32, 192, 512 + ICO) from `apps/webapp/src/logo.png`
+     - CSS token generation from Colors class attributes → `brand-tokens.css`
+     - Generated 9 CSS tokens successfully
+
+   - **`src/web/anima_dashboard/public/brand-tokens.css`** (Generated — Task 2)
+     - 9 CSS custom properties from Colors class
+     ```css
+     :root {
+       --color-critical-red: #FF3B3B;
+       --color-earth-blue: #0077BE;
+       --color-matte-black: #0A0A0A;
+       --color-neon-cyan: #00f2fe;
+       --color-neon-purple: #f093fb;
+       --color-nexus-green: #00FF00;
+       --color-plasma-blue: #4facfe;
+       --color-silicon-silver: #C0C0C0;
+       --color-warning-gold: #F6D365;
+     }
+     ```
+
+   - **`src/web/anima_dashboard/src/app/layout.tsx`** (Modified — Task 2)
+     - Changed title from "Create Next App" to "COHEZION — The Nexus of Coherence"
+     - Added favicon links, OG tags, proper description
+
+   - **`src/web/anima_dashboard/src/app/globals.css`** (Rewritten — Task 2/5)
+     - Added HIHO-reactive CSS variables (--hiho-hue, --hiho-glow-color, --hiho-pulse-speed, --hiho-particle-density)
+     - Brand color inline theme tokens
+     - Three mode transition keyframes: mode-fade-scale (400ms), mode-slide-blur (600ms), mode-slide-iris (800ms)
+     - hiho-pulse animation keyframe
+
+   - **`src/cohezion/api/services/universe.py`** (Modified — Tasks 3, 6)
+     - Added `collections.deque` for tick history (maxlen=1000)
+     - Added `get_history(limit)` method
+     - Added `get_history_summary()` method for Re-Entry Narrative (FR13) — generates template narrative from deque
+     - Added `GET /history` endpoint with limit query param
+     - Added `GET /history/summary` endpoint returning ticks_elapsed, mean_coherence, coherence_range, alert_count, narrative
+     - Added `GET /stream` SSE endpoint with asyncio.sleep(0.1) for 10Hz, event types: tick, report (every 10th), alert (coherence exits [0.3, 0.7])
+     - tick() now appends to history deque after each step
+
+   - **`tests/api/test_universe_stream.py`** (Created — Tasks 3, 6)
+     - TestUniverseHistory: stores history, bounded to max, history endpoint returns JSON
+     - TestSSEStream: stream returns text/event-stream with tick/coherence data
+     - TestHistorySummary: summary returns narrative fields after 20 ticks
+     - 5/5 tests passing
+
+   - **`src/web/anima_dashboard/src/hooks/useUniverseStream.ts`** (Created — Task 4)
+     - EventSource hook connecting to `/api/universe/stream`
+     - Typed event listeners for tick, report, alert
+     - Exponential backoff reconnection (max 30s)
+     - Exports EvoState, UniverseState, SynthesisReport, AlertEvent interfaces
+
+   - **`src/web/anima_dashboard/src/context/UniverseProvider.tsx`** (Created — Task 4)
+     - React Context wrapping useUniverseStream
+     - Provides useUniverse() hook with state, report, alerts, connected, error
+     - Action methods: perturb(kind, magnitude), fetchReport()
+     - Single SSE connection shared across all Triune modes
+
+   - **`src/web/anima_dashboard/src/components/HIHOBridge.tsx`** (Created — Task 5)
+     - Headless component (returns null) that maps coherence to CSS custom properties
+     - 5 zones: CRITICAL_LOW (<0.3, red), WARNING (<0.45, gold), STABLE (0.45-0.55, green), WARNING (<0.7, blue), CRITICAL_HIGH (>0.7, deep blue)
+     - Sets --hiho-hue, --hiho-glow-color, --hiho-pulse-speed, --hiho-particle-density on document.documentElement
+
+   - **`src/web/anima_dashboard/src/components/TriuneNav.tsx`** (Created — Tasks 5, 8)
+     - Header bar with Cohezion logo (Image from /cohezion-logo.png), three mode tabs, Anima Sigil
+     - Props: activeMode, onModeChange, connected, onAnimaClick
+     - Active tab has --hiho-glow-color underline
+     - Anima Sigil: breathing "C" that pulses at --hiho-pulse-speed, click opens chat panel
+
+   - **`src/web/anima_dashboard/src/components/AnimaNarrationBar.tsx`** (Created — Task 5)
+     - Fixed bottom bar with template narration from live metrics
+     - Typewriter animation effect (8ms per character)
+     - Formats: "HIHO {stability}: {coherence} coherence. CA Rule 30: {active}/{total} active. {nominal}/{total} EVOs nominal."
+
+   - **`src/web/anima_dashboard/src/components/modes/ObservatoryMode.tsx`** (Created — Tasks 5, 6)
+     - KNOWER mode wrapping OuroborosControlRoom, TensorBeamVisualizer, SnapshotGallery
+     - Reads from useUniverse() context
+     - Includes ReEntryNarrative at top (shows once per session)
+     - ProvenanceTags on telemetry values (e.g., "HIHOStabilizationEngine.apply_hiho_loop()")
+     - Perturbation controls, synthesis report display
+
+   - **`src/web/anima_dashboard/src/components/modes/VaultMode.tsx`** (Rewritten — Task 9)
+     - THINKER mode with semantic search UI
+     - Search bar submitting to `/api/anima/ask`
+     - Three-pillar filter tabs (All/Decision/Experiment/Pattern)
+     - VaultSearchResult cards for results
+     - FreezeFrame capture button
+
+   - **`src/web/anima_dashboard/src/components/modes/CockpitMode.tsx`** (Rewritten — Task 10)
+     - DOER mode with CompoundLoopViz + ArchitectureGraph
+     - Current phase derived from tick count (cycles through 5 phases every 50 ticks)
+
+   - **`src/web/anima_dashboard/src/components/ReEntryNarrative.tsx`** (Created — Task 6)
+     - Fetches /api/universe/history/summary on mount
+     - Typewriter animation (15ms per char), auto-fades after 10 seconds
+     - Click to dismiss
+
+   - **`src/web/anima_dashboard/src/components/ProvenanceTag.tsx`** (Created — Task 6)
+     - Tooltip component showing physics engine source on hover
+     - Wraps any ReactNode children, shows source in monospace font
+
+   - **`src/cohezion/api/services/anima.py`** (Created — Task 7)
+     - AnimaService class with 3-tier degradation
+     - Tier 1 (Template): formats SynthesisReport.summary, built-in answers for HIHO/EVO/CA/Triune questions
+     - Tier 2 (MCP): httpx async POST to localhost:8371/search
+     - Tier 3 (Voice): PocketTTSService integration
+     - Endpoints: GET /status, POST /narrate, POST /ask, POST /speak
+     - _detect_capabilities() probes MCP and TTS on init
+
+   - **`tests/api/test_anima_service.py`** (Created — Task 7)
+     - 3 tests: status returns tier, narrate returns HIHO text, ask returns answer
+     - All 3 passing
+
+   - **`src/web/anima_dashboard/src/hooks/useAnima.ts`** (Created — Task 8)
+     - Fetches /api/anima/status on mount
+     - ask(question) and narrate() methods
+     - ChatMessage interface with role, text, tier, sources, timestamp
+
+   - **`src/web/anima_dashboard/src/components/AnimaChatPanel.tsx`** (Created — Task 8)
+     - Slide-out panel from right (triggered by Anima Sigil click)
+     - Chat messages list with MessageBubble sub-component
+     - Anima responses styled italic, shows tier badge
+     - Input field at bottom, auto-scrolls to latest message
+
+   - **`src/web/anima_dashboard/src/components/VaultSearchResult.tsx`** (Created — Task 9)
+     - Card with title, excerpt, pillar badge, relevance score
+     - ProvenanceTag on title, expand on click
+     - PILLAR_COLORS: Decision=amber, Experiment=blue, Pattern=emerald
+
+   - **`src/web/anima_dashboard/src/components/FreezeFrame.tsx`** (Created — Task 9)
+     - Modal that snapshots current universe state
+     - Shows tick, coherence, EVO count + annotation textarea
+     - Saves via /api/anima/ask
+
+   - **`src/cohezion/api/services/architecture.py`** (Created — Task 10)
+     - AST-based package scanning from src/cohezion/ directory
+     - Builds nodes (packages) and edges (cross-package imports)
+     - CATEGORY_COLORS maps package names to hex colors
+     - Cached result, refreshable via ?refresh=true
+     - 1 test passing
+
+   - **`tests/api/test_architecture_service.py`** (Created — Task 10)
+     - 1 test: graph returns nodes and edges with len(nodes) > 0
+
+   - **`src/web/anima_dashboard/src/components/CompoundLoopViz.tsx`** (Created — Task 10)
+     - SVG-based 5-phase ring: EXPANDING → PLANNING → EXECUTING → REFLECTING → REFINING
+     - Active phase highlighted with --hiho-glow-color, pulsing animation
+     - Center label "COMPOUND LOOP"
+
+   - **`src/web/anima_dashboard/src/components/ArchitectureGraph.tsx`** (Created — Task 10)
+     - Fetches from /api/architecture/graph
+     - Circular SVG layout with hover interactions
+     - Nodes sized by module_count, colored by category
+     - Edges highlight on hover
+
+   - **`src/web/anima_dashboard/src/app/page.tsx`** (Rewritten — Tasks 5, 8)
+     - UniverseProvider wrapping AnimaDashboard
+     - HIHOBridge (headless), TriuneNav with mode state, mode content with transition classes
+     - AnimaChatPanel (toggled by Anima Sigil), AnimaNarrationBar at bottom
+     - Ambient background glow driven by --hiho-glow-color
+
+   - **`src/cohezion/api/__init__.py`** (Modified — Tasks 1, 7, 10)
+     - Added imports: anima_router, architecture_router, brand_router
+     - Mounted all at /api/anima, /api/architecture, /api/brand (in addition to existing /api/universe)
+
+   - **`tests/api/test_topology_overlay.py`** (Created — Task 11, TDD Red)
+     - Tests that /api/universe/report includes topology field with persistence_pairs and entropy
+     - Currently FAILING (expected — TDD Red phase)
+
+   - **`src/cohezion/compound/topological_persistence.py`** (Read — Task 11)
+     - Vietoris-Rips filtration with Union-Find for H0, boundary matrix reduction for H1
+     - PersistencePair dataclass, persistence entropy computation
+     - Self-contained (no external TDA library), O(n² log n)
+     - Was being read to understand API before implementing topology in SynthesisReport
+
+4. Errors and fixes:
+   - **Deque maxlen immutability (Task 3):** Test tried to set `svc._max_history = 10` but the deque's maxlen was already set at construction and can't be changed. Fixed by replacing the deque entirely: `svc._history = deque(maxlen=10)`.
+   - **require() in React component (Task 5):** Initially wrote `const { useUniverse } = require("@/context/UniverseProvider")` inside AnimaDashboard function. Immediately recognized this as bad practice and rewrote — moved useState for mode into AnimaDashboard (which is inside UniverseProvider) and used normal import of useUniverse at the top of the file.
+   - **Wrong working directory for pytest:** Running `uv run pytest` from the dashboard directory found 0 tests. Fixed by always running from `/home/mike-anderson/dev/cohezion`.
+
+5. Problem Solving:
+   - All 12 tasks from the plan are being executed sequentially with TDD for backend tasks
+   - Backend tests all passing: 4 (brand) + 5 (stream+history) + 3 (anima) + 1 (architecture) = 13 passing
+   - TypeScript compiles clean after each frontend task
+   - Task 11 is mid-implementation — TDD Red confirmed, need to add topology to SynthesisReport using topological_persistence.py, then create PersistenceDiagram.tsx
+   - Task 12 (Integration Testing) not yet started
+
+6. All user messages:
+   - "1. Subagent-Driven (this session) — I dispatch a fresh subagent per task, review between tasks, fast iteration. We can get through Tasks 1-5 (Layers 0-2) this session." (from compact/continuation)
+   - "Let's proceed through everything and then I can provide feedback on the final deliverable."
+
+7. Pending Tasks:
+   - **Task 11: Persistent Homology Overlay (Layer 7)** — TDD Red done, need: add topology to SynthesisReport model in universe.py, implement computation using topological_persistence.py, create PersistenceDiagram.tsx, wire into ObservatoryMode as toggle overlay
+   - **Task 12: Integration Testing + Final Verification** — Run full Python test suite, TypeScript type check, start both servers, E2E verification
+
+8. Current Work:
+   I was executing **Task 11: Persistent Homology Overlay (Layer 7)**. The TDD Red test at `tests/api/test_topology_overlay.py` was confirmed failing — it expects `data["topology"]["persistence_pairs"]` and `data["topology"]["entropy"]` in the `/api/universe/report` response. I had just read the first 60 lines of `src/cohezion/compound/topological_persistence.py` to understand the `PersistencePair` dataclass and the computation API before implementing the integration into `SynthesisReport`. The test file is:
+   ```python
+   class TestTopologyInReport:
+       def test_report_includes_topology(self, client: TestClient) -> None:
+           for _ in range(10):
+               client.post("/api/universe/tick")
+           resp = client.get("/api/universe/report")
+           data = resp.json()
+           assert "topology" in data
+           assert "persistence_pairs" in data["topology"]
+           assert "entropy" in data["topology"]
+   ```
+   This test currently fails with FAILED (1 failed) because the SynthesisReport model doesn't include a `topology` field yet.
+
+9. Optional Next Step:
+   Continue Task 11 implementation — the immediate next steps are:
+   1. Read more of `topological_persistence.py` to find the compute method signature
+   2. Add a `TopologyData` Pydantic model and `topology` field to `SynthesisReport` in `universe.py`
+   3. In `get_report()`, collect EVO coherence values from history, feed into `TopologicalPersistence.compute()`, populate topology field
+   4. Run `uv run pytest tests/api/test_topology_overlay.py -q` to verify TDD Green
+   5. Create `PersistenceDiagram.tsx` scatter plot component
+   6. Wire into ObservatoryMode as toggle overlay
+   7. Then proceed to Task 12 (Integration Testing)
+   
+   The user said: "Let's proceed through everything and then I can provide feedback on the final deliverable." — so all remaining tasks (11-12) should be completed before stopping.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/c69327c6-213b-4354-ad4c-f9ad4f11e336.jsonl
+
+---
+
+Continue to completion of all remaining tasks.  Then perform a retrospective and refinement.
+
+---
+
+app has 6 issues. You capture them proactively, but you need to solve them as well.
+
+---
+
+<task-notification>
+<task-id>boctrg921</task-id>
+<tool-use-id>toolu_01Bes3sCokDPLpu35Zs3SKEM</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/boctrg921.output</output-file>
+<status>failed</status>
+<summary>Background command "Start FastAPI backend" failed with exit code 1</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/boctrg921.output
+
+---
+
+<task-notification>
+<task-id>b4o6vk3ue</task-id>
+<tool-use-id>toolu_01SiucrC2xVKzRTjzV3e4BRR</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b4o6vk3ue.output</output-file>
+<status>failed</status>
+<summary>Background command "Start Next.js dev server" failed with exit code 1</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b4o6vk3ue.output
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   - **Original task**: Continue and complete Tasks 11-12 from the compound identity system implementation plan (8-layer substrate-up architecture for the Anima Dashboard).
+   - **Bug fixing**: User said "app has 6 issues. You capture them proactively, but you need to solve them as well." — demanding actual fixes, not just identification.
+   - **CLI efficiency**: User asked "Isn't there a cli option you can run that's more token efficient?" regarding Playwright testing.
+   - **Documentation & persistence**: User said "Remember to document everything and retrospect back into core definitions for to persist key learnings as well as the vault and surrealdb. Update coding standards to reflect this."
+   - **Full BMAD formalization**: User said "We need everything documented with SPECS, PRD, Architecture, Epics, Stories, Code....Following the established BMAD method...and iterate over the process with the R-Zero Challenger/Solver. So we can become truly novel."
+
+2. Key Technical Concepts:
+   - **Persistent Homology (Vietoris-Rips filtration)**: `TopologicalPersistence.compute_persistence()` takes point cloud → returns `PersistenceDiagram` with birth-death pairs. H0=clusters, H1=loops. Self-contained (no external TDA library), O(n² log n).
+   - **SSE Master Clock**: Single `EventSource` connection at 10Hz shared via React Context (`UniverseProvider`), replacing per-component polling.
+   - **HIHO CSS Bridge**: Coherence value maps to CSS custom properties (`--hiho-hue`, `--hiho-glow-color`, `--hiho-pulse-speed`) on `document.documentElement`.
+   - **React Rules of Hooks**: Hooks must be called unconditionally in the same order every render. Early returns before hooks cause "Rendered more hooks than during the previous render."
+   - **Next.js dynamic import with ssr:false**: Canonical way to prevent Three.js/R3F hydration errors. `dynamic(() => import(...), { ssr: false })` in parent, not `useState(mounted)` in child.
+   - **TDD Red→Green→Refactor**: Backend features follow strict TDD discipline.
+   - **BMAD Method**: Full SDLC with Specs, PRD, Architecture, Epics/Stories, bidirectional FR traceability, sprint tracking.
+   - **Triune Self**: Three cognitive modes — KNOWER (Observatory), THINKER (Vault), DOER (Cockpit).
+
+3. Files and Code Sections:
+
+   - **`src/cohezion/api/services/universe.py`** (Modified — Task 11 + topology)
+     - Added `TopologicalPersistence` import, `TopologyPairEntry` and `TopologyData` Pydantic models
+     - Added `topology: TopologyData | None = None` field to `SynthesisReport`
+     - Added `_compute_topology()` method that builds point cloud from EVO coherence history, feeds to `TopologicalPersistence.compute_persistence()`, returns pairs + entropy
+     - File is 454 lines (between 300 soft and 500 hard limit)
+     ```python
+     class TopologyPairEntry(BaseModel):
+         birth: float
+         death: float
+         dimension: int
+         persistence: float
+
+     class TopologyData(BaseModel):
+         persistence_pairs: list[TopologyPairEntry]
+         entropy: float
+         n_clusters: int
+         n_loops: int
+
+     # In SynthesisReport:
+     topology: TopologyData | None = None
+
+     # Method on UniverseStateService:
+     def _compute_topology(self) -> TopologyData | None:
+         history = list(self._history)
+         if len(history) < 3:
+             return None
+         points = np.array([
+             [e["coherence"] for e in snap.evo_states]
+             for snap in history[-50:]
+         ])
+         if points.shape[0] < 3:
+             return None
+         try:
+             topo = TopologicalPersistence(max_dimension=1)
+             dgm = topo.compute_persistence(points)
+             # ... build TopologyData from dgm
+         except Exception:
+             return None
+     ```
+
+   - **`src/web/anima_dashboard/src/hooks/useUniverseStream.ts`** (Modified — added topology type)
+     - Added `topology` field to `SynthesisReport` TypeScript interface
+     ```typescript
+     topology: {
+       persistence_pairs: Array<{
+         birth: number; death: number; dimension: number; persistence: number;
+       }>;
+       entropy: number; n_clusters: number; n_loops: number;
+     } | null;
+     ```
+
+   - **`src/web/anima_dashboard/src/components/PersistenceDiagram.tsx`** (Created — Task 11)
+     - SVG scatter plot showing birth vs death for H0 (green) and H1 (purple) features
+     - Points sized by persistence, colored by dimension
+     - Diagonal line (birth=death) for reference
+     - Shows entropy, cluster count, loop count in header
+
+   - **`src/web/anima_dashboard/src/components/modes/ObservatoryMode.tsx`** (Modified — Task 11 + Fix 6)
+     - Added `PersistenceDiagram` import and conditional render from `displayReport?.topology`
+     - Changed `TensorBeamVisualizer` from static import to `dynamic(() => import(...), { ssr: false })` to fix Three.js SSR errors
+     ```tsx
+     const TensorBeamVisualizer = dynamic(
+       () => import("@/components/TensorBeamVisualizer"),
+       { ssr: false, loading: () => <div>INITIALIZING TENSOR BEAM...</div> }
+     );
+     ```
+
+   - **`src/web/anima_dashboard/src/components/SnapshotGallery.tsx`** (Modified — Fix 1)
+     - Fixed NaN division: `caGrid.reduce((s, v) => s + v, 0) / caGrid.length` → `caGrid && caGrid.length > 0 ? ... : 0`
+
+   - **`src/web/anima_dashboard/src/components/OuroborosControlRoom.tsx`** (Rewritten — Fix 3)
+     - Replaced `useUniverseState(3000)` polling hook with `useUniverse()` shared SSE context
+     - Changed connection status from `{loading && <span>connecting...</span>}` to `{!connected && <span>connecting...</span>}`
+     - Eliminated redundant `useUniverseState` import, now uses `@/context/UniverseProvider`
+
+   - **`src/web/anima_dashboard/src/app/page.tsx`** (Modified — Fix 4)
+     - Changed `<AnimaChatPanel open={chatOpen} onClose={...} />` to `{chatOpen && <AnimaChatPanel open={chatOpen} onClose={...} />}`
+
+   - **`src/web/anima_dashboard/src/components/AnimaNarrationBar.tsx`** (Rewritten — Fix 5 + hooks fix)
+     - Moved all hooks above conditional return (React rules of hooks compliance)
+     - Computed narration conditionally: `const narration = state ? (() => { ... })() : "";`
+     - Added "Awaiting first universe tick..." placeholder when `!state`
+     ```tsx
+     export default function AnimaNarrationBar() {
+       const { state, report } = useUniverse();
+       const [displayText, setDisplayText] = useState("");
+       const prevTextRef = useRef("");
+       const narration = state ? (() => { /* compute from state */ })() : "";
+       useEffect(() => { /* typewriter - called unconditionally */ }, [narration]);
+       if (!state) return <footer>Awaiting first universe tick...</footer>;
+       return <footer>{displayText}<span className="animate-pulse">_</span></footer>;
+     }
+     ```
+
+   - **`src/web/anima_dashboard/src/components/TensorBeamVisualizer.tsx`** (Modified — Fix 6)
+     - Removed `useState(mounted)` / `useEffect(() => setMounted(true))` SSR guard
+     - Removed unused `useState, useEffect` imports
+     - SSR prevention now handled by parent's `dynamic()` import
+
+   - **`/home/mike-anderson/dev/cohezion/.claude/rules/frontend.md`** (Created — knowledge persistence)
+     - New coding standards file with `paths: ["src/web/**", "apps/**"]`
+     - Documents: Three.js SSR pattern, hooks ordering, SSE single context, division guards, unmount hidden panels, HIHO CSS Bridge, Playwright limitations
+
+   - **`tests/api/test_topology_overlay.py`** (Created earlier, confirmed passing)
+     - TDD test: ticks 10 times, gets report, asserts `topology`, `persistence_pairs`, `entropy` present
+
+   - **`_bmad-output/implementation-artifacts/sprint-status.yaml`** (Read — pending update)
+     - Shows all epics 2-7 in backlog status
+     - Many stories now implemented but not updated (FR12-FR18, FR22)
+
+   - **`_bmad-output/planning-artifacts/epics.md`** (Read — pending update)
+     - Contains all 24 FRs and FR Coverage Map
+     - Needs update to reflect implemented stories from compound identity system
+
+4. Errors and Fixes:
+   - **NaN% CA Density (Fix 1)**: `caGrid.reduce()/caGrid.length` with empty array → NaN. Fixed with `length > 0` guard.
+   - **OuroborosControlRoom stuck "connecting..." (Fix 3)**: Used separate `useUniverseState()` polling hook instead of shared `useUniverse()` SSE context. Rewrote to use shared context.
+   - **Anima panel rendered in DOM when closed (Fix 4)**: CSS `translate-x-full` hid it visually but hooks still fired. Fixed with conditional render `{chatOpen && ...}`.
+   - **Narration bar showed only "_" (Fix 5)**: Typewriter started with empty text. Added "Awaiting first universe tick..." placeholder.
+   - **197 console errors from Three.js (Fix 6)**: R3F Canvas caused SSR hydration errors. Fixed with `dynamic(() => import(...), { ssr: false })`.
+   - **React hooks ordering violation (introduced by Fix 5)**: Early return `if (!state) return` before `useEffect` caused "Rendered more hooks than during the previous render." Fixed by computing narration conditionally and calling `useEffect` unconditionally above the early return.
+   - **Residual 190 SVG NaN warnings**: Three.js dev-mode only warnings from `<circle>` and `<line>` elements. Confirmed production build has zero errors. Not actionable — these are internal R3F DOM bridge artifacts.
+   - **Playwright snapshot crashes on Three.js Canvas**: `RangeError: Maximum call stack size exceeded`. Workaround: use `browser_evaluate` with focused queries instead of full snapshots.
+   - **`mcp__cohezion-surreal__store_node` schema error**: `PhysicsState.__init__() got an unexpected keyword argument 'coherence'` and `missing required positional argument: 'id'`. Not resolved — moved on.
+
+5. Problem Solving:
+   - **Task 11 (Persistent Homology)**: Implemented full TDD Red→Green cycle. Read `topological_persistence.py` to understand API, added topology to `SynthesisReport`, created `PersistenceDiagram.tsx` visualization. 92 persistence pairs detected from 15 ticks of 8 EVOs.
+   - **Task 12 (Integration Testing)**: Verified all 56 tests pass, TypeScript clean, all 7 API endpoints respond 200 with real data.
+   - **6 Runtime Bugs**: Found via Playwright E2E testing of live app. All fixed and verified via browser evaluate (no NaN, no 0 CELLS, no connecting, no panel, no empty narration).
+   - **Knowledge Persistence**: 6 learnings stored to SurrealDB, 1 new `.claude/rules/frontend.md` coding standard created.
+   - **BMAD Formalization**: Started reading sprint-status.yaml and epics.md to update with completed work. Not yet modified.
+
+6. All user messages:
+   - "Continue to completion of all remaining tasks. Then perform a retrospective and refinement."
+   - "app has 6 issues. You capture them proactively, but you need to solve them as well."
+   - "Isn't there a cli option you can run that's more token efficient?"
+   - "Remember to document everything and retrospect back into core definitions for to persist key learnings as well as teh vault and surrealdb. Update coding standards to reflect this."
+   - "/compact We need everything documented with SPECS, PRD, Architecture, Epics, Stories, Code....Following the established BMAD method...and iterate over the process with the R-Zero Challenger/Solver. So we can become truly novel."
+
+7. Pending Tasks:
+   - **Update BMAD artifacts**: sprint-status.yaml needs stories 2-1 through 2-5, 3-1, 3-2, 3-5, 4-4, 4-5, 5-3, and 1-0-6 moved from `backlog` to `done`. Epics 2, 3, 4, 5 need status update to `in-progress`.
+   - **Full BMAD method**: User wants everything documented with Specs, PRD updates, Architecture updates, Epics, Stories — following established BMAD method.
+   - **R-Zero Challenger/Solver iteration**: User wants the compound identity system iterated through R-Zero debate for novelty.
+   - **Vault persistence**: Store decision artifacts to Obsidian vault at `~/vaults/cohezion-vault/decisions/`.
+   - **`universe.py` refactoring**: At 454 lines, over 300-line soft limit. SSE streaming and topology computation are extraction candidates.
+
+8. Current Work:
+   I had just read the sprint-status.yaml and the first 80 lines of epics.md to begin the BMAD formalization work requested by the user. The sprint status shows all Epics 2-7 in `backlog` but many stories are now implemented. The user's most recent request was:
+   
+   > "/compact We need everything documented with SPECS, PRD, Architecture, Epics, Stories, Code....Following the established BMAD method...and iterate over the process with the R-Zero Challenger/Solver. So we can become truly novel."
+
+   All 6 bug fixes are complete and verified. All 12 implementation tasks are complete. 6 learnings persisted to SurrealDB. Frontend coding standards created at `.claude/rules/frontend.md`. The next work is updating BMAD artifacts and running R-Zero iteration.
+
+9. Optional Next Step:
+   Update the BMAD artifacts to reflect completed work:
+   1. Update `sprint-status.yaml` — move implemented stories (covering FR12-FR18, FR22) from `backlog` to `done`, update epic statuses
+   2. Update `epics.md` — add implementation notes to completed stories
+   3. Invoke BMAD workflow (e.g., `bmad-bmm-sprint-status` or `bmad-bmm-retrospective` skill) to formalize
+   4. Run R-Zero Challenger/Solver debate on the compound identity system architecture via `mcp__cohezion-swarm__run_debate`
+   
+   This directly follows the user's explicit request: "We need everything documented with SPECS, PRD, Architecture, Epics, Stories, Code....Following the established BMAD method...and iterate over the process with the R-Zero Challenger/Solver."
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/c69327c6-213b-4354-ad4c-f9ad4f11e336.jsonl
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+Now resume the other tasks at hand.
+
+---
+
+Continue.  Be careful.  This session crashed antigravity ide last time.
+
+---
+
+[Request interrupted by user for tool use]

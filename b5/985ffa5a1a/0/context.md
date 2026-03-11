@@ -1,0 +1,23 @@
+# Session Context
+
+## User Prompts
+
+### Prompt 1
+
+# help
+
+Read the entire task file at: {project-root}/_bmad/core/tasks/help.md
+
+Follow all instructions in the task file exactly as written.
+
+
+ARGUMENTS:   Next Steps:
+  1. Close CI gap (makes Epic 7 operationally complete)
+  2. Backfill missing story files
+  3. Design the completion gate with bidirectional linking
+  4. No Epic 8 defined yet - plan next work based on roadmap priorities
+
+### Prompt 2
+
+Procced with all of the above YOLO
+
