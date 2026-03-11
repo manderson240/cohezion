@@ -46,7 +46,10 @@ class TestProvenanceRegistry:
         registry = ProvenanceRegistry()
         v1 = registry.register("skill-1", "skill", "version 1", "vault:exp-1")
         v2 = registry.register(
-            "skill-1", "skill", "version 2", "vault:exp-2",
+            "skill-1",
+            "skill",
+            "version 2",
+            "vault:exp-2",
             parent_hash=v1.provenance_hash,
         )
         chain = registry.get_chain(v2.provenance_hash)

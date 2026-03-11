@@ -19,8 +19,9 @@ NAMESPACE = "cohezion"
 DATABASE = "logs"
 LOG_FILES = [
     PROJECT_ROOT / "logs/cron_runs.log",
-    PROJECT_ROOT / "logs/overnight_sprint_20260309_004122.log"
+    PROJECT_ROOT / "logs/overnight_sprint_20260309_004122.log",
 ]
+
 
 class LogSink:
     def __init__(self, client: SurrealClient):
@@ -69,20 +70,24 @@ class LogSink:
 
                     for line in lines:
                         line = line.strip()
-                        if not line: continue
-                        
+                        if not line:
+                            continue
+
                         # Try to parse level
                         level = "INFO"
-                        if "ERROR" in line: level = "ERROR"
-                        elif "WARN" in line: level = "WARN"
-                        elif "DEBUG" in line: level = "DEBUG"
+                        if "ERROR" in line:
+                            level = "ERROR"
+                        elif "WARN" in line:
+                            level = "WARN"
+                        elif "DEBUG" in line:
+                            level = "DEBUG"
 
                         # Insert into SurrealDB
                         data = {
                             "source": source_name,
                             "message": line,
                             "level": level,
-                            "timestamp": datetime.now().isoformat()
+                            "timestamp": datetime.now().isoformat(),
                         }
                         try:
                             await self.client.create("log_entries", data)
@@ -95,6 +100,7 @@ class LogSink:
         await self.setup()
         tasks = [self.tail_file(f) for f in LOG_FILES]
         await asyncio.gather(*tasks)
+
 
 if __name__ == "__main__":
     client = SurrealClient(url=SURREAL_URL, namespace=NAMESPACE, database=DATABASE)

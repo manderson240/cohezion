@@ -37,6 +37,7 @@ SERVER_PORTS = {
 # Manager port
 MANAGER_PORT = 8370
 
+
 class TestMCPHealth:
     @pytest.mark.asyncio
     async def test_manager_health(self):
@@ -58,6 +59,7 @@ class TestMCPHealth:
                 for name in SERVER_PORTS:
                     assert name in registered
 
+
 class TestMCPAdversarial:
     @pytest.mark.asyncio
     async def test_fuzz_health_endpoint(self):
@@ -75,13 +77,13 @@ class TestMCPAdversarial:
         # This is a smoke test to ensure we have the suite ready for actual tool fuzzing
         payload = {"tool": "search", "args": {"query": "$(rm -rf /)"}}
         # In a real audit, we would iterate through all tools of all servers
-        assert True 
+        assert True
 
     @pytest.mark.asyncio
     async def test_huge_payload(self):
         """Send massive JSON payload to see if it crashes the server."""
-        huge_data = {"data": "X" * 1024 * 1024} # 1MB
+        huge_data = {"data": "X" * 1024 * 1024}  # 1MB
         async with aiohttp.ClientSession() as session:
-            # We skip actually sending to avoid hanging tests, 
+            # We skip actually sending to avoid hanging tests,
             # but this represents the audit requirement
             assert len(json.dumps(huge_data)) > 1000000

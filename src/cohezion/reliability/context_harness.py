@@ -3,7 +3,7 @@ Context Harness for Local SLM Optimization.
 Prunes, summaryzes, and anchors context for smaller local models.
 """
 
-from cohezion.core.resource_monitor import get_resource_monitor
+from cohezion.reliability.monitor import get_resource_monitor
 from cohezion.reliability.resolver import HallucinationResolver
 
 
@@ -39,13 +39,19 @@ class ContextHarness:
 
     def _get_dynamic_limit(self, model: str) -> int:
         """Calculate dynamic context limit based on available system memory."""
-        stats = get_resource_monitor().get_stats()
-        avail = stats["available_memory_gb"]
+        monitor = get_resource_monitor()
+        stats = monitor.get_vitals()
+        avail = stats["memory_available_gb"]
 
         # Base limits (characters)
         base_limit = self.context_limits.get(model, self.context_limits["default"])
 
-        # Scaling logic for 128GB RAM substrate
+        # 1. RAH Emergency Mitigation (Maxwellian Relaxation signal)
+        if getattr(monitor, "pressure_mitigation_active", False):
+            # Aggressively prune if autonomic healing requested it
+            base_limit = int(base_limit * 0.5)
+
+        # 2. Scaling logic for 128GB RAM substrate
         # If RAM is plenty (>64GB available), allow expansion
         if avail > 64:
             return base_limit * 4  # Aggressive expansion for Strix Halo

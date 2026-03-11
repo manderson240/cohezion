@@ -466,7 +466,8 @@ async def main():
     """Run Report Generation MCP Server."""
     get_generator()  # Initialize
 
-    app = web.Application()
+    from cohezion.mcp.shared.auth import api_key_middleware
+    app = web.Application(middlewares=[api_key_middleware])
     app.add_routes(routes)
 
     logger.info(f"Starting Report Generation MCP Server on port {MCP_PORT}")

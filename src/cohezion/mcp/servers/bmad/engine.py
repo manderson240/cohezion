@@ -79,12 +79,17 @@ class BMADEngine:
         Returns:
             Workflow content and metadata
         """
+        from cohezion.mcp.servers.safe_input import sanitize_path
+
         # Try different path formats
-        workflow_paths = [
-            self.data_path / module / f"{path}.md",
-            self.data_path / module / path / f"{path.split('/')[-1]}.md",
-            self.data_path / module / "workflows" / f"{path}.md",
-        ]
+        try:
+            workflow_paths = [
+                sanitize_path(self.data_path / module / f"{path}.md", base_dir=self.data_path),
+                sanitize_path(self.data_path / module / path / f"{path.split('/')[-1]}.md", base_dir=self.data_path),
+                sanitize_path(self.data_path / module / "workflows" / f"{path}.md", base_dir=self.data_path),
+            ]
+        except ValueError:
+            return {"error": f"Invalid workflow path: {module}/{path}"}
 
         for workflow_path in workflow_paths:
             if workflow_path.exists():
@@ -335,7 +340,13 @@ class BMADEngine:
         """Index a project for searchability."""
         import os
 
-        base_path = Path(project_path)
+        from cohezion.mcp.servers.safe_input import sanitize_path
+
+        try:
+            base_path = sanitize_path(project_path, base_dir=Path.cwd())
+        except ValueError:
+            return {"error": f"Path escapes allowed directory: {project_path}"}
+
         if not base_path.exists():
             return {"error": f"Project path not found: {project_path}"}
 

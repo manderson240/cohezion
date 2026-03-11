@@ -142,6 +142,19 @@ class SessionManager:
         prefix_len = len(f"{self.prefix}session:")
         return [k[prefix_len:] for k in keys]
 
+    async def clear_all_sessions(self) -> int:
+        """Clear all active sessions from Redis.
+
+        Returns:
+            Number of sessions deleted
+        """
+        redis_client = await self._get_redis()
+        key_pattern = f"{self.prefix}session:*"
+        keys = await redis_client.keys(key_pattern)
+        if keys:
+            return await redis_client.delete(*keys)
+        return 0
+
     async def is_connected(self) -> bool:
         """Check Redis connectivity."""
         try:

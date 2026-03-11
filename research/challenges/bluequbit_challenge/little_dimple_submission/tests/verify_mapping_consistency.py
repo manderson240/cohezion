@@ -1,5 +1,3 @@
-
-
 def solver_routing(N, ops):
     site_to_qubit = list(range(N))
     qubit_to_site = list(range(N))
