@@ -1,9 +1,11 @@
 {
   "cli_version": "0.4.9",
   "checkpoint_id": "e463b451430c",
+  "session_id": "a0c848aa-2c64-49fb-9e26-08eaf6861010",
   "strategy": "manual-commit",
+  "created_at": "2026-03-11T03:06:49.018404676Z",
   "branch": "triune-self-migration",
-  "checkpoints_count": 2,
+  "checkpoints_count": 1,
   "files_touched": [
     "daily/2026-02-09-12d-graph-foundation.md",
     "daily/2026-02-09-3d-graph-plugin-installation-complete.md",
@@ -189,20 +191,15 @@
     "daily/checkpoints/2026-02-17-ddf3b83a.md",
     "daily/checkpoints/2026-02-17-fa7b27d6.md"
   ],
-  "sessions": [
-    {
-      "metadata": "/e4/63b451430c/0/metadata.json",
-      "transcript": "/e4/63b451430c/0/full.jsonl",
-      "context": "",
-      "content_hash": "/e4/63b451430c/0/content_hash.txt",
-      "prompt": ""
-    },
-    {
-      "metadata": "/e4/63b451430c/1/metadata.json",
-      "transcript": "/e4/63b451430c/1/full.jsonl",
-      "context": "",
-      "content_hash": "/e4/63b451430c/1/content_hash.txt",
-      "prompt": ""
-    }
-  ]
+  "agent": "Claude Code",
+  "turn_id": "d38faca6c19b",
+  "initial_attribution": {
+    "calculated_at": "2026-03-11T03:06:49.018002027Z",
+    "agent_lines": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 0,
+    "agent_percentage": 0
+  }
 }
