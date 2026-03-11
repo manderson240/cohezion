@@ -98,7 +98,7 @@ class ContextManager:
                 logger.debug("Loaded context manifest: %s", self.manifest_path)
                 return self.manifest
         except json.JSONDecodeError as e:
-            raise ContextLoadError(f"Invalid manifest JSON: {e}")
+            raise ContextLoadError(f"Invalid manifest JSON: {e}") from e
 
     def load_core_context(self) -> list[dict[str, Any]]:
         """Load all core context files.

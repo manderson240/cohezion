@@ -69,9 +69,7 @@ class FreezeFrameCapture:
     ) -> FreezeFrame:
         """Capture a freeze-frame, validating inputs."""
         if len(latent_state) != MANIFOLD_DIM:
-            raise ValueError(
-                f"Latent state must be 12D (got {len(latent_state)}D)"
-            )
+            raise ValueError(f"Latent state must be 12D (got {len(latent_state)}D)")
         if not failure_hash or not failure_hash.strip():
             raise ValueError("failure_hash is required for deduplication")
 

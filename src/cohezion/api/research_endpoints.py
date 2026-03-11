@@ -138,7 +138,7 @@ async def start_research(
         raise
     except Exception as e:
         logger.error(f"Failed to start research: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from e
 
 
 @router.post("/start-multi-agent", response_model=ResearchResponse)
@@ -178,7 +178,7 @@ async def start_multi_agent_research(
 
     except Exception as e:
         logger.error(f"Failed to start multi-agent research: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from e
 
 
 @router.get("/status/{session_id}", response_model=ResearchResponse)
@@ -296,7 +296,7 @@ async def get_experiment_log(session_id: str, limit: int = Query(default=100, ge
 
     except Exception as e:
         logger.error(f"Failed to read experiment log: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from e
 
 
 @router.get("/dashboard")

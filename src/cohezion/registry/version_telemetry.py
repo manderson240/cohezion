@@ -19,9 +19,9 @@ COHERENCE_COLLAPSE_THRESHOLD = 0.3
 
 
 class DriftStatus(Enum):
-    GREEN = "green"    # Up to date
-    AMBER = "amber"    # >= DRIFT_THRESHOLD minor versions behind
-    RED = "red"        # Major version behind or conflict
+    GREEN = "green"  # Up to date
+    AMBER = "amber"  # >= DRIFT_THRESHOLD minor versions behind
+    RED = "red"  # Major version behind or conflict
 
 
 @dataclass
@@ -104,14 +104,16 @@ class VersionTelemetry:
                 status = DriftStatus.GREEN
 
             if status != DriftStatus.GREEN:
-                drifts.append(DependencyDrift(
-                    package=pkg,
-                    current_version=current,
-                    latest_version=latest,
-                    minor_versions_behind=behind,
-                    status=status,
-                    recommended_action=f"Upgrade {pkg} from {current} to {latest}",
-                ))
+                drifts.append(
+                    DependencyDrift(
+                        package=pkg,
+                        current_version=current,
+                        latest_version=latest,
+                        minor_versions_behind=behind,
+                        status=status,
+                        recommended_action=f"Upgrade {pkg} from {current} to {latest}",
+                    )
+                )
 
         conflicts = conflicts or []
         coherence = self._compute_coherence(drifts, conflicts, len(current_versions))

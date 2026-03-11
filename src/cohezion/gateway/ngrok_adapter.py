@@ -146,6 +146,7 @@ class NgrokAIGateway:
 
     def __repr__(self) -> str:
         from urllib.parse import urlparse
+
         safe_host = urlparse(self.ngrok_endpoint).netloc if self.ngrok_endpoint else "none"
         return f"NgrokAIGateway(endpoint={safe_host!r}, key=***)"
 
@@ -163,6 +164,7 @@ class NgrokAIGateway:
             )
         elif self.ngrok_endpoint:
             from urllib.parse import urlparse
+
             safe_host = urlparse(self.ngrok_endpoint).netloc
             logger.info(f"ngrok AI Gateway configured: {safe_host}")
 

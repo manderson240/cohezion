@@ -66,7 +66,7 @@ TRANSCENDENCE PROTOCOL ACTIVATED.
 ARCHETYPE: {archetype}
 INTENT: {latent.semantic_intent}
 
-Task: Push the boundaries of the current system. 
+Task: Push the boundaries of the current system.
 Generate a high-fidelity 'Precipitation' that addresses this intent.
 Format your output as a Sovereign Narration followed by a Technical Implementation.
 """

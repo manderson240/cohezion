@@ -170,9 +170,7 @@ class SemverValidator:
         bump_order = {BumpType.NONE: 0, BumpType.PATCH: 1, BumpType.MINOR: 2, BumpType.MAJOR: 3}
 
         if actual == BumpType.NONE and expected != BumpType.NONE:
-            errors.append(
-                f"No version bump applied but {expected.value} bump expected"
-            )
+            errors.append(f"No version bump applied but {expected.value} bump expected")
 
         if bump_order[actual] < bump_order[expected]:
             errors.append(

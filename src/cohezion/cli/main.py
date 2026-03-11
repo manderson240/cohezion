@@ -323,8 +323,12 @@ def swarm_simulate(
 def swarm_review(
     target_dir: str = typer.Option("src/cohezion", "--target", "-t", help="Directory to review"),
     batch_size: int = typer.Option(5, "--batch-size", "-b", help="Files per static batch"),
-    complexity: int = typer.Option(15, "--complexity", "-c", help="AST complexity threshold for LLM scans"),
-    output: str = typer.Option("code_review_report.md", "--output", "-o", help="Markdown report output path"),
+    complexity: int = typer.Option(
+        15, "--complexity", "-c", help="AST complexity threshold for LLM scans"
+    ),
+    output: str = typer.Option(
+        "code_review_report.md", "--output", "-o", help="Markdown report output path"
+    ),
 ):
     """Run full codebase review using specialist swarm agents.
 

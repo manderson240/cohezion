@@ -18,8 +18,10 @@ logger = logging.getLogger(__name__)
 class GitUtils:
     """Git operations for config file tracking and auto-commit."""
 
-    def __init__(self, repo_root: Path = Path.cwd()):
+    def __init__(self, repo_root: Path | None = None):
         """Initialize GitUtils with repository root."""
+        if repo_root is None:
+            repo_root = Path.cwd()
         self.repo_root = repo_root
         if not (repo_root / ".git").exists():
             logger.warning(f"Not a git repository: {repo_root}")

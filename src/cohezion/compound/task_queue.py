@@ -199,7 +199,7 @@ class TaskQueue:
         result = []
 
         for queue in [self._critical_queue, self._normal_queue, self._low_queue]:
-            for i, task in enumerate(queue):
+            for _, task in enumerate(queue):
                 if len(result) >= count:
                     return result
                 if not task.has_expired():

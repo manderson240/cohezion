@@ -114,9 +114,7 @@ class TruthAnchorValidator:
             TruthAnchor.hiho_spring_constant(),
         ]
 
-    def validate(
-        self, evos: list[EvoState], vectors: list[np.ndarray]
-    ) -> ValidationResult:
+    def validate(self, evos: list[EvoState], vectors: list[np.ndarray]) -> ValidationResult:
         """Run all truth anchor checks against the current swarm state."""
         if len(evos) < MIN_SWARM_SIZE_FOR_BUBBLE:
             return ValidationResult(passed=True, anchors_checked=0)
@@ -170,9 +168,7 @@ class TruthAnchorValidator:
             anchors_checked=len(self._anchors),
         )
 
-    def check_restoring_force(
-        self, evo: EvoState, dt: float = 0.1
-    ) -> RestoringForceResult:
+    def check_restoring_force(self, evo: EvoState, dt: float = 0.1) -> RestoringForceResult:
         """Verify HIHO restoring force behaves as expected for a single EVO."""
         original = evo.coherence
         dummy_vec = np.zeros(12)

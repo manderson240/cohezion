@@ -70,13 +70,15 @@ def _scan_packages() -> ArchitectureGraph:
         module_count = len([f for f in py_files if f.name != "__init__.py"])
 
         color = CATEGORY_COLORS.get(pkg_name, "#C0C0C0")
-        nodes.append(GraphNode(
-            id=pkg_name,
-            label=pkg_name.replace("_", " ").title(),
-            category=pkg_name,
-            color=color,
-            module_count=module_count,
-        ))
+        nodes.append(
+            GraphNode(
+                id=pkg_name,
+                label=pkg_name.replace("_", " ").title(),
+                category=pkg_name,
+                color=color,
+                module_count=module_count,
+            )
+        )
 
         # Scan imports for edges
         for py_file in py_files[:10]:  # Cap to avoid slow scans

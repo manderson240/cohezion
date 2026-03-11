@@ -385,8 +385,10 @@ class SmartRouter:
                 messages.append({"role": "user", "content": prompt})
 
                 clean_host = self.ollama_host.rstrip("/")
-                if clean_host.endswith("/api"): clean_host = clean_host[:-4]
-                if clean_host.endswith("/v1"): clean_host = clean_host[:-3]
+                if clean_host.endswith("/api"):
+                    clean_host = clean_host[:-4]
+                if clean_host.endswith("/v1"):
+                    clean_host = clean_host[:-3]
 
                 resp = await self.client.post(
                     f"{clean_host}/api/chat",
