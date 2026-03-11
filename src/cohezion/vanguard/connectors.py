@@ -18,6 +18,7 @@ from cohezion.vanguard.source_connector import (
     SourceHealthReport,
 )
 
+
 logger = logging.getLogger(__name__)
 
 

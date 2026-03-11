@@ -11,6 +11,7 @@ import threading
 from dataclasses import dataclass, field
 from enum import Enum
 
+
 logger = logging.getLogger(__name__)
 
 SOUL_DIM = 2048  # Full latent space

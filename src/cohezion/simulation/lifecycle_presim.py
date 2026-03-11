@@ -8,10 +8,10 @@ early. Projects where coherence will drop or topological knots will form.
 from __future__ import annotations
 
 import logging
-import math
 from dataclasses import dataclass, field
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 

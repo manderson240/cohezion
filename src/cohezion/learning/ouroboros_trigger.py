@@ -13,6 +13,7 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum
 
+
 logger = logging.getLogger(__name__)
 
 DIVERGENCE_PATIENCE = 3  # Epochs of increasing loss before rollback

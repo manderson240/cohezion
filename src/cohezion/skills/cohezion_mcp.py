@@ -1241,7 +1241,6 @@ Generate production-ready, maintainable code that follows industry standards.
             # Import pocket-tts
             try:
                 import scipy.io.wavfile
-                import torch
                 from pocket_tts import TTSModel
             except ImportError:
                 return {

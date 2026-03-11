@@ -17,6 +17,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -159,7 +160,7 @@ class TrainingExecutor:
             return False
 
         try:
-            checkpoint = torch.load(path, map_location="cpu")
+            checkpoint = torch.load(path, map_location="cpu", weights_only=True)
             model.load_state_dict(checkpoint["model_state"])
             optimizer.load_state_dict(checkpoint["optimizer_state"])
             logger.info(f"Checkpoint loaded: {path}")
@@ -183,13 +184,19 @@ class SimpleTrainingRunner:
 
         Simplified version using subprocess.
         """
+        # Validate script path stays within project
+        allowed_root = Path(__file__).resolve().parent.parent.parent
+        resolved = train_script.resolve()
+        if not str(resolved).startswith(str(allowed_root)):
+            raise ValueError(f"Script path outside allowed root: {train_script}")
+
         start_time = time.time()
 
         try:
             result = subprocess.run(
                 [
                     "python",
-                    str(train_script),
+                    str(resolved),
                     "--time_budget",
                     str(self.time_budget),
                 ],

@@ -14,6 +14,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 
+
 logger = logging.getLogger(__name__)
 
 MITOSIS_CONTEXT_THRESHOLD = 0.8  # 80% of allocated quota

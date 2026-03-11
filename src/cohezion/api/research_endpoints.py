@@ -22,6 +22,7 @@ from cohezion.research import (
     ResearchSwarm,
 )
 
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/research", tags=["research"])
