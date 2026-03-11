@@ -1,13 +1,13 @@
 # Implementation Plan: Bootstrap Triune Manifold Engine
 
 ## Phase 1: Core State Architecture
-- [ ] Task: Define `TriuneState` PyTorch/Pydantic models for 12D, 512D, and 2048D tensors.
-    - [ ] Sub-task: Write unit tests enforcing shape and type constraints.
-    - [ ] Sub-task: Implement the models.
-- [ ] Task: Implement the 0.5 Coherence (HIHO) calculation utility.
-    - [ ] Sub-task: Write unit tests for coherence edge cases.
-    - [ ] Sub-task: Implement the calculation logic.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Core State Architecture' (Protocol in workflow.md)
+- [x] Task: Define `TriuneState` PyTorch/Pydantic models for 12D, 512D, and 2048D tensors.
+    - [x] Write unit tests enforcing shape and type constraints.
+    - [x] Implement the models.
+- [x] Task: Implement the 0.5 Coherence (HIHO) calculation utility.
+    - [x] Sub-task: Write unit tests for coherence edge cases.
+    - [x] Sub-task: Implement the calculation logic.
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Core State Architecture' (Protocol in workflow.md)
 
 ## Phase 2: Persistence Integration
 - [ ] Task: Scaffold SurrealDB 3.0 async client for trajectory storage.
