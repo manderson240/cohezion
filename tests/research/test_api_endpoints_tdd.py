@@ -226,20 +226,28 @@ class TestResearchAPIPerformance:
     """[P2] Performance and load testing."""
 
     def test_start_research_response_time(self):
-        """[P2] Should respond within acceptable time."""
+        """[P2] Should respond within acceptable time (endpoint only, not training)."""
         import time
+        from unittest.mock import patch
+
+        from cohezion.research import ResearchAgent
 
         config = {
             "experiment_time_budget": 300.0,
             "max_experiments": 10,
         }
 
-        start = time.time()
-        response = client.post("/research/start", json=config)
-        elapsed = time.time() - start
+        # Mock run_session so the background task doesn't execute real training.
+        # TestClient runs background tasks synchronously; without this mock the
+        # test would time the full research loop (10+ seconds) rather than just
+        # the endpoint response time.
+        with patch.object(ResearchAgent, "run_session"):
+            start = time.time()
+            response = client.post("/research/start", json=config)
+            elapsed = time.time() - start
 
         assert response.status_code == 200
-        assert elapsed < 1.0  # Should respond in less than 1 second
+        assert elapsed < 1.0  # Endpoint itself (no training) should be fast
 
     def test_dashboard_response_time(self):
         """[P2] Dashboard should load quickly."""
