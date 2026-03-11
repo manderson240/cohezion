@@ -274,15 +274,22 @@ class SurrealMCP:
         """
         import re
         from pathlib import Path
+        from cohezion.mcp.servers.safe_input import sanitize_path
 
-        if markdown_path is None:
-            markdown_path = (
-                "/home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/KEY_LEARNINGS.md"
-            )
+        # Master Root for knowledge graph
+        base_dir = Path(__file__).parent.parent.parent / "knowledge_graph"
 
-        path = Path(markdown_path)
+        try:
+            if markdown_path is None:
+                path = base_dir / "KEY_LEARNINGS.md"
+            else:
+                path = sanitize_path(markdown_path, base_dir=base_dir)
+        except ValueError as e:
+            logger.warning(f"RAH Security: {e}")
+            return {"error": str(e)}
+
         if not path.exists():
-            return {"error": f"File not found: {markdown_path}"}
+            return {"error": f"File not found: {path}"}
 
         content = path.read_text()
 

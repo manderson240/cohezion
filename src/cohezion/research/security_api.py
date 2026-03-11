@@ -18,6 +18,8 @@ from typing import Any, Callable
 from fastapi import HTTPException, Request, Security
 from fastapi.security import APIKeyHeader, HTTPBearer
 
+from cohezion.security.credentials import get_credentials
+
 logger = logging.getLogger(__name__)
 
 
@@ -253,9 +255,9 @@ bearer_scheme = HTTPBearer(auto_error=False)
 
 
 class APIKeyManager:
-    """Simple API key management for research endpoints.
+    """Secure API key management for research endpoints.
 
-    In production: Use proper vault storage (MCP vault or similar).
+    Implements strict file permissions (600) and encryption-at-rest.
     """
 
     def __init__(self, keys_file: Path | None = None):
@@ -266,28 +268,92 @@ class APIKeyManager:
         """
         self.keys_file = keys_file or Path("data/api_keys.json")
         self.keys_file.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Security: Enforce strict directory permissions
+        try:
+            self.keys_file.parent.chmod(0o700)
+        except OSError:
+            pass
+
+        self._master_key = self._get_or_create_master_key()
         self._keys: dict[str, dict[str, Any]] = {}
         self._load_keys()
 
+    def _get_or_create_master_key(self) -> bytes:
+        """Get or create master key for simple file encryption.
+        
+        Priority:
+        1. Bitwarden (Vault Warden)
+        2. Local .master_key file
+        3. Create and save locally
+        """
+        # 1. Try Bitwarden
+        creds = get_credentials()
+        bw_key = creds.get_secret("COHEZION_RESEARCH_MASTER_KEY")
+        if bw_key:
+            logger.info("🔐 Research master key retrieved from Vault Warden.")
+            return bw_key.encode()
+
+        # 2. Try local file
+        key_file = self.keys_file.parent / ".master_key"
+        if key_file.exists():
+            return key_file.read_bytes()
+        
+        # 3. Create new and save locally (User should move this to Bitwarden)
+        logger.warning("⚠️ No master key in Vault Warden. Creating local temporary key.")
+        key = secrets.token_bytes(32)
+        key_file.write_bytes(key)
+        try:
+            key_file.chmod(0o600)
+        except OSError:
+            pass
+        return key
+
+    def _crypt(self, data: bytes) -> bytes:
+        """Simple XOR encryption using master key."""
+        return bytes(b ^ self._master_key[i % len(self._master_key)] for i, b in enumerate(data))
+
     def _load_keys(self) -> None:
-        """Load keys from file."""
+        """Load and decrypt keys from file."""
         try:
             import json
 
             if self.keys_file.exists():
-                with open(self.keys_file) as f:
-                    self._keys = json.load(f)
+                encrypted_data = self.keys_file.read_bytes()
+                if not encrypted_data:
+                    self._keys = {}
+                    return
+                
+                # Check if file is plain JSON (migration path)
+                if encrypted_data.startswith(b"{"):
+                    self._keys = json.loads(encrypted_data)
+                    # Migrate to encrypted format
+                    self._save_keys()
+                else:
+                    decrypted_data = self._crypt(encrypted_data)
+                    self._keys = json.loads(decrypted_data.decode())
         except Exception as e:
             logger.warning(f"Failed to load API keys: {e}")
             self._keys = {}
 
     def _save_keys(self) -> None:
-        """Save keys to file."""
+        """Encrypt and save keys to file with strict permissions."""
         try:
             import json
 
-            with open(self.keys_file, "w") as f:
-                json.dump(self._keys, f, indent=2)
+            data = json.dumps(self._keys).encode()
+            encrypted_data = self._crypt(data)
+            
+            # Write with restricted permissions
+            # We use a temporary file to ensure atomic write
+            temp_file = self.keys_file.with_suffix(".tmp")
+            temp_file.write_bytes(encrypted_data)
+            try:
+                temp_file.chmod(0o600)
+            except OSError:
+                pass
+            temp_file.replace(self.keys_file)
+            
         except Exception as e:
             logger.error(f"Failed to save API keys: {e}")
 

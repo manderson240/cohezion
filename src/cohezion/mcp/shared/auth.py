@@ -4,11 +4,13 @@ import logging
 import os
 
 from aiohttp import web
+from cohezion.security.credentials import get_credentials
 
 
 logger = logging.getLogger(__name__)
 
-MCP_API_KEY = os.getenv("MCP_API_KEY")
+# Primary: Vault Warden, Fallback: Environment
+MCP_API_KEY = get_credentials().get_secret("COHEZION_MCP_API_KEY", env_var="MCP_API_KEY")
 
 @web.middleware
 async def api_key_middleware(request: web.Request, handler):
