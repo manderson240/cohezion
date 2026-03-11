@@ -7,14 +7,11 @@ Preserves all original functionality while using clean internals.
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 # Import new simplified models AND legacy types now canonical in models
 from cohezion.compound.models import (
-    AnalysisReport as NewAnalysisReport,
-    ExecutionResult as NewExecutionResult,
-    ExecutionMetrics as NewExecutionMetrics,
-    Task as NewTask,
+    CompoundCycleReport,
+    CompoundCycleResult,
     # Legacy types — canonical definitions now live in models.py
     ConstraintType,
     ConstraintViolation,
@@ -25,15 +22,11 @@ from cohezion.compound.models import (
     HumanRequest,
     IntentType,
     SuccessCriterion,
-    CompoundCycleReport,
-    CompoundCycleResult,
-    SessionCheckpoint,
+)
+from cohezion.compound.models import (
+    ExecutionMetrics as NewExecutionMetrics,
 )
 
-from cohezion.compound.core.executor import (
-    CompoundExecutor as NewCompoundExecutor,
-    ExecutionConfig as NewExecutionConfig,
-)
 
 # ============================================================================
 # Legacy Type Aliases (for backward compatibility)
@@ -227,6 +220,7 @@ class CompoundCycleReport:
 
 
 import logging
+
 
 # Re-export all legacy symbols
 __all__ = [

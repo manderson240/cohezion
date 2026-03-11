@@ -13,6 +13,7 @@ from typing import Callable
 
 from cohezion.compound.models import ExecutionResult, Task
 
+
 logger = logging.getLogger(__name__)
 
 

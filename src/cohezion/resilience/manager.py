@@ -6,12 +6,13 @@ import time
 import uuid
 from typing import Any
 
-from cohezion.reliability.monitor import get_resource_monitor
 from cohezion.core.persistence.surreal_client import (
-    get_surreal_client,
-    UniverseNode,
     PhysicsState,
+    UniverseNode,
+    get_surreal_client,
 )
+from cohezion.reliability.monitor import get_resource_monitor
+
 from .strategies import (
     ContextReductionStrategy,
     HealingStrategy,

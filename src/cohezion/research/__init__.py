@@ -26,6 +26,7 @@ from cohezion.research.training import (
     TrainingExecutor,
 )
 
+
 __all__ = [
     # Core
     "ResearchAgent",

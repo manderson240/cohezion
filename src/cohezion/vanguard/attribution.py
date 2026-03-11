@@ -9,11 +9,11 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 
 from cohezion.vanguard.source_connector import DiscoveryRecord
+
 
 logger = logging.getLogger(__name__)
 

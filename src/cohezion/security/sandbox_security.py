@@ -8,9 +8,10 @@ and creates a structured audit event.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
-from cohezion.security.memory_barrier import MemoryMappedBarrier, BarrierViolationError
+from cohezion.security.memory_barrier import BarrierViolationError, MemoryMappedBarrier
+
 
 logger = logging.getLogger(__name__)
 

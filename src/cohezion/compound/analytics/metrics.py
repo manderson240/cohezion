@@ -12,7 +12,8 @@ from collections import deque
 from dataclasses import dataclass, field
 from typing import Any
 
-from cohezion.compound.models import ExecutionMetrics, ExecutionResult
+from cohezion.compound.models import ExecutionResult
+
 
 logger = logging.getLogger(__name__)
 

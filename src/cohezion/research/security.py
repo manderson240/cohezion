@@ -11,9 +11,9 @@ import logging
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 from cohezion.security.pipeline import SecurityPipeline
+
 
 logger = logging.getLogger(__name__)
 
@@ -87,14 +87,13 @@ class ResearchSecurityGuardrails:
         """
         issues = []
 
-        # Check for forbidden patterns
-        for pattern in self.FORBIDDEN_IMPORTS:
-            if pattern in change.new_code:
-                issues.append(f"Forbidden pattern: {pattern}")
-
-        # Check AST validity
+        # Check AST validity first
         if not self._is_valid_ast(change.new_code):
             issues.append("Invalid Python syntax")
+        else:
+            # Use AST-based analysis (not bypassable by string obfuscation)
+            ast_issues = self._check_ast_forbidden(change.new_code)
+            issues.extend(ast_issues)
 
         # Check for dangerous operations
         dangerous = self._check_dangerous_operations(change.new_code)
@@ -115,6 +114,9 @@ class ResearchSecurityGuardrails:
             risk_level=risk,
         )
 
+    FORBIDDEN_CALL_NAMES = {"exec", "eval", "__import__", "compile", "getattr"}
+    FORBIDDEN_MODULES = {"os", "subprocess", "shutil", "socket", "urllib", "requests", "http"}
+
     def _is_valid_ast(self, code: str) -> bool:
         """Check if code is valid Python AST."""
         try:
@@ -122,6 +124,39 @@ class ResearchSecurityGuardrails:
             return True
         except SyntaxError:
             return False
+
+    def _check_ast_forbidden(self, code: str) -> list[str]:
+        """Check AST for forbidden function calls and imports."""
+        issues = []
+        try:
+            tree = ast.parse(code)
+        except SyntaxError:
+            return issues
+
+        for node in ast.walk(tree):
+            # Check forbidden function calls (handles obfuscation like exec/eval)
+            if isinstance(node, ast.Call):
+                func_name = ""
+                if isinstance(node.func, ast.Name):
+                    func_name = node.func.id
+                elif isinstance(node.func, ast.Attribute):
+                    func_name = node.func.attr
+                if func_name in self.FORBIDDEN_CALL_NAMES:
+                    issues.append(f"Forbidden call: {func_name}()")
+
+            # Check forbidden imports
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    root_module = alias.name.split(".")[0]
+                    if root_module in self.FORBIDDEN_MODULES:
+                        issues.append(f"Forbidden import: {alias.name}")
+
+            if isinstance(node, ast.ImportFrom) and node.module:
+                root_module = node.module.split(".")[0]
+                if root_module in self.FORBIDDEN_MODULES:
+                    issues.append(f"Forbidden import: {node.module}")
+
+        return issues
 
     def _check_dangerous_operations(self, code: str) -> list[str]:
         """Check for potentially dangerous operations."""

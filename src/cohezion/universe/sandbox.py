@@ -13,8 +13,6 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
-from docker.errors import DockerException
-
 import docker
 
 

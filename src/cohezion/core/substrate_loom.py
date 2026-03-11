@@ -8,12 +8,13 @@ Watchdog detects stale pointers (no flip within 2 heartbeats) and activates degr
 from __future__ import annotations
 
 import logging
-import time
 import threading
+import time
 from dataclasses import dataclass, field
 from enum import Enum
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 

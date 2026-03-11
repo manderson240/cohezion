@@ -6,15 +6,16 @@ Elegant integration with existing infrastructure.
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from dataclasses import dataclass, field
 from typing import Any
 
 from cohezion.compound.models import Task
 from cohezion.research.agent import ResearchAgent, ResearchConfig
-from cohezion.research.config import ExperimentResult
-from cohezion.swarm.orchestrator import Agent as SwarmAgent, Swarm, Task as SwarmTask
+from cohezion.swarm.orchestrator import Agent as SwarmAgent
+from cohezion.swarm.orchestrator import Swarm
+from cohezion.swarm.orchestrator import Task as SwarmTask
+
 
 logger = logging.getLogger(__name__)
 

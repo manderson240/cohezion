@@ -8,13 +8,19 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable
 
+from cohezion.swarm.orchestrator import (
+    Agent as NewAgent,
+)
+
 # Import new simplified implementation
 from cohezion.swarm.orchestrator import (
     Swarm as NewSwarm,
-    Agent as NewAgent,
-    Task as NewTask,
-    AgentResult as NewAgentResult,
+)
+from cohezion.swarm.orchestrator import (
     SwarmConfig as NewSwarmConfig,
+)
+from cohezion.swarm.orchestrator import (
+    Task as NewTask,
 )
 
 
