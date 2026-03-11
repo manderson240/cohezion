@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Any
 
 from cohezion.reliability.monitor import get_resource_monitor
@@ -73,9 +75,15 @@ class ContextReductionStrategy(HealingStrategy):
         reduction_factor = context.get("reduction_factor", 0.5)
         logger.info(f"RAH: Reducing context windows by {reduction_factor * 100}%")
 
-        # In production, this would call cohezion.reliability.context_harness.compact_all()
-        # For now, we simulate the signal being sent to active swarms
-        logger.info("RAH: Broadcast COMPACT_CONTEXT signal to active agents")
+        # Set global pressure mitigation flag in ResourceMonitor
+        monitor = get_resource_monitor()
+        monitor.pressure_mitigation_active = True
+
+        # Broadcast signal (simulated)
+        logger.warning("RAH: Broadcast COMPACT_CONTEXT signal to all active agents")
+
+        # We assume success once flagged; components like ContextHarness
+        # should check this flag during prompt preparation.
         return True
 
 
@@ -116,16 +124,17 @@ class SystemRestartStrategy(HealingStrategy):
                 logger.info(f"RAH: Triggered {script_path} for service recovery")
 
                 try:
-                    # Wait briefly to catch immediate failures
+                    # Wait briefly to catch immediate script failures
                     await asyncio.wait_for(process.wait(), timeout=2.0)
                     if process.returncode != 0:
                         logger.error(f"RAH: Recovery script failed with code {process.returncode}")
                         return False
                 except asyncio.TimeoutError:
-                    # Script is likely long-running (daemon mode), consider this a trigger success
+                    # Script is likely long-running (daemon mode), consider trigger successful
                     pass
 
             return True
         except Exception as e:
             logger.error(f"RAH: Service restart failed: {e}")
             return False
+
