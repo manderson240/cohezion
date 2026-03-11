@@ -251,52 +251,40 @@ async def get_simulation(sim_id: str):
 
 
 # Journey endpoints - Agent trajectory visualization
+# NOTE: cohezion.swarm.journey_tracker was removed during refactor.
+# The replacement is cohezion.compound.journey_tracker (12D FLUME API).
+# These endpoints return 501 until updated to the new JourneyTracker API.
+_JOURNEY_TRACKER_UNAVAILABLE = HTTPException(
+    status_code=501,
+    detail="Journey tracker endpoints are being migrated to the compound module. "
+    "Use /compound/history for execution history.",
+)
+
+
 @app.get("/journeys")
 async def list_journeys():
     """List recent agent journeys."""
-    from cohezion.swarm.journey_tracker import get_journey_tracker
-
-    tracker = get_journey_tracker()
-    journeys = tracker.get_recent_journeys(limit=20)
-    return {
-        "journeys": [
-            {"id": j["journey_id"], "query": j["query"][:50], "steps": j["step_count"]}
-            for j in journeys
-        ]
-    }
+    raise _JOURNEY_TRACKER_UNAVAILABLE
 
 
 @app.get("/journeys/{journey_id}")
 async def get_journey(journey_id: str):
     """Get a specific journey with full trajectory."""
-    from cohezion.swarm.journey_tracker import get_journey_tracker
-
-    tracker = get_journey_tracker()
-    journey_file = tracker.output_dir / f"{journey_id}.json"
-    if not journey_file.exists():
-        raise HTTPException(status_code=404, detail=f"Journey {journey_id} not found")
-    import json
-
-    return json.loads(journey_file.read_text())
+    raise _JOURNEY_TRACKER_UNAVAILABLE
 
 
 @app.get("/journeys/{journey_id}/trajectory")
 async def get_journey_trajectory(journey_id: str):
     """Get physics trajectory for visualization."""
-    from cohezion.swarm.journey_tracker import get_journey_tracker
-
-    tracker = get_journey_tracker()
-    trajectory = tracker.get_journey_trajectory(journey_id)
-    if not trajectory:
-        raise HTTPException(status_code=404, detail=f"Journey {journey_id} not found")
-    return {"trajectory": trajectory}
+    raise _JOURNEY_TRACKER_UNAVAILABLE
 
 
 # Demo journey endpoint
 @app.post("/journeys/demo")
 async def create_demo_journey():
     """Create a demo journey to showcase visualization."""
-    import random
+    raise _JOURNEY_TRACKER_UNAVAILABLE
+    import random  # noqa: E402, F401
 
     from cohezion.swarm.journey_tracker import AgentType, get_journey_tracker
 
@@ -428,78 +416,15 @@ async def create_demo_journey():
 @app.get("/journeys/{journey_id}/visualize")
 async def visualize_journey(journey_id: str):
     """Render an animated visualization of the journey trajectory."""
-    import json
-    from pathlib import Path
-
-    import numpy as np
-    from fastapi.responses import FileResponse
-
-    from cohezion.swarm.journey_tracker import get_journey_tracker
-    from cohezion.viz.hypertools_renderer import HyperToolsViz
-
-    tracker = get_journey_tracker()
-    journey_file = tracker.output_dir / f"{journey_id}.json"
-
-    if not journey_file.exists():
-        raise HTTPException(status_code=404, detail=f"Journey {journey_id} not found")
-
-    journey = json.loads(journey_file.read_text())
-
-    # Extract physics trajectory as numpy array
-    trajectory_data = []
-    for step in journey.get("steps", []):
-        ps = step.get("physics_state", {})
-        # Create 6D vector from physics state
-        vec = [
-            ps.get("x", 0),
-            ps.get("y", 0),
-            ps.get("z", 0),
-            ps.get("mass", 0.5),
-            ps.get("coherence", 0.5),
-            ps.get("novelty", 0.5),
-        ]
-        trajectory_data.append(vec)
-
-    if len(trajectory_data) < 2:
-        raise HTTPException(
-            status_code=400, detail="Journey needs at least 2 steps for visualization"
-        )
-
-    trajectory = np.array(trajectory_data)
-
-    # Render with HyperTools
-    viz = HyperToolsViz(output_dir=Path("renders"))
-    output_path = viz.animate_trajectory(
-        trajectory,
-        output_name=f"journey_{journey_id}",
-        fps=2,  # Slow for visibility
-    )
-
-    return FileResponse(
-        output_path,
-        media_type="image/gif",
-        filename=f"{journey_id}_trajectory.gif",
-    )
+    raise _JOURNEY_TRACKER_UNAVAILABLE
 
 
 # Static image visualization
 @app.get("/journeys/{journey_id}/plot")
 async def plot_journey(journey_id: str):
     """Render a multi-panel 12D physics visualization of the journey."""
-    import json
-    from pathlib import Path
-
-    import matplotlib
-    import numpy as np
-    from fastapi.responses import FileResponse
-
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-
-    from cohezion.swarm.journey_tracker import get_journey_tracker
-
-    tracker = get_journey_tracker()
-    journey_file = tracker.output_dir / f"{journey_id}.json"
+    raise _JOURNEY_TRACKER_UNAVAILABLE
+    _ = journey_id  # noqa: F841 (dead code - kept as migration marker)
 
     if not journey_file.exists():
         raise HTTPException(status_code=404, detail=f"Journey {journey_id} not found")
@@ -1306,19 +1231,8 @@ if __name__ == "__main__":
 @app.get("/compare/calm-vs-llm/{journey_id}")
 async def compare_calm_llm(journey_id: str):
     """Compare CALM continuous trajectory vs standard LLM discrete steps."""
-    import json
-    from pathlib import Path
-
-    import matplotlib
-    import numpy as np
-    from fastapi.responses import FileResponse
-
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-
-    from cohezion.swarm.journey_tracker import get_journey_tracker
-
-    tracker = get_journey_tracker()
+    raise _JOURNEY_TRACKER_UNAVAILABLE
+    _ = journey_id  # noqa: F841
     journey_file = tracker.output_dir / f"{journey_id}.json"
 
     if not journey_file.exists():
