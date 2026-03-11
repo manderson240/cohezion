@@ -58,6 +58,13 @@ class MCPServerConfig:
     restart_count: int = 0
 
     def to_dict(self) -> dict[str, Any]:
+        safe_env = {}
+        for k, v in self.env_vars.items():
+            if any(secret in k.lower() for secret in ["token", "key", "secret", "password"]):
+                safe_env[k] = "***REDACTED***"
+            else:
+                safe_env[k] = v
+
         return {
             "name": self.name,
             "port": self.port,
@@ -65,12 +72,10 @@ class MCPServerConfig:
             "auto_restart": self.auto_restart,
             "health_check_interval": self.health_check_interval,
             "max_restarts": self.max_restarts,
-            "env_vars": self.env_vars,
+            "env_vars": safe_env,
             "status": self.status,
             "pid": self.pid,
-            "last_health_check": self.last_health_check.isoformat()
-            if self.last_health_check
-            else None,
+            "last_health_check": self.last_health_check.isoformat() if self.last_health_check else None,
             "restart_count": self.restart_count,
         }
 
