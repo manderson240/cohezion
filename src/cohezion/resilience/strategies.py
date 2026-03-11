@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
 
+from cohezion.mcp.shared.session import get_session_manager
 from cohezion.reliability.monitor import get_resource_monitor
 
 
@@ -79,13 +80,17 @@ class ContextReductionStrategy(HealingStrategy):
         monitor = get_resource_monitor()
         monitor.pressure_mitigation_active = True
 
+        # Proactively clear transient sessions to free Redis/Memory
+        sm = get_session_manager()
+        cleared_count = await sm.clear_all_sessions()
+        logger.info(f"RAH: Proactively cleared {cleared_count} active sessions")
+
         # Broadcast signal (simulated)
         logger.warning("RAH: Broadcast COMPACT_CONTEXT signal to all active agents")
 
-        # We assume success once flagged; components like ContextHarness
+        # We assume success once flagged; components like ContextHarness 
         # should check this flag during prompt preparation.
         return True
-
 
 class SystemRestartStrategy(HealingStrategy):
     """Performs emergency restart of core services (Ollama, SurrealDB)."""
