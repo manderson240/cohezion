@@ -7,6 +7,7 @@
   "files_touched": [
     "pyproject.toml",
     "src/cohezion/api/__init__.py",
+    "src/cohezion/gateway/ngrok_adapter.py",
     "src/cohezion/security/auth.py"
   ],
   "sessions": [
@@ -16,13 +17,20 @@
       "context": "/11/b1c5a56e86/0/context.md",
       "content_hash": "/11/b1c5a56e86/0/content_hash.txt",
       "prompt": "/11/b1c5a56e86/0/prompt.txt"
+    },
+    {
+      "metadata": "/11/b1c5a56e86/1/metadata.json",
+      "transcript": "/11/b1c5a56e86/1/full.jsonl",
+      "context": "/11/b1c5a56e86/1/context.md",
+      "content_hash": "/11/b1c5a56e86/1/content_hash.txt",
+      "prompt": "/11/b1c5a56e86/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 9197,
-    "cache_creation_tokens": 1796394,
-    "cache_read_tokens": 37416861,
-    "output_tokens": 104314,
-    "api_call_count": 296
+    "input_tokens": 9815,
+    "cache_creation_tokens": 2722958,
+    "cache_read_tokens": 45896206,
+    "output_tokens": 132100,
+    "api_call_count": 372
   }
 }
