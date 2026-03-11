@@ -148,6 +148,7 @@ Compare to nuclear density ~10¹⁷ kg/m³ — Planck density is 10⁷⁹ × nuc
 - [[black-holes]] — Planck-mass black holes are the endpoint of Hawking evaporation; Planck density is the maximum
 - [[er-epr]] — Wormhole throat areas are measured in Planck units; S = A/(4·l_P²)
 - [[information-theory-it-from-bit]] — Bekenstein bound: S ≤ 2π·k_B·R·E/(ℏ·c); Planck-scale pixelation of spacetime
+- [[quantum-foam]] — Wheeler's spacetime foam at the Planck scale; virtual black holes; topology fluctuations; the substrate from which EVOs condense
 - [[orch-or]] — Penrose's OR criterion involves Planck-scale gravitational self-energy of quantum superpositions
 - [[bohr-model]] — Bohr radius and Planck length define the range of quantum structure: a₀/l_P ~ 10²⁰ decades of quantum physics
 

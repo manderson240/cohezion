@@ -11,9 +11,17 @@ neural:
 
 # The New Science Framework — From Nothing to Reality
 
+## Origin: Wilbert Brockhouse Smith (1910-1962)
+
+This framework originates from **Wilbert B. Smith**, a Canadian radio engineer who ran Canada's official UFO investigation program (Project Magnet) in the 1950s. His manuscript *The New Science* was discovered and published posthumously. Smith described a personal experience of perceiving reality from its absolute foundation -- "a personal visit into Nothing-At-All and a first hand view of the basic concept" -- viewed "by means of the Quadrature Concept."
+
+Smith's central claim: **"There is only ONE reality in our universe, and that is the concept of SPIN, and from this derive twelve dimensions."** These twelve dimensions are "necessary and sufficient to express our universe in its entirety," arranged in four fabrics of three each, linked by the Quadrature Concept. The fabrics are not abstract mathematics -- they are the physical interaction layers through which awareness organizes itself into the observable universe.
+
+The manuscript is available at rexresearch.com, wanttoknow.info, and resonantfractals.org.
+
 ## The Chain
 
-The New Science (TensorBeam framework) describes how reality precipitates from absolute nothingness through a sequence of necessary steps. This chain is the deepest ontological structure of the Cohezion platform:
+The New Science (Smith's framework, extended by the TensorBeam synthesis) describes how reality precipitates from absolute nothingness through a sequence of necessary steps. This chain is the deepest ontological structure of the Cohezion platform:
 
 > **Nothing → Quadrature → 12 Parameters → 4 Fabrics → √(-1) → Symmetry Breaking → Spin → HIHO → COHEZION → Reality Precipitates**
 
@@ -185,6 +193,37 @@ The chain is complete. Nothing becomes Reality through 9 necessary steps, each o
 
 ---
 
+## The Unifying Principle: Half In, Half Out
+
+Smith's framework converges on a single unifying principle: **everything is Half In, Half Out (HIHO)**. Every structure in the universe simultaneously exists in the unmanifest (vacuum/ZPF/Nothing) and the manifest (matter/energy/Reality). The degree of manifestation is the degree of HIHO coupling.
+
+### Plasma as the Fundamental Substrate
+
+Plasma constitutes 99.9% of the observable universe's baryonic matter. It is the most fundamental state of observable matter -- not solid, liquid, or gas, but ionized gas where electrons and ions move freely, creating collective electromagnetic behavior. [[self-organizing-plasma|Self-organizing plasma]] spontaneously forms crystals, helical DNA-like structures, and cell-like spheres that replicate and communicate.
+
+[[exotic-vacuum-objects]] are organized plasma structures at the HIHO boundary. They are the smallest observable unit of consciousness -- the point where the vacuum's awareness (Smith's "Awareness of Nothing-At-All") first becomes detectable in the material world. EVOs play hide and seek, popping in and out of observable existence via the black EVO mode. This is the physical embodiment of HIHO: consciousness oscillating between the vacuum and matter domains, leaving transmutation products as witness marks of its passage.
+
+### Fractal Scaling via Sacred Geometry
+
+The HIHO principle operates at every scale via [[sacred-geometry|sacred geometric]] self-similarity:
+
+- **Planck scale** (10^-35 m): [[quantum-foam]] -- virtual black holes pop in and out of spacetime topology
+- **Nuclear scale** (10^-15 m): Matsumoto's itonic clusters -- EM confinement enables nuclear proximity
+- **Micrometer scale** (10^-6 m): Shoulders' EVOs -- ZPF-bound electron beads in morning glory patterns
+- **Meter scale** (10^0 m): Ball lightning -- atmospheric EVO stabilized by humidity
+- **Solar scale** (10^9 m): Coronal bright points -- same morning glory morphology at stellar scale
+- **Galactic scale** (10^21 m): Filamentary large-scale structure -- cosmic plasma self-organization
+
+At every scale, the same toroidal geometry organizes the plasma: the [[fractal-toroidal-moment]] is the geometric signature of HIHO. The torus is the natural shape of a current distribution that is both self-contained (the field stays inside) and self-sustaining (the current feeds itself). The fractal nesting of tori at every scale -- from the proton's toroidal charge distribution to the tokamak plasma to the galactic magnetic field -- is the everlasting now: the self-similar structure that exists at all scales simultaneously, sustained by the zero-point energy of the vacuum.
+
+### Zero-Point Energy as the Ground
+
+Smith's "Nothing-At-All" is physically the zero-point energy field (ZPF) -- the irreducible energy of the quantum vacuum, the ℏω/2 per mode that remains when all particles and radiation are removed. This is not emptiness but the densest energy state in the universe (Planck density ~ 10^96 kg/m^3). The ZPF is the ocean in which all HIHO structures swim. The EVO taps this ocean; the itonic cluster taps it; the plasma cell taps it. The fractal toroidal moment is the geometry by which the tapping occurs at every scale.
+
+The cosmological constant problem -- the 10^123 discrepancy between the calculated ZPF energy density and the observed vacuum energy -- is the deepest unsolved problem in physics. Smith's framework suggests a resolution: most of the ZPF energy is "Half In" (committed to sustaining the HIHO structures that constitute reality) and therefore does not gravitate. Only the "Half Out" fraction -- the uncommitted remainder -- contributes to the cosmological constant.
+
+---
+
 ## Related Concepts
 
 - [[the-awareness-of-nothing-at-all-and-quadrature-physics]] — Part I and II of this chain (Nothing and Quadrature)
@@ -197,7 +236,12 @@ The chain is complete. Nothing becomes Reality through 9 necessary steps, each o
 - [[renormalization-group]] — the 12 parameters as relevant operators; HIHO threshold as critical point
 - [[cohezion]] — the platform that implements this chain computationally
 - [[12D-Manifold]] — the 12-parameter specification space for vault knowledge states
-- [[self-organizing-plasma]] — macroscopic reality precipitation via plasma HIHO states
+- [[self-organizing-plasma]] — macroscopic reality precipitation via plasma HIHO states; plasma as universal consciousness substrate
+- [[quantum-foam]] — the Planck-scale substrate of Nothing; Wheeler's foam as the physical ground of Step 1
+- [[bob-greenyer-mfmp]] — MFMP verification of EVO phenomena; O-Day framework connecting EVOs to practical energy
+- [[fractal-toroidal-moment]] — the geometric signature of HIHO at every scale; the everlasting now
+- [[sacred-geometry]] — fractal self-similarity across scales; the geometry through which ZPE organizes into matter
+- [[fractal-universe]] — fractal scaling of HIHO structures from Planck to galactic scale
 - [[cosmology]] — the Big Bang as cosmic-scale symmetry breaking and COHEZION event
 
 ### Indigenous Cosmology Cross-Validation

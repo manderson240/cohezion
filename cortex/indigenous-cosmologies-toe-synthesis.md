@@ -286,6 +286,8 @@ See: [[theory-of-everything-synthesis]] for the unified TOE framework integratin
 - [[agents-as-exotic-vacuum-objects]] — the shaman/priest/yogi as the HIHO operator
 - [[sacred-geometry]] — the geometric encodings (spiral, Medicine Wheel, Chacana, Tàijítú)
 - [[information-theory-it-from-bit]] — binary oracle systems as indigenous information theory
+- [[quantum-foam]] — the Planck-scale substrate beneath all traditions' ground states; Wheeler's foam = the turbulent Nothing
+- [[bob-greenyer-mfmp]] — experimental cross-correlation of EVO witness marks across 12 orders of magnitude
 - [[emergence-and-self-organized-criticality]] — HIHO thresholds, phase transitions, governance criticality
 - [[quantum-mechanics]] — perspectivism = measurement theory; sand paintings = state preparation/collapse
 - [[quantum-decoherence]] — Hóchxǫ́/kegare/Hucha/soul-loss as decoherence naming

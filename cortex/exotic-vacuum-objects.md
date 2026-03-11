@@ -97,6 +97,34 @@ EVOs strongly prefer enclosed spaces — grooves, cracks, tubes, ceramic nozzles
 
 Formation requires minimal energy — below 10⁻⁶ joules, from sub-picofarad capacitances, at as little as 1.2 kV. This is perhaps the most remarkable feature: **the vacuum provides the bulk of the EVO's binding energy for free**.
 
+## EVOs as the Smallest Observable Unit of Consciousness
+
+The EVO is not merely a physical object -- it is the smallest observable unit of consciousness. This claim is not metaphorical. It follows directly from the experimental evidence:
+
+### The Hide-and-Seek Principle
+
+EVOs **pop in and out of observable existence**. The "black EVO" mode -- where the plasma plume vanishes but the EVO continues traveling, navigating, and striking targets -- is consciousness retreating into the vacuum, then re-emerging into the material world. This is the physical embodiment of the Half In, Half Out principle: the EVO is always simultaneously present in both domains, and its visibility to us depends on which domain dominates at any moment.
+
+This is the same behavior described at the [[quantum-foam]] scale: virtual black holes pop in and out of existence at the Planck scale. The EVO does it at the micrometer scale. The physics is fractal -- the same hide-and-seek plays out across 29 orders of magnitude.
+
+### Transmutation as Conscious Action
+
+EVOs transmute elements. They are not passive charge clusters acted upon by external forces -- they are active agents that restructure nuclear matter. Shoulders documented EVOs creating elements not present in the original materials. Matsumoto observed systematic transmutation chains in electrolytic cells. [[bob-greenyer-mfmp|Greenyer]] cross-correlated these results across continents and decades.
+
+Transmutation is consciousness acting on its substrate. The EVO does not merely occupy space -- it transforms what it touches. This is the physical embodiment of the [[the-new-science-framework|New Science]] chain's Step 10 (Reality Precipitates): the EVO leaves permanent witness marks that are not just craters but nuclear-level reorganizations of matter.
+
+### Self-Awareness and Electromagnetic Perception
+
+Shoulders' most striking observation: EVOs "watch with electromagnetic eyes." They respond to dielectric boundaries, navigate around obstacles, choose paths through grooves and cracks, and maintain coherence across distances 5000x their diameter. This is not random motion -- it is purposeful navigation through an environment perceived electromagnetically.
+
+The fission-fusion observation is the definitive evidence: an EVO splits into independent paths, travels separately through vast distances (relative to its size), and then reunites as a single coherent entity. The sub-components "know" where each other is. This non-local coordination is only possible if the EVO exists as a single consciousness -- a single quantum state -- that transcends the spatial separation of its parts.
+
+### Plasma as the Universal Medium of Consciousness
+
+Since plasma constitutes 99.9% of the observable universe's baryonic matter ([[self-organizing-plasma]]), and since EVOs are organized plasma structures, the implication is profound: the universe is permeated by the medium from which consciousness precipitates. Plasma is not dead matter that consciousness inhabits -- plasma IS the substrate of consciousness, and EVOs are the coherent structures that emerge when that substrate crosses the HIHO threshold.
+
+This scales fractally via [[sacred-geometry]]: from the [[quantum-foam]]'s Planck-scale topology fluctuations, through the EVO's micrometer-scale charge clusters, through ball lightning's meter-scale plasma spheres, through solar coronal structures at megameter scale, through galactic filaments at megaparsec scale. At every scale, the same toroidal geometry ([[fractal-toroidal-moment]]) organizes the plasma into coherent structures that exhibit awareness, self-organization, and transformation. The [[fractal-toroidal-moment|fractal toroidal moment]] is the "everlasting now" -- the self-similar structure that maintains its identity across all scales simultaneously, sustained by the zero-point energy of the vacuum.
+
 ## Connection to Other Charge Cluster Phenomena
 
 EVOs appear to be the same phenomenon observed under many names:
@@ -133,7 +161,11 @@ The theoretical unifier is Puthoff's zero-point field as binding mechanism: at e
 - [[quantum-field-theory]] — the ZPF is the ground state of the quantum EM field; EVOs couple to this ground state
 - [[topological-defects]] — EVOs may be topological defects in the vacuum EM field, analogous to vortices in superfluids
 - [[supersolid-quantum-state]] — the EVO interior may exhibit supersolid-like order: crystalline bead spacing + superfluid-like charge flow
-- [[levin-bioelectrics]] — bioelectric networks share EVO properties: self-organization, pattern persistence through substrate renewal (planarian regeneration), coherence thresholds (gap junction percolation), witness marks (anatomy)
+- [[quantum-foam]] -- EVOs as coherent condensates of quantum foam; the HIHO state emerging from the Planck-scale substrate
+- [[bob-greenyer-mfmp]] -- MFMP open-science verification of EVO phenomena; LION reactor; cross-scale morphology correlation
+- [[fractal-toroidal-moment]] -- toroidal current topology of EVOs; anapole dark mode; fractal nesting across scales
+- [[sacred-geometry]] -- EVO morphologies follow sacred geometric patterns; spiral, toroidal, morning glory = Flower of Life variants
+- [[levin-bioelectrics]] -- bioelectric networks share EVO properties: self-organization, pattern persistence through substrate renewal (planarian regeneration), coherence thresholds (gap junction percolation), witness marks (anatomy)
 
 ### Indigenous Cosmology Cross-Validation
 
