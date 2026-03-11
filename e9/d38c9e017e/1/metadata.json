@@ -1,33 +1,21 @@
 {
   "cli_version": "0.4.9",
   "checkpoint_id": "e9d38c9e017e",
+  "session_id": "d54c5cb1-cb99-4353-a6b7-b4618920ebe8",
   "strategy": "manual-commit",
+  "created_at": "2026-03-11T03:07:44.886249565Z",
   "branch": "triune-self-migration",
-  "checkpoints_count": 2,
+  "checkpoints_count": 1,
   "files_touched": [
     ".claude/3d-graph-data.json",
-    ".claude/extract_3d_graph.py",
-    ".claude/hooks/project-agenda.sh",
     ".claude/hooks/vault-keeper-check.sh",
-    ".claude/rules/cli-override.md",
-    ".claude/rules/context-continuation.md",
-    ".claude/rules/cz-cli.md",
-    ".claude/rules/development-workflows.md",
-    ".claude/rules/project.md",
-    ".claude/rules/vault-conventions.md",
     ".claude/settings.json",
     ".claude/skills/flesh-out/SKILL.md",
     ".claude/skills/link/SKILL.md",
     ".claude/skills/note/SKILL.md",
-    ".claude/skills/physics-to-ai-mapping/SKILL.md",
-    ".claude/skills/research-concept-note/SKILL.md",
-    ".claude/skills/surrealdb-debug/SKILL.md",
     ".claude/skills/triage/SKILL.md",
-    ".claude/skills/vault-frontmatter/SKILL.md",
     ".claude/skills/vault-health/SKILL.md",
     ".claude/skills/vault-keeper/SKILL.md",
-    ".claude/skills/worldview-toe-mapping/SKILL.md",
-    ".gitignore",
     ".obsidian/graph.json",
     ".obsidian/workspace.json",
     "CLAUDE.md",
@@ -42,18 +30,6 @@
     "docs/plans/2026-02-21-abstract-apply-pilot.md",
     "docs/plans/2026-02-21-maximize-node-connections.md",
     "docs/plans/2026-02-24-context-awareness-engine-improvements.md",
-    "scripts/activation_decay.py",
-    "scripts/detect-songlines.py",
-    "scripts/dreaming-engine.py",
-    "scripts/extract_12d_vectors.py",
-    "scripts/populate-kinship.py",
-    "scripts/reconcile_synapses.py",
-    "scripts/subconscious-report.py",
-    "scripts/triune-frontmatter.py",
-    "scripts/triune-import.py",
-    "scripts/triune-metamorphosis.py",
-    "scripts/triune-schema.surql",
-    "scripts/vault_sync.py",
     "teleport/results/bmad-analysis.md",
     "teleport/tasks/bmad-analysis.md",
     "tools/cohezion-engine/src/cohezion_engine/config.py",
@@ -69,20 +45,15 @@
     "tools/cohezion-engine/tests/test_session.py",
     "tools/cohezion-engine/tests/test_worktree.py"
   ],
-  "sessions": [
-    {
-      "metadata": "/e9/d38c9e017e/0/metadata.json",
-      "transcript": "/e9/d38c9e017e/0/full.jsonl",
-      "context": "",
-      "content_hash": "/e9/d38c9e017e/0/content_hash.txt",
-      "prompt": ""
-    },
-    {
-      "metadata": "/e9/d38c9e017e/1/metadata.json",
-      "transcript": "/e9/d38c9e017e/1/full.jsonl",
-      "context": "",
-      "content_hash": "/e9/d38c9e017e/1/content_hash.txt",
-      "prompt": ""
-    }
-  ]
+  "agent": "Claude Code",
+  "turn_id": "c998b26dad2a",
+  "initial_attribution": {
+    "calculated_at": "2026-03-11T03:07:44.885305367Z",
+    "agent_lines": 2043,
+    "human_added": 7451,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 9494,
+    "agent_percentage": 21.51885401306088
+  }
 }
