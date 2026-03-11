@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "12cfa0fcddb4",
+  "session_id": "ad58968c-6eea-4dfc-b4f5-aa08e3601223",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-11T02:59:24.325603501Z",
+  "branch": "feat/compound-elegant-simplification",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "src/cohezion/compound/journey_tracker.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "fbd13c809c60",
+  "token_usage": {
+    "input_tokens": 13592,
+    "cache_creation_tokens": 2442995,
+    "cache_read_tokens": 78593489,
+    "output_tokens": 241063,
+    "api_call_count": 599
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-11T02:59:20.916921716Z",
+    "agent_lines": 0,
+    "human_added": 1418,
+    "human_modified": 1,
+    "human_removed": 0,
+    "total_committed": 1418,
+    "agent_percentage": 0
+  }
+}
