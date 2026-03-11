@@ -1,7 +1,9 @@
 {
   "cli_version": "0.4.9",
   "checkpoint_id": "f5e4af584ea4",
+  "session_id": "6a59122c-f4bd-4bb5-863f-8c9e84342bae",
   "strategy": "manual-commit",
+  "created_at": "2026-03-11T19:34:17.515755642Z",
   "branch": "challenge-luma-cqq4mojz",
   "checkpoints_count": 3,
   "files_touched": [
@@ -34,7 +36,6 @@
     "scripts/train/generate_axiomatic_dataset.py",
     "src/cohezion/agents/generated/skill_0_agent.py",
     "src/cohezion/agents/generated/skill_1_agent.py",
-    "src/cohezion/gateway/mcp_server.py",
     "src/cohezion/knowledge_graph/RESEARCH_FEED.md",
     "src/cohezion/mcp/bmad_app.py",
     "src/cohezion/mcp/manager/defaults.py",
@@ -54,7 +55,6 @@
     "src/cohezion/mcp/shared/session.py",
     "src/cohezion/mcp/skills_server.py",
     "src/cohezion/mcp/surreal_server.py",
-    "src/cohezion/research/__init__.py",
     "src/cohezion/research/security_api.py",
     "src/cohezion/skills/skill_registry.json",
     "src/cohezion/universe/advanced_components.py",
@@ -62,27 +62,22 @@
     "src/cohezion/universe/hiho_unified_engine.py",
     "test_1hour.py"
   ],
-  "sessions": [
-    {
-      "metadata": "/f5/e4af584ea4/0/metadata.json",
-      "transcript": "/f5/e4af584ea4/0/full.jsonl",
-      "context": "/f5/e4af584ea4/0/context.md",
-      "content_hash": "/f5/e4af584ea4/0/content_hash.txt",
-      "prompt": "/f5/e4af584ea4/0/prompt.txt"
-    },
-    {
-      "metadata": "/f5/e4af584ea4/1/metadata.json",
-      "transcript": "/f5/e4af584ea4/1/full.jsonl",
-      "context": "/f5/e4af584ea4/1/context.md",
-      "content_hash": "/f5/e4af584ea4/1/content_hash.txt",
-      "prompt": "/f5/e4af584ea4/1/prompt.txt"
-    }
-  ],
+  "agent": "Claude Code",
+  "turn_id": "8185f1fb7589",
   "token_usage": {
-    "input_tokens": 5363,
-    "cache_creation_tokens": 1028171,
-    "cache_read_tokens": 16294250,
-    "output_tokens": 51627,
-    "api_call_count": 135
+    "input_tokens": 325,
+    "cache_creation_tokens": 804683,
+    "cache_read_tokens": 15021696,
+    "output_tokens": 39325,
+    "api_call_count": 120
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-11T19:34:17.117395015Z",
+    "agent_lines": 1971,
+    "human_added": 294,
+    "human_modified": 1,
+    "human_removed": 0,
+    "total_committed": 2266,
+    "agent_percentage": 86.98146513680494
   }
 }
