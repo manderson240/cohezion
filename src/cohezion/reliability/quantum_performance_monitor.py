@@ -893,7 +893,7 @@ if __name__ == "__main__":
         # Simulate some metrics for testing
         import random
 
-        for i in range(50):
+        for _ in range(50):
             metric = PerformanceMetric(
                 metric_type=random.choice(list(MetricType)),
                 value=random.uniform(0, 100),

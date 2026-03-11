@@ -357,23 +357,13 @@ class PeakedCircuitSolver:
             # We need to map site i -> qubit site_to_qubit[i]
 
             candidates = []
-            for sample_tuple in raw_samples:  # sample returns (bits, prob) tuple
-                bits = sample_tuple[0]
-
-                # Construct valid bitstring
-                # bits[j] corresponds to site j. site j holds qubit site_to_qubit[j]
-
+            for bitstring in raw_samples:
+                # MPS sites are scrambled! Map site i -> qubit site_to_qubit[i]
                 ordered_bits = [""] * N
-                for site_idx, bit in enumerate(bits):
+                for site_idx, bit in enumerate(bitstring):
                     q_idx = site_to_qubit[site_idx]
-                    try:
-                        val = int(bit)
-                    except (ValueError, TypeError):
-                        val = bit
-                    ordered_bits[q_idx] = str(val)
-
-                final_bstr = "".join(ordered_bits)
-                candidates.append(final_bstr)
+                    ordered_bits[q_idx] = str(bit)
+                candidates.append("".join(ordered_bits))
 
             bitstrings = candidates
 

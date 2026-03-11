@@ -98,8 +98,10 @@ class ResilientOllamaClient:
 
                 # Normalize base URL: strip trailing slashes, /api, or /v1 to prevent doubling
                 clean_base = self.base_url.rstrip("/")
-                if clean_base.endswith("/api"): clean_base = clean_base[:-4]
-                if clean_base.endswith("/v1"): clean_base = clean_base[:-3]
+                if clean_base.endswith("/api"):
+                    clean_base = clean_base[:-4]
+                if clean_base.endswith("/v1"):
+                    clean_base = clean_base[:-3]
 
                 response = requests.post(
                     f"{clean_base}/api/chat",
@@ -115,7 +117,7 @@ class ResilientOllamaClient:
                 data = response.json()
                 content = data.get("message", {}).get("content", "")
                 tokens = data.get("eval_count", 0) + data.get("prompt_eval_count", 0)
-                
+
                 return content, tokens
 
             except Exception as e:

@@ -17,7 +17,15 @@ from cohezion.vanguard.source_connector import DiscoveryRecord
 
 logger = logging.getLogger(__name__)
 
-COMPATIBLE_LICENSES = {"mit", "apache-2.0", "cc-by", "cc-by-sa", "bsd-2-clause", "bsd-3-clause", "public-domain"}
+COMPATIBLE_LICENSES = {
+    "mit",
+    "apache-2.0",
+    "cc-by",
+    "cc-by-sa",
+    "bsd-2-clause",
+    "bsd-3-clause",
+    "public-domain",
+}
 INCOMPATIBLE_LICENSES = {"gpl-2.0", "gpl-3.0", "agpl-3.0", "proprietary", "commercial"}
 
 
@@ -63,7 +71,9 @@ class AttributionEngine:
     def __init__(self) -> None:
         self._quarantine: list[AttributedRecord] = []
 
-    def process(self, record: DiscoveryRecord, authors: list[str], license_type: str) -> AttributedRecord:
+    def process(
+        self, record: DiscoveryRecord, authors: list[str], license_type: str
+    ) -> AttributedRecord:
         """Attach attribution and determine license compliance."""
         content_hash = hashlib.sha256(record.source_url.encode()).hexdigest()[:16]
         license_lower = license_type.lower()

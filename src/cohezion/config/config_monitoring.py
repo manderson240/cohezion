@@ -36,11 +36,13 @@ class ConfigMonitor:
 
     def __init__(
         self,
-        repo_root: Path = Path.cwd(),
+        repo_root: Path | None = None,
         vault_url: str = "http://localhost:8360",
         vault_api_key: str = "",
     ):
         """Initialize config monitor."""
+        if repo_root is None:
+            repo_root = Path.cwd()
         self.repo_root = Path(repo_root)
         self.vault_url = vault_url
         self.vault_api_key = vault_api_key

@@ -106,7 +106,7 @@ class BMADEngine:
         """Get workflow content."""
         if workflow_id not in self._workflows:
             # Try to find by partial match
-            for wid, info in self._workflows.items():
+            for wid, _ in self._workflows.items():
                 if workflow_id.lower() in wid.lower():
                     workflow_id = wid
                     break
@@ -125,7 +125,7 @@ class BMADEngine:
         """Get agent content."""
         if agent_id not in self._agents:
             # Try to find by partial match
-            for aid, info in self._agents.items():
+            for aid, _ in self._agents.items():
                 if agent_id.lower() in aid.lower():
                     agent_id = aid
                     break

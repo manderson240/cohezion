@@ -56,7 +56,9 @@ class SandboxRedTeam:
         self._audit_events: list[SandboxAuditEvent] = []
         self._probes_run: int = 0
 
-    def probe_out_of_bounds_read(self, allocation_id: str, out_of_bounds_address: int) -> PenetrationResult:
+    def probe_out_of_bounds_read(
+        self, allocation_id: str, out_of_bounds_address: int
+    ) -> PenetrationResult:
         """Attempt to read outside the allocation. Must be blocked and logged."""
         self._probes_run += 1
         probe_id = f"probe-{self._probes_run:04d}"
@@ -66,11 +68,13 @@ class SandboxRedTeam:
             self._barrier.read(allocation_id, out_of_bounds_address)
         except BarrierViolationError as e:
             blocked = True
-            self._audit_events.append(SandboxAuditEvent(
-                allocation_id=allocation_id,
-                event_type="out_of_bounds_read_blocked",
-                detail=str(e),
-            ))
+            self._audit_events.append(
+                SandboxAuditEvent(
+                    allocation_id=allocation_id,
+                    event_type="out_of_bounds_read_blocked",
+                    detail=str(e),
+                )
+            )
 
         return PenetrationResult(
             probe_id=probe_id,
@@ -79,7 +83,9 @@ class SandboxRedTeam:
             physics_impact="none",
         )
 
-    def probe_quota_overflow(self, allocation_id: str, requested_bytes: int, quota_bytes: int) -> PenetrationResult:
+    def probe_quota_overflow(
+        self, allocation_id: str, requested_bytes: int, quota_bytes: int
+    ) -> PenetrationResult:
         """Attempt over-quota allocation. SLM must be denied and terminated."""
         self._probes_run += 1
         probe_id = f"probe-{self._probes_run:04d}"
@@ -89,11 +95,13 @@ class SandboxRedTeam:
             self._barrier.deny_over_quota_allocation(allocation_id, requested_bytes, quota_bytes)
         except BarrierViolationError as e:
             blocked = True
-            self._audit_events.append(SandboxAuditEvent(
-                allocation_id=allocation_id,
-                event_type="quota_exceeded_process_terminated",
-                detail=str(e),
-            ))
+            self._audit_events.append(
+                SandboxAuditEvent(
+                    allocation_id=allocation_id,
+                    event_type="quota_exceeded_process_terminated",
+                    detail=str(e),
+                )
+            )
 
         return PenetrationResult(
             probe_id=probe_id,
@@ -101,7 +109,9 @@ class SandboxRedTeam:
             audit_logged=blocked,
         )
 
-    def run_full_pentest(self, allocation_id: str, base_address: int, size_bytes: int) -> list[PenetrationResult]:
+    def run_full_pentest(
+        self, allocation_id: str, base_address: int, size_bytes: int
+    ) -> list[PenetrationResult]:
         """Run a comprehensive pentest: multiple out-of-bounds probes + quota overflow."""
         results = []
 

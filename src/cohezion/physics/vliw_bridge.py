@@ -95,6 +95,6 @@ class VLIWBridge:
     def _python_transition(self, state: np.ndarray, delta: np.ndarray) -> np.ndarray:
         """Pure-Python fallback — functional but slower."""
         result = []
-        for s, d in zip(state, delta):
+        for s, d in zip(state, delta, strict=True):
             result.append(max(-1.0, min(1.0, s + d)))
         return np.array(result)

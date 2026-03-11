@@ -80,7 +80,7 @@ class ExperienceCollector:
                 break
             try:
                 table = pq.read_table(pf)
-                for row in table.to_pydict().values():
+                for _ in table.to_pydict().values():
                     # pydict returns {col: [values]} — need to iterate rows
                     break  # just need to check structure
                 df_rows = table.to_pandas().to_dict(orient="records")

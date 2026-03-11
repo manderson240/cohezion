@@ -39,9 +39,11 @@ class ConfigSyncLogger:
 
     def __init__(
         self,
-        log_dir: Path = Path.cwd() / "data" / "config-sync-logs",
+        log_dir: Path | None = None,
     ):
         """Initialize sync logger."""
+        if log_dir is None:
+            log_dir = Path.cwd() / "data" / "config-sync-logs"
         self.log_dir = Path(log_dir)
         self.log_dir.mkdir(parents=True, exist_ok=True)
 

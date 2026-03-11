@@ -15,7 +15,7 @@ from enum import Enum
 logger = logging.getLogger(__name__)
 
 SOUL_DIM = 2048  # Full latent space
-BODY_DIM = 12    # Physical projection
+BODY_DIM = 12  # Physical projection
 
 
 class PulseMode(Enum):
@@ -129,6 +129,7 @@ class DistributedManifold:
         #   diff=0.5 → 0.500 (moderate tension, HIHO equilibrium)
         #   diff=1.0 → 0.302 (high tension, near HIHO_LOW)
         import math as _math
+
         boundary_coherence = []
         for i in range(len(self._shards) - 1):
             shard_a = self._shards[i]

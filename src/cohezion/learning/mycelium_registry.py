@@ -38,9 +38,7 @@ class SynthesizedSkill:
 
     def __post_init__(self) -> None:
         if not self.content_hash:
-            self.content_hash = hashlib.sha256(
-                self.skill_content.encode()
-            ).hexdigest()
+            self.content_hash = hashlib.sha256(self.skill_content.encode()).hexdigest()
 
 
 @dataclass
