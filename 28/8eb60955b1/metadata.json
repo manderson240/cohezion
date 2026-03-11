@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "288eb60955b1",
+  "strategy": "manual-commit",
+  "branch": "feat/compound-elegant-simplification",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "src/cohezion/agents/generated/skill_0_agent.py",
+    "src/cohezion/agents/generated/skill_1_agent.py",
+    "src/cohezion/skills/skill_registry.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/28/8eb60955b1/0/metadata.json",
+      "transcript": "/28/8eb60955b1/0/full.jsonl",
+      "context": "/28/8eb60955b1/0/context.md",
+      "content_hash": "/28/8eb60955b1/0/content_hash.txt",
+      "prompt": "/28/8eb60955b1/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 9323,
+    "cache_creation_tokens": 1862790,
+    "cache_read_tokens": 47276688,
+    "output_tokens": 132702,
+    "api_call_count": 372
+  }
+}
