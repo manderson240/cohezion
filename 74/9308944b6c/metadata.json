@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "749308944b6c",
+  "strategy": "manual-commit",
+  "branch": "feat/compound-elegant-simplification",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "src/cohezion/mcp/manager/server_manager.py",
+    "src/cohezion/resilience/strategies.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/74/9308944b6c/0/metadata.json",
+      "transcript": "/74/9308944b6c/0/full.jsonl",
+      "context": "/74/9308944b6c/0/context.md",
+      "content_hash": "/74/9308944b6c/0/content_hash.txt",
+      "prompt": "/74/9308944b6c/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 967,
+    "cache_creation_tokens": 1394811,
+    "cache_read_tokens": 11309594,
+    "output_tokens": 40044,
+    "api_call_count": 107
+  }
+}
