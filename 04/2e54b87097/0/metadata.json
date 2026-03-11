@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "042e54b87097",
+  "session_id": "6a59122c-f4bd-4bb5-863f-8c9e84342bae",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-11T19:34:31.34925534Z",
+  "branch": "challenge-luma-cqq4mojz",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".gemini_security/FINAL_SECURITY_REPORT.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "8185f1fb7589",
+  "token_usage": {
+    "input_tokens": 325,
+    "cache_creation_tokens": 804683,
+    "cache_read_tokens": 15021696,
+    "output_tokens": 39325,
+    "api_call_count": 120
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-11T19:34:30.966651992Z",
+    "agent_lines": 28,
+    "human_added": 2592,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 2620,
+    "agent_percentage": 1.0687022900763359
+  }
+}
