@@ -148,17 +148,17 @@ class VersionTelemetry:
     def _minor_versions_behind(self, current: str, latest: str) -> int:
         try:
             c = tuple(int(x) for x in current.split("."))
-            l = tuple(int(x) for x in latest.split("."))
-            if c[0] != l[0]:
+            lv = tuple(int(x) for x in latest.split("."))
+            if c[0] != lv[0]:
                 return 0  # Major version diff handled separately
-            return max(0, l[1] - c[1])
+            return max(0, lv[1] - c[1])
         except (ValueError, IndexError):
             return 0
 
     def _major_behind(self, current: str, latest: str) -> bool:
         try:
             c = int(current.split(".")[0])
-            l = int(latest.split(".")[0])
-            return l > c
+            lv = int(latest.split(".")[0])
+            return lv > c
         except (ValueError, IndexError):
             return False
