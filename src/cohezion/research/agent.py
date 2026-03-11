@@ -94,6 +94,8 @@ class ResearchAgent:
             self.circuit.record_failure()
             logger.error(f"Experiment failed, circuit breaker recorded: {e}")
             raise
+
+    def _run_experiment(
         self,
         task: Task,
         context: dict[str, Any],
