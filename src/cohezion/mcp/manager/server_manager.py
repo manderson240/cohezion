@@ -638,7 +638,8 @@ async def main():
     init_default_servers()
 
     # Create web app
-    app = web.Application()
+    from cohezion.mcp.shared.auth import api_key_middleware
+    app = web.Application(middlewares=[api_key_middleware])
     app.add_routes(routes)
 
     # Get manager and start servers
