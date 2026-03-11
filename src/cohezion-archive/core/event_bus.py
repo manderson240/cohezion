@@ -7,6 +7,7 @@ Pattern: Pub/Sub with typed events and async handlers.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import time
 from abc import ABC, abstractmethod
@@ -135,10 +136,8 @@ class EventBus:
             # Wait for queue to drain
             await self._queue.join()
             self._processor_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._processor_task
-            except asyncio.CancelledError:
-                pass
         logger.info(f"EventBus stopped. Metrics: {self._metrics}")
 
     def subscribe(

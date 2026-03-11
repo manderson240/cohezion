@@ -10,7 +10,7 @@ Implements 3-layer health assessment:
 
 import subprocess
 from datetime import datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel
 
@@ -24,7 +24,7 @@ from cohezion.platform.journey_logger import get_journey_logger
 from cohezion.platform.observable_action import get_observable_proposer
 
 
-class HealthStatus(str, Enum):
+class HealthStatus(StrEnum):
     """Health status categories."""
 
     HEALTHY = "healthy"
@@ -685,11 +685,7 @@ class DailyHealthDigest:
         if overall_score < 0.5:
             return True
 
-        for check in health_checks:
-            if check.status == HealthStatus.CRITICAL:
-                return True
-
-        return False
+        return any(check.status == HealthStatus.CRITICAL for check in health_checks)
 
     def _determine_overall_status(
         self, overall_score: float, health_checks: list[HealthCheckResult]

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 import math
+import random
 import statistics
 from dataclasses import dataclass
 from typing import Any, Callable
@@ -19,6 +20,14 @@ from cohezion.research import ResearchAgent, ResearchConfig
 
 
 logger = logging.getLogger(__name__)
+
+
+@pytest.fixture(scope="module")
+def random_seed():
+    """Fixture for reproducible random state."""
+    random.seed(42)
+    yield
+    random.seed()  # Reset after tests
 
 
 class StatisticalValidator:

@@ -219,21 +219,21 @@ class CompoundCycleReport:
 
 # Re-export all legacy symbols
 __all__ = [
-    # Enums
-    "ConstraintType",
-    "IntentType",
-    # Legacy dataclasses
-    "ExecutionConstraint",
-    "SuccessCriterion",
-    "DriftSignal",
-    "ConstraintViolation",
-    "CriterionFailure",
-    "ExecutionAlignment",
-    "HumanRequest",
+    "CompoundCycleReport",
+    "CompoundCycleResult",
     # Legacy executor
     "CompoundExecutor",
+    # Enums
+    "ConstraintType",
+    "ConstraintViolation",
+    "CriterionFailure",
+    "DriftSignal",
+    "ExecutionAlignment",
+    # Legacy dataclasses
+    "ExecutionConstraint",
     # Legacy results
     "ExecutionResult",
-    "CompoundCycleResult",
-    "CompoundCycleReport",
+    "HumanRequest",
+    "IntentType",
+    "SuccessCriterion",
 ]

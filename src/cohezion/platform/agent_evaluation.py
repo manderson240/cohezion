@@ -16,7 +16,7 @@ Constitution requirements:
 
 import uuid
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
@@ -26,7 +26,7 @@ from cohezion.platform.journey_logger import get_journey_logger
 from cohezion.platform.observable_action import get_observable_proposer
 
 
-class ViolationSeverity(str, Enum):
+class ViolationSeverity(StrEnum):
     """Constitutional violation severity levels."""
 
     CRITICAL = "critical"  # Hard constraint violation
@@ -36,7 +36,7 @@ class ViolationSeverity(str, Enum):
     NONE = "none"  # No violation
 
 
-class ConstitutionalPrinciple(str, Enum):
+class ConstitutionalPrinciple(StrEnum):
     """Core constitutional principles from January 2026 Claude Constitution."""
 
     BROADLY_SAFE = "broadly_safe"  # Human oversight, avoid undermining

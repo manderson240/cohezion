@@ -45,7 +45,7 @@ class SemanticCache:
             try:
                 self.metadata = json.loads(self.index_path.read_text())
                 raw_vectors = np.load(self.vectors_path)
-                self.vectors = [v for v in raw_vectors]
+                self.vectors = list(raw_vectors)
             except Exception:
                 # If loading fails, start fresh to avoid corruption
                 self.metadata = []

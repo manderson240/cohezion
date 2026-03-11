@@ -288,10 +288,9 @@ class OllamaModelManager:
                     if last_used is None or used_ts > last_used:
                         last_used = used_ts
 
-            if last_used and last_used < cutoff:
-                if await self.delete_model(name):
-                    deleted.append(name)
-                    logger.info(f"Cleaned up unused model: {name}")
+            if last_used and last_used < cutoff and await self.delete_model(name):
+                deleted.append(name)
+                logger.info(f"Cleaned up unused model: {name}")
 
         return deleted
 

@@ -96,7 +96,6 @@ def train(config: TrainingConfig | None = None) -> list[EpisodeResult]:
     import gymnasium as gym
 
     # Ensure environment is registered
-    import cohezion.rl.environment  # noqa: F401
 
     if config is None:
         config = TrainingConfig()

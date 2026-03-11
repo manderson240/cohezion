@@ -42,9 +42,8 @@ class HallucinationResolver:
                 "/home/" in path
                 and not path.startswith(self.ground_truth["project_root"])
                 and "mike-anderson" in path
-            ):
-                if not os.path.exists(path):
-                    issues.append(f"Referenced non-existent absolute path: {path}")
+            ) and not os.path.exists(path):
+                issues.append(f"Referenced non-existent absolute path: {path}")
 
         return {
             "is_hallucinating": len(issues) > 0,

@@ -750,7 +750,7 @@ def universe_seed(
         client = SurrealClient()
         await client.connect()
         repo = SurrealUniverseRepository(client._client)
-        service = PhysicsService(repo)
+        _service = PhysicsService(repo)
 
         # In a real impl, we'd use a dedicated UniverseService
         from cohezion.core.persistence.repositories.universe_repository import (

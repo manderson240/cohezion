@@ -339,5 +339,5 @@ class AgentAuthManager:
             "active_credentials": len(active_creds),
             "expired_credentials": len(expired_creds),
             "inactive_credentials": len(inactive_creds),
-            "agents": len(set(c.agent_id for c in self.token_cache.values())),
+            "agents": len({c.agent_id for c in self.token_cache.values()}),
         }

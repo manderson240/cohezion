@@ -17,7 +17,7 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 import psutil
@@ -26,7 +26,7 @@ import psutil
 logger = logging.getLogger(__name__)
 
 
-class RiskLevel(str, Enum):
+class RiskLevel(StrEnum):
     """Safety risk levels."""
 
     LOW = "low"
@@ -35,7 +35,7 @@ class RiskLevel(str, Enum):
     CRITICAL = "critical"
 
 
-class ViolationSeverity(str, Enum):
+class ViolationSeverity(StrEnum):
     """Violation severity levels."""
 
     WARNING = "warning"
@@ -374,10 +374,7 @@ class PreFlightChecker:
         context = request.get("context", {})
         needs_network = context.get("network_required", False)
 
-        if needs_network and not policy.network_allowed:
-            return False
-
-        return True
+        return not (needs_network and not policy.network_allowed)
 
     def _check_resource_availability(self, policy: SafetyPolicy) -> list[Violation]:
         """Check if required resources are available."""

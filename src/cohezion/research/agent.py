@@ -17,6 +17,7 @@ from typing import Any
 
 from cohezion.compound.core.executor import CompoundExecutor, ExecutionConfig
 from cohezion.compound.models import ExecutionResult, Task
+from cohezion.reliability import get_circuit  # Issue #8
 from cohezion.research.config import ExperimentResult, ResearchConfig
 
 
@@ -64,14 +65,35 @@ class ResearchAgent:
         # Create executor if not provided
         if executor is None:
             executor = CompoundExecutor(
-                execute_fn=self._run_experiment,
+                execute_fn=self._run_experiment_with_circuit_breaker,  # Issue #8
                 config=ExecutionConfig(max_retries=1),
             )
         self.executor = executor
 
+        # Circuit breaker for reliability (Issue #8)
+        self.circuit = get_circuit("research_agent", failure_threshold=5, recovery_timeout=60)
+
         logger.info(f"ResearchAgent initialized: {self.session.session_id}")
 
-    def _run_experiment(
+    def _run_experiment_with_circuit_breaker(
+        self,
+        task: Task,
+        context: dict[str, Any],
+    ) -> tuple[str, dict[str, Any]]:
+        """Run experiment with circuit breaker protection (Issue #8)."""
+        # Check if circuit is open
+        if self.circuit.is_open():
+            logger.warning("Circuit breaker open, skipping experiment")
+            return "Circuit open", {"error": "Circuit breaker open", "skipped": True}
+
+        try:
+            result = self._run_experiment(task, context)
+            self.circuit.record_success()
+            return result
+        except Exception as e:
+            self.circuit.record_failure()
+            logger.error(f"Experiment failed, circuit breaker recorded: {e}")
+            raise
         self,
         task: Task,
         context: dict[str, Any],

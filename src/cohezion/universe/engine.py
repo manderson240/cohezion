@@ -557,12 +557,12 @@ class UniverseSimulationEngine:
         placeholder_latent_vec = np.random.randn(2048).tolist()
 
         # 1. Project to Axiomatic
-        axiomatic = self._project_to_axiomatic(placeholder_latent_vec)
+        _axiomatic = self._project_to_axiomatic(placeholder_latent_vec)
 
         # 2. Rust-Optimized Quantization
         from cohezion_core.cohezion_core_rs import FlumePhysics
 
-        physics_engine = FlumePhysics(
+        _physics_engine = FlumePhysics(
             np.zeros((1, 1), dtype=np.float32),
             np.zeros(1, dtype=np.float32),
             np.zeros((1, 1), dtype=np.float32),
@@ -787,10 +787,7 @@ that would push this project into the 'Unknown'.
                 norm_q = np.linalg.norm(query_vec)
                 norm_t = np.linalg.norm(target_vec)
 
-                if norm_q == 0 or norm_t == 0:
-                    similarity = 0.0
-                else:
-                    similarity = dot_product / (norm_q * norm_t)
+                similarity = 0.0 if norm_q == 0 or norm_t == 0 else dot_product / (norm_q * norm_t)
 
                 if similarity >= threshold:
                     data["similarity_score"] = float(similarity)

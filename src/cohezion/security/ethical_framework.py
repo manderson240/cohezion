@@ -20,14 +20,14 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
 logger = logging.getLogger(__name__)
 
 
-class EthicalPrinciple(str, Enum):
+class EthicalPrinciple(StrEnum):
     """Four pillars of ethical AI agent behavior."""
 
     BENEFICENCE = "beneficence"
@@ -36,7 +36,7 @@ class EthicalPrinciple(str, Enum):
     JUSTICE = "justice"
 
 
-class RiskLevel(str, Enum):
+class RiskLevel(StrEnum):
     """Risk categorization for agent actions."""
 
     LOW = "low"

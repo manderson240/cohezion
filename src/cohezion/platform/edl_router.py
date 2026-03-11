@@ -5,7 +5,7 @@ Charter requirement: "All complex problems must route through five specialized s
 
 import asyncio
 import json
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel
 
@@ -13,7 +13,7 @@ from cohezion.platform.coherence_tracker import get_coherence_tracker
 from cohezion.swarm.compound_client import get_compound_client
 
 
-class ExpertStream(str, Enum):
+class ExpertStream(StrEnum):
     """Five expert streams per Charter."""
 
     ARCHITECT = "architect"  # Design decisions

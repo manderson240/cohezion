@@ -224,10 +224,7 @@ class QualityPredictor:
             confidence = max(0.3, 1.0 - variance)
 
             # Steps to critical (0.60)
-            if slope >= 0:
-                steps_to_critical = 999
-            else:
-                steps_to_critical = max(1, int((0.60 - predicted) / abs(slope)))
+            steps_to_critical = 999 if slope >= 0 else max(1, int((0.6 - predicted) / abs(slope)))
 
             return float(predicted), float(confidence), steps_to_critical
         except Exception as e:
@@ -502,8 +499,8 @@ class ModelQualityClassifier:
         stats = {}
         for model_name, predictor in self._predictors.items():
             if predictor.is_established():
-                coh_pred, coh_conf, steps_crit = predictor.forecast_coherence()
-                success_pred, success_conf = predictor.forecast_success_rate()
+                coh_pred, _coh_conf, _steps_crit = predictor.forecast_coherence()
+                success_pred, _success_conf = predictor.forecast_success_rate()
 
                 stats[model_name] = {
                     "num_executions": len(predictor.coherence_history),

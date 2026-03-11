@@ -338,7 +338,7 @@ class NgrokAIGateway:
         system: str = "",
         num_predict: int = 256,
     ) -> tuple[str, int]:
-        """Call local Ollama as fallback via standard chat API.
+        """Call local Ollama as fallback via standard generate API.
 
         Args:
             prompt: User prompt
@@ -351,17 +351,12 @@ class NgrokAIGateway:
         """
         for attempt in range(self.max_retries):
             try:
-                # Construct standard Ollama messages
-                messages = []
-                if system:
-                    messages.append({"role": "system", "content": system})
-                messages.append({"role": "user", "content": prompt})
-
                 response = requests.post(
-                    f"{self.fallback_ollama_url}/api/chat",
+                    f"{self.fallback_ollama_url}/api/generate",
                     json={
                         "model": model,
-                        "messages": messages,
+                        "prompt": prompt,
+                        "system": system,
                         "stream": False,
                     },
                     timeout=self.timeout,
@@ -369,8 +364,8 @@ class NgrokAIGateway:
                 response.raise_for_status()
 
                 data = response.json()
-                text = data.get("message", {}).get("content", "")
-                tokens = data.get("eval_count", 0)
+                text = data.get("response", "")
+                tokens = data.get("eval_count", 0) + data.get("prompt_eval_count", 0)
 
                 self.metrics.total_tokens += tokens
 

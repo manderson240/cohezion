@@ -335,10 +335,7 @@ async def cmd_simulate(args: argparse.Namespace) -> int:
         "systemd": SystemdRunBackend,
         "subprocess": SubprocessBackend,
     }
-    if args.backend:
-        backend = backend_map[args.backend]()
-    else:
-        backend = select_backend()
+    backend = backend_map[args.backend]() if args.backend else select_backend()
 
     backend_name = type(backend).__name__
     run_id = f"sim_{uuid4().hex[:8]}"
