@@ -19,6 +19,7 @@ from cohezion.compound.models import (
     Task,
 )
 
+
 logger = logging.getLogger(__name__)
 
 

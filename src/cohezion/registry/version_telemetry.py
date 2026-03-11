@@ -8,8 +8,9 @@ Version Coherence Collapse (< 0.3) triggers Ouroboros Version Healing (Story 7.5
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
+
 
 logger = logging.getLogger(__name__)
 

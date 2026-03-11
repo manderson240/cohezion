@@ -6,7 +6,6 @@ Based on karpathy/autoresearch patterns.
 
 from __future__ import annotations
 
-import hashlib
 import json
 import logging
 import subprocess
@@ -19,6 +18,7 @@ from typing import Any
 from cohezion.compound.core.executor import CompoundExecutor, ExecutionConfig
 from cohezion.compound.models import ExecutionResult, Task
 from cohezion.research.config import ExperimentResult, ResearchConfig
+
 
 logger = logging.getLogger(__name__)
 
@@ -126,11 +126,31 @@ class ResearchAgent:
 
         Runs autoresearch-style training for fixed duration.
         """
-        # Run training script
+        # Resolve train script relative to project root
+        project_root = Path(__file__).resolve().parent.parent.parent
+        train_script = (project_root / self.config.train_file).resolve()
+        if not str(train_script).startswith(str(project_root)):
+            raise ValueError(f"Train script outside project root: {self.config.train_file}")
+
+        # Run security guardrails if enabled
+        if self.config.enable_guardrails and train_script.exists():
+            from cohezion.research.security import CodeChange, ResearchSecurityGuardrails
+
+            guardrails = ResearchSecurityGuardrails()
+            change = CodeChange(
+                file_path=train_script,
+                old_code="",
+                new_code=train_script.read_text(),
+                change_type="modify",
+            )
+            validation = guardrails.validate_change(change)
+            if not validation.is_valid:
+                raise RuntimeError(f"Guardrail blocked execution: {validation.issues}")
+
         result = subprocess.run(
             [
                 "python",
-                "train.py",
+                str(train_script),
                 "--time_budget",
                 str(time_budget),
             ],

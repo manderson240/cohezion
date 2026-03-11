@@ -14,6 +14,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 
+
 logger = logging.getLogger(__name__)
 
 ARXIV_CATEGORIES = ["cs.LG", "cs.AI", "cs.RO", "cs.NE"]

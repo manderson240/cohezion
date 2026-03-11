@@ -6,11 +6,12 @@ and live KL Divergence for 512D→12D projection validation.
 
 from __future__ import annotations
 
-import math
 import logging
-from dataclasses import dataclass, field
+import math
+from dataclasses import dataclass
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 

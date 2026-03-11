@@ -10,10 +10,10 @@ Each tier falls back gracefully to the one below it.
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from fastapi import APIRouter
 from pydantic import BaseModel
+
 
 anima_router = APIRouter(tags=["anima"])
 logger = logging.getLogger(__name__)

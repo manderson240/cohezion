@@ -21,6 +21,7 @@ from cohezion.mcp.registry import get_registry
 from cohezion.mcp.swarm_server import get_server as get_swarm_server
 from cohezion.security.rate_limiter import get_rate_limiter
 
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -185,7 +186,6 @@ async def get_metrics():
 @app.get("/notebooks")
 async def list_notebooks():
     """List all research notebooks."""
-    import os
     from pathlib import Path
 
     notebooks_dir = Path("docs/notebooks")

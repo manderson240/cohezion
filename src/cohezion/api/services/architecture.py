@@ -9,10 +9,10 @@ from __future__ import annotations
 import ast
 import logging
 from pathlib import Path
-from typing import Any
 
 from fastapi import APIRouter
 from pydantic import BaseModel
+
 
 architecture_router = APIRouter(tags=["architecture"])
 logger = logging.getLogger(__name__)

@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
 
 
 @dataclass
@@ -46,7 +45,18 @@ class ResearchConfig:
     require_human_review: bool = False  # Set True for production
 
     def __post_init__(self):
-        """Ensure directories exist."""
+        """Ensure directories exist and validate paths."""
+        # Validate time budget bounds
+        if not (10.0 <= self.experiment_time_budget <= 86400.0):
+            raise ValueError("experiment_time_budget must be between 10s and 24h")
+
+        # Validate paths stay within data/ directory
+        for path_attr in ("experiment_log", "checkpoint_dir"):
+            path = getattr(self, path_attr)
+            resolved = Path(path).resolve()
+            if ".." in str(path):
+                raise ValueError(f"{path_attr} must not contain path traversal: {path}")
+
         self.experiment_log.parent.mkdir(parents=True, exist_ok=True)
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
