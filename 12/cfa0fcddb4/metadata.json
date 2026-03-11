@@ -3,9 +3,12 @@
   "checkpoint_id": "12cfa0fcddb4",
   "strategy": "manual-commit",
   "branch": "feat/compound-elegant-simplification",
-  "checkpoints_count": 1,
+  "checkpoints_count": 4,
   "files_touched": [
-    "src/cohezion/compound/journey_tracker.py"
+    ".claude/skills/typed-dataclass-dict-normalization/SKILL.md",
+    "src/cohezion/compound/journey_tracker.py",
+    "src/cohezion/mcp/manager/server_manager.py",
+    "src/cohezion/resilience/strategies.py"
   ],
   "sessions": [
     {
@@ -14,13 +17,20 @@
       "context": "/12/cfa0fcddb4/0/context.md",
       "content_hash": "/12/cfa0fcddb4/0/content_hash.txt",
       "prompt": "/12/cfa0fcddb4/0/prompt.txt"
+    },
+    {
+      "metadata": "/12/cfa0fcddb4/1/metadata.json",
+      "transcript": "/12/cfa0fcddb4/1/full.jsonl",
+      "context": "/12/cfa0fcddb4/1/context.md",
+      "content_hash": "/12/cfa0fcddb4/1/content_hash.txt",
+      "prompt": "/12/cfa0fcddb4/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 13592,
-    "cache_creation_tokens": 2442995,
-    "cache_read_tokens": 78593489,
-    "output_tokens": 241063,
-    "api_call_count": 599
+    "input_tokens": 14539,
+    "cache_creation_tokens": 3588951,
+    "cache_read_tokens": 89062006,
+    "output_tokens": 276613,
+    "api_call_count": 697
   }
 }
