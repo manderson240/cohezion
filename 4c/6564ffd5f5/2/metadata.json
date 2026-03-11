@@ -1,9 +1,11 @@
 {
   "cli_version": "0.4.9",
   "checkpoint_id": "4c6564ffd5f5",
+  "session_id": "f5e8f3ee-3674-4a7d-bb9b-e91e4b6ce0c5",
   "strategy": "manual-commit",
+  "created_at": "2026-03-11T11:33:23.086276164Z",
   "branch": "feat/compound-elegant-simplification",
-  "checkpoints_count": 4,
+  "checkpoints_count": 3,
   "files_touched": [
     "docs/plans/2026-03-11-deferred-research-modules.md",
     "src/cohezion/gateways/__init__.py",
@@ -25,34 +27,24 @@
     "tests/research/test_compound_integration.py",
     "tests/research/test_research_squad.py"
   ],
-  "sessions": [
-    {
-      "metadata": "/4c/6564ffd5f5/0/metadata.json",
-      "transcript": "/4c/6564ffd5f5/0/full.jsonl",
-      "context": "/4c/6564ffd5f5/0/context.md",
-      "content_hash": "/4c/6564ffd5f5/0/content_hash.txt",
-      "prompt": "/4c/6564ffd5f5/0/prompt.txt"
-    },
-    {
-      "metadata": "/4c/6564ffd5f5/1/metadata.json",
-      "transcript": "/4c/6564ffd5f5/1/full.jsonl",
-      "context": "/4c/6564ffd5f5/1/context.md",
-      "content_hash": "/4c/6564ffd5f5/1/content_hash.txt",
-      "prompt": "/4c/6564ffd5f5/1/prompt.txt"
-    },
-    {
-      "metadata": "/4c/6564ffd5f5/2/metadata.json",
-      "transcript": "/4c/6564ffd5f5/2/full.jsonl",
-      "context": "/4c/6564ffd5f5/2/context.md",
-      "content_hash": "/4c/6564ffd5f5/2/content_hash.txt",
-      "prompt": "/4c/6564ffd5f5/2/prompt.txt"
-    }
-  ],
+  "agent": "Claude Code",
+  "turn_id": "c3271ec6ce19",
+  "checkpoint_transcript_start": 310,
+  "transcript_lines_at_start": 310,
   "token_usage": {
-    "input_tokens": 25718,
-    "cache_creation_tokens": 4046895,
-    "cache_read_tokens": 123544741,
-    "output_tokens": 398272,
-    "api_call_count": 947
+    "input_tokens": 10688,
+    "cache_creation_tokens": 576117,
+    "cache_read_tokens": 11455238,
+    "output_tokens": 69064,
+    "api_call_count": 83
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-11T11:33:22.450211783Z",
+    "agent_lines": 1421,
+    "human_added": 3230,
+    "human_modified": 21,
+    "human_removed": 0,
+    "total_committed": 4671,
+    "agent_percentage": 30.42175123099979
   }
 }
