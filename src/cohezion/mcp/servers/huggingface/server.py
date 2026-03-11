@@ -19,6 +19,7 @@ from typing import Any
 
 import aiohttp
 from aiohttp import web
+from cohezion.security.credentials import get_credentials
 
 
 logging.basicConfig(
@@ -29,7 +30,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 MCP_PORT = int(os.getenv("MCP_PORT", "8365"))
-HF_API_TOKEN = os.getenv("HF_API_TOKEN", "")
+# Primary: Vault Warden, Fallback: Environment
+HF_API_TOKEN = get_credentials().get_secret("COHEZION_HF_TOKEN", env_var="HF_API_TOKEN") or ""
 HF_API_BASE = "https://huggingface.co/api"
 
 

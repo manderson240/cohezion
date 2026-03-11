@@ -22,6 +22,7 @@ from datetime import datetime
 from typing import Any
 
 from aiohttp import web
+from cohezion.security.credentials import get_credentials
 
 
 logging.basicConfig(
@@ -32,7 +33,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 MCP_PORT = int(os.getenv("MCP_PORT", "8366"))
-SURREAL_URL = os.getenv("SURREAL_URL", "ws://localhost:8000/rpc")
+# Primary: Vault Warden, Fallback: Environment
+SURREAL_URL = get_credentials().get_secret("COHEZION_SURREAL_URL", env_var="SURREAL_URL") or "ws://localhost:8000/rpc"
 
 
 @dataclass
