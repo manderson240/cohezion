@@ -8,7 +8,7 @@ description: |
   git status tracking of large uncommitted diffs (deletions from directory migrations)
   creates O(n) memory overhead that accumulates over long sessions.
 author: Claude Code
-version: 1.0.0
+version: 1.1.0
 ---
 
 # OOM Recovery — Claude Code V8 Heap Exhaustion
@@ -80,20 +80,45 @@ grep -c "wiki-link-target" cortex/MOC-relevant.md
 
 **The #1 prevention**: commit large directory migrations before starting long vault sessions.
 
-```bash
-# Before starting a long session, check working tree size
-git status --short | wc -l
+### Large Commit Protocol (50+ files)
 
-# If > 200 uncommitted changes, commit first
-git add -A  # but check what's being staged first
-git status --staged | head -20
-# Commit in logical chunks, not one giant commit
+Do NOT `git add -A` on a large diff. Use this instead:
+
+```bash
+# 1. Create feature branch
+git checkout -b bulk-migration-<name>
+
+# 2. Batch commit by directory (max ~300 files per commit)
+git add <dir1>/ <dir2>/
+git commit -m "refactor: <what>"
+git status --short | wc -l   # verify count drops
+
+# 3. Squash-merge back to target branch
+git checkout <target>
+git merge --squash bulk-migration-<name>
+git commit -m "refactor!: <full description>"
+
+# 4. Tag if architectural milestone
+git tag -a v<X.Y.Z> -m "v<X.Y.Z>: <description>"
+
+# 5. Delete feature branch (IMPORTANT: use -D not -d)
+git branch -D bulk-migration-<name>
 ```
+
+**Why `git branch -D` (uppercase)?** Squash merge creates a new commit SHA on the target branch, so git's ancestry check fails for `-d`. The content is safe — all files are in the squash commit. Use `-D` to bypass the check.
+
+**Check directories exist before staging** to avoid `git add` errors on missing paths:
+```bash
+for d in cortex prefrontal sensory; do [ -d "$d" ] && echo "OK: $d" || echo "MISSING: $d"; done
+```
+
+**Expected "noise" after commit**: `.obsidian/workspace.json` and `.vault-journal/checkpoint.json` will show as modified in `git status` immediately after commit if Obsidian is running. This is Obsidian updating its runtime state — not a problem.
 
 **Session hygiene**:
 - Commit after each major phase (migration, research batch, linking batch)
 - Don't let uncommitted changes accumulate across sessions
 - If working tree shows > 500 changes, stop and commit before continuing
+- The context monitor hook warns at 200+ uncommitted files
 
 ## Recovery Decision Tree
 

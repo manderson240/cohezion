@@ -66,6 +66,28 @@ def main() -> int:
                 pass  # Never block the hook on snapshot failure
         write_current_status(session_dir, status)
 
+    # Warn if working tree has dangerously many uncommitted changes
+    try:
+        import subprocess
+
+        git_result = subprocess.run(
+            ["git", "status", "--short"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if git_result.returncode == 0:
+            file_count = len(git_result.stdout.strip().splitlines())
+            if file_count > 200:
+                print(
+                    f"\n⚠️  LARGE DIFF: {file_count} uncommitted changes — "
+                    "commit before starting long work!\n"
+                    "   Use Large Commit Protocol: feature branch → batch → squash → semver tag",
+                    flush=True,
+                )
+    except Exception:
+        pass  # Never block the hook on git check failure
+
     if status == "CLEAR_NEEDED":
         print(
             f"\n⚠️  CONTEXT CRITICAL: {pct:.1f}% used — CLEAR_NEEDED\n"
