@@ -29,7 +29,6 @@ check_import("optuna")
 
 # Check Numba/Numpy compatibility specifically
 try:
-
     print("\n✅ Numba-Numpy linking appears stable.")
 except Exception as e:
     print(f"\n❌ Numba-Numpy linking issue: {e}")

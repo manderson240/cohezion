@@ -45,6 +45,8 @@ def _cleanup_dir(path: str) -> None:
         if mount_point.strip():
             subprocess.run(["umount", mount_point.strip()], capture_output=True)
     shutil.rmtree(path, ignore_errors=True)
+
+
 _CI_SKIP_REASON = "OverlayFS requires CAP_SYS_ADMIN — unavailable in CI containers"
 
 from cohezion.sandbox.isolation import (

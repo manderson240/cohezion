@@ -277,12 +277,15 @@ class TestErrorHandling:
                 raise Exception("Simulated HTTP error")
             return []
 
-        with patch.object(
-            sync_instance,
-            "_execute_query_async",
-            new_callable=AsyncMock,
-            side_effect=mock_execute,
-        ), patch.object(sync_instance, "_sync_paper_links"):
+        with (
+            patch.object(
+                sync_instance,
+                "_execute_query_async",
+                new_callable=AsyncMock,
+                side_effect=mock_execute,
+            ),
+            patch.object(sync_instance, "_sync_paper_links"),
+        ):
             count = await sync_instance._bulk_import_papers_parallel()
 
             # Should succeed for papers without HTTP error
@@ -295,12 +298,15 @@ class TestErrorHandling:
         async def timeout_execute(*args, **kwargs):
             raise TimeoutError("Request timeout")
 
-        with patch.object(
-            sync_instance,
-            "_execute_query_async",
-            new_callable=AsyncMock,
-            side_effect=timeout_execute,
-        ), patch.object(sync_instance, "_sync_paper_links"):
+        with (
+            patch.object(
+                sync_instance,
+                "_execute_query_async",
+                new_callable=AsyncMock,
+                side_effect=timeout_execute,
+            ),
+            patch.object(sync_instance, "_sync_paper_links"),
+        ):
             count = await sync_instance._bulk_import_papers_parallel()
 
             # All should fail due to timeout
@@ -325,12 +331,15 @@ class TestConcurrencyControl:
 
         sync_instance.max_concurrent = 3
 
-        with patch.object(
-            sync_instance,
-            "_execute_query_async",
-            new_callable=AsyncMock,
-            side_effect=mock_execute,
-        ), patch.object(sync_instance, "_sync_paper_links"):
+        with (
+            patch.object(
+                sync_instance,
+                "_execute_query_async",
+                new_callable=AsyncMock,
+                side_effect=mock_execute,
+            ),
+            patch.object(sync_instance, "_sync_paper_links"),
+        ):
             await sync_instance._bulk_import_papers_parallel()
 
             # Should never exceed max_concurrent
@@ -405,9 +414,15 @@ Content {i}
             max_concurrent=10,
         )
 
-        with patch.object(
-            sync_par, "_execute_query_async", new_callable=AsyncMock, return_value=[]
-        ), patch.object(sync_par, "_sync_paper_links"):
+        with (
+            patch.object(
+                sync_par,
+                "_execute_query_async",
+                new_callable=AsyncMock,
+                return_value=[],
+            ),
+            patch.object(sync_par, "_sync_paper_links"),
+        ):
             start = time.perf_counter()
             count_par = await sync_par._bulk_import_papers_parallel()
             time_par = time.perf_counter() - start

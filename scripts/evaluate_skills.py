@@ -8,6 +8,7 @@ import httpx
 
 logging.basicConfig(level=logging.INFO)
 
+
 async def evaluate_skill(model: str, skill_path: str, prompt: str):
     skill_content = Path(skill_path).read_text()
     system_prompt = f"You are an AI executing the following skill strictly. Follow the format and constraints requested:\n\n{skill_content}"
@@ -21,18 +22,17 @@ async def evaluate_skill(model: str, skill_path: str, prompt: str):
                     "system": system_prompt,
                     "prompt": prompt,
                     "stream": False,
-                    "options": {
-                        "temperature": 0.1
-                    }
+                    "options": {"temperature": 0.1},
                 },
-                timeout=120.0
+                timeout=120.0,
             )
             if response.status_code == 200:
                 return response.json().get("response", "")
             else:
                 return f"Error: {response.status_code} - {response.text}"
         except Exception as e:
-             return f"Exception: {e}"
+            return f"Exception: {e}"
+
 
 async def main():
     models_to_test = ["gemma3:4b", "qwen2.5-coder:7b", "phi4:latest"]
@@ -51,13 +51,17 @@ async def main():
         success_score = 0
         if "vector" in output.lower() or "encoder" in output.lower() or "latent" in output.lower():
             success_score += 0.5
-        if "binary search tree" in output.lower() or "bst" in output.lower() or "node" in output.lower():
+        if (
+            "binary search tree" in output.lower()
+            or "bst" in output.lower()
+            or "node" in output.lower()
+        ):
             success_score += 0.5
 
         print(f"Score: {success_score}")
         results[model] = {
             "score": success_score,
-            "output_preview": output[:200].replace('\n', ' ') + "..."
+            "output_preview": output[:200].replace("\n", " ") + "...",
         }
 
     print("\nEvaluation Summary:")
@@ -73,6 +77,7 @@ async def main():
             f.write(f"**Score**: {data['score']}/1.0\n\n")
             f.write(f"**Preview**:\n```text\n{data['output_preview']}\n```\n\n")
     print("Report written to src/cohezion/knowledge_graph/reports/CROSS_MODEL_EVALUATION.md")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

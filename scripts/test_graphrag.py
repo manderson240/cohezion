@@ -8,7 +8,6 @@ Tests graph-vector hybrid search:
 3. Graph traversal to show relationships
 """
 
-
 import httpx
 
 

@@ -207,7 +207,7 @@ class MCPServerManager:
             env["REDIS_URL"] = REDIS_URL
 
             # Parse entry point
-            module_path, app_name = config.entry_point.rsplit(":", 1)
+            module_path, _ = config.entry_point.rsplit(":", 1)
 
             # Start the server
             cmd = [
@@ -222,7 +222,7 @@ class MCPServerManager:
             process = subprocess.Popen(
                 cmd,
                 env=env,
-                stdout=open(log_file, "a"),
+                stdout=open(log_file, "a", encoding="utf-8"),
                 stderr=subprocess.STDOUT,
                 start_new_session=True,
             )
@@ -318,10 +318,16 @@ class MCPServerManager:
         config.last_health_check = datetime.utcnow()
 
         try:
+            # Use MCP_API_KEY for internal health checks
+            headers = {}
+            if MCP_API_KEY:
+                headers["Authorization"] = f"Bearer {MCP_API_KEY}"
+
             async with (
                 aiohttp.ClientSession() as session,
                 session.get(
                     f"http://localhost:{config.port}/health",
+                    headers=headers,
                     timeout=aiohttp.ClientTimeout(total=5),
                 ) as response,
             ):

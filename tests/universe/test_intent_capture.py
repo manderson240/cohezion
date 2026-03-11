@@ -127,10 +127,12 @@ class TestIntentCaptureMiddleware:
 
         # Two violations
         for _ in range(2):
-            capture.check(StateChangeRequest(
-                intent=None,
-                proposed_state=np.zeros(12),
-            ))
+            capture.check(
+                StateChangeRequest(
+                    intent=None,
+                    proposed_state=np.zeros(12),
+                )
+            )
 
         assert len(capture.violations) == 2
 

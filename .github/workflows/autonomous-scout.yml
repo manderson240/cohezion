@@ -42,8 +42,9 @@ jobs:
 
       - name: Build scout prompt
         id: prompt
+        env:
+          FOCUS: ${{ inputs.focus }}
         run: |
-          FOCUS="${{ inputs.focus }}"
           if [ -n "$FOCUS" ]; then
             PROMPT="Run /scout with a focus on: $FOCUS. Log all findings to vault as an experiment note. Post a summary as a comment on this issue."
           else
