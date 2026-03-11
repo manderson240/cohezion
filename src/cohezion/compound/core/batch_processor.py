@@ -92,7 +92,7 @@ class BatchProcessor:
 
         # Process results
         batch_result = BatchResult()
-        for task, result in zip(batch, results):
+        for task, result in zip(batch, results, strict=True):
             if isinstance(result, Exception):
                 batch_result.results.append(
                     ExecutionResult(

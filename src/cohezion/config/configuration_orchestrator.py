@@ -53,11 +53,13 @@ class ConfigurationOrchestrator:
 
     def __init__(
         self,
-        repo_root: Path = Path.cwd(),
+        repo_root: Path | None = None,
         vault_url: str = "http://localhost:8360",
         vault_api_key: str = "",
     ):
         """Initialize orchestrator with repo root."""
+        if repo_root is None:
+            repo_root = Path.cwd()
         self.repo_root = Path(repo_root)
         self.git_utils = GitUtils(self.repo_root)
         self.config_state = ConfigState()
@@ -180,7 +182,7 @@ class ConfigurationOrchestrator:
             try:
                 logger.debug("Checking size limits")
 
-                for filename, limit in self.size_limits.items():
+                for filename, _limit in self.size_limits.items():
                     if filename == "CLAUDE.md":
                         file_path = self.claude_md
                     else:

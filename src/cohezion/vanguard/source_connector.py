@@ -100,13 +100,15 @@ class ArXivConnector(SourceConnector):
         """Scrape ArXiv (simulated) across cs.LG, cs.AI, cs.RO, cs.NE."""
         records = []
         for category in ARXIV_CATEGORIES:
-            records.append(DiscoveryRecord(
-                title=f"Advances in {category} Research",
-                abstract=f"Abstract for {category} paper",
-                source_url=f"https://arxiv.org/abs/2026.{category.replace('.', '')}",
-                category=category,
-                source_name=self.source_name,
-            ))
+            records.append(
+                DiscoveryRecord(
+                    title=f"Advances in {category} Research",
+                    abstract=f"Abstract for {category} paper",
+                    source_url=f"https://arxiv.org/abs/2026.{category.replace('.', '')}",
+                    category=category,
+                    source_name=self.source_name,
+                )
+            )
 
         report = SourceHealthReport(source_name=self.source_name, status=SourceHealth.HEALTHY)
         return records, report

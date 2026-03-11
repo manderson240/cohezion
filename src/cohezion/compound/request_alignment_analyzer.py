@@ -910,15 +910,13 @@ class RequestAlignmentAnalyzer:
                 f"{len(request.constraints or [])} constraints, {len(request.criteria or [])} criteria"
             )
             result = (
-                f"Misalignment score: {alignment.misalignment_score:.2f} "
-                f"({len(issues)} issues)"
+                f"Misalignment score: {alignment.misalignment_score:.2f} ({len(issues)} issues)"
             )
             learnings = (
                 f"Execution aligned well with request. "
                 f"Recommendations: {', '.join(recommendations)}"
                 if alignment.misalignment_score <= 0.3
-                else f"Moderate misalignment detected. "
-                f"{len(issues)} issues, retry recommended."
+                else f"Moderate misalignment detected. {len(issues)} issues, retry recommended."
             )
 
             path = self.mcp_client.vault_log_experiment(

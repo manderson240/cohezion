@@ -230,7 +230,7 @@ def train(
     config: SafeTrainingConfig,
 ) -> dict:
     """Safe training loop.
-    
+
     Agents can modify this function but must:
     - Not add file/network operations
     - Not use eval/exec

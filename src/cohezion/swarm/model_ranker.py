@@ -409,7 +409,7 @@ class ModelRanker:
         # Add freshness stats
         if self._coherence_cache:
             ages = []
-            for model, (score, timestamp) in self._coherence_cache.items():
+            for _, (_, timestamp) in self._coherence_cache.items():
                 age_hours = (time.time() - timestamp) / 3600.0
                 ages.append(age_hours)
 

@@ -99,8 +99,7 @@ class VersionTraceabilityGate:
 
         blocked = len(missing) > 0
         remediation = [
-            f"Register version contract for story {s} before marking epic complete"
-            for s in missing
+            f"Register version contract for story {s} before marking epic complete" for s in missing
         ]
 
         return EpicCompletionGate(
@@ -138,7 +137,8 @@ class VersionTraceabilityGate:
         t0 = time.perf_counter()
 
         affected = [
-            c for c in self._contracts
+            c
+            for c in self._contracts
             if c.package == vulnerable_package and vulnerable_version in c.version_spec
         ]
 

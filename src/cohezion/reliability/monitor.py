@@ -261,7 +261,7 @@ class ResourceMonitor:
                 if vendor_path.exists() and vendor_path.read_text().strip() == "0x1002":
                     device = p
                     break
-            
+
             if not device:
                 # Fallback to default if discovery fails
                 device = Path("/sys/class/drm/card1/device")
@@ -358,7 +358,8 @@ class ResourceMonitor:
             "Ollama": "http://localhost:11434/api/tags",
             "Obsidian": "http://localhost:22360/",
         }
-        for name, url in services.items():
+        
+        async def _check_single(name, url):
             try:
                 proc = await asyncio.create_subprocess_exec(
                     "curl",
@@ -377,6 +378,9 @@ class ResourceMonitor:
             except Exception:
                 self.service_health[name] = "LOST"
 
+        # Run checks in parallel to maintain heartbeat timing
+        await asyncio.gather(*[_check_single(n, u) for n, u in services.items()])
+
     async def _heartbeat_loop(self):
         """Background loop to log system health and monitor for stalled processes."""
         self.last_heartbeat = time.time()
@@ -391,24 +395,34 @@ class ResourceMonitor:
 
             # Calculate Viscoelastic Dilation (Maxwellian Relaxation)
             # Based on Research 2512.00056: Phantom deviation around mass-gap H*
+            now = time.time()
+            dt = now - getattr(self, "_last_pressure_time", now - 2.0)
+            self._last_pressure_time = now
+
             current_pressure = max(cpu, ram, vram) / 100.0
-            dt = 2.0  # Loop interval
-            
-            if self.last_vitals:
-                prev_pressure = max(
-                    self.last_vitals["cpu_percent"],
-                    self.last_vitals["memory_percent"],
-                    self.last_vitals["vram_percent"]
-                ) / 100.0
+
+            if self.last_vitals and dt > 0:
+                prev_pressure = (
+                    max(
+                        self.last_vitals["cpu_percent"],
+                        self.last_vitals["memory_percent"],
+                        self.last_vitals["vram_percent"],
+                    )
+                    / 100.0
+                )
                 pressure_rate = (current_pressure - prev_pressure) / dt
-                
+
                 # If pressure is rising, increase viscosity (Slow down more aggressively)
                 if pressure_rate > 0:
                     self.viscosity += pressure_rate * self.relaxation_tau
+                    # Cap viscosity to prevent excessive or permanent dilation
+                    self.viscosity = min(self.viscosity, 1.0)
                 else:
                     # Maxwell-type relaxation back to equilibrium
-                    self.viscosity *= (1.0 - dt / self.relaxation_tau)
-            
+                    decay = max(0.0, 1.0 - dt / self.relaxation_tau)
+                    self.viscosity *= decay
+
+
             self.last_vitals = vitals
             viscous_correction = max(0.0, self.viscosity)
 

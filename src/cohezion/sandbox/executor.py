@@ -332,7 +332,7 @@ class SandboxExecutor:
             return container_id
         except Exception as e:
             logger.error(f"Failed to start container: {e}")
-            raise RuntimeError(f"Container creation failed: {e}")
+            raise RuntimeError(f"Container creation failed: {e}") from e
 
     def stop(self, container_id: str) -> None:
         """Stop and remove a sandbox container.

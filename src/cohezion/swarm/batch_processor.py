@@ -266,7 +266,7 @@ class BatchProcessor:
 
                 # Replicate to duplicate items
                 if key in duplicate_map:
-                    for dup_item, dup_key in duplicate_map[key]:
+                    for dup_item, _ in duplicate_map[key]:
                         dup_item.result = representative_item.result
                         dup_item.tokens_used = representative_item.tokens_used
                         dup_item.error = representative_item.error
@@ -319,7 +319,7 @@ class BatchProcessor:
         unique_misses = []
         duplicate_map = {}
 
-        for signature, items_with_keys in prompt_groups.items():
+        for _, items_with_keys in prompt_groups.items():
             if len(items_with_keys) == 1:
                 # No duplicates, just add to unique
                 unique_misses.append(items_with_keys[0])

@@ -97,7 +97,9 @@ class MemoryGraph:
         """Create new entity."""
         entity = Entity(name=name, entity_type=entity_type)
         self.entities[name] = entity
-        logger.debug("Created entity: %s (%s)", name.replace("\n", " "), entity_type.replace("\n", " "))
+        logger.debug(
+            "Created entity: %s (%s)", name.replace("\n", " "), entity_type.replace("\n", " ")
+        )
         return entity
 
     def get_entity(self, name: str) -> Entity | None:
@@ -122,7 +124,12 @@ class MemoryGraph:
             from_entity=from_entity, to_entity=to_entity, relation_type=relation_type
         )
         self.relations.append(relation)
-        logger.debug("Created relation: %s -%s-> %s", from_entity.replace("\n", " "), relation_type.replace("\n", " "), to_entity.replace("\n", " "))
+        logger.debug(
+            "Created relation: %s -%s-> %s",
+            from_entity.replace("\n", " "),
+            relation_type.replace("\n", " "),
+            to_entity.replace("\n", " "),
+        )
         return True
 
     def get_related(self, entity_name: str, relation_type: str | None = None) -> list[str]:

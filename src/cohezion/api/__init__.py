@@ -68,6 +68,7 @@ async def rate_limit_middleware(request: Request, call_next):
     response.headers["X-RateLimit-Remaining"] = str(result.remaining)
     return response
 
+
 # Static files
 static_dir = Path(__file__).parent / "static"
 if static_dir.exists():
@@ -111,8 +112,7 @@ async def list_servers():
     registry = get_registry()
     return {
         "servers": [
-            {"name": s.name, "type": s.type, "status": s.status}
-            for s in registry.list_servers()
+            {"name": s.name, "type": s.type, "status": s.status} for s in registry.list_servers()
         ]
     }
 
@@ -223,9 +223,7 @@ async def list_simulations():
     import json
     from pathlib import Path
 
-    sim_file = Path(
-        "src/cohezion/knowledge_graph/universe_nodes/physics_simulations.json"
-    )
+    sim_file = Path("src/cohezion/knowledge_graph/universe_nodes/physics_simulations.json")
     if not sim_file.exists():
         return {"simulations": []}
     data = json.loads(sim_file.read_text())
@@ -238,9 +236,7 @@ async def get_simulation(sim_id: str):
     import json
     from pathlib import Path
 
-    sim_file = Path(
-        "src/cohezion/knowledge_graph/universe_nodes/physics_simulations.json"
-    )
+    sim_file = Path("src/cohezion/knowledge_graph/universe_nodes/physics_simulations.json")
     if not sim_file.exists():
         raise HTTPException(status_code=404, detail="No simulations found")
     data = json.loads(sim_file.read_text())
@@ -479,9 +475,7 @@ async def plot_journey(journey_id: str):
             strict=False,
         )
     ):
-        ax3d.scatter(
-            [x], [y], [z], c=c, s=150, alpha=0.9, edgecolors="white", linewidths=1
-        )
+        ax3d.scatter([x], [y], [z], c=c, s=150, alpha=0.9, edgecolors="white", linewidths=1)
         ax3d.text(x, y, z, f" {i + 1}", color="white", fontsize=8)
     ax3d.set_xlabel("X", color="white")
     ax3d.set_ylabel("Y", color="white")
@@ -492,9 +486,7 @@ async def plot_journey(journey_id: str):
     # Mass & Time evolution
     ax_mass = fig.add_subplot(2, 3, 2, facecolor="#0a0a1a")
     step_nums = range(1, len(steps) + 1)
-    ax_mass.bar(
-        step_nums, physics_data["mass"], color=point_colors, alpha=0.8, label="Mass"
-    )
+    ax_mass.bar(step_nums, physics_data["mass"], color=point_colors, alpha=0.8, label="Mass")
     ax_mass.plot(step_nums, physics_data["time"], "w-o", markersize=6, label="Time")
     ax_mass.set_xlabel("Step", color="white")
     ax_mass.set_ylabel("Value", color="white")
@@ -505,9 +497,7 @@ async def plot_journey(journey_id: str):
 
     # Coherence & Stability (key metrics)
     ax_coh = fig.add_subplot(2, 3, 3, facecolor="#0a0a1a")
-    ax_coh.fill_between(
-        step_nums, physics_data["coherence"], alpha=0.3, color="#22c55e"
-    )
+    ax_coh.fill_between(step_nums, physics_data["coherence"], alpha=0.3, color="#22c55e")
     ax_coh.plot(
         step_nums,
         physics_data["coherence"],
@@ -516,12 +506,8 @@ async def plot_journey(journey_id: str):
         label="Coherence",
         linewidth=2,
     )
-    ax_coh.fill_between(
-        step_nums, physics_data["stability"], alpha=0.2, color="#818cf8"
-    )
-    ax_coh.plot(
-        step_nums, physics_data["stability"], "b-s", markersize=6, label="Stability"
-    )
+    ax_coh.fill_between(step_nums, physics_data["stability"], alpha=0.2, color="#818cf8")
+    ax_coh.plot(step_nums, physics_data["stability"], "b-s", markersize=6, label="Stability")
     ax_coh.set_xlabel("Step", color="white")
     ax_coh.set_ylabel("Value", color="white")
     ax_coh.set_title("Coherence & Stability", color="white", fontsize=10)
@@ -800,9 +786,7 @@ async def flume_status():
         try:
             all_metrics = json.loads(metrics_file.read_text())
             if all_metrics:
-                last_metrics = (
-                    all_metrics[-1] if isinstance(all_metrics, list) else all_metrics
-                )
+                last_metrics = all_metrics[-1] if isinstance(all_metrics, list) else all_metrics
         except (json.JSONDecodeError, OSError):
             pass
 
@@ -841,9 +825,7 @@ def _get_vae():
                     str(e),
                 )
         else:
-            logger.warning(
-                "No FLUME VAE checkpoint found at %s; using random weights", ckpt_path
-            )
+            logger.warning("No FLUME VAE checkpoint found at %s; using random weights", ckpt_path)
     return _vae_trainer
 
 
@@ -1106,9 +1088,7 @@ def _get_rl_policy():
         _rl_policy = PolicyNetwork(state_dim=256, action_dim=256, hidden=128)
         ckpt_path = Path("data/rl/checkpoints/policy_final.pt")
         if ckpt_path.exists():
-            _rl_policy.load_state_dict(
-                torch.load(ckpt_path, map_location="cpu", weights_only=True)
-            )
+            _rl_policy.load_state_dict(torch.load(ckpt_path, map_location="cpu", weights_only=True))
             _rl_policy.eval()
             logger.info("Loaded RL policy from %s", ckpt_path)
         else:
@@ -1266,12 +1246,8 @@ async def compare_calm_llm(journey_id: str):
     # LLM Trajectory (discrete, jagged)
     ax1 = axes[0, 0]
     ax1.set_facecolor("#0a0a1a")
-    ax1.plot(
-        llm_steps, llm_z, "r-o", markersize=12, linewidth=3, label="LLM Z-trajectory"
-    )
-    ax1.set_title(
-        "Standard LLM: Discrete Steps", color="#f97316", fontsize=12, fontweight="bold"
-    )
+    ax1.plot(llm_steps, llm_z, "r-o", markersize=12, linewidth=3, label="LLM Z-trajectory")
+    ax1.set_title("Standard LLM: Discrete Steps", color="#f97316", fontsize=12, fontweight="bold")
     ax1.set_xlabel("Step", color="white")
     ax1.set_ylabel("Z (Synthesis Progress)", color="white")
     ax1.tick_params(colors="white")
@@ -1291,9 +1267,7 @@ async def compare_calm_llm(journey_id: str):
     ax2.set_facecolor("#0a0a1a")
     ax2.plot(calm_steps, calm_z_smooth, "g-", linewidth=3, label="CALM Z-flow")
     ax2.scatter(llm_steps, llm_z, c="#22c55e", s=100, zorder=5, edgecolors="white")
-    ax2.set_title(
-        "CALM: Continuous Flow", color="#22c55e", fontsize=12, fontweight="bold"
-    )
+    ax2.set_title("CALM: Continuous Flow", color="#22c55e", fontsize=12, fontweight="bold")
     ax2.set_xlabel("Step", color="white")
     ax2.set_ylabel("Z (Synthesis Progress)", color="white")
     ax2.tick_params(colors="white")
@@ -1424,7 +1398,7 @@ async def execute_skill(skill_name: str, request: SkillExecuteRequest):
     try:
         spec = factory._resolve_spec(skill_name)
     except KeyError:
-        raise HTTPException(status_code=404, detail=f"Skill not found: {skill_name}")
+        raise HTTPException(status_code=404, detail=f"Skill not found: {skill_name}") from None
 
     class_name = f"{spec.name}Agent"
 
@@ -1588,13 +1562,9 @@ async def metrics_training():
             data = _json.loads(flume_metrics.read_text())
             flume_info = {
                 "status": "trained",
-                "epochs": len(data)
-                if isinstance(data, list)
-                else data.get("epochs", 0),
+                "epochs": len(data) if isinstance(data, list) else data.get("epochs", 0),
                 "checkpoint": str(flume_ckpt) if flume_ckpt.exists() else None,
-                "metrics": data
-                if isinstance(data, dict)
-                else {"epoch_data": data[-3:]},
+                "metrics": data if isinstance(data, dict) else {"epoch_data": data[-3:]},
             }
         except Exception:
             flume_info = {"status": "checkpoint_found", "path": str(flume_metrics)}
@@ -1609,13 +1579,9 @@ async def metrics_training():
             data = _json.loads(rl_metrics.read_text())
             rl_info = {
                 "status": "trained",
-                "episodes": len(data)
-                if isinstance(data, list)
-                else data.get("episodes", 0),
+                "episodes": len(data) if isinstance(data, list) else data.get("episodes", 0),
                 "checkpoint": str(rl_ckpt) if rl_ckpt.exists() else None,
-                "metrics": data
-                if isinstance(data, dict)
-                else {"episode_data": data[-3:]},
+                "metrics": data if isinstance(data, dict) else {"episode_data": data[-3:]},
             }
         except Exception:
             rl_info = {"status": "checkpoint_found", "path": str(rl_metrics)}
@@ -1637,9 +1603,7 @@ async def metrics_pipeline():
         PipelineStageStatus(
             stage="mass_sim_export",
             status="complete" if npy_files else "pending",
-            detail=f"{len(npy_files)} .npy files"
-            if npy_files
-            else "No .npy exports found",
+            detail=f"{len(npy_files)} .npy files" if npy_files else "No .npy exports found",
         )
     )
 
@@ -1670,16 +1634,12 @@ async def metrics_pipeline():
         PipelineStageStatus(
             stage="weight_bridge",
             status="complete" if pipeline_ran.exists() else "pending",
-            detail="Weight bridge validated"
-            if pipeline_ran.exists()
-            else "Not yet executed",
+            detail="Weight bridge validated" if pipeline_ran.exists() else "Not yet executed",
         )
     )
 
     complete = sum(1 for s in stages if s.status == "complete")
-    return PipelineStatusResponse(
-        stages=stages, complete_count=complete, total_count=len(stages)
-    )
+    return PipelineStatusResponse(stages=stages, complete_count=complete, total_count=len(stages))
 
 
 @app.get("/metrics/system", response_model=SystemMetricsResponse)
@@ -1721,9 +1681,7 @@ async def knowledge_query(request: KnowledgeQueryRequest):
 
     engine = KnowledgeGraphQueryEngine()
     results = engine.search_knowledge(request.query, top_k=request.top_k)
-    return KnowledgeQueryResponse(
-        query=request.query, results=results, count=len(results)
-    )
+    return KnowledgeQueryResponse(query=request.query, results=results, count=len(results))
 
 
 # --- Token Efficiency Metrics ---
@@ -1836,9 +1794,7 @@ async def metrics_compound():
 
     return CompoundMetricsResponse(
         total_learnings=len(learnings),
-        top_compound_scores=[
-            {"name": name, "score": score} for name, score in top_scores
-        ],
+        top_compound_scores=[{"name": name, "score": score} for name, score in top_scores],
         suggested_refinements=[
             {
                 "skill_name": r.skill_name,

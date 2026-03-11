@@ -19,6 +19,7 @@ from cohezion.reliability import get_circuit
 
 try:
     import cohezion_physics_core  # type: ignore[import-untyped]
+
     RUST_CORE_AVAILABLE = True
 except ImportError:
     RUST_CORE_AVAILABLE = False
@@ -355,20 +356,22 @@ class KordylewskiSwarmEngine:
                 # 60 degrees (L4) and -60 degrees (L5)
                 theta_l4 = np.pi / 3.0
                 theta_l5 = -np.pi / 3.0
-                
+
                 # We split the swarm: EVOs with positive helicity go to L4, negative to L5
-                helicity = evo_states[i].magnetic_helicity if (evo_states and i < len(evo_states)) else 0.0
+                helicity = (
+                    evo_states[i].magnetic_helicity if (evo_states and i < len(evo_states)) else 0.0
+                )
                 theta = theta_l4 if helicity >= 0 else theta_l5
 
                 c, s = float(np.cos(theta)), float(np.sin(theta))
-                
+
                 # Apply 2D rotation to find Lagrange point
                 L_point = np.zeros_like(v_copy)
                 L_point[0] = center_of_mass[0] - (vec_to_com[0] * c - vec_to_com[1] * s)
                 L_point[1] = center_of_mass[1] - (vec_to_com[0] * s + vec_to_com[1] * c)
                 for j in range(2, len(L_point)):
                     L_point[j] = center_of_mass[j] - vec_to_com[j]
-                
+
                 # Pull EVO gently toward its respective Lagrange point
                 pull_strength = 0.5 * dt
                 v_copy += (L_point - v_copy) * pull_strength
@@ -378,7 +381,7 @@ class KordylewskiSwarmEngine:
                     self.memory_cloud_l4.append(v_copy.copy())
                 else:
                     self.memory_cloud_l5.append(v_copy.copy())
-                    
+
             evolved_vectors.append(v_copy)
 
         # Cap memory clouds to prevent infinite growth
@@ -405,8 +408,7 @@ class PlasmaMCPEngine:
         async with httpx.AsyncClient(timeout=5.0) as client:
             try:
                 resp = await client.post(
-                    f"{self.base_url}/plasma_create_simulation",
-                    json={"grid_size": 128}
+                    f"{self.base_url}/plasma_create_simulation", json={"grid_size": 128}
                 )
                 resp.raise_for_status()
                 data = resp.json()
@@ -427,7 +429,7 @@ class PlasmaMCPEngine:
             try:
                 resp = await client.post(
                     f"{self.base_url}/plasma_step",
-                    json={"simulation_id": self.simulation_id, "steps": 1}
+                    json={"simulation_id": self.simulation_id, "steps": 1},
                 )
                 resp.raise_for_status()
                 self.circuit.record_success()
@@ -444,7 +446,7 @@ class PlasmaMCPEngine:
             try:
                 resp = await client.post(
                     f"{self.base_url}/plasma_get_exotic_objects",
-                    json={"simulation_id": self.simulation_id}
+                    json={"simulation_id": self.simulation_id},
                 )
                 resp.raise_for_status()
                 self.circuit.record_success()
@@ -512,11 +514,11 @@ class HIHOUnifiedEngine:
 
         # Profile memory usage of the Plasma MCP running alongside the 12D manifold
         import psutil  # type: ignore[import-untyped]
-        
+
         process = psutil.Process()
         mem_info = process.memory_info()
         logger.debug(
-            f"🧠 [Memory Profile] 12D Manifold + Plasma MCP | RSS: {mem_info.rss / (1024*1024):.1f}MB | "
+            f"🧠 [Memory Profile] 12D Manifold + Plasma MCP | RSS: {mem_info.rss / (1024 * 1024):.1f}MB | "
             f"System Free: {psutil.virtual_memory().available / (1024**3):.1f}GB"
         )
 

@@ -106,7 +106,7 @@ class ModelCostHistory:
         """Get costs from last N minutes."""
         now = time.time()
         cutoff = now - (minutes * 60)
-        return [cost for cost, t in zip(self.costs, self.times) if t >= cutoff]
+        return [cost for cost, t in zip(self.costs, self.times, strict=True) if t >= cutoff]
 
     def get_average_cost(self, minutes: int = 10) -> float:
         """Get average cost over last N minutes."""
@@ -124,7 +124,7 @@ class ModelCostHistory:
 
         recent_costs = []
         recent_times = []
-        for cost, t in zip(self.costs, self.times):
+        for cost, t in zip(self.costs, self.times, strict=True):
             if t >= cutoff:
                 recent_costs.append(cost)
                 recent_times.append(t)
@@ -137,7 +137,7 @@ class ModelCostHistory:
         mean_x = sum(recent_times) / n
         mean_y = sum(recent_costs) / n
 
-        numerator = sum((t - mean_x) * (c - mean_y) for t, c in zip(recent_times, recent_costs))
+        numerator = sum((t - mean_x) * (c - mean_y) for t, c in zip(recent_times, recent_costs, strict=True))
         denominator = sum((t - mean_x) ** 2 for t in recent_times)
 
         if denominator == 0:

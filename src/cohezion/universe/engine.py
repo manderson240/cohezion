@@ -185,7 +185,7 @@ class AxiomaticState:
             state_after.control,
             state_after.novelty,
         ]
-        displacement = sum((a - b) ** 2 for a, b in zip(brane_dims_before, brane_dims_after))
+        displacement = sum((a - b) ** 2 for a, b in zip(brane_dims_before, brane_dims_after, strict=True))
         return displacement**0.5
 
     @staticmethod
@@ -215,7 +215,7 @@ class AxiomaticState:
             state_after.control,
             state_after.novelty,
         ]
-        return [a - b for a, b in zip(brane_after, brane_before)]
+        return [a - b for a, b in zip(brane_after, brane_before, strict=True)]
 
     def coherence_score(self) -> float:
         """Calculate HIHO coherence with SPIN weighting (0.5 = optimal stability).
@@ -670,7 +670,7 @@ Intent: {journey.intent}
 Trajectory Steps: {len(journey.trajectory)}
 Final Coherence: {journey.final_coherence}
 
-Based on the 0.5 Coherence Rule and HIHO protocol, predict the next 'TRANSFORMATIVE' action 
+Based on the 0.5 Coherence Rule and HIHO protocol, predict the next 'TRANSFORMATIVE' action
 that would push this project into the 'Unknown'.
 """
         prediction = await LOCAL_ROUTER.route_task("reasoning", prediction_prompt)

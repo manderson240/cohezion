@@ -48,13 +48,15 @@ class AutonomicManager:
         if self._running:
             return
         self._running = True
-        
+
         # Ensure surreal connection
         try:
             await self._surreal.connect()
         except Exception as e:
-            logger.error(f"RAH: Failed to connect to SurrealDB: {e}. Decisions will not be persisted.")
-        
+            logger.error(
+                f"RAH: Failed to connect to SurrealDB: {e}. Decisions will not be persisted."
+            )
+
         self._loop_task = asyncio.create_task(self._run_loop(interval_seconds))
         logger.info("RAH: Autonomic Manager started")
 
@@ -141,17 +143,17 @@ class AutonomicManager:
         try:
             node_id = f"rah_{uuid.uuid4()}"
             content = f"RAH Decision: {strategy} | Success: {success}"
-            
+
             # Map vitals to 12D physics state for visualization
             physics = PhysicsState(
                 x=vitals.get("cpu_percent", 0) / 100.0,
                 y=vitals.get("memory_percent", 0) / 100.0,
                 z=vitals.get("vram_percent", 0) / 100.0,
                 control=1.0 if success else 0.0,
-                logic=0.9, # RAH internal logic
-                time=time.time()
+                logic=0.9 if success else 0.1, # Confidence in RAH logic
+                time=time.time(),
             )
-            
+
             node = UniverseNode(
                 id=node_id,
                 content=content,
@@ -161,10 +163,10 @@ class AutonomicManager:
                     "strategy": strategy,
                     "success": success,
                     "analysis": analysis,
-                    "vitals": vitals
-                }
+                    "vitals": vitals,
+                },
             )
-            
+
             await self._surreal.store_node(node)
             logger.debug(f"RAH: Decision persisted to SurrealDB: {node_id}")
         except Exception as e:
