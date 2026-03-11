@@ -1,11 +1,12 @@
 {
   "cli_version": "0.4.9",
   "checkpoint_id": "47345d4163e9",
+  "session_id": "d54c5cb1-cb99-4353-a6b7-b4618920ebe8",
   "strategy": "manual-commit",
+  "created_at": "2026-03-11T03:08:15.078363261Z",
   "branch": "triune-self-migration",
-  "checkpoints_count": 2,
+  "checkpoints_count": 1,
   "files_touched": [
-    "history.txt",
     "learnings/verification/verify_skill/1771220602.md",
     "missions/2026-03-05-night-council-validate-not-plan.md",
     "missions/session_12_hardening_1770737305.md",
@@ -29,27 +30,17 @@
     "research/kyutai-mcp-server-architecture.md",
     "research/kyutai-mcp-server-implementation.md",
     "research/kyutai-obsidian-plugin-architecture.md",
-    "retrospectives/2026-02-10-log-mining-retrospective.md",
-    "retrospectives/2026-02-10-phase3-session-retrospective.md",
-    "retrospectives/2026-02-10-telemetry-corruption-fix.md",
-    "retrospectives/2026-03-05-shoshin-assessment.md",
-    "retrospectives/S11_SAFE_MODE_V3.md",
-    "retrospectives/session-69-retrospective.md"
+    "retrospectives/2026-03-05-shoshin-assessment.md"
   ],
-  "sessions": [
-    {
-      "metadata": "/47/345d4163e9/0/metadata.json",
-      "transcript": "/47/345d4163e9/0/full.jsonl",
-      "context": "",
-      "content_hash": "/47/345d4163e9/0/content_hash.txt",
-      "prompt": ""
-    },
-    {
-      "metadata": "/47/345d4163e9/1/metadata.json",
-      "transcript": "/47/345d4163e9/1/full.jsonl",
-      "context": "",
-      "content_hash": "/47/345d4163e9/1/content_hash.txt",
-      "prompt": ""
-    }
-  ]
+  "agent": "Claude Code",
+  "turn_id": "c998b26dad2a",
+  "initial_attribution": {
+    "calculated_at": "2026-03-11T03:08:15.078027138Z",
+    "agent_lines": 526,
+    "human_added": 8380,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 8906,
+    "agent_percentage": 5.906130698405569
+  }
 }
