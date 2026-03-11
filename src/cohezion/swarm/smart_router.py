@@ -268,8 +268,9 @@ class SmartRouter:
         # Track model availability
         self.available_models: dict[str, ModelProfile] = {}
 
-        # Action log persistence
-        self.action_log_dir = Path("src/cohezion/knowledge_graph/universe_nodes/actions")
+        # Action log persistence — anchored to module location, not CWD
+        _module_root = Path(__file__).resolve().parent.parent
+        self.action_log_dir = _module_root / "knowledge_graph/universe_nodes/actions"
         self.action_log_dir.mkdir(parents=True, exist_ok=True)
 
     async def refresh_models(self):

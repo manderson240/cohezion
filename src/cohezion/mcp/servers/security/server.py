@@ -387,10 +387,12 @@ async def tool_scan_file(request: web.Request) -> web.Response:
         if not file_path:
             return web.json_response({"error": "filePath is required"}, status=400)
 
+        from pathlib import Path
+
         from cohezion.mcp.servers.safe_input import sanitize_path
 
         scanner = get_scanner()
-        path = sanitize_path(file_path)
+        path = sanitize_path(file_path, base_dir=Path.cwd())
         findings = scanner.scan_file(path, content)
 
         return web.json_response(
@@ -413,10 +415,12 @@ async def tool_scan_project(request: web.Request) -> web.Response:
         data = await request.json()
         project_path = data.get("projectPath", ".")
 
+        from pathlib import Path
+
         from cohezion.mcp.servers.safe_input import sanitize_path
 
         scanner = get_scanner()
-        path = sanitize_path(project_path)
+        path = sanitize_path(project_path, base_dir=Path.cwd())
 
         all_findings = []
 
@@ -496,7 +500,8 @@ async def tool_generate_report(request: web.Request) -> web.Response:
 
 def create_app() -> web.Application:
     """Create the web application."""
-    app = web.Application()
+    from cohezion.mcp.shared.auth import api_key_middleware
+    app = web.Application(middlewares=[api_key_middleware])
     app.add_routes(routes)
     return app
 

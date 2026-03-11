@@ -124,10 +124,7 @@ class SwarmGovernor:
             return None
 
         # Find highest-coherence alive agent to receive tasks
-        candidates = [
-            a for a in swarm
-            if a.agent_id != agent.agent_id and a.is_alive
-        ]
+        candidates = [a for a in swarm if a.agent_id != agent.agent_id and a.is_alive]
         if not candidates:
             return None
 

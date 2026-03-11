@@ -362,7 +362,7 @@ class PeakedCircuitSolver:
                 ordered_bits = [""] * N
                 for site_idx, bit in enumerate(bitstring):
                     q_idx = site_to_qubit[site_idx]
-                    ordered_bits[q_idx] = str(bit)
+                    ordered_bits[q_idx] = bit
                 candidates.append("".join(ordered_bits))
 
             bitstrings = candidates

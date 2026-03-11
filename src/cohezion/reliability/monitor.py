@@ -41,6 +41,7 @@ class ResourceMonitor:
         self.critical_pressure = False
         self.throttled = False
         self.desperation_active = False
+        self.pressure_mitigation_active = False  # Global flag for context pruning
         self.secondary_pids: set[int] = set()
         self.resource_coordinator = None
         self.dilation_factor = 1.0  # 1.0 = Regular speed, 0.1 = Severe Dilation

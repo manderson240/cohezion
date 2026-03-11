@@ -1,5 +1,3 @@
-
-
 # Monkey patch the builder to use N_SCAL=0
 def test_n_scal_0():
     print("Testing with N_SCAL=0 (Pure Vector)...")

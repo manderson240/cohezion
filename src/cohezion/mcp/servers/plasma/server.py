@@ -629,7 +629,8 @@ async def tool_400_year(request: web.Request) -> web.Response:
 
 async def main():
     """Run Plasma Physics MCP Server."""
-    app = web.Application()
+    from cohezion.mcp.shared.auth import api_key_middleware
+    app = web.Application(middlewares=[api_key_middleware])
     app.add_routes(routes)
 
     logger.info(f"Starting Plasma Physics MCP Server on port {MCP_PORT}")

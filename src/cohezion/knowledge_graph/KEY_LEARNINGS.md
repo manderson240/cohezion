@@ -339,3 +339,22 @@ The Restricted Three-Body Problem (Earth-Moon-Satellite) translates perfectly to
 
 ### Learning 151: Gram-Schmidt Manifold Orthogonalization
 In 12D latent spaces, simple 2D rotation for orthogonal vector calculation (e.g., `v[0], v[1] = -u[1], u[0]`) is a high-risk anti-pattern. If the semantic difference between topics lies primarily in higher dimensions (e.g., `logic`, `quantum`), the resulting vector can collapse to zero. **Correct Pattern**: Find the dimension with the minimum absolute value in the primary vector `u`, set that dimension to 1.0 in a new vector `v`, and then apply **Gram-Schmidt orthogonalization** to ensure a robust, non-zero orthogonal basis.
+
+---
+
+## Session 68: Secure-by-Default Substrate & The 360-Degree Autonomic Cycle (2026-03-10)
+
+### Learning 152: The 360-Degree Autonomic Cycle
+A complete architectural evolution loop has been achieved within a single 60-minute window: **Sensing (:00) -> Optimization (:15) -> Refinement (:30) -> Manifestation (:35) -> Verification (:40) -> Auditing (:45) -> Scouting (:50) -> Analysis (:55).** This closed loop ensures that the platform is a self-optimizing engine of growth.
+
+### Learning 153: Unified Authentication Middleware
+Platform-wide security is best enforced via a centralized middleware layer rather than per-server logic. By injecting `api_key_middleware` into the `aiohttp.Application` of all MCP servers, we establish a consistent security perimeter that rejects all unauthenticated traffic while allowing internal health checks via a shared `MCP_API_KEY`.
+
+### Learning 154: Recursive Path Sanitization (CWD-Bounding)
+Path traversal vulnerabilities in multi-agent systems are critically dangerous as agents often have broad filesystem access. The `sanitize_path` utility must be used with a strict `base_dir=Path.cwd()` bound for all tool-exposed file operations (indexing, scanning, reading). This prevents agents (or attackers hijacking them) from escaping the project workspace.
+
+### Learning 155: API Response Redaction (Secret Scrubbing)
+Management endpoints that return system status must recursively scrub environment variables. Identifying keys matching `["token", "key", "secret", "password"]` and replacing them with `***REDACTED***` prevents the accidental leakage of high-privilege credentials (e.g., `HF_TOKEN`, `GITHUB_TOKEN`) through administrative APIs.
+
+### Learning 156: CI/CD Prompt Injection Defense (HITL + Isolation)
+GitHub Action workflows that grant LLMs write access to the repository are high-value targets. Effective defense requires a multi-layered approach: 1) Explicit `system_instruction` warning the agent about injection, 2) XML-style delimiters (`<USER_INPUT>`) to segregate untrusted metadata from instructions, and 3) Environment variable passing for inputs to prevent shell command injection.

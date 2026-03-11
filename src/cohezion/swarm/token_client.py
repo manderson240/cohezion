@@ -201,7 +201,9 @@ class TokenEfficientClient:
                 fallback_ollama_url=ollama_base_url,
                 enable_failover=enable_ngrok_failover,
             )
-            logger.info(f"TokenEfficientClient using ngrok gateway: {ngrok_endpoint}")
+            from urllib.parse import urlparse
+            _safe_host = urlparse(ngrok_endpoint).netloc
+            logger.info("TokenEfficientClient using ngrok gateway host: %s", _safe_host)
         else:
             self.ollama = ResilientOllamaClient(base_url=ollama_base_url)
 
