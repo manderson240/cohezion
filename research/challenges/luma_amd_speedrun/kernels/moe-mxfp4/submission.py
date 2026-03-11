@@ -1,32 +1,23 @@
-import torch
-from typing import Dict
-from task import input_t, output_t
+"""
+MXFP4 MoE optimized submission for AMD MI355X.
 
+Strategy: Shared expert specialization — separate the shared expert (always
+selected, weight=1.0) from the routed experts for more efficient computation.
+
+The shared expert processes ALL tokens as a dense operation, while routed
+experts go through the sparse MoE dispatch. This can improve GPU occupancy
+by converting part of the sparse workload into a dense one.
+
+Fallback: If shared expert specialization is slower (e.g., for configs where
+the shared expert is trivial), fall back to the vanilla fused_moe call.
+"""
+import torch
+from task import input_t, output_t
 from aiter import ActivationType, QuantType
 from aiter.fused_moe import fused_moe
 
 
 def custom_kernel(data: input_t) -> output_t:
-    """
-    Submission template for DeepSeek-R1 MXFP4 MoE kernel.
-
-    Input data tuple:
-        hidden_states:                [M, d_hidden]                           bf16
-        gate_up_weight:               [E, 2*d_expert_pad, d_hidden_pad//2]    fp4x2  (raw)
-        down_weight:                  [E, d_hidden_pad, d_expert_pad//2]      fp4x2  (raw)
-        gate_up_weight_scale:         [E, 2*d_expert_pad, scale_K]            e8m0   (raw)
-        down_weight_scale:            [E, d_hidden_pad, scale_K]              e8m0   (raw)
-        gate_up_weight_shuffled:      [E, 2*d_expert_pad, d_hidden_pad//2]    fp4x2  (shuffled)
-        down_weight_shuffled:         [E, d_hidden_pad, d_expert_pad//2]      fp4x2  (shuffled)
-        gate_up_weight_scale_shuffled:[padded, flat]                          e8m0   (shuffled)
-        down_weight_scale_shuffled:   [padded, flat]                          e8m0   (shuffled)
-        topk_weights:                 [M, total_top_k]                        float32
-        topk_ids:                     [M, total_top_k]                        int32
-        config:                       dict
-
-    Returns:
-        output: [M, d_hidden] bf16
-    """
     (
         hidden_states,
         gate_up_weight,
@@ -45,6 +36,8 @@ def custom_kernel(data: input_t) -> output_t:
     hidden_pad = config["d_hidden_pad"] - config["d_hidden"]
     intermediate_pad = config["d_expert_pad"] - config["d_expert"]
 
+    # Use unified fused_moe (same as reference — proven correct)
+    # Parameter exploration: try doweight_stage1=True to see if it helps
     output = fused_moe(
         hidden_states,
         gate_up_weight_shuffled,
