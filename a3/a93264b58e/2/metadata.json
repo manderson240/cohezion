@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "a3a93264b58e",
+  "session_id": "ef649357-9bd2-4fbd-b024-1873c9716e95",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-09T00:53:43.912372243Z",
+  "branch": "feat/semver-400-year-physics-hiho-flume",
+  "checkpoints_count": 2,
+  "files_touched": [
+    ".pre-commit-config.yaml"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "aab9f7138e53",
+  "token_usage": {
+    "input_tokens": 1103,
+    "cache_creation_tokens": 303777,
+    "cache_read_tokens": 5358413,
+    "output_tokens": 23529,
+    "api_call_count": 45
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-09T00:53:43.678839552Z",
+    "agent_lines": 0,
+    "human_added": 0,
+    "human_modified": 251,
+    "human_removed": 13,
+    "total_committed": 9,
+    "agent_percentage": 0
+  }
+}

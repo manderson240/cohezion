@@ -1,0 +1,19 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "612059c66aaa",
+  "strategy": "manual-commit",
+  "branch": "security/hardening-clean-20260303",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".github/workflows/test.yml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/61/2059c66aaa/0/metadata.json",
+      "transcript": "/61/2059c66aaa/0/full.jsonl",
+      "context": "",
+      "content_hash": "/61/2059c66aaa/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}

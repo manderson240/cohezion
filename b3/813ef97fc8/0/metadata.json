@@ -1,0 +1,47 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "b3813ef97fc8",
+  "session_id": "79715e35-e3bd-4941-a109-da0ea278dc88",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-09T02:14:35.235297998Z",
+  "branch": "feat/semver-400-year-physics-hiho-flume",
+  "checkpoints_count": 3,
+  "files_touched": [
+    ".github/workflows/health-check.yml",
+    ".github/workflows/playwright.yml",
+    "src/cohezion/mcp/compound_unified.py",
+    "src/cohezion/mcp/knowledge_server.py",
+    "src/cohezion/mcp/manager/server_manager.py",
+    "src/cohezion/mcp/servers/git/server.py",
+    "src/cohezion/mcp/servers/memory/server.py",
+    "src/cohezion/mcp/servers/security/server.py",
+    "src/cohezion/mcp/servers/skills/cache.py",
+    "src/cohezion/mcp/servers/skills/server.py",
+    "src/cohezion/pipeline/hyperparameter_debate.py",
+    "src/cohezion/reliability/semantic_cache.py",
+    "src/cohezion/security/mcp_https_client.py",
+    "src/cohezion/simulation/glass_box_debate.py",
+    "src/cohezion/swarm/democratic_debate.py",
+    "src/cohezion/swarm/workflows/debate_protocol.py",
+    "src/cohezion/universe/sandbox.py",
+    "tests/sandbox/test_isolation.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "942858048f45",
+  "token_usage": {
+    "input_tokens": 254,
+    "cache_creation_tokens": 831653,
+    "cache_read_tokens": 30724214,
+    "output_tokens": 40472,
+    "api_call_count": 227
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-09T02:14:34.746479697Z",
+    "agent_lines": 13,
+    "human_added": 57,
+    "human_modified": 60,
+    "human_removed": 0,
+    "total_committed": 129,
+    "agent_percentage": 10.077519379844961
+  }
+}

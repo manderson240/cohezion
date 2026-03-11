@@ -1,0 +1,12 @@
+# help
+
+Read the entire task file at: {project-root}/_bmad/core/tasks/help.md
+
+Follow all instructions in the task file exactly as written.
+
+
+ARGUMENTS: How close are we to an aplha or beta or gamma release?
+
+---
+
+Proceed autonomosly with teams of specialist agents.  Focus on elegantly simple compound engineering solutions that minimize token burn and maximize context awareness.  Make sure everything is documented, linked, and indexed properly.

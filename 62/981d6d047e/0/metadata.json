@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "62981d6d047e",
+  "session_id": "e9757f90-52d1-451d-94c2-98e8642d1c44",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-04T03:28:34.387419026Z",
+  "branch": "security/hardening-review-20260303",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "_bmad/bmm/agents/code-review-assistant.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "06898514584a",
+  "token_usage": {
+    "input_tokens": 2029,
+    "cache_creation_tokens": 151882,
+    "cache_read_tokens": 1341243,
+    "output_tokens": 5262,
+    "api_call_count": 17
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-04T03:28:34.307269487Z",
+    "agent_lines": 67,
+    "human_added": 2714,
+    "human_modified": 45,
+    "human_removed": 0,
+    "total_committed": 2826,
+    "agent_percentage": 2.3708421797593773
+  }
+}

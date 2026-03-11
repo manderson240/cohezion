@@ -1,0 +1,41 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "895db38ae09e",
+  "strategy": "manual-commit",
+  "branch": "feat/semver-400-year-physics-hiho-flume",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "cloud-vault-mcp/tests/test_pocket_tts.py",
+    "cloud-vault-mcp/tests/test_sheets_research_daemon.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/89/5db38ae09e/0/metadata.json",
+      "transcript": "/89/5db38ae09e/0/full.jsonl",
+      "context": "/89/5db38ae09e/0/context.md",
+      "content_hash": "/89/5db38ae09e/0/content_hash.txt",
+      "prompt": "/89/5db38ae09e/0/prompt.txt"
+    },
+    {
+      "metadata": "/89/5db38ae09e/1/metadata.json",
+      "transcript": "/89/5db38ae09e/1/full.jsonl",
+      "context": "/89/5db38ae09e/1/context.md",
+      "content_hash": "/89/5db38ae09e/1/content_hash.txt",
+      "prompt": "/89/5db38ae09e/1/prompt.txt"
+    },
+    {
+      "metadata": "/89/5db38ae09e/2/metadata.json",
+      "transcript": "/89/5db38ae09e/2/full.jsonl",
+      "context": "/89/5db38ae09e/2/context.md",
+      "content_hash": "/89/5db38ae09e/2/content_hash.txt",
+      "prompt": "/89/5db38ae09e/2/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 3581,
+    "cache_creation_tokens": 1133977,
+    "cache_read_tokens": 47039154,
+    "output_tokens": 65953,
+    "api_call_count": 351
+  }
+}

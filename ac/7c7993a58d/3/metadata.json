@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "ac7c7993a58d",
+  "session_id": "c9a8cf6f-9b24-4ae9-b939-266dd084df9e",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-04T05:48:58.256010086Z",
+  "branch": "security/hardening-clean-20260303",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "src/cohezion/research/orchestrator.py",
+    "src/cohezion/research/swarm/base_agent.py",
+    "src/cohezion/research/vanguard/latent_bridge.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "8e6caa7e1a5a",
+  "token_usage": {
+    "input_tokens": 1489,
+    "cache_creation_tokens": 108765,
+    "cache_read_tokens": 3183838,
+    "output_tokens": 19429,
+    "api_call_count": 34
+  }
+}

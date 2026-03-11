@@ -1,0 +1,43 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "d79709e1c784",
+  "session_id": "9da42ddb-83a4-462a-b083-f0f59e1b1f36",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-04T18:46:23.890823366Z",
+  "branch": "release/v1.1.0",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "_bmad-output/implementation-artifacts/inception-labs-integration-report.md",
+    "_bmad-output/implementation-artifacts/production-scaling-plan.md",
+    "apps/webapp/src/components/CommandCenter.tsx",
+    "apps/webapp/src/components/DiffusionRenderer.tsx",
+    "pyproject.toml",
+    "scripts/benchmarks/mercury_benchmark.py",
+    "scripts/verify_inception_integration.py",
+    "src/cohezion/deployment/feature_flags.py",
+    "src/cohezion/gateway/__init__.py",
+    "src/cohezion/gateway/base_openai_adapter.py",
+    "src/cohezion/gateway/inception_adapter.py",
+    "src/cohezion/gateway/ngrok_adapter.py",
+    "src/cohezion/swarm/model_registry.py",
+    "tests/shadowscripter/generated/test_generated_abc123.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "c4e654b880fd",
+  "token_usage": {
+    "input_tokens": 13148,
+    "cache_creation_tokens": 786002,
+    "cache_read_tokens": 8176482,
+    "output_tokens": 35635,
+    "api_call_count": 71
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-04T18:46:23.41657353Z",
+    "agent_lines": 0,
+    "human_added": 233,
+    "human_modified": 800,
+    "human_removed": 0,
+    "total_committed": 245,
+    "agent_percentage": 0
+  }
+}

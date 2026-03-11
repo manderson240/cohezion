@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "ad8d2dd4c3d7",
+  "session_id": "5b14d913-2fb1-49ac-86f2-9971352ee388",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-04T12:04:49.507835031Z",
+  "branch": "security/hardening-clean-20260303",
+  "checkpoints_count": 0,
+  "files_touched": [
+    ".github/workflows/health-check.yml",
+    "README.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "6a1c35d84679",
+  "token_usage": {
+    "input_tokens": 4,
+    "cache_creation_tokens": 74435,
+    "cache_read_tokens": 147280,
+    "output_tokens": 732,
+    "api_call_count": 3
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-04T12:04:49.490875173Z",
+    "agent_lines": 215,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 215,
+    "agent_percentage": 100
+  }
+}
