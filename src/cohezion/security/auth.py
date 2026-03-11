@@ -20,7 +20,7 @@ from passlib.context import CryptContext
 logger = logging.getLogger(__name__)
 
 # Configuration
-SECRET_KEY = os.environ.get("COHEZION_SECRET_KEY", "dev-secret-change-in-production")
+SECRET_KEY = os.environ.get("COHEZION_SECRET_KEY", "dev-secret-change-in-production!!")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 

@@ -7,6 +7,7 @@ ALLOW operations based on their exit codes.
 """
 
 import logging
+import os
 import re
 import subprocess
 import time
@@ -492,10 +493,6 @@ class HookIntegration:
             "registry": self.registry.to_dict(),
             "audit_trail": [result.to_dict() for result in self.audit_trail],
         }
-
-
-# Import os for environment variable access
-import os
 
 
 def get_hook_integration(

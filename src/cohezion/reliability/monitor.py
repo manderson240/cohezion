@@ -358,7 +358,7 @@ class ResourceMonitor:
             "Ollama": "http://localhost:11434/api/tags",
             "Obsidian": "http://localhost:22360/",
         }
-        
+
         async def _check_single(name, url):
             try:
                 proc = await asyncio.create_subprocess_exec(

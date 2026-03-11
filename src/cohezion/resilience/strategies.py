@@ -102,7 +102,7 @@ class SystemRestartStrategy(HealingStrategy):
                 # Use project root derived from this file's location
                 base_dir = Path(__file__).parent.parent.parent.parent
                 script_path = base_dir / "start-mcp-servers.sh"
-                
+
                 if not script_path.exists():
                     logger.error(f"RAH: Recovery script not found at {script_path}")
                     return False
