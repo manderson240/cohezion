@@ -10,6 +10,11 @@
 
 VAULT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
+# ── Prevent parallel execution ──────────────────────────────────────────────
+LOCK_FILE="/tmp/vault-keeper-$(id -u).lock"
+exec 200>"$LOCK_FILE"
+flock -n 200 || exit 0
+
 # ── Extract tool info from stdin JSON ─────────────────────────────────────────
 stdin_json=$(cat)
 
@@ -100,14 +105,26 @@ if [[ "$tool_name" != "Read" && -f "$file_path" ]]; then
             ;;
     esac
 
-    # 3. Inbound links
-    basename_md="${file_path##*/}"
-    name="${basename_md%.md}"
-    if [[ "$name" != "_template" && "$name" != "_index" && "$name" != "MOC-"* ]]; then
-        inbound=$(grep -rl "\[\[.*${name}" "$VAULT_ROOT/cortex/" "$VAULT_ROOT/sensory/" "$VAULT_ROOT/prefrontal/" "$VAULT_ROOT/cerebellum/" "$VAULT_ROOT/motor/" 2>/dev/null | grep -v "$file_path" | wc -l)
-        if [[ "$inbound" -eq 0 ]]; then
-            alerts="${alerts}VAULT_KEEPER: new note has no inbound links — ${rel_path}\n"
+    # 3. Inbound links (expensive grep -rl — separate 5-minute cooldown)
+    LINKS_COOLDOWN_FILE="/tmp/vault-keeper-links-$(id -u).last"
+    run_links_check=true
+    if [[ -f "$LINKS_COOLDOWN_FILE" ]]; then
+        links_last=$(cat "$LINKS_COOLDOWN_FILE" 2>/dev/null)
+        links_now=$(date +%s)
+        if [[ -n "$links_last" ]] && (( links_now - links_last < 300 )); then
+            run_links_check=false
         fi
+    fi
+    if $run_links_check; then
+        basename_md="${file_path##*/}"
+        name="${basename_md%.md}"
+        if [[ "$name" != "_template" && "$name" != "_index" && "$name" != "MOC-"* ]]; then
+            inbound=$(grep -rl "\[\[.*${name}" "$VAULT_ROOT/cortex/" "$VAULT_ROOT/sensory/" "$VAULT_ROOT/prefrontal/" "$VAULT_ROOT/cerebellum/" "$VAULT_ROOT/motor/" 2>/dev/null | grep -v "$file_path" | wc -l)
+            if [[ "$inbound" -eq 0 ]]; then
+                alerts="${alerts}VAULT_KEEPER: new note has no inbound links — ${rel_path}\n"
+            fi
+        fi
+        date +%s > "$LINKS_COOLDOWN_FILE"
     fi
 
     # 4. Canvas nudge — high link density suggests visual mapping
