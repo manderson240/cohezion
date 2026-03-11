@@ -214,15 +214,25 @@ class ResearchAgent:
 
     def _log_experiment(self, exp_id: str, result: ExecutionResult) -> None:
         """Log experiment result."""
-        # Access metrics as dataclass fields, not dict
+        # Normalize metrics — handle both ExecutionMetrics objects and legacy dicts
+        m = result.metrics
+        if isinstance(m, dict):
+            metric_value = m.get("metric_value", float("inf"))
+            improved = m.get("improved", False)
+            duration_seconds = m.get("duration_seconds", 0.0)
+        else:
+            metric_value = getattr(m, "metric_value", float("inf"))
+            improved = getattr(m, "improved", False)
+            duration_seconds = m.duration_seconds
+
         exp_result = ExperimentResult(
             experiment_id=exp_id,
             timestamp=datetime.now().isoformat(),
-            metric_value=getattr(result.metrics, "metric_value", float("inf")),
+            metric_value=metric_value,
             metric_name=self.config.target_metric,
-            improved=getattr(result.metrics, "improved", False),
+            improved=improved,
             code_changes=[],  # Would track actual changes
-            duration_seconds=result.metrics.duration_seconds,
+            duration_seconds=duration_seconds,
         )
 
         # Append to experiment log
