@@ -3,7 +3,7 @@
   "checkpoint_id": "e463b451430c",
   "strategy": "manual-commit",
   "branch": "triune-self-migration",
-  "checkpoints_count": 2,
+  "checkpoints_count": 3,
   "files_touched": [
     "daily/2026-02-09-12d-graph-foundation.md",
     "daily/2026-02-09-3d-graph-plugin-installation-complete.md",
@@ -202,6 +202,13 @@
       "transcript": "/e4/63b451430c/1/full.jsonl",
       "context": "",
       "content_hash": "/e4/63b451430c/1/content_hash.txt",
+      "prompt": ""
+    },
+    {
+      "metadata": "/e4/63b451430c/2/metadata.json",
+      "transcript": "/e4/63b451430c/2/full.jsonl",
+      "context": "",
+      "content_hash": "/e4/63b451430c/2/content_hash.txt",
       "prompt": ""
     }
   ]
