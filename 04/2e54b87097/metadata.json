@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "042e54b87097",
+  "strategy": "manual-commit",
+  "branch": "challenge-luma-cqq4mojz",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".gemini_security/FINAL_SECURITY_REPORT.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/04/2e54b87097/0/metadata.json",
+      "transcript": "/04/2e54b87097/0/full.jsonl",
+      "context": "/04/2e54b87097/0/context.md",
+      "content_hash": "/04/2e54b87097/0/content_hash.txt",
+      "prompt": "/04/2e54b87097/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 325,
+    "cache_creation_tokens": 804683,
+    "cache_read_tokens": 15021696,
+    "output_tokens": 39325,
+    "api_call_count": 120
+  }
+}
