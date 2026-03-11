@@ -8,10 +8,12 @@ import os
 
 import redis.asyncio as redis
 
+from cohezion.security.credentials import get_credentials
 
 logger = logging.getLogger(__name__)
 
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+# Primary: Vault Warden, Fallback: Environment
+REDIS_URL = get_credentials().get_secret("COHEZION_REDIS_URL", env_var="REDIS_URL") or "redis://localhost:6379"
 DEFAULT_TTL = 3600  # 1 hour
 
 

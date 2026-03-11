@@ -10,29 +10,16 @@ from cohezion.research.config import (
     ExperimentResult,
     ResearchConfig,
 )
-from cohezion.research.multi_agent import (
-    MultiAgentResearchConfig,
-    MultiAgentResult,
-    ResearchSwarm,
-    SimpleMultiAgent,
-)
 from cohezion.research.security import (
     CodeChange,
     ResearchSecurityGuardrails,
     ValidationResult,
 )
-from cohezion.research.research_squad import (
-    DegradationSignal,
-    OptimizationResult,
-    ResearchSquad,
-    integrate_with_compound_system,
-)
-from cohezion.research.training import (
-    SimpleTrainingRunner,
-    TrainingExecutor,
-)
+
+__version__ = "0.2.0"
 
 
+# Lazy imports for optional components to avoid circular deps and heavy dependencies
 __all__ = [
     "CodeChange",
     "DegradationSignal",
@@ -57,7 +44,45 @@ __all__ = [
     "integrate_with_compound_system",
 ]
 
-__version__ = "0.2.0"
+
+def __getattr__(name):
+    """Lazy load components to avoid circular dependencies and heavy imports."""
+    if name in (
+        "MultiAgentResearchConfig",
+        "MultiAgentResult",
+        "ResearchSwarm",
+        "SimpleMultiAgent",
+    ):
+        from cohezion.research.multi_agent import (
+            MultiAgentResearchConfig,
+            MultiAgentResult,
+            ResearchSwarm,
+            SimpleMultiAgent,
+        )
+
+        return locals()[name]
+    elif name in (
+        "DegradationSignal",
+        "OptimizationResult",
+        "ResearchSquad",
+        "integrate_with_compound_system",
+    ):
+        from cohezion.research.research_squad import (
+            DegradationSignal,
+            OptimizationResult,
+            ResearchSquad,
+            integrate_with_compound_system,
+        )
+
+        return locals()[name]
+    elif name in ("SimpleTrainingRunner", "TrainingExecutor"):
+        from cohezion.research.training import (
+            SimpleTrainingRunner,
+            TrainingExecutor,
+        )
+
+        return locals()[name]
+    raise AttributeError(f"module 'cohezion.research' has no attribute '{name}'")
 
 
 def get_version() -> str:
