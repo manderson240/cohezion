@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "4f35ece47451",
+  "session_id": "6dca3752-2422-46d7-add9-d63e5c7fa1dc",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-11T23:43:40.165177024Z",
+  "branch": "challenge-luma-cqq4mojz",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "conductor/tracks/bootstrap_manifold_20260311/plan.md",
+    "src/cohezion/universe/triune_manifold.py",
+    "tests/universe/test_triune_manifold.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "90128ee759de",
+  "token_usage": {
+    "input_tokens": 18,
+    "cache_creation_tokens": 137258,
+    "cache_read_tokens": 540788,
+    "output_tokens": 7869,
+    "api_call_count": 10
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-11T23:43:40.093821225Z",
+    "agent_lines": 202,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 202,
+    "agent_percentage": 100
+  }
+}
