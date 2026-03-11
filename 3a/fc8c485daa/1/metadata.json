@@ -1,9 +1,11 @@
 {
   "cli_version": "0.4.9",
   "checkpoint_id": "3afc8c485daa",
+  "session_id": "a0c848aa-2c64-49fb-9e26-08eaf6861010",
   "strategy": "manual-commit",
+  "created_at": "2026-03-11T03:06:33.016751064Z",
   "branch": "triune-self-migration",
-  "checkpoints_count": 2,
+  "checkpoints_count": 1,
   "files_touched": [
     "Cohezion_KnowledgeGraph.canvas",
     "Untitled 1.canvas",
@@ -344,20 +346,15 @@
     "specs/2026-02-20-autonomous-compound-engineering-spec.md",
     "specs/2026-02-20-session-59-enhancement-roadmap.md"
   ],
-  "sessions": [
-    {
-      "metadata": "/3a/fc8c485daa/0/metadata.json",
-      "transcript": "/3a/fc8c485daa/0/full.jsonl",
-      "context": "",
-      "content_hash": "/3a/fc8c485daa/0/content_hash.txt",
-      "prompt": ""
-    },
-    {
-      "metadata": "/3a/fc8c485daa/1/metadata.json",
-      "transcript": "/3a/fc8c485daa/1/full.jsonl",
-      "context": "",
-      "content_hash": "/3a/fc8c485daa/1/content_hash.txt",
-      "prompt": ""
-    }
-  ]
+  "agent": "Claude Code",
+  "turn_id": "d38faca6c19b",
+  "initial_attribution": {
+    "calculated_at": "2026-03-11T03:06:33.0162129Z",
+    "agent_lines": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 0,
+    "agent_percentage": 0
+  }
 }
