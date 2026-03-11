@@ -103,8 +103,8 @@ class SkillEvolutionTracker:
             )
         )
 
-        additions = sum(1 for l in diff_lines if l.startswith("+") and not l.startswith("+++"))
-        removals = sum(1 for l in diff_lines if l.startswith("-") and not l.startswith("---"))
+        additions = sum(1 for ln in diff_lines if ln.startswith("+") and not ln.startswith("+++"))
+        removals = sum(1 for ln in diff_lines if ln.startswith("-") and not ln.startswith("---"))
 
         return SkillDiff(
             skill_name=before.skill_name,

@@ -246,7 +246,7 @@ class MCPServerManager:
                 logger.error("Server '%s' failed to start", sanitize_log(name))
                 return False
 
-        except Exception as e:
+        except Exception:
             logger.exception("Error starting server '%s'", sanitize_log(name))
             config.status = "failed"
             return False
@@ -286,7 +286,7 @@ class MCPServerManager:
             logger.info("Stopped server '%s'", sanitize_log(name))
             return True
 
-        except Exception as e:
+        except Exception:
             logger.exception("Error stopping server '%s'", sanitize_log(name))
             return False
 

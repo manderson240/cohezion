@@ -165,25 +165,6 @@ VaultPath = str
 
 
 @dataclass
-class SessionCheckpoint:
-    """Session checkpoint for persistence."""
-
-    session_id: str
-    timestamp: datetime
-    task: Task
-    results: list[ExecutionResult]
-    metadata: dict[str, Any] = field(default_factory=dict)
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "session_id": self.session_id,
-            "timestamp": self.timestamp.isoformat(),
-            "task": self.task.__dict__,
-            "result_count": len(self.results),
-        }
-
-
-@dataclass
 class ThermodynamicState:
     """Thermodynamic state (legacy compatibility)."""
 
