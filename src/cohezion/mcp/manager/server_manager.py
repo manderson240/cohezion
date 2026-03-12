@@ -13,7 +13,15 @@ from typing import Any
 
 import aiohttp
 
-from .models import MANAGER_PORT, PORT_RANGE, REDIS_URL, VAULT_LOG_PATH, MCPServerConfig, PortAllocator
+from .models import (
+    MANAGER_PORT,
+    PORT_RANGE,
+    REDIS_URL,
+    VAULT_LOG_PATH,
+    MCPServerConfig,
+    PortAllocator,
+)
+
 
 logging.basicConfig(
     level=logging.INFO,

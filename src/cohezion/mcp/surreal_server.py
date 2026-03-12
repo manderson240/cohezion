@@ -274,6 +274,7 @@ class SurrealMCP:
         """
         import re
         from pathlib import Path
+
         from cohezion.mcp.servers.safe_input import sanitize_path
 
         # Master Root for knowledge graph

@@ -85,8 +85,13 @@ class BMADEngine:
         try:
             workflow_paths = [
                 sanitize_path(self.data_path / module / f"{path}.md", base_dir=self.data_path),
-                sanitize_path(self.data_path / module / path / f"{path.split('/')[-1]}.md", base_dir=self.data_path),
-                sanitize_path(self.data_path / module / "workflows" / f"{path}.md", base_dir=self.data_path),
+                sanitize_path(
+                    self.data_path / module / path / f"{path.split('/')[-1]}.md",
+                    base_dir=self.data_path,
+                ),
+                sanitize_path(
+                    self.data_path / module / "workflows" / f"{path}.md", base_dir=self.data_path
+                ),
             ]
         except ValueError:
             return {"error": f"Invalid workflow path: {module}/{path}"}

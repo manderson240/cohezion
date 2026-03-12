@@ -18,8 +18,12 @@ async def tool_bmad_gds_create_game_brief(request: web.Request) -> web.Response:
                 "genre": data.get("genre"),
                 "message": "Game design brief template created",
                 "brief_sections": [
-                    "Game Concept", "Target Audience", "Core Mechanics",
-                    "Art Style", "Platform Requirements", "Monetization Strategy",
+                    "Game Concept",
+                    "Target Audience",
+                    "Core Mechanics",
+                    "Art Style",
+                    "Platform Requirements",
+                    "Monetization Strategy",
                 ],
             }
         )
@@ -40,8 +44,12 @@ async def tool_bmad_gds_game_architecture(request: web.Request) -> web.Response:
                 "multiplayer": data.get("multiplayer", False),
                 "message": "Game architecture guidance provided",
                 "systems": [
-                    "Input System", "Physics System", "Rendering System",
-                    "Audio System", "Game State Management", "Save/Load System",
+                    "Input System",
+                    "Physics System",
+                    "Rendering System",
+                    "Audio System",
+                    "Game State Management",
+                    "Save/Load System",
                 ],
             }
         )
@@ -60,8 +68,11 @@ async def tool_bmad_gds_playtest_session(request: web.Request) -> web.Response:
                 "game_build": data.get("game_build", "v0.1.0"),
                 "format": "Structured playtest",
                 "checklist": [
-                    "Tutorial clear?", "Core loop engaging?", "Progression satisfying?",
-                    "No blocking bugs", "Performance acceptable",
+                    "Tutorial clear?",
+                    "Core loop engaging?",
+                    "Progression satisfying?",
+                    "No blocking bugs",
+                    "Performance acceptable",
                 ],
                 "feedback_categories": ["Gameplay", "Controls", "Visuals", "Audio", "Bugs"],
                 "deliverable": "Playtest report with prioritized issues",
@@ -81,8 +92,10 @@ async def tool_bmad_gds_level_design(request: web.Request) -> web.Response:
                 "tool": "bmad_gds_level_design",
                 "level_name": data.get("level_name", "Level 1"),
                 "design_principles": [
-                    "Teach then test", "Clear visual language",
-                    "Reward exploration", "Pacing variety",
+                    "Teach then test",
+                    "Clear visual language",
+                    "Reward exploration",
+                    "Pacing variety",
                 ],
                 "sections": [
                     {"name": "Introduction", "purpose": "Teach basic mechanics"},
@@ -152,7 +165,11 @@ async def tool_bmad_gds_narrative_design(request: web.Request) -> web.Response:
                 "tool": "bmad_gds_narrative_design",
                 "genre": data.get("genre", "RPG"),
                 "story_structure": [
-                    "Setup", "Inciting Incident", "Rising Action", "Climax", "Resolution",
+                    "Setup",
+                    "Inciting Incident",
+                    "Rising Action",
+                    "Climax",
+                    "Resolution",
                 ],
                 "character_archetypes": ["Hero", "Mentor", "Ally", "Villain", "Comic Relief"],
                 "narrative_delivery": ["Cutscenes", "Environmental", "Audio logs", "NPC dialogue"],
@@ -239,11 +256,16 @@ async def tool_bmad_gds_procedural_generation(request: web.Request) -> web.Respo
                 "tool": "bmad_gds_procedural_generation",
                 "content_type": data.get("content_type", "levels"),
                 "algorithms": [
-                    "Perlin noise", "L-systems", "Wave Function Collapse", "Cellular automata",
+                    "Perlin noise",
+                    "L-systems",
+                    "Wave Function Collapse",
+                    "Cellular automata",
                 ],
                 "considerations": [
-                    "Maintain design intent", "Ensure playability",
-                    "Balance randomness", "Allow manual override",
+                    "Maintain design intent",
+                    "Ensure playability",
+                    "Balance randomness",
+                    "Allow manual override",
                 ],
             }
         )

@@ -27,6 +27,7 @@ from aiohttp import web
 
 from .scanner import SecurityChecklist, Vulnerability, build_severity_report
 
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -427,6 +428,7 @@ async def tool_generate_report(request: web.Request) -> web.Response:
 def create_app() -> web.Application:
     """Create the web application."""
     from cohezion.mcp.shared.auth import api_key_middleware
+
     app = web.Application(middlewares=[api_key_middleware])
     app.add_routes(routes)
     return app

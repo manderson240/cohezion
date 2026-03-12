@@ -116,8 +116,10 @@ async def tool_bmad_bmb_customize_agent(request: web.Request) -> web.Response:
                 "new_agent_name": f"{base_agent}-custom",
                 "location": f"_bmad/custom/agents/{base_agent}-custom.md",
                 "template_sections": [
-                    "Personality adjustments", "Additional capabilities",
-                    "Modified behavior", "Custom responses",
+                    "Personality adjustments",
+                    "Additional capabilities",
+                    "Modified behavior",
+                    "Custom responses",
                 ],
             }
         )
@@ -143,7 +145,9 @@ async def tool_bmad_bmb_import_workflow(request: web.Request) -> web.Response:
                     "5. Save to _bmad/",
                 ],
                 "adaptations": [
-                    "Convert to BMAD style", "Add agent references", "Include success criteria",
+                    "Convert to BMAD style",
+                    "Add agent references",
+                    "Include success criteria",
                 ],
             }
         )

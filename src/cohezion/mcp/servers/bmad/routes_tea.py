@@ -89,8 +89,11 @@ async def tool_bmad_tea_security_testing(request: web.Request) -> web.Response:
                 "test_types": [
                     {"type": "SAST", "tools": ["SonarQube", "Bandit"], "when": "CI/CD"},
                     {"type": "DAST", "tools": ["OWASP ZAP", "Burp Suite"], "when": "Staging"},
-                    {"type": "Penetration", "tools": ["Metasploit", "Custom scripts"],
-                     "when": "Pre-release"},
+                    {
+                        "type": "Penetration",
+                        "tools": ["Metasploit", "Custom scripts"],
+                        "when": "Pre-release",
+                    },
                     {"type": "Dependency", "tools": ["Snyk", "Dependabot"], "when": "Always"},
                 ],
                 "owasp_top_10": True,
@@ -111,8 +114,10 @@ async def tool_bmad_tea_accessibility_testing(request: web.Request) -> web.Respo
                 "standard": data.get("standard", "WCAG 2.1 AA"),
                 "automated_tools": ["axe", "Lighthouse", "WAVE"],
                 "manual_checks": [
-                    "Keyboard navigation", "Screen reader compatibility",
-                    "Color contrast", "Focus indicators",
+                    "Keyboard navigation",
+                    "Screen reader compatibility",
+                    "Color contrast",
+                    "Focus indicators",
                 ],
                 "standards": ["WCAG 2.1 A", "WCAG 2.1 AA", "WCAG 2.1 AAA", "Section 508"],
             }
