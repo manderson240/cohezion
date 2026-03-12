@@ -21,8 +21,27 @@ Sarfatti presents regularly at APEC (Alternative Propulsion Engineering Conferen
 
 - *Super Cosmos* (2005) -- overview of post-quantum mechanics and its implications
 - *Destiny Matrix* (2002) -- retrocausal formulation with history/destiny waves
-- Papers on signal nonlocality and metamaterial warp drive (APEC proceedings, 2020-2025)
-- Contributions to the Bohm-Aharonov effect and gauge theory extensions
+- "Progress in Post-Quantum Mechanics" -- APEC conference presentations (2020-2025), covering signal nonlocality, metamaterial warp drive, and Fröhlich condensate consciousness
+- "The Post-Quantum Mechanics of Conscious Artificial Intelligence" (2023) -- connecting post-quantum back-reaction to AI consciousness
+- Work on the Bohm-Aharonov effect (with Y. Aharonov) and Poincaré gauge theory extensions to Einstein-Cartan gravity
+
+## Core Principles
+
+### Back-Reaction — The Core Innovation
+
+In orthodox Bohm pilot wave theory, the wave function ψ guides the particle via the quantum potential Q, but the particle has no effect on ψ. This is a one-way street: wave → particle. Sarfatti's central move is to close the loop: the particle modifies the wave that guides it. This **back-reaction** transforms quantum mechanics from a one-way broadcast into a bidirectional feedback system. The analogy to General Relativity is deliberate — Einstein closed the same loop for geometry (matter tells spacetime how to curve; spacetime tells matter how to move).
+
+### Signal Nonlocality — The Consequence
+
+Orthodox QM's no-signaling theorem depends on quantum equilibrium (Born's rule holding exactly). Back-reaction breaks this equilibrium, opening a channel for **signal nonlocality**: entangled particles can exchange usable information, not merely exhibit correlations. This is the most radical prediction of the framework — it violates a theorem most physicists consider fundamental.
+
+### Retrocausality — History and Destiny Waves
+
+Extending Cramer's transactional interpretation, Sarfatti treats every quantum event as shaped by two conjugate waves: a **history wave** (ψ_H, propagating from past boundary conditions) and a **destiny wave** (ψ_D, propagating from future boundary conditions). Physical reality is the interference pattern of both. Causation runs in both temporal directions.
+
+### Fröhlich Condensate — Post-Quantum Consciousness
+
+Herbert Fröhlich proposed that metabolic energy in biological tissue can pump vibrational modes into a single macroscopic quantum state — a **Fröhlich condensate**. Sarfatti identifies this as the physical substrate of consciousness: when enough modes phase-lock, back-reaction becomes significant, the system leaves quantum equilibrium, and a post-quantum regime emerges. Consciousness is neither classical nor quantum — it is post-quantum.
 
 ---
 
@@ -53,6 +72,8 @@ Connection: [[quantum-mechanics]] (wave function formalism)
 
 Sarfatti works within the [[quantum-field-theory|Standard Model]]'s parameter space but extends it. The back-reaction coupling constant -- the strength with which the particle modifies its guiding wave -- is a new parameter absent from orthodox QM. The post-quantum framework adds at least one new degree of freedom to the specification space: the back-reaction amplitude.
 
+**Honesty note:** This is the weakest step in the mapping. Sarfatti does not independently derive the 12-parameter structure -- he inherits it wholesale from the Standard Model. His extension is parametric (adding coupling constants to an existing framework), not structural (deriving why 12 parameters). Compare the indigenous mappings where Step 3 emerges from the tradition's own combinatorics (Yoruba: 256 Odù = 8-bit; Lakota: 16 aspects = 2⁴).
+
 ### Step 4: Interaction Layers (4 Fabrics) -- Poincare Gauge Theory with Torsion
 
 Sarfatti's gauge theory elevates [[general-relativity|General Relativity]] from Einstein-Cartan to full Poincare gauge theory. This adds **torsion** as an independent geometric quantity alongside curvature. The four forces remain (gravitational, electromagnetic, strong, weak), but spacetime itself gains a "twist" fabric sourced by quantum spin density. Torsion is the fifth geometric degree of freedom that standard GR ignores.
@@ -61,7 +82,7 @@ Sarfatti's gauge theory elevates [[general-relativity|General Relativity]] from 
 
 Phase coherence at macroscopic scale is Sarfatti's mechanism for consciousness. He invokes the **Froehlich condensate** -- a Bose-Einstein-like coherent state in biological systems where metabolic energy pumps vibrational modes into a single coherent phase. When enough modes phase-lock, the system crosses from quantum to post-quantum: phase coherence becomes the carrier of conscious experience.
 
-This maps directly to Step 5: the imaginary unit enables interference, and sustained interference at biological scale enables the post-quantum regime.
+The connection to √(-1) is structural, not metaphorical. In Bohm's formulation, the pilot wave is written ψ = R·e^{iS/ℏ}, where R is the amplitude and S is the phase. The quantum potential Q = -ℏ²∇²R/2mR comes from R, but the velocity field v = ∇S/m comes from S -- the phase. Back-reaction on S is back-reaction on the phase, which is √(-1) in action. The Fröhlich condensate sustains this phase coherence at biological scale, enabling the post-quantum regime.
 
 ### Step 6: Symmetry Breaking -- Quantum Equilibrium to Non-Equilibrium
 
@@ -97,8 +118,8 @@ Signal nonlocality is COHESION: a binding force that operates at arbitrary dista
 
 Sarfatti's framework precipitates into two concrete witnesses:
 
-1. **Metamaterial warp drive**: a physical craft whose hull is engineered to couple to the vacuum metric, creating a local warp bubble. The craft IS the witness plate -- a permanent physical structure that embodies the post-quantum coupling.
-2. **Consciousness as witness**: conscious experience is the permanent record of post-quantum coherence. The Froehlich condensate in biological tissue IS the system that registers reality having crossed the HIHO threshold.
+1. **Metamaterial warp drive**: a physical craft whose hull is engineered to couple to the vacuum metric, creating a local warp bubble. The craft IS the witness plate -- a permanent physical structure that embodies the post-quantum coupling. **Caveat:** This is a predicted witness, not a demonstrated one -- no such craft has been built. The indigenous notes' witness marks (petroglyphs, wampum, tā moko) are all existing artifacts.
+2. **Consciousness as witness**: conscious experience is the permanent record of post-quantum coherence. The Froehlich condensate in biological tissue IS the system that registers reality having crossed the HIHO threshold. This is the more immediate witness claim, though harder to verify instrumentally.
 
 Connection: [[self-organizing-plasma]] (metamaterial vacuum engineering connects to plasma self-organization), [[apec-biefeld-brown-electrogravitics]] (APEC propulsion research context)
 
