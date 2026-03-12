@@ -14,7 +14,8 @@ class HFEmbeddingBridge:
     def __init__(
         self, 
         model_name: str = "all-MiniLM-L6-v2",
-        target_dim: int | None = None
+        target_dim: int | None = None,
+        seed: int = 42
     ):
         """
         Initializes the bridge with a sentence-transformer model.
@@ -22,6 +23,7 @@ class HFEmbeddingBridge:
         Args:
             model_name: The name of the model on HF Hub.
             target_dim: Optional dimension to project the embeddings to.
+            seed: Random seed for projection layer initialization.
         """
         self.model_name = model_name
         self.target_dim = target_dim
@@ -34,15 +36,12 @@ class HFEmbeddingBridge:
             
             # If target_dim is provided and different from model dim, 
             # we initialize a projection layer.
-            # Note: In a real scenario, this would be trained or loaded.
-            # For the scaffold, we create a deterministic projection if needed.
             if target_dim:
                 model_dim = self.model.get_sentence_embedding_dimension()
                 if model_dim != target_dim:
                     self._projection = nn.Linear(model_dim, target_dim)
-                    # For stability in testing/prototyping, we can freeze this 
-                    # or use a fixed seed if it's untrained.
-                    torch.manual_seed(42)
+                    # Use provided seed for stable orthogonal init
+                    torch.manual_seed(seed)
                     nn.init.orthogonal_(self._projection.weight)
                     
         except ImportError:
