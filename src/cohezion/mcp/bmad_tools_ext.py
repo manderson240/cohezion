@@ -28,8 +28,12 @@ async def bmad_cis_brainstorming(
     workflow = engine.load_workflow("cis", "workflows/brainstorming")
     session = await engine.execute_workflow(
         workflow,
-        {"topic": topic, "participants": participants, "timebox_minutes": timebox_minutes,
-         "techniques": techniques or ["mind-mapping", "rapid-ideation"]},
+        {
+            "topic": topic,
+            "participants": participants,
+            "timebox_minutes": timebox_minutes,
+            "techniques": techniques or ["mind-mapping", "rapid-ideation"],
+        },
         session_id,
     )
     return {
@@ -58,8 +62,11 @@ async def bmad_tea_test_design(
     workflow = engine.load_workflow("tea", "testarch/test-design")
     tests = await engine.execute_workflow(
         workflow,
-        {"feature_description": feature_description, "risk_level": risk_level,
-         "test_types": test_types or ["unit", "integration"]},
+        {
+            "feature_description": feature_description,
+            "risk_level": risk_level,
+            "test_types": test_types or ["unit", "integration"],
+        },
         session_id,
     )
     return {
@@ -90,8 +97,12 @@ async def bmad_bmb_create_agent(
     workflow = engine.load_workflow("bmb", "workflows/create-agent")
     agent = await engine.execute_workflow(
         workflow,
-        {"agent_name": agent_name, "role": role, "capabilities": capabilities,
-         "communication_style": communication_style},
+        {
+            "agent_name": agent_name,
+            "role": role,
+            "capabilities": capabilities,
+            "communication_style": communication_style,
+        },
         session_id,
     )
     return {
@@ -178,7 +189,8 @@ async def bmad_index_docs(
     """
     engine = get_engine()
     result = await engine.index_project(
-        project_path, include_patterns or ["*.md", "*.py", "*.js", "*.ts", "*.json"],
+        project_path,
+        include_patterns or ["*.md", "*.py", "*.js", "*.ts", "*.json"],
     )
     return {
         "indexing_result": result,

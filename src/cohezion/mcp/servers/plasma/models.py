@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+
 MCP_PORT = int(os.getenv("MCP_PORT", "8371"))
 
 

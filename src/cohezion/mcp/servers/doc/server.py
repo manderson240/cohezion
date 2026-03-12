@@ -214,6 +214,7 @@ async def tool_get_stats(request: web.Request) -> web.Response:
 def create_app() -> web.Application:
     """Create the web application."""
     from cohezion.mcp.shared.auth import api_key_middleware
+
     app = web.Application(middlewares=[api_key_middleware])
     app.add_routes(routes)
     return app

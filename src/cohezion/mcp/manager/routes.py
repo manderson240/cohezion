@@ -12,6 +12,7 @@ from .defaults import init_default_servers
 from .models import MANAGER_PORT
 from .server_manager import get_manager
 
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",

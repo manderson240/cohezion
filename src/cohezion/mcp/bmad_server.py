@@ -18,11 +18,10 @@ from __future__ import annotations
 import json
 import os
 
-from cohezion.mcp.bmad_app import app, get_engine, logger, REDIS_URL, BMAD_DATA_PATH
-
 # Import tool modules to register @app.tool() decorators
-import cohezion.mcp.bmad_tools  # noqa: F401
+import cohezion.mcp.bmad_tools
 import cohezion.mcp.bmad_tools_ext  # noqa: F401
+from cohezion.mcp.bmad_app import BMAD_DATA_PATH, REDIS_URL, app, get_engine, logger
 
 
 # ============================================================================

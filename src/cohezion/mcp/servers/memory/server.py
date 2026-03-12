@@ -22,6 +22,7 @@ from datetime import datetime
 from typing import Any
 
 from aiohttp import web
+
 from cohezion.security.credentials import get_credentials
 
 
@@ -34,7 +35,10 @@ logger = logging.getLogger(__name__)
 
 MCP_PORT = int(os.getenv("MCP_PORT", "8366"))
 # Primary: Vault Warden, Fallback: Environment
-SURREAL_URL = get_credentials().get_secret("COHEZION_SURREAL_URL", env_var="SURREAL_URL") or "ws://localhost:8000/rpc"
+SURREAL_URL = (
+    get_credentials().get_secret("COHEZION_SURREAL_URL", env_var="SURREAL_URL")
+    or "ws://localhost:8000/rpc"
+)
 
 
 @dataclass
@@ -453,6 +457,7 @@ async def tool_export(request: web.Request) -> web.Response:
 def create_app() -> web.Application:
     """Create the web application."""
     from cohezion.mcp.shared.auth import api_key_middleware
+
     app = web.Application(middlewares=[api_key_middleware])
     app.add_routes(routes)
     return app

@@ -141,7 +141,10 @@ class BMADEngine:
             ("story", "user story"): ("bmad_bmm_create_story", "Create a user story"),
             ("sprint", "planning"): ("bmad_bmm_sprint_planning", "Plan a sprint"),
             ("game", "gdd"): ("bmad_gds_create_game_brief", "Create a game design brief"),
-            ("brainstorm", "creative"): ("bmad_cis_brainstorming", "Facilitate brainstorming session"),
+            ("brainstorm", "creative"): (
+                "bmad_cis_brainstorming",
+                "Facilitate brainstorming session",
+            ),
             ("test", "testing"): ("bmad_tea_test_design", "Design tests"),
             ("agent", "create agent"): ("bmad_bmb_create_agent", "Create a custom BMAD agent"),
         }

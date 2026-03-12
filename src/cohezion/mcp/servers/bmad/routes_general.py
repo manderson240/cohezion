@@ -49,10 +49,19 @@ async def tool_bmad_recommend(request: web.Request) -> web.Response:
         recommendations = []
 
         keyword_map = {
-            ("product", "prd", "requirement"): ("bmad_bmm_create_prd", "Creating product requirements"),
+            ("product", "prd", "requirement"): (
+                "bmad_bmm_create_prd",
+                "Creating product requirements",
+            ),
             ("test", "testing", "qa"): ("bmad_tea_test_design", "Testing context detected"),
-            ("game", "design", "player"): ("bmad_gds_create_game_brief", "Game development context"),
-            ("brainstorm", "ideate", "creative"): ("bmad_cis_brainstorming", "Creative ideation needed"),
+            ("game", "design", "player"): (
+                "bmad_gds_create_game_brief",
+                "Game development context",
+            ),
+            ("brainstorm", "ideate", "creative"): (
+                "bmad_cis_brainstorming",
+                "Creative ideation needed",
+            ),
         }
 
         for keywords, (tool, reason) in keyword_map.items():
@@ -87,8 +96,10 @@ async def tool_bmad_analyze_project(request: web.Request) -> web.Response:
                 "tool": "bmad_analyze_project",
                 "project_path": data.get("project_path", "."),
                 "detected": {
-                    "language": "Python", "framework": "FastAPI",
-                    "has_tests": True, "has_docs": False,
+                    "language": "Python",
+                    "framework": "FastAPI",
+                    "has_tests": True,
+                    "has_docs": False,
                 },
                 "suggested_workflows": [
                     {"workflow": "bmm/create-prd", "reason": "Define product requirements"},
@@ -110,7 +121,11 @@ async def tool_bmad_quick_start(request: web.Request) -> web.Response:
         paths = {
             "new_project": [
                 {"step": 1, "action": "Create PRD", "tool": "bmad_bmm_create_prd"},
-                {"step": 2, "action": "Define architecture", "tool": "bmad_bmm_create_architecture"},
+                {
+                    "step": 2,
+                    "action": "Define architecture",
+                    "tool": "bmad_bmm_create_architecture",
+                },
                 {"step": 3, "action": "Create first story", "tool": "bmad_bmm_create_story"},
                 {"step": 4, "action": "Plan sprint", "tool": "bmad_bmm_sprint_planning"},
             ],

@@ -26,6 +26,7 @@ from cohezion.physics.manifold_utils import SemanticLagrangeFinder
 from .models import MCP_PORT
 from .simulation import PlasmaSimulation, _simulations, get_simulation
 
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -147,7 +148,12 @@ async def tool_create_simulation(request: web.Request) -> web.Response:
         _simulations[sim_id] = PlasmaSimulation(grid_size=grid_size)
 
         return web.json_response(
-            {"tool": "plasma_create_simulation", "simulation_id": sim_id, "grid_size": grid_size, "status": "created"}
+            {
+                "tool": "plasma_create_simulation",
+                "simulation_id": sim_id,
+                "grid_size": grid_size,
+                "status": "created",
+            }
         )
     except Exception as e:
         logger.exception("Create simulation failed")
@@ -168,7 +174,11 @@ async def tool_add_particle(request: web.Request) -> web.Response:
             data.get("mass", 1.0),
         )
         return web.json_response(
-            {"tool": "plasma_add_particle", "simulation_id": data.get("simulation_id", ""), "particle": particle.to_dict()}
+            {
+                "tool": "plasma_add_particle",
+                "simulation_id": data.get("simulation_id", ""),
+                "particle": particle.to_dict(),
+            }
         )
     except Exception as e:
         logger.exception("Add particle failed")
@@ -187,7 +197,13 @@ async def tool_step(request: web.Request) -> web.Response:
         results = [sim.step() for _ in range(steps)]
 
         return web.json_response(
-            {"tool": "plasma_step", "simulation_id": sim_id, "steps": steps, "final_time": sim.current_time, "results": results}
+            {
+                "tool": "plasma_step",
+                "simulation_id": sim_id,
+                "steps": steps,
+                "final_time": sim.current_time,
+                "results": results,
+            }
         )
     except Exception as e:
         logger.exception("Step failed")
@@ -203,7 +219,12 @@ async def tool_get_exotic(request: web.Request) -> web.Response:
         sim = get_simulation(sim_id)
         objects = [obj.to_dict() for obj in sim.exotic_objects]
         return web.json_response(
-            {"tool": "plasma_get_exotic_objects", "simulation_id": sim_id, "count": len(objects), "objects": objects}
+            {
+                "tool": "plasma_get_exotic_objects",
+                "simulation_id": sim_id,
+                "count": len(objects),
+                "objects": objects,
+            }
         )
     except Exception as e:
         logger.exception("Get exotic objects failed")
@@ -238,7 +259,9 @@ async def tool_get_field(request: web.Request) -> web.Response:
         sim_id = data.get("simulation_id", "")
         sim = get_simulation(sim_id)
         field = sim.get_field_at(data.get("position", [0.0, 0.0, 0.0]))
-        return web.json_response({"tool": "plasma_get_field", "simulation_id": sim_id, "field": field})
+        return web.json_response(
+            {"tool": "plasma_get_field", "simulation_id": sim_id, "field": field}
+        )
     except Exception as e:
         logger.exception("Get field failed")
         return web.json_response({"error": str(e)}, status=500)
@@ -275,7 +298,11 @@ async def tool_400_year(request: web.Request) -> web.Response:
                     "Virtual pair production",
                     "Quantum field stabilization",
                 ],
-                "applications": ["Exotic matter creation", "Warp field generation", "Zero-point energy extraction"],
+                "applications": [
+                    "Exotic matter creation",
+                    "Warp field generation",
+                    "Zero-point energy extraction",
+                ],
             },
             "hiho_operations": {
                 "full_name": "High-Intensity Hadron Operations",
@@ -290,7 +317,11 @@ async def tool_400_year(request: web.Request) -> web.Response:
         }
 
         return web.json_response(
-            {"tool": "plasma_400_year_unification", "chapter": chapter, "story": story.get(chapter, story["overview"])}
+            {
+                "tool": "plasma_400_year_unification",
+                "chapter": chapter,
+                "story": story.get(chapter, story["overview"]),
+            }
         )
     except Exception as e:
         logger.exception("400 year story failed")

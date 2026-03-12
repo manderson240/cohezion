@@ -414,6 +414,7 @@ async def tool_skills_cache_info(request: web.Request) -> web.Response:
 def create_app() -> web.Application:
     """Create the web application."""
     from cohezion.mcp.shared.auth import api_key_middleware
+
     app = web.Application(middlewares=[api_key_middleware])
     app.add_routes(routes)
     return app
