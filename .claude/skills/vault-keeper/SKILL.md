@@ -477,45 +477,49 @@ This is the output that context hooks should inject at session startup.
 
 ---
 
-## Neural Intelligence (SurrealDB-Aware)
+## Neural Intelligence (Pre-Computed Graph Alerts)
 
-When SurrealDB is available (port 8001), the Vault Keeper gains neural awareness.
+The vault_sync daemon's **GraphReactor** continuously queries SurrealDB and writes
+pre-computed intelligence to `metabolism/graph-alerts.md`. This is the **primary**
+source of graph intelligence — read this file instead of making SurrealDB queries.
 
-### Country Health Monitoring
+### At Session Start: Read Graph Alerts
 
 ```bash
+cat metabolism/graph-alerts.md
+```
+
+This file contains:
+- **Dark Countries** (health < 0.3) — directories needing content expansion
+- **Low Countries** (0.3-0.5) — at-risk areas to monitor
+- **Orphan Neurons** — high-activation notes with 0 inbound synapses
+- **Resting Notes** — candidates for renewal or composting
+- **Synapse Gaps** — note pairs sharing tags but no links (cross-link targets)
+- **HIHO Fusion Events** — recent coherence breakthroughs
+
+**Actions based on alerts:**
+
+| Alert | Action |
+|-------|--------|
+| Dark Country | Flesh out notes in that directory, add cross-links |
+| Orphan Neuron (cortex/) | Add inbound links from relevant hub notes |
+| Synapse Gap | Add [[wiki-link]] between the two notes |
+| HIHO Fusion | Check `dreaming/` for today's resonances |
+
+### Fallback: Direct SurrealDB Queries
+
+Only use these if the graph-alerts file is stale (>24h old) or missing:
+
+```bash
+# Regenerate alerts manually
+python3 scripts/vault_sync.py --react
+
+# Or query SurrealDB directly (higher token cost)
 curl -s -u root:root -X POST "http://localhost:8001/sql" \
   -H "surreal-ns: cohezion" -H "surreal-db: vault" \
   -H "Content-Type: text/plain" \
   --data-raw 'SELECT name, health, neuron_count FROM country ORDER BY health ASC LIMIT 5;'
 ```
-
-**Dark Country alert:** If a Country's `health < 0.3`, surface it as needing attention.
-Recommend: flesh out notes in that Country, add cross-links, run the Dreaming Engine.
-
-### Resting Note Surfacing
-
-Notes with `activation < 0.2` for 30+ days are resting — candidates for renewal or composting:
-
-```bash
-curl -s -u root:root -X POST "http://localhost:8001/sql" \
-  -H "surreal-ns: cohezion" -H "surreal-db: vault" \
-  -H "Content-Type: text/plain" \
-  --data-raw 'SELECT path, activation, stage FROM neuron WHERE activation < 0.2 ORDER BY activation LIMIT 10;'
-```
-
-Surface resting notes to user: "These notes are cooling — should I review them for renewal or composting?"
-
-### HIHO Fusion Alert
-
-```bash
-curl -s -u root:root -X POST "http://localhost:8001/sql" \
-  -H "surreal-ns: cohezion" -H "surreal-db: vault" \
-  -H "Content-Type: text/plain" \
-  --data-raw 'SELECT country, coherence_score, date FROM hiho_event ORDER BY date DESC LIMIT 5;'
-```
-
-Recent fusion events indicate areas of emergent insight. Surface them: "Cluster X just achieved coherence — see `dreaming/` for today's resonances."
 
 ### Dreaming Engine Invocation
 
@@ -526,6 +530,18 @@ Run `python3 scripts/dreaming-engine.py` to:
 - Log HIHO fusion events
 
 Run after any bulk operation that adds 10+ notes.
+
+### Daemon Mode
+
+Start the sync daemon for continuous graph intelligence:
+
+```bash
+python3 scripts/vault_sync.py --watch &
+```
+
+This provides:
+- Phase 1: Real-time vault→SurrealDB sync via inotify (<1s latency)
+- Phase 2: Graph reactor updates `metabolism/graph-alerts.md` every 60s after changes
 
 ---
 
