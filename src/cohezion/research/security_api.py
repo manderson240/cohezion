@@ -10,15 +10,17 @@ import hashlib
 import logging
 import secrets
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from fastapi import HTTPException, Request, Security
 from fastapi.security import APIKeyHeader, HTTPBearer
 
 from cohezion.security.credentials import get_credentials
+
 
 logger = logging.getLogger(__name__)
 
@@ -268,7 +270,7 @@ class APIKeyManager:
         """
         self.keys_file = keys_file or Path("data/api_keys.json")
         self.keys_file.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Security: Enforce strict directory permissions
         try:
             self.keys_file.parent.chmod(0o700)
@@ -281,7 +283,7 @@ class APIKeyManager:
 
     def _get_or_create_master_key(self) -> bytes:
         """Get or create master key for simple file encryption.
-        
+
         Priority:
         1. Bitwarden (Vault Warden)
         2. Local .master_key file
@@ -298,7 +300,7 @@ class APIKeyManager:
         key_file = self.keys_file.parent / ".master_key"
         if key_file.exists():
             return key_file.read_bytes()
-        
+
         # 3. Create new and save locally (User should move this to Bitwarden)
         logger.warning("⚠️ No master key in Vault Warden. Creating local temporary key.")
         key = secrets.token_bytes(32)
@@ -323,7 +325,7 @@ class APIKeyManager:
                 if not encrypted_data:
                     self._keys = {}
                     return
-                
+
                 # Check if file is plain JSON (migration path)
                 if encrypted_data.startswith(b"{"):
                     self._keys = json.loads(encrypted_data)
@@ -343,7 +345,7 @@ class APIKeyManager:
 
             data = json.dumps(self._keys).encode()
             encrypted_data = self._crypt(data)
-            
+
             # Write with restricted permissions
             # We use a temporary file to ensure atomic write
             temp_file = self.keys_file.with_suffix(".tmp")
@@ -353,7 +355,7 @@ class APIKeyManager:
             except OSError:
                 pass
             temp_file.replace(self.keys_file)
-            
+
         except Exception as e:
             logger.error(f"Failed to save API keys: {e}")
 

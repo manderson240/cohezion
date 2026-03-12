@@ -439,7 +439,8 @@ class BatchableExecutor:
             results: ExecutionResults from Phase 2
         """
         phase3_tasks = [
-            self._process_single_result(task, result) for task, result in zip(tasks, results, strict=True)
+            self._process_single_result(task, result)
+            for task, result in zip(tasks, results, strict=True)
         ]
 
         # Run all post-execution in parallel

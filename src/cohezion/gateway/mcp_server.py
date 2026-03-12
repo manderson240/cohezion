@@ -26,7 +26,6 @@ Tools exposed:
 import asyncio
 import json
 import logging
-import os
 import sys
 from typing import Any
 
@@ -61,7 +60,10 @@ class GatewayManager:
     def _initialize_default(self) -> None:
         """Initialize default demo gateway with local Ollama."""
         # Primary: Vault Warden, Fallback: Environment
-        ollama_url = get_credentials().get_secret("COHEZION_OLLAMA_URL", env_var="OLLAMA_BASE_URL") or "http://localhost:11434"
+        ollama_url = (
+            get_credentials().get_secret("COHEZION_OLLAMA_URL", env_var="OLLAMA_BASE_URL")
+            or "http://localhost:11434"
+        )
 
         self.gateways[self.default_gateway_id] = DemoGateway(
             ollama_url=ollama_url,
