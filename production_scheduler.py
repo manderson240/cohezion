@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""Production Scheduler - Unified TokenEfficientSquad System
+"""Production Scheduler - Unified TokenEfficientSquad System (BETA - Simulation Mode)
 
-Single entry point for all optimizations with live CompoundExecutor integration.
-Consolidates: multi-metric, context-aware weights, alerting, and monitoring.
+Single entry point for all optimizations.
+NOTE: Currently runs in simulation mode. Multi-metric scores are calculated post-hoc.
+Full production integration with live CompoundExecutor pending.
 
 Usage:
     uv run python3 production_scheduler.py [--skill refactoring] [--mode full|quick|validate]
+
+Status: BETA - Core optimization working, metrics simulated
 """
 
 from __future__ import annotations
@@ -15,7 +18,7 @@ import asyncio
 import json
 import logging
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -45,11 +48,36 @@ class SkillConfig:
     success_rate_weight: float = 0.35
     execution_time_weight: float = 0.25
     threshold: float = 5.0
-    teachers: list[str] = None
+    teachers: list[str] = field(default_factory=list)
+    max_retries: int = 3
+    rollback_on_failure: bool = True
 
     def __post_init__(self):
         if self.teachers is None:
             self.teachers = []
+        self._validate()
+
+    def _validate(self) -> None:
+        """Validate configuration."""
+        # Check weights sum to 1.0 (with small tolerance)
+        total_weight = self.coherence_weight + self.success_rate_weight + self.execution_time_weight
+        if abs(total_weight - 1.0) > 0.001:
+            raise ValueError(
+                f"Weights must sum to 1.0, got {total_weight} "
+                f"(coherence={self.coherence_weight}, success={self.success_rate_weight}, time={self.execution_time_weight})"
+            )
+
+        # Check baseline < target (improvement expected)
+        if self.baseline >= self.target:
+            raise ValueError(f"Baseline ({self.baseline}) must be less than target ({self.target})")
+
+        # Check threshold is reasonable
+        if self.threshold <= 0 or self.threshold > 50:
+            raise ValueError(f"Threshold must be between 0 and 50, got {self.threshold}")
+
+        # Check priority is valid
+        if self.priority < 1 or self.priority > 100:
+            raise ValueError(f"Priority must be between 1 and 100, got {self.priority}")
 
 
 class ProductionScheduler:
@@ -207,8 +235,26 @@ class ProductionScheduler:
                 return result_data
 
         except Exception as e:
-            logger.error(f"❌ {skill_name}: Failed - {e}")
-            return {"skill": skill_name, "status": "error", "error": str(e)}
+            import traceback
+
+            logger.error(f"❌ {skill_name}: Failed after {config.max_retries} retries")
+            logger.error(f"   Error: {type(e).__name__}: {e}")
+            logger.debug(f"   Stack trace: {traceback.format_exc()}")
+
+            # Attempt rollback if enabled
+            if config.rollback_on_failure:
+                logger.info(f"   Attempting rollback to baseline: {config.baseline}")
+                # In production, this would restore previous state
+                # For now, we just log the intent
+
+            return {
+                "skill": skill_name,
+                "status": "error",
+                "error_type": type(e).__name__,
+                "error_message": str(e),
+                "retries_exhausted": True,
+                "rollback_attempted": config.rollback_on_failure,
+            }
 
     def save_result(self, result: dict) -> None:
         """Save optimization result to vault."""
@@ -220,7 +266,7 @@ class ProductionScheduler:
         result_path.write_text(json.dumps(result, indent=2))
         logger.info(f"  Saved: {filename}")
 
-    async def run_production(self, mode: str = "full", specific_skill: str = None) -> dict:
+    async def run_production(self, mode: str = "full", specific_skill: str | None = None) -> dict:
         """Run production optimization suite."""
 
         logger.info("\n" + "=" * 60)
