@@ -6,11 +6,7 @@ Generated following elegant simplification patterns.
 
 from __future__ import annotations
 
-import asyncio
-import json
-import tempfile
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 
@@ -21,11 +17,8 @@ from cohezion.research import (
     ResearchAgent,
     ResearchConfig,
     ResearchSecurityGuardrails,
-    ResearchSession,
-    ResearchSwarm,
     SimpleMultiAgent,
 )
-from cohezion.research.agent import ResearchSession as ConfigSession
 
 
 class TestResearchConfig:
@@ -74,12 +67,6 @@ class TestResearchConfig:
 class TestResearchAgent:
     """[P0] Tests for ResearchAgent."""
 
-    @pytest.fixture()
-    def temp_dir(self):
-        """Create temporary directory."""
-        with tempfile.TemporaryDirectory() as tmp:
-            yield Path(tmp)
-
     def test_initializes_with_defaults(self):
         """[P0] Should initialize with defaults."""
         agent = ResearchAgent()
@@ -88,10 +75,10 @@ class TestResearchAgent:
         assert agent.session is not None
         assert agent.executor is not None
 
-    def test_initializes_with_custom_config(self, temp_dir):
+    def test_initializes_with_custom_config(self, data_temp_dir):
         """[P0] Should accept custom config."""
         config = ResearchConfig(
-            experiment_log=temp_dir / "experiments.jsonl",
+            experiment_log=data_temp_dir / "experiments.jsonl",
             max_experiments=10,
         )
         agent = ResearchAgent(config=config)
@@ -270,10 +257,10 @@ class TestSimpleMultiAgent:
 class TestResearchIntegration:
     """[P0] Integration tests."""
 
-    def test_full_research_workflow_mocked(self, tmp_path):
+    def test_full_research_workflow_mocked(self, data_temp_dir):
         """[P0] Should complete research workflow."""
         config = ResearchConfig(
-            experiment_log=tmp_path / "experiments.jsonl",
+            experiment_log=data_temp_dir / "experiments.jsonl",
             max_experiments=2,
             experiment_time_budget=10.0,  # Minimum valid value (10s–24h)
         )

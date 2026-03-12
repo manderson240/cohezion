@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from cohezion.learning.ouroboros_trigger import (
     OuroborosTrigger,
     TriggerState,

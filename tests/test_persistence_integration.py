@@ -142,6 +142,134 @@ class TestSessionLifecycle:
 
 
 # ---------------------------------------------------------------------------
+# Alignment-gated execution
+# ---------------------------------------------------------------------------
+
+
+class TestAlignmentGatedExecution:
+    """Verify alignment gate and execute_aligned method."""
+
+    def test_check_alignment_high_coherence(self) -> None:
+        from cohezion.compound.session_manager import AlignmentResult
+
+        with (
+            patch(
+                "cohezion.compound.request_alignment_analyzer.RequestAlignmentAnalyzerFactory"
+            ) as mock_factory,
+            patch("cohezion.compound.session_manager.get_mcp_client") as mock_get_mcp,
+        ):
+            mock_get_mcp.return_value = MagicMock()
+            mock_analyzer = MagicMock()
+            mock_parsed = MagicMock()
+            mock_parsed.intent_confidence = 0.9
+            mock_parsed.intent = MagicMock(value="generate")
+            mock_parsed.constraints = []
+            mock_parsed.criteria = []
+            mock_analyzer.parse_request.return_value = mock_parsed
+            mock_factory.create.return_value = mock_analyzer
+
+            manager = CompoundSessionManager()
+            result = manager.check_alignment("Generate a simple function")
+
+            assert isinstance(result, AlignmentResult)
+            assert result.coherence >= 0.5
+            assert result.should_proceed is True
+
+    def test_check_alignment_low_coherence(self) -> None:
+        with (
+            patch(
+                "cohezion.compound.request_alignment_analyzer.RequestAlignmentAnalyzerFactory"
+            ) as mock_factory,
+            patch("cohezion.compound.session_manager.get_mcp_client") as mock_get_mcp,
+        ):
+            mock_get_mcp.return_value = MagicMock()
+            mock_analyzer = MagicMock()
+            mock_parsed = MagicMock()
+            mock_parsed.intent_confidence = 0.1
+            mock_parsed.intent = MagicMock(value="unknown")
+            mock_parsed.constraints = ["c1", "c2", "c3", "c4", "c5", "c6"]
+            mock_parsed.criteria = ["c1", "c2", "c3"]
+            mock_analyzer.parse_request.return_value = mock_parsed
+            mock_factory.create.return_value = mock_analyzer
+
+            manager = CompoundSessionManager()
+            result = manager.check_alignment("Ambiguous request", threshold=0.5)
+
+            assert result.coherence < 0.5
+            assert result.should_proceed is False
+            assert len(result.issues) > 0
+
+    @pytest.mark.asyncio
+    async def test_execute_aligned_proceeds_on_high_coherence(self) -> None:
+        with (
+            patch(
+                "cohezion.compound.request_alignment_analyzer.RequestAlignmentAnalyzerFactory"
+            ) as mock_factory,
+            patch("cohezion.compound.session_manager.get_mcp_client") as mock_get_mcp,
+            patch("cohezion.swarm.compound_client.get_compound_client") as mock_get_client,
+        ):
+            mock_get_client.return_value = MagicMock(_cache={}, _cache_max_size=512)
+            mock_get_mcp.return_value = MagicMock()
+            mock_analyzer = MagicMock()
+            mock_parsed = MagicMock()
+            mock_parsed.intent_confidence = 0.85
+            mock_parsed.intent = MagicMock(value="generate")
+            mock_parsed.constraints = []
+            mock_parsed.criteria = []
+            mock_analyzer.parse_request.return_value = mock_parsed
+            mock_factory.create.return_value = mock_analyzer
+
+            manager = CompoundSessionManager()
+
+            async def execute():
+                return "test output"
+
+            success, metrics = await manager.execute_aligned(
+                request="Generate a function",
+                execute_fn=execute,
+            )
+
+            assert success is True
+            assert "output" in metrics
+            assert metrics["coherence"] >= 0.5
+
+    @pytest.mark.asyncio
+    async def test_execute_aligned_blocks_on_low_coherence(self) -> None:
+        with (
+            patch(
+                "cohezion.compound.request_alignment_analyzer.RequestAlignmentAnalyzerFactory"
+            ) as mock_factory,
+            patch("cohezion.compound.session_manager.get_mcp_client") as mock_get_mcp,
+            patch("cohezion.swarm.compound_client.get_compound_client") as mock_get_client,
+        ):
+            mock_get_client.return_value = MagicMock(_cache={}, _cache_max_size=512)
+            mock_get_mcp.return_value = MagicMock()
+            mock_analyzer = MagicMock()
+            mock_parsed = MagicMock()
+            mock_parsed.intent_confidence = 0.1
+            mock_parsed.intent = MagicMock(value="unknown")
+            mock_parsed.constraints = ["c1", "c2", "c3", "c4", "c5"]
+            mock_parsed.criteria = []
+            mock_analyzer.parse_request.return_value = mock_parsed
+            mock_factory.create.return_value = mock_analyzer
+
+            manager = CompoundSessionManager()
+
+            async def execute():
+                return "should not be called"
+
+            success, metrics = await manager.execute_aligned(
+                request="Ambiguous request",
+                execute_fn=execute,
+                threshold=0.5,
+            )
+
+            assert success is False
+            assert "blocked_at" in metrics
+            assert metrics["blocked_at"] == "alignment_gate"
+
+
+# ---------------------------------------------------------------------------
 # Executor with persistence wiring
 # ---------------------------------------------------------------------------
 

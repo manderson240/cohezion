@@ -9,8 +9,8 @@ import logging
 import math
 import random
 import statistics
-from dataclasses import dataclass
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 from unittest.mock import Mock
 
 import pytest

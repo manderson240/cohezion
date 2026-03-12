@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import pytest
 
-from cohezion.universe.hiho_unified_engine import HIHOUnifiedEngine
 from cohezion.universe.divergence import DivergenceDetector
+from cohezion.universe.hiho_unified_engine import HIHOUnifiedEngine
 
 
 class TestHIHOUnifiedEngine:

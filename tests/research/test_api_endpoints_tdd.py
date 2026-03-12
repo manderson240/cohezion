@@ -6,10 +6,9 @@ These tests will initially fail, then we'll make them pass.
 
 from __future__ import annotations
 
-import json
-import pytest
+from unittest.mock import patch
+
 from fastapi.testclient import TestClient
-from unittest.mock import AsyncMock, Mock, patch
 
 # Import the FastAPI app - this will fail initially if not set up
 from cohezion.api.main import app
@@ -228,7 +227,6 @@ class TestResearchAPIPerformance:
     def test_start_research_response_time(self):
         """[P2] Should respond within acceptable time (endpoint only, not training)."""
         import time
-        from unittest.mock import patch
 
         from cohezion.research import ResearchAgent
 

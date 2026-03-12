@@ -6,13 +6,9 @@ to detect Middle-Man Drift or substrate tampering.
 
 from __future__ import annotations
 
-import numpy as np
-import pytest
-
 from cohezion.universe.intent_action_sync import (
     IntentActionPair,
     IntentActionSync,
-    SyncVerdict,
 )
 
 

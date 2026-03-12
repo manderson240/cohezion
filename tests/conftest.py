@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 import asyncio
+import shutil
 import subprocess
+import uuid
+from collections.abc import Generator
 from pathlib import Path
+from types import ModuleType
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -72,6 +76,24 @@ def git_repo(tmp_path: Path) -> Path:
     return tmp_path
 
 
+@pytest.fixture
+def data_temp_dir() -> Generator[Path, None, None]:
+    """Create temporary directory under data/ for security compliance.
+
+    ResearchConfig requires paths within data/ directory (Issue #12).
+    This fixture creates a unique temp directory under data/test_runs/
+    and cleans it up after the test.
+
+    Yields:
+        Path to the temporary directory
+    """
+    test_dir = Path("data") / "test_runs" / uuid.uuid4().hex[:8]
+    test_dir.mkdir(parents=True, exist_ok=True)
+    yield test_dir
+    # Cleanup
+    shutil.rmtree(test_dir, ignore_errors=True)
+
+
 @pytest.fixture(autouse=True)
 def event_loop_fixture():
     """Ensure a fresh event loop is available for each test."""
@@ -115,13 +137,16 @@ def reset_singletons():
         BudgetEnforcer.reset_instance()
 
     # Reset FLUME VAE singleton to prevent state pollution across tests
-    import cohezion.api as api_module
-
-    if hasattr(api_module, "_vae_trainer"):
+    api_module: ModuleType | None = None
+    try:
+        import cohezion.api as api_module
+    except Exception:
+        pass
+    if api_module is not None and hasattr(api_module, "_vae_trainer"):
         api_module._vae_trainer = None
 
     # Reset RL policy singleton as well
-    if hasattr(api_module, "_rl_policy"):
+    if api_module is not None and hasattr(api_module, "_rl_policy"):
         api_module._rl_policy = None
 
     # Clear ALL logger handlers and filters to prevent test pollution.

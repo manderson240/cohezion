@@ -7,9 +7,6 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock
-
-import pytest
 
 from cohezion.compound.models import ExecutionMetrics
 from cohezion.research.cost_optimization import (

@@ -10,12 +10,10 @@ from __future__ import annotations
 import json
 
 import numpy as np
-import pytest
 
 from cohezion.universe.intent_capture import (
     IntentCapture,
     IntentPayload,
-    IntentViolation,
     StateChangeRequest,
 )
 

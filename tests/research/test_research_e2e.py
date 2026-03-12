@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 from cohezion.compound.core.executor import CompoundExecutor, ExecutionConfig
-from cohezion.compound.models import ExecutionResult, ExecutionMetrics
+from cohezion.compound.models import ExecutionMetrics, ExecutionResult
 from cohezion.research import ResearchAgent, ResearchConfig
 
 

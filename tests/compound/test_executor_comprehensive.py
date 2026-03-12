@@ -5,14 +5,12 @@ Tests the clean, focused 200-line implementation.
 
 from __future__ import annotations
 
-import time
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import Mock
 
 import pytest
 
 from cohezion.compound.core.executor import CompoundExecutor, ExecutionConfig
-from cohezion.compound.models import ExecutionResult, ExecutionMetrics, Task, ExecutionContext
+from cohezion.compound.models import ExecutionMetrics, ExecutionResult, Task
 
 
 class TestCompoundExecutorInitialization:

@@ -5,13 +5,9 @@ Covers streaming inference endpoints and session management.
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
-
 from cohezion.api.streaming import (
-    StreamingInferenceRequest,
     SessionListResponse,
+    StreamingInferenceRequest,
 )
 
 

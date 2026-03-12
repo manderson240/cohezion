@@ -24,6 +24,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
+
 _IN_CI = os.environ.get("CI") == "true"
 
 

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from cohezion.config.semver_validator import (
     BumpType,
     SemVer,
