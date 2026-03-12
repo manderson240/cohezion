@@ -64,6 +64,7 @@ Quantum physics spans the vault's coverage of foundational quantum mechanics, pr
 - [[axion-dark-matter-quantum-sensors]] — Using quantum sensor arrays to search for axion dark matter candidates
 - [[superfluid-to-supersolid-transition]] — Observation of the superfluid-to-supersolid phase transition in dipolar gases
 - [[beyond-the-quantum-pilot-wave-theory]] — De Broglie-Bohm pilot wave theory as an alternative quantum interpretation
+- [[sarfatti-post-quantum-mechanics-and-toe]] — Sarfatti's back-reaction extension of pilot wave theory; TOE mapping via history/destiny waves and signal nonlocality
 
 ## Experiments
 
@@ -78,4 +79,5 @@ Quantum physics spans the vault's coverage of foundational quantum mechanics, pr
 ## Related Maps
 
 - [[MOC-machine-learning]] — Quantum-ML intersections including quantum optimization and hybrid algorithms
+- [[MOC-new-science-toe]] — The New Science chain, EVOs, and Theory of Everything synthesis built on quantum foundations
 - [[MOC-vault-architecture]] — How quantum physics notes fit into the vault knowledge graph

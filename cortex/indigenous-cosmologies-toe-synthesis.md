@@ -292,4 +292,5 @@ See: [[theory-of-everything-synthesis]] for the unified TOE framework integratin
 - [[quantum-mechanics]] — perspectivism = measurement theory; sand paintings = state preparation/collapse
 - [[quantum-decoherence]] — Hóchxǫ́/kegare/Hucha/soul-loss as decoherence naming
 - [[symmetry-breaking]] — thermal (Norse), social (Haudenosaunee), phase (Hopi), sexual (Shintō)
+- [[sarfatti-post-quantum-mechanics-and-toe]] — Western physics cross-validation: back-reaction as the mathematical mechanism for HIHO; history/destiny waves as quadrature in time
 - All 15 individual tradition notes (linked above in the tradition table)
