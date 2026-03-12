@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "a35f6bd565b6",
+  "strategy": "manual-commit",
+  "branch": "challenge-luma-cqq4mojz",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "conductor/tracks.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/a3/5f6bd565b6/0/metadata.json",
+      "transcript": "/a3/5f6bd565b6/0/full.jsonl",
+      "context": "/a3/5f6bd565b6/0/context.md",
+      "content_hash": "/a3/5f6bd565b6/0/content_hash.txt",
+      "prompt": "/a3/5f6bd565b6/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 6559,
+    "cache_creation_tokens": 1204685,
+    "cache_read_tokens": 27376428,
+    "output_tokens": 64501,
+    "api_call_count": 208
+  }
+}
