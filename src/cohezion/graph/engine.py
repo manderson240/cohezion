@@ -97,10 +97,12 @@ class WorkflowEngine:
         node_data: dict[str, dict[str, Any]] = {}  # accumulated inputs per node
         failed_nodes: set[str] = set()
 
-        # Seed entry node with initial input
-        node_data[workflow.entry_node_id] = dict(initial_input)
-
         predecessors = self._build_predecessors(workflow)
+
+        # Seed all root nodes (no incoming edges) with initial input
+        for node in workflow.nodes:
+            if not predecessors.get(node.id):
+                node_data[node.id] = dict(initial_input)
         successors = workflow.adjacency_list()
         edge_lookup = self._build_edge_lookup(workflow)
 

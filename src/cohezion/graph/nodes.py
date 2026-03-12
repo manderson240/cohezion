@@ -79,7 +79,9 @@ class AgentNode(WorkflowNode):
                 enriched["_flux_context"] = context_strings
 
         result = await self._execute_fn(enriched)
-        return result if isinstance(result, dict) else {"output": result}
+        output = result if isinstance(result, dict) else {"output": result}
+        output.pop("_flux_context", None)  # Don't propagate internal context downstream
+        return output
 
     async def _get_flux_context(self, inputs: dict[str, Any]) -> list[str]:
         """Query FLUX with a node-scoped query. Non-blocking on failure.

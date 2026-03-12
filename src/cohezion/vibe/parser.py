@@ -87,11 +87,13 @@ def _estimate_complexity(text: str, keywords: list[str]) -> int:
 class VibeParser:
     """Parses natural language text into a structured VibeIntent.
 
-    Args:
-        flux_aggregator: Optional FLUX aggregator for vault-enriched keywords.
-            When provided, the parser queries FLUX to expand keyword coverage
-            with domain-specific terms from prior workflows. Non-blocking --
-            failures are silently ignored.
+    Parameters
+    ----------
+    flux_aggregator : FluxAggregator | None
+        Optional FLUX aggregator for vault-enriched keywords.
+        When provided, the parser queries FLUX to expand keyword coverage
+        with domain-specific terms from prior workflows. Non-blocking —
+        failures are silently ignored.
     """
 
     def __init__(self, flux_aggregator: FluxAggregator | None = None) -> None:
@@ -100,13 +102,17 @@ class VibeParser:
     async def parse(self, nl_text: str, top_k_keywords: int = 12) -> VibeIntent:
         """Parse NL text into a VibeIntent.
 
-        Args:
-            nl_text: Raw natural language description of the desired workflow.
-            top_k_keywords: Max keywords to extract.
+        Parameters
+        ----------
+        nl_text : str
+            Raw natural language description of the desired workflow.
+        top_k_keywords : int
+            Max keywords to extract.
 
-        Returns:
-            VibeIntent with extracted keywords, operation type, complexity,
-            and confidence score.
+        Returns
+        -------
+        VibeIntent
+            Extracted keywords, operation type, complexity, and confidence.
         """
         if not nl_text or not nl_text.strip():
             return VibeIntent(

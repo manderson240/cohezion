@@ -188,9 +188,12 @@ class VibeSpecifier:
     Optionally consults a CapabilityRegistry to select specific capabilities
     and a FluxAggregator to surface similar past workflows.
 
-    Args:
-        capability_registry: Optional registry for capability-aware node naming.
-        flux_aggregator: Optional FLUX aggregator for vault template matching.
+    Parameters
+    ----------
+    capability_registry : Any | None
+        Optional registry for capability-aware node naming.
+    flux_aggregator : FluxAggregator | None
+        Optional FLUX aggregator for vault template matching.
     """
 
     def __init__(
@@ -204,11 +207,15 @@ class VibeSpecifier:
     async def specify(self, intent: VibeIntent) -> VibeWorkflowSpec:
         """Map a VibeIntent to a VibeWorkflowSpec.
 
-        Args:
-            intent: Parsed intent from VibeParser.
+        Parameters
+        ----------
+        intent : VibeIntent
+            Parsed intent from VibeParser.
 
-        Returns:
-            VibeWorkflowSpec describing proposed nodes, edges, and parameters.
+        Returns
+        -------
+        VibeWorkflowSpec
+            Proposed nodes, edges, and parameters.
         """
         template = _pick_template(intent.operation_type, intent.complexity)
         nodes = _build_nodes_from_template(template, intent)

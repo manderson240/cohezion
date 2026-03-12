@@ -51,11 +51,16 @@ def _build_fallback_spec(intent_text: str) -> WorkflowSpec:
 class VibeOrchestrator:
     """End-to-end NL → WorkflowSpec / WorkflowResult pipeline.
 
-    Args:
-        parser: VibeParser instance (defaults to plain parser).
-        specifier: VibeSpecifier instance (defaults to plain specifier).
-        compiler: VibeCompiler instance (defaults to plain compiler).
-        engine: WorkflowEngine instance (defaults to plain engine).
+    Parameters
+    ----------
+    parser : VibeParser | None
+        VibeParser instance (defaults to plain parser).
+    specifier : VibeSpecifier | None
+        VibeSpecifier instance (defaults to plain specifier).
+    compiler : VibeCompiler | None
+        VibeCompiler instance (defaults to plain compiler).
+    engine : WorkflowEngine | None
+        WorkflowEngine instance (defaults to plain engine).
     """
 
     def __init__(
@@ -78,12 +83,17 @@ class VibeOrchestrator:
     ) -> VibeOrchestrator:
         """Factory that wires FLUX and CapabilityRegistry when available.
 
-        Args:
-            flux_aggregator: Optional FLUX aggregator for enriched parsing.
-            capability_registry: Optional capability registry for node selection.
+        Parameters
+        ----------
+        flux_aggregator : FluxAggregator | None
+            Optional FLUX aggregator for enriched parsing.
+        capability_registry : Any | None
+            Optional capability registry for node selection.
 
-        Returns:
-            Fully configured VibeOrchestrator.
+        Returns
+        -------
+        VibeOrchestrator
+            Fully configured orchestrator.
         """
         parser = VibeParser(flux_aggregator=flux_aggregator)
         specifier = VibeSpecifier(
@@ -102,13 +112,19 @@ class VibeOrchestrator:
     ) -> WorkflowSpec | WorkflowResult:
         """Parse, specify, compile, and optionally execute a natural language workflow.
 
-        Args:
-            nl_text: Natural language description of the desired workflow.
-            execute: If True, execute the compiled workflow and return WorkflowResult.
-                     If False, return the compiled WorkflowSpec for inspection.
-            initial_input: Optional initial data dict passed to the first node.
+        Parameters
+        ----------
+        nl_text : str
+            Natural language description of the desired workflow.
+        execute : bool
+            If True, execute the compiled workflow and return WorkflowResult.
+            If False, return the compiled WorkflowSpec for inspection.
+        initial_input : dict[str, Any] | None
+            Optional initial data dict passed to the first node.
 
-        Returns:
+        Returns
+        -------
+        WorkflowSpec | WorkflowResult
             WorkflowSpec if ``execute=False``, WorkflowResult if ``execute=True``.
         """
         # Step 1: Parse NL text → VibeIntent

@@ -26,8 +26,10 @@ class VibeCompiler:
     - Entry node = NodeSpec with no incoming edges
     - Exit nodes = NodeSpecs with no outgoing edges
 
-    Args:
-        workflow_id_prefix: Optional prefix for generated workflow IDs.
+    Parameters
+    ----------
+    workflow_id_prefix : str
+        Prefix for generated workflow IDs.
     """
 
     def __init__(self, workflow_id_prefix: str = "vibe") -> None:
@@ -36,14 +38,20 @@ class VibeCompiler:
     def compile(self, vibe_spec: VibeWorkflowSpec) -> WorkflowSpec:
         """Compile VibeWorkflowSpec into a WorkflowSpec.
 
-        Args:
-            vibe_spec: Output from VibeSpecifier.
+        Parameters
+        ----------
+        vibe_spec : VibeWorkflowSpec
+            Output from VibeSpecifier.
 
-        Returns:
-            Executable WorkflowSpec ready for WorkflowEngine.
+        Returns
+        -------
+        WorkflowSpec
+            Executable workflow ready for WorkflowEngine.
 
-        Raises:
-            ValueError: If node_descriptions is empty or edges reference unknown nodes.
+        Raises
+        ------
+        ValueError
+            If node_descriptions is empty or edges reference unknown nodes.
         """
         if not vibe_spec.node_descriptions:
             raise ValueError("Cannot compile a VibeWorkflowSpec with no nodes")

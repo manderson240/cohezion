@@ -8,6 +8,7 @@ from cohezion.flux.aggregator import FluxAggregator
 from cohezion.flux.provider import FluxProvider
 from cohezion.flux.types import FluxBlock, FluxContext, FluxSource
 
+
 __all__ = [
     "FluxAggregator",
     "FluxBlock",
