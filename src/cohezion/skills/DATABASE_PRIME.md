@@ -18,7 +18,6 @@ from surrealdb import AsyncSurreal
 
 async def surreal_example():
     async with AsyncSurreal("ws://localhost:8000/rpc") as db:
-        await db.connect()
         await db.signin({"user": "root", "pass": "root"})
         await db.use("cohezion", "universes")
         

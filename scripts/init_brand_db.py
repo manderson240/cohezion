@@ -9,7 +9,6 @@ async def init_brand_db():
     db_url = os.environ.get("SURREALDB_URL", "ws://localhost:8000/rpc")
 
     async with AsyncSurreal(db_url) as db:
-        await db.connect()
         await db.signin({"user": "root", "pass": "root"})
         await db.use("cohezion", "identity")
 
