@@ -23,7 +23,7 @@ env:
 jobs:
   # ── Health Check ─────────────────────────────────────────────────────
   health:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: read
       pull-requests: write
@@ -159,7 +159,7 @@ jobs:
 
   # ── Security Scan ──────────────────────────────────────────────────────
   security:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -186,7 +186,7 @@ jobs:
 
   # ── Daily Report ───────────────────────────────────────────────────────
   daily-report:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: github.event_name == 'schedule'
     needs: [health, security]
     

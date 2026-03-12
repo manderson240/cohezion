@@ -75,7 +75,7 @@ env:
 jobs:
   lint-and-format:
     name: Lint & Format (Stage 1)
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 5
 
     steps:
@@ -142,7 +142,7 @@ jobs:
 # =============================================================================
   type-check:
     name: Type Check (Stage 2)
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: lint-and-format
     timeout-minutes: 10
 
@@ -209,7 +209,7 @@ jobs:
 # =============================================================================
   unit-tests:
     name: Unit Tests (Stage 3)
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: type-check
     timeout-minutes: 15
     strategy:
@@ -275,7 +275,7 @@ jobs:
 # =============================================================================
   integration-tests:
     name: Integration Tests (Stage 4)
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [type-check, unit-tests]
     timeout-minutes: 30
     if: |
@@ -405,7 +405,7 @@ jobs:
 # =============================================================================
   benchmark-tests:
     name: Benchmark Tests (Stage 5)
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [unit-tests, integration-tests]
     timeout-minutes: 20
     if: |
@@ -469,7 +469,7 @@ jobs:
 # =============================================================================
   live-tests:
     name: Live Tests (Stage 6)
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [unit-tests, integration-tests]
     timeout-minutes: 30
     environment: live-testing
@@ -589,7 +589,7 @@ jobs:
 # =============================================================================
   compatibility-tests:
     name: Compatibility Tests
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: unit-tests
     timeout-minutes: 30
     if: |
@@ -667,7 +667,7 @@ jobs:
 # =============================================================================
   test-summary:
     name: Test Summary & PR Comments
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [lint-and-format, type-check, unit-tests, integration-tests, benchmark-tests, live-tests, compatibility-tests]
     if: always()
     permissions:
