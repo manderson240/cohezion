@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "f96aff81b726",
+  "strategy": "manual-commit",
+  "branch": "challenge-luma-cqq4mojz",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tests/conftest.py",
+    "tests/research/test_research_comprehensive.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/f9/6aff81b726/0/metadata.json",
+      "transcript": "/f9/6aff81b726/0/full.jsonl",
+      "context": "/f9/6aff81b726/0/context.md",
+      "content_hash": "/f9/6aff81b726/0/content_hash.txt",
+      "prompt": "/f9/6aff81b726/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 7323,
+    "cache_creation_tokens": 1151912,
+    "cache_read_tokens": 17711051,
+    "output_tokens": 94317,
+    "api_call_count": 155
+  }
+}
