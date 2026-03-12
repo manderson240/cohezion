@@ -11,6 +11,7 @@ import pytest
 
 from mcp_server.agent_context_queries import AgentContextQueries
 
+
 pytestmark = pytest.mark.skipif(
     os.environ.get("CI") == "true",
     reason="Requires SurrealDB — unavailable in CI",

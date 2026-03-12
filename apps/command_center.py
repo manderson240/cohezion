@@ -1,16 +1,18 @@
-import gradio as gr
 import html
 import json
-import os
 import sys
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
+import gradio as gr
+
 
 # Derive project root dynamically
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from cohezion.core.persistence.surreal_client import SurrealClient
+
 
 # Paths
 DATA_DIR = PROJECT_ROOT / "apps/dashboard/src/assets/data"
@@ -48,7 +50,7 @@ def get_latest_pulse():
     pulses = sorted(DATA_DIR.glob("pulse_*.json"))
     if not pulses:
         return "No pulse data found."
-    with open(pulses[-1], "r") as f:
+    with open(pulses[-1]) as f:
         data = json.load(f)
     return json.dumps(data, indent=2)
 
@@ -114,7 +116,7 @@ def get_physics_telemetry():
     pulses = sorted(DATA_DIR.glob("pulse_*.json"))
     if not pulses:
         return "No physics data."
-    with open(pulses[-1], "r") as f:
+    with open(pulses[-1]) as f:
         data = json.load(f)
 
     # Extract research-linked fields

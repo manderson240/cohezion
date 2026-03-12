@@ -1,8 +1,11 @@
 """
 quant + FP4 GEMM: bf16 A, B -> MXFP4 1x32 per-block quant -> gemm_a4w4 -> bf16 C.
 """
+
+from typing import TypedDict, TypeVar
+
 import torch
-from typing import TypeVar, TypedDict
+
 
 # Input: (A, B, B_q, B_shuffle, B_scale_sh) from generate_input.
 # A [m,k], B [n,k] bf16; B_q quantized MXFP4; B_shuffle = shuffle_weight(B_q,(16,16)); B_scale_sh from quant(B, shuffle=True).

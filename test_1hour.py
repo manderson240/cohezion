@@ -16,6 +16,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,

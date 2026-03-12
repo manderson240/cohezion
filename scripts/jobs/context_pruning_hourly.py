@@ -6,17 +6,18 @@ Delegate: deepseek-r1:8b (Reasoning)
 """
 
 import asyncio
+import hashlib
 import logging
 import sys
-import hashlib
-import json
 from datetime import datetime
 from pathlib import Path
+
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from cohezion.swarm.compound_client import get_compound_client
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("ContextPruner")

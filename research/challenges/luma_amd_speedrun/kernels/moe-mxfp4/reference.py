@@ -1,15 +1,14 @@
-from utils import make_match_reference
-from task import input_t, output_t
-import torch
-import torch.nn.functional as F
-from typing import Dict, Tuple, Optional
 import math
 
 import aiter
+import torch
+import torch.nn.functional as F
 from aiter import ActivationType, QuantType, dtypes
 from aiter.fused_moe import fused_moe
-from aiter.utility import fp4_utils
 from aiter.ops.shuffle import shuffle_weight
+from aiter.utility import fp4_utils
+from task import input_t, output_t
+from utils import make_match_reference
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -47,8 +46,8 @@ def generate_input(
     n_routed_experts = nroutedexperts
     n_shared_experts = nsharedexperts
     routed_top_k = nexpertspertoken
-    total_top_k = routed_top_k + n_shared_experts   # e.g. 8 + 1 = 9
-    E_total = n_routed_experts + n_shared_experts    # e.g. 256 + 1 = 257
+    total_top_k = routed_top_k + n_shared_experts  # e.g. 8 + 1 = 9
+    E_total = n_routed_experts + n_shared_experts  # e.g. 256 + 1 = 257
     M = bs  # number of tokens
 
     # Padded dimensions (AITER MXFP4 requires 256-alignment)
@@ -67,43 +66,53 @@ def generate_input(
         "bs": M,
     }
 
-    gen = torch.Generator(device='cuda')
+    gen = torch.Generator(device="cuda")
     gen.manual_seed(seed)
 
     # ── hidden_states [M, d_hidden] ──
     hidden_states = torch.randn(
-        (M, d_hidden), device='cuda', dtype=torch.bfloat16, generator=gen,
+        (M, d_hidden),
+        device="cuda",
+        dtype=torch.bfloat16,
+        generator=gen,
     )
 
     # ── Router: softmax top-k (routed experts only) ──
     router_weight = torch.randn(
-        (n_routed_experts, d_hidden), device='cuda', dtype=torch.bfloat16, generator=gen,
+        (n_routed_experts, d_hidden),
+        device="cuda",
+        dtype=torch.bfloat16,
+        generator=gen,
     ) / math.sqrt(d_hidden)
     router_logits = F.linear(hidden_states, router_weight)  # [M, n_routed_experts]
     scores = router_logits.softmax(dim=-1)
-    routed_weights, routed_ids = torch.topk(
-        scores, k=routed_top_k, dim=-1, sorted=False
-    )
+    routed_weights, routed_ids = torch.topk(scores, k=routed_top_k, dim=-1, sorted=False)
     routed_weights = routed_weights.to(torch.float32)
     routed_ids = routed_ids.to(torch.int32)
 
     # ── Append shared expert(s): always selected, weight = 1.0 ──
     # Shared experts are indexed as n_routed_experts, n_routed_experts+1, ...
-    shared_ids = torch.arange(
-        n_routed_experts, E_total, device='cuda', dtype=torch.int32
-    ).unsqueeze(0).expand(M, -1)                               # [M, n_shared_experts]
-    shared_weights = torch.ones(
-        (M, n_shared_experts), device='cuda', dtype=torch.float32
-    )
+    shared_ids = (
+        torch.arange(n_routed_experts, E_total, device="cuda", dtype=torch.int32)
+        .unsqueeze(0)
+        .expand(M, -1)
+    )  # [M, n_shared_experts]
+    shared_weights = torch.ones((M, n_shared_experts), device="cuda", dtype=torch.float32)
 
-    topk_ids = torch.cat([routed_ids, shared_ids], dim=-1)        # [M, total_top_k]
+    topk_ids = torch.cat([routed_ids, shared_ids], dim=-1)  # [M, total_top_k]
     topk_weights = torch.cat([routed_weights, shared_weights], dim=-1)  # [M, total_top_k]
 
     gate_up_bf16 = torch.randn(
-        (E_total, 2 * d_expert_pad, d_hidden_pad), device='cuda', dtype=torch.bfloat16, generator=gen,
+        (E_total, 2 * d_expert_pad, d_hidden_pad),
+        device="cuda",
+        dtype=torch.bfloat16,
+        generator=gen,
     ) / math.sqrt(d_hidden)
     down_bf16 = torch.randn(
-        (E_total, d_hidden_pad, d_expert_pad), device='cuda', dtype=torch.bfloat16, generator=gen,
+        (E_total, d_hidden_pad, d_expert_pad),
+        device="cuda",
+        dtype=torch.bfloat16,
+        generator=gen,
     ) / math.sqrt(d_expert)
 
     torch_quant = aiter.get_torch_quant(QuantType.per_1x32)
@@ -118,21 +127,19 @@ def generate_input(
     down_weight_scale_shuffled = fp4_utils.e8m0_shuffle(down_weight_scale)
 
     return (
-        hidden_states,                  # [M, d_hidden]                              bf16
-        gate_up_weight,                 # [E_total, 2*d_expert_pad, d_hidden_pad//2] fp4x2  (raw)
-        down_weight,                    # [E_total, d_hidden_pad, d_expert_pad//2]   fp4x2  (raw)
-        gate_up_weight_scale,           # [E_total, 2*d_expert_pad, scale_K]         e8m0   (raw)
-        down_weight_scale,              # [E_total, d_hidden_pad, scale_K]           e8m0   (raw)
-        gate_up_weight_shuffled,        # [E_total, 2*d_expert_pad, d_hidden_pad//2] fp4x2  (pre-shuffled)
-        down_weight_shuffled,           # [E_total, d_hidden_pad, d_expert_pad//2]   fp4x2  (pre-shuffled)
+        hidden_states,  # [M, d_hidden]                              bf16
+        gate_up_weight,  # [E_total, 2*d_expert_pad, d_hidden_pad//2] fp4x2  (raw)
+        down_weight,  # [E_total, d_hidden_pad, d_expert_pad//2]   fp4x2  (raw)
+        gate_up_weight_scale,  # [E_total, 2*d_expert_pad, scale_K]         e8m0   (raw)
+        down_weight_scale,  # [E_total, d_hidden_pad, scale_K]           e8m0   (raw)
+        gate_up_weight_shuffled,  # [E_total, 2*d_expert_pad, d_hidden_pad//2] fp4x2  (pre-shuffled)
+        down_weight_shuffled,  # [E_total, d_hidden_pad, d_expert_pad//2]   fp4x2  (pre-shuffled)
         gate_up_weight_scale_shuffled,  # [padded, flat]                             e8m0   (pre-shuffled)
-        down_weight_scale_shuffled,     # [padded, flat]                             e8m0   (pre-shuffled)
-        topk_weights,                   # [M, total_top_k]                           float32
-        topk_ids,                       # [M, total_top_k]                           int32
+        down_weight_scale_shuffled,  # [padded, flat]                             e8m0   (pre-shuffled)
+        topk_weights,  # [M, total_top_k]                           float32
+        topk_ids,  # [M, total_top_k]                           int32
         config,
     )
-
-
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -148,15 +155,16 @@ def _dequant_mxfp4(weight_fp4, scale_e8m0):
     Returns: [N, K] float32
     """
     # fp4x2 -> float32 lookup: [N, K]
-    w_f32 = fp4_utils.mxfp4_to_f32(weight_fp4)            # [N, K]
+    w_f32 = fp4_utils.mxfp4_to_f32(weight_fp4)  # [N, K]
     # e8m0 -> float32 power-of-2 scale: [padded_N, scale_K]
-    s_f32 = fp4_utils.e8m0_to_f32(scale_e8m0)             # [padded_N, scale_K]
+    s_f32 = fp4_utils.e8m0_to_f32(scale_e8m0)  # [padded_N, scale_K]
     N, K = w_f32.shape
     # Trim scale rows to match weight rows (scale M-dim is padded to 256)
     s_f32 = s_f32[:N, :]
     # Broadcast scale across block_size=32 columns
     s_f32 = s_f32.repeat_interleave(MXFP4_BLOCK_SIZE, dim=-1)[:, :K]  # [N, K]
     return w_f32 * s_f32
+
 
 # ──────────────────────────────────────────────────────────────────────
 # ref_kernel_pytorch: pure PyTorch implementation (dequant + matmul)
@@ -168,17 +176,17 @@ def ref_kernel_pytorch(data: input_t) -> output_t:
     Uses the raw (un-shuffled) weights.
     """
     (
-        hidden_states,             # [M, d_hidden]          bf16
-        gate_up_weight,            # [E, 2*d_expert_pad, d_hidden_pad//2]  fp4x2
-        down_weight,               # [E, d_hidden_pad, d_expert_pad//2]    fp4x2
-        gate_up_weight_scale,      # [E, 2*d_expert_pad, scale_K]          e8m0
-        down_weight_scale,         # [E, d_hidden_pad, scale_K]            e8m0
+        hidden_states,  # [M, d_hidden]          bf16
+        gate_up_weight,  # [E, 2*d_expert_pad, d_hidden_pad//2]  fp4x2
+        down_weight,  # [E, d_hidden_pad, d_expert_pad//2]    fp4x2
+        gate_up_weight_scale,  # [E, 2*d_expert_pad, scale_K]          e8m0
+        down_weight_scale,  # [E, d_hidden_pad, scale_K]            e8m0
         gate_up_weight_shuffled,
         down_weight_shuffled,
         gate_up_weight_scale_shuffled,
         down_weight_scale_shuffled,
-        topk_weights,              # [M, top_k]  float32
-        topk_ids,                  # [M, top_k]  int32
+        topk_weights,  # [M, top_k]  float32
+        topk_ids,  # [M, top_k]  int32
         config,
     ) = data
 
@@ -193,16 +201,14 @@ def ref_kernel_pytorch(data: input_t) -> output_t:
     # Dequantize all expert weights to float32
     # gate_up: [E, 2*d_expert_pad, d_hidden_pad] -> trim to [E, 2*d_expert, d_hidden]
     # down:    [E, d_hidden_pad, d_expert_pad]    -> trim to [E, d_hidden, d_expert]
-    gate_up_dq = torch.stack([
-        _dequant_mxfp4(gate_up_weight[e], gate_up_weight_scale[e])
-        for e in range(E)
-    ])  # [E, 2*d_expert_pad, d_hidden_pad]
-    gate_up_dq = gate_up_dq[:, :2 * d_expert, :d_hidden].to(torch.bfloat16)
+    gate_up_dq = torch.stack(
+        [_dequant_mxfp4(gate_up_weight[e], gate_up_weight_scale[e]) for e in range(E)]
+    )  # [E, 2*d_expert_pad, d_hidden_pad]
+    gate_up_dq = gate_up_dq[:, : 2 * d_expert, :d_hidden].to(torch.bfloat16)
 
-    down_dq = torch.stack([
-        _dequant_mxfp4(down_weight[e], down_weight_scale[e])
-        for e in range(E)
-    ])  # [E, d_hidden_pad, d_expert_pad]
+    down_dq = torch.stack(
+        [_dequant_mxfp4(down_weight[e], down_weight_scale[e]) for e in range(E)]
+    )  # [E, d_hidden_pad, d_expert_pad]
     down_dq = down_dq[:, :d_hidden, :d_expert].to(torch.bfloat16)
 
     # Split gate_up -> gate [E, d_expert, d_hidden], up [E, d_expert, d_hidden]
@@ -218,9 +224,9 @@ def ref_kernel_pytorch(data: input_t) -> output_t:
             w = topk_weights[i, k].item()
 
             # Stage 1: gate_proj + up_proj + SwiGLU
-            gate_out = F.silu(x @ gate_w[eid].T)     # [d_expert]
-            up_out = x @ up_w[eid].T                  # [d_expert]
-            intermediate = gate_out * up_out           # [d_expert]
+            gate_out = F.silu(x @ gate_w[eid].T)  # [d_expert]
+            up_out = x @ up_w[eid].T  # [d_expert]
+            intermediate = gate_out * up_out  # [d_expert]
 
             # Stage 2: down_proj
             # down_dq[eid] is [d_hidden, d_expert], .T is [d_expert, d_hidden]
@@ -229,7 +235,6 @@ def ref_kernel_pytorch(data: input_t) -> output_t:
             output[i] += w * expert_out
 
     return output
-
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -293,7 +298,6 @@ def ref_kernel(data: input_t) -> output_t:
     )
 
     return output
-
 
 
 check_implementation = make_match_reference(ref_kernel, rtol=5e-2, atol=5e-2)
