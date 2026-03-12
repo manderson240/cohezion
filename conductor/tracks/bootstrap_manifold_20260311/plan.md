@@ -19,7 +19,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Persistence Integration' (Protocol in workflow.md)
 
 ## Phase 3: Engine Initialization
-- [ ] Task: Build the `TriuneSimulationEngine` base class binding State to Persistence.
-    - [ ] Sub-task: Write end-to-end simulation step test (mocked DB).
-    - [ ] Sub-task: Implement the `step(dt)` method.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Engine Initialization' (Protocol in workflow.md)
+- [x] Task: Build the `TriuneSimulationEngine` base class binding State to Persistence.
+    - [x] Sub-task: Write end-to-end simulation step test (mocked DB).
+    - [x] Sub-task: Implement the `step(dt)` method.
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Engine Initialization' (Protocol in workflow.md)
