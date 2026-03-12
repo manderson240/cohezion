@@ -55,7 +55,6 @@ class WorkflowBuilder:
                     )
                 )
 
-        {n.id for n in nodes}
         nodes_with_predecessors = {e.receiver_id for e in edges}
         nodes_with_successors = {e.sender_id for e in edges}
 

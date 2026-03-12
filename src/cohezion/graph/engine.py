@@ -81,6 +81,8 @@ class WorkflowEngine:
 
         errors = self.validate_dag(workflow)
         if errors:
+            for err in errors:
+                logger.warning("DAG validation failed [workflow=%s]: %s", workflow.id, err)
             return WorkflowResult(
                 workflow_id=workflow.id,
                 status="failed",
@@ -122,13 +124,20 @@ class WorkflowEngine:
 
             for nid, result in zip(ready, results, strict=False):
                 if isinstance(result, BaseException):
+                    logger.error(
+                        "Node execution failed [workflow=%s node=%s]: %s: %s",
+                        workflow.id,
+                        nid,
+                        type(result).__name__,
+                        result,
+                    )
                     nr = NodeResult(
                         node_id=nid,
                         status=NodeStatus.FAILED,
                         output={},
                         metrics={},
                         duration_ms=0,
-                        error=str(result),
+                        error=f"{type(result).__name__}: {result}",
                     )
                     node_states[nid] = NodeStatus.FAILED
                     node_results[nid] = nr
@@ -193,11 +202,15 @@ class WorkflowEngine:
         """Execute a single node and return its result."""
         impl = self._node_impls.get(node_id)
         if impl is None:
+            logger.warning(
+                "No implementation registered for node '%s' — treating as passthrough",
+                node_id,
+            )
             return NodeResult(
                 node_id=node_id,
                 status=NodeStatus.COMPLETED,
                 output=inputs,  # passthrough
-                metrics={},
+                metrics={"passthrough": True},
                 duration_ms=0,
             )
 
