@@ -3,7 +3,7 @@
   "checkpoint_id": "d4a735a67ed1",
   "strategy": "manual-commit",
   "branch": "challenge-luma-cqq4mojz",
-  "checkpoints_count": 3,
+  "checkpoints_count": 4,
   "files_touched": [
     "scripts/init_brand_db.py",
     "scripts/retrospective_persist.py",
@@ -24,13 +24,20 @@
       "context": "/d4/a735a67ed1/0/context.md",
       "content_hash": "/d4/a735a67ed1/0/content_hash.txt",
       "prompt": "/d4/a735a67ed1/0/prompt.txt"
+    },
+    {
+      "metadata": "/d4/a735a67ed1/1/metadata.json",
+      "transcript": "/d4/a735a67ed1/1/full.jsonl",
+      "context": "/d4/a735a67ed1/1/context.md",
+      "content_hash": "/d4/a735a67ed1/1/content_hash.txt",
+      "prompt": "/d4/a735a67ed1/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 6546,
-    "cache_creation_tokens": 1094905,
-    "cache_read_tokens": 26640888,
-    "output_tokens": 60135,
-    "api_call_count": 200
+    "input_tokens": 7472,
+    "cache_creation_tokens": 1505725,
+    "cache_read_tokens": 34146955,
+    "output_tokens": 116760,
+    "api_call_count": 263
   }
 }
