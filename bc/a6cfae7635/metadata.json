@@ -3,7 +3,7 @@
   "checkpoint_id": "bca6cfae7635",
   "strategy": "manual-commit",
   "branch": "challenge-luma-cqq4mojz",
-  "checkpoints_count": 2,
+  "checkpoints_count": 3,
   "files_touched": [
     "conductor/tracks/flume_engine_20260311/plan.md"
   ],
@@ -21,13 +21,20 @@
       "context": "/bc/a6cfae7635/1/context.md",
       "content_hash": "/bc/a6cfae7635/1/content_hash.txt",
       "prompt": "/bc/a6cfae7635/1/prompt.txt"
+    },
+    {
+      "metadata": "/bc/a6cfae7635/2/metadata.json",
+      "transcript": "/bc/a6cfae7635/2/full.jsonl",
+      "context": "/bc/a6cfae7635/2/context.md",
+      "content_hash": "/bc/a6cfae7635/2/content_hash.txt",
+      "prompt": "/bc/a6cfae7635/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 12315,
-    "cache_creation_tokens": 5380133,
-    "cache_read_tokens": 53172601,
-    "output_tokens": 124287,
-    "api_call_count": 428
+    "input_tokens": 26950,
+    "cache_creation_tokens": 6846753,
+    "cache_read_tokens": 70192613,
+    "output_tokens": 219098,
+    "api_call_count": 579
   }
 }
