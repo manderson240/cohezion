@@ -15,6 +15,7 @@ from typing import Any
 
 from cohezion.compound.models import ExecutionMetrics
 
+
 logger = logging.getLogger(__name__)
 
 

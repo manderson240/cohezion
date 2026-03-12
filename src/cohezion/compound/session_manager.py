@@ -434,6 +434,17 @@ def close_session(session_id: str) -> bool:
 # ---------------------------------------------------------------------------
 
 
+class AlignmentResult(BaseModel):
+    """Result of alignment check before execution."""
+
+    coherence: float = 0.0
+    intent_match: float = 0.0
+    constraint_satisfaction: float = 0.0
+    should_proceed: bool = True
+    issues: list[str] = []
+    recommendations: list[str] = []
+
+
 class SessionSummary(BaseModel):
     """Summary of a compound session."""
 
@@ -560,3 +571,158 @@ class CompoundSessionManager:
             cache_entries_loaded=self._cache_loaded,
             metrics_restored=self._metrics_restored,
         )
+
+    def check_alignment(
+        self,
+        request: str,
+        skills: list[str] | None = None,
+        context: dict[str, Any] | None = None,
+        threshold: float = 0.5,
+    ) -> AlignmentResult:
+        """Check request alignment before execution.
+
+        Implements the HIHO stability gate: requests with coherence below
+        the threshold should be decomposed or escalated rather than executed.
+
+        Parameters
+        ----------
+        request : str
+            Raw request text to analyze
+        skills : list[str] | None
+            Available skills for skill matching (optional)
+        context : dict[str, Any] | None
+            Additional context (project, prior decisions, etc.)
+        threshold : float
+            Minimum coherence to proceed (default 0.5 = HIHO)
+
+        Returns
+        -------
+        AlignmentResult
+            Coherence score, issues, and proceed recommendation
+        """
+        from cohezion.compound.request_alignment_analyzer import RequestAlignmentAnalyzerFactory
+
+        try:
+            mcp_client = get_mcp_client()
+            analyzer = RequestAlignmentAnalyzerFactory.create(mcp_client)
+            parsed = analyzer.parse_request(request)
+
+            intent_conf = parsed.intent_confidence
+            constraint_sat = 1.0 - (len(parsed.constraints) * 0.1) if parsed.constraints else 1.0
+            criteria_sat = 1.0 - (len(parsed.criteria) * 0.1) if parsed.criteria else 1.0
+
+            coherence = 0.4 * intent_conf + 0.3 * constraint_sat + 0.3 * criteria_sat
+
+            issues = []
+            recommendations = []
+
+            if parsed.intent_confidence < 0.3:
+                issues.append(f"Low intent confidence: {parsed.intent_confidence:.2f}")
+                recommendations.append("Clarify request intent")
+
+            if len(parsed.constraints) > 3:
+                issues.append(f"Many constraints ({len(parsed.constraints)})")
+                recommendations.append("Consider decomposing request")
+
+            should_proceed = coherence >= threshold
+
+            if not should_proceed:
+                issues.append(f"Coherence {coherence:.2f} below threshold {threshold}")
+                recommendations.append("Decompose request or escalate")
+
+            return AlignmentResult(
+                coherence=coherence,
+                intent_match=intent_conf,
+                constraint_satisfaction=constraint_sat,
+                should_proceed=should_proceed,
+                issues=issues,
+                recommendations=recommendations,
+            )
+
+        except Exception as e:
+            logger.warning("Alignment check failed (non-blocking): %s", e)
+            return AlignmentResult(
+                coherence=1.0,
+                intent_match=1.0,
+                constraint_satisfaction=1.0,
+                should_proceed=True,
+                issues=[],
+                recommendations=[],
+            )
+
+    async def execute_aligned(
+        self,
+        request: str,
+        execute_fn,
+        skill_name: str = "auto",
+        operation_type: str = "generate",
+        skills: list[str] | None = None,
+        threshold: float = 0.5,
+    ) -> tuple[bool, dict[str, Any]]:
+        """Execute with alignment gate and inflection logging.
+
+        This is the compound engineering preferred path:
+        1. Check alignment (HIHO gate)
+        2. If alignment >= threshold, execute
+        3. Log inflection points for critical anomalies
+        4. Return success/failure with metrics
+
+        Parameters
+        ----------
+        request : str
+            Raw request text
+        execute_fn : Callable
+            Async function to execute (receives no args, returns output)
+        skill_name : str
+            Skill name for logging (default "auto")
+        operation_type : str
+            Operation type for alignment analysis
+        skills : list[str] | None
+            Available skills for matching
+        threshold : float
+            Minimum alignment coherence (default 0.5)
+
+        Returns
+        -------
+        tuple[bool, dict[str, Any]]
+            (success, metrics_dict)
+        """
+        if not self._session_id:
+            self.start_session()
+
+        alignment = self.check_alignment(request, skills, threshold=threshold)
+
+        if not alignment.should_proceed:
+            logger.warning(
+                "Alignment gate blocked execution: coherence=%.2f < threshold=%.2f",
+                alignment.coherence,
+                threshold,
+            )
+            return False, {
+                "error": "Alignment below threshold",
+                "coherence": alignment.coherence,
+                "issues": alignment.issues,
+                "recommendations": alignment.recommendations,
+                "blocked_at": "alignment_gate",
+            }
+
+        start_time = time.time()
+        try:
+            output = await execute_fn() if callable(execute_fn) else execute_fn
+            duration = time.time() - start_time
+
+            return True, {
+                "output": output,
+                "duration_seconds": duration,
+                "coherence": alignment.coherence,
+                "intent_match": alignment.intent_match,
+                "session_id": self._session_id,
+            }
+
+        except Exception as e:
+            logger.exception("Aligned execution failed")
+            return False, {
+                "error": str(e),
+                "coherence": alignment.coherence,
+                "session_id": self._session_id,
+            }

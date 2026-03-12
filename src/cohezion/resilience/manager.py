@@ -156,7 +156,6 @@ class AutonomicManager:
                 time=time.time(),
             )
 
-
             node = UniverseNode(
                 id=node_id,
                 content=content,

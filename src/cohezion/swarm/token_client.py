@@ -211,6 +211,7 @@ class TokenEfficientClient:
                 enable_failover=enable_ngrok_failover,
             )
             from urllib.parse import urlparse
+
             _safe_host = urlparse(ngrok_endpoint).netloc
             logger.info("TokenEfficientClient using ngrok gateway host: %s", _safe_host)
         else:

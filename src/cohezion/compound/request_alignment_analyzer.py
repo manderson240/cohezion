@@ -334,28 +334,30 @@ class RequestAlignmentAnalyzer:
             Tuple of (IntentType, confidence_score)
         """
         # Phase 1: Keyword matching (fast)
-        scores: dict[str, int] = {}
+        # Score by: matches / total keywords for that intent (normalized)
+        scores: dict[str, float] = {}
         lower_text = request_text.lower()
 
         for intent_str, keywords in _INTENT_KEYWORDS.items():
-            score = 0
+            matches = 0
             for keyword in keywords:
                 if re.search(rf"\b{keyword}\b", lower_text):
-                    score += 1
-            scores[intent_str] = score
+                    matches += 1
+            # Normalize by number of keywords in this category
+            scores[intent_str] = matches / len(keywords) if keywords else 0.0
 
+        # Find best intent
         best_intent = max(scores, key=scores.get)
         best_score = scores[best_intent]
-        # Normalize by matched category's keywords (not all keywords) so a
-        # single match out of 7 gives confidence ≈ 0.14, not 0.03.
-        intent_keyword_count = len(_INTENT_KEYWORDS.get(best_intent, [1]))
-        confidence = best_score / max(1, intent_keyword_count)
 
-        if confidence >= self.intent_confidence_threshold:
-            return (
-                IntentType[best_intent.upper()],
-                confidence,
-            )
+        # If we have any match, use it (confidence = normalized score, min 0.5 for any match)
+        if best_score > 0:
+            confidence = max(best_score, 0.5)
+            if confidence >= self.intent_confidence_threshold:
+                return (
+                    IntentType[best_intent.upper()],
+                    confidence,
+                )
 
         # Phase 2: Semantic fallback (if encoder available)
         if self.text_encoder:
