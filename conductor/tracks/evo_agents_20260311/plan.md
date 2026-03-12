@@ -20,7 +20,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Reward & Ratchet System' (Protocol in workflow.md)
 
 ## Phase 3: Integration & Ascension
-- [ ] Task: Integrate Reward and Ratchet into the EVO Agent lifecycle.
-    - [ ] Sub-task: Write integration tests for a complete task-reward-ratchet cycle.
-    - [ ] Sub-task: Wire the components together in the agent's main processing loop.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Integration & Ascension' (Protocol in workflow.md)
+- [x] Task: Integrate Reward and Ratchet into the EVO Agent lifecycle.
+    - [x] Sub-task: Write integration tests for a complete task-reward-ratchet cycle.
+    - [x] Sub-task: Wire the components together in the agent's main processing loop.
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Integration & Ascension' (Protocol in workflow.md)
