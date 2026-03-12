@@ -16,6 +16,7 @@ from cohezion.reliability import get_circuit
 
 from .components import EvoState
 
+
 logger = logging.getLogger(__name__)
 
 
