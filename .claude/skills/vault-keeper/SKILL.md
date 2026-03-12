@@ -547,13 +547,30 @@ This provides:
 
 ## Scheduling
 
+### Automated (Cron — runs unattended)
+
+| Schedule | Command | Purpose |
+|----------|---------|---------|
+| Every 6h (0,6,12,18) | `dreaming-cron.sh --quick` | Engines 1-4: country health, resonances, HIHO fusion, metabolism dashboard |
+| Daily 2:30 AM | `dreaming-cron.sh` | Full run: all 7 engines including kinship, songlines, subconscious |
+
+The cron wrapper (`scripts/dreaming-cron.sh`) checks SurrealDB health before running,
+uses a lockfile to prevent overlapping runs, and logs to `logs/dreaming-engine.log`.
+
+### On-Demand (Agent-driven)
+
 | Frequency | Mode | Purpose |
 |-----------|------|---------|
+| Every session start | Read `metabolism/graph-alerts.md` | Pre-computed graph intelligence (zero query cost) |
 | Every session start | `--context` | Load relevant knowledge |
-| Daily | `--quick` | Health monitoring |
-| Weekly | Full run + Dreaming Engine | Comprehensive maintenance + emergence |
-| After bulk imports | Full run + Dreaming Engine | Integration and linking |
+| After bulk imports | Full vault-keeper run | Integration and linking |
 | After `/flesh-out` or `/link` runs | `--quick` | Verify improvements |
+
+### Real-Time (Daemon — Phase 1+2)
+
+The `vault_sync.py --watch` daemon runs continuously and provides:
+- **Phase 1**: inotify-based vault-to-SurrealDB sync (<1s latency)
+- **Phase 2**: GraphReactor updates `metabolism/graph-alerts.md` every 60s after changes
 
 ## Agent Deployment Strategy
 
