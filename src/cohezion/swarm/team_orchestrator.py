@@ -427,6 +427,18 @@ class TeamOrchestrator:
         orchestrator = ExecutionOrchestrator(compound_executor=team_executor)
         return await orchestrator.execute(plan)
 
+    def plan_workflow(
+        self, intent: str, max_agents: int = 4,
+    ) -> Any:
+        """Plan a team and convert to a WorkflowSpec for graph execution.
+
+        Returns a ``WorkflowSpec`` ready for ``WorkflowEngine.execute()``.
+        """
+        from cohezion.graph.builder import WorkflowBuilder
+
+        plan = self.plan_team(intent, max_agents=max_agents)
+        return WorkflowBuilder().from_team_plan(plan)
+
     @staticmethod
     def _slugify(text: str) -> str:
         """Convert text to a slug suitable for agent/team names."""

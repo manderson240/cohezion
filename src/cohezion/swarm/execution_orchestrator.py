@@ -345,6 +345,43 @@ class ExecutionOrchestrator:
                 duration_ms=elapsed_ms,
             )
 
+    async def execute_graph(
+        self,
+        workflow: Any,
+        initial_input: dict[str, Any] | None = None,
+    ) -> ExecutionReport:
+        """Execute a WorkflowSpec via the graph engine.
+
+        Bridges the graph execution model into the existing ExecutionReport
+        format for backward compatibility.
+        """
+        from cohezion.graph.engine import WorkflowEngine
+
+        engine = WorkflowEngine()
+        result = await engine.execute(workflow, initial_input or {})
+
+        task_results = [
+            TaskResult(
+                task_id=nr.node_id,
+                subject=nr.node_id,
+                status="completed" if nr.status.value == "completed" else nr.status.value,
+                duration_ms=nr.duration_ms,
+            )
+            for nr in result.node_results.values()
+        ]
+
+        report = ExecutionReport(
+            report_id=f"graph_{result.workflow_id}",
+            plan_name=workflow.name,
+            intent=workflow.attributes.get("intent", ""),
+            task_results=task_results,
+            total_tokens=result.total_tokens,
+            total_duration_ms=result.total_duration_ms,
+            status=result.status,
+        )
+        self._active_reports[report.report_id] = report
+        return report
+
     def get_report(self, report_id: str) -> ExecutionReport | None:
         """Retrieve a cached execution report by ID."""
         return self._active_reports.get(report_id)
