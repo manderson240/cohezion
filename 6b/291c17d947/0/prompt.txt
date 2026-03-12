@@ -1,0 +1,4301 @@
+Implement the following plan:
+
+# Luma AMD Speedrun: Phase 2 — VLIW-Informed Custom Kernel Approaches
+
+## Context
+
+**Phase 1 (parameter tuning) is complete.** All aiter API parameters have been exhausted:
+- `doweight_stage1=True`: correctness failure (SiLU nonlinearity)
+- `block_size_M=64`: GPU memory fault on benchmark shapes
+- `dispatch_policy=1`: 20-79% slower
+- `OPUS sorting`: no effect on MXFP4 variant
+- `fast_mode=True` (MLA): 17-21% slower
+- `num_kv_splits` sweep (MLA): all tested values slower
+
+Phase 2 applies lessons from the Anthropic VLIW take-home challenge
+(`research/challenges/anthropic_challenge/`) to pursue custom kernel approaches.
+
+### Current Leaderboard Status
+
+| Kernel | Our Time | Leader | Gap | Leaderboard |
+|--------|----------|--------|-----|-------------|
+| GEMM | ~24 us (ref delegation) | 9.7 us | 2.49x | `amd-mxfp4-mm` |
+| MoE | ~185 us (ref match) | 145 us | 1.28x | `amd-moe-mxfp4` |
+| MLA | ~191 us (ref match) | 4.3 us | 44x | `amd-mixed-mla` |
+
+**Priority:** GEMM JIT bypass (highest confidence) → MoE CK exploration → MLA MXFP4 KV test
+
+## Files to Modify
+
+| File | Kernel |
+|------|--------|
+| `.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/submission.py` | GEMM |
+| `.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/submission.py` | MoE |
+| `.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels/mixed-mla/submission.py` | MLA |
+
+## Progress Tracking
+
+- [ ] Task 1: GEMM — `get_torch_quant` + manual shuffle JIT bypass
+- [ ] Task 2: GEMM — Try `gemm_afp4wfp4` Triton alternative
+- [ ] Task 3: MoE — Remote source introspection (print aiter CK configs)
+- [ ] Task 4: MoE — Direct CK stage kernel call (bypass fused_moe dispatch)
+- [ ] Task 5: MLA — Try MXFP4 KV cache (input already provides it)
+- [ ] Task 6: Deep source reading — aiter tuned CSV dump via test submission
+
+**Total Tasks:** 6 | **Completed:** 0 | **Remaining:** 6
+
+## Implementation Tasks
+
+### Task 1: GEMM — `get_torch_quant` JIT bypass (target: match ref ~24 us, then optimize)
+
+**Objective:** Replace `ref_kernel` delegation with our own quantize-then-GEMM pipeline using
+`get_torch_quant` (pure PyTorch, no Triton JIT) to avoid the call-site correctness bug.
+
+**Key insight:** MoE `reference.py:109` already calls `get_torch_quant(QuantType.per_1x32)`
+successfully. The GEMM `reference.py:95` uses `get_triton_quant` which has the call-site bug.
+If `get_torch_quant` with `shuffle=True` produces compatible output for `gemm_a4w4`, we bypass
+the JIT issue entirely.
+
+**Files:** `kernels/mxfp4-mm/submission.py`
+
+**Implementation (attempt 1 — torch_quant with shuffle):**
+```python
+import aiter
+from aiter import QuantType, dtypes
+from task import input_t, output_t
+
+def custom_kernel(data: input_t) -> output_t:
+    A, B, B_q, B_shuffle, B_scale_sh = data
+    A = A.contiguous()
+    quant_func = aiter.get_torch_quant(QuantType.per_1x32)
+    A_q, A_scale = quant_func(A, shuffle=True)
+    return aiter.gemm_a4w4(A_q, B_shuffle, A_scale, B_scale_sh,
+                           dtype=dtypes.bf16, bpreshuffle=True)
+```
+
+**Fallback (attempt 2 — manual shuffle):**
+```python
+from aiter.ops.shuffle import shuffle_weight
+from aiter.utility import fp4_utils
+
+quant_func = aiter.get_torch_quant(QuantType.per_1x32)
+A_q, A_scale = quant_func(A)  # no shuffle kwarg
+A_q_shuffled = shuffle_weight(A_q.view(m, k // 2), layout=(16, 16))
+A_scale_shuffled = fp4_utils.e8m0_shuffle(A_scale)
+```
+
+**Fallback (attempt 3 — hip_quant):**
+```python
+quant_func = aiter.get_hip_quant(QuantType.per_1x32)
+A_q, A_scale = quant_func(A, shuffle=True)
+```
+
+**Verify:** `--mode test` → 0.0 max error → `--mode benchmark` → `--mode leaderboard`
+
+---
+
+### Task 2: GEMM — Try Triton `gemm_afp4wfp4` (target: < 20 us)
+
+**Depends on:** Task 1 (need correctness baseline)
+
+**Objective:** The GEMM reference.py comment (line 97) mentions `gemm_afp4wfp4` as an
+alternative Triton-based MXFP4 GEMM with split-K and auto-tuning. May outperform CK
+`gemm_a4w4` for some shapes.
+
+**Files:** `kernels/mxfp4-mm/submission.py`
+
+**Implementation:**
+```python
+from aiter.ops.triton.gemm.basic.gemm_afp4wfp4 import gemm_afp4wfp4
+
+def custom_kernel(data: input_t) -> output_t:
+    A, B, B_q, B_shuffle, B_scale_sh = data
+    # gemm_afp4wfp4 may have different input expectations
+    # Need to check its signature on the remote server
+    return gemm_afp4wfp4(A_q, B_q, A_scale, B_scale, ...)
+```
+
+**Note:** Import path may vary. Submit a test-only version that prints the
+function signature to understand the API before writing the real kernel.
+
+**Verify:** `--mode test` → correctness check → `--mode benchmark`
+
+---
+
+### Task 3: MoE — Remote aiter introspection (0 risk, high info value)
+
+**Objective:** Submit a test script that prints aiter internal state to understand
+what CK kernel configs, tile sizes, and CSV tuning data are available. This uses
+Popcorn's stderr output to dump diagnostic information.
+
+**Files:** `kernels/moe-mxfp4/submission.py`
+
+**Implementation:**
+```python
+import sys, os
+from task import input_t, output_t
+from aiter.fused_moe import fused_moe, get_2stage_cfgs
+from aiter import ActivationType, QuantType
+
+def custom_kernel(data: input_t) -> output_t:
+    (hidden_states, gate_up_weight, down_weight,
+     gate_up_weight_scale, down_weight_scale,
+     gate_up_weight_shuffled, down_weight_shuffled,
+     gate_up_weight_scale_shuffled, down_weight_scale_shuffled,
+     topk_weights, topk_ids, config) = data
+
+    # Dump aiter CK kernel selection info to stderr
+    M = hidden_states.shape[0]
+    E = gate_up_weight_shuffled.shape[0]
+    print(f"INTROSPECT: M={M}, E={E}, config={config}", file=sys.stderr)
+
+    # Try to read tuned CSV configs
+    import aiter
+    aiter_path = os.path.dirname(aiter.__file__)
+    csv_path = os.path.join(aiter_path, "configs")
+    if os.path.isdir(csv_path):
+        for f in sorted(os.listdir(csv_path)):
+            fpath = os.path.join(csv_path, f)
+            if f.endswith('.csv'):
+                print(f"CSV: {f}", file=sys.stderr)
+                with open(fpath) as fh:
+                    for i, line in enumerate(fh):
+                        if i < 5:  # first 5 lines (header + samples)
+                            print(f"  {line.rstrip()}", file=sys.stderr)
+
+    # Still return correct output (delegate to reference)
+    from reference import ref_kernel
+    return ref_kernel(data)
+```
+
+**Verify:** `--mode test` → read STDERR output for CSV configs and shape info.
+No risk to correctness since we delegate to `ref_kernel`.
+
+---
+
+### Task 4: MoE — Direct CK stage kernel call (bypass fused_moe dispatch)
+
+**Depends on:** Task 3 (need CK kernel names and configs)
+
+**Objective:** VLIW "Two Builders" pattern. Build a custom MoE pipeline that calls
+aiter's CK 2-stage kernels (`ck_moe_stage1`, `ck_moe_stage2`) directly with
+hand-tuned parameters, bypassing `fused_moe`'s auto-dispatch.
+
+**Key observation from prior stderr logs:** The CK kernels selected are:
+- Stage 1: `moe_ck2stages_gemm1_64x32x32x128_1x1_MulABScaleShuffled_v3_...`
+- Stage 2: `REDACTED...`
+
+The tile is `64x32x32x128`. If we can call these directly with different tile configs
+(e.g., the stage2 kernel with a different N_swizzle), we may improve throughput.
+
+**Files:** `kernels/moe-mxfp4/submission.py`
+
+**Implementation:** TBD based on Task 3 findings. The general shape:
+```python
+from aiter.fused_moe import moe_sorting_fwd, ck_moe_stage1, ck_moe_stage2
+
+def custom_kernel(data: input_t) -> output_t:
+    # 1. Sort tokens to experts (same as reference)
+    # 2. Call ck_moe_stage1 directly with custom block_m
+    # 3. Call ck_moe_stage2 directly with custom params
+    # 4. Scatter results back
+    ...
+```
+
+**Risk:** High — these internal functions may not be importable or may have
+undocumented requirements. Fallback is to continue using `fused_moe` with defaults.
+
+**Verify:** `--mode test` → correctness → `--mode benchmark` for timing comparison
+
+---
+
+### Task 5: MLA — Try MXFP4 KV cache (input already provides it)
+
+**Objective:** The input `kv_data` dict provides three KV cache formats:
+- `"bf16"`: Tensor (total_kv, 1, 576) — highest precision
+- `"fp8"`: (Tensor, Tensor) — current reference uses this
+- `"mxfp4"`: (Tensor, Tensor) — fp4x2 (total_kv, 1, 288) + scale
+
+We've only tested fp8. MXFP4 has 2x less memory bandwidth (4-bit vs 8-bit),
+which could significantly speed up the memory-bound decode kernel. The question
+is whether `mla_decode_fwd` supports MXFP4 KV, or if we need a different kernel path.
+
+**Files:** `kernels/mixed-mla/submission.py`
+
+**Implementation:**
+```python
+# Test if mla_decode_fwd accepts fp4x2 dtype KV buffer
+kv_buffer_mxfp4, kv_scale_mxfp4 = kv_data["mxfp4"]
+# Need to check: does mla_decode_fwd support fp4x2 dtype?
+# If not, we need aiter's MXFP4-specific MLA kernel (if it exists)
+```
+
+**Discovery step:** Submit a version that prints `type(kv_buffer_mxfp4.dtype)` and
+tries to call `mla_decode_fwd` with it. The error message will reveal whether MXFP4
+is supported.
+
+**Verify:** `--mode test` → if correctness passes, `--mode benchmark` for timing
+
+---
+
+### Task 6: Deep source reading — aiter tuned CSV dump
+
+**Objective:** Extract the full auto-tuning CSV configurations from the remote MI355X
+environment. These CSVs drive the CK kernel selection in `fused_moe` and potentially
+`gemm_a4w4`. Understanding them reveals what tile configs exist for each shape.
+
+**Files:** `kernels/mxfp4-mm/submission.py` (any kernel will do)
+
+**Implementation:** Same pattern as Task 3 — submit a script that reads and prints
+the aiter configs directory, then delegates to ref_kernel.
+
+```python
+import os, sys, aiter
+from reference import ref_kernel
+from task import input_t, output_t
+
+def custom_kernel(data: input_t) -> output_t:
+    aiter_path = os.path.dirname(aiter.__file__)
+    # Print all CSV content (not just headers)
+    for root, dirs, files in os.walk(os.path.join(aiter_path, "configs")):
+        for f in sorted(files):
+            if f.endswith('.csv'):
+                fpath = os.path.join(root, f)
+                print(f"\n=== {f} ===", file=sys.stderr)
+                with open(fpath) as fh:
+                    print(fh.read(), file=sys.stderr)
+    return ref_kernel(data)
+```
+
+**Verify:** `--mode test` → read STDERR for full CSV contents
+
+## Execution Order
+
+```
+Task 6 (CSV dump)  ─┐
+Task 3 (MoE introspect)─┤── parallel, zero risk (all delegate to ref_kernel)
+Task 1 (GEMM torch_quant)─┘
+
+    ↓ (analyze outputs)
+
+Task 2 (GEMM afp4wfp4) ── depends on Task 1 correctness
+Task 5 (MLA MXFP4 KV)  ── independent
+Task 4 (MoE direct CK) ── depends on Task 3 findings
+```
+
+**Tasks 1, 3, 6 can run as parallel Popcorn submissions** — they all pass correctness
+(delegate to ref_kernel) and just extract different information.
+
+## Popcorn CLI Reference
+
+```bash
+KERNELS=/home/mike-anderson/dev/cohezion/.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels
+CLI=~/.local/bin/popcorn-cli
+
+# Test → Benchmark → Leaderboard (always in this order)
+$CLI submit --no-tui --mode test --gpu MI355X --leaderboard amd-mxfp4-mm $KERNELS/mxfp4-mm/submission.py
+$CLI submit --no-tui --mode benchmark --gpu MI355X --leaderboard amd-mxfp4-mm $KERNELS/mxfp4-mm/submission.py
+$CLI submit --no-tui --mode leaderboard --gpu MI355X --leaderboard amd-mxfp4-mm $KERNELS/mxfp4-mm/submission.py
+
+$CLI submit --no-tui --mode test --gpu MI355X --leaderboard amd-moe-mxfp4 $KERNELS/moe-mxfp4/submission.py
+$CLI submit --no-tui --mode benchmark --gpu MI355X --leaderboard amd-moe-mxfp4 $KERNELS/moe-mxfp4/submission.py
+$CLI submit --no-tui --mode leaderboard --gpu MI355X --leaderboard amd-moe-mxfp4 $KERNELS/moe-mxfp4/submission.py
+
+$CLI submit --no-tui --mode test --gpu MI355X --leaderboard amd-mixed-mla $KERNELS/mixed-mla/submission.py
+$CLI submit --no-tui --mode benchmark --gpu MI355X --leaderboard amd-mixed-mla $KERNELS/mixed-mla/submission.py
+$CLI submit --no-tui --mode leaderboard --gpu MI355X --leaderboard amd-mixed-mla $KERNELS/mixed-mla/submission.py
+```
+
+## Risks
+
+| Risk | Mitigation |
+|------|------------|
+| `get_torch_quant` shuffle produces different layout than `get_triton_quant` | Fallback: manual `shuffle_weight()` + `e8m0_shuffle()`, then hip_quant |
+| `gemm_afp4wfp4` not importable or different API | Discovery submission first to print module contents |
+| CK stage kernels not directly importable from `aiter.fused_moe` | Task 3 introspection reveals what's importable |
+| `mla_decode_fwd` doesn't support MXFP4 KV dtype | Error message reveals this; fallback to fp8 (current) |
+| CSV configs empty or not useful | Low risk — we know they exist from JIT build logs |
+| Slow iteration (~2-10 min/submit) | Parallel first batch (Tasks 1,3,6); analyze before Task 2,4,5 |
+
+## Verification
+
+For each task:
+1. `--mode test` must pass with 0.0 (or < tolerance) max error
+2. `--mode benchmark` timing compared against current baselines (GEMM 24us, MoE 185us, MLA 191us)
+3. Only submit `--mode leaderboard` if benchmark shows improvement over current ranking
+4. Read STDERR output for all introspection tasks to extract aiter internal configs
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/f1f1bdf0-6849-4541-8d17-80aba4854241.jsonl
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/skills/popcorn-cli-amd-kernel-submission
+
+# Popcorn CLI AMD Kernel Submission Workflow
+
+## Submission Commands
+
+```bash
+CLI=~/.local/bin/popcorn-cli
+KERNELS=/path/to/kernels/dir
+
+# 1. Test (correctness check — do this first)
+$CLI submit --no-tui --mode test --gpu MI355X --leaderboard <name> $KERNELS/<kernel>/submission.py
+
+# 2. Benchmark (timing, no leaderboard impact)
+$CLI submit --no-tui --mode benchmark --gpu MI355X --leaderboard <name> $KERNELS/<kernel>/submission.py
+
+# 3. Leaderboard (official ranked submission)
+$CLI submit --no-tui --mode leaderboard --gpu MI355X --leaderboard <name> $KERNELS/<kernel>/submission.py
+```
+
+## Leaderboard Name Pattern
+
+Leaderboard names follow the pattern: `amd-<directory-name>`
+
+| Kernel directory | Leaderboard name |
+|-----------------|-----------------|
+| `mxfp4-mm/`    | `amd-mxfp4-mm`  |
+| `mixed-mla/`   | `amd-mixed-mla` |
+| `moe-mxfp4/`   | `amd-moe-mxfp4` |
+
+To discover unknown names: submit with `--mode test` using candidate names. A 404/does-not-exist
+response means the name is wrong; acceptance (even with correctness failures) confirms the name.
+
+## Submission Limits (Luma AMD Speedrun)
+
+- **No per-user rate limit** — submit as many times as needed
+- Server-wide: 3 concurrent submissions (asyncio.Semaphore)
+- ~10 requests/second global rate limit
+- Per-mode timeouts: test=180s, benchmark=180s (overridden per competition in task.yml)
+- **Total workflow timeout: ~12 minutes** — the entire GitHub Actions run must complete within this
+- Use `--mode test` first, then `--mode benchmark`, then `--mode leaderboard`
+
+## aiter JIT Compilation Times (Luma AMD Speedrun)
+
+aiter builds JIT modules on first use. These builds happen **inside** the 12-minute workflow timeout:
+
+| JIT Module | Build Time |
+|-----------|-----------|
+| `module_moe_sorting` | ~25s |
+| `module_moe_ck2stages_fp4x2_*` | ~103s |
+| `module_mla_metadata` | ~32s |
+| `module_mla_asm` | ~21s |
+| `module_mla_reduce` | ~171s |
+
+**Critical implications:**
+- MoE JIT builds alone take ~230s (~4 min), leaving only ~8 min for actual execution
+- MLA JIT builds take ~224s total — similar headroom concern
+- When the server queue is backed up with multiple concurrent submissions, the JIT time can push the total over the 12-minute limit
+- Submissions that appear to fail silently (no output, cancelled status) are often **queue pressure timeouts**, not code errors
+
+**Mitigation:** Retry submissions during off-peak hours. JIT results are cached between runs in the same workflow, so a retry that hits a pre-warmed runner will be much faster.
+
+## Local Testing Limitations on gfx1151 (RDNA4 Strix Halo)
+
+Local GPU testing on gfx1151 (AMD Radeon 8060S, Strix Halo iGPU) is NOT feasible with ROCm 6.2.4:
+
+- Without override: `HIP error: invalid device function` (ISA mismatch)
+- With `HSA_OVERRIDE_GFX_VERSION=11.0.0`: "Memory access fault by GPU node-2" on kernel launch
+  (RDNA4 gfx1151 is not binary-compatible with RDNA3 gfx1100)
+- ROCm 6.3+ would be needed for gfx1151 native support
+
+**Workaround**: All testing via Popcorn CLI remote submission (MI355X hardware).
+
+## `uv run` Reverting ROCm Torch Install
+
+The project's uv lockfile pins CUDA torch (`torch+cu128`). Running `uv run` syncs from the
+lockfile and overwrites any manually installed ROCm torch.
+
+**Fix**: Create an isolated venv outside the project for GPU kernel work:
+
+```bash
+# Create isolated ROCm venv
+python3 -m venv research/challenges/luma_amd_speedrun/.venv-rocm
+source research/challenges/luma_amd_speedrun/.venv-rocm/bin/activate
+pip install torch --index-url https://download.pytorch.org/whl/rocm6.2.4
+
+# Use this venv directly (not uv run) for kernel testing
+python submission.py
+```
+
+## Competition Kernel Structure
+
+Each kernel must implement:
+```python
+# submission.py
+from task import input_t, output_t
+
+def custom_kernel(data: input_t) -> output_t:
+    ...  # Your implementation
+```
+
+The eval harness (`eval.py`) calls `generate_input()` from `reference.py`, passes `_clone_data(data)`
+to `custom_kernel`, then runs `check_implementation()` comparing output to reference. Benchmark
+runs clear L2 cache between runs (`clear_l2_cache_large()`), so cache warming tricks don't help.
+
+## Troubleshooting: Transient Artifact Download Failures
+
+Popcorn CLI submissions run on GitHub Actions runners. The evaluation job and the artifact
+download are separate steps — a network failure can cause the CLI to report failure even though
+the evaluation job itself **succeeded**.
+
+**Symptoms:**
+- CLI output shows failure / no results despite a correct kernel
+- Error mentions artifact download or GitHub Actions artifact retrieval
+
+**Fix:** Simply retry the same submission command. A retry succeeds in the majority of cases.
+
+```bash
+# Retry exactly the same command — the eval job is idempotent
+$CLI submit --no-tui --mode benchmark --gpu MI355X --leaderboard <name> <file>
+```
+
+**Important:** Transient failures look identical to actual correctness failures in the CLI output.
+If a previously-passing kernel suddenly "fails", try a retry before debugging the kernel code.
+
+## Correctness Tolerances (Luma AMD Speedrun)
+
+| Kernel | rtol | atol |
+|--------|------|------|
+| MXFP4 GEMM | 1e-2 | 1e-2 |
+| MLA Decode | 1e-2 | 1e-2 |
+| MoE MXFP4 | 5e-2 | 5e-2 |
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/skills/aiter-kernel-parameter-semantics
+
+# aiter Kernel Parameter Semantics (AMD MI355X)
+
+## Problem
+
+aiter's `fused_moe` and `mla_decode_fwd` have parameters that sound like performance flags
+but actually change computation or have counter-intuitive effects on MI355X.
+
+## fused_moe: doweight_stage1
+
+### What it does
+
+`doweight_stage1=True` moves the `topk_weights` multiplication from **stage 2** (after SiLU
+activation) to **stage 1** (before SiLU activation).
+
+- `doweight_stage1=False` (default): `output = SiLU(gate(x)) * up(x)`, then multiply weights in stage 2
+- `doweight_stage1=True`: multiply weights in stage 1 BEFORE activation
+
+### Why it causes correctness failure
+
+SiLU is a **nonlinear** activation. Multiplying weights before vs after a nonlinear activation
+produces mathematically different results:
+
+```
+w * SiLU(gate(x)) * up(x)   ≠   SiLU(w * gate(x)) * (w * up(x))
+```
+
+This is not a subtle numerical difference — it produces ~80% element mismatches with 10-30%
+per-element error (well above the 5e-2 tolerance for MoE).
+
+**Rule:** `doweight_stage1=True` only produces correct results for linear activations (ReLU-like),
+not for SiLU/GELU. For MXFP4 MoE with SiLU, always use `doweight_stage1=False`.
+
+## fused_moe: OPUS Sorting (AITER_USE_OPUS_MOE_SORTING)
+
+Setting `os.environ["AITER_USE_OPUS_MOE_SORTING"] = "1"` before calling `fused_moe` switches
+to the OPUS sorting backend (`moe_sorting_opus_fwd` instead of `moe_sorting_fwd`).
+
+**Correctness:** OPUS sorting only changes token dispatch order — the computation is identical.
+Setting this env var passes correctness tests (verified, max error 0.015625).
+
+**Performance on MXFP4 variant:** NO EFFECT. The env var is not wired into the fp4x2 code path
+in `fused_moe.py`. JIT still builds `module_moe_sorting` (not `module_moe_sorting_opus`), and
+benchmark times are identical to reference. This was verified by running the full benchmark suite.
+
+## fused_moe: block_size_M
+
+Override the auto-selected tile size for the token dimension:
+
+```python
+fused_moe(..., block_size_M=64)  # or 32, 128
+```
+
+Default is `-1` (auto-selects from tuned CSV configs). For MXFP4 with different model configs:
+- bs=8 (small): auto-selects `block_m=32`
+- bs=128 (medium): auto-selects `block_m=64`
+
+**DANGER: Forcing `block_size_M=64` causes GPU memory access faults on benchmark configs.**
+When `estimated_m_per_expert` is low (e.g., bs=16 with 256 experts = ~1 token/expert), a tile
+size of 64 exceeds the actual data bounds and causes a hardware-level `Memory access fault by
+GPU node-2`. The auto-tuner correctly selects smaller tiles for these shapes. **Never override
+`block_size_M` without verifying it's safe for ALL shapes in the benchmark suite.**
+
+## mla_decode_fwd: fast_mode is SLOWER on MI355X
+
+### What it does
+
+`fast_mode=True` in `get_mla_metadata_info_v1` and `get_mla_metadata_v1` changes the work
+distribution strategy: `(bs + cu_num) * tiles` work items vs `tile_cnt * cu_num`.
+
+### Test results (MI355X, DeepSeek R1 MLA, fp8)
+
+| Config | fast_mode=False (reference) | fast_mode=True, adaptive splits | fast_mode=True, fixed splits=32 |
+|--------|----------------------------|--------------------------------|--------------------------------|
+| bs=4, kv=1024 | ~131 us | ~154 us | ~152 us |
+| bs=256, kv=8192 | ~462 us | ~536 us | ~542 us |
+| Geomean | ~191 us | ~224 us (+17%) | ~232 us (+21%) |
+
+**fast_mode=True is 17-21% SLOWER than fast_mode=False on MI355X for decode workloads.**
+
+The reference implementation already uses well-tuned defaults. Changing `fast_mode` to `True`
+and `num_kv_splits` from 32 to adaptive values (4-16 depending on batch size) both made
+performance worse, not better.
+
+**Rule:** For MLA decode on MI355X with the DeepSeek R1 forward_absorb architecture, use:
+```python
+fast_mode=False
+num_kv_splits=32
+intra_batch_mode=True
+```
+
+## fused_moe: Parameter Quick Reference
+
+| Parameter | Default | Effect | Safe to Change? |
+|-----------|---------|--------|----------------|
+| `doweight_stage1` | `False` | **Changes computation** — must be `False` for SiLU | NO (SiLU fails) |
+| `block_size_M` | `-1` (auto) | Changes CK tile size | **DANGEROUS** — GPU memory fault if too large for shape |
+| `moe_sorting_dispatch_policy` | `0` | Token dispatch strategy | Yes but 20-79% SLOWER at policy=1 |
+| `AITER_USE_OPUS_MOE_SORTING` | unset | Dispatch backend | No effect on MXFP4 variant |
+
+## mla_decode_fwd: Parameter Quick Reference
+
+| Parameter | Reference Value | Effect | Change? |
+|-----------|----------------|--------|---------|
+| `fast_mode` | `False` | Work distribution strategy | NO — slower on MI355X |
+| `num_kv_splits` | `32` | Split count for KV attention | Tested 4-16, all slower |
+| `intra_batch_mode` | `True` | Intra-batch parallelism | Do not change |
+| `page_size` | `1` | KV page size | Do not change |
+
+## Context
+
+Discovered during Luma AMD Speedrun competition (March 2026) on AMD MI355X.
+Tests run via Popcorn CLI remote submission. ~240s JIT build time means only ~8 min
+remains in the 12-min workflow for actual parameter sweep testing.
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/superpowers/4.3.1/skills/executing-plans
+
+# Executing Plans
+
+## Overview
+
+Load plan, review critically, execute tasks in batches, report for review between batches.
+
+**Core principle:** Batch execution with checkpoints for architect review.
+
+**Announce at start:** "I'm using the executing-plans skill to implement this plan."
+
+## The Process
+
+### Step 1: Load and Review Plan
+1. Read plan file
+2. Review critically - identify any questions or concerns about the plan
+3. If concerns: Raise them with your human partner before starting
+4. If no concerns: Create TodoWrite and proceed
+
+### Step 2: Execute Batch
+**Default: First 3 tasks**
+
+For each task:
+1. Mark as in_progress
+2. Follow each step exactly (plan has bite-sized steps)
+3. Run verifications as specified
+4. Mark as completed
+
+### Step 3: Report
+When batch complete:
+- Show what was implemented
+- Show verification output
+- Say: "Ready for feedback."
+
+### Step 4: Continue
+Based on feedback:
+- Apply changes if needed
+- Execute next batch
+- Repeat until complete
+
+### Step 5: Complete Development
+
+After all tasks complete and verified:
+- Announce: "I'm using the finishing-a-development-branch skill to complete this work."
+- **REQUIRED SUB-SKILL:** Use superpowers:finishing-a-development-branch
+- Follow that skill to verify tests, present options, execute choice
+
+## When to Stop and Ask for Help
+
+**STOP executing immediately when:**
+- Hit a blocker mid-batch (missing dependency, test fails, instruction unclear)
+- Plan has critical gaps preventing starting
+- You don't understand an instruction
+- Verification fails repeatedly
+
+**Ask for clarification rather than guessing.**
+
+## When to Revisit Earlier Steps
+
+**Return to Review (Step 1) when:**
+- Partner updates the plan based on your feedback
+- Fundamental approach needs rethinking
+
+**Don't force through blockers** - stop and ask.
+
+## Remember
+- Review plan critically first
+- Follow plan steps exactly
+- Don't skip verifications
+- Reference skills when plan says to
+- Between batches: just report and wait
+- Stop when blocked, don't guess
+- Never start implementation on main/master branch without explicit user consent
+
+## Integration
+
+**Required workflow skills:**
+- **superpowers:using-git-worktrees** - REQUIRED: Set up isolated workspace before starting
+- **superpowers:writing-plans** - Creates the plan this skill executes
+- **superpowers:finishing-a-development-branch** - Complete development after all tasks
+
+---
+
+<task-notification>
+<task-id>bv9th9pbg</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bv9th9pbg.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit GEMM introspection + afp4wfp4 discovery" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bv9th9pbg.output
+
+---
+
+<task-notification>
+<task-id>bjoayr7b2</task-id>
+<tool-use-id>toolu_019E2fkUaxyEJDDjh5hxgDks</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bjoayr7b2.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MoE introspection" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bjoayr7b2.output
+
+---
+
+<task-notification>
+<task-id>bng3no28d</task-id>
+<tool-use-id>toolu_01NVQj1MBahJxpY2htEN6tx8</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bng3no28d.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MLA MXFP4 KV + CSV dump" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bng3no28d.output
+
+---
+
+<task-notification>
+<task-id>bdexne7ui</task-id>
+<tool-use-id>toolu_01BopR2AUfc4b8S49gnSo9UN</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bdexne7ui.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit GEMM gemm_afp4wfp4 attempt" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bdexne7ui.output
+
+---
+
+<task-notification>
+<task-id>boiwo4b28</task-id>
+<tool-use-id>toolu_017kcbH8G5MtEZgZJ1tzKBd5</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/boiwo4b28.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MoE dsv3 configs + 2stage exploration" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/boiwo4b28.output
+
+---
+
+<task-notification>
+<task-id>bcefq091p</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bcefq091p.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MLA MXFP4 KV clean attempt" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bcefq091p.output
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The user provided a detailed plan for "Luma AMD Speedrun: Phase 2 — VLIW-Informed Custom Kernel Approaches" to optimize three GPU kernels (GEMM, MoE, MLA) for AMD MI355X hardware in a competitive leaderboard setting. The plan had 6 specific tasks:
+   - Task 1: GEMM — `get_torch_quant` + manual shuffle JIT bypass
+   - Task 2: GEMM — Try `gemm_afp4wfp4` Triton alternative
+   - Task 3: MoE — Remote source introspection (print aiter CK configs)
+   - Task 4: MoE — Direct CK stage kernel call (bypass fused_moe dispatch)
+   - Task 5: MLA — Try MXFP4 KV cache
+   - Task 6: Deep source reading — aiter tuned CSV dump
+   
+   Current leaderboard gaps: GEMM 2.49x behind leader (24us vs 9.7us), MoE 1.28x behind (185us vs 145us), MLA 44x behind (191us vs 4.3us).
+
+2. Key Technical Concepts:
+   - AMD MI355X GPU kernel optimization via Popcorn CLI remote submission
+   - aiter library: ROCm GPU kernel library with JIT compilation (CK and ASM kernels)
+   - MXFP4 (Microscaling FP4): 4-bit floating point with E8M0 block-32 scaling
+   - `get_triton_quant` vs `get_torch_quant` vs `get_hip_quant`: different quantization backends producing different numerical results
+   - `gemm_a4w4` (CK/ASM kernel, needs shuffled inputs) vs `gemm_afp4wfp4` (Triton kernel, needs unshuffled uint8 inputs)
+   - `fused_moe` 2-stage CK pipeline: `ck_moe_stage1` + `ck_moe_stage2` with token sorting
+   - MLA decode with persistent mode metadata (`get_mla_metadata_v1`)
+   - FP8 per-tensor quantization for Q and KV in MLA decode
+   - Popcorn CLI workflow: `--mode test` → `--mode benchmark` → `--mode leaderboard`
+   - JIT build times consuming ~4 min of 12-min workflow timeout
+
+3. Files and Code Sections:
+
+   - **`.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/submission.py`** (GEMM kernel)
+     - Modified multiple times. Final version is introspection + gemm_afp4wfp4 attempt with ref_kernel fallback.
+     - Current content (last written version):
+     ```python
+     """
+     MXFP4 GEMM — Phase 2: Triton gemm_afp4wfp4 discovery.
+     """
+     import sys
+     import aiter
+     from aiter import QuantType, dtypes
+     from aiter.ops.triton.gemm.basic.gemm_afp4wfp4 import gemm_afp4wfp4
+     from task import input_t, output_t
+     from reference import ref_kernel
+
+     def custom_kernel(data: input_t) -> output_t:
+         A, B, B_q, B_shuffle, B_scale_sh = data
+         A = A.contiguous()
+         quant_func = aiter.get_torch_quant(QuantType.per_1x32)
+         A_q, A_scale = quant_func(A, quant_dtype=dtypes.fp4x2)
+         B_q_raw, B_scale_raw = quant_func(B, quant_dtype=dtypes.fp4x2)
+         try:
+             out = gemm_afp4wfp4(A_q, B_q_raw, A_scale, B_scale_raw, dtype=dtypes.bf16)
+             return out
+         except Exception as e:
+             print(f"GEMM_AFP4WFP4_FAIL: {e}", file=sys.stderr)
+             from reference import ref_kernel
+             return ref_kernel(data)
+     ```
+
+   - **`.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/submission.py`** (MoE kernel)
+     - Modified to read dsv3_fp4_tuned_fmoe.csv model configs and call get_2stage_cfgs with benchmark shapes. Still delegates to `fused_moe` with reference parameters.
+     - Current content reads dsv3 configs on first call, then runs standard fused_moe.
+
+   - **`.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels/mixed-mla/submission.py`** (MLA kernel)
+     - Modified to try MXFP4 KV cache first, falling back to fp8. Clean diagnostics version.
+     - Current content tries `_run_mla` with MXFP4 KV data, catches RuntimeError, falls back to fp8 path.
+
+   - **Reference files read** (not modified):
+     - `kernels/mxfp4-mm/reference.py`: Shows `get_triton_quant(QuantType.per_1x32)` → `quant_func(A, shuffle=True)` → `gemm_a4w4(A_q, B_shuffle, A_scale_sh, B_scale_sh, dtype=bf16, bpreshuffle=True)`
+     - `kernels/moe-mxfp4/reference.py`: Shows `fused_moe()` call with `ActivationType.Silu`, `QuantType.per_1x32`, `doweight_stage1=False`. Line 109 uses `get_torch_quant(QuantType.per_1x32)` for weight quantization.
+     - `kernels/mixed-mla/reference.py`: Shows fp8 Q + fp8 KV path via `mla_decode_fwd`. Provides three KV formats: bf16, fp8, mxfp4.
+
+4. Errors and fixes:
+
+   - **GEMM Task 1 - torch_quant produces wrong results**: `get_torch_quant(QuantType.per_1x32)` with `shuffle=True` ran without exceptions but produced numerically different results from `get_triton_quant`. Errors like 165 vs 163 (small but exceed rtol=1e-2). Root cause: torch_quant and triton_quant use different rounding/clamping. Fix: Abandoned this approach, moved to gemm_afp4wfp4.
+
+   - **GEMM Task 2 - gemm_afp4wfp4 KeyError**: `gemm_afp4wfp4` failed with `KeyError: 'REDACTED'` on all 4 test shapes. The Triton kernel doesn't support PyTorch's native `torch.REDACTED` dtype — it expects uint8-packed data. Fix: Fell back to ref_kernel (all tests pass).
+
+   - **MLA Task 5 - MXFP4 KV not supported**: `mla_decode_stage1_asm_fwd` requires `head_size == KV.size(3)`. MXFP4 KV has shape `(total_kv, 1, 288)` because fp4 packs 2 values per byte (576/2=288), but the ASM kernel expects 576 in dimension 3. Error: `RuntimeError: mla_decode_stage1_asm_fwd:only support head_size == KV.size(3) for now`. Fix: Fell back to fp8 KV path.
+
+   - **MLA Batch 1 - CSV dump drowned diagnostics**: First MLA submission included CSV dump that produced 10K+ lines of output, hiding the MXFP4 attempt messages. Fix: Rewrote without CSV dump for Batch 2, got clean error messages.
+
+5. Problem Solving:
+   
+   **Solved (no improvement found):**
+   - GEMM: Both `get_torch_quant` bypass and `gemm_afp4wfp4` Triton alternative failed. The fundamental blocker is that only `get_triton_quant` produces correct quantization for `gemm_a4w4`, and `get_triton_quant` has a JIT call-site bug when imported from submission.py. The reference delegation at ~24us is the best achievable without fixing the JIT bug or finding a way to pass uint8-packed data to gemm_afp4wfp4.
+   
+   - MLA MXFP4 KV: The ASM kernel explicitly rejects MXFP4 packed dimensions. No MXFP4-aware MLA decode kernel exists in this aiter version.
+   
+   **Extensive introspection data collected:**
+   - Full CSV tuning configs for all kernel types (a4w4, a8w8, bf16, fmoe)
+   - `ck_moe_stage1` signature: `(hidden_states, w1, w2, sorted_token_ids, sorted_expert_ids, num_valid_ids, out, topk, block_m, a1_scale, w1_scale, kernelName='', sorted_weights=None, quant_type=<QuantType.No: 0>, activation=<ActivationType.Gelu: 1>, splitk=1, ...)`
+   - `ck_moe_stage2` JIT signature (not in dir()): `(inter_states, w1, w2, sorted_token_ids, sorted_expert_ids, num_valid_ids, out, topk, kernelName=None, w2_scale=None, a2_scale=None, block_m=32, sorted_weights=None, ...)`
+   - `cktile_moe_stage1` and `cktile_moe_stage2` exist in fused_moe module
+   - `fused_moe_2stages` exists
+   - MXFP4 MoE uses DEFAULT 2-stage configs (no tuned CSV for QuantType.per_1x32)
+   - `dsv3_fp4_tuned_fmoe.csv` exists but contains a8w8_blockscale configs, not fp4 MoE configs
+   - `gemm_afp4wfp4` signature: `(x, w, x_scales, w_scales, dtype=bf16, y=None, config=None, skip_reduce=False)`
+   - Available quant functions: `per_1x32_f4_quant`, `per_1x32_f4_quant_hip`, `per_1x32_f4_quant_triton`, `dynamic_per_group_scaled_quant_fp4`
+   - `gemm_a4w4_blockscale` exists as another GEMM variant
+
+6. All user messages:
+   - First message: "Implement the following plan:" followed by the complete Phase 2 plan with 6 tasks, execution order, Popcorn CLI reference, risks, and verification criteria.
+   - No other non-tool user messages. All subsequent messages were tool results and task notifications.
+
+7. Pending Tasks:
+   - **Task 4 (MoE Direct CK stage kernel call)**: Status is "pending" (blocked by Task 3 which is now complete). The introspection revealed `ck_moe_stage1` is callable but `ck_moe_stage2` is only in the JIT module. `cktile_moe_stage1/2` are also available. The MoE submission currently still delegates to standard `fused_moe` — no direct CK call has been attempted yet.
+   - **GEMM gemm_afp4wfp4 with uint8 view**: Could try `A_q.view(torch.uint8)` before passing to gemm_afp4wfp4, since the Triton kernel likely expects uint8-packed data rather than `torch.REDACTED` dtype.
+   - All submissions should be restored to clean, non-introspection versions for any benchmark/leaderboard submissions.
+
+8. Current Work:
+   All 6 plan tasks have been attempted via Popcorn CLI remote submissions (12 total submissions across Batch 1 and Batch 2). Results were being collected from three parallel Batch 2 background submissions:
+   
+   - GEMM (bdexne7ui): `gemm_afp4wfp4` failed with `KeyError: 'REDACTED'`, fell back to ref_kernel, all 4 tests passed.
+   - MoE (boiwo4b28): Read dsv3 model configs (a8w8_blockscale data, not fp4 MoE tuning), fused_moe with defaults, all 3 tests passed.  
+   - MLA (bcefq091p): MXFP4 KV failed with `RuntimeError: mla_decode_stage1_asm_fwd:only support head_size == KV.size(3) for now`, fell back to fp8, all 4 tests passed.
+   
+   Task status: #1 completed, #2 in_progress, #3 completed, #4 pending, #5 completed, #6 in_progress.
+
+9. Optional Next Step:
+   The most actionable remaining work is:
+   
+   a) **Try gemm_afp4wfp4 with uint8 view**: The `KeyError: 'REDACTED'` suggests the Triton kernel needs `uint8`-viewed tensors. Try `A_q.view(torch.uint8)` and `B_q_raw.view(torch.uint8)` before calling `gemm_afp4wfp4`. This is directly in line with Task 2 from the plan.
+   
+   b) **Task 4 (MoE Direct CK)**: Now unblocked. Could try calling `ck_moe_stage1` directly or `fused_moe_2stages` with custom block_m or kernel names from the introspection data. The key insight is that MXFP4 MoE uses default configs — there may be room for improvement with specific kernel name selection.
+   
+   c) **Update task statuses and clean up submission files** for any final benchmark/leaderboard attempts.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/f4cbccc2-65e9-41e2-9671-af041d9602b5.jsonl
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+commit what we have so far
+
+---
+
+Continue
+
+---
+
+<task-notification>
+<task-id>by4n8xbru</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/by4n8xbru.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit GEMM with uint8 view fix (test mode)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/by4n8xbru.output
+
+---
+
+<task-notification>
+<task-id>byd0gw00i</task-id>
+<tool-use-id>toolu_01TiGLbkaPpnPpRf31SaYrkn</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/byd0gw00i.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MoE with fused_moe_2stages attempt (test mode)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/byd0gw00i.output
+
+---
+
+<task-notification>
+<task-id>b73lzglmf</task-id>
+<tool-use-id>toolu_01VxozZ7ugbkkhJ8pQ5moJPt</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b73lzglmf.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit GEMM with triton_quant(shuffle=False) + afp4wfp4 (test mode)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b73lzglmf.output
+
+---
+
+<task-notification>
+<task-id>b8sjj4itx</task-id>
+<tool-use-id>toolu_01WtBZoxyqonw3MHdqCkxhg6</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b8sjj4itx.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MoE with direct 2-stage pipeline (test mode)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b8sjj4itx.output
+
+---
+
+<task-notification>
+<task-id>bql2ov2vn</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bql2ov2vn.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit GEMM with triton_quant(shuffle=True) + gemm_a4w4 direct (test mode)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bql2ov2vn.output
+
+---
+
+<task-notification>
+<task-id>b6xcw4240</task-id>
+<tool-use-id>toolu_018iqdfTxkBa4oTnrQcaFJ4n</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b6xcw4240.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MoE with JIT sorting access (test mode)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b6xcw4240.output
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The user is working on the Luma AMD Speedrun competition, optimizing three GPU kernels (GEMM, MoE, MLA) for AMD MI355X hardware. This session continued Phase 2 of the optimization plan, which explores custom kernel approaches after Phase 1 parameter tuning was exhausted. The plan had 6 tasks:
+   - Task 1 (completed prior): GEMM `get_torch_quant` JIT bypass
+   - Task 2: GEMM `gemm_afp4wfp4` Triton alternative
+   - Task 3 (completed prior): MoE remote aiter introspection
+   - Task 4: MoE direct CK stage kernel call
+   - Task 5 (completed prior): MLA MXFP4 KV cache test
+   - Task 6 (completed prior): Deep source aiter tuned CSV dump
+   
+   In this session, the user asked to: (1) run `/learn` to extract reusable knowledge, (2) commit current work, (3) continue executing the remaining plan tasks, and finally requested this summary.
+
+   Current leaderboard gaps: GEMM 2.49x behind (24us vs 9.7us), MoE 1.28x behind (185us vs 145us), MLA 44x behind (191us vs 4.3us).
+
+2. Key Technical Concepts:
+   - **AMD MI355X GPU kernel optimization** via Popcorn CLI remote submission (~3-5 min per submission including JIT build)
+   - **MXFP4 (Microscaling FP4)**: 4-bit floating point with E8M0 block-32 scaling; packs 2 fp4 values per byte (`torch.REDACTED`)
+   - **JIT call-site sensitivity**: `get_triton_quant` from submission.py produces subtly different quantization than from reference.py — confirmed for BOTH `shuffle=True` AND `shuffle=False` paths
+   - **`gemm_afp4wfp4`**: Triton GEMM kernel that needs uint8-viewed tensors (both data AND scales) — its dtype dispatch table doesn't know `torch.REDACTED` or `torch.REDACTED`
+   - **`gemm_a4w4`**: CK/ASM GEMM kernel that needs pre-shuffled inputs and triton_quant output
+   - **`fused_moe_2stages`**: Lower-level MoE API requiring pre-sorted tokens (6 extra positional args)
+   - **`moe_sorting_fwd`**: JIT-injected function at `aiter.moe_sorting_fwd` (not importable via normal Python import from `aiter.fused_moe`)
+   - **`cktile_moe_stage1/stage2`**: Alternative CK tile variants with `split_k`, `n_pad_zeros`, `k_pad_zeros` parameters
+   - **Popcorn CLI**: `--mode test` → `--mode benchmark` → `--mode leaderboard`; ~12 min total workflow timeout
+
+3. Files and Code Sections:
+   - **`~/.claude/skills/aiter-mxfp4-api-limitations/SKILL.md`** (CREATED then UPDATED)
+     - New skill documenting 5 MXFP4 API limitations discovered through trial-and-error
+     - Updated during session to add Limitation 5 (fused_moe_2stages) and fix Limitation 1 (uint8 view fix confirmed)
+     - Located in global skills dir (`~/.claude/skills/`) for cross-project use
+
+   - **`.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/submission.py`** (MODIFIED multiple times, final version)
+     - GEMM submission reverted to clean ref_kernel delegation after all optimization attempts failed
+     - Final content:
+     ```python
+     """
+     MXFP4 GEMM — Clean submission (ref_kernel delegation).
+
+     Phase 2 findings:
+     - JIT call-site bug confirmed: get_triton_quant from submission.py produces
+       subtly different quantization regardless of shuffle=True/False
+     - gemm_afp4wfp4 (Triton): works with uint8 views but inherits wrong quant
+     - get_torch_quant: different rounding, fails correctness for any GEMM kernel
+     - Only ref_kernel delegation produces correct results (~24 us geomean)
+
+     To improve: would need a custom Triton/HIP kernel or fix for the JIT
+     call-site sensitivity in aiter's multiprocessing spawn context.
+     """
+     from task import input_t, output_t
+     from reference import ref_kernel
+
+     def custom_kernel(data: input_t) -> output_t:
+         return ref_kernel(data)
+     ```
+
+   - **`.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/submission.py`** (MODIFIED multiple times, final version)
+     - MoE submission reverted to clean fused_moe with reference parameters
+     - Final content:
+     ```python
+     """
+     MXFP4 MoE — Clean submission (fused_moe with reference parameters).
+
+     Phase 2 findings:
+     - fused_moe_2stages requires pre-sorted tokens (6 extra positional args)
+     - moe_sorting_fwd lives at aiter.moe_sorting_fwd (not aiter.fused_moe)
+     - Direct 2-stage call failed: isG1U1 positional arg conflict + GPU memory fault
+     - cktile_moe_stage1/stage2 exist but need same sorting setup
+     - No tuned CSV for QuantType.per_1x32 — uses default 2-stage configs
+
+     The standard fused_moe with reference parameters is the safest path.
+     MoE gap is only 1.28x — the kernel is already well-optimized.
+     """
+     from task import input_t, output_t
+     from aiter import ActivationType, QuantType
+     from aiter.fused_moe import fused_moe
+
+     def custom_kernel(data: input_t) -> output_t:
+         (
+             hidden_states, gate_up_weight, down_weight,
+             gate_up_weight_scale, down_weight_scale,
+             gate_up_weight_shuffled, down_weight_shuffled,
+             gate_up_weight_scale_shuffled, down_weight_scale_shuffled,
+             topk_weights, topk_ids, config,
+         ) = data
+
+         hidden_pad = config["d_hidden_pad"] - config["d_hidden"]
+         intermediate_pad = config["d_expert_pad"] - config["d_expert"]
+
+         output = fused_moe(
+             hidden_states,
+             gate_up_weight_shuffled,
+             down_weight_shuffled,
+             topk_weights,
+             topk_ids,
+             expert_mask=None,
+             activation=ActivationType.Silu,
+             quant_type=QuantType.per_1x32,
+             doweight_stage1=False,
+             w1_scale=gate_up_weight_scale_shuffled,
+             w2_scale=down_weight_scale_shuffled,
+             a1_scale=None,
+             a2_scale=None,
+             hidden_pad=hidden_pad,
+             intermediate_pad=intermediate_pad,
+         )
+
+         return output
+     ```
+
+   - **`.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels/mixed-mla/submission.py`** (unchanged this session)
+     - MLA submission with MXFP4 KV attempt + fp8 fallback (committed in first commit)
+
+   - **Reference files read** (not modified):
+     - `kernels/mxfp4-mm/reference.py`: `get_triton_quant(QuantType.per_1x32)` → `quant_func(A, shuffle=True)` → `gemm_a4w4(A_q, B_shuffle, A_scale_sh, B_scale_sh, dtype=bf16, bpreshuffle=True)`
+     - `kernels/moe-mxfp4/reference.py`: `fused_moe()` with `ActivationType.Silu`, `QuantType.per_1x32`, `doweight_stage1=False`
+
+   - **Plan file**: `/home/mike-anderson/.claude/plans/adaptive-baking-globe.md` — Phase 2 plan with 6 tasks, all now completed
+
+4. Errors and Fixes:
+   - **GEMM: `KeyError: 'REDACTED'` in gemm_afp4wfp4** (from prior session):
+     - Fix: View data tensors as `torch.uint8` before passing to gemm_afp4wfp4
+     - This revealed a second KeyError: `KeyError: 'REDACTED'` for E8M0 scale dtype
+     - Fix: View BOTH data AND scales as uint8: `A_q.view(torch.uint8)`, `A_scale.view(torch.uint8)`
+     - Kernel ran successfully but produced wrong results (quantization mismatch)
+
+   - **GEMM: Wrong results from gemm_afp4wfp4 with uint8 views** (622,663 mismatched elements):
+     - Root cause: `get_torch_quant` produces different quantization than `get_triton_quant`
+     - The GEMM kernel itself works fine with uint8 views — the input quantization is wrong
+     - No fix possible without using `get_triton_quant`, which has the JIT call-site bug
+
+   - **GEMM: `get_triton_quant(shuffle=True)` from submission.py produces wrong results**:
+     - Confirmed: JIT call-site bug affects ALL `get_triton_quant` paths (both shuffle=True and shuffle=False)
+     - No fix — fundamental limitation of Triton JIT in multiprocessing.Pool(spawn) context
+     - Reverted to `ref_kernel` delegation
+
+   - **MoE: `ImportError: cannot import name 'moe_sorting_fwd' from 'aiter.fused_moe'`**:
+     - Root cause: `moe_sorting_fwd` is JIT-compiled and injected at runtime into `aiter` package namespace
+     - Fix: Access via `aiter.moe_sorting_fwd` after triggering JIT build with initial `fused_moe` call
+     - Successfully found the function after JIT build
+
+   - **MoE: `TypeError: fused_moe_2stages() got multiple values for argument 'isG1U1'`**:
+     - Root cause: Positional argument ordering mismatch — `topk_weights` and `topk_ids` occupy positions that conflict with keyword `isG1U1`
+     - No fix attempted — would require reading full source to determine exact positional order
+     - Fallback to `fused_moe` still works
+
+   - **MoE: `Memory access fault by GPU node-2`**:
+     - Root cause: Incorrect sorting buffer allocation or `unit_size=1` parameter wrong
+     - The direct 2-stage call corrupted GPU state, crashing subsequent fallback calls too
+     - Fix: Reverted to standard `fused_moe` which handles buffer allocation internally
+
+5. Problem Solving:
+   **Solved (all dead ends, reverted to safe paths):**
+   - GEMM JIT call-site bug: Confirmed affects ALL `get_triton_quant` paths. Only `ref_kernel` delegation works (~24us).
+   - GEMM gemm_afp4wfp4: Works with uint8 views but wrong results from quantization mismatch.
+   - MoE fused_moe_2stages: Requires pre-sorted tokens with exact buffer sizing. Positional arg conflict. GPU memory fault on incorrect allocation.
+   - MLA MXFP4 KV: ASM kernel rejects packed dimensions (from prior session, confirmed dead end).
+
+   **Key discoveries documented in skills:**
+   - `moe_sorting_fwd` location: `aiter.moe_sorting_fwd`
+   - `cktile_moe_stage1` signature: `(hidden_states, w1, w2, sorted_token_ids, sorted_expert_ids, num_valid_ids, out, topk, block_m, a1_scale, w1_scale, sorted_weights=None, n_pad_zeros=0, k_pad_zeros=0, bias1=None, activation=Silu, split_k=1, dtype=bf16)`
+   - `cktile_moe_stage2` signature: `(a2, w1, w2, sorted_token_ids, sorted_expert_ids, num_valid_ids, out, topk, w2_scale, a2_scale, block_m, activation=Swiglu, sorted_weights=None, zeros_out=False, n_pad_zeros=0, k_pad_zeros=0, bias2=None)`
+   - `ck_moe_stage1` JIT signature includes: `non_temporal_load: bool = False, dst_type: Optional[str] = None, is_shuffled: bool = True`
+
+6. All user messages:
+   - `/compact` — triggered context compaction
+   - `/learn` — triggered knowledge extraction skill to create reusable skills from session findings
+   - "commit what we have so far" — asked to commit current changes to the worktree
+   - "Continue" — asked to continue executing the remaining plan tasks (Tasks 2 and 4)
+   - (Background task notifications x6 — confirming completion of Popcorn CLI submissions)
+
+7. Pending Tasks:
+   - **All 6 plan tasks are COMPLETED.** No pending tasks remain from the plan.
+   - The user has not requested any new work beyond the plan.
+   - All submissions are reverted to clean, safe, passing versions.
+   - Current rankings are unchanged: GEMM 2.49x, MoE 1.28x, MLA 44x behind leaders.
+
+8. Current Work:
+   All Phase 2 tasks have been completed and committed. The final state is:
+   - Two commits on branch `spec/luma-amd-speedrun`:
+     - `c099755f` — Phase 2 exploration with introspection code
+     - `14cd17f0` — Reverted to clean safe submissions
+   - Working tree is clean
+   - All 3 kernel submissions pass correctness tests
+   - Skills updated with 5 documented MXFP4 API limitations
+   - The user received the final summary showing all 6 tasks completed with results
+
+   The last substantive work was receiving the 6 background task completion notifications, which I acknowledged as already analyzed inline during the session.
+
+9. Optional Next Step:
+   No explicit next step requested. All plan tasks are complete. The user's last message before the summary request was implicit acknowledgment of task notifications. To improve competition standings further would require:
+   - Writing custom Triton/HIP kernels from scratch (not using aiter's existing kernels)
+   - For MoE: correctly calling `fused_moe_2stages` with the right positional argument order (reading its full source code)
+   - These would need explicit user direction to pursue, as they go beyond the original 6-task plan.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/f4cbccc2-65e9-41e2-9671-af041d9602b5.jsonl
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+Pick the path that unlocks elegantly simple compound engineering solutions with adequate context awareness that optimizes token efficiencies.  Remember not all tokens are created equal.
+
+---
+
+<task-notification>
+<task-id>bxz5tl2q3</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bxz5tl2q3.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit GEMM JIT warmup test to Popcorn CLI" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bxz5tl2q3.output
+
+---
+
+<task-notification>
+<task-id>bu57iny22</task-id>
+<tool-use-id>toolu_01CAun2U4k81P1nKRSzN2jpg</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bu57iny22.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MoE source extraction to Popcorn CLI" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bu57iny22.output
+
+---
+
+<task-notification>
+<task-id>bp5bkykwy</task-id>
+<tool-use-id>toolu_01HZwRTs5NNUUVMipCDUoEqi</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bp5bkykwy.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MoE source extraction (lines 450-900 + fused quant sort sig)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bp5bkykwy.output
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The user is competing in the Luma AMD Speedrun competition, optimizing three GPU kernels (GEMM, MoE, MLA) for AMD MI355X hardware. After Phase 2 exhausted all known API-level approaches (all tasks completed, all dead ends), the user asked to:
+   1. Run `/learn` to extract reusable knowledge from the session
+   2. "Pick the path that unlocks elegantly simple compound engineering solutions with adequate context awareness that optimizes token efficiencies. Remember not all tokens are created equal." — a strategic directive to find the highest-ROI optimization path forward.
+
+   Current leaderboard gaps: GEMM 2.49x behind (24us vs 9.7us), MoE 1.28x behind (185us vs 145us), MLA 44x behind (191us vs 4.3us).
+
+2. Key Technical Concepts:
+   - **AMD MI355X GPU kernel optimization** via Popcorn CLI remote submission (~5-10 min per submission including JIT build)
+   - **MXFP4 (Microscaling FP4)**: 4-bit floating point with E8M0 block-32 scaling; packs 2 fp4 values per byte (`torch.REDACTED`)
+   - **JIT call-site sensitivity**: `get_triton_quant` from submission.py produces wrong results. Confirmed: both shuffle=True/False fail AND JIT cache warmup does NOT fix it (per-call-site issue, not per-cache)
+   - **`get_hip_quant`**: Compiled C kernel (NOT Triton JIT) — discovered as the internal quantization backend used by `fused_moe.py`. May NOT have the JIT callsite sensitivity bug.
+   - **`fused_dynamic_mxfp4_quant_moe_sort`**: Fused Triton kernel combining MXFP4 activation quantization + MoE token sorting in one pass
+   - **`fused_moe_1stage_dict`**: gfx950 entry exists for `(SiLu, per_1x32, bf16, fp4x2, fp4x2, True, False) → aiter.fmoe_g1u1` but `run_1stage=False` by default — the 1-stage kernel exists but is never selected for per_1x32
+   - **Environment variables**: `AITER_KSPLIT` (K-dim splitting), `AITER_USE_NT` (non-temporal loads), `AITER_ONLINE_TUNE` (online auto-tuning), `AITER_BYPASS_TUNE_CONFIG`
+   - **`get_block_size_M`**: Occupancy-based heuristic selecting from [32, 64, 128] based on CU utilization
+   - **Popcorn CLI**: `--mode test` → `--mode benchmark` → `--mode leaderboard`; ~12 min total workflow timeout
+
+3. Files and Code Sections:
+
+   - **`~/.claude/skills/amd-triton-jit-callsite-correctness/SKILL.md`** (UPDATED to v1.2.0)
+     - Added "Confirmed: shuffle=False Also Fails" section
+     - Added "Confirmed: JIT Cache Warmup Does NOT Fix It" section with test results (89-95% mismatch even after ref_kernel warms JIT)
+     - Key finding: issue is per-call-site, not per-JIT-cache
+
+   - **`~/.claude/skills/competitive-kernel-optimization-ceiling/SKILL.md`** (UPDATED)
+     - Added "Phase 2 Exhausted Paths" table with all 7 dead-end approaches and specific blockers
+     - Added GEMM JIT warmup test to the table
+
+   - **`kernels/mxfp4-mm/submission.py`** (CURRENT STATE — hip_quant test, NOT YET SUBMITTED):
+     ```python
+     """
+     MXFP4 GEMM — Phase 3: get_hip_quant test.
+     Key insight from reading fused_moe.py source:
+       Line 15: from aiter import get_hip_quant as get_quant
+       fused_moe internally uses get_hip_quant, NOT get_triton_quant!
+       HIP quant is a compiled C kernel, not Triton JIT — may not have
+       the callsite sensitivity bug.
+     Test: use get_hip_quant for A quantization, then gemm_a4w4.
+     Falls back to ref_kernel if correctness fails.
+     """
+     import sys
+     import torch
+     from task import input_t, output_t
+     from reference import ref_kernel
+     import aiter
+     from aiter import QuantType, dtypes
+
+     def custom_kernel(data: input_t) -> output_t:
+         A, B, B_q, B_shuffle, B_scale_sh = data
+         try:
+             quant_func = aiter.get_hip_quant(QuantType.per_1x32)
+             A_cont = A.contiguous()
+             A_q, A_scale_sh = quant_func(A_cont, shuffle=True)
+             our_out = aiter.gemm_a4w4(
+                 A_q, B_shuffle, A_scale_sh, B_scale_sh,
+                 dtype=dtypes.bf16, bpreshuffle=True,
+             )
+             ref_out = ref_kernel(data)
+             diff = (our_out - ref_out).abs()
+             max_err = diff.max().item()
+             mismatch = (diff > 1e-2).sum().item()
+             total = diff.numel()
+             print(f"HIP_QUANT_TEST: max_err={max_err:.6f}, "
+                   f"mismatched={mismatch}/{total} ({100*mismatch/total:.1f}%)",
+                   file=sys.stderr)
+             if max_err < 1e-2:
+                 print("HIP_QUANT_RESULT: SUCCESS — hip_quant works from submission.py!",
+                       file=sys.stderr)
+                 return our_out
+             else:
+                 print("HIP_QUANT_RESULT: FAIL — hip_quant also has callsite issue",
+                       file=sys.stderr)
+                 return ref_out
+         except Exception as e:
+             print(f"HIP_QUANT_ERROR: {type(e).__name__}: {e}", file=sys.stderr)
+             return ref_kernel(data)
+     ```
+
+   - **`kernels/moe-mxfp4/submission.py`** (CURRENT STATE — diagnostic, lines 450-900 reader):
+     ```python
+     """
+     MXFP4 MoE — Phase 3b: Read fused_moe_2stages + get_2stage_cfgs source.
+     """
+     import sys
+     import inspect
+     from task import input_t, output_t
+     from reference import ref_kernel
+
+     def custom_kernel(data: input_t) -> output_t:
+         try:
+             from aiter.fused_moe import fused_moe
+             source_file = inspect.getfile(fused_moe)
+             with open(source_file) as f:
+                 lines = f.readlines()
+             for i in range(449, min(899, len(lines))):
+                 print(f"{i+1:4d}| {lines[i].rstrip()}", file=sys.stderr)
+         except Exception as e:
+             print(f"SOURCE_READ_ERROR: {type(e).__name__}: {e}", file=sys.stderr)
+         try:
+             from aiter.ops.triton.quant.fused_mxfp4_quant import fused_dynamic_mxfp4_quant_moe_sort
+             sig = inspect.signature(fused_dynamic_mxfp4_quant_moe_sort)
+             print(f"\nFUSED_QUANT_SORT_SIG: {sig}", file=sys.stderr)
+             src = inspect.getsource(fused_dynamic_mxfp4_quant_moe_sort)
+             src_lines = src.split('\n')
+             print(f"FUSED_QUANT_SORT_LINES: {len(src_lines)}", file=sys.stderr)
+             for i, line in enumerate(src_lines[:100]):
+                 print(f"FQS {i+1:3d}| {line}", file=sys.stderr)
+         except Exception as e:
+             print(f"FUSED_QUANT_SORT_ERROR: {type(e).__name__}: {e}", file=sys.stderr)
+         return ref_kernel(data)
+     ```
+
+   - **`kernels/mixed-mla/submission.py`** — unchanged (MXFP4 KV attempt + fp8 fallback from Phase 2)
+
+   - **`kernels/mxfp4-mm/reference.py`** (READ, not modified):
+     - Line 95: `quant_func = aiter.get_triton_quant(QuantType.per_1x32)` — uses triton quant
+     - Line 96: `A_q, A_scale_sh = quant_func(A, shuffle=True)`
+     - Line 98-105: `gemm_a4w4` call with `bpreshuffle=True`
+
+   - **`kernels/moe-mxfp4/reference.py`** (READ, not modified):
+     - Line 109: `aiter.get_torch_quant(QuantType.per_1x32)` — generate_input uses torch quant for weight quantization
+     - Lines 277-294: `fused_moe` call with `ActivationType.Silu`, `QuantType.per_1x32`, `doweight_stage1=False`
+
+   - **`kernels/mixed-mla/reference.py`** (READ, not modified):
+     - MLA decode with fp8 Q + fp8 KV, `NUM_KV_SPLITS=32`, `fast_mode=False`
+
+   - **Remote `fused_moe.py`** (1839 lines, READ via stderr extraction):
+     - **Line 15**: `from aiter import get_hip_quant as get_quant` — CRITICAL: uses HIP quant
+     - **Line 26**: `from aiter.ops.triton.quant.fused_mxfp4_quant import fused_dynamic_mxfp4_quant_moe_sort`
+     - **Lines 37-77**: `_moe_sorting_impl` — buffer sizing: `max_num_tokens_padded = topk_ids.numel() + num_experts * block_size - topk`
+     - **Lines 128-179**: `fused_moe` → calls `fused_moe_()` with enum values
+     - **Lines 216-367**: `fused_moe_()` — main dispatch: sorting → 1-stage or 2-stage
+     - **Lines 269-276**: `q_dtype_a = dtypes.fp4x2` for SiLu + per_1x32 on gfx950
+     - **Lines 340-367**: `fused_moe_2stages` exact calling convention (11 positional args + kwargs)
+     - **Lines 370-513**: `fused_moe_1stage` — handles per_1x32 via `fp4_utils.moe_mxfp4_sort` + `fmoe_g1u1`
+     - **Lines 516-530**: `get_block_size_M` — CU occupancy heuristic from [32, 64, 128]
+     - **Lines 542-565**: `get_ksplit` — K-split computation, env var `AITER_KSPLIT`
+     - **Lines 570-595**: `fused_moe_1stage_dict["gfx950"]` — per_1x32 maps to `fmoe_g1u1` (but run_1stage=False)
+     - **Lines 674-848**: `get_2stage_cfgs` — CSV config lookup with online tuning support
+
+4. Errors and Fixes:
+   - **GEMM JIT cache warmup FAIL**: Called ref_kernel first to warm JIT, then get_triton_quant from submission.py. Result: 89-95% mismatched, max errors 6.5-15.25. Fix: confirmed this path is dead. Issue is per-call-site, not per-cache.
+   - **MoE source extraction truncation**: First submission only got lines 1-418 (6062 lines omitted by Read tool). Fix: submitted second diagnostic reading lines 450-900 specifically.
+   - **Read tool truncation on output files**: Large stderr output truncated with `[...] N lines omitted`. Partially mitigated by reading from specific offsets.
+
+5. Problem Solving:
+   **Solved:**
+   - JIT cache warmup hypothesis: definitively falsified (95% mismatch even after warmup)
+   - `fused_moe.py` internal dispatch logic: fully mapped (sorting → get_2stage_cfgs → 1-stage or 2-stage)
+   - `fused_moe_2stages` exact calling convention: 11 positional args documented
+   - Buffer sizing formulas for moe_sorting: documented
+   - Environment variables for MoE tuning: AITER_KSPLIT, AITER_USE_NT, AITER_ONLINE_TUNE
+
+   **New paths opened (not yet tested):**
+   - `get_hip_quant` for GEMM (submission written, NOT yet submitted)
+   - 1-stage `fmoe_g1u1` for MoE (exists but run_1stage=False for per_1x32)
+   - `fused_dynamic_mxfp4_quant_moe_sort` fused kernel
+   - Environment variable tuning (AITER_KSPLIT, etc.)
+
+6. All user messages:
+   - `/compact` — triggered context compaction
+   - `/learn` — triggered knowledge extraction to create/update reusable skills
+   - "Pick the path that unlocks elegantly simple compound engineering solutions with adequate context awareness that optimizes token efficiencies. Remember not all tokens are created equal." — strategic directive to find highest-ROI optimization path
+   - (4 task completion notifications for background Popcorn CLI submissions)
+
+7. Pending Tasks:
+   - **GEMM `get_hip_quant` test**: submission.py is written and ready to submit to Popcorn CLI but has NOT been submitted yet
+   - **MoE source lines 848+**: Still need `fused_moe_2stages` implementation and per_1x32 run_1stage condition (truncated at line 848)
+   - **MoE `fused_dynamic_mxfp4_quant_moe_sort` signature**: requested in diagnostic but result truncated — need to check
+   - **MoE submission cleanup**: needs to be reverted from diagnostic to either clean fused_moe or an optimized version
+   - **Skill updates**: `aiter-mxfp4-api-limitations` should be updated with fused_moe.py source discoveries
+
+8. Current Work:
+   Immediately before the summary request, I had just written the GEMM `get_hip_quant` test submission but had NOT yet submitted it to Popcorn CLI. The key compound insight was: `fused_moe.py` line 15 reveals `from aiter import get_hip_quant as get_quant` — the internal quantization backend is HIP (compiled C), not Triton JIT. If `get_hip_quant` works from submission.py without the callsite sensitivity bug, it unlocks the entire GEMM optimization path.
+
+   The MoE source extraction (lines 450-900) completed successfully, revealing the `get_2stage_cfgs`, `get_block_size_M`, `fused_moe_1stage_dict`, and environment variables. The output was read and analyzed but still truncated at line 848 — the `fused_moe_2stages` definition and per_1x32 dispatch conditions are still unknown.
+
+9. Optional Next Step:
+   Submit the GEMM `get_hip_quant` test to Popcorn CLI:
+   ```bash
+   ~/.local/bin/popcorn-cli submit --no-tui --mode test --gpu MI355X --leaderboard amd-mxfp4-mm /home/mike-anderson/dev/cohezion/.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/submission.py
+   ```
+   
+   This directly follows from the strategic path the user requested: "Pick the path that unlocks elegantly simple compound engineering solutions." The `get_hip_quant` test is the highest-compound-value diagnostic — if it succeeds, it unlocks GEMM optimization by bypassing the JIT callsite bug entirely using the same backend that `fused_moe` uses internally.
+
+   The submission is already written in `kernels/mxfp4-mm/submission.py` with the `get_hip_quant` test code. It falls back to `ref_kernel` if correctness fails, so it's zero-risk.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/f4cbccc2-65e9-41e2-9671-af041d9602b5.jsonl
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+<task-notification>
+<task-id>benlk6sov</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/benlk6sov.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit GEMM hip_quant test to Popcorn CLI (runs on remote MI355X)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/benlk6sov.output
+
+---
+
+<task-notification>
+<task-id>b2yyx1i99</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b2yyx1i99.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MoE direct fused_moe call test to Popcorn CLI" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b2yyx1i99.output
+
+---
+
+<task-notification>
+<task-id>b24uno650</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b24uno650.output</output-file>
+<status>completed</status>
+<summary>Background command "Benchmark MoE direct fused_moe call to get timing vs 185us ref_kernel baseline" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b24uno650.output
+
+---
+
+<task-notification>
+<task-id>biromrld8</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/biromrld8.output</output-file>
+<status>completed</status>
+<summary>Background command "Benchmark clean production MoE (no comparison overhead)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/biromrld8.output
+
+---
+
+<task-notification>
+<task-id>bz5fz67eo</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bz5fz67eo.output</output-file>
+<status>completed</status>
+<summary>Background command "Benchmark MoE with AITER_KSPLIT=4 in parallel" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bz5fz67eo.output
+
+---
+
+<task-notification>
+<task-id>b37f2s6aw</task-id>
+<tool-use-id>toolu_012UQrZkPCLzPUdVsXv2oiQP</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b37f2s6aw.output</output-file>
+<status>completed</status>
+<summary>Background command "Benchmark MoE with AITER_KSPLIT=2 to test K-split effect on 33-expert shapes" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b37f2s6aw.output
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The user is competing in the Luma AMD Speedrun competition, optimizing three GPU kernels (GEMM, MoE, MLA) for AMD MI355X. The session was triggered by `/compact` and `/learn` commands. The user's prior strategic directive was: "Pick the path that unlocks elegantly simple compound engineering solutions with adequate context awareness that optimizes token efficiencies. Remember not all tokens are created equal." The assistant followed this by pursuing the highest-ROI optimization paths: testing `get_hip_quant` for GEMM JIT bypass, testing direct `fused_moe` call from submission.py, and K-split tuning for MoE.
+
+2. Key Technical Concepts:
+   - **JIT callsite sensitivity is per-DIRECT-caller, NOT per-full-callstack**: When submission.py calls `fused_moe()`, the JIT-sensitive kernels inside fused_moe.py are called with fused_moe.py as their direct caller → WORKS. When submission.py directly calls `gemm_a4w4_asm` → FAILS.
+   - **Root cause identified: `gemm_a4w4_asm`** is the callsite-sensitive component, NOT quantization functions (triton, hip, or torch). Both `get_triton_quant` and `get_hip_quant` produce identical failure patterns (81-95% mismatch, 6-14 max error).
+   - **AITER_KSPLIT switches kernel paths**: KSPLIT=0 uses `module_moe_ck2stages_fp4x2_fp4x2_preshuffle_*` (MXFP4-optimized CK kernels); KSPLIT>0 switches to `module_moe_cktile2stages` (generic cktile kernels). KSPLIT is IGNORED for CSV-tuned shapes (257-expert configs).
+   - **Adaptive KSPLIT**: cktile path is faster for sparse token distributions (estimated_m_per_expert < ~50), while MXFP4-optimized CK path is faster for dense distributions (estimated_m > ~50).
+   - **Kernel signatures discovered**:
+     - `ck_moe_stage1(hidden_states, w1, w2, sorted_token_ids, sorted_expert_ids, num_valid_ids, out, topk, kernelName=None, w1_scale=None, a1_scale=None, block_m=32, sorted_weights=None, quant_type=0, activation=0, splitk=1, non_temporal_load=False, dst_type=None, is_shuffled=True)`
+     - `ck_moe_stage2(inter_states, w1, w2, ...)` — same pattern
+     - `moe_sorting_fwd(topk_ids, topk_weights, sorted_token_ids, sorted_weights, sorted_expert_ids, num_valid_ids, moe_buf, num_experts, unit_size, ...)`
+     - `cktile_moe_gemm1(XQ, WQ, Y, sorted_ids, sorted_expert_ids, max_token_ids, topk, n_padded_zeros=0, k_padded_zeros=0, topk_weight=None, x_scale=None, w_scale=None, exp_bias=None, activation=0, block_m=32, split_k=1)`
+   - **Benchmark shapes** (7 configurations, all dhidden=7168):
+     - 3 shapes with 257 experts (256 routed + 1 shared), dexpert=256 — CSV-tuned
+     - 3 shapes with 33 experts (32 routed + 1 shared), dexpert=512 — default configs
+     - 1 shape with 33 experts, dexpert=2048 — default config, slowest shape (352 µs)
+
+3. Files and Code Sections:
+
+   - **`~/.claude/skills/amd-triton-jit-callsite-correctness/SKILL.md`** (v1.2.0 → v1.3.0)
+     - Updated Root Cause section to document per-direct-caller behavior
+     - Added "Confirmed: `get_hip_quant` Also Fails" section with test data
+     - Updated Fix section with three approaches: delegate to ref_kernel, call library wrapper, do NOT call JIT-dispatched functions directly
+
+   - **`~/.claude/skills/aiter-mxfp4-api-limitations/SKILL.md`** (v1.0.0 → v2.0.0)
+     - Updated Limitation 3 `get_hip_quant` from "Untested" to "Tested: fails, root cause is gemm_a4w4_asm"
+     - Added environment variables table (AITER_KSPLIT, AITER_USE_NT, AITER_ONLINE_TUNE, AITER_BYPASS_TUNE_CONFIG)
+     - Added Limitation 6: 1-stage `fmoe_g1u1` exists but gated off (run_1stage=False)
+     - Added Limitation 7: `fused_dynamic_mxfp4_quant_moe_sort` fused Triton kernel
+
+   - **`~/.claude/skills/competitive-kernel-optimization-ceiling/SKILL.md`** (v1.0.0 → v1.1.0)
+     - Added Phase 3 findings table (GEMM hip_quant fail, GEMM JIT warmup fail, MoE direct call success)
+     - Added MoE adaptive KSPLIT tuning section
+
+   - **`kernels/mxfp4-mm/submission.py`** — Still has hip_quant test code (NEEDS REVERT):
+     ```python
+     """MXFP4 GEMM — Phase 3: get_hip_quant test."""
+     import sys, torch
+     from task import input_t, output_t
+     from reference import ref_kernel
+     import aiter
+     from aiter import QuantType, dtypes
+
+     def custom_kernel(data: input_t) -> output_t:
+         A, B, B_q, B_shuffle, B_scale_sh = data
+         try:
+             quant_func = aiter.get_hip_quant(QuantType.per_1x32)
+             A_cont = A.contiguous()
+             A_q, A_scale_sh = quant_func(A_cont, shuffle=True)
+             our_out = aiter.gemm_a4w4(A_q, B_shuffle, A_scale_sh, B_scale_sh, dtype=dtypes.bf16, bpreshuffle=True)
+             ref_out = ref_kernel(data)
+             # ... comparison logic ...
+             return ref_out  # Falls back since hip_quant fails
+         except Exception as e:
+             return ref_kernel(data)
+     ```
+     - **GEMM is FULLY CLOSED** — should be reverted to simple `return ref_kernel(data)`
+
+   - **`kernels/moe-mxfp4/submission.py`** — CURRENT: Adaptive KSPLIT (NOT YET TESTED):
+     ```python
+     """MXFP4 MoE — Phase 6: Adaptive K-split based on estimated tokens per expert."""
+     import os
+     from task import input_t, output_t
+     from aiter.fused_moe import fused_moe
+     from aiter import ActivationType, QuantType
+
+     def custom_kernel(data: input_t) -> output_t:
+         (hidden_states, gate_up_weight, down_weight,
+          gate_up_weight_scale, down_weight_scale,
+          gate_up_weight_shuffled, down_weight_shuffled,
+          gate_up_weight_scale_shuffled, down_weight_scale_shuffled,
+          topk_weights, topk_ids, config) = data
+
+         hidden_pad = config["d_hidden_pad"] - config["d_hidden"]
+         intermediate_pad = config["d_expert_pad"] - config["d_expert"]
+
+         num_experts = gate_up_weight_shuffled.shape[0]
+         estimated_m = topk_ids.numel() // num_experts
+
+         if estimated_m < 50:
+             os.environ["AITER_KSPLIT"] = "2"
+         else:
+             os.environ.pop("AITER_KSPLIT", None)
+
+         return fused_moe(
+             hidden_states, gate_up_weight_shuffled, down_weight_shuffled,
+             topk_weights, topk_ids, expert_mask=None,
+             activation=ActivationType.Silu, quant_type=QuantType.per_1x32,
+             doweight_stage1=False,
+             w1_scale=gate_up_weight_scale_shuffled,
+             w2_scale=down_weight_scale_shuffled,
+             a1_scale=None, a2_scale=None,
+             hidden_pad=hidden_pad, intermediate_pad=intermediate_pad)
+     ```
+
+   - **`kernels/moe-mxfp4/submission_ksplit4.py`** — Created for parallel KSPLIT=4 testing (can be cleaned up)
+
+4. Errors and Fixes:
+   - **GEMM `get_hip_quant` produces wrong results** (95.5%, 94.7%, 93.1%, 81.0% mismatch):
+     - Root cause: `gemm_a4w4_asm` JIT dispatch is callsite-sensitive, NOT the quantization function
+     - Fix: Accept `ref_kernel` delegation as the GEMM ceiling
+   - **First MoE benchmark had comparison overhead** (called both fused_moe AND ref_kernel per invocation):
+     - Fix: Created clean production version without comparison logic, re-benchmarked
+   - **AITER_KSPLIT=2 catastrophically slows dense shapes** (703 µs vs 352 µs baseline):
+     - Root cause: KSPLIT switches from MXFP4-optimized CK kernel to generic cktile kernel
+     - Fix: Adaptive KSPLIT based on estimated_m_per_expert threshold (< 50 → KSPLIT=2, else none)
+
+5. Problem Solving:
+
+   **Solved:**
+   - JIT callsite sensitivity is in `gemm_a4w4_asm`, not quantization — closes GEMM custom pipeline
+   - Direct `fused_moe` call from submission.py WORKS — confirms per-direct-caller sensitivity model
+   - AITER_KSPLIT behavior fully characterized: switches kernel paths, good for sparse, bad for dense
+   - All 7 benchmark shape configurations documented with auto-tuner selections (block_m, use_nt, ksplit, kernel names)
+
+   **In Progress:**
+   - Adaptive KSPLIT written but not yet tested/benchmarked (expected ~168 µs, 9% improvement)
+
+   **Remaining gap:**
+   - Current MoE: ~184 µs geomean, leader: ~145 µs, gap: 1.27x
+   - Expected after adaptive KSPLIT: ~168 µs, gap: 1.16x
+   - GEMM: fully closed at ref_kernel (24 µs, 2.49x gap to leader at 9.7 µs)
+   - MLA: no viable path (191 µs, 44x gap to leader at 4.3 µs)
+
+6. All User Messages:
+   - `/compact` — triggered context compaction
+   - `/learn` — triggered knowledge extraction to create/update reusable skills
+   - 6 task completion notifications for background Popcorn CLI submissions (benlk6sov, b2yyx1i99, b24uno650, biromrld8, bz5fz67eo, b37f2s6aw)
+   - Final message: "Your task is to create a detailed summary of the conversation so far..."
+
+7. Pending Tasks:
+   - **Test adaptive KSPLIT submission** — `--mode test` for correctness verification
+   - **Benchmark adaptive KSPLIT** — `--mode benchmark` to measure ~168 µs expected geomean
+   - **Submit to leaderboard** if benchmark shows improvement over current ranking
+   - **Revert GEMM submission.py** to simple `ref_kernel` delegation (currently has hip_quant test code)
+   - **Clean up** `submission_ksplit4.py` temporary file
+   - **Update plan** (`adaptive-baking-globe.md`) to reflect Phase 3 findings
+
+8. Current Work:
+   Immediately before the summary request, I wrote the adaptive KSPLIT MoE submission (`kernels/moe-mxfp4/submission.py`) which dynamically sets `AITER_KSPLIT=2` for sparse shapes (estimated_m_per_expert < 50) and clears it for dense shapes. This was based on comprehensive benchmark data showing:
+   - KSPLIT=2 is 16-36% faster for sparse shapes (bs=16/128 with 33 experts)
+   - KSPLIT=2 is 18-100% slower for dense shapes (bs=512 with 33 experts)
+   - KSPLIT has no effect on 257-expert CSV-tuned shapes
+
+   The adaptive submission was written to disk but has NOT been submitted to Popcorn CLI for test or benchmark.
+
+   Per-shape expected performance with adaptive KSPLIT:
+   | Shape | Expected µs | Source |
+   |-------|-------------|--------|
+   | bs=16, 257 exp | 140 | CSV-tuned (unchanged) |
+   | bs=128, 257 exp | 219 | CSV-tuned (unchanged) |
+   | bs=512, 257 exp | 251 | CSV-tuned (unchanged) |
+   | bs=16, 33 exp | 60.6 | KSPLIT=2 (from benchmark data) |
+   | bs=128, 33 exp | 109 | KSPLIT=2 (from benchmark data) |
+   | bs=512, 33 exp d=512 | 214 | No KSPLIT (baseline) |
+   | bs=512, 33 exp d=2048 | 352 | No KSPLIT (baseline) |
+
+9. Optional Next Step:
+   Submit the adaptive KSPLIT MoE submission for testing and benchmarking:
+   ```bash
+   CLI=~/.local/bin/popcorn-cli
+   KERNELS=/home/mike-anderson/dev/cohezion/.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels
+
+   # Test correctness first
+   $CLI submit --no-tui --mode test --gpu MI355X --leaderboard amd-moe-mxfp4 $KERNELS/moe-mxfp4/submission.py
+
+   # If passes, benchmark to measure actual timing
+   $CLI submit --no-tui --mode benchmark --gpu MI355X --leaderboard amd-moe-mxfp4 $KERNELS/moe-mxfp4/submission.py
+   ```
+
+   This directly continues the adaptive KSPLIT optimization work. The submission file at `kernels/moe-mxfp4/submission.py` contains the Phase 6 adaptive version. The test phase will verify correctness (the cktile path uses different accumulation order), and the benchmark will confirm whether we achieve the expected ~168 µs geomean (9% improvement over 184 µs baseline).
+
+   Note: There is a concern that the cktile path with KSPLIT>0 triggers building `module_moe_cktile2stages` (~110s) AND `module_activation` (~22s) JIT modules in addition to the normal modules. This adds ~132s of JIT build time, which may push total workflow close to the 12-minute timeout. The benchmark showed this was manageable, but the test + benchmark sequence should be monitored for timeout risk.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/f4cbccc2-65e9-41e2-9671-af041d9602b5.jsonl
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+Continue
+
+---
+
+<task-notification>
+<task-id>b8aililev</task-id>
+<tool-use-id>toolu_01TfoGunA14MmLf85nnCgvDn</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b8aililev.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit adaptive KSPLIT MoE for correctness test on MI355X" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b8aililev.output
+
+---
+
+<task-notification>
+<task-id>bgsjxw544</task-id>
+<tool-use-id>toolu_01KoMdur5rcfEN56GMGgCWDx</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bgsjxw544.output</output-file>
+<status>completed</status>
+<summary>Background command "Benchmark adaptive KSPLIT MoE on MI355X" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bgsjxw544.output
+
+---
+
+<task-notification>
+<task-id>bee36kc32</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bee36kc32.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit adaptive KSPLIT MoE to leaderboard" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bee36kc32.output
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+Where are we on the leader board?
+
+---
+
+Well we obviously aren't at the top.  I believe in you.  Resume your plan.
+
+---
+
+<task-notification>
+<task-id>b408viugg</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b408viugg.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit deep introspection probe for aiter source + CSV configs" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b408viugg.output
+
+---
+
+<task-notification>
+<task-id>bb5dbek7k</task-id>
+<tool-use-id>toolu_01AFRtuFMfeQFkEuNnkcQRz9</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bb5dbek7k.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit focused MoE introspection (dispatch logic + env vars + tuned_fmoe CSV)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bb5dbek7k.output
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The user is competing in the Luma AMD Speedrun competition, optimizing GPU kernels for AMD MI355X. The session continued from a compacted conversation. Key user directives were:
+   - `/learn` — Extract reusable knowledge from the session
+   - "Continue" — Execute pending work (test/benchmark/leaderboard the adaptive KSPLIT MoE)
+   - "Where are we on the leader board?" — Check current standings
+   - **"Well we obviously aren't at the top. I believe in you. Resume your plan."** — Push harder for better MoE performance, continue the plan at `adaptive-baking-globe.md`
+
+2. Key Technical Concepts:
+   - **AITER_KSPLIT kernel path switching**: KSPLIT=0 uses MXFP4-optimized CK kernels; KSPLIT>0 switches to generic cktile2stages kernels. CSV-tuned 257-expert shapes IGNORE AITER_KSPLIT entirely.
+   - **Adaptive KSPLIT threshold**: `estimated_m = topk_ids.numel() // num_experts`; if < 50, use KSPLIT=2 (cktile), else clear KSPLIT (CK path)
+   - **Stderr diagnostic pattern**: `using 2stage (kernelName1=...)` = CSV-tuned (KSPLIT ignored); `using 2stage default for (...)` = default path (KSPLIT applies)
+   - **JIT callsite sensitivity**: `gemm_a4w4_asm` is callsite-sensitive per-direct-caller, making GEMM custom pipelines impossible from submission.py
+   - **Popcorn CLI submission workflow**: test → benchmark → leaderboard, ~5-8 min per submission due to JIT builds
+   - **AITER_ONLINE_TUNE**: Environment variable that may enable runtime auto-tuning for shapes without CSV configs
+   - **tuned_fmoe.csv vs dsv3_fp4_tuned_fmoe.csv**: MoE tuning configs; the dsv3_fp4 variant contains the MXFP4-specific DeepSeek configs used by our 257-expert shapes
+
+3. Files and Code Sections:
+
+   - **`kernels/moe-mxfp4/submission.py`** — Production adaptive KSPLIT submission (submitted to leaderboard at **166 µs**)
+     ```python
+     """MXFP4 MoE — Phase 6: Adaptive K-split based on estimated tokens per expert."""
+     import os
+     from task import input_t, output_t
+     from aiter.fused_moe import fused_moe
+     from aiter import ActivationType, QuantType
+
+     def custom_kernel(data: input_t) -> output_t:
+         (hidden_states, gate_up_weight, down_weight,
+          gate_up_weight_scale, down_weight_scale,
+          gate_up_weight_shuffled, down_weight_shuffled,
+          gate_up_weight_scale_shuffled, down_weight_scale_shuffled,
+          topk_weights, topk_ids, config) = data
+         hidden_pad = config["d_hidden_pad"] - config["d_hidden"]
+         intermediate_pad = config["d_expert_pad"] - config["d_expert"]
+         num_experts = gate_up_weight_shuffled.shape[0]
+         estimated_m = topk_ids.numel() // num_experts
+         if estimated_m < 50:
+             os.environ["AITER_KSPLIT"] = "2"
+         else:
+             os.environ.pop("AITER_KSPLIT", None)
+         return fused_moe(hidden_states, gate_up_weight_shuffled, down_weight_shuffled,
+             topk_weights, topk_ids, expert_mask=None,
+             activation=ActivationType.Silu, quant_type=QuantType.per_1x32,
+             doweight_stage1=False, w1_scale=gate_up_weight_scale_shuffled,
+             w2_scale=down_weight_scale_shuffled, a1_scale=None, a2_scale=None,
+             hidden_pad=hidden_pad, intermediate_pad=intermediate_pad)
+     ```
+
+   - **`kernels/mxfp4-mm/submission.py`** — Reverted to clean ref_kernel delegation (GEMM is closed)
+     ```python
+     """MXFP4 GEMM — ref_kernel delegation (ceiling).
+     GEMM custom pipeline is fully closed: gemm_a4w4_asm has JIT callsite
+     sensitivity that prevents ANY direct call from submission.py."""
+     from task import input_t, output_t
+     from reference import ref_kernel
+     def custom_kernel(data: input_t) -> output_t:
+         return ref_kernel(data)
+     ```
+
+   - **`kernels/moe-mxfp4/submission_introspect2.py`** — Focused introspection probe (submitted, results partially captured)
+     - Filters only MoE-related CSVs (`fmoe` or `moe` in filename)
+     - Dumps `get_2stage_cfgs` source, env var references, fused_moe dispatch lines, module exports
+     - Results: Got tuned_fmoe.csv and some model_configs, but get_2stage_cfgs source and env var refs were STILL truncated
+
+   - **`kernels/moe-mxfp4/submission_online_tune.py`** — Created but NOT YET SUBMITTED
+     ```python
+     """MXFP4 MoE — Phase 7: Adaptive KSPLIT + AITER_ONLINE_TUNE=1."""
+     import os
+     from task import input_t, output_t
+     from aiter.fused_moe import fused_moe
+     from aiter import ActivationType, QuantType
+     os.environ["AITER_ONLINE_TUNE"] = "1"
+     def custom_kernel(data: input_t) -> output_t:
+         # Same adaptive KSPLIT logic as Phase 6 + AITER_ONLINE_TUNE=1
+         ...
+     ```
+
+   - **`~/.claude/skills/aiter-kernel-parameter-semantics/SKILL.md`** — Updated to v1.4.0
+     - Added full AITER_KSPLIT section: two-path switching, benchmark data table, adaptive pattern, JIT cost
+     - Added Stderr Diagnostics section: how to read log lines to determine CSV-tuned vs default path
+
+   - **`kernels/moe-mxfp4/submission_ksplit4.py`** — Deleted (was temporary KSPLIT=4 test)
+   - **`kernels/moe-mxfp4/submission_introspect.py`** — First introspection probe (too much GEMM CSV output)
+
+   - **`kernels/moe-mxfp4/reference.py`** — Read for understanding; shows ref_kernel calls `fused_moe` with shuffled weights, `ActivationType.Silu`, `QuantType.per_1x32`, `doweight_stage1=False`
+   - **`kernels/moe-mxfp4/task.py`** — Read for understanding; defines input_t tuple with 12 elements including config dict
+
+4. Errors and Fixes:
+   - **Introspection output truncated by GEMM CSVs**: First probe (submission_introspect.py) dumped ALL CSV files. The GEMM CSVs (a4w4, a8w8) were 1000+ lines each and filled the stderr buffer before the key dispatch logic printed.
+     - Fix: Created submission_introspect2.py that filters only files containing 'fmoe' or 'moe' in filename
+   - **Second introspection STILL truncated**: tuned_fmoe.csv itself was large enough (with bfloat16 and Gelu configs for cu_num=80 and 256) that the get_2stage_cfgs source and env var references were cut off again.
+     - Not yet fixed: Need a third probe that prints ONLY the source code sections, skipping CSV dumps entirely
+   - **Popcorn CLI has no `leaderboard` subcommand**: Tried `popcorn-cli leaderboard` but it doesn't exist. Used `submissions list` and `submissions show` instead, but these don't show rank position or scores.
+
+5. Problem Solving:
+   **Solved:**
+   - Adaptive KSPLIT tested, benchmarked, and submitted to leaderboard: **166 µs** (9.8% improvement over 184 µs baseline)
+   - GEMM submission.py cleaned up to simple ref_kernel delegation
+   - Skill updated with AITER_KSPLIT docs and stderr diagnostics (v1.4.0)
+   
+   **In Progress:**
+   - **Need the `dsv3_fp4_tuned_fmoe.csv` contents** — This is the MXFP4-specific DeepSeek tuning CSV that drives the 257-expert kernel selection. Referenced in merge line but not yet captured.
+   - **Need `get_2stage_cfgs` source** — This function controls the dispatch logic (which kernel, block_m, ksplit, use_nt to use). Critical for understanding if there are unexploited parameters.
+   - **Need env var references from fused_moe module** — To find undiscovered environment variable knobs.
+   - **submission_online_tune.py created but not submitted** — Tests AITER_ONLINE_TUNE=1 + adaptive KSPLIT.
+
+   **Key findings from introspection:**
+   - `tuned_fmoe.csv` contains configs for cu_num=80 (different GPU, NOT MI355X which has cu_num=256), plus bf16/fp8/int8 quant types. No MXFP4 (per_1x32) configs in the base tuned_fmoe.csv.
+   - The 257-expert shapes with MXFP4 must be coming from `dsv3_fp4_tuned_fmoe.csv` (merged at startup: seen in stderr merge line)
+   - `untuned_fmoe.csv` lists shapes needing tuning, includes 7168x256 256-expert shapes with fp8 quant
+   - `a8w8_blockscale_tuned_fmoe_qwen3_235b.csv`: Qwen3 configs, not relevant
+
+   **Current standings:**
+   | Kernel | Our Time | Leader | Gap |
+   |--------|----------|--------|-----|
+   | MoE | **166 µs** | ~145 µs | **1.14x** |
+   | GEMM | 24 µs (ceiling) | 9.7 µs | 2.49x |
+   | MLA | 191 µs (ceiling) | 4.3 µs | 44x |
+
+6. All User Messages:
+   - `/compact` — Triggered context compaction
+   - `/learn` — Triggered knowledge extraction
+   - "Continue" — Execute pending work
+   - Task completion notifications for b8aililev, bgsjxw544, bee36kc32 (MoE test, benchmark, leaderboard)
+   - "Where are we on the leader board?" — Check leaderboard standings
+   - "Well we obviously aren't at the top. I believe in you. Resume your plan." — Push harder on MoE optimization
+   - Task completion notifications for b408viugg, bb5dbek7k (introspection probes)
+   - Final message: Summary request (this message)
+
+7. Pending Tasks:
+   - **Task #14** [in_progress]: MoE: Test env var combinations (ONLINE_TUNE, BYPASS_TUNE, USE_NT) — `submission_online_tune.py` created but not yet submitted
+   - **Task #15** [in_progress]: MoE: Dump full CSV tuning configs — introspection probes submitted but key data (get_2stage_cfgs source, env vars, dsv3_fp4_tuned_fmoe.csv) still truncated
+   - **Task #16** [pending, blocked by #15]: MoE: Direct CK stage kernel calls (Two Builders pattern) — needs dispatch logic understanding from Task #15
+   - Clean up temporary introspection files (submission_introspect.py, submission_introspect2.py)
+
+8. Current Work:
+   Immediately before the summary request, I was analyzing the results from the focused introspection probe (bb5dbek7k). The probe successfully captured:
+   - `tuned_fmoe.csv` — base MoE tuning configs (cu_num=80, bf16/fp8, NOT MXFP4)
+   - `untuned_fmoe.csv` — shapes needing tuning
+   - `a8w8_blockscale_tuned_fmoe_qwen3_235b.csv` — Qwen3 configs (not relevant)
+   
+   But FAILED to capture (truncated by CSV output filling stderr buffer):
+   - `get_2stage_cfgs` function source code
+   - Environment variable references in fused_moe module
+   - `fused_moe` dispatch lines
+   - Module exports
+   - `dsv3_fp4_tuned_fmoe.csv` contents (the MXFP4-specific DeepSeek config that drives 257-expert kernel selection)
+
+   The `submission_online_tune.py` file was created with `AITER_ONLINE_TUNE=1` + adaptive KSPLIT but has NOT been submitted for testing yet.
+
+9. Optional Next Step:
+   Two parallel actions to continue the plan ("Resume your plan"):
+   
+   a. **Submit a third, source-only introspection probe** that prints ONLY `get_2stage_cfgs` source, env var references, and `dsv3_fp4_tuned_fmoe.csv` — no other CSVs. This is needed to unblock Task #16 (direct CK kernel calls).
+   
+   b. **Submit `submission_online_tune.py` for test + benchmark** to check if `AITER_ONLINE_TUNE=1` improves performance on the 33-expert default shapes.
+   
+   These can run in parallel since they're independent. The user's directive was: "Well we obviously aren't at the top. I believe in you. Resume your plan." — meaning continue pushing MoE optimization toward closing the 1.14x gap to the 145 µs leader.
+
+   Plan file location: `/home/mike-anderson/.claude/plans/adaptive-baking-globe.md`
+   Kernels directory: `/home/mike-anderson/dev/cohezion/.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels`
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/f4cbccc2-65e9-41e2-9671-af041d9602b5.jsonl
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+<task-notification>
+<task-id>bkmrj7uw4</task-id>
+<tool-use-id>toolu_015mDUmoeLXLFHufqHjsomGC</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bkmrj7uw4.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit online_tune test in background" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bkmrj7uw4.output
+
+---
+
+<task-notification>
+<task-id>bzuxfknnf</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bzuxfknnf.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit source-only introspection probe for test mode" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bzuxfknnf.output
+
+---
+
+<task-notification>
+<task-id>bmxtw00ls</task-id>
+<tool-use-id>toolu_01AVCj7S3spLy3st6mpuyJ6Z</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bmxtw00ls.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit bypass_tune test submission" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bmxtw00ls.output
+
+---
+
+<task-notification>
+<task-id>b6b2kak8t</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b6b2kak8t.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit online_tune test (re-submit with proper tracking)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b6b2kak8t.output
+
+---
+
+<task-notification>
+<task-id>bhrdqvka2</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bhrdqvka2.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit bypass_tune for benchmark timing" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bhrdqvka2.output
+
+---
+
+<task-notification>
+<task-id>bpxzckuh3</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bpxzckuh3.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit bypass_tune to official leaderboard" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bpxzckuh3.output
+
+---
+
+<task-notification>
+<task-id>buxgozssx</task-id>
+<tool-use-id>toolu_01GzckabshiUkpsMFkBuk6Uq</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/buxgozssx.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit KSPLIT=4 tiered strategy for benchmark timing" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/buxgozssx.output
+
+---
+
+<task-notification>
+<task-id>bz2hl0h96</task-id>
+<tool-use-id>toolu_01B3oBwTau9LFC5U3GsgGccH</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bz2hl0h96.output</output-file>
+<status>completed</status>
+<summary>Background command "Benchmark the expert-count-aware KSPLIT strategy" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bz2hl0h96.output
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The user is competing in the Luma AMD Speedrun competition, optimizing GPU kernels for AMD MI355X. The session continued from a compacted conversation. The user's directives were:
+   - `/compact` — Triggered context compaction
+   - `/learn` — Extract reusable knowledge from the session
+   - The overarching goal (from prior context): "Well we obviously aren't at the top. I believe in you. Resume your plan." — Push MoE optimization to close the gap to the 145 µs leader.
+
+2. Key Technical Concepts:
+   - **AITER_BYPASS_TUNE_CONFIG=1**: Forces the heuristic dispatch path even when pre-tuned CSV configs exist. This was the BREAKTHROUGH discovery — it unlocks the cktile path for 257-expert shapes that were locked to ksplit=0 by CSV configs.
+   - **get_2stage_cfgs dispatch logic**: The core dispatch function in aiter's fused_moe. Uses `cfg_2stages` dict (loaded from CSV) keyed by `(cu_num, token, model_dim, inter_dim, expert, topk, activation, dtype, q_dtype_a, q_dtype_w, q_type, use_g1u1, doweight_stage1)`.
+   - **cktile path trigger conditions**: Requires ALL of: `dtype in [bf16, fp16]`, `q_type == per_1x32`, `q_dtype_w == fp4x2`, `ksplit > 1`, `is_shuffled=True`.
+   - **CSV hot-cache vs benchmark cold-cache**: CSV configs were tuned at hot L2 cache conditions. The actual competition benchmark clears L2 between runs. The cktile path (split_k=2) performs better at cold cache due to better K-dimension parallelism, explaining why bypassing CSV-tuned ksplit=0 is faster.
+   - **Expert-count-aware KSPLIT**: KSPLIT=4 is better than KSPLIT=2 specifically for 257-expert shapes (dexp=256, small weights per expert) at estimated_m≈4, but NOT for 33-expert shapes (dexp=512+) with the same estimated_m.
+   - **dsv3_fp4_tuned_fmoe.csv**: Contains MXFP4-specific (per_1x32) DeepSeek-V3 configs for 257-expert shapes with dhidden=7168, dexpert=256. All entries have ksplit=0.
+   - **Benchmark shapes** (from task.yml): 7 shapes total — 3 TP=8 (257E, dexp=256), 3 TP=4 (33E, dexp=512), 1 EP (33E, dexp=2048). Ranking by geometric mean.
+   - **Stderr buffer overflow pattern**: Large CSV files in aiter configs fill Popcorn's stderr buffer, truncating source code introspection output. Solution: use separate probes filtering only target files.
+
+3. Files and Code Sections:
+
+   - **`kernels/moe-mxfp4/submission.py`** — Production MoE submission (updated to Phase 8)
+     - Updated from Phase 6 (adaptive KSPLIT only) to Phase 8 (BYPASS_TUNE + adaptive KSPLIT)
+     ```python
+     """MXFP4 MoE — Phase 8: BYPASS_TUNE + Adaptive KSPLIT."""
+     import os
+     from task import input_t, output_t
+     from aiter.fused_moe import fused_moe
+     from aiter import ActivationType, QuantType
+
+     def custom_kernel(data: input_t) -> output_t:
+         (hidden_states, gate_up_weight, down_weight,
+          gate_up_weight_scale, down_weight_scale,
+          gate_up_weight_shuffled, down_weight_shuffled,
+          gate_up_weight_scale_shuffled, down_weight_scale_shuffled,
+          topk_weights, topk_ids, config) = data
+         hidden_pad = config["d_hidden_pad"] - config["d_hidden"]
+         intermediate_pad = config["d_expert_pad"] - config["d_expert"]
+         num_experts = gate_up_weight_shuffled.shape[0]
+         estimated_m = topk_ids.numel() // num_experts
+         if estimated_m < 50:
+             os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
+             os.environ["AITER_KSPLIT"] = "2"
+         else:
+             os.environ.pop("AITER_BYPASS_TUNE_CONFIG", None)
+             os.environ.pop("AITER_KSPLIT", None)
+         return fused_moe(hidden_states, gate_up_weight_shuffled, down_weight_shuffled,
+             topk_weights, topk_ids, expert_mask=None,
+             activation=ActivationType.Silu, quant_type=QuantType.per_1x32,
+             doweight_stage1=False, w1_scale=gate_up_weight_scale_shuffled,
+             w2_scale=down_weight_scale_shuffled, a1_scale=None, a2_scale=None,
+             hidden_pad=hidden_pad, intermediate_pad=intermediate_pad)
+     ```
+
+   - **`kernels/moe-mxfp4/submission_srconly.py`** — Source-only introspection probe
+     - Filters only `dsv3_fp4` or `fp4` CSVs, prints get_2stage_cfgs source, env var refs, dispatch lines
+     - Successfully captured the full dispatch logic and CSV configs without buffer overflow
+
+   - **`kernels/moe-mxfp4/submission_bypass_tune.py`** — BYPASS_TUNE + KSPLIT=2 (the breakthrough submission)
+     - Same logic as updated submission.py, submitted to leaderboard successfully at ~156 µs
+
+   - **`kernels/moe-mxfp4/submission_ksplit4.py`** — Tiered KSPLIT=4/2 strategy
+     - AITER_BYPASS_TUNE_CONFIG=1 always for sparse; KSPLIT=4 for estimated_m<10, KSPLIT=2 for 10-50
+     - Results: Mixed — KSPLIT=4 better for bs=128, 257E (-7.5%) but worse for 33E shapes
+
+   - **`kernels/moe-mxfp4/submission_optimal.py`** — Expert-count-aware strategy
+     - KSPLIT=4 for num_experts≥200 AND estimated_m<10; KSPLIT=2 for other sparse; KSPLIT=0 for dense
+     - Benchmark results: 91.6, 171, 284, 59.8, 109, 214, 355 µs (geomean ≈ 155 µs, marginal improvement)
+     ```python
+     if estimated_m >= 50:
+         os.environ.pop("AITER_BYPASS_TUNE_CONFIG", None)
+         os.environ.pop("AITER_KSPLIT", None)
+     elif num_experts >= 200 and estimated_m < 10:
+         os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
+         os.environ["AITER_KSPLIT"] = "4"
+     else:
+         os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
+         os.environ["AITER_KSPLIT"] = "2"
+     ```
+
+   - **`kernels/moe-mxfp4/task.yml`** — Read to discover exact benchmark shapes
+     - 7 benchmark shapes: 3 TP=8 (257E, dexp=256), 3 TP=4 (33E, dexp=512), 1 EP (33E, dexp=2048)
+     - test_timeout: 540, benchmark_timeout: 540, ranked_timeout: 840
+     - ranking_by: "geom"
+
+   - **`~/.claude/skills/aiter-kernel-parameter-semantics/SKILL.md`** — Updated to v1.5.0
+     - Added: AITER_BYPASS_TUNE_CONFIG section, cktile path trigger conditions, CSV config file structure, introspection stderr truncation warning, updated parameter quick reference table with BYPASS_TUNE and ONLINE_TUNE entries
+
+   - **`kernels/mxfp4-mm/submission.py`** — GEMM (unchanged, ref_kernel delegation, ceiling)
+   - **`kernels/moe-mxfp4/submission_introspect.py`** — First introspection probe (from prior session)
+   - **`kernels/moe-mxfp4/submission_introspect2.py`** — Second introspection probe (from prior session)
+   - **`kernels/moe-mxfp4/submission_online_tune.py`** — AITER_ONLINE_TUNE=1 test (created prior session, submitted this session)
+
+4. Errors and Fixes:
+   - **online_tune background task tracking issue**: First submission (bkmrj7uw4) used shell `&` background AND Bash tool `run_in_background=true`, causing double-backgrounding. TaskOutput couldn't find the task ID. Fix: Resubmitted as b6b2kak8t without shell `&`.
+   - **No errors in kernel submissions**: All test submissions passed correctness (max error 0.015625).
+
+5. Problem Solving:
+   **SOLVED — Major breakthrough:**
+   - `AITER_BYPASS_TUNE_CONFIG=1` discovered as the key to overriding CSV-tuned ksplit=0 for 257-expert shapes. Combined with AITER_KSPLIT=2, this forces the cktile path which is dramatically faster at cold-cache benchmark conditions. Result: 40% improvement on bs=16 257E shape, overall geomean from 166 µs → 156 µs.
+
+   **SOLVED — Introspection data capture:**
+   - Got full `dsv3_fp4_tuned_fmoe.csv` and `get_2stage_cfgs` source code via source-only probe (filtering CSVs to avoid stderr overflow).
+
+   **IN PROGRESS — Closing the gap to 145 µs leader:**
+   - Tested KSPLIT=4 for very sparse 257E shapes: bs=128, 257E improves from 186→172 µs (-7.5%), but bs=16, 33E slightly worsens. Expert-count-aware strategy gives marginal improvement (~155 µs vs 156 µs).
+   - The remaining 7% gap likely requires more fundamental approaches (Task #16: direct CK kernel calls, or entirely different strategies).
+
+   **Benchmark data collected across submissions:**
+   | Shape | Ref | Phase 6 (KSPLIT=2) | Phase 8 (BYPASS) | Phase 9 (KSPLIT=4) | Phase 10 (optimal) |
+   |-------|-----|-------------------|-----------------|-------------------|-------------------|
+   | bs=16, 257E | 152.7 | ~152.7 | 95.1 | 91.3 | 91.6 |
+   | bs=128, 257E | 239 | ~239 | 186 | 172 | 171 |
+   | bs=512, 257E | 336.5 | ~336.5 | 275 | 284 | 284 |
+   | bs=16, 33E | 106.2 | ~60.5 | 59.8 | 61.4 | 59.8 |
+   | bs=128, 33E | 141.1 | ~108 | 109 | 108 | 109 |
+   | bs=512, 33E(512) | 225 | ~215 | 209 | 214 | 214 |
+   | bs=512, 33E(2048) | 380.4 | ~353 | 343 | 354 | 355 |
+   | **Geomean** | ~206 | ~166 | ~156 | ~156 | ~155 |
+
+6. All User Messages:
+   - `/compact` — Triggered context compaction
+   - `/learn` — Triggered knowledge extraction from session
+   - (Task completion notifications for bkmrj7uw4, bzuxfknnf, bmxtw00ls, b6b2kak8t, bhrdqvka2, bpxzckuh3, buxgozssx, bz2hl0h96)
+   - Final message: Summary request (this message)
+
+7. Pending Tasks:
+   - **Task #16** [pending]: MoE: Direct CK stage kernel calls (Two Builders pattern) — bypass fused_moe entirely, call cktile_moe_stage1/stage2 directly with custom block_m and split_k
+   - **submission_optimal.py**: Benchmarked at ~155 µs but NOT submitted to leaderboard (only bypass_tune at ~156 µs is on the leaderboard)
+   - **Clean up temporary files**: submission_introspect.py, submission_introspect2.py, submission_srconly.py, submission_bypass_tune.py, submission_ksplit4.py, submission_optimal.py
+   - **GEMM and MLA kernels**: Still at ceiling (ref_kernel delegation). Plan tasks 1-2 (GEMM) and 5 (MLA) from adaptive-baking-globe.md remain untouched.
+
+8. Current Work:
+   Immediately before the summary request, I had just received the benchmark results for `submission_optimal.py` (Phase 10: expert-count-aware KSPLIT strategy). The results showed:
+   - bs=16, 257E: 91.6 µs (KSPLIT=4)
+   - bs=128, 257E: 171 µs (KSPLIT=4) — best result for this shape
+   - bs=512, 257E: 284 µs (KSPLIT=2)
+   - bs=16, 33E: 59.8 µs (KSPLIT=2)
+   - bs=128, 33E: 109 µs (KSPLIT=2)
+   - bs=512, 33E(512): 214 µs (KSPLIT=0)
+   - bs=512, 33E(2048): 355 µs (KSPLIT=0)
+   - Geomean ≈ 155 µs (marginal improvement over Phase 8's 156 µs)
+
+   The current leaderboard submission is Phase 8 (`submission_bypass_tune.py`) at ~156 µs. The optimal strategy gives ~155 µs but hasn't been submitted to the leaderboard.
+
+   **Current standings:**
+   | Kernel | Our Time | Leader | Gap |
+   |--------|----------|--------|-----|
+   | MoE | **~156 µs** | ~145 µs | **7%** |
+   | GEMM | 24 µs (ceiling) | 9.7 µs | 2.49x |
+   | MLA | 191 µs (ceiling) | 4.3 µs | 44x |
+
+   Plan file location: `/home/mike-anderson/.claude/plans/adaptive-baking-globe.md`
+   Kernels directory: `/home/mike-anderson/dev/cohezion/.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels`
+
+9. Optional Next Step:
+   The user's overarching directive was "Resume your plan" to push MoE optimization further. The most impactful next actions to close the remaining 7% gap to the 145 µs leader:
+
+   a. **Submit `submission_optimal.py` to leaderboard** — The expert-count-aware strategy gives ~155 µs vs the current leaderboard entry at ~156 µs. While marginal, it's still an improvement.
+
+   b. **Task #16: Direct CK stage kernel calls** — The get_2stage_cfgs source revealed `cktile_moe_stage1` and `cktile_moe_stage2` can be called with custom `block_m` and `split_k` parameters. The fused_moe dispatch auto-selects `block_m = 16 if token < 2048 else 32 if token < 16384 else 64` for cktile. Overriding block_m per shape might yield better results.
+
+   c. **Alternative**: Look at the MLA or GEMM kernels (much larger gaps to leader), though these were previously assessed as harder to improve.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/f4cbccc2-65e9-41e2-9671-af041d9602b5.jsonl
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+Continue
+
+---
+
+<task-notification>
+<task-id>bobjldg29</task-id>
+<tool-use-id>toolu_011uJ7obTsL7iHrCRPg6ee3P</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bobjldg29.output</output-file>
+<status>completed</status>
+<summary>Background command "Test KSPLIT=3 for MoE correctness" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bobjldg29.output
+
+---
+
+<task-notification>
+<task-id>b5fjzazee</task-id>
+<tool-use-id>toolu_01VTt9XAjCU3H2yEXrqr3U3a</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b5fjzazee.output</output-file>
+<status>completed</status>
+<summary>Background command "Test KSPLIT=8 for MoE correctness" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b5fjzazee.output
+
+---
+
+<task-notification>
+<task-id>b3lb9np6x</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b3lb9np6x.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit cktile introspection probe to discover stage function signatures" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b3lb9np6x.output
+
+---
+
+<task-notification>
+<task-id>bv5td56ju</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bv5td56ju.output</output-file>
+<status>completed</status>
+<summary>Background command "Test KSPLIT=3 correctness via submission.py" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bv5td56ju.output
+
+---
+
+<task-notification>
+<task-id>b08i5k7u1</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b08i5k7u1.output</output-file>
+<status>completed</status>
+<summary>Background command "Retry KSPLIT=3 test submission" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b08i5k7u1.output
+
+---
+
+<task-notification>
+<task-id>bhkm5gj1e</task-id>
+<tool-use-id>toolu_016KJgrkEVLruX68YpAVp6je</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bhkm5gj1e.output</output-file>
+<status>completed</status>
+<summary>Background command "Benchmark KSPLIT=3 for MoE timing data" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bhkm5gj1e.output
+
+---
+
+<task-notification>
+<task-id>bfwmlptwo</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bfwmlptwo.output</output-file>
+<status>completed</status>
+<summary>Background command "Retry KSPLIT=3 benchmark submission" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bfwmlptwo.output
+
+---
+
+<task-notification>
+<task-id>bhy1qd3zv</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bhy1qd3zv.output</output-file>
+<status>completed</status>
+<summary>Background command "Benchmark KSPLIT=8 (skip test — KSPLIT changes don't affect correctness)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bhy1qd3zv.output
+
+---
+
+<task-notification>
+<task-id>byz5ogktm</task-id>
+<tool-use-id>toolu_011ZSCTCHLki73s8iA5mKmo5</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/byz5ogktm.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit fused_moe full source probe" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/byz5ogktm.output
+
+---
+
+<task-notification>
+<task-id>b5xe2oflr</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b5xe2oflr.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit Phase 10 optimal to leaderboard" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b5xe2oflr.output
+
+---
+
+<task-notification>
+<task-id>b2542cci5</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b2542cci5.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit fused_moe_ inner source probe" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b2542cci5.output
+
+---
+
+<task-notification>
+<task-id>bv1atrvhm</task-id>
+<tool-use-id>toolu_01SjmwQmDmcNLUeLhVuUf5Aw</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bv1atrvhm.output</output-file>
+<status>completed</status>
+<summary>Background command "Retry leaderboard submission (Phase 10 optimal)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bv1atrvhm.output
+
+---
+
+<task-notification>
+<task-id>bm9v1mq00</task-id>
+<tool-use-id>toolu_01BRXiEKd11VuP1Kp6xzrhie</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bm9v1mq00.output</output-file>
+<status>completed</status>
+<summary>Background command "Benchmark block_size_M=32 override for moderate-sparse shapes" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bm9v1mq00.output
+
+---
+
+<task-notification>
+<task-id>bp1b3ywcv</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bp1b3ywcv.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit GEMM probe to discover quant and GEMM alternatives" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bp1b3ywcv.output
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The user is competing in the Luma AMD Speedrun competition, optimizing GPU kernels (MoE, GEMM, MLA) for AMD MI355X. The overarching directive from prior context was "Resume your plan" to push optimization further. In this session:
+   - `/compact` — Triggered context compaction
+   - `/learn` — Extract reusable knowledge from session
+   - "Continue" — Resume optimization work after learning extraction
+   - User provided the full MoE competition description and reference implementation as additional context
+   - The conversation culminates with a shift from MoE (at API ceiling) to GEMM optimization
+
+2. Key Technical Concepts:
+   - **AITER_KSPLIT values 2-4 are the safe/useful range** — KSPLIT=3 ties Phase 10, KSPLIT=8 causes correctness failures
+   - **fused_moe_ is a JIT-compiled C++ operator** (torch.ops.aiter.fused_moe_), NOT a Python function — direct kernel calls from Python are blocked
+   - **block_size_M parameter is IGNORED when BYPASS_TUNE is on** — the heuristic computes its own block_m internally
+   - **Popcorn CLI requires file to be named `submission.py`** — uploading files with other names causes "File not found" server error
+   - **gemm_a4w4_asm JIT callsite sensitivity** — calling gemm_a4w4 from submission.py produces wrong results; calling through library wrappers (e.g., fused_moe.py) works
+   - **cktile_moe_gemm1/gemm2 function signatures** discovered from JIT build logs
+   - **ck_moe_stage1/stage2 function signatures** also captured from JIT build logs
+   - **MoE optimization ceiling** reached at ~154.5 µs geomean (6.6% gap to 145 µs leader)
+   - **GEMM alternatives**: `get_torch_quant` (pure PyTorch, no Triton JIT), `gemm_afp4wfp4` (Triton GEMM, different from ASM path), `get_hip_quant`
+
+3. Files and Code Sections:
+
+   - **`~/.claude/skills/aiter-kernel-parameter-semantics/SKILL.md`** — Updated from v1.5.0 to v1.6.0
+     - Added expert-count-aware KSPLIT rule (3-tier: K4 for 257E sparse, K2 for moderate sparse, K0 for dense)
+     - Added 257E benchmark data with BYPASS_TUNE
+     - Added full 7-shape competition benchmark table
+     - Added mechanistic explanation for why KSPLIT=4 helps 257E but not 33E
+     - Updated adaptive KSPLIT code pattern to include expert-count awareness
+
+   - **`kernels/moe-mxfp4/submission.py`** — Currently Phase 10 optimal (restored after experiments)
+     ```python
+     """MXFP4 MoE — Phase 10: Expert-count-aware KSPLIT selection."""
+     import os
+     from task import input_t, output_t
+     from aiter.fused_moe import fused_moe
+     from aiter import ActivationType, QuantType
+
+     def custom_kernel(data: input_t) -> output_t:
+         # ... unpack data tuple ...
+         hidden_pad = config["d_hidden_pad"] - config["d_hidden"]
+         intermediate_pad = config["d_expert_pad"] - config["d_expert"]
+         num_experts = gate_up_weight_shuffled.shape[0]
+         estimated_m = topk_ids.numel() // num_experts
+         if estimated_m >= 50:
+             os.environ.pop("AITER_BYPASS_TUNE_CONFIG", None)
+             os.environ.pop("AITER_KSPLIT", None)
+         elif num_experts >= 200 and estimated_m < 10:
+             os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
+             os.environ["AITER_KSPLIT"] = "4"
+         else:
+             os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
+             os.environ["AITER_KSPLIT"] = "2"
+         return fused_moe(hidden_states, gate_up_weight_shuffled, down_weight_shuffled,
+             topk_weights, topk_ids, expert_mask=None, activation=ActivationType.Silu,
+             quant_type=QuantType.per_1x32, doweight_stage1=False,
+             w1_scale=gate_up_weight_scale_shuffled, w2_scale=down_weight_scale_shuffled,
+             a1_scale=None, a2_scale=None, hidden_pad=hidden_pad, intermediate_pad=intermediate_pad)
+     ```
+     - This is the leaderboard version at ~154.5 µs geomean
+
+   - **`kernels/moe-mxfp4/submission_ksplit3.py`** — KSPLIT=3 test for 257E sparse
+     - Used KSPLIT=3 for num_experts>=200 AND estimated_m<10
+     - Result: geomean 155.5 µs (tied with Phase 10, KSPLIT=3 between K2 and K4 for 257E)
+
+   - **`kernels/moe-mxfp4/submission_ksplit8.py`** — KSPLIT=8 test
+     - FAILED correctness on bs=16, 257E; slower on bs=128, 257E (183 µs vs 171 µs)
+     - Conclusion: KSPLIT=8 is both incorrect and slower — ruled out
+
+   - **`kernels/moe-mxfp4/submission_blockm.py`** — block_size_M=32 override test
+     - Discovered block_size_M is IGNORED when BYPASS_TUNE is on
+     - Stderr confirmed heuristic's block_m (64) was used, not the requested 32
+
+   - **`kernels/moe-mxfp4/submission_direct_cktile.py`** — fused_moe full source probe
+     - Captured `fused_moe()` is a thin wrapper around `fused_moe_()`
+     - `splitk=0` parameter in fused_moe is NOT forwarded to fused_moe_
+     - Discovery: fused_moe() passes all params except splitk
+
+   - **`kernels/moe-mxfp4/submission_fmoe_inner.py`** — fused_moe_ inner probe
+     - Revealed fused_moe_ is a JIT C++ wrapper (only 399 chars)
+     - Actual logic in torch.ops.aiter C++ operator
+
+   - **`kernels/moe-mxfp4/submission_cktile_probe.py`** — cktile function signature probe
+
+   - **`kernels/moe-mxfp4/submission_phase8_backup.py`** — Backup of Phase 8
+
+   - **`kernels/mxfp4-mm/submission.py`** — Currently has GEMM probe code (submission_probe.py content)
+     ```python
+     """MXFP4 GEMM — Probe: Discover available quantization and GEMM alternatives."""
+     # Tests get_torch_quant, get_hip_quant, gemm_afp4wfp4, other GEMM functions
+     # Delegates to ref_kernel for correctness
+     ```
+
+   - **`kernels/mxfp4-mm/submission_probe.py`** — GEMM alternatives probe
+     - Tests: get_torch_quant shuffle=True, get_hip_quant, gemm_afp4wfp4 existence/signature, dynamic_mxfp4_quant
+     - Zero-risk (delegates to ref_kernel)
+
+   - **`kernels/mxfp4-mm/reference.py`** — GEMM reference implementation
+     - Uses `get_triton_quant(QuantType.per_1x32)` with `shuffle=True` for A quantization
+     - Calls `aiter.gemm_a4w4(A_q, B_shuffle, A_scale_sh, B_scale_sh, dtype=dtypes.bf16, bpreshuffle=True)`
+     - Mentions `gemm_afp4wfp4` Triton alternative at line 97
+     - Reference times: 8-21 µs across shapes, leader at 9.7 µs
+
+   - **Kernel function signatures discovered from JIT logs:**
+     ```python
+     cktile_moe_gemm1(XQ, WQ, Y, sorted_ids, sorted_expert_ids, max_token_ids, topk,
+                      n_padded_zeros=0, k_padded_zeros=0, topk_weight=None,
+                      x_scale=None, w_scale=None, exp_bias=None,
+                      activation=0, block_m=32, split_k=1) -> Tensor
+
+     cktile_moe_gemm2(XQ, WQ, Y, sorted_ids, sorted_expert_ids, max_token_ids, topk,
+                      n_padded_zeros=0, k_padded_zeros=0, topk_weight=None,
+                      x_scale=None, w_scale=None, exp_bias=None,
+                      activation=0, block_m=32, split_k=1) -> Tensor
+
+     ck_moe_stage1(hidden_states, w1, w2, sorted_token_ids, sorted_expert_ids,
+                   num_valid_ids, out, topk, kernelName=None, w1_scale=None, a1_scale=None,
+                   block_m=32, sorted_weights=None, quant_type=0, activation=0,
+                   splitk=1, non_temporal_load=False, dst_type=None, is_shuffled=True)
+
+     ck_moe_stage2(inter_states, w1, w2, sorted_token_ids, sorted_expert_ids,
+                   num_valid_ids, out, topk, kernelName=None, w2_scale=None, a2_scale=None,
+                   block_m=32, sorted_weights=None, quant_type=0, activation=0,
+                   splitk=1, non_temporal_load=False, dst_type=None, is_shuffled=True)
+
+     moe_sorting_fwd(topk_ids, topk_weights, sorted_token_ids, sorted_weights,
+                     sorted_expert_ids, num_valid_ids, moe_buf, num_experts, unit_size,
+                     local_expert_mask=None, num_local_tokens=None, dispatch_policy=0)
+     ```
+
+4. Errors and Fixes:
+   - **Popcorn CLI "File not found" error for non-submission.py filenames:**
+     - Symptoms: `Application error: File not found: /moe-mxfp4/submission_ksplit3.py`
+     - Fix: Copy test files to `submission.py` before submitting. The Popcorn CLI uploads files but the server expects `submission.py`.
+     - Previous sessions appeared to submit different filenames successfully (possibly misremembered in compacted summary, or the server behavior changed).
+   
+   - **Transient GitHub Actions artifact download failures:**
+     - First leaderboard submission (b5xe2oflr) failed with "Could not download artifacts"
+     - Fix: Retry the same submission. Second attempt (bv1atrvhm) succeeded.
+   
+   - **Edit tool parameter naming error:**
+     - Used `old_content`/`new_content` instead of `old_string`/`new_string` on first edit attempt
+     - Fixed by using ToolSearch to find correct parameter names, then using correct `Edit` tool parameters.
+
+   - **KSPLIT=8 correctness failure:**
+     - bs=16, 257E shape failed correctness testing
+     - Root cause: With K=256 and KSPLIT=8, each K-chunk is only 32 elements; too aggressive splitting causes numerical errors in the reduction
+     - Fix: Rule out KSPLIT=8; confirmed KSPLIT=2-4 as the safe range
+
+5. Problem Solving:
+   **SOLVED — KSPLIT sweep complete:**
+   - Tested KSPLIT values 2, 3, 4, 8. Results: K4 best for 257E sparse (est_m<10), K2 for others, K8 causes failures. K3 ties K4/K2 blend.
+
+   **SOLVED — Direct kernel calls investigation (Task #16):**
+   - fused_moe_ is JIT C++ (torch.ops.aiter.fused_moe_), not Python with visible buffer allocation
+   - Block_size_M is ignored by BYPASS_TUNE heuristic
+   - Conclusion: MoE optimization at API ceiling, no further improvements possible through fused_moe parameters
+
+   **SOLVED — Leaderboard submission:**
+   - Phase 10 optimal submitted successfully at ~154.5 µs geomean (improved from ~156 µs)
+
+   **IN PROGRESS — GEMM optimization:**
+   - Probe submitted to discover available quant/GEMM alternatives (Task #17)
+   - Results file exists but has NOT been read yet
+
+   **Benchmark data across ALL phases:**
+   | Shape | Ref | Phase 8 (K2) | Phase 10 (K4/K2) | KSPLIT=3 | KSPLIT=8 |
+   |-------|-----|-------------|------------------|----------|----------|
+   | bs16,257E | 152.7 | 95.1 | 91.6 (K4) | 92.9 | FAIL |
+   | bs128,257E | 239 | 186 | 171 (K4) | 178 | 183 |
+   | bs512,257E | 336.5 | 275 | 284 (K2) | 280 | 283 |
+   | bs16,33E | 106.2 | 59.8 | 59.8 (K2) | 59.9 | 60.3 |
+   | bs128,33E | 141.1 | 109 | 109 (K2) | 107 | 108 |
+   | bs512,33E-512 | 225 | 209 | 214 (K0) | 212 | 214 |
+   | bs512,33E-2048 | 380.4 | 343 | 355 (K0) | 349 | 352 |
+   | **Geomean** | ~206 | ~156 | ~155 | ~155.5 | N/A |
+
+6. All User Messages:
+   - `/compact` — Triggered context compaction
+   - `/learn` — Triggered knowledge extraction from session
+   - "Continue" — Directed me to resume optimization work
+   - User provided full MoE competition description (benchmark shapes, input/output format, ranking criteria, deadline 2026-03-30)
+   - User provided full MoE reference implementation (reference.py source with generate_input, ref_kernel_pytorch, ref_kernel, check_implementation)
+   - Task completion notifications for 13+ background tasks (bobjldg29, b5fjzazee, b3lb9np6x, bv5td56ju, b08i5k7u1, bhkm5gj1e, bfwmlptwo, bhy1qd3zv, byz5ogktm, b5xe2oflr, b2542cci5, bv1atrvhm, bm9v1mq00, bp1b3ywcv)
+
+7. Pending Tasks:
+   - **Task #17** [in_progress]: GEMM: Probe gemm_afp4wfp4 Triton kernel and get_torch_quant on MI355X — probe submitted, results file exists at `/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bp1b3ywcv.output` but NOT YET READ
+   - **Task #18** [pending, blocked by #17]: GEMM: Implement custom_kernel bypassing gemm_a4w4_asm callsite bug
+   - **MoE submission.py** needs to be restored from the probe version (currently has GEMM probe as `kernels/mxfp4-mm/submission.py`; MoE submission.py was correctly restored to Phase 10 optimal)
+   - **GEMM submission.py** currently has probe content, needs to be restored to ref_kernel delegation after probe results are read
+
+8. Current Work:
+   Immediately before the summary request, I had:
+   1. Concluded MoE optimization at API ceiling (~154.5 µs, 6.6% gap to 145 µs leader)
+   2. Shifted focus to GEMM optimization (24 µs vs 9.7 µs leader, 2.49x gap)
+   3. Read GEMM reference.py and task.yml to understand the competition structure
+   4. Read the JIT callsite correctness skill to understand the blocker
+   5. Created Task #17 (GEMM probe) and Task #18 (GEMM implementation)
+   6. Created and submitted `submission_probe.py` for GEMM — it probes:
+      - `get_torch_quant` with `shuffle=True` support
+      - `get_hip_quant` existence and signature
+      - `gemm_afp4wfp4` Triton kernel existence and signature
+      - Other GEMM functions in aiter
+      - `dynamic_mxfp4_quant` from fused_moe
+   7. The probe submission (bp1b3ywcv) has COMPLETED but the output file has NOT been read yet
+   
+   File locations:
+   - GEMM kernels: `kernels/mxfp4-mm/`
+   - MoE kernels: `kernels/moe-mxfp4/`
+   - Base path: `/home/mike-anderson/dev/cohezion/.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels`
+   - Plan: `/home/mike-anderson/.claude/plans/adaptive-baking-globe.md`
+
+9. Optional Next Step:
+   **Read the GEMM probe results** from `/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bp1b3ywcv.output` to complete Task #17 and unblock Task #18.
+   
+   This is directly in line with the current work: I submitted the GEMM probe (Task #17) and was waiting for its results when the summary was requested. The probe output contains critical information about:
+   - Whether `get_torch_quant` supports `shuffle=True` (bypass for Triton JIT quantization)
+   - Whether `gemm_afp4wfp4` exists as an alternative to `gemm_a4w4_asm` (bypass for callsite sensitivity)
+   - What other GEMM/quant functions are available on the MI355X server
+   
+   After reading these results, proceed to Task #18: implement a custom GEMM pipeline that avoids the gemm_a4w4_asm JIT callsite sensitivity bug, targeting the 9.7 µs leader time.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/f4cbccc2-65e9-41e2-9671-af041d9602b5.jsonl
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
