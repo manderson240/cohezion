@@ -7,11 +7,14 @@ description: |
   (5) records are silently not persisting after CREATE/UPSERT (SCHEMAFULL silent rejection),
   (6) neuron paths are stale after vault directory renames,
   (7) synapse count doubles on re-import, (8) ID collisions after re-import with different derivation,
-  (9) wrong aspect field (all neurons getting 'connective' default due to stale DIR_TO_ASPECT mapping).
+  (9) wrong aspect field (all neurons getting 'connective' default due to stale DIR_TO_ASPECT mapping),
+  (10) ORDER BY inside DEFINE FUNCTION doesn't sort — results come back in arbitrary order,
+  (11) "in" reserved keyword conflict — SELECT in FROM synapse fails with parse error,
+  (12) count() GROUP result is wrapped — returns [{count: N}] not N.
   Key insight: credentials and port in docs are often stale — always inspect the
   live process, and always create namespace+database before applying schema.
 author: Claude Code
-version: 1.5.0
+version: 1.6.0
 ---
 
 # SurrealDB Debugging
@@ -457,6 +460,67 @@ curl -s -X POST http://localhost:8001/sql \
   --data-raw 'SELECT aspect, count() FROM neuron GROUP BY aspect;'
 # Expected: connective < 10% of total
 ```
+
+## ORDER BY Inside DEFINE FUNCTION Doesn't Sort (SurrealDB 3.0)
+
+**Symptom:** `LET $top = (SELECT ... ORDER BY activation DESC LIMIT 5)` inside a function returns arbitrary records, not the top-N by activation. The exact same query works correctly as an ad-hoc SQL call.
+
+**Cause:** SurrealDB 3.0 does not preserve `ORDER BY` on `LET` variable assignments inside `DEFINE FUNCTION` bodies. This is a known limitation — the query planner does not push ordering through the function's variable scope.
+
+**Fix:** Issue a direct query from the client for any results that need correct ordering. Don't rely on ordering inside function bodies.
+
+```python
+# In graph_context.py — neighborhood command
+sql = f"SELECT * FROM fn::context_neighborhood({nid});"
+data = query(sql)[0]["result"][0]
+
+# Workaround: fetch cluster_top via direct query (function ordering is broken)
+cluster_sql = (
+    f"SELECT id, title, activation, stage FROM neuron "
+    f"WHERE cluster_id = '{cluster_id}' AND id != {nid} "
+    f"ORDER BY activation DESC LIMIT 5;"
+)
+data["cluster_top"] = query(cluster_sql)[0]["result"]
+```
+
+**Rule of thumb:** Use SurrealDB functions for data *retrieval* and *aggregation*. Use direct queries for anything that needs reliable *ordering*.
+
+## `in` Is a Reserved Keyword in SurrealQL
+
+**Symptom:** Queries on RELATION tables (synapse, kinship) fail with a parse error when selecting the `in` field directly.
+
+```sql
+-- FAILS — parse error
+SELECT DISTINCT in AS id FROM synapse WHERE in.cluster_id = "cortex";
+
+-- WORKS — use VALUE to extract the field
+SELECT VALUE in FROM synapse WHERE in = neuron:foo;
+
+-- WORKS — use field access via traversal
+SELECT in.id, in.title FROM synapse WHERE out = neuron:bar;
+```
+
+**Context:** `in` and `out` are SurrealDB reserved keywords for RELATION table edge fields. They cannot be aliased or selected with bare `SELECT in` syntax. Use `SELECT VALUE in` (returns an array of raw values) or `SELECT in.field` (dot-access for nested fields).
+
+## count() GROUP Result Is Wrapped
+
+**Symptom:** `SELECT count() FROM neuron GROUP ALL` returns `[{'count': 1602}]` instead of `1602`. Code that expects a plain integer breaks.
+
+**Pattern:**
+
+```python
+def _unwrap_count(v):
+    """Unwrap count() GROUP result: [{count: N}] → N."""
+    if isinstance(v, list) and v and isinstance(v[0], dict):
+        return v[0].get("count", v)
+    return v
+
+# Usage
+result = query("SELECT count() FROM neuron GROUP ALL;")
+total = _unwrap_count(result[0]["result"])  # → 1602 (int)
+```
+
+**Why this happens:** `GROUP ALL` always returns a list with one aggregated row. The `count()` value lives at `result[0]["result"][0]["count"]`. Using `SELECT VALUE count() FROM neuron GROUP ALL` returns the same wrapped format.
 
 ## Verification
 
