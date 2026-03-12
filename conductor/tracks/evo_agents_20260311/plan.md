@@ -24,3 +24,6 @@
     - [x] Sub-task: Write integration tests for a complete task-reward-ratchet cycle.
     - [x] Sub-task: Wire the components together in the agent's main processing loop.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Integration & Ascension' (Protocol in workflow.md)
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions 79914f3
