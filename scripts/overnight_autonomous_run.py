@@ -11,13 +11,16 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
+
 # Add src to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
+import trackio
+
 from cohezion.simulation.enhanced_simulator import EnhancedSimulator
 from cohezion.swarm.compound_client import get_compound_client
-import trackio
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("OvernightMission")

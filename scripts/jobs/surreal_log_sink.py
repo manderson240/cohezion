@@ -1,17 +1,15 @@
 import asyncio
-import hashlib
-import json
-import os
 import sys
-import time
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
 
 # Add src to path
 PROJECT_ROOT = Path("/home/mike-anderson/dev/cohezion")
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from cohezion.core.persistence.surreal_client import SurrealClient
+
 
 # Configuration
 SURREAL_URL = "ws://localhost:8000/rpc"
@@ -63,7 +61,7 @@ class LogSink:
                 self.positions[file_path] = 0
 
             if current_size > self.positions[file_path]:
-                with open(file_path, "r") as f:
+                with open(file_path) as f:
                     f.seek(self.positions[file_path])
                     lines = f.readlines()
                     self.positions[file_path] = f.tell()

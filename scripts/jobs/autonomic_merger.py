@@ -6,10 +6,9 @@ Closes the loop between skill refinement proposals and the codebase.
 
 import asyncio
 import logging
-import os
 import subprocess
-from datetime import datetime
 from pathlib import Path
+
 
 PROJECT_ROOT = Path("/home/mike-anderson/dev/cohezion")
 PATCH_DIR = PROJECT_ROOT / "src/cohezion/skills/patches"
@@ -64,13 +63,13 @@ async def main():
             # In production: run_command(f"git push origin {branch_name}")
             # Then: gh pr create ...
         else:
-            logger.error(f"❌ Refinement invalid. Reverting...")
-            run_command(f"git checkout main", cwd=PROJECT_ROOT)
+            logger.error("❌ Refinement invalid. Reverting...")
+            run_command("git checkout main", cwd=PROJECT_ROOT)
             run_command(f"git branch -D {branch_name}", cwd=PROJECT_ROOT)
             patch_file.rename(patch_file.with_suffix(".invalid"))
 
         # Cleanup
-        run_command(f"git checkout main", cwd=PROJECT_ROOT)
+        run_command("git checkout main", cwd=PROJECT_ROOT)
         if patch_file.exists():
             patch_file.unlink()
 

@@ -6,16 +6,18 @@ Closes the loop between skill refinement and verification.
 
 import asyncio
 import logging
-from pathlib import Path
-from datetime import datetime
 
 # Add src to path
 import sys
+from datetime import datetime
+from pathlib import Path
+
 
 PROJECT_ROOT = Path("/home/mike-anderson/dev/cohezion")
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from cohezion.swarm.compound_client import get_compound_client
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("MyceliumTestGen")
