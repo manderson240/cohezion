@@ -314,11 +314,11 @@ class DynamicModelRouter:
 
         # Base capability score
         if task_type == "coding" and ("coder" in model.name or "phi" in model.name):
-            score += 30
+            score += 200  # Massive boost for specialized coding models
 
         # Cloud Hybrid Routing Rules
         if (task_type == "complex_reasoning" or task_type == "architecture") and model.is_cloud:
-            score += 100  # Enormously prioritize Cloud for advanced logic
+            score += 300  # Enormously prioritize Cloud for advanced logic
 
         # Avoid network roundtrip of cloud if local fits for urgent tasks
         if urgency == "high" and not model.is_cloud:
