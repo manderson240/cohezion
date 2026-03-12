@@ -58,8 +58,11 @@ class SurrealTrajectoryLogger:
         async with AsyncSurreal(self.url) as db:
             try:
                 await db.use(self.namespace, self.database)
-                # Note: Assuming 'root'/'root' for scaffold, should be configurable via env
-                await db.signin({"user": "root", "pass": "root"})
+                
+                import os
+                user = os.getenv("SURREAL_USER", "root")
+                password = os.getenv("SURREAL_PASS", "root")
+                await db.signin({"user": user, "pass": password})
                 
                 await db.create("trajectory", data)
                 logger.debug(f"Successfully persisted trajectory point {trajectory_id} to SurrealDB.")
