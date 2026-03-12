@@ -11,13 +11,13 @@
 
 
 ## Phase 2: Reward & Ratchet System
-- [ ] Task: Implement the `RewardCalculator`.
-    - [ ] Sub-task: Write unit tests for scoring logic based on the 0.5 Coherence Rule.
-    - [ ] Sub-task: Implement the scoring algorithm balancing coherence and token efficiency.
-- [ ] Task: Implement the `RatchetMechanism`.
-    - [ ] Sub-task: Write tests verifying state is locked/persisted when a high score is achieved.
-    - [ ] Sub-task: Implement the ratchet logic connecting to the persistence layer.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Reward & Ratchet System' (Protocol in workflow.md)
+- [x] Task: Implement the `RewardCalculator`.
+    - [x] Sub-task: Write unit tests for scoring logic based on the 0.5 Coherence Rule.
+    - [x] Sub-task: Implement the scoring algorithm balancing coherence and token efficiency.
+- [x] Task: Implement the `RatchetMechanism`.
+    - [x] Sub-task: Write tests verifying state is locked/persisted when a high score is achieved.
+    - [x] Sub-task: Implement the ratchet logic connecting to the persistence layer.
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Reward & Ratchet System' (Protocol in workflow.md)
 
 ## Phase 3: Integration & Ascension
 - [ ] Task: Integrate Reward and Ratchet into the EVO Agent lifecycle.
