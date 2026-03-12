@@ -52,7 +52,7 @@ class SkillsMCP:
         # Sanitize name to prevent directory traversal via filename
         # We allow .md extension or not
         filename = f"{skill_name}.md" if not skill_name.endswith(".md") else skill_name
-        
+
         try:
             skill_path = sanitize_path(filename, base_dir=SKILLS_PATH)
         except ValueError:

@@ -95,8 +95,12 @@ async def bmad_bmm_create_story(
     workflow = engine.load_workflow("bmm", "2-plan-workflows/create-story")
     story = await engine.execute_workflow(
         workflow,
-        {"title": story_title, "acceptance_criteria": acceptance_criteria,
-         "priority": priority, "points": points},
+        {
+            "title": story_title,
+            "acceptance_criteria": acceptance_criteria,
+            "priority": priority,
+            "points": points,
+        },
         session_id,
     )
     return {
@@ -183,8 +187,11 @@ async def bmad_bmm_code_review(
     workflow = engine.load_workflow("bmm", "4-implementation/code-review")
     review = await engine.execute_workflow(
         workflow,
-        {"code_changes": code_changes, "review_type": review_type,
-         "focus_areas": focus_areas or []},
+        {
+            "code_changes": code_changes,
+            "review_type": review_type,
+            "focus_areas": focus_areas or [],
+        },
         session_id,
     )
     return {
@@ -243,8 +250,11 @@ async def bmad_gds_game_architecture(
     workflow = engine.load_workflow("gds", "workflows/game-architecture")
     arch = await engine.execute_workflow(
         workflow,
-        {"game_brief_id": game_brief_id, "engine_choice": engine_choice,
-         "multiplayer": multiplayer},
+        {
+            "game_brief_id": game_brief_id,
+            "engine_choice": engine_choice,
+            "multiplayer": multiplayer,
+        },
         session_id,
     )
     return {

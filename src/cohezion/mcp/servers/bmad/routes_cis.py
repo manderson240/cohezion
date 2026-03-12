@@ -18,8 +18,11 @@ async def tool_bmad_cis_brainstorming(request: web.Request) -> web.Response:
                 "timebox_minutes": data.get("timebox_minutes", 15),
                 "message": "Brainstorming session guide provided",
                 "techniques": [
-                    "Mind Mapping", "Rapid Ideation (5 min)", "Yes, And...",
-                    "Crazy 8s", "SCAMPER",
+                    "Mind Mapping",
+                    "Rapid Ideation (5 min)",
+                    "Yes, And...",
+                    "Crazy 8s",
+                    "SCAMPER",
                 ],
             }
         )
@@ -60,18 +63,36 @@ async def tool_bmad_cis_six_thinking_hats(request: web.Request) -> web.Response:
                 "tool": "bmad_cis_six_thinking_hats",
                 "topic": data.get("topic", ""),
                 "hats": [
-                    {"color": "White", "focus": "Facts and information",
-                     "questions": ["What do we know?", "What data do we have?"]},
-                    {"color": "Red", "focus": "Emotions and feelings",
-                     "questions": ["How do we feel?", "What is our gut reaction?"]},
-                    {"color": "Black", "focus": "Critical judgment",
-                     "questions": ["What could go wrong?", "What are the risks?"]},
-                    {"color": "Yellow", "focus": "Optimism",
-                     "questions": ["What are the benefits?", "Why will this work?"]},
-                    {"color": "Green", "focus": "Creativity",
-                     "questions": ["What new ideas?", "What alternatives?"]},
-                    {"color": "Blue", "focus": "Process control",
-                     "questions": ["What is next?", "How to organize?"]},
+                    {
+                        "color": "White",
+                        "focus": "Facts and information",
+                        "questions": ["What do we know?", "What data do we have?"],
+                    },
+                    {
+                        "color": "Red",
+                        "focus": "Emotions and feelings",
+                        "questions": ["How do we feel?", "What is our gut reaction?"],
+                    },
+                    {
+                        "color": "Black",
+                        "focus": "Critical judgment",
+                        "questions": ["What could go wrong?", "What are the risks?"],
+                    },
+                    {
+                        "color": "Yellow",
+                        "focus": "Optimism",
+                        "questions": ["What are the benefits?", "Why will this work?"],
+                    },
+                    {
+                        "color": "Green",
+                        "focus": "Creativity",
+                        "questions": ["What new ideas?", "What alternatives?"],
+                    },
+                    {
+                        "color": "Blue",
+                        "focus": "Process control",
+                        "questions": ["What is next?", "How to organize?"],
+                    },
                 ],
             }
         )
@@ -90,20 +111,37 @@ async def tool_bmad_cis_scamper(request: web.Request) -> web.Response:
                 "tool": "bmad_cis_scamper",
                 "product": product,
                 "scamper": [
-                    {"letter": "S", "action": "Substitute",
-                     "prompt": f"What can we substitute in {product}?"},
-                    {"letter": "C", "action": "Combine",
-                     "prompt": f"What can we combine {product} with?"},
-                    {"letter": "A", "action": "Adapt",
-                     "prompt": f"What can we adapt to {product}?"},
-                    {"letter": "M", "action": "Modify",
-                     "prompt": f"How can we modify {product}?"},
-                    {"letter": "P", "action": "Put to other uses",
-                     "prompt": f"What other uses for {product}?"},
-                    {"letter": "E", "action": "Eliminate",
-                     "prompt": f"What can we eliminate from {product}?"},
-                    {"letter": "R", "action": "Rearrange",
-                     "prompt": f"How can we rearrange {product}?"},
+                    {
+                        "letter": "S",
+                        "action": "Substitute",
+                        "prompt": f"What can we substitute in {product}?",
+                    },
+                    {
+                        "letter": "C",
+                        "action": "Combine",
+                        "prompt": f"What can we combine {product} with?",
+                    },
+                    {
+                        "letter": "A",
+                        "action": "Adapt",
+                        "prompt": f"What can we adapt to {product}?",
+                    },
+                    {"letter": "M", "action": "Modify", "prompt": f"How can we modify {product}?"},
+                    {
+                        "letter": "P",
+                        "action": "Put to other uses",
+                        "prompt": f"What other uses for {product}?",
+                    },
+                    {
+                        "letter": "E",
+                        "action": "Eliminate",
+                        "prompt": f"What can we eliminate from {product}?",
+                    },
+                    {
+                        "letter": "R",
+                        "action": "Rearrange",
+                        "prompt": f"How can we rearrange {product}?",
+                    },
                 ],
             }
         )

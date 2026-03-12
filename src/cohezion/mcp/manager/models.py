@@ -9,6 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+
 # Port allocation range for all MCP servers
 PORT_RANGE = range(8360, 8400)
 MANAGER_PORT = int(os.getenv("MANAGER_PORT", "8370"))
@@ -51,7 +52,9 @@ class MCPServerConfig:
             "env_vars": safe_env,
             "status": self.status,
             "pid": self.pid,
-            "last_health_check": self.last_health_check.isoformat() if self.last_health_check else None,
+            "last_health_check": self.last_health_check.isoformat()
+            if self.last_health_check
+            else None,
             "restart_count": self.restart_count,
         }
 
