@@ -1,7 +1,7 @@
 ---
 tags: [ai-generated, test]
 created: 2026-03-04
-related: [[flume-architecture]], [[12d-projection]]
+related: [[FLUME-Architecture]], [[12D-Projection]]
 status: draft
 aspect: knower
 neural:

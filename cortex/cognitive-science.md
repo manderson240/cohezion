@@ -56,6 +56,7 @@ The field has evolved through several paradigms: from classical cognitivism (min
 - [[context-management]] — working memory models from cognitive science directly inform context window design in AI systems
 - [[robotics]] — cognitive architectures inform robot decision-making and human-robot interaction design
 - [[natural-language-processing]] — language acquisition and processing theories from cognitive science underpin NLP model design
+- [[cybernetics]] — cybernetics (Wiener, Ashby, von Foerster) is a foundational discipline within cognitive science, contributing concepts of feedback, self-regulation, and observer inclusion
 
 ## Relevance to Cohezion
 

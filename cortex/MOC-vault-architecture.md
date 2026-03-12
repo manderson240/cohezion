@@ -33,6 +33,8 @@ Vault architecture covers the structural design of the Cohezion knowledge base: 
 - [[concept-testing]] — Automated checks that vault structure meets quality standards
 - [[concept-caching]] — Caching resolved concept lookups to avoid repeated vault traversals
 - [[concept-isolation]] — Ensuring concept notes are self-contained without implicit dependencies
+- [[concept-versioning]] — Tracking semantic evolution of concepts over time via git history and frontmatter metadata
+- [[cybernetics]] — The vault IS a cybernetic system: Beer's Viable System Model maps to vault-keeper (S2), task management (S3), research pipeline (S4)
 
 ## Infrastructure
 
@@ -92,3 +94,4 @@ Vault architecture covers the structural design of the Cohezion knowledge base: 
 
 - [[MOC-agentic-ai]] — Agents that read from and write to the vault via MCP
 - [[MOC-machine-learning]] — ML techniques (embeddings, semantic search) that power vault retrieval
+- [[MOC-triune-self]] — The brain-inspired directory architecture (Knower/Thinker/Doer/Connective)

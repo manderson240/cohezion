@@ -1,20 +1,12 @@
 ---
+title: "Skill Routing Decision Tree"
+date: 2026-03-07
+tags: [pattern, skill-routing, workflow-orchestration, natural-language-processing]
+aspect: thinker
 type: pattern
 category: workflow-orchestration
 frequency: every-session
 confidence: 0.95
-first_seen: 2026-03-07
-last_seen: 2026-03-07
-tags:
-  - pattern
-  - skill-routing
-  - workflow-orchestration
-  - natural-language-processing
-aspect: thinker
-neural:
-  activation: 0.416
-  stage: growing
-  cluster: patterns
 ---
 
 # Pattern: Skill Routing Decision Tree
@@ -53,6 +45,10 @@ Decision Tree (Priority Order):
 
 When in doubt: bmad-help
 ```
+
+## Decisions
+
+- [[2026-03-07-skill-pruning-consolidation-plan]] — Pruning plan to reduce ~60 redundant entries that add routing ambiguity
 
 ## Related Patterns
 - [[workflow-orchestration]]

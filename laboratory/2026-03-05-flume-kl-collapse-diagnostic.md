@@ -64,7 +64,7 @@ graph TD
 |---------|--------|
 | Checkpoint epoch | Both `ep2.pt` and `ep50.pt` contain `epoch: 2`. The ep50 name is misleading — this was a 2-epoch run. |
 | z_dim | 64 (not 256 as current `TrainConfig` default) |
-| Training data | `data/mass_sim/artifacts` — **does not exist**. Training fell back to `SyntheticFlumeDataset` (Gaussian noise at mean=0.5, std=0.15). This is the anti-pattern documented in [[prefrontal/2026-02-24-anti-pattern-training-vae-on-random-noise-syntheticflumedataset]]. |
+| Training data | `data/mass_sim/artifacts` — **does not exist**. Training fell back to `SyntheticFlumeDataset` (Gaussian noise at mean=0.5, std=0.15). This is the anti-pattern documented in [[2026-02-24-anti-pattern-training-vae-on-random-noise-syntheticflumedataset]]. |
 | KL annealing | None — fixed `kl_weight=0.1` throughout |
 
 ### Diagnostic 1: KL Trajectory (10-epoch re-run on synthetic data)

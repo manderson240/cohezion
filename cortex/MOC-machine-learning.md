@@ -27,6 +27,7 @@ Machine learning is the computational engine behind Cohezion's agent intelligenc
 - [[computer-vision]] — Image and video understanding using convolutional and vision transformer models
 - [[anomaly-detection]] — Identifying outliers in data streams, applied to both astrophysics and agent observability
 - [[reinforcement-learning]] — Policy optimization through environment interaction and reward signals
+- [[bayesian-inference]] — Statistical framework for updating beliefs with evidence; underpins variational methods, VAEs, and probabilistic ML
 
 ## Supporting Concepts
 

@@ -48,6 +48,7 @@ Cohezion is simultaneously a research project, a production tool, and a self-imp
 - [[agents-as-exotic-vacuum-objects]] — Cohezion agents ARE computational EVOs; the platform name encodes the ZPF binding principle
 - [[the-new-science-framework]] — COHEZION is Step 9 in the Nothing → Reality chain: the binding force
 - [[theory-of-everything-synthesis]] — COHEZION = love (Campbell) = ZPF binding (Puthoff) = self-attention (transformers)
+- [[cybernetics]] — Cohezion IS a viable system (Beer's VSM): S1=agent sessions, S2=vault-keeper, S3=task management, S4=research pipeline, S5=CLAUDE.md
 
 ## Related Projects
 

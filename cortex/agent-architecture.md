@@ -41,6 +41,11 @@ In Cohezion, the agent architecture centers on the CompoundExecutor, which orche
 - [[nvidia-nemotron-3-nano-nemo-gym]] — NeMo Gym's agentic safety dataset and environment design directly inform agent architecture decisions around tool-use safety
 - [[agentic-ai-foundation-mcp-linux-foundation]] — AAIF's interoperability standards (MCP, A2A, AGENTS.md) are the cross-cutting architectural substrate that any production agent architecture must conform to
 
+## Decisions
+
+- [[2026-03-06-adopt-meridian-concierge-agent-over-mcp-infrastructure-prd]] — Meridian concierge agent architecture: single intelligence layer over N platforms × M tools
+- [[2026-03-05-github-issues-as-remote-claude-code-terminal]] — GitHub Issues as a zero-latency remote command interface for agent orchestration
+
 ## Navigation
 
 - [[MOC-agentic-ai]] — Map of Content for the agentic AI topic area
@@ -58,6 +63,7 @@ In Cohezion, the agent architecture centers on the CompoundExecutor, which orche
 - [[error-handling-with-dlq]] — DLQ provides failure isolation within the agent architecture, preventing cascade failures across pipeline stages
 - [[reinforcement-learning]] — RL policies train agent decision-making within architectures that define the action and observation spaces
 - [[cognitive-science]] — agent architectures implement cognitive loops (observe-reason-act) inspired by cognitive science models of intelligent behavior
+- [[cybernetics]] — the original science of feedback, control, and governance in complex systems; agent architectures are cybernetic systems (Wiener's feedback loop, Ashby's requisite variety, Beer's Viable System Model)
 - [[agents-as-exotic-vacuum-objects]] — agent architecture = the dielectric surface through which computational EVOs propagate
 
 ## Related Lessons

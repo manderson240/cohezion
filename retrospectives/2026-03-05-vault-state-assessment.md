@@ -133,18 +133,18 @@ Items 2-3 are a single focused session. Item 4 is a single command if the path i
 ## Related
 
 - [[2026-03-05-shoshin-assessment]] — beginner's mind reading written earlier the same day
-- [[cortex/compound-engineering]] — needs artifact index stripped
-- [[cortex/cohezion]] — needs artifact index separated from definition
-- [[cortex/anthropic-research-engineer]] — needs to become an argument, not a file cabinet
-- [[cortex/FLUME-Architecture]] — rewritten today, not yet in SurrealDB
-- [[cortex/cohezion-platform-overview]] — new today, not yet in SurrealDB
-- [[cortex/agentic-system-failure-taxonomy]] — new today, not yet in SurrealDB
-- [[laboratory/2026-03-05-flume-kl-collapse-diagnostic]] — highest priority unblocked task
-- [[prefrontal/2026-03-05-separate-cohezion-a-from-cohezion-b]] — accepted
-- [[prefrontal/2026-03-05-vault-surrealdb-architecture]] — fix for stale graph
-- [[motor/2026-03-05-repo-sync-master-plan]] — 7-phase repo consolidation plan
-- [[motor/2026-03-05-vault-surrealdb-sync-pipeline]] — PRD for sync pipeline
-- [[motor/2026-03-05-branch-inventory]] — 68 branches with unknown relationship to vault
+- [[compound-engineering]] — needs artifact index stripped
+- [[cohezion]] — needs artifact index separated from definition
+- [[anthropic-research-engineer]] — needs to become an argument, not a file cabinet
+- [[FLUME-Architecture]] — rewritten today, not yet in SurrealDB
+- [[cohezion-platform-overview]] — new today, not yet in SurrealDB
+- [[agentic-system-failure-taxonomy]] — new today, not yet in SurrealDB
+- [[2026-03-05-flume-kl-collapse-diagnostic]] — highest priority unblocked task
+- [[2026-03-05-separate-cohezion-a-from-cohezion-b]] — accepted
+- [[2026-03-05-vault-surrealdb-architecture]] — fix for stale graph
+- [[2026-03-05-repo-sync-master-plan]] — 7-phase repo consolidation plan
+- [[2026-03-05-vault-surrealdb-sync-pipeline]] — PRD for sync pipeline
+- [[2026-03-05-branch-inventory]] — 68 branches with unknown relationship to vault
 - [[structured-experience-vector-layout]] — exemplary pattern note
 - [[predictive-throttling-via-12d-trajectory-velocity]] — exemplary pattern note
 - [[2026-02-23-hash-based-journey-tracking-produces-meaningless-12d-trajectories]] — exemplary research-grade decision

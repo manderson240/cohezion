@@ -27,6 +27,7 @@ Agentic AI is the foundation of the Cohezion framework: autonomous systems that 
 - [[mcp-model-context-protocol]] — Anthropic's open protocol for standardized tool and context access
 - [[context-management]] — Strategies for fitting relevant knowledge into finite context windows
 - [[prompt-engineering]] — Crafting instructions that reliably steer agent behavior
+- [[cybernetics]] — The original science of feedback, control, and governance in complex systems; foundational theory for agent loops
 
 ## Key Decisions
 

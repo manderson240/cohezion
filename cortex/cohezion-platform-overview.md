@@ -133,4 +133,4 @@ With that context, a session can skip 30-60 minutes of re-orientation.
 - [[MOC-compound-engineering]] — map of content for compound engineering topics
 - [[MOC-agentic-ai]] — map of content for agentic AI topics
 - [[2026-03-05-vault-surrealdb-architecture]] — planned real-time sync architecture
-- [[motor/2026-03-04-vault-assessment-v3]] — current vault state assessment
+- [[2026-03-04-vault-assessment-v3]] — current vault state assessment

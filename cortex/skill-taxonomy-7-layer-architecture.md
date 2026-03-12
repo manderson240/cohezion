@@ -51,6 +51,14 @@ BMAD (Layer 1) is subdivided into 5 modules:
 - [[mcp-model-context-protocol]] — Layer 7; provides external data access for all other layers
 - [[agent-architecture]] — Agent personas (Layer 1 agents) define role-based expertise domains
 
+## Experiments
+
+- [[test_routing_pattern]] — test pattern for routing validation
+
+## Decisions
+
+- [[2026-03-07-skill-pruning-consolidation-plan]] — Pruning and consolidation plan to remove ~60 redundant entries identified by this taxonomy
+
 ## See Also
 
 - Full taxonomy: `_bmad-output/planning-artifacts/research/technical-skills-taxonomy-research-2026-03-07.md`

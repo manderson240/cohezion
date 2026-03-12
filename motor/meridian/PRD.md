@@ -354,4 +354,4 @@ GET  /meridian/dialects       → List available prompt dialects
 - [[Architecture]] — Technical architecture and component design
 - [[Epics]] — Epic breakdown for implementation
 - [[Stories]] — Detailed user stories per epic
-- [[prefrontal/2026-03-06-meridian-concierge-agent]] — ADR for this decision
+- [[2026-03-06-adopt-meridian-concierge-agent-over-mcp-infrastructure-prd]] — ADR for this decision
