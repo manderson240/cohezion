@@ -10,13 +10,13 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Core State Architecture' (Protocol in workflow.md)
 
 ## Phase 2: Persistence Integration
-- [ ] Task: Scaffold SurrealDB 3.0 async client for trajectory storage.
-    - [ ] Sub-task: Write async mock tests for DB insertion.
-    - [ ] Sub-task: Implement `SurrealTrajectoryLogger`.
-- [ ] Task: Scaffold MCP Client for Obsidian Vault interaction.
-    - [ ] Sub-task: Write tests for standard tool-call formatting.
-    - [ ] Sub-task: Implement `ObsidianMemoryMCP`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Persistence Integration' (Protocol in workflow.md)
+- [x] Task: Scaffold SurrealDB 3.0 async client for trajectory storage.
+    - [x] Sub-task: Write async mock tests for DB insertion.
+    - [x] Sub-task: Implement `SurrealTrajectoryLogger`.
+- [x] Task: Scaffold MCP Client for Obsidian Vault interaction.
+    - [x] Sub-task: Write tests for standard tool-call formatting.
+    - [x] Sub-task: Implement `ObsidianMemoryMCP`.
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Persistence Integration' (Protocol in workflow.md)
 
 ## Phase 3: Engine Initialization
 - [ ] Task: Build the `TriuneSimulationEngine` base class binding State to Persistence.
