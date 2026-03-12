@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-import pytest
-
 from cohezion.vanguard.source_connector import (
+    ARXIV_CATEGORIES,
     ArXivConnector,
     DiscoveryRecord,
     FailingConnector,
     SourceHealth,
-    ARXIV_CATEGORIES,
 )
 
 

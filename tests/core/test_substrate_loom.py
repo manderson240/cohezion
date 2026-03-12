@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import time
-
 import numpy as np
-import pytest
 
 from cohezion.core.substrate_loom import LoomMode, SubstrateLoom
 

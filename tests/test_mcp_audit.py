@@ -1,7 +1,7 @@
+import json
 import socket
 
 import aiohttp
-import json
 import pytest
 
 

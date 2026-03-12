@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from cohezion.security.constitutional_shield import (
     AuditVerdict,
     ConstitutionalShield,

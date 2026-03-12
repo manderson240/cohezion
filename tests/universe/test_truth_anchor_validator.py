@@ -7,9 +7,8 @@ where a swarm of EVOs reaches internal consensus that violates physics.
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
-from cohezion.universe.hiho_unified_engine import EvoState, EVOInitializationFactory
+from cohezion.universe.hiho_unified_engine import EVOInitializationFactory
 from cohezion.universe.truth_anchor import (
     CoherenceBubble,
     TruthAnchor,

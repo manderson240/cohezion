@@ -6,9 +6,7 @@ Covers ContainerizedUniverse and SandboxResult.
 
 from __future__ import annotations
 
-import time
-from dataclasses import dataclass
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 

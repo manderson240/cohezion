@@ -6,9 +6,7 @@ Generated for P0 coverage.
 
 from __future__ import annotations
 
-import asyncio
 import pytest
-from unittest.mock import AsyncMock, MagicMock, Mock
 
 from cohezion.compound.core.batch_processor import (
     BatchConfig,
@@ -16,7 +14,7 @@ from cohezion.compound.core.batch_processor import (
     BatchResult,
     SimpleBatch,
 )
-from cohezion.compound.models import ExecutionContext, ExecutionMetrics, ExecutionResult, Task
+from cohezion.compound.models import ExecutionMetrics, ExecutionResult, Task
 
 
 class TestBatchConfig:

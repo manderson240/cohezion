@@ -81,7 +81,7 @@ class TestConstitutionalShield:
     @pytest.mark.asyncio
     async def test_get_constitution_handles_file_error(self, shield):
         """[P0] Should return default message when files cannot be read."""
-        with patch("builtins.open", side_effect=IOError("Permission denied")):
+        with patch("builtins.open", side_effect=OSError("Permission denied")):
             result = await shield._get_constitution_and_charter()
 
             assert "Always act with integrity" in result

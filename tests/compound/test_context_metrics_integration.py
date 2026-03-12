@@ -112,7 +112,6 @@ class TestContextWithGlobalMetrics:
     def test_global_metrics_integration(self):
         """[P0] Should integrate with global metrics."""
         from cohezion.compound.global_metrics_aggregator import (
-            GlobalMetricsAggregator,
             get_global_aggregator,
             reset_global_aggregator,
         )

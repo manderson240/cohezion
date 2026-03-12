@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from cohezion.core.substrate_governor import (
     PressureLevel,
     SubstrateGovernor,

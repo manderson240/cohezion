@@ -6,8 +6,6 @@ Tests team orchestrator, cost router, and execution.
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
-
 import pytest
 
 from cohezion.swarm.smart_router import SmartRouter

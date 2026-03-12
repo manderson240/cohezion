@@ -6,8 +6,6 @@ Covers ResilientOllamaClient with circuit breaker, retry, and fallback.
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
-
 import httpx
 import pytest
 

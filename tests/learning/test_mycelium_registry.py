@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from cohezion.learning.mycelium_registry import (
     JournalEntry,
     MyceliumRegistry,

@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 @pytest.fixture
 def client() -> TestClient:
     from fastapi import FastAPI
+
     from cohezion.api.services.anima import anima_router
 
     app = FastAPI()

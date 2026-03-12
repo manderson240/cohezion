@@ -6,8 +6,6 @@ Tests semantic cache and cache statistics.
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
-
 import pytest
 
 from cohezion.cache.semantic_cache import SemanticCache

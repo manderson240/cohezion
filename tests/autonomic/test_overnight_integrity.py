@@ -1,11 +1,11 @@
-import pytest
-import asyncio
 from pathlib import Path
-from scripts.overnight_autonomous_run import OvernightMission
-from scripts.jobs.elegance_engine import manifest_elegance
-from cohezion.core.persistence.surreal_client import SurrealClient
 
+import pytest
+
+from cohezion.core.persistence.surreal_client import SurrealClient
 from cohezion.simulation.enhanced_simulator import EnhancedSimulator
+from scripts.jobs.elegance_engine import manifest_elegance
+from scripts.overnight_autonomous_run import OvernightMission
 
 
 def test_autonomic_scripts_loadable():
