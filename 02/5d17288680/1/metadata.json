@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "025d17288680",
+  "session_id": "bc2a7c26-b875-4480-a5da-a3521532e841",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-12T11:11:13.358658531Z",
+  "branch": "challenge-luma-cqq4mojz",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "src/cohezion/compound/request_alignment_analyzer.py",
+    "src/cohezion/compound/session_manager.py",
+    "src/cohezion/skills/skill_registry.json"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "4a422e0d6ba2",
+  "token_usage": {
+    "input_tokens": 84,
+    "cache_creation_tokens": 484374,
+    "cache_read_tokens": 3560300,
+    "output_tokens": 27205,
+    "api_call_count": 34
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-12T11:11:13.183138777Z",
+    "agent_lines": 0,
+    "human_added": 722,
+    "human_modified": 13,
+    "human_removed": 0,
+    "total_committed": 723,
+    "agent_percentage": 0
+  }
+}
