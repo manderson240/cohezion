@@ -96,6 +96,12 @@ def cmd_neighborhood(args: list[str]):
     data = results[0]["result"][0]
     n = data["neuron"]
 
+    # Workaround: SurrealDB functions don't preserve ORDER BY,
+    # so fetch cluster_top via direct query
+    cluster_sql = f"SELECT id, title, activation, stage FROM neuron WHERE cluster_id = '{_esc(n['cluster_id'])}' AND id != {nid} ORDER BY activation DESC LIMIT 5;"
+    cluster_results = query(cluster_sql)
+    data["cluster_top"] = cluster_results[0]["result"]
+
     print(f"=== {n['title']} ===")
     print(f"Path: {n['path']}")
     print(f"Activation: {n['activation']:.3f} | Stage: {n['stage']} | Aspect: {n['aspect']}")
@@ -115,7 +121,7 @@ def cmd_neighborhood(args: list[str]):
 
     if data["cluster_top"]:
         print(f"\n--- Cluster Siblings (top 5 in '{n['cluster_id']}') ---")
-        for sib in data["cluster_top"]:
+        for sib in sorted(data["cluster_top"], key=lambda x: x.get("activation", 0), reverse=True):
             print(f"  {_act_bar(sib['activation'])} {sib['activation']:.2f} {sib['title']}")
 
 
@@ -137,6 +143,12 @@ def cmd_cluster(args: list[str]):
     sql = f"SELECT * FROM fn::context_cluster('{_esc(name)}');"
     results = query(sql)
     data = results[0]["result"][0]
+
+    # Workaround: SurrealDB functions don't preserve ORDER BY,
+    # so fetch top_neurons via direct query
+    top_sql = f"SELECT id, title, activation, stage, synapse_out, synapse_in FROM neuron WHERE cluster_id = '{_esc(name)}' ORDER BY activation DESC LIMIT 10;"
+    top_results = query(top_sql)
+    data["top_neurons"] = top_results[0]["result"]
 
     print(f"=== Cluster: {data['cluster']} ===")
     print(f"Neurons: {data['total_neurons']} | Avg Activation: {data['avg_activation']:.3f} | Coherence: {data['coherence']:.3f}")
