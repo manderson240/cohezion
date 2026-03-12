@@ -23,10 +23,17 @@ async def test_evo_agent_initialization(mock_config):
     with patch("cohezion.registry.capability_registry.CapabilityRegistry"):
         with patch("cohezion.swarm.journey_narrator.JourneyNarrator"):
             with patch("cohezion.swarm.redundancy_suppression.RedundancyManager"):
-                agent = EVOAgent(model_name="test-model", config=mock_config)
+                mock_surreal = MagicMock()
+                mock_obsidian = MagicMock()
+                agent = EVOAgent(
+                    model_name="test-model", 
+                    config=mock_config,
+                    surreal_logger=mock_surreal,
+                    obsidian_mcp=mock_obsidian
+                )
                 assert agent.model_name == "test-model"
-                assert hasattr(agent, "_triune_engine")
-                assert hasattr(agent, "_flume_vae")
+                assert agent._surreal_logger == mock_surreal
+                assert agent._obsidian_mcp == mock_obsidian
 
 @pytest.mark.asyncio
 async def test_evo_agent_act_cycle(mock_config):
@@ -34,11 +41,19 @@ async def test_evo_agent_act_cycle(mock_config):
     with patch("cohezion.registry.capability_registry.CapabilityRegistry"):
         with patch("cohezion.swarm.journey_narrator.JourneyNarrator"):
             with patch("cohezion.swarm.redundancy_suppression.RedundancyManager"):
-                agent = EVOAgent(model_name="test-model", config=mock_config)
-                
                 # Mock subsystems
+                mock_surreal = MagicMock()
+                mock_obsidian = MagicMock()
+                agent = EVOAgent(
+                    model_name="test-model", 
+                    config=mock_config,
+                    surreal_logger=mock_surreal,
+                    obsidian_mcp=mock_obsidian
+                )
+                
                 agent._triune_engine = AsyncMock()
                 agent._flume_vae = MagicMock()
+                agent._ratchet = AsyncMock()
                 
                 # Mock VAE output
                 mock_mu = torch.randn(1, 256)

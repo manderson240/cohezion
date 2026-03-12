@@ -26,6 +26,8 @@ class EVOAgent(BaseAgent):
         self,
         model_name: str,
         config: SwarmConfig | None = None,
+        surreal_logger: Optional[SurrealTrajectoryLogger] = None,
+        obsidian_mcp: Optional[ObsidianMemoryMCP] = None,
         **kwargs
     ):
         super().__init__(model_name, config, **kwargs)
@@ -37,9 +39,9 @@ class EVOAgent(BaseAgent):
             knower=torch.zeros(2048)
         )
         
-        # Persistence Layer
-        self._surreal_logger = SurrealTrajectoryLogger()
-        self._obsidian_mcp = ObsidianMemoryMCP()
+        # Persistence Layer (DI)
+        self._surreal_logger = surreal_logger or SurrealTrajectoryLogger()
+        self._obsidian_mcp = obsidian_mcp or ObsidianMemoryMCP()
         
         # Simulation Engine
         self._triune_engine = TriuneSimulationEngine(
