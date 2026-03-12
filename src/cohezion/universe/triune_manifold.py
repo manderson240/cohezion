@@ -14,9 +14,9 @@ class TriuneState(BaseModel):
         knower (torch.Tensor): 2048D deep semantic intent.
             Conceptual mapping: The omniscient Knower (Percival's Triune Self).
     """
-    doer: Any
-    thinker: Any
-    knower: Any
+    doer: torch.Tensor
+    thinker: torch.Tensor
+    knower: torch.Tensor
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
