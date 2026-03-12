@@ -4,12 +4,10 @@ Nightly Job: FLUME VAE Continuous Learning
 Ingests daily trajectory data and retrains the VAE to improve latent accuracy.
 """
 
-import asyncio
 import logging
-import json
 import subprocess
 from pathlib import Path
-from datetime import datetime
+
 
 PROJECT_ROOT = Path("/home/mike-anderson/dev/cohezion")
 DATA_DIR = PROJECT_ROOT / "apps/dashboard/src/assets/data"

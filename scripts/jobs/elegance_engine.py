@@ -6,18 +6,21 @@ Continuously identifies complex code, refactors it, validates via tests, and com
 
 import asyncio
 import logging
-import sys
-import time
 import re
 import subprocess
-from pathlib import Path
+import sys
+import time
 from datetime import datetime
+from pathlib import Path
+
 
 PROJECT_ROOT = Path("/home/mike-anderson/dev/cohezion")
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from cohezion.swarm.compound_client import get_compound_client
 import trackio
+
+from cohezion.swarm.compound_client import get_compound_client
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("EleganceManifest")
