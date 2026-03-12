@@ -297,15 +297,6 @@ jobs:
         env:
           SURREAL_USER: root
           SURREAL_PASS: root
-        volumes:
-          - ${{ github.workspace }}/data/surreal-test:/my/surreal/data
-        # Security hardening
-        security-opt: no-new-privileges:true
-        # Resource limits
-        resources:
-          limits:
-            memory: 2g
-            cpus: "2.0"
 
     steps:
       - name: Checkout repository
@@ -610,7 +601,6 @@ jobs:
         env:
           SURREAL_USER: root
           SURREAL_PASS: root
-        security-opt: no-new-privileges:true
 
     steps:
       - name: Checkout repository
