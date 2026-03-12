@@ -1,7 +1,7 @@
 ---
 project_name: 'concurrent-discovering-bubble'
 user_name: 'Mike-anderson'
-date: '2026-03-10'
+date: '2026-03-12'
 status: 'complete'
 sections_completed:
   - technology_stack
@@ -13,7 +13,8 @@ sections_completed:
   - dont_miss_rules
   - elegant_simplification_patterns
   - research_agent_patterns
-existing_patterns_found: 19
+  - test_isolation_patterns
+existing_patterns_found: 22
 optimized_for_llm: true
 ---
 
@@ -517,6 +518,79 @@ executor = CompoundExecutor(
 
 ---
 
+## Test Isolation Patterns
+
+### Lazy Import Pattern for Heavy Dependencies
+
+**Problem:** Tests fail on collection due to torch/transformers imports in conftest.py.
+
+**Solution:** Wrap heavy imports in try/except with null safety:
+
+```python
+# tests/conftest.py
+from types import ModuleType
+
+# Reset FLUME VAE singleton to prevent state pollution across tests
+api_module: ModuleType | None = None
+try:
+    import cohezion.api as api_module
+except Exception:
+    pass
+if api_module is not None and hasattr(api_module, "_vae_trainer"):
+    api_module._vae_trainer = None
+```
+
+**Why:** Allows tests to collect even when heavy ML dependencies are unavailable or broken.
+
+### Shared Data Directory Fixture
+
+**Problem:** ResearchConfig requires paths within `data/` directory (security fix).
+
+**Solution:** Create reusable fixture in conftest.py:
+
+```python
+# tests/conftest.py
+import shutil
+import uuid
+
+@pytest.fixture
+def data_temp_dir() -> Generator[Path, None, None]:
+    """Create temp dir under data/ for security compliance."""
+    test_dir = Path("data") / "test_runs" / uuid.uuid4().hex[:8]
+    test_dir.mkdir(parents=True, exist_ok=True)
+    yield test_dir
+    shutil.rmtree(test_dir, ignore_errors=True)
+
+# In tests:
+def test_with_path(data_temp_dir):
+    config = ResearchConfig(
+        experiment_log=data_temp_dir / "experiments.jsonl",
+    )
+```
+
+**Why:** Eliminates duplicate fixture code, ensures security compliance, automatic cleanup.
+
+### Module-Level vs In-Fixture Imports
+
+**Pattern:** Place imports at module level, not inside fixtures:
+
+```python
+# CORRECT
+import shutil  # At module level
+
+def test_example(data_temp_dir):
+    shutil.rmtree(data_temp_dir)  # Use directly
+
+# WRONG
+def test_example(data_temp_dir):
+    import shutil  # Inside function - performance hit
+    shutil.rmtree(data_temp_dir)
+```
+
+**Why:** Performance, consistency, better IDE support.
+
+---
+
 ## Usage Guidelines
 
 **For AI Agents:**
@@ -545,8 +619,10 @@ executor = CompoundExecutor(
 
 ---
 
-_Last Updated: 2026-03-10_  
-_Status: Complete - 19 patterns documented, ResearchAgent complete_  
-_Sections: 9 (all complete)_  
-_Research Module: 31 tests, 100% pass rate, 91% code reduction_  
-_Optimized for: LLM context efficiency_
+_Last Updated: 2026-03-12_
+_Status: Complete - 22 patterns documented, ResearchAgent + Compound stabilized_
+_Sections: 10 (all complete)_
+_Research Module: 37 tests, 100% pass rate_
+_Compound Module: 941 tests, 100% pass rate_
+_Total Tests: 978 passing, 0 failures_
+_Optimized for: LLM context efficiency + token-minimal execution_
