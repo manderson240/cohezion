@@ -14,27 +14,28 @@ You are a specialist in **database systems** for AI applications. You understand
 
 ### 1. SurrealDB (Multi-Model)
 ```python
-from surrealdb import Surreal
+from surrealdb import AsyncSurreal
 
 async def surreal_example():
-    db = Surreal("ws://localhost:8000/rpc")
-    await db.signin({"user": "root", "pass": "root"})
-    await db.use("cohezion", "universes")
-    
-    # Create record
-    await db.create("universe", {
-        "id": "u001",
-        "coherence": 0.85,
-        "stream": "physicist",
-        "trajectory": [0.1, 0.2, 0.3]
-    })
-    
-    # Graph query
-    results = await db.query("""
-        SELECT * FROM universe 
-        WHERE coherence > 0.7
-        FETCH related_universes
-    """)
+    async with AsyncSurreal("ws://localhost:8000/rpc") as db:
+        await db.connect()
+        await db.signin({"user": "root", "pass": "root"})
+        await db.use("cohezion", "universes")
+        
+        # Create record
+        await db.create("universe", {
+            "id": "u001",
+            "coherence": 0.85,
+            "stream": "physicist",
+            "trajectory": [0.1, 0.2, 0.3]
+        })
+        
+        # Graph query
+        results = await db.query("""
+            SELECT * FROM universe 
+            WHERE coherence > 0.7
+            FETCH related_universes
+        """)
 ```
 
 ### 2. SQLite (Local/Embedded)

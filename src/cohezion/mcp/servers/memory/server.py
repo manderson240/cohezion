@@ -86,9 +86,10 @@ class MemoryGraph:
         """Get or create SurrealDB connection."""
         if self._surreal is None:
             try:
-                from surrealdb import Surreal
+                from surrealdb import AsyncSurreal
 
-                self._surreal = Surreal(SURREAL_URL)
+                self._surreal = AsyncSurreal(SURREAL_URL)
+                await self._surreal.connect()
                 await self._surreal.use("bmad", "memory")
             except Exception as e:
                 logger.warning(f"SurrealDB not available: {e}")

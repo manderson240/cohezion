@@ -33,7 +33,7 @@ class ConsensusResult:
     proposal: str
     votes_for: int
     votes_against: int
-    votes_abstain: int
+    votes_maintain: int
     winning_vote: str
     confidence: float
     consensus_achieved: bool
@@ -186,8 +186,8 @@ class PartyModeConsensus:
                 proposal=proposal,
                 votes_for=0,
                 votes_against=0,
-                votes_abstain=len(votes),
-                winning_vote="abstain",
+                votes_maintain=len(votes),
+                winning_vote="maintain",
                 confidence=0.0,
                 consensus_achieved=False,
             )
@@ -208,7 +208,7 @@ class PartyModeConsensus:
             proposal=proposal,
             votes_for=vote_counts["improve"],
             votes_against=vote_counts["revert"],
-            votes_abstain=vote_counts["maintain"],
+            votes_maintain=vote_counts["maintain"],
             winning_vote=winning_vote,
             confidence=avg_confidence,
             consensus_achieved=consensus_achieved,

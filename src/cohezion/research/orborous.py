@@ -114,8 +114,8 @@ class Orborous:
     async def _get_compound_metrics(self) -> dict[str, dict[str, float]]:
         """Get current metrics from compound system.
 
-        In production: Query GlobalMetricsAggregator.
-        For now: Simulate realistic metrics.
+        TODO: Wire to real GlobalMetricsAggregator instead of hardcoded values.
+        See deferred idea in docs/plans/2026-03-11-deferred-research-modules.md.
         """
         return {
             "coding": {
@@ -137,7 +137,11 @@ class Orborous:
         logger.info("Validation complete")
 
     async def run_forever(self) -> None:
-        """Run Orborous - infinite self-improvement."""
+        """Run Orborous - async infinite self-improvement loop.
+
+        Unlike the removed sync auto_optimize() (which used blocking time.sleep),
+        this is async and yields control via asyncio.sleep between cycles.
+        """
         logger.info("Orborous awakening - infinite self-improvement engaged")
         self.active = True
 
