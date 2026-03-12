@@ -30,3 +30,9 @@ neural:
 ## 4. Memory Contention (ZFS/GTT)
 - **Risk**: 2048D trajectories stored in SurrealDB will bloat the ARC and increase GTT paging during HUD rendering.
 - **Mitigation**: **Quantized Persistence**. Latent vectors should be stored as `q4_k` (4-bit) or `int8` in SurrealDB, reconstructed only in the Rust VLIW kernel before projection.
+
+## Related Vault Notes
+
+- [[12D-Projection]]
+- [[adversarial-review]]
+- [[surrealdb]]

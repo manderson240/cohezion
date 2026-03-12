@@ -46,3 +46,7 @@ neural:
 - **Candidate A Locked**: SNR 12,058 sigma. Peak Count 23/250k.
 - **Walkthrough**: Persisted to submission directory.
 - **Focus**: All compute resources now dedicated to VLIW Sub-500.
+
+## Related Vault Notes
+
+- [[surrealdb]]

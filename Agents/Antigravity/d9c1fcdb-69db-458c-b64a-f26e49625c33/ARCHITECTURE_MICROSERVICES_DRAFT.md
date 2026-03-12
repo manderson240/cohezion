@@ -58,3 +58,8 @@ Transition Cohezion from a monolithic "Ball of Mud" to a crystalized array of sp
 1.  **Extract Storage**: Ensure all state is in SurrealDB (Done).
 2.  **Containerize Cortex**: Isolate LLM loading into a separate process/container.
 3.  **Sever Nexus**: Strip `main.py` down to just routing.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

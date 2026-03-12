@@ -34,4 +34,6 @@ neural:
 - [x] Verify Implementation <!-- id: 18 -->
     - [x] Run mock benchmark suite <!-- id: 19 -->
 
+## Related Vault Notes
 
+- [[cohezion]]

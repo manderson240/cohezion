@@ -44,3 +44,8 @@ The system is experiencing instability (95% CPU spikes) and a `ModuleNotFoundErr
 2. **Locate Bridge**: Check if `multimodal_bridge.py` exists in other worktrees (e.g., `.worktrees/fix-journey-substrate-hardening/`) and was accidentally omitted or deleted in the main branch.
 3. **Throttle Simulations**: Before running `TsunamiSimulator` or `FractalUniverse`, check the `ResourceMonitor` logic to ensure it's actually shedding load properly.
 4. **Pyright LAG**: Investigate why `pyright` is hitting 100% CPU—possibly due to large data files or circular imports in the new Cosmology implementation.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[cosmology]]

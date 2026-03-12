@@ -46,3 +46,8 @@ We fixed the `TrajectoryPredictor` Rust bridge and ran a swarm benchmark locally
 - **Resilience**: The `TrajectoryPredictor` now safely syncs weights to the Rust core for high-frequency simulations.
 
 The package is now a true representation of the **Quadrature Nexus**—powerful, grounded, and observable.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[token-efficiency]]

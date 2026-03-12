@@ -54,3 +54,7 @@ This plan outlines the steps to verify and validate the VLIW optimization soluti
 
 ### Manual Verification
 - Review the `debug_output.txt` or trace logs if cycles deviate significantly from expected.
+
+## Related Vault Notes
+
+- [[anthropic-research-engineer]]

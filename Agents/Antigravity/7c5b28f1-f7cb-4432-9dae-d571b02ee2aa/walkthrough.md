@@ -164,3 +164,5 @@ Synchronized mission mission_1768872377 to KEY_LEARNINGS.md
 
 - [[cohezion]]
 - [[knowledge-graph-systems]]
+- [[compound-engineering]]
+- [[surrealdb]]

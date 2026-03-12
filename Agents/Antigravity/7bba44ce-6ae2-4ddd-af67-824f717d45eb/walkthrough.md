@@ -51,3 +51,8 @@ We have successfully implemented the "Recursive Expansion" phase, transforming C
 - Run `docker-compose up -d` on the target machine.
 - Download `MiniCPM-V` and `DeepSeek-R1` weights.
 - Enjoy the 1000-Fold Improvement.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

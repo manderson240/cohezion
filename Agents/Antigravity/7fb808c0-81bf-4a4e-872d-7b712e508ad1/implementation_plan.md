@@ -55,3 +55,8 @@ The system recently suffered a full lockup requiring a hard reboot (REISUB). Thi
 
 ### Manual Verification
 - Run a heavy local model (e.g., DeepSeek-70b) and monitor `logs/system_heartbeat.log` to see if throttling kicks in at 90%.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

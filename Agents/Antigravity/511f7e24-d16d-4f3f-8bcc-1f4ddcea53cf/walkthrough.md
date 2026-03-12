@@ -47,3 +47,8 @@ Implemented a fail-safe for multimodal asset generation in `LocalMultimodalBridg
 
 > [!IMPORTANT]
 > The swarm is now fully functional. For production runs, ensure VRAM is sufficient for `qwen3-coder-next:latest` (84GB) or use the `light-*` overrides implemented during this sprint.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

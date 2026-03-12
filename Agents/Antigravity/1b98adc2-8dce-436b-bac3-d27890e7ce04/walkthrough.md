@@ -327,3 +327,5 @@ MIL_APP_PASSWORD setup is pending in `.env`. Milestone logs are verified in `dat
 
 - [[universe-simulation]]
 - [[cohezion]]
+- [[exotic-vacuum-objects]]
+- [[surrealdb]]

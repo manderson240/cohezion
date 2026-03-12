@@ -69,3 +69,9 @@ We will demonstrate a live run of the **Fractal Nexus**, showing:
 *   **The Experience**: A standalone `pulse_dashboard.html` (WASM Bundle) with audio narration.
 *   **The Paper**: A PDF export of `MISSION_JOURNAL.md` as "The Cohezion Chronicles".
 
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]
+- [[reinforcement-learning]]
+- [[surrealdb]]

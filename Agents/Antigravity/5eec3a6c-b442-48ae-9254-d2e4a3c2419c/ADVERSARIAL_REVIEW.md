@@ -64,3 +64,8 @@ One valid positive finding was confirmed by `test_mycelium_driver.py`:
 
 ---
 *Signed, The Critic (Adversarial Node)*
+
+## Related Vault Notes
+
+- [[adversarial-review]]
+- [[cohezion]]

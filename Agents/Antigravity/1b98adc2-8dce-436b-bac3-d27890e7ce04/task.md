@@ -31,3 +31,7 @@ neural:
 - Refer to `retrospective.md` for email setup guide
 - Standardize on `uv run` environments
 
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

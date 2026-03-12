@@ -47,3 +47,7 @@ The **`PruningAgent`** is now capable of managing swarm memory bloat.
 ---
 **Status**: PRECIPITATED
 **Gateways**: Unlocked (G8, G9, G12)
+
+## Related Vault Notes
+
+- [[cohezion]]

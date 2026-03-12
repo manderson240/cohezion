@@ -42,3 +42,7 @@ In `_ratchet_and_audit`, we must explicitly `del reps, entropies` and occasional
 ### Manual Verification
 
 - Execute `uv run scripts/drivers/tsunami_simulator.py` for a few epochs to verify that `ResourceGuard` correctly intercepts pressure and `gc.collect()` suppresses the memory ballooning.
+
+## Related Vault Notes
+
+- [[cohezion]]

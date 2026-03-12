@@ -37,3 +37,7 @@ neural:
 > **Check Status**: `tail -f autonomous_bbq.log` to watch the cook.
 
 **Status**: READY TO LAUNCH.
+
+## Related Vault Notes
+
+- [[surrealdb]]

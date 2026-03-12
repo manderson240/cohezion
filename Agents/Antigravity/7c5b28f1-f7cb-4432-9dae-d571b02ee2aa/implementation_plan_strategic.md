@@ -61,3 +61,8 @@ Make the repository "shine" for the Anthropic application.
 ### Manual Verification
 - Run a "Narration Demo" using `live_pulse.py` with audio output.
 - Review the Capabilities Matrix artifact with the user.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

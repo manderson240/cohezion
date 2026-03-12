@@ -46,3 +46,7 @@ This sprint focused on hardening Cohezion for the **Anthropic "Universes" Resear
 
 ---
 **Status**: Milestone 1 Complete. Interpretability 100%. Alignment Layer Active.
+
+## Related Vault Notes
+
+- [[cohezion]]

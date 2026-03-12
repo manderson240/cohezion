@@ -49,3 +49,7 @@ I ran a test script to initialize the wrangler and query the roster status.
 > [!TIP]
 > **Action Required**: The `ModelWrangler` is now aware of these models, but they may need to be pulled to your local Ollama instance.
 > Run `ollama pull <model_name>` for the ones you want to activate immediately, or let the `ModelWrangler` manage it in future agentic loops.
+
+## Related Vault Notes
+
+- [[cohezion]]

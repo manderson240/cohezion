@@ -25,3 +25,7 @@ neural:
 - [ ] Verify System Stability [ ]
     - [ ] Confirm HIHO Reactivity [ ]
     - [ ] Test `/` command routing [ ]
+
+## Related Vault Notes
+
+- [[cohezion]]

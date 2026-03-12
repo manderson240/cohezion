@@ -37,3 +37,8 @@ Extract high-quality "Bug -> Fix" trajectories from the Ouroboros memory (Surrea
 ## Verification
 - Run extraction script.
 - Check if JSONL file is created and valid.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

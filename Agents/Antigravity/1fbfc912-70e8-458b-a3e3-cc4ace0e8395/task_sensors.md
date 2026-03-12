@@ -22,3 +22,7 @@ Replace ghosts with reality.
 - [x] **Phase 2: Integration**
     - [x] Update `OuroborosSense` to use `GitHealthSensor`.
     - [x] Verify with `start_ouroboros.py`.
+
+## Related Vault Notes
+
+- [[cohezion]]

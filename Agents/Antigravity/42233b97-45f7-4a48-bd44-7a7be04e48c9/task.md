@@ -62,3 +62,9 @@ Build a specialist agent swarm that reviews the Cohezion codebase while maintain
 - [ ] Implement `bootstrap_system.py` health checker
 - [ ] Create `install_services.sh` automation script
 - [ ] Final verification and "Boot-to-Simulation" test
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]
+- [[surrealdb]]

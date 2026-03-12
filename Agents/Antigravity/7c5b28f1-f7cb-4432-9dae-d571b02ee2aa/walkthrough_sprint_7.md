@@ -64,3 +64,7 @@ if row['coherence'] < 0.5:
 
 ---
 *Walkthrough Complete. All systems are stable and observeable.*
+
+## Related Vault Notes
+
+- [[surrealdb]]

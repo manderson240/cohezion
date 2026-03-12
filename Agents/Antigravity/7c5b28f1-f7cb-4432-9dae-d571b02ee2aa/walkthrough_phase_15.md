@@ -40,3 +40,8 @@ These signals are visually rendered in the **Collaborative Terminal** (Marimo) v
 
 ---
 *Status: Phase 15 Complete. Proceeding to Phase 16: Cosmic Perspective.*
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[morphic-resonance]]

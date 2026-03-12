@@ -49,3 +49,8 @@ When dealing with millions of files (9.3M in this case), standard Git and IDE to
 
 ## Next Steps: Database Migration
 I have prepared a draft migration script `scripts/db/migrate_universe_to_db.py` to incrementally ingest these nodes into SurrealDB. This will allow you to query the 9M records without any filesystem overhead.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

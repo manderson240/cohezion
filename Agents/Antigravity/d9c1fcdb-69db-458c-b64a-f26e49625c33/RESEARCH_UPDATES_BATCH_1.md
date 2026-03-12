@@ -28,3 +28,8 @@ Please copy these values back into the Google Sheet "Cohezion_Research".
 - **Status**: Abstracted
 - **Key Abstractions**: 12D [nov:0.98, fric:0.85, b:7], Plasma Physics, High-I Interaction
 - **Integration**: Supports "Strong Interaction" theory in `fractal_universe` simulation. Higher ionization = Higher novelty capability.
+
+## Related Vault Notes
+
+- [[plasma-physics]]
+- [[quantum-error-correction]]

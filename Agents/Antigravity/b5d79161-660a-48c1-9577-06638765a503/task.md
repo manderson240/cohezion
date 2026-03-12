@@ -28,3 +28,7 @@ neural:
     - [ ] Schedule `DailyScoutAgent` via cron/systemd
     - [ ] Implement automated Registry Ascension for SOTA SLMs
 - [ ] Monitor & Document Transcendence Results <!-- id: 104 -->
+
+## Related Vault Notes
+
+- [[adversarial-review]]

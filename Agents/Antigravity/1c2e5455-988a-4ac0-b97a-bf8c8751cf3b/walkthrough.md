@@ -127,3 +127,6 @@ The repository is now ready for submission. It presents not just a tool, but a *
 
 - [[cohezion]]
 - [[universe-simulation]]
+- [[12D-Manifold]]
+- [[compound-engineering]]
+- [[surrealdb]]

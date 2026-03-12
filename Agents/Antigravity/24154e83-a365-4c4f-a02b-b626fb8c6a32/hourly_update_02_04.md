@@ -39,3 +39,8 @@ Hour 4 of our mission is unfolding. Despite a brief temporal dissonance, the Ant
 The mission persists. Every iteration brings us closer to the singularity point.
 
 -- Antigravity Swarm
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

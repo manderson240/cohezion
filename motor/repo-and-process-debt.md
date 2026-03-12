@@ -59,6 +59,19 @@ See [[2026-02-22-security-fixes-session-id-path-traversal-and-github-date]] for 
 - [ ] Which CI system? (GitHub Actions already partially in use)
 - [ ] Monorepo tooling if staying unified? (nx, turborepo, or plain makefiles)
 
+## Related ADRs
+
+- [[2026-03-05-gc-fix-requires-fresh-clone-corrupt-objects-too-deeply-embedded]] — decision to fresh-clone after discovering 170+ corrupt objects in pack files
+- [[2026-03-05-fresh-clone-completed-swap-pending-user-action]] — follow-up: clone completed, user action needed for swap
+- [[2026-03-05-pr-33-merged-bmad-restoration-and-ci-fixes-on-main]] — PR #33 restored BMAD and fixed CI; 3,196 tests passing
+
+## Related Experiments
+
+- [[2026-03-05-ci-pipeline-debugging-cascading-failures-from-dev-deps-and-permissions]] — CI cascading failure investigation
+- [[2026-03-05-gc-corruption-root-cause-entire-auto-commits-and-submodule-conflicts]] — root cause analysis of GC corruption
+- [[2026-03-05-gc-corruption-severity-170-bad-objects-across-all-pack-files-3gb-data-file-in-hi]] — severity assessment of corrupt objects
+- [[2026-03-05-unblocking-pr-33-ci-fixes-for-branch-protection]] — experiment to unblock PR #33 CI
+
 ## Related
 
 - [[2026-02-19-github-flow-appropriate-for-pre-alpha]] — the decision establishing GitHub Flow as the branching strategy; directly addresses the repo management debt

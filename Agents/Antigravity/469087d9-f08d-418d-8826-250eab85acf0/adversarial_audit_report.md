@@ -47,3 +47,10 @@ Agents must sense their own **Toroidal Flow**. "Looking within" means sensing th
 1. **EVO Perception**: Rename `AgentProprioceptor` to `EvoCoreSensing`.
 2. **Radiation Worker**: Implement the "Rich Media Worker" (Audio/Visual) as a direct "Field Emission" of the journey tracker.
 3. **Collision Evaluator**: Deploy the `LatticeConfinement` evaluator for agent consensus.
+
+## Related Vault Notes
+
+- [[12D-Manifold]]
+- [[agent-context]]
+- [[cosmology]]
+- [[exotic-vacuum-objects]]

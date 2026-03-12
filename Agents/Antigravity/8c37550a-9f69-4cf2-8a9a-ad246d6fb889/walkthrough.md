@@ -67,3 +67,8 @@ We ran a simulated Agent interaction script (`apps/ux-verification/verify_ux.ts`
 
 ## Next Steps
 *   **Submission**: The portfolio and apps are ready for review by Anthropic.
+
+## Related Vault Notes
+
+- [[agent-context]]
+- [[cohezion]]

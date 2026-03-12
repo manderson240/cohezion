@@ -46,3 +46,8 @@ Summary: Create the `FirstPrinciplesAgent` to orchestrate research and simulatio
 
 ### Manual Verification
 - Run a sample simulation via the agent and inspect the `narration` and `UniverseNode` in SurrealDB to ensure the reasoning follows the HIHO protocols.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

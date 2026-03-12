@@ -37,3 +37,8 @@ neural:
 
 ---
 *Status: Audit Complete. Data ingestion to SurrealDB pending server availability.*
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

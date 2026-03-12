@@ -24,3 +24,7 @@ neural:
 - [x] Implement Ouroboros HUD Integration <!-- id: 9 -->
     - [x] Create `apps/webapp/src/components/AutonomicDisplay.tsx` <!-- id: 10 -->
     - [x] Update `apps/webapp/src/components/LatticeHUD.tsx` <!-- id: 11 -->
+
+## Related Vault Notes
+
+- [[cohezion]]

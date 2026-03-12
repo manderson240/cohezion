@@ -61,3 +61,10 @@ To synthesize the core methodologies of Cohezion (FLUME, Quadrature, SWARM, Ouro
 ### Manual Verification
 - **Marimo Pulse**: Verify the reactive notebook updates in real-time as the Ascension Engine cycles.
 - **Webapp Aesthetics**: Confirm "Nexus Green" / "Matte Black" coherence in the live v1.6 dashboard.
+
+## Related Vault Notes
+
+- [[anthropic-research-engineer]]
+- [[cohezion]]
+- [[compound-engineering]]
+- [[surrealdb]]

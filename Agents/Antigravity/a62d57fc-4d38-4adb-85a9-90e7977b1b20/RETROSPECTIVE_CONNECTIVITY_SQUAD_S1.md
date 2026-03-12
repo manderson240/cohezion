@@ -30,3 +30,10 @@ neural:
 To achieve "Compound Engineering 2.0," agents must store cross-session learnings:
 - **SurrealDB**: High-frequency metrics and state vectors (Mission Journeys).
 - **Obsidian (Vault)**: Low-frequency architectural decisions and skill refinements (MCP).
+
+## Related Vault Notes
+
+- [[adversarial-review]]
+- [[compound-engineering]]
+- [[surrealdb]]
+- [[token-efficiency]]

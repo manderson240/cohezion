@@ -66,3 +66,8 @@ Resolve critical bugs in `JourneyTracker` and `Perception`, implement predictive
 
 - Run a full 10-cycle mission of the `RecursiveChallenger` targeting `src/cohezion/healing/`.
 - Enhance the `Holographic HUD` to visualize the 12D filaments captured by `EvoCoreSensing`.
+
+## Related Vault Notes
+
+- [[12D-Projection]]
+- [[cohezion]]

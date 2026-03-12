@@ -65,3 +65,8 @@ To achieve cinematic 60FPS fluid visualization on the Strix Halo, we moved the p
 ---
 **Status**: 12:512 Axiomatic Stability Achieved.
 **Timestamp**: 2026-02-02
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

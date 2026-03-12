@@ -80,3 +80,8 @@ Replace the flat web interface with a **"Minority Report" inspired Holographic H
     - Does it look like "Minority Report"? (Dark, Glowing, Floating).
     - Is the text visibly **#00FF00**?
     - Is the background a 3D scene, not a flat color?
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[universe-simulation]]

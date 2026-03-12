@@ -42,3 +42,8 @@ neural:
 - [x] Implement Pulse Dashboard (Marimo) <!-- id: 22 -->
 - [x] Implement Swarm Specialization (FLUME Streams) <!-- id: 23 -->
 - [x] Run Applied Evolution on `optimizer.py` <!-- id: 24 -->
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]

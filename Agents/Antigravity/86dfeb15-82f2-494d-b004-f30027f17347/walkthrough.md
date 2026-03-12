@@ -41,3 +41,7 @@ Ran `git check-ignore` to verify rules:
 
 ### Repository Status
 The `git status` check now shows ~380 untracked files, all of which are legitimate source code directories for new applications (`apps/mcp-*`, `apps/webapp/src`) and configuration. The thousands of build artifacts and large binaries are no longer cluttering the repository.
+
+## Related Vault Notes
+
+- [[cohezion]]

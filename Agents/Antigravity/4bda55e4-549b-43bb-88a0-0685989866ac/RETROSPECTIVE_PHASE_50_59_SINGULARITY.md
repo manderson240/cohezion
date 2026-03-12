@@ -38,3 +38,8 @@ In a single continuous sprint, the Cohezion system transitioned from a "Reactive
 Now that the system is stable and sovereign, it must **Evolve**.
 *   **Genetic Algorithm**: Agents must rewrite their own prompts.
 *   **Adversarial Reality**: Agents must compete for limited Compute (Entropy Harvesting).
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]

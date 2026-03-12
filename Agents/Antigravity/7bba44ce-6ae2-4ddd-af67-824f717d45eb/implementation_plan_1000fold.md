@@ -45,3 +45,7 @@ Expand the "Universe-Class" standard to the entire Cohezion stack. We will conne
 1.  **Universe Stream**: `curl http://localhost:3003/events` shows physics stream.
 2.  **Nexus Visualization**: Space/Field quadrants animate with live data.
 3.  **FLUME Loop**: Trigger a debate -> Swarm Resolves -> Universe generates "Artifact" -> Nexus Precipitation updates.
+
+## Related Vault Notes
+
+- [[cohezion]]

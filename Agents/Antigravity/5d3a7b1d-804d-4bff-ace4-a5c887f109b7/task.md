@@ -17,3 +17,7 @@ neural:
 - [x] Create a migration script to batch-ingest nodes into SurrealDB
 - [x] Move filesystem nodes to a safe, ignored archive directory
 - [x] Verify repository performance and resolve the "10k+" pending changes
+
+## Related Vault Notes
+
+- [[surrealdb]]

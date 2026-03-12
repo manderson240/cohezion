@@ -39,3 +39,10 @@ Autonomous service discovery, multi-protocol handshake (HTTP/WS), and reliabilit
 
 ## VERSION
 1.0.0
+
+## Related Vault Notes
+
+- [[12D-Manifold]]
+- [[cloud-vault-mcp]]
+- [[cohezion]]
+- [[surrealdb]]

@@ -47,3 +47,7 @@ Speedup over baseline:  383.72467532467533
 - [optimizer.py](file:///home/mike-anderson/dev/cohezion/anthropic_challenge/optimizer.py): Core logic fix and barrier implementation.
 - [problem.py](file:///home/mike-anderson/dev/cohezion/anthropic_challenge/problem.py): (Minor) Fixed debug info lookup.
 - [perf_takehome.py](file:///home/mike-anderson/dev/cohezion/anthropic_challenge/perf_takehome.py): (Minor) Restored original validation logic.
+
+## Related Vault Notes
+
+- [[cohezion]]

@@ -20,3 +20,7 @@ neural:
 - [x] Update `GEMINI.md` and other references to reflect the split <!-- id: 6 -->
 - [x] Verify alignment with FLUME and HIHO standards <!-- id: 7 -->
 - [x] Incorporate knowledge/capability growth logic into the Charter <!-- id: 8 -->
+
+## Related Vault Notes
+
+- [[cohezion]]

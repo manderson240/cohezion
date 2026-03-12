@@ -81,3 +81,8 @@ v1.0 (Hypothetical Design)
 
 ## SEE ALSO
 *   [SKILL: UNIVERSE_DESIGN_PRIME](UNIVERSE_DESIGN_PRIME.md) (Requires this speed for 10k agents)
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[quark-gluon-plasma]]

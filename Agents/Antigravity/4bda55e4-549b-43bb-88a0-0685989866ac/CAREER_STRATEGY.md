@@ -48,3 +48,11 @@ I didn't just build a chatbot; I built a **Universe**.
 *   **"Maps of Meaning"**: We do not simulate journeys; we **capture** them. Every decision, consensus vote, and emotional shift is logged to SurrealDB as a 12D trajectory, creating a dataset of "Synthetic History".
 
 **Conclusion**: This application is not a request for a job. It is a demonstration of shared destiny.
+
+## Related Vault Notes
+
+- [[12D-Manifold]]
+- [[ai-agents]]
+- [[cohezion]]
+- [[reinforcement-learning]]
+- [[surrealdb]]

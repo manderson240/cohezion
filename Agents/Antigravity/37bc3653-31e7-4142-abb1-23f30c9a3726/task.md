@@ -20,3 +20,7 @@ neural:
 [x] Implement pre-commit hook to prevent recurrence
 [x] Integrate index-size and staged-file metrics into core health logic
 [x] Final verification of Git status
+
+## Related Vault Notes
+
+- [[cohezion]]

@@ -50,3 +50,8 @@ This plan focuses on system-wide efficiency through high-performance Redis cachi
 
 ### Manual Verification
 - Use `redis-cli monitor` to observe cache operations during a live swarm run.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

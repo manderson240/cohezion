@@ -75,3 +75,8 @@ pub fn evolve_bundle_4x(
 
 ## 5. Portability to Strix Halo
 The Strix Halo NPU relies on similar dense vector packing (`f16` or `bf16`). By switching from Object-Oriented layouts (Array of Structs) to SoA, Cohezion is ready for hardware acceleration on AMD XDNA or similar architectures.
+
+## Related Vault Notes
+
+- [[12D-Manifold]]
+- [[cohezion]]

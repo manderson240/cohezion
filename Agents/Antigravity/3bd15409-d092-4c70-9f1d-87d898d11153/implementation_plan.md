@@ -41,3 +41,7 @@ The workflow involves running two core commands to check system health and apply
 ### Manual Verification
 - Check the `swarm_tasks` in the database (via logs) to ensure any repair tasks were correctly created.
 - Verify the `MISSION_JOURNAL.md` update.
+
+## Related Vault Notes
+
+- [[cohezion]]

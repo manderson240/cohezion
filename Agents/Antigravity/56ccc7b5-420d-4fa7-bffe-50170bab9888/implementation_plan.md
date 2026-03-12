@@ -58,3 +58,7 @@ Ensure the reliability layer works as expected under contention.
 ### Manual Verification
 - Run two instances of `lab_driver.py` or a stress script concurrently and monitor logs for lock contention and lack of file corruption.
 - Use `ls -R .sandbox` during a long-running healing operation to verify shadow tree isolation.
+
+## Related Vault Notes
+
+- [[cohezion]]

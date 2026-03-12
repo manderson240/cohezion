@@ -85,3 +85,7 @@ Universe (Cohezion)       | UniverseCoherence    | 0.96  | ✅
 - [benchmarks.py](file:///home/mike-anderson/dev/cohezion/src/cohezion/evaluation/benchmarks.py): Core definitions.
 - [runner.py](file:///home/mike-anderson/dev/cohezion/src/cohezion/evaluation/runner.py): Execution engine.
 - [publisher.py](file:///home/mike-anderson/dev/cohezion/src/cohezion/evaluation/publisher.py): Hugging Face integration.
+
+## Related Vault Notes
+
+- [[cohezion]]

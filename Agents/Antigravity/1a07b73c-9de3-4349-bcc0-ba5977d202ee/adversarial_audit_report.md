@@ -63,3 +63,7 @@ To verify the fix, we must execute a **"Sovereign Stress Test"**:
 - [ ] **Shadow Vitals**: Implement 1s TTL for hardware polling.
 - [ ] **Static Anchors**: Cache truth anchors (Git/HW ID) at Nexus init.
 - [ ] **Rust Manifold**: Move Filament/Potential logic into `cohezion_core_rs`.
+
+## Related Vault Notes
+
+- [[surrealdb]]

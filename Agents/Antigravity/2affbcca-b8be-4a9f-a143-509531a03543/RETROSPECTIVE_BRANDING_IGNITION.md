@@ -32,3 +32,8 @@ neural:
 ## 4. Action Items
 - [x] Create `BRANDING_OPS_PRIME` skill.
 - [x] Expose Branding via MCP for future agents.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

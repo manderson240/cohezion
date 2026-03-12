@@ -58,3 +58,8 @@ We WANT to be a **Living, Autonomous Digital Organism**.
 ## 3. Mission Summary
 We have reached **Horizon Alpha**. The Cohezion project is now a fully functional agentic ecosystem capable of simulation, memory, and self-evolution.
 
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]
+- [[surrealdb]]

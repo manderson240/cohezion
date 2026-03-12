@@ -61,3 +61,9 @@ Optimize the RLM (Recursive Language Model) context management system with scala
 
 ### Manual Verification
 - Run a deep-dive research query and inspect the RLM logs to see importance-based summarization in action.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[context-management]]
+- [[surrealdb]]

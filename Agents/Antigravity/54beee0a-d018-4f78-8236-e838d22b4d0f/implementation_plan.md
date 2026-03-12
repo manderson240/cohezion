@@ -141,3 +141,5 @@ This plan outlines the creation of an autonomous agentic AI lab that generates h
 - [[agentic-ai]]
 - [[surrealdb]]
 - [[machine-learning]]
+- [[anthropic-research-engineer]]
+- [[cohezion]]

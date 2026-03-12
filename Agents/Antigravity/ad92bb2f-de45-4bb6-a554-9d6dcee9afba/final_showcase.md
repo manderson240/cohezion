@@ -38,3 +38,7 @@ The project's architectural breakthroughs have been persisted:
 
 > [!IMPORTANT]
 > The solution is now located in `exports/anthropic_showcase.html`. This file is ready to be shared with Anthropic.
+
+## Related Vault Notes
+
+- [[cohezion]]

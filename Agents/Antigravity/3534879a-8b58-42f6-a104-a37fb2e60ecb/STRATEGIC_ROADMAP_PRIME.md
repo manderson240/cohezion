@@ -76,3 +76,9 @@ We WANT to be a **Living, Autonomous Digital Organism**.
 - [x] **Phase 9: Actuation** (Autonomous Stabilizers)
 - [ ] **Phase 10: Collective Memory** (SurrealDB + QDrant Persistence)
 ```
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]
+- [[surrealdb]]

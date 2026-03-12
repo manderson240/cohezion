@@ -132,3 +132,7 @@ neural:
 - [[token-efficiency]]
 - [[multi-agent-systems]]
 - [[compound-engineering]]
+- [[adversarial-review]]
+- [[cohezion]]
+- [[cosmology]]
+- [[surrealdb]]

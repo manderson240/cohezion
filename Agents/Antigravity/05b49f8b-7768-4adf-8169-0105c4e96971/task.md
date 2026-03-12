@@ -28,3 +28,9 @@ neural:
 - [x] Retrieve Agentic Journeys from SurrealDB
 - [x] Generate High-Fidelity Showreel Visuals
 - [x] Final package and zip
+
+## Related Vault Notes
+
+- [[anthropic-research-engineer]]
+- [[cohezion]]
+- [[surrealdb]]

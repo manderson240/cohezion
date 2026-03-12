@@ -47,3 +47,7 @@ Finalize the skill definition for documentation and discovery.
 
 ### Manual Verification
 - Simulate a repetitive loop in a test script (e.g., `SETIAgent` scanning repeatedly) and observe the logs/agent behavior.
+
+## Related Vault Notes
+
+- [[cohezion]]

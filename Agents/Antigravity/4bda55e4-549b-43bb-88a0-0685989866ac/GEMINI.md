@@ -62,3 +62,11 @@ Refer to [ARCHITECTURE.md](file:///home/mike-anderson/dev/cohezion/knowledge_gra
 
 > [!NOTE]
 > This file is the "Root of Trust" for the agent. If information is missing here, it will be found in one of the linked modules.
+
+## Related Vault Notes
+
+- [[agentic-ai]]
+- [[ai-agents]]
+- [[cohezion]]
+- [[magnetohydrodynamics]]
+- [[quark-gluon-plasma]]

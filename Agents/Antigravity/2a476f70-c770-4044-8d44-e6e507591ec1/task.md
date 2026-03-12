@@ -171,3 +171,7 @@ neural:
 
 - [[cohezion]]
 - [[machine-learning]]
+- [[adversarial-review]]
+- [[surrealdb]]
+- [[token-efficiency]]
+- [[universe-simulation]]

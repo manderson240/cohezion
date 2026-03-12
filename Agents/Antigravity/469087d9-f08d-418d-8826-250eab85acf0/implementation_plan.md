@@ -56,3 +56,11 @@ Transform the Cohezion Journey layer into a **High-Energy Physics Substrate**. A
 
 - **Vortex Scrubbing**: Scrub through a mission in the HUD and verify that "Plasma Dilation" and "Filament Condensation" are visually and audibly represented.
 - **Looking Within**: Conduct a "Self-Harmonization" test where an agent pauses execution due to internal "Vacuum Friction" (drifting coherence).
+
+## Related Vault Notes
+
+- [[12D-Manifold]]
+- [[agent-context]]
+- [[cohezion]]
+- [[cosmology]]
+- [[exotic-vacuum-objects]]

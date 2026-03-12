@@ -48,3 +48,8 @@ To demonstrate Cohezion as a "World Simulation" platform for the Anthropic Resea
 
 ## Verification
 - Use `inspector` or a custom client to verify all 3 apps running simultaneously.
+
+## Related Vault Notes
+
+- [[anthropic-research-engineer]]
+- [[cohezion]]

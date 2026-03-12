@@ -74,3 +74,7 @@ To resolve this and utilize the remaining 4 attempts efficiently, we are pivotin
 The submission directory `/home/mike-anderson/dev/cohezion/bluequbit_challenge/little_dimple_submission/` has been re-audited for absolute consistency.
 - **Primary Bitstring**: `011110010001001111111111100101100010`
 - **Fallback (Reversed)**: `010001101111111111110010001001111110`
+
+## Related Vault Notes
+
+- [[cohezion]]

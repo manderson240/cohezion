@@ -41,3 +41,7 @@ This plan aims to resolve the anomalies discovered during the system-wide audit 
 
 ### Manual Verification
 - Review the generated audit reports in `src/cohezion/knowledge_graph/audits/` for any remaining warnings.
+
+## Related Vault Notes
+
+- [[cohezion]]

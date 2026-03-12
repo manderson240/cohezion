@@ -65,3 +65,9 @@ Verified with `test_security_refined.py`: **100% detection of malicious prompts*
 
 ## 🎯 Final Status
 All Sprint 5 objectives in [task.md](file:///home/mike-anderson/.gemini/antigravity/brain/1cfa5e45-49e4-46cc-88b3-b0ed12938d3a/task.md) are marked as **[x] COMPLETED**.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[context-management]]
+- [[surrealdb]]

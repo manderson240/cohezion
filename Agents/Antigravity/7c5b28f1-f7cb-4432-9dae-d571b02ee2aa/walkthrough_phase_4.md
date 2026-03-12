@@ -56,3 +56,7 @@ We requested a contact card containing fake PII.
 ---
 **Status**: PRECIPITATED
 **Gateway**: Unlocked (G8: Adversarial Robustness)
+
+## Related Vault Notes
+
+- [[cohezion]]

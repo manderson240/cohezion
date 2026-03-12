@@ -345,3 +345,4 @@ async def persist_overnight_artifacts():
 
 - [[universe-simulation]]
 - [[cohezion]]
+- [[surrealdb]]

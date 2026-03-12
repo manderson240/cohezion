@@ -46,3 +46,8 @@ After filing the tasks, we will trigger the Ouroboros autonomous loop (`python3 
 
 1. **Automated Tests**: I will run the script and then query SurrealDB (using a small verification query script) to confirm the tasks were successfully inserted into the `swarm_tasks` table.
 2. **Manual Verification**: We will output the number of tasks created so the user can be aware of the backlog size. Then Ouroboros can be observed picking up the tasks.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

@@ -71,3 +71,8 @@ Cohezion is not just an agent framework; it is a **self-healing infostructure** 
 
 ---
 *Status: Matrix v1.0 Finalized. Ready for presentation layer enhancement.*
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

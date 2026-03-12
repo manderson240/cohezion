@@ -39,3 +39,7 @@ Leveraging 128GB Unified Memory to run 70B+ parameter models.
 ## Verification Plan
 1.  **ROCm Check**: `rocminfo` -> `gfx1151`.
 2.  **Escrow Check**: Verify sufficient AKT for 3+ concurrent leases.
+
+## Related Vault Notes
+
+- [[cohezion]]

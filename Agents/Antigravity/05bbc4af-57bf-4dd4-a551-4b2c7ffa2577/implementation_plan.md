@@ -85,3 +85,7 @@ This is not a loop; it is a **Self-Improvement Spiral**.
 1.  **Skill Verification**: Create the skill file and verify it follows the template.
 2.  **Tool Check**: Run `python scripts/drivers/code_simplifier.py --dry-run` to see proposed simplifications.
 3.  **Refactor Test**: Apply it to a known complex file (e.g., `src/cohezion/swarm/agents/base.py`) and inspect the diff.
+
+## Related Vault Notes
+
+- [[cohezion]]

@@ -40,3 +40,7 @@ The user requested "Hardened Security" and "Edge Case" consideration.
 
 ### Security Smoke Test
 - Run `research` with special characters `; rm -rf /`.
+
+## Related Vault Notes
+
+- [[cohezion]]

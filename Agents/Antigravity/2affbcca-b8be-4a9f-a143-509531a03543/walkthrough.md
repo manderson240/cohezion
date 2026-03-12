@@ -47,3 +47,8 @@ The branding has been applied to "The Glass Lattice" web portal. Verification wa
 - **CSS Tokens**: Updated `index.css` with Nexus Green, Matte Black, and Earth Blue.
 - **Lattice Background**: Implemented a dynamic CSS grid background.
 - **Adaptive UI**: Refined 3D components to use the Nexus color palette.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

@@ -50,3 +50,7 @@ Optimize the 36-qubit "Little Dimple" circuit simulation by moving from a 1D Mat
 
 ### Manual Verification
 - Monitor `top` or `mission.log` to ensure memory stays below 110GB.
+
+## Related Vault Notes
+
+- [[cohezion]]

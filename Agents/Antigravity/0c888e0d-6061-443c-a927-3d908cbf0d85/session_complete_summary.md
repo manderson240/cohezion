@@ -41,3 +41,7 @@ We have successfully transitioned Cohezion from an "unstable exploration" phase 
 
 > [!IMPORTANT]
 > The Quadrature Nexus is no longer a simulation of stability; it is actively maintaining stability on physical hardware.
+
+## Related Vault Notes
+
+- [[cohezion]]

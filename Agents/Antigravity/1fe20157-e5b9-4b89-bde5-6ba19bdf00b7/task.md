@@ -18,3 +18,8 @@ neural:
 - [x] Run instantiation smoke tests to ensure they all pass.
 - [/] **Epoch 1.2: Lint Cleanup and Pre-Commit**
 - [x] Refactor or clean up any newly discovered lint/F821 errors if they block the workflow.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]

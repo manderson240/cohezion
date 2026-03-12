@@ -22,3 +22,8 @@ neural:
 - [x] Verification [x]
     - [x] Playwright (Firefox) Visual Audit (Attempted/Manual check required) [x]
     - [x] Adversarial Review of Results [x]
+
+## Related Vault Notes
+
+- [[adversarial-review]]
+- [[cohezion]]

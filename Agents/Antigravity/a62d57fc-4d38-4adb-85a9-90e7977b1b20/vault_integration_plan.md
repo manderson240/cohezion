@@ -36,3 +36,8 @@ We need to provide both **Structured Vault Persistence** (for machine-readable g
 1. **Executor Test**: Run a compound task and verify that both a "mission_journey" (SurrealDB) and a "mission_retrospective" (Vault/Obsidian) are created.
 2. **Checkpoint Test**: Start a long-running session, trigger a checkpoint, and verify it exists in the Vault (`vault_list checkpoints/`).
 3. **Pattern Retrieval**: Verify `executor.py` can fetch guidance from previous runs stored in the Vault.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

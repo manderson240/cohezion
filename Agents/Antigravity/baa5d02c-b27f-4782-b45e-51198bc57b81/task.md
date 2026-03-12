@@ -21,3 +21,7 @@ neural:
     - [x] Create `test_mycelium_driver.py`
     - [x] Add systemd service for background operation
 - [x] Verify with a sample trajectory (Verified with mocks due to VRAM pressure)
+
+## Related Vault Notes
+
+- [[surrealdb]]

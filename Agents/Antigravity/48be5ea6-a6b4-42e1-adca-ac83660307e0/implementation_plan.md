@@ -56,3 +56,8 @@ A new simulation engine containing:
 - Run `python3 src/cohezion/simulation/fractal_universe.py`
 - Observe the ASCII visualization of the universe.
 - Check `enhanced_simulations/universe_trajectories.jsonl` for output data.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[fractal-universe]]

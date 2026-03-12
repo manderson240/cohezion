@@ -49,3 +49,7 @@ neural:
 
 ---
 *Created by Antigravity Agents for the Cohezion Project.*
+
+## Related Vault Notes
+
+- [[cohezion]]

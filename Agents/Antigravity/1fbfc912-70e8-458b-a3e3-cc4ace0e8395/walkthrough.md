@@ -61,3 +61,7 @@ I implemented real-time `GitHealthSensor` to replace mocked metrics:
 Project Ouroboros is **LIVE**.
 - Run `uv run scripts/drivers/start_ouroboros.py` to start the heartbeat.
 - Fine-tune local models using the generated `.jsonl` dataset.
+
+## Related Vault Notes
+
+- [[cohezion]]

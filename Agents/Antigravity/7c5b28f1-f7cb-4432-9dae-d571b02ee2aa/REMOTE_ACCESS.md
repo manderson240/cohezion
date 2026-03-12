@@ -70,3 +70,7 @@ Narrations are persisted as text files in `audio/narrations/`.
 
 ---
 *Status: Connectivity Enabled. Sovereignty Maintained.*
+
+## Related Vault Notes
+
+- [[cohezion]]

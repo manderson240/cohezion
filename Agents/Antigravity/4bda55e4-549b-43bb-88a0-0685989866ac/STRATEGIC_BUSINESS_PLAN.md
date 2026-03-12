@@ -57,3 +57,7 @@ Instead of building a sales website, Cohezion will broadcast its catalog on the 
 ## 7. Financial Goal
 *   **Initial Burn**: 0 (Sovereign Hardware).
 *   **Target Monthly Revenue**: $1,000 (To fund 1x H100 Cloud Node for bursting).
+
+## Related Vault Notes
+
+- [[cohezion]]

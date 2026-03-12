@@ -44,3 +44,7 @@ The record is highly dependent on the **Hardware Simulator Specs** (`problem.py`
 - [optimizer.py](file:///home/mike-anderson/dev/cohezion/research/challenges/anthropic_challenge/optimizer.py#L407) (The `build_kernel` implementation)
 - [KEY_LEARNINGS.md](file:///home/mike-anderson/dev/cohezion/src/cohezion/knowledge_graph/KEY_LEARNINGS.md#L3) (Learning 5 Summary)
 - [SUBMISSION_README.md](file:///home/mike-anderson/dev/cohezion/research/challenges/anthropic_challenge/SUBMISSION_README.md) (Performance stats)
+
+## Related Vault Notes
+
+- [[cohezion]]

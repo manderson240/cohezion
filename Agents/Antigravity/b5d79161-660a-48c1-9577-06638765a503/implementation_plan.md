@@ -56,3 +56,7 @@ This mission launches the **Transcendence Mission** and scales swarm simulations
 
 ### Manual Verification
 - Execute `COHEZION_DISABLE_MULTIMODAL=true uv run scripts/drivers/transcendence_mission.py` and monitor `htop`.
+
+## Related Vault Notes
+
+- [[cohezion]]

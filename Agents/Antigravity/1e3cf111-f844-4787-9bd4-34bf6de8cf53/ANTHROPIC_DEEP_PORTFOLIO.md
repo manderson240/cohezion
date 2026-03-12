@@ -62,3 +62,9 @@ A comprehensive synthesis of the **Cohezion** project—a self-evolving agentic 
 ## Contact & Deliverables
 - **Resume**: Ported to high-fidelity UCP portfolio structure.
 - **Walkthrough**: **[v1.6 Ascension Walkthrough](file:///home/mike-anderson/.gemini/antigravity/brain/1e3cf111-f844-4787-9bd4-34bf6de8cf53/walkthrough.md)**
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]
+- [[universe-simulation]]

@@ -41,3 +41,9 @@ Based on direct visual feedback, we enhanced the Obsidian graph connectivity. Ev
 
 ## Conclusion
 The Cohezion system is now fully autonomic in its memory management. Agents learn, remember, and share patterns regardless of their execution environment, grounding the 12D manifold in a robust, persistent physical substrate.
+
+## Related Vault Notes
+
+- [[12D-Manifold]]
+- [[cohezion]]
+- [[surrealdb]]

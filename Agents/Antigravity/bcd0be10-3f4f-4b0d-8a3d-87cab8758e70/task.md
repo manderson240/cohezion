@@ -20,3 +20,7 @@ neural:
 - [ ] Create rich mock data `data/mockJourney.ts` for multiperspective adversarial review
 - [ ] Connect/Mock FLUME 12D trajectory data for visualization
 - [ ] Verify the application by running the dev server
+
+## Related Vault Notes
+
+- [[adversarial-review]]

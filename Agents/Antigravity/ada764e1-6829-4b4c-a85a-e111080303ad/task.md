@@ -70,3 +70,9 @@ neural:
 **Status**: UPGRADED (Memory/Diffusion/Global Field)
 **Reference**: [Proposal](file:///home/mike-anderson/dev/cohezion/EVOLUTION_PROPOSAL.md)
 
+## Related Vault Notes
+
+- [[12D-Manifold]]
+- [[cohezion]]
+- [[fractal-universe]]
+- [[surrealdb]]

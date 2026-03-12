@@ -44,3 +44,7 @@ The goal is to upgrade the `ModelWrangler` agent to actively manage a roster of 
 1.  **Run Wrangler**: Execute a script to instantiate `ModelWrangler`.
 2.  **Check Roster**: Call `deploy_roster()` (simulated or real) and verify it identifies missing models.
 3.  **Scout**: Run `scout_sota_slms()` and check the generated report.
+
+## Related Vault Notes
+
+- [[cohezion]]

@@ -67,3 +67,6 @@ neural:
 ### Actual (Post-Implementation)
 
 ## Related Decisions & Lessons
+
+- Pattern: [[github-actions-as-autonomous-claude-code-scheduler]]
+- Concept: [[agentic-ai]]

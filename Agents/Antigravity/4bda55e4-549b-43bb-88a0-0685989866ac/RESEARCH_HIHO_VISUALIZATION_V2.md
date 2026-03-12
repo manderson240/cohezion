@@ -52,3 +52,9 @@ We don't just measure FPS; we measure **"Reality Fidelity"**:
 ---
 **Guiding Document**: [COHEZION_CHARTER.md](file:///home/mike-anderson/dev/cohezion/.agent/COHEZION_CHARTER.md)
 **Objective**: Transform latent vectors into intuitive, interactive universes.
+
+## Related Vault Notes
+
+- [[12D-Projection]]
+- [[cohezion]]
+- [[dark-matter]]

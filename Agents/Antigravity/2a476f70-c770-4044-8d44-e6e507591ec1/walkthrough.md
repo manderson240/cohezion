@@ -64,3 +64,7 @@ A deep retrospective was conducted and documented in [RETROSPECTIVE_HORIZON_GAMM
 ---
 **Status:** OPERATIONAL
 **Next Phase:** Gateway 16 - Quantum Entropy Harvesting
+
+## Related Vault Notes
+
+- [[cohezion]]

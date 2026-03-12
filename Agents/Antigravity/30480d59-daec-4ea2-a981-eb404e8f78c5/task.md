@@ -49,3 +49,9 @@ Continuity and state persistence across agentic sessions.
 - [x] Upgrade `JourneyTracker` with Anthropic-style capability metrics
 - [x] Integrate robust checkpointing for long-horizon resumability
 - [x] Document link between CPU frequency and 12D manifold stability in `KEY_LEARNINGS.md`
+
+## Related Vault Notes
+
+- [[12D-Manifold]]
+- [[context-management]]
+- [[surrealdb]]

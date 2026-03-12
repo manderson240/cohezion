@@ -50,3 +50,10 @@ Comprehensive audit of token efficiency, compound engineering, autonomic learnin
 1. **Research**: Analysis of `telemetry.py`, `router.py`, and `MISSION_JOURNAL.md`.
 2. **Review**: Multi-stream consensus debate.
 3. **Report**: Synthesis of findings and "Desperation Mode" hardening recommendations.
+
+## Related Vault Notes
+
+- [[12D-Manifold]]
+- [[adversarial-review]]
+- [[compound-engineering]]
+- [[token-efficiency]]

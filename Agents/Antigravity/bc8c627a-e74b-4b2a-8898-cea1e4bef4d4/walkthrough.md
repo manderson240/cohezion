@@ -110,3 +110,7 @@ If you still see a black screen or everything is **too large**:
 ## Verification
 - Connection guide email successfully sent to `manderson240@gmail.com`.
 - `tailscale` status remains `active`.
+
+## Related Vault Notes
+
+- [[cohezion]]

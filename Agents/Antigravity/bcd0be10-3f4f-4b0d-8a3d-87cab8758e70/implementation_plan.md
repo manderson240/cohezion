@@ -74,3 +74,9 @@ To reflect the Gemini 3.1 Pro multimodal approach, we will build UI components t
 - Open the application, transition to the "Adversarial Journey" mode.
 - Verify that the layout effectively presents multiple agent perspectives simultaneously.
 - Verify the presence and aesthetics of the multimodal UI elements.
+
+## Related Vault Notes
+
+- [[12D-Manifold]]
+- [[adversarial-review]]
+- [[compound-engineering]]

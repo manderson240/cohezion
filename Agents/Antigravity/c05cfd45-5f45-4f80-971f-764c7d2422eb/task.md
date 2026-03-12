@@ -34,3 +34,4 @@ neural:
 
 - [[multi-agent-systems]]
 - [[cohezion]]
+- [[surrealdb]]

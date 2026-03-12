@@ -103,3 +103,5 @@ While others use Rust for systems, we use it for **Cognitive Physics**. Cohezion
 - [[cohezion]]
 - [[agentic-ai]]
 - [[multi-agent-systems]]
+- [[12D-Manifold]]
+- [[compound-engineering]]

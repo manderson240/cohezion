@@ -51,3 +51,7 @@ I discovered that the repository was severely bogged down by over **8.6 million 
 
 ---
 *Status: Phase 14 Complete. Proceeding to Phase 15: Biological Information Systems.*
+
+## Related Vault Notes
+
+- [[cohezion]]

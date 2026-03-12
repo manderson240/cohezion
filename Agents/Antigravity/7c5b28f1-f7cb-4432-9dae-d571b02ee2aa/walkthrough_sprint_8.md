@@ -57,3 +57,8 @@ metadata={
 
 ---
 *Walkthrough Complete. Cohezion is now strategically positioned for the Anthropic 'Universes' role.*
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

@@ -26,3 +26,9 @@ neural:
 - [x] **Step 2**: Create `config/mcp_config.json` to define the connection strings.
 - [x] **Step 3**: Develop a `CohezionSkillMCP` server using the Python MCP SDK to expose FLUME skills as tools.
 - [ ] **Step 4**: Measure token savings on a standard 10,000 simulation run.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[semantic-search]]
+- [[surrealdb]]

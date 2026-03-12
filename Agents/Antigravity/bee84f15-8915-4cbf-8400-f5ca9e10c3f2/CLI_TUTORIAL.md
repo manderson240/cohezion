@@ -83,3 +83,7 @@ Launch the Cohezion Browser Agent to explore or snapshot a URL.
 
 - **Alias**: Add `alias cohezion=~/dev/cohezion/scripts/cohezion` to your `.bashrc` for global access.
 - **Logs**: The dashboard watches `logs/lab_driver.log` for real-time updates.
+
+## Related Vault Notes
+
+- [[cohezion]]

@@ -48,3 +48,7 @@ To quantify the "FLUME Effect," we compared it against naive keyword-based match
 
 ---
 *Retrospective: [RETROSPECTIVE_MTEB_INTEGRATION.md](file:///home/mike-anderson/dev/cohezion/src/cohezion/retrospectives/RETROSPECTIVE_MTEB_INTEGRATION.md)*
+
+## Related Vault Notes
+
+- [[cohezion]]

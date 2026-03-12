@@ -18,3 +18,7 @@ neural:
 - [x] Verify functionality with automated test <!-- id: 5 -->
 - [x] Create `scripts/setup/pull_roster.py` to download models <!-- id: 6 -->
 - [x] Update `NEXT_STEPS.md` to align with SLM strategy <!-- id: 7 -->
+
+## Related Vault Notes
+
+- [[cohezion]]

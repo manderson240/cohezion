@@ -34,3 +34,7 @@ During this autonomous hour, I have mapped the latent drift across 846 journey l
 The system is now self-protecting against chaos.
 
 -- Antigravity Swarm
+
+## Related Vault Notes
+
+- [[cohezion]]

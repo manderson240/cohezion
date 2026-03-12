@@ -38,3 +38,7 @@ neural:
     - [ ] Trainer Agent <!-- id: 35 -->
 - [ ] Verify <!-- id: 36 -->
     - [ ] Run 1-epoch LoRA test on small subset <!-- id: 37 -->
+
+## Related Vault Notes
+
+- [[cohezion]]

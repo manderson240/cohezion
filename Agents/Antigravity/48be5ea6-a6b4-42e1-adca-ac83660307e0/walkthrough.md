@@ -74,3 +74,9 @@ ls -l data/simulations/fractal_nexus/
 
 ## Next Steps
 After ~3 hours, the simulation will exit automatically. You can then analyze the `fractal_universe.log` or load the parquet files using `SimulationLogger`.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[fractal-universe]]
+- [[universe-simulation]]

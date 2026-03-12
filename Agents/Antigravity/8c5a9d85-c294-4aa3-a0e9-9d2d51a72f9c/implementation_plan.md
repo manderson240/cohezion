@@ -78,3 +78,9 @@ We are abstracting the ecosystemic methodologies from Stanford's InVEST software
 2. Verify that the "Disparate Scenarios" are correctly initialized with their respective MNMs.
 3. Observe the `coherence` and `physics_score` in the simulation logs to ensure PINOs are working.
 4. Review generated multimodal assets (if applicable) for visual consistency with the scenario.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]
+- [[universe-simulation]]

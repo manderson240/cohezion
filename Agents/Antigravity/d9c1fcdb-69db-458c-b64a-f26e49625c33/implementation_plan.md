@@ -52,3 +52,8 @@ Stabilize the Cohezion repository, repair data integrity issues with Google Shee
 
 ### Manual Verification
 - **Sheet Audit**: Visually confirm Row 77 and Header layout in the Google Sheet.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

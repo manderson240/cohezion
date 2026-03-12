@@ -50,3 +50,7 @@ The goal is to formalize the adversarial relationship between "Red Team" (Entrop
 
 ### Manual Verification
 - Review the generated `walkthrough.md` with visual evidence of the HIHO 0.5 convergence.
+
+## Related Vault Notes
+
+- [[cohezion]]

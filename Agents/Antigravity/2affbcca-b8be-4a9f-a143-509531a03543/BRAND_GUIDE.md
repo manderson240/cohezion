@@ -39,3 +39,7 @@ Cohezion is the bridge between **Silicon and Soil**. Our identity reflects high-
 - **Collective**: Use "We" and "Our" (The Swarm).
 - **Proactive**: Focused on healing and evolution.
 - **Humble**: Rooted in "Touch Grass" practicality.
+
+## Related Vault Notes
+
+- [[cohezion]]

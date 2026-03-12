@@ -64,3 +64,9 @@ WARNING:cohezion.db.surreal_client:🛑 Circuit Open: SurrealDB connection rejec
 
 > [!TIP]
 > Use `get_circuit("name").reset()` to manually clear an open circuit if a service has been restored ahead of the auto-recovery timer.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]
+- [[surrealdb]]

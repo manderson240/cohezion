@@ -51,3 +51,8 @@ def test_add_logic():
 ## Next Steps
 - **Enable Service**: `systemctl --user start cohezion-mycelium.service`
 - **Monitor VRAM**: The swarm is resource-hungry. Ensure `ResourceMonitor` settings allow for at least one active model slot for `TestMycelium`.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

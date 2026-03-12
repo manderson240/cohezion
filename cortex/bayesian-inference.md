@@ -101,3 +101,5 @@ Bayesian inference underpins several vault concepts and platform components:
 - [[information-theory]] — KL divergence, mutual information, and entropy are shared mathematical foundations
 - [[FLUME-Architecture]] — the VAE encoder-decoder is a variational Bayesian inference machine
 - [[cybernetics]] — Bayesian updating is the formal version of the cybernetic feedback loop: sense → update beliefs → act
+
+

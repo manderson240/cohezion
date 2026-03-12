@@ -21,6 +21,10 @@ Transform Cohezion from cloud-dependent agent orchestration into a fully autonom
 
 ## Phase 1: Foundation Update (Session 59 — ~2 hours)
 
+**Related Decisions:**
+- [[2026-03-05-autonomous-scout-via-scheduled-github-actions]] — scheduled GitHub Actions as autonomous scout for the agent swarm
+- [[2026-03-05-remote-claude-code-leverage-architecture]] — experiment on remote Claude Code leverage patterns
+
 ### 1.1 Update CompoundConfig operation→model mapping
 - `analyze` → `glm-4.7-flash` (was phi3:mini)
 - `search` → `phi4-mini-reasoning` (was phi3:mini)

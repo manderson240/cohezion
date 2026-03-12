@@ -145,3 +145,10 @@ We encountered and solved a complex "Restricted Client" OAuth issue to enable au
     - `sync_research_to_sheet.py` executed successfully.
     - Rows 214-223 updated with "Status: Abstracted" (Green) and "Key Abstractions".
 
+## Related Vault Notes
+
+- [[12D-Manifold]]
+- [[cohezion]]
+- [[sacred-geometry]]
+- [[surrealdb]]
+- [[universe-simulation]]

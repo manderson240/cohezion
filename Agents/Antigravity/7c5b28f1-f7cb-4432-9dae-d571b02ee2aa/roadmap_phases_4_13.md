@@ -66,3 +66,9 @@ Following the successful precipitation of Phases 1-3 (Foundation, Swarm, Deep In
 ## Verification Plan
 1. **LibrarianAgent**: Monitor these gateways for milestones.
 2. **Nightly Audits**: Track R-Zero metrics across all unlocked dimensions.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[semantic-search]]
+- [[surrealdb]]

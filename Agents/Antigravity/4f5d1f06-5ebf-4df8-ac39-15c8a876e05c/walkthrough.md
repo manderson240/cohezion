@@ -64,3 +64,9 @@ Every component of the Cohezion platform now aligns with the **Universe Betterme
 ## 4. MCP & Skill Audit
 - **MCP Report:** [mcp_audit.md](/home/mike-anderson/.gemini/antigravity/brain/4f5d1f06-5ebf-4df8-ac39-15c8a87605c/mcp_audit.md)
 - **Skill Report:** [skill_audit.md](/home/mike-anderson/.gemini/antigravity/brain/4f5d1f06-5ebf-4df8-ac39-15c8a87605c/skill_audit.md)
+
+## Related Vault Notes
+
+- [[ai-agents]]
+- [[cohezion]]
+- [[token-efficiency]]

@@ -32,3 +32,8 @@ neural:
 ## Improved Tooling Strategy
 - **Context Injection:** MCPs should automatically inject relevant **12D PhysicsState** metadata when interacting with the filesystem or database.
 - **Safety Layer:** Integrate `cohezion.security.prompt_guard` as an MCP middleware.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

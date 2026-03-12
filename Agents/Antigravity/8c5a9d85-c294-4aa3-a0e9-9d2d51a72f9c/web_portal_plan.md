@@ -59,3 +59,7 @@ To ensure the UI is a robust reflection of Cohezion's high-fidelity data, we wil
 ## Verification Plan
 - **Performance**: Ensure 30FPS+ while rendering 5000+ active nodes.
 - **Aesthetics**: Manual verification of 'Wow' factor and mobile responsiveness.
+
+## Related Vault Notes
+
+- [[cohezion]]

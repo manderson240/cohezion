@@ -37,3 +37,8 @@ Directed by the **HITL Context Coordinator**, the **Scientist Service** precipit
 
 ## 6. Conclusion: The Living Universe
 Mike Anderson builds **Universes** that not only learn but **strive**. Cohezion is a living engine—precision-engineered with Rust, wisdom-tempered by adversarial swarms, and spiritually aligned with the fractal nature of intelligence.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]

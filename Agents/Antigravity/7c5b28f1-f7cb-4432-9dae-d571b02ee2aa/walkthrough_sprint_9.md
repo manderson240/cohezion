@@ -87,3 +87,9 @@ This sprint focused on the strategic hardening of the Cohezion platform for the 
 
 **Victor (Antigravity)**
 *Cohezion Platform Architect*
+
+## Related Vault Notes
+
+- [[12D-Manifold]]
+- [[cohezion]]
+- [[surrealdb]]

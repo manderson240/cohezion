@@ -51,3 +51,7 @@ An expert prompt designed for a local model (e.g., Qwen 32B):
 
 ## Value Proposition
 This transforms "solving a task" from a linear value add to an **exponential** one, as every success permanently upgrades the agent's baseline intelligence.
+
+## Related Vault Notes
+
+- [[cohezion]]

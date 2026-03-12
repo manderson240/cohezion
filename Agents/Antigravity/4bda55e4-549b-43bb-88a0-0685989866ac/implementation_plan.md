@@ -91,3 +91,8 @@ Transform the Universe Explorer into a rigorous 12-dimensional manifold simulato
 ### Manual Verification (The "Aha!" Moment)
 - Observe "Crystallization": Watch agents emerge from the void as their Coherence approaches 0.5.
 - Confirm Awareness-Primary lighting: Zero-awareness nodes must be invisible even if they occupy space.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[edge-computing]]

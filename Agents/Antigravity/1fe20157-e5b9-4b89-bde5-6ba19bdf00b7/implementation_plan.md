@@ -35,3 +35,9 @@ We are implementing the Three Gates (Import, Instantiation, Type).
 1. `uv run pytest tests/smoke/test_imports.py` succeeds instantly.
 2. `uv run pytest tests/smoke/test_instantiation.py` succeeds.
 3. Pre-commit hooks run cleanly without hanging locally.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]
+- [[token-efficiency]]

@@ -44,3 +44,4 @@ neural:
 
 - [[cohezion]]
 - [[agent-journey-tracking]]
+- [[cosmology]]

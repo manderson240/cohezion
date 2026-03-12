@@ -45,3 +45,7 @@ This phase implements a granular "Brake System" for Cohezion, preventing hard lo
 
 ### Manual Verification
 - Monitor the HUD's "QUADRATURE DYNAMICS" section; "FRICTION" should spike when Desperation Mode is active.
+
+## Related Vault Notes
+
+- [[cohezion]]

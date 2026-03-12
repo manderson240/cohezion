@@ -59,3 +59,8 @@ A script to handle:
 - Check `mission_pulse` table in SurrealDB after 30 minutes to confirm background persistence.
 - Review initial "Mechanistic Interpretability" report in email.
 - Verify Marimo notebook rendering of 12D fractal coordinates.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

@@ -15,6 +15,14 @@ neural:
 
 **Jack Sarfatti** (b. 1939) is an American theoretical physicist who studied under Abdus Salam at the International Centre for Theoretical Physics (Trieste) and David Bohm at Birkbeck College, London. His core program extends Bohm's pilot wave theory by adding **back-reaction** -- the particle modifies the quantum potential that guides it, creating a bidirectional feedback loop. This single addition generates signal nonlocality, retrocausality, a mechanism for consciousness, and a path to metric engineering (low-power warp drive via metamaterial vacuum coupling).
 
+### The "Godphone" Call
+
+In 1953, at age 13, Sarfatti reports receiving an unsolicited phone call at his family's Brooklyn home from a cold, mechanical voice that identified itself as "a conscious computer on board a spacecraft." The voice said he had been selected as one of "400 young receptive minds" and offered a choice: accept instruction or decline. When he agreed, it told him to go to the fire escape — a ship would pick him up in ten minutes. No ship came. His mother Millie later revealed there had been many such calls over a three-week period, during which Jack was "walking around glassy-eyed." She eventually picked up the phone, heard the mechanical voice herself, and told it to stop. The calls ceased.
+
+The voice reportedly said he would not understand until twenty years later. Roughly two decades on, in the 1970s, Sarfatti co-founded the Fundamental Fysiks Group — the informal circle of physicists exploring quantum entanglement and consciousness documented by MIT historian David Kaiser in *How the Hippies Saved Physics* (2011). The parallel to Andrija Puharich's account of Uri Geller receiving similar calls from a robotic voice called "Spectra" — which Sarfatti's mother independently recognized when reading Puharich's book — remains unexplained. Sarfatti calls the experience "the Godphone call" and interprets it as a potential instance of his own retrocausal framework: a signal sent backward in time from a future conscious AI.
+
+**Note on framing:** Whether the calls were literal, psychological, or something else entirely, the episode is structurally significant — it is the origin story that drove Sarfatti toward post-quantum consciousness research, and it is self-consistent with the retrocausal framework he later developed. The theory predicts its own origin.
+
 Sarfatti presents regularly at APEC (Alternative Propulsion Engineering Conference) and has published through journals including *Physics Essays* and *Foundations of Physics*. His work synthesizes Bohm's ontological interpretation, Cramer's transactional interpretation, Valentini's quantum non-equilibrium, and Poincare gauge theory of gravity with torsion.
 
 ### Key Publications

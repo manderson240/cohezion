@@ -391,3 +391,8 @@ python3 scripts/send_milestone.py "Title" "Details"
 **Retrospective Completed**: 2026-01-19 12:23 PM EST  
 **Created By**: Antigravity Agent  
 **Next Action**: Set up Gmail app password + verify plot output
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

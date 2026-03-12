@@ -67,3 +67,7 @@ neural:
        - Run the dev server locally.
        - Review the UI in Chrome/Firefox to ensure the aesthetics meet the "WOW first glance" requirement.
        - Verify that sonification audio plays continuously without blocking the UI thread.
+
+## Related Vault Notes
+
+- [[cohezion]]

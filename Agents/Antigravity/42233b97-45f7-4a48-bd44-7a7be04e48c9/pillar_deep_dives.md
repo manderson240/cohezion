@@ -53,3 +53,10 @@ The remaining 4 pillars (`agents/base.py`, `__main__.py`, `request_alignment_ana
 
 > [!NOTE]
 > All findings have been persisted to SurrealDB (where available) and the `cache/cohesion_burst_buffer.json` local failsafe.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]
+- [[surrealdb]]
+- [[token-efficiency]]

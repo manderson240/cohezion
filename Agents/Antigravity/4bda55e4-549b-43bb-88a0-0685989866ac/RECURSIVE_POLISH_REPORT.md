@@ -33,3 +33,7 @@ We subjected the Cohezion codebase (`src/cohezion/`) to a recursive improvement 
 
 ## 4. Conclusion
 The codebase has reached **Thermodynamic Equilibrium**. It is ready for submission to Anthropic as a "Golden Artifact".
+
+## Related Vault Notes
+
+- [[cohezion]]

@@ -495,3 +495,6 @@ cat ~/.gemini/antigravity/brain/*/walkthrough.md
 - [[session-retrospective]]
 - [[universe-simulation]]
 - [[cohezion]]
+- [[exotic-vacuum-objects]]
+- [[matsumoto_hiho_synthesis]]
+- [[surrealdb]]

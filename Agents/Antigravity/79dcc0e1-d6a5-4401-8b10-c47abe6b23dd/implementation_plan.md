@@ -67,3 +67,8 @@ A workflow defining the `/bmad-antigravity-sync` command, instructing agents to 
 1. I will run a simulated task completion to generate a mock `walkthrough.md` referencing `EPIC-10-honest-status`.
 2. Ensure the daemon correctly creates the artifact in `/home/mike-anderson/vaults/cohezion-vault/Agents/Antigravity/`.
 3. Check that the original `EPIC-10-honest-status.md` in the Vault is modified to include the Antigravity backlink.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]

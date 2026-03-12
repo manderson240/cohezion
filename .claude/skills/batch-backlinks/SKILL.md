@@ -1,14 +1,14 @@
 ---
 name: batch-backlinks
 description: |
-  Efficiently add bidirectional backlinks to many vault notes at once when a new
-  research corpus (e.g., 15+ notes) has been created but existing notes don't link back.
-  Use when: (1) a batch of related notes was created (cosmology series, TOE series, etc.)
-  and (2) zero or few existing vault notes reference the new notes, and (3) you need to
-  add backlinks to 10+ existing notes efficiently. Produces "Cross-Validation" subsections
-  rather than individual link additions.
+  Efficiently add bidirectional backlinks to many vault notes at once. Two patterns:
+  (1) Hub-to-corpus: when a batch of related notes was created (cosmology series, APEC
+  series, etc.) and existing hub notes don't link back. Adds "Cross-Validation" subsections.
+  (2) Cluster cross-linking: when N notes in a research cluster don't link to each other.
+  Adds "Other X Presentations/Experiments/Papers" sections to fully connect the cluster.
+  Use when: batch of related notes exists with few intra-cluster or hub backlinks.
 author: Claude Code
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Batch Backlink Injection
@@ -161,3 +161,78 @@ done
 - Pick the traditions with the strongest STRUCTURAL correspondence, not just thematic similarity
 - The subsection name should match the corpus ("Indigenous Cosmology", not "Related Traditions")
 - If a note already has backlinks in a different format, preserve them — don't replace, add alongside
+
+---
+
+## Pattern 2: Cluster Cross-Linking (Fully Connected Subgraph)
+
+Use when: N notes in a research cluster don't link to each other (e.g., 6 APEC presentations, 5 experiments in a series, 4 papers on a topic).
+
+**Key insight:** Adding an "Other X" section to every note in a cluster creates a fully-connected subgraph with O(n²) link relationships from O(n) edits — the most link-density-efficient operation available.
+
+### Detection
+
+```python
+# Find intra-cluster missing links (notes sharing 2+ tags that don't cross-link)
+python3 -c "
+import os, re
+
+# [build notes dict with tags and links as in vault-health skill]
+# Then:
+cluster_tag = 'apec'  # or 'evo', 'cs249r', 'mfmp', etc.
+cluster = [n for n in notes if cluster_tag in notes[n]['tags']]
+for i, n1 in enumerate(cluster):
+    for n2 in cluster[i+1:]:
+        if n2 not in notes[n1]['links'] and n1 not in notes[n2]['links']:
+            print(f'{n1} <-> {n2}')
+"
+```
+
+### Implementation
+
+For each note in the cluster, append a named section listing all OTHER notes in the cluster:
+
+```markdown
+## Other APEC Presentations
+
+- [[apec-note-2]] — [presenter, topic, date]
+- [[apec-note-3]] — [presenter, topic, date]
+- [[apec-note-4]] — [presenter, topic, date]
+```
+
+**Section naming conventions:**
+- Research papers from a series → "Other [Topic] Papers"
+- Experiment series → "Related Experiments"
+- Presentations from an event → "Other [Event] Presentations"
+- Notes in a methodology → "Related [Method] Notes"
+
+### Scaling
+
+| Cluster size | Links created | Edits needed | Strategy |
+|--------------|---------------|--------------|----------|
+| 3-5 notes | 6-10 links | 3-5 edits | Single batch |
+| 6-10 notes | 15-45 links | 6-10 edits | Two batches (read all, edit all) |
+| 10+ notes | 45+ links | 10+ edits | Three batches; consider synthesizing into an index note first |
+
+### Example: APEC Research Cluster (6 notes → 30 new links)
+
+```
+apec-decoding-evos-greenyer.md     +5 links to others
+apec-evos-transmutation-anomalies.md  +5 links to others
+apec-evos-propulsion-engineering.md   +5 links to others
+apec-zero-bias-diodes-zpe.md       +5 links to others
+apec-gem-effect-brandenburg.md     +5 links to others
+apec-biefeld-brown-electrogravitics.md +5 links to others
+──────────────────────────────────────────────────────
+Total: 30 new wiki-links, 6 edits, ~5 minutes
+```
+
+Each note's section excludes itself and lists the others with brief annotations (presenter, topic, date).
+
+### When to Use Cluster vs Hub Pattern
+
+| Situation | Pattern |
+|-----------|---------|
+| New corpus, existing hubs don't link back | Hub-to-corpus (Pattern 1) |
+| Existing cluster, notes don't link to each other | Cluster cross-linking (Pattern 2) |
+| Both: new corpus AND cluster has no internal links | Pattern 1 first, then Pattern 2 |

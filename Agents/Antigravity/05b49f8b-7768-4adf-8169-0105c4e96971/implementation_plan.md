@@ -41,3 +41,5 @@ The current VLIW optimization solution achieved **349 cycles**. We are now eleva
 
 - [[cohezion]]
 - [[alignment]]
+- [[anthropic-research-engineer]]
+- [[compound-engineering]]

@@ -47,3 +47,10 @@ neural:
 
 ## Artifacts
 - **The Chronicle**: `chronicle_of_the_infinite.md` (Living log of the run).
+
+## Related Vault Notes
+
+- [[anthropic-research-engineer]]
+- [[cohezion]]
+- [[morphic-resonance]]
+- [[universe-simulation]]

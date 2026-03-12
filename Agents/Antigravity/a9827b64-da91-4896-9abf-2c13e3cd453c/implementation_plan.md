@@ -42,3 +42,7 @@ The IDE was closed due to an OOM (Out of Memory) kill event triggered by `python
 
 ### Manual Verification
 - User can re-open the IDE and continue work without fear of random crashes.
+
+## Related Vault Notes
+
+- [[cohezion]]

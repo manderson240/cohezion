@@ -48,3 +48,8 @@ A task consolidator for menial offloads:
 ### Manual Verification
 - Review the `inspect_cache` output to ensure hit rates match expectations.
 - Inspect concatenated batch prompts for clarity and truth-anchor persistence.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[token-efficiency]]

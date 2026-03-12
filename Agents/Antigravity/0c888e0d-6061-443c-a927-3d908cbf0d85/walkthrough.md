@@ -89,3 +89,4 @@ Implemented a mid-tier safety net that prevents hard lockups by damping down non
 
 - [[ai-safety]]
 - [[cohezion]]
+- [[fractal-universe]]

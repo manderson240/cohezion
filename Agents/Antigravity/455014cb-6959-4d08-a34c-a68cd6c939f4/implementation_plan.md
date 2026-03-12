@@ -45,3 +45,8 @@ Transform the Cohezion CLI from a utility into a guided experience for exploring
 ### Manual Verification
 - Execute `cohezion journey --start "The 12D Crossing"` and confirm the typewriter effect and interactive prompts work as expected.
 - Monitor `TerminalNexus` for visual "WOW" factor (gradients, pulse stability).
+
+## Related Vault Notes
+
+- [[12D-Manifold]]
+- [[cohezion]]

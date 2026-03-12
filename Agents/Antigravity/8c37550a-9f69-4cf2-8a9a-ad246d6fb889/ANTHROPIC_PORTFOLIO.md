@@ -49,3 +49,9 @@ Instead of a simple script, we present the logs of a full-scale simulation run.
 1.  **Refine the `fractal_universe.py`**: ensure it runs flawlessly for a 60-second demo.
 2.  **Generate a Visualization**: Use the Dashboard to record a 10s video of the "Agent Mitosis" event.
 3.  **PDF The Journal**: Convert `MISSION_JOURNAL.md` into a "Lab Report" PDF attesting to the "Discovery of Entropic Farming".
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[prompt-engineering]]
+- [[universe-simulation]]

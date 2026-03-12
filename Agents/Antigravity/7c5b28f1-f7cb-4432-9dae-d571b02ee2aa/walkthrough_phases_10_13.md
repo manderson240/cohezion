@@ -43,3 +43,7 @@ The **`Cohezion Collaborative Terminal`** provides a unified Marimo-driven missi
 **Mission Status**: COMPLETE
 **Total Upgrades**: 10 Phases (Phase 4 → Phase 13)
 **Intelligence Level**: COLLABORATIVE (G24)
+
+## Related Vault Notes
+
+- [[cohezion]]

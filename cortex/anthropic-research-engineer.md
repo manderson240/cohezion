@@ -31,6 +31,10 @@ An Anthropic Research Engineer is a technical role at Anthropic focused on build
 - [[2026-02-10-PROJECT-COMPLETE-100-PERCENT]]
 - [[2026-02-10-session-complete-final-status]]
 
+## Decisions
+
+- [[2026-03-08-anthropic-universes-coherence-plan]] — coherence plan aligning COHEZION with Anthropic Universes research engineer requirements
+
 ## Related Concepts
 
 - [[ai-safety-alignment]] — the core mission area that Anthropic research engineers contribute to

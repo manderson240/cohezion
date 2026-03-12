@@ -129,3 +129,4 @@ To eliminate "blank space" and provide a rich, agentic showcase:
 - [[cohezion]]
 - [[universe-simulation]]
 - [[ai-safety]]
+- [[surrealdb]]

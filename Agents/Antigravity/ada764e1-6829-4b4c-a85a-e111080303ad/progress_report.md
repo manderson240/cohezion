@@ -43,3 +43,7 @@ The optimized kernel is being deployed to Cloud Run on the `cohezion` domain.
 
 Regards,
 Cohezion Swarm
+
+## Related Vault Notes
+
+- [[cohezion]]

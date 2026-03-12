@@ -63,3 +63,7 @@ This ensures we have external credibility while rigorously testing our unique in
 ### Manual Verification
 - Run `python -m cohezion.evaluation.runner --list` to see available benchmarks.
 - Run a dummy benchmark and check output.
+
+## Related Vault Notes
+
+- [[cohezion]]

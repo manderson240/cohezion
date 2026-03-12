@@ -62,3 +62,8 @@ neural:
     - [x] Create `cross_domain_translator.py` for batch latent alignment [x]
     - [x] Persist "Cross-Domain Dictionary" to SurrealDB [x]
     - [x] Finalize `FLUME_HF_MODEL_CARD.md` for community release [x]
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

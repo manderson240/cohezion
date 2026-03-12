@@ -48,3 +48,8 @@ We have successfully located the AI Lab (`src/cohezion/swarm/agents/lab_agent.py
 ## Final Summary
 The AI Lab is fully operational at `src/cohezion/swarm/agents/lab_agent.py` and has been battle-tested with actual astrophysics research.
 
+## Related Vault Notes
+
+- [[astronomy]]
+- [[cohezion]]
+- [[dark-matter]]

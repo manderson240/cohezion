@@ -39,3 +39,7 @@ The goal of this phase is to implement a "Smarter Swap" mechanism that automatic
 ### Manual Verification
 1. **Load Stress Test**: Load several large models manually and verify that the system automatically unloads the oldest one when the 96GB limit is hit.
 2. **Log Inspection**: Check `logs/system_heartbeat.log` to see if LRU evictions are logged correctly.
+
+## Related Vault Notes
+
+- [[cohezion]]

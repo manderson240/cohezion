@@ -50,3 +50,9 @@ We will use the **Architectural Wisdom** precipitated from the 10M-epoch simulat
 
 ## 🧪 Knowledge Persistence
 All benchmark traces, tool-use summaries, and R-Zero metrics will be archived in `src/cohezion/knowledge_graph/BENCHMARK_GAIA_L3.md`.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[context-management]]
+- [[tool-use]]

@@ -29,3 +29,8 @@ neural:
 - [ ] Finalize "Infinite Game" portfolio for Anthropic [ ]
 - [ ] Run final validation of 12D explainability layer [ ]
 - [ ] Prepare handoff/demo script [ ]
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

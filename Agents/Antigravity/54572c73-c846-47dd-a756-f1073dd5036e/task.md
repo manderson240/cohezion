@@ -17,3 +17,7 @@ neural:
 - [/] Implement Redis Caching Protocol (`redis_aggregator.py`)
 - [ ] Integrate Redis into `SemanticCache` for swarm-wide memory
 - [ ] Final Verification & Walkthrough
+
+## Related Vault Notes
+
+- [[compound-engineering]]

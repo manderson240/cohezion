@@ -62,3 +62,4 @@ neural:
 
 - [[knowledge-graph-systems]]
 - [[cohezion]]
+- [[surrealdb]]

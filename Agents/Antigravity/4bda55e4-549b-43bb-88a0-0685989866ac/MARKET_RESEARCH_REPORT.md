@@ -65,3 +65,7 @@ We must **validate locally** first:
 2.  **Sight-Test**: Paper-trade crypto using `Entropy` metrics.
 
 **Recommendation**: Proceed with **Internal Proving Grounds**.
+
+## Related Vault Notes
+
+- [[cohezion]]

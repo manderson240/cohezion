@@ -34,3 +34,10 @@ neural:
 ## 5. Caching & Deduplication
 - **Risk**: Many of the 500 agents will likely experience similar semantic trajectories initially.
 - **Mitigation**: **Semantic Deduplication**. Implement a `SemanticCache` (see `reliability/semantic_cache.py`) in the Rust core to skip holographic projections for near-identical latent vectors across agents in the same universe.
+
+## Related Vault Notes
+
+- [[adversarial-review]]
+- [[cohezion]]
+- [[compound-engineering]]
+- [[surrealdb]]

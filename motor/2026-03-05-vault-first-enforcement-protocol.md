@@ -122,3 +122,5 @@ At session end, verify:
 - [[2026-03-05-repo-sync-master-plan]] — the plan this protocol enforces
 - [[2026-02-11-vault-first-knowledge-architecture]] — the architectural decision behind vault-first
 - [[repo-and-process-debt]] — the debt this protocol prevents
+- [[vault-first-session-protocol]] — reusable pattern extracted from this protocol
+- [[parallel-session-coordination-via-vault-registry]] — pattern for coordinating parallel sessions through the vault

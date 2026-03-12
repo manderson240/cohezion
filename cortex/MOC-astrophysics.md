@@ -105,6 +105,7 @@ The astrophysics collection spans observational discoveries, theoretical framewo
 
 ## Related Maps
 
+- [[MOC-new-science-toe]] — The New Science chain; cosmological implications of the TOE synthesis
 - [[MOC-platform-infrastructure]]
 - [[MOC-compound-engineering]]
 - [[MOC-safety-alignment]]

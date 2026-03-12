@@ -61,6 +61,8 @@ This mission focuses on identifying and integrating 2026-edge technologies for C
   - [x] Create 'Mission Status' HUD & Live Feed [x]
   - [x] Verification & Visual Capture (Browser Subagent) [x]
 
+## Related Vault Notes
 
-
-
+- [[adversarial-review]]
+- [[cohezion]]
+- [[universe-simulation]]

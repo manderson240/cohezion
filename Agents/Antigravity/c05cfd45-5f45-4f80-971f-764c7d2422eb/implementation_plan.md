@@ -85,3 +85,9 @@ A boilerplate for LangGraph controllers with:
 ### Manual Verification
 1. **Template Dry Run**: Create a dummy "PhysicsAnalyst" agent using the template and verify it "ignites" without errors.
 2. **Skill Review**: Verify the new `.md` skills render correctly in the IDE/Walkthrough.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]
+- [[surrealdb]]

@@ -41,3 +41,7 @@ I ran the updated script with the large `P1_little_dimple.qasm` circuit.
   ```
 
 The system is now stable and protected against this specific OOM vector.
+
+## Related Vault Notes
+
+- [[cohezion]]

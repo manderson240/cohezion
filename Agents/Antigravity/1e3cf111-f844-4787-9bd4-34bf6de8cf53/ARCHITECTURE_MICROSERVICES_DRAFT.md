@@ -54,3 +54,8 @@ A protocol-sovereign ecosystem governed by **Hermetic Compound Engineering**. Th
 
 ## System Guardrails
 - **Immune & Context Guard**: Biological stability and truncation safety.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]

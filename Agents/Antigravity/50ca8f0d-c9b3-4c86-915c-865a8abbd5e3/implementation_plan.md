@@ -66,3 +66,8 @@ A Marimo dashboard to visualize the "Multiverse" results:
 ### Manual Verification
 - Review the `Multiverse Report` for physics-based insights.
 - INTERACT with the `multiverse_dashboard.py` to compare scenario trajectories.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

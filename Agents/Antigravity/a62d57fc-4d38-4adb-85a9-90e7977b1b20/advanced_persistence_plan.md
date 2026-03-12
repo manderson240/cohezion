@@ -31,3 +31,7 @@ This plan has been fully executed, extending the autonomic persistence layer wit
 ### [Component] Vault Pattern Sharing
 - **Status**: COMPLETE
 - **Changes**: Improved `VaultLogger` searchability. Retrospectives and patterns now include Obsidian tags and links, creating a dense, navigable knowledge graph (confirmed by user feedback).
+
+## Related Vault Notes
+
+- [[surrealdb]]

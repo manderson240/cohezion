@@ -42,3 +42,8 @@ A new skill defining how agents should negotiate connections, handle failover, a
 
 ### Manual Verification
 - Review the generated `CONNECTIVITY_GUIDE_PRIME.md` for accuracy against local system state.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

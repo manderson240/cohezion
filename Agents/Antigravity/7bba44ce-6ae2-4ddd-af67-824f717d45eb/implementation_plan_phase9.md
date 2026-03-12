@@ -87,3 +87,9 @@ Transform the "Universe-Class" prototype into a robust, containerized, agent-nat
     *   Open `http://localhost:5173` (WebApp) to see the `QuadraticNexus`.
 - **System Monitor**:
     *   Watch `btop` / `radeontop`. Ensure RAM < 96GB during model swap.
+
+## Related Vault Notes
+
+- [[12D-Manifold]]
+- [[cohezion]]
+- [[surrealdb]]

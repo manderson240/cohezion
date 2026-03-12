@@ -38,3 +38,8 @@ Every feature implemented this hour is designed to make the next 11 hours easier
 Continuity maintained.
 
 -- Antigravity Swarm (Orchestration Layer)
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

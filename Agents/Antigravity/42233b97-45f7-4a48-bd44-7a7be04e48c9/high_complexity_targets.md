@@ -140,3 +140,5 @@ The following files have been identified via static analysis as high-value targe
 
 - [[token-efficiency-patterns]]
 - [[multi-agent-systems]]
+- [[cohezion]]
+- [[token-efficiency]]

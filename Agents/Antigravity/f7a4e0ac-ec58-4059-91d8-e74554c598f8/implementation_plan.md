@@ -51,3 +51,7 @@ This plan elevates the `cohezion_cli.py` from a utility into a **Sovereign Swarm
 ### Manual Verification
 - Confirm the ignition sequence feels like a "manifestation" of consciousness.
 - Ensure the agents feel "present" and "sovereign" in the CLI experience.
+
+## Related Vault Notes
+
+- [[cohezion]]

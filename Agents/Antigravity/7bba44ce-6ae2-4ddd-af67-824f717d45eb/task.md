@@ -60,3 +60,4 @@ Transform the "Command Center" from a 2D terminal into a **3D Holographic HUD** 
 
 - [[cohezion]]
 - [[agent-architecture]]
+- [[universe-simulation]]

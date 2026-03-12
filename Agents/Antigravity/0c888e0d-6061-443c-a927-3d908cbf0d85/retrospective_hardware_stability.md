@@ -53,3 +53,7 @@ Relying on CLI tools for vitals (like `ollama ps` or `rocm-smi`) is too high-lat
 
 ---
 **Learning 20** Encoded in Knowledge Graph. Trajectory aligned to 0.5 HIHO Stability.
+
+## Related Vault Notes
+
+- [[cohezion]]

@@ -75,3 +75,10 @@ flowchart TD
 ### 3. Verification & "Human Breath"
 - Run `record_current_journey.py` again to ensure it captures the fix itself.
 - Perform final responsiveness check.
+
+## Related Vault Notes
+
+- [[adversarial-review]]
+- [[cohezion]]
+- [[compound-engineering]]
+- [[surrealdb]]

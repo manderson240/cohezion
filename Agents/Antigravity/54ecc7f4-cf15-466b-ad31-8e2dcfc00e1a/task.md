@@ -18,3 +18,8 @@ neural:
 - [x] Formulate an implementation plan to fix repo health non-destructively.
 - [/] Execute the healing step-by-step.
 - [ ] Verify the outcomes and document them.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

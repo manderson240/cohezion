@@ -289,3 +289,6 @@ This single file closes 4 of the 7 gaps above. It is the **keystone**.
 - [[cohezion]]
 - [[agent-architecture]]
 - [[surrealdb]]
+- [[agent-context]]
+- [[compound-engineering]]
+- [[token-efficiency]]

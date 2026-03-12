@@ -46,3 +46,7 @@ This phase implements hierarchical resource management for local SLMs. It ensure
 
 ### Manual Verification
 - Observe VRAM logs in `system_heartbeat.log` during a simulated handover between agents of different priorities.
+
+## Related Vault Notes
+
+- [[cohezion]]

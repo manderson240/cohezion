@@ -46,3 +46,8 @@ Expose a new MCP tool: `offload_task`.
 
 ### Manual Verification
 - Review the "Harnessed" prompt and ensure it retains all "Truth Anchors".
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[token-efficiency]]

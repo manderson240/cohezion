@@ -36,3 +36,9 @@ Hook `_call_model` to automatically trigger persistence on successful completion
 
 ## Verification Plan
 - Run `scripts/verify_mcp_extensions.py` to confirm SurrealDB ingestion and Vault entry creation.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]
+- [[surrealdb]]

@@ -54,3 +54,6 @@ A component that draws animated connection lines between other components.
 2. **Theme Check**: Does it use `#00FF00` (Nexus Green) and `#0A0A0A` (Void) exclusively?
 3.  **Connection Check**: Do "threads" visually connect the disparate parts?
 
+## Related Vault Notes
+
+- [[universe-simulation]]

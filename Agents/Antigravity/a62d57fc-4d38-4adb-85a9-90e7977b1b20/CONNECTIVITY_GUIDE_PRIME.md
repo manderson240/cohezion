@@ -34,3 +34,6 @@ curl -X POST "http://localhost:11434/api/model/completions" \
 curl -X GET "http://localhost:22360/docs"
 ```
 
+## Related Vault Notes
+
+- [[surrealdb]]

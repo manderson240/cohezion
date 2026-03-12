@@ -32,3 +32,10 @@ neural:
 - [x] Create 12D Journey Visualization (Marimo notebook) <!-- id: 24 -->
 - [x] Implement `adversarial_transparency_test.py` for "Black Box" verification <!-- id: 25 -->
 - [x] Conclusive health audit & walkthrough update <!-- id: 17 -->
+
+## Related Vault Notes
+
+- [[context-management]]
+- [[cosmology]]
+- [[surrealdb]]
+- [[universe-simulation]]

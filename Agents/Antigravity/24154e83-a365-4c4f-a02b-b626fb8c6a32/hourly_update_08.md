@@ -35,3 +35,8 @@ The VLIW kernels are now bit-exact and manifold-aligned.
 The system is now self-protecting against chaos.
 
 -- Antigravity Swarm
+
+## Related Vault Notes
+
+- [[12D-Manifold]]
+- [[cohezion]]

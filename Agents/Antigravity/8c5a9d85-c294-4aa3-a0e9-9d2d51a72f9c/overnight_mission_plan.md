@@ -67,3 +67,8 @@ To push the limits of our inference capabilities, we are evolving the mission fr
 ### Manual Verification
 - Verify the first 30-minute email is received.
 - Monitor `top` or `htop` during the initial phase to ensure resource safety.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

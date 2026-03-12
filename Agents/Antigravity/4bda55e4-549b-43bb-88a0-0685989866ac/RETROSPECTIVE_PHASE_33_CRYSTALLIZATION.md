@@ -47,3 +47,8 @@ The agent (Me) assumed `BaseAgent` worked one way, but the codebase (Reality) wa
 ## 5. Next Steps
 - Apply **Crystallizer** to `src/cohezion/swarm` (High complexity area).
 - Formalize **Symbiotic Protocol** in `CONSTITUTION.md` or matching Prime.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[dark-matter]]

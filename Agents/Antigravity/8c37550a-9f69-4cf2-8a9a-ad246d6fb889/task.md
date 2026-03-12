@@ -50,3 +50,7 @@ neural:
 - [x] **WebApp Polish**: Upgrade `LandingPage.tsx` and `index.css` for "Universe" fidelity. <!-- id: 35 -->
 - [x] **Resume Generation**: Regenerate `Mike_Anderson_Resume_2026.html`. <!-- id: 36 -->
 - [x] **Submission Finalize**: Organize `SUBMISSION` directory. <!-- id: 37 -->
+
+## Related Vault Notes
+
+- [[cohezion]]

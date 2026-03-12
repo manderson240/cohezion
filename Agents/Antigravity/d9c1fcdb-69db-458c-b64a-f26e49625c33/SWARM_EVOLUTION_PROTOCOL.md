@@ -68,3 +68,10 @@ Upon successful verification, the Agent receives an **Evolution Token**.
 2.  Define `SwarmTask` schema in `SurrealClient`.
 3.  Update `autonomous_bbq.py` to poll `swarm_tasks`.
 4.  Implement `refine_skill()` capability.
+
+## Related Vault Notes
+
+- [[12D-Manifold]]
+- [[adversarial-review]]
+- [[cohezion]]
+- [[surrealdb]]

@@ -56,3 +56,8 @@ neural:
 - [ ] Analyze results vs. industry SOTA (GPT-5, Claude 4.5)
 - [ ] Precipitate "Cross-Benchmark Wisdom" into Knowledge Graph
 - [ ] Generate Multimodal Research Report
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]

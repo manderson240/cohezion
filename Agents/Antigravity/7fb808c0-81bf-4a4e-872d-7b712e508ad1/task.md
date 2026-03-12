@@ -26,3 +26,7 @@ neural:
 - [x] Verification and Stress Testing
     - [x] Simulate resource pressure to verify the immune response
     - [x] Document stability improvements in `walkthrough.md`
+
+## Related Vault Notes
+
+- [[cohezion]]

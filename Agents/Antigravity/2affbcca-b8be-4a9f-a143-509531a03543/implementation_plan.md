@@ -33,3 +33,7 @@ This plan details how to make the Cohezion Python environment "brand-aware" and 
 ### Manual
 - Run `python3 cohezion_cli.py dash` and verify the new aesthetic (Green/Black theme, correct logo).
 - Run `python3 cohezion_cli.py verify` to ensure no regressions.
+
+## Related Vault Notes
+
+- [[cohezion]]

@@ -45,3 +45,7 @@ Formalize the retrospective pattern as a proper skill in the registry to enable 
 ### Manual Verification
 - Review the generated skill `.md` files for clarity and alignment with Cohezion standards.
 - Inspect the `batch_offload` logs to ensure docstrings are being generated correctly.
+
+## Related Vault Notes
+
+- [[cohezion]]

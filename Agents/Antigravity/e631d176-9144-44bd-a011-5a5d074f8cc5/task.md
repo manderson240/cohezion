@@ -17,3 +17,7 @@ neural:
 - [ ] Identify root cause of 404 error [ ]
 - [ ] Implement fix and verify [ ]
 - [ ] Update walkthrough [ ]
+
+## Related Vault Notes
+
+- [[cohezion]]

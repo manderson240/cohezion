@@ -54,6 +54,10 @@ MCP is the foundational protocol enabling Cohezion's entire architecture—the C
 
 - [[kyutai-project]] — the Kyutai project's MCP server was built using the MCP protocol standard
 
+## Decisions
+
+- [[2026-03-06-adopt-meridian-concierge-agent-over-mcp-infrastructure-prd]] — adopt Meridian concierge agent over MCP infrastructure PRD; intelligence layer scales better than transport layer
+
 ## Related Lessons
 
 - [[lesson-36-mcp-configuration-requires-end-to-end-test-new]] — MCP servers must be tested end-to-end with a real client connection; unit tests miss transport and protocol negotiation failures

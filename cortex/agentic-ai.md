@@ -86,6 +86,8 @@ Cohezion exemplifies agentic AI principles through its multi-agent architecture,
 - [[thought_1771652520153_9dabb14700b3]] — Mock agent skill evaluation context
 
 ## Decisions & Experiments
+- [[2026-03-05-autonomous-scout-via-scheduled-github-actions]] — scheduled GitHub Actions as autonomous scout pipeline for agentic AI
+- [[2026-03-05-github-issues-as-remote-claude-code-terminal]] — GitHub Issues as zero-latency remote command interface for agentic systems
 - 📋 [[2026-02-09-12d-graph-refined-plan]] - 12D Graph System - Refined Implementation Plan
 
 ## Daily References

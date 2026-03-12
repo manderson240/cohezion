@@ -99,3 +99,6 @@ Omni-Manifold Coherence verified at HIHO 0.5 stability point.
 - [[alignment]]
 - [[ai-safety-alignment]]
 - [[cohezion]]
+- [[ai-safety]]
+- [[holographic-principle]]
+- [[surrealdb]]

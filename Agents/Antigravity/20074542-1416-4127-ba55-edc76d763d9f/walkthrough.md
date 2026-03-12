@@ -69,3 +69,7 @@ The kernel is fundamentally **Load Width Bound** at ~2048 cycles using standard 
 - **Smart Load R3+** introduces ALU overhead (Muxing) that outweighs the Load savings, pushing cycles up to 2587.
 - **FLUME Analysis** confirmed `idx` is unpredictable, ruling out pre-fetching.
 - **Opus 4.5 Target (1487)**: Requires breaking the 2 loads/cycle limit. This implies either a cache mechanism I haven't discovered (e.g., specific register selection tricks) or a fundamental misunderstanding of the simulator (e.g., hidden parallel slots). Given 1 CORE and 2 LOAD slots, 1487 is mathematically impossible for 4096 random loads.
+
+## Related Vault Notes
+
+- [[cohezion]]

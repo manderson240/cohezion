@@ -44,3 +44,9 @@ We are adding statistical rigor (N=1000), persistence (SurrealDB), and automated
 2.  **Check DB**: Verify 1000 traces in Surreal.
 3.  **View Dashboard**: See the distribution of runs.
 4.  **Check Artifact**: See if `SKILL_QFTDHD_OPTIMIZATION.md` is created/updated.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]
+- [[surrealdb]]

@@ -36,3 +36,8 @@ I have completed the `/heal` workflow to ensure the stability and coherence of t
 ### Manual Verification
 - **Journal Integrity**: Verified that the mission journal accurately reflects the session outcomes.
 - **Capability Check**: Confirmed that `uv` is the optimal tool for running these scripts in the current environment.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

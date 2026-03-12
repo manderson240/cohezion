@@ -103,3 +103,8 @@ uv run scripts/verify_template_adaptation.py
 
 > [!NOTE]
 > This completes the "Compound Engineering" objective, ensuring that every successful task makes all future tasks easier through structural refinement.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]

@@ -55,3 +55,7 @@ Testing Tier 3 Emergency...
 > ```
 
 This ensures the system "fails soft" by sacrificing processes instead of locking the entire OS.
+
+## Related Vault Notes
+
+- [[cohezion]]

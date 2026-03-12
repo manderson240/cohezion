@@ -36,3 +36,4 @@ neural:
 - [[multi-agent-systems]]
 - [[cohezion]]
 - [[workflow-orchestration]]
+- [[surrealdb]]

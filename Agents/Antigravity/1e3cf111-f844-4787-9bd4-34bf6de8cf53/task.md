@@ -59,3 +59,5 @@ neural:
 
 - [[cohezion]]
 - [[alignment]]
+- [[compound-engineering]]
+- [[surrealdb]]

@@ -19,3 +19,7 @@ neural:
 - [ ] Integrate new agent into the swarm orchestration <!-- id: 4 -->
 - [ ] Verify system awareness and inference quality <!-- id: 5 -->
 - [ ] Create walkthrough of the new research node <!-- id: 6 -->
+
+## Related Vault Notes
+
+- [[cohezion]]

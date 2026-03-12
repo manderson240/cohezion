@@ -52,3 +52,8 @@ Update the orchestration layer to point to both the core Constitution and the ne
 ### Manual Verification
 - Review the content of `CONSTITUTION.md` and `COHEZION_CHARTER.md` to ensure no overlap and complete coverage of requirements.
 - Verify that `GEMINI.md` correctly links to both documents.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[universe-simulation]]

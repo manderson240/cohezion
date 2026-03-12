@@ -63,3 +63,9 @@ neural:
 - [ ] **Microservices Architecture** (Next)
     - [ ] Draft `ARCHITECTURE_MICROSERVICES_DRAFT.md`
 
+## Related Vault Notes
+
+- [[adversarial-review]]
+- [[compound-engineering]]
+- [[sacred-geometry]]
+- [[surrealdb]]

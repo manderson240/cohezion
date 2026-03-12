@@ -68,3 +68,7 @@ graph TD
 ### Manual Verification
 - **Trace Analysis**: Verify `v_node_val` and `hashed_val` against reference trace using `perf_takehome.py Tests.test_kernel_cycles` with patched harness.
 - **Latency Verification**: Confirm < 1487 cycles by maximizing cache hits (8/16 rounds cached).
+
+## Related Vault Notes
+
+- [[cohezion]]

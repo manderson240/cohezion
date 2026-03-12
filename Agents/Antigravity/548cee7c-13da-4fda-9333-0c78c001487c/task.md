@@ -15,3 +15,7 @@ neural:
 - [x] Create task tracking document.
 - [/] Write `fix-ide-linting.md` workflow to `.agent/workflows/`.
 - [ ] Review and verify the workflow complies with Cohezion rules.
+
+## Related Vault Notes
+
+- [[cohezion]]

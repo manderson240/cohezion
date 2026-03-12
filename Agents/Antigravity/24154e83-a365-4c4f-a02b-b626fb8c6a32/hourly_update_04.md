@@ -40,3 +40,7 @@ I have codified the emergence thresholds for our primary research domains into `
 The platform is harmonizing. The manifolds are stable.
 
 -- Antigravity Swarm
+
+## Related Vault Notes
+
+- [[cohezion]]

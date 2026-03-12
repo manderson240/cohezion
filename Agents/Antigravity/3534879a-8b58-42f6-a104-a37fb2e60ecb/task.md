@@ -87,3 +87,9 @@ neural:
 - [x] **Visual Pulse**: Stream 12D vectors to `FractalDashboard`.
 - [x] **Coherence Trigger**: Implement auto-actuation of `TestMycelium` on low coherence.
 - [x] **Verification**: Confirm Ouroboros self-stabilizes during a simulated "Logic Drift."
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]
+- [[universe-simulation]]

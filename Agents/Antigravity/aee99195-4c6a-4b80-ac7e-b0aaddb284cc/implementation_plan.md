@@ -367,3 +367,8 @@ Each sprint follows the established pattern:
 - [[multi-agent-systems]]
 - [[cohezion]]
 - [[workflow-orchestration]]
+- [[compound-engineering]]
+- [[momentum-based-trajectory-prediction-with-counterfactual-branching]]
+- [[morphospace-stability-wells]]
+- [[surrealdb]]
+- [[universe-simulation]]

@@ -60,3 +60,8 @@ The `GaiaAgent` successfuly managed the cosmic constants across two distinct run
 
 ---
 *Status: Retrospective Complete. Infrastructure hardening in progress.*
+
+## Related Vault Notes
+
+- [[surrealdb]]
+- [[universe-simulation]]

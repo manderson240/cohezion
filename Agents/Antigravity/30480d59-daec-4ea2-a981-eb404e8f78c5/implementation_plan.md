@@ -54,3 +54,8 @@ Add a "Recovery Hook" that triggers the MRP on instantiation if the `persist_con
 
 ### Manual Verification
 - Simulate a "memory loss" event (reset session) and verify the agent can correctly identify the current Phase and Gateway status within 3 tool calls.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

@@ -75,3 +75,10 @@ neural:
 - [x] Implement `ManifoldViz` (Three.js 16D Projection) <!-- id: 90 -->
 - [x] Implement `NarrativeStream` (Live Text log) <!-- id: 91 -->
 - [x] Integrate into `App.tsx` as "Command Center" <!-- id: 92 -->
+
+## Related Vault Notes
+
+- [[12D-Manifold]]
+- [[chirality]]
+- [[cohezion]]
+- [[surrealdb]]

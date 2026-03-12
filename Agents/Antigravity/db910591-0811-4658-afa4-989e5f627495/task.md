@@ -81,3 +81,7 @@ Implement comprehensive adversarial testing framework to harden Cohezion against
 - Enhanced `prompt_guard.py` (70+ patterns)
 - Enhanced `validators.py` (60+ patterns)
 - KEY_LEARNINGS.md updated (Learnings 8-10)
+
+## Related Vault Notes
+
+- [[cohezion]]

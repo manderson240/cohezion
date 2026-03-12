@@ -41,3 +41,9 @@ The system is now in the **Stable/Hardened** phase of Phase 24+.
 - **Quadrature Nexus:** Transitioned to an Expert Domain Lattice (Architect, Engineer, Biologist, Quantum).
 - **Hardware Stability:** Identified GPU TTM lockups on the AMD 7700S and implemented a strict 4-call concurrency limit.
 - **Current Goal:** Implementation of the **Memory Recovery Protocol (MRP)** to eliminate initial session amnesia.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[general-relativity]]
+- [[surrealdb]]

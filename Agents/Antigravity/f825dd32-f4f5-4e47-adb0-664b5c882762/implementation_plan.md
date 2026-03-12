@@ -59,3 +59,8 @@ This module acts as the **FLUME Encoder**.
 ### Manual Verification
 - **User Sign-off Required**: After finding the candidate bitstring, I will present the stability metrics and the bitstring for sign-off.
 - **NO SUBMISSION** will be made until explicit approval is granted.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

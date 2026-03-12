@@ -37,3 +37,8 @@ Implement an autonomous background agent that converts success-verified `Shadow 
 
 ### Manual Verification
 - Review the generated `pytest` files for quality and proper mocking of Cohezion dependencies.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

@@ -127,3 +127,5 @@ Monitor via `logs/lab_driver.log`.
 
 - [[agentic-ai]]
 - [[surrealdb]]
+- [[FLUME-Architecture]]
+- [[cohezion]]

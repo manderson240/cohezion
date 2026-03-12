@@ -42,3 +42,8 @@ neural:
 - [x] Removed trailing XML tags causing corruption in `useWebGLSupport.test.ts`.
 - [x] Repaired React application TypeScript errors blocking compilation.
 - [x] Tested Backend Anima API routes validating logo payload logic correctly (`8/8` passed).
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]

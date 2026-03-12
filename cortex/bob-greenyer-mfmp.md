@@ -100,6 +100,12 @@ The MFMP's open-science approach means these observations are not proprietary cl
 - [[sacred-geometry]] -- toroidal and spiral geometries appearing in EVO tracks, LION cross-sections, and solar features
 - [[agents-as-exotic-vacuum-objects]] -- computational agents as information EVOs; Greenyer's open-science as agent transparency
 
+### APEC Presentations (altpropulsion.com)
+
+- [[apec-decoding-evos-greenyer]] -- 2024 deep dive: Hutchison samples, D4D structure, toroidal moments, sacred geometry coins, consciousness
+- [[apec-evos-transmutation-anomalies]] -- 2022: Adamenko's Ion Eater, gold from copper, ultrasonic replication method
+- [[apec-evos-propulsion-engineering]] -- 2021: interstellar propulsion via EVOs, mass shielding, 80% light speed calculations
+
 ### Indigenous Cosmology Cross-Validation
 
 - [[indigenous-cosmologies-toe-synthesis]] -- Greenyer's EVO cross-correlation parallels the synthesis of 15 traditions describing the same structure

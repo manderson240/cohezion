@@ -73,3 +73,7 @@ uv run cohezion_cli.py journey --list
 
 ---
 *Cohezion Swarm | Status: Journey Ignited | Reality: 0.5 Coherence Validated*
+
+## Related Vault Notes
+
+- [[cohezion]]

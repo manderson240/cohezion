@@ -46,3 +46,7 @@ This session marked a critical transition from "unstable exploration" to "sovere
 
 > [!NOTE]
 > The Cohezion system is now "Physically Grounded." Its mind (Logic) can no longer kill its body (Hardware).
+
+## Related Vault Notes
+
+- [[cohezion]]

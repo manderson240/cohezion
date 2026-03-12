@@ -54,3 +54,8 @@ Optimize the Cohezion local ecosystem by doubling down on FLUME (Fluid Latent Un
 > **Local Focus:** I have shelved the Fiat bridges and Gmail integrations to focus 100% on the **FLUME Manifold** and **Local Ollama Swarm**.
 > 
 > **Hardware Priority:** We will utilize the 128GB RAM to run DeepSeek-R1 (70b) and Qwen3-Coder concurrently for high-fidelity reasoning.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

@@ -36,3 +36,7 @@ The `LatticeHUD` has been updated to include this new layer, connecting the `use
 2.  Open the webapp (http://localhost:5173).
 3.  Look for the new **"AUTONOMIC LAYER"** panel on the top-left (below the title).
 4.  Watch the "STABILITY" pulse and the VRAM gauges update in real-time.
+
+## Related Vault Notes
+
+- [[cohezion]]

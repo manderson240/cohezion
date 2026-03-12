@@ -37,3 +37,8 @@ The system successfully navigated **50 Gateways** of evolutionary improvement.
 - **Roster**: `GEMINI.md` updated with new agent capabilities.
 
 The platform is now self-healing, self-simplifying, and self-defending.
+
+## Related Vault Notes
+
+- [[compound-engineering]]
+- [[surrealdb]]

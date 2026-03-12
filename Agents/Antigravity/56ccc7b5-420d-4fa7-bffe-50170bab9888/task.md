@@ -20,3 +20,7 @@ neural:
 - [x] Integrate the system into core agent/process logic <!-- id: 3 -->
 	- [x] Refactor `healer_agent.py` <!-- id: 7 -->
 - [x] Verify the implementation with concurrent execution tests <!-- id: 4 -->
+
+## Related Vault Notes
+
+- [[cohezion]]

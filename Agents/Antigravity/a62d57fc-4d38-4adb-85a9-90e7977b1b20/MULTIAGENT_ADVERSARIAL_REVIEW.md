@@ -33,3 +33,8 @@ neural:
 
 ## Synthesis Result: PIVOT TO "ACCUMULATOR" PATTERN
 Do not persist directly from `_call_model`. Hand off to a `PersistenceAccumulator` (local queue) that flushes to SurrealDB/Vault based on system pressure and mission value.
+
+## Related Vault Notes
+
+- [[adversarial-review]]
+- [[surrealdb]]

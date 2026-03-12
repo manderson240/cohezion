@@ -30,3 +30,7 @@ neural:
 - [/] Run 0.5 stability simulation <!-- id: 10 -->
 - [/] Verify Red/Blue equilibrium in JOURNEY logs <!-- id: 11 -->
 - [ ] Create walkthrough.md <!-- id: 12 -->
+
+## Related Vault Notes
+
+- [[cohezion]]

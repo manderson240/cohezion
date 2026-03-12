@@ -52,3 +52,7 @@ Dilation    : 1.000
 ## 4. Next Steps
 - Continue adhering to the "Elegant Simplicity" standard in future sprints.
 - Run `health.py` as a pre-commit check manually until a proper hook is configured.
+
+## Related Vault Notes
+
+- [[cohezion]]

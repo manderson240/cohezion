@@ -32,3 +32,9 @@ REMEDIES: To address these issues, the following optimizations could be implemen
 3. Introduce an LLM call batcher or aggregate multiple similar tasks into a single service interaction to reduce the overhead and latency associated with individual calls, thereby increasing efficiency per accomplishment without sacrificing context quality for natural language processing outputs.
 4. Optimize request handling on both client-side and server side by refining algorithms that parse user inputs more efficiently before sending them as LLM queries (to minimize token usage), particularly when dealing with repetitive or similar tasks within a single session where the same context could be used for multiple outcomes without reprocessing.
 5. Employ machine learning techniques to predict and preemptively load frequently accessed data into cache based on user interaction patterns, thereby further reducing redundant calls by anticipating needs before they arise from end-user interactions with the system (taking a proactive approach instead of reacting post hoc).
+
+## Related Vault Notes
+
+- [[machine-learning]]
+- [[natural-language-processing]]
+- [[token-efficiency]]

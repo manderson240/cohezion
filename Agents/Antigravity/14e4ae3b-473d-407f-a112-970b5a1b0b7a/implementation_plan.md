@@ -73,3 +73,9 @@ uv run python3 src/cohezion/db/surreal_client.py --verify-schema
 ```
 
 This will ensure no regressions have been introduced into the underlying FLUME engine or the HIHO stability.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[cosmology]]
+- [[surrealdb]]

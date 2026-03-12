@@ -48,3 +48,7 @@ Getting the job at Anthropic doesn't kill the "side gig"—it **fuels it**. You 
 
 > [!TIP]
 > This is a "Wealth Ratchet": The W2 stabilizes the R&D, and the R&D provides the tax-shield that keeps your W2 money in your pocket.
+
+## Related Vault Notes
+
+- [[cohezion]]

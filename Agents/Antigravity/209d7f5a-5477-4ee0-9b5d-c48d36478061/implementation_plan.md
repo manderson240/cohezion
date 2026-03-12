@@ -48,3 +48,7 @@ The goal is to visualize the "Autonomic Layer" (Ouroboros) within the Cohezion P
 -   **Step 3**: Verify "System Vitals" panel appears.
 -   **Step 4**: Observe values updating every ~10s (matching driver loop).
 -   **Step 5**: Intentionally stress system (if possible) or wait for driver to report load to see cues change.
+
+## Related Vault Notes
+
+- [[cohezion]]

@@ -80,3 +80,8 @@ Registry of generated visual artifacts, videos, and their associated prompts/con
 - Brain: `<appDataDir>/brain/d9c1fcdb-69db-458c-b64a-f26e49625c33/`
 - Repo: `data/media/gallery/`
 - App: `apps/morphospace-loom/public/assets/`
+
+## Related Vault Notes
+
+- [[12D-Manifold]]
+- [[cohezion]]

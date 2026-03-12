@@ -62,3 +62,7 @@ We established a robust pattern for mass ingestion:
 
 > [!IMPORTANT]
 > **Key Takeaway**: "Silent Swallowing" of errors in async clients is the enemy of data integrity. Explicit validation of return payloads is mandatory.
+
+## Related Vault Notes
+
+- [[surrealdb]]

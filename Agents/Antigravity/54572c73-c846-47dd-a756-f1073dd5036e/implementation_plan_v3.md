@@ -41,3 +41,8 @@ Expose a new MCP tool: `resolve_claims`.
 
 ### Manual Verification
 - Review the generated "Truth Anchor" block and ensure it is concise and accurate.
+
+## Related Vault Notes
+
+- [[agent-context]]
+- [[cohezion]]

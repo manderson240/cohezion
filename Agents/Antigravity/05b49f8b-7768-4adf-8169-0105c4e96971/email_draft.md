@@ -39,3 +39,8 @@ Mike Anderson
 Lead Architect, COHEZION
 [Your Phone Number]
 [Your GitHub/Portfolio Link]
+
+## Related Vault Notes
+
+- [[anthropic-research-engineer]]
+- [[cohezion]]

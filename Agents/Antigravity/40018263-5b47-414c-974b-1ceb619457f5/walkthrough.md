@@ -44,3 +44,7 @@ The following states have been confirmed active after the system reboot:
 - **Driver Quirk**: Kernel confirmed using "Low-power S0 idle" and applied the NVMe simple suspend quirk automatically.
 
 The system is now stable and optimized for the Strix Halo architecture.
+
+## Related Vault Notes
+
+- [[cohezion]]

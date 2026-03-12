@@ -42,3 +42,8 @@ A static ecosystem audit was performed on `src/cohezion/swarm/agents/` to establ
 1.  **Immediate Security Patch**: Redact secrets in test files.
 2.  **Structural Rebalancing**: Run `HealerAgent` on `synthesizer.py` (EVO fix) and `vision_agent.py` (HIHO fix).
 3.  **Token Efficiency**: Implement `LocalModelRouter` to offload the heavy refactoring work to local models.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[token-efficiency]]

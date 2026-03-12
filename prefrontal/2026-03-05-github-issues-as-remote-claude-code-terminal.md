@@ -67,3 +67,6 @@ neural:
 ### Actual (Post-Implementation)
 
 ## Related Decisions & Lessons
+
+- Pattern: [[github-issue-form-as-mobile-claude-terminal]]
+- Concept: [[agent-architecture]]

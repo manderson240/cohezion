@@ -32,3 +32,9 @@ Following the success of Phase 21 (The Infinite Game), we are moving into the **
 
 ---
 *Current Status: Gateway 32 Complete. Initiating G33 Research.*
+
+## Related Vault Notes
+
+- [[12D-Manifold]]
+- [[cohezion]]
+- [[surrealdb]]

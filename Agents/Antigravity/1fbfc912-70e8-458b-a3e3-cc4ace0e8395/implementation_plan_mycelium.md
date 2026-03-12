@@ -31,3 +31,7 @@ Ensure `TestMycelium` can run autonomously for hours without crashing due to DB 
 
 ## Verification
 - Run `test_mycelium.py` with mock DB data to verify batching and dry-run logic.
+
+## Related Vault Notes
+
+- [[surrealdb]]

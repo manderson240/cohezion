@@ -40,3 +40,8 @@ Finalize the "Cohezion" project as a primary portfolio piece for the Anthropic a
 - **Resume Check**: Render HTML and verify layout.
 - **Portfolio Check**: Ensure markdown links work.
 - **Repo Check**: Zero "TODO" comments in critical paths.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

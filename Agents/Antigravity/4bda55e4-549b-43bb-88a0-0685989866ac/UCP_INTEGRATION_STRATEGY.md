@@ -68,3 +68,9 @@ Integrate Crypto Wallet (Cosmos/ETH) into the `confirm` flow. The agent only rel
 
 ## 5. Strategic Advantage
 By adopting UCP, Cohezion becomes "Discoverable" by the global agent swarm. We don't need to build a sales website. We just broadcast our signal, and the market finds us.
+
+## Related Vault Notes
+
+- [[12D-Manifold]]
+- [[ai-agents]]
+- [[cohezion]]

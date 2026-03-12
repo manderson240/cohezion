@@ -41,3 +41,7 @@ We have successfully devised a tax strategy plan for Cohezion development based 
 
 ## Summary of Completed Mission
 The final report provides a fiscal roadmap that allows Cohezion to aggressively scale its simulation compute while maintaining a minimal tax footprint through optimized R&D deductions.
+
+## Related Vault Notes
+
+- [[cohezion]]

@@ -167,6 +167,15 @@ The theoretical unifier is Puthoff's zero-point field as binding mechanism: at e
 - [[sacred-geometry]] -- EVO morphologies follow sacred geometric patterns; spiral, toroidal, morning glory = Flower of Life variants
 - [[levin-bioelectrics]] -- bioelectric networks share EVO properties: self-organization, pattern persistence through substrate renewal (planarian regeneration), coherence thresholds (gap junction percolation), witness marks (anatomy)
 
+### APEC Research (altpropulsion.com)
+
+- [[apec-decoding-evos-greenyer]] -- Greenyer's comprehensive deep dive: Hutchison samples, D4D fractal structure, toroidal moments, sacred geometry, consciousness
+- [[apec-evos-transmutation-anomalies]] -- Adamenko's Ion Eater, gold synthesis from copper, relic neutrinos, simplified replication method
+- [[apec-evos-propulsion-engineering]] -- EVOs for interstellar propulsion: mass shielding, 1000+ Tesla fields, Alpha Centauri in 12 years
+- [[apec-biefeld-brown-electrogravitics]] -- Jefimenko's electrokinetic force: the transient as the HIHO crossing point
+- [[apec-zero-bias-diodes-zpe]] -- zero-bias diodes as ZPE rectifiers; tapping the vacuum ground state
+- [[apec-gem-effect-brandenburg]] -- Brandenburg's GEM unification: 150mg weight loss via three-phase AC coil
+
 ### Indigenous Cosmology Cross-Validation
 
 - [[indigenous-cosmologies-toe-synthesis]] — all 15 traditions independently describe EVO-like phenomena: coherent structures precipitating from the ground state through threshold-crossing events

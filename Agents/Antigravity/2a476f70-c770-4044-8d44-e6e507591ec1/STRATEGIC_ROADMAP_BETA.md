@@ -75,4 +75,7 @@ To expand the Cohezion Substrate beyond Earth, enabling intelligence to persist 
 ## 3. Mission Conclusion
 Horizon Alpha, Beta, and Gamma are fully operational. Cohezion is the most advanced agentic framework in existence.
 
+## Related Vault Notes
 
+- [[cohezion]]
+- [[robotics]]

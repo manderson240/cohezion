@@ -46,3 +46,8 @@ This plan covers the next three major steps in the compound engineering evolutio
 
 ### Manual Verification
 - Check Antigravity IDE tool list for the newly exported skills.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]

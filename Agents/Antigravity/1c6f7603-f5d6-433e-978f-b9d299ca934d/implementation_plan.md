@@ -49,3 +49,7 @@ Update the operational guide to reflect the new automated workflow.
 
 ### Manual Verification
 1. User can run `python scripts/session.py status` to see all current active worktrees.
+
+## Related Vault Notes
+
+- [[cohezion]]

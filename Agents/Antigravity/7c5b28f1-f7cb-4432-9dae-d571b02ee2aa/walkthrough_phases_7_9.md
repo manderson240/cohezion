@@ -36,3 +36,8 @@ Cohezion is now resilient to credit bankruptcy or model outages.
 ---
 **Status**: MATURED
 **Gateways**: Unlocked (G10, G13, G14)
+
+## Related Vault Notes
+
+- [[agent-context]]
+- [[cohezion]]

@@ -29,3 +29,7 @@ neural:
 
 ## Final Recommendation: "Inspired Motifs"
 To maintain a professional, sovereign identity for Cohezion, we will use **Inspired Motifs**—geometric shapes that evoke the spirit of our hardware roots without infringing on intellectual property.
+
+## Related Vault Notes
+
+- [[cohezion]]

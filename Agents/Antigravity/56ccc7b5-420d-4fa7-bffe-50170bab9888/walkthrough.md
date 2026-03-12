@@ -58,3 +58,7 @@ lock = FileLock(file_path.with_suffix(".lock"))
 with lock.acquire():
     # Perform critical section operations
 ```
+
+## Related Vault Notes
+
+- [[cohezion]]

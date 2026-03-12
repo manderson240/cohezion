@@ -45,3 +45,8 @@ This phase focuses on integrating real-time hardware telemetry into the CommandC
 
 ### Manual Verification
 - Open CommandCenter UI and verify live vitals update every 10s.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

@@ -42,3 +42,7 @@ Additionally, the `ResourceMonitor` has a **10s heartbeat**, which is too slow t
 
 ### Manual Verification
 1.  **Monitor Logs**: Check `logs/system_heartbeat.log` to see the new interval (3s) and new metrics (Swap/ARC).
+
+## Related Vault Notes
+
+- [[cohezion]]

@@ -50,3 +50,8 @@ The Autonomic Nervous System for Cohezion.
 - [ ] **Phase 2: Verification**
     - [x] Seed mock trajectories for testing.
     - [ ] Validate valid JSONL export.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

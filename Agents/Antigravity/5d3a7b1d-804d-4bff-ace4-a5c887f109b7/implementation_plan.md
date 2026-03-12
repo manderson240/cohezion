@@ -48,3 +48,7 @@ This plan outlines the systematic migration of 9.3 million archived filesystem n
 - **Dry Run**: Ingest first 10,000 nodes.
 - **Sprint 1**: Ingest 1,000,000 nodes (Validation checkpoint).
 - **Sprint 2**: Full migration.
+
+## Related Vault Notes
+
+- [[surrealdb]]

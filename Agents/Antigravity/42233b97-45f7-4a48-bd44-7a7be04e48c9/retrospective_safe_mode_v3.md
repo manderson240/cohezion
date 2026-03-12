@@ -49,3 +49,8 @@ Simple time-based throttling is insufficient. The `ResourceGuard` must use `os.g
 
 ---
 *Retrospective complete. Proceeding to Phase 2: Full-Codebase Static Scan.*
+
+## Related Vault Notes
+
+- [[compound-engineering]]
+- [[surrealdb]]

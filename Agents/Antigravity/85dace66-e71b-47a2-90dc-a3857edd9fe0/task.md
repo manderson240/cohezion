@@ -39,3 +39,8 @@ neural:
 - [ ] Phase 5: Verification & Walkthrough
     - [ ] Run system-wide health checks
     - [ ] Document results in `walkthrough.md`
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]

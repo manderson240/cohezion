@@ -78,3 +78,9 @@ My research focuses on **Half-In-Half-Out (HIHO) 0.5 Stability**. I believe that
 - **GitHub**: [Your GitHub Profile URL]
 - **Portfolio**: [cohezion-a6vrxwhdxa-uc.a.run.app/portfolio/](https://cohezion-a6vrxwhdxa-uc.a.run.app/portfolio/)
 - **Location**: Remote / Linux Kernel Substrate
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[data-pipelines]]
+- [[surrealdb]]

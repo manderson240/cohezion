@@ -37,3 +37,7 @@ Updated `BaseAgent` to log `(model, tool, task)` tuples to the journey tracker, 
 
 ---
 *Status: Phase 17 Complete. Proceeding to Phase 18: Planetary Interface.*
+
+## Related Vault Notes
+
+- [[cohezion]]

@@ -55,3 +55,4 @@ This plan implements connection pooling and circuit breakers to ensure the Cohez
 
 - [[cohezion]]
 - [[api-design]]
+- [[surrealdb]]

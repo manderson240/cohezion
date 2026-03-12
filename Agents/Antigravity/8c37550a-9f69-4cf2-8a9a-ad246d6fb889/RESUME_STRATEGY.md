@@ -49,3 +49,9 @@ Merging the Scientific Method with Data Engineering.
 3.  **The "Deep Portfolio" (Project Cohezion)**: "Research Laboratory: The Cohezion Initiative".
 4.  **Professional Experience**: Claritas (Data Engineering) & WWF (Spatial Science).
 5.  **Technical Arsenal**: Python (10+ yrs), Rust, R, GIS/Spatial, Marimo, Vector Databases.
+
+## Related Vault Notes
+
+- [[ai-safety]]
+- [[cohezion]]
+- [[thermodynamics]]

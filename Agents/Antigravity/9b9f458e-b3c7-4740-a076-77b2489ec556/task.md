@@ -21,3 +21,4 @@ neural:
 ## Related Vault Notes
 
 - [[cohezion]]
+- [[surrealdb]]

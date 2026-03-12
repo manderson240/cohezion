@@ -48,3 +48,7 @@ This plan is autonomously refined by the `MyceliumStrategyAgent` with a focus on
 
 > [!NOTE]
 > This business plan is **Living**. Updates occur in real-time as market conditions at UCP endpoints change.
+
+## Related Vault Notes
+
+- [[cohezion]]

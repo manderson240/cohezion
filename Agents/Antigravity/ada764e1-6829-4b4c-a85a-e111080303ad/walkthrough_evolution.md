@@ -105,3 +105,7 @@ The `analysis_prime.py` system detected the successful optimization runs (Energy
 - [[multi-agent-systems]]
 - [[cohezion]]
 - [[quantum-mechanics]]
+- [[12D-Manifold]]
+- [[compound-engineering]]
+- [[phase-4-complete]]
+- [[surrealdb]]

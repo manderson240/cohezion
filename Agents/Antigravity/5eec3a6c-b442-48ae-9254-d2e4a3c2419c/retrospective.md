@@ -29,3 +29,8 @@ neural:
 
 ## Future Trajectory
 The path is now clear for **Autonomous Specialization**. By continuing these background cycles, Cohezion will soon have a local model that outperforms general teachers (like GPT-4o) on its own specific internal patterns.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

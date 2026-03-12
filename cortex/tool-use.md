@@ -38,6 +38,7 @@ The [[mcp-model-context-protocol]] standardizes how tools are defined, discovere
 - [[agent-loop-architecture]] — the cycle in which tool calls are the “act” phase
 - [[agent-architecture]] — the structural context within which tool use occurs
 - [[workflow-orchestration]] — how tool calls are sequenced across multi-step tasks
+- [[multi-agent-systems]] — tool registries shared across multiple agents enable team-level tool use
 - [[cloud-vault-mcp]] — Cohezion's primary tool provider (30+ tools)
 - [[Autonomous-Context-Hooks-Guide]] — hooks that orchestrate vault search and write tool calls as part of the agent lifecycle
 

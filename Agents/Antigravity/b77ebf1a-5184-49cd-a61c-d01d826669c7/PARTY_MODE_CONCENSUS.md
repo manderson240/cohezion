@@ -56,3 +56,8 @@ Stop talking, start building. The specs for Epic 8 are literally sitting right t
 1. Initialize `src/cohezion/swarm/model_registry.py` and its YAML config.
 2. Initialize `src/cohezion/swarm/unified_router.py`.
 3. Integrate with the existing codebase gracefully via backward-compatible wrappers.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]

@@ -75,3 +75,10 @@ I combine 15 years of **Systems Modeling**—from Ecological Habitats to Enterpr
 *   Pennington, D., et al. (2015). "Evaluating the Role of Amazon Region Protected Areas..." **Oxford University Press** (Tropical Conservation).
 *   Dinerstein, E., et al. (2014). "Guiding Agricultural Expansion to Spare Tropical Forests." **Conservation Letters**.
 *   Sebogo, et al. (2014). "WWF Species Action Plan: African Elephant, 2012-2015." **WWF International**.
+
+## Related Vault Notes
+
+- [[agentic-ai]]
+- [[ai-agents]]
+- [[cohezion]]
+- [[prompt-engineering]]

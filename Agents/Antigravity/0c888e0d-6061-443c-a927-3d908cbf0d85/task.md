@@ -26,3 +26,7 @@ neural:
     - [x] Update Ouroboros telemetry with `dilation_factor`
     - [x] Implement adaptive sleep in `fractal_universe.py`
     - [x] Visualize Dilation in Pulse HUD
+
+## Related Vault Notes
+
+- [[cohezion]]

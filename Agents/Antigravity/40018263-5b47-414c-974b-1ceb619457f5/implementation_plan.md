@@ -67,3 +67,7 @@ GRUB_CMDLINE_LINUX_DEFAULT="quiet splash iommu=pt amdgpu.gttsize=131072 ttm.page
 2. **Log Inspection**:
    - Check `journalctl -b 0 | grep -i "s2idle"` for power state entry/exit.
    - Check `dmesg | grep -i amdgpu` for any "ring gfx timeout" or resume errors.
+
+## Related Vault Notes
+
+- [[cohezion]]

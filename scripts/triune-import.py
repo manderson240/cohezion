@@ -29,44 +29,67 @@ SURREAL_DB = "vault"
 SURREAL_USER = "root"
 SURREAL_PASS = "root"
 
-# Directories to skip (not content)
+# Directories to skip (not content — tooling, build artifacts, non-note files)
 SKIP_DIRS = {
+    # Hidden / git
     ".git", ".obsidian", ".claude", ".worktrees", ".entire", ".locks",
-    ".pytest_cache", ".ruff_cache", ".github", "node_modules",
-    "htmlcov", "logs", "telemetry", "tools", "obsidian-plugin",
-    "mcp-server", "src", "tests", "scripts", "attachments",
-    "templates", "skills_index", "checkpoints", "archived",
-    "learnings",
+    ".pytest_cache", ".ruff_cache", ".github", ".vault-journal",
+    # Build / tooling
+    "node_modules", "htmlcov", "logs", "telemetry", "tools",
+    "obsidian-plugin", "mcp-server", "src", "tests", "scripts",
+    # Non-content vault dirs
+    "attachments", "templates", "skills_index", "checkpoints",
+    "archived", "learnings", "data", "skills",
 }
 
-# Directory -> Triune Aspect mapping (current directory names)
+# Directory -> Triune Aspect mapping
+# Current names first, then old aliases for backward compatibility
 DIR_TO_ASPECT = {
-    # Knower
+    # Knower (awareness, ground truth)
+    "cortex": "knower",       # was: concepts
+    "sensory": "knower",      # was: papers
+    "memory": "knower",       # was: lessons
+    "genome": "knower",       # was: specs
+    "research": "knower",
+    # Old aliases (knower)
     "concepts": "knower",
     "papers": "knower",
     "lessons": "knower",
     "specs": "knower",
-    "research": "knower",
-    # Thinker
+    # Thinker (reasoning, judgment)
+    "prefrontal": "thinker",  # was: decisions
+    "laboratory": "thinker",  # was: experiments
+    "cerebellum": "thinker",  # was: patterns
+    "benchmarks": "thinker",
+    # Old aliases (thinker)
     "decisions": "thinker",
     "experiments": "thinker",
     "patterns": "thinker",
-    "benchmarks": "thinker",
-    # Doer
+    # Doer (action, lived experience)
+    "motor": "doer",          # was: projects
+    "hippocampus": "doer",    # was: daily/sessions
+    "thalamus": "doer",       # was: inbox
+    "missions": "doer",
+    "retrospectives": "doer",
+    "Agents": "doer",
+    # Old aliases (doer)
     "projects": "doer",
     "daily": "doer",
     "sessions": "doer",
-    "missions": "doer",
     "inbox": "doer",
-    "retrospectives": "doer",
-    "Agents": "doer",
-    # Connective
-    "canvas": "connective",
+    # Connective (where all three meet)
+    "dreaming": "connective",
+    "songlines": "connective",
+    "subconscious": "connective",
+    "metabolism": "connective",
+    "visual-cortex": "connective",  # was: canvas
     "docs": "connective",
     "meta": "connective",
     "assessments": "connective",
     "cycles": "connective",
     "teleport": "connective",
+    # Old aliases (connective)
+    "canvas": "connective",
 }
 
 # Wiki-link regex: [[target]] or [[target|alias]]
@@ -435,9 +458,6 @@ def main():
         print("\n[DRY RUN] No data written to SurrealDB.")
         return
 
-    # Build lookup
-    path_to_id = build_filename_index(notes)
-
     # Connect
     db = SurrealClient(port=args.port)
 
@@ -445,35 +465,74 @@ def main():
     test = db.query("SELECT count() FROM neuron GROUP ALL")
     print(f"\nConnected to SurrealDB on port {args.port}")
 
+    # Phase 0: Resolve ID collisions — find existing neurons by path
+    # so we UPSERT using their existing ID, not a freshly derived one.
+    print("\n[0/5] Resolving existing neuron IDs...")
+    existing = db.query("SELECT id, path FROM neuron")
+    path_to_existing_id: dict[str, str] = {}
+    if existing and existing[0].get("result"):
+        for row in existing[0]["result"]:
+            raw_id = str(row["id"]).removeprefix("neuron:")
+            path_to_existing_id[row["path"]] = raw_id
+    print(f"  {len(path_to_existing_id)} existing neurons indexed")
+
+    # Override record_id for notes that already exist under a different ID
+    collisions_fixed = 0
+    for n in notes:
+        if n["path"] in path_to_existing_id:
+            existing_id = path_to_existing_id[n["path"]]
+            if existing_id != n["record_id"]:
+                n["record_id"] = existing_id
+                collisions_fixed += 1
+    if collisions_fixed:
+        print(f"  {collisions_fixed} ID collisions resolved (reusing existing IDs)")
+
+    # Build lookup (after collision resolution)
+    path_to_id = build_filename_index(notes)
+
     # Phase 1: Upsert all neurons
-    print("\n[1/4] Upserting neurons...")
+    print("\n[1/5] Upserting neurons...")
     neuron_stmts = build_neuron_upserts(notes)
     ok = db.batch_query(neuron_stmts, batch_size=100)
     print(f"  {ok}/{len(neuron_stmts)} neurons upserted")
 
-    # Phase 2: Create synapses (wiki-links)
-    print("\n[2/4] Creating synapses (wiki-links)...")
+    # Phase 2: Replace synapses (delete old, create fresh — ensures idempotency)
+    print("\n[2/5] Replacing synapses (wiki-links)...")
+    db.query("DELETE synapse")
     synapse_stmts = build_synapse_inserts(notes, path_to_id)
     ok = db.batch_query(synapse_stmts, batch_size=100)
-    print(f"  {ok}/{len(synapse_stmts)} synapses created")
+    print(f"  {ok}/{len(synapse_stmts)} synapses created (clean)")
 
     # Phase 3: Update inbound counts
-    print("\n[3/4] Updating inbound synapse counts...")
+    print("\n[3/5] Updating inbound synapse counts...")
     inbound_stmts = build_inbound_updates(notes, path_to_id)
     ok = db.batch_query(inbound_stmts, batch_size=100)
     print(f"  {ok}/{len(inbound_stmts)} neurons updated with inbound counts")
 
-    # Phase 4: Record in Akashic history
-    print("\n[4/4] Recording in Akashic Records (neuron_history)...")
+    # Phase 4: Replace history (idempotent)
+    print("\n[4/5] Recording in Akashic Records (neuron_history)...")
+    db.query("DELETE neuron_history")
     history_stmts = build_history_inserts(notes)
     ok = db.batch_query(history_stmts, batch_size=100)
     print(f"  {ok}/{len(history_stmts)} history records created")
+
+    # Phase 5: Clean up orphaned neurons (in DB but not in vault)
+    print("\n[5/5] Cleaning orphaned neurons...")
+    vault_paths = {n["path"] for n in notes}
+    orphaned = [p for p in path_to_existing_id if p not in vault_paths]
+    if orphaned:
+        for p in orphaned:
+            oid = path_to_existing_id[p]
+            db.query(f"DELETE neuron:`{oid}`")
+        print(f"  {len(orphaned)} orphaned neurons removed")
+    else:
+        print(f"  0 orphaned neurons (clean)")
 
     # Verify
     print("\n--- Verification ---")
     r = db.query("SELECT count() FROM neuron GROUP ALL")
     neuron_count = r[0].get("result", [{}])[0].get("count", 0) if r[0].get("result") else 0
-    print(f"Neurons in DB: {neuron_count}")
+    print(f"Neurons in DB: {neuron_count} (vault: {len(notes)})")
 
     r = db.query("SELECT count() FROM synapse GROUP ALL")
     synapse_count = r[0].get("result", [{}])[0].get("count", 0) if r[0].get("result") else 0
@@ -487,8 +546,16 @@ def main():
     r = db.query("SELECT aspect, count() FROM neuron GROUP BY aspect")
     if r[0].get("result"):
         print("\nDB aspect distribution:")
-        for row in r[0]["result"]:
+        for row in sorted(r[0]["result"], key=lambda x: x.get("aspect", "")):
             print(f"  {row.get('aspect', '?')}: {row.get('count', 0)}")
+
+    # Sanity check: warn if aspect distribution is skewed
+    if r[0].get("result"):
+        aspects = {row["aspect"]: row["count"] for row in r[0]["result"]}
+        connective = aspects.get("connective", 0)
+        if connective > neuron_count * 0.6:
+            print(f"\n  WARNING: {connective}/{neuron_count} neurons are 'connective' — "
+                  "check DIR_TO_ASPECT mapping")
 
     print("\nImport complete.")
 

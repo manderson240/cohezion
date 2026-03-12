@@ -135,3 +135,4 @@ uv run python3 scripts/assess_git_health.py
 ## Related Vault Notes
 
 - [[cohezion]]
+- [[surrealdb]]

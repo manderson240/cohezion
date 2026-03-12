@@ -79,3 +79,7 @@ v1.0 (Anthropic Aligned)
 ## SEE ALSO
 *   [SKILL: QFTDHD_OPTIMIZATION](file:///home/mike-anderson/dev/cohezion/src/cohezion/skills/qftdhd_optimization/SKILL.md)
 *   `autonomous_lab_driver.py`
+
+## Related Vault Notes
+
+- [[cohezion]]

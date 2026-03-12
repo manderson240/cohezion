@@ -58,3 +58,8 @@ Upgrade the Cohezion Portal with a high-fidelity "Glass Box" aesthetic, integrat
 ### Manual Verification
 - Access via custom domain.
 - Confirm "Alive" aesthetic feeling.
+
+## Related Vault Notes
+
+- [[adversarial-review]]
+- [[cohezion]]

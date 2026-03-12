@@ -48,3 +48,7 @@ We will leverage the **Evolutionary Engine** to solve hard problems, not just ma
 1.  **Dashboard**: Launch Marimo server and verify interactivity.
 2.  **Swarm**: Run multi-stream evolution and verify non-interference.
 3.  **Challenge**: Benchmarking `optimizer.py` before and after evolution.
+
+## Related Vault Notes
+
+- [[cohezion]]

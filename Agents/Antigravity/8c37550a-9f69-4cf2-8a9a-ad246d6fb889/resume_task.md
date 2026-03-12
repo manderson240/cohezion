@@ -22,3 +22,7 @@ neural:
 
 ## Phase 3: Final Polish
 - [ ] **Align with Portfolio**: Ensure keywords match `ANTHROPIC_DEEP_PORTFOLIO.md`. <!-- id: 5 -->
+
+## Related Vault Notes
+
+- [[cohezion]]

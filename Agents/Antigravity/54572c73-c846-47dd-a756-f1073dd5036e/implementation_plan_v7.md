@@ -40,3 +40,8 @@ This phase implements the specialized orchestration and memory recovery patterns
 
 ### Manual Verification
 - Execute a "Full Lattice Burn" with a complex physics/biology query and inspect the `MISSION_LOG` for expert consensus patterns.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[semantic-search]]

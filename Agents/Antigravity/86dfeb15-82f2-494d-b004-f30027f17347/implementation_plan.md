@@ -42,3 +42,7 @@ neural:
 
 ### Manual Verification
 - Check that important PDFs (if any) are still accessible (on disk).
+
+## Related Vault Notes
+
+- [[cohezion]]

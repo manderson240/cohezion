@@ -49,3 +49,7 @@ Attempted to map `cohezion.duckdns.org` to Cloud Run.
 1.  **Deployment**: Validated via Cloud Run logs (Revision `cohezion-00003-lgg`).
 2.  **Code Integrity**: `index.html` rewritten with high-fidelity CSS variables and semantic IDs.
 3.  **Visuals**: Confirmed `backdrop-filter` browser support in code.
+
+## Related Vault Notes
+
+- [[cohezion]]

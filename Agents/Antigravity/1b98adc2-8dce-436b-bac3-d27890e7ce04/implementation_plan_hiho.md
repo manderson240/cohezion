@@ -65,3 +65,7 @@ Implement an interactive simulation of universal reality based on Wilbert Smith'
 ### Manual Verification
 - Open the Marimo notebook and verify that traversing the 0.5 coherence point results in a "visual/audio event" (precipitation of reality).
 - Check that the "Awareness of Nothing" state (all params at 0) produces a stable "Void" output.
+
+## Related Vault Notes
+
+- [[cohezion]]

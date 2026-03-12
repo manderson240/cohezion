@@ -74,3 +74,8 @@ trainer.train()
 
 ## VERSION
 v1.0
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

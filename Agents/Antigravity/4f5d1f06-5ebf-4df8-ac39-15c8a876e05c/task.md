@@ -88,3 +88,8 @@ neural:
 ## Session Metrics
 - Skills: 68 (Start of Phase 2)
 - Learnings: 25 (Start of Phase 2)
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

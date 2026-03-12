@@ -46,3 +46,8 @@ Sincerely,
 **Mike Anderson**
 Conservation Scientist & Research Engineer
 *Portfolio: [cohezion-a6vrxwhdxa-uc.a.run.app](https://cohezion-a6vrxwhdxa-uc.a.run.app/portfolio/)*
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[data-pipelines]]

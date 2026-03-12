@@ -29,6 +29,12 @@ Each step is necessary: you cannot skip from Nothing to Reality. Reality require
 
 ---
 
+### Vault Ontology ADR
+
+See [[2026-03-11-vault-ontology-new-science-backbone]] for the proposed dual-layer architecture: keep Triune Self as navigation, add the New Science chain as ontological backbone.
+
+---
+
 ## Step 1: Nothing — The Irreducible Ground
 
 "Nothing" is not emptiness. It is the **irreducible awareness substrate** — what remains when all content is removed. The quantum vacuum is the closest physical analog: remove all particles, all radiation, all fields — what remains is not zero, but the zero-point energy of the vacuum, the irreducible ℏω/2 per mode.
@@ -243,6 +249,9 @@ The cosmological constant problem -- the 10^123 discrepancy between the calculat
 - [[sacred-geometry]] — fractal self-similarity across scales; the geometry through which ZPE organizes into matter
 - [[fractal-universe]] — fractal scaling of HIHO structures from Planck to galactic scale
 - [[cosmology]] — the Big Bang as cosmic-scale symmetry breaking and COHEZION event
+- [[apec-zero-bias-diodes-zpe]] — Valone's attempt to tap Step 1 (ZPE) via semiconductor rectification
+- [[apec-gem-effect-brandenburg]] — GEM unification of gravity and EM; Kaluza-Klein + Vacuum Bernoulli connects to Step 4 (Fabrics)
+- [[apec-biefeld-brown-electrogravitics]] — Jefimenko's electrokinetic force: the transient as the HIHO crossing
 
 ### Indigenous Cosmology Cross-Validation
 

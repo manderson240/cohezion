@@ -37,3 +37,7 @@ Establish a real-time data pipe from the `mcp-swarm` (Ollama) to the `QuadraticN
 ## Verification Plan
 1.  **Backend**: `curl -N http://localhost:3002/events` and trigger a debate.
 2.  **Frontend**: Open WebApp, see "Connected" status in Control quadrant, trigger debate, watch text flow.
+
+## Related Vault Notes
+
+- [[cohezion]]

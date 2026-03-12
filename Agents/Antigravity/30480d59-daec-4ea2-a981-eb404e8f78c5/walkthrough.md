@@ -106,3 +106,6 @@ We've hardened the context management and session continuity for long-horizon mi
 
 - [[context-management]]
 - [[agent-context]]
+- [[12D-Manifold]]
+- [[cohezion]]
+- [[surrealdb]]

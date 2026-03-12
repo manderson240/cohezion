@@ -41,3 +41,10 @@ The Upstash `context7` pattern suggests that documentation and context should be
 - [ ] Purge `knowledge_graph` logs from Git and update `.gitignore`.
 - [ ] Connect `ASCENSION_ENGINE` to real SurrealDB persistence (removing stubs).
 - [ ] Implement the `Context7`-style documentation tool for internal Cohezion library.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[compound-engineering]]
+- [[context-management]]
+- [[surrealdb]]

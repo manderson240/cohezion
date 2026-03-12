@@ -46,3 +46,7 @@ neural:
     - [ ] **Frontend**: Initialize/Verify `apps/webapp` <!-- id: 30 -->
     - [ ] **Frontend**: Implement `HolographicHUD` component <!-- id: 31 -->
     - [ ] **Integration**: Connect HUD to Ouroboros Stream <!-- id: 32 -->
+
+## Related Vault Notes
+
+- [[cohezion]]

@@ -63,3 +63,8 @@ All are `E501` — lines exceeding 130 chars in f-strings and complex expression
 
 > [!WARNING]
 > Several `git commit` and `ruff --fix` commands are pending user approval in the terminal. Approve or dismiss them to unblock `uv run` commands.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

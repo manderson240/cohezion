@@ -35,3 +35,7 @@ I have:
 
 > [!IMPORTANT]
 > **Action Required**: Please **close the failing terminal tab** in your IDE. Any new terminal tabs you open will correctly start in the project root.
+
+## Related Vault Notes
+
+- [[cohezion]]

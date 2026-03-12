@@ -43,3 +43,7 @@ Updated [GEMINI.md](file:///home/mike-anderson/dev/cohezion/GEMINI.md) to point 
 
 ### Structural Alignment
 The new structure clearly separates **General AI Ethics** (Core Constitution) from **Domain-Specific Simulation Logic** (Cohezion Charter), allowing for more specialized and focused reasoning in complex scenarios.
+
+## Related Vault Notes
+
+- [[cohezion]]

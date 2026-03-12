@@ -106,3 +106,5 @@ To solve this without compromising safety, we implemented **Passive Monitoring**
 
 - [[session-retrospective]]
 - [[cohezion]]
+- [[adversarial-review]]
+- [[surrealdb]]

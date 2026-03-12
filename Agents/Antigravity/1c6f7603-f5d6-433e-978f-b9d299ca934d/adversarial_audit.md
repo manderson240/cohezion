@@ -58,3 +58,8 @@ neural:
 
 ## 3. Verdict
 The tool is **ESSENTIAL** for compound engineering but requires **HIGH-FIDELITY SAFETY GATES** to prevent "Agentic Amnesia" (losing work during cleanup).
+
+## Related Vault Notes
+
+- [[compound-engineering]]
+- [[surrealdb]]

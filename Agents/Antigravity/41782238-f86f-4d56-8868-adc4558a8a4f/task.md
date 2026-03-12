@@ -17,3 +17,7 @@ neural:
   - [ ] Review recent crash reports and "EVO Cosmology" status
   - [ ] Check `KEY_LEARNINGS.md` for new updates
 - [ ] Summarize status for the user
+
+## Related Vault Notes
+
+- [[cosmology]]

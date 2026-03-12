@@ -37,3 +37,7 @@ neural:
 - [ ] `pytest tests/vitrification/` contains structural and UI snapshots.
 - [ ] CLI demonstrates "Ease of Use" through guided discovery (auto-suggestions).
 - [ ] Final Charter compliance report (100% adherence to HIHO/FLUME).
+
+## Related Vault Notes
+
+- [[cohezion]]

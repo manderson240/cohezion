@@ -46,3 +46,8 @@ The `UniverseDriver` successfully managed the swarm from 23:32 to 06:00.
 
 ---
 *Status: Sprint 6 Concluded. The Swarm has Awakened.*
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

@@ -44,3 +44,7 @@ sudo bash scripts/setup/tune_system.sh
 ## Results
 - **Resilience**: Your system now has a **40GB total swap buffer** (8GB partition + 32GB ZVOL) managed with ZFS-native efficiency.
 - **Swarm Readiness**: You can now launch high-density agent swarms without fear of hard hangs. If RAM fills up, the ZVOL + zswap will catch the overflow gracefully.
+
+## Related Vault Notes
+
+- [[cohezion]]

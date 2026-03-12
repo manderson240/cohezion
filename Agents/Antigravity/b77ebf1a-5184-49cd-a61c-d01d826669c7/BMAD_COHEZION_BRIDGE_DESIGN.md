@@ -313,3 +313,6 @@ bmad_bridge/
 - [[agent-architecture]]
 - [[multi-agent-systems]]
 - [[workflow-orchestration]]
+- [[cohezion]]
+- [[compound-engineering]]
+- [[surrealdb]]

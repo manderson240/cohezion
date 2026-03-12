@@ -32,3 +32,7 @@ Replace mocked "Hidden Dimensions" in `OuroborosSense` with real telemetry from 
 
 ## Verification
 - Run `start_ouroboros.py` locally and verify logs show dynamic values for entropy/momentum.
+
+## Related Vault Notes
+
+- [[cohezion]]

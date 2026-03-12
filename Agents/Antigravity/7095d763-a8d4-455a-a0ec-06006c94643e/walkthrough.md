@@ -49,3 +49,8 @@ Successfully read AMD GPU utilization directly from sysfs.
 
 ## Conclusion
 The root cause was a combination of 10M-round simulation bursts and DeepSeek-R1-70B falling back to system RAM. The new caps and the proactive `ResourceMonitor` emergency brake will prevent this from escalating to a system-wide lockup in the future.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[surrealdb]]

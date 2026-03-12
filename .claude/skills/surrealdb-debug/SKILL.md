@@ -5,11 +5,13 @@ description: |
   Use when: (1) HTTP 401 Unauthorized, (2) "Couldn't write to a read only transaction",
   (3) SurrealDB systemd service is failed, (4) schema errors on INFO FOR DB or DEFINE,
   (5) records are silently not persisting after CREATE/UPSERT (SCHEMAFULL silent rejection),
-  (6) neuron paths are stale after vault directory renames.
+  (6) neuron paths are stale after vault directory renames,
+  (7) synapse count doubles on re-import, (8) ID collisions after re-import with different derivation,
+  (9) wrong aspect field (all neurons getting 'connective' default due to stale DIR_TO_ASPECT mapping).
   Key insight: credentials and port in docs are often stale — always inspect the
   live process, and always create namespace+database before applying schema.
 author: Claude Code
-version: 1.4.0
+version: 1.5.0
 ---
 
 # SurrealDB Debugging
@@ -345,6 +347,116 @@ def extract_graph_walk_trajectories(neuron_vectors, n_walks=200, walk_length=8):
 ```
 
 Key: `SELECT ->synapse->neuron AS n FROM {node_id}` returns all outbound neighbors in one hop. This is SurrealDB's graph traversal syntax — no JOIN needed.
+
+## Import Idempotency: Synapses Double on Re-Import
+
+**Symptom:** Synapse count doubles each time `triune-import.py` runs (e.g., 8,658 → 19,578 → 39,156).
+
+**Cause:** `RELATE` for synapse/kinship tables creates new records even if the same relationship already exists. There is no upsert for relation tables.
+
+**Fix:** DELETE all synapses before re-creating them in the import script:
+
+```python
+# Phase 2 — synapse import (idempotent)
+print("Deleting existing synapses before re-import...")
+db.query("DELETE synapse;")  # Must come BEFORE re-creating synapses
+
+# Then create synapses as usual
+for source_path, targets in links.items():
+    ...
+    db.query(f"RELATE {src_id}->synapse->{tgt_id} CONTENT {{...}};")
+```
+
+Same pattern applies to `kinship` and any other relation table.
+
+## Import Idempotency: ID Collisions After Re-Import
+
+**Symptom:** Import logs show errors like `neuron:cortex_moc_triune_self_md already exists with different ID`. Neurons accumulate stale duplicates.
+
+**Cause:** The ID derivation algorithm may differ between import runs (e.g., if the path-to-ID function was changed). SurrealDB IDs are immutable — the old record can't be updated with a new ID.
+
+**Fix: Phase 0 — resolve ID collisions before import:**
+
+```python
+# Phase 0: Build map of existing path → ID from the live database
+existing = db.query("SELECT id, path FROM neuron")
+path_to_existing_id: dict[str, str] = {}
+if existing and existing[0].get("result"):
+    for row in existing[0]["result"]:
+        raw_id = str(row["id"]).removeprefix("neuron:")
+        path_to_existing_id[row["path"]] = raw_id
+
+# Override record_id for any note that already exists under a different ID
+for note in notes:
+    if note["path"] in path_to_existing_id:
+        existing_id = path_to_existing_id[note["path"]]
+        if existing_id != note["record_id"]:
+            note["record_id"] = existing_id  # Reuse the old ID for UPSERT
+```
+
+This ensures UPSERT uses the existing record's ID rather than generating a new one.
+
+## Import Idempotency: Orphan Cleanup
+
+After directory renames or file deletions, old neuron records accumulate for files that no longer exist.
+
+**Fix: Phase 5 — delete neurons whose vault files are gone:**
+
+```python
+# Phase 5: Orphan neuron cleanup
+all_neurons = db.query("SELECT id, path FROM neuron")
+if all_neurons and all_neurons[0].get("result"):
+    vault_paths = {n["path"] for n in notes}  # paths computed during import
+    for row in all_neurons[0]["result"]:
+        if row["path"] not in vault_paths:
+            nid = str(row["id"])
+            db.query(f"DELETE {nid};")
+            print(f"  Deleted orphan neuron: {nid}")
+```
+
+## Wrong Aspect Mapping (All Neurons Get 'connective')
+
+**Symptom:** After import, aspect distribution shows ~70% `connective` (the default fallback). Expected: knower~30%, thinker~22%, doer~44%, connective~4%.
+
+**Cause:** `DIR_TO_ASPECT` in `triune-import.py` uses old/pre-rename directory names that no longer match the vault's current structure.
+
+**Fix:** Update `DIR_TO_ASPECT` to include ALL current directory names:
+
+```python
+DIR_TO_ASPECT = {
+    # Knower (ground truth)
+    "cortex": "knower",       # was: concepts
+    "sensory": "knower",      # was: papers
+    "memory": "knower",       # was: lessons
+    "genome": "knower",       # was: specs
+    # Thinker (reasoning)
+    "prefrontal": "thinker",  # was: decisions
+    "laboratory": "thinker",  # was: experiments
+    "cerebellum": "thinker",  # was: patterns
+    # Doer (action)
+    "motor": "doer",          # was: projects
+    "hippocampus": "doer",    # was: daily/sessions
+    "thalamus": "doer",       # was: inbox
+    "missions": "doer",
+    "retrospectives": "doer",
+    "Agents": "doer",
+    # Connective
+    "dreaming": "connective",
+    "songlines": "connective",
+    "subconscious": "connective",
+    "metabolism": "connective",
+    "visual-cortex": "connective",
+}
+```
+
+**Sanity check after import:**
+```bash
+curl -s -X POST http://localhost:8001/sql \
+  -H "surreal-ns: cohezion" -H "surreal-db: vault" \
+  -u root:root \
+  --data-raw 'SELECT aspect, count() FROM neuron GROUP BY aspect;'
+# Expected: connective < 10% of total
+```
 
 ## Verification
 

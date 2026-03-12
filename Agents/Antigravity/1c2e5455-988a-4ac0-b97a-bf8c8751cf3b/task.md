@@ -46,3 +46,9 @@ neural:
     - [x] Final Verification & Portal Link Audit
 - [x] VERIFICATION: Global test suite execution and VLIW bit-exactness proof.
 - [x] FINAL: Submission readiness walkthrough with hyper-sovereign media.
+
+## Related Vault Notes
+
+- [[adversarial-review]]
+- [[cohezion]]
+- [[compound-engineering]]

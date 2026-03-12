@@ -36,3 +36,7 @@ neural:
 - **The Texture**: Elements of 'Touch Grass' mossy textures integrated into the silicon patterns.
 - **The Heritage**: Integrated Framework Cog, AMD triangle, and Linux Tux motifs as "stamps of origin".
 - **The Aesthetic**: "High-Fidelity Organicism" (HI-FI ORG).
+
+## Related Vault Notes
+
+- [[cohezion]]

@@ -40,3 +40,7 @@ This phase transforms the `AutonomicDisplay` into a high-density "Command Center
 - Launch the Ouroboros daemon (`scripts/drivers/start_ouroboros.py`).
 - Open the Web app and verify that the HUD accurately reflects hardware usage (matching `htop` or `psutil`).
 - Observe the "Glitch" effects and pulse animations during high system pressure.
+
+## Related Vault Notes
+
+- [[cohezion]]

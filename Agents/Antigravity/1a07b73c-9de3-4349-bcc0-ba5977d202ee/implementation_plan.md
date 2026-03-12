@@ -61,3 +61,8 @@ The Cohezion "Journey 3.0 (EVO Cosmology)" implementation caused a full system c
   Run `scripts/drivers/tsunami_simulator.py` for 10,000 epochs and verify the "📍 Epoch" logs appear without system slowdown.
 - **Resource Hub**:
   Observe `logs/system_heartbeat.log` to ensure it continues to record without being flooded by `engine.py` requests.
+
+## Related Vault Notes
+
+- [[cohezion]]
+- [[cosmology]]

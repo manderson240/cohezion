@@ -150,3 +150,5 @@ To visualize the "100% Sovereign" runtime, we will build a "Command Center" in t
 - [[surrealdb]]
 - [[multi-agent-systems]]
 - [[cohezion]]
+- [[12D-Manifold]]
+- [[chirality]]

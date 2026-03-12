@@ -65,3 +65,7 @@ This plan outlines the technical and financial strategy to leverage P.L. 119-21 
 
 ### Manual Verification
 - [ ] User review of the strategy to ensure alignment with Cohezion's payroll and asset logs.
+
+## Related Vault Notes
+
+- [[cohezion]]
