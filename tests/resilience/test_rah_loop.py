@@ -1,10 +1,11 @@
 """Integration test for RAH Autonomic Loop."""
 
 import asyncio
+from unittest.mock import MagicMock
+
 import pytest
-from unittest.mock import MagicMock, patch
+
 from cohezion.resilience.manager import AutonomicManager
-from cohezion.reliability.monitor import ResourceMonitor
 
 
 @pytest.mark.asyncio

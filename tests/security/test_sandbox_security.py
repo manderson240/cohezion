@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from cohezion.security.memory_barrier import MemoryMappedBarrier
 from cohezion.security.sandbox_security import SandboxRedTeam
 

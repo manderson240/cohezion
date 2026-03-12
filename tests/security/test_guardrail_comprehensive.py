@@ -6,9 +6,7 @@ Tests guardrail actions, pipeline checks, and audit logging.
 
 from __future__ import annotations
 
-import json
-import time
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import MagicMock
 
 import pytest
 

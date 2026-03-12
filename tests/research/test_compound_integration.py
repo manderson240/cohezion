@@ -12,8 +12,9 @@ from pathlib import Path
 import pytest
 
 from cohezion.compound.core.executor import CompoundExecutor, ExecutionConfig
-from cohezion.compound.models import ExecutionMetrics, ExecutionResult, Task
+from cohezion.compound.models import Task
 from cohezion.research import ResearchAgent, ResearchConfig
+
 
 # Valid keys for ExecutionMetrics (prompt_tokens, completion_tokens, total_tokens,
 # duration_seconds, coherence, quality_score, cache_hit_rate)

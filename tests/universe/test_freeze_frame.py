@@ -5,7 +5,6 @@ Captures full 12D state snapshots during TDD failures for Ouroboros training.
 
 from __future__ import annotations
 
-import hashlib
 import json
 
 import numpy as np

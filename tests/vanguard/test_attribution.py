@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from cohezion.vanguard.attribution import AttributionEngine, LicenseStatus
 from cohezion.vanguard.source_connector import DiscoveryRecord
 

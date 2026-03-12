@@ -16,7 +16,7 @@ Reference: HIHO Principle in COHEZION_CHARTER.md — Hooke's Law attractor:
 from __future__ import annotations
 
 import numpy as np
-import pytest
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # HIHO Band Constants
@@ -247,6 +247,7 @@ class TestZeroCopyValidatorHIHO:
     def test_hiho_state_passes_validation(self) -> None:
         """A 12D state vector with values in [0.3, 0.7] must validate cleanly."""
         import struct
+
         from cohezion.core.zero_copy_validator import SHMBuffer, ZeroCopyValidator
 
         # Create a valid 12D HIHO-band state
@@ -332,7 +333,7 @@ class TestVersionTelemetryHIHO:
 
     def test_severe_drift_triggers_hiho_healing(self) -> None:
         """Coherence < 0.3 triggers healing — HIHO collapse prevention."""
-        from cohezion.registry.version_telemetry import VersionTelemetry, VersionConflict
+        from cohezion.registry.version_telemetry import VersionConflict, VersionTelemetry
 
         telemetry = VersionTelemetry()
         current = {f"pkg{i}": "1.0.0" for i in range(5)}

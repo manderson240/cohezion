@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from cohezion.core.journey_persistence_manager import (
     JourneyPersistenceManager,
     TrajectoryNode,

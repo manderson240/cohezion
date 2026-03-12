@@ -5,14 +5,9 @@ Tests the recursive optimization loop.
 
 from __future__ import annotations
 
-import tempfile
-from pathlib import Path
-from unittest.mock import Mock
-
 import pytest
 
 from cohezion.research import (
-    DegradationSignal,
     OptimizationResult,
     ResearchSquad,
     integrate_with_compound_system,
@@ -347,7 +342,6 @@ class TestIntegrationPoints:
     @pytest.mark.fast
     def test_integration_with_research_agent(self):
         """[INT-03] Squad uses ResearchAgent."""
-        from cohezion.research import ResearchAgent
 
         squad = ResearchSquad()
 

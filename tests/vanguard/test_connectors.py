@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import pytest
-
 from cohezion.vanguard.connectors import (
-    HuggingFaceConnector,
     GitHubTrendingConnector,
-    RedditConnector,
+    HuggingFaceConnector,
     OllamaConnector,
+    RedditConnector,
     VanguardScout,
 )
 from cohezion.vanguard.source_connector import FailingConnector, SourceHealth

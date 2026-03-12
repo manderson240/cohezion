@@ -2,13 +2,10 @@
 
 from __future__ import annotations
 
-import pytest
-
 from cohezion.vanguard.sandbox_validation import (
     SandboxScript,
     SubstrateSandbox,
     ValidationVerdict,
-    SANDBOX_GTT_QUOTA_BYTES,
 )
 
 
