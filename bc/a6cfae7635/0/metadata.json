@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "bca6cfae7635",
+  "session_id": "6a59122c-f4bd-4bb5-863f-8c9e84342bae",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-12T13:56:27.778934724Z",
+  "branch": "challenge-luma-cqq4mojz",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "conductor/tracks/flume_engine_20260311/plan.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "870e74660d6f",
+  "token_usage": {
+    "input_tokens": 6559,
+    "cache_creation_tokens": 1204685,
+    "cache_read_tokens": 27376428,
+    "output_tokens": 64501,
+    "api_call_count": 208
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-12T13:56:27.110207542Z",
+    "agent_lines": 6,
+    "human_added": 0,
+    "human_modified": 1,
+    "human_removed": 0,
+    "total_committed": 7,
+    "agent_percentage": 85.71428571428571
+  }
+}
