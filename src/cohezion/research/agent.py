@@ -128,9 +128,8 @@ class ResearchAgent:
             return (
                 f"Experiment {experiment_id}: {metric_value:.4f}",
                 {
-                    "metric_value": metric_value,
-                    "duration": duration,
-                    "improved": improved,
+                    "coherence": metric_value,
+                    "duration_seconds": duration,
                 },
             )
 
@@ -139,9 +138,8 @@ class ResearchAgent:
             return (
                 f"Failed: {e}",
                 {
-                    "metric_value": float("inf"),
-                    "duration": time.time() - start_time,
-                    "improved": False,
+                    "coherence": float("inf"),
+                    "duration_seconds": time.time() - start_time,
                 },
             )
 
@@ -241,13 +239,12 @@ class ResearchAgent:
         # Normalize metrics — handle both ExecutionMetrics objects and legacy dicts
         m = result.metrics
         if isinstance(m, dict):
-            metric_value = m.get("metric_value", float("inf"))
-            improved = m.get("improved", False)
+            metric_value = m.get("coherence", float("inf"))
             duration_seconds = m.get("duration_seconds", 0.0)
         else:
-            metric_value = getattr(m, "metric_value", float("inf"))
-            improved = getattr(m, "improved", False)
+            metric_value = getattr(m, "coherence", float("inf"))
             duration_seconds = m.duration_seconds
+        improved = metric_value < self.session.best_metric
 
         exp_result = ExperimentResult(
             experiment_id=exp_id,
