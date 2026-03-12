@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "892ed499ee0d",
+  "session_id": "6dca3752-2422-46d7-add9-d63e5c7fa1dc",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-12T03:10:17.087780932Z",
+  "branch": "challenge-luma-cqq4mojz",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "conductor/tracks/bootstrap_manifold_20260311/plan.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "2e22b4f25ed6",
+  "token_usage": {
+    "input_tokens": 1010,
+    "cache_creation_tokens": 628456,
+    "cache_read_tokens": 10838365,
+    "output_tokens": 68278,
+    "api_call_count": 96
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-12T03:10:16.776611351Z",
+    "agent_lines": 0,
+    "human_added": 17,
+    "human_modified": 19,
+    "human_removed": 0,
+    "total_committed": 17,
+    "agent_percentage": 0
+  }
+}
