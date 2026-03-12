@@ -1,0 +1,560 @@
+Implement the following plan:
+
+# Luma AMD Speedrun: Optimize Kernels for Top Rankings
+
+Created: 2026-03-11
+Status: PENDING
+Approved: No
+Iterations: 1
+Worktree: Yes
+
+> **Status Lifecycle:** PENDING -> COMPLETE -> VERIFIED
+> **Iterations:** Tracks implement->verify cycles
+> **Deadline:** March 30, 2026 (18 days remaining)
+
+## Context
+
+All 3 kernels are submitted and ranked on the leaderboard (as of 2026-03-12):
+
+| Kernel | Rank | Our Time | Leader Time | Gap | Leaderboard |
+|--------|------|----------|-------------|-----|-------------|
+| GEMM | 67/68 | 24.082 us | 9.671 us | 2.49x | `amd-mxfp4-mm` |
+| MLA | 40/54 | 191.259 us | 4.335 us | 44.1x | `amd-mixed-mla` |
+| MoE | 34/43 | 185.189 us | 145.177 us | 1.28x | `amd-moe-mxfp4` |
+
+**We score 0 points** — must reach top 10 in at least one kernel. MoE is closest (1.28x gap).
+
+Prior work: Correctness issues fixed (GEMM delegates to ref_kernel due to Triton JIT call-site
+bug). All leaderboard names discovered. Skills created for Popcorn CLI workflow and JIT bug.
+
+## Summary
+
+**Goal:** Optimize all 3 kernels to improve leaderboard rankings. Priority: MoE (quick win) → MLA (highest impact potential) → GEMM (blocked by JIT bug).
+
+**Architecture:** Each kernel is a single `submission.py` that exports `custom_kernel(data: input_t) -> output_t`. Evaluated remotely on MI355X via Popcorn CLI (~2 min/submit). Scoring = geometric mean of benchmark runtimes. No local testing possible (gfx1151 not supported by ROCm 6.2.4).
+
+**Tech Stack:** Python, PyTorch, Triton (AMD ROCm), aiter library (AMD optimized kernels), Popcorn CLI.
+
+## Scope
+
+### In Scope
+
+- Optimize MoE kernel parameters (fused_moe tuning, stage config, sorting)
+- Optimize MLA kernel (NUM_KV_SPLITS tuning, batch-size dispatch, MXFP4 KV)
+- Fix GEMM JIT call-site issue to enable optimization
+- Research competitor approaches via aiter source and GPU MODE community
+- Leaderboard submissions for improved kernels
+
+### Out of Scope
+
+- Custom HIP C++ / assembly kernels (Python + aiter only for now)
+- Local testing (all via Popcorn CLI remote submission)
+- Changes to reference.py, task.py, eval.py, utils.py (competition files)
+- Phase 2 hackathon work (end-to-end DeepSeek-R1)
+
+## Context for Implementer
+
+> **This is iterative GPU kernel optimization. Each change requires a remote submission (~2 min).**
+
+**Workflow per optimization attempt:**
+1. Modify `submission.py`
+2. `popcorn-cli submit --no-tui --mode test --gpu MI355X --leaderboard <name> <file>` (correctness)
+3. If passes: `--mode benchmark` (timing without leaderboard impact)
+4. If faster: `--mode leaderboard` (official ranked submission)
+
+**Key constraints:**
+- Benchmark clears L2 cache between runs — no cache warming tricks
+- GEMM benchmark includes A quantization time (part of timed region)
+- Correctness tolerances: GEMM rtol=1e-2, MLA rtol=1e-2, MoE rtol=5e-2
+- Transient artifact download failures happen — retry on unexplained failure
+- No per-user rate limit; submit freely
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `kernels/moe-mxfp4/submission.py` | MoE submission (59 lines, calls `fused_moe`) |
+| `kernels/mixed-mla/submission.py` | MLA submission (143 lines, `mla_decode_fwd` persistent mode) |
+| `kernels/mxfp4-mm/submission.py` | GEMM submission (22 lines, delegates to `ref_kernel`) |
+| `kernels/*/reference.py` | Reference implementations (read-only, study for optimization hints) |
+| `results.md` | Competition results documentation |
+
+### Benchmark Configurations
+
+**MoE** (7 configs, geometric mean):
+- TP=8: bs={16,128,512}, dhidden=7168, dexpert=256, E=257, topk=9
+- TP=4: bs={16,128,512}, dhidden=7168, dexpert=512, E=33, topk=9
+- EP:   bs=512, dhidden=7168, dexpert=2048, E=33, topk=9
+
+**MLA** (8 configs, geometric mean):
+- bs={4,32,64,256} × kvseqlen={1024,8192}, qseqlen=1, tp=4 or 8
+
+**GEMM** (6 configs, geometric mean):
+- m={4,16,32,32,64,256}, n={2880,2112,4096,2880,7168,3072}, k={512,7168,512,512,2048,1536}
+
+### Current Submission Analysis
+
+**MoE (34/43, 185.189 us):** Identical to reference — calls `fused_moe` with same params.
+Already beats task.yml reference baselines for most configs. Leader at 145 us uses same API
+with better parameter tuning.
+
+**MLA (40/54, 191.259 us):** Uses `mla_decode_fwd` persistent mode with FP8 Q + FP8 KV,
+fixed NUM_KV_SPLITS=32. Reference uses same approach. Top entries at 4.3 us likely use
+custom assembly kernels or radically different algorithms.
+
+**GEMM (67/68, 24.082 us):** Delegates to `ref_kernel` due to Triton JIT call-site bug.
+~2x slower than reference baselines (8-20 us) due to Python delegation overhead. Leader
+at 9.67 us likely uses custom Triton or HIP kernels.
+
+### Top Competitors
+
+| Competitor | GEMM | MLA | MoE | Strategy |
+|------------|------|-----|-----|----------|
+| mega-dmitriy | 6th | 6th | **1st** | Strong all-around |
+| josusanmartin | 2nd | 14th | **2nd** | GEMM+MoE |
+| Yufeng98 | 7th | 5th | 4th | Consistent |
+| sanjay_arvind | 5th | 8th | 6th | Consistent |
+| parcadei | **1st** | 11th | 12th | GEMM specialist |
+| Jayluci4 | - | **1st** | - | MLA breakthrough (4.3 us) |
+
+## Progress Tracking
+
+- [ ] Task 1: Research aiter fused_moe optimization parameters
+- [ ] Task 2: Optimize MoE kernel (target: top 20)
+- [ ] Task 3: Tune MLA NUM_KV_SPLITS per batch size
+- [ ] Task 4: Optimize MLA kernel (target: top 25)
+- [ ] Task 5: Fix GEMM JIT call-site issue
+- [ ] Task 6: Optimize GEMM kernel (target: top 40)
+
+**Total Tasks:** 6 | **Completed:** 0 | **Remaining:** 6
+
+## Implementation Tasks
+
+### Task 1: Research aiter fused_moe Optimization Parameters
+
+**Objective:** Study the aiter `fused_moe` API to identify tunable parameters that could improve performance. Research what top competitors might be doing differently.
+
+**Dependencies:** None
+
+**Steps:**
+1. Search aiter source for `fused_moe` function signature and all parameters
+2. Identify parameters not used in our submission: `expert_mask`, `doweight_stage1`, sorting options
+3. Check if `fused_moe` has config/tuning knobs (block sizes, number of stages, etc.)
+4. Search GPU MODE Discord or GitHub issues for MI355X MoE optimization tips
+5. Study the difference between our E=257 (shared expert) vs E=33 configs — our E=33 configs are proportionally faster
+
+**Definition of Done:**
+- [ ] List of tunable fused_moe parameters documented
+- [ ] Hypothesis for 2-3 optimization approaches
+
+**Verify:** Research findings documented in results.md or plan notes
+
+---
+
+### Task 2: Optimize MoE Kernel (target: top 20)
+
+**Objective:** Improve MoE from 185 us (rank 34/43) to under ~170 us (target top 20). The gap to leader is only 1.28x — parameter tuning may be sufficient.
+
+**Dependencies:** Task 1
+
+**Files:** Modify `kernels/moe-mxfp4/submission.py`
+
+**Optimization ideas (try in order):**
+1. **`doweight_stage1=True`** — applies topk_weights in stage 1 instead of stage 2, potentially reducing memory traffic
+2. **`expert_mask` parameter** — may enable skipping empty experts for better load balancing
+3. **Token sorting** — sort tokens by expert assignment before dispatch to improve memory coalescing
+4. **Shape-specific dispatch** — different parameters for E=257 vs E=33 configs
+5. **Pre-compute shared expert output** — the shared expert (index 256) processes ALL tokens with weight=1.0; computing it as dense GEMM + adding to routed MoE output could be faster
+
+**Workflow per attempt:**
+1. Modify submission.py
+2. `--mode test` (verify correctness, ~2 min)
+3. If passes: `--mode benchmark` (get timing)
+4. If faster: `--mode leaderboard` (official submission)
+5. Record result in results.md
+
+**Definition of Done:**
+- [ ] At least 3 parameter variations tested
+- [ ] Best result submitted to leaderboard
+- [ ] Results documented with timing per config
+
+**Verify:** `popcorn submit --mode leaderboard` with improved timing
+
+---
+
+### Task 3: Tune MLA NUM_KV_SPLITS per Batch Size
+
+**Objective:** The current MLA uses a fixed `NUM_KV_SPLITS=32` for all batch sizes. Smaller batch sizes (bs=4) likely need fewer splits for optimal parallelism, while larger batches (bs=256) might benefit from more.
+
+**Dependencies:** None
+
+**Files:** Modify `kernels/mixed-mla/submission.py`
+
+**Steps:**
+1. Add batch-size-dependent NUM_KV_SPLITS dispatch:
+   - bs=4: try NUM_KV_SPLITS={8, 16} (fewer splits = less reduction overhead)
+   - bs=32: try NUM_KV_SPLITS={16, 32}
+   - bs=64: try NUM_KV_SPLITS={32}
+   - bs=256: try NUM_KV_SPLITS={32, 64}
+2. Submit with `--mode benchmark` to find best per-config splits
+3. Implement the winning configuration as a lookup table
+
+**Definition of Done:**
+- [ ] Tested at least 2 NUM_KV_SPLITS values
+- [ ] Best configuration submitted to leaderboard
+- [ ] Timing improvement documented
+
+**Verify:** `popcorn submit --mode benchmark` shows improvement over 191 us baseline
+
+---
+
+### Task 4: Optimize MLA Kernel (target: top 25)
+
+**Objective:** Beyond NUM_KV_SPLITS tuning, explore deeper optimizations for MLA. Target: break into top 25 (~72 us at rank 15 cluster).
+
+**Dependencies:** Task 3
+
+**Files:** Modify `kernels/mixed-mla/submission.py`
+
+**Optimization ideas (try in order):**
+1. **MXFP4 KV cache** — use `kv_data["mxfp4"]` instead of `kv_data["fp8"]` for 2x bandwidth savings. The input already provides pre-quantized MXFP4 KV data.
+2. **`fast_mode=True`** — the metadata builder has a `fast_mode` option we set to False; try True
+3. **Non-persistent mode for small batches** — persistent mode has overhead; bs=4 might be faster without it
+4. **Tune `kv_granularity`** — currently `max(PAGE_SIZE, 16)`; try 32 or 64
+5. **Pre-allocate output buffer** — move allocation outside timed region if the harness allows
+
+**Definition of Done:**
+- [ ] At least 2 optimization approaches tested
+- [ ] Best result submitted to leaderboard
+- [ ] MLA rank improved from 40/54
+
+**Verify:** `popcorn submit --mode leaderboard` shows rank improvement
+
+---
+
+### Task 5: Fix GEMM JIT Call-Site Issue
+
+**Objective:** Stop delegating to `ref_kernel` (which adds Python overhead). Call `aiter.get_triton_quant` and `aiter.gemm_a4w4` directly from `submission.py` while maintaining correctness.
+
+**Dependencies:** None
+
+**Files:** Modify `kernels/mxfp4-mm/submission.py`
+
+**Known issue:** Calling `aiter.get_triton_quant(QuantType.per_1x32)` from `submission.py` produces different Triton JIT compilations than from `reference.py`, causing ~82% element mismatches at ~1-3% error.
+
+**Fix strategies:**
+1. **Force Triton cache invalidation** — set `TRITON_CACHE_DIR` env var or call `torch.cuda.empty_cache()` before quant
+2. **Use `aiter.get_torch_quant`** instead of `get_triton_quant` — torch-based quantization may be deterministic (reference.py uses it in `generate_input`)
+3. **Import quant function from reference** — `from reference import ref_kernel` works; try importing just the quant function
+4. **Call `get_triton_quant` with explicit kwargs** to match the exact JIT key
+
+**Definition of Done:**
+- [ ] `custom_kernel` calls gemm_a4w4 directly (no ref_kernel delegation)
+- [ ] Passes `--mode test` with 0.0 max error
+- [ ] Benchmark shows improvement over 24 us baseline
+
+**Verify:** `popcorn submit --mode test` passes; benchmark < 20 us
+
+---
+
+### Task 6: Optimize GEMM Kernel (target: top 40)
+
+**Objective:** Once the JIT issue is fixed, optimize the GEMM kernel. Target: match or beat reference baselines (8-20 us range).
+
+**Dependencies:** Task 5
+
+**Files:** Modify `kernels/mxfp4-mm/submission.py`
+
+**Optimization ideas:**
+1. **Shape-dependent routing** — small M (4, 16) vs large M (64, 256) may benefit from different kernel strategies
+2. **Triton GEMM for large M** — aiter has `aiter.ops.triton.gemm.basic.gemm_afp4wfp4` as alternative
+3. **Pre-shuffle optimization** — B is already pre-shuffled in input; verify we're using it efficiently
+4. **Quantization fusion** — try to overlap A quantization with B setup
+
+**Definition of Done:**
+- [ ] At least 2 optimization approaches tested
+- [ ] Best result submitted to leaderboard
+- [ ] GEMM rank improved from 67/68
+
+**Verify:** `popcorn submit --mode leaderboard` shows rank improvement
+
+## Popcorn CLI Reference
+
+```bash
+KERNELS=/home/mike-anderson/dev/cohezion/.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels
+CLI=~/.local/bin/popcorn-cli
+
+# Test → Benchmark → Leaderboard (always in this order)
+$CLI submit --no-tui --mode test --gpu MI355X --leaderboard amd-moe-mxfp4 $KERNELS/moe-mxfp4/submission.py
+$CLI submit --no-tui --mode benchmark --gpu MI355X --leaderboard amd-moe-mxfp4 $KERNELS/moe-mxfp4/submission.py
+$CLI submit --no-tui --mode leaderboard --gpu MI355X --leaderboard amd-moe-mxfp4 $KERNELS/moe-mxfp4/submission.py
+
+$CLI submit --no-tui --mode test --gpu MI355X --leaderboard amd-mixed-mla $KERNELS/mixed-mla/submission.py
+$CLI submit --no-tui --mode test --gpu MI355X --leaderboard amd-mxfp4-mm $KERNELS/mxfp4-mm/submission.py
+```
+
+**Confirmed leaderboard names:** `amd-mxfp4-mm`, `amd-mixed-mla`, `amd-moe-mxfp4`
+
+**No per-user rate limit.** Submit freely. Retry on transient artifact download failures.
+
+## Risks
+
+| Risk | Mitigation |
+|------|------------|
+| MoE gains are marginal (already near reference perf) | Focus on parameter tuning, not algorithmic changes. Even 5% helps. |
+| MLA top entries use custom ASM (unreachable from Python) | Target mid-pack (top 25), not top 3. MXFP4 KV is a realistic 2x win. |
+| GEMM JIT bug has no workaround | Try torch_quant path; worst case stay at ref_kernel delegation. |
+| Slow iteration (~2 min/submit) | Batch optimizations: test multiple params per submission when possible. |
+| Correctness regression from optimization | Always `--mode test` before `--mode benchmark`. |
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/6dca3752-2422-46d7-add9-d63e5c7fa1dc.jsonl
+
+---
+
+# /spec - Unified Spec-Driven Development
+
+**For new features, major changes, and complex work.** Creates a spec, gets your approval, implements with TDD, and verifies completion - all in one continuous flow.
+
+This command is a **dispatcher** that determines which phase to run and invokes it via `Skill()`.
+
+## ⛔ MANDATORY: /spec = Workflow. No Exceptions.
+
+**When `/spec` is invoked, you MUST follow the spec workflow exactly. The user's phrasing after `/spec` is the TASK DESCRIPTION — it is NOT an instruction to change the workflow.**
+
+- `/spec brainstorm a caching layer` → task_description = "brainstorm a caching layer" → invoke `Skill('spec-plan')` with that description
+- `/spec let's discuss auth options` → task_description = "let's discuss auth options" → invoke `Skill('spec-plan')` with that description
+- `/spec explore and plan a new feature` → task_description = "explore and plan a new feature" → invoke `Skill('spec-plan')` with that description
+
+**Words like "brainstorm", "discuss", "explore", "think about" are part of the task description, NOT instructions to skip the workflow.** The spec-plan phase handles all exploration, discussion, and brainstorming within its structured flow.
+
+**NEVER interpret `/spec` arguments as a reason to have a freeform conversation instead of invoking the phase skill.**
+
+---
+
+## 📋 WORKFLOW OVERVIEW
+
+```
+/spec → Dispatcher → Skill('spec-plan')    → Plan, verify, approve
+                   → Skill('spec-implement') → TDD loop for each task
+                   → Skill('spec-verify')    → Tests, execution, code review
+```
+
+| Phase              | Skill            | What Happens                                     |
+| ------------------ | ---------------- | ------------------------------------------------ |
+| **Planning**       | `spec-plan`      | Explore → Design → Write plan → Verify → Approve |
+| **Implementation** | `spec-implement` | TDD loop for each task                           |
+| **Verification**   | `spec-verify`    | Tests → Execution → Rules → Code Review → E2E    |
+
+### Status-Based Flow
+
+```
+PENDING (Not Approved) → spec-plan    → User approves
+PENDING (Approved)     → spec-implement → All tasks done → COMPLETE
+COMPLETE               → spec-verify   → All checks pass → VERIFIED
+VERIFIED               → Done!
+```
+
+### The Feedback Loop
+
+```
+spec-verify finds issues → Status: PENDING → spec-implement fixes → COMPLETE → spec-verify → ... → VERIFIED
+```
+
+---
+
+## 0.1 Parse Arguments
+
+```
+/spec <task-description>           # Start new workflow from task
+/spec <path/to/plan.md>            # Continue existing plan
+/spec --continue <path/to/plan.md> # Resume after session clear
+```
+
+Parse the arguments: docs/plans/2026-03-11-luma-amd-speedrun.md
+
+### Determine Current State
+
+```
+IF arguments start with "--continue":
+    plan_path = extract path after "--continue"
+    1. Read ~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md if it exists
+    2. Delete the continuation file after reading
+    3. Read plan file, check Status AND Approved fields
+    → Dispatch to appropriate phase based on status
+
+ELIF arguments end with ".md" AND file exists:
+    plan_path = arguments
+    → Read plan file, check Status AND Approved fields
+    → Dispatch to appropriate phase based on status
+
+ELSE:
+    task_description = arguments  # ALWAYS treated as task description, regardless of phrasing
+    → Ask worktree question FIRST (see Section 0.1.1 below)
+    → Invoke planning phase with worktree choice: Skill(skill='spec-plan', args='<task_description> --worktree=yes|no')
+    # NEVER have a freeform conversation instead. ALWAYS invoke the Skill.
+```
+
+### 0.1.1 Worktree Question (New Plans Only)
+
+**Before invoking `spec-plan` for a NEW plan, ask the user about worktree isolation:**
+
+```
+AskUserQuestion:
+  question: "Use git worktree isolation for this spec?"
+  header: "Worktree"
+  options:
+    - "Yes" - Isolate work on a dedicated branch; safe to experiment, easy to discard or squash merge
+    - "No" - Work directly on the current branch without worktree isolation
+```
+
+**Append the choice to the spec-plan args:** `Skill(skill='spec-plan', args='<task_description> --worktree=yes')` or `--worktree=no`.
+
+**This question is ONLY asked for new plans.** When continuing an existing plan (`--continue` or `.md` path), the `Worktree:` field is already set in the plan header.
+
+**After reading the plan file, register the plan association (non-blocking):**
+
+```bash
+~/.pilot/bin/pilot register-plan "<plan_path>" "<status>" 2>/dev/null || true
+```
+
+This tells Console which session is working on which plan. Failure is silently ignored.
+
+## 0.2 Status-Based Dispatch
+
+Read the plan file and dispatch based on Status and Approved fields:
+
+| Status   | Approved | Action                                                                                    |
+| -------- | -------- | ----------------------------------------------------------------------------------------- |
+| PENDING  | No       | `Skill(skill='spec-plan', args='<plan-path>')`                                            |
+| PENDING  | Yes      | `Skill(skill='spec-implement', args='<plan-path>')` (worktree if `Worktree: Yes` in plan) |
+| COMPLETE | \*       | `Skill(skill='spec-verify', args='<plan-path>')`                                          |
+| VERIFIED | \*       | Report completion, workflow done                                                          |
+
+**⛔ Phase Transition Context Guard applies before every dispatch (see Section 0.3).**
+
+**Invoke the appropriate Skill immediately. Do not duplicate phase logic here.**
+
+### Report Completion (VERIFIED)
+
+If the plan status is already VERIFIED:
+
+```
+✅ Workflow complete! Plan status: VERIFIED
+
+The plan at <plan-path> has been fully implemented and verified.
+Is there anything else you'd like me to help with?
+```
+
+---
+
+## 0.3 Phase Transition Context Guard
+
+**⛔ MANDATORY: Before EVERY `Skill()` call that transitions to another phase, check context:**
+
+```bash
+~/.pilot/bin/pilot check-context --json
+```
+
+| Percentage | Action                                              |
+| ---------- | --------------------------------------------------- |
+| **< 80%**  | Proceed with phase transition                       |
+| **>= 80%** | **Do NOT invoke the next phase.** Hand off instead. |
+
+Each phase (plan, implement, verify) needs significant context to complete. Starting a new phase above 80% risks overshooting to 100% — the worst-case scenario where all work is lost.
+
+**When >= 80%:** Write continuation file, trigger `send-clear`. The next session dispatches to the correct phase automatically based on plan status.
+
+**This applies to ALL transitions:** plan→implement, implement→verify, verify→implement (feedback loop), and dispatcher→any phase.
+
+---
+
+## 0.4 Context Management (90% Handoff)
+
+After each major operation, check context:
+
+```bash
+~/.pilot/bin/pilot check-context --json
+```
+
+**Between iterations:**
+
+1. If context >= 90%: hand off cleanly (don't rush!)
+2. If context 80-89%: continue but wrap up current task with quality
+3. If context < 80%: continue the loop freely
+
+If response shows `"status": "CLEAR_NEEDED"` (context >= 90%):
+
+**⚠️ CRITICAL: Execute ALL steps below in a SINGLE turn. DO NOT stop or wait for user response between steps.**
+
+**Step 1: Write continuation file (GUARANTEED BACKUP)**
+
+Write to `~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md`:
+
+```markdown
+# Session Continuation (/spec)
+
+**Plan:** <plan-path>
+**Phase:** [planning|implementation|verification]
+**Current Task:** Task N - [description]
+
+**Completed This Session:**
+
+- [x] [What was finished]
+
+**Next Steps:**
+
+1. [What to do immediately when resuming]
+
+**Context:**
+
+- [Key decisions or blockers]
+```
+
+**Step 2: Trigger session clear**
+
+```bash
+~/.pilot/bin/pilot send-clear <plan-path>
+```
+
+Pilot will restart with `/spec --continue <plan-path>`
+
+### Error Handling
+
+**No Active Session:** If `send-clear` fails, tell user: "Context at X%. Please run `/clear` manually, then `/spec --continue <plan-path>`"
+
+**Plan File Not Found:** Tell user: "Plan file not found: <path>" and ask if they want to create a new plan.
+
+---
+
+## 0.5 Rules Summary (Quick Reference)
+
+| #   | Rule                                                                                                                                                                                                                                                             |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **NO sub-agents except verification** - Phases 1 and 2 use direct tools only. Verification steps (Step 1.7, Step 3.0/3.5) launch paired review agents via the **Task tool** (`subagent_type="pilot:*"`). Task tool is the ONLY allowed mechanism for sub-agents. |
+| 2   | **NEVER SKIP verification** - Plan verification (Step 1.7) and Code verification (Step 3.5) are mandatory. No exceptions.                                                                                                                                        |
+| 3   | **ONLY stopping point is plan approval** - Everything else is automatic. Never ask "Should I fix these?"                                                                                                                                                         |
+| 4   | **Batch questions together** - Don't interrupt user flow                                                                                                                                                                                                         |
+| 5   | **Run explorations sequentially** - One at a time, never in parallel                                                                                                                                                                                             |
+| 6   | **NEVER write code during planning** - Separate phases                                                                                                                                                                                                           |
+| 7   | **NEVER assume - verify by reading files**                                                                                                                                                                                                                       |
+| 8   | **Re-read plan after user edits** - Before asking for approval again                                                                                                                                                                                             |
+| 9   | **TDD is MANDATORY** - No production code without failing test first                                                                                                                                                                                             |
+| 10  | **Update plan checkboxes after EACH task** - Not at the end                                                                                                                                                                                                      |
+| 11  | **Quality over speed** - Never rush due to context pressure. But at 90%+ context, handoff overrides everything - do NOT start new fix cycles                                                                                                                     |
+| 12  | **Plan file is source of truth** - Survives session clears                                                                                                                                                                                                       |
+| 13  | **Phase Transition Context Guard** - Check context before EVERY phase transition. If >= 80%, hand off instead of starting next phase (Section 0.3)                                                                                                               |
+
+ARGUMENTS: docs/plans/2026-03-11-luma-amd-speedrun.md
+
+---
+
+Do some deep research first for solutions.  Ignore anything related to cz
+
+---
+
+I need to see the plan first
+
+---
+
+[Request interrupted by user for tool use]
