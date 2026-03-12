@@ -23,3 +23,6 @@
     - [x] Sub-task: Write end-to-end simulation step test (mocked DB).
     - [x] Sub-task: Implement the `step(dt)` method.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Engine Initialization' (Protocol in workflow.md)
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions 889e83f
