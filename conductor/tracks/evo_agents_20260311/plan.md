@@ -1,0 +1,25 @@
+# Implementation Plan: Sovereign EVO Agents & The Reward/Ratchet System
+
+## Phase 1: EVO Agent Architecture
+- [ ] Task: Define the `EVOAgent` base class.
+    - [ ] Sub-task: Write unit tests for agent initialization and state management.
+    - [ ] Sub-task: Implement the agent class with hooks for the TriuneState and FLUME VAE.
+- [ ] Task: Implement the Agent Execution Loop.
+    - [ ] Sub-task: Write tests mocking the `TriuneSimulationEngine` interaction.
+    - [ ] Sub-task: Implement the `act()` method that transitions the manifold state.
+- [ ] Task: Conductor - User Manual Verification 'Phase 1: EVO Agent Architecture' (Protocol in workflow.md)
+
+## Phase 2: Reward & Ratchet System
+- [ ] Task: Implement the `RewardCalculator`.
+    - [ ] Sub-task: Write unit tests for scoring logic based on the 0.5 Coherence Rule.
+    - [ ] Sub-task: Implement the scoring algorithm balancing coherence and token efficiency.
+- [ ] Task: Implement the `RatchetMechanism`.
+    - [ ] Sub-task: Write tests verifying state is locked/persisted when a high score is achieved.
+    - [ ] Sub-task: Implement the ratchet logic connecting to the persistence layer.
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: Reward & Ratchet System' (Protocol in workflow.md)
+
+## Phase 3: Integration & Ascension
+- [ ] Task: Integrate Reward and Ratchet into the EVO Agent lifecycle.
+    - [ ] Sub-task: Write integration tests for a complete task-reward-ratchet cycle.
+    - [ ] Sub-task: Wire the components together in the agent's main processing loop.
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Integration & Ascension' (Protocol in workflow.md)
