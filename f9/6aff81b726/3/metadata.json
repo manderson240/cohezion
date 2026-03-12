@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "f96aff81b726",
+  "session_id": "f5e8f3ee-3674-4a7d-bb9b-e91e4b6ce0c5",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-12T11:11:27.139777372Z",
+  "branch": "challenge-luma-cqq4mojz",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "tests/conftest.py",
+    "tests/research/test_research_comprehensive.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "b29d4c466687",
+  "checkpoint_transcript_start": 1196,
+  "transcript_lines_at_start": 1196,
+  "token_usage": {
+    "input_tokens": 64,
+    "cache_creation_tokens": 89197,
+    "cache_read_tokens": 687093,
+    "output_tokens": 2886,
+    "api_call_count": 9
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-12T11:11:26.472629964Z",
+    "agent_lines": 33,
+    "human_added": 1250,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 1283,
+    "agent_percentage": 2.5720966484801244
+  }
+}
