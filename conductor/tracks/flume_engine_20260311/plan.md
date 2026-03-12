@@ -18,8 +18,8 @@
     - [x] Sub-task: Implement the distance-based similarity metric.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Latent Space Navigation' (Protocol in workflow.md)
 
-## Phase 3: Hugging Face Integration
-- [ ] Task: Implement the `HFEmbeddingBridge`.
-    - [ ] Sub-task: Write tests for fetching models from Hugging Face Hub (mocked).
-    - [ ] Sub-task: Implement the bridge to convert HF embeddings to Flume input.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Hugging Face Integration' (Protocol in workflow.md)
+## Phase 3: Hugging Face Integration (Commit: 428f81d)
+- [x] Task: Implement the `HFEmbeddingBridge`.
+    - [x] Sub-task: Write tests for fetching models from Hugging Face Hub (mocked).
+    - [x] Sub-task: Implement the bridge to convert HF embeddings to Flume input.
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Hugging Face Integration' (Protocol in workflow.md)

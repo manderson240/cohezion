@@ -174,9 +174,11 @@ def normalize_text(text: str) -> str:
     - Remove extra spaces between characters
     - Convert leet speak to normal text
     - Collapse multiple spaces
-    - Remove zero-width characters
+    - Remove zero-width and other hidden characters
     """
-    # Remove zero-width characters
+    # Remove zero-width characters and other non-printable unicode
+    # \u200b (ZWSP), \u200c (ZWNJ), \u200d (ZWJ), \ufeff (BOM)
+    text = re.sub(r"[\u200b-\u200d\ufeff]", "", text)
     text = "".join(c for c in text if ord(c) > 31 or c in "\n\t")
 
     # Detect and fix space-padded text (e.g., "i g n o r e")
