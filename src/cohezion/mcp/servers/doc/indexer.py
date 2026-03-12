@@ -221,9 +221,10 @@ class SimpleSurrealStore:
 
     async def connect(self):
         """Connect to SurrealDB."""
-        from surrealdb import Surreal
+        from surrealdb import AsyncSurreal
 
-        self._client = Surreal(self.url)
+        self._client = AsyncSurreal(self.url)
+        await self._client.connect()
         await self._client.use(self.namespace, self.database)
         logger.info(f"Connected to SurrealDB: {self.url}")
 

@@ -96,18 +96,17 @@ Monitor compound system metrics, detect optimization opportunities, run experime
 ### Integration Points
 
 ```python
-# Entry: CompoundExecutor detects opportunity
-from cohezion.compound.core.executor import CompoundExecutor
+from cohezion.research import ResearchSquad, integrate_with_compound_system
 
-# Research Squad activation
-squad = ResearchSquad()
-squad.optimize_target("skill_name", trigger_metrics)
+# Create integrated squad with cost controls
+squad = integrate_with_compound_system()
 
-# Exit: Refinement applied via SkillRefiner
-from cohezion.compound.skill_refiner import SkillRefiner
+# Optimize a degraded skill
+result = squad.optimize_skill("skill_name", baseline_metric=0.45)
 
-refiner = SkillRefiner()
-refiner.refine_skill("skill_name", research_findings)
+# Apply refinement if improvement significant
+if result.optimized:
+    squad.apply_refinement(result)
 ```
 
 ### Safety Controls
@@ -131,14 +130,17 @@ Before applying any refinement:
 
 ```python
 # Automatic activation from degradation signal
+from cohezion.research import ResearchSquad
+from cohezion.research.cost_optimization import CostBudget
+
 if metrics.coherence < 0.5:
-    squad = ResearchSquad()
-    result = squad.optimize_coherence(
-        target_skill="coding",
-        budget=CostBudget(max_cost_usd=10.0)
-    )
-    if result.improved:
-        print(f"Coherence improved: {result.before:.2f} -> {result.after:.2f}")
+    squad = ResearchSquad(cost_budget=CostBudget(max_cost_usd=10.0))
+    signal = squad.detect_degradation("coding", {"coherence": metrics.coherence})
+    if signal:
+        result = squad.optimize_skill("coding", signal.current_value)
+        if result.optimized:
+            squad.apply_refinement(result)
+            print(f"Improved: {result.before_metric:.2f} -> {result.after_metric:.2f}")
 ```
 
 **Version:** 1.0.0
