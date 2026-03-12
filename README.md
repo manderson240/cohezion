@@ -6,27 +6,48 @@
 
 **Training environments, evaluation systems, and ML infrastructure for agentic AI operating in simulated universes.**
 
-## 🚀 TokenEfficientSquad Production System
+## 🚀 TokenEfficientSquad Beta System
 
-**NEW**: Unified skill optimization with context-aware multi-metric scoring.
-- ✅ **12 skills optimized** (100% success rate)
-- ✅ **12.4% token efficiency** (excellent)
-- ✅ **83% optimization success rate**
-- ✅ **Production ready**
+**BETA**: Unified skill optimization framework with context-aware multi-metric scoring.
+
+### Current Status
+- ✅ **Core optimization**: Working (12 skills validated)
+- ⚠️ **Multi-metric scoring**: Simulated (calculated post-optimization)
+- ⚠️ **Live integration**: Pending (CompoundExecutor integration not yet complete)
+- ✅ **Configuration validation**: Comprehensive
+- ✅ **Error handling**: Robust with retries and rollback
+
+### Metrics
+- **12 skills tested**: 10 optimized, 2 healthy
+- **Token efficiency**: ~12-17% (simulated)
+- **Success rate**: 83% (10/12 optimized)
+- **Tests passing**: 946/947 (99.9%)
 
 ### Quick Start
 ```bash
-# Run complete optimization
-uv run python3 production_scheduler.py --mode full
-
-# Validate system
+# Run validation (simulated mode)
 uv run python3 production_scheduler.py --mode validate
 
-# Deploy to production
+# Run full optimization
+uv run python3 production_scheduler.py --mode full
+
+# Deploy (sets up cron)
 ./deploy_production.sh
 ```
 
-**📊 Validation Report**: See `PRODUCTION_VALIDATION.md` for complete results.
+### Important Notes
+⚠️ **Currently runs in simulation mode** - Results are from ResearchAgent simulation, not live CompoundExecutor execution.
+
+**📊 Full Report**: See `PRODUCTION_VALIDATION.md` for detailed results.
+**🔍 Code Review**: See adversarial review notes in docstrings.
+
+### Roadmap to Production
+1. ✅ Core optimization validated
+2. ✅ Configuration system robust
+3. ✅ Error handling complete
+4. 🔄 Live CompoundExecutor integration (next phase)
+5. 🔄 Real-time multi-metric tracking (next phase)
+6. 🔄 Production alerting (next phase)
 
 Cohezion is a framework for building and evaluating autonomous agents that perform long-horizon tasks within a 12-dimensional simulated universe. Agents navigate continuous latent spaces, coordinate in multi-agent swarms, and are evaluated through trajectory-based coherence metrics — all within sandboxed, reproducible environments.
 
