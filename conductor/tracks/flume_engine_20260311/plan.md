@@ -23,3 +23,6 @@
     - [x] Sub-task: Write tests for fetching models from Hugging Face Hub (mocked).
     - [x] Sub-task: Implement the bridge to convert HF embeddings to Flume input.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Hugging Face Integration' (Protocol in workflow.md)
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions f79a1ba
