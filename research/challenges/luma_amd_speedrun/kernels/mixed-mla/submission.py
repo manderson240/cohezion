@@ -1,10 +1,10 @@
 """
-MLA decode kernel optimized for AMD MI355X.
+MLA decode — Phase 2: MXFP4 KV cache test (clean version).
 
-Strategy: Use aiter's mla_decode_fwd persistent-mode kernel with fp8 Q + fp8 KV.
-This matches the reference approach (2-3x faster than naive torch attention).
-Future improvement: MXFP4 KV cache for 2x additional bandwidth savings.
+Tests whether mla_decode_fwd supports MXFP4 (fp4x2) KV cache dtype.
+No CSV dump this time — just the MXFP4 attempt with clear diagnostics.
 """
+import sys
 import torch
 from task import input_t, output_t
 from aiter import dtypes as aiter_dtypes
@@ -13,18 +13,16 @@ from aiter import get_mla_metadata_info_v1, get_mla_metadata_v1
 
 FP8_DTYPE = aiter_dtypes.fp8
 
-# MLA constants (DeepSeek R1 forward_absorb)
 NUM_KV_HEADS = 1
 KV_LORA_RANK = 512
 QK_HEAD_DIM = 576
-V_HEAD_DIM = KV_LORA_RANK       # 512
+V_HEAD_DIM = KV_LORA_RANK
 SM_SCALE = 1.0 / (QK_HEAD_DIM ** 0.5)
 PAGE_SIZE = 1
 NUM_KV_SPLITS = 32
 
 
 def quantize_fp8(tensor: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-    """Dynamic per-tensor FP8 quantization."""
     finfo = torch.finfo(FP8_DTYPE)
     amax = tensor.abs().amax().clamp(min=1e-12)
     scale = amax / finfo.max
@@ -33,17 +31,10 @@ def quantize_fp8(tensor: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
 
 
 def _build_metadata(
-    batch_size: int,
-    max_q_len: int,
-    nhead: int,
-    nhead_kv: int,
-    q_dtype: torch.dtype,
-    kv_dtype: torch.dtype,
-    qo_indptr: torch.Tensor,
-    kv_indptr: torch.Tensor,
-    kv_last_page_len: torch.Tensor,
+    batch_size, max_q_len, nhead, nhead_kv,
+    q_dtype, kv_dtype,
+    qo_indptr, kv_indptr, kv_last_page_len,
 ):
-    """Build persistent-mode metadata for mla_decode_fwd."""
     info = get_mla_metadata_info_v1(
         batch_size, max_q_len, nhead, q_dtype, kv_dtype,
         is_sparse=False, fast_mode=False,
@@ -55,9 +46,7 @@ def _build_metadata(
 
     get_mla_metadata_v1(
         qo_indptr, kv_indptr, kv_last_page_len,
-        nhead // nhead_kv,
-        nhead_kv,
-        True,  # is_causal
+        nhead // nhead_kv, nhead_kv, True,
         work_metadata, work_info_set, work_indptr,
         reduce_indptr, reduce_final_map, reduce_partial_map,
         page_size=PAGE_SIZE,
@@ -70,7 +59,6 @@ def _build_metadata(
         dtype_q=q_dtype,
         dtype_kv=kv_dtype,
     )
-
     return {
         "work_meta_data": work_metadata,
         "work_indptr": work_indptr,
@@ -81,9 +69,7 @@ def _build_metadata(
     }
 
 
-def custom_kernel(data: input_t) -> output_t:
-    q, kv_data, qo_indptr, kv_indptr, config = data
-
+def _run_mla(q_input, q_scale, kv_buffer, kv_scale, qo_indptr, kv_indptr, config):
     batch_size = config["batch_size"]
     nq = config["num_heads"]
     nkv = config["num_kv_heads"]
@@ -91,53 +77,56 @@ def custom_kernel(data: input_t) -> output_t:
     dv = config["v_head_dim"]
     q_seq_len = config["q_seq_len"]
 
-    # Quantize Q to fp8
-    q_fp8, q_scale = quantize_fp8(q)
-
-    # Use fp8 KV cache (pre-quantized in generate_input)
-    kv_buffer_fp8, kv_scale_fp8 = kv_data["fp8"]
-
-    # Build KV indices (contiguous pages)
     total_kv_len = int(kv_indptr[-1].item())
     kv_indices = torch.arange(total_kv_len, dtype=torch.int32, device="cuda")
 
-    # Reshape kv_buffer to 4D: (total_kv, page_size, nhead_kv, dim)
-    kv_buffer_4d = kv_buffer_fp8.view(
-        kv_buffer_fp8.shape[0], PAGE_SIZE, nkv, kv_buffer_fp8.shape[-1]
-    )
+    kv_4d = kv_buffer.view(kv_buffer.shape[0], PAGE_SIZE, nkv, kv_buffer.shape[-1])
 
     max_q_len = q_seq_len
     kv_last_page_len = (kv_indptr[1:] - kv_indptr[:-1]).to(torch.int32)
 
-    # Build persistent-mode metadata
     meta = _build_metadata(
         batch_size, max_q_len, nq, nkv,
-        q_fp8.dtype, kv_buffer_fp8.dtype,
+        q_input.dtype, kv_buffer.dtype,
         qo_indptr, kv_indptr, kv_last_page_len,
     )
 
-    # Allocate output
-    o = torch.empty((q.shape[0], nq, dv), dtype=torch.bfloat16, device="cuda")
+    o = torch.empty((q_input.shape[0], nq, dv), dtype=torch.bfloat16, device="cuda")
 
-    # Run aiter persistent-mode MLA decode
     mla_decode_fwd(
-        q_fp8.view(-1, nq, dq),
-        kv_buffer_4d,
-        o,
-        qo_indptr,
-        kv_indptr,
-        kv_indices,
-        kv_last_page_len,
+        q_input.view(-1, nq, dq),
+        kv_4d, o,
+        qo_indptr, kv_indptr, kv_indices, kv_last_page_len,
         max_q_len,
-        page_size=PAGE_SIZE,
-        nhead_kv=nkv,
-        sm_scale=SM_SCALE,
-        logit_cap=0.0,
+        page_size=PAGE_SIZE, nhead_kv=nkv,
+        sm_scale=SM_SCALE, logit_cap=0.0,
         num_kv_splits=NUM_KV_SPLITS,
-        q_scale=q_scale,
-        kv_scale=kv_scale_fp8,
+        q_scale=q_scale, kv_scale=kv_scale,
         intra_batch_mode=True,
         **meta,
     )
-
     return o
+
+
+def custom_kernel(data: input_t) -> output_t:
+    q, kv_data, qo_indptr, kv_indptr, config = data
+    q_fp8, q_scale = quantize_fp8(q)
+
+    # Try MXFP4 KV path (4-bit = 2x less bandwidth)
+    if "mxfp4" in kv_data:
+        try:
+            kv_mxfp4, kv_scale_mxfp4 = kv_data["mxfp4"]
+            print(f"MXFP4_KV_INFO: kv_shape={kv_mxfp4.shape}, kv_dtype={kv_mxfp4.dtype}, "
+                  f"scale_shape={kv_scale_mxfp4.shape}, scale_dtype={kv_scale_mxfp4.dtype}",
+                  file=sys.stderr)
+            out = _run_mla(q_fp8, q_scale, kv_mxfp4, kv_scale_mxfp4,
+                           qo_indptr, kv_indptr, config)
+            print("MXFP4_KV_SUCCESS", file=sys.stderr)
+            return out
+        except Exception as e:
+            print(f"MXFP4_KV_FAIL: {type(e).__name__}: {e}", file=sys.stderr)
+
+    # Fallback: fp8 KV (current known-working approach)
+    kv_buffer_fp8, kv_scale_fp8 = kv_data["fp8"]
+    return _run_mla(q_fp8, q_scale, kv_buffer_fp8, kv_scale_fp8,
+                    qo_indptr, kv_indptr, config)
