@@ -1,0 +1,1342 @@
+Where's the vault agent?  We need to handle our inbox.
+
+---
+
+Tool loaded.
+
+---
+
+Tool loaded.
+
+---
+
+Base directory for this skill: /home/mike-anderson/vaults/cohezion-vault/.claude/skills/triage
+
+# Triage Inbox Notes
+
+Process notes from `inbox/` into their permanent homes — researching topics, adding structure, applying frontmatter, and creating cross-links.
+
+## Usage
+
+```
+/triage [options]
+```
+
+- `/triage` — Process all inbox notes
+- `/triage inbox/note-name.md` — Process a specific note
+- `/triage --dry-run` — Show what would happen without making changes
+
+## Execution Steps
+
+### 1. Scan Inbox
+
+```bash
+ls -la inbox/*.md 2>/dev/null
+```
+
+List all notes with their sizes. Skip non-markdown files.
+
+### 2. For Each Note, Classify
+
+Read the note content and determine:
+
+| Classification | Target Directory | Criteria |
+|---------------|-----------------|----------|
+| **Concept** | `concepts/` | Defines a term, idea, or technology |
+| **Paper/Research** | `papers/` | Summarizes research, findings, or external source |
+| **Decision** | `decisions/` | Records an architectural or strategic choice |
+| **Pattern** | `patterns/` | Describes a reusable solution to a problem |
+| **Experiment** | `experiments/` | Documents a hypothesis test or trial |
+| **Project** | `projects/` | Tracks ongoing work or initiative |
+| **Discard** | (delete) | Empty, duplicate, or no longer relevant |
+
+If classification is ambiguous, ask the user.
+
+### 3. Research and Expand
+
+For each note being triaged:
+
+1. **Read existing content** — Understand what the user captured
+2. **Research the topic** — Use WebSearch to find authoritative information
+3. **Write structured content** following the target directory's template:
+   - Concepts: Definition, Key Properties, Examples, Related
+   - Papers: Summary, Key Findings, Methodology, Implications
+   - Decisions: Context, Decision, Consequences, Alternatives
+   - Patterns: Problem, Solution, Code Example, When to Use
+4. **Preserve user's original notes** — Incorporate their observations, don't overwrite
+5. **Add Primary Sources** — Include real URLs from research
+
+### 4. Build Frontmatter
+
+Apply the target directory's required fields:
+
+```yaml
+---
+title: "Properly Cased Title"
+date: YYYY-MM-DD  # use original date if present, otherwise today
+status: active    # for decisions/experiments/projects
+tags: [type-tag, domain-tag1, domain-tag2]
+related_concepts: [concept1, concept2]  # for concept notes
+---
+```
+
+**Tag rules:**
+- Check existing vault tags first: `grep -roh 'tags: \[.*\]' concepts/ papers/ | sort -u`
+- Reuse established tags where possible
+- Tags must be YAML arrays
+
+### 5. Generate Filename
+
+- Slugify the title: lowercase, hyphens, no special chars
+- Add date prefix for temporal notes (decisions, experiments, projects)
+- Check for filename collisions
+
+### 6. Find and Add Links
+
+Before moving the note:
+
+1. Search vault for related notes by topic/tags
+2. Add `[[wiki-links]]` to Related sections in the new note
+3. Add backlinks in related notes pointing to the new note
+
+### 7. Move the Note
+
+1. Write the structured note to the target directory
+2. Delete the original from `inbox/`
+3. Verify the file exists in its new location
+
+### 8. Report
+
+```markdown
+## Triage Report
+
+| Inbox Note | Action | Destination | Links Added |
+|------------|--------|-------------|-------------|
+| note-1.md | Moved | concepts/topic.md | 4 |
+| note-2.md | Moved | papers/research.md | 3 |
+| note-3.md | Discarded | — | — |
+
+**Processed:** X notes
+**Moved:** Y notes
+**Discarded:** Z notes
+**Links created:** N bidirectional pairs
+```
+
+## Batch Processing
+
+When processing multiple inbox notes:
+
+1. Classify all notes first (show the plan)
+2. Process in order: concepts first (they're link targets), then papers, then decisions
+3. This ordering maximizes bidirectional linking opportunities
+
+## Quality Checks
+
+Before marking triage complete:
+
+- [ ] All frontmatter is valid YAML with array tags
+- [ ] No duplicate notes in target directory
+- [ ] At least 2-3 wiki-links added per note
+- [ ] Content is substantive (not just a stub)
+- [ ] Original inbox note is deleted
+- [ ] Backlinks added in related notes
+
+## Notes
+
+- Preserve the user's original insight/observation — it's the seed
+- Research supplements the user's note, doesn't replace it
+- If a note is too vague to classify, ask the user before guessing
+- Empty inbox notes (just a title) should be treated as concept stubs — research and expand
+- The goal is zero inbox — all notes processed and properly filed
+
+
+ARGUMENTS: inbox/fresh-assessment-2026-03-05.md inbox/insight-2026-03-05-evening.md inbox/assessment-late-2026-03-05.md
+
+---
+
+Tool loaded.
+
+---
+
+Maybe you can analyze the vault yourself now with a team of specialists and decide how we should proceed forward.
+
+---
+
+Tool loaded.
+
+---
+
+And everytime we try to run out simulations we run into OOM errors and the system crashes.
+
+---
+
+It's the overnight simulation on feat/flume-vae-clean
+
+---
+
+the overnight driver with local models.  Not handled properly at all.
+
+---
+
+and run mass sim
+
+---
+
+# /spec - Unified Spec-Driven Development
+
+**For new features, major changes, and complex work.** Creates a spec, gets your approval, implements with TDD, and verifies completion - all in one continuous flow.
+
+This command is a **dispatcher** that determines which phase to run and invokes it via `Skill()`.
+
+## ⛔ MANDATORY: /spec = Workflow. No Exceptions.
+
+**When `/spec` is invoked, you MUST follow the spec workflow exactly. The user's phrasing after `/spec` is the TASK DESCRIPTION — it is NOT an instruction to change the workflow.**
+
+- `/spec brainstorm a caching layer` → task_description = "brainstorm a caching layer" → invoke `Skill('spec-plan')` with that description
+- `/spec let's discuss auth options` → task_description = "let's discuss auth options" → invoke `Skill('spec-plan')` with that description
+- `/spec explore and plan a new feature` → task_description = "explore and plan a new feature" → invoke `Skill('spec-plan')` with that description
+
+**Words like "brainstorm", "discuss", "explore", "think about" are part of the task description, NOT instructions to skip the workflow.** The spec-plan phase handles all exploration, discussion, and brainstorming within its structured flow.
+
+**NEVER interpret `/spec` arguments as a reason to have a freeform conversation instead of invoking the phase skill.**
+
+---
+
+## 📋 WORKFLOW OVERVIEW
+
+```
+/spec → Dispatcher → Skill('spec-plan')    → Plan, verify, approve
+                   → Skill('spec-implement') → TDD loop for each task
+                   → Skill('spec-verify')    → Tests, execution, code review
+```
+
+| Phase              | Skill            | What Happens                                     |
+| ------------------ | ---------------- | ------------------------------------------------ |
+| **Planning**       | `spec-plan`      | Explore → Design → Write plan → Verify → Approve |
+| **Implementation** | `spec-implement` | TDD loop for each task                           |
+| **Verification**   | `spec-verify`    | Tests → Execution → Rules → Code Review → E2E    |
+
+### Status-Based Flow
+
+```
+PENDING (Not Approved) → spec-plan    → User approves
+PENDING (Approved)     → spec-implement → All tasks done → COMPLETE
+COMPLETE               → spec-verify   → All checks pass → VERIFIED
+VERIFIED               → Done!
+```
+
+### The Feedback Loop
+
+```
+spec-verify finds issues → Status: PENDING → spec-implement fixes → COMPLETE → spec-verify → ... → VERIFIED
+```
+
+---
+
+## 0.1 Parse Arguments
+
+```
+/spec <task-description>           # Start new workflow from task
+/spec <path/to/plan.md>            # Continue existing plan
+/spec --continue <path/to/plan.md> # Resume after session clear
+```
+
+Parse the arguments: 
+
+### Determine Current State
+
+```
+IF arguments start with "--continue":
+    plan_path = extract path after "--continue"
+    1. Read ~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md if it exists
+    2. Delete the continuation file after reading
+    3. Read plan file, check Status AND Approved fields
+    → Dispatch to appropriate phase based on status
+
+ELIF arguments end with ".md" AND file exists:
+    plan_path = arguments
+    → Read plan file, check Status AND Approved fields
+    → Dispatch to appropriate phase based on status
+
+ELSE:
+    task_description = arguments  # ALWAYS treated as task description, regardless of phrasing
+    → Ask worktree question FIRST (see Section 0.1.1 below)
+    → Invoke planning phase with worktree choice: Skill(skill='spec-plan', args='<task_description> --worktree=yes|no')
+    # NEVER have a freeform conversation instead. ALWAYS invoke the Skill.
+```
+
+### 0.1.1 Worktree Question (New Plans Only)
+
+**Before invoking `spec-plan` for a NEW plan, ask the user about worktree isolation:**
+
+```
+AskUserQuestion:
+  question: "Use git worktree isolation for this spec?"
+  header: "Worktree"
+  options:
+    - "Yes" - Isolate work on a dedicated branch; safe to experiment, easy to discard or squash merge
+    - "No" - Work directly on the current branch without worktree isolation
+```
+
+**Append the choice to the spec-plan args:** `Skill(skill='spec-plan', args='<task_description> --worktree=yes')` or `--worktree=no`.
+
+**This question is ONLY asked for new plans.** When continuing an existing plan (`--continue` or `.md` path), the `Worktree:` field is already set in the plan header.
+
+**After reading the plan file, register the plan association (non-blocking):**
+
+```bash
+~/.pilot/bin/pilot register-plan "<plan_path>" "<status>" 2>/dev/null || true
+```
+
+This tells Console which session is working on which plan. Failure is silently ignored.
+
+## 0.2 Status-Based Dispatch
+
+Read the plan file and dispatch based on Status and Approved fields:
+
+| Status   | Approved | Action                                                                                    |
+| -------- | -------- | ----------------------------------------------------------------------------------------- |
+| PENDING  | No       | `Skill(skill='spec-plan', args='<plan-path>')`                                            |
+| PENDING  | Yes      | `Skill(skill='spec-implement', args='<plan-path>')` (worktree if `Worktree: Yes` in plan) |
+| COMPLETE | \*       | `Skill(skill='spec-verify', args='<plan-path>')`                                          |
+| VERIFIED | \*       | Report completion, workflow done                                                          |
+
+**⛔ Phase Transition Context Guard applies before every dispatch (see Section 0.3).**
+
+**Invoke the appropriate Skill immediately. Do not duplicate phase logic here.**
+
+### Report Completion (VERIFIED)
+
+If the plan status is already VERIFIED:
+
+```
+✅ Workflow complete! Plan status: VERIFIED
+
+The plan at <plan-path> has been fully implemented and verified.
+Is there anything else you'd like me to help with?
+```
+
+---
+
+## 0.3 Phase Transition Context Guard
+
+**⛔ MANDATORY: Before EVERY `Skill()` call that transitions to another phase, check context:**
+
+```bash
+~/.pilot/bin/pilot check-context --json
+```
+
+| Percentage | Action                                              |
+| ---------- | --------------------------------------------------- |
+| **< 80%**  | Proceed with phase transition                       |
+| **>= 80%** | **Do NOT invoke the next phase.** Hand off instead. |
+
+Each phase (plan, implement, verify) needs significant context to complete. Starting a new phase above 80% risks overshooting to 100% — the worst-case scenario where all work is lost.
+
+**When >= 80%:** Write continuation file, trigger `send-clear`. The next session dispatches to the correct phase automatically based on plan status.
+
+**This applies to ALL transitions:** plan→implement, implement→verify, verify→implement (feedback loop), and dispatcher→any phase.
+
+---
+
+## 0.4 Context Management (90% Handoff)
+
+After each major operation, check context:
+
+```bash
+~/.pilot/bin/pilot check-context --json
+```
+
+**Between iterations:**
+
+1. If context >= 90%: hand off cleanly (don't rush!)
+2. If context 80-89%: continue but wrap up current task with quality
+3. If context < 80%: continue the loop freely
+
+If response shows `"status": "CLEAR_NEEDED"` (context >= 90%):
+
+**⚠️ CRITICAL: Execute ALL steps below in a SINGLE turn. DO NOT stop or wait for user response between steps.**
+
+**Step 1: Write continuation file (GUARANTEED BACKUP)**
+
+Write to `~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md`:
+
+```markdown
+# Session Continuation (/spec)
+
+**Plan:** <plan-path>
+**Phase:** [planning|implementation|verification]
+**Current Task:** Task N - [description]
+
+**Completed This Session:**
+
+- [x] [What was finished]
+
+**Next Steps:**
+
+1. [What to do immediately when resuming]
+
+**Context:**
+
+- [Key decisions or blockers]
+```
+
+**Step 2: Trigger session clear**
+
+```bash
+~/.pilot/bin/pilot send-clear <plan-path>
+```
+
+Pilot will restart with `/spec --continue <plan-path>`
+
+### Error Handling
+
+**No Active Session:** If `send-clear` fails, tell user: "Context at X%. Please run `/clear` manually, then `/spec --continue <plan-path>`"
+
+**Plan File Not Found:** Tell user: "Plan file not found: <path>" and ask if they want to create a new plan.
+
+---
+
+## 0.5 Rules Summary (Quick Reference)
+
+| #   | Rule                                                                                                                                                                                                                                                             |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **NO sub-agents except verification** - Phases 1 and 2 use direct tools only. Verification steps (Step 1.7, Step 3.0/3.5) launch paired review agents via the **Task tool** (`subagent_type="pilot:*"`). Task tool is the ONLY allowed mechanism for sub-agents. |
+| 2   | **NEVER SKIP verification** - Plan verification (Step 1.7) and Code verification (Step 3.5) are mandatory. No exceptions.                                                                                                                                        |
+| 3   | **ONLY stopping point is plan approval** - Everything else is automatic. Never ask "Should I fix these?"                                                                                                                                                         |
+| 4   | **Batch questions together** - Don't interrupt user flow                                                                                                                                                                                                         |
+| 5   | **Run explorations sequentially** - One at a time, never in parallel                                                                                                                                                                                             |
+| 6   | **NEVER write code during planning** - Separate phases                                                                                                                                                                                                           |
+| 7   | **NEVER assume - verify by reading files**                                                                                                                                                                                                                       |
+| 8   | **Re-read plan after user edits** - Before asking for approval again                                                                                                                                                                                             |
+| 9   | **TDD is MANDATORY** - No production code without failing test first                                                                                                                                                                                             |
+| 10  | **Update plan checkboxes after EACH task** - Not at the end                                                                                                                                                                                                      |
+| 11  | **Quality over speed** - Never rush due to context pressure. But at 90%+ context, handoff overrides everything - do NOT start new fix cycles                                                                                                                     |
+| 12  | **Plan file is source of truth** - Survives session clears                                                                                                                                                                                                       |
+| 13  | **Phase Transition Context Guard** - Check context before EVERY phase transition. If >= 80%, hand off instead of starting next phase (Section 0.3)                                                                                                               |
+
+ARGUMENTS:
+
+---
+
+Tool loaded.
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   - **Initial**: Process vault inbox items (3 notes awaiting triage)
+   - **Second**: Analyze the vault comprehensively with specialist agents and recommend how to proceed forward
+   - **Third**: Investigate and fix OOM errors when running simulations — specifically the overnight simulation on `feat/flume-vae-clean` branch, and the mass simulation pipeline
+   - **Fourth**: User confirmed both the overnight driver (with local Ollama models) and run_mass_sim fail miserably with system resources
+   - **Fifth**: User invoked `/spec` with no arguments — intent unclear as context limit was hit immediately after
+
+2. Key Technical Concepts:
+   - **Obsidian vault** at `/home/mike-anderson/vaults/cohezion-vault/` — knowledge graph with ~816 notes
+   - **FLUME VAE** — Variational Autoencoder for compressing 256D agent trajectory vectors
+   - **Mass simulation pipeline** (`src/cohezion/mass_sim/`) — physics-based agent simulation using Rust FlumePhysics or pure-Python fallback
+   - **Overnight driver** (`overnight_driver.py`) — LLM swarm simulator using Ollama (gemma3:4b, phi3:mini) — 500K batch simulation loop, fundamentally broken
+   - **FlumePhysics** — 2-layer MLP (z_dim→hidden_dim→z_dim) with LayerNorm, HIHO damping (attractor toward 0.5 equilibrium), delta scaling
+   - **MemoryGuard** — OOM protection with thresholds: WARN=90GB, THROTTLE=100GB, ABORT=115GB
+   - **Scale tiers**: demo (100 agents × 1K epochs × 10 universes), medium (1K × 10K × 100), overnight (10K × 100K × 1K), aspirational (25M × 10M × 1M)
+   - **HIHO bounds** — [0.3, 0.7] coherence target range for agent states
+   - **Export pipeline** — `.npy` files from simulation feed into FLUME VAE training dataset
+   - **Compound engineering** — vault's knowledge management philosophy
+   - **Two-Cohezions problem** — Cohezion A (empirical ML system) vs Cohezion B (cosmological framing)
+   - **KL collapse** — FLUME diagnostic showed KL=0.0001, model trained on synthetic noise, not real data
+   - **System**: AMD Ryzen AI MAX+ 395, 125GB RAM (95GB free), 32 cores, no GPU, 1.2TB disk
+
+3. Files and Code Sections:
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/retrospectives/2026-03-05-vault-state-assessment.md`** — NEW
+     - Consolidated from 3 inbox assessments into one comprehensive retrospective
+     - Contains: hidden gems in patterns/, decisions as intellectual core, concept note bloat problem, shell ADR problem, SurrealDB staleness, branch inventory (68 branches), FLUME diagnostic status, priority stack
+     - Important for vault continuity — this is the latest assessment of vault state
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/retrospectives/_index.md`** — UPDATED
+     - Added entries for shoshin-assessment and vault-state-assessment, updated count to 7
+
+   - **`/home/mike-anderson/vaults/cohezion-vault/retrospectives/2026-03-05-shoshin-assessment.md`** — UPDATED
+     - Added backlink to new consolidated assessment
+
+   - **`/tmp/flume-fix/src/cohezion/mass_sim/flume_physics_py.py`** — NEW (critical fix)
+     - Pure-Python numpy implementation of Rust FlumePhysics extension
+     - Same interface as `cohezion_core_rs.FlumePhysics`
+     - Methods: `__init__(w1, b1, w2, b2, gamma, beta, delta_scale, hiho_damping)`, `_forward(z)`, `_step(z)`, `simulate_epochs_batch(agents, n_epochs)`, `simulate_epochs_navigated(agents, n_epochs)`, `compute_batch_stats(agents)`
+     - ~10x slower than Rust but functionally identical
+     ```python
+     class FlumePhysicsPy:
+         def __init__(self, w1, b1, w2, b2, gamma, beta, *, delta_scale=0.01, hiho_damping=0.01):
+             self.w1 = np.asarray(w1, dtype=np.float32)
+             # ... stores all weights
+         
+         def _forward(self, z):
+             h = z @ self.w1.T + self.b1
+             mean = h.mean(axis=-1, keepdims=True)
+             var = h.var(axis=-1, keepdims=True)
+             h_norm = (h - mean) / np.sqrt(var + 1e-5)
+             h_norm = self.gamma * h_norm + self.beta
+             h_act = np.maximum(h_norm, 0)
+             delta = h_act @ self.w2.T + self.b2
+             return delta
+         
+         def _step(self, z):
+             delta = self._forward(z)
+             z_new = z + delta * self.delta_scale
+             z_new = z_new + self.hiho_damping * (0.5 - z_new)
+             return z_new.astype(np.float32)
+         
+         def simulate_epochs_batch(self, agents, n_epochs):
+             current = np.asarray(agents, dtype=np.float32)
+             for _ in range(n_epochs):
+                 current = self._step(current)
+             return current
+         
+         def compute_batch_stats(self, agents):
+             # Returns dict with mean_coherence, std_coherence, pct_within_bounds, dim_means, dim_stds, etc.
+     ```
+
+   - **`/tmp/flume-fix/mass_sim_driver.py`** — NEW (critical fix)
+     - Missing CLI entry point that `scripts/overnight/run_mass_sim.sh` calls
+     - Args: `--scale` (demo/medium/overnight/aspirational), `--max-mem`, `--output-dir`, `--agents/--epochs/--universes` overrides, `--no-db`, `--no-export`
+     - Wires into `MassSimOrchestrator` with `export_npy=True` by default
+     ```python
+     def main():
+         args = parse_args()
+         scale = SCALE_TIERS[args.scale]
+         config = SimulationConfig(
+             scale=scale, max_memory_gb=args.max_mem,
+             persist_to_db=not args.no_db, export_npy=not args.no_export,
+             artifact_dir=Path(args.output_dir),
+         )
+         config = config.with_overrides(agents=args.agents, epochs=args.epochs, universes=args.universes)
+         orchestrator = MassSimOrchestrator(config)
+         report = asyncio.run(orchestrator.run())
+     ```
+
+   - **`/tmp/flume-fix/src/cohezion/mass_sim/universe_factory.py`** — PATCHED
+     - Changed `_import_flume_physics()` fallback from returning `None` to importing `FlumePhysicsPy`
+     - Removed `raise RuntimeError("Rust FlumePhysics extension not compiled")` line
+     ```python
+     def _import_flume_physics():
+         try:
+             from cohezion_core.cohezion_core_rs import FlumePhysics
+             logger.info("Using Rust FlumePhysics (fast path)")
+             return FlumePhysics
+         except ImportError:
+             from cohezion.mass_sim.flume_physics_py import FlumePhysicsPy
+             logger.info("cohezion_core_rs unavailable, using pure-Python FlumePhysics")
+             return FlumePhysicsPy
+     ```
+
+   - **Key files READ but not modified** (on `origin/feat/flume-vae-clean`):
+     - `overnight_driver.py` — LLM swarm simulator, 512 lines, imports missing `MassSimulator`, uses Ollama models, no memory guards, 500 batch size in tight loop
+     - `scripts/overnight/run_mass_sim.sh` — Shell script that calls `mass_sim_driver.py` (which was missing)
+     - `src/cohezion/mass_sim/config.py` — Scale tier definitions, SimulationConfig dataclass
+     - `src/cohezion/mass_sim/system_monitor.py` — MemoryGuard with threshold-based adaptive batch sizing
+     - `src/cohezion/mass_sim/orchestrator.py` — MassSimOrchestrator, sequential universe processing with OOM checks
+     - `src/cohezion/mass_sim/batch_runner.py` — BatchSimulationRunner, inner epoch loop with adaptive batching
+     - `src/cohezion/mass_sim/analysis.py` — SimulationAnalyzer with safety, convergence, diversity, anomaly metrics
+     - `src/cohezion/mass_sim/persistence.py` — SurrealDB with JSONL fallback
+     - `src/cohezion/mass_sim/exporter.py` — CheckpointExporter, exports .npy files for VAE training
+     - `src/cohezion/mass_sim/agent_factory.py` — Creates initial agent population as [n_agents, z_dim] float32
+
+   - **Inbox files DELETED** (after consolidation):
+     - `inbox/fresh-assessment-2026-03-05.md`
+     - `inbox/insight-2026-03-05-evening.md`
+     - `inbox/assessment-late-2026-03-05.md`
+
+4. Errors and Fixes:
+   - **`ModuleNotFoundError: No module named 'cohezion_core'`**: Rust PyO3 extension not compiled. Fixed by writing pure-Python `FlumePhysicsPy` fallback and patching `universe_factory.py` to auto-import it.
+   - **`RuntimeError("Rust FlumePhysics extension not compiled")`**: The fallback code raised this error instead of providing an alternative. Fixed by removing the raise and using `FlumePhysicsPy`.
+   - **Missing `mass_sim_driver.py`**: The `run_mass_sim.sh` script calls `uv run python mass_sim_driver.py` but this file didn't exist on the branch. Fixed by writing the complete CLI driver.
+   - **Missing `cohezion.swarm.mass_simulator.MassSimulator`**: The overnight_driver.py imports this class but the file doesn't exist in the swarm module on this branch. Class definition only exists in a markdown skill doc. NOT YET FIXED — user was advised to use mass_sim pipeline instead.
+   - **`within_bounds=0.0%`** in demo run output: Noted but not fixed — agents drift outside [0.3, 0.7] HIHO bounds, may need HIHO damping calibration.
+
+5. Problem Solving:
+   - **Inbox triage**: 3 overlapping assessment notes consolidated into 1 comprehensive retrospective with proper frontmatter, cross-links, and backlinks. Inbox cleared.
+   - **Vault analysis**: 4 parallel specialist agents provided: structural health audit (A+, 0 broken links), portfolio readiness (6.5/10), infrastructure inventory (7 MCP servers, 7 skills, hooks working), strategic priorities (prioritized action items).
+   - **OOM diagnosis**: Traced through two separate simulation code paths, identified that both fail due to missing files/modules, not memory. The overnight_driver.py has fundamental architecture problems (unbounded Ollama concurrency). The mass_sim pipeline is well-designed but missing plumbing.
+   - **Mass sim fix**: Created pure-Python fallback for Rust physics engine and missing CLI driver. Verified with successful demo run producing real .npy training data files.
+
+6. All User Messages:
+   - "Where's the vault agent? We need to handle our inbox."
+   - "Maybe you can analyze the vault yourself now with a team of specialists and decide how we should proceed forward."
+   - "And everytime we try to run out simulations we run into OOM errors and the system crashes."
+   - "It's the overnight simulation on feat/flume-vae-clean"
+   - "the overnight driver with local models. Not handled properly at all."
+   - "and run mass sim" (confirming both paths fail)
+   - "they both fail miserably with system resources"
+   - `/spec` (invoked with no arguments)
+
+7. Pending Tasks:
+   - **P0 (vault-keeper)**: Add HF MCP Server to `~/.claude/mcp.json` with HF_TOKEN (flagged every message, never addressed)
+   - **P0 (vault-keeper)**: Create `specs/mcp-servers/huggingface.md` server card (flagged every message, never addressed)
+   - **Commit/push mass sim fix**: Changes in `/tmp/flume-fix` worktree on branch `fix/mass-sim-python-fallback` are NOT committed or pushed
+   - **Run medium-scale test**: Before committing to overnight run, should validate timing at medium scale
+   - **User invoked `/spec`**: No arguments provided, need to ask what they want to spec
+   - **Portfolio-critical items from vault analysis**: Rebuild 3 concept notes (compound-engineering, cohezion, anthropic-research-engineer), fix shell ADRs, update README FLUME framing
+   - **HIHO bounds calibration**: Demo run showed 0% within bounds — may need tuning
+
+8. Current Work:
+   The most recent work was the user invoking `/spec` with no arguments. Context was at maximum (8495%), so I wrote a continuation file to `/home/mike-anderson/.cohezion-engine/sessions/pid-132435/continuation.md` and triggered a session handoff via `cz session send-clear`. The continuation file documents:
+   - All completed work this session
+   - That `/spec` was invoked with no arguments
+   - The mass sim fix exists in worktree `/tmp/flume-fix` on branch `fix/mass-sim-python-fallback` but is NOT committed/pushed
+   - Next step is to ask the user what they want to spec
+
+   Immediately before `/spec`, the mass simulation fix was completed and verified with a demo run showing:
+   ```
+   Scale: demo (100 agents x 1K epochs x 10 universes)
+   Agent-epochs: 1,000,000
+   Elapsed: 45s
+   Peak RSS: 0.1 GB
+   Output: 10 .npy files, each [100, 256] float32
+   ```
+
+9. Optional Next Step:
+   The user's most recent action was invoking `/spec` with no arguments. Per the spec workflow:
+   1. Ask the user what they want to spec (no task description was provided)
+   2. Ask the worktree question
+   3. Invoke `Skill('spec-plan', args='<task_description> --worktree=yes|no')`
+   
+   Additionally, the mass sim fix in `/tmp/flume-fix` needs to be committed and pushed — user should decide if they want to merge it to the feature branch.
+   
+   The continuation file at `/home/mike-anderson/.cohezion-engine/sessions/pid-132435/continuation.md` documents: "User invoked `/spec` with no arguments — intent unclear as context limit was hit immediately after" and "Need to ask them what they want to spec."
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-vaults-cohezion-vault/1991d328-3508-4b8e-b6e8-29237db5a952.jsonl
+
+---
+
+Continue
+
+---
+
+Tool loaded.
+
+---
+
+Tool loaded.
+
+---
+
+Tool loaded.
+
+---
+
+Continue
+
+---
+
+Tool loaded.
+
+---
+
+Tool loaded.
+
+---
+
+# /spec-plan - Planning Phase
+
+**Phase 1 of the /spec workflow.** Explores the codebase, designs an implementation plan, verifies it, and gets user approval.
+
+**Input:** Task description (new plan) or plan path (continue unapproved plan)
+**Output:** Approved plan file at `docs/plans/YYYY-MM-DD-<slug>.md`
+**Next phase:** On approval → `Skill(skill='spec-implement', args='<plan-path>')`
+
+---
+
+## ⛔ KEY CONSTRAINTS (Rules Summary)
+
+| #   | Rule                                                                                                     |
+| --- | -------------------------------------------------------------------------------------------------------- |
+| 1   | **NO sub-agents during planning** - Use direct tools only. Exception: Step 1.7 launches `plan-verifier` + `plan-challenger` via the **Task tool** (`subagent_type="pilot:plan-verifier"` and `"pilot:plan-challenger"`). |
+| 2   | **NEVER SKIP verification** - Plan verification (Step 1.7) is mandatory. No exceptions.                  |
+| 3   | **ONLY stopping point is plan approval** - Everything else is automatic. Never ask "Should I fix these?" |
+| 4   | **Batch questions together** - Don't interrupt user flow                                                 |
+| 5   | **Run explorations sequentially** - One at a time, never in parallel                                     |
+| 6   | **NEVER write code during planning** - Separate phases                                                   |
+| 7   | **NEVER assume - verify by reading files**                                                               |
+| 8   | **Re-read plan after user edits** - Before asking for approval again                                     |
+| 9   | **Quality over speed** - Never rush due to context pressure                                              |
+| 10  | **Plan file is source of truth** - Survives session clears                                               |
+
+---
+
+> **WARNING: DO NOT use the built-in `ExitPlanMode` or `EnterPlanMode` tools.**
+
+## Using AskUserQuestion - Core Planning Tool
+
+**Questions are grouped into batches for smooth user experience:**
+
+| Batch       | When                         | Purpose                                |
+| ----------- | ---------------------------- | -------------------------------------- |
+| **Batch 1** | Phase 0 (before exploration) | Clarify task, scope, priorities        |
+| **Batch 2** | Phase 2 (after exploration)  | Architecture choices, design decisions |
+
+**When to Use AskUserQuestion:**
+
+| Situation                     | Example Question                                                     |
+| ----------------------------- | -------------------------------------------------------------------- |
+| **Unclear requirements**      | "Should this feature support batch processing or single items only?" |
+| **Multiple valid approaches** | Present 2-3 options with trade-offs for user to choose               |
+| **Ambiguous scope**           | "Should we include error recovery, or fail fast?"                    |
+| **Technology choices**        | "Prefer async/await or callbacks for this integration?"              |
+| **Priority decisions**        | "Performance or simplicity - which matters more here?"               |
+| **Missing domain knowledge**  | "How does the existing auth flow work in production?"                |
+
+**Questioning philosophy — Dream extraction, not requirements gathering:**
+
+- **Start open, then narrow** — Begin with "What does success look like?" before diving into specifics
+- **Follow energy** — If the user is excited about a detail, explore it; if they're vague, they may not care about the specifics
+- **Challenge vagueness** — "Fast" means what? Sub-100ms? Under 2 seconds? Make abstract concrete
+- **Present interpretations as options** — "I think you mean X — should we do X (simple, covers 80%) or Y (comprehensive, handles edge cases)?" is better than "What do you want?"
+
+**Anti-patterns to avoid:**
+
+- **Checklist walking** — Don't ask every possible question; focus on genuine ambiguities
+- **Canned questions** — Adapt questions to the specific task, not generic templates
+- **Shallow acceptance** — Don't accept "it should work well" — ask what "well" means concretely
+- **Interrogation** — 1-2 focused questions are better than 4 vague ones
+
+**Key principles:**
+
+- Present options, not open-ended questions when possible
+- Include trade-offs for each option
+- **Batch related questions together** — don't interrupt user flow
+- Don't proceed with assumptions — ASK
+- **Scope guardrail** — Questions clarify HOW to implement, not WHETHER to expand scope
+
+## Extending Existing Plans
+
+**When adding tasks to existing plan:**
+
+1. Load existing plan: `Read(file_path="docs/plans/...")`
+2. Parse structure (architecture, completed tasks, pending tasks)
+3. Check git status for partially completed work
+4. Verify new tasks are compatible with existing architecture
+5. Check total: If original + new > 12 tasks, suggest splitting
+6. Mark new tasks with `[NEW]` prefix
+7. Update total count: `Total Tasks: X (Originally: Y)`
+8. Add extension history: `> Extended [Date]: Tasks X-Y for [feature]`
+
+## ⚠️ CRITICAL: Migration/Refactoring Tasks
+
+**When the task involves migrating, refactoring, or replacing existing code, you MUST complete these additional steps to prevent missing features.**
+
+### Mandatory Feature Inventory (Phase 1.5)
+
+**After exploration but BEFORE creating tasks:**
+
+1. **List ALL files being replaced:**
+
+   ```markdown
+   ## Feature Inventory - Files Being Replaced
+
+   | Old File         | Functions/Classes                | Status        |
+   | ---------------- | -------------------------------- | ------------- |
+   | `old/module1.py` | `func_a()`, `func_b()`, `ClassX` | ⬜ Not mapped |
+   | `old/module2.py` | `func_c()`, `func_d()`           | ⬜ Not mapped |
+   ```
+
+2. **Map EVERY function/feature to a new task:**
+
+   ```markdown
+   ## Feature Mapping - Old → New
+
+   | Old Feature        | New Location   | Task #        |
+   | ------------------ | -------------- | ------------- |
+   | `module1.func_a()` | `new/step1.py` | Task 3        |
+   | `module1.func_b()` | `new/step1.py` | Task 3        |
+   | `module2.func_c()` | `new/step2.py` | Task 5        |
+   | `module2.func_d()` | ❌ MISSING     | ⚠️ NEEDS TASK |
+   ```
+
+3. **Verify 100% coverage before proceeding:**
+   - Every row must have a Task # or explicit "Out of Scope" justification
+   - "Out of Scope" means the feature is INTENTIONALLY REMOVED (with user confirmation)
+   - "Out of Scope" does NOT mean "migrate as-is" - that still needs a task!
+
+### "Out of Scope" Clarification
+
+**CRITICAL: "Out of Scope" has a precise meaning:**
+
+| Phrase                             | Meaning                                    | Requires Task?                      |
+| ---------------------------------- | ------------------------------------------ | ----------------------------------- |
+| "Out of Scope: Changes to X"       | X will be migrated AS-IS, no modifications | ✅ YES - migration task             |
+| "Out of Scope: Feature X"          | X is intentionally REMOVED/not included    | ❌ NO - but needs user confirmation |
+| "Out of Scope: New features for X" | X migrates as-is, no NEW features added    | ✅ YES - migration task             |
+
+### Pre-Task Verification Gate
+
+**Before finalizing tasks, verify:**
+
+- [ ] All old files listed in Feature Inventory
+- [ ] All functions/classes from old files identified
+- [ ] Every feature mapped to a task OR explicitly marked "REMOVED" with user confirmation
+- [ ] No row in Feature Mapping has "⬜ Not mapped" status
+- [ ] User has confirmed any features marked for removal
+
+**If any checkbox is unchecked, DO NOT proceed to implementation.**
+
+---
+
+## Creating New Plans
+
+### Step 1.1: Create Plan File Header (FIRST)
+
+**Immediately upon starting planning, create the plan file header for status bar detection.**
+
+1. **Parse worktree choice from arguments:**
+   - Look for `--worktree=yes` or `--worktree=no` at the end of the arguments
+   - Strip the `--worktree=...` flag from the task description
+   - Default to `Yes` if no flag is present (backward compatibility)
+
+2. **Generate filename:** `docs/plans/YYYY-MM-DD-<feature-slug>.md`
+   - Use current date
+   - Create slug from first 3-4 words of task description (lowercase, hyphens)
+   - Example: "add user authentication" → `2026-01-24-add-user-authentication.md`
+
+3. **Create directory if needed:** `mkdir -p docs/plans`
+
+4. **Write initial header immediately (with worktree choice from dispatcher):**
+
+   ```markdown
+   # [Feature Name] Implementation Plan
+
+   Created: [Date]
+   Status: PENDING
+   Approved: No
+   Iterations: 0
+   Worktree: [Yes|No - from dispatcher's --worktree flag]
+
+   > Planning in progress...
+
+   ## Summary
+
+   **Goal:** [Task description from user]
+
+   ---
+
+   _Exploring codebase and gathering requirements..._
+   ```
+
+5. **Register plan association (MANDATORY):**
+
+   ```bash
+   ~/.pilot/bin/pilot register-plan "<plan_path>" "PENDING" 2>/dev/null || true
+   ```
+
+   This tells the statusline which plan belongs to THIS session. Without it, parallel sessions show the wrong plan.
+
+6. **Why this matters:**
+   - Status bar shows "Spec: <name> [/plan]" immediately
+   - User sees progress even during exploration phase
+   - Plan file exists for continuation if session clears
+   - Plan is correctly associated with this specific terminal
+
+**CRITICAL:** Do this FIRST, before any exploration or questions.
+
+---
+
+### Step 1.2: Task Understanding, Discuss & Clarify
+
+**First, clearly state your understanding of the task.**
+
+Before any exploration:
+
+1. Restate what the user is asking for in your own words
+2. Identify the core problem being solved
+3. List any assumptions you're making
+
+**Then identify gray areas using domain-aware analysis:**
+
+Analyze the task description to find ambiguities that NEED resolution before planning. Different types of work have different gray areas:
+
+| Domain                                  | Typical Gray Areas                                                                         |
+| --------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **Something users SEE** (UI/frontend)   | Layout density, interaction patterns, responsive breakpoints, empty states, loading states |
+| **Something users CALL** (API/backend)  | Response shape, error codes, auth model, pagination, rate limiting                         |
+| **Something users RUN** (CLI/scripts)   | Output format, flags/options, exit codes, interactive vs non-interactive                   |
+| **Something users STORE** (data/config) | Schema shape, migration strategy, validation rules, default values                         |
+| **Something users READ** (docs/content) | Audience level, structure, examples needed, update frequency                               |
+
+**Scope guardrail:** Questions should clarify HOW to implement the task, not WHETHER to expand scope. If discussion surfaces new feature ideas, capture them as "Deferred Ideas" in the plan's Open Questions section — don't add them to scope.
+
+**Then gather clarifications if needed (Question Batch 1):**
+
+If gray areas exist, use AskUserQuestion to ask focused questions per area in a single interaction. Present your interpretation as options when possible — "Should the API return paginated results (recommended for large datasets) or all results at once?" is better than "How should the API handle large result sets?"
+
+If the task is clear and unambiguous with no meaningful gray areas, skip directly to Step 1.3.
+
+### Step 1.3: Exploration
+
+**Explore the codebase systematically.** Run explorations **one at a time** (sequentially, not in parallel).
+
+#### 🔧 Tools for Exploration
+
+| Tool               | When to Use                | Example                                                                                            |
+| ------------------ | -------------------------- | -------------------------------------------------------------------------------------------------- |
+| **Context7**       | Library/framework docs     | `resolve-library-id(query="your question", libraryName="lib")` then `query-docs(libraryId, query)` |
+| **Vexor**          | Semantic code search       | `vexor search "query" --mode code`                                                                 |
+| **grep-mcp**       | Real-world GitHub examples | `searchGitHub(query="FastMCP", language=["Python"])`                                               |
+| **Read/Grep/Glob** | Direct file exploration    | Use directly, no sub-agents                                                                        |
+
+**Exploration areas (in order):**
+
+1. **Architecture** - Project structure, entry points, how components connect
+2. **Similar Features** - Existing patterns that relate to the task, what can be reused
+3. **Dependencies** - Imports, modules, what will be impacted
+4. **Tests** - Test infrastructure, existing patterns, available fixtures
+
+**For each area:**
+
+- Document hypotheses (not conclusions)
+- Note full file paths for relevant code
+- Track questions that remain unanswered
+
+**After explorations complete:**
+
+1. Read each identified file to verify hypotheses
+2. Build a complete mental model of current architecture
+3. Identify integration points and potential risks
+4. Note reusable patterns
+
+### Step 1.4: Design Decisions
+
+**Present findings and gather all design decisions (Question Batch 2).**
+
+Summarize what you found, then use AskUserQuestion with all decisions at once.
+
+**After user answers:**
+
+- Incorporate their choices into the plan design
+- Proceed to Step 1.5 — the user will review the full plan at Step 1.8
+
+### Step 1.5: Implementation Planning
+
+**Task Granularity**
+
+Each task should be:
+
+- **Independently testable** — has its own tests that pass without other tasks being complete
+- **Focused** — touches 2-4 files max; more means it should be split
+- **Verifiable** — produces an observable result (test output, API response, UI change)
+
+Split a task if it has multiple unrelated DoD criteria. Merge tasks if one can't be tested without the other. Don't create tasks for setup/boilerplate that have no standalone value — fold them into the first task that uses them.
+
+**For each task, populate:**
+
+- **Dependencies** — Which tasks must complete first? Use `None` for tasks with no ordering requirements.
+- **Verify** — What concrete commands prove this task is done? Include test commands, build commands, or curl/CLI invocations. The implementation phase runs these after completing each task.
+
+**Task Structure:**
+
+```markdown
+### Task N: [Component Name]
+
+**Objective:** [1-2 sentences describing what to build]
+
+**Dependencies:** [None | Task X, Task Y — tasks that must complete before this one]
+
+**Files:**
+
+- Create: `exact/path/to/file.py`
+- Modify: `exact/path/to/existing.py`
+- Test: `tests/exact/path/to/test.py`
+
+**Key Decisions / Notes:**
+
+- [Technical approach or algorithm to use]
+- [Which existing pattern to follow, with file:line reference]
+- [Integration points with other tasks or existing code]
+
+**Definition of Done:**
+
+- [ ] All tests pass (unit, integration if applicable)
+- [ ] No diagnostics errors (linting, type checking)
+- [ ] [Task-specific criterion with observable outcome]
+- [ ] [Task-specific criterion with observable outcome]
+
+**Verify:**
+
+- `uv run pytest tests/path/to/test.py -q` — task-specific tests pass
+- [Additional verification command or check]
+```
+
+**⚠️ DoD criteria must be verifiable.** The verification phase checks each criterion against the actual code and running program. Replace the `[Task-specific criterion]` placeholders with criteria that can be checked with a specific test, command, or observation.
+
+✅ Good DoD examples:
+
+- "GET /api/users?role=admin returns only admin users"
+- "Form shows validation error when email field is empty"
+- "CLI exits with code 1 and prints usage when no arguments given"
+- "Retry logic attempts 3 times with exponential backoff before failing"
+
+❌ Bad DoD (never use these):
+
+- "Feature works correctly"
+- "Edge cases handled appropriately"
+- "Error messages are clear and actionable"
+
+**Zero-context assumption:**
+
+- Assume implementer knows nothing about codebase
+- Provide exact file paths
+- Explain domain concepts
+- List integration points
+- Reference similar patterns in codebase
+
+### Step 1.6: Write Full Plan
+
+**Save plan to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
+
+**Required plan template:**
+
+```markdown
+# [Feature Name] Implementation Plan
+
+Created: [Date]
+Status: PENDING
+Approved: No
+Iterations: 0
+Worktree: Yes
+
+> **Status Lifecycle:** PENDING → COMPLETE → VERIFIED
+> **Iterations:** Tracks implement→verify cycles (incremented by verify phase)
+>
+> - PENDING: Initial state, awaiting implementation
+> - COMPLETE: All tasks implemented
+> - VERIFIED: All checks passed
+>
+> **Approval Gate:** Implementation CANNOT proceed until `Approved: Yes`
+> **Worktree:** Set at plan creation (from dispatcher). `Yes` uses git worktree isolation; `No` works directly on current branch
+
+## Summary
+
+**Goal:** [One sentence describing what this builds]
+
+**Architecture:** [2-3 sentences about chosen approach]
+
+**Tech Stack:** [Key technologies/libraries]
+
+## Scope
+
+### In Scope
+
+- [What WILL be changed/built]
+- [Specific components affected]
+
+### Out of Scope
+
+- [What will NOT be changed]
+- [Explicit boundaries]
+
+## Prerequisites
+
+- [Any requirements before starting]
+- [Dependencies that must exist]
+- [Environment setup needed]
+
+## Context for Implementer
+
+> This section is critical for cross-session continuity. Write it for an implementer who has never seen the codebase.
+
+- **Patterns to follow:** [Reference existing file:line that demonstrates the pattern, e.g., "Follow the route handler pattern in `src/routes/users.ts:45`"]
+- **Conventions:** [Naming, file organization, error handling approach used in this project]
+- **Key files:** [Important files the implementer must read first, with brief description of each]
+- **Gotchas:** [Non-obvious dependencies, quirks, things that look wrong but are intentional]
+- **Domain context:** [Business logic or domain concepts needed to understand the task]
+
+## Runtime Environment (if applicable)
+
+> Include this section when the project has a running service, API, or UI.
+> Delete if the project is a library or CLI tool with no long-running process.
+
+- **Start command:** [How to start the service, e.g., `bun worker-service.cjs`]
+- **Port:** [What port it listens on]
+- **Deploy path:** [Where built artifacts are installed, if different from source]
+- **Health check:** [How to verify the service is running, e.g., `curl http://localhost:PORT/health`]
+- **Restart procedure:** [How to restart after code changes]
+
+## Feature Inventory (FOR MIGRATION/REFACTORING ONLY)
+
+> **Include this section when replacing existing code. Delete if not applicable.**
+
+### Files Being Replaced
+
+| Old File       | Functions/Classes      | Mapped to Task |
+| -------------- | ---------------------- | -------------- |
+| `old/file1.py` | `func_a()`, `func_b()` | Task 3         |
+| `old/file2.py` | `ClassX`, `func_c()`   | Task 4, Task 5 |
+
+### Feature Mapping Verification
+
+- [ ] All old files listed above
+- [ ] All functions/classes identified
+- [ ] Every feature has a task number
+- [ ] No features accidentally omitted
+
+**⚠️ If any feature shows "❌ MISSING", add a task before implementation!**
+
+## Progress Tracking
+
+**MANDATORY: Update this checklist as tasks complete. Change `[ ]` to `[x]`.**
+
+- [ ] Task 1: [Brief summary]
+- [ ] Task 2: [Brief summary]
+- [ ] ...
+
+**Total Tasks:** [Number] | **Completed:** 0 | **Remaining:** [Number]
+
+## Implementation Tasks
+
+### Task 1: [Component Name]
+
+**Objective:** ...
+**Dependencies:** None
+**Files:** ...
+**Key Decisions / Notes:** ...
+**Definition of Done:** ...
+**Verify:** [Concrete commands to verify this task]
+
+### Task 2: [Component Name]
+
+**Objective:** ...
+**Dependencies:** Task 1
+**Files:** ...
+**Key Decisions / Notes:** ...
+**Definition of Done:** ...
+**Verify:** [Concrete commands to verify this task]
+
+## Testing Strategy
+
+- Unit tests: [What to test in isolation]
+- Integration tests: [What to test together]
+- Manual verification: [Steps to verify manually]
+
+## Risks and Mitigations
+
+> Consider: breaking changes, backward compatibility, data loss/migration, performance regression, security implications, state management complexity, cross-component coupling, external dependency failures.
+
+| Risk     | Likelihood   | Impact       | Mitigation                           |
+| -------- | ------------ | ------------ | ------------------------------------ |
+| [Risk 1] | Low/Med/High | Low/Med/High | [Concrete, implementable mitigation] |
+
+**⚠️ Risk mitigations are commitments.** The verification phase (spec-reviewer-compliance) will check that every mitigation listed here is actually implemented in code. Write mitigations as concrete, implementable behaviors, not vague statements.
+
+✅ Good: "If selected project not in available list, reset to null (All Projects)"
+❌ Bad: "Handle edge cases appropriately"
+
+## Open Questions
+
+- [Any remaining questions for the user]
+- [Decisions deferred to implementation]
+
+### Deferred Ideas
+
+- [Ideas surfaced during discussion that are out of scope for this plan]
+```
+
+### Step 1.7: Plan Verification
+
+**⛔ THIS STEP IS NON-NEGOTIABLE. You MUST run plan verification before asking for approval.**
+
+Before presenting the plan to the user, verify it with TWO dedicated reviewer agents running in parallel. This provides both alignment checking (plan-verifier) and adversarial review (plan-challenger) BEFORE the user sees the plan.
+
+#### Resolve Session Path for Findings Persistence
+
+```bash
+echo $PILOT_SESSION_ID
+```
+
+Define output paths (replace `<session-id>` with the resolved value):
+- **Verifier findings:** `~/.pilot/sessions/<session-id>/findings-plan-verifier.json`
+- **Challenger findings:** `~/.pilot/sessions/<session-id>/findings-plan-challenger.json`
+
+#### Launch Plan Verification (Parallel Review)
+
+**⛔ CRITICAL: You MUST send BOTH Task calls in a SINGLE message.** Set `run_in_background=true` on both so they run in parallel. If you send them in separate messages, the first blocks and the second waits — defeating the purpose.
+
+**Agent 1: plan-verifier** (alignment and completeness)
+```
+Task(
+  subagent_type="pilot:plan-verifier",
+  run_in_background=true,
+  prompt="""
+  **Plan file:** <plan-path>
+  **User request:** <original task description from user>
+  **Clarifications:** <any Q&A that clarified requirements>
+  **Output path:** <absolute path to findings-plan-verifier.json>
+
+  Verify this plan correctly captures the user's requirements.
+  Check for missing features, scope issues, and ambiguities.
+
+  **IMPORTANT:** Write your final findings JSON to the output_path using the Write tool.
+  """
+)
+```
+
+**Agent 2: plan-challenger** (adversarial review)
+```
+Task(
+  subagent_type="pilot:plan-challenger",
+  run_in_background=true,
+  prompt="""
+  **Plan file:** <plan-path>
+  **User request:** <original task description from user>
+  **Clarifications:** <any Q&A that clarified requirements>
+  **Output path:** <absolute path to findings-plan-challenger.json>
+
+  Challenge this plan from an adversarial perspective.
+  Find untested assumptions, missing failure modes, and hidden dependencies.
+
+  **IMPORTANT:** Write your final findings JSON to the output_path using the Write tool.
+  """
+)
+```
+
+The verifiers work in parallel:
+
+- **plan-verifier**: Reviews plan against original user request, checks if clarification answers are incorporated, identifies missing requirements or scope issues
+- **plan-challenger**: Challenges assumptions, finds failure modes, questions optimism, identifies architectural weaknesses
+
+Both agents persist their findings JSON to the session directory for reliable retrieval.
+
+#### Collect and Fix Findings (Progressive)
+
+**⛔ NEVER use `TaskOutput` to retrieve agent results.** TaskOutput dumps the full verbose agent transcript (all JSON messages, hook progress, tool calls) into context, wasting thousands of tokens. Instead, poll the output files with the Read tool.
+
+**Progressive polling — fix findings as each agent completes:**
+
+1. **Attempt to read BOTH findings files** using the Read tool on the paths defined above
+2. **If one file exists but the other doesn't** → start fixing findings from the ready agent immediately (by severity: must_fix → should_fix → suggestion). Track which findings you fixed.
+3. After fixing the first batch, **poll for the second file** (retry if not yet ready)
+4. **If a file is still missing after 2-3 retries**, re-launch that specific agent synchronously (without `run_in_background`) with the same prompt
+5. When the second file is ready, **skip findings that overlap** with already-fixed items from the first batch (same file + same issue), then fix the remaining findings
+6. **If both files are ready simultaneously**, deduplicate first (keep higher severity for duplicates on same file + line), then fix all
+
+**Severity actions:**
+
+| Severity       | Action                                               |
+| -------------- | ---------------------------------------------------- |
+| **must_fix**   | Fix immediately - update plan before proceeding      |
+| **should_fix** | Fix immediately - update plan before proceeding      |
+| **suggestion** | Incorporate if reasonable, or note in Open Questions |
+
+**Only proceed to Step 1.8 after all must_fix and should_fix issues are resolved.**
+
+### Step 1.8: Get User Approval
+
+**⛔ MANDATORY APPROVAL GATE - This is NON-NEGOTIABLE**
+
+**After saving plan:**
+
+1. **Summarize the plan** - Provide a brief overview of:
+   - What will be built (goal)
+   - Key tasks (numbered list)
+   - Tech stack / approach
+
+2. **Use AskUserQuestion to request approval:**
+
+   ```
+   Question: "Do you approve this plan for implementation?"
+   Header: "Plan Review"
+   Options:
+   - "Yes, proceed with implementation" - I've reviewed the plan and it looks good
+   - "No, I need to make changes" - I want to edit the plan first
+   ```
+
+   Note: The `Worktree:` field was already set at plan creation time (Step 1.1) based on the user's choice from the dispatcher. It does NOT need to be asked again here.
+
+3. **Based on user response:**
+
+   **If user approves (selects "Yes" or any approval option):**
+   - Update `Approved: No` → `Approved: Yes` in the plan file
+   - **⛔ Phase Transition Context Guard:** Run `~/.pilot/bin/pilot check-context --json`. If >= 80%, hand off instead (see spec.md Section 0.3).
+   - **Invoke implementation phase:** `Skill(skill='spec-implement', args='<plan-path>')`
+
+   **If user selects "No, I need to make changes":**
+   - Tell user: "Please edit the plan file at `<plan-path>`, then say 'ready' when done"
+   - Wait for user to confirm they're done editing
+   - Re-read the plan file to see their changes
+   - Ask for approval again using AskUserQuestion
+
+   **If user provides OTHER feedback (corrections, config values, clarifications):**
+   - This is NOT approval - they're giving you changes to incorporate
+   - Update the plan with their feedback
+   - Ask for approval AGAIN with a fresh AskUserQuestion
+
+4. **DO NOT proceed to implementation until user explicitly selects "Yes, proceed"**
+
+**⚠️ CRITICAL: Any response other than selecting "Yes, proceed with implementation" is NOT approval. Config feedback, threshold changes, clarifications = update plan, then re-ask.**
+
+**⚠️ CRITICAL: Claude handles the `Approved:` field update - user never edits it manually**
+
+---
+
+## Context Management (90% Handoff)
+
+After each major operation, check context:
+
+```bash
+~/.pilot/bin/pilot check-context --json
+```
+
+**Between iterations:**
+
+1. If context >= 90%: hand off cleanly (don't rush!)
+2. If context 80-89%: continue but wrap up current task with quality
+3. If context < 80%: continue the loop freely
+
+If response shows `"status": "CLEAR_NEEDED"` (context >= 90%):
+
+**⚠️ CRITICAL: Execute ALL steps below in a SINGLE turn. DO NOT stop or wait for user response between steps.**
+
+**Step 1: Write continuation file (GUARANTEED BACKUP)**
+
+Write to `~/.pilot/sessions/$PILOT_SESSION_ID/continuation.md`:
+
+```markdown
+# Session Continuation (/spec)
+
+**Plan:** <plan-path>
+**Phase:** planning
+**Current Task:** [description of where you are in planning]
+
+**Completed This Session:**
+
+- [x] [What was finished]
+
+**Next Steps:**
+
+1. [What to do immediately when resuming]
+
+**Context:**
+
+- [Key decisions or blockers]
+```
+
+**Step 2: Trigger session clear**
+
+```bash
+~/.pilot/bin/pilot send-clear <plan-path>
+```
+
+Pilot will restart with `/spec --continue <plan-path>`
+
+ARGUMENTS: unified mass sim pipeline: (1) integrate pure-Python FlumePhysics fallback from /tmp/flume-fix, (2) fix HIHO bounds calibration (0% within_bounds), (3) replace broken overnight_driver.py with working pipeline using mass_sim orchestrator --worktree=yes
+
+---
+
+Tool loaded.
+
+---
+
+Tool loaded.
+
+---
+
+Tool loaded.

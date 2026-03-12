@@ -1,0 +1,24 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "cfcde0463cf1",
+  "session_id": "d54c5cb1-cb99-4353-a6b7-b4618920ebe8",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-11T03:07:22.397941213Z",
+  "branch": "triune-self-migration",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "AGENTS.md",
+    "VAULT_MANIFEST.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "c998b26dad2a",
+  "initial_attribution": {
+    "calculated_at": "2026-03-11T03:07:22.397382792Z",
+    "agent_lines": 393,
+    "human_added": 848739,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 849132,
+    "agent_percentage": 0.04628255677562499
+  }
+}
