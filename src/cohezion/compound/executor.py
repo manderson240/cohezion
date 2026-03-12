@@ -14,8 +14,10 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from cohezion.compound.context_integration import CompoundContextMixin
 from cohezion.compound.exp_persistence.vault import (
     ExecutionContext,
     VaultLogger,
@@ -67,7 +69,7 @@ class ExecutionResult:
     token_metrics: dict[str, Any] | None = None
 
 
-class CompoundExecutor:
+class CompoundExecutor(CompoundContextMixin):
     """Executor for compound engineering tasks with vault integration.
 
     Lifecycle:
@@ -164,6 +166,9 @@ class CompoundExecutor:
 
             self.inflection_detector = InflectionDetectorFactory.create_default()
         self.logger = VaultLogger(mcp_client=mcp_client)
+        # Initialize context manager automatically
+        self.__init_context__()
+        self._context_loaded = False
 
     @property
     def guardrail_pipeline(self) -> GuardrailPipeline | None:
@@ -186,7 +191,6 @@ class CompoundExecutor:
     @property
     def skill_refiner(self) -> Any | None:
         """Lazy-initialize default skill refiner if enabled.
-
         Returns:
             SkillRefiner if skill refinement enabled, None otherwise
         """
@@ -370,6 +374,17 @@ class CompoundExecutor:
             start_time=start_time,
             mcp_client=self.mcp_client,
         )
+        
+        # Load context automatically if not already done (shoshen-minded automation)
+        if not self._context_loaded:
+            try:
+                self.load_execution_context()
+                self._context_loaded = True
+                logger.debug("Context loaded automatically for execution")
+            except Exception as e:
+                logger.warning(f"Failed to auto-load context: {e}")
+
+        # Continue execution - context failure shouldn't block execution
 
         logger.info(
             "Executing task: %s (operation=%s, skill=%s)",
@@ -662,13 +677,16 @@ class CompoundExecutor:
                 retrospection_context = self._retrospection_engine.analyze_execution_result(
                     temp_result, skill_name
                 )
-                should_refine = retrospection_context.get("should_refine", True)
-                if retrospection_context.get("insights"):
-                    metrics["retrospection_insights"] = retrospection_context["insights"]
+                if retrospection_context is not None:
+                    should_refine = retrospection_context.get("should_refine", True)
+                    if retrospection_context.get("insights"):
+                        metrics["retrospection_insights"] = retrospection_context["insights"]
                 logger.debug(
                     "Retrospection: should_refine=%s, compound=%.3f",
                     should_refine,
-                    retrospection_context.get("compound_score", 0.0),
+                    retrospection_context.get("compound_score", 0.0)
+                    if retrospection_context
+                    else 0.0,
                 )
             except Exception as e:
                 logger.debug("Retrospection failed (non-blocking): %s", e, exc_info=True)
