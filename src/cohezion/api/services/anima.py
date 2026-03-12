@@ -71,7 +71,6 @@ class AnimaService:
 
         # Tier 3: Check if pocket-tts model is available
         try:
-
             self._voice_available = True
         except Exception:
             self._voice_available = False

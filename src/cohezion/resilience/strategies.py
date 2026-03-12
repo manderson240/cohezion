@@ -105,6 +105,7 @@ class ContextReductionStrategy(HealingStrategy):
         # should check this flag during prompt preparation.
         return True
 
+
 class SystemRestartStrategy(HealingStrategy):
     """Performs emergency restart of core services (Ollama, SurrealDB)."""
 
@@ -159,4 +160,3 @@ class SystemRestartStrategy(HealingStrategy):
         except Exception as e:
             logger.error(f"RAH: Service restart failed: {e}")
             return False
-
