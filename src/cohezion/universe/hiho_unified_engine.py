@@ -15,8 +15,8 @@ from .advanced_components import (
     BioelectricsEngine,
     EsotericPhysicsEngine,
     KordylewskiSwarmEngine,
-    PlasmaMCPEngine,
     PenroseTwistorEngine,
+    PlasmaMCPEngine,
     QuantumEmergenceEngine,
     SacredGeometryEngine,
 )
@@ -30,6 +30,7 @@ from .components import (
     HIHOStabilizationEngine,
     MagnetohydrodynamicsEngine,
 )
+
 
 logger = logging.getLogger(__name__)
 
