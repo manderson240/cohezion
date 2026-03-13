@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "a4fc6d3ef8ee",
+  "strategy": "manual-commit",
+  "branch": "production/token-efficient-squad",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "conductor/tracks/luma_amd_speedrun_20260312/plan.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/a4/fc6d3ef8ee/0/metadata.json",
+      "transcript": "/a4/fc6d3ef8ee/0/full.jsonl",
+      "context": "/a4/fc6d3ef8ee/0/context.md",
+      "content_hash": "/a4/fc6d3ef8ee/0/content_hash.txt",
+      "prompt": "/a4/fc6d3ef8ee/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 4649,
+    "cache_creation_tokens": 2455314,
+    "cache_read_tokens": 24848187,
+    "output_tokens": 96952,
+    "api_call_count": 194
+  }
+}
