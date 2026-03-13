@@ -1,0 +1,40 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "9f36731a6f1a",
+  "strategy": "manual-commit",
+  "branch": "production/token-efficient-squad",
+  "checkpoints_count": 8,
+  "files_touched": [
+    "conductor/tech-stack.md",
+    "research/challenges/luma_amd_speedrun/TODO.md",
+    "research/challenges/luma_amd_speedrun/benchmark_baseline.py",
+    "research/challenges/luma_amd_speedrun/kernels/eval.py",
+    "research/challenges/luma_amd_speedrun/kernels/mixed-mla/reference.py",
+    "research/challenges/luma_amd_speedrun/kernels/mixed-mla/submission.py",
+    "research/challenges/luma_amd_speedrun/kernels/mixed-mla/task.py",
+    "research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/reference.py",
+    "research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/submission.py",
+    "research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/task.py",
+    "research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/reference.py",
+    "research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/submission.py",
+    "research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/task.py",
+    "research/challenges/luma_amd_speedrun/kernels/utils.py",
+    "research/challenges/luma_amd_speedrun/plan.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/9f/36731a6f1a/0/metadata.json",
+      "transcript": "/9f/36731a6f1a/0/full.jsonl",
+      "context": "/9f/36731a6f1a/0/context.md",
+      "content_hash": "/9f/36731a6f1a/0/content_hash.txt",
+      "prompt": "/9f/36731a6f1a/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 4649,
+    "cache_creation_tokens": 2455314,
+    "cache_read_tokens": 24848187,
+    "output_tokens": 96952,
+    "api_call_count": 194
+  }
+}
