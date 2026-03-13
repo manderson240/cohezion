@@ -1322,7 +1322,7 @@ Summary:
    The user also noted (in additional summarization instructions) that we should be using **Helios to create custom Triton kernels locally** and the **resources available on the runner, especially Origami**. This was NOT acted on during the session but is important context for future work.
 
 2. Key Technical Concepts:
-   - **MXFP4 (Microscaling FP4)**: Packs 2 fp4 values per uint8 byte (`torch.REDACTED`), with E8M0 block-32 scale factor
+   - **MXFP4 (Microscaling FP4)**: Packs 2 fp4 values per uint8 byte (`torch.float4_e2m1fn_x2`), with E8M0 block-32 scale factor
    - **gemm_afp4wfp4**: Triton-based MXFP4 GEMM with auto-tuning and split-K support (from `aiter.ops.triton.gemm.basic.gemm_afp4wfp4`)
    - **gemm_a4w4**: CK-based ASM GEMM with two fixed tiles (32x128 and 192x128)
    - **dynamic_mxfp4_quant**: Patched Triton quantization kernel (ROCm/aiter #975) that bypasses buggy get_triton_quant
@@ -1446,7 +1446,7 @@ Summary:
 
 4. Errors and Fixes:
    - **No correctness errors encountered** — All submissions passed with 0.0 (GEMM) or 0.015625 (MoE) max error on first attempt.
-   - **gemm_afp4wfp4 KeyError avoidance**: Known from skills that `torch.REDACTED` dtype causes `KeyError`. Fixed by `.view(torch.uint8)` on ALL tensors (data AND scales). This was anticipated and coded correctly on first attempt.
+   - **gemm_afp4wfp4 KeyError avoidance**: Known from skills that `torch.float4_e2m1fn_x2` dtype causes `KeyError`. Fixed by `.view(torch.uint8)` on ALL tensors (data AND scales). This was anticipated and coded correctly on first attempt.
    - **e8m0_unshuffle implementation**: Needed to recover un-shuffled B_scale from B_scale_sh (the shuffled competition input). Implemented inverse permute of `(0,3,5,2,4,1)` → `(0,5,3,1,4,2)` based on the skill documentation of `e8m0_shuffle`'s 6D reshape pattern.
    - **`fused_moe_` source truncation**: `inspect.getsource(fm_module.fused_moe_)` returned the JIT wrapper closure (10 lines) instead of the actual dispatch logic. This was because `fused_moe_` is a JIT-injected function wrapped by `torch_compile_guard`. Worked around by discovering `torch.ops.aiter.fused_moe_` schema directly.
    - **MoE direct torch.ops call**: Tried calling `torch.ops.aiter.fused_moe_` directly bypassing Python wrapper — produced identical performance (~155 µs), confirming no Python-level overhead to eliminate.
