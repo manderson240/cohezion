@@ -28,7 +28,7 @@ class TestRecursiveChallenger:
     def test_recursive_challenger_targets_healing_module(self, challenger):
         """[P0] RecursiveChallenger must identify improvement opportunities in immune_system.py"""
         # Mock analysis to return an opportunity (e.g. duplicate code)
-        with patch.object(challenger, '_analyze_source', return_value=[
+        with patch.object(challenger, 'analyze', return_value=[
             ImprovementOpportunity(
                 description="Duplicate block in execute_patch",
                 line_start=201,
