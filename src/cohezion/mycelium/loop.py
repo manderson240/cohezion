@@ -12,9 +12,15 @@ class CoverageLoop:
     Orchestrates the iterative test generation and verification loop.
     """
     
-    def __init__(self, scripter: ShadowScripter, root_dir: str = "."):
+    def __init__(
+        self, 
+        scripter: ShadowScripter, 
+        root_dir: str = ".",
+        test_output_dir: str = "tests/mycelium"
+    ):
         self.scripter = scripter
         self.root_dir = root_dir
+        self.test_output_dir = test_output_dir
 
     def run_tests_and_get_coverage(self, file_path: str) -> float:
         """
@@ -41,7 +47,9 @@ class CoverageLoop:
             return 0.0
             
         except subprocess.CalledProcessError as e:
-            logger.error(f"Test run failed: {e.output.decode('utf-8')}")
+            error_msg = e.output.decode('utf-8')
+            logger.error(f"Test run failed for {file_path}: {error_msg}")
+            # Returning 0.0 allows the loop to continue and potentially 'fix' the test
             return 0.0
 
     async def execute(
@@ -64,9 +72,10 @@ class CoverageLoop:
             test_code = await self.scripter.synthesize_test_suite(file_path, code_context)
             
             # Write synthesized tests to a file
-            # In a real system, we'd manage test file naming and merging
-            test_file = f"tests/mycelium/generated_test_{os.path.basename(file_path)}"
-            os.makedirs(os.path.dirname(test_file), exist_ok=True)
+            test_filename = f"generated_test_{os.path.basename(file_path)}"
+            test_file = os.path.join(self.test_output_dir, test_filename)
+            os.makedirs(self.test_output_dir, exist_ok=True)
+            
             with open(test_file, "w") as f:
                 f.write(test_code)
                 
