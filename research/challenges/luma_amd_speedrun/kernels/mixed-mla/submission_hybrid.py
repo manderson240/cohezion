@@ -3,17 +3,15 @@ MLA decode — hybrid: torch-native for small workloads, aiter for large.
 
 Crossover analysis from benchmarking on MI355X:
   Small (bs * kv <= 400k tokens): torch.einsum beats aiter 3-stage pipeline
-    - bs=4, kv=1k (4k tokens):    26 µs vs ~150 µs  (5.7x faster)
-    - bs=4, kv=8k (33k tokens):   37 µs vs ~169 µs  (4.5x faster)
-    - bs=32, kv=1k (33k tokens):  43 µs vs ~179 µs  (4.2x faster)
-    - bs=32, kv=8k (262k tokens): 169 µs vs ~206 µs  (1.2x faster)
+    - bs=4, kv=1k (4k tokens):   26 µs vs ~150 µs  (5.7x faster)
+    - bs=4, kv=8k (33k tokens):  37 µs vs ~169 µs  (4.5x faster)
+    - bs=32, kv=1k (33k tokens): 43 µs vs ~179 µs  (4.2x faster)
+    - bs=32, kv=8k (262k tokens): 169 µs vs ~206 µs (1.2x faster)
     - bs=64, kv=1k (65k tokens):  64 µs vs ~175 µs  (2.7x faster)
     - bs=256, kv=1k (262k tokens): 175 µs vs ~196 µs (1.1x faster)
   Large (bs * kv > 400k tokens): fp8 ASM kernel wins due to bandwidth
-    - bs=64, kv=8k (524k tokens): ~241 µs vs our 280 µs
-    - bs=256, kv=8k (2M tokens):  ~383 µs vs our 964 µs
-
-Geomean: ~97 µs vs ~199 µs baseline (2x improvement over ref_kernel).
+    - bs=64, kv=8k (524k tokens): ~241 µs vs our 287 µs
+    - bs=256, kv=8k (2M tokens):  ~397 µs vs our 964 µs
 """
 import torch
 from reference import ref_kernel

@@ -1,19 +1,20 @@
 """
-MXFP4 GEMM — Clean submission (ref_kernel delegation).
-
-Phase 2 findings:
-- JIT call-site bug confirmed: get_triton_quant from submission.py produces
-  subtly different quantization regardless of shuffle=True/False
-- gemm_afp4wfp4 (Triton): works with uint8 views but inherits wrong quant
-- get_torch_quant: different rounding, fails correctness for any GEMM kernel
-- Only ref_kernel delegation produces correct results (~24 us geomean)
-
-To improve: would need a custom Triton/HIP kernel or fix for the JIT
-call-site sensitivity in aiter's multiprocessing spawn context.
+MXFP4 GEMM — Direct dynamic_mxfp4_quant (bypassing unpatched get_triton_quant).
+Uses patched kernel from aiter.ops.triton.quant (ROCm/aiter #975).
 """
 from task import input_t, output_t
-from reference import ref_kernel
+from aiter import dtypes
+import aiter
+from aiter.ops.triton.quant import dynamic_mxfp4_quant
+from aiter.utility.fp4_utils import e8m0_shuffle
 
 
 def custom_kernel(data: input_t) -> output_t:
-    return ref_kernel(data)
+    A, B, B_q, B_shuffle, B_scale_sh = data
+    x_fp4, bs_e8m0 = dynamic_mxfp4_quant(A)
+    A_q = x_fp4.view(dtypes.fp4x2)
+    A_scale_sh = e8m0_shuffle(bs_e8m0).view(dtypes.fp8_e8m0)
+    return aiter.gemm_a4w4(
+        A_q, B_shuffle, A_scale_sh, B_scale_sh,
+        dtype=dtypes.bf16, bpreshuffle=True,
+    )

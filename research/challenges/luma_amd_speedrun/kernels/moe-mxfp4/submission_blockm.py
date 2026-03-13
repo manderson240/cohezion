@@ -1,22 +1,15 @@
 """
-MXFP4 MoE — Phase 10: Expert-count-aware KSPLIT selection.
+MXFP4 MoE — Phase 13: block_size_M override for moderate-sparse shapes.
 
-Key discovery: Optimal KSPLIT depends on BOTH estimated_m AND num_experts.
-For large expert counts (257E, dexp=256), KSPLIT=4 is better at estimated_m≈4
-because smaller expert weight matrices benefit more from K-dimension splitting.
-For small expert counts (33E, dexp=512+), KSPLIT=2 remains optimal for sparse.
-
-Phase 9 benchmark data (vs Phase 8 KSPLIT=2 baseline):
-  bs=16,  257E (em=0): KSPLIT=4 → 91.3 vs 95.1 µs  (KSPLIT=4 better, -4%)
-  bs=128, 257E (em=4): KSPLIT=4 → 172  vs 186  µs  (KSPLIT=4 better, -7.5%)
-  bs=512, 257E (em=17): KSPLIT=4 → 284 vs 275  µs  (KSPLIT=2 better, +3.3%)
-  bs=16,  33E  (em=4): KSPLIT=4 → 61.4 vs 59.8 µs  (KSPLIT=2 better, +2.7%)
+Hypothesis: For bs=512,257E (est_m=17), the heuristic picks block_m=64
+because total_tokens=4608 > 2048. But with est_m=17, tiles are mostly
+empty. block_m=32 would create more tiles with better utilization.
 
 Strategy:
-  - num_experts >= 200 AND estimated_m < 10: KSPLIT=4 (large expert count, sparse)
-  - estimated_m < 50 (others): KSPLIT=2 (moderate sparse, or small expert count)
-  - estimated_m >= 50: KSPLIT=0 (dense, CK MXFP4 path)
-  Always BYPASS_TUNE for sparse shapes to override CSV-locked 257E configs.
+  - estimated_m >= 50: CK path (no override)
+  - num_experts >= 200 AND estimated_m < 10: BYPASS+K4, block_m=32
+  - estimated_m < 50 AND estimated_m >= 10: BYPASS+K2, block_m=32
+  - estimated_m < 10 (small expert count): BYPASS+K2, block_m=32
 """
 import os
 from task import input_t, output_t
@@ -46,19 +39,22 @@ def custom_kernel(data: input_t) -> output_t:
     num_experts = gate_up_weight_shuffled.shape[0]
     estimated_m = topk_ids.numel() // num_experts
 
+    block_m = None  # default: let aiter auto-select
+
     if estimated_m >= 50:
-        # Dense: CK MXFP4-optimized path (ksplit=0).
+        # Dense: CK MXFP4-optimized path
         os.environ.pop("AITER_BYPASS_TUNE_CONFIG", None)
         os.environ.pop("AITER_KSPLIT", None)
     elif num_experts >= 200 and estimated_m < 10:
-        # Large expert count, very sparse: split_k=4 exploits K-parallelism.
-        # Smaller expert weights (dexp≈256) benefit more from higher splits.
+        # Large expert count, very sparse: KSPLIT=4
         os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
         os.environ["AITER_KSPLIT"] = "4"
+        block_m = 32
     else:
-        # Sparse (few experts or moderate token density): cktile split_k=2.
+        # Moderate sparse: KSPLIT=2
         os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
         os.environ["AITER_KSPLIT"] = "2"
+        block_m = 32  # Override heuristic block_m=64 for sparse shapes
 
     return fused_moe(
         hidden_states,
@@ -74,6 +70,7 @@ def custom_kernel(data: input_t) -> output_t:
         w2_scale=down_weight_scale_shuffled,
         a1_scale=None,
         a2_scale=None,
+        block_size_M=block_m,
         hidden_pad=hidden_pad,
         intermediate_pad=intermediate_pad,
     )
