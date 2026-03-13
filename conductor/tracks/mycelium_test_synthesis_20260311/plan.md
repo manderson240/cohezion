@@ -13,7 +13,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: ShadowScripter Agent' (Protocol in workflow.md)
 
 ## Phase 3: Coverage Verification Loop
-- [ ] Task: Implement the `CoverageLoop` execution strategy.
-    - [ ] Sub-task: Write integration tests verifying the agent runs tests and evaluates output.
-    - [ ] Sub-task: Implement the loop to iteratively generate and fix tests until 100% coverage is achieved.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Coverage Verification Loop' (Protocol in workflow.md)
+- [x] Task: Implement the `CoverageLoop` execution strategy.
+    - [x] Sub-task: Write integration tests verifying the agent runs tests and evaluates output.
+    - [x] Sub-task: Implement the loop to iteratively generate and fix tests until 100% coverage is achieved.
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Coverage Verification Loop' (Protocol in workflow.md)
