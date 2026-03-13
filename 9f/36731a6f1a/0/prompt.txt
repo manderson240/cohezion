@@ -1,0 +1,3637 @@
+Implement the following plan:
+
+# Luma AMD Speedrun: Phase 2 — VLIW-Informed Custom Kernel Approaches
+
+## Context
+
+**Phase 1 (parameter tuning) is complete.** All aiter API parameters have been exhausted:
+- `doweight_stage1=True`: correctness failure (SiLU nonlinearity)
+- `block_size_M=64`: GPU memory fault on benchmark shapes
+- `dispatch_policy=1`: 20-79% slower
+- `OPUS sorting`: no effect on MXFP4 variant
+- `fast_mode=True` (MLA): 17-21% slower
+- `num_kv_splits` sweep (MLA): all tested values slower
+
+Phase 2 applies lessons from the Anthropic VLIW take-home challenge
+(`research/challenges/anthropic_challenge/`) to pursue custom kernel approaches.
+
+### Current Leaderboard Status
+
+| Kernel | Our Time | Leader | Gap | Leaderboard |
+|--------|----------|--------|-----|-------------|
+| GEMM | ~24 us (ref delegation) | 9.7 us | 2.49x | `amd-mxfp4-mm` |
+| MoE | ~185 us (ref match) | 145 us | 1.28x | `amd-moe-mxfp4` |
+| MLA | ~191 us (ref match) | 4.3 us | 44x | `amd-mixed-mla` |
+
+**Priority:** GEMM JIT bypass (highest confidence) → MoE CK exploration → MLA MXFP4 KV test
+
+## Files to Modify
+
+| File | Kernel |
+|------|--------|
+| `.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/submission.py` | GEMM |
+| `.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/submission.py` | MoE |
+| `.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels/mixed-mla/submission.py` | MLA |
+
+## Progress Tracking
+
+- [ ] Task 1: GEMM — `get_torch_quant` + manual shuffle JIT bypass
+- [ ] Task 2: GEMM — Try `gemm_afp4wfp4` Triton alternative
+- [ ] Task 3: MoE — Remote source introspection (print aiter CK configs)
+- [ ] Task 4: MoE — Direct CK stage kernel call (bypass fused_moe dispatch)
+- [ ] Task 5: MLA — Try MXFP4 KV cache (input already provides it)
+- [ ] Task 6: Deep source reading — aiter tuned CSV dump via test submission
+
+**Total Tasks:** 6 | **Completed:** 0 | **Remaining:** 6
+
+## Implementation Tasks
+
+### Task 1: GEMM — `get_torch_quant` JIT bypass (target: match ref ~24 us, then optimize)
+
+**Objective:** Replace `ref_kernel` delegation with our own quantize-then-GEMM pipeline using
+`get_torch_quant` (pure PyTorch, no Triton JIT) to avoid the call-site correctness bug.
+
+**Key insight:** MoE `reference.py:109` already calls `get_torch_quant(QuantType.per_1x32)`
+successfully. The GEMM `reference.py:95` uses `get_triton_quant` which has the call-site bug.
+If `get_torch_quant` with `shuffle=True` produces compatible output for `gemm_a4w4`, we bypass
+the JIT issue entirely.
+
+**Files:** `kernels/mxfp4-mm/submission.py`
+
+**Implementation (attempt 1 — torch_quant with shuffle):**
+```python
+import aiter
+from aiter import QuantType, dtypes
+from task import input_t, output_t
+
+def custom_kernel(data: input_t) -> output_t:
+    A, B, B_q, B_shuffle, B_scale_sh = data
+    A = A.contiguous()
+    quant_func = aiter.get_torch_quant(QuantType.per_1x32)
+    A_q, A_scale = quant_func(A, shuffle=True)
+    return aiter.gemm_a4w4(A_q, B_shuffle, A_scale, B_scale_sh,
+                           dtype=dtypes.bf16, bpreshuffle=True)
+```
+
+**Fallback (attempt 2 — manual shuffle):**
+```python
+from aiter.ops.shuffle import shuffle_weight
+from aiter.utility import fp4_utils
+
+quant_func = aiter.get_torch_quant(QuantType.per_1x32)
+A_q, A_scale = quant_func(A)  # no shuffle kwarg
+A_q_shuffled = shuffle_weight(A_q.view(m, k // 2), layout=(16, 16))
+A_scale_shuffled = fp4_utils.e8m0_shuffle(A_scale)
+```
+
+**Fallback (attempt 3 — hip_quant):**
+```python
+quant_func = aiter.get_hip_quant(QuantType.per_1x32)
+A_q, A_scale = quant_func(A, shuffle=True)
+```
+
+**Verify:** `--mode test` → 0.0 max error → `--mode benchmark` → `--mode leaderboard`
+
+---
+
+### Task 2: GEMM — Try Triton `gemm_afp4wfp4` (target: < 20 us)
+
+**Depends on:** Task 1 (need correctness baseline)
+
+**Objective:** The GEMM reference.py comment (line 97) mentions `gemm_afp4wfp4` as an
+alternative Triton-based MXFP4 GEMM with split-K and auto-tuning. May outperform CK
+`gemm_a4w4` for some shapes.
+
+**Files:** `kernels/mxfp4-mm/submission.py`
+
+**Implementation:**
+```python
+from aiter.ops.triton.gemm.basic.gemm_afp4wfp4 import gemm_afp4wfp4
+
+def custom_kernel(data: input_t) -> output_t:
+    A, B, B_q, B_shuffle, B_scale_sh = data
+    # gemm_afp4wfp4 may have different input expectations
+    # Need to check its signature on the remote server
+    return gemm_afp4wfp4(A_q, B_q, A_scale, B_scale, ...)
+```
+
+**Note:** Import path may vary. Submit a test-only version that prints the
+function signature to understand the API before writing the real kernel.
+
+**Verify:** `--mode test` → correctness check → `--mode benchmark`
+
+---
+
+### Task 3: MoE — Remote aiter introspection (0 risk, high info value)
+
+**Objective:** Submit a test script that prints aiter internal state to understand
+what CK kernel configs, tile sizes, and CSV tuning data are available. This uses
+Popcorn's stderr output to dump diagnostic information.
+
+**Files:** `kernels/moe-mxfp4/submission.py`
+
+**Implementation:**
+```python
+import sys, os
+from task import input_t, output_t
+from aiter.fused_moe import fused_moe, get_2stage_cfgs
+from aiter import ActivationType, QuantType
+
+def custom_kernel(data: input_t) -> output_t:
+    (hidden_states, gate_up_weight, down_weight,
+     gate_up_weight_scale, down_weight_scale,
+     gate_up_weight_shuffled, down_weight_shuffled,
+     gate_up_weight_scale_shuffled, down_weight_scale_shuffled,
+     topk_weights, topk_ids, config) = data
+
+    # Dump aiter CK kernel selection info to stderr
+    M = hidden_states.shape[0]
+    E = gate_up_weight_shuffled.shape[0]
+    print(f"INTROSPECT: M={M}, E={E}, config={config}", file=sys.stderr)
+
+    # Try to read tuned CSV configs
+    import aiter
+    aiter_path = os.path.dirname(aiter.__file__)
+    csv_path = os.path.join(aiter_path, "configs")
+    if os.path.isdir(csv_path):
+        for f in sorted(os.listdir(csv_path)):
+            fpath = os.path.join(csv_path, f)
+            if f.endswith('.csv'):
+                print(f"CSV: {f}", file=sys.stderr)
+                with open(fpath) as fh:
+                    for i, line in enumerate(fh):
+                        if i < 5:  # first 5 lines (header + samples)
+                            print(f"  {line.rstrip()}", file=sys.stderr)
+
+    # Still return correct output (delegate to reference)
+    from reference import ref_kernel
+    return ref_kernel(data)
+```
+
+**Verify:** `--mode test` → read STDERR output for CSV configs and shape info.
+No risk to correctness since we delegate to `ref_kernel`.
+
+---
+
+### Task 4: MoE — Direct CK stage kernel call (bypass fused_moe dispatch)
+
+**Depends on:** Task 3 (need CK kernel names and configs)
+
+**Objective:** VLIW "Two Builders" pattern. Build a custom MoE pipeline that calls
+aiter's CK 2-stage kernels (`ck_moe_stage1`, `ck_moe_stage2`) directly with
+hand-tuned parameters, bypassing `fused_moe`'s auto-dispatch.
+
+**Key observation from prior stderr logs:** The CK kernels selected are:
+- Stage 1: `moe_ck2stages_gemm1_64x32x32x128_1x1_MulABScaleShuffled_v3_...`
+- Stage 2: `REDACTED...`
+
+The tile is `64x32x32x128`. If we can call these directly with different tile configs
+(e.g., the stage2 kernel with a different N_swizzle), we may improve throughput.
+
+**Files:** `kernels/moe-mxfp4/submission.py`
+
+**Implementation:** TBD based on Task 3 findings. The general shape:
+```python
+from aiter.fused_moe import moe_sorting_fwd, ck_moe_stage1, ck_moe_stage2
+
+def custom_kernel(data: input_t) -> output_t:
+    # 1. Sort tokens to experts (same as reference)
+    # 2. Call ck_moe_stage1 directly with custom block_m
+    # 3. Call ck_moe_stage2 directly with custom params
+    # 4. Scatter results back
+    ...
+```
+
+**Risk:** High — these internal functions may not be importable or may have
+undocumented requirements. Fallback is to continue using `fused_moe` with defaults.
+
+**Verify:** `--mode test` → correctness → `--mode benchmark` for timing comparison
+
+---
+
+### Task 5: MLA — Try MXFP4 KV cache (input already provides it)
+
+**Objective:** The input `kv_data` dict provides three KV cache formats:
+- `"bf16"`: Tensor (total_kv, 1, 576) — highest precision
+- `"fp8"`: (Tensor, Tensor) — current reference uses this
+- `"mxfp4"`: (Tensor, Tensor) — fp4x2 (total_kv, 1, 288) + scale
+
+We've only tested fp8. MXFP4 has 2x less memory bandwidth (4-bit vs 8-bit),
+which could significantly speed up the memory-bound decode kernel. The question
+is whether `mla_decode_fwd` supports MXFP4 KV, or if we need a different kernel path.
+
+**Files:** `kernels/mixed-mla/submission.py`
+
+**Implementation:**
+```python
+# Test if mla_decode_fwd accepts fp4x2 dtype KV buffer
+kv_buffer_mxfp4, kv_scale_mxfp4 = kv_data["mxfp4"]
+# Need to check: does mla_decode_fwd support fp4x2 dtype?
+# If not, we need aiter's MXFP4-specific MLA kernel (if it exists)
+```
+
+**Discovery step:** Submit a version that prints `type(kv_buffer_mxfp4.dtype)` and
+tries to call `mla_decode_fwd` with it. The error message will reveal whether MXFP4
+is supported.
+
+**Verify:** `--mode test` → if correctness passes, `--mode benchmark` for timing
+
+---
+
+### Task 6: Deep source reading — aiter tuned CSV dump
+
+**Objective:** Extract the full auto-tuning CSV configurations from the remote MI355X
+environment. These CSVs drive the CK kernel selection in `fused_moe` and potentially
+`gemm_a4w4`. Understanding them reveals what tile configs exist for each shape.
+
+**Files:** `kernels/mxfp4-mm/submission.py` (any kernel will do)
+
+**Implementation:** Same pattern as Task 3 — submit a script that reads and prints
+the aiter configs directory, then delegates to ref_kernel.
+
+```python
+import os, sys, aiter
+from reference import ref_kernel
+from task import input_t, output_t
+
+def custom_kernel(data: input_t) -> output_t:
+    aiter_path = os.path.dirname(aiter.__file__)
+    # Print all CSV content (not just headers)
+    for root, dirs, files in os.walk(os.path.join(aiter_path, "configs")):
+        for f in sorted(files):
+            if f.endswith('.csv'):
+                fpath = os.path.join(root, f)
+                print(f"\n=== {f} ===", file=sys.stderr)
+                with open(fpath) as fh:
+                    print(fh.read(), file=sys.stderr)
+    return ref_kernel(data)
+```
+
+**Verify:** `--mode test` → read STDERR for full CSV contents
+
+## Execution Order
+
+```
+Task 6 (CSV dump)  ─┐
+Task 3 (MoE introspect)─┤── parallel, zero risk (all delegate to ref_kernel)
+Task 1 (GEMM torch_quant)─┘
+
+    ↓ (analyze outputs)
+
+Task 2 (GEMM afp4wfp4) ── depends on Task 1 correctness
+Task 5 (MLA MXFP4 KV)  ── independent
+Task 4 (MoE direct CK) ── depends on Task 3 findings
+```
+
+**Tasks 1, 3, 6 can run as parallel Popcorn submissions** — they all pass correctness
+(delegate to ref_kernel) and just extract different information.
+
+## Popcorn CLI Reference
+
+```bash
+KERNELS=/home/mike-anderson/dev/cohezion/.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels
+CLI=~/.local/bin/popcorn-cli
+
+# Test → Benchmark → Leaderboard (always in this order)
+$CLI submit --no-tui --mode test --gpu MI355X --leaderboard amd-mxfp4-mm $KERNELS/mxfp4-mm/submission.py
+$CLI submit --no-tui --mode benchmark --gpu MI355X --leaderboard amd-mxfp4-mm $KERNELS/mxfp4-mm/submission.py
+$CLI submit --no-tui --mode leaderboard --gpu MI355X --leaderboard amd-mxfp4-mm $KERNELS/mxfp4-mm/submission.py
+
+$CLI submit --no-tui --mode test --gpu MI355X --leaderboard amd-moe-mxfp4 $KERNELS/moe-mxfp4/submission.py
+$CLI submit --no-tui --mode benchmark --gpu MI355X --leaderboard amd-moe-mxfp4 $KERNELS/moe-mxfp4/submission.py
+$CLI submit --no-tui --mode leaderboard --gpu MI355X --leaderboard amd-moe-mxfp4 $KERNELS/moe-mxfp4/submission.py
+
+$CLI submit --no-tui --mode test --gpu MI355X --leaderboard amd-mixed-mla $KERNELS/mixed-mla/submission.py
+$CLI submit --no-tui --mode benchmark --gpu MI355X --leaderboard amd-mixed-mla $KERNELS/mixed-mla/submission.py
+$CLI submit --no-tui --mode leaderboard --gpu MI355X --leaderboard amd-mixed-mla $KERNELS/mixed-mla/submission.py
+```
+
+## Risks
+
+| Risk | Mitigation |
+|------|------------|
+| `get_torch_quant` shuffle produces different layout than `get_triton_quant` | Fallback: manual `shuffle_weight()` + `e8m0_shuffle()`, then hip_quant |
+| `gemm_afp4wfp4` not importable or different API | Discovery submission first to print module contents |
+| CK stage kernels not directly importable from `aiter.fused_moe` | Task 3 introspection reveals what's importable |
+| `mla_decode_fwd` doesn't support MXFP4 KV dtype | Error message reveals this; fallback to fp8 (current) |
+| CSV configs empty or not useful | Low risk — we know they exist from JIT build logs |
+| Slow iteration (~2-10 min/submit) | Parallel first batch (Tasks 1,3,6); analyze before Task 2,4,5 |
+
+## Verification
+
+For each task:
+1. `--mode test` must pass with 0.0 (or < tolerance) max error
+2. `--mode benchmark` timing compared against current baselines (GEMM 24us, MoE 185us, MLA 191us)
+3. Only submit `--mode leaderboard` if benchmark shows improvement over current ranking
+4. Read STDERR output for all introspection tasks to extract aiter internal configs
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/f4cbccc2-65e9-41e2-9671-af041d9602b5.jsonl
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/skills/popcorn-cli-amd-kernel-submission
+
+# Popcorn CLI AMD Kernel Submission Workflow
+
+## Submission Commands
+
+```bash
+CLI=~/.local/bin/popcorn-cli
+KERNELS=/path/to/kernels/dir
+
+# 1. Test (correctness check — do this first)
+$CLI submit --no-tui --mode test --gpu MI355X --leaderboard <name> $KERNELS/<kernel>/submission.py
+
+# 2. Benchmark (timing, no leaderboard impact)
+$CLI submit --no-tui --mode benchmark --gpu MI355X --leaderboard <name> $KERNELS/<kernel>/submission.py
+
+# 3. Leaderboard (official ranked submission)
+$CLI submit --no-tui --mode leaderboard --gpu MI355X --leaderboard <name> $KERNELS/<kernel>/submission.py
+```
+
+## Leaderboard Name Pattern
+
+Leaderboard names follow the pattern: `amd-<directory-name>`
+
+| Kernel directory | Leaderboard name |
+|-----------------|-----------------|
+| `mxfp4-mm/`    | `amd-mxfp4-mm`  |
+| `mixed-mla/`   | `amd-mixed-mla` |
+| `moe-mxfp4/`   | `amd-moe-mxfp4` |
+
+To discover unknown names: submit with `--mode test` using candidate names. A 404/does-not-exist
+response means the name is wrong; acceptance (even with correctness failures) confirms the name.
+
+## Submission Limits (Luma AMD Speedrun)
+
+- **No per-user rate limit** — submit as many times as needed
+- Server-wide: 3 concurrent submissions (asyncio.Semaphore)
+- ~10 requests/second global rate limit
+- Per-mode timeouts: test=180s, benchmark=180s (overridden per competition in task.yml)
+- **Total workflow timeout: ~12 minutes** — the entire GitHub Actions run must complete within this
+- Use `--mode test` first, then `--mode benchmark`, then `--mode leaderboard`
+
+## aiter JIT Compilation Times (Luma AMD Speedrun)
+
+aiter builds JIT modules on first use. These builds happen **inside** the 12-minute workflow timeout:
+
+| JIT Module | Build Time |
+|-----------|-----------|
+| `module_moe_sorting` | ~25s |
+| `module_moe_ck2stages_fp4x2_*` | ~103s |
+| `module_mla_metadata` | ~32s |
+| `module_mla_asm` | ~21s |
+| `module_mla_reduce` | ~171s |
+
+**Critical implications:**
+- MoE JIT builds alone take ~230s (~4 min), leaving only ~8 min for actual execution
+- MLA JIT builds take ~224s total — similar headroom concern
+- When the server queue is backed up with multiple concurrent submissions, the JIT time can push the total over the 12-minute limit
+- Submissions that appear to fail silently (no output, cancelled status) are often **queue pressure timeouts**, not code errors
+
+**Mitigation:** Retry submissions during off-peak hours. JIT results are cached between runs in the same workflow, so a retry that hits a pre-warmed runner will be much faster.
+
+## Local Testing Limitations on gfx1151 (RDNA4 Strix Halo)
+
+Local GPU testing on gfx1151 (AMD Radeon 8060S, Strix Halo iGPU) is NOT feasible with ROCm 6.2.4:
+
+- Without override: `HIP error: invalid device function` (ISA mismatch)
+- With `HSA_OVERRIDE_GFX_VERSION=11.0.0`: "Memory access fault by GPU node-2" on kernel launch
+  (RDNA4 gfx1151 is not binary-compatible with RDNA3 gfx1100)
+- ROCm 6.3+ would be needed for gfx1151 native support
+
+**Workaround**: All testing via Popcorn CLI remote submission (MI355X hardware).
+
+## `uv run` Reverting ROCm Torch Install
+
+The project's uv lockfile pins CUDA torch (`torch+cu128`). Running `uv run` syncs from the
+lockfile and overwrites any manually installed ROCm torch.
+
+**Fix**: Create an isolated venv outside the project for GPU kernel work:
+
+```bash
+# Create isolated ROCm venv
+python3 -m venv research/challenges/luma_amd_speedrun/.venv-rocm
+source research/challenges/luma_amd_speedrun/.venv-rocm/bin/activate
+pip install torch --index-url https://download.pytorch.org/whl/rocm6.2.4
+
+# Use this venv directly (not uv run) for kernel testing
+python submission.py
+```
+
+## Competition Kernel Structure
+
+Each kernel must implement:
+```python
+# submission.py
+from task import input_t, output_t
+
+def custom_kernel(data: input_t) -> output_t:
+    ...  # Your implementation
+```
+
+The eval harness (`eval.py`) calls `generate_input()` from `reference.py`, passes `_clone_data(data)`
+to `custom_kernel`, then runs `check_implementation()` comparing output to reference. Benchmark
+runs clear L2 cache between runs (`clear_l2_cache_large()`), so cache warming tricks don't help.
+
+**CRITICAL: Popcorn CLI only uploads `submission.py`.** It does NOT upload any other files
+in the kernel directory. Files like `reference.py`, `task.py`, and `eval.py` are already
+present on the runner at the competition's standard location — they are NOT re-uploaded.
+
+**Consequence: Multi-file submissions are NOT possible.** If your submission.py tries to
+`from gemm_wrapper import quant_and_gemm` where `gemm_wrapper.py` is a file you created
+in the kernel directory, the runner will get `ModuleNotFoundError: No module named 'gemm_wrapper'`.
+
+**Workaround attempted — dynamic module creation at `/tmp/`:**
+```python
+# submission.py
+import importlib.util, textwrap, os, sys
+
+code = textwrap.dedent("""...""")
+path = "/tmp/my_module.py"
+with open(path, "w") as f: f.write(code)
+spec = importlib.util.spec_from_file_location("my_module", path)
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+sys.modules["my_module"] = mod
+```
+
+This WORKS for making the module importable, BUT for AMD `gemm_a4w4_asm` specifically,
+the dynamic module does NOT change callsite identity — the dispatch still produces wrong
+results (see `amd-triton-jit-callsite-correctness` skill). Only `from reference import
+ref_kernel` reliably bypasses the callsite sensitivity.
+
+## Troubleshooting: Transient Artifact Download Failures
+
+Popcorn CLI submissions run on GitHub Actions runners. The evaluation job and the artifact
+download are separate steps — a network failure can cause the CLI to report failure even though
+the evaluation job itself **succeeded**.
+
+**Symptoms:**
+- CLI output shows failure / no results despite a correct kernel
+- Error mentions artifact download or GitHub Actions artifact retrieval
+
+**Fix:** Simply retry the same submission command. A retry succeeds in the majority of cases.
+
+```bash
+# Retry exactly the same command — the eval job is idempotent
+$CLI submit --no-tui --mode benchmark --gpu MI355X --leaderboard <name> <file>
+```
+
+**Important:** Transient failures look identical to actual correctness failures in the CLI output.
+If a previously-passing kernel suddenly "fails", try a retry before debugging the kernel code.
+
+## Correctness Tolerances (Luma AMD Speedrun)
+
+| Kernel | rtol | atol |
+|--------|------|------|
+| MXFP4 GEMM | 1e-2 | 1e-2 |
+| MLA Decode | 1e-2 | 1e-2 |
+| MoE MXFP4 | 5e-2 | 5e-2 |
+
+## Test vs Benchmark Shape Differences (MLA-specific)
+
+**Critical:** `task.yml` test shapes and benchmark shapes differ in `qseqlen`:
+
+| Mode | qseqlen values | Why |
+|------|---------------|-----|
+| Test (`--mode test`) | May include qseqlen=4 | Exercises prefill-like cases |
+| Benchmark (`--mode benchmark`) | Always qseqlen=1 | Decode-only benchmark |
+
+Custom kernels must handle qseqlen>1 correctly or the test will fail, even if the
+benchmark optimization only targets qseqlen=1. Safe pattern:
+
+```python
+total_q = q.shape[0]
+qseqlen = total_q // bs
+if qseqlen != 1:
+    from reference import ref_kernel
+    return ref_kernel(data)
+# ... optimized decode path
+```
+
+**Observation (MLA, March 2026):** The test runner used only qseqlen=1 shapes in practice,
+but the guard is still important for correctness robustness.
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/skills/aiter-kernel-parameter-semantics
+
+# aiter Kernel Parameter Semantics (AMD MI355X)
+
+## Problem
+
+aiter's `fused_moe` and `mla_decode_fwd` have parameters that sound like performance flags
+but actually change computation or have counter-intuitive effects on MI355X.
+
+## fused_moe: doweight_stage1
+
+### What it does
+
+`doweight_stage1=True` moves the `topk_weights` multiplication from **stage 2** (after SiLU
+activation) to **stage 1** (before SiLU activation).
+
+- `doweight_stage1=False` (default): `output = SiLU(gate(x)) * up(x)`, then multiply weights in stage 2
+- `doweight_stage1=True`: multiply weights in stage 1 BEFORE activation
+
+### Why it causes correctness failure
+
+SiLU is a **nonlinear** activation. Multiplying weights before vs after a nonlinear activation
+produces mathematically different results:
+
+```
+w * SiLU(gate(x)) * up(x)   ≠   SiLU(w * gate(x)) * (w * up(x))
+```
+
+This is not a subtle numerical difference — it produces ~80% element mismatches with 10-30%
+per-element error (well above the 5e-2 tolerance for MoE).
+
+**Rule:** `doweight_stage1=True` only produces correct results for linear activations (ReLU-like),
+not for SiLU/GELU. For MXFP4 MoE with SiLU, always use `doweight_stage1=False`.
+
+## fused_moe: OPUS Sorting (AITER_USE_OPUS_MOE_SORTING)
+
+Setting `os.environ["AITER_USE_OPUS_MOE_SORTING"] = "1"` before calling `fused_moe` switches
+to the OPUS sorting backend (`moe_sorting_opus_fwd` instead of `moe_sorting_fwd`).
+
+**Correctness:** OPUS sorting only changes token dispatch order — the computation is identical.
+Setting this env var passes correctness tests (verified, max error 0.015625).
+
+**Performance on MXFP4 variant:** NO EFFECT. The env var is not wired into the fp4x2 code path
+in `fused_moe.py`. JIT still builds `module_moe_sorting` (not `module_moe_sorting_opus`), and
+benchmark times are identical to reference. This was verified by running the full benchmark suite.
+
+## fused_moe: block_size_M
+
+Override the auto-selected tile size for the token dimension:
+
+```python
+fused_moe(..., block_size_M=64)  # or 32, 128
+```
+
+Default is `-1` (auto-selects from tuned CSV configs). For MXFP4 with different model configs:
+- bs=8 (small): auto-selects `block_m=32`
+- bs=128 (medium): auto-selects `block_m=64`
+
+**DANGER: Forcing `block_size_M=64` causes GPU memory access faults on benchmark configs.**
+When `estimated_m_per_expert` is low (e.g., bs=16 with 256 experts = ~1 token/expert), a tile
+size of 64 exceeds the actual data bounds and causes a hardware-level `Memory access fault by
+GPU node-2`. The auto-tuner correctly selects smaller tiles for these shapes. **Never override
+`block_size_M` without verifying it's safe for ALL shapes in the benchmark suite.**
+
+## mla_decode_fwd: fast_mode is SLOWER on MI355X
+
+### What it does
+
+`fast_mode=True` in `get_mla_metadata_info_v1` and `get_mla_metadata_v1` changes the work
+distribution strategy: `(bs + cu_num) * tiles` work items vs `tile_cnt * cu_num`.
+
+### Test results (MI355X, DeepSeek R1 MLA, fp8)
+
+| Config | fast_mode=False (reference) | fast_mode=True, adaptive splits | fast_mode=True, fixed splits=32 |
+|--------|----------------------------|--------------------------------|--------------------------------|
+| bs=4, kv=1024 | ~131 us | ~154 us | ~152 us |
+| bs=256, kv=8192 | ~462 us | ~536 us | ~542 us |
+| Geomean | ~191 us | ~224 us (+17%) | ~232 us (+21%) |
+
+**fast_mode=True is 17-21% SLOWER than fast_mode=False on MI355X for decode workloads.**
+
+The reference implementation already uses well-tuned defaults. Changing `fast_mode` to `True`
+and `num_kv_splits` from 32 to adaptive values (4-16 depending on batch size) both made
+performance worse, not better.
+
+**Rule:** For MLA decode on MI355X with the DeepSeek R1 forward_absorb architecture, use:
+```python
+fast_mode=False
+num_kv_splits=32
+intra_batch_mode=True
+```
+
+## fused_moe: AITER_KSPLIT (Environment Variable)
+
+`AITER_KSPLIT=N` switches `fused_moe` between two entirely different kernel implementations:
+
+- **KSPLIT=0 (default / unset):** Uses `module_moe_ck2stages_fp4x2_fp4x2_preshuffle_*` — MXFP4-optimized CK kernels, fast for dense token distributions
+- **KSPLIT>0:** Uses `module_moe_cktile2stages` — generic cktile kernels (not MXFP4-specialized), but better for sparse token distributions
+
+**Critical:** AITER_KSPLIT is **completely ignored** for shapes with pre-tuned CSV configs (e.g., 257-expert DeepSeek-V3 configs in `tuned_fmoe.csv`). Only affects shapes that fall back to default kernel selection.
+
+### Benchmark Data (MI355X, dhidden=7168, with AITER_BYPASS_TUNE_CONFIG=1)
+
+**33-expert shapes (dexp=512/2048):**
+
+| Shape | KSPLIT=0 | KSPLIT=2 | Winner |
+|-------|----------|----------|--------|
+| bs=16, 33 exp | 94.5 µs | 60.6 µs | cktile (-36%) |
+| bs=128, 33 exp | 130 µs | 109 µs | cktile (-16%) |
+| bs=512, 33 exp, dexp=512 | 214 µs | 253 µs | CK (+18%) |
+| bs=512, 33 exp, dexp=2048 | 352 µs | 703 µs | CK (+100%) |
+
+**257-expert shapes (dexp=256, TP=8 DeepSeek-V3) — BYPASS_TUNE required:**
+
+| Shape | CK (CSV, est_m) | KSPLIT=2 | KSPLIT=4 | Winner |
+|-------|---------|----------|----------|--------|
+| bs=16, 257E (est_m≈0) | 152.7 µs | 95.1 µs | 91.3 µs | KSPLIT=4 (-40% vs CK) |
+| bs=128, 257E (est_m≈4) | 239 µs | 186 µs | 172 µs | KSPLIT=4 (-28% vs CK) |
+| bs=512, 257E (est_m≈17) | 336.5 µs | 275 µs | 284 µs | KSPLIT=2 (-18% vs CK) |
+
+**Full 7-shape competition benchmark (geomean target: ~155 µs vs ~145 µs leader):**
+
+| Shape | Reference | Phase 8 (BYPASS+K2) | Phase 10 (expert-aware) |
+|-------|-----------|---------------------|------------------------|
+| bs=16, 257E | 152.7 µs | 95.1 µs | 91.6 µs (KSPLIT=4) |
+| bs=128, 257E | 239 µs | 186 µs | 171 µs (KSPLIT=4) |
+| bs=512, 257E | 336.5 µs | 275 µs | 284 µs (KSPLIT=2) |
+| bs=16, 33E | 106.2 µs | 59.8 µs | 59.8 µs (KSPLIT=2) |
+| bs=128, 33E | 141.1 µs | 109 µs | 109 µs (KSPLIT=2) |
+| bs=512, 33E dexp=512 | 225 µs | 209 µs | 214 µs (KSPLIT=0) |
+| bs=512, 33E dexp=2048 | 380.4 µs | 343 µs | 355 µs (KSPLIT=0) |
+| **Geomean** | ~206 µs | ~156 µs | ~155 µs |
+
+**Rule:** `estimated_m_per_expert = topk_ids.numel() // num_experts`
+- `estimated_m >= 50` → KSPLIT unset (CK path, dense shapes)
+- `num_experts >= 200 AND estimated_m < 10` → KSPLIT=4 (large expert count, tiny per-expert matrices benefit from K-parallelism)
+- `estimated_m < 50` (other) → KSPLIT=2 (cktile path, moderate sparse)
+
+**Why KSPLIT=4 helps for 257E but not 33E:** 257E shapes have dexp=256 (small weight matrices per expert). With K=256, KSPLIT=4 splits K into 64-element chunks which fits better in cache. 33E shapes have dexp=512+ (larger matrices where KSPLIT=2 already saturates K-parallelism).
+
+### Expert-Count-Aware Adaptive KSPLIT Pattern
+
+Setting env var per-call works because AITER checks it at dispatch time (not module import):
+
+```python
+import os
+
+num_experts = gate_up_weight_shuffled.shape[0]
+estimated_m = topk_ids.numel() // num_experts
+
+if estimated_m >= 50:
+    # Dense: CK MXFP4-optimized path
+    os.environ.pop("AITER_BYPASS_TUNE_CONFIG", None)
+    os.environ.pop("AITER_KSPLIT", None)
+elif num_experts >= 200 and estimated_m < 10:
+    # Large expert count, very sparse: KSPLIT=4 for K-parallelism
+    os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
+    os.environ["AITER_KSPLIT"] = "4"
+else:
+    # Moderately sparse or small expert count: KSPLIT=2
+    os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
+    os.environ["AITER_KSPLIT"] = "2"
+
+return fused_moe(...)
+```
+
+### Stderr Diagnostics: Reading Kernel Path Selection
+
+The aiter log output tells you definitively which path was taken — critical for debugging KSPLIT behavior:
+
+**CSV-tuned shape (KSPLIT ignored):**
+```
+[aiter] [fused_moe] using 2stage (kernelName1='moe_ck2stages_gemm1_256x32x128x128_...', kernelName2='...') for (...)
+```
+The parenthetical `(kernelName1=...)` means a specific CSV-tuned kernel was selected. AITER_KSPLIT has no effect here.
+
+**Default shape (KSPLIT applies):**
+```
+[aiter] run_1stage = False, ksplit = 2 q_type = QuantType.per_1x32 block_m = 32 use_nt = True, estimated_m_per_expert = 4
+[aiter] [fused_moe] using 2stage default for (...)
+```
+The `using 2stage default` message confirms KSPLIT was read and applied. `ksplit = 2` confirms the cktile path was selected.
+
+**Key log fields:**
+- `ksplit = 0` → MXFP4-optimized CK path (KSPLIT unset or =0)
+- `ksplit = 2` → cktile path (AITER_KSPLIT=2)
+- `use_nt = True` → non-temporal memory loads enabled (AITER_USE_NT env var)
+- `estimated_m_per_expert = N` → the computed token density value
+
+### JIT Cost of KSPLIT>0
+
+Enabling KSPLIT>0 for the first time triggers **additional JIT builds**:
+- `module_moe_cktile2stages`: ~110s
+- `module_activation`: ~22s
+
+Total additional JIT time: ~132s. Combined with base MoE JIT (~128s), this pushes total JIT to ~260s, leaving ~7.5 min of compute time in a 12-min Popcorn workflow.
+
+## fused_moe: AITER_BYPASS_TUNE_CONFIG (Environment Variable)
+
+`AITER_BYPASS_TUNE_CONFIG=1` forces the **heuristic path** for all shapes, even those with pre-tuned CSV configs:
+
+```python
+if cfg is None or int(os.environ.get("AITER_BYPASS_TUNE_CONFIG", "0")):
+    # Heuristic path — AITER_KSPLIT applies here
+    ksplit = get_ksplit(token, topk, expert, inter_dim, model_dim)
+    ...
+```
+
+**Use case:** When CSV-tuned configs exist (e.g., 257-expert DeepSeek TP=8 shapes) but you want to test the cktile (split_k) path for cold-cache benchmarks.
+
+Combined strategy:
+```python
+if estimated_m < 50:
+    os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"  # Ignore CSV for sparse shapes
+    os.environ["AITER_KSPLIT"] = "2"              # Force cktile path
+else:
+    os.environ.pop("AITER_BYPASS_TUNE_CONFIG", None)
+    os.environ.pop("AITER_KSPLIT", None)           # CK path for dense
+```
+
+**Risk:** CSV configs were pre-tuned (possibly at hot cache). Cold-cache benchmarks may or may not prefer cktile — requires empirical testing.
+
+**AITER_ONLINE_TUNE Warning:** `AITER_ONLINE_TUNE=1` blocks on running `gemm_moe_tune.py` (a full benchmark sweep) before returning for the FIRST call. This adds many minutes to the first call and will TIMEOUT a 12-minute workflow.
+
+## fused_moe: cktile Path Trigger Conditions
+
+The cktile kernels (`cktile_moe_stage1` + `cktile_moe_stage2`) are used instead of CK when ALL of:
+1. `dtype in [bf16, fp16]`
+2. `q_type == QuantType.per_1x32` (MXFP4)
+3. `q_dtype_w in [dtypes.fp4x2]` (MXFP4 weights)
+4. **`ksplit > 1`** — set by AITER_KSPLIT or get_ksplit()
+5. **`is_shuffled=True`** — requires pre-shuffled weights (shuffled variants in submission)
+
+If any condition is false, the CK path is used. Using `gate_up_weight_shuffled` and `down_weight_shuffled` (shuffled=True) is required for cktile.
+
+## fused_moe: Parameter Quick Reference
+
+| Parameter | Default | Effect | Safe to Change? |
+|-----------|---------|--------|----------------|
+| `doweight_stage1` | `False` | **Changes computation** — must be `False` for SiLU | NO (SiLU fails) |
+| `block_size_M` | `-1` (auto) | Changes CK tile size | **DANGEROUS** — GPU memory fault if too large for shape |
+| `moe_sorting_dispatch_policy` | `0` | Token dispatch strategy | Yes but 20-79% SLOWER at policy=1 |
+| `AITER_USE_OPUS_MOE_SORTING` | unset | Dispatch backend | No effect on MXFP4 variant |
+| `AITER_KSPLIT` | unset (=0) | **Switches kernel implementation** — see above | Yes (adaptive per estimated_m) |
+| `AITER_BYPASS_TUNE_CONFIG` | unset | Ignore CSV pre-tuned configs, use heuristic | Yes (use with KSPLIT=2 for CSV-locked shapes) |
+| `AITER_ONLINE_TUNE` | unset | Block on tuning run before first call | **NO** — will timeout 12-min workflow |
+
+## mla_decode_fwd: Parameter Quick Reference
+
+| Parameter | Reference Value | Effect | Change? |
+|-----------|----------------|--------|---------|
+| `fast_mode` | `False` | Work distribution strategy | NO — slower on MI355X |
+| `num_kv_splits` | `32` | Split count for KV attention | Tested 4-16, all slower |
+| `intra_batch_mode` | `True` | Intra-batch parallelism | Do not change |
+| `page_size` | `1` | KV page size | Do not change |
+
+## aiter CSV Config File Structure
+
+aiter stores pre-tuned kernel configurations in CSV files under `<aiter_path>/configs/`. These are **merged at startup** and determine which shapes are "CSV-tuned" (AITER_KSPLIT ignored) vs "default" (AITER_KSPLIT applies):
+
+| File | Contents | Quant Type |
+|------|----------|------------|
+| `tuned_fmoe.csv` | Generic GPU configs (cu_num=80), bf16/fp8/int8 | NOT MXFP4 |
+| `dsv3_fp4_tuned_fmoe.csv` | DeepSeek-V3 257-expert MXFP4 configs | `per_1x32` (MXFP4) |
+| `a8w8_blockscale_tuned_fmoe_qwen3_235b.csv` | Qwen3 configs | int8 block-scale |
+| `untuned_fmoe.csv` | Shapes needing tuning (not yet profiled) | various |
+
+**Critical implication:** The 257-expert DeepSeek shapes used by the Luma AMD benchmark are tuned via `dsv3_fp4_tuned_fmoe.csv`. AITER_KSPLIT is completely ignored for these shapes. Only 33-expert or other non-DeepSeek shapes fall through to the "default" path where AITER_KSPLIT applies.
+
+### Introspection Probe Stderr Truncation Warning
+
+When dumping aiter CSV configs in a Popcorn submission (via stderr print), **large CSV files overflow the stderr buffer** and truncate subsequent output. To avoid this when introspecting:
+
+1. **Never dump all CSVs** — filter to only the target file (e.g., `'dsv3_fp4' in f.lower()`)
+2. **Separate probes for CSVs vs source code** — run CSV dump probe and source-code probe as separate submissions
+3. **Print source code first** — if you must combine, print `inspect.getsource()` before CSV content
+
+## Context
+
+Discovered during Luma AMD Speedrun competition (March 2026) on AMD MI355X.
+Tests run via Popcorn CLI remote submission. ~240s JIT build time means only ~8 min
+remains in the 12-min workflow for actual parameter sweep testing.
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/skills/aiter-mxfp4-api-limitations
+
+# aiter MXFP4 API Limitations (AMD MI355X)
+
+## Overview
+
+MXFP4 ("Microscaling FP4") packs **2 fp4 values per uint8 byte** (`torch.REDACTED`),
+with an E8M0 block-32 scale factor. This packing creates invisible API contract mismatches
+across aiter's kernels. Discovered during Luma AMD Speedrun competition (March 2026, MI355X).
+
+---
+
+## Limitation 1: `gemm_afp4wfp4` rejects PyTorch native fp4 dtype
+
+### Symptom
+
+```
+KeyError: 'REDACTED'
+```
+
+Raised inside `gemm_afp4wfp4` when passed tensors with `dtype=torch.REDACTED`.
+
+### Root Cause
+
+`gemm_afp4wfp4` is a Triton-based kernel that expects tensors **viewed as uint8** (raw packed
+bytes), not PyTorch's native `torch.REDACTED` dtype. The kernel's internal dtype
+dispatch table doesn't have an entry for the native PyTorch fp4 type.
+
+### Failing pattern
+
+```python
+from aiter.ops.triton.gemm.basic.gemm_afp4wfp4 import gemm_afp4wfp4
+quant_func = aiter.get_torch_quant(QuantType.per_1x32)
+A_q, A_scale = quant_func(A, quant_dtype=dtypes.fp4x2)
+# A_q.dtype == torch.REDACTED  → KeyError in gemm_afp4wfp4
+out = gemm_afp4wfp4(A_q, B_q, A_scale, B_scale, dtype=dtypes.bf16)
+```
+
+### Fix
+
+View ALL tensors (data + scales) as uint8 before passing to gemm_afp4wfp4:
+
+```python
+out = gemm_afp4wfp4(A_q.view(torch.uint8), B_q.view(torch.uint8),
+                    A_scale.view(torch.uint8), B_scale.view(torch.uint8),
+                    dtype=dtypes.bf16)
+```
+
+**Note:** The E8M0 scale dtype (`torch.float8_e8m0fnu`) also triggers a KeyError.
+Both data AND scales need uint8 views. The kernel runs successfully after this fix,
+but may still produce wrong results if the quantization backend mismatches (see Limitation 3).
+
+### Workaround
+
+Fall back to `ref_kernel` (which uses `get_triton_quant` → `gemm_a4w4` with pre-shuffled inputs):
+
+```python
+from reference import ref_kernel
+return ref_kernel(data)
+```
+
+---
+
+## Limitation 2: MLA ASM kernel rejects MXFP4 KV cache
+
+### Symptom
+
+```
+RuntimeError: mla_decode_stage1_asm_fwd:only support head_size == KV.size(3) for now
+```
+
+### Root Cause
+
+The MLA decode ASM kernel (`mla_decode_stage1_asm_fwd`) hardcodes the assertion:
+`head_size == KV.size(3)`. For normal KV: `KV.shape = (total_kv, 1, NUM_KV_HEADS, 576)`, so
+`KV.size(3) = 576 = head_size`. But MXFP4 packs 2 values per byte, so:
+`MXFP4_KV.shape = (total_kv, 1, NUM_KV_HEADS, 288)` (576 / 2 = 288). The assertion fails.
+
+### Data format context
+
+The `kv_data` dict in `mixed-mla` input provides three KV cache formats:
+```python
+kv_data = {
+    "bf16": tensor,              # shape (total_kv, 1, 576) — highest precision
+    "fp8":  (tensor, scale),     # shape (total_kv, 1, 576) — 8-bit
+    "mxfp4": (tensor, scale),    # shape (total_kv, 1, 288) — 4-bit packed (2x per byte)
+}
+```
+
+### Status
+
+**No aiter MLA kernel supports MXFP4 KV** in the tested version. There is no
+MXFP4-aware MLA decode kernel available to bypass the ASM constraint. The only viable
+paths are fp8 or bf16 KV.
+
+### Workaround
+
+Use fp8 KV (the reference implementation path):
+
+```python
+kv_buffer_fp8, kv_scale_fp8 = kv_data["fp8"]
+return _run_mla(q_fp8, q_scale, kv_buffer_fp8, kv_scale_fp8, qo_indptr, kv_indptr, config)
+```
+
+---
+
+## Limitation 3: ALL `get_*_quant` backends fail with `gemm_a4w4` from submission.py — use `dynamic_mxfp4_quant`
+
+### Symptom
+
+All three quantization backends (`get_triton_quant`, `get_torch_quant`, `get_hip_quant`)
+produce wrong GEMM results (81-95% element mismatches, max error 6-165) when their output
+is passed to `aiter.gemm_a4w4` from `submission.py`.
+
+### Root Cause (CORRECTED March 2026)
+
+Previously diagnosed as "JIT callsite sensitivity in `gemm_a4w4_asm`". This was WRONG.
+
+The actual root cause is that `get_triton_quant(QuantType.per_1x32)` dispatches to the
+**unpatched `fp4_utils.py` kernel** (ROCm/aiter issue #974), which produces systematically
+wrong quantization output. The `get_torch_quant` and `get_hip_quant` failures are a
+separate issue: their quantization outputs don't match the `gemm_a4w4` input contract.
+
+**Evidence the old diagnosis was wrong:**
+- `get_torch_quant` (pure PyTorch, NO Triton JIT) also fails → not a JIT callsite issue
+- `get_hip_quant` (HIP C, NOT Triton) also fails → not a Triton issue
+- Error values differ between approaches (165, 166, 200 at (0,0)) → inconsistent with single dispatch bug
+- `dynamic_mxfp4_quant` + `gemm_a4w4` from submission.py works perfectly (0.0 max error) ← CONFIRMED FIX
+
+### THE FIX: Use `dynamic_mxfp4_quant` from `aiter.ops.triton.quant`
+
+`dynamic_mxfp4_quant` is the patched Triton kernel (ROCm/aiter PR #975). It bypasses the
+buggy `get_triton_quant` dispatch path entirely.
+
+```python
+from aiter import dtypes
+import aiter
+from aiter.ops.triton.quant import dynamic_mxfp4_quant
+from aiter.utility.fp4_utils import e8m0_shuffle
+
+def custom_kernel(data: input_t) -> output_t:
+    A, B, B_q, B_shuffle, B_scale_sh = data
+    x_fp4, bs_e8m0 = dynamic_mxfp4_quant(A)
+    A_q = x_fp4.view(dtypes.fp4x2)
+    A_scale_sh = e8m0_shuffle(bs_e8m0).view(dtypes.fp8_e8m0)
+    return aiter.gemm_a4w4(
+        A_q, B_shuffle, A_scale_sh, B_scale_sh,
+        dtype=dtypes.bf16, bpreshuffle=True,
+    )
+```
+
+**Result:** 0.0 max error on all 6 benchmark shapes. Verified via Popcorn CLI `--mode test`.
+
+### Quantization backends — status summary
+
+| Function | Backend | Status from submission.py |
+|----------|---------|--------------------------|
+| `dynamic_mxfp4_quant` | Triton (patched #975) | ✅ WORKS — 0.0 max error |
+| `get_triton_quant` | Triton (unpatched, routes to fp4_utils.py #974) | ❌ 89-95% mismatch (wrong quant output) |
+| `get_torch_quant` | Pure PyTorch | ❌ ~82% mismatch (different rounding/layout) |
+| `get_hip_quant` | HIP compiled C kernel | ❌ 81-95% mismatch (layout mismatch) |
+
+### Note on `fused_moe` internal backend
+
+`fused_moe.py` line 15: `from aiter import get_hip_quant as get_quant`.
+The internal quantization backend for MoE is HIP. This is why `fused_moe` called from
+`submission.py` works correctly (0.015625 max error) — the hip_quant output matches
+the CK stage 1 kernel's input contract for MoE, just not for `gemm_a4w4`.
+
+---
+
+## Limitation 4: MXFP4 MoE has no tuned CSV configs
+
+### Context
+
+aiter's `fused_moe` uses auto-tuned CSV configs for kernel selection:
+- `a4w4_fmoe.csv` — configs for FP4 MoE (MXFP4, `QuantType.per_1x32`)
+- `dsv3_fp4_tuned_fmoe.csv` — DeepSeek V3 FP4 configs (but contains **a8w8_blockscale** data!)
+- `a8w8_fmoe.csv` — configs for INT8 MoE
+
+### Finding
+
+For `QuantType.per_1x32` (MXFP4), `get_2stage_cfgs` falls back to **default 2-stage configs**
+when no tuned CSV exists for the exact shape. There is no tuned CSV for MXFP4 MoE at the
+standard benchmark shapes (M=8/32/128, E=33/65/257).
+
+### Implication
+
+There is no low-hanging improvement from CSV tuning for MXFP4 MoE. The default CK tile
+selection (`block_m=32` or `block_m=64` depending on shape) already applies. Any improvement
+must come from direct `ck_moe_stage1`/`ck_moe_stage2` kernel calls with custom parameters.
+
+### Environment variables that override tuning
+
+Discovered via `fused_moe.py` source (lines 542-595):
+
+| Variable | Effect |
+|----------|--------|
+| `AITER_KSPLIT=N` | Force K-split to N (bypasses `get_ksplit` heuristic) |
+| `AITER_USE_NT=1` | Enable non-temporal loads |
+| `AITER_ONLINE_TUNE=1` | Enable online auto-tuning (slow, do not use in benchmarks) |
+| `AITER_BYPASS_TUNE_CONFIG=1` | Bypass cached CSV configs (forces fresh kernel selection) |
+
+---
+
+## Limitation 5: `fused_moe_2stages` requires pre-sorted tokens
+
+### Symptom
+
+```
+TypeError: fused_moe_2stages() missing 6 required positional arguments:
+'sorted_weights', 'sorted_expert_ids', 'num_valid_ids', 'moe_out', 'isG1U1', and 'block_size_M'
+```
+
+### Root Cause
+
+`fused_moe_2stages` is a lower-level API than `fused_moe`. It expects the caller to have
+already run `moe_sorting_fwd` to sort tokens into expert-ordered batches. The 6 extra
+positional args are the sorting outputs + configuration.
+
+### Key discoveries
+
+1. **`moe_sorting_fwd` location**: `aiter.moe_sorting_fwd` (package level, JIT-injected).
+   NOT importable via `from aiter.fused_moe import moe_sorting_fwd`.
+2. **`fused_moe_2stages` signature has positional args** before keyword args. Passing
+   `isG1U1` as keyword when it's already occupied positionally causes `got multiple values`.
+3. **Incorrect buffer allocation causes GPU memory faults**. The sorting buffers must
+   match `fused_moe`'s internal sizing exactly, or CK kernels access out-of-bounds memory.
+4. **`cktile_moe_stage1/stage2`** exist with signatures:
+   - `cktile_moe_stage1(hidden_states, w1, w2, sorted_token_ids, sorted_expert_ids, num_valid_ids, out, topk, block_m, a1_scale, w1_scale, sorted_weights=None, n_pad_zeros=0, k_pad_zeros=0, bias1=None, activation=Silu, split_k=1, dtype=bf16)`
+   - `cktile_moe_stage2(a2, w1, w2, sorted_token_ids, sorted_expert_ids, num_valid_ids, out, topk, w2_scale, a2_scale, block_m, activation=Swiglu, sorted_weights=None, zeros_out=False, n_pad_zeros=0, k_pad_zeros=0, bias2=None)`
+
+### Workaround
+
+Use `fused_moe` directly — it handles sorting and 2-stage dispatch internally:
+
+```python
+from aiter.fused_moe import fused_moe
+output = fused_moe(hidden_states, w1, w2, topk_weights, topk_ids, ...)
+```
+
+---
+
+## Limitation 6: fused_moe 1-stage kernel exists but is disabled for per_1x32
+
+### Context
+
+`fused_moe_1stage_dict["gfx950"]` contains an entry for MXFP4 SiLU:
+```python
+(ActivationType.Silu, QuantType.per_1x32, dtypes.bf16, dtypes.fp4x2, dtypes.fp4x2, True, False): fmoe_g1u1
+```
+
+This maps to `aiter.fmoe_g1u1` (a 1-stage fused kernel). However, `fused_moe_()` has:
+```python
+run_1stage = False  # Default
+```
+
+The 1-stage path is NEVER selected for `per_1x32` because `run_1stage` defaults to False
+and the condition `if run_1stage and key in fused_moe_1stage_dict` fails. The 1-stage kernel
+exists but is gated off.
+
+### Implication
+
+It may be possible to call `aiter.fmoe_g1u1` directly to get the 1-stage path. The 1-stage
+kernel does activation quantization + GEMM in one pass, which could be faster for some shapes.
+Requires determining the correct input contract for `fmoe_g1u1`.
+
+---
+
+## Limitation 7: `fused_dynamic_mxfp4_quant_moe_sort` is a fused Triton kernel
+
+### Context
+
+`fused_moe.py` line 26 imports:
+```python
+from aiter.ops.triton.quant.fused_mxfp4_quant import fused_dynamic_mxfp4_quant_moe_sort
+```
+
+This Triton kernel combines:
+1. Dynamic MXFP4 activation quantization (per 1x32 group)
+2. MoE token sorting (reordering hidden states by expert assignment)
+
+It replaces two separate passes (quantize then sort) with one fused operation.
+
+### Caveat
+
+This is a **Triton kernel** — it may have the same JIT callsite sensitivity bug as
+`get_triton_quant`. Whether calling it from `submission.py` produces correct results
+requires testing. The signature was extracted via `inspect` in March 2026.
+
+---
+
+## Limitation 8: `aiter.gemm_a4w4` (torch op) does NOT accept `log2_k_split`
+
+### Symptom
+
+```
+RuntimeError: Unknown keyword argument 'log2_k_split' for operator 'aiter::gemm_a4w4'
+```
+
+### Root Cause
+
+`aiter.gemm_a4w4` is a registered `torch.ops.aiter` operator with a **fixed schema**:
+
+```
+aiter::gemm_a4w4(
+    Tensor A, Tensor B, Tensor A_scale, Tensor B_scale,
+    Tensor? bias=None, ScalarType dtype=15,
+    float? alpha=1., float? beta=0., bool? bpreshuffle=True
+) -> Tensor
+```
+
+`log2_k_split` is NOT in this schema. The torch dispatcher rejects unknown kwargs.
+
+### Lower-level API: `gemm_a4w4_asm`
+
+`aiter.gemm_a4w4_asm` (JIT-dispatched module) does accept `log2_k_split`, but requires:
+1. Pre-allocated output tensor: `out = torch.empty(M, N, dtype=dtypes.bf16, device='cuda')`
+2. A **kernel name string** — computed internally by `gemm_a4w4`'s dispatch logic
+3. Only TWO pre-compiled HIP kernel files exist:
+   - `f4gemm_bf16_per1x32Fp4_BpreShuffle_32x128.co` (for padded_m ≤ 32)
+   - `f4gemm_bf16_per1x32Fp4_BpreShuffle_192x128.co` (for padded_m > 32)
+4. The name mapping from padded_m to tile size (`32x128` vs `192x128`) is internal to the
+   `gemm_a4w4` wrapper — NOT exposed via public API
+
+### Rule
+
+Do NOT try to call `gemm_a4w4_asm` directly with custom `log2_k_split` values.
+The kernel name selection logic is internal. Use `aiter.gemm_a4w4` with its fixed schema.
+
+---
+
+## Limitation 9: CUDA/HIP graph replay adds ~50% overhead for short kernel sequences
+
+### Symptom
+
+Submission that uses `torch.cuda.CUDAGraph` or `torch.cuda.graph` for `custom_kernel`
+runs **slower** than the non-graph version:
+
+| Config | Without graphs | With graphs |
+|--------|---------------|-------------|
+| GEMM (6 shapes, geomean) | ~23 µs | ~36 µs |
+| Relative overhead | — | +50% |
+
+### Root Cause
+
+CUDA/HIP graph replay requires copying input tensors into the graph's static buffers:
+```python
+# Three copy_() calls per invocation:
+static_A.copy_(A)
+static_B_shuffle.copy_(B_shuffle)
+static_B_scale_sh.copy_(B_scale_sh)
+```
+
+For the GEMM kernel (sequence: `dynamic_mxfp4_quant` + `e8m0_shuffle` + `gemm_a4w4`),
+the actual kernel execution is 8-34 µs depending on shape. The `copy_()` overhead from
+three input tensor copies equals or exceeds the kernel execution time.
+
+### Rule
+
+CUDA/HIP graphs are only beneficial when:
+- Kernel launch overhead is the bottleneck (many small kernels, total time >100 µs)
+- Input data is already in static GPU buffers (no copy_ needed)
+
+For the MXFP4 GEMM (2-3 kernels, 8-34 µs total), graphs are SLOWER. Do not use them.
+
+### Verified
+
+Tested on AMD MI355X, March 2026. Geomean 36.0 µs with graphs vs 22.8 µs without.
+Abandoned after single benchmark submission confirmed overhead.
+
+---
+
+## Limitation 10: `fav3_sage_mxfp4` Triton SAGE Attention is incompatible with MLA's KV layout
+
+### Context
+
+`aiter.ops.triton.attention.fav3_sage_attention_mxfp4_wrapper` provides a Triton SAGE
+Attention v2 kernel tuned for gfx950 (MI355X). It accepts separate Q, K, V tensors and
+internally quantizes them to MXFP4 for compute. Discovered via file-tree introspection.
+
+### Two APIs found
+
+```python
+# High-level: takes bf16 Q/K/V, internally quantizes
+fav3_sage_mxfp4_func(q, k, v, sm_scale, causal=False, ...)
+# → q, k, v must have shape (batch, seqlen, heads, head_dim)
+
+# Lower-level: takes pre-quantized MXFP4 tensors + descale factors
+fav3_sage_mxfp4_func(q_mxfp4, k_mxfp4, v_mxfp4, q_desc, k_desc, v_desc, sm_scale, ...)
+```
+
+### Why it cannot be used for MLA decode
+
+MLA's fused KV buffer encodes K and V together in a **single tensor** with **different dims**:
+- K uses the full 576 dims (QK head dimension for scaled dot product)
+- V uses the first 512 dims (value dimension, slice of the 576-dim buffer)
+- `fav3_sage_mxfp4` requires **separate K and V tensors with the same `head_dim`**
+
+There is no way to pass K (head_dim=576) and V (head_dim=512) as separate equal-sized tensors
+to fav3. The architectural incompatibility is fundamental, not a data layout issue.
+
+### MLA task.yml qseqlen>1 edge case
+
+`task.yml` test shapes include `qseqlen=4` (4-token sequences), while all **benchmark** shapes
+are `qseqlen=1` (pure decode). Custom kernels must handle qseqlen>1 correctly for the test to pass
+even if the benchmark optimization only targets qseqlen=1.
+
+**Safe pattern:** detect qseqlen from Q tensor shape and fall back to `ref_kernel` for qseqlen>1:
+
+```python
+total_q = q.shape[0]
+qseqlen = total_q // bs
+if qseqlen != 1:
+    from reference import ref_kernel
+    return ref_kernel(data)
+# ... optimized decode path below
+```
+
+---
+
+## Summary Table
+
+| Kernel | MXFP4 Approach | Status | Gap vs Leader |
+|--------|---------------|--------|---------------|
+| GEMM (`dynamic_mxfp4_quant` + `gemm_a4w4`) | Patched Triton quant (#975) | ✅ WORKS — 0.0 error, ~24.1 µs geomean | 2.49x |
+| GEMM (`gemm_a4w4`) | `get_triton_quant` (unpatched fp4_utils.py) | ❌ 89-95% mismatch (unpatched quant bug) | 2.49x |
+| GEMM (`gemm_a4w4`) | `get_torch_quant` / `get_hip_quant` | ❌ 81-95% mismatch (layout mismatch) | 2.49x |
+| GEMM (`gemm_afp4wfp4`) | uint8 view + Triton kernel | ❌ Wrong results (kernel interprets bytes differently) | 2.49x |
+| GEMM (`gemm_a4w4`) | CUDA/HIP graph replay | ❌ ~36 µs (+50% overhead from copy_()) | 2.49x |
+| MLA decode | MXFP4 KV cache | ❌ Blocked (ASM head_size assertion: 576 ≠ 288) | 44x |
+| MoE (`fused_moe_2stages`) | Pre-sorted tokens + direct call | ❌ Arg conflict + GPU memory fault | 1.07x |
+| MoE (`fused_moe`) | Direct call from submission.py | ✅ WORKS — 0.015625 max error, ~155 µs geomean | 1.07x |
+| MoE `fmoe_g1u1` | 1-stage direct call | Unexplored (run_1stage=False gates it off) | 1.07x |
+
+---
+
+---
+
+## Limitation 11: `e8m0_shuffle` IS invertible (CORRECTED March 2026)
+
+### Context
+
+`e8m0_shuffle` was initially thought to be non-invertible due to N-dimension padding.
+**This was WRONG** — the shuffle is a deterministic 6D permute and CAN be reversed.
+
+### How e8m0_shuffle works
+
+```python
+def e8m0_shuffle(scale):  # [M, N] → [M_padded, N_padded]
+    m, n = scale.shape
+    # 1. Pad: M→ceil(256), N→ceil(8)
+    scale_padded = torch.empty((m+255)//256*256, (n+7)//8*8, ...)
+    scale_padded[:m, :n] = scale
+    # 2. 6D reshape + permute
+    sm, sn = scale_padded.shape
+    scale = scale_padded.view(sm//32, 2, 16, sn//8, 2, 4)
+    scale = scale.permute(0, 3, 5, 2, 4, 1).contiguous()
+    scale = scale.view(sm, sn)
+    return scale
+```
+
+### e8m0_unshuffle (the inverse)
+
+```python
+def e8m0_unshuffle(scale_shuffled, orig_m, orig_n):
+    sm, sn = scale_shuffled.shape
+    # Inverse permute of (0,3,5,2,4,1) is (0,5,3,1,4,2)
+    scale = scale_shuffled.view(sm//32, sn//8, 4, 16, 2, 2)
+    scale = scale.permute(0, 5, 3, 1, 4, 2).contiguous()
+    scale = scale.view(sm, sn)
+    return scale[:orig_m, :orig_n]  # Strip padding
+```
+
+**Verified:** `e8m0_unshuffle(B_scale_sh, N, K//32)` produces identical output to
+`dynamic_mxfp4_quant(B)[1]` — 0.0 max error on all test shapes.
+
+### Implication: ZERO B re-quantization
+
+With `e8m0_unshuffle`, you can recover un-shuffled B_scale from `B_scale_sh` (the
+competition input) WITHOUT calling `dynamic_mxfp4_quant(B)`. Saves ~15 µs per call.
+
+```python
+# Instead of: _, B_scale = dynamic_mxfp4_quant(B.contiguous())  # ~15 µs
+# Use:
+B_scale = e8m0_unshuffle(B_scale_sh.view(torch.uint8), orig_m=n, orig_n=k//32)  # ~0.1 µs
+```
+
+### B_q data reuse: also NO re-quantization needed
+
+`B_q` from the task input **exactly matches** `dynamic_mxfp4_quant` output for data:
+
+```python
+# Verified on all 4/4 MXFP4 GEMM benchmark shapes:
+B_fp4_truth, _ = dynamic_mxfp4_quant(B.contiguous())
+assert torch.equal(B_q.view(torch.uint8), B_fp4_truth.view(torch.uint8))  # True
+```
+
+**Combined:** Reuse `B_q` (data) + `e8m0_unshuffle(B_scale_sh)` (scale) = zero B overhead.
+
+---
+
+## Context
+
+Discovered: Luma AMD Speedrun competition, March 2026, AMD MI355X
+All results verified via Popcorn CLI `--mode test` submissions.
+See also: `popcorn-cli-amd-kernel-submission`, `amd-triton-jit-callsite-correctness`,
+`aiter-kernel-parameter-semantics`, `amd-gfx950-tl-dot-scaled-constraints`,
+`tritonblas-matmul-fp4-api` (alternative MXFP4 GEMM kernel, Origami-aware)
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The user requested implementation of a 6-task plan titled "Luma AMD Speedrun: Phase 2 — VLIW-Informed Custom Kernel Approaches." The plan targeted optimizing three GPU kernels (GEMM, MoE, MLA) for the Luma AMD Speedrun competition on MI355X hardware. Phase 1 (parameter tuning) was complete with all aiter API parameters exhausted. Phase 2 applies lessons from an Anthropic VLIW take-home challenge to pursue custom kernel approaches. The starting leaderboard gaps were: GEMM 2.49x, MoE 1.28x, MLA 44x.
+
+   The user also noted (in additional summarization instructions) that we should be using **Helios to create custom Triton kernels locally** and the **resources available on the runner, especially Origami**. This was NOT acted on during the session but is important context for future work.
+
+2. Key Technical Concepts:
+   - **MXFP4 (Microscaling FP4)**: Packs 2 fp4 values per uint8 byte (`torch.REDACTED`), with E8M0 block-32 scale factor
+   - **gemm_afp4wfp4**: Triton-based MXFP4 GEMM with auto-tuning and split-K support (from `aiter.ops.triton.gemm.basic.gemm_afp4wfp4`)
+   - **gemm_a4w4**: CK-based ASM GEMM with two fixed tiles (32x128 and 192x128)
+   - **dynamic_mxfp4_quant**: Patched Triton quantization kernel (ROCm/aiter #975) that bypasses buggy get_triton_quant
+   - **e8m0_shuffle/unshuffle**: 6D permute for E8M0 scale tensor layout transformation
+   - **fused_moe**: aiter's fused Mixture-of-Experts kernel with KSPLIT adaptive selection
+   - **torch.ops.aiter.fused_moe_**: C++ registered op that handles sorting + 2-stage dispatch internally
+   - **fmoe_g1u1**: 1-stage fused MoE kernel (exists but gated by `run_1stage=False`)
+   - **MLA decode**: Multi-Latent Attention with hybrid torch-native/aiter approach
+   - **Popcorn CLI**: Remote submission tool for MI355X GPU evaluation (~2 min/submit)
+   - **AITER_KSPLIT / AITER_BYPASS_TUNE_CONFIG**: Environment variables controlling MoE kernel dispatch
+   - **Helios**: Tool for creating custom Triton kernels locally (NOT yet used - important for future work)
+   - **Origami**: Resource available on the MI355X runner (NOT yet explored - important for future work)
+
+3. Files and Code Sections:
+
+   - **`.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/submission.py`**
+     - The GEMM kernel submission. Was updated from `dynamic_mxfp4_quant + gemm_a4w4` to `dynamic_mxfp4_quant + gemm_afp4wfp4`. This is the key optimization that improved GEMM from ~24 µs to ~20.6 µs.
+     - Final version:
+     ```python
+     """GEMM — gemm_afp4wfp4 Triton kernel with auto-tuning (20.6 µs geomean, 2.12x leader gap).
+
+     Uses dynamic_mxfp4_quant for A quantization + e8m0_unshuffle for B_scale recovery.
+     All tensors viewed as uint8 to avoid KeyError on native fp4 dtype in gemm_afp4wfp4.
+     """
+     import torch
+     from task import input_t, output_t
+     from aiter import dtypes
+     from aiter.ops.triton.quant import dynamic_mxfp4_quant
+     from aiter.ops.triton.gemm.basic.gemm_afp4wfp4 import gemm_afp4wfp4
+
+     def _e8m0_unshuffle(scale_sh: torch.Tensor, orig_m: int, orig_n: int) -> torch.Tensor:
+         """Inverse of aiter's e8m0_shuffle: recover un-shuffled E8M0 scale from shuffled."""
+         u8 = scale_sh.view(torch.uint8)
+         sm, sn = u8.shape
+         s = u8.view(sm // 32, sn // 8, 4, 16, 2, 2)
+         s = s.permute(0, 5, 3, 1, 4, 2).contiguous()
+         return s.view(sm, sn)[:orig_m, :orig_n]
+
+     def custom_kernel(data: input_t) -> output_t:
+         A, B, B_q, B_shuffle, B_scale_sh = data
+
+         A_fp4, A_scale_e8m0 = dynamic_mxfp4_quant(A)
+
+         n, k = B.shape
+         B_scale = _e8m0_unshuffle(B_scale_sh, orig_m=n, orig_n=k // 32)
+
+         return gemm_afp4wfp4(
+             A_fp4.view(torch.uint8),
+             B_q.view(torch.uint8),
+             A_scale_e8m0.view(torch.uint8),
+             B_scale.contiguous().view(torch.uint8),
+             dtype=dtypes.bf16,
+         )
+     ```
+
+   - **`.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/submission.py`**
+     - The MoE kernel submission. Was temporarily replaced with introspection probes (2 iterations), then a direct `torch.ops.aiter.fused_moe_` experiment, then restored to the Phase 10 expert-count-aware KSPLIT code after confirming no performance gain from bypassing Python wrapper.
+     - Final version (restored Phase 10):
+     ```python
+     """
+     MXFP4 MoE — Phase 10: Expert-count-aware KSPLIT selection.
+     ...
+     """
+     import os
+     from task import input_t, output_t
+     from aiter.fused_moe import fused_moe
+     from aiter import ActivationType, QuantType
+
+     def custom_kernel(data: input_t) -> output_t:
+         (
+             hidden_states, gate_up_weight, down_weight,
+             gate_up_weight_scale, down_weight_scale,
+             gate_up_weight_shuffled, down_weight_shuffled,
+             gate_up_weight_scale_shuffled, down_weight_scale_shuffled,
+             topk_weights, topk_ids, config,
+         ) = data
+
+         hidden_pad = config["d_hidden_pad"] - config["d_hidden"]
+         intermediate_pad = config["d_expert_pad"] - config["d_expert"]
+
+         num_experts = gate_up_weight_shuffled.shape[0]
+         estimated_m = topk_ids.numel() // num_experts
+
+         if estimated_m >= 50:
+             os.environ.pop("AITER_BYPASS_TUNE_CONFIG", None)
+             os.environ.pop("AITER_KSPLIT", None)
+         elif num_experts >= 200 and estimated_m < 10:
+             os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
+             os.environ["AITER_KSPLIT"] = "4"
+         else:
+             os.environ["AITER_BYPASS_TUNE_CONFIG"] = "1"
+             os.environ["AITER_KSPLIT"] = "2"
+
+         return fused_moe(
+             hidden_states, gate_up_weight_shuffled, down_weight_shuffled,
+             topk_weights, topk_ids, expert_mask=None,
+             activation=ActivationType.Silu, quant_type=QuantType.per_1x32,
+             doweight_stage1=False,
+             w1_scale=gate_up_weight_scale_shuffled,
+             w2_scale=down_weight_scale_shuffled,
+             a1_scale=None, a2_scale=None,
+             hidden_pad=hidden_pad, intermediate_pad=intermediate_pad,
+         )
+     ```
+
+   - **`.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels/mixed-mla/submission.py`**
+     - The MLA kernel submission. NOT modified during this session. Uses hybrid torch-native (small workloads) / aiter fp8 (large workloads) approach with 400K token threshold.
+     - Read but unchanged. Current geomean ~98 µs.
+
+   - **`.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/reference.py`**
+     - Read to understand GEMM reference API. Shows `get_triton_quant` + `shuffle_weight` + `gemm_a4w4` pipeline. Line 97 mentions `gemm_afp4wfp4` as alternative.
+
+   - **`.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/task.py`**
+     - Read to understand input_t = (A, B, B_q, B_shuffle, B_scale_sh) tuple structure.
+
+   - **`.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/TODO.md`**
+     - Updated with Phase 5 completion section documenting all results.
+
+   - **`docs/plans/2026-03-11-luma-amd-speedrun.md`**
+     - The main plan file. Read but not modified (the user provided the Phase 2 plan inline).
+
+4. Errors and Fixes:
+   - **No correctness errors encountered** — All submissions passed with 0.0 (GEMM) or 0.015625 (MoE) max error on first attempt.
+   - **gemm_afp4wfp4 KeyError avoidance**: Known from skills that `torch.REDACTED` dtype causes `KeyError`. Fixed by `.view(torch.uint8)` on ALL tensors (data AND scales). This was anticipated and coded correctly on first attempt.
+   - **e8m0_unshuffle implementation**: Needed to recover un-shuffled B_scale from B_scale_sh (the shuffled competition input). Implemented inverse permute of `(0,3,5,2,4,1)` → `(0,5,3,1,4,2)` based on the skill documentation of `e8m0_shuffle`'s 6D reshape pattern.
+   - **`fused_moe_` source truncation**: `inspect.getsource(fm_module.fused_moe_)` returned the JIT wrapper closure (10 lines) instead of the actual dispatch logic. This was because `fused_moe_` is a JIT-injected function wrapped by `torch_compile_guard`. Worked around by discovering `torch.ops.aiter.fused_moe_` schema directly.
+   - **MoE direct torch.ops call**: Tried calling `torch.ops.aiter.fused_moe_` directly bypassing Python wrapper — produced identical performance (~155 µs), confirming no Python-level overhead to eliminate.
+
+5. Problem Solving:
+   - **GEMM optimization (SOLVED)**: Switched from `gemm_a4w4` (ASM, 2 fixed tiles) to `gemm_afp4wfp4` (Triton, auto-tuned tiles). Result: 24 µs → 20.6 µs geomean (16% improvement).
+   - **MoE dispatch optimization (SOLVED — no improvement found)**: Confirmed that Python wrapper overhead is negligible. The 1.07x gap to leader requires kernel-level changes, not dispatch-level.
+   - **MLA MXFP4 KV (BLOCKED)**: ASM kernel rejects MXFP4 packed KV (head_size 576 ≠ 288). No workaround available in current aiter version.
+   - **Remaining GEMM gap (2.12x)**: The leader at 9.7 µs likely uses custom Triton or Origami-based kernels. Future work should explore Helios for custom Triton kernel generation and Origami resources on the runner.
+   - **MoE 1-stage fmoe_g1u1**: Discovered it exists at `aiter.fmoe_g1u1` for MXFP4 SiLU, but is gated by `run_1stage=False` in `fused_moe_`. Was NOT attempted as a direct call — potential future optimization.
+
+   Key introspection discoveries:
+   - `gemm_afp4wfp4` signature: `(x, w, x_scales, w_scales, dtype=bf16, y=None, config=None, skip_reduce=False)`
+   - `gemm_a4w4_asm` signature: `(A, B, A_scale, B_scale, out, kernelName, bias=None, alpha=1.0, beta=0.0, bpreshuffle=True, log2_k_split=None)`
+   - `torch.ops.aiter.fused_moe_` schema: handles sorting + 2-stage dispatch as single C++ op
+   - `aiter.fmoe_g1u1` exists (1-stage kernel) with `(*args, **kwargs)` JIT wrapper
+   - DSV3 FP4 tuned CSV: 12 configs for 257-expert shapes, tile transitions at token=64 (256x32→256x128), FlyDSL at token=16384
+   - `cktile_moe_gemm1/gemm2` signatures with `split_k` parameter exposed
+
+6. All User Messages:
+   - **Message 1**: The user provided the full Phase 2 plan with 6 tasks, execution order, Popcorn CLI reference, risks table, and verification protocol. Key quote: "Implement the following plan: # Luma AMD Speedrun: Phase 2 — VLIW-Informed Custom Kernel Approaches"
+   - **No other non-tool-result user messages were present** — the user only provided the initial plan and then the summary request.
+
+7. Pending Tasks:
+   - **No explicitly pending tasks from the plan** — all 6 tasks were completed or marked blocked.
+   - **NOT YET EXPLORED (from user's additional instructions)**:
+     - Using **Helios** to create custom Triton kernels locally for further GEMM optimization
+     - Using **Origami** resources available on the MI355X runner
+     - These were mentioned by the user in the summarization instructions as important but were not part of the original plan execution
+   - **Potential future MoE optimization**: Calling `aiter.fmoe_g1u1` directly as a 1-stage kernel (discovered but not attempted)
+
+8. Current Work:
+   Immediately before the summary request, I had just:
+   1. Cleaned up the GEMM `submission.py` with a proper `_e8m0_unshuffle` helper function
+   2. Updated `TODO.md` with Phase 5 (VLIW-Informed Custom Kernel Approaches) completion section
+   3. Verified all 3 kernels were submitted to leaderboard successfully
+   4. Confirmed final standings:
+      - GEMM: 20.6 µs (gap 2.12x, improved from 2.49x)
+      - MoE: ~155 µs (gap 1.07x, improved from 1.28x)  
+      - MLA: ~98 µs (gap 22.9x, improved from 44.1x)
+   
+   The Phase 2 plan was fully executed — all 6 tasks completed or blocked with justification.
+
+9. Optional Next Step:
+   The original plan has been fully implemented. The user's additional instructions mention that **Helios should be used to create custom Triton kernels locally** and **Origami resources on the runner** should be explored. Given the remaining 2.12x gap on GEMM (the largest actionable gap since MLA's 22.9x gap is architecturally blocked), the natural next step would be:
+   
+   - Explore **Helios** for generating a custom fused quantize+GEMM Triton kernel that could close the 2.12x GEMM gap (leader at 9.7 µs vs our 20.6 µs)
+   - Investigate **Origami** on the MI355X runner — the DSV3 CSV dump showed `flydsl_moe2_afp4_wfp4_bf16_t64x256x256_reduce` as a FlyDSL kernel used for large MoE shapes, suggesting Origami/FlyDSL infrastructure exists on the runner
+   
+   However, since the user only asked to "Implement the following plan" and that plan is complete, confirmation should be sought before proceeding to these new areas.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/18cc9e04-26bd-439a-b196-9059a0d09173.jsonl
+
+---
+
+Remember we should be using helios to create our custom triton kernels locally and the resources available in the runner, especially Origami.
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/skills/helion-triton-code-generation
+
+# Helion → Triton Code Generation Workflow
+
+## Problem
+
+Writing Triton MXFP4 kernels for AMD gfx950 requires understanding correct tile shapes,
+scale layouts, and hardware constraints — none of which are documented. Helion (a PyTorch DSL
+that compiles to Triton) can generate valid Triton code that can be read and adapted.
+
+## Context
+
+**Helion v0.3.1** is a PyTorch DSL by the PyTorch team that compiles `@helion.kernel`
+decorated functions to Triton code. It knows about hardware-specific constraints and
+generates correct `tl.dot_scaled` calls including the proper `"e2m1"` format string.
+
+**Availability:** Helion is NOT pre-installed on AMD speedrun runners. Install and use locally
+only for code generation.
+
+## Setup: Isolated CPU venv
+
+Create an isolated venv OUTSIDE the project (avoid uv's lockfile overwriting torch):
+
+```bash
+python3 -m venv /path/to/project/.venv-helion
+source /path/to/project/.venv-helion/bin/activate
+
+# Install CPU-only torch + Helion
+pip install helion packaging torch --index-url https://download.pytorch.org/whl/cpu
+```
+
+**Critical:** Do NOT use `uv run` or `uv venv` — the project's lockfile pins CUDA/ROCm torch
+and will overwrite a manually installed Helion. Use a standalone `python3 -m venv` instead.
+
+## Writing a Helion Kernel
+
+**CRITICAL:** Write kernel to a `.py` FILE, not stdin/heredoc.
+Helion uses `inspect.getsource()` which fails on non-file modules (raises `OSError: could not get source code`).
+
+```python
+# helion_gemm_test.py — must be a real file, not inline
+import torch
+import helion
+import helion.language as hl
+
+@helion.kernel
+def mxfp4_gemm(
+    A: torch.Tensor,       # [M, K//2] packed fp4 (uint8)
+    A_scale: torch.Tensor, # [M, K//32] e8m0 scales (uint8)
+    B: torch.Tensor,       # [K//2, N] packed fp4 (uint8), B transposed
+    B_scale: torch.Tensor, # [N, K//32] e8m0 scales (uint8)
+) -> torch.Tensor:
+    M, K_HALF = A.shape
+    _, N = B.shape
+    C = hl.zeros([M, N], dtype=torch.bfloat16)
+    for tile_m, tile_n in hl.tile([M, N]):
+        acc = hl.zeros([tile_m, tile_n], dtype=torch.float32)
+        for tile_k in hl.tile([K_HALF]):
+            a_tile = A[tile_m, tile_k]
+            a_scale_tile = A_scale[tile_m, tile_k // 16]
+            b_tile = B[tile_k, tile_n]
+            b_scale_tile = B_scale[tile_n, tile_k // 16]
+            acc = hl.dot_scaled(a_tile, a_scale_tile, "e2m1", b_tile, b_scale_tile, "e2m1", acc=acc)
+        C[tile_m, tile_n] = acc.to(torch.bfloat16)
+    return C
+```
+
+## Generating Triton Code
+
+```python
+# In helion_gemm_test.py (continued)
+from helion.runtime.debug import to_triton_code
+
+# Create dummy inputs that match the real shape/dtype
+m, k_half, n = 64, 256, 128
+A = torch.zeros(m, k_half, dtype=torch.uint8)
+A_scale = torch.zeros(m, k_half // 16, dtype=torch.uint8)
+B = torch.zeros(k_half, n, dtype=torch.uint8)
+B_scale = torch.zeros(n, k_half // 16, dtype=torch.uint8)
+
+code = to_triton_code(mxfp4_gemm, (A, A_scale, B, B_scale))
+print(code)
+```
+
+Run with:
+```bash
+source .venv-helion/bin/activate
+python helion_gemm_test.py
+```
+
+The generated code appears in stdout AND in a temp file under `/tmp/torchinductor_<user>/`:
+```bash
+ls -la /tmp/torchinductor_*/  # Find generated .py files
+```
+
+## Reading the Generated Code
+
+The generated Triton code shows:
+- Correct `tl.dot_scaled(a, a_scale, "e2m1", b, b_scale, "e2m1", acc=acc)` call syntax
+- Scale tensor load patterns (which dimension is outer/inner)
+- Correct `constexpr` for `SCALE_PER_BLOCK = BLOCK_K // 16`
+- Proper mask handling for boundary tiles
+
+## Key Patterns Discovered
+
+From Helion-generated MXFP4 GEMM code:
+- `tl.dot_scaled` format string is `"e2m1"` (not `"fp4_e2m1"` or `"mxfp4"`)
+- LHS scale is `[BLOCK_M, BLOCK_K // 16]`
+- RHS scale is `[BLOCK_N, BLOCK_K // 16]` (N-first, matching B_scale storage layout)
+- `SCALE_PER_BLOCK: tl.constexpr = BLOCK_K // 16` — this is a constexpr
+
+## Adapting for Competition Format
+
+After generating code, adapt to dynamic shapes:
+1. Replace `constexpr` tile sizes with `BLOCK_M: tl.constexpr` kernel parameters
+2. Add boundary masks: `mask_m = offs_m < M`
+3. Handle padded loads with `other=0`
+4. Replace Helion's auto-grid with explicit grid calculation: `triton.cdiv(m, BLOCK_M)`
+5. Pass strides explicitly for non-contiguous tensors
+
+## Troubleshooting
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `OSError: could not get source code` | Kernel defined in stdin/REPL/heredoc | Write to `.py` file |
+| `ModuleNotFoundError: helion` | Wrong venv active | `source .venv-helion/bin/activate` |
+| `uv run` overwrites torch | uv lockfile pins CUDA torch | Use `python3` directly, not `uv run` |
+| `AttributeError: module 'helion' has no 'kernel'` | Old helion version | `pip install --upgrade helion` |
+
+## Context
+
+Discovered during Luma AMD Speedrun competition (March 2026). Used to reverse-engineer the
+correct `tl.dot_scaled` scale layout for MXFP4 on AMD gfx950 (MI355X). The Helion-generated
+kernel structure was adapted into `submission_triton_dotscaled.py`.
+
+Helion v0.3.1, pytorch/helion repository. Requires only CPU torch locally (no GPU).
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/skills/tritonblas-matmul-fp4-api
+
+# tritonblas.matmul_fp4 API (AMD MI355X)
+
+## Problem
+
+`tritonblas.matmul_fp4` is an undiscovered package on the AMD MI355X Popcorn runner
+with non-obvious API constraints. It uses Origami chiplet-aware scheduling and a
+persistent Triton kernel (`fp4_matmul`) built on `tl.dot_scaled`. Passing native
+fp4 dtype causes a silent `KeyError`; layout differs from `aiter.gemm_a4w4`.
+
+## Context / Discovery
+
+Discovered during Luma AMD Speedrun (March 2026) via source introspection:
+
+```python
+import tritonblas
+# Exports: matmul, matmul_a8w8, matmul_lt, matmul_a8w8_lt, matmul_fp4, OrigamiMatmulSelector
+from tritonblas import matmul_fp4, OrigamiMatmulSelector
+```
+
+Environment: ROCm 7.1, Triton-ROCm 3.6.0, PyTorch 2.10+rocm7.1, gfx950 (MI355X).
+
+## Signature
+
+```python
+matmul_fp4(
+    a,           # [M, K//2] torch.uint8  — LHS data (packed fp4)
+    b,           # [N, K//2] torch.uint8  — RHS data (packed fp4, row-major NOT transposed)
+    c,           # [M, N]    torch.bfloat16 — pre-allocated output (modified in-place)
+    a_scales,    # [M, K//32] torch.uint8 — E8M0 scale per 32-element group
+    b_scales,    # [N, K//32] torch.uint8 — E8M0 scale per 32-element group
+    block_m=None,       # tile size M (auto-tuned by OrigamiMatmulSelector if None)
+    block_n=None,       # tile size N
+    block_k=None,       # tile size K
+    group_size_m=8,     # chiplet grouping
+    num_warps=8,
+    num_stages=2,
+)
+```
+
+**Returns:** None — result is written into `c` (in-place).
+
+## Critical: uint8 Views Required
+
+```python
+# WRONG — causes "KeyError: 'REDACTED'"
+matmul_fp4(A_fp4, B_q, C, A_scale, B_scale)  # native fp4 dtype rejected
+
+# CORRECT — view everything as uint8
+matmul_fp4(
+    A_fp4.view(torch.uint8),
+    B_q.view(torch.uint8),
+    C,
+    A_scale.view(torch.uint8),
+    B_scale,  # already uint8 if from dynamic_mxfp4_quant
+)
+```
+
+## Layout: B is NOT Transposed
+
+Unlike `aiter.gemm_a4w4` (which expects B transposed as [K//2, N]), `matmul_fp4`
+expects B in the **original [N, K//2] row-major layout**:
+
+| Kernel | B data layout | B scale layout |
+|--------|--------------|----------------|
+| `aiter.gemm_a4w4` | [K//2, N] transposed | [N, K//32] shuffled |
+| `tritonblas.matmul_fp4` | **[N, K//2] row-major** | [N, K//32] uint8 |
+
+This means `B_q` from the task input can be used **directly** (no transpose needed).
+
+## Minimal Working Example
+
+```python
+import torch
+from tritonblas import matmul_fp4
+from aiter.ops.triton.quant import dynamic_mxfp4_quant
+
+def mxfp4_gemm_tritonblas(A, B_q, B_scale_sh, m, n, k):
+    # Quantize A (full quant needed for activation)
+    A_fp4, A_scale = dynamic_mxfp4_quant(A.contiguous())
+
+    # B: reuse B_q from input (identical to dynamic_mxfp4_quant output)
+    # B_scale: unshuffle from B_scale_sh to get [N, K//32] uint8
+    B_scale = e8m0_unshuffle(B_scale_sh.view(torch.uint8), orig_m=n, orig_n=k // 32)
+
+    C = torch.empty(m, n, dtype=torch.bfloat16, device=A.device)
+    matmul_fp4(
+        A_fp4.view(torch.uint8),  # [M, K//2]
+        B_q.view(torch.uint8),    # [N, K//2] — row-major, no transpose
+        C,
+        A_scale.view(torch.uint8),  # [M, K//32]
+        B_scale,                    # [N, K//32] uint8
+    )
+    return C
+```
+
+## e8m0_unshuffle (skip B re-quantization)
+
+`B_q` from the task input is identical to `dynamic_mxfp4_quant(B)` output — reuse it
+directly. The scale `B_scale_sh` (shuffled) can be reversed without re-quantizing B:
+
+```python
+def e8m0_unshuffle(scale_shuffled: torch.Tensor, orig_m: int, orig_n: int) -> torch.Tensor:
+    """Reverse e8m0_shuffle: recover original [orig_m, orig_n] uint8 scale."""
+    sm, sn = scale_shuffled.shape
+    # e8m0_shuffle: pad → view(M//32,2,16,N//8,2,4) → permute(0,3,5,2,4,1) → view(2D)
+    # Inverse permute of (0,3,5,2,4,1) is (0,5,3,1,4,2)
+    scale = scale_shuffled.view(sm // 32, sn // 8, 4, 16, 2, 2)
+    scale = scale.permute(0, 5, 3, 1, 4, 2).contiguous()
+    scale = scale.view(sm, sn)
+    return scale[:orig_m, :orig_n]
+
+# Usage (Luma AMD Speedrun task format):
+B_scale = e8m0_unshuffle(B_scale_sh.view(torch.uint8), orig_m=n, orig_n=k // 32)
+```
+
+**Cost**: ~0.1 µs (just a tensor view + permute). Saves ~15 µs vs `dynamic_mxfp4_quant(B)`.
+
+**Requirement**: B_scale_sh padded dims must be divisible by 32 (M) and 8 (N), which
+is guaranteed if `B_scale_sh` was created by `e8m0_shuffle`.
+
+## matmul_fp4 Wrapper Internals (tile override logic)
+
+Full wrapper source obtained via `inspect.getsource` (March 2026). Key behaviours:
+
+```python
+def matmul_fp4(a, b, c, a_scales, b_scales, block_m=None, ...):
+    M, K = a.shape
+    _, N = b.shape   # b is [N, K//2]
+    if block_m is None:
+        selector = _make_matmul_selector(M, N, K, "f4", "f4", ...)
+        block_m, block_n, block_k = selector.block_m, selector.block_n, selector.block_k
+        group_size_m = selector.group_m
+        num_xcds = selector.num_sms    # 8 on MI355X
+        # TILE OVERRIDE: if auto-selected tile < matrix dim, force 128
+        if block_m < M: block_m = 128
+        if block_n < N: block_n = 128
+        if block_k < K: block_k = 128  # K here is in bf16 elements
+    # Re-derive K from packed A shape (a.shape[1] * 2 = K in fp4 elements)
+    M = a.shape[0]; K = a.shape[1] * 2; N = b.shape[0]
+    b = b.T.contiguous()  # Transpose B internally before passing to Triton kernel
+    chunk_size = min(group_size_m**2, max(1, total_tiles // num_xcds))
+    fp4_matmul[grid](a, b, c, ...)
+```
+
+**Key insight:** The wrapper transposes B internally. The Triton kernel `fp4_matmul`
+receives B as `[K//2, N]` (K-major), so B_scale must still be `[N, K//32]` (N-first).
+
+## Performance (MI355X, 8 benchmark shapes)
+
+| Kernel | Geomean | Notes |
+|--------|---------|-------|
+| `aiter.gemm_a4w4` | ~24 µs | Current best — CK kernel |
+| `tritonblas.matmul_fp4` + e8m0_unshuffle | ~26 µs | No B re-quant, Triton kernel |
+| `tritonblas.matmul_fp4` + full B re-quant | ~26 µs | Same timing (quantization hidden) |
+| Competition leader | ~9.7 µs | 2.49x gap vs both approaches |
+
+**Note**: tritonblas is slightly slower than aiter despite Origami scheduling. The gap
+to the competition leader (~9.7 µs) suggests persistent/split-K optimizations or CK
+assembly kernels beyond what tritonblas provides.
+
+## A-Quantization Is the Pipeline Bottleneck
+
+Full end-to-end timing breakdown (MI355X, geomean across 8 benchmark shapes):
+
+| Step | Time |
+|------|------|
+| `dynamic_mxfp4_quant(A)` | 33–39 µs |
+| `e8m0_unshuffle(B_scale_sh)` | ~0.1 µs |
+| `matmul_fp4(A_q, B_q, C, A_scale, B_scale)` | 29–58 µs |
+| **Total pipeline** | **66–92 µs geomean** |
+
+The A quantization kernel alone is 33–39 µs — roughly **equal to** or larger than the
+GEMM itself for small shapes. This makes fusing quant into GEMM the most promising
+optimization path.
+
+## Why Other Quant Methods Fail with tritonblas
+
+Tested via nibble-level probe (March 2026): all three aiter quant methods
+(`dynamic_mxfp4_quant`, `get_hip_quant`, `get_triton_quant`) produce **identical nibble
+ordering** in packed fp4 bytes. The ~1–13% byte-level differences are from **rounding
+in E8M0 scale computation** (floor(log2(amax)) uses different precision).
+
+Despite small data differences, GEMM errors are significant:
+
+| A quant method | Tritonblas GEMM max error | Why |
+|----------------|--------------------------|-----|
+| `dynamic_mxfp4_quant` | 0.0 (exact) | Patched #975 kernel |
+| `get_hip_quant` | 6.5–15.25 | Scale rounding mismatch |
+| `get_triton_quant` | 6.5–15.25 | Scale rounding mismatch |
+
+**Key insight:** Nibble-swapping the fp4 data made errors WORSE (166–442 error). The
+incompatibility is in **scale values**, not bit packing. Only `dynamic_mxfp4_quant`
+produces scales that match what the tritonblas Origami kernel expects.
+
+## Fused Quant+GEMM Kernel (Experimental, unverified)
+
+A custom Triton kernel fusing bf16→fp4 A quantization directly into the GEMM eliminates
+the 33–39 µs A quantization kernel launch. Architecture:
+
+```python
+@triton.jit
+def _fused_quant_gemm_kernel(A_ptr, B_ptr, C_ptr, B_scale_ptr, ...):
+    # Origami chiplet-aware scheduling (from tritonblas fp4_matmul source)
+    for k_start in range(0, K, BLOCK_K):
+        a_bf16 = tl.load(A_ptr + ...)      # Load bf16 A tile
+        # Compute E8M0 scale in registers
+        a_amax = tl.max(tl.abs(a_reshaped).to(tl.float32), axis=2)
+        a_scale = floor(log2(a_amax)) + 127  # E8M0
+        a_fp4 = quantize_to_fp4(a_bf16, a_scale)
+        b = tl.load(B_ptr + ...)
+        b_scale = tl.load(B_scale_ptr + ...)
+        acc = tl.dot_scaled(a_fp4, a_scale, "e2m1", b, b_scale, "e2m1", acc=acc)
+    tl.store(C_ptr + ..., acc.to(tl.bfloat16), ...)
+```
+
+**Status:** Written (`kernels/mxfp4-mm/submission_tritonblas_fused.py`) but not yet
+submitted to MI355X. Key uncertainty: the correct Triton type for on-the-fly fp4 casting
+(may need `tl.float4_e2m1` or manual bit packing instead of `tl.float8e4nv`).
+
+## Error Reference
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `KeyError: 'REDACTED'` | Native fp4 dtype passed | Use `.view(torch.uint8)` on all tensors |
+| Wrong output values | B transposed when shouldn't be | Pass `B_q` directly, no `.t()` |
+| Shape mismatch | B in [K//2, N] instead of [N, K//2] | tritonblas expects N-first, not transposed |
+
+## Context
+
+Discovered during Luma AMD Speedrun (March 2026) on AMD MI355X via multi-step
+Popcorn CLI probe submissions: first probe discovered the package, second extracted
+the matmul_fp4 signature via `inspect.signature`, third read the 130-line Triton kernel
+source to understand layout requirements.
+
+The kernel source confirmed: "B scales are N x K even though B operand is K x N" (the
+kernel internally handles the transpose in the Triton tile loading).
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/skills/competitive-kernel-optimization-ceiling
+
+# Competitive Kernel Optimization: Beyond Parameter Tuning
+
+## Problem
+
+After exhausting all tunable parameters in a library (e.g., aiter's `fused_moe`), ranking
+stays in the lower half of the leaderboard. The reference implementation is already
+well-optimized; parameter sweeps either have no effect, cause correctness failures, or
+degrade performance.
+
+## Context: When to Use This
+
+- All accessible API parameters have been tested (documented in `aiter-kernel-parameter-semantics`)
+- Still ranked outside top 20 with >2x gap to leader
+- Considering whether to abandon vs. continue the challenge
+- Wanting to plan next iteration with higher expected value
+
+## The Decision Hierarchy
+
+### Level 1: Local Proxy (Low effort, immediate)
+
+Before expensive remote submissions, build a local model of the performance space:
+
+**Parse aiter's tuned CSV configs:**
+```bash
+cat /path/to/aiter/aiter/configs/tuned_fmoe.csv
+cat /path/to/aiter/aiter/configs/model_configs/dsv3_fp4_tuned_fmoe.csv
+```
+
+These CSVs contain: `(n_experts, batch_size, d_hidden, d_expert, topk, block_m, ...)` → `(kernel_name, cycles)`.
+Reading them reveals:
+- Which tile configs the auto-tuner selects for which shapes
+- Whether there are shape-specific configs that differ from the defaults
+- Whether your benchmark shapes have dedicated tuned entries or fall back to defaults
+
+**Roofline model estimate:**
+```python
+# For MXFP4 GEMM: theoretical peak = GPU_TFLOPS * efficiency
+# Compare against actual timing to determine if compute-bound or memory-bound
+bytes_per_token = d_hidden * sizeof(fp4)  # input
+bytes_weights = d_expert * d_hidden * sizeof(fp4)  # per expert, per token
+arithmetic_intensity = 2 * d_hidden * d_expert / bytes_weights  # FLOPs/byte
+```
+
+### Level 2: The "Two Builders" Pattern (Medium effort)
+
+From the Anthropic VLIW take-home challenge (see `research/challenges/anthropic_challenge/`):
+
+The winning approach used two separate kernel builders:
+- **Builder A (Correctness Anchor):** Delegates to `ref_kernel` or matches reference exactly.
+  Never changes. Used to verify correctness of Builder B.
+- **Builder B (Custom Explorer):** Reimplements the same computation differently.
+  Can be tested against Builder A as ground truth.
+
+For AMD MoE, this means writing a **custom dispatch + GEMM pipeline** that:
+1. Uses the same shuffled weights and scales (pre-computed by aiter)
+2. Implements its own token sorting (potentially simpler than aiter's)
+3. Calls CK GEMM kernels directly instead of through `fused_moe`
+
+```python
+# Template: Two Builders pattern for AMD kernel submission
+from reference import ref_kernel  # Builder A: correctness anchor
+
+def custom_kernel(data: input_t) -> output_t:
+    # Try Builder B; fall back to Builder A on any exception
+    try:
+        return custom_builder(data)
+    except Exception:
+        return ref_kernel(data)  # Safety net during development
+```
+
+### Level 3: Custom HIP/ASM Kernel (High effort, highest impact)
+
+What top leaderboard entries do:
+- Write kernel in HIP C++ or assembly, compiled with `hipcc`
+- Bypass the aiter library entirely for the hot path
+- Use hardware-specific optimizations (e.g., MI355X matrix core layouts, gfx950 ISA)
+- Typically requires familiarity with ROCm programming model
+
+This is only worth pursuing if:
+- You have HIP/CUDA experience
+- The competition has days remaining (not hours)
+- The performance gap justifies the implementation risk
+
+## VLIW Cross-Pollination: Applicable Lessons
+
+The Anthropic VLIW take-home (`research/challenges/anthropic_challenge/`) shares structural
+parallels with AMD GPU kernel challenges:
+
+| VLIW Concept | AMD Kernel Analog |
+|---|---|
+| Instruction slots (alu, valu, load) | GPU execution units (VALU, SALU, memory) |
+| `VLIWPacker` data-dependency tracking | aiter's 2-stage pipeline dependency between gate+up GEMM and down GEMM |
+| "Temporal Instruction Leakage" across barriers | `doweight_stage1=True` leaking weight mul across the SiLU activation barrier |
+| N_VEC=28 window interleaving for latency hiding | `num_kv_splits` in MLA for hiding KV cache memory latency |
+| `multiply_add` fusion optimization | CK `moe_ck2stages_gemm1_*MulABScaleShuffled*` kernel name encodes similar fusion |
+| Local simulator (instant feedback) | Popcorn CLI remote (~2-10 min/iteration) |
+
+**Key VLIW insight transferable to AMD:**
+The VLIW challenge was NOT won by parameter tuning the packer. It was won by:
+1. Understanding how the scheduler works internally (`last_write`, `last_read` tracking)
+2. Discovering that barriers needed explicit data-dependency injection
+3. Building a custom kernel generator that produced different instruction schedules
+
+Equivalent for AMD: understand how aiter selects kernels (`get_2stage_cfgs()` in `fused_moe.py`),
+what the tile configs mean, and build something that uses them differently.
+
+## Iteration Budget Management
+
+With ~2 min test + ~8-10 min benchmark per remote submission (Luma AMD Speedrun):
+
+| Action | Submits needed | Expected outcome |
+|---|---|---|
+| Parse CSV configs locally | 0 | Shape-specific tile insights |
+| Roofline analysis | 0 | Compute vs memory bound diagnosis |
+| Swarm brainstorm | 0 | Novel directions inventory |
+| Single parameter test | 1-2 | Usually negative (already exhausted) |
+| Custom dispatch prototype | 3-5 | Medium risk, medium reward |
+| Custom HIP kernel | 10+ | High risk, high reward |
+
+**Rule:** If a parameter test requires >2 submits to verify, it's probably not worth it.
+Invest those submits in Builder B prototypes instead.
+
+## Swarm Brainstorm Template
+
+When stuck, use `swarm_brainstorm.py` (see `research/challenges/anthropic_challenge/`) as
+template for a multi-model debate. Useful prompts for AMD MoE:
+
+- "What CK kernel configurations exist for MoE that aren't exposed through fused_moe's API?"
+- "Can we reuse the pre-shuffled weight layout with a different dispatch algorithm?"
+- "What does the token distribution look like across experts for bs=16 with 256 experts?
+   Does the sparse pattern suggest a different algorithm?"
+
+## Context: Luma AMD Speedrun Competition
+
+- **Challenge:** `amd-moe-mxfp4`, `amd-mixed-mla`, `amd-mxfp4-mm`
+- **Hardware:** AMD Instinct MI355X (gfx950, ROCm 7.1, Torch 2.10+rocm7.1)
+- **Parameter space exhausted as of March 2026:** All aiter API knobs tested and documented
+  in `aiter-kernel-parameter-semantics` skill
+- **VLIW reference:** `research/challenges/anthropic_challenge/simple_builder.py` (winner),
+  `optimizer.py` (advanced variant with multiply_add fusion and crown caching)
+
+## Phase 2 Exhausted Paths (March 2026)
+
+All of these were tried and confirmed as dead ends. Do not retry without new information:
+
+| Kernel | Approach | Outcome | Blocker |
+|--------|----------|---------|---------|
+| GEMM | `get_triton_quant(shuffle=True)` from submission.py | Wrong results | JIT call-site sensitivity |
+| GEMM | `get_triton_quant(shuffle=False)` from submission.py | Wrong results | Same JIT issue |
+| GEMM | `get_torch_quant(QuantType.per_1x32)` | Wrong results | Different rounding than triton_quant |
+| GEMM | `gemm_afp4wfp4` with uint8 views | Wrong results | Inherits wrong quant from torch_quant |
+| MoE | `fused_moe_2stages` direct call | TypeError + GPU memory fault | Positional arg conflict; incorrect buffer sizing |
+| MoE | `cktile_moe_stage1/stage2` direct call | Not attempted | Same sorting setup required as fused_moe_2stages |
+| MLA | MXFP4 KV cache via `mla_decode_fwd` | RuntimeError | ASM kernel: `head_size == KV.size(3)` fails for packed dims (576 → 288) |
+
+## Phase 3 Findings (March 2026)
+
+| Kernel | Approach | Outcome | Key Insight |
+|--------|----------|---------|-------------|
+| GEMM | JIT cache warmup via `ref_kernel` first | Wrong results (89-95% mismatch) | See Phase 4: root cause was unpatched quant bug, not callsite sensitivity |
+| GEMM | `get_hip_quant` (HIP compiled C kernel) | Wrong results (81-95% mismatch) | hip_quant output layout doesn't match `gemm_a4w4` contract |
+| MoE | Direct `fused_moe` call from submission.py | ✅ WORKS | 0.015625 max error; `fused_moe` handles quant internally |
+
+**CONFIRMED: Direct `fused_moe` call from submission.py works (March 2026)**
+
+Tested and confirmed: 0/524288 mismatches, max_err=0.015625 across all 3 test shapes.
+Benchmark baseline: ~155 µs geomean (at API ceiling for MXFP4 MoE).
+
+**MoE ceiling:** ~155 µs vs leader's 145 µs (1.07x gap). No further API improvements found.
+
+---
+
+## Phase 4: GEMM Correctness Breakthrough (March 2026)
+
+**Root cause was NOT "JIT callsite sensitivity" — it was an UNPATCHED QUANTIZATION BUG.**
+
+`get_triton_quant(QuantType.per_1x32)` dispatches to the unpatched `fp4_utils.py` kernel
+(ROCm/aiter issue #974). The fix is `dynamic_mxfp4_quant` from `aiter.ops.triton.quant`
+(PR #975 patched this path). See `amd-triton-jit-callsite-correctness` v1.4.0 for details.
+
+| Kernel | Approach | Outcome | Key Insight |
+|--------|----------|---------|-------------|
+| GEMM | `dynamic_mxfp4_quant` + `gemm_a4w4` | ✅ 0.0 error, ~24.1 µs | Patched Triton quant bypasses buggy dispatch |
+| GEMM | `gemm_a4w4` with `log2_k_split=N` | ❌ RuntimeError | Torch op schema is fixed — no `log2_k_split` kwarg |
+| GEMM | `gemm_a4w4_asm` direct call | ❌ Kernel name not found | Only 2 pre-compiled `.co` files; name selection is internal |
+| GEMM | CUDA/HIP graph replay | ❌ ~36 µs (+50% overhead) | `copy_()` for 3 static input tensors exceeds kernel time |
+
+**GEMM performance ceiling:** ~24.1 µs vs leader's 9.7 µs (2.49x gap).
+The bottleneck is quantization time (~10-13 µs per call), which equals the GEMM time itself.
+To close the gap requires a **fused quant+GEMM kernel** — not achievable via public aiter API.
+
+**Key lesson:** When 2+ independent approaches all fail with similar-magnitude errors, suspect
+the shared downstream component (here: the quantization output being wrong), not the
+infrastructure connecting them (here: wrongly blamed callsite dispatch mechanism).
+
+**Current leaderboard status (March 2026):**
+
+| Kernel | Our Time | Leader | Gap | Status |
+|--------|----------|--------|-----|--------|
+| GEMM (`amd-mxfp4-mm`) | ~24.1 µs | 9.7 µs | 2.49x | On leaderboard |
+| MoE (`amd-moe-mxfp4`) | ~155 µs | 145 µs | 1.07x | At API ceiling |
+| MLA (`amd-mixed-mla`) | ~199 µs → **~100 µs** | 4.3 µs | **~23x (was 46x)** | See Phase 5 |
+
+---
+
+## Phase 5: MLA Pipeline Bypass (March 2026)
+
+**Key insight: aiter's 3-stage MLA pipeline has fixed overhead that dominates for small batches.**
+
+aiter's `mla_decode_fwd` runs: metadata computation → split-K ASM kernel → parallel reduce.
+This pipeline is optimized for large workloads but has ~100-150 µs of constant overhead
+regardless of batch size. For small batches (bs=4), the actual compute is tiny — the
+overhead is the bottleneck.
+
+**Approach:** Bypass the pipeline entirely with `torch.einsum` for small decode workloads:
+
+```python
+# Torch-native: Q@K^T + softmax + @V, all bf16
+kv = kv_data["bf16"].view(bs, kvseqlen, 576)
+scores = torch.einsum("bnh,bsh->bns", q, kv) * SM_SCALE
+weights = torch.softmax(scores, dim=-1)
+out = torch.einsum("bns,bsd->bnd", weights, v)
+```
+
+**Hybrid routing strategy (optimal):**
+- `bs * kvseqlen <= 400_000` tokens: torch-native (pipeline overhead > compute)
+- `bs * kvseqlen > 400_000` tokens: ref_kernel/aiter fp8 ASM (bandwidth-bound, fp8 wins)
+
+**Results (all qseqlen=1, fp8 reference tolerance rtol=2e-2, atol=8e-3):**
+
+| Shape | Previous (aiter fp8) | Hybrid | Factor |
+|-------|---------------------|--------|--------|
+| bs=4, kv=1k | ~150 µs | **27.7 µs** | 5.4x |
+| bs=4, kv=8k | ~169 µs | **40.5 µs** | 4.2x |
+| bs=32, kv=1k | ~179 µs | **46.2 µs** | 3.9x |
+| bs=32, kv=8k | ~206 µs | **171 µs** | 1.2x |
+| bs=64, kv=1k | ~175 µs | **64.7 µs** | 2.7x |
+| bs=64, kv=8k | ~241 µs | **245 µs** | ~tie |
+| bs=256, kv=1k | ~196 µs | **178 µs** | 1.1x |
+| bs=256, kv=8k | ~397 µs | **399 µs** | ~tie |
+| **Geomean** | ~199 µs | **~100 µs** | **2x** |
+
+**Key learnings:**
+- `fav3_sage_mxfp4` (Triton SAGE Attention) can't be used for MLA — requires separate K/V
+  with same head_dim; MLA's fused buffer (K=576, V=512) is fundamentally incompatible.
+- Correctness with bf16 KV vs fp8 reference: max error 5e-05 (tolerance: 8e-03) — excellent.
+- The bottleneck shifts from pipeline overhead to memory bandwidth at ~400k tokens.
+- Torch einsum is 2x more bandwidth-hungry than fp8 ASM (bf16 vs fp8 KV cache).
+
+**Ceiling reached:** The hybrid approach exhausts pure-torch improvements.
+Further MLA speedups require a custom Triton kernel with MXFP4 KV cache (4x bandwidth
+savings vs fp8, requires decomposing the fused KV buffer).
+
+**Updated leaderboard status:**
+
+| Kernel | Our Time | Leader | Gap | Status |
+|--------|----------|--------|-----|--------|
+| GEMM (`amd-mxfp4-mm`) | ~24.1 µs | 9.7 µs | 2.49x | At API ceiling |
+| MoE (`amd-moe-mxfp4`) | ~155 µs | 145 µs | 1.07x | At API ceiling |
+| MLA (`amd-mixed-mla`) | ~100 µs | 4.3 µs | ~23x | Hybrid on leaderboard |
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The user wants to continue optimizing GPU kernels for the Luma AMD Speedrun competition on MI355X hardware. The specific instruction (from /compact) is: **"Remember we should be using helios to create our custom triton kernels locally and the resources available in the runner, especially Origami."** The goal is to close remaining performance gaps: GEMM 20.6µs vs leader 9.7µs (2.12x gap), MoE ~155µs vs 145µs (1.07x), MLA ~98µs vs 4.3µs (22.9x). Phase 2 plan was completed in the prior session; this session is Phase 3 focusing on custom Triton kernels via Helion and Origami/tritonblas.
+
+2. Key Technical Concepts:
+   - **Helion** — PyTorch DSL (v0.3.1) that compiles to Triton code; installed locally in `.venv-helion/` for CPU-only code generation
+   - **tritonblas.matmul_fp4** — Undiscovered package on MI355X runner with Origami chiplet-aware scheduling; expects uint8 views, B in [N, K//2] row-major layout
+   - **OrigamiMatmulSelector** — From tritonblas; provides per-shape tile configs (block_m, block_n, block_k, group_m, num_sms)
+   - **Origami XCD remapping bug** — Non-bijective tile mapping when `total_tiles % NUM_XCDS != 0`; `cdiv(num_chunks, NUM_XCDS)` creates phantom chunks skipping valid tile indices
+   - **tl.dot_scaled("e2m1")** — Triton intrinsic for MXFP4 scaled dot product on gfx950; requires A_scale [BLOCK_M, BLOCK_K//16], B_scale [BLOCK_N, BLOCK_K//16]
+   - **gemm_afp4wfp4** — aiter's persistent Triton kernel with auto-tuning via `_get_config(M, N, K)`; has `skip_reduce` for split-K returning [num_splits, M, N] float32 partial results
+   - **@triton.autotune** — Triton's per-shape config sweeper; tested with 12 curated configs
+   - **`_get_config`** — Function `(M, N, K, shuffle=False)` that selects auto-tuned tile configs from `AITER_TRITON_CONFIGS_PATH`
+   - **Split-K (skip_reduce=True)** — Returns partial results [14, M, N] for k=7168; requires `partial.sum(dim=0).to(bf16)` for final result
+
+3. Files and Code Sections:
+
+   - **`.worktrees/spec-luma-amd-speedrun/research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/submission.py`**
+     - The GEMM kernel submission file — modified 6 times during this session
+     - Currently contains a PROBE (not production code) that extracts gemm_afp4wfp4 internals
+     - The **proven production version** (20.6µs) that should be restored:
+     ```python
+     """GEMM — gemm_afp4wfp4 Triton kernel with auto-tuning (20.6 us geomean, 2.12x leader gap)."""
+     import torch
+     from task import input_t, output_t
+     from aiter import dtypes
+     from aiter.ops.triton.quant import dynamic_mxfp4_quant
+     from aiter.ops.triton.gemm.basic.gemm_afp4wfp4 import gemm_afp4wfp4
+
+     def _e8m0_unshuffle(scale_sh: torch.Tensor, orig_m: int, orig_n: int) -> torch.Tensor:
+         u8 = scale_sh.view(torch.uint8)
+         sm, sn = u8.shape
+         s = u8.view(sm // 32, sn // 8, 4, 16, 2, 2)
+         s = s.permute(0, 5, 3, 1, 4, 2).contiguous()
+         return s.view(sm, sn)[:orig_m, :orig_n]
+
+     def custom_kernel(data: input_t) -> output_t:
+         A, B, B_q, B_shuffle, B_scale_sh = data
+         A_fp4, A_scale_e8m0 = dynamic_mxfp4_quant(A)
+         n, k = B.shape
+         B_scale = _e8m0_unshuffle(B_scale_sh, orig_m=n, orig_n=k // 32)
+         return gemm_afp4wfp4(
+             A_fp4.view(torch.uint8), B_q.view(torch.uint8),
+             A_scale_e8m0.view(torch.uint8), B_scale.contiguous().view(torch.uint8),
+             dtype=dtypes.bf16,
+         )
+     ```
+     - **Current file content is a PROBE** that needs to be reverted after results:
+     ```python
+     """Probe gemm_afp4wfp4: split-K correctness + _get_config per shape + configs path."""
+     import sys, os, torch
+     from task import input_t, output_t
+     from aiter import dtypes
+     from aiter.ops.triton.quant import dynamic_mxfp4_quant
+     from aiter.ops.triton.gemm.basic.gemm_afp4wfp4 import gemm_afp4wfp4
+
+     def _e8m0_unshuffle(scale_sh, orig_m, orig_n):
+         u8 = scale_sh.view(torch.uint8)
+         sm, sn = u8.shape
+         s = u8.view(sm // 32, sn // 8, 4, 16, 2, 2)
+         s = s.permute(0, 5, 3, 1, 4, 2).contiguous()
+         return s.view(sm, sn)[:orig_m, :orig_n]
+
+     _probed = False
+
+     def custom_kernel(data: input_t) -> output_t:
+         global _probed
+         A, B, B_q, B_shuffle, B_scale_sh = data
+         m, k = A.shape; n = B.shape[0]
+         A_fp4, A_scale = dynamic_mxfp4_quant(A)
+         B_scale = _e8m0_unshuffle(B_scale_sh, orig_m=n, orig_n=k // 32)
+         a_u8 = A_fp4.view(torch.uint8); b_u8 = B_q.view(torch.uint8)
+         a_scale_u8 = A_scale.view(torch.uint8)
+         b_scale_u8 = B_scale.contiguous().view(torch.uint8)
+         if not _probed:
+             _probed = True
+             # Probes: AITER_TRITON_CONFIGS_PATH listing, _get_config for 6 shapes,
+             # split-K reduce correctness, _get_config source code
+             ...
+         return gemm_afp4wfp4(a_u8, b_u8, a_scale_u8, b_scale_u8, dtype=dtypes.bf16)
+     ```
+
+   - **`submission_tritonblas_fused.py`** — Full fused bf16→fp4 quant+GEMM kernel with Origami scheduling and manual E8M0/nibble packing. Written previously but NEVER submitted. Status: DEAD END since base GEMM is too slow (34.6µs > 20.6µs even without fusion savings).
+
+   - **`submission_triton_dotscaled.py`** — Pre-quantized tl.dot_scaled kernel without Origami. Uses 2D grid, `dynamic_mxfp4_quant` for A, re-quantizes B. Passed correctness on 2/4 shapes previously.
+
+   - **`submission_tritonblas_fp4v5.py`** — Clean tritonblas.matmul_fp4 with e8m0_unshuffle. Gave ~26µs geomean (worse than gemm_afp4wfp4).
+
+   - **`helion_gemm_test.py`** — Helion code generation test with `@helion.kernel` decorated MXFP4 GEMM and bf16 GEMM. Tests bind() for code generation but NOT used for actual kernel generation in this session.
+
+   - **`kernels/moe-mxfp4/submission.py`** — NOT modified; Phase 10 expert-count-aware KSPLIT selection (~155µs).
+
+   - **`kernels/mixed-mla/submission.py`** — NOT modified; hybrid torch-native/aiter fp8 approach (~98µs).
+
+4. Errors and Fixes:
+   - **Origami XCD remapping bug (CRITICAL FINDING)**:
+     - Error: Shapes with `total_tiles % NUM_XCDS != 0` had some tiles NEVER computed (zeros in output or wrong values)
+     - Shape (m=8, k=7168, n=2112): 4096 mismatches, output zeros where values expected (tiles 5, 8, 11, 14 of 17 never computed)
+     - Shape (m=256, k=512, n=2880): 16377 mismatches starting at row 128 (tile 41 of 46 never computed)
+     - Root cause: `remapped_chunk = xcd_id * cdiv(num_chunks, NUM_XCDS) + chunk_in_xcd` — `cdiv` creates extra virtual slots per XCD, causing non-bijective mapping
+     - Fix: Removed Origami XCD remapping entirely, used standard group-M swizzle scheduling with 1D grid instead
+     - Shapes 2-3 (24 tiles, divisible by 8 XCDs) passed correctly even with the bug
+
+   - **Custom tl.dot_scaled kernel too slow**:
+     - Fixed BK=128 gave 37.6µs geomean (83% slower than gemm_afp4wfp4's 20.6µs)
+     - @triton.autotune with 12 configs improved to 34.6µs (67% slower — still uncompetitive)
+     - Root cause: gemm_afp4wfp4 uses persistent kernels, split-K, and dozens of per-shape configs
+     - Decision: Cannot beat gemm_afp4wfp4 with a standard tiled Triton kernel; restored proven submission
+
+   - **KERNELS variable not expanding through pipe**:
+     - Error: `Application error: File not found: /mxfp4-mm/submission.py`
+     - Fix: Used full absolute path instead of `$KERNELS` variable when piping to `tail`
+
+5. Problem Solving:
+   - **SOLVED: tl.dot_scaled correctness on gfx950** — First end-to-end proof that custom tl.dot_scaled Triton kernels work with pre-quantized MXFP4 data (0.0 max error on all shapes)
+   - **SOLVED: Origami XCD scheduling bug diagnosis** — Identified non-bijective mapping formula; documented for future reference
+   - **CONCLUDED: Custom tl.dot_scaled cannot beat gemm_afp4wfp4** — Even with autotune, persistent kernel advantage is ~67%
+   - **CONCLUDED: Fused quant+GEMM not viable** — Base GEMM (34.6µs) + saving quant (~10µs) = ~24.6µs > 20.6µs
+   - **IN PROGRESS: Probing gemm_afp4wfp4 split-K and config overrides** — Second probe submitted, awaiting results
+   - **DISCOVERED: gemm_afp4wfp4 has `skip_reduce=True`** — Returns [14, M, N] float32 partial results for k=7168; `_get_config(M, N, K)` controls tile selection
+
+6. All User Messages:
+   - **Message 1 (compact instruction)**: "Remember we should be using helios to create our custom triton kernels locally and the resources available in the runner, especially Origami."
+   - No other non-tool-result user messages in this session.
+
+7. Pending Tasks:
+   - **Task #9 (in_progress)**: Probe gemm_afp4wfp4 config parameter and split-K (skip_reduce) — second probe submitted, AWAITING RESULTS
+   - After probe results: Analyze `_get_config` output per benchmark shape, test split-K correctness (`partial.sum(0)`), explore config overrides
+   - After probe: Restore submission.py to proven gemm_afp4wfp4 production code
+
+8. Current Work:
+   Immediately before this summary, I submitted a **second probe** of `gemm_afp4wfp4` internals to the MI355X runner via Popcorn CLI (`--mode test`). The probe extracts:
+   1. `AITER_TRITON_CONFIGS_PATH` directory listing and JSON config contents
+   2. `_get_config(M, N, K)` output for all 6 benchmark shapes: (4,2880,512), (16,2112,7168), (32,4096,512), (32,2880,512), (64,7168,2048), (256,3072,1536)
+   3. Split-K reduce correctness: `partial.sum(0).to(bf16)` vs normal output
+   4. `_get_config` source code (first 60 lines)
+   
+   The submission is the file at `kernels/mxfp4-mm/submission.py` which currently contains probe code (NOT the production kernel). The probe was submitted but **results have NOT been received yet** — the Bash command was the last action taken.
+
+   The first probe already revealed:
+   - `gemm_afp4wfp4` wraps `_get_config(M, N, K)` → `serialize_dict(config)` → `gemm_afp4wfp4_(..., config_hashable, skip_reduce)`
+   - `skip_reduce=True` returns `[14, 8, 2112]` for shape (m=8, k=7168) — 14 split-K chunks
+   - Max diff between partial results and normal output was 351.6875 (expected — partials not yet summed)
+
+9. Optional Next Step:
+   **Receive and analyze the second probe results** from the Popcorn CLI submission. The probe is awaiting results for `--mode test` at `kernels/mxfp4-mm/submission.py`. 
+   
+   After receiving results:
+   1. Analyze `_get_config` output per shape to understand what tile configs the autotuner selects
+   2. Verify split-K reduce correctness (`partial.sum(0)` vs normal — should be 0.0 or near-0 error)
+   3. Read `_get_config` source to understand if configs can be overridden for better performance
+   4. **Restore submission.py to the proven gemm_afp4wfp4 production code** (currently contains probe)
+   5. If config overrides look promising, try passing custom configs to `gemm_afp4wfp4(config={...})`
+   
+   This directly continues the user's request to use "resources available in the runner, especially Origami" — understanding gemm_afp4wfp4's internal tuning is the prerequisite for any meaningful override.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/18cc9e04-26bd-439a-b196-9059a0d09173.jsonl
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+Can we try all 3 in parallel and learn from each?
+Are we using all the resources available in the runner?
+Might it help to do some research on the architecture of what we're trying to fine tune instead of pure brute force?
+
+---
+
+Base directory for this skill: /home/mike-anderson/.claude/plugins/cache/claude-plugins-official/superpowers/4.3.1/skills/brainstorming
+
+# Brainstorming Ideas Into Designs
+
+## Overview
+
+Help turn ideas into fully formed designs and specs through natural collaborative dialogue.
+
+Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design and get user approval.
+
+<HARD-GATE>
+Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it. This applies to EVERY project regardless of perceived simplicity.
+</HARD-GATE>
+
+## Anti-Pattern: "This Is Too Simple To Need A Design"
+
+Every project goes through this process. A todo list, a single-function utility, a config change — all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple projects), but you MUST present it and get approval.
+
+## Checklist
+
+You MUST create a task for each of these items and complete them in order:
+
+1. **Explore project context** — check files, docs, recent commits
+2. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
+3. **Propose 2-3 approaches** — with trade-offs and your recommendation
+4. **Present design** — in sections scaled to their complexity, get user approval after each section
+5. **Write design doc** — save to `docs/plans/YYYY-MM-DD-<topic>-design.md` and commit
+6. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+
+## Process Flow
+
+```dot
+digraph brainstorming {
+    "Explore project context" [shape=box];
+    "Ask clarifying questions" [shape=box];
+    "Propose 2-3 approaches" [shape=box];
+    "Present design sections" [shape=box];
+    "User approves design?" [shape=diamond];
+    "Write design doc" [shape=box];
+    "Invoke writing-plans skill" [shape=doublecircle];
+
+    "Explore project context" -> "Ask clarifying questions";
+    "Ask clarifying questions" -> "Propose 2-3 approaches";
+    "Propose 2-3 approaches" -> "Present design sections";
+    "Present design sections" -> "User approves design?";
+    "User approves design?" -> "Present design sections" [label="no, revise"];
+    "User approves design?" -> "Write design doc" [label="yes"];
+    "Write design doc" -> "Invoke writing-plans skill";
+}
+```
+
+**The terminal state is invoking writing-plans.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. The ONLY skill you invoke after brainstorming is writing-plans.
+
+## The Process
+
+**Understanding the idea:**
+- Check out the current project state first (files, docs, recent commits)
+- Ask questions one at a time to refine the idea
+- Prefer multiple choice questions when possible, but open-ended is fine too
+- Only one question per message - if a topic needs more exploration, break it into multiple questions
+- Focus on understanding: purpose, constraints, success criteria
+
+**Exploring approaches:**
+- Propose 2-3 different approaches with trade-offs
+- Present options conversationally with your recommendation and reasoning
+- Lead with your recommended option and explain why
+
+**Presenting the design:**
+- Once you believe you understand what you're building, present the design
+- Scale each section to its complexity: a few sentences if straightforward, up to 200-300 words if nuanced
+- Ask after each section whether it looks right so far
+- Cover: architecture, components, data flow, error handling, testing
+- Be ready to go back and clarify if something doesn't make sense
+
+## After the Design
+
+**Documentation:**
+- Write the validated design to `docs/plans/YYYY-MM-DD-<topic>-design.md`
+- Use elements-of-style:writing-clearly-and-concisely skill if available
+- Commit the design document to git
+
+**Implementation:**
+- Invoke the writing-plans skill to create a detailed implementation plan
+- Do NOT invoke any other skill. writing-plans is the next step.
+
+## Key Principles
+
+- **One question at a time** - Don't overwhelm with multiple questions
+- **Multiple choice preferred** - Easier to answer than open-ended when possible
+- **YAGNI ruthlessly** - Remove unnecessary features from all designs
+- **Explore alternatives** - Always propose 2-3 approaches before settling
+- **Incremental validation** - Present design, get approval before moving on
+- **Be flexible** - Go back and clarify when something doesn't make sense
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+Yes, but also keep in mind we have a gemini cli session also trying to submit.  So check other system operations before you submit to make sure we avoid any submission errors due to too many concurrent submission.
+
+---
+
+<task-notification>
+<task-id>bjthsz1lk</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bjthsz1lk.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MoE fmoe_g1u1 probe (--mode test)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bjthsz1lk.output
+
+---
+
+<task-notification>
+<task-id>b84usdp6t</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b84usdp6t.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit MLA discovery probe (--mode test)" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b84usdp6t.output
+
+---
+
+<task-notification>
+<task-id>bgjuf1um3</task-id>
+<tool-use-id>toolu_01X6HiVtcCRMJWHtwAijYEw5</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bgjuf1um3.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit GEMM baseline test to verify restoration" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bgjuf1um3.output
+
+---
+
+<task-notification>
+<task-id>blz293ztw</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/blz293ztw.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit Flash Attention MLA kernel for correctness test" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/blz293ztw.output
+
+---
+
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+   The user wants to continue optimizing GPU kernels for the Luma AMD Speedrun competition on MI355X hardware. Three specific requests were made:
+   - **Try all 3 kernels (GEMM, MoE, MLA) in parallel** to learn from each simultaneously
+   - **Use all resources available on the runner** (not just aiter — check for flash_attn, flashinfer, tritonblas, etc.)
+   - **Research the architecture** of what we're optimizing instead of pure brute force parameter tuning
+   - **Check for concurrent Gemini CLI submissions** before submitting to avoid hitting the 3-concurrent-submission server limit
+   
+   Current leaderboard gaps: GEMM 20.6µs vs leader 9.7µs (2.12x), MoE ~155µs vs 145µs (1.07x), MLA ~97µs vs 4.3µs (22.9x).
+
+2. Key Technical Concepts:
+   - **Flash Attention v2 online softmax** — Fused Q@K^T + softmax + @V in single kernel pass, maintaining running max/sum for numerical stability. Eliminates intermediate attention matrix materialization.
+   - **CK headdim ≤ 256 limit** — AMD's Composable Kernel (CK) library hard-limits head dimensions to 256. MLA uses headdim=576, blocking all CK-based Flash Attention paths. Triton's `tl.dot` has no such limit.
+   - **MLA K≠V dimension issue** — DeepSeek MLA uses QK_DIM=576 for attention scores but V_DIM=512 for value output. KV buffer is fused 576-dim; V is first 512 dims. Standard Flash Attention requires K_dim==V_dim.
+   - **aiter.flash_attn_varlen_func** — Available on runner via aiter (not standalone flash_attn package). Wraps CK-based Flash Attention with varlen GQA support. Limited to headdim≤256.
+   - **aiter.pa_decode_gluon** — Paged Attention Decode kernel with separate K_cache, V_cache. Accepts FP8 scales. Requires blocked/paged KV cache format (not our flat buffer).
+   - **aiter.fmoe_g1u1** — 1-stage fused MoE kernel, callable directly but gated off (run_1stage=False) in fused_moe dispatch. MXFP4 SiLU entry exists in fused_moe_1stage_dict.
+   - **Origami XCD remapping bug** — Non-bijective tile mapping when total_tiles % NUM_XCDS != 0 (documented in new skill)
+   - **Popcorn CLI 3-concurrent-submission limit** — Server-wide asyncio.Semaphore(3). Must check for Gemini session submissions before adding ours.
+   - **FlashInfer MLA kernels** — `trtllm_batch_decode_with_kv_cache_mla` and `xqa_mla` exist in FlashInfer library but FlashInfer is NOT installed on the runner.
+
+3. Files and Code Sections:
+
+   - **`kernels/mixed-mla/submission.py`** (Modified 3 times this session)
+     - Most critical file — MLA has the largest optimization opportunity (22.9x gap)
+     - **Current version**: Custom Triton Flash Attention kernel (WRITTEN BUT NOT YET SUBMITTED)
+     ```python
+     """
+     MLA decode — Custom Triton Flash Attention kernel.
+     Bypasses aiter's 3-stage pipeline with a single fused kernel.
+     """
+     import torch
+     import triton
+     import triton.language as tl
+     from reference import ref_kernel
+     from task import input_t, output_t
+
+     @triton.jit
+     def _mla_decode_kernel(
+         Q_ptr, KV_ptr, O_ptr,
+         kvseqlen,
+         SM_SCALE: tl.constexpr,
+         QK_DIM: tl.constexpr,      # 576
+         V_DIM: tl.constexpr,       # 512
+         BLOCK_N: tl.constexpr,     # KV tile size
+     ):
+         head_id = tl.program_id(0)
+         q_offs = tl.arange(0, QK_DIM)
+         q = tl.load(Q_ptr + head_id * QK_DIM + q_offs).to(tl.float32)
+         m_i = float("-inf")
+         l_i = 0.0
+         v_offs = tl.arange(0, V_DIM)
+         acc = tl.zeros([V_DIM], dtype=tl.float32)
+         for kv_start in range(0, kvseqlen, BLOCK_N):
+             kv_count = tl.minimum(BLOCK_N, kvseqlen - kv_start)
+             n_offs = tl.arange(0, BLOCK_N)
+             kv_mask = n_offs < kv_count
+             kv_ptrs = KV_ptr + (kv_start + n_offs[:, None]) * QK_DIM + q_offs[None, :]
+             kv_block = tl.load(kv_ptrs, mask=kv_mask[:, None], other=0.0).to(tl.float32)
+             scores = tl.sum(kv_block * q[None, :], axis=1) * SM_SCALE
+             scores = tl.where(kv_mask, scores, float("-inf"))
+             m_new = tl.maximum(m_i, tl.max(scores, axis=0))
+             alpha = tl.exp(m_i - m_new)
+             p = tl.exp(scores - m_new)
+             l_i = alpha * l_i + tl.sum(p, axis=0)
+             acc = alpha * acc
+             v_ptrs = KV_ptr + (kv_start + n_offs[:, None]) * QK_DIM + v_offs[None, :]
+             v_block = tl.load(v_ptrs, mask=kv_mask[:, None], other=0.0).to(tl.float32)
+             acc += tl.sum(p[:, None] * v_block, axis=0)
+             m_i = m_new
+         acc = acc / l_i
+         o_ptrs = O_ptr + head_id * V_DIM + v_offs
+         tl.store(o_ptrs, acc.to(tl.bfloat16))
+
+     SM_SCALE = 1.0 / (576 ** 0.5)
+     TORCH_NATIVE_THRESHOLD = 400_000
+
+     def _triton_mla_decode(q, kv_bf16, bs, nq, kvseqlen, dv):
+         total_q = q.shape[0]
+         out = torch.empty(total_q, nq, dv, dtype=torch.bfloat16, device=q.device)
+         kv = kv_bf16.view(bs, kvseqlen, 576)
+         BLOCK_N = 128
+         for b in range(bs):
+             q_b = q[b]; kv_b = kv[b]; o_b = out[b]
+             grid = (nq,)
+             _mla_decode_kernel[grid](q_b, kv_b, o_b, kvseqlen,
+                 SM_SCALE=SM_SCALE, QK_DIM=576, V_DIM=512, BLOCK_N=BLOCK_N)
+         return out
+
+     def custom_kernel(data: input_t) -> output_t:
+         q, kv_data, qo_indptr, kv_indptr, config = data
+         bs = config["batch_size"]; nq = config["num_heads"]
+         kvseqlen = config["kv_seq_len"]; dv = config["v_head_dim"]
+         total_q = q.shape[0]; qseqlen = total_q // bs
+         if qseqlen != 1:
+             return ref_kernel(data)
+         try:
+             return _triton_mla_decode(q, kv_data["bf16"], bs, nq, kvseqlen, dv)
+         except Exception as e:
+             import sys; print(f"TRITON MLA ERROR: {e}", file=sys.stderr)
+             if bs * kvseqlen > TORCH_NATIVE_THRESHOLD:
+                 return ref_kernel(data)
+             kv = kv_data["bf16"].view(bs, kvseqlen, 576)
+             scores = torch.einsum("bnh,bsh->bns", q, kv) * SM_SCALE
+             weights = torch.softmax(scores, dim=-1)
+             return torch.einsum("bns,bsd->bnd", weights, kv[:, :, :dv])
+     ```
+
+   - **`kernels/mxfp4-mm/submission.py`** (Restored to proven baseline)
+     - GEMM kernel — restored from probe code to the proven 20.6µs gemm_afp4wfp4 version
+     - Verified correct: 0.0 max error on all shapes
+     ```python
+     """GEMM — gemm_afp4wfp4 Triton kernel with auto-tuning (20.6 us geomean)."""
+     import torch
+     from task import input_t, output_t
+     from aiter import dtypes
+     from aiter.ops.triton.quant import dynamic_mxfp4_quant
+     from aiter.ops.triton.gemm.basic.gemm_afp4wfp4 import gemm_afp4wfp4
+
+     def _e8m0_unshuffle(scale_sh, orig_m, orig_n):
+         u8 = scale_sh.view(torch.uint8); sm, sn = u8.shape
+         s = u8.view(sm // 32, sn // 8, 4, 16, 2, 2)
+         s = s.permute(0, 5, 3, 1, 4, 2).contiguous()
+         return s.view(sm, sn)[:orig_m, :orig_n]
+
+     def custom_kernel(data: input_t) -> output_t:
+         A, B, B_q, B_shuffle, B_scale_sh = data
+         A_fp4, A_scale_e8m0 = dynamic_mxfp4_quant(A)
+         n, k = B.shape
+         B_scale = _e8m0_unshuffle(B_scale_sh, orig_m=n, orig_n=k // 32)
+         return gemm_afp4wfp4(
+             A_fp4.view(torch.uint8), B_q.view(torch.uint8),
+             A_scale_e8m0.view(torch.uint8), B_scale.contiguous().view(torch.uint8),
+             dtype=dtypes.bf16)
+     ```
+
+   - **`kernels/moe-mxfp4/submission.py`** (Modified with probe + Phase 10 fallback)
+     - MoE kernel — added fmoe_g1u1 probe on first call, falls back to Phase 10 adaptive KSPLIT
+     - Probe runs once, then production path handles all subsequent calls
+     ```python
+     """MXFP4 MoE — Phase 10 baseline + fmoe_g1u1 1-stage probe."""
+     # ... (probe code for fmoe_g1u1 signature, fused_moe_1stage_dict, sorting variants)
+     # Production: adaptive KSPLIT based on estimated_m and num_experts
+     # estimated_m >= 50: CK path (KSPLIT=0)
+     # num_experts >= 200 AND estimated_m < 10: KSPLIT=4
+     # else: KSPLIT=2
+     ```
+
+   - **Skills created/updated this session:**
+     - **Created**: `~/.claude/skills/tritonblas-origami-xcd-remapping-bug/SKILL.md` — Documents the non-bijective XCD tile mapping bug
+     - **Created**: `~/.claude/skills/deepseek-mla-decode-flash-attention-gap/SKILL.md` — MLA decode architecture analysis, Flash Attention strategy, custom Triton kernel skeleton
+     - **Updated**: `~/.claude/skills/competitive-kernel-optimization-ceiling/SKILL.md` — Added Phase 6 findings (tl.dot_scaled vs gemm_afp4wfp4 performance results)
+
+4. Errors and Fixes:
+   - **CK headdim ≤ 256 limit**:
+     - Error: `RuntimeError: CK only supports head dimension at most 256` when calling `aiter.flash_attn_varlen_func` with headdim=576
+     - Fix: Fell back to hybrid approach (tests passed 4/4). Then wrote custom Triton kernel that uses `tl.dot` (no headdim limit) instead of CK.
+   - **fp8 flash_attn variant signature mismatch**:
+     - Error: `TypeError: flash_attn_varlen_fp8_pertensor_func() missing 3 required positional arguments` — the fp8 variant has a different signature with q_descale, k_descale, v_descale as required args before cu_seqlens
+     - Fix: Not pursued further since the core issue is headdim=576, not the dtype
+   - **Concurrent submission management**:
+     - Found Gemini session actively submitting via popcorn-cli (MLA leaderboard, then MoE leaderboard)
+     - Fix: Staggered our submissions — submitted MLA + MoE probes first (2 + Gemini's 1 = 3, at limit), held GEMM until slots opened
+
+5. Problem Solving:
+   - **SOLVED: Runner resource discovery** — Probed MI355X runner for all available packages. Found: `aiter.flash_attn_*` functions, `aiter.pa_decode_gluon`, `aiter.fmoe_g1u1` and variants. NOT found: flash_attn, flashinfer, xformers, vllm packages.
+   - **SOLVED: MoE internal API discovery** — Found `aiter.fmoe_g1u1` (callable), `aiter.ck_moe_stage1/stage2` (direct CK calls), `aiter.fmoe_g1u1_tkw1` (topk_weight=1 variant), `aiter.fmoe_fp8_blockscale_g1u1`, and `aiter.moe_cktile2stages_gemm1/gemm2`
+   - **SOLVED: GEMM baseline restoration** — Verified 0.0 max error after restoring from probe code
+   - **BLOCKED: Flash Attention for MLA** — CK's headdim≤256 blocks all CK-based attention. Custom Triton kernel written as alternative.
+   - **IN PROGRESS: Custom Triton Flash Attention for MLA** — Kernel written but not yet submitted for testing
+
+6. All User Messages:
+   - `/compact` (session management)
+   - `/learn` (first call — extracted Origami XCD bug + competitive ceiling Phase 6)
+   - "Can we try all 3 in parallel and learn from each? Are we using all the resources available in the runner? Might it help to do some research on the architecture of what we're trying to fine tune instead of pure brute force?"
+   - `/learn` (second call — extracted MLA Flash Attention gap insight)
+   - "Yes, but also keep in mind we have a gemini cli session also trying to submit. So check other system operations before you submit to make sure we avoid any submission errors due to too many concurrent submission."
+   - (Task notifications for background completions — MoE probe, MLA probe, GEMM test, MLA flash attn test)
+
+7. Pending Tasks:
+   - **Task #17 (in_progress)**: Write custom Triton Flash Attention MLA decode kernel — file is WRITTEN but NOT YET SUBMITTED to runner
+   - **MoE fmoe_g1u1 exploration**: Probe revealed `fmoe_g1u1` is callable with MXFP4 SiLU entry. Signature and source were captured but direct call not yet attempted.
+   - **pa_decode_gluon exploration**: Signature captured from probe — takes separate K_cache, V_cache in paged format. Could be an alternative MLA path if custom Triton kernel has issues.
+
+8. Current Work:
+   Immediately before this summary, I wrote a **custom Triton Flash Attention MLA decode kernel** at `kernels/mixed-mla/submission.py`. The kernel (`_mla_decode_kernel`) implements Flash Attention v2 online softmax in Triton:
+   - Grid: one thread block per Q head (nq blocks)
+   - Each block loads Q[head_id] (576 dims), iterates over KV in BLOCK_N=128 tiles
+   - Computes scores via element-wise multiply + sum (Q·KV^T), applies online softmax
+   - Accumulates weighted V (first 512 dims of KV) with rescaling
+   - Python wrapper `_triton_mla_decode` loops over batch dimension
+   - Falls back to hybrid torch-native/ref_kernel on any error
+   
+   The file has been written but **NOT YET SUBMITTED** to the MI355X runner for testing. No concurrent popcorn submissions were active when last checked (all 0).
+
+9. Optional Next Step:
+   Submit the custom Triton Flash Attention MLA kernel for correctness testing via `popcorn-cli submit --mode test --gpu MI355X --leaderboard amd-mixed-mla`. This directly continues the work on Task #17 and the user's request to "try all 3 in parallel and learn from each" with architectural research rather than brute force.
+   
+   Before submitting, should check for concurrent Gemini submissions per user instruction: "keep in mind we have a gemini cli session also trying to submit. So check other system operations before you submit."
+   
+   If the custom Triton kernel passes correctness, submit `--mode benchmark` to measure timing improvement over the current ~97µs hybrid approach.
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/18cc9e04-26bd-439a-b196-9059a0d09173.jsonl
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+---
+
+Have you considered using our FLUME?
+
+---
+
+Proceed
+
+---
+
+<task-notification>
+<task-id>bpg92vf6a</task-id>
+<tool-use-id>toolu_01UQ1KEuRcp7cqRffMvFXK73</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bpg92vf6a.output</output-file>
+<status>failed</status>
+<summary>Background command "Submit custom Triton Flash Attention MLA kernel for correctness testing" failed with exit code 1</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bpg92vf6a.output
+
+---
+
+<task-notification>
+<task-id>b39qrlvcj</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b39qrlvcj.output</output-file>
+<status>failed</status>
+<summary>Background command "Retry MLA test submission after transient server error" failed with exit code 1</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b39qrlvcj.output
+
+---
+
+<task-notification>
+<task-id>bzqrgrkzx</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bzqrgrkzx.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit improved Triton MLA kernel v2 (batched grid) for correctness test" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/bzqrgrkzx.output
+
+---
+
+<task-notification>
+<task-id>b211j81q2</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b211j81q2.output</output-file>
+<status>completed</status>
+<summary>Background command "Submit Triton MLA v3 (power-of-2 padded) for correctness test" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b211j81q2.output
+
+---
+
+<task-notification>
+<task-id>b2oekamby</task-id>
+<tool-use-id>toolu_01WqNuVkqNyj2SseznoXLSwv</tool-use-id>
+<output-file>/tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b2oekamby.output</output-file>
+<status>completed</status>
+<summary>Background command "Benchmark Triton MLA v3 for timing comparison" completed (exit code 0)</summary>
+</task-notification>
+Read the output file to retrieve the result: /tmp/claude-1000/-home-mike-anderson-dev-cohezion/tasks/b2oekamby.output
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
