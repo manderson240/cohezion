@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "81b2d662046f",
+  "session_id": "6a59122c-f4bd-4bb5-863f-8c9e84342bae",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-13T03:15:07.350723099Z",
+  "branch": "production/token-efficient-squad",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "conductor/tracks/multimodal_interface_20260312/plan.md",
+    "src/cohezion/api/__init__.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "31d12e69f5d4",
+  "token_usage": {
+    "input_tokens": 6765,
+    "cache_creation_tokens": 1322346,
+    "cache_read_tokens": 29081228,
+    "output_tokens": 67995,
+    "api_call_count": 224
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-13T03:15:06.689602025Z",
+    "agent_lines": 0,
+    "human_added": 81,
+    "human_modified": 413,
+    "human_removed": 0,
+    "total_committed": 81,
+    "agent_percentage": 0
+  }
+}
