@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "e6e27be34f95",
+  "session_id": "18cc9e04-26bd-439a-b196-9059a0d09173",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-13T13:53:17.330453963Z",
+  "branch": "production/token-efficient-squad",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "conductor/tracks.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "6d58adb3cf4e",
+  "token_usage": {
+    "input_tokens": 4494,
+    "cache_creation_tokens": 1497469,
+    "cache_read_tokens": 16304261,
+    "output_tokens": 67352,
+    "api_call_count": 130
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-13T13:53:16.830788009Z",
+    "agent_lines": 0,
+    "human_added": 0,
+    "human_modified": 2,
+    "human_removed": 981,
+    "total_committed": 0,
+    "agent_percentage": 0
+  }
+}
