@@ -10,11 +10,15 @@ description: |
   (9) wrong aspect field (all neurons getting 'connective' default due to stale DIR_TO_ASPECT mapping),
   (10) ORDER BY inside DEFINE FUNCTION doesn't sort — results come back in arbitrary order,
   (11) "in" reserved keyword conflict — SELECT in FROM synapse fails with parse error,
-  (12) count() GROUP result is wrapped — returns [{count: N}] not N.
+  (12) count() GROUP result is wrapped — returns [{count: N}] not N,
+  (13) N+1 query: searching N candidates with N sequential HTTP calls — batch into
+  one OR query for 3-10x speedup,
+  (14) _esc() for SurrealQL string literals must escape backslashes BEFORE single
+  quotes, or a trailing backslash breaks the string boundary.
   Key insight: credentials and port in docs are often stale — always inspect the
   live process, and always create namespace+database before applying schema.
 author: Claude Code
-version: 1.6.0
+version: 1.7.0
 ---
 
 # SurrealDB Debugging
@@ -521,6 +525,72 @@ total = _unwrap_count(result[0]["result"])  # → 1602 (int)
 ```
 
 **Why this happens:** `GROUP ALL` always returns a list with one aggregated row. The `count()` value lives at `result[0]["result"][0]["count"]`. Using `SELECT VALUE count() FROM neuron GROUP ALL` returns the same wrapped format.
+
+## N+1 Query: Batch Multiple Title Searches into One OR Query
+
+**Symptom:** A hook or search function issues N sequential HTTP requests to SurrealDB
+to find the first matching record across N candidate strings. At 12 candidates with
+a 3s timeout each, worst-case latency is 36 seconds. Even at normal speed (15ms/query),
+12 queries = 180ms vs 1 batch = 25ms.
+
+**Anti-pattern (sequential):**
+```python
+for candidate in candidates:
+    sql = f"SELECT ... FROM neuron WHERE string::contains(title, '{candidate}') LIMIT 1;"
+    result = query(sql)
+    if result: return result[0]
+```
+
+**Fix — batch with OR conditions, filter client-side:**
+```python
+conditions = " OR ".join(
+    f"string::contains(string::lowercase(title), '{_esc(c)}')"
+    for c in candidates
+)
+sql = f"SELECT id, title, activation, path FROM neuron WHERE {conditions} ORDER BY activation DESC LIMIT 20;"
+hits = query(sql)[0]["result"]
+
+# Preserve candidate priority order client-side
+for candidate in candidates:       # earlier candidates = higher priority
+    for hit in hits:
+        if candidate in hit.get("title", "").lower():
+            return hit
+return hits[0] if hits else None   # fallback: highest activation
+```
+
+**Key insight:** One round-trip with client-side filtering beats N round-trips by
+3-10x in practice. The ORDER BY activation gives a quality fallback when priority
+ordering doesn't find a distinct winner.
+
+## SurrealQL String Escaping: Backslash Before Single Quote
+
+**Symptom:** Notes with backslash in the title (e.g., `C:\path` or `a\b`) produce
+malformed SurrealQL. If input contains `\`, the naive `_esc` transforms `foo\'` into
+`'foo\''` — the backslash escapes the closing quote, breaking the query.
+
+**Broken pattern:**
+```python
+def _esc(s):
+    return s.replace("'", "\\'")   # WRONG — backslash not escaped first
+```
+
+**Example failure:**
+```
+Input:  "foo\"
+After _esc: "foo\"
+SQL:    WHERE title = 'foo\'   ← backslash eats the closing quote → broken
+```
+
+**Fix — always escape backslash BEFORE single quote:**
+```python
+def _esc(s: str) -> str:
+    return s.replace("\\", "\\\\").replace("'", "\\'")
+```
+
+**Rule:** In SurrealQL string literals, backslash is the escape character. You must
+double it (`\\`) before handling any other escaped characters. This is the same rule
+as MySQL, SQLite, and most SQL dialects. Apply to ALL user-controlled string
+interpolation into SurrealQL queries.
 
 ## Verification
 
