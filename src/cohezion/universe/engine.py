@@ -38,7 +38,8 @@ class AxiomaticState:
     Space Fabric (dims 0-2): spatial_x, spatial_y, spatial_z
     Field Fabric (dims 3-5): physics (Tempic), biology (Electric), field (Magnetic)
     Control Fabric (dims 6-8): logic (Rotation/SPIN), quantum (Precession/SPIN), control (Charge)
-    Precipitation Fabric (dims 9-11): temporal (Awareness), novelty (Particularization), precipitation
+    Precipitation Fabric (dims 9-11): temporal (Awareness), novelty (Particularization),
+    precipitation
 
     SPIN Physics (Smith):
     - Rotation = logic dimension (internal reasoning spin)
@@ -400,31 +401,34 @@ class UniverseSimulationEngine:
 
         # 3. Predict Initial World State (Genie Concept)
         # Instead of just tracking, we 'Set the Scene'
-        from cohezion.core.multimodal_bridge import LOCAL_MULTIMODAL_BRIDGE
+        try:
+            from cohezion.core.multimodal_bridge import LOCAL_MULTIMODAL_BRIDGE
 
-        # 1. Voice Narration
-        await LOCAL_MULTIMODAL_BRIDGE.schedule_asset(
-            "narrative",
-            priority=1,
-            payload={
-                "text": f"Initializing manifold journey for {agent_name}. Intent: {intent}",
-                "journey_id": journey_id,
-            },
-        )
+            # 1. Voice Narration
+            await LOCAL_MULTIMODAL_BRIDGE.schedule_asset(
+                "narrative",
+                priority=1,
+                payload={
+                    "text": f"Initializing manifold journey for {agent_name}. Intent: {intent}",
+                    "journey_id": journey_id,
+                },
+            )
 
-        # 2. Hyper-Fidelity Storyboard
-        await LOCAL_MULTIMODAL_BRIDGE.schedule_asset(
-            "storyboard",
-            priority=2,
-            payload={
-                "journey_id": journey_id,
-                "prompts": [
-                    f"A crystalline 12D manifold representing {intent}",
-                    f"A glowing lattice nexus for {agent_name}",
-                    f"Filament evolution of {intent} in a latent void",
-                ],
-            },
-        )
+            # 2. Hyper-Fidelity Storyboard
+            await LOCAL_MULTIMODAL_BRIDGE.schedule_asset(
+                "storyboard",
+                priority=2,
+                payload={
+                    "journey_id": journey_id,
+                    "prompts": [
+                        f"A crystalline 12D manifold representing {intent}",
+                        f"A glowing lattice nexus for {agent_name}",
+                        f"Filament evolution of {intent} in a latent void",
+                    ],
+                },
+            )
+        except (ImportError, ModuleNotFoundError):
+            logger.debug("multimodal_bridge not found, skipping asset scheduling")
 
         journey = UniverseJourney(
             id=journey_id,
@@ -452,25 +456,26 @@ class UniverseSimulationEngine:
         monitor = get_resource_monitor()
         vitals = monitor.get_vitals()
 
-        # 2. Rust-Optimized Holographic Projection
-        from cohezion_core.cohezion_core_rs import FlumePhysics
+        # 2. Rust-Optimized Holographic Projection (with Python fallback)
+        try:
+            from cohezion_core.cohezion_core_rs import FlumePhysics
 
-        # Note: In a real system we would cache this instance
-        physics_engine = FlumePhysics(
-            np.zeros((1, 1), dtype=np.float32),
-            np.zeros(1, dtype=np.float32),
-            np.zeros((1, 1), dtype=np.float32),
-            np.zeros(1, dtype=np.float32),
-            np.zeros(1, dtype=np.float32),
-            np.zeros(1, dtype=np.float32),
-        )
-
-        # 3. Informational Entropy (Holographic Audit)
-        latent_np = np.array(embedding_2048d, dtype=np.float32)
-        entropy = physics_engine.calculate_entropy(latent_np)
-
-        # 4. Precipitation Math (Holographic)
-        rep = physics_engine.project_holographic(latent_np)
+            physics_engine = FlumePhysics(
+                np.zeros((1, 1), dtype=np.float32),
+                np.zeros(1, dtype=np.float32),
+                np.zeros((1, 1), dtype=np.float32),
+                np.zeros(1, dtype=np.float32),
+                np.zeros(1, dtype=np.float32),
+                np.zeros(1, dtype=np.float32),
+            )
+            latent_np = np.array(embedding_2048d, dtype=np.float32)
+            entropy = physics_engine.calculate_entropy(latent_np)
+            rep = physics_engine.project_holographic(latent_np)
+        except (ImportError, ModuleNotFoundError):
+            logger.debug("cohezion_core not found, using Python fallback")
+            h = sum(embedding_2048d[:100])
+            rep = [(np.sin(h + i * 0.1) + 1.0) / 2.0 for i in range(12)]
+            entropy = 4.0
 
         # 5. Kinetic Mapping (Hardware + Latent Fusion)
         physics_kinetic = 1.0 - (vitals["cpu_percent"] / 100.0)
@@ -503,21 +508,29 @@ class UniverseSimulationEngine:
         self, embeddings_2048d: np.ndarray, contexts: list[dict[str, Any]] | None = None
     ) -> list[AxiomaticState]:
         """Batch-optimize projection of multiple latent states to axiomatic space."""
-        from cohezion_core.cohezion_core_rs import FlumePhysics
+        try:
+            from cohezion_core.cohezion_core_rs import FlumePhysics
 
-        physics_engine = FlumePhysics(
-            np.zeros((1, 1), dtype=np.float32),
-            np.zeros(1, dtype=np.float32),
-            np.zeros((1, 1), dtype=np.float32),
-            np.zeros(1, dtype=np.float32),
-            np.zeros(1, dtype=np.float32),
-            np.zeros(1, dtype=np.float32),
-        )
+            physics_engine = FlumePhysics(
+                np.zeros((1, 1), dtype=np.float32),
+                np.zeros(1, dtype=np.float32),
+                np.zeros((1, 1), dtype=np.float32),
+                np.zeros(1, dtype=np.float32),
+                np.zeros(1, dtype=np.float32),
+                np.zeros(1, dtype=np.float32),
+            )
 
-        # 1. Batch Holographic Projection in Rust
-        # embeddings_2048d should be [N, 2048] float32
-        reps = physics_engine.project_holographic_batch(embeddings_2048d)
-        entropies = physics_engine.calculate_entropy_batch(embeddings_2048d)
+            # 1. Batch Holographic Projection in Rust
+            reps = physics_engine.project_holographic_batch(embeddings_2048d)
+            entropies = physics_engine.calculate_entropy_batch(embeddings_2048d)
+        except (ImportError, ModuleNotFoundError):
+            logger.debug("cohezion_core not found, using Python batch fallback")
+            reps = []
+            entropies = []
+            for emb in embeddings_2048d:
+                h = float(np.sum(emb[:100]))
+                reps.append([(np.sin(h + i * 0.1) + 1.0) / 2.0 for i in range(12)])
+                entropies.append(4.0)
 
         axiomatic_states = []
         for i in range(len(reps)):
@@ -555,28 +568,6 @@ class UniverseSimulationEngine:
         phi_score: float = 0.5,
     ) -> TrajectoryPoint:
         """Evolve the journey by one step through the manifold."""
-        # TODO: Replace with actual FLUME encoding
-        placeholder_latent_vec = np.random.randn(2048).tolist()
-
-        # 1. Project to Axiomatic
-        _axiomatic = self._project_to_axiomatic(placeholder_latent_vec)
-
-        # 2. Rust-Optimized Quantization
-        from cohezion_core.cohezion_core_rs import FlumePhysics
-
-        _physics_engine = FlumePhysics(
-            np.zeros((1, 1), dtype=np.float32),
-            np.zeros(1, dtype=np.float32),
-            np.zeros((1, 1), dtype=np.float32),
-            np.zeros(1, dtype=np.float32),
-            np.zeros(1, dtype=np.float32),
-            np.zeros(1, dtype=np.float32),
-        )
-        # latent_np = np.array(latent_vec, dtype=np.float32)
-        # quantized_latent = physics_engine.quantize_q4_k(latent_np)
-
-        # 3. Create Trajectory Point
-        # ... logic to create point ...
         step_num = len(journey.trajectory)
 
         # Update axiomatic state based on progress
@@ -584,21 +575,32 @@ class UniverseSimulationEngine:
         if journey.trajectory:
             current_axiomatic = journey.trajectory[-1].axiomatic
 
-        # Evolve state: move toward goal, adjust coherence
-        new_axiomatic = AxiomaticState(
-            spatial_x=current_axiomatic.spatial_x + 0.1,
-            spatial_y=current_axiomatic.spatial_y + 0.05,
-            spatial_z=current_axiomatic.spatial_z,
-            temporal=time.time(),
-            physics=self._toward_target(current_axiomatic.physics, 0.5, phi_score),
-            biology=self._toward_target(current_axiomatic.biology, 0.5, phi_score),
-            logic=self._toward_target(current_axiomatic.logic, 0.5, phi_score),
-            quantum=self._toward_target(current_axiomatic.quantum, 0.5, phi_score),
-            field=self._toward_target(current_axiomatic.field, 0.5, phi_score),
-            control=self._toward_target(current_axiomatic.control, 0.5, phi_score),
-            novelty=min(current_axiomatic.novelty + 0.1, 1.0),  # Increase novelty
-            precipitation=phi_score,  # Precipitation = quality of result
-        )
+        # 2. Use Spatial Phonons Engine for advanced physics dynamics
+        try:
+            from cohezion.universe.spatial_phonons import SpatialPhononsEngine
+
+            phonon_engine = SpatialPhononsEngine()
+            # Evolve state with viscous expansion
+            new_axiomatic = phonon_engine.evolve_state(current_axiomatic, delta_t=0.1)
+            # Add coherence gain from alignment
+            coherence_gain = phonon_engine.calculate_coherence_gain(new_axiomatic)
+            phi_score = min(phi_score + (coherence_gain * 0.1), 1.0)
+        except ImportError:
+            logger.debug("SpatialPhononsEngine not found, using baseline evolution")
+            new_axiomatic = AxiomaticState(
+                spatial_x=current_axiomatic.spatial_x + 0.1,
+                spatial_y=current_axiomatic.spatial_y + 0.05,
+                spatial_z=current_axiomatic.spatial_z,
+                temporal=time.time(),
+                physics=self._toward_target(current_axiomatic.physics, 0.5, phi_score),
+                biology=self._toward_target(current_axiomatic.biology, 0.5, phi_score),
+                logic=self._toward_target(current_axiomatic.logic, 0.5, phi_score),
+                quantum=self._toward_target(current_axiomatic.quantum, 0.5, phi_score),
+                field=self._toward_target(current_axiomatic.field, 0.5, phi_score),
+                control=self._toward_target(current_axiomatic.control, 0.5, phi_score),
+                novelty=min(current_axiomatic.novelty + 0.1, 1.0),
+                precipitation=phi_score,
+            )
 
         # Encode new semantic state
         encoder = await self._ensure_encoder()

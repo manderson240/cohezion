@@ -6,10 +6,10 @@ implements fixes, and logs outcomes to the vault.
 
 from __future__ import annotations
 
-import ast
 import logging
 from dataclasses import dataclass
 from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ class RecursiveChallenger:
     def analyze(self) -> list[ImprovementOpportunity]:
         """Analyze the target module for improvement opportunities."""
         logger.info(f"Analyzing {self.target_module} for improvement opportunities")
-        
+
         # In a real implementation, this would use AST or LLM to find issues.
         # For now, we mock the analysis to return our detected duplication
         # or call the internal parser.
@@ -56,9 +56,9 @@ class RecursiveChallenger:
         # Simple heuristic for this specific task
         if "immune_system" in self.target_module:
             try:
-                with open("src/cohezion/healing/immune_system.py", "r") as f:
+                with open("src/cohezion/healing/immune_system.py") as f:
                     content = f.read()
-                
+
                 # Check for the duplicated execute_patch verification block
                 if content.count("logger.info(\"Ouroboros: Verifying patch with pytest...\")") > 1:
                     return [ImprovementOpportunity(
@@ -74,7 +74,7 @@ class RecursiveChallenger:
     def execute_improvement_cycle(self) -> bool:
         """Execute one complete TDD improvement cycle."""
         opportunities = self.analyze()
-        
+
         if not opportunities:
             logger.info("No improvement opportunities found.")
             return False
@@ -95,7 +95,7 @@ class RecursiveChallenger:
                 decision="Applied code transformation and validated with tests",
                 rationale="RecursiveChallenger identified optimization opportunity"
             )
-            
+
         return success
 
     def _apply_improvement(self, target: ImprovementOpportunity) -> bool:
@@ -104,13 +104,13 @@ class RecursiveChallenger:
             # We apply the specific surgical fix
             try:
                 path = "src/cohezion/healing/immune_system.py"
-                with open(path, "r") as f:
+                with open(path) as f:
                     lines = f.readlines()
-                
+
                 # We remove the trailing duplicated block
                 # Looking for the second occurrence of "Ouroboros: Generating surgical patch..."
                 # and chopping it off
-                
+
                 out_lines = []
                 found_first = False
                 skip = False
@@ -122,10 +122,10 @@ class RecursiveChallenger:
                             skip = True
                     if not skip:
                         out_lines.append(line)
-                        
+
                 with open(path, "w") as f:
                     f.writelines(out_lines)
-                
+
                 logger.info(f"Successfully applied fix: {target.description}")
                 return True
             except Exception as e:
