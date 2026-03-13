@@ -96,23 +96,34 @@ def extract_keywords(prompt: str) -> list[str]:
 
 
 def _esc(s: str) -> str:
-    return s.replace("'", "\\'")
+    return s.replace("\\", "\\\\").replace("'", "\\'")
 
 
 def find_best_match(candidates: list[str]) -> dict | None:
-    """Try candidates against the graph, return first match."""
+    """Try candidates against the graph, best match by candidate priority then activation."""
+    # Batch all candidates into a single query — one round-trip instead of N
+    conditions = " OR ".join(
+        f"string::contains(string::lowercase(title), '{_esc(c)}')"
+        for c in candidates
+    )
+    sql = (
+        f"SELECT id, title, activation, stage, cluster_id, aspect, "
+        f"tags, synapse_out, synapse_in, path "
+        f"FROM neuron WHERE {conditions} "
+        f"ORDER BY activation DESC LIMIT 20;"
+    )
+    results = surreal_query(sql)
+    if not results or not results[0].get("result"):
+        return None
+
+    hits = results[0]["result"]
+    # Return hit matching the earliest (highest-priority) candidate
     for candidate in candidates:
-        sql = (
-            f"SELECT id, title, activation, stage, cluster_id, aspect, "
-            f"tags, synapse_out, synapse_in, path "
-            f"FROM neuron "
-            f"WHERE string::contains(string::lowercase(title), '{_esc(candidate)}') "
-            f"ORDER BY activation DESC LIMIT 1;"
-        )
-        results = surreal_query(sql)
-        if results and results[0].get("result"):
-            return results[0]["result"][0]
-    return None
+        for hit in hits:
+            if candidate in hit.get("title", "").lower():
+                return hit
+    # Fallback: highest activation among all hits
+    return hits[0]
 
 
 def get_connections(neuron_id: str) -> tuple[list, list]:

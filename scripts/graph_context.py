@@ -64,8 +64,8 @@ def resolve_neuron(partial: str) -> str | None:
 
 
 def _esc(s: str) -> str:
-    """Escape single quotes for SurrealQL strings."""
-    return s.replace("'", "\\'")
+    """Escape single quotes and backslashes for SurrealQL strings."""
+    return s.replace("\\", "\\\\").replace("'", "\\'")
 
 
 def _act_bar(activation: float) -> str:

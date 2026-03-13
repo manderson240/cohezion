@@ -31,7 +31,15 @@ file_path=$(echo "$stdin_json" | jq -r '.tool_input.file_path // empty' 2>/dev/n
 [[ "$file_path" == *"/scripts/"* ]]         && exit 0
 [[ "$file_path" == *"/docs/"* ]]            && exit 0
 
-# ── Sync to SurrealDB ─────────────────────────────────────────────────────────
-python3 "$SCRIPT" sync "$file_path" >/dev/null 2>&1 &
+# ── Sync to SurrealDB (skip if another sync is in-flight) ─────────────────────
+LOCK_FILE="/tmp/vault-writeback-$(id -u).lock"
+if ! mkdir "$LOCK_FILE" 2>/dev/null; then
+    exit 0
+fi
+
+(
+    python3 "$SCRIPT" sync "$file_path" >/dev/null 2>&1
+    rmdir "$LOCK_FILE" 2>/dev/null
+) &
 
 exit 0
