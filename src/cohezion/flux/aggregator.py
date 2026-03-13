@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from cohezion.flux.types import FluxBlock, FluxContext, FluxSource
 
@@ -31,6 +31,16 @@ class FluxAggregator:
 
     def register_provider(self, provider: FluxProvider) -> None:
         self._providers.append(provider)
+
+    def record_history(self, content: str, metadata: dict[str, Any] | None = None) -> None:
+        """Record an entry to the HistoryFlux provider if registered."""
+        from cohezion.flux.providers.history_flux import HistoryFlux
+
+        for provider in self._providers:
+            if isinstance(provider, HistoryFlux):
+                provider.record(content, metadata)
+                return
+        logger.debug("record_history called but no HistoryFlux provider is registered")
 
     async def get_context(
         self,

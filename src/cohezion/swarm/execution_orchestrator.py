@@ -12,11 +12,16 @@ import logging
 import time
 import uuid
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from cohezion.core.instruction_expander import InstructionExpander
 from cohezion.core.plan_executor import ExecutionResult, PlanExecutor
 from cohezion.swarm.team_orchestrator import TaskSpec, TeamPlan
+
+
+if TYPE_CHECKING:
+    from cohezion.flux.aggregator import FluxAggregator
+    from cohezion.graph.types import WorkflowSpec
 
 
 logger = logging.getLogger(__name__)
@@ -344,8 +349,9 @@ class ExecutionOrchestrator:
 
     async def execute_graph(
         self,
-        workflow: Any,
+        workflow: WorkflowSpec,
         initial_input: dict[str, Any] | None = None,
+        flux_aggregator: FluxAggregator | None = None,
     ) -> ExecutionReport:
         """Execute a WorkflowSpec via the graph engine.
 
@@ -362,10 +368,13 @@ class ExecutionOrchestrator:
             "custom": CustomNode,
         }
 
-        engine = WorkflowEngine()
+        engine = WorkflowEngine(flux_aggregator=flux_aggregator)
         for node_spec in workflow.nodes:
             node_cls = node_type_map.get(node_spec.node_type, CustomNode)
-            engine.register_node(node_cls(node_spec))
+            if node_cls is AgentNode:
+                engine.register_node(node_cls(node_spec, flux_aggregator=flux_aggregator))
+            else:
+                engine.register_node(node_cls(node_spec))
 
         result = await engine.execute(workflow, initial_input or {})
 

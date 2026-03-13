@@ -22,6 +22,7 @@ from cohezion.graph.types import (
 
 
 if TYPE_CHECKING:
+    from cohezion.flux.aggregator import FluxAggregator
     from cohezion.graph.nodes import WorkflowNode
 
 
@@ -41,8 +42,9 @@ class WorkflowEngine:
          d. Update node states. Repeat until done or failure.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, flux_aggregator: FluxAggregator | None = None) -> None:
         self._node_impls: dict[str, WorkflowNode] = {}
+        self._flux = flux_aggregator
 
     def register_node(self, node: WorkflowNode) -> None:
         """Register a node implementation by its spec ID."""
@@ -154,6 +156,7 @@ class WorkflowEngine:
                 else:
                     node_states[nid] = NodeStatus.COMPLETED
                     node_results[nid] = result
+                    self._record_to_flux(nid, result)
                     # Propagate output through edges
                     for succ_id in successors.get(nid, []):
                         if succ_id not in node_data:
@@ -227,6 +230,37 @@ class WorkflowEngine:
             metrics={},
             duration_ms=duration_ms,
         )
+
+    def _record_to_flux(self, node_id: str, result: NodeResult) -> None:
+        """Record a compact execution summary to FLUX history. Non-blocking."""
+        if self._flux is None:
+            return
+        impl = self._node_impls.get(node_id)
+        node_name = impl.spec.name if impl else node_id
+        desc = impl.spec.attributes.get("description", "") if impl else ""
+        output_keys = list(result.output.keys())[:5]
+        parts = [f"{node_name} completed"]
+        if desc:
+            parts.append(desc[:120])
+        parts.append(f"outputs: {' '.join(output_keys)}")
+        summary = " — ".join(parts)
+        try:
+            self._flux.record_history(
+                summary[:300],  # Hard cap for token efficiency
+                {
+                    "node_id": node_id,
+                    "node_name": node_name,
+                    "status": result.status.value,
+                    "output_keys": output_keys,
+                    "duration_ms": result.duration_ms,
+                },
+            )
+        except Exception:
+            logger.warning(
+                "FLUX history recording failed for node '%s' (non-blocking)",
+                node_id,
+                exc_info=True,
+            )
 
     def _find_ready_nodes(
         self,
