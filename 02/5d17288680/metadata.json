@@ -1,0 +1,72 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "025d17288680",
+  "strategy": "manual-commit",
+  "branch": "challenge-luma-cqq4mojz",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "src/cohezion-archive/swarm/anomaly_detector.py",
+    "src/cohezion-archive/swarm/democratic_debate.py",
+    "src/cohezion/agents/generated/skill_0_agent.py",
+    "src/cohezion/agents/generated/skill_1_agent.py",
+    "src/cohezion/api/services/anima.py",
+    "src/cohezion/api/services/rl.py",
+    "src/cohezion/compound/batch_executor.py",
+    "src/cohezion/compound/context_integration.py",
+    "src/cohezion/compound/core/batch_processor.py",
+    "src/cohezion/compound/core/executor.py",
+    "src/cohezion/compound/journey_tracker.py",
+    "src/cohezion/compound/request_alignment_analyzer.py",
+    "src/cohezion/compound/session_manager.py",
+    "src/cohezion/compound/skills/selector.py",
+    "src/cohezion/gateway/mcp_server.py",
+    "src/cohezion/learning/__init__.py",
+    "src/cohezion/persistence/obsidian_mcp.py",
+    "src/cohezion/persistence/surreal_logger.py",
+    "src/cohezion/platform/journey_logger.py",
+    "src/cohezion/reliability/monitor.py",
+    "src/cohezion/reliability/viscoelastic.py",
+    "src/cohezion/research/__init__.py",
+    "src/cohezion/research/cost_optimization.py",
+    "src/cohezion/research/security_api.py",
+    "src/cohezion/resilience/manager.py",
+    "src/cohezion/resilience/strategies.py",
+    "src/cohezion/security/pipeline.py",
+    "src/cohezion/skills/skill_registry.json",
+    "src/cohezion/swarm/anomaly_detector.py",
+    "src/cohezion/swarm/compat.py",
+    "src/cohezion/swarm/democratic_debate.py",
+    "src/cohezion/swarm/orchestrator.py",
+    "src/cohezion/swarm/token_client.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/02/5d17288680/0/metadata.json",
+      "transcript": "/02/5d17288680/0/full.jsonl",
+      "context": "/02/5d17288680/0/context.md",
+      "content_hash": "/02/5d17288680/0/content_hash.txt",
+      "prompt": "/02/5d17288680/0/prompt.txt"
+    },
+    {
+      "metadata": "/02/5d17288680/1/metadata.json",
+      "transcript": "/02/5d17288680/1/full.jsonl",
+      "context": "/02/5d17288680/1/context.md",
+      "content_hash": "/02/5d17288680/1/content_hash.txt",
+      "prompt": "/02/5d17288680/1/prompt.txt"
+    },
+    {
+      "metadata": "/02/5d17288680/2/metadata.json",
+      "transcript": "/02/5d17288680/2/full.jsonl",
+      "context": "/02/5d17288680/2/context.md",
+      "content_hash": "/02/5d17288680/2/content_hash.txt",
+      "prompt": "/02/5d17288680/2/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 7553,
+    "cache_creation_tokens": 4917765,
+    "cache_read_tokens": 36344550,
+    "output_tokens": 153783,
+    "api_call_count": 325
+  }
+}

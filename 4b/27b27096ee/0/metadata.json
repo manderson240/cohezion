@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "4b27b27096ee",
+  "session_id": "ad58968c-6eea-4dfc-b4f5-aa08e3601223",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-10T19:43:25.256739386Z",
+  "branch": "feat/compound-elegant-simplification",
+  "checkpoints_count": 3,
+  "files_touched": [
+    ".claude/skills/claude-code-plugin-removal/SKILL.md",
+    ".claude/skills/github-actions-silent-failures/SKILL.md",
+    "apps/command_center.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "ff37d922ce39",
+  "token_usage": {
+    "input_tokens": 8352,
+    "cache_creation_tokens": 1517854,
+    "cache_read_tokens": 20031545,
+    "output_tokens": 72354,
+    "api_call_count": 181
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-10T19:43:24.134171164Z",
+    "agent_lines": 0,
+    "human_added": 894,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 894,
+    "agent_percentage": 0
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "e98a7d782655",
+  "session_id": "ad58968c-6eea-4dfc-b4f5-aa08e3601223",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-11T02:14:17.960606874Z",
+  "branch": "feat/compound-elegant-simplification",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "src/cohezion/flume/experience_encoder.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "014d0763c552",
+  "token_usage": {
+    "input_tokens": 9538,
+    "cache_creation_tokens": 2239836,
+    "cache_read_tokens": 61776151,
+    "output_tokens": 178290,
+    "api_call_count": 477
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-11T02:14:15.066116833Z",
+    "agent_lines": 6,
+    "human_added": 1029,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 1035,
+    "agent_percentage": 0.5797101449275363
+  }
+}

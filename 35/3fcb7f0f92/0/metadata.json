@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "353fcb7f0f92",
+  "session_id": "b5164d70-585f-45b3-8e68-7aa086d25caf",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-10T20:00:55.479708366Z",
+  "branch": "feat/compound-elegant-simplification",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "src/cohezion/mcp/servers/plasma/server.py",
+    "src/cohezion/reliability/monitor.py",
+    "src/cohezion/resilience/manager.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "b7c96602919b",
+  "token_usage": {
+    "input_tokens": 404,
+    "cache_creation_tokens": 729680,
+    "cache_read_tokens": 4436797,
+    "output_tokens": 16577,
+    "api_call_count": 52
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-10T20:00:54.851127421Z",
+    "agent_lines": 38,
+    "human_added": 18,
+    "human_modified": 5,
+    "human_removed": 0,
+    "total_committed": 61,
+    "agent_percentage": 62.295081967213115
+  }
+}

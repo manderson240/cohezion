@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "4b27b27096ee",
+  "strategy": "manual-commit",
+  "branch": "feat/compound-elegant-simplification",
+  "checkpoints_count": 7,
+  "files_touched": [
+    ".claude/skills/claude-code-plugin-removal/SKILL.md",
+    ".claude/skills/github-actions-silent-failures/SKILL.md",
+    ".claude/skills/surrealdb-store-query-mismatch/SKILL.md",
+    "apps/command_center.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/4b/27b27096ee/0/metadata.json",
+      "transcript": "/4b/27b27096ee/0/full.jsonl",
+      "context": "/4b/27b27096ee/0/context.md",
+      "content_hash": "/4b/27b27096ee/0/content_hash.txt",
+      "prompt": "/4b/27b27096ee/0/prompt.txt"
+    },
+    {
+      "metadata": "/4b/27b27096ee/1/metadata.json",
+      "transcript": "/4b/27b27096ee/1/full.jsonl",
+      "context": "/4b/27b27096ee/1/context.md",
+      "content_hash": "/4b/27b27096ee/1/content_hash.txt",
+      "prompt": "/4b/27b27096ee/1/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 8751,
+    "cache_creation_tokens": 2096322,
+    "cache_read_tokens": 24331503,
+    "output_tokens": 88930,
+    "api_call_count": 231
+  }
+}

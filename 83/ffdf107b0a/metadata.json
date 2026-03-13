@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "83ffdf107b0a",
+  "strategy": "manual-commit",
+  "branch": "feat/compound-elegant-simplification",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "tests/compound/test_executor_comprehensive.py",
+    "tests/gateway/test_ngrok_adapter.py",
+    "tests/swarm/test_token_client.py",
+    "tests/unit/test_smart_router.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/83/ffdf107b0a/0/metadata.json",
+      "transcript": "/83/ffdf107b0a/0/full.jsonl",
+      "context": "/83/ffdf107b0a/0/context.md",
+      "content_hash": "/83/ffdf107b0a/0/content_hash.txt",
+      "prompt": "/83/ffdf107b0a/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 9198,
+    "cache_creation_tokens": 1796787,
+    "cache_read_tokens": 37508295,
+    "output_tokens": 104699,
+    "api_call_count": 297
+  }
+}
