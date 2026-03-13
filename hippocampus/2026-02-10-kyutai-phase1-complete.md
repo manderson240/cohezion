@@ -5,9 +5,10 @@ status: completed
 tags: [daily, kyutai, phase-1, execution]
 aspect: doer
 neural:
-  activation: 0.372
+  activation: 0.61
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 ## 🎉 Phase 1 Completion Summary

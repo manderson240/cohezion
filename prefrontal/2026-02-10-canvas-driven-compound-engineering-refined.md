@@ -28,9 +28,10 @@ metrics:
     - "lessons/lesson-execution-feedback-improves-planning"
 aspect: thinker
 neural:
-  activation: 0.717
+  activation: 0.98
   stage: mature
-  cluster: decisions
+  synapse_in: 6
+  synapse_out: 13
 ---
 
 # Refined Plan: Canvas-Driven Manual Linking

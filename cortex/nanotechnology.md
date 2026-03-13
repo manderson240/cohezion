@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [concept, materials-science, nanotechnology, physics]
 aspect: knower
 neural:
-  activation: 0.577
+  activation: 0.81
   stage: mature
-  cluster: concepts
+  synapse_in: 2
+  synapse_out: 12
 ---
 
 # Nanotechnology

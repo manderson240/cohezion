@@ -5,9 +5,10 @@ status: proposed
 tags: [pattern, implementation-checklist, surrealdb, agent-context]
 aspect: thinker
 neural:
-  activation: 0.742
+  activation: 1.0
   stage: mature
-  cluster: patterns
+  synapse_in: 5
+  synapse_out: 12
 ---
 
 # Phase 1 Implementation Checklist

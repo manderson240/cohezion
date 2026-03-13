@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Strategic Roadmap Prime"
 aspect: doer
 neural:
-  activation: 0.356
-  stage: embryo
-  cluster: Agents
+  activation: 0.67
+  stage: growing
+  synapse_in: 0
+  synapse_out: 3
 ---
 
 # STRATEGIC_ROADMAP_PRIME: The Cohezion Convergence

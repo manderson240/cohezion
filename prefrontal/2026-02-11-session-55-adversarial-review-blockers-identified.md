@@ -5,9 +5,10 @@ status: do not execute current plan
 tags: [decision]
 aspect: thinker
 neural:
-  activation: 0.502
+  activation: 0.78
   stage: growing
-  cluster: decisions
+  synapse_in: 6
+  synapse_out: 7
 ---
 # Session 55: Adversarial Review — Blockers Identified
 

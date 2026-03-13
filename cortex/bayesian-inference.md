@@ -3,6 +3,11 @@ title: "Bayesian Inference"
 date: 2026-03-11
 tags: [concept, statistics, machine-learning, probability, information-theory]
 aspect: knower
+neural:
+  activation: 1.0
+  stage: growing
+  synapse_in: 2
+  synapse_out: 8
 ---
 
 # Bayesian Inference

@@ -6,9 +6,10 @@ tags: [decision, architecture, vault-architecture, disaster-recovery, compound-e
 aliases: ["vault system of record", "vault as SoR", "vault reconstruction manual"]
 aspect: thinker
 neural:
-  activation: 0.574
+  activation: 0.81
   stage: growing
-  cluster: decisions
+  synapse_in: 7
+  synapse_out: 6
 ---
 
 # Vault as System of Record

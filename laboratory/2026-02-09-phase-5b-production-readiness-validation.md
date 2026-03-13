@@ -5,9 +5,10 @@ status: active validation document
 tags: [experiment]
 aspect: thinker
 neural:
-  activation: 0.658
+  activation: 0.93
   stage: mature
-  cluster: experiments
+  synapse_in: 4
+  synapse_out: 10
 ---
 # Experiment: Phase 5B Production Readiness Validation
 

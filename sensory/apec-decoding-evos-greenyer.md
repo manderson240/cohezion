@@ -5,6 +5,11 @@ tags: [research, evo, mfmp, toroidal-moment, fractal, transmutation, sacred-geom
 aspect: knower
 source: "https://www.altpropulsion.com/decoding-evos-a-deep-dive-into-exotic-vacuum-objects/"
 author: "Tim Ventura (summary of Bob Greenyer APEC presentation)"
+neural:
+  activation: 0.88
+  stage: mature
+  synapse_in: 3
+  synapse_out: 13
 ---
 
 # Decoding EVOs: A Deep Dive into Exotic Vacuum Objects

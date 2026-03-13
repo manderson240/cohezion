@@ -5,9 +5,10 @@ status: proposed
 tags: [master-plan, execution-plan, phases-4b-7, adversarial-review, risk-assessment, timeline]
 aspect: thinker
 neural:
-  activation: 0.800
+  activation: 1.0
   stage: growing
-  cluster: decisions
+  synapse_in: 4
+  synapse_out: 8
 ---
 
 # Complete Phase 4-7 Execution Plan & Timeline (REVISED 2026-02-16)

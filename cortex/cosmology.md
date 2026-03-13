@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [concept, astrophysics, cosmology, dark-energy, dark-matter]
 aspect: knower
 neural:
-  activation: 0.722
+  activation: 0.99
   stage: mature
-  cluster: concepts
+  synapse_in: 33
+  synapse_out: 35
 ---
 
 # Cosmology

@@ -5,9 +5,10 @@ status: accepted
 tags: [decision, workflow, retrospective, spec-driven, compound-engineering]
 aspect: thinker
 neural:
-  activation: 0.613
+  activation: 0.85
   stage: mature
-  cluster: decisions
+  synapse_in: 5
+  synapse_out: 10
 ---
 
 ## Context

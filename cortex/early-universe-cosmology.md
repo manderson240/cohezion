@@ -4,9 +4,10 @@ date: 2026-02-07
 tags: [concept, jwst-observations, dark-matter-detection, topological-defects]
 aspect: knower
 neural:
-  activation: 0.567
+  activation: 0.9
   stage: growing
-  cluster: concepts
+  synapse_in: 20
+  synapse_out: 13
 ---
 
 ## Definition

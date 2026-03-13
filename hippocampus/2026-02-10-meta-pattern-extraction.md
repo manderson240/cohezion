@@ -5,9 +5,10 @@ tags: [daily, meta-learning, token-efficiency, compound-engineering]
 status: "complete"
 aspect: doer
 neural:
-  activation: 0.535
+  activation: 0.77
   stage: growing
-  cluster: daily
+  synapse_in: 2
+  synapse_out: 6
 ---
 
 # Meta-Pattern Extraction: Token Waste Postmortem

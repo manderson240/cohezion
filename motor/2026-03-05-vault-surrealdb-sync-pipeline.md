@@ -6,9 +6,10 @@ tags: [project, surrealdb, sync, infrastructure, compound-engineering]
 aliases: ["vault-surreal-sync", "vault-db-pipeline", "knowledge-graph-sync"]
 aspect: doer
 neural:
-  activation: 0.693
+  activation: 0.87
   stage: growing
-  cluster: projects
+  synapse_in: 9
+  synapse_out: 8
 ---
 
 # Vault↔SurrealDB Sync Pipeline

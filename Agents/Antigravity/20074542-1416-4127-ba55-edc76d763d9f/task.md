@@ -6,9 +6,10 @@ title: "Anthropic VLIW Challenge - Swarm Protocol"
 tags: [agent-output, antigravity, vliw, compiler-optimization]
 aspect: doer
 neural:
-  activation: 0.372
+  activation: 0.57
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 2
 ---
 
 # Anthropic VLIW Challenge - Cohezion Swarm Protocol

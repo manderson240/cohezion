@@ -5,9 +5,10 @@ status: active
 tags: [project, assessment, vault-health, knowledge-graph, strategy, compound-engineering, retrospective]
 aspect: doer
 neural:
-  activation: 0.508
+  activation: 0.7
   stage: growing
-  cluster: projects
+  synapse_in: 6
+  synapse_out: 4
 ---
 
 # Vault Hidden Contributions Assessment — What's Already There

@@ -5,6 +5,11 @@ tags: [research, evo, transmutation, mfmp, lenr, nuclear-anomaly, apec]
 aspect: knower
 source: "https://www.altpropulsion.com/exotic-vacuum-objects-evos-transmutation-anomalies/"
 author: "Tim Ventura (summary of Bob Greenyer APEC presentation)"
+neural:
+  activation: 0.79
+  stage: growing
+  synapse_in: 5
+  synapse_out: 10
 ---
 
 # Exotic Vacuum Objects (EVOs), Transmutation & Anomalies

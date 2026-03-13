@@ -10,9 +10,10 @@ provider: google
 model_id: "gemini-2.5-flash-lite"
 aspect: knower
 neural:
-  activation: 0.419
+  activation: 0.66
   stage: growing
-  cluster: specs
+  synapse_in: 1
+  synapse_out: 3
 ---
 
 # Model Card: Gemini 2.5 Flash-Lite

@@ -5,9 +5,10 @@ tags: [concept, compound-engineering, knowledge-graph-systems, adversarial-revie
 related_concepts: [concept-validation, adversarial-review, knowledge-graph-systems, compound-engineering]
 aspect: knower
 neural:
-  activation: 0.767
+  activation: 0.99
   stage: mature
-  cluster: concepts
+  synapse_in: 61
+  synapse_out: 80
 ---
 ## Definition
 

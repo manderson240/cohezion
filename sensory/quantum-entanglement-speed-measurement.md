@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.158
 aspect: knower
 neural:
-  activation: 0.617
+  activation: 0.85
   stage: growing
-  cluster: papers
+  synapse_in: 15
+  synapse_out: 17
 ---
 # Quantum Entanglement Speed Measurement
 

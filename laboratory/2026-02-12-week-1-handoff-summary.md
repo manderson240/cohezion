@@ -5,9 +5,10 @@ status: completed
 tags: [experiment, sprint-summary, week-1, phase-1, phase-2]
 aspect: thinker
 neural:
-  activation: 0.819
+  activation: 1.0
   stage: mature
-  cluster: experiments
+  synapse_in: 4
+  synapse_out: 26
 ---
 
 ## Week 1 Overview

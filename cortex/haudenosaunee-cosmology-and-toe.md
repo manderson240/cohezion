@@ -4,9 +4,10 @@ date: 2026-03-10
 tags: [concept, indigenous-cosmology, TOE, haudenosaunee, iroquois, native-american, great-law, peacemaker, two-row-wampum]
 aspect: knower
 neural:
-  activation: 0.750
-  stage: growing
-  cluster: concepts
+  activation: 1.0
+  stage: mature
+  synapse_in: 13
+  synapse_out: 11
 ---
 
 # Haudenosaunee Cosmology and the Theory of Everything

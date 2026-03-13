@@ -5,6 +5,11 @@ tags: [research, electrogravitics, biefeld-brown, jefimenko, propulsion, em-caus
 aspect: knower
 source: "https://www.altpropulsion.com/biefeld-brown-effect-explained-tom-valone-electrogravitics-and-jefimenkos-causal-fields/"
 author: "Tim Ventura"
+neural:
+  activation: 0.84
+  stage: mature
+  synapse_in: 7
+  synapse_out: 10
 ---
 
 # Biefeld-Brown Effect: Electrogravitics and Jefimenko's Causal Fields

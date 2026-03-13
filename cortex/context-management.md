@@ -5,9 +5,10 @@ tags: [concept, agentic-ai, agent-loop-architecture, prompt-engineering]
 related_concepts: [agent-context, token-efficiency, semantic-search, compound-engineering, cloud-vault-mcp]
 aspect: knower
 neural:
-  activation: 0.707
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 69
+  synapse_out: 21
 ---
 
 ## Definition

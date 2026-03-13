@@ -5,9 +5,10 @@ tags: [concept, visualization, algorithm, graph-theory]
 status: active
 aspect: knower
 neural:
-  activation: 0.547
+  activation: 0.88
   stage: growing
-  cluster: concepts
+  synapse_in: 8
+  synapse_out: 9
 ---
 
 # Force-Directed Graph

@@ -4,6 +4,11 @@ date: 2026-03-11
 status: proposed
 tags: [decision, architecture, vault, TOE, ontology, new-science]
 aspect: thinker
+neural:
+  activation: 0.84
+  stage: growing
+  synapse_in: 2
+  synapse_out: 8
 ---
 
 # ADR: Vault Ontological Backbone — The New Science Chain

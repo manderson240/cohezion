@@ -30,9 +30,10 @@ dimensions:
   impact_score: 0.158
 aspect: knower
 neural:
-  activation: 0.585
+  activation: 0.82
   stage: growing
-  cluster: papers
+  synapse_in: 14
+  synapse_out: 9
 ---
 # Fast Radio Bursts Traced to Binary Star Systems
 

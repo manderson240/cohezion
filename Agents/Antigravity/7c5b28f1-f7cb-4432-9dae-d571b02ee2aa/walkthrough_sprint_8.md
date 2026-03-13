@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Walkthrough Sprint 8"
 aspect: doer
 neural:
-  activation: 0.334
+  activation: 0.64
   stage: embryo
-  cluster: Agents
+  synapse_in: 1
+  synapse_out: 2
 ---
 
 # Walkthrough: Sprint 8 — Strategic Alignment & Capabilities Matrix

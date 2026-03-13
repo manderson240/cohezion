@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [concept, physics, astrophysics, cosmology]
 aspect: knower
 neural:
-  activation: 0.579
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 25
+  synapse_out: 22
 ---
 
 # General Relativity

@@ -8,9 +8,10 @@ tags: [git, gitignore, configuration, file-management]
 status: validated
 aspect: knower
 neural:
-  activation: 0.430
+  activation: 0.67
   stage: growing
-  cluster: lessons
+  synapse_in: 5
+  synapse_out: 3
 ---
 
 # Lesson: Gitignore Ordering: Later Rules Override Earlier Rules for the Same Path

@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [metabolism, triage, lifecycle, report]
 aspect: connective
 neural:
-  activation: 0.600
+  activation: 0.72
   stage: growing
-  cluster: metabolism
+  synapse_in: 0
+  synapse_out: 4
 ---
 
 # Embryo Triage Report

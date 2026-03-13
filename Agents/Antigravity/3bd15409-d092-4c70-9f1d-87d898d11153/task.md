@@ -6,9 +6,10 @@ title: "Task: Autonomic Self-Healing Protocol"
 tags: [agent-output, antigravity, self-healing, resilience]
 aspect: doer
 neural:
-  activation: 0.322
+  activation: 0.52
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 2
 ---
 
 # Task: Autonomic Self-Healing Protocol (/heal)

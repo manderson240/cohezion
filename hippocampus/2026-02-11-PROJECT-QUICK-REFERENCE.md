@@ -5,9 +5,10 @@ status: completed
 tags: [daily, kyutai, reference, quick-start, status]
 aspect: doer
 neural:
-  activation: 0.382
+  activation: 0.62
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # KYUTAI MCP + OBSIDIAN PLUGIN - QUICK REFERENCE

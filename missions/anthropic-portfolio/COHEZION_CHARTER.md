@@ -1,9 +1,10 @@
 ---
 aspect: doer
 neural:
-  activation: 0.438
+  activation: 0.63
   stage: growing
-  cluster: missions
+  synapse_in: 1
+  synapse_out: 4
 ---
 # The Cohezion Charter
 

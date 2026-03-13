@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Anthropic Deep Portfolio"
 aspect: doer
 neural:
-  activation: 0.355
-  stage: embryo
-  cluster: Agents
+  activation: 0.67
+  stage: growing
+  synapse_in: 0
+  synapse_out: 3
 ---
 
 # PORTFOLIO: Mike Anderson [Architect of Universes]

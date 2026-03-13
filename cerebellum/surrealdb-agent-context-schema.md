@@ -5,9 +5,10 @@ status: proposed
 tags: [pattern, architecture, surrealdb, graph, agent-context, knowledge-graph]
 aspect: thinker
 neural:
-  activation: 0.863
+  activation: 1.0
   stage: mature
-  cluster: patterns
+  synapse_in: 33
+  synapse_out: 19
 ---
 
 # SurrealDB Agent Context Schema

@@ -3,6 +3,11 @@ title: Kyutai Obsidian Plugin Architecture
 date: 2026-02-09
 status: complete
 tags: [research, kyutai, obsidian, plugin, architecture, ui-design]
+neural:
+  activation: 1.0
+  stage: growing
+  synapse_in: 5
+  synapse_out: 8
 ---
 
 # Kyutai Obsidian Plugin Architecture

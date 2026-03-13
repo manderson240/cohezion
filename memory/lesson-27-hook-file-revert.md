@@ -8,9 +8,10 @@ tags: [pre-commit, hooks, git, staging, file-revert]
 status: validated
 aspect: knower
 neural:
-  activation: 0.453
+  activation: 0.69
   stage: growing
-  cluster: lessons
+  synapse_in: 7
+  synapse_out: 4
 ---
 
 # Lesson: Hook File Revert: Failed Pre-Commit Hooks May Revert Staged Changes

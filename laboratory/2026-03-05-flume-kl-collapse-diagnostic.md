@@ -6,9 +6,10 @@ tags: [experiment, flume, validation, machine-learning]
 aliases: ["KL collapse check", "FLUME validation diagnostic"]
 aspect: thinker
 neural:
-  activation: 0.626
+  activation: 0.89
   stage: growing
-  cluster: experiments
+  synapse_in: 5
+  synapse_out: 8
 ---
 
 # FLUME KL Collapse Diagnostic

@@ -5,9 +5,10 @@ tags: [domain, physics, quantum-computing]
 status: active
 aspect: knower
 neural:
-  activation: 0.627
+  activation: 0.96
   stage: mature
-  cluster: concepts
+  synapse_in: 14
+  synapse_out: 13
 ---
 
 ## Definition

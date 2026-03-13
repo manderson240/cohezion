@@ -5,9 +5,10 @@ tags: [concept, quantum-entanglement, quantum-computing, physics]
 related_concepts: [quantum-entanglement, quantum-computing, dark-matter-detection]
 aspect: knower
 neural:
-  activation: 0.696
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 91
+  synapse_out: 47
 ---
 ## Definition
 

@@ -5,9 +5,10 @@ status: proposed
 tags: [project, vault-architecture, memory, platform, recommendations, knowledge-graph]
 aspect: doer
 neural:
-  activation: 0.913
+  activation: 1.0
   stage: mature
-  cluster: projects
+  synapse_in: 9
+  synapse_out: 23
 ---
 
 # Vault as Platform Memory — Enhancement Recommendations — 2026-03-03

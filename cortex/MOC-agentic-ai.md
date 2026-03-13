@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [moc, navigation, agentic-ai]
 aspect: knower
 neural:
-  activation: 0.681
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 11
+  synapse_out: 35
 ---
 
 # Map of Content — Agentic AI

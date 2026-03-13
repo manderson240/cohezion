@@ -6,9 +6,10 @@ title: "Walkthrough: Git Health Assessment with FLUME"
 tags: [agent-output, antigravity, git-health, repository-management]
 aspect: doer
 neural:
-  activation: 0.491
+  activation: 0.79
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 4
 ---
 
 # Walkthrough: Git Health Assessment with FLUME

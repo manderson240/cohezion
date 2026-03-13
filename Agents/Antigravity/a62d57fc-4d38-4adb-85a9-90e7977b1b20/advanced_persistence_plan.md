@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Advanced Persistence Plan"
 aspect: doer
 neural:
-  activation: 0.313
+  activation: 0.6
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 1
 ---
 
 # Advanced Experience Persistence Implementation Plan [COMPLETE]

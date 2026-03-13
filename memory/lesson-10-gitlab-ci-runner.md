@@ -8,9 +8,10 @@ tags: [ci-cd, gitlab, testing, environment-parity]
 status: validated
 aspect: knower
 neural:
-  activation: 0.478
+  activation: 0.72
   stage: growing
-  cluster: lessons
+  synapse_in: 7
+  synapse_out: 5
 ---
 
 # Lesson: GitLab CI Runner: Local Pass Does Not Guarantee CI Pass

@@ -6,9 +6,10 @@ title: "Task: Cohezion CLI Refinement (Adversarial Review)"
 tags: [agent-output, antigravity, cli-refinement, adversarial-review]
 aspect: doer
 neural:
-  activation: 0.353
+  activation: 0.55
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 3
 ---
 
 # Task: Cohezion CLI Refinement (Adversarial Review)

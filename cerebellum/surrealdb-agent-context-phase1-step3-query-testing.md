@@ -5,9 +5,10 @@ status: proposed
 tags: [phase1, implementation, surrealdb, query-testing]
 aspect: thinker
 neural:
-  activation: 0.659
+  activation: 0.88
   stage: mature
-  cluster: patterns
+  synapse_in: 9
+  synapse_out: 11
 ---
 
 # Phase 1 Step 3: Query Testing Preparation

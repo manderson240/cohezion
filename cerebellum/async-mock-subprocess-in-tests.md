@@ -4,9 +4,10 @@ date: 2026-02-23
 tags: [pattern]
 aspect: thinker
 neural:
-  activation: 0.477
+  activation: 0.67
   stage: growing
-  cluster: patterns
+  synapse_in: 6
+  synapse_out: 8
 ---
 # Pattern: AsyncMock for Subprocess Calls — Prevent Network Hangs in Tests
 

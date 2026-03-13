@@ -5,9 +5,10 @@ status: completed
 tags: [documentation, phase-a, infrastructure]
 aspect: doer
 neural:
-  activation: 0.486
+  activation: 0.72
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 ## Summary

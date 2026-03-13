@@ -10,9 +10,10 @@ similar_papers:
 - service-layer-architecture
 aspect: knower
 neural:
-  activation: 0.662
+  activation: 0.89
   stage: mature
-  cluster: papers
+  synapse_in: 14
+  synapse_out: 15
 ---
 
 # SurrealDB: A Graph-Native Multi-Model Database

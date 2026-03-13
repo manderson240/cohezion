@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.082
 aspect: knower
 neural:
-  activation: 0.518
+  activation: 0.76
   stage: growing
-  cluster: papers
+  synapse_in: 2
+  synapse_out: 11
 ---
 # TongGeometry: Olympiad Geometry with Guided Tree Search
 

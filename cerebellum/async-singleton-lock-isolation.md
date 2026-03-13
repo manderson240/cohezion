@@ -4,9 +4,10 @@ date: 2026-02-23
 tags: [pattern]
 aspect: thinker
 neural:
-  activation: 0.460
+  activation: 0.65
   stage: growing
-  cluster: patterns
+  synapse_in: 14
+  synapse_out: 6
 ---
 # Pattern: Async Singleton Lock Isolation
 

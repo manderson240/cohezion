@@ -5,9 +5,10 @@ tags: [concept, cohezion, flume, vae, latent-space, agent-trajectory]
 status: active
 aspect: knower
 neural:
-  activation: 0.762
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 40
+  synapse_out: 21
 ---
 
 # FLUME Architecture

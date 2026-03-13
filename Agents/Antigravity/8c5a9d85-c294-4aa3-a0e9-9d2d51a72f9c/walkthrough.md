@@ -6,9 +6,10 @@ title: "Walkthrough: AI Lab Tip of the Spear Expansion"
 tags: [agent-output, antigravity, ai-lab, model-evaluation]
 aspect: doer
 neural:
-  activation: 0.506
+  activation: 0.69
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 3
 ---
 
 # AI Lab: Tip of the Spear Expansion Walkthrough

@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Connectivity Management Prime"
 aspect: doer
 neural:
-  activation: 0.321
-  stage: embryo
-  cluster: Agents
+  activation: 0.65
+  stage: growing
+  synapse_in: 1
+  synapse_out: 4
 ---
 
 # SKILL: CONNECTIVITY_MANAGEMENT_PRIME

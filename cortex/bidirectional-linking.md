@@ -5,9 +5,10 @@ tags: [concept, knowledge-management, vault-conventions, obsidian]
 status: active
 aspect: knower
 neural:
-  activation: 0.612
+  activation: 0.95
   stage: mature
-  cluster: concepts
+  synapse_in: 17
+  synapse_out: 13
 ---
 
 # Bidirectional Linking

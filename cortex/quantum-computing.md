@@ -5,9 +5,10 @@ tags: [concept, quantum-entanglement, physics]
 related_concepts: [quantum-entanglement, machine-learning, anomaly-detection]
 aspect: knower
 neural:
-  activation: 0.683
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 37
+  synapse_out: 24
 ---
 ## Definition
 

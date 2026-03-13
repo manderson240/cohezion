@@ -1,9 +1,10 @@
 ---
 aspect: thinker
 neural:
-  activation: 0.385
+  activation: 0.63
   stage: growing
-  cluster: patterns
+  synapse_in: 0
+  synapse_out: 9
 ---
 # Lesson 17: STALE BRANCH MINING
 

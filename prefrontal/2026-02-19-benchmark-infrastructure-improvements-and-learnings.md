@@ -5,9 +5,10 @@ status: accepted
 tags: [decision, benchmarks, learnings, pass-at-k]
 aspect: thinker
 neural:
-  activation: 0.466
+  activation: 0.71
   stage: growing
-  cluster: decisions
+  synapse_in: 1
+  synapse_out: 6
 ---
 
 # Benchmark Infrastructure Improvements and Learnings

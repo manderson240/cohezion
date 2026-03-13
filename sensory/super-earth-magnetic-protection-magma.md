@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.24
 aspect: knower
 neural:
-  activation: 0.654
+  activation: 0.89
   stage: mature
-  cluster: papers
+  synapse_in: 12
+  synapse_out: 13
 ---
 # Super-Earth Magnetic Protection from Basal Magma Oceans
 

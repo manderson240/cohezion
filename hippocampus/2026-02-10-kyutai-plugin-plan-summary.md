@@ -5,9 +5,10 @@ status: proposed
 tags: [daily, kyutai, compound-engineering]
 aspect: doer
 neural:
-  activation: 0.335
+  activation: 0.58
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 ## The Plan at a Glance

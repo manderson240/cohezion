@@ -4,9 +4,10 @@ date: 2026-02-10
 tags: [benchmarks, kyutai, mcp, performance, documentation]
 aspect: thinker
 neural:
-  activation: 0.633
+  activation: 0.82
   stage: growing
-  cluster: benchmarks
+  synapse_in: 0
+  synapse_out: 4
 ---
 
 # Kyutai Performance Benchmarking Guide

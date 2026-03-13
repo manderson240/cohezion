@@ -6,9 +6,10 @@ tags: [lesson, meta, compound-engineering, vault-architecture]
 aliases: ["assessment trap", "planning without execution"]
 aspect: knower
 neural:
-  activation: 0.456
+  activation: 0.69
   stage: growing
-  cluster: lessons
+  synapse_in: 2
+  synapse_out: 6
 ---
 
 # Stop Assessing, Start Changing

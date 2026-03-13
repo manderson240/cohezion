@@ -5,9 +5,10 @@ status: active
 tags: [project, assessment, vault-architecture, portfolio, anthropic, memory]
 aspect: doer
 neural:
-  activation: 0.862
+  activation: 1.0
   stage: mature
-  cluster: projects
+  synapse_in: 8
+  synapse_out: 25
 ---
 
 # Vault Assessment v3 — Portfolio Deadline and Memory Architecture

@@ -4,9 +4,10 @@ date: 2026-03-11
 tags: [concept, physics, post-quantum, pilot-wave, back-reaction, HIHO, TOE, retrocausality, consciousness, warp-drive]
 aspect: knower
 neural:
-  activation: 0.80
-  stage: growing
-  cluster: quantum-physics
+  activation: 1.0
+  stage: mature
+  synapse_in: 1
+  synapse_out: 12
 ---
 
 # Jack Sarfatti's Post-Quantum Mechanics and the Theory of Everything

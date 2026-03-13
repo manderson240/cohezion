@@ -5,9 +5,10 @@ status: accepted
 tags: [decision, git, workflow, branching]
 aspect: thinker
 neural:
-  activation: 0.457
+  activation: 0.7
   stage: growing
-  cluster: decisions
+  synapse_in: 2
+  synapse_out: 5
 ---
 
 # GitHub Flow Appropriate for Pre-Alpha

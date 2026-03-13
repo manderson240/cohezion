@@ -7,6 +7,11 @@ tags: [spec, embedding-card]
 card_type: embedding
 status: active
 provider: [ollama | anthropic | openai | huggingface]
+neural:
+  activation: 0.41
+  stage: growing
+  synapse_in: 0
+  synapse_out: 3
 ---
 
 # Embedding Card: [Model/Index Name]

@@ -5,9 +5,10 @@ status: complete
 tags: [phase-7, execution, dashboard, cascade, timeline, complete]
 aspect: doer
 neural:
-  activation: 0.560
+  activation: 0.75
   stage: growing
-  cluster: daily
+  synapse_in: 5
+  synapse_out: 4
 ---
 
 # Phase 7A + 7B Execution Complete

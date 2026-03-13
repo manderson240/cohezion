@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, quantum-field-theory, QFT, particle-physics, gauge-theory]
 aspect: knower
 neural:
-  activation: 0.750
-  stage: growing
-  cluster: concepts
+  activation: 1.0
+  stage: mature
+  synapse_in: 21
+  synapse_out: 16
 ---
 
 # Quantum Field Theory

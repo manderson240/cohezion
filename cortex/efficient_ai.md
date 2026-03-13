@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [concept, ml-systems, optimization, performance, scaling]
 aspect: knower
 neural:
-  activation: 0.554
+  activation: 0.79
   stage: mature
-  cluster: concepts
+  synapse_in: 13
+  synapse_out: 11
 ---
 
 # Efficient AI

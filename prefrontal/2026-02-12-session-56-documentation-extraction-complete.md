@@ -6,9 +6,10 @@ status: production-ready
 tags: [decision]
 aspect: thinker
 neural:
-  activation: 0.702
+  activation: 0.97
   stage: growing
-  cluster: decisions
+  synapse_in: 3
+  synapse_out: 7
 ---
 # Session 56 Documentation Extraction: Complete
 

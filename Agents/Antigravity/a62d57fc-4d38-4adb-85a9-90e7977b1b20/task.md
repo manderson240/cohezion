@@ -6,9 +6,10 @@ title: "Connectivity and Swarm Orchestration"
 tags: [agent-output, antigravity, swarm-orchestration, connectivity]
 aspect: doer
 neural:
-  activation: 0.365
+  activation: 0.65
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 4
 ---
 
 # Connectivity & Swarm Orchestration

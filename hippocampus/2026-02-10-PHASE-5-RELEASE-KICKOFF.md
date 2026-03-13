@@ -5,9 +5,10 @@ status: in-progress
 tags: [daily, kyutai, phase-5, release, v0.1.0-alpha, final-delivery]
 aspect: doer
 neural:
-  activation: 0.428
+  activation: 0.67
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # 🚀 KYUTAI MCP SERVER + OBSIDIAN PLUGIN - PHASE 5 RELEASE KICKOFF

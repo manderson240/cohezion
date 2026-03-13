@@ -5,9 +5,10 @@ tags: [concept, ml-systems, ethics, social-impact, cs249r]
 status: active
 aspect: knower
 neural:
-  activation: 0.464
+  activation: 0.7
   stage: growing
-  cluster: concepts
+  synapse_in: 0
+  synapse_out: 6
 ---
 
 # AI for Good

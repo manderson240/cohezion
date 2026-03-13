@@ -5,9 +5,10 @@ status: proposed
 tags: [pattern, runbook, phase1, production-validation, surrealdb, agent-context]
 aspect: thinker
 neural:
-  activation: 0.694
+  activation: 0.92
   stage: growing
-  cluster: patterns
+  synapse_in: 24
+  synapse_out: 9
 ---
 
 # Phase 1 Production Validation Runbook

@@ -5,9 +5,10 @@ status: active
 tags: [project]
 aspect: doer
 neural:
-  activation: 0.431
+  activation: 0.62
   stage: growing
-  cluster: projects
+  synapse_in: 2
+  synapse_out: 6
 ---
 
 ## Overview

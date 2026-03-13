@@ -29,9 +29,10 @@ metrics:
     - decisions/2026-02-10-token-efficient-compound-engineering-roadmap
 aspect: thinker
 neural:
-  activation: 0.860
+  activation: 1.0
   stage: mature
-  cluster: decisions
+  synapse_in: 9
+  synapse_out: 15
 ---
 
 # AI Model Strategy for 12D Graph System

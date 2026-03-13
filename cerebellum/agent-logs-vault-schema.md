@@ -5,9 +5,10 @@ tags: [pattern, schema, vault, agent-context, entire.io]
 status: active
 aspect: thinker
 neural:
-  activation: 0.872
+  activation: 1.0
   stage: mature
-  cluster: patterns
+  synapse_in: 7
+  synapse_out: 24
 ---
 
 ## Problem

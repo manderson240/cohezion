@@ -5,9 +5,10 @@ status: in-progress
 tags: [phase-5-7, compound-engineering, wave-1]
 aspect: doer
 neural:
-  activation: 0.565
+  activation: 0.75
   stage: growing
-  cluster: daily
+  synapse_in: 5
+  synapse_out: 4
 ---
 
 # Wave 1 Status Snapshot

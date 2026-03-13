@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Vliw Solution"
 aspect: doer
 neural:
-  activation: 0.366
+  activation: 0.67
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 2
 ---
 
 # COHEZION: VLIW OPTIMIZATION CHALLENGE

@@ -24,9 +24,10 @@ decision_reasoning:
   confidence_score: 0.6
 aspect: thinker
 neural:
-  activation: 0.945
+  activation: 1.0
   stage: mature
-  cluster: decisions
+  synapse_in: 19
+  synapse_out: 26
 ---
 
 # 12D Graph System - Refined Implementation Plan

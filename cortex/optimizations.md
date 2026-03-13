@@ -5,9 +5,10 @@ tags: [concept, ml-systems, performance, compilation, cs249r]
 status: active
 aspect: knower
 neural:
-  activation: 0.493
+  activation: 0.73
   stage: growing
-  cluster: concepts
+  synapse_in: 7
+  synapse_out: 8
 ---
 
 # Optimizations

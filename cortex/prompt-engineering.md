@@ -5,9 +5,10 @@ tags: [concept, context-management, agent-loop-architecture, agentic-ai]
 related_concepts: [context-management, agent-context, transformer-architecture, tool-use, compound-engineering]
 aspect: knower
 neural:
-  activation: 0.590
+  activation: 0.82
   stage: mature
-  cluster: concepts
+  synapse_in: 14
+  synapse_out: 11
 ---
 
 ## Definition

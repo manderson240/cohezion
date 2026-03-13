@@ -33,9 +33,10 @@ dimensions:
   impact_score: 0.16
 aspect: knower
 neural:
-  activation: 0.540
+  activation: 0.78
   stage: growing
-  cluster: papers
+  synapse_in: 0
+  synapse_out: 8
 ---
 
 # Oman Signs the Artemis Accords — 61st Nation

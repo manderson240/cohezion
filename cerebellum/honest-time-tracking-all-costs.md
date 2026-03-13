@@ -4,9 +4,10 @@ date: 2026-02-14
 tags: [pattern, project-management]
 aspect: thinker
 neural:
-  activation: 0.842
+  activation: 1.0
   stage: mature
-  cluster: patterns
+  synapse_in: 8
+  synapse_out: 12
 ---
 # Honest Time Tracking - All Costs Included
 

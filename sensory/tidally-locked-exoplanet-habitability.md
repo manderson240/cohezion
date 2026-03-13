@@ -32,9 +32,10 @@ dimensions:
   impact_score: 0.24
 aspect: knower
 neural:
-  activation: 0.562
+  activation: 0.8
   stage: growing
-  cluster: papers
+  synapse_in: 6
+  synapse_out: 9
 ---
 # Tidally Locked Exoplanets: Night-Side Water and Subglacial Lakes Extend Habitable Zones
 

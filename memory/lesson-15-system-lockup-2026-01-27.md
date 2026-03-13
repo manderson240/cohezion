@@ -8,9 +8,10 @@ tags: [system-lockup, resource-exhaustion, agent-loops, safety]
 status: validated
 aspect: knower
 neural:
-  activation: 0.472
+  activation: 0.71
   stage: growing
-  cluster: lessons
+  synapse_in: 8
+  synapse_out: 5
 ---
 
 # Lesson: System Lockup 2026-01-27: Resource Exhaustion from Unbound Agent Loops

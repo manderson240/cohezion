@@ -6,9 +6,10 @@ tags: [decision, anthropic, portfolio, compound-engineering, communication]
 aliases: ["two Cohezions decision", "Cohezion A vs B", "portfolio framing decision"]
 aspect: thinker
 neural:
-  activation: 0.474
+  activation: 0.71
   stage: growing
-  cluster: decisions
+  synapse_in: 3
+  synapse_out: 6
 ---
 
 # Separate Cohezion A (Empirical Platform) from Cohezion B (Cosmological Framing)

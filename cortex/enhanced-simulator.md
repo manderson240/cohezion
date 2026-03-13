@@ -5,9 +5,10 @@ tags: [simulation, compound-engineering, tool, experimentation]
 status: active
 aspect: knower
 neural:
-  activation: 0.584
+  activation: 0.92
   stage: mature
-  cluster: concepts
+  synapse_in: 11
+  synapse_out: 12
 ---
 
 # Enhanced Simulator

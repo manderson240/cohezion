@@ -5,9 +5,10 @@ status: complete
 tags: [experiment, finetuning, ollama, qlora, local-models, experience-feedback]
 aspect: thinker
 neural:
-  activation: 0.546
+  activation: 0.78
   stage: growing
-  cluster: experiments
+  synapse_in: 6
+  synapse_out: 9
 ---
 
 # Session 57: Local Model Finetuning Pipeline

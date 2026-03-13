@@ -24,9 +24,10 @@ decision_reasoning:
     compression_ratio: 0.44
 aspect: thinker
 neural:
-  activation: 0.475
-  stage: growing
-  cluster: decisions
+  activation: 0.76
+  stage: mature
+  synapse_in: 4
+  synapse_out: 10
 ---
 
 # Track B Complete: Entire.io Sync Daemon

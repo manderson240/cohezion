@@ -7,9 +7,10 @@ created: 2026-03-06
 tags: [meridian, concierge, stories, sprint-planning]
 aspect: doer
 neural:
-  activation: 0.735
+  activation: 0.9
   stage: growing
-  cluster: projects
+  synapse_in: 3
+  synapse_out: 3
 ---
 
 # Meridian: User Stories

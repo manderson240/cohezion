@@ -5,9 +5,10 @@ status: proposed
 tags: [pattern, architecture, daemon, entire-io, implementation]
 aspect: thinker
 neural:
-  activation: 0.694
+  activation: 0.92
   stage: mature
-  cluster: patterns
+  synapse_in: 19
+  synapse_out: 14
 ---
 
 # Entire.io Sync Daemon Design

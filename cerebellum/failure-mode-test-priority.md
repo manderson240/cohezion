@@ -4,9 +4,10 @@ date: 2026-02-14
 tags: [pattern, testing-strategy]
 aspect: thinker
 neural:
-  activation: 0.875
+  activation: 1.0
   stage: mature
-  cluster: patterns
+  synapse_in: 15
+  synapse_out: 13
 ---
 # Failure Mode Test Priority
 

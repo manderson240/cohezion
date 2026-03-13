@@ -6,9 +6,10 @@ title: "Mission: Quantum Computing Research (Little Dimple)"
 tags: [agent-output, antigravity, quantum-computing, tensor-networks]
 aspect: doer
 neural:
-  activation: 0.336
+  activation: 0.53
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 2
 ---
 
 # Mission: Quantum Computing Research (Little Dimple)

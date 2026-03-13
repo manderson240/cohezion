@@ -4,9 +4,10 @@ purpose: "Architecture Decision Records (ADRs) tracking key technical and design
 type: directory-index
 aspect: thinker
 neural:
-  activation: 0.377
+  activation: 0.37
   stage: growing
-  cluster: decisions
+  synapse_in: 0
+  synapse_out: 5
 ---
 
 # Decisions

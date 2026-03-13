@@ -6,9 +6,10 @@ related_concepts: [mcp-model-context-protocol, mcp-infrastructure-architecture, 
 status: active
 aspect: knower
 neural:
-  activation: 0.733
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 0
+  synapse_out: 39
 ---
 
 # Cloud Vault MCP

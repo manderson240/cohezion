@@ -4,9 +4,10 @@ date: 2026-02-10
 tags: [daily, planning, vault-enrichment, infrastructure]
 aspect: doer
 neural:
-  activation: 0.446
+  activation: 0.69
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 3
 ---
 
 ## The Challenge

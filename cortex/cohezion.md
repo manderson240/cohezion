@@ -6,9 +6,10 @@ related_concepts: [compound-engineering, mcp-infrastructure-architecture, agent-
 status: active
 aspect: knower
 neural:
-  activation: 0.781
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 382
+  synapse_out: 54
 ---
 
 # Cohezion

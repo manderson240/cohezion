@@ -5,9 +5,10 @@ status: complete
 tags: [experiment, ci-cd, github]
 aspect: thinker
 neural:
-  activation: 0.287
+  activation: 0.59
   stage: embryo
-  cluster: experiments
+  synapse_in: 2
+  synapse_out: 1
 ---
 
 # Unblocking PR #33 — CI Fixes for Branch Protection

@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.24
 aspect: knower
 neural:
-  activation: 0.678
+  activation: 0.91
   stage: mature
-  cluster: papers
+  synapse_in: 12
+  synapse_out: 19
 ---
 # How Agentic AI Strains Modern Memory Hierarchies
 

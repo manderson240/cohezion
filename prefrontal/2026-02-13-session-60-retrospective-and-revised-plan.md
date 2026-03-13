@@ -5,9 +5,10 @@ status: accepted
 tags: [retrospective, plan, phase-2, team-orchestration, governance]
 aspect: thinker
 neural:
-  activation: 0.718
+  activation: 0.95
   stage: mature
-  cluster: decisions
+  synapse_in: 10
+  synapse_out: 12
 ---
 
 # Session 60 Retrospective + Revised Plan

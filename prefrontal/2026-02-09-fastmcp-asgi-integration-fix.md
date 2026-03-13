@@ -6,9 +6,10 @@ status: accepted
 tags: [mcp, asgi, bugfix, integration]
 aspect: thinker
 neural:
-  activation: 0.518
+  activation: 0.79
   stage: mature
-  cluster: decisions
+  synapse_in: 7
+  synapse_out: 11
 ---
 
 # Decision: Use FastMCP.streamable_http_app() for ASGI Integration

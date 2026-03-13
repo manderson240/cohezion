@@ -3,6 +3,11 @@ title: "metabolism/ — Whole-system health dashboards"
 date: 2026-03-09
 tags: [vault-architecture, triune-self, connective]
 aspect: connective
+neural:
+  activation: 0.29
+  stage: embryo
+  synapse_in: 0
+  synapse_out: 0
 ---
 
 # metabolism/

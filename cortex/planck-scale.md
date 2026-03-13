@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, quantum-gravity, fundamental-constants, spacetime]
 aspect: knower
 neural:
-  activation: 0.700
+  activation: 1.0
   stage: growing
-  cluster: concepts
+  synapse_in: 20
+  synapse_out: 8
 ---
 
 # Planck Scale

@@ -5,9 +5,10 @@ tags: [pattern, surrealdb, database, architecture]
 status: active
 aspect: knower
 neural:
-  activation: 0.602
+  activation: 0.94
   stage: mature
-  cluster: concepts
+  synapse_in: 10
+  synapse_out: 13
 ---
 
 # SurrealDB Sync Pattern

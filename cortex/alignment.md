@@ -6,9 +6,10 @@ related_concepts: [ai-safety, ai-safety-alignment, adversarial-review, compound-
 status: active
 aspect: knower
 neural:
-  activation: 0.671
+  activation: 0.9
   stage: growing
-  cluster: concepts
+  synapse_in: 19
+  synapse_out: 20
 ---
 
 # AI Alignment

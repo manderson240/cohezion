@@ -5,9 +5,10 @@ tags: [concept, physics, particle-physics, neutrinos, quantum]
 status: active
 aspect: knower
 neural:
-  activation: 0.499
+  activation: 0.84
   stage: growing
-  cluster: concepts
+  synapse_in: 4
+  synapse_out: 6
 ---
 
 # Neutrino Oscillations

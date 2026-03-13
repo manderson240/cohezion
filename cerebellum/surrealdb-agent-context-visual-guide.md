@@ -5,9 +5,10 @@ status: proposed
 tags: [pattern, surrealdb, agent-context, reference]
 aspect: thinker
 neural:
-  activation: 0.609
+  activation: 0.84
   stage: mature
-  cluster: patterns
+  synapse_in: 3
+  synapse_out: 10
 ---
 
 # Agent Context Schema - Visual Guide

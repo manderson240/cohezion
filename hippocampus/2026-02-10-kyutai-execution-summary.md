@@ -5,9 +5,10 @@ status: in-progress
 tags: [daily, kyutai, execution, summary, final-report]
 aspect: doer
 neural:
-  activation: 0.572
+  activation: 0.81
   stage: growing
-  cluster: daily
+  synapse_in: 3
+  synapse_out: 0
 ---
 
 # 🎯 Kyutai MCP Server + Obsidian Plugin - Compound Engineering Execution

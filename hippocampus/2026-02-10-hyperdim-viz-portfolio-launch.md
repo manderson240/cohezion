@@ -5,9 +5,10 @@ status: in-progress
 tags: [portfolio, anthropic, visualization, team, phase-1-2]
 aspect: doer
 neural:
-  activation: 0.706
+  activation: 0.93
   stage: growing
-  cluster: daily
+  synapse_in: 2
+  synapse_out: 5
 ---
 
 # Hyperdimensional Compound Engineering Visualization Plugin

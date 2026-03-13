@@ -6,9 +6,10 @@ title: "Walkthrough: Quantum-Fluid Information Field Evolution"
 tags: [agent-output, antigravity, qfif, swarm-intelligence]
 aspect: doer
 neural:
-  activation: 0.438
+  activation: 0.77
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 7
 ---
 
 # Walkthrough: Cohezion Autonomous Evolution

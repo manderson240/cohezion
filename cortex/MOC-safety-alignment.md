@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [moc, navigation, ai-safety, alignment]
 aspect: knower
 neural:
-  activation: 0.673
+  activation: 1.0
   stage: growing
-  cluster: concepts
+  synapse_in: 8
+  synapse_out: 29
 ---
 
 # Map of Content — Safety & Alignment

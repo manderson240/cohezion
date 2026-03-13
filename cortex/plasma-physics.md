@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, plasma, electromagnetism, astrophysics]
 aspect: knower
 neural:
-  activation: 0.700
-  stage: growing
-  cluster: concepts
+  activation: 1.0
+  stage: mature
+  synapse_in: 14
+  synapse_out: 13
 ---
 
 # Plasma Physics

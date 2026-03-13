@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Pillar Deep Dives"
 aspect: doer
 neural:
-  activation: 0.358
-  stage: embryo
-  cluster: Agents
+  activation: 0.69
+  stage: growing
+  synapse_in: 0
+  synapse_out: 4
 ---
 
 # Cohezion Pillar Deep Dives (Phase 3 Synthesis)

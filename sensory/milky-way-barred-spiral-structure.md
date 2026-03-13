@@ -5,9 +5,10 @@ tags: [astrophysics, milky-way, galaxy-structure, star-formation, cosmology]
 source: https://search.app/56UZx
 aspect: knower
 neural:
-  activation: 0.530
+  activation: 0.8
   stage: mature
-  cluster: papers
+  synapse_in: 8
+  synapse_out: 12
 ---
 
 ## Summary

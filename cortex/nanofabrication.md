@@ -4,9 +4,10 @@ date: 2026-02-07
 tags: [concept, catalytic-materials, quantum-sensors, exoplanet-habitability]
 aspect: knower
 neural:
-  activation: 0.476
+  activation: 0.82
   stage: growing
-  cluster: concepts
+  synapse_in: 14
+  synapse_out: 9
 ---
 
 ## Definition

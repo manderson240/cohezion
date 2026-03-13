@@ -4,9 +4,10 @@ date: 2026-02-07
 tags: [concept, quantum-entanglement, topological-defects, quantum-error-correction]
 aspect: knower
 neural:
-  activation: 0.508
+  activation: 0.76
   stage: growing
-  cluster: concepts
+  synapse_in: 4
+  synapse_out: 11
 ---
 ## Definition
 

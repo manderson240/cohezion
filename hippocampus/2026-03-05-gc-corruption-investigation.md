@@ -3,6 +3,11 @@ title: "GC Corruption Investigation & Resolution"
 date: "2026-03-05"
 tags: [git, corruption, gc, investigation]
 aspect: doer
+neural:
+  activation: 0.51
+  stage: embryo
+  synapse_in: 0
+  synapse_out: 0
 ---
 
 ## Problem

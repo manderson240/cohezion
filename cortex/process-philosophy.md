@@ -4,9 +4,10 @@ date: 2026-03-10
 tags: [concept, philosophy, metaphysics, whitehead, consciousness, ontology, process, TOE]
 aspect: knower
 neural:
-  activation: 0.780
-  stage: growing
-  cluster: concepts
+  activation: 0.93
+  stage: mature
+  synapse_in: 1
+  synapse_out: 11
 ---
 
 # Process Philosophy — Whitehead and the Ontology of Becoming

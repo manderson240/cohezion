@@ -5,9 +5,10 @@ status: in-progress
 tags: [experiment]
 aspect: thinker
 neural:
-  activation: 0.612
+  activation: 0.85
   stage: mature
-  cluster: experiments
+  synapse_in: 5
+  synapse_out: 11
 ---
 
 ## Hypothesis

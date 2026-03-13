@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, wave-mechanics, coherence, interference, diffraction, Fourier]
 aspect: knower
 neural:
-  activation: 0.750
+  activation: 0.91
   stage: growing
-  cluster: concepts
+  synapse_in: 3
+  synapse_out: 9
 ---
 
 # Wave Physics and Coherence

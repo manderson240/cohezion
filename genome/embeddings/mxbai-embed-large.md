@@ -9,9 +9,10 @@ status: active
 provider: ollama
 aspect: knower
 neural:
-  activation: 0.439
+  activation: 0.68
   stage: growing
-  cluster: specs
+  synapse_in: 4
+  synapse_out: 4
 ---
 
 # Embedding Card: mxbai-embed-large

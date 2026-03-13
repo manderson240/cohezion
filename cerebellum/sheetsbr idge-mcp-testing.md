@@ -5,9 +5,10 @@ status: completed
 tags: [pattern, testing, mcp, sheets-integration, vault-operations]
 aspect: thinker
 neural:
-  activation: 0.600
+  activation: 0.83
   stage: mature
-  cluster: patterns
+  synapse_in: 11
+  synapse_out: 10
 ---
 
 # SheetsBridge MCP Testing Protocol

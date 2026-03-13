@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [concept, deep-learning, neural-networks, foundations, ml-systems]
 aspect: knower
 neural:
-  activation: 0.526
+  activation: 0.86
   stage: growing
-  cluster: concepts
+  synapse_in: 6
+  synapse_out: 9
 ---
 
 # Deep Learning Primer

@@ -4,9 +4,10 @@ date: 2026-02-10
 tags: [retrospective, meta-learning, design]
 aspect: doer
 neural:
-  activation: 0.458
+  activation: 0.7
   stage: growing
-  cluster: daily
+  synapse_in: 2
+  synapse_out: 0
 ---
 
 ## Session Summary

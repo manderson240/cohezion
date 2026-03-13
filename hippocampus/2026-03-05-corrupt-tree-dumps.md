@@ -3,6 +3,11 @@ title: "Corrupt Tree Object Dumps"
 date: "2026-03-05"
 tags: [git, corruption, forensics, preservation]
 aspect: doer
+neural:
+  activation: 0.52
+  stage: embryo
+  synapse_in: 0
+  synapse_out: 0
 ---
 
 ## badTree Objects (empty filename — from entire/ auto-commits)

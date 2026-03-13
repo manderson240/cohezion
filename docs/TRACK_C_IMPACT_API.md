@@ -3,6 +3,11 @@ title: "Track C: Impact & Dependency Analyzer - API Documentation"
 date: 2026-02-14
 status: draft
 tags: [documentation, impact-analysis, api-design, graph-databases]
+neural:
+  activation: 0.69
+  stage: growing
+  synapse_in: 4
+  synapse_out: 4
 ---
 
 # Track C: Impact & Dependency Analyzer - API Documentation

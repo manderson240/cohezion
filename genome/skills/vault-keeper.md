@@ -12,9 +12,10 @@ revision_history:
   - {v: 3, date: 2026-03-05, change: "Added callout nudge, alias nudge for Write/Edit mode"}
 aspect: knower
 neural:
-  activation: 0.383
+  activation: 0.62
   stage: embryo
-  cluster: specs
+  synapse_in: 3
+  synapse_out: 2
 ---
 
 # Vault Keeper Skill

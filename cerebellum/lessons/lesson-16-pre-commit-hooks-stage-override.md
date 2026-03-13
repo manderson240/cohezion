@@ -1,9 +1,10 @@
 ---
 aspect: thinker
 neural:
-  activation: 0.384
+  activation: 0.63
   stage: growing
-  cluster: patterns
+  synapse_in: 0
+  synapse_out: 9
 ---
 # Lesson 16: pre-commit-hooks STAGE OVERRIDE
 

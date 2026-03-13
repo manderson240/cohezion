@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [moc, navigation, quantum-physics]
 aspect: knower
 neural:
-  activation: 0.655
-  stage: growing
-  cluster: concepts
+  activation: 1.0
+  stage: mature
+  synapse_in: 4
+  synapse_out: 49
 ---
 
 # Map of Content — Quantum Physics

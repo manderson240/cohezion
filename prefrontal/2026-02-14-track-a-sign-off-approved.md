@@ -5,9 +5,10 @@ status: approved
 tags: [phase-2, track-a, surrealdb, sign-off, production]
 aspect: thinker
 neural:
-  activation: 0.465
+  activation: 0.75
   stage: growing
-  cluster: decisions
+  synapse_in: 7
+  synapse_out: 6
 ---
 
 ## Executive Summary

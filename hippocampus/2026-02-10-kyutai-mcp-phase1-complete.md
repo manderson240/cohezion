@@ -5,9 +5,10 @@ status: completed
 tags: [kyutai, mcp, implementation, phase-1, complete]
 aspect: doer
 neural:
-  activation: 0.416
+  activation: 0.66
   stage: growing
-  cluster: daily
+  synapse_in: 2
+  synapse_out: 0
 ---
 
 # Kyutai MCP Server - Phase 1 Implementation Complete

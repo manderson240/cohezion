@@ -6,9 +6,10 @@ title: "Task: BlueQubit Quantum Challenge"
 tags: [agent-output, antigravity, quantum-computing, simulation]
 aspect: doer
 neural:
-  activation: 0.398
+  activation: 0.59
   stage: embryo
-  cluster: Agents
+  synapse_in: 3
+  synapse_out: 2
 ---
 
 # Task: BlueQubit Quantum Challenge

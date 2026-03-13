@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, plasma, vacuum, charge-clusters, EVO, shoulders, HIHO, self-organization]
 aspect: knower
 neural:
-  activation: 0.82
+  activation: 1.0
   stage: mature
-  cluster: quantum-physics
+  synapse_in: 61
+  synapse_out: 31
 ---
 
 # Exotic Vacuum Objects (EVOs)

@@ -4,9 +4,10 @@ date: 2026-02-14
 tags: [concept, ui, graphrag, visualization]
 aspect: knower
 neural:
-  activation: 0.627
+  activation: 0.96
   stage: mature
-  cluster: concepts
+  synapse_in: 11
+  synapse_out: 14
 ---
 
 # Cascade Timeline

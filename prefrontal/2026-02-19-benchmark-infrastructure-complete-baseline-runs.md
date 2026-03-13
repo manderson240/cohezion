@@ -5,9 +5,10 @@ status: accepted
 tags: [decision, benchmarks, infrastructure, baseline]
 aspect: thinker
 neural:
-  activation: 0.476
+  activation: 0.72
   stage: growing
-  cluster: decisions
+  synapse_in: 3
+  synapse_out: 7
 ---
 
 # Benchmark Infrastructure Complete — Baseline Runs

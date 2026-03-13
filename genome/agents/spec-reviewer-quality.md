@@ -9,9 +9,10 @@ status: active
 agent_type: verification
 aspect: knower
 neural:
-  activation: 0.425
+  activation: 0.66
   stage: growing
-  cluster: specs
+  synapse_in: 1
+  synapse_out: 3
 ---
 
 # Agent Card: Spec Reviewer (Quality)

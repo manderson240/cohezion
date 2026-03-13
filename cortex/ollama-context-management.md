@@ -5,9 +5,10 @@ tags: [infrastructure, ollama, performance, context-management]
 status: active
 aspect: knower
 neural:
-  activation: 0.480
+  activation: 0.82
   stage: growing
-  cluster: concepts
+  synapse_in: 7
+  synapse_out: 7
 ---
 
 # Ollama Context Management

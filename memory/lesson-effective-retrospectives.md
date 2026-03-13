@@ -7,9 +7,10 @@ tags: [retrospective, process, learning, session-management]
 status: validated
 aspect: knower
 neural:
-  activation: 0.458
+  activation: 0.73
   stage: growing
-  cluster: lessons
+  synapse_in: 7
+  synapse_out: 9
 ---
 
 # Lesson: Effective Retrospectives: Structured Session Reviews Extract Maximum Learnings

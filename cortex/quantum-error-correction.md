@@ -4,9 +4,10 @@ date: 2026-02-07
 tags: [concept, quantum-entanglement, quantum-sensors, topological-defects]
 aspect: knower
 neural:
-  activation: 0.611
+  activation: 0.94
   stage: mature
-  cluster: concepts
+  synapse_in: 19
+  synapse_out: 10
 ---
 ## Definition
 

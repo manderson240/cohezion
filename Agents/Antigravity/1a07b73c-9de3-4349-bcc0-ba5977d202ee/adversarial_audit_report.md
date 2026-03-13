@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Adversarial Audit Report"
 aspect: doer
 neural:
-  activation: 0.356
+  activation: 0.64
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 1
 ---
 
 # Adversarial Audit: Multiperspective Review (Journey 3.0)

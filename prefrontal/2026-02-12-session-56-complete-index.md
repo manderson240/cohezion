@@ -5,9 +5,10 @@ status: zero blockers
 tags: [decision]
 aspect: thinker
 neural:
-  activation: 0.664
+  activation: 0.94
   stage: growing
-  cluster: decisions
+  synapse_in: 1
+  synapse_out: 8
 ---
 # Session 56 Complete: Documentation & Patterns Index
 

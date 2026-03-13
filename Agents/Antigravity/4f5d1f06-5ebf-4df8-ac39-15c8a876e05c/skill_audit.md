@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Skill Audit"
 aspect: doer
 neural:
-  activation: 0.306
+  activation: 0.51
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 0
 ---
 
 # Skill Distinction Audit: Target Clusters

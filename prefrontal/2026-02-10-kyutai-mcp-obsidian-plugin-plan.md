@@ -29,9 +29,10 @@ metrics:
     - "lessons/lesson-token-efficiency-specialist-agents"
 aspect: thinker
 neural:
-  activation: 0.805
+  activation: 1.0
   stage: mature
-  cluster: decisions
+  synapse_in: 16
+  synapse_out: 17
 ---
 
 ## Context

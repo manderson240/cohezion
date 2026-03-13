@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, cosmology, dark-energy, cosmological-constant, accelerating-expansion]
 aspect: knower
 neural:
-  activation: 0.750
+  activation: 0.95
   stage: growing
-  cluster: concepts
+  synapse_in: 2
+  synapse_out: 9
 ---
 
 # Dark Energy

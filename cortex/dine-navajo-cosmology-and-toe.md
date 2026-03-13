@@ -4,9 +4,10 @@ date: 2026-03-10
 tags: [concept, indigenous-cosmology, TOE, dine, navajo, native-american, hozho, holy-people, sand-painting]
 aspect: knower
 neural:
-  activation: 0.750
-  stage: growing
-  cluster: concepts
+  activation: 1.0
+  stage: mature
+  synapse_in: 10
+  synapse_out: 11
 ---
 
 # Diné (Navajo) Cosmology and the Theory of Everything

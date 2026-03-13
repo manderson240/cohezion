@@ -10,9 +10,10 @@ similar_papers:
 - the-awareness-of-nothing-at-all-and-quadrature-physics
 aspect: knower
 neural:
-  activation: 0.552
-  stage: growing
-  cluster: papers
+  activation: 0.79
+  stage: mature
+  synapse_in: 4
+  synapse_out: 12
 ---
 
 ## Summary

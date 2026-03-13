@@ -8,9 +8,10 @@ tags: [mcp, testing, configuration, integration, protocol]
 status: validated
 aspect: knower
 neural:
-  activation: 0.551
+  activation: 0.79
   stage: growing
-  cluster: lessons
+  synapse_in: 12
+  synapse_out: 9
 ---
 
 # Lesson: MCP Configuration Requires End-to-End Test: Unit Tests Miss Protocol Negotiation Failures

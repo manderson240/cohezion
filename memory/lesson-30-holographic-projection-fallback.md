@@ -8,9 +8,10 @@ tags: [ml, dimensionality-reduction, linear-algebra, fallback, vae]
 status: validated
 aspect: knower
 neural:
-  activation: 0.449
+  activation: 0.69
   stage: growing
-  cluster: lessons
+  synapse_in: 6
+  synapse_out: 4
 ---
 
 # Lesson: Holographic Projection Fallback: Dimensionality Reduction Requires Singular Matrix Guard

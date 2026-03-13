@@ -8,9 +8,10 @@ tags: [pre-commit, git, hooks, staging, side-effects]
 status: validated
 aspect: knower
 neural:
-  activation: 0.445
+  activation: 0.69
   stage: growing
-  cluster: lessons
+  synapse_in: 10
+  synapse_out: 4
 ---
 
 # Lesson: Pre-Commit Hooks Can Stage Additional Files: Understand Side Effects

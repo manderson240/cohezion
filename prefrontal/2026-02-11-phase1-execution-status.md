@@ -5,9 +5,10 @@ status: in-progress
 tags: [phase1, implementation, execution, status]
 aspect: thinker
 neural:
-  activation: 0.652
+  activation: 0.93
   stage: mature
-  cluster: decisions
+  synapse_in: 13
+  synapse_out: 10
 ---
 
 # Phase 1 Execution Status Report

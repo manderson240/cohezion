@@ -5,9 +5,10 @@ status: active
 tags: [assessment, vault-health, knowledge-graph, strategy, retrospective]
 aspect: doer
 neural:
-  activation: 0.546
+  activation: 0.73
   stage: growing
-  cluster: projects
+  synapse_in: 5
+  synapse_out: 7
 ---
 
 # Vault State Assessment — 2026-03-03

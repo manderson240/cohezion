@@ -5,9 +5,10 @@ status: published
 tags: [12d-graph, visualization, presets, guide]
 aspect: thinker
 neural:
-  activation: 0.793
+  activation: 0.97
   stage: mature
-  cluster: patterns
+  synapse_in: 6
+  synapse_out: 11
 ---
 
 # 12D Graph View Presets

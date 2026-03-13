@@ -5,9 +5,10 @@ tags: [concept, ml-systems, engineering, production, cs249r]
 status: active
 aspect: knower
 neural:
-  activation: 0.497
+  activation: 0.84
   stage: growing
-  cluster: concepts
+  synapse_in: 13
+  synapse_out: 8
 ---
 
 # ML Systems

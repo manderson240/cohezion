@@ -5,9 +5,10 @@ tags: [concept, astronomy, anomaly-detection, machine-learning]
 related_concepts: [astronomy, gravitational-waves, dark-matter-detection, anomaly-detection, black-holes]
 aspect: knower
 neural:
-  activation: 0.668
+  activation: 1.0
   stage: growing
-  cluster: concepts
+  synapse_in: 52
+  synapse_out: 42
 ---
 ## Definition
 

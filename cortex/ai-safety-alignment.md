@@ -5,9 +5,10 @@ tags: [concept, agentic-ai, prompt-engineering, anomaly-detection]
 related_concepts: [alignment, ai-safety, adversarial-review, agentic-ai, compound-engineering]
 aspect: knower
 neural:
-  activation: 0.701
+  activation: 0.93
   stage: mature
-  cluster: concepts
+  synapse_in: 11
+  synapse_out: 21
 ---
 
 ## Definition

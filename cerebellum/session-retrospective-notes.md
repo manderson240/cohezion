@@ -4,9 +4,10 @@ date: "2026-02-07"
 tags: [pattern, workflow, knowledge-capture, vault-automation]
 aspect: thinker
 neural:
-  activation: 0.549
+  activation: 0.74
   stage: growing
-  cluster: patterns
+  synapse_in: 10
+  synapse_out: 12
 ---
 
 ## Problem

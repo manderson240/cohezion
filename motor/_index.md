@@ -4,9 +4,10 @@ purpose: "Project-level tracking with goals, status, and key decisions"
 type: directory-index
 aspect: doer
 neural:
-  activation: 0.379
+  activation: 0.37
   stage: growing
-  cluster: projects
+  synapse_in: 0
+  synapse_out: 5
 ---
 
 # Projects

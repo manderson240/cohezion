@@ -3,6 +3,11 @@ title: "Sessions — Directory Index"
 purpose: "Formal compound engineering session records with outcomes and metrics"
 type: directory-index
 aspect: doer
+neural:
+  activation: 0.54
+  stage: growing
+  synapse_in: 0
+  synapse_out: 3
 ---
 
 # Sessions

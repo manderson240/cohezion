@@ -4,9 +4,10 @@ date: "2026-02-22"
 tags: [pattern, performance, trajectory, throttling, 12d-graph]
 aspect: thinker
 neural:
-  activation: 0.523
+  activation: 0.76
   stage: growing
-  cluster: patterns
+  synapse_in: 13
+  synapse_out: 8
 ---
 
 # Predictive Throttling via 12D Trajectory Velocity

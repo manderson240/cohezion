@@ -5,9 +5,10 @@ tags: [domain, physics, materials-science, quantum]
 status: active
 aspect: knower
 neural:
-  activation: 0.556
+  activation: 0.89
   stage: mature
-  cluster: concepts
+  synapse_in: 22
+  synapse_out: 11
 ---
 
 # Quantum Materials

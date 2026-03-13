@@ -4,9 +4,10 @@ date: 2026-02-09
 tags: [pattern]
 aspect: thinker
 neural:
-  activation: 0.720
+  activation: 0.9
   stage: growing
-  cluster: patterns
+  synapse_in: 7
+  synapse_out: 9
 ---
 # Python-Optimized FLUME Pattern
 

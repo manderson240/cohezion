@@ -10,9 +10,10 @@ similar_papers:
 - is-metaphysics-useful
 aspect: knower
 neural:
-  activation: 0.845
+  activation: 1.0
   stage: mature
-  cluster: papers
+  synapse_in: 17
+  synapse_out: 13
 ---
 
 # The Awareness of Nothing at All and Quadrature Physics

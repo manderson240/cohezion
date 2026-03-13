@@ -4,9 +4,10 @@ date: 2026-02-19
 tags: [concept, chemistry, materials, catalysis]
 aspect: knower
 neural:
-  activation: 0.573
+  activation: 0.81
   stage: mature
-  cluster: concepts
+  synapse_in: 1
+  synapse_out: 11
 ---
 ## Definition
 

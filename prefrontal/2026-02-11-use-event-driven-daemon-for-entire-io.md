@@ -5,9 +5,10 @@ status: accepted
 tags: [decision, architecture, io, daemon]
 aspect: thinker
 neural:
-  activation: 0.509
+  activation: 0.75
   stage: growing
-  cluster: decisions
+  synapse_in: 5
+  synapse_out: 9
 ---
 
 # Use Event-Driven Daemon for Entire-IO API

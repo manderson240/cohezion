@@ -5,9 +5,10 @@ status: "production-ready"
 tags: [cohezion, presentation, technical-report, bmad-integration, phase-5b]
 aspect: doer
 neural:
-  activation: 0.548
+  activation: 0.76
   stage: mature
-  cluster: projects
+  synapse_in: 3
+  synapse_out: 11
 ---
 
 # COHEZION Documents Index

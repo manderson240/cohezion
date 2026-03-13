@@ -5,9 +5,10 @@ status: complete
 tags: [wave-1, compound-engineering, delivery, complete, acceleration]
 aspect: doer
 neural:
-  activation: 0.719
+  activation: 0.9
   stage: growing
-  cluster: daily
+  synapse_in: 7
+  synapse_out: 6
 ---
 
 # Wave 1 Compound Engineering - Complete Delivery Summary

@@ -1,9 +1,10 @@
 ---
 aspect: thinker
 neural:
-  activation: 0.356
+  activation: 0.6
   stage: growing
-  cluster: patterns
+  synapse_in: 0
+  synapse_out: 7
 ---
 # Lesson 24: YAML FOLDED SCALAR TRAP
 

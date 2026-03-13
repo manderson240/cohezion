@@ -5,9 +5,10 @@ tags: [concept, compound-engineering, knowledge-graph-systems, meta-learning]
 related_concepts: [compound-engineering, knowledge-graph-systems, agent-context, token-efficiency-patterns]
 aspect: knower
 neural:
-  activation: 0.519
+  activation: 0.86
   stage: growing
-  cluster: concepts
+  synapse_in: 17
+  synapse_out: 10
 ---
 ## Definition
 

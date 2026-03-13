@@ -5,9 +5,10 @@ tags: [concept, graph-databases, knowledge-graph-systems, agent-context]
 related_concepts: [graphrag-knowledge-graph-with-surrealdb, knowledge-graph-systems, cloud-vault-mcp, agent-context, semantic-search]
 aspect: knower
 neural:
-  activation: 0.726
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 0
+  synapse_out: 36
 ---
 ## Definition
 

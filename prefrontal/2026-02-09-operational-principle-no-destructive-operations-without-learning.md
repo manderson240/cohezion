@@ -29,9 +29,10 @@ metrics:
     - patterns/compound-engineering-investigation-retrospection-before-destructive-operations
 aspect: thinker
 neural:
-  activation: 0.627
+  activation: 0.89
   stage: mature
-  cluster: decisions
+  synapse_in: 8
+  synapse_out: 13
 ---
 
 # Decision: Operational Principle - No Destructive Operations Without Learning

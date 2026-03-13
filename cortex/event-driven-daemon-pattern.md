@@ -5,9 +5,10 @@ tags: [pattern, architecture, async, microservices]
 status: active
 aspect: knower
 neural:
-  activation: 0.623
+  activation: 0.86
   stage: mature
-  cluster: concepts
+  synapse_in: 2
+  synapse_out: 14
 ---
 
 # Event-Driven Daemon Pattern

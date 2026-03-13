@@ -10,9 +10,10 @@ similar_papers:
 source: https://venturebeat.com/orchestration/the-agentic-ai-foundation-offers-shared-specs-for-building-running-and
 aspect: knower
 neural:
-  activation: 0.561
+  activation: 0.83
   stage: growing
-  cluster: papers
+  synapse_in: 6
+  synapse_out: 15
 ---
 
 ## Summary

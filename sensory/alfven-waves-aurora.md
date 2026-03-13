@@ -30,9 +30,10 @@ dimensions:
   impact_score: 0.158
 aspect: knower
 neural:
-  activation: 0.484
+  activation: 0.75
   stage: growing
-  cluster: papers
+  synapse_in: 6
+  synapse_out: 11
 ---
 # Alfven Waves Power Earth's Auroral Displays
 

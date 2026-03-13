@@ -5,9 +5,10 @@ status: accepted
 tags: [decision, vault, links, integrity, obsidian, compound-engineering]
 aspect: thinker
 neural:
-  activation: 0.412
+  activation: 0.69
   stage: growing
-  cluster: decisions
+  synapse_in: 2
+  synapse_out: 7
 ---
 
 # Vault Link Integrity Is a First-Class Concern

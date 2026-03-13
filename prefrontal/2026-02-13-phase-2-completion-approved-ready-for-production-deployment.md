@@ -28,9 +28,10 @@ metrics:
   compression_percentage: 40.0  # 12h actual vs 20h minimum estimate
 aspect: thinker
 neural:
-  activation: 0.717
+  activation: 0.98
   stage: mature
-  cluster: decisions
+  synapse_in: 8
+  synapse_out: 11
 ---
 
 # PHASE 2 COMPLETION - APPROVED FOR PRODUCTION DEPLOYMENT

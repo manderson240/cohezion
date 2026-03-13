@@ -4,9 +4,10 @@ date: 2026-02-23
 tags: [daily]
 aspect: doer
 neural:
-  activation: 0.524
+  activation: 0.71
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 1
 ---
 # FLUME Architecture Investigation: Semantic Space Geometry
 **Team:** Architecture Analyst  

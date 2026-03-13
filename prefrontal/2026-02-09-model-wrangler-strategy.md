@@ -27,9 +27,10 @@ metrics:
   lessons_generated: []
 aspect: thinker
 neural:
-  activation: 0.810
+  activation: 1.0
   stage: mature
-  cluster: decisions
+  synapse_in: 6
+  synapse_out: 11
 ---
 
 # Model Wrangler Strategy - Local LLM Lifecycle Management

@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [concept, ai, deep-learning, machine-learning]
 aspect: knower
 neural:
-  activation: 0.559
+  activation: 0.8
   stage: mature
-  cluster: concepts
+  synapse_in: 10
+  synapse_out: 11
 ---
 
 # Computer Vision

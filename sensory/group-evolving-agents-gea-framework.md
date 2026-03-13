@@ -10,9 +10,10 @@ similar_papers:
 source: https://venturebeat.com/orchestration/new-agent-framework-matches-human-engineered-ai-systems-and-adds-zero
 aspect: knower
 neural:
-  activation: 0.590
-  stage: growing
-  cluster: papers
+  activation: 0.85
+  stage: mature
+  synapse_in: 10
+  synapse_out: 16
 ---
 
 ## Summary

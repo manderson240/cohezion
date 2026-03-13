@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.082
 aspect: knower
 neural:
-  activation: 0.693
+  activation: 0.92
   stage: mature
-  cluster: papers
+  synapse_in: 8
+  synapse_out: 16
 ---
 # Mars Confirms Einstein's Time Dilation
 

@@ -8,9 +8,10 @@ tags: [yaml, configuration, parsing, data-format]
 status: validated
 aspect: knower
 neural:
-  activation: 0.403
-  stage: embryo
-  cluster: lessons
+  activation: 0.65
+  stage: growing
+  synapse_in: 5
+  synapse_out: 2
 ---
 
 # Lesson: YAML Folded Scalar Trap: Folded Blocks Collapse Newlines Into Spaces

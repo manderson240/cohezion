@@ -8,9 +8,10 @@ tags: [testing, mocking, timeout, test-hang, live-services]
 status: validated
 aspect: knower
 neural:
-  activation: 0.507
+  activation: 0.75
   stage: growing
-  cluster: lessons
+  synapse_in: 8
+  synapse_out: 6
 ---
 
 # Lesson: Test Hang from Unmocked Live Service: Tests Hang Indefinitely on Connection Timeout

@@ -4,9 +4,10 @@ date: 2026-02-07
 tags: [concept, jwst-observations, early-universe-cosmology, quantum-sensors]
 aspect: knower
 neural:
-  activation: 0.517
+  activation: 0.85
   stage: growing
-  cluster: concepts
+  synapse_in: 10
+  synapse_out: 11
 ---
 
 ## Definition

@@ -24,9 +24,10 @@ decision_reasoning:
   confidence_score: 0.6
 aspect: thinker
 neural:
-  activation: 0.488
+  activation: 0.77
   stage: mature
-  cluster: decisions
+  synapse_in: 3
+  synapse_out: 10
 ---
 ## Context
 

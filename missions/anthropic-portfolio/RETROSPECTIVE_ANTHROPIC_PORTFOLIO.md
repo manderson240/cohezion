@@ -1,9 +1,10 @@
 ---
 aspect: doer
 neural:
-  activation: 0.442
+  activation: 0.63
   stage: growing
-  cluster: missions
+  synapse_in: 0
+  synapse_out: 4
 ---
 # Project Retrospective - Anthropic Universes Portfolio
 **Project:** COHEZION: The Observatory for Artificial Cosmogenesis

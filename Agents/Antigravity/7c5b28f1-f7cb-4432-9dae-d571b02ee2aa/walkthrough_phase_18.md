@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Walkthrough Phase 18"
 aspect: doer
 neural:
-  activation: 0.314
+  activation: 0.51
   stage: embryo
-  cluster: Agents
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # Phase 18: Planetary Interface

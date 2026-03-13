@@ -8,9 +8,10 @@ decision_log: [[2026-03-04-party-consensus-anthropic-narrative]]
 related: [[Anthropic-Application-2026]], [[Cohezion-Portfolio-Plan]], [[12D-Manifold-Demo]]
 aspect: doer
 neural:
-  activation: 0.750
+  activation: 0.93
   stage: mature
-  cluster: daily
+  synapse_in: 4
+  synapse_out: 15
 ---
 
 # Night Session: Anthropic Portfolio Autonomous Execution

@@ -3,6 +3,11 @@ title: "Track B: Confidence Scoring System - API Documentation"
 date: 2026-02-14
 status: draft
 tags: [documentation, scoring, api-design, decision-analysis]
+neural:
+  activation: 0.68
+  stage: growing
+  synapse_in: 1
+  synapse_out: 3
 ---
 
 # Track B: Confidence Scoring System - API Documentation

@@ -28,9 +28,10 @@ metrics:
     - "lessons/lesson-adversarial-review-pattern"
 aspect: thinker
 neural:
-  activation: 0.748
+  activation: 1.0
   stage: mature
-  cluster: decisions
+  synapse_in: 5
+  synapse_out: 17
 ---
 
 # Phase 3: 3D Graph Plugin - Adversarial Review

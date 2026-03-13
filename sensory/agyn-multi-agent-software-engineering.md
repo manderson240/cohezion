@@ -10,9 +10,10 @@ similar_papers:
 source: https://search.app/wug46
 aspect: knower
 neural:
-  activation: 0.672
+  activation: 0.9
   stage: mature
-  cluster: papers
+  synapse_in: 16
+  synapse_out: 19
 ---
 
 ## Summary

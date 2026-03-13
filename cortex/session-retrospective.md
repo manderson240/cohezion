@@ -5,9 +5,10 @@ tags: [concept, compound-engineering, meta-learning, experience-feedback-loop]
 related_concepts: [compound-engineering, meta-learning, experience-feedback-loop, agent-journey-tracking, token-efficiency]
 aspect: knower
 neural:
-  activation: 0.805
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 57
+  synapse_out: 103
 ---
 ## Definition
 

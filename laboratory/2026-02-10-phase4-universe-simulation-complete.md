@@ -5,9 +5,10 @@ status: "complete"
 tags: [experiment, phase4, simulation, universe, counterfactual]
 aspect: thinker
 neural:
-  activation: 0.888
+  activation: 1.0
   stage: mature
-  cluster: experiments
+  synapse_in: 5
+  synapse_out: 22
 ---
 
 # Phase 4 Universe Simulation - Implementation Complete

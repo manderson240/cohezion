@@ -7,9 +7,10 @@ impact: medium
 reversibility: high
 aspect: thinker
 neural:
-  activation: 0.392
+  activation: 0.62
   stage: embryo
-  cluster: decisions
+  synapse_in: 1
+  synapse_out: 2
 ---
 
 # Decision: Skill Pruning & Consolidation Plan

@@ -5,9 +5,10 @@ status: complete
 tags: [experiment, git, debugging]
 aspect: thinker
 neural:
-  activation: 0.287
+  activation: 0.62
   stage: embryo
-  cluster: experiments
+  synapse_in: 1
+  synapse_out: 2
 ---
 
 # GC Corruption Severity — 170+ Bad Objects, 3GB Data File

@@ -10,9 +10,10 @@ similar_papers:
 - knowledge-graph-semantic-relationships
 aspect: knower
 neural:
-  activation: 0.622
+  activation: 0.85
   stage: mature
-  cluster: papers
+  synapse_in: 5
+  synapse_out: 12
 ---
 
 # Relational Schema Design Principles

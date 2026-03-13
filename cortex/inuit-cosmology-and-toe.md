@@ -4,9 +4,10 @@ date: 2026-03-10
 tags: [concept, indigenous-cosmology, TOE, inuit, arctic, sila, angakkuq, inua, circumpolar]
 aspect: knower
 neural:
-  activation: 0.750
-  stage: growing
-  cluster: concepts
+  activation: 1.0
+  stage: mature
+  synapse_in: 10
+  synapse_out: 11
 ---
 
 # Inuit Cosmology and the Theory of Everything

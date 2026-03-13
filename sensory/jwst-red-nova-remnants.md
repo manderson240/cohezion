@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.322
 aspect: knower
 neural:
-  activation: 0.643
+  activation: 0.88
   stage: mature
-  cluster: papers
+  synapse_in: 9
+  synapse_out: 13
 ---
 
 # JWST Discovers Red Nova Merger Remnants Are Red Supergiants

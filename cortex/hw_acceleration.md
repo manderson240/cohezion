@@ -5,9 +5,10 @@ tags: [concept, ml-systems, hardware, performance, cs249r]
 status: active
 aspect: knower
 neural:
-  activation: 0.495
+  activation: 0.83
   stage: growing
-  cluster: concepts
+  synapse_in: 15
+  synapse_out: 8
 ---
 
 # Hardware Acceleration

@@ -7,6 +7,11 @@ type: pattern
 category: workflow-orchestration
 frequency: every-session
 confidence: 0.95
+neural:
+  activation: 0.68
+  stage: growing
+  synapse_in: 2
+  synapse_out: 6
 ---
 
 # Pattern: Skill Routing Decision Tree

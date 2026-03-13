@@ -28,9 +28,10 @@ metrics:
     - "lessons/lesson-hybrid-linking-combines-strengths"
 aspect: thinker
 neural:
-  activation: 0.682
+  activation: 0.94
   stage: mature
-  cluster: decisions
+  synapse_in: 4
+  synapse_out: 12
 ---
 
 ## Executive Summary

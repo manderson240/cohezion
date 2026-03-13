@@ -6,9 +6,10 @@ tags: [project, evaluation, anthropic, portfolio, agentic-ai]
 aliases: ["JourneyTracker research framing", "agent evaluation methodology paper"]
 aspect: doer
 neural:
-  activation: 0.459
+  activation: 0.65
   stage: growing
-  cluster: projects
+  synapse_in: 2
+  synapse_out: 7
 ---
 
 # JourneyTracker and DegradationDetector as Research Contribution

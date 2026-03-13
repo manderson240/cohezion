@@ -6,9 +6,10 @@ title: "Task: Swarm Reliability and Memory Integration"
 tags: [agent-output, antigravity, swarm-reliability, memory-integration]
 aspect: doer
 neural:
-  activation: 0.340
-  stage: embryo
-  cluster: Agents
+  activation: 0.63
+  stage: growing
+  synapse_in: 0
+  synapse_out: 3
 ---
 
 # Swarm Reliability & Memory Integration (Gateway 4/14) <!-- id: 0 -->

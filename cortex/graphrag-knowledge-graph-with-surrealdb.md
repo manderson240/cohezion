@@ -5,9 +5,10 @@ tags: [concept, knowledge-graph-systems, surrealdb, semantic-search, compound-en
 related_concepts: [knowledge-graph-systems, surrealdb, semantic-search, compound-engineering, cloud-vault-mcp]
 aspect: knower
 neural:
-  activation: 0.681
+  activation: 0.91
   stage: mature
-  cluster: concepts
+  synapse_in: 22
+  synapse_out: 28
 ---
 ## Definition
 

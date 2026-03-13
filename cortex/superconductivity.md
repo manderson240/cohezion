@@ -5,9 +5,10 @@ tags: [domain, physics, materials-science, quantum]
 status: active
 aspect: knower
 neural:
-  activation: 0.538
-  stage: growing
-  cluster: concepts
+  activation: 0.81
+  stage: mature
+  synapse_in: 11
+  synapse_out: 11
 ---
 
 # Superconductivity

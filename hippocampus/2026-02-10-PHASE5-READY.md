@@ -5,9 +5,10 @@ status: in-progress
 tags: [daily, kyutai, phase-5, release, authorization, ready]
 aspect: doer
 neural:
-  activation: 0.512
+  activation: 0.75
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # 🚀 PHASE 5 RELEASE AUTHORIZATION

@@ -5,9 +5,10 @@ status: completed
 tags: [daily, kyutai, phase-3, complete, wave-3]
 aspect: doer
 neural:
-  activation: 0.498
+  activation: 0.73
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 ## 🎉 Phase 3 Status: 100% COMPLETE ✅

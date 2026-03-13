@@ -5,9 +5,10 @@ tags: [methodology, compound-engineering, pattern]
 status: active
 aspect: knower
 neural:
-  activation: 0.587
+  activation: 0.92
   stage: mature
-  cluster: concepts
+  synapse_in: 6
+  synapse_out: 12
 ---
 
 # Implementation First, Infrastructure Later

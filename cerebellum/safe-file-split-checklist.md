@@ -4,9 +4,10 @@ date: "2026-02-17"
 tags: [pattern, refactoring, checklist, python]
 aspect: thinker
 neural:
-  activation: 0.517
+  activation: 0.7
   stage: growing
-  cluster: patterns
+  synapse_in: 6
+  synapse_out: 7
 ---
 
 # Safe File Split Checklist

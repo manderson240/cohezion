@@ -6,9 +6,10 @@ title: "Walkthrough: Adversarial Security Testing Results"
 tags: [agent-output, antigravity, security-testing]
 aspect: doer
 neural:
-  activation: 0.409
-  stage: embryo
-  cluster: Agents
+  activation: 0.69
+  stage: growing
+  synapse_in: 0
+  synapse_out: 3
 ---
 
 # Adversarial Security Testing Walkthrough

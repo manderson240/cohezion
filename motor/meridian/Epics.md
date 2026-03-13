@@ -7,9 +7,10 @@ created: 2026-03-06
 tags: [meridian, concierge, epics, planning]
 aspect: doer
 neural:
-  activation: 0.620
+  activation: 0.79
   stage: growing
-  cluster: projects
+  synapse_in: 4
+  synapse_out: 3
 ---
 
 # Meridian: Epics

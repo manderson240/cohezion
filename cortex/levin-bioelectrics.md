@@ -4,9 +4,10 @@ date: 2026-03-10
 tags: [concept, biology, bioelectrics, morphogenesis, collective-intelligence, information, consciousness, TOE]
 aspect: knower
 neural:
-  activation: 0.800
-  stage: growing
-  cluster: concepts
+  activation: 1.0
+  stage: mature
+  synapse_in: 12
+  synapse_out: 15
 ---
 
 # Levin Bioelectrics — Morphogenetic Information and Collective Intelligence

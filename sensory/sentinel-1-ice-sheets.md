@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.16
 aspect: knower
 neural:
-  activation: 0.581
+  activation: 0.82
   stage: growing
-  cluster: papers
+  synapse_in: 9
+  synapse_out: 15
 ---
 # Sentinel-1's Decade of Ice Sheet Data
 

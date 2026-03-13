@@ -8,9 +8,10 @@ tags: [skills, claude-code, keyword-matching, agent-workflow]
 status: validated
 aspect: knower
 neural:
-  activation: 0.454
+  activation: 0.7
   stage: growing
-  cluster: lessons
+  synapse_in: 6
+  synapse_out: 4
 ---
 
 # Lesson: Skill Keyword Matching Is Broad: Invocation Triggers on Weak Matches

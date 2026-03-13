@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Skill Audit Results"
 aspect: doer
 neural:
-  activation: 0.477
+  activation: 0.67
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 0
 ---
 
 # Full Skill Audit Results

@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.158
 aspect: knower
 neural:
-  activation: 0.638
-  stage: growing
-  cluster: papers
+  activation: 0.87
+  stage: mature
+  synapse_in: 18
+  synapse_out: 18
 ---
 # LLM-in-Sandbox: General Agentic Intelligence via Code Sandbox
 

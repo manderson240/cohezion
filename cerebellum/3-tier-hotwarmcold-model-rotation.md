@@ -5,9 +5,10 @@ tags: [pattern, ollama, performance, model-selection]
 status: stub
 aspect: thinker
 neural:
-  activation: 0.582
+  activation: 0.82
   stage: growing
-  cluster: patterns
+  synapse_in: 14
+  synapse_out: 9
 ---
 
 # 3-Tier Hot/Warm/Cold Model Rotation for Local LLM Orchestration

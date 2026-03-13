@@ -11,6 +11,10 @@
           {
             "type": "command",
             "command": "bash /home/mike-anderson/vaults/cohezion-vault/.claude/hooks/permission-audit.sh"
+          },
+          {
+            "type": "command",
+            "command": "python3 /home/mike-anderson/vaults/cohezion-vault/scripts/graph_context_hook.py"
           }
         ]
       }

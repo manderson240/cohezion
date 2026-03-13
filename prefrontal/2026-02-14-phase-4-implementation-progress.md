@@ -5,9 +5,10 @@ status: in-progress
 tags: [phase-4, implementation, decision-analysis]
 aspect: thinker
 neural:
-  activation: 0.758
+  activation: 0.98
   stage: mature
-  cluster: decisions
+  synapse_in: 3
+  synapse_out: 12
 ---
 
 # Phase 4 Implementation Progress

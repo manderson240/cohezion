@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Walkthrough Phase 20"
 aspect: doer
 neural:
-  activation: 0.303
+  activation: 0.5
   stage: embryo
-  cluster: Agents
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # Phase 20: System Introspection

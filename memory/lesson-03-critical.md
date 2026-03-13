@@ -8,9 +8,10 @@ tags: [verification, safety, critical-operations]
 status: validated
 aspect: knower
 neural:
-  activation: 0.501
+  activation: 0.74
   stage: growing
-  cluster: lessons
+  synapse_in: 10
+  synapse_out: 6
 ---
 
 # Lesson: Critical Operations Require Explicit Verification Before Proceeding

@@ -3,11 +3,12 @@ title: "Quantum Foam"
 date: 2026-03-11
 tags: [concept, physics, quantum-gravity, spacetime, planck-scale, vacuum, topology]
 aspect: knower
-neural:
-  activation: 0.750
-  stage: growing
-  cluster: concepts
 aliases: ["spacetime foam", "spacetime bubble", "Wheeler foam"]
+neural:
+  activation: 1.0
+  stage: mature
+  synapse_in: 14
+  synapse_out: 21
 ---
 
 # Quantum Foam

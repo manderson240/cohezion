@@ -1,9 +1,10 @@
 ---
 aspect: doer
 neural:
-  activation: 0.450
+  activation: 0.64
   stage: growing
-  cluster: missions
+  synapse_in: 0
+  synapse_out: 4
 ---
 # 🕵️‍♂️ Multiperspective Adversarial Review Report
 **Subject:** COHEZION: The Observatory for Artificial Cosmogenesis

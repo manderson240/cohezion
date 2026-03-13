@@ -5,9 +5,10 @@ status: proposed
 tags: [stakeholder-decision, executive-brief, phases-4b-7, risk-assessment, adversarial-review]
 aspect: thinker
 neural:
-  activation: 0.690
+  activation: 0.92
   stage: growing
-  cluster: decisions
+  synapse_in: 2
+  synapse_out: 4
 ---
 
 # Stakeholder Decision Brief

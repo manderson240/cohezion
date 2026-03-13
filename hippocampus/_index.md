@@ -4,9 +4,10 @@ purpose: "Daily notes, session logs, and operational checkpoints"
 type: directory-index
 aspect: doer
 neural:
-  activation: 0.341
+  activation: 0.34
   stage: growing
-  cluster: daily
+  synapse_in: 0
+  synapse_out: 3
 ---
 
 # Daily

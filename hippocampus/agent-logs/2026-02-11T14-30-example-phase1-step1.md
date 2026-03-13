@@ -8,9 +8,10 @@ session_id: "sess-phase1-step1-20260211"
 agent_names: [vault-architect, team-lead]
 aspect: doer
 neural:
-  activation: 0.593
+  activation: 0.78
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 16
 ---
 
 ## Execution Summary

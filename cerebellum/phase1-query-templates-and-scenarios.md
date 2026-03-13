@@ -5,9 +5,10 @@ status: completed
 tags: [phase1, queries, templates, scenarios, documentation]
 aspect: thinker
 neural:
-  activation: 0.685
+  activation: 0.91
   stage: mature
-  cluster: patterns
+  synapse_in: 3
+  synapse_out: 11
 ---
 
 # Phase 1 Query Templates & Common Scenarios

@@ -3,6 +3,11 @@ title: "Session 50 Handoff — FLUME Optimization Activation"
 date: 2026-02-09
 tags: [session, handoff, flume, optimization, drop-in-replacement]
 aspect: doer
+neural:
+  activation: 0.86
+  stage: growing
+  synapse_in: 6
+  synapse_out: 5
 ---
 
 # Session 50 Handoff: FLUME Optimization Activation

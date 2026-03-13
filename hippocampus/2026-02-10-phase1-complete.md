@@ -5,9 +5,10 @@ status: completed
 tags: [daily, 12d-graph, phase-1, complete]
 aspect: doer
 neural:
-  activation: 0.448
+  activation: 0.69
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # Phase 1: Quick Wins - COMPLETE ✅

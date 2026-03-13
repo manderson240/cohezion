@@ -6,9 +6,10 @@ title: "BMAD-Cohezion Bridge Design"
 tags: [agent-output, antigravity, bmad, agent-architecture, bridge-design]
 aspect: doer
 neural:
-  activation: 0.595
+  activation: 0.91
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 6
 ---
 
 # BMAD ↔ Cohezion Bridge Design

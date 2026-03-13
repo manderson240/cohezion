@@ -5,9 +5,10 @@ status: active
 tags: [runbook, operations, benchmarking, performance]
 aspect: thinker
 neural:
-  activation: 0.747
+  activation: 1.0
   stage: mature
-  cluster: patterns
+  synapse_in: 22
+  synapse_out: 11
 ---
 
 ## Overview

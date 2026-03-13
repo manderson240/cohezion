@@ -9,9 +9,10 @@ status: active
 provider: google
 aspect: knower
 neural:
-  activation: 0.430
+  activation: 0.67
   stage: growing
-  cluster: specs
+  synapse_in: 1
+  synapse_out: 4
 ---
 
 # Embedding Card: Gemini Embedding

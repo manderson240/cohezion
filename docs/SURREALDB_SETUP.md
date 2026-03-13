@@ -2,6 +2,11 @@
 title: SurrealDB Setup for Phase 5-7 Decision Analysis System
 date: 2026-02-10
 tags: [documentation, surrealdb, setup, graph-databases]
+neural:
+  activation: 0.75
+  stage: growing
+  synapse_in: 3
+  synapse_out: 4
 ---
 
 # SurrealDB Setup for Phase 5-7 Decision Analysis System

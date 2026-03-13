@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Overnight Protocol"
 aspect: doer
 neural:
-  activation: 0.312
+  activation: 0.6
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 1
 ---
 
 # OVERNIGHT PROTOCOL: LOW AND SLOW BBQ

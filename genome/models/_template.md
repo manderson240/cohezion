@@ -8,6 +8,11 @@ card_type: model
 status: active
 provider: [anthropic | google | openai | meta | ollama]
 model_id: "[exact API model ID]"
+neural:
+  activation: 0.4
+  stage: embryo
+  synapse_in: 0
+  synapse_out: 2
 ---
 
 # Model Card: [Model Name]

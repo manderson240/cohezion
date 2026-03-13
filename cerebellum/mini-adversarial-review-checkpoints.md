@@ -4,9 +4,10 @@ date: 2026-02-14
 tags: [pattern, quality-assurance]
 aspect: thinker
 neural:
-  activation: 0.696
+  activation: 0.91
   stage: mature
-  cluster: patterns
+  synapse_in: 17
+  synapse_out: 10
 ---
 # Mini-Adversarial Review Checkpoints
 

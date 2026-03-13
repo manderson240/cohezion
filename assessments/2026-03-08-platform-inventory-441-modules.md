@@ -2,6 +2,11 @@
 title: COHEZION Platform Inventory (441 Modules)
 date: 2026-03-08
 tags: [inventory, architecture, assessment]
+neural:
+  activation: 0.54
+  stage: embryo
+  synapse_in: 0
+  synapse_out: 0
 ---
 
 # Platform Inventory - March 2026

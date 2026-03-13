@@ -31,9 +31,10 @@ metrics:
     - "lessons/lesson-implementation-first-infrastructure-later"
 aspect: thinker
 neural:
-  activation: 0.668
+  activation: 0.93
   stage: mature
-  cluster: decisions
+  synapse_in: 10
+  synapse_out: 14
 ---
 
 # Token-Efficient Kyutai Pocket TTS Implementation - SUCCESS

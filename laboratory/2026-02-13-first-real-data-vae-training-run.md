@@ -5,9 +5,10 @@ status: complete
 tags: [experiment, vae, training, meta-learning, experience-feedback]
 aspect: thinker
 neural:
-  activation: 0.626
+  activation: 0.86
   stage: mature
-  cluster: experiments
+  synapse_in: 3
+  synapse_out: 16
 ---
 
 # First Real-Data VAE Training Run

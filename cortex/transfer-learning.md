@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [concept, machine-learning, deep-learning, ai]
 aspect: knower
 neural:
-  activation: 0.652
+  activation: 0.98
   stage: mature
-  cluster: concepts
+  synapse_in: 13
+  synapse_out: 16
 ---
 
 # Transfer Learning

@@ -10,9 +10,10 @@ provider: anthropic
 model_id: "claude-haiku-4-5-20251001"
 aspect: knower
 neural:
-  activation: 0.451
+  activation: 0.69
   stage: growing
-  cluster: specs
+  synapse_in: 4
+  synapse_out: 3
 ---
 
 # Model Card: Claude Haiku 4.5

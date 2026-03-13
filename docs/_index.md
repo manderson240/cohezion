@@ -2,6 +2,11 @@
 title: "Docs — Directory Index"
 purpose: "Long-form documentation, brand guides, setup guides, and implementation plans"
 type: directory-index
+neural:
+  activation: 0.37
+  stage: growing
+  synapse_in: 0
+  synapse_out: 5
 ---
 
 # Docs

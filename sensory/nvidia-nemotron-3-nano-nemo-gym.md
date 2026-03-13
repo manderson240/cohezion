@@ -10,9 +10,10 @@ similar_papers:
 source: https://huggingface.co/blog/nvidia/nemotron-3-nano-efficient-open-intelligent-models
 aspect: knower
 neural:
-  activation: 0.584
-  stage: growing
-  cluster: papers
+  activation: 0.85
+  stage: mature
+  synapse_in: 6
+  synapse_out: 16
 ---
 
 ## Summary

@@ -4,9 +4,10 @@ date: 2026-02-12
 tags: [pattern]
 aspect: thinker
 neural:
-  activation: 0.595
+  activation: 0.82
   stage: growing
-  cluster: patterns
+  synapse_in: 8
+  synapse_out: 4
 ---
 # PRIME Skill Creation: Governance Pattern
 

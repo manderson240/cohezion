@@ -4,9 +4,10 @@ date: "2026-02-08"
 tags: [pattern, agent-architecture, prompt-engineering, extracted-from-bmad]
 aspect: thinker
 neural:
-  activation: 0.518
+  activation: 0.8
   stage: mature
-  cluster: patterns
+  synapse_in: 9
+  synapse_out: 12
 ---
 
 ## Problem

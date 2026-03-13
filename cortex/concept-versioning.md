@@ -4,9 +4,10 @@ date: 2026-02-19
 tags: [concept, knowledge-management, vault-architecture, semantic-web]
 aspect: knower
 neural:
-  activation: 0.523
-  stage: growing
-  cluster: concepts
+  activation: 1.0
+  stage: mature
+  synapse_in: 10
+  synapse_out: 14
 ---
 
 # Concept Versioning

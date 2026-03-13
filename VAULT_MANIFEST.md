@@ -3,6 +3,11 @@ title: "Vault Manifest — The Triune Self"
 date: 2026-03-09
 tags: [manifest, navigation, agent-onboarding, triune-self]
 purpose: Machine-readable vault map for agent session startup
+neural:
+  activation: 0.74
+  stage: mature
+  synapse_in: 3
+  synapse_out: 12
 ---
 
 # Vault Manifest

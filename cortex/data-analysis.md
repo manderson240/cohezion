@@ -5,9 +5,10 @@ tags: [domain, data-science, methodology]
 status: active
 aspect: knower
 neural:
-  activation: 0.633
+  activation: 0.87
   stage: mature
-  cluster: concepts
+  synapse_in: 14
+  synapse_out: 14
 ---
 
 ## Definition

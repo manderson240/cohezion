@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [concept, machine-learning, reinforcement-learning, optimization, agent-training]
 aspect: knower
 neural:
-  activation: 0.636
+  activation: 0.97
   stage: mature
-  cluster: concepts
+  synapse_in: 26
+  synapse_out: 15
 ---
 
 # Reinforcement Learning

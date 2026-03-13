@@ -5,9 +5,10 @@ status: complete
 tags: [completion-summary, phases-4b-7, deliverables, specifications, adversarial-review]
 aspect: doer
 neural:
-  activation: 0.876
+  activation: 1.0
   stage: mature
-  cluster: projects
+  synapse_in: 3
+  synapse_out: 14
 ---
 
 # Completion Summary: Phases 4B-7 Project

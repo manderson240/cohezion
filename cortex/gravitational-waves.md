@@ -5,9 +5,10 @@ tags: [concept, astrophysics, physics, black-holes]
 related_concepts: [black-holes, dark-matter, anomaly-detection]
 aspect: knower
 neural:
-  activation: 0.631
+  activation: 0.92
   stage: mature
-  cluster: concepts
+  synapse_in: 19
+  synapse_out: 18
 ---
 ## Definition
 

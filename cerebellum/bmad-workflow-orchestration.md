@@ -4,9 +4,10 @@ date: "2026-02-08"
 tags: [pattern, workflow, orchestration, extracted-from-bmad]
 aspect: thinker
 neural:
-  activation: 0.517
+  activation: 0.75
   stage: mature
-  cluster: patterns
+  synapse_in: 8
+  synapse_out: 12
 ---
 
 ## Problem

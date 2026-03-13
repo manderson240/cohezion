@@ -6,9 +6,10 @@ title: "Walkthrough: USD and Visualization Implementation"
 tags: [agent-output, antigravity, visualization]
 aspect: doer
 neural:
-  activation: 0.608
+  activation: 0.91
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 4
 ---
 
 # Overnight Autonomous Research Sprint - Walkthrough

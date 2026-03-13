@@ -6,9 +6,10 @@ status: complete
 duration: 5 minutes
 aspect: doer
 neural:
-  activation: 0.478
+  activation: 0.71
   stage: growing
-  cluster: retrospectives
+  synapse_in: 9
+  synapse_out: 12
 ---
 
 # Telemetry Corruption Fix

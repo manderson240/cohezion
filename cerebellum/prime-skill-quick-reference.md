@@ -4,9 +4,10 @@ date: 2026-02-23
 tags: [pattern]
 aspect: thinker
 neural:
-  activation: 0.579
+  activation: 0.81
   stage: growing
-  cluster: patterns
+  synapse_in: 5
+  synapse_out: 4
 ---
 # PRIME Skill Quick Reference (Session 56)
 

@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, consciousness, quantum-gravity, microtubules]
 aspect: knower
 neural:
-  activation: 0.700
-  stage: growing
-  cluster: concepts
+  activation: 0.89
+  stage: mature
+  synapse_in: 2
+  synapse_out: 10
 ---
 
 # Orchestrated Objective Reduction (ORCH OR)

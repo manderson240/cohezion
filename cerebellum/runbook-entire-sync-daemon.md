@@ -5,9 +5,10 @@ status: active
 tags: [runbook, operations, entire-io, daemon]
 aspect: thinker
 neural:
-  activation: 0.571
+  activation: 0.8
   stage: mature
-  cluster: patterns
+  synapse_in: 10
+  synapse_out: 10
 ---
 
 # Runbook: Entire.io Sync Daemon

@@ -5,9 +5,10 @@ status: inbox
 tags: [12d-graph, phase-2, research-gaps, analysis]
 aspect: thinker
 neural:
-  activation: 0.739
+  activation: 1.0
   stage: mature
-  cluster: experiments
+  synapse_in: 2
+  synapse_out: 21
 ---
 
 # Research Gaps Analysis

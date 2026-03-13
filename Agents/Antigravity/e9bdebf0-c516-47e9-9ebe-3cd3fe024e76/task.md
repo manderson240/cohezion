@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Task"
 aspect: doer
 neural:
-  activation: 0.285
+  activation: 0.48
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 0
 ---
 
 # Task: Identify logo.png prompt

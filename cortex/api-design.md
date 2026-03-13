@@ -5,9 +5,10 @@ tags: [concept, mcp-model-context-protocol, tool-use, compound-engineering]
 related_concepts: [mcp-model-context-protocol, tool-use, cloud-vault-mcp, workflow-orchestration]
 aspect: knower
 neural:
-  activation: 0.682
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 34
+  synapse_out: 19
 ---
 ## Definition
 

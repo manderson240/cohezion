@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [songline, dreaming, cross-domain]
 aspect: connective
 neural:
-  activation: 0.800
+  activation: 0.94
   stage: growing
-  cluster: songlines
+  synapse_in: 1
+  synapse_out: 25
 ---
 
 # Songlines Discovered — 2026-03-09

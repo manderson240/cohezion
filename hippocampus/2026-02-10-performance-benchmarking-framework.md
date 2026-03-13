@@ -5,9 +5,10 @@ status: in-progress
 tags: [performance, benchmarking, kyutai, phase-4]
 aspect: doer
 neural:
-  activation: 0.487
+  activation: 0.72
   stage: growing
-  cluster: daily
+  synapse_in: 3
+  synapse_out: 0
 ---
 
 # Performance Benchmarking Framework - Phase 4 Kickoff

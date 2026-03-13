@@ -32,9 +32,10 @@ metrics:
     - "patterns/entire-io-integration-already-active"
 aspect: thinker
 neural:
-  activation: 0.457
+  activation: 0.75
   stage: growing
-  cluster: decisions
+  synapse_in: 2
+  synapse_out: 6
 ---
 
 # Session 55: Phase A Investigation Complete - All Blockers Resolved ✅

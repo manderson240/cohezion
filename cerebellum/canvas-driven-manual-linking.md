@@ -5,9 +5,10 @@ status: active
 tags: [pattern, vault-enrichment, compound-engineering, token-efficiency]
 aspect: thinker
 neural:
-  activation: 0.790
+  activation: 0.96
   stage: mature
-  cluster: patterns
+  synapse_in: 14
+  synapse_out: 18
 ---
 
 # Canvas-Driven Manual Linking Pattern

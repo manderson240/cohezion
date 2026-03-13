@@ -5,9 +5,10 @@ tags: [time-series, foundation-models, forecasting, ai, autonomous-forecasting, 
 source: https://machinelearningmastery.com/the-2026-time-series-toolkit-5-foundation-models-for-autonomous-forecasting/
 aspect: knower
 neural:
-  activation: 0.604
+  activation: 0.84
   stage: mature
-  cluster: papers
+  synapse_in: 1
+  synapse_out: 10
 ---
 
 # 2026 Time Series Foundation Models for Autonomous Forecasting

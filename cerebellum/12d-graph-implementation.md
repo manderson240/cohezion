@@ -5,9 +5,10 @@ status: in-progress
 tags: [pattern, 12d-graph, compound-engineering, phase-1]
 aspect: thinker
 neural:
-  activation: 0.643
+  activation: 0.86
   stage: mature
-  cluster: patterns
+  synapse_in: 22
+  synapse_out: 14
 ---
 
 # 12D Graph Implementation - Token-Efficient Plan

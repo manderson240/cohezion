@@ -2,6 +2,11 @@
 title: "Teleport — Directory Index"
 purpose: "Cloud-to-local file synchronization tasks and their results"
 type: directory-index
+neural:
+  activation: 0.3
+  stage: embryo
+  synapse_in: 0
+  synapse_out: 0
 ---
 
 # Teleport

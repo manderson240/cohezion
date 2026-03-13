@@ -5,9 +5,10 @@ tags: [concept, agent-loop-architecture, context-management, multi-agent-systems
 related_concepts: [agent-loop-architecture, multi-agent-systems, mcp-model-context-protocol, compound-engineering, agent-architecture]
 aspect: knower
 neural:
-  activation: 0.753
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 39
+  synapse_out: 44
 ---
 
 ## Definition

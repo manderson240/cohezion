@@ -4,9 +4,10 @@ date: 2026-02-26
 tags: [mission, research-pipeline, multi-agent, workflow-orchestration]
 aspect: doer
 neural:
-  activation: 0.584
-  stage: growing
-  cluster: missions
+  activation: 0.77
+  stage: mature
+  synapse_in: 5
+  synapse_out: 14
 ---
 
 # Research Pipeline Mission — 2026-02-26

@@ -4,9 +4,10 @@ date: 2026-02-10
 tags: [daily, comparison, risk-assessment]
 aspect: doer
 neural:
-  activation: 0.594
+  activation: 0.83
   stage: growing
-  cluster: daily
+  synapse_in: 2
+  synapse_out: 1
 ---
 
 # PLAN vs REALITY COMPARISON

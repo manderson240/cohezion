@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, quantum-mechanics, atomic-physics, spectroscopy, history-of-science]
 aspect: knower
 neural:
-  activation: 0.700
+  activation: 1.0
   stage: growing
-  cluster: concepts
+  synapse_in: 4
+  synapse_out: 7
 ---
 
 # Bohr Model of the Atom

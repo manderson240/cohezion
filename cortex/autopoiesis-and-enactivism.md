@@ -4,9 +4,10 @@ date: 2026-03-10
 tags: [concept, biology, philosophy, consciousness, systems-theory, cognition, TOE]
 aspect: knower
 neural:
-  activation: 0.700
-  stage: growing
-  cluster: concepts
+  activation: 0.94
+  stage: mature
+  synapse_in: 6
+  synapse_out: 11
 ---
 
 # Autopoiesis and Enactivism

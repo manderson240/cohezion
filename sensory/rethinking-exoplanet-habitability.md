@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.24
 aspect: knower
 neural:
-  activation: 0.596
-  stage: growing
-  cluster: papers
+  activation: 0.83
+  stage: mature
+  synapse_in: 6
+  synapse_out: 15
 ---
 # Rethinking Exoplanet Habitability
 

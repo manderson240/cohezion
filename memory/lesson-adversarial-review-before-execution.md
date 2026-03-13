@@ -8,9 +8,10 @@ source: decisions/2026-02-10-log-mining-adversarial-review.md
 status: validated
 aspect: knower
 neural:
-  activation: 0.689
+  activation: 0.92
   stage: mature
-  cluster: lessons
+  synapse_in: 14
+  synapse_out: 12
 ---
 
 # Lesson: Adversarial Review Before Execution Prevents Wasted Effort

@@ -8,9 +8,10 @@ tags: [ruff, pre-commit, hooks, git, formatting]
 status: validated
 aspect: knower
 neural:
-  activation: 0.468
+  activation: 0.71
   stage: growing
-  cluster: lessons
+  synapse_in: 6
+  synapse_out: 5
 ---
 
 # Lesson: Ruff Pre-Commit Hook Conflicts: Hook Order and Auto-Fix Staging

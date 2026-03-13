@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.24
 aspect: knower
 neural:
-  activation: 0.462
+  activation: 0.73
   stage: growing
-  cluster: papers
+  synapse_in: 8
+  synapse_out: 10
 ---
 # Anthropic MCP Apps - Claude as Workplace Command Center
 

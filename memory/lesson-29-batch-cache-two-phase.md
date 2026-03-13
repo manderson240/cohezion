@@ -8,9 +8,10 @@ tags: [caching, batch-processing, optimization, patterns]
 status: validated
 aspect: knower
 neural:
-  activation: 0.551
+  activation: 0.79
   stage: growing
-  cluster: lessons
+  synapse_in: 11
+  synapse_out: 9
 ---
 
 # Lesson: Batch Cache Two-Phase Pattern: Check Cache Before Compute

@@ -4,9 +4,10 @@ date: 2026-02-19
 tags: [concept, materials-science, nanotechnology, fabrication]
 aspect: knower
 neural:
-  activation: 0.475
+  activation: 0.82
   stage: growing
-  cluster: concepts
+  synapse_in: 3
+  synapse_out: 9
 ---
 
 # Synthesis Methods

@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [concept, ai-ethics, fairness, governance, ml-systems]
 aspect: knower
 neural:
-  activation: 0.530
+  activation: 0.77
   stage: mature
-  cluster: concepts
+  synapse_in: 5
+  synapse_out: 10
 ---
 
 # Responsible AI

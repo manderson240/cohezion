@@ -45,9 +45,10 @@ metrics:
   tests_failing: 0
 aspect: thinker
 neural:
-  activation: 0.471
+  activation: 0.71
   stage: growing
-  cluster: decisions
+  synapse_in: 3
+  synapse_out: 6
 ---
 
 ## Context

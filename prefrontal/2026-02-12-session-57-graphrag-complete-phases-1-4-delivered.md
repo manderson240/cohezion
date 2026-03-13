@@ -5,9 +5,10 @@ status: accepted
 tags: [decision, graphrag, surrealdb, compound-engineering, session-record]
 aspect: thinker
 neural:
-  activation: 0.489
+  activation: 0.73
   stage: growing
-  cluster: decisions
+  synapse_in: 2
+  synapse_out: 8
 ---
 
 # Session 57 GraphRAG Complete — Phases 1-4 Delivered

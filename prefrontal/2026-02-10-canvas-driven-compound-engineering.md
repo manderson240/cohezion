@@ -28,9 +28,10 @@ metrics:
     - "lessons/lesson-canvas-driven-knowledge-organization"
 aspect: thinker
 neural:
-  activation: 0.915
+  activation: 1.0
   stage: mature
-  cluster: decisions
+  synapse_in: 10
+  synapse_out: 18
 ---
 
 # Canvas-Driven Compound Engineering

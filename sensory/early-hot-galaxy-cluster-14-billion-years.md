@@ -5,9 +5,10 @@ tags: [astrophysics, cosmology, galaxy-clusters, early-universe, nature]
 source: https://search.app/Aso8U
 aspect: knower
 neural:
-  activation: 0.546
+  activation: 0.81
   stage: mature
-  cluster: papers
+  synapse_in: 10
+  synapse_out: 13
 ---
 
 ## Summary

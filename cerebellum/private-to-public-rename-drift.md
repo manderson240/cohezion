@@ -4,9 +4,10 @@ date: 2026-02-23
 tags: [pattern]
 aspect: thinker
 neural:
-  activation: 0.464
+  activation: 0.66
   stage: growing
-  cluster: patterns
+  synapse_in: 6
+  synapse_out: 8
 ---
 # Pattern: Private-to-Public Method Rename Drift
 

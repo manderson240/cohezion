@@ -6,9 +6,10 @@ related_concepts: [compound-engineering, meta-learning, agent-journey-tracking, 
 status: active
 aspect: knower
 neural:
-  activation: 0.719
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 63
+  synapse_out: 25
 ---
 
 # Experience Feedback Loop

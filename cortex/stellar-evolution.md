@@ -4,9 +4,10 @@ date: 2026-02-19
 tags: [concept]
 aspect: knower
 neural:
-  activation: 0.561
+  activation: 0.95
   stage: growing
-  cluster: concepts
+  synapse_in: 21
+  synapse_out: 16
 ---
 ## Definition
 

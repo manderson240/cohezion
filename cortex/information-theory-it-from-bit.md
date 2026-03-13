@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, information-theory, holographic-principle, quantum-gravity]
 aspect: knower
 neural:
-  activation: 0.750
-  stage: growing
-  cluster: concepts
+  activation: 1.0
+  stage: mature
+  synapse_in: 28
+  synapse_out: 20
 ---
 
 # Information Theory — It from Bit and the Holographic Principle

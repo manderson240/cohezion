@@ -7,9 +7,10 @@ duration: 25 minutes
 cost: $0
 aspect: doer
 neural:
-  activation: 0.568
+  activation: 0.79
   stage: mature
-  cluster: retrospectives
+  synapse_in: 3
+  synapse_out: 12
 ---
 
 # Log Mining Retrospective

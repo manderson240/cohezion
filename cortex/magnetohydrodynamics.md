@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, plasma, fluid-dynamics, electromagnetism, astrophysics]
 aspect: knower
 neural:
-  activation: 0.700
-  stage: growing
-  cluster: concepts
+  activation: 1.0
+  stage: mature
+  synapse_in: 13
+  synapse_out: 10
 ---
 
 # Magnetohydrodynamics

@@ -8,9 +8,10 @@ card_type: system
 status: active
 aspect: knower
 neural:
-  activation: 0.506
+  activation: 0.74
   stage: growing
-  cluster: specs
+  synapse_in: 4
+  synapse_out: 6
 ---
 
 # System Card: Ollama

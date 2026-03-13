@@ -5,9 +5,10 @@ status: in-progress
 tags: [daily, kyutai, execution, wave-1]
 aspect: doer
 neural:
-  activation: 0.382
+  activation: 0.62
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 ## 🚀 Execution Status: LIVE

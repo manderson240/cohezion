@@ -4,9 +4,10 @@ purpose: "Research papers, external sources, and technical references"
 type: directory-index
 aspect: knower
 neural:
-  activation: 0.393
+  activation: 0.39
   stage: growing
-  cluster: papers
+  synapse_in: 0
+  synapse_out: 6
 ---
 
 # Papers

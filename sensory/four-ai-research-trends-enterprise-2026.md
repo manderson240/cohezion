@@ -5,9 +5,10 @@ tags: [ai, enterprise, agents, world-models, continual-learning, orchestration, 
 source: https://venturebeat.com/technology/four-ai-research-trends-enterprise-teams-should-watch-in-2026
 aspect: knower
 neural:
-  activation: 0.662
+  activation: 0.89
   stage: mature
-  cluster: papers
+  synapse_in: 4
+  synapse_out: 12
 ---
 
 # Four AI Research Trends for Enterprise 2026

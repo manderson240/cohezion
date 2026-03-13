@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, mathematics, quantum-gravity, geometry]
 aspect: knower
 neural:
-  activation: 0.700
+  activation: 0.91
   stage: growing
-  cluster: concepts
+  synapse_in: 5
+  synapse_out: 6
 ---
 
 # Penrose Twistors

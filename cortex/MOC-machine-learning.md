@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [moc, navigation, machine-learning]
 aspect: knower
 neural:
-  activation: 0.696
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 9
+  synapse_out: 38
 ---
 
 # Map of Content — Machine Learning

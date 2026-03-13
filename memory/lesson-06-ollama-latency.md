@@ -7,9 +7,10 @@ tags: [ollama, latency, model-loading, performance]
 status: validated
 aspect: knower
 neural:
-  activation: 0.409
+  activation: 0.69
   stage: growing
-  cluster: lessons
+  synapse_in: 9
+  synapse_out: 6
 ---
 
 # Lesson: Ollama Latency Spikes: Cold Start and Model Load Times Must Be Budgeted

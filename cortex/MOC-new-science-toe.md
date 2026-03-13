@@ -3,6 +3,11 @@ title: "MOC — New Science & Theory of Everything"
 date: 2026-03-11
 tags: [moc, navigation, TOE, new-science, physics, evo, quadrature]
 aspect: knower
+neural:
+  activation: 1.0
+  stage: mature
+  synapse_in: 3
+  synapse_out: 60
 ---
 
 # Map of Content — New Science & Theory of Everything

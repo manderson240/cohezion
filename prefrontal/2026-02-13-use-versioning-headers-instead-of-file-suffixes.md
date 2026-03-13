@@ -5,9 +5,10 @@ status: accepted
 tags: [decision, versioning, vault, file-management]
 aspect: thinker
 neural:
-  activation: 0.462
+  activation: 0.7
   stage: growing
-  cluster: decisions
+  synapse_in: 1
+  synapse_out: 6
 ---
 
 # Use Versioning Headers Instead of File Suffixes

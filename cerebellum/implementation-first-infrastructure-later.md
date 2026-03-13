@@ -5,9 +5,10 @@ status: "validated"
 tags: [pattern, token-efficiency, compound-engineering, methodology]
 aspect: thinker
 neural:
-  activation: 0.671
+  activation: 0.9
   stage: mature
-  cluster: patterns
+  synapse_in: 1
+  synapse_out: 15
 ---
 
 ## Problem

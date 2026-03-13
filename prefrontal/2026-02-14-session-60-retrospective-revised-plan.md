@@ -5,9 +5,10 @@ status: accepted
 tags: [retrospective, plan, key-learnings, phase-4]
 aspect: thinker
 neural:
-  activation: 0.586
+  activation: 0.82
   stage: growing
-  cluster: decisions
+  synapse_in: 3
+  synapse_out: 8
 ---
 
 # Session 60 Retrospective + Revised Plan

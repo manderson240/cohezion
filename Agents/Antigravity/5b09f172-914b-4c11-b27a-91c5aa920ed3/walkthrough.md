@@ -6,9 +6,10 @@ title: "Walkthrough: Repo Health Management"
 tags: [agent-output, antigravity, repository-management]
 aspect: doer
 neural:
-  activation: 0.448
+  activation: 0.73
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 2
 ---
 
 # 🛡️ Autonomous Repo Health Management & Branching

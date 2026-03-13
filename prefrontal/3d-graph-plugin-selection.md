@@ -24,9 +24,10 @@ decision_reasoning:
   confidence_score: 0.6
 aspect: thinker
 neural:
-  activation: 0.671
+  activation: 0.94
   stage: mature
-  cluster: decisions
+  synapse_in: 20
+  synapse_out: 13
 ---
 
 # 3D Graph Plugin Selection Decision

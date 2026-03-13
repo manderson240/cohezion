@@ -5,9 +5,10 @@ status: complete
 tags: [experiment, retrospective, session-management, compound-engineering]
 aspect: thinker
 neural:
-  activation: 0.652
+  activation: 0.88
   stage: growing
-  cluster: experiments
+  synapse_in: 1
+  synapse_out: 21
 ---
 
 # Session 56 Retrospective and Plan Refinement

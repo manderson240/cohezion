@@ -5,9 +5,10 @@ tags: [concept, token-efficiency, semantic-search, compound-engineering]
 related_concepts: [semantic-search, token-efficiency-patterns, machine-learning-optimization, context-management]
 aspect: knower
 neural:
-  activation: 0.561
+  activation: 0.9
   stage: mature
-  cluster: concepts
+  synapse_in: 9
+  synapse_out: 12
 ---
 ## Definition
 

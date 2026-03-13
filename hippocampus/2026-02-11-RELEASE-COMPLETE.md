@@ -5,9 +5,10 @@ status: completed
 tags: [daily, kyutai, phase-5, release-complete, marketplace-live]
 aspect: doer
 neural:
-  activation: 0.523
+  activation: 0.76
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # 🎉 KYUTAI v0.1.0-alpha - PHASE 5 RELEASE COMPLETE

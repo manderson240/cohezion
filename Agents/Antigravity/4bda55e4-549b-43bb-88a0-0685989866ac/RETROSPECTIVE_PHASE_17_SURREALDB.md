@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Retrospective Phase 17 Surrealdb"
 aspect: doer
 neural:
-  activation: 0.385
+  activation: 0.67
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 1
 ---
 
 # RETROSPECTIVE: Phase 17 - The SurrealDB Mass Ingestion

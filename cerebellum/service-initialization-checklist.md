@@ -5,9 +5,10 @@ status: active
 tags: [pattern, architecture, obsidian-plugin, lifecycle, compound-engineering]
 aspect: thinker
 neural:
-  activation: 0.595
+  activation: 0.87
   stage: mature
-  cluster: patterns
+  synapse_in: 5
+  synapse_out: 11
 ---
 
 # Service Initialization Checklist

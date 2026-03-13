@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, mathematics, symmetry, conservation-laws, variational-calculus]
 aspect: knower
 neural:
-  activation: 0.700
+  activation: 0.99
   stage: growing
-  cluster: concepts
+  synapse_in: 8
+  synapse_out: 7
 ---
 
 # Noether's Theorem

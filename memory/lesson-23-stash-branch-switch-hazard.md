@@ -8,9 +8,10 @@ tags: [git, stash, branch-switching, workflow]
 status: validated
 aspect: knower
 neural:
-  activation: 0.433
+  activation: 0.68
   stage: growing
-  cluster: lessons
+  synapse_in: 6
+  synapse_out: 3
 ---
 
 # Lesson: Git Stash Branch Switch Hazard: Stashes Have No Branch Affinity

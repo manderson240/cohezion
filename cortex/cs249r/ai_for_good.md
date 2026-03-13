@@ -4,9 +4,10 @@ source: cs249r/core/ai_for_good
 date: 2026-02-18
 aspect: knower
 neural:
-  activation: 0.425
+  activation: 0.71
   stage: growing
-  cluster: concepts
+  synapse_in: 6
+  synapse_out: 8
 ---
 
 # Ai For Good

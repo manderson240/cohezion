@@ -5,9 +5,10 @@ status: guide
 tags: [governance, claude-code, platform-health, guide, summary]
 aspect: thinker
 neural:
-  activation: 0.743
+  activation: 0.97
   stage: growing
-  cluster: decisions
+  synapse_in: 4
+  synapse_out: 9
 ---
 
 # Platform Codification: Complete 3-Layer System

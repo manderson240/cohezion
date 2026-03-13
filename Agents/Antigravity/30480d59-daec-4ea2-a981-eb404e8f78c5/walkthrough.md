@@ -6,9 +6,10 @@ title: "Walkthrough: Recovering from Initial Memory Loss"
 tags: [agent-output, antigravity, memory-recovery, context-management]
 aspect: doer
 neural:
-  activation: 0.429
+  activation: 0.75
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 5
 ---
 
 # Walkthrough: Memory Recovery Protocol (MRP) Implementation

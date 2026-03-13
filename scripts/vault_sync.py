@@ -161,6 +161,27 @@ def content_hash(text: str) -> str:
     return hashlib.sha256(text.encode()).hexdigest()[:16]
 
 
+# Regex to match the neural: YAML block (including indented sub-keys)
+_NEURAL_BLOCK_RE = re.compile(
+    r"^neural:\s*\n(?:[ \t]+\S.*\n)*",
+    re.MULTILINE,
+)
+
+
+def content_hash_sans_neural(text: str) -> str:
+    """Hash file content excluding the neural: frontmatter block.
+
+    This prevents feedback loops: write-back updates neural: fields,
+    inotify fires, but this hash stays the same → sync_file() skips.
+    """
+    stripped = _NEURAL_BLOCK_RE.sub("", text)
+    return hashlib.sha256(stripped.encode()).hexdigest()[:16]
+
+
+# Paths recently written by NeuralWriteBack — sync_file() skips these
+_writeback_paths: set[str] = set()
+
+
 # ─── SurrealDB Client ───────────────────────────────────────────────────────
 
 import urllib.request
@@ -249,8 +270,13 @@ def sync_file(db: SurrealClient, abs_path: str, checkpoint: dict | None = None,
     except OSError:
         return False
 
-    # Content hash check — skip if unchanged
-    chash = content_hash(text)
+    # Skip if this file was just written by NeuralWriteBack
+    if rel_path in _writeback_paths:
+        _writeback_paths.discard(rel_path)
+        return True
+
+    # Content hash check — skip if unchanged (excludes neural: block)
+    chash = content_hash_sans_neural(text)
     if checkpoint is not None:
         ckpt_entry = checkpoint.get(rel_path)
         if isinstance(ckpt_entry, dict) and ckpt_entry.get("hash") == chash:
@@ -266,8 +292,6 @@ def sync_file(db: SurrealClient, abs_path: str, checkpoint: dict | None = None,
 
     directory = rel_path.split("/")[0] if "/" in rel_path else ""
     aspect = DIR_TO_ASPECT.get(directory, "connective")
-    activation = compute_activation(word_count, len(links), days_since)
-    stage = compute_stage(len(links), word_count, activation, days_since)
 
     title = fm.get("title", fpath.stem.replace("-", " ").title())
     tags = fm.get("tags", [])
@@ -282,13 +306,18 @@ def sync_file(db: SurrealClient, abs_path: str, checkpoint: dict | None = None,
     else:
         nid = f"neuron:`{sanitize_id(rel_path)}`"
 
-    # Check if existing neuron has an older activation we should boost
+    # Activation: SurrealDB owns this field. On edit, boost existing value.
+    # Only compute from file stats for NEW neurons (first sync).
     if existing_nid:
-        old = db.query_result(f"SELECT activation FROM {nid} LIMIT 1;")
+        old = db.query_result(f"SELECT activation, stage FROM {nid} LIMIT 1;")
         if old:
-            old_act = old[0].get("activation", 0)
-            # Bump activation on edit: at least +0.05, capped at 1.0
-            activation = min(1.0, max(activation, old_act + 0.05))
+            old_act = old[0].get("activation", 0.5)
+            activation = min(1.0, old_act + 0.1)
+        else:
+            activation = compute_activation(word_count, len(links), days_since)
+    else:
+        activation = compute_activation(word_count, len(links), days_since)
+    stage = compute_stage(len(links), word_count, activation, days_since)
 
     # 1. Upsert neuron
     sql = (
@@ -747,6 +776,152 @@ class GraphReactor:
         return gaps
 
 
+# ─── Neural Write-Back (Phase 4: SurrealDB → Vault Frontmatter) ──────────────
+
+WRITEBACK_THROTTLE_SECS = 300  # 5 minutes
+
+
+class NeuralWriteBack:
+    """Writes SurrealDB-owned fields back to vault frontmatter neural: blocks.
+
+    Domain ownership: SurrealDB owns activation, stage, synapse_in, synapse_out.
+    This class reads those values and updates the neural: YAML block in each note.
+    """
+
+    def __init__(self, db: SurrealClient):
+        self.db = db
+        self._last_run = 0.0
+
+    def maybe_run(self, force: bool = False) -> bool:
+        now = time.time()
+        if not force and now - self._last_run < WRITEBACK_THROTTLE_SECS:
+            return False
+        self._last_run = now
+        return self._run()
+
+    def _run(self) -> bool:
+        try:
+            neurons = self.db.query_result(
+                "SELECT path, activation, stage, synapse_in, synapse_out "
+                "FROM neuron;"
+            )
+        except Exception as e:
+            print(f"NeuralWriteBack query error: {e}", file=sys.stderr)
+            return False
+
+        if not neurons:
+            return False
+
+        updated = 0
+        for n in neurons:
+            path = n.get("path", "")
+            if not path:
+                continue
+            fpath = VAULT_ROOT / path
+            if not fpath.is_file():
+                continue
+
+            new_neural = {
+                "activation": round(float(n.get("activation", 0)), 2),
+                "stage": str(n.get("stage", "embryo")),
+                "synapse_in": int(n.get("synapse_in", 0)),
+                "synapse_out": int(n.get("synapse_out", 0)),
+            }
+
+            try:
+                text = fpath.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+
+            current_neural = self._parse_neural_block(text)
+            if current_neural == new_neural:
+                continue  # No change — skip
+
+            new_text = self._update_neural_block(text, new_neural)
+            if new_text == text:
+                continue  # Update failed (no frontmatter?) — skip
+
+            # Mark as writeback so sync_file() skips the inotify event
+            _writeback_paths.add(path)
+
+            try:
+                fpath.write_text(new_text, encoding="utf-8")
+                updated += 1
+            except OSError as e:
+                print(f"  WARN writeback {path}: {e}", file=sys.stderr)
+                _writeback_paths.discard(path)
+
+        if updated > 0:
+            print(f"Neural write-back: {updated} files updated", file=sys.stderr)
+        return updated > 0
+
+    @staticmethod
+    def _parse_neural_block(text: str) -> dict:
+        """Extract current neural: values from frontmatter."""
+        if not text.startswith("---"):
+            return {}
+        end = text.find("---", 3)
+        if end == -1:
+            return {}
+        fm_text = text[3:end]
+
+        result = {}
+        in_neural = False
+        for line in fm_text.split("\n"):
+            if line.startswith("neural:"):
+                in_neural = True
+                continue
+            if in_neural:
+                if line.startswith("  ") or line.startswith("\t"):
+                    key, _, val = line.strip().partition(":")
+                    key = key.strip()
+                    val = val.strip()
+                    if key in ("activation", "synapse_in", "synapse_out"):
+                        try:
+                            result[key] = (
+                                round(float(val), 2)
+                                if key == "activation"
+                                else int(val)
+                            )
+                        except (ValueError, TypeError):
+                            pass
+                    elif key == "stage":
+                        result[key] = val.strip('"').strip("'")
+                else:
+                    in_neural = False  # End of neural block
+        return result
+
+    @staticmethod
+    def _update_neural_block(text: str, neural: dict) -> str:
+        """Replace or insert the neural: block in frontmatter."""
+        if not text.startswith("---"):
+            return text
+        end = text.find("---", 3)
+        if end == -1:
+            return text
+
+        fm_text = text[3:end]
+        body = text[end:]  # Includes the closing ---
+
+        neural_yaml = (
+            "neural:\n"
+            f"  activation: {neural['activation']}\n"
+            f"  stage: {neural['stage']}\n"
+            f"  synapse_in: {neural['synapse_in']}\n"
+            f"  synapse_out: {neural['synapse_out']}\n"
+        )
+
+        # Remove existing neural: block if present
+        cleaned = _NEURAL_BLOCK_RE.sub("", fm_text)
+
+        # Insert neural block at end of frontmatter (before closing ---)
+        # Ensure there's a newline before neural block
+        if not cleaned.endswith("\n"):
+            cleaned += "\n"
+
+        return "---" + cleaned + neural_yaml + body
+
+
 # ─── inotify Watcher ─────────────────────────────────────────────────────────
 
 class InotifyWatcher:
@@ -798,9 +973,10 @@ class InotifyWatcher:
 
 
 def watch_vault(db: SurrealClient, quiet: bool = False):
-    """Event-driven vault watcher using inotify + graph reactor."""
+    """Event-driven vault watcher using inotify + graph reactor + neural write-back."""
     checkpoint = load_checkpoint()
     reactor = GraphReactor(db)
+    writeback = NeuralWriteBack(db)
 
     # Set up inotify watches FIRST — before initial sync, so we don't miss
     # events that occur during the sync window
@@ -914,6 +1090,11 @@ def watch_vault(db: SurrealClient, quiet: bool = False):
                 if not quiet:
                     print("Graph reactor: alerts updated", file=sys.stderr)
 
+        # Phase 4: Neural write-back — SurrealDB computed state → vault frontmatter
+        if writeback.maybe_run():
+            if not quiet:
+                print("Neural write-back: frontmatter updated", file=sys.stderr)
+
     watcher.close()
     save_checkpoint(checkpoint)
     print(f"Stopped. {len(checkpoint)} files in checkpoint.", file=sys.stderr)
@@ -942,6 +1123,12 @@ def main():
             print(f"Alerts written to {ALERTS_FILE}", file=sys.stderr)
         else:
             print("No changes detected", file=sys.stderr)
+
+    elif "--writeback" in sys.argv:
+        print("Running neural write-back...", file=sys.stderr)
+        wb = NeuralWriteBack(db)
+        wb.maybe_run(force=True)
+        print("Write-back complete", file=sys.stderr)
 
     elif "--full-import" in sys.argv:
         print(f"Full import from {VAULT_ROOT}", file=sys.stderr)

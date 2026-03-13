@@ -7,9 +7,10 @@ aliases: ["AI Context Hooks", "Vault Auto-Sync", "Claude Code Obsidian Integrati
 status: complete
 aspect: knower
 neural:
-  activation: 0.874
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 7
+  synapse_out: 21
 ---
 
 # Autonomous Context Hooks for AI Agents

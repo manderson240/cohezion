@@ -5,9 +5,10 @@ domain: mcp-integration
 tags: [asgi, fastmcp, python, server-framework, builder-pattern]
 aspect: thinker
 neural:
-  activation: 0.444
+  activation: 0.67
   stage: growing
-  cluster: patterns
+  synapse_in: 5
+  synapse_out: 4
 ---
 
 # Pattern: FastMCP ASGI Builder Pattern

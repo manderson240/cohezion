@@ -5,9 +5,10 @@ tags: [data-governance, safety, storage, pattern]
 status: active
 aspect: knower
 neural:
-  activation: 0.577
+  activation: 0.91
   stage: mature
-  cluster: concepts
+  synapse_in: 7
+  synapse_out: 11
 ---
 
 # Safe Persistent Storage Lifecycle

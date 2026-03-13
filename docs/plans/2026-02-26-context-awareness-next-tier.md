@@ -4,6 +4,11 @@ date: 2026-02-26
 status: PENDING
 tags: [plan, cohezion-engine, context, compound-engineering]
 Worktree: Yes
+neural:
+  activation: 0.89
+  stage: growing
+  synapse_in: 2
+  synapse_out: 5
 ---
 
 # Context Awareness — Next Tier

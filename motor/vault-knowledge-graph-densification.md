@@ -6,9 +6,10 @@ priority: high
 tags: [project, knowledge-graph, compound-engineering, vault-quality]
 aspect: doer
 neural:
-  activation: 0.775
+  activation: 0.95
   stage: mature
-  cluster: projects
+  synapse_in: 17
+  synapse_out: 14
 ---
 
 ## Overview

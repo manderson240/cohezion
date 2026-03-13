@@ -5,9 +5,10 @@ status: complete
 tags: [session-61, phase-2, phase-3, delivery, coordination]
 aspect: doer
 neural:
-  activation: 0.674
+  activation: 0.85
   stage: growing
-  cluster: daily
+  synapse_in: 4
+  synapse_out: 4
 ---
 
 # Session 61 Complete Summary

@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, electromagnetism, topology, fractals, multipole]
 aspect: knower
 neural:
-  activation: 0.700
+  activation: 0.96
   stage: growing
-  cluster: concepts
+  synapse_in: 9
+  synapse_out: 6
 ---
 
 # Fractal Toroidal Moment

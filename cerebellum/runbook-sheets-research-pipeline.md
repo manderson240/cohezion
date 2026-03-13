@@ -5,9 +5,10 @@ status: complete
 tags: [operations, runbook, sheets-research, daemon]
 aspect: thinker
 neural:
-  activation: 0.723
+  activation: 1.0
   stage: mature
-  cluster: patterns
+  synapse_in: 5
+  synapse_out: 11
 ---
 
 # Sheets Research Pipeline Operational Runbook

@@ -5,9 +5,10 @@ tags: [project, ml, research, speech-ai, open-source]
 status: active
 aspect: knower
 neural:
-  activation: 0.742
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 11
+  synapse_out: 40
 ---
 
 # Kyutai Project

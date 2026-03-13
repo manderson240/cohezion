@@ -5,9 +5,10 @@ status: stub
 tags: [retrospective, session, stub]
 aspect: doer
 neural:
-  activation: 0.267
+  activation: 0.51
   stage: embryo
-  cluster: retrospectives
+  synapse_in: 2
+  synapse_out: 1
 ---
 
 # Session 69 Retrospective

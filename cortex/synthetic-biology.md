@@ -5,9 +5,10 @@ tags: [domain, biology, engineering]
 status: active
 aspect: knower
 neural:
-  activation: 0.586
+  activation: 0.92
   stage: mature
-  cluster: concepts
+  synapse_in: 13
+  synapse_out: 11
 ---
 
 ## Definition

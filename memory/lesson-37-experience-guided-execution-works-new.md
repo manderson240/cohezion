@@ -8,9 +8,10 @@ tags: [session-continuity, memory, experience, agent-workflow, compound-engineer
 status: validated
 aspect: knower
 neural:
-  activation: 0.589
+  activation: 0.82
   stage: mature
-  cluster: lessons
+  synapse_in: 17
+  synapse_out: 11
 ---
 
 # Lesson: Experience-Guided Execution Works: Past Session Context Materially Improves Current Session Quality

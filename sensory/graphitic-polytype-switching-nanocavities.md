@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.24
 aspect: knower
 neural:
-  activation: 0.464
+  activation: 0.71
   stage: growing
-  cluster: papers
+  synapse_in: 9
+  synapse_out: 9
 ---
 # Switching Graphitic Polytypes in Nanocavities
 

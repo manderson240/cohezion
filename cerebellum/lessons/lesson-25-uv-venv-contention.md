@@ -1,9 +1,10 @@
 ---
 aspect: thinker
 neural:
-  activation: 0.340
+  activation: 0.58
   stage: growing
-  cluster: patterns
+  synapse_in: 0
+  synapse_out: 6
 ---
 # Lesson 25: UV VENV CONTENTION
 

@@ -6,9 +6,10 @@ priority: high
 tags: [inventory, branches, triage, non-destructive, preservation]
 aspect: doer
 neural:
-  activation: 0.463
+  activation: 0.65
   stage: growing
-  cluster: projects
+  synapse_in: 2
+  synapse_out: 3
 ---
 
 ## Principle

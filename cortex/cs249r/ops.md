@@ -4,9 +4,10 @@ source: cs249r/core/ops
 date: 2026-02-18
 aspect: knower
 neural:
-  activation: 0.424
+  activation: 0.71
   stage: growing
-  cluster: concepts
+  synapse_in: 5
+  synapse_out: 8
 ---
 
 # Ops

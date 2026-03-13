@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, topology, Berry-phase, topological-order, Chern-number, topological-protection]
 aspect: knower
 neural:
-  activation: 0.750
-  stage: growing
-  cluster: concepts
+  activation: 1.0
+  stage: mature
+  synapse_in: 4
+  synapse_out: 10
 ---
 
 # Topology in Physics

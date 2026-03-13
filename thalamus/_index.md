@@ -4,9 +4,10 @@ purpose: "Unsorted intake and triage point for raw ideas, links, and fragments"
 type: directory-index
 aspect: doer
 neural:
-  activation: 0.299
+  activation: 0.3
   stage: embryo
-  cluster: inbox
+  synapse_in: 0
+  synapse_out: 0
 ---
 
 # Inbox

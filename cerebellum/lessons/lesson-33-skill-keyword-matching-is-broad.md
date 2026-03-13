@@ -1,9 +1,10 @@
 ---
 aspect: thinker
 neural:
-  activation: 0.358
+  activation: 0.6
   stage: growing
-  cluster: patterns
+  synapse_in: 0
+  synapse_out: 7
 ---
 # Lesson 33: SKILL KEYWORD MATCHING IS BROAD
 

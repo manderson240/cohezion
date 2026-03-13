@@ -4,9 +4,10 @@ date: 2026-03-10
 tags: [concept, mathematics, statistics, differential-geometry, information-theory, machine-learning, fisher-information]
 aspect: knower
 neural:
-  activation: 0.780
-  stage: growing
-  cluster: concepts
+  activation: 0.98
+  stage: mature
+  synapse_in: 0
+  synapse_out: 10
 ---
 
 # Information Geometry — The Shape of Probability

@@ -5,9 +5,10 @@ tags: [concept, lessons, compound-engineering, evaluation, agentic-ai, anthropic
 status: active
 aspect: knower
 neural:
-  activation: 0.723
+  activation: 0.95
   stage: growing
-  cluster: concepts
+  synapse_in: 2
+  synapse_out: 8
 ---
 
 # Agentic System Failure Taxonomy

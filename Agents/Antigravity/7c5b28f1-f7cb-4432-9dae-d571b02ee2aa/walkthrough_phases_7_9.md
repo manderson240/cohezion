@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Walkthrough Phases 7 9"
 aspect: doer
 neural:
-  activation: 0.327
+  activation: 0.63
   stage: embryo
-  cluster: Agents
+  synapse_in: 1
+  synapse_out: 2
 ---
 
 # Phases 7, 8, & 9 Walkthrough: Cognitive Maturity & Robustness

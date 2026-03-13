@@ -5,9 +5,10 @@ status: completed
 tags: [phase-6b, cascade-analysis, graph-traversal, surrealdb]
 aspect: thinker
 neural:
-  activation: 0.637
+  activation: 0.92
   stage: mature
-  cluster: decisions
+  synapse_in: 11
+  synapse_out: 12
 ---
 
 # Phase 6B: Cascade Impact Computation

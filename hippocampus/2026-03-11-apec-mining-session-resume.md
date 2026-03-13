@@ -3,6 +3,11 @@ title: "APEC Mining Session — Resume Point"
 date: 2026-03-11
 tags: [session-resume, apec, evo, research, altpropulsion]
 aspect: doer
+neural:
+  activation: 0.58
+  stage: embryo
+  synapse_in: 0
+  synapse_out: 0
 ---
 
 # APEC Mining Session — Resume Point

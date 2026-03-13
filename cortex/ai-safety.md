@@ -6,9 +6,10 @@ related_concepts: [alignment, ai-safety-alignment, adversarial-review, agent-arc
 status: active
 aspect: knower
 neural:
-  activation: 0.684
+  activation: 0.91
   stage: mature
-  cluster: concepts
+  synapse_in: 18
+  synapse_out: 19
 ---
 
 # AI Safety

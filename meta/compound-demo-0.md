@@ -6,6 +6,11 @@ iteration: 0
 recorded: 2026-03-04T11:59:46.444780
 duration: 0.0s
 improvements: 0
+neural:
+  activation: 0.64
+  stage: growing
+  synapse_in: 2
+  synapse_out: 3
 ---
 
 # Compound Demo: Iteration 1

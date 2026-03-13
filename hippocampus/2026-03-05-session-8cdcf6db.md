@@ -8,9 +8,10 @@ last_commit: d2f7129f9 fix: restore BMAD Method v6.0.4 (PR #33 merged)
 tags: [session, auto-generated]
 aspect: doer
 neural:
-  activation: 0.302
+  activation: 0.5
   stage: embryo
-  cluster: daily
+  synapse_in: 0
+  synapse_out: 0
 ---
 # Session 8cdcf6db — 2026-03-05
 

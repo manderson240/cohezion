@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.08
 aspect: knower
 neural:
-  activation: 0.576
-  stage: growing
-  cluster: papers
+  activation: 0.82
+  stage: mature
+  synapse_in: 3
+  synapse_out: 14
 ---
 # Cu45 Superatom for CO2-to-Ethylene Conversion
 

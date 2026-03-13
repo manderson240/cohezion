@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, mathematics, nonlinear-dynamics, complexity]
 aspect: knower
 neural:
-  activation: 0.700
+  activation: 0.91
   stage: growing
-  cluster: concepts
+  synapse_in: 13
+  synapse_out: 6
 ---
 
 # Chaos Theory

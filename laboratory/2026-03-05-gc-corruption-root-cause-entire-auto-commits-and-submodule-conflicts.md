@@ -5,9 +5,10 @@ status: complete
 tags: [experiment, git, debugging]
 aspect: thinker
 neural:
-  activation: 0.287
-  stage: embryo
-  cluster: experiments
+  activation: 0.62
+  stage: growing
+  synapse_in: 2
+  synapse_out: 3
 ---
 
 # GC Corruption Root Cause — entire/ Auto-Commits and Submodule Conflicts

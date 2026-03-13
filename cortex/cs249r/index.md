@@ -4,9 +4,10 @@ source: cs249r
 date: 2026-02-18
 aspect: knower
 neural:
-  activation: 0.603
+  activation: 0.89
   stage: growing
-  cluster: concepts
+  synapse_in: 0
+  synapse_out: 26
 ---
 
 # CS249R ML Systems Book - Index

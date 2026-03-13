@@ -34,9 +34,10 @@ dimensions:
   impact_score: 0.082
 aspect: knower
 neural:
-  activation: 0.525
-  stage: growing
-  cluster: papers
+  activation: 0.79
+  stage: mature
+  synapse_in: 1
+  synapse_out: 12
 ---
 # Mathematical framework for analyzing random pairwise comparison matrices using fiber bundle decom...
 

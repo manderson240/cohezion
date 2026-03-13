@@ -3,6 +3,11 @@ title: "Track A: GraphRAG Reasoning Engine - API Documentation"
 date: 2026-02-14
 status: draft
 tags: [documentation, graphrag, api-design, surrealdb, knowledge-graph]
+neural:
+  activation: 0.7
+  stage: growing
+  synapse_in: 2
+  synapse_out: 5
 ---
 
 # Track A: GraphRAG Reasoning Engine - API Documentation

@@ -5,9 +5,10 @@ status: active
 tags: [pattern, typescript, compilation, compound-engineering]
 aspect: thinker
 neural:
-  activation: 0.563
+  activation: 0.84
   stage: mature
-  cluster: patterns
+  synapse_in: 8
+  synapse_out: 10
 ---
 
 # TypeScript Error Diagnostic Pattern

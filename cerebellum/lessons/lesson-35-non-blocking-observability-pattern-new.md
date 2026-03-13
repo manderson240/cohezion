@@ -1,9 +1,10 @@
 ---
 aspect: thinker
 neural:
-  activation: 0.342
+  activation: 0.59
   stage: growing
-  cluster: patterns
+  synapse_in: 0
+  synapse_out: 6
 ---
 # Lesson 35: NON-BLOCKING OBSERVABILITY PATTERN (NEW)
 

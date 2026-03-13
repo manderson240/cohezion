@@ -5,9 +5,10 @@ tags: [retrospective, meta, vault-architecture, compound-engineering]
 aliases: ["beginner's mind assessment", "shoshin assessment", "vault drift diagnostic"]
 aspect: doer
 neural:
-  activation: 0.597
+  activation: 0.77
   stage: mature
-  cluster: retrospectives
+  synapse_in: 3
+  synapse_out: 10
 ---
 
 # Shoshin Assessment — Beginner's Mind Reading of the Vault

@@ -6,9 +6,10 @@ related_concepts: [compound-engineering, meta-learning, alignment, workflow-orch
 status: active
 aspect: knower
 neural:
-  activation: 0.757
+  activation: 0.98
   stage: mature
-  cluster: concepts
+  synapse_in: 48
+  synapse_out: 30
 ---
 
 # Adversarial Review

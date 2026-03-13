@@ -5,9 +5,10 @@ status: in-progress
 tags: [daily, vault-completion, phase1, results]
 aspect: doer
 neural:
-  activation: 0.574
+  activation: 0.81
   stage: growing
-  cluster: daily
+  synapse_in: 4
+  synapse_out: 9
 ---
 
 # Phase 1: Link Remediation - Interim Results

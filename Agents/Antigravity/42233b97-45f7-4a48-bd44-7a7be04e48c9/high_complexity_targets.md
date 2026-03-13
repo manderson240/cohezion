@@ -6,9 +6,10 @@ title: "High Complexity Targets Analysis"
 tags: [agent-output, antigravity, complexity-analysis]
 aspect: doer
 neural:
-  activation: 0.555
+  activation: 0.86
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 4
 ---
 
 # 🧠 High Complexity & High Interest Targets

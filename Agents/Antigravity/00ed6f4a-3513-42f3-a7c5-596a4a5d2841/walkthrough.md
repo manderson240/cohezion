@@ -6,9 +6,10 @@ title: "Walkthrough: Local Fine-Tuning Implementation"
 tags: [agent-output, antigravity, fine-tuning]
 aspect: doer
 neural:
-  activation: 0.347
-  stage: embryo
-  cluster: Agents
+  activation: 0.63
+  stage: growing
+  synapse_in: 0
+  synapse_out: 3
 ---
 
 # Walkthrough - Cohezion Evolution

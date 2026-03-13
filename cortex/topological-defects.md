@@ -4,9 +4,10 @@ date: 2026-02-07
 tags: [concept, early-universe-cosmology, quantum-error-correction, supersolid-quantum-state]
 aspect: knower
 neural:
-  activation: 0.499
+  activation: 0.89
   stage: growing
-  cluster: concepts
+  synapse_in: 9
+  synapse_out: 13
 ---
 ## Definition
 

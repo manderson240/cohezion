@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.158
 aspect: knower
 neural:
-  activation: 0.483
+  activation: 0.75
   stage: growing
-  cluster: papers
+  synapse_in: 15
+  synapse_out: 11
 ---
 # Axion Dark Matter Constraints via Distributed Quantum Sensors
 

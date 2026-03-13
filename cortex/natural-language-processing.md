@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [concept, ai, nlp, machine-learning, deep-learning]
 aspect: knower
 neural:
-  activation: 0.579
+  activation: 0.91
   stage: mature
-  cluster: concepts
+  synapse_in: 13
+  synapse_out: 12
 ---
 
 # Natural Language Processing

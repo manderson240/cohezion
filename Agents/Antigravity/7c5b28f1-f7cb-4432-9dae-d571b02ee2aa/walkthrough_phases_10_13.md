@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Walkthrough Phases 10 13"
 aspect: doer
 neural:
-  activation: 0.333
+  activation: 0.62
   stage: embryo
-  cluster: Agents
+  synapse_in: 1
+  synapse_out: 1
 ---
 
 # Phases 10-13 Walkthrough: The Collaborative Manifold

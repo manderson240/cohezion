@@ -5,9 +5,10 @@ tags: [concept, methodology, ai-engineering, economics]
 related_concepts: [token-efficiency-patterns, compound-engineering, meta-learning, context-management, machine-learning-optimization]
 aspect: knower
 neural:
-  activation: 0.873
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 122
+  synapse_out: 26
 ---
 
 ## Definition

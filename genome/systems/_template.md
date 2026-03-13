@@ -6,6 +6,11 @@ last_revised: YYYY-MM-DD
 tags: [spec, system-card]
 card_type: system
 status: active
+neural:
+  activation: 0.35
+  stage: embryo
+  synapse_in: 0
+  synapse_out: 1
 ---
 
 # System Card: [Component Name]

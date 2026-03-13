@@ -5,9 +5,10 @@ tags: [testing, sheetsbridge, verification, mcp]
 status: verified
 aspect: doer
 neural:
-  activation: 0.462
+  activation: 0.7
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # SheetsBridge MCP Integration - Test Results

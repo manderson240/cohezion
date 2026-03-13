@@ -6,9 +6,10 @@ title: "Cohezion Universe Simulation Phase 4 - Nexus Expansion"
 tags: [agent-output, antigravity, universe-simulation, gpu-computing]
 aspect: doer
 neural:
-  activation: 0.436
+  activation: 0.72
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 4
 ---
 
 # Implementation Plan - Cohezion Phase 4: Nexus Expansion

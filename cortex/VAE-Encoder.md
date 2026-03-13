@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [concept, machine-learning, vae, neural-network, latent-space]
 aspect: knower
 neural:
-  activation: 0.523
+  activation: 0.86
   stage: growing
-  cluster: concepts
+  synapse_in: 8
+  synapse_out: 9
 ---
 
 # VAE Encoder

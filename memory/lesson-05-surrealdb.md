@@ -8,9 +8,10 @@ tags: [surrealdb, database, schema, query-patterns]
 status: validated
 aspect: knower
 neural:
-  activation: 0.536
+  activation: 0.77
   stage: growing
-  cluster: lessons
+  synapse_in: 10
+  synapse_out: 8
 ---
 
 # Lesson: SurrealDB Query Patterns and Schema Design Gotchas

@@ -4,9 +4,10 @@ date: 2026-02-14
 tags: [concept, ui, graphrag, visualization]
 aspect: knower
 neural:
-  activation: 0.559
+  activation: 0.8
   stage: mature
-  cluster: concepts
+  synapse_in: 4
+  synapse_out: 11
 ---
 
 # Decision Explorer

@@ -6,9 +6,10 @@ title: "Walkthrough: Anthropic Alignment Retrospective"
 tags: [agent-output, antigravity, alignment, retrospective]
 aspect: doer
 neural:
-  activation: 0.444
+  activation: 0.71
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 6
 ---
 
 # Walkthrough: 12D:2048D Holographic Manifold Expansion

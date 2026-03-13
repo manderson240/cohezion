@@ -10,9 +10,10 @@ similar_papers:
 - schema-design-relational
 aspect: knower
 neural:
-  activation: 0.685
+  activation: 0.92
   stage: mature
-  cluster: papers
+  synapse_in: 6
+  synapse_out: 17
 ---
 
 # Knowledge Graphs and the Semantic Web

@@ -4,9 +4,10 @@ date: "2026-02-07"
 tags: [concept, methodology, knowledge-management]
 aspect: knower
 neural:
-  activation: 0.920
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 286
+  synapse_out: 69
 ---
 
 ## Definition

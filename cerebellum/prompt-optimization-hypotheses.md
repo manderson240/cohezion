@@ -7,9 +7,10 @@ confidence: preliminary
 sample_size: 98
 aspect: thinker
 neural:
-  activation: 0.830
+  activation: 1.0
   stage: mature
-  cluster: patterns
+  synapse_in: 2
+  synapse_out: 13
 ---
 
 ## ⚠️ PILOT STUDY - NOT VALIDATED AT SCALE

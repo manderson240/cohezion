@@ -5,9 +5,10 @@ status: "ready"
 tags: [pattern, surrealdb, graph-analysis, automation]
 aspect: thinker
 neural:
-  activation: 0.732
+  activation: 0.91
   stage: growing
-  cluster: patterns
+  synapse_in: 7
+  synapse_out: 9
 ---
 
 ## Problem

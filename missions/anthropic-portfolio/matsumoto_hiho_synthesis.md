@@ -1,9 +1,10 @@
 ---
 aspect: doer
 neural:
-  activation: 0.522
+  activation: 0.71
   stage: growing
-  cluster: missions
+  synapse_in: 23
+  synapse_out: 4
 ---
 # SKILL: MATSUMOTO_HIHO_SYNTHESIS_PRIME
 

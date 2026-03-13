@@ -5,9 +5,10 @@ status: accepted
 tags: [decision]
 aspect: thinker
 neural:
-  activation: 0.720
+  activation: 0.98
   stage: growing
-  cluster: decisions
+  synapse_in: 3
+  synapse_out: 5
 ---
 # Decision: Session 43 Phase 5B Verification & Phase 6 Launch
 

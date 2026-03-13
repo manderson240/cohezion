@@ -10,9 +10,10 @@ provider: google
 model_id: "gemini-3-flash-preview"
 aspect: knower
 neural:
-  activation: 0.455
+  activation: 0.69
   stage: growing
-  cluster: specs
+  synapse_in: 2
+  synapse_out: 4
 ---
 
 # Model Card: Gemini 3 Flash

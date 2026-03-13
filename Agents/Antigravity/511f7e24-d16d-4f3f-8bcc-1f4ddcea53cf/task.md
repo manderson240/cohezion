@@ -6,9 +6,10 @@ title: "Red/Blue Swarm Modularization Mission"
 tags: [agent-output, antigravity, red-blue-swarm, modularization]
 aspect: doer
 neural:
-  activation: 0.329
+  activation: 0.53
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 2
 ---
 
 # Red/Blue Swarm Modularization Mission

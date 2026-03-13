@@ -5,9 +5,10 @@ tags: [domain, physics, materials-science, quantum, topology]
 status: active
 aspect: knower
 neural:
-  activation: 0.507
+  activation: 0.78
   stage: growing
-  cluster: concepts
+  synapse_in: 9
+  synapse_out: 9
 ---
 
 # Topological Insulators

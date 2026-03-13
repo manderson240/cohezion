@@ -4,9 +4,10 @@ source: cs249r/core/ml_systems
 date: 2026-02-18
 aspect: knower
 neural:
-  activation: 0.412
+  activation: 0.7
   stage: growing
-  cluster: concepts
+  synapse_in: 0
+  synapse_out: 8
 ---
 
 # Ml Systems

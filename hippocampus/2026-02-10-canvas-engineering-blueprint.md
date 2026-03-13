@@ -4,9 +4,10 @@ date: 2026-02-10
 tags: [daily, planning, compound-engineering, canvas, vault-enrichment]
 aspect: doer
 neural:
-  activation: 0.431
+  activation: 0.67
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # Canvas-Driven Compound Engineering Blueprint

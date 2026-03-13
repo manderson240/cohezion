@@ -5,9 +5,10 @@ status: completed
 tags: [phase-6b, execution, cascade-analysis]
 aspect: doer
 neural:
-  activation: 0.487
+  activation: 0.68
   stage: growing
-  cluster: daily
+  synapse_in: 2
+  synapse_out: 2
 ---
 
 # Phase 6B: Execution Complete

@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Walkthrough"
 aspect: doer
 neural:
-  activation: 0.357
+  activation: 0.64
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 1
 ---
 
 # Walkthrough: The VLIW "Sub 400" Breakthrough (349 Cycles)

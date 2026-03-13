@@ -5,9 +5,10 @@ status: in-progress
 tags: [daily, kyutai, phase-3, progress, execution]
 aspect: doer
 neural:
-  activation: 0.477
+  activation: 0.71
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 ## 🚀 Phase 3 Status: 50% COMPLETE ✅

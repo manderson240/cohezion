@@ -5,9 +5,10 @@ status: in-progress
 tags: [experiment, entire-io, integration, daemon, research-lineage]
 aspect: thinker
 neural:
-  activation: 0.671
+  activation: 0.94
   stage: mature
-  cluster: experiments
+  synapse_in: 2
+  synapse_out: 15
 ---
 
 # Entire.io API Investigation & Integration Design

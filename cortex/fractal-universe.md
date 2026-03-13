@@ -5,9 +5,10 @@ tags: [physics, cosmology, concept]
 status: active
 aspect: knower
 neural:
-  activation: 0.617
+  activation: 0.9
   stage: mature
-  cluster: concepts
+  synapse_in: 24
+  synapse_out: 16
 ---
 
 ## Definition

@@ -5,9 +5,10 @@ status: guide
 tags: [daemon, entire-io, operations, runbook, phase-2]
 aspect: thinker
 neural:
-  activation: 0.771
+  activation: 1.0
   stage: mature
-  cluster: patterns
+  synapse_in: 7
+  synapse_out: 11
 ---
 
 # Entire.io Sync Daemon - Operations Guide

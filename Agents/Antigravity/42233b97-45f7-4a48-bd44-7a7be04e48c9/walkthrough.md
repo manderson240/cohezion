@@ -6,9 +6,10 @@ title: "Walkthrough: Token-Efficient Compound Engineering"
 tags: [agent-output, antigravity, compound-engineering]
 aspect: doer
 neural:
-  activation: 0.431
+  activation: 0.75
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 5
 ---
 
 # Mission Walkthrough: Phase 3 - The Cohezion Pillars Deep Dive

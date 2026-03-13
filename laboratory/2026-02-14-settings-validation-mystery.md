@@ -5,9 +5,10 @@ status: in-progress
 tags: [experiment, infrastructure, debug, claude-code, settings-validation]
 aspect: thinker
 neural:
-  activation: 0.604
+  activation: 0.84
   stage: mature
-  cluster: experiments
+  synapse_in: 1
+  synapse_out: 13
 ---
 
 # Settings Validation Mystery: /doctor Still Reports 2 Invalid Files

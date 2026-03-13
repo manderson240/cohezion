@@ -6,9 +6,10 @@ title: "Retrospective and Skill Synthesis"
 tags: [agent-output, antigravity, retrospective, skill-synthesis]
 aspect: doer
 neural:
-  activation: 0.334
+  activation: 0.53
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 2
 ---
 
 # Retrospective & Skill Synthesis

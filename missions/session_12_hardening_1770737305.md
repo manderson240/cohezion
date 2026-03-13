@@ -4,9 +4,10 @@ date: 2026-02-26
 tags: [mission, hardening, retrospective, agent-architecture]
 aspect: doer
 neural:
-  activation: 0.342
+  activation: 0.54
   stage: growing
-  cluster: missions
+  synapse_in: 4
+  synapse_out: 3
 ---
 
 # Mission Retrospective: session_12_hardening_1770737305

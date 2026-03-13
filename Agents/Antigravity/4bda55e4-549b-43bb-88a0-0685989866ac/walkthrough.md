@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Walkthrough"
 aspect: doer
 neural:
-  activation: 0.352
+  activation: 0.65
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 2
 ---
 
 # Phase 88: The Brane Explorer (Axiomatic Manifold)

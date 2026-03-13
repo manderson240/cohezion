@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [concept, infrastructure, distributed-systems, iot]
 aspect: knower
 neural:
-  activation: 0.554
+  activation: 0.89
   stage: mature
-  cluster: concepts
+  synapse_in: 11
+  synapse_out: 10
 ---
 
 # Edge Computing

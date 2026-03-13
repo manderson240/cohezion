@@ -5,9 +5,10 @@ status: complete
 tags: [experiment, vault, links, integrity, obsidian]
 aspect: thinker
 neural:
-  activation: 0.488
+  activation: 0.77
   stage: growing
-  cluster: experiments
+  synapse_in: 4
+  synapse_out: 11
 ---
 
 # Vault Link Integrity Sprint — 906-Note Full Audit

@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, topology, symmetry-breaking, particle-physics]
 aspect: knower
 neural:
-  activation: 0.700
+  activation: 0.79
   stage: growing
-  cluster: concepts
+  synapse_in: 14
+  synapse_out: 6
 ---
 
 # Chirality

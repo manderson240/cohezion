@@ -9,9 +9,10 @@ similar_papers:
 source: https://search.app/MEpqE
 aspect: knower
 neural:
-  activation: 0.524
-  stage: growing
-  cluster: papers
+  activation: 0.79
+  stage: mature
+  synapse_in: 6
+  synapse_out: 12
 ---
 
 ## Summary

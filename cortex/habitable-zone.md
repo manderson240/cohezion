@@ -4,9 +4,10 @@ date: 2026-02-19
 tags: [concept, astrophysics, exoplanets, astrobiology]
 aspect: knower
 neural:
-  activation: 0.500
-  stage: growing
-  cluster: concepts
+  activation: 0.98
+  stage: mature
+  synapse_in: 8
+  synapse_out: 11
 ---
 
 # Habitable Zone

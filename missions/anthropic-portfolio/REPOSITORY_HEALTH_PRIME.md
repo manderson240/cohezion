@@ -1,9 +1,10 @@
 ---
 aspect: doer
 neural:
-  activation: 0.588
+  activation: 0.77
   stage: growing
-  cluster: missions
+  synapse_in: 1
+  synapse_out: 3
 ---
 # SKILL: REPOSITORY_HEALTH_PRIME
 

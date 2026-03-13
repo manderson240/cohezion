@@ -5,9 +5,10 @@ tags: [agent-workflow, tool, compound-engineering]
 status: active
 aspect: knower
 neural:
-  activation: 0.600
+  activation: 0.93
   stage: mature
-  cluster: concepts
+  synapse_in: 10
+  synapse_out: 13
 ---
 
 # Lab Agent

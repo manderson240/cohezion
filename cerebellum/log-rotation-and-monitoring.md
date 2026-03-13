@@ -6,9 +6,10 @@ status: active
 source: 2026-02-10 debug log bloat analysis
 aspect: thinker
 neural:
-  activation: 0.642
+  activation: 0.82
   stage: mature
-  cluster: patterns
+  synapse_in: 8
+  synapse_out: 15
 ---
 
 # Log Rotation and Monitoring Pattern

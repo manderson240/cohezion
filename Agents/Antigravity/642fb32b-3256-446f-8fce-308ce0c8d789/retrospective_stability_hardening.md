@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Retrospective Stability Hardening"
 aspect: doer
 neural:
-  activation: 0.346
+  activation: 0.54
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 0
 ---
 
 # RETROSPECTIVE: Stability Hardening (Jan 28, 2026)

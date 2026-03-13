@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.158
 aspect: knower
 neural:
-  activation: 0.577
-  stage: growing
-  cluster: papers
+  activation: 0.81
+  stage: mature
+  synapse_in: 9
+  synapse_out: 14
 ---
 # Massive Runaway Stars in the Milky Way
 

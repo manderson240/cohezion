@@ -27,9 +27,10 @@ metrics:
   lessons_generated: []  # Will be synced to SurrealDB
 aspect: thinker
 neural:
-  activation: 0.634
+  activation: 0.91
   stage: growing
-  cluster: decisions
+  synapse_in: 2
+  synapse_out: 9
 ---
 
 ## Context

@@ -9,9 +9,10 @@ status: active
 provider: ollama
 aspect: knower
 neural:
-  activation: 0.451
+  activation: 0.69
   stage: growing
-  cluster: specs
+  synapse_in: 2
+  synapse_out: 4
 ---
 
 # Embedding Card: nomic-embed-text

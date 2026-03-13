@@ -6,9 +6,10 @@ title: "Git Health Report"
 tags: [agent-output, antigravity, git-health]
 aspect: doer
 neural:
-  activation: 0.483
+  activation: 0.67
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 1
 ---
 
 # 🛡️ Git Health Report - 2026-01-19 19:50:36

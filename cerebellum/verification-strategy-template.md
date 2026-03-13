@@ -5,9 +5,10 @@ status: active
 tags: [pattern, testing, compound-engineering, verification]
 aspect: thinker
 neural:
-  activation: 0.690
+  activation: 0.92
   stage: mature
-  cluster: patterns
+  synapse_in: 2
+  synapse_out: 13
 ---
 
 # Verification Strategy Template: Real vs Synthetic Testing

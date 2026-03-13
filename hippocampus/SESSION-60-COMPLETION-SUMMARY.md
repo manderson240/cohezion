@@ -5,9 +5,10 @@ status: complete
 tags: [session-60, phase-2, pre-launch, verification, complete]
 aspect: doer
 neural:
-  activation: 0.630
+  activation: 0.81
   stage: growing
-  cluster: daily
+  synapse_in: 4
+  synapse_out: 4
 ---
 
 # Session 60: Completion Summary - Pre-Launch Verification

@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Walkthrough Phases 5 6"
 aspect: doer
 neural:
-  activation: 0.328
+  activation: 0.61
   stage: embryo
-  cluster: Agents
+  synapse_in: 1
+  synapse_out: 1
 ---
 
 # Phase 5 & 6 Walkthrough: Resource Sovereignty & Knowledge Compression

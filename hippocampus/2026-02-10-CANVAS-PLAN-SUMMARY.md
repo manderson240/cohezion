@@ -5,9 +5,10 @@ status: proposed
 tags: [daily, planning, canvas, compound-engineering]
 aspect: doer
 neural:
-  activation: 0.485
+  activation: 0.72
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # Canvas-Driven Compound Engineering: Executive Summary

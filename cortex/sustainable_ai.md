@@ -5,9 +5,10 @@ tags: [concept, ml-systems, sustainability, environment, cs249r]
 status: active
 aspect: knower
 neural:
-  activation: 0.481
+  activation: 0.72
   stage: growing
-  cluster: concepts
+  synapse_in: 3
+  synapse_out: 7
 ---
 
 # Sustainable AI

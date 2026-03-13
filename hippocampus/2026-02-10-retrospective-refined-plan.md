@@ -5,9 +5,10 @@ status: active
 tags: [daily, retrospective, pattern, compound-engineering, token-efficiency]
 aspect: doer
 neural:
-  activation: 0.560
+  activation: 0.79
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 1
 ---
 
 # Retrospective: Canvas-Driven Compound Engineering

@@ -8,9 +8,10 @@ tags: [security, credentials, logging, api-keys]
 status: validated
 aspect: knower
 neural:
-  activation: 0.481
+  activation: 0.72
   stage: growing
-  cluster: lessons
+  synapse_in: 8
+  synapse_out: 5
 ---
 
 # Lesson: Never Print Credentials: API Keys and Tokens Must Never Appear in Logs

@@ -7,9 +7,10 @@ version: 1.0
 charter_alignment: ["S01_Intentionality", "S02_Execution_Excellence", "S05_Observability"]
 aspect: thinker
 neural:
-  activation: 0.765
+  activation: 0.99
   stage: growing
-  cluster: patterns
+  synapse_in: 16
+  synapse_out: 9
 ---
 
 # PRIME_CLAUDE_CODE_PRACTICES

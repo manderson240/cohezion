@@ -4,9 +4,10 @@ date: 2026-02-19
 tags: [concept, visualization, knowledge-graph, cohezion-platform]
 aspect: knower
 neural:
-  activation: 0.440
+  activation: 0.81
   stage: growing
-  cluster: concepts
+  synapse_in: 6
+  synapse_out: 9
 ---
 
 # Hyperdimensional Visualization Portfolio

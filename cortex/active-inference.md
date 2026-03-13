@@ -4,9 +4,10 @@ date: 2026-03-10
 tags: [concept, neuroscience, machine-learning, free-energy-principle, bayesian-inference, cognitive-science]
 aspect: knower
 neural:
-  activation: 0.700
-  stage: growing
-  cluster: concepts
+  activation: 1.0
+  stage: mature
+  synapse_in: 12
+  synapse_out: 13
 ---
 
 # Active Inference

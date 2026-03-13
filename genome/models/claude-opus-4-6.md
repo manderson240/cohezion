@@ -10,9 +10,10 @@ provider: anthropic
 model_id: "claude-opus-4-6"
 aspect: knower
 neural:
-  activation: 0.539
+  activation: 0.77
   stage: growing
-  cluster: specs
+  synapse_in: 1
+  synapse_out: 5
 ---
 
 # Model Card: Claude Opus 4.6

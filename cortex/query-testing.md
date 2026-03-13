@@ -5,9 +5,10 @@ tags: [testing, database, pattern]
 status: active
 aspect: knower
 neural:
-  activation: 0.571
+  activation: 0.91
   stage: mature
-  cluster: concepts
+  synapse_in: 4
+  synapse_out: 10
 ---
 
 ## Definition

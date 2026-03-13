@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.158
 aspect: knower
 neural:
-  activation: 0.647
+  activation: 0.88
   stage: mature
-  cluster: papers
+  synapse_in: 16
+  synapse_out: 14
 ---
 # Few-Shot Prompting for 5x Agentic Coding Performance
 

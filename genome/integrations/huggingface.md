@@ -9,9 +9,10 @@ provider: huggingface
 aliases: ["HF integration", "HuggingFace integration points"]
 aspect: knower
 neural:
-  activation: 0.880
+  activation: 1.0
   stage: mature
-  cluster: specs
+  synapse_in: 0
+  synapse_out: 13
 ---
 
 # Integration Map: HuggingFace

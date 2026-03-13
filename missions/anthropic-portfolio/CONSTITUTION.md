@@ -1,9 +1,10 @@
 ---
 aspect: doer
 neural:
-  activation: 0.481
+  activation: 0.67
   stage: growing
-  cluster: missions
+  synapse_in: 1
+  synapse_out: 4
 ---
 This document defines the core behavioral and ethical pillars for all AI agents operating within the Cohezion swarm, governed by the **Quadrature Nexus Orchestration**. It adopts the **January 2026 Claude Constitution** as its foundational framework. For specialized simulation and swarm logic, refer to the [COHEZION_CHARTER.md](file:///home/mike-anderson/dev/cohezion/.agent/COHEZION_CHARTER.md).
 

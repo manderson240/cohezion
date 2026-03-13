@@ -6,9 +6,10 @@ title: "Task: Cohezion Crystal Protocol (Deep EBMS)"
 tags: [agent-output, antigravity, energy-based-models]
 aspect: doer
 neural:
-  activation: 0.589
+  activation: 0.92
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 6
 ---
 
 # Task: Implement Cohezion Crystal Protocol (Deep EBMS)

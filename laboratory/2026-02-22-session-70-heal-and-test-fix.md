@@ -5,9 +5,10 @@ status: complete
 tags: [experiment, testing, debugging, heal, lint, asyncio, pytest]
 aspect: thinker
 neural:
-  activation: 0.613
+  activation: 0.85
   stage: mature
-  cluster: experiments
+  synapse_in: 4
+  synapse_out: 12
 ---
 
 # Experiment: Session 70 — Heal + Test Fix Cycle (83 -> 0 failures)

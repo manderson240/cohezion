@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.24
 aspect: knower
 neural:
-  activation: 0.651
+  activation: 0.88
   stage: mature
-  cluster: papers
+  synapse_in: 9
+  synapse_out: 14
 ---
 # Silicon as the Bedrock of Quantum Computers
 

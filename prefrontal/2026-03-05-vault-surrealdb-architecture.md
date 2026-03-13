@@ -6,9 +6,10 @@ tags: [decision, architecture, surrealdb, sync, infrastructure]
 aliases: ["vault-surreal architecture", "sync architecture", "vault-db architecture"]
 aspect: thinker
 neural:
-  activation: 0.586
+  activation: 0.82
   stage: growing
-  cluster: decisions
+  synapse_in: 9
+  synapse_out: 8
 ---
 
 # Vault↔SurrealDB Sync Architecture

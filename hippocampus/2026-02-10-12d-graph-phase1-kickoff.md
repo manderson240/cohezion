@@ -5,9 +5,10 @@ status: in-progress
 tags: [daily, 12d-graph, phase-1, compound-engineering]
 aspect: doer
 neural:
-  activation: 0.315
+  activation: 0.56
   stage: embryo
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # 12D Graph Implementation - Phase 1 Kickoff

@@ -6,9 +6,10 @@ title: "Nexus Research Miner Implementation"
 tags: [agent-output, antigravity, research-mining, knowledge-graph]
 aspect: doer
 neural:
-  activation: 0.475
+  activation: 0.84
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 9
 ---
 
 # Nexus Research Miner Implementation Plan

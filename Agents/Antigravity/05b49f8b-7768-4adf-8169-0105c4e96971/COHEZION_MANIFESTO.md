@@ -6,9 +6,10 @@ title: "COHEZION: The Autonomous Research Manifold"
 tags: [agent-output, antigravity, manifesto, cohezion-philosophy]
 aspect: doer
 neural:
-  activation: 0.443
+  activation: 0.74
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 5
 ---
 
 # COHEZION: The Autonomous Research Manifold

@@ -5,9 +5,10 @@ status: on-track
 tags: [kyutai, integration, status, complete]
 aspect: doer
 neural:
-  activation: 0.471
+  activation: 0.71
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # Kyutai Integration Project - Complete Status Report

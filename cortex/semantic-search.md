@@ -6,9 +6,10 @@ related_concepts: [knowledge-graph-systems, context-management, agent-context, m
 status: active
 aspect: knower
 neural:
-  activation: 0.703
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 67
+  synapse_out: 21
 ---
 
 # Semantic Search

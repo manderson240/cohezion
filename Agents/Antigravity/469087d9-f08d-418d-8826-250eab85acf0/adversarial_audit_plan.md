@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Adversarial Audit Plan"
 aspect: doer
 neural:
-  activation: 0.322
-  stage: embryo
-  cluster: Agents
+  activation: 0.65
+  stage: growing
+  synapse_in: 0
+  synapse_out: 4
 ---
 
 # Audit Plan: Multiperspective Adversarial Review (FLUME)

@@ -9,9 +9,10 @@ status: active
 agent_type: vault-maintenance
 aspect: knower
 neural:
-  activation: 0.483
+  activation: 0.72
   stage: growing
-  cluster: specs
+  synapse_in: 0
+  synapse_out: 4
 ---
 
 # Agent Card: Vault Keeper

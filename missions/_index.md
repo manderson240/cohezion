@@ -4,9 +4,10 @@ purpose: "Multi-agent coordinated tasks with milestones and thought records"
 type: directory-index
 aspect: doer
 neural:
-  activation: 0.342
+  activation: 0.34
   stage: growing
-  cluster: missions
+  synapse_in: 0
+  synapse_out: 3
 ---
 
 # Missions

@@ -5,9 +5,10 @@ tags: [pattern, retrospective, vault, quality-assurance]
 status: active
 aspect: thinker
 neural:
-  activation: 0.476
+  activation: 0.72
   stage: growing
-  cluster: patterns
+  synapse_in: 8
+  synapse_out: 7
 ---
 
 # Vault Completion Retrospective

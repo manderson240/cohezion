@@ -8,9 +8,10 @@ card_type: system
 status: active
 aspect: knower
 neural:
-  activation: 0.548
+  activation: 0.78
   stage: growing
-  cluster: specs
+  synapse_in: 53
+  synapse_out: 8
 ---
 
 # System Card: Cloud Vault MCP

@@ -5,9 +5,10 @@ tags: [concept, graph-databases, semantic-search, compound-engineering]
 related_concepts: [graphrag-knowledge-graph-with-surrealdb, surrealdb, semantic-search, compound-engineering, mcp-infrastructure-architecture]
 aspect: knower
 neural:
-  activation: 0.744
+  activation: 0.98
   stage: mature
-  cluster: concepts
+  synapse_in: 57
+  synapse_out: 38
 ---
 ## Definition
 

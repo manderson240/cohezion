@@ -10,9 +10,10 @@ similar_papers:
 - knowledge-graph-semantic-relationships
 aspect: knower
 neural:
-  activation: 0.662
+  activation: 0.89
   stage: mature
-  cluster: papers
+  synapse_in: 6
+  synapse_out: 14
 ---
 
 # Service Layer Architecture Patterns

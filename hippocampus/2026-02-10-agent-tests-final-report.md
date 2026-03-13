@@ -5,9 +5,10 @@ status: completed
 tags: [daily, kyutai, agent-tests, testing, final-report]
 aspect: doer
 neural:
-  activation: 0.630
+  activation: 0.86
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # Agent-tests: Final Report & Handoff 📋

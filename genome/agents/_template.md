@@ -7,6 +7,11 @@ tags: [spec, agent-card]
 card_type: agent
 status: active
 agent_type: verification | vault-maintenance | research | implementation
+neural:
+  activation: 0.39
+  stage: growing
+  synapse_in: 0
+  synapse_out: 3
 ---
 
 # Agent Card: [Agent Name]

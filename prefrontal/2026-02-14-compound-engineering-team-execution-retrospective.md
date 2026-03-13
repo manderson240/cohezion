@@ -5,9 +5,10 @@ status: accepted
 tags: [retrospective, compound-engineering, team-orchestration, wiki-links]
 aspect: thinker
 neural:
-  activation: 0.591
+  activation: 0.86
   stage: mature
-  cluster: decisions
+  synapse_in: 14
+  synapse_out: 16
 ---
 
 # Compound Engineering Team Execution Retrospective

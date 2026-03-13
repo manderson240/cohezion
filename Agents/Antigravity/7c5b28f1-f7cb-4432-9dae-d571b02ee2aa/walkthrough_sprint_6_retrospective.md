@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Walkthrough Sprint 6 Retrospective"
 aspect: doer
 neural:
-  activation: 0.330
+  activation: 0.63
   stage: embryo
-  cluster: Agents
+  synapse_in: 1
+  synapse_out: 2
 ---
 
 # Sprint 6 Retrospective: The Morning After 🌅

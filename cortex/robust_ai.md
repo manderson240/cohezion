@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [concept, robustness, adversarial-ml, reliability, ml-systems, safety]
 aspect: knower
 neural:
-  activation: 0.503
+  activation: 0.84
   stage: growing
-  cluster: concepts
+  synapse_in: 7
+  synapse_out: 8
 ---
 
 # Robust AI

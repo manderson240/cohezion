@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Walkthrough Phase 15"
 aspect: doer
 neural:
-  activation: 0.313
+  activation: 0.61
   stage: embryo
-  cluster: Agents
+  synapse_in: 1
+  synapse_out: 2
 ---
 
 # Phase 15: Biological Information Systems

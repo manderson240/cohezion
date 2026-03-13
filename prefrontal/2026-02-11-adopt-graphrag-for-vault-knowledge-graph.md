@@ -27,9 +27,10 @@ metrics:
     []
 aspect: thinker
 neural:
-  activation: 0.633
+  activation: 0.87
   stage: mature
-  cluster: decisions
+  synapse_in: 7
+  synapse_out: 13
 ---
 
 ## Context

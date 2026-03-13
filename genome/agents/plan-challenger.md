@@ -9,9 +9,10 @@ status: active
 agent_type: verification
 aspect: knower
 neural:
-  activation: 0.428
+  activation: 0.67
   stage: growing
-  cluster: specs
+  synapse_in: 2
+  synapse_out: 3
 ---
 
 # Agent Card: Plan Challenger

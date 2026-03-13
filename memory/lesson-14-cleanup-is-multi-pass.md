@@ -8,9 +8,10 @@ tags: [cleanup, git, operations, multi-pass, verification]
 status: validated
 aspect: knower
 neural:
-  activation: 0.458
+  activation: 0.7
   stage: growing
-  cluster: lessons
+  synapse_in: 4
+  synapse_out: 4
 ---
 
 # Lesson: Cleanup Is Multi-Pass: Single-Pass Cleanups Always Miss Residual Artifacts

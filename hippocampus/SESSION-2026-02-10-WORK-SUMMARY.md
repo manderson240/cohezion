@@ -5,9 +5,10 @@ status: complete
 tags: [session, work-summary, my-work]
 aspect: doer
 neural:
-  activation: 0.580
+  activation: 0.77
   stage: growing
-  cluster: daily
+  synapse_in: 6
+  synapse_out: 7
 ---
 
 # SESSION 2026-02-10 WORK SUMMARY

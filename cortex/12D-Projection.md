@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [concept, cohezion, visualization, dimensionality-reduction, latent-space]
 aspect: knower
 neural:
-  activation: 0.661
+  activation: 0.89
   stage: mature
-  cluster: concepts
+  synapse_in: 6
+  synapse_out: 15
 ---
 
 # 12D Projection

@@ -6,9 +6,10 @@ related_concepts: [neural-network-architecture, self-attention-mechanism, machin
 status: active
 aspect: knower
 neural:
-  activation: 0.574
-  stage: growing
-  cluster: concepts
+  activation: 0.88
+  stage: mature
+  synapse_in: 16
+  synapse_out: 18
 ---
 
 # Transformer Architecture

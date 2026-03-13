@@ -30,9 +30,10 @@ dimensions:
   impact_score: 0.082
 aspect: knower
 neural:
-  activation: 0.581
+  activation: 0.82
   stage: mature
-  cluster: papers
+  synapse_in: 10
+  synapse_out: 13
 ---
 # AI Anomaly Detection in Hubble Archive
 

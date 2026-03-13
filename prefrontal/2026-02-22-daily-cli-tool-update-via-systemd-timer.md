@@ -5,9 +5,10 @@ status: accepted
 tags: [decision, tooling, automation, systemd]
 aspect: thinker
 neural:
-  activation: 0.464
+  activation: 0.7
   stage: growing
-  cluster: decisions
+  synapse_in: 5
+  synapse_out: 6
 ---
 
 # Daily CLI Tool Update via Systemd Timer

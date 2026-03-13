@@ -4,9 +4,10 @@ date: 2026-02-23
 tags: [daily]
 aspect: doer
 neural:
-  activation: 0.615
+  activation: 0.8
   stage: growing
-  cluster: daily
+  synapse_in: 2
+  synapse_out: 2
 ---
 # FLUME Integration Investigation: Coupling & Performance
 **Team:** Integration Specialist  

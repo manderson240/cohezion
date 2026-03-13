@@ -7,9 +7,10 @@ source: ~/.claude/debug/ forensic analysis
 impact: 1.6GB disk usage, performance degradation, "setting issues" warnings
 aspect: knower
 neural:
-  activation: 0.615
+  activation: 0.89
   stage: mature
-  cluster: lessons
+  synapse_in: 6
+  synapse_out: 14
 ---
 
 # Debug Log Bloat Analysis

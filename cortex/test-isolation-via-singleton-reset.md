@@ -5,9 +5,10 @@ tags: [testing, singleton, pattern, architecture]
 status: active
 aspect: knower
 neural:
-  activation: 0.572
+  activation: 0.81
   stage: mature
-  cluster: concepts
+  synapse_in: 3
+  synapse_out: 11
 ---
 
 # Test Isolation via Singleton Reset

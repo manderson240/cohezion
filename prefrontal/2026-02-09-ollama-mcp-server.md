@@ -29,9 +29,10 @@ metrics:
     - patterns/ollama-mcp-context-management
 aspect: thinker
 neural:
-  activation: 0.793
+  activation: 1.0
   stage: mature
-  cluster: decisions
+  synapse_in: 19
+  synapse_out: 15
 ---
 
 # Ollama MCP Server - Elevate Model Wrangling to Infrastructure

@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Adversarial Assessment"
 aspect: doer
 neural:
-  activation: 0.327
-  stage: embryo
-  cluster: Agents
+  activation: 0.59
+  stage: growing
+  synapse_in: 0
+  synapse_out: 3
 ---
 
 # Adversarial Review: 12D:2048D Holographic Manifold

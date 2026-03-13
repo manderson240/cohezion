@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Anthropic Cover Letter"
 aspect: doer
 neural:
-  activation: 0.354
+  activation: 0.66
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 2
 ---
 
 # Cover Letter: Mike Anderson

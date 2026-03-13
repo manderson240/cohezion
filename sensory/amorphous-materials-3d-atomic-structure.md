@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.24
 aspect: knower
 neural:
-  activation: 0.509
+  activation: 0.75
   stage: growing
-  cluster: papers
+  synapse_in: 9
+  synapse_out: 11
 ---
 # 3D Atomic Structure of Amorphous Materials via AET
 

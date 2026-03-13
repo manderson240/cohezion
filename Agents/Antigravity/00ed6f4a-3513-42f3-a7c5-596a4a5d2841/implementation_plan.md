@@ -6,9 +6,10 @@ title: "Local Fine-Tuning Execution Plan"
 tags: [agent-output, antigravity, fine-tuning, local-models]
 aspect: doer
 neural:
-  activation: 0.363
+  activation: 0.56
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 3
 ---
 
 # Implementation Plan - Local Fine-Tuning Execution

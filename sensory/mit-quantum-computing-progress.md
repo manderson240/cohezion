@@ -32,9 +32,10 @@ dimensions:
   impact_score: 0.158
 aspect: knower
 neural:
-  activation: 0.478
+  activation: 0.72
   stage: growing
-  cluster: papers
+  synapse_in: 9
+  synapse_out: 10
 ---
 # MIT Technology Review coverage of quantum computing progress including error correction breakthro...
 

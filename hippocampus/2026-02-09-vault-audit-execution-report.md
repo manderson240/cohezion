@@ -5,9 +5,10 @@ status: in-progress
 tags: [daily, vault-completion, execution-report, audit]
 aspect: doer
 neural:
-  activation: 0.530
+  activation: 0.77
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # Cohezion Vault Completion & Audit

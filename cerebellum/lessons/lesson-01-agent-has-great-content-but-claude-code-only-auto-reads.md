@@ -1,9 +1,10 @@
 ---
 aspect: thinker
 neural:
-  activation: 0.560
+  activation: 0.79
   stage: growing
-  cluster: patterns
+  synapse_in: 0
+  synapse_out: 20
 ---
 # Lesson 1: `.agent/` has great content but Claude Code only auto-reads 
 

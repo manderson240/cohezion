@@ -29,9 +29,10 @@ metrics:
     - decisions/2026-02-09-12d-graph-next-steps
 aspect: thinker
 neural:
-  activation: 0.900
+  activation: 1.0
   stage: mature
-  cluster: decisions
+  synapse_in: 17
+  synapse_out: 17
 ---
 
 # 12D Graph Visualization + SurrealDB Integration

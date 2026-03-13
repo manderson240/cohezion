@@ -5,9 +5,10 @@ status: completed
 tags: [phase-6b, report, final]
 aspect: doer
 neural:
-  activation: 0.563
+  activation: 0.75
   stage: growing
-  cluster: daily
+  synapse_in: 3
+  synapse_out: 2
 ---
 
 # Phase 6B Final Report

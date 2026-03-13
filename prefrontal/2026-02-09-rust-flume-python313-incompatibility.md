@@ -5,9 +5,10 @@ status: accepted
 tags: [decision]
 aspect: thinker
 neural:
-  activation: 0.616
+  activation: 0.85
   stage: growing
-  cluster: decisions
+  synapse_in: 4
+  synapse_out: 8
 ---
 # Rust FLUME Binary Incompatibility with Python 3.13
 

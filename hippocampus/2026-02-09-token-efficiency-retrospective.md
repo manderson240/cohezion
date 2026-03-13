@@ -4,9 +4,10 @@ date: 2026-02-09
 tags: [retrospective, efficiency, compound-engineering]
 aspect: doer
 neural:
-  activation: 0.520
+  activation: 0.76
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # Token Efficiency & Compound Engineering Retrospective

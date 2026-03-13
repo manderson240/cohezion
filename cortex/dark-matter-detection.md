@@ -4,9 +4,10 @@ date: 2026-02-07
 tags: [concept, quantum-sensors, quantum-entanglement, early-universe-cosmology]
 aspect: knower
 neural:
-  activation: 0.455
+  activation: 0.83
   stage: growing
-  cluster: concepts
+  synapse_in: 14
+  synapse_out: 9
 ---
 
 ## Definition

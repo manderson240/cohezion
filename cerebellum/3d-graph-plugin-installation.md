@@ -5,9 +5,10 @@ status: completed
 tags: [12d-graph, plugin, obsidian, visualization]
 aspect: thinker
 neural:
-  activation: 0.644
+  activation: 0.83
   stage: mature
-  cluster: patterns
+  synapse_in: 6
+  synapse_out: 10
 ---
 
 # 3D Graph Plugin Installation & Configuration

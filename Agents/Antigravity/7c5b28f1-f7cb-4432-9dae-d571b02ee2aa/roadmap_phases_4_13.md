@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Roadmap Phases 4 13"
 aspect: doer
 neural:
-  activation: 0.365
-  stage: embryo
-  cluster: Agents
+  activation: 0.68
+  stage: growing
+  synapse_in: 2
+  synapse_out: 3
 ---
 
 # Cohezion Roadmap: Phases 4-13 (The Second Quadrant)

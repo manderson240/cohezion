@@ -4,8 +4,10 @@ date: 2026-03-12
 tags: [dreaming, resonances, cross-domain, emergence]
 aspect: connective
 neural:
-  stage: embryo
-  activation: 0.5
+  activation: 1.0
+  stage: growing
+  synapse_in: 1
+  synapse_out: 11
 ---
 
 # The Dreaming — 2026-03-12
@@ -20,20 +22,13 @@ neural:
 
 ### Knower ↔ Thinker
 
-- [[exotic-vacuum-objects]] (cortex, act=1.00) ↔ [[2026-02-09-12d-graph-refined-plan]] (prefrontal, act=0.95) *(cross-cluster)*
-- [[exotic-vacuum-objects]] (cortex, act=1.00) ↔ [[2026-02-10-claude-log-mining-architecture]] (prefrontal, act=0.95) *(cross-cluster)*
-- [[indigenous-cosmologies-toe-synthesis]] (cortex, act=1.00) ↔ [[2026-02-09-12d-graph-refined-plan]] (prefrontal, act=0.95) *(cross-cluster)*
-- [[indigenous-cosmologies-toe-synthesis]] (cortex, act=1.00) ↔ [[2026-02-10-claude-log-mining-architecture]] (prefrontal, act=0.95) *(cross-cluster)*
-- [[sarfatti-post-quantum-mechanics-and-toe]] (cortex, act=1.00) ↔ [[2026-02-09-12d-graph-refined-plan]] (prefrontal, act=0.95) *(cross-cluster)*
-- [[sarfatti-post-quantum-mechanics-and-toe]] (cortex, act=1.00) ↔ [[2026-02-10-claude-log-mining-architecture]] (prefrontal, act=0.95) *(cross-cluster)*
-- [[the-new-science-framework]] (cortex, act=1.00) ↔ [[2026-02-09-12d-graph-refined-plan]] (prefrontal, act=0.95) *(cross-cluster)*
-
-### Knower ↔ Doer
-
-- [[exotic-vacuum-objects]] (cortex, act=1.00) ↔ [[implementation_plan]] (Agents, act=0.94) *(cross-cluster)*
-- [[indigenous-cosmologies-toe-synthesis]] (cortex, act=1.00) ↔ [[implementation_plan]] (Agents, act=0.94) *(cross-cluster)*
-- [[sarfatti-post-quantum-mechanics-and-toe]] (cortex, act=1.00) ↔ [[implementation_plan]] (Agents, act=0.94) *(cross-cluster)*
-- [[the-new-science-framework]] (cortex, act=1.00) ↔ [[implementation_plan]] (Agents, act=0.94) *(cross-cluster)*
+- [[MOC-new-science-toe]] (cortex, act=1.00) ↔ [[2026-02-09-vault-completion-retrospective]] (cerebellum, act=1.00) *(cross-cluster)*
+- [[MOC-new-science-toe]] (cortex, act=1.00) ↔ [[agent-logs-schema-validation]] (cerebellum, act=1.00) *(cross-cluster)*
+- [[MOC-new-science-toe]] (cortex, act=1.00) ↔ [[agent-logs-vault-schema]] (cerebellum, act=1.00) *(cross-cluster)*
+- [[MOC-new-science-toe]] (cortex, act=1.00) ↔ [[entire-io-sync-daemon-operations]] (cerebellum, act=1.00) *(cross-cluster)*
+- [[MOC-new-science-toe]] (cortex, act=1.00) ↔ [[failure-mode-test-priority]] (cerebellum, act=1.00) *(cross-cluster)*
+- [[MOC-new-science-toe]] (cortex, act=1.00) ↔ [[honest-time-tracking-all-costs]] (cerebellum, act=1.00) *(cross-cluster)*
+- [[MOC-new-science-toe]] (cortex, act=1.00) ↔ [[integration-first-definition-of-done]] (cerebellum, act=1.00) *(cross-cluster)*
 
 ## Becoming Songlines
 

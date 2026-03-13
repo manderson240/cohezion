@@ -5,9 +5,10 @@ status: accepted
 tags: [retrospective, graphrag, surrealdb, integration, compound-engineering]
 aspect: thinker
 neural:
-  activation: 0.631
-  stage: growing
-  cluster: decisions
+  activation: 0.86
+  stage: mature
+  synapse_in: 10
+  synapse_out: 17
 ---
 
 # GraphRAG Verification & Integration Session

@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.24
 aspect: knower
 neural:
-  activation: 0.618
+  activation: 0.85
   stage: growing
-  cluster: papers
+  synapse_in: 9
+  synapse_out: 17
 ---
 # JWST Revolutionizes Early Black Hole Understanding
 

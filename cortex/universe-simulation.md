@@ -6,9 +6,10 @@ related_concepts: [agent-journey-tracking, compound-engineering, non-blocking-ob
 status: active
 aspect: knower
 neural:
-  activation: 0.683
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 67
+  synapse_out: 17
 ---
 
 # Universe Simulation

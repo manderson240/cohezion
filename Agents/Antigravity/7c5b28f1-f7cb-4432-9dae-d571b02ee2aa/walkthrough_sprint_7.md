@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Walkthrough Sprint 7"
 aspect: doer
 neural:
-  activation: 0.336
+  activation: 0.62
   stage: embryo
-  cluster: Agents
+  synapse_in: 1
+  synapse_out: 1
 ---
 
 # Walkthrough: Sprint 7 — High-Fidelity Retrospective & 12D Enhancement

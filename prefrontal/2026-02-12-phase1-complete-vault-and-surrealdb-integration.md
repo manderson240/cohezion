@@ -28,9 +28,10 @@ metrics:
     - decisions/2026-02-12-dual-track-team-execution-enables-compression
 aspect: thinker
 neural:
-  activation: 0.666
+  activation: 0.94
   stage: growing
-  cluster: decisions
+  synapse_in: 7
+  synapse_out: 9
 ---
 
 # Phase 1 Complete - Vault + SurrealDB Integration

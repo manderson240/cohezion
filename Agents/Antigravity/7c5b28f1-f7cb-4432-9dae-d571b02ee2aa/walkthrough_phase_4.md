@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Walkthrough Phase 4"
 aspect: doer
 neural:
-  activation: 0.333
+  activation: 0.62
   stage: embryo
-  cluster: Agents
+  synapse_in: 1
+  synapse_out: 1
 ---
 
 # Phase 4 Walkthrough: Adversarial Robustness (Gateway 8)

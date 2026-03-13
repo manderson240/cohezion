@@ -4,9 +4,10 @@ date: 2026-02-09
 tags: [testing, sheetsbridge, mcp, google-sheets]
 aspect: doer
 neural:
-  activation: 0.386
+  activation: 0.63
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # SheetsBridge End-to-End Test Plan

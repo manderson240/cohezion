@@ -4,9 +4,10 @@ date: 2026-02-09
 tags: [pattern]
 aspect: thinker
 neural:
-  activation: 0.841
+  activation: 1.0
   stage: mature
-  cluster: patterns
+  synapse_in: 10
+  synapse_out: 19
 ---
 # Lessons Graph Integration Pattern
 

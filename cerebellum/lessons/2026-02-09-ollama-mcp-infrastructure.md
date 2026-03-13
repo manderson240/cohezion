@@ -4,9 +4,10 @@ date: 2026-02-09
 tags: [lesson, mcp, infrastructure, compound-engineering]
 aspect: thinker
 neural:
-  activation: 0.581
+  activation: 0.81
   stage: mature
-  cluster: patterns
+  synapse_in: 3
+  synapse_out: 15
 ---
 
 # Lesson: MCP Servers for Reusable Infrastructure

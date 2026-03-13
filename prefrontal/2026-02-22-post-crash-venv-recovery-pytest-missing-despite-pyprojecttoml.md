@@ -5,9 +5,10 @@ status: accepted
 tags: [decision, python, venv, crash-recovery, testing]
 aspect: thinker
 neural:
-  activation: 0.457
+  activation: 0.7
   stage: growing
-  cluster: decisions
+  synapse_in: 4
+  synapse_out: 5
 ---
 
 # Post-Crash Venv Recovery: pytest Missing Despite pyproject.toml

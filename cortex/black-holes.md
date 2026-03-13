@@ -5,9 +5,10 @@ tags: [domain, astrophysics, cosmology, physics]
 status: active
 aspect: knower
 neural:
-  activation: 0.674
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 16
+  synapse_out: 23
 ---
 
 # Black Holes

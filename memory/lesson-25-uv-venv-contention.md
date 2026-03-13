@@ -8,9 +8,10 @@ tags: [uv, venv, python, concurrency, dependency-management]
 status: validated
 aspect: knower
 neural:
-  activation: 0.452
+  activation: 0.69
   stage: growing
-  cluster: lessons
+  synapse_in: 7
+  synapse_out: 4
 ---
 
 # Lesson: UV Venv Contention: Concurrent UV Installs to Same Venv Cause Corruption

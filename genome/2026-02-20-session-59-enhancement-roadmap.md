@@ -5,9 +5,10 @@ status: proposed
 tags: [spec, compound-engineering, token-efficiency, context-management, tdd]
 aspect: knower
 neural:
-  activation: 0.642
+  activation: 0.87
   stage: growing
-  cluster: specs
+  synapse_in: 1
+  synapse_out: 6
 ---
 
 # SPEC: Session 59 Enhancement Roadmap

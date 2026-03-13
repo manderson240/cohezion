@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Task"
 aspect: doer
 neural:
-  activation: 0.386
+  activation: 0.69
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 2
 ---
 
 # 4-Hour Extension: Phase 2 Gateways (2026-01-18 14:15 - 18:15 EST)

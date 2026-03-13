@@ -4,9 +4,10 @@ date: 2026-02-10
 tags: [daily, summary, critical-findings]
 aspect: doer
 neural:
-  activation: 0.517
+  activation: 0.75
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # ADVERSARIAL REVIEW - KEY FINDINGS AT A GLANCE

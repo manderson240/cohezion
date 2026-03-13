@@ -4,9 +4,10 @@ date: 2026-03-10
 tags: [concept, indigenous-cosmology, TOE, andean, quechua, inca, pachamama, ayni, pacha, yanantin, south-america]
 aspect: knower
 neural:
-  activation: 0.750
-  stage: growing
-  cluster: concepts
+  activation: 1.0
+  stage: mature
+  synapse_in: 11
+  synapse_out: 12
 ---
 
 # Andean-Quechua Cosmology and the Theory of Everything

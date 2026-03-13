@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.322
 aspect: knower
 neural:
-  activation: 0.568
+  activation: 0.8
   stage: growing
-  cluster: papers
+  synapse_in: 4
+  synapse_out: 16
 ---
 # Optofluidic 3D Micro/Nanofabrication
 

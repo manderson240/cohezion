@@ -5,9 +5,10 @@ tags: [tool, compound-engineering, agent-workflow, knowledge-graph]
 status: active
 aspect: knower
 neural:
-  activation: 0.521
+  activation: 0.86
   stage: growing
-  cluster: concepts
+  synapse_in: 9
+  synapse_out: 10
 ---
 
 # Decision Linker

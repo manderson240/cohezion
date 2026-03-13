@@ -5,9 +5,10 @@ status: in-progress
 tags: [experiment, 12d-graph, validation, token-efficiency]
 aspect: thinker
 neural:
-  activation: 0.666
+  activation: 0.94
   stage: mature
-  cluster: experiments
+  synapse_in: 3
+  synapse_out: 18
 ---
 
 # Phase 3A: 3D Graph Validation Experiment

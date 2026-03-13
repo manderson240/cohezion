@@ -5,9 +5,10 @@ tags: [concept, physics, chemistry, experimental-techniques]
 status: active
 aspect: knower
 neural:
-  activation: 0.578
+  activation: 0.91
   stage: mature
-  cluster: concepts
+  synapse_in: 18
+  synapse_out: 11
 ---
 
 # Spectroscopy

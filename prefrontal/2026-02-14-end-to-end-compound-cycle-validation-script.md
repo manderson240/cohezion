@@ -46,9 +46,10 @@ metrics:
   - '[[2026-02-14-session-58-7-phase-journey-enrichment-3-agent-adversarial-review]]'
 aspect: thinker
 neural:
-  activation: 0.496
+  activation: 0.78
   stage: growing
-  cluster: decisions
+  synapse_in: 2
+  synapse_out: 9
 ---
 
 ## Context

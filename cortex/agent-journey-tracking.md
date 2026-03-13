@@ -6,9 +6,10 @@ related_concepts: [experience-feedback-loop, compound-engineering, non-blocking-
 status: active
 aspect: knower
 neural:
-  activation: 0.698
+  activation: 0.92
   stage: mature
-  cluster: concepts
+  synapse_in: 26
+  synapse_out: 25
 ---
 
 # Agent Journey Tracking

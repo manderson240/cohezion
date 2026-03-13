@@ -5,9 +5,10 @@ status: completed
 tags: [settings, infrastructure, validation, mcp]
 aspect: thinker
 neural:
-  activation: 0.469
+  activation: 0.74
   stage: growing
-  cluster: decisions
+  synapse_in: 9
+  synapse_out: 7
 ---
 
 ## Context

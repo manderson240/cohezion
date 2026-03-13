@@ -4,9 +4,10 @@ date: 2026-02-11
 tags: [pattern]
 aspect: thinker
 neural:
-  activation: 0.775
+  activation: 0.95
   stage: growing
-  cluster: patterns
+  synapse_in: 6
+  synapse_out: 7
 ---
 # Session 55: Compound Engineering Learnings
 

@@ -4,9 +4,10 @@ date: 2026-02-23
 tags: [pattern]
 aspect: thinker
 neural:
-  activation: 0.785
+  activation: 0.96
   stage: growing
-  cluster: patterns
+  synapse_in: 8
+  synapse_out: 7
 ---
 # Staged Validation for Long-Horizon Tasks
 

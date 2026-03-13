@@ -8,9 +8,10 @@ source: "tools/cohezion-engine/"
 status: active
 aspect: knower
 neural:
-  activation: 0.370
+  activation: 0.61
   stage: embryo
-  cluster: specs
+  synapse_in: 1
+  synapse_out: 2
 ---
 
 # Cohezion Engine CLI (`cz`)

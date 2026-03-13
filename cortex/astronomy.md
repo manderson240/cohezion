@@ -5,9 +5,10 @@ tags: [domain, physics, observation, science]
 status: active
 aspect: knower
 neural:
-  activation: 0.722
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 28
+  synapse_out: 22
 ---
 
 # Astronomy

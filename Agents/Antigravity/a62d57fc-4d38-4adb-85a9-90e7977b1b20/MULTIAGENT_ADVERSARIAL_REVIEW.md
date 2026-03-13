@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Multiagent Adversarial Review"
 aspect: doer
 neural:
-  activation: 0.333
+  activation: 0.64
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 2
 ---
 
 # MULTIAGENT ADVERSARIAL REVIEW: Experience Persistence

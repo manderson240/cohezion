@@ -5,9 +5,10 @@ status: accepted
 tags: [decision, singleton, refactoring, python, architecture]
 aspect: thinker
 neural:
-  activation: 0.476
+  activation: 0.72
   stage: growing
-  cluster: decisions
+  synapse_in: 4
+  synapse_out: 6
 ---
 
 # Singleton Consolidation Mandatory During File Splits

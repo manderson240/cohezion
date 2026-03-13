@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, quantum-mechanics, superfluids, condensed-matter, phase-transitions]
 aspect: knower
 neural:
-  activation: 0.700
+  activation: 0.96
   stage: growing
-  cluster: concepts
+  synapse_in: 6
+  synapse_out: 9
 ---
 
 # Bose-Einstein Condensates

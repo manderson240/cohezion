@@ -4,9 +4,10 @@ date: 2026-02-07
 tags: [concept, early-universe-cosmology, dark-matter-detection, exoplanet-habitability]
 aspect: knower
 neural:
-  activation: 0.553
+  activation: 0.79
   stage: growing
-  cluster: concepts
+  synapse_in: 8
+  synapse_out: 13
 ---
 
 ## Definition

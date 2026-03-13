@@ -5,9 +5,10 @@ tags: [ai, transformers, huggingface, pytorch, open-source, llm]
 source: https://huggingface.co/blog/transformers-v5
 aspect: knower
 neural:
-  activation: 0.547
+  activation: 0.81
   stage: growing
-  cluster: papers
+  synapse_in: 6
+  synapse_out: 14
 ---
 
 ## Summary

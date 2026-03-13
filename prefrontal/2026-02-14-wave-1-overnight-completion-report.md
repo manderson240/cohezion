@@ -5,9 +5,10 @@ status: in-progress
 tags: [wave-1, overnight, compound-engineering, completion-report]
 aspect: thinker
 neural:
-  activation: 0.806
+  activation: 1.0
   stage: mature
-  cluster: decisions
+  synapse_in: 4
+  synapse_out: 12
 ---
 
 # Wave 1 Overnight Compound Engineering - Final Status Report

@@ -4,9 +4,10 @@ date: 2026-02-24
 tags: [pattern, vault, links, obsidian, audit]
 aspect: thinker
 neural:
-  activation: 0.625
+  activation: 0.84
   stage: growing
-  cluster: patterns
+  synapse_in: 6
+  synapse_out: 22
 ---
 
 # Vault Link Audit Pattern

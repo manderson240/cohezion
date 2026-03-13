@@ -8,9 +8,10 @@ tags: [session-management, context, agent-workflow, continuity]
 status: validated
 aspect: knower
 neural:
-  activation: 0.542
+  activation: 0.78
   stage: growing
-  cluster: lessons
+  synapse_in: 10
+  synapse_out: 8
 ---
 
 # Lesson: Session Awareness Protocol: Agents Must Establish Context at Session Start

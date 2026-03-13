@@ -4,9 +4,10 @@ date: "2026-02-22"
 tags: [pattern, security, python]
 aspect: thinker
 neural:
-  activation: 0.442
+  activation: 0.63
   stage: growing
-  cluster: patterns
+  synapse_in: 4
+  synapse_out: 7
 ---
 
 ## Problem

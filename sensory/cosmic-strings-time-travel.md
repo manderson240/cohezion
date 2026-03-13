@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.158
 aspect: knower
 neural:
-  activation: 0.528
-  stage: growing
-  cluster: papers
+  activation: 0.77
+  stage: mature
+  synapse_in: 12
+  synapse_out: 11
 ---
 # Cosmic Strings and Time Travel
 

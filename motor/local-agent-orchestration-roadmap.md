@@ -5,9 +5,10 @@ status: active
 tags: [agent-orchestration, compound-engineering, local-models, project, roadmap]
 aspect: doer
 neural:
-  activation: 0.646
+  activation: 0.95
   stage: mature
-  cluster: projects
+  synapse_in: 10
+  synapse_out: 13
 ---
 # Local Agent Orchestration Roadmap
 

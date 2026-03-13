@@ -8,9 +8,10 @@ tags: [git, branches, knowledge-recovery, archaeology]
 status: validated
 aspect: knower
 neural:
-  activation: 0.454
+  activation: 0.7
   stage: growing
-  cluster: lessons
+  synapse_in: 7
+  synapse_out: 4
 ---
 
 # Lesson: Stale Branch Mining: Old Branches Contain Valuable Abandoned Work

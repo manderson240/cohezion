@@ -6,9 +6,10 @@ title: "Technical Reckoning - Full-Repo Showcase"
 tags: [agent-output, antigravity, showcase, constitutional-validation]
 aspect: doer
 neural:
-  activation: 0.530
+  activation: 0.81
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 4
 ---
 
 # Implementation Plan: The Technical Reckoning (Full-Repo Showcase v3.0)

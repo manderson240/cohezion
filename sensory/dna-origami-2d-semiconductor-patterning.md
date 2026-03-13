@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.322
 aspect: knower
 neural:
-  activation: 0.574
-  stage: growing
-  cluster: papers
+  activation: 0.81
+  stage: mature
+  synapse_in: 27
+  synapse_out: 14
 ---
 # DNA Origami for Precise Molecular Patterning on 2D Semiconductors
 

@@ -5,9 +5,10 @@ tags: [concept, nanofabrication, physics, machine-learning]
 related_concepts: [nanofabrication, machine-learning, synthetic-biology]
 aspect: knower
 neural:
-  activation: 0.604
+  activation: 0.84
   stage: growing
-  cluster: concepts
+  synapse_in: 17
+  synapse_out: 16
 ---
 ## Definition
 

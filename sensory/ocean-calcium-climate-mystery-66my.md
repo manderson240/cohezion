@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.16
 aspect: knower
 neural:
-  activation: 0.535
+  activation: 0.77
   stage: growing
-  cluster: papers
+  synapse_in: 4
+  synapse_out: 12
 ---
 # Ocean Calcium Decline Solved Long-Term Cooling Mystery
 

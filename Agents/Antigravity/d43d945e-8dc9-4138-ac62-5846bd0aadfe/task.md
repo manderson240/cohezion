@@ -6,9 +6,10 @@ title: "Task: Cohezion Tax Strategy Plan"
 tags: [agent-output, antigravity, tax-strategy, business-planning]
 aspect: doer
 neural:
-  activation: 0.371
+  activation: 0.57
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 1
 ---
 
 # Task: Cohezion Tax Strategy Plan (P.L. 119-21)

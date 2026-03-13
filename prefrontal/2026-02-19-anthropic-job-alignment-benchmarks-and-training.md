@@ -5,9 +5,10 @@ status: accepted
 tags: [decision, benchmarks, training, alignment, research]
 aspect: thinker
 neural:
-  activation: 0.477
+  activation: 0.72
   stage: growing
-  cluster: decisions
+  synapse_in: 4
+  synapse_out: 7
 ---
 
 # Anthropic Job Alignment — Benchmarks and Training

@@ -3,6 +3,11 @@ title: Graph Alerts — Live Dashboard
 date: 2026-03-12
 tags: [metabolism, graph-reactor, auto-generated]
 aspect: connective
+neural:
+  activation: 1.0
+  stage: growing
+  synapse_in: 0
+  synapse_out: 9
 ---
 
 # Graph Alerts
@@ -14,32 +19,27 @@ aspect: connective
 
 | Country | Health | Neurons | Action |
 |---------|--------|---------|--------|
-| thalamus | 0.188 | 1 | Flesh out notes in `thalamus/` |
-| assessments | 0.212 | 1 | Flesh out notes in `assessments/` |
+| thalamus | 0.179 | 1 | Flesh out notes in `thalamus/` |
 
 ## Low Countries (0.3-0.5)
 
 | Country | Health | Neurons |
 |---------|--------|---------|
-| visual-cortex | 0.388 | 1 |
-| Agents | 0.393 | 428 |
-| metabolism | 0.417 | 3 |
-| teleport | 0.439 | 25 |
-| hippocampus | 0.441 | 205 |
-| missions | 0.487 | 29 |
+| assessments | 0.322 | 1 |
+| visual-cortex | 0.377 | 1 |
 
 ## Orphan Neurons (0 inbound, high activation)
 
-- `cortex/sarfatti-post-quantum-mechanics-and-toe.md` (act=1.000, out=12) — needs inbound links
-- `research/kyutai-mcp-server-implementation.md` (act=1.000, out=12) — needs inbound links
-- `Agents/Antigravity/2a476f70-c770-4044-8d44-e6e507591ec1/implementation_plan.md` (act=0.945, out=13) — needs inbound links
-- `skills_index.md` (act=0.915, out=72) — needs inbound links
-- `Agents/Antigravity/4bda55e4-549b-43bb-88a0-0685989866ac/task.md` (act=0.900, out=10) — needs inbound links
-- `genome/extraction-pipeline-spec.md` (act=0.890, out=13) — needs inbound links
-- `genome/integrations/huggingface.md` (act=0.890, out=13) — needs inbound links
-- `Agents/Antigravity/aee99195-4c6a-4b80-ac7e-b0aaddb284cc/implementation_plan.md` (act=0.870, out=8) — needs inbound links
-- `cortex/matsumoto_hiho_synthesis.md` (act=0.785, out=19) — needs inbound links
-- `subconscious/2026-03-11-latent-associations.md` (act=0.773, out=20) — needs inbound links
+- `Agents/Antigravity/2a476f70-c770-4044-8d44-e6e507591ec1/implementation_plan.md` (act=1.000, out=13) — needs inbound links
+- `Agents/Antigravity/42233b97-45f7-4a48-bd44-7a7be04e48c9/adversarial_review.md` (act=1.000, out=7) — needs inbound links
+- `Agents/Antigravity/4bda55e4-549b-43bb-88a0-0685989866ac/task.md` (act=1.000, out=10) — needs inbound links
+- `Agents/Antigravity/aee99195-4c6a-4b80-ac7e-b0aaddb284cc/implementation_plan.md` (act=1.000, out=8) — needs inbound links
+- `cerebellum/troubleshooting-mcp-infrastructure.md` (act=1.000, out=11) — needs inbound links
+- `cortex/cloud-vault-mcp.md` (act=1.000, out=39) — needs inbound links
+- `cortex/surrealdb.md` (act=1.000, out=36) — needs inbound links
+- `genome/extraction-pipeline-spec.md` (act=1.000, out=13) — needs inbound links
+- `genome/integrations/huggingface.md` (act=1.000, out=13) — needs inbound links
+- `metabolism/graph-alerts.md` (act=1.000, out=9) — needs inbound links
 
 ## Resting Notes (activation < 0.2)
 
@@ -60,15 +60,15 @@ None. All notes above resting threshold.
 
 | Date | Country | Coherence |
 |------|---------|-----------|
-| 2026-03-12 | metabolism | 0.384 |
-| 2026-03-12 | meta | 0.400 |
-| 2026-03-12 | dreaming | 0.426 |
-| 2026-03-12 | retrospectives | 0.546 |
-| 2026-03-12 | songlines | 0.554 |
+| 2026-03-12 | genome | 0.174 |
+| 2026-03-12 | metabolism | 0.729 |
+| 2026-03-12 | docs | 0.378 |
+| 2026-03-12 | meta | 0.680 |
+| 2026-03-12 | dreaming | 0.685 |
 
 ## Summary
 
-- Dark countries: 2
+- Dark countries: 1
 - Orphan neurons: 15
 - Resting notes: 0
 - Synapse gaps: 15

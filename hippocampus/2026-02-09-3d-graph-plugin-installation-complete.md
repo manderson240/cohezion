@@ -5,9 +5,10 @@ status: completed
 tags: [daily, 12d-graph, plugin, phase-3]
 aspect: doer
 neural:
-  activation: 0.377
+  activation: 0.62
   stage: growing
-  cluster: daily
+  synapse_in: 2
+  synapse_out: 0
 ---
 
 # 3D Graph Plugin Installation Complete

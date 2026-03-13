@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [concept, data, pipelines, ETL, ml-systems, data-quality]
 aspect: knower
 neural:
-  activation: 0.527
+  activation: 0.86
   stage: growing
-  cluster: concepts
+  synapse_in: 6
+  synapse_out: 9
 ---
 
 # Data Engineering

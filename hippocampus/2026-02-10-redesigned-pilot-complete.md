@@ -5,9 +5,10 @@ tags: [completion, log-mining, pilot-study, meta-learning]
 status: complete
 aspect: doer
 neural:
-  activation: 0.604
+  activation: 0.83
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 6
 ---
 
 ## ✅ Redesigned Pilot Study Complete

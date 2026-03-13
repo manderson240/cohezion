@@ -6,9 +6,10 @@ title: "Task: Akash Provider and Sovereign Node Setup"
 tags: [agent-output, antigravity, akash, decentralized-compute]
 aspect: doer
 neural:
-  activation: 0.349
+  activation: 0.55
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 2
 ---
 
 # Task: Establishing Akash Provider Funding & Sovereign Node

@@ -5,9 +5,10 @@ status: complete
 tags: [experiment, ci-cd, debugging]
 aspect: thinker
 neural:
-  activation: 0.287
+  activation: 0.6
   stage: embryo
-  cluster: experiments
+  synapse_in: 1
+  synapse_out: 1
 ---
 
 # CI Pipeline Debugging — Cascading Failures from Dev Deps and Permissions

@@ -1,9 +1,10 @@
 ---
 aspect: doer
 neural:
-  activation: 0.393
+  activation: 0.59
   stage: embryo
-  cluster: missions
+  synapse_in: 0
+  synapse_out: 2
 ---
 # 🎨 Multi-modal Research Artifacts: The Nano-Banana Protocol
 **Job Application Portfolio: Research Engineer, Universes (Anthropic)**

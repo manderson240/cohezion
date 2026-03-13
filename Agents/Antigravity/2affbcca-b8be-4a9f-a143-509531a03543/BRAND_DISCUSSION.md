@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Brand Discussion"
 aspect: doer
 neural:
-  activation: 0.328
+  activation: 0.61
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 1
 ---
 
 # Branding Consensus: The Nexus of Coherence

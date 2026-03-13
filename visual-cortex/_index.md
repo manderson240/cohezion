@@ -4,9 +4,10 @@ purpose: "Standalone visual canvases — spatial relationship maps, architecture
 type: directory-index
 aspect: connective
 neural:
-  activation: 0.370
+  activation: 0.36
   stage: embryo
-  cluster: canvas
+  synapse_in: 0
+  synapse_out: 2
 ---
 
 # Canvas

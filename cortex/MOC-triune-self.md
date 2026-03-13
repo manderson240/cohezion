@@ -3,11 +3,12 @@ title: "MOC — Triune Self"
 date: 2026-03-09
 tags: [moc, navigation, triune-self, vault-architecture, surrealdb, dreaming, aboriginal]
 aspect: knower
-neural:
-  activation: 0.9
-  stage: mature
-  cluster: cortex
 aliases: ["triune-vault", "triune-self", "vault-brain"]
+neural:
+  activation: 0.96
+  stage: mature
+  synapse_in: 1
+  synapse_out: 22
 ---
 
 # Map of Content — Triune Self

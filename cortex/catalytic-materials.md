@@ -4,9 +4,10 @@ date: 2026-02-07
 tags: [concept, nanofabrication, quantum-sensors, dark-matter-detection]
 aspect: knower
 neural:
-  activation: 0.508
+  activation: 0.75
   stage: growing
-  cluster: concepts
+  synapse_in: 4
+  synapse_out: 10
 ---
 
 ## Definition

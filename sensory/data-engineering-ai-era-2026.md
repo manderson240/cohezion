@@ -10,9 +10,10 @@ similar_papers:
 source: https://thenewstack.io/from-etl-to-autonomy-data-engineering-in-2026/
 aspect: knower
 neural:
-  activation: 0.596
+  activation: 0.83
   stage: growing
-  cluster: papers
+  synapse_in: 7
+  synapse_out: 15
 ---
 
 ## Summary

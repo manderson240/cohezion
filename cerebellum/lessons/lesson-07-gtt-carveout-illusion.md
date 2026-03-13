@@ -1,9 +1,10 @@
 ---
 aspect: thinker
 neural:
-  activation: 0.336
+  activation: 0.58
   stage: growing
-  cluster: patterns
+  synapse_in: 0
+  synapse_out: 6
 ---
 # Lesson 7: GTT CARVEOUT ILLUSION
 

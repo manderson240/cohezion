@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, particle-physics, QCD, plasma, superfluids, phase-transitions]
 aspect: knower
 neural:
-  activation: 0.700
+  activation: 0.95
   stage: growing
-  cluster: concepts
+  synapse_in: 4
+  synapse_out: 9
 ---
 
 # Quark-Gluon Plasma

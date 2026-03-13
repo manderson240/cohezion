@@ -5,9 +5,10 @@ status: completed
 tags: [phase-3, complete, plugin-delivered, 3d-visualization, production-ready]
 aspect: doer
 neural:
-  activation: 0.624
+  activation: 0.81
   stage: growing
-  cluster: daily
+  synapse_in: 3
+  synapse_out: 3
 ---
 
 # Phase 3 Completion: Cohezion 3D Knowledge Graph Plugin Delivered

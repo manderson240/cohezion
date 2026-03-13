@@ -4,9 +4,10 @@ date: 2026-03-10
 tags: [concept, indigenous-cosmology, TOE, amazonian, amerindian, perspectivism, multinaturalism, viveiros-de-castro, ayahuasca, south-america]
 aspect: knower
 neural:
-  activation: 0.750
-  stage: growing
-  cluster: concepts
+  activation: 1.0
+  stage: mature
+  synapse_in: 1
+  synapse_out: 12
 ---
 
 # Amazonian Cosmology and the Theory of Everything

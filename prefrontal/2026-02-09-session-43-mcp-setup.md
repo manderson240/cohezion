@@ -5,9 +5,10 @@ status: in progress - server infrastructure initialized
 tags: [decision]
 aspect: thinker
 neural:
-  activation: 0.491
+  activation: 0.73
   stage: growing
-  cluster: decisions
+  synapse_in: 5
+  synapse_out: 7
 ---
 # Session 43 - MCP Server Setup & Obsidian Integration
 

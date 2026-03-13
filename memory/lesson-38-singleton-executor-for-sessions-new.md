@@ -7,9 +7,10 @@ tags: [executor, singleton, sessions, resource-management, python]
 status: validated
 aspect: knower
 neural:
-  activation: 0.440
+  activation: 0.72
   stage: growing
-  cluster: lessons
+  synapse_in: 14
+  synapse_out: 8
 ---
 
 # Lesson: Singleton Executor for Sessions: One Executor Instance Per Session Prevents Resource Leaks

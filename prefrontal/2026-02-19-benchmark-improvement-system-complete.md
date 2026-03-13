@@ -5,9 +5,10 @@ status: accepted
 tags: [decision, benchmarks, self-improvement, agent-architecture]
 aspect: thinker
 neural:
-  activation: 0.478
+  activation: 0.72
   stage: growing
-  cluster: decisions
+  synapse_in: 0
+  synapse_out: 7
 ---
 
 # Benchmark Improvement System Complete

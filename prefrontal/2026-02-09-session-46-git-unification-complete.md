@@ -5,9 +5,10 @@ status: accepted
 tags: [decision]
 aspect: thinker
 neural:
-  activation: 0.476
+  activation: 0.72
   stage: growing
-  cluster: decisions
+  synapse_in: 7
+  synapse_out: 8
 ---
 # Session 46: Git Repository Unification Complete
 

@@ -8,9 +8,10 @@ tags: [git, repository-health, large-files, pre-commit, data-governance]
 status: validated
 aspect: knower
 neural:
-  activation: 0.512
+  activation: 0.75
   stage: growing
-  cluster: lessons
+  synapse_in: 8
+  synapse_out: 6
 ---
 
 # Lesson: 8.6M File Incident: Large Generated Files Committed to Git Corrupt Repository Health

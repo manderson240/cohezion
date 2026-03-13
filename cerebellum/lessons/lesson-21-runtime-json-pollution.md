@@ -1,9 +1,10 @@
 ---
 aspect: thinker
 neural:
-  activation: 0.439
+  activation: 0.67
   stage: growing
-  cluster: patterns
+  synapse_in: 0
+  synapse_out: 12
 ---
 # Lesson 21: RUNTIME JSON POLLUTION
 

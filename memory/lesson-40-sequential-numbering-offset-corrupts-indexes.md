@@ -8,9 +8,10 @@ tags: [lesson, vault, indexing, numbering, lessons-index]
 status: active
 aspect: knower
 neural:
-  activation: 0.473
+  activation: 0.71
   stage: growing
-  cluster: lessons
+  synapse_in: 3
+  synapse_out: 7
 ---
 
 # Lesson 40: Sequential Numbering Offset Corrupts Indexes

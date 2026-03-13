@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Walkthrough"
 aspect: doer
 neural:
-  activation: 0.378
-  stage: embryo
-  cluster: Agents
+  activation: 0.66
+  stage: growing
+  synapse_in: 0
+  synapse_out: 1
 ---
 
 # Walkthrough: System Knowledge Vitrification

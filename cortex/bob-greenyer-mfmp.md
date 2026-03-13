@@ -3,11 +3,12 @@ title: "Bob Greenyer and the Martin Fleischmann Memorial Project"
 date: 2026-03-11
 tags: [researcher, physics, plasma, EVO, LENR, open-science, transmutation, MFMP]
 aspect: knower
-neural:
-  activation: 0.800
-  stage: growing
-  cluster: concepts
 aliases: ["MFMP", "Martin Fleischmann Memorial Project", "Bob Greenyer"]
+neural:
+  activation: 1.0
+  stage: mature
+  synapse_in: 9
+  synapse_out: 16
 ---
 
 # Bob Greenyer and the Martin Fleischmann Memorial Project

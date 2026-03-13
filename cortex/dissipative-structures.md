@@ -4,9 +4,10 @@ date: 2026-03-10
 tags: [concept, physics, thermodynamics, nonequilibrium, self-organization, complexity]
 aspect: knower
 neural:
-  activation: 0.700
-  stage: growing
-  cluster: concepts
+  activation: 0.88
+  stage: mature
+  synapse_in: 4
+  synapse_out: 11
 ---
 
 # Dissipative Structures

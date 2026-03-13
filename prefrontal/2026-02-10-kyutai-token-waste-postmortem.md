@@ -31,9 +31,10 @@ metrics:
     - concepts/token-efficiency
 aspect: thinker
 neural:
-  activation: 0.600
+  activation: 0.87
   stage: mature
-  cluster: decisions
+  synapse_in: 11
+  synapse_out: 15
 ---
 
 # Kyutai MCP Server: Token Waste Postmortem

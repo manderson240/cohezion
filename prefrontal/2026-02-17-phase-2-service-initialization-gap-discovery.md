@@ -5,9 +5,10 @@ status: active
 tags: [decision, architecture, phase-2, adversarial-review, compound-engineering]
 aspect: thinker
 neural:
-  activation: 0.668
+  activation: 0.9
   stage: mature
-  cluster: decisions
+  synapse_in: 3
+  synapse_out: 15
 ---
 
 ## Problem Statement

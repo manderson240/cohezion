@@ -5,9 +5,10 @@ tags: [concept, agentic-ai, multi-agent-systems, compound-engineering]
 related_concepts: [agent-architecture, multi-agent-systems, tool-use, mcp-model-context-protocol, compound-engineering]
 aspect: knower
 neural:
-  activation: 0.768
+  activation: 0.99
   stage: mature
-  cluster: concepts
+  synapse_in: 31
+  synapse_out: 47
 ---
 ## Definition
 

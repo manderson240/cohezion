@@ -5,9 +5,10 @@ tags: [concept, agentic-ai, multi-agent-systems, agent-loop-architecture]
 related_concepts: [agent-loop-architecture, agentic-ai, multi-agent-systems, mcp-model-context-protocol, tool-use]
 aspect: knower
 neural:
-  activation: 0.742
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 36
+  synapse_out: 46
 ---
 ## Definition
 

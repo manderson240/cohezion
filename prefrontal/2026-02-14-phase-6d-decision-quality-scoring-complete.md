@@ -5,9 +5,10 @@ status: active
 tags: [phase-6d, quality-scoring, analytics, decision-analysis]
 aspect: thinker
 neural:
-  activation: 0.642
+  activation: 0.87
   stage: growing
-  cluster: decisions
+  synapse_in: 4
+  synapse_out: 9
 ---
 
 # Phase 6D: Decision Quality Scoring - Implementation Complete

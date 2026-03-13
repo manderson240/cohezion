@@ -6,9 +6,10 @@ title: "USD and Visualization Upgrades Plan"
 tags: [agent-output, antigravity, visualization, usd-pipeline]
 aspect: doer
 neural:
-  activation: 0.553
+  activation: 0.84
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 3
 ---
 
 # USD Simulation & Swarm-Powered Next Steps - Implementation Plan

@@ -8,9 +8,10 @@ last_commit: "d6d0d43b4a75 feat: Experience → VAE training pipeline closes the
 tags: [session, auto-generated]
 aspect: doer
 neural:
-  activation: 0.310
+  activation: 0.51
   stage: embryo
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 1
 ---
 # Session cf44ece1 — 2026-02-13
 

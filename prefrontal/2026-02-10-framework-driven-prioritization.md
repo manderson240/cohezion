@@ -28,9 +28,10 @@ metrics:
     - "lessons/lesson-framework-driven-prioritization"
 aspect: thinker
 neural:
-  activation: 0.855
+  activation: 1.0
   stage: mature
-  cluster: decisions
+  synapse_in: 3
+  synapse_out: 14
 ---
 
 # Framework-Driven Prioritization: Applying Meta-Concepts

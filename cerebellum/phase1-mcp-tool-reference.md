@@ -5,9 +5,10 @@ status: completed
 tags: [phase1, mcp-tools, reference, documentation]
 aspect: thinker
 neural:
-  activation: 0.683
+  activation: 0.91
   stage: mature
-  cluster: patterns
+  synapse_in: 7
+  synapse_out: 11
 ---
 
 # Phase 1 MCP Tool Reference

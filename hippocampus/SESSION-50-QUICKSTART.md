@@ -3,6 +3,11 @@ title: "Session 50 Quick Start — FLUME Optimization Activation"
 date: 2026-02-09
 tags: [session, quickstart, flume, optimization, worktree]
 aspect: doer
+neural:
+  activation: 0.6
+  stage: growing
+  synapse_in: 4
+  synapse_out: 4
 ---
 
 # Session 50: Quick Start Card

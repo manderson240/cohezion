@@ -4,9 +4,10 @@ date: "2026-02-24"
 tags: [pattern]
 aspect: thinker
 neural:
-  activation: 0.446
+  activation: 0.71
   stage: growing
-  cluster: patterns
+  synapse_in: 6
+  synapse_out: 6
 ---
 
 ## Problem

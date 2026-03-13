@@ -3,10 +3,12 @@ title: "Metabolism Dashboard"
 date: 2026-03-12
 tags: [metabolism, vault-health, emergence, country]
 aspect: connective
-neural:
-  stage: mature
-  activation: 1.0
 aliases: ["vault-health-dashboard", "metabolism-report"]
+neural:
+  activation: 1.0
+  stage: growing
+  synapse_in: 6
+  synapse_out: 3
 ---
 
 # Metabolism Dashboard
@@ -20,19 +22,19 @@ aliases: ["vault-health-dashboard", "metabolism-report"]
 
 | Metric | Value |
 |--------|-------|
-| Total Neurons | 1,589 |
-| Avg Activation | 0.519 |
+| Total Neurons | 1,592 |
+| Avg Activation | 0.739 |
 | Countries | 24 |
 | Dreaming Resonances Today | 20 |
-| HIHO Fusion Events Today | 10 |
+| HIHO Fusion Events Today | 13 |
 
 ## Lifecycle Distribution
 
 | Stage | Count | % |
 |-------|-------|---|
-| mature | 368 | 23% |
-| growing | 1020 | 64% |
-| embryo | 212 | 13% |
+| mature | 412 | 26% |
+| growing | 759 | 47% |
+| embryo | 432 | 27% |
 | resting | 0 | 0% |
 | composting | 0 | 0% |
 | renewed | 0 | 0% |
@@ -42,28 +44,31 @@ aliases: ["vault-health-dashboard", "metabolism-report"]
 | Country | Neurons | Avg Activation | Health |
 |---------|---------|----------------|--------|
 | research | 4 | 1.000 | ██████████ 1.00 |
-| cortex | 278 | 0.640 | ███████░░░ 0.78 |
-| laboratory | 41 | 0.601 | ███████░░░ 0.76 |
-| prefrontal | 166 | 0.584 | ███████░░░ 0.75 |
-| subconscious | 4 | 0.582 | ███████░░░ 0.75 |
-| docs | 14 | 0.568 | ███████░░░ 0.74 |
-| motor | 29 | 0.567 | ███████░░░ 0.74 |
-| songlines | 4 | 0.566 | ███████░░░ 0.74 |
-| sensory | 118 | 0.561 | ███████░░░ 0.74 |
-| cerebellum | 135 | 0.552 | ███████░░░ 0.73 |
+| cortex | 278 | 0.908 | █████████░ 0.94 |
+| laboratory | 41 | 0.829 | ████████░░ 0.90 |
+| prefrontal | 166 | 0.818 | ████████░░ 0.89 |
+| sensory | 118 | 0.808 | ████████░░ 0.88 |
+| subconscious | 4 | 0.789 | ████████░░ 0.87 |
+| songlines | 4 | 0.781 | ████████░░ 0.87 |
+| cerebellum | 135 | 0.754 | ████████░░ 0.85 |
+| motor | 29 | 0.748 | ████████░░ 0.85 |
+| memory | 49 | 0.729 | ████████░░ 0.84 |
 
 ## HIHO Fusion Events Today
 
 - **research**: coherence=1.000, 4 neurons reached fusion threshold
-- **laboratory**: coherence=0.408, 41 neurons reached fusion threshold
-- **subconscious**: coherence=0.582, 4 neurons reached fusion threshold
-- **docs**: coherence=0.456, 14 neurons reached fusion threshold
-- **motor**: coherence=0.316, 29 neurons reached fusion threshold
-- **songlines**: coherence=0.566, 4 neurons reached fusion threshold
-- **retrospectives**: coherence=0.524, 8 neurons reached fusion threshold
-- **dreaming**: coherence=0.460, 4 neurons reached fusion threshold
-- **meta**: coherence=0.380, 4 neurons reached fusion threshold
-- **metabolism**: coherence=0.479, 4 neurons reached fusion threshold
+- **laboratory**: coherence=0.563, 41 neurons reached fusion threshold
+- **sensory**: coherence=0.175, 118 neurons reached fusion threshold
+- **subconscious**: coherence=0.789, 4 neurons reached fusion threshold
+- **songlines**: coherence=0.781, 4 neurons reached fusion threshold
+- **motor**: coherence=0.416, 29 neurons reached fusion threshold
+- **memory**: coherence=0.191, 49 neurons reached fusion threshold
+- **retrospectives**: coherence=0.699, 8 neurons reached fusion threshold
+- **dreaming**: coherence=0.685, 4 neurons reached fusion threshold
+- **meta**: coherence=0.680, 4 neurons reached fusion threshold
+- **docs**: coherence=0.378, 17 neurons reached fusion threshold
+- **metabolism**: coherence=0.729, 4 neurons reached fusion threshold
+- **genome**: coherence=0.175, 35 neurons reached fusion threshold
 
 ## Today's Dreaming
 

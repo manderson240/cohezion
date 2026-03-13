@@ -8,9 +8,10 @@ tags: [observability, tracking, agent-workflow, non-blocking]
 status: validated
 aspect: knower
 neural:
-  activation: 0.460
+  activation: 0.7
   stage: growing
-  cluster: lessons
+  synapse_in: 8
+  synapse_out: 5
 ---
 
 # Lesson: Non-Critical Tracking Pattern: Background Observations Must Not Block Primary Workflow

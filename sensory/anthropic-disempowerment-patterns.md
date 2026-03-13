@@ -30,9 +30,10 @@ dimensions:
   impact_score: 0.082
 aspect: knower
 neural:
-  activation: 0.575
-  stage: growing
-  cluster: papers
+  activation: 0.81
+  stage: mature
+  synapse_in: 9
+  synapse_out: 14
 ---
 # Disempowerment Patterns in Real-World AI Usage
 

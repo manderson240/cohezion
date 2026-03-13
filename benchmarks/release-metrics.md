@@ -4,9 +4,10 @@ date: 2026-02-11
 tags: [benchmarks, kyutai, mcp, performance, release]
 aspect: thinker
 neural:
-  activation: 0.575
+  activation: 0.76
   stage: growing
-  cluster: benchmarks
+  synapse_in: 2
+  synapse_out: 3
 ---
 
 # Kyutai v0.1.0-alpha: Performance Release Metrics

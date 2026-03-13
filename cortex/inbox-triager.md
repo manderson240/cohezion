@@ -5,9 +5,10 @@ tags: [tool, compound-engineering, agent-workflow, automation]
 status: active
 aspect: knower
 neural:
-  activation: 0.464
+  activation: 0.7
   stage: growing
-  cluster: concepts
+  synapse_in: 6
+  synapse_out: 7
 ---
 
 # Inbox Triager

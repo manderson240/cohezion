@@ -5,6 +5,11 @@ tags: [research, gravity-modification, electromagnetism, kaluza-klein, propulsio
 aspect: knower
 source: "https://www.altpropulsion.com/the-gem-effect-new-evidence-for-electromagnetic-gravity-modification/"
 author: "Tim Ventura"
+neural:
+  activation: 0.84
+  stage: mature
+  synapse_in: 4
+  synapse_out: 11
 ---
 
 # The GEM Effect: Electromagnetic Gravity Modification

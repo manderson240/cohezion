@@ -3,6 +3,11 @@ title: "GitHub Actions as Autonomous Claude Code Scheduler"
 date: 2026-03-05
 tags: [pattern, github-actions, autonomous-agent, scheduling]
 aspect: thinker
+neural:
+  activation: 0.63
+  stage: embryo
+  synapse_in: 2
+  synapse_out: 2
 ---
 
 # Pattern: GitHub Actions as Autonomous Claude Code Scheduler

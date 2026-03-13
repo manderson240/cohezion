@@ -4,9 +4,10 @@ date: 2026-03-11
 tags: [subconscious, latent-links, dreaming]
 aspect: connective
 neural:
-  activation: 0.750
-  stage: growing
-  cluster: subconscious
+  activation: 1.0
+  stage: mature
+  synapse_in: 1
+  synapse_out: 20
 ---
 
 # Latent Associations — 2026-03-11

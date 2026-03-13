@@ -3,6 +3,11 @@ title: "Vault-First Session Protocol"
 date: 2026-03-05
 tags: [pattern, vault-first, session-management, knowledge-persistence]
 aspect: thinker
+neural:
+  activation: 0.62
+  stage: embryo
+  synapse_in: 1
+  synapse_out: 2
 ---
 
 # Pattern: Vault-First Session Protocol

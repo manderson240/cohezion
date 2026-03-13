@@ -1,9 +1,10 @@
 ---
 aspect: doer
 neural:
-  activation: 0.440
+  activation: 0.63
   stage: growing
-  cluster: projects
+  synapse_in: 0
+  synapse_out: 1
 ---
 # MCP Tunnel Deployment Guide
 

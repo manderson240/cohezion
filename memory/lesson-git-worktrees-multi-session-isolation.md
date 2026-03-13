@@ -8,9 +8,10 @@ source: decisions/2026-02-09-session-46-git-unification-complete.md
 status: validated
 aspect: knower
 neural:
-  activation: 0.475
+  activation: 0.75
   stage: growing
-  cluster: lessons
+  synapse_in: 3
+  synapse_out: 6
 ---
 
 # Lesson: Git Worktrees for Multi-Session Work Isolation

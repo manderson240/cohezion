@@ -5,9 +5,10 @@ status: completed
 tags: [daily, kyutai, project-complete, marketplace-live, v0.1.0-alpha]
 aspect: doer
 neural:
-  activation: 0.590
+  activation: 0.82
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # 🎉 KYUTAI MCP + OBSIDIAN PLUGIN - PROJECT COMPLETE

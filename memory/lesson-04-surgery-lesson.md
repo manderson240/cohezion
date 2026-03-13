@@ -8,9 +8,10 @@ tags: [code-quality, minimal-changes, surgical-edits]
 status: validated
 aspect: knower
 neural:
-  activation: 0.470
+  activation: 0.71
   stage: growing
-  cluster: lessons
+  synapse_in: 9
+  synapse_out: 4
 ---
 
 # Lesson: Surgical Code Changes: Modify Only What Is Required

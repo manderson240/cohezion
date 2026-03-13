@@ -5,9 +5,10 @@ date: 2026-02-18
 term_count: 656
 aspect: knower
 neural:
-  activation: 0.750
+  activation: 1.0
   stage: growing
-  cluster: concepts
+  synapse_in: 1
+  synapse_out: 8
 ---
 
 # ML Systems Glossary

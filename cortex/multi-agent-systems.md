@@ -5,9 +5,10 @@ tags: [concept, agentic-ai, agent-loop-architecture, mcp-model-context-protocol]
 related_concepts: [agentic-ai, agent-architecture, workflow-orchestration, mcp-model-context-protocol, compound-engineering]
 aspect: knower
 neural:
-  activation: 0.788
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 57
+  synapse_out: 37
 ---
 
 ## Definition

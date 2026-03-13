@@ -27,9 +27,10 @@ metrics:
     - "decisions/2026-02-11-vault-first-knowledge-architecture"
 aspect: thinker
 neural:
-  activation: 0.501
+  activation: 0.74
   stage: growing
-  cluster: decisions
+  synapse_in: 5
+  synapse_out: 7
 ---
 
 ## Context

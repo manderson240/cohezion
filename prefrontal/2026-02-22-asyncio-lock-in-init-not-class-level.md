@@ -5,9 +5,10 @@ status: accepted
 tags: [decision, asyncio, python, testing, singleton]
 aspect: thinker
 neural:
-  activation: 0.504
+  activation: 0.74
   stage: growing
-  cluster: decisions
+  synapse_in: 3
+  synapse_out: 8
 ---
 # Decision: Move asyncio.Lock from Class-Level to __init__
 

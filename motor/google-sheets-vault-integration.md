@@ -5,9 +5,10 @@ status: 79
 tags: [project]
 aspect: doer
 neural:
-  activation: 0.363
+  activation: 0.59
   stage: growing
-  cluster: projects
+  synapse_in: 3
+  synapse_out: 4
 ---
 ## Google Sheets → Vault Integration
 

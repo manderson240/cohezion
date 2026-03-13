@@ -5,9 +5,10 @@ status: active
 tags: [runbook, operations, ollama, infrastructure]
 aspect: thinker
 neural:
-  activation: 0.656
+  activation: 0.88
   stage: mature
-  cluster: patterns
+  synapse_in: 0
+  synapse_out: 11
 ---
 
 ## Overview

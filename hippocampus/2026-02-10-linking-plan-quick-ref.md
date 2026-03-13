@@ -4,9 +4,10 @@ date: 2026-02-10
 tags: [quick-ref, planning]
 aspect: doer
 neural:
-  activation: 0.413
+  activation: 0.65
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # Compound Node Linking Plan - Quick Reference

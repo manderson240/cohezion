@@ -8,9 +8,10 @@ tags: [meridian, concierge, routing, compound-engineering, prd]
 replaces: MCP Infrastructure PRD
 aspect: doer
 neural:
-  activation: 0.750
+  activation: 0.96
   stage: growing
-  cluster: projects
+  synapse_in: 3
+  synapse_out: 4
 ---
 
 # Meridian: Concierge Agent PRD

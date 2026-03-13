@@ -47,9 +47,10 @@ metrics:
   human_review_required: true
 aspect: thinker
 neural:
-  activation: 0.617
+  activation: 0.9
   stage: mature
-  cluster: decisions
+  synapse_in: 7
+  synapse_out: 12
 ---
 
 ## Phase 6A: Automated Reasoning Chain Inference

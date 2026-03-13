@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Research Updates Batch 1"
 aspect: doer
 neural:
-  activation: 0.305
+  activation: 0.61
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 2
 ---
 
 # Research Updates: Batch 1 (Rows 214-216)

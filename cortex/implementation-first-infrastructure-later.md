@@ -6,9 +6,10 @@ related_concepts: [token-efficiency, compound-engineering, meta-learning, token-
 status: active
 aspect: knower
 neural:
-  activation: 0.563
+  activation: 0.8
   stage: growing
-  cluster: concepts
+  synapse_in: 13
+  synapse_out: 8
 ---
 
 # Implementation First, Infrastructure Later

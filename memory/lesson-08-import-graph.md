@@ -8,9 +8,10 @@ tags: [imports, dependencies, refactoring, graph-analysis]
 status: validated
 aspect: knower
 neural:
-  activation: 0.483
+  activation: 0.72
   stage: growing
-  cluster: lessons
+  synapse_in: 6
+  synapse_out: 5
 ---
 
 # Lesson: Import Graph Analysis: Map Dependencies Before Refactoring

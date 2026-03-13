@@ -5,9 +5,10 @@ status: completed
 tags: [daily, 12d-graph, surrealdb, infrastructure]
 aspect: doer
 neural:
-  activation: 0.406
+  activation: 0.65
   stage: growing
-  cluster: daily
+  synapse_in: 3
+  synapse_out: 0
 ---
 
 # 12D Graph Foundation - Day 1 Complete

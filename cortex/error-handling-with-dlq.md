@@ -5,9 +5,10 @@ tags: [pattern, architecture, reliability]
 status: active
 aspect: knower
 neural:
-  activation: 0.551
+  activation: 0.79
   stage: growing
-  cluster: concepts
+  synapse_in: 7
+  synapse_out: 9
 ---
 
 ## Definition

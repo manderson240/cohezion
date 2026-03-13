@@ -5,9 +5,10 @@ status: in-progress
 tags: [daily, 12d-graph, phase-3, progress]
 aspect: doer
 neural:
-  activation: 0.466
+  activation: 0.7
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # Phase 3 Progress Update

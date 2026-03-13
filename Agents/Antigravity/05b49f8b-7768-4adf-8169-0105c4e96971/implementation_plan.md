@@ -6,9 +6,10 @@ title: "Anthropic Research Engineer Assessment Plan"
 tags: [agent-output, antigravity, anthropic-application]
 aspect: doer
 neural:
-  activation: 0.353
-  stage: embryo
-  cluster: Agents
+  activation: 0.65
+  stage: growing
+  synapse_in: 0
+  synapse_out: 4
 ---
 
 # Assessment & Readiness: Anthropic Research Engineer Take-home

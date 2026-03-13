@@ -4,9 +4,10 @@ date: 2026-02-07
 tags: [concept, quantum-entanglement, dark-matter-detection, quantum-error-correction]
 aspect: knower
 neural:
-  activation: 0.588
+  activation: 0.82
   stage: mature
-  cluster: concepts
+  synapse_in: 3
+  synapse_out: 11
 ---
 ## Definition
 

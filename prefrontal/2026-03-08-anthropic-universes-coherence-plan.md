@@ -6,9 +6,10 @@ tags: [anthropic, universes, plan, hiho, paradigm, coherence]
 links: [[CONSTITUTION]], [[COHEZION_CHARTER]], [[epics]]
 aspect: thinker
 neural:
-  activation: 0.391
+  activation: 0.62
   stage: growing
-  cluster: decisions
+  synapse_in: 1
+  synapse_out: 3
 ---
 
 # COHEZION Coherence Plan - Full-Spectrum Engineering Excellence

@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [concept, physics, simulation, exotic-physics, LENR, MHD]
 aspect: knower
 neural:
-  activation: 0.477
-  stage: growing
-  cluster: concepts
+  activation: 0.79
+  stage: mature
+  synapse_in: 0
+  synapse_out: 11
 ---
 
 # Advanced Physics Simulation

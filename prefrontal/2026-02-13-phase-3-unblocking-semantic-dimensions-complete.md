@@ -28,9 +28,10 @@ metrics:
   lessons_generated: []
 aspect: thinker
 neural:
-  activation: 0.710
+  activation: 0.97
   stage: growing
-  cluster: decisions
+  synapse_in: 3
+  synapse_out: 8
 ---
 
 # Phase 3 Unblocking Decision: Semantic Dimensions Complete

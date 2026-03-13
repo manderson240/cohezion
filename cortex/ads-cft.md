@@ -4,9 +4,10 @@ date: 2026-03-10
 tags: [concept, physics, string-theory, holography, quantum-gravity, gauge-gravity-duality]
 aspect: knower
 neural:
-  activation: 0.700
+  activation: 0.86
   stage: growing
-  cluster: concepts
+  synapse_in: 1
+  synapse_out: 7
 ---
 
 # AdS/CFT Correspondence

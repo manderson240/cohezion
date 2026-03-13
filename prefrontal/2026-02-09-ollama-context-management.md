@@ -27,9 +27,10 @@ metrics:
   lessons_generated: []
 aspect: thinker
 neural:
-  activation: 0.733
+  activation: 0.99
   stage: mature
-  cluster: decisions
+  synapse_in: 21
+  synapse_out: 16
 ---
 
 # Ollama Context Management Strategy

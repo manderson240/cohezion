@@ -4,9 +4,10 @@ date: 2026-02-26
 tags: [mission, milestone, hardening, retrospective]
 aspect: doer
 neural:
-  activation: 0.318
+  activation: 0.52
   stage: embryo
-  cluster: missions
+  synapse_in: 2
+  synapse_out: 2
 ---
 
 # Mission Retrospective: session_12_hardening_1770737898_milestone_3

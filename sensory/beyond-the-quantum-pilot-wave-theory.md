@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.158
 aspect: knower
 neural:
-  activation: 0.640
+  activation: 0.87
   stage: mature
-  cluster: papers
+  synapse_in: 13
+  synapse_out: 17
 ---
 # Beyond the Quantum: Pilot-Wave Theory as Foundation for Quantum Mechanics
 

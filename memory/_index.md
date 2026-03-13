@@ -4,9 +4,10 @@ purpose: "Lessons learned from real incidents, debugging sessions, and productio
 type: directory-index
 aspect: knower
 neural:
-  activation: 0.382
+  activation: 0.38
   stage: growing
-  cluster: lessons
+  synapse_in: 0
+  synapse_out: 5
 ---
 
 # Lessons

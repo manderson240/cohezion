@@ -5,9 +5,10 @@ tags: [concept, cohezion, platform, compound-engineering, spine]
 status: active
 aspect: knower
 neural:
-  activation: 0.624
+  activation: 0.99
   stage: mature
-  cluster: concepts
+  synapse_in: 4
+  synapse_out: 10
 ---
 
 # Cohezion Platform Overview

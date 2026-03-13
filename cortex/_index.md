@@ -4,9 +4,10 @@ purpose: "Core definitions, frameworks, and techniques that form the vault's kno
 type: directory-index
 aspect: knower
 neural:
-  activation: 0.471
+  activation: 0.61
   stage: growing
-  cluster: concepts
+  synapse_in: 0
+  synapse_out: 21
 ---
 
 # Concepts

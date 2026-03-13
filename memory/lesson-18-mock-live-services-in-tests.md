@@ -8,9 +8,10 @@ tags: [testing, mocking, api, test-isolation, ci-cd]
 status: validated
 aspect: knower
 neural:
-  activation: 0.524
+  activation: 0.76
   stage: growing
-  cluster: lessons
+  synapse_in: 13
+  synapse_out: 7
 ---
 
 # Lesson: Mock Live Services in Tests: Never Call Real APIs from Unit Test Suite

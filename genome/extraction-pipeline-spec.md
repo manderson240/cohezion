@@ -5,9 +5,10 @@ tags: [spec, flume, surrealdb, pipeline, 12d-projection, unified-physics]
 status: active
 aspect: knower
 neural:
-  activation: 0.900
-  stage: growing
-  cluster: genome
+  activation: 1.0
+  stage: mature
+  synapse_in: 0
+  synapse_out: 13
 ---
 
 # 12D Extraction Pipeline Specification

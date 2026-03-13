@@ -5,6 +5,11 @@ tags: [research, evo, propulsion, mfmp, ball-lightning, ftl, interstellar, apec]
 aspect: knower
 source: "https://www.altpropulsion.com/exotic-vacuum-objects-evos-propulsion-engineering/"
 author: "Tim Ventura (summary of Bob Greenyer APEC presentation)"
+neural:
+  activation: 0.83
+  stage: mature
+  synapse_in: 8
+  synapse_out: 11
 ---
 
 # Exotic Vacuum Objects (EVOs) & Propulsion Engineering

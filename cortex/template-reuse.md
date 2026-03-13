@@ -4,9 +4,10 @@ date: "2026-02-10"
 tags: [concept, methodology, efficiency, patterns]
 aspect: knower
 neural:
-  activation: 0.743
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 7
+  synapse_out: 11
 ---
 
 ## Definition

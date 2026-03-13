@@ -5,9 +5,10 @@ status: complete
 tags: [experiment, agentic-ai, github-actions]
 aspect: thinker
 neural:
-  activation: 0.287
+  activation: 0.61
   stage: embryo
-  cluster: experiments
+  synapse_in: 1
+  synapse_out: 2
 ---
 
 # Remote Claude Code Leverage Architecture

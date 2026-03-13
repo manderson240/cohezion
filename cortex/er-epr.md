@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, quantum-gravity, entanglement, wormholes]
 aspect: knower
 neural:
-  activation: 0.750
+  activation: 0.94
   stage: growing
-  cluster: concepts
+  synapse_in: 18
+  synapse_out: 8
 ---
 
 # ER = EPR

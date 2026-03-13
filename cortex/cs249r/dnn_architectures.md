@@ -4,9 +4,10 @@ source: cs249r/core/dnn_architectures
 date: 2026-02-18
 aspect: knower
 neural:
-  activation: 0.420
+  activation: 0.71
   stage: growing
-  cluster: concepts
+  synapse_in: 0
+  synapse_out: 8
 ---
 
 # Dnn Architectures

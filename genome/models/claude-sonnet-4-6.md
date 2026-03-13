@@ -10,9 +10,10 @@ provider: anthropic
 model_id: "claude-sonnet-4-6"
 aspect: knower
 neural:
-  activation: 0.476
+  activation: 0.71
   stage: growing
-  cluster: specs
+  synapse_in: 1
+  synapse_out: 3
 ---
 
 # Model Card: Claude Sonnet 4.6

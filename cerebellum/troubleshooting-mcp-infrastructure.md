@@ -5,9 +5,10 @@ status: active
 tags: [troubleshooting, runbook, operations, infrastructure]
 aspect: thinker
 neural:
-  activation: 0.797
+  activation: 1.0
   stage: mature
-  cluster: patterns
+  synapse_in: 0
+  synapse_out: 11
 ---
 
 ## Quick Diagnostic Checklist

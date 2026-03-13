@@ -6,6 +6,11 @@ status: archived
 source: entire.io
 session_id: "{{session_id}}"
 agent_names: {{agent_names}}
+neural:
+  activation: 0.35
+  stage: growing
+  synapse_in: 0
+  synapse_out: 4
 ---
 
 ## Execution Summary

@@ -61,6 +61,10 @@ else
     exit_code=$?
 fi
 
+# ── Generate Graph Briefing ──────────────────────────────────────────────────
+log "BRIEFING: Generating graph-briefing.md"
+python3 "${VAULT_DIR}/scripts/graph_context.py" briefing > "${VAULT_DIR}/metabolism/graph-briefing.md" 2>> "$LOG_FILE" || log "WARN: briefing generation failed"
+
 if [ $exit_code -eq 0 ]; then
     log "DONE: dreaming-engine.py $MODE completed successfully"
 else

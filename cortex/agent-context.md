@@ -5,9 +5,10 @@ tags: [concept, context-management, agentic-ai, agent-architecture]
 related_concepts: [context-management, agent-architecture, agent-loop-architecture, token-efficiency, semantic-search]
 aspect: knower
 neural:
-  activation: 0.694
+  activation: 0.92
   stage: mature
-  cluster: concepts
+  synapse_in: 16
+  synapse_out: 44
 ---
 ## Definition
 

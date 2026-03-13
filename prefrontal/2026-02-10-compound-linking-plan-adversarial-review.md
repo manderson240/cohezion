@@ -28,9 +28,10 @@ metrics:
     - "lessons/lesson-adversarial-review-prevents-rework"
 aspect: thinker
 neural:
-  activation: 0.737
+  activation: 1.0
   stage: mature
-  cluster: decisions
+  synapse_in: 10
+  synapse_out: 14
 ---
 
 ## DECISION: Compound Node Linking Plan - Adversarial Review Results

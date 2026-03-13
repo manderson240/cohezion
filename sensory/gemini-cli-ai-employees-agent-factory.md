@@ -10,9 +10,10 @@ similar_papers:
 source: https://cloud.google.com/blog/topics/developers-practitioners/agent-factory-recap-build-an-ai-workforce-with-gemini-3
 aspect: knower
 neural:
-  activation: 0.649
-  stage: growing
-  cluster: papers
+  activation: 0.88
+  stage: mature
+  synapse_in: 5
+  synapse_out: 18
 ---
 
 ## Summary

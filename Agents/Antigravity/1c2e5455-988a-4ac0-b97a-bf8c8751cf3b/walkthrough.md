@@ -6,9 +6,10 @@ title: "Walkthrough: Full-Repo Showcase Implementation"
 tags: [agent-output, antigravity, showcase]
 aspect: doer
 neural:
-  activation: 0.480
+  activation: 0.8
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 5
 ---
 
 # Walkthrough: The Technical Reckoning (Full-Repo Showcase v3.0)

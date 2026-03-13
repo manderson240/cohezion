@@ -3,6 +3,11 @@ title: Kyutai MCP Server - Phase 1 Implementation Complete
 date: 2026-02-10
 status: implemented
 tags: [implementation, kyutai, mcp, phase-1]
+neural:
+  activation: 1.0
+  stage: mature
+  synapse_in: 2
+  synapse_out: 12
 ---
 
 # Kyutai MCP Server - Phase 1 Implementation

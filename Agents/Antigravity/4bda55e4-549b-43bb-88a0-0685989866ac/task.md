@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Task"
 aspect: doer
 neural:
-  activation: 0.680
-  stage: growing
-  cluster: Agents
+  activation: 1.0
+  stage: mature
+  synapse_in: 0
+  synapse_out: 10
 ---
 
 # Directed Research Sprint: Google Sheet Edition

@@ -5,9 +5,10 @@ tags: [concept, ml-systems, software-engineering, tools, cs249r]
 status: active
 aspect: knower
 neural:
-  activation: 0.478
+  activation: 0.82
   stage: growing
-  cluster: concepts
+  synapse_in: 10
+  synapse_out: 7
 ---
 
 # Frameworks

@@ -13,9 +13,10 @@ decision_reasoning:
   - 'Sidebar resource navigation (Kubernetes-style)'
 aspect: thinker
 neural:
-  activation: 0.462
+  activation: 0.7
   stage: growing
-  cluster: decisions
+  synapse_in: 4
+  synapse_out: 6
 ---
 
 ## Context

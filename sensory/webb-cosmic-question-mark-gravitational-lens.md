@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.158
 aspect: knower
 neural:
-  activation: 0.526
+  activation: 0.76
   stage: growing
-  cluster: papers
+  synapse_in: 8
+  synapse_out: 13
 ---
 # Webb Cosmic Question Mark Gravitational Lens
 

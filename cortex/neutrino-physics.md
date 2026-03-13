@@ -5,9 +5,10 @@ tags: [domain, physics, particle-physics, neutrinos]
 status: active
 aspect: knower
 neural:
-  activation: 0.547
+  activation: 0.88
   stage: mature
-  cluster: concepts
+  synapse_in: 8
+  synapse_out: 10
 ---
 
 # Neutrino Physics

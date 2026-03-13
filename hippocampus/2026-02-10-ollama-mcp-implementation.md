@@ -5,9 +5,10 @@ status: completed
 tags: [ollama, mcp, infrastructure, phase-1]
 aspect: doer
 neural:
-  activation: 0.408
+  activation: 0.65
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # Ollama MCP Server - Implementation Complete

@@ -5,9 +5,10 @@ status: active
 tags: [architecture, infrastructure, mcp, concepts]
 aspect: knower
 neural:
-  activation: 0.894
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 48
+  synapse_out: 17
 ---
 
 ## System Overview

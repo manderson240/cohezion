@@ -5,9 +5,10 @@ tags: [concept, knowledge-graph, compound-engineering, vault-maintenance]
 status: active
 aspect: knower
 neural:
-  activation: 0.715
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 23
+  synapse_out: 19
 ---
 
 # Knowledge Graph Densification

@@ -37,9 +37,10 @@ metrics:
   lessons_generated: []
 aspect: thinker
 neural:
-  activation: 0.608
+  activation: 0.84
   stage: mature
-  cluster: decisions
+  synapse_in: 2
+  synapse_out: 12
 ---
 
 ## Context

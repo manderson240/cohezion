@@ -5,9 +5,10 @@ status: completed
 tags: [daily, kyutai, phase-5, release, deployment, final]
 aspect: doer
 neural:
-  activation: 0.485
+  activation: 0.72
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # 🚀 KYUTAI MCP SERVER + OBSIDIAN PLUGIN - PHASE 5 RELEASE DEPLOYMENT

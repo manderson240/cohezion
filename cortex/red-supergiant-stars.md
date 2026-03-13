@@ -4,9 +4,10 @@ date: 2026-02-07
 tags: [concept, astrophysics, stellar-evolution, jwst-observations]
 aspect: knower
 neural:
-  activation: 0.480
+  activation: 0.84
   stage: growing
-  cluster: concepts
+  synapse_in: 0
+  synapse_out: 9
 ---
 
 # Red Supergiant Stars

@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, quantum-mechanics, decoherence, measurement-problem, quantum-classical]
 aspect: knower
 neural:
-  activation: 0.750
-  stage: growing
-  cluster: concepts
+  activation: 1.0
+  stage: mature
+  synapse_in: 19
+  synapse_out: 16
 ---
 
 # Quantum Decoherence

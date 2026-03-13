@@ -4,9 +4,10 @@ date: "2026-02-08"
 tags: [pattern, documentation, process-scaling, extracted-from-bmad]
 aspect: thinker
 neural:
-  activation: 0.485
+  activation: 0.72
   stage: growing
-  cluster: patterns
+  synapse_in: 10
+  synapse_out: 11
 ---
 ## Problem
 

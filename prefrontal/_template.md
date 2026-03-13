@@ -35,6 +35,11 @@ metrics:
   tokens_used: 0
   cost_per_lesson: 0.0
   lessons_generated: []
+neural:
+  activation: 0.29
+  stage: embryo
+  synapse_in: 0
+  synapse_out: 0
 ---
 
 ## Context

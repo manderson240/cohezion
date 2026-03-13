@@ -4,9 +4,10 @@ date: 2026-02-23
 tags: [pattern]
 aspect: thinker
 neural:
-  activation: 0.524
+  activation: 0.74
   stage: growing
-  cluster: patterns
+  synapse_in: 7
+  synapse_out: 7
 ---
 # Quick Start: Build MCP Tool in 2 Hours
 

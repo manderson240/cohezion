@@ -5,9 +5,10 @@ status: accepted
 tags: [decision, vault, knowledge-graph, multi-agent, densification]
 aspect: thinker
 neural:
-  activation: 0.565
+  activation: 0.8
   stage: mature
-  cluster: decisions
+  synapse_in: 8
+  synapse_out: 11
 ---
 
 # Vault Knowledge Graph Densification Complete via Parallel Agent Teams

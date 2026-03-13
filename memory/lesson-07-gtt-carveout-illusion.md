@@ -8,9 +8,10 @@ tags: [architecture, isolation, testing, system-design]
 status: validated
 aspect: knower
 neural:
-  activation: 0.481
+  activation: 0.72
   stage: growing
-  cluster: lessons
+  synapse_in: 5
+  synapse_out: 5
 ---
 
 # Lesson: GTT Carveout Illusion: Logical Isolation Does Not Guarantee Physical Separation

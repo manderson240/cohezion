@@ -4,9 +4,10 @@ date: 2026-02-23
 tags: [pattern]
 aspect: thinker
 neural:
-  activation: 0.709
+  activation: 0.94
   stage: mature
-  cluster: patterns
+  synapse_in: 25
+  synapse_out: 13
 ---
 # Multi-Session Compound Engineering Workflow
 

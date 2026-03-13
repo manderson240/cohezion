@@ -5,9 +5,10 @@ status: completed
 tags: [daily, kyutai, retrospective, lessons-learned, compound-engineering]
 aspect: doer
 neural:
-  activation: 0.554
+  activation: 0.79
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # Kyutai MCP + Obsidian Plugin - Project Retrospective

@@ -32,9 +32,10 @@ dimensions:
   impact_score: 0.08
 aspect: knower
 neural:
-  activation: 0.481
+  activation: 0.72
   stage: growing
-  cluster: papers
+  synapse_in: 12
+  synapse_out: 9
 ---
 ## Abstract
 

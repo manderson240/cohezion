@@ -18,9 +18,10 @@ decision_reasoning:
     - "All tracks validated, integrated, production-ready"
 aspect: thinker
 neural:
-  activation: 0.840
+  activation: 1.0
   stage: mature
-  cluster: decisions
+  synapse_in: 11
+  synapse_out: 13
 ---
 
 # PHASE 2 FINAL COMPLETION SUMMARY

@@ -5,9 +5,10 @@ status: completed
 tags: [experiment, ai-agent, research, vault-automation]
 aspect: thinker
 neural:
-  activation: 0.555
-  stage: growing
-  cluster: experiments
+  activation: 0.84
+  stage: mature
+  synapse_in: 4
+  synapse_out: 15
 ---
 
 ## Hypothesis

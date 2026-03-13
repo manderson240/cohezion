@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Walkthrough Phase 16"
 aspect: doer
 neural:
-  activation: 0.312
+  activation: 0.51
   stage: embryo
-  cluster: Agents
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # Phase 16: Cosmic Perspective

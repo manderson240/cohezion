@@ -3,6 +3,11 @@ title: Kyutai API Specification & Integration Guide
 date: 2026-02-09
 status: complete
 tags: [research, kyutai, api-design, mcp, voice-ai]
+neural:
+  activation: 1.0
+  stage: growing
+  synapse_in: 7
+  synapse_out: 8
 ---
 
 # Kyutai API Specification & Integration Guide

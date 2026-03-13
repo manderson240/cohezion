@@ -5,9 +5,10 @@ status: accepted
 tags: [decision, graphrag, roadmap, surrealdb, compound-engineering]
 aspect: thinker
 neural:
-  activation: 0.562
+  activation: 0.8
   stage: mature
-  cluster: decisions
+  synapse_in: 6
+  synapse_out: 10
 ---
 
 # Next 10 Phases GraphRAG Roadmap

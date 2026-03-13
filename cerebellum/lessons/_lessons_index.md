@@ -1,9 +1,10 @@
 ---
 aspect: thinker
 neural:
-  activation: 0.646
+  activation: 0.67
   stage: mature
-  cluster: patterns
+  synapse_in: 1
+  synapse_out: 43
 ---
 # Lessons Index
 Total lessons indexed: 40

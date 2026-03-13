@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.322
 aspect: knower
 neural:
-  activation: 0.692
+  activation: 0.92
   stage: mature
-  cluster: papers
+  synapse_in: 14
+  synapse_out: 23
 ---
 # Towards a Science of Scaling Agent Systems
 

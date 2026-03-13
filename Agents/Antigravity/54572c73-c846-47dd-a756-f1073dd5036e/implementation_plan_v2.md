@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Implementation Plan V2"
 aspect: doer
 neural:
-  activation: 0.323
+  activation: 0.62
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 2
 ---
 
 # Compound Engineering Enhancements: Telemetry, Selection, and Skills

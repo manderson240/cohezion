@@ -6,9 +6,10 @@ source: "phys.org / Astronomy & Astrophysics 705 (2026)"
 doi: "10.1051/0004-6361/202557022"
 aspect: knower
 neural:
-  activation: 0.476
+  activation: 0.72
   stage: growing
-  cluster: papers
+  synapse_in: 10
+  synapse_out: 6
 ---
 
 ## Summary

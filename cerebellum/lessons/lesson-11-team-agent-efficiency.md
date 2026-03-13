@@ -1,9 +1,10 @@
 ---
 aspect: thinker
 neural:
-  activation: 0.562
+  activation: 0.79
   stage: growing
-  cluster: patterns
+  synapse_in: 0
+  synapse_out: 23
 ---
 # Lesson 11: Team agent efficiency
 

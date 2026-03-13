@@ -5,9 +5,10 @@ status: active
 tags: [project, huggingface, integration, mcp, embeddings]
 aspect: doer
 neural:
-  activation: 0.427
+  activation: 0.61
   stage: growing
-  cluster: projects
+  synapse_in: 1
+  synapse_out: 4
 ---
 
 # HuggingFace Integration — Remaining Work

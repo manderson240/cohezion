@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.158
 aspect: knower
 neural:
-  activation: 0.630
-  stage: growing
-  cluster: papers
+  activation: 0.86
+  stage: mature
+  synapse_in: 12
+  synapse_out: 17
 ---
 # Mode Locking Between Helimagnetism and Ferromagnetism
 

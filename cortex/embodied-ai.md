@@ -5,9 +5,10 @@ tags: [concept, robotics, ai]
 status: active
 aspect: knower
 neural:
-  activation: 0.605
+  activation: 0.94
   stage: mature
-  cluster: concepts
+  synapse_in: 10
+  synapse_out: 12
 ---
 
 ## Definition

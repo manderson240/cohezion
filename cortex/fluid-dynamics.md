@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, fluid-dynamics, turbulence, Navier-Stokes, hydrodynamics]
 aspect: knower
 neural:
-  activation: 0.750
+  activation: 0.86
   stage: growing
-  cluster: concepts
+  synapse_in: 3
+  synapse_out: 8
 ---
 
 # Fluid Dynamics and Turbulence

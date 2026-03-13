@@ -4,9 +4,10 @@ date: 2026-02-23
 tags: [daily]
 aspect: doer
 neural:
-  activation: 0.590
+  activation: 0.78
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 1
 ---
 # FLUME Evaluation Frameworks Investigation: Measurement & Blind Spots
 **Team:** Evaluation Frameworks Researcher  

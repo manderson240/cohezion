@@ -6,9 +6,10 @@ title: "Adversarial Security Testing Framework (1M Rounds)"
 tags: [agent-output, antigravity, security-testing, adversarial]
 aspect: doer
 neural:
-  activation: 0.446
+  activation: 0.64
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 3
 ---
 
 # Adversarial Security Testing Framework

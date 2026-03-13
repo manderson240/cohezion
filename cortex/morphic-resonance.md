@@ -4,9 +4,10 @@ date: 2026-03-10
 tags: [concept, biology, physics, morphogenesis, sheldrake, fields, memory, TOE]
 aspect: knower
 neural:
-  activation: 0.700
+  activation: 1.0
   stage: growing
-  cluster: concepts
+  synapse_in: 11
+  synapse_out: 9
 ---
 
 # Morphic Resonance and Morphogenetic Fields

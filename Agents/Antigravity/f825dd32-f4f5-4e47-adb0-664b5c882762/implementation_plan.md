@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Implementation Plan"
 aspect: doer
 neural:
-  activation: 0.344
+  activation: 0.65
   stage: embryo
-  cluster: Agents
+  synapse_in: 4
+  synapse_out: 2
 ---
 
 # Implementation Plan: BlueQubit Quantum Advantage Solver

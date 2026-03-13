@@ -4,9 +4,10 @@ date: 2026-02-23
 tags: [daily]
 aspect: doer
 neural:
-  activation: 0.725
+  activation: 0.9
   stage: growing
-  cluster: daily
+  synapse_in: 7
+  synapse_out: 8
 ---
 # FLUME Anthropic Alignment Investigation: Research Value & Positioning
 **Team:** Anthropic Alignment Strategist  

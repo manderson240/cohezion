@@ -5,9 +5,10 @@ tags: [concept, ml, neural-network-architecture, token-efficiency]
 related_concepts: [machine-learning, neural-network-architecture, token-efficiency, token-efficiency-patterns, semantic-search]
 aspect: knower
 neural:
-  activation: 0.687
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 44
+  synapse_out: 19
 ---
 ## Definition
 

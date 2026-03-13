@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Adversarial Review"
 aspect: doer
 neural:
-  activation: 0.384
+  activation: 0.7
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 3
 ---
 
 # ADVERSARIAL REVIEW: Technical Reckoning v3.1 (Genie-Infused)

@@ -6,9 +6,10 @@ title: "Task: Automated Model Replacement (LRU Swap)"
 tags: [agent-output, antigravity, model-management, lru-swap]
 aspect: doer
 neural:
-  activation: 0.328
+  activation: 0.53
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 2
 ---
 
 # Task: Automated Model Replacement (LRU Swap)

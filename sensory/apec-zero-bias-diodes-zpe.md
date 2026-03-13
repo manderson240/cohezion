@@ -5,6 +5,11 @@ tags: [research, zpe, zero-point-energy, semiconductor, energy-generation, therm
 aspect: knower
 source: "https://www.altpropulsion.com/can-zero-bias-diodes-harness-zero-point-energy/"
 author: "Tim Ventura"
+neural:
+  activation: 0.85
+  stage: mature
+  synapse_in: 7
+  synapse_out: 10
 ---
 
 # Can Zero-Bias Diodes Harness Zero-Point Energy?

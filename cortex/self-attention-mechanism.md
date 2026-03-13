@@ -6,9 +6,10 @@ related_concepts: [transformer-architecture, neural-network-architecture, semant
 status: active
 aspect: knower
 neural:
-  activation: 0.578
-  stage: growing
-  cluster: concepts
+  activation: 0.9
+  stage: mature
+  synapse_in: 4
+  synapse_out: 14
 ---
 
 # Self-Attention Mechanism

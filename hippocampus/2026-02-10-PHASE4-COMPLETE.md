@@ -5,9 +5,10 @@ status: complete
 tags: [kyutai, integration, phase-4, validation, complete]
 aspect: doer
 neural:
-  activation: 0.497
+  activation: 0.73
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # Kyutai Integration Project - Phase 4 Validation Complete

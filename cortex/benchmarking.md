@@ -5,9 +5,10 @@ tags: [concept, ml-systems, performance, evaluation, cs249r]
 status: active
 aspect: knower
 neural:
-  activation: 0.504
+  activation: 0.84
   stage: growing
-  cluster: concepts
+  synapse_in: 0
+  synapse_out: 9
 ---
 
 # Benchmarking

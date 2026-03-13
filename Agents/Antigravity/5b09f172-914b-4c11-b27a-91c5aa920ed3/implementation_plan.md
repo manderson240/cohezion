@@ -6,9 +6,10 @@ title: "Automated Repo Health Management Plan"
 tags: [agent-output, antigravity, repository-management, automation]
 aspect: doer
 neural:
-  activation: 0.464
+  activation: 0.66
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 2
 ---
 
 # Automated Repo Health Management & Branching

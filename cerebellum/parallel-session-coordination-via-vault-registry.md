@@ -3,6 +3,11 @@ title: "Parallel Session Coordination via Vault Registry"
 date: 2026-03-05
 tags: [pattern, parallel-sessions, coordination, vault]
 aspect: thinker
+neural:
+  activation: 0.68
+  stage: embryo
+  synapse_in: 1
+  synapse_out: 2
 ---
 
 # Pattern: Parallel Session Coordination via Vault Registry

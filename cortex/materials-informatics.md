@@ -5,9 +5,10 @@ tags: [domain, materials-science, ml]
 status: active
 aspect: knower
 neural:
-  activation: 0.639
+  activation: 0.87
   stage: mature
-  cluster: concepts
+  synapse_in: 6
+  synapse_out: 14
 ---
 
 ## Definition

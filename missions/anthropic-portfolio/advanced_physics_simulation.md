@@ -1,9 +1,10 @@
 ---
 aspect: doer
 neural:
-  activation: 0.385
+  activation: 0.58
   stage: growing
-  cluster: missions
+  synapse_in: 12
+  synapse_out: 3
 ---
 # SKILL: ADVANCED_PHYSICS_SIMULATION_PRIME
 

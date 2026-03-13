@@ -10,9 +10,10 @@ similar_papers:
 - graphrag-knowledge-graph-with-surrealdb
 aspect: knower
 neural:
-  activation: 0.656
+  activation: 0.89
   stage: mature
-  cluster: papers
+  synapse_in: 14
+  synapse_out: 13
 ---
 
 # Knowledge Graph Semantic Relationship Modeling

@@ -6,9 +6,10 @@ tags: [project, lessons, portfolio, anthropic, compound-engineering, ai-safety]
 aliases: ["failure taxonomy", "lessons taxonomy", "agentic failure modes"]
 aspect: doer
 neural:
-  activation: 0.493
+  activation: 0.68
   stage: growing
-  cluster: projects
+  synapse_in: 3
+  synapse_out: 7
 ---
 
 # Agentic System Failure Taxonomy from Lessons Corpus

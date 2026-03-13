@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, plasma, self-organization, astrobiology, complex-systems, dusty-plasma]
 aspect: knower
 neural:
-  activation: 0.750
-  stage: growing
-  cluster: concepts
+  activation: 1.0
+  stage: mature
+  synapse_in: 22
+  synapse_out: 15
 ---
 
 # Self-Organizing Plasma and Plasma Life

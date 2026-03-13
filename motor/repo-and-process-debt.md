@@ -6,9 +6,10 @@ priority: high
 tags: [project, technical-debt, process, repository]
 aspect: doer
 neural:
-  activation: 0.484
-  stage: growing
-  cluster: projects
+  activation: 0.87
+  stage: mature
+  synapse_in: 7
+  synapse_out: 14
 ---
 
 ## Overview

@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Multimodal Registry"
 aspect: doer
 neural:
-  activation: 0.376
-  stage: embryo
-  cluster: Agents
+  activation: 0.68
+  stage: growing
+  synapse_in: 0
+  synapse_out: 2
 ---
 
 # COHEZION MULTIMODAL REGISTRY (CMR)

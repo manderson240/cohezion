@@ -4,9 +4,10 @@ purpose: "Hypothesis testing, proof-of-concepts, and validated results"
 type: directory-index
 aspect: thinker
 neural:
-  activation: 0.378
+  activation: 0.37
   stage: growing
-  cluster: experiments
+  synapse_in: 0
+  synapse_out: 5
 ---
 
 # Experiments

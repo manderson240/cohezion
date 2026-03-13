@@ -4,8 +4,10 @@ date: 2026-03-11
 tags: [dreaming, resonances, cross-domain, emergence]
 aspect: connective
 neural:
-  stage: embryo
-  activation: 0.5
+  activation: 0.77
+  stage: growing
+  synapse_in: 0
+  synapse_out: 9
 ---
 
 # The Dreaming — 2026-03-11

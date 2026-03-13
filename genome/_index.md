@@ -4,9 +4,10 @@ purpose: "System definitions for skills, agents, MCP servers, tools, hooks, and 
 type: directory-index
 aspect: knower
 neural:
-  activation: 0.416
+  activation: 0.4
   stage: growing
-  cluster: specs
+  synapse_in: 0
+  synapse_out: 2
 ---
 
 # Specs — System Definitions

@@ -4,9 +4,10 @@ date: 2026-03-05
 tags: [ai-safety, documentation, standards, model-card, system-card, agent-card, governance]
 aspect: knower
 neural:
-  activation: 0.470
+  activation: 0.71
   stage: growing
-  cluster: papers
+  synapse_in: 0
+  synapse_out: 4
 ---
 
 # AI Documentation Cards: Standards Landscape

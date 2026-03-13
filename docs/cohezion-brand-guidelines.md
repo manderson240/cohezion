@@ -3,6 +3,11 @@ title: "COHEZION Brand Guidelines"
 date: "2026-02-26"
 status: active
 tags: [branding, design, identity, cohezion, documentation]
+neural:
+  activation: 0.82
+  stage: mature
+  synapse_in: 5
+  synapse_out: 10
 ---
 
 # COHEZION Brand Guidelines v1.0

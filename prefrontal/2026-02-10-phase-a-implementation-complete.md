@@ -30,9 +30,10 @@ metrics:
     - patterns/runbook-health-checks
 aspect: thinker
 neural:
-  activation: 0.612
+  activation: 0.88
   stage: mature
-  cluster: decisions
+  synapse_in: 10
+  synapse_out: 15
 ---
 
 ## Context

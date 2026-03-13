@@ -4,9 +4,10 @@ date: 2026-02-14
 tags: [daily]
 aspect: doer
 neural:
-  activation: 0.468
+  activation: 0.66
   stage: growing
-  cluster: daily
+  synapse_in: 4
+  synapse_out: 5
 ---
 # Phase 2 Production Deployment - Completion Report
 

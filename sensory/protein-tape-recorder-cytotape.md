@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.16
 aspect: knower
 neural:
-  activation: 0.667
-  stage: growing
-  cluster: papers
+  activation: 0.9
+  stage: mature
+  synapse_in: 13
+  synapse_out: 20
 ---
 # CytoTape - Protein Tape Recorder for Cellular Activity
 

@@ -8,9 +8,10 @@ source: "~/.claude/mcp.json"
 status: active
 aspect: knower
 neural:
-  activation: 0.500
+  activation: 0.65
   stage: growing
-  cluster: genome
+  synapse_in: 3
+  synapse_out: 3
 ---
 
 # HuggingFace MCP Server

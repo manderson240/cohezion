@@ -4,9 +4,10 @@ date: 2026-02-10
 tags: [daily, critical-review, risk-analysis]
 aspect: doer
 neural:
-  activation: 0.645
+  activation: 0.87
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 1
 ---
 
 # ADVERSARIAL REVIEW SYNTHESIS

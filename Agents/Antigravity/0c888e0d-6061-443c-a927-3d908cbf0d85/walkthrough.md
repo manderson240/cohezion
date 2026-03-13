@@ -6,9 +6,10 @@ title: "Walkthrough: Guardrail Enhancement"
 tags: [agent-output, antigravity, guardrails]
 aspect: doer
 neural:
-  activation: 0.424
+  activation: 0.71
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 3
 ---
 
 # Walkthrough: Guardrail Enhancement & VRAM Recovery

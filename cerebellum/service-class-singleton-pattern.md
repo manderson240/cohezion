@@ -4,9 +4,10 @@ date: 2026-02-23
 tags: [pattern]
 aspect: thinker
 neural:
-  activation: 0.500
+  activation: 0.69
   stage: growing
-  cluster: patterns
+  synapse_in: 12
+  synapse_out: 7
 ---
 # Service Class & Singleton Factory Pattern
 

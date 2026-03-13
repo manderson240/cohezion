@@ -12,9 +12,10 @@ tags:
   - ollama
 aspect: doer
 neural:
-  activation: 0.341
+  activation: 0.58
   stage: growing
-  cluster: retrospectives
+  synapse_in: 2
+  synapse_out: 4
 ---
 
 # Retrospective: Safe Mode v3

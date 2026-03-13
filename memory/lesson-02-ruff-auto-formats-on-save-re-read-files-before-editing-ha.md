@@ -8,9 +8,10 @@ tags: [ruff, formatting, pre-commit, file-editing]
 status: validated
 aspect: knower
 neural:
-  activation: 0.452
+  activation: 0.69
   stage: growing
-  cluster: lessons
+  synapse_in: 6
+  synapse_out: 4
 ---
 
 # Lesson: Ruff Auto-Formats on Save: Re-Read Files Before Editing

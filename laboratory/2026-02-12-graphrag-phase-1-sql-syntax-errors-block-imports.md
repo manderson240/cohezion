@@ -5,9 +5,10 @@ status: complete
 tags: [experiment, graphrag, surrealdb, sql, debugging]
 aspect: thinker
 neural:
-  activation: 0.638
+  activation: 0.87
   stage: growing
-  cluster: experiments
+  synapse_in: 2
+  synapse_out: 19
 ---
 
 # GraphRAG Phase 1: SQL Syntax Errors Block Imports

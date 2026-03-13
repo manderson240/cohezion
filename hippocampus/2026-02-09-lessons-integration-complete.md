@@ -4,9 +4,10 @@ date: 2026-02-09
 tags: [daily]
 aspect: doer
 neural:
-  activation: 0.501
+  activation: 0.73
   stage: growing
-  cluster: daily
+  synapse_in: 3
+  synapse_out: 8
 ---
 # Lessons Graph Integration - COMPLETE
 

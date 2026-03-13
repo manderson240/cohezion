@@ -6,9 +6,10 @@ related_concepts: [agent-journey-tracking, workflow-orchestration, compound-engi
 status: active
 aspect: knower
 neural:
-  activation: 0.663
+  activation: 0.89
   stage: mature
-  cluster: concepts
+  synapse_in: 28
+  synapse_out: 18
 ---
 
 # Non-Blocking Observability

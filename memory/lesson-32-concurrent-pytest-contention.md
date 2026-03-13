@@ -8,9 +8,10 @@ tags: [pytest, concurrency, testing, flaky-tests, parallelism]
 status: validated
 aspect: knower
 neural:
-  activation: 0.495
+  activation: 0.73
   stage: growing
-  cluster: lessons
+  synapse_in: 11
+  synapse_out: 6
 ---
 
 # Lesson: Concurrent Pytest Contention: Parallel Test Runners Sharing Resources Cause Flaky Tests

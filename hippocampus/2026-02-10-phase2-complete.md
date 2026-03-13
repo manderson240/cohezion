@@ -5,9 +5,10 @@ status: completed
 tags: [daily, 12d-graph, phase-2, complete, semantic]
 aspect: doer
 neural:
-  activation: 0.595
+  activation: 0.83
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 5
 ---
 
 # Phase 2: Semantic Dimensions - COMPLETE ✅

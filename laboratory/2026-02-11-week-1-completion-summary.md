@@ -5,9 +5,10 @@ status: "complete"
 tags: [summary, week-1, phase-1, task-completion]
 aspect: thinker
 neural:
-  activation: 0.783
+  activation: 1.0
   stage: mature
-  cluster: experiments
+  synapse_in: 2
+  synapse_out: 25
 ---
 
 # Week 1 Completion Summary

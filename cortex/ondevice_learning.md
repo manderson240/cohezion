@@ -5,9 +5,10 @@ tags: [concept, ml-systems, edge-computing, privacy, cs249r]
 status: active
 aspect: knower
 neural:
-  activation: 0.482
+  activation: 0.82
   stage: growing
-  cluster: concepts
+  synapse_in: 9
+  synapse_out: 7
 ---
 
 # On-Device Learning

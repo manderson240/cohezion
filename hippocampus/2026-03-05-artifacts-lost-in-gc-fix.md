@@ -3,6 +3,11 @@ title: "Artifacts Lost During GC Fix — Regeneration Needed"
 date: "2026-03-05"
 tags: [data-loss, artifacts, regeneration, gc-fix]
 aspect: doer
+neural:
+  activation: 0.53
+  stage: embryo
+  synapse_in: 0
+  synapse_out: 0
 ---
 
 ## Context

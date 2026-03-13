@@ -5,9 +5,10 @@ tags: [mission, multi-agent, flume, portfolio, directive]
 aliases: ["night council validation directive", "validate don't plan"]
 aspect: doer
 neural:
-  activation: 0.440
+  activation: 0.63
   stage: growing
-  cluster: missions
+  synapse_in: 1
+  synapse_out: 6
 ---
 
 # Night Council Directive: Validate, Don't Plan

@@ -4,9 +4,10 @@ date: 2026-02-23
 tags: [pattern]
 aspect: thinker
 neural:
-  activation: 0.518
+  activation: 0.76
   stage: growing
-  cluster: patterns
+  synapse_in: 3
+  synapse_out: 6
 ---
 # Test Mocking Pattern - External Services & FastMCP
 

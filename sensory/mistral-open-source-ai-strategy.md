@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.082
 aspect: knower
 neural:
-  activation: 0.604
+  activation: 0.84
   stage: mature
-  cluster: papers
+  synapse_in: 4
+  synapse_out: 11
 ---
 
 # Mistral Open-Source AI Strategy for Enterprise Resilience

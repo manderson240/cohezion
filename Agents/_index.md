@@ -4,9 +4,10 @@ purpose: "Auto-generated agent execution records, walkthroughs, and traces"
 type: directory-index
 aspect: doer
 neural:
-  activation: 0.298
+  activation: 0.3
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 0
 ---
 
 # Agents

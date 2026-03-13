@@ -5,9 +5,10 @@ status: active
 tags: [phase-6d, quality-scoring, completion, analytics, report]
 aspect: thinker
 neural:
-  activation: 0.731
+  activation: 0.96
   stage: mature
-  cluster: decisions
+  synapse_in: 1
+  synapse_out: 11
 ---
 
 # Phase 6D: Decision Quality Scoring - Completion Report

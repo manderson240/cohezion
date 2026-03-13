@@ -6,9 +6,10 @@ related_concepts: [concept-testing, adversarial-review, knowledge-graph-systems,
 status: active
 aspect: knower
 neural:
-  activation: 0.604
+  activation: 0.94
   stage: growing
-  cluster: concepts
+  synapse_in: 40
+  synapse_out: 16
 ---
 
 # Concept Validation

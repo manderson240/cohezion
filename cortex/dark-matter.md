@@ -5,9 +5,10 @@ tags: [concept, astrophysics, physics, dark-matter-detection]
 related_concepts: [dark-matter-detection, quantum-entanglement, anomaly-detection]
 aspect: knower
 neural:
-  activation: 0.712
+  activation: 0.94
   stage: mature
-  cluster: concepts
+  synapse_in: 17
+  synapse_out: 20
 ---
 ## Definition
 

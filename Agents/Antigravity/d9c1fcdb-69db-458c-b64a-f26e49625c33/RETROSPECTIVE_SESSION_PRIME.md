@@ -6,9 +6,10 @@ title: "Retrospective: Overnight Autonomy and System Resilience"
 tags: [agent-output, antigravity, retrospective, autonomous-execution]
 aspect: doer
 neural:
-  activation: 0.456
+  activation: 0.76
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 4
 ---
 
 # RETROSPECTIVE: OVERNIGHT AUTONOMY & SYSTEM RESILIENCE

@@ -5,9 +5,10 @@ status: in-progress
 tags: [metrics, codification, platform-health, daily-tracking]
 aspect: doer
 neural:
-  activation: 0.467
+  activation: 0.51
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # Daily Metrics: Claude Code Best Practices Adoption

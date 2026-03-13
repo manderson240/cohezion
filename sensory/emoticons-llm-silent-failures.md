@@ -30,9 +30,10 @@ dimensions:
   impact_score: 0.082
 aspect: knower
 neural:
-  activation: 0.544
-  stage: growing
-  cluster: papers
+  activation: 0.78
+  stage: mature
+  synapse_in: 23
+  synapse_out: 12
 ---
 # Emoticons Cause Silent Failures in LLM Coding Responses
 

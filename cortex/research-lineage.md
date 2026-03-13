@@ -5,9 +5,10 @@ tags: [concept, knowledge-graph, compound-engineering, provenance]
 status: active
 aspect: knower
 neural:
-  activation: 0.555
+  activation: 0.89
   stage: growing
-  cluster: concepts
+  synapse_in: 11
+  synapse_out: 12
 ---
 
 # Research Lineage

@@ -4,9 +4,10 @@ date: "2026-02-07"
 tags: [pattern, integration, google-sheets, automation, haiku, cost-optimization]
 aspect: thinker
 neural:
-  activation: 0.559
+  activation: 0.79
   stage: mature
-  cluster: patterns
+  synapse_in: 20
+  synapse_out: 13
 ---
 
 ## Problem

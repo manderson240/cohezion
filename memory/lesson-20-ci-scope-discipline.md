@@ -8,9 +8,10 @@ tags: [ci-cd, testing, scope, efficiency, discipline]
 status: validated
 aspect: knower
 neural:
-  activation: 0.477
+  activation: 0.72
   stage: growing
-  cluster: lessons
+  synapse_in: 10
+  synapse_out: 5
 ---
 
 # Lesson: CI Scope Discipline: Test What Changed and All Its Dependents

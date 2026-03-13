@@ -5,9 +5,10 @@ status: decided
 tags: [phase-1-fixes, fix-3, decision, reasoning-inference]
 aspect: thinker
 neural:
-  activation: 0.597
+  activation: 0.83
   stage: mature
-  cluster: decisions
+  synapse_in: 2
+  synapse_out: 14
 ---
 
 # Fix #3 Decision: Option B - Keyword-Matching Heuristics

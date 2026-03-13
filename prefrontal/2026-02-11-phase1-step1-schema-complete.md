@@ -5,9 +5,10 @@ status: completed
 tags: [phase1, implementation, surrealdb, completed]
 aspect: thinker
 neural:
-  activation: 0.603
+  activation: 0.88
   stage: mature
-  cluster: decisions
+  synapse_in: 11
+  synapse_out: 14
 ---
 
 # Phase 1 Step 1: Schema Definition - COMPLETE ✅

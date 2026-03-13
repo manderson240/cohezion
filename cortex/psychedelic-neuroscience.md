@@ -4,9 +4,10 @@ date: 2026-03-10
 tags: [concept, neuroscience, consciousness, psychedelics, entropy, default-mode-network, serotonin, TOE]
 aspect: knower
 neural:
-  activation: 0.750
-  stage: growing
-  cluster: concepts
+  activation: 1.0
+  stage: mature
+  synapse_in: 1
+  synapse_out: 11
 ---
 
 # Psychedelic Neuroscience — Entropy, Consciousness, and the Default Mode

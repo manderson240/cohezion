@@ -4,9 +4,10 @@ purpose: "Post-session analysis of what worked, what failed, and lessons learned
 type: directory-index
 aspect: doer
 neural:
-  activation: 0.415
+  activation: 0.4
   stage: growing
-  cluster: retrospectives
+  synapse_in: 0
+  synapse_out: 7
 ---
 
 # Retrospectives

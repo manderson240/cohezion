@@ -5,9 +5,10 @@ tags: [concept, methodology, compound-engineering, learning]
 related_concepts: [compound-engineering, token-efficiency, experience-feedback-loop, adversarial-review, agent-journey-tracking]
 aspect: knower
 neural:
-  activation: 0.862
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 41
+  synapse_out: 16
 ---
 
 ## Definition

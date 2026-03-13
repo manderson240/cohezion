@@ -5,9 +5,10 @@ status: completed
 tags: [daily, kyutai, index, documentation, project-complete]
 aspect: doer
 neural:
-  activation: 0.477
+  activation: 0.71
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # Kyutai MCP + Obsidian Plugin - Complete Documentation Index

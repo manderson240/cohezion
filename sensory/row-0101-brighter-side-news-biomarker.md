@@ -12,9 +12,10 @@ similar_papers:
 - brain-protein-neurodegeneration
 aspect: knower
 neural:
-  activation: 0.573
+  activation: 0.81
   stage: growing
-  cluster: papers
+  synapse_in: 2
+  synapse_out: 9
 ---
 
 # AI-Driven Biomarker Discovery — The Brighter Side of News (Early 2026)

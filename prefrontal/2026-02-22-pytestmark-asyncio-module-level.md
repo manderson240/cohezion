@@ -5,9 +5,10 @@ status: accepted
 tags: [decision, testing, asyncio, python, pytest]
 aspect: thinker
 neural:
-  activation: 0.472
+  activation: 0.71
   stage: growing
-  cluster: decisions
+  synapse_in: 1
+  synapse_out: 6
 ---
 # Decision: Use pytestmark = pytest.mark.asyncio at Module Level
 

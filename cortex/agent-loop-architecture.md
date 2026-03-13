@@ -5,9 +5,10 @@ tags: [concept, agentic-ai, context-management, prompt-engineering]
 related_concepts: [agentic-ai, context-management, prompt-engineering, tool-use, agent-architecture]
 aspect: knower
 neural:
-  activation: 0.533
+  activation: 0.77
   stage: growing
-  cluster: concepts
+  synapse_in: 10
+  synapse_out: 12
 ---
 ## Definition
 

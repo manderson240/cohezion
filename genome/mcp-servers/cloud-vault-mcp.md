@@ -8,9 +8,10 @@ source: "~/.claude/mcp.json + ~/dev/cohezion/cloud-vault-mcp/"
 status: active
 aspect: knower
 neural:
-  activation: 0.417
+  activation: 0.66
   stage: growing
-  cluster: specs
+  synapse_in: 0
+  synapse_out: 3
 ---
 
 # Cloud Vault MCP Server

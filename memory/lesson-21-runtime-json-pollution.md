@@ -8,9 +8,10 @@ tags: [json, logging, debugging, pipeline, data-corruption]
 status: validated
 aspect: knower
 neural:
-  activation: 0.548
+  activation: 0.79
   stage: growing
-  cluster: lessons
+  synapse_in: 16
+  synapse_out: 9
 ---
 
 # Lesson: Runtime JSON Pollution: Debug Output Corrupts JSON Parsing in Pipelines

@@ -29,9 +29,10 @@ metrics:
     - "lessons/lesson-meta-learning-feedback-loops"
 aspect: thinker
 neural:
-  activation: 0.950
+  activation: 1.0
   stage: mature
-  cluster: decisions
+  synapse_in: 10
+  synapse_out: 18
 ---
 
 ## Context

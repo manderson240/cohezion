@@ -5,9 +5,10 @@ tags: [retrospective, phase-3, lessons, decision-paralysis]
 severity: HIGH
 aspect: doer
 neural:
-  activation: 0.640
+  activation: 0.87
   stage: mature
-  cluster: retrospectives
+  synapse_in: 3
+  synapse_out: 12
 ---
 
 # Session Retrospective: Phase 3 Planning

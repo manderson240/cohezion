@@ -4,9 +4,10 @@ date: 2026-03-10
 tags: [concept, indigenous-cosmology, TOE, maori, aotearoa, new-zealand, whakapapa, mauri, te-kore, mana]
 aspect: knower
 neural:
-  activation: 0.750
-  stage: growing
-  cluster: concepts
+  activation: 1.0
+  stage: mature
+  synapse_in: 17
+  synapse_out: 12
 ---
 
 # Māori Cosmology and the Theory of Everything

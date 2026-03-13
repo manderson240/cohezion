@@ -5,9 +5,10 @@ status: in-progress
 tags: [portfolio, status-update, phase-completion]
 aspect: doer
 neural:
-  activation: 0.529
+  activation: 0.76
   stage: growing
-  cluster: daily
+  synapse_in: 2
+  synapse_out: 5
 ---
 
 # Hyperdimensional Viz Portfolio - Major Progress Update

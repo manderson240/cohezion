@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [concept, cohezion, autonomic-system, feedback-loop, self-improvement]
 aspect: knower
 neural:
-  activation: 0.564
+  activation: 0.8
   stage: mature
-  cluster: concepts
+  synapse_in: 13
+  synapse_out: 11
 ---
 
 # Ouroboros Loop

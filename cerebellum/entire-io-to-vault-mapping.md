@@ -5,9 +5,10 @@ tags: [pattern, integration, entire.io, entire-sync-daemon]
 status: active
 aspect: thinker
 neural:
-  activation: 0.758
+  activation: 0.98
   stage: mature
-  cluster: patterns
+  synapse_in: 12
+  synapse_out: 15
 ---
 
 ## Overview

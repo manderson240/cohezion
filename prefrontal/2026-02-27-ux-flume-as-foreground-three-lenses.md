@@ -13,9 +13,10 @@ decision_reasoning:
   - 'Single lens with layer toggles (Earth Engine style)'
 aspect: thinker
 neural:
-  activation: 0.471
+  activation: 0.71
   stage: growing
-  cluster: decisions
+  synapse_in: 6
+  synapse_out: 6
 ---
 
 ## Context

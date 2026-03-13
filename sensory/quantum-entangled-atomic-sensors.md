@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.24
 aspect: knower
 neural:
-  activation: 0.582
+  activation: 0.82
   stage: growing
-  cluster: papers
+  synapse_in: 10
+  synapse_out: 15
 ---
 # Quantum Entangled Atomic Sensor Arrays
 

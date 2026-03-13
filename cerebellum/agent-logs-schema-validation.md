@@ -5,9 +5,10 @@ tags: [pattern, validation, schema, agent-logs, entire.io]
 status: active
 aspect: thinker
 neural:
-  activation: 0.808
+  activation: 1.0
   stage: mature
-  cluster: patterns
+  synapse_in: 5
+  synapse_out: 14
 ---
 
 ## Purpose

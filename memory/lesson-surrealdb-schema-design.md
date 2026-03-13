@@ -8,9 +8,10 @@ tags: [surrealdb, schema-design, database, agent-context, graph]
 status: validated
 aspect: knower
 neural:
-  activation: 0.521
+  activation: 0.76
   stage: growing
-  cluster: lessons
+  synapse_in: 8
+  synapse_out: 7
 ---
 
 # Lesson: SurrealDB Schema Design: Record-Centric Schema Outperforms Table-Centric for Agent Context

@@ -5,9 +5,10 @@ status: complete
 tags: [phase-6c, validation, embeddings, contradictions, surrealdb]
 aspect: thinker
 neural:
-  activation: 0.735
+  activation: 1.0
   stage: mature
-  cluster: decisions
+  synapse_in: 8
+  synapse_out: 12
 ---
 
 # Phase 6C: Semantic Contradiction Detection - COMPLETE ✅

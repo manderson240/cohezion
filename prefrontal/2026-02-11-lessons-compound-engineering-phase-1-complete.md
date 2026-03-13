@@ -5,9 +5,10 @@ status: completed
 tags: [compound-engineering, lessons, phase-1, semantic-search, owl-data]
 aspect: thinker
 neural:
-  activation: 0.539
+  activation: 0.82
   stage: growing
-  cluster: decisions
+  synapse_in: 3
+  synapse_out: 9
 ---
 
 # Lessons Compound Engineering - Phase 1 Complete

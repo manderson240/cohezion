@@ -6,9 +6,10 @@ related_concepts: [neural-network-architecture, transformer-architecture, meta-l
 status: active
 aspect: knower
 neural:
-  activation: 0.723
+  activation: 0.95
   stage: mature
-  cluster: concepts
+  synapse_in: 46
+  synapse_out: 32
 ---
 
 # Machine Learning

@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Implementation Plan Desperation"
 aspect: doer
 neural:
-  activation: 0.318
+  activation: 0.6
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 1
 ---
 
 # Desperation Mode: Non-Privileged System Damping

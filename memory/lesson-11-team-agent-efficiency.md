@@ -8,9 +8,10 @@ tags: [team-agents, efficiency, coordination, multi-agent, token-efficiency]
 status: validated
 aspect: knower
 neural:
-  activation: 0.605
+  activation: 0.84
   stage: mature
-  cluster: lessons
+  synapse_in: 16
+  synapse_out: 11
 ---
 
 # Lesson: Team Agent Efficiency: Coordination Overhead Exceeds Benefits Below Task Threshold

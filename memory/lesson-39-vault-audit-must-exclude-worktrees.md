@@ -8,9 +8,10 @@ tags: [lesson, vault, audit, worktrees, obsidian]
 status: active
 aspect: knower
 neural:
-  activation: 0.495
+  activation: 0.73
   stage: growing
-  cluster: lessons
+  synapse_in: 3
+  synapse_out: 8
 ---
 
 # Lesson 39: Vault Audit Must Exclude Worktrees

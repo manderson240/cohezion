@@ -10,9 +10,10 @@ similar_papers:
 - transformers-v5-huggingface-release
 aspect: knower
 neural:
-  activation: 0.501
+  activation: 0.74
   stage: growing
-  cluster: papers
+  synapse_in: 5
+  synapse_out: 10
 ---
 
 ## Summary

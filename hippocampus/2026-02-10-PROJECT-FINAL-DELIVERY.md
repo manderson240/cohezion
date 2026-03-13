@@ -5,9 +5,10 @@ status: completed
 tags: [daily, kyutai, project-complete, delivery, final]
 aspect: doer
 neural:
-  activation: 0.598
+  activation: 0.83
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # 🎉 KYUTAI MCP + OBSIDIAN PLUGIN - FINAL DELIVERY COMPLETE

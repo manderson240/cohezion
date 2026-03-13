@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.158
 aspect: knower
 neural:
-  activation: 0.714
+  activation: 0.94
   stage: mature
-  cluster: papers
+  synapse_in: 9
+  synapse_out: 17
 ---
 # MoM-z14 -- Record-Breaking Distant Galaxy
 

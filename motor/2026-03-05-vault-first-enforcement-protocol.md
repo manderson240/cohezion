@@ -6,9 +6,10 @@ priority: critical
 tags: [protocol, enforcement, vault, memory-infrastructure, compound-engineering]
 aspect: doer
 neural:
-  activation: 0.436
+  activation: 0.73
   stage: growing
-  cluster: projects
+  synapse_in: 4
+  synapse_out: 5
 ---
 
 ## Purpose

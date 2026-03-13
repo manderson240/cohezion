@@ -4,9 +4,10 @@ date: "2026-02-10"
 tags: [concept, methodology, economics, measurement]
 aspect: knower
 neural:
-  activation: 0.879
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 17
+  synapse_out: 14
 ---
 
 ## Definition

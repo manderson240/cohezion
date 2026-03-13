@@ -6,9 +6,10 @@ title: "Task: Project Knowledge Mining and IDE Optimization"
 tags: [agent-output, antigravity, knowledge-mining, ide-optimization]
 aspect: doer
 neural:
-  activation: 0.392
-  stage: embryo
-  cluster: Agents
+  activation: 0.68
+  stage: growing
+  synapse_in: 0
+  synapse_out: 3
 ---
 
 # Task: Project Knowledge Mining & IDE Optimization

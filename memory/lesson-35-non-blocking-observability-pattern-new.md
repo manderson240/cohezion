@@ -8,9 +8,10 @@ tags: [observability, telemetry, non-blocking, async, patterns]
 status: validated
 aspect: knower
 neural:
-  activation: 0.463
+  activation: 0.7
   stage: growing
-  cluster: lessons
+  synapse_in: 9
+  synapse_out: 5
 ---
 
 # Lesson: Non-Blocking Observability Pattern: Telemetry Must Never Interrupt Primary Workflow

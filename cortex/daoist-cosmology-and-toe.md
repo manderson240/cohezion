@@ -4,9 +4,10 @@ date: 2026-03-10
 tags: [concept, indigenous-cosmology, TOE, daoism, taoism, chinese, dao, yin-yang, i-ching, wuxing]
 aspect: knower
 neural:
-  activation: 0.750
-  stage: growing
-  cluster: concepts
+  activation: 1.0
+  stage: mature
+  synapse_in: 15
+  synapse_out: 12
 ---
 
 # Daoist Cosmology and the Theory of Everything

@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [concept, data-engineering, infrastructure, architecture]
 aspect: knower
 neural:
-  activation: 0.556
+  activation: 0.79
   stage: mature
-  cluster: concepts
+  synapse_in: 5
+  synapse_out: 10
 ---
 
 # Data Pipelines

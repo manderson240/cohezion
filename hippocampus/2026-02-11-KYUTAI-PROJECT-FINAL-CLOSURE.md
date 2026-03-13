@@ -5,9 +5,10 @@ status: completed
 tags: [daily, kyutai, final-closure, marketplace-live, project-complete]
 aspect: doer
 neural:
-  activation: 0.602
+  activation: 0.83
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # 🎉 KYUTAI PROJECT - FINAL CLOSURE REPORT

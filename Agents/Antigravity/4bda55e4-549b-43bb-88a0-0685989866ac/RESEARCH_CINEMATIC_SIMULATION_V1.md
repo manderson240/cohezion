@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Research Cinematic Simulation V1"
 aspect: doer
 neural:
-  activation: 0.364
+  activation: 0.65
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 1
 ---
 
 # RESEARCH: Cutting-Edge Cinematic Simulation (Abstracted for 12D)

@@ -4,9 +4,10 @@ date: "2026-02-17"
 tags: [pattern, debugging, operational-forensics, methodology]
 aspect: thinker
 neural:
-  activation: 0.530
+  activation: 0.72
   stage: growing
-  cluster: patterns
+  synapse_in: 5
+  synapse_out: 8
 ---
 
 # Platform Issue Analysis Template

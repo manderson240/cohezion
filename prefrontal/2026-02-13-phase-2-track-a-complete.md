@@ -5,9 +5,10 @@ status: completed
 tags: [phase-2, track-a, surrealdb, agent-reasoning, completion]
 aspect: thinker
 neural:
-  activation: 0.641
+  activation: 0.91
   stage: mature
-  cluster: decisions
+  synapse_in: 11
+  synapse_out: 11
 ---
 
 # Phase 2 Track A Complete - SurrealDB Agent Reasoning

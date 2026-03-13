@@ -4,9 +4,10 @@ date: 2026-02-23
 tags: [pattern]
 aspect: thinker
 neural:
-  activation: 0.654
+  activation: 0.84
   stage: growing
-  cluster: patterns
+  synapse_in: 9
+  synapse_out: 7
 ---
 # Conservative Baseline Estimation
 

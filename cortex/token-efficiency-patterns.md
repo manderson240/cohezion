@@ -6,9 +6,10 @@ related_concepts: [token-efficiency, compound-engineering, meta-learning, contex
 status: active
 aspect: knower
 neural:
-  activation: 0.625
+  activation: 0.96
   stage: mature
-  cluster: concepts
+  synapse_in: 18
+  synapse_out: 16
 ---
 
 # Token Efficiency Patterns

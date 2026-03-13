@@ -5,9 +5,10 @@ status: completed
 tags: [daily, kyutai, phase-4, integration-testing, complete]
 aspect: doer
 neural:
-  activation: 0.389
+  activation: 0.63
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 ## ✅ PHASE 4.1: E2E INTEGRATION TESTING - COMPLETE

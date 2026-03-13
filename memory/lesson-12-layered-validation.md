@@ -8,9 +8,10 @@ tags: [validation, system-design, data-integrity, boundary-testing]
 status: validated
 aspect: knower
 neural:
-  activation: 0.524
+  activation: 0.76
   stage: growing
-  cluster: lessons
+  synapse_in: 10
+  synapse_out: 7
 ---
 
 # Lesson: Layered Validation: Validate at Each System Boundary, Not Just at Entry

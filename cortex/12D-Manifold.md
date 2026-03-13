@@ -5,9 +5,10 @@ tags: [concept, visualization, cohezion, hyperdimensional]
 status: active
 aspect: knower
 neural:
-  activation: 0.632
+  activation: 0.95
   stage: mature
-  cluster: concepts
+  synapse_in: 44
+  synapse_out: 21
 ---
 
 # 12D Manifold

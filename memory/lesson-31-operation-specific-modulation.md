@@ -8,9 +8,10 @@ tags: [validation, risk-management, operational, modulation]
 status: validated
 aspect: knower
 neural:
-  activation: 0.516
+  activation: 0.75
   stage: growing
-  cluster: lessons
+  synapse_in: 9
+  synapse_out: 7
 ---
 
 # Lesson: Operation-Specific Modulation: Apply Validation Intensity by Operation Risk

@@ -1,9 +1,10 @@
 ---
 aspect: thinker
 neural:
-  activation: 0.500
+  activation: 0.73
   stage: growing
-  cluster: patterns
+  synapse_in: 0
+  synapse_out: 16
 ---
 # Lesson 31: OPERATION-SPECIFIC MODULATION
 

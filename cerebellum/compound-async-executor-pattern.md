@@ -4,9 +4,10 @@ date: 2026-02-23
 tags: [pattern]
 aspect: thinker
 neural:
-  activation: 0.568
+  activation: 0.79
   stage: growing
-  cluster: patterns
+  synapse_in: 10
+  synapse_out: 7
 ---
 # Compound Async Executor Pattern - COHEZION Core
 

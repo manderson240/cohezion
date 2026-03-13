@@ -5,9 +5,10 @@ tags: [concept, agentic-ai, jwst-observations, ai-safety-alignment]
 related_concepts: [ai-safety-alignment, agent-journey-tracking, non-blocking-observability, machine-learning, astrophysics-observations]
 aspect: knower
 neural:
-  activation: 0.630
-  stage: growing
-  cluster: concepts
+  activation: 0.86
+  stage: mature
+  synapse_in: 13
+  synapse_out: 17
 ---
 
 ## Definition

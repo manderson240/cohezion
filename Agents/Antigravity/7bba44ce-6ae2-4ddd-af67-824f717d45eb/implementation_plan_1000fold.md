@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Implementation Plan 1000Fold"
 aspect: doer
 neural:
-  activation: 0.330
+  activation: 0.62
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 1
 ---
 
 # IMPLEMENTATION PLAN: 1000-Fold Full Site Expansion

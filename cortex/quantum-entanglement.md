@@ -4,9 +4,10 @@ date: 2026-02-07
 tags: [concept, quantum-sensors, quantum-error-correction, dark-matter-detection]
 aspect: knower
 neural:
-  activation: 0.599
+  activation: 1.0
   stage: mature
-  cluster: concepts
+  synapse_in: 38
+  synapse_out: 20
 ---
 ## Definition
 

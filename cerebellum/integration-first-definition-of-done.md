@@ -4,9 +4,10 @@ date: 2026-02-14
 tags: [pattern, software-development-lifecycle]
 aspect: thinker
 neural:
-  activation: 0.840
+  activation: 1.0
   stage: mature
-  cluster: patterns
+  synapse_in: 11
+  synapse_out: 11
 ---
 # Integration-First Definition of Done
 

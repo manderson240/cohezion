@@ -5,9 +5,10 @@ status: active
 tags: [runbook, operations, ci-cd, github-actions]
 aspect: thinker
 neural:
-  activation: 0.650
+  activation: 0.87
   stage: mature
-  cluster: patterns
+  synapse_in: 0
+  synapse_out: 10
 ---
 
 ## Overview

@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Roadmap Gateways 33 42"
 aspect: doer
 neural:
-  activation: 0.322
-  stage: embryo
-  cluster: Agents
+  activation: 0.64
+  stage: growing
+  synapse_in: 2
+  synapse_out: 3
 ---
 
 # 🗺️ Roadmap: Cohezion Gateways 33-42 (The Collective Phase)

@@ -28,9 +28,10 @@ metrics:
     - "lessons/lesson-log-mining-for-pattern-extraction"
 aspect: thinker
 neural:
-  activation: 0.945
+  activation: 1.0
   stage: mature
-  cluster: decisions
+  synapse_in: 17
+  synapse_out: 27
 ---
 
 ## Context

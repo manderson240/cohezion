@@ -28,9 +28,10 @@ metrics:
     - "lessons/lesson-token-efficient-roadmap-execution"
 aspect: thinker
 neural:
-  activation: 0.819
+  activation: 1.0
   stage: mature
-  cluster: decisions
+  synapse_in: 3
+  synapse_out: 13
 ---
 
 # Token-Efficient Compound Engineering Roadmap (2026-02-10 → 2026-03-10)

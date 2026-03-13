@@ -4,9 +4,10 @@ date: "2026-02-26"
 tags: [pattern, multi-agent, coordination, agent-architecture]
 aspect: thinker
 neural:
-  activation: 0.578
+  activation: 0.76
   stage: mature
-  cluster: patterns
+  synapse_in: 8
+  synapse_out: 11
 ---
 
 # Role-Based Multi-Agent Coordination

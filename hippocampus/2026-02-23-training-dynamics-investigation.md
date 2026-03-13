@@ -4,9 +4,10 @@ date: 2026-02-23
 tags: [daily]
 aspect: doer
 neural:
-  activation: 0.601
+  activation: 0.79
   stage: growing
-  cluster: daily
+  synapse_in: 3
+  synapse_out: 3
 ---
 # FLUME Training Dynamics Investigation: Optimization & Emergence
 **Team:** Training Dynamics Engineer  

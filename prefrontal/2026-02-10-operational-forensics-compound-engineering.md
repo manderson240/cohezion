@@ -29,9 +29,10 @@ metrics:
     - "lessons/lesson-compound-engineering-three-layer"
 aspect: thinker
 neural:
-  activation: 0.692
+  activation: 0.92
   stage: mature
-  cluster: decisions
+  synapse_in: 6
+  synapse_out: 16
 ---
 
 # Decision: Operational Forensics → Compound Engineering

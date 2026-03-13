@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.16
 aspect: knower
 neural:
-  activation: 0.509
+  activation: 0.75
   stage: growing
-  cluster: papers
+  synapse_in: 3
+  synapse_out: 11
 ---
 # Transcranial Focused Ultrasound for Consciousness Research
 

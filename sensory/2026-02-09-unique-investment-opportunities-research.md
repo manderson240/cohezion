@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.16
 aspect: knower
 neural:
-  activation: 0.670
+  activation: 0.9
   stage: mature
-  cluster: papers
+  synapse_in: 0
+  synapse_out: 14
 ---
 
 # Unique Investment Opportunities Research

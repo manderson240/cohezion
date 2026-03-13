@@ -5,9 +5,10 @@ status: active
 tags: [project, research-pipeline, flume, agent-architecture]
 aspect: doer
 neural:
-  activation: 0.440
+  activation: 0.63
   stage: growing
-  cluster: projects
+  synapse_in: 4
+  synapse_out: 6
 ---
 
 # Research Integration TODOs

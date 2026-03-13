@@ -1,9 +1,10 @@
 ---
 aspect: thinker
 neural:
-  activation: 0.375
+  activation: 0.61
   stage: growing
-  cluster: patterns
+  synapse_in: 0
+  synapse_out: 8
 ---
 # Lesson 26: NEVER PRINT CREDENTIALS
 

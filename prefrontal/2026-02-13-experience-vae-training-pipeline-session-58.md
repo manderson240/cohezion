@@ -5,9 +5,10 @@ status: accepted
 tags: [decision, vae, training, experience-feedback, pipeline]
 aspect: thinker
 neural:
-  activation: 0.533
+  activation: 0.77
   stage: growing
-  cluster: decisions
+  synapse_in: 5
+  synapse_out: 8
 ---
 
 # Experience to VAE Training Pipeline (Session 58)

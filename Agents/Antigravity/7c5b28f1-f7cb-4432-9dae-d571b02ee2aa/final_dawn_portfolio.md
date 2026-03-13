@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Final Dawn Portfolio"
 aspect: doer
 neural:
-  activation: 0.335
-  stage: embryo
-  cluster: Agents
+  activation: 0.67
+  stage: growing
+  synapse_in: 0
+  synapse_out: 4
 ---
 
 # 🌌 Anthropic Portfolio: The Infinite Game (Dawn Report)

@@ -5,9 +5,10 @@ status: accepted
 tags: [decision, token-efficiency, context-management, error-handling]
 aspect: thinker
 neural:
-  activation: 0.448
+  activation: 0.69
   stage: growing
-  cluster: decisions
+  synapse_in: 3
+  synapse_out: 5
 ---
 
 # Token Limit Error Prevention Implemented

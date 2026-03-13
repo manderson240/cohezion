@@ -32,9 +32,10 @@ decision_reasoning:
 
 aspect: thinker
 neural:
-  activation: 0.905
+  activation: 1.0
   stage: mature
-  cluster: decisions
+  synapse_in: 6
+  synapse_out: 15
 ---
 
 # Phase 4 Retrospective + Phase 5+ Overnight Compound Engineering Plan

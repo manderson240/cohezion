@@ -4,9 +4,10 @@ date: 2026-03-10
 tags: [concept, systems-science, feedback, control-theory, self-organization, complexity, agent-architecture]
 aspect: knower
 neural:
-  activation: 0.780
-  stage: growing
-  cluster: concepts
+  activation: 1.0
+  stage: mature
+  synapse_in: 6
+  synapse_out: 10
 ---
 
 # Cybernetics — The Science of Governance in Complex Systems

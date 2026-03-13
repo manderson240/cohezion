@@ -5,9 +5,10 @@ tags: [project, milestone, cohezion, compound-engineering]
 status: active
 aspect: knower
 neural:
-  activation: 0.619
+  activation: 0.95
   stage: mature
-  cluster: concepts
+  synapse_in: 6
+  synapse_out: 15
 ---
 
 # Phase 4 Complete

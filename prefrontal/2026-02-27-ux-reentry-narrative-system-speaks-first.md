@@ -14,9 +14,10 @@ decision_reasoning:
   - 'Static tagline'
 aspect: thinker
 neural:
-  activation: 0.475
+  activation: 0.72
   stage: growing
-  cluster: decisions
+  synapse_in: 3
+  synapse_out: 6
 ---
 
 ## Context

@@ -1,9 +1,10 @@
 ---
 aspect: thinker
 neural:
-  activation: 0.370
+  activation: 0.61
   stage: growing
-  cluster: patterns
+  synapse_in: 0
+  synapse_out: 8
 ---
 # Lesson 2: ruff auto-formats on save — re-read files before editing (ha
 

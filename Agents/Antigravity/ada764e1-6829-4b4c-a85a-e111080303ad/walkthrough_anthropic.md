@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Walkthrough Anthropic"
 aspect: doer
 neural:
-  activation: 0.350
+  activation: 0.55
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 0
 ---
 
 # Walkthrough: Anthropic VLIW Optimization (Quadrature Nexus)

@@ -5,9 +5,10 @@ status: active
 tags: [decision, testing, phase-2, verification, compound-engineering]
 aspect: thinker
 neural:
-  activation: 0.511
+  activation: 0.8
   stage: growing
-  cluster: decisions
+  synapse_in: 33
+  synapse_out: 9
 ---
 
 # Phase 2 Full Verification Plan

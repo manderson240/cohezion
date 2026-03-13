@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Walkthrough"
 aspect: doer
 neural:
-  activation: 0.336
-  stage: embryo
-  cluster: Agents
+  activation: 0.65
+  stage: growing
+  synapse_in: 0
+  synapse_out: 3
 ---
 
 # Fractal Universe Simulation Walkthrough

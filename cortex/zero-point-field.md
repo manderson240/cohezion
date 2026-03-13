@@ -4,9 +4,10 @@ date: 2026-03-10
 tags: [concept, physics, quantum-mechanics, vacuum-energy, quantum-field-theory, cosmology]
 aspect: knower
 neural:
-  activation: 0.700
-  stage: growing
-  cluster: concepts
+  activation: 1.0
+  stage: mature
+  synapse_in: 5
+  synapse_out: 12
 ---
 
 # Zero-Point Field

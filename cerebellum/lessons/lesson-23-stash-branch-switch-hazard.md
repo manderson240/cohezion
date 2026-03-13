@@ -1,9 +1,10 @@
 ---
 aspect: thinker
 neural:
-  activation: 0.373
+  activation: 0.62
   stage: growing
-  cluster: patterns
+  synapse_in: 0
+  synapse_out: 8
 ---
 # Lesson 23: STASH + BRANCH SWITCH HAZARD
 

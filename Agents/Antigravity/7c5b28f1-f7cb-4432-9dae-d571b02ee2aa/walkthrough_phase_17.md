@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Walkthrough Phase 17"
 aspect: doer
 neural:
-  activation: 0.311
+  activation: 0.6
   stage: embryo
-  cluster: Agents
+  synapse_in: 1
+  synapse_out: 1
 ---
 
 # Phase 17: Sovereign Computation

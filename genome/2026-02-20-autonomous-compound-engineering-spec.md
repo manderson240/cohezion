@@ -5,9 +5,10 @@ status: proposed
 tags: [spec, compound-engineering, multi-agent-systems, knowledge-graph, automation]
 aspect: knower
 neural:
-  activation: 0.621
+  activation: 0.85
   stage: growing
-  cluster: specs
+  synapse_in: 2
+  synapse_out: 7
 ---
 
 # SPEC: Autonomous Compound Engineering System

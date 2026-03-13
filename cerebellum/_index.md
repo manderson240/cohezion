@@ -4,9 +4,10 @@ purpose: "Reusable solutions, runbooks, and proven approaches for recurring prob
 type: directory-index
 aspect: thinker
 neural:
-  activation: 0.379
+  activation: 0.37
   stage: growing
-  cluster: patterns
+  synapse_in: 0
+  synapse_out: 5
 ---
 
 # Patterns

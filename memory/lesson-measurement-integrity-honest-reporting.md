@@ -8,9 +8,10 @@ source: decisions/2026-02-09-session-46-git-unification-complete.md
 status: validated
 aspect: knower
 neural:
-  activation: 0.523
+  activation: 0.79
   stage: growing
-  cluster: lessons
+  synapse_in: 17
+  synapse_out: 9
 ---
 
 # Lesson: Measurement Integrity and Honest Reporting

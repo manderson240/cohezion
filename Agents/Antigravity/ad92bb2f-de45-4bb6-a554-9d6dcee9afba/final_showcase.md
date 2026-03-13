@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Final Showcase"
 aspect: doer
 neural:
-  activation: 0.325
+  activation: 0.61
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 1
 ---
 
 # MISSION_REPORT: Anthropic Optimization Showcase

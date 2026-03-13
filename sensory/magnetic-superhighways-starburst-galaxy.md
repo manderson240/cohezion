@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.158
 aspect: knower
 neural:
-  activation: 0.600
+  activation: 0.83
   stage: mature
-  cluster: papers
+  synapse_in: 13
+  synapse_out: 10
 ---
 # Magnetic Superhighways in Starburst Galaxy Winds
 

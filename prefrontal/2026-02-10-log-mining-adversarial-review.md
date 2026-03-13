@@ -29,9 +29,10 @@ metrics:
     - "decisions/2026-02-10-claude-log-mining-architecture"
 aspect: thinker
 neural:
-  activation: 0.915
+  activation: 1.0
   stage: mature
-  cluster: decisions
+  synapse_in: 6
+  synapse_out: 18
 ---
 
 ## Executive Summary

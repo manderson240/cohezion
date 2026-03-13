@@ -24,9 +24,10 @@ decision_reasoning:
   confidence_score: 0.6
 aspect: thinker
 neural:
-  activation: 0.865
+  activation: 1.0
   stage: mature
-  cluster: decisions
+  synapse_in: 11
+  synapse_out: 18
 ---
 
 # SurrealDB Agent Context Schema Design

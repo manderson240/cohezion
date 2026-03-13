@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.158
 aspect: knower
 neural:
-  activation: 0.555
+  activation: 0.79
   stage: growing
-  cluster: papers
+  synapse_in: 12
+  synapse_out: 13
 ---
 # WOH G64 Red Supergiant Mystery Resolved
 

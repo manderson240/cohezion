@@ -3,6 +3,11 @@ title: "GitHub Issue Form as Mobile Claude Terminal"
 date: 2026-03-05
 tags: [pattern, github-issues, mobile, remote-control]
 aspect: thinker
+neural:
+  activation: 0.63
+  stage: embryo
+  synapse_in: 1
+  synapse_out: 2
 ---
 
 # Pattern: GitHub Issue Form as Mobile Claude Terminal

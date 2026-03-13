@@ -4,9 +4,10 @@ date: 2026-02-23
 tags: [pattern]
 aspect: thinker
 neural:
-  activation: 0.486
+  activation: 0.68
   stage: growing
-  cluster: patterns
+  synapse_in: 4
+  synapse_out: 6
 ---
 # MCP Tool Scaffold Pattern
 

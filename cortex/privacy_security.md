@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [concept, privacy, security, ml-systems, differential-privacy, federated-learning]
 aspect: knower
 neural:
-  activation: 0.511
+  activation: 0.85
   stage: growing
-  cluster: concepts
+  synapse_in: 10
+  synapse_out: 8
 ---
 
 # Privacy and Security in AI

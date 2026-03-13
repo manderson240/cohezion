@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, symmetry, phase-transitions, higgs, goldstone]
 aspect: knower
 neural:
-  activation: 0.700
-  stage: growing
-  cluster: concepts
+  activation: 1.0
+  stage: mature
+  synapse_in: 34
+  synapse_out: 17
 ---
 
 # Symmetry Breaking

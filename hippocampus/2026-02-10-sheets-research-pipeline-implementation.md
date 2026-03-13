@@ -5,9 +5,10 @@ status: complete
 tags: [implementation, sheets-research, automation, daemon]
 aspect: doer
 neural:
-  activation: 0.630
+  activation: 0.86
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 0
 ---
 
 # Event-Driven Google Sheets Research Pipeline Implementation

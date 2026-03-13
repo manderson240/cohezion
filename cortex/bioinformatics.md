@@ -5,9 +5,10 @@ tags: [domain, biology, data-science, computational]
 status: active
 aspect: knower
 neural:
-  activation: 0.620
+  activation: 0.95
   stage: mature
-  cluster: concepts
+  synapse_in: 11
+  synapse_out: 14
 ---
 
 # Bioinformatics

@@ -28,9 +28,10 @@ metrics:
     - decisions/2026-02-10-token-efficient-compound-engineering-roadmap
 aspect: thinker
 neural:
-  activation: 0.677
+  activation: 0.94
   stage: mature
-  cluster: decisions
+  synapse_in: 11
+  synapse_out: 18
 ---
 
 # 12D Graph - Compound Engineering Next Steps

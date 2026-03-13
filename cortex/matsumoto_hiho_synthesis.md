@@ -4,9 +4,10 @@ date: 2026-03-09
 tags: [concept, physics, LENR, condensed-matter, nuclear-reactions, EVO, HIHO, vacuum]
 aspect: knower
 neural:
-  activation: 0.76
+  activation: 1.0
   stage: mature
-  cluster: quantum-physics
+  synapse_in: 0
+  synapse_out: 19
 ---
 
 # Matsumoto HIHO Synthesis

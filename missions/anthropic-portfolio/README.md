@@ -1,9 +1,10 @@
 ---
 aspect: doer
 neural:
-  activation: 0.517
+  activation: 0.7
   stage: growing
-  cluster: missions
+  synapse_in: 0
+  synapse_out: 0
 ---
 # COHEZION: Compound AI Orchestration Framework
 **Job Application Portfolio: Research Engineer, Universes — Anthropic**

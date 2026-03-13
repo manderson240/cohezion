@@ -5,9 +5,10 @@ date: 2026-03-04
 title: "Swarm Evolution Protocol"
 aspect: doer
 neural:
-  activation: 0.363
-  stage: embryo
-  cluster: Agents
+  activation: 0.69
+  stage: growing
+  synapse_in: 0
+  synapse_out: 4
 ---
 
 # SWARM EVOLUTION PROTOCOL (v1.2)

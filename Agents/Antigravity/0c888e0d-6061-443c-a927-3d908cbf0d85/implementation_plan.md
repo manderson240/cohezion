@@ -6,9 +6,10 @@ title: "Root Cause Analysis and Guardrail Enhancement Plan"
 tags: [agent-output, antigravity, root-cause-analysis, guardrails]
 aspect: doer
 neural:
-  activation: 0.360
+  activation: 0.56
   stage: embryo
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 2
 ---
 
 # Root Cause Analysis and Guardrail Enhancement

@@ -5,9 +5,10 @@ status: active
 tags: [project, research-pipeline, teleport-agents]
 aspect: doer
 neural:
-  activation: 0.441
+  activation: 0.63
   stage: growing
-  cluster: projects
+  synapse_in: 5
+  synapse_out: 8
 ---
 
 # Research Pipeline Mission 2026-02-26

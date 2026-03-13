@@ -4,9 +4,10 @@ created: 2026-03-04
 status: draft
 aspect: doer
 neural:
-  activation: 0.521
+  activation: 0.71
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 12
 ---
 
 # Daily Note 2026-03-04

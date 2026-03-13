@@ -5,9 +5,10 @@ status: complete
 tags: [experiment, model-management, ollama, hot-warm-cold, lifecycle]
 aspect: thinker
 neural:
-  activation: 0.584
+  activation: 0.82
   stage: mature
-  cluster: experiments
+  synapse_in: 2
+  synapse_out: 12
 ---
 
 # ModelPoolManager: 3-Tier Lifecycle Management

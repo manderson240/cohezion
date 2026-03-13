@@ -8,9 +8,10 @@ card_type: system
 status: active
 aspect: knower
 neural:
-  activation: 0.557
+  activation: 0.79
   stage: growing
-  cluster: specs
+  synapse_in: 201
+  synapse_out: 8
 ---
 
 # System Card: SurrealDB 3.0

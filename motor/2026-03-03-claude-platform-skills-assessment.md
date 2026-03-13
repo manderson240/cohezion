@@ -5,9 +5,10 @@ status: active
 tags: [project, assessment, skills, platform-improvement, strategy, machine-learning, evaluation]
 aspect: doer
 neural:
-  activation: 0.669
+  activation: 0.85
   stage: mature
-  cluster: projects
+  synapse_in: 5
+  synapse_out: 12
 ---
 
 # Platform Skills Assessment — Key Gaps for Research Credibility

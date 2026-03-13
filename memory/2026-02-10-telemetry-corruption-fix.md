@@ -8,9 +8,10 @@ tags: [lesson, telemetry, debugging, data-corruption]
 status: validated
 aspect: knower
 neural:
-  activation: 0.434
+  activation: 0.68
   stage: growing
-  cluster: lessons
+  synapse_in: 1
+  synapse_out: 5
 ---
 
 # Lesson: Telemetry Corruption Fix: Isolate Observability Writes from Primary Data

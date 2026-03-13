@@ -4,9 +4,10 @@ date: 2026-03-04
 tags: [concept, astrophysics, exoplanets, habitability]
 aspect: knower
 neural:
-  activation: 0.570
+  activation: 0.91
   stage: mature
-  cluster: concepts
+  synapse_in: 9
+  synapse_out: 11
 ---
 
 # Exoplanets

@@ -6,9 +6,10 @@ title: "Walkthrough: Autonomous AI Lab Implementation"
 tags: [agent-output, antigravity, autonomous-lab]
 aspect: doer
 neural:
-  activation: 0.441
+  activation: 0.74
   stage: growing
-  cluster: Agents
+  synapse_in: 0
+  synapse_out: 4
 ---
 
 # Walkthrough: Hardened Swarm & Quadrature Nexus

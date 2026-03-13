@@ -5,9 +5,10 @@ tags: [concept, skill-routing, agentic-ai, workflow-orchestration, taxonomy]
 related_concepts: [agentic-ai, workflow-orchestration, mcp-model-context-protocol, agent-architecture]
 aspect: knower
 neural:
-  activation: 0.457
+  activation: 0.84
   stage: growing
-  cluster: concepts
+  synapse_in: 1
+  synapse_out: 7
 ---
 
 ## Definition

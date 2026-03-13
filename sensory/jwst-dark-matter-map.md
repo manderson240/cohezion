@@ -31,9 +31,10 @@ dimensions:
   impact_score: 0.322
 aspect: knower
 neural:
-  activation: 0.468
+  activation: 0.74
   stage: growing
-  cluster: papers
+  synapse_in: 14
+  synapse_out: 10
 ---
 # JWST Creates Sharpest Dark Matter Map
 

@@ -4,9 +4,10 @@ date: 2026-02-23
 tags: [daily]
 aspect: doer
 neural:
-  activation: 0.603
+  activation: 0.79
   stage: growing
-  cluster: daily
+  synapse_in: 1
+  synapse_out: 2
 ---
 # FLUME Roadmap: Quick Reference Guide
 **Date:** 2026-02-23  

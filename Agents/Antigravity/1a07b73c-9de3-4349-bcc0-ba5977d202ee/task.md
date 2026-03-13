@@ -6,9 +6,10 @@ title: "Task: Harden Journey Substrate (EVO Cosmology)"
 tags: [agent-output, antigravity, resilience, cosmology-simulation]
 aspect: doer
 neural:
-  activation: 0.348
-  stage: embryo
-  cluster: Agents
+  activation: 0.63
+  stage: growing
+  synapse_in: 0
+  synapse_out: 3
 ---
 
 # Task: Harden Journey Substrate (EVO Cosmology Resilience)

@@ -8,9 +8,10 @@ aliases: ["IDE integrations", "model provider integrations", "cross-agent compat
 status: active
 aspect: knower
 neural:
-  activation: 0.562
+  activation: 0.79
   stage: growing
-  cluster: specs
+  synapse_in: 3
+  synapse_out: 7
 ---
 
 # IDE and Model Provider Integration Points

@@ -5,9 +5,10 @@ status: ready-for-execution
 tags: [phase-7, preparation, dashboard, cascade, ready]
 aspect: doer
 neural:
-  activation: 0.630
+  activation: 0.81
   stage: growing
-  cluster: daily
+  synapse_in: 4
+  synapse_out: 4
 ---
 
 # Phase 7 Preparation Complete - Health Dashboard + Cascade Timeline
