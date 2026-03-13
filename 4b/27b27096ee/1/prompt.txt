@@ -1,0 +1,772 @@
+Implement the following plan:
+
+# /learn — Skill to Create: Cohezion Vault Brain Architecture Directory Map
+
+**Status:** Ready to create once plan mode exits
+
+**Skill location:** `.claude/skills/cohezion-vault-brain-architecture/SKILL.md`
+
+**Trigger conditions:**
+- Writing files to `~/vaults/cohezion-vault/`
+- Any session that references `patterns/`, `concepts/`, or `decisions/` in the vault
+- Error: `ls: cannot access '/home/mike-anderson/vaults/cohezion-vault/patterns/': No such file or directory`
+
+**Proposed SKILL.md content:**
+
+```markdown
+---
+name: cohezion-vault-brain-architecture
+description: |
+  Directory map for ~/vaults/cohezion-vault/ after brain-inspired reorganization.
+  Use when: (1) writing vault files (patterns/, concepts/, decisions/ no longer exist),
+  (2) getting "No such file or directory" on vault paths, (3) any session that needs
+  to locate vault knowledge by category.
+  Key insight: vault reorganized from flat Obsidian to brain-region metaphor structure.
+author: Claude Code
+version: 1.0.0
+---
+
+# Cohezion Vault Brain Architecture Directory Map
+
+## Problem
+
+The vault reorganized from a flat structure to a brain-inspired architecture.
+Old paths (patterns/, concepts/, decisions/) no longer exist. Files written
+there disappear silently (Write tool succeeds but files are gone on next access).
+
+## Directory Mapping (Old → New)
+
+| Old Path | New Path | Metaphor |
+|----------|----------|----------|
+| `patterns/` | `cerebellum/` | Procedural patterns, skills |
+| `concepts/` | `cortex/` | Knowledge, concepts, theory |
+| `decisions/` | `prefrontal/` | Decision records, plans |
+| `memories/sessions/` | `hippocampus/` | Session logs, retrospectives |
+| (new) | `thalamus/` | Routing, indexing |
+| (new) | `subconscious/` | Background processes |
+| (new) | `dreaming/` | Synthesis, ideation |
+| (new) | `sensory/` | External input processing |
+| (new) | `motor/` | Action patterns |
+| (new) | `genome/` | Core architecture/DNA |
+| `skills_index/` | `skills_index/` | Unchanged |
+| `learnings/` | `learnings/` | Unchanged |
+| `research/` | `research/` | Unchanged |
+
+## Write Files To
+
+- **Pattern/how-to**: `cerebellum/my-pattern.md`
+- **Concept/knowledge**: `cortex/my-concept.md`
+- **Decision record**: `prefrontal/YYYY-MM-DD-decision-name.md`
+- **Session retrospective**: `hippocampus/YYYY-MM-DD-session.md`
+
+## Verification
+
+```bash
+ls ~/vaults/cohezion-vault/cortex/ | head -5   # Should show concept files
+ls ~/vaults/cohezion-vault/cerebellum/ | head -5  # Should show pattern files
+```
+
+## Also Known
+
+- `store_node` MCP tool has a bug: `UniverseNode.__init__() missing 1 required positional argument: 'id'` — the `id` param is required server-side but not in the JSON schema. Workaround: use `store_learning` instead for persistent storage.
+- Plugin removal from `~/.claude/plugins/installed_plugins.json` may be reverted by session restarts or marketplace syncs. Always keep a backup and re-apply if reverted.
+```
+
+---
+
+# Technical Research: Installed Skills Taxonomy & Natural Language Routing
+
+## Context
+
+Cohezion has accumulated **150+ skills, commands, agents, and MCP tools** from 7 distinct sources. There is no unified map showing how they relate or which to invoke for a given natural language request. This research produces that map — a complete taxonomy with routing heuristics.
+
+## Skill Sources (7 Layers)
+
+| # | Source | Location | Count | Load Mechanism |
+|---|--------|----------|-------|----------------|
+| 1 | **BMAD Commands** (project) | `.claude/commands/bmad-*.md` | ~90 | Slash commands → load workflow `.md` from `_bmad/` |
+| 2 | **Project Commands** (custom) | `.claude/commands/{audit,async-audit,bash-report}.md` | 3 | Slash commands → direct execution |
+| 3 | **Project Skills** | `.claude/skills/update-tools/` | 1 | Skill invocation |
+| 4 | **Global Commands** (Pilot) | `~/.claude/commands/{spec,spec-plan,spec-implement,spec-verify,sync,learn,vault}.md` | 7 | Slash commands — structured workflows |
+| 5 | **Global Rules** (Pilot) | `~/.claude/rules/*.md` | ~15 | Auto-loaded at session start — enforcement, not invocable |
+| 6 | **Plugin Skills** (marketplace) | Loaded via `/plugin marketplace add` | ~40 | `Skill()` tool — registered in session |
+| 7 | **MCP Tools** | `.mcp.json` + `~/.claude/mcp.json` | ~80 | `ToolSearch` → direct tool call |
+
+## BMAD Module Taxonomy (The Big One — ~90 commands)
+
+BMAD is organized into **5 modules**, each with a lifecycle phase focus:
+
+### BMM — Business Model Module (Product Lifecycle)
+**Prefix:** `bmad-bmm-*` | **Workflows in:** `_bmad/bmm/workflows/`
+
+| Phase | Skills | Natural Language Triggers |
+|-------|--------|--------------------------|
+| **1-Analysis** | `technical-research`, `domain-research`, `market-research` | "research X", "investigate Y", "what are the options for Z" |
+| **2-Planning** | `create-prd`, `edit-prd`, `validate-prd`, `create-product-brief`, `create-architecture`, `create-ux-design` | "create a PRD", "design the architecture", "plan the UX" |
+| **3-Solutioning** | `create-epics-and-stories`, `create-story`, `sprint-planning`, `sprint-status` | "break this into stories", "plan the sprint", "check sprint status" |
+| **4-Implementation** | `dev-story`, `quick-dev`, `quick-spec`, `code-review` | "implement story X", "quick fix", "review this code" |
+| **Cross-cutting** | `check-implementation-readiness`, `correct-course`, `retrospective`, `document-project`, `generate-project-context` | "are we ready to build?", "course correct", "run retro", "document this project" |
+
+### GDS — Game Development Studio
+**Prefix:** `bmad-gds-*` | **Workflows in:** `_bmad/gds/workflows/`
+
+| Phase | Skills | Natural Language Triggers |
+|-------|--------|--------------------------|
+| **1-Preproduction** | `create-game-brief`, `game-brief`, `brainstorm-game` | "let's brainstorm a game", "create game brief" |
+| **2-Design** | `gdd`, `create-gdd`, `narrative` | "create game design doc", "write narrative" |
+| **3-Technical** | `game-architecture`, `quick-spec`, `quick-dev` | "design game architecture", "quick game spec" |
+| **4-Production** | `dev-story`, `create-story`, `sprint-planning`, `sprint-status`, `code-review`, `correct-course`, `retrospective` | "implement game story", "game sprint status" |
+| **Testing** | `gametest-framework`, `gametest-test-design`, `gametest-automate`, `gametest-test-review`, `gametest-playtest-plan`, `gametest-performance` | "create test framework", "design game tests", "playtest plan" |
+
+### CIS — Creative Innovation Studio
+**Prefix:** `bmad-cis-*` | **Workflows in:** `_bmad/cis/workflows/`
+
+| Skills | Natural Language Triggers |
+|--------|--------------------------|
+| `brainstorming` (+ `bmad-brainstorming`) | "let's brainstorm", "ideation session" |
+| `design-thinking` | "design thinking workshop", "empathy mapping" |
+| `innovation-strategy` | "disruption analysis", "innovation opportunities" |
+| `problem-solving` | "systematic problem solving", "root cause analysis" |
+| `storytelling` | "craft a narrative", "tell a story about X" |
+
+### TEA — Test Engineering Academy
+**Prefix:** `bmad-tea-*` | **Workflows in:** `_bmad/tea/workflows/`
+
+| Skills | Natural Language Triggers |
+|--------|--------------------------|
+| `testarch-test-design` | "design test plan", "test strategy" |
+| `testarch-automate` | "expand test automation", "automate tests" |
+| `testarch-atdd` | "acceptance test driven", "write acceptance tests" |
+| `testarch-test-review` | "review test quality" |
+| `testarch-framework` | "setup test framework", "init Playwright/Cypress" |
+| `testarch-ci` | "setup CI pipeline", "quality gates" |
+| `testarch-nfr` | "assess NFRs", "performance/security assessment" |
+| `testarch-trace` | "traceability matrix", "quality gate decision" |
+| `teach-me-testing` | "teach me testing", "learn testing" |
+
+### BMB — BMAD Module Builder (Meta)
+**Prefix:** `bmad-bmb-*` | **Workflows in:** `_bmad/bmb/workflows/`
+
+| Skills | Natural Language Triggers |
+|--------|--------------------------|
+| `create-agent`, `edit-agent`, `validate-agent` | "create a BMAD agent", "validate agent" |
+| `create-workflow`, `edit-workflow`, `validate-workflow`, `rework-workflow` | "create workflow", "validate workflow" |
+| `create-module`, `edit-module`, `validate-module`, `create-module-brief` | "create BMAD module", "validate module" |
+| `validate-max-parallel-workflow` | "validate workflow in parallel mode" |
+
+### BMAD Cross-Cutting Utilities
+| Skill | Natural Language Triggers |
+|-------|--------------------------|
+| `bmad-help` | "what should I do next", "help me", "what now" |
+| `bmad-party-mode` | "party mode", "group discussion with all agents" |
+| `bmad-index-docs` | "index the docs", "generate doc index" |
+| `bmad-shard-doc` | "split this document", "shard large markdown" |
+| `bmad-editorial-review-prose` | "review for prose quality", "copy edit" |
+| `bmad-editorial-review-structure` | "review document structure", "structural edit" |
+| `bmad-review-adversarial-general` | "cynical review", "adversarial review" |
+| `bmad-review-edge-case-hunter` | "find edge cases", "boundary condition review" |
+
+### BMAD Agent Personas (~20 agents)
+**Prefix:** `bmad-agent-*` — These are role-based personas, not workflows.
+
+| Domain | Agents |
+|--------|--------|
+| BMM | `architect`, `dev`, `qa`, `sm`, `pm`, `analyst`, `tech-writer`, `ux-designer`, `quick-flow-solo-dev` |
+| GDS | `game-architect`, `game-designer`, `game-dev`, `game-qa`, `game-scrum-master`, `game-solo-dev`, `tech-writer` |
+| CIS | `brainstorming-coach`, `creative-problem-solver`, `design-thinking-coach`, `innovation-strategist`, `presentation-master`, `storyteller` |
+| TEA | `tea` |
+| BMB | `agent-builder`, `module-builder`, `workflow-builder` |
+| Core | `bmad-master` |
+
+## Plugin Skills (Marketplace & Custom)
+
+### Development Workflow
+| Skill | Trigger | Source |
+|-------|---------|--------|
+| `spec` / `spec-plan` / `spec-implement` / `spec-verify` | "spec-driven dev", `/spec` | Pilot (global) |
+| `sync` | "sync rules and skills" | Pilot |
+| `learn` | "extract knowledge", triggered at 90% context | Pilot |
+| `vault` | "share skills with team" | Pilot |
+| `simplify` | "review changed code for reuse/quality" | Pilot |
+| `test-fix` | "fix failing tests" | Plugin |
+| `fix-packages` | "fix missing __init__.py" | Plugin |
+| `async-audit` | "audit asyncio patterns" | Plugin |
+| `security-review` | "security vulnerability review" | Plugin |
+| `retrospect` | "run dev retrospective" | Plugin |
+| `new-agent` | "scaffold new agent file" | Plugin |
+
+### Superpowers (Meta-Skills)
+| Skill | Trigger |
+|-------|---------|
+| `brainstorming` | Before any creative task |
+| `systematic-debugging` | Any bug or test failure |
+| `test-driven-development` | Implementing any feature |
+| `writing-plans` | Have a spec, need a plan |
+| `executing-plans` | Have a plan, need execution |
+| `subagent-driven-development` | Executing implementation plans |
+| `dispatching-parallel-agents` | 2+ independent tasks |
+| `verification-before-completion` | About to claim done |
+| `requesting-code-review` / `receiving-code-review` | PR review |
+| `finishing-a-development-branch` | Branch done, merge time |
+| `using-git-worktrees` | Feature work isolation |
+| `writing-skills` | Creating/editing skills |
+| `using-superpowers` | Starting any conversation |
+
+### Git & PR Operations
+| Skill | Trigger |
+|-------|---------|
+| `commit-commands:commit` | "commit" |
+| `commit-commands:commit-push-pr` | "commit, push, and open PR" |
+| `commit-commands:clean_gone` | "clean up merged branches" |
+| `code-review:code-review` | "review this PR" |
+| `pr-review-toolkit:review-pr` | "comprehensive PR review" |
+
+### Cohezion-Specific
+| Skill | Trigger |
+|-------|---------|
+| `heal` | "self-healing protocol" |
+| `audit` | "deep audit of performance/HIHO" |
+| `deploy` | "deploy to Cloud Run" |
+| `wake` | "wake up the system" |
+| `scout` | "daily model research" |
+
+### Hookify (Behavior Guards)
+| Skill | Trigger |
+|-------|---------|
+| `hookify:hookify` | "create hooks to prevent X" |
+| `hookify:configure` | "enable/disable hookify rules" |
+| `hookify:list` | "list hookify rules" |
+
+### Content Creation (Claude API / Document Skills)
+| Skill | Trigger |
+|-------|---------|
+| `pdf`, `docx`, `pptx`, `xlsx` | "create a PDF/Word/PowerPoint/spreadsheet" |
+| `frontend-design` | "create frontend UI" |
+| `canvas-design` | "create visual art" |
+| `algorithmic-art` | "algorithmic art with p5.js" |
+| `mcp-builder` | "create an MCP server" |
+| `web-artifacts-builder` | "create web artifacts" |
+| `playground:playground` | "create interactive HTML playground" |
+
+## MCP Tool Servers (7 servers, ~80 tools)
+
+| Server | Purpose | Key Tools |
+|--------|---------|-----------|
+| `cohezion-bmad` | BMAD operations | `bmad_help`, `bmad_status`, `bmad_list_agents`, `bmad_list_workflows`, `bmad_party_mode`, `bmad_index_docs`, various create/review tools |
+| `cohezion-knowledge` | Skill knowledge base | `list_skills`, `get_skill`, `search_knowledge` |
+| `cohezion-research` | Research sources | `search_arxiv`, `get_hf_trending`, `list_research_channels` |
+| `cohezion-surreal` | SurrealDB graph | `store_node`, `query_nodes`, `store_learning`, `query_learnings`, `search_similar`, `sync_key_learnings` |
+| `cohezion-swarm` | Multi-agent debate | `run_debate`, `get_perspectives`, `get_swarm_metrics` |
+| `cohezion-skills` | Skill registry | `list_all_skills`, `search_skills`, `invoke_skill`, `register_skill` |
+| `context7` | Library docs | `resolve-library-id`, `query-docs` |
+| `github` | GitHub API | 40+ tools for PRs, issues, repos, branches |
+| `overture-mcp` | Plan orchestration | `create_new_plan`, `submit_plan`, `update_node_status`, etc. |
+
+## Routing Strategy: Natural Language → Skill
+
+### Decision Tree (Priority Order)
+
+```
+User says something →
+  1. EXACT MATCH: Does it match a slash command? → Execute directly
+  2. LIFECYCLE PHASE: What phase of work is this?
+     ├─ Research/Analysis → BMM research or CIS brainstorming
+     ├─ Planning/Design → BMM PRD/Architecture or GDS Brief/GDD
+     ├─ Implementation → BMM dev-story/quick-dev or spec workflow
+     ├─ Testing → TEA testarch-* or test-fix
+     ├─ Review → bmad-review-* or code-review
+     └─ Maintenance → retrospect, correct-course, deploy, heal
+  3. DOMAIN: Is this game dev? → GDS variant. General product? → BMM variant.
+  4. META: Is this about BMAD itself? → BMB module
+  5. CREATIVE: Is this ideation/innovation? → CIS module
+  6. TOOL NEED: Does it need external data?
+     ├─ Library docs → context7
+     ├─ Research papers → cohezion-research
+     ├─ GitHub code → github MCP
+     ├─ Knowledge graph → cohezion-surreal
+     └─ Multi-perspective → cohezion-swarm
+```
+
+### Keyword Routing Map
+
+| Keywords in Request | Primary Skill | Fallback |
+|---------------------|---------------|----------|
+| "research", "investigate", "explore options" | `bmad-bmm-technical-research` | `bmad-bmm-domain-research` |
+| "PRD", "requirements", "product spec" | `bmad-bmm-create-prd` | `bmad-bmm-edit-prd` |
+| "architecture", "system design" | `bmad-bmm-create-architecture` | `bmad-gds-game-architecture` |
+| "story", "epic", "user story" | `bmad-bmm-create-story` | `bmad-bmm-create-epics-and-stories` |
+| "sprint", "planning" | `bmad-bmm-sprint-planning` | `bmad-bmm-sprint-status` |
+| "implement", "build", "code this" | `bmad-bmm-dev-story` | `bmad-bmm-quick-dev` |
+| "test", "testing", "QA" | `bmad-tea-testarch-test-design` | `test-fix` |
+| "review", "code review" | `bmad-bmm-code-review` | `code-review:code-review` |
+| "brainstorm", "ideate" | `bmad-brainstorming` | `bmad-cis-brainstorming` |
+| "game", "gameplay" | Route to `bmad-gds-*` variant | — |
+| "deploy", "ship" | `deploy` | — |
+| "fix tests", "failing tests" | `test-fix` | — |
+| "commit", "push", "PR" | `commit-commands:*` | — |
+| "what now", "help", "next step" | `bmad-help` | — |
+| "spec", "structured dev" | `/spec` | — |
+
+### Overlap Resolution (Same Intent, Multiple Skills)
+
+| Ambiguity | Resolution Rule |
+|-----------|-----------------|
+| `bmad-bmm-code-review` vs `code-review:code-review` vs `bmad-gds-code-review` | BMM for product code, GDS for game code, `code-review` plugin for PR-focused review |
+| `bmad-bmm-quick-dev` vs `bmad-gds-quick-dev` | Domain context: game project → GDS, otherwise → BMM |
+| `bmad-bmm-sprint-planning` vs `bmad-gds-sprint-planning` | Same: domain context decides |
+| `bmad-brainstorming` vs `bmad-cis-brainstorming` vs `superpowers:brainstorming` | `superpowers` is a meta-prompt enhancer; `bmad-brainstorming` is the interactive workflow; `bmad-cis-brainstorming` is a lighter MCP variant |
+| `bmad-bmm-retrospective` vs `bmad-gds-retrospective` vs `retrospect` | `retrospect` is dev-focused (flows into core files); BMAD variants are product/game lifecycle |
+| `spec` vs `bmad-bmm-quick-spec` vs `bmad-gds-quick-spec` | `/spec` is a full structured workflow with TDD; `quick-spec` is lightweight for small changes |
+| `bmad-bmm-create-story` vs `bmad-gds-create-story` | Domain context |
+
+## Key Relationships
+
+### Lifecycle Flow (BMM)
+```
+research → product-brief → PRD → architecture → UX-design
+  → epics-and-stories → sprint-planning → dev-story → code-review
+  → sprint-status → retrospective
+```
+
+### Lifecycle Flow (GDS)
+```
+brainstorm-game → game-brief → GDD → narrative → game-architecture
+  → sprint-planning → create-story → dev-story → code-review
+  → gametest-* → sprint-status → retrospective
+```
+
+### Meta Flow (BMB)
+```
+create-module-brief → create-module
+create-agent / create-workflow (independently)
+validate-agent / validate-workflow / validate-module (quality gates)
+edit-agent / edit-workflow / edit-module (modifications)
+rework-workflow (V6 compliance upgrade)
+```
+
+### Superpowers Integration
+Superpowers are **meta-skills** that wrap around other skills:
+- `brainstorming` → runs before creative BMAD/CIS skills
+- `systematic-debugging` → runs before `test-fix`
+- `test-driven-development` → runs during `dev-story` / `spec-implement`
+- `verification-before-completion` → runs after any implementation
+
+## Pruning Recommendations
+
+### Redundant / Consolidation Candidates
+
+| Skill(s) | Issue | Recommendation |
+|-----------|-------|----------------|
+| `bmad-gds-create-game-brief` + `bmad-gds-game-brief` | Two skills for the same thing (one via MCP, one via command) | Keep command version, remove MCP duplicate |
+| `bmad-gds-gdd` + `bmad-gds-create-gdd` | Same — GDD creation via two paths | Keep `create-gdd` (collaborative), deprecate `gdd` |
+| `bmad-brainstorming` + `bmad-cis-brainstorming` + `superpowers:brainstorming` | Three brainstorming skills | Keep `bmad-brainstorming` (interactive workflow) + `superpowers:brainstorming` (meta-enhancer). Remove MCP `cis-brainstorming` |
+| `bmad-bmm-code-review` + `bmad-gds-code-review` + `code-review:code-review` + `pr-review-toolkit:review-pr` | Four code review skills | Keep `bmad-bmm-code-review` (general) + `pr-review-toolkit:review-pr` (PR-specific). Remove `gds-code-review` unless actively building games. Remove `code-review:code-review` (subset of pr-review-toolkit) |
+| `bmad-bmm-sprint-status` + `bmad-gds-sprint-status` | Duplicate sprint status for two domains | Keep BMM, alias GDS to it unless game project active |
+| `bmad-bmm-retrospective` + `bmad-gds-retrospective` + `retrospect` | Three retro skills | Keep `retrospect` (dev-focused, flows into core files) + `bmad-bmm-retrospective` (product lifecycle). Remove GDS variant |
+| `claude-api:*` + `document-skills:*` + `example-skills:*` | Three plugin namespaces with identical skills (pdf, docx, pptx, frontend-design, etc.) | These are the same skills from different marketplace plugins. Keep ONE namespace (recommend `document-skills:*`), remove the other two |
+
+### Low-Value / Never-Used Candidates
+
+| Skill | Reason | Recommendation |
+|-------|--------|----------------|
+| `bmad-bmb-validate-max-parallel-workflow` | Extremely niche — only for parallel workflow validation | Keep only if actively building BMAD modules |
+| `bmad-gds-gametest-*` (6 skills) | Full game testing suite — irrelevant unless building games | Disable unless game project active |
+| `bmad-agent-gds-*` (7 agents) | Game-specific agent personas | Same — disable unless game project |
+| `hookify:writing-rules` | Meta-skill about writing hookify rules | Rarely needed; `hookify:hookify` covers creation |
+| `ralph-loop:*` (3 skills) | Ralph Loop plugin — unclear if used | Evaluate usage; remove if unused |
+| `sentry:*` (3 skills) | Sentry integration — only relevant if using Sentry | Keep dormant unless Sentry is configured |
+| `huggingface-skills:*` (12 skills) | HuggingFace ecosystem — heavy, niche | Keep only if doing ML model work |
+
+### Token Cost Analysis
+
+The biggest token sinks from skill/command loading:
+1. **BMAD commands** (~90): Each is tiny (3-6 lines), but they all appear in the skill listing, adding noise
+2. **Triple-duplicate plugin skills** (claude-api + document-skills + example-skills): ~40 skills x3 = 120 entries for ~40 actual capabilities
+3. **GDS module** (~20 skills): Full game dev pipeline that's dormant unless building games
+
+**Estimated savings from pruning**: Remove ~60 redundant/dormant entries, reducing skill listing noise by ~40%.
+
+## Implementation Plan
+
+### Task 1: Add CLAUDE.md Skill Routing Section (Highest Compound Value)
+**File:** `CLAUDE.md`
+
+Add a condensed `## Skill Routing Quick Reference` section (~50 lines) containing:
+- The 6-step decision tree (exact match → lifecycle → domain → meta → creative → tool)
+- Top 15 keyword→skill mappings (the ones used most)
+- Overlap resolution rules (5 key ambiguities)
+- "When in doubt" default: `bmad-help`
+
+This section goes in CLAUDE.md so it loads automatically every session. Keep it under 100 lines to respect token budgets.
+
+### Task 2: Write Full Research Document
+**File:** `_bmad-output/planning-artifacts/research/technical-skills-taxonomy-research-2026-03-07.md`
+
+Full BMAD research template with:
+- Complete taxonomy (all 7 source layers)
+- Relationship diagrams (lifecycle flows)
+- Routing strategy (decision tree + keyword map)
+- Pruning recommendations with rationale
+- Overlap resolution matrix
+
+### Task 3: Store Taxonomy in Obsidian Vault
+**Target directories in** `~/vaults/cohezion-vault/`:
+
+| Artifact | Vault Path | Purpose |
+|----------|------------|---------|
+| Routing pattern | `patterns/skill-routing-decision-tree.md` | Reusable pattern using vault template format (type, category, frequency, confidence, code_example) |
+| Taxonomy concept | `concepts/skill-taxonomy-7-layer-architecture.md` | Concept note with MOC links to existing `agentic-ai.md`, `workflow-orchestration.md`, `mcp-model-context-protocol.md` |
+| Pruning decision | `decisions/2026-03-07-skill-pruning-consolidation-plan.md` | Decision record: what to prune, why, expected impact |
+| Skills index | `skills_index/` | Populate the currently-empty directory with per-module index files (bmm.md, gds.md, cis.md, tea.md, bmb.md, plugins.md) |
+
+Use vault templates (`templates/pattern.md`) for pattern notes. Include Obsidian wiki-links (`[[concept-name]]`) to connect to existing vault knowledge.
+
+### Task 4: Store Key Learnings in SurrealDB
+Use `mcp__cohezion-surreal__store_learning` and `mcp__cohezion-surreal__store_node` to persist:
+
+| Learning ID | Title | Content Summary | Score |
+|-------------|-------|-----------------|-------|
+| `skill-taxonomy-2026-03-07` | "7-Layer Skill Architecture" | Complete source map: BMAD commands, project skills, global commands, rules, plugins, MCP tools | 0.95 |
+| `skill-routing-strategy` | "Natural Language to Skill Routing" | Decision tree: exact match -> lifecycle -> domain -> meta -> creative -> tool need | 0.9 |
+| `skill-pruning-analysis` | "Skill Redundancy Analysis" | 60+ redundant entries from triple-duplicate plugins, dormant GDS module, overlapping reviews | 0.85 |
+| `skill-overlap-resolution` | "Skill Overlap Resolution Rules" | 7 key ambiguities with resolution: domain context, scope (PR vs general), lifecycle phase | 0.8 |
+
+Also store a `document` node with the full taxonomy for vector similarity search.
+
+### Task 5: Clean Up Triple-Duplicate Plugin Skills
+Remove 2 of the 3 duplicate plugin namespaces (`claude-api:*`, `document-skills:*`, `example-skills:*`). Keep `document-skills:*` as the canonical namespace.
+
+## Verification
+
+1. `grep -c "Skill Routing" CLAUDE.md` -- confirm section exists
+2. Count skills before/after pruning: `ls .claude/commands/ | wc -l`
+3. Spot-check routing: test 5 natural language phrases against the decision tree
+4. Verify no broken skill references after pruning
+5. `mcp__cohezion-surreal__query_learnings` -- confirm 4 learnings stored with score >= 0.8
+6. Check vault notes exist: `ls ~/vaults/cohezion-vault/patterns/skill-routing-decision-tree.md`
+7. Verify wiki-links resolve: grep for `[[` in new vault notes, confirm targets exist
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/mike-anderson/.claude/projects/-home-mike-anderson-dev-cohezion/562fe223-28d3-4a22-9a04-6178297b04ee.jsonl
+
+---
+
+Provide a code review for the given pull request.
+
+To do this, follow these steps precisely:
+
+1. Use a Haiku agent to check if the pull request (a) is closed, (b) is a draft, (c) does not need a code review (eg. because it is an automated pull request, or is very simple and obviously ok), or (d) already has a code review from you from earlier. If so, do not proceed.
+2. Use another Haiku agent to give you a list of file paths to (but not the contents of) any relevant CLAUDE.md files from the codebase: the root CLAUDE.md file (if one exists), as well as any CLAUDE.md files in the directories whose files the pull request modified
+3. Use a Haiku agent to view the pull request, and ask the agent to return a summary of the change
+4. Then, launch 5 parallel Sonnet agents to independently code review the change. The agents should do the following, then return a list of issues and the reason each issue was flagged (eg. CLAUDE.md adherence, bug, historical git context, etc.):
+   a. Agent #1: Audit the changes to make sure they compily with the CLAUDE.md. Note that CLAUDE.md is guidance for Claude as it writes code, so not all instructions will be applicable during code review.
+   b. Agent #2: Read the file changes in the pull request, then do a shallow scan for obvious bugs. Avoid reading extra context beyond the changes, focusing just on the changes themselves. Focus on large bugs, and avoid small issues and nitpicks. Ignore likely false positives.
+   c. Agent #3: Read the git blame and history of the code modified, to identify any bugs in light of that historical context
+   d. Agent #4: Read previous pull requests that touched these files, and check for any comments on those pull requests that may also apply to the current pull request.
+   e. Agent #5: Read code comments in the modified files, and make sure the changes in the pull request comply with any guidance in the comments.
+5. For each issue found in #4, launch a parallel Haiku agent that takes the PR, issue description, and list of CLAUDE.md files (from step 2), and returns a score to indicate the agent's level of confidence for whether the issue is real or false positive. To do that, the agent should score each issue on a scale from 0-100, indicating its level of confidence. For issues that were flagged due to CLAUDE.md instructions, the agent should double check that the CLAUDE.md actually calls out that issue specifically. The scale is (give this rubric to the agent verbatim):
+   a. 0: Not confident at all. This is a false positive that doesn't stand up to light scrutiny, or is a pre-existing issue.
+   b. 25: Somewhat confident. This might be a real issue, but may also be a false positive. The agent wasn't able to verify that it's a real issue. If the issue is stylistic, it is one that was not explicitly called out in the relevant CLAUDE.md.
+   c. 50: Moderately confident. The agent was able to verify this is a real issue, but it might be a nitpick or not happen very often in practice. Relative to the rest of the PR, it's not very important.
+   d. 75: Highly confident. The agent double checked the issue, and verified that it is very likely it is a real issue that will be hit in practice. The existing approach in the PR is insufficient. The issue is very important and will directly impact the code's functionality, or it is an issue that is directly mentioned in the relevant CLAUDE.md.
+   e. 100: Absolutely certain. The agent double checked the issue, and confirmed that it is definitely a real issue, that will happen frequently in practice. The evidence directly confirms this.
+6. Filter out any issues with a score less than 80. If there are no issues that meet this criteria, do not proceed.
+7. Use a Haiku agent to repeat the eligibility check from #1, to make sure that the pull request is still eligible for code review.
+8. Finally, use the gh bash command to comment back on the pull request with the result. When writing your comment, keep in mind to:
+   a. Keep your output brief
+   b. Avoid emojis
+   c. Link and cite relevant code, files, and URLs
+
+Examples of false positives, for steps 4 and 5:
+
+- Pre-existing issues
+- Something that looks like a bug but is not actually a bug
+- Pedantic nitpicks that a senior engineer wouldn't call out
+- Issues that a linter, typechecker, or compiler would catch (eg. missing or incorrect imports, type errors, broken tests, formatting issues, pedantic style issues like newlines). No need to run these build steps yourself -- it is safe to assume that they will be run separately as part of CI.
+- General code quality issues (eg. lack of test coverage, general security issues, poor documentation), unless explicitly required in CLAUDE.md
+- Issues that are called out in CLAUDE.md, but explicitly silenced in the code (eg. due to a lint ignore comment)
+- Changes in functionality that are likely intentional or are directly related to the broader change
+- Real issues, but on lines that the user did not modify in their pull request
+
+Notes:
+
+- Do not check build signal or attempt to build or typecheck the app. These will run separately, and are not relevant to your code review.
+- Use `gh` to interact with Github (eg. to fetch a pull request, or to create inline comments), rather than web fetch
+- Make a todo list first
+- You must cite and link each bug (eg. if referring to a CLAUDE.md, you must link it)
+- For your final comment, follow the following format precisely (assuming for this example that you found 3 issues):
+
+---
+
+### Code review
+
+Found 3 issues:
+
+1. <brief description of bug> (CLAUDE.md says "<...>")
+
+<link to file and line with full sha1 + line range for context, note that you MUST provide the full sha and not use bash here, eg. https://github.com/anthropics/claude-code/blob/1d54823877c4de72b2316a64032a54afc404e619/README.md#L13-L17>
+
+2. <brief description of bug> (some/other/CLAUDE.md says "<...>")
+
+<link to file and line with full sha1 + line range for context>
+
+3. <brief description of bug> (bug due to <file and code snippet>)
+
+<link to file and line with full sha1 + line range for context>
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+<sub>- If this code review was useful, please react with 👍. Otherwise, react with 👎.</sub>
+
+---
+
+- Or, if you found no issues:
+
+---
+
+### Code review
+
+No issues found. Checked for bugs and CLAUDE.md compliance.
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+- When linking to code, follow the following format precisely, otherwise the Markdown preview won't render correctly: https://github.com/anthropics/claude-cli-internal/blob/c21d3c10bc8e898b7ac1a2d745bdc9bc4e423afe/package.json#L10-L15
+  - Requires full git sha
+  - You must provide the full sha. Commands like `https://github.com/owner/repo/blob/$(git rev-parse HEAD)/foo/bar` will not work, since your comment will be directly rendered in Markdown.
+  - Repo name must match the repo you're code reviewing
+  - # sign after the file name
+  - Line range format is L[start]-L[end]
+  - Provide at least 1 line of context before and after, centered on the line you are commenting about (eg. if you are commenting about lines 5-6, you should link to `L4-7`)
+
+---
+
+Continue
+
+---
+
+# /learn - Online Learning System
+
+**Extract reusable knowledge from this session into skills.** Evaluates what was learned, checks for existing skills, and creates new ones when valuable patterns are discovered.
+
+---
+
+## TABLE OF CONTENTS
+
+| Phase       | Description                                            | Steps   |
+| ----------- | ------------------------------------------------------ | ------- |
+| **Phase 0** | Reference: triggers, quality criteria, skill structure | 0.1–0.4 |
+| **Phase 1** | Evaluate: assess if knowledge is worth extracting      | 1.1     |
+| **Phase 2** | Check Existing: search for related skills              | 2.1     |
+| **Phase 3** | Create Skill: write the skill file                     | 3.1–3.2 |
+| **Phase 4** | Quality Gates: final checklist before saving           | 4.1     |
+
+**Quick Step Reference:**
+
+- 0.1 Triggers, 0.2 Quality criteria, 0.3 What NOT to extract, 0.4 Skill structure
+- 1.1 Self-evaluation questions
+- 2.1 Search existing skills
+- 3.1 Choose location, 3.2 Write SKILL.md
+- 4.1 Final checklist
+
+---
+
+## PHASE 0: REFERENCE
+
+### Step 0.1: Triggers
+
+Invoke `/learn` after ANY task involving:
+
+| Trigger                      | Example                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| **Non-obvious debugging**    | Spent 10+ minutes investigating; solution wasn't in docs         |
+| **Misleading errors**        | Error message pointed wrong direction; found real cause          |
+| **Workarounds**              | Found limitation and creative solution                           |
+| **Tool integration**         | Figured out how to use tool/API in undocumented way              |
+| **Trial-and-error**          | Tried multiple approaches before finding what worked             |
+| **Repeatable workflow**      | Multi-step task that will recur; worth standardizing             |
+| **External service queries** | Fetched data from Jira, GitHub, Confluence, or other APIs        |
+| **User-facing automation**   | Built something user will ask for again (reports, status checks) |
+
+### Step 0.2: Quality Criteria
+
+Skills must be:
+
+- **Reusable**: Will help with future tasks (not just this instance)
+- **Non-trivial**: Required discovery, OR is a valuable workflow pattern
+- **Verified**: Solution actually worked, not theoretical
+
+### Step 0.3: What NOT to Extract
+
+- Single-step tasks with no workflow value
+- One-off fixes unlikely to recur
+- Knowledge easily found in official docs
+
+### Step 0.4: Skill Structure
+
+**Location:** `.claude/skills/[skill-name]/SKILL.md`
+
+**Template:**
+
+```markdown
+---
+name: descriptive-kebab-case-name
+description: |
+  [CRITICAL: This determines when the skill triggers. Include:]
+  - What the skill does
+  - Specific trigger conditions (exact error messages, symptoms)
+  - When to use it (contexts, scenarios)
+author: Claude Code
+version: 1.0.0
+---
+
+# Skill Name
+
+## Problem
+
+[Clear description of the problem]
+
+## Context / Trigger Conditions
+
+[When to use - exact error messages, symptoms, scenarios]
+
+## Solution
+
+[Step-by-step solution]
+
+## Verification
+
+[How to verify it worked]
+
+## Example
+
+[Concrete example]
+
+## References
+
+[Links to documentation]
+```
+
+<details>
+<summary>Writing Effective Descriptions</summary>
+
+The description field is CRITICAL for skill discovery:
+
+**Good:**
+
+```yaml
+description: |
+  Fix for "ENOENT: no such file or directory" errors in npm monorepos.
+  Use when: (1) npm run fails with ENOENT, (2) paths work in root but
+  not in packages, (3) symlinked dependencies cause failures.
+```
+
+**Bad:**
+
+```yaml
+description: Helps with npm problems in monorepos.
+```
+
+</details>
+
+**Guidelines:**
+
+- **Concise** - Claude is smart; only add what it doesn't know
+- **Under 500 lines** - Move large docs to `references/`
+- **Examples over explanations** - Show, don't tell
+
+---
+
+## PHASE 1: EVALUATE
+
+### Step 1.1: Self-Evaluation Questions
+
+Ask yourself:
+
+1. "What did I just learn that wasn't obvious before starting?"
+2. "Would future-me benefit from having this documented?"
+3. "Was the solution non-obvious from documentation alone?"
+4. "Is this a multi-step workflow I'd repeat on similar tasks?"
+5. "Did I query an external service the user will ask about again?"
+
+**If NO to all → Skip extraction, nothing to learn.**
+
+**Note:** External service queries (Jira tickets, GitHub PRs, Confluence pages) are almost always worth extracting - users frequently repeat these requests.
+
+---
+
+## PHASE 2: CHECK EXISTING
+
+### Step 2.1: Search for Related Skills
+
+Before creating, search for related skills:
+
+```bash
+ls .claude/skills/ 2>/dev/null
+rg -i "keyword" .claude/skills/ 2>/dev/null
+ls ~/.claude/pilot/skills/ 2>/dev/null
+rg -i "keyword" ~/.claude/pilot/skills/ 2>/dev/null
+```
+
+| Found                | Action                           |
+| -------------------- | -------------------------------- |
+| Nothing related      | Create new skill                 |
+| Same trigger and fix | Update existing (bump version)   |
+| Partial overlap      | Update existing with new variant |
+
+---
+
+## PHASE 3: CREATE SKILL
+
+### Step 3.1: Choose Location
+
+**Project skills**: `.claude/skills/[skill-name]/SKILL.md`
+
+### Step 3.2: Write SKILL.md
+
+Use the template from Step 0.4. Ensure the description field contains specific trigger conditions.
+
+---
+
+## PHASE 4: QUALITY GATES
+
+### Step 4.1: Final Checklist
+
+Before finalizing:
+
+- [ ] Description contains specific trigger conditions
+- [ ] Solution verified to work
+- [ ] Content specific enough to be actionable
+- [ ] Content general enough to be reusable
+- [ ] No sensitive information
+
+---
+
+## EXAMPLE
+
+**Scenario**: Discovered LSP `findReferences` can find dead code by checking if functions have only 1 reference (their definition) or only test references.
+
+**Skill Created**: `.claude/skills/lsp-dead-code-finder/SKILL.md`
+
+```markdown
+---
+name: lsp-dead-code-finder
+description: |
+  Find dead/unused code using LSP findReferences. Use when: (1) user asks
+  to find dead code, (2) cleaning up codebase, (3) refactoring. Key insight:
+  function with only 1 reference (definition) or only test refs is dead code.
+---
+
+# LSP Dead Code Finder
+
+...
+```
+
+---
+
+## REMEMBER
+
+**Continuous improvement.** Every valuable discovery should benefit future sessions.
+Evaluate after significant work. Extract selectively. Create carefully.
+
+
+ARGUMENTS: and continue

@@ -1,0 +1,50 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "d4a735a67ed1",
+  "strategy": "manual-commit",
+  "branch": "challenge-luma-cqq4mojz",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "scripts/init_brand_db.py",
+    "scripts/retrospective_persist.py",
+    "src/cohezion/knowledge_graph/KEY_LEARNINGS.md",
+    "src/cohezion/knowledge_graph/LIVE_INSIGHTS.md",
+    "src/cohezion/mcp/servers/doc/indexer.py",
+    "src/cohezion/mcp/servers/memory/server.py",
+    "src/cohezion/research/agent.py",
+    "src/cohezion/research/consensus.py",
+    "src/cohezion/research/orborous.py",
+    "src/cohezion/skills/DATABASE_PRIME.md",
+    "src/cohezion/skills/RESEARCH_SQUAD_PRIME.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/d4/a735a67ed1/0/metadata.json",
+      "transcript": "/d4/a735a67ed1/0/full.jsonl",
+      "context": "/d4/a735a67ed1/0/context.md",
+      "content_hash": "/d4/a735a67ed1/0/content_hash.txt",
+      "prompt": "/d4/a735a67ed1/0/prompt.txt"
+    },
+    {
+      "metadata": "/d4/a735a67ed1/1/metadata.json",
+      "transcript": "/d4/a735a67ed1/1/full.jsonl",
+      "context": "/d4/a735a67ed1/1/context.md",
+      "content_hash": "/d4/a735a67ed1/1/content_hash.txt",
+      "prompt": "/d4/a735a67ed1/1/prompt.txt"
+    },
+    {
+      "metadata": "/d4/a735a67ed1/2/metadata.json",
+      "transcript": "/d4/a735a67ed1/2/full.jsonl",
+      "context": "/d4/a735a67ed1/2/context.md",
+      "content_hash": "/d4/a735a67ed1/2/content_hash.txt",
+      "prompt": "/d4/a735a67ed1/2/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 7472,
+    "cache_creation_tokens": 1505725,
+    "cache_read_tokens": 34146955,
+    "output_tokens": 116760,
+    "api_call_count": 263
+  }
+}

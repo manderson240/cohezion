@@ -1,0 +1,51 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "7bdeb8cd91a1",
+  "strategy": "manual-commit",
+  "branch": "challenge-luma-cqq4mojz",
+  "checkpoints_count": 3,
+  "files_touched": [
+    ".claude/skills/compound-engineering/scripts/validate_coherence.py",
+    ".claude/skills/compound-executor-silent-kwargs-failure/SKILL.md",
+    ".claude/skills/research-config-path-validation/SKILL.md",
+    "src/cohezion/knowledge_graph/LIVE_INSIGHTS.md",
+    "src/cohezion/knowledge_graph/RESEARCH_FEED.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/7b/deb8cd91a1/0/metadata.json",
+      "transcript": "/7b/deb8cd91a1/0/full.jsonl",
+      "context": "/7b/deb8cd91a1/0/context.md",
+      "content_hash": "/7b/deb8cd91a1/0/content_hash.txt",
+      "prompt": "/7b/deb8cd91a1/0/prompt.txt"
+    },
+    {
+      "metadata": "/7b/deb8cd91a1/1/metadata.json",
+      "transcript": "/7b/deb8cd91a1/1/full.jsonl",
+      "context": "/7b/deb8cd91a1/1/context.md",
+      "content_hash": "/7b/deb8cd91a1/1/content_hash.txt",
+      "prompt": "/7b/deb8cd91a1/1/prompt.txt"
+    },
+    {
+      "metadata": "/7b/deb8cd91a1/2/metadata.json",
+      "transcript": "/7b/deb8cd91a1/2/full.jsonl",
+      "context": "/7b/deb8cd91a1/2/context.md",
+      "content_hash": "/7b/deb8cd91a1/2/content_hash.txt",
+      "prompt": "/7b/deb8cd91a1/2/prompt.txt"
+    },
+    {
+      "metadata": "/7b/deb8cd91a1/3/metadata.json",
+      "transcript": "/7b/deb8cd91a1/3/full.jsonl",
+      "context": "/7b/deb8cd91a1/3/context.md",
+      "content_hash": "/7b/deb8cd91a1/3/content_hash.txt",
+      "prompt": "/7b/deb8cd91a1/3/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 7554,
+    "cache_creation_tokens": 4918060,
+    "cache_read_tokens": 36433747,
+    "output_tokens": 154013,
+    "api_call_count": 326
+  }
+}

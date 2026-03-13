@@ -1,0 +1,48 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "4c6564ffd5f5",
+  "session_id": "6a59122c-f4bd-4bb5-863f-8c9e84342bae",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-11T11:33:17.606719265Z",
+  "branch": "feat/compound-elegant-simplification",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "src/cohezion/gateways/__init__.py",
+    "src/cohezion/gateways/api_squad.py",
+    "src/cohezion/gateways/cache_squad.py",
+    "src/cohezion/gateways/security_squad.py",
+    "src/cohezion/gateways/skills_squad.py",
+    "src/cohezion/gateways/consensus_vote.py",
+    "src/cohezion/gateways/flume_squad.py",
+    "src/cohezion/gateways/swarm_squad.py",
+    "src/cohezion/gateways/universe_squad.py",
+    "src/cohezion/gateways/vault_squad.py",
+    "src/cohezion/research/config.py",
+    "src/cohezion/research/orborous.py",
+    "tests/research/test_compound_integration.py",
+    "src/cohezion/gateways/lightweight_dashboard.py",
+    "src/cohezion/gateways/omnibus.py",
+    "src/cohezion/research/consensus.py",
+    "src/cohezion/research/research_squad.py",
+    "docs/plans/2026-03-11-deferred-research-modules.md",
+    "tests/research/test_research_squad.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "4bf17617afd0",
+  "token_usage": {
+    "input_tokens": 305,
+    "cache_creation_tokens": 415376,
+    "cache_read_tokens": 12358905,
+    "output_tokens": 35798,
+    "api_call_count": 103
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-11T11:33:17.280044019Z",
+    "agent_lines": 1420,
+    "human_added": 434,
+    "human_modified": 2,
+    "human_removed": 0,
+    "total_committed": 1856,
+    "agent_percentage": 76.50862068965517
+  }
+}

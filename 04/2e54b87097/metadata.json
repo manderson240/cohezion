@@ -1,0 +1,55 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "042e54b87097",
+  "strategy": "manual-commit",
+  "branch": "challenge-luma-cqq4mojz",
+  "checkpoints_count": 2,
+  "files_touched": [
+    ".gemini_security/FINAL_SECURITY_REPORT.md",
+    "reports/security/dependency_scan_20260311_020001.md",
+    "research/challenges/luma_amd_speedrun/RULES.md",
+    "research/challenges/luma_amd_speedrun/TODO.md",
+    "research/challenges/luma_amd_speedrun/benchmark_baseline.py",
+    "research/challenges/luma_amd_speedrun/kernels/eval.py",
+    "research/challenges/luma_amd_speedrun/kernels/mixed-mla/README.md",
+    "research/challenges/luma_amd_speedrun/kernels/mixed-mla/reference.py",
+    "research/challenges/luma_amd_speedrun/kernels/mixed-mla/submission.py",
+    "research/challenges/luma_amd_speedrun/kernels/mixed-mla/task.py",
+    "research/challenges/luma_amd_speedrun/kernels/mixed-mla/task.yml",
+    "research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/README.md",
+    "research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/reference.py",
+    "research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/submission.py",
+    "research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/task.py",
+    "research/challenges/luma_amd_speedrun/kernels/moe-mxfp4/task.yml",
+    "research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/reference.py",
+    "research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/submission.py",
+    "research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/task.py",
+    "research/challenges/luma_amd_speedrun/kernels/mxfp4-mm/task.yml",
+    "research/challenges/luma_amd_speedrun/kernels/utils.py",
+    "research/challenges/luma_amd_speedrun/plan.md",
+    "research/challenges/luma_amd_speedrun/technical_analysis.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/04/2e54b87097/0/metadata.json",
+      "transcript": "/04/2e54b87097/0/full.jsonl",
+      "context": "/04/2e54b87097/0/context.md",
+      "content_hash": "/04/2e54b87097/0/content_hash.txt",
+      "prompt": "/04/2e54b87097/0/prompt.txt"
+    },
+    {
+      "metadata": "/04/2e54b87097/1/metadata.json",
+      "transcript": "/04/2e54b87097/1/full.jsonl",
+      "context": "/04/2e54b87097/1/context.md",
+      "content_hash": "/04/2e54b87097/1/content_hash.txt",
+      "prompt": "/04/2e54b87097/1/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 4987,
+    "cache_creation_tokens": 1106767,
+    "cache_read_tokens": 17979301,
+    "output_tokens": 47684,
+    "api_call_count": 150
+  }
+}

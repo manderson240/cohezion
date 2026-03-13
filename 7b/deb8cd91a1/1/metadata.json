@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.9",
+  "checkpoint_id": "7bdeb8cd91a1",
+  "session_id": "bc2a7c26-b875-4480-a5da-a3521532e841",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-12T11:11:49.638574567Z",
+  "branch": "challenge-luma-cqq4mojz",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".claude/skills/compound-executor-silent-kwargs-failure/SKILL.md",
+    ".claude/skills/research-config-path-validation/SKILL.md",
+    "src/cohezion/knowledge_graph/LIVE_INSIGHTS.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "4a422e0d6ba2",
+  "token_usage": {
+    "input_tokens": 84,
+    "cache_creation_tokens": 484374,
+    "cache_read_tokens": 3560300,
+    "output_tokens": 27205,
+    "api_call_count": 34
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-12T11:11:49.463005299Z",
+    "agent_lines": 264,
+    "human_added": 150,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 414,
+    "agent_percentage": 63.76811594202898
+  }
+}
