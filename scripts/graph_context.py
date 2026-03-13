@@ -13,6 +13,7 @@ Usage:
     graph_context.py bridges <cluster_a> <cluster_b>  # Cross-domain connectors
     graph_context.py stats                    # Global vault health snapshot
     graph_context.py resolve <query>          # Find neuron ID from partial name
+    graph_context.py briefing                  # Full vault briefing for agent context
 
 Output is plain text, optimized for agent context injection.
 """
@@ -219,6 +220,74 @@ def cmd_resolve(args: list[str]):
         print(f"  {n['activation']:.2f} {n['id']} — {n['title']}")
 
 
+def cmd_briefing(args: list[str]):
+    """Generate a compact graph briefing for agent context injection."""
+    from datetime import datetime, timezone
+
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    print(f"# Graph Briefing — {ts}\n")
+
+    # Vitals
+    stats_sql = "SELECT count() AS n FROM neuron GROUP ALL; SELECT count() AS n FROM synapse GROUP ALL;"
+    stats = query(stats_sql)
+    n_neurons = stats[0]["result"][0]["n"] if stats[0]["result"] else 0
+    n_synapses = stats[1]["result"][0]["n"] if stats[1]["result"] else 0
+
+    stage_sql = "SELECT stage, count() AS n FROM neuron GROUP BY stage;"
+    stages = query(stage_sql)[0]["result"]
+    stage_str = ", ".join(f"{s['n']} {s['stage']}" for s in stages)
+
+    print("## Vitals")
+    print(f"Neurons: {n_neurons} | Synapses: {n_synapses}")
+    print(f"Stages: {stage_str}\n")
+
+    # Hot neurons (top 15)
+    hot_sql = "SELECT id, title, activation, stage, cluster_id, synapse_out, synapse_in FROM neuron ORDER BY activation DESC LIMIT 15;"
+    hot = query(hot_sql)[0]["result"]
+    print("## Hot Neurons (top 15)")
+    for n in hot:
+        print(_format_neuron_line(n))
+    print()
+
+    # Cross-domain bridges (high connectivity neurons)
+    bridge_sql = (
+        "SELECT id, title, activation, stage, cluster_id, synapse_out, synapse_in "
+        "FROM neuron WHERE synapse_out > 3 AND synapse_in > 1 "
+        "ORDER BY synapse_out DESC LIMIT 10;"
+    )
+    bridges = query(bridge_sql)[0]["result"]
+    if bridges:
+        print("## Cross-Domain Bridges (top 10 by connectivity)")
+        for n in bridges:
+            print(_format_neuron_line(n))
+        print()
+
+    # Attention needed
+    embryo_sql = "SELECT id, title, activation FROM neuron WHERE stage = 'embryo' ORDER BY activation DESC LIMIT 5;"
+    embryos = query(embryo_sql)[0]["result"]
+    orphan_sql = "SELECT id, title FROM neuron WHERE synapse_out = 0 AND synapse_in = 0 LIMIT 5;"
+    orphans = query(orphan_sql)[0]["result"]
+
+    print("## Attention Needed")
+    n_embryos = next((s["n"] for s in stages if s["stage"] == "embryo"), 0)
+    print(f"- {n_embryos} embryo notes" + (f" (top: {', '.join(e['title'] for e in embryos[:3])})" if embryos else ""))
+    if orphans:
+        print(f"- {len(orphans)} disconnected neurons: {', '.join(o['title'] for o in orphans[:3])}")
+    print()
+
+    # Highest energy
+    energy_sql = (
+        "SELECT id, title, activation, stage, cluster_id, synapse_out, synapse_in "
+        "FROM neuron WHERE activation >= 0.9 ORDER BY activation DESC LIMIT 10;"
+    )
+    energy = query(energy_sql)[0]["result"]
+    if energy:
+        print("## Highest Energy")
+        for n in energy:
+            print(_format_neuron_line(n))
+        print()
+
+
 COMMANDS = {
     "neighborhood": cmd_neighborhood,
     "n": cmd_neighborhood,
@@ -233,6 +302,7 @@ COMMANDS = {
     "stats": cmd_stats,
     "resolve": cmd_resolve,
     "r": cmd_resolve,
+    "briefing": cmd_briefing,
 }
 
 
