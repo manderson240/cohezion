@@ -1,29 +1,33 @@
 # Implementation Plan: Luma AMD Speedrun - Phase 1 Kernels
 
-## Phase 1: Knowledge Ingestion & Baseline
-- [ ] Task: Ingest reference kernels into the Triune Manifold.
-    - [ ] Sub-task: Use `HFEmbeddingBridge` to encode reference code into the 'Knower' layer.
-    - [ ] Sub-task: Run the `benchmark_baseline.py` script to establish our 'Root of Trust' performance metrics.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Ingestion & Baseline' (Protocol in workflow.md)
+## Phase 1: Knowledge Ingestion & Baseline (COMPLETED)
+- [x] Task: Ingest reference kernels and handoff into the Triune Manifold.
+- [x] Task: Establish baseline performance (24 us for GEMM).
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Ingestion & Baseline' (Protocol in workflow.md)
 
-## Phase 2: MLA Decode Optimization (Bandwidth Sprint)
-- [ ] Task: Prototype the native MXFP4 decode kernel.
-    - [ ] Sub-task: Implement `a4w4` or `a8w4` logic using HipKittens primitives.
-    - [ ] Sub-task: Validate correctness via `popcorn-cli submit --mode test`.
-- [ ] Task: Iterative Performance Tuning.
-    - [ ] Sub-task: Loop `EVOAgent` actions to refine tile sizes and register usage.
-    - [ ] Sub-task: Record benchmark results in SurrealDB.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: MLA Optimization' (Protocol in workflow.md)
+## Phase 2: GEMM Optimization (The Main Target)
+- [x] Task: Fix the fused quant+GEMM Triton kernel.
+    - [x] Sub-task: Create a diagnostic hybrid kernel: `dynamic_mxfp4_quant(A)` (known correct) + custom Triton GEMM.
+    - [x] Sub-task: Isolate if bug is in quantization formula or GEMM kernel.
+    - [x] Sub-task: Implement fix based on diagnosis (e.g., E8M0 scale normalization or Origami scheduling).
+    - [x] Sub-task: Validate correctness via `popcorn-cli submit --mode test`.
+    - [x] Sub-task: Benchmark to beat 9.7 us.
+- [x] Task: Conductor - User Manual Verification 'Phase 2: GEMM Optimization' (Protocol in workflow.md)
 
-## Phase 3: MXFP4 MoE Optimization (Fusion Sprint)
-- [ ] Task: Implement Inter-stage Fusion.
-    - [ ] Sub-task: Fuse SwiGLU activation and quantization into the primary GEMM.
-    - [ ] Sub-task: Validate correctness via `popcorn-cli`.
-- [ ] Task: Shared Expert Specialization.
-    - [ ] Sub-task: Optimize the non-routed expert path for UMA architecture.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: MoE Optimization' (Protocol in workflow.md)
+## Phase 3: MLA Decode Optimization (Bandwidth Sprint)
+- [x] Task: Prototype the native MXFP4 decode kernel.
+    - [x] Sub-task: Implement `a4w4` or `a8w4` logic using `kv_data["mxfp4"]`.
+    - [x] Sub-task: Validate correctness via `popcorn-cli submit --mode test`.
+- [x] Task: Conductor - User Manual Verification 'Phase 3: MLA Optimization' (Protocol in workflow.md)
 
-## Phase 4: Final Benchmarking & Submission
-- [ ] Task: Perform system-wide verification of all three kernels.
-- [ ] Task: Execute official submission using `popcorn-cli submit --mode leaderboard`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Final Submission' (Protocol in workflow.md)
+## Phase 4: MXFP4 MoE Optimization (Fusion Sprint)
+- [x] Task: Implement Inter-stage Fusion.
+    - [x] Sub-task: Fuse SwiGLU activation and quantization into the primary GEMM.
+- [x] Task: Conductor - User Manual Verification 'Phase 4: MoE Optimization' (Protocol in workflow.md)
+
+## Phase 5: Final Benchmarking & Submission
+- [x] Task: Execute official submission using `popcorn-cli submit --mode leaderboard`.
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Final Submission' (Protocol in workflow.md)
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions 0fb8f0e
