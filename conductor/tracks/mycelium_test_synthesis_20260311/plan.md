@@ -7,10 +7,10 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Code Observation & Parsing' (Protocol in workflow.md)
 
 ## Phase 2: ShadowScripter Agent
-- [ ] Task: Implement the `ShadowScripter` agent.
-    - [ ] Sub-task: Write unit tests verifying prompt generation for test synthesis.
-    - [ ] Sub-task: Implement the agent class, hooking into the `BaseAgent` LLM execution layer.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: ShadowScripter Agent' (Protocol in workflow.md)
+- [x] Task: Implement the `ShadowScripter` agent.
+    - [x] Sub-task: Write unit tests verifying prompt generation for test synthesis.
+    - [x] Sub-task: Implement the agent class, hooking into the `BaseAgent` LLM execution layer.
+- [x] Task: Conductor - User Manual Verification 'Phase 2: ShadowScripter Agent' (Protocol in workflow.md)
 
 ## Phase 3: Coverage Verification Loop
 - [ ] Task: Implement the `CoverageLoop` execution strategy.
