@@ -1,10 +1,10 @@
 # Implementation Plan: Mycelium Test Synthesis
 
 ## Phase 1: Code Observation & Parsing
-- [ ] Task: Implement `ChangeObserver` to detect modified source files.
-    - [ ] Sub-task: Write tests mocking Git diff/file system changes.
-    - [ ] Sub-task: Implement logic to extract the relevant AST or diff context for new code.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Code Observation & Parsing' (Protocol in workflow.md)
+- [x] Task: Implement `ChangeObserver` to detect modified source files.
+    - [x] Sub-task: Write tests mocking Git diff/file system changes.
+    - [x] Sub-task: Implement logic to extract the relevant AST or diff context for new code.
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Code Observation & Parsing' (Protocol in workflow.md)
 
 ## Phase 2: ShadowScripter Agent
 - [ ] Task: Implement the `ShadowScripter` agent.
