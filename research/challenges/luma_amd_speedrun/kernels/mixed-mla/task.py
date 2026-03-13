@@ -1,7 +1,5 @@
-from typing import TypedDict, TypeVar
-
 import torch
-
+from typing import TypeVar, TypedDict, Union
 
 # DeepSeek R1 MLA forward_absorb format:
 #

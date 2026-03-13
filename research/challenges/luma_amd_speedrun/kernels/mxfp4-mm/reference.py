@@ -2,20 +2,16 @@
 FP4 quant + FP4 GEMM reference: bf16 A, MXFP4 B -> MXFP4 per-1x32 quant A -> gemm_a4w4 -> bf16 C.
 Quant logic follows aiter op_tests/test_gemm_a4w4.py (get_triton_quant(QuantType.per_1x32)).
 """
-
-import aiter
 import torch
-from aiter import QuantType, dtypes
-from aiter.ops.shuffle import shuffle_weight
 from task import input_t, output_t
 from utils import make_match_reference
-
-
+from aiter import QuantType,dtypes
+import aiter
+from aiter.ops.shuffle import shuffle_weight
 # K must be divisible by 64 (scale group 32 and fp4 pack 2)
 SCALE_GROUP_SIZE = 32
 
-
-def generate_input(m: int, n: int, k: int, seed: int):  # -> input_t:
+def generate_input(m: int, n: int, k: int, seed: int):# -> input_t:
     """
     Generate random bf16 inputs A [m, k], B [n, k] and quantized MXFP4 B, shuffled B and B_scale.
 
@@ -27,15 +23,14 @@ def generate_input(m: int, n: int, k: int, seed: int):  # -> input_t:
     gen.manual_seed(seed)
     A = torch.randn((m, k), dtype=torch.bfloat16, device="cuda", generator=gen)
     B = torch.randn((n, k), dtype=torch.bfloat16, device="cuda", generator=gen)
-
+    
     # quantized mxfp4 B
     quant_func = aiter.get_triton_quant(QuantType.per_1x32)
     B_q, B_scale_sh = quant_func(B, shuffle=True)
-
+    
     # shuffle B(weight) to (16,16) tile coalesced
     B_shuffle = shuffle_weight(B_q, layout=(16, 16))
     return (A, B, B_q, B_shuffle, B_scale_sh)
-
 
 def run_torch_fp4_mm(
     x: torch.Tensor,
@@ -78,7 +73,7 @@ def ref_kernel(data: input_t) -> output_t:
     B = B.contiguous()
     m, k = A.shape
     n, _ = B.shape
-
+    
     # 1) PyTorch impl just for your reference: dequant fp4 + e8m0 -> f32 -> mm -> bf16
     # Per-1x32 MXFP4 quant
     # quant_func = aiter.get_triton_quant(QuantType.per_1x32)
@@ -89,7 +84,7 @@ def ref_kernel(data: input_t) -> output_t:
     # gemm_a4w4 expects A [M,K/2], B [N,K/2] as dtypes.fp4x2; A_scale/B_scale [*,K/32] E8M0
     # quant_func returns scale as dtypes.fp8_e8m0; gemm_a4w4 accepts E8M0, no view to uint8 needed
     # slice to exact shapes [m,k_scale] / [n,k_scale] (quant may return padded scale)
-
+    
     # k_scale = k // SCALE_GROUP_SIZE
     # A_scale = A_scale[:m, :k_scale].contiguous()
     # B_scale = B_scale[:n, :k_scale].contiguous()
@@ -109,6 +104,5 @@ def ref_kernel(data: input_t) -> output_t:
         bpreshuffle=True,
     )
     return out_gemm
-
 
 check_implementation = make_match_reference(ref_kernel, rtol=1e-02, atol=1e-02)
