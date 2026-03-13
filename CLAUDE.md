@@ -6,6 +6,8 @@ Knowledge base for the Cohezion agentic AI framework, managed as an Obsidian vau
 
 **New to this vault?** Read `VAULT_MANIFEST.md` first — it maps every directory, explains where to put your output, and lists entry points. Each directory also has a `_index.md` file with purpose, conventions, and key notes.
 
+**Graph awareness?** Read `metabolism/graph-briefing.md` for vault shape, hot neurons, bridges, and attention items (~1000 tokens, updated by cron).
+
 The `/vault-keeper` skill runs proactively — it monitors vault health and acts on issues without being asked. See `.claude/skills/vault-keeper/SKILL.md` for details.
 
 ## Structure — The Triune Self
