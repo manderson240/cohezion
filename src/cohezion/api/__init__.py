@@ -21,6 +21,7 @@ from cohezion.mcp.knowledge_server import get_server as get_knowledge_server
 from cohezion.mcp.registry import get_registry
 from cohezion.mcp.swarm_server import get_server as get_swarm_server
 from cohezion.security.rate_limiter import get_rate_limiter
+from cohezion.api.telemetry import router as telemetry_router
 
 
 logging.basicConfig(level=logging.INFO)
@@ -1533,3 +1534,6 @@ try:
     app.include_router(universe_router, prefix="/api/universe")
 except ImportError:
     pass  # universe module not available
+
+# Register telemetry websocket
+app.include_router(telemetry_router)
