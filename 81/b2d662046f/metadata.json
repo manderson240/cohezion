@@ -3,7 +3,7 @@
   "checkpoint_id": "81b2d662046f",
   "strategy": "manual-commit",
   "branch": "production/token-efficient-squad",
-  "checkpoints_count": 1,
+  "checkpoints_count": 3,
   "files_touched": [
     "conductor/tracks/multimodal_interface_20260312/plan.md",
     "src/cohezion/api/__init__.py"
@@ -15,13 +15,20 @@
       "context": "/81/b2d662046f/0/context.md",
       "content_hash": "/81/b2d662046f/0/content_hash.txt",
       "prompt": "/81/b2d662046f/0/prompt.txt"
+    },
+    {
+      "metadata": "/81/b2d662046f/1/metadata.json",
+      "transcript": "/81/b2d662046f/1/full.jsonl",
+      "context": "/81/b2d662046f/1/context.md",
+      "content_hash": "/81/b2d662046f/1/content_hash.txt",
+      "prompt": "/81/b2d662046f/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 6765,
-    "cache_creation_tokens": 1322346,
-    "cache_read_tokens": 29081228,
-    "output_tokens": 67995,
-    "api_call_count": 224
+    "input_tokens": 21571,
+    "cache_creation_tokens": 3381458,
+    "cache_read_tokens": 48391094,
+    "output_tokens": 175444,
+    "api_call_count": 395
   }
 }
