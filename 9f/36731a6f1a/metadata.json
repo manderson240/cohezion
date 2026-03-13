@@ -3,9 +3,10 @@
   "checkpoint_id": "9f36731a6f1a",
   "strategy": "manual-commit",
   "branch": "production/token-efficient-squad",
-  "checkpoints_count": 8,
+  "checkpoints_count": 29,
   "files_touched": [
     "conductor/tech-stack.md",
+    "research/challenges/luma_amd_speedrun/GEMINI_HANDOFF.md",
     "research/challenges/luma_amd_speedrun/TODO.md",
     "research/challenges/luma_amd_speedrun/benchmark_baseline.py",
     "research/challenges/luma_amd_speedrun/kernels/eval.py",
@@ -28,13 +29,20 @@
       "context": "/9f/36731a6f1a/0/context.md",
       "content_hash": "/9f/36731a6f1a/0/content_hash.txt",
       "prompt": "/9f/36731a6f1a/0/prompt.txt"
+    },
+    {
+      "metadata": "/9f/36731a6f1a/1/metadata.json",
+      "transcript": "/9f/36731a6f1a/1/full.jsonl",
+      "context": "/9f/36731a6f1a/1/context.md",
+      "content_hash": "/9f/36731a6f1a/1/content_hash.txt",
+      "prompt": "/9f/36731a6f1a/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 4649,
-    "cache_creation_tokens": 2455314,
-    "cache_read_tokens": 24848187,
-    "output_tokens": 96952,
-    "api_call_count": 194
+    "input_tokens": 40558,
+    "cache_creation_tokens": 10581521,
+    "cache_read_tokens": 104607387,
+    "output_tokens": 713668,
+    "api_call_count": 868
   }
 }
